@@ -1,0 +1,49 @@
+/**************************************************************************
+*
+* File:		RsPrimitiveGL.h
+* Author:	Neil Richardson 
+* Ver/Date:	4/03/11	
+* Description:
+*		
+*		
+*
+*
+* 
+**************************************************************************/
+
+#ifndef __RSPRIMITIVEGL_H__
+#define __RSPRIMITIVEGL_H__
+
+#include "RsVertexBufferGL.h"
+#include "RsIndexBufferGL.h"
+
+#include "RsPrimitive.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// RsPrimitiveGL
+class RsPrimitiveGL:
+	public RsPrimitive
+{
+public:
+	/**
+	 * Create primitive.
+	 * @param pVertexBuffer Vertex buffer.
+	 * @param pIndexBuffer Index buffer.
+	 */
+	RsPrimitiveGL( RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer );
+	virtual ~RsPrimitiveGL();
+	
+protected:
+	virtual void						create();
+	virtual void						update();
+	virtual void						destroy();	
+	
+public:
+	virtual void						render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	
+private:
+	RsVertexBufferGL*					pVertexBuffer_;
+	RsIndexBufferGL*					pIndexBuffer_;	
+};
+
+#endif

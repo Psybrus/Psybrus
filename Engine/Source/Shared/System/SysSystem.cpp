@@ -1,0 +1,155 @@
+/**************************************************************************
+*
+* File:		SysSystem.cpp
+* Author: 	Neil Richardson 
+* Ver/Date:	
+* Description:
+*		System implementation.
+*		
+*
+*
+* 
+**************************************************************************/
+
+#include "SysSystem.h"
+
+#include "BcMemory.h"
+#include "BcString.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+SysSystem::SysSystem():
+	pKernel_( NULL ),
+	ProcessState_( STATE_OPEN ),
+	StopTriggered_( BcFalse )
+{
+	// Setup function pointers.
+	ProcessFuncs_[ STATE_OPEN ] = 		&SysSystem::processOpen;
+	ProcessFuncs_[ STATE_UPDATE ] = 	&SysSystem::processUpdate;
+	ProcessFuncs_[ STATE_CLOSE ] =		&SysSystem::processClose;
+	ProcessFuncs_[ STATE_FINISHED ] = 	&SysSystem::processFinished;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+SysSystem::~SysSystem()
+{
+	BcAssert( ProcessState_ == STATE_FINISHED );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pKernel
+void SysSystem::pKernel( SysKernel* pKernel )
+{
+	pKernel_ = pKernel;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pKernel
+SysKernel* SysSystem::pKernel()
+{
+	return pKernel_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// stop
+void SysSystem::stop()
+{
+	StopTriggered_ = BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isFinished
+BcBool SysSystem::isFinished() const
+{
+	return ProcessState_ == STATE_FINISHED;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// process
+BcBool SysSystem::process()
+{
+	// Cache process func.
+	ProcessFunc processFunc = ProcessFuncs_[ ProcessState_ ];
+	
+	// Call the correct function for processing.
+	return (this->*processFunc)();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processOpen
+BcBool SysSystem::processOpen()
+{
+	// Pre-open event.
+	EvtPublisher::publish( sysEVT_SYSTEM_PRE_OPEN, SysSystemEvent( this ) );
+
+	// Tick open.
+	open();
+
+	// Post-open event.
+	EvtPublisher::publish( sysEVT_SYSTEM_POST_OPEN, SysSystemEvent( this ) );
+
+	// Advance to update if a stop hasn't been triggered.
+	if( StopTriggered_ == BcFalse )
+	{	
+		ProcessState_ = STATE_UPDATE;
+	}
+	else
+	{
+		ProcessState_ = STATE_CLOSE;
+	}
+	
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processUpdate
+BcBool SysSystem::processUpdate()
+{
+	// Pre-update event.
+	EvtPublisher::publish( sysEVT_SYSTEM_PRE_UPDATE, SysSystemEvent( this ) );
+
+	// Tick update.
+	update();
+
+	// Post-update event.
+	EvtPublisher::publish( sysEVT_SYSTEM_POST_UPDATE, SysSystemEvent( this ) );
+	
+	// Stop if need be.
+	if( StopTriggered_ == BcTrue )
+	{
+		ProcessState_ = STATE_CLOSE;
+	}
+	
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processClose
+BcBool SysSystem::processClose()
+{
+	// Pre-close event.
+	EvtPublisher::publish( sysEVT_SYSTEM_PRE_CLOSE, SysSystemEvent( this ) );
+
+	// Tick close.
+	close();
+	
+	// Post-close event.
+	EvtPublisher::publish( sysEVT_SYSTEM_POST_CLOSE, SysSystemEvent( this ) );
+
+	// Advance to finished.
+	ProcessState_ = STATE_FINISHED;
+	
+	//
+	return BcTrue;	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processFinished
+BcBool SysSystem::processFinished()
+{
+	// Do nothing.
+	return BcFalse;
+}
+
