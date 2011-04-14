@@ -1,0 +1,124 @@
+/**************************************************************************
+*
+* File:		ScnScript.cpp
+* Author:	Neil Richardson 
+* Ver/Date:	5/03/11	
+* Description:
+*		
+*		
+*
+*
+* 
+**************************************************************************/
+
+#include "ScnScript.h"
+
+#include "gmMachine.h"
+#include "gmStream.h"
+
+#ifdef PSY_SERVER
+#include "BcStream.h"
+#include "BcFile.h"
+#endif
+
+#ifdef PSY_SERVER
+
+//////////////////////////////////////////////////////////////////////////
+// import
+//virtual
+BcBool ScnScript::import( const Json::Value& Object )
+{
+	const std::string& FileName = Object[ "source" ].asString();
+	BcFile File;
+	
+	if( File.open( FileName.c_str(), bcFM_READ ) )
+	{
+		BcBool Success = BcTrue;
+		
+		// Read entire script in.
+		BcChar* pScript = new BcChar[ File.size() ];
+		File.read( pScript, File.size() );
+		
+		// Construct a machine to check the script.
+		gmMachine GmMachine;
+		int RetVal = GmMachine.CheckSyntax( pScript );
+		if( RetVal == 0 )
+		{
+			// No errors, pack it.
+			BcStream ScriptStream;
+			
+			ScriptStream.push( pScript, File.size() );
+			ScriptStream << BcU8( 0 );
+			pFile_->addChunk( BcHash( "script" ), ScriptStream.pData(), ScriptStream.dataSize() );
+			delete [] pScript;
+			return BcTrue;
+		}
+		delete [] pScript;
+
+		// Log errors found.
+		gmLog& GmLog = GmMachine.GetLog();
+		bool First = true;
+		const char* Entry = NULL;
+		while( Entry = GmLog.GetEntry( First ) ) // Yes this is an assign. It's intended!
+		{
+			BcPrintf( "GmLog: %s\n", Entry );
+		}
+	}
+	return BcFalse;
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// Define resource internals.
+DEFINE_RESOURCE( ScnScript );
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnScript::initialise()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnScript::create()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnScript::destroy()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+BcBool ScnScript::isReady()
+{
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileReady
+void ScnScript::fileReady()
+{
+	// File is ready, get the header chunk.
+	pFile_->getChunk( 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+//fileChunkReady
+void ScnScript::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+{
+	if( pChunk->ID_ == BcHash( "script" ) )
+	{
+		// TODO: Compile the script.
+	}
+}
+

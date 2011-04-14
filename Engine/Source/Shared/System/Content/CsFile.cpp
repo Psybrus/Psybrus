@@ -1,0 +1,86 @@
+/**************************************************************************
+*
+* File:		CsFile.cpp
+* Author:	Neil Richardson 
+* Ver/Date:	14/03/11	
+* Description:
+*		
+*		
+*
+*
+* 
+**************************************************************************/
+
+#include "CsFile.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsFile::CsFile( const std::string& Name ):
+	Name_( Name )
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+CsFile::~CsFile()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// load
+//virtual
+BcBool CsFile::load( CsFileReadyDelegate ReadyDelegate, CsFileChunkDelegate ChunkDelegate )
+{
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// save
+//virtual
+BcBool CsFile::save()
+{
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getChunk
+//virtual
+const std::string& CsFile::getName() const
+{
+	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getChunk
+//virtual
+const CsFileChunk* CsFile::getChunk( BcU32 Chunk, BcBool TriggerLoad )
+{
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getID
+//virtual
+BcU32 CsFile::getID() const
+{
+	return BcErrorCode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofChunks
+//virtual
+BcU32 CsFile::getNoofChunks() const
+{
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addChunk
+//virtual
+BcU32 CsFile::addChunk( BcU32 ID, void* pData, BcU32 Size )
+{
+	return BcErrorCode;
+}

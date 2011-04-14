@@ -1,0 +1,22 @@
+Tstatic
+v7
+r1
+cCheck dependencies
+
+N/Users/neilo/Documents/Dev/Psybrus/External/wxWidgets-2.8.11/src/build/Development/libwx_mac_static.a
+c00000000000000000000000000000000
+t2
+s0
+
+N/Users/neilo/Documents/Dev/Psybrus/External/wxWidgets-2.8.11/src/build/wxWindows.build/Development/static.build/Script-4059FD3C0BA95691001F6B1C.sh
+c00000000000000000000000000000000
+t2
+s0
+
+CCheck dependencies
+r0
+lSLF07#2@18"Check dependencies320984925#320984926#0(86"[BEROR]error: There is no SDK with the name or path '/Developer/SDKs/MacOSX10.4u.sdk'1(4@78"error: There is no SDK with the name or path '/Developer/SDKs/MacOSX10.4u.sdk'320984925#18446744073709551615#0#0(1@0"0(0#1#0"8630668704#0"0#
+
+CPhaseScriptExecution "Run Script" /Users/neilo/Documents/Dev/Psybrus/External/wxWidgets-2.8.11/src/build/wxWindows.build/Development/static.build/Script-4059FD3C0BA95691001F6B1C.sh
+r0
+
