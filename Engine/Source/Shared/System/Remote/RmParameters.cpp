@@ -13,6 +13,7 @@
 
 #include "RmParameters.h"
 #include "BcMemory.h"
+#include "BcHash.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -26,12 +27,17 @@ RmParameters::RmParameters( RmParameters::eType Type, void* pData, BcU32 Size )
 	switch( Type )
 	{
 		case TYPE_SEND:
+			{
+				pBuffer_ = new BcU8[ 1024 * 1024 ];
+			}
 			break;
 
 		case TYPE_RECV:
-			BcAssert( pData != NULL && Size != 0 );
-			pBuffer_ = (BcU8*)pData;
-			BufferSize_ = Size;
+			{
+				BcAssert( pData != NULL && Size != 0 );
+				pBuffer_ = (BcU8*)pData;
+				BufferSize_ = Size;
+			}
 			break;
 	}
 }
@@ -40,20 +46,17 @@ RmParameters::RmParameters( RmParameters::eType Type, void* pData, BcU32 Size )
 // Dtor
 RmParameters::~RmParameters()
 {
-	delete [] pBuffer_;
+	if( Type_ == TYPE_SEND )
+	{
+		delete [] pBuffer_;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // push
 void RmParameters::push( const void* pData, BcU32 Bytes )
 {
-	//
-	BcSize CurrentPosition = Cursor_; 
-	
-	//
 	const BcSize DataEnd = Cursor_ + Bytes;
-	
-	//
 	if( DataEnd > BufferSize_ )
 	{
 		resize( DataEnd );

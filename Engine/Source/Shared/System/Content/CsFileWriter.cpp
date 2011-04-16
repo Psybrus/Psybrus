@@ -66,6 +66,7 @@ BcBool CsFileWriter::save()
 				FileChunk.ID_ = Chunk.ID_;
 				FileChunk.Offset_ = Offset;
 				FileChunk.Size_ = Chunk.Size_;
+				FileChunk.Hash_ = (BcU32)BcHash( Chunk.pData_, Chunk.Size_ );
 				
 				Offset += Chunk.Size_;
 				

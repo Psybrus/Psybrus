@@ -25,15 +25,7 @@ DEFINE_RESOURCE( ScnCanvas );
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnCanvas::initialise()
-{
-	initialise( 2048 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnCanvas::initialise( BcU32 NoofVertices )
+void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMaterialInstance )
 {
 	// NULL internals.
 	pVertexBuffer_ = NULL;
@@ -46,6 +38,9 @@ void ScnCanvas::initialise( BcU32 NoofVertices )
 	
 	// Store number of vertices.
 	NoofVertices_ = NoofVertices;
+	
+	// Store default material instance.
+	DefaultMaterialInstance_ = DefaultMaterialInstance; 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +82,13 @@ void ScnCanvas::destroy()
 BcBool ScnCanvas::isReady()
 {
 	return pVertexBuffer_ != NULL && pPrimitive_ != NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setMaterialInstance
+void ScnCanvas::setMaterialInstance( ScnMaterialInstanceRef MaterialInstance )
+{
+	MaterialInstance_ = MaterialInstance;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -170,7 +172,8 @@ void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices,
 		Type,
 		VertexIndex,
 		NoofVertices,
-		Layer
+		Layer,
+		MaterialInstance_
 	};
 	
 	PrimitiveSectionList_.push_back( PrimitiveSection );
@@ -244,21 +247,29 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->U_ = 0.0f;
+		pVertices->V_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->U_ = 1.0f;
+		pVertices->V_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
 		++pVertices;
 
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->U_ = 0.0f;
+		pVertices->V_ = 1.0f;
 		pVertices->RGBA_ = RGBA;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->U_ = 1.0f;
+		pVertices->V_ = 1.0f;
 		pVertices->RGBA_ = RGBA;
 		
 		// Add primitive.	
@@ -287,6 +298,9 @@ void ScnCanvas::clear()
 		pVertexBuffer_->lock();
 		HaveVertexBufferLock_ = BcTrue;
 	}
+	
+	// Set material instance to default material instance.
+	MaterialInstance_ = DefaultMaterialInstance_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -296,10 +310,12 @@ class ScnCanvasRenderNode: public RsRenderNode
 public:
 	void render()
 	{
+		// TODO: Cache material instance so we don't rebind?
 		for( BcU32 Idx = 0; Idx < NoofSections_; ++Idx )
 		{
 			ScnCanvasPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
+			pPrimitiveSection->MaterialInstance_->bind();
 			pPrimitive_->render( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}

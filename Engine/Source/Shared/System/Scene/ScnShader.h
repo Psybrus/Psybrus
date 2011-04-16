@@ -44,14 +44,24 @@ class ScnShader:
 public:
 	DECLARE_RESOURCE( ScnShader );
 	
+#ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object );
+#endif
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	RsShader*							getShader( BcU32 PermutationFlags );
+	RsProgram*							getProgram( BcU32 PermutationFlags );
 		
+private:
+	typedef std::map< BcU32, RsShader* > TShaderMap;
+	typedef std::map< BcU32, RsProgram* > TProgramMap;
+	typedef TShaderMap::iterator TShaderMapIterator;
+	typedef TProgramMap::iterator TProgramMapIterator;
+
+	RsShader*							getShader( BcU32 PermutationFlags, TShaderMap& ShaderMap );
+	
 private:
 	void								fileReady();
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
@@ -59,8 +69,9 @@ private:
 private:
 	struct THeader
 	{
-		eRsShaderType					Type_;
-		BcU32							NoofPermutations_;
+		BcU32							NoofVertexShaderPermutations_;
+		BcU32							NoofFragmentShaderPermutations_;
+		BcU32							NoofProgramPermutations_;
 	};
 	
 	struct TShaderHeader
@@ -68,37 +79,18 @@ private:
 		BcU32							PermutationFlags_;
 	};
 	
-	typedef std::map< BcU32, RsShader* > TShaderMap;
-	typedef TShaderMap::iterator TShaderMapIterator;
-	
+	struct TProgramHeader
+	{
+		BcU32							ProgramPermutationFlags_;
+		BcU32							VertexShaderPermutationFlags_;
+		BcU32							FragmentShaderPermutationFlags_;
+	};
+		
 	THeader*							pHeader_;
-	TShaderMap							ShaderMap_;
+	TShaderMap							VertexShaderMap_;
+	TShaderMap							FragmentShaderMap_;
+	TProgramMap							ProgramMap_;
 };
-
-//////////////////////////////////////////////////////////////////////////
-// ScnShaderProgram
-class ScnShaderProgram:
-	public CsResource
-{
-public:
-	DECLARE_RESOURCE( ScnShaderProgram );
-	
-	void								initialise( ScnShaderRef VertexShader, ScnShaderRef FragmentShader );
-	virtual void						create();
-	virtual void						destroy();
-	
-	virtual BcBool						isReady();
-	
-private:
-	friend class ScnShader;
-
-private:
-	BcU32								PermutatationFlags_;
-	RsProgram*							pProgram_;
-	ScnShaderRef						VertexShader_;
-	ScnShaderRef						FragmentShader_;
-};
-
 
 
 #endif

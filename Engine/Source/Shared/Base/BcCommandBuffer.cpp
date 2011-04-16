@@ -42,21 +42,18 @@ void BcCommandBuffer::push( BcCommand* pCommand )
 // execute
 void BcCommandBuffer::execute()
 {
-	// Queue of commands to execute.
-	std::deque< BcCommand* > CommandExecuteQueue;
-	
 	// Copy and clear the queue so we can execute.
 	QueueLock_.lock();
-	CommandExecuteQueue = CommandQueue_;
+	ExecuteCommandQueue_= CommandQueue_;
 	CommandQueue_.clear();
 	QueueLock_.unlock();
 	
 	// Execute all commands in the queue.
-	while( CommandExecuteQueue.size() > 0 )
+	while( ExecuteCommandQueue_.size() > 0 )
 	{
 		// Grab command.
-		BcCommand* pCommand = CommandExecuteQueue.front();
-		CommandExecuteQueue.pop_front();
+		BcCommand* pCommand = ExecuteCommandQueue_.front();
+		ExecuteCommandQueue_.pop_front();
 		
 		// Execute command.
 		pCommand->execute();

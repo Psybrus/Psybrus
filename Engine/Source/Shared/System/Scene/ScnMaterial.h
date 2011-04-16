@@ -36,7 +36,9 @@ class ScnMaterial:
 public:
 	DECLARE_RESOURCE( ScnMaterial );
 	
+#ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object );
+#endif
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
@@ -49,17 +51,23 @@ private:
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
 	
 private:
+	struct THeader
+	{
+		// TODO: Store IDs, hash keys, or more packed data.
+		BcChar							ShaderName_[ 64 ];
+		BcU32							NoofTextures_;
+	};
+
+	struct TTextureHeader
+	{
+		BcChar							SamplerName_[ 64 ];
+		BcChar							TextureName_[ 64 ];
+	};
 	
-	// External resources.
-	typedef std::map< BcU32, RsProgram* > TProgramMap;
-	typedef TProgramMap::iterator TProgramMapIterator;
-	typedef std::vector< ScnTextureRef > TTextureList;
-	typedef TTextureList::iterator TTextureListIterator;
+	THeader*							pHeader_;
 	
-	ScnShaderRef						VertexShader_;
-	ScnShaderRef						FragmentShader_;
-	TProgramMap							ProgramMap_;
-	TTextureList						TextureList_;
+	ScnShaderRef						Shader_;
+	ScnTextureMap						TextureMap_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,14 +77,29 @@ class ScnMaterialInstance:
 {
 public:
 	DECLARE_RESOURCE( ScnMaterialInstance );
+	
+	void								initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap );
+	
+	void								bind();
 
 	virtual BcBool						isReady();
 
 private:
 	friend class ScnMaterial;
-
-	RsProgram*							pProgram_;
+		
+	struct TTextureBinding
+	{
+		RsProgramParameter*				pParameter_;
+		ScnTextureRef					Texture_;
+	};
+	
+	typedef std::list< TTextureBinding > TTextureBindingList;
+	typedef TTextureBindingList::iterator TTextureBindingListIterator;
+	
 	ScnMaterialRef						Parent_;
+	RsProgram*							pProgram_;
+
+	TTextureBindingList					TextureBindingList_;
 };
 
 #endif

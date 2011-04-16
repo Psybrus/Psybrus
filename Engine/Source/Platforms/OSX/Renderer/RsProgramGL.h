@@ -29,7 +29,7 @@ class RsProgramParameterGL:
 	public RsProgramParameter
 {
 public:
-	RsProgramParameterGL( const std::string& Name, RsProgramGL* pParent, GLuint Parameter, GLuint Sampler );
+	RsProgramParameterGL( const std::string& Name, RsProgramGL* pParent, GLuint Parameter );
 	virtual ~RsProgramParameterGL();
 	
 	void								setInt( BcS32 Value );
@@ -38,20 +38,10 @@ public:
 	void								setVector( const BcVec3d& Value );
 	void								setVector( const BcVec4d& Value );
 	void								setMatrix( const BcMat4d& Value );
-	void								setTexture( RsTexture* pTexture );
 
-	/**
-	 * Bind the parameter that has been set if need be.
-	 */
-	void								bind();
-	
 private:
 	RsProgramGL*						pParent_;
 	GLint								Parameter_;
-	
-	// Sampler information. NOTE: Subclass this to put more texture info in.
-	GLuint								Sampler_;
-	RsTextureGL*						pTexture_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +57,7 @@ public:
 	void								update();
 	void								destroy();	
 	
-	virtual RsProgramParameter*			findParameter( const std::string& Name, BcBool IsSampler );
+	virtual RsProgramParameter*			findParameter( const std::string& Name );
 	virtual void						bind();
 
 private:	

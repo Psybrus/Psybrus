@@ -19,8 +19,8 @@
 
 SYS_CREATOR( CsCoreClient );
 
-//#define DbgTrace BcPrintf
-#define DbgTrace(...)
+#define DbgTrace BcPrintf
+//#define DbgTrace(...)
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -80,7 +80,11 @@ void CsCoreClient::close()
 //virtual
 CsFile* CsCoreClient::createFileReader( const std::string& FileName )
 {
-	return new CsFileReaderRPC( FileName );
+	if( RmCore::pImpl()->isConnected() )
+	{
+		return new CsFileReaderRPC( FileName );
+	}
+	return new CsFileReader( FileName );
 }
 
 //////////////////////////////////////////////////////////////////////////

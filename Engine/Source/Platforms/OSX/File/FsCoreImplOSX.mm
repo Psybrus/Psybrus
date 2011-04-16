@@ -11,12 +11,12 @@
 * 
 **************************************************************************/
 
+#import <Cocoa/Cocoa.h>
+
 #include "FsCoreImplOSX.h"
 #include "FsFileImplOSX.h"
 
 #include "SysKernel.h"
-
-#import <Cocoa/Cocoa.h>
 
 //////////////////////////////////////////////////////////////////////////
 // System Creator

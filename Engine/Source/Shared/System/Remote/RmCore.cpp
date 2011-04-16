@@ -61,7 +61,7 @@ BcBool RmCore::send( BcU32 UniqueID, void* pData, BcU32 Bytes )
 
 	BcBool Success = BcTrue;
 
-	TMessageHeader Header( UniqueID, Bytes );
+	TMessageHeader Header( UniqueID, Bytes, (BcU32)BcHash( (BcU8*)pData, Bytes ) );
 	TMessage Message( Header, new BcU8[ Bytes ] );
 	
 	BcMemCopy( Message.pData_, pData, Bytes );
@@ -122,6 +122,13 @@ void RmCore::listen()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// isConnected
+BcBool RmCore::isConnected() const
+{
+	return Connection_.isConnected();
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // open
 //virtual
 void RmCore::open()
@@ -142,7 +149,7 @@ void RmCore::update()
 	{
 		// Receive 1 message at a time.
 		{
-			TMessageHeader Header( 0, 0 );
+			TMessageHeader Header( 0, 0, 0 );
 			BcU32 BytesWaiting = Connection_.recv( &Header, sizeof( Header ), BcTrue, BcFalse );
 						
 			// If we have enough bytes waiting then we can read in the data.
@@ -157,6 +164,9 @@ void RmCore::update()
 					BcU8* pData = new BcU8[ Header.Bytes_ ];
 					BcU32 DataSize = Connection_.recv( pData, Header.Bytes_, BcFalse, BcTrue );
 		
+					BcU32 Hash = (BcU32)BcHash( pData, DataSize );
+					BcAssertMsg( Hash == (BcU32)Header.Hash_, "RmCore: Message hash failed.\n" );
+					
 					// Check the data.
 					if( DataSize == (BcU32)Header.Bytes_ )
 					{
@@ -167,6 +177,9 @@ void RmCore::update()
 						BcPrintf( "RmCore:: Error: Failed to receive %u bytes of data for delegate: 0x%x\n", (BcU32)Header.Bytes_, (BcU32)Header.Destination_ );
 						Connection_.disconnect();			
 					}
+					
+					// Free memory used.
+					delete [] pData;
 				}
 			}
 			/*
@@ -262,7 +275,7 @@ void RmCore::dispatch( const TMessageHeader& Header, void* pData )
 	// Call if we have a delegate.
 	if( Delegate.isValid() )
 	{
-		Delegate( pData, Header.Bytes_ );
+		Delegate( pData, (BcU32)Header.Bytes_ );
 	}
 }
 

@@ -35,6 +35,7 @@ struct CsFileChunk
 	BcU32					ID_;				///!< What type of chunk it is.
 	BcU32					Offset_;			///!< Offset of chunk, 0 for none.
 	BcU32					Size_;				///!< Size of chunk, 0 for none.
+	BcU32					Hash_;				///!< Hash of the chunk data.
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -61,24 +61,28 @@ eEvtReturn doQuit( EvtID ID, const OsEventCore& Event )
 ScnTextureRef Texture;
 ScnModelRef Model;
 ScnCanvasRef Canvas;
-ScnShaderRef VertexShaderRef;
-ScnShaderRef FragmentShaderRef;
+ScnMaterialRef MaterialRef;
+ScnMaterialInstanceRef MaterialInstanceRef;
 
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
-	if( Canvas.isValid() == BcFalse )
+	if( MaterialRef.isValid() == BcFalse )
 	{
 		CsCore::pImpl()->registerResource< ScnTexture >();
 		CsCore::pImpl()->registerResource< ScnMaterial >();
+		CsCore::pImpl()->registerResource< ScnMaterialInstance >();
 		CsCore::pImpl()->registerResource< ScnModel >();
 		CsCore::pImpl()->registerResource< ScnCanvas >();
 		CsCore::pImpl()->registerResource< ScnShader >();
-		
-		CsCore::pImpl()->createResource( "test", Canvas, 1024 );
-		
-		//CsCore::pImpl()->requestResource( "testv", VertexShaderRef );
-		//CsCore::pImpl()->requestResource( "testf", FragmentShaderRef );
-		
+
+		CsCore::pImpl()->requestResource( "test_material", MaterialRef );
+	}
+	if( MaterialRef.isReady() && Canvas.isValid() == BcFalse )
+	{
+		if( MaterialRef->createInstance( "test_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT ) )
+		{
+			CsCore::pImpl()->createResource( "test", Canvas, 1024, MaterialInstanceRef );
+		}
 	}
 	
 	// No more updates please.
@@ -159,18 +163,7 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 {
 	// Allocater a frame from the renderer.
 	RsFrame* pFrame = RsCore::pImpl()->allocateFrame();
-	// Create hacking assets.
-	if( pPrimitive == NULL )
-	{
 
-		pIndexBuffer = RsCore::pImpl()->createIndexBuffer( 5, Indices );
-		pVertexBuffer = RsCore::pImpl()->createVertexBuffer( rsVDF_POSITION_XYZ, 5, Vertices );
-		pPrimitive = RsCore::pImpl()->createPrimitive( pVertexBuffer, NULL );
-	
-		pVertexShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, VertexShader, BcStrLength( VertexShader ) );
-		pFragmentShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, FragmentShader, BcStrLength( VertexShader ) );
-		pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );
-	}
 	
 	// Setup view.
 	RsViewport Viewport( 0, 0, 640, 480 );
@@ -189,9 +182,8 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 	pFrame->setRenderTarget( NULL );
 	pFrame->setViewport( Viewport );
 	
-	pFrame->addRenderNode( pFrame->newObject< TestNode >( RsRenderSort( 0 ) ) );
-	
 	// Canvas test.
+	//*
 	if( Canvas.isReady() )
 	{
 		BcMat4d Transform;
@@ -213,6 +205,7 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 		
 		Canvas->render( pFrame, RsRenderSort( 0 ) );
 	}
+	// */
 	
 	// Queue frame up to be rendered.
 	RsCore::pImpl()->queueFrame( pFrame );	
@@ -227,11 +220,6 @@ eEvtReturn doRemoteOpened( EvtID, const SysSystemEvent& Event )
 
 void PsyGameInit( SysKernel& Kernel )
 {
-	for( BcU32 i = 0; i < 32; ++i )
-	{
-		BcPrintf( "Bits in %x: %i\n", i, BcBitsSet( i ) );
-	}
-	
 	//
 	extern void BcAtomic_UnitTest();
 	BcAtomic_UnitTest();

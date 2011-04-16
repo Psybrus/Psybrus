@@ -21,6 +21,7 @@
 #include "RsShaderGL.h"
 #include "RsProgramGL.h"
 #include "RsPrimitiveGL.h"
+#include "RsStateBlockGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -67,6 +68,9 @@ void RsCoreImplGL::open()
 		
 		// Allocate a frame for rendering.
 		pFrame_ = new RsFrameGL( NULL, W, H );
+		
+		// Allocate a state block for rendering.
+		pStateBlock_ = new RsStateBlockGL();
 	}
 	else
 	{
@@ -91,6 +95,9 @@ void RsCoreImplGL::update()
 //virtual
 void RsCoreImplGL::close()
 {
+	// Free the state block.
+	delete pStateBlock_;
+	
 	// Free the frame.
 	delete pFrame_;
 
@@ -266,4 +273,10 @@ void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 	CommandBuffer_.push( new RenderFrameCommand( static_cast< RsFrameGL* >( pFrame ) ) );	
 }
 
+//////////////////////////////////////////////////////////////////////////
+// getStateBlock
+RsStateBlock* RsCoreImplGL::getStateBlock()
+{
+	return pStateBlock_;
+}
 

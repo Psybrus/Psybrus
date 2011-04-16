@@ -65,13 +65,7 @@ public:
 	 * @param Value Value.
 	 */
 	virtual void						setMatrix( const BcMat4d& Value ) = 0;
-	
-	/**
-	 * Set texture.
-	 * @param pTexture Texture. (Must have been found using IsSampler).
-	 */
-	virtual void						setTexture( RsTexture* pTexture ) = 0;
-	
+		
 protected:
 	std::string							Name_;
 	
@@ -99,10 +93,9 @@ public:
 	/**
 	 * Find parameter.
 	 * @param Name Name of parameter.
-	 * @param IsSampler Is it a sampler?
 	 * @return Pointer to program parameter object.
 	 */
-	virtual RsProgramParameter*			findParameter( const std::string& Name, BcBool IsSampler = BcFalse ) = 0;
+	virtual RsProgramParameter*			findParameter( const std::string& Name ) = 0;
 	
 	/**
 	 * Bind program.

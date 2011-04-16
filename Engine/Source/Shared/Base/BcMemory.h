@@ -14,8 +14,16 @@
 #ifndef __BCMEMORY_H__
 #define __BCMEMORY_H__
 
-#include <new>
-#include <memory.h>
+#include "BcDebug.h"
+
+//#define MEM_DEBUG
+
+//////////////////////////////////////////////////////////////////////////
+// new/delete overloading.
+void* operator new( size_t Size );
+void* operator new[]( size_t Size );
+void operator delete( void* pMem ) throw();
+void operator delete[]( void* pMem ) throw();
 
 //////////////////////////////////////////////////////////////////////////
 // BcMemSet
