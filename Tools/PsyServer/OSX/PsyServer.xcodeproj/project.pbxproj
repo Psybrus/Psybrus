@@ -12,6 +12,7 @@
 		C82474061350AB6F0092D33F /* CsFileReaderRPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82474041350AB6F0092D33F /* CsFileReaderRPC.cpp */; };
 		C82EAC5C1358CA9200D1AF93 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */; };
 		C86C8A02135985F000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */; };
+		C86C8A851359AAAF00F4CED8 /* FsTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C8A831359AAAF00F4CED8 /* FsTypes.cpp */; };
 		C86E921B1350F35E0015F899 /* MD5AnimLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920A1350F35E0015F899 /* MD5AnimLoader.cpp */; };
 		C86E921C1350F35E0015F899 /* MD5MeshLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920C1350F35E0015F899 /* MD5MeshLoader.cpp */; };
 		C86E921D1350F35E0015F899 /* MdlAnim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920E1350F35E0015F899 /* MdlAnim.cpp */; };
@@ -172,6 +173,9 @@
 		C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcMemory.cpp; sourceTree = "<group>"; };
 		C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
 		C86C8A01135985F000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
+		C86C8A821359AAAF00F4CED8 /* FsEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FsEvents.h; sourceTree = "<group>"; };
+		C86C8A831359AAAF00F4CED8 /* FsTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FsTypes.cpp; sourceTree = "<group>"; };
+		C86C8A841359AAAF00F4CED8 /* FsTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FsTypes.h; sourceTree = "<group>"; };
 		C86E920A1350F35E0015F899 /* MD5AnimLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5AnimLoader.cpp; sourceTree = "<group>"; };
 		C86E920B1350F35E0015F899 /* MD5AnimLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MD5AnimLoader.h; sourceTree = "<group>"; };
 		C86E920C1350F35E0015F899 /* MD5MeshLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5MeshLoader.cpp; sourceTree = "<group>"; };
@@ -893,6 +897,9 @@
 		C8C313AC1321DC3C00489EEA /* File */ = {
 			isa = PBXGroup;
 			children = (
+				C86C8A821359AAAF00F4CED8 /* FsEvents.h */,
+				C86C8A831359AAAF00F4CED8 /* FsTypes.cpp */,
+				C86C8A841359AAAF00F4CED8 /* FsTypes.h */,
 				C8C313AD1321DC3C00489EEA /* FsCore.cpp */,
 				C8C313AE1321DC3C00489EEA /* FsCore.h */,
 				C8C313AF1321DC3C00489EEA /* FsFile.cpp */,
@@ -1246,6 +1253,7 @@
 				C8E64E581355F1D200AAF73E /* ScnPackage.cpp in Sources */,
 				C82EAC5C1358CA9200D1AF93 /* BcMemory.cpp in Sources */,
 				C86C8A02135985F000F4CED8 /* RsStateBlock.cpp in Sources */,
+				C86C8A851359AAAF00F4CED8 /* FsTypes.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

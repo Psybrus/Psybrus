@@ -200,6 +200,9 @@ BcBool CsCore::parseJsonFile( const std::string& FileName, Json::Value& Root )
 		if( Reader.parse( pData, pData + File.size(), Root ) )
 		{
 			Success = BcTrue;
+
+			// Add file for monitoring.
+			FsCore::pImpl()->addFileMonitor( FileName.c_str() );
 		}
 		else
 		{
