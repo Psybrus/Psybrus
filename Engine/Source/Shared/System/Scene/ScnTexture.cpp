@@ -29,7 +29,7 @@ BcBool ScnTexture::import( const Json::Value& Object )
 	const std::string& FileName = Object[ "source" ].asString();
 
 	// Load texture from file and create the data for export.
-	ImgImage* pImage = ImgLoader::load( FileName.c_str() );
+	ImgImage* pImage = Img::load( FileName.c_str() );
 	
 	if( pImage != NULL )
 	{
