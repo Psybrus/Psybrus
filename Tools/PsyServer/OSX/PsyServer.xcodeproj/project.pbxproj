@@ -10,6 +10,8 @@
 		8DD76F6A0486A84900D96B5E /* PsyServer.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859E8B029090EE04C91782 /* PsyServer.1 */; };
 		C82473E21350AB490092D33F /* RmParameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473DD1350AB490092D33F /* RmParameters.cpp */; };
 		C82474061350AB6F0092D33F /* CsFileReaderRPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82474041350AB6F0092D33F /* CsFileReaderRPC.cpp */; };
+		C82EAC5C1358CA9200D1AF93 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */; };
+		C86C8A02135985F000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */; };
 		C86E921B1350F35E0015F899 /* MD5AnimLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920A1350F35E0015F899 /* MD5AnimLoader.cpp */; };
 		C86E921C1350F35E0015F899 /* MD5MeshLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920C1350F35E0015F899 /* MD5MeshLoader.cpp */; };
 		C86E921D1350F35E0015F899 /* MdlAnim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920E1350F35E0015F899 /* MdlAnim.cpp */; };
@@ -167,6 +169,9 @@
 		C82474041350AB6F0092D33F /* CsFileReaderRPC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsFileReaderRPC.cpp; sourceTree = "<group>"; };
 		C82474051350AB6F0092D33F /* CsFileReaderRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsFileReaderRPC.h; sourceTree = "<group>"; };
 		C82474081350BEBA0092D33F /* RmEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RmEvents.h; path = Remote/RmEvents.h; sourceTree = "<group>"; };
+		C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcMemory.cpp; sourceTree = "<group>"; };
+		C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
+		C86C8A01135985F000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86E920A1350F35E0015F899 /* MD5AnimLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5AnimLoader.cpp; sourceTree = "<group>"; };
 		C86E920B1350F35E0015F899 /* MD5AnimLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MD5AnimLoader.h; sourceTree = "<group>"; };
 		C86E920C1350F35E0015F899 /* MD5MeshLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5MeshLoader.cpp; sourceTree = "<group>"; };
@@ -766,6 +771,7 @@
 				C8C310E71321D8C400489EEA /* BcDelegate_gen.py */,
 				C8C310E81321D8C400489EEA /* BcEndian.h */,
 				C8C310E91321D8C400489EEA /* BcFile.cpp */,
+				C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */,
 				C8C310EA1321D8C400489EEA /* BcFile.h */,
 				C8C310EB1321D8C400489EEA /* BcFixed.h */,
 				C8C310EC1321D8C400489EEA /* BcGlobal.h */,
@@ -908,6 +914,8 @@
 		C8C313B81321DC3C00489EEA /* Renderer */ = {
 			isa = PBXGroup;
 			children = (
+				C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */,
+				C86C8A01135985F000F4CED8 /* RsStateBlock.h */,
 				C8C313ED1321DC3D00489EEA /* RsCore.cpp */,
 				C8C313EE1321DC3D00489EEA /* RsCore.h */,
 				C8C313EF1321DC3D00489EEA /* RsEvents.h */,
@@ -1236,6 +1244,8 @@
 				C8E64E521355A1EE00AAF73E /* json_value.cpp in Sources */,
 				C8E64E531355A1EE00AAF73E /* json_writer.cpp in Sources */,
 				C8E64E581355F1D200AAF73E /* ScnPackage.cpp in Sources */,
+				C82EAC5C1358CA9200D1AF93 /* BcMemory.cpp in Sources */,
+				C86C8A02135985F000F4CED8 /* RsStateBlock.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
