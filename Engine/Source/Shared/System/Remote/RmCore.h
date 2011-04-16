@@ -19,6 +19,7 @@
 #include "BcDelegate.h"
 #include "BcEndian.h"
 #include "BcGlobal.h"
+#include "BcHash.h"
 #include "BcMutex.h"
 #include "BcScopedLock.h"
 
@@ -80,6 +81,11 @@ public:
 	 * Listen for another RmCore.
 	 */
 	void							listen();
+	
+	/*
+	 * Is connected?
+	 */
+	BcBool							isConnected() const;
 
 protected:
 	virtual void					open();
@@ -95,14 +101,16 @@ protected:
 			Bytes_ = 0;
 		}
 		
-		TMessageHeader( BcU32 Destination, BcU32 Bytes )
+		TMessageHeader( BcU32 Destination, BcU32 Bytes, BcU32 Hash )
 		{
 			Destination_ = Destination;
 			Bytes_ = Bytes;
+			Hash_ = Hash;
 		}
 		
 		BcEndianU32 Destination_;
 		BcEndianU32 Bytes_;
+		BcEndianU32 Hash_;
 	};
 	
 	struct TMessage

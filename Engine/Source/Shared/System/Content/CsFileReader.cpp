@@ -159,6 +159,10 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 	// Set props as loaded and call delegate.
 	if( pFoundChunk != NULL )
 	{
+		// Do a hash check of data.
+		BcU32 Hash = (BcU32)BcHash( (BcU8*)pData, Size );
+		BcAssertMsg( Hash == pFoundChunk->Hash_, "CsFileReader: Chunk data corrupt!\n" );
+		
 		pFoundChunkProps->Status_ = CsFileChunkProps::STATUS_LOADED;
 		ChunkDelegate_( this, pFoundChunk, pData );
 	}	

@@ -118,14 +118,14 @@ void CsFileReaderRPC::onChunksLoaded( void* pData, BcSize Size )
 	BcMemCopy( pChunks_, pData, Size );
 	
 	// Calculate total size.
-	BcU32 TotalSize = 0;
+	TotalDataSize_ = 0;
 	for( BcU32 i = 0; i < Header_.NoofChunks_; ++i )
 	{
-		TotalSize += pChunks_[ i ].Size_;			
+		TotalDataSize_ += pChunks_[ i ].Size_;			
 	}
 	
 	// Allocate data block.
-	pData_ = new BcU8[ TotalSize ];
+	pData_ = new BcU8[ TotalDataSize_ ];
 	
 	// Call delegate.
 	ReadyDelegate_( this );
@@ -150,9 +150,12 @@ void CsFileReaderRPC::onDataLoaded( void* pData, BcSize Size )
 		BcAssert( pChunk->Size_ == Size );
 	
 		// Copy data and cache pointer.
-		void* pInternalData = pData_ + pChunk->Offset_;
+		BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + sizeof( CsFileChunk ) * Header_.NoofChunks_;
+		void* pInternalData = pData_ + ( pChunk->Offset_ - TotalHeaderSize );
 		BcMemCopy( pInternalData, pData, Size );
-	
+
+		BcAssert( (BcU8*)pInternalData < ( pData_ + TotalDataSize_ ) );
+		
 		pChunkProps->Status_ = CsFileChunkProps::STATUS_LOADED;
 		ChunkDelegate_( this, pChunk, pInternalData );
 	}

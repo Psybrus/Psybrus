@@ -18,8 +18,8 @@
 
 SYS_CREATOR( CsCoreServer );
 
-//#define DbgTrace BcPrintf
-#define DbgTrace(...)
+#define DbgTrace BcPrintf
+//#define DbgTrace(...)
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

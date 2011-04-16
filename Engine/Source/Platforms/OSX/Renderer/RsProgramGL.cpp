@@ -15,12 +15,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramParameterGL::RsProgramParameterGL( const std::string& Name, RsProgramGL* pParent, GLuint Parameter, GLuint Sampler ):
+RsProgramParameterGL::RsProgramParameterGL( const std::string& Name, RsProgramGL* pParent, GLuint Parameter ):
 	RsProgramParameter( Name ),
 	pParent_( pParent ),
-	Parameter_( Parameter ),
-	Sampler_( Sampler ),
-	pTexture_( NULL )
+	Parameter_( Parameter )
 {
 	
 }
@@ -79,36 +77,6 @@ void RsProgramParameterGL::setMatrix( const BcMat4d& Value )
 {
 	glUniformMatrix4fv( Parameter_, 1, GL_FALSE, (GLfloat*)&Value );
 	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// update
-void RsProgramParameterGL::setTexture( RsTexture* pTexture )
-{
-	if( Sampler_ != -1 )
-	{
-		setInt( Sampler_ );
-		pTexture_ = static_cast< RsTextureGL* >( pTexture );
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setMatrix
-void RsProgramParameterGL::bind()
-{
-	if( Sampler_ != -1 )
-	{
-		glActiveTexture( GL_TEXTURE0 + Sampler_ );
-		glEnable( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, pTexture_ ? pTexture_->getHandle< GLuint >() : 0 );
-	
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );	
-
-		RsGLCatchError;
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +161,7 @@ void RsProgramGL::destroy()
 ////////////////////////////////////////////////////////////////////////////////
 // findParameter
 //virtual
-RsProgramParameter* RsProgramGL::findParameter( const std::string& Name, BcBool IsSampler )
+RsProgramParameter* RsProgramGL::findParameter( const std::string& Name )
 {
 	// NOTE: Lazy finding. Could store these at build/load time.
 	RsProgramParameterGL* pParameter = NULL;
@@ -217,11 +185,9 @@ RsProgramParameter* RsProgramGL::findParameter( const std::string& Name, BcBool 
 		
 		if( UniformLocation != GLint( -1 ) )
 		{
-			GLuint Sampler = IsSampler ? TotalSampler_++ : -1;
-			pParameter = new RsProgramParameterGL( Name, this, UniformLocation, Sampler );
+			pParameter = new RsProgramParameterGL( Name, this, UniformLocation );
 			ParameterList_.push_back( pParameter );
 		}
-		
 	}
 	
 	return pParameter;
@@ -236,13 +202,6 @@ void RsProgramGL::bind()
 
 	glUseProgram( Handle );
 	RsGLCatchError;
-	
-	// Bind all parameters.
-	for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
-	{
-		RsProgramParameterGL* pParameter = (*It);
-		pParameter->bind();
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

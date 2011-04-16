@@ -30,6 +30,7 @@
 #include "RsVertexBuffer.h"
 #include "RsIndexBuffer.h"
 #include "RsPrimitive.h"
+#include "RsStateBlock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -113,7 +114,7 @@ public:
 	 * @param pResource Resource to destroy.
 	 */
 	virtual void			destroyResource( RsResource* pResource ) = 0;
-	
+
 public:
 	/**
 	*	Allocate a frame for rendering.
@@ -127,6 +128,11 @@ public:
 	*	GAME FUNCTION: Called from game thread to queue frame to be rendered.
 	*/
 	virtual void			queueFrame( RsFrame* pFrame ) = 0;
+
+	/**
+	 *	Get render state block.
+	 */
+	virtual RsStateBlock*	getStateBlock() = 0;
 };
 
 #endif

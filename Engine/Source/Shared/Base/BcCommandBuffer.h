@@ -47,6 +47,7 @@ public:
 private:
 	BcMutex							QueueLock_;
 	std::deque< BcCommand* >		CommandQueue_;
+	std::deque< BcCommand* >		ExecuteCommandQueue_;
 };
 
 #endif

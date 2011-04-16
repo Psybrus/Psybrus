@@ -17,7 +17,7 @@
 #include "RsCore.h"
 #include "CsResourceRef.h"
 
-#include "ScnTexture.h"
+#include "ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasRef
@@ -36,10 +36,11 @@ struct ScnCanvasVertex
 // ScnCanvasPrimitiveSection
 struct ScnCanvasPrimitiveSection
 {
-	eRsPrimitiveType	Type_;
-	BcU32				VertexIndex_;
-	BcU32				NoofVertices_;
-	BcU32				Layer_;
+	eRsPrimitiveType		Type_;
+	BcU32					VertexIndex_;
+	BcU32					NoofVertices_;
+	BcU32					Layer_;
+	ScnMaterialInstanceRef	MaterialInstance_;
 };
 
 class ScnCanvasPrimitiveSectionCompare
@@ -60,11 +61,15 @@ class ScnCanvas:
 public:
 	DECLARE_RESOURCE( ScnCanvas );
 	
-	virtual void						initialise();
-	virtual void						initialise( BcU32 NoofVertices );
+	virtual void						initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMaterialInstance );
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
+
+	/**
+	 * Set material instance.
+	 */
+	void								setMaterialInstance( ScnMaterialInstanceRef MaterialInstance );
 	
 	/**
 	 * Push matrix.
@@ -154,7 +159,11 @@ protected:
 	ScnCanvasVertex*					pVerticesEnd_;
 	BcU32								NoofVertices_;
 	BcU32								VertexIndex_;
-		
+	
+	// Materials.
+	ScnMaterialInstanceRef				DefaultMaterialInstance_;
+	ScnMaterialInstanceRef				MaterialInstance_;
+
 	typedef std::vector< ScnCanvasPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;
 	

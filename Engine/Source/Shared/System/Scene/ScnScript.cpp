@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "ScnScript.h"
-
 #include "gmMachine.h"
 #include "gmStream.h"
+
+#include "ScnScript.h"
 
 #ifdef PSY_SERVER
 #include "BcStream.h"

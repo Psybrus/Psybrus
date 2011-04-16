@@ -87,7 +87,8 @@ enum eRsTextureType
 	rsTT_SPECULAR,
 	rsTT_NORMAL,
 	rsTT_PROJECTED,
-	rsTT_MAX,
+
+	rsTT_MAX = 8,
 	
 	rsTT_FORCE_DWORD = 0x7fffffff
 };
@@ -201,6 +202,19 @@ extern BcU32 RsTextureFormatBPP( eRsTextureFormat TextureFormat );
 extern BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Levels );
 
 //////////////////////////////////////////////////////////////////////////
+// Texture filtering mode.
+enum eRsTextureFilteringMode
+{
+	rsTFM_NEAREST = 0,
+	rsTFM_LINEAR,
+	rsTFM_MAX,
+	
+	//
+	rsTFM_INVALID = BcErrorCode,
+	rsTFM_FORCE_DWORD = 0x7fffffff
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Texture sampling mode.
 enum eRsTextureSamplingMode
 {
@@ -214,12 +228,49 @@ enum eRsTextureSamplingMode
 	rsTSM_FORCE_DWORD = 0x7fffffff
 };
 
+
 //////////////////////////////////////////////////////////////////////////
 // Texture params.
 struct RsTextureParams
 {
+	eRsTextureFilteringMode		MinFilter_;
+	eRsTextureFilteringMode		MagFilter_;
 	eRsTextureSamplingMode		UMode_;
 	eRsTextureSamplingMode		VMode_;
+	
+	bool operator == ( const RsTextureParams& Other )
+	{
+		return ( MinFilter_ == Other.MinFilter_ ) &&
+		       ( MagFilter_ == Other.MagFilter_ ) &&
+		       ( UMode_ == Other.UMode_ ) &&
+		       ( VMode_ == Other.VMode_ );
+	}
+
+	bool operator != ( const RsTextureParams& Other )
+	{
+		return ( MinFilter_ != Other.MinFilter_ ) ||
+		       ( MagFilter_ != Other.MagFilter_ ) ||
+		       ( UMode_ != Other.UMode_ ) ||
+		       ( VMode_ != Other.VMode_ );
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Render state
+enum eRsRenderState
+{
+	rsRS_DEPTH_WRITE_ENABLE = 0,		///!< Depth write enable/disable. true or false.
+	rsRS_DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
+	rsRS_DEPTH_TEST_COMPARE,			///!< Depth test compare. eRsCompareMode
+	rsRS_DEPTH_BIAS,					///!< Depth bias. Z.
+	rsRS_ALPHA_TEST_ENABLE,				///!< Alpha test enable/disable. true or false.
+	rsRS_ALPHA_TEST_COMPARE,			///!< Alpha test compare. eRsCompareMode.
+	rsRS_ALPHA_TEST_THRESHOLD,			///!< Alpha test threshold. 0-255.
+	rsRS_BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
+	
+	//
+	rsRS_MAX,
+	rsRS_FORCE_DWORD = 0x7fffffff
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,6 +312,9 @@ enum eRsVertexDeclFlags
 
 	// Colour: 0x10000
 	rsVDF_COLOUR_RGBA8		= 0x00010000,
+
+	//
+	rsVDF_FORCE_DWORD		= 0x7fffffff
 };
 
 enum eRsVertexChannel
@@ -272,7 +326,11 @@ enum eRsVertexChannel
 	rsVC_TEXCOORD1,
 	rsVC_TEXCOORD2,
 	rsVC_TEXCOORD3,
-	rsVC_COLOUR
+	rsVC_COLOUR,
+
+	//
+	rsVC_MAX,
+	rsVC_FORCE_DWORD = 0x7fffffff
 };
 
 enum eRsVertexChannelMask
@@ -284,7 +342,10 @@ enum eRsVertexChannelMask
 	rsVCM_TEXCOORD1 = rsVDF_TEXCOORD_UV1,
 	rsVCM_TEXCOORD2 = rsVDF_TEXCOORD_UV2,
 	rsVCM_TEXCOORD3 = rsVDF_TEXCOORD_UV3,
-	rsVCM_COLOUR = rsVDF_COLOUR_RGBA8
+	rsVCM_COLOUR = rsVDF_COLOUR_RGBA8,
+
+	//
+	rsVCM_FORCE_DWORD = 0x7fffffff
 };
 
 extern BcU32 RsVertexDeclSize( BcU32 VertexFormat );
@@ -297,7 +358,9 @@ enum eRsShaderType
 	rsST_VERTEX,
 	rsST_FRAGMENT,
 	
-	rsST_MAX
+	//
+	rsST_MAX,
+	rsST_FORCE_DWORD = 0x7fffffff
 };
 
 enum eRsShaderDataType
@@ -312,6 +375,9 @@ enum eRsLockFlags
 {
 	rsLF_READ = 0x00000001,
 	rsLF_WRITE = 0x00000002,
+	
+	//
+	rsLF_FORCE_DWORD = 0x7fffffff
 };
 
 //////////////////////////////////////////////////////////////////////////

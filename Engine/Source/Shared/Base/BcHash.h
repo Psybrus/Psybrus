@@ -29,6 +29,8 @@
 
 #define HASH_TYPE			HASH_SDBM
 
+//#define HASH_DEBUG
+
 //////////////////////////////////////////////////////////////////////////
 // BcHash
 class BcHash
@@ -59,7 +61,7 @@ public:
 
 private:
 	BcU32			Value_;				///< 32bit hash value.
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	std::string		String_;			///< Debugging.
 #endif
 };
@@ -69,7 +71,7 @@ private:
 inline BcHash::BcHash()
 {
 	Value_ = BcErrorCode;
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ = "BcErrorCode";
 #endif
 }
@@ -77,7 +79,7 @@ inline BcHash::BcHash()
 inline BcHash::BcHash( BcU32 Value )
 {
 	Value_ = Value;
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ = "BcU32 Value";
 #endif
 }
@@ -85,7 +87,7 @@ inline BcHash::BcHash( BcU32 Value )
 inline BcHash::BcHash( const BcChar* pString )
 {
 	Value_ = generateHash( pString );
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ = pString;
 #endif
 }
@@ -93,7 +95,7 @@ inline BcHash::BcHash( const BcChar* pString )
 inline BcHash::BcHash( const BcU8* pData, BcU32 Bytes )
 {
 	Value_ = generateHash( pData, Bytes );
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ = "Data Value";
 #endif
 }
@@ -101,7 +103,7 @@ inline BcHash::BcHash( const BcU8* pData, BcU32 Bytes )
 inline BcHash::BcHash( const BcHash& Hash )
 {
 	Value_ = Hash.Value_;
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ = Hash.String_;
 #endif
 }
@@ -114,7 +116,7 @@ inline BcHash::operator BcU32() const
 inline BcHash& BcHash::operator = ( BcU32 Value )
 {
 	Value_ = Value;
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ =  "BcU32 Value";
 #endif
 	return *this;
@@ -123,7 +125,7 @@ inline BcHash& BcHash::operator = ( BcU32 Value )
 inline BcHash& BcHash::operator = ( const BcHash& Hash )
 {
 	Value_ = Hash.Value_;
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	String_ = Hash.String_;
 #endif
 	return *this;
@@ -131,7 +133,7 @@ inline BcHash& BcHash::operator = ( const BcHash& Hash )
 
 inline BcBool BcHash::operator == ( const BcHash& Hash ) const
 {
-#ifdef PSY_DEBUG
+#ifdef HASH_DEBUG
 	if( Value_ == Hash.Value_ )
 	{
 		BcAssertMsg( String_ == Hash.String_, "BcHash: Collision detected." );

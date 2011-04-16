@@ -22,6 +22,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class RsFrameGL;
+class RsStateBlockGL;
 
 //////////////////////////////////////////////////////////////////////////
 // RsCoreImplGL
@@ -53,7 +54,8 @@ private:
 public:
 	RsFrame*				allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height );
 	void					queueFrame( RsFrame* pFrame );
-	
+	RsStateBlock*			getStateBlock();
+
 public:
 	// Platform specific interface.
 
@@ -62,6 +64,7 @@ protected:
 
 	BcCommandBuffer			CommandBuffer_;
 	RsFrameGL*				pFrame_;
+	RsStateBlockGL*			pStateBlock_;
 
 };
 

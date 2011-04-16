@@ -326,6 +326,8 @@ void CsCore::destroyResource( CsResource* pResource )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 	
+	BcPrintf( "CsCore::destroyResource: %s.\n", pResource->getName().c_str() );
+	
 	// Find the resource in the list.
 	TResourceListIterator FoundIt = LoadedResources_.end();
 	

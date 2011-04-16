@@ -16,6 +16,9 @@
 
 #include "BcPortability.h"
 
+#include <new>
+#include <memory.h>
+
 //////////////////////////////////////////////////////////////////////////
 // Windows defines
 #ifdef PLATFORM_WIN32
@@ -259,6 +262,12 @@ typedef std::size_t					BcSize;
 
 #endif
 
-
+//////////////////////////////////////////////////////////////////////////
+// Placement new wrapper.
+template< typename _Ty >
+inline _Ty* placement_new( void* pMem )
+{
+	return new ( pMem ) _Ty();
+}
 
 #endif

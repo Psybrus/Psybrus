@@ -77,6 +77,9 @@
 		C82473B113507DC60092D33F /* RsVertexBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473A613507DC60092D33F /* RsVertexBufferGL.cpp */; };
 		C82473D413508F500092D33F /* RmParameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473D213508F500092D33F /* RmParameters.cpp */; };
 		C82473D9135099610092D33F /* CsFileReaderRPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473D8135099600092D33F /* CsFileReaderRPC.cpp */; };
+		C82EAC5A1358CA0600D1AF93 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC591358CA0500D1AF93 /* BcMemory.cpp */; };
+		C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
+		C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
 		C86E92061350F1E40015F899 /* ScnMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E92041350F1E30015F899 /* ScnMaterial.cpp */; };
 		C86E97A71351162B0015F899 /* ScnModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E97A51351162A0015F899 /* ScnModel.cpp */; };
 		C86E99FB13514C1B0015F899 /* gmArraySimple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993713514C1A0015F899 /* gmArraySimple.cpp */; };
@@ -289,6 +292,11 @@
 		C82473D6135097A10092D33F /* CsFileReaderRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsFileReaderRPC.h; sourceTree = "<group>"; };
 		C82473D8135099600092D33F /* CsFileReaderRPC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsFileReaderRPC.cpp; sourceTree = "<group>"; };
 		C82474091350BEC30092D33F /* RmEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RmEvents.h; sourceTree = "<group>"; };
+		C82EAC591358CA0500D1AF93 /* BcMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcMemory.cpp; sourceTree = "<group>"; };
+		C86C891F1359610000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
+		C86C89201359610000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
+		C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlockGL.cpp; sourceTree = "<group>"; };
+		C86C892313596C9D00F4CED8 /* RsStateBlockGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlockGL.h; sourceTree = "<group>"; };
 		C86E92041350F1E30015F899 /* ScnMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnMaterial.cpp; sourceTree = "<group>"; };
 		C86E92051350F1E40015F899 /* ScnMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnMaterial.h; sourceTree = "<group>"; };
 		C86E97A51351162A0015F899 /* ScnModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnModel.cpp; sourceTree = "<group>"; };
@@ -506,6 +514,7 @@
 				C824727813507BE70092D33F /* BcMat4d.h */,
 				C824727913507BE70092D33F /* BcMath.h */,
 				C824727A13507BE70092D33F /* BcMemory.h */,
+				C82EAC591358CA0500D1AF93 /* BcMemory.cpp */,
 				C824727B13507BE70092D33F /* BcPlane.cpp */,
 				C824727C13507BE70092D33F /* BcPlane.h */,
 				C824727D13507BE70092D33F /* BcPortability.h */,
@@ -674,6 +683,8 @@
 				C824730F13507BE70092D33F /* RsVertexBuffer.h */,
 				C824731013507BE70092D33F /* RsViewport.cpp */,
 				C824731113507BE70092D33F /* RsViewport.h */,
+				C86C891F1359610000F4CED8 /* RsStateBlock.cpp */,
+				C86C89201359610000F4CED8 /* RsStateBlock.h */,
 			);
 			path = Renderer;
 			sourceTree = "<group>";
@@ -771,6 +782,8 @@
 				C82473A513507DC60092D33F /* RsTextureGL.h */,
 				C82473A613507DC60092D33F /* RsVertexBufferGL.cpp */,
 				C82473A713507DC60092D33F /* RsVertexBufferGL.h */,
+				C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */,
+				C86C892313596C9D00F4CED8 /* RsStateBlockGL.h */,
 			);
 			path = Renderer;
 			sourceTree = "<group>";
@@ -1053,6 +1066,9 @@
 				C86E9A461351560B0015F899 /* RsResource.cpp in Sources */,
 				C8E64D811351980E00AAF73E /* ScnCanvas.cpp in Sources */,
 				C8E64D8A135339F400AAF73E /* ScnShader.cpp in Sources */,
+				C82EAC5A1358CA0600D1AF93 /* BcMemory.cpp in Sources */,
+				C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */,
+				C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

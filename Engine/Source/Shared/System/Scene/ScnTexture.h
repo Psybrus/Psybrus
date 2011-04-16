@@ -20,6 +20,12 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef
 typedef CsResourceRef< class ScnTexture > ScnTextureRef;
+typedef std::list< ScnTextureRef > ScnTextureList;
+typedef ScnTextureList::iterator ScnTextureListIterator;
+typedef ScnTextureList::const_iterator ScnTextureListConstIterator;
+typedef std::map< std::string, ScnTextureRef > ScnTextureMap;
+typedef ScnTextureMap::iterator ScnTextureMapIterator;
+typedef ScnTextureMap::const_iterator ScnTextureMapConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTexture
@@ -37,9 +43,10 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	void								setup();
+	RsTexture*							getTexture();
 	
 private:
+	void								setup();
 	void								fileReady();
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
 

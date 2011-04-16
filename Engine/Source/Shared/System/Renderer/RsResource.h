@@ -24,9 +24,9 @@ public:
 	RsResource();
 	virtual ~RsResource();
 	
-	virtual void						create() = 0;
-	virtual void						update() = 0;
-	virtual void						destroy() = 0;	
+	virtual void						create();
+	virtual void						update();
+	virtual void						destroy();	
 	
 public:
 	template< typename _Ty >

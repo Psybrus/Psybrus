@@ -129,7 +129,7 @@ BcBool RmTCPConnection::listenRange( const BcChar* Address, BcU16 StartPort, BcU
 {
 	BcBool Success = BcFalse;
 	
-	BcU16 InitialPort = 0 % TotalPorts;
+	BcU16 InitialPort = 4 % TotalPorts;
 	for( BcU16 Idx = 0; Idx < TotalPorts; ++Idx )
 	{
 		BcU16 Port = StartPort + ( ( InitialPort + Idx ) % TotalPorts );

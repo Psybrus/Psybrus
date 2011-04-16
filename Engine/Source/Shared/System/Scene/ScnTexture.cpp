@@ -74,6 +74,7 @@ void ScnTexture::initialise()
 	// NULL internals.
 	pTexture_ = NULL;
 	pHeader_ = NULL;
+	pTextureData_ = NULL;
 	CreateNewTexture_ = BcTrue;
 }
 
@@ -104,6 +105,13 @@ BcBool ScnTexture::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getTexture
+RsTexture* ScnTexture::getTexture()
+{
+	return pTexture_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setup
 void ScnTexture::setup()
 {
@@ -114,7 +122,10 @@ void ScnTexture::setup()
 		if( CreateNewTexture_ == BcTrue )
 		{
 			// Destroy the old texture.
-			RsCore::pImpl()->destroyResource( pTexture_ );
+			if( pTexture_ != NULL )
+			{
+				RsCore::pImpl()->destroyResource( pTexture_ );
+			}
 			
 			// Create new one immediately.
 			pTexture_ = RsCore::pImpl()->createTexture( pHeader_->Width_,

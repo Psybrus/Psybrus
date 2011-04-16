@@ -61,6 +61,7 @@ private:
 	CsFileChunk*			pChunks_;
 	CsFileChunkProps*		pChunkProps_;
 	BcU8*					pData_;
+	BcU32					TotalDataSize_;
 	CsFileReadyDelegate		ReadyDelegate_;
 	CsFileChunkDelegate		ChunkDelegate_;
 };
