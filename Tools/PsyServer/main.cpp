@@ -40,6 +40,7 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnPackage >();
 		CsCore::pImpl()->importResource( "test.package", Package );
 	}
+	
 	//*/
 	return evtRET_PASS;
 }
