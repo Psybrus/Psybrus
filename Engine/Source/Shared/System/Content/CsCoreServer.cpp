@@ -15,6 +15,7 @@
 
 #include "BcHash.h"
 #include "RmCore.h"
+#include "FsCore.h"
 
 SYS_CREATOR( CsCoreServer );
 
@@ -92,6 +93,9 @@ void CsCoreServer::delegateLoad( void* pData, BcU32 Bytes )
 	//       and loaded to, so we can setup a link?
 	CsFile* pFile = createFileReader( Name );
 	FileMap_[ Name ] = pFile;
+	
+	// Add file for monitoring.
+	FsCore::pImpl()->addFileMonitor( Name.c_str() );
 
 	DbgTrace( "CsCoreServer::delegateLoad: %s\n", Name.c_str() );
 

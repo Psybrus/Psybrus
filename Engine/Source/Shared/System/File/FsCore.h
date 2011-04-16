@@ -14,7 +14,8 @@
 #ifndef __FSCORE_H__
 #define __FSCORE_H__
 
-#include "BcTypes.h"
+#include "FsTypes.h"
+#include "FsEvents.h"
 #include "BcGlobal.h"
 #include "SysSystem.h"
 
@@ -102,31 +103,48 @@ class FsCore:
 	public BcGlobal< FsCore >,
 	public SysSystem
 {
-public:	/**
-	*	Open file implementation.
-	*/
+public:
+	/**
+	 *	Open file implementation.
+	 */
 	virtual FsFileImpl* openFile( const BcChar* pFilename, eFsFileMode FileMode ) = 0;
 
 	/**
-	*	Close file implementation.
-	*/
+	 *	Close file implementation.
+	 */
 	virtual void closeFile( FsFileImpl* pFileImpl ) = 0;
 	
 	/**
-	*	Does a file exist?
-	*/
+	 *	Does a file exist?
+	 */
 	virtual BcBool fileExists( const BcChar* pFilename ) = 0;
-
+	
 	/**
-	*	Add a read operation.
-	*/	
+	 * Get file stats.
+	 */
+	virtual BcBool fileStats( const BcChar* pFilename, FsStats& Stats ) = 0;
+	
+	/**
+	 *	Add a read operation.
+	 */	
 	virtual void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ) = 0;
 
 	/**
-	*	Add a write operation.
-	*/	
+	 *	Add a write operation.
+	 */	
 	virtual void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ) = 0;
 
+	/**
+	 * Add file monitor.
+	 */
+	virtual void addFileMonitor( const BcChar* pFilename ) = 0;
+
+	/**
+	 * Remove file monitor.
+	 */
+	virtual void removeFileMonitor( const BcChar* pFilename ) = 0;
+
+	
 private:
 
 };

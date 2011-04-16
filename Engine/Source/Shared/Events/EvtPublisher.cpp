@@ -35,7 +35,6 @@ void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcS
 	BcUnusedVar( EventSize );
 	
 	/*
-#ifdef PSY_DEBUG
 	{
 		BcChar PrefixA = ( ID >> 24 ) & 0xff;
 		BcChar PrefixB = ( ID >> 16 ) & 0xff;
@@ -44,8 +43,7 @@ void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcS
 		
 		BcPrintf( "EvtPublish: %x, \"%c%c\": Group=%u Item=%u\n", ID, PrefixA, PrefixB, Group, Item );
 	}
-#endif
-	*/
+	 */
 
 	// Update binding map before going ahead.
 	updateBindingMap();

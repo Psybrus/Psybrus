@@ -174,7 +174,11 @@ typedef bool						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
+#ifdef PSY_DEBUG
 #define BcBreakpoint				asm( "int $3" )
+#else
+#define BcBreakpoint
+#endif
 
 #elif defined( ARCH_X86_64 )
 typedef unsigned long				BcU64;
@@ -195,7 +199,11 @@ typedef bool						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
+#ifdef PSY_DEBUG
 #define BcBreakpoint				asm( "int $3" )
+#else
+#define BcBreakpoint
+#endif
 
 #elif defined( ARCH_PPC )
 typedef unsigned long int			BcU64;
@@ -216,7 +224,11 @@ typedef bool						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
+#ifdef PSY_DEBUG
 #define BcBreakpoint				asm( "halt" )
+#else
+#define BcBreakpoint
+#endif
 
 #elif defined( ARCH_ARM )
 typedef unsigned long long			BcU64;
@@ -237,8 +249,11 @@ typedef bool						BcBool;
 typedef int							BcHandle;
 typedef std::size_t					BcSize;
 
+#ifdef PSY_DEBUG
 #define BcBreakpoint				asm( "halt" )
-
+#else
+#define BcBreakpoint
+#endif
 
 #else
 #error No supported architecture specified.

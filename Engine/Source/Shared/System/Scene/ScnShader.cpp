@@ -282,8 +282,6 @@ void ScnShader::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 		void* pShaderData = pShaderHeader + 1;
 		BcU32 ShaderSize = pChunk->Size_ - sizeof( TShaderHeader );
 		
-		BcPrintf( "ScnShader: Vertex Shader Code:\n%s\n", pShaderData );
-
 		if( RsCore::pImpl() != NULL )
 		{
 			RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
@@ -297,9 +295,7 @@ void ScnShader::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
 		BcU32 ShaderSize = pChunk->Size_ - sizeof( TShaderHeader );
-		
-		BcPrintf( "ScnShader: Fragment Shader Code:\n%s\n", pShaderData );
-		
+			
 		if( RsCore::pImpl() != NULL )
 		{
 			RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
