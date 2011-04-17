@@ -26,11 +26,14 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnScript::import( const Json::Value& Object )
+BcBool ScnScript::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const std::string& FileName = Object[ "source" ].asString();
 	BcFile File;
 	
+	// Add root dependancy.
+	DependancyList.push_back( FileName );
+
 	if( File.open( FileName.c_str(), bcFM_READ ) )
 	{
 		BcBool Success = BcTrue;

@@ -49,7 +49,8 @@ void FsCoreImplOSX::open()
 	int RetVal = 0;
 	
 	// Set the resource path.
-	[[NSFileManager defaultManager] changeCurrentDirectoryPath:@"/Users/neilo/Documents/Dev/Psybrus/Examples/TestBed"];
+	// NOTE: May need this again sometime, going to keep code here for ref.
+	//[[NSFileManager defaultManager] changeCurrentDirectoryPath:@"/Users/neilo/Documents/Dev/Psybrus/Examples/TestBed"];
 
 	// Setup file monitor iterator.
 	FileMonitorMapIterator_ = FileMonitorMap_.begin();

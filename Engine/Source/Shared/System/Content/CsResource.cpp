@@ -42,7 +42,7 @@ CsResource::~CsResource()
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool CsResource::import( const Json::Value& Object )
+BcBool CsResource::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	BcUnusedVar( Object );
 

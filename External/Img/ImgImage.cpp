@@ -511,7 +511,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 					
 					BcU32 DistanceInt = (BcU32)BcClamp( Distance, 0.0f, 255.0f );
 					
-					ImgColour Colour = { DistanceInt, DistanceInt, DistanceInt, DistanceInt };
+					ImgColour Colour = { 255, 255, 255, DistanceInt };
 					pOutputImage->setPixel( X, Y, Colour );
 				}
 			}

@@ -143,7 +143,6 @@ class CsCore;
 typedef CsResource*( *CsResourceAllocFunc )( const std::string&, CsFile* );
 typedef void( *CsResourceFreeFunc )( CsResource* );
 
-
 //////////////////////////////////////////////////////////////////////////
 // CsResource
 class CsResource
@@ -159,7 +158,7 @@ public:
 	/**
 	 * Import resource.
 	 */
-	virtual BcBool					import( const Json::Value& Object );
+	virtual BcBool					import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif
 	
 	/**

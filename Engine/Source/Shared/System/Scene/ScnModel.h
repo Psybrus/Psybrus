@@ -32,7 +32,7 @@ public:
 	DECLARE_RESOURCE( ScnModel );
 	
 #if PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object );
+	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
 	void								recursiveSerialiseNodes( class BcStream& TransformStream,
 																 class BcStream& PropertyStream,
 																 class BcStream& VertexStream,

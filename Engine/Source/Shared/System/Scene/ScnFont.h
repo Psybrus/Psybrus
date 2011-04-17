@@ -36,7 +36,7 @@ public:
 	DECLARE_RESOURCE( ScnFont );
 	
 #ifdef PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object );
+	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif
 	virtual void						initialise();
 	virtual void						create();

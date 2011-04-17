@@ -24,14 +24,14 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnMaterial::import( const Json::Value& Object )
+BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const Json::Value& ImportShader = Object[ "shader" ];
 	const Json::Value& ImportTextures = Object[ "textures" ];
 				
 	// Import shader.
 	ScnShaderRef ShaderRef;
-	if( CsCore::pImpl()->importObject( ImportShader, ShaderRef ) )
+	if( CsCore::pImpl()->importObject( ImportShader, ShaderRef, DependancyList ) )
 	{
 		// Import textures.
 		ScnTextureMap Textures;
@@ -41,7 +41,7 @@ BcBool ScnMaterial::import( const Json::Value& Object )
 		{
 			const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 			
-			if( CsCore::pImpl()->importObject( Texture, TextureRef ) )
+			if( CsCore::pImpl()->importObject( Texture, TextureRef, DependancyList ) )
 			{
 				Textures[ TextureMembers[ Idx ] ] = TextureRef;
 			}	
@@ -192,6 +192,21 @@ void ScnMaterialInstance::initialise( ScnMaterialRef Parent, RsProgram* pProgram
 		if( Binding.pParameter_ != NULL )
 		{
 			TextureBindingList_.push_back( Binding );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTexture
+void ScnMaterialInstance::setTexture( const std::string& SamplerName, ScnTextureRef Texture )
+{
+	for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
+	{
+		TTextureBinding& Binding( *Iter );
+		
+		if( Binding.pParameter_->getName() == SamplerName )
+		{
+			Binding.Texture_ = Texture;
 		}
 	}
 }

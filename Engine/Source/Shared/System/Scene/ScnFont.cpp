@@ -104,15 +104,18 @@ static ImgImage* makeImageForGlyph( FT_Glyph Glyph, FT_Render_Mode RenderMode, B
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnFont::import( const Json::Value& Object )
+BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const std::string& FileName = Object[ "source" ].asString();
 	
+	// Add root dependancy.
+	DependancyList.push_back( FileName );
+
 	FT_Library	Library;
 	FT_Face		Face;
 	
 	BcBool DistanceField = Object[ "distancefield" ].asBool();
-	BcU32 NominalSize = Object[ "nominalsize" ].asInt();
+	BcU32 NominalSize = Object[ "nominalsize" ].asInt() * ( DistanceField ? 8.0f : 1.0f );
 	BcU32 BorderSize = DistanceField ? Object[ "spread" ].asInt(): 1;
 	
 	int Error;
@@ -128,21 +131,23 @@ BcBool ScnFont::import( const Json::Value& Object )
 							 &Face );
 		
 		if( Error == 0 )
-		{
+		{		
 			// Set pixel size for font map.
 			Error = FT_Set_Char_Size( Face,
 									  0,
-									  16 * 64,
-									  300,
-									  300 );
+									  NominalSize * 64,
+									  72,
+									  72 );
 			
 			if( Error == 0 )
 			{
+				/*
 				// Set pixel sizes.
 				Error = FT_Set_Pixel_Sizes( Face,
 										    0,
 										    NominalSize );
 				
+				 */
 				if( Error == 0 )
 				{
 					// List of glyph descs.			
@@ -185,6 +190,44 @@ BcBool ScnFont::import( const Json::Value& Object )
 									
 									ImgImage* pImage = makeImageForGlyph( Glyph, RenderMode, BorderSize );
 							
+									BcReal GlyphScale = DistanceField ? 0.125f : 1.0f;
+									
+									// Convert to distance field, and scale down 4x.
+									if( DistanceField == BcTrue && pImage != NULL )
+									{									
+										BcU32 Width = pImage->width();
+										BcU32 Height = pImage->height();
+										BcU32 WidthPot = BcPotNext( Width );
+										BcU32 HeightPot = BcPotNext( Height );
+										
+										ImgColour FillColour = { 0, 0, 0, 0 };
+										
+										// Distance field.
+										ImgImage* pDistanceFieldImage = pImage->generateDistanceField( 128, BorderSize );
+										
+										// Power of 2 round up.
+										ImgImage* pPowerOfTwo = pDistanceFieldImage->canvasSize( WidthPot, HeightPot, &FillColour );
+										
+										// Scale down 8x.
+										ImgImage* pScale1_2 = pPowerOfTwo->resize( WidthPot >> 1, HeightPot >> 1 );
+										ImgImage* pScale1_4 = pScale1_2->resize( WidthPot >> 2, HeightPot >> 2 );			
+										ImgImage* pScale1_8 = pScale1_4->resize( WidthPot >> 3, HeightPot >> 3 );			
+										
+										// Crop to final size.
+										ImgImage* pFinal = pScale1_8->cropByColour( FillColour, BcFalse );
+										
+										// Clean up.
+										delete pImage;
+										delete pDistanceFieldImage;
+										delete pPowerOfTwo;
+										delete pScale1_2;
+										delete pScale1_4;
+										delete pScale1_8;
+										
+										// Assign final image.
+										pImage = pFinal;
+									}
+									
 									GlyphImageList.push_back( pImage );										
 										
 									// Add glyph descriptor.
@@ -192,11 +235,11 @@ BcBool ScnFont::import( const Json::Value& Object )
 									{
 										0.0f, 0.0f, 0.0f, 0.0f, // UVs, fill in later.
 										
-										(BcReal)BitmapGlyph->left + BorderSize,
-										(BcReal)BitmapGlyph->top + BorderSize,
-										BitmapGlyph->bitmap.width + ( BorderSize * 2 ),
-										BitmapGlyph->bitmap.rows + ( BorderSize * 2 ),
-										(BcReal)( Glyph->advance.x >> 16 ) + (BcReal)( Glyph->advance.x & 0xffff ) / 65536.0f,
+										( (BcReal)BitmapGlyph->left + BorderSize ) * GlyphScale,
+										( (BcReal)BitmapGlyph->top + BorderSize ) * GlyphScale,
+										BitmapGlyph->bitmap.width * GlyphScale,
+										BitmapGlyph->bitmap.rows * GlyphScale,
+										( (BcReal)( Glyph->advance.x >> 16 ) + (BcReal)( Glyph->advance.x & 0xffff ) / 65536.0f ) * GlyphScale,
 									
 										CharCode
 									};
@@ -215,19 +258,10 @@ BcBool ScnFont::import( const Json::Value& Object )
 					// Create an atlas of glyphs.
 					ImgRectList RectList;
 					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 1024, 1024 );
-		
-					// Convert to distance field if nessisary.
-					// Generate distance field if we need to.			
-					if( DistanceField == BcTrue )
-					{
-						ImgImage* pDistanceFieldAtlasImage = pAtlasImage->generateDistanceField( 128, BorderSize );
-						delete pAtlasImage;
-						pAtlasImage = pDistanceFieldAtlasImage;
-					}
-					
+						
 					// Create a texture.
 					std::string FontTextureName = Object[ "name" ].asString() + "_font_texture_atlas";
-					std::string FontTextureFileName = FontTextureName + ".png";
+					std::string FontTextureFileName = std::string( "IntermediateContent/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage );
 										
 					// Setup texture object, and import.
@@ -237,7 +271,7 @@ BcBool ScnFont::import( const Json::Value& Object )
 					
 					// Attempt to import texture.
 					ScnTextureRef TextureRef;
-					if( CsCore::pImpl()->importObject( TextureObject, TextureRef ) )
+					if( CsCore::pImpl()->importObject( TextureObject, TextureRef, DependancyList ) )
 					{
 						// Build data.
 						BcStream HeaderStream;
@@ -396,11 +430,10 @@ DEFINE_RESOURCE( ScnFontInstance );
 // initialise
 void ScnFontInstance::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
-	Parent_ = Parent;
+	Parent_ = Parent; 
 	if( Material->createInstance( getName() + "_MaterialInstance", MaterialInstance_, scnSPF_DEFAULT ) )
 	{
-		// TODO: Swap out texture in instance.
-		//MaterialInstance_->
+		MaterialInstance_->setTexture( "aDiffuseTex", Parent_->Texture_ );
 	}
 }
 

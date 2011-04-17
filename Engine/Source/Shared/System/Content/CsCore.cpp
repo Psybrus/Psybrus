@@ -78,17 +78,31 @@ std::string CsCore::getResourceFullName( const std::string& Name, const std::str
 #ifdef PSY_SERVER
 //////////////////////////////////////////////////////////////////////////
 // internalImportResource
-BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle )
+BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
-	BcPrintf( "CsCore::internalImportResource: %s\n", FileName.c_str() );
 	
 	// Parse Json file.
 	Json::Value Object;
 	if( parseJsonFile( FileName, Object ) )
 	{
-		BcBool Success = internalImportObject( Object, Handle );
+		BcBool Success = BcFalse;
+		
+		if( pDependancyList == NULL )
+		{
+			CsDependancyList DependancyList;
+			Success = internalImportObject( Object, Handle, &DependancyList );
+
+			BcPrintf( "Dependancies for %s:\n", FileName.c_str() );
+			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
+			{
+				BcPrintf( " - %s\n", (*Iter).getFileName().c_str() );
+			}
+		}
+		else
+		{
+			Success = internalImportObject( Object, Handle, pDependancyList );
+		}
 
 		// Add to import map (doesn't matter if reference is bad, it's just for debugging)
 		ResourceImportMap_[ FileName ] = Handle;
@@ -101,7 +115,7 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 
 //////////////////////////////////////////////////////////////////////////
 // internalImportObject
-BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle )
+BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -109,7 +123,8 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 	// If we pass in an object value, load it from that.
 	if( Object.type() == Json::stringValue )
 	{
-		return internalImportResource( Object.asString(), Handle );
+		// We don't pass the dependancy list in if it's a file.
+		return internalImportResource( Object.asString(), Handle, NULL );
 	}
 	else if( Object.type() == Json::objectValue )
 	{
@@ -124,7 +139,7 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 			// If the resource is an object, then do appropriate loading.
 			if( Resource.type() == Json::stringValue )
 			{
-				return internalImportResource( Resource.asString(), Handle );				
+				return internalImportResource( Resource.asString(), Handle, pDependancyList );				
 			}
 			else if( Resource.type() == Json::objectValue )
 			{
@@ -147,13 +162,13 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 							Handle = allocResource( Name, Type, pFile );
 						
 							if( Handle.isValid() )
-							{
+							{							
 								// Import the resource immediately (blocking operation).
-								if( Handle->import( Resource ) )
+								if( Handle->import( Resource, *pDependancyList ) )
 								{
 									// Save file.
 									pFile->save();
-																	
+																										
 									// Now we need to request the resource, this will delete the imported
 									// one and replace it with a valid loaded resource.
 									internalRequestResource( Name, Type, Handle );
@@ -246,7 +261,7 @@ eEvtReturn CsCore::eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event
 	if( FoundIter != ResourceImportMap_.end() )
 	{
 		CsResourceRef<> Handle;
-		internalImportResource( (*FoundIter).first, Handle );		
+		internalImportResource( (*FoundIter).first, Handle, NULL );		
 	}
 	
 	return evtRET_PASS;
@@ -365,9 +380,7 @@ CsResource* CsCore::allocResource( const std::string& Name, const std::string& T
 void CsCore::destroyResource( CsResource* pResource )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-	
-	BcPrintf( "CsCore::destroyResource: %s.\n", pResource->getName().c_str() );
-	
+		
 	// Find the resource in the list.
 	TResourceListIterator FoundIt = LoadedResources_.end();
 	
@@ -476,16 +489,25 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 			Handle->initialise();
 
 			// Trigger a file load.
-			pFile->load( CsFileReadyDelegate::bind< CsResource, &CsResource::delegateFileReady >( (CsResource*)Handle ),
-						 CsFileChunkDelegate::bind< CsResource, &CsResource::delegateFileChunkReady >( (CsResource*)Handle ) );
-
-			// Put into create list.
-			if( Handle.isValid() )
+			if( pFile->load( CsFileReadyDelegate::bind< CsResource, &CsResource::delegateFileReady >( (CsResource*)Handle ),
+						     CsFileChunkDelegate::bind< CsResource, &CsResource::delegateFileChunkReady >( (CsResource*)Handle ) ) )
 			{
-				BcScopedLock< BcMutex > Lock( ContainerLock_ );
+				// Put into create list.
+				if( Handle.isValid() )
+				{
+					BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-				CreateResources_.push_back( Handle );
+					CreateResources_.push_back( Handle );
+				}
 			}
+			else
+			{
+				BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
+			}
+		}
+		else
+		{
+			BcPrintf( "CsCore::requestResource: Resource name invalid.\n" );
 		}
 	}
 	

@@ -24,10 +24,13 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnModel::import( const Json::Value& Object )
+BcBool ScnModel::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const std::string& FileName = Object[ "source" ].asString();
 	MdlNode* pNode = MdlLoader::loadModel( FileName.c_str() );
+
+	// Add root dependancy.
+	DependancyList.push_back( FileName );
 	
 	if( pNode != NULL )
 	{

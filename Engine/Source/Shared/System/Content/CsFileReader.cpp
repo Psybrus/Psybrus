@@ -43,9 +43,11 @@ BcBool CsFileReader::load( CsFileReadyDelegate ReadyDelegate, CsFileChunkDelegat
 	if( File_.open( Name_.c_str(), fsFM_READ ) )
 	{
 		File_.readAsync( 0, &Header_, sizeof( Header_ ), FsFileOpDelegate::bind< CsFileReader, &CsFileReader::onHeaderLoaded >( this ) );
+		
+		return BcTrue;
 	}
 	
-	return BcTrue;
+	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////

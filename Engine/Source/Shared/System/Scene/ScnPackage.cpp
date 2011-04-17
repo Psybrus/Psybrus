@@ -5,7 +5,7 @@
 * Ver/Date:	5/03/11	
 * Description:
 *		
-*		/Users/neilo/Documents/Dev/Psybrus/Engine/Source/Shared/System/Content/CsCore.cpp
+*		
 *
 *
 * 
@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnPackage::import( const Json::Value& Object )
+BcBool ScnPackage::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const Json::Value& ImportResources = Object[ "resources" ];
 	
@@ -33,7 +33,7 @@ BcBool ScnPackage::import( const Json::Value& Object )
 	{
 		const Json::Value& Resource = ImportResources[ Idx ];
 		
-		if( CsCore::pImpl()->importObject( Resource, ResourceRef ) )
+		if( CsCore::pImpl()->importObject( Resource, ResourceRef, DependancyList ) )
 		{
 			Resources.push_back( ResourceRef );
 		}
