@@ -206,8 +206,11 @@ void ScnMaterialInstance::bind()
 	// Default parameters.
 	RsTextureParams Params = 
 	{
-		rsTFM_NEAREST, rsTFM_NEAREST, rsTSM_WRAP, rsTSM_WRAP
+		rsTFM_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
 	};
+	
+	// Bind program.
+	pProgram_->bind();
 
 	// Bind textures to samplers.
 	BcU32 SamplerID = 0;
@@ -227,9 +230,6 @@ void ScnMaterialInstance::bind()
 	
 	// Bind state block.
 	pStateBlock->bind();
-	
-	// Bind program.
-	pProgram_->bind();
 }
 
 //////////////////////////////////////////////////////////////////////////

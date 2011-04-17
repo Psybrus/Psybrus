@@ -36,7 +36,13 @@ CsCore::~CsCore()
 //virtual
 void CsCore::open()
 {
+#if PSY_SERVER
+	// Bind file hooks.
+	DelegateOnFileModified_ = FsEventMonitor::Delegate::bind< CsCore, &CsCore::eventOnFileModified >( this );
 	
+	FsCore::pImpl()->subscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
+	FsCore::pImpl()->subscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,7 +62,10 @@ void CsCore::update()
 //virtual 
 void CsCore::close()
 {
-	
+#if PSY_SERVER
+	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
+	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,13 +80,20 @@ std::string CsCore::getResourceFullName( const std::string& Name, const std::str
 // internalImportResource
 BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle )
 {
+	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
 	BcPrintf( "CsCore::internalImportResource: %s\n", FileName.c_str() );
 	
 	// Parse Json file.
 	Json::Value Object;
 	if( parseJsonFile( FileName, Object ) )
 	{
-		return internalImportObject( Object, Handle );
+		BcBool Success = internalImportObject( Object, Handle );
+
+		// Add to import map (doesn't matter if reference is bad, it's just for debugging)
+		ResourceImportMap_[ FileName ] = Handle;
+		
+		return Success;
 	}
 
 	return BcFalse;
@@ -87,6 +103,8 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 // internalImportObject
 BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle )
 {
+	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
 	// If we pass in a string value, call into the importResource that takes a file name.
 	// If we pass in an object value, load it from that.
 	if( Object.type() == Json::stringValue )
@@ -135,7 +153,7 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 								{
 									// Save file.
 									pFile->save();
-								
+																	
 									// Now we need to request the resource, this will delete the imported
 									// one and replace it with a valid loaded resource.
 									internalRequestResource( Name, Type, Handle );
@@ -213,6 +231,25 @@ BcBool CsCore::parseJsonFile( const std::string& FileName, Json::Value& Root )
 	}
 	
 	return Success;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// eventOnFileModified
+eEvtReturn CsCore::eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event )
+{
+	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
+	// See if the file matches our import list.
+	TResourceRefMapIterator FoundIter = ResourceImportMap_.find( Event.FileName_ );
+	
+	// Try to import again.
+	if( FoundIter != ResourceImportMap_.end() )
+	{
+		CsResourceRef<> Handle;
+		internalImportResource( (*FoundIter).first, Handle );		
+	}
+	
+	return evtRET_PASS;
 }
 
 #endif

@@ -109,6 +109,9 @@ private:
 	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle );
 	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle );
 	BcBool								parseJsonFile( const std::string& FileName, Json::Value& Root );
+
+	eEvtReturn							eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event );
+	FsEventMonitor::Delegate			DelegateOnFileModified_;
 #endif
 
 protected:
@@ -162,6 +165,13 @@ protected:
 	TResourceHandleList					LoadingResources_;
 	TResourceList						LoadedResources_;
 	TResourceList						UnloadingResources_;
+
+#ifdef PSY_SERVER
+	typedef std::map< std::string, CsResourceRef<> > TResourceRefMap;
+	typedef TResourceRefMap::iterator TResourceRefMapIterator;
+	
+	TResourceRefMap						ResourceImportMap_;
+#endif
 };
 
 //////////////////////////////////////////////////////////////////////////

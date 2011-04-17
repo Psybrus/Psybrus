@@ -80,6 +80,118 @@
 		C82EAC5A1358CA0600D1AF93 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC591358CA0500D1AF93 /* BcMemory.cpp */; };
 		C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
 		C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
+		C86C8A0513598B9A00F4CED8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
+		C86C8A0613598B9A00F4CED8 /* BcDelegate_gen.py in Resources */ = {isa = PBXBuildFile; fileRef = C824726D13507BE70092D33F /* BcDelegate_gen.py */; };
+		C86C8A0813598B9A00F4CED8 /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = 002F3A2C09D0888800EBEB88 /* SDLMain.m */; };
+		C86C8A0913598B9A00F4CED8 /* BcAABB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726513507BE70092D33F /* BcAABB.cpp */; };
+		C86C8A0A13598B9A00F4CED8 /* BcCommandBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726813507BE70092D33F /* BcCommandBuffer.cpp */; };
+		C86C8A0B13598B9A00F4CED8 /* BcDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726A13507BE70092D33F /* BcDebug.cpp */; };
+		C86C8A0C13598B9A00F4CED8 /* BcFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726F13507BE70092D33F /* BcFile.cpp */; };
+		C86C8A0D13598B9A00F4CED8 /* BcHash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824727313507BE70092D33F /* BcHash.cpp */; };
+		C86C8A0E13598B9A00F4CED8 /* BcMat3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824727513507BE70092D33F /* BcMat3d.cpp */; };
+		C86C8A0F13598B9A00F4CED8 /* BcMat4d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824727713507BE70092D33F /* BcMat4d.cpp */; };
+		C86C8A1013598B9A00F4CED8 /* BcPlane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824727B13507BE70092D33F /* BcPlane.cpp */; };
+		C86C8A1113598B9A00F4CED8 /* BcProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824727E13507BE70092D33F /* BcProperties.cpp */; };
+		C86C8A1213598B9A00F4CED8 /* BcQuat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824728013507BE70092D33F /* BcQuat.cpp */; };
+		C86C8A1313598B9A00F4CED8 /* BcRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824728213507BE70092D33F /* BcRandom.cpp */; };
+		C86C8A1413598B9A00F4CED8 /* BcStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824728613507BE70092D33F /* BcStream.cpp */; };
+		C86C8A1513598B9A00F4CED8 /* BcVectors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824728B13507BE70092D33F /* BcVectors.cpp */; };
+		C86C8A1613598B9A00F4CED8 /* EvtEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824728F13507BE70092D33F /* EvtEvent.cpp */; };
+		C86C8A1713598B9A00F4CED8 /* EvtPublisher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824729113507BE70092D33F /* EvtPublisher.cpp */; };
+		C86C8A1813598B9A00F4CED8 /* CsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824729713507BE70092D33F /* CsCore.cpp */; };
+		C86C8A1913598B9A00F4CED8 /* CsCoreClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824729913507BE70092D33F /* CsCoreClient.cpp */; };
+		C86C8A1A13598B9A00F4CED8 /* CsCoreServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824729B13507BE70092D33F /* CsCoreServer.cpp */; };
+		C86C8A1B13598B9A00F4CED8 /* CsFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824729D13507BE70092D33F /* CsFile.cpp */; };
+		C86C8A1C13598B9A00F4CED8 /* CsFileReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824729F13507BE70092D33F /* CsFileReader.cpp */; };
+		C86C8A1D13598B9A00F4CED8 /* CsFileWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472A113507BE70092D33F /* CsFileWriter.cpp */; };
+		C86C8A1E13598B9A00F4CED8 /* CsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472A313507BE70092D33F /* CsResource.cpp */; };
+		C86C8A1F13598B9A00F4CED8 /* CsTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472A713507BE70092D33F /* CsTypes.cpp */; };
+		C86C8A2013598B9A00F4CED8 /* FsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472AA13507BE70092D33F /* FsCore.cpp */; };
+		C86C8A2113598B9A00F4CED8 /* FsFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472AC13507BE70092D33F /* FsFile.cpp */; };
+		C86C8A2213598B9A00F4CED8 /* NsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472AF13507BE70092D33F /* NsCore.cpp */; };
+		C86C8A2313598B9A00F4CED8 /* OsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472B213507BE70092D33F /* OsCore.cpp */; };
+		C86C8A2413598B9A00F4CED8 /* OsCoreImplSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472B613507BE70092D33F /* OsCoreImplSDL.cpp */; };
+		C86C8A2513598B9A00F4CED8 /* RmCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472B913507BE70092D33F /* RmCore.cpp */; };
+		C86C8A2613598B9A00F4CED8 /* RmTCPConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472BB13507BE70092D33F /* RmTCPConnection.cpp */; };
+		C86C8A2713598B9A00F4CED8 /* RsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472F213507BE70092D33F /* RsCore.cpp */; };
+		C86C8A2813598B9A00F4CED8 /* RsFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472F713507BE70092D33F /* RsFrame.cpp */; };
+		C86C8A2913598B9A00F4CED8 /* RsIndexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472F913507BE70092D33F /* RsIndexBuffer.cpp */; };
+		C86C8A2A13598B9A00F4CED8 /* RsLight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472FB13507BE70092D33F /* RsLight.cpp */; };
+		C86C8A2B13598B9A00F4CED8 /* RsPrimitive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472FF13507BE70092D33F /* RsPrimitive.cpp */; };
+		C86C8A2C13598B9A00F4CED8 /* RsProgram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824730113507BE70092D33F /* RsProgram.cpp */; };
+		C86C8A2D13598B9A00F4CED8 /* RsRenderNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824730413507BE70092D33F /* RsRenderNode.cpp */; };
+		C86C8A2E13598B9A00F4CED8 /* RsShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824730713507BE70092D33F /* RsShader.cpp */; };
+		C86C8A2F13598B9A00F4CED8 /* RsTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824730913507BE70092D33F /* RsTexture.cpp */; };
+		C86C8A3013598B9A00F4CED8 /* RsTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824730B13507BE70092D33F /* RsTypes.cpp */; };
+		C86C8A3113598B9A00F4CED8 /* RsVertexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824730E13507BE70092D33F /* RsVertexBuffer.cpp */; };
+		C86C8A3213598B9A00F4CED8 /* RsViewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824731013507BE70092D33F /* RsViewport.cpp */; };
+		C86C8A3313598B9A00F4CED8 /* ScnTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824731513507BE70092D33F /* ScnTexture.cpp */; };
+		C86C8A3413598B9A00F4CED8 /* SysKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824731813507BE70092D33F /* SysKernel.cpp */; };
+		C86C8A3513598B9A00F4CED8 /* SysState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824731A13507BE70092D33F /* SysState.cpp */; };
+		C86C8A3613598B9A00F4CED8 /* SysSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824731C13507BE70092D33F /* SysSystem.cpp */; };
+		C86C8A3713598B9A00F4CED8 /* BcAtomic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824736E13507BFD0092D33F /* BcAtomic.cpp */; };
+		C86C8A3813598B9A00F4CED8 /* BcEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824737013507BFD0092D33F /* BcEvent.cpp */; };
+		C86C8A3913598B9A00F4CED8 /* BcMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824737213507BFD0092D33F /* BcMutex.cpp */; };
+		C86C8A3A13598B9A00F4CED8 /* BcThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824737413507BFD0092D33F /* BcThread.cpp */; };
+		C86C8A3B13598B9A00F4CED8 /* FsCoreImplOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = C824737913507BFD0092D33F /* FsCoreImplOSX.mm */; };
+		C86C8A3C13598B9A00F4CED8 /* FsFileImplOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = C824737B13507BFD0092D33F /* FsFileImplOSX.mm */; };
+		C86C8A3D13598B9A00F4CED8 /* MainMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824737C13507BFD0092D33F /* MainMac.cpp */; };
+		C86C8A3E13598B9A00F4CED8 /* RsCoreImplGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824739513507DC60092D33F /* RsCoreImplGL.cpp */; };
+		C86C8A3F13598B9A00F4CED8 /* RsFrameGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824739713507DC60092D33F /* RsFrameGL.cpp */; };
+		C86C8A4013598B9A00F4CED8 /* RsIndexBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824739C13507DC60092D33F /* RsIndexBufferGL.cpp */; };
+		C86C8A4113598B9A00F4CED8 /* RsPrimitiveGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824739E13507DC60092D33F /* RsPrimitiveGL.cpp */; };
+		C86C8A4213598B9A00F4CED8 /* RsProgramGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473A013507DC60092D33F /* RsProgramGL.cpp */; };
+		C86C8A4313598B9A00F4CED8 /* RsShaderGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473A213507DC60092D33F /* RsShaderGL.cpp */; };
+		C86C8A4413598B9A00F4CED8 /* RsTextureGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473A413507DC60092D33F /* RsTextureGL.cpp */; };
+		C86C8A4513598B9A00F4CED8 /* RsVertexBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473A613507DC60092D33F /* RsVertexBufferGL.cpp */; };
+		C86C8A4613598B9A00F4CED8 /* RmParameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473D213508F500092D33F /* RmParameters.cpp */; };
+		C86C8A4713598B9A00F4CED8 /* CsFileReaderRPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473D8135099600092D33F /* CsFileReaderRPC.cpp */; };
+		C86C8A4813598B9A00F4CED8 /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
+		C86C8A4913598B9A00F4CED8 /* ScnMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E92041350F1E30015F899 /* ScnMaterial.cpp */; };
+		C86C8A4A13598B9A00F4CED8 /* ScnModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E97A51351162A0015F899 /* ScnModel.cpp */; };
+		C86C8A4B13598B9A00F4CED8 /* gmArraySimple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993713514C1A0015F899 /* gmArraySimple.cpp */; };
+		C86C8A4C13598B9A00F4CED8 /* gmByteCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993913514C1A0015F899 /* gmByteCode.cpp */; };
+		C86C8A4D13598B9A00F4CED8 /* gmByteCodeGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993B13514C1A0015F899 /* gmByteCodeGen.cpp */; };
+		C86C8A4E13598B9A00F4CED8 /* gmCodeGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993D13514C1A0015F899 /* gmCodeGen.cpp */; };
+		C86C8A4F13598B9A00F4CED8 /* gmCodeGenHooks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993F13514C1A0015F899 /* gmCodeGenHooks.cpp */; };
+		C86C8A5013598B9A00F4CED8 /* gmCodeTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E994113514C1A0015F899 /* gmCodeTree.cpp */; };
+		C86C8A5113598B9A00F4CED8 /* gmCrc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E994413514C1A0015F899 /* gmCrc.cpp */; };
+		C86C8A5213598B9A00F4CED8 /* gmDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E994613514C1A0015F899 /* gmDebug.cpp */; };
+		C86C8A5313598B9A00F4CED8 /* gmFunctionObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E994B13514C1A0015F899 /* gmFunctionObject.cpp */; };
+		C86C8A5413598B9A00F4CED8 /* gmHash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E994D13514C1A0015F899 /* gmHash.cpp */; };
+		C86C8A5513598B9A00F4CED8 /* gmIncGC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E994F13514C1A0015F899 /* gmIncGC.cpp */; };
+		C86C8A5613598B9A00F4CED8 /* gmLibHooks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995213514C1A0015F899 /* gmLibHooks.cpp */; };
+		C86C8A5713598B9A00F4CED8 /* gmListDouble.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995413514C1A0015F899 /* gmListDouble.cpp */; };
+		C86C8A5813598B9A00F4CED8 /* gmLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995613514C1A0015F899 /* gmLog.cpp */; };
+		C86C8A5913598B9A00F4CED8 /* gmMachine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995813514C1A0015F899 /* gmMachine.cpp */; };
+		C86C8A5A13598B9A00F4CED8 /* gmMachineLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995A13514C1A0015F899 /* gmMachineLib.cpp */; };
+		C86C8A5B13598B9A00F4CED8 /* gmMem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995C13514C1A0015F899 /* gmMem.cpp */; };
+		C86C8A5C13598B9A00F4CED8 /* gmMemChain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E995E13514C1A0015F899 /* gmMemChain.cpp */; };
+		C86C8A5D13598B9A00F4CED8 /* gmMemFixed.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996013514C1A0015F899 /* gmMemFixed.cpp */; };
+		C86C8A5E13598B9A00F4CED8 /* gmMemFixedSet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996213514C1A0015F899 /* gmMemFixedSet.cpp */; };
+		C86C8A5F13598B9A00F4CED8 /* gmOperators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996413514C1A0015F899 /* gmOperators.cpp */; };
+		C86C8A6013598B9A00F4CED8 /* gmParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996613514C1A0015F899 /* gmParser.cpp */; };
+		C86C8A6113598B9A00F4CED8 /* gmScanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996913514C1A0015F899 /* gmScanner.cpp */; };
+		C86C8A6213598B9A00F4CED8 /* gmStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996C13514C1A0015F899 /* gmStream.cpp */; };
+		C86C8A6313598B9A00F4CED8 /* gmStreamBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E996E13514C1A0015F899 /* gmStreamBuffer.cpp */; };
+		C86C8A6413598B9A00F4CED8 /* gmStringObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997013514C1A0015F899 /* gmStringObject.cpp */; };
+		C86C8A6513598B9A00F4CED8 /* gmTableObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997213514C1A0015F899 /* gmTableObject.cpp */; };
+		C86C8A6613598B9A00F4CED8 /* gmThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997413514C1A0015F899 /* gmThread.cpp */; };
+		C86C8A6713598B9A00F4CED8 /* gmUserObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997613514C1A0015F899 /* gmUserObject.cpp */; };
+		C86C8A6813598B9A00F4CED8 /* gmUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997813514C1A0015F899 /* gmUtil.cpp */; };
+		C86C8A6913598B9A00F4CED8 /* gmVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997A13514C1A0015F899 /* gmVariable.cpp */; };
+		C86C8A6A13598B9A00F4CED8 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A3E13514CB70015F899 /* ScnScript.cpp */; };
+		C86C8A6B13598B9A00F4CED8 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
+		C86C8A6C13598B9A00F4CED8 /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */; };
+		C86C8A6D13598B9A00F4CED8 /* ScnShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D88135339F300AAF73E /* ScnShader.cpp */; };
+		C86C8A6E13598B9A00F4CED8 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC591358CA0500D1AF93 /* BcMemory.cpp */; };
+		C86C8A6F13598B9A00F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
+		C86C8A7013598B9A00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
+		C86C8A7213598B9A00F4CED8 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 002F39F909D0881F00EBEB88 /* SDL.framework */; };
+		C86C8A7313598B9A00F4CED8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		C86C8A7413598B9A00F4CED8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 002F3C0009D093BD00EBEB88 /* OpenGL.framework */; };
+		C86C8A7613598B9A00F4CED8 /* SDL.framework in Copy Frameworks into .app bundle */ = {isa = PBXBuildFile; fileRef = 002F39F909D0881F00EBEB88 /* SDL.framework */; };
+		C86C8A7E135997C500F4CED8 /* FsTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C8A7C135997C300F4CED8 /* FsTypes.cpp */; };
 		C86E92061350F1E40015F899 /* ScnMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E92041350F1E30015F899 /* ScnMaterial.cpp */; };
 		C86E97A71351162B0015F899 /* ScnModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E97A51351162A0015F899 /* ScnModel.cpp */; };
 		C86E99FB13514C1B0015F899 /* gmArraySimple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E993713514C1A0015F899 /* gmArraySimple.cpp */; };
@@ -116,6 +228,7 @@
 		C86E9A4013514CB90015F899 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A3E13514CB70015F899 /* ScnScript.cpp */; };
 		C86E9A461351560B0015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
 		C8992B611350CEAA00C9F09D /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
+		C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8E64D811351980E00AAF73E /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */; };
 		C8E64D8A135339F400AAF73E /* ScnShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D88135339F300AAF73E /* ScnShader.cpp */; };
 /* End PBXBuildFile section */
@@ -132,6 +245,17 @@
 			name = "Copy Frameworks into .app bundle";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C86C8A7513598B9A00F4CED8 /* Copy Frameworks into .app bundle */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C86C8A7613598B9A00F4CED8 /* SDL.framework in Copy Frameworks into .app bundle */,
+			);
+			name = "Copy Frameworks into .app bundle";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -144,7 +268,7 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* TestBed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestBed.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* TestBed Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TestBed Debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C824726513507BE70092D33F /* BcAABB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcAABB.cpp; sourceTree = "<group>"; };
 		C824726613507BE70092D33F /* BcAABB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcAABB.h; sourceTree = "<group>"; };
 		C824726713507BE70092D33F /* BcAtomicMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcAtomicMutex.h; sourceTree = "<group>"; };
@@ -297,6 +421,10 @@
 		C86C89201359610000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlockGL.cpp; sourceTree = "<group>"; };
 		C86C892313596C9D00F4CED8 /* RsStateBlockGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlockGL.h; sourceTree = "<group>"; };
+		C86C8A7A13598B9A00F4CED8 /* TestBed Release.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TestBed Release.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C86C8A7C135997C300F4CED8 /* FsTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FsTypes.cpp; sourceTree = "<group>"; };
+		C86C8A7D135997C300F4CED8 /* FsTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FsTypes.h; sourceTree = "<group>"; };
+		C86C8A801359A83400F4CED8 /* FsEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FsEvents.h; sourceTree = "<group>"; };
 		C86E92041350F1E30015F899 /* ScnMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnMaterial.cpp; sourceTree = "<group>"; };
 		C86E92051350F1E40015F899 /* ScnMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnMaterial.h; sourceTree = "<group>"; };
 		C86E97A51351162A0015F899 /* ScnModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnModel.cpp; sourceTree = "<group>"; };
@@ -373,6 +501,8 @@
 		C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsResourceRef.cpp; sourceTree = "<group>"; };
 		C8992B601350CEAA00C9F09D /* CsResourceRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsResourceRef.h; sourceTree = "<group>"; };
 		C8AFD21712C40FE700EE0992 /* TestBed_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestBed_Prefix.pch; sourceTree = "<group>"; };
+		C8BFF3B3135B078700BE64DE /* ScnFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnFont.cpp; sourceTree = "<group>"; };
+		C8BFF3B4135B078700BE64DE /* ScnFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnFont.h; sourceTree = "<group>"; };
 		C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnCanvas.cpp; sourceTree = "<group>"; };
 		C8E64D801351980D00AAF73E /* ScnCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnCanvas.h; sourceTree = "<group>"; };
 		C8E64D88135339F300AAF73E /* ScnShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnShader.cpp; sourceTree = "<group>"; };
@@ -387,6 +517,16 @@
 				002F39FA09D0881F00EBEB88 /* SDL.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				002F3C0109D093BD00EBEB88 /* OpenGL.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C86C8A7113598B9A00F4CED8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C86C8A7213598B9A00F4CED8 /* SDL.framework in Frameworks */,
+				C86C8A7313598B9A00F4CED8 /* Cocoa.framework in Frameworks */,
+				C86C8A7413598B9A00F4CED8 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -424,7 +564,8 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* TestBed.app */,
+				8D1107320486CEB800E47090 /* TestBed Debug.app */,
+				C86C8A7A13598B9A00F4CED8 /* TestBed Release.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -604,6 +745,9 @@
 				C82472AB13507BE70092D33F /* FsCore.h */,
 				C82472AC13507BE70092D33F /* FsFile.cpp */,
 				C82472AD13507BE70092D33F /* FsFile.h */,
+				C86C8A7C135997C300F4CED8 /* FsTypes.cpp */,
+				C86C8A7D135997C300F4CED8 /* FsTypes.h */,
+				C86C8A801359A83400F4CED8 /* FsEvents.h */,
 			);
 			path = File;
 			sourceTree = "<group>";
@@ -692,6 +836,8 @@
 		C824731213507BE70092D33F /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				C8BFF3B3135B078700BE64DE /* ScnFont.cpp */,
+				C8BFF3B4135B078700BE64DE /* ScnFont.h */,
 				C86E9A3E13514CB70015F899 /* ScnScript.cpp */,
 				C86E9A3F13514CB80015F899 /* ScnScript.h */,
 				C86E97A51351162A0015F899 /* ScnModel.cpp */,
@@ -904,9 +1050,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8D1107260486CEB800E47090 /* TestBed */ = {
+		8D1107260486CEB800E47090 /* TestBed_Debug */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "TestBed" */;
+			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "TestBed_Debug" */;
 			buildPhases = (
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
@@ -917,10 +1063,29 @@
 			);
 			dependencies = (
 			);
-			name = TestBed;
+			name = TestBed_Debug;
 			productInstallPath = "$(HOME)/Applications";
 			productName = TestBed;
-			productReference = 8D1107320486CEB800E47090 /* TestBed.app */;
+			productReference = 8D1107320486CEB800E47090 /* TestBed Debug.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C86C8A0313598B9A00F4CED8 /* TestBed_Release */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C86C8A7713598B9A00F4CED8 /* Build configuration list for PBXNativeTarget "TestBed_Release" */;
+			buildPhases = (
+				C86C8A0413598B9A00F4CED8 /* Resources */,
+				C86C8A0713598B9A00F4CED8 /* Sources */,
+				C86C8A7113598B9A00F4CED8 /* Frameworks */,
+				C86C8A7513598B9A00F4CED8 /* Copy Frameworks into .app bundle */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TestBed_Release;
+			productInstallPath = "$(HOME)/Applications";
+			productName = TestBed;
+			productReference = C86C8A7A13598B9A00F4CED8 /* TestBed Release.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -942,7 +1107,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D1107260486CEB800E47090 /* TestBed */,
+				8D1107260486CEB800E47090 /* TestBed_Debug */,
+				C86C8A0313598B9A00F4CED8 /* TestBed_Release */,
 			);
 		};
 /* End PBXProject section */
@@ -954,6 +1120,15 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				C824732113507BE70092D33F /* BcDelegate_gen.py in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C86C8A0413598B9A00F4CED8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C86C8A0513598B9A00F4CED8 /* InfoPlist.strings in Resources */,
+				C86C8A0613598B9A00F4CED8 /* BcDelegate_gen.py in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1069,6 +1244,120 @@
 				C82EAC5A1358CA0600D1AF93 /* BcMemory.cpp in Sources */,
 				C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */,
 				C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */,
+				C86C8A7E135997C500F4CED8 /* FsTypes.cpp in Sources */,
+				C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C86C8A0713598B9A00F4CED8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C86C8A0813598B9A00F4CED8 /* SDLMain.m in Sources */,
+				C86C8A0913598B9A00F4CED8 /* BcAABB.cpp in Sources */,
+				C86C8A0A13598B9A00F4CED8 /* BcCommandBuffer.cpp in Sources */,
+				C86C8A0B13598B9A00F4CED8 /* BcDebug.cpp in Sources */,
+				C86C8A0C13598B9A00F4CED8 /* BcFile.cpp in Sources */,
+				C86C8A0D13598B9A00F4CED8 /* BcHash.cpp in Sources */,
+				C86C8A0E13598B9A00F4CED8 /* BcMat3d.cpp in Sources */,
+				C86C8A0F13598B9A00F4CED8 /* BcMat4d.cpp in Sources */,
+				C86C8A1013598B9A00F4CED8 /* BcPlane.cpp in Sources */,
+				C86C8A1113598B9A00F4CED8 /* BcProperties.cpp in Sources */,
+				C86C8A1213598B9A00F4CED8 /* BcQuat.cpp in Sources */,
+				C86C8A1313598B9A00F4CED8 /* BcRandom.cpp in Sources */,
+				C86C8A1413598B9A00F4CED8 /* BcStream.cpp in Sources */,
+				C86C8A1513598B9A00F4CED8 /* BcVectors.cpp in Sources */,
+				C86C8A1613598B9A00F4CED8 /* EvtEvent.cpp in Sources */,
+				C86C8A1713598B9A00F4CED8 /* EvtPublisher.cpp in Sources */,
+				C86C8A1813598B9A00F4CED8 /* CsCore.cpp in Sources */,
+				C86C8A1913598B9A00F4CED8 /* CsCoreClient.cpp in Sources */,
+				C86C8A1A13598B9A00F4CED8 /* CsCoreServer.cpp in Sources */,
+				C86C8A1B13598B9A00F4CED8 /* CsFile.cpp in Sources */,
+				C86C8A1C13598B9A00F4CED8 /* CsFileReader.cpp in Sources */,
+				C86C8A1D13598B9A00F4CED8 /* CsFileWriter.cpp in Sources */,
+				C86C8A1E13598B9A00F4CED8 /* CsResource.cpp in Sources */,
+				C86C8A1F13598B9A00F4CED8 /* CsTypes.cpp in Sources */,
+				C86C8A2013598B9A00F4CED8 /* FsCore.cpp in Sources */,
+				C86C8A2113598B9A00F4CED8 /* FsFile.cpp in Sources */,
+				C86C8A2213598B9A00F4CED8 /* NsCore.cpp in Sources */,
+				C86C8A2313598B9A00F4CED8 /* OsCore.cpp in Sources */,
+				C86C8A2413598B9A00F4CED8 /* OsCoreImplSDL.cpp in Sources */,
+				C86C8A2513598B9A00F4CED8 /* RmCore.cpp in Sources */,
+				C86C8A2613598B9A00F4CED8 /* RmTCPConnection.cpp in Sources */,
+				C86C8A2713598B9A00F4CED8 /* RsCore.cpp in Sources */,
+				C86C8A2813598B9A00F4CED8 /* RsFrame.cpp in Sources */,
+				C86C8A2913598B9A00F4CED8 /* RsIndexBuffer.cpp in Sources */,
+				C86C8A2A13598B9A00F4CED8 /* RsLight.cpp in Sources */,
+				C86C8A2B13598B9A00F4CED8 /* RsPrimitive.cpp in Sources */,
+				C86C8A2C13598B9A00F4CED8 /* RsProgram.cpp in Sources */,
+				C86C8A2D13598B9A00F4CED8 /* RsRenderNode.cpp in Sources */,
+				C86C8A2E13598B9A00F4CED8 /* RsShader.cpp in Sources */,
+				C86C8A2F13598B9A00F4CED8 /* RsTexture.cpp in Sources */,
+				C86C8A3013598B9A00F4CED8 /* RsTypes.cpp in Sources */,
+				C86C8A3113598B9A00F4CED8 /* RsVertexBuffer.cpp in Sources */,
+				C86C8A3213598B9A00F4CED8 /* RsViewport.cpp in Sources */,
+				C86C8A3313598B9A00F4CED8 /* ScnTexture.cpp in Sources */,
+				C86C8A3413598B9A00F4CED8 /* SysKernel.cpp in Sources */,
+				C86C8A3513598B9A00F4CED8 /* SysState.cpp in Sources */,
+				C86C8A3613598B9A00F4CED8 /* SysSystem.cpp in Sources */,
+				C86C8A3713598B9A00F4CED8 /* BcAtomic.cpp in Sources */,
+				C86C8A3813598B9A00F4CED8 /* BcEvent.cpp in Sources */,
+				C86C8A3913598B9A00F4CED8 /* BcMutex.cpp in Sources */,
+				C86C8A3A13598B9A00F4CED8 /* BcThread.cpp in Sources */,
+				C86C8A3B13598B9A00F4CED8 /* FsCoreImplOSX.mm in Sources */,
+				C86C8A3C13598B9A00F4CED8 /* FsFileImplOSX.mm in Sources */,
+				C86C8A3D13598B9A00F4CED8 /* MainMac.cpp in Sources */,
+				C86C8A3E13598B9A00F4CED8 /* RsCoreImplGL.cpp in Sources */,
+				C86C8A3F13598B9A00F4CED8 /* RsFrameGL.cpp in Sources */,
+				C86C8A4013598B9A00F4CED8 /* RsIndexBufferGL.cpp in Sources */,
+				C86C8A4113598B9A00F4CED8 /* RsPrimitiveGL.cpp in Sources */,
+				C86C8A4213598B9A00F4CED8 /* RsProgramGL.cpp in Sources */,
+				C86C8A4313598B9A00F4CED8 /* RsShaderGL.cpp in Sources */,
+				C86C8A4413598B9A00F4CED8 /* RsTextureGL.cpp in Sources */,
+				C86C8A4513598B9A00F4CED8 /* RsVertexBufferGL.cpp in Sources */,
+				C86C8A4613598B9A00F4CED8 /* RmParameters.cpp in Sources */,
+				C86C8A4713598B9A00F4CED8 /* CsFileReaderRPC.cpp in Sources */,
+				C86C8A4813598B9A00F4CED8 /* CsResourceRef.cpp in Sources */,
+				C86C8A4913598B9A00F4CED8 /* ScnMaterial.cpp in Sources */,
+				C86C8A4A13598B9A00F4CED8 /* ScnModel.cpp in Sources */,
+				C86C8A4B13598B9A00F4CED8 /* gmArraySimple.cpp in Sources */,
+				C86C8A4C13598B9A00F4CED8 /* gmByteCode.cpp in Sources */,
+				C86C8A4D13598B9A00F4CED8 /* gmByteCodeGen.cpp in Sources */,
+				C86C8A4E13598B9A00F4CED8 /* gmCodeGen.cpp in Sources */,
+				C86C8A4F13598B9A00F4CED8 /* gmCodeGenHooks.cpp in Sources */,
+				C86C8A5013598B9A00F4CED8 /* gmCodeTree.cpp in Sources */,
+				C86C8A5113598B9A00F4CED8 /* gmCrc.cpp in Sources */,
+				C86C8A5213598B9A00F4CED8 /* gmDebug.cpp in Sources */,
+				C86C8A5313598B9A00F4CED8 /* gmFunctionObject.cpp in Sources */,
+				C86C8A5413598B9A00F4CED8 /* gmHash.cpp in Sources */,
+				C86C8A5513598B9A00F4CED8 /* gmIncGC.cpp in Sources */,
+				C86C8A5613598B9A00F4CED8 /* gmLibHooks.cpp in Sources */,
+				C86C8A5713598B9A00F4CED8 /* gmListDouble.cpp in Sources */,
+				C86C8A5813598B9A00F4CED8 /* gmLog.cpp in Sources */,
+				C86C8A5913598B9A00F4CED8 /* gmMachine.cpp in Sources */,
+				C86C8A5A13598B9A00F4CED8 /* gmMachineLib.cpp in Sources */,
+				C86C8A5B13598B9A00F4CED8 /* gmMem.cpp in Sources */,
+				C86C8A5C13598B9A00F4CED8 /* gmMemChain.cpp in Sources */,
+				C86C8A5D13598B9A00F4CED8 /* gmMemFixed.cpp in Sources */,
+				C86C8A5E13598B9A00F4CED8 /* gmMemFixedSet.cpp in Sources */,
+				C86C8A5F13598B9A00F4CED8 /* gmOperators.cpp in Sources */,
+				C86C8A6013598B9A00F4CED8 /* gmParser.cpp in Sources */,
+				C86C8A6113598B9A00F4CED8 /* gmScanner.cpp in Sources */,
+				C86C8A6213598B9A00F4CED8 /* gmStream.cpp in Sources */,
+				C86C8A6313598B9A00F4CED8 /* gmStreamBuffer.cpp in Sources */,
+				C86C8A6413598B9A00F4CED8 /* gmStringObject.cpp in Sources */,
+				C86C8A6513598B9A00F4CED8 /* gmTableObject.cpp in Sources */,
+				C86C8A6613598B9A00F4CED8 /* gmThread.cpp in Sources */,
+				C86C8A6713598B9A00F4CED8 /* gmUserObject.cpp in Sources */,
+				C86C8A6813598B9A00F4CED8 /* gmUtil.cpp in Sources */,
+				C86C8A6913598B9A00F4CED8 /* gmVariable.cpp in Sources */,
+				C86C8A6A13598B9A00F4CED8 /* ScnScript.cpp in Sources */,
+				C86C8A6B13598B9A00F4CED8 /* RsResource.cpp in Sources */,
+				C86C8A6C13598B9A00F4CED8 /* ScnCanvas.cpp in Sources */,
+				C86C8A6D13598B9A00F4CED8 /* ScnShader.cpp in Sources */,
+				C86C8A6E13598B9A00F4CED8 /* BcMemory.cpp in Sources */,
+				C86C8A6F13598B9A00F4CED8 /* RsStateBlock.cpp in Sources */,
+				C86C8A7013598B9A00F4CED8 /* RsStateBlockGL.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1112,7 +1401,8 @@
 					"\"$(SRCROOT)/../iOS/build/Debug-iphonesimulator\"",
 					"\"$(SRCROOT)/../..\"",
 				);
-				PRODUCT_NAME = TestBed;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "TestBed Debug";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1120,10 +1410,7 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1144,7 +1431,9 @@
 					"\"$(SRCROOT)/../iOS/build/Debug-iphonesimulator\"",
 					"\"$(SRCROOT)/../..\"",
 				);
-				PRODUCT_NAME = TestBed;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "TestBed Debug";
+				SDKROOT = macosx10.6;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -1193,6 +1482,7 @@
 					/Library/Frameworks,
 					"$(FRAMEWORK_SEARCH_PATHS)",
 				);
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					DEBUG,
 					PSY_DEBUG,
@@ -1213,10 +1503,82 @@
 			};
 			name = Release;
 		};
+		C86C8A7813598B9A00F4CED8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = TestBed_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					NDEBUG,
+					PSY_RELEASE,
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(HOME)/Library/Frameworks/SDL.framework/Headers",
+					/Library/Frameworks/SDL.framework/Headers,
+					"$(HEADER_SEARCH_PATHS)",
+					"../../Source/Shared/**",
+					"../../Source/Platforms/OSX/**",
+					../../External/gmsrc/src/gm,
+					../../External/gmsrc/src/platforms/osxllvm,
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\\\"$(SRCROOT)/../iOS/build/Debug-iphonesimulator\\\"",
+					"\\\"$(SRCROOT)/../..\\\"",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "TestBed Release";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		C86C8A7913598B9A00F4CED8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = TestBed_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					NDEBUG,
+					PSY_RELEASE,
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(HOME)/Library/Frameworks/SDL.framework/Headers",
+					/Library/Frameworks/SDL.framework/Headers,
+					"$(HEADER_SEARCH_PATHS)",
+					"../../Source/Shared/**",
+					"../../Source/Platforms/OSX/**",
+					../../External/gmsrc/src/gm,
+					../../External/gmsrc/src/platforms/osxllvm,
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\\\"$(SRCROOT)/../iOS/build/Debug-iphonesimulator\\\"",
+					"\\\"$(SRCROOT)/../..\\\"",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "TestBed Release";
+				SDKROOT = macosx10.6;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "TestBed" */ = {
+		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "TestBed_Debug" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C01FCF4B08A954540054247B /* Debug */,
@@ -1230,6 +1592,15 @@
 			buildConfigurations = (
 				C01FCF4F08A954540054247B /* Debug */,
 				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C86C8A7713598B9A00F4CED8 /* Build configuration list for PBXNativeTarget "TestBed_Release" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C86C8A7813598B9A00F4CED8 /* Debug */,
+				C86C8A7913598B9A00F4CED8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

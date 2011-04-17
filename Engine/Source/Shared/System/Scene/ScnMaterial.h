@@ -51,6 +51,8 @@ private:
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
 	
 private:
+	friend class ScnMaterialInstance;
+	
 	struct THeader
 	{
 		// TODO: Store IDs, hash keys, or more packed data.

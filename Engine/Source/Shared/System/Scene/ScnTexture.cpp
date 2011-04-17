@@ -34,7 +34,7 @@ BcBool ScnTexture::import( const Json::Value& Object )
 	if( pImage != NULL )
 	{
 		BcStream HeaderStream;
-		BcStream BodyStream;
+		BcStream BodyStream( BcFalse, 1024, ( pImage->width() * pImage->height() * 4 ) );
 		
 		// TODO: Use parameters to pick a format.
 		THeader Header = { pImage->width(), pImage->height(), 1, rsTF_RGBA8 };

@@ -42,19 +42,19 @@ RsStateBlock::~RsStateBlock()
 void RsStateBlock::setDefaultState()
 {
 	// Setup default render states.
-	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		BcFalse,		BcTrue );
-	setRenderState( rsRS_DEPTH_TEST_ENABLE,			BcFalse,		BcTrue );
-	setRenderState( rsRS_DEPTH_TEST_COMPARE,		rsCM_NEVER,		BcTrue );
-	setRenderState( rsRS_DEPTH_BIAS,				0,				BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_ENABLE,			BcFalse,		BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_COMPARE,		rsCM_NEVER,		BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_THRESHOLD,		0,				BcTrue );
-	setRenderState( rsRS_BLEND_MODE,				rsBM_NONE,		BcTrue );
+	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		BcFalse,			BcTrue );
+	setRenderState( rsRS_DEPTH_TEST_ENABLE,			BcFalse,			BcTrue );
+	setRenderState( rsRS_DEPTH_TEST_COMPARE,		rsCM_NEVER,			BcTrue );
+	setRenderState( rsRS_DEPTH_BIAS,				0,					BcTrue );
+	setRenderState( rsRS_ALPHA_TEST_ENABLE,			BcFalse,			BcTrue );
+	setRenderState( rsRS_ALPHA_TEST_COMPARE,		rsCM_GREATEREQUAL,	BcTrue );
+	setRenderState( rsRS_ALPHA_TEST_THRESHOLD,		128,				BcTrue );
+	setRenderState( rsRS_BLEND_MODE,				rsBM_BLEND,			BcTrue );
 	
 	// Setup default texture states.
 	RsTextureParams TextureParams = 
 	{
-		rsTFM_NEAREST, rsTFM_NEAREST, rsTSM_WRAP, rsTSM_WRAP
+		rsTFM_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
 	};
 
 	for( BcU32 Sampler = 0; Sampler < rsTT_MAX; ++Sampler )

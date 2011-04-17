@@ -75,12 +75,12 @@ private:
 	void updateBindingMap();
 
 private:
-	typedef std::list< EvtBinding >				TBindingList;
+	typedef std::vector< EvtBinding >			TBindingList;
 	typedef TBindingList::iterator				TBindingListIterator;
 	typedef std::map< EvtID, TBindingList >		TBindingListMap;
 	typedef TBindingListMap::iterator			TBindingListMapIterator;	
 	typedef std::pair< EvtID, EvtBinding >		TBindingPair;
-	typedef std::list< TBindingPair >			TBindingPairList;
+	typedef std::vector< TBindingPair >			TBindingPairList;
 	typedef TBindingPairList::iterator			TBindingPairListIterator;
 
 	TBindingListMap								BindingListMap_;			///!< Bind list map.
