@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnShader::import( const Json::Value& Object )
+BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	// NOTE: This will only generate 1 permutation. Later on
 	//       they will be generated on import based on usage flags.
@@ -57,6 +57,9 @@ BcBool ScnShader::import( const Json::Value& Object )
 			// Load vertex shader.
 			if( File.open( VertexShader.asCString(), bcFM_READ ) )
 			{	
+				// Add dependancy.
+				DependancyList.push_back( VertexShader.asString() );
+
 				// Read in whole shader.
 				BcU32 ShaderSize = File.size();
 				BcU8* pShader = new BcU8[ ShaderSize ];
@@ -78,6 +81,9 @@ BcBool ScnShader::import( const Json::Value& Object )
 			// Load fragment shader.
 			if( File.open( FragmentShader.asCString(), bcFM_READ ) )
 			{
+				// Add dependancy.
+				DependancyList.push_back( FragmentShader.asString() );
+
 				// Read in whole shader.
 				BcU32 ShaderSize = File.size();
 				BcU8* pShader = new BcU8[ ShaderSize ];

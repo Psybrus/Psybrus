@@ -45,7 +45,7 @@ BcBool CsFileWriter::save()
 {
 	const BcChar* pType = BcStrStr( Name_.c_str(), "." );
 	Header_.ID_ = BcHash( pType );
-
+	
 	if( File_.open( Name_.c_str(), bcFM_WRITE ) )
 	{
 		// Write header.

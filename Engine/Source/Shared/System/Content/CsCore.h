@@ -103,11 +103,11 @@ public:
 	 * @param Object Object containing resource.
 	 */
 	template< typename _Ty >
-	BcBool								importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle );
+	BcBool								importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList );
 
 private:
-	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle );
-	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle );
+	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
+	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								parseJsonFile( const std::string& FileName, Json::Value& Root );
 
 	eEvtReturn							eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event );
@@ -261,7 +261,7 @@ template< typename _Ty >
 BcForceInline BcBool CsCore::importResource( const std::string& FileName, CsResourceRef< _Ty >& Handle )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalImportResource( FileName, InternalHandle ) )
+	if( internalImportResource( FileName, InternalHandle, NULL ) )
 	{
 		if( InternalHandle->isTypeOf( _Ty::StaticGetTypeString() ) )
 		{
@@ -273,10 +273,10 @@ BcForceInline BcBool CsCore::importResource( const std::string& FileName, CsReso
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalImportObject( Object, InternalHandle ) )
+	if( internalImportObject( Object, InternalHandle, &DependancyList ) )
 	{
 		if( InternalHandle->isTypeOf( _Ty::StaticGetTypeString() ) )
 		{

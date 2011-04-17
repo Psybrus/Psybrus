@@ -37,7 +37,7 @@ public:
 	DECLARE_RESOURCE( ScnMaterial );
 	
 #ifdef PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object );
+	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif
 	virtual void						initialise();
 	virtual void						create();
@@ -81,8 +81,11 @@ public:
 	DECLARE_RESOURCE( ScnMaterialInstance );
 	
 	void								initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap );
-	
+		
+	void								setTexture( const std::string& SamplerName, ScnTextureRef Texture );
+		
 	void								bind();
+	
 
 	virtual BcBool						isReady();
 

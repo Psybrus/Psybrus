@@ -24,9 +24,12 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnTexture::import( const Json::Value& Object )
+BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const std::string& FileName = Object[ "source" ].asString();
+
+	// Add root dependancy.
+	DependancyList.push_back( FileName );
 
 	// Load texture from file and create the data for export.
 	ImgImage* pImage = Img::load( FileName.c_str() );

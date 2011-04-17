@@ -25,7 +25,7 @@ private:
 	CsResource* pObject_;
 	
 private:
-	void _acquireNew( CsResource* pObject )
+	BcForceInline void _acquireNew( CsResource* pObject )
 	{
 		pObject_ = pObject;
 
@@ -35,7 +35,7 @@ private:
 		}
 	}
 	
-	void _acquireNewReleaseOld( CsResource* pObject )
+	BcForceInline void _acquireNewReleaseOld( CsResource* pObject )
 	{
 		if( pObject != NULL )
 		{
@@ -46,7 +46,7 @@ private:
 		pObject_ = pObject;
 	}
 
-	void _acquireAssign( CsResource* pObject )
+	BcForceInline void _acquireAssign( CsResource* pObject )
 	{
 		if( pObject_ == NULL )
 		{
@@ -58,7 +58,7 @@ private:
 		}
 	}
 
-	void _releaseThis()
+	BcForceInline void _releaseThis()
 	{
 		if( pObject_ != NULL )
 		{

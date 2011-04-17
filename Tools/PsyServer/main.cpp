@@ -16,6 +16,7 @@
 #include "ScnCanvas.h"
 #include "ScnShader.h"
 #include "ScnPackage.h"
+#include "ScnFont.h"
 
 SysSystemEvent::Delegate DelegateUpdate;
 SysSystemEvent::Delegate DelegateRemoteOpened;
@@ -25,11 +26,11 @@ ScnModelRef Model;
 ScnScriptRef Script;
 ScnMaterialRef Material;
 ScnPackageRef Package;
-
+ScnFontRef Font;
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
 	//*
-	if( Package.isValid() == BcFalse )
+	if( Material.isValid() == BcFalse )
 	{
 		CsCore::pImpl()->registerResource< ScnTexture >();
 		CsCore::pImpl()->registerResource< ScnMaterial >();
@@ -38,7 +39,13 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnCanvas >();
 		CsCore::pImpl()->registerResource< ScnShader >();
 		CsCore::pImpl()->registerResource< ScnPackage >();
-		CsCore::pImpl()->importResource( "test.package", Package );
+		CsCore::pImpl()->registerResource< ScnFont >();
+		CsCore::pImpl()->importResource( "EngineContent/default.material", Material );
+		CsCore::pImpl()->importResource( "GameContent/font.material", Material );
+		CsCore::pImpl()->importResource( "GameContent/baroque.font", Font );
+		
+		//CsCore::pImpl()->importResource( "test.font", Font );
+		//CsCore::pImpl()->importResource( "test.material", Material );
 	}
 	
 	//*/
