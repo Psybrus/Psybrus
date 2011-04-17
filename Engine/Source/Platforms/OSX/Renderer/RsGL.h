@@ -68,6 +68,7 @@
 		if( Error != 0 )								\
 		{												\
 			BcPrintf( "RsGL: Error: 0x%x", Error );		\
+			BcBreakpoint;								\
 		}												\
 	}
 

@@ -19,14 +19,293 @@
 #include "BcFile.h"
 #include "BcStream.h"
 #include "json.h"
+#include "Img.h"
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+
 #endif
 
 #ifdef PSY_SERVER
 //////////////////////////////////////////////////////////////////////////
+// makeImageForGlyph
+static ImgImage* makeImageForGlyph( FT_Glyph Glyph, FT_Render_Mode RenderMode, BcU32 BorderSize )
+{
+	ImgImage* pImage = NULL;
+	BcU32 DoubleBorderSize = BorderSize * 2;
+	{	
+		FT_BitmapGlyph Bitmap = (FT_BitmapGlyph)Glyph;
+		if( Bitmap->bitmap.buffer != NULL )
+		{
+			pImage = new ImgImage();
+		
+			BcU32 W = Bitmap->bitmap.width;
+			BcU32 H = Bitmap->bitmap.rows;
+			BcU32 Pitch = Bitmap->bitmap.pitch;
+		
+			ImgColour ClearColour = { 0, 0, 0, 0 };
+			pImage->create( W + DoubleBorderSize, H + DoubleBorderSize, imgFMT_RGBA, &ClearColour );
+			
+			if( RenderMode == FT_RENDER_MODE_MONO )
+			{
+				for( BcU32 iY = 0; iY < H; ++iY )
+				{
+					BcU8* pRow = Bitmap->bitmap.buffer + ( iY * Pitch );
+					BcU8 Mask = 128;
+					for( BcU32 iX = 0; iX < W; ++iX )
+					{
+						BcU32 BitSet = *pRow & Mask;
+						Mask >>= 1;
+						
+						ImgColour Colour = 
+						{
+							255, 255, 255, BitSet ? 255 : 0
+						};
+						
+						pImage->setPixel( iX + BorderSize, iY + BorderSize, Colour );
+						
+						//  Advance row.
+						if( Mask == 0 )
+						{
+							Mask = 128;
+							++pRow;
+						}
+					}
+				}
+			}
+			else if( RenderMode == FT_RENDER_MODE_NORMAL )
+			{
+				for( BcU32 iY = 0; iY < H; ++iY )
+				{
+					BcU8* pRow = Bitmap->bitmap.buffer + ( iY * Pitch );
+					for( BcU32 iX = 0; iX < W; ++iX )
+					{
+						BcU32 Pixel = *pRow;
+						
+						ImgColour Colour = 
+						{
+							255, 255, 255, Pixel
+						};
+						
+						pImage->setPixel( iX + BorderSize, iY + BorderSize, Colour );
+						
+						++pRow;
+					}
+				}									
+			}
+			
+		}
+	}
+	
+	return pImage;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnMaterial::import( const Json::Value& Object )
+BcBool ScnFont::import( const Json::Value& Object )
 {
+	const std::string& FileName = Object[ "source" ].asString();
+	
+	FT_Library	Library;
+	FT_Face		Face;
+	
+	BcBool DistanceField = Object[ "distancefield" ].asBool();
+	BcU32 NominalSize = Object[ "nominalsize" ].asInt();
+	BcU32 BorderSize = DistanceField ? Object[ "spread" ].asInt(): 1;
+	
+	int Error;
+	
+	// Initialise free type.
+	Error = FT_Init_FreeType( &Library );
+	if( Error == 0 )
+	{
+		// Create new face.
+		Error = FT_New_Face( Library,
+							 FileName.c_str(),
+							 0,
+							 &Face );
+		
+		if( Error == 0 )
+		{
+			// Set pixel size for font map.
+			Error = FT_Set_Char_Size( Face,
+									  0,
+									  16 * 64,
+									  300,
+									  300 );
+			
+			if( Error == 0 )
+			{
+				// Set pixel sizes.
+				Error = FT_Set_Pixel_Sizes( Face,
+										    0,
+										    NominalSize );
+				
+				if( Error == 0 )
+				{
+					// List of glyph descs.			
+					typedef std::vector< TGlyphDesc > TGlyphDescList;
+					TGlyphDescList GlyphDescList;
+					
+					// List of glyph images.
+					ImgImageList GlyphImageList;
+					
+					// Keep a map of what glyph indices we have already (they can be duplicated)
+					std::map< FT_UInt, BcBool > HaveGlyph;
+					
+					// Iterate over glyphs (A-Z for now.)
+					for( BcU32 CharCode = 0; CharCode <= 255; ++CharCode )
+					{
+						FT_UInt GlyphIndex = FT_Get_Char_Index( Face, CharCode );
+						
+						if( CharCode == ' ' )
+						{
+							int a =0;
+							++a;
+						}
+						if( HaveGlyph.find( GlyphIndex ) == HaveGlyph.end() )
+						{
+							HaveGlyph[ GlyphIndex ] = BcTrue;
+							int GlyphError = FT_Load_Glyph( Face, GlyphIndex, 0 ); 
+							if( GlyphError == 0 )
+							{
+								FT_Render_Mode RenderMode = DistanceField ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
+								FT_Glyph Glyph;
+								GlyphError = FT_Get_Glyph( Face->glyph, &Glyph );
+								
+								if( GlyphError == 0 )
+								{
+									int ConvertError = FT_Glyph_To_Bitmap( &Glyph,
+																		  RenderMode,
+																		  0,
+																		  0 );
+									FT_BitmapGlyph BitmapGlyph = (FT_BitmapGlyph)(Glyph);
+									
+									ImgImage* pImage = makeImageForGlyph( Glyph, RenderMode, BorderSize );
+							
+									GlyphImageList.push_back( pImage );										
+										
+									// Add glyph descriptor.
+									TGlyphDesc GlyphDesc = 
+									{
+										0.0f, 0.0f, 0.0f, 0.0f, // UVs, fill in later.
+										
+										(BcReal)BitmapGlyph->left + BorderSize,
+										(BcReal)BitmapGlyph->top + BorderSize,
+										BitmapGlyph->bitmap.width + ( BorderSize * 2 ),
+										BitmapGlyph->bitmap.rows + ( BorderSize * 2 ),
+										(BcReal)( Glyph->advance.x >> 16 ) + (BcReal)( Glyph->advance.x & 0xffff ) / 65536.0f,
+									
+										CharCode
+									};
+									
+									GlyphDescList.push_back( GlyphDesc );
+								}
+								
+								// Done with this glyph.
+								FT_Done_Glyph( Glyph );
+							}
+						}
+					}
+					
+					// 
+					
+					// Create an atlas of glyphs.
+					ImgRectList RectList;
+					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 1024, 1024 );
+		
+					// Convert to distance field if nessisary.
+					// Generate distance field if we need to.			
+					if( DistanceField == BcTrue )
+					{
+						ImgImage* pDistanceFieldAtlasImage = pAtlasImage->generateDistanceField( 128, BorderSize );
+						delete pAtlasImage;
+						pAtlasImage = pDistanceFieldAtlasImage;
+					}
+					
+					// Create a texture.
+					std::string FontTextureName = Object[ "name" ].asString() + "_font_texture_atlas";
+					std::string FontTextureFileName = FontTextureName + ".png";
+					Img::save( FontTextureFileName.c_str(), pAtlasImage );
+										
+					// Setup texture object, and import.
+					Json::Value TextureObject;		
+					TextureObject[ "ScnTexture" ][ "name" ] = FontTextureName;
+					TextureObject[ "ScnTexture" ][ "source" ] = FontTextureFileName;		
+					
+					// Attempt to import texture.
+					ScnTextureRef TextureRef;
+					if( CsCore::pImpl()->importObject( TextureObject, TextureRef ) )
+					{
+						// Build data.
+						BcStream HeaderStream;
+						BcStream GlyphStream;
+						
+						THeader Header;
+						
+						Header.NoofGlyphs_ = GlyphDescList.size();
+						BcStrCopyN( Header.TextureName_, FontTextureName.c_str(), sizeof( Header.TextureName_ ) );
+
+						HeaderStream << Header;
+						
+						// Setup glyph desc UVs & serialise.
+						for( BcU32 Idx = 0; Idx < GlyphDescList.size(); ++Idx )
+						{
+							TGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
+							ImgRect& Rect = RectList[ Idx ];
+								
+							GlyphDesc.UA_ = BcReal( Rect.X_ ) / BcReal( pAtlasImage->width() );
+							GlyphDesc.VA_ = BcReal( Rect.Y_ ) / BcReal( pAtlasImage->height() );
+							GlyphDesc.UB_ = ( Rect.X_ + Rect.W_ ) / BcReal( pAtlasImage->width() );
+							GlyphDesc.VB_ = ( Rect.Y_ + Rect.H_ ) / BcReal( pAtlasImage->height() );
+						
+							GlyphDesc.Width_ = BcReal( Rect.W_ );
+							GlyphDesc.Height_ = BcReal( Rect.H_ );
+							
+							GlyphStream << GlyphDesc;
+						}
+						
+						// Write out chunks.											
+						pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+						pFile_->addChunk( BcHash( "glyphs" ), GlyphStream.pData(), GlyphStream.dataSize() );
+					
+						pFile_->save();
+						
+						
+						// Delete all images.
+						for( BcU32 Idx = 0; Idx < GlyphImageList.size(); ++Idx )
+						{
+							delete GlyphImageList[ Idx ];
+						}
+						GlyphImageList.clear();
+						delete pAtlasImage;
+
+						
+						return BcTrue;
+					}
+				}
+				else
+				{
+					BcPrintf( "ScnFont: Error setting pixel sizes.\n" );
+				}
+			}
+			else
+			{
+				BcPrintf( "ScnFont: Error setting char size.\n" );
+			}
+		}
+		else
+		{
+			BcPrintf( "ScnFont: Error loading font %s.\n", FileName.c_str() );
+		}
+	}
+	else
+	{
+		BcPrintf( "ScnFont: Error initialising freetype2.\n" );
+	}
+	
 	return BcFalse;
 }
 #endif
@@ -64,7 +343,14 @@ void ScnFont::destroy()
 //virtual
 BcBool ScnFont::isReady()
 {
-	return BcFalse;
+	return pHeader_ != NULL && pGlyphDescs_ != NULL && Texture_.isReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+BcBool ScnFont::createInstance( const std::string& Name, ScnFontInstanceRef& FontInstance, ScnMaterialRef Material )
+{	
+	return CsCore::pImpl()->createResource( Name, FontInstance, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,7 +367,142 @@ void ScnFont::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
+		pHeader_ = (THeader*)pData;
 		
+		// Get glyph desc chunk.
+		pFile_->getChunk( 1 );
+		
+		// Request texture.
+		CsCore::pImpl()->requestResource( pHeader_->TextureName_, Texture_ );
+	}
+	else if( pChunk->ID_ == BcHash( "glyphs" ) )
+	{
+		pGlyphDescs_ = (TGlyphDesc*)pData;
+	
+		// Create a char code map.
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
+		{
+			TGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
+			CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
+		}
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Define resource internals.
+DEFINE_RESOURCE( ScnFontInstance );
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnFontInstance::initialise( ScnFontRef Parent, ScnMaterialRef Material )
+{
+	Parent_ = Parent;
+	if( Material->createInstance( getName() + "_MaterialInstance", MaterialInstance_, scnSPF_DEFAULT ) )
+	{
+		// TODO: Swap out texture in instance.
+		//MaterialInstance_->
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
+{
+	// Cached elements from parent.
+	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
+	ScnFont::TGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
+	
+	// Allocate enough vertices for each character.
+	ScnCanvasVertex* pFirstVert = Canvas->allocVertices( String.length() * 6 );
+	ScnCanvasVertex* pVert = pFirstVert;
+	
+	BcU32 NoofVertices = 0;
+	
+	BcReal AdvanceX = 0.0f;
+	BcReal AdvanceY = 0.0f;
+	
+	BcU32 RGBA = 0xffffffff;
+	
+	// TODO: UTF-8 support.
+	for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
+	{
+		BcU32 CharCode = String[ CharIdx ];
+		
+		// Find glyph.
+		ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
+		
+		if( Iter != CharCodeMap.end() )
+		{
+			ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
+			
+			const BcReal X1 = AdvanceX - pGlyph->OffsetX_;
+			const BcReal Y1 = AdvanceY - pGlyph->OffsetY_;
+			const BcReal X2 = X1 + pGlyph->Width_;
+			const BcReal Y2 = Y1 + pGlyph->Height_;
+			
+			// Add triangle for character.
+			pVert->X_ = X1;
+			pVert->Y_ = Y1;
+			pVert->U_ = pGlyph->UA_;
+			pVert->V_ = pGlyph->VA_;
+			pVert->RGBA_ = RGBA;
+			++pVert;
+			
+			pVert->X_ = X2;
+			pVert->Y_ = Y1;
+			pVert->U_ = pGlyph->UB_;
+			pVert->V_ = pGlyph->VA_;
+			pVert->RGBA_ = RGBA;
+			++pVert;
+
+			pVert->X_ = X1;
+			pVert->Y_ = Y2;
+			pVert->U_ = pGlyph->UA_;
+			pVert->V_ = pGlyph->VB_;
+			pVert->RGBA_ = RGBA;
+			++pVert;
+
+			pVert->X_ = X2;
+			pVert->Y_ = Y1;
+			pVert->U_ = pGlyph->UB_;
+			pVert->V_ = pGlyph->VA_;
+			pVert->RGBA_ = RGBA;
+			++pVert;
+
+			pVert->X_ = X2;
+			pVert->Y_ = Y2;
+			pVert->U_ = pGlyph->UB_;
+			pVert->V_ = pGlyph->VB_;
+			pVert->RGBA_ = RGBA;
+			++pVert;
+
+			pVert->X_ = X1;
+			pVert->Y_ = Y2;
+			pVert->U_ = pGlyph->UA_;
+			pVert->V_ = pGlyph->VB_;
+			pVert->RGBA_ = RGBA;
+			++pVert;
+			
+			// Add 2 triangles worth of vertices.
+			NoofVertices += 6;
+			
+			// Advance.
+			AdvanceX += pGlyph->AdvanceX_;
+		}
+	}
+	
+	// Add primitive to canvas.
+	if( NoofVertices > 0 )
+	{
+		Canvas->setMaterialInstance( MaterialInstance_ );
+		Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+BcBool ScnFontInstance::isReady()
+{
+	return Parent_->isReady() && MaterialInstance_.isReady();
+}

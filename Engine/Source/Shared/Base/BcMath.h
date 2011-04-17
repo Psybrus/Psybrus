@@ -192,16 +192,16 @@ inline BcReal BcRound( BcReal T )
 
 //////////////////////////////////////////////////////////////////////////
 // BcClamp
-template< typename _Ty >
-inline _Ty BcClamp( _Ty Value, _Ty Min, _Ty Max )
+template< typename _Ty, typename _Uy, typename _Vy >
+inline _Ty BcClamp( _Ty Value, _Uy Min, _Vy Max )
 {
-	if( Value > Max )
+	if( Value > (_Ty)Max )
 	{
-		return Max;
+		return (_Ty)Max;
 	}
-	else if ( Value < Min )
+	else if ( Value < (_Ty)Min )
 	{
-		return Min;
+		return (_Ty)Min;
 	}
 
 	return Value;
@@ -252,6 +252,19 @@ inline BcU32 BcPotRoundUp( BcU32 Value, BcU32 RoundUpTo )
 {
 	BcAssert( BcPot( RoundUpTo ) == BcTrue );
 	return ( Value + ( RoundUpTo - 1 ) ) & ~( ( RoundUpTo - 1 ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcPotNext
+inline BcU32 BcPotNext( BcU32 Value )
+{
+	--Value;
+	Value |= Value >> 1;
+	Value |= Value >> 2;
+	Value |= Value >> 4;
+	Value |= Value >> 8;
+	Value |= Value >> 16;
+	return ++Value;
 }
 
 //////////////////////////////////////////////////////////////////////////

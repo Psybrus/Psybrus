@@ -75,6 +75,7 @@ void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcS
 					break;
 
 				case evtRET_REMOVE:
+					Iter = BindingList.erase( Iter );
 					break;
 					
 				default:
@@ -137,18 +138,14 @@ void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
 void EvtPublisher::updateBindingMap()
 {
 	// Subscribe
-	for( TBindingPairListIterator Iter = SubscribeList_.begin(); Iter != SubscribeList_.end(); ++Iter )
+	for( TBindingPairListIterator Iter = SubscribeList_.begin(); Iter != SubscribeList_.end(); Iter = SubscribeList_.erase( Iter ) )
 	{
 		subscribeInternal( Iter->first, Iter->second );
 	}
 
-	SubscribeList_.clear();
-
 	// Unsubscribe
-	for( TBindingPairListIterator Iter = UnsubscribeList_.begin(); Iter != UnsubscribeList_.end(); ++Iter )
+	for( TBindingPairListIterator Iter = UnsubscribeList_.begin(); Iter != UnsubscribeList_.end(); Iter = UnsubscribeList_.erase( Iter ) )
 	{
 		unsubscribeInternal( Iter->first, Iter->second );
 	}
-
-	UnsubscribeList_.clear();
 }

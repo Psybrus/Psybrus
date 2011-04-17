@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
 #include "ScnModel.h"
 #include "ScnCanvas.h"
 #include "ScnShader.h"
-
+#include "ScnFont.h"
 OsEventCore::Delegate DelegateQuit;
 SysSystemEvent::Delegate DelegateRender;
 SysSystemEvent::Delegate DelegateUpdate;
@@ -64,6 +64,13 @@ ScnCanvasRef Canvas;
 ScnMaterialRef MaterialRef;
 ScnMaterialInstanceRef MaterialInstanceRef;
 
+ScnMaterialRef DefaultMaterialRef;
+ScnMaterialInstanceRef DefaultMaterialInstanceRef;
+
+
+ScnFontRef FontRef;
+ScnFontInstanceRef FontInstanceRef;
+
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
 	if( MaterialRef.isValid() == BcFalse )
@@ -74,17 +81,30 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnModel >();
 		CsCore::pImpl()->registerResource< ScnCanvas >();
 		CsCore::pImpl()->registerResource< ScnShader >();
+		CsCore::pImpl()->registerResource< ScnFont >();
+		CsCore::pImpl()->registerResource< ScnFontInstance >();
 
+		CsCore::pImpl()->requestResource( "default_material", DefaultMaterialRef );
 		CsCore::pImpl()->requestResource( "test_material", MaterialRef );
+		CsCore::pImpl()->requestResource( "test_font", FontRef );
 	}
-	if( MaterialRef.isReady() && Canvas.isValid() == BcFalse )
+	if( DefaultMaterialRef.isReady() && MaterialRef.isReady() && FontRef.isReady() && Canvas.isValid() == BcFalse )
 	{
-		if( MaterialRef->createInstance( "test_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT ) )
+		if( DefaultMaterialRef->createInstance( "default_materialinstance", DefaultMaterialInstanceRef, scnSPF_DEFAULT ) )
 		{
 			CsCore::pImpl()->createResource( "test", Canvas, 1024, MaterialInstanceRef );
 		}
+		if( MaterialRef->createInstance( "test_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT ) )
+		{
+		}
+		
+		if( FontRef->createInstance( "test_fontinstance", FontInstanceRef, MaterialRef ) )
+		{
+			int a = 0;
+			a++;
+		}
 	}
-	
+		
 	// No more updates please.
 	//RsCore::pImpl()->unsubscribe( sysEVT_SYSTEM_PRE_UPDATE,	DelegateUpdate );
 
@@ -187,22 +207,27 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 	if( Canvas.isReady() )
 	{
 		BcMat4d Transform;
+		BcMat4d Scale;
 		
+		BcReal ScaleValue = BcSin( Ticker * 5.0f ) + 1.0f;
+		Scale.scale( BcVec3d( ScaleValue, ScaleValue, ScaleValue ) );
 		Transform.rotation( BcVec3d( 0.0f, 0.0f, Ticker ) );
-		Transform.translation( BcVec3d( 64.0f, 64.0f, 0.0f ) );
+	
 		Canvas->clear();
-		
+			
 		Canvas->pushMatrix( Viewport.projection() );
+		Canvas->pushMatrix( Transform );		
+		Canvas->pushMatrix( Scale );		
 		
-		Canvas->pushMatrix( Transform );		
-		Canvas->drawBox( BcVec2d( -32.0f, -32.0f ), BcVec2d( 32.0f, 32.0f ), RsColour::BLUE, 0 );
-		Canvas->pushMatrix( Transform );		
-		Canvas->drawBox( BcVec2d( -32.0f, -32.0f ), BcVec2d( 32.0f, 32.0f ), RsColour::GREEN, 0 );
+		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
+		Canvas->drawBox( BcVec2d( 0, 0 ), BcVec2d( W, -H ), RsColour::GREEN * 0.25f, 0 );
 
-		Canvas->popMatrix();
-		Canvas->popMatrix();
-		Canvas->drawLine( BcVec2d( -W, -H ), BcVec2d( W, H ), RsColour::RED, 1 );
-		
+		FontInstanceRef->draw( Canvas, "Hello, world!" );
+
+		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
+		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( W, 0 ), RsColour::RED, 1 );	
+		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( 0, -H ), RsColour::RED, 1 );	
+
 		Canvas->render( pFrame, RsRenderSort( 0 ) );
 	}
 	// */
@@ -216,10 +241,14 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 eEvtReturn doRemoteOpened( EvtID, const SysSystemEvent& Event )
 {
 	//RmCore::pImpl()->connect( "localhost" );
+	BcPrintf( "doRemoteOpened!\n" );
+	return evtRET_PASS;
 }
 
 void PsyGameInit( SysKernel& Kernel )
 {
+	BcPrintf( "Entering PsyGameInit.\n" );
+	
 	//
 	extern void BcAtomic_UnitTest();
 	BcAtomic_UnitTest();
@@ -243,6 +272,8 @@ void PsyGameInit( SysKernel& Kernel )
 	RsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE,	DelegateRender );
 	RmCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN,	DelegateRemoteOpened );	
 	
+	BcPrintf( "Running Kernel.\n" );
+
 	// Run the kernel.
 	Kernel.run();
 }

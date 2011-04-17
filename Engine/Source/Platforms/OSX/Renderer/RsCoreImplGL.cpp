@@ -83,6 +83,9 @@ void RsCoreImplGL::open()
 //virtual
 void RsCoreImplGL::update()
 {
+	// Set default state.
+	pStateBlock_->setDefaultState();
+	
 	// Execute command buffer.
 	CommandBuffer_.execute();
 
