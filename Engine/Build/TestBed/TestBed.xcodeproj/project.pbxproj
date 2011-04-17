@@ -229,6 +229,7 @@
 		C86E9A461351560B0015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
 		C8992B611350CEAA00C9F09D /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
 		C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
+		C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8E64D811351980E00AAF73E /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */; };
 		C8E64D8A135339F400AAF73E /* ScnShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D88135339F300AAF73E /* ScnShader.cpp */; };
 /* End PBXBuildFile section */
@@ -1358,6 +1359,7 @@
 				C86C8A6E13598B9A00F4CED8 /* BcMemory.cpp in Sources */,
 				C86C8A6F13598B9A00F4CED8 /* RsStateBlock.cpp in Sources */,
 				C86C8A7013598B9A00F4CED8 /* RsStateBlockGL.cpp in Sources */,
+				C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

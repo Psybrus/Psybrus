@@ -67,9 +67,10 @@ ScnMaterialInstanceRef MaterialInstanceRef;
 ScnMaterialRef DefaultMaterialRef;
 ScnMaterialInstanceRef DefaultMaterialInstanceRef;
 
-
-ScnFontRef FontRef;
-ScnFontInstanceRef FontInstanceRef;
+ScnFontRef BaroqueFontRef;
+ScnFontRef EagleFontRef;
+ScnFontInstanceRef BaroqueFontInstanceRef;
+ScnFontInstanceRef EagleFontInstanceRef;
 
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
@@ -84,25 +85,20 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnFont >();
 		CsCore::pImpl()->registerResource< ScnFontInstance >();
 
-		CsCore::pImpl()->requestResource( "default_material", DefaultMaterialRef );
-		CsCore::pImpl()->requestResource( "test_material", MaterialRef );
-		CsCore::pImpl()->requestResource( "test_font", FontRef );
+		CsCore::pImpl()->requestResource( "default", DefaultMaterialRef );
+		CsCore::pImpl()->requestResource( "font", MaterialRef );
+		CsCore::pImpl()->requestResource( "baroque", BaroqueFontRef );
+		CsCore::pImpl()->requestResource( "eaglegtiii", EagleFontRef );
 	}
-	if( DefaultMaterialRef.isReady() && MaterialRef.isReady() && FontRef.isReady() && Canvas.isValid() == BcFalse )
+	if( DefaultMaterialRef.isReady() && MaterialRef.isReady() && BaroqueFontRef.isReady() && EagleFontRef.isReady() && Canvas.isValid() == BcFalse )
 	{
 		if( DefaultMaterialRef->createInstance( "default_materialinstance", DefaultMaterialInstanceRef, scnSPF_DEFAULT ) )
 		{
-			CsCore::pImpl()->createResource( "test", Canvas, 1024, MaterialInstanceRef );
+			CsCore::pImpl()->createResource( "canvas", Canvas, 1024, MaterialInstanceRef );
 		}
-		if( MaterialRef->createInstance( "test_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT ) )
-		{
-		}
-		
-		if( FontRef->createInstance( "test_fontinstance", FontInstanceRef, MaterialRef ) )
-		{
-			int a = 0;
-			a++;
-		}
+		MaterialRef->createInstance( "font_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT );
+		BaroqueFontRef->createInstance( "baroque_fontinstance", BaroqueFontInstanceRef, MaterialRef );
+		EagleFontRef->createInstance( "eaglegtiii_fontinstance", EagleFontInstanceRef, MaterialRef );
 	}
 		
 	// No more updates please.
@@ -198,7 +194,7 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 	
 	Viewport.orthoProj( -W, W, H, -H, -1.0f, 1.0f );
 	Viewport.view( View );
-	
+		
 	pFrame->setRenderTarget( NULL );
 	pFrame->setViewport( Viewport );
 	
@@ -206,28 +202,41 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 	//*
 	if( Canvas.isReady() )
 	{
-		BcMat4d Transform;
+		BcMat4d Rotate;
 		BcMat4d Scale;
+		BcMat4d Translate;
 		
-		BcReal ScaleValue = BcSin( Ticker * 5.0f ) + 1.0f;
+		Translate.translation( BcVec3d( 0.0f, 32.0f, 0.0f ) );
+		BcReal ScaleValue = ( BcSin( Ticker * 5.0f ) + 1.0f ) * 3.0f + 0.5f;
 		Scale.scale( BcVec3d( ScaleValue, ScaleValue, ScaleValue ) );
-		Transform.rotation( BcVec3d( 0.0f, 0.0f, Ticker ) );
+		Rotate.rotation( BcVec3d( 0.0f, 0.0f, Ticker ) );
 	
+		static BcBool RedrawCanvas = BcTrue;
+		
 		Canvas->clear();
 			
 		Canvas->pushMatrix( Viewport.projection() );
-		Canvas->pushMatrix( Transform );		
+				
+		Canvas->pushMatrix( Rotate );		
 		Canvas->pushMatrix( Scale );		
 		
-		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
-		Canvas->drawBox( BcVec2d( 0, 0 ), BcVec2d( W, -H ), RsColour::GREEN * 0.25f, 0 );
+		Canvas->setMaterialInstance( MaterialInstanceRef );
+		Canvas->drawBox( BcVec2d( 0, 0 ), BcVec2d( W, -H ), RsColour::WHITE, 0 );
 
-		FontInstanceRef->draw( Canvas, "Hello, world!" );
-
+		//BaroqueFontInstanceRef->draw( Canvas, "0123456789+-/\\!@#$%^&*()" );
 		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
 		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( W, 0 ), RsColour::RED, 1 );	
-		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( 0, -H ), RsColour::RED, 1 );	
+		Canvas->drawLine( BcVec2d( 0, -32 ), BcVec2d( W, -32 ), RsColour::RED, 1 );	
+		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( 0, -32 ), RsColour::RED, 1 );	
 
+		Canvas->pushMatrix( Translate );
+		//EagleFontInstanceRef->draw( Canvas, "0123456789+-/\\!@#$%^&*()" );
+		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
+		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( W, 0 ), RsColour::RED, 1 );	
+		Canvas->drawLine( BcVec2d( 0, -32 ), BcVec2d( W, -32 ), RsColour::RED, 1 );	
+		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( 0, -32 ), RsColour::RED, 1 );	
+		Canvas->popMatrix();
+		
 		Canvas->render( pFrame, RsRenderSort( 0 ) );
 	}
 	// */
