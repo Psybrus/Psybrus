@@ -20,6 +20,16 @@
 #include "ImgException.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+class ImgImage;
+
+//////////////////////////////////////////////////////////////////////////
+// ImgImageList
+typedef std::vector< ImgImage* > ImgImageList;
+typedef ImgImageList::iterator ImgImageListIterator;
+typedef ImgImageList::const_iterator ImgImageListConstIterator;
+
+//////////////////////////////////////////////////////////////////////////
 // ImgImage
 class ImgImage
 {
@@ -54,6 +64,11 @@ public:
 	const ImgColour&		getPixel( BcU32 X, BcU32 Y ) const;
 
 	/**
+	 * Blit.
+	 */
+	void					blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& DstRect );
+	
+	/**
 	*	Set palette entry.
 	*	@param Idx Index.
 	*	@param Colour Colour.
@@ -78,11 +93,39 @@ public:
 	ImgImage*				resize( BcU32 Width, BcU32 Height );
 
 	/**
+	 * Canvas size. Original is aligned to left.
+	 */
+	ImgImage*				canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFillColour );
+	
+	/**
+	 *	Crop by colour. Only crops from right and bottom!
+	 */
+	ImgImage*				cropByColour( const ImgColour& Colour, BcBool PowerOfTwo );
+
+	/**
 	*	Generate mipmaps.
 	*	@return Number of levels generated.
 	*/
 	BcU32					generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages );
-
+	
+	/**
+	 *	Generate distance field.
+	 *	@param IntensityThreshold Intensity threshold to differentiate between 0 & 1.
+	 *	@param Spread Spread.
+	 *
+	 */
+	ImgImage*				generateDistanceField( BcU32 IntensityThreshold, BcReal Spread );
+	
+	/**
+	 *	Generate atlas.
+	 *	@param ImageList List of images.
+	 *	@param OutRectList List of rects (out).
+	 *	@param Width Max Width.
+	 *	@param Height Max Height.
+	 *	@return Atlased image.
+	 */	
+	static ImgImage*		generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height );
+	
 	/**
 	*	Get width.
 	*/

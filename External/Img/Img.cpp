@@ -71,7 +71,7 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 		if ( setjmp( png_jmpbuf( pPngRead ) ) )
 		{
 			png_destroy_read_struct( &pPngRead, &pPngInfo, &pPngEndInfo );
-			throw ImgException( "ImgLoader: Internal libpng error." );
+			return NULL;
 		}
 		
 		BcChar Header[ 8 ];
@@ -272,11 +272,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 	png_rw_ptr pWrite = ( png_rw_ptr ) &PngWrite;
 	png_flush_ptr pFlush = ( png_flush_ptr ) &PngWriteFlush;
 	png_set_write_fn( pPngWrite, pFile, pWrite, pFlush );
-	
-	png_set_filter( pPngWrite, 0, PNG_FILTER_NONE );
-	
-	png_set_compression_level( pPngWrite, Z_DEFAULT_COMPRESSION );
-	
+		
 	// Set up the header
 	int PngColType = 0;
 	int PngBitDepth = 0;
@@ -303,8 +299,8 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 				  PngBitDepth,
 				  PngColType,
 				  PNG_INTERLACE_NONE,
-				  PNG_COMPRESSION_TYPE_DEFAULT,
-				  PNG_FILTER_TYPE_DEFAULT );
+				  PNG_COMPRESSION_TYPE_BASE,
+				  PNG_FILTER_TYPE_BASE );
 	
 	if ( pImage->format() == imgFMT_INDEXED )
 	{
@@ -333,7 +329,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 	const ImgColour* pPixels = pImage->getImageData();
 	for ( int iY = 0; iY < pImage->height(); ++iY )
 	{
-		ppRows[ iY ] = ( png_bytep ) ( pPixels + iY );
+		ppRows[ iY ] = ( png_bytep ) ( pPixels + iY * pImage->width() );
 	}
 	
 	// Write the image
