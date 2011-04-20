@@ -15,72 +15,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramParameterGL::RsProgramParameterGL( const std::string& Name, RsProgramGL* pParent, GLuint Parameter ):
-	RsProgramParameter( Name ),
-	pParent_( pParent ),
-	Parameter_( Parameter )
-{
-	
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Dtor
-//virtual
-RsProgramParameterGL::~RsProgramParameterGL()
-{
-	
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setInt
-void RsProgramParameterGL::setInt( BcS32 Value )
-{
-	glUniform1i( Parameter_, Value );
-	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setFloat
-void RsProgramParameterGL::setFloat( BcReal Value )
-{
-	glUniform1f( Parameter_, Value );
-	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setVector
-void RsProgramParameterGL::setVector( const BcVec2d& Value )
-{
-	glUniform2fv( Parameter_, 1, (GLfloat*)&Value );
-	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setVector
-void RsProgramParameterGL::setVector( const BcVec3d& Value )
-{
-	glUniform3fv( Parameter_, 1, (GLfloat*)&Value );
-	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setVector
-void RsProgramParameterGL::setVector( const BcVec4d& Value )
-{
-	glUniform4fv( Parameter_, 1, (GLfloat*)&Value );
-	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setMatrix
-void RsProgramParameterGL::setMatrix( const BcMat4d& Value )
-{
-	glUniformMatrix4fv( Parameter_, 1, GL_FALSE, (GLfloat*)&Value );
-	RsGLCatchError;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Ctor
 RsProgramGL::RsProgramGL( RsShaderGL* pVertexShader, RsShaderGL* pFragmentShader ):
 	pVertexShader_( pVertexShader ),
 	pFragmentShader_( pFragmentShader )
@@ -93,11 +27,7 @@ RsProgramGL::RsProgramGL( RsShaderGL* pVertexShader, RsShaderGL* pFragmentShader
 //virtua
 RsProgramGL::~RsProgramGL()
 {
-	// Delete all parameters that we've cached.
-	for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
-	{
-		delete (*It);
-	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,7 +51,7 @@ void RsProgramGL::create()
 	glAttachShader( Handle, pVertexShader_->getHandle< GLuint >() );
 	glAttachShader( Handle, pFragmentShader_->getHandle< GLuint >() );
 	
-	// Bind attributes.
+	// Bind default vertex attributes.
 	bindAttribute( rsVC_POSITION,		"aPosition" );
 	bindAttribute( rsVC_NORMAL,			"aNormal" );
 	bindAttribute( rsVC_TANGENT,		"aTangent" );
@@ -133,8 +63,33 @@ void RsProgramGL::create()
 
 	// Link program.
 	glLinkProgram( Handle );	
+	
+	// Clear parameter list and buffer.
+	ParameterList_.clear();
+	ParameterBufferSize_ = 0;
 
+	// Attempt to find uniform names.
+	GLint ActiveUniforms = 0;
+	glGetProgramiv( Handle, GL_ACTIVE_UNIFORMS, &ActiveUniforms );
+	
+	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniforms; ++Idx )
+	{
+		// Uniform information.
+		GLchar UniformName[ 256 ];
+		GLsizei UniformNameLength = 0;
+		GLint Size = 0;
+		GLenum Type = GL_INVALID_VALUE;
 
+		// Get the uniform.
+		glGetActiveUniform( Handle, Idx, sizeof( UniformName ), &UniformNameLength, &Size, &Type, UniformName );
+		
+		// Add it as a parameter.
+		if( UniformNameLength > 0 && Type != GL_INVALID_VALUE )
+		{
+			addParameter( UniformName, Idx, Type );
+		}
+	}
+			
 	// Catch error.
 	RsGLCatchError;
 }
@@ -161,47 +116,97 @@ void RsProgramGL::destroy()
 ////////////////////////////////////////////////////////////////////////////////
 // findParameter
 //virtual
-RsProgramParameter* RsProgramGL::findParameter( const std::string& Name )
+BcU32 RsProgramGL::getParameterBufferSize() const
 {
-	// NOTE: Lazy finding. Could store these at build/load time.
-	RsProgramParameterGL* pParameter = NULL;
+	return ParameterBufferSize_;
+}
 
-	GLuint Handle = getHandle< GLuint >();
-
-	// Try to find in list first.
-	for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
+////////////////////////////////////////////////////////////////////////////////
+// findParameterOffset
+//virtual
+BcU32 RsProgramGL::findParameterOffset( const std::string& Name, eRsShaderParameterType& Type, BcU32& Offset ) const
+{
+	for( TParameterListConstIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 	{
-		if( (*It)->getName() == Name )
+		if( (*It).Name_ == Name )
 		{
-			pParameter = (*It);
-			break;
+			Type = (*It).Type_;
+			Offset = (*It).Offset_;
+			return BcTrue;
 		}
 	}
 	
-	// Lookup and add to list if it NULL (if we can find it).
-	if( pParameter == NULL )
-	{
-		GLint UniformLocation = glGetUniformLocation( Handle, Name.c_str() );
-		
-		if( UniformLocation != GLint( -1 ) )
-		{
-			pParameter = new RsProgramParameterGL( Name, this, UniformLocation );
-			ParameterList_.push_back( pParameter );
-		}
-	}
-	
-	return pParameter;
+	return BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // bind
 //virtual
-void RsProgramGL::bind()
+void RsProgramGL::bind( void* pParameterBuffer )
 {
 	GLuint Handle = getHandle< GLuint >();
-
 	glUseProgram( Handle );
 	RsGLCatchError;
+	
+	// Bind parameters from buffer if we have been given one.
+	if( pParameterBuffer != NULL )
+	{
+		GLfloat* pFloatParameter = (GLfloat*)pParameterBuffer;
+		GLint* pIntParameter = (GLint*)pParameterBuffer;
+		for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
+		{
+			TParameter& Parameter = (*It);
+			const GLint Handle = Parameter.Handle_;
+			const BcU32 Offset = Parameter.Offset_;
+			switch( Parameter.Type_ )
+			{
+				case rsSPT_FLOAT:
+					glUniform1f( Handle, pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_FLOAT_VEC2:
+					glUniform2fv( Handle, 1, &pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_FLOAT_VEC3:
+					glUniform3fv( Handle, 1, &pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_FLOAT_VEC4:
+					glUniform4fv( Handle, 1, &pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_FLOAT_MAT2:
+					glUniformMatrix2fv( Handle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_FLOAT_MAT3:
+					glUniformMatrix3fv( Handle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_FLOAT_MAT4:
+					glUniformMatrix4fv( Handle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					break;
+				case rsSPT_INT:
+				case rsSPT_BOOL:
+				case rsSPT_SAMPLER_1D:
+				case rsSPT_SAMPLER_2D:
+				case rsSPT_SAMPLER_3D:
+				case rsSPT_SAMPLER_CUBE:
+				case rsSPT_SAMPLER_1D_SHADOW:
+				case rsSPT_SAMPLER_2D_SHADOW:
+					glUniform1i( Handle, pIntParameter[ Offset ] );
+					break;
+				case rsSPT_INT_VEC2:
+				case rsSPT_BOOL_VEC2:
+					glUniform2iv( Handle, 1, &pIntParameter[ Offset ] );
+					break;
+				case rsSPT_INT_VEC3:
+				case rsSPT_BOOL_VEC3:
+					glUniform3iv( Handle, 1, &pIntParameter[ Offset ] );
+					break;
+				case rsSPT_INT_VEC4:
+				case rsSPT_BOOL_VEC4:
+					glUniform4iv( Handle, 1, &pIntParameter[ Offset ] );
+					break;
+					break;
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -209,7 +214,7 @@ void RsProgramGL::bind()
 void RsProgramGL::bindAttribute( eRsVertexChannel Channel, const BcChar* Name )
 {
 	GLuint Handle = getHandle< GLuint >();
-
+	
 	glBindAttribLocation( Handle, Channel, Name );
 	if( glGetError() != GL_NO_ERROR )
 	{
@@ -218,3 +223,140 @@ void RsProgramGL::bindAttribute( eRsVertexChannel Channel, const BcChar* Name )
 	
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// addParameter
+void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
+{
+	// Calculate number of bytes it needs and size.
+	eRsShaderParameterType InternalType;
+	BcU32 Bytes = 0;
+	switch( Type )
+	{
+		case GL_FLOAT:
+			InternalType = rsSPT_FLOAT;
+			Bytes = 4;
+			break;
+		case GL_FLOAT_VEC2:
+			InternalType = rsSPT_FLOAT_VEC2;
+			Bytes = 8;
+			break;
+		case GL_FLOAT_VEC3:
+			InternalType = rsSPT_FLOAT_VEC3;
+			Bytes = 12;
+			break;
+		case GL_FLOAT_VEC4:
+			InternalType = rsSPT_FLOAT_VEC4;
+			Bytes = 16;
+			break;
+		case GL_INT:
+			InternalType = rsSPT_INT;
+			Bytes = 4;
+			break;
+		case GL_INT_VEC2:
+			InternalType = rsSPT_INT_VEC2;
+			Bytes = 8;
+			break;
+		case GL_INT_VEC3:
+			InternalType = rsSPT_INT_VEC3;
+			Bytes = 12;
+			break;
+		case GL_INT_VEC4:
+			InternalType = rsSPT_INT_VEC4;
+			Bytes = 16;
+			break;
+		case GL_BOOL:
+			InternalType = rsSPT_BOOL;
+			Bytes = 4;
+			break;
+		case GL_BOOL_VEC2:
+			InternalType = rsSPT_BOOL_VEC2;
+			Bytes = 8;
+			break;
+		case GL_BOOL_VEC3:
+			InternalType = rsSPT_BOOL_VEC3;
+			Bytes = 12;
+			break;
+		case GL_BOOL_VEC4:
+			InternalType = rsSPT_BOOL_VEC4;
+			Bytes = 16;
+			break;
+		case GL_FLOAT_MAT2:
+			InternalType = rsSPT_FLOAT_MAT2;
+			Bytes = 16;
+			break;
+		case GL_FLOAT_MAT3:
+			InternalType = rsSPT_FLOAT_MAT3;
+			Bytes = 36;
+			break;
+		case GL_FLOAT_MAT4:
+			InternalType = rsSPT_FLOAT_MAT4;
+			Bytes = 64;
+			break;
+			/* NOTE: GL2.1 or later, ignore for now!
+		case GL_FLOAT_MAT2x3:
+			Bytes = 24;
+			break;
+		case GL_FLOAT_MAT2x4:
+			Bytes = 32;
+			break;
+		case GL_FLOAT_MAT3x2:
+			Bytes = 24;
+			break;
+		case GL_FLOAT_MAT3x4:
+			Bytes = 48;
+			break;
+		case GL_FLOAT_MAT4x2:
+			Bytes = 32;
+			break;
+		case GL_FLOAT_MAT4x3:
+			Bytes = 48;
+			break;
+			*/
+		case GL_SAMPLER_1D:
+			InternalType = rsSPT_SAMPLER_1D;
+			Bytes = 4;
+			break;
+		case GL_SAMPLER_2D:
+			InternalType = rsSPT_SAMPLER_2D;
+			Bytes = 4;
+			break;
+		case GL_SAMPLER_3D:
+			InternalType = rsSPT_SAMPLER_3D;
+			Bytes = 4;
+			break;
+		case GL_SAMPLER_CUBE:
+			InternalType = rsSPT_SAMPLER_CUBE;
+			Bytes = 4;
+			break;
+		case GL_SAMPLER_1D_SHADOW:
+			InternalType = rsSPT_SAMPLER_1D_SHADOW;
+			Bytes = 4;
+			break;
+		case GL_SAMPLER_2D_SHADOW:
+			InternalType = rsSPT_SAMPLER_2D_SHADOW;
+			Bytes = 4;
+			break;
+		default:
+			InternalType = rsSPT_INVALID;
+			Bytes = 0;
+			break;
+	}
+
+	// If parameter is valid, add it.
+	if( InternalType != rsSPT_INVALID )
+	{
+		TParameter Parameter = 
+		{
+			pName,
+			Handle,
+			ParameterBufferSize_ >> 2,
+			InternalType
+		};
+		
+		// Add parameter.
+		ParameterList_.push_back( Parameter );
+	
+		// Increate parameter buffer size.
+		ParameterBufferSize_ += Bytes;
+	}
+}

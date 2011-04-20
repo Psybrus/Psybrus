@@ -315,7 +315,6 @@ public:
 		{
 			ScnCanvasPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pPrimitiveSection->MaterialInstance_->bind();
 			pPrimitive_->render( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
@@ -334,19 +333,25 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 	//       to the scene. Will not sort by transparency or anything either.
 	std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasPrimitiveSectionCompare() );
 	
-	// Create a render node to draw all primitive sections.
-	ScnCanvasRenderNode* pRenderNode = pFrame->newObject< ScnCanvasRenderNode >();
+	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
+	{
+		ScnCanvasRenderNode* pRenderNode = pFrame->newObject< ScnCanvasRenderNode >();
 	
-	pRenderNode->NoofSections_ = PrimitiveSectionList_.size();
-	pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasPrimitiveSection >( pRenderNode->NoofSections_ );
-	pRenderNode->pPrimitive_ = pPrimitive_;
-	pRenderNode->Canvas = this;
-	
-	// Copy primitive sections in.
-	BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ 0 ], sizeof( ScnCanvasPrimitiveSection ) * pRenderNode->NoofSections_ );
-	
-	// Add to frame.
-	pFrame->addRenderNode( pRenderNode );
+		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
+		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasPrimitiveSection >( 1 );
+		pRenderNode->pPrimitive_ = pPrimitive_;
+		pRenderNode->Canvas = this;
+		
+		// Copy primitive sections in.
+		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasPrimitiveSection ) * 1 );
+
+		// Bind material.
+		pRenderNode->pPrimitiveSections_->MaterialInstance_->bind( pFrame, Sort );
+		
+		// Add to frame.
+		pRenderNode->Sort_ = Sort;
+		pFrame->addRenderNode( pRenderNode );
+	}
 	
 	// Unlock vertex buffer if we have the lock.
 	if( HaveVertexBufferLock_ == BcTrue )

@@ -20,29 +20,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-class RsProgramParameterGL;
 class RsProgramGL;
-
-////////////////////////////////////////////////////////////////////////////////
-// RsProgramParameterGL
-class RsProgramParameterGL:
-	public RsProgramParameter
-{
-public:
-	RsProgramParameterGL( const std::string& Name, RsProgramGL* pParent, GLuint Parameter );
-	virtual ~RsProgramParameterGL();
-	
-	void								setInt( BcS32 Value );
-	void								setFloat( BcReal Value );
-	void								setVector( const BcVec2d& Value );
-	void								setVector( const BcVec3d& Value );
-	void								setVector( const BcVec4d& Value );
-	void								setMatrix( const BcMat4d& Value );
-
-private:
-	RsProgramGL*						pParent_;
-	GLint								Parameter_;
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsProgramGL
@@ -57,21 +35,31 @@ public:
 	void								update();
 	void								destroy();	
 	
-	virtual RsProgramParameter*			findParameter( const std::string& Name );
-	virtual void						bind();
+	virtual BcU32						getParameterBufferSize() const;
+	virtual BcU32						findParameterOffset( const std::string& Name, eRsShaderParameterType& Type, BcU32& Offset ) const;
+	virtual void						bind( void* pParameterBuffer );
 
 private:	
 	void								bindAttribute( eRsVertexChannel Channel, const BcChar* Name );
-
-private:
-	typedef std::list< RsProgramParameterGL* >	TParameterList;
-	typedef TParameterList::iterator				TParameterListIterator;
-	TParameterList						ParameterList_;
-
-	RsShaderGL*						pVertexShader_;
-	RsShaderGL*						pFragmentShader_;	
+	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type );
 	
-	BcU32								TotalSampler_;
+private:
+	struct TParameter
+	{
+		std::string						Name_;
+		GLint							Handle_;
+		BcU32							Offset_;
+		eRsShaderParameterType			Type_;
+	};
+	
+	typedef std::list< TParameter > TParameterList;
+	typedef TParameterList::iterator TParameterListIterator;
+	typedef TParameterList::const_iterator TParameterListConstIterator;
+	TParameterList						ParameterList_;
+	BcU32								ParameterBufferSize_;
+
+	RsShaderGL*							pVertexShader_;
+	RsShaderGL*							pFragmentShader_;
 };
 
 #endif

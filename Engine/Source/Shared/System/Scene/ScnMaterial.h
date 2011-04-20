@@ -81,10 +81,19 @@ public:
 	DECLARE_RESOURCE( ScnMaterialInstance );
 	
 	void								initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap );
-		
-	void								setTexture( const std::string& SamplerName, ScnTextureRef Texture );
-		
-	void								bind();
+	void								destroy();
+	
+	BcU32								findParameter( const std::string& ParameterName );	
+	void								setParameter( BcU32 Parameter, BcS32 Value );
+	void								setParameter( BcU32 Parameter, BcReal Value );
+	void								setParameter( BcU32 Parameter, const BcVec2d& Value );
+	void								setParameter( BcU32 Parameter, const BcVec3d& Value );
+	void								setParameter( BcU32 Parameter, const BcVec4d& Value );
+	void								setParameter( BcU32 Parameter, const BcMat3d& Value );
+	void								setParameter( BcU32 Parameter, const BcMat4d& Value );
+	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
+	
+	void								bind( RsFrame* pFrame, RsRenderSort Sort );
 	
 
 	virtual BcBool						isReady();
@@ -92,19 +101,32 @@ public:
 private:
 	friend class ScnMaterial;
 		
+	struct TParameterBinding
+	{
+		eRsShaderParameterType			Type_;
+		BcU32							Offset_;
+	};
+	
+	typedef std::vector< TParameterBinding > TParameterBindingList;
+	typedef TParameterBindingList::iterator TParameterBindingListIterator;
+	
 	struct TTextureBinding
 	{
-		RsProgramParameter*				pParameter_;
+		BcU32							Parameter_;
 		ScnTextureRef					Texture_;
 	};
 	
-	typedef std::list< TTextureBinding > TTextureBindingList;
+	typedef std::vector< TTextureBinding > TTextureBindingList;
 	typedef TTextureBindingList::iterator TTextureBindingListIterator;
 	
 	ScnMaterialRef						Parent_;
 	RsProgram*							pProgram_;
 
+	TParameterBindingList				ParameterBindingList_;
 	TTextureBindingList					TextureBindingList_;
+
+	BcU32								ParameterBufferSize_;
+	BcU8*								pParameterBuffer_;
 };
 
 #endif

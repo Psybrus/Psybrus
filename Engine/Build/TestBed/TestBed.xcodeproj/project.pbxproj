@@ -1536,7 +1536,7 @@
 					"\\\"$(SRCROOT)/../iOS/build/Debug-iphonesimulator\\\"",
 					"\\\"$(SRCROOT)/../..\\\"",
 				);
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "TestBed Release";
 				WRAPPER_EXTENSION = app;
 			};

@@ -369,6 +369,35 @@ enum eRsShaderDataType
 	rsSDT_SOURCE
 };
 
+enum eRsShaderParameterType
+{
+	rsSPT_FLOAT = 0,
+	rsSPT_FLOAT_VEC2,
+	rsSPT_FLOAT_VEC3,
+	rsSPT_FLOAT_VEC4,
+	rsSPT_FLOAT_MAT2,
+	rsSPT_FLOAT_MAT3,
+	rsSPT_FLOAT_MAT4,
+	rsSPT_INT,
+	rsSPT_INT_VEC2,
+	rsSPT_INT_VEC3,
+	rsSPT_INT_VEC4,
+	rsSPT_BOOL,
+	rsSPT_BOOL_VEC2,
+	rsSPT_BOOL_VEC3,
+	rsSPT_BOOL_VEC4,
+	rsSPT_SAMPLER_1D,
+	rsSPT_SAMPLER_2D,
+	rsSPT_SAMPLER_3D,
+	rsSPT_SAMPLER_CUBE,
+	rsSPT_SAMPLER_1D_SHADOW,
+	rsSPT_SAMPLER_2D_SHADOW,
+	
+	rsSPT_MAX,
+	rsSPT_INVALID = BcErrorCode,
+	rsSPT_FORCE_DWORD = 0x7fffffff
+};
+
 //////////////////////////////////////////////////////////////////////////
 // Lock flags
 enum eRsLockFlags
