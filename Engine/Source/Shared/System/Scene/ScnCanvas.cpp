@@ -322,8 +322,6 @@ public:
 	BcU32 NoofSections_;
 	ScnCanvasPrimitiveSection* pPrimitiveSections_;
 	RsPrimitive* pPrimitive_;
-	
-	ScnCanvasRef Canvas;	// May not be needed due to latency of object destruction.
 };
 
 void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
@@ -340,7 +338,6 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasPrimitiveSection >( 1 );
 		pRenderNode->pPrimitive_ = pPrimitive_;
-		pRenderNode->Canvas = this;
 		
 		// Copy primitive sections in.
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasPrimitiveSection ) * 1 );

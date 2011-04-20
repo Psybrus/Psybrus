@@ -187,7 +187,7 @@ typedef	unsigned short				BcU16;
 typedef unsigned char				BcU8;
 
 typedef signed long					BcS64;
-typedef signed long int				BcS32;
+typedef signed int					BcS32;
 typedef	signed short				BcS16;
 typedef signed char					BcS8;
 

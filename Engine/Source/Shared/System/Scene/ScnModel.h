@@ -20,8 +20,12 @@
 #include "ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnMeshRef
+// ScnModelRef
 typedef CsResourceRef< class ScnModel > ScnModelRef;
+
+//////////////////////////////////////////////////////////////////////////
+// ScnModelRef
+typedef CsResourceRef< class ScnModelInstance > ScnModelInstanceRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModel
@@ -49,21 +53,23 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
+	BcBool								createInstance( const std::string& Name, ScnModelInstanceRef& Handle );
+	
 private:
 	void								setup();
-	void								updateNodes();
-	void								renderPrimitives();
 	
 private:
 	void								fileReady();
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
 	
-private:
+protected:
+	friend class ScnModelInstance;
+	
 	// Header.
 	struct THeader
 	{
-		BcU32 NoofNodes_;
-		BcU32 NoofPrimitives_;
+		BcU32							NoofNodes_;
+		BcU32							NoofPrimitives_;
 	};
 	
 	// Node transform data.
@@ -88,7 +94,7 @@ private:
 		BcU32							VertexFormat_;
 		BcU32							NoofVertices_;
 		BcU32							NoofIndices_;
-		BcChar							MaterialName_[ 256 ];		// NOTE: Not optimal...look at packing into a string table.
+		BcChar							MaterialName_[ 64 ];		// NOTE: Not optimal...look at packing into a string table.
 	};
 	
 	// Cached pointers for internal use.
@@ -102,15 +108,47 @@ private:
 	// Runtime structures.
 	struct TPrimitiveRuntime
 	{
-		TNodeTransformData*				pNodeTransformData_;
-		TPrimitiveData*					pPrimitiveData_;
+		BcU32							PrimitiveDataIndex_;
 		RsVertexBuffer*					pVertexBuffer_;
 		RsIndexBuffer*					pIndexBuffer_;
 		RsPrimitive*					pPrimitive_;
 		ScnMaterialRef					MaterialRef_;
 	};
 	
-	std::vector< TPrimitiveRuntime >	PrimitiveRuntimes_;
+	typedef std::vector< TPrimitiveRuntime > TPrimitiveRuntimeList;
+	TPrimitiveRuntimeList				PrimitiveRuntimes_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnModelInstance
+class ScnModelInstance:
+	public CsResource
+{
+public:
+	DECLARE_RESOURCE( ScnModelInstance );
+
+	virtual void						initialise( ScnModelRef Parent );
+	virtual void						destroy();
+	virtual BcBool						isReady();
+
+	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+	
+	void								update();
+	void								render( RsFrame* pFrame, RsRenderSort Sort );
+	
+protected:
+	ScnModelRef							Parent_;
+	ScnModel::TNodeTransformData*		pNodeTransformData_;
+
+	struct TMaterialInstanceDesc
+	{
+		ScnMaterialInstanceRef MaterialInstanceRef_;
+		BcU32 WorldMatrixIdx_;
+	};
+	
+	typedef std::vector< TMaterialInstanceDesc > TMaterialInstanceDescList;
+	
+	TMaterialInstanceDescList			MaterialInstanceDescList_;
 };
 
 #endif
