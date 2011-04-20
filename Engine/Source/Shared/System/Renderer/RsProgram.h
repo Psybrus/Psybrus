@@ -18,70 +18,6 @@
 #include "RsTexture.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// RsProgramParameter
-class RsProgramParameter
-{
-public:
-	/**
-	 * Get name.
-	 * @return Name.
-	 */
-	const std::string&					getName() const;
-	
-public:
-	
-	/**
-	 * Set int.
-	 * @param Value Value.
-	 */
-	virtual void						setInt( BcS32 Value ) = 0;
-	
-	/**
-	 * Set float.
-	 * @param Value Value.
-	 */
-	virtual void						setFloat( BcReal Value ) = 0;
-	
-	/**
-	 * Set vector.
-	 * @param Value Value.
-	 */
-	virtual void						setVector( const BcVec2d& Value ) = 0;
-	
-	/**
-	 * Set vector.
-	 * @param Value Value.
-	 */
-	virtual void						setVector( const BcVec3d& Value ) = 0;
-	
-	/**
-	 * Set vector.
-	 * @param Value Value.
-	 */
-	virtual void						setVector( const BcVec4d& Value ) = 0;
-	
-	/**
-	 * Set matrix.
-	 * @param Value Value.
-	 */
-	virtual void						setMatrix( const BcMat4d& Value ) = 0;
-		
-protected:
-	std::string							Name_;
-	
-protected:
-	RsProgramParameter( const std::string& Name );
-	virtual ~RsProgramParameter();
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// Inlines
-BcForceInline const std::string& RsProgramParameter::getName() const
-{
-	return Name_;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // RsProgram
 class RsProgram:
 	public RsResource
@@ -91,15 +27,24 @@ public:
 	virtual ~RsProgram();
 	
 	/**
-	 * Find parameter.
-	 * @param Name Name of parameter.
-	 * @return Pointer to program parameter object.
+	 * Get parameter buffer size.
+	 * @return Size of parameter buffer in bytes.
 	 */
-	virtual RsProgramParameter*			findParameter( const std::string& Name ) = 0;
+	virtual BcU32						getParameterBufferSize() const = 0;
+
+	/**
+	 * Find offset of parameter in the buffer.
+	 * @param Type Type of parameter (out.)
+	 * @param Offset Offset of parameter (out.)
+	 * @return Success.
+	 */
+	virtual BcU32						findParameterOffset( const std::string& Name, eRsShaderParameterType& Type, BcU32& Offset ) const = 0;
 	
 	/**
 	 * Bind program.
+	 * @param pParameterBuffer Pointer to parameter buffer for binding.
 	 */
-	virtual void						bind() = 0;
+	virtual void						bind( void* pParameterBuffer ) = 0;
 };
+
 #endif

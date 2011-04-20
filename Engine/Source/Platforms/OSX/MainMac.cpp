@@ -49,15 +49,6 @@ SysSystemEvent::Delegate DelegateRender;
 SysSystemEvent::Delegate DelegateUpdate;
 SysSystemEvent::Delegate DelegateRemoteOpened;
 
-eEvtReturn doQuit( EvtID ID, const OsEventCore& Event )
-{
-	// Stop all systems.
-	OsCore::pImpl()->pKernel()->stop();
-	
-	//
-	return evtRET_PASS;
-}
-
 ScnTextureRef Texture;
 ScnModelRef Model;
 ScnCanvasRef Canvas;
@@ -71,6 +62,15 @@ ScnFontRef BaroqueFontRef;
 ScnFontRef EagleFontRef;
 ScnFontInstanceRef BaroqueFontInstanceRef;
 ScnFontInstanceRef EagleFontInstanceRef;
+
+eEvtReturn doQuit( EvtID ID, const OsEventCore& Event )
+{
+	// Stop all systems.
+	OsCore::pImpl()->pKernel()->stop();
+	
+	//
+	return evtRET_PASS;
+}
 
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
@@ -147,7 +147,7 @@ public:
 		static BcReal Tick = 0.0f;
 		Tick += 0.001f;
 		
-		pProgram->bind();
+		pProgram->bind( NULL );
 		
 		/*
 		glBegin( GL_LINE_STRIP );
@@ -223,14 +223,14 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 		Canvas->setMaterialInstance( MaterialInstanceRef );
 		Canvas->drawBox( BcVec2d( 0, 0 ), BcVec2d( W, -H ), RsColour::WHITE, 0 );
 
-		//BaroqueFontInstanceRef->draw( Canvas, "0123456789+-/\\!@#$%^&*()" );
+		BaroqueFontInstanceRef->draw( Canvas, "0123456789+-/\\!@#$%^&*()" );
 		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
 		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( W, 0 ), RsColour::RED, 1 );	
 		Canvas->drawLine( BcVec2d( 0, -32 ), BcVec2d( W, -32 ), RsColour::RED, 1 );	
 		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( 0, -32 ), RsColour::RED, 1 );	
 
 		Canvas->pushMatrix( Translate );
-		//EagleFontInstanceRef->draw( Canvas, "0123456789+-/\\!@#$%^&*()" );
+		EagleFontInstanceRef->draw( Canvas, "0123456789+-/\\!@#$%^&*()" );
 		Canvas->setMaterialInstance( DefaultMaterialInstanceRef );
 		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( W, 0 ), RsColour::RED, 1 );	
 		Canvas->drawLine( BcVec2d( 0, -32 ), BcVec2d( W, -32 ), RsColour::RED, 1 );	

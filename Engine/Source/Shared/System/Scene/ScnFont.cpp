@@ -432,8 +432,12 @@ void ScnFontInstance::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
 	Parent_ = Parent; 
 	if( Material->createInstance( getName() + "_MaterialInstance", MaterialInstance_, scnSPF_DEFAULT ) )
-	{
-		MaterialInstance_->setTexture( "aDiffuseTex", Parent_->Texture_ );
+	{	
+		BcU32 Parameter = MaterialInstance_->findParameter( "aDiffuseTex" );
+		if( Parameter != BcErrorCode )
+		{
+			MaterialInstance_->setTexture( Parameter, Parent_->Texture_ );
+		}
 	}
 }
 
