@@ -151,8 +151,8 @@ void RsProgramGL::bind( void* pParameterBuffer )
 	// Bind parameters from buffer if we have been given one.
 	if( pParameterBuffer != NULL )
 	{
-		GLfloat* pFloatParameter = (GLfloat*)pParameterBuffer;
-		GLint* pIntParameter = (GLint*)pParameterBuffer;
+		BcF32* pFloatParameter = (BcF32*)pParameterBuffer;
+		BcS32* pIntParameter = (BcS32*)pParameterBuffer;
 		for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 		{
 			TParameter& Parameter = (*It);
@@ -205,6 +205,10 @@ void RsProgramGL::bind( void* pParameterBuffer )
 					break;
 					break;
 			}
+			
+			// TODO: Fix me.
+			//RsGLCatchError;
+			glGetError();
 		}
 	}
 }
