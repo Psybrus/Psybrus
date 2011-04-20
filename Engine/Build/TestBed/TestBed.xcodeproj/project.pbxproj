@@ -230,6 +230,8 @@
 		C8992B611350CEAA00C9F09D /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
 		C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
+		C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF511135EF45500BE64DE /* ScnPackage.cpp */; };
+		C8BFF514135EF45B00BE64DE /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF511135EF45500BE64DE /* ScnPackage.cpp */; };
 		C8E64D811351980E00AAF73E /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */; };
 		C8E64D8A135339F400AAF73E /* ScnShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D88135339F300AAF73E /* ScnShader.cpp */; };
 /* End PBXBuildFile section */
@@ -504,6 +506,8 @@
 		C8AFD21712C40FE700EE0992 /* TestBed_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestBed_Prefix.pch; sourceTree = "<group>"; };
 		C8BFF3B3135B078700BE64DE /* ScnFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnFont.cpp; sourceTree = "<group>"; };
 		C8BFF3B4135B078700BE64DE /* ScnFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnFont.h; sourceTree = "<group>"; };
+		C8BFF511135EF45500BE64DE /* ScnPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnPackage.cpp; sourceTree = "<group>"; };
+		C8BFF512135EF45700BE64DE /* ScnPackage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnPackage.h; sourceTree = "<group>"; };
 		C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnCanvas.cpp; sourceTree = "<group>"; };
 		C8E64D801351980D00AAF73E /* ScnCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnCanvas.h; sourceTree = "<group>"; };
 		C8E64D88135339F300AAF73E /* ScnShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnShader.cpp; sourceTree = "<group>"; };
@@ -837,6 +841,8 @@
 		C824731213507BE70092D33F /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				C8BFF511135EF45500BE64DE /* ScnPackage.cpp */,
+				C8BFF512135EF45700BE64DE /* ScnPackage.h */,
 				C8BFF3B3135B078700BE64DE /* ScnFont.cpp */,
 				C8BFF3B4135B078700BE64DE /* ScnFont.h */,
 				C86E9A3E13514CB70015F899 /* ScnScript.cpp */,
@@ -1247,6 +1253,7 @@
 				C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */,
 				C86C8A7E135997C500F4CED8 /* FsTypes.cpp in Sources */,
 				C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */,
+				C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1360,6 +1367,7 @@
 				C86C8A6F13598B9A00F4CED8 /* RsStateBlock.cpp in Sources */,
 				C86C8A7013598B9A00F4CED8 /* RsStateBlockGL.cpp in Sources */,
 				C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */,
+				C8BFF514135EF45B00BE64DE /* ScnPackage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
