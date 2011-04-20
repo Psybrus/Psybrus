@@ -30,7 +30,7 @@ ScnFontRef Font;
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
 	//*
-	if( Material.isValid() == BcFalse )
+	if( Package.isValid() == BcFalse )
 	{
 		CsCore::pImpl()->registerResource< ScnTexture >();
 		CsCore::pImpl()->registerResource< ScnMaterial >();
@@ -40,9 +40,10 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnShader >();
 		CsCore::pImpl()->registerResource< ScnPackage >();
 		CsCore::pImpl()->registerResource< ScnFont >();
-		CsCore::pImpl()->importResource( "EngineContent/default.material", Material );
-		CsCore::pImpl()->importResource( "GameContent/font.material", Material );
-		CsCore::pImpl()->importResource( "GameContent/baroque.font", Font );
+//		CsCore::pImpl()->importResource( "EngineContent/default.material", Material );
+//		CsCore::pImpl()->importResource( "GameContent/font.material", Material );
+//		CsCore::pImpl()->importResource( "GameContent/baroque.font", Font );
+		CsCore::pImpl()->importResource( "GameContent/boot.package", Package );
 		
 		//CsCore::pImpl()->importResource( "test.font", Font );
 		//CsCore::pImpl()->importResource( "test.material", Material );

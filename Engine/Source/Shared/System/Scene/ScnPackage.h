@@ -42,7 +42,24 @@ private:
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
 	
 private:
+	struct THeader
+	{
+		BcU32							NoofResources_;
+	};
 	
+	struct TResourceHeader
+	{
+		BcChar							Type_[ 64 ];
+		BcChar							Name_[ 64 ];
+	};
+	
+	typedef std::vector< CsResourceRef<> > TResourceRefList;
+	typedef TResourceRefList::iterator TResourceRefListIterator;
+	
+	THeader*							pHeader_;
+	TResourceHeader*					pResourceHeaders_;
+	
+	TResourceRefList					ResourceRefList_;
 };
 
 #endif

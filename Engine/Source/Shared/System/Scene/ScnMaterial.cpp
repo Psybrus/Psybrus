@@ -177,8 +177,14 @@ void ScnMaterialInstance::initialise( ScnMaterialRef Parent, RsProgram* pProgram
 	
 	// Allocate parameter buffer.
 	ParameterBufferSize_ = pProgram_->getParameterBufferSize();
-	pParameterBuffer_ = new BcU8[ ParameterBufferSize_ ];
-	
+	if( ParameterBufferSize_ > 0 )
+	{
+		pParameterBuffer_ = new BcU8[ ParameterBufferSize_ ];
+	}
+	else
+	{
+		pParameterBuffer_ = NULL;
+	}
 
 	// Build a binding list for textures.
 	for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
@@ -257,8 +263,9 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, BcS32 Value )
 			Binding.Type_ == rsSPT_SAMPLER_1D_SHADOW ||
 			Binding.Type_ == rsSPT_SAMPLER_2D_SHADOW )	   
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
-			*pParameterBuffer = (BcS32)Value;
+			*pParameterBuffer = Value;
 		}
 	}
 }
@@ -272,6 +279,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, BcReal Value )
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
 		if( Binding.Type_ == rsSPT_FLOAT )
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = (BcF32)Value;
 		}
@@ -287,6 +295,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec2d& Value )
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
 		if( Binding.Type_ == rsSPT_FLOAT_VEC2 )
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer = (BcF32)Value.y();
@@ -303,6 +312,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec3d& Value )
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
 		if( Binding.Type_ == rsSPT_FLOAT_VEC3 )
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer++ = (BcF32)Value.y();
@@ -320,6 +330,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec4d& Value )
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
 		if( Binding.Type_ == rsSPT_FLOAT_VEC4 )
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer++ = (BcF32)Value.y();
@@ -338,6 +349,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcMat3d& Value )
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
 		if( Binding.Type_ == rsSPT_FLOAT_MAT3 )
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value[0][0];
 			*pParameterBuffer++ = (BcF32)Value[0][1];
@@ -361,6 +373,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcMat4d& Value )
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
 		if( Binding.Type_ == rsSPT_FLOAT_MAT4 )
 		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value[0][0];
 			*pParameterBuffer++ = (BcF32)Value[0][1];

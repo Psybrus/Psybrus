@@ -109,12 +109,12 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 
 	// Setup primitive data.
 	// NOTE: Do skin later.
-	if( pNode->pMeshObject() != NULL )
+	if( pNode->pMeshObject() != NULL || pNode->pSkinObject() != NULL )
 	{
-		MdlMesh* pMesh = pNode->pMeshObject();
+		MdlMesh* pMesh = pNode->pMeshObject() ? pNode->pMeshObject() : pNode->pSkinObject();
 		
 		// Split up mesh by material.
-		const std::vector< MdlMesh >& SubMeshes = pNode->pMeshObject()->splitByMaterial();
+		const std::vector< MdlMesh >& SubMeshes = pMesh->splitByMaterial();
 		
 		// Export a primitive for each submesh.
 		for( BcU32 SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
@@ -235,7 +235,28 @@ void ScnModel::destroy()
 //virtual
 BcBool ScnModel::isReady()
 {
-	return BcFalse;
+	if( pHeader_ != NULL )
+	{
+		for( BcU32 Idx = 0; Idx < PrimitiveRuntimes_.size(); ++Idx )
+		{
+			if( PrimitiveRuntimes_[ Idx ].MaterialRef_.isValid() )
+			{
+				if( PrimitiveRuntimes_[ Idx ].MaterialRef_.isReady() == BcFalse )
+				{
+					return BcFalse;
+				}
+			}
+		}
+		
+	}
+	return pHeader_ != NULL && PrimitiveRuntimes_.size() > 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setup
+BcBool ScnModel::createInstance( const std::string& Name, ScnModelInstanceRef& Handle )
+{
+	return CsCore::pImpl()->createResource( Name, Handle, this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -267,74 +288,23 @@ void ScnModel::setup()
 		// Setup runtime structure.
 		TPrimitiveRuntime PrimitiveRuntime = 
 		{
-			pNodeTransformData,
-			pPrimitiveData,
+			PrimitiveIdx,
 			pVertexBuffer,
 			pIndexBuffer,
 			pPrimitive,
+			NULL
 		};
 		
 		// Get resource.
 		if( CsCore::pImpl()->requestResource( pPrimitiveData->MaterialName_, PrimitiveRuntime.MaterialRef_ ) )
 		{
-			int a = 0;
-			++a;
+			// Push into array.
+			PrimitiveRuntimes_.push_back( PrimitiveRuntime );
 		}
-		
-		// Push into array.
-		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
-		
+				
 		// Advance vertex and index buffers.
 		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
 		pIndexBufferData_ += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// updateNodes
-void ScnModel::updateNodes()
-{
-	// NOTE: This will be moved into an instance object, or
-	//       made to act on an instance object.
-	for( BcU32 NodeIdx = 0; NodeIdx < pHeader_->NoofNodes_; ++NodeIdx )
-	{
-		TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		TNodePropertyData* pNodePropertyData = &pNodePropertyData_[ NodeIdx ];
-		
-		// Check parent index and process.
-		if( pNodePropertyData->ParentIndex_ != BcErrorCode )
-		{
-			TNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
-			
-			pNodeTransformData->AbsoluteTransform_ = pParentNodeTransformData->AbsoluteTransform_ * pNodeTransformData->RelativeTransform_;
-		}
-		else
-		{
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_;
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// renderPrimitives
-void ScnModel::renderPrimitives()
-{
-	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes_.size(); ++PrimitiveIdx )
-	{
-		TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes_[ PrimitiveIdx ];
-		TPrimitiveData* pPrimitiveData = pPrimitiveRuntime->pPrimitiveData_;
-		BcU32 Offset = 0; // This will change when index buffers are merged.
-
-		// Bind material.
-		if( pPrimitiveRuntime->MaterialRef_.isValid() )
-		{
-			//pPrimitiveRuntime->MaterialRef_->bind();
-		
-			// Render primitive.
-			pPrimitiveRuntime->pPrimitive_->render( pPrimitiveData->Type_,
-												    Offset,
-												    pPrimitiveData->NoofIndices_ );
-		}
 	}
 }
 
@@ -386,3 +356,153 @@ void ScnModel::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// Define resource.
+DEFINE_RESOURCE( ScnModelInstance );
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnModelInstance::initialise( ScnModelRef Parent )
+{
+	// Cache parent.
+	Parent_ = Parent;
+	
+	// Duplicate node data for update/rendering.
+	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	pNodeTransformData_ = new ScnModel::TNodeTransformData[ NoofNodes ];
+	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModel::TNodeTransformData ) * NoofNodes );
+
+	// Create material instances to render with.
+	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
+	ScnMaterialInstanceRef MaterialInstanceRef;
+	MaterialInstanceDescList_.reserve( PrimitiveRuntimes.size() );
+	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes.size(); ++Idx )
+	{
+		ScnModel::TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ Idx ];
+		
+		if( pPrimitiveRuntime->MaterialRef_.isValid() )
+		{
+			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
+						
+			// Even on failure add. List must be of same size for quick lookups.
+			pPrimitiveRuntime->MaterialRef_->createInstance( getName() + "_MaterialInstance", MaterialInstanceRef, scnSPF_DEFAULT );
+			
+			TMaterialInstanceDesc MaterialInstanceDesc =
+			{
+				MaterialInstanceRef,
+				MaterialInstanceRef->findParameter( "uWorldMatrix" )				
+			};
+
+			MaterialInstanceDescList_.push_back( MaterialInstanceDesc );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnModelInstance::destroy()
+{
+	// Delete duplicated node data.
+	delete [] pNodeTransformData_;
+	pNodeTransformData_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+BcBool ScnModelInstance::isReady()
+{
+	return Parent_->isReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTransform
+void ScnModelInstance::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform )
+{
+	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	if( NodeIdx < NoofNodes )
+	{
+		pNodeTransformData_[ NodeIdx ].RelativeTransform_ = LocalTransform;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateNodes
+void ScnModelInstance::update()
+{
+	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
+	{
+		ScnModel::TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
+		ScnModel::TNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
+		
+		// Check parent index and process.
+		if( pNodePropertyData->ParentIndex_ != BcErrorCode )
+		{
+			ScnModel::TNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
+			
+			pNodeTransformData->AbsoluteTransform_ = pParentNodeTransformData->AbsoluteTransform_ * pNodeTransformData->RelativeTransform_;
+		}
+		else
+		{
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderPrimitives
+class ScnModelInstanceRenderNode: public RsRenderNode
+{
+public:
+	void render()
+	{
+		pPrimitive_->render( Type_,
+		                     Offset_,
+		                     NoofIndices_ );
+	}
+
+	eRsPrimitiveType Type_;
+	BcU32 Offset_;
+	BcU32 NoofIndices_;
+	RsPrimitive* pPrimitive_;
+};
+
+void ScnModelInstance::render( RsFrame* pFrame, RsRenderSort Sort )
+{
+	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
+	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
+
+	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes.size(); ++PrimitiveIdx )
+	{
+		ScnModel::TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ PrimitiveIdx ];
+		ScnModel::TPrimitiveData* pPrimitiveData = &pPrimitiveDatas[ pPrimitiveRuntime->PrimitiveDataIndex_ ];
+		ScnModel::TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
+		TMaterialInstanceDesc& MaterialInstanceDesc = MaterialInstanceDescList_[ PrimitiveIdx ];
+		BcU32 Offset = 0; // This will change when index buffers are merged.
+
+		// If we have a valid material instance, then we can render the node.
+		if( MaterialInstanceDesc.MaterialInstanceRef_.isValid() )
+		{
+			// Set model parameters on material.
+			MaterialInstanceDesc.MaterialInstanceRef_->setParameter( MaterialInstanceDesc.WorldMatrixIdx_, pNodeTransformData->AbsoluteTransform_ );
+			
+			// Bind material.
+			MaterialInstanceDesc.MaterialInstanceRef_->bind( pFrame, Sort );
+			
+			// Render primitive.
+			ScnModelInstanceRenderNode* pRenderNode = pFrame->newObject< ScnModelInstanceRenderNode >();
+			
+			pRenderNode->Type_ = pPrimitiveData->Type_;
+			pRenderNode->Offset_ = Offset;
+			pRenderNode->NoofIndices_ = pPrimitiveData->NoofIndices_;
+			pRenderNode->pPrimitive_ = pPrimitiveRuntime->pPrimitive_;
+			pRenderNode->Sort_ = Sort;
+			
+			pFrame->addRenderNode( pRenderNode );
+		}
+	}
+}

@@ -138,8 +138,7 @@ protected:
 	 */
 	virtual CsFile*						createFileWriter( const std::string& FileName );
 
-protected:
-
+public:
 	void								internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc );
 	BcBool								internalCreateResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
 	BcBool								internalRequestResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );

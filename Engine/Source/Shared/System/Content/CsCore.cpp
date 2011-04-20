@@ -485,24 +485,31 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 			// Allocate resource.
 			Handle = allocResource( Name, Type, pFile );
 			
-			// Call default initialiser.
-			Handle->initialise();
-
-			// Trigger a file load.
-			if( pFile->load( CsFileReadyDelegate::bind< CsResource, &CsResource::delegateFileReady >( (CsResource*)Handle ),
-						     CsFileChunkDelegate::bind< CsResource, &CsResource::delegateFileChunkReady >( (CsResource*)Handle ) ) )
+			if( Handle.isValid() )
 			{
-				// Put into create list.
-				if( Handle.isValid() )
+				// Call default initialiser.
+				Handle->initialise();
+				
+				// Trigger a file load.
+				if( pFile->load( CsFileReadyDelegate::bind< CsResource, &CsResource::delegateFileReady >( (CsResource*)Handle ),
+								CsFileChunkDelegate::bind< CsResource, &CsResource::delegateFileChunkReady >( (CsResource*)Handle ) ) )
 				{
-					BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
-					CreateResources_.push_back( Handle );
+					// Put into create list.
+					if( Handle.isValid() )
+					{
+						BcScopedLock< BcMutex > Lock( ContainerLock_ );
+						
+						CreateResources_.push_back( Handle );
+					}
+				}
+				else
+				{
+					BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
 				}
 			}
 			else
 			{
-				BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
+				BcPrintf( "CsCore::requestResource: Failed to create %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
 			}
 		}
 		else

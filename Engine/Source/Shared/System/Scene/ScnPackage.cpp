@@ -13,6 +13,7 @@
 
 #include "ScnPackage.h"
 #include "CsCore.h"
+#include "BcString.h"
 
 #ifdef PSY_SERVER
 #include "BcStream.h"
@@ -27,6 +28,7 @@ BcBool ScnPackage::import( const Json::Value& Object, CsDependancyList& Dependan
 {
 	const Json::Value& ImportResources = Object[ "resources" ];
 	
+	// Import all resources for this package.
 	std::vector< CsResourceRef<> > Resources;
 	CsResourceRef<> ResourceRef;
 	for( BcU32 Idx = 0; Idx < ImportResources.size(); ++Idx )
@@ -38,7 +40,37 @@ BcBool ScnPackage::import( const Json::Value& Object, CsDependancyList& Dependan
 			Resources.push_back( ResourceRef );
 		}
 	}
-	return BcTrue;
+	
+	// Export.
+	if( Resources.size() > 0 )
+	{
+		BcStream HeaderStream;
+		BcStream ResourceStream;
+		
+		THeader Header = 
+		{
+			Resources.size()
+		};
+		
+		HeaderStream << Header;
+		
+		for( BcU32 Idx = 0; Idx < Resources.size(); ++Idx )
+		{
+			TResourceHeader ResourceHeader;
+			
+			BcStrCopyN( ResourceHeader.Type_, Resources[ Idx ]->getTypeString().c_str(), sizeof( ResourceHeader.Type_ ) );
+			BcStrCopyN( ResourceHeader.Name_, Resources[ Idx ]->getName().c_str(), sizeof( ResourceHeader.Name_ ) );
+			
+			ResourceStream << ResourceHeader;
+		}
+		
+		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+		pFile_->addChunk( BcHash( "resources" ), ResourceStream.pData(), ResourceStream.dataSize() );
+		pFile_->save();
+		
+		return BcTrue;
+	}
+	return BcFalse;
 }
 #endif
 
@@ -51,7 +83,8 @@ DEFINE_RESOURCE( ScnPackage );
 //virtual
 void ScnPackage::initialise()
 {
-	
+	pHeader_ = NULL;
+	pResourceHeaders_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,7 +108,16 @@ void ScnPackage::destroy()
 //virtual
 BcBool ScnPackage::isReady()
 {
-	return BcFalse;
+	// TODO: Thread safety!
+	for( BcU32 Idx = 0; Idx < ResourceRefList_.size(); ++Idx )
+	{
+		if( ResourceRefList_[ Idx ]->isReady() == BcFalse )
+		{
+			return BcFalse;
+		}
+	}
+	
+	return pHeader_ != NULL && pResourceHeaders_ != NULL && ResourceRefList_.size() == pHeader_->NoofResources_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,7 +134,26 @@ void ScnPackage::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
-		// TODO: Compile the script.
+		pHeader_ = (THeader*)pData;
+		
+		pFile_->getChunk( 1 );
+	}
+	else if( pChunk->ID_ == BcHash( "resources" ) )
+	{
+		pResourceHeaders_ = (TResourceHeader*)pData;
+		
+		ResourceRefList_.reserve( pHeader_->NoofResources_ );
+		
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofResources_; ++Idx )
+		{
+			CsResourceRef<> Handle;
+			TResourceHeader* pResourceHeader = &pResourceHeaders_[ Idx ];
+			
+			if( CsCore::pImpl()->internalRequestResource( pResourceHeader->Name_, pResourceHeader->Type_, Handle ) )
+			{
+				ResourceRefList_.push_back( Handle );
+			}
+		}
 	}
 }
 
