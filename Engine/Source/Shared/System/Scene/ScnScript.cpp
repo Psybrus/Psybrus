@@ -80,7 +80,7 @@ DEFINE_RESOURCE( ScnScript );
 //virtual
 void ScnScript::initialise()
 {
-
+	pScript_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,14 @@ void ScnScript::destroy()
 //virtual
 BcBool ScnScript::isReady()
 {
-	return BcFalse;
+	return pScript_ != NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getScript
+const char* ScnScript::getScript() const
+{
+	return pScript_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,6 +129,7 @@ void ScnScript::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 	if( pChunk->ID_ == BcHash( "script" ) )
 	{
 		// TODO: Compile the script.
+		pScript_ = (const char*)pData;
 	}
 }
 

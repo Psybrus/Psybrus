@@ -149,6 +149,7 @@ void RsProgramGL::bind( void* pParameterBuffer )
 	RsGLCatchError;
 	
 	// Bind parameters from buffer if we have been given one.
+	// TODO: Only set a value if it isn't equal to the last set one.
 	if( pParameterBuffer != NULL )
 	{
 		BcF32* pFloatParameter = (BcF32*)pParameterBuffer;

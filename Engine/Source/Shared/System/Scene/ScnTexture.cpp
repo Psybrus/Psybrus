@@ -50,7 +50,10 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 			{
 				ImgColour Colour = pImage->getPixel( X, Y );
 				
-				BodyStream << Colour;
+				BodyStream << Colour.R_;
+				BodyStream << Colour.G_;
+				BodyStream << Colour.B_;
+				BodyStream << Colour.A_;
 			}
 		}
 		

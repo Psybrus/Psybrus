@@ -228,6 +228,12 @@
 		C86E9A4013514CB90015F899 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A3E13514CB70015F899 /* ScnScript.cpp */; };
 		C86E9A461351560B0015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
 		C8992B611350CEAA00C9F09D /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
+		C8A16A5E136045610054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5A136045610054F3AF /* GaCore.cpp */; };
+		C8A16A5F136045610054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5A136045610054F3AF /* GaCore.cpp */; };
+		C8A16A60136045610054F3AF /* GaLibraryScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5C136045610054F3AF /* GaLibraryScene.cpp */; };
+		C8A16A61136045610054F3AF /* GaLibraryScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5C136045610054F3AF /* GaLibraryScene.cpp */; };
+		C8A16A68136058A80054F3AF /* GaLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A66136058A70054F3AF /* GaLibrary.cpp */; };
+		C8A16A69136058A80054F3AF /* GaLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A66136058A70054F3AF /* GaLibrary.cpp */; };
 		C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF511135EF45500BE64DE /* ScnPackage.cpp */; };
@@ -503,6 +509,12 @@
 		C86E9A45135156090015F899 /* RsResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsResource.h; sourceTree = "<group>"; };
 		C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsResourceRef.cpp; sourceTree = "<group>"; };
 		C8992B601350CEAA00C9F09D /* CsResourceRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsResourceRef.h; sourceTree = "<group>"; };
+		C8A16A5A136045610054F3AF /* GaCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaCore.cpp; path = Game/GaCore.cpp; sourceTree = "<group>"; };
+		C8A16A5B136045610054F3AF /* GaCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaCore.h; path = Game/GaCore.h; sourceTree = "<group>"; };
+		C8A16A5C136045610054F3AF /* GaLibraryScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibraryScene.cpp; path = Game/GaLibraryScene.cpp; sourceTree = "<group>"; };
+		C8A16A5D136045610054F3AF /* GaLibraryScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibraryScene.h; path = Game/GaLibraryScene.h; sourceTree = "<group>"; };
+		C8A16A66136058A70054F3AF /* GaLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibrary.cpp; path = Game/GaLibrary.cpp; sourceTree = "<group>"; };
+		C8A16A67136058A80054F3AF /* GaLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibrary.h; path = Game/GaLibrary.h; sourceTree = "<group>"; };
 		C8AFD21712C40FE700EE0992 /* TestBed_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestBed_Prefix.pch; sourceTree = "<group>"; };
 		C8BFF3B3135B078700BE64DE /* ScnFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnFont.cpp; sourceTree = "<group>"; };
 		C8BFF3B4135B078700BE64DE /* ScnFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnFont.h; sourceTree = "<group>"; };
@@ -698,6 +710,7 @@
 		C824729313507BE70092D33F /* System */ = {
 			isa = PBXGroup;
 			children = (
+				C8A16A53136045070054F3AF /* Game */,
 				C824729413507BE70092D33F /* Content */,
 				C82472A913507BE70092D33F /* File */,
 				C82472AE13507BE70092D33F /* Network */,
@@ -1054,6 +1067,19 @@
 			path = osxllvm;
 			sourceTree = "<group>";
 		};
+		C8A16A53136045070054F3AF /* Game */ = {
+			isa = PBXGroup;
+			children = (
+				C8A16A5A136045610054F3AF /* GaCore.cpp */,
+				C8A16A5B136045610054F3AF /* GaCore.h */,
+				C8A16A5C136045610054F3AF /* GaLibraryScene.cpp */,
+				C8A16A5D136045610054F3AF /* GaLibraryScene.h */,
+				C8A16A66136058A70054F3AF /* GaLibrary.cpp */,
+				C8A16A67136058A80054F3AF /* GaLibrary.h */,
+			);
+			name = Game;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1254,6 +1280,9 @@
 				C86C8A7E135997C500F4CED8 /* FsTypes.cpp in Sources */,
 				C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */,
 				C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */,
+				C8A16A5E136045610054F3AF /* GaCore.cpp in Sources */,
+				C8A16A60136045610054F3AF /* GaLibraryScene.cpp in Sources */,
+				C8A16A68136058A80054F3AF /* GaLibrary.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1368,6 +1397,9 @@
 				C86C8A7013598B9A00F4CED8 /* RsStateBlockGL.cpp in Sources */,
 				C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */,
 				C8BFF514135EF45B00BE64DE /* ScnPackage.cpp in Sources */,
+				C8A16A5F136045610054F3AF /* GaCore.cpp in Sources */,
+				C8A16A61136045610054F3AF /* GaLibraryScene.cpp in Sources */,
+				C8A16A69136058A80054F3AF /* GaLibrary.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1388,6 +1420,7 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -1413,6 +1446,7 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "TestBed Debug";
+				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1420,7 +1454,7 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1444,6 +1478,7 @@
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "TestBed Debug";
 				SDKROOT = macosx10.6;
+				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -1516,7 +1551,7 @@
 		C86C8A7813598B9A00F4CED8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -1546,6 +1581,7 @@
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "TestBed Release";
+				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1553,7 +1589,7 @@
 		C86C8A7913598B9A00F4CED8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1581,6 +1617,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "TestBed Release";
 				SDKROOT = macosx10.6;
+				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

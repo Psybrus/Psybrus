@@ -12,6 +12,7 @@ int main( int argc, char* argv[] )
 	SysArgv_ = (BcChar**)&argv[0];
 	
 	// Register systems for creation.
+	SYS_REGISTER( &Kernel, GaCore );
 	SYS_REGISTER( &Kernel, RmCore );
 	SYS_REGISTER( &Kernel, OsCoreImplSDL );
 	SYS_REGISTER( &Kernel, FsCoreImplOSX );
@@ -33,6 +34,7 @@ int main( int argc, char* argv[] )
 #include "FsCore.h"
 #include "RsCore.h"
 #include "RmCore.h"
+#include "GaCore.h"
 
 #include "CsFile.h"
 
@@ -43,6 +45,7 @@ int main( int argc, char* argv[] )
 #include "ScnModel.h"
 #include "ScnCanvas.h"
 #include "ScnShader.h"
+#include "ScnScript.h"
 #include "ScnFont.h"
 #include "ScnPackage.h"
 
@@ -70,6 +73,8 @@ ScnFontInstanceRef EagleFontInstanceRef;
 
 ScnPackageRef PackageRef;
 
+ScnScriptRef ScriptRef;
+
 eEvtReturn doQuit( EvtID ID, const OsEventCore& Event )
 {
 	// Stop all systems.
@@ -93,6 +98,7 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnFont >();
 		CsCore::pImpl()->registerResource< ScnFontInstance >();
 		CsCore::pImpl()->registerResource< ScnPackage >();
+		CsCore::pImpl()->registerResource< ScnScript >();
 
 		CsCore::pImpl()->requestResource( "boot", PackageRef );
 	}
@@ -104,20 +110,25 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->requestResource( "baroque", BaroqueFontRef );
 		CsCore::pImpl()->requestResource( "eaglegtiii", EagleFontRef );		
 		CsCore::pImpl()->requestResource( "model", Model );
+		CsCore::pImpl()->requestResource( "boot", ScriptRef );
 		
 		BcAssert( DefaultMaterialRef.isReady() );
 		BcAssert( MaterialRef.isReady() );
-		//BcAssert( BaroqueFontRef.isReady() );
-		//BcAssert( EagleFontRef.isReady() );
+		BcAssert( BaroqueFontRef.isReady() );
+		BcAssert( EagleFontRef.isReady() );
+		BcAssert( ScriptRef.isReady() );
 
 		if( DefaultMaterialRef->createInstance( "default_materialinstance", DefaultMaterialInstanceRef, scnSPF_DEFAULT ) )
 		{
 			CsCore::pImpl()->createResource( "canvas", Canvas, 1024, MaterialInstanceRef );
 		}
-		//MaterialRef->createInstance( "font_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT );
-		//BaroqueFontRef->createInstance( "baroque_fontinstance", BaroqueFontInstanceRef, MaterialRef );
-		//EagleFontRef->createInstance( "eaglegtiii_fontinstance", EagleFontInstanceRef, MaterialRef );
+		MaterialRef->createInstance( "font_materialinstance", MaterialInstanceRef, scnSPF_DEFAULT );
+		BaroqueFontRef->createInstance( "baroque_fontinstance", BaroqueFontInstanceRef, MaterialRef );
+		EagleFontRef->createInstance( "eaglegtiii_fontinstance", EagleFontInstanceRef, MaterialRef );
 		Model->createInstance( "model_modelinstance", ModelInstance );
+		
+		// Run script (test).
+		GaCore::pImpl()->executeScript( ScriptRef->getScript() );
 	}
 		
 	// No more updates please.
@@ -155,13 +166,13 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 	//*
 	if( Canvas.isReady() )
 	{
-		/*
+		
 		BcMat4d Rotate;
 		BcMat4d Scale;
 		BcMat4d Translate;
 		
 		Translate.translation( BcVec3d( 0.0f, 32.0f, 0.0f ) );
-		BcReal ScaleValue = 0.1f;//( BcSin( Ticker * 5.0f ) + 1.0f ) * 3.0f + 0.5f;
+		BcReal ScaleValue = ( BcSin( Ticker * 5.0f ) + 1.0f ) * 3.0f + 0.5f;
 		Scale.scale( BcVec3d( ScaleValue, ScaleValue, ScaleValue ) );
 		Rotate.rotation( BcVec3d( 0.0f, 0.0f, Ticker ) );
 	
@@ -188,8 +199,8 @@ eEvtReturn doRender( EvtID ID, const SysSystemEvent& Event )
 		Canvas->drawLine( BcVec2d( 0, 0 ), BcVec2d( 0, -32 ), RsColour::RED, 1 );	
 		Canvas->popMatrix();
 		
-		//Canvas->render( pFrame, RsRenderSort( 0 ) );
-		 */
+		Canvas->render( pFrame, RsRenderSort( 0 ) );
+		 
 	
 		Viewport.perspProj( BcPI * 0.125f, W / H, 0.1f, 1000.0f );
  		Viewport.view( View );
@@ -228,7 +239,6 @@ void PsyGameInit( SysKernel& Kernel )
 	BcAssert( sizeof( BcS64 ) == 8 );
 	BcAssert( sizeof( BcF32 ) == 4 );
 	BcAssert( sizeof( BcF64 ) == 8 );
-
 	
 	BcPrintf( "Entering PsyGameInit.\n" );
 	
@@ -237,6 +247,7 @@ void PsyGameInit( SysKernel& Kernel )
 	BcAtomic_UnitTest();
 	
 	// Start up systems.
+	Kernel.startSystem( "GaCore" );
 	Kernel.startSystem( "RmCore" );
 	Kernel.startSystem( "OsCoreImplSDL" );
 	Kernel.startSystem( "FsCoreImplOSX" );

@@ -89,7 +89,7 @@ struct gmVariable
   
 
   inline bool IsReference() const { return m_type > GM_FLOAT; }
-  inline void Nullify() { m_type = GM_NULL; m_value.m_int = 0; }
+  inline void Nullify() { m_type = GM_NULL; m_value.m_ref = 0; }
   inline bool IsNull() { return m_type == GM_NULL; }
 
   /// \brief AsString will get this gm variable as a string if possible.  AsString is used for the gm "print" and system.Exec function bindings.
