@@ -26,7 +26,8 @@ class RsPrimitiveGL:
 {
 public:
 	/**
-	 * Create primitive.
+	 * Create primitive.<br/>
+	 * TODO: Support multiple vertex buffers and binding by mask.
 	 * @param pVertexBuffer Vertex buffer.
 	 * @param pIndexBuffer Index buffer.
 	 */

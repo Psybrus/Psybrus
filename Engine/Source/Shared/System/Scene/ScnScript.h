@@ -36,12 +36,15 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
-		
+	
+	const char*							getScript() const;
+	
 private:
 	void								fileReady();
 	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
 	
 private:
+	const char*							pScript_;
 	
 };
 
