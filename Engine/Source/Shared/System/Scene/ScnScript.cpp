@@ -15,6 +15,7 @@
 #include "gmStream.h"
 
 #include "ScnScript.h"
+#include "GaCore.h"
 
 #ifdef PSY_SERVER
 #include "BcStream.h"
@@ -39,8 +40,10 @@ BcBool ScnScript::import( const Json::Value& Object, CsDependancyList& Dependanc
 		BcBool Success = BcTrue;
 		
 		// Read entire script in.
-		BcChar* pScript = new BcChar[ File.size() ];
+		BcChar* pScript = new BcChar[ File.size() + 1 ];
+		BcMemSet( pScript, 0, File.size() + 1 );
 		File.read( pScript, File.size() );
+		
 		
 		// Construct a machine to check the script.
 		gmMachine GmMachine;
@@ -108,10 +111,10 @@ BcBool ScnScript::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getScript
-const char* ScnScript::getScript() const
+// execute
+void ScnScript::execute()
 {
-	return pScript_;
+	GaCore::pImpl()->executeScript( pScript_, getName().c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,7 +127,7 @@ void ScnScript::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 //fileChunkReady
-void ScnScript::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnScript::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "script" ) )
 	{

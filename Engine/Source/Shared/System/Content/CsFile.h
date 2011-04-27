@@ -64,7 +64,7 @@ struct CsFileChunkProps
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
 typedef BcDelegate< void(*)( CsFile* ) > CsFileReadyDelegate;
-typedef BcDelegate< void(*)( CsFile*, const CsFileChunk*, void* ) > CsFileChunkDelegate;
+typedef BcDelegate< void(*)( CsFile*, BcU32, const CsFileChunk*, void* ) > CsFileChunkDelegate;
 
 //////////////////////////////////////////////////////////////////////////
 // CsFile

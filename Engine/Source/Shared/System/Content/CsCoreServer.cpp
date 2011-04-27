@@ -189,23 +189,11 @@ void CsCoreServer::delegateFileReady( CsFile* pFile )
 
 //////////////////////////////////////////////////////////////////////////
 // delegateFileChunkReady
-void CsCoreServer::delegateFileChunkReady( CsFile* pFile, const CsFileChunk* pChunk, void* pData )
+void CsCoreServer::delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	// Setup parameters.
 	RmParameters Params( RmParameters::TYPE_SEND );
 	Params << pFile->getName();
-
-	// Find chunk index.
-	BcU32 ChunkIdx = BcErrorCode;
-	for( BcU32 iChunk = 0; iChunk < pFile->getNoofChunks(); ++iChunk )
-	{
-		if( pFile->getChunk( iChunk, BcFalse ) == pChunk )
-		{
-			ChunkIdx = iChunk;
-			break;
-		}
-	}
-	BcAssert( ChunkIdx != BcErrorCode );
 	
 	// Add chunk index.
 	Params << ChunkIdx;

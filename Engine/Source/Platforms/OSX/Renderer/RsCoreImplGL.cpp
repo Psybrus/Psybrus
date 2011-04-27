@@ -51,11 +51,11 @@ void RsCoreImplGL::open()
 	// NOTE: GL renderer uses SDL in this implementation.
 	// TODO: Move into a higher level so this GL renderer
 	//       can be used on any other platform.
-	BcU32 W = 1280;
-	BcU32 H = 720;
+	W_ = 1280;
+	H_ = 720;
 	
 	// Setup resolution.
-	pScreenSurface_ = SDL_SetVideoMode( W, H, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );
+	pScreenSurface_ = SDL_SetVideoMode( W_, H_, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );
 	
 	if( pScreenSurface_ != NULL )
 	{
@@ -64,10 +64,10 @@ void RsCoreImplGL::open()
 		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 		
 		// Setup default viewport.
-		glViewport( 0, 0, W, H );
+		glViewport( 0, 0, W_, H_ );
 		
 		// Allocate a frame for rendering.
-		pFrame_ = new RsFrameGL( NULL, W, H );
+		pFrame_ = new RsFrameGL( NULL, W_, H_ );
 		
 		// Allocate a state block for rendering.
 		pStateBlock_ = new RsStateBlockGL();
@@ -190,6 +190,8 @@ private:
 
 void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
+	pResource->preDestroy();
+	
 	CommandBuffer_.push( new DestroyResourceCommand( pResource ) );
 }
 

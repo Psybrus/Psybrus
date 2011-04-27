@@ -73,11 +73,13 @@ void RsIndexBufferGL::update()
 {	
 	GLuint Handle = getHandle< GLuint >();
 
-	// Bind and push data into buffer.
-	glBindBuffer( Type_, Handle );
-	glBufferData( Type_, DataSize_, pData_, Usage_ );
-	glBindBuffer( Type_, 0 );
-	
+	if( pData_ != NULL )
+	{
+		// Bind and push data into buffer.
+		glBindBuffer( Type_, Handle );
+		glBufferData( Type_, DataSize_, pData_, Usage_ );
+		glBindBuffer( Type_, 0 );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -55,6 +55,22 @@ void CsCore::update()
 	processLoadingResources();
 	processLoadedResource();
 	processUnloadingResources();
+
+
+#ifdef PSY_SERVER
+	{
+		// Import everything in the import list.
+		BcScopedLock< BcMutex > Lock( ContainerLock_ );
+		CsResourceRef<> Handle;
+		
+		for( TImportListIterator Iter( ImportList_.begin() ); Iter != ImportList_.end(); ++Iter )
+		{
+			internalImportResource( (*Iter), Handle, NULL );
+		}	
+		
+		ImportList_.clear();
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,6 +78,14 @@ void CsCore::update()
 //virtual 
 void CsCore::close()
 {
+	// NOTE: These can be hit at the moment, not fixing because it isn't
+	//       going to affect actual gameplay. Will sort it out when I move
+	//       everything into CsResource::process.
+	BcAssert( CreateResources_.size() == 0 );
+	BcAssert( LoadingResources_.size() == 0 );
+	BcAssert( LoadedResources_.size() == 0 );
+	BcAssert( UnloadingResources_.size() == 0 );
+	
 #if PSY_SERVER
 	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
 	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
@@ -82,6 +106,9 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 	
+	//
+	BcPrintf( "CsCore::ImportResource: %s\n", FileName.c_str() );
+	
 	// Parse Json file.
 	Json::Value Object;
 	if( parseJsonFile( FileName, Object ) )
@@ -97,7 +124,14 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
 			{
 				BcPrintf( " - %s\n", (*Iter).getFileName().c_str() );
+
+				// Add file for monitoring.
+				// TODO: Remove old files.
+				FsCore::pImpl()->addFileMonitor( (*Iter).getFileName().c_str() );
 			}
+			
+			// Store dependancy list in map for reimporting on file modification.
+			DependancyMap_[ FileName ] = DependancyList;
 		}
 		else
 		{
@@ -255,15 +289,36 @@ eEvtReturn CsCore::eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
 	// See if the file matches our import list.
-	TResourceRefMapIterator FoundIter = ResourceImportMap_.find( Event.FileName_ );
-	
-	// Try to import again.
-	if( FoundIter != ResourceImportMap_.end() )
 	{
-		CsResourceRef<> Handle;
-		internalImportResource( (*FoundIter).first, Handle, NULL );		
+		TResourceRefMapIterator FoundIter = ResourceImportMap_.find( Event.FileName_ );
+		
+		// Add to import list.
+		if( FoundIter != ResourceImportMap_.end() )
+		{
+			ImportList_.push_back( (*FoundIter).first );
+			return evtRET_PASS;
+		}
 	}
 	
+	// Check dependancies.
+	{
+		for( TDependancyMapIterator Iter( DependancyMap_.begin() ); Iter != DependancyMap_.end(); ++Iter )
+		{
+			const std::string& ResourceName = (*Iter).first;
+			CsDependancyList& DependancyList = (*Iter).second;
+			
+			for( CsDependancyListIterator DepIter( DependancyList.begin() ); DepIter != DependancyList.end(); ++DepIter )
+			{
+				// If the dependancy filename matches the one modified, then add resource to the dependancy list.
+				if( (*DepIter).getFileName() == Event.FileName_ )
+				{
+					ImportList_.push_back( ResourceName );
+					break;
+				}
+			}
+		}
+	}
+			
 	return evtRET_PASS;
 }
 

@@ -21,7 +21,7 @@
 #include "gmMachine.h"
 #include "gmThread.h"
 #include "gmVariable.h"
-
+#include "gmHelpers.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaLibraryResource
@@ -66,7 +66,7 @@ public:
 	{
 		_Ty* pResource = (_Ty*)a_object->m_user;
 		
-		BcSPrintf( a_buffer, "<%s %s Object @ 0x%p>", pResource->getTypeString().c_str(), pResource->getName().c_str(), pResource );
+		BcSPrintf( a_buffer, "<%s Object \"%s\" @ %p>", pResource->getTypeString().c_str(), pResource->getName().c_str(), pResource );
 	}
 	
 	static int GM_CDECL Request( gmThread* a_thread )

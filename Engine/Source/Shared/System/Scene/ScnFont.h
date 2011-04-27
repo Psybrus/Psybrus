@@ -33,7 +33,7 @@ class ScnFont:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnFont );
+	DECLARE_RESOURCE( CsResource, ScnFont );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -47,7 +47,7 @@ public:
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
 	friend class ScnFontInstance;
@@ -93,7 +93,7 @@ class ScnFontInstance:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnFontInstance );
+	DECLARE_RESOURCE( CsResource, ScnFontInstance );
 	
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	

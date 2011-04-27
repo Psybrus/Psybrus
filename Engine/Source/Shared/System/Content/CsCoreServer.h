@@ -35,7 +35,7 @@ public:
 	void delegateUnload( void* pData, BcU32 Bytes );
 	
 	void delegateFileReady( CsFile* pFile );
-	void delegateFileChunkReady( CsFile* pFile, const CsFileChunk* pChunk, void* pData );
+	void delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
 	typedef std::map< std::string, CsFile* > TFileMap;

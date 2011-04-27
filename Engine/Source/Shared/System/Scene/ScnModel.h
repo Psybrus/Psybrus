@@ -33,7 +33,7 @@ class ScnModel:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnModel );
+	DECLARE_RESOURCE( CsResource, ScnModel );
 	
 #if PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -60,7 +60,7 @@ private:
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 protected:
 	friend class ScnModelInstance;
@@ -125,7 +125,7 @@ class ScnModelInstance:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnModelInstance );
+	DECLARE_RESOURCE( CsResource, ScnModelInstance );
 
 	virtual void						initialise( ScnModelRef Parent );
 	virtual void						destroy();

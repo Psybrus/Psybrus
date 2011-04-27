@@ -27,7 +27,7 @@ class ScnPackage:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnPackage );
+	DECLARE_RESOURCE( CsResource, ScnPackage );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -39,7 +39,7 @@ public:
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
 	struct THeader

@@ -29,7 +29,6 @@
 
 #define BASE_DECLARE_RESOURCE( _Type )											\
 	public:																		\
-	typedef CsResource Super;													\
 	static const std::string& StaticGetTypeString();							\
 	static BcHash StaticGetTypeHash();											\
 	virtual const std::string& getTypeString();									\
@@ -74,20 +73,22 @@
 		return CsResource::StaticGetTypeString() == Type;						\
 	}																			\
 
-#define DECLARE_RESOURCE( _Type )												\
+#define DECLARE_RESOURCE( _Base, _Type )										\
 	BASE_DECLARE_RESOURCE( _Type )												\
-	private:																	\
+	typedef _Base Super;														\
+	protected:																	\
 	_Type( const std::string& Name, CsFile* pFile );							\
 	virtual ~_Type();															\
 	public:																		\
 	static CsResource* StaticAllocResource( const std::string& Name,			\
-	                                        CsFile* pFile );					\
+	CsFile* pFile );					\
 	static void StaticFreeResource( CsResource* pResource );					
+
 
 #define DEFINE_RESOURCE( _Type )												\
 	BASE_DEFINE_RESOURCE( _Type )												\
 	_Type::_Type( const std::string& Name, CsFile* pFile ):						\
-		CsResource( Name, pFile )												\
+		Super( Name, pFile )													\
 	{																			\
 	}																			\
 	\
@@ -193,7 +194,7 @@ public:
 	/**
 	 * File chunk is ready.
 	 */
-	virtual void					fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	virtual void					fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
 public:
 	/**
@@ -217,7 +218,7 @@ private:
 	
 	eCsResourceStage				process();
 	void							delegateFileReady( CsFile* pFile );
-	void							delegateFileChunkReady( CsFile* pFile, const CsFileChunk* pChunk, void* pData );
+	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
 protected:
 	CsFile*							pFile_;

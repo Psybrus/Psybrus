@@ -13,6 +13,7 @@
 
 #include "GaCore.h"
 
+#include "GaLibraryMath.h"
 #include "GaLibraryScene.h"
 
 #include "gmMachine.h"
@@ -20,6 +21,8 @@
 #include "gmUserObject.h"
 
 #include "gmMachineLib.h"
+#include "gmStringLib.h"
+#include "gmMathLib.h"
 
 SYS_CREATOR( GaCore );
 
@@ -41,7 +44,7 @@ bool GM_CDECL GmCallback_Machine(gmMachine * a_machine, gmMachineCommand a_comma
 			const char* Entry = NULL;
 			while( Entry = GmLog.GetEntry( First ) ) // Yes this is an assign. It's intended!
 			{
-				BcPrintf( "GmLog: %s\n", Entry );
+				BcPrintf( "%s", Entry );
 			}
 		}
 		break;
@@ -79,12 +82,21 @@ void GaCore::open()
 	
 	// Create machine.
 	pGmMachine_ = new gmMachine();
+	
+	// Set debug mode.
+	pGmMachine_->SetDebugMode( true );
 
 	// Bind gm libs.
 	gmMachineLib( pGmMachine_ );
-	
+	gmBindStringLib( pGmMachine_ );
+	gmBindMathLib( pGmMachine_ );
+		
 	// Bind Psybrus libs.
+	GaLibraryMathBinder( pGmMachine_ );
 	GaLibrarySceneBinder( pGmMachine_ );
+	
+	// Setup execute stage;
+	ExecuteStage_ = ES_BOOT;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,16 +104,45 @@ void GaCore::open()
 //virtual
 void GaCore::update()
 {
-	// Calculate tick.
-	TickAccumulator_ += 1000.0f / 60.0f; // TOOD: Get from timer..	
-	LastTick_ = (BcU32)( BcFloor( TickAccumulator_ ) );
-	TickAccumulator_ -= (BcReal)LastTick_;
+	switch( ExecuteStage_ )
+	{
+		case ES_BOOT:
+		{
+			// Request the boot script.
+			if( CsCore::pImpl()->requestResource( "boot", BootScript_ ) )
+			{
+				ExecuteStage_ = ES_WAIT;
+			}
+			break;
+		}
+			
+		case ES_WAIT:
+		{
+			// When boot script is ready, start executing.
+			if( BootScript_.isReady() )
+			{
+				BootScript_->execute();
+				
+				ExecuteStage_ = ES_EXECUTE;
+			}			
+			break;
+		}
 
-	// Execute VM for specified number of milliseconds.
-	pGmMachine_->Execute( LastTick_ );
-	
-	// Check resource blocks.
-	checkResourceBlocks();	
+		case ES_EXECUTE:
+		{
+			// Calculate tick.
+			TickAccumulator_ += 1000.0f / 60.0f; // TOOD: Get from timer..	
+			LastTick_ = (BcU32)( BcFloor( TickAccumulator_ ) );
+			TickAccumulator_ -= (BcReal)LastTick_;
+			
+			// Execute VM for specified number of milliseconds.
+			pGmMachine_->Execute( LastTick_ );
+			
+			// Check resource blocks.
+			checkResourceBlocks();				
+			break;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -116,25 +157,34 @@ void GaCore::close()
 
 //////////////////////////////////////////////////////////////////////////
 // executeScript
-void GaCore::executeScript( const char* pScript )
+void GaCore::reset()
 {
-	gmVariable ThisVar( pGmMachine_->GetGlobals() );
+	// Reset machine.
+	pGmMachine_->ResetAndFreeMemory();
 
-	pGmMachine_->ExecuteString( pScript, NULL, true, "unknown", &ThisVar );
+	// Remove all resource blocks.
+	ResourceBlocks_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// executeScript
+void GaCore::executeScript( const char* pScript, const char* pFileName )
+{
+	pGmMachine_->ExecuteString( pScript, NULL, false, pFileName, NULL );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addResourceBlock
-BcBool GaCore::addResourceBlock( CsResourceRef<> Resource, class gmUserObject* pGmUserObject, class gmThread* pGmThread )
+BcBool GaCore::addResourceBlock( CsResource* pResource, class gmUserObject* pGmUserObject, class gmThread* pGmThread )
 {
 	BcBool IsBlocked = BcFalse;
 	TResourceBlock Block;
-	Block.Resource_ = Resource;
+	Block.Resource_ = pResource;
 	Block.pGmUserObject_ = pGmUserObject;
 	Block.ThreadID_ = pGmThread->GetId();
 	
-	// If resource is not ready, but also valid, put into queue.
-	if( Resource.isReady() == BcFalse && Resource.isValid() == BcTrue )
+	// If resource is valid but not ready, queue it up.
+	if( pResource != NULL && pResource->isReady() == BcFalse )
 	{
 		// Block thread.
 		gmVariable SignalVar( pGmUserObject );

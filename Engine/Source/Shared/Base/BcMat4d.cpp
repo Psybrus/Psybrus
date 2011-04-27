@@ -226,6 +226,73 @@ void BcMat4d::lookAt( const BcVec3d& Position, const BcVec3d& LookAt, const BcVe
 	(*this) = TransMatrix * RotMatrix;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// orthoProjection
+void BcMat4d::orthoProjection( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far )
+{
+	// TODO: Optimise.
+	BcMat4d& Projection = (*this);
+	
+	Projection[0][0] = 2.0f / ( Right - Left );
+	Projection[0][1] = 0.0f;
+	Projection[0][2] = 0.0f;
+	Projection[0][3] = 0.0f;
+	
+	Projection[1][0] = 0.0f;
+	Projection[1][1] = 2.0f / ( Top - Bottom );
+	Projection[1][2] = 0.0f;
+	Projection[1][3] = 0.0f;
+	
+	Projection[2][0] = 0.0f;
+	Projection[2][1] = 0.0f;
+	Projection[2][2] = 2.0f / ( Far - Near );
+	Projection[2][3] = 0.0f;
+	
+	Projection[3][0] = -( Right + Left ) / ( Right - Left );
+	Projection[3][1] = -( Top + Bottom ) / ( Top - Bottom );
+	Projection[3][2] = -( Far + Near )  / ( Far - Near );
+	Projection[3][3] = 1.0f;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// perspProjection
+void BcMat4d::perspProjection( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far )
+{
+	const BcReal H = BcTan( Fov ) * Near;
+	const BcReal W = H * Aspect;
+	
+    frustum( -W, W, H, -H, Near, Far );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// frustum
+void BcMat4d::frustum( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far )
+{
+	// TODO: Optimise.
+	BcMat4d& Projection = (*this);
+	
+	Projection[0][0] = ( 2.0f * Near ) / ( Right - Left );
+	Projection[0][1] = 0.0f;
+	Projection[0][2] = 0.0f;
+	Projection[0][3] = 0.0f;
+	
+	Projection[1][0] = 0.0f;
+	Projection[1][1] = ( 2.0f * Near ) / ( Bottom - Top );
+	Projection[1][2] = 0.0f;
+	Projection[1][3] = 0.0f;
+	
+	Projection[2][0] = -( Right + Left ) / ( Right - Left );
+	Projection[2][1] = -( Top + Bottom ) / ( Bottom - Top );
+	Projection[2][2] = ( Far + Near ) / ( Far - Near );
+	Projection[2][3] = 1.0f;
+	
+	Projection[3][0] = 0.0f;
+	Projection[3][1] = 0.0f;
+	Projection[3][2] = -( 2.0f * Far * Near ) / ( Far - Near );
+	Projection[3][3] = 0.0f;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // operator ==
 BcBool BcMat4d::operator == ( const BcMat4d& Other ) const

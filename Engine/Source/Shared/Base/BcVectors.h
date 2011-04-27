@@ -87,6 +87,7 @@ public:
 	BcReal			magnitudeSquared() const;
 	BcReal			dot( const BcVec2d& Rhs ) const;
 
+	BcVec2d			normal() const;
 	void			normalise();
 
 	// Interpolation
@@ -189,6 +190,19 @@ BcForceInline BcReal BcVec2d::magnitudeSquared() const
 BcForceInline BcReal BcVec2d::magnitude() const
 {
 	return BcSqrt( magnitudeSquared() );
+}
+
+BcForceInline BcVec2d BcVec2d::normal() const
+{
+	BcReal Mag = magnitude();
+	
+	if ( Mag == 0.0f )
+	{
+		return BcVec2d(0,0);
+	}
+	
+	const BcReal InvMag = 1.0f / Mag;
+	return BcVec2d( X_ * InvMag, Y_ * InvMag );
 }
 
 BcForceInline void BcVec2d::normalise()
@@ -465,9 +479,12 @@ public:
 	// Slightly more advanced arithmetic
 	BcVec4d			operator - () const;
 	BcReal			magnitude() const;
+	BcReal			magnitudeSquared() const;
 	BcReal			dot( const BcVec4d& Rhs ) const;
 	void			normalise();
 	void			normalise3();
+	BcVec4d			normal() const;
+	BcVec3d			normal3() const;
 
 	// Interpolation
 	void lerp(const BcVec4d& a, const BcVec4d& b, BcReal t);
@@ -585,6 +602,11 @@ BcForceInline BcReal BcVec4d::magnitude() const
 	return BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
 }
 
+BcForceInline BcReal BcVec4d::magnitudeSquared() const
+{
+	return ( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
+}
+
 BcForceInline void BcVec4d::normalise()
 {
 	BcReal Mag = magnitude();
@@ -615,6 +637,33 @@ BcForceInline void BcVec4d::normalise3()
 	Y_ *= InvMag;
 	Z_ *= InvMag;
 }
+
+BcForceInline BcVec4d BcVec4d::normal() const
+{
+	BcReal Mag = magnitude();
+	
+	if ( Mag == 0.0f )
+	{
+		return BcVec4d(0,0,0,0);
+	}
+	
+	const BcReal InvMag = 1.0f / Mag;
+	return BcVec4d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag, W_ * InvMag );
+}
+
+BcForceInline BcVec3d BcVec4d::normal3() const
+{
+	BcReal Mag = BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ );
+	
+	if ( Mag == 0.0f )
+	{
+		return BcVec3d(0,0,0);
+	}
+	
+	const BcReal InvMag = 1.0f / Mag;
+	return BcVec3d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag );
+}
+
 
 BcForceInline BcReal BcVec4d::dot( const BcVec4d& Rhs ) const
 {

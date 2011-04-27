@@ -78,6 +78,26 @@
 		C82473D413508F500092D33F /* RmParameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473D213508F500092D33F /* RmParameters.cpp */; };
 		C82473D9135099610092D33F /* CsFileReaderRPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473D8135099600092D33F /* CsFileReaderRPC.cpp */; };
 		C82EAC5A1358CA0600D1AF93 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC591358CA0500D1AF93 /* BcMemory.cpp */; };
+		C84C525913640CA600529F3E /* ScnCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C525313640CA600529F3E /* ScnCore.cpp */; };
+		C84C525A13640CA600529F3E /* ScnCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C525313640CA600529F3E /* ScnCore.cpp */; };
+		C84C525B13640CA600529F3E /* ScnTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C525513640CA600529F3E /* ScnTextureAtlas.cpp */; };
+		C84C525C13640CA600529F3E /* ScnTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C525513640CA600529F3E /* ScnTextureAtlas.cpp */; };
+		C84C525D13640CA600529F3E /* ScnTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C525713640CA600529F3E /* ScnTypes.cpp */; };
+		C84C525E13640CA600529F3E /* ScnTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C525713640CA600529F3E /* ScnTypes.cpp */; };
+		C84C527B1365228100529F3E /* gmCall.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52671365228100529F3E /* gmCall.cpp */; };
+		C84C527C1365228100529F3E /* gmCall.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52671365228100529F3E /* gmCall.cpp */; };
+		C84C527D1365228100529F3E /* gmGCRoot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52691365228100529F3E /* gmGCRoot.cpp */; };
+		C84C527E1365228100529F3E /* gmGCRoot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52691365228100529F3E /* gmGCRoot.cpp */; };
+		C84C527F1365228100529F3E /* gmGCRootUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C526B1365228100529F3E /* gmGCRootUtil.cpp */; };
+		C84C52801365228100529F3E /* gmGCRootUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C526B1365228100529F3E /* gmGCRootUtil.cpp */; };
+		C84C52811365228100529F3E /* gmHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C526D1365228100529F3E /* gmHelpers.cpp */; };
+		C84C52821365228100529F3E /* gmHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C526D1365228100529F3E /* gmHelpers.cpp */; };
+		C84C52831365228100529F3E /* gmMathLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C526F1365228100529F3E /* gmMathLib.cpp */; };
+		C84C52841365228100529F3E /* gmMathLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C526F1365228100529F3E /* gmMathLib.cpp */; };
+		C84C52851365228100529F3E /* gmStringLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52711365228100529F3E /* gmStringLib.cpp */; };
+		C84C52861365228100529F3E /* gmStringLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52711365228100529F3E /* gmStringLib.cpp */; };
+		C84C83C013652FFA00529F3E /* GaLibraryMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */; };
+		C84C83C113652FFA00529F3E /* GaLibraryMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */; };
 		C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
 		C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
 		C86C8A0513598B9A00F4CED8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -426,6 +446,26 @@
 		C82473D8135099600092D33F /* CsFileReaderRPC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsFileReaderRPC.cpp; sourceTree = "<group>"; };
 		C82474091350BEC30092D33F /* RmEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RmEvents.h; sourceTree = "<group>"; };
 		C82EAC591358CA0500D1AF93 /* BcMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcMemory.cpp; sourceTree = "<group>"; };
+		C84C525313640CA600529F3E /* ScnCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnCore.cpp; sourceTree = "<group>"; };
+		C84C525413640CA600529F3E /* ScnCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnCore.h; sourceTree = "<group>"; };
+		C84C525513640CA600529F3E /* ScnTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnTextureAtlas.cpp; sourceTree = "<group>"; };
+		C84C525613640CA600529F3E /* ScnTextureAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnTextureAtlas.h; sourceTree = "<group>"; };
+		C84C525713640CA600529F3E /* ScnTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnTypes.cpp; sourceTree = "<group>"; };
+		C84C525813640CA600529F3E /* ScnTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnTypes.h; sourceTree = "<group>"; };
+		C84C52671365228100529F3E /* gmCall.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmCall.cpp; path = binds/gmCall.cpp; sourceTree = "<group>"; };
+		C84C52681365228100529F3E /* gmCall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmCall.h; path = binds/gmCall.h; sourceTree = "<group>"; };
+		C84C52691365228100529F3E /* gmGCRoot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmGCRoot.cpp; path = binds/gmGCRoot.cpp; sourceTree = "<group>"; };
+		C84C526A1365228100529F3E /* gmGCRoot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmGCRoot.h; path = binds/gmGCRoot.h; sourceTree = "<group>"; };
+		C84C526B1365228100529F3E /* gmGCRootUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmGCRootUtil.cpp; path = binds/gmGCRootUtil.cpp; sourceTree = "<group>"; };
+		C84C526C1365228100529F3E /* gmGCRootUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmGCRootUtil.h; path = binds/gmGCRootUtil.h; sourceTree = "<group>"; };
+		C84C526D1365228100529F3E /* gmHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmHelpers.cpp; path = binds/gmHelpers.cpp; sourceTree = "<group>"; };
+		C84C526E1365228100529F3E /* gmHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmHelpers.h; path = binds/gmHelpers.h; sourceTree = "<group>"; };
+		C84C526F1365228100529F3E /* gmMathLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmMathLib.cpp; path = binds/gmMathLib.cpp; sourceTree = "<group>"; };
+		C84C52701365228100529F3E /* gmMathLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmMathLib.h; path = binds/gmMathLib.h; sourceTree = "<group>"; };
+		C84C52711365228100529F3E /* gmStringLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmStringLib.cpp; path = binds/gmStringLib.cpp; sourceTree = "<group>"; };
+		C84C52721365228100529F3E /* gmStringLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmStringLib.h; path = binds/gmStringLib.h; sourceTree = "<group>"; };
+		C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibraryMath.cpp; path = Game/GaLibraryMath.cpp; sourceTree = "<group>"; };
+		C84C83BF13652FF900529F3E /* GaLibraryMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibraryMath.h; path = Game/GaLibraryMath.h; sourceTree = "<group>"; };
 		C86C891F1359610000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
 		C86C89201359610000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlockGL.cpp; sourceTree = "<group>"; };
@@ -854,6 +894,12 @@
 		C824731213507BE70092D33F /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				C84C525313640CA600529F3E /* ScnCore.cpp */,
+				C84C525413640CA600529F3E /* ScnCore.h */,
+				C84C525513640CA600529F3E /* ScnTextureAtlas.cpp */,
+				C84C525613640CA600529F3E /* ScnTextureAtlas.h */,
+				C84C525713640CA600529F3E /* ScnTypes.cpp */,
+				C84C525813640CA600529F3E /* ScnTypes.h */,
 				C8BFF511135EF45500BE64DE /* ScnPackage.cpp */,
 				C8BFF512135EF45700BE64DE /* ScnPackage.h */,
 				C8BFF3B3135B078700BE64DE /* ScnFont.cpp */,
@@ -954,6 +1000,25 @@
 			path = Renderer;
 			sourceTree = "<group>";
 		};
+		C84C52631365227100529F3E /* binds */ = {
+			isa = PBXGroup;
+			children = (
+				C84C52671365228100529F3E /* gmCall.cpp */,
+				C84C52681365228100529F3E /* gmCall.h */,
+				C84C52691365228100529F3E /* gmGCRoot.cpp */,
+				C84C526A1365228100529F3E /* gmGCRoot.h */,
+				C84C526B1365228100529F3E /* gmGCRootUtil.cpp */,
+				C84C526C1365228100529F3E /* gmGCRootUtil.h */,
+				C84C526D1365228100529F3E /* gmHelpers.cpp */,
+				C84C526E1365228100529F3E /* gmHelpers.h */,
+				C84C526F1365228100529F3E /* gmMathLib.cpp */,
+				C84C52701365228100529F3E /* gmMathLib.h */,
+				C84C52711365228100529F3E /* gmStringLib.cpp */,
+				C84C52721365228100529F3E /* gmStringLib.h */,
+			);
+			name = binds;
+			sourceTree = "<group>";
+		};
 		C86E98D613514BF00015F899 /* External */ = {
 			isa = PBXGroup;
 			children = (
@@ -974,6 +1039,7 @@
 		C86E990213514C1A0015F899 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				C84C52631365227100529F3E /* binds */,
 				C86E993313514C1A0015F899 /* gm */,
 				C86E99B513514C1A0015F899 /* platform */,
 			);
@@ -1070,6 +1136,8 @@
 		C8A16A53136045070054F3AF /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */,
+				C84C83BF13652FF900529F3E /* GaLibraryMath.h */,
 				C8A16A5A136045610054F3AF /* GaCore.cpp */,
 				C8A16A5B136045610054F3AF /* GaCore.h */,
 				C8A16A5C136045610054F3AF /* GaLibraryScene.cpp */,
@@ -1283,6 +1351,16 @@
 				C8A16A5E136045610054F3AF /* GaCore.cpp in Sources */,
 				C8A16A60136045610054F3AF /* GaLibraryScene.cpp in Sources */,
 				C8A16A68136058A80054F3AF /* GaLibrary.cpp in Sources */,
+				C84C525913640CA600529F3E /* ScnCore.cpp in Sources */,
+				C84C525B13640CA600529F3E /* ScnTextureAtlas.cpp in Sources */,
+				C84C525D13640CA600529F3E /* ScnTypes.cpp in Sources */,
+				C84C527B1365228100529F3E /* gmCall.cpp in Sources */,
+				C84C527D1365228100529F3E /* gmGCRoot.cpp in Sources */,
+				C84C527F1365228100529F3E /* gmGCRootUtil.cpp in Sources */,
+				C84C52811365228100529F3E /* gmHelpers.cpp in Sources */,
+				C84C52831365228100529F3E /* gmMathLib.cpp in Sources */,
+				C84C52851365228100529F3E /* gmStringLib.cpp in Sources */,
+				C84C83C013652FFA00529F3E /* GaLibraryMath.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1400,6 +1478,16 @@
 				C8A16A5F136045610054F3AF /* GaCore.cpp in Sources */,
 				C8A16A61136045610054F3AF /* GaLibraryScene.cpp in Sources */,
 				C8A16A69136058A80054F3AF /* GaLibrary.cpp in Sources */,
+				C84C525A13640CA600529F3E /* ScnCore.cpp in Sources */,
+				C84C525C13640CA600529F3E /* ScnTextureAtlas.cpp in Sources */,
+				C84C525E13640CA600529F3E /* ScnTypes.cpp in Sources */,
+				C84C527C1365228100529F3E /* gmCall.cpp in Sources */,
+				C84C527E1365228100529F3E /* gmGCRoot.cpp in Sources */,
+				C84C52801365228100529F3E /* gmGCRootUtil.cpp in Sources */,
+				C84C52821365228100529F3E /* gmHelpers.cpp in Sources */,
+				C84C52841365228100529F3E /* gmMathLib.cpp in Sources */,
+				C84C52861365228100529F3E /* gmStringLib.cpp in Sources */,
+				C84C83C113652FFA00529F3E /* GaLibraryMath.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

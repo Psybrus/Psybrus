@@ -34,7 +34,7 @@ class ScnMaterial:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnMaterial );
+	DECLARE_RESOURCE( CsResource, ScnMaterial );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -48,7 +48,7 @@ public:
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
 	friend class ScnMaterialInstance;
@@ -78,7 +78,7 @@ class ScnMaterialInstance:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnMaterialInstance );
+	DECLARE_RESOURCE( CsResource, ScnMaterialInstance );
 	
 	void								initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap );
 	void								destroy();

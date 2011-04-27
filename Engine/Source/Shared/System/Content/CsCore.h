@@ -168,8 +168,16 @@ protected:
 #ifdef PSY_SERVER
 	typedef std::map< std::string, CsResourceRef<> > TResourceRefMap;
 	typedef TResourceRefMap::iterator TResourceRefMapIterator;
+
+	typedef std::map< std::string, CsDependancyList > TDependancyMap;
+	typedef TDependancyMap::iterator TDependancyMapIterator;
+	
+	typedef std::list< std::string > TImportList;
+	typedef TImportList::iterator TImportListIterator;
 	
 	TResourceRefMap						ResourceImportMap_;
+	TDependancyMap						DependancyMap_;
+	TImportList							ImportList_;
 #endif
 };
 

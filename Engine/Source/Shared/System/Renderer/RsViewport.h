@@ -48,21 +48,6 @@ public:
 	void transform( const BcMat4d& Transform );
 
 	/**
-	*	Setup orthographic projection.
-	*/
-	void orthoProj( BcReal Left, BcReal Right, BcReal Top, BcReal Bottom, BcReal Near, BcReal Far );
-
-	/**
-	*	Setup perspective projection.
-	*/
-	void perspProj( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far );
-
-	/**
-	*	Set frustum.
-	*/
-	void frustum( BcReal Left, BcReal Right, BcReal Top, BcReal Bottom, BcReal Near, BcReal Far );
-
-	/**
 	*	Get 3D world space coordinates from a 2D point in the viewport.
 	*/
 	void unProject( const BcVec2d& ScreenCoord, BcVec3d& WorldNearPos, BcVec3d& WorldFarPos ) const;

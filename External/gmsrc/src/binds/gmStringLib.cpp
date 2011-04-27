@@ -212,7 +212,7 @@ static int GM_CDECL gmfStringCompareNoCase(gmThread * a_thread)
   return GM_EXCEPTION;
 }
 
-
+/* NEILO: Removed for OSX for now.
 static int GM_CDECL gmfStringLower(gmThread * a_thread)
 {
   const gmVariable * var = a_thread->GetThis();
@@ -253,7 +253,7 @@ static int GM_CDECL gmfStringUpper(gmThread * a_thread)
 
   return GM_OK;
 }
-
+*/
 
 static int GM_CDECL gmfStringSpanIncluding(gmThread * a_thread)
 {
@@ -1033,13 +1033,13 @@ static gmFunctionEntry s_stringLib[] =
     \brief Upper will return the string as uppercase
     \return string
   */
-  {"Upper", gmfStringUpper},
+  //{"Upper", gmfStringUpper},
   /*gm
     \function Lower
     \brief Lower will return the string as lowercase
     \return string
   */
-  {"Lower", gmfStringLower},
+  //{"Lower", gmfStringLower},
   /*gm
     \function SpanIncluding
     \brief SpanIncluding will return this string while characters are within the passed string

@@ -65,7 +65,9 @@ protected:
 	BcCommandBuffer			CommandBuffer_;
 	RsFrameGL*				pFrame_;
 	RsStateBlockGL*			pStateBlock_;
-
+	
+	BcU32					W_;
+	BcU32					H_;
 };
 
 #endif

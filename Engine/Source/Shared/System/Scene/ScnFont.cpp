@@ -269,9 +269,12 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 					TextureObject[ "ScnTexture" ][ "name" ] = FontTextureName;
 					TextureObject[ "ScnTexture" ][ "source" ] = FontTextureFileName;		
 					
+					// NOTE: Need a better solution for this. Don't want to reimport this texture.
+					CsDependancyList TextureDependancyList;
+					
 					// Attempt to import texture.
 					ScnTextureRef TextureRef;
-					if( CsCore::pImpl()->importObject( TextureObject, TextureRef, DependancyList ) )
+					if( CsCore::pImpl()->importObject( TextureObject, TextureRef, TextureDependancyList ) )
 					{
 						// Build data.
 						BcStream HeaderStream;
@@ -304,9 +307,6 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 						// Write out chunks.											
 						pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 						pFile_->addChunk( BcHash( "glyphs" ), GlyphStream.pData(), GlyphStream.dataSize() );
-					
-						pFile_->save();
-						
 						
 						// Delete all images.
 						for( BcU32 Idx = 0; Idx < GlyphImageList.size(); ++Idx )
@@ -397,14 +397,14 @@ void ScnFont::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnFont::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 		
 		// Get glyph desc chunk.
-		pFile_->getChunk( 1 );
+		pFile_->getChunk( ++ChunkIdx );
 		
 		// Request texture.
 		CsCore::pImpl()->requestResource( pHeader_->TextureName_, Texture_ );

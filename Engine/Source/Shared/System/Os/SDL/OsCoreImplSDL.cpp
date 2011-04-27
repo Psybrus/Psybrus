@@ -42,9 +42,7 @@ void OsCoreImplSDL::open()
 	BcPrintf( "Open SDL\n" );
 	// Initialise SDL.
 	if ( SDL_Init( SDL_INIT_VIDEO ) == 0 )
-	{
-		BcPrintf( "Initied SDL\n" );
-		
+	{	
 		// Setup video mode. Renderer crossover here...but OS tells renderer how big it's source window is.
 		//pScreenSurface_ = SDL_SetVideoMode( 640, 480, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );	
 		
@@ -52,9 +50,7 @@ void OsCoreImplSDL::open()
 		//if( pScreenSurface_ != NULL )
 		{
 			SDL_WM_SetCaption( "Psybrus", NULL );
-		
-			BcPrintf( "Setup video mode\n" );
-		
+				
 			// Register SDL event handlers.
 			registerSDLEventHandler( SDL_MOUSEMOTION,		&OsCoreImplSDL::processSDLEvent_InputMouse );
 			registerSDLEventHandler( SDL_MOUSEBUTTONDOWN,	&OsCoreImplSDL::processSDLEvent_InputMouse );

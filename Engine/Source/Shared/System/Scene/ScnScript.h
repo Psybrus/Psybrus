@@ -27,7 +27,7 @@ class ScnScript:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnScript );
+	DECLARE_RESOURCE( CsResource, ScnScript );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -37,11 +37,11 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	const char*							getScript() const;
+	void								execute();
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
 	const char*							pScript_;

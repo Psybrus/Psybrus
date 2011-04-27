@@ -39,6 +39,6 @@ void BcPrintf( const BcChar* pString, ... )
 	OutputDebugString( gBuffer_ );
 #endif
 
-	//printf( "%s", gBuffer_ );
-	std::cout << gBuffer_ << std::endl;
+	printf( "%s", gBuffer_ );
+	//std::cout << gBuffer_ << std::endl;
 }

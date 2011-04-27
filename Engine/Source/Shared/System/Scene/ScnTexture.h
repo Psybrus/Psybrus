@@ -17,6 +17,8 @@
 #include "RsCore.h"
 #include "CsResourceRef.h"
 
+#include "ScnTypes.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef
 typedef CsResourceRef< class ScnTexture > ScnTextureRef;
@@ -33,7 +35,7 @@ class ScnTexture:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnTexture );
+	DECLARE_RESOURCE( CsResource, ScnTexture );
 	
 #if PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -45,12 +47,12 @@ public:
 	
 	RsTexture*							getTexture();
 	
-private:
-	void								setup();
-	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+protected:
+	virtual void						setup();
+	virtual void						fileReady();
+	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
-private:
+protected:
 	RsTexture*							pTexture_;
 	
 	struct THeader

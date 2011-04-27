@@ -26,7 +26,8 @@ public:
 	
 	virtual void						create();
 	virtual void						update();
-	virtual void						destroy();	
+	virtual void						preDestroy();	
+	virtual void						destroy();
 	
 public:
 	template< typename _Ty >
