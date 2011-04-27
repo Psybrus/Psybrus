@@ -158,7 +158,8 @@ void GM_CDECL GaFont::CreateType( gmMachine* a_machine )
 // GaFontInstance
 gmFunctionEntry GaFontInstance::GM_TYPELIB[] = 
 {
-	{ "Draw",					GaFontInstance::Draw }
+	{ "Draw",					GaFontInstance::Draw },
+	{ "GetMaterialInstance",	GaFontInstance::GetMaterialInstance }
 };
 
 int GM_CDECL GaFontInstance::Draw( gmThread* a_thread )
@@ -169,6 +170,18 @@ int GM_CDECL GaFontInstance::Draw( gmThread* a_thread )
 	ScnFontInstance* pFontInstance = (ScnFontInstance*)a_thread->ThisUser_NoChecks();
 
 	pFontInstance->draw( pCanvas, pText );
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaFontInstance::GetMaterialInstance( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 0 );
+	ScnFontInstance* pFontInstance = (ScnFontInstance*)a_thread->ThisUser_NoChecks();
+
+	ScnMaterialInstanceRef MaterialInstanceRef = pFontInstance->getMaterialInstance();
+
+	a_thread->PushUser( GaMaterialInstance::AllocUserObject( a_thread->GetMachine(), MaterialInstanceRef ) );
 	
 	return GM_OK;
 }
@@ -222,6 +235,94 @@ void GM_CDECL GaMaterial::CreateType( gmMachine* a_machine )
 	a_machine->RegisterTypeLibrary( GaMaterial::GM_TYPE, GaMaterial::GM_TYPELIB, NoofEntries );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// GaMaterialInstance
+gmFunctionEntry GaMaterialInstance::GM_TYPELIB[] = 
+{
+	{ "FindParameter",			GaMaterialInstance::FindParameter },
+	{ "SetParameter",			GaMaterialInstance::SetParameter }
+};
+
+int GM_CDECL GaMaterialInstance::FindParameter( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 1 );
+	GM_CHECK_STRING_PARAM( pName, 0 );
+	
+	ScnMaterialInstance* pMaterialInstance = (ScnMaterialInstance*)a_thread->ThisUser_NoChecks();
+	
+	BcU32 ParameterID = pMaterialInstance->findParameter( pName );
+	
+	if( ParameterID != BcErrorCode )
+	{
+		a_thread->PushInt( ParameterID );
+	}
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaMaterialInstance::SetParameter( gmThread* a_thread )
+{
+	if( a_thread->GetNumParams() == 2 )
+	{
+		// Set individual.
+		GM_CHECK_INT_PARAM( ParameterID, 0 );
+		ScnMaterialInstance* pMaterialInstance = (ScnMaterialInstance*)a_thread->ThisUser_NoChecks();
+
+		gmType ParamType = a_thread->ParamType( 1 );
+		
+		// TODO: Factor this into a seperate function.
+		if( ParamType == GM_INT )
+		{
+			GM_CHECK_INT_PARAM( Value, 1 );
+			pMaterialInstance->setParameter( (BcU32)ParameterID, Value );
+		}
+		else if ( ParamType == GM_FLOAT )
+		{
+			GM_CHECK_FLOAT_PARAM( Value, 1 );
+			pMaterialInstance->setParameter( (BcU32)ParameterID, Value );
+		}
+		else if ( ParamType == GaVec2::GM_TYPE )
+		{
+			GM_CHECK_USER_PARAM( BcVec2d*, GaVec2::GM_TYPE, pValue, 1 );
+			pMaterialInstance->setParameter( (BcU32)ParameterID, *pValue );
+		}
+		else if ( ParamType == GaVec3::GM_TYPE )
+		{
+			GM_CHECK_USER_PARAM( BcVec3d*, GaVec3::GM_TYPE, pValue, 1 );
+			pMaterialInstance->setParameter( (BcU32)ParameterID, *pValue );
+		}
+		else if ( ParamType == GaVec4::GM_TYPE )
+		{
+			GM_CHECK_USER_PARAM( BcVec4d*, GaVec4::GM_TYPE, pValue, 1 );
+			pMaterialInstance->setParameter( (BcU32)ParameterID, *pValue );
+		}
+		else if ( ParamType == GaMat4::GM_TYPE )
+		{
+			GM_CHECK_USER_PARAM( BcMat4d*, GaMat4::GM_TYPE, pValue, 1 );
+			pMaterialInstance->setParameter( (BcU32)ParameterID, *pValue );
+		}
+	}
+	else if( a_thread->GetNumParams() == 1 )
+	{
+		// Set from table.
+		GM_CHECK_TABLE_PARAM( pTable, 0 );
+	
+		// Not implemented yet!
+		return GM_EXCEPTION;		
+	}
+	
+	return GM_OK;
+}
+
+void GM_CDECL GaMaterialInstance::CreateType( gmMachine* a_machine )
+{
+	GaLibraryResource< ScnMaterialInstance >::CreateType( a_machine );
+	
+	// Register type library.
+	int NoofEntries = sizeof( GaMaterialInstance::GM_TYPELIB ) / sizeof( GaMaterialInstance::GM_TYPELIB[0] );
+	a_machine->RegisterTypeLibrary( GaMaterialInstance::GM_TYPE, GaMaterialInstance::GM_TYPELIB, NoofEntries );
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -236,7 +337,9 @@ int GM_CDECL GaScript::Execute( gmThread* a_thread )
 	GM_CHECK_NUM_PARAMS( 0 );
 	ScnScript* pScript = (ScnScript*)a_thread->ThisUser_NoChecks();
 	
-	pScript->execute();
+	int ThreadID = pScript->execute();
+	
+	a_thread->PushInt( ThreadID );
 	
 	return GM_OK;
 }

@@ -457,13 +457,20 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 	
 	BcReal AdvanceX = 0.0f;
 	BcReal AdvanceY = 0.0f;
-	
+		
 	BcU32 RGBA = 0xffffffff;
 	
 	// TODO: UTF-8 support.
 	for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
 	{
 		BcU32 CharCode = String[ CharIdx ];
+		
+		// Handle special characters.
+		if( CharCode == '\n' )
+		{
+			AdvanceX = 0.0f;
+			AdvanceY += 32.0f; // TODO: Take from header.
+		}
 		
 		// Find glyph.
 		ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
@@ -472,7 +479,7 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 		{
 			ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
 			
-			const BcReal X1 = AdvanceX - pGlyph->OffsetX_;
+			const BcReal X1 = AdvanceX + pGlyph->OffsetX_;
 			const BcReal Y1 = AdvanceY - pGlyph->OffsetY_;
 			const BcReal X2 = X1 + pGlyph->Width_;
 			const BcReal Y2 = Y1 + pGlyph->Height_;
@@ -534,6 +541,14 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 		Canvas->setMaterialInstance( MaterialInstance_ );
 		Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterialInstance
+ScnMaterialInstanceRef ScnFontInstance::getMaterialInstance()
+{
+	return MaterialInstance_;
 }
 
 //////////////////////////////////////////////////////////////////////////

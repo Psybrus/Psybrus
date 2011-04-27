@@ -99,6 +99,8 @@ public:
 	
 	void								draw( ScnCanvasRef Canvas, const std::string& String );
 	
+	ScnMaterialInstanceRef				getMaterialInstance();
+	
 	virtual BcBool						isReady();
 	
 private:

@@ -159,6 +159,10 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			TParameter& Parameter = (*It);
 			const GLint Handle = Parameter.Handle_;
 			const BcU32 Offset = Parameter.Offset_;
+#ifdef PSY_DEBUG
+			BcF32* pFloatParameterOffset = &pFloatParameter[ Offset ];
+			BcS32* pIntParameterOffset = &pIntParameter[ Offset ];
+#endif
 			switch( Parameter.Type_ )
 			{
 				case rsSPT_FLOAT:

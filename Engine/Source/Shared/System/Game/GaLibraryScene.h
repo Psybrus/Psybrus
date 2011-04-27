@@ -69,6 +69,7 @@ public:
 
 public:
 	static int GM_CDECL Draw( gmThread* a_thread );
+	static int GM_CDECL GetMaterialInstance( gmThread* a_thread );
 
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
@@ -87,7 +88,13 @@ public:
 class GaMaterialInstance: public GaLibraryResource< ScnMaterialInstance >
 {
 public:
+	static gmFunctionEntry GM_TYPELIB[];
+
+public:
+	static int GM_CDECL FindParameter( gmThread* a_thread );
+	static int GM_CDECL SetParameter( gmThread* a_thread );
 	
+	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
 class GaModel: public GaLibraryResource< ScnModel >

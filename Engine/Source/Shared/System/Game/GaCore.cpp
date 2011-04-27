@@ -21,6 +21,8 @@
 #include "gmUserObject.h"
 
 #include "gmMachineLib.h"
+#include "gmArrayLib.h"
+#include "gmListLib.h"
 #include "gmStringLib.h"
 #include "gmMathLib.h"
 
@@ -83,11 +85,18 @@ void GaCore::open()
 	// Create machine.
 	pGmMachine_ = new gmMachine();
 	
+	// Setup memory limits (7MB initial soft limit, 8MB hard limit, auto adjust).
+	pGmMachine_->SetDesiredByteMemoryUsageSoft( 7 * 1024 * 1024 );
+	pGmMachine_->SetDesiredByteMemoryUsageHard( 8 * 1024 * 1024 );
+	pGmMachine_->SetAutoMemoryUsage( true );
+	
 	// Set debug mode.
 	pGmMachine_->SetDebugMode( true );
 
 	// Bind gm libs.
 	gmMachineLib( pGmMachine_ );
+	gmBindArrayLib( pGmMachine_ );
+	gmBindListLib( pGmMachine_ );
 	gmBindStringLib( pGmMachine_ );
 	gmBindMathLib( pGmMachine_ );
 		
@@ -168,9 +177,11 @@ void GaCore::reset()
 
 //////////////////////////////////////////////////////////////////////////
 // executeScript
-void GaCore::executeScript( const char* pScript, const char* pFileName )
+int GaCore::executeScript( const char* pScript, const char* pFileName )
 {
-	pGmMachine_->ExecuteString( pScript, NULL, false, pFileName, NULL );
+	int ThreadID = -1;
+	pGmMachine_->ExecuteString( pScript, &ThreadID, false, pFileName, NULL );
+	return ThreadID;
 }
 
 //////////////////////////////////////////////////////////////////////////
