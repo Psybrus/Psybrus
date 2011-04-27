@@ -54,6 +54,10 @@ BcBool ScnModel::import( const Json::Value& Object, CsDependancyList& Dependancy
 								 NodeIndex, 
 								 PrimitiveIndex );
 
+		// Delete root node.
+		delete pNode;
+		pNode = NULL;
+		
 		// Setup header.
 		THeader Header = 
 		{
@@ -323,7 +327,7 @@ void ScnModel::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnModel::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnModel::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{

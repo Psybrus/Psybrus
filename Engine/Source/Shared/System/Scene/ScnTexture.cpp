@@ -17,9 +17,6 @@
 #ifdef PSY_SERVER
 #include "BcStream.h"
 #include "Img.h"
-#endif
-
-#ifdef PSY_SERVER
 
 //////////////////////////////////////////////////////////////////////////
 // import
@@ -56,6 +53,9 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 				BodyStream << Colour.A_;
 			}
 		}
+		
+		// Delete image.
+		delete pImage;
 		
 		// Add chunks and finish up.
 		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
@@ -158,7 +158,7 @@ void ScnTexture::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnTexture::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnTexture::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
@@ -168,7 +168,7 @@ void ScnTexture::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 		// Request all texture levels.
 		for( BcU32 iLevel = 0; iLevel < pHeader_->Levels_; ++iLevel )
 		{
-			pFile_->getChunk( iLevel + 1 );
+			pFile_->getChunk( ++ChunkIdx );
 		}
 		
 		// We update the header, create a new texture rather than updating.

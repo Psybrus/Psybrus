@@ -258,28 +258,27 @@ void ScnShader::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnShader::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 	
 		// Grab the rest of the chunks.
-		BcU32 ChunkIdx = 1;
-		
+	
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofVertexShaderPermutations_; ++Idx )
 		{
-			pFile_->getChunk( ChunkIdx++ );
+			pFile_->getChunk( ++ChunkIdx );
 		}
 
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofFragmentShaderPermutations_; ++Idx )
 		{
-			pFile_->getChunk( ChunkIdx++ );
+			pFile_->getChunk( ++ChunkIdx );
 		}
 
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofProgramPermutations_; ++Idx )
 		{
-			pFile_->getChunk( ChunkIdx++ );
+			pFile_->getChunk( ++ChunkIdx );
 		}
 	}
 	else if( pChunk->ID_ == BcHash( "vertex" ) )

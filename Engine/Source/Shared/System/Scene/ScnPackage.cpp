@@ -66,7 +66,6 @@ BcBool ScnPackage::import( const Json::Value& Object, CsDependancyList& Dependan
 		
 		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 		pFile_->addChunk( BcHash( "resources" ), ResourceStream.pData(), ResourceStream.dataSize() );
-		pFile_->save();
 		
 		return BcTrue;
 	}
@@ -130,13 +129,13 @@ void ScnPackage::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnPackage::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnPackage::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 		
-		pFile_->getChunk( 1 );
+		pFile_->getChunk( ++ChunkIdx );
 	}
 	else if( pChunk->ID_ == BcHash( "resources" ) )
 	{

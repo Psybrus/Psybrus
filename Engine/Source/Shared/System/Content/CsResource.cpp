@@ -85,7 +85,7 @@ void CsResource::fileReady()
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 //virtual
-void CsResource::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void CsResource::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	
 }
@@ -167,8 +167,8 @@ void CsResource::delegateFileReady( CsFile* pFile )
 
 //////////////////////////////////////////////////////////////////////////
 // delegateFileChunkReady
-void CsResource::delegateFileChunkReady( CsFile* pFile, const CsFileChunk* pChunk, void* pData )
+void CsResource::delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	BcScopedLock< BcAtomicMutex > Lock( Lock_ );
-	fileChunkReady( pChunk, pData );
+	fileChunkReady( ChunkIdx, pChunk, pData );
 }

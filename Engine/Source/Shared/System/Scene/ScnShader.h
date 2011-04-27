@@ -42,7 +42,7 @@ class ScnShader:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnShader );
+	DECLARE_RESOURCE( CsResource, ScnShader );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -64,7 +64,7 @@ private:
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
 	struct THeader

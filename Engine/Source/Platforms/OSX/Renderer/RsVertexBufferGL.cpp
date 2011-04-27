@@ -109,16 +109,19 @@ void RsVertexBufferGL::update()
 {
 	GLuint Handle = getHandle< GLuint >();
 
-	// Bind buffer.
-	glBindBuffer( Type_, Handle );
+	if( pData_ != NULL )
+	{
+		// Bind buffer.
+		glBindBuffer( Type_, Handle );
 	
-	// Lock, buffer, and unlock.
-	Lock_.lock();
-	glBufferData( Type_, DataSize_, pData_, Usage_ );
-	Lock_.unlock();
+		// Lock, buffer, and unlock.
+		Lock_.lock();
+		glBufferData( Type_, DataSize_, pData_, Usage_ );
+		Lock_.unlock();
 	
-	// Unbind buffer.
-	glBindBuffer( Type_, 0 );
+		// Unbind buffer.
+		glBindBuffer( Type_, 0 );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

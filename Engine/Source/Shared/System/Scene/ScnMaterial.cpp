@@ -139,7 +139,7 @@ void ScnMaterial::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnMaterial::fileChunkReady( const CsFileChunk* pChunk, void* pData )
+void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{

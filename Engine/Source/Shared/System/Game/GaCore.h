@@ -21,6 +21,8 @@
 
 #include "CsResourceRef.h"
 
+#include "ScnScript.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GaCore
 class GaCore:
@@ -35,16 +37,21 @@ public:
 	virtual void				update();
 	virtual void				close();
 	
+	/*
+	 * Reset game.
+	 */
+	void						reset();
+	
 	/**
 	 * Execute script.
 	 */
-	void						executeScript( const char* pScript );
+	void						executeScript( const char* pScript, const char* pFileName );
 	
 	/**
 	 *	Add a resource block.
 	 *	@return Has been blocked.
 	 */
-	BcBool						addResourceBlock( CsResourceRef<> Resource, class gmUserObject* pUserObject, class gmThread* pThread );
+	BcBool						addResourceBlock( CsResource* pResource, class gmUserObject* pUserObject, class gmThread* pThread );
 	
 	/**
 	 *	Check resource blocks.
@@ -68,6 +75,16 @@ private:
 
 	TResourceBlockList		ResourceBlocks_;
 
+	// NEILO: Temporary for LD.
+	enum eExecuteStage
+	{
+		ES_BOOT = 0,
+		ES_WAIT,
+		ES_EXECUTE,
+	};
+	
+	ScnScriptRef			BootScript_;
+	eExecuteStage			ExecuteStage_;
 };
 
 #endif

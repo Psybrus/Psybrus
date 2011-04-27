@@ -140,6 +140,7 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 	
 	// Find the chunk that data matches to.
 	BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + sizeof( CsFileChunk ) * Header_.NoofChunks_;
+	BcU32 ChunkIdx = BcErrorCode;
 	CsFileChunk* pFoundChunk = NULL;
 	CsFileChunkProps* pFoundChunkProps = NULL;
 	for( BcU32 i = 0; i < Header_.NoofChunks_; ++i )
@@ -149,6 +150,7 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 		
 		if( (BcU8*)pChunk->Offset_ == pOffset )
 		{
+			ChunkIdx = i;
 			pFoundChunk = pChunk;
 			pFoundChunkProps = &pChunkProps_[ i ];
 			break;
@@ -166,7 +168,7 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 		BcAssertMsg( Hash == pFoundChunk->Hash_, "CsFileReader: Chunk data corrupt!\n" );
 		
 		pFoundChunkProps->Status_ = CsFileChunkProps::STATUS_LOADED;
-		ChunkDelegate_( this, pFoundChunk, pData );
+		ChunkDelegate_( this, ChunkIdx, pFoundChunk, pData );
 	}	
 }
 

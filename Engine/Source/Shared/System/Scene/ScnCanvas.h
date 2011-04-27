@@ -17,6 +17,7 @@
 #include "RsCore.h"
 #include "CsResourceRef.h"
 
+#include "ScnTypes.h"
 #include "ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -59,7 +60,7 @@ class ScnCanvas:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnCanvas );
+	DECLARE_RESOURCE( CsResource, ScnCanvas );
 	
 	virtual void						initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMaterialInstance );
 	virtual void						create();

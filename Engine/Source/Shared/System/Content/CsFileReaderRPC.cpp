@@ -157,7 +157,7 @@ void CsFileReaderRPC::onDataLoaded( void* pData, BcSize Size )
 		BcAssert( (BcU8*)pInternalData < ( pData_ + TotalDataSize_ ) );
 		
 		pChunkProps->Status_ = CsFileChunkProps::STATUS_LOADED;
-		ChunkDelegate_( this, pChunk, pInternalData );
+		ChunkDelegate_( this, ChunkIdx, pChunk, pInternalData );
 	}
 }
 
