@@ -45,7 +45,7 @@ public:
 	/**
 	 * Execute script.
 	 */
-	void						executeScript( const char* pScript, const char* pFileName );
+	int							executeScript( const char* pScript, const char* pFileName );
 	
 	/**
 	 *	Add a resource block.

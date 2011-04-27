@@ -98,6 +98,10 @@
 		C84C52861365228100529F3E /* gmStringLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C52711365228100529F3E /* gmStringLib.cpp */; };
 		C84C83C013652FFA00529F3E /* GaLibraryMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */; };
 		C84C83C113652FFA00529F3E /* GaLibraryMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */; };
+		C8551F1813685E5600431FE6 /* gmArrayLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F1613685E5400431FE6 /* gmArrayLib.cpp */; };
+		C8551F1913685E5F00431FE6 /* gmArrayLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F1613685E5400431FE6 /* gmArrayLib.cpp */; };
+		C8551F22136865B100431FE6 /* gmListLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F20136865A900431FE6 /* gmListLib.cpp */; };
+		C8551F23136865B100431FE6 /* gmListLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F20136865A900431FE6 /* gmListLib.cpp */; };
 		C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
 		C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
 		C86C8A0513598B9A00F4CED8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -466,6 +470,10 @@
 		C84C52721365228100529F3E /* gmStringLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmStringLib.h; path = binds/gmStringLib.h; sourceTree = "<group>"; };
 		C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibraryMath.cpp; path = Game/GaLibraryMath.cpp; sourceTree = "<group>"; };
 		C84C83BF13652FF900529F3E /* GaLibraryMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibraryMath.h; path = Game/GaLibraryMath.h; sourceTree = "<group>"; };
+		C8551F1613685E5400431FE6 /* gmArrayLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmArrayLib.cpp; path = binds/gmArrayLib.cpp; sourceTree = "<group>"; };
+		C8551F1713685E5500431FE6 /* gmArrayLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmArrayLib.h; path = binds/gmArrayLib.h; sourceTree = "<group>"; };
+		C8551F20136865A900431FE6 /* gmListLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmListLib.cpp; path = binds/gmListLib.cpp; sourceTree = "<group>"; };
+		C8551F21136865AB00431FE6 /* gmListLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmListLib.h; path = binds/gmListLib.h; sourceTree = "<group>"; };
 		C86C891F1359610000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
 		C86C89201359610000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlockGL.cpp; sourceTree = "<group>"; };
@@ -1003,6 +1011,10 @@
 		C84C52631365227100529F3E /* binds */ = {
 			isa = PBXGroup;
 			children = (
+				C8551F20136865A900431FE6 /* gmListLib.cpp */,
+				C8551F21136865AB00431FE6 /* gmListLib.h */,
+				C8551F1613685E5400431FE6 /* gmArrayLib.cpp */,
+				C8551F1713685E5500431FE6 /* gmArrayLib.h */,
 				C84C52671365228100529F3E /* gmCall.cpp */,
 				C84C52681365228100529F3E /* gmCall.h */,
 				C84C52691365228100529F3E /* gmGCRoot.cpp */,
@@ -1361,6 +1373,8 @@
 				C84C52831365228100529F3E /* gmMathLib.cpp in Sources */,
 				C84C52851365228100529F3E /* gmStringLib.cpp in Sources */,
 				C84C83C013652FFA00529F3E /* GaLibraryMath.cpp in Sources */,
+				C8551F1813685E5600431FE6 /* gmArrayLib.cpp in Sources */,
+				C8551F22136865B100431FE6 /* gmListLib.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1488,6 +1502,8 @@
 				C84C52841365228100529F3E /* gmMathLib.cpp in Sources */,
 				C84C52861365228100529F3E /* gmStringLib.cpp in Sources */,
 				C84C83C113652FFA00529F3E /* GaLibraryMath.cpp in Sources */,
+				C8551F1913685E5F00431FE6 /* gmArrayLib.cpp in Sources */,
+				C8551F23136865B100431FE6 /* gmListLib.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -94,7 +94,6 @@ public:
 	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
 	
 	void								bind( RsFrame* pFrame, RsRenderSort Sort );
-	
 
 	virtual BcBool						isReady();
 

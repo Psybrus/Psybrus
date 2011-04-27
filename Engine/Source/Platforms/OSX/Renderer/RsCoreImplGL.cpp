@@ -71,6 +71,10 @@ void RsCoreImplGL::open()
 		
 		// Allocate a state block for rendering.
 		pStateBlock_ = new RsStateBlockGL();
+		
+		// Clear.
+		glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	}
 	else
 	{
