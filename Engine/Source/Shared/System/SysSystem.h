@@ -16,6 +16,7 @@
 
 #include "BcTypes.h"
 #include "BcDebug.h"
+#include "BcTimer.h"
 
 #include "EvtPublisher.h"
 
@@ -161,6 +162,8 @@ private:
 	typedef std::array< ProcessFunc, STATE_MAX > ProcessFuncArray;
 	ProcessFuncArray			ProcessFuncs_;
 	
+	BcTimer						PerfTimer_;
+	BcReal						LastTickTime_;
 };
 
 

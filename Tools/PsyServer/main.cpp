@@ -10,6 +10,7 @@
 #include "SysKernel.h"
 
 #include "ScnTexture.h"
+#include "ScnTextureAtlas.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
 #include "ScnScript.h"
@@ -17,6 +18,8 @@
 #include "ScnShader.h"
 #include "ScnPackage.h"
 #include "ScnFont.h"
+#include "ScnSound.h"
+#include "ScnSoundEmitter.h"
 
 SysSystemEvent::Delegate DelegateUpdate;
 SysSystemEvent::Delegate DelegateRemoteOpened;
@@ -33,6 +36,7 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 	if( Package.isValid() == BcFalse )
 	{
 		CsCore::pImpl()->registerResource< ScnTexture >();
+		CsCore::pImpl()->registerResource< ScnTextureAtlas >();
 		CsCore::pImpl()->registerResource< ScnMaterial >();
 		CsCore::pImpl()->registerResource< ScnModel >();
 		CsCore::pImpl()->registerResource< ScnScript >();
@@ -40,6 +44,8 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnShader >();
 		CsCore::pImpl()->registerResource< ScnPackage >();
 		CsCore::pImpl()->registerResource< ScnFont >();
+		CsCore::pImpl()->registerResource< ScnSound >();
+		CsCore::pImpl()->registerResource< ScnSoundEmitter >();
 //		CsCore::pImpl()->importResource( "EngineContent/default.material", Material );
 //		CsCore::pImpl()->importResource( "GameContent/font.material", Material );
 //		CsCore::pImpl()->importResource( "GameContent/baroque.font", Font );

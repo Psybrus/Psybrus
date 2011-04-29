@@ -110,6 +110,19 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 DEFINE_RESOURCE( ScnTextureAtlas );
 
 //////////////////////////////////////////////////////////////////////////
+// getRect
+//virtual
+const ScnRect& ScnTextureAtlas::getRect( BcU32 Idx )
+{
+	if( Idx < pAtlasHeader_->NoofTextures_ )
+	{
+		return pAtlasRects_[ Idx ];
+	}
+
+	return ScnTexture::getRect( Idx );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 //virtual
 void ScnTextureAtlas::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )

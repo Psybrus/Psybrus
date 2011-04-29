@@ -87,7 +87,11 @@ public:
 				a_thread->PushUser( a_object );
 				
 				return GaCore::pImpl()->addResourceBlock( CsResourceRef<>( Resource ), a_object, a_thread ) ? GM_SYS_BLOCK : GM_OK;
-			}		
+			}
+		}
+		else
+		{
+			BcPrintf( "GaCore: Request %s.%s failed!\n", pResourceName, _Ty::StaticGetTypeString().c_str() );
 		}
 		
 		return GM_OK;

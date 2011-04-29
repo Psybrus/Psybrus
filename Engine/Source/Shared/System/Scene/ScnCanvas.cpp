@@ -89,6 +89,7 @@ BcBool ScnCanvas::isReady()
 void ScnCanvas::setMaterialInstance( ScnMaterialInstanceRef MaterialInstance )
 {
 	MaterialInstance_ = MaterialInstance;
+	DiffuseTexture_ = MaterialInstance_->getTexture( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -278,6 +279,68 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawSprite
+void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+{
+	ScnCanvasVertex* pVertices = allocVertices( 4 );
+	ScnCanvasVertex* pFirstVertex = pVertices;
+	
+	const BcVec2d CornerA = Position;
+	const BcVec2d CornerB = Position + Size;
+	
+	// Only render if we have a valid diffuse texture to reference for UV rects.
+	if( DiffuseTexture_.isValid() )
+	{
+		const ScnRect Rect = DiffuseTexture_->getRect( TextureIdx );
+	
+		// Only draw if we can allocate vertices.
+		if( pVertices != NULL )
+		{
+			// Now copy in data.
+			BcU32 RGBA = Colour.asARGB();
+		
+			pVertices->X_ = CornerA.x();
+			pVertices->Y_ = CornerA.y();
+			pVertices->U_ = Rect.X_;
+			pVertices->V_ = Rect.Y_;
+			pVertices->RGBA_ = RGBA;
+			++pVertices;
+			
+			pVertices->X_ = CornerB.x();
+			pVertices->Y_ = CornerA.y();
+			pVertices->U_ = Rect.X_ + Rect.W_;
+			pVertices->V_ = Rect.Y_;
+			pVertices->RGBA_ = RGBA;
+			++pVertices;
+			
+			pVertices->X_ = CornerA.x();
+			pVertices->Y_ = CornerB.y();
+			pVertices->U_ = Rect.X_;
+			pVertices->V_ = Rect.Y_ + Rect.H_;
+			pVertices->RGBA_ = RGBA;
+			++pVertices;
+			
+			pVertices->X_ = CornerB.x();
+			pVertices->Y_ = CornerB.y();
+			pVertices->U_ = Rect.X_ + Rect.W_;
+			pVertices->V_ = Rect.Y_ + Rect.H_;
+			pVertices->RGBA_ = RGBA;
+			
+			// Add primitive.	
+			addPrimitive( rsPT_TRIANGLESTRIP, pFirstVertex, 4, Layer, BcTrue );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawSpriteCentered
+void ScnCanvas::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+{
+	BcVec2d NewPosition = Position - ( Size * 0.5f );
+	drawSprite( NewPosition, Size, TextureIdx, Colour, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // render
 void ScnCanvas::clear()
 {
@@ -300,7 +363,7 @@ void ScnCanvas::clear()
 	}
 	
 	// Set material instance to default material instance.
-	MaterialInstance_ = DefaultMaterialInstance_;
+	setMaterialInstance( DefaultMaterialInstance_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

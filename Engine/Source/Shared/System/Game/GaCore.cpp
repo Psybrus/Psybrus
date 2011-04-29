@@ -13,6 +13,8 @@
 
 #include "GaCore.h"
 
+#include "OsCore.h"
+
 #include "GaLibraryMath.h"
 #include "GaLibraryScene.h"
 
@@ -106,6 +108,11 @@ void GaCore::open()
 	
 	// Setup execute stage;
 	ExecuteStage_ = ES_BOOT;
+	
+	// Subscribe to input events.
+	// TODO: We need an unsubscribe!!!
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN,	OsEventInputKeyboard::Delegate::bind< GaCore, &GaCore::eventKeyDown >( this ) );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,4 +238,44 @@ void GaCore::checkResourceBlocks()
 			++Iter;
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// eventKeyDown
+eEvtReturn GaCore::eventKeyDown( BcU32 EvtID, const OsEventInputKeyboard& Event )
+{
+
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// eventKeyUp
+eEvtReturn GaCore::eventKeyUp( BcU32 EvtID, const OsEventInputKeyboard& Event )
+{
+	
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// eventMouseDown
+eEvtReturn GaCore::eventMouseDown( BcU32 EvtID, const OsEventInputMouse& Event )
+{
+	
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// eventMouseUp
+eEvtReturn GaCore::eventMouseUp( BcU32 EvtID, const OsEventInputMouse& Event )
+{
+	
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// eventMouseMove
+eEvtReturn GaCore::eventMouseMove( BcU32 EvtID, const OsEventInputMouse& Event )
+{
+	
+	return evtRET_PASS;
 }

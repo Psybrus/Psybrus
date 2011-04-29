@@ -28,6 +28,9 @@ SysSystem::SysSystem():
 	ProcessFuncs_[ STATE_UPDATE ] = 	&SysSystem::processUpdate;
 	ProcessFuncs_[ STATE_CLOSE ] =		&SysSystem::processClose;
 	ProcessFuncs_[ STATE_FINISHED ] = 	&SysSystem::processFinished;
+	
+	// Perf stuff.
+	LastTickTime_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,11 +73,21 @@ BcBool SysSystem::isFinished() const
 // process
 BcBool SysSystem::process()
 {
+	// Mark perf timer.
+	PerfTimer_.mark();
+	
 	// Cache process func.
 	ProcessFunc processFunc = ProcessFuncs_[ ProcessState_ ];
 	
 	// Call the correct function for processing.
-	return (this->*processFunc)();
+	BcBool RetVal = (this->*processFunc)();
+	
+	// Store last tick time.
+	LastTickTime_ = PerfTimer_.time();
+	
+	//BcPrintf( "System %p time: %f ms\n", this, LastTickTime_ * 1000.0f );
+	
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////

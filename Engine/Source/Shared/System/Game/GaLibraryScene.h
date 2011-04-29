@@ -29,6 +29,8 @@
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
 #include "ScnScript.h"
+#include "ScnSound.h"
+#include "ScnSoundEmitter.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaLibraryResource types.
@@ -44,6 +46,9 @@ public:
 	static int GM_CDECL PushMatrix( gmThread* a_thread );
 	static int GM_CDECL PopMatrix( gmThread* a_thread );
 	
+	static int GM_CDECL DrawSprite( gmThread* a_thread );
+	static int GM_CDECL DrawSpriteCentered( gmThread* a_thread );
+
 	static int GM_CDECL Clear( gmThread* a_thread );
 	static int GM_CDECL Render( gmThread* a_thread );
 
@@ -133,6 +138,27 @@ class GaScript: public GaLibraryResource< ScnScript >
 	
 public:
 	static int GM_CDECL Execute( gmThread* a_thread );
+	
+	static void GM_CDECL CreateType( gmMachine* a_machine );
+};
+
+class GaSound: public GaLibraryResource< ScnSound >
+{
+public:
+	static gmFunctionEntry GM_TYPELIB[];
+	
+public:
+	static void GM_CDECL CreateType( gmMachine* a_machine );
+};
+
+class GaSoundEmitter: public GaLibraryResource< ScnSoundEmitter >
+{
+public:
+	static gmFunctionEntry GM_TYPELIB[];
+	
+public:
+	static int GM_CDECL Create( gmThread* a_thread );
+	static int GM_CDECL Play( gmThread* a_thread );
 	
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };

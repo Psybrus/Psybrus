@@ -118,6 +118,20 @@ RsTexture* ScnTexture::getTexture()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getRect
+//virtual
+const ScnRect& ScnTexture::getRect( BcU32 Idx )
+{
+	static ScnRect Rect = 
+	{
+		0.0f, 0.0f,
+		1.0f, 1.0f
+	};
+	
+	return Rect;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setup
 void ScnTexture::setup()
 {

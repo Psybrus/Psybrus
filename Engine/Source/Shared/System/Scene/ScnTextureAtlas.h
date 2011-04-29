@@ -20,6 +20,10 @@
 #include "ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnTextureRef
+typedef CsResourceRef< class ScnTextureAtlas > ScnTextureAtlasRef;
+
+//////////////////////////////////////////////////////////////////////////
 // ScnTextureAtlas
 class ScnTextureAtlas:
 	public ScnTexture
@@ -30,6 +34,8 @@ public:
 #if PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif	
+
+	virtual const ScnRect&				getRect( BcU32 Idx );
 
 protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
