@@ -102,6 +102,26 @@
 		C8551F1913685E5F00431FE6 /* gmArrayLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F1613685E5400431FE6 /* gmArrayLib.cpp */; };
 		C8551F22136865B100431FE6 /* gmListLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F20136865A900431FE6 /* gmListLib.cpp */; };
 		C8551F23136865B100431FE6 /* gmListLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8551F20136865A900431FE6 /* gmListLib.cpp */; };
+		C856353213697B1000D91624 /* SsAL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856351B13697B1000D91624 /* SsAL.cpp */; };
+		C856353313697B1000D91624 /* SsAL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856351B13697B1000D91624 /* SsAL.cpp */; };
+		C856353413697B1000D91624 /* SsChannelAL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856351D13697B1000D91624 /* SsChannelAL.cpp */; };
+		C856353513697B1000D91624 /* SsChannelAL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856351D13697B1000D91624 /* SsChannelAL.cpp */; };
+		C856353613697B1000D91624 /* SsCoreALInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856351F13697B1000D91624 /* SsCoreALInternal.cpp */; };
+		C856353713697B1000D91624 /* SsCoreALInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856351F13697B1000D91624 /* SsCoreALInternal.cpp */; };
+		C856353813697B1000D91624 /* SsSampleAL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856352113697B1000D91624 /* SsSampleAL.cpp */; };
+		C856353913697B1000D91624 /* SsSampleAL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856352113697B1000D91624 /* SsSampleAL.cpp */; };
+		C856353C13697B1000D91624 /* SsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856352613697B1000D91624 /* SsCore.cpp */; };
+		C856353D13697B1000D91624 /* SsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856352613697B1000D91624 /* SsCore.cpp */; };
+		C856354413697B1000D91624 /* SsSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856352F13697B1000D91624 /* SsSample.cpp */; };
+		C856354513697B1000D91624 /* SsSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856352F13697B1000D91624 /* SsSample.cpp */; };
+		C8563547136982A600D91624 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8563546136982A600D91624 /* OpenAL.framework */; };
+		C8563549136982AE00D91624 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8563548136982AE00D91624 /* OpenAL.framework */; };
+		C856354C1369871D00D91624 /* SsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856354A1369871B00D91624 /* SsResource.cpp */; };
+		C856354D1369871D00D91624 /* SsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856354A1369871B00D91624 /* SsResource.cpp */; };
+		C85635501369921500D91624 /* ScnSound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856354E1369921500D91624 /* ScnSound.cpp */; };
+		C85635511369921500D91624 /* ScnSound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856354E1369921500D91624 /* ScnSound.cpp */; };
+		C85635541369922700D91624 /* ScnSoundEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635521369922700D91624 /* ScnSoundEmitter.cpp */; };
+		C85635551369922700D91624 /* ScnSoundEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635521369922700D91624 /* ScnSoundEmitter.cpp */; };
 		C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
 		C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
 		C86C8A0513598B9A00F4CED8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -258,6 +278,8 @@
 		C8A16A61136045610054F3AF /* GaLibraryScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5C136045610054F3AF /* GaLibraryScene.cpp */; };
 		C8A16A68136058A80054F3AF /* GaLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A66136058A70054F3AF /* GaLibrary.cpp */; };
 		C8A16A69136058A80054F3AF /* GaLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A66136058A70054F3AF /* GaLibrary.cpp */; };
+		C8B46CA9136B094B004F5B85 /* BcTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8B46CA7136B094B004F5B85 /* BcTimer.cpp */; };
+		C8B46CAA136B094B004F5B85 /* BcTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8B46CA7136B094B004F5B85 /* BcTimer.cpp */; };
 		C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF511135EF45500BE64DE /* ScnPackage.cpp */; };
@@ -474,6 +496,29 @@
 		C8551F1713685E5500431FE6 /* gmArrayLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmArrayLib.h; path = binds/gmArrayLib.h; sourceTree = "<group>"; };
 		C8551F20136865A900431FE6 /* gmListLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gmListLib.cpp; path = binds/gmListLib.cpp; sourceTree = "<group>"; };
 		C8551F21136865AB00431FE6 /* gmListLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmListLib.h; path = binds/gmListLib.h; sourceTree = "<group>"; };
+		C856351B13697B1000D91624 /* SsAL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsAL.cpp; sourceTree = "<group>"; };
+		C856351C13697B1000D91624 /* SsAL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsAL.h; sourceTree = "<group>"; };
+		C856351D13697B1000D91624 /* SsChannelAL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsChannelAL.cpp; sourceTree = "<group>"; };
+		C856351E13697B1000D91624 /* SsChannelAL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsChannelAL.h; sourceTree = "<group>"; };
+		C856351F13697B1000D91624 /* SsCoreALInternal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsCoreALInternal.cpp; sourceTree = "<group>"; };
+		C856352013697B1000D91624 /* SsCoreALInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsCoreALInternal.h; sourceTree = "<group>"; };
+		C856352113697B1000D91624 /* SsSampleAL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsSampleAL.cpp; sourceTree = "<group>"; };
+		C856352213697B1000D91624 /* SsSampleAL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsSampleAL.h; sourceTree = "<group>"; };
+		C856352513697B1000D91624 /* SsChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsChannel.h; sourceTree = "<group>"; };
+		C856352613697B1000D91624 /* SsCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsCore.cpp; sourceTree = "<group>"; };
+		C856352713697B1000D91624 /* SsCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsCore.h; sourceTree = "<group>"; };
+		C856352A13697B1000D91624 /* SsFileData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsFileData.h; sourceTree = "<group>"; };
+		C856352F13697B1000D91624 /* SsSample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsSample.cpp; sourceTree = "<group>"; };
+		C856353013697B1000D91624 /* SsSample.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsSample.h; sourceTree = "<group>"; };
+		C856353113697B1000D91624 /* SsTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsTypes.h; sourceTree = "<group>"; };
+		C8563546136982A600D91624 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		C8563548136982AE00D91624 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		C856354A1369871B00D91624 /* SsResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SsResource.cpp; sourceTree = "<group>"; };
+		C856354B1369871C00D91624 /* SsResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SsResource.h; sourceTree = "<group>"; };
+		C856354E1369921500D91624 /* ScnSound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnSound.cpp; sourceTree = "<group>"; };
+		C856354F1369921500D91624 /* ScnSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnSound.h; sourceTree = "<group>"; };
+		C85635521369922700D91624 /* ScnSoundEmitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnSoundEmitter.cpp; sourceTree = "<group>"; };
+		C85635531369922700D91624 /* ScnSoundEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnSoundEmitter.h; sourceTree = "<group>"; };
 		C86C891F1359610000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
 		C86C89201359610000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlockGL.cpp; sourceTree = "<group>"; };
@@ -564,6 +609,8 @@
 		C8A16A66136058A70054F3AF /* GaLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibrary.cpp; path = Game/GaLibrary.cpp; sourceTree = "<group>"; };
 		C8A16A67136058A80054F3AF /* GaLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibrary.h; path = Game/GaLibrary.h; sourceTree = "<group>"; };
 		C8AFD21712C40FE700EE0992 /* TestBed_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestBed_Prefix.pch; sourceTree = "<group>"; };
+		C8B46CA7136B094B004F5B85 /* BcTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcTimer.cpp; sourceTree = "<group>"; };
+		C8B46CA8136B094B004F5B85 /* BcTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcTimer.h; sourceTree = "<group>"; };
 		C8BFF3B3135B078700BE64DE /* ScnFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnFont.cpp; sourceTree = "<group>"; };
 		C8BFF3B4135B078700BE64DE /* ScnFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnFont.h; sourceTree = "<group>"; };
 		C8BFF511135EF45500BE64DE /* ScnPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnPackage.cpp; sourceTree = "<group>"; };
@@ -579,6 +626,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C8563547136982A600D91624 /* OpenAL.framework in Frameworks */,
 				002F39FA09D0881F00EBEB88 /* SDL.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				002F3C0109D093BD00EBEB88 /* OpenGL.framework in Frameworks */,
@@ -589,6 +637,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C8563549136982AE00D91624 /* OpenAL.framework in Frameworks */,
 				C86C8A7213598B9A00F4CED8 /* SDL.framework in Frameworks */,
 				C86C8A7313598B9A00F4CED8 /* Cocoa.framework in Frameworks */,
 				C86C8A7413598B9A00F4CED8 /* OpenGL.framework in Frameworks */,
@@ -638,6 +687,8 @@
 		29B97314FDCFA39411CA2CEA /* TestBed */ = {
 			isa = PBXGroup;
 			children = (
+				C8563548136982AE00D91624 /* OpenAL.framework */,
+				C8563546136982A600D91624 /* OpenAL.framework */,
 				C86E98D613514BF00015F899 /* External */,
 				C824726213507B9C0092D33F /* Source */,
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -758,6 +809,7 @@
 		C824729313507BE70092D33F /* System */ = {
 			isa = PBXGroup;
 			children = (
+				C856351913697B1000D91624 /* Sound */,
 				C8A16A53136045070054F3AF /* Game */,
 				C824729413507BE70092D33F /* Content */,
 				C82472A913507BE70092D33F /* File */,
@@ -924,6 +976,10 @@
 				C8E64D801351980D00AAF73E /* ScnCanvas.h */,
 				C8E64D88135339F300AAF73E /* ScnShader.cpp */,
 				C8E64D89135339F400AAF73E /* ScnShader.h */,
+				C856354E1369921500D91624 /* ScnSound.cpp */,
+				C856354F1369921500D91624 /* ScnSound.h */,
+				C85635521369922700D91624 /* ScnSoundEmitter.cpp */,
+				C85635531369922700D91624 /* ScnSoundEmitter.h */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -952,6 +1008,8 @@
 		C824736D13507BFD0092D33F /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				C8B46CA7136B094B004F5B85 /* BcTimer.cpp */,
+				C8B46CA8136B094B004F5B85 /* BcTimer.h */,
 				C824736E13507BFD0092D33F /* BcAtomic.cpp */,
 				C824736F13507BFD0092D33F /* BcAtomic.h */,
 				C824737013507BFD0092D33F /* BcEvent.cpp */,
@@ -1029,6 +1087,38 @@
 				C84C52721365228100529F3E /* gmStringLib.h */,
 			);
 			name = binds;
+			sourceTree = "<group>";
+		};
+		C856351913697B1000D91624 /* Sound */ = {
+			isa = PBXGroup;
+			children = (
+				C856351A13697B1000D91624 /* AL */,
+				C856352513697B1000D91624 /* SsChannel.h */,
+				C856352613697B1000D91624 /* SsCore.cpp */,
+				C856352713697B1000D91624 /* SsCore.h */,
+				C856354A1369871B00D91624 /* SsResource.cpp */,
+				C856354B1369871C00D91624 /* SsResource.h */,
+				C856352A13697B1000D91624 /* SsFileData.h */,
+				C856352F13697B1000D91624 /* SsSample.cpp */,
+				C856353013697B1000D91624 /* SsSample.h */,
+				C856353113697B1000D91624 /* SsTypes.h */,
+			);
+			path = Sound;
+			sourceTree = "<group>";
+		};
+		C856351A13697B1000D91624 /* AL */ = {
+			isa = PBXGroup;
+			children = (
+				C856351B13697B1000D91624 /* SsAL.cpp */,
+				C856351C13697B1000D91624 /* SsAL.h */,
+				C856351D13697B1000D91624 /* SsChannelAL.cpp */,
+				C856351E13697B1000D91624 /* SsChannelAL.h */,
+				C856351F13697B1000D91624 /* SsCoreALInternal.cpp */,
+				C856352013697B1000D91624 /* SsCoreALInternal.h */,
+				C856352113697B1000D91624 /* SsSampleAL.cpp */,
+				C856352213697B1000D91624 /* SsSampleAL.h */,
+			);
+			path = AL;
 			sourceTree = "<group>";
 		};
 		C86E98D613514BF00015F899 /* External */ = {
@@ -1375,6 +1465,16 @@
 				C84C83C013652FFA00529F3E /* GaLibraryMath.cpp in Sources */,
 				C8551F1813685E5600431FE6 /* gmArrayLib.cpp in Sources */,
 				C8551F22136865B100431FE6 /* gmListLib.cpp in Sources */,
+				C856353213697B1000D91624 /* SsAL.cpp in Sources */,
+				C856353413697B1000D91624 /* SsChannelAL.cpp in Sources */,
+				C856353613697B1000D91624 /* SsCoreALInternal.cpp in Sources */,
+				C856353813697B1000D91624 /* SsSampleAL.cpp in Sources */,
+				C856353C13697B1000D91624 /* SsCore.cpp in Sources */,
+				C856354413697B1000D91624 /* SsSample.cpp in Sources */,
+				C856354C1369871D00D91624 /* SsResource.cpp in Sources */,
+				C85635501369921500D91624 /* ScnSound.cpp in Sources */,
+				C85635541369922700D91624 /* ScnSoundEmitter.cpp in Sources */,
+				C8B46CA9136B094B004F5B85 /* BcTimer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1504,6 +1604,16 @@
 				C84C83C113652FFA00529F3E /* GaLibraryMath.cpp in Sources */,
 				C8551F1913685E5F00431FE6 /* gmArrayLib.cpp in Sources */,
 				C8551F23136865B100431FE6 /* gmListLib.cpp in Sources */,
+				C856353313697B1000D91624 /* SsAL.cpp in Sources */,
+				C856353513697B1000D91624 /* SsChannelAL.cpp in Sources */,
+				C856353713697B1000D91624 /* SsCoreALInternal.cpp in Sources */,
+				C856353913697B1000D91624 /* SsSampleAL.cpp in Sources */,
+				C856353D13697B1000D91624 /* SsCore.cpp in Sources */,
+				C856354513697B1000D91624 /* SsSample.cpp in Sources */,
+				C856354D1369871D00D91624 /* SsResource.cpp in Sources */,
+				C85635511369921500D91624 /* ScnSound.cpp in Sources */,
+				C85635551369922700D91624 /* ScnSoundEmitter.cpp in Sources */,
+				C8B46CAA136B094B004F5B85 /* BcTimer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

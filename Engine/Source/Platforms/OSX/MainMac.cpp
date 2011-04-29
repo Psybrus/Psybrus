@@ -18,6 +18,7 @@ int main( int argc, char* argv[] )
 	SYS_REGISTER( &Kernel, FsCoreImplOSX );
 	SYS_REGISTER( &Kernel, CsCoreClient );
 	SYS_REGISTER( &Kernel, RsCoreImplGL );
+	SYS_REGISTER( &Kernel, SsCoreALInternal );
 	
 	// Pass over to user for additional configuration
 	extern void PsyGameInit( SysKernel& Kernel );
@@ -49,6 +50,8 @@ int main( int argc, char* argv[] )
 #include "ScnScript.h"
 #include "ScnFont.h"
 #include "ScnPackage.h"
+#include "ScnSound.h"
+#include "ScnSoundEmitter.h"
 
 OsEventCore::Delegate DelegateQuit;
 SysSystemEvent::Delegate DelegateRender;
@@ -105,6 +108,7 @@ void PsyGameInit( SysKernel& Kernel )
 	Kernel.startSystem( "RmCore" );
 	Kernel.startSystem( "OsCoreImplSDL" );
 	Kernel.startSystem( "RsCoreImplGL" );
+	Kernel.startSystem( "SsCoreALInternal" );
 	Kernel.startSystem( "FsCoreImplOSX" );
 	Kernel.startSystem( "CsCoreClient" );
 	Kernel.startSystem( "GaCore" );
@@ -134,6 +138,8 @@ void PsyGameInit( SysKernel& Kernel )
 	CsCore::pImpl()->registerResource< ScnFontInstance >();
 	CsCore::pImpl()->registerResource< ScnPackage >();
 	CsCore::pImpl()->registerResource< ScnScript >();
+	CsCore::pImpl()->registerResource< ScnSound >();
+	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
 
 	// Run the kernel.
 	Kernel.run();
