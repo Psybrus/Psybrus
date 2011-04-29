@@ -14,6 +14,8 @@
 #include "ScnMaterial.h"
 #include "CsCore.h"
 
+#include "ScnTextureAtlas.h"
+
 #ifdef PSY_SERVER
 #include "BcFile.h"
 #include "BcStream.h"
@@ -28,7 +30,8 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 {
 	const Json::Value& ImportShader = Object[ "shader" ];
 	const Json::Value& ImportTextures = Object[ "textures" ];
-				
+	const Json::Value& State = Object[ "state" ];
+					
 	// Import shader.
 	ScnShaderRef ShaderRef;
 	if( CsCore::pImpl()->importObject( ImportShader, ShaderRef, DependancyList ) )
@@ -53,6 +56,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		
 		// Export material.
 		BcStream HeaderStream;
+		BcStream StateBlockStream;
 		
 		THeader Header;
 		TTextureHeader TextureHeader;
@@ -68,12 +72,70 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		{
 			BcStrCopyN( TextureHeader.SamplerName_, (*Iter).first.c_str(), sizeof( TextureHeader.SamplerName_ ) );
 			BcStrCopyN( TextureHeader.TextureName_, (*Iter).second->getName().c_str(), sizeof( TextureHeader.TextureName_ ) );
+			BcStrCopyN( TextureHeader.TextureType_, (*Iter).second->getTypeString().c_str(), sizeof( TextureHeader.TextureType_ ) );
 			
 			HeaderStream << TextureHeader;
 		}
+	
+		// Make state block stream.
+		const BcChar* StateNames[] = 
+		{
+			"depth_write_enable",
+			"depth_test_enable",
+			"depth_test_compare",
+			"depth_bias",
+			"alpha_test_enable",
+			"alpha_test_compare",
+			"alpha_test_threshold",
+			"blend_mode"
+		};
 		
+		std::map< std::string, BcU32 > ModeNames;
+		
+		ModeNames[ "never" ] = rsCM_NEVER;
+		ModeNames[ "less" ] = rsCM_LESS;
+		ModeNames[ "equal" ] = rsCM_EQUAL;
+		ModeNames[ "lessequal" ] = rsCM_LESSEQUAL;
+		ModeNames[ "greater" ] = rsCM_GREATER;
+		ModeNames[ "notequal" ] = rsCM_NOTEQUAL;
+		ModeNames[ "always" ] = rsCM_ALWAYS;
+	
+		ModeNames[ "none" ] = rsBM_NONE;
+		ModeNames[ "blend" ] = rsBM_BLEND;
+		ModeNames[ "add" ] = rsBM_ADD;
+		ModeNames[ "subtract" ] = rsBM_SUBTRACT;
+	
+		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
+		{
+			if( State.type() == Json::objectValue )
+			{
+				const Json::Value& StateValue = State[ StateNames[ Idx ] ];
+		
+				if( StateValue.type() == Json::realValue )
+				{
+					BcReal RealValue = StateValue.asDouble();
+					StateBlockStream << BcU32( RealValue );
+				}
+				else if( StateValue.type() == Json::stringValue )
+				{
+					BcU32 IntValue = ModeNames[ StateValue.asCString() ];
+					StateBlockStream << BcU32( IntValue );
+				}
+				else
+				{
+					BcU32 IntValue = StateValue.asUInt();
+					StateBlockStream << BcU32( IntValue );
+				}
+			}
+			else
+			{
+				StateBlockStream << BcU32( 0 );
+			}
+		}
+			
 		// Add chunks.
 		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+		pFile_->addChunk( BcHash( "stateblock" ), StateBlockStream.pData(), StateBlockStream.dataSize() );
 		
 		return BcTrue;
 	}
@@ -96,6 +158,7 @@ DEFINE_RESOURCE( ScnMaterial );
 void ScnMaterial::initialise()
 {
 	pHeader_ = NULL;
+	pStateBuffer_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,7 +182,8 @@ void ScnMaterial::destroy()
 //virtual
 BcBool ScnMaterial::isReady()
 {
-	return Shader_.isReady();
+	// TODO: LOCK!
+	return Shader_.isReady() && pStateBuffer_ != NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,18 +213,26 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 		// Request resources.
 		if( CsCore::pImpl()->requestResource( pHeader_->ShaderName_, Shader_ ) )
 		{
+			// HACK: We should be able to handle resource subtypes without this.
 			ScnTextureRef Texture;
+			CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Texture ) );
 			for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 			{
 				TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-				if( CsCore::pImpl()->requestResource( pTextureHeader->TextureName_, Texture ) )
+				
+				if( CsCore::pImpl()->internalRequestResource( pTextureHeader->TextureName_, pTextureHeader->TextureType_, InternalHandle ) )
 				{
 					TextureMap_[ pTextureHeader->SamplerName_ ] = Texture;
 				}
 			}			
 		}
+		
+		pFile_->getChunk( ++ChunkIdx );
 	}
-
+	else if( pChunk->ID_ == BcHash( "stateblock" ) )
+	{
+		pStateBuffer_ = (BcU32*)pData;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -180,11 +252,16 @@ void ScnMaterialInstance::initialise( ScnMaterialRef Parent, RsProgram* pProgram
 	if( ParameterBufferSize_ > 0 )
 	{
 		pParameterBuffer_ = new BcU8[ ParameterBufferSize_ ];
+		BcMemSet( pParameterBuffer_, 0, ParameterBufferSize_ );
 	}
 	else
 	{
 		pParameterBuffer_ = NULL;
 	}
+	
+	// Allocate state buffer and copy defaults in.
+	pStateBuffer_ = new BcU32[ rsRS_MAX ];
+	BcMemCopy( pStateBuffer_, Parent->pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
 
 	// Build a binding list for textures.
 	for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
@@ -211,6 +288,9 @@ void ScnMaterialInstance::initialise( ScnMaterialRef Parent, RsProgram* pProgram
 // destroy
 void ScnMaterialInstance::destroy()
 {
+	delete pStateBuffer_;
+	pStateBuffer_ = NULL;
+	
 	delete pParameterBuffer_;
 	pParameterBuffer_ = NULL;
 }
@@ -426,6 +506,28 @@ void ScnMaterialInstance::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setState
+void ScnMaterialInstance::setState( eRsRenderState State, BcU32 Value )
+{
+	if( State < rsRS_MAX )
+	{
+		pStateBuffer_[ State ] = Value;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTexture
+ScnTextureRef ScnMaterialInstance::getTexture( BcU32 Idx )
+{
+	if( Idx < TextureBindingList_.size() )
+	{
+		return TextureBindingList_[ Idx ].Texture_;	
+	}
+	
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bind
 class ScnMaterialInstanceRenderNode: public RsRenderNode
 {
@@ -448,6 +550,12 @@ public:
 			pStateBlock_->setTextureState( Idx, pTexture, TextureParams );
 		}
 		
+		// Setup states.
+		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
+		{
+			pStateBlock_->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
+		}
+		
 		// Bind state block.
 		pStateBlock_->bind();
 	}
@@ -462,6 +570,9 @@ public:
 
 	// Parameter buffer.
 	BcU8* pParameterBuffer_;
+	
+	// State buffer.
+	BcU32* pStateBuffer_;
 };
 
 void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
@@ -505,6 +616,11 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 	pRenderNode->pParameterBuffer_ = (BcU8*)pFrame->allocMem( ParameterBufferSize_ );
 	BcMemCopy( pRenderNode->pParameterBuffer_, pParameterBuffer_, ParameterBufferSize_ );
 
+	// Setup state buffer.
+	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * rsRS_MAX );
+	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
+
+	
 	// Add node to frame.
 	pRenderNode->Sort_ = Sort;
 	pFrame->addRenderNode( pRenderNode );

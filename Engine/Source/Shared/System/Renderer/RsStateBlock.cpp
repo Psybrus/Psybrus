@@ -42,14 +42,14 @@ RsStateBlock::~RsStateBlock()
 void RsStateBlock::setDefaultState()
 {
 	// Setup default render states.
-	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		BcTrue,				BcTrue );
-	setRenderState( rsRS_DEPTH_TEST_ENABLE,			BcTrue,				BcTrue );
-	setRenderState( rsRS_DEPTH_TEST_COMPARE,		rsCM_LESSEQUAL,		BcTrue );
+	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		0,					BcTrue );
+	setRenderState( rsRS_DEPTH_TEST_ENABLE,			0,					BcTrue );
+	setRenderState( rsRS_DEPTH_TEST_COMPARE,		0,					BcTrue );
 	setRenderState( rsRS_DEPTH_BIAS,				0,					BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_ENABLE,			BcFalse,			BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_COMPARE,		rsCM_NEVER,			BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_THRESHOLD,		128,				BcTrue );
-	setRenderState( rsRS_BLEND_MODE,				rsBM_BLEND,			BcTrue );
+	setRenderState( rsRS_ALPHA_TEST_ENABLE,			0,					BcTrue );
+	setRenderState( rsRS_ALPHA_TEST_COMPARE,		0,					BcTrue );
+	setRenderState( rsRS_ALPHA_TEST_THRESHOLD,		0,					BcTrue );
+	setRenderState( rsRS_BLEND_MODE,				0,					BcTrue );
 	
 	// Setup default texture states.
 	RsTextureParams TextureParams = 

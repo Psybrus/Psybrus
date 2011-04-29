@@ -23,6 +23,8 @@ gmFunctionEntry GaCanvas::GM_TYPELIB[] =
 	{ "SetMaterialInstance",		GaCanvas::SetMaterialInstance },
 	{ "PushMatrix",					GaCanvas::PushMatrix },
 	{ "PopMatrix",					GaCanvas::PopMatrix },
+	{ "DrawSprite",					GaCanvas::DrawSprite },
+	{ "DrawSpriteCentered",			GaCanvas::DrawSpriteCentered },
 	{ "Clear",						GaCanvas::Clear },
 	{ "Render",						GaCanvas::Render },
 };
@@ -78,6 +80,36 @@ int GM_CDECL GaCanvas::PopMatrix( gmThread* a_thread )
 	ScnCanvas* pCanvas = (ScnCanvas*)a_thread->ThisUser_NoChecks();
 	
 	pCanvas->popMatrix();
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaCanvas::DrawSprite( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 5 );
+	GM_CHECK_USER_PARAM( BcVec2d*, GaVec2::GM_TYPE, pPosition, 0 );
+	GM_CHECK_USER_PARAM( BcVec2d*, GaVec2::GM_TYPE, pSize, 1 );
+	GM_CHECK_INT_PARAM( TextureIdx, 2 );
+	GM_CHECK_USER_PARAM( BcVec4d*, GaVec4::GM_TYPE, pColour, 3 );
+	GM_CHECK_INT_PARAM( Layer, 4 );
+	ScnCanvas* pCanvas = (ScnCanvas*)a_thread->ThisUser_NoChecks();
+
+	pCanvas->drawSprite( *pPosition, *pSize, TextureIdx, *pColour, Layer );
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaCanvas::DrawSpriteCentered( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 5 );
+	GM_CHECK_USER_PARAM( BcVec2d*, GaVec2::GM_TYPE, pPosition, 0 );
+	GM_CHECK_USER_PARAM( BcVec2d*, GaVec2::GM_TYPE, pSize, 1 );
+	GM_CHECK_INT_PARAM( TextureIdx, 2 );
+	GM_CHECK_USER_PARAM( BcVec4d*, GaVec4::GM_TYPE, pColour, 3 );
+	GM_CHECK_INT_PARAM( Layer, 4 );
+	ScnCanvas* pCanvas = (ScnCanvas*)a_thread->ThisUser_NoChecks();
+	
+	pCanvas->drawSpriteCentered( *pPosition, *pSize, TextureIdx, *pColour, Layer );
 	
 	return GM_OK;
 }
@@ -353,6 +385,68 @@ void GM_CDECL GaScript::CreateType( gmMachine* a_machine )
 	a_machine->RegisterTypeLibrary( GaScript::GM_TYPE, GaScript::GM_TYPELIB, NoofEntries );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// GaSound
+gmFunctionEntry GaSound::GM_TYPELIB[] = 
+{
+};
+
+void GM_CDECL GaSound::CreateType( gmMachine* a_machine )
+{
+	GaLibraryResource< ScnSound >::CreateType( a_machine );
+	
+	// Register type library.
+	int NoofEntries = sizeof( GaSound::GM_TYPELIB ) / sizeof( GaSound::GM_TYPELIB[0] );
+	a_machine->RegisterTypeLibrary( GaSound::GM_TYPE, GaSound::GM_TYPELIB, NoofEntries );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GaSoundEmitter
+gmFunctionEntry GaSoundEmitter::GM_TYPELIB[] = 
+{
+	{ "Play",				GaSoundEmitter::Play }
+};
+
+int GM_CDECL GaSoundEmitter::Create( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 1 );
+	GM_CHECK_STRING_PARAM( pName, 0 )
+
+	ScnSoundEmitterRef SoundEmitterRef;
+	if( CsCore::pImpl()->createResource( pName, SoundEmitterRef ) )
+	{
+		// Allocate a new object instance for the font instance.
+		gmUserObject* pUserObj = GaSoundEmitter::AllocUserObject( a_thread->GetMachine(), SoundEmitterRef );
+		
+		// Push onto stack.
+		a_thread->PushUser( pUserObj );
+		
+		// Add resource block incase it isn't ready.
+		return GaCore::pImpl()->addResourceBlock( SoundEmitterRef, pUserObj, a_thread ) ? GM_SYS_BLOCK : GM_OK;
+	}
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaSoundEmitter::Play( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 1 );
+	GM_CHECK_USER_PARAM( ScnSound*, GaSound::GM_TYPE, pSound, 0 );
+	ScnSoundEmitter* pSoundEmitter = (ScnSoundEmitter*)a_thread->ThisUser_NoChecks();
+
+	pSoundEmitter->play( pSound );
+		
+	return GM_OK;
+}
+
+void GM_CDECL GaSoundEmitter::CreateType( gmMachine* a_machine )
+{
+	GaLibraryResource< ScnSoundEmitter >::CreateType( a_machine );
+	
+	// Register type library.
+	int NoofEntries = sizeof( GaSoundEmitter::GM_TYPELIB ) / sizeof( GaSoundEmitter::GM_TYPELIB[0] );
+	a_machine->RegisterTypeLibrary( GaSoundEmitter::GM_TYPE, GaSoundEmitter::GM_TYPELIB, NoofEntries );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // GaFrame - Very quick and dirty way to access RsFrame for rendering.
@@ -428,9 +522,11 @@ static gmFunctionEntry gLibScene[] =
 	{ "Shader",					GaShader::Request },
 	{ "Texture",				GaTexture::Request },
 	{ "Script",					GaScript::Request },
+	{ "Sound",					GaSound::Request },
 	
 	// Resource creating.
 	{ "Canvas",					GaCanvas::Create },
+	{ "SoundEmitter",			GaSoundEmitter::Create },
 	
 	// Hacky RsFrame stuff.
 	{ "FrameBegin",				GaFrame::FrameBegin },
@@ -453,6 +549,8 @@ void GaLibrarySceneBinder( gmMachine* a_machine )
 	GaShader::CreateType( a_machine );
 	GaTexture::CreateType( a_machine );
 	GaScript::CreateType( a_machine );
+	GaSound::CreateType( a_machine );
+	GaSoundEmitter::CreateType( a_machine );
 
 	// 
 	GaCanvas::CreateType( a_machine );

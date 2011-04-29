@@ -50,7 +50,10 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	BcU32 iInd = 0;
 	BcU32 iWeight = 0;
 
-	File.open( FileName );
+	if( File.open( FileName ) == BcFalse )
+	{
+		return NULL;
+	}
 
 	BcChar Buffer[1024];
 	BcChar Command[1024];

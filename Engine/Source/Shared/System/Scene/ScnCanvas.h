@@ -129,6 +129,26 @@ public:
 	void								drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
+	 * Draw sprite.
+	 * @param Position Position.
+	 * @param Size Size.
+	 * @param TextureIdx Texture Index.
+	 * @param Colour Colour.
+	 * @param Layer Layer.
+	 */
+	void								drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
+	 * Draw sprite centered.
+	 * @param Position Position.
+	 * @param Size Size.
+	 * @param TextureIdx Texture Index.
+	 * @param Colour Colour.
+	 * @param Layer Layer.
+	 */
+	void								drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
 	 * Clear canvas.
 	 */
 	void								clear();
@@ -164,6 +184,7 @@ protected:
 	// Materials.
 	ScnMaterialInstanceRef				DefaultMaterialInstance_;
 	ScnMaterialInstanceRef				MaterialInstance_;
+	ScnTextureRef						DiffuseTexture_;
 
 	typedef std::vector< ScnCanvasPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;

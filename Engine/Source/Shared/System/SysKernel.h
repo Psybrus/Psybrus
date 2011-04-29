@@ -15,6 +15,7 @@
 #define __SYSKERNEL_H__
 
 #include "BcGlobal.h"
+#include "BcTimer.h"
 #include "SysSystem.h"
 
 #include <list>
@@ -83,6 +84,10 @@ private:
 	TSystemList					PendingRemoveSystemList_;
 	TSystemList					SystemList_;
 	BcBool						ShuttingDown_;
+	
+	BcTimer						MainTimer_;
+	
+	BcReal						SleepAccumulator_;
 };
 
 #endif

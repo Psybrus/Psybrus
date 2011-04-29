@@ -47,6 +47,8 @@ public:
 	
 	RsTexture*							getTexture();
 	
+	virtual const ScnRect&				getRect( BcU32 Idx );
+	
 protected:
 	virtual void						setup();
 	virtual void						fileReady();

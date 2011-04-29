@@ -17,6 +17,7 @@
 #include "BcTypes.h"
 
 #include "BcGlobal.h"
+#include "OsEvents.h"
 #include "SysSystem.h"
 
 #include "CsResourceRef.h"
@@ -59,6 +60,20 @@ public:
 	void						checkResourceBlocks();
 		
 private:
+	/**
+	 * Keyboard input.
+	 */
+	eEvtReturn					eventKeyDown( BcU32 EvtID, const OsEventInputKeyboard& Event );
+	eEvtReturn					eventKeyUp( BcU32 EvtID, const OsEventInputKeyboard& Event );
+	
+	/**
+	 * Mouse input.
+	 */
+	eEvtReturn					eventMouseDown( BcU32 EvtID, const OsEventInputMouse& Event );
+	eEvtReturn					eventMouseUp( BcU32 EvtID, const OsEventInputMouse& Event );
+	eEvtReturn					eventMouseMove( BcU32 EvtID, const OsEventInputMouse& Event );
+	
+private:
 	class gmMachine*			pGmMachine_;
 	BcU32						LastTick_;
 	BcReal						TickAccumulator_;
@@ -85,6 +100,16 @@ private:
 	
 	ScnScriptRef			BootScript_;
 	eExecuteStage			ExecuteStage_;
+	
+	// NEILO: Temporary for LD.
+	class gmTableObject*	pKeyStateMap_;
+	class gmTableObject*	pKeyDownMap_;
+	class gmTableObject*	pKeyUpMap_;
+
+	class gmTableObject*	pMouseStateMap_;
+	class gmTableObject*	pMouseDownMap_;
+	class gmTableObject*	pMouseUpMap_;
+
 };
 
 #endif

@@ -64,12 +64,16 @@ private:
 	{
 		BcChar							SamplerName_[ 64 ];
 		BcChar							TextureName_[ 64 ];
+		BcChar							TextureType_[ 64 ];
 	};
 	
 	THeader*							pHeader_;
 	
 	ScnShaderRef						Shader_;
 	ScnTextureMap						TextureMap_;
+
+	// TODO: Should be handled by the state block.
+	BcU32*								pStateBuffer_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,13 +97,18 @@ public:
 	void								setParameter( BcU32 Parameter, const BcMat4d& Value );
 	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
 	
+	void								setState( eRsRenderState State, BcU32 Value );
+	
+	// TODO: Do by name.
+	ScnTextureRef						getTexture( BcU32 Idx );
+	
 	void								bind( RsFrame* pFrame, RsRenderSort Sort );
 
 	virtual BcBool						isReady();
 
 private:
 	friend class ScnMaterial;
-		
+			
 	struct TParameterBinding
 	{
 		eRsShaderParameterType			Type_;
@@ -126,6 +135,9 @@ private:
 
 	BcU32								ParameterBufferSize_;
 	BcU8*								pParameterBuffer_;
+	
+	// TODO: Should be handled by the state block.
+	BcU32*								pStateBuffer_;
 };
 
 #endif

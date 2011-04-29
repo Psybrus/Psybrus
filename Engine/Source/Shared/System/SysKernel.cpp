@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "SysKernel.h"
+#include "BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Command line
@@ -23,6 +24,7 @@ BcU32 SysArgc_ = 0;
 SysKernel::SysKernel()
 {
 	ShuttingDown_ = BcFalse;
+	SleepAccumulator_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,7 +93,27 @@ void SysKernel::run()
 	// Run until there are no more systems to run.
 	do
 	{
+		// Mark main timer.
+		MainTimer_.mark();
+		
+		// Tick systems.
 		tick();
+		
+		// Grab time spent, and sleep the remainder of 1/60.
+		BcReal TimeSpent = MainTimer_.time();
+		SleepAccumulator_ += BcMax( ( 1.0f / 60.0f ) - TimeSpent, 0.0f );
+		
+		if( SleepAccumulator_ > 0.0f )
+		{
+#ifdef PLATFORM_OSX
+			//BcPrintf( "Time: %f ms, Slept: %f ms\n", TimeSpent * 1000.0f, SleepAccumulator_ * 1000.0f );
+
+			// Platform specific hack, FIX ME LATER.
+			BcU32 USleepTime = BcU32( SleepAccumulator_ * 1000000.0f );
+			SleepAccumulator_ -= BcReal( USleepTime ) / 1000000.0f;
+			::usleep( USleepTime );
+#endif
+		}
 	}
 	while( SystemList_.size() > 0 );
 }
