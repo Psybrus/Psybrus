@@ -11,6 +11,7 @@
 		C82473E21350AB490092D33F /* RmParameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82473DD1350AB490092D33F /* RmParameters.cpp */; };
 		C82474061350AB6F0092D33F /* CsFileReaderRPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82474041350AB6F0092D33F /* CsFileReaderRPC.cpp */; };
 		C82EAC5C1358CA9200D1AF93 /* BcMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */; };
+		C834B33F136BA29000F8EE25 /* Snd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C834B33D136BA29000F8EE25 /* Snd.cpp */; };
 		C845C7AF1359C0E1004D79E7 /* autofit.c in Sources */ = {isa = PBXBuildFile; fileRef = C845C60B1359C0E1004D79E7 /* autofit.c */; };
 		C845C7D71359C0E1004D79E7 /* bdf.c in Sources */ = {isa = PBXBuildFile; fileRef = C845C63A1359C0E1004D79E7 /* bdf.c */; };
 		C845C7DB1359C0E1004D79E7 /* ftcache.c in Sources */ = {isa = PBXBuildFile; fileRef = C845C6451359C0E1004D79E7 /* ftcache.c */; };
@@ -91,7 +92,6 @@
 		C85635871369A77F00D91624 /* ScnSound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635831369A77F00D91624 /* ScnSound.cpp */; };
 		C85635881369A77F00D91624 /* ScnSoundEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635851369A77F00D91624 /* ScnSoundEmitter.cpp */; };
 		C856358C1369A86500D91624 /* SndFileWAV.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856358A1369A86500D91624 /* SndFileWAV.cpp */; };
-		C85635921369B1F700D91624 /* Snd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635901369B1F600D91624 /* Snd.cpp */; };
 		C86C8A02135985F000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */; };
 		C86C8A851359AAAF00F4CED8 /* FsTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C8A831359AAAF00F4CED8 /* FsTypes.cpp */; };
 		C86E921B1350F35E0015F899 /* MD5AnimLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E920A1350F35E0015F899 /* MD5AnimLoader.cpp */; };
@@ -254,6 +254,8 @@
 		C82474051350AB6F0092D33F /* CsFileReaderRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsFileReaderRPC.h; sourceTree = "<group>"; };
 		C82474081350BEBA0092D33F /* RmEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RmEvents.h; path = Remote/RmEvents.h; sourceTree = "<group>"; };
 		C82EAC5B1358CA9200D1AF93 /* BcMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcMemory.cpp; sourceTree = "<group>"; };
+		C834B33D136BA29000F8EE25 /* Snd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Snd.cpp; path = ../../../External/Snd/Snd.cpp; sourceTree = "<group>"; };
+		C834B33E136BA29000F8EE25 /* Snd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Snd.h; path = ../../../External/Snd/Snd.h; sourceTree = "<group>"; };
 		C845C30D1359B9DA004D79E7 /* ftconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ftconfig.h; sourceTree = "<group>"; };
 		C845C30E1359B9DA004D79E7 /* ftheader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ftheader.h; sourceTree = "<group>"; };
 		C845C30F1359B9DA004D79E7 /* ftmodule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ftmodule.h; sourceTree = "<group>"; };
@@ -445,8 +447,6 @@
 		C85635861369A77F00D91624 /* ScnSoundEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnSoundEmitter.h; sourceTree = "<group>"; };
 		C856358A1369A86500D91624 /* SndFileWAV.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SndFileWAV.cpp; path = ../../../External/Snd/SndFileWAV.cpp; sourceTree = "<group>"; };
 		C856358B1369A86500D91624 /* SndFileWAV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SndFileWAV.h; path = ../../../External/Snd/SndFileWAV.h; sourceTree = "<group>"; };
-		C85635901369B1F600D91624 /* Snd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Snd.cpp; sourceTree = "<group>"; };
-		C85635911369B1F700D91624 /* Snd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Snd.h; sourceTree = "<group>"; };
 		C86C8A00135985F000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
 		C86C8A01135985F000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86C8A821359AAAF00F4CED8 /* FsEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FsEvents.h; sourceTree = "<group>"; };
@@ -1228,8 +1228,8 @@
 			children = (
 				C856358A1369A86500D91624 /* SndFileWAV.cpp */,
 				C856358B1369A86500D91624 /* SndFileWAV.h */,
-				C85635901369B1F600D91624 /* Snd.cpp */,
-				C85635911369B1F700D91624 /* Snd.h */,
+				C834B33D136BA29000F8EE25 /* Snd.cpp */,
+				C834B33E136BA29000F8EE25 /* Snd.h */,
 			);
 			name = Snd;
 			sourceTree = "<group>";
@@ -2088,8 +2088,8 @@
 				C85635871369A77F00D91624 /* ScnSound.cpp in Sources */,
 				C85635881369A77F00D91624 /* ScnSoundEmitter.cpp in Sources */,
 				C856358C1369A86500D91624 /* SndFileWAV.cpp in Sources */,
-				C85635921369B1F700D91624 /* Snd.cpp in Sources */,
 				C8B46CA6136B06B4004F5B85 /* BcTimer.cpp in Sources */,
+				C834B33F136BA29000F8EE25 /* Snd.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
