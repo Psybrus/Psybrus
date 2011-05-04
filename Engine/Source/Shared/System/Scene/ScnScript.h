@@ -37,7 +37,7 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	int									execute();
+	int									execute( BcBool Now );
 	
 private:
 	void								fileReady();

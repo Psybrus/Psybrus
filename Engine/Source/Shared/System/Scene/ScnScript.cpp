@@ -112,9 +112,9 @@ BcBool ScnScript::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // execute
-int ScnScript::execute()
+int ScnScript::execute( BcBool Now )
 {
-	return GaCore::pImpl()->executeScript( pScript_, getName().c_str() );
+	return GaCore::pImpl()->executeScript( pScript_, getName().c_str(), Now );
 }
 
 //////////////////////////////////////////////////////////////////////////

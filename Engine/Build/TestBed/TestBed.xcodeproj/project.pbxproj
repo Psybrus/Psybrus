@@ -615,6 +615,21 @@
 		C8BFF3B4135B078700BE64DE /* ScnFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnFont.h; sourceTree = "<group>"; };
 		C8BFF511135EF45500BE64DE /* ScnPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnPackage.cpp; sourceTree = "<group>"; };
 		C8BFF512135EF45700BE64DE /* ScnPackage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnPackage.h; sourceTree = "<group>"; };
+		C8D4FF9613717D460044B7AC /* BcAtomic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcAtomic.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcAtomic.cpp; sourceTree = "<group>"; };
+		C8D4FF9713717D460044B7AC /* BcAtomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcAtomic.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcAtomic.h; sourceTree = "<group>"; };
+		C8D4FF9813717D460044B7AC /* BcEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcEvent.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcEvent.cpp; sourceTree = "<group>"; };
+		C8D4FF9913717D460044B7AC /* BcEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcEvent.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcEvent.h; sourceTree = "<group>"; };
+		C8D4FF9A13717D460044B7AC /* BcMutex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcMutex.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcMutex.cpp; sourceTree = "<group>"; };
+		C8D4FF9B13717D460044B7AC /* BcMutex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcMutex.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcMutex.h; sourceTree = "<group>"; };
+		C8D4FF9C13717D460044B7AC /* BcThread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcThread.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcThread.cpp; sourceTree = "<group>"; };
+		C8D4FF9D13717D460044B7AC /* BcThread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcThread.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcThread.h; sourceTree = "<group>"; };
+		C8D4FF9E13717D460044B7AC /* BcTimer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcTimer.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcTimer.cpp; sourceTree = "<group>"; };
+		C8D4FF9F13717D460044B7AC /* BcTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcTimer.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcTimer.h; sourceTree = "<group>"; };
+		C8D4FFA013717D460044B7AC /* BcWindows.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcWindows.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcWindows.h; sourceTree = "<group>"; };
+		C8D4FFA213717D550044B7AC /* FsCoreImplWindows.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FsCoreImplWindows.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/File/FsCoreImplWindows.cpp; sourceTree = "<group>"; };
+		C8D4FFA313717D550044B7AC /* FsCoreImplWindows.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FsCoreImplWindows.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/File/FsCoreImplWindows.h; sourceTree = "<group>"; };
+		C8D4FFA413717D550044B7AC /* FsFileImplWindows.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FsFileImplWindows.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/File/FsFileImplWindows.cpp; sourceTree = "<group>"; };
+		C8D4FFA513717D550044B7AC /* FsFileImplWindows.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FsFileImplWindows.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/File/FsFileImplWindows.h; sourceTree = "<group>"; };
 		C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnCanvas.cpp; sourceTree = "<group>"; };
 		C8E64D801351980D00AAF73E /* ScnCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnCanvas.h; sourceTree = "<group>"; };
 		C8E64D88135339F300AAF73E /* ScnShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnShader.cpp; sourceTree = "<group>"; };
@@ -987,6 +1002,7 @@
 		C824736B13507BF20092D33F /* Platforms */ = {
 			isa = PBXGroup;
 			children = (
+				C8D4FF9413717D2A0044B7AC /* Windows */,
 				C824736C13507BFD0092D33F /* OSX */,
 			);
 			name = Platforms;
@@ -1248,6 +1264,44 @@
 				C8A16A67136058A80054F3AF /* GaLibrary.h */,
 			);
 			name = Game;
+			sourceTree = "<group>";
+		};
+		C8D4FF9413717D2A0044B7AC /* Windows */ = {
+			isa = PBXGroup;
+			children = (
+				C8D4FFA113717D490044B7AC /* File */,
+				C8D4FF9513717D310044B7AC /* Base */,
+			);
+			name = Windows;
+			sourceTree = "<group>";
+		};
+		C8D4FF9513717D310044B7AC /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				C8D4FF9613717D460044B7AC /* BcAtomic.cpp */,
+				C8D4FF9713717D460044B7AC /* BcAtomic.h */,
+				C8D4FF9813717D460044B7AC /* BcEvent.cpp */,
+				C8D4FF9913717D460044B7AC /* BcEvent.h */,
+				C8D4FF9A13717D460044B7AC /* BcMutex.cpp */,
+				C8D4FF9B13717D460044B7AC /* BcMutex.h */,
+				C8D4FF9C13717D460044B7AC /* BcThread.cpp */,
+				C8D4FF9D13717D460044B7AC /* BcThread.h */,
+				C8D4FF9E13717D460044B7AC /* BcTimer.cpp */,
+				C8D4FF9F13717D460044B7AC /* BcTimer.h */,
+				C8D4FFA013717D460044B7AC /* BcWindows.h */,
+			);
+			name = Base;
+			sourceTree = "<group>";
+		};
+		C8D4FFA113717D490044B7AC /* File */ = {
+			isa = PBXGroup;
+			children = (
+				C8D4FFA213717D550044B7AC /* FsCoreImplWindows.cpp */,
+				C8D4FFA313717D550044B7AC /* FsCoreImplWindows.h */,
+				C8D4FFA413717D550044B7AC /* FsFileImplWindows.cpp */,
+				C8D4FFA513717D550044B7AC /* FsFileImplWindows.h */,
+			);
+			name = File;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

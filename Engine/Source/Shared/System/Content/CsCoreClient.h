@@ -16,7 +16,7 @@
 
 #include "CsCore.h"
 
-#include "CsfileReader.h"
+#include "CsFileReader.h"
 #include "CsFileReaderRPC.h"
 
 //////////////////////////////////////////////////////////////////////////

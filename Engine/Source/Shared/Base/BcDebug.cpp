@@ -13,7 +13,7 @@
 
 #include "BcDebug.h"
 
-#ifdef PLATFORM_WIN32
+#ifdef PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 
@@ -35,7 +35,7 @@ void BcPrintf( const BcChar* pString, ... )
 	vsprintf( gBuffer_, pString, ArgList );
 	va_end( ArgList );
 
-#ifdef PLATFORM_WIN32
+#ifdef PLATFORM_WINDOWS
 	OutputDebugString( gBuffer_ );
 #endif
 

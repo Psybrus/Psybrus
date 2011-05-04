@@ -42,7 +42,7 @@ extern void BcPrintf( const BcChar* pString, ... );
 
 #elif defined( PSY_RELEASE )
 
-#  ifdef PLATFORM_WIN32
+#  ifdef PLATFORM_WINDOWS
 #  include <windows.h>
 #  include <stdio.h>
 

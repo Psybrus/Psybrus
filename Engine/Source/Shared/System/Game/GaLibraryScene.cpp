@@ -272,7 +272,8 @@ void GM_CDECL GaMaterial::CreateType( gmMachine* a_machine )
 gmFunctionEntry GaMaterialInstance::GM_TYPELIB[] = 
 {
 	{ "FindParameter",			GaMaterialInstance::FindParameter },
-	{ "SetParameter",			GaMaterialInstance::SetParameter }
+	{ "SetParameter",			GaMaterialInstance::SetParameter },
+	{ "GetTexture",				GaMaterialInstance::GetTexture }
 };
 
 int GM_CDECL GaMaterialInstance::FindParameter( gmThread* a_thread )
@@ -306,7 +307,14 @@ int GM_CDECL GaMaterialInstance::SetParameter( gmThread* a_thread )
 		if( ParamType == GM_INT )
 		{
 			GM_CHECK_INT_PARAM( Value, 1 );
-			pMaterialInstance->setParameter( (BcU32)ParameterID, Value );
+			if( Value == 0 || Value == 1 )
+			{
+				pMaterialInstance->setParameter( (BcU32)ParameterID, Value ? BcTrue : BcFalse );
+			}
+			else
+			{
+				pMaterialInstance->setParameter( (BcU32)ParameterID, Value );
+			}
 		}
 		else if ( ParamType == GM_FLOAT )
 		{
@@ -346,6 +354,23 @@ int GM_CDECL GaMaterialInstance::SetParameter( gmThread* a_thread )
 	return GM_OK;
 }
 
+int GM_CDECL GaMaterialInstance::GetTexture( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 1 );
+	GM_CHECK_INT_PARAM( Idx, 0 );
+	
+	ScnMaterialInstance* pMaterialInstance = (ScnMaterialInstance*)a_thread->ThisUser_NoChecks();
+	
+	ScnTextureRef Texture = pMaterialInstance->getTexture( Idx );
+	
+	if( Texture.isValid() )
+	{
+		a_thread->PushUser( GaTexture::AllocUserObject( a_thread->GetMachine(), Texture ) );
+	}
+	
+	return GM_OK;
+}
+
 void GM_CDECL GaMaterialInstance::CreateType( gmMachine* a_machine )
 {
 	GaLibraryResource< ScnMaterialInstance >::CreateType( a_machine );
@@ -355,7 +380,55 @@ void GM_CDECL GaMaterialInstance::CreateType( gmMachine* a_machine )
 	a_machine->RegisterTypeLibrary( GaMaterialInstance::GM_TYPE, GaMaterialInstance::GM_TYPELIB, NoofEntries );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// GaTexture
+gmFunctionEntry GaTexture::GM_TYPELIB[] = 
+{
+	{ "GetWidth",				GaTexture::GetWidth },
+	{ "GetHeight",				GaTexture::GetHeight },
+	{ "GetTexel",				GaTexture::GetTexel }
+};
 
+int GM_CDECL GaTexture::GetWidth( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS(0);
+	ScnTexture* pTexture = (ScnTexture*)a_thread->ThisUser_NoChecks();
+	
+	a_thread->PushInt( (int)pTexture->getWidth() );
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaTexture::GetHeight( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS(0);
+	ScnTexture* pTexture = (ScnTexture*)a_thread->ThisUser_NoChecks();
+	
+	a_thread->PushInt( (int)pTexture->getHeight() );
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaTexture::GetTexel( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS(2);
+	GM_CHECK_INT_PARAM( X, 0 );
+	GM_CHECK_INT_PARAM( Y, 1 );
+	ScnTexture* pTexture = (ScnTexture*)a_thread->ThisUser_NoChecks();
+	
+	a_thread->PushNewUser( GaVec4::Alloc( a_thread->GetMachine(), pTexture->getTexel( X, Y ) ), GaVec4::GM_TYPE );
+
+	return GM_OK;
+}
+
+void GM_CDECL GaTexture::CreateType( gmMachine* a_machine )
+{
+	GaLibraryResource< ScnTexture >::CreateType( a_machine );
+	
+	// Register type library.
+	int NoofEntries = sizeof( GaTexture::GM_TYPELIB ) / sizeof( GaTexture::GM_TYPELIB[0] );
+	a_machine->RegisterTypeLibrary( GaTexture::GM_TYPE, GaTexture::GM_TYPELIB, NoofEntries );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // GaScript
@@ -366,10 +439,18 @@ gmFunctionEntry GaScript::GM_TYPELIB[] =
 
 int GM_CDECL GaScript::Execute( gmThread* a_thread )
 {
-	GM_CHECK_NUM_PARAMS( 0 );
 	ScnScript* pScript = (ScnScript*)a_thread->ThisUser_NoChecks();
-	
-	int ThreadID = pScript->execute();
+
+	int ThreadID = -1;
+	if( a_thread->GetNumParams() == 0 )
+	{	
+		ThreadID = pScript->execute( BcFalse );
+	}
+	else if( a_thread->GetNumParams() == 1 )
+	{
+		GM_CHECK_INT_PARAM( Now, 0 );
+		ThreadID = pScript->execute( Now ? BcTrue : BcFalse );
+	}
 	
 	a_thread->PushInt( ThreadID );
 	
@@ -389,6 +470,7 @@ void GM_CDECL GaScript::CreateType( gmMachine* a_machine )
 // GaSound
 gmFunctionEntry GaSound::GM_TYPELIB[] = 
 {
+	{ NULL, NULL }
 };
 
 void GM_CDECL GaSound::CreateType( gmMachine* a_machine )
@@ -396,8 +478,8 @@ void GM_CDECL GaSound::CreateType( gmMachine* a_machine )
 	GaLibraryResource< ScnSound >::CreateType( a_machine );
 	
 	// Register type library.
-	int NoofEntries = sizeof( GaSound::GM_TYPELIB ) / sizeof( GaSound::GM_TYPELIB[0] );
-	a_machine->RegisterTypeLibrary( GaSound::GM_TYPE, GaSound::GM_TYPELIB, NoofEntries );
+	//int NoofEntries = sizeof( GaSound::GM_TYPELIB ) / sizeof( GaSound::GM_TYPELIB[0] );
+	//a_machine->RegisterTypeLibrary( GaSound::GM_TYPE, GaSound::GM_TYPELIB, NoofEntries );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -456,6 +538,7 @@ bool GM_CDECL GaFrame::Trace( gmMachine* a_machine, gmUserObject* a_object, gmGa
 {
 	// Do nothing.
 	++a_workDone;
+	return false;
 }
 
 void GM_CDECL GaFrame::Destruct( gmMachine* a_machine, gmUserObject* a_object )

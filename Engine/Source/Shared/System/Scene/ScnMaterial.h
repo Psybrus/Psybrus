@@ -89,6 +89,7 @@ public:
 	
 	BcU32								findParameter( const std::string& ParameterName );	
 	void								setParameter( BcU32 Parameter, BcS32 Value );
+	void								setParameter( BcU32 Parameter, BcBool Value );
 	void								setParameter( BcU32 Parameter, BcReal Value );
 	void								setParameter( BcU32 Parameter, const BcVec2d& Value );
 	void								setParameter( BcU32 Parameter, const BcVec3d& Value );
@@ -99,8 +100,7 @@ public:
 	
 	void								setState( eRsRenderState State, BcU32 Value );
 	
-	// TODO: Do by name.
-	ScnTextureRef						getTexture( BcU32 Idx );
+	ScnTextureRef						getTexture( BcU32 Parameter );
 	
 	void								bind( RsFrame* pFrame, RsRenderSort Sort );
 

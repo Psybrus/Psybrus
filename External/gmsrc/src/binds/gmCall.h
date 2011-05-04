@@ -16,7 +16,7 @@
 #include "gmThread.h"
 #include "gmMachine.h"
 
-#undef GetObject //Fix for Win32 where GetObject is #defined
+#undef GetObject //Fix for Windows where GetObject is #defined
 
 /// \class gmCall
 /// \brief A helper class to call script functions from C

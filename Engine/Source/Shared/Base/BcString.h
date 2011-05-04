@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <cstdlib>
 
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 #define caseInsensitiveComparison stricmp
 #define safeCaseInsensitiveComparison strnicmp
 #elif defined( PLATFORM_LINUX ) || defined( PLATFORM_OSX )

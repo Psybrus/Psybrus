@@ -102,6 +102,11 @@ public:
 	*	@return BcTrue if still processing. BcFalse if finished.
 	*/
 	BcBool						process();
+	
+	/**
+	*	Last tick time.
+	*/
+	BcReal						lastTickTime() const;
 
 protected:
 

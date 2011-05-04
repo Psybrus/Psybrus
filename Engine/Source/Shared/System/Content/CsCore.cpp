@@ -16,6 +16,8 @@
 #include "CsFileReader.h"
 #include "CsFileWriter.h"
 
+SYS_CREATOR( CsCore );
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsCore::CsCore()
@@ -503,7 +505,7 @@ void CsCore::internalRegisterResource( const std::string& Type, CsResourceAllocF
 BcBool CsCore::internalCreateResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle )
 {
 	// Try to find resource, if we can't, allocate a new one and put into create list.
-	if( internalFindResource( Name, Type, Handle ) == BcFalse )
+	//if( internalFindResource( Name, Type, Handle ) == BcFalse )
 	{
 		// Only request if we have a name.
 		if( Name.length() > 0 )

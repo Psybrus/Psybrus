@@ -17,7 +17,7 @@
 
 #include <fcntl.h>
 
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 
 //////////////////////////////////////////////////////////////////////////
 // Windows Includes
@@ -70,7 +70,7 @@ BcFile::~BcFile()
 // calcFileSize
 void BcFile::calcFileSize( void )
 {
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 
 	if( FileHandle_ != NULL )
 	{
@@ -101,7 +101,7 @@ BcBool BcFile::open( const BcChar* FileName, eBcFileMode AccessMode )
 	{
 	case bcFM_READ:
 		{
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 			// Open the stream
 			FileHandle_ = streamOpen(FileName, "rb");
 

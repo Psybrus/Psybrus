@@ -245,6 +245,16 @@ void GM_CDECL GaVec2::OpMul( gmThread* a_thread, gmVariable* a_operands )
 			
 			return;
 		}
+		else if ( a_operands[1].m_type == GaMat4::GM_TYPE )
+		{
+			BcMat4d* pObjB = (BcMat4d*) ((gmUserObject*)GM_OBJECT(a_operands[1].m_value.m_ref))->m_user;
+			
+			BcVec2d* pOutObj = Alloc( a_thread->GetMachine(), *pObjA * *pObjB );
+			gmUserObject* pOutUserObj = a_thread->GetMachine()->AllocUserObject( pOutObj, GaVec2::GM_TYPE );
+			a_operands[0].SetUser( pOutUserObj );				
+			
+			return;
+		}
 	}
 	
 	a_operands[0].Nullify();
@@ -367,7 +377,7 @@ void GM_CDECL GaVec2::OpSetDot( gmThread* a_thread, gmVariable* a_operands )
 	}
 }
 
-void GM_CDECL GaVec2::GaVec2::CreateType( gmMachine* a_machine )
+void GM_CDECL GaVec2::CreateType( gmMachine* a_machine )
 {
 	a_machine->RegisterLibrary( GaVec2::GM_LIB, 1, "Math", false );
 	
@@ -638,6 +648,16 @@ void GM_CDECL GaVec3::OpMul( gmThread* a_thread, gmVariable* a_operands )
 			
 			return;
 		}
+		else if ( a_operands[1].m_type == GaMat4::GM_TYPE )
+		{
+			BcMat4d* pObjB = (BcMat4d*) ((gmUserObject*)GM_OBJECT(a_operands[1].m_value.m_ref))->m_user;
+			
+			BcVec3d* pOutObj = Alloc( a_thread->GetMachine(), *pObjA * *pObjB );
+			gmUserObject* pOutUserObj = a_thread->GetMachine()->AllocUserObject( pOutObj, GaVec2::GM_TYPE );
+			a_operands[0].SetUser( pOutUserObj );				
+			
+			return;
+		}
 	}
 	
 	a_operands[0].Nullify();
@@ -766,7 +786,7 @@ void GM_CDECL GaVec3::OpSetDot( gmThread* a_thread, gmVariable* a_operands )
 	}
 }
 
-void GM_CDECL GaVec3::GaVec3::CreateType( gmMachine* a_machine )
+void GM_CDECL GaVec3::CreateType( gmMachine* a_machine )
 {
 	a_machine->RegisterLibrary( GaVec3::GM_LIB, 1, "Math", false );
 	
@@ -1039,6 +1059,16 @@ void GM_CDECL GaVec4::OpMul( gmThread* a_thread, gmVariable* a_operands )
 			
 			return;
 		}
+		else if ( a_operands[1].m_type == GaMat4::GM_TYPE )
+		{
+			BcMat4d* pObjB = (BcMat4d*) ((gmUserObject*)GM_OBJECT(a_operands[1].m_value.m_ref))->m_user;
+			
+			BcVec4d* pOutObj = Alloc( a_thread->GetMachine(), *pObjA * *pObjB );
+			gmUserObject* pOutUserObj = a_thread->GetMachine()->AllocUserObject( pOutObj, GaVec2::GM_TYPE );
+			a_operands[0].SetUser( pOutUserObj );				
+			
+			return;
+		}
 	}
 	
 	a_operands[0].Nullify();
@@ -1122,6 +1152,9 @@ void GM_CDECL GaVec4::OpGetDot( gmThread* a_thread, gmVariable* a_operands )
 		case 'z':
 			a_operands[0].SetFloat( pObj->z() );
 			break;
+		case 'w':
+			a_operands[0].SetFloat( pObj->w() );
+			break;
 		default:
 			a_operands[0].Nullify();
 			break;
@@ -1161,6 +1194,9 @@ void GM_CDECL GaVec4::OpSetDot( gmThread* a_thread, gmVariable* a_operands )
 			break;
 		case 'z':
 			pObj->z( Value );
+			break;
+		case 'w':
+			pObj->w( Value );
 			break;
 		default:
 			break;
@@ -1316,10 +1352,25 @@ int GM_CDECL GaMat4::Rotation( gmThread* a_thread )
 int GM_CDECL GaMat4::Translation( gmThread* a_thread )
 {
 	GM_CHECK_NUM_PARAMS( 1 );
-	GM_CHECK_USER_PARAM( BcVec3d*, GaVec3::GM_TYPE, pVec, 0 );
-	BcMat4d* pObj = (BcMat4d*)a_thread->ThisUser_NoChecks();
 	
-	pObj->translation( *pVec );
+	if( a_thread->ParamType( 0 ) == GaVec2::GM_TYPE )
+	{
+		GM_CHECK_USER_PARAM( BcVec2d*, GaVec2::GM_TYPE, pVec, 0 );
+		BcMat4d* pObj = (BcMat4d*)a_thread->ThisUser_NoChecks();
+		pObj->translation( BcVec3d( pVec->x(), pVec->y(), 0.0f ) );
+	}
+	else if( a_thread->ParamType( 0 ) == GaVec3::GM_TYPE )
+	{
+		GM_CHECK_USER_PARAM( BcVec3d*, GaVec3::GM_TYPE, pVec, 0 );
+		BcMat4d* pObj = (BcMat4d*)a_thread->ThisUser_NoChecks();
+		pObj->translation( *pVec );
+	}
+	else if( a_thread->ParamType( 0 ) == GaVec4::GM_TYPE )
+	{
+		GM_CHECK_USER_PARAM( BcVec4d*, GaVec4::GM_TYPE, pVec, 0 );
+		BcMat4d* pObj = (BcMat4d*)a_thread->ThisUser_NoChecks();
+		pObj->translation( *pVec );
+	}
 		
 	return GM_OK;
 }

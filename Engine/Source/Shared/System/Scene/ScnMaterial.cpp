@@ -183,6 +183,14 @@ void ScnMaterial::destroy()
 BcBool ScnMaterial::isReady()
 {
 	// TODO: LOCK!
+	for( ScnTextureMapIterator Iter( TextureMap_.begin() ); Iter != TextureMap_.end(); ++Iter )
+	{
+		if( (*Iter).second->isReady() == BcFalse )
+		{
+			return BcFalse;
+		}
+	}
+
 	return Shader_.isReady() && pStateBuffer_ != NULL;
 }
 
@@ -352,6 +360,23 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, BcS32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
+void ScnMaterialInstance::setParameter( BcU32 Parameter, BcBool Value )
+{
+	if( Parameter < ParameterBindingList_.size() )
+	{
+		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
+		if( Binding.Type_ == rsSPT_BOOL )
+		{
+			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
+			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
+			*pParameterBuffer = (BcU32)Value;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// setTexture
 void ScnMaterialInstance::setParameter( BcU32 Parameter, BcReal Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
@@ -517,11 +542,16 @@ void ScnMaterialInstance::setState( eRsRenderState State, BcU32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // getTexture
-ScnTextureRef ScnMaterialInstance::getTexture( BcU32 Idx )
+ScnTextureRef ScnMaterialInstance::getTexture( BcU32 Parameter )
 {
-	if( Idx < TextureBindingList_.size() )
+	for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
 	{
-		return TextureBindingList_[ Idx ].Texture_;	
+		TTextureBinding& TexBinding( *Iter );
+		
+		if( TexBinding.Parameter_ == Parameter )
+		{
+			return TexBinding.Texture_;
+		}
 	}
 	
 	return NULL;
@@ -541,7 +571,7 @@ public:
 	{
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
-		
+
 		// Iterate over textures and bind.
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
@@ -549,7 +579,7 @@ public:
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
 			pStateBlock_->setTextureState( Idx, pTexture, TextureParams );
 		}
-		
+
 		// Setup states.
 		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 		{
@@ -601,7 +631,8 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
 		RsTextureParams& TextureParams = pRenderNode->pTextureParams_[ Idx ];
 	
-		// Set sampler parameter.
+		// Set sampler parameter.	BcU8		B_;
+		
 		setParameter( Binding.Parameter_, (BcS32)Idx );
 		
 		// Set texture to bind.
@@ -619,7 +650,6 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 	// Setup state buffer.
 	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * rsRS_MAX );
 	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
-
 	
 	// Add node to frame.
 	pRenderNode->Sort_ = Sort;
@@ -631,5 +661,13 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 //virtual
 BcBool ScnMaterialInstance::isReady()
 {
+	for( BcU32 Idx = 0; Idx < TextureBindingList_.size(); ++Idx )
+	{
+		if( TextureBindingList_[ Idx ].Texture_->isReady() == BcFalse )
+		{
+			return BcFalse;
+		}
+	}
+	
 	return Parent_.isReady() && pProgram_->getHandle< BcU64 >() != 0;
 }

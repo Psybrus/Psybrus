@@ -23,8 +23,8 @@
 #  define PLATFORM_LINUX		1
 	
 // Windows
-#elif defined( WIN32 ) || defined( _WIN32 )
-#  define PLATFORM_WIN32		1
+#elif defined( WINDOWS ) || defined( _WINDOWS )
+#  define PLATFORM_WINDOWS		1
 
 // iOS
 #elif defined( __APPLE__ ) && ( TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR )
