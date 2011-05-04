@@ -42,7 +42,7 @@ using namespace streflop;
 // BcSqrt
 inline BcReal BcSqrt( BcReal v )
 {
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 	__asm fld [v]
 	__asm fsqrt
 	__asm fstp [v]
@@ -65,7 +65,7 @@ inline BcReal BcSqrt( BcReal v )
 // BcSin
 inline BcReal BcSin( BcReal r )
 {
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 	__asm fld [r]
 	__asm fsin
 	__asm fstp [r]
@@ -88,7 +88,7 @@ inline BcReal BcSin( BcReal r )
 // BcCos
 inline BcReal BcCos( BcReal r )
 {
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 	__asm fld [r]
 	__asm fcos
 	__asm fstp [r]
@@ -133,7 +133,7 @@ inline BcReal BcAcos( BcReal r )
 // BcAtan2
 inline BcReal BcAtan2( BcReal Y, BcReal X )
 {
-#if defined( PLATFORM_WIN32 )
+#if defined( PLATFORM_WINDOWS )
 	__asm fld [Y]
 	__asm fld [X]
 	__asm fpatan

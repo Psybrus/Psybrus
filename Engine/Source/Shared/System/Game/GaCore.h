@@ -46,7 +46,7 @@ public:
 	/**
 	 * Execute script.
 	 */
-	int							executeScript( const char* pScript, const char* pFileName );
+	int							executeScript( const char* pScript, const char* pFileName, BcBool Now );
 	
 	/**
 	 *	Add a resource block.
@@ -63,15 +63,7 @@ private:
 	/**
 	 * Keyboard input.
 	 */
-	eEvtReturn					eventKeyDown( BcU32 EvtID, const OsEventInputKeyboard& Event );
-	eEvtReturn					eventKeyUp( BcU32 EvtID, const OsEventInputKeyboard& Event );
-	
-	/**
-	 * Mouse input.
-	 */
-	eEvtReturn					eventMouseDown( BcU32 EvtID, const OsEventInputMouse& Event );
-	eEvtReturn					eventMouseUp( BcU32 EvtID, const OsEventInputMouse& Event );
-	eEvtReturn					eventMouseMove( BcU32 EvtID, const OsEventInputMouse& Event );
+	eEvtReturn					eventKey( BcU32 EvtID, const OsEventInputKeyboard& Event );
 	
 private:
 	class gmMachine*			pGmMachine_;
@@ -102,14 +94,15 @@ private:
 	eExecuteStage			ExecuteStage_;
 	
 	// NEILO: Temporary for LD.
+	class gmTableObject*	pKeyEnumMap_;
 	class gmTableObject*	pKeyStateMap_;
-	class gmTableObject*	pKeyDownMap_;
-	class gmTableObject*	pKeyUpMap_;
+	class gmTableObject*	pKeyOldStateMap_;
+	BcBool					KeyStates_[ 512 ];
 
-	class gmTableObject*	pMouseStateMap_;
-	class gmTableObject*	pMouseDownMap_;
-	class gmTableObject*	pMouseUpMap_;
-
+	// Input delegates.
+	OsEventInputKeyboard::Delegate DelegateKey_; 
+	OsEventInputMouse::Delegate DelegateMouse_;
+	
 };
 
 #endif

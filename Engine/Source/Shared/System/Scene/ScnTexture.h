@@ -47,6 +47,10 @@ public:
 	
 	RsTexture*							getTexture();
 	
+	BcU32								getWidth() const;
+	BcU32								getHeight() const;
+	RsColour							getTexel( BcU32 X, BcU32 Y ) const;
+	
 	virtual const ScnRect&				getRect( BcU32 Idx );
 	
 protected:

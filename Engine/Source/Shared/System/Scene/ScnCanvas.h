@@ -190,6 +190,7 @@ protected:
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;
 	
 	TPrimitiveSectionList				PrimitiveSectionList_;
+	BcU32								LastPrimitiveSection_;
 
 	// Matrix stack.
 	typedef std::vector< BcMat4d > TMatrixStack;
@@ -197,7 +198,8 @@ protected:
 	
 	TMatrixStack						MatrixStack_;
 	BcBool								IsIdentity_;
-
+	
+	
 };
 
 #endif

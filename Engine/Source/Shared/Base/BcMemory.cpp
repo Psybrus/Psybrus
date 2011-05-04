@@ -14,6 +14,7 @@
 #include "BcMemory.h"
 #include "BcAtomic.h"
 
+#ifdef PLATFORM_OSX
 #include <execinfo.h>
 
 
@@ -26,6 +27,7 @@ void printBacktrace()
 		printf("%s\n", strs[i]);
 	}
 }
+#endif
 
 BcAtomicU32 gAllocID = 0;
 

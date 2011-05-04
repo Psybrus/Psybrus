@@ -88,8 +88,12 @@ BcBool ScnCanvas::isReady()
 // setMaterialInstance
 void ScnCanvas::setMaterialInstance( ScnMaterialInstanceRef MaterialInstance )
 {
-	MaterialInstance_ = MaterialInstance;
-	DiffuseTexture_ = MaterialInstance_->getTexture( 0 );
+	if( MaterialInstance_ != MaterialInstance )
+	{
+		MaterialInstance_ = MaterialInstance;
+		BcU32 Parameter = MaterialInstance_->findParameter( "aDiffuseTex" );
+		DiffuseTexture_ = MaterialInstance_->getTexture( Parameter );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -178,6 +182,7 @@ void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices,
 	};
 	
 	PrimitiveSectionList_.push_back( PrimitiveSection );
+	LastPrimitiveSection_ = PrimitiveSectionList_.size() - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,7 +196,7 @@ void ScnCanvas::drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const Rs
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asARGB();
+		BcU32 RGBA = Colour.asABGR();
 		
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
@@ -218,7 +223,7 @@ void ScnCanvas::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColo
 	if( pVertices != NULL )
 	{	
 		// Now copy in data.
-		BcU32 RGBA = Colour.asARGB();
+		BcU32 RGBA = Colour.asABGR();
 
 		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 		{
@@ -244,7 +249,7 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asARGB();
+		BcU32 RGBA = Colour.asABGR();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
@@ -282,52 +287,98 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 // drawSprite
 void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	ScnCanvasVertex* pVertices = allocVertices( 4 );
+	ScnCanvasVertex* pVertices = allocVertices( 6 );
 	ScnCanvasVertex* pFirstVertex = pVertices;
 	
 	const BcVec2d CornerA = Position;
 	const BcVec2d CornerB = Position + Size;
+
+	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
 	
-	// Only render if we have a valid diffuse texture to reference for UV rects.
-	if( DiffuseTexture_.isValid() )
+	// Only draw if we can allocate vertices.
+	if( pVertices != NULL )
 	{
-		const ScnRect Rect = DiffuseTexture_->getRect( TextureIdx );
-	
-		// Only draw if we can allocate vertices.
-		if( pVertices != NULL )
-		{
-			// Now copy in data.
-			BcU32 RGBA = Colour.asARGB();
+		// Now copy in data.
+		BcU32 RGBA = Colour.asABGR();
 		
-			pVertices->X_ = CornerA.x();
-			pVertices->Y_ = CornerA.y();
-			pVertices->U_ = Rect.X_;
-			pVertices->V_ = Rect.Y_;
-			pVertices->RGBA_ = RGBA;
-			++pVertices;
-			
-			pVertices->X_ = CornerB.x();
-			pVertices->Y_ = CornerA.y();
-			pVertices->U_ = Rect.X_ + Rect.W_;
-			pVertices->V_ = Rect.Y_;
-			pVertices->RGBA_ = RGBA;
-			++pVertices;
-			
-			pVertices->X_ = CornerA.x();
-			pVertices->Y_ = CornerB.y();
-			pVertices->U_ = Rect.X_;
-			pVertices->V_ = Rect.Y_ + Rect.H_;
-			pVertices->RGBA_ = RGBA;
-			++pVertices;
-			
-			pVertices->X_ = CornerB.x();
-			pVertices->Y_ = CornerB.y();
-			pVertices->U_ = Rect.X_ + Rect.W_;
-			pVertices->V_ = Rect.Y_ + Rect.H_;
-			pVertices->RGBA_ = RGBA;
-			
-			// Add primitive.	
-			addPrimitive( rsPT_TRIANGLESTRIP, pFirstVertex, 4, Layer, BcTrue );
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = CornerA.y();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = CornerA.y();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = CornerB.y();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = CornerB.y();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = CornerA.y();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = CornerB.y();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		
+		// Quickly check last primitive.
+		BcBool AddNewPrimitive = BcTrue;
+		if( LastPrimitiveSection_ != BcErrorCode )
+		{
+			ScnCanvasPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+
+			// If the last primitive was the same type as ours we can append to it.
+			// NOTE: Need more checks here later.
+			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+				PrimitiveSection.Layer_ == Layer &&
+				PrimitiveSection.MaterialInstance_ == MaterialInstance_ )
+			{
+				PrimitiveSection.NoofVertices_ += 6;
+
+				// Matrix stack.
+				// TODO: Factor into a seperate function.
+				if( IsIdentity_ == BcFalse )
+				{
+					BcMat4d Matrix = getMatrix();
+
+					for( BcU32 Idx = 0; Idx < 6; ++Idx )
+					{
+						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
+						BcVec2d Vertex = BcVec2d( pVertex->X_, pVertex->Y_ ) * Matrix;
+						pVertex->X_ = Vertex.x();
+						pVertex->Y_ = Vertex.y();
+					}
+				}
+
+				AddNewPrimitive = BcFalse;
+			}
+		}
+
+		// Add primitive.
+		if( AddNewPrimitive == BcTrue )
+		{
+			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }
@@ -361,7 +412,10 @@ void ScnCanvas::clear()
 		pVertexBuffer_->lock();
 		HaveVertexBufferLock_ = BcTrue;
 	}
-	
+
+	// Clear last primitive.
+	LastPrimitiveSection_ = BcErrorCode;
+
 	// Set material instance to default material instance.
 	setMaterialInstance( DefaultMaterialInstance_ );
 }
@@ -394,6 +448,9 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 	//       to the scene. Will not sort by transparency or anything either.
 	std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasPrimitiveSectionCompare() );
 	
+	// Cache last material instance.
+	ScnMaterialInstance* pLastMaterialInstance = NULL;
+	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
 		ScnCanvasRenderNode* pRenderNode = pFrame->newObject< ScnCanvasRenderNode >();
@@ -406,8 +463,12 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasPrimitiveSection ) * 1 );
 
 		// Bind material.
-		pRenderNode->pPrimitiveSections_->MaterialInstance_->bind( pFrame, Sort );
-		
+		if( pLastMaterialInstance != pRenderNode->pPrimitiveSections_->MaterialInstance_ )
+		{
+			pLastMaterialInstance = pRenderNode->pPrimitiveSections_->MaterialInstance_;
+			pLastMaterialInstance->bind( pFrame, Sort );
+		}
+
 		// Add to frame.
 		pRenderNode->Sort_ = Sort;
 		pFrame->addRenderNode( pRenderNode );

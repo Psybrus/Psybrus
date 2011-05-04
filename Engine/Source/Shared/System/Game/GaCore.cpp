@@ -31,6 +31,63 @@
 SYS_CREATOR( GaCore );
 
 //////////////////////////////////////////////////////////////////////////
+// Filthy hack, move into OsCore.
+#include "OsCoreImplSDL.h"
+
+struct TKeyEnum
+{
+	const char* pEnumName_;
+	int KeyCode_;
+};
+
+const TKeyEnum GKeyEnums[] = 
+{
+	{ "A",			SDLK_a },
+	{ "B",			SDLK_b },
+	{ "C",			SDLK_c },
+	{ "D",			SDLK_d },
+	{ "E",			SDLK_e },
+	{ "F",			SDLK_f },
+	{ "G",			SDLK_g },
+	{ "H",			SDLK_h },
+	{ "I",			SDLK_i },
+	{ "J",			SDLK_j },
+	{ "K",			SDLK_k },
+	{ "L",			SDLK_l },
+	{ "M",			SDLK_m },
+	{ "N",			SDLK_n },
+	{ "O",			SDLK_o },
+	{ "P",			SDLK_p },
+	{ "Q",			SDLK_q },
+	{ "R",			SDLK_r },
+	{ "S",			SDLK_s },
+	{ "T",			SDLK_t },
+	{ "U",			SDLK_u },
+	{ "V",			SDLK_v },
+	{ "W",			SDLK_w },
+	{ "X",			SDLK_x },
+	{ "Y",			SDLK_y },
+	{ "Z",			SDLK_z },
+	{ "1",			SDLK_1 },
+	{ "2",			SDLK_2 },
+	{ "3",			SDLK_3 },
+	{ "4",			SDLK_4 },
+	{ "5",			SDLK_5 },
+	{ "6",			SDLK_6 },
+	{ "7",			SDLK_7 },
+	{ "8",			SDLK_8 },
+	{ "9",			SDLK_9 },
+	{ "0",			SDLK_0 },
+	{ "ESC",		SDLK_ESCAPE },
+	{ "UP",			SDLK_UP },
+	{ "DOWN",		SDLK_DOWN },
+	{ "LEFT",		SDLK_LEFT },
+	{ "RIGHT",		SDLK_RIGHT },
+	{ "SPACE",		SDLK_SPACE },
+	
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Game monkey callbacks.
 void GM_CDECL GmCallback_Print( gmMachine* pMachine, const char* pString )
 {
@@ -101,18 +158,41 @@ void GaCore::open()
 	gmBindListLib( pGmMachine_ );
 	gmBindStringLib( pGmMachine_ );
 	gmBindMathLib( pGmMachine_ );
-		
+	;
 	// Bind Psybrus libs.
 	GaLibraryMathBinder( pGmMachine_ );
 	GaLibrarySceneBinder( pGmMachine_ );
 	
+	// Allocate input tables.
+	gmTableObject* pGlobalsTable = pGmMachine_->GetGlobals();
+	pKeyEnumMap_ = pGmMachine_->AllocTableObject();
+	pKeyStateMap_ = pGmMachine_->AllocTableObject();
+	pKeyOldStateMap_ = pGmMachine_->AllocTableObject();
+	pGlobalsTable->Set( pGmMachine_, "Keys", gmVariable( pKeyEnumMap_ ) );
+	pGlobalsTable->Set( pGmMachine_, "KeyState", gmVariable( pKeyStateMap_ ) );
+	pGlobalsTable->Set( pGmMachine_, "KeyOldState", gmVariable( pKeyOldStateMap_ ) );
+
+	// Setup temporary key enums.
+	BcU32 NoofKeyEnums = sizeof( GKeyEnums ) / sizeof( GKeyEnums[ 0 ] );
+	for( BcU32 Idx = 0; Idx < NoofKeyEnums; ++Idx )
+	{
+		const TKeyEnum& KeyEnum = GKeyEnums[ Idx ];
+		pKeyEnumMap_->Set( pGmMachine_, gmVariable( pGmMachine_->AllocStringObject( KeyEnum.pEnumName_ ) ), gmVariable( (int)KeyEnum.KeyCode_ ) );
+	}
+	
 	// Setup execute stage;
 	ExecuteStage_ = ES_BOOT;
 	
+	// Tick accumulator.
+	TickAccumulator_ = 0.0f;
+	
+	// Clear key states.
+	BcMemSet( &KeyStates_[ 0 ], 0, sizeof( KeyStates_ ) );
+	
 	// Subscribe to input events.
-	// TODO: We need an unsubscribe!!!
-	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN,	OsEventInputKeyboard::Delegate::bind< GaCore, &GaCore::eventKeyDown >( this ) );
-
+	DelegateKey_ = OsEventInputKeyboard::Delegate::bind< GaCore, &GaCore::eventKey >( this );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN,	DelegateKey_ );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP,		DelegateKey_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,7 +217,7 @@ void GaCore::update()
 			// When boot script is ready, start executing.
 			if( BootScript_.isReady() )
 			{
-				BootScript_->execute();
+				BootScript_->execute( BcFalse );
 				
 				ExecuteStage_ = ES_EXECUTE;
 			}			
@@ -151,11 +231,27 @@ void GaCore::update()
 			LastTick_ = (BcU32)( BcFloor( TickAccumulator_ ) );
 			TickAccumulator_ -= (BcReal)LastTick_;
 			
+			// Set new key state.
+			for( BcU32 Idx = 0; Idx < 512; ++Idx )
+			{
+				pKeyStateMap_->Set( pGmMachine_, Idx, gmVariable( (int)KeyStates_[ Idx ] ) );
+			}
+			
+			// Pass in last tick time.
+			pGmMachine_->GetGlobals()->Set( pGmMachine_, "STAT_LASTTICK", gmVariable( SysSystem::lastTickTime() ) );
+			
 			// Execute VM for specified number of milliseconds.
 			pGmMachine_->Execute( LastTick_ );
 			
 			// Check resource blocks.
-			checkResourceBlocks();				
+			checkResourceBlocks();	
+
+			// Set old new key state.
+			for( BcU32 Idx = 0; Idx < 512; ++Idx )
+			{
+				pKeyOldStateMap_->Set( pGmMachine_, Idx, gmVariable( (int)KeyStates_[ Idx ] ) );
+			}
+			
 			break;
 		}
 	}
@@ -166,6 +262,10 @@ void GaCore::update()
 //virtual
 void GaCore::close()
 {
+	//
+	OsCore::pImpl()->unsubscribe( osEVT_INPUT_KEYDOWN,	DelegateKey_ );
+	OsCore::pImpl()->unsubscribe( osEVT_INPUT_KEYUP,	DelegateKey_ );
+
 	// Destroy machine.
 	delete pGmMachine_;
 	pGmMachine_ = NULL;
@@ -184,10 +284,10 @@ void GaCore::reset()
 
 //////////////////////////////////////////////////////////////////////////
 // executeScript
-int GaCore::executeScript( const char* pScript, const char* pFileName )
+int GaCore::executeScript( const char* pScript, const char* pFileName, BcBool Now )
 {
 	int ThreadID = -1;
-	pGmMachine_->ExecuteString( pScript, &ThreadID, false, pFileName, NULL );
+	pGmMachine_->ExecuteString( pScript, &ThreadID, Now, pFileName, NULL );
 	return ThreadID;
 }
 
@@ -211,6 +311,8 @@ BcBool GaCore::addResourceBlock( CsResource* pResource, class gmUserObject* pGmU
 		// Put into list.
 		ResourceBlocks_.push_back( Block );
 		IsBlocked = BcTrue;
+
+		//BcPrintf( "GaCore::Block thread %u as %s.%s is not ready.\n", Block.ThreadID_, Block.Resource_->getName().c_str(), Block.Resource_->getTypeString().c_str() );
 	}
 	
 	return IsBlocked;
@@ -229,6 +331,8 @@ void GaCore::checkResourceBlocks()
 		// If the package is ready, signal and advance.
 		if( Block.Resource_.isReady() == BcTrue || Block.Resource_.isValid() == BcFalse )
 		{
+			//BcPrintf( "GaCore::Unblock thread %u as %s.%s is ready.\n", Block.ThreadID_, Block.Resource_->getName().c_str(), Block.Resource_->getTypeString().c_str() );
+
 			gmVariable SignalVar( Block.pGmUserObject_ );
 			pGmMachine_->Signal( SignalVar, Block.ThreadID_, NULL );
 			Iter = ResourceBlocks_.erase( Iter );
@@ -241,41 +345,21 @@ void GaCore::checkResourceBlocks()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// eventKeyDown
-eEvtReturn GaCore::eventKeyDown( BcU32 EvtID, const OsEventInputKeyboard& Event )
+// eventKey
+eEvtReturn GaCore::eventKey( BcU32 EvtID, const OsEventInputKeyboard& Event )
 {
-
-	return evtRET_PASS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// eventKeyUp
-eEvtReturn GaCore::eventKeyUp( BcU32 EvtID, const OsEventInputKeyboard& Event )
-{
-	
-	return evtRET_PASS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// eventMouseDown
-eEvtReturn GaCore::eventMouseDown( BcU32 EvtID, const OsEventInputMouse& Event )
-{
-	
-	return evtRET_PASS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// eventMouseUp
-eEvtReturn GaCore::eventMouseUp( BcU32 EvtID, const OsEventInputMouse& Event )
-{
-	
-	return evtRET_PASS;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// eventMouseMove
-eEvtReturn GaCore::eventMouseMove( BcU32 EvtID, const OsEventInputMouse& Event )
-{
-	
+	if( Event.KeyCode_ < 512 )
+	{
+		switch( EvtID )
+		{
+			case osEVT_INPUT_KEYDOWN:
+				KeyStates_[ Event.KeyCode_ ] = BcTrue;
+				break;
+			
+			case osEVT_INPUT_KEYUP:
+				KeyStates_[ Event.KeyCode_ ] = BcFalse;
+				break;
+		}
+	}
 	return evtRET_PASS;
 }

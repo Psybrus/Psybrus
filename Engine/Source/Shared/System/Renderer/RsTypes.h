@@ -27,6 +27,13 @@ struct RsColour:
 	RsColour( const BcVec4d& Vec ):
 		BcVec4d( Vec )
 	{};
+	RsColour( BcU32 RGBA ):
+		BcVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
+				 ( ( RGBA >> 8 ) & 0xff ) / 255.0f,
+				 ( ( RGBA >> 16 ) & 0xff ) / 255.0f,
+				 ( ( RGBA >> 24 ) & 0xff ) / 255.0f )
+				
+	{};
 	RsColour( BcReal R, BcReal G, BcReal B, BcReal A ):
 		BcVec4d( R, G, B, A )
 	{};
@@ -45,6 +52,14 @@ struct RsColour:
 		         ( static_cast< BcU32 >( r() * 255.0f ) << 16 ) |
 		         ( static_cast< BcU32 >( g() * 255.0f ) << 8 ) |
 		         ( static_cast< BcU32 >( b() * 255.0f ) ) );
+	}
+
+	BcU32 asABGR() const
+	{
+		return ( ( static_cast< BcU32 >( a() * 255.0f ) << 24 ) |
+				 ( static_cast< BcU32 >( b() * 255.0f ) << 16 ) |
+				 ( static_cast< BcU32 >( g() * 255.0f ) << 8 ) |
+				 ( static_cast< BcU32 >( r() * 255.0f ) ) );
 	}
 
 	BcU32 asBGRA() const

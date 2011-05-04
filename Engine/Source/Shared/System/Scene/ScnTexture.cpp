@@ -118,6 +118,35 @@ RsTexture* ScnTexture::getTexture()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getWidth
+BcU32 ScnTexture::getWidth() const
+{
+	return pHeader_->Width_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeight
+BcU32 ScnTexture::getHeight() const
+{
+	return pHeader_->Height_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTexel
+RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
+{
+	if( X < pHeader_->Width_ && Y < pHeader_->Height_ )
+	{
+		BcU32* pTextureData = (BcU32*)pTextureData_;
+		BcU32 Index = X + Y * pHeader_->Width_;
+		BcU32 Texel = pTextureData[ Index ] ;
+		return RsColour( Texel );
+	}
+	
+	return RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getRect
 //virtual
 const ScnRect& ScnTexture::getRect( BcU32 Idx )

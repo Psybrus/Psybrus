@@ -962,7 +962,7 @@ gmThread::State gmThread::PushStackFrame(int a_numParameters, const gmuint8 ** a
 
     int result = fn->m_cFunction(this);
 
-    // handle state
+    // handle stateastop
     if(result == GM_SYS_STATE)
     {
       // this is special case, a bit messy.

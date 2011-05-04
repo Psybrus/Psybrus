@@ -49,7 +49,7 @@ void OsCoreImplSDL::open()
 		// If we've created the surface, continue on.
 		//if( pScreenSurface_ != NULL )
 		{
-			SDL_WM_SetCaption( "Psybrus", NULL );
+			SDL_WM_SetCaption( "It's dangerous to go alone, take these shiny things!", NULL );
 				
 			// Register SDL event handlers.
 			registerSDLEventHandler( SDL_MOUSEMOTION,		&OsCoreImplSDL::processSDLEvent_InputMouse );
@@ -93,9 +93,14 @@ void OsCoreImplSDL::processSDLEvents()
 {
 	SDL_Event Event;
 	
+	// Throttle events a bit.
+	BcU32 NoofEventsHandled = 0;
+	
 	// Poll SDL for an event.
-	while( SDL_PollEvent( &Event ) )
+	while( SDL_PollEvent( &Event ) && NoofEventsHandled < 1 )
 	{
+		++NoofEventsHandled;
+		
 		// Find handler for event.
 		TSDLEventHandlerMapIterator Iter = SDLEventHandlerMap_.find( Event.type );
 		
@@ -157,7 +162,7 @@ void OsCoreImplSDL::processSDLEvent_InputKeyboard( SDL_Event& Event )
 	case SDL_KEYDOWN:
 		{
 			EventInputKeyboard_.DeviceID_ = 0;
-			EventInputKeyboard_.KeyCode_ = Event.key.keysym.scancode;
+			EventInputKeyboard_.KeyCode_ = Event.key.keysym.sym;
 			EvtPublisher::publish( osEVT_INPUT_KEYDOWN, EventInputKeyboard_ );
 		}
 		break;
@@ -165,7 +170,7 @@ void OsCoreImplSDL::processSDLEvent_InputKeyboard( SDL_Event& Event )
 	case SDL_KEYUP:
 		{
 			EventInputKeyboard_.DeviceID_ = 0;
-			EventInputKeyboard_.KeyCode_ = Event.key.keysym.scancode;
+			EventInputKeyboard_.KeyCode_ = Event.key.keysym.sym;
 			EvtPublisher::publish( osEVT_INPUT_KEYUP, EventInputKeyboard_ );
 		}
 		break;

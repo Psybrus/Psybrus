@@ -461,85 +461,92 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 	BcU32 RGBA = 0xffffffff;
 	
 	// TODO: UTF-8 support.
-	for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
+	if( pFirstVert != NULL )
 	{
-		BcU32 CharCode = String[ CharIdx ];
-		
-		// Handle special characters.
-		if( CharCode == '\n' )
+		for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
 		{
-			AdvanceX = 0.0f;
-			AdvanceY += 32.0f; // TODO: Take from header.
+			BcU32 CharCode = String[ CharIdx ];
+			
+			// Handle special characters.
+			if( CharCode == '\n' )
+			{
+				AdvanceX = 0.0f;
+				AdvanceY += 16.0f; // TODO: Take from header.
+			}
+			
+			// Find glyph.
+			ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
+			
+			if( Iter != CharCodeMap.end() )
+			{
+				ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
+				
+				const BcReal X1 = AdvanceX + pGlyph->OffsetX_;
+				const BcReal Y1 = AdvanceY - pGlyph->OffsetY_;
+				const BcReal X2 = X1 + pGlyph->Width_;
+				const BcReal Y2 = Y1 + pGlyph->Height_;
+				
+				// Add triangle for character.
+				pVert->X_ = X1;
+				pVert->Y_ = Y1;
+				pVert->U_ = pGlyph->UA_;
+				pVert->V_ = pGlyph->VA_;
+				pVert->RGBA_ = RGBA;
+				++pVert;
+				
+				pVert->X_ = X2;
+				pVert->Y_ = Y1;
+				pVert->U_ = pGlyph->UB_;
+				pVert->V_ = pGlyph->VA_;
+				pVert->RGBA_ = RGBA;
+				++pVert;
+				
+				pVert->X_ = X1;
+				pVert->Y_ = Y2;
+				pVert->U_ = pGlyph->UA_;
+				pVert->V_ = pGlyph->VB_;
+				pVert->RGBA_ = RGBA;
+				++pVert;
+				
+				pVert->X_ = X2;
+				pVert->Y_ = Y1;
+				pVert->U_ = pGlyph->UB_;
+				pVert->V_ = pGlyph->VA_;
+				pVert->RGBA_ = RGBA;
+				++pVert;
+				
+				pVert->X_ = X2;
+				pVert->Y_ = Y2;
+				pVert->U_ = pGlyph->UB_;
+				pVert->V_ = pGlyph->VB_;
+				pVert->RGBA_ = RGBA;
+				++pVert;
+				
+				pVert->X_ = X1;
+				pVert->Y_ = Y2;
+				pVert->U_ = pGlyph->UA_;
+				pVert->V_ = pGlyph->VB_;
+				pVert->RGBA_ = RGBA;
+				++pVert;
+				
+				// Add 2 triangles worth of vertices.
+				NoofVertices += 6;
+				
+				// Advance.
+				AdvanceX += pGlyph->AdvanceX_;
+			}
 		}
 		
-		// Find glyph.
-		ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
-		
-		if( Iter != CharCodeMap.end() )
+		// Add primitive to canvas.
+		if( NoofVertices > 0 )
 		{
-			ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
-			
-			const BcReal X1 = AdvanceX + pGlyph->OffsetX_;
-			const BcReal Y1 = AdvanceY - pGlyph->OffsetY_;
-			const BcReal X2 = X1 + pGlyph->Width_;
-			const BcReal Y2 = Y1 + pGlyph->Height_;
-			
-			// Add triangle for character.
-			pVert->X_ = X1;
-			pVert->Y_ = Y1;
-			pVert->U_ = pGlyph->UA_;
-			pVert->V_ = pGlyph->VA_;
-			pVert->RGBA_ = RGBA;
-			++pVert;
-			
-			pVert->X_ = X2;
-			pVert->Y_ = Y1;
-			pVert->U_ = pGlyph->UB_;
-			pVert->V_ = pGlyph->VA_;
-			pVert->RGBA_ = RGBA;
-			++pVert;
-
-			pVert->X_ = X1;
-			pVert->Y_ = Y2;
-			pVert->U_ = pGlyph->UA_;
-			pVert->V_ = pGlyph->VB_;
-			pVert->RGBA_ = RGBA;
-			++pVert;
-
-			pVert->X_ = X2;
-			pVert->Y_ = Y1;
-			pVert->U_ = pGlyph->UB_;
-			pVert->V_ = pGlyph->VA_;
-			pVert->RGBA_ = RGBA;
-			++pVert;
-
-			pVert->X_ = X2;
-			pVert->Y_ = Y2;
-			pVert->U_ = pGlyph->UB_;
-			pVert->V_ = pGlyph->VB_;
-			pVert->RGBA_ = RGBA;
-			++pVert;
-
-			pVert->X_ = X1;
-			pVert->Y_ = Y2;
-			pVert->U_ = pGlyph->UA_;
-			pVert->V_ = pGlyph->VB_;
-			pVert->RGBA_ = RGBA;
-			++pVert;
-			
-			// Add 2 triangles worth of vertices.
-			NoofVertices += 6;
-			
-			// Advance.
-			AdvanceX += pGlyph->AdvanceX_;
+			Canvas->setMaterialInstance( MaterialInstance_ );
+			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
 		}
 	}
-	
-	// Add primitive to canvas.
-	if( NoofVertices > 0 )
+	else
 	{
-		Canvas->setMaterialInstance( MaterialInstance_ );
-		Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
+		BcPrintf( "ScnFontInstance: Out of vertices!\n" );
 	}
 }
 

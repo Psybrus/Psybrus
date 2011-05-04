@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Windows defines
-#ifdef PLATFORM_WIN32
+#ifdef PLATFORM_WINDOWS
 
 #pragma warning ( disable : 4311 ) 
 #pragma warning ( disable : 4312 ) 
@@ -58,10 +58,12 @@ typedef size_t						BcSize;
 #define BcInline					inline
 #define BcForceInline				__forceinline
 
-#define BcAlign( v )				__declspec( align( v ) )
+#define BcAlign( v )				//__declspec( align( v ) )
 #define BcOffsetOf( s, m ) 			(size_t)&(((s *)0)->m)
 
+#ifndef NULL
 #define NULL						( 0 ) 
+#endif
 
 // Redefine min and max.
 #undef min

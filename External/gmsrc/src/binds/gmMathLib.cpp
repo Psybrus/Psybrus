@@ -186,6 +186,20 @@ static int GM_CDECL gmfAbs(gmThread * a_thread)
   return GM_EXCEPTION;
 }
 
+static int GM_CDECL gmfSmoothstep(gmThread * a_thread)
+{
+	GM_CHECK_NUM_PARAMS(1);
+	
+	if(a_thread->ParamType(0) == GM_FLOAT)
+	{
+		float x = a_thread->Param(0).m_value.m_float;
+		a_thread->PushFloat((float)x*x*(3.0f-2.0f*x));
+		
+		return GM_OK;
+	}
+	
+	return GM_EXCEPTION;
+}
 
 
 static int GM_CDECL gmfSqrt(gmThread * a_thread)
@@ -669,7 +683,14 @@ static gmFunctionEntry s_mathLib[] =
     \return int\float abs(param)
   */
   {"abs", gmfAbs},
-  /*gm
+   /*gm
+	\function smoothstep
+	\brief smoothstep will return a smoothed value x*x*(3-2*x) int \ float
+	\param int\float
+	\return int\float smoothstep(param)
+	*/
+  {"smoothstep", gmfSmoothstep},
+   /*gm
     \function sqrt
     \brief sqrt will return the square root of the passed int \ float
     \param int\float
