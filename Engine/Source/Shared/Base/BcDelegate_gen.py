@@ -56,8 +56,38 @@ def BcFuncTraits_gen( outFile, numParams, isClass ):
 def BcDelegate_header( outFile ):
 	outFile.write( "//////////////////////////////////////////////////////////////////////////\n" )
 	outFile.write( "// _BcDelegateInternal\n\n" )
-	outFile.write( "template< typename _Fn, int >" )
-	outFile.write( "class _BcDelegateInternal;" )
+	outFile.write( "template< typename _Fn, int >\n" )
+	outFile.write( "class _BcDelegateInternal;\n\n" )
+
+	outFile.write( "//////////////////////////////////////////////////////////////////////////\n" )
+	outFile.write( "// BcDelegateCallBase\n\n" )
+	outFile.write( "class BcDelegateCallBase\n" )
+	outFile.write( "{\n" )
+	outFile.write( "public:\n" )
+	outFile.write( "	BcDelegateCallBase():\n" )
+	outFile.write( "		HasBeenCalled_( BcTrue )\n" )
+	outFile.write( "	{\n\n" )
+	outFile.write( "	}\n\n" )
+	outFile.write( "	virtual ~BcDelegateCallBase(){}\n" )
+	outFile.write( "	virtual void operator()() = 0;\n\n" )
+	outFile.write( "	BcBool hasBeenCalled() const\n" )
+	outFile.write( "	{\n" )
+	outFile.write( "		return HasBeenCalled_;\n" )
+	outFile.write( "	}\n\n" )
+	outFile.write( "	void resetHasBeenCalled()\n" )
+	outFile.write( "	{\n" )
+	outFile.write( "		HasBeenCalled_ = BcFalse;\n" )
+	outFile.write( "	}\n" )
+	outFile.write( "	protected:\n" )
+	outFile.write( "		BcBool HasBeenCalled_;\n" )
+	outFile.write( "	};\n" )
+
+def BcDelegateCall_header( outFile ):
+	outFile.write( "//////////////////////////////////////////////////////////////////////////\n" )
+	outFile.write( "// _BcDelegateCallInternal\n\n" )
+	outFile.write( "template< typename _Fn, int >\n" );
+	outFile.write( "class _BcDelegateCallInternal;\n" );
+
 
 def BcDelegate_gen( outFile, numParams ):
 	outString = ""
@@ -65,6 +95,7 @@ def BcDelegate_gen( outFile, numParams ):
 	paramList = genSeperatedString( range( 0, numParams ), "typename BcFuncTraits< _Fn >::param%NUM%_type P%NUM%", ", " )
 	paramTypeList = genSeperatedString( range( 0, numParams ), "typename BcFuncTraits< _Fn >::param%NUM%_type", ", " )
 	paramCallList = genSeperatedString( range( 0, numParams ), "P%NUM%", ", " )
+
 	outString += "template< typename _Fn >\n"
 	outString += "class _BcDelegateInternal< _Fn, " + str( numParams ) + " >\n"
 	outString += "{\n"
@@ -78,7 +109,6 @@ def BcDelegate_gen( outFile, numParams ):
 	outString += "public:\n"
 	
 	outString += "	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};\n"
-	
 	
 	outString += "	BcForceInline return_type operator()(" + paramList + ")\n"
 	outString += "	{\n"
@@ -137,6 +167,50 @@ def BcDelegate_gen( outFile, numParams ):
 	outString += "	stub_func stubFunc_;\n"
 	outString += "};\n\n"
 	outFile.write( outString )
+
+def BcDelegateCall_gen( outFile, numParams ):
+	outString = ""
+	typedefList = genSeperatedString( range( 0, numParams ), "	typedef typename BcFuncTraits< _Fn >::param%NUM%_type param%NUM%_type;\n", "" )
+	paramList = genSeperatedString( range( 0, numParams ), "typename BcFuncTraits< _Fn >::param%NUM%_type P%NUM%", ", " )
+	paramTypeList = genSeperatedString( range( 0, numParams ), "typename BcFuncTraits< _Fn >::param%NUM%_type", ", " )
+	paramCallList = genSeperatedString( range( 0, numParams ), "P%NUM%_", ", " )
+	paramMemberList = genSeperatedString( range( 0, numParams ), "	typename BcFuncTraits< _Fn >::param%NUM%_type P%NUM%_;\n", "" )
+	paramAssignList = genSeperatedString( range( 0, numParams ), "		P%NUM%_ = P%NUM%;\n", "" )
+
+	outString += "template< typename _Fn >\n"
+	outString += "class _BcDelegateCallInternal< _Fn, " + str( numParams ) + " >:\n"
+	outString += "	public BcDelegateCallBase\n"
+	outString += "{\n"
+	outString += "public:\n"
+	outString += "	typedef typename BcFuncTraits< _Fn >::return_type return_type;\n"
+	outString += typedefList
+	if numParams == 0:
+		outString += "	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*);\n"
+	else:
+		outString += "	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,"+paramTypeList+");\n"
+	outString += "public:\n"
+	outString += "	_BcDelegateCallInternal(){}\n"
+	outString += "	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):\n"
+	outString += "		Delegate_( Delegate )\n"
+	outString += "	{\n"
+	outString += "	}\n"
+	outString += "	virtual ~_BcDelegateCallInternal(){}\n"
+	outString += "	virtual void operator()()\n"
+	outString += "	{\n"
+	outString += "		Delegate_( " + paramCallList + " );\n"
+	outString += "		HasBeenCalled_ = BcTrue;\n"
+	outString += "	}\n"
+	outString += "	virtual _BcDelegateCallInternal< _Fn, " + str( numParams ) + " >& deferCall( "+ paramList +" )\n"
+	outString += "	{\n"
+	outString += paramAssignList
+	outString += "		return (*this);\n"
+	outString += "	}\n"
+	outString += "private:\n"
+	outString += paramMemberList
+	outString += "	BcDelegate< _Fn > Delegate_;\n"
+	outString += "};\n"
+
+	outFile.write( outString )
 	
 def BcDelegate_footer( outFile ):
 	outString = """
@@ -164,7 +238,41 @@ public:
 	}
 };
 """
+	outFile.write( outString )
 
+
+def BcDelegateCall_footer( outFile ):
+	outString = """
+//////////////////////////////////////////////////////////////////////////
+// BcDelegateCall
+template< typename _Fn >
+class BcDelegateCall: public _BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >
+{
+public:
+	BcDelegateCall()
+	{
+	}
+	
+	BcDelegateCall( const BcDelegate< _Fn >& Delegate ):
+		_BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >( Delegate )
+	{
+	}
+	
+	BcDelegateCall( _BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >& Other )
+	{
+		_BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >* pBaseSelf = this;
+		*pBaseSelf = Other;
+	}
+	
+	void operator = ( _BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >& Other )
+	{
+		_BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >* pBaseSelf = this;
+		*pBaseSelf = Other;
+	}
+	
+	virtual ~BcDelegateCall(){}
+};
+"""
 	outFile.write( outString )
 
 #=============================================
@@ -206,6 +314,12 @@ for each in range( 0, numParams ):
 	BcDelegate_gen( outFile, each )
 
 BcDelegate_footer( outFile )
+
+BcDelegateCall_header( outFile )
+for each in range( 0, numParams ):
+	BcDelegateCall_gen( outFile, each )
+
+BcDelegateCall_footer( outFile )
 
 outString = ""
 outString += "#endif\n"

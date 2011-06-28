@@ -54,32 +54,18 @@ void RsCoreImplGL::open()
 	W_ = 1280;
 	H_ = 720;
 	
-	// Setup resolution.
-	pScreenSurface_ = SDL_SetVideoMode( W_, H_, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );
-	
-	if( pScreenSurface_ != NULL )
-	{
-		// Setup depth buffer.
-		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
-		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
+	// Setup default viewport.
+	glViewport( 0, 0, W_, H_ );
 		
-		// Setup default viewport.
-		glViewport( 0, 0, W_, H_ );
+	// Allocate a frame for rendering.
+	pFrame_ = new RsFrameGL( NULL, W_, H_ );
 		
-		// Allocate a frame for rendering.
-		pFrame_ = new RsFrameGL( NULL, W_, H_ );
+	// Allocate a state block for rendering.
+	pStateBlock_ = new RsStateBlockGL();
 		
-		// Allocate a state block for rendering.
-		pStateBlock_ = new RsStateBlockGL();
-		
-		// Clear.
-		glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	}
-	else
-	{
-		stop();
-	}
+	// Clear.
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,10 +94,7 @@ void RsCoreImplGL::close()
 	// Free the frame.
 	delete pFrame_;
 
-	// Free SDL surface.
-	SDL_FreeSurface( pScreenSurface_ );
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // createTexture
@@ -175,76 +158,28 @@ RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsInd
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-class DestroyResourceCommand: public BcCommand
-{
-public:
-	DestroyResourceCommand( RsResource* pResource ):
-	pResource_( pResource )
-	{
-	}
-	
-	void execute()
-	{
-		pResource_->destroy();
-	}
-	
-private:
-	RsResource* pResource_;
-};
-
 void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
 	pResource->preDestroy();
 	
-	CommandBuffer_.push( new DestroyResourceCommand( pResource ) );
+	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::destroy >( pResource ) );
+	CommandBuffer_.enqueue( DelegateCall );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateResource
-class UpdateResourceCommand: public BcCommand
-{
-public:
-	UpdateResourceCommand( RsResource* pResource ):
-	pResource_( pResource )
-	{
-	}
-	
-	void execute()
-	{
-		pResource_->update();
-	}
-	
-private:
-	RsResource* pResource_;
-};
-
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	CommandBuffer_.push( new UpdateResourceCommand( pResource ) );
+	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::update >( pResource ) );
+	CommandBuffer_.enqueue( DelegateCall );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createResource
-class CreateResourceCommand: public BcCommand
-{
-public:
-	CreateResourceCommand( RsResource* pResource ):
-		pResource_( pResource )
-	{
-	}
-	
-	void execute()
-	{
-		pResource_->create();
-	}
-	
-private:
-	RsResource* pResource_;
-};
-
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
-	CommandBuffer_.push( new CreateResourceCommand( pResource ) );
+	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::create >( pResource ) );
+	CommandBuffer_.enqueue( DelegateCall );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,31 +190,15 @@ RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 
 	BcUnusedVar( Width );
 	BcUnusedVar( Height );
 	
-	return pFrame_;	
+	return new RsFrameGL( NULL, W_, H_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // queueFrame
-class RenderFrameCommand: public BcCommand
-{
-public:
-	RenderFrameCommand( RsFrameGL* pFrame ):
-		pFrame_( pFrame )
-	{
-	}
-	
-	void execute()
-	{
-		pFrame_->render();
-	}
-	
-private:
-	RsFrameGL* pFrame_;
-};
-
 void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
-	CommandBuffer_.push( new RenderFrameCommand( static_cast< RsFrameGL* >( pFrame ) ) );	
+	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
+	CommandBuffer_.enqueue( DelegateCall );
 }
 
 //////////////////////////////////////////////////////////////////////////

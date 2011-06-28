@@ -25,28 +25,32 @@ class BcThread
 {
 public:
 
-	// Function: BcThread()
-	// Just make sure everything is nice and NULLified.
+	/**
+	 * Just make sure everything is nice and NULLified.
+	 */
 	BcThread();
 	
-	// Function: ~BcThread()
-	// This cReally should do something, like make sure the thread has stopped...
+	/**
+	 * This cReally should do something, like make sure the thread has stopped...
+	 */
 	virtual ~BcThread();
 
-	// Function: BcU32 start()
-	// This is used to start the thread to handle the object that
-	// has inherited this object.
+	/**
+	 * This is used to start the thread to handle the object that
+	 * has inherited this object.
+	 */
 	BcU32 start();
 
-	// Function: BcU32 join()
-	// This will 'join' this thread with the calling one.
-	// Effectively waiting for it to quit.
+	/**
+	 * This will 'join' this thread with the calling one.
+	 * Effectively waiting for it to quit.
+	 */
 	BcU32 join();
 
-	// Function: BcBool isActive()
-	// Will return cTrue if the thread is active.
+	/**
+	 * Is thread active?
+	 */
 	BcBool isActive();
-
 
 protected:
 	virtual void execute()=0;

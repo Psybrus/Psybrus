@@ -31,10 +31,10 @@ BcCommandBuffer::~BcCommandBuffer()
 
 //////////////////////////////////////////////////////////////////////////
 // push
-void BcCommandBuffer::push( BcCommand* pCommand )
+void BcCommandBuffer::enqueueDelegateCall( BcDelegateCallBase* pDelegateCall )
 {
 	QueueLock_.lock();
-	CommandQueue_.push_back( pCommand );
+	CommandQueue_.push_back( pDelegateCall );
 	QueueLock_.unlock();
 }
 
@@ -52,11 +52,11 @@ void BcCommandBuffer::execute()
 	while( ExecuteCommandQueue_.size() > 0 )
 	{
 		// Grab command.
-		BcCommand* pCommand = ExecuteCommandQueue_.front();
+		BcDelegateCallBase* pCommand = ExecuteCommandQueue_.front();
 		ExecuteCommandQueue_.pop_front();
 		
 		// Execute command.
-		pCommand->execute();
+		(*pCommand)();
 		
 		// Delete command.
 		delete pCommand;

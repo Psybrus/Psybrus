@@ -57,7 +57,7 @@ typedef BcU32 EvtID;
 *		osEVT_MAX																			<br/>
 *	};																						<br/>
 */
-#define EVT_MAKE_ID( _prefix, _group ) EvtID( ( BcU32( _prefix & 0xffff ) << 16 ) | ( BcU32( _group & 0xff ) << 8 ) )
+#define EVT_MAKE_ID( _prefix, _group ) EvtID( ( BcU32( L##_prefix & 0xffff ) << 16 ) | ( BcU32( _group & 0xff ) << 8 ) )
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event Return

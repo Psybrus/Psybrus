@@ -44,11 +44,15 @@ void OsCoreImplSDL::open()
 	if ( SDL_Init( SDL_INIT_VIDEO ) == 0 )
 	{	
 		// Setup video mode. Renderer crossover here...but OS tells renderer how big it's source window is.
-		//pScreenSurface_ = SDL_SetVideoMode( 640, 480, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );	
+		pScreenSurface_ = SDL_SetVideoMode( 1280, 720, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );	
 		
 		// If we've created the surface, continue on.
-		//if( pScreenSurface_ != NULL )
+		if( pScreenSurface_ != NULL )
 		{
+			// Setup depth buffer.
+			SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
+			SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
+
 			SDL_WM_SetCaption( "It's dangerous to go alone, take these shiny things!", NULL );
 				
 			// Register SDL event handlers.

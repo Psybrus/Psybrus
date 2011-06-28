@@ -42,11 +42,12 @@ CsCoreClient::~CsCoreClient()
 //virtual
 void CsCoreClient::open()
 {
-	BcAssert( RmCore::pImpl() != NULL );
-	
 	// Register delegates.
-	RmCore::pImpl()->registerDelegate( BcHash( "CsCore::delegateFileReady" ),		RmDelegate::bind< CsCoreClient, &CsCoreClient::delegateFileReady >( this ) );
-	RmCore::pImpl()->registerDelegate( BcHash( "CsCore::delegateFileChunkReady" ),	RmDelegate::bind< CsCoreClient, &CsCoreClient::delegateFileChunkReady >( this ) );
+	if( RmCore::pImpl() != NULL )
+	{
+		RmCore::pImpl()->registerDelegate( BcHash( "CsCore::delegateFileReady" ),		RmDelegate::bind< CsCoreClient, &CsCoreClient::delegateFileReady >( this ) );
+		RmCore::pImpl()->registerDelegate( BcHash( "CsCore::delegateFileChunkReady" ),	RmDelegate::bind< CsCoreClient, &CsCoreClient::delegateFileChunkReady >( this ) );
+	}
 	
 	CsCore::open();
 }
@@ -56,8 +57,6 @@ void CsCoreClient::open()
 //virtual
 void CsCoreClient::update()
 {
-	BcAssert( RmCore::pImpl() != NULL );
-	
 	CsCore::update();
 }
 
@@ -66,11 +65,12 @@ void CsCoreClient::update()
 //virtual
 void CsCoreClient::close()
 {
-	BcAssert( RmCore::pImpl() != NULL );
-	
 	// Unregister delegates.
-	RmCore::pImpl()->unregisterDelegate( BcHash( "CsCore::delegateFileReady" ) );	
-	RmCore::pImpl()->unregisterDelegate( BcHash( "CsCore::delegateFileChunkReady" ) );
+	if( RmCore::pImpl() != NULL )
+	{
+		RmCore::pImpl()->unregisterDelegate( BcHash( "CsCore::delegateFileReady" ) );	
+		RmCore::pImpl()->unregisterDelegate( BcHash( "CsCore::delegateFileChunkReady" ) );
+	}
 	
 	CsCore::close();
 }
