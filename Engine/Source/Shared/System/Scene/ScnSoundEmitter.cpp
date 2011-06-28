@@ -108,9 +108,6 @@ void ScnSoundEmitter::onPlaying( SsChannel* pSound )
 //virtual
 void ScnSoundEmitter::onEnded( SsChannel* pSound )
 {
-	// Release ourself, no longer in use.
-	CsResource::release();
-
 	// Find in map, and erase reference.
 	TChannelSoundMapIterator Iter = ChannelSoundMap_.find( pSound );
 	
@@ -118,4 +115,7 @@ void ScnSoundEmitter::onEnded( SsChannel* pSound )
 	{
 		ChannelSoundMap_.erase( Iter );
 	}
+
+	// Release ourself, no longer in use anymore!
+	CsResource::release();
 }

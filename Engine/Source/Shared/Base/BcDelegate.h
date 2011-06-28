@@ -250,7 +250,37 @@ struct BcFuncTraits< _R(_Ty::*)(_P0, _P1, _P2, _P3, _P4, _P5, _P6, _P7) >
 //////////////////////////////////////////////////////////////////////////
 // _BcDelegateInternal
 
-template< typename _Fn, int >class _BcDelegateInternal;template< typename _Fn >
+template< typename _Fn, int >
+class _BcDelegateInternal;
+
+//////////////////////////////////////////////////////////////////////////
+// BcDelegateCallBase
+
+class BcDelegateCallBase
+{
+public:
+	BcDelegateCallBase():
+		HasBeenCalled_( BcTrue )
+	{
+
+	}
+
+	virtual ~BcDelegateCallBase(){}
+	virtual void operator()() = 0;
+
+	BcBool hasBeenCalled() const
+	{
+		return HasBeenCalled_;
+	}
+
+	void resetHasBeenCalled()
+	{
+		HasBeenCalled_ = BcFalse;
+	}
+	protected:
+		BcBool HasBeenCalled_;
+	};
+template< typename _Fn >
 class _BcDelegateInternal< _Fn, 0 >
 {
 public:
@@ -810,22 +840,394 @@ public:
 	{
 		
 	}
-	
-	BcDelegate( const BcDelegate< _Fn >& Other )
-	{
-		*this = Other;
-	}
-
+		
 	BcDelegate( const _BcDelegateInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >& Other )
 	{
 		_BcDelegateInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >* pBaseSelf = this;
 		*pBaseSelf = Other;
 	}
-	
+
 	void operator = ( const _BcDelegateInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >& Other )
 	{
 		_BcDelegateInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >* pBaseSelf = this;
 		*pBaseSelf = Other;
 	}
+};
+//////////////////////////////////////////////////////////////////////////
+// _BcDelegateCallInternal
+
+template< typename _Fn, int >
+class _BcDelegateCallInternal;
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 0 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_(  );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 0 >& deferCall(  )
+	{
+		return (*this);
+	}
+private:
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 1 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 1 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0 )
+	{
+		P0_ = P0;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 2 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 2 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 3 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_, P2_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 3 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		P2_ = P2;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	typename BcFuncTraits< _Fn >::param2_type P2_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 4 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
+	typedef typename BcFuncTraits< _Fn >::param3_type param3_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_, P2_, P3_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 4 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		P2_ = P2;
+		P3_ = P3;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	typename BcFuncTraits< _Fn >::param2_type P2_;
+	typename BcFuncTraits< _Fn >::param3_type P3_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 5 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
+	typedef typename BcFuncTraits< _Fn >::param3_type param3_type;
+	typedef typename BcFuncTraits< _Fn >::param4_type param4_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_, P2_, P3_, P4_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 5 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		P2_ = P2;
+		P3_ = P3;
+		P4_ = P4;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	typename BcFuncTraits< _Fn >::param2_type P2_;
+	typename BcFuncTraits< _Fn >::param3_type P3_;
+	typename BcFuncTraits< _Fn >::param4_type P4_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 6 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
+	typedef typename BcFuncTraits< _Fn >::param3_type param3_type;
+	typedef typename BcFuncTraits< _Fn >::param4_type param4_type;
+	typedef typename BcFuncTraits< _Fn >::param5_type param5_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_, P2_, P3_, P4_, P5_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 6 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4, typename BcFuncTraits< _Fn >::param5_type P5 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		P2_ = P2;
+		P3_ = P3;
+		P4_ = P4;
+		P5_ = P5;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	typename BcFuncTraits< _Fn >::param2_type P2_;
+	typename BcFuncTraits< _Fn >::param3_type P3_;
+	typename BcFuncTraits< _Fn >::param4_type P4_;
+	typename BcFuncTraits< _Fn >::param5_type P5_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 7 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
+	typedef typename BcFuncTraits< _Fn >::param3_type param3_type;
+	typedef typename BcFuncTraits< _Fn >::param4_type param4_type;
+	typedef typename BcFuncTraits< _Fn >::param5_type param5_type;
+	typedef typename BcFuncTraits< _Fn >::param6_type param6_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type, typename BcFuncTraits< _Fn >::param6_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_, P2_, P3_, P4_, P5_, P6_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 7 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4, typename BcFuncTraits< _Fn >::param5_type P5, typename BcFuncTraits< _Fn >::param6_type P6 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		P2_ = P2;
+		P3_ = P3;
+		P4_ = P4;
+		P5_ = P5;
+		P6_ = P6;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	typename BcFuncTraits< _Fn >::param2_type P2_;
+	typename BcFuncTraits< _Fn >::param3_type P3_;
+	typename BcFuncTraits< _Fn >::param4_type P4_;
+	typename BcFuncTraits< _Fn >::param5_type P5_;
+	typename BcFuncTraits< _Fn >::param6_type P6_;
+	BcDelegate< _Fn > Delegate_;
+};
+template< typename _Fn >
+class _BcDelegateCallInternal< _Fn, 8 >:
+	public BcDelegateCallBase
+{
+public:
+	typedef typename BcFuncTraits< _Fn >::return_type return_type;
+	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
+	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
+	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
+	typedef typename BcFuncTraits< _Fn >::param3_type param3_type;
+	typedef typename BcFuncTraits< _Fn >::param4_type param4_type;
+	typedef typename BcFuncTraits< _Fn >::param5_type param5_type;
+	typedef typename BcFuncTraits< _Fn >::param6_type param6_type;
+	typedef typename BcFuncTraits< _Fn >::param7_type param7_type;
+	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type, typename BcFuncTraits< _Fn >::param6_type, typename BcFuncTraits< _Fn >::param7_type);
+public:
+	_BcDelegateCallInternal(){}
+	_BcDelegateCallInternal( const BcDelegate< _Fn >& Delegate ):
+		Delegate_( Delegate )
+	{
+	}
+	virtual ~_BcDelegateCallInternal(){}
+	virtual void operator()()
+	{
+		Delegate_( P0_, P1_, P2_, P3_, P4_, P5_, P6_, P7_ );
+		HasBeenCalled_ = BcTrue;
+	}
+	virtual _BcDelegateCallInternal< _Fn, 8 >& deferCall( typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4, typename BcFuncTraits< _Fn >::param5_type P5, typename BcFuncTraits< _Fn >::param6_type P6, typename BcFuncTraits< _Fn >::param7_type P7 )
+	{
+		P0_ = P0;
+		P1_ = P1;
+		P2_ = P2;
+		P3_ = P3;
+		P4_ = P4;
+		P5_ = P5;
+		P6_ = P6;
+		P7_ = P7;
+		return (*this);
+	}
+private:
+	typename BcFuncTraits< _Fn >::param0_type P0_;
+	typename BcFuncTraits< _Fn >::param1_type P1_;
+	typename BcFuncTraits< _Fn >::param2_type P2_;
+	typename BcFuncTraits< _Fn >::param3_type P3_;
+	typename BcFuncTraits< _Fn >::param4_type P4_;
+	typename BcFuncTraits< _Fn >::param5_type P5_;
+	typename BcFuncTraits< _Fn >::param6_type P6_;
+	typename BcFuncTraits< _Fn >::param7_type P7_;
+	BcDelegate< _Fn > Delegate_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcDelegateCall
+template< typename _Fn >
+class BcDelegateCall: public _BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >
+{
+public:
+	BcDelegateCall()
+	{
+	}
+	
+	BcDelegateCall( const BcDelegate< _Fn >& Delegate ):
+		_BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >( Delegate )
+	{
+	}
+	
+	BcDelegateCall( _BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >& Other )
+	{
+		_BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >* pBaseSelf = this;
+		*pBaseSelf = Other;
+	}
+	
+	void operator = ( _BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >& Other )
+	{
+		_BcDelegateCallInternal< _Fn, BcFuncTraits< _Fn >::PARAMS >* pBaseSelf = this;
+		*pBaseSelf = Other;
+	}
+	
+	virtual ~BcDelegateCall(){}
 };
 #endif

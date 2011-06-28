@@ -12,23 +12,33 @@
 **************************************************************************/
 
 #include "BcEvent.h"
+#include "BcDebug.h"
 
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 BcEvent::BcEvent( const BcChar* Name )
 {
 	BcUnusedVar( Name );
-	sem_init( &SemHandle_, 1, 0 );
+	pthread_cond_init( &Handle_, NULL );
+
+	int MutexReturn = 0;
+	pthread_mutexattr_init( &MutexAttr_ );
+	MutexReturn = pthread_mutexattr_settype( &MutexAttr_, PTHREAD_MUTEX_RECURSIVE );
+	BcAssert( MutexReturn == 0 );
+	pthread_mutex_init( &MutexHandle_, &MutexAttr_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 BcEvent::~BcEvent()
 {
-	sem_destroy( &SemHandle_ );
+	pthread_mutex_destroy( &MutexHandle_ );
+	pthread_mutexattr_destroy( &MutexAttr_ );
+	pthread_cond_destroy( &Handle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,8 +53,9 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 	// If we don't want to time out, just wait normally.
 	if( TimeoutMS == BcErrorCode )
 	{
-		sem_wait( &SemHandle_ );
+		RetVal = pthread_cond_wait( &Handle_, &MutexHandle_ );
 	}
+	// 
 	else
 	{
 		// Setup time.
@@ -57,20 +68,16 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 		TimeSpec.tv_nsec += ( TimeoutMS % 1000 ) * 1000000;
 			
 		// do lock.
-#if 0
-		RetVal = sem_timedwait( &SemHandle_, &TimeSpec );
-#else
-		BcBreakpoint;
-#endif
+		RetVal = pthread_cond_timedwait( &Handle_, &MutexHandle_, &TimeSpec );
 	}
 	
 	// 
-	return RetVal == 0 ? BcTrue : BcFalse;
+	return RetVal != ETIMEDOUT ? BcTrue : BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // signal
 void BcEvent::signal()
 {
-	sem_post( &SemHandle_ );
+	pthread_cond_signal( &Handle_ );
 }

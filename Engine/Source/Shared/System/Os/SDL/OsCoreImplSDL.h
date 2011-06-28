@@ -66,6 +66,8 @@ private:
 private:
 	TSDLEventHandlerMap		SDLEventHandlerMap_;				///!< SDL Event handler map.
 
+	SDL_Surface*			pScreenSurface_;					///!< Pointer to screen's surface.
+	
 
 	// Events.
 	OsEventCore				EventCore_;

@@ -159,77 +159,32 @@ BcBool FsCoreImplOSX::fileStats( const BcChar* pFilename, FsStats& Stats )
 
 //////////////////////////////////////////////////////////////////////////
 // addReadOp
+void doReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+{
+	pImpl->seek( Position );
+	pImpl->read( pData, Bytes );
+	DoneCallback( pData, Bytes );
+}
+
 void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	// Add a read op to the command buffer.
-	class FileReadOp: public BcCommand
-	{
-	public:
-		FileReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
-			pImpl_( pImpl ),
-			Position_( Position ),
-			pData_( pData ),
-			Bytes_( Bytes ),
-			DoneCallback_( DoneCallback )
-		{
-			
-		}
-		
-		virtual void execute()
-		{
-			pImpl_->seek( Position_ );
-			pImpl_->read( pData_, Bytes_ );
-			DoneCallback_( pData_, Bytes_ );
-		}
-		
-	private:
-		FsFileImpl* 	pImpl_;
-		BcSize 			Position_;
-		void* 			pData_;
-		BcSize 			Bytes_;
-		FsFileOpDelegate DoneCallback_;
-	};
-	
-	// Add command to the buffer.
-	CommandBuffer_.push( new FileReadOp( pImpl, Position, pData, Bytes, DoneCallback ) );
+	BcDelegateCall< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) > DelegateCall( BcDelegate< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) >::bind< doReadOp >() );
+	CommandBuffer_.enqueue( DelegateCall, pImpl, Position, pData, Bytes, DoneCallback );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addWriteOp
+void doWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+{
+	pImpl->seek( Position );
+	pImpl->write( pData, Bytes );
+	DoneCallback( pData, Bytes );
+}
+
 void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	// Add a write op to the command buffer.
-	class FileWriteOp: public BcCommand
-	{
-	public:
-		FileWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
-			pImpl_( pImpl ),
-			Position_( Position ),
-			pData_( pData ),
-			Bytes_( Bytes ),
-			DoneCallback_( DoneCallback )
-		{
-			
-		}
-		
-		virtual void execute()
-		{
-			pImpl_->seek( Position_ );
-			pImpl_->write( pData_, Bytes_ );
-			DoneCallback_( pData_, Bytes_ );
-		}
-		
-	private:
-		FsFileImpl* 	pImpl_;
-		BcSize 			Position_;
-		void* 			pData_;
-		BcSize 			Bytes_;
-		FsFileOpDelegate DoneCallback_;
-	};
-	
-	// Add command to the buffer.
-	CommandBuffer_.push( new FileWriteOp( pImpl, Position, pData, Bytes, DoneCallback ) );
-						
+	BcDelegateCall< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) > DelegateCall( BcDelegate< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) >::bind< doWriteOp >() );
+	CommandBuffer_.enqueue( DelegateCall, pImpl, Position, pData, Bytes, DoneCallback );
 }
 
 //////////////////////////////////////////////////////////////////////////

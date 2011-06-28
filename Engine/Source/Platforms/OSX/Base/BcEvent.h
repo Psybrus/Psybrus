@@ -16,7 +16,7 @@
 
 #include "BcTypes.h"
 
-#include <semaphore.h>
+#include <pthread.h>
 
 //////////////////////////////////////////////////////////////////////////
 // BcEvent
@@ -30,8 +30,9 @@ public:
 	void signal();
 
 private:
-	sem_t SemHandle_;
-
+	pthread_cond_t Handle_;
+	pthread_mutexattr_t MutexAttr_;
+	pthread_mutex_t MutexHandle_;
 };
 
 

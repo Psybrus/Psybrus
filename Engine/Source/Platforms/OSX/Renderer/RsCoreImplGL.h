@@ -60,14 +60,13 @@ public:
 	// Platform specific interface.
 
 protected:
-	SDL_Surface*			pScreenSurface_;					///!< Pointer to screen's surface.
-
 	BcCommandBuffer			CommandBuffer_;
 	RsFrameGL*				pFrame_;
 	RsStateBlockGL*			pStateBlock_;
 	
 	BcU32					W_;
 	BcU32					H_;
+	
 };
 
 #endif
