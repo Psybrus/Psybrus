@@ -17,6 +17,7 @@
 #include "BcGlobal.h"
 #include "BcTimer.h"
 #include "SysSystem.h"
+#include "SysJobQueue.h"
 
 #include <list>
 #include <map>
@@ -37,29 +38,34 @@ public:
 	~SysKernel();
 	
 	/**
-	* Register system.
-	*/
+	 * Register system.
+	 */
 	void						registerSystem( const std::string& Name, SysSystemCreator creator );
 	
 	/**
-	* Start system.
-	*/
+	 * Start system.
+	 */
 	SysSystem*					startSystem( const std::string& Name );
 	
 	/**
-	* Stop kernel.
-	*/
+	 * Stop kernel.
+	 */
 	void						stop();
 		
 	/**
-	* Run kernel.
-	*/
+	 * Run kernel.
+	 */
 	void						run();
 	
 	/**
-	* Tick kernel.
-	*/
+	 * Tick kernel.
+	 */
 	void						tick();
+	
+	/**
+	 * Queue job.
+	 */
+	void						queueJob( SysJob* pJob, BcU32 WorkerMask = BcErrorCode );
 	
 private:
 	/**
@@ -88,6 +94,8 @@ private:
 	BcTimer						MainTimer_;
 	
 	BcReal						SleepAccumulator_;
+	
+	SysJobQueue					JobQueue_;
 };
 
 #endif

@@ -25,7 +25,8 @@ BcU32 SysArgc_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysKernel::SysKernel()
+SysKernel::SysKernel():
+	JobQueue_( 4 ) // TODO: Determine number of hardware threads.
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
@@ -190,6 +191,13 @@ void SysKernel::tick()
 
 //////////////////////////////////////////////////////////////////////////
 // addSystems
+void SysKernel::queueJob( SysJob* pJob, BcU32 WorkerMask )
+{
+	JobQueue_.queueJob( pJob, WorkerMask );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addSystems
 void SysKernel::addSystems()
 {
 	TSystemListIterator Iter = PendingAddSystemList_.begin();
@@ -240,6 +248,9 @@ void SysKernel::removeSystems()
 			
 			++SysIter;
 		}
+		
+		// Flush jobs before deleting a system.
+		JobQueue_.flushJobs();
 		
 		// Delete system.
 		delete pRemSystem;

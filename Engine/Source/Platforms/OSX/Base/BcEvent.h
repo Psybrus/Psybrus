@@ -15,6 +15,7 @@
 #define __BCEVENT_H__
 
 #include "BcTypes.h"
+#include "BcAtomic.h"
 
 #include <pthread.h>
 
@@ -26,13 +27,15 @@ public:
 	BcEvent( const BcChar* Name = NULL );
 	~BcEvent();
 
-	BcBool wait( BcU32 TimeoutMS );
+	BcBool wait( BcU32 TimeoutMS = BcErrorCode );
 	void signal();
 
 private:
 	pthread_cond_t Handle_;
 	pthread_mutexattr_t MutexAttr_;
 	pthread_mutex_t MutexHandle_;
+	
+	BcAtomicU32 Signal_;
 };
 
 
