@@ -53,24 +53,38 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 	// If we don't want to time out, just wait normally.
 	if( TimeoutMS == BcErrorCode )
 	{
-		RetVal = pthread_cond_wait( &Handle_, &MutexHandle_ );
+		// If we haven't received a signal, do the wait.
+		if( Signal_ == 0 )
+		{
+			RetVal = pthread_cond_wait( &Handle_, &MutexHandle_ );
+		}
 	}
 	// 
 	else
 	{
-		// Setup time.
-		gettimeofday( &TimeVal, NULL );
+		// If we haven't received the signal, do the wait.
+		if( Signal_ == 0 )
+		{
+			// Setup time.
+			gettimeofday( &TimeVal, NULL );
 		
-		// Convert time and add on the timeout.
-		TimeSpec.tv_sec  = TimeVal.tv_sec;
-		TimeSpec.tv_nsec = ( TimeVal.tv_usec * 1000 );
-		TimeSpec.tv_sec +=  ( TimeoutMS / 1000 );
-		TimeSpec.tv_nsec += ( TimeoutMS % 1000 ) * 1000000;
+			// Convert time and add on the timeout.
+			TimeSpec.tv_sec  = TimeVal.tv_sec;
+			TimeSpec.tv_nsec = ( TimeVal.tv_usec * 1000 );
+			TimeSpec.tv_sec +=  ( TimeoutMS / 1000 );
+			TimeSpec.tv_nsec += ( TimeoutMS % 1000 ) * 1000000;
 			
-		// do lock.
-		RetVal = pthread_cond_timedwait( &Handle_, &MutexHandle_, &TimeSpec );
+			// do lock.
+			RetVal = pthread_cond_timedwait( &Handle_, &MutexHandle_, &TimeSpec );
+		}
 	}
-	
+
+	// Drop back 1 signal.
+	if( Signal_ != 0 )
+	{
+		--Signal_;
+	}
+
 	// 
 	return RetVal != ETIMEDOUT ? BcTrue : BcFalse;
 }
@@ -79,5 +93,6 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 // signal
 void BcEvent::signal()
 {
+	++Signal_;
 	pthread_cond_signal( &Handle_ );
 }
