@@ -187,6 +187,9 @@ void SysKernel::tick()
 		// Remove systems.
 		removeSystems();
 	}
+	
+	// Dispatch callbacks.
+	DelegateDispatcher_.dispatch();
 }
 
 //////////////////////////////////////////////////////////////////////////

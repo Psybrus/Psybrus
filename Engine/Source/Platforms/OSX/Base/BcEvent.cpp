@@ -51,6 +51,7 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 	timeval    TimeVal;
   
 	// If we don't want to time out, just wait normally.
+	pthread_mutex_lock( &MutexHandle_ );
 	if( TimeoutMS == BcErrorCode )
 	{
 		// If we haven't received a signal, do the wait.
@@ -85,6 +86,8 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 		--Signal_;
 	}
 
+	pthread_mutex_unlock( &MutexHandle_ );
+
 	// 
 	return RetVal != ETIMEDOUT ? BcTrue : BcFalse;
 }
@@ -93,6 +96,8 @@ BcBool BcEvent::wait( BcU32 TimeoutMS )
 // signal
 void BcEvent::signal()
 {
+	pthread_mutex_lock( &MutexHandle_ );
 	++Signal_;
 	pthread_cond_signal( &Handle_ );
+	pthread_mutex_unlock( &MutexHandle_ );
 }

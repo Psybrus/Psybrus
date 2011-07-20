@@ -42,6 +42,12 @@ public:
 	BcBool				giveJob( SysJob* pJob );
 	
 	/**
+	 * Is worker in use?
+	 * Only used for performance and utilisation checking.
+	 */
+	BcBool				inUse() const;
+	
+	/**
 	 * Start worker.
 	 */
 	void				start();

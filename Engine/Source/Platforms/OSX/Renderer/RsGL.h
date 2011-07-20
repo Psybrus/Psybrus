@@ -28,6 +28,7 @@
 #if defined( PLATFORM_OSX )
 #  include <SDL.h>
 #  include <OpenGL/OpenGL.h>
+#  include <AGL/agl.h>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

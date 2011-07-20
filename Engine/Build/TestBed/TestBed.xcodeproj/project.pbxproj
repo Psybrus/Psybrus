@@ -122,6 +122,14 @@
 		C85635511369921500D91624 /* ScnSound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C856354E1369921500D91624 /* ScnSound.cpp */; };
 		C85635541369922700D91624 /* ScnSoundEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635521369922700D91624 /* ScnSoundEmitter.cpp */; };
 		C85635551369922700D91624 /* ScnSoundEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85635521369922700D91624 /* ScnSoundEmitter.cpp */; };
+		C86C35AB13C45F0700691CBA /* SysJobQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C35A913C45F0500691CBA /* SysJobQueue.cpp */; };
+		C86C35AC13C45F0700691CBA /* SysJobQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C35A913C45F0500691CBA /* SysJobQueue.cpp */; };
+		C86C35AF13C45F6600691CBA /* SysJob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C35AD13C45F6400691CBA /* SysJob.cpp */; };
+		C86C35B013C45F6600691CBA /* SysJob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C35AD13C45F6400691CBA /* SysJob.cpp */; };
+		C86C35B313C4604E00691CBA /* SysJobWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C35B113C4604C00691CBA /* SysJobWorker.cpp */; };
+		C86C35B413C4604E00691CBA /* SysJobWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C35B113C4604C00691CBA /* SysJobWorker.cpp */; };
+		C86C35B613C4825E00691CBA /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C86C35B513C4825C00691CBA /* AGL.framework */; };
+		C86C35B813C4826400691CBA /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C86C35B713C4826200691CBA /* AGL.framework */; };
 		C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C891F1359610000F4CED8 /* RsStateBlock.cpp */; };
 		C86C892413596C9D00F4CED8 /* RsStateBlockGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */; };
 		C86C8A0513598B9A00F4CED8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -271,6 +279,8 @@
 		C86E9A1D13514C1B0015F899 /* gmVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997A13514C1A0015F899 /* gmVariable.cpp */; };
 		C86E9A4013514CB90015F899 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A3E13514CB70015F899 /* ScnScript.cpp */; };
 		C86E9A461351560B0015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
+		C877CA3113D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */; };
+		C877CA3213D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */; };
 		C8992B611350CEAA00C9F09D /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
 		C8A16A5E136045610054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5A136045610054F3AF /* GaCore.cpp */; };
 		C8A16A5F136045610054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5A136045610054F3AF /* GaCore.cpp */; };
@@ -519,6 +529,14 @@
 		C856354F1369921500D91624 /* ScnSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnSound.h; sourceTree = "<group>"; };
 		C85635521369922700D91624 /* ScnSoundEmitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnSoundEmitter.cpp; sourceTree = "<group>"; };
 		C85635531369922700D91624 /* ScnSoundEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnSoundEmitter.h; sourceTree = "<group>"; };
+		C86C35A913C45F0500691CBA /* SysJobQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysJobQueue.cpp; sourceTree = "<group>"; };
+		C86C35AA13C45F0700691CBA /* SysJobQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysJobQueue.h; sourceTree = "<group>"; };
+		C86C35AD13C45F6400691CBA /* SysJob.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysJob.cpp; sourceTree = "<group>"; };
+		C86C35AE13C45F6500691CBA /* SysJob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysJob.h; sourceTree = "<group>"; };
+		C86C35B113C4604C00691CBA /* SysJobWorker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysJobWorker.cpp; sourceTree = "<group>"; };
+		C86C35B213C4604D00691CBA /* SysJobWorker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysJobWorker.h; sourceTree = "<group>"; };
+		C86C35B513C4825C00691CBA /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
+		C86C35B713C4826200691CBA /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
 		C86C891F1359610000F4CED8 /* RsStateBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlock.cpp; sourceTree = "<group>"; };
 		C86C89201359610000F4CED8 /* RsStateBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsStateBlock.h; sourceTree = "<group>"; };
 		C86C892213596C9D00F4CED8 /* RsStateBlockGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsStateBlockGL.cpp; sourceTree = "<group>"; };
@@ -600,6 +618,8 @@
 		C86E9A3F13514CB80015F899 /* ScnScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnScript.h; sourceTree = "<group>"; };
 		C86E9A44135156080015F899 /* RsResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsResource.cpp; sourceTree = "<group>"; };
 		C86E9A45135156090015F899 /* RsResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsResource.h; sourceTree = "<group>"; };
+		C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysDelegateDispatcher.cpp; sourceTree = "<group>"; };
+		C877CA3013D5856C00E64349 /* SysDelegateDispatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysDelegateDispatcher.h; sourceTree = "<group>"; };
 		C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsResourceRef.cpp; sourceTree = "<group>"; };
 		C8992B601350CEAA00C9F09D /* CsResourceRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsResourceRef.h; sourceTree = "<group>"; };
 		C8A16A5A136045610054F3AF /* GaCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaCore.cpp; path = Game/GaCore.cpp; sourceTree = "<group>"; };
@@ -641,6 +661,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C86C35B613C4825E00691CBA /* AGL.framework in Frameworks */,
 				C8563547136982A600D91624 /* OpenAL.framework in Frameworks */,
 				002F39FA09D0881F00EBEB88 /* SDL.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
@@ -652,6 +673,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C86C35B813C4826400691CBA /* AGL.framework in Frameworks */,
 				C8563549136982AE00D91624 /* OpenAL.framework in Frameworks */,
 				C86C8A7213598B9A00F4CED8 /* SDL.framework in Frameworks */,
 				C86C8A7313598B9A00F4CED8 /* Cocoa.framework in Frameworks */,
@@ -702,6 +724,8 @@
 		29B97314FDCFA39411CA2CEA /* TestBed */ = {
 			isa = PBXGroup;
 			children = (
+				C86C35B713C4826200691CBA /* AGL.framework */,
+				C86C35B513C4825C00691CBA /* AGL.framework */,
 				C8563548136982AE00D91624 /* OpenAL.framework */,
 				C8563546136982A600D91624 /* OpenAL.framework */,
 				C86E98D613514BF00015F899 /* External */,
@@ -836,10 +860,18 @@
 				C824731713507BE70092D33F /* SysEvents.h */,
 				C824731813507BE70092D33F /* SysKernel.cpp */,
 				C824731913507BE70092D33F /* SysKernel.h */,
+				C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */,
+				C877CA3013D5856C00E64349 /* SysDelegateDispatcher.h */,
 				C824731A13507BE70092D33F /* SysState.cpp */,
 				C824731B13507BE70092D33F /* SysState.h */,
 				C824731C13507BE70092D33F /* SysSystem.cpp */,
 				C824731D13507BE70092D33F /* SysSystem.h */,
+				C86C35A913C45F0500691CBA /* SysJobQueue.cpp */,
+				C86C35AA13C45F0700691CBA /* SysJobQueue.h */,
+				C86C35AD13C45F6400691CBA /* SysJob.cpp */,
+				C86C35AE13C45F6500691CBA /* SysJob.h */,
+				C86C35B113C4604C00691CBA /* SysJobWorker.cpp */,
+				C86C35B213C4604D00691CBA /* SysJobWorker.h */,
 			);
 			path = System;
 			sourceTree = "<group>";
@@ -1529,6 +1561,10 @@
 				C85635501369921500D91624 /* ScnSound.cpp in Sources */,
 				C85635541369922700D91624 /* ScnSoundEmitter.cpp in Sources */,
 				C8B46CA9136B094B004F5B85 /* BcTimer.cpp in Sources */,
+				C86C35AB13C45F0700691CBA /* SysJobQueue.cpp in Sources */,
+				C86C35AF13C45F6600691CBA /* SysJob.cpp in Sources */,
+				C86C35B313C4604E00691CBA /* SysJobWorker.cpp in Sources */,
+				C877CA3113D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1668,6 +1704,10 @@
 				C85635511369921500D91624 /* ScnSound.cpp in Sources */,
 				C85635551369922700D91624 /* ScnSoundEmitter.cpp in Sources */,
 				C8B46CAA136B094B004F5B85 /* BcTimer.cpp in Sources */,
+				C86C35AC13C45F0700691CBA /* SysJobQueue.cpp in Sources */,
+				C86C35B013C45F6600691CBA /* SysJob.cpp in Sources */,
+				C86C35B413C4604E00691CBA /* SysJobWorker.cpp in Sources */,
+				C877CA3213D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

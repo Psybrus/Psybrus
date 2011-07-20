@@ -47,11 +47,25 @@ public:
 	 */
 	void				schedule();
 	
+	/**
+	 * Get worker usage mask.
+	 */
+	BcU32				workerUsageMask() const;
+	
+private:
+	/**
+	 * Move jobs to the back of the queue.
+	 * @param WorkerMask Mask to move to the front of the queue.
+	 */
+	void				moveJobsBack( BcU32 WorkerMask );
+	
+	
 private:
 	virtual void		execute();
 	
 private:
-	typedef std::deque< SysJob* > TJobQueue;
+	typedef std::list< SysJob* > TJobQueue;
+	typedef TJobQueue::iterator TJobQueueIterator;
 	typedef std::vector< SysJobWorker* > TJobWorkerList;
 	
 	BcBool				Active_;

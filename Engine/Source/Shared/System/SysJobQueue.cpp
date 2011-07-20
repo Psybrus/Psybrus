@@ -87,6 +87,51 @@ void SysJobQueue::schedule()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// workerUsageMask
+BcU32 SysJobQueue::workerUsageMask() const
+{
+	BcU32 UsageMask = 0x0;
+	for( BcU32 Idx = 0; Idx < NoofWorkers_; ++Idx )
+	{
+		SysJobWorker* pWorker = JobWorkers_[ Idx ];
+		UsageMask |= pWorker->inUse() ? ( 1 << Idx ) : 0;
+	}
+	
+	return UsageMask;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// moveJobsBack
+void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
+{
+	BcScopedLock< BcMutex > Lock( QueueLock_ ); // NOTE: Have a pending add queue instead of shared global one to prevent this.
+
+	// Remove all jobs which don't fit specified worker mask, and put aside.
+	// NOTE: Doing it backwards means we only need one splice, and the fact is
+	//       most rendering, sound, and file IO will be locked to single workers
+	//       to keep execution in order. This means we copy less around.
+	TJobQueue NewJobQueue;
+	for( TJobQueueIterator It( JobQueue_.begin() ); It != JobQueue_.end(); )
+	{
+		SysJob* pJob = (*It);
+		
+		// The mask matches perfectly, put it into another list and remove it.
+		if( pJob->WorkerMask_ != WorkerMask )
+		{
+			NewJobQueue.push_back( pJob );
+			It = JobQueue_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
+	
+	// Splice new list into the job queue.
+	JobQueue_.splice( JobQueue_.end(), NewJobQueue );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // execute
 //virtual
 void SysJobQueue::execute()
@@ -120,23 +165,24 @@ void SysJobQueue::execute()
 
 				// Attempt to schedule.
 				BcBool HasScheduled = BcFalse;
-				BcBool BlockedByMask = BcFalse; 
+				BcU32 BlockedMask = 0x0; 
 				for( BcU32 Idx = 0; Idx < NoofWorkers_; ++Idx )
 				{
-					if( pJob->WorkerMask_ & ( 1 << Idx ) )
+					BcU32 CurrMask = ( 1 << Idx );
+					if( pJob->WorkerMask_ & CurrMask )
 					{
 						SysJobWorker* pWorker = JobWorkers_[ Idx ];
 						HasScheduled = pWorker->giveJob( pJob );
 						
 						if( HasScheduled )
 						{
-							BcPrintf( "SysJobQueue: Scheduled %p on worker 0x%x\n", pJob, Idx );
+							//BcPrintf( "SysJobQueue: Scheduled %p on worker 0x%x\n", pJob, Idx );
 							break;
 						}
-					}
-					else
-					{
-						BlockedByMask = BcTrue;
+						else
+						{
+							BlockedMask |= CurrMask;
+						}
 					}
 				}
 				
@@ -151,18 +197,15 @@ void SysJobQueue::execute()
 				}
 				else
 				{
-					// If it's blocked by a mask, then put it in the back of the queue.
-					// Primitive way to handle it, but means we won't block other jobs
-					// unless we have multiple queues.
-					// TODO: Shuffle the job back 1 so we can process the next.
-					// TODO: This is a tight expensive loop, if we are blocked we should
-					//       either sleep, or wait for a schedule signal.
-					if( BlockedByMask )
+					// If a mask is blocked, move all jobs which have an exact match to the
+					// blocked mask to the back of the queue to prevent contention.
+					// This means jobs queued by specific systems with particular worker masks
+					// will also keep their order. Differing masks can't possibly keep the same
+					// order.
+					if( BlockedMask != 0x0 )
 					{
-						BcScopedLock< BcMutex > Lock( QueueLock_ );	
-						JobQueue_.pop_front();
-						JobQueue_.push_back( pJob );
-					}	
+						moveJobsBack( BlockedMask );
+					}
 				}
 			}
 			while( NoofJobsQueued_ != 0 );
