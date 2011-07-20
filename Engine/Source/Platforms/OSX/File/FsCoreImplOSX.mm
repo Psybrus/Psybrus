@@ -159,32 +159,75 @@ BcBool FsCoreImplOSX::fileStats( const BcChar* pFilename, FsStats& Stats )
 
 //////////////////////////////////////////////////////////////////////////
 // addReadOp
-void doReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+class Job_ReadOp:
+	public SysJob
 {
-	pImpl->seek( Position );
-	pImpl->read( pData, Bytes );
-	DoneCallback( pData, Bytes );
-}
+public:
+	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+		pImpl_( pImpl ),
+		Position_( Position ),
+		pData_( pData ),
+		Bytes_( Bytes ),
+		DoneCallback_( DoneCallback )
+	{
+		
+	}
+	
+	void execute()
+	{
+		pImpl_->seek( Position_ );
+		pImpl_->read( pData_, Bytes_ );
+		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
+	}
+	
+private:
+	FsFileImpl* pImpl_;
+	BcSize Position_;
+	void* pData_;
+	BcSize Bytes_;
+	FsFileOpDelegate DoneCallback_;
+};
 
 void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	BcDelegateCall< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) > DelegateCall( BcDelegate< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) >::bind< doReadOp >() );
-	CommandBuffer_.enqueue( DelegateCall, pImpl, Position, pData, Bytes, DoneCallback );
+	SysKernel::pImpl()->queueJob( new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ), 0x1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addWriteOp
-void doWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+class Job_WriteOp:
+	public SysJob
 {
-	pImpl->seek( Position );
-	pImpl->write( pData, Bytes );
-	DoneCallback( pData, Bytes );
-}
+public:
+	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+		pImpl_( pImpl ),
+		Position_( Position ),
+		pData_( pData ),
+		Bytes_( Bytes ),
+		DoneCallback_( DoneCallback )
+	{
+		
+	}
+	
+	void execute()
+	{
+		pImpl_->seek( Position_ );
+		pImpl_->write( pData_, Bytes_ );
+		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
+	}
+	
+private:
+	FsFileImpl* pImpl_;
+	BcSize Position_;
+	void* pData_;
+	BcSize Bytes_;
+	FsFileOpDelegate DoneCallback_;
+};
+
 
 void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	BcDelegateCall< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) > DelegateCall( BcDelegate< void(*)(FsFileImpl*, BcSize, void*, BcSize, FsFileOpDelegate) >::bind< doWriteOp >() );
-	CommandBuffer_.enqueue( DelegateCall, pImpl, Position, pData, Bytes, DoneCallback );
+	SysKernel::pImpl()->queueJob( new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ), 0x1 );
 }
 
 //////////////////////////////////////////////////////////////////////////

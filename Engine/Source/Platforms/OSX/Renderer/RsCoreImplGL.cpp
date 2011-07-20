@@ -23,6 +23,8 @@
 #include "RsPrimitiveGL.h"
 #include "RsStateBlockGL.h"
 
+#include "SysKernel.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( RsCoreImplGL );

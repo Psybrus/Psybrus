@@ -53,6 +53,8 @@ int main( int argc, char* argv[] )
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
 
+#include "SysJobQueue.h"
+
 OsEventCore::Delegate DelegateQuit;
 SysSystemEvent::Delegate DelegateRender;
 SysSystemEvent::Delegate DelegateUpdate;

@@ -18,6 +18,7 @@
 #include "BcTimer.h"
 #include "SysSystem.h"
 #include "SysJobQueue.h"
+#include "SysDelegateDispatcher.h"
 
 #include <list>
 #include <map>
@@ -66,7 +67,40 @@ public:
 	 * Queue job.
 	 */
 	void						queueJob( SysJob* pJob, BcU32 WorkerMask = BcErrorCode );
+
+	/**
+	 * Enqueue callback.
+	 */
+	template< typename _Fn >
+	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall();
+		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
+	}
 	
+	/**
+	 * Enqueue callback.
+	 */
+	template< typename _Fn, typename _P0 >
+	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0 );
+		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
+	}
+
+	/**
+	 * Enqueue callback.
+	 */
+	template< typename _Fn, typename _P0, typename _P1 >
+	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0, P1 );
+		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
+	}
+
 private:
 	/**
 	* Add systems.
@@ -96,6 +130,7 @@ private:
 	BcReal						SleepAccumulator_;
 	
 	SysJobQueue					JobQueue_;
+	SysDelegateDispatcher		DelegateDispatcher_;
 };
 
 #endif
