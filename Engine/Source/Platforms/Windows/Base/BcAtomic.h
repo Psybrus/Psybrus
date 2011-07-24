@@ -25,7 +25,7 @@
 *	Used to perform simple atomic operations on a type of up to
 *	4 bytes in size. Typically used for ref counts, and lockless
 *	algorithms.
-*	<br>
+*	<br/>
 *	NOTE: Does not perform arithmetic correctly on pointer types.
 */
 template< typename _Ty >
