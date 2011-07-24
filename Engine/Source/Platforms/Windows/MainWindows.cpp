@@ -47,11 +47,12 @@ int main( int argc, char* argv[] )
 #include "ScnModel.h"
 #include "ScnCanvas.h"
 #include "ScnShader.h"
-#include "ScnScript.h"
 #include "ScnFont.h"
-#include "ScnPackage.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
+
+#include "GaPackage.h"
+#include "GaScript.h"
 
 OsEventCore::Delegate DelegateQuit;
 SysSystemEvent::Delegate DelegateRender;
@@ -135,10 +136,11 @@ void PsyGameInit( SysKernel& Kernel )
 	CsCore::pImpl()->registerResource< ScnShader >();
 	CsCore::pImpl()->registerResource< ScnFont >();
 	CsCore::pImpl()->registerResource< ScnFontInstance >();
-	CsCore::pImpl()->registerResource< ScnPackage >();
-	CsCore::pImpl()->registerResource< ScnScript >();
 	CsCore::pImpl()->registerResource< ScnSound >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
+
+	CsCore::pImpl()->registerResource< GaPackage >();
+	CsCore::pImpl()->registerResource< GaScript >();
 
 	// Run the kernel.
 	Kernel.run();

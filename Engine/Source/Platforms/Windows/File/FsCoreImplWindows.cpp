@@ -119,6 +119,7 @@ BcBool FsCoreImplWindows::fileStats( const BcChar* pFilename, FsStats& Stats )
 {
 	/*
 	struct stat Attrib;
+
 	if( stat( pFilename, &Attrib ) == 0 )
 	{
 		struct tm* pCreatedTime;
