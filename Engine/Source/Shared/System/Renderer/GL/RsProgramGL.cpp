@@ -37,8 +37,8 @@ void RsProgramGL::create()
 	// Some checks to ensure validity.
 	BcAssert( pVertexShader_ != NULL );
 	BcAssert( pFragmentShader_ != NULL );
-	BcAssert( pVertexShader_->getHandle< GLuint >() != 0 );
-	BcAssert( pFragmentShader_->getHandle< GLuint >() != 0 );	
+	BcAssert( pVertexShader_->hasHandle() );
+	BcAssert( pFragmentShader_->hasHandle() );	
 
 	// Create program.
 	GLuint Handle = glCreateProgram();
@@ -89,7 +89,7 @@ void RsProgramGL::create()
 			addParameter( UniformName, Idx, Type );
 		}
 	}
-			
+	
 	// Catch error.
 	RsGLCatchError;
 }
@@ -159,10 +159,13 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			TParameter& Parameter = (*It);
 			const GLint Handle = Parameter.Handle_;
 			const BcU32 Offset = Parameter.Offset_;
+			/*
 #ifdef PSY_DEBUG
 			BcF32* pFloatParameterOffset = &pFloatParameter[ Offset ];
 			BcS32* pIntParameterOffset = &pIntParameter[ Offset ];
 #endif
+			 */
+			
 			switch( Parameter.Type_ )
 			{
 				case rsSPT_FLOAT:

@@ -92,11 +92,11 @@ eEvtReturn doRemoteOpened( EvtID, const SysSystemEvent& Event )
 eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 {
 	OsCore::pImpl()->pKernel()->startSystem( "RmCore" );
+	OsCore::pImpl()->pKernel()->startSystem( "RsCoreImplGL" );
+	OsCore::pImpl()->pKernel()->startSystem( "SsCoreALInternal" );
 	OsCore::pImpl()->pKernel()->startSystem( "FsCoreImplOSX" );
 	OsCore::pImpl()->pKernel()->startSystem( "CsCoreClient" );
 	OsCore::pImpl()->pKernel()->startSystem( "GaCore" );
-	OsCore::pImpl()->pKernel()->startSystem( "RsCoreImplGL" );
-	OsCore::pImpl()->pKernel()->startSystem( "SsCoreALInternal" );
 
 	// Bind delegates
 	DelegateQuit = OsEventCore::Delegate::bind< doQuit >();

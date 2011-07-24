@@ -79,7 +79,7 @@ void SsChannelAL::play( SsSampleAL* Sample, SsChannelCallback* Callback )
 // update
 void SsChannelAL::update()
 {
-	if( ALSource_ != NULL )
+	if( ALSource_ != 0 )
 	{
 		// Capture AL source state.
 		// Check state of source and change state depending.

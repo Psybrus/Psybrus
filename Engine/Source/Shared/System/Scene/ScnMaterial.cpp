@@ -182,7 +182,6 @@ void ScnMaterial::destroy()
 //virtual
 BcBool ScnMaterial::isReady()
 {
-	// TODO: LOCK!
 	for( ScnTextureMapIterator Iter( TextureMap_.begin() ); Iter != TextureMap_.end(); ++Iter )
 	{
 		if( (*Iter).second->isReady() == BcFalse )
@@ -206,7 +205,7 @@ BcBool ScnMaterial::createInstance( const std::string& Name, ScnMaterialInstance
 void ScnMaterial::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -235,7 +234,7 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 			}			
 		}
 		
-		pFile_->getChunk( ++ChunkIdx );
+		getChunk( ++ChunkIdx );
 	}
 	else if( pChunk->ID_ == BcHash( "stateblock" ) )
 	{

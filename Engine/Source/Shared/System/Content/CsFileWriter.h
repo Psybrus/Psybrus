@@ -38,8 +38,6 @@ private:
 	BcFile						File_;
 	CsFileHeader				Header_;
 	CsFileChunkNativeList		Chunks_;
-	CsFileReadyDelegate			ReadyDelegate_;
-	CsFileChunkDelegate			ChunkDelegate_;
 };
 
 

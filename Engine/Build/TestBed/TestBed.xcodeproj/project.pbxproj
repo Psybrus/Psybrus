@@ -296,6 +296,12 @@
 		C8D6D96C13DBCE9A00099DB9 /* RsVertexBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D95913DBCE9A00099DB9 /* RsVertexBufferGL.cpp */; };
 		C8D6D96F13DBCEB700099DB9 /* BcMisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D96D13DBCEB700099DB9 /* BcMisc.cpp */; };
 		C8D6D97013DBCEB700099DB9 /* BcMisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D96D13DBCEB700099DB9 /* BcMisc.cpp */; };
+		C8D6D99913DBF6F800099DB9 /* GaComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D99313DBF6F300099DB9 /* GaComponent.cpp */; };
+		C8D6D99A13DBF6F800099DB9 /* GaComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D99313DBF6F300099DB9 /* GaComponent.cpp */; };
+		C8D6D99B13DBF6F800099DB9 /* GaEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D99513DBF6F300099DB9 /* GaEntity.cpp */; };
+		C8D6D99C13DBF6F800099DB9 /* GaEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D99513DBF6F300099DB9 /* GaEntity.cpp */; };
+		C8D6D99D13DBF6F800099DB9 /* GaTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D99713DBF6F500099DB9 /* GaTransform.cpp */; };
+		C8D6D99E13DBF6F800099DB9 /* GaTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D99713DBF6F500099DB9 /* GaTransform.cpp */; };
 		C8E64D811351980E00AAF73E /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */; };
 		C8E64D8A135339F400AAF73E /* ScnShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D88135339F300AAF73E /* ScnShader.cpp */; };
 /* End PBXBuildFile section */
@@ -656,6 +662,12 @@
 		C8D6D96E13DBCEB700099DB9 /* BcMisc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcMisc.h; sourceTree = "<group>"; };
 		C8D6D97113DBCECC00099DB9 /* BcMisc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcMisc.cpp; path = ../../Source/Platforms/Windows/Base/BcMisc.cpp; sourceTree = "<group>"; };
 		C8D6D97213DBCECC00099DB9 /* BcMisc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcMisc.h; path = ../../Source/Platforms/Windows/Base/BcMisc.h; sourceTree = "<group>"; };
+		C8D6D99313DBF6F300099DB9 /* GaComponent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaComponent.cpp; path = Game/GaComponent.cpp; sourceTree = "<group>"; };
+		C8D6D99413DBF6F300099DB9 /* GaComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaComponent.h; path = Game/GaComponent.h; sourceTree = "<group>"; };
+		C8D6D99513DBF6F300099DB9 /* GaEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaEntity.cpp; path = Game/GaEntity.cpp; sourceTree = "<group>"; };
+		C8D6D99613DBF6F400099DB9 /* GaEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaEntity.h; path = Game/GaEntity.h; sourceTree = "<group>"; };
+		C8D6D99713DBF6F500099DB9 /* GaTransform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaTransform.cpp; path = Game/GaTransform.cpp; sourceTree = "<group>"; };
+		C8D6D99813DBF6F600099DB9 /* GaTransform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaTransform.h; path = Game/GaTransform.h; sourceTree = "<group>"; };
 		C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnCanvas.cpp; sourceTree = "<group>"; };
 		C8E64D801351980D00AAF73E /* ScnCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnCanvas.h; sourceTree = "<group>"; };
 		C8E64D88135339F300AAF73E /* ScnShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnShader.cpp; sourceTree = "<group>"; };
@@ -1268,6 +1280,12 @@
 		C8A16A53136045070054F3AF /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				C8D6D99313DBF6F300099DB9 /* GaComponent.cpp */,
+				C8D6D99413DBF6F300099DB9 /* GaComponent.h */,
+				C8D6D99513DBF6F300099DB9 /* GaEntity.cpp */,
+				C8D6D99613DBF6F400099DB9 /* GaEntity.h */,
+				C8D6D99713DBF6F500099DB9 /* GaTransform.cpp */,
+				C8D6D99813DBF6F600099DB9 /* GaTransform.h */,
 				C84C83BE13652FF900529F3E /* GaLibraryMath.cpp */,
 				C84C83BF13652FF900529F3E /* GaLibraryMath.h */,
 				C8A16A5A136045610054F3AF /* GaCore.cpp */,
@@ -1576,6 +1594,9 @@
 				C8D6D96913DBCE9A00099DB9 /* RsTextureGL.cpp in Sources */,
 				C8D6D96B13DBCE9A00099DB9 /* RsVertexBufferGL.cpp in Sources */,
 				C8D6D96F13DBCEB700099DB9 /* BcMisc.cpp in Sources */,
+				C8D6D99913DBF6F800099DB9 /* GaComponent.cpp in Sources */,
+				C8D6D99B13DBF6F800099DB9 /* GaEntity.cpp in Sources */,
+				C8D6D99D13DBF6F800099DB9 /* GaTransform.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1720,6 +1741,9 @@
 				C8D6D96A13DBCE9A00099DB9 /* RsTextureGL.cpp in Sources */,
 				C8D6D96C13DBCE9A00099DB9 /* RsVertexBufferGL.cpp in Sources */,
 				C8D6D97013DBCEB700099DB9 /* BcMisc.cpp in Sources */,
+				C8D6D99A13DBF6F800099DB9 /* GaComponent.cpp in Sources */,
+				C8D6D99C13DBF6F800099DB9 /* GaEntity.cpp in Sources */,
+				C8D6D99E13DBF6F800099DB9 /* GaTransform.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1830,6 +1854,7 @@
 					"$(HEADER_SEARCH_PATHS)",
 					"../../Source/**",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
@@ -1861,6 +1886,7 @@
 					/Library/Frameworks/SDL.framework/Headers,
 					"$(HEADER_SEARCH_PATHS)",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
 				SDKROOT = macosx10.4;

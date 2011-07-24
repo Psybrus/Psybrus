@@ -38,7 +38,7 @@ public:
 	/**
 	 * Invalidate render state.
 	 */
-	void							invalidateRenderState( eRsRenderState State );
+	void							invalidateRenderState();
 	
 	/**
 	 * Invalidate texture state.

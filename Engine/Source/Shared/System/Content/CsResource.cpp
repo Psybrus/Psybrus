@@ -119,10 +119,25 @@ void CsResource::release()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getFullName
+// getName
 const std::string& CsResource::getName() const
 {
 	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getChunk
+void CsResource::getChunk( BcU32 Chunk, BcBool TriggerLoad )
+{
+	acquire(); // Prevent object being released until callback.b
+	pFile_->getChunk( Chunk, TriggerLoad );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofChunks
+BcU32 CsResource::getNoofChunks() const
+{
+	return pFile_->getNoofChunks();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,6 +178,7 @@ void CsResource::delegateFileReady( CsFile* pFile )
 {
 	BcScopedLock< BcAtomicMutex > Lock( Lock_ );
 	fileReady();
+	release();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,4 +187,5 @@ void CsResource::delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const Cs
 {
 	BcScopedLock< BcAtomicMutex > Lock( Lock_ );
 	fileChunkReady( ChunkIdx, pChunk, pData );
+	release();
 }

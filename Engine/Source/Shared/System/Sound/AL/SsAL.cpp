@@ -40,7 +40,7 @@ void alBreakOnError()
 			break;
 		}
 
-		BcBreakpoint;
+		//BcBreakpoint;
 	}
 }
 

@@ -107,7 +107,7 @@ void ScnTexture::destroy()
 BcBool ScnTexture::isReady()
 {
 	// We're ready if we have a valid texture pointer.
-	return pTexture_ != NULL;
+	return pTexture_ != NULL && pTexture_->hasHandle();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@ void ScnTexture::setup()
 void ScnTexture::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,7 +211,7 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void
 		// Request all texture levels.
 		for( BcU32 iLevel = 0; iLevel < pHeader_->Levels_; ++iLevel )
 		{
-			pFile_->getChunk( ++ChunkIdx );
+			getChunk( ++ChunkIdx );
 		}
 		
 		// We update the header, create a new texture rather than updating.

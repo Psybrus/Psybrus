@@ -282,7 +282,7 @@ void ScnModel::setup()
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
 		TPrimitiveData* pPrimitiveData = &pPrimitiveData_[ PrimitiveIdx ];
-		TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
+		//TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
 
 		// Create GPU resources.
 		RsVertexBuffer* pVertexBuffer = RsCore::pImpl() ? RsCore::pImpl()->createVertexBuffer( pPrimitiveData->VertexFormat_, pPrimitiveData->NoofVertices_, pVertexBufferData ) : NULL;
@@ -317,12 +317,12 @@ void ScnModel::setup()
 void ScnModel::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
-	pFile_->getChunk( 1 );
-	pFile_->getChunk( 2 );
-	pFile_->getChunk( 3 );
-	pFile_->getChunk( 4 );
-	pFile_->getChunk( 5 );
+	getChunk( 0 );
+	getChunk( 1 );
+	getChunk( 2 );
+	getChunk( 3 );
+	getChunk( 4 );
+	getChunk( 5 );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -18,8 +18,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event groups
-#define OS_EVENTGROUP_CORE		EVT_MAKE_ID( 'Os', 0 )
-#define OS_EVENTGROUP_INPUT		EVT_MAKE_ID( 'Os', 1 )
+#define OS_EVENTGROUP_CORE		EVT_MAKE_ID( 'O', 's', 0 )
+#define OS_EVENTGROUP_INPUT		EVT_MAKE_ID( 'O', 's', 1 )
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event enum

@@ -65,22 +65,33 @@ void RsStateBlock::setDefaultState()
 
 //////////////////////////////////////////////////////////////////////////
 // invalidateRenderState
-void RsStateBlock::invalidateRenderState( eRsRenderState State )
+void RsStateBlock::invalidateRenderState()
 {
-	TRenderStateValue& RenderStateValue = RenderStateValues_[ State ];
+	NoofRenderStateBinds_ = 0;
+	for( BcU32 Idx = 0; Idx > rsRS_MAX; ++Idx )
+	{
+		TRenderStateValue& RenderStateValue = RenderStateValues_[ Idx ];
 
-	RenderStateValue.Dirty_ = BcTrue;
+		RenderStateValue.Dirty_ = BcTrue;
+		
+		BcAssert( NoofRenderStateBinds_ < rsRS_MAX );
+		RenderStateBinds_[ NoofRenderStateBinds_++ ] = Idx;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // invalidateTextureState
 void RsStateBlock::invalidateTextureState()
 {
+	NoofTextureStateBinds_ = 0;
 	for( BcU32 Idx = 0; Idx < rsTT_MAX; ++Idx )
 	{
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ Idx ];
 		
 		TextureStateValue.Dirty_ = BcTrue;
+		
+		BcAssert( NoofTextureStateBinds_ < rsTT_MAX );
+		TextureStateBinds_[ NoofTextureStateBinds_++ ] = Idx;
 	}
 }
 

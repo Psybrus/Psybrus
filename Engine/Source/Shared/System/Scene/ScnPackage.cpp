@@ -124,7 +124,7 @@ BcBool ScnPackage::isReady()
 void ScnPackage::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ void ScnPackage::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void
 	{
 		pHeader_ = (THeader*)pData;
 		
-		pFile_->getChunk( ++ChunkIdx );
+		getChunk( ++ChunkIdx );
 	}
 	else if( pChunk->ID_ == BcHash( "resources" ) )
 	{

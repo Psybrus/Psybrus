@@ -26,7 +26,7 @@ BcU32 SysArgc_ = 0;
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysKernel::SysKernel():
-	JobQueue_( 4 ) // TODO: Determine number of hardware threads.
+	JobQueue_( BcGetHardwareThreadCount() )
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
@@ -115,23 +115,9 @@ void SysKernel::run()
 		
 		if( SleepAccumulator_ > 0.0f )
 		{
-#ifdef PLATFORM_OSX
-			//BcPrintf( "Time: %f ms, Slept: %f ms\n", TimeSpent * 1000.0f, SleepAccumulator_ * 1000.0f );
-
-			// Platform specific hack, FIX ME LATER.
-			BcU32 USleepTime = BcU32( SleepAccumulator_ * 1000000.0f );
-			SleepAccumulator_ -= BcReal( USleepTime ) / 1000000.0f;
-			::usleep( USleepTime );
-#endif
-
-#ifdef PLATFORM_WINDOWS
-			//BcPrintf( "Time: %f ms, Slept: %f ms\n", TimeSpent * 1000.0f, SleepAccumulator_ * 1000.0f );
-
-			// Platform specific hack, FIX ME LATER.
-			BcU32 USleepTime = BcU32( SleepAccumulator_ * 1000.0f );
-			SleepAccumulator_ -= BcReal( USleepTime ) / 1000.0f;
-			::Sleep( USleepTime );
-#endif
+			BcReal SleepTime = SleepAccumulator_;
+			SleepAccumulator_ -= SleepTime;
+			BcSleep( SleepTime );
 		}
 	}
 	while( SystemList_.size() > 0 );

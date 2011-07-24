@@ -1,26 +1,32 @@
 /**************************************************************************
-*
-* File:		BcMisc.h
-* Author:	Neil Richardson 
-* Ver/Date:	24/07/11
-* Description:
-*		
-*		
-*
-*
-* 
-**************************************************************************/
+ *
+ * File:		BcMisc.h
+ * Author: 	Neil Richardson 
+ * Ver/Date:	
+ *			
+ * Description:
+ *		Misc functions.
+ *		
+ *		
+ * 
+ **************************************************************************/
 
-#ifndef __BcMisc_H__
-#define __BcMisc_H__
+#ifndef __BCMISC_H__
+#define __BCMISC_H__
 
 #include "BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// BcMisc
+// BcSleep
+void BcSleep( BcReal Seconds );
 
+//////////////////////////////////////////////////////////////////////////
+// BcYield
+void BcYield();
+
+//////////////////////////////////////////////////////////////////////////
+// BcGetHardwareThreadCount
+BcU32 BcGetHardwareThreadCount();
 
 
 #endif
-
-

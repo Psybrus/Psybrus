@@ -17,6 +17,7 @@
 #include "BcTypes.h"
 #include "BcDebug.h"
 #include "BcTimer.h"
+#include "BcMisc.h"
 
 #include "EvtPublisher.h"
 

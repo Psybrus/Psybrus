@@ -103,7 +103,7 @@ private:
 	BcBool ClearDepth_;
 
 	//
-	std::array< BcPlane, 6 >	FrustumPlanes_;
+	BcPlane FrustumPlanes_[ 6 ];
 };
 
 //////////////////////////////////////////////////////////////////////////

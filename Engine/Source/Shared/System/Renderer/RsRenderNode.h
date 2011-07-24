@@ -42,6 +42,7 @@ class RsRenderNode
 {
 public:
 	RsRenderNode();
+	virtual ~RsRenderNode();
 
 	/**
 	*	Perform default render.
