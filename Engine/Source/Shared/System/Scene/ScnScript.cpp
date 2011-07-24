@@ -122,7 +122,7 @@ int ScnScript::execute( BcBool Now )
 void ScnScript::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////

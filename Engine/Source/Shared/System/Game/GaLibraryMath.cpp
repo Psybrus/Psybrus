@@ -1629,7 +1629,6 @@ void GM_CDECL GaMat4::OpSetDot( gmThread* a_thread, gmVariable* a_operands )
 	}
 	
 	// Grab value.
-	BcReal Value = 0.0f;
 	if( a_operands[1].m_type == GaVec4::GM_TYPE )
 	{
 		BcVec4d* pVec = (BcVec4d*) ((gmUserObject*)GM_OBJECT(a_operands[1].m_value.m_ref))->m_user;

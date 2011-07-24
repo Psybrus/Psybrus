@@ -346,6 +346,7 @@ int GM_CDECL GaMaterialInstance::SetParameter( gmThread* a_thread )
 	{
 		// Set from table.
 		GM_CHECK_TABLE_PARAM( pTable, 0 );
+		BcUnusedVar( pTable );
 	
 		// Not implemented yet!
 		return GM_EXCEPTION;		
@@ -561,8 +562,8 @@ int GM_CDECL GaFrame::FrameBegin( gmThread* a_thread )
 	
 	// TEMP: Setup default viewport.
 	RsViewport Viewport( 0, 0, 1280, 720 );
-	BcReal W = 1280.0f * 0.5f;
-	BcReal H = 720.0f * 0.5f;
+	//BcReal W = 1280.0f * 0.5f;
+	//BcReal H = 720.0f * 0.5f;
 	
 	pFrame->setRenderTarget( NULL );
 	pFrame->setViewport( Viewport );

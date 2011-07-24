@@ -44,12 +44,12 @@ typedef	float						BcF32;
 typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
-typedef bool						BcBool;
+typedef BcU32						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
-#define BcTrue						BcBool( true )
-#define BcFalse						BcBool( false )
+#define BcTrue						BcBool( 1 )
+#define BcFalse						BcBool( 0 )
 #define BcBreakpoint				__asm { int 3h }
 #define BcErrorCode					0xffffffff
 #define BcLogWrite( t )
@@ -109,12 +109,12 @@ typedef	float						BcF32;
 typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
-typedef bool						BcBool;
+typedef BcU32						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
-#define BcTrue						BcBool( true )
-#define BcFalse						BcBool( false )
+#define BcTrue						BcBool( 1 )
+#define BcFalse						BcBool( 0 )
 #define BcBreakpoint				asm( "int $3" )
 #define BcErrorCode					0xffffffff
 #define BcLogWrite( t )
@@ -172,7 +172,7 @@ typedef	float						BcF32;
 typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
-typedef bool						BcBool;
+typedef BcU32						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
@@ -222,7 +222,7 @@ typedef	float						BcF32;
 typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
-typedef bool						BcBool;
+typedef BcU32						BcBool;
 typedef int							BcHandle;
 typedef size_t						BcSize;
 
@@ -247,7 +247,7 @@ typedef	float						BcF32;
 typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
-typedef bool						BcBool;
+typedef BcU32						BcBool;
 typedef int							BcHandle;
 typedef std::size_t					BcSize;
 
@@ -261,8 +261,8 @@ typedef std::size_t					BcSize;
 #error No supported architecture specified.
 #endif
 
-#define BcTrue						BcBool( true )
-#define BcFalse						BcBool( false )
+#define BcTrue						BcBool( 1 )
+#define BcFalse						BcBool( 0 )
 #define BcErrorCode					0xffffffff
 #define BcLogWrite( t )
 #define BcUnusedVar( t )			(void)t

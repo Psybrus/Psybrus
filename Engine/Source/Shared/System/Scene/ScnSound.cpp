@@ -93,7 +93,11 @@ void ScnSound::create()
 //virtual
 void ScnSound::destroy()
 {
-	
+	if( pSample_ != NULL )
+	{
+		SsCore::pImpl()->destroyResource( pSample_ );
+		pSample_ = NULL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,7 +132,7 @@ void ScnSound::setup()
 void ScnSound::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -139,7 +143,7 @@ void ScnSound::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* 
 	{
 		pHeader_ = (THeader*)pData;
 		
-		pFile_->getChunk( ++ChunkIdx );
+		getChunk( ++ChunkIdx );
 	}
 	else if( pChunk->ID_ == BcHash( "sample" ) )
 	{

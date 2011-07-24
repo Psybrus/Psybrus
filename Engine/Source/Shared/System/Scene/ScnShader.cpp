@@ -174,7 +174,7 @@ BcBool ScnShader::isReady()
 	{
 		for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
 		{
-			if( (*Iter).second->getHandle< BcU64 >() == 0 )
+			if( (*Iter).second->hasHandle() == BcFalse )
 			{
 				IsReady = BcFalse;
 				break;
@@ -182,7 +182,6 @@ BcBool ScnShader::isReady()
 		}
 	}
 	
-	// TODO: Lockless list/map.
 	return IsReady;
 }
 
@@ -253,7 +252,7 @@ RsShader* ScnShader::getShader( BcU32 PermutationFlags, ScnShader::TShaderMap& S
 void ScnShader::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -268,17 +267,17 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 	
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofVertexShaderPermutations_; ++Idx )
 		{
-			pFile_->getChunk( ++ChunkIdx );
+			getChunk( ++ChunkIdx );
 		}
 
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofFragmentShaderPermutations_; ++Idx )
 		{
-			pFile_->getChunk( ++ChunkIdx );
+			getChunk( ++ChunkIdx );
 		}
 
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofProgramPermutations_; ++Idx )
 		{
-			pFile_->getChunk( ++ChunkIdx );
+			getChunk( ++ChunkIdx );
 		}
 	}
 	else if( pChunk->ID_ == BcHash( "vertex" ) )

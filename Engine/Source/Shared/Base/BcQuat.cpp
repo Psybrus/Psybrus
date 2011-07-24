@@ -136,10 +136,8 @@ void BcQuat::fromMatrix4d( const BcMat4d& Mat )
 	}
 }
 
-BcMat4d BcQuat::asMatrix4d()  const
+void BcQuat::asMatrix4d( BcMat4d& Matrix )  const
 {
-	BcMat4d lTemp;
-	
 	// Multiply out the values and store in a variable
 	// since storing in variables is quicker than 
 	// multiplying floating point numbers again and again.
@@ -162,27 +160,25 @@ BcMat4d BcQuat::asMatrix4d()  const
 	// Remainder of z() multiplications
 	const BcReal lZZ2 = 2.0f * z() * z();
 	
-	lTemp[0][0] = ( 1.0f - ( lYY2 + lZZ2 ) );	
-	lTemp[0][1] = ( lXY2 + lWZ2 );
-	lTemp[0][2] = ( lXZ2 - lWY2 );
-	lTemp[0][3] = ( 0.0f );
+	Matrix[0][0] = ( 1.0f - ( lYY2 + lZZ2 ) );	
+	Matrix[0][1] = ( lXY2 + lWZ2 );
+	Matrix[0][2] = ( lXZ2 - lWY2 );
+	Matrix[0][3] = ( 0.0f );
 	
-	lTemp[1][0] = ( lXY2 - lWZ2 );
-	lTemp[1][1] = ( 1.0f - ( lXX2 + lZZ2 ) );
-	lTemp[1][2] = ( lYZ2 + lWX2 );
-	lTemp[1][3] = ( 0.0f );
+	Matrix[1][0] = ( lXY2 - lWZ2 );
+	Matrix[1][1] = ( 1.0f - ( lXX2 + lZZ2 ) );
+	Matrix[1][2] = ( lYZ2 + lWX2 );
+	Matrix[1][3] = ( 0.0f );
 
-	lTemp[2][0] = ( lXZ2 + lWY2 );
-	lTemp[2][1] = ( lYZ2 - lWX2 );
-	lTemp[2][2] = ( 1.0f - ( lXX2 + lYY2 ) );
-	lTemp[2][3] = ( 0.0f );
+	Matrix[2][0] = ( lXZ2 + lWY2 );
+	Matrix[2][1] = ( lYZ2 - lWX2 );
+	Matrix[2][2] = ( 1.0f - ( lXX2 + lYY2 ) );
+	Matrix[2][3] = ( 0.0f );
 	
-	lTemp[3][0] = ( 0.0f );
-	lTemp[3][1] = ( 0.0f );
-	lTemp[3][2] = ( 0.0f );
-	lTemp[3][3] = ( 1.0f );
-
-	return lTemp;
+	Matrix[3][0] = ( 0.0f );
+	Matrix[3][1] = ( 0.0f );
+	Matrix[3][2] = ( 0.0f );
+	Matrix[3][3] = ( 1.0f );
 }
 
 void BcQuat::calcFromXYZ()

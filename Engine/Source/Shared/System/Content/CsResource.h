@@ -211,8 +211,19 @@ public:
 	 * Get name.
 	 */
 	const std::string&				getName() const;
-		
 	
+	
+protected:
+	/**
+	 * Get chunk. (See CsFile)
+	 */
+	void							getChunk( BcU32 Chunk, BcBool TriggerLoad = BcTrue );
+
+	/**
+	 * Get number of chunks. (See CsFile)
+	 */
+	BcU32							getNoofChunks() const;
+
 private:
 	friend class CsCore;
 	
@@ -220,7 +231,11 @@ private:
 	void							delegateFileReady( CsFile* pFile );
 	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
+#if PSY_SERVER
 protected:
+#else
+private:
+#endif
 	CsFile*							pFile_;
 	
 private:

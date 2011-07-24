@@ -190,13 +190,13 @@ void ScnTextureAtlas::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk,
 	{
 		pAtlasHeader_ = (TAtlasHeader*)pData;
 		
-		pFile_->getChunk( ++ChunkIdx );
+		getChunk( ++ChunkIdx );
 	}
 	else if( pChunk->ID_ == BcHash( "atlasrects" ) )
 	{
 		pAtlasRects_ = (ScnRect*)pData;
 		
-		pFile_->getChunk( ++ChunkIdx );
+		getChunk( ++ChunkIdx );
 	}
 	else
 	{

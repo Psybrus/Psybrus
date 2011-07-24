@@ -45,7 +45,7 @@ public:
 
 	//
 	void fromMatrix4d( const BcMat4d& Mat );
-	BcMat4d asMatrix4d() const;
+	void asMatrix4d( BcMat4d& Matrix ) const;
 
 	// 
 	void fromEular( BcReal Yaw, BcReal Pitch, BcReal Roll );

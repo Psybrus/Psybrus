@@ -392,7 +392,7 @@ BcBool ScnFont::createInstance( const std::string& Name, ScnFontInstanceRef& Fon
 void ScnFont::fileReady()
 {
 	// File is ready, get the header chunk.
-	pFile_->getChunk( 0 );
+	getChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -404,7 +404,7 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* p
 		pHeader_ = (THeader*)pData;
 		
 		// Get glyph desc chunk.
-		pFile_->getChunk( ++ChunkIdx );
+		getChunk( ++ChunkIdx );
 		
 		// Request texture.
 		CsCore::pImpl()->requestResource( pHeader_->TextureName_, Texture_ );

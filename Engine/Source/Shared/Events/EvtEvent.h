@@ -26,16 +26,17 @@ typedef BcU32 EvtID;
 *	In an attempt to group up IDs, this macro is provided to generate an ID
 *	for a particular system/subsystem within the engine and game.							<br/>
 *
-*	The first parameter, _prefix, should be 2 characters single quoted.						<br/>
-*	Examples are: 'Rs' (Render system), 'Ss' (Sound system), 'Os' (Operating system).		<br/><br/>
+*	The first parameters, _prefixh & _prefixl, should be characters single quoted.			<br/>
+*	Examples are: 'R' & 's' (Render system), 'S' & 's' (Sound system),
+*   'O' & 's' (Operating system).															<br/><br/>
 *	
 *	The second parameter, _group, should be a value no greater than 0xff, and
 *	is used to split off IDs into groups of 256 values.										<br/><br/>
 *
 *	Practical example of usage:																<br/><br/>
 *
-*	#define OS_EVENTGROUP_CORE		EVT_MAKE_ID( 'Os', 0 )									<br/>
-*	#define OS_EVENTGROUP_INPUT		EVT_MAKE_ID( 'Os', 1 )									<br/>
+*	#define OS_EVENTGROUP_CORE		EVT_MAKE_ID( 'O', 's', 0 )								<br/>
+*	#define OS_EVENTGROUP_INPUT		EVT_MAKE_ID( 'O', 's', 1 )								<br/>
 *																							<br/>
 *	enum OsEvents																			<br/>
 *	{																						<br/>
@@ -57,7 +58,7 @@ typedef BcU32 EvtID;
 *		osEVT_MAX																			<br/>
 *	};																						<br/>
 */
-#define EVT_MAKE_ID( _prefix, _group ) EvtID( ( BcU32( L##_prefix & 0xffff ) << 16 ) | ( BcU32( _group & 0xff ) << 8 ) )
+#define EVT_MAKE_ID( _prefixh, _prefixl, _group ) EvtID( ( BcU32( _prefixh & 0xff ) << 24 ) | ( BcU32( _prefixl & 0xff ) << 16 ) | ( BcU32( _group & 0xff ) << 8 ) )
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event Return

@@ -41,6 +41,11 @@ public:
 	{
 		Handle_ = (BcU64)Handle;		
 	}
+	
+	BcBool								hasHandle() const
+	{
+		return Handle_ != 0;
+	}
 
 protected:
 	void*								pData_;

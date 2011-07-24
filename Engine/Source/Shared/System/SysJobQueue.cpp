@@ -21,22 +21,32 @@ SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	NoofJobsQueued_( 0 ),
 	NoofWorkers_( NoofWorkers )
 {
-	// Start our thread.
-	BcThread::start();
+	if( NoofWorkers_ > 0 )
+	{
+		// Start our thread.
+		BcThread::start();
+	}
+	else
+	{
+		Active_ = BcFalse;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 SysJobQueue::~SysJobQueue()
 {
-	// No longer active, shouldn't be receiving any more jobs.
-	Active_ = BcFalse;
+	if( NoofWorkers_ > 0 )
+	{
+		// No longer active, shouldn't be receiving any more jobs.
+		Active_ = BcFalse;
 	
-	// Resume thread.
-	ResumeEvent_.signal();
+		// Resume thread.
+		ResumeEvent_.signal();
 	
-	// Now join.
-	BcThread::join();	
+		// Now join.
+		BcThread::join();	
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,7 +55,7 @@ void SysJobQueue::queueJob( SysJob* pJob, BcU32 WorkerMask )
 {
 	BcAssertMsg( Active_ == BcTrue, "SysJobQueue: Trying to queue a job when inactive." );
 	
-	if( WorkerMask != 0 )
+	if( WorkerMask != 0 && NoofWorkers_ > 0 )
 	{
 		BcScopedLock< BcMutex > Lock( QueueLock_ );
 	
@@ -63,7 +73,7 @@ void SysJobQueue::queueJob( SysJob* pJob, BcU32 WorkerMask )
 	}
 	else
 	{
-		// No valid worker mask. Execute it in the same thread.
+		// No valid worker mask or no workers. Execute it in the same thread as calling.
 		pJob->internalExecute();
 	}
 }
@@ -74,8 +84,7 @@ void SysJobQueue::flushJobs()
 {
 	while( NoofJobsQueued_ != 0 )
 	{
-		// DIRTY HACK FOR PLATFORM.
-		::usleep( 0 );
+		BcYield();
 	}
 }
 

@@ -12,3 +12,9 @@
 **************************************************************************/
 
 #include "RsRenderNode.h"
+
+//virtual
+RsRenderNode::~RsRenderNode()
+{
+	
+}

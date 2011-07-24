@@ -55,6 +55,17 @@ void RsShaderGL::create()
 	setHandle( Handle );
 	
 	GLuint Error = glGetError();
+	BcUnusedVar( Error );
+	
+	switch( Type_ )
+	{
+		case GL_VERTEX_SHADER:
+			BcPrintf( "Creating GL_VERTEX_SHADER\n" );
+			break;
+		case GL_FRAGMENT_SHADER:
+			BcPrintf( "Creating GL_FRAGMENT_SHADER\n" );
+			break;
+	}
 	
 	if( Handle != 0 )
 	{

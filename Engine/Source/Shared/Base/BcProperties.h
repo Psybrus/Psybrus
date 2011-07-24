@@ -28,7 +28,6 @@ enum BcPropertyType
 	bcPT_NULL = 0,
 	bcPT_INT,
 	bcPT_REAL,
-	bcPT_BOOL,
 	bcPT_VEC2D,
 	bcPT_VEC3D,
 	bcPT_VEC4D,
@@ -64,39 +63,9 @@ struct BcPropertyTrait< BcS32 >
 };
 
 template<>
-struct BcPropertyTrait< BcU16 >
-{
-	static const BcPropertyType TYPE = bcPT_INT;
-};
-
-template<>
-struct BcPropertyTrait< BcS16 >
-{
-	static const BcPropertyType TYPE = bcPT_INT;
-};
-
-template<>
-struct BcPropertyTrait< BcU8 >
-{
-	static const BcPropertyType TYPE = bcPT_INT;
-};
-
-template<>
-struct BcPropertyTrait< BcS8 >
-{
-	static const BcPropertyType TYPE = bcPT_INT;
-};
-
-template<>
 struct BcPropertyTrait< BcReal >
 {
 	static const BcPropertyType TYPE = bcPT_REAL;
-};
-
-template<>
-struct BcPropertyTrait< BcBool >
-{
-	static const BcPropertyType TYPE = bcPT_BOOL;
 };
 
 template<>

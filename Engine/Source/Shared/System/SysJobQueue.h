@@ -17,6 +17,7 @@
 #include "BcTypes.h"
 #include "BcMutex.h"
 #include "BcThread.h"
+#include "BcMisc.h"
 #include "BcScopedLock.h"
 #include "SysJob.h"
 #include "SysJobWorker.h"

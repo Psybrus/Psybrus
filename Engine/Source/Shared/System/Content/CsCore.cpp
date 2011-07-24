@@ -547,6 +547,9 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 				// Call default initialiser.
 				Handle->initialise();
 				
+				// Acquire (callback from load will release).
+				Handle->acquire();
+				
 				// Trigger a file load.
 				if( pFile->load( CsFileReadyDelegate::bind< CsResource, &CsResource::delegateFileReady >( (CsResource*)Handle ),
 								CsFileChunkDelegate::bind< CsResource, &CsResource::delegateFileChunkReady >( (CsResource*)Handle ) ) )
@@ -562,6 +565,9 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 				else
 				{
 					BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
+					
+					// Release (callback from load won't happen on failure).
+					Handle->release();
 				}
 			}
 			else

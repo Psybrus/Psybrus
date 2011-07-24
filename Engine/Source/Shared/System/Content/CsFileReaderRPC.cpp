@@ -101,10 +101,6 @@ void CsFileReaderRPC::onHeaderLoaded( void* pData, BcSize Size )
 	{
 		pChunkProps_[ i ].Status_ = CsFileChunkProps::STATUS_NOT_LOADED;	
 	}
-	
-	// Load the chunks in.
-	BcU32 Position = sizeof( Header_ );
-	BcU32 Bytes = sizeof( CsFileChunk ) * Header_.NoofChunks_;
 }
 
 //////////////////////////////////////////////////////////////////////////
