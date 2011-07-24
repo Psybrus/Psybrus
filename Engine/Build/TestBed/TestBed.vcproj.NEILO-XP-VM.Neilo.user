@@ -10,7 +10,7 @@
 			>
 			<DebugSettings
 				Command="$(TargetPath)"
-				WorkingDirectory="F:\Documents\Dev\LD20\Dist"
+				WorkingDirectory="F:\Documents\Dev\Psybrus\Dist"
 				CommandArguments=""
 				Attach="false"
 				DebuggerType="3"
