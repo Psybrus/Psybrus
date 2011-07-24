@@ -115,7 +115,7 @@ void FsFileImplWindows::seek( BcSize Position )
 //virtual
 BcBool FsFileImplWindows::eof() const
 {
-	return ( feof( pFileHandle_ ) );
+	return feof( pFileHandle_ ) != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
