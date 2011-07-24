@@ -58,7 +58,7 @@ typedef size_t						BcSize;
 #define BcInline					inline
 #define BcForceInline				__forceinline
 
-#define BcAlign( v )				//__declspec( align( v ) )
+#define BcAlign( decl, v )			decl __declspec( align( v ) )
 #define BcOffsetOf( s, m ) 			(size_t)&(((s *)0)->m)
 
 #ifndef NULL
@@ -123,7 +123,7 @@ typedef size_t						BcSize;
 #define BcInline					inline
 #define BcForceInline				inline
 
-#define BcAlign( v )				
+#define BcAlign( decl, v )			decl
 #define BcOffsetOf( s, m ) 			(size_t)&(((s*)0)->m)
 
 #ifndef NULL
@@ -270,7 +270,7 @@ typedef std::size_t					BcSize;
 #define BcInline					inline
 #define BcForceInline				inline
 
-#define BcAlign( v )				__attribute__ ((aligned (v)))
+#define BcAlign( decl, v )			__attribute__ ((aligned (v))) decl
 #define BcOffsetOf( s, m ) 			(size_t)&(((s*)0)->m)
 
 #ifndef NULL

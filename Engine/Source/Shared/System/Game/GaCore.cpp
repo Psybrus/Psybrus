@@ -16,6 +16,7 @@
 #include "OsCore.h"
 
 #include "GaLibraryMath.h"
+#include "GaLibraryGame.h"
 #include "GaLibraryScene.h"
 
 #include "gmMachine.h"
@@ -119,7 +120,8 @@ bool GM_CDECL GmCallback_Machine(gmMachine * a_machine, gmMachineCommand a_comma
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-GaCore::GaCore()
+GaCore::GaCore():
+	pGmMachine_( NULL )
 {
 	
 }
@@ -141,58 +143,13 @@ void GaCore::open()
 	gmMachine::s_printCallback = GmCallback_Print;
 	gmMachine::s_machineCallback = GmCallback_Machine;
 	
-	// Create machine.
-	pGmMachine_ = new gmMachine();
-	
-	// Setup memory limits (7MB initial soft limit, 8MB hard limit, auto adjust).
-	pGmMachine_->SetDesiredByteMemoryUsageSoft( 7 * 1024 * 1024 );
-	pGmMachine_->SetDesiredByteMemoryUsageHard( 8 * 1024 * 1024 );
-	pGmMachine_->SetAutoMemoryUsage( true );
-	
-	// Set debug mode.
-	pGmMachine_->SetDebugMode( true );
-
-	// Bind gm libs.
-	gmMachineLib( pGmMachine_ );
-	gmBindArrayLib( pGmMachine_ );
-	gmBindListLib( pGmMachine_ );
-	gmBindStringLib( pGmMachine_ );
-	gmBindMathLib( pGmMachine_ );
-	;
-	// Bind Psybrus libs.
-	GaLibraryMathBinder( pGmMachine_ );
-	GaLibrarySceneBinder( pGmMachine_ );
-	
-	// Allocate input tables.
-	gmTableObject* pGlobalsTable = pGmMachine_->GetGlobals();
-	pKeyEnumMap_ = pGmMachine_->AllocTableObject();
-	pKeyStateMap_ = pGmMachine_->AllocTableObject();
-	pKeyOldStateMap_ = pGmMachine_->AllocTableObject();
-	pGlobalsTable->Set( pGmMachine_, "Keys", gmVariable( pKeyEnumMap_ ) );
-	pGlobalsTable->Set( pGmMachine_, "KeyState", gmVariable( pKeyStateMap_ ) );
-	pGlobalsTable->Set( pGmMachine_, "KeyOldState", gmVariable( pKeyOldStateMap_ ) );
-
-	// Setup temporary key enums.
-	BcU32 NoofKeyEnums = sizeof( GKeyEnums ) / sizeof( GKeyEnums[ 0 ] );
-	for( BcU32 Idx = 0; Idx < NoofKeyEnums; ++Idx )
-	{
-		const TKeyEnum& KeyEnum = GKeyEnums[ Idx ];
-		pKeyEnumMap_->Set( pGmMachine_, gmVariable( pGmMachine_->AllocStringObject( KeyEnum.pEnumName_ ) ), gmVariable( (int)KeyEnum.KeyCode_ ) );
-	}
-	
-	// Setup execute stage;
-	ExecuteStage_ = ES_BOOT;
-	
-	// Tick accumulator.
-	TickAccumulator_ = 0.0f;
-	
-	// Clear key states.
-	BcMemSet( &KeyStates_[ 0 ], 0, sizeof( KeyStates_ ) );
-	
 	// Subscribe to input events.
 	DelegateKey_ = OsEventInputKeyboard::Delegate::bind< GaCore, &GaCore::eventKey >( this );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN,	DelegateKey_ );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP,		DelegateKey_ );
+	
+	// Reset game.
+	reset();	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -272,14 +229,72 @@ void GaCore::close()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// executeScript
+// reset
 void GaCore::reset()
 {
-	// Reset machine.
-	pGmMachine_->ResetAndFreeMemory();
+	// Detach all components from entities.
+	for( GaEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		(*It)->detachAllComponents();
+	}
+	
+	// Remove all entities.
+	EntityList_.clear();
 
 	// Remove all resource blocks.
 	ResourceBlocks_.clear();
+
+	// Delete old machine.
+	delete pGmMachine_;
+	
+	// Create machine.
+	pGmMachine_ = new gmMachine();
+	
+	// Setup memory limits (7MB initial soft limit, 8MB hard limit, auto adjust).
+	pGmMachine_->SetDesiredByteMemoryUsageSoft( 7 * 1024 * 1024 );
+	pGmMachine_->SetDesiredByteMemoryUsageHard( 8 * 1024 * 1024 );
+	pGmMachine_->SetAutoMemoryUsage( true );
+	
+	// Set debug mode.
+	pGmMachine_->SetDebugMode( true );
+	
+	// Bind gm libs.
+	gmMachineLib( pGmMachine_ );
+	gmBindArrayLib( pGmMachine_ );
+	gmBindListLib( pGmMachine_ );
+	gmBindStringLib( pGmMachine_ );
+	gmBindMathLib( pGmMachine_ );
+	
+	// Bind Psybrus libs.
+	GaLibraryMathBinder( pGmMachine_ );
+	GaLibraryGameBinder( pGmMachine_ );
+	GaLibrarySceneBinder( pGmMachine_ );
+	
+	// Allocate input tables.
+	gmTableObject* pGlobalsTable = pGmMachine_->GetGlobals();
+	pKeyEnumMap_ = pGmMachine_->AllocTableObject();
+	pKeyStateMap_ = pGmMachine_->AllocTableObject();
+	pKeyOldStateMap_ = pGmMachine_->AllocTableObject();
+	pGlobalsTable->Set( pGmMachine_, "Keys", gmVariable( pKeyEnumMap_ ) );
+	pGlobalsTable->Set( pGmMachine_, "KeyState", gmVariable( pKeyStateMap_ ) );
+	pGlobalsTable->Set( pGmMachine_, "KeyOldState", gmVariable( pKeyOldStateMap_ ) );
+	
+	// Setup temporary key enums.
+	BcU32 NoofKeyEnums = sizeof( GKeyEnums ) / sizeof( GKeyEnums[ 0 ] );
+	for( BcU32 Idx = 0; Idx < NoofKeyEnums; ++Idx )
+	{
+		const TKeyEnum& KeyEnum = GKeyEnums[ Idx ];
+		pKeyEnumMap_->Set( pGmMachine_, gmVariable( pGmMachine_->AllocStringObject( KeyEnum.pEnumName_ ) ), gmVariable( (int)KeyEnum.KeyCode_ ) );
+	}
+	
+	// Setup execute stage;
+	ExecuteStage_ = ES_BOOT;
+	
+	// Tick accumulator.
+	TickAccumulator_ = 0.0f;
+	
+	// Clear key states.
+	BcMemSet( &KeyStates_[ 0 ], 0, sizeof( KeyStates_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

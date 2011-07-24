@@ -85,6 +85,14 @@ void CsResource::fileReady()
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 //virtual
+BcBool CsResource::isReady()
+{
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileChunkReady
+//virtual
 void CsResource::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	

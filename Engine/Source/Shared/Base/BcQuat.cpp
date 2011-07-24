@@ -188,10 +188,13 @@ void BcQuat::calcFromXYZ()
 	                - ( z() * z() );
 
 	if (t < 0.0f)
+	{
 		w( 0.0f );
-
+	}
 	else
+	{
 		w( -BcSqrt(t) );
+	}
 }
 
 void BcQuat::fromEular( BcReal Yaw, BcReal Pitch, BcReal Roll )

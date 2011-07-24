@@ -36,7 +36,7 @@ public:
 	 * @param pJob Job to queue.
 	 * @param WorkerMask Used to specify which workers the job is allowed to schedule on.
 	 */
-	void				queueJob( SysJob* pJob, BcU32 WorkerMask = BcErrorCode );
+	void				queueJob( SysJob* pJob, BcU32 WorkerMask = 0xffffffff );
 	
 	/**
 	 * Flush jobs.

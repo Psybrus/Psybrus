@@ -184,7 +184,7 @@ public:
 	 * Are we ready to use?<br/>
 	 * Should return true *only* when a resource is fully ready to use.
 	 */
-	virtual BcBool					isReady() = 0;
+	virtual BcBool					isReady();
 	
 	/**
 	 * File is ready.

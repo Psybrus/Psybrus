@@ -24,17 +24,15 @@
 #include "ScnFont.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
-#include "ScnPackage.h"
 #include "ScnShader.h"
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
-#include "ScnScript.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaLibraryResource types.
-class GaCanvas: public GaLibraryResource< ScnCanvas >
+class GaSceneCanvas: public GaLibraryResource< ScnCanvas >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -56,7 +54,7 @@ public:
 
 };
 
-class GaFont: public GaLibraryResource< ScnFont >
+class GaSceneFont: public GaLibraryResource< ScnFont >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -67,7 +65,7 @@ public:
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
-class GaFontInstance: public GaLibraryResource< ScnFontInstance >
+class GaSceneFontInstance: public GaLibraryResource< ScnFontInstance >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -79,7 +77,7 @@ public:
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
-class GaMaterial: public GaLibraryResource< ScnMaterial >
+class GaSceneMaterial: public GaLibraryResource< ScnMaterial >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -90,7 +88,7 @@ public:
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
-class GaMaterialInstance: public GaLibraryResource< ScnMaterialInstance >
+class GaSceneMaterialInstance: public GaLibraryResource< ScnMaterialInstance >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -103,31 +101,25 @@ public:
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
-class GaModel: public GaLibraryResource< ScnModel >
+class GaSceneModel: public GaLibraryResource< ScnModel >
 {
 public:
 	
 };
 
-class GaModelInstance: public GaLibraryResource< ScnModelInstance >
+class GaSceneModelInstance: public GaLibraryResource< ScnModelInstance >
 {
 public:
 	
 };
 
-class GaPackage: public GaLibraryResource< ScnPackage >
+class GaSceneShader: public GaLibraryResource< ScnShader >
 {
 public:
 	
 };
 
-class GaShader: public GaLibraryResource< ScnShader >
-{
-public:
-	
-};
-
-class GaTexture: public GaLibraryResource< ScnTexture >
+class GaSceneTexture: public GaLibraryResource< ScnTexture >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -140,17 +132,7 @@ public:
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
-class GaScript: public GaLibraryResource< ScnScript >
-{
-	static gmFunctionEntry GM_TYPELIB[];
-	
-public:
-	static int GM_CDECL Execute( gmThread* a_thread );
-	
-	static void GM_CDECL CreateType( gmMachine* a_machine );
-};
-
-class GaSound: public GaLibraryResource< ScnSound >
+class GaSceneSound: public GaLibraryResource< ScnSound >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -159,7 +141,7 @@ public:
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
 
-class GaSoundEmitter: public GaLibraryResource< ScnSoundEmitter >
+class GaSceneSoundEmitter: public GaLibraryResource< ScnSoundEmitter >
 {
 public:
 	static gmFunctionEntry GM_TYPELIB[];
@@ -172,9 +154,9 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// GaFrame - Very quick and dirty way to access RsFrame for rendering.
+// GaSceneFrame - Very quick and dirty way to access RsFrame for rendering.
 //           This will be done via a scene manager and view later on.
-class GaFrame
+class GaSceneFrame
 {
 public:
 	static gmType GM_TYPE;

@@ -22,7 +22,10 @@
 
 #include "CsResourceRef.h"
 
-#include "ScnScript.h"
+#include "GaScript.h"
+
+#include "GaComponent.h"
+#include "GaEntity.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaCore
@@ -58,6 +61,10 @@ public:
 	 *	Check resource blocks.
 	 */
 	void						checkResourceBlocks();
+	
+	/**
+	 * 
+	 */
 		
 private:
 	/**
@@ -90,8 +97,12 @@ private:
 		ES_EXECUTE,
 	};
 	
-	ScnScriptRef			BootScript_;
+	GaScriptRef				BootScript_;
 	eExecuteStage			ExecuteStage_;
+	
+	// Entity list.
+	GaEntityList			EntityList_;
+	
 	
 	// NEILO: Temporary for LD.
 	class gmTableObject*	pKeyEnumMap_;

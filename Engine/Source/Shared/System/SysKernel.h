@@ -66,7 +66,7 @@ public:
 	/**
 	 * Queue job.
 	 */
-	void						queueJob( SysJob* pJob, BcU32 WorkerMask = BcErrorCode );
+	void						queueJob( SysJob* pJob, BcU32 WorkerMask = 0xffffffff );
 
 	/**
 	 * Enqueue callback.
