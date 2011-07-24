@@ -26,9 +26,9 @@
 // ImgColour
 struct ImgColour
 {
-	BcU8		B_;
-	BcU8		G_;
 	BcU8		R_;
+	BcU8		G_;
+	BcU8		B_;
 	BcU8		A_;
 	
 	bool operator == ( const ImgColour& Other ) const

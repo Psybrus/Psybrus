@@ -104,6 +104,8 @@ typedef short gmint16;
 typedef unsigned short gmuint16;
 typedef int gmint32;
 typedef unsigned int gmuint32;
+typedef unsigned _int64 gmuint64;
+typedef signed _int64 gmint64;
 typedef float gmfloat;
 typedef int gmptr; // machine pointer size as int
 typedef unsigned int gmuptr; // machine pointer size as int
