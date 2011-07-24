@@ -135,7 +135,6 @@
 		C86E98C1135139A50015F899 /* gmUserObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E984A135139A50015F899 /* gmUserObject.cpp */; };
 		C86E98C2135139A50015F899 /* gmUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E984C135139A50015F899 /* gmUtil.cpp */; };
 		C86E98C3135139A50015F899 /* gmVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E984E135139A50015F899 /* gmVariable.cpp */; };
-		C86E98D41351420E0015F899 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E98D21351420B0015F899 /* ScnScript.cpp */; };
 		C86E9A43135155E40015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A41135155E10015F899 /* RsResource.cpp */; };
 		C88A48E9132DCBD00069CB9F /* CsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88A48E3132DCBD00069CB9F /* CsResource.cpp */; };
 		C88A48EA132DCBD00069CB9F /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88A48E5132DCBD00069CB9F /* CsResourceRef.cpp */; };
@@ -155,6 +154,7 @@
 		C88A4ADE132DDCA70069CB9F /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = C88A4AB8132DDCA70069CB9F /* trees.c */; };
 		C88A4ADF132DDCA70069CB9F /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = C88A4ABA132DDCA70069CB9F /* uncompr.c */; };
 		C88A4AE0132DDCA70069CB9F /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = C88A4AC0132DDCA70069CB9F /* zutil.c */; };
+		C89E67A813DC4BAA004462B2 /* GaLibraryGame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89E67A613DC4BAA004462B2 /* GaLibraryGame.cpp */; };
 		C8A16A58136045540054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A54136045540054F3AF /* GaCore.cpp */; };
 		C8A16A59136045540054F3AF /* GaLibraryScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A56136045540054F3AF /* GaLibraryScene.cpp */; };
 		C8B46CA6136B06B4004F5B85 /* BcTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8B46CA4136B06B4004F5B85 /* BcTimer.cpp */; };
@@ -222,6 +222,16 @@
 		C8D6A678134F83AD00CBA51E /* FsFileImplOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = C8D6A676134F83AD00CBA51E /* FsFileImplOSX.mm */; };
 		C8D6A67A134F879000CBA51E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8D6A679134F878F00CBA51E /* Cocoa.framework */; };
 		C8D6A6F6134F8F1700CBA51E /* CsCoreClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6A6F4134F8F1300CBA51E /* CsCoreClient.cpp */; };
+		C8D6D9B513DC1C5C00099DB9 /* GaComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9AF13DC1C5C00099DB9 /* GaComponent.cpp */; };
+		C8D6D9B613DC1C5C00099DB9 /* GaEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9B113DC1C5C00099DB9 /* GaEntity.cpp */; };
+		C8D6D9B713DC1C5C00099DB9 /* GaTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9B313DC1C5C00099DB9 /* GaTransform.cpp */; };
+		C8D6D9C013DC1CE200099DB9 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9B813DC1CE100099DB9 /* SysDelegateDispatcher.cpp */; };
+		C8D6D9C113DC1CE200099DB9 /* SysJob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9BA13DC1CE200099DB9 /* SysJob.cpp */; };
+		C8D6D9C213DC1CE200099DB9 /* SysJobQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9BC13DC1CE200099DB9 /* SysJobQueue.cpp */; };
+		C8D6D9C313DC1CE200099DB9 /* SysJobWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9BE13DC1CE200099DB9 /* SysJobWorker.cpp */; };
+		C8D6D9C613DC1D0E00099DB9 /* BcMisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9C413DC1D0E00099DB9 /* BcMisc.cpp */; };
+		C8D6D9DB13DC4AC200099DB9 /* GaPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9D713DC4AC200099DB9 /* GaPackage.cpp */; };
+		C8D6D9DC13DC4AC200099DB9 /* GaScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D9D913DC4AC200099DB9 /* GaScript.cpp */; };
 		C8D88F091327680800CBBE7E /* CsCoreServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D88F081327680800CBBE7E /* CsCoreServer.cpp */; };
 		C8D88F12132ADF0500CBBE7E /* CsFileWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D88F11132ADF0500CBBE7E /* CsFileWriter.cpp */; };
 		C8E64D9213534B6700AAF73E /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D8E13534B6500AAF73E /* ScnCanvas.cpp */; };
@@ -229,7 +239,6 @@
 		C8E64E511355A1EE00AAF73E /* json_reader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64DC41355A1ED00AAF73E /* json_reader.cpp */; };
 		C8E64E521355A1EE00AAF73E /* json_value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64DC51355A1ED00AAF73E /* json_value.cpp */; };
 		C8E64E531355A1EE00AAF73E /* json_writer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64DC71355A1ED00AAF73E /* json_writer.cpp */; };
-		C8E64E581355F1D200AAF73E /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64E561355F1C100AAF73E /* ScnPackage.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -539,8 +548,6 @@
 		C86E984E135139A50015F899 /* gmVariable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gmVariable.cpp; sourceTree = "<group>"; };
 		C86E984F135139A50015F899 /* gmVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gmVariable.h; sourceTree = "<group>"; };
 		C86E98D1135139E90015F899 /* gmConfig_p.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gmConfig_p.h; sourceTree = "<group>"; };
-		C86E98D21351420B0015F899 /* ScnScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnScript.cpp; sourceTree = "<group>"; };
-		C86E98D31351420C0015F899 /* ScnScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnScript.h; sourceTree = "<group>"; };
 		C86E9A41135155E10015F899 /* RsResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsResource.cpp; sourceTree = "<group>"; };
 		C86E9A42135155E20015F899 /* RsResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsResource.h; sourceTree = "<group>"; };
 		C88A48E3132DCBD00069CB9F /* CsResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsResource.cpp; sourceTree = "<group>"; };
@@ -580,6 +587,8 @@
 		C88A4ABC132DDCA70069CB9F /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zlib.h; sourceTree = "<group>"; };
 		C88A4AC0132DDCA70069CB9F /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zutil.c; sourceTree = "<group>"; };
 		C88A4AC1132DDCA70069CB9F /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zutil.h; sourceTree = "<group>"; };
+		C89E67A613DC4BAA004462B2 /* GaLibraryGame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibraryGame.cpp; path = Game/GaLibraryGame.cpp; sourceTree = "<group>"; };
+		C89E67A713DC4BAA004462B2 /* GaLibraryGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibraryGame.h; path = Game/GaLibraryGame.h; sourceTree = "<group>"; };
 		C8A16A54136045540054F3AF /* GaCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaCore.cpp; path = Game/GaCore.cpp; sourceTree = "<group>"; };
 		C8A16A55136045540054F3AF /* GaCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaCore.h; path = Game/GaCore.h; sourceTree = "<group>"; };
 		C8A16A56136045540054F3AF /* GaLibraryScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibraryScene.cpp; path = Game/GaLibraryScene.cpp; sourceTree = "<group>"; };
@@ -723,6 +732,26 @@
 		C8D6A679134F878F00CBA51E /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		C8D6A6F4134F8F1300CBA51E /* CsCoreClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsCoreClient.cpp; sourceTree = "<group>"; };
 		C8D6A6F5134F8F1500CBA51E /* CsCoreClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsCoreClient.h; sourceTree = "<group>"; };
+		C8D6D9AF13DC1C5C00099DB9 /* GaComponent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaComponent.cpp; path = Game/GaComponent.cpp; sourceTree = "<group>"; };
+		C8D6D9B013DC1C5C00099DB9 /* GaComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaComponent.h; path = Game/GaComponent.h; sourceTree = "<group>"; };
+		C8D6D9B113DC1C5C00099DB9 /* GaEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaEntity.cpp; path = Game/GaEntity.cpp; sourceTree = "<group>"; };
+		C8D6D9B213DC1C5C00099DB9 /* GaEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaEntity.h; path = Game/GaEntity.h; sourceTree = "<group>"; };
+		C8D6D9B313DC1C5C00099DB9 /* GaTransform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaTransform.cpp; path = Game/GaTransform.cpp; sourceTree = "<group>"; };
+		C8D6D9B413DC1C5C00099DB9 /* GaTransform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaTransform.h; path = Game/GaTransform.h; sourceTree = "<group>"; };
+		C8D6D9B813DC1CE100099DB9 /* SysDelegateDispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysDelegateDispatcher.cpp; sourceTree = "<group>"; };
+		C8D6D9B913DC1CE100099DB9 /* SysDelegateDispatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysDelegateDispatcher.h; sourceTree = "<group>"; };
+		C8D6D9BA13DC1CE200099DB9 /* SysJob.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysJob.cpp; sourceTree = "<group>"; };
+		C8D6D9BB13DC1CE200099DB9 /* SysJob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysJob.h; sourceTree = "<group>"; };
+		C8D6D9BC13DC1CE200099DB9 /* SysJobQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysJobQueue.cpp; sourceTree = "<group>"; };
+		C8D6D9BD13DC1CE200099DB9 /* SysJobQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysJobQueue.h; sourceTree = "<group>"; };
+		C8D6D9BE13DC1CE200099DB9 /* SysJobWorker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysJobWorker.cpp; sourceTree = "<group>"; };
+		C8D6D9BF13DC1CE200099DB9 /* SysJobWorker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysJobWorker.h; sourceTree = "<group>"; };
+		C8D6D9C413DC1D0E00099DB9 /* BcMisc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcMisc.cpp; sourceTree = "<group>"; };
+		C8D6D9C513DC1D0E00099DB9 /* BcMisc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcMisc.h; sourceTree = "<group>"; };
+		C8D6D9D713DC4AC200099DB9 /* GaPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaPackage.cpp; path = Game/GaPackage.cpp; sourceTree = "<group>"; };
+		C8D6D9D813DC4AC200099DB9 /* GaPackage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaPackage.h; path = Game/GaPackage.h; sourceTree = "<group>"; };
+		C8D6D9D913DC4AC200099DB9 /* GaScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaScript.cpp; path = Game/GaScript.cpp; sourceTree = "<group>"; };
+		C8D6D9DA13DC4AC200099DB9 /* GaScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaScript.h; path = Game/GaScript.h; sourceTree = "<group>"; };
 		C8D88F071327680800CBBE7E /* CsCoreServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsCoreServer.h; sourceTree = "<group>"; };
 		C8D88F081327680800CBBE7E /* CsCoreServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsCoreServer.cpp; sourceTree = "<group>"; };
 		C8D88F10132ADF0500CBBE7E /* CsFileWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsFileWriter.h; sourceTree = "<group>"; };
@@ -747,8 +776,6 @@
 		C8E64DC61355A1ED00AAF73E /* json_valueiterator.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = json_valueiterator.inl; sourceTree = "<group>"; };
 		C8E64DC71355A1ED00AAF73E /* json_writer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = json_writer.cpp; sourceTree = "<group>"; };
 		C8E64DC81355A1ED00AAF73E /* sconscript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sconscript; sourceTree = "<group>"; };
-		C8E64E561355F1C100AAF73E /* ScnPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnPackage.cpp; sourceTree = "<group>"; };
-		C8E64E571355F1C700AAF73E /* ScnPackage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnPackage.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -803,12 +830,24 @@
 		C815388213602824002CCFB7 /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				C8A16A54136045540054F3AF /* GaCore.cpp */,
+				C8A16A55136045540054F3AF /* GaCore.h */,
+				C8D6D9D713DC4AC200099DB9 /* GaPackage.cpp */,
+				C8D6D9D813DC4AC200099DB9 /* GaPackage.h */,
+				C8D6D9D913DC4AC200099DB9 /* GaScript.cpp */,
+				C8D6D9DA13DC4AC200099DB9 /* GaScript.h */,
+				C8D6D9AF13DC1C5C00099DB9 /* GaComponent.cpp */,
+				C8D6D9B013DC1C5C00099DB9 /* GaComponent.h */,
+				C8D6D9B113DC1C5C00099DB9 /* GaEntity.cpp */,
+				C8D6D9B213DC1C5C00099DB9 /* GaEntity.h */,
+				C8D6D9B313DC1C5C00099DB9 /* GaTransform.cpp */,
+				C8D6D9B413DC1C5C00099DB9 /* GaTransform.h */,
 				C84C528B13652E9B00529F3E /* GaLibrary.cpp */,
 				C84C528C13652E9B00529F3E /* GaLibrary.h */,
 				C84C528D13652E9B00529F3E /* GaLibraryMath.cpp */,
 				C84C528E13652E9B00529F3E /* GaLibraryMath.h */,
-				C8A16A54136045540054F3AF /* GaCore.cpp */,
-				C8A16A55136045540054F3AF /* GaCore.h */,
+				C89E67A613DC4BAA004462B2 /* GaLibraryGame.cpp */,
+				C89E67A713DC4BAA004462B2 /* GaLibraryGame.h */,
 				C8A16A56136045540054F3AF /* GaLibraryScene.cpp */,
 				C8A16A57136045540054F3AF /* GaLibraryScene.h */,
 			);
@@ -1559,6 +1598,8 @@
 		C8C3119F1321D8E200489EEA /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				C8D6D9C413DC1D0E00099DB9 /* BcMisc.cpp */,
+				C8D6D9C513DC1D0E00099DB9 /* BcMisc.h */,
 				C8B46CA4136B06B4004F5B85 /* BcTimer.cpp */,
 				C8B46CA5136B06B4004F5B85 /* BcTimer.h */,
 				C8C311A01321D8E200489EEA /* BcAtomic.cpp */,
@@ -1602,6 +1643,14 @@
 				C8C314141321DC3D00489EEA /* SysKernel.h */,
 				C8C314151321DC3D00489EEA /* SysState.cpp */,
 				C8C314161321DC3D00489EEA /* SysState.h */,
+				C8D6D9B813DC1CE100099DB9 /* SysDelegateDispatcher.cpp */,
+				C8D6D9B913DC1CE100099DB9 /* SysDelegateDispatcher.h */,
+				C8D6D9BA13DC1CE200099DB9 /* SysJob.cpp */,
+				C8D6D9BB13DC1CE200099DB9 /* SysJob.h */,
+				C8D6D9BC13DC1CE200099DB9 /* SysJobQueue.cpp */,
+				C8D6D9BD13DC1CE200099DB9 /* SysJobQueue.h */,
+				C8D6D9BE13DC1CE200099DB9 /* SysJobWorker.cpp */,
+				C8D6D9BF13DC1CE200099DB9 /* SysJobWorker.h */,
 				C8C314171321DC3D00489EEA /* SysSystem.cpp */,
 				C8C314181321DC3D00489EEA /* SysSystem.h */,
 			);
@@ -1717,10 +1766,6 @@
 				C8C315AB1321F75400489EEA /* ScnModel.h */,
 				C8C315AC1321F75400489EEA /* ScnTexture.cpp */,
 				C8C315AD1321F75400489EEA /* ScnTexture.h */,
-				C86E98D21351420B0015F899 /* ScnScript.cpp */,
-				C86E98D31351420C0015F899 /* ScnScript.h */,
-				C8E64E561355F1C100AAF73E /* ScnPackage.cpp */,
-				C8E64E571355F1C700AAF73E /* ScnPackage.h */,
 				C845C8E71359C4FF004D79E7 /* ScnFont.cpp */,
 				C845C8E81359C4FF004D79E7 /* ScnFont.h */,
 				C84C524D1363FFA400529F3E /* ScnTextureAtlas.cpp */,
@@ -1978,14 +2023,12 @@
 				C86E98C1135139A50015F899 /* gmUserObject.cpp in Sources */,
 				C86E98C2135139A50015F899 /* gmUtil.cpp in Sources */,
 				C86E98C3135139A50015F899 /* gmVariable.cpp in Sources */,
-				C86E98D41351420E0015F899 /* ScnScript.cpp in Sources */,
 				C86E9A43135155E40015F899 /* RsResource.cpp in Sources */,
 				C8E64D9213534B6700AAF73E /* ScnCanvas.cpp in Sources */,
 				C8E64D9313534B6700AAF73E /* ScnShader.cpp in Sources */,
 				C8E64E511355A1EE00AAF73E /* json_reader.cpp in Sources */,
 				C8E64E521355A1EE00AAF73E /* json_value.cpp in Sources */,
 				C8E64E531355A1EE00AAF73E /* json_writer.cpp in Sources */,
-				C8E64E581355F1D200AAF73E /* ScnPackage.cpp in Sources */,
 				C82EAC5C1358CA9200D1AF93 /* BcMemory.cpp in Sources */,
 				C86C8A02135985F000F4CED8 /* RsStateBlock.cpp in Sources */,
 				C86C8A851359AAAF00F4CED8 /* FsTypes.cpp in Sources */,
@@ -2090,6 +2133,17 @@
 				C856358C1369A86500D91624 /* SndFileWAV.cpp in Sources */,
 				C8B46CA6136B06B4004F5B85 /* BcTimer.cpp in Sources */,
 				C834B33F136BA29000F8EE25 /* Snd.cpp in Sources */,
+				C8D6D9B513DC1C5C00099DB9 /* GaComponent.cpp in Sources */,
+				C8D6D9B613DC1C5C00099DB9 /* GaEntity.cpp in Sources */,
+				C8D6D9B713DC1C5C00099DB9 /* GaTransform.cpp in Sources */,
+				C8D6D9C013DC1CE200099DB9 /* SysDelegateDispatcher.cpp in Sources */,
+				C8D6D9C113DC1CE200099DB9 /* SysJob.cpp in Sources */,
+				C8D6D9C213DC1CE200099DB9 /* SysJobQueue.cpp in Sources */,
+				C8D6D9C313DC1CE200099DB9 /* SysJobWorker.cpp in Sources */,
+				C8D6D9C613DC1D0E00099DB9 /* BcMisc.cpp in Sources */,
+				C8D6D9DB13DC4AC200099DB9 /* GaPackage.cpp in Sources */,
+				C8D6D9DC13DC4AC200099DB9 /* GaScript.cpp in Sources */,
+				C89E67A813DC4BAA004462B2 /* GaLibraryGame.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

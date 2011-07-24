@@ -244,7 +244,7 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			BcMat4d JointTranslate;
 			BcMat4d JointTransform;
 			BcMat4d InverseBindpose;
-			JointRotation = JointRot.asMatrix4d();
+			JointRot.asMatrix4d( JointRotation );
 			JointTranslate.identity();
 			JointTranslate.row3( BcVec4d( pJoint->TX_, pJoint->TY_, pJoint->TZ_, 1.0f ) );
 
