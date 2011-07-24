@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "BcMisc.h"
+#include "BcDebug.h"
 #include "BcWindows.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,5 +35,7 @@ BcU32 BcGetHardwareThreadCount()
 {
 	SYSTEM_INFO SysInfo;
 	::GetSystemInfo( &SysInfo );
-	return (BcU32)SysInfo.dwNumberOfProcessors;
+	BcU32 RetVal = (BcU32)SysInfo.dwNumberOfProcessors;
+	BcAssert( RetVal >= 1 );
+	return RetVal;
 }

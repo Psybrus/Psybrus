@@ -58,7 +58,7 @@ typedef size_t						BcSize;
 #define BcInline					inline
 #define BcForceInline				__forceinline
 
-#define BcAlign( decl, v )			decl __declspec( align( v ) )
+#define BcAlign( decl, v )			decl // TODO: Get rid of vectors in stl containers: __declspec( align( v ) ) decl
 #define BcOffsetOf( s, m ) 			(size_t)&(((s *)0)->m)
 
 #ifndef NULL
@@ -72,18 +72,12 @@ typedef size_t						BcSize;
 #undef max
 #define max max
 
-// Setup C++0x tr1 workaround.
 #include <deque>
 #include <vector>
 #include <list>
 #include <map>
 #include <string>
-#include <array>
-
-namespace std
-{
-	using namespace std::tr1;
-}
+#include <algorithm>
 
 #endif
 
@@ -123,20 +117,20 @@ typedef size_t						BcSize;
 #define BcInline					inline
 #define BcForceInline				inline
 
-#define BcAlign( decl, v )			decl
+#define BcAlign( decl, v )			decl __attribute__ ((aligned (v)))
 #define BcOffsetOf( s, m ) 			(size_t)&(((s*)0)->m)
 
 #ifndef NULL
 #define NULL						( 0 )
 #endif
 
-// Setup C++0x.
 #include <deque>
 #include <vector>
 #include <list>
 #include <map>
 #include <string>
-#include <array>
+#include <algorithm>
+
 
 #endif
 
@@ -149,13 +143,7 @@ typedef size_t						BcSize;
 #include <list>
 #include <map>
 #include <string>
-#include <tr1/array>
-
-namespace std
-{
-	using namespace std::tr1;
-}
-
+#include <algorithm>
 
 #if defined( ARCH_I386 )
 typedef unsigned long long			BcU64;
@@ -270,7 +258,7 @@ typedef std::size_t					BcSize;
 #define BcInline					inline
 #define BcForceInline				inline
 
-#define BcAlign( decl, v )			__attribute__ ((aligned (v))) decl
+#define BcAlign( decl, v )			decl __attribute__ ((aligned (v))) 
 #define BcOffsetOf( s, m ) 			(size_t)&(((s*)0)->m)
 
 #ifndef NULL

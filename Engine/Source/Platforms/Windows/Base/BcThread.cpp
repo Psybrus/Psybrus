@@ -18,8 +18,7 @@
 BcThread::BcThread():
 	m_ThreadID( 0 ),
 	m_ThreadHandle( NULL ),
-	m_isThreadActive( BcFalse ),
-	bSuspended_( BcFalse )
+	m_isThreadActive( BcFalse )
 {
 
 }
@@ -33,7 +32,11 @@ BcU32 BcThread::start()
 {
 	DWORD CreationFlags = THREAD_PRIORITY_NORMAL;
 
+<<<<<<< HEAD
 	/* TODO: Implement again later.
+=======
+	/*
+>>>>>>> 2bf5bbfcb2a975089e225222797036439ea07c7f
 	switch ( Priority )
 	{
 	case tp_LOW:
@@ -60,7 +63,6 @@ BcU32 BcThread::join()
 	{
 		::WaitForSingleObject( m_ThreadHandle, INFINITE );
 		BcAssert( m_isThreadActive == BcFalse );
-		::CloseHandle( m_ThreadHandle );
 	}
 	return 0;
 }

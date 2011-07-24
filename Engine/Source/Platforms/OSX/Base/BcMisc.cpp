@@ -12,6 +12,7 @@
  **************************************************************************/
 
 #include "BcMisc.h"
+#include "BcDebug.h"
 
 #include <sys/sysctl.h>
 
@@ -53,5 +54,6 @@ BcU32 BcGetHardwareThreadCount()
 		}
 	}
 	
+	BcAssert( NumCPU >= 1 );
 	return NumCPU;
 }

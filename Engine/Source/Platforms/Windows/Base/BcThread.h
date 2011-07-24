@@ -58,7 +58,6 @@ private:
 	HANDLE	m_ThreadHandle;
 
 	volatile BcBool m_isThreadActive;
-	volatile BcBool bSuspended_;
 };
 
 #endif
