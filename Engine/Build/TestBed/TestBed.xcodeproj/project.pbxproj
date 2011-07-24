@@ -13,6 +13,12 @@
 		002F3C0109D093BD00EBEB88 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 002F3C0009D093BD00EBEB88 /* OpenGL.framework */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		C822A9DD13DC59AC00E2F12C /* GaLibraryGame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C822A9D713DC59AC00E2F12C /* GaLibraryGame.cpp */; };
+		C822A9DE13DC59AD00E2F12C /* GaLibraryGame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C822A9D713DC59AC00E2F12C /* GaLibraryGame.cpp */; };
+		C822A9DF13DC59AD00E2F12C /* GaPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C822A9D913DC59AC00E2F12C /* GaPackage.cpp */; };
+		C822A9E013DC59AD00E2F12C /* GaPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C822A9D913DC59AC00E2F12C /* GaPackage.cpp */; };
+		C822A9E113DC59AD00E2F12C /* GaScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C822A9DB13DC59AC00E2F12C /* GaScript.cpp */; };
+		C822A9E213DC59AD00E2F12C /* GaScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C822A9DB13DC59AC00E2F12C /* GaScript.cpp */; };
 		C824731E13507BE70092D33F /* BcAABB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726513507BE70092D33F /* BcAABB.cpp */; };
 		C824731F13507BE70092D33F /* BcCommandBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726813507BE70092D33F /* BcCommandBuffer.cpp */; };
 		C824732013507BE70092D33F /* BcDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C824726A13507BE70092D33F /* BcDebug.cpp */; };
@@ -215,7 +221,6 @@
 		C86C8A6713598B9A00F4CED8 /* gmUserObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997613514C1A0015F899 /* gmUserObject.cpp */; };
 		C86C8A6813598B9A00F4CED8 /* gmUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997813514C1A0015F899 /* gmUtil.cpp */; };
 		C86C8A6913598B9A00F4CED8 /* gmVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997A13514C1A0015F899 /* gmVariable.cpp */; };
-		C86C8A6A13598B9A00F4CED8 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A3E13514CB70015F899 /* ScnScript.cpp */; };
 		C86C8A6B13598B9A00F4CED8 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
 		C86C8A6C13598B9A00F4CED8 /* ScnCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */; };
 		C86C8A6D13598B9A00F4CED8 /* ScnShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E64D88135339F300AAF73E /* ScnShader.cpp */; };
@@ -259,7 +264,6 @@
 		C86E9A1B13514C1B0015F899 /* gmUserObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997613514C1A0015F899 /* gmUserObject.cpp */; };
 		C86E9A1C13514C1B0015F899 /* gmUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997813514C1A0015F899 /* gmUtil.cpp */; };
 		C86E9A1D13514C1B0015F899 /* gmVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E997A13514C1A0015F899 /* gmVariable.cpp */; };
-		C86E9A4013514CB90015F899 /* ScnScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A3E13514CB70015F899 /* ScnScript.cpp */; };
 		C86E9A461351560B0015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
 		C877CA3113D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */; };
 		C877CA3213D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */; };
@@ -274,8 +278,6 @@
 		C8B46CAA136B094B004F5B85 /* BcTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8B46CA7136B094B004F5B85 /* BcTimer.cpp */; };
 		C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
 		C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF3B3135B078700BE64DE /* ScnFont.cpp */; };
-		C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF511135EF45500BE64DE /* ScnPackage.cpp */; };
-		C8BFF514135EF45B00BE64DE /* ScnPackage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8BFF511135EF45500BE64DE /* ScnPackage.cpp */; };
 		C8D6D95B13DBCE9A00099DB9 /* RsCoreImplGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D94813DBCE9A00099DB9 /* RsCoreImplGL.cpp */; };
 		C8D6D95C13DBCE9A00099DB9 /* RsCoreImplGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D94813DBCE9A00099DB9 /* RsCoreImplGL.cpp */; };
 		C8D6D95D13DBCE9A00099DB9 /* RsFrameGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D6D94A13DBCE9A00099DB9 /* RsFrameGL.cpp */; };
@@ -342,6 +344,12 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* TestBed Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TestBed Debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C822A9D713DC59AC00E2F12C /* GaLibraryGame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaLibraryGame.cpp; path = Game/GaLibraryGame.cpp; sourceTree = "<group>"; };
+		C822A9D813DC59AC00E2F12C /* GaLibraryGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaLibraryGame.h; path = Game/GaLibraryGame.h; sourceTree = "<group>"; };
+		C822A9D913DC59AC00E2F12C /* GaPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaPackage.cpp; path = Game/GaPackage.cpp; sourceTree = "<group>"; };
+		C822A9DA13DC59AC00E2F12C /* GaPackage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaPackage.h; path = Game/GaPackage.h; sourceTree = "<group>"; };
+		C822A9DB13DC59AC00E2F12C /* GaScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaScript.cpp; path = Game/GaScript.cpp; sourceTree = "<group>"; };
+		C822A9DC13DC59AC00E2F12C /* GaScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GaScript.h; path = Game/GaScript.h; sourceTree = "<group>"; };
 		C824726513507BE70092D33F /* BcAABB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BcAABB.cpp; sourceTree = "<group>"; };
 		C824726613507BE70092D33F /* BcAABB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcAABB.h; sourceTree = "<group>"; };
 		C824726713507BE70092D33F /* BcAtomicMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcAtomicMutex.h; sourceTree = "<group>"; };
@@ -603,8 +611,6 @@
 		C86E997A13514C1A0015F899 /* gmVariable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gmVariable.cpp; sourceTree = "<group>"; };
 		C86E997B13514C1A0015F899 /* gmVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gmVariable.h; sourceTree = "<group>"; };
 		C86E99B713514C1A0015F899 /* gmConfig_p.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gmConfig_p.h; sourceTree = "<group>"; };
-		C86E9A3E13514CB70015F899 /* ScnScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnScript.cpp; sourceTree = "<group>"; };
-		C86E9A3F13514CB80015F899 /* ScnScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnScript.h; sourceTree = "<group>"; };
 		C86E9A44135156080015F899 /* RsResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RsResource.cpp; sourceTree = "<group>"; };
 		C86E9A45135156090015F899 /* RsResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsResource.h; sourceTree = "<group>"; };
 		C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysDelegateDispatcher.cpp; sourceTree = "<group>"; };
@@ -622,8 +628,6 @@
 		C8B46CA8136B094B004F5B85 /* BcTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BcTimer.h; sourceTree = "<group>"; };
 		C8BFF3B3135B078700BE64DE /* ScnFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnFont.cpp; sourceTree = "<group>"; };
 		C8BFF3B4135B078700BE64DE /* ScnFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnFont.h; sourceTree = "<group>"; };
-		C8BFF511135EF45500BE64DE /* ScnPackage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnPackage.cpp; sourceTree = "<group>"; };
-		C8BFF512135EF45700BE64DE /* ScnPackage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnPackage.h; sourceTree = "<group>"; };
 		C8D4FF9613717D460044B7AC /* BcAtomic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcAtomic.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcAtomic.cpp; sourceTree = "<group>"; };
 		C8D4FF9713717D460044B7AC /* BcAtomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BcAtomic.h; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcAtomic.h; sourceTree = "<group>"; };
 		C8D4FF9813717D460044B7AC /* BcEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BcEvent.cpp; path = ../../../../LD20/Engine/Source/Platforms/Windows/Base/BcEvent.cpp; sourceTree = "<group>"; };
@@ -1026,12 +1030,8 @@
 				C84C525613640CA600529F3E /* ScnTextureAtlas.h */,
 				C84C525713640CA600529F3E /* ScnTypes.cpp */,
 				C84C525813640CA600529F3E /* ScnTypes.h */,
-				C8BFF511135EF45500BE64DE /* ScnPackage.cpp */,
-				C8BFF512135EF45700BE64DE /* ScnPackage.h */,
 				C8BFF3B3135B078700BE64DE /* ScnFont.cpp */,
 				C8BFF3B4135B078700BE64DE /* ScnFont.h */,
-				C86E9A3E13514CB70015F899 /* ScnScript.cpp */,
-				C86E9A3F13514CB80015F899 /* ScnScript.h */,
 				C86E97A51351162A0015F899 /* ScnModel.cpp */,
 				C86E97A61351162B0015F899 /* ScnModel.h */,
 				C824731513507BE70092D33F /* ScnTexture.cpp */,
@@ -1280,6 +1280,12 @@
 		C8A16A53136045070054F3AF /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				C822A9D713DC59AC00E2F12C /* GaLibraryGame.cpp */,
+				C822A9D813DC59AC00E2F12C /* GaLibraryGame.h */,
+				C822A9D913DC59AC00E2F12C /* GaPackage.cpp */,
+				C822A9DA13DC59AC00E2F12C /* GaPackage.h */,
+				C822A9DB13DC59AC00E2F12C /* GaScript.cpp */,
+				C822A9DC13DC59AC00E2F12C /* GaScript.h */,
 				C8D6D99313DBF6F300099DB9 /* GaComponent.cpp */,
 				C8D6D99413DBF6F300099DB9 /* GaComponent.h */,
 				C8D6D99513DBF6F300099DB9 /* GaEntity.cpp */,
@@ -1546,7 +1552,6 @@
 				C86E9A1B13514C1B0015F899 /* gmUserObject.cpp in Sources */,
 				C86E9A1C13514C1B0015F899 /* gmUtil.cpp in Sources */,
 				C86E9A1D13514C1B0015F899 /* gmVariable.cpp in Sources */,
-				C86E9A4013514CB90015F899 /* ScnScript.cpp in Sources */,
 				C86E9A461351560B0015F899 /* RsResource.cpp in Sources */,
 				C8E64D811351980E00AAF73E /* ScnCanvas.cpp in Sources */,
 				C8E64D8A135339F400AAF73E /* ScnShader.cpp in Sources */,
@@ -1554,7 +1559,6 @@
 				C86C89211359610000F4CED8 /* RsStateBlock.cpp in Sources */,
 				C86C8A7E135997C500F4CED8 /* FsTypes.cpp in Sources */,
 				C8BFF3B5135B078700BE64DE /* ScnFont.cpp in Sources */,
-				C8BFF513135EF45B00BE64DE /* ScnPackage.cpp in Sources */,
 				C8A16A5E136045610054F3AF /* GaCore.cpp in Sources */,
 				C8A16A60136045610054F3AF /* GaLibraryScene.cpp in Sources */,
 				C8A16A68136058A80054F3AF /* GaLibrary.cpp in Sources */,
@@ -1597,6 +1601,9 @@
 				C8D6D99913DBF6F800099DB9 /* GaComponent.cpp in Sources */,
 				C8D6D99B13DBF6F800099DB9 /* GaEntity.cpp in Sources */,
 				C8D6D99D13DBF6F800099DB9 /* GaTransform.cpp in Sources */,
+				C822A9DD13DC59AC00E2F12C /* GaLibraryGame.cpp in Sources */,
+				C822A9DF13DC59AD00E2F12C /* GaPackage.cpp in Sources */,
+				C822A9E113DC59AD00E2F12C /* GaScript.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1694,14 +1701,12 @@
 				C86C8A6713598B9A00F4CED8 /* gmUserObject.cpp in Sources */,
 				C86C8A6813598B9A00F4CED8 /* gmUtil.cpp in Sources */,
 				C86C8A6913598B9A00F4CED8 /* gmVariable.cpp in Sources */,
-				C86C8A6A13598B9A00F4CED8 /* ScnScript.cpp in Sources */,
 				C86C8A6B13598B9A00F4CED8 /* RsResource.cpp in Sources */,
 				C86C8A6C13598B9A00F4CED8 /* ScnCanvas.cpp in Sources */,
 				C86C8A6D13598B9A00F4CED8 /* ScnShader.cpp in Sources */,
 				C86C8A6E13598B9A00F4CED8 /* BcMemory.cpp in Sources */,
 				C86C8A6F13598B9A00F4CED8 /* RsStateBlock.cpp in Sources */,
 				C8BFF3B6135B5F1D00BE64DE /* ScnFont.cpp in Sources */,
-				C8BFF514135EF45B00BE64DE /* ScnPackage.cpp in Sources */,
 				C8A16A5F136045610054F3AF /* GaCore.cpp in Sources */,
 				C8A16A61136045610054F3AF /* GaLibraryScene.cpp in Sources */,
 				C8A16A69136058A80054F3AF /* GaLibrary.cpp in Sources */,
@@ -1744,6 +1749,9 @@
 				C8D6D99A13DBF6F800099DB9 /* GaComponent.cpp in Sources */,
 				C8D6D99C13DBF6F800099DB9 /* GaEntity.cpp in Sources */,
 				C8D6D99E13DBF6F800099DB9 /* GaTransform.cpp in Sources */,
+				C822A9DE13DC59AD00E2F12C /* GaLibraryGame.cpp in Sources */,
+				C822A9E013DC59AD00E2F12C /* GaPackage.cpp in Sources */,
+				C822A9E213DC59AD00E2F12C /* GaScript.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

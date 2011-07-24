@@ -129,6 +129,16 @@ public:
 	{
 		return Other.pObject_ != pObject_;
 	}
+
+	BcForceInline BcBool operator == ( _Ty* pObject ) const
+	{
+		return pObject == pObject_;
+	}
+	
+	BcForceInline BcBool operator != ( _Ty* pObject ) const
+	{
+		return pObject != pObject_;
+	}
 };
 
 #endif

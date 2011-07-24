@@ -22,7 +22,6 @@ void BcVec2d::lerp(const BcVec2d& A, const BcVec2d& B, BcReal T)
 	    (A.Y_ * lK0) + (B.Y_ * lK1));
 }
 	
-
 void BcVec3d::lerp(const BcVec3d& A, const BcVec3d& B, BcReal T)
 {
 	const BcReal lK0 = 1.0f - T;

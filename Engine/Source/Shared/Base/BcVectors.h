@@ -44,7 +44,7 @@ public:
 	{}
 
 protected:
-	BcReal X_ BcAlign( 16 );
+	BcAlign( BcReal X_, 16 );
 	BcReal Y_;
 	BcReal Z_;
 	BcReal W_;

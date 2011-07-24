@@ -17,7 +17,7 @@
 // Ctor
 CsFile::CsFile( const std::string& Name )
 {
-	Name_ = std::string( "PackedContent/" ) + Name;
+	Name_ = std::string( "./PackedContent/" ) + Name;
 }
 
 //////////////////////////////////////////////////////////////////////////
