@@ -13,22 +13,23 @@
 #include "ScnTextureAtlas.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
-#include "ScnScript.h"
 #include "ScnCanvas.h"
 #include "ScnShader.h"
-#include "ScnPackage.h"
 #include "ScnFont.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
+
+#include "GaPackage.h"
+#include "GaScript.h"
 
 SysSystemEvent::Delegate DelegateUpdate;
 SysSystemEvent::Delegate DelegateRemoteOpened;
 RmEventCore::Delegate DelegateRemoteDisconnected;
 
 ScnModelRef Model;
-ScnScriptRef Script;
 ScnMaterialRef Material;
-ScnPackageRef Package;
+GaPackageRef Package;
+GaScriptRef Script;
 ScnFontRef Font;
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
@@ -39,20 +40,16 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 		CsCore::pImpl()->registerResource< ScnTextureAtlas >();
 		CsCore::pImpl()->registerResource< ScnMaterial >();
 		CsCore::pImpl()->registerResource< ScnModel >();
-		CsCore::pImpl()->registerResource< ScnScript >();
 		CsCore::pImpl()->registerResource< ScnCanvas >();
 		CsCore::pImpl()->registerResource< ScnShader >();
-		CsCore::pImpl()->registerResource< ScnPackage >();
 		CsCore::pImpl()->registerResource< ScnFont >();
 		CsCore::pImpl()->registerResource< ScnSound >();
 		CsCore::pImpl()->registerResource< ScnSoundEmitter >();
-//		CsCore::pImpl()->importResource( "EngineContent/default.material", Material );
-//		CsCore::pImpl()->importResource( "GameContent/font.material", Material );
-//		CsCore::pImpl()->importResource( "GameContent/baroque.font", Font );
+
+		CsCore::pImpl()->registerResource< GaPackage >();
+		CsCore::pImpl()->registerResource< GaScript >();
+
 		CsCore::pImpl()->importResource( "GameContent/boot.package", Package );
-		
-		//CsCore::pImpl()->importResource( "test.font", Font );
-		//CsCore::pImpl()->importResource( "test.material", Material );
 	}
 	
 	//*/
@@ -78,12 +75,12 @@ int main (int argc, char * const argv[])
 	// Start up systems.
 	SysKernel Kernel;
 	
-	SYS_REGISTER( &Kernel, FsCoreImplOSX );
 	SYS_REGISTER( &Kernel, RmCore );
+	SYS_REGISTER( &Kernel, FsCoreImplOSX );
 	SYS_REGISTER( &Kernel, CsCoreServer );
 
-	Kernel.startSystem( "FsCoreImplOSX" );
 	Kernel.startSystem( "RmCore" );
+	Kernel.startSystem( "FsCoreImplOSX" );
 	Kernel.startSystem( "CsCoreServer" );
 	
 	// Bind delegates
