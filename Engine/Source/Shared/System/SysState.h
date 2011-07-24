@@ -165,7 +165,7 @@ public:
 	*	@param Slot Substate slot.
 	*	@return Pointer to substate. NULL for empty slot.
 	*/
-	SysState*						pSubState( BcU32 Slot ){ return SubStates_[ Slot ]; }
+	SysState*						pSubState( BcU32 Slot ){ BcAssert( Slot < MAX_STATE_SUB_STATES ); return SubStates_[ Slot ]; }
 
 	/**
 	*	Get child state.
@@ -210,9 +210,8 @@ private:
 	SysState*						pPendingChild_;
 
 	// Child and substates
-	typedef	std::array< SysState*, MAX_STATE_SUB_STATES > SysSubStateArray;
-	SysSubStateArray				SubStates_;
-	SysSubStateArray				PendingSubStates_;
+	SysState*						SubStates_[ MAX_STATE_SUB_STATES ];
+	SysState*						PendingSubStates_[ MAX_STATE_SUB_STATES ];
 	
 	// Proccessing.
 	BcBool							ProcessedLastFrame_;

@@ -18,8 +18,7 @@
 BcThread::BcThread():
 	m_ThreadID( 0 ),
 	m_ThreadHandle( NULL ),
-	m_isThreadActive( BcFalse ),
-	bSuspended_( BcFalse )
+	m_isThreadActive( BcFalse )
 {
 
 }
@@ -29,10 +28,11 @@ BcThread::~BcThread()
 	join();
 }
 
-BcU32 BcThread::start( eThreadPriority Priority )
+BcU32 BcThread::start()
 {
-	DWORD CreationFlags = 0;
+	DWORD CreationFlags = THREAD_PRIORITY_NORMAL;
 
+	/*
 	switch ( Priority )
 	{
 	case tp_LOW:
@@ -45,6 +45,7 @@ BcU32 BcThread::start( eThreadPriority Priority )
 		CreationFlags |= THREAD_PRIORITY_ABOVE_NORMAL;
 		break;
 	};
+	*/
 
 	m_isThreadActive = BcTrue;
 	m_ThreadHandle = ::CreateThread( 0, 0, BcThread::entryPoint, static_cast< void* >( this ), 0, &m_ThreadID );
@@ -58,41 +59,13 @@ BcU32 BcThread::join()
 	{
 		::WaitForSingleObject( m_ThreadHandle, INFINITE );
 		BcAssert( m_isThreadActive == BcFalse );
-		::CloseHandle( m_ThreadHandle );
 	}
-	return 0;
-}
-
-BcU32 BcThread::resume()
-{
-	bSuspended_ = BcFalse;
-	::ResumeThread( m_ThreadHandle );
-	return 0;
-}
-
-BcU32 BcThread::suspend()
-{
-	bSuspended_ = BcTrue;
-	::SuspendThread( m_ThreadHandle );
 	return 0;
 }
 
 BcBool BcThread::isActive()
 {
 	return m_isThreadActive;
-}
-
-void BcThread::yield()
-{
-	Sleep( 0 );
-}
-
-void BcThread::waitOnSuspend()
-{
-	while( bSuspended_ == BcFalse )
-	{
-		yield();
-	}
 }
 
 DWORD WINAPI BcThread::entryPoint( LPVOID l_pThis )

@@ -27,7 +27,7 @@ SysState::SysState():
 	pPendingChild_( NULL )
 {
 	// Set all sub states to null.
-	for ( BcU32 i = 0; i < SubStates_.size(); ++i )
+	for ( BcU32 i = 0; i < MAX_STATE_SUB_STATES; ++i )
 	{
 		SubStates_[i] = NULL;
 		PendingSubStates_[i] = NULL;
@@ -44,7 +44,7 @@ SysState::~SysState()
 		delete pPendingChild_;
 	}
 
-	for ( BcU32 i = 0; i < SubStates_.size(); ++i )
+	for ( BcU32 i = 0; i < MAX_STATE_SUB_STATES; ++i )
 	{
 		if( PendingSubStates_[ i ] != NULL )
 		{
@@ -138,6 +138,8 @@ void SysState::spawnChildState( SysState* pState )
 // spawnSubState
 void SysState::spawnSubState( BcU32 iSubState, SysState* pSubState )
 {
+	BcAssert( iSubState < MAX_STATE_SUB_STATES );
+
 	// Delete pending substate.
 	if( SubStates_[ iSubState ] != NULL )
 	{
@@ -184,7 +186,7 @@ void SysState::leaveSubStates()
 {
 	if( InternalStage_ < sysBS_LEAVE )
 	{
-		for( BcU32 i = 0; i < SubStates_.size(); ++i )
+		for( BcU32 i = 0; i < MAX_STATE_SUB_STATES; ++i )
 		{
 			if( SubStates_[i] != NULL )
 			{
@@ -371,7 +373,7 @@ void SysState::processSubStates()
 	// Process Substates
 	nActiveSubStates_ = 0;
 
-	for ( BcU32 i = 0; i < SubStates_.size(); ++i )
+	for ( BcU32 i = 0; i < MAX_STATE_SUB_STATES; ++i )
 	{
 		// Process current
 		if ( SubStates_[i] != NULL )

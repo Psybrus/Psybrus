@@ -15,6 +15,7 @@
 #define __BCEVENT_H__
 
 #include "BcTypes.h"
+#include "BcDebug.h"
 
 #include <windows.h>
 
@@ -26,7 +27,7 @@ public:
 	BcEvent( const BcChar* Name = NULL );
 	~BcEvent();
 
-	BcBool wait( BcU32 TimeoutMS );
+	BcBool wait( BcU32 TimeoutMS = BcErrorCode );
 	void signal();
 
 private:
@@ -48,6 +49,7 @@ inline BcEvent::~BcEvent()
 
 inline BcBool BcEvent::wait( BcU32 TimeoutMS )
 {
+	BcAssertMsg( BcErrorCode == INFINITE, "Assumption failed." );
 	return ( ::WaitForSingleObject( EventHandle_, TimeoutMS ) == WAIT_OBJECT_0 ); 
 }
 
