@@ -286,6 +286,46 @@
 							</FileConfiguration>
 						</File>
 						<File
+							RelativePath="..\..\Source\Platforms\OSX\Base\BcMisc.cpp"
+							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								ExcludedFromBuild="true"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								ExcludedFromBuild="true"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+								/>
+							</FileConfiguration>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Base\BcMisc.h"
+							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								ExcludedFromBuild="true"
+								>
+								<Tool
+									Name="VCCustomBuildTool"
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								ExcludedFromBuild="true"
+								>
+								<Tool
+									Name="VCCustomBuildTool"
+								/>
+							</FileConfiguration>
+						</File>
+						<File
 							RelativePath="..\..\Source\Platforms\OSX\Base\BcMutex.cpp"
 							>
 							<FileConfiguration
@@ -878,22 +918,6 @@
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnPackage.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnPackage.h"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnScript.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnScript.h"
-							>
-						</File>
-						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnShader.cpp"
 							>
 						</File>
@@ -1350,6 +1374,14 @@
 						Name="Game"
 						>
 						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaComponent.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaComponent.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Game\GaCore.cpp"
 							>
 						</File>
@@ -1358,11 +1390,27 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaEntity.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaEntity.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Game\GaLibrary.cpp"
 							>
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Game\GaLibrary.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaLibraryGame.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaLibraryGame.h"
 							>
 						</File>
 						<File
@@ -1379,6 +1427,30 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Game\GaLibraryScene.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaPackage.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaPackage.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaScript.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaScript.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaTransform.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Game\GaTransform.h"
 							>
 						</File>
 					</Filter>
