@@ -165,8 +165,7 @@ private:
 	BcBool						StopTriggered_;							///!< Has a stop been triggered?
 	
 	typedef BcBool(SysSystem::*ProcessFunc)();
-	typedef std::array< ProcessFunc, STATE_MAX > ProcessFuncArray;
-	ProcessFuncArray			ProcessFuncs_;
+	ProcessFunc					ProcessFuncs_[ STATE_MAX ];
 	
 	BcTimer						PerfTimer_;
 	BcReal						LastTickTime_;
