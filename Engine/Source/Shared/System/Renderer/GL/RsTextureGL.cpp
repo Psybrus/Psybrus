@@ -127,15 +127,12 @@ void RsTextureGL::update()
 	// Bind and upload.
 	GLuint Handle = getHandle< GLuint >();
 	
-	if( pData_ != NULL )
-	{
-		glBindTexture( GL_TEXTURE_2D, Handle );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );		
+	glBindTexture( GL_TEXTURE_2D, Handle );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );		
 
-		// Invalidate texture state.
-		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
-		pStateBlock->invalidateTextureState();
-	}
+	// Invalidate texture state.
+	RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
+	pStateBlock->invalidateTextureState();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -16,6 +16,9 @@
 #include "RsFrameGL.h"
 
 #include "RsTextureGL.h"
+#include "RsRenderTargetGL.h"
+#include "RsRenderBufferGL.h"
+#include "RsFrameBufferGL.h"
 #include "RsVertexBufferGL.h"
 #include "RsIndexBufferGL.h"
 #include "RsShaderGL.h"
@@ -67,7 +70,7 @@ void RsCoreImplGL::open()
 		
 	// Clear.
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,6 +109,28 @@ RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels,
 	RsTextureGL* pResource = new RsTextureGL( Width, Height, Levels, Format, pData );
 	createResource( pResource );
 	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderTarget
+//virtual
+RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat )
+{
+	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( ColourFormat, Width, Height );
+	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( DepthStencilFormat, Width, Height );
+	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL();
+	RsTextureGL* pTexture = new RsTextureGL( Width, Height, 1, rsTF_RGBA8, NULL );
+
+	createResource( pColourBuffer );
+	createResource( pDepthStencilBuffer );
+	createResource( pFrameBuffer );
+	createResource( pTexture );
+
+	// Create the render target.
+	RsRenderTargetGL* pRenderTarget = new RsRenderTargetGL( ColourFormat, DepthStencilFormat, Width, Height, pColourBuffer, pDepthStencilBuffer, pFrameBuffer, pTexture );	
+	createResource( pRenderTarget );
+	
+	return pRenderTarget;
 }
 
 //////////////////////////////////////////////////////////////////////////

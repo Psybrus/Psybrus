@@ -273,6 +273,7 @@ gmFunctionEntry GaSceneMaterialInstance::GM_TYPELIB[] =
 {
 	{ "FindParameter",			GaSceneMaterialInstance::FindParameter },
 	{ "SetParameter",			GaSceneMaterialInstance::SetParameter },
+	{ "SetTexture",				GaSceneMaterialInstance::SetTexture },
 	{ "GetTexture",				GaSceneMaterialInstance::GetTexture }
 };
 
@@ -355,6 +356,21 @@ int GM_CDECL GaSceneMaterialInstance::SetParameter( gmThread* a_thread )
 	return GM_OK;
 }
 
+int GM_CDECL GaSceneMaterialInstance::SetTexture( gmThread* a_thread )
+{
+	if( a_thread->GetNumParams() == 2 )
+	{
+		// Set individual.
+		GM_CHECK_INT_PARAM( ParameterID, 0 );
+		GM_CHECK_USER_PARAM( ScnTexture*, GaSceneTexture::GM_TYPE, pTexture, 1 );
+		ScnMaterialInstance* pMaterialInstance = (ScnMaterialInstance*)a_thread->ThisUser_NoChecks();
+		
+		pMaterialInstance->setTexture( (BcU32)ParameterID, pTexture );
+	}
+	
+	return GM_OK;
+}
+
 int GM_CDECL GaSceneMaterialInstance::GetTexture( gmThread* a_thread )
 {
 	GM_CHECK_NUM_PARAMS( 1 );
@@ -430,6 +446,69 @@ void GM_CDECL GaSceneTexture::CreateType( gmMachine* a_machine )
 	int NoofEntries = sizeof( GaSceneTexture::GM_TYPELIB ) / sizeof( GaSceneTexture::GM_TYPELIB[0] );
 	a_machine->RegisterTypeLibrary( GaSceneTexture::GM_TYPE, GaSceneTexture::GM_TYPELIB, NoofEntries );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// GaSceneRenderTarget
+gmFunctionEntry GaSceneRenderTarget::GM_TYPELIB[] = 
+{
+	{ "Bind",					GaSceneRenderTarget::Bind },
+	{ "Unbind",					GaSceneRenderTarget::Unbind }
+};
+
+int GM_CDECL GaSceneRenderTarget::Create( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 3 );
+	GM_CHECK_STRING_PARAM( pName, 0 )
+	GM_CHECK_INT_PARAM( Width, 1 )
+	GM_CHECK_INT_PARAM( Height, 2 );
+	
+	ScnRenderTargetRef RenderTargetRef;
+	if( CsCore::pImpl()->createResource( pName, RenderTargetRef, Width, Height ) )
+	{
+		// Allocate a new object instance for the font instance.
+		gmUserObject* pUserObj = GaSceneRenderTarget::AllocUserObject( a_thread->GetMachine(), RenderTargetRef );
+		
+		// Push onto stack.
+		a_thread->PushUser( pUserObj );
+		
+		// Add resource block incase it isn't ready.
+		return GaCore::pImpl()->addResourceBlock( RenderTargetRef, pUserObj, a_thread ) ? GM_SYS_BLOCK : GM_OK;
+	}
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaSceneRenderTarget::Bind( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 1 );
+	GM_CHECK_USER_PARAM( RsFrame*, GaSceneFrame::GM_TYPE, pFrame, 0 );
+	ScnRenderTarget* pRenderTarget = (ScnRenderTarget*)a_thread->ThisUser_NoChecks();
+	
+	pRenderTarget->bind( pFrame );
+	
+	return GM_OK;
+}
+
+int GM_CDECL GaSceneRenderTarget::Unbind( gmThread* a_thread )
+{
+	GM_CHECK_NUM_PARAMS( 1 );
+	GM_CHECK_USER_PARAM( RsFrame*, GaSceneFrame::GM_TYPE, pFrame, 0 );
+	ScnRenderTarget* pRenderTarget = (ScnRenderTarget*)a_thread->ThisUser_NoChecks();
+	
+	pRenderTarget->unbind( pFrame );
+	
+	return GM_OK;
+}
+
+void GM_CDECL GaSceneRenderTarget::CreateType( gmMachine* a_machine )
+{
+	GaLibraryResource< ScnRenderTarget >::CreateType( a_machine );
+	
+	// Register type library.
+	int NoofEntries = sizeof( GaSceneRenderTarget::GM_TYPELIB ) / sizeof( GaSceneRenderTarget::GM_TYPELIB[0] );
+	a_machine->RegisterTypeLibrary( GaSceneRenderTarget::GM_TYPE, GaSceneRenderTarget::GM_TYPELIB, NoofEntries );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // GaSceneSound
@@ -573,6 +652,7 @@ static gmFunctionEntry gLibScene[] =
 	// Resource creating.
 	{ "Canvas",					GaSceneCanvas::Create },
 	{ "SoundEmitter",			GaSceneSoundEmitter::Create },
+	{ "RenderTarget",			GaSceneRenderTarget::Create },
 	
 	// Hacky RsFrame stuff.
 	{ "FrameBegin",				GaSceneFrame::FrameBegin },
@@ -593,6 +673,7 @@ void GaLibrarySceneBinder( gmMachine* a_machine )
 	GaSceneModelInstance::CreateType( a_machine );
 	GaSceneShader::CreateType( a_machine );
 	GaSceneTexture::CreateType( a_machine );
+	GaSceneRenderTarget::CreateType( a_machine );
 	GaSceneSound::CreateType( a_machine );
 	GaSceneSoundEmitter::CreateType( a_machine );
 

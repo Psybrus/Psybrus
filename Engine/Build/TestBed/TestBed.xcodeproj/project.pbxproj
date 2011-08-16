@@ -267,6 +267,14 @@
 		C86E9A461351560B0015F899 /* RsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C86E9A44135156080015F899 /* RsResource.cpp */; };
 		C877CA3113D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */; };
 		C877CA3213D5856D00E64349 /* SysDelegateDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */; };
+		C8884A1113FA8082005055DB /* ScnRenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A0F13FA8082005055DB /* ScnRenderTarget.cpp */; };
+		C8884A1213FA8082005055DB /* ScnRenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A0F13FA8082005055DB /* ScnRenderTarget.cpp */; };
+		C8884A3913FA87D3005055DB /* RsFrameBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A3313FA87CE005055DB /* RsFrameBufferGL.cpp */; };
+		C8884A3A13FA87D3005055DB /* RsFrameBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A3313FA87CE005055DB /* RsFrameBufferGL.cpp */; };
+		C8884A3B13FA87D3005055DB /* RsRenderBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A3513FA87CF005055DB /* RsRenderBufferGL.cpp */; };
+		C8884A3C13FA87D3005055DB /* RsRenderBufferGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A3513FA87CF005055DB /* RsRenderBufferGL.cpp */; };
+		C8884A3D13FA87D3005055DB /* RsRenderTargetGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A3713FA87D0005055DB /* RsRenderTargetGL.cpp */; };
+		C8884A3E13FA87D3005055DB /* RsRenderTargetGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8884A3713FA87D0005055DB /* RsRenderTargetGL.cpp */; };
 		C8992B611350CEAA00C9F09D /* CsResourceRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */; };
 		C8A16A5E136045610054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5A136045610054F3AF /* GaCore.cpp */; };
 		C8A16A5F136045610054F3AF /* GaCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A16A5A136045610054F3AF /* GaCore.cpp */; };
@@ -615,6 +623,14 @@
 		C86E9A45135156090015F899 /* RsResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RsResource.h; sourceTree = "<group>"; };
 		C877CA2F13D5856C00E64349 /* SysDelegateDispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysDelegateDispatcher.cpp; sourceTree = "<group>"; };
 		C877CA3013D5856C00E64349 /* SysDelegateDispatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysDelegateDispatcher.h; sourceTree = "<group>"; };
+		C8884A0F13FA8082005055DB /* ScnRenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScnRenderTarget.cpp; sourceTree = "<group>"; };
+		C8884A1013FA8082005055DB /* ScnRenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScnRenderTarget.h; sourceTree = "<group>"; };
+		C8884A3313FA87CE005055DB /* RsFrameBufferGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RsFrameBufferGL.cpp; path = GL/RsFrameBufferGL.cpp; sourceTree = "<group>"; };
+		C8884A3413FA87CE005055DB /* RsFrameBufferGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RsFrameBufferGL.h; path = GL/RsFrameBufferGL.h; sourceTree = "<group>"; };
+		C8884A3513FA87CF005055DB /* RsRenderBufferGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RsRenderBufferGL.cpp; path = GL/RsRenderBufferGL.cpp; sourceTree = "<group>"; };
+		C8884A3613FA87CF005055DB /* RsRenderBufferGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RsRenderBufferGL.h; path = GL/RsRenderBufferGL.h; sourceTree = "<group>"; };
+		C8884A3713FA87D0005055DB /* RsRenderTargetGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RsRenderTargetGL.cpp; path = GL/RsRenderTargetGL.cpp; sourceTree = "<group>"; };
+		C8884A3813FA87D2005055DB /* RsRenderTargetGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RsRenderTargetGL.h; path = GL/RsRenderTargetGL.h; sourceTree = "<group>"; };
 		C8992B5F1350CEAA00C9F09D /* CsResourceRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsResourceRef.cpp; sourceTree = "<group>"; };
 		C8992B601350CEAA00C9F09D /* CsResourceRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsResourceRef.h; sourceTree = "<group>"; };
 		C8A16A5A136045610054F3AF /* GaCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GaCore.cpp; path = Game/GaCore.cpp; sourceTree = "<group>"; };
@@ -1036,6 +1052,8 @@
 				C86E97A61351162B0015F899 /* ScnModel.h */,
 				C824731513507BE70092D33F /* ScnTexture.cpp */,
 				C824731613507BE70092D33F /* ScnTexture.h */,
+				C8884A0F13FA8082005055DB /* ScnRenderTarget.cpp */,
+				C8884A1013FA8082005055DB /* ScnRenderTarget.h */,
 				C86E92041350F1E30015F899 /* ScnMaterial.cpp */,
 				C86E92051350F1E40015F899 /* ScnMaterial.h */,
 				C8E64D7F1351980B00AAF73E /* ScnCanvas.cpp */,
@@ -1347,6 +1365,12 @@
 		C8D6D94713DBCE8700099DB9 /* GL */ = {
 			isa = PBXGroup;
 			children = (
+				C8884A3313FA87CE005055DB /* RsFrameBufferGL.cpp */,
+				C8884A3413FA87CE005055DB /* RsFrameBufferGL.h */,
+				C8884A3513FA87CF005055DB /* RsRenderBufferGL.cpp */,
+				C8884A3613FA87CF005055DB /* RsRenderBufferGL.h */,
+				C8884A3713FA87D0005055DB /* RsRenderTargetGL.cpp */,
+				C8884A3813FA87D2005055DB /* RsRenderTargetGL.h */,
 				C8D6D94813DBCE9A00099DB9 /* RsCoreImplGL.cpp */,
 				C8D6D94913DBCE9A00099DB9 /* RsCoreImplGL.h */,
 				C8D6D94A13DBCE9A00099DB9 /* RsFrameGL.cpp */,
@@ -1604,6 +1628,10 @@
 				C822A9DD13DC59AC00E2F12C /* GaLibraryGame.cpp in Sources */,
 				C822A9DF13DC59AD00E2F12C /* GaPackage.cpp in Sources */,
 				C822A9E113DC59AD00E2F12C /* GaScript.cpp in Sources */,
+				C8884A1113FA8082005055DB /* ScnRenderTarget.cpp in Sources */,
+				C8884A3913FA87D3005055DB /* RsFrameBufferGL.cpp in Sources */,
+				C8884A3B13FA87D3005055DB /* RsRenderBufferGL.cpp in Sources */,
+				C8884A3D13FA87D3005055DB /* RsRenderTargetGL.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1752,6 +1780,10 @@
 				C822A9DE13DC59AD00E2F12C /* GaLibraryGame.cpp in Sources */,
 				C822A9E013DC59AD00E2F12C /* GaPackage.cpp in Sources */,
 				C822A9E213DC59AD00E2F12C /* GaScript.cpp in Sources */,
+				C8884A1213FA8082005055DB /* ScnRenderTarget.cpp in Sources */,
+				C8884A3A13FA87D3005055DB /* RsFrameBufferGL.cpp in Sources */,
+				C8884A3C13FA87D3005055DB /* RsRenderBufferGL.cpp in Sources */,
+				C8884A3E13FA87D3005055DB /* RsRenderTargetGL.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

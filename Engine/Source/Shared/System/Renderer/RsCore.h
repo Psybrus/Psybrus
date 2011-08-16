@@ -25,6 +25,7 @@
 #include "RsFrame.h"
 
 #include "RsTexture.h"
+#include "RsRenderTarget.h"
 #include "RsShader.h"
 #include "RsProgram.h"
 #include "RsVertexBuffer.h"
@@ -64,6 +65,15 @@ public:
 	 *	@param pData Texture data.
 	 */
 	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+
+	/**
+	 *	Create a render target.
+	 *	@param Width Width.
+	 *	@param Height Height.
+	 *  @param ColourFormat Colour format.
+	 *  @param DepthStencilFormat Depth/stencil format.
+	 */
+	virtual RsRenderTarget*	createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat ) = 0;
 
 	/*
 	 * Create a vertex buffer.

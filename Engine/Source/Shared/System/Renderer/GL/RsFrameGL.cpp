@@ -14,6 +14,7 @@
 #include "RsFrameGL.h"
 
 #include "RsCoreImplGL.h"
+#include "RsRenderTargetGL.h"
 
 #include "BcMemory.h"
 
@@ -76,8 +77,20 @@ class RsRenderTargetNode: public RsRenderNode
 public:
 	void render()
 	{
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );		
+		if( pRenderTarget_ != NULL )
+		{
+			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
+			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
+		}
+		else
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+			
+		}
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
 	}
+	
+	RsRenderTarget* pRenderTarget_;
 };
 
 
@@ -185,6 +198,9 @@ void RsFrameGL::render()
 
 	// Reset everything.
 	reset();
+
+	// TEMP HACK: Free frame.
+	delete this;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,10 +214,13 @@ void RsFrameGL::setRenderTarget( RsRenderTarget* pRenderTarget )
 	ppNodeArray_[ CurrNode_++ ] = pNode;
 	
 	// Set the current viewport, rendertarget, etc.
-	pCurrViewport_ = NULL;
-	CurrViewport_ = BcErrorCode;
+	//pCurrViewport_ = NULL; // TODO: FIX.
+	//CurrViewport_ = BcErrorCode;
 	pCurrRenderTarget_ = pNode;
 	CurrRenderTarget_++;
+	
+	// Set rendertarget for node.
+	pNode->pRenderTarget_ = (RsRenderTargetGL*)pRenderTarget;
 	
 	// Set the sort value for the node.
 	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( 0, CurrRenderTarget_ );

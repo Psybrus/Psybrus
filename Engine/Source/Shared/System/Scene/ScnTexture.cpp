@@ -135,7 +135,7 @@ BcU32 ScnTexture::getHeight() const
 // getTexel
 RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
 {
-	if( X < pHeader_->Width_ && Y < pHeader_->Height_ )
+	if( pTextureData_ != NULL && X < pHeader_->Width_ && Y < pHeader_->Height_ )
 	{
 		BcU32* pTextureData = (BcU32*)pTextureData_;
 		BcU32 Index = X + Y * pHeader_->Width_;
