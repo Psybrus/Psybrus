@@ -11,6 +11,7 @@
 
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
+#include "ScnRenderTarget.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
 #include "ScnCanvas.h"
@@ -38,6 +39,7 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 	{
 		CsCore::pImpl()->registerResource< ScnTexture >();
 		CsCore::pImpl()->registerResource< ScnTextureAtlas >();
+		CsCore::pImpl()->registerResource< ScnRenderTarget >();
 		CsCore::pImpl()->registerResource< ScnMaterial >();
 		CsCore::pImpl()->registerResource< ScnModel >();
 		CsCore::pImpl()->registerResource< ScnCanvas >();
