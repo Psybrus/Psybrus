@@ -43,15 +43,17 @@ int main( int argc, char* argv[] )
 
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
+#include "ScnRenderTarget.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
 #include "ScnCanvas.h"
 #include "ScnShader.h"
-#include "ScnScript.h"
 #include "ScnFont.h"
-#include "ScnPackage.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
+
+#include "GaPackage.h"
+#include "GaScript.h"
 
 #include "SysJobQueue.h"
 
@@ -112,6 +114,7 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	// Register resources.
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
+	CsCore::pImpl()->registerResource< ScnRenderTarget >();
 	CsCore::pImpl()->registerResource< ScnMaterial >();
 	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
 	CsCore::pImpl()->registerResource< ScnModel >();
@@ -120,10 +123,11 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnShader >();
 	CsCore::pImpl()->registerResource< ScnFont >();
 	CsCore::pImpl()->registerResource< ScnFontInstance >();
-	CsCore::pImpl()->registerResource< ScnPackage >();
-	CsCore::pImpl()->registerResource< ScnScript >();
 	CsCore::pImpl()->registerResource< ScnSound >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
+
+	CsCore::pImpl()->registerResource< GaPackage >();
+	CsCore::pImpl()->registerResource< GaScript >();
 
 	return evtRET_PASS;
 }

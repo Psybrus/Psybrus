@@ -27,6 +27,7 @@
 #include "ScnShader.h"
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
+#include "ScnRenderTarget.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
 
@@ -96,6 +97,7 @@ public:
 public:
 	static int GM_CDECL FindParameter( gmThread* a_thread );
 	static int GM_CDECL SetParameter( gmThread* a_thread );
+	static int GM_CDECL SetTexture( gmThread* a_thread );
 	static int GM_CDECL GetTexture( gmThread* a_thread );
 	
 	static void GM_CDECL CreateType( gmMachine* a_machine );
@@ -128,6 +130,19 @@ public:
 	static int GM_CDECL GetWidth( gmThread* a_thread );
 	static int GM_CDECL GetHeight( gmThread* a_thread );
 	static int GM_CDECL GetTexel( gmThread* a_thread );
+	
+	static void GM_CDECL CreateType( gmMachine* a_machine );
+};
+
+class GaSceneRenderTarget: public GaLibraryResource< ScnRenderTarget >
+{
+public:
+	static gmFunctionEntry GM_TYPELIB[];
+	
+public:
+	static int GM_CDECL Create( gmThread* a_thread );
+	static int GM_CDECL Bind( gmThread* a_thread );
+	static int GM_CDECL Unbind( gmThread* a_thread );
 	
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
