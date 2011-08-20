@@ -26,8 +26,10 @@ public:
 
 	BcU32 rand();
 	BcReal randReal();
-
 	BcU32 randRange( BcU32 Min, BcU32 Max );
+	BcReal noise( BcU32 X, BcU32 Width );
+	BcReal smoothedNoise( BcReal X, BcU32 Width = 512 );
+	BcReal interpolatedNoise( BcReal X, BcU32 Width = 512 );
 
 private:
 	BcU32 Z_;

@@ -51,6 +51,7 @@ int main( int argc, char* argv[] )
 #include "ScnFont.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
+#include "ScnSynthesizer.h"
 
 #include "GaPackage.h"
 #include "GaScript.h"
@@ -60,6 +61,7 @@ int main( int argc, char* argv[] )
 OsEventCore::Delegate DelegateQuit;
 SysSystemEvent::Delegate DelegateRender;
 SysSystemEvent::Delegate DelegateUpdate;
+SysSystemEvent::Delegate DelegateCsInit;
 SysSystemEvent::Delegate DelegateRemoteOpened;
 SysSystemEvent::Delegate DelegateSetupEngine;
 
@@ -75,6 +77,17 @@ eEvtReturn doQuit( EvtID ID, const OsEventCore& Event )
 eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 {
 
+	return evtRET_PASS;
+}
+
+ScnSynthesizerRef Synthesizer;
+
+eEvtReturn doCsInit( EvtID ID, const SysSystemEvent& Event )
+{
+	if( CsCore::pImpl()->createResource( "synthesizer", Synthesizer, 22050.0f ) )
+	{
+		BcPrintf( "Made synth.\n" );
+	}
 	return evtRET_PASS;
 }
 
@@ -104,12 +117,14 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	DelegateQuit = OsEventCore::Delegate::bind< doQuit >();
 	DelegateRender = SysSystemEvent::Delegate::bind< doRender >();	
 	DelegateUpdate = SysSystemEvent::Delegate::bind< doUpdate >();	
+	DelegateCsInit = SysSystemEvent::Delegate::bind< doCsInit >();	
 	DelegateRemoteOpened = SysSystemEvent::Delegate::bind< doRemoteOpened >();	
 
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT,			DelegateQuit );
 	RsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE,	DelegateUpdate );
 	RsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE,	DelegateRender );
 	RmCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN,	DelegateRemoteOpened );	
+	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN,	DelegateCsInit );	
 	
 	// Register resources.
 	CsCore::pImpl()->registerResource< ScnTexture >();
@@ -125,6 +140,7 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnFontInstance >();
 	CsCore::pImpl()->registerResource< ScnSound >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
+	CsCore::pImpl()->registerResource< ScnSynthesizer >();
 
 	CsCore::pImpl()->registerResource< GaPackage >();
 	CsCore::pImpl()->registerResource< GaScript >();
@@ -132,62 +148,8 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	return evtRET_PASS;
 }
 
-class BcDelegateDispatcher
-{
-public:
-	virtual void enqueueDelegateCall( BcDelegateCallBase* pDelegateCall ) = 0;
-	virtual void dispatch() = 0;	
-
-public:
-	template< typename _Ty >
-	BcForceInline void enqueue( _Ty& DelegateCall )
-	{
-		_Ty* pDelegateCall = new _Ty( DelegateCall.deferCall() );
-		enqueueDelegateCall( pDelegateCall );
-	}
-
-	template< typename _Ty, typename _P0 >
-	BcForceInline void enqueue( _Ty& DelegateCall, _P0 P0 )
-	{
-		_Ty* pDelegateCall = new _Ty( DelegateCall.deferCall( P0 ) );
-		enqueueDelegateCall( pDelegateCall );
-	}
-};
-
-
-void testDelegateCall( int a )
-{
-	BcPrintf( "a: %i\n", a );
-}
-
-void testDelegateCall2( int a, int b )
-{
-	BcPrintf( "ab: %i, %i\n", a, b );
-}
-
 void PsyGameInit( SysKernel& Kernel )
 {
-	/*
-	// Test code.
-	typedef BcDelegate< void(*)(int) > TDelegate;
-	typedef BcDelegateCall< void(*)(int) > TDelegateCall;
-
-	typedef BcDelegate< void(*)(int,int) > TDelegate2;
-	typedef BcDelegateCall< void(*)(int,int) > TDelegateCall2;
-	
-	BcDelegateDispatcher DelegateCallDispatcher;
-	
-	TDelegateCall DelegateCall( TDelegate::bind< testDelegateCall >() );
-	TDelegateCall2 DelegateCall2( TDelegate2::bind< testDelegateCall2 >() );
-	
-	DelegateCallDispatcher.queueCall( TDelegate::bind< testDelegateCall >(), 0 );
-	DelegateCallDispatcher.queueCall( TDelegate::bind< testDelegateCall >(), 1 );
-	DelegateCallDispatcher.queueCall( TDelegate2::bind< testDelegateCall2 >(), 2, 3 );
-	DelegateCallDispatcher.queueCall( TDelegate2::bind< testDelegateCall2 >(), 4, 5 );
-
-	DelegateCallDispatcher.dispatch();
-	 */
-	
 	// TODO: Move this into a types unit test.
 	BcAssert( sizeof( BcU8 ) == 1 );
 	BcAssert( sizeof( BcS8 ) == 1 );
