@@ -52,3 +52,31 @@ BcU32 BcRandom::randRange( BcU32 Min, BcU32 Max )
 {
 	return ( Min + ( rand() % ( Max - Min ) ) );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// noise
+BcReal BcRandom::noise( BcU32 X, BcU32 Width )
+{
+	X = X % Width;
+	X = ( X << 13 ) ^ X;
+	return ( 1.0f - ( ( X * ( X * X * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0f );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// smoothedNoise
+BcReal BcRandom::smoothedNoise( BcReal X, BcU32 Width )
+{
+	return noise( X, Width ) / 2.0f + noise( X - 1, Width ) / 4 + noise( X + 1, Width ) / 4;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
+BcReal BcRandom::interpolatedNoise( BcReal X, BcU32 Width )
+{
+	BcU32 iX = BcU32( X );
+	BcU32 FracX = X - iX;
+	BcReal V1 = smoothedNoise( iX, Width );
+	BcReal V2 = smoothedNoise( iX + 1, Width );
+	return V1 + ( V2 - V1 ) * FracX;
+}
+

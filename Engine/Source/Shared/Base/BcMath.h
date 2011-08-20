@@ -224,6 +224,13 @@ inline _Ty BcMax( _Ty A, _Ty B )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// BcLerp
+inline BcReal BcLerp( BcReal A, BcReal B, BcReal T )
+{
+	return ( A * ( 1.0f - T ) ) + ( B * T );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // BcSigmoid
 inline BcReal BcSigmoid( BcReal T )
 {
