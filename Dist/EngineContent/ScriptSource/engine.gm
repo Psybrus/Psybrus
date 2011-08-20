@@ -1,0 +1,247 @@
+//////////////////////////////////////////////////////////////////////////
+// Engine script.
+//////////////////////////////////////////////////////////////////////////
+
+global STATS_OVERLAY = 1;
+
+global TICK = 1.0 / 60.0;
+
+//////////////////////////////////////////////////////////////////////////
+// Dump library. Used to track down broken bindings.
+global engineDumpLibrary = function( libName, lib )
+{
+	print( "Dumping contents of", libName, "library:\n" );
+	foreach( key and val in lib )
+	{
+		print( "- ", key, ":", val, "\n" );
+	}
+}; 
+
+//////////////////////////////////////////////////////////////////////////
+// Get VM stats
+global engineVMStats = function()
+{
+	return "VM Stats:\n" +
+	       "- DesiredMemoryUsageHard: " + ( sysGetDesiredMemoryUsageHard() / 1024 ) + "KB\n" +
+	       "- DesiredMemoryUsageSoft: " + ( sysGetDesiredMemoryUsageSoft() / 1024 ) + "KB\n" +
+	       "- MemoryUsage: " + ( sysGetMemoryUsage() / 1024 ) + "KB\n" +
+	       "- GCNumFullCollects: " + ( sysGetStatsGCNumFullCollects() ) + "\n" +
+	       "- GCNumIncCollects: " + ( sysGetStatsGCNumIncCollects() ) + "\n";	       
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Engine.
+global Engine = table
+(
+	Initialise = function()
+	{
+		.initialised = false;
+
+		// Setup internal management stuff.
+		.objects = list();
+		.destroyObjects = list();
+
+		// Other stuff.
+		.CreateResources();
+		.CreateTransforms();
+		.CreateThreads();
+		
+		print( "Engine.Initialise Complete.\n" );
+		.initialised = true;
+	},
+	
+	CreateResources = function()
+	{		
+		// Main rendertarget.
+		.mainRenderTarget = Scene.RenderTarget( "main_rendertarget", 1280, 720 );
+		
+		// Get a texture handle to the main rendertarget.
+		.mainRenderTargetTexture = Scene.Texture( "main_rendertarget" );
+
+		// Load in font and material.
+		.font = Scene.Font( "courier" );
+		.fontMaterial = Scene.Material( "font" );
+		.postprocessMaterial = Scene.Material( "postprocess_default" );
+		
+		// Default material (just use font one for now).
+		.defaultMaterialInstance = .fontMaterial.CreateInstance( "default_materialinstance" );
+
+		// Default post processing material.
+		.mainRenderTargetMaterialInstance = .postprocessMaterial.CreateInstance( "postprocess_default_materialinstance" );
+		.mainRenderTargetTextureParam = .mainRenderTargetMaterialInstance.FindParameter( "aDiffuseTex" );
+		.mainRenderTargetMaterialInstance.SetTexture( .mainRenderTargetTextureParam, .mainRenderTargetTexture );
+		
+		// Create font instance.
+		.fontInstance = .font.CreateInstance( "courier_instance", .fontMaterial );
+
+		// Cache font material instance.
+		.fontMaterialInstance = .fontInstance.GetMaterialInstance();
+		
+		// Setup alpha test stepping for smoothest edges (needs a low spread in font).
+		.fontMinStepParam = .fontMaterialInstance.FindParameter( "aAlphaTestStep" );
+		.fontMaterialInstance.SetParameter( .fontMinStepParam, Math.Vec2( 0.0, 0.5 ) );
+	
+		// Create a canvas for debug stats.
+		if( STATS_OVERLAY )
+		{
+			.canvasDebugStats = Scene.Canvas( "canvasDebugStats", 4096, .defaultMaterialInstance );
+		}
+		
+		// Create a canvas for general drawing.
+		.canvas = Scene.Canvas( "canvas", 4096, .defaultMaterialInstance );
+	},
+	
+	CreateTransforms = function()
+	{
+		// Setup canvas matrices.		
+		w = 1280.0;
+		h = 720.0; 
+		wOver2 = w / 2.0;
+		hOver2 = h / 2.0;
+		.projectionMat = Math.Mat4();
+		.projectionMat.OrthoProjection( -wOver2, wOver2, hOver2, -hOver2, -1.0, 1.0 );
+			
+		.transMat = Math.Mat4();
+		.transMat.Translation( Math.Vec3( -wOver2, -hOver2, 0.0 ) + Math.Vec3( 32.0, 32.0, 0.0 ) );
+	},
+	
+	CreateThreads = function()
+	{
+		// Setup frame count.
+		.frameCount = 0;
+		
+		// Set up running flag.
+		.isRunning = 1;
+		
+		// Setup aux threads.
+		if( STATS_OVERLAY )
+		{
+			.statsThreadID = this:thread( .StatsThread, 0.25 );
+		}
+		
+		// Setup thread.
+		.mainThreadID = this:thread( .MainThread );
+	},
+	
+	AddObject = function( object )
+	{
+		//print( "Engine.AddObject:", object, "\n" );
+		assert( .initialised == true );
+		assert( object != null );
+		.objects.Append( object );
+	},
+	
+	RemoveObject = function( object )
+	{
+		//print( "Engine.RemoveObject:", object, "\n" );
+		assert( object != null );
+		.destroyObjects.Append( object );
+	},
+	
+	StatsThread = function( sleepTime )
+	{
+		while( .isRunning )
+		{
+			// Update debug stats canvas.
+			.canvasDebugStats.Clear();
+			
+			// Push matrices.			
+			.canvasDebugStats.PushMatrix( .projectionMat );
+			.canvasDebugStats.PushMatrix( .transMat );
+			
+			// Add stats to string.
+			text = engineVMStats();
+			text = text + "Engine Stats:\n";
+			text = text + "- Frames drawn: " + .frameCount + "\n";
+			text = text + "- Objects: " + .objects.Length() + "\n";
+			text = text + "- Last tick time (ms): " + ( STAT_LASTTICK * 1000.0 ) + "\n";
+			
+			// Draw text.
+			.fontInstance.Draw( .canvasDebugStats, text );
+			
+			// Sleep for a while.
+			sleep( sleepTime );
+		}
+	},
+	
+	MainThread = function()
+	{
+		while( .isRunning )
+		{
+			.Update();
+			.Render();
+		}
+	},
+	
+	Update = function()
+	{
+		// Remove destroyed objects from main list.		
+		destroyObjectCount = .destroyObjects.Length();
+		for( i = 0; i < .destroyObjects.Length(); i = i + 1 )
+		{
+			destroyObject = .destroyObjects[ i ];
+			destroyObject.Destroy();
+			
+			.objects.Remove( destroyObject );
+		}
+		.destroyObjects = list();
+
+		// Update all objects.
+		objectCount = .objects.Length();
+		for( i = 0; i < objectCount; i = i + 1 )
+		{
+			object = .objects[ i ];
+			object.Update();
+		}
+
+	},
+	
+	Render = function()
+	{
+		// Begin frame.
+		frame = Scene.FrameBegin();	
+			
+		// Bind main rendertarget.
+		//.mainRenderTarget.Bind( frame );
+			
+		// Render objects here.
+		.canvas.Clear();
+		.canvas.PushMatrix( .projectionMat );
+		
+		objectCount = .objects.Length();
+		for( i = 0; i < objectCount; i = i + 1 )
+		{
+			object = .objects[ i ];
+			object.Render( frame, .canvas );
+		}
+				
+		// Render canvas.
+		.canvas.Render( frame );
+		
+		// Unbind main rendertarget.
+		//.mainRenderTarget.Unbind( frame );
+
+		
+		// Render debug stats canvas.
+		if( STATS_OVERLAY )
+		{
+			.canvasDebugStats.Render( frame );
+		}
+		
+		// End frame. (Yielding call).
+		Scene.FrameEnd( frame );
+			
+		// Increment frame counter.
+		.frameCount = .frameCount + 1;
+	},
+	
+	KeyPressed = function( keyCode )
+	{
+		return KeyState[ keyCode ] && !KeyOldState[ keyCode ];
+	},
+
+	KeyReleased = function( keyCode )
+	{
+		return !KeyState[ keyCode ] && KeyOldState[ keyCode ];
+	}
+);
