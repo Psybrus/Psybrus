@@ -1,0 +1,20 @@
+{ 
+	"ScnMaterial" : {
+		"name"		: "default",
+
+		// Shader
+		"shader"	: "EngineContent/default.shader",
+
+		// State
+		"state"		: {
+			"depth_write_enable" 		: 0,
+			"depth_test_enable" 		: 0,
+			"depth_test_compare" 		: "never",
+			"depth_bias" 				: 0,
+			"alpha_test_enable" 		: 0,
+			"alpha_test_compare" 		: "never",
+			"alpha_test_threshold" 		: 0,
+			"blend_mode" 				: "blend"
+		}
+	}
+}

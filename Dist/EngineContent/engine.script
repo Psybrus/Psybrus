@@ -1,0 +1,6 @@
+{ 
+	"GaScript" : {
+		"name"		: "engine",
+		"source"	: "EngineContent/ScriptSource/engine.gm"
+	}
+}
