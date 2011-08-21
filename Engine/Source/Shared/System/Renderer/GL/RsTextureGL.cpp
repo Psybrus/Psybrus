@@ -128,8 +128,16 @@ void RsTextureGL::update()
 	GLuint Handle = getHandle< GLuint >();
 	
 	glBindTexture( GL_TEXTURE_2D, Handle );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );		
-
+	/*
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
+	 */
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
+	RsGLCatchError;
+	
 	// Invalidate texture state.
 	RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
 	pStateBlock->invalidateTextureState();

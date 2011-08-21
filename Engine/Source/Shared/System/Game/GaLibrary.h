@@ -22,6 +22,7 @@
 #include "gmThread.h"
 #include "gmVariable.h"
 #include "gmHelpers.h"
+#include "gmListLib.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaLibraryResource

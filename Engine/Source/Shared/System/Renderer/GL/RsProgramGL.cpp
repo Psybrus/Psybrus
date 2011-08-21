@@ -64,6 +64,9 @@ void RsProgramGL::create()
 	// Link program.
 	glLinkProgram( Handle );	
 	
+	// Catch error.
+	RsGLCatchError;
+	
 	// Clear parameter list and buffer.
 	ParameterList_.clear();
 	ParameterBufferSize_ = 0;
@@ -86,7 +89,8 @@ void RsProgramGL::create()
 		// Add it as a parameter.
 		if( UniformNameLength > 0 && Type != GL_INVALID_VALUE )
 		{
-			addParameter( UniformName, Idx, Type );
+			GLint UniformLocation = glGetUniformLocation( Handle, UniformName );
+			addParameter( UniformName, UniformLocation, Type );
 		}
 	}
 	
@@ -157,37 +161,35 @@ void RsProgramGL::bind( void* pParameterBuffer )
 		for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 		{
 			TParameter& Parameter = (*It);
-			const GLint Handle = Parameter.Handle_;
+			const GLint ParamHandle = Parameter.Handle_;
 			const BcU32 Offset = Parameter.Offset_;
-			/*
 #ifdef PSY_DEBUG
 			BcF32* pFloatParameterOffset = &pFloatParameter[ Offset ];
 			BcS32* pIntParameterOffset = &pIntParameter[ Offset ];
 #endif
-			 */
 			
 			switch( Parameter.Type_ )
 			{
 				case rsSPT_FLOAT:
-					glUniform1f( Handle, pFloatParameter[ Offset ] );
+					glUniform1fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_VEC2:
-					glUniform2fv( Handle, 1, &pFloatParameter[ Offset ] );
+					glUniform2fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_VEC3:
-					glUniform3fv( Handle, 1, &pFloatParameter[ Offset ] );
+					glUniform3fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_VEC4:
-					glUniform4fv( Handle, 1, &pFloatParameter[ Offset ] );
+					glUniform4fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_MAT2:
-					glUniformMatrix2fv( Handle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					glUniformMatrix2fv( ParamHandle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_MAT3:
-					glUniformMatrix3fv( Handle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					glUniformMatrix3fv( ParamHandle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_MAT4:
-					glUniformMatrix4fv( Handle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					glUniformMatrix4fv( ParamHandle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_INT:
 				case rsSPT_BOOL:
@@ -197,28 +199,33 @@ void RsProgramGL::bind( void* pParameterBuffer )
 				case rsSPT_SAMPLER_CUBE:
 				case rsSPT_SAMPLER_1D_SHADOW:
 				case rsSPT_SAMPLER_2D_SHADOW:
-					glUniform1i( Handle, pIntParameter[ Offset ] );
+					glUniform1iv( ParamHandle, 1, &pIntParameter[ Offset ] );
 					break;
 				case rsSPT_INT_VEC2:
 				case rsSPT_BOOL_VEC2:
-					glUniform2iv( Handle, 1, &pIntParameter[ Offset ] );
+					glUniform2iv( ParamHandle, 1, &pIntParameter[ Offset ] );
 					break;
 				case rsSPT_INT_VEC3:
 				case rsSPT_BOOL_VEC3:
-					glUniform3iv( Handle, 1, &pIntParameter[ Offset ] );
+					glUniform3iv( ParamHandle, 1, &pIntParameter[ Offset ] );
 					break;
 				case rsSPT_INT_VEC4:
 				case rsSPT_BOOL_VEC4:
-					glUniform4iv( Handle, 1, &pIntParameter[ Offset ] );
+					glUniform4iv( ParamHandle, 1, &pIntParameter[ Offset ] );
 					break;
 					break;
 			}
 			
-			// TODO: Fix me.
-			//RsGLCatchError;
-			glGetError();
+#ifdef PSY_DEBUG
+			int Error = glGetError();
+			if( Error != 0 )
+			{
+				BcPrintf( "Error setting parameter \"%s\". Handle=%u, f=%f, i=%u\n", Parameter.Name_.c_str(), ParamHandle, *pFloatParameterOffset, *pIntParameterOffset );
+			}
+#endif
 		}
 	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -370,5 +377,9 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
 	
 		// Increate parameter buffer size.
 		ParameterBufferSize_ += Bytes;
+		
+		// Log.
+		BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u\n", pName, Handle );
+
 	}
 }

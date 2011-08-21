@@ -359,6 +359,8 @@ void GaCore::checkResourceBlocks()
 	}
 }
 
+#include "SysKernel.h"
+
 //////////////////////////////////////////////////////////////////////////
 // eventKey
 eEvtReturn GaCore::eventKey( BcU32 EvtID, const OsEventInputKeyboard& Event )
@@ -376,5 +378,18 @@ eEvtReturn GaCore::eventKey( BcU32 EvtID, const OsEventInputKeyboard& Event )
 				break;
 		}
 	}
+	
+	// HACK:
+	if( Event.KeyCode_ == SDLK_ESCAPE )
+	{
+		pKernel()->stop();
+	}
+
+	// HACK:
+	if( Event.KeyCode_ == SDLK_F1 )
+	{
+		reset();
+	}
+
 	return evtRET_PASS;
 }

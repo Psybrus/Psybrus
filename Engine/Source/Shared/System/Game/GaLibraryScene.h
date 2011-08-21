@@ -30,6 +30,7 @@
 #include "ScnRenderTarget.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
+#include "ScnSynthesizer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaLibraryResource types.
@@ -45,8 +46,11 @@ public:
 	static int GM_CDECL PushMatrix( gmThread* a_thread );
 	static int GM_CDECL PopMatrix( gmThread* a_thread );
 	
+	static int GM_CDECL AddPrimitive( gmThread* a_thread );
+	static int GM_CDECL DrawLine( gmThread* a_thread );
 	static int GM_CDECL DrawSprite( gmThread* a_thread );
 	static int GM_CDECL DrawSpriteCentered( gmThread* a_thread );
+	static int GM_CDECL DrawSpriteCentered3D( gmThread* a_thread );
 
 	static int GM_CDECL Clear( gmThread* a_thread );
 	static int GM_CDECL Render( gmThread* a_thread );
@@ -167,6 +171,27 @@ public:
 	
 	static void GM_CDECL CreateType( gmMachine* a_machine );
 };
+
+class GaSceneSynthesizer: public GaLibraryResource< ScnSynthesizer >
+{
+public:
+	static gmFunctionEntry GM_TYPELIB[];
+	
+public:
+	static int GM_CDECL Create( gmThread* a_thread );
+	static int GM_CDECL SetCommand( gmThread* a_thread );
+	static int GM_CDECL NextPattern( gmThread* a_thread );
+	static int GM_CDECL AddSynthModule( gmThread* a_thread );
+	static int GM_CDECL HadBeatEvent( gmThread* a_thread );
+	static int GM_CDECL HadQueuePatternEvent( gmThread* a_thread );
+	static int GM_CDECL HadLastPatternEvent( gmThread* a_thread );
+	static int GM_CDECL GetCommandIndex( gmThread* a_thread );
+	static int GM_CDECL GetFreq( gmThread* a_thread );
+	static int GM_CDECL PlayEffect( gmThread* a_thread );
+	
+	static void GM_CDECL CreateType( gmMachine* a_machine );
+};
+
 
 //////////////////////////////////////////////////////////////////////////
 // GaSceneFrame - Very quick and dirty way to access RsFrame for rendering.
