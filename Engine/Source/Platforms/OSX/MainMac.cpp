@@ -80,14 +80,16 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 	return evtRET_PASS;
 }
 
-ScnSynthesizerRef Synthesizer;
+//ScnSynthesizerRef Synthesizer;
 
 eEvtReturn doCsInit( EvtID ID, const SysSystemEvent& Event )
 {
-	if( CsCore::pImpl()->createResource( "synthesizer", Synthesizer, 22050.0f ) )
+	/*
+	 if( CsCore::pImpl()->createResource( "synthesizer", Synthesizer, 22050.0f ) )
 	{
 		BcPrintf( "Made synth.\n" );
 	}
+	 */
 	return evtRET_PASS;
 }
 
@@ -108,7 +110,7 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 {
 	OsCore::pImpl()->pKernel()->startSystem( "RmCore" );
 	OsCore::pImpl()->pKernel()->startSystem( "RsCoreImplGL" );
-	OsCore::pImpl()->pKernel()->startSystem( "SsCoreALInternal" );
+	//OsCore::pImpl()->pKernel()->startSystem( "SsCoreALInternal" );
 	OsCore::pImpl()->pKernel()->startSystem( "FsCoreImplOSX" );
 	OsCore::pImpl()->pKernel()->startSystem( "CsCoreClient" );
 	OsCore::pImpl()->pKernel()->startSystem( "GaCore" );

@@ -67,10 +67,18 @@ void RsCoreImplGL::open()
 		
 	// Allocate a state block for rendering.
 	pStateBlock_ = new RsStateBlockGL();
-		
+	
+	//
+	pStateBlock_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
+	pStateBlock_->bind();
+
 	// Clear.
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+	
+	// Line smoothing.
+	glEnable( GL_LINE_SMOOTH );
+	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,6 +207,15 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 {
 	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::update >( pResource ) );
 	CommandBuffer_.enqueue( DelegateCall );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createResource
+//virtual
+void RsCoreImplGL::getResolution( BcU32& W, BcU32& H )
+{
+	W = W_;
+	H = H_;
 }
 
 //////////////////////////////////////////////////////////////////////////

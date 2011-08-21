@@ -44,7 +44,7 @@ void OsCoreImplSDL::open()
 	if ( SDL_Init( SDL_INIT_VIDEO ) == 0 )
 	{	
 		// Setup video mode. Renderer crossover here...but OS tells renderer how big it's source window is.
-		pScreenSurface_ = SDL_SetVideoMode( 1280, 720, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );	
+		pScreenSurface_ = SDL_SetVideoMode( 1280, 720, 32, SDL_HWSURFACE | SDL_OPENGLBLIT /*| SDL_FULLSCREEN*/ );	
 		
 		// If we've created the surface, continue on.
 		if( pScreenSurface_ != NULL )
@@ -53,7 +53,7 @@ void OsCoreImplSDL::open()
 			SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
 			SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 
-			SDL_WM_SetCaption( "It's dangerous to go alone, take these shiny things!", NULL );
+			SDL_WM_SetCaption( "Lost Psyche", NULL );
 				
 			// Register SDL event handlers.
 			registerSDLEventHandler( SDL_MOUSEMOTION,		&OsCoreImplSDL::processSDLEvent_InputMouse );
@@ -101,7 +101,7 @@ void OsCoreImplSDL::processSDLEvents()
 	BcU32 NoofEventsHandled = 0;
 	
 	// Poll SDL for an event.
-	while( SDL_PollEvent( &Event ) && NoofEventsHandled < 1 )
+	while( SDL_PollEvent( &Event ) /*&& NoofEventsHandled < 1*/ )
 	{
 		++NoofEventsHandled;
 		

@@ -83,7 +83,7 @@ void RsShaderGL::create()
 				GLint ShaderCompiled;
 				glGetShaderiv( Handle, GL_COMPILE_STATUS, &ShaderCompiled );
 				if ( !ShaderCompiled )
-				{
+				{					 
 					// There was an error here, first get the length of the log message.
 					int i32InfoLogLength, i32CharsWritten; 
 					glGetShaderiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
@@ -91,9 +91,9 @@ void RsShaderGL::create()
 					// Allocate enough space for the message, and retrieve it.
 					char* pszInfoLog = new char[i32InfoLogLength];
 					glGetShaderInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
-					BcPrintf( "RsShaderGL: Error: %s\n", pszInfoLog );
+					BcPrintf( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
 					delete [] pszInfoLog;
-					 
+
 					destroy();
 				}
 				

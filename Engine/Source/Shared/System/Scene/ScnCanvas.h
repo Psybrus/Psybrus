@@ -28,7 +28,9 @@ typedef CsResourceRef< class ScnCanvas > ScnCanvasRef;
 // ScnCanvasVertex
 struct ScnCanvasVertex
 {
-	BcF32 X_, Y_;
+	BcF32 X_, Y_, Z_;
+	BcF32 NX_, NY_, NZ_;
+	BcF32 TX_, TY_, TZ_;
 	BcF32 U_, V_;
 	BcU32 RGBA_;
 };
@@ -139,6 +141,16 @@ public:
 	void								drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
+	 * Draw sprite in 3D
+	 * @param Position Position.
+	 * @param Size Size.
+	 * @param TextureIdx Texture Index.
+	 * @param Colour Colour.
+	 * @param Layer Layer.
+	 */
+	void								drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
 	 * Draw sprite centered.
 	 * @param Position Position.
 	 * @param Size Size.
@@ -147,6 +159,16 @@ public:
 	 * @param Layer Layer.
 	 */
 	void								drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
+	 * Draw sprite centered in 3D.
+	 * @param Position Position.
+	 * @param Size Size.
+	 * @param TextureIdx Texture Index.
+	 * @param Colour Colour.
+	 * @param Layer Layer.
+	 */
+	void								drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear canvas.

@@ -40,6 +40,8 @@ DEFINE_RESOURCE( ScnRenderTarget );
 //virtual
 void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 {
+	ScnTexture::initialise();
+	
 	TextureHeader_.Width_ = Width;
 	TextureHeader_.Height_ = Height;
 	TextureHeader_.Levels_ = 1;
@@ -47,6 +49,7 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 	
 	// Pass header to parent.
 	pHeader_ = &TextureHeader_;
+	pRenderTarget_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -49,14 +49,14 @@ void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMa
 void ScnCanvas::create()
 {
 	// Allocate our own vertex buffer data.
-	BcU32 VertexFormat = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
 	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasVertex ) );
 	pVertices_ = new ScnCanvasVertex[ NoofVertices_ ];
 	pVerticesEnd_ = pVertices_ + NoofVertices_;
 	VertexIndex_ = 0;
 	
 	// Allocate render side vertex buffer.
-	pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8, NoofVertices_, pVertices_ );
+	pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexFormat, NoofVertices_, pVertices_ );
 	
 	// Allocate render side primitive.
 	pPrimitive_ = RsCore::pImpl()->createPrimitive( pVertexBuffer_, NULL );
@@ -164,9 +164,10 @@ void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices,
 		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 		{
 			ScnCanvasVertex* pVertex = &pVertices[ Idx ];
-			BcVec2d Vertex = BcVec2d( pVertex->X_, pVertex->Y_ ) * Matrix;
+			BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 			pVertex->X_ = Vertex.x();
 			pVertex->Y_ = Vertex.y();
+			pVertex->Z_ = Vertex.z();
 		}
 	}
 	
@@ -200,10 +201,12 @@ void ScnCanvas::drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const Rs
 		
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
 		++pVertices;
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
 
 		// Add primitive.	
@@ -229,6 +232,7 @@ void ScnCanvas::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColo
 		{
 			pVertices->X_ = pPoints[ Idx ].x();
 			pVertices->Y_ = pPoints[ Idx ].y();
+			pVertices->Z_ = 0.0f;
 			pVertices->RGBA_ = RGBA;
 			++pVertices;
 		}
@@ -253,6 +257,7 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 0.0f;
 		pVertices->V_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
@@ -260,6 +265,7 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 1.0f;
 		pVertices->V_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
@@ -267,6 +273,7 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 0.0f;
 		pVertices->V_ = 1.0f;
 		pVertices->RGBA_ = RGBA;
@@ -274,6 +281,7 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 1.0f;
 		pVertices->V_ = 1.0f;
 		pVertices->RGBA_ = RGBA;
@@ -303,6 +311,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->RGBA_ = RGBA;
@@ -310,6 +319,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 		
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->RGBA_ = RGBA;
@@ -317,6 +327,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->RGBA_ = RGBA;
@@ -324,6 +335,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->RGBA_ = RGBA;
@@ -331,6 +343,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->RGBA_ = RGBA;
@@ -338,6 +351,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->RGBA_ = RGBA;
@@ -365,9 +379,10 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
 						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
-						BcVec2d Vertex = BcVec2d( pVertex->X_, pVertex->Y_ ) * Matrix;
+						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
+						pVertex->Z_ = Vertex.z();
 					}
 				}
 
@@ -384,11 +399,126 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawSprite
+void ScnCanvas::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+{
+	ScnCanvasVertex* pVertices = allocVertices( 6 );
+	ScnCanvasVertex* pFirstVertex = pVertices;
+	
+	const BcVec3d CornerA = Position;
+	const BcVec3d CornerB = Position + BcVec3d( Size.x(), Size.y(), 0.0f );
+	
+	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
+	
+	// Only draw if we can allocate vertices.
+	if( pVertices != NULL )
+	{
+		// Now copy in data.
+		BcU32 RGBA = Colour.asABGR();
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = Position.z();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = Position.z();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = Position.z();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = Position.z();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = CornerA.y();
+		pVertices->Z_ = Position.z();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = CornerB.y();
+		pVertices->Z_ = Position.z();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		
+		// Quickly check last primitive.
+		BcBool AddNewPrimitive = BcTrue;
+		if( LastPrimitiveSection_ != BcErrorCode )
+		{
+			ScnCanvasPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+			
+			// If the last primitive was the same type as ours we can append to it.
+			// NOTE: Need more checks here later.
+			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			   PrimitiveSection.Layer_ == Layer &&
+			   PrimitiveSection.MaterialInstance_ == MaterialInstance_ )
+			{
+				PrimitiveSection.NoofVertices_ += 6;
+				
+				// Matrix stack.
+				// TODO: Factor into a seperate function.
+				if( IsIdentity_ == BcFalse )
+				{
+					BcMat4d Matrix = getMatrix();
+					
+					for( BcU32 Idx = 0; Idx < 6; ++Idx )
+					{
+						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
+						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						pVertex->X_ = Vertex.x();
+						pVertex->Y_ = Vertex.y();
+						pVertex->Z_ = Vertex.z();
+					}
+				}
+				
+				AddNewPrimitive = BcFalse;
+			}
+		}
+		
+		// Add primitive.
+		if( AddNewPrimitive == BcTrue )
+		{
+			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
 void ScnCanvas::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	BcVec2d NewPosition = Position - ( Size * 0.5f );
 	drawSprite( NewPosition, Size, TextureIdx, Colour, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawSpriteCentered
+void ScnCanvas::drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+{
+	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, Size.y() * 0.5f, 0.0f );
+	drawSprite3D( NewPosition, Size, TextureIdx, Colour, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////

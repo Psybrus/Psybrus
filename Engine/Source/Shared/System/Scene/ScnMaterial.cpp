@@ -332,6 +332,8 @@ BcU32 ScnMaterialInstance::findParameter( const std::string& ParameterName )
 		return ParameterBindingList_.size() - 1;
 	}
 	
+	BcPrintf( "ScnMaterialInstance (%s): Can't find parameter \"%s\"\n", getName().c_str(), ParameterName.c_str() );
+	
 	return BcErrorCode;
 }
 
@@ -568,9 +570,6 @@ public:
 
 	virtual void render()
 	{
-		// Bind program.
-		pProgram_->bind( pParameterBuffer_ );
-
 		// Iterate over textures and bind.
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
@@ -587,6 +586,9 @@ public:
 		
 		// Bind state block.
 		pStateBlock_->bind();
+
+		// Bind program.
+		pProgram_->bind( pParameterBuffer_ );
 	}
 	
 	RsProgram* pProgram_;
@@ -602,6 +604,9 @@ public:
 	
 	// State buffer.
 	BcU32* pStateBuffer_;
+	
+	// For debugging.
+	ScnMaterialInstance* pParent_;
 };
 
 void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
@@ -614,6 +619,9 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 	
 	// Allocate a render node.
 	ScnMaterialInstanceRenderNode* pRenderNode = pFrame->newObject< ScnMaterialInstanceRenderNode >();
+	
+	// Debugging.
+	pRenderNode->pParent_ = this;
 	
 	// Setup program and state.
 	pRenderNode->pProgram_ = pProgram_;

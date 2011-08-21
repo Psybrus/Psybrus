@@ -27,11 +27,12 @@
 static BcU32 PortAudioRefs = 0;
 static void acquirePortAudio()
 {
+#ifndef PSY_SERVER
 	if( PortAudioRefs == 0 )
 	{
 		Pa_Initialize();
 	}	
-	
+#endif	
 	++PortAudioRefs;
 }
 
@@ -39,10 +40,12 @@ static void releasePortAudio()
 {
 	--PortAudioRefs;
 	
+#ifndef PSY_SERVER
 	if( PortAudioRefs == 0 )
 	{
 		Pa_Terminate();
 	}
+#endif
 }
 
 #ifdef PSY_SERVER
@@ -199,7 +202,7 @@ DEFINE_RESOURCE( ScnSynthesizer );
 void ScnSynthesizer::initialise( BcReal SampleRate )
 {
 	SampleRate_ = SampleRate;
-	
+	IsReady_ = BcFalse;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -210,6 +213,7 @@ void ScnSynthesizer::create()
 	// Acquire portaudio.
 	acquirePortAudio();
 	
+#ifndef PSY_SERVER
 	// enum devices.
 	PaDeviceIndex NoofDevice = Pa_GetDeviceCount();
 	PaDeviceIndex DefaultOutputDevice = Pa_GetDefaultOutputDevice();
@@ -222,51 +226,32 @@ void ScnSynthesizer::create()
 								          1,
 										  paFloat32,
 								          SampleRate_,
-								          1024,
+								          2048,
 								          &ScnSynthesizer::streamCallback,
 								          this );
 	BcAssert( Error == paNoError );
 	
 	Pa_StartStream( pPaStream_ );
+#endif
 	
 	// Reset stuff.
 	CommandIndex_ = 0;
 	SamplesToProcess_ = 0.0f;
-	QueueNextPattern_ = BcFalse;
-	BcMemZero( &CurrTracks_[0], sizeof( CurrTracks_ ) );
-	BcMemZero( &NextTracks_[0], sizeof( NextTracks_ ) );
-	
+	//BcMemZero( &CurrPattern_, sizeof( CurrPattern_ ) );
+	//BcMemZero( &NextPattern_, sizeof( NextPattern_ ) );
+
 	// Default to 120BPM.
-	setTempo( 170.0f );
+	setTempo( 120.0f );
 	
-	// Add some default synth modules.
-	SynthModules_.push_back( new ScnSynthModuleSawtooth( SampleRate_ ) );
-	SynthModules_.push_back( new ScnSynthModuleSine( SampleRate_ ) );
+	// Setup current pattern to reset so we queue up the tracks quick enough.
+	CurrPattern_.Tracks_[ 0 ].Commands_[ 0 ].Type_ = CMD_RESET;
+	CurrPattern_.Tracks_[ 0 ].Commands_[ 0 ].Values_[ 0 ] = 0.0f;
 	
-	// Test a default track.
-	setCommand( 0, 0, CMD_SET_SYNTH_MODULE, 0 );
-	setCommand( 0, 1, CMD_SET_ADSR, 100, 600, 0, 3000 );
-	setCommand( 0, 2, CMD_SET_LOW_PASS, 200.0f, 0.9f );
-	setCommand( 0, 3, CMD_SET_GAIN, 0.5f );
-
-	setCommand( 0, 6, CMD_SET_GAIN, 0.3f );
-	setCommand( 0, 8, CMD_NOTE_ON, 55.0f, 55.0f );
-	setCommand( 0, 10, CMD_SET_GAIN, 0.5f );
-	setCommand( 0, 12, CMD_NOTE_ON, 55.0f, 55.0f );
-	setCommand( 0, 16, CMD_NOTE_ON, 55.0f, 55.0f );
-	setCommand( 0, 20, CMD_NOTE_ON, 55.0f, 55.0f );
-	setCommand( 0, 22, CMD_SET_GAIN, 0.3f );
-	setCommand( 0, 31, CMD_NOTE_OFF );
-	setCommand( 0, 23, CMD_RESET, 8 );
+	// Delay buffer for sampling from later.
+	pDelayBuffer_ = new DelayBuffer( BcU32( SampleRate_ ) * 8 );
 	
-	setCommand( 1, 0, CMD_SET_SYNTH_MODULE, 1 );
-	setCommand( 1, 1, CMD_SET_ADSR, 20, 1000, 0, 50 );
-	setCommand( 1, 2, CMD_SET_LOW_PASS, 300.0f, 0.0f );
-	setCommand( 1, 3, CMD_SET_GAIN, 0.9f );
-	setCommand( 1, 8, CMD_NOTE_ON, 500.0f, 50.0f );
-	setCommand( 1, 31, CMD_NOTE_OFF );
-
-	nextPattern();
+	//
+	IsReady_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -274,10 +259,11 @@ void ScnSynthesizer::create()
 //virtual
 void ScnSynthesizer::destroy()
 {
+#ifndef PSY_SERVER
 	Pa_StopStream( pPaStream_ );
 	Pa_CloseStream( pPaStream_ );
 	pPaStream_ = NULL;
-	
+#endif	
 	// Release portaudio.
 	releasePortAudio();
 }
@@ -287,7 +273,7 @@ void ScnSynthesizer::destroy()
 //virtual
 BcBool ScnSynthesizer::isReady()
 {
-	return BcFalse;
+	return IsReady_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -295,7 +281,7 @@ BcBool ScnSynthesizer::isReady()
 void ScnSynthesizer::setCommand( BcU32 TrackIdx, BcU32 CommandIdx, TCommandType Type, BcReal ValueA, BcReal ValueB, BcReal ValueC, BcReal ValueD )
 {
 	TrackLock_.lock();
-	TTrack& Track = NextTracks_[ TrackIdx ];
+	TTrack& Track = NextPattern_.Tracks_[ TrackIdx ];
 	
 	TCommand& Command = Track.Commands_[ CommandIdx ];
 	
@@ -313,7 +299,124 @@ void ScnSynthesizer::setCommand( BcU32 TrackIdx, BcU32 CommandIdx, TCommandType 
 void ScnSynthesizer::nextPattern()
 {
 	TrackLock_.lock();
-	QueueNextPattern_ = BcTrue;
+	PatternQueue_.push_back( NextPattern_ );
+	TrackLock_.unlock();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addSynthModule
+BcU32 ScnSynthesizer::addSynthModule( TSynthModuleType Type )
+{
+	ScnSynthModule* pModule = NULL;
+	
+	switch( Type )
+	{
+		case MOD_SINE:
+			pModule = new ScnSynthModuleSine( SampleRate_ );
+			break;
+		case MOD_SINE_RECT:
+			pModule = new ScnSynthModuleSineRectified( SampleRate_ );
+			break;
+		case MOD_PULSE:
+			pModule = new ScnSynthModulePulse( SampleRate_ );
+			break;
+		case MOD_SQUARE:
+			pModule = new ScnSynthModuleSquare( SampleRate_ );
+			break;
+		case MOD_SAWTOOTH:
+			pModule = new ScnSynthModuleSawtooth( SampleRate_ );
+			break;
+		case MOD_NOISE:
+			pModule = new ScnSynthModuleNoise( SampleRate_ );
+			break;
+		default:
+			return BcErrorCode;
+			break;			
+	}
+	
+	//
+	SynthModules_.push_back( pModule );
+	return SynthModules_.size() - 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFreq
+BcReal ScnSynthesizer::getFreq( BcU32 MIDINote )
+{
+	if( MIDINote < 128 )
+	{
+		return MIDITable[ MIDINote ];
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// hadBeatEvent
+BcBool ScnSynthesizer::hadBeatEvent()
+{
+	if( BeatsPassed_ != 0 )
+	{
+		--BeatsPassed_;
+		return BcTrue;
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// hadQueuePatternEvent
+BcBool ScnSynthesizer::hadQueuePatternEvent()
+{
+	if( QueuePatternEvent_ == BcTrue )
+	{
+		QueuePatternEvent_ = BcFalse;
+		return BcTrue;
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// hadLastPatternEvent
+BcBool ScnSynthesizer::hadLastPatternEvent()
+{
+	if( LastPatternEvent_ == BcTrue )
+	{
+		LastPatternEvent_ = BcFalse;
+		return BcTrue;
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCommandIndex
+BcU32 ScnSynthesizer::getCommandIndex() const
+{
+	return CommandIndex_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setReverb
+void ScnSynthesizer::setReverb( BcReal Delay, BcReal Feedback, BcReal Wet, BcReal Dry )
+{
+	ReverbDelay_ = Delay;
+	ReverbFeedback_ = Feedback;
+	ReverbWet_ = Wet;
+	ReverbDry_ = Dry;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// playEffect
+void ScnSynthesizer::playEffect( BcU32 Track, BcReal StartFreq, BcReal EndFreq )
+{
+	TrackLock_.lock();
+	ScnSynthModule* pModule = CurrPattern_.Tracks_[ Track ].pModule_;
+	if( pModule != NULL )
+	{
+		pModule->setFrequency( StartFreq, EndFreq );
+		pModule->keyOn();
+	}
 	TrackLock_.unlock();
 }
 
@@ -337,6 +440,7 @@ void ScnSynthesizer::fileChunkReady( const CsFileChunk* pChunk, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // streamCallback
+#ifndef PSY_SERVER
 int ScnSynthesizer::streamCallback( const void *input, void* output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData )
 {
 	ScnSynthesizer* pSynthesizer = (ScnSynthesizer*)userData;
@@ -344,7 +448,7 @@ int ScnSynthesizer::streamCallback( const void *input, void* output, unsigned lo
 	pSynthesizer->process( frameCount, pOutput );
 	return paContinue;
 }
-
+#endif
 //////////////////////////////////////////////////////////////////////////
 // process
 void ScnSynthesizer::process( BcU32 NoofFrames, BcReal* pFrames )
@@ -358,25 +462,25 @@ void ScnSynthesizer::process( BcU32 NoofFrames, BcReal* pFrames )
 	BcReal* pOutputCursor = pFrames;
 	
 	// Process the slack from leftover from previous process.
-	BcAssert( SamplesToProcess_ < SamplesPerCommand_ );
 	if( SamplesToProcess_ > 0.0f )
 	{
 		processAudio( BcU32( SamplesToProcess_ ), pTempBuffer, pOutputCursor );
 		
 		pOutputCursor += BcU32( SamplesToProcess_ );
-		SamplesToProcess_ -= BcU32( SamplesToProcess_ );
 		Frames -= BcU32( SamplesToProcess_ );
+		SamplesToProcess_ -= BcU32( SamplesToProcess_ );
 	}
-	
-	// Add number of samples to process.
-	SamplesToProcess_ += BcReal( Frames );
-	
+		
+
 	// Process in batches the size of commands.
-	while( Frames > BcU32( SamplesPerCommand_ ) )
+	while( Frames > 0 )
 	{
 		// Cache samples per command as the command can change it. (should handle it really)
-		BcReal SamplesPerCommand = SamplesPerCommand_;
-		
+		BcReal SamplesPerCommand = BcMin( (BcReal)Frames, SamplesPerCommand_ );
+				
+		// Push samples to process up by samples per command.
+		SamplesToProcess_ += SamplesPerCommand_;
+
 		// Process the command.
 		processCommand();
 
@@ -389,24 +493,13 @@ void ScnSynthesizer::process( BcU32 NoofFrames, BcReal* pFrames )
 		Frames -= BcU32( SamplesPerCommand );
 	}
 	
-	// Process the slack.
-	if( Frames > 0 )
+#if PSY_DEBUG
+	if( SamplesToProcess_ > SamplesPerCommand_ )
 	{
-		processAudio( Frames, pTempBuffer, pOutputCursor );
-		
-		pOutputCursor += Frames;
-		SamplesToProcess_ -= Frames;
-		Frames -= Frames;
+		BcPrintf( "BADNESS: SamplesToProcess_ > SamplesPerCommand_ at end of processing.\n" );
 	}
-	
-	static int bleh = 0;
-	if( bleh )
-	{
-		for( int i = 0; i < NoofFrames; ++i )
-		{
-			BcPrintf( "%f\n", pFrames[ i ] );
-		}
-	}
+#endif
+
 	
 	// Free output buffer.
 	delete pTempBuffer;
@@ -417,10 +510,16 @@ void ScnSynthesizer::process( BcU32 NoofFrames, BcReal* pFrames )
 void ScnSynthesizer::processCommand()
 {
 	BcU32 CommandIndex = CommandIndex_++;
+	
+	if( ( CommandIndex % COMMANDS_PER_BEAT ) == 0 )
+	{
+		++BeatsPassed_;
+	}
 		
 	for( BcU32 TrackIdx = 0; TrackIdx < MAX_TRACKS; ++TrackIdx )
 	{
-		TTrack& Track = CurrTracks_[ TrackIdx ];
+		TTrack& Track = CurrPattern_.Tracks_[ TrackIdx ];
+		TTrack& NextTrack = NextPattern_.Tracks_[ TrackIdx ];
 		
 		TCommand& Command = Track.Commands_[ CommandIndex ];
 		ScnSynthModule* pModule = Track.pModule_;
@@ -442,6 +541,12 @@ void ScnSynthesizer::processCommand()
 					pModule->keyOff();
 				}
 				break;
+			case CMD_NOTE_SET:
+				if( pModule != NULL )
+				{
+					pModule->setFrequency( Command.Values_[ 0 ], Command.Values_[ 1 ] );
+				}
+				break;
 			case CMD_SET_ADSR:
 				if( pModule != NULL )
 				{
@@ -457,13 +562,25 @@ void ScnSynthesizer::processCommand()
 			case CMD_SET_LOW_PASS:
 				if( pModule != NULL )
 				{
-					pModule->setLowPass( Command.Values_[ 0 ], Command.Values_[ 1 ] );
+					if( Track.LFOEnabled_ == BcFalse )
+					{
+						pModule->setLowPass( Command.Values_[ 0 ], Command.Values_[ 1 ] );
+					}
+					Track.FilterType_ = Command.Type_;
+					Track.Coeff_ = Command.Values_[ 0 ];
+					Track.Res_ = Command.Values_[ 1 ];
 				}
 				break;
 			case CMD_SET_HIGH_PASS:
 				if( pModule != NULL )
 				{
-					pModule->setHighPass( Command.Values_[ 0 ], Command.Values_[ 1 ] );
+					if( Track.LFOEnabled_ == BcFalse )
+					{
+						pModule->setHighPass( Command.Values_[ 0 ], Command.Values_[ 1 ] );
+					}
+					Track.FilterType_ = Command.Type_;
+					Track.Coeff_ = Command.Values_[ 0 ];
+					Track.Res_ = Command.Values_[ 1 ];
 				}
 				break;
 			case CMD_SET_TEMPO:
@@ -475,32 +592,73 @@ void ScnSynthesizer::processCommand()
 					if( SynthModuleIdx < SynthModules_.size() )
 					{
 						Track.pModule_ = SynthModules_[ SynthModuleIdx ];
+						NextTrack.pModule_ = Track.pModule_;
 					}
 				}
 				break;
-			case CMD_RESET:
-				CommandIndex_ = Command.Values_[ 0 ];
+			case CMD_SET_LFO:
+				{
+					Track.LFOSpeed_ = Command.Values_[ 0 ];
+					Track.LFOMultiplier_ = Command.Values_[ 1 ];
+					if( Command.Values_[ 2 ] > 0.0f )
+					{
+						Track.LFOCursor_ = Command.Values_[ 2 ];
+					}
+				}
 				break;
+
+			case CMD_RESET:
+				CommandIndex_ = MAX_COMMANDS + Command.Values_[ 0 ]; 
+				break;
+		}
+		
+		// Do LFO.
+		if( Track.LFOEnabled_ )
+		{
+			BcReal LFOCycle = ( BcPIMUL2 * Track.LFOSpeed_ ) / (BcReal)MAX_COMMANDS;
+			Track.LFOCursor_ += LFOCycle;
+			BcReal LFOAmplitude = ( BcSin( Track.LFOCursor_ ) * Track.LFOMultiplier_ ) + 1.0f;
+			BcReal Coeff = Track.Coeff_ * LFOAmplitude;
+			if( pModule != NULL )
+			{
+				if( Track.FilterType_ == CMD_SET_LOW_PASS )
+				{ 
+					pModule->setLowPass( Coeff, Track.Res_ );
+				}
+				else if( Track.FilterType_ == CMD_SET_HIGH_PASS )
+				{
+					pModule->setHighPass( Coeff, Track.Res_ );
+				}
+			}
 		}
 	}
 	
-	// Handle resetting to zero.
+	// Handle resetting.
 	if( CommandIndex_ >= MAX_COMMANDS )
 	{
-		CommandIndex_ = 0;
-			
+		CommandIndex_ -= MAX_COMMANDS;
+		
 		// If we need to queue next track, do so!
-		if( QueueNextPattern_ == BcTrue )
+		TrackLock_.lock();
+		if( PatternQueue_.size() > 0 )
 		{
-			TrackLock_.lock();
+			TPattern& NextPattern = PatternQueue_[ 0 ];
 			for( BcU32 TrackIdx = 0; TrackIdx < MAX_TRACKS; ++TrackIdx )
 			{
-				BcMemCopy( &CurrTracks_[ TrackIdx ], &NextTracks_[ TrackIdx ], sizeof( TTrack ) );
+				for( BcU32 CommandIdx = 0; CommandIdx < MAX_COMMANDS; ++CommandIdx )
+				{
+					CurrPattern_.Tracks_[ TrackIdx ].Commands_[ CommandIdx ] = NextPattern.Tracks_[ TrackIdx ].Commands_[ CommandIdx ];
+				}
 			}
+			PatternQueue_.pop_front();
 			
-			QueueNextPattern_ = BcFalse;
-			TrackLock_.unlock();
+			QueuePatternEvent_ = BcTrue;
+			if( PatternQueue_.size() == 0 )
+			{
+				LastPatternEvent_ = BcTrue;
+			}
 		}
+		TrackLock_.unlock();
 	}
 }
 
@@ -510,7 +668,7 @@ void ScnSynthesizer::processAudio( BcU32 Frames, BcReal* pTempBuffer, BcReal* pO
 {
 	for( BcU32 TrackIdx = 0; TrackIdx < MAX_TRACKS; ++TrackIdx )
 	{
-		TTrack& Track = CurrTracks_[ TrackIdx ];
+		TTrack& Track = CurrPattern_.Tracks_[ TrackIdx ];
 		
 		BcMemZero( pTempBuffer, sizeof( BcReal ) * Frames );
 		
@@ -527,6 +685,41 @@ void ScnSynthesizer::processAudio( BcU32 Frames, BcReal* pTempBuffer, BcReal* pO
 			pOutputBuffer[ FrameIdx ] += pTempBuffer[ FrameIdx ];
 		}		
 	}
+
+	// Post process.
+	setReverb( SampleRate_ / 8.0f, 0.6f, 0.2f, 0.8f );
+	BcRandom CombNoise;
+	BcReal Delay = ReverbDelay_;
+	BcReal Gain = 1.0f;
+	BcReal TotalReverbGain = 0.0f;
+	for( BcU32 Idx = 0; Idx < REVERB_TAPS; ++Idx )
+	{
+		ReverbTapDelays_[ Idx ] = Delay + ( CombNoise.interpolatedNoise( Delay, SampleRate_ ) * ReverbDelay_ );
+		ReverbTapGains_[ Idx ] = ( Idx & 1 ) ? Gain * 0.5f : Gain;
+		Delay += ReverbDelay_;
+		TotalReverbGain += Gain;
+		Gain *= 0.8f;
+	}
+	TotalReverbGain = 1.0f / TotalReverbGain;
+	
+	for( BcU32 FrameIdx = 0; FrameIdx < Frames; ++FrameIdx )
+	{
+		register BcReal Output = pOutputBuffer[ FrameIdx ];
+
+		// Push into delay buffer with a delay amount mixed in + poor mans lowpass.
+		pDelayBuffer_->push( Output + ( ( pDelayBuffer_->get( ReverbDelay_ ) + pDelayBuffer_->get( ReverbDelay_ + 1.0f ) + pDelayBuffer_->get( ReverbDelay_ + 2.0f ) + pDelayBuffer_->get( ReverbDelay_ + 3.0f ) ) * 0.25f * ReverbFeedback_ ) );
+
+		// Sample reverb.
+		register BcReal ReverbOut = 0.0f;
+		for( BcU32 ReverbTapIdx = 0; ReverbTapIdx < REVERB_TAPS; ++ReverbTapIdx )
+		{
+			ReverbOut += pDelayBuffer_->get( ReverbTapDelays_[ ReverbTapIdx ] ) * ReverbTapGains_[ ReverbTapIdx ];
+		}
+		
+		Output = ( ReverbDry_ * Output ) + ( ReverbWet_ * ReverbOut * TotalReverbGain );
+		
+		pOutputBuffer[ FrameIdx ] = Output;
+	}		
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -534,7 +727,7 @@ void ScnSynthesizer::processAudio( BcU32 Frames, BcReal* pTempBuffer, BcReal* pO
 void ScnSynthesizer::setTempo( BcReal Tempo )
 {
 	Tempo_ = Tempo;
-	SamplesPerBeat_ = SampleRate_ / ( Tempo_ / 60 );
+	SamplesPerBeat_ = SampleRate_ / ( Tempo_ / 60.0f );
 	SamplesPerCommand_ = SamplesPerBeat_ / (BcReal)COMMANDS_PER_BEAT;
 }
 
@@ -617,14 +810,14 @@ void ScnSynthModule::setGain( BcReal Gain )
 // setADSR
 void ScnSynthModule::setADSR( BcReal A, BcReal D, BcReal S, BcReal R )
 {
-	A_ = A;
-	D_ = D;
-	S_ = S;
-	R_ = R;
-	AEnd_ = A;
-	DEnd_ = A + D;
-	SEnd_ = A + D + S;
-	REnd_ = A + D + S + R;
+	A_ = ( A * 0.001f ) * SampleRate_;
+	D_ = ( D * 0.001f ) * SampleRate_;
+	S_ = ( S * 0.001f ) * SampleRate_;
+	R_ = ( R * 0.001f ) * SampleRate_;
+	AEnd_ = A_;
+	DEnd_ = A_ + D_;
+	SEnd_ = A_ + D_ + S_;
+	REnd_ = A_ + D_ + S_ + R_;
 	TotalTime_ = A_ + D_ + S_ + R_;
 }
 
@@ -648,7 +841,7 @@ void ScnSynthModule::setLowPass( BcReal Coeff, BcReal Res )
 // setHighPass
 void ScnSynthModule::setHighPass( BcReal Coeff, BcReal Res )
 {
-	const BcReal lInitCoef = (1.0f / (BcTan(BcPI * BcClamp( Coeff, 0.01f, SampleRate_ * 0.49999f ) / SampleRate_)));
+	const BcReal lInitCoef = ((BcTan(BcPI * BcClamp( Coeff, 0.01f, SampleRate_ * 0.49999f ) / SampleRate_)));
 	const BcReal lInitCoefPw2 = lInitCoef * lInitCoef;
 	const BcReal lResonance = (((BcSqrt(2.0f) - 0.1f) * (1.0f - Res)) + 0.1f);
 	
@@ -675,9 +868,6 @@ void ScnSynthModule::process( BcU32 Frames, BcReal* pOutput )
 		{
 			register BcReal Sample = pOutput[ Idx ];
 	
-			// Clamp sample.
-			Sample = BcClamp( Sample, -1.0f, 1.0f );
-
 			// Calculate the new sample
 			BcReal FilteredSample = ( FilterInCoef_[0] * Sample +
 									  FilterInCoef_[1] * FilterInBuf_[0] +
@@ -693,7 +883,7 @@ void ScnSynthModule::process( BcU32 Frames, BcReal* pOutput )
 			FilterOutBuf_[1] = FilterOutBuf_[0];
 			FilterOutBuf_[0] = FilteredSample;
 		
-			pOutput[ Idx ] = FilteredSample * Gain_;
+			pOutput[ Idx ] = BcClamp( FilteredSample * Gain_, -1.0, 1.0 );
 		}
 	}
 }
@@ -707,7 +897,6 @@ void ScnSynthModuleSine::internalProcess( BcU32 Frames, BcReal* pOutput )
 		register BcReal ADSR = sampleADSR();
 		register BcReal Sample = BcSin( sampleCursor() );
 		*pOutput++ = Sample * ADSR;
-
 	}
 }
 
@@ -731,7 +920,7 @@ void ScnSynthModulePulse::internalProcess( BcU32 Frames, BcReal* pOutput )
 	{
 		register BcReal ADSR = sampleADSR();
 		register BcReal Sample = BcSin( sampleCursor() );
-		*pOutput++ = ( Sample * Sample * Sample * Sample * Sample ) * ADSR;
+		*pOutput++ = Sample * ADSR;
 	}
 }
 
@@ -742,7 +931,7 @@ void ScnSynthModuleSquare::internalProcess( BcU32 Frames, BcReal* pOutput )
 	for( BcU32 Idx = 0; Idx < Frames; ++Idx )
 	{
 		register BcReal ADSR = sampleADSR();
-		register BcReal Sample = sampleCursor() < BcPI ? -1.0f : 1.0f;
+		register BcReal Sample = ( sampleCursor( BcTrue ) ) < BcPI ? -1.0f : 1.0f;
 		*pOutput++ = Sample * ADSR;
 	}
 }
@@ -754,7 +943,7 @@ void ScnSynthModuleSawtooth::internalProcess( BcU32 Frames, BcReal* pOutput )
 	for( BcU32 Idx = 0; Idx < Frames; ++Idx )
 	{
 		register BcReal ADSR = sampleADSR();
-		register BcReal Cursor = sampleCursor();
+		register BcReal Cursor = sampleCursor( BcTrue );
 		register BcReal Sample = Cursor < BcPI ? ( Cursor / BcPI ) : ( ( Cursor - BcPI ) / BcPI ) - 1.0f;
 		*pOutput++ = Sample * ADSR;
 	}

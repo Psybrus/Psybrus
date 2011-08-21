@@ -81,13 +81,24 @@ public:
 		{
 			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
 			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
+			
+			glViewport( 0, 0, pRenderTarget_->width(), pRenderTarget_->height() );
 		}
 		else
 		{
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-			
+			BcU32 W, H;
+			RsCore::pImpl()->getResolution( W, H );
+			glViewport( 0, 0, W, H );
 		}
+
+		
+		// Enable depth write to clear screen.
+		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
+		pStateBlock->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
+		pStateBlock->bind();
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
+		
 	}
 	
 	RsRenderTarget* pRenderTarget_;

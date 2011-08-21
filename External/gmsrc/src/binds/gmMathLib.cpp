@@ -665,7 +665,54 @@ static int GM_CDECL gmfClamp(gmThread * a_thread)
   }
 }
 
+static float noise( int seed, int x, int width )
+{
+	x = ( x % width ) + seed;
+	x = ( x << 13 ) ^ x;
+	return ( 1.0f - ( ( x * ( x * x * 15731 + 789221 ) + 1376312589) & 0x7fffffff) / 1073741824.0f );
+}
 
+static float smoothnoise( int seed, int x, int width )
+{
+	return noise( seed, x, width ) / 2.0f + noise( seed, x - 1, width ) / 4.0f + noise( seed, x + 1, width ) / 4.0f;
+}
+
+static int GM_CDECL gmfNoise(gmThread * a_thread)
+{
+	GM_CHECK_NUM_PARAMS(3);
+	float seed, x, width;
+	gmGetFloatOrIntParamAsFloat( a_thread, 0, seed );
+	gmGetFloatOrIntParamAsFloat( a_thread, 1, x );
+	gmGetFloatOrIntParamAsFloat( a_thread, 2, width );
+	a_thread->PushFloat( noise( seed, x, width ) );
+	return GM_OK;
+}
+
+static int GM_CDECL gmfSmoothNoise(gmThread * a_thread)
+{
+	GM_CHECK_NUM_PARAMS(3);
+	float seed, x, width;
+	gmGetFloatOrIntParamAsFloat( a_thread, 0, seed );
+	gmGetFloatOrIntParamAsFloat( a_thread, 1, x );
+	gmGetFloatOrIntParamAsFloat( a_thread, 2, width );
+	a_thread->PushFloat( smoothnoise( seed, x, width ) );
+	return GM_OK;
+}
+
+static int GM_CDECL gmfInterpolatedNoise(gmThread * a_thread)
+{
+	GM_CHECK_NUM_PARAMS(3);
+	float seed, x, width;
+	gmGetFloatOrIntParamAsFloat( a_thread, 0, seed );
+	gmGetFloatOrIntParamAsFloat( a_thread, 1, x );
+	gmGetFloatOrIntParamAsFloat( a_thread, 2, width );
+	unsigned int iX = (unsigned int)( x );
+	float FracX = x - iX;
+	float V1 = smoothnoise( seed, iX, width );
+	float V2 = smoothnoise( seed, iX + 1, width );
+	a_thread->PushFloat( V1 + ( V2 - V1 ) * FracX );
+	return GM_OK;
+}
 //
 // Libs and bindings
 //
@@ -845,6 +892,33 @@ static gmFunctionEntry s_mathLib[] =
     \param int seed
   */
   {"randseed", gmfRandSeed},
+  /*gm
+   \function noise 
+   \brief generate noise
+   \param int seed
+   \param int x
+   \param int width
+   \return float
+   */
+  {"noise", gmfNoise},
+  /*gm
+   \function smooth noise 
+   \brief generate smooth noise
+   \param int seed
+   \param int x
+   \param int width
+   \return float
+   */
+  {"smoothnoise", gmfSmoothNoise},
+  /*gm
+  \function interpolated noise 
+  \brief generate smooth noise
+  \param int seed
+  \param int x
+  \param int width
+  \return float
+  */
+  {"interpolatednoise", gmfInterpolatedNoise},
 };
 
 
