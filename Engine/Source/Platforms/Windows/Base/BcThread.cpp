@@ -32,24 +32,6 @@ BcU32 BcThread::start()
 {
 	DWORD CreationFlags = THREAD_PRIORITY_NORMAL;
 
-<<<<<<< HEAD
-	/* TODO: Implement again later.
-=======
-	/*
->>>>>>> 2bf5bbfcb2a975089e225222797036439ea07c7f
-	switch ( Priority )
-	{
-	case tp_LOW:
-		CreationFlags |= THREAD_PRIORITY_BELOW_NORMAL;
-		break;
-	case tp_NORMAL:
-		CreationFlags |= THREAD_PRIORITY_NORMAL;
-		break;
-	case tp_HIGH:
-		CreationFlags |= THREAD_PRIORITY_ABOVE_NORMAL;
-		break;
-	};
-	*/
 
 	m_isThreadActive = BcTrue;
 	m_ThreadHandle = ::CreateThread( 0, 0, BcThread::entryPoint, static_cast< void* >( this ), 0, &m_ThreadID );

@@ -64,7 +64,7 @@ void OsCoreImplSDL::open()
 			registerSDLEventHandler( SDL_QUIT, 				&OsCoreImplSDL::processSDLEvent_Quit );
 		}
 	}
-	 */
+	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,6 @@ void OsCoreImplSDL::close()
 	//SDL_Quit();
 }
 
-/*
 //////////////////////////////////////////////////////////////////////////
 // registerSDLEventHandler
 void OsCoreImplSDL::registerSDLEventHandler( int Type, TSDLEventHandler func )
@@ -189,4 +188,4 @@ void OsCoreImplSDL::processSDLEvent_Quit( SDL_Event& Event )
 {
 	EvtPublisher::publish( osEVT_CORE_QUIT, OsEventCore() );
 }
- */
+

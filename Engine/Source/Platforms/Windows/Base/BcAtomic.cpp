@@ -16,13 +16,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtomic unit test
-BcBool BcAtomic_UnitTest()
+void BcAtomic_UnitTest()
 {
 #define ATOMIC_TEST( _test, _msg )											\
 	{																		\
 		BcBool TestResult = ( _test );										\
-		BcAssertMsg( _test, _msg );											\
-		if( _test == BcFalse ) return BcFalse;								\
+		BcAssertMsg( _test, _msg ":" #_test );								\
+		if( ( _test ) == BcFalse ) return;							\
+		BcUnusedVar( TestResult );											\
 	}
 
 #define ATOMIC_TEST_EXCHANGE( _T, _ia, _ib )								\
@@ -84,8 +85,8 @@ BcBool BcAtomic_UnitTest()
 	ATOMIC_TEST_EXCHANGE( _T, 0x7fff, 0x8000 );								\
 	ATOMIC_TEST_EXCHANGE( _T, 0xffffffff, 0 );								\
 	ATOMIC_TEST_EXCHANGE( _T, 0xffffffff, 0xfffffffe );						\
-	ATOMIC_TEST_EXCHANGE( _T, 0x100000000, 0 );								\
-	ATOMIC_TEST_EXCHANGE( _T, 0x7fffffff, 0x80000000 );
+	ATOMIC_TEST_EXCHANGE( _T, 0x7fffffff, 0x80000000 );						
+//	ATOMIC_TEST_EXCHANGE( _T, 0x100000000, 0 );								
 
 	// List of types for all increment/decrements to do.
 #define ATOMIC_TEST_BASIC_ARITHMETIC( _T, _Op )								\
@@ -102,8 +103,8 @@ BcBool BcAtomic_UnitTest()
 	_Op( _T, 0xffffffff );													\
 	_Op( _T, 0xfffffffe );													\
 	_Op( _T, 0x7fffffff );													\
-	_Op( _T, 0x80000000 );													\
-	_Op( _T, 0x100000000 );									
+	_Op( _T, 0x80000000 );													
+//	_Op( _T, 0x100000000 );									
 
 	// Arithmetic op types
 #define ATOMIC_TEST_ARITHMETIC_TYPE( _Ty )									\
@@ -111,18 +112,6 @@ BcBool BcAtomic_UnitTest()
 	ATOMIC_TEST_BASIC_ARITHMETIC( _Ty, ATOMIC_TEST_POSTDEC );				\
 	ATOMIC_TEST_BASIC_ARITHMETIC( _Ty, ATOMIC_TEST_PREINC );				\
 	ATOMIC_TEST_BASIC_ARITHMETIC( _Ty, ATOMIC_TEST_POSTINC );
-	
-	// Do exchange tests.
-	ATOMIC_TEST_EXCHANGE_TYPE( BcU8 );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcS8 );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcU16 );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcS16 );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcU32 );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcS32 );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcChar );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcU8* );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcU16* );
-	ATOMIC_TEST_EXCHANGE_TYPE( BcU32* );
 	
 	// Do arithmetic tests.
 	ATOMIC_TEST_ARITHMETIC_TYPE( BcU8 );
@@ -138,6 +127,15 @@ BcBool BcAtomic_UnitTest()
 	//ATOMIC_TEST_ARITHMETIC_TYPE( BcU16* );
 	//ATOMIC_TEST_ARITHMETIC_TYPE( BcU32* );
 	
-	//
-	return BcTrue;
+	// Do exchange tests.
+	ATOMIC_TEST_EXCHANGE_TYPE( BcU8 );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcS8 );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcU16 );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcS16 );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcU32 );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcS32 );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcChar );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcU8* );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcU16* );
+	ATOMIC_TEST_EXCHANGE_TYPE( BcU32* );
 }
