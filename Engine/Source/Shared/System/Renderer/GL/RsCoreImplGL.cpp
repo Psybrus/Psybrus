@@ -106,6 +106,12 @@ void RsCoreImplGL::open()
 	// Do the context switch.
 	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
 
+	// Clear screen and flip.
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+	::SwapBuffers( (HDC)GWindowDC_ );
+
+
 	// Init GLee.
 	GLeeInit();
 
@@ -184,7 +190,7 @@ void RsCoreImplGL::update()
 #if PLATFORM_OSX
 	// Flush buffer.
 	OsViewOSX_Interface::FlushBuffer();
-#elif PLATFORM_OSX
+#elif PLATFORM_WINDOWS
 	// Flip.
 	::SwapBuffers( (HDC)GWindowDC_ );
 #endif

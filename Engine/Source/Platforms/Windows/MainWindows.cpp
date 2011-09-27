@@ -1,10 +1,31 @@
 #include "MainShared.h"
 #include "SysKernel.h"
+#include "OsCore.h"
 
 #include "OsWindowWindows.h"
 
 BcHandle GWindowDC_ = NULL;
 BcHandle GWindowRC_ = NULL;
+
+eEvtReturn OnPreOsUpdate( EvtID, const SysSystemEvent& )
+{
+	MSG Msg;
+
+	while( ::PeekMessage( &Msg, NULL, 0, 0, PM_REMOVE ) == TRUE )
+	{
+		::TranslateMessage( &Msg );
+		::DispatchMessage( &Msg );
+
+		// Check for quit.
+		if( Msg.message == WM_QUIT )
+		{
+			// Stop, join, and free kernel.
+			SysKernel::pImpl()->stop();
+		}
+	}
+
+	return evtRET_PASS;
+}
 
 int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
@@ -49,38 +70,15 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	extern void PsyGameInit();
 	PsyGameInit();
 
-	// Run kernel threaded.
-	SysKernel::pImpl()->run( BcTrue );
+	// Hook up event pump delegate.
+	SysSystemEvent::Delegate OsPreUpdateDelegate = SysSystemEvent::Delegate::bind< OnPreOsUpdate >();
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegate );
 
-	// Do event pump.
-	for(;;)
-	{
-		MSG Msg;
-		
-		while( ::PeekMessage( &Msg, NULL, 0, 0, PM_REMOVE ) == TRUE )
-		{
-			::TranslateMessage( &Msg );
-			::DispatchMessage( &Msg );
+	// Run kernel unthreaded.
+	SysKernel::pImpl()->run( BcFalse );
 
-			// Check for quit.
-			if( Msg.message == WM_QUIT )
-			{
-				// Stop, join, and free kernel.
-				SysKernel::pImpl()->stop();
-				SysKernel::pImpl()->join();
-				delete SysKernel::pImpl();
-
-				// Destroy main window.
-				MainWindow.destroy();
-
-				// Done!
-				return 0;
-			}
-		}
-		
-		// TODO: Wait until kernel starts a new frame.
-		BcSleep( 0.001f );
-	}
+	// Delete kernel.
+	delete SysKernel::pImpl();
 
 	// Done.
 	return 0;
