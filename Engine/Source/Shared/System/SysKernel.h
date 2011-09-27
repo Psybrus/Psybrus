@@ -16,6 +16,7 @@
 
 #include "BcGlobal.h"
 #include "BcTimer.h"
+#include "BcThread.h"
 #include "SysSystem.h"
 #include "SysJobQueue.h"
 #include "SysDelegateDispatcher.h"
@@ -27,12 +28,13 @@
 //////////////////////////////////////////////////////////////////////////
 // Command line params
 extern BcChar** SysArgv_;
-
 extern BcU32 SysArgc_;
+
 //////////////////////////////////////////////////////////////////////////
 // SysKernel
 class SysKernel:
-	public BcGlobal< SysKernel >
+	public BcGlobal< SysKernel >,
+	public BcThread
 {
 public:
 	SysKernel();
@@ -55,8 +57,9 @@ public:
 		
 	/**
 	 * Run kernel.
+	 * @param Threaded Do we want to run the kernel threaded?
 	 */
-	void						run();
+	void						run( BcBool Threaded );
 	
 	/**
 	 * Tick kernel.
@@ -100,8 +103,35 @@ public:
 		pDelegateCall->deferCall( P0, P1 );
 		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
 	}
+	
+	/**
+	 * Enqueue callback.
+	 */
+	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
+	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0, P1, P2 );
+		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
+	}
+	
+	/**
+	 * Enqueue callback.
+	 */
+	template< typename _Fn, typename _P0, typename _P1, typename _P2, typename _P3 >
+	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2, _P3 P3 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0, P1, P2, P3 );
+		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
+	}
 
 private:
+	/**
+	 * Execute.
+	 */ 
+	virtual void				execute();
+	
 	/**
 	* Add systems.
 	*/
@@ -124,6 +154,9 @@ private:
 	TSystemList					PendingRemoveSystemList_;
 	TSystemList					SystemList_;
 	BcBool						ShuttingDown_;
+	
+	BcMutex						SystemLock_;
+	BcBool						IsThreaded_;
 	
 	BcTimer						MainTimer_;
 	

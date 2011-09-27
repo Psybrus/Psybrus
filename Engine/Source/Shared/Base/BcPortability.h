@@ -17,21 +17,29 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Platform Identification
+#define PLATFORM_LINUX			0
+#define PLATFORM_WINDOWS		0
+#define PLATFORM_IOS			0
+#define PLATFORM_OSX			0
 
 // Linux
 #if defined( linux ) || defined( __linux )
+#  undef PLATFORM_LINUX
 #  define PLATFORM_LINUX		1
 	
 // Windows
 #elif defined( WINDOWS ) || defined( _WINDOWS )
+#  undef PLATFORM_WINDOWS
 #  define PLATFORM_WINDOWS		1
 
 // iOS
 #elif defined( __APPLE__ ) && ( TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR )
+#  undef PLATFORM_IOS
 #  define PLATFORM_IOS			1
 
 // Mac OSX
 #elif defined( __APPLE__ ) && defined( __MACH__ )
+#  undef PLATFORM_OSX
 #  define PLATFORM_OSX			1
 
 // Error.

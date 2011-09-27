@@ -18,7 +18,7 @@ int main( int argc, char* argv[] )
 	SYS_REGISTER( &Kernel, FsCoreImplWindows );
 	SYS_REGISTER( &Kernel, CsCore );
 	SYS_REGISTER( &Kernel, RsCoreImplGL );
-	SYS_REGISTER( &Kernel, SsCoreALInternal );
+	SYS_REGISTER( &Kernel, SsCoreImplAL );
 	
 	// Pass over to user for additional configuration
 	extern void PsyGameInit( SysKernel& Kernel );
@@ -108,7 +108,7 @@ void PsyGameInit( SysKernel& Kernel )
 	// Start up systems.
 	Kernel.startSystem( "OsCoreImplSDL" );
 	Kernel.startSystem( "RsCoreImplGL" );
-	Kernel.startSystem( "SsCoreALInternal" );
+	Kernel.startSystem( "SsCoreImplAL" );
 	Kernel.startSystem( "FsCoreImplWindows" );
 	Kernel.startSystem( "CsCore" );
 	Kernel.startSystem( "GaCore" );

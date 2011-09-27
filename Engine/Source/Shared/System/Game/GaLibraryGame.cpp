@@ -51,7 +51,7 @@ void GM_CDECL GaGameScript::CreateType( gmMachine* a_machine )
 
 //////////////////////////////////////////////////////////////////////////
 // gLibScene
-static gmFunctionEntry gLibGame[] = 
+static gmFunctionEntry gLibGame[] =  
 {
 	// Resource requesting.
 	{ "Package",				GaGamePackage::Request },

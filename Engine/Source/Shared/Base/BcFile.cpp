@@ -17,7 +17,7 @@
 
 #include <fcntl.h>
 
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS
 
 //////////////////////////////////////////////////////////////////////////
 // Windows Includes
@@ -70,14 +70,14 @@ BcFile::~BcFile()
 // calcFileSize
 void BcFile::calcFileSize( void )
 {
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS
 
 	if( FileHandle_ != NULL )
 	{
 		FileSize_ = _filelength( _fileno( FileHandle_ ) );
 	}
 
-#elif defined( PLATFORM_LINUX ) || defined( PLATFORM_OSX )
+#elif PLATFORM_LINUX || PLATFORM_OSX
 	//Early out if no file open
 	if(FileDescriptor_ == -1)
 	{
@@ -101,13 +101,13 @@ BcBool BcFile::open( const BcChar* FileName, eBcFileMode AccessMode )
 	{
 	case bcFM_READ:
 		{
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS
 			// Open the stream
 			FileHandle_ = streamOpen(FileName, "rb");
 
 			// Grab the size of the file
 			calcFileSize();
-#elif defined( PLATFORM_LINUX ) || defined( PLATFORM_OSX )
+#elif PLATFORM_LINUX || PLATFORM_OSX
 			// Open the file
 			FileDescriptor_ = lowLevelOpen(FileName, lowLevelReadFlags);
 
@@ -146,7 +146,7 @@ void BcFile::close()
 	streamClose( FileHandle_ );
 	FileHandle_ = 0;
 
-#if defined( PLATFORM_LINUX ) || defined( PLATFORM_OSX )
+#if PLATFORM_LINUX || PLATFORM_OSX
 	if( FileDescriptor_ != -1)
 	{
 		lowLevelClose(FileDescriptor_);
@@ -208,5 +208,5 @@ void BcFile::writeLine( const BcChar* pTest )
 	BcAssert( FileHandle_ );
 
 	fwrite( pTest, BcStrLength( pTest ), 1, FileHandle_ );
-	fwrite( "\r\n", 2, 1, FileHandle_ );
+	fwrite( "\n", 2, 1, FileHandle_ );
 }

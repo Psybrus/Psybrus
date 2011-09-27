@@ -30,7 +30,7 @@ class SysJobQueue:
 public:
 	SysJobQueue( BcU32 NoofWorkers );
 	~SysJobQueue();
-		
+	
 	/**
 	 * Queue a job.
 	 * @param pJob Job to queue.

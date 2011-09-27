@@ -14,7 +14,7 @@
 #include "SysKernel.h"
 #include "BcMath.h"
 
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 #include "BcWindows.h"
 #endif
 
@@ -43,6 +43,8 @@ SysKernel::~SysKernel()
 // registerSystem
 void SysKernel::registerSystem( const std::string& Name, SysSystemCreator creator )
 {
+	BcScopedLock< BcMutex > Lock( SystemLock_ );
+
 	// Add to creator map.
 	SystemCreatorMap_[ Name ] = creator;
 }
@@ -51,6 +53,8 @@ void SysKernel::registerSystem( const std::string& Name, SysSystemCreator creato
 // startSystem
 SysSystem* SysKernel::startSystem( const std::string& Name )
 {
+	BcScopedLock< BcMutex > Lock( SystemLock_ );
+
 	SysSystem* pSystem = NULL;
 	
 	if( ShuttingDown_ == BcFalse )
@@ -65,6 +69,10 @@ SysSystem* SysKernel::startSystem( const std::string& Name )
 			// Add to pending list.
 			PendingAddSystemList_.push_back( pSystem );
 		}
+		else
+		{
+			BcPrintf( "SysKernel: Can't start system \"%s\"\n", Name.c_str() );
+		}
 	}
 	return pSystem;
 }
@@ -73,6 +81,8 @@ SysSystem* SysKernel::startSystem( const std::string& Name )
 // stop
 void SysKernel::stop()
 {
+	BcScopedLock< BcMutex > Lock( SystemLock_ );
+	
 	// Iterate over and process all systems.
 	TSystemListReverseIterator Iter = SystemList_.rbegin();
 	
@@ -93,34 +103,20 @@ void SysKernel::stop()
 
 //////////////////////////////////////////////////////////////////////////
 // run
-void SysKernel::run()
+void SysKernel::run( BcBool Threaded )
 {
-	// Run until there are no more systems to run.
-	do
+	IsThreaded_ = Threaded;
+	
+	if( Threaded == BcTrue )
 	{
-		// Mark main timer.
-		MainTimer_.mark();
-		
-		// Tick systems.
-		tick();
-		
-		// Grab time spent, and sleep the remainder of 1/60.
-#if PSY_SERVER
-		BcReal TickTime = 1.0f / 15.0f;
-#else
-		BcReal TickTime = 1.0f / 60.0f;
-#endif
-		BcReal TimeSpent = MainTimer_.time();
-		SleepAccumulator_ += BcMax( ( TickTime ) - TimeSpent, 0.0f );
-		
-		if( SleepAccumulator_ > 0.0f )
-		{
-			BcReal SleepTime = SleepAccumulator_;
-			SleepAccumulator_ -= SleepTime;
-			BcSleep( SleepTime );
-		}
+		// Start up the thread.
+		BcThread::start();
 	}
-	while( SystemList_.size() > 0 );
+	else
+	{
+		// Or run here.
+		execute();		
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -129,6 +125,8 @@ void SysKernel::tick()
 {
 	if( ShuttingDown_ == BcFalse )
 	{
+		BcScopedLock< BcMutex > Lock( SystemLock_ );
+
 		// Add systems.
 		addSystems();
 	
@@ -155,6 +153,8 @@ void SysKernel::tick()
 	}
 	else
 	{
+		BcScopedLock< BcMutex > Lock( SystemLock_ );
+
 		// Iterate over and process all systems.
 		TSystemListReverseIterator Iter = SystemList_.rbegin();
 		
@@ -183,6 +183,39 @@ void SysKernel::tick()
 void SysKernel::queueJob( SysJob* pJob, BcU32 WorkerMask )
 {
 	JobQueue_.queueJob( pJob, WorkerMask );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// execute
+//virtual
+void SysKernel::execute()
+{
+	// Run until there are no more systems to run.
+	do
+	{
+		// Mark main timer.
+		MainTimer_.mark();
+		
+		// Tick systems.
+		tick();
+		
+		// Grab time spent, and sleep the remainder of 1/60.
+#if PSY_SERVER
+		BcReal TickTime = 1.0f / 15.0f;
+#else
+		BcReal TickTime = 1.0f / 60.0f;
+#endif
+		BcReal TimeSpent = MainTimer_.time();
+		SleepAccumulator_ += BcMax( ( TickTime ) - TimeSpent, 0.0f );
+		
+		if( SleepAccumulator_ > 0.0f )
+		{
+			BcReal SleepTime = SleepAccumulator_;
+			SleepAccumulator_ -= SleepTime;
+			BcSleep( SleepTime );
+		}
+	}
+	while( SystemList_.size() > 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////

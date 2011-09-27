@@ -434,7 +434,6 @@ public:
 		BcAssert( pThis != NULL );
 		return Func;
 	}
-
 private:
 	template< _Fn func >
 	static return_type global_stub( void*, typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1 )

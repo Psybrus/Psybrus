@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Windows defines
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 
 #pragma warning ( disable : 4311 ) 
 #pragma warning ( disable : 4312 ) 
@@ -83,7 +83,7 @@ typedef size_t						BcSize;
 
 /////////////////////////////////////////////
 // Linux defines
-#ifdef PLATFORM_LINUX
+#if PLATFORM_LINUX
 
 #include <stddef.h>
 
@@ -136,7 +136,7 @@ typedef size_t						BcSize;
 
 /////////////////////////////////////////////
 // OSX/IOS defines
-#if defined( PLATFORM_OSX ) || defined( PLATFORM_IOS )
+#if PLATFORM_OSX || PLATFORM_IOS
 
 #include <deque>
 #include <vector>

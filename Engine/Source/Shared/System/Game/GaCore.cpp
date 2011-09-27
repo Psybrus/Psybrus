@@ -41,6 +41,7 @@ struct TKeyEnum
 	int KeyCode_;
 };
 
+/*
 const TKeyEnum GKeyEnums[] = 
 {
 	{ "A",			SDLK_a },
@@ -85,8 +86,8 @@ const TKeyEnum GKeyEnums[] =
 	{ "LEFT",		SDLK_LEFT },
 	{ "RIGHT",		SDLK_RIGHT },
 	{ "SPACE",		SDLK_SPACE },
-	
 };
+ */
 
 //////////////////////////////////////////////////////////////////////////
 // Game monkey callbacks.
@@ -280,12 +281,14 @@ void GaCore::reset()
 	pGlobalsTable->Set( pGmMachine_, "KeyOldState", gmVariable( pKeyOldStateMap_ ) );
 	
 	// Setup temporary key enums.
+	/*
 	BcU32 NoofKeyEnums = sizeof( GKeyEnums ) / sizeof( GKeyEnums[ 0 ] );
 	for( BcU32 Idx = 0; Idx < NoofKeyEnums; ++Idx )
 	{
 		const TKeyEnum& KeyEnum = GKeyEnums[ Idx ];
 		pKeyEnumMap_->Set( pGmMachine_, gmVariable( pGmMachine_->AllocStringObject( KeyEnum.pEnumName_ ) ), gmVariable( (int)KeyEnum.KeyCode_ ) );
 	}
+	 */
 	
 	// Setup execute stage;
 	ExecuteStage_ = ES_BOOT;
@@ -379,6 +382,7 @@ eEvtReturn GaCore::eventKey( BcU32 EvtID, const OsEventInputKeyboard& Event )
 		}
 	}
 	
+	/*
 	// HACK:
 	if( Event.KeyCode_ == SDLK_ESCAPE )
 	{
@@ -390,6 +394,7 @@ eEvtReturn GaCore::eventKey( BcU32 EvtID, const OsEventInputKeyboard& Event )
 	{
 		reset();
 	}
+	 */
 
 	return evtRET_PASS;
 }
