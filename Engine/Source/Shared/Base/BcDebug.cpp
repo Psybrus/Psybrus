@@ -59,9 +59,9 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line )
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 	static BcChar Buffer[ 4096 ];
 	BcScopedLock< BcMutex > Lock( gOutputLock_ );
-	BcPrintf( "\"%s\"in %s on line %u.\n", pMessage, pFile, Line );
-	BcSPrintf( Buffer, "\"%s\"in %s on line %u.\n\nDo you wish to continue?", pMessage, pFile, Line );
-	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED.", Buffer, bcMBT_YESNO, bcMBI_ERROR );
+	BcPrintf( "ASSERTION FAILED: \"%s\" in %s on line %u.\n", pMessage, pFile, Line );
+	BcSPrintf( Buffer, "\"%s\" in %s on line %u.\n\nDo you wish to break?", pMessage, pFile, Line );
+	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED!", Buffer, bcMBT_YESNO, bcMBI_ERROR );
 	return MessageReturn == bcMBR_YES;
 #else
 	BcUnusedVar( pMessage );
@@ -77,9 +77,9 @@ BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line )
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 	static BcChar Buffer[ 4096 ];
 	BcScopedLock< BcMutex > Lock( gOutputLock_ );
-	BcPrintf( "\"%s\"in %s on line %u.\n", pMessage, pFile, Line );
-	BcSPrintf( Buffer, "\"%s\"in %s on line %u.\n\nIgnore all of these?", pMessage, pFile, Line );
-	BcMessageBoxReturn MessageReturn = BcMessageBox( "VERIFICATION FAILED.", Buffer, bcMBT_YESNO, bcMBI_WARNING );
+	BcPrintf( "VERIFICATION FAILED: \"%s\" in %s on line %u.\n", pMessage, pFile, Line );
+	BcSPrintf( Buffer, "\"%s\"in %s on line %u.\n\nIgnore next?", pMessage, pFile, Line );
+	BcMessageBoxReturn MessageReturn = BcMessageBox( "VERIFICATION FAILED!", Buffer, bcMBT_YESNO, bcMBI_WARNING );
 	return MessageReturn == bcMBR_YES;
 #else
 	BcUnusedVar( pMessage );

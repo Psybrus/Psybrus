@@ -60,7 +60,6 @@ private:
 	 */
 	void				moveJobsBack( BcU32 WorkerMask );
 	
-	
 private:
 	virtual void		execute();
 	
@@ -73,7 +72,8 @@ private:
 	BcEvent				ResumeEvent_;
 	BcAtomicU32			NoofJobsQueued_;
 	BcU32				NoofWorkers_;
-
+	BcU32				AvailibleWorkerMask_;
+	
 	BcMutex				QueueLock_;
 	TJobQueue			JobQueue_;
 	

@@ -19,7 +19,8 @@ SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	Active_( BcTrue ),
 	ResumeEvent_( "SysJobQueue_ResumeEvent" ),
 	NoofJobsQueued_( 0 ),
-	NoofWorkers_( NoofWorkers )
+	NoofWorkers_( NoofWorkers ),
+	AvailibleWorkerMask_( ( 1 << NoofWorkers ) - 1 )
 {
 	if( NoofWorkers_ > 0 )
 	{
@@ -40,10 +41,10 @@ SysJobQueue::~SysJobQueue()
 	{
 		// No longer active, shouldn't be receiving any more jobs.
 		Active_ = BcFalse;
-	
+		
 		// Resume thread.
 		ResumeEvent_.signal();
-	
+		
 		// Now join.
 		BcThread::join();	
 	}
@@ -55,7 +56,8 @@ void SysJobQueue::queueJob( SysJob* pJob, BcU32 WorkerMask )
 {
 	BcAssertMsg( Active_ == BcTrue, "SysJobQueue: Trying to queue a job when inactive." );
 	
-	if( WorkerMask != 0 && NoofWorkers_ > 0 )
+	// Check mask validity and queue if we can.
+	if( ( WorkerMask & AvailibleWorkerMask_ ) != 0 )
 	{
 		BcScopedLock< BcMutex > Lock( QueueLock_ );
 	
