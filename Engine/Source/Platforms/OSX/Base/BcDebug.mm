@@ -21,7 +21,9 @@
 			 message: (NSString*) message 
 			 button0: (NSString*) button0 
 			 button1: (NSString*) button1 
-			 button2: (NSString*) button2;
+			 button2: (NSString*) button2
+				icon: (BcMessageBoxIcon) icon;
+
 - (void)displayInternal:(NSMutableDictionary*) dict;
 @end
 
@@ -31,6 +33,7 @@
 		button0: (NSString*) button0 
 		button1: (NSString*) button1 
 		button2: (NSString*) button2
+		   icon: (BcMessageBoxIcon) icon
 {
 	NSMutableDictionary* dict = [[NSMutableDictionary alloc]init];
 		
@@ -39,6 +42,16 @@
 								   alternateButton:button1
 									   otherButton:button2
 						 informativeTextWithFormat:message];
+	switch( icon )
+	{
+		case bcMBI_WARNING:
+		case bcMBI_ERROR:
+			[alert setAlertStyle:NSCriticalAlertStyle];
+			break;
+		default:
+			[alert setAlertStyle:NSInformationalAlertStyle];
+			break;
+	}
 	[dict setObject:alert forKey:@"alert"];
 	[self performSelectorOnMainThread: @selector(displayInternal:)
 							withObject: dict
@@ -55,7 +68,7 @@
 }
 @end
 
-BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type )
+BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
 	BcMessageBoxReturn RetVal = bcMBR_OK;
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -91,18 +104,19 @@ BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, B
 									  message: message
 									  button0: button0
 									  button1: button1
-									  button2: button2];
+									  button2: button2
+										 icon: Icon];
 	
 	// Determine which button was selected.
 	switch( selection )
 	{
-		case 0:	// alternate (1)
+		case NSAlertAlternateReturn:	// alternate (1)
 			RetVal = bcMBR_CANCEL;
 			break;
-		case 1: // default (0)
+		case NSAlertDefaultReturn: // default (0)
 			RetVal = bcMBR_YES;
 			break;
-		case -1: // other (2)
+		case NSAlertOtherReturn: // other (2)
 			RetVal = bcMBR_NO;
 			break;
 		default:

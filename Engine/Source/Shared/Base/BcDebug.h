@@ -55,7 +55,7 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 #  define BcAssertMsg( Condition, Message )	\
 	if( !( Condition ) ) \
 	{ \
-		if( !BcAssertInternal( Message, __FILE__, __LINE__ ) ) \
+		if( BcAssertInternal( Message, __FILE__, __LINE__ ) ) \
 			BcBreakpoint; \
 	}
 #  define BcAssert( Condition )			BcAssertMsg( Condition, #Condition )
@@ -83,7 +83,7 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line );
 
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
-#  define BcVerify( Condition, Message )	\
+#  define BcVerifyMsg( Condition, Message )	\
 	{ \
 		static BcBool ShouldNotify = BcTrue; \
 		if( ShouldNotify && !( Condition ) ) \
@@ -92,8 +92,10 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 				ShouldNotify = BcFalse; \
 		} \
 	}
+#  define BcVerify( Condition )			BcVerifyMsg( Condition, #Condition )
 #else
-#  define BcVerify( Condition, Message )
+#  define BcVerifyMsg( Condition, Message )
+#  define BcVerify( Condition )
 #endif
 
 #endif
