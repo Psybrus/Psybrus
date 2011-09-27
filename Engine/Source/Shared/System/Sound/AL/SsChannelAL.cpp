@@ -13,11 +13,11 @@
 
 #include "SsChannelAL.h"
 
-#include "SsCoreALInternal.h"
+#include "SsCoreImplAL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SsChannelAL::SsChannelAL( SsCoreALInternal* Parent ):
+SsChannelAL::SsChannelAL( SsCoreImplAL* Parent ):
 	ALSource_( NULL ),
 	ALFilter_( NULL ),
 	State_( ssCS_IDLE ),

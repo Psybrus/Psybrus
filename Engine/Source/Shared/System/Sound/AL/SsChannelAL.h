@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-class SsCoreALInternal;
+class SsCoreImplAL;
 
 //////////////////////////////////////////////////////////////////////////
 // exSsChannelAL
@@ -29,7 +29,7 @@ class SsChannelAL:
 	public SsChannel
 {
 public:
-	SsChannelAL( SsCoreALInternal* Parent );
+	SsChannelAL( SsCoreImplAL* Parent );
 	virtual ~SsChannelAL();
 
 	void				stop();
@@ -49,7 +49,7 @@ private:
 	SsSample* Sample_;
 
 	// Parent sound core.
-	SsCoreALInternal* Parent_;
+	SsCoreImplAL* Parent_;
 };
 
 
