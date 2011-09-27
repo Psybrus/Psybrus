@@ -9,8 +9,10 @@ int main( int argc, char* argv[] )
 	MainUnitTests();
 	
 	// Set command line params.
-	SysArgc_ = (BcU32)argc;
-	SysArgv_ = (BcChar**)&argv[0];
+	for( int i = 1; i < argc; ++i )
+	{
+		SysArgs_ += argv[i];
+	}
 	
 	// Create kernel.
 	new SysKernel();
