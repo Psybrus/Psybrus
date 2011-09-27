@@ -50,7 +50,6 @@
 		C824733813507BE70092D33F /* FsFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472AC13507BE70092D33F /* FsFile.cpp */; };
 		C824733913507BE70092D33F /* NsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472AF13507BE70092D33F /* NsCore.cpp */; };
 		C824733A13507BE70092D33F /* OsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472B213507BE70092D33F /* OsCore.cpp */; };
-		C824733B13507BE70092D33F /* OsCoreImplSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472B613507BE70092D33F /* OsCoreImplSDL.cpp */; };
 		C824733C13507BE70092D33F /* RmCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472B913507BE70092D33F /* RmCore.cpp */; };
 		C824733D13507BE70092D33F /* RmTCPConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472BB13507BE70092D33F /* RmTCPConnection.cpp */; };
 		C824735813507BE70092D33F /* RsCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82472F213507BE70092D33F /* RsCore.cpp */; };
@@ -1660,7 +1659,6 @@
 				C824733813507BE70092D33F /* FsFile.cpp in Sources */,
 				C824733913507BE70092D33F /* NsCore.cpp in Sources */,
 				C824733A13507BE70092D33F /* OsCore.cpp in Sources */,
-				C824733B13507BE70092D33F /* OsCoreImplSDL.cpp in Sources */,
 				C824733C13507BE70092D33F /* RmCore.cpp in Sources */,
 				C824733D13507BE70092D33F /* RmTCPConnection.cpp in Sources */,
 				C824735813507BE70092D33F /* RsCore.cpp in Sources */,

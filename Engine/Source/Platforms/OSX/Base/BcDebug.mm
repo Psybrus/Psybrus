@@ -55,16 +55,36 @@
 }
 @end
 
-BcU32 BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, const BcChar* pButton0, const BcChar* pButton1, const BcChar* pButton2 )
+BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type )
 {
-	BcU32 RetVal = 0;
+	BcMessageBoxReturn RetVal = bcMBR_OK;
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	NSString* title = [[NSString alloc] initWithCString: pTitle encoding: [NSString defaultCStringEncoding]];
-	NSString* message = [[NSString alloc] initWithCString: pMessage encoding: [NSString defaultCStringEncoding]];
-
-	NSString* button0 = pButton0 != NULL ? [[NSString alloc] initWithCString: pButton0 encoding: [NSString defaultCStringEncoding]] : nil;
-	NSString* button1 = pButton1 != NULL ? [[NSString alloc] initWithCString: pButton1 encoding: [NSString defaultCStringEncoding]] : nil;
-	NSString* button2 = pButton2 != NULL ? [[NSString alloc] initWithCString: pButton2 encoding: [NSString defaultCStringEncoding]] : nil;
+	NSString* title = [[NSString alloc] initWithCString: pTitle encoding: NSUTF8StringEncoding];
+	NSString* message = [[NSString alloc] initWithCString: pMessage encoding: NSUTF8StringEncoding];
+	
+	NSString* button0 = nil;
+	NSString* button1 = nil;
+	NSString* button2 = nil;
+	
+	switch( Type )
+	{
+		case bcMBT_OK:
+			button0 = @"OK";
+			break;
+		case bcMBT_OKCANCEL:
+			button0 = @"OK";
+			button1 = @"Cancel";
+			break;
+		case bcMBT_YESNO:
+			button0 = @"Yes";
+			button2 = @"No";
+			break;
+		case bcMBT_YESNOCANCEL:
+			button0 = @"Yes";
+			button1 = @"Cancel";
+			button2 = @"No";
+			break;
+	}
 	
 	BcMessageBoxObject* messageBox = [BcMessageBoxObject new];
 	NSInteger selection = [messageBox display: title
@@ -77,13 +97,13 @@ BcU32 BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, const BcChar* 
 	switch( selection )
 	{
 		case 0:	// alternate (1)
-			RetVal = 1;
+			RetVal = bcMBR_CANCEL;
 			break;
 		case 1: // default (0)
-			RetVal = 0;
+			RetVal = bcMBR_YES;
 			break;
 		case -1: // other (2)
-			RetVal = 2;
+			RetVal = bcMBR_NO;
 			break;
 		default:
 			break;

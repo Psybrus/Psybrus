@@ -39,7 +39,10 @@ OsCoreImplOSX::~OsCoreImplOSX()
 //virtual
 void OsCoreImplOSX::open()
 {
-	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", "OK", "Cancel" );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_OK );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_OKCANCEL );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_YESNO );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_YESNOCANCEL );
 }
 
 //////////////////////////////////////////////////////////////////////////

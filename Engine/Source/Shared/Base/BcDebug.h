@@ -17,9 +17,28 @@
 #include "BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// Debugging
+// BcPrintf
 extern void BcPrintf( const BcChar* pString, ... );
-extern BcU32 BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, const BcChar* pButton0 = "OK", const BcChar* pButton1 = NULL, const BcChar* pButton2 = NULL );
+
+//////////////////////////////////////////////////////////////////////////
+// BcMessageBox
+enum BcMessageBoxType
+{
+	bcMBT_OK = 0,
+	bcMBT_OKCANCEL,
+	bcMBT_YESNO,
+	bcMBT_YESNOCANCEL
+};
+
+enum BcMessageBoxReturn
+{
+	bcMBR_OK = 0,
+	bcMBR_YES = 0,
+	bcMBR_NO = 1,
+	bcMBR_CANCEL = 2,
+};
+
+extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type );
 
 
 //////////////////////////////////////////////////////////////////////////
