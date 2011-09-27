@@ -28,6 +28,11 @@
 
 #include "SysKernel.h"
 
+#if PLATFORM_OSX
+#include "OsViewOSX.h"
+#endif
+
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( RsCoreImplGL );
@@ -53,6 +58,11 @@ RsCoreImplGL::~RsCoreImplGL()
 //virtual
 void RsCoreImplGL::open()
 {
+#if PLATFORM_OSX
+	// Do the context switch.
+	OsViewOSX_Interface::MakeContextCurrent();
+#endif
+	
 	// NOTE: GL renderer uses SDL in this implementation.
 	// TODO: Move into a higher level so this GL renderer
 	//       can be used on any other platform.
@@ -93,7 +103,11 @@ void RsCoreImplGL::update()
 	CommandBuffer_.execute();
 
 	glFlush();
-	SDL_GL_SwapBuffers();
+	
+#if PLATFORM_OSX
+	// Flush buffer.
+	OsViewOSX_Interface::FlushBuffer();
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

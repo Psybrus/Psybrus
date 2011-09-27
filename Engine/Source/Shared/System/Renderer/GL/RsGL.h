@@ -18,22 +18,23 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
-#if defined( PLATFORM_LINUX )
-#  include <SDL/SDL.h>
+#if PLATFORM_LINUX
 #  include <GL/gl.h>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Mac
-#if defined( PLATFORM_OSX )
-#  include <SDL.h>
+#if PLATFORM_OSX
 #  include <OpenGL/OpenGL.h>
 #  include <AGL/agl.h>
+
+extern AGLContext GAGLContext;
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Win32
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS
 #  define WIN32_LEAN_AND_MEAN
 #  define NOGDICAPMASKS    
 #  define NOMENUS         
@@ -58,7 +59,6 @@
 #  define NODEFERWINDOWPOS
 #  define NOMCX
 #  include "GLee.h"
-#  include <SDL/SDL.h>
 #endif
 
 //
