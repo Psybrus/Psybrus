@@ -58,6 +58,11 @@ public:
 	 */
 	void unsubscribe( EvtID ID, void* pOwner );
 
+	/**
+	 * Unsubscribe from all events using owner pointer.
+	 */
+	void unsubscribeAll( void* pOwner );
+
 private:
 	/**
 	* Publish internal.
