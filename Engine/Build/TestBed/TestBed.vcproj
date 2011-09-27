@@ -246,6 +246,18 @@
 							</FileConfiguration>
 						</File>
 						<File
+							RelativePath="..\..\Source\Platforms\OSX\Base\BcDebug.mm"
+							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								ExcludedFromBuild="true"
+								>
+								<Tool
+									Name="VCCustomBuildTool"
+								/>
+							</FileConfiguration>
+						</File>
+						<File
 							RelativePath="..\..\Source\Platforms\OSX\Base\BcEvent.cpp"
 							>
 							<FileConfiguration
@@ -596,6 +608,17 @@
 						<File
 							RelativePath="..\..\Source\Platforms\Windows\Base\BcAtomic.h"
 							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\Windows\Base\BcDebugWindows.cpp"
+							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\..\Source\Platforms\Windows\Base\BcEvent.cpp"
