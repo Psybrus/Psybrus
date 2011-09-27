@@ -287,11 +287,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::return_type return_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()()
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_);
+		return (*stubFunc_)(pOwner_);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -299,22 +299,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 0 > bind()
+	static _BcDelegateInternal< _Fn, 0 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 0 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)() >
-	static _BcDelegateInternal< _Fn, 0 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 0 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 0 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -333,7 +338,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -345,11 +350,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param0_type param0_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0);
+		return (*stubFunc_)(pOwner_, P0);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -357,22 +362,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 1 > bind()
+	static _BcDelegateInternal< _Fn, 1 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 1 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type) >
-	static _BcDelegateInternal< _Fn, 1 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 1 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 1 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -391,7 +401,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -404,11 +414,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param1_type param1_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1);
+		return (*stubFunc_)(pOwner_, P0, P1);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -416,24 +426,30 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 2 > bind()
+	static _BcDelegateInternal< _Fn, 2 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 2 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type) >
-	static _BcDelegateInternal< _Fn, 2 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 2 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 2 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
+
 private:
 	template< _Fn func >
 	static return_type global_stub( void*, typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1 )
@@ -449,7 +465,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -463,11 +479,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param2_type param2_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1, P2);
+		return (*stubFunc_)(pOwner_, P0, P1, P2);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -475,22 +491,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 3 > bind()
+	static _BcDelegateInternal< _Fn, 3 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 3 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type) >
-	static _BcDelegateInternal< _Fn, 3 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 3 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 3 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -509,7 +530,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -524,11 +545,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param3_type param3_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1, P2, P3);
+		return (*stubFunc_)(pOwner_, P0, P1, P2, P3);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -536,22 +557,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 4 > bind()
+	static _BcDelegateInternal< _Fn, 4 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 4 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type) >
-	static _BcDelegateInternal< _Fn, 4 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 4 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 4 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -570,7 +596,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -586,11 +612,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param4_type param4_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1, P2, P3, P4);
+		return (*stubFunc_)(pOwner_, P0, P1, P2, P3, P4);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -598,22 +624,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 5 > bind()
+	static _BcDelegateInternal< _Fn, 5 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 5 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type) >
-	static _BcDelegateInternal< _Fn, 5 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 5 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 5 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -632,7 +663,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -649,11 +680,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param5_type param5_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4, typename BcFuncTraits< _Fn >::param5_type P5)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1, P2, P3, P4, P5);
+		return (*stubFunc_)(pOwner_, P0, P1, P2, P3, P4, P5);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -661,22 +692,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 6 > bind()
+	static _BcDelegateInternal< _Fn, 6 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 6 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type) >
-	static _BcDelegateInternal< _Fn, 6 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 6 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 6 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -695,7 +731,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -713,11 +749,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param6_type param6_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type, typename BcFuncTraits< _Fn >::param6_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4, typename BcFuncTraits< _Fn >::param5_type P5, typename BcFuncTraits< _Fn >::param6_type P6)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1, P2, P3, P4, P5, P6);
+		return (*stubFunc_)(pOwner_, P0, P1, P2, P3, P4, P5, P6);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -725,22 +761,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 7 > bind()
+	static _BcDelegateInternal< _Fn, 7 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 7 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type, typename BcFuncTraits< _Fn >::param6_type) >
-	static _BcDelegateInternal< _Fn, 7 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 7 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 7 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -759,7 +800,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 
@@ -778,11 +819,11 @@ public:
 	typedef typename BcFuncTraits< _Fn >::param7_type param7_type;
 	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type, typename BcFuncTraits< _Fn >::param6_type, typename BcFuncTraits< _Fn >::param7_type);
 public:
-	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};
+	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};
 	BcForceInline return_type operator()(typename BcFuncTraits< _Fn >::param0_type P0, typename BcFuncTraits< _Fn >::param1_type P1, typename BcFuncTraits< _Fn >::param2_type P2, typename BcFuncTraits< _Fn >::param3_type P3, typename BcFuncTraits< _Fn >::param4_type P4, typename BcFuncTraits< _Fn >::param5_type P5, typename BcFuncTraits< _Fn >::param6_type P6, typename BcFuncTraits< _Fn >::param7_type P7)
 	{
 		BcAssert( stubFunc_ != NULL );
-		return (*stubFunc_)(pThis_, P0, P1, P2, P3, P4, P5, P6, P7);
+		return (*stubFunc_)(pOwner_, P0, P1, P2, P3, P4, P5, P6, P7);
 	}
 
 	BcForceInline BcBool isValid() const
@@ -790,22 +831,27 @@ public:
 		return ( stubFunc_ != NULL );
 	}
 
+	BcForceInline void* getOwner()
+	{
+		return pOwner_;
+	}
+
 	template< _Fn _func >
-	static _BcDelegateInternal< _Fn, 8 > bind()
+	static _BcDelegateInternal< _Fn, 8 > bind( void* pOwner = NULL )
 	{
 		_BcDelegateInternal< _Fn, 8 > Func;
-		Func.pThis_ = NULL;
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &global_stub< _func >;
 		return Func;
 	}
 
 	template< class _Ty, return_type(_Ty::*_func)(typename BcFuncTraits< _Fn >::param0_type, typename BcFuncTraits< _Fn >::param1_type, typename BcFuncTraits< _Fn >::param2_type, typename BcFuncTraits< _Fn >::param3_type, typename BcFuncTraits< _Fn >::param4_type, typename BcFuncTraits< _Fn >::param5_type, typename BcFuncTraits< _Fn >::param6_type, typename BcFuncTraits< _Fn >::param7_type) >
-	static _BcDelegateInternal< _Fn, 8 > bind( _Ty* pThis )
+	static _BcDelegateInternal< _Fn, 8 > bind( _Ty* pOwner )
 	{
 		_BcDelegateInternal< _Fn, 8 > Func;
-		Func.pThis_ = pThis;
+		BcAssert( pOwner != NULL );
+		Func.pOwner_ = pOwner;
 		Func.stubFunc_ = &method_stub< _Ty, _func >;
-		BcAssert( pThis != NULL );
 		return Func;
 	}
 
@@ -824,7 +870,7 @@ private:
 	}
 
 private:
-	void* pThis_;
+	void* pOwner_;
 	stub_func stubFunc_;
 };
 

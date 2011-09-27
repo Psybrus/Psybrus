@@ -105,6 +105,7 @@ void EvtPublisher::subscribeInternal( EvtID ID, const EvtBinding& Binding )
 	BindingList.push_back( Binding );
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // unregisterBinding
 void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
@@ -122,6 +123,34 @@ void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
 		while( Iter != BindingList.end() )
 		{
 			if( (*Iter) == Binding )
+			{
+				Iter = BindingList.erase( Iter );
+			}
+			else
+			{
+				++Iter;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// unregisterBinding
+void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
+{
+	// Find the appropriate binding list.
+	TBindingListMapIterator BindingListMapIterator = BindingListMap_.find( ID );
+	
+	// Add list if we need to, and grab iterator.
+	if( BindingListMapIterator != BindingListMap_.end() )
+	{
+		// Find the matching binding.
+		TBindingList& BindingList = BindingListMapIterator->second;
+		TBindingListIterator Iter = BindingList.begin();
+		
+		while( Iter != BindingList.end() )
+		{
+			if( (*Iter).getOwner() == pOwner )
 			{
 				Iter = BindingList.erase( Iter );
 			}

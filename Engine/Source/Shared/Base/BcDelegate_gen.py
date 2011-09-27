@@ -108,15 +108,15 @@ def BcDelegate_gen( outFile, numParams ):
 		outString += "	typedef typename BcFuncTraits< _Fn >::return_type(*stub_func)(void*,"+paramTypeList+");\n"
 	outString += "public:\n"
 	
-	outString += "	BcForceInline _BcDelegateInternal(): pThis_( NULL ), stubFunc_( NULL ){};\n"
+	outString += "	BcForceInline _BcDelegateInternal(): pOwner_( NULL ), stubFunc_( NULL ){};\n"
 	
 	outString += "	BcForceInline return_type operator()(" + paramList + ")\n"
 	outString += "	{\n"
 	outString += "		BcAssert( stubFunc_ != NULL );\n"
 	if numParams == 0:
-		outString += "		return (*stubFunc_)(pThis_);\n"
+		outString += "		return (*stubFunc_)(pOwner_);\n"
 	else:
-		outString += "		return (*stubFunc_)(pThis_, " + paramCallList + ");\n"
+		outString += "		return (*stubFunc_)(pOwner_, " + paramCallList + ");\n"
 	outString += "	}\n\n"
 	
 	outString += "	BcForceInline BcBool isValid() const\n"
@@ -124,22 +124,27 @@ def BcDelegate_gen( outFile, numParams ):
 	outString += "		return ( stubFunc_ != NULL );\n"
 	outString += "	}\n\n"
 	
+	outString += "	BcForceInline void* getOwner()\n"
+	outString += "	{\n"
+	outString += "		return pOwner_;\n"
+	outString += "	}\n\n"
+
 	outString += "	template< _Fn _func >\n"
-	outString += "	static _BcDelegateInternal< _Fn, " + str( numParams ) + " > bind()\n"
+	outString += "	static _BcDelegateInternal< _Fn, " + str( numParams ) + " > bind( void* pOwner = NULL )\n"
 	outString += "	{\n"
 	outString += "		_BcDelegateInternal< _Fn, " + str( numParams ) + " > Func;\n"
-	outString += "		Func.pThis_ = NULL;\n"
+	outString += "		Func.pOwner_ = pOwner;\n"
 	outString += "		Func.stubFunc_ = &global_stub< _func >;\n"
 	outString += "		return Func;\n"
 	outString += "	}\n\n"
 	
 	outString += "	template< class _Ty, return_type(_Ty::*_func)("+paramTypeList+") >\n"
-	outString += "	static _BcDelegateInternal< _Fn, " + str( numParams ) + " > bind( _Ty* pThis )\n"
+	outString += "	static _BcDelegateInternal< _Fn, " + str( numParams ) + " > bind( _Ty* pOwner )\n"
 	outString += "	{\n"
 	outString += "		_BcDelegateInternal< _Fn, " + str( numParams ) + " > Func;\n"
-	outString += "		Func.pThis_ = pThis;\n"
+	outString += "		BcAssert( pOwner != NULL );\n"
+	outString += "		Func.pOwner_ = pOwner;\n"
 	outString += "		Func.stubFunc_ = &method_stub< _Ty, _func >;\n"
-	outString += "		BcAssert( pThis != NULL );\n"
 	outString += "		return Func;\n"
 	outString += "	}\n\n"
 
@@ -163,7 +168,7 @@ def BcDelegate_gen( outFile, numParams ):
 	outString += "		return (pThis->*meth)( " + paramCallList + " );\n"
 	outString += "	}\n\n"
 	outString += "private:\n"
-	outString += "	void* pThis_;\n"
+	outString += "	void* pOwner_;\n"
 	outString += "	stub_func stubFunc_;\n"
 	outString += "};\n\n"
 	outFile.write( outString )

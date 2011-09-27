@@ -63,6 +63,15 @@ struct EvtBinding
 	{	
 		return Delegate_( ID, Event );
 	}
+
+	/**
+	 * Get owner.
+	 */
+	BcForceInline void* getOwner()
+	{	
+		return Delegate_.getOwner();
+	}
+
 };
 
 
