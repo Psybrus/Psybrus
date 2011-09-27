@@ -14,7 +14,7 @@
 #include "BcMemory.h"
 #include "BcAtomic.h"
 
-#ifdef PLATFORM_OSX
+#if PLATFORM_OSX
 #include <execinfo.h>
 
 

@@ -21,10 +21,10 @@
 #include <stdio.h>
 #include <cstdlib>
 
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS
 #define caseInsensitiveComparison stricmp
 #define safeCaseInsensitiveComparison strnicmp
-#elif defined( PLATFORM_LINUX ) || defined( PLATFORM_OSX )
+#elif PLATFORM_LINUX || PLATFORM_OSX
 #define caseInsensitiveComparison strcasecmp
 #define safeCaseInsensitiveComparison strncasecmp
 #else

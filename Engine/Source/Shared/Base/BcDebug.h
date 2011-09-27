@@ -19,6 +19,8 @@
 //////////////////////////////////////////////////////////////////////////
 // Debugging
 extern void BcPrintf( const BcChar* pString, ... );
+extern BcU32 BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, const BcChar* pButton0 = "OK", const BcChar* pButton1 = NULL, const BcChar* pButton2 = NULL );
+
 
 //////////////////////////////////////////////////////////////////////////
 // Defines

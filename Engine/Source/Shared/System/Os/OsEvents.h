@@ -37,10 +37,11 @@ enum OsEvents
 	osEVT_INPUT_MOUSEUP,
 	osEVT_INPUT_KEYDOWN,
 	osEVT_INPUT_KEYUP,
-	osEVT_INPUT_LAST,
 	osEVT_INPUT_TOUCHDOWN,
 	osEVT_INPUT_TOUCHUP,
 	osEVT_INPUT_TOUCHMOVE,
+	osEVT_INPUT_MIDI,
+	osEVT_INPUT_LAST,
 	
 	//
 	osEVT_MAX
@@ -75,6 +76,189 @@ struct OsEventInputMouse: OsEventInput< OsEventInputMouse >
 struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 {
 	BcU16			KeyCode_;			///!< Key code.
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI
+template< typename _Ty >
+struct OsEventInputMIDI: OsEventInput< _Ty >
+{
+	BcU32			FullMessage_;		///!< Full MIDI message.
+	BcU32			Timestamp_;			///!< Timestamp for message.
+	
+	/**
+	 * Get message.
+	 */
+	BcForceInline BcU32 getMessage() const
+	{
+		return ( ( FullMessage_ >> 4 ) & 0xf );
+	}
+	
+	/**
+	 * Get channel.
+	 */
+	BcForceInline BcU32 getChannel() const
+	{
+		return ( FullMessage_ & 0xf );
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_NoteOff
+struct OsEventInputMIDI_NoteOff: OsEventInputMIDI< OsEventInputMIDI_NoteOff >
+{
+	enum
+	{
+		MESSAGE = 0x8
+	};
+	
+	/**
+	 * Get note.
+	 */
+	BcForceInline BcU32 getNote() const
+	{
+		return ( FullMessage_ >> 8 ) & 0x7f;
+	}
+
+	/**
+	 * Get velocity.
+	 */
+	BcForceInline BcU32 getVelocity() const
+	{
+		return ( FullMessage_ >> 16 ) & 0x7f;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_NoteOn
+struct OsEventInputMIDI_NoteOn: OsEventInputMIDI< OsEventInputMIDI_NoteOn >
+{
+	enum
+	{
+		MESSAGE = 0x9
+	};
+	
+	/**
+	 * Get note.
+	 */
+	BcForceInline BcU32 getNote() const
+	{
+		return ( FullMessage_ >> 8 ) & 0x7f;
+	}
+	
+	/**
+	 * Get velocity.
+	 */
+	BcForceInline BcU32 getVelocity() const
+	{
+		return ( FullMessage_ >> 16 ) & 0x7f;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_PolyphonicKeyPressure
+struct OsEventInputMIDI_PolyphonicKeyPressure: OsEventInputMIDI< OsEventInputMIDI_PolyphonicKeyPressure >
+{
+	enum
+	{
+		MESSAGE = 0xa
+	};
+	
+	/**
+	 * Get note.
+	 */
+	BcForceInline BcU32 getNote() const
+	{
+		return ( FullMessage_ >> 8 ) & 0x7f;
+	}
+	
+	/**
+	 * Get pressure.
+	 */
+	BcForceInline BcU32 getPressure() const
+	{
+		return ( FullMessage_ >> 16 ) & 0x7f;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_ControlChange
+struct OsEventInputMIDI_ControlChange: OsEventInputMIDI< OsEventInputMIDI_ControlChange >
+{
+	enum
+	{
+		MESSAGE = 0xb
+	};
+	
+	/**
+	 * Get controller.
+	 */
+	BcForceInline BcU32 getController() const
+	{
+		return ( FullMessage_ >> 8 ) & 0x7f;
+	}
+	
+	/**
+	 * Get value.
+	 */
+	BcForceInline BcU32 getValue() const
+	{
+		return ( FullMessage_ >> 16 ) & 0x7f;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_ProgramChange
+struct OsEventInputMIDI_ProgramChange: OsEventInputMIDI< OsEventInputMIDI_ProgramChange >
+{
+	enum
+	{
+		MESSAGE = 0xc
+	};
+	
+	/**
+	 * Get program.
+	 */
+	BcForceInline BcU32 getProgram() const
+	{
+		return ( FullMessage_ >> 8 ) & 0x7f;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_ChannelPressure
+struct OsEventInputMIDI_ChannelPressure: OsEventInputMIDI< OsEventInputMIDI_ChannelPressure >
+{
+	enum
+	{
+		MESSAGE = 0xd
+	};
+	
+	/**
+	 * Get pressure.
+	 */
+	BcForceInline BcU32 getPressure() const
+	{
+		return ( FullMessage_ >> 8 ) & 0x7f;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMIDI_PitchWheelChange
+struct OsEventInputMIDI_PitchWheelChange: OsEventInputMIDI< OsEventInputMIDI_PitchWheelChange >
+{
+	enum
+	{
+		MESSAGE = 0xe
+	};
+	
+	/**
+	 * Get shift.
+	 */
+	BcForceInline BcU32 getShift() const
+	{
+		return ( ( ( FullMessage_ >> 16 ) & 0x7f ) << 7 ) | ( ( FullMessage_ >> 8 ) & 0x7f );
+	}
 };
 
 #endif

@@ -39,12 +39,12 @@ OsCoreImplSDL::~OsCoreImplSDL()
 //virtual
 void OsCoreImplSDL::open()
 {
-	BcPrintf( "Open SDL\n" );
+	/*
 	// Initialise SDL.
 	if ( SDL_Init( SDL_INIT_VIDEO ) == 0 )
 	{	
 		// Setup video mode. Renderer crossover here...but OS tells renderer how big it's source window is.
-		pScreenSurface_ = SDL_SetVideoMode( 1280, 720, 32, SDL_HWSURFACE | SDL_OPENGLBLIT /*| SDL_FULLSCREEN*/ );	
+		pScreenSurface_ = SDL_SetVideoMode( 1280, 720, 32, SDL_HWSURFACE | SDL_OPENGLBLIT );	
 		
 		// If we've created the surface, continue on.
 		if( pScreenSurface_ != NULL )
@@ -64,6 +64,7 @@ void OsCoreImplSDL::open()
 			registerSDLEventHandler( SDL_QUIT, 				&OsCoreImplSDL::processSDLEvent_Quit );
 		}
 	}
+	 */
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,7 +73,7 @@ void OsCoreImplSDL::open()
 void OsCoreImplSDL::update()
 {
 	// Process SDL events.
-	processSDLEvents();
+	//processSDLEvents();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,9 +82,10 @@ void OsCoreImplSDL::update()
 void OsCoreImplSDL::close()
 {
 	// Tell SDL to quit.
-	SDL_Quit();
+	//SDL_Quit();
 }
 
+/*
 //////////////////////////////////////////////////////////////////////////
 // registerSDLEventHandler
 void OsCoreImplSDL::registerSDLEventHandler( int Type, TSDLEventHandler func )
@@ -101,7 +103,7 @@ void OsCoreImplSDL::processSDLEvents()
 	BcU32 NoofEventsHandled = 0;
 	
 	// Poll SDL for an event.
-	while( SDL_PollEvent( &Event ) /*&& NoofEventsHandled < 1*/ )
+	while( SDL_PollEvent( &Event ) )
 	{
 		++NoofEventsHandled;
 		
@@ -187,3 +189,4 @@ void OsCoreImplSDL::processSDLEvent_Quit( SDL_Event& Event )
 {
 	EvtPublisher::publish( osEVT_CORE_QUIT, OsEventCore() );
 }
+ */

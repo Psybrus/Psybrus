@@ -53,9 +53,9 @@ typedef SysSystem* (*SysSystemCreator)();
 		return new ClassName(); \
 	}
 
-#define SYS_REGISTER( Kernel, ClassName ) \
+#define SYS_REGISTER( ImplName, ClassName ) \
 	extern SYS_REGFUNC_DECL( ClassName ); \
-	(Kernel)->registerSystem( #ClassName, SYS_REGFUNC( ClassName ) );
+	SysKernel::pImpl()->registerSystem( ImplName, SYS_REGFUNC( ClassName ) );
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class SysSystem
