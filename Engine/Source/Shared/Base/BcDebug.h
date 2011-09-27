@@ -30,6 +30,13 @@ enum BcMessageBoxType
 	bcMBT_YESNOCANCEL
 };
 
+enum BcMessageBoxIcon
+{
+	bcMBI_WARNING = 0,
+	bcMBI_ERROR,
+	bcMBI_QUESTION
+};
+
 enum BcMessageBoxReturn
 {
 	bcMBR_OK = 0,
@@ -38,55 +45,19 @@ enum BcMessageBoxReturn
 	bcMBR_CANCEL = 2,
 };
 
-extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type );
-
+extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type = bcMBT_OK, BcMessageBoxIcon Icon = bcMBI_WARNING );
 
 //////////////////////////////////////////////////////////////////////////
-// Defines
-#if defined( PSY_DEBUG )
+// BcAssert
+extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line );
 
+#if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 #  define BcAssertMsg( Condition, Message )	\
 	if( !( Condition ) ) \
 	{ \
-		BcPrintf( "ASSERTION FAILED at line %u in file %s:\n\t%s\n", __LINE__, __FILE__, Message ); \
-		BcBreakpoint; \
-	}
-
-#  define BcAssert( Condition )			BcAssertMsg( Condition, "" )
-#  define BcPreCondition( Condition )	BcAssert( Condition )
-#  define BcPostCondition( Condition )	BcAssert( Condition )
-#  define BcAssertException( Condition, Exception )	\
-	if( !( Condition ) ) \
-	{ \
-		throw Exception; \
-	}
-
-#elif defined( PSY_RELEASE )
-
-#  ifdef PLATFORM_WINDOWS
-#  include <windows.h>
-#  include <stdio.h>
-
-#    define BcAssertMsg( Condition, Message )	\
-	if( !( Condition ) ) \
-	{ \
-		BcChar Buffer[ 1024 ]; \
-		sprintf( Buffer, "ASSERTION FAILED at line %u in file %s:\n\t"#Condition"\t%s\n", __LINE__, __FILE__, Message ); \
-		int Ret = ::MessageBoxA( NULL, Buffer, "ASSERTION FAILED", MB_OKCANCEL | MB_ICONEXCLAMATION ); \
-		if( Ret == IDCANCEL ) \
+		if( !BcAssertInternal( Message, __FILE__, __LINE__ ) ) \
 			BcBreakpoint; \
 	}
-
-#  else
-#    define BcAssertMsg( Condition, Message )	\
-	if( !( Condition ) ) \
-	{ \
-		BcPrintf( "ASSERTION FAILED at line %u in file %s:\n\t"#Condition"\t%s\n", __LINE__, __FILE__, Message ); \
-		BcBreakpoint; \
-	}
-
-#  endif
-
 #  define BcAssert( Condition )			BcAssertMsg( Condition, #Condition )
 #  define BcPreCondition( Condition )	BcAssert( Condition )
 #  define BcPostCondition( Condition )	BcAssert( Condition )
@@ -95,9 +66,7 @@ extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMes
 	{ \
 		throw Exception; \
 	}
-	
 #else
-
 #  define BcAssertMsg( Condition, Message )
 #  define BcAssert( Condition )
 #  define BcPreCondition( Condition )
@@ -107,7 +76,24 @@ extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMes
 	{ \
 		throw Exception; \
 	}
-	
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// BcVerify
+extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line );
+
+#if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
+#  define BcVerify( Condition, Message )	\
+	{ \
+		static BcBool ShouldNotify = BcTrue; \
+		if( ShouldNotify && !( Condition ) ) \
+		{ \
+			if( BcVerifyInternal( Message, __FILE__, __LINE__ ) ) \
+				ShouldNotify = BcFalse; \
+		} \
+	}
+#else
+#  define BcVerify( Condition, Message )
 #endif
 
 #endif

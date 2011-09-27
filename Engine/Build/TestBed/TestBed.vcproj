@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/gmsrc/src/platform/win32msvc;../../../External/gmsrc/src/gm;../../../External/gmsrc/src/binds;../../../External/SDL/include;../../../External/portaudio/include;../../../External/portaudio/src/common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PA_USE_WDMKS;PA_USE_WMME"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PA_USE_WDMKS;PA_USE_WMME;PSY_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -118,7 +118,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../../External/gmsrc/src/platform/win32msvc;../../../External/gmsrc/src/gm;../../../External/gmsrc/src/binds;../../../External/SDL/include;../../../External/portaudio/include;../../../External/portaudio/src/common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PA_USE_WDMKS;PA_USE_WMME"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PA_USE_WDMKS;PA_USE_WMME;PSY_RELEASE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -1085,14 +1085,6 @@
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.h"
-							>
-						</File>
-						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsIndexBuffer.cpp"
 							>
 						</File>
@@ -1129,14 +1121,6 @@
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.h"
-							>
-						</File>
-						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsRenderNode.cpp"
 							>
 						</File>
@@ -1146,14 +1130,6 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsRenderTarget.h"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.h"
 							>
 						</File>
 						<File
@@ -1236,6 +1212,14 @@
 								>
 							</File>
 							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.h"
+								>
+							</File>
+							<File
 								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameGL.cpp"
 								>
 							</File>
@@ -1269,6 +1253,22 @@
 							</File>
 							<File
 								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsProgramGL.h"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.h"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.h"
 								>
 							</File>
 							<File

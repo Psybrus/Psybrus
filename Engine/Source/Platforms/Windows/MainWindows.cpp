@@ -39,13 +39,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 
 	// Cache handle globally.
+	// TODO: OsViewContext class to expose these.
 	GWindowDC_ = MainWindow.getDC();
 	
-	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_OK );
-	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_OKCANCEL );
-	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_YESNO );
-	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_YESNOCANCEL );
-
 	// Main shared.
 	MainShared();
 
@@ -81,8 +77,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				return 0;
 			}
 		}
-
-		BcYield();
+		
+		// TODO: Wait until kernel starts a new frame.
+		BcSleep( 0.001f );
 	}
 
 	// Done.

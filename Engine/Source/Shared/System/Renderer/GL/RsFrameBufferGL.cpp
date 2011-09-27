@@ -34,8 +34,10 @@ RsFrameBufferGL::~RsFrameBufferGL()
 void RsFrameBufferGL::create()
 {
 	// Generate buffers.
-	GLuint Handle;
+	GLuint Handle = 0;
 	glGenFramebuffers( 1, &Handle );
+	RsGLCatchError;
+
 	setHandle( Handle );
 	
 	if( Handle != 0 )
