@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../../External/gmsrc/src/platform/win32msvc;../../../External/gmsrc/src/gm;../../../External/gmsrc/src/binds;../../../External/SDL/include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/gmsrc/src/platform/win32msvc;../../../External/gmsrc/src/gm;../../../External/gmsrc/src/binds;../../../External/SDL/include;../../../External/portaudio/include;../../../External/portaudio/src/common"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PA_USE_WDMKS;PA_USE_WMME"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -117,8 +117,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Renderer;../../Source/Platforms/Windows/Sound;../../../External/gmsrc/src/platform/win32msvc;../../../External/gmsrc/src/gm;../../../External/gmsrc/src/binds;../../../External/SDL/include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS"
+				AdditionalIncludeDirectories="../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../../External/gmsrc/src/platform/win32msvc;../../../External/gmsrc/src/gm;../../../External/gmsrc/src/binds;../../../External/SDL/include;../../../External/portaudio/include;../../../External/portaudio/src/common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PA_USE_WDMKS;PA_USE_WMME"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -183,14 +183,14 @@
 					Name="OSX"
 					>
 					<File
-						RelativePath="..\..\Source\Platforms\OSX\MainMac.cpp"
+						RelativePath="..\..\Source\Platforms\OSX\MainMac.mm"
 						>
 						<FileConfiguration
 							Name="Debug|Win32"
 							ExcludedFromBuild="true"
 							>
 							<Tool
-								Name="VCCLCompilerTool"
+								Name="VCCustomBuildTool"
 							/>
 						</FileConfiguration>
 						<FileConfiguration
@@ -198,7 +198,7 @@
 							ExcludedFromBuild="true"
 							>
 							<Tool
-								Name="VCCLCompilerTool"
+								Name="VCCustomBuildTool"
 							/>
 						</FileConfiguration>
 					</File>
@@ -530,6 +530,34 @@
 							</FileConfiguration>
 						</File>
 					</Filter>
+					<Filter
+						Name="OS"
+						>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Os\OsAppDelegateOSX.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Os\OsAppDelegateOSX.mm"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Os\OsCoreImplOSX.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Os\OsCoreImplOSX.mm"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Os\OsViewOSX.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\OSX\Os\OsViewOSX.mm"
+							>
+						</File>
+					</Filter>
 				</Filter>
 				<Filter
 					Name="Windows"
@@ -614,11 +642,35 @@
 							>
 						</File>
 					</Filter>
+					<Filter
+						Name="Os"
+						>
+						<File
+							RelativePath="..\..\Source\Platforms\Windows\Os\OsWindows.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\Windows\Os\OsWindowWindows.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\Windows\Os\OsWindowWindows.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 			<Filter
 				Name="Shared"
 				>
+				<File
+					RelativePath="..\..\Source\Shared\MainShared.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\Shared\MainShared.h"
+					>
+				</File>
 				<Filter
 					Name="Base"
 					>
@@ -771,6 +823,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Source\Shared\Base\BcTypes.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Source\Shared\Base\BcTypes.h"
 						>
 					</File>
@@ -918,6 +974,14 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRenderTarget.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRenderTarget.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnShader.cpp"
 							>
 						</File>
@@ -939,6 +1003,14 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnSoundEmitter.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnSynthesizer.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnSynthesizer.h"
 							>
 						</File>
 						<File
@@ -990,6 +1062,14 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsIndexBuffer.cpp"
 							>
 						</File>
@@ -1026,6 +1106,14 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsRenderNode.cpp"
 							>
 						</File>
@@ -1035,6 +1123,14 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsRenderTarget.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.h"
 							>
 						</File>
 						<File
@@ -1721,11 +1817,11 @@
 								>
 							</File>
 							<File
-								RelativePath="..\..\Source\Shared\System\Sound\AL\SsCoreALInternal.cpp"
+								RelativePath="..\..\Source\Shared\System\Sound\AL\SsCoreImplAL.cpp"
 								>
 							</File>
 							<File
-								RelativePath="..\..\Source\Shared\System\Sound\AL\SsCoreALInternal.h"
+								RelativePath="..\..\Source\Shared\System\Sound\AL\SsCoreImplAL.h"
 								>
 							</File>
 							<File
@@ -2143,6 +2239,146 @@
 						</Filter>
 					</Filter>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="portaudio"
+				>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_allocation.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_allocation.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_converters.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_converters.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_cpuload.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_cpuload.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_debugprint.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_debugprint.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_dither.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_dither.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_endianness.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_front.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_hostapi.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\hostapi\skeleton\pa_hostapi_skeleton.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_memorybarrier.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_process.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_process.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_ringbuffer.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_ringbuffer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_stream.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_stream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_trace.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_trace.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_types.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\common\pa_util.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_win_hostapis.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_win_util.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_win_waveformat.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\hostapi\wdmks\pa_win_wdmks.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_win_wdmks_utils.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_win_wdmks_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\hostapi\wmme\pa_win_wmme.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_x86_plain_converters.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\portaudio\src\os\win\pa_x86_plain_converters.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

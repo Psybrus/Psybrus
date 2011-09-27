@@ -36,7 +36,7 @@ public:
 	// Function: BcU32 start()
 	// This is used to start the thread to handle the object that
 	// has inherited this object.
-	BcU32 start();
+	BcU32 start( const BcChar* pName = "Unnamed" );
 
 	// Function: BcU32 join()
 	// This will 'join' this thread with the calling one.

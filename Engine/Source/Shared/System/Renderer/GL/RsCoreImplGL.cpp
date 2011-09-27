@@ -69,7 +69,7 @@ void RsCoreImplGL::open()
 	static  PIXELFORMATDESCRIPTOR pfd =                 // pfd Tells Windows How We Want Things To Be
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),                  // Size Of This Pixel Format Descriptor
-		1,												// Version Number
+		3,												// Version Number
 		PFD_DRAW_TO_WINDOW |							// Format Must Support Window
 		PFD_SUPPORT_OPENGL |							// Format Must Support OpenGL
 		PFD_DOUBLEBUFFER,								// Must Support Double Buffering
@@ -105,6 +105,9 @@ void RsCoreImplGL::open()
 
 	// Do the context switch.
 	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
+
+	// Init GLee.
+	GLeeInit();
 #endif
 
 	// NOTE: GL renderer uses SDL in this implementation.

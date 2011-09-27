@@ -61,6 +61,21 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		{
 			::TranslateMessage( &Msg );
 			::DispatchMessage( &Msg );
+
+			// Check for quit.
+			if( Msg.message == WM_QUIT )
+			{
+				// Stop, join, and free kernel.
+				SysKernel::pImpl()->stop();
+				SysKernel::pImpl()->join();
+				delete SysKernel::pImpl();
+
+				// Destroy main window.
+				MainWindow.destroy();
+
+				// Done!
+				return 0;
+			}
 		}
 
 		BcYield();
@@ -74,4 +89,3 @@ void PsyGameInit()
 {
 	// Do game init here.
 }
-

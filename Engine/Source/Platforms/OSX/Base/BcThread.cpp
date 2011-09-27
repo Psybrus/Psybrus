@@ -27,7 +27,7 @@ BcThread::~BcThread()
 	}
 }
 
-BcU32 BcThread::start()
+BcU32 BcThread::start( const BcChar* pName )
 {
 	pthread_create( &ThreadHandle_, NULL, &BcThread::threadMain, this );
 	return 0;

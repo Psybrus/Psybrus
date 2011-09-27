@@ -49,8 +49,7 @@ inline BcEvent::~BcEvent()
 
 inline BcBool BcEvent::wait( BcU32 TimeoutMS )
 {
-	BcAssertMsg( BcErrorCode == INFINITE, "INFINITE is assumed to be the same as BcErrorCode. Assumption failed." );
-	return ( ::WaitForSingleObject( EventHandle_, TimeoutMS ) == WAIT_OBJECT_0 ); 
+	return ( ::WaitForSingleObject( EventHandle_, ( TimeoutMS == BcErrorCode ) ? INFINITE : TimeoutMS ) == WAIT_OBJECT_0 ); 
 }
 
 inline void BcEvent::signal()

@@ -26,7 +26,7 @@ BcU32 SysArgc_ = 0;
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysKernel::SysKernel():
-	JobQueue_( BcMin( BcGetHardwareThreadCount() - 1, BcU32( 1 ) ) ) // We always want at least one worker.
+	JobQueue_( BcMax( BcGetHardwareThreadCount() - 1, BcU32( 1 ) ) ) // We always want at least one worker.
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
@@ -110,7 +110,7 @@ void SysKernel::run( BcBool Threaded )
 	if( Threaded == BcTrue )
 	{
 		// Start up the thread.
-		BcThread::start();
+		BcThread::start( "SysKernel Main" );
 	}
 	else
 	{
