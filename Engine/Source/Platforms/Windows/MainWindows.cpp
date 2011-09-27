@@ -16,8 +16,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	MainUnitTests();
 	
 	// Set command line params.
-	//SysArgc_ = (BcU32)argc;
-	//SysArgv_ = (BcChar**)&argv[0];
+	SysArgs_ = lpCmdLine;
 	
 	// Create kernel.
 	new SysKernel();
