@@ -39,7 +39,7 @@ public:
 	 * This is used to start the thread to handle the object that
 	 * has inherited this object.
 	 */
-	BcU32 start();
+	BcU32 start( const BcChar* pName = "Unnamed" );
 
 	/**
 	 * This will 'join' this thread with the calling one.

@@ -24,7 +24,7 @@ SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	if( NoofWorkers_ > 0 )
 	{
 		// Start our thread.
-		BcThread::start();
+		BcThread::start( "SysJobQueue Main" );
 	}
 	else
 	{

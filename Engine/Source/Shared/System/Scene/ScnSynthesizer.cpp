@@ -210,10 +210,10 @@ void ScnSynthesizer::initialise( BcReal SampleRate )
 //virtual
 void ScnSynthesizer::create()
 {
+#ifndef PSY_SERVER
 	// Acquire portaudio.
 	acquirePortAudio();
 	
-#ifndef PSY_SERVER
 	// enum devices.
 	PaDeviceIndex NoofDevice = Pa_GetDeviceCount();
 	PaDeviceIndex DefaultOutputDevice = Pa_GetDefaultOutputDevice();
@@ -263,9 +263,9 @@ void ScnSynthesizer::destroy()
 	Pa_StopStream( pPaStream_ );
 	Pa_CloseStream( pPaStream_ );
 	pPaStream_ = NULL;
-#endif	
 	// Release portaudio.
 	releasePortAudio();
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -62,7 +62,7 @@ BcBool SysJobWorker::inUse() const
 void SysJobWorker::start()
 {
 	// Just start the thread.
-	BcThread::start();
+	BcThread::start( "SysJobWorker Main" );
 }
 
 //////////////////////////////////////////////////////////////////////////
