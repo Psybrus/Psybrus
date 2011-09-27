@@ -30,6 +30,9 @@
 
 #if PLATFORM_OSX
 #include "OsViewOSX.h"
+#elif PLATFORM_WINDOWS
+extern BcHandle GWindowDC_;
+extern BcHandle GWindowRC_;
 #endif
 
 
@@ -61,8 +64,49 @@ void RsCoreImplGL::open()
 #if PLATFORM_OSX
 	// Do the context switch.
 	OsViewOSX_Interface::MakeContextCurrent();
-#endif
+#elif PLATFORM_WINDOWS
+	// Pixel format.
+	static  PIXELFORMATDESCRIPTOR pfd =                 // pfd Tells Windows How We Want Things To Be
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),                  // Size Of This Pixel Format Descriptor
+		1,												// Version Number
+		PFD_DRAW_TO_WINDOW |							// Format Must Support Window
+		PFD_SUPPORT_OPENGL |							// Format Must Support OpenGL
+		PFD_DOUBLEBUFFER,								// Must Support Double Buffering
+		PFD_TYPE_RGBA,									// Request An RGBA Format
+		32,												// Select Our Color Depth
+		0, 0, 0, 0, 0, 0,								// Color Bits Ignored
+		0,												// No Alpha Buffer
+		0,												// Shift Bit Ignored
+		0,												// No Accumulation Buffer
+		0, 0, 0, 0,										// Accumulation Bits Ignored
+		24,												// 24 bit Z-Buffer (Depth Buffer)
+		0,												// No Stencil Buffer
+		0,												// No Auxiliary Buffer
+		PFD_MAIN_PLANE,									// Main Drawing Layer
+		0,												// Reserved
+		0, 0, 0											 // Layer Masks Ignored
+	};
 	
+	GLuint PixelFormat = 0;
+	if ( !(PixelFormat = ::ChoosePixelFormat( (HDC)GWindowDC_, &pfd ) ) )
+	{
+		BcPrintf( "Can't create pixel format.\n" );
+	}
+	
+	if( !::SetPixelFormat( (HDC)GWindowDC_, PixelFormat, &pfd ) )               // Are We Able To Set The Pixel Format?
+	{
+	    BcPrintf( "Can't Set The PixelFormat." );
+	}
+	
+	// Create a rendering context.
+	GWindowRC_ = (BcHandle)wglCreateContext( (HDC)GWindowDC_ );
+	BcAssertMsg( GWindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
+
+	// Do the context switch.
+	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
+#endif
+
 	// NOTE: GL renderer uses SDL in this implementation.
 	// TODO: Move into a higher level so this GL renderer
 	//       can be used on any other platform.
@@ -107,6 +151,9 @@ void RsCoreImplGL::update()
 #if PLATFORM_OSX
 	// Flush buffer.
 	OsViewOSX_Interface::FlushBuffer();
+#elif PLATFORM_OSX
+	// Flip.
+	::SwapBuffers( (HDC)GWindowDC_ );
 #endif
 }
 
@@ -121,6 +168,11 @@ void RsCoreImplGL::close()
 	// Free the frame.
 	delete pFrame_;
 
+#if PLATFORM_WINDOWS
+	// Destroy rendering context.
+	wglMakeCurrent( (HDC)GWindowDC_, NULL );
+	wglDeleteContext( (HGLRC)GWindowRC_ );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

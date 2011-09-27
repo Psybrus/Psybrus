@@ -66,7 +66,7 @@ BcReal BcRandom::noise( BcU32 X, BcU32 Width )
 // smoothedNoise
 BcReal BcRandom::smoothedNoise( BcReal X, BcU32 Width )
 {
-	return noise( X, Width ) / 2.0f + noise( X - 1, Width ) / 4 + noise( X + 1, Width ) / 4;
+	return noise( (BcU32)X, Width ) / 2.0f + noise( (BcU32)X - 1, Width ) / 4 + noise( (BcU32)X + 1, Width ) / 4;
 }
 
 //////////////////////////////////////////////////////////////////////////

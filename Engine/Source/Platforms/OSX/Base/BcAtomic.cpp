@@ -16,13 +16,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtomic unit test
-BcBool BcAtomic_UnitTest()
+void BcAtomic_UnitTest()
 {
 #define ATOMIC_TEST( _test, _msg )											\
 	{																		\
 		BcBool TestResult = ( _test );										\
 		BcAssertMsg( _test, _msg ":" #_test );								\
-		if( ( _test ) == BcFalse ) return BcFalse;							\
+		if( ( _test ) == BcFalse ) return;							\
 		BcUnusedVar( TestResult );											\
 	}
 
@@ -138,7 +138,4 @@ BcBool BcAtomic_UnitTest()
 	ATOMIC_TEST_EXCHANGE_TYPE( BcU8* );
 	ATOMIC_TEST_EXCHANGE_TYPE( BcU16* );
 	ATOMIC_TEST_EXCHANGE_TYPE( BcU32* );
-	
-	//
-	return BcTrue;
 }
