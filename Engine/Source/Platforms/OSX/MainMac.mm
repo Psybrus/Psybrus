@@ -27,7 +27,13 @@ int main( int argc, char* argv[] )
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
 
 	// Enter application main.
-	return NSApplicationMain(argc,  (const char **) argv);
+	int RetVal = NSApplicationMain(argc,  (const char **) argv);
+	
+	// Delete kernel.
+	delete SysKernel::pImpl();
+	
+	// Exit.
+	return RetVal;
 }
 
 void PsyGameInit()

@@ -40,6 +40,11 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Cache handle globally.
 	GWindowDC_ = MainWindow.getDC();
+	
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_OK );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_OKCANCEL );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_YESNO );
+	BcMessageBox( "Something has happened.", "These are the details about whatever has happened.", bcMBT_YESNOCANCEL );
 
 	// Main shared.
 	MainShared();
