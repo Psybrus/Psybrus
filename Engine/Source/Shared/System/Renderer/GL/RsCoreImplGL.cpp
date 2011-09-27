@@ -108,6 +108,36 @@ void RsCoreImplGL::open()
 
 	// Init GLee.
 	GLeeInit();
+
+	// Framebuffer object extension fix up.
+	if( !GLEE_ARB_framebuffer_object && GLEE_EXT_framebuffer_object )
+	{
+		BcPrintf( "RsCoreImplGL: WORKAROUND: Using EXT_framebuffer_object in place of ARB_framebuffer_object.\n" );
+
+		glIsRenderbuffer = glIsRenderbufferEXT;
+		glBindRenderbuffer = glBindRenderbufferEXT;
+		glDeleteRenderbuffers = glDeleteRenderbuffersEXT;
+		glGenRenderbuffers = glGenRenderbuffersEXT;
+		glRenderbufferStorage = glRenderbufferStorageEXT;
+		glGetRenderbufferParameteriv = glGetRenderbufferParameterivEXT;
+		glIsFramebuffer = glIsFramebufferEXT;
+		glBindFramebuffer = glBindFramebufferEXT;
+		glDeleteFramebuffers = glDeleteFramebuffersEXT;
+		glGenFramebuffers = glGenFramebuffersEXT;
+		glCheckFramebufferStatus = glCheckFramebufferStatusEXT;
+		glFramebufferTexture1D = glFramebufferTexture1DEXT;
+		glFramebufferTexture2D = glFramebufferTexture2DEXT;
+		glFramebufferTexture3D = glFramebufferTexture3DEXT;
+		glFramebufferRenderbuffer = glFramebufferRenderbufferEXT;
+		glGetFramebufferAttachmentParameteriv = glGetFramebufferAttachmentParameterivEXT;
+		glGenerateMipmap = glGenerateMipmapEXT;
+		
+		/* Unsupported by EXT :(
+		glBlitFramebuffer
+		glRenderbufferStorageMultisample
+		glFramebufferTextureLayer
+		*/
+	}
 #endif
 
 	// NOTE: GL renderer uses SDL in this implementation.

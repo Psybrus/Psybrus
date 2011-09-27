@@ -17,9 +17,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
-BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type )
+BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
-	UINT MBType = MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST | MB_ICONEXCLAMATION;
+	UINT MBType = MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST;
 
 	switch( Type )
 	{
@@ -34,6 +34,22 @@ BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, B
 			break;
 		case bcMBT_YESNOCANCEL:
 			MBType |= MB_YESNOCANCEL;
+			break;
+	}
+
+	switch( Icon )
+	{
+		case bcMBI_WARNING:
+			MBType |= MB_ICONWARNING;
+			break;
+		case bcMBI_ERROR:
+			MBType |= MB_ICONERROR;
+			break;
+		case bcMBI_QUESTION:
+			MBType |= MB_ICONQUESTION;
+			break;
+		default:
+			MBType |= MB_ICONWARNING;
 			break;
 	}
 
