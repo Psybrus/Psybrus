@@ -18,14 +18,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Linux Includes
-#ifdef PLATFORM_LINUX
+#if PLATFORM_LINUX
 # include <AL/al.h>
 # include <AL/alc.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 // Windows Includes
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 # include <al.h>
 # include <alc.h>
 # include <efx.h>
@@ -38,7 +38,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // OSX Includes
-#ifdef PLATFORM_OSX
+#if PLATFORM_OSX
 # include <CoreAudio/CoreAudioTypes.h>
 # include <OpenAL/al.h>
 # include <OpenAL/alc.h>
