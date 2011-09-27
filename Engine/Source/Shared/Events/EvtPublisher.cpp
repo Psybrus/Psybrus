@@ -87,7 +87,7 @@ void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcS
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// registerBinding
+// subscribeInternal
 void EvtPublisher::subscribeInternal( EvtID ID, const EvtBinding& Binding )
 {
 	// Find the appropriate binding list.
@@ -107,7 +107,7 @@ void EvtPublisher::subscribeInternal( EvtID ID, const EvtBinding& Binding )
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// unregisterBinding
+// unsubscribeInternal
 void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
 {
 	// Find the appropriate binding list.
@@ -135,7 +135,7 @@ void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// unregisterBinding
+// unsubscribe
 void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
 {
 	// Find the appropriate binding list.
@@ -159,6 +159,16 @@ void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
 				++Iter;
 			}
 		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// unsubscribeAll
+void EvtPublisher::unsubscribeAll( void* pOwner )
+{
+	for( TBindingListMapIterator BindingListMapIterator = BindingListMap_.begin(); BindingListMapIterator != BindingListMap_.end(); ++BindingListMapIterator )
+	{
+		unsubscribe( BindingListMapIterator->first, pOwner );
 	}
 }
 
