@@ -53,6 +53,11 @@ public:
 	template< typename _Ty >
 	void unsubscribe( EvtID ID, BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > ExternalDelegate );
 	
+	/**
+	 * Unsubscribe from an event using owner pointer.
+	 */
+	void unsubscribe( EvtID ID, void* pOwner );
+
 private:
 	/**
 	* Publish internal.
