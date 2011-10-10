@@ -14,7 +14,7 @@
 #ifndef __MainShared_H__
 #define __MainShared_H__
 
-#include "BcTypes.h"
+#include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		FsCoreImplWindows.mm
+* File:		FsCoreImplWindows.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -15,6 +15,11 @@
 #include "FsFileImplWindows.h"
 
 #include "SysKernel.h"
+
+#include <io.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <time.h>
 
 //////////////////////////////////////////////////////////////////////////
 // System Creator
@@ -117,39 +122,41 @@ BcBool FsCoreImplWindows::fileExists( const BcChar* pFilename )
 //virtual
 BcBool FsCoreImplWindows::fileStats( const BcChar* pFilename, FsStats& Stats )
 {
-	/*
-	struct stat Attrib;
+	struct _stat Attrib;
 
-	if( stat( pFilename, &Attrib ) == 0 )
+	int Descriptor = ::open(pFilename, _O_RDONLY | _O_BINARY);
+	if( Descriptor != 0 )
 	{
-		struct tm* pCreatedTime;
-		struct tm* pModifiedTime;
-		pCreatedTime = gmtime( &(Attrib.st_ctime ) );
-		pModifiedTime = gmtime( &(Attrib.st_mtime ) );
+		if( _fstat( Descriptor, &Attrib ) == 0 )
+		{
+			struct tm* pCreatedTime;
+			struct tm* pModifiedTime;
+			pCreatedTime = gmtime( &(Attrib.st_ctime ) );
+			pModifiedTime = gmtime( &(Attrib.st_mtime ) );
 	
-		Stats.CreatedTime_.Seconds_ = pCreatedTime->tm_sec;
-		Stats.CreatedTime_.Minutes_ = pCreatedTime->tm_min;
-		Stats.CreatedTime_.Hours_ = pCreatedTime->tm_hour;
-		Stats.CreatedTime_.MonthDay_ = pCreatedTime->tm_mday;
-		Stats.CreatedTime_.Month_ = pCreatedTime->tm_mon;
-		Stats.CreatedTime_.Year_ = pCreatedTime->tm_year;
-		Stats.CreatedTime_.WeekDay_ = pCreatedTime->tm_wday;
-		Stats.CreatedTime_.YearDay_ = pCreatedTime->tm_yday;
-		Stats.CreatedTime_.IsDST_ = pCreatedTime->tm_isdst;
-
-		Stats.ModifiedTime_.Seconds_ = pModifiedTime->tm_sec;
-		Stats.ModifiedTime_.Minutes_ = pModifiedTime->tm_min;
-		Stats.ModifiedTime_.Hours_ = pModifiedTime->tm_hour;
-		Stats.ModifiedTime_.MonthDay_ = pModifiedTime->tm_mday;
-		Stats.ModifiedTime_.Month_ = pModifiedTime->tm_mon;
-		Stats.ModifiedTime_.Year_ = pModifiedTime->tm_year;
-		Stats.ModifiedTime_.WeekDay_ = pModifiedTime->tm_wday;
-		Stats.ModifiedTime_.YearDay_ = pModifiedTime->tm_yday;
-		Stats.ModifiedTime_.IsDST_ = pModifiedTime->tm_isdst;
-		
+			Stats.CreatedTime_.Seconds_ = pCreatedTime->tm_sec;
+			Stats.CreatedTime_.Minutes_ = pCreatedTime->tm_min;
+			Stats.CreatedTime_.Hours_ = pCreatedTime->tm_hour;
+			Stats.CreatedTime_.MonthDay_ = pCreatedTime->tm_mday;
+			Stats.CreatedTime_.Month_ = pCreatedTime->tm_mon;
+			Stats.CreatedTime_.Year_ = pCreatedTime->tm_year;
+			Stats.CreatedTime_.WeekDay_ = pCreatedTime->tm_wday;
+			Stats.CreatedTime_.YearDay_ = pCreatedTime->tm_yday;
+			Stats.CreatedTime_.IsDST_ = pCreatedTime->tm_isdst;
+	
+			Stats.ModifiedTime_.Seconds_ = pModifiedTime->tm_sec;
+			Stats.ModifiedTime_.Minutes_ = pModifiedTime->tm_min;
+			Stats.ModifiedTime_.Hours_ = pModifiedTime->tm_hour;
+			Stats.ModifiedTime_.MonthDay_ = pModifiedTime->tm_mday;
+			Stats.ModifiedTime_.Month_ = pModifiedTime->tm_mon;
+			Stats.ModifiedTime_.Year_ = pModifiedTime->tm_year;
+			Stats.ModifiedTime_.WeekDay_ = pModifiedTime->tm_wday;
+			Stats.ModifiedTime_.YearDay_ = pModifiedTime->tm_yday;
+			Stats.ModifiedTime_.IsDST_ = pModifiedTime->tm_isdst;
+		}
+		::close( Descriptor );
 		return BcTrue;
 	}
-	*/
 	return BcFalse;
 }
 
@@ -230,7 +237,6 @@ void FsCoreImplWindows::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pD
 // addFileMonitor
 void FsCoreImplWindows::addFileMonitor( const BcChar* pFilename )
 {
-	/*
 	BcScopedLock< BcMutex > Lock( FileMonitorLock_ );
 	
 	// Attempt to find it.
@@ -250,14 +256,12 @@ void FsCoreImplWindows::addFileMonitor( const BcChar* pFilename )
 			FileMonitorMapIterator_ = FileMonitorMap_.begin();
 		}
 	}
-	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
 // removeFileMonitor
 void FsCoreImplWindows::removeFileMonitor( const BcChar* pFilename )
 {
-	/*
 	BcScopedLock< BcMutex > Lock( FileMonitorLock_ );
 
 	// Attempt to find it.
@@ -271,14 +275,12 @@ void FsCoreImplWindows::removeFileMonitor( const BcChar* pFilename )
 		// Reset monitor iterator.
 		FileMonitorMapIterator_ = FileMonitorMap_.begin();
 	}
-	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateFileMonitoring
 void FsCoreImplWindows::updateFileMonitoring()
 {
-	/*
 	BcScopedLock< BcMutex > Lock( FileMonitorLock_ );
 
 	// Check 1 file per update to prevent slowdown.
@@ -326,6 +328,5 @@ void FsCoreImplWindows::updateFileMonitoring()
 		// Advance to next file.		
 		++FileMonitorMapIterator_;
 	}
-	*/
 }
 

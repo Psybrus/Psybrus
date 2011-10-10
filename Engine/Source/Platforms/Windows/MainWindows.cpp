@@ -40,51 +40,53 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SysArgs_ = lpCmdLine;
 	
 	// Create kernel.
-	new SysKernel();
+	new SysKernel( GPsySetupParams.TickRate_ );
 	
 	// Register systems for creation.
-	SYS_REGISTER( "GaCore", GaCore );
-	//SYS_REGISTER( "RmCore", RmCore );
-	SYS_REGISTER( "OsCore", OsCoreImplSDL );
+	SYS_REGISTER( "RmCore", RmCore );
+	SYS_REGISTER( "OsCore", OsCoreImplWindows );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImplGL );
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
 	
 	// Create window.
-	OsWindowWindows MainWindow;
-	if( MainWindow.create( "Psybrus Testbed", (BcHandle)hInstance, 1280, 720, BcFalse ) == BcFalse )
+	if( GPsySetupParams.Flags_ & psySF_WINDOW )
 	{
-		BcPrintf( "Failed to create window!\n" );
-		return 1;
-	}
+		OsWindowWindows MainWindow;
+		if( MainWindow.create( GPsySetupParams.Name_.c_str(), (BcHandle)hInstance, 1280, 720, BcFalse ) == BcFalse )
+		{
+			BcPrintf( "Failed to create window!\n" );
+			return 1;
+		}
 
-	// Cache handle globally.
-	// TODO: OsViewContext class to expose these.
-	GWindowDC_ = MainWindow.getDC();
+		// Cache handle globally.
+		// TODO: OsViewContext class to expose these.
+		GWindowDC_ = MainWindow.getDC();
+	}
 	
 	// Main shared.
 	MainShared();
 
+	// Hook up event pump delegate.
+	if( GPsySetupParams.Flags_ & psySF_WINDOW )
+	{	
+		SysSystemEvent::Delegate OsPreUpdateDelegate = SysSystemEvent::Delegate::bind< OnPreOsUpdate >();
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegate );
+	}
+
 	// Game init.
-	extern void PsyGameInit();
 	PsyGameInit();
 
-	// Hook up event pump delegate.
-	SysSystemEvent::Delegate OsPreUpdateDelegate = SysSystemEvent::Delegate::bind< OnPreOsUpdate >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegate );
-
-	// Run kernel unthreaded.
-	SysKernel::pImpl()->run( BcFalse );
+	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
+	{
+		// Run kernel unthreaded.
+		SysKernel::pImpl()->run( BcFalse );
+	}
 
 	// Delete kernel.
 	delete SysKernel::pImpl();
 
 	// Done.
 	return 0;
-}
-
-void PsyGameInit()
-{
-	// Do game init here.
 }

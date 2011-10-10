@@ -39,7 +39,7 @@ public:
 	* Publish an event.
 	*/
 	template< typename _Ty >
-	void publish( EvtID ID, const EvtEvent< _Ty > Event );
+	void publish( EvtID ID, const EvtEvent< _Ty >& Event );
 
 	/**
 	* Subscribe to an event.
@@ -101,9 +101,9 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // Inlines
 template< typename _Ty >
-BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty > Event )
+BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty >& Event )
 {
-	publishInternal( ID, Event, sizeof( EvtEvent< _Ty > ) );
+	publishInternal( ID, Event, sizeof( _Ty ) );
 }
 
 template< typename _Ty >
