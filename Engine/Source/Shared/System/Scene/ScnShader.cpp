@@ -142,9 +142,11 @@ DEFINE_RESOURCE( ScnShader );
 // StaticPropertyTable
 void ScnShader::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnShader" )
 		.field( "shaders",					csPVT_FILE,			csPCT_MAP )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

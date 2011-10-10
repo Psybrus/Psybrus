@@ -42,6 +42,40 @@ enum CsPropertyContainerType
 };
 
 //////////////////////////////////////////////////////////////////////////
+// CsPropertyCatagory
+class CsPropertyCatagory
+{
+public:
+	/**
+	 * Constructor.
+	 */
+	CsPropertyCatagory();
+
+	/**
+	 * Construct a catagory.
+	 */
+	CsPropertyCatagory( const std::string& Name );
+
+	/**
+	 * Copy constructor.
+	 */
+	CsPropertyCatagory( const CsPropertyCatagory& Other );
+
+	/**
+	 * Destructor.
+	 */
+	~CsPropertyCatagory();
+
+	/**
+	 * Get name.
+	 */
+	const std::string&			getName() const;
+
+private:
+	std::string					Name_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsPropertyField
 class CsPropertyField
 {
@@ -54,7 +88,7 @@ public:
 	/**
 	 * Construct a field.
 	 */
-	CsPropertyField( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType );
+	CsPropertyField( BcU32 CatagoryIdx, const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType );
 	
 	/**
 	 * Copy constructor.
@@ -67,21 +101,27 @@ public:
 	~CsPropertyField();
 
 	/**
+	 * Get catagory index.
+	 */
+	BcU32						getCatagoryIdx() const;
+
+	/**
 	 * Get name.
 	 */
-	const std::string& getName() const;
+	const std::string&			getName() const;
 	
 	/**
 	 * Get value type.
 	 */
-	CsPropertyValueType getValueType() const;
+	CsPropertyValueType			getValueType() const;
 	
 	/**
 	 * Get container type.
 	 */
-	CsPropertyContainerType getContainerType() const;
+	CsPropertyContainerType		getContainerType() const;
 	
 private:
+	BcU32						CatagoryIdx_;		// Catagory of property.
 	std::string					Name_;				// Name of property.
 	CsPropertyValueType			ValueType_;			// Value type.
 	CsPropertyContainerType		ContainerType_;		// Container type.			
@@ -91,6 +131,8 @@ private:
 // Typedefs.
 typedef std::vector< CsPropertyField > CsPropertyFieldList;
 typedef CsPropertyFieldList::iterator CsPropertyFieldListIterator;
+typedef std::vector< CsPropertyCatagory > CsPropertyCatagoryList;
+typedef CsPropertyCatagoryList::iterator CsPropertyCatagoryListIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // CsPropertyTable
@@ -101,14 +143,14 @@ public:
 	~CsPropertyTable();
 	
 	/**
-	 * Begin.
+	 * Begin catagory.
 	 */
-	CsPropertyTable& begin();
+	CsPropertyTable& beginCatagory( const std::string& Catagory );
 	
 	/**
-	 * End.
+	 * End catagory.
 	 */
-	void end();
+	CsPropertyTable& endCatagory();
 	
 	/**
 	 * Field.
@@ -116,9 +158,19 @@ public:
 	CsPropertyTable& field( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType );
 	
 	/**
+	 * Get number of catagories.
+	 */
+	BcU32 getCatagoryCount() const;
+
+	/**
+	 * Get catagory.
+	 */
+	const CsPropertyCatagory& getCatagory( BcU32 CatagoryIdx ) const;
+
+	/**
 	 * Get number of fields.
 	 */
-	BcU32 fieldCount() const;
+	BcU32 getFieldCount() const;
 	
 	/**
 	 * Get field.
@@ -126,7 +178,10 @@ public:
 	const CsPropertyField& getField( BcU32 FieldIdx ) const;
 	
 private:
-	CsPropertyFieldList			FieldList_;			// Set of fields.
+	BcBool						BeganCatagory_;
+
+	CsPropertyCatagoryList		CatagoryList_;		// List of catagories.
+	CsPropertyFieldList			FieldList_;			// List of fields.
 
 };
 

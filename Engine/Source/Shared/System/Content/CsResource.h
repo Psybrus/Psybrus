@@ -36,8 +36,9 @@
 	virtual const std::string& getTypeString();									\
 	virtual BcHash getTypeHash();												\
 	virtual BcBool isType( const std::string& Type );							\
-	virtual BcBool isTypeOf( const std::string& Type );							
-																				\
+	virtual BcBool isTypeOf( const std::string& Type );							\
+	static void StaticPropertyTable( CsPropertyTable& PropertyTable );					
+
 #define BASE_DEFINE_RESOURCE( _Type )											\
 	const std::string& _Type::StaticGetTypeString()								\
 	{																			\
@@ -85,7 +86,6 @@
 	static CsResource* StaticAllocResource( const std::string& Name,			\
 	CsFile* pFile );															\
 	static void StaticFreeResource( CsResource* pResource );					\
-	static void StaticPropertyTable( CsPropertyTable& PropertyTable );					
 
 
 #define DEFINE_RESOURCE( _Type )												\

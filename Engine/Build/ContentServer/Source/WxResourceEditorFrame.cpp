@@ -23,25 +23,14 @@ END_EVENT_TABLE();
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 WxResourceEditorFrame::WxResourceEditorFrame():
-	wxFrame( (wxFrame*)NULL, wxID_ANY, "Resource Editor", wxDefaultPosition, wxSize( 500, 600 ), wxRESIZE_BORDER | wxCLOSE_BOX | wxCAPTION | wxSYSTEM_MENU )
+	wxFrame( (wxFrame*)NULL, wxID_ANY, "Resource Editor", wxDefaultPosition, wxSize( 300, 400 ), wxRESIZE_BORDER | wxCLOSE_BOX | wxCAPTION | wxSYSTEM_MENU | wxSTAY_ON_TOP )
 {
-	wxFlexGridSizer* pSizerA = new wxFlexGridSizer( 2, 1 );
-	pSizerA->AddGrowableRow( 0 );
-	pSizerA->AddGrowableCol( 0 );
+	pFlexGridSizer_ = new wxFlexGridSizer( 2, 1 );
+	pFlexGridSizer_->AddGrowableRow( 0 );
+	pFlexGridSizer_->AddGrowableCol( 0 );
 	
-	pGrid_ = new wxGrid( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxALL | wxVSCROLL );
-
-	// Table data.
-	pTableData_ = new WxPropertyTableDatabase();
-	pGrid_->SetTable( pTableData_, true );
-
-	// Grid.
-	pGrid_->SetRowLabelSize( 0 );
-	pGrid_->SetMargins( 0, 0 );
-	pGrid_->AutoSizeColumns( false );
-
-	//
-	pSizerA->Add( pGrid_, 8, wxEXPAND );
+	pPropertyTablePanel_ = new WxPropertyTablePanel( this );
+	pFlexGridSizer_->Add( pPropertyTablePanel_ );
 
 	// Layout.
 	SetSizer( pSizerA );
@@ -54,11 +43,4 @@ WxResourceEditorFrame::WxResourceEditorFrame():
 WxResourceEditorFrame::~WxResourceEditorFrame()
 {
 	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// populateGrid
-void WxResourceEditorFrame::populateGrid()
-{
-
 }

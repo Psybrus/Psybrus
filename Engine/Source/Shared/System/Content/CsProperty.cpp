@@ -14,12 +14,54 @@
 #include "CsProperty.h"
 
 //////////////////////////////////////////////////////////////////////////
+// CsPropertyCatagory
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsPropertyCatagory::CsPropertyCatagory()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsPropertyCatagory::CsPropertyCatagory( const std::string& Name ):
+	Name_( Name )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsPropertyCatagory::CsPropertyCatagory( const CsPropertyCatagory& Other ):
+	Name_( Other.Name_ )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+CsPropertyCatagory::~CsPropertyCatagory()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getName
+const std::string& CsPropertyCatagory::getName() const
+{
+	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // CsPropertyField
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPropertyField::CsPropertyField():
+	CatagoryIdx_( BcErrorCode ),
 	ValueType_( csPVT_NULL ),
 	ContainerType_( csPCT_NULL )
 {
@@ -28,7 +70,8 @@ CsPropertyField::CsPropertyField():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPropertyField::CsPropertyField( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType ):
+CsPropertyField::CsPropertyField( BcU32 CatagoryIdx, const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType ):
+	CatagoryIdx_( CatagoryIdx ),
 	Name_( Name ),
 	ValueType_( ValueType ),
 	ContainerType_( ContainerType )
@@ -39,6 +82,7 @@ CsPropertyField::CsPropertyField( const std::string& Name, CsPropertyValueType V
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPropertyField::CsPropertyField( const CsPropertyField& Other ):
+	CatagoryIdx_( Other.CatagoryIdx_ ),
 	Name_( Other.Name_ ),
 	ValueType_( Other.ValueType_ ),
 	ContainerType_( Other.ContainerType_ )
@@ -51,6 +95,13 @@ CsPropertyField::CsPropertyField( const CsPropertyField& Other ):
 CsPropertyField::~CsPropertyField()
 {
 	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCatagoryIdx
+BcU32 CsPropertyField::getCatagoryIdx() const
+{
+	return CatagoryIdx_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,7 +131,8 @@ CsPropertyContainerType CsPropertyField::getContainerType() const
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPropertyTable::CsPropertyTable()
+CsPropertyTable::CsPropertyTable():
+	BeganCatagory_( BcFalse )
 {
 	
 }
@@ -93,23 +145,30 @@ CsPropertyTable::~CsPropertyTable()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// begin
-CsPropertyTable& CsPropertyTable::begin()
+// beginCatagory
+CsPropertyTable& CsPropertyTable::beginCatagory( const std::string& Catagory )
 {
+	BcAssertMsg( BeganCatagory_ == BcFalse, "CsPropertyTable: Did you forget to call endCatagory?" );
+	BeganCatagory_ = BcTrue;
+	CatagoryList_.push_back( CsPropertyCatagory( Catagory ) );
 	return (*this);
 }
 
 //////////////////////////////////////////////////////////////////////////
-// end
-void CsPropertyTable::end()
+// endCatagory
+CsPropertyTable& CsPropertyTable::endCatagory()
 {
-	
+	BcAssertMsg( BeganCatagory_ == BcTrue, "CsPropertyTable: Did you forget to call beginCatagory?" );
+	BeganCatagory_ = BcFalse;
+	return (*this);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // field
 CsPropertyTable& CsPropertyTable::field( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType )
 {
+	BcAssertMsg( BeganCatagory_ == BcTrue, "CsPropertyTable: Did you forget to call beginCatagory?" );
+	BcAssertMsg( CatagoryList_.size() > 0, "CsPropertyTable: No catagories." );
 	BcVerifyMsg( ValueType != csPVT_NULL, "CsPropertyTable: Trying to add a null value type." );
 	BcVerifyMsg( ContainerType != csPCT_NULL, "CsPropertyTable: Trying to add a null container type." );
 
@@ -126,14 +185,28 @@ CsPropertyTable& CsPropertyTable::field( const std::string& Name, CsPropertyValu
 	}
 	
 	// Add to list!
-	FieldList_.push_back( CsPropertyField( Name, ValueType, ContainerType ) );
+	FieldList_.push_back( CsPropertyField( ( CatagoryList_.size() - 1 ), Name, ValueType, ContainerType ) );
 
 	return (*this);
 }
 
 //////////////////////////////////////////////////////////////////////////
-// fieldCount
-BcU32 CsPropertyTable::fieldCount() const
+// getCatagoryCount
+BcU32 CsPropertyTable::getCatagoryCount() const
+{
+	return CatagoryList_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCatagory
+const CsPropertyCatagory& CsPropertyTable::getCatagory( BcU32 CatagoryIdx ) const
+{
+	return CatagoryList_[ CatagoryIdx ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFieldCount
+BcU32 CsPropertyTable::getFieldCount() const
 {
 	return FieldList_.size();
 }

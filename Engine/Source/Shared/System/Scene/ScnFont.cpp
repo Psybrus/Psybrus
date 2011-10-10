@@ -350,12 +350,14 @@ DEFINE_RESOURCE( ScnFont );
 // StaticPropertyTable
 void ScnFont::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnFont" )
 		.field( "source",					csPVT_FILE,			csPCT_VALUE )
 		.field( "distancefield",			csPVT_BOOL,			csPCT_VALUE )
 		.field( "nominalsize",				csPVT_UINT,			csPCT_VALUE )
 		.field( "spread",					csPVT_UINT,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -440,9 +442,9 @@ DEFINE_RESOURCE( ScnFontInstance );
 // StaticPropertyTable
 void ScnFontInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	PropertyTable.beginCatagory( "ScnFontInstance" )
 		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

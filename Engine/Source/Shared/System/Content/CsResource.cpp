@@ -20,6 +20,15 @@
 DEFINE_CSRESOURCE;
 
 //////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void CsResource::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.beginCatagory( "CsResource" )
+		.field( "name",					csPVT_STRING,		csPCT_VALUE )
+	.endCatagory();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 CsResource::CsResource( const std::string& Name, CsFile* pFile ):
 	pFile_( pFile ),

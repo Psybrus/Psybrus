@@ -38,9 +38,11 @@ DEFINE_RESOURCE( ScnRenderTarget );
 // StaticPropertyTable
 void ScnRenderTarget::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnRenderTarget" )
 		//.field( "source",					csPVT_FILE,			csPCT_LIST )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

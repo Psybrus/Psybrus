@@ -76,9 +76,11 @@ DEFINE_RESOURCE( ScnTexture );
 // StaticPropertyTable
 void ScnTexture::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnTexture" )
 		.field( "source",		csPVT_FILE,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
