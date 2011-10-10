@@ -149,8 +149,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			}
 			ImageList.clear();
 			delete pAtlasImage;
-
-				
+			
 			// Setup base object, and import.
 			Json::Value BaseObject = Object;
 			BaseObject[ "source" ] = AtlasFileName;
@@ -172,12 +171,14 @@ DEFINE_RESOURCE( ScnTextureAtlas );
 // StaticPropertyTable
 void ScnTextureAtlas::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnTextureAtlas" )
 		.field( "source",					csPVT_FILE,			csPCT_LIST )
 		.field( "distancefield",			csPVT_BOOL,			csPCT_VALUE )
 		.field( "spread",					csPVT_UINT,			csPCT_VALUE )
 		.field( "alphafromintensity",		csPVT_BOOL,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

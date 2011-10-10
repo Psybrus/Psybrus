@@ -153,11 +153,13 @@ DEFINE_RESOURCE( ScnMaterial );
 // StaticPropertyTable
 void ScnMaterial::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnMaterial" )
 		.field( "shader",		csPVT_RESOURCE,		csPCT_VALUE )
 		.field( "textures",		csPVT_RESOURCE,		csPCT_MAP )
 		.field( "state",		csPVT_RESOURCE,		csPCT_MAP )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -258,9 +260,9 @@ DEFINE_RESOURCE( ScnMaterialInstance );
 // StaticPropertyTable
 void ScnMaterialInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	PropertyTable.beginCatagory( "ScnMaterialInstance" )
 		//.field( "source",					csPVT_FILE,			csPCT_LIST )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

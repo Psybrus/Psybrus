@@ -208,9 +208,11 @@ DEFINE_RESOURCE( ScnModel );
 // StaticPropertyTable
 void ScnModel::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnMaterial" )
 		.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,7 +268,7 @@ BcBool ScnModel::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setup
+// createInstance
 BcBool ScnModel::createInstance( const std::string& Name, ScnModelInstanceRef& Handle )
 {
 	return CsCore::pImpl()->createResource( Name, Handle, this );
@@ -378,9 +380,9 @@ DEFINE_RESOURCE( ScnModelInstance );
 // StaticPropertyTable
 void ScnModelInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	PropertyTable.beginCatagory( "ScnModelInstance" )
 		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

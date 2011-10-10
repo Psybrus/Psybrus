@@ -29,9 +29,11 @@ DEFINE_RESOURCE( ScnSoundEmitter );
 // StaticPropertyTable
 void ScnSoundEmitter::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "ScnSoundEmitter" )
 		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.end();
+	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////

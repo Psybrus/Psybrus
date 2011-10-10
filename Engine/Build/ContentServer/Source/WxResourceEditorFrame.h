@@ -16,11 +16,9 @@
 
 #include "Psybrus.h"
 
+#include "WxPropertyTablePanel.h"
+
 #include <wx/wx.h>
-#include <wx/treectrl.h>
-#include <wx/imaglist.h>
-#include <wx/grid.h>
-#include <wx/dnd.h>
 
 //////////////////////////////////////////////////////////////////////////
 // WxResourceEditorFrame
@@ -31,13 +29,11 @@ public:
 	WxResourceEditorFrame();
 	virtual ~WxResourceEditorFrame();
 
-	void populateGrid();
-
 private:
 	DECLARE_EVENT_TABLE();
 	
-	wxGrid*								pGrid_;
-	class WxPropertyTableDatabase*		pTableData_;
+	wxFlexGridSizer*					pFlexGridSizer_;
+	WxPropertyTablePanel*				pPropertyTablePanel_;
 		
 };
 

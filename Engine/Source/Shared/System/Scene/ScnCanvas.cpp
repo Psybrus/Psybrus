@@ -26,9 +26,11 @@ DEFINE_RESOURCE( ScnCanvas );
 // StaticPropertyTable
 void ScnCanvas::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.begin()
+	Super::StaticPropertyTable( PropertyTable );
+	
+	PropertyTable.beginCatagory( "ScnCanvas" )
 		//.field( "source",					csPVT_FILE,			csPCT_LIST )
-	.end();
+	.endCatagory();
 }
 
 
