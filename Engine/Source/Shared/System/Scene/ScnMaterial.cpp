@@ -19,10 +19,7 @@
 #ifdef PSY_SERVER
 #include "BcFile.h"
 #include "BcStream.h"
-#include "json.h"
-#endif
 
-#ifdef PSY_SERVER
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
@@ -31,7 +28,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 	const Json::Value& ImportShader = Object[ "shader" ];
 	const Json::Value& ImportTextures = Object[ "textures" ];
 	const Json::Value& State = Object[ "state" ];
-					
+	
 	// Import shader.
 	ScnShaderRef ShaderRef;
 	if( CsCore::pImpl()->importObject( ImportShader, ShaderRef, DependancyList ) )
@@ -76,7 +73,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 			
 			HeaderStream << TextureHeader;
 		}
-	
+		
 		// Make state block stream.
 		const BcChar* StateNames[] = 
 		{
@@ -99,12 +96,12 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		ModeNames[ "greater" ] = rsCM_GREATER;
 		ModeNames[ "notequal" ] = rsCM_NOTEQUAL;
 		ModeNames[ "always" ] = rsCM_ALWAYS;
-	
+		
 		ModeNames[ "none" ] = rsBM_NONE;
 		ModeNames[ "blend" ] = rsBM_BLEND;
 		ModeNames[ "add" ] = rsBM_ADD;
 		ModeNames[ "subtract" ] = rsBM_SUBTRACT;
-	
+		
 		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 		{
 			if( State.type() == Json::objectValue )
@@ -113,7 +110,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		
 				if( StateValue.type() == Json::realValue )
 				{
-					BcReal RealValue = StateValue.asDouble();
+					BcReal RealValue = (BcReal)StateValue.asDouble();
 					StateBlockStream << BcU32( RealValue );
 				}
 				else if( StateValue.type() == Json::stringValue )
@@ -132,7 +129,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 				StateBlockStream << BcU32( 0 );
 			}
 		}
-			
+		
 		// Add chunks.
 		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 		pFile_->addChunk( BcHash( "stateblock" ), StateBlockStream.pData(), StateBlockStream.dataSize() );
@@ -151,6 +148,17 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterial );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnMaterial::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "shader",		csPVT_RESOURCE,		csPCT_VALUE )
+		.field( "textures",		csPVT_RESOURCE,		csPCT_MAP )
+		.field( "state",		csPVT_RESOURCE,		csPCT_MAP )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -245,6 +253,15 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialInstance );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnMaterialInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		//.field( "source",					csPVT_FILE,			csPCT_LIST )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

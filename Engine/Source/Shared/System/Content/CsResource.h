@@ -16,12 +16,14 @@
 
 #include "CsTypes.h"
 #include "CsFile.h"
+#include "CsProperty.h"
+
 #include "BcAtomic.h"
 #include "BcAtomicMutex.h"
 #include "BcScopedLock.h"
 
 #ifdef PSY_SERVER
-#include "json.h"
+#include "json/json.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,8 +83,9 @@
 	virtual ~_Type();															\
 	public:																		\
 	static CsResource* StaticAllocResource( const std::string& Name,			\
-	CsFile* pFile );					\
-	static void StaticFreeResource( CsResource* pResource );					
+	CsFile* pFile );															\
+	static void StaticFreeResource( CsResource* pResource );					\
+	static void StaticPropertyTable( CsPropertyTable& PropertyTable );					
 
 
 #define DEFINE_RESOURCE( _Type )												\
@@ -122,7 +125,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-enum eCsResourceStage
+enum CsResourceStage
 {
 	csRS_PENDING_CREATE = 0,
 	csRS_CREATE,
@@ -143,6 +146,7 @@ class CsCore;
 // Typedefs
 typedef CsResource*( *CsResourceAllocFunc )( const std::string&, CsFile* );
 typedef void( *CsResourceFreeFunc )( CsResource* );
+typedef void( *CsResourcePropertyTableFunc )( CsPropertyTable& );
 
 //////////////////////////////////////////////////////////////////////////
 // CsResource
@@ -227,7 +231,7 @@ protected:
 private:
 	friend class CsCore;
 	
-	eCsResourceStage				process();
+	CsResourceStage				process();
 	void							delegateFileReady( CsFile* pFile );
 	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
@@ -242,7 +246,7 @@ private:
 	std::string						Name_;
 	BcAtomicU32						RefCount_;
 	BcAtomicMutex					Lock_;
-	eCsResourceStage				Stage_;
+	CsResourceStage				Stage_;
 };
 
 //////////////////////////////////////////////////////////////////////////

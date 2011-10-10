@@ -150,7 +150,7 @@ BcU32 CsResource::getNoofChunks() const
 
 //////////////////////////////////////////////////////////////////////////
 // process
-eCsResourceStage CsResource::process()
+CsResourceStage CsResource::process()
 {
 	// Call create/destroy depending on the stage we are in.
 	switch( Stage_ )

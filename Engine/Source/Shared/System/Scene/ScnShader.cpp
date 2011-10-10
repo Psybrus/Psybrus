@@ -139,6 +139,15 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 DEFINE_RESOURCE( ScnShader );
 
 //////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnShader::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "shaders",					csPVT_FILE,			csPCT_MAP )
+	.end();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnShader::initialise()

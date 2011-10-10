@@ -22,7 +22,7 @@
 #include "CsResourceRef.h"
 
 #ifdef PSY_SERVER
-#include "json.h"
+#include "json/json.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,6 +105,14 @@ public:
 	template< typename _Ty >
 	BcBool								importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList );
 
+	/**
+	 * Get resource property table.
+	 * @param Type of resource.
+	 * @param PropertyTable Property table to fill in.
+	 * @return Success.
+	 */
+	BcBool								getResourcePropertyTable( const std::string& Type, CsPropertyTable& PropertyTable );
+	
 private:
 	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
@@ -139,7 +147,7 @@ protected:
 	virtual CsFile*						createFileWriter( const std::string& FileName );
 
 public:
-	void								internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc );
+	void								internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc );
 	BcBool								internalCreateResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
 	BcBool								internalRequestResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
 	BcBool								internalFindResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
@@ -149,6 +157,7 @@ protected:
 	{
 		CsResourceAllocFunc allocFunc_;
 		CsResourceFreeFunc freeFunc_;
+		CsResourcePropertyTableFunc propertyTableFunc_;
 	};
 	
 	typedef std::list< CsResource* > TResourceList;
@@ -186,7 +195,7 @@ protected:
 template< typename _Ty >
 BcForceInline void CsCore::registerResource()
 {
-	internalRegisterResource( _Ty::StaticGetTypeString(), _Ty::StaticAllocResource, _Ty::StaticFreeResource );
+	internalRegisterResource( _Ty::StaticGetTypeString(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
 }
 
 template< typename _Ty >

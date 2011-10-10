@@ -18,7 +18,6 @@
 #ifdef PSY_SERVER
 #include "BcFile.h"
 #include "BcStream.h"
-#include "json.h"
 #include "Img.h"
 
 #include <ft2build.h>
@@ -94,7 +93,6 @@ static ImgImage* makeImageForGlyph( FT_Glyph Glyph, FT_Render_Mode RenderMode, B
 					}
 				}									
 			}
-			
 		}
 	}
 	
@@ -115,7 +113,7 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 	FT_Face		Face;
 	
 	BcBool DistanceField = Object[ "distancefield" ].asBool();
-	BcU32 NominalSize = Object[ "nominalsize" ].asInt() * ( DistanceField ? 8.0f : 1.0f );
+	BcU32 NominalSize = Object[ "nominalsize" ].asInt() * ( DistanceField ? 8 : 1 );
 	BcU32 BorderSize = DistanceField ? Object[ "spread" ].asInt(): 1;
 	
 	int Error;
@@ -203,7 +201,7 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 										ImgColour FillColour = { 0, 0, 0, 0 };
 										
 										// Distance field.
-										ImgImage* pDistanceFieldImage = pImage->generateDistanceField( 128, BorderSize );
+										ImgImage* pDistanceFieldImage = pImage->generateDistanceField( 128, (BcReal)BorderSize );
 										
 										// Power of 2 round up.
 										ImgImage* pPowerOfTwo = pDistanceFieldImage->canvasSize( WidthPot, HeightPot, &FillColour );
@@ -258,7 +256,7 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 					// Create an atlas of glyphs.
 					ImgRectList RectList;
 					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 1024, 1024 );
-						
+					
 					// Create a texture.
 					std::string FontTextureName = Object[ "name" ].asString() + "_font_texture_atlas";
 					std::string FontTextureFileName = std::string( "IntermediateContent/" ) + FontTextureName + ".png";
@@ -349,6 +347,18 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 DEFINE_RESOURCE( ScnFont );
 
 //////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnFont::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "source",					csPVT_FILE,			csPCT_VALUE )
+		.field( "distancefield",			csPVT_BOOL,			csPCT_VALUE )
+		.field( "nominalsize",				csPVT_UINT,			csPCT_VALUE )
+		.field( "spread",					csPVT_UINT,			csPCT_VALUE )
+	.end();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnFont::initialise()
@@ -425,6 +435,15 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* p
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnFontInstance );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnFontInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

@@ -205,6 +205,15 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 DEFINE_RESOURCE( ScnModel );
 
 //////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnModel::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "source",					csPVT_FILE,			csPCT_VALUE )
+	.end();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnModel::initialise()
@@ -364,6 +373,15 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
 DEFINE_RESOURCE( ScnModelInstance );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnModelInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
