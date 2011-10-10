@@ -24,8 +24,9 @@ std::string SysArgs_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysKernel::SysKernel():
-	JobQueue_( BcMax( BcGetHardwareThreadCount() - 1, BcU32( 1 ) ) ) // We always want at least one worker.
+SysKernel::SysKernel( BcReal TickRate ):
+	JobQueue_( BcMax( BcGetHardwareThreadCount() - 1, BcU32( 1 ) ) ), // We always want at least one worker.
+	TickRate_( TickRate )
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
@@ -35,7 +36,11 @@ SysKernel::SysKernel():
 // Dtor
 SysKernel::~SysKernel()
 {
-	
+	// Stop.
+	stop();
+
+	// Join.
+	BcThread::join();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,8 +113,34 @@ void SysKernel::run( BcBool Threaded )
 	
 	if( Threaded == BcTrue )
 	{
+		// Add all the systems.
+		addSystems();
+
 		// Start up the thread.
 		BcThread::start( "SysKernel Main" );
+	
+		// Wait until all systems have opened.
+		BcBool AllOpened = BcFalse;
+		while( AllOpened == BcFalse )
+		{
+			AllOpened = BcTrue;
+
+			TSystemListReverseIterator Iter = SystemList_.rbegin();
+
+			while( Iter != SystemList_.rend() )
+			{
+				// Cache system.
+				SysSystem* pSystem = (*Iter);
+			
+				// Opened?
+				AllOpened &= pSystem->isOpened();
+			
+				// Next system.
+				++Iter;
+			}
+
+			BcYield();
+		}
 	}
 	else
 	{
@@ -198,20 +229,22 @@ void SysKernel::execute()
 		// Tick systems.
 		tick();
 		
-		// Grab time spent, and sleep the remainder of 1/60.
-#if PSY_SERVER
-		BcReal TickTime = 1.0f / 15.0f;
-#else
-		BcReal TickTime = 1.0f / 60.0f;
-#endif
-		BcReal TimeSpent = MainTimer_.time();
-		SleepAccumulator_ += BcMax( ( TickTime ) - TimeSpent, 0.0f );
-		
-		if( SleepAccumulator_ > 0.0f )
+		// Sleep if we have a fixed rate specified, otherwise just yield.
+		if( TickRate_ > 0.0f )
 		{
-			BcReal SleepTime = SleepAccumulator_;
-			SleepAccumulator_ -= SleepTime;
-			BcSleep( SleepTime );
+			BcReal TimeSpent = MainTimer_.time();
+			SleepAccumulator_ += BcMax( ( TickRate_ ) - TimeSpent, 0.0f );
+		
+			if( SleepAccumulator_ > 0.0f )
+			{
+				BcReal SleepTime = SleepAccumulator_;
+				SleepAccumulator_ -= SleepTime;
+				BcSleep( SleepTime );
+			}
+		}
+		else
+		{
+			BcYield();
 		}
 	}
 	while( SystemList_.size() > 0 );

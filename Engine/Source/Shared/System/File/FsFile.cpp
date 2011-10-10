@@ -35,7 +35,11 @@ FsFile::~FsFile()
 BcBool FsFile::open( const BcChar* FileName, eFsFileMode FileMode )
 {
 	// Grab a new implementation.
-	pImpl_ = FsCore::pImpl()->openFile( FileName, FileMode );
+	BcAssertMsg( FsCore::pImpl() != NULL, "FsFile: FsCore is NULL when trying to open a file!" );
+	if( FsCore::pImpl() != NULL )
+	{
+		pImpl_ = FsCore::pImpl()->openFile( FileName, FileMode );
+	}
 	
 	return pImpl_ != NULL;
 }
@@ -50,7 +54,11 @@ BcBool FsFile::close()
 	if( pImpl_ != NULL )
 	{
 		RetVal = pImpl_->close();
-		FsCore::pImpl()->closeFile( pImpl_ );
+		BcAssertMsg( FsCore::pImpl() != NULL, "FsFile: FsCore is NULL when trying to close a file!" );
+		if( FsCore::pImpl() != NULL )
+		{
+			FsCore::pImpl()->closeFile( pImpl_ );
+		}
 	}
 	
 	return RetVal;	

@@ -36,7 +36,7 @@ class SysKernel:
 	public BcThread
 {
 public:
-	SysKernel();
+	SysKernel( BcReal TickRate );
 	~SysKernel();
 	
 	/**
@@ -160,6 +160,7 @@ private:
 	BcTimer						MainTimer_;
 	
 	BcReal						SleepAccumulator_;
+	BcReal						TickRate_;
 	
 	SysJobQueue					JobQueue_;
 	SysDelegateDispatcher		DelegateDispatcher_;

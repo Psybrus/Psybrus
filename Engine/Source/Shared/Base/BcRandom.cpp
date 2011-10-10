@@ -75,8 +75,8 @@ BcReal BcRandom::interpolatedNoise( BcReal X, BcU32 Width )
 {
 	BcU32 iX = BcU32( X );
 	BcReal FracX = X - iX;
-	BcReal V1 = smoothedNoise( iX, Width );
-	BcReal V2 = smoothedNoise( iX + 1, Width );
+	BcReal V1 = smoothedNoise( (BcReal)iX, Width );
+	BcReal V2 = smoothedNoise( (BcReal)iX + 1.0f, Width );
 	return V1 + ( V2 - V1 ) * FracX;
 }
 

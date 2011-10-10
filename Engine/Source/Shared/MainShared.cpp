@@ -13,24 +13,6 @@
 
 #include "MainShared.h"
 
-#include "SysKernel.h"
-#include "CsCore.h"
-
-#include "ScnTexture.h"
-#include "ScnTextureAtlas.h"
-#include "ScnRenderTarget.h"
-#include "ScnMaterial.h"
-#include "ScnModel.h"
-#include "ScnCanvas.h"
-#include "ScnShader.h"
-#include "ScnFont.h"
-#include "ScnSound.h"
-#include "ScnSoundEmitter.h"
-#include "ScnSynthesizer.h"
-
-#include "GaPackage.h"
-#include "GaScript.h"
-
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
 void MainUnitTests()
@@ -48,14 +30,43 @@ void MainUnitTests()
 // MainShared
 void MainShared()
 {
+	// Parse command line params for disabling systems.
+	if( SysArgs_.find( "-noremote" ) != std::string::npos )
+	{
+		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
+	}
+
+	if( SysArgs_.find( "-norender" ) != std::string::npos )
+	{
+		GPsySetupParams.Flags_ &= ~psySF_RENDER;
+	}
+
+	if( SysArgs_.find( "-nosound" ) != std::string::npos )
+	{
+		GPsySetupParams.Flags_ &= ~psySF_SOUND;
+	}
+
 	// Start systems.
+	if( GPsySetupParams.Flags_ & psySF_REMOTE )
+	{
+		SysKernel::pImpl()->startSystem( "RmCore" );
+	}
+
 	SysKernel::pImpl()->startSystem( "OsCore" );
-	SysKernel::pImpl()->startSystem( "RsCore" );
-	SysKernel::pImpl()->startSystem( "SsCore" );
+
+	if( GPsySetupParams.Flags_ & psySF_RENDER )
+	{
+		SysKernel::pImpl()->startSystem( "RsCore" );
+	}
+
+	if( GPsySetupParams.Flags_ & psySF_SOUND )
+	{
+		SysKernel::pImpl()->startSystem( "SsCore" );
+	}
+
 	SysKernel::pImpl()->startSystem( "FsCore" );
 	SysKernel::pImpl()->startSystem( "CsCore" );
-	SysKernel::pImpl()->startSystem( "GaCore" );
-	
+
 	// Register scene resources.
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
@@ -70,10 +81,4 @@ void MainShared()
 	CsCore::pImpl()->registerResource< ScnFontInstance >();
 	CsCore::pImpl()->registerResource< ScnSound >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
-	CsCore::pImpl()->registerResource< ScnSynthesizer >();
-
-	// Register game resources.
-	CsCore::pImpl()->registerResource< GaPackage >();
-	CsCore::pImpl()->registerResource< GaScript >();
 }
-

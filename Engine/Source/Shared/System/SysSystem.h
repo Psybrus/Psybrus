@@ -94,6 +94,11 @@ public:
 	void						stop();
 	
 	/**
+	*	Is system opened?
+	*/
+	BcBool						isOpened() const;
+
+	/**
 	*	Is system finished?
 	*/
 	BcBool						isFinished() const;
