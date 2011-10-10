@@ -16,6 +16,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgramGL::RsProgramGL( RsShaderGL* pVertexShader, RsShaderGL* pFragmentShader ):
+	ParameterBufferSize_( 0 ),
 	pVertexShader_( pVertexShader ),
 	pFragmentShader_( pFragmentShader )
 {
