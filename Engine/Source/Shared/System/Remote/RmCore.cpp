@@ -11,6 +11,8 @@
 * 
 **************************************************************************/
 
+#include "RmTCPConnection.h"
+
 #include "RmCore.h"
 
 SYS_CREATOR( RmCore );
@@ -20,6 +22,7 @@ SYS_CREATOR( RmCore );
 RmCore::RmCore()
 {
 	ConnectToggle_ = BcFalse;
+	pConnection_ = new RmTCPConnection();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +30,7 @@ RmCore::RmCore()
 //virtual
 RmCore::~RmCore()
 {
-	
+	delete pConnection_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,9 +89,9 @@ void RmCore::connect( const BcChar* pAddress )
 	BcScopedLock< BcMutex > Lock( ConnectionLock_ );
 
 	// Listen for a connection by default.
-	if( Connection_.connectRange( pAddress, 4000, 32 ) )
+	if( pConnection_->connectRange( pAddress, 4000, 32 ) )
 	{
-		BcPrintf( "RmCore: Connected to %s on port %u\n", pAddress, Connection_.getPort() );
+		BcPrintf( "RmCore: Connected to %s on port %u\n", pAddress, pConnection_->getPort() );
 		ConnectToggle_ = BcTrue;
 		EvtPublisher::publish( rmEVT_CONNECT_SUCCEEDED, RmEventCore() );
 		EvtPublisher::publish( rmEVT_CONNECTION_CONNECTED, RmEventCore() );
@@ -107,9 +110,9 @@ void RmCore::listen()
 	BcScopedLock< BcMutex > Lock( ConnectionLock_ );
 	
 	// Listen for a connection by default.
-	if( Connection_.listenRange( "localhost", 4000, 32 ) )
+	if( pConnection_->listenRange( "localhost", 4000, 32 ) )
 	{
-		BcPrintf( "RmCore: Incoming connection on port %u\n", Connection_.getPort() );
+		BcPrintf( "RmCore: Incoming connection on port %u\n", pConnection_->getPort() );
 		ConnectToggle_ = BcTrue;
 		EvtPublisher::publish( rmEVT_LISTEN_SUCCEEDED, RmEventCore() );
 		EvtPublisher::publish( rmEVT_CONNECTION_CONNECTED, RmEventCore() );
@@ -125,7 +128,7 @@ void RmCore::listen()
 // isConnected
 BcBool RmCore::isConnected() const
 {
-	return Connection_.isConnected();
+	return pConnection_->isConnected();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -145,24 +148,24 @@ void RmCore::update()
 	BcScopedLock< BcMutex > Lock( ConnectionLock_ );
 
 	// Only process if we are connected.
-	if( Connection_.isConnected() )
+	if( pConnection_->isConnected() )
 	{
 		// Receive 1 message at a time.
 		{
 			TMessageHeader Header( 0, 0, 0 );
-			BcU32 BytesWaiting = Connection_.recv( &Header, sizeof( Header ), BcTrue, BcFalse );
+			BcU32 BytesWaiting = pConnection_->recv( &Header, sizeof( Header ), BcTrue, BcFalse );
 						
 			// If we have enough bytes waiting then we can read in the data.
 			if( BytesWaiting == sizeof( Header ) )
 			{
 				// Pop the data off.
-				Connection_.recv( &Header, sizeof( Header ), BcFalse, BcTrue );
+				pConnection_->recv( &Header, sizeof( Header ), BcFalse, BcTrue );
 		
 				// Receive data.
 				if( (BcU32)Header.Destination_ != BcErrorCode )
 				{
 					BcU8* pData = new BcU8[ Header.Bytes_ ];
-					BcU32 DataSize = Connection_.recv( pData, Header.Bytes_, BcFalse, BcTrue );
+					BcU32 DataSize = pConnection_->recv( pData, Header.Bytes_, BcFalse, BcTrue );
 		
 					BcU32 Hash = (BcU32)BcHash( pData, DataSize );
 					BcAssertMsg( Hash == (BcU32)Header.Hash_, "RmCore: Message hash failed.\n" );
@@ -175,7 +178,7 @@ void RmCore::update()
 					else
 					{
 						BcPrintf( "RmCore:: Error: Failed to receive %u bytes of data for delegate: 0x%x\n", (BcU32)Header.Bytes_, (BcU32)Header.Destination_ );
-						Connection_.disconnect();			
+						pConnection_->disconnect();			
 					}
 					
 					// Free memory used.
@@ -185,7 +188,7 @@ void RmCore::update()
 			/*
 			else if( BytesWaiting == BcErrorCode )
 			{
-				Connection_.disconnect();
+				pConnection_->disconnect();
 			}
 			 */
 		}
@@ -201,11 +204,11 @@ void RmCore::update()
 		
 				BcBool Success = BcTrue;
 			
-				Success &= Connection_.send( &Message.Header_, sizeof( Message.Header_ ) );
+				Success &= pConnection_->send( &Message.Header_, sizeof( Message.Header_ ) );
 		
 				if( Success == BcTrue )
 				{
-					Success &= Connection_.send( Message.pData_, Message.Header_.Bytes_ );
+					Success &= pConnection_->send( Message.pData_, Message.Header_.Bytes_ );
 			
 					// Delete copied send data.
 					BcU8* pData = (BcU8*)Message.pData_;
@@ -216,7 +219,7 @@ void RmCore::update()
 				if( Success == BcFalse )
 				{
 					BcPrintf( "RmCore:: Error: Failed to send message of %u bytes to delegate 0x%x.\n", (BcU32)Message.Header_.Bytes_, (BcU32)Message.Header_.Destination_  );
-					Connection_.disconnect();			
+					pConnection_->disconnect();			
 				}
 			}
 			else
@@ -252,7 +255,7 @@ void RmCore::close()
 	BcScopedLock< BcMutex > Lock( ConnectionLock_ );
 
 	// Disconnect.
-	Connection_.disconnect();
+	pConnection_->disconnect();
 }
 										  
 ////////////////////////////////////////////////////////////////////////////////
@@ -289,9 +292,9 @@ void RmCore::keepAlive()
 		KeepAliveTicker_ = 0;
 		
 		TMessageHeader MessageHeader( BcErrorCode, 0 );		
-		if( Connection_.send( &MessageHeader, sizeof( MessageHeader ) ) == BcFalse )
+		if( pConnection_->send( &MessageHeader, sizeof( MessageHeader ) ) == BcFalse )
 		{
-			Connection_.disconnect();
+			pConnection_->disconnect();
 		}
 	}
 	*/

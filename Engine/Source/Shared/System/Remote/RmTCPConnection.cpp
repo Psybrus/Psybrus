@@ -23,6 +23,16 @@ RmTCPConnection::RmTCPConnection()
 	SocketDesc_ = BcErrorCode;
 	IsConnected_ = BcFalse;
 	Port_ = 0;
+
+#if PLATFORM_WINDOWS
+	static BcBool IsInitialised = BcFalse;
+	if( IsInitialised == BcFalse )
+	{
+		WSADATA WsaData;
+		::WSAStartup( MAKEWORD(2,2), &WsaData );
+		IsInitialised = BcTrue;
+	}
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +118,7 @@ BcBool RmTCPConnection::listen( const BcChar* Address, BcU16 Port )
 		
 		if( SocketDesc_ >= 0 )
 		{
-			close( SocketDesc_ ); // No more incoming connections.
+			::closesocket( SocketDesc_ ); // No more incoming connections.
 			SocketDesc_ = NewSocketDesc;
 			IsConnected_ = BcTrue;
 			Port_ = Port;
@@ -156,7 +166,7 @@ void RmTCPConnection::disconnect()
 	
 	if( SocketDesc_ != 0 )
 	{
-		::close( SocketDesc_ );
+		::closesocket( SocketDesc_ );
 		SocketDesc_ = 0;
 	}
 	
@@ -174,8 +184,13 @@ BcBool RmTCPConnection::send( const void* pData, BcU32 Bytes )
 	
 		while( Bytes > 0 )
 		{
+#if PLATFORM_WINDOWS
+			//u_long Mode = 1;
+			//::ioctlsocket( SocketDesc_, FIONBIO, &Mode );
+#else
 			fcntl( SocketDesc_, F_SETFL, O_RDWR );
-			BcU32 DataSent = ::send( SocketDesc_, pDataBuffer, Bytes, 0 );
+#endif
+			BcU32 DataSent = ::send( SocketDesc_, (const char*)pDataBuffer, Bytes, 0 );
 			Bytes -= DataSent;
 		
 			pDataBuffer += DataSent;
@@ -198,8 +213,16 @@ BcU32 RmTCPConnection::recv( void* pBuffer, BcU32 Bytes, BcBool Peek, BcBool Blo
 {
 	if( SocketDesc_ != 0 )
 	{
+#if PLATFORM_WINDOWS
+		if( Block )
+		{
+			u_long Mode = 1;
+			::ioctlsocket( SocketDesc_, FIONBIO, &Mode );
+		}
+#else
 		fcntl( SocketDesc_, F_SETFL, O_RDWR | ( Block ? 0 : O_NONBLOCK ) );
-		int RetVal = ::recv( SocketDesc_, pBuffer, Bytes, ( Peek ? MSG_PEEK : 0 ) | ( Block ? MSG_WAITALL : 0 ) );
+#endif
+		int RetVal = ::recv( SocketDesc_, (char*)pBuffer, Bytes, ( Peek ? MSG_PEEK : 0 ) | ( Block ? MSG_WAITALL : 0 ) );
 		return RetVal >= 0 ? RetVal : BcErrorCode;
 	}
 	

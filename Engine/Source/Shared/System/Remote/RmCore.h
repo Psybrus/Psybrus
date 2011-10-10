@@ -24,7 +24,6 @@
 #include "BcScopedLock.h"
 
 #include "RmEvents.h"
-#include "RmTCPConnection.h"
 #include "RmParameters.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +128,7 @@ protected:
 	void							keepAlive();
 
 private:	
-	RmTCPConnection					Connection_;
+	class RmTCPConnection*			pConnection_;
 	BcBool							ConnectToggle_;
 	
 	typedef std::map< BcU32, RmDelegate > TDelegateMap;

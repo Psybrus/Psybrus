@@ -17,12 +17,20 @@
 #include "BcTypes.h"
 #include "BcDebug.h"
 
-#include <sys/types.h>
+#if PLATFORM_WINDOWS
+#include <Ws2tcpip.h>
+#include <errno.h>
+#include <fcntl.h>
+#else
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+
+#define closesocket close
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // RmTCPConnection
