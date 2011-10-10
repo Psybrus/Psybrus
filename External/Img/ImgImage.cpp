@@ -386,7 +386,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 			
 			const BcVec2d& getCell( BcS32 X, BcS32 Y ) const
 			{
-				if( X < 0 || X >= Width_ || Y < 0 || Y >= Height_ )
+				if( X < 0 || X >= (BcS32)Width_ || Y < 0 || Y >= (BcS32)Height_ )
 				{
 					return DistanceFieldOutside;
 				}
@@ -395,7 +395,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 			
 			void setCell( BcS32 X, BcS32 Y, const BcVec2d& Value )
 			{
-				if( X >= 0 && X < Width_ && Y >= 0 && Y < Height_ )
+				if( X >= 0 && X < (BcS32)Width_ && Y >= 0 && Y < (BcS32)Height_ )
 				{
 					pCells_[ X + Y * Width_ ] = Value;
 				}
@@ -404,9 +404,9 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 		
 		static void SetupGrids( ImgImage* pImage, BcU32 IntensityThreshold, Grid& GridA, Grid& GridB )
 		{
-			for( BcS32 Y = 0; Y < GridA.Height_; ++Y )
+			for( BcS32 Y = 0; Y < (BcS32)GridA.Height_; ++Y )
 			{
-				for( BcS32 X = 0; X < GridB.Width_; ++X )
+				for( BcS32 X = 0; X < (BcS32)GridB.Width_; ++X )
 				{
 					const ImgColour& SubPixel = pImage->getPixel( X, Y );
 					BcU32 Intensity = (BcU32)SubPixel.A_;
@@ -426,8 +426,8 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 		
 		static void Propagate( Grid& GridX )
 		{
-			const BcU32 Width = GridX.Width_;
-			const BcU32 Height = GridX.Height_;
+			const BcS32 Width = GridX.Width_;
+			const BcS32 Height = GridX.Height_;
 			for( BcS32 Y = 0; Y < Height; ++Y )
 			{
 				for( BcS32 X = 0; X < Width; ++X )
@@ -474,9 +474,9 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 			const BcU32 Width = SignedDistanceGrid.Width_;
 			const BcU32 Height = SignedDistanceGrid.Height_;
 
-			for( BcS32 Y = 0; Y < Height; ++Y )
+			for( BcS32 Y = 0; Y < (BcS32)Height; ++Y )
 			{
-				for( BcS32 X = 0; X < Width; ++X )
+				for( BcS32 X = 0; X < (BcS32)Width; ++X )
 				{
 					const BcVec2d& CellA = GridA.getCell( X, Y );
 					const BcVec2d& CellB = GridB.getCell( X, Y );
@@ -495,9 +495,9 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 			BcReal MinDistance = -Spread;
 			BcReal MaxDistance = Spread;
 			
-			for( BcS32 Y = 0; Y < Height; ++Y )
+			for( BcS32 Y = 0; Y < (BcS32)Height; ++Y )
 			{
-				for( BcS32 X = 0; X < Width; ++X )
+				for( BcS32 X = 0; X < (BcS32)Width; ++X )
 				{
 					BcReal Distance = SignedDistanceGrid.getCell( X, Y ).x();
 					if( Distance < 0.0f )
