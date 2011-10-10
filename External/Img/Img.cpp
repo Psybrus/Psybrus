@@ -327,7 +327,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 	// Set up the row pointer from the original data
 	png_bytepp ppRows = ( png_bytepp ) malloc( sizeof( png_bytep ) * pImage->height() );
 	const ImgColour* pPixels = pImage->getImageData();
-	for ( int iY = 0; iY < pImage->height(); ++iY )
+	for ( int iY = 0; iY < (int)pImage->height(); ++iY )
 	{
 		ppRows[ iY ] = ( png_bytep ) ( pPixels + iY * pImage->width() );
 	}
