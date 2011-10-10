@@ -53,7 +53,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 					for( BcU32 X = 0; X < pImage->height(); ++X )
 					{
 						ImgColour Texel = pImage->getPixel( X, Y );
-						Texel.A_ = ( Texel.R_ + Texel.G_ + Texel.B_ ) / 3.0f;
+						Texel.A_ = (BcU8)( ( (BcU32)Texel.R_ + (BcU32)Texel.G_ + (BcU32)Texel.B_ ) / 3.0f );
 						pImage->setPixel( X, Y, Texel );
 					}
 				}
@@ -75,7 +75,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 				pPaddedImage->blit( pImage, SrcRect, DstRect );
 								
 				// Distance field.
-				ImgImage* pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, Spread );
+				ImgImage* pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcReal)Spread );
 								
 				// Scale down 8x.
 				ImgImage* pScale1_2 = pDistanceFieldImage->resize( NewWidth >> 1, NewHeight >> 1 );
@@ -167,6 +167,18 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnTextureAtlas );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnTextureAtlas::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "source",					csPVT_FILE,			csPCT_LIST )
+		.field( "distancefield",			csPVT_BOOL,			csPCT_VALUE )
+		.field( "spread",					csPVT_UINT,			csPCT_VALUE )
+		.field( "alphafromintensity",		csPVT_BOOL,			csPCT_VALUE )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // getRect

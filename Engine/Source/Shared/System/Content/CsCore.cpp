@@ -42,6 +42,7 @@ void CsCore::open()
 	// Bind file hooks.
 	DelegateOnFileModified_ = FsEventMonitor::Delegate::bind< CsCore, &CsCore::eventOnFileModified >( this );
 	
+	BcAssertMsg( FsCore::pImpl() != NULL, "CsCore: FsCore is NULL when unsubscribing from events!" );
 	FsCore::pImpl()->subscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
 	FsCore::pImpl()->subscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
 #endif
@@ -80,15 +81,13 @@ void CsCore::update()
 //virtual 
 void CsCore::close()
 {
-	// NOTE: These can be hit at the moment, not fixing because it isn't
-	//       going to affect actual gameplay. Will sort it out when I move
-	//       everything into CsResource::process.
-	BcAssert( CreateResources_.size() == 0 );
-	BcAssert( LoadingResources_.size() == 0 );
-	BcAssert( LoadedResources_.size() == 0 );
-	BcAssert( UnloadingResources_.size() == 0 );
+	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
+	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
+	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing!" );
+	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
 	
 #if PSY_SERVER
+	BcAssertMsg( FsCore::pImpl() != NULL, "CsCore: FsCore is NULL when unsubscribing from events!" );
 	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
 	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
 #endif
@@ -102,6 +101,24 @@ std::string CsCore::getResourceFullName( const std::string& Name, const std::str
 }
 
 #ifdef PSY_SERVER
+
+//////////////////////////////////////////////////////////////////////////
+// getResourcePropertyTable
+BcBool CsCore::getResourcePropertyTable( const std::string& Type, CsPropertyTable& PropertyTable )
+{
+	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
+	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Type );
+	
+	if( Iter != ResourceFactoryInfoMap_.end() )
+	{
+		(*Iter).second.propertyTableFunc_( PropertyTable );
+		return BcTrue;
+	}
+
+	return BcFalse;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // internalImportResource
 BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
@@ -122,11 +139,8 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 			CsDependancyList DependancyList;
 			Success = internalImportObject( Object, Handle, &DependancyList );
 
-			BcPrintf( "Dependancies for %s:\n", FileName.c_str() );
 			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
 			{
-				BcPrintf( " - %s\n", (*Iter).getFileName().c_str() );
-
 				// Add file for monitoring.
 				// TODO: Remove old files.
 				FsCore::pImpl()->addFileMonitor( (*Iter).getFileName().c_str() );
@@ -488,12 +502,13 @@ CsFile* CsCore::createFileWriter( const std::string& FileName )
 
 //////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc )
+void CsCore::internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
 	FactoryInfo.allocFunc_ = allocFunc;
 	FactoryInfo.freeFunc_ = freeFunc;
+	FactoryInfo.propertyTableFunc_ = propertyTableFunc;
 	
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 

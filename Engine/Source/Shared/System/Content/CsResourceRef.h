@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#ifndef __CsResourceRef_H__
-#define __CsResourceRef_H__
+#ifndef __CSRESOURCEREF_H__
+#define __CSRESOURCEREF_H__
 
 #include "CsResource.h"
 

@@ -20,7 +20,6 @@
 #ifdef PSY_SERVER
 #include "BcFile.h"
 #include "BcStream.h"
-#include "json.h"
 #include "Snd.h"
 #endif
 
@@ -71,6 +70,15 @@ BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& Dependancy
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnSound );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnSound::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "source",					csPVT_FILE,			csPCT_VALUE )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

@@ -73,6 +73,15 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 DEFINE_RESOURCE( ScnTexture );
 
 //////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnTexture::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		.field( "source",		csPVT_FILE,			csPCT_VALUE )
+	.end();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnTexture::initialise()

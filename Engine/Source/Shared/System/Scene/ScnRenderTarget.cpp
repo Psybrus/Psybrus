@@ -18,7 +18,6 @@
 #ifdef PSY_SERVER
 #include "BcFile.h"
 #include "BcStream.h"
-#include "json.h"
 #endif
 
 #ifdef PSY_SERVER
@@ -34,6 +33,15 @@ BcBool ScnRenderTarget::import( const Json::Value& Object, CsDependancyList& Dep
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderTarget );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnRenderTarget::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		//.field( "source",					csPVT_FILE,			csPCT_LIST )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

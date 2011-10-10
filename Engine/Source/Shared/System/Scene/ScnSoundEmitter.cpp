@@ -19,13 +19,20 @@
 #ifdef PSY_SERVER
 #include "BcFile.h"
 #include "BcStream.h"
-#include "json.h"
 #endif
-
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnSoundEmitter );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void ScnSoundEmitter::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	PropertyTable.begin()
+		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
+	.end();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
