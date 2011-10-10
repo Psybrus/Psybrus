@@ -42,8 +42,7 @@ SYS_CREATOR( RsCoreImplGL );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsCoreImplGL::RsCoreImplGL():
-	pFrame_( NULL )
+RsCoreImplGL::RsCoreImplGL()
 {
 	
 }
@@ -107,7 +106,7 @@ void RsCoreImplGL::open()
 	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
 
 	// Clear screen and flip.
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	::SwapBuffers( (HDC)GWindowDC_ );
 
@@ -155,9 +154,6 @@ void RsCoreImplGL::open()
 	// Setup default viewport.
 	glViewport( 0, 0, W_, H_ );
 		
-	// Allocate a frame for rendering.
-	pFrame_ = new RsFrameGL( NULL, W_, H_ );
-		
 	// Allocate a state block for rendering.
 	pStateBlock_ = new RsStateBlockGL();
 	
@@ -166,7 +162,7 @@ void RsCoreImplGL::open()
 	pStateBlock_->bind();
 
 	// Clear.
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	
 	// Line smoothing.
@@ -186,14 +182,6 @@ void RsCoreImplGL::update()
 	CommandBuffer_.execute();
 
 	glFlush();
-	
-#if PLATFORM_OSX
-	// Flush buffer.
-	OsViewOSX_Interface::FlushBuffer();
-#elif PLATFORM_WINDOWS
-	// Flip.
-	::SwapBuffers( (HDC)GWindowDC_ );
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,14 +192,12 @@ void RsCoreImplGL::close()
 	// Free the state block.
 	delete pStateBlock_;
 	
-	// Free the frame.
-	delete pFrame_;
-
 #if PLATFORM_WINDOWS
 	// Destroy rendering context.
 	wglMakeCurrent( (HDC)GWindowDC_, NULL );
 	wglDeleteContext( (HGLRC)GWindowRC_ );
 #endif
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -346,7 +332,7 @@ RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 
 // queueFrame
 void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
+ 	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
 	CommandBuffer_.enqueue( DelegateCall );
 }
 

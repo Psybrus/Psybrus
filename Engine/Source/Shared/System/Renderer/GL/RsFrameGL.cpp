@@ -95,7 +95,6 @@ public:
 		
 		// Enable depth write to clear screen.
 		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
-		pStateBlock->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
 		pStateBlock->bind();
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
 		
@@ -209,6 +208,19 @@ void RsFrameGL::render()
 
 	// Reset everything.
 	reset();
+
+	// Flush and flip.
+	glFlush();
+	
+#if PLATFORM_OSX
+	// Flush buffer.
+	OsViewOSX_Interface::FlushBuffer();
+#elif PLATFORM_WINDOWS
+	// Flip.
+	extern BcHandle GWindowDC_;
+	::SwapBuffers( (HDC)GWindowDC_ );
+#endif
+
 
 	// TEMP HACK: Free frame.
 	delete this;
