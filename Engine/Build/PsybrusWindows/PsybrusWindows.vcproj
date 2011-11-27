@@ -1231,11 +1231,27 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnComponent.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnComponent.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnCore.cpp"
 							>
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnCore.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnEntity.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnEntity.h"
 							>
 						</File>
 						<File
@@ -1311,11 +1327,27 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnTransform.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnTransform.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnTypes.cpp"
 							>
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnTypes.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnView.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnView.h"
 							>
 						</File>
 					</Filter>

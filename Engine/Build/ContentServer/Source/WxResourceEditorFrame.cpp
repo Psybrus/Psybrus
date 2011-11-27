@@ -13,8 +13,6 @@
 
 #include "WxResourceEditorFrame.h"
 
-#include "WxPropertyTableDatabase.h"
-
 //////////////////////////////////////////////////////////////////////////
 // Event table.
 BEGIN_EVENT_TABLE( WxResourceEditorFrame, wxFrame )
@@ -33,7 +31,7 @@ WxResourceEditorFrame::WxResourceEditorFrame():
 	pFlexGridSizer_->Add( pPropertyTablePanel_ );
 
 	// Layout.
-	SetSizer( pSizerA );
+	SetSizer( pFlexGridSizer_ );
 	Layout();
 }
 
