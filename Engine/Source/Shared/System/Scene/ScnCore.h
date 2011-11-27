@@ -33,7 +33,7 @@ public:
 	ScnCore();
 	virtual ~ScnCore();
 	
-		
+	
 	
 private:
 	

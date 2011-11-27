@@ -23,7 +23,7 @@ BcReal RsLight::findAttenuationByDistance( BcReal Distance ) const
 
 //////////////////////////////////////////////////////////////////////////
 // findDistanceByAttenuation
- BcReal RsLight::findDistanceByAttenuation( BcReal Attenuation ) const
+BcReal RsLight::findDistanceByAttenuation( BcReal Attenuation ) const
 {
 	// If we want it at a low value, return max distance.
 	if( Attenuation < 0.05f )
