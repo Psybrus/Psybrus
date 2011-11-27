@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;&quot;../../../External/wxWidgets-2.8.12/include&quot;;&quot;../../../External/wxWidgets-2.8.12/include/msvc&quot;"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;&quot;../../../External/wxWidgets-2.8.12/include&quot;;&quot;../../../External/wxWidgets-2.8.12/include/msvc&quot;;../../../External/propgrid/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxbase28d.lib wxmsw28d_core.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
+				AdditionalDependencies="wxbase28d.lib wxmsw28d_core.lib wxcode_msw28d_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../External/wxWidgets-2.8.12/lib/vc_lib"
+				AdditionalLibraryDirectories="&quot;../../../External/wxWidgets-2.8.12/lib/vc_lib&quot;;../../../External/propgrid/lib/vc_lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;&quot;../../../External/wxWidgets-2.8.12/include&quot;;&quot;../../../External/wxWidgets-2.8.12/include/msvc&quot;;../../../External/propgrid/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

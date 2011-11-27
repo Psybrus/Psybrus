@@ -19,7 +19,7 @@
 WxPropertyTablePanel::WxPropertyTablePanel( wxWindow* pParent ):
 	wxPanel( pParent )
 {
-	wxBoxSizer* pSizer = new wxBoxSizer( wxHORIZONAL );
+	wxBoxSizer* pSizer = new wxBoxSizer( wxHORIZONTAL );
 
 	pPropertyGrid_ = new wxPropertyGrid( pParent );
 
