@@ -33,11 +33,11 @@
 	public:																		\
 	static const std::string& StaticGetTypeString();							\
 	static BcHash StaticGetTypeHash();											\
+	static void StaticPropertyTable( CsPropertyTable& PropertyTable );			\
 	virtual const std::string& getTypeString();									\
 	virtual BcHash getTypeHash();												\
 	virtual BcBool isType( const std::string& Type );							\
-	virtual BcBool isTypeOf( const std::string& Type );							\
-	static void StaticPropertyTable( CsPropertyTable& PropertyTable );					
+	virtual BcBool isTypeOf( const std::string& Type );							
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
 	const std::string& _Type::StaticGetTypeString()								\
@@ -155,6 +155,10 @@ class CsResource
 public:
 	DECLARE_CSRESOURCE;
 	
+private: // non-copyable.
+	BcForceInline CsResource( const CsResource& ){};
+	BcForceInline CsResource& operator = ( const CsResource& ){};
+
 public:
 	CsResource( const std::string& Name, CsFile* pFile );
 	virtual ~CsResource();
@@ -231,7 +235,7 @@ protected:
 private:
 	friend class CsCore;
 	
-	CsResourceStage				process();
+	CsResourceStage					process();
 	void							delegateFileReady( CsFile* pFile );
 	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
@@ -246,7 +250,7 @@ private:
 	std::string						Name_;
 	BcAtomicU32						RefCount_;
 	BcAtomicMutex					Lock_;
-	CsResourceStage				Stage_;
+	CsResourceStage					Stage_;
 };
 
 //////////////////////////////////////////////////////////////////////////

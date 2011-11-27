@@ -18,7 +18,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // CsResourceRef
-template< typename _Ty = CsResource >
+template< typename _Ty = CsResource, bool _IsWeak = false >
 class CsResourceRef
 {
 private:
@@ -29,26 +29,33 @@ private:
 	{
 		pObject_ = pObject;
 
-		if( pObject_ != NULL )
+		if( _IsWeak == false )
 		{
-			pObject_->acquire();
+			if( pObject_ != NULL )
+			{
+				pObject_->acquire();
+			}
 		}
 	}
 	
 	BcForceInline void _acquireNewReleaseOld( CsResource* pObject )
 	{
-		if( pObject != NULL )
+		if( _IsWeak == false )
 		{
-			pObject->acquire();
+			if( pObject != NULL )
+			{
+				pObject->acquire();
+			}
+	
+			pObject_->release();
 		}
 
-		pObject_->release();
 		pObject_ = pObject;
 	}
 
 	BcForceInline void _acquireAssign( CsResource* pObject )
 	{
-		if( pObject_ == NULL )
+		if( _IsWeak == true || pObject_ == NULL )
 		{
 			_acquireNew( pObject );
 		}
@@ -60,10 +67,13 @@ private:
 
 	BcForceInline void _releaseThis()
 	{
-		if( pObject_ != NULL )
+		if( _IsWeak == false )
 		{
-			pObject_->release();
-			pObject_ = NULL;
+			if( pObject_ != NULL )
+			{
+				pObject_->release();
+				pObject_ = NULL;
+			}
 		}
 	}
 

@@ -24,7 +24,7 @@ enum CsPropertyValueType
 	csPVT_BOOL,				// Boolean.
 	csPVT_UINT,				// Unsigned integer.
 	csPVT_INT,				// Signed integer.
-	csPVT_FLOAT,			// Floating point.
+	csPVT_REAL,				// Floating point real.
 	csPVT_STRING,			// String.
 	csPVT_ENUM,				// Enum.
 	csPVT_FILE,				// File.
