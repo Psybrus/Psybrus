@@ -125,7 +125,7 @@ void SysState::spawnChildState( SysState* pState )
 	}
 	else
 	{
-		BcPrintf( "SysState: Trying to spawn \"%s\" over existing child state \"%s\" in \"%s\".\n", pState->name().c_str(), pPendingChild_->name().c_str(), name().c_str() );
+		BcPrintf( "SysState: Trying to spawn \"%s\" over existing child state \"%s\" in \"%s\".\n", (*pState->name()).c_str(), (*pPendingChild_->name()).c_str(), (*name()).c_str() );
 		delete pPendingChild_;
 		pPendingChild_ = pState;
 	}
@@ -152,7 +152,7 @@ void SysState::spawnSubState( BcU32 iSubState, SysState* pSubState )
 	}
 	else
 	{
-		BcPrintf( "SysState: Trying to spawn \"%s\" over existing sub state %u \"%s\" in \"%s\".\n", pSubState->name().c_str(), iSubState, PendingSubStates_[ iSubState ]->name().c_str(), name().c_str() );
+		BcPrintf( "SysState: Trying to spawn \"%s\" over existing sub state %u \"%s\" in \"%s\".\n", (*pSubState->name()).c_str(), iSubState, (*PendingSubStates_[ iSubState ]->name()).c_str(), (*name()).c_str() );
 		delete PendingSubStates_[ iSubState ];
 		PendingSubStates_[ iSubState ] = pSubState;
 	}
@@ -203,7 +203,7 @@ BcBool SysState::process()
 	BcBool bDone = BcTrue;
 
 	//
-	BcAssert( StateName_[ 0 ] != '\0' );
+	BcAssert( StateName_ != BcName::NONE );
 
 	// Process child.
 	processChildState();

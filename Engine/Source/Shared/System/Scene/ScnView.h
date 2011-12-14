@@ -46,7 +46,6 @@ public:
 	virtual BcBool						isReady();
 	
 protected:
-	virtual void						setup();
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	

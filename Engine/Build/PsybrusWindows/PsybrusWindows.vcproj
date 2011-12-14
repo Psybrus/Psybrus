@@ -1064,6 +1064,22 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Source\Shared\Base\BcName.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\Base\BcName.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\Base\BcPath.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\Base\BcPath.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Source\Shared\Base\BcPlane.cpp"
 						>
 					</File>

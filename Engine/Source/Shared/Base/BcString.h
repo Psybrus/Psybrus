@@ -152,5 +152,51 @@ inline BcS32 BcStrAtoi( const BcChar* str )
 	return atoi( str );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Is string a number?
+inline BcBool BcStrIsNumber( const BcChar* pStr )
+{
+	BcBool HadDecimal = BcFalse;
+
+	// Strip sign if need be.
+	if( *pStr == '+' || *pStr == '-' )
+	{
+		++pStr;
+	}
+
+	// Terminated early, not a number.
+	if( *pStr == '\0' )
+	{
+		return BcFalse;
+	}
+	
+	// Iterate over and check values.
+	for( const BcChar* pWStr = pStr; *pWStr != '\0'; ++pWStr )
+	{
+		// If we find a decimal point, we need to see if we've hit one already, or bail (invalid number).
+		if( *pWStr >= '0' && *pWStr <= '9' )
+		{
+			continue;
+		}
+		else if( *pWStr == '.' )
+		{
+			if( HadDecimal == BcFalse )
+			{
+				HadDecimal = BcTrue;
+			}
+			else
+			{
+				return BcFalse;
+			}
+		}
+		else
+		{
+			return BcFalse;
+		}
+	}
+
+	return BcTrue;
+}
+
 #endif
 

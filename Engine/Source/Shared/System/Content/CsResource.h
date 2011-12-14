@@ -21,6 +21,7 @@
 #include "BcAtomic.h"
 #include "BcAtomicMutex.h"
 #include "BcScopedLock.h"
+#include "BcName.h"
 
 #ifdef PSY_SERVER
 #include "json/json.h"
@@ -31,18 +32,18 @@
 
 #define BASE_DECLARE_RESOURCE( _Type )											\
 	public:																		\
-	static const std::string& StaticGetTypeString();							\
+	static const BcName& StaticGetTypeString();							\
 	static BcHash StaticGetTypeHash();											\
 	static void StaticPropertyTable( CsPropertyTable& PropertyTable );			\
-	virtual const std::string& getTypeString();									\
+	virtual const BcName& getTypeString();									\
 	virtual BcHash getTypeHash();												\
-	virtual BcBool isType( const std::string& Type );							\
-	virtual BcBool isTypeOf( const std::string& Type );							
+	virtual BcBool isType( const BcName& Type );							\
+	virtual BcBool isTypeOf( const BcName& Type );							
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
-	const std::string& _Type::StaticGetTypeString()								\
+	const BcName& _Type::StaticGetTypeString()								\
 	{																			\
-		static std::string TypeString( #_Type );								\
+		static BcName TypeString( #_Type );								\
 		return TypeString;														\
 	}																			\
 																				\
@@ -51,7 +52,7 @@
 		return BcHash( #_Type );												\
 	}																			\
 																				\
-	const std::string& _Type::getTypeString()									\
+	const BcName& _Type::getTypeString()									\
 	{																			\
 		return _Type::StaticGetTypeString();									\
 	}																			\
@@ -66,12 +67,12 @@
 		return CsResource::StaticGetTypeHash();									\
 	}																			\
 																				\
-	BcBool CsResource::isType( const std::string& Type )						\
+	BcBool CsResource::isType( const BcName& Type )						\
 	{																			\
 		return CsResource::StaticGetTypeString() == Type;						\
 	}																			\
 																				\
-	BcBool CsResource::isTypeOf( const std::string& Type )						\
+	BcBool CsResource::isTypeOf( const BcName& Type )						\
 	{																			\
 		return CsResource::StaticGetTypeString() == Type;						\
 	}																			\
@@ -80,17 +81,17 @@
 	BASE_DECLARE_RESOURCE( _Type )												\
 	typedef _Base Super;														\
 	protected:																	\
-	_Type( const std::string& Name, CsFile* pFile );							\
+	_Type( const BcName& Name, CsFile* pFile );									\
 	virtual ~_Type();															\
 	public:																		\
-	static CsResource* StaticAllocResource( const std::string& Name,			\
+	static CsResource* StaticAllocResource( const BcName& Name,					\
 	CsFile* pFile );															\
 	static void StaticFreeResource( CsResource* pResource );					\
 
 
 #define DEFINE_RESOURCE( _Type )												\
 	BASE_DEFINE_RESOURCE( _Type )												\
-	_Type::_Type( const std::string& Name, CsFile* pFile ):						\
+	_Type::_Type( const BcName& Name, CsFile* pFile ):							\
 		Super( Name, pFile )													\
 	{																			\
 	}																			\
@@ -102,17 +103,17 @@
 		return _Type::StaticGetTypeHash();										\
 	}																			\
 																				\
-	BcBool _Type::isType( const std::string& Type )								\
+	BcBool _Type::isType( const BcName& Type )								\
 	{																			\
 		return  _Type::StaticGetTypeString() == Type;							\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( const std::string& Type )							\
+	BcBool _Type::isTypeOf( const BcName& Type )							\
 	{																			\
 		return _Type::StaticGetTypeString() == Type || Super::isTypeOf( Type );	\
 	}																			\
 																				\
-	CsResource* _Type::StaticAllocResource( const std::string& Name,			\
+	CsResource* _Type::StaticAllocResource( const BcName& Name,			\
 	                                        CsFile* pFile )						\
 	{																			\
 		return new _Type( Name, pFile );										\
@@ -144,7 +145,7 @@ class CsCore;
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-typedef CsResource*( *CsResourceAllocFunc )( const std::string&, CsFile* );
+typedef CsResource*( *CsResourceAllocFunc )( const BcName&, CsFile* );
 typedef void( *CsResourceFreeFunc )( CsResource* );
 typedef void( *CsResourcePropertyTableFunc )( CsPropertyTable& );
 
@@ -160,7 +161,7 @@ private: // non-copyable.
 	BcForceInline CsResource& operator = ( const CsResource& ){};
 
 public:
-	CsResource( const std::string& Name, CsFile* pFile );
+	CsResource( const BcName& Name, CsFile* pFile );
 	virtual ~CsResource();
 	
 #ifdef PSY_SERVER
@@ -218,7 +219,7 @@ public:
 	/**
 	 * Get name.
 	 */
-	const std::string&				getName() const;
+	const BcName&					getName() const;
 	
 	
 protected:
@@ -247,7 +248,7 @@ private:
 	CsFile*							pFile_;
 	
 private:
-	std::string						Name_;
+	BcName							Name_;
 	BcAtomicU32						RefCount_;
 	BcAtomicMutex					Lock_;
 	CsResourceStage					Stage_;

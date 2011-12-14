@@ -30,7 +30,7 @@ void CsResource::StaticPropertyTable( CsPropertyTable& PropertyTable )
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsResource::CsResource( const std::string& Name, CsFile* pFile ):
+CsResource::CsResource( const BcName& Name, CsFile* pFile ):
 	pFile_( pFile ),
 	Name_( Name ),
 	Stage_( csRS_PENDING_CREATE )
@@ -127,7 +127,7 @@ void CsResource::release()
 		}
 		else
 		{
-			BcPrintf( "CsResource::release: %s.%s exists when CsCore is no longer around. Static or global reference held?\n", getName().c_str(), getTypeString().c_str() );
+			BcPrintf( "CsResource::release: %s.%s exists when CsCore is no longer around. Static or global reference held?\n", (*getName()).c_str(), (*getTypeString()).c_str() );
 			
 			// Only doing this so references held by this are cleaned up, and other resources are reported too.
 			delete this;
@@ -137,7 +137,7 @@ void CsResource::release()
 
 //////////////////////////////////////////////////////////////////////////
 // getName
-const std::string& CsResource::getName() const
+const BcName& CsResource::getName() const
 {
 	return Name_;
 }

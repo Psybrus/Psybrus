@@ -59,7 +59,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		TTextureHeader TextureHeader;
 		
 		// Make header.
-		BcStrCopyN( Header.ShaderName_, ShaderRef->getName().c_str(), sizeof( Header.ShaderName_ ) );
+		BcStrCopyN( Header.ShaderName_, (*ShaderRef->getName()).c_str(), sizeof( Header.ShaderName_ ) );
 		Header.NoofTextures_ = Textures.size();
 		
 		HeaderStream << Header;
@@ -68,8 +68,8 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		for( ScnTextureMapIterator Iter( Textures.begin() ); Iter != Textures.end(); ++Iter )
 		{
 			BcStrCopyN( TextureHeader.SamplerName_, (*Iter).first.c_str(), sizeof( TextureHeader.SamplerName_ ) );
-			BcStrCopyN( TextureHeader.TextureName_, (*Iter).second->getName().c_str(), sizeof( TextureHeader.TextureName_ ) );
-			BcStrCopyN( TextureHeader.TextureType_, (*Iter).second->getTypeString().c_str(), sizeof( TextureHeader.TextureType_ ) );
+			BcStrCopyN( TextureHeader.TextureName_, (*(*Iter).second->getName()).c_str(), sizeof( TextureHeader.TextureName_ ) );
+			BcStrCopyN( TextureHeader.TextureType_, (*(*Iter).second->getTypeString()).c_str(), sizeof( TextureHeader.TextureType_ ) );
 			
 			HeaderStream << TextureHeader;
 		}
@@ -351,7 +351,7 @@ BcU32 ScnMaterialInstance::findParameter( const std::string& ParameterName )
 		return ParameterBindingList_.size() - 1;
 	}
 	
-	BcPrintf( "ScnMaterialInstance (%s): Can't find parameter \"%s\"\n", getName().c_str(), ParameterName.c_str() );
+	BcPrintf( "ScnMaterialInstance (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), ParameterName.c_str() );
 	
 	return BcErrorCode;
 }

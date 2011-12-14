@@ -41,7 +41,6 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
 protected:
-	virtual void						setup();
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
