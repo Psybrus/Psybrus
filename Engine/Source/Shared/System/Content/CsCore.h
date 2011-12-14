@@ -57,15 +57,15 @@ public:
 	 * This will create a resource object without a file associated with it.
 	 */
 	template< typename _Ty >
-	BcBool								createResource( const std::string& Name, CsResourceRef< _Ty >& Handle );
+	BcBool								createResource( const BcName& Name, CsResourceRef< _Ty >& Handle );
 	template< typename _Ty, typename _A >
-	BcBool								createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA );
+	BcBool								createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA );
 	template< typename _Ty, typename _A, typename _B >
-	BcBool								createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB );
+	BcBool								createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB );
 	template< typename _Ty, typename _A, typename _B, typename _C >
-	BcBool								createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC );
+	BcBool								createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC );
 	template< typename _Ty, typename _A, typename _B, typename _C, typename _D  >
-	BcBool								createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC, _D ParamD );
+	BcBool								createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC, _D ParamD );
 
 	/**
 	 * Request a resource. Will load if it isn't already.
@@ -73,7 +73,7 @@ public:
 	 * @param Handle Handle to be filled in when requested.
 	 */
 	template< typename _Ty >
-	BcBool								requestResource( const std::string& Name, CsResourceRef< _Ty >& Handle );
+	BcBool								requestResource( const BcName& Name, CsResourceRef< _Ty >& Handle );
 
 	/**
 	 * Find a resource. Will not load if it isn't already.
@@ -81,12 +81,12 @@ public:
 	 * @param Handle Handle to be filled in when requested.
 	 */
 	template< typename _Ty >
-	BcBool								findResource( const std::string& Name, CsResourceRef< _Ty >& Handle );
+	BcBool								findResource( const BcName& Name, CsResourceRef< _Ty >& Handle );
 	
 	/**
 	 * Get resource full name.
 	 */
-	std::string							getResourceFullName( const std::string& Name, const std::string& Type ) const;
+	std::string							getResourceFullName( const BcName& Name, const BcName& Type ) const;
 	
 	
 #ifdef PSY_SERVER
@@ -111,7 +111,7 @@ public:
 	 * @param PropertyTable Property table to fill in.
 	 * @return Success.
 	 */
-	BcBool								getResourcePropertyTable( const std::string& Type, CsPropertyTable& PropertyTable );
+	BcBool								getResourcePropertyTable( const BcName& Type, CsPropertyTable& PropertyTable );
 	
 private:
 	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
@@ -130,7 +130,7 @@ protected:
 	void								processLoadedResource();
 	void								processUnloadingResources();
 	
-	CsResource*							allocResource( const std::string& Name, const std::string& Type, CsFile* pFile );
+	CsResource*							allocResource( const BcName& Name, const BcName& Type, CsFile* pFile );
 	void								destroyResource( CsResource* pResource );
 
 protected:
@@ -147,10 +147,10 @@ protected:
 	virtual CsFile*						createFileWriter( const std::string& FileName );
 
 public:
-	void								internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc );
-	BcBool								internalCreateResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
-	BcBool								internalRequestResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
-	BcBool								internalFindResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle );
+	void								internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc );
+	BcBool								internalCreateResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
+	BcBool								internalRequestResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
+	BcBool								internalFindResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
 	
 protected:
 	struct TResourceFactoryInfo
@@ -164,7 +164,7 @@ protected:
 	typedef TResourceList::iterator TResourceListIterator;
 	typedef std::list< CsResourceRef<> > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
-	typedef std::map< std::string, TResourceFactoryInfo > TResourceFactoryInfoMap;
+	typedef std::map< BcName, TResourceFactoryInfo > TResourceFactoryInfoMap;
 	typedef TResourceFactoryInfoMap::iterator TResourceFactoryInfoMapIterator;
 
 	BcMutex								ContainerLock_;
@@ -199,7 +199,7 @@ BcForceInline void CsCore::registerResource()
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
@@ -211,7 +211,7 @@ BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResource
 }
 
 template< typename _Ty, typename _A >
-BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
@@ -223,7 +223,7 @@ BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResource
 }
 
 template< typename _Ty, typename _A, typename _B >
-BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
@@ -235,7 +235,7 @@ BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResource
 }
 
 template< typename _Ty, typename _A, typename _B, typename _C >
-BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
@@ -247,7 +247,7 @@ BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResource
 }
 
 template< typename _Ty, typename _A, typename _B, typename _C, typename _D >
-BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC, _D ParamD )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC, _D ParamD )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
@@ -259,14 +259,14 @@ BcForceInline BcBool CsCore::createResource( const std::string& Name, CsResource
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::requestResource( const std::string& Name, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::requestResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	return internalRequestResource( Name, _Ty::StaticGetTypeString(), InternalHandle );
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::findResource( const std::string& Name, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::findResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	return internalFindResource( Name, _Ty::StaticGetTypeString(), InternalHandle );

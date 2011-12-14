@@ -146,7 +146,11 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 				ScnMaterialRef MaterialRef;
 				if( CsCore::pImpl()->importResource( Material.Name_, MaterialRef ) )
 				{
-					BcStrCopyN( PrimitiveData.MaterialName_, MaterialRef->getName().c_str(), sizeof( PrimitiveData.MaterialName_ ) );
+					BcStrCopyN( PrimitiveData.MaterialName_, (*MaterialRef->getName()).c_str(), sizeof( PrimitiveData.MaterialName_ ) );
+				}
+				else
+				{
+					BcStrCopy( PrimitiveData.MaterialName_, "default" );
 				}
 			}
 			
@@ -411,7 +415,7 @@ void ScnModelInstance::initialise( ScnModelRef Parent )
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			pPrimitiveRuntime->MaterialRef_->createInstance( getName() + "_MaterialInstance", MaterialInstanceRef, scnSPF_DEFAULT );
+			pPrimitiveRuntime->MaterialRef_->createInstance( getName().getValue() + "_MaterialInstance", MaterialInstanceRef, scnSPF_DEFAULT );
 			
 			TMaterialInstanceDesc MaterialInstanceDesc =
 			{

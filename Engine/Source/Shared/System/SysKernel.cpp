@@ -45,7 +45,7 @@ SysKernel::~SysKernel()
 
 //////////////////////////////////////////////////////////////////////////
 // registerSystem
-void SysKernel::registerSystem( const std::string& Name, SysSystemCreator creator )
+void SysKernel::registerSystem( const BcName& Name, SysSystemCreator creator )
 {
 	BcScopedLock< BcMutex > Lock( SystemLock_ );
 
@@ -55,7 +55,7 @@ void SysKernel::registerSystem( const std::string& Name, SysSystemCreator creato
 
 //////////////////////////////////////////////////////////////////////////
 // startSystem
-SysSystem* SysKernel::startSystem( const std::string& Name )
+SysSystem* SysKernel::startSystem( const BcName& Name )
 {
 	BcScopedLock< BcMutex > Lock( SystemLock_ );
 
@@ -75,7 +75,7 @@ SysSystem* SysKernel::startSystem( const std::string& Name )
 		}
 		else
 		{
-			BcPrintf( "SysKernel: Can't start system \"%s\"\n", Name.c_str() );
+			BcPrintf( "SysKernel: Can't start system \"%s\"\n", (*Name).c_str() );
 		}
 	}
 	return pSystem;

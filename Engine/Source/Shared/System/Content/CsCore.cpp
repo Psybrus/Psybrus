@@ -95,16 +95,16 @@ void CsCore::close()
 
 //////////////////////////////////////////////////////////////////////////
 // getResourceFullName
-std::string CsCore::getResourceFullName( const std::string& Name, const std::string& Type ) const
+std::string CsCore::getResourceFullName( const BcName& Name, const BcName& Type ) const
 {
-	return Name + std::string( "." ) + Type;
+	return *Name + std::string( "." ) + *Type;
 }
 
 #ifdef PSY_SERVER
 
 //////////////////////////////////////////////////////////////////////////
 // getResourcePropertyTable
-BcBool CsCore::getResourcePropertyTable( const std::string& Type, CsPropertyTable& PropertyTable )
+BcBool CsCore::getResourcePropertyTable( const BcName& Type, CsPropertyTable& PropertyTable )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -431,7 +431,7 @@ void CsCore::processUnloadingResources()
 
 //////////////////////////////////////////////////////////////////////////
 // allocResource
-CsResource* CsCore::allocResource( const std::string& Name, const std::string& Type, CsFile* pFile )
+CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, CsFile* pFile )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -502,7 +502,7 @@ CsFile* CsCore::createFileWriter( const std::string& FileName )
 
 //////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const std::string& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc )
+void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
@@ -517,13 +517,13 @@ void CsCore::internalRegisterResource( const std::string& Type, CsResourceAllocF
 
 //////////////////////////////////////////////////////////////////////////
 // internalCreateResource
-BcBool CsCore::internalCreateResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
 	// Try to find resource, if we can't, allocate a new one and put into create list.
 	//if( internalFindResource( Name, Type, Handle ) == BcFalse )
 	{
 		// Only request if we have a name.
-		if( Name.length() > 0 )
+		if( Name.isValid() )
 		{		
 			// Allocate resource.
 			Handle = allocResource( Name, Type, NULL );
@@ -543,13 +543,13 @@ BcBool CsCore::internalCreateResource( const std::string& Name, const std::strin
 
 //////////////////////////////////////////////////////////////////////////
 // internalRequestResource
-BcBool CsCore::internalRequestResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalRequestResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
 	// Try to find resource, if we can't, allocate a new one and put into create list.
 	if( internalFindResource( Name, Type, Handle ) == BcFalse )
 	{
 		// Only request if we have a name.
-		if( Name.length() > 0 )
+		if( Name.isValid() )
 		{
 			// Create a file reader for resource (using full name!)
 			CsFile* pFile = createFileReader( getResourceFullName( Name, Type ) );
@@ -579,7 +579,7 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 				}
 				else
 				{
-					BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
+					BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", (*Name).c_str(), pFile->getName().c_str() );
 					
 					// Release (callback from load won't happen on failure).
 					Handle->release();
@@ -587,7 +587,7 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 			}
 			else
 			{
-				BcPrintf( "CsCore::requestResource: Failed to create %s (%s).\n", Name.c_str(), pFile->getName().c_str() );
+				BcPrintf( "CsCore::requestResource: Failed to create %s (%s).\n", (*Name).c_str(), pFile->getName().c_str() );
 			}
 		}
 		else
@@ -601,7 +601,7 @@ BcBool CsCore::internalRequestResource( const std::string& Name, const std::stri
 
 //////////////////////////////////////////////////////////////////////////
 // internalFindResource
-BcBool CsCore::internalFindResource( const std::string& Name, const std::string& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalFindResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 

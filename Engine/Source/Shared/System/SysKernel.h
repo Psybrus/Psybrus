@@ -15,6 +15,7 @@
 #define __SYSKERNEL_H__
 
 #include "BcGlobal.h"
+#include "BcName.h"
 #include "BcTimer.h"
 #include "BcThread.h"
 #include "SysSystem.h"
@@ -42,12 +43,12 @@ public:
 	/**
 	 * Register system.
 	 */
-	void						registerSystem( const std::string& Name, SysSystemCreator creator );
+	void						registerSystem( const BcName& Name, SysSystemCreator creator );
 	
 	/**
 	 * Start system.
 	 */
-	SysSystem*					startSystem( const std::string& Name );
+	SysSystem*					startSystem( const BcName& Name );
 	
 	/**
 	 * Stop kernel.
@@ -145,7 +146,7 @@ private:
 	typedef std::list< SysSystem* > TSystemList;
 	typedef TSystemList::iterator TSystemListIterator;
 	typedef TSystemList::reverse_iterator TSystemListReverseIterator;
-	typedef std::map< std::string, SysSystemCreator > TSystemCreatorMap;
+	typedef std::map< BcName, SysSystemCreator > TSystemCreatorMap;
 	typedef TSystemCreatorMap::iterator TSystemCreatorMapIterator;
 	
 	TSystemCreatorMap			SystemCreatorMap_;

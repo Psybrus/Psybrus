@@ -16,6 +16,7 @@
 
 #include "BcTypes.h"
 #include "BcDebug.h"
+#include "BcName.h"
 #include "BcString.h"
 #include "BcMemory.h"
 
@@ -128,13 +129,13 @@ public:
 	*	Set the state name.
 	*	@param StateName State name.
 	*/
-	void							name( const std::string& StateName );
+	void							name( BcName StateName );
 
 	/**
 	*	Get the state name.
 	*	@return State name.
 	*/
-	const std::string&				name() const;
+	BcName							name() const;
 
 	/**
 	*	Spawn a child state from this state. Blocking.
@@ -193,7 +194,7 @@ private:
 private:
 
 	//
-	std::string						StateName_;
+	BcName							StateName_;
 
 	// Once shot calls.
 	BcBool							bEnterOnce_;
@@ -221,12 +222,12 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline void SysState::name( const std::string& StateName )
+inline void SysState::name( BcName StateName )
 {
 	StateName_ = StateName;
 }
 
-inline const std::string& SysState::name() const
+inline BcName SysState::name() const
 {
 	return StateName_;
 }

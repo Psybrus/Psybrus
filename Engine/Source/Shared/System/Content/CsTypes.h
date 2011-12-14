@@ -16,6 +16,7 @@
 
 #include "BcTypes.h"
 #include "BcDebug.h"
+#include "BcName.h"
 
 #include "FsFile.h"
 #include "BcAtomic.h"

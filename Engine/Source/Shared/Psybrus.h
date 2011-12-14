@@ -28,6 +28,7 @@
 #include "BcMat4d.h"
 #include "BcMath.h"
 #include "BcMemory.h"
+#include "BcName.h"
 #include "BcPlane.h"
 #include "BcPortability.h"
 #include "BcQuat.h"
@@ -52,6 +53,8 @@
 #include "RsCore.h"
 #include "SsCore.h"
 
+#include "ScnComponent.h"
+#include "ScnEntity.h"
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
 #include "ScnRenderTarget.h"
@@ -62,6 +65,10 @@
 #include "ScnFont.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
+#include "ScnView.h"
+
+#include "SysEvents.h"
+#include "SysKernel.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Setup and initialisation.
