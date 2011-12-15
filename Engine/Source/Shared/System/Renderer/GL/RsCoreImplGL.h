@@ -35,8 +35,11 @@ public:
 	
 public:
 	virtual void			open();
+	void					open_threaded();
 	virtual void			update();
+	void					update_threaded();
 	virtual void			close();
+	void					close_threaded();
 	
 public:
 	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );

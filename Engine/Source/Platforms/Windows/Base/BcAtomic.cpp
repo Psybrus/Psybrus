@@ -22,7 +22,6 @@ void BcAtomic_UnitTest()
 	{																		\
 		BcBool TestResult = ( _test );										\
 		BcAssertMsg( _test, _msg ":" #_test );								\
-		if( ( _test ) == BcFalse ) return;							\
 		BcUnusedVar( TestResult );											\
 	}
 

@@ -15,7 +15,7 @@
 #define __SCNTEXTURE_H__
 
 #include "RsCore.h"
-#include "CsResourceRef.h"
+#include "CsResource.h"
 
 #include "ScnTypes.h"
 

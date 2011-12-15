@@ -1188,6 +1188,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Source\Shared\System\SysFence.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\System\SysFence.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Source\Shared\System\SysJob.cpp"
 						>
 					</File>

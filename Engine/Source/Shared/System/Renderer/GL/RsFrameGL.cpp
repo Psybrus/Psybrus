@@ -195,6 +195,9 @@ void RsFrameGL::render()
 	// 
 	BcAssertMsg( pCurrPrimitive_ == NULL, "RsFrameGL: Unterminated primitive." );
 
+	// Set default state.
+	RsCore::pImpl< RsCoreImplGL >()->getStateBlock()->setDefaultState();
+
 	// Sort all nodes.
 	sortNodes();
 

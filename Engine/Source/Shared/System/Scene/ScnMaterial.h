@@ -15,7 +15,7 @@
 #define __SCNMATERIAL_H__
 
 #include "RsCore.h"
-#include "CsResourceRef.h"
+#include "CsResource.h"
 
 #include "ScnTexture.h"
 #include "ScnShader.h"

@@ -14,8 +14,9 @@
 #ifndef __GATOPSTATE_H__
 #define __GATOPSTATE_H__
 
-#include "BcGlobal.h"
-#include "SysState.h"
+#include "Psybrus.h"
+
+#include "GaBaseGameState.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // GaTopState
@@ -35,8 +36,13 @@ public:
 	virtual eSysStateReturn			leave();
 	virtual void					leaveOnce();
 
-private:
+	void							addState( GaBaseGameState* pState );
+	void							removeState( GaBaseGameState* pState );
 
+private:
+	typedef std::list< GaBaseGameState* > TStateList;
+
+	TStateList						StateList_;
 };
 
 #endif

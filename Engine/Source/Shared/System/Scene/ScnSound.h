@@ -14,7 +14,7 @@
 #ifndef __ScnSound_H__
 #define __ScnSound_H__
 
-#include "CsResourceRef.h"
+#include "CsResource.h"
 
 #include "SsSample.h"
 

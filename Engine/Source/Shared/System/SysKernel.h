@@ -54,7 +54,7 @@ public:
 	 * Stop kernel.
 	 */
 	void						stop();
-		
+	
 	/**
 	 * Run kernel.
 	 * @param Threaded Do we want to run the kernel threaded?
@@ -65,11 +65,71 @@ public:
 	 * Tick kernel.
 	 */
 	void						tick();
+
+	/**
+	 * Get worker count.
+	 */
+	BcU32				workerCount() const;
 	
 	/**
-	 * Queue job.
+	 * Enqueue job.
 	 */
-	void						queueJob( SysJob* pJob, BcU32 WorkerMask = 0xffffffff );
+	void						enqueueJob( BcU32 WorkerMask, SysJob* pJob );
+
+	/**
+	 * Enqueue job.
+	 */
+	template< typename _Fn >
+	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall();
+		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+	}
+
+	/**
+	 * Enqueue job.
+	 */
+	template< typename _Fn, typename _P0 >
+	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0 );
+		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+	}
+
+	/**
+	 * Enqueue job.
+	 */
+	template< typename _Fn, typename _P0, typename _P1 >
+	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0, P1 );
+		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+	}
+	
+	/**
+	 * Enqueue job.
+	 */
+	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
+	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0, P1, P2 );
+		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+	}
+	
+	/**
+	 * Enqueue job.
+	 */
+	template< typename _Fn, typename _P0, typename _P1, typename _P2, typename _P3 >
+	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2, _P3 P3 )
+	{
+		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
+		pDelegateCall->deferCall( P0, P1, P2, P3 );
+		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+	}
 
 	/**
 	 * Enqueue callback.

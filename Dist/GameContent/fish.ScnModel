@@ -1,0 +1,6 @@
+{ 
+	"ScnModel" : {
+		"name"		: "fish",
+		"source"	: "GameContent/fish.md5mesh"
+	}
+}

@@ -195,7 +195,16 @@ protected:
 template< typename _Ty >
 BcForceInline void CsCore::registerResource()
 {
+	// Register.
 	internalRegisterResource( _Ty::StaticGetTypeString(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
+
+	// Request resource, if there is a failure, reimport if server.
+	if( !requestResource( "default", _Ty::Default ) )
+	{
+#ifdef PSY_SERVER
+		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetTypeString()).c_str(), _Ty::Default );
+#endif
+	}
 }
 
 template< typename _Ty >
