@@ -17,6 +17,7 @@
 #include "BcTypes.h"
 #include "BcDebug.h"
 #include "BcMutex.h"
+#include "BcDelegate.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
@@ -42,6 +43,23 @@ private:
 	BcU32				WorkerMask_;
 	
 };
+
+//////////////////////////////////////////////////////////////////////////
+// SysDelegateJob
+class SysDelegateJob:
+	public SysJob
+{
+public:
+	SysDelegateJob( BcDelegateCallBase* pDelegateCall );
+	virtual ~SysDelegateJob();
+	
+	virtual void execute();
+	
+private:
+	BcDelegateCallBase* pDelegateCall_;
+	
+};
+
 
 #endif
 

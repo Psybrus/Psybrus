@@ -67,23 +67,28 @@ void MainShared()
 	SysKernel::pImpl()->startSystem( "FsCore" );
 	SysKernel::pImpl()->startSystem( "CsCore" );
 
-	BcName Name( "testing_123" );
-
 	// Register scene resources.
-	CsCore::pImpl()->registerResource< ScnCanvas >();
-	CsCore::pImpl()->registerResource< ScnComponent >();
-	CsCore::pImpl()->registerResource< ScnEntity >();
-	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnFontInstance >();
-	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
-	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnModelInstance >();
 	CsCore::pImpl()->registerResource< ScnRenderTarget >();
+
 	CsCore::pImpl()->registerResource< ScnShader >();
-	CsCore::pImpl()->registerResource< ScnSound >();
-	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
+
+	CsCore::pImpl()->registerResource< ScnMaterial >();
+	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
+
+	CsCore::pImpl()->registerResource< ScnFont >();
+	CsCore::pImpl()->registerResource< ScnFontInstance >();
+
+	CsCore::pImpl()->registerResource< ScnModel >();
+	CsCore::pImpl()->registerResource< ScnModelInstance >();
+
+	CsCore::pImpl()->registerResource< ScnSound >();
+	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
+
+	CsCore::pImpl()->registerResource< ScnComponent >();
+	CsCore::pImpl()->registerResource< ScnEntity >();
+
+	CsCore::pImpl()->registerResource< ScnCanvas >();
 	CsCore::pImpl()->registerResource< ScnView >();
 }

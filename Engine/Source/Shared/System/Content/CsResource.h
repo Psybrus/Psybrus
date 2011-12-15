@@ -17,6 +17,7 @@
 #include "CsTypes.h"
 #include "CsFile.h"
 #include "CsProperty.h"
+#include "CsResourceRef.h"
 
 #include "BcAtomic.h"
 #include "BcAtomicMutex.h"
@@ -32,18 +33,20 @@
 
 #define BASE_DECLARE_RESOURCE( _Type )											\
 	public:																		\
-	static const BcName& StaticGetTypeString();							\
+	static CsResourceRef< class _Type > Default;								\
+	static const BcName& StaticGetTypeString();									\
 	static BcHash StaticGetTypeHash();											\
 	static void StaticPropertyTable( CsPropertyTable& PropertyTable );			\
-	virtual const BcName& getTypeString();									\
+	virtual const BcName& getTypeString();										\
 	virtual BcHash getTypeHash();												\
-	virtual BcBool isType( const BcName& Type );							\
+	virtual BcBool isType( const BcName& Type );								\
 	virtual BcBool isTypeOf( const BcName& Type );							
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
-	const BcName& _Type::StaticGetTypeString()								\
+	CsResourceRef< class _Type > _Type::Default;								\
+	const BcName& _Type::StaticGetTypeString()									\
 	{																			\
-		static BcName TypeString( #_Type );								\
+		static BcName TypeString( #_Type );										\
 		return TypeString;														\
 	}																			\
 																				\

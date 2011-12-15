@@ -60,6 +60,19 @@ RsCoreImplGL::~RsCoreImplGL()
 //virtual
 void RsCoreImplGL::open()
 {
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::open_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
+	// Wait for the render thread to complete.
+	SysFence Fence;
+	Fence.queue( RsCore::WORKER_MASK );
+	Fence.wait();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// open_threaded
+void RsCoreImplGL::open_threaded()
+{
 #if PLATFORM_OSX
 	// Do the context switch.
 	OsViewOSX_Interface::MakeContextCurrent();
@@ -175,19 +188,34 @@ void RsCoreImplGL::open()
 //virtual
 void RsCoreImplGL::update()
 {
-	// Set default state.
-	pStateBlock_->setDefaultState();
-	
-	// Execute command buffer.
-	CommandBuffer_.execute();
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::update_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+}
 
-	glFlush();
+//////////////////////////////////////////////////////////////////////////
+// update_threaded
+void RsCoreImplGL::update_threaded()
+{
+	// ZOMG DO NOTHING! YAY!
 }
 
 //////////////////////////////////////////////////////////////////////////
 // close
 //virtual
 void RsCoreImplGL::close()
+{
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::close_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
+	// Wait for the render thread to complete.
+	SysFence Fence;
+	Fence.queue( RsCore::WORKER_MASK );
+	Fence.wait();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// close_threaded
+void RsCoreImplGL::close_threaded()
 {
 	// Free the state block.
 	delete pStateBlock_;
@@ -197,7 +225,6 @@ void RsCoreImplGL::close()
 	wglMakeCurrent( (HDC)GWindowDC_, NULL );
 	wglDeleteContext( (HGLRC)GWindowRC_ );
 #endif
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -288,16 +315,17 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
 	pResource->preDestroy();
 	
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::destroy >( pResource ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::destroy >( pResource ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::update >( pResource ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::update >( pResource ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -313,8 +341,8 @@ void RsCoreImplGL::getResolution( BcU32& W, BcU32& H )
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsResource, &RsResource::create >( pResource ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::create >( pResource ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,8 +360,8 @@ RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 
 // queueFrame
 void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
- 	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -15,7 +15,7 @@
 #define __ScnCanvas_H__
 
 #include "RsCore.h"
-#include "CsResourceRef.h"
+#include "CsResource.h"
 
 #include "ScnTypes.h"
 #include "ScnMaterial.h"

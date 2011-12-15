@@ -51,8 +51,8 @@ SysJobQueue::~SysJobQueue()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// queueJob
-void SysJobQueue::queueJob( SysJob* pJob, BcU32 WorkerMask )
+// enqueueJob
+void SysJobQueue::enqueueJob( SysJob* pJob, BcU32 WorkerMask )
 {
 	BcAssertMsg( Active_ == BcTrue, "SysJobQueue: Trying to queue a job when inactive." );
 	
@@ -109,6 +109,13 @@ BcU32 SysJobQueue::workerUsageMask() const
 	}
 	
 	return UsageMask;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// workerCount
+BcU32 SysJobQueue::workerCount() const
+{
+	return NoofWorkers_;
 }
 
 //////////////////////////////////////////////////////////////////////////

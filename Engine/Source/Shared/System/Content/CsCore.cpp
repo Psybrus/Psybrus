@@ -583,16 +583,19 @@ BcBool CsCore::internalRequestResource( const BcName& Name, const BcName& Type, 
 					
 					// Release (callback from load won't happen on failure).
 					Handle->release();
+					Handle = NULL;
 				}
 			}
 			else
 			{
 				BcPrintf( "CsCore::requestResource: Failed to create %s (%s).\n", (*Name).c_str(), pFile->getName().c_str() );
+				Handle = NULL;
 			}
 		}
 		else
 		{
 			BcPrintf( "CsCore::requestResource: Resource name invalid.\n" );
+			Handle = NULL;
 		}
 	}
 	

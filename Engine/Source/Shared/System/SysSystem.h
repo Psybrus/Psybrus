@@ -22,6 +22,7 @@
 #include "EvtPublisher.h"
 
 #include "SysEvents.h"
+#include "SysFence.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

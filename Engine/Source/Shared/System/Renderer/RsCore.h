@@ -53,6 +53,9 @@ class RsCore:
 	public SysSystem
 {
 public:
+	static const BcU32 WORKER_MASK = 0x1;
+
+public:
 	virtual ~RsCore(){};
 	
 public:

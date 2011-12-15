@@ -15,7 +15,7 @@
 #define __SCNSHADER_H__
 
 #include "RsCore.h"
-#include "CsResourceRef.h"
+#include "CsResource.h"
 
 #include "ScnTexture.h"
 

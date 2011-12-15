@@ -3,7 +3,7 @@
 		"name"		: "default",
 
 		// Shader
-		"shader"	: "EngineContent/default.shader",
+		"shader"	: "EngineContent/default.ScnShader",
 
 		// State
 		"state"		: {

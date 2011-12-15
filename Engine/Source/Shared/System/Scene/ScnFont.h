@@ -14,7 +14,7 @@
 #ifndef __ScnFont_H__
 #define __ScnFont_H__
 
-#include "CsResourceRef.h"
+#include "CsResource.h"
 
 #include "ScnMaterial.h"
 #include "ScnCanvas.h"

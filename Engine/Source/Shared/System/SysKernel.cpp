@@ -209,10 +209,17 @@ void SysKernel::tick()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addSystems
-void SysKernel::queueJob( SysJob* pJob, BcU32 WorkerMask )
+// workerCount
+BcU32 SysKernel::workerCount() const
 {
-	JobQueue_.queueJob( pJob, WorkerMask );
+	return JobQueue_.workerCount();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addSystems
+void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
+{
+	JobQueue_.enqueueJob( pJob, WorkerMask );
 }
 
 //////////////////////////////////////////////////////////////////////////

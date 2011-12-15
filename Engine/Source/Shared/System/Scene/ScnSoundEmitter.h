@@ -14,7 +14,7 @@
 #ifndef __ScnSoundEmitter_H__
 #define __ScnSoundEmitter_H__
 
-#include "CsResourceRef.h"
+#include "CsResource.h"
 #include "ScnSound.h"
 
 #include "SsChannel.h"

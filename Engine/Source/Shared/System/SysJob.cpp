@@ -40,3 +40,25 @@ void SysJob::internalExecute()
 	delete this;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+SysDelegateJob::SysDelegateJob( BcDelegateCallBase* pDelegateCall ):
+	pDelegateCall_( pDelegateCall )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+SysDelegateJob::~SysDelegateJob()
+{
+	delete pDelegateCall_;
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// execute
+//virtual
+void SysDelegateJob::execute()
+{
+	(*pDelegateCall_)();
+}

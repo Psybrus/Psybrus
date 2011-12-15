@@ -69,6 +69,7 @@
 
 #include "SysEvents.h"
 #include "SysKernel.h"
+#include "SysState.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Setup and initialisation.
