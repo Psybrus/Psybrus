@@ -13,6 +13,14 @@
 
 #include "MainShared.h"
 
+#ifdef PSY_DEBUG
+BcU32 GResolutionWidth = 1024 / 2;
+BcU32 GResolutionHeight = 768 / 2;
+#else
+BcU32 GResolutionWidth = 1024;
+BcU32 GResolutionHeight = 768;
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
 void MainUnitTests()

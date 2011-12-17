@@ -285,4 +285,11 @@ inline BcU32 BcBitsSet( BcU32 Value )
     return  ( Value & 0x0000FFFFU ) + ( ( Value & 0xFFFF0000U ) >> 16 );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// BcSmoothStep
+inline BcReal BcSmoothStep( BcReal T )
+{
+	return T * T * ( 3 - 2 * T );
+}
+
 #endif

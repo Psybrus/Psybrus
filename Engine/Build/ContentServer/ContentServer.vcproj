@@ -137,10 +137,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenAL32.lib OpenGL32.lib"
+				AdditionalDependencies="wxbase28d.lib wxmsw28d_core.lib wxcode_msw28d_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="&quot;../../../External/wxWidgets-2.8.12/lib/vc_lib&quot;;../../../External/propgrid/lib/vc_lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"

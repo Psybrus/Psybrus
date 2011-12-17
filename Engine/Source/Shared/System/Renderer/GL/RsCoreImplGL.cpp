@@ -35,6 +35,9 @@ extern BcHandle GWindowDC_;
 extern BcHandle GWindowRC_;
 #endif
 
+// NEILO HACK.
+extern BcU32 GResolutionWidth;
+extern BcU32 GResolutionHeight;
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -161,8 +164,8 @@ void RsCoreImplGL::open_threaded()
 	// NOTE: GL renderer uses SDL in this implementation.
 	// TODO: Move into a higher level so this GL renderer
 	//       can be used on any other platform.
-	W_ = 1280;
-	H_ = 720;
+	W_ = GResolutionWidth;
+	H_ = GResolutionHeight;
 	
 	// Setup default viewport.
 	glViewport( 0, 0, W_, H_ );
