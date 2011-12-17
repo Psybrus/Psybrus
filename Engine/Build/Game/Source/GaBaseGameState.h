@@ -25,10 +25,17 @@ public:
 	GaBaseGameState();
 	virtual ~GaBaseGameState();
 
+	virtual void enterOnce();
+	virtual eSysStateReturn enter();
+
 	/**
 	 * Perform rendering for state.
 	 */
-	virtual void render( RsFrame* pFrame );
+	virtual void				render( RsFrame* pFrame );
+
+protected:
+	ScnCanvasRef				Canvas_;
+	ScnMaterialInstanceRef		DefaultMaterialInstance_;
 
 private:
 
