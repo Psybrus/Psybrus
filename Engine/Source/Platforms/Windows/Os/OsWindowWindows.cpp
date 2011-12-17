@@ -13,6 +13,8 @@
 
 #include "OsWindowWindows.h"
 
+#include "OsCore.h"
+
 #include "BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,69 +168,104 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 
 	case WM_KEYDOWN:
 		{
-			//BcU32 KeyCode = static_cast< BcU32 >( wParam ) & 0xff;
-			//pOsCoreImpl->setKey( KeyCode, BcTrue );
-
-			//if( KeyCode == VK_F11 )
-			//{
-			//	pOsCoreImpl->reinitDisplay();
-			//}
+			OsEventInputKeyboard Event;
+			Event.DeviceID_ = 0;
+			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
+			OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_KEYUP:
 		{
-			//BcU32 KeyCode = static_cast< BcU32 >( wParam ) & 0xff;
-			//pOsCoreImpl->setKey( KeyCode, BcFalse );
+			OsEventInputKeyboard Event;
+			Event.DeviceID_ = 0;
+			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
+			OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event );
 			return 0;
 		}
 		break;
 
 	case WM_MOUSEMOVE:
 		{
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event );
 			return 0;
 		}
 		break;
 
 	case WM_LBUTTONDOWN:
 		{
-			//pOsCoreImpl->setMouseButton( 0, BcTrue );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_LBUTTONUP:
 		{
-			//pOsCoreImpl->setMouseButton( 0, BcFalse );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
 
 	case WM_RBUTTONDOWN:
 		{
-			//pOsCoreImpl->setMouseButton( 1, BcTrue );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 1;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_RBUTTONUP:
 		{
-			//pOsCoreImpl->setMouseButton( 1, BcFalse );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 1;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
 
 	case WM_MBUTTONDOWN:
 		{
-			//pOsCoreImpl->setMouseButton( 2, BcTrue );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 2;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_MBUTTONUP:
 		{
-			//pOsCoreImpl->setMouseButton( 2, BcFalse );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 2;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;

@@ -1,0 +1,90 @@
+/**************************************************************************
+*
+* File:		GaMainGameState.cpp
+* Author: 	Neil Richardson 
+* Ver/Date:	
+* Description:
+*		Main game state.
+*		
+*
+*
+* 
+**************************************************************************/
+
+#include "GaMainGameState.h"
+
+#include "GaPlayer.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// Ctor
+GaMainGameState::GaMainGameState()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+GaMainGameState::~GaMainGameState()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// enterOnce
+//virtual
+void GaMainGameState::enterOnce()
+{
+	GaBaseGameState::enterOnce();
+
+	pPlayer_ = new GaPlayer();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// enter
+//virtual
+eSysStateReturn GaMainGameState::enter()
+{
+	return GaBaseGameState::enter();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// preMain
+//virtual
+void GaMainGameState::preMain()
+{
+	
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// main
+//virtual
+eSysStateReturn GaMainGameState::main()
+{
+	return sysSR_CONTINUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// leave
+//virtual
+eSysStateReturn GaMainGameState::leave()
+{
+	return sysSR_FINISHED;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// leaveOnce
+//virtual
+void GaMainGameState::leaveOnce()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// render
+//virtual
+void GaMainGameState::render( RsFrame* pFrame )
+{
+	GaBaseGameState::render( pFrame );
+}
+

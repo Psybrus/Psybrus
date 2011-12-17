@@ -42,6 +42,8 @@ public:
 private:
 	typedef std::list< GaBaseGameState* > TStateList;
 
+	ScnCanvasRef					Canvas_;
+
 	TStateList						StateList_;
 };
 

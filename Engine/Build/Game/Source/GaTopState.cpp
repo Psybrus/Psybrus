@@ -13,6 +13,8 @@
 
 #include "GaTopState.h"
 
+#include "GaMainGameState.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 GaTopState::GaTopState()
@@ -30,20 +32,25 @@ GaTopState::~GaTopState()
 // enterOnce
 void GaTopState::enterOnce()
 {
-	ScnMaterialRef MaterialRef;
-
-	if( CsCore::pImpl()->importResource( "EngineContent/default.material", MaterialRef ) )
-	{
-		//
-		int a = 0; ++a;
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // enter
 eSysStateReturn GaTopState::enter()
 {
-	return sysSR_FINISHED;
+	// Wait for default material to be ready.
+	if( ScnMaterial::Default->isReady() == BcTrue )
+	{
+		// Create default material instance.
+		ScnMaterial::Default->createInstance( "DefaultMaterialInstance", ScnMaterialInstance::Default, BcErrorCode );
+
+		// Spawn main game state.
+		spawnSubState( 0, new GaMainGameState() );
+
+		return sysSR_FINISHED;
+	}
+
+	return sysSR_CONTINUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +71,10 @@ eSysStateReturn GaTopState::main()
 	{
 		GaBaseGameState* pState = (*Iter);
 
-		pState->render( pFrame );
+		if( pState->internalStage() == sysBS_MAIN )
+		{
+			pState->render( pFrame );
+		}
 	}
 	
 	// Queue frame for render.
