@@ -40,8 +40,8 @@ void GaMainGameState::enterOnce()
 
 	Projection_.orthoProjection( -320.0f, 320.0f, -240.0f, 240.0f, -1.0f, 1.0f );
 
-	pPlayer_ = new GaPlayerEntity( Projection_ );
-	pSwarm_ = new GaSwarmEntity( Projection_ );
+	spawnEntity( new GaPlayerEntity( Projection_ ) );
+	spawnEntity( new GaSwarmEntity( Projection_ ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,8 +65,34 @@ void GaMainGameState::preMain()
 //virtual
 eSysStateReturn GaMainGameState::main()
 {
-	pPlayer_->update( 1.0f / 60.0f );
+	BcReal Tick = 1.0f / 60.0f;
 
+	// Do spawn/kill entities.
+	for( BcU32 Idx = 0; Idx < SpawnEntities_.size(); ++Idx )
+	{
+		Entities_.push_back( SpawnEntities_[ Idx ] );
+	}
+	SpawnEntities_.clear();
+
+	for( BcU32 Idx = 0; Idx < KillEntities_.size(); ++Idx )
+	{
+		for( TEntityListIterator It( Entities_.begin() ); It != Entities_.end(); ++It )
+		{
+			if( (*It) == KillEntities_[ Idx ] )
+			{
+				Entities_.erase( It );
+				break;
+			}
+		}
+	}
+	SpawnEntities_.clear();
+
+	// Update entities.
+	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
+	{
+		GaEntity* pEntity = Entities_[ Idx ];
+		pEntity->update( Tick );
+	}
 
 	return sysSR_CONTINUE;
 }
@@ -100,10 +126,29 @@ void GaMainGameState::render( RsFrame* pFrame )
 	Canvas_->clear();
 	Canvas_->pushMatrix( Projection_ );
 
-	// Render player.
-	pPlayer_->render( Canvas_ );
+	// Render entities.
+	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
+	{
+		GaEntity* pEntity = Entities_[ Idx ];
+		pEntity->render( Canvas_ );
+	}
 
 	// Base render.
 	GaBaseGameState::render( pFrame );
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// spawnEntity
+void GaMainGameState::spawnEntity( GaEntity* pEntity )
+{
+	SpawnEntities_.push_back( pEntity );
+	pEntity->setParent( this );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// killEntity
+void GaMainGameState::killEntity( GaEntity* pEntity )
+{
+	KillEntities_.push_back( pEntity );
+	pEntity->setParent( this );
+}

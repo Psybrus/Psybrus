@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 GaPlayerEntity::GaPlayerEntity( const BcMat4d& Projection ):
-	Body_( BcVec2d( 0.0f, 0.0f ), 128.0f, 256.0f )
+	pBody_( new GaPhysicsBody( BcVec2d( 0.0f, 0.0f ), 128.0f, 512.0f ) )
 {
 	//
 	Projection_ = Projection;
@@ -46,11 +46,13 @@ GaPlayerEntity::~GaPlayerEntity()
 // update
 void GaPlayerEntity::update( BcReal Tick )
 {
-	// Tell body to target position.
-	Body_.target( TargetPosition_, 256.0f );
+	// Tell the body to target a position, and wander around a little.
+	pBody_->reset();
+	pBody_->target( TargetPosition_, 256.0f );
+	pBody_->wander( 8.0f );
 
 	// Update body.
-	Position_ = Body_.update( Tick );
+	Position_ = pBody_->update( Tick );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,12 +61,15 @@ void GaPlayerEntity::render( ScnCanvasRef Canvas )
 {
 	BcVec2d HalfSize( 16.0f, 16.0f );
 	BcVec2d QuarterSize( 8.0f, 8.0f );
-	Canvas->drawBox( Position_ - HalfSize, Position_ + HalfSize, RsColour::GREEN, 0 );
+	BcVec2d Size( 32.0f, 32.0f );
+	Canvas->drawSpriteCentered( Position_, Size, 0, RsColour::GREEN, 0 );
 
 	// DEBUG DATA.
-	Canvas->drawLine( Position_, Position_ + Body_.Velocity_, RsColour::WHITE, 1 );
-	Canvas->drawLine( Position_, Position_ + Body_.Acceleration_, RsColour::RED, 1 );
+	/*
+	Canvas->drawLine( Position_, Position_ + pBody_->Velocity_, RsColour::WHITE, 1 );
+	Canvas->drawLine( Position_, Position_ + pBody_->Acceleration_, RsColour::RED, 1 );
 	Canvas->drawBox( TargetPosition_ - QuarterSize, TargetPosition_ + QuarterSize, RsColour::RED, 0 );
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,14 +83,17 @@ eEvtReturn GaPlayerEntity::onMouseMove( EvtID ID, const OsEventInputMouse& Event
 // onMouseDown
 eEvtReturn GaPlayerEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
 {
-	BcVec2d HalfResolution = BcVec2d( GResolutionWidth / 2, GResolutionHeight / 2 );
-	BcVec2d CursorPosition = BcVec2d( Event.MouseX_, GResolutionHeight - Event.MouseY_ );
-	BcVec2d ScreenPosition = ( CursorPosition - HalfResolution ) / HalfResolution;
+	if( Event.ButtonCode_ == 0 )
+	{
+		BcVec2d HalfResolution = BcVec2d( GResolutionWidth / 2, GResolutionHeight / 2 );
+		BcVec2d CursorPosition = BcVec2d( Event.MouseX_, GResolutionHeight - Event.MouseY_ );
+		BcVec2d ScreenPosition = ( CursorPosition - HalfResolution ) / HalfResolution;
 
-	BcMat4d InverseProjection( Projection_ );
-	InverseProjection.inverse();
+		BcMat4d InverseProjection( Projection_ );
+		InverseProjection.inverse();
 
-	TargetPosition_ = ScreenPosition * InverseProjection;
+		TargetPosition_ = ScreenPosition * InverseProjection;
+	}
 
 	return evtRET_PASS;
 }

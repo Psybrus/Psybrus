@@ -17,6 +17,10 @@
 #include "Psybrus.h"
 
 ////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+class GaMainGameState;
+
+////////////////////////////////////////////////////////////////////////////////
 // GaEntity
 class GaEntity
 {
@@ -27,7 +31,12 @@ public:
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasRef Canvas );
 
+	BcForceInline void setParent( GaMainGameState* pParent ){ pParent_ = pParent; }
+	BcForceInline GaMainGameState* pParent(){ return pParent_; }
+	BcForceInline const BcVec2d& getPosition() const{ return Position_; };
+
 protected:
+	GaMainGameState* pParent_;
 	BcMat4d Projection_;
 	BcVec2d Position_;
 
