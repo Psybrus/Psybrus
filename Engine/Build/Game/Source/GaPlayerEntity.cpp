@@ -16,14 +16,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 GaPlayerEntity::GaPlayerEntity( const BcMat4d& Projection ):
-	StartPosition_( 0.0f, 0.0f ),
-	EndPosition_( 0.0f, 0.0f ),
-	LerpDelta_( 1.0f ),
-	MovementSpeed_( 128.0f )
+	Body_( BcVec2d( 0.0f, 0.0f ), 128.0f, 256.0f )
 {
 	//
 	Projection_ = Projection;
 	Position_ = BcVec2d( 0.0f, 0.0f );
+	TargetPosition_ = BcVec2d( 0.0f, 0.0f );
 
 	// Bind input events.
 	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseMove >( this );
@@ -48,13 +46,11 @@ GaPlayerEntity::~GaPlayerEntity()
 // update
 void GaPlayerEntity::update( BcReal Tick )
 {
-	if( LerpDelta_ < 1.0f )
-	{
-		BcReal LerpAmount = ( MovementSpeed_ / ( EndPosition_ - StartPosition_ ).magnitude() ) * Tick;
-		LerpDelta_ = BcMin( LerpDelta_ + LerpAmount, 1.0f );
+	// Tell body to target position.
+	Body_.target( TargetPosition_, 256.0f );
 
-		Position_.lerp( StartPosition_, EndPosition_, LerpDelta_ );
-	}
+	// Update body.
+	Position_ = Body_.update( Tick );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +58,13 @@ void GaPlayerEntity::update( BcReal Tick )
 void GaPlayerEntity::render( ScnCanvasRef Canvas )
 {
 	BcVec2d HalfSize( 16.0f, 16.0f );
+	BcVec2d QuarterSize( 8.0f, 8.0f );
 	Canvas->drawBox( Position_ - HalfSize, Position_ + HalfSize, RsColour::GREEN, 0 );
+
+	// DEBUG DATA.
+	Canvas->drawLine( Position_, Position_ + Body_.Velocity_, RsColour::WHITE, 1 );
+	Canvas->drawLine( Position_, Position_ + Body_.Acceleration_, RsColour::RED, 1 );
+	Canvas->drawBox( TargetPosition_ - QuarterSize, TargetPosition_ + QuarterSize, RsColour::RED, 0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -83,9 +85,7 @@ eEvtReturn GaPlayerEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event
 	BcMat4d InverseProjection( Projection_ );
 	InverseProjection.inverse();
 
-	StartPosition_ = Position_;
-	EndPosition_ = ScreenPosition * InverseProjection;
-	LerpDelta_ = 0.0f;
+	TargetPosition_ = ScreenPosition * InverseProjection;
 
 	return evtRET_PASS;
 }
