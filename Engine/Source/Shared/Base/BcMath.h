@@ -292,4 +292,12 @@ inline BcReal BcSmoothStep( BcReal T )
 	return T * T * ( 3 - 2 * T );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// BcSquaredKeepSign
+inline BcReal BcSquaredKeepSign( BcReal T )
+{
+	return ( T * T ) * ( T > 0.0f ? 1.0f : -1.0f );
+}
+
+
 #endif

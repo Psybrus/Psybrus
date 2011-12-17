@@ -187,10 +187,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Source\GaBoid.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Source\GaEntity.cpp"
 				>
 			</File>
@@ -204,6 +200,14 @@
 			</File>
 			<File
 				RelativePath=".\Source\GaMainGameState.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\GaPhysicsBody.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\GaPhysicsBody.h"
 				>
 			</File>
 			<File

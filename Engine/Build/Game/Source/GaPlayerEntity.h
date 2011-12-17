@@ -18,6 +18,8 @@
 
 #include "GaEntity.h"
 
+#include "GaPhysicsBody.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // GaPlayerEntity
 class GaPlayerEntity:
@@ -36,6 +38,8 @@ public:
 
 private:
 	BcMat4d Projection_;
+
+	GaPhysicsBody Body_;
 
 	// Movement control.
 	BcVec2d TargetPosition_;
