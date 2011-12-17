@@ -59,13 +59,6 @@ eSysStateReturn GaBaseGameState::enter()
 // render
 void GaBaseGameState::render( RsFrame* pFrame )
 {
-	RsViewport Viewport( 0, 0, 640, 480 );
-
-	pFrame->setRenderTarget( NULL );
-	pFrame->setViewport( Viewport );
-
-	Canvas_->clear();
-	Canvas_->drawLine( BcVec2d( -1.0f, -1.0f ), BcVec2d( 1.0f, 1.0f ), RsColour::WHITE, 0 );
 
 	Canvas_->render( pFrame, RsRenderSort( 0 ) );
 }

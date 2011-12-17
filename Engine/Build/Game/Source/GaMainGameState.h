@@ -18,7 +18,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-class GaPlayer;
+class GaPlayerEntity;
+class GaSwarmEntity;
 
 ////////////////////////////////////////////////////////////////////////////////
 // GaMainGameState
@@ -39,7 +40,10 @@ public:
 	virtual void render( RsFrame* pFrame );
 
 private:
-	GaPlayer* pPlayer_;
+	GaPlayerEntity* pPlayer_;
+	GaSwarmEntity* pSwarm_;
+
+	BcMat4d Projection_;
 
 };
 
