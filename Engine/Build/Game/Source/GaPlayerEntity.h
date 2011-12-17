@@ -39,7 +39,7 @@ public:
 private:
 	BcMat4d Projection_;
 
-	GaPhysicsBody Body_;
+	GaPhysicsBody* pBody_;
 
 	// Movement control.
 	BcVec2d TargetPosition_;

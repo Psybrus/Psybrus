@@ -1,48 +1,37 @@
 /**************************************************************************
 *
-* File:		GaSwarmEntity.h
+* File:		GaFoodEntity.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Swarm.
+*		Food.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GASWAWM_H__
-#define __GASWAWM_H__
+#ifndef __GAFOODENTITY_H__
+#define __GAFOODENTITY_H__
 
 #include "Psybrus.h"
 
 #include "GaEntity.h"
 
-#include "GaPhysicsBody.h"
-
 ////////////////////////////////////////////////////////////////////////////////
-// GaSwarmEntity
-class GaSwarmEntity:
+// GaFoodEntity
+class GaFoodEntity:
 	public GaEntity
 {
 public:
-	GaSwarmEntity( const BcMat4d& Projection );
-	virtual ~GaSwarmEntity();
-
-	GaPhysicsBody* findNearestBody( GaPhysicsBody* pSource );
-	BcVec2d averageVelocity() const;
-
-	eEvtReturn onMouseDown( EvtID ID, const OsEventInputMouse& Event );
+	GaFoodEntity( const BcMat4d& Projection );
+	virtual ~GaFoodEntity();
 
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasRef Canvas );
 	
 private:
 	BcVec2d Position_;
-
-	std::vector< GaPhysicsBody* > Bodies_;
-	
-	
 };
 
 #endif

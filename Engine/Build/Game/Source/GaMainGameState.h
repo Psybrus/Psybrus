@@ -18,8 +18,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-class GaPlayerEntity;
-class GaSwarmEntity;
+class GaEntity;
 
 ////////////////////////////////////////////////////////////////////////////////
 // GaMainGameState
@@ -39,9 +38,49 @@ public:
 	
 	virtual void render( RsFrame* pFrame );
 
+	template< class _Ty >
+	BcU32 noofEntitiesOfType()
+	{
+		BcU32 NoofEntities = 0;
+		for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
+		{
+			if( dynamic_cast< _Ty* >( Entities_[ Idx ] ) )
+			{
+				++NoofEntities;
+			}
+		}
+	}
+
+	template< class _Ty >
+	_Ty* getEntity( BcU32 Index )
+	{
+		BcU32 NoofEntities = 0;
+		for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
+		{
+			if( dynamic_cast< _Ty* >( Entities_[ Idx ] ) )
+			{
+				if( NoofEntities ++ == Idx )
+				{
+					return dynamic_cast< _Ty* >( Entities_[ Idx ] );
+				}
+			}
+		}
+
+		return NULL;
+	}
+
+	void spawnEntity( GaEntity* pEntity );
+	void killEntity( GaEntity* pEntity );
+
+
 private:
-	GaPlayerEntity* pPlayer_;
-	GaSwarmEntity* pSwarm_;
+	typedef std::vector< GaEntity* > TEntityList;
+	typedef TEntityList::iterator TEntityListIterator;
+
+	TEntityList Entities_;
+
+	TEntityList SpawnEntities_;
+	TEntityList KillEntities_;
 
 	BcMat4d Projection_;
 

@@ -195,6 +195,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Source\GaFoodEntity.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\GaFoodEntity.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\GaMainGameState.cpp"
 				>
 			</File>
