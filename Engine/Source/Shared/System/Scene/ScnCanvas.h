@@ -149,6 +149,7 @@ public:
 	 * @param Layer Layer.
 	 */
 	void								drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite centered.
@@ -169,6 +170,7 @@ public:
 	 * @param Layer Layer.
 	 */
 	void								drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear canvas.

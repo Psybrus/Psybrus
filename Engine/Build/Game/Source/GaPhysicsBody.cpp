@@ -89,6 +89,13 @@ void GaPhysicsBody::wander( BcReal Amount )
 void GaPhysicsBody::accelerate( const BcVec2d& Amount )
 {
 	Acceleration_ += Amount;
+
+	// Check.
+	BcAssert( BcCheckFloat( Position_ ) );
+	BcAssert( BcCheckFloat( Velocity_ ) );
+	BcAssert( BcCheckFloat( Acceleration_ ) );
+
+	BcAssert( ( Velocity_.magnitude() * 8.0f / 60.0f ) < 100.0f );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,12 +106,22 @@ void GaPhysicsBody::enclose( const BcVec2d& Min, const BcVec2d& Max, BcReal Repe
 	avoid( BcVec2d( Max.x(), Position_.y() ), RepelDistance, Multiplier );
 	avoid( BcVec2d( Position_.x(), Min.y() ), RepelDistance, Multiplier );
 	avoid( BcVec2d( Position_.x(), Max.y() ), RepelDistance, Multiplier );
+
+	// Check.
+	BcAssert( BcCheckFloat( Position_ ) );
+	BcAssert( BcCheckFloat( Velocity_ ) );
+	BcAssert( BcCheckFloat( Acceleration_ ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
 const BcVec2d& GaPhysicsBody::update( BcReal Tick )
 {
+	// Check.
+	BcAssert( BcCheckFloat( Position_ ) );
+	BcAssert( BcCheckFloat( Velocity_ ) );
+	BcAssert( BcCheckFloat( Acceleration_ ) );
+
 	// Apply wander.
 	WanderTicker_ += Tick;
 
@@ -121,9 +138,16 @@ const BcVec2d& GaPhysicsBody::update( BcReal Tick )
 	// Clamp to max before updating.
 	clamp();
 
+	BcVec2d Position = Position_;
+
 	// Update physics.
 	Position_ += Velocity_ * Tick;
 	Velocity_ += Acceleration_ * Tick;
+
+	// ARGH.
+	BcAssert( Tick < 8.0f / 60.0f );
+	BcAssert( ( Position_ - Position ).magnitude() < 100.0f );
+	BcAssert( ( Velocity_.magnitude() * 8.0f / 60.0f ) < 100.0f );
 
 	// 
 	return Position_;
@@ -137,6 +161,11 @@ void GaPhysicsBody::clamp()
 	BcReal AccelerationMag = Acceleration_.magnitude();
 	Velocity_ = VelocityMag > 0.0f ? ( Velocity_ / VelocityMag ) * BcMin( VelocityMag, MaxVelocity_ ) : BcVec2d( 0.0f, 0.0f );
 	Acceleration_ = AccelerationMag > 0.0f ? ( Acceleration_ / AccelerationMag ) * BcMin( AccelerationMag, MaxAcceleration_ ) : BcVec2d( 0.0f, 0.0f );
+
+	// Check.
+	BcAssert( BcCheckFloat( Position_ ) );
+	BcAssert( BcCheckFloat( Velocity_ ) );
+	BcAssert( BcCheckFloat( Acceleration_ ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

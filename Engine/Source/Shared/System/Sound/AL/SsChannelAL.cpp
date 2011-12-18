@@ -243,8 +243,11 @@ void SsChannelAL::updateParams()
 {
 	// Setup source parameters.
 	alSourcef( ALSource_, AL_GAIN, Gain_ );
+	alSourcef( ALSource_, AL_PITCH, Pitch_ );
 	alSource3f( ALSource_, AL_POSITION, Position_.x(), Position_.y(), Position_.z() );
 	alSourcei( ALSource_, AL_LOOPING, 0 );
+
+	alSourcef( ALSource_, AL_REFERENCE_DISTANCE, 250.0f );
 
 #ifdef EX_AL_EFX
 	// Final filter parameters.

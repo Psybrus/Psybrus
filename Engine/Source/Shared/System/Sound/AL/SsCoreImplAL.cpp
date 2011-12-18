@@ -175,9 +175,9 @@ void SsCoreImplAL::update()
 			ListenerLookAt_.x(),
 			ListenerLookAt_.y(),
 			ListenerLookAt_.z(),
-			ListenerUp_.x(),
-			ListenerUp_.y(),
-			ListenerUp_.z()
+			-ListenerUp_.x(),
+			-ListenerUp_.y(),
+			-ListenerUp_.z()
 		};
 
 		alListenerfv( AL_POSITION, &Position[ 0 ] );
@@ -204,7 +204,7 @@ void SsCoreImplAL::update()
 void SsCoreImplAL::close()
 {
 	BcAssert( InternalResourceCount_ == 0 );
-	BcAssertMsg( UsedChannels_.size() == 0, "SsCoreImplAL: All channels must be free." );
+	BcAssertMsg( UsedChannels_.size() == 0, "SsCore ImplAL: All channels must be free." );
 	
 	// Destroy channels.
 	for( TChannelListIterator Iter( FreeChannels_.begin() ); Iter != FreeChannels_.end(); ++Iter )

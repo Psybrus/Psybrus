@@ -20,13 +20,15 @@
 
 #include "GaPhysicsBody.h"
 
+#include "GaBunnyRenderer.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // GaPlayerEntity
 class GaPlayerEntity:
 	public GaEntity
 {
 public:
-	GaPlayerEntity( const BcMat4d& Projection );
+	GaPlayerEntity();
 	virtual ~GaPlayerEntity();
 
 	virtual void update( BcReal Tick );
@@ -37,18 +39,12 @@ public:
 	eEvtReturn onMouseUp( EvtID ID, const OsEventInputMouse& Event );
 
 private:
-	BcMat4d Projection_;
-
 	GaPhysicsBody* pBody_;
 
 	// Movement control.
 	BcVec2d TargetPosition_;
-	BcVec2d Velocity_;
-	BcVec2d Acceleration_;
-	BcReal LerpDelta_;	
-	BcReal MovementSpeed_;
 	
-
+	GaBunnyRenderer BunnyRenderer_;
 };
 
 #endif

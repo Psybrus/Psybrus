@@ -128,11 +128,6 @@ public:
 	 */
 	virtual void			destroyResource( RsResource* pResource ) = 0;
 	
-	/**
-	 * Get resolution.
-	 */
-	virtual void			getResolution( BcU32& W, BcU32& H ) = 0;
-
 public:
 	/**
 	*	Allocate a frame for rendering.

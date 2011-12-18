@@ -3,7 +3,7 @@
 		"name"		: "bunny",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse.ScnShader",
+		"shader"	: "EngineContent/diffuse3d.ScnShader",
 
 		// Textures
 		"textures"	: {
@@ -12,13 +12,13 @@
 		
 		// State
 		"state"		: {
-			"depth_write_enable" 		: 0,
-			"depth_test_enable" 		: 0,
-			"depth_test_compare" 		: "never",
+			"depth_write_enable" 		: 1,
+			"depth_test_enable" 		: 1,
+			"depth_test_compare" 		: "lessequal",
 			"depth_bias" 				: 0,
-			"alpha_test_enable" 		: 0,
-			"alpha_test_compare" 		: "never",
-			"alpha_test_threshold" 		: 0,
+			"alpha_test_enable" 		: 1,
+			"alpha_test_compare" 		: "greater",
+			"alpha_test_threshold" 		: 32,
 			"blend_mode" 				: "blend"
 		}
 	}

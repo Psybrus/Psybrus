@@ -141,6 +141,7 @@ void GaOverlayState::render( RsFrame* pFrame )
 
 	if( MaterialInstance_.isValid() )
 	{
+		Canvas_->setMaterialInstance( MaterialInstance_ );
 		Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 512.0f, 300.0f ), CurrOverlay_, RsColour::WHITE, 0 );
 	}
 

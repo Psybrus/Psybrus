@@ -5,11 +5,16 @@
 		// Shader
 		"shader"	: "EngineContent/default.ScnShader",
 
+		// Textures
+		"textures"	: {
+			"aDiffuseTex"		: "EngineContent/default.ScnTexture"
+		},
+
 		// State
 		"state"		: {
 			"depth_write_enable" 		: 0,
-			"depth_test_enable" 		: 0,
-			"depth_test_compare" 		: "never",
+			"depth_test_enable" 		: 1,
+			"depth_test_compare" 		: "lessequal",
 			"depth_bias" 				: 0,
 			"alpha_test_enable" 		: 0,
 			"alpha_test_compare" 		: "never",

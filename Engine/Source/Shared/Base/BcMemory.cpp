@@ -47,6 +47,7 @@ void* operator new( size_t Size )
 {
 	initHeap();
 	void* pMem = malloc( Size );
+	BcMemZero( pMem, Size ); // NEILO HACK FOR LD22. REMOVE ME.
 #ifdef MEM_DEBUG
 	BcU32 BreakID = -1;
 	if( gAllocID == BreakID )
@@ -64,6 +65,7 @@ void* operator new[]( size_t Size)
 {
 	initHeap();
 	void* pMem = malloc( Size );
+	BcMemZero( pMem, Size ); // NEILO HACK FOR LD22. REMOVE ME.
 #ifdef MEM_DEBUG
 	BcU32 BreakID = -1;
 	if( gAllocID == BreakID )

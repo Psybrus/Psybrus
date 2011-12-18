@@ -683,5 +683,21 @@ BcForceInline BcBool BcVec4d::operator != ( const BcVec4d &Rhs ) const
 	return !( (*this) == Rhs );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// BcCheckFloat
+inline BcBool BcCheckFloat( BcVec2d T )
+{
+	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() );
+}
+
+inline BcBool BcCheckFloat( BcVec3d T )
+{
+	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() ) && BcCheckFloat( T.z() );
+}
+
+inline BcBool BcCheckFloat( BcVec4d T )
+{
+	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() ) && BcCheckFloat( T.z() ) && BcCheckFloat( T.w() );
+}
 
 #endif

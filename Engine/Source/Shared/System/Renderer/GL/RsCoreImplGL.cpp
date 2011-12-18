@@ -122,7 +122,7 @@ void RsCoreImplGL::open_threaded()
 	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
 
 	// Clear screen and flip.
-	glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	::SwapBuffers( (HDC)GWindowDC_ );
 
@@ -164,11 +164,9 @@ void RsCoreImplGL::open_threaded()
 	// NOTE: GL renderer uses SDL in this implementation.
 	// TODO: Move into a higher level so this GL renderer
 	//       can be used on any other platform.
-	W_ = GResolutionWidth;
-	H_ = GResolutionHeight;
 	
 	// Setup default viewport.
-	glViewport( 0, 0, W_, H_ );
+	glViewport( 0, 0, GResolutionWidth, GResolutionHeight );
 		
 	// Allocate a state block for rendering.
 	pStateBlock_ = new RsStateBlockGL();
@@ -178,7 +176,7 @@ void RsCoreImplGL::open_threaded()
 	pStateBlock_->bind();
 
 	// Clear.
-	glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	
 	// Line smoothing.
@@ -333,15 +331,6 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // createResource
-//virtual
-void RsCoreImplGL::getResolution( BcU32& W, BcU32& H )
-{
-	W = W_;
-	H = H_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::create >( pResource ) );
@@ -356,7 +345,7 @@ RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 
 	BcUnusedVar( Width );
 	BcUnusedVar( Height );
 	
-	return new RsFrameGL( NULL, W_, H_ );
+	return new RsFrameGL( NULL, GResolutionWidth, GResolutionHeight );
 }
 
 //////////////////////////////////////////////////////////////////////////

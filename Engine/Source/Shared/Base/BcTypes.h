@@ -23,6 +23,8 @@
 // Windows defines
 #if PLATFORM_WINDOWS
 
+#include <mmintrin.h>
+
 #pragma warning ( disable : 4311 ) 
 #pragma warning ( disable : 4312 ) 
 #pragma warning ( disable : 4996 )
@@ -60,6 +62,8 @@ typedef size_t						BcSize;
 
 #define BcAlign( decl, v )			decl // TODO: Get rid of vectors in stl containers: __declspec( align( v ) ) decl
 #define BcOffsetOf( s, m ) 			(size_t)&(((s *)0)->m)
+
+#define BcPrefetch( a )				_mm_prefetch( reinterpret_cast<char*>a, _MM_HINT_NTA )
 
 #ifndef NULL
 #define NULL						( 0 ) 
@@ -119,6 +123,8 @@ typedef size_t						BcSize;
 
 #define BcAlign( decl, v )			decl __attribute__ ((aligned (v)))
 #define BcOffsetOf( s, m ) 			(size_t)&(((s*)0)->m)
+
+#define BcPrefetch( a )
 
 #ifndef NULL
 #define NULL						( 0 )
@@ -260,6 +266,8 @@ typedef std::size_t					BcSize;
 
 #define BcAlign( decl, v )			decl __attribute__ ((aligned (v))) 
 #define BcOffsetOf( s, m ) 			(size_t)&(((s*)0)->m)
+
+#define BcPrefetch( a )
 
 #ifndef NULL
 #define NULL						( 0 )

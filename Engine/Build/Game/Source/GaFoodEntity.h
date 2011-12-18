@@ -24,14 +24,23 @@ class GaFoodEntity:
 	public GaEntity
 {
 public:
-	GaFoodEntity( const BcMat4d& Projection );
+	GaFoodEntity( const BcVec2d& Position );
 	virtual ~GaFoodEntity();
+
+	void eat( BcReal Tick );
+
+	virtual BcBool isAlive();
+	BcReal getHealthFraction();
 
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasRef Canvas );
 	
 private:
-	BcVec2d Position_;
+	BcReal StartingHealth_;
+	BcReal Health_;
+
+	ScnMaterialInstanceRef MaterialInstance_;
+	ScnMaterialInstanceRef ShadowMaterialInstance_;
 };
 
 #endif

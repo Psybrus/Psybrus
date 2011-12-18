@@ -37,6 +37,10 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
+	void								setPosition( const BcVec3d& Position );
+	void								setGain( BcReal Gain );
+	void								setPitch( BcReal Pitch );
+
 	void								play( ScnSoundRef Sound );
 
 protected:
@@ -49,6 +53,10 @@ private:
 	typedef TChannelSoundMap::iterator	TChannelSoundMapIterator;
 
 	TChannelSoundMap					ChannelSoundMap_;
+
+	BcVec3d								Position_;
+	BcReal								Gain_;
+	BcReal								Pitch_;
 };
 
 
