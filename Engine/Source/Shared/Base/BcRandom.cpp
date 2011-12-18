@@ -13,6 +13,8 @@
 
 #include "BcRandom.h"
 
+#include "BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Global rng.
 BcRandom BcRandom::Global;
@@ -54,7 +56,7 @@ BcReal BcRandom::randReal()
 // randRange
 BcU32 BcRandom::randRange( BcU32 Min, BcU32 Max )
 {
-	return ( Min + ( rand() % ( Max - Min ) ) );
+	return BcClamp( ( Min + ( rand() % ( Max - Min ) ) ), Min, Max );
 }
 
 //////////////////////////////////////////////////////////////////////////

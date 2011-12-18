@@ -7,7 +7,7 @@
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/background.ScnTexture"
+			"aDiffuseTex"		: "GameContent/background.ScnTextureAtlas"
 		},
 		
 		// State

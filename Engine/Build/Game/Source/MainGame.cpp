@@ -17,7 +17,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Ludum Dare 22: \"Alone\"", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "Leave My Lettuce Alone :(", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,10 +48,6 @@ void PsyGameInit()
 	SysSystemEvent::Delegate OnUpdateDelegate = SysSystemEvent::Delegate::bind< OnUpdate >();
 
 	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_UPDATE, OnUpdateDelegate );
-
-	ScnModelRef ModelHandle;
-
-	CsCore::pImpl()->importResource( "GameContent/fish.pkg", ModelHandle );
 }
 
 //////////////////////////////////////////////////////////////////////////

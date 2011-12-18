@@ -52,6 +52,7 @@ public:
 	RsColour							getTexel( BcU32 X, BcU32 Y ) const;
 	
 	virtual const ScnRect&				getRect( BcU32 Idx );
+	virtual BcU32						noofRects();
 	
 protected:
 	virtual void						setup();

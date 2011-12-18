@@ -2,8 +2,8 @@
 	"ScnShader" : {
 		"name"		: "default",
 		"shaders"	: {
-			"vertex" 	: "EngineContent/ShaderSource/default.glslv",
-			"fragment" 	: "EngineContent/ShaderSource/default.glslf"
+			"vertex" 	: "EngineContent/ShaderSource/diffuse3d.glslv",
+			"fragment" 	: "EngineContent/ShaderSource/diffuse.glslf"
 		}
 	}
 }

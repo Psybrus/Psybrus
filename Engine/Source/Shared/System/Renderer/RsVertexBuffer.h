@@ -38,6 +38,11 @@ public:
 	 * Unlock buffer.
 	 */
 	virtual void						unlock() = 0;
+
+	/**
+	 * Set number of vertices to update.
+	 */
+	virtual void						setNoofUpdateVertices( BcU32 NoofVertices ) = 0;
 	
 	/**
 	 *  Get number of vertices.

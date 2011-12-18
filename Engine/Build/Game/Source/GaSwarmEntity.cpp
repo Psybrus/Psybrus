@@ -13,33 +13,58 @@
 
 #include "GaSwarmEntity.h"
 #include "GaPlayerEntity.h"
+#include "GaFoodEntity.h"
 
 #include "GaMainGameState.h"
 
+#include "GaTopState.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Swarm behaviour.
-const BcReal TARGET_POSITION_ARRIVE_RADIUS = 256.0f;
+const BcReal TARGET_POSITION_ARRIVE_RADIUS = 32.0f;
 const BcReal TARGET_POSITION_MULTIPLIER = 1.0f;
 const BcReal SWARM_AVOID_DISTANCE = 16.0f;
-const BcReal SWARM_AVOID_MULTIPLIER = 1.0f;
+const BcReal SWARM_AVOID_MULTIPLIER = 2.0f;
 const BcReal FLOCK_VELOCITY_MULTIPLIER = 1.0f;
-const BcReal PLAYER_AVOID_DISTANCE = 128.0f;
+const BcReal PLAYER_AVOID_DISTANCE = 96.0f;
 const BcReal PLAYER_AVOID_MULTIPLIER = 32.0f;
-const BcReal SWARM_BODY_DEATH_DISTANCE = 128.0f;
+const BcReal SWARM_BODY_DEATH_DISTANCE = 196.0f;
+const BcReal SWARM_FOCUS_ON_FOOD_DISTANCE = 48.0f;
+const BcReal SWARM_EAT_FOOD_DISTANCE = 48.0f;
+const BcReal SWARM_SLOW_DOWN_AT_FOOD_MULTIPLIER = 16.0f;
+const BcReal ENCLOSURE_DISTANCE = 64.0f;
+const BcReal ENCLOSURE_MULTIPLIER = 256.0f;
+const BcReal SWARM_EAT_VELOCITY = 12.0f;
+const BcReal HOP_DISTANCE = 64.0f;
+const BcReal HOP_SPEED_MULTIPLIER = 3.0f;
+const BcReal HOP_HEIGHT = 48.0f;
+const BcReal EMOTE_RUN_AWAY_DISTANCE = 64.0f;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-GaSwarmEntity::GaSwarmEntity( const BcMat4d& Projection )
+GaSwarmEntity::GaSwarmEntity( BcU32 Level )
 {
-	Projection_ = Projection;
-	Position_ = BcVec2d( 0.0f, 0.0f );
-
-	for( BcU32 Idx = 0; Idx < 16; ++Idx )
+	Position_ = BcVec2d( 256.0f, 0.0f );
+	
+	for( BcU32 Idx = 0; Idx < ( ( Level + 1 ) * 2 ); ++Idx )
 	{
-		BcVec2d Position( BcVec2d( BcRandom::Global.randReal(), BcRandom::Global.randReal() ).normal() * 32.0f );
-		Bodies_.push_back( new GaPhysicsBody( Position, 64.0f, 128.0f, 16.0f ) );
-	}
+		BcVec2d Position( BcVec2d( BcRandom::Global.randReal(), BcRandom::Global.randReal() ).normal() * 32.0f + Position_ );
+		Bodies_.push_back( new GaPhysicsBody( Position, 128.0f, 256.0f, 16.0f ) );
+		AnimationLogicList_.push_back( new TAnimationLogic() );
 
+		AnimationLogicList_[ Idx ]->StartPosition_ = Bodies_[ Idx ]->Position_;
+		AnimationLogicList_[ Idx ]->EndPosition_ = Bodies_[ Idx ]->Position_;
+
+		ScnMaterialRef Material;
+		GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BUNNY, Material );
+		AnimationLogicList_[ Idx ]->BunnyRenderer_.setMaterial( Material, BcVec3d( 0.4f, 0.4f, 0.4f ) );
+
+		CsCore::pImpl()->createResource( "bunnyemitter", AnimationLogicList_[ Idx ]->Emitter_ );
+
+		// Slightly different pitch for all bunnies.
+		AnimationLogicList_[ Idx ]->Emitter_->setPitch( BcRandom::Global.randReal() * 0.1f + 1.0f );
+	}
+	
 	// Bind input events.
 	//OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseMove >( this );
 	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaSwarmEntity, &GaSwarmEntity::onMouseDown >( this );
@@ -48,6 +73,8 @@ GaSwarmEntity::GaSwarmEntity( const BcMat4d& Projection )
 	//OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 	//OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
+
+	pTargetFoodEntity_ = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,6 +84,14 @@ GaSwarmEntity::~GaSwarmEntity()
 {
 	// Unbind all events.
 	OsCore::pImpl()->unsubscribeAll( this );
+
+	// Free.
+	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
+	{
+		delete Bodies_[ Idx ];
+		delete AnimationLogicList_[ Idx ];
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +125,7 @@ GaPhysicsBody* GaSwarmEntity::findNearestBody( GaPhysicsBody* pSource )
 BcVec2d GaSwarmEntity::averageVelocity() const
 {
 	BcVec2d TotalVelocity( 0.0f, 0.0f );
-
+	BcReal Total = 0.0f;
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
 		GaPhysicsBody* pBody = Bodies_[ Idx ];
@@ -98,16 +133,39 @@ BcVec2d GaSwarmEntity::averageVelocity() const
 		if( pBody->isLive() )
 		{
 			TotalVelocity += pBody->Velocity_;
+			Total += 1.0f;
 		}
 	}
 
-	return TotalVelocity / (BcReal)Bodies_.size();
+	return TotalVelocity / Total;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// averagePosition
+BcVec2d GaSwarmEntity::averagePosition() const
+{
+	BcVec2d TotalPosition( 0.0f, 0.0f );
+
+	BcReal Total = 0.0f;
+	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
+	{
+		GaPhysicsBody* pBody = Bodies_[ Idx ];
+		
+		if( pBody->isLive() )
+		{
+			TotalPosition += pBody->Position_;
+			Total += 1.0f;
+		}
+	}
+
+	return TotalPosition / Total;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // onMouseDown
 eEvtReturn GaSwarmEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
 {
+	/* TODO: REMOVE>
 	if( Event.ButtonCode_ == 1 )
 	{
 		BcVec2d HalfResolution = BcVec2d( GResolutionWidth / 2, GResolutionHeight / 2 );
@@ -119,6 +177,7 @@ eEvtReturn GaSwarmEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event 
 
 		Position_ = ScreenPosition * InverseProjection;
 	}
+	*/
 
 	return evtRET_PASS;
 }
@@ -128,10 +187,37 @@ eEvtReturn GaSwarmEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event 
 void GaSwarmEntity::update( BcReal Tick )
 {
 	BcVec2d AverageVelocity = averageVelocity();
+	BcVec2d AveragePosition = averagePosition();
 
+	// Find the nearest food entity.
+	GaFoodEntity* pFoodEntity = pParent()->getNearestEntity< GaFoodEntity >( AveragePosition );
+
+	// If we have food, set our swarm position to be that entity's.
+	if( pFoodEntity != NULL )
+	{
+		BcReal Distance = ( AveragePosition - pFoodEntity->getPosition() ).magnitude();
+
+		// Check if we're on average close to food, and goto it if we are.
+		// If not goto the further food away from player.
+		if( Distance < SWARM_FOCUS_ON_FOOD_DISTANCE )
+		{		
+			Position_ = pFoodEntity->getPosition();
+			pTargetFoodEntity_ = pFoodEntity;
+		}
+		else
+		{
+			GaPlayerEntity* pPlayerEntity = pParent()->getEntity< GaPlayerEntity >( 0 );
+			GaFoodEntity* pFoodEntity = pParent()->getFarthestEntity< GaFoodEntity >( pPlayerEntity->getPosition() );
+			Position_ = pFoodEntity->getPosition();
+			pTargetFoodEntity_ = pFoodEntity;	
+		}
+	}
+
+	// Update all bodies.
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
 		GaPhysicsBody* pBody = Bodies_[ Idx ];
+		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 
 		if( pBody->isLive() )
 		{
@@ -149,27 +235,99 @@ void GaSwarmEntity::update( BcReal Tick )
 				if( NearestDistance > SWARM_BODY_DEATH_DISTANCE )
 				{
 					pBody->kill();
+					doEmote( EMOTE_SCARED, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+
+					ScnSoundRef Sound = GaTopState::pImpl()->getSound( GaTopState::SOUND_SCARED );
+					pAnimationLogic->Emitter_->play( Sound );
 				}
 			} 
 			else
 			{
 				pBody->kill();
-			}
+				doEmote( EMOTE_SCARED, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
 
+				ScnSoundRef Sound = GaTopState::pImpl()->getSound( GaTopState::SOUND_SCARED );
+				pAnimationLogic->Emitter_->play( Sound );
+			}
+			
 			// Appear like flocking by tending towards the average direction.
 			pBody->accelerate( AverageVelocity * FLOCK_VELOCITY_MULTIPLIER );
+			
+			// Slow down at food to eat.
+			if( pTargetFoodEntity_ != NULL )
+			{
+				BcReal Distance = ( pTargetFoodEntity_->getPosition() -  pBody->Position_ ).magnitude();
+				
+				if( Distance < SWARM_EAT_FOOD_DISTANCE )
+				{
+					pBody->accelerate( -pBody->Velocity_ * SWARM_SLOW_DOWN_AT_FOOD_MULTIPLIER );
+					
+					// If moving slow enough, we can eat.
+					if( pBody->Velocity_.magnitude() < SWARM_EAT_VELOCITY )
+					{
+						pTargetFoodEntity_->eat( Tick );
 
+						if( doEmote( EMOTE_EATING, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) ) )
+						{
+							ScnSoundRef Sound = GaTopState::pImpl()->getSound( BcRandom::Global.randRange( GaTopState::SOUND_CHEW0, GaTopState::SOUND_CHEW1 ) );
+							pAnimationLogic->Emitter_->play( Sound );
+						}
+					}
+				}
+			}
+			
 			// Avoid player massively.
 			GaPlayerEntity* pPlayerEntity = pParent()->getEntity< GaPlayerEntity >( 0 );
 			pBody->avoid( pPlayerEntity->getPosition(), PLAYER_AVOID_DISTANCE, PLAYER_AVOID_MULTIPLIER );
-
+			
 			// Enclose in the play area.
-			pBody->enclose( BcVec2d( -320.0f, -240.0f ), BcVec2d( 320.0f, 240.0f ), 32.0f, 64.0f );
-
+			pBody->enclose( BcVec2d( -320.0f, -240.0f ), BcVec2d( 320.0f, 240.0f ), ENCLOSURE_DISTANCE, ENCLOSURE_MULTIPLIER );
+			
 			// Update.
 			pBody->update( Tick );
+
+			// If the player is close by we want to do the run away..
+			if( ( pPlayerEntity->getPosition() - pBody->Position_ ).magnitude() < EMOTE_RUN_AWAY_DISTANCE )
+			{
+				doEmote( EMOTE_RUNAWAY, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+			}
+		}
+		else
+		{
+			if( pAnimationLogic->NotNeeded_ == BcFalse )
+			{
+				// Run away!
+				if( pBody->Position_.magnitude() < 1024.0f )
+				{
+					// Keep running away from avg.
+					BcVec2d NewTarget = ( pBody->Position_ - AveragePosition ).normal() * 2048.f;
+					pBody->target( NewTarget, 256.0f, 256.0 );
+
+					// Update.
+					pBody->update( Tick );
+
+					if( pBody->Position_.magnitude() > 512.0f )
+					{
+						pAnimationLogic->NotNeeded_ = BcTrue;
+					}
+				}
+			}
+		}
+
+		// Do animation.
+		if( pAnimationLogic->NotNeeded_ == BcFalse )
+		{
+			if( shouldStartMoveAnimation( Idx ) )
+			{
+				startMoveAnimation( Idx, pAnimationLogic->EndPosition_, pBody->Position_ );
+			}
+			
+			// Update animation.
+			updateAnimation( Idx, Tick );
 		}
 	}
+
+	GaEntity::update( Tick );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -179,22 +337,113 @@ void GaSwarmEntity::render( ScnCanvasRef Canvas )
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
 		GaPhysicsBody* pBody = Bodies_[ Idx ];
+		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 
-		if( pBody->isLive() )
+		if( pAnimationLogic->NotNeeded_ == BcFalse )
 		{
 			GaPhysicsBody* pOther = findNearestBody( pBody );
 			BcReal ColourLerp = pOther != NULL ? ( pBody->Position_ - pOther->Position_ ).magnitude() / SWARM_BODY_DEATH_DISTANCE : 1.0f;
-			
 			RsColour Colour;
 			Colour.lerp( RsColour::GREEN, RsColour::RED, ColourLerp );
+			
+			BcVec3d Position = animationPosition( Idx );
 
-			BcVec2d Position = pBody->Position_;
-			BcVec2d Size( 8.0f, 8.0f );
-			Canvas->drawSpriteCentered( Position, Size, 0, Colour, 0 );
-	
+			pAnimationLogic->BunnyRenderer_.render( pParent(), Canvas, Position, pAnimationLogic->AnimationPosition_ < 1.0f ? pBody->Velocity_ : BcVec2d( 0.0f, 0.0f ) );
+
+			pAnimationLogic->Emitter_->setPosition( Position );
+			
+			/*
 			// DEBUG DATA.
-			//Canvas->drawLine( Position, Position + pBody->Velocity_, RsColour::WHITE, 1 );
-			//Canvas->drawLine( Position, Position + pBody->Acceleration_, RsColour::RED, 1 );
+			BcVec2d Size( 32.0f, 32.0f );
+			Canvas->setMaterialInstance( ScnMaterialInstance::Default );
+			Canvas->drawSpriteCentered( pBody->Position_, Size, 0, RsColour::RED * 0.5f, 2 );
+			Canvas->drawLine( Position, pBody->Position_, Colour, 0 );*/
 		}
 	}
+
+	GaEntity::render( Canvas );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// updateAnimation
+void GaSwarmEntity::updateAnimation( BcU32 Idx, BcReal Tick )
+{
+	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
+	
+	BcReal TotalTickTime = ( Tick * pAnimationLogic->AnimationSpeed_ * HOP_SPEED_MULTIPLIER );
+
+	BcReal NewAnimationPosition = BcMin( pAnimationLogic->AnimationPosition_ + TotalTickTime, 1.0f );
+
+	if( NewAnimationPosition >= 1.0f && pAnimationLogic->AnimationPosition_ < 1.0f )
+	{
+		ScnSoundRef Sound = GaTopState::pImpl()->getSound( BcRandom::Global.randRange( GaTopState::SOUND_HOP1, GaTopState::SOUND_HOP4 ) );
+		pAnimationLogic->Emitter_->play( Sound );
+	}
+
+	pAnimationLogic->AnimationPosition_ = NewAnimationPosition;
+
+	pAnimationLogic->BunnyRenderer_.update( TotalTickTime );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// animationPosition
+BcVec3d GaSwarmEntity::animationPosition( BcU32 Idx ) const
+{
+	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
+	
+	BcReal HopPosition = BcSin( BcPI * pAnimationLogic->AnimationPosition_ ) * HOP_HEIGHT;
+	BcVec2d LinearPosition;
+	LinearPosition.lerp( pAnimationLogic->StartPosition_, pAnimationLogic->EndPosition_,  BcSmoothStep( pAnimationLogic->AnimationPosition_ ) );
+	
+	return BcVec3d( LinearPosition.x(), LinearPosition.y(), HopPosition );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// shouldStartMoveAnimation
+BcBool GaSwarmEntity::shouldStartMoveAnimation( BcU32 Idx )
+{
+	GaPhysicsBody* pBody = Bodies_[ Idx ];
+	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
+
+	BcReal Distance = ( pAnimationLogic->EndPosition_ - pBody->Position_ ).magnitude();
+	
+	// If we've moved far enough..
+	if( Distance > HOP_DISTANCE )
+	{
+		// And not currently animating.
+		if( pAnimationLogic->AnimationPosition_ >= 1.0f )
+		{
+			return BcTrue;
+		}
+	}
+
+	return BcFalse;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setEnemyAnimation
+void GaSwarmEntity::startMoveAnimation( BcU32 Idx, const BcVec2d& Start, const BcVec2d& End )
+{
+	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
+	
+	pAnimationLogic->StartPosition_ = Start;
+	pAnimationLogic->EndPosition_ = End;
+	pAnimationLogic->AnimationPosition_ = 0.0f;
+	pAnimationLogic->AnimationSpeed_ = BcMax( ( Start - End ).magnitude(), 1.0f );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// isAlive
+BcBool GaSwarmEntity::isAlive()
+{
+	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
+	{
+		GaPhysicsBody* pBody = Bodies_[ Idx ];
+		if( pBody->isLive() )
+		{
+			return BcTrue;
+		}
+	}
+
+	return BcFalse;
 }

@@ -116,7 +116,7 @@ void ScnSound::destroy()
 BcBool ScnSound::isReady()
 {
 	// TODO: LOCK!!
-	return pSample_ != NULL;
+	return pSample_ != NULL || SsCore::pImpl() == NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

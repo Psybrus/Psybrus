@@ -37,6 +37,7 @@ public:
 	virtual void*						lock();
 	virtual void						unlock();
 	
+	virtual void						setNoofUpdateVertices( BcU32 NoofVertices );
 	virtual BcU32						getNoofVertices();
 	virtual BcU32						getVertexFormat();
 
@@ -55,7 +56,8 @@ private:
 	BcU32								Descriptor_;
 	BcU32								Stride_;
 	BcU32								NoofVertices_;
-
+	BcU32								NoofUpdateVertices_;
+	BcBool								Created_;
 	BcAtomicMutex						Lock_;
 };
 

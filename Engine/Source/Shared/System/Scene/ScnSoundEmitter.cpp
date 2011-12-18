@@ -49,7 +49,9 @@ void ScnSoundEmitter::initialise()
 //virtual
 void ScnSoundEmitter::create()
 {
-	
+	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+	Gain_ = 1.0f;
+	Pitch_ = 1.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,7 +81,7 @@ void ScnSoundEmitter::play( ScnSoundRef Sound )
 	SsSample* pSample = Sound->getSample();
 
 	// Play sample.
-	SsChannel* pChannel = SsCore::pImpl()->play( pSample, this );
+	SsChannel* pChannel = SsCore::pImpl() != NULL ? SsCore::pImpl()->play( pSample, this ) : NULL;
 
 	// Add to map, or release if not played.
 	if( pChannel != NULL )
@@ -90,6 +92,27 @@ void ScnSoundEmitter::play( ScnSoundRef Sound )
 	{
 		CsResource::release();
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPosition
+void ScnSoundEmitter::setPosition( const BcVec3d& Position )
+{
+	Position_ = Position;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setGain
+void ScnSoundEmitter::setGain( BcReal Gain )
+{
+	Gain_ = Gain;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPitch
+void ScnSoundEmitter::setPitch( BcReal Pitch )
+{
+	Pitch_ = Pitch;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,10 +129,11 @@ void ScnSoundEmitter::onStarted( SsChannel* pSound )
 void ScnSoundEmitter::onPlaying( SsChannel* pSound )
 {
 	// Update parameters.
-	pSound->gain( 1.0f );
+	pSound->gain( Gain_ );
 	pSound->minDistance( 1.0f );
 	pSound->rolloffFactor( 0.05f );
-	pSound->position( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+	pSound->position( Position_ );
+	pSound->pitch( Pitch_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

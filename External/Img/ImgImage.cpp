@@ -223,7 +223,7 @@ ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
 	}
 	else
 	{
-		BcBreakpoint; // This is broken!
+		//BcBreakpoint; // This is broken!
 		// Better implementation for downscaling.
 		for( BcU32 iX = 0; iX < Width; ++iX )
 		{
