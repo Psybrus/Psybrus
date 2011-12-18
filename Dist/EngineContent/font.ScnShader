@@ -1,0 +1,9 @@
+{ 
+	"ScnShader" : {
+		"name"		: "font",
+		"shaders"	: {
+			"vertex" 	: "EngineContent/ShaderSource/font.glslv",
+			"fragment" 	: "EngineContent/ShaderSource/font.glslf"
+		}
+	}
+}
