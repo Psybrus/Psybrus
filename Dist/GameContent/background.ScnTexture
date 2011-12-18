@@ -1,7 +1,0 @@
-{ 
-	"ScnTexture" : {
-		"name"		: "background",
-		"source"	: "GameContent/Source/background.png",		
-		"distancefield" : false
-	}
-}
