@@ -82,6 +82,7 @@ protected:
 	BcU32 LastEmote_;
 	BcReal EmoteTimer_;
 
+	BcMutex EmoteLock_;
 };
 
 #endif

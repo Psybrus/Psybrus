@@ -41,6 +41,8 @@ GaEntity::~GaEntity()
 //virtual
 void GaEntity::update( BcReal Tick )
 {
+	BcScopedLock< BcMutex > Lock( EmoteLock_ );
+
 	TEmoteList::iterator It( EmoteList_.begin() );
 
 	while( It != EmoteList_.end() )
@@ -67,6 +69,8 @@ void GaEntity::update( BcReal Tick )
 //virtual
 void GaEntity::render( ScnCanvasRef Canvas )
 {
+	BcScopedLock< BcMutex > Lock( EmoteLock_ );
+
 	Canvas->setMaterialInstance( EmoteMaterialInstance_ );
 	pParent()->setMaterialInstanceParams( EmoteMaterialInstance_, BcMat4d() );
 
@@ -84,6 +88,8 @@ void GaEntity::render( ScnCanvasRef Canvas )
 // doEmote
 BcBool GaEntity::doEmote( BcU32 Idx, const BcVec3d& Position )
 {
+	BcScopedLock< BcMutex > Lock( EmoteLock_ );
+
 	if( EmoteTimer_ < 0.0f || Idx == EMOTE_SCARED )
 	{
 		TEmote Emote = 

@@ -19,6 +19,8 @@
 #include "SsAL.h"
 #include "SsChannelAL.h"
 
+#include "BcScopedLock.h"
+#include "BcMutex.h"
 #include "BcCommandBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,6 +91,8 @@ private:
 	// Environment.
 	ALuint					ALReverbEffectSlot_;
 	ALuint					ALReverbEffect_;
+
+	BcMutex					ChannelLock_;
 
 };
 
