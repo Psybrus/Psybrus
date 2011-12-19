@@ -42,7 +42,7 @@ void GaTopState::enterOnce()
 	BcAssert( Imported );
 
 	Imported = CsCore::pImpl()->importResource( "GameContent/lettuce.ScnMaterial", Materials_[ MATERIAL_LETTUCE ] );
-	BcAssert( Imported );
+	BcAssert( Imported ); 
 
 	Imported = CsCore::pImpl()->importResource( "GameContent/background.ScnMaterial", Materials_[ MATERIAL_BACKGROUND ] );
 	BcAssert( Imported );

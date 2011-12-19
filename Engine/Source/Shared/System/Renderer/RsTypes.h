@@ -183,19 +183,19 @@ enum eRsDepthStencilFormat
 // Texture Format
 enum eRsTextureFormat
 {
-	// 32bit
-	rsTF_RGBA8 = 0,
+	//
+	rsTF_RGB8 = 0,
+	rsTF_RGBA8,
+	rsTF_I8,
+
+	// DXT
+	rsTF_DXT1,
+	rsTF_DXT3,
+	rsTF_DXT5,
 
 	// Palettised
 	rsTF_PAL4_RGBA8,
 	rsTF_PAL8_RGBA8,
-	
-	// DXT
-	rsTF_DXT1,
-	rsTF_DXT2,
-	rsTF_DXT3,
-	rsTF_DXT4,
-	rsTF_DXT5,
 	
 	// PVRTC
 	rsTF_PVRTC2_RGB,
@@ -207,10 +207,6 @@ enum eRsTextureFormat
 	rsTF_INVALID = BcErrorCode,
 	rsTF_FORCE_DWORD = 0x7fffffff
 };
-
-//////////////////////////////////////////////////////////////////////////
-// RsTextureFormatBPP
-extern BcU32 RsTextureFormatBPP( eRsTextureFormat TextureFormat );
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize

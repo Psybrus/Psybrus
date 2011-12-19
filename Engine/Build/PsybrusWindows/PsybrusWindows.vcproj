@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -107,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -172,7 +172,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_PRODUCTION"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -3224,6 +3224,106 @@
 				</File>
 				<File
 					RelativePath="..\..\..\External\png\pngwutil.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="squish"
+				>
+				<File
+					RelativePath="..\..\..\External\squish\alpha.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\alpha.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\clusterfit.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\clusterfit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\colourblock.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\colourblock.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\colourfit.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\colourfit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\colourset.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\colourset.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\config.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\maths.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\maths.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\rangefit.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\rangefit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\simd.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\simd_float.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\simd_sse.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\simd_ve.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\singlecolourfit.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\singlecolourfit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\singlecolourlookup.inl"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\squish.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\squish\squish.h"
 					>
 				</File>
 			</Filter>

@@ -33,36 +33,50 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 	
 	if( pImage != NULL )
 	{
-		BcStream HeaderStream;
-		BcStream BodyStream( BcFalse, 1024, ( pImage->width() * pImage->height() * 4 ) );
-		
-		// TODO: Use parameters to pick a format.
-		THeader Header = { pImage->width(), pImage->height(), 1, rsTF_RGBA8 };
-		HeaderStream << Header;
-		
-		// Write body.				
-		for( BcU32 Y = 0; Y < pImage->height(); ++Y )
+		// Encode the image as a format.
+		BcU8* pEncodedImageData = NULL;
+		BcU32 EncodedImageDataSize = 0;
+
+		ImgEncodeFormat EncodeFormat;
+		eRsTextureFormat TextureFormat;
+
+		/*
+		if( pImage->hasAlpha( 250 ) )
 		{
-			for( BcU32 X = 0; X < pImage->width(); ++X )
-			{
-				ImgColour Colour = pImage->getPixel( X, Y );
-				
-				BodyStream << Colour.R_;
-				BodyStream << Colour.G_;
-				BodyStream << Colour.B_;
-				BodyStream << Colour.A_;
-			}
+			EncodeFormat = imgEF_DXT3;
+			TextureFormat = rsTF_DXT3;
 		}
-		
-		// Delete image.
-		delete pImage;
-		
-		// Add chunks and finish up.
-		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-				
-		//
-		return BcTrue;
+		else
+		*/
+		{
+
+			EncodeFormat = imgEF_DXT5;
+			TextureFormat = rsTF_DXT5;
+		}
+
+		if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
+		{
+			// Serialize encoded image.
+			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
+			BodyStream.push( pEncodedImageData, EncodedImageDataSize );
+			delete pEncodedImageData;
+			pEncodedImageData = NULL;
+
+
+			BcStream HeaderStream;
+			THeader Header = { pImage->width(), pImage->height(), 1, TextureFormat };
+			HeaderStream << Header;
+					
+			// Delete image.
+			delete pImage;
+			
+			// Add chunks and finish up.
+			pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+			pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
+					
+			//
+			return BcTrue;
+		}
 	}
 	return BcFalse;
 }

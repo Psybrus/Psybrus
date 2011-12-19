@@ -71,7 +71,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 				ImgRect SrcRect = { 0, 0, pImage->width(), pImage->height() };
 				ImgRect DstRect = { Spread, Spread, pImage->width(), pImage->height() };
 				
-				pPaddedImage->create( NewWidth, NewHeight, imgFMT_RGBA, &FillColour );
+				pPaddedImage->create( NewWidth, NewHeight, &FillColour );
 				pPaddedImage->blit( pImage, SrcRect, DstRect );
 								
 				// Distance field.
@@ -106,7 +106,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 						
 			// Create an atlas of all source textures..
 			ImgRectList RectList;
-			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 1024, 1024 );
+			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256 );
 			
 			// Setup header.
 			TAtlasHeader Header = 

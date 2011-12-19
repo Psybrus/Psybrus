@@ -46,7 +46,7 @@ public:
 	*	@param Format Format
 	*	@param pFillColour Fill colour.
 	*/
-	void					create( BcU32 Width, BcU32 Height, eImgFormat Format, const ImgColour* pFillColour = NULL );
+	void					create( BcU32 Width, BcU32 Height, const ImgColour* pFillColour = NULL );
 
 	/**
 	*	Set pixel.
@@ -68,25 +68,6 @@ public:
 	 */
 	void					blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& DstRect );
 	
-	/**
-	*	Set palette entry.
-	*	@param Idx Index.
-	*	@param Colour Colour.
-	*/
-	void					setPalette( BcU32 Idx, const ImgColour& Colour );
-
-	/**
-	*	Get palette entry.
-	*	@param Idx Index.
-	*/
-	const ImgColour&		getPalette( BcU32 Idx ) const;
-
-	/**
-	*	Find closest colour.
-	*	@param Colour to find.
-	*/
-	ImgColour				findColour( const ImgColour& Colour );
-
 	/**
 	*	Resize image.
 	*/
@@ -135,11 +116,6 @@ public:
 	*	Get height.
 	*/
 	BcU32					height() const;
-
-	/**
-	*	Get format.
-	*/
-	eImgFormat				format() const;
 	
 	/**
 	*	Get image data.
@@ -147,18 +123,28 @@ public:
 	const ImgColour*		getImageData() const;
 
 	/**
-	*	Release image data.
+	*	Has image got alpha?
+	*	@param Threshold How low the value has to be to consider it having alpha.
 	*/
-	BcU8*					release( BcU32& DataSize );
+	BcBool					hasAlpha( BcU8 Threshold ) const;
+
+	/**
+	 * Encode image as specified format.
+	 */
+	BcBool					encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize );
+
+private:
+	BcBool					encodeAsRGB8( BcU8*& pOutData, BcU32& OutSize );
+	BcBool					encodeAsRGBA8( BcU8*& pOutData, BcU32& OutSize );
+	BcBool					encodeAsBGR8( BcU8*& pOutData, BcU32& OutSize );
+	BcBool					encodeAsABGR8( BcU8*& pOutData, BcU32& OutSize );
+	BcBool					encodeAsI8( BcU8*& pOutData, BcU32& OutSize );
+	BcBool					encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize );
 
 private:
 	BcU32					Width_;
 	BcU32					Height_;
-	eImgFormat				Format_;
-
 	ImgColour*				pPixelData_;
-	ImgColour*				pPaletteEntries_;
-	BcU32					NoofPaletteEntries_;
 };
 
 #endif

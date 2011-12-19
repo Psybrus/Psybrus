@@ -35,48 +35,22 @@ void RsColour::premultiplyAlpha()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// RsTextureFormatBPP
-BcU32 RsTextureFormatBPP( eRsTextureFormat TextureFormat )
-{
-	switch( TextureFormat )
-	{
-		case rsTF_RGBA8:
-			return 32;
-			break;
-		case rsTF_PAL4_RGBA8:
-			return 4;
-			break;
-		case rsTF_PAL8_RGBA8:
-			return 8;
-			break;
-		case rsTF_DXT1:
-		case rsTF_DXT2:
-		case rsTF_DXT3:
-		case rsTF_DXT4:
-		case rsTF_DXT5:			
-			return 4;
-			break;
-		case rsTF_PVRTC2_RGB:
-		case rsTF_PVRTC2_RGBA:
-			return 2;
-			break;
-		case rsTF_PVRTC4_RGB:
-		case rsTF_PVRTC4_RGBA:
-			return 4;
-			break;
-		default:
-			return 0;
-			break;
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
 BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Levels )
 {
 	BcU32 Size = 0;
 	switch( TextureFormat )
 	{
+		case rsTF_RGB8:
+			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
+			{
+				Size += Width * Height;
+				Width >>= 1;
+				Height >>= 1;
+			}
+			Size *= 3;
+			break;
+
 		case rsTF_RGBA8:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
@@ -108,17 +82,24 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			break;
 
 		case rsTF_DXT1:
-		case rsTF_DXT2:
-		case rsTF_DXT3:
-		case rsTF_DXT4:
-		case rsTF_DXT5:			
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
-				Size += Width * Height;
+				BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
+				Size += BlockCount * 8;
 				Width >>= 1;
 				Height >>= 1;
 			}
-			Size >>= 1;
+			break;
+
+		case rsTF_DXT3:
+		case rsTF_DXT5:			
+			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
+			{
+				BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
+				Size += BlockCount * 16;
+				Width >>= 1;
+				Height >>= 1;
+			}
 			break;
 			
 		case rsTF_PVRTC2_RGB:
