@@ -33,14 +33,13 @@ void ScnCanvas::StaticPropertyTable( CsPropertyTable& PropertyTable )
 	.endCatagory();
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMaterialInstance )
 {
 	// NULL internals.
-	pVertexBuffer_ = NULL;
+	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
 	HaveVertexBufferLock_ = BcFalse;
 	
 	// Setup matrix stack with an identity matrix and reserve.
@@ -53,6 +52,9 @@ void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMa
 	
 	// Store default material instance.
 	DefaultMaterialInstance_ = DefaultMaterialInstance; 
+
+	// Which render resource to use.
+	CurrentRenderResource_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,15 +65,21 @@ void ScnCanvas::create()
 	// Allocate our own vertex buffer data.
 	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
 	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasVertex ) );
-	pVertices_ = new ScnCanvasVertex[ NoofVertices_ ];
-	pVerticesEnd_ = pVertices_ + NoofVertices_;
-	VertexIndex_ = 0;
+
+	// Allocate render resources.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
+
+		// Allocate vertices.
+		RenderResource.pVertices_ = new ScnCanvasVertex[ NoofVertices_ ];
+
+		// Allocate render side vertex buffer.
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexFormat, NoofVertices_, RenderResource.pVertices_ );
 	
-	// Allocate render side vertex buffer.
-	pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexFormat, NoofVertices_, pVertices_ );
-	
-	// Allocate render side primitive.
-	pPrimitive_ = RsCore::pImpl()->createPrimitive( pVertexBuffer_, NULL );
+		// Allocate render side primitive.
+		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,13 +87,19 @@ void ScnCanvas::create()
 //virtual
 void ScnCanvas::destroy()
 {
-	// Destroy our primitive.
-	RsCore::pImpl()->destroyResource( pPrimitive_ );
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
+
+		// Allocate render side vertex buffer.
+		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
 	
-	// Destroy our vertex buffer.
-	RsCore::pImpl()->destroyResource( pVertexBuffer_ );
-	
-	delete [] pVertices_;
+		// Allocate render side primitive.
+		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
+
+		// Delete vertices.
+		delete [] RenderResource.pVertices_;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +107,18 @@ void ScnCanvas::destroy()
 //virtual
 BcBool ScnCanvas::isReady()
 {
-	return pVertexBuffer_ != NULL && pPrimitive_ != NULL;
+	// TODO: Just set a sodding flag ok?
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
+
+		if( RenderResource.pVertexBuffer_ == NULL || RenderResource.pPrimitive_ == NULL )
+		{
+			return BcFalse;
+		}
+	}
+
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -652,7 +677,11 @@ void ScnCanvas::drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& 
 // render
 void ScnCanvas::clear()
 {
-	// Set vertex back to the start.
+	// Set current render resource.
+	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
+
+	// Set vertices up.
+	pVertices_ = pVerticesEnd_ = pRenderResource_->pVertices_;
 	VertexIndex_ = 0;
 	
 	// Empty primitive sections.
@@ -666,7 +695,7 @@ void ScnCanvas::clear()
 	// Lock vertex buffer for use.
 	if( HaveVertexBufferLock_ == BcFalse )
 	{
-		pVertexBuffer_->lock();
+		pRenderResource_->pVertexBuffer_->lock();
 		HaveVertexBufferLock_ = BcTrue;
 	}
 
@@ -700,6 +729,8 @@ public:
 
 void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 {
+	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvas: Can't render without a vertex buffer lock." );
+
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
 	//       to the scene. Will not sort by transparency or anything either.
@@ -714,7 +745,7 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 	
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasPrimitiveSection >( 1 );
-		pRenderNode->pPrimitive_ = pPrimitive_;
+		pRenderNode->pPrimitive_ = pRenderResource_->pPrimitive_;
 		
 		// Copy primitive sections in.
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasPrimitiveSection ) * 1 );
@@ -731,10 +762,15 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 		pFrame->addRenderNode( pRenderNode );
 	}
 	
-	// Unlock vertex buffer if we have the lock.
-	if( HaveVertexBufferLock_ == BcTrue )
-	{
-		pVertexBuffer_->setNoofUpdateVertices( VertexIndex_ );
-		pVertexBuffer_->unlock();
-	}
+	// Unlock vertex buffer.
+	pRenderResource_->pVertexBuffer_->setNoofUpdateVertices( VertexIndex_ );
+	pRenderResource_->pVertexBuffer_->unlock();
+	HaveVertexBufferLock_ = BcFalse;
+
+	// Flip the render resource.
+	CurrentRenderResource_ = 1 - CurrentRenderResource_;
+
+	// Reset render resource pointers to aid debugging.
+	pRenderResource_ = NULL;
+	pVertices_ = pVerticesEnd_ = NULL;
 }

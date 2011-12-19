@@ -17,8 +17,6 @@
 #include "RsVertexBuffer.h"
 #include "RsGL.h"
 
-#include "BcAtomicMutex.h"
-
 ////////////////////////////////////////////////////////////////////////////////
 // RsVertexBufferGL
 class RsVertexBufferGL:
@@ -58,7 +56,6 @@ private:
 	BcU32								NoofVertices_;
 	BcU32								NoofUpdateVertices_;
 	BcBool								Created_;
-	BcAtomicMutex						Lock_;
 };
 
 #endif

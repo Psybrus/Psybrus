@@ -189,15 +189,23 @@ void RsCoreImplGL::open_threaded()
 //virtual
 void RsCoreImplGL::update()
 {
+	// Increment fence so we know how far we're getting ahead of ourselves.
+	RenderSyncFence_.increment();
+
+	// Queue update job.
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::update_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
+	// Wait for frames if we fall more than 1 update cycle behind.
+	RenderSyncFence_.wait( 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update_threaded
 void RsCoreImplGL::update_threaded()
 {
-	// ZOMG DO NOTHING! YAY!
+	// Decrement when we've done our update.
+	RenderSyncFence_.decrement();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -352,8 +360,16 @@ RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 
 // queueFrame
 void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	BcDelegate< void(*)( RsFrameGL* ) > Delegate( BcDelegate< void(*)( RsFrameGL* ) >::bind< RsCoreImplGL, &RsCoreImplGL::queueFrame_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate, (RsFrameGL*)pFrame );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// queueFrame_threaded
+void RsCoreImplGL::queueFrame_threaded( RsFrameGL* pFrame )
+{
+	// Render frame.
+	pFrame->render();
 }
 
 //////////////////////////////////////////////////////////////////////////

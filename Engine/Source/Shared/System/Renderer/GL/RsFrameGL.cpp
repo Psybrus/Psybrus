@@ -225,7 +225,6 @@ void RsFrameGL::render()
 	::SwapBuffers( (HDC)GWindowDC_ );
 #endif
 
-
 	// TEMP HACK: Free frame.
 	delete this;
 }

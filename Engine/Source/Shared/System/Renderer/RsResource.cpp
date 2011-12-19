@@ -56,13 +56,16 @@ void RsResource::update()
 //virtual
 void RsResource::preDestroy()
 {
+	//
+	wait();
+
 	// Delete our internal resource if we need to.
 	if( DeleteData_ == BcTrue )
 	{
 		delete [] (BcU8*)pData_;
 	}
 
-	// NULL everything, as our parent object has likely been freed.
+	// Null internal data (shouldn't need to at this point...but belt and braces!)
 	pData_ = NULL;
 	DataSize_ = 0;
 	DeleteData_ = BcFalse;
@@ -74,4 +77,11 @@ void RsResource::preDestroy()
 void RsResource::destroy()
 {
 	
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// wait
+void RsResource::wait()
+{
+	UpdateSyncFence_.wait( 0 );
 }

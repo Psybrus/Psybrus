@@ -222,7 +222,7 @@ void GaMainGameState::render( RsFrame* pFrame )
 
 	Canvas_->pushMatrix( Ortho );
 	Canvas_->setMaterialInstance( ForegroundMaterialInstance_ );
-	//Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( WorldHalfSize_.x() * 2.2f, WorldHalfSize_.y() * -2.0f ), 0, RsColour::WHITE, 20 );
+	Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( WorldHalfSize_.x() * 2.2f, WorldHalfSize_.y() * -2.0f ), 0, RsColour::WHITE, 20 );
 
 	BcReal Width = BcMax( 0.0f, FoodHealth_ - 0.5f ) * 2.0f;
 
