@@ -154,7 +154,7 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 			pFoundChunk = pChunk;
 			pFoundChunkProps = &pChunkProps_[ i ];
 			break;
-		}		
+		}
 	}
 	
 	// We should have found it.

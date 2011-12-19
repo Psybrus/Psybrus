@@ -44,7 +44,7 @@ static ImgImage* makeImageForGlyph( FT_Glyph Glyph, FT_Render_Mode RenderMode, B
 			BcU32 Pitch = Bitmap->bitmap.pitch;
 		
 			ImgColour ClearColour = { 0, 0, 0, 0 };
-			pImage->create( W + DoubleBorderSize, H + DoubleBorderSize, imgFMT_RGBA, &ClearColour );
+			pImage->create( W + DoubleBorderSize, H + DoubleBorderSize, &ClearColour );
 			
 			if( RenderMode == FT_RENDER_MODE_MONO )
 			{
