@@ -104,6 +104,9 @@ class FsCore:
 	public SysSystem
 {
 public:
+	static BcU32 WORKER_MASK;
+
+public:
 	/**
 	 *	Open file implementation.
 	 */

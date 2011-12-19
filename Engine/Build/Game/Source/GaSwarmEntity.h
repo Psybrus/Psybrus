@@ -44,6 +44,7 @@ public:
 	eEvtReturn onMouseDown( EvtID ID, const OsEventInputMouse& Event );
 	
 	virtual void update( BcReal Tick );
+
 	virtual void render( ScnCanvasRef Canvas );
 	
 public:
@@ -72,6 +73,8 @@ public:
 	BcBool shouldStartMoveAnimation( BcU32 Idx );
 	void startMoveAnimation( BcU32 Idx, const BcVec2d& Start, const BcVec2d& End );
 	
+	void updateBody_Threaded( BcReal Tick, GaFoodEntity* pFoodEntity, GaPhysicsBody* pBody, TAnimationLogic* pAnimationLogic );
+
 private:
 	typedef std::vector< GaPhysicsBody* > TBodyList;
 	typedef std::vector< TAnimationLogic* > TAnimationLogicList;

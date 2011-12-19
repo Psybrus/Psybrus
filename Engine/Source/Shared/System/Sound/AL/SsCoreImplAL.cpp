@@ -81,6 +81,8 @@ BcBool SsCoreImplAL::initEFX()
 //virtual
 void SsCoreImplAL::open()
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	// NOTE: Should enumerate devices and select an appropriate one here. For now we assume default.
 	pSelectedDevice_ = NULL;
 	ALContext_ = NULL;
@@ -156,6 +158,8 @@ void SsCoreImplAL::open()
 //virtual
 void SsCoreImplAL::update()
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	SsChannelAL* pSound = NULL;
 
 	// Execute command buffer.
@@ -203,6 +207,8 @@ void SsCoreImplAL::update()
 //virtual
 void SsCoreImplAL::close()
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	BcAssert( InternalResourceCount_ == 0 );
 	BcAssertMsg( UsedChannels_.size() == 0, "SsCore ImplAL: All channels must be free." );
 	
@@ -229,6 +235,8 @@ void SsCoreImplAL::close()
 //virtual
 SsSample* SsCoreImplAL::createSample( BcU32 SampleRate, BcU32 Channels, BcBool Looping, void* pData, BcU32 DataSize )
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	SsSampleAL* pSample = new SsSampleAL( SampleRate, Channels, Looping, pData, DataSize );
 	createResource( pSample );
 	return pSample;
@@ -238,6 +246,8 @@ SsSample* SsCoreImplAL::createSample( BcU32 SampleRate, BcU32 Channels, BcBool L
 // destroyResource
 void SsCoreImplAL::destroyResource( SsResource* pResource )
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	pResource->preDestroy();
 
 	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< SsResource, &SsResource::destroy >( pResource ) );
@@ -248,6 +258,8 @@ void SsCoreImplAL::destroyResource( SsResource* pResource )
 // updateResource
 void SsCoreImplAL::updateResource( SsResource* pResource )
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< SsResource, &SsResource::update >( pResource ) );
 	CommandBuffer_.enqueue( DelegateCall );
 }
@@ -257,6 +269,8 @@ void SsCoreImplAL::updateResource( SsResource* pResource )
 
 void SsCoreImplAL::createResource( SsResource* pResource )
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< SsResource, &SsResource::create >( pResource ) );
 	CommandBuffer_.enqueue( DelegateCall );
 }
@@ -266,6 +280,8 @@ void SsCoreImplAL::createResource( SsResource* pResource )
 //virtual
 SsChannel* SsCoreImplAL::play( SsSample* pSample, SsChannelCallback* pCallback )
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+
 	SsChannelAL* pChannel = allocChannel();
 
 	// If we've allocated a channel, it's now over to the channel to do the rest.

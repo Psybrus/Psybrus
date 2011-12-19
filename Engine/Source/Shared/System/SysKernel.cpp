@@ -19,18 +19,26 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// Worker masks.
+BcU32 SysKernel::SYSTEM_WORKER_MASK = 0x0;
+BcU32 SysKernel::USER_WORKER_MASK = 0x0;
+
+//////////////////////////////////////////////////////////////////////////
 // Command line
 std::string SysArgs_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysKernel::SysKernel( BcReal TickRate ):
-	JobQueue_( BcMax( BcGetHardwareThreadCount() - 1, BcU32( 1 ) ) ), // We always want at least one worker.
+	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) ),
 	TickRate_( TickRate )
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
 	FrameTime_ = 0.0f;
+
+	// Set user mask to the workers we have.
+	SysKernel::USER_WORKER_MASK = ( 1 << JobQueue_.workerCount() ) - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -46,7 +46,7 @@ GaSwarmEntity::GaSwarmEntity( BcU32 Level )
 {
 	Position_ = BcVec2d( 256.0f, 0.0f );
 	
-	for( BcU32 Idx = 0; Idx < ( ( Level + 1 ) * 2 ); ++Idx )
+	for( BcU32 Idx = 0; Idx < ( Level + 1 ) * 2; ++Idx )
 	{
 		BcVec2d Position( BcVec2d( BcRandom::Global.randReal(), BcRandom::Global.randReal() ).normal() * 32.0f + Position_ );
 		Bodies_.push_back( new GaPhysicsBody( Position, 128.0f, 256.0f, 16.0f ) );
@@ -213,106 +213,32 @@ void GaSwarmEntity::update( BcReal Tick )
 		}
 	}
 
-	// Update all bodies.
+	// Update body jobs.
+	BcU32 WorkerMask = 0;
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
 		GaPhysicsBody* pBody = Bodies_[ Idx ];
 		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 
-		if( pBody->isLive() )
-		{
-			// Set target position.
-			pBody->target( Position_, TARGET_POSITION_ARRIVE_RADIUS, TARGET_POSITION_MULTIPLIER );
+		// Enqueue the delegate.
+		typedef BcDelegate< void(*)( BcReal, GaFoodEntity*, GaPhysicsBody*, GaSwarmEntity::TAnimationLogic* ) > TDelegate;
+		TDelegate Delegate( TDelegate::bind< GaSwarmEntity, &GaSwarmEntity::updateBody_Threaded >( this ) );
+		SysKernel::pImpl()->enqueueDelegateJob( WorkerMask, Delegate, Tick, pFoodEntity, pBody, pAnimationLogic );
+	}
 
-			// Find nearest body, and avoid.
-			GaPhysicsBody* pOther = findNearestBody( pBody );
-			if( pOther != NULL )
-			{
-				pBody->avoid( pOther->Position_, SWARM_AVOID_DISTANCE, SWARM_AVOID_MULTIPLIER );
+	// Queue fence on all workers and wait for it to be hit.
+	if( WorkerMask != 0 )
+	{
+		SysFence Fence2;
+		Fence2.queue( WorkerMask );
+		Fence2.wait();
+	}
 
-				// If body is too far from nearest, kill it.
-				BcReal NearestDistance = ( pBody->Position_ - pOther->Position_ ).magnitude();
-				if( NearestDistance > SWARM_BODY_DEATH_DISTANCE )
-				{
-					pBody->kill();
-					doEmote( EMOTE_SCARED, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
-
-					ScnSoundRef Sound = GaTopState::pImpl()->getSound( GaTopState::SOUND_SCARED );
-					pAnimationLogic->Emitter_->play( Sound );
-				}
-			} 
-			else
-			{
-				pBody->kill();
-				doEmote( EMOTE_SCARED, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
-
-				ScnSoundRef Sound = GaTopState::pImpl()->getSound( GaTopState::SOUND_SCARED );
-				pAnimationLogic->Emitter_->play( Sound );
-			}
-			
-			// Appear like flocking by tending towards the average direction.
-			pBody->accelerate( AverageVelocity * FLOCK_VELOCITY_MULTIPLIER );
-			
-			// Slow down at food to eat.
-			if( pTargetFoodEntity_ != NULL )
-			{
-				BcReal Distance = ( pTargetFoodEntity_->getPosition() -  pBody->Position_ ).magnitude();
-				
-				if( Distance < SWARM_EAT_FOOD_DISTANCE )
-				{
-					pBody->accelerate( -pBody->Velocity_ * SWARM_SLOW_DOWN_AT_FOOD_MULTIPLIER );
-					
-					// If moving slow enough, we can eat.
-					if( pBody->Velocity_.magnitude() < SWARM_EAT_VELOCITY )
-					{
-						pTargetFoodEntity_->eat( Tick );
-
-						if( doEmote( EMOTE_EATING, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) ) )
-						{
-							ScnSoundRef Sound = GaTopState::pImpl()->getSound( BcRandom::Global.randRange( GaTopState::SOUND_CHEW0, GaTopState::SOUND_CHEW1 ) );
-							pAnimationLogic->Emitter_->play( Sound );
-						}
-					}
-				}
-			}
-			
-			// Avoid player massively.
-			GaPlayerEntity* pPlayerEntity = pParent()->getEntity< GaPlayerEntity >( 0 );
-			pBody->avoid( pPlayerEntity->getPosition(), PLAYER_AVOID_DISTANCE, PLAYER_AVOID_MULTIPLIER );
-			
-			// Enclose in the play area.
-			pBody->enclose( BcVec2d( -320.0f, -240.0f ), BcVec2d( 320.0f, 240.0f ), ENCLOSURE_DISTANCE, ENCLOSURE_MULTIPLIER );
-			
-			// Update.
-			pBody->update( Tick );
-
-			// If the player is close by we want to do the run away..
-			if( ( pPlayerEntity->getPosition() - pBody->Position_ ).magnitude() < EMOTE_RUN_AWAY_DISTANCE )
-			{
-				doEmote( EMOTE_RUNAWAY, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
-			}
-		}
-		else
-		{
-			if( pAnimationLogic->NotNeeded_ == BcFalse )
-			{
-				// Run away!
-				if( pBody->Position_.magnitude() < 1024.0f )
-				{
-					// Keep running away from avg.
-					BcVec2d NewTarget = ( pBody->Position_ - AveragePosition ).normal() * 2048.f;
-					pBody->target( NewTarget, 256.0f, 256.0 );
-
-					// Update.
-					pBody->update( Tick );
-
-					if( pBody->Position_.magnitude() > 512.0f )
-					{
-						pAnimationLogic->NotNeeded_ = BcTrue;
-					}
-				}
-			}
-		}
+	// Update animation at the end.
+	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
+	{
+		GaPhysicsBody* pBody = Bodies_[ Idx ];
+		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 
 		// Do animation.
 		if( pAnimationLogic->NotNeeded_ == BcFalse )
@@ -328,6 +254,111 @@ void GaSwarmEntity::update( BcReal Tick )
 	}
 
 	GaEntity::update( Tick );
+}
+
+void GaSwarmEntity::updateBody_Threaded( BcReal Tick,  GaFoodEntity* pFoodEntity, GaPhysicsBody* pBody, TAnimationLogic* pAnimationLogic )
+{
+	BcVec2d AverageVelocity = averageVelocity();
+	BcVec2d AveragePosition = averagePosition();
+
+	if( pBody->isLive() )
+	{
+		// Set target position.
+		pBody->target( Position_, TARGET_POSITION_ARRIVE_RADIUS, TARGET_POSITION_MULTIPLIER );
+
+		// Find nearest body, and avoid.
+		GaPhysicsBody* pOther = findNearestBody( pBody );
+		if( pOther != NULL )
+		{
+			pBody->avoid( pOther->Position_, SWARM_AVOID_DISTANCE, SWARM_AVOID_MULTIPLIER );
+
+			// If body is too far from nearest, kill it.
+			BcReal NearestDistance = ( pBody->Position_ - pOther->Position_ ).magnitude();
+			if( NearestDistance > SWARM_BODY_DEATH_DISTANCE )
+			{
+				pBody->kill();
+
+				// TODO: NOT IN HERE.
+				doEmote( EMOTE_SCARED, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+				ScnSoundRef Sound = GaTopState::pImpl()->getSound( GaTopState::SOUND_SCARED );
+				pAnimationLogic->Emitter_->play( Sound );
+			}
+		} 
+		else
+		{
+			pBody->kill();
+
+			// TODO: NOT IN HERE.
+			doEmote( EMOTE_SCARED, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+			ScnSoundRef Sound = GaTopState::pImpl()->getSound( GaTopState::SOUND_SCARED );
+			pAnimationLogic->Emitter_->play( Sound );
+		}
+
+		// Appear like flocking by tending towards the average direction.
+		pBody->accelerate( AverageVelocity * FLOCK_VELOCITY_MULTIPLIER );
+
+		// Slow down at food to eat.
+		if( pTargetFoodEntity_ != NULL )
+		{
+			BcReal Distance = ( pTargetFoodEntity_->getPosition() -  pBody->Position_ ).magnitude();
+
+			if( Distance < SWARM_EAT_FOOD_DISTANCE )
+			{
+				pBody->accelerate( -pBody->Velocity_ * SWARM_SLOW_DOWN_AT_FOOD_MULTIPLIER );
+
+				// If moving slow enough, we can eat.
+				if( pBody->Velocity_.magnitude() < SWARM_EAT_VELOCITY )
+				{
+					pTargetFoodEntity_->eat( Tick );
+
+					// TODO: NOT IN HERE.
+					if( doEmote( EMOTE_EATING, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) ) )
+					{
+						ScnSoundRef Sound = GaTopState::pImpl()->getSound( BcRandom::Global.randRange( GaTopState::SOUND_CHEW0, GaTopState::SOUND_CHEW1 ) );
+						pAnimationLogic->Emitter_->play( Sound );
+					}
+				}
+			}
+		}
+
+		// Avoid player massively.
+		GaPlayerEntity* pPlayerEntity = pParent()->getEntity< GaPlayerEntity >( 0 );
+		pBody->avoid( pPlayerEntity->getPosition(), PLAYER_AVOID_DISTANCE, PLAYER_AVOID_MULTIPLIER );
+
+		// Enclose in the play area.
+		pBody->enclose( BcVec2d( -320.0f, -240.0f ), BcVec2d( 320.0f, 240.0f ), ENCLOSURE_DISTANCE, ENCLOSURE_MULTIPLIER );
+
+		// Update.
+		pBody->update( Tick );
+
+		// If the player is close by we want to do the run away..
+		if( ( pPlayerEntity->getPosition() - pBody->Position_ ).magnitude() < EMOTE_RUN_AWAY_DISTANCE )
+		{
+			// TODO: NOT IN HERE.
+			doEmote( EMOTE_RUNAWAY, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+		}
+	}
+	else
+	{
+		if( pAnimationLogic->NotNeeded_ == BcFalse )
+		{
+			// Run away!
+			if( pBody->Position_.magnitude() < 1024.0f )
+			{
+				// Keep running away from avg.
+				BcVec2d NewTarget = ( pBody->Position_ - AveragePosition ).normal() * 2048.f;
+				pBody->target( NewTarget, 256.0f, 256.0 );
+
+				// Update.
+				pBody->update( Tick );
+
+				if( pBody->Position_.magnitude() > 512.0f )
+				{
+					pAnimationLogic->NotNeeded_ = BcTrue;
+				}
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
