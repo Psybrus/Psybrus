@@ -120,6 +120,34 @@ GaPhysicsBody* GaSwarmEntity::findNearestBody( GaPhysicsBody* pSource )
 	return pNearest;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// averagePosition
+BcVec2d GaSwarmEntity::averagePosition() const
+{
+	BcVec2d TotalPosition( 0.0f, 0.0f );
+
+	BcReal Total = 0.0f;
+	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
+	{
+		GaPhysicsBody* pBody = Bodies_[ Idx ];
+
+		if( pBody->isLive() )
+		{
+			TotalPosition += pBody->Position_;
+			Total += 1.0f;
+		}
+	}
+
+	// Missed divide by zero, but also check the total position anyway.
+	if( Total > 0 && BcCheckFloat( TotalPosition ) == BcTrue )
+	{
+		return TotalPosition / Total;
+	}
+
+	return BcVec2d( 0.0f, 0.0f );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // averageVelocity
 BcVec2d GaSwarmEntity::averageVelocity() const
@@ -137,29 +165,15 @@ BcVec2d GaSwarmEntity::averageVelocity() const
 		}
 	}
 
-	return TotalVelocity / Total;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// averagePosition
-BcVec2d GaSwarmEntity::averagePosition() const
-{
-	BcVec2d TotalPosition( 0.0f, 0.0f );
-
-	BcReal Total = 0.0f;
-	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
+	// Missed divide by zero, but also check the total position anyway.
+	if( Total > 0 && BcCheckFloat( TotalVelocity ) == BcTrue )
 	{
-		GaPhysicsBody* pBody = Bodies_[ Idx ];
-		
-		if( pBody->isLive() )
-		{
-			TotalPosition += pBody->Position_;
-			Total += 1.0f;
-		}
+		return TotalVelocity / Total;
 	}
 
-	return TotalPosition / Total;
+	return BcVec2d( 0.0f, 0.0f );
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // onMouseDown
