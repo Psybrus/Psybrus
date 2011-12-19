@@ -21,7 +21,7 @@ SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
 	Active_( BcTrue ),
 	HaveJob_( BcFalse ),
 	pCurrentJob_( NULL ),
-	ResumeEvent_( "SysJobWorker_ResumeEvent" )
+	ResumeEvent_( NULL )
 {
 	
 }
@@ -82,6 +82,14 @@ void SysJobWorker::execute()
 {
 	while( Active_ )
 	{
+		// Wait till we are told to resume.
+		ResumeEvent_.wait();
+
+		if( Active_ == BcTrue )
+		{
+			BcAssertMsg( pCurrentJob_ != NULL, "No job has been given!" );
+		}
+
 		// If we have a job set, we need to execute it.
 		if( pCurrentJob_ != NULL )
 		{
@@ -97,8 +105,5 @@ void SysJobWorker::execute()
 			// Signal job queue parent to schedule.
 			pParent_->schedule();
 		}
-
-		// Wait till we are told to resume.
-		ResumeEvent_.wait();
 	}
 }
