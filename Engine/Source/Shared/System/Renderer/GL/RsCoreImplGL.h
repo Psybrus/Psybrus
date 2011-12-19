@@ -58,6 +58,7 @@ private:
 public:
 	RsFrame*				allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height );
 	void					queueFrame( RsFrame* pFrame );
+	void					queueFrame_threaded( RsFrameGL* pFrame );
 	RsStateBlock*			getStateBlock();
 
 public:
@@ -66,6 +67,8 @@ public:
 protected:
 	BcCommandBuffer			CommandBuffer_;
 	RsStateBlockGL*			pStateBlock_;
+
+	SysFence				RenderSyncFence_;
 		
 };
 

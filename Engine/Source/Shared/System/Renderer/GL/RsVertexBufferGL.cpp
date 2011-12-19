@@ -54,7 +54,7 @@ RsVertexBufferGL::~RsVertexBufferGL()
 //virtual
 void* RsVertexBufferGL::lock()
 {
-	Lock_.lock();
+	wait();
 	return pData_;
 }
 
@@ -63,7 +63,7 @@ void* RsVertexBufferGL::lock()
 //virtual
 void RsVertexBufferGL::unlock()
 {
-	Lock_.unlock();
+	UpdateSyncFence_.increment();
 	RsCore::pImpl()->updateResource( this );
 }
 
@@ -103,6 +103,10 @@ void RsVertexBufferGL::create()
 	
 	if( Handle != 0 )
 	{
+		// Increment fence, update will decrement it.
+		UpdateSyncFence_.increment();
+
+		// Update resource.
 		update();
 		
 		// Destroy if there is a failure.
@@ -130,7 +134,6 @@ void RsVertexBufferGL::update()
 		glBindBuffer( Type_, Handle );
 	
 		// Lock, buffer, and unlock.
-		Lock_.lock();
 		if( Created_ )
 		{
 			glBufferSubData( Type_, 0, NoofUpdateVertices_ * Stride_, pData_ );
@@ -139,7 +142,9 @@ void RsVertexBufferGL::update()
 		{
 			glBufferData( Type_, NoofVertices_ * Stride_, pData_, Usage_ );
 		}
-		Lock_.unlock();
+
+		// Decrement fence.
+		UpdateSyncFence_.decrement();
 	
 		// Unbind buffer.
 		glBindBuffer( Type_, 0 );

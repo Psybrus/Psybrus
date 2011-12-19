@@ -195,9 +195,17 @@ protected:
 	}
 	
 protected:
-	RsVertexBuffer*						pVertexBuffer_;
-	RsPrimitive*						pPrimitive_;
+	struct TRenderResource
+	{
+		RsVertexBuffer*					pVertexBuffer_;
+		RsPrimitive*					pPrimitive_;
+		ScnCanvasVertex*				pVertices_;
+	};
+
+	BcU32								CurrentRenderResource_;
 	BcBool								HaveVertexBufferLock_;
+	TRenderResource						RenderResources_[ 2 ];
+	TRenderResource*					pRenderResource_;
 
 	// Submission data.
 	ScnCanvasVertex*					pVertices_;

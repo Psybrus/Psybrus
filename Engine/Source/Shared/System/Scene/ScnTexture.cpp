@@ -37,22 +37,9 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 		BcU8* pEncodedImageData = NULL;
 		BcU32 EncodedImageDataSize = 0;
 
-		ImgEncodeFormat EncodeFormat;
-		eRsTextureFormat TextureFormat;
-
-		/*
-		if( pImage->hasAlpha( 250 ) )
-		{
-			EncodeFormat = imgEF_DXT3;
-			TextureFormat = rsTF_DXT3;
-		}
-		else
-		*/
-		{
-
-			EncodeFormat = imgEF_DXT5;
-			TextureFormat = rsTF_DXT5;
-		}
+		// TODO: Take from parameters.
+		ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
+		eRsTextureFormat TextureFormat = rsTF_RGBA8;
 
 		if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 		{

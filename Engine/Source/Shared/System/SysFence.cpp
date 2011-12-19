@@ -44,13 +44,6 @@ void SysFence::decrement()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// isComplete
-BcBool SysFence::isComplete()
-{
-	return Count_ == 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // queue
 void SysFence::queue( BcU32 WorkerMask )
 {
@@ -72,9 +65,9 @@ void SysFence::queue( BcU32 WorkerMask )
 
 ////////////////////////////////////////////////////////////////////////////////
 // wait
-void SysFence::wait()
+void SysFence::wait( BcU32 Value )
 {
-	while( !isComplete() )
+	while( Count_ > Value )
 	{
 		BcYield();
 	}

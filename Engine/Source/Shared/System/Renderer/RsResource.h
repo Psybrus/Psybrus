@@ -15,6 +15,7 @@
 #define __RSRESOURCE_H__
 
 #include "RsTypes.h"
+#include "SysFence.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource
@@ -28,6 +29,7 @@ public:
 	virtual void						update();
 	virtual void						preDestroy();	
 	virtual void						destroy();
+	void								wait();
 	
 public:
 	template< typename _Ty >
@@ -51,6 +53,7 @@ protected:
 	void*								pData_;
 	BcU32								DataSize_;
 	BcBool								DeleteData_;	
+	SysFence							UpdateSyncFence_;
 
 private:
 	BcU64								Handle_;

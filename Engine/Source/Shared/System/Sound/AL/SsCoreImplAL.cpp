@@ -210,6 +210,7 @@ void SsCoreImplAL::close()
 	BcScopedLock< BcMutex > Lock( ChannelLock_ );
 
 	BcAssert( InternalResourceCount_ == 0 );
+
 	BcAssertMsg( UsedChannels_.size() == 0, "SsCore ImplAL: All channels must be free." );
 	
 	// Destroy channels.

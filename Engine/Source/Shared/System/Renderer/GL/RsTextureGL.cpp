@@ -70,14 +70,8 @@ BcU32 RsTextureGL::height() const
 //virtual
 void* RsTextureGL::lockTexture()
 {
-	BcAssert( Locked_ == BcFalse );
-	
-	if( Locked_ == BcFalse )
-	{
-		return pData_;
-	}
-	
-	return NULL;
+	wait();
+	return pData_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,13 +79,8 @@ void* RsTextureGL::lockTexture()
 //virtual
 void RsTextureGL::unlockTexture()
 {
-	BcAssert( Locked_ == BcTrue );
-
-	// Upload new texture data.
-	if( Locked_ == BcTrue )
-	{
-		Locked_ = BcFalse;
-	}
+	UpdateSyncFence_.increment();
+	RsCore::pImpl()->updateResource( this );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +97,9 @@ void RsTextureGL::create()
 	{
 		GLenum Error = glGetError();
 
-		// Update (slow...)
+		UpdateSyncFence_.increment();
+
+		// Update.
 		update();
 
 		// Destroy if there is a failure.
@@ -161,6 +152,8 @@ void RsTextureGL::update()
 	}
 
 	RsGLCatchError;
+
+	UpdateSyncFence_.decrement();
 	
 	// Invalidate texture state.
 	RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
