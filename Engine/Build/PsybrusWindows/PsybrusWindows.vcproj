@@ -1429,6 +1429,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Source\Shared\System\SysResource.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\System\SysResource.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Source\Shared\System\SysState.cpp"
 						>
 					</File>

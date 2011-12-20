@@ -28,10 +28,13 @@ SsChannelAL::SsChannelAL( SsCoreImplAL* Parent ):
 	alGenSources( 1, &ALSource_ );
 	alBreakOnError();
 
-#ifdef EX_AL_EFX
-	// Generate filter (if supported)
-	alGenFilters( 1, &ALFilter_ );
-	alBreakOnError();
+#if SS_AL_EFX_SUPPORTED
+	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
+	{
+		// Generate filter (if supported)
+		alGenFilters( 1, &ALFilter_ );
+		alBreakOnError();
+	}
 #endif
 }
 
@@ -43,10 +46,13 @@ SsChannelAL::~SsChannelAL()
 	alDeleteSources( 1, &ALSource_ );
 	alBreakOnError();
 
-#ifdef EX_AL_EFX
-	// Delete filters.
-	alDeleteFilters( 1, &ALFilter_ );
-	alBreakOnError();
+#if SS_AL_EFX_SUPPORTED
+	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
+	{
+		// Delete filters.
+		alDeleteFilters( 1, &ALFilter_ );
+		alBreakOnError();
+	}
 #endif
 }
 
@@ -69,8 +75,12 @@ void SsChannelAL::play( SsSampleAL* Sample, SsChannelCallback* Callback )
 	State_ = ssCS_PREPARED;
 	
 	alSourcei( ALSource_, AL_BUFFER, Sample->getHandle< ALuint >() );
-#ifdef EX_AL_EFX
-	//alSource3i( ALSource_, AL_AUXILIARY_SEND_FILTER, ALReverbEffectSlot_, 0, EX_NULL );
+#if SS_AL_EFX_SUPPORTED
+	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
+	{
+		// NEILO TODO.
+		//alSource3i( ALSource_, AL_AUXILIARY_SEND_FILTER, ALReverbEffectSlot_, 0, NULL );
+	}
 #endif
 	alBreakOnError();
 }
@@ -249,13 +259,16 @@ void SsChannelAL::updateParams()
 
 	alSourcef( ALSource_, AL_REFERENCE_DISTANCE, 250.0f );
 
-#ifdef EX_AL_EFX
-	// Final filter parameters.
-	/*
-	alFilteri( ALFilter_, AL_FILTER_TYPE, AL_FILTER_LOWPASS );
-	alFilterf( ALFilter_, AL_LOWPASS_GAIN, LowpassGain_ );
-	alFilterf( ALFilter_, AL_LOWPASS_GAINHF, LowpassGainHF_ );
-	alSourcei( ALSource_, AL_DIRECT_FILTER, ALFilter_ );
-	*/
+#if SS_AL_EFX_SUPPORTED
+	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
+	{
+		/*NEILO TODO.
+		// Final filter parameters.
+		alFilteri( ALFilter_, AL_FILTER_TYPE, AL_FILTER_LOWPASS );
+		alFilterf( ALFilter_, AL_LOWPASS_GAIN, LowpassGain_ );
+		alFilterf( ALFilter_, AL_LOWPASS_GAINHF, LowpassGainHF_ );
+		alSourcei( ALSource_, AL_DIRECT_FILTER, ALFilter_ );
+		*/
+	}
 #endif
 }

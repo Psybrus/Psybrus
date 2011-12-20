@@ -324,7 +324,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
 	pResource->preDestroy();
 	
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::destroy >( pResource ) );
+	SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 
@@ -332,16 +332,15 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::update >( pResource ) );
+	SysResource::UpdateDelegate Delegate( SysResource::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::create >( pResource ) );
+	SysResource::CreateDelegate Delegate( SysResource::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 

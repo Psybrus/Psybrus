@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxbase28d.lib wxmsw28d_core.lib wxcode_msw28d_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
+				AdditionalDependencies="wxbase28.lib wxmsw28_core.lib wxcode_msw28_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;../../../External/wxWidgets-2.8.12/lib/vc_lib&quot;;../../../External/propgrid/lib/vc_lib"
@@ -215,7 +215,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxbase28d.lib wxmsw28d_core.lib wxcode_msw28d_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
+				AdditionalDependencies="wxbase28.lib wxmsw28_core.lib wxcode_msw28_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;../../../External/wxWidgets-2.8.12/lib/vc_lib&quot;;../../../External/propgrid/lib/vc_lib"

@@ -23,3 +23,7 @@
 /PsybrusWindows_Release.lib
 /IntermediateContent/
 /PackedContent/
+/ContentServer_Release.exe
+/ContentServer_Release.pdb
+/Game.bat
+/Game.zip

@@ -13,6 +13,8 @@
 
 #include "SsCoreImplAL.h"
 
+#include "SysKernel.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( SsCoreImplAL );
@@ -23,7 +25,7 @@ BcBool SsCoreImplAL::initEFX()
 {
 	BcBool bEFXSupport = BcFalse;
 
-#ifdef EX_AL_EFX
+#if SS_AL_EFX_SUPPORTED
 	if (alcIsExtensionPresent( ALDevice_, (ALCchar*)ALC_EXT_EFX_NAME ) )
 	{
 		// Get function pointers
@@ -69,7 +71,7 @@ BcBool SsCoreImplAL::initEFX()
 			alAuxiliaryEffectSlotiv && alAuxiliaryEffectSlotf && alAuxiliaryEffectSlotfv &&
 			alGetAuxiliaryEffectSloti && alGetAuxiliaryEffectSlotiv && alGetAuxiliaryEffectSlotf &&
 			alGetAuxiliaryEffectSlotfv)
-			bEFXSupport = exTrue;
+			bEFXSupport = BcTrue;
 	}
 #endif
 
@@ -81,8 +83,19 @@ BcBool SsCoreImplAL::initEFX()
 //virtual
 void SsCoreImplAL::open()
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< SsCoreImplAL, &SsCoreImplAL::open_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
 
+	// Wait for the render thread to complete.
+	SysFence Fence;
+	Fence.queue( SsCore::WORKER_MASK );
+	Fence.wait();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// open_threaded
+void SsCoreImplAL::open_threaded()
+{
 	// NOTE: Should enumerate devices and select an appropriate one here. For now we assume default.
 	pSelectedDevice_ = NULL;
 	ALContext_ = NULL;
@@ -135,7 +148,7 @@ void SsCoreImplAL::open()
 
 		if( bEFXEnabled_ == BcTrue )
 		{
-#ifdef EX_AL_EFX
+#if SS_AL_EFX_SUPPORTED
 			// Setup effect slot.
 			alGenAuxiliaryEffectSlots( 1, &ALReverbEffectSlot_ );
 			alGetError();
@@ -155,15 +168,18 @@ void SsCoreImplAL::open()
 
 //////////////////////////////////////////////////////////////////////////
 // update
-//virtual
 void SsCoreImplAL::update()
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< SsCoreImplAL, &SsCoreImplAL::update_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
+}
 
+//////////////////////////////////////////////////////////////////////////
+// update_threaded
+//virtual
+void SsCoreImplAL::update_threaded()
+{
 	SsChannelAL* pSound = NULL;
-
-	// Execute command buffer.
-	CommandBuffer_.execute();
 
 	// Update SetListener.
 	{
@@ -187,16 +203,16 @@ void SsCoreImplAL::update()
 		alListenerfv( AL_POSITION, &Position[ 0 ] );
 		alListenerfv( AL_ORIENTATION, &Orientation[ 0 ] );
 	}
-
+	
 	// TODO: Command buffer this.
 	// Update playing sounds.
-	TChannelList UsedChannels = UsedChannels_; // Make a copy as the update can free channbels.
+	TChannelList UsedChannels = UsedChannels_; // Make a copy as the update can free channels.
 	for( TChannelListIterator Iter( UsedChannels.begin() ); Iter != UsedChannels.end(); ++Iter )
 	{
 		pSound = (*Iter);	
 		pSound->update();
 	}
-
+	
 	// Process context.	
 	alcProcessContext( ALContext_ );
 	alcSuspendContext( ALContext_ );
@@ -207,8 +223,20 @@ void SsCoreImplAL::update()
 //virtual
 void SsCoreImplAL::close()
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< SsCoreImplAL, &SsCoreImplAL::close_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
 
+	// Wait for the render thread to complete.
+	SysFence Fence;
+	Fence.queue( SsCore::WORKER_MASK );
+	Fence.wait();
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// close_threaded
+void SsCoreImplAL::close_threaded()
+{
 	BcAssert( InternalResourceCount_ == 0 );
 
 	BcAssertMsg( UsedChannels_.size() == 0, "SsCore ImplAL: All channels must be free." );
@@ -232,12 +260,17 @@ void SsCoreImplAL::close()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isEFXEnabled
+BcBool SsCoreImplAL::isEFXEnabled() const
+{
+	return bEFXEnabled_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createSample
 //virtual
 SsSample* SsCoreImplAL::createSample( BcU32 SampleRate, BcU32 Channels, BcBool Looping, void* pData, BcU32 DataSize )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
-
 	SsSampleAL* pSample = new SsSampleAL( SampleRate, Channels, Looping, pData, DataSize );
 	createResource( pSample );
 	return pSample;
@@ -247,22 +280,18 @@ SsSample* SsCoreImplAL::createSample( BcU32 SampleRate, BcU32 Channels, BcBool L
 // destroyResource
 void SsCoreImplAL::destroyResource( SsResource* pResource )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
-
 	pResource->preDestroy();
 
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< SsResource, &SsResource::destroy >( pResource ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
+	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateResource
 void SsCoreImplAL::updateResource( SsResource* pResource )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
-
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< SsResource, &SsResource::update >( pResource ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	SysResource::UpdateDelegate Delegate( SysResource::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
+	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -270,10 +299,8 @@ void SsCoreImplAL::updateResource( SsResource* pResource )
 
 void SsCoreImplAL::createResource( SsResource* pResource )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
-
-	BcDelegateCall< void(*)() > DelegateCall( BcDelegate< void(*)() >::bind< SsResource, &SsResource::create >( pResource ) );
-	CommandBuffer_.enqueue( DelegateCall );
+	SysResource::CreateDelegate Delegate( SysResource::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
+	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -281,15 +308,14 @@ void SsCoreImplAL::createResource( SsResource* pResource )
 //virtual
 SsChannel* SsCoreImplAL::play( SsSample* pSample, SsChannelCallback* pCallback )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ );
-
 	SsChannelAL* pChannel = allocChannel();
 
 	// If we've allocated a channel, it's now over to the channel to do the rest.
 	if( pChannel != NULL )
 	{
-		BcDelegateCall< void(*)(SsSampleAL*, SsChannelCallback*) > DelegateCall( BcDelegate< void(*)(SsSampleAL*, SsChannelCallback*) >::bind< SsChannelAL, &SsChannelAL::play >( pChannel ) );
-		CommandBuffer_.enqueue( DelegateCall, static_cast< SsSampleAL* >( pSample ), pCallback );
+		typedef BcDelegate< void(*)(SsSampleAL*, SsChannelCallback*) >  PlayDelegate;
+		PlayDelegate Delegate( PlayDelegate::bind< SsChannelAL, &SsChannelAL::play >( pChannel ) );
+		SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate, static_cast< SsSampleAL* >( pSample ), pCallback );
 	}
 	
 	return pChannel;
@@ -309,6 +335,8 @@ void SsCoreImplAL::setListener( const BcVec3d& Position, const BcVec3d& LookAt, 
 // allocChannel
 SsChannelAL* SsCoreImplAL::allocChannel()
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
+
 	SsChannelAL* pChannel = NULL;
 
 	// Grab a free channel if we have any.
@@ -327,6 +355,8 @@ SsChannelAL* SsCoreImplAL::allocChannel()
 // freeChannel
 void SsCoreImplAL::freeChannel( SsChannelAL* pSound )
 {
+	BcScopedLock< BcMutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
+
 	// Remove from used list.
 	for( TChannelListIterator Iter( UsedChannels_.begin() ); Iter != UsedChannels_.end(); ++Iter )
 	{

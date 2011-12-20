@@ -15,48 +15,17 @@
 #define __RSRESOURCE_H__
 
 #include "RsTypes.h"
-#include "SysFence.h"
+#include "SysResource.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource
-class RsResource
+class RsResource:
+	public SysResource
 {
 public:
 	RsResource();
 	virtual ~RsResource();
-	
-	virtual void						create();
-	virtual void						update();
-	virtual void						preDestroy();	
-	virtual void						destroy();
-	void								wait();
-	
-public:
-	template< typename _Ty >
-	BcForceInline _Ty					getHandle() const
-	{
-		return (_Ty)Handle_;		
-	}
 
-	template< typename _Ty >
-	BcForceInline void					setHandle( _Ty Handle )
-	{
-		Handle_ = (BcU64)Handle;		
-	}
-	
-	BcBool								hasHandle() const
-	{
-		return Handle_ != 0;
-	}
-
-protected:
-	void*								pData_;
-	BcU32								DataSize_;
-	BcBool								DeleteData_;	
-	SysFence							UpdateSyncFence_;
-
-private:
-	BcU64								Handle_;
 };
 
 #endif
