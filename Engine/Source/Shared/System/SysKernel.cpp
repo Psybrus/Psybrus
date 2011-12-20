@@ -30,7 +30,7 @@ std::string SysArgs_;
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysKernel::SysKernel( BcReal TickRate ):
-	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 2 ) ) ),
+	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) ),
 	TickRate_( TickRate )
 {
 	ShuttingDown_ = BcFalse;
