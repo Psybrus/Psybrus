@@ -100,7 +100,7 @@ void RsCoreImplGL::open_threaded()
 		0,												// No Auxiliary Buffer
 		PFD_MAIN_PLANE,									// Main Drawing Layer
 		0,												// Reserved
-		0, 0, 0											 // Layer Masks Ignored
+		0, 0, 0											// Layer Masks Ignored
 	};
 	
 	GLuint PixelFormat = 0;

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -107,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -172,7 +172,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_PRODUCTION"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -3334,6 +3334,162 @@
 					RelativePath="..\..\..\External\squish\squish.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="tremor"
+				>
+				<File
+					RelativePath="..\..\..\External\tremor\asm_arm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\backends.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\block.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\block.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\codebook.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\codebook.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\codec_internal.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\config_types.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\floor0.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\floor1.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\info.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\iseeking_example.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\ivorbiscodec.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\ivorbisfile.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\lsp_lookup.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\mapping0.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\mdct.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\mdct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\mdct_lookup.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\os.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\registry.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\registry.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\res012.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\sharedbook.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\synthesis.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\vorbisfile.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\window.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\window.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\tremor\window_lookup.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="ogg"
+				>
+				<Filter
+					Name="include"
+					>
+					<Filter
+						Name="ogg"
+						>
+						<File
+							RelativePath="..\..\..\External\ogg\include\ogg\ogg.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\ogg\include\ogg\os_types.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
+				<Filter
+					Name="src"
+					>
+					<File
+						RelativePath="..\..\..\External\ogg\src\bitwise.c"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\External\ogg\src\framing.c"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 	</Files>
