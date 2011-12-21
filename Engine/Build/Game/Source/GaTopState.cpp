@@ -34,7 +34,7 @@ void GaTopState::enterOnce()
 {
 	// NEILO HACKY CODE :(
 	BcBool Imported;
-#if PSY_SERVER
+#ifdef PSY_SERVER
 	Imported = CsCore::pImpl()->importResource( "GameContent/bunny.ScnMaterial", Materials_[ MATERIAL_BUNNY ] );
 	BcAssert( Imported );
 

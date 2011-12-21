@@ -21,7 +21,6 @@
 
 #include "BcScopedLock.h"
 #include "BcMutex.h"
-#include "BcCommandBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
