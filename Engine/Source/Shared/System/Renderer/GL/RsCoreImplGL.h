@@ -17,8 +17,6 @@
 #include "RsCore.h"
 #include "RsGL.h"
 
-#include "BcCommandBuffer.h"
-
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class RsFrameGL;
@@ -65,7 +63,6 @@ public:
 	// Platform specific interface.
 
 protected:
-	BcCommandBuffer			CommandBuffer_;
 	RsStateBlockGL*			pStateBlock_;
 
 	SysFence				RenderSyncFence_;
