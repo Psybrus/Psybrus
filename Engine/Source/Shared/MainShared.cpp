@@ -35,6 +35,38 @@ void MainUnitTests()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// onCsCoreOpened
+eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
+{
+	// Register scene resources.
+	CsCore::pImpl()->registerResource< ScnRenderTarget >();
+
+	CsCore::pImpl()->registerResource< ScnShader >();
+	CsCore::pImpl()->registerResource< ScnTexture >();
+	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
+
+	CsCore::pImpl()->registerResource< ScnMaterial >();
+	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
+
+	CsCore::pImpl()->registerResource< ScnFont >();
+	CsCore::pImpl()->registerResource< ScnFontInstance >();
+
+	CsCore::pImpl()->registerResource< ScnModel >();
+	CsCore::pImpl()->registerResource< ScnModelInstance >();
+
+	CsCore::pImpl()->registerResource< ScnSound >();
+	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
+
+	CsCore::pImpl()->registerResource< ScnComponent >();
+	CsCore::pImpl()->registerResource< ScnEntity >();
+
+	CsCore::pImpl()->registerResource< ScnCanvas >();
+	CsCore::pImpl()->registerResource< ScnView >();
+
+	return evtRET_REMOVE;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // MainShared
 void MainShared()
 {
@@ -85,6 +117,10 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
 
+	// Start file and content systems.
+	SysKernel::pImpl()->startSystem( "FsCore" );
+	SysKernel::pImpl()->startSystem( "CsCore" );
+
 	// Start systems.
 	if( GPsySetupParams.Flags_ & psySF_REMOTE )
 	{
@@ -103,31 +139,7 @@ void MainShared()
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
 
-	SysKernel::pImpl()->startSystem( "FsCore" );
-	SysKernel::pImpl()->startSystem( "CsCore" );
-
-	// Register scene resources.
-	CsCore::pImpl()->registerResource< ScnRenderTarget >();
-
-	CsCore::pImpl()->registerResource< ScnShader >();
-	CsCore::pImpl()->registerResource< ScnTexture >();
-	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
-
-	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
-
-	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnFontInstance >();
-
-	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnModelInstance >();
-
-	CsCore::pImpl()->registerResource< ScnSound >();
-	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
-
-	CsCore::pImpl()->registerResource< ScnComponent >();
-	CsCore::pImpl()->registerResource< ScnEntity >();
-
-	CsCore::pImpl()->registerResource< ScnCanvas >();
-	CsCore::pImpl()->registerResource< ScnView >();
+	// Setup callback for post CsCore open for resource registration.
+	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
+	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnCsCoreOpened );
 }

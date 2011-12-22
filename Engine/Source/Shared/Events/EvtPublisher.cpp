@@ -32,6 +32,7 @@ EvtPublisher::~EvtPublisher()
 // publishInternal
 void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
+	BcAssert( BcIsGameThread() );
 	BcUnusedVar( EventSize );
 	
 	/*

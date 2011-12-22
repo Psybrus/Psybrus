@@ -35,7 +35,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Perform unit tests.
 	MainUnitTests();
-	
+
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
 	
