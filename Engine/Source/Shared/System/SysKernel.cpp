@@ -162,6 +162,8 @@ void SysKernel::run( BcBool Threaded )
 // tick
 void SysKernel::tick()
 {
+	BcAssert( BcIsGameThread() );
+
 	if( ShuttingDown_ == BcFalse )
 	{
 		BcScopedLock< BcMutex > Lock( SystemLock_ );
@@ -243,6 +245,10 @@ BcReal SysKernel::getFrameTime() const
 //virtual
 void SysKernel::execute()
 {
+	// Set main thread.
+	extern void BcSetGameThread();
+	BcSetGameThread();
+
 	// Run until there are no more systems to run.
 	do
 	{

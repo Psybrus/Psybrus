@@ -40,3 +40,18 @@ BcU32 BcGetHardwareThreadCount()
 	BcAssert( RetVal >= 1 );
 	return RetVal;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// BcSetMainThread
+static DWORD GMainThreadID = 0;
+void BcSetGameThread()
+{
+	GMainThreadID = ::GetCurrentThreadId();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcIsGameThread
+BcBool BcIsGameThread()
+{
+	return GMainThreadID == ::GetCurrentThreadId();
+}
