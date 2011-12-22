@@ -30,6 +30,7 @@ SysKernel::SysKernel( BcReal TickRate ):
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
+	FrameTime_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -223,6 +224,13 @@ void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFrameTime
+BcReal SysKernel::getFrameTime() const
+{
+	return FrameTime_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // execute
 //virtual
 void SysKernel::execute()
@@ -246,13 +254,16 @@ void SysKernel::execute()
 			{
 				BcReal SleepTime = SleepAccumulator_;
 				SleepAccumulator_ -= SleepTime;
-				BcSleep( SleepTime );
+				BcSleep( BcMin( SleepTime, TickRate_ ) );
 			}
 		}
 		else
 		{
 			BcYield();
 		}
+
+		// Store frame time.
+		FrameTime_ = BcMin( MainTimer_.time(), TickRate_ * 4.0f );
 	}
 	while( SystemList_.size() > 0 );
 }

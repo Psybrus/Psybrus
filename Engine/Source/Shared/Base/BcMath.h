@@ -285,4 +285,37 @@ inline BcU32 BcBitsSet( BcU32 Value )
     return  ( Value & 0x0000FFFFU ) + ( ( Value & 0xFFFF0000U ) >> 16 );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// BcSmoothStep
+inline BcReal BcSmoothStep( BcReal T )
+{
+	return T * T * ( 3 - 2 * T );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcSquaredKeepSign
+inline BcReal BcSquaredKeepSign( BcReal T )
+{
+	return ( T * T ) * ( T > 0.0f ? 1.0f : -1.0f );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcCheckFloat
+#define BC_FLOAT_SIGN_MASK 0x80000000
+#define BC_FLOAT_EXP_MASK 0x7F800000
+#define BC_FLOAT_FRAC_MASK 0x007FFFFF
+#define BC_FLOAT_SNAN_MASK 0x00400000
+
+inline BcBool BcCheckFloat( BcF32 T )
+{
+	BcF32 Copy = T;
+	BcU32 IntFloat = *( ( BcU32* ) &(Copy) );
+	BcU32 Exp = IntFloat & BC_FLOAT_EXP_MASK;
+	BcU32 Frac = IntFloat & BC_FLOAT_FRAC_MASK;
+	if ( ( Exp == 0 ) && ( Frac != 0 ) ) return BcFalse;
+	if ( Exp == BC_FLOAT_EXP_MASK ) return BcFalse;
+	if ( ( Exp == BC_FLOAT_EXP_MASK ) && ( ( Frac & BC_FLOAT_SNAN_MASK ) == 0 ) ) return BcFalse;
+	return BcTrue;
+}
+
 #endif

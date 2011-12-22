@@ -165,6 +165,9 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 	{
 		// Do a hash check of data.
 		BcU32 Hash = (BcU32)BcHash( (BcU8*)pData, Size );
+
+
+
 		BcAssertMsg( Hash == pFoundChunk->Hash_, "CsFileReader: Chunk data corrupt!\n" );
 		
 		pFoundChunkProps->Status_ = CsFileChunkProps::STATUS_LOADED;

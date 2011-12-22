@@ -13,6 +13,14 @@
 
 #include "MainShared.h"
 
+#ifdef PSY_DEBUG
+BcU32 GResolutionWidth = 1280 / 2;
+BcU32 GResolutionHeight = 720 / 2;
+#else
+BcU32 GResolutionWidth = 1280;
+BcU32 GResolutionHeight = 720;
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
 void MainUnitTests()
@@ -30,18 +38,27 @@ void MainUnitTests()
 // MainShared
 void MainShared()
 {
+	// Setup the render thread.
+	RsCore::WORKER_MASK = 0x2;
+
+	// Disable render thread for debugging.
+	if( SysArgs_.find( "-norenderthread " ) )
+	{
+		RsCore::WORKER_MASK = 0x0;
+	}
+
 	// Parse command line params for disabling systems.
-	if( SysArgs_.find( "-noremote" ) != std::string::npos )
+	if( SysArgs_.find( "-noremote " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
 	}
 
-	if( SysArgs_.find( "-norender" ) != std::string::npos )
+	if( SysArgs_.find( "-norender " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_RENDER;
 	}
 
-	if( SysArgs_.find( "-nosound" ) != std::string::npos )
+	if( SysArgs_.find( "-nosound " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}

@@ -19,6 +19,8 @@
 // Ctor
 GaBaseGameState::GaBaseGameState()
 {
+	name( "GaBaseGameState" );
+
 	GaTopState::pImpl()->addState( this );
 }
 
@@ -30,7 +32,33 @@ GaBaseGameState::~GaBaseGameState()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// enterOnce
+//virtual
+void GaBaseGameState::enterOnce()
+{
+	if( CsCore::pImpl()->createResource( "Canvas", Canvas_, 1024 * 16, ScnMaterialInstance::Default ) )
+	{
+		int a = 0; ++a;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// enter
+//virtual
+eSysStateReturn GaBaseGameState::enter()
+{
+	if( Canvas_.isReady() == BcFalse )
+	{
+		return sysSR_CONTINUE;
+	}
+
+	return sysSR_FINISHED;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // render
 void GaBaseGameState::render( RsFrame* pFrame )
 {
+
+	Canvas_->render( pFrame, RsRenderSort( 0 ) );
 }

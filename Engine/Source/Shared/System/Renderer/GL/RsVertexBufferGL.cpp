@@ -27,6 +27,7 @@ RsVertexBufferGL::RsVertexBufferGL( BcU32 Descriptor, BcU32 NoofVertices, void* 
 	Descriptor_ = Descriptor;
 	Stride_ = RsVertexDeclSize( Descriptor );
 	NoofVertices_ = NoofVertices;
+	NoofUpdateVertices_ = NoofVertices;
 	pData_ = pVertexData;
 	DataSize_ = Stride_ * NoofVertices;
 	
@@ -36,6 +37,8 @@ RsVertexBufferGL::RsVertexBufferGL( BcU32 Descriptor, BcU32 NoofVertices, void* 
 		pData_ = new BcU8[ Stride_ * NoofVertices_ ];
 		DeleteData_ = BcTrue;
 	}
+
+	Created_ = BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +65,14 @@ void RsVertexBufferGL::unlock()
 {
 	Lock_.unlock();
 	RsCore::pImpl()->updateResource( this );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setNoofUpdateVertices
+//virtual
+void RsVertexBufferGL::setNoofUpdateVertices( BcU32 NoofVertices )
+{
+	NoofUpdateVertices_ = BcMin( NoofVertices, NoofVertices_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,6 +110,10 @@ void RsVertexBufferGL::create()
 		{
 			destroy();
 		}
+		else
+		{
+			Created_ = BcTrue;
+		}
 	}
 }
 
@@ -116,7 +131,14 @@ void RsVertexBufferGL::update()
 	
 		// Lock, buffer, and unlock.
 		Lock_.lock();
-		glBufferData( Type_, DataSize_, pData_, Usage_ );
+		if( Created_ )
+		{
+			glBufferSubData( Type_, 0, NoofUpdateVertices_ * Stride_, pData_ );
+		}
+		else
+		{
+			glBufferData( Type_, NoofVertices_ * Stride_, pData_, Usage_ );
+		}
 		Lock_.unlock();
 	
 		// Unbind buffer.

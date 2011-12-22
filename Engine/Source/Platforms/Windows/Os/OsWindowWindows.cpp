@@ -13,6 +13,8 @@
 
 #include "OsWindowWindows.h"
 
+#include "OsCore.h"
+
 #include "BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,8 +40,6 @@ OsWindowWindows::~OsWindowWindows()
 BcBool OsWindowWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen )
 {
 	WNDCLASSEX	wc;
-	DWORD		dwExStyle;
-	DWORD		dwStyle;
 	RECT		WindowRect;
 
 	WindowRect.left = (long)0;
@@ -72,23 +72,25 @@ BcBool OsWindowWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 
 	if( Fullscreen == BcFalse )
 	{
-		dwExStyle = WS_EX_WINDOWEDGE;
-		dwStyle = WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
+		WindowStyleEx_ = WS_EX_WINDOWEDGE;
+		WindowStyle_ = WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
 	}
 	else
 	{
-		dwExStyle = WS_EX_APPWINDOW;
-		dwStyle = WS_POPUP;	
+		WindowStyleEx_ = WS_EX_APPWINDOW;
+		WindowStyle_ = WS_POPUP;	
 	}
 
-	::AdjustWindowRectEx( &WindowRect, dwStyle, FALSE, dwExStyle);
+	::AdjustWindowRectEx( &WindowRect, WindowStyle_, FALSE, WindowStyleEx_);
+
+	centreWindow( Width, Height );
 
 	// Create The Window
-	if ( !( hWnd_=::CreateWindowEx(	dwExStyle,
+	if ( !( hWnd_=::CreateWindowEx(	WindowStyleEx_,
 		ClassName_,
 		pTitle,
-		dwStyle,
-		0, 0,
+		WindowStyle_,
+		WindowSize_.left, WindowSize_.top,
 		WindowRect.right-WindowRect.left,
 		WindowRect.bottom-WindowRect.top,
 		NULL,
@@ -142,6 +144,47 @@ BcHandle OsWindowWindows::getDC()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// centreWindow
+BcBool OsWindowWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
+{
+	WindowSize_ = windowSize( SizeX, SizeY );
+
+	BcBool RetValue = BcTrue;
+
+	if( AdjustWindowRectEx( &WindowSize_, WindowStyle_, BcFalse, WindowStyleEx_ ) == FALSE )
+	{
+		RetValue  = BcFalse;
+	}
+	
+	return RetValue; 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// windowSize
+RECT OsWindowWindows::windowSize( BcS32 SizeX, BcS32 SizeY ) const
+{
+	RECT Rect;
+
+	SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
+
+	BcS32 Width = Rect.right - Rect.left;
+	BcS32 Height = Rect.bottom - Rect.top;
+
+	BcS32 slX = ( ( Width - SizeX ) / 2 ) + Rect.left;	// Default window to middle of screen
+	BcS32 slY = ( ( Height - SizeY ) / 2 ) + Rect.top;
+
+	RECT WindowSize;
+
+	WindowSize.left = slX;
+	WindowSize.top = slY;
+	WindowSize.right = ( SizeX + slX );
+	WindowSize.bottom = ( SizeY + slY ); 
+
+	return WindowSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // wndProcInternal
 LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 								   UINT uMsg,
@@ -164,71 +207,114 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 		}
 		break;
 
+	case WM_SIZE:
+		{
+			extern BcU32 GResolutionWidth;
+			extern BcU32 GResolutionHeight;
+			GResolutionWidth = lParam & 0xffff;
+			GResolutionHeight = lParam >> 16 & 0xffff;
+		}
+		break;
 	case WM_KEYDOWN:
 		{
-			//BcU32 KeyCode = static_cast< BcU32 >( wParam ) & 0xff;
-			//pOsCoreImpl->setKey( KeyCode, BcTrue );
-
-			//if( KeyCode == VK_F11 )
-			//{
-			//	pOsCoreImpl->reinitDisplay();
-			//}
+			OsEventInputKeyboard Event;
+			Event.DeviceID_ = 0;
+			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
+			OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_KEYUP:
 		{
-			//BcU32 KeyCode = static_cast< BcU32 >( wParam ) & 0xff;
-			//pOsCoreImpl->setKey( KeyCode, BcFalse );
+			OsEventInputKeyboard Event;
+			Event.DeviceID_ = 0;
+			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
+			OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event );
 			return 0;
 		}
 		break;
 
 	case WM_MOUSEMOVE:
 		{
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event );
 			return 0;
 		}
 		break;
 
 	case WM_LBUTTONDOWN:
 		{
-			//pOsCoreImpl->setMouseButton( 0, BcTrue );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_LBUTTONUP:
 		{
-			//pOsCoreImpl->setMouseButton( 0, BcFalse );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
 
 	case WM_RBUTTONDOWN:
 		{
-			//pOsCoreImpl->setMouseButton( 1, BcTrue );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 1;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_RBUTTONUP:
 		{
-			//pOsCoreImpl->setMouseButton( 1, BcFalse );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 1;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
 
 	case WM_MBUTTONDOWN:
 		{
-			//pOsCoreImpl->setMouseButton( 2, BcTrue );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 2;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
 
 	case WM_MBUTTONUP:
 		{
-			//pOsCoreImpl->setMouseButton( 2, BcFalse );
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.ButtonCode_ = 2;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;

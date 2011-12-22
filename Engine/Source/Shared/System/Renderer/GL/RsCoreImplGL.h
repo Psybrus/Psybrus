@@ -52,8 +52,6 @@ public:
 	virtual void			destroyResource( RsResource* pResource );
 	void					updateResource( RsResource* pResource );
 
-	virtual void			getResolution( BcU32& W, BcU32& H );
-
 private:
 	void					createResource( RsResource* pResource );
 
@@ -68,10 +66,7 @@ public:
 protected:
 	BcCommandBuffer			CommandBuffer_;
 	RsStateBlockGL*			pStateBlock_;
-	
-	BcU32					W_;
-	BcU32					H_;
-	
+		
 };
 
 #endif

@@ -69,12 +69,17 @@ public:
 	/**
 	 * Get worker count.
 	 */
-	BcU32				workerCount() const;
+	BcU32						workerCount() const;
 	
 	/**
 	 * Enqueue job.
 	 */
 	void						enqueueJob( BcU32 WorkerMask, SysJob* pJob );
+
+	/**
+	 * Get frame time.
+	 */
+	BcReal						getFrameTime() const;
 
 	/**
 	 * Enqueue job.
@@ -222,6 +227,7 @@ private:
 	
 	BcReal						SleepAccumulator_;
 	BcReal						TickRate_;
+	BcReal						FrameTime_;
 	
 	SysJobQueue					JobQueue_;
 	SysDelegateDispatcher		DelegateDispatcher_;

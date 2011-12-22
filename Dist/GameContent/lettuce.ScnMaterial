@@ -1,0 +1,25 @@
+{ 
+	"ScnMaterial" : {
+		"name"		: "lettuce",
+
+		// Shader
+		"shader"	: "EngineContent/diffuse3d.ScnShader",
+
+		// Textures
+		"textures"	: {
+			"aDiffuseTex"		: "GameContent/lettuce.ScnTextureAtlas"
+		},
+		
+		// State
+		"state"		: {
+			"depth_write_enable" 		: 1,
+			"depth_test_enable" 		: 1,
+			"depth_test_compare" 		: "lessequal",
+			"depth_bias" 				: 0,
+			"alpha_test_enable" 		: 1,
+			"alpha_test_compare" 		: "greater",
+			"alpha_test_threshold" 		: 128,
+			"blend_mode" 				: "none"
+		}
+	}
+}

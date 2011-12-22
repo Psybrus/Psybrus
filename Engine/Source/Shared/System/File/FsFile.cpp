@@ -54,10 +54,13 @@ BcBool FsFile::close()
 	if( pImpl_ != NULL )
 	{
 		RetVal = pImpl_->close();
-		BcAssertMsg( FsCore::pImpl() != NULL, "FsFile: FsCore is NULL when trying to close a file!" );
 		if( FsCore::pImpl() != NULL )
 		{
 			FsCore::pImpl()->closeFile( pImpl_ );
+		}
+		else
+		{
+			BcPrintf( "FsFile: FsCore is NULL when trying to close a file!\n" );
 		}
 	}
 	

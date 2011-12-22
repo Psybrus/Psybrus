@@ -138,7 +138,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			CsDependancyList TextureDependancyList;
 
 			// Create a texture.
-			std::string AtlasName = Object[ "name" ].asString() + "_texture_atlas";
+			std::string AtlasName = Object[ "name" ].asString() + "textureatlas";
 			std::string AtlasFileName = std::string( "IntermediateContent/" ) + AtlasName + ".png";
 			Img::save( AtlasFileName.c_str(), pAtlasImage );
 			
@@ -193,6 +193,15 @@ const ScnRect& ScnTextureAtlas::getRect( BcU32 Idx )
 
 	return ScnTexture::getRect( Idx );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// noofRects
+//virtual
+BcU32 ScnTextureAtlas::noofRects()
+{
+	return pAtlasHeader_->NoofTextures_;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady

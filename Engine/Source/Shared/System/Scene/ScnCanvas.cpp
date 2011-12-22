@@ -397,11 +397,11 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 						pVertex->Z_ = Vertex.z();
 					}
 				}
-
+				
 				AddNewPrimitive = BcFalse;
 			}
 		}
-
+		
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
@@ -518,6 +518,113 @@ void ScnCanvas::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU3
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawSprite
+void ScnCanvas::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+{
+	ScnCanvasVertex* pVertices = allocVertices( 6 );
+	ScnCanvasVertex* pFirstVertex = pVertices;
+	
+	const BcVec3d CornerA = Position;
+	const BcVec3d CornerB = Position + BcVec3d( Size.x(), 0.0f, Size.y() );
+	
+	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
+	
+	// Only draw if we can allocate vertices.
+	if( pVertices != NULL )
+	{
+		// Now copy in data.
+		BcU32 RGBA = Colour.asABGR();
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = Position.y();
+		pVertices->Z_ = CornerA.z();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = Position.y();
+		pVertices->Z_ = CornerA.z();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = Position.y();
+		pVertices->Z_ = CornerB.z();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerA.x();
+		pVertices->Y_ = Position.y();
+		pVertices->Z_ = CornerB.z();
+		pVertices->U_ = Rect.X_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = Position.y();
+		pVertices->Z_ = CornerA.z();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_;
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		
+		pVertices->X_ = CornerB.x();
+		pVertices->Y_ = Position.y();
+		pVertices->Z_ = CornerB.z();
+		pVertices->U_ = Rect.X_ + Rect.W_;
+		pVertices->V_ = Rect.Y_ + Rect.H_;
+		pVertices->RGBA_ = RGBA;
+		
+		// Quickly check last primitive.
+		BcBool AddNewPrimitive = BcTrue;
+		if( LastPrimitiveSection_ != BcErrorCode )
+		{
+			ScnCanvasPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+			
+			// If the last primitive was the same type as ours we can append to it.
+			// NOTE: Need more checks here later.
+			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			   PrimitiveSection.Layer_ == Layer &&
+			   PrimitiveSection.MaterialInstance_ == MaterialInstance_ )
+			{
+				PrimitiveSection.NoofVertices_ += 6;
+				
+				// Matrix stack.
+				// TODO: Factor into a seperate function.
+				if( IsIdentity_ == BcFalse )
+				{
+					BcMat4d Matrix = getMatrix();
+					
+					for( BcU32 Idx = 0; Idx < 6; ++Idx )
+					{
+						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
+						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						pVertex->X_ = Vertex.x();
+						pVertex->Y_ = Vertex.y();
+						pVertex->Z_ = Vertex.z();
+					}
+				}
+				
+				AddNewPrimitive = BcFalse;
+			}
+		}
+		
+		// Add primitive.
+		if( AddNewPrimitive == BcTrue )
+		{
+			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
 void ScnCanvas::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
@@ -531,6 +638,14 @@ void ScnCanvas::drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Si
 {
 	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, Size.y() * 0.5f, 0.0f );
 	drawSprite3D( NewPosition, Size, TextureIdx, Colour, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawSpriteCentered
+void ScnCanvas::drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+{
+	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, 0.0f, Size.y() * 0.5f );
+	drawSpriteUp3D( NewPosition, Size, TextureIdx, Colour, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -619,6 +734,7 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 	// Unlock vertex buffer if we have the lock.
 	if( HaveVertexBufferLock_ == BcTrue )
 	{
+		pVertexBuffer_->setNoofUpdateVertices( VertexIndex_ );
 		pVertexBuffer_->unlock();
 	}
 }
