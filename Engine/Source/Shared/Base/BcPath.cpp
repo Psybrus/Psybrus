@@ -59,7 +59,7 @@ const BcChar* BcPath::operator * () const
 // join
 void BcPath::join( const BcPath& PathA )
 {
-	InternalValue_ += appendTrailingSeperator( InternalValue_ );
+	InternalValue_ = appendTrailingSeperator( InternalValue_ );
 	InternalValue_ += stripLeadingSeperator( PathA.InternalValue_ );
 }
 
@@ -105,7 +105,7 @@ std::string BcPath::stripLeadingSeperator( const std::string& Path )
 //static
 std::string BcPath::appendTrailingSeperator( const std::string& Path )
 {
-	if( Path[ Path.size() - 1 ] == Seperator )
+	if( Path[ Path.size() - 1 ] != Seperator )
 	{
 		return Path + Seperator;
 	}
