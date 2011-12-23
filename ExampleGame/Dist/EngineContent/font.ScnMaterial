@@ -3,11 +3,11 @@
 		"name"		: "font",
 
 		// Shader
-		"shader"	: "EngineContent/font.ScnShader",
+		"shader"	: "font.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"	: "EngineContent/default.ScnTexture"
+			"aDiffuseTex"	: "default.ScnTexture"
 		},
 		
 		// State

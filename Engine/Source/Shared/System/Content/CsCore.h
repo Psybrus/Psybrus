@@ -122,12 +122,12 @@ public:
 	/**
 	 * Find import path.
 	 */
-	BcPath							findImportPath( const BcPath& InputPath );
-
+	BcPath								findImportPath( const BcPath& InputPath );
+	
 private:
 	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
-	BcBool								parseJsonFile( const std::string& FileName, Json::Value& Root );
+	BcBool								parseJsonFile( const BcChar* pFileName, Json::Value& Root );
 
 	eEvtReturn							eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event );
 	FsEventMonitor::Delegate			DelegateOnFileModified_;

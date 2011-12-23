@@ -3,11 +3,11 @@
 		"name"		: "splash",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse.ScnShader",
+		"shader"	: "diffuse.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/splash.ScnTextureAtlas"
+			"aDiffuseTex"		: "splash.ScnTextureAtlas"
 		},
 		
 		// State

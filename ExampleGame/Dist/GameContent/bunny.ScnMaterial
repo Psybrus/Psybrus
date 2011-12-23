@@ -3,11 +3,11 @@
 		"name"		: "bunny",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse3d.ScnShader",
+		"shader"	: "diffuse3d.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/bunny.ScnTextureAtlas"
+			"aDiffuseTex"		: "bunny.ScnTextureAtlas"
 		},
 		
 		// State

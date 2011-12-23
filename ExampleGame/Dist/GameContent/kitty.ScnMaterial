@@ -3,11 +3,11 @@
 		"name"		: "kitty",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse3d.ScnShader",
+		"shader"	: "diffuse3d.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/kitty.ScnTextureAtlas"
+			"aDiffuseTex"		: "kitty.ScnTextureAtlas"
 		},
 		
 		// State

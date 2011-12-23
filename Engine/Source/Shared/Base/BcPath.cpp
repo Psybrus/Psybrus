@@ -84,7 +84,7 @@ void BcPath::join( const BcPath& PathA, const BcPath& PathB, const BcPath& PathC
 // fixSeperators
 void BcPath::fixSeperators()
 {
-	InternalValue_.replace( 0, InternalValue_.size(), "\\", Seperator );
+	//InternalValue_.replace( 0, InternalValue_.size(), "\\", Seperator );
 }
 
 //////////////////////////////////////////////////////////////////////////

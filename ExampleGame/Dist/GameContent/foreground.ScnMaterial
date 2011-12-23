@@ -3,11 +3,11 @@
 		"name"		: "foreground",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse.ScnShader",
+		"shader"	: "diffuse.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/foreground.ScnTextureAtlas"
+			"aDiffuseTex"		: "foreground.ScnTextureAtlas"
 		},
 		
 		// State
