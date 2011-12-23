@@ -57,3 +57,19 @@ BcU32 BcGetHardwareThreadCount()
 	BcAssert( NumCPU >= 1 );
 	return NumCPU;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// BcSetMainThread
+#include <sys/types.h>
+static pid_t GMainThreadID = 0;
+void BcSetGameThread()
+{
+	GMainThreadID = gettid();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcIsGameThread
+BcBool BcIsGameThread()
+{
+	return gettid() == GMainThreadID;
+}

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -107,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -172,7 +172,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_PRODUCTION"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1182,14 +1182,6 @@
 					</File>
 					<File
 						RelativePath="..\..\Source\Shared\Base\BcAtomicMutex.h"
-						>
-					</File>
-					<File
-						RelativePath="..\..\Source\Shared\Base\BcCommandBuffer.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\..\Source\Shared\Base\BcCommandBuffer.h"
 						>
 					</File>
 					<File
@@ -3489,6 +3481,114 @@
 						RelativePath="..\..\..\External\ogg\src\framing.c"
 						>
 					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="enet"
+				>
+				<File
+					RelativePath="..\..\..\External\enet\callbacks.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\compress.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\host.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\list.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\packet.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\peer.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\protocol.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\unix.c"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Production|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\External\enet\win32.c"
+					>
+				</File>
+				<Filter
+					Name="include"
+					>
+					<Filter
+						Name="enet"
+						>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\callbacks.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\enet.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\list.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\protocol.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\time.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\types.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\unix.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\utility.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\enet\include\enet\win32.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>
