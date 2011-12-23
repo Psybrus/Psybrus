@@ -15,6 +15,7 @@
 #define __CSCORE_H__
 
 #include "BcGlobal.h"
+#include "BcPath.h"
 #include "SysSystem.h"
 
 #include "CsTypes.h"
@@ -112,7 +113,17 @@ public:
 	 * @return Success.
 	 */
 	BcBool								getResourcePropertyTable( const BcName& Type, CsPropertyTable& PropertyTable );
-	
+
+	/**
+	 * Add import overlay path.
+	 */
+	void								addImportOverlayPath( const BcPath& Path );
+
+	/**
+	 * Find import path.
+	 */
+	BcPath							findImportPath( const BcPath& InputPath );
+
 private:
 	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
@@ -177,16 +188,17 @@ protected:
 #ifdef PSY_SERVER
 	typedef std::map< std::string, CsResourceRef<> > TResourceRefMap;
 	typedef TResourceRefMap::iterator TResourceRefMapIterator;
-
 	typedef std::map< std::string, CsDependancyList > TDependancyMap;
-	typedef TDependancyMap::iterator TDependancyMapIterator;
-	
+	typedef TDependancyMap::iterator TDependancyMapIterator;	
 	typedef std::list< std::string > TImportList;
 	typedef TImportList::iterator TImportListIterator;
-	
+	typedef std::list< BcPath > TOverlayList;
+	typedef TOverlayList::iterator TOverlayListIterator;
+
 	TResourceRefMap						ResourceImportMap_;
 	TDependancyMap						DependancyMap_;
 	TImportList							ImportList_;
+	TOverlayList						ImportOverlayPaths_;
 #endif
 };
 

@@ -121,12 +121,35 @@ BcBool CsCore::getResourcePropertyTable( const BcName& Type, CsPropertyTable& Pr
 
 //////////////////////////////////////////////////////////////////////////
 // internalImportResource
+void CsCore::addImportOverlayPath( const BcPath& Path )
+{
+	ImportOverlayPaths_.push_front( Path );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findImportPath
+BcPath CsCore::findImportPath( const BcPath& InputPath )
+{
+	for( TOverlayListIterator It( ImportOverlayPaths_.begin() ); It != ImportOverlayPaths_.end(); ++It )
+	{
+		BcPath AppendedPath = (*It);
+		AppendedPath.join( InputPath );
+
+		if( FsCore::pImpl()->fileExists( *AppendedPath ) )
+		{
+			return AppendedPath;
+		}
+	}
+
+	// Use path passed in on fail.
+	return InputPath;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalImportResource
 BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-	
-	//
-	BcPrintf( "CsCore::ImportResource: %s\n", FileName.c_str() );
 	
 	// Parse Json file.
 	Json::Value Object;
