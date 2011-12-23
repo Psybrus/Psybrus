@@ -44,7 +44,7 @@ static ImgImage* makeImageForGlyph( FT_Glyph Glyph, FT_Render_Mode RenderMode, B
 			BcU32 Pitch = Bitmap->bitmap.pitch;
 		
 			ImgColour ClearColour = { 0, 0, 0, 0 };
-			pImage->create( W + DoubleBorderSize, H + DoubleBorderSize, imgFMT_RGBA, &ClearColour );
+			pImage->create( W + DoubleBorderSize, H + DoubleBorderSize, &ClearColour );
 			
 			if( RenderMode == FT_RENDER_MODE_MONO )
 			{
@@ -258,7 +258,7 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 1024, 1024 );
 					
 					// Create a texture.
-					std::string FontTextureName = Object[ "name" ].asString() + "_font_texture_atlas";
+					std::string FontTextureName = Object[ "name" ].asString() + "fonttextureatlas";
 					std::string FontTextureFileName = std::string( "IntermediateContent/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage );
 										
@@ -452,7 +452,7 @@ void ScnFontInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
 void ScnFontInstance::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
 	Parent_ = Parent; 
-	if( Material->createInstance( getName().getValue() + "_MaterialInstance", MaterialInstance_, scnSPF_DEFAULT ) )
+	if( Material->createInstance( getName().getValue(), MaterialInstance_, scnSPF_DEFAULT ) )
 	{	
 		BcU32 Parameter = MaterialInstance_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )
@@ -464,15 +464,21 @@ void ScnFontInstance::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
+BcVec2d ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String, BcBool SizeRun )
 {
 	// Cached elements from parent.
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
 	ScnFont::TGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	
 	// Allocate enough vertices for each character.
-	ScnCanvasVertex* pFirstVert = Canvas->allocVertices( String.length() * 6 );
+	ScnCanvasVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
 	ScnCanvasVertex* pVert = pFirstVert;
+
+	// Zero the buffer.
+	if( pFirstVert != NULL )
+	{
+		BcMemZero( pFirstVert, String.length() * 6 * sizeof( ScnCanvasVertex ) );
+	}
 	
 	BcU32 NoofVertices = 0;
 	
@@ -480,9 +486,12 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 	BcReal AdvanceY = 0.0f;
 		
 	BcU32 RGBA = 0xffffffff;
+
+	BcVec2d MinSize( 1e16f, 1e16f );
+	BcVec2d MaxSize( -1e16f, -1e16f );
 	
 	// TODO: UTF-8 support.
-	if( pFirstVert != NULL )
+	if( pFirstVert != NULL || SizeRun == BcTrue )
 	{
 		for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
 		{
@@ -506,53 +515,65 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 				const BcReal Y1 = AdvanceY - pGlyph->OffsetY_;
 				const BcReal X2 = X1 + pGlyph->Width_;
 				const BcReal Y2 = Y1 + pGlyph->Height_;
+
+				MinSize.x( BcMin( MinSize.x(), X1 ) );
+				MinSize.y( BcMin( MinSize.y(), Y1 ) );
+				MaxSize.x( BcMax( MaxSize.x(), X1 ) );
+				MaxSize.y( BcMax( MaxSize.y(), Y1 ) );
 				
-				// Add triangle for character.
-				pVert->X_ = X1;
-				pVert->Y_ = Y1;
-				pVert->U_ = pGlyph->UA_;
-				pVert->V_ = pGlyph->VA_;
-				pVert->RGBA_ = RGBA;
-				++pVert;
-				
-				pVert->X_ = X2;
-				pVert->Y_ = Y1;
-				pVert->U_ = pGlyph->UB_;
-				pVert->V_ = pGlyph->VA_;
-				pVert->RGBA_ = RGBA;
-				++pVert;
-				
-				pVert->X_ = X1;
-				pVert->Y_ = Y2;
-				pVert->U_ = pGlyph->UA_;
-				pVert->V_ = pGlyph->VB_;
-				pVert->RGBA_ = RGBA;
-				++pVert;
-				
-				pVert->X_ = X2;
-				pVert->Y_ = Y1;
-				pVert->U_ = pGlyph->UB_;
-				pVert->V_ = pGlyph->VA_;
-				pVert->RGBA_ = RGBA;
-				++pVert;
-				
-				pVert->X_ = X2;
-				pVert->Y_ = Y2;
-				pVert->U_ = pGlyph->UB_;
-				pVert->V_ = pGlyph->VB_;
-				pVert->RGBA_ = RGBA;
-				++pVert;
-				
-				pVert->X_ = X1;
-				pVert->Y_ = Y2;
-				pVert->U_ = pGlyph->UA_;
-				pVert->V_ = pGlyph->VB_;
-				pVert->RGBA_ = RGBA;
-				++pVert;
-				
-				// Add 2 triangles worth of vertices.
-				NoofVertices += 6;
-				
+				MinSize.x( BcMin( MinSize.x(), X2 ) );
+				MinSize.y( BcMin( MinSize.y(), Y2 ) );
+				MaxSize.x( BcMax( MaxSize.x(), X2 ) );
+				MaxSize.y( BcMax( MaxSize.y(), Y2 ) );
+				if( SizeRun == BcFalse )
+				{
+					// Add triangle for character.
+					pVert->X_ = X1;
+					pVert->Y_ = Y1;
+					pVert->U_ = pGlyph->UA_;
+					pVert->V_ = pGlyph->VA_;
+					pVert->RGBA_ = RGBA;
+					++pVert;
+					
+					pVert->X_ = X2;
+					pVert->Y_ = Y1;
+					pVert->U_ = pGlyph->UB_;
+					pVert->V_ = pGlyph->VA_;
+					pVert->RGBA_ = RGBA;
+					++pVert;
+					
+					pVert->X_ = X1;
+					pVert->Y_ = Y2;
+					pVert->U_ = pGlyph->UA_;
+					pVert->V_ = pGlyph->VB_;
+					pVert->RGBA_ = RGBA;
+					++pVert;
+					
+					pVert->X_ = X2;
+					pVert->Y_ = Y1;
+					pVert->U_ = pGlyph->UB_;
+					pVert->V_ = pGlyph->VA_;
+					pVert->RGBA_ = RGBA;
+					++pVert;
+					
+					pVert->X_ = X2;
+					pVert->Y_ = Y2;
+					pVert->U_ = pGlyph->UB_;
+					pVert->V_ = pGlyph->VB_;
+					pVert->RGBA_ = RGBA;
+					++pVert;
+					
+					pVert->X_ = X1;
+					pVert->Y_ = Y2;
+					pVert->U_ = pGlyph->UA_;
+					pVert->V_ = pGlyph->VB_;
+					pVert->RGBA_ = RGBA;
+					++pVert;
+
+					// Add 2 triangles worth of vertices.
+					NoofVertices += 6;
+				}
+								
 				// Advance.
 				AdvanceX += pGlyph->AdvanceX_;
 			}
@@ -569,8 +590,9 @@ void ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String )
 	{
 		BcPrintf( "ScnFontInstance: Out of vertices!\n" );
 	}
-}
 
+	return MaxSize - MinSize;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // getMaterialInstance

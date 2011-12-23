@@ -121,16 +121,39 @@ BcBool CsCore::getResourcePropertyTable( const BcName& Type, CsPropertyTable& Pr
 
 //////////////////////////////////////////////////////////////////////////
 // internalImportResource
+void CsCore::addImportOverlayPath( const BcPath& Path )
+{
+	ImportOverlayPaths_.push_front( Path );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findImportPath
+BcPath CsCore::findImportPath( const BcPath& InputPath )
+{
+	for( TOverlayListIterator It( ImportOverlayPaths_.begin() ); It != ImportOverlayPaths_.end(); ++It )
+	{
+		BcPath AppendedPath = (*It);
+		AppendedPath.join( InputPath );
+
+		if( FsCore::pImpl()->fileExists( *AppendedPath ) )
+		{
+			return AppendedPath;
+		}
+	}
+
+	// Use path passed in on fail.
+	return InputPath;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalImportResource
 BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 	
-	//
-	BcPrintf( "CsCore::ImportResource: %s\n", FileName.c_str() );
-	
 	// Parse Json file.
 	Json::Value Object;
-	if( parseJsonFile( FileName, Object ) )
+	if( parseJsonFile( *findImportPath( FileName ), Object ) )
 	{
 		BcBool Success = BcFalse;
 		
@@ -269,11 +292,11 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 
 //////////////////////////////////////////////////////////////////////////
 // parseJsonFile
-BcBool CsCore::parseJsonFile( const std::string& FileName, Json::Value& Root )
+BcBool CsCore::parseJsonFile( const BcChar* pFileName, Json::Value& Root )
 {
 	BcBool Success = BcFalse;
 	BcFile File;
-	if( File.open( FileName.c_str() ) )
+	if( File.open( pFileName ) )
 	{
 		char* pData = new char[ File.size() ];
 		File.read( pData, File.size() );
@@ -285,7 +308,7 @@ BcBool CsCore::parseJsonFile( const std::string& FileName, Json::Value& Root )
 			Success = BcTrue;
 
 			// Add file for monitoring.
-			FsCore::pImpl()->addFileMonitor( FileName.c_str() );
+			FsCore::pImpl()->addFileMonitor( pFileName );
 		}
 		else
 		{

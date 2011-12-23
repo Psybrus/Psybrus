@@ -111,7 +111,7 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 		}
 		
 		// Colour format.
-		eImgFormat Format;
+		BcU32 BytesPerPixel = 0;
 		
 		switch( PngColourType )
 		{
@@ -120,14 +120,14 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 				break;
 				
 			case PNG_COLOR_TYPE_RGB_ALPHA:
-				Format = imgFMT_RGBA;
+				BytesPerPixel = 4;
 				break;
 				
 			case PNG_COLOR_TYPE_GRAY:
 			case PNG_COLOR_TYPE_GRAY_ALPHA:
 			case PNG_COLOR_TYPE_RGB:
 			case PNG_COLOR_MASK_PALETTE:
-				Format = imgFMT_RGB;
+				BytesPerPixel = 3;
 				break;
 		}
 		
@@ -150,14 +150,7 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 		png_bytepp pPngRowPointers = new png_bytep[ PngHeight ];
 		
 		BcU32 ImageRowSize = PngWidth;
-		if ( ( Format == imgFMT_RGBA ) )
-		{
-			ImageRowSize *= 4;
-		}
-		else if ( Format == imgFMT_RGB )
-		{
-			ImageRowSize *= 3;
-		}
+		ImageRowSize *= BytesPerPixel;
 		
 		BcU32 ImageSize = ImageRowSize * PngHeight;
 		png_bytep pPngImageData = new png_byte[ ImageSize ];
@@ -171,7 +164,7 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 		
 		// Copy over.
 		ImgImage* pImage = new ImgImage();
-		pImage->create( PngWidth, PngHeight, Format );
+		pImage->create( PngWidth, PngHeight );
 		
 		for( BcU32 iRow = 0; iRow < PngHeight; ++iRow )
 		{
@@ -181,23 +174,23 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 			{
 				ImgColour Pixel;
 				
-				switch( Format )
+				switch( BytesPerPixel )
 				{
-					case imgFMT_RGB:
+					case 3:
 						Pixel.R_ = *pPixel++;
 						Pixel.G_ = *pPixel++;
 						Pixel.B_ = *pPixel++;
 						Pixel.A_ = 255;
 						break;
 						
-					case imgFMT_RGBA:
+					case 4:
 						Pixel.R_ = *pPixel++;
 						Pixel.G_ = *pPixel++;
 						Pixel.B_ = *pPixel++;
 						Pixel.A_ = *pPixel++;
 						break;
 						
-					case imgFMT_INDEXED:
+					default:
 						BcBreakpoint;
 						break;
 				}
@@ -276,6 +269,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 	// Set up the header
 	int PngColType = 0;
 	int PngBitDepth = 0;
+	/*
 	switch( pImage->format() )
 	{
 		case imgFMT_INDEXED:
@@ -292,7 +286,11 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 			PngBitDepth = 8;
 			break;
 	}
-	
+	*/
+
+	PngColType = PNG_COLOR_TYPE_RGB_ALPHA;
+	PngBitDepth = 8;
+
 	png_set_IHDR( pPngWrite, pPngInfo,
 				  pImage->width(),
 				  pImage->height(),
@@ -302,6 +300,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 				  PNG_COMPRESSION_TYPE_BASE,
 				  PNG_FILTER_TYPE_BASE );
 	
+	/*
 	if ( pImage->format() == imgFMT_INDEXED )
 	{
 		png_color PngPalette[ 256 ];
@@ -319,6 +318,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 		png_set_PLTE( pPngWrite, pPngInfo, &PngPalette[ 0 ], 256 );
 		png_set_tRNS( pPngWrite, pPngInfo, &PngAlpha[ 0 ], 256, NULL );
 	}
+	*/
 	
 	// Write out.
 	png_set_packing( pPngWrite );

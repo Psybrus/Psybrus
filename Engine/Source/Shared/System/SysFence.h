@@ -35,19 +35,14 @@ public:
 	void decrement();
 
 	/**
-	 * Is fence complete?
-	 */
-	BcBool isComplete();
-
-	/**
 	 * Queue up a fence job.
 	 */
 	void queue( BcU32 WorkerMask );
 
 	/**
-	 * Wait for fence.
+	 * Wait for fence to reach a certain value.
 	 */
-	void wait();
+	void wait( BcU32 Value = 0 );
 
 private:
 	BcAtomic< BcU32 > Count_;

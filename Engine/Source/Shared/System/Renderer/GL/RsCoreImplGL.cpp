@@ -35,6 +35,9 @@ extern BcHandle GWindowDC_;
 extern BcHandle GWindowRC_;
 #endif
 
+// NEILO HACK.
+extern BcU32 GResolutionWidth;
+extern BcU32 GResolutionHeight;
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -60,6 +63,7 @@ RsCoreImplGL::~RsCoreImplGL()
 //virtual
 void RsCoreImplGL::open()
 {
+	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::open_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 
@@ -97,7 +101,7 @@ void RsCoreImplGL::open_threaded()
 		0,												// No Auxiliary Buffer
 		PFD_MAIN_PLANE,									// Main Drawing Layer
 		0,												// Reserved
-		0, 0, 0											 // Layer Masks Ignored
+		0, 0, 0											// Layer Masks Ignored
 	};
 	
 	GLuint PixelFormat = 0;
@@ -119,7 +123,7 @@ void RsCoreImplGL::open_threaded()
 	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
 
 	// Clear screen and flip.
-	glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	::SwapBuffers( (HDC)GWindowDC_ );
 
@@ -161,11 +165,9 @@ void RsCoreImplGL::open_threaded()
 	// NOTE: GL renderer uses SDL in this implementation.
 	// TODO: Move into a higher level so this GL renderer
 	//       can be used on any other platform.
-	W_ = 1280;
-	H_ = 720;
 	
 	// Setup default viewport.
-	glViewport( 0, 0, W_, H_ );
+	glViewport( 0, 0, GResolutionWidth, GResolutionHeight );
 		
 	// Allocate a state block for rendering.
 	pStateBlock_ = new RsStateBlockGL();
@@ -175,7 +177,7 @@ void RsCoreImplGL::open_threaded()
 	pStateBlock_->bind();
 
 	// Clear.
-	glClearColor( 0.0f, 0.0f, 0.2f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	
 	// Line smoothing.
@@ -188,15 +190,24 @@ void RsCoreImplGL::open_threaded()
 //virtual
 void RsCoreImplGL::update()
 {
+	BcAssert( BcIsGameThread() );
+	// Increment fence so we know how far we're getting ahead of ourselves.
+	RenderSyncFence_.increment();
+
+	// Queue update job.
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::update_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
+	// Wait for frames if we fall more than 1 update cycle behind.
+	RenderSyncFence_.wait( 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update_threaded
 void RsCoreImplGL::update_threaded()
 {
-	// ZOMG DO NOTHING! YAY!
+	// Decrement when we've done our update.
+	RenderSyncFence_.decrement();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,6 +215,7 @@ void RsCoreImplGL::update_threaded()
 //virtual
 void RsCoreImplGL::close()
 {
+	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::close_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 
@@ -315,7 +327,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
 	pResource->preDestroy();
 	
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::destroy >( pResource ) );
+	SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 
@@ -323,25 +335,16 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::update >( pResource ) );
+	SysResource::UpdateDelegate Delegate( SysResource::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createResource
-//virtual
-void RsCoreImplGL::getResolution( BcU32& W, BcU32& H )
-{
-	W = W_;
-	H = H_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsResource, &RsResource::create >( pResource ) );
+	BcAssert( BcIsGameThread() );
+	SysResource::CreateDelegate Delegate( SysResource::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
 
@@ -349,19 +352,29 @@ void RsCoreImplGL::createResource( RsResource* pResource )
 // allocateFrame
 RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height )
 {
+	BcAssert( BcIsGameThread() );
 	BcUnusedVar( DeviceHandle );
 	BcUnusedVar( Width );
 	BcUnusedVar( Height );
 	
-	return new RsFrameGL( NULL, W_, H_ );
+	return new RsFrameGL( NULL, GResolutionWidth, GResolutionHeight );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // queueFrame
 void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsFrameGL, &RsFrameGL::render >( (RsFrameGL*)pFrame ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	BcAssert( BcIsGameThread() );
+	BcDelegate< void(*)( RsFrameGL* ) > Delegate( BcDelegate< void(*)( RsFrameGL* ) >::bind< RsCoreImplGL, &RsCoreImplGL::queueFrame_threaded >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate, (RsFrameGL*)pFrame );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// queueFrame_threaded
+void RsCoreImplGL::queueFrame_threaded( RsFrameGL* pFrame )
+{
+	// Render frame.
+	pFrame->render();
 }
 
 //////////////////////////////////////////////////////////////////////////

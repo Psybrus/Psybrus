@@ -1,0 +1,10 @@
+{ 
+	"ScnTextureAtlas" : {
+		"name"		: "bar",
+		"source"	: [
+			"GameContent/Source/bar.png"
+		],
+
+		"distancefield" : false
+	}
+}

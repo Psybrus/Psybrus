@@ -19,17 +19,26 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// Worker masks.
+BcU32 SysKernel::SYSTEM_WORKER_MASK = 0x0;
+BcU32 SysKernel::USER_WORKER_MASK = 0x0;
+
+//////////////////////////////////////////////////////////////////////////
 // Command line
 std::string SysArgs_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysKernel::SysKernel( BcReal TickRate ):
-	JobQueue_( BcMax( BcGetHardwareThreadCount() - 1, BcU32( 1 ) ) ), // We always want at least one worker.
+	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) ),
 	TickRate_( TickRate )
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
+	FrameTime_ = 0.0f;
+
+	// Set user mask to the workers we have.
+	SysKernel::USER_WORKER_MASK = ( 1 << JobQueue_.workerCount() ) - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,6 +162,8 @@ void SysKernel::run( BcBool Threaded )
 // tick
 void SysKernel::tick()
 {
+	BcAssert( BcIsGameThread() );
+
 	if( ShuttingDown_ == BcFalse )
 	{
 		BcScopedLock< BcMutex > Lock( SystemLock_ );
@@ -223,10 +234,21 @@ void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFrameTime
+BcReal SysKernel::getFrameTime() const
+{
+	return FrameTime_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // execute
 //virtual
 void SysKernel::execute()
 {
+	// Set main thread.
+	extern void BcSetGameThread();
+	BcSetGameThread();
+
 	// Run until there are no more systems to run.
 	do
 	{
@@ -246,13 +268,16 @@ void SysKernel::execute()
 			{
 				BcReal SleepTime = SleepAccumulator_;
 				SleepAccumulator_ -= SleepTime;
-				BcSleep( SleepTime );
+				BcSleep( BcMin( SleepTime, TickRate_ ) );
 			}
 		}
 		else
 		{
 			BcYield();
 		}
+
+		// Store frame time.
+		FrameTime_ = BcMin( MainTimer_.time(), TickRate_ * 4.0f );
 	}
 	while( SystemList_.size() > 0 );
 }

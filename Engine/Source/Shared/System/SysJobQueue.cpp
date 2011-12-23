@@ -134,7 +134,7 @@ void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 		SysJob* pJob = (*It);
 		
 		// The mask matches perfectly, put it into another list and remove it.
-		if( pJob->WorkerMask_ != WorkerMask )
+		if( pJob->WorkerMask_ == WorkerMask )
 		{
 			NewJobQueue.push_back( pJob );
 			It = JobQueue_.erase( It );
@@ -223,6 +223,7 @@ void SysJobQueue::execute()
 					if( BlockedMask != 0x0 )
 					{
 						moveJobsBack( BlockedMask );
+						BcYield();
 					}
 				}
 			}

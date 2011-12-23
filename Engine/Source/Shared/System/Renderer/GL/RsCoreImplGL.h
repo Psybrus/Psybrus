@@ -17,8 +17,6 @@
 #include "RsCore.h"
 #include "RsGL.h"
 
-#include "BcCommandBuffer.h"
-
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class RsFrameGL;
@@ -52,26 +50,23 @@ public:
 	virtual void			destroyResource( RsResource* pResource );
 	void					updateResource( RsResource* pResource );
 
-	virtual void			getResolution( BcU32& W, BcU32& H );
-
 private:
 	void					createResource( RsResource* pResource );
 
 public:
 	RsFrame*				allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height );
 	void					queueFrame( RsFrame* pFrame );
+	void					queueFrame_threaded( RsFrameGL* pFrame );
 	RsStateBlock*			getStateBlock();
 
 public:
 	// Platform specific interface.
 
 protected:
-	BcCommandBuffer			CommandBuffer_;
 	RsStateBlockGL*			pStateBlock_;
-	
-	BcU32					W_;
-	BcU32					H_;
-	
+
+	SysFence				RenderSyncFence_;
+		
 };
 
 #endif

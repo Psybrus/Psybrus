@@ -53,7 +53,7 @@ class RsCore:
 	public SysSystem
 {
 public:
-	static const BcU32 WORKER_MASK = 0x1;
+	static BcU32 WORKER_MASK;
 
 public:
 	virtual ~RsCore(){};
@@ -128,11 +128,6 @@ public:
 	 */
 	virtual void			destroyResource( RsResource* pResource ) = 0;
 	
-	/**
-	 * Get resolution.
-	 */
-	virtual void			getResolution( BcU32& W, BcU32& H ) = 0;
-
 public:
 	/**
 	*	Allocate a frame for rendering.

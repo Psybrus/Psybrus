@@ -21,6 +21,9 @@
 class BcRandom
 {
 public:
+	static BcRandom Global;
+
+public:
 	BcRandom();
 	BcRandom( BcU32 Seed );
 

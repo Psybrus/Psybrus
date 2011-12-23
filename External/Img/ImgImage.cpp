@@ -15,16 +15,15 @@
 
 #include "BcVectors.h"
 
+#include "squish.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ImgImage::ImgImage()
 {
 	Width_ = 0;
 	Height_ = 0;
-	Format_ = imgFMT_RGBA;
 	pPixelData_ = NULL;
-	pPaletteEntries_ = NULL;
-	NoofPaletteEntries_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,7 +31,6 @@ ImgImage::ImgImage()
 ImgImage::~ImgImage()
 {
 	delete [] pPixelData_;
-	delete [] pPaletteEntries_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,49 +39,26 @@ ImgImage::ImgImage( const ImgImage& Original )
 {
 	Width_ = 0;
 	Height_ = 0;
-	Format_ = imgFMT_RGB;
 	pPixelData_ = NULL;
-	pPaletteEntries_ = NULL;
-	NoofPaletteEntries_ = 0;
 
 	//
 	BcAssertException( pPixelData_ != NULL, ImgException( "ImgImage: Pixel data is NULL." ) );
  
-	create( Original.Width_, Original.Height_, Original.Format_ );
+	create( Original.Width_, Original.Height_ );
 	
 	if( Original.pPixelData_ != NULL )
 	{
 		BcMemCopy( pPixelData_, Original.pPixelData_, sizeof( ImgColour ) * Width_ * Height_ );
 	}
-
-	if( Original.pPaletteEntries_ != NULL )
-	{
-		BcMemCopy( pPaletteEntries_, Original.pPaletteEntries_, sizeof( ImgColour ) * NoofPaletteEntries_ );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // create
-void ImgImage::create( BcU32 Width, BcU32 Height, eImgFormat Format, const ImgColour* pFillColour )
+void ImgImage::create( BcU32 Width, BcU32 Height, const ImgColour* pFillColour )
 {
 	Width_ = Width;
 	Height_ = Height;
-	Format_ = Format;
 	pPixelData_ = new ImgColour[ Width * Height ];
-	
-	// Palette.
-	switch( Format )
-	{
-	case imgFMT_RGB:
-	case imgFMT_RGBA:
-		NoofPaletteEntries_ = 0;
-		break;
-
-	case imgFMT_INDEXED:
-		NoofPaletteEntries_ = 256;
-		pPaletteEntries_ = new ImgColour[ NoofPaletteEntries_ ];
-		break;
-	}
 	
 	if( pFillColour != NULL )
 	{
@@ -106,7 +81,7 @@ void ImgImage::setPixel( BcU32 X, BcU32 Y, const ImgColour& Colour )
 	{
 		BcU32 Index = X + ( Y * Width_ );
 	
-		pPixelData_[ Index ] = findColour( Colour );
+		pPixelData_[ Index ] = Colour;
 	}
 }
 
@@ -139,45 +114,19 @@ void ImgImage::blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& Ds
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPalette
-void ImgImage::setPalette( BcU32 Idx, const ImgColour& Colour )
-{
-	BcAssertException( pPaletteEntries_ != NULL, ImgException( "ImgImage: Palette data is NULL." ) );
-	BcAssertException( Idx < NoofPaletteEntries_, ImgException( "ImgImage: Idx out of bounds." ) );
-
-	pPaletteEntries_[ Idx ] = Colour;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPalette
-const ImgColour& ImgImage::getPalette( BcU32 Idx ) const
-{
-	BcAssertException( pPaletteEntries_ != NULL, ImgException( "ImgImage: Palette data is NULL." ) );
-	BcAssertException( Idx < NoofPaletteEntries_, ImgException( "ImgImage: Idx out of bounds." ) );
-
-	return pPaletteEntries_[ Idx ];
-}
-
-//////////////////////////////////////////////////////////////////////////
-// findColour
-ImgColour ImgImage::findColour( const ImgColour& Colour )
-{
-	// TODO: Implement.
-	return Colour;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // resize
 ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
 {
 	// Create image.
 	ImgImage* pImage = new ImgImage();
-	pImage->create( Width, Height, Format_ );
+	pImage->create( Width, Height );
 
 	if( Width != ( Width_ >> 1 ) || Height != ( Height_ >> 1 ) )
 	{
 		BcReal SrcW = BcReal( Width_ - 1 );
 		BcReal SrcH = BcReal( Height_ - 1 );
+
+		BcBreakpoint; // This is broken!
 
 		// Bilinear filtering implementation.
 		for( BcU32 iX = 0; iX < Width; ++iX )
@@ -223,7 +172,6 @@ ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
 	}
 	else
 	{
-		BcBreakpoint; // This is broken!
 		// Better implementation for downscaling.
 		for( BcU32 iX = 0; iX < Width; ++iX )
 		{
@@ -273,7 +221,7 @@ ImgImage* ImgImage::canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFil
 
 	ImgImage* pImage = new ImgImage();
 
-	pImage->create( Width, Height, Format_, pFillColour );
+	pImage->create( Width, Height, pFillColour );
 
 	for( BcU32 iY = 0; iY < CopyH; ++iY )
 	{
@@ -520,7 +468,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 	
 	// Create image.
 	ImgImage* pImage = new ImgImage();
-	pImage->create( width(), height(), imgFMT_RGBA );
+	pImage->create( width(), height() );
 
 	// Allocate grids.
 	DistanceField::Grid GridA( width(), height() );	
@@ -769,7 +717,7 @@ ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRect
 	// Create image.
 	ImgImage* pAtlasImage = new ImgImage();
 	ImgColour ClearColour = { 0, 0, 0, 0 };
-	pAtlasImage->create( ImageBounds.W_, ImageBounds.H_, imgFMT_RGBA, &ClearColour );
+	pAtlasImage->create( ImageBounds.W_, ImageBounds.H_, &ClearColour );
 
 	// Blit all images into it using output rects.
 	for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
@@ -802,15 +750,335 @@ BcU32 ImgImage::height() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// format
-eImgFormat ImgImage::format() const
-{
-	return Format_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getImageData
 const ImgColour* ImgImage::getImageData() const
 {
 	return pPixelData_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// hasAlpha
+BcBool ImgImage::hasAlpha( BcU8 Threshold ) const
+{
+	BcU32 NoofPixels = Width_ * Height_;
+
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		ImgColour& Colour = pPixelData_[ Idx ];
+
+		if( Colour.A_ < Threshold )
+		{
+			return BcTrue;
+		}
+	}
+
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getImageData
+BcBool ImgImage::encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
+{
+	BcAssert( pOutData == NULL );
+	BcAssert( OutSize == 0 );
+
+	switch( Format )
+	{
+	case imgEF_RGB8:
+		return encodeAsRGB8( pOutData, OutSize );
+
+	case imgEF_RGBA8:
+		return encodeAsRGBA8( pOutData, OutSize );
+
+	case imgEF_BGR8:
+		return encodeAsBGR8( pOutData, OutSize );
+
+	case imgEF_ABGR8:
+		return encodeAsABGR8( pOutData, OutSize );
+
+	case imgEF_I8:
+		return encodeAsI8( pOutData, OutSize );
+
+	case imgEF_DXT1:
+	case imgEF_DXT3:
+	case imgEF_DXT5:
+		return encodeAsDXT( Format, pOutData, OutSize );
+		
+	default:
+		return BcFalse;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsRGB8
+BcBool ImgImage::encodeAsRGB8( BcU8*& pOutData, BcU32& OutSize )
+{
+	BcU32 NoofPixels = Width_ * Height_;
+	OutSize = NoofPixels * 3;
+	pOutData = new BcU8[ OutSize ];
+	
+	BcU8* pCurrByte = pOutData;
+	ImgColour* pColour = pPixelData_;
+
+#define WRITE_PIXEL \
+		*pCurrByte++ = pColour->R_; \
+		*pCurrByte++ = pColour->G_; \
+		*pCurrByte++ = pColour->B_; \
+		++pColour
+
+#if 0
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		WRITE_PIXEL;
+	}
+#else
+	register BcS32 Count = (BcS32)NoofPixels;
+	{
+		register BcS32 N = ( Count + 7 ) / 8;
+
+		switch( Count % 8 )
+		{
+		case 0: do {	WRITE_PIXEL;
+		case 7:			WRITE_PIXEL;
+		case 6:			WRITE_PIXEL;
+		case 5:			WRITE_PIXEL;
+		case 4:			WRITE_PIXEL;
+		case 3:			WRITE_PIXEL;
+		case 2:			WRITE_PIXEL;
+		case 1:			WRITE_PIXEL;
+				} while( --N > 0 );
+		}
+	}
+#endif
+#undef WRITE_PIXEL
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsRGBA8
+BcBool ImgImage::encodeAsRGBA8( BcU8*& pOutData, BcU32& OutSize )
+{
+	BcU32 NoofPixels = Width_ * Height_;
+	OutSize = NoofPixels * 4;
+	pOutData = new BcU8[ OutSize ];
+	
+	BcU8* pCurrByte = pOutData;
+	ImgColour* pColour = pPixelData_;
+
+	BcU32 TotalWritten = 0;
+
+#define WRITE_PIXEL \
+		*pCurrByte++ = pColour->R_; \
+		*pCurrByte++ = pColour->G_; \
+		*pCurrByte++ = pColour->B_; \
+		*pCurrByte++ = pColour->A_; \
+		++pColour; TotalWritten += 4
+
+#if 1
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		WRITE_PIXEL;
+	}
+#else
+	register BcS32 Count = (BcS32)NoofPixels;
+	{
+		register BcS32 N = ( Count + 7 ) / 8;
+
+		switch( Count % 8 )
+		{
+		case 0: do {	WRITE_PIXEL;
+		case 7:			WRITE_PIXEL;
+		case 6:			WRITE_PIXEL;
+		case 5:			WRITE_PIXEL;
+		case 4:			WRITE_PIXEL;
+		case 3:			WRITE_PIXEL;
+		case 2:			WRITE_PIXEL;
+		case 1:			WRITE_PIXEL;
+				} while( --N > 0 );
+		}
+	}
+#endif
+#undef WRITE_PIXEL
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsBGR8
+BcBool ImgImage::encodeAsBGR8( BcU8*& pOutData, BcU32& OutSize )
+{
+	BcU32 NoofPixels = Width_ * Height_;
+	OutSize = NoofPixels * 3;
+	pOutData = new BcU8[ OutSize ];
+	
+	BcU8* pCurrByte = pOutData;
+	ImgColour* pColour = pPixelData_;
+
+#define WRITE_PIXEL \
+		*pCurrByte++ = pColour->B_; \
+		*pCurrByte++ = pColour->G_; \
+		*pCurrByte++ = pColour->R_; \
+		++pColour
+
+#if 0
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		WRITE_PIXEL;
+	}
+#else
+	register BcS32 Count = (BcS32)NoofPixels;
+	{
+		register BcS32 N = ( Count + 7 ) / 8;
+
+		switch( Count % 8 )
+		{
+		case 0: do {	WRITE_PIXEL;
+		case 7:			WRITE_PIXEL;
+		case 6:			WRITE_PIXEL;
+		case 5:			WRITE_PIXEL;
+		case 4:			WRITE_PIXEL;
+		case 3:			WRITE_PIXEL;
+		case 2:			WRITE_PIXEL;
+		case 1:			WRITE_PIXEL;
+				} while( --N > 0 );
+		}
+	}
+#endif
+#undef WRITE_PIXEL
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsABGR8
+BcBool ImgImage::encodeAsABGR8( BcU8*& pOutData, BcU32& OutSize )
+{
+	BcU32 NoofPixels = Width_ * Height_;
+	OutSize = NoofPixels * 4;
+	pOutData = new BcU8[ OutSize ];
+	
+	BcU8* pCurrByte = pOutData;
+	ImgColour* pColour = pPixelData_;
+
+#define WRITE_PIXEL \
+		*pCurrByte++ = pColour->A_; \
+		*pCurrByte++ = pColour->B_; \
+		*pCurrByte++ = pColour->G_; \
+		*pCurrByte++ = pColour->R_; \
+		++pColour
+
+#if 0
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		WRITE_PIXEL;
+	}
+#else
+	register BcS32 Count = (BcS32)NoofPixels;
+	{
+		register BcS32 N = ( Count + 7 ) / 8;
+
+		switch( Count % 8 )
+		{
+		case 0: do {	WRITE_PIXEL;
+		case 7:			WRITE_PIXEL;
+		case 6:			WRITE_PIXEL;
+		case 5:			WRITE_PIXEL;
+		case 4:			WRITE_PIXEL;
+		case 3:			WRITE_PIXEL;
+		case 2:			WRITE_PIXEL;
+		case 1:			WRITE_PIXEL;
+				} while( --N > 0 );
+		}
+	}
+#endif
+#undef WRITE_PIXEL
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsI8
+BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
+{
+	BcU32 NoofPixels = Width_ * Height_;
+	OutSize = NoofPixels;
+	pOutData = new BcU8[ OutSize ];
+	
+	BcU8* pCurrByte = pOutData;
+	ImgColour* pColour = pPixelData_;
+
+#define WRITE_PIXEL \
+		*pCurrByte++ = (BcU8)BcMax( ( (BcU32)pColour->R_ + (BcU32)pColour->B_ + (BcU32)pColour->G_ ) / 3, (BcU32)255 ); \
+		++pColour
+
+#if 0
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		WRITE_PIXEL;
+	}
+#else
+	register BcS32 Count = (BcS32)NoofPixels;
+	{
+		register BcS32 N = ( Count + 7 ) / 8;
+
+		switch( Count % 8 )
+		{
+		case 0: do {	WRITE_PIXEL;
+		case 7:			WRITE_PIXEL;
+		case 6:			WRITE_PIXEL;
+		case 5:			WRITE_PIXEL;
+		case 4:			WRITE_PIXEL;
+		case 3:			WRITE_PIXEL;
+		case 2:			WRITE_PIXEL;
+		case 1:			WRITE_PIXEL;
+				} while( --N > 0 );
+		}
+	}
+#endif
+#undef WRITE_PIXEL
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsDXT
+BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
+{
+	if( Format == imgEF_DXT1 ||
+		Format == imgEF_DXT3 ||
+		Format == imgEF_DXT5 )
+	{
+		// Check if its a power of two too.
+		if( BcPot( Width_ ) && BcPot( Height_ ) && Width_ >= 4 && Height_ >= 4 )
+		{
+			BcU32 SquishFormat = 0;
+
+			switch( Format )
+			{
+			case imgEF_DXT1:
+				SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
+				break;
+			case imgEF_DXT3:
+				SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+				break;
+			case imgEF_DXT5:
+				SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+				break;
+			}
+			
+			// Find out what space squish needs.
+			OutSize = squish::GetStorageRequirements( Width_, Height_, SquishFormat );
+			pOutData = new BcU8[ OutSize ];
+			
+			// Squish takes RGBA8, so no need to convert before passing in.
+			squish::CompressImage( reinterpret_cast< squish::u8*>( pPixelData_ ), Width_, Height_, pOutData, SquishFormat );
+			
+			//
+			return BcTrue;
+		}
+	}
+	
+	return BcFalse;
 }

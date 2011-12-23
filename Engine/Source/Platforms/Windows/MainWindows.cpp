@@ -35,7 +35,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Perform unit tests.
 	MainUnitTests();
-	
+
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
 	
@@ -54,7 +54,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	if( GPsySetupParams.Flags_ & psySF_WINDOW )
 	{
 		OsWindowWindows MainWindow;
-		if( MainWindow.create( GPsySetupParams.Name_.c_str(), (BcHandle)hInstance, 1280 / 2, 720 / 2, BcFalse ) == BcFalse )
+		if( MainWindow.create( GPsySetupParams.Name_.c_str(), (BcHandle)hInstance, GResolutionWidth, GResolutionHeight, BcFalse ) == BcFalse )
 		{
 			BcPrintf( "Failed to create window!\n" );
 			return 1;

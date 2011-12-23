@@ -40,6 +40,9 @@ public:
 	 */
 	BcHandle		getDC();
 
+	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
+	RECT windowSize( BcS32 SizeX, BcS32 SizeY ) const;
+
 private:
 	LRESULT wndProcInternal( HWND, UINT, WPARAM, LPARAM );
 	static LRESULT	CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
@@ -50,6 +53,9 @@ private:
 	BcHandle		hInstance_;
 	BcChar			ClassName_[ 32 ];
 
+	RECT			WindowSize_;
+	DWORD			WindowStyleEx_;
+	DWORD			WindowStyle_;
 };
 
 #endif

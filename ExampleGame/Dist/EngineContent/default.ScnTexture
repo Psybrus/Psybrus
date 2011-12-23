@@ -1,0 +1,6 @@
+{ 
+	"ScnTexture" : {
+		"name"		: "default",
+		"source"	: "EngineContent/TextureSource/default.png"
+	}
+}

@@ -31,6 +31,9 @@ class SsCore:
 	public BcGlobal< SsCore >
 {
 public:
+	static BcU32 WORKER_MASK;
+
+public:
 	SsCore(){};
 	virtual ~SsCore(){};
 	

@@ -1,0 +1,9 @@
+/PsybrusWindows_Production.lib
+/*.obj
+/BuildLog.htm
+/ContentServer_Production.exp
+/ContentServer_Production.lib
+/ExampleGame_Production.exe.intermediate.manifest
+/mt.dep
+/vc90.idb
+/vc90.pdb

@@ -70,14 +70,8 @@ BcU32 RsTextureGL::height() const
 //virtual
 void* RsTextureGL::lockTexture()
 {
-	BcAssert( Locked_ == BcFalse );
-	
-	if( Locked_ == BcFalse )
-	{
-		return pData_;
-	}
-	
-	return NULL;
+	wait();
+	return pData_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,13 +79,8 @@ void* RsTextureGL::lockTexture()
 //virtual
 void RsTextureGL::unlockTexture()
 {
-	BcAssert( Locked_ == BcTrue );
-
-	// Upload new texture data.
-	if( Locked_ == BcTrue )
-	{
-		Locked_ = BcFalse;
-	}
+	UpdateSyncFence_.increment();
+	RsCore::pImpl()->updateResource( this );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +97,9 @@ void RsTextureGL::create()
 	{
 		GLenum Error = glGetError();
 
-		// Update (slow...)
+		UpdateSyncFence_.increment();
+
+		// Update.
 		update();
 
 		// Destroy if there is a failure.
@@ -128,15 +119,41 @@ void RsTextureGL::update()
 	GLuint Handle = getHandle< GLuint >();
 	
 	glBindTexture( GL_TEXTURE_2D, Handle );
-	/*
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
-	 */
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
+
+	// Call the appropriate method to load the texture.
+	switch( Format_ )
+	{
+	case rsTF_RGB8:
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, Width_, Height_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
+		break;
+
+	case rsTF_RGBA8:
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
+		break;
+
+	case rsTF_I8:
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_INTENSITY8, Width_, Height_, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData_ );
+		break;
+
+	case rsTF_DXT1:
+		glCompressedTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, Width_, Height_, 0, DataSize_, pData_ );
+		break;
+
+	case rsTF_DXT3:
+		glCompressedTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, Width_, Height_, 0, DataSize_, pData_ );
+		break;
+
+	case rsTF_DXT5:
+		glCompressedTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, Width_, Height_, 0, DataSize_, pData_ );
+		break;
+
+	default:
+		BcBreakpoint; // Unsupported format for platform.
+	}
+
 	RsGLCatchError;
+
+	UpdateSyncFence_.decrement();
 	
 	// Invalidate texture state.
 	RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();

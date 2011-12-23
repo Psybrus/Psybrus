@@ -1,0 +1,6 @@
+Graphics Cards
+===============
+
+ATI Radeon HD 4800:
+- Doesn't work with or without "-norenderthread".
+

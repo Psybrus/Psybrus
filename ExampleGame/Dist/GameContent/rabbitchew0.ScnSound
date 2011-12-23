@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "rabbitchew0",
+		"source"	: "GameContent/Source/rabbit_chew_0.wav"
+	}
+}

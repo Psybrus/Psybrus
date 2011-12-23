@@ -32,8 +32,7 @@
 # include <EFX-Util.h>
 # include <efx-creative.h>
 
-// TODO: Put this back in.
-//# define EX_AL_EFX 
+# define SS_AL_EFX_SUPPORTED 1
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,44 +49,44 @@ extern void alBreakOnError();
 
 //////////////////////////////////////////////////////////////////////////
 // EFX Functions
-#ifdef EX_AL_EFX
-extern LPALGENEFFECTS alGenEffects = EX_NULL;
-extern LPALDELETEEFFECTS alDeleteEffects = EX_NULL;
-extern LPALISEFFECT alIsEffect = EX_NULL;
-extern LPALEFFECTI alEffecti = EX_NULL;
-extern LPALEFFECTIV alEffectiv = EX_NULL;
-extern LPALEFFECTF alEffectf = EX_NULL;
-extern LPALEFFECTFV alEffectfv = EX_NULL;
-extern LPALGETEFFECTI alGetEffecti = EX_NULL;
-extern LPALGETEFFECTIV alGetEffectiv = EX_NULL;
-extern LPALGETEFFECTF alGetEffectf = EX_NULL;
-extern LPALGETEFFECTFV alGetEffectfv = EX_NULL;
+#if SS_AL_EFX_SUPPORTED
+extern LPALGENEFFECTS alGenEffects;
+extern LPALDELETEEFFECTS alDeleteEffects;
+extern LPALISEFFECT alIsEffect;
+extern LPALEFFECTI alEffecti;
+extern LPALEFFECTIV alEffectiv;
+extern LPALEFFECTF alEffectf;
+extern LPALEFFECTFV alEffectfv;
+extern LPALGETEFFECTI alGetEffecti;
+extern LPALGETEFFECTIV alGetEffectiv;
+extern LPALGETEFFECTF alGetEffectf;
+extern LPALGETEFFECTFV alGetEffectfv;
 
 //Filter objects
-extern LPALGENFILTERS alGenFilters = EX_NULL;
-extern LPALDELETEFILTERS alDeleteFilters = EX_NULL;
-extern LPALISFILTER alIsFilter = EX_NULL;
-extern LPALFILTERI alFilteri = EX_NULL;
-extern LPALFILTERIV alFilteriv = EX_NULL;
-extern LPALFILTERF alFilterf = EX_NULL;
-extern LPALFILTERFV alFilterfv = EX_NULL;
-extern LPALGETFILTERI alGetFilteri = EX_NULL;
-extern LPALGETFILTERIV alGetFilteriv = EX_NULL;
-extern LPALGETFILTERF alGetFilterf = EX_NULL;
-extern LPALGETFILTERFV alGetFilterfv = EX_NULL;
+extern LPALGENFILTERS alGenFilters;
+extern LPALDELETEFILTERS alDeleteFilters;
+extern LPALISFILTER alIsFilter;
+extern LPALFILTERI alFilteri;
+extern LPALFILTERIV alFilteriv;
+extern LPALFILTERF alFilterf;
+extern LPALFILTERFV alFilterfv;
+extern LPALGETFILTERI alGetFilteri;
+extern LPALGETFILTERIV alGetFilteriv;
+extern LPALGETFILTERF alGetFilterf;
+extern LPALGETFILTERFV alGetFilterfv;
 
 // Auxiliary slot object
-extern LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = EX_NULL;
-extern LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = EX_NULL;
-extern LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot = EX_NULL;
-extern LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = EX_NULL;
-extern LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv = EX_NULL;
-extern LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf = EX_NULL;
-extern LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv = EX_NULL;
-extern LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti = EX_NULL;
-extern LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv = EX_NULL;
-extern LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf = EX_NULL;
-extern LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv = EX_NULL;
+extern LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+extern LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+extern LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
+extern LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+extern LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv;
+extern LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
+extern LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
+extern LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
+extern LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
+extern LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
+extern LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
 #endif
 
 #endif
