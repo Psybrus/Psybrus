@@ -207,6 +207,8 @@ protected:
 template< typename _Ty >
 BcForceInline void CsCore::registerResource()
 {
+	BcAssert( BcIsGameThread() );
+
 	// Register.
 	internalRegisterResource( _Ty::StaticGetTypeString(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
 
@@ -222,6 +224,7 @@ BcForceInline void CsCore::registerResource()
 template< typename _Ty >
 BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
 	{
@@ -234,6 +237,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 template< typename _Ty, typename _A >
 BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
 	{
@@ -246,6 +250,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 template< typename _Ty, typename _A, typename _B >
 BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
 	{
@@ -258,6 +263,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 template< typename _Ty, typename _A, typename _B, typename _C >
 BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
 	{
@@ -270,6 +276,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 template< typename _Ty, typename _A, typename _B, typename _C, typename _D >
 BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< _Ty >& Handle, _A ParamA, _B ParamB, _C ParamC, _D ParamD )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
 	{
@@ -282,6 +289,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 template< typename _Ty >
 BcForceInline BcBool CsCore::requestResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	return internalRequestResource( Name, _Ty::StaticGetTypeString(), InternalHandle );
 }
@@ -289,6 +297,7 @@ BcForceInline BcBool CsCore::requestResource( const BcName& Name, CsResourceRef<
 template< typename _Ty >
 BcForceInline BcBool CsCore::findResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
 {
+	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	return internalFindResource( Name, _Ty::StaticGetTypeString(), InternalHandle );
 }

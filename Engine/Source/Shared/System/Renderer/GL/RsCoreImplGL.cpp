@@ -63,6 +63,7 @@ RsCoreImplGL::~RsCoreImplGL()
 //virtual
 void RsCoreImplGL::open()
 {
+	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::open_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 
@@ -189,6 +190,7 @@ void RsCoreImplGL::open_threaded()
 //virtual
 void RsCoreImplGL::update()
 {
+	BcAssert( BcIsGameThread() );
 	// Increment fence so we know how far we're getting ahead of ourselves.
 	RenderSyncFence_.increment();
 
@@ -213,6 +215,7 @@ void RsCoreImplGL::update_threaded()
 //virtual
 void RsCoreImplGL::close()
 {
+	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::close_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 
@@ -340,6 +343,7 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
+	BcAssert( BcIsGameThread() );
 	SysResource::CreateDelegate Delegate( SysResource::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 }
@@ -348,6 +352,7 @@ void RsCoreImplGL::createResource( RsResource* pResource )
 // allocateFrame
 RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height )
 {
+	BcAssert( BcIsGameThread() );
 	BcUnusedVar( DeviceHandle );
 	BcUnusedVar( Width );
 	BcUnusedVar( Height );
@@ -359,6 +364,7 @@ RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 
 // queueFrame
 void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
+	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)( RsFrameGL* ) > Delegate( BcDelegate< void(*)( RsFrameGL* ) >::bind< RsCoreImplGL, &RsCoreImplGL::queueFrame_threaded >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate, (RsFrameGL*)pFrame );
 }

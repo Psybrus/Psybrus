@@ -28,5 +28,8 @@ void BcYield();
 // BcGetHardwareThreadCount
 BcU32 BcGetHardwareThreadCount();
 
+//////////////////////////////////////////////////////////////////////////
+// BcIsGameThread
+BcBool BcIsGameThread();
 
 #endif

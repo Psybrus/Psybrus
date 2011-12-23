@@ -34,60 +34,60 @@ void GaTopState::enterOnce()
 {
 	// NEILO HACKY CODE :(
 	BcBool Imported;
-#if PSY_SERVER
-	Imported = CsCore::pImpl()->importResource( "bunny.ScnMaterial", Materials_[ MATERIAL_BUNNY ] );
+#ifdef PSY_SERVER
+	Imported = CsCore::pImpl()->importResource( "GameContent/bunny.ScnMaterial", Materials_[ MATERIAL_BUNNY ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "kitty.ScnMaterial", Materials_[ MATERIAL_KITTY ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/kitty.ScnMaterial", Materials_[ MATERIAL_KITTY ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "lettuce.ScnMaterial", Materials_[ MATERIAL_LETTUCE ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/lettuce.ScnMaterial", Materials_[ MATERIAL_LETTUCE ] );
 	BcAssert( Imported ); 
 
-	Imported = CsCore::pImpl()->importResource( "background.ScnMaterial", Materials_[ MATERIAL_BACKGROUND ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/background.ScnMaterial", Materials_[ MATERIAL_BACKGROUND ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "foreground.ScnMaterial", Materials_[ MATERIAL_FOREGROUND ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/foreground.ScnMaterial", Materials_[ MATERIAL_FOREGROUND ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "bar.ScnMaterial", Materials_[ MATERIAL_BAR ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/bar.ScnMaterial", Materials_[ MATERIAL_BAR ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "emote.ScnMaterial", Materials_[ MATERIAL_EMOTE ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/emote.ScnMaterial", Materials_[ MATERIAL_EMOTE ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "splash.ScnMaterial", Materials_[ MATERIAL_SPLASH ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/splash.ScnMaterial", Materials_[ MATERIAL_SPLASH ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "win.ScnMaterial", Materials_[ MATERIAL_WIN ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/win.ScnMaterial", Materials_[ MATERIAL_WIN ] );
 	BcAssert( Imported );
 
-	Imported = CsCore::pImpl()->importResource( "lose.ScnMaterial", Materials_[ MATERIAL_LOSE ] );
+	Imported = CsCore::pImpl()->importResource( "GameContent/lose.ScnMaterial", Materials_[ MATERIAL_LOSE ] );
 	BcAssert( Imported );
 
 
 	ScnMaterialRef Font;
-	Imported = CsCore::pImpl()->importResource( "font.ScnMaterial", Font );
+	Imported = CsCore::pImpl()->importResource( "EngineContent/font.ScnMaterial", Font );
 	BcAssert( Imported );
 
 	ScnSoundRef Sound;
-	Imported = CsCore::pImpl()->importResource( "rabbitchew0.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbitchew0.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbitchew1.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbitchew1.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbitchew2.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbitchew2.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbithop0.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbithop0.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbithop1.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbithop1.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbithop2.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbithop2.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbithop3.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbithop3.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbithop4.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbithop4.ScnSound", Sound );
 	BcAssert( Imported );
-	Imported = CsCore::pImpl()->importResource( "rabbitscared.ScnSound", Sound );
+	Imported = CsCore::pImpl()->importResource( "GameContent/rabbitscared.ScnSound", Sound );
 	BcAssert( Imported );
 #endif
 
