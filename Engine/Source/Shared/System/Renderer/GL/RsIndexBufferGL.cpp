@@ -53,10 +53,8 @@ void RsIndexBufferGL::create()
 	
 	if( Handle != 0 )
 	{
-		// Bind and push data into buffer.
-		glBindBuffer( Type_, Handle );
-		glBufferData( Type_, DataSize_, pData_, Usage_ );
-		glBindBuffer( Type_, 0 );
+		UpdateSyncFence_.increment();
+		update();
 		
 		// Destroy if there is a failure.
 		if ( glGetError() != GL_NO_ERROR )
@@ -79,6 +77,8 @@ void RsIndexBufferGL::update()
 		glBindBuffer( Type_, Handle );
 		glBufferData( Type_, DataSize_, pData_, Usage_ );
 		glBindBuffer( Type_, 0 );
+
+		UpdateSyncFence_.decrement();
 	}
 }
 

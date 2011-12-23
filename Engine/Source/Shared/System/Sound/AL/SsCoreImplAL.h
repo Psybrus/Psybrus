@@ -19,7 +19,8 @@
 #include "SsAL.h"
 #include "SsChannelAL.h"
 
-#include "BcCommandBuffer.h"
+#include "BcScopedLock.h"
+#include "BcMutex.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -41,9 +42,16 @@ private:
 
 public:
 	virtual void open();
-	virtual void update();
-	virtual void close();
+	void open_threaded();
 
+	virtual void update();
+	void update_threaded();
+
+	virtual void close();
+	void close_threaded();
+
+
+	BcBool isEFXEnabled() const;
 	
 public:
 	virtual SsSample* createSample( BcU32 SampleRate, BcU32 Channels, BcBool Looping, void* pData, BcU32 DataSize );
@@ -62,8 +70,6 @@ public:
 	void freeChannel( SsChannelAL* pSound );
 
 private:
-	BcCommandBuffer			CommandBuffer_;
-
 	//
 	const BcChar*			pSelectedDevice_;
 	ALCcontext*				ALContext_;
@@ -89,6 +95,8 @@ private:
 	// Environment.
 	ALuint					ALReverbEffectSlot_;
 	ALuint					ALReverbEffect_;
+
+	BcMutex					ChannelLock_;
 
 };
 

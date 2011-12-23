@@ -26,7 +26,8 @@ void BcSleep( BcReal Seconds )
 // BcYield
 void BcYield()
 {
-	::SwitchToThread();
+	::Sleep( 0 );
+//	::SwitchToThread();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,4 +39,19 @@ BcU32 BcGetHardwareThreadCount()
 	BcU32 RetVal = (BcU32)SysInfo.dwNumberOfProcessors;
 	BcAssert( RetVal >= 1 );
 	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcSetMainThread
+static DWORD GMainThreadID = 0;
+void BcSetGameThread()
+{
+	GMainThreadID = ::GetCurrentThreadId();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcIsGameThread
+BcBool BcIsGameThread()
+{
+	return GMainThreadID == ::GetCurrentThreadId();
 }

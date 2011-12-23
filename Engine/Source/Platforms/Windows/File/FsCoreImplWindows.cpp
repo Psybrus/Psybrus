@@ -60,9 +60,6 @@ void FsCoreImplWindows::open()
 //virtual
 void FsCoreImplWindows::update()
 {
-	// Execute the command buffer.
-	CommandBuffer_.execute();
-	
 	// Update file monitoring.
 	updateFileMonitoring();
 }

@@ -259,8 +259,8 @@ void BcMat4d::orthoProjection( BcReal Left, BcReal Right, BcReal Bottom, BcReal 
 // perspProjection
 void BcMat4d::perspProjection( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far )
 {
-	const BcReal H = BcTan( Fov ) * Near;
-	const BcReal W = H * Aspect;
+	const BcReal W = BcTan( Fov ) * Near;
+	const BcReal H = W * ( 1.0f / Aspect );
 	
     frustum( -W, W, H, -H, Near, Far );
 }

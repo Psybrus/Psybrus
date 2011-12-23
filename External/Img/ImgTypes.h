@@ -23,6 +23,20 @@
 #include "BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ImgEncodeFormat
+enum ImgEncodeFormat
+{
+	imgEF_RGB8,
+	imgEF_RGBA8,
+	imgEF_BGR8,
+	imgEF_ABGR8,
+	imgEF_I8,
+	imgEF_DXT1,
+	imgEF_DXT3,
+	imgEF_DXT5
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ImgColour
 struct ImgColour
 {
@@ -76,14 +90,5 @@ typedef std::vector< ImgRect > ImgRectList;
 typedef ImgRectList::iterator ImgRectListIterator;
 typedef ImgRectList::const_iterator ImgRectListConstIterator;
 
-
-//////////////////////////////////////////////////////////////////////////
-// Format
-enum eImgFormat
-{
-	imgFMT_RGB = 0,
-	imgFMT_RGBA,
-	imgFMT_INDEXED,
-};
 
 #endif

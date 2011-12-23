@@ -18,6 +18,10 @@
 
 #include "BcMemory.h"
 
+// NEILO HACK.
+extern BcU32 GResolutionWidth;
+extern BcU32 GResolutionHeight;
+
 //////////////////////////////////////////////////////////////////////////
 // Vertex structures.
 struct TVertex2D
@@ -77,7 +81,7 @@ class RsRenderTargetNode: public RsRenderNode
 public:
 	void render()
 	{
-		if( pRenderTarget_ != NULL )
+ 		if( pRenderTarget_ != NULL )
 		{
 			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
 			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
@@ -87,9 +91,7 @@ public:
 		else
 		{
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-			BcU32 W, H;
-			RsCore::pImpl()->getResolution( W, H );
-			glViewport( 0, 0, W, H );
+			glViewport( 0, 0, GResolutionWidth, GResolutionHeight );
 		}
 
 		
@@ -97,7 +99,6 @@ public:
 		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
 		pStateBlock->bind();
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
-		
 	}
 	
 	RsRenderTarget* pRenderTarget_;
@@ -223,7 +224,6 @@ void RsFrameGL::render()
 	extern BcHandle GWindowDC_;
 	::SwapBuffers( (HDC)GWindowDC_ );
 #endif
-
 
 	// TEMP HACK: Free frame.
 	delete this;

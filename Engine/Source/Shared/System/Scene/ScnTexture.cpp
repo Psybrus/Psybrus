@@ -33,36 +33,37 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 	
 	if( pImage != NULL )
 	{
-		BcStream HeaderStream;
-		BcStream BodyStream( BcFalse, 1024, ( pImage->width() * pImage->height() * 4 ) );
-		
-		// TODO: Use parameters to pick a format.
-		THeader Header = { pImage->width(), pImage->height(), 1, rsTF_RGBA8 };
-		HeaderStream << Header;
-		
-		// Write body.				
-		for( BcU32 Y = 0; Y < pImage->height(); ++Y )
+		// Encode the image as a format.
+		BcU8* pEncodedImageData = NULL;
+		BcU32 EncodedImageDataSize = 0;
+
+		// TODO: Take from parameters.
+		ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
+		eRsTextureFormat TextureFormat = rsTF_RGBA8;
+
+		if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 		{
-			for( BcU32 X = 0; X < pImage->width(); ++X )
-			{
-				ImgColour Colour = pImage->getPixel( X, Y );
-				
-				BodyStream << Colour.R_;
-				BodyStream << Colour.G_;
-				BodyStream << Colour.B_;
-				BodyStream << Colour.A_;
-			}
+			// Serialize encoded image.
+			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
+			BodyStream.push( pEncodedImageData, EncodedImageDataSize );
+			delete pEncodedImageData;
+			pEncodedImageData = NULL;
+
+
+			BcStream HeaderStream;
+			THeader Header = { pImage->width(), pImage->height(), 1, TextureFormat };
+			HeaderStream << Header;
+					
+			// Delete image.
+			delete pImage;
+			
+			// Add chunks and finish up.
+			pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+			pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
+					
+			//
+			return BcTrue;
 		}
-		
-		// Delete image.
-		delete pImage;
-		
-		// Add chunks and finish up.
-		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-				
-		//
-		return BcTrue;
 	}
 	return BcFalse;
 }
@@ -169,6 +170,14 @@ const ScnRect& ScnTexture::getRect( BcU32 Idx )
 	};
 	
 	return Rect;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// noofRects
+//virtual
+BcU32 ScnTexture::noofRects()
+{
+	return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

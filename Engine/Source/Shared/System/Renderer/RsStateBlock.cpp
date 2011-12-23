@@ -42,7 +42,7 @@ RsStateBlock::~RsStateBlock()
 void RsStateBlock::setDefaultState()
 {
 	// Setup default render states.
-	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		0,					BcTrue );
+	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		1,					BcTrue );
 	setRenderState( rsRS_DEPTH_TEST_ENABLE,			0,					BcTrue );
 	setRenderState( rsRS_DEPTH_TEST_COMPARE,		0,					BcTrue );
 	setRenderState( rsRS_DEPTH_BIAS,				0,					BcTrue );

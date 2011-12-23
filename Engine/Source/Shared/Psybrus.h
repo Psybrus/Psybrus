@@ -16,7 +16,6 @@
 
 #include "BcAABB.h"
 #include "BcAtomicMutex.h"
-#include "BcCommandBuffer.h"
 #include "BcDebug.h"
 #include "BcDelegate.h"
 #include "BcEndian.h"
@@ -123,6 +122,8 @@ extern PsySetupParams GPsySetupParams;
 extern void PsyGameInit();
 
 
-
+// NEILO HACK.
+extern BcU32 GResolutionWidth;
+extern BcU32 GResolutionHeight;
 
 #endif

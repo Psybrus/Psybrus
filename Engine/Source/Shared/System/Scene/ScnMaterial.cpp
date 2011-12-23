@@ -564,6 +564,7 @@ void ScnMaterialInstance::setState( eRsRenderState State, BcU32 Value )
 // getTexture
 ScnTextureRef ScnMaterialInstance::getTexture( BcU32 Parameter )
 {
+
 	for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
 	{
 		TTextureBinding& TexBinding( *Iter );

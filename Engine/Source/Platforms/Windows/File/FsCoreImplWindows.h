@@ -16,8 +16,8 @@
 
 #include "FsCore.h"
 
-#include "BcCommandBuffer.h"
 #include "BcScopedLock.h"
+#include "BcMutex.h"
 
 #include <deque>
 
@@ -52,8 +52,6 @@ public:
 	void updateFileMonitoring();
 	
 private:
-	BcCommandBuffer CommandBuffer_;
-
 	// File monitoring.
 	typedef std::map< std::string, FsStats > TFileMonitorMap;
 	typedef TFileMonitorMap::iterator TFileMonitorMapIterator;

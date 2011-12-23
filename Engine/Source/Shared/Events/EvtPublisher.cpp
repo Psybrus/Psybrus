@@ -32,6 +32,7 @@ EvtPublisher::~EvtPublisher()
 // publishInternal
 void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
+	BcAssert( BcIsGameThread() );
 	BcUnusedVar( EventSize );
 	
 	/*
@@ -43,7 +44,7 @@ void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcS
 		
 		BcPrintf( "EvtPublish: %x, \"%c%c\": Group=%u Item=%u\n", ID, PrefixA, PrefixB, Group, Item );
 	}
-	 */
+	 //*/
 
 	// Update binding map before going ahead.
 	updateBindingMap();

@@ -111,6 +111,8 @@ private:
 inline RsViewport::RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height )
 {
 	viewport( X, Y, Width, Height );
+	ZNear_ = 1.0f; // hack
+	ZFar_ = 1024.0f;
 	ClearDepth_ = BcFalse;
 }
 
@@ -120,6 +122,8 @@ inline void RsViewport::viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height )
 	Bottom_ = ( Y + Height ) - 1;
 	Left_ = X;
 	Right_ = ( X + Width ) - 1;
+	ZNear_ = 1.0f; // hack
+	ZFar_ = 1024.0f;
 }
 
 inline void RsViewport::view( const BcMat4d& ModelView )

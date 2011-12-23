@@ -71,7 +71,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 				ImgRect SrcRect = { 0, 0, pImage->width(), pImage->height() };
 				ImgRect DstRect = { Spread, Spread, pImage->width(), pImage->height() };
 				
-				pPaddedImage->create( NewWidth, NewHeight, imgFMT_RGBA, &FillColour );
+				pPaddedImage->create( NewWidth, NewHeight, &FillColour );
 				pPaddedImage->blit( pImage, SrcRect, DstRect );
 								
 				// Distance field.
@@ -106,7 +106,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 						
 			// Create an atlas of all source textures..
 			ImgRectList RectList;
-			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 1024, 1024 );
+			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256 );
 			
 			// Setup header.
 			TAtlasHeader Header = 
@@ -138,7 +138,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			CsDependancyList TextureDependancyList;
 
 			// Create a texture.
-			std::string AtlasName = Object[ "name" ].asString() + "_texture_atlas";
+			std::string AtlasName = Object[ "name" ].asString() + "textureatlas";
 			std::string AtlasFileName = std::string( "IntermediateContent/" ) + AtlasName + ".png";
 			Img::save( AtlasFileName.c_str(), pAtlasImage );
 			
@@ -193,6 +193,15 @@ const ScnRect& ScnTextureAtlas::getRect( BcU32 Idx )
 
 	return ScnTexture::getRect( Idx );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// noofRects
+//virtual
+BcU32 ScnTextureAtlas::noofRects()
+{
+	return pAtlasHeader_->NoofTextures_;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady

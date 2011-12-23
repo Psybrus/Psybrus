@@ -36,6 +36,7 @@ public:
 #endif	
 
 	virtual const ScnRect&				getRect( BcU32 Idx );
+	virtual BcU32						noofRects();
 
 protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
