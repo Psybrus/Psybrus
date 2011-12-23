@@ -3,11 +3,11 @@
 		"name"		: "bar",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse.ScnShader",
+		"shader"	: "diffuse.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/bar.ScnTextureAtlas"
+			"aDiffuseTex"		: "bar.ScnTextureAtlas"
 		},
 		
 		// State

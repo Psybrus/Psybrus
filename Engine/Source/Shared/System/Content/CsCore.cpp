@@ -153,7 +153,7 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 	
 	// Parse Json file.
 	Json::Value Object;
-	if( parseJsonFile( FileName, Object ) )
+	if( parseJsonFile( *findImportPath( FileName ), Object ) )
 	{
 		BcBool Success = BcFalse;
 		
@@ -292,11 +292,11 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 
 //////////////////////////////////////////////////////////////////////////
 // parseJsonFile
-BcBool CsCore::parseJsonFile( const std::string& FileName, Json::Value& Root )
+BcBool CsCore::parseJsonFile( const BcChar* pFileName, Json::Value& Root )
 {
 	BcBool Success = BcFalse;
 	BcFile File;
-	if( File.open( FileName.c_str() ) )
+	if( File.open( pFileName ) )
 	{
 		char* pData = new char[ File.size() ];
 		File.read( pData, File.size() );
@@ -308,7 +308,7 @@ BcBool CsCore::parseJsonFile( const std::string& FileName, Json::Value& Root )
 			Success = BcTrue;
 
 			// Add file for monitoring.
-			FsCore::pImpl()->addFileMonitor( FileName.c_str() );
+			FsCore::pImpl()->addFileMonitor( pFileName );
 		}
 		else
 		{

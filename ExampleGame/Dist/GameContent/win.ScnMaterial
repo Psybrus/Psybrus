@@ -3,11 +3,11 @@
 		"name"		: "win",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse.ScnShader",
+		"shader"	: "diffuse.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/win.ScnTextureAtlas"
+			"aDiffuseTex"		: "win.ScnTextureAtlas"
 		},
 		
 		// State

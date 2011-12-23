@@ -3,11 +3,11 @@
 		"name"		: "default",
 
 		// Shader
-		"shader"	: "EngineContent/default.ScnShader",
+		"shader"	: "default.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "EngineContent/default.ScnTexture"
+			"aDiffuseTex"		: "default.ScnTexture"
 		},
 
 		// State

@@ -3,11 +3,11 @@
 		"name"		: "lose",
 
 		// Shader
-		"shader"	: "EngineContent/diffuse.ScnShader",
+		"shader"	: "diffuse.ScnShader",
 
 		// Textures
 		"textures"	: {
-			"aDiffuseTex"		: "GameContent/lose.ScnTextureAtlas"
+			"aDiffuseTex"		: "lose.ScnTextureAtlas"
 		},
 		
 		// State

@@ -38,6 +38,12 @@ void MainUnitTests()
 // onCsCoreOpened
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
+#ifdef PSY_SERVER
+	// Add overlay paths.
+	CsCore::pImpl()->addImportOverlayPath( "EngineContent" );
+	CsCore::pImpl()->addImportOverlayPath( "GameContent" );
+#endif
+
 	// Register scene resources.
 	CsCore::pImpl()->registerResource< ScnRenderTarget >();
 
