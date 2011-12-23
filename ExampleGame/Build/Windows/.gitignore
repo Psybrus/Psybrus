@@ -1,6 +1,6 @@
-/Debug/
-/Production/
-/Release/
-/*.suo
 /*.ncb
+/*.suo
+/*.vcproj
+/Debug/
+/Release/
 /*.vcproj.NEILO-XP-VM.Neilo.user
