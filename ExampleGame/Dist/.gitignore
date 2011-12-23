@@ -14,3 +14,7 @@
 /ExampleGame_Release.lib
 /ExampleGame_Release.pdb
 /PsybrusWindows_Release.lib
+/ExampleGame_Production.exe
+/ExampleGame_Production.exp
+/ExampleGame_Production.lib
+/ExampleGame_Production.pdb
