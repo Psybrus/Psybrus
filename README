@@ -1,19 +1,4 @@
-Leave My Lettuce Alone - Alone
-- LD22 entry by Neil Richardson (NeiloGD).
-====================================================
+Psybrus Engine & Tool Chain
+===========================
 
-Executable is "Game_Production.exe"
-
-Whilst your owner is away, you, a black cat, have been left to guard
-the families lettuce patches. It's currently breeding season for rabbits,
-so there are lots of hungry kittens about.
-
-Controls are very simple, the black cat will always follow your cursor,
-and the rabbits will be avoiding the black cat whilst also trying to eat
-all of the lettuce. The rabbits hate being seperated, so what you need to
-do is try to split them up so they get scared and run away whilst simultaneously
-preventing the lettuce patches from being eaten!
-
-All game code is written in C++, and my own engine, Psybrus, was used.
-
-Source can be found at https://github.com/neilogd/Psybrus/tree/LD22.
+My personal engine which I use for Ludum Dare, tech prototyping, and testing out new ideas.
