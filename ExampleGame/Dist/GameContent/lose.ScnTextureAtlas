@@ -1,0 +1,10 @@
+{ 
+	"ScnTextureAtlas" : {
+		"name"		: "lose",
+		"source"	: [
+			"GameContent/Source/lose.png"
+		],
+		
+		"distancefield" : false
+	}
+}
