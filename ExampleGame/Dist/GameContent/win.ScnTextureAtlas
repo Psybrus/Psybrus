@@ -1,0 +1,10 @@
+{ 
+	"ScnTextureAtlas" : {
+		"name"		: "win",
+		"source"	: [
+			"GameContent/Source/win.png"
+		],
+		
+		"distancefield" : false
+	}
+}

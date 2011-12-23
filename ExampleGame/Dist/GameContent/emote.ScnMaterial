@@ -1,0 +1,25 @@
+{ 
+	"ScnMaterial" : {
+		"name"		: "emote",
+
+		// Shader
+		"shader"	: "EngineContent/diffuse3d.ScnShader",
+
+		// Textures
+		"textures"	: {
+			"aDiffuseTex"		: "GameContent/emote.ScnTextureAtlas"
+		},
+		
+		// State
+		"state"		: {
+			"depth_write_enable" 		: 0,
+			"depth_test_enable" 		: 1,
+			"depth_test_compare" 		: "lessequal",
+			"depth_bias" 				: 0,
+			"alpha_test_enable" 		: 0,
+			"alpha_test_compare" 		: "never",
+			"alpha_test_threshold" 		: 0,
+			"blend_mode" 				: "blend"
+		}
+	}
+}

@@ -1,0 +1,18 @@
+{ 
+	"ScnTextureAtlas" : {
+		"name"		: "bunny",
+		"source"	: [
+			"GameContent/Source/rabbit_foot_front_0.png",
+			"GameContent/Source/rabbit_body.png",
+			"GameContent/Source/rabbit_ears.png",
+			"GameContent/Source/rabbit_head.png",
+			"GameContent/Source/rabbit_nose.png",
+			"GameContent/Source/rabbit_eyes.png",
+			"GameContent/Source/rabbit_foot_front_1.png",
+			"GameContent/Source/rabbit_foot_rear_0.png",
+			"GameContent/Source/rabbit_tail.png"
+		],
+		
+		"distancefield" : false
+	}
+}
