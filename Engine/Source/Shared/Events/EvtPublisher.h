@@ -26,8 +26,8 @@
 *
 *	Any class wishing to publish events should derive from this base.<br/>
 *	All events should be published from the same thread.
-*	It is not currently thread safe for subscription/un-subscription, but
-*	it will be in the near future.
+*	It is not thread safe for subscription/un-subscription, or publication.
+*	All operations should be performed on the main thread.
 */
 class EvtPublisher
 {

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		OsWindowWindows.cpp
+* File:		OsClientWindows.cpp
 * Author: 	Neil Richardson
 * Ver/Date:	
 * Description:
@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "OsWindowWindows.h"
+#include "OsClientWindows.h"
 
 #include "OsCore.h"
 
@@ -23,21 +23,21 @@ static BcU32 gClassID_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-OsWindowWindows::OsWindowWindows()
+OsClientWindows::OsClientWindows()
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-OsWindowWindows::~OsWindowWindows()
+OsClientWindows::~OsClientWindows()
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // create
-BcBool OsWindowWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen )
+BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen )
 {
 	WNDCLASSEX	wc;
 	RECT		WindowRect;
@@ -50,7 +50,7 @@ BcBool OsWindowWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	hInstance_ = Instance;
 
 	// Generate class name.
-	BcSPrintf( ClassName_, "PsybrusWindow%u", gClassID_++ );
+	BcSPrintf( ClassName_, "PsybrusWindow_0x%x", gClassID_++ );
 	
 	wc.cbSize			= sizeof( WNDCLASSEX );
 	wc.style			= CS_HREDRAW | CS_VREDRAW;
@@ -117,7 +117,7 @@ BcBool OsWindowWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
-void OsWindowWindows::destroy()
+void OsClientWindows::destroy()
 {	
 	// Destroy.
 	if ( hDC_ && !::ReleaseDC( hWnd_, hDC_ ) )
@@ -138,14 +138,14 @@ void OsWindowWindows::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // getDC
-BcHandle OsWindowWindows::getDC()
+BcHandle OsClientWindows::getDC()
 {
 	return (BcHandle)hDC_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // centreWindow
-BcBool OsWindowWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
+BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 {
 	WindowSize_ = windowSize( SizeX, SizeY );
 
@@ -161,7 +161,7 @@ BcBool OsWindowWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 
 ////////////////////////////////////////////////////////////////////////////////
 // windowSize
-RECT OsWindowWindows::windowSize( BcS32 SizeX, BcS32 SizeY ) const
+RECT OsClientWindows::windowSize( BcS32 SizeX, BcS32 SizeY ) const
 {
 	RECT Rect;
 
@@ -186,10 +186,10 @@ RECT OsWindowWindows::windowSize( BcS32 SizeX, BcS32 SizeY ) const
 
 //////////////////////////////////////////////////////////////////////////
 // wndProcInternal
-LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
-								   UINT uMsg,
-								   WPARAM wParam,
-								   LPARAM lParam )
+LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
+                                          UINT uMsg,
+                                          WPARAM wParam,
+                                          LPARAM lParam )
 {
 	// Handle messages
 	switch (uMsg)
@@ -203,16 +203,40 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			case SC_MONITORPOWER:
 				return 0;
 				break;
+
+			case SC_MINIMIZE:
+				{
+					OsEventClient Event;
+					Event.pClient_ = this;
+					EvtPublisher::publish( osEVT_CLIENT_MINIMIZE, Event );
+				}
+				break;
+
+			case SC_MAXIMIZE:
+				{
+					OsEventClient Event;
+					Event.pClient_ = this;
+					EvtPublisher::publish( osEVT_CLIENT_MAXIMIZE, Event );
+				}
+				break;
 			}
 		}
 		break;
 
 	case WM_SIZE:
 		{
+			// TODO: OLD WAY REMOVE!
 			extern BcU32 GResolutionWidth;
 			extern BcU32 GResolutionHeight;
 			GResolutionWidth = lParam & 0xffff;
 			GResolutionHeight = lParam >> 16 & 0xffff;
+
+			// NEW WAY.
+			OsEventClientResize Event;
+			Event.pClient_ = this;
+			Event.Width_ = lParam & 0xffff;
+			Event.Height_ = lParam >> 16 & 0xffff;
+			EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
 		}
 		break;
 	case WM_KEYDOWN:
@@ -220,7 +244,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			OsEventInputKeyboard Event;
 			Event.DeviceID_ = 0;
 			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
-			OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_KEYDOWN, Event );
 			return 0;
 		}
 		break;
@@ -230,7 +255,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			OsEventInputKeyboard Event;
 			Event.DeviceID_ = 0;
 			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
-			OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
 			return 0;
 		}
 		break;
@@ -242,7 +268,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 0;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
 			return 0;
 		}
 		break;
@@ -254,7 +281,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 0;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
@@ -266,7 +294,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 0;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
@@ -278,7 +307,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 1;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
@@ -290,7 +320,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 1;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
@@ -302,7 +333,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 2;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
 			return 0;
 		}
 		break;
@@ -314,7 +346,8 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.ButtonCode_ = 2;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event );
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
 		}
 		break;
@@ -322,25 +355,31 @@ LRESULT OsWindowWindows::wndProcInternal( HWND hWnd,
 	case WM_DESTROY:
 	case WM_CLOSE:
 		{
+			// Send the close event.
+			OsEventClient Event;
+			Event.pClient_ = this;
+			EvtPublisher::publish( osEVT_CLIENT_CLOSE, Event );
+
+			// Post windows quit message.
 			::PostQuitMessage( 0 );
 			return 0;
 		}
 		break;
 	}
-
+	
 	return ::DefWindowProc( hWnd, uMsg, wParam, lParam );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // WndProc
 //static
-LRESULT CALLBACK OsWindowWindows::WndProc( HWND hWnd,
+LRESULT CALLBACK OsClientWindows::WndProc( HWND hWnd,
                                     UINT uMsg,
                                     WPARAM wParam,
                                     LPARAM lParam )
 {
 	LONG_PTR ptr = ::GetWindowLongPtr( hWnd, GWL_USERDATA );
-	OsWindowWindows* pWindow = reinterpret_cast< OsWindowWindows* >( ptr );
+	OsClientWindows* pWindow = reinterpret_cast< OsClientWindows* >( ptr );
 
 	return pWindow->wndProcInternal( hWnd, uMsg, wParam, lParam );
 }

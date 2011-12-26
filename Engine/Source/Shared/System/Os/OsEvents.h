@@ -42,6 +42,12 @@ enum OsEvents
 	osEVT_INPUT_TOUCHMOVE,
 	osEVT_INPUT_MIDI,
 	osEVT_INPUT_LAST,
+
+	// All client events.
+	osEVT_CLIENT_RESIZE,
+	osEVT_CLIENT_CLOSE,
+	osEVT_CLIENT_MINIMIZE,
+	osEVT_CLIENT_MAXIMIZE,
 	
 	//
 	osEVT_MAX
@@ -259,6 +265,27 @@ struct OsEventInputMIDI_PitchWheelChange: OsEventInputMIDI< OsEventInputMIDI_Pit
 	{
 		return ( ( ( FullMessage_ >> 16 ) & 0x7f ) << 7 ) | ( ( FullMessage_ >> 8 ) & 0x7f );
 	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventClientBase
+template< typename _Ty >
+struct OsEventClientBase: EvtEvent< _Ty >
+{
+	class OsClient*	pClient_; // Client sending the event.
+};
+////////////////////////////////////////////////////////////////////////////////
+// OsEventClient
+struct OsEventClient: OsEventClientBase< OsEventClient >
+{
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventClientResize
+struct OsEventClientResize: OsEventClientBase< OsEventClientResize >
+{
+	BcU32			Width_;		// Width of client.
+	BcU32			Height_;	// Height of client.
 };
 
 #endif
