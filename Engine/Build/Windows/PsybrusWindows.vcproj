@@ -1128,6 +1128,14 @@
 						Name="Os"
 						>
 						<File
+							RelativePath="..\..\Source\Platforms\Windows\Os\OsClientWindows.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Platforms\Windows\Os\OsClientWindows.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Platforms\Windows\Os\OsCoreImplWindows.cpp"
 							>
 						</File>
@@ -1137,14 +1145,6 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Platforms\Windows\Os\OsWindows.h"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Platforms\Windows\Os\OsWindowWindows.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\..\Source\Platforms\Windows\Os\OsWindowWindows.h"
 							>
 						</File>
 					</Filter>
@@ -2044,6 +2044,14 @@
 					<Filter
 						Name="Os"
 						>
+						<File
+							RelativePath="..\..\Source\Shared\System\Os\OsClient.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Os\OsClient.h"
+							>
+						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Os\OsCore.cpp"
 							>

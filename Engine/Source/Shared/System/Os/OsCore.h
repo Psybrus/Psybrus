@@ -18,6 +18,7 @@
 #include "SysSystem.h"
 
 #include "OsEvents.h"
+#include "OsClient.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsCore
@@ -26,6 +27,24 @@ class OsCore:
 	public SysSystem
 {
 public:
+	OsCore();
+	virtual ~OsCore();
+
+	/**
+	 * Register client.
+	 */
+	void registerClient( OsClient* pClient );
+
+	/**
+	 * Unregister client.
+	 */
+	void unregisterClient( OsClient* pClient );
+
+private:
+	typedef std::vector< OsClient* > TClientList;
+	typedef TClientList::iterator TClientListIterator;
+
+	TClientList ClientList_;
 
 };
 

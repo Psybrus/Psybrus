@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		OsWindowWindows.h
+* File:		OsClientWindows.h
 * Author: 	Neil Richardson
 * Ver/Date:	
 * Description:
@@ -11,19 +11,21 @@
 * 
 **************************************************************************/
 
-#ifndef __OSWINDOWWINDOWS_H__
-#define __OSWINDOWWINDOWS_H__
+#ifndef __OsClientWindows_H__
+#define __OsClientWindows_H__
 
 #include "BcTypes.h"
 #include "OsWindows.h"
+#include "OsClient.h"
 
 //////////////////////////////////////////////////////////////////////////
-// OsWindowWindows
-class OsWindowWindows
+// OsClientWindows
+class OsClientWindows:
+	public OsClient
 {
 public:
-	OsWindowWindows();
-	~OsWindowWindows();
+	OsClientWindows();
+	~OsClientWindows();
 
 	/**
 	*	Create window.

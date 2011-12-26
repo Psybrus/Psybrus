@@ -2,7 +2,7 @@
 #include "SysKernel.h"
 #include "OsCore.h"
 
-#include "OsWindowWindows.h"
+#include "OsClientWindows.h"
 
 BcHandle GWindowDC_ = NULL;
 BcHandle GWindowRC_ = NULL;
@@ -53,7 +53,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Create window.
 	if( GPsySetupParams.Flags_ & psySF_WINDOW )
 	{
-		OsWindowWindows MainWindow;
+		OsClientWindows MainWindow;
 		if( MainWindow.create( GPsySetupParams.Name_.c_str(), (BcHandle)hInstance, GResolutionWidth, GResolutionHeight, BcFalse ) == BcFalse )
 		{
 			BcPrintf( "Failed to create window!\n" );
