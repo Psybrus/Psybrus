@@ -100,7 +100,57 @@ std::string CsCore::getResourceFullName( const BcName& Name, const BcName& Type 
 	return *Name + std::string( "." ) + *Type;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// isValidResource
+BcBool CsCore::isValidResource( const BcPath& FileName ) const
+{
+	BcName ExtensionName = BcName( FileName.getExtension() );
+	return ( ResourceFactoryInfoMap_.find( ExtensionName ) != ResourceFactoryInfoMap_.end() );
+}
+
 #ifdef PSY_SERVER
+
+//////////////////////////////////////////////////////////////////////////
+// importResource
+void CsCore::importResource( const BcPath& FileName )
+{
+	BcBool Import = BcFalse;
+
+	// Only attempt import if the resource filename is valid.
+	if( isValidResource( FileName ) )
+	{
+		// Grab dependancy list for file so we don't do more work than required.
+		if( DependancyMap_.find( *FileName ) != DependancyMap_.end() )
+		{
+			CsDependancyList& DependancyList = DependancyMap_[ *FileName ];
+	
+			for( CsDependancyListIterator It( DependancyList.begin() ); It != DependancyList.end(); ++It )
+			{
+				if( (*It).hasChanged() == BcTrue )
+				{
+					// Update dependancy stats.
+					(*It).updateStats();
+	
+					// Set import to true.
+					Import = BcTrue;
+	
+					// NOTE: Don't break, update all dependancy stats!
+				}
+			}
+		}
+		else
+		{
+			// No dependancy list, do the import.
+			Import = BcTrue;
+		}
+	}
+	
+	// Only import if dependancies have changed, or there are none.
+	if( Import == BcTrue )
+	{
+		ImportList_.push_back( *FileName );
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // getResourcePropertyTable
@@ -166,7 +216,7 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 			{
 				// Add file for monitoring.
 				// TODO: Remove old files.
-				FsCore::pImpl()->addFileMonitor( (*Iter).getFileName().c_str() );
+				FsCore::pImpl()->addFileMonitor( *((*Iter).getFileName()) );
 			}
 			
 			// Store dependancy list in map for reimporting on file modification.
@@ -349,7 +399,7 @@ eEvtReturn CsCore::eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event
 			for( CsDependancyListIterator DepIter( DependancyList.begin() ); DepIter != DependancyList.end(); ++DepIter )
 			{
 				// If the dependancy filename matches the one modified, then add resource to the dependancy list.
-				if( (*DepIter).getFileName() == Event.FileName_ )
+				if( BcStrCompare( *(*DepIter).getFileName(), Event.FileName_ ) )
 				{
 					ImportList_.push_back( ResourceName );
 					break;

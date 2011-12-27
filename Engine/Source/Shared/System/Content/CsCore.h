@@ -88,9 +88,19 @@ public:
 	 * Get resource full name.
 	 */
 	std::string							getResourceFullName( const BcName& Name, const BcName& Type ) const;
+
+	/**
+	 * Is valid resource to request/import?
+	 */
+	BcBool								isValidResource( const BcPath& FileName ) const;
 	
 	
 #ifdef PSY_SERVER
+	/**
+	 * Import a resource from file.
+	 */
+	void								importResource( const BcPath& FileName );
+
 	/**
 	 * Import a resource using template to derive type.
 	 * @param FileName File name of the resource to load.
@@ -113,12 +123,12 @@ public:
 	 * @return Success.
 	 */
 	BcBool								getResourcePropertyTable( const BcName& Type, CsPropertyTable& PropertyTable );
-
+	
 	/**
 	 * Add import overlay path.
 	 */
 	void								addImportOverlayPath( const BcPath& Path );
-
+	
 	/**
 	 * Find import path.
 	 */
@@ -194,7 +204,7 @@ protected:
 	typedef TImportList::iterator TImportListIterator;
 	typedef std::list< BcPath > TOverlayList;
 	typedef TOverlayList::iterator TOverlayListIterator;
-
+	
 	TResourceRefMap						ResourceImportMap_;
 	TDependancyMap						DependancyMap_;
 	TImportList							ImportList_;

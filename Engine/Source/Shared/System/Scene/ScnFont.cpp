@@ -107,7 +107,7 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 	const std::string& FileName = Object[ "source" ].asString();
 	
 	// Add root dependancy.
-	DependancyList.push_back( FileName );
+	DependancyList.push_back( CsDependancy( FileName ) );
 
 	FT_Library	Library;
 	FT_Face		Face;

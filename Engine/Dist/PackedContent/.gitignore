@@ -3,3 +3,8 @@
 /default.ScnShader
 /default.ScnTexture
 /defaultfonttextureatlas.ScnTexture
+/default2d.ScnShader
+/diffuse.ScnShader
+/diffuse3d.ScnShader
+/font.ScnMaterial
+/font.ScnShader

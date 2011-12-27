@@ -30,7 +30,7 @@ BcBool ScnModel::import( const Json::Value& Object, CsDependancyList& Dependancy
 	MdlNode* pNode = MdlLoader::loadModel( FileName.c_str() );
 
 	// Add root dependancy.
-	DependancyList.push_back( FileName );
+	DependancyList.push_back( CsDependancy( FileName ) );
 	
 	if( pNode != NULL )
 	{
