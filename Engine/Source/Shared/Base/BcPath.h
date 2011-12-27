@@ -25,14 +25,18 @@ public:
 
 public:
 	BcPath();
+	BcPath( const BcPath& Value );
 	BcPath( const std::string& Value );
 	BcPath( const BcChar* pValue );
 	virtual ~BcPath();
 
 	const BcChar* operator * () const;
+	const BcChar* getExtension() const;
+
 	void join( const BcPath& PathA );
 	void join( const BcPath& PathA, const BcPath& PathB );
 	void join( const BcPath& PathA, const BcPath& PathB, const BcPath& PathC );
+
 
 protected:
 	void fixSeperators();

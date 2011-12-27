@@ -26,6 +26,14 @@ BcPath::BcPath()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
+BcPath::BcPath( const BcPath& Value ):
+	InternalValue_( *Value )
+{
+	fixSeperators();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 BcPath::BcPath( const std::string& Value ):
 	InternalValue_( Value )
 {
@@ -53,6 +61,26 @@ BcPath::~BcPath()
 const BcChar* BcPath::operator * () const
 {
 	return InternalValue_.c_str();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getExtension
+const BcChar* BcPath::getExtension() const
+{
+	std::string::size_type ExtensionPosition = InternalValue_.rfind( "." );
+
+	if( ExtensionPosition != std::string::npos )
+	{
+		// Ensure we're not masked by a trailing seperator.
+		std::string Extension = InternalValue_.substr( ExtensionPosition + 1 );
+
+		if( Extension.find( "/" ) == std::string::npos )
+		{
+			return &InternalValue_[ ExtensionPosition + 1 ];
+		}
+	}
+
+	return NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,7 +112,21 @@ void BcPath::join( const BcPath& PathA, const BcPath& PathB, const BcPath& PathC
 // fixSeperators
 void BcPath::fixSeperators()
 {
-	//InternalValue_.replace( 0, InternalValue_.size(), "\\", Seperator );
+	std::string NewValue;
+	for( BcU32 Idx = 0; Idx < InternalValue_.size(); ++Idx )
+	{
+		BcChar Char = InternalValue_[ Idx ];
+		if( Char == '\\' )
+		{
+			NewValue += Seperator;
+		}
+		else
+		{
+			NewValue += Char;
+		}
+	}
+	
+	InternalValue_ = NewValue;
 }
 
 //////////////////////////////////////////////////////////////////////////
