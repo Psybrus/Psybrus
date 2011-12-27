@@ -47,8 +47,11 @@ void* operator new( size_t Size )
 {
 	initHeap();
 	void* pMem = malloc( Size );
-	BcMemZero( pMem, Size ); // NEILO HACK FOR LD22. REMOVE ME.
+#ifdef PSY_DEBUG // neilogd: stamp 0x69 over uninitialised memory.
+	BcMemSet( pMem, 0x69, Size );
+#endif
 #ifdef MEM_DEBUG
+	
 	BcU32 BreakID = -1;
 	if( gAllocID == BreakID )
 	{
@@ -65,7 +68,9 @@ void* operator new[]( size_t Size)
 {
 	initHeap();
 	void* pMem = malloc( Size );
-	BcMemZero( pMem, Size ); // NEILO HACK FOR LD22. REMOVE ME.
+#ifdef PSY_DEBUG // neilogd: stamp 0x69 over uninitialised memory.
+	BcMemSet( pMem, 0x69, Size );
+#endif
 #ifdef MEM_DEBUG
 	BcU32 BreakID = -1;
 	if( gAllocID == BreakID )

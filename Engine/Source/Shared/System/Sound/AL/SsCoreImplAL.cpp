@@ -127,6 +127,9 @@ void SsCoreImplAL::open_threaded()
 		// Make context current.
 		alcMakeContextCurrent( ALContext_ );
 		alBreakOnError();
+		
+		// Initialise EFX.
+		bEFXEnabled_ = initEFX();
 
 		// Determine how many channels to create.
 		ALCint Sources;
@@ -143,9 +146,6 @@ void SsCoreImplAL::open_threaded()
 		ListenerPosition_ = BcVec3d( 0.0f, 0.0f, 0.0f );
 		ListenerLookAt_ = BcVec3d( 0.0f, 0.0f, 1.0f );
 		ListenerUp_ = BcVec3d( 0.0f, 1.0f, 0.0f );
-
-		//
-		bEFXEnabled_ = initEFX();
 
 		if( bEFXEnabled_ == BcTrue )
 		{
