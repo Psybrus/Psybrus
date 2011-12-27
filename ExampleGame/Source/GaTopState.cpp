@@ -183,8 +183,8 @@ void GaTopState::preMain()
 // main
 eSysStateReturn GaTopState::main()
 {
-	// Allocate a frame to render.
-	RsFrame* pFrame = RsCore::pImpl()->allocateFrame();
+	// Allocate a frame to render using default context.
+	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( NULL );
 
 	// Render all registered states.
 	for( TStateList::iterator Iter( StateList_.begin() ); Iter != StateList_.end(); ++Iter )

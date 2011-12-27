@@ -4,10 +4,9 @@
 
 #include "OsClientWindows.h"
 
-BcHandle GWindowDC_ = NULL;
-BcHandle GWindowRC_ = NULL;
+BcHandle GInstance_ = NULL;
 
-eEvtReturn OnPreOsUpdate( EvtID, const SysSystemEvent& )
+eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
 {
 	MSG Msg;
 
@@ -27,11 +26,33 @@ eEvtReturn OnPreOsUpdate( EvtID, const SysSystemEvent& )
 	return evtRET_PASS;
 }
 
+eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
+{
+	if( GPsySetupParams.Flags_ & psySF_WINDOW )
+	{
+		// Create window.
+		OsClientWindows* pMainWindow = new OsClientWindows();
+		if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse ) == BcFalse )
+		{
+			BcAssertMsg( BcFalse, "Failed to create client!" );
+			return evtRET_REMOVE;
+		}
+		
+		// Get rendering context.
+		RsContext* pContext = RsCore::pImpl()->getContext( pMainWindow );
+		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
+	}
+
+	return evtRET_REMOVE;	
+}
+
 int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
 	( void )hPrevInstance;
 	( void )lpCmdLine;
 	( void )nCmdShow;
+
+	GInstance_ = (BcHandle)hInstance;
 
 	// Perform unit tests.
 	MainUnitTests();
@@ -49,31 +70,17 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImplGL );
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
-	
-	// Create window.
-	if( GPsySetupParams.Flags_ & psySF_WINDOW )
-	{
-		OsClientWindows MainWindow;
-		if( MainWindow.create( GPsySetupParams.Name_.c_str(), (BcHandle)hInstance, GResolutionWidth, GResolutionHeight, BcFalse ) == BcFalse )
-		{
-			BcPrintf( "Failed to create window!\n" );
-			return 1;
-		}
-
-		// Cache handle globally.
-		// TODO: OsViewContext class to expose these.
-		GWindowDC_ = MainWindow.getDC();
-	}
-	
+		
 	// Main shared.
 	MainShared();
 
+	// Hook up create client delegate
+	SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
+
 	// Hook up event pump delegate.
-	if( GPsySetupParams.Flags_ & psySF_WINDOW )
-	{	
-		SysSystemEvent::Delegate OsPreUpdateDelegate = SysSystemEvent::Delegate::bind< OnPreOsUpdate >();
-		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegate );
-	}
+	SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegatePumpMessages );
 
 	// Game init.
 	PsyGameInit();

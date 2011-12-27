@@ -16,6 +16,7 @@
 
 #include "BcTypes.h"
 
+#include "RsContext.h"
 #include "RsRenderNode.h"
 #include "RsRenderTarget.h"
 
@@ -48,19 +49,9 @@ public:
 	virtual ~RsFrame(){};
 	
 	/**
-	*	Get device handle.
+	*	Get context.
 	*/
-	virtual BcHandle deviceHandle() const = 0;
-	
-	/**
-	*	Get width.
-	*/
-	virtual BcU32	width() const = 0;
-	
-	/**
-	*	Get height.
-	*/
-	virtual BcU32	height() const = 0;
+	virtual RsContext* getContext() const = 0;
 	
 	/**
 	*	Set current render target.\n

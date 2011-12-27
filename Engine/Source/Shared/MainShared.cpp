@@ -123,9 +123,8 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
 
-	// Start file and content systems.
+	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
-	SysKernel::pImpl()->startSystem( "CsCore" );
 
 	// Start systems.
 	if( GPsySetupParams.Flags_ & psySF_REMOTE )
@@ -144,6 +143,9 @@ void MainShared()
 	{
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
+	
+	// Start content system.
+	SysKernel::pImpl()->startSystem( "CsCore" );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();

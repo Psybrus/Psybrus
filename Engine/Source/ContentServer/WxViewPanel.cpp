@@ -35,7 +35,7 @@ void doRender( BcU32 Width, BcU32 Height )
 	if( Canvas.isReady() )
 	{
 		RsViewport Viewport( 0, 0, Width, Height );
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame();
+		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( NULL );
 		pFrame->setRenderTarget( NULL );
 		pFrame->setViewport( Viewport );
 		Canvas->clear();
@@ -71,8 +71,10 @@ WxViewPanel::WxViewPanel( wxWindow* pParent ):
 {
 #if PLATFORM_WINDOWS
 	// Setup handle.
+	/*
 	extern BcHandle GWindowDC_;
 	GWindowDC_ = (BcHandle)::GetDC( (HWND)GetHandle() );
+	*/
 
 	// Start renderer.
 	SysKernel::pImpl()->startSystem( "RsCore" );

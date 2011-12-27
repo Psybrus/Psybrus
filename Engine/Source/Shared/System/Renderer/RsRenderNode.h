@@ -20,7 +20,7 @@
 // Forward Declarations
 class RsFrame;
 class RsCore;
-
+class RsContext;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsRenderNode
@@ -50,6 +50,7 @@ public:
 	virtual void			render() = 0;
 
 public:
+	RsContext*				pContext_;
 	RsRenderSort			Sort_;
 };
 
