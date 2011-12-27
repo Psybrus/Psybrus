@@ -37,6 +37,7 @@ class CsDependancy
 {
 public:
 	CsDependancy( const BcPath& FileName );
+	CsDependancy( const BcPath& FileName, const FsStats& Stats );
 	CsDependancy( const CsDependancy& Other );
 	~CsDependancy();
 
@@ -46,10 +47,15 @@ public:
 	const BcPath& getFileName() const;
 
 	/**
+	 * Get stats.
+	 */
+	const FsStats& getStats() const;
+
+	/**
 	 * Had dependancy changed?
 	 */
 	BcBool hasChanged();
-	
+
 	/**
 	 * Update stats.
 	 */

@@ -15,6 +15,7 @@
 #define __BCPATH_H__
 
 #include "BcTypes.h"
+#include "BcName.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcPath
@@ -31,8 +32,11 @@ public:
 	virtual ~BcPath();
 
 	const BcChar* operator * () const;
-	const BcChar* getExtension() const;
+	const BcChar* getFileName() const;
+	BcName getExtension() const;
+	BcName getFileNameNoExtension() const;
 
+	void append( const BcPath& PathA );
 	void join( const BcPath& PathA );
 	void join( const BcPath& PathA, const BcPath& PathB );
 	void join( const BcPath& PathA, const BcPath& PathB, const BcPath& PathC );
