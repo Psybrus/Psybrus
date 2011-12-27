@@ -35,7 +35,6 @@ Global
 		{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}.Debug|Win32.ActiveCfg = Debug|Win32
 		{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}.Debug|Win32.Build.0 = Debug|Win32
 		{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}.Production|Win32.ActiveCfg = Production|Win32
-		{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}.Production|Win32.Build.0 = Production|Win32
 		{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}.Release|Win32.ActiveCfg = Release|Win32
 		{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
