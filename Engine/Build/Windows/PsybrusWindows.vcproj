@@ -1580,6 +1580,14 @@
 						Name="Renderer"
 						>
 						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\RsContext.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Renderer\RsContext.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Renderer\RsCore.cpp"
 							>
 						</File>
@@ -1716,6 +1724,14 @@
 							</File>
 							<File
 								RelativePath="..\..\Source\Shared\System\Renderer\GL\GLee.h"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsContextGL.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\..\Source\Shared\System\Renderer\GL\RsContextGL.h"
 								>
 							</File>
 							<File

@@ -38,9 +38,19 @@ public:
 	void			destroy();
 
 	/**
-	 *  Get DC.
+	 * Get device handle.
 	 */
-	BcHandle		getDC();
+	virtual BcHandle getDeviceHandle();
+
+	/**
+ 	 * Get width.
+	 */
+	virtual BcU32 getWidth() const;
+
+	/**
+ 	 * Get height.
+	 */
+	virtual BcU32 getHeight() const;
 
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
 	RECT windowSize( BcS32 SizeX, BcS32 SizeY ) const;

@@ -84,7 +84,6 @@ private:
 
 	ScnMaterialRef					Materials_[ MATERIAL_MAX ];
 	ScnSoundRef						Sounds_[ SOUND_MAX ];
-
 };
 
 #endif

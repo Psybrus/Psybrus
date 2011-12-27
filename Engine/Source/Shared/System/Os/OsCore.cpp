@@ -48,3 +48,22 @@ void OsCore::unregisterClient( OsClient* pClient )
 		}
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofClients
+BcU32 OsCore::getNoofClients() const
+{
+	return ClientList_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getClient
+OsClient* OsCore::getClient( BcU32 Index )
+{
+	if( Index < ClientList_.size() )
+	{
+		return ClientList_[ Index ];
+	}
+
+	return NULL;
+}

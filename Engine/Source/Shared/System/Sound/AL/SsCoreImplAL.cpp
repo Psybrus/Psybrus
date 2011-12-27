@@ -231,7 +231,6 @@ void SsCoreImplAL::close()
 	SysFence Fence;
 	Fence.queue( SsCore::WORKER_MASK );
 	Fence.wait();
-
 }
 
 //////////////////////////////////////////////////////////////////////////

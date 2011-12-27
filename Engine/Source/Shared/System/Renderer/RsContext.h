@@ -1,35 +1,34 @@
 /**************************************************************************
 *
-* File:		OsClient.h
+* File:		RsContext.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Operating system client.
+*		
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __OSCLIENT_H__
-#define __OSCLIENT_H__
+#ifndef __RSCONTEXT_H__
+#define __RSCONTEXT_H__
 
-#include "OsEvents.h"
-#include "EvtPublisher.h"
+#include "RsTypes.h"
+#include "RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
-// OsClient
-class OsClient:
-	public EvtPublisher
+// Forward Declarations
+class OsClient;
+
+//////////////////////////////////////////////////////////////////////////
+// RsContext
+class RsContext:
+	public RsResource
 {
 public:
-	OsClient();
-	virtual ~OsClient();
-
-	/**
- 	 * Get device handle.
-	 */
-	virtual BcHandle getDeviceHandle() = 0;
+	RsContext( OsClient* pClient );
+	virtual ~RsContext();
 
 	/**
  	 * Get width.
@@ -41,6 +40,12 @@ public:
 	 */
 	virtual BcU32 getHeight() const = 0;
 
+protected:
+	OsClient* pClient_;
+
+private:
+
 };
+
 
 #endif

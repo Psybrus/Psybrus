@@ -24,6 +24,7 @@
 #include "RsLight.h"
 #include "RsFrame.h"
 
+#include "RsContext.h"
 #include "RsTexture.h"
 #include "RsRenderTarget.h"
 #include "RsShader.h"
@@ -59,6 +60,19 @@ public:
 	virtual ~RsCore(){};
 	
 public:
+
+	/**
+	 *	Get rendering context for client.
+	 *	@param pClient Client to get a context for.
+	 */
+	virtual RsContext*		getContext( OsClient* pClient ) = 0;
+	
+	/**
+	 *	Destroy rendering context for client.
+	 *	@param pClient Client to get a context for.
+	 */
+	virtual void			destroyContext( OsClient* pClient ) = 0;
+
 	/**
 	 *	Create a texture.
 	 *	@param Width Width.
@@ -132,9 +146,9 @@ public:
 	/**
 	*	Allocate a frame for rendering.
 	*	GAME FUCTION: Called to get a frame prior to queuing up render objects.
-	*	@param DeviceHandle Handle to device to render to. 0 for default.
+	*	@param pContext Rendering context to allocate frame for use with.
 	*/
-	virtual RsFrame*		allocateFrame( BcHandle DeviceHandle = 0, BcU32 Width = BcErrorCode, BcU32 Height = BcErrorCode ) = 0;
+	virtual RsFrame*		allocateFrame( RsContext* pContext ) = 0;
 
 	/**
 	*	Queue a frame for rendering.\n

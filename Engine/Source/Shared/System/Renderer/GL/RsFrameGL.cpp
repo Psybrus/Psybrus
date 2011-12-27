@@ -18,10 +18,6 @@
 
 #include "BcMemory.h"
 
-// NEILO HACK.
-extern BcU32 GResolutionWidth;
-extern BcU32 GResolutionHeight;
-
 //////////////////////////////////////////////////////////////////////////
 // Vertex structures.
 struct TVertex2D
@@ -85,13 +81,12 @@ public:
 		{
 			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
 			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
-			
 			glViewport( 0, 0, pRenderTarget_->width(), pRenderTarget_->height() );
 		}
 		else
 		{
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-			glViewport( 0, 0, GResolutionWidth, GResolutionHeight );
+			glViewport( 0, 0, pContext_->getWidth(), pContext_->getHeight() );
 		}
 
 		
@@ -107,11 +102,9 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsFrameGL::RsFrameGL( BcHandle DeviceHandle, BcU32 Width, BcU32 Height, BcU32 NoofNodes, BcU32 NodeMem )
+RsFrameGL::RsFrameGL( RsContext* pContext, BcU32 NoofNodes, BcU32 NodeMem )
 {
-	DeviceHandle_ = DeviceHandle;
-	Width_ = Width;
-	Height_ = Height;
+	pContext_ = static_cast< RsContextGL* >( pContext );
 
 	//
 	NoofNodes_ = NoofNodes;
@@ -150,24 +143,10 @@ RsFrameGL::~RsFrameGL()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// deviceHandle
-BcHandle RsFrameGL::deviceHandle() const
+// getContext
+RsContext* RsFrameGL::getContext() const
 {
-	return DeviceHandle_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// width
-BcU32 RsFrameGL::width() const
-{
-	return Width_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// height
-BcU32 RsFrameGL::height() const
-{
-	return Height_;
+	return pContext_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,34 +175,32 @@ void RsFrameGL::render()
 	// 
 	BcAssertMsg( pCurrPrimitive_ == NULL, "RsFrameGL: Unterminated primitive." );
 
-	// Set default state.
-	RsCore::pImpl< RsCoreImplGL >()->getStateBlock()->setDefaultState();
-
-	// Sort all nodes.
-	sortNodes();
-
-	// Render all nodes.
-	for( BcU32 i = 0; i < CurrNode_; ++i )
+	// Only render if we have a valid context.
+	if( pContext_ != NULL )
 	{
-		RsRenderNode* pRenderNode = ppNodeArray_[ i ];
-		pRenderNode->render();
-		pRenderNode->~RsRenderNode();
+		// Make context current.
+		pContext_->makeCurrent();
+
+		// Set default state.
+		RsCore::pImpl< RsCoreImplGL >()->getStateBlock()->setDefaultState();
+
+		// Sort all nodes.
+		sortNodes();
+
+		// Render all nodes.
+		for( BcU32 i = 0; i < CurrNode_; ++i )
+		{
+			RsRenderNode* pRenderNode = ppNodeArray_[ i ];
+			pRenderNode->render();
+			pRenderNode->~RsRenderNode();
+		}
+
+		// Reset everything.
+		reset();
+
+		// Flip context buffers.
+		pContext_->swapBuffers();
 	}
-
-	// Reset everything.
-	reset();
-
-	// Flush and flip.
-	glFlush();
-	
-#if PLATFORM_OSX
-	// Flush buffer.
-	OsViewOSX_Interface::FlushBuffer();
-#elif PLATFORM_WINDOWS
-	// Flip.
-	extern BcHandle GWindowDC_;
-	::SwapBuffers( (HDC)GWindowDC_ );
-#endif
 
 	// TEMP HACK: Free frame.
 	delete this;
@@ -247,6 +224,9 @@ void RsFrameGL::setRenderTarget( RsRenderTarget* pRenderTarget )
 	
 	// Set rendertarget for node.
 	pNode->pRenderTarget_ = (RsRenderTargetGL*)pRenderTarget;
+
+	// Set node context.
+	pNode->pContext_ = pContext_;
 	
 	// Set the sort value for the node.
 	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( 0, CurrRenderTarget_ );
@@ -272,6 +252,9 @@ void RsFrameGL::setViewport( const RsViewport& Viewport )
 	// Assertions.
 	BcAssertMsg( CurrViewport_ <= RS_SORT_VIEWPORT_MAX, "RsFrameGL: Viewport limit exceeded." );
 	
+	// Set node context.
+	pNode->pContext_ = pContext_;
+
 	// Set the sort value for the node.
 	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, CurrRenderTarget_ );
 }
@@ -285,6 +268,9 @@ void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 	
 	ppNodeArray_[ CurrNode_++ ] = pNode;
 	
+	// Set the context for the node.
+	pNode->pContext_ = pContext_;
+
 	// Set the sort value for the node.
 	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, CurrRenderTarget_ );
 }

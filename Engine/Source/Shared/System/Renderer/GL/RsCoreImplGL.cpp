@@ -30,14 +30,7 @@
 
 #if PLATFORM_OSX
 #include "OsViewOSX.h"
-#elif PLATFORM_WINDOWS
-extern BcHandle GWindowDC_;
-extern BcHandle GWindowRC_;
 #endif
-
-// NEILO HACK.
-extern BcU32 GResolutionWidth;
-extern BcU32 GResolutionHeight;
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -80,54 +73,8 @@ void RsCoreImplGL::open_threaded()
 #if PLATFORM_OSX
 	// Do the context switch.
 	OsViewOSX_Interface::MakeContextCurrent();
+
 #elif PLATFORM_WINDOWS
-	// Pixel format.
-	static  PIXELFORMATDESCRIPTOR pfd =                 // pfd Tells Windows How We Want Things To Be
-	{
-		sizeof(PIXELFORMATDESCRIPTOR),                  // Size Of This Pixel Format Descriptor
-		3,												// Version Number
-		PFD_DRAW_TO_WINDOW |							// Format Must Support Window
-		PFD_SUPPORT_OPENGL |							// Format Must Support OpenGL
-		PFD_DOUBLEBUFFER,								// Must Support Double Buffering
-		PFD_TYPE_RGBA,									// Request An RGBA Format
-		32,												// Select Our Color Depth
-		0, 0, 0, 0, 0, 0,								// Color Bits Ignored
-		0,												// No Alpha Buffer
-		0,												// Shift Bit Ignored
-		0,												// No Accumulation Buffer
-		0, 0, 0, 0,										// Accumulation Bits Ignored
-		24,												// 24 bit Z-Buffer (Depth Buffer)
-		0,												// No Stencil Buffer
-		0,												// No Auxiliary Buffer
-		PFD_MAIN_PLANE,									// Main Drawing Layer
-		0,												// Reserved
-		0, 0, 0											// Layer Masks Ignored
-	};
-	
-	GLuint PixelFormat = 0;
-	if ( !(PixelFormat = ::ChoosePixelFormat( (HDC)GWindowDC_, &pfd ) ) )
-	{
-		BcPrintf( "Can't create pixel format.\n" );
-	}
-	
-	if( !::SetPixelFormat( (HDC)GWindowDC_, PixelFormat, &pfd ) )               // Are We Able To Set The Pixel Format?
-	{
-	    BcPrintf( "Can't Set The PixelFormat." );
-	}
-	
-	// Create a rendering context.
-	GWindowRC_ = (BcHandle)wglCreateContext( (HDC)GWindowDC_ );
-	BcAssertMsg( GWindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
-
-	// Do the context switch.
-	wglMakeCurrent( (HDC)GWindowDC_, (HGLRC)GWindowRC_ );
-
-	// Clear screen and flip.
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-	::SwapBuffers( (HDC)GWindowDC_ );
-
-
 	// Init GLee.
 	GLeeInit();
 
@@ -162,27 +109,31 @@ void RsCoreImplGL::open_threaded()
 	}
 #endif
 
-	// NOTE: GL renderer uses SDL in this implementation.
-	// TODO: Move into a higher level so this GL renderer
-	//       can be used on any other platform.
-	
-	// Setup default viewport.
-	glViewport( 0, 0, GResolutionWidth, GResolutionHeight );
-		
-	// Allocate a state block for rendering.
-	pStateBlock_ = new RsStateBlockGL();
-	
-	//
-	pStateBlock_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
-	pStateBlock_->bind();
+	// Make default context current and setup defaults.
+	RsContextGL* pContext = static_cast< RsContextGL* >( ContextMap_[ NULL ] );
+	if( pContext != NULL )
+	{
+		// Make current.
+		pContext->makeCurrent();
 
-	// Clear.
-	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+		// Setup default viewport.
+		glViewport( 0, 0, pContext->getWidth(), pContext->getHeight() );
+		
+		// Allocate a state block for rendering.
+		pStateBlock_ = new RsStateBlockGL();
 	
-	// Line smoothing.
-	glEnable( GL_LINE_SMOOTH );
-	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+		//
+		pStateBlock_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
+		pStateBlock_->bind();
+	
+		// Clear.
+		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+	
+		// Line smoothing.
+		glEnable( GL_LINE_SMOOTH );
+		glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,13 +182,67 @@ void RsCoreImplGL::close_threaded()
 {
 	// Free the state block.
 	delete pStateBlock_;
-	
-#if PLATFORM_WINDOWS
-	// Destroy rendering context.
-	wglMakeCurrent( (HDC)GWindowDC_, NULL );
-	wglDeleteContext( (HGLRC)GWindowRC_ );
-#endif
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getContext
+//virtual
+RsContext* RsCoreImplGL::getContext( OsClient* pClient )
+{
+	BcAssert( BcIsGameThread() );
+	TContextMapIterator It = ContextMap_.find( pClient );
+
+	if( It != ContextMap_.end() )
+	{
+		return It->second;
+	}
+	else
+	{
+		if( pClient != NULL )
+		{
+			RsContextGL* pResource = new RsContextGL( pClient );
+			createResource( pResource );
+
+			// If we have no default context, set it.
+			if( ContextMap_[ NULL ] == NULL )
+			{
+				ContextMap_[ NULL ] = pResource;
+			}
+
+			// Store mapped to client.
+			ContextMap_[ pClient ] = pResource;
+
+			return pResource;
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyContext
+//virtual
+void RsCoreImplGL::destroyContext( OsClient* pClient )
+{
+	BcAssert( BcIsGameThread() );
+	TContextMapIterator It = ContextMap_.find( pClient );
+
+	if( It != ContextMap_.end() )
+	{
+		// If we're destroying the default context, NULL it.
+		if( ContextMap_[ NULL ] == It->second )
+		{
+			ContextMap_[ NULL ] = NULL;
+		}
+		
+		// Destory resource.
+		destroyResource( It->second );
+
+		// Erase from context map.
+		ContextMap_.erase( It );
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // createTexture
@@ -325,18 +330,44 @@ RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsInd
 // destroyResource
 void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
+	BcAssert( BcIsGameThread() );
+
 	pResource->preDestroy();
-	
-	SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
+	// Make default context current.
+	RsContext* pContext = ContextMap_[ NULL ];
+	if( pContext != NULL )
+	{
+		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( static_cast< RsContextGL* >( pContext ) ) );
+		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	}
+
+	// Call destroy.	
+	{
+		SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
+		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	SysResource::UpdateDelegate Delegate( SysResource::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	BcAssert( BcIsGameThread() );
+
+	// Make default context current.
+	RsContext* pContext = ContextMap_[ NULL ];
+	if( pContext != NULL )
+	{
+		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( static_cast< RsContextGL* >( pContext ) ) );
+		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	}
+
+	// Call update.
+	{
+		SysResource::UpdateDelegate Delegate( SysResource::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
+		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -344,20 +375,35 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
-	SysResource::CreateDelegate Delegate( SysResource::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+
+	// Make default context current.
+	RsContext* pContext = ContextMap_[ NULL ];
+	if( pContext != NULL )
+	{
+		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( static_cast< RsContextGL* >( pContext ) ) );
+		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	}
+
+	// Call create.
+	{
+		SysResource::CreateDelegate Delegate( SysResource::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
+		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // allocateFrame
-RsFrame* RsCoreImplGL::allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height )
+RsFrame* RsCoreImplGL::allocateFrame( RsContext* pContext )
 {
 	BcAssert( BcIsGameThread() );
-	BcUnusedVar( DeviceHandle );
-	BcUnusedVar( Width );
-	BcUnusedVar( Height );
-	
-	return new RsFrameGL( NULL, GResolutionWidth, GResolutionHeight );
+	if( pContext != NULL )
+	{
+		return new RsFrameGL( pContext );
+	}
+	else
+	{
+		return new RsFrameGL( ContextMap_[ NULL ] );
+	}	
 }
 
 //////////////////////////////////////////////////////////////////////////

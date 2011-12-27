@@ -14,7 +14,8 @@
 #ifndef __RsFrameGL_H__
 #define __RsFrameGL_H__
 
-#include "Renderer/RsFrame.h"
+#include "RsFrame.h"
+#include "RsContextGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -28,12 +29,10 @@ class RsFrameGL:
 	public RsFrame
 {
 public:
-	RsFrameGL( BcHandle DeviceHandle, BcU32 Width, BcU32 Height, BcU32 NoofNodes = 8 * 1024, BcU32 NodeMem = 1024 * 1024 );
+	RsFrameGL( RsContext* pContext, BcU32 NoofNodes = 8 * 1024, BcU32 NodeMem = 1024 * 1024 );
 	virtual ~RsFrameGL();
 
-	BcHandle		deviceHandle() const;
-	BcU32			width() const;
-	BcU32			height() const;
+	RsContext*		getContext() const;
 	void			reset();
 	void			render();
 	void			setRenderTarget( RsRenderTarget* pRenderTarget );
@@ -60,9 +59,7 @@ private:
 	struct RsFrameRenderTarget;
 	struct RsFrameViewport;
 
-	BcHandle				DeviceHandle_;
-	BcU32					Width_;
-	BcU32					Height_;
+	RsContextGL*			pContext_;
 
 	RsRenderNode**			ppNodeArray_;
 	RsRenderNode**			ppNodeSortArray_;

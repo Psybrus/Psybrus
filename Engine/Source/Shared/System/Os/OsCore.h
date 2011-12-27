@@ -40,6 +40,16 @@ public:
 	 */
 	void unregisterClient( OsClient* pClient );
 
+	/**
+ 	 * Get number of clients.
+	 */
+	BcU32 getNoofClients() const;
+
+	/**
+	 * Get client.
+	 */
+	OsClient* getClient( BcU32 Index );
+
 private:
 	typedef std::vector< OsClient* > TClientList;
 	typedef TClientList::iterator TClientListIterator;

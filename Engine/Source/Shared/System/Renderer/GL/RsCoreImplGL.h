@@ -40,6 +40,9 @@ public:
 	void					close_threaded();
 	
 public:
+	virtual RsContext*		getContext( OsClient* pClient );
+	virtual void			destroyContext( OsClient* pClient );
+
 	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
 	virtual RsRenderTarget*	createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat );
 	virtual RsVertexBuffer*	createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL );
@@ -54,7 +57,7 @@ private:
 	void					createResource( RsResource* pResource );
 
 public:
-	RsFrame*				allocateFrame( BcHandle DeviceHandle, BcU32 Width, BcU32 Height );
+	RsFrame*				allocateFrame( RsContext* pContext );
 	void					queueFrame( RsFrame* pFrame );
 	void					queueFrame_threaded( RsFrameGL* pFrame );
 	RsStateBlock*			getStateBlock();
@@ -64,8 +67,12 @@ public:
 
 protected:
 	RsStateBlockGL*			pStateBlock_;
-
 	SysFence				RenderSyncFence_;
+
+	typedef std::map< OsClient*, RsContext* > TContextMap;
+	typedef TContextMap::iterator TContextMapIterator;
+
+	TContextMap				ContextMap_;
 		
 };
 
