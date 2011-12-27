@@ -13,6 +13,8 @@
 
 #include "CsFileReader.h"
 
+#include "SysKernel.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsFileReader::CsFileReader( const std::string& Name ):
@@ -59,12 +61,21 @@ const CsFileChunk* CsFileReader::getChunk( BcU32 Chunk, BcBool TriggerLoad )
 
 	if( TriggerLoad == BcTrue )
 	{
+		BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + sizeof( CsFileChunk ) * Header_.NoofChunks_;
+		BcU8* pData = pData_ + ( pChunk->Offset_ - TotalHeaderSize );
+
+		// Bind the file op delegate.
+		FsFileOpDelegate FileOpDelegate = FsFileOpDelegate::bind< CsFileReader, &CsFileReader::onDataLoaded >( this );
+
 		// Check if not loaded, and load if need be.
 		if( pChunkProps->Status_.compareExchange( CsFileChunkProps::STATUS_LOADING, CsFileChunkProps::STATUS_NOT_LOADED ) == CsFileChunkProps::STATUS_NOT_LOADED )
 		{
-			BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + sizeof( CsFileChunk ) * Header_.NoofChunks_;
-			BcU8* pData = pData_ + ( pChunk->Offset_ - TotalHeaderSize );
-			File_.readAsync( pChunk->Offset_, pData, pChunk->Size_, FsFileOpDelegate::bind< CsFileReader, &CsFileReader::onDataLoaded >( this ) );
+			File_.readAsync( pChunk->Offset_, pData, pChunk->Size_, FileOpDelegate );
+		}
+		else
+		{
+			// Dispatch the callback to be performed after this call.
+			SysKernel::pImpl()->enqueueCallback( FileOpDelegate, pData, pChunk->Size_ );
 		}
 	}
 	

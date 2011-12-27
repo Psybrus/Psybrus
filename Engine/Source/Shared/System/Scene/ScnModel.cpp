@@ -344,6 +344,13 @@ void ScnModel::fileReady()
 // fileChunkReady
 void ScnModel::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
+	// If we have no render core get chunk 0 so we keep getting entered into.
+	if( RsCore::pImpl() == NULL )
+	{
+		getChunk( 0 );
+		return;
+	}
+
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
