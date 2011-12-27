@@ -23,6 +23,14 @@ CsDependancy::CsDependancy( const BcPath& FileName )
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
+CsDependancy::CsDependancy( const BcPath& FileName, const FsStats& Stats )
+{
+	FileName_ = FileName;
+	Stats_ = Stats;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 CsDependancy::CsDependancy( const CsDependancy& Other )
 {
 	FileName_ = Other.FileName_;
@@ -41,6 +49,13 @@ CsDependancy::~CsDependancy()
 const BcPath& CsDependancy::getFileName() const
 {
 	return FileName_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getStats
+const FsStats& CsDependancy::getStats() const
+{
+	return Stats_;
 }
 
 //////////////////////////////////////////////////////////////////////////

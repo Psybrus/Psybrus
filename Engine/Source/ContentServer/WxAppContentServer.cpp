@@ -25,14 +25,14 @@ eEvtReturn OnPreCsUpdate( EvtID, const SysSystemEvent& )
 	std::list< BcPath > OutputFiles;
 	
 	// Search game content & engine content paths.
-	FsCore::pImpl()->findFiles( "./GameContent", BcTrue, BcFalse, OutputFiles );
 	FsCore::pImpl()->findFiles( "./EngineContent", BcTrue, BcFalse, OutputFiles );
+	FsCore::pImpl()->findFiles( "./GameContent", BcTrue, BcFalse, OutputFiles );
 
 	// Import all files that were found.
 	for( std::list< BcPath >::iterator It( OutputFiles.begin() ); It != OutputFiles.end(); ++It )
 	{
 		const BcPath& Path = (*It);
-		const BcChar* pExtension = Path.getExtension();
+		const BcName Extension = Path.getExtension();
 
 		// Attempt to import resource.
 		CsCore::pImpl()->importResource( *Path );

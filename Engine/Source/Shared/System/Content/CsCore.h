@@ -115,7 +115,7 @@ public:
 	 */
 	template< typename _Ty >
 	BcBool								importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList );
-
+	
 	/**
 	 * Get resource property table.
 	 * @param Type of resource.
@@ -135,9 +135,17 @@ public:
 	BcPath								findImportPath( const BcPath& InputPath );
 	
 private:
-	BcBool								internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
+	BcBool								internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								parseJsonFile( const BcChar* pFileName, Json::Value& Root );
+
+	BcBool								shouldImportResource( const BcPath& FileName );
+
+	void								saveDependancies( const BcPath& FileName );
+	void								loadDependancies( const BcPath& FileName );
+
+	Json::Value							saveDependancy( const CsDependancy& Dependancy );
+	CsDependancy						loadDependancy( const Json::Value& Object );
 
 	eEvtReturn							eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event );
 	FsEventMonitor::Delegate			DelegateOnFileModified_;

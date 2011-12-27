@@ -64,8 +64,22 @@ const BcChar* BcPath::operator * () const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFileName
+const BcChar* BcPath::getFileName() const
+{
+	std::string::size_type PathPosition = InternalValue_.rfind( Seperator );
+
+	if( PathPosition != std::string::npos )
+	{
+		return &InternalValue_[ PathPosition + 1 ];
+	}
+
+	return InternalValue_.c_str();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getExtension
-const BcChar* BcPath::getExtension() const
+BcName BcPath::getExtension() const
 {
 	std::string::size_type ExtensionPosition = InternalValue_.rfind( "." );
 
@@ -81,6 +95,37 @@ const BcChar* BcPath::getExtension() const
 	}
 
 	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFileNameNoExtension
+BcName BcPath::getFileNameNoExtension() const
+{
+	std::string::size_type PathPosition = InternalValue_.rfind( Seperator );
+	std::string::size_type ExtensionPosition = InternalValue_.rfind( "." );
+
+	if( ExtensionPosition != std::string::npos )
+	{
+		if( PathPosition != std::string::npos )
+		{
+			std::string FileNameNoExtension = InternalValue_.substr( PathPosition + 1, ExtensionPosition - ( PathPosition + 1 ) );
+			return FileNameNoExtension;
+		}
+		else
+		{
+			std::string FileNameNoExtension = InternalValue_.substr( 0, ExtensionPosition );
+			return FileNameNoExtension;
+		}
+	}
+
+	return InternalValue_.c_str();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// append
+void BcPath::append( const BcPath& PathA )
+{
+	InternalValue_ += PathA.InternalValue_;
 }
 
 //////////////////////////////////////////////////////////////////////////

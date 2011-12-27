@@ -16,6 +16,13 @@
 #include "CsFileReader.h"
 #include "CsFileWriter.h"
 
+#ifdef PSY_SERVER
+#define BUFFERSIZE ( 64 * 1024 )
+#include <b64/encode.h>
+#include <b64/decode.h>
+#undef BUFFERSIZE
+#endif
+
 SYS_CREATOR( CsCore );
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,37 +121,8 @@ BcBool CsCore::isValidResource( const BcPath& FileName ) const
 // importResource
 void CsCore::importResource( const BcPath& FileName )
 {
-	BcBool Import = BcFalse;
+	BcBool Import = shouldImportResource( FileName );
 
-	// Only attempt import if the resource filename is valid.
-	if( isValidResource( FileName ) )
-	{
-		// Grab dependancy list for file so we don't do more work than required.
-		if( DependancyMap_.find( *FileName ) != DependancyMap_.end() )
-		{
-			CsDependancyList& DependancyList = DependancyMap_[ *FileName ];
-	
-			for( CsDependancyListIterator It( DependancyList.begin() ); It != DependancyList.end(); ++It )
-			{
-				if( (*It).hasChanged() == BcTrue )
-				{
-					// Update dependancy stats.
-					(*It).updateStats();
-	
-					// Set import to true.
-					Import = BcTrue;
-	
-					// NOTE: Don't break, update all dependancy stats!
-				}
-			}
-		}
-		else
-		{
-			// No dependancy list, do the import.
-			Import = BcTrue;
-		}
-	}
-	
 	// Only import if dependancies have changed, or there are none.
 	if( Import == BcTrue )
 	{
@@ -197,9 +175,15 @@ BcPath CsCore::findImportPath( const BcPath& InputPath )
 
 //////////////////////////////////////////////////////////////////////////
 // internalImportResource
-BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
+BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
+	// Only import if we should. Otherwise just request.
+	if( shouldImportResource( FileName ) == BcFalse )
+	{
+		return internalRequestResource( FileName.getFileNameNoExtension(), FileName.getExtension(), Handle );
+	}
 	
 	// Parse Json file.
 	Json::Value Object;
@@ -211,16 +195,15 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 		{
 			CsDependancyList DependancyList;
 			Success = internalImportObject( Object, Handle, &DependancyList );
-
+			
 			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
 			{
 				// Add file for monitoring.
-				// TODO: Remove old files.
 				FsCore::pImpl()->addFileMonitor( *((*Iter).getFileName()) );
 			}
 			
 			// Store dependancy list in map for reimporting on file modification.
-			DependancyMap_[ FileName ] = DependancyList;
+			DependancyMap_[ *FileName ] = DependancyList;
 		}
 		else
 		{
@@ -228,8 +211,15 @@ BcBool CsCore::internalImportResource( const std::string& FileName, CsResourceRe
 		}
 
 		// Add to import map (doesn't matter if reference is bad, it's just for debugging)
-		ResourceImportMap_[ FileName ] = Handle;
-		
+		ResourceImportMap_[ *FileName ] = Handle;
+
+		// If we've successfully imported, save dependancies.
+		if( Success == BcTrue )
+		{
+			saveDependancies( FileName );
+		}
+
+		// Return success.
 		return Success;
 	}
 
@@ -369,6 +359,181 @@ BcBool CsCore::parseJsonFile( const BcChar* pFileName, Json::Value& Root )
 	}
 	
 	return Success;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shouldImportResource
+BcBool CsCore::shouldImportResource( const BcPath& FileName )
+{
+	BcBool Import = BcFalse;
+
+	// Only attempt import if the resource filename is valid.
+	if( isValidResource( FileName ) )
+	{
+		// Check if the packed resource exists.
+		BcPath PackedPath( "./PackedContent" );
+		PackedPath.join( FileName.getFileName() );
+		if( FsCore::pImpl()->fileExists( *PackedPath ) == BcFalse )
+		{
+			Import = BcTrue;
+		}
+
+		// Only do a dependancy check if we have a packed file.
+		// Dependancies will be regenerated on import.
+		if( Import == BcFalse )
+		{
+			// Load dependancies if we don't have any resident in memory.
+			if( DependancyMap_.find( *FileName ) == DependancyMap_.end() )
+			{
+				loadDependancies( FileName );
+			}
+	
+			// Grab dependancy list for file so we don't do more work than required.
+			if( DependancyMap_.find( *FileName ) != DependancyMap_.end() )
+			{
+				CsDependancyList& DependancyList = DependancyMap_[ *FileName ];
+		
+				for( CsDependancyListIterator It( DependancyList.begin() ); It != DependancyList.end(); ++It )
+				{
+					if( (*It).hasChanged() == BcTrue )
+					{
+						// Update dependancy stats.
+						(*It).updateStats();
+		
+						// Set import to true.
+						Import = BcTrue;
+					}
+				}
+			}
+			else
+			{
+				// No dependancy list, do the import.
+				Import = BcTrue;
+			}
+		}
+	}
+
+	return Import;	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// saveDependancy
+void CsCore::saveDependancies( const BcPath& FileName )
+{
+	BcPath DependanciesFileName( FileName );
+	
+	// Append new extension.
+	DependanciesFileName.append( ".dep" );
+	
+	// 
+	Json::Value Object( Json::arrayValue );
+
+	if( DependancyMap_.find( *FileName ) != DependancyMap_.end() )
+	{
+		CsDependancyList& DependancyList = DependancyMap_[ *FileName ];
+	
+		for( CsDependancyListIterator It( DependancyList.begin() ); It != DependancyList.end(); ++It )
+		{
+			Object.append( saveDependancy( (*It) ) );
+		}
+	}
+
+	// Output using styled writer.
+	Json::StyledWriter Writer;
+	std::string JsonOutput = Writer.write( Object );
+
+	BcFile OutFile;
+	if( OutFile.open( *DependanciesFileName, bcFM_WRITE ) )
+	{
+		OutFile.write( JsonOutput.c_str(), JsonOutput.size() );
+		OutFile.close();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// loadDependancies
+void CsCore::loadDependancies( const BcPath& FileName )
+{
+	BcPath DependanciesFileName( FileName );
+	
+	// Append new extension.
+	DependanciesFileName.append( ".dep" );
+
+	// Overwrite old dependancy list.
+	DependancyMap_[ *FileName ] = CsDependancyList();
+
+
+	// Open dependancy file.
+	BcFile OutFile;
+	if( OutFile.open( *DependanciesFileName, bcFM_READ ) )
+	{
+		BcU32 BufferSize = OutFile.size() + 1;
+		BcChar* pJsonData = new BcChar[ BufferSize ];
+		BcMemZero( pJsonData, BufferSize );
+		OutFile.read( pJsonData, OutFile.size() );
+
+		Json::Value Root;
+		Json::Reader JsonReader;
+		if( JsonReader.parse( pJsonData, pJsonData + OutFile.size(), Root ) )
+		{
+			// Create a new dependancy list.
+			CsDependancyList DependancyList;
+
+			// Iterate over all dependancies for file and parse.
+			for( Json::Value::iterator It( Root.begin() ); It != Root.end(); ++It )
+			{
+				const Json::Value& Value = (*It);
+				CsDependancy Dependancy = loadDependancy( Value );
+				DependancyList.push_back( Dependancy );
+			}
+
+			// Assign.
+			DependancyMap_[ *FileName ] = DependancyList;
+		}
+
+		OutFile.close();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// saveDependancy
+Json::Value CsCore::saveDependancy( const CsDependancy& Dependancy )
+{
+	// 
+	Json::Value Object( Json::objectValue );
+
+	Object[ "filename" ] = *Dependancy.getFileName();
+
+	// Encode stats as binary.
+	// NOTE: Endianess isn't taken into account.
+	BcU32 BufferSize = sizeof( FsStats ) * 2;
+	BcChar* pStatsBuffer = new BcChar[ BufferSize ];
+	base64::base64_encodestate EncodeState;
+	BcMemZero( pStatsBuffer, BufferSize );
+	BcMemZero( &EncodeState, sizeof( EncodeState ) );
+	base64::base64_encode_block( reinterpret_cast< const char* >( &Dependancy.getStats() ), sizeof( FsStats ), reinterpret_cast< char* >( pStatsBuffer ), &EncodeState );
+	Object[ "stats" ] = pStatsBuffer;
+	delete [] pStatsBuffer;
+
+	return Object;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// loadDependancy
+CsDependancy CsCore::loadDependancy( const Json::Value& Object )
+{
+	// Grab props..
+	BcPath FileName( Object[ "filename" ].asCString() );
+	std::string StatsB64( Object[ "stats" ].asString() );
+
+	// Encode stats as binary.
+	// NOTE: Endianess isn't taken into account.
+	FsStats Stats;
+	base64::base64_decodestate DecodeState;
+	BcMemZero( &DecodeState, sizeof( DecodeState ) );
+	base64::base64_decode_block( reinterpret_cast< const char* >( StatsB64.c_str() ), StatsB64.size(), reinterpret_cast< char* >( &Stats ), &DecodeState );
+
+	return CsDependancy( FileName, Stats );
 }
 
 //////////////////////////////////////////////////////////////////////////
