@@ -70,14 +70,15 @@ WxViewPanel::WxViewPanel( wxWindow* pParent ):
 	wxPanel( pParent, wxID_ANY, wxDefaultPosition, wxSize( 32, 32 ), wxTAB_TRAVERSAL )
 {
 #if PLATFORM_WINDOWS
-	// Setup handle.
-	/*
-	extern BcHandle GWindowDC_;
-	GWindowDC_ = (BcHandle)::GetDC( (HWND)GetHandle() );
-	*/
+	// Start renderer if we haven't got one.
+	if( RsCore::pImpl() == NULL )
+	{
+		// Start renderer.
+		SysKernel::pImpl()->startSystem( "RsCore" );
 
-	// Start renderer.
-	SysKernel::pImpl()->startSystem( "RsCore" );
+		// Create a rendering context for this view.
+		pContext_ = RsCore::pImpl()->getContext( this );
+	}
 #endif
 }
 
@@ -86,8 +87,31 @@ WxViewPanel::WxViewPanel( wxWindow* pParent ):
 //virtual
 WxViewPanel::~WxViewPanel()
 {
-	// Stop renderer.
-	RsCore::pImpl()->stop();
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// OnSize
+//virtual
+BcHandle WxViewPanel::getDeviceHandle()
+{
+	return (BcHandle)::GetDC( (HWND)GetHandle() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// OnSize
+//virtual
+BcU32 WxViewPanel::getWidth() const
+{
+	return Width_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// OnSize
+//virtual
+BcU32 WxViewPanel::getHeight() const
+{
+	return Height_;
 }
 
 //////////////////////////////////////////////////////////////////////////

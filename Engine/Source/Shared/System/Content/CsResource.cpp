@@ -146,7 +146,11 @@ const BcName& CsResource::getName() const
 // getChunk
 void CsResource::getChunk( BcU32 Chunk, BcBool TriggerLoad )
 {
-	acquire(); // Prevent object being released until callback.b
+	if( TriggerLoad == BcTrue )
+	{
+		acquire(); // Prevent object being released until callback.
+	}
+
 	pFile_->getChunk( Chunk, TriggerLoad );
 }
 

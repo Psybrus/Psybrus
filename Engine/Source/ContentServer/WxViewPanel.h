@@ -20,11 +20,17 @@
 
 //////////////////////////////////////////////////////////////////////////
 // WxViewPanel
-class WxViewPanel: public wxPanel
+class WxViewPanel:
+	public wxPanel,
+	public OsClient
 {
 public:
 	WxViewPanel( wxWindow* pParent );
 	virtual ~WxViewPanel();
+
+	virtual BcHandle getDeviceHandle();
+	virtual BcU32 getWidth() const;
+	virtual BcU32 getHeight() const;
 
 private:
 	void						OnSize( wxSizeEvent& Event );
@@ -45,6 +51,8 @@ private:
 
 	wxPaintEvent				PaintEvent_;
 	BcBool						PaintDirty_;
+
+	RsContext*					pContext_;
 };
 
 #endif

@@ -184,30 +184,25 @@ BcU32 ScnTexture::noofRects()
 // setup
 void ScnTexture::setup()
 {
-	// If we have a texture already, then we 
-	// We've got a body chunk, so create internal resource.
-	if( RsCore::pImpl() )
+	if( CreateNewTexture_ == BcTrue )
 	{
-		if( CreateNewTexture_ == BcTrue )
+		// Destroy the old texture.
+		if( pTexture_ != NULL )
 		{
-			// Destroy the old texture.
-			if( pTexture_ != NULL )
-			{
-				RsCore::pImpl()->destroyResource( pTexture_ );
-			}
-			
-			// Create new one immediately.
-			pTexture_ = RsCore::pImpl()->createTexture( pHeader_->Width_,
-													    pHeader_->Height_,
-													    pHeader_->Levels_,
-													    pHeader_->Format_,
-													    pTextureData_ );
-			CreateNewTexture_ = BcFalse;
+			RsCore::pImpl()->destroyResource( pTexture_ );
 		}
-		else
-		{
-			RsCore::pImpl()->updateResource( pTexture_ );
-		}
+		
+		// Create new one immediately.
+		pTexture_ = RsCore::pImpl()->createTexture( pHeader_->Width_,
+												    pHeader_->Height_,
+												    pHeader_->Levels_,
+												    pHeader_->Format_,
+												    pTextureData_ );
+		CreateNewTexture_ = BcFalse;
+	}
+	else
+	{
+		RsCore::pImpl()->updateResource( pTexture_ );
 	}
 }
 
@@ -223,6 +218,13 @@ void ScnTexture::fileReady()
 // fileChunkReady
 void ScnTexture::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
+	// If we have no render core get chunk 0 so we keep getting entered into.
+	if( RsCore::pImpl() == NULL )
+	{
+		getChunk( 0 );
+		return;
+	}
+
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		// Grab pointer to header.

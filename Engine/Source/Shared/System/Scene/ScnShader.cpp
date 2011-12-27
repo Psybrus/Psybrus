@@ -270,12 +270,18 @@ void ScnShader::fileReady()
 // fileChunkReady
 void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
+	// If we have no render core get chunk 0 so we keep getting entered into.
+	if( RsCore::pImpl() == NULL )
+	{
+		getChunk( 0 );
+		return;
+	}
+
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
-	
+
 		// Grab the rest of the chunks.
-	
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofVertexShaderPermutations_; ++Idx )
 		{
 			getChunk( ++ChunkIdx );
@@ -297,13 +303,10 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 		void* pShaderData = pShaderHeader + 1;
 		BcU32 ShaderSize = pChunk->Size_ - sizeof( TShaderHeader );
 		
-		if( RsCore::pImpl() != NULL )
-		{
-			RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
+		RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
 		
-			// TODO: Lockless list/map.
-			VertexShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
-		}
+		// TODO: Lockless list/map.
+		VertexShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
 	else if( pChunk->ID_ == BcHash( "fragment" ) )
 	{
@@ -311,13 +314,10 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 		void* pShaderData = pShaderHeader + 1;
 		BcU32 ShaderSize = pChunk->Size_ - sizeof( TShaderHeader );
 			
-		if( RsCore::pImpl() != NULL )
-		{
-			RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
+		RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
 			
-			// TODO: Lockless list/map.
-			FragmentShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
-		}
+		// TODO: Lockless list/map.
+		FragmentShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
 	else if( pChunk->ID_ == BcHash( "program" ) )
 	{
@@ -328,15 +328,12 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 		{
 			TProgramHeader* pProgramHeader = &pProgramHeaders[ Idx ];
 			
-			if( RsCore::pImpl() != NULL )
-			{
-				// Check vertex & fragment shader for closest permutation.
-				RsShader* pVertexShader = getShader( pProgramHeader->VertexShaderPermutationFlags_, VertexShaderMap_ );
-				RsShader* pFragmentShader = getShader( pProgramHeader->FragmentShaderPermutationFlags_, FragmentShaderMap_ );
-				RsProgram* pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );			
+			// Check vertex & fragment shader for closest permutation.
+			RsShader* pVertexShader = getShader( pProgramHeader->VertexShaderPermutationFlags_, VertexShaderMap_ );
+			RsShader* pFragmentShader = getShader( pProgramHeader->FragmentShaderPermutationFlags_, FragmentShaderMap_ );
+			RsProgram* pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );			
 			
-				ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
-			}
+			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
 		}
 	}
 }
