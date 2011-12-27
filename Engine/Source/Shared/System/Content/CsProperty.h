@@ -88,7 +88,7 @@ public:
 	/**
 	 * Construct a field.
 	 */
-	CsPropertyField( BcU32 CatagoryIdx, const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType );
+	CsPropertyField( BcU32 CatagoryIdx, const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType, const std::string& AdditionalInfo = "" );
 	
 	/**
 	 * Copy constructor.
@@ -119,12 +119,19 @@ public:
 	 * Get container type.
 	 */
 	CsPropertyContainerType		getContainerType() const;
+
+	/**
+	 * Get additional info.
+	 */
+	const std::string&			getAdditionalInfo() const;
+
 	
 private:
 	BcU32						CatagoryIdx_;		// Catagory of property.
 	std::string					Name_;				// Name of property.
 	CsPropertyValueType			ValueType_;			// Value type.
-	CsPropertyContainerType		ContainerType_;		// Container type.			
+	CsPropertyContainerType		ContainerType_;		// Container type.	
+	std::string					AdditionalInfo_;			// Additional info.
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,7 +162,7 @@ public:
 	/**
 	 * Field.
 	 */
-	CsPropertyTable& field( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType );
+	CsPropertyTable& field( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType, const std::string& AdditionalInfo = "" );
 	
 	/**
 	 * Get number of catagories.

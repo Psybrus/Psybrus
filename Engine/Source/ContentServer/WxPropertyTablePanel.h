@@ -28,7 +28,7 @@ public:
 	WxPropertyTablePanel( wxWindow* pParent );
 	virtual ~WxPropertyTablePanel();
 	
-	
+	void setupPropertyTable( wxPGProperty* pParent, const CsPropertyTable& PropertyTable );
 	
 private:
 	wxPropertyGrid*					pPropertyGrid_;

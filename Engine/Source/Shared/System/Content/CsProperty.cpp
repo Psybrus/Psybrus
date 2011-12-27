@@ -70,11 +70,12 @@ CsPropertyField::CsPropertyField():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPropertyField::CsPropertyField( BcU32 CatagoryIdx, const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType ):
+CsPropertyField::CsPropertyField( BcU32 CatagoryIdx, const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType, const std::string& AdditionalInfo ):
 	CatagoryIdx_( CatagoryIdx ),
 	Name_( Name ),
 	ValueType_( ValueType ),
-	ContainerType_( ContainerType )
+	ContainerType_( ContainerType ),
+	AdditionalInfo_( AdditionalInfo )
 {
 	
 }
@@ -85,7 +86,8 @@ CsPropertyField::CsPropertyField( const CsPropertyField& Other ):
 	CatagoryIdx_( Other.CatagoryIdx_ ),
 	Name_( Other.Name_ ),
 	ValueType_( Other.ValueType_ ),
-	ContainerType_( Other.ContainerType_ )
+	ContainerType_( Other.ContainerType_ ),
+	AdditionalInfo_( Other.AdditionalInfo_ )
 {
 	
 }
@@ -124,6 +126,15 @@ CsPropertyContainerType CsPropertyField::getContainerType() const
 {
 	return ContainerType_;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// getAdditionalInfo
+const std::string& CsPropertyField::getAdditionalInfo() const
+{
+	return AdditionalInfo_;
+}
+	
 
 //////////////////////////////////////////////////////////////////////////
 // CsPropertyTable
@@ -165,7 +176,7 @@ CsPropertyTable& CsPropertyTable::endCatagory()
 
 //////////////////////////////////////////////////////////////////////////
 // field
-CsPropertyTable& CsPropertyTable::field( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType )
+CsPropertyTable& CsPropertyTable::field( const std::string& Name, CsPropertyValueType ValueType, CsPropertyContainerType ContainerType, const std::string& AdditionalInfo )
 {
 	BcAssertMsg( BeganCatagory_ == BcTrue, "CsPropertyTable: Did you forget to call beginCatagory?" );
 	BcAssertMsg( CatagoryList_.size() > 0, "CsPropertyTable: No catagories." );
@@ -185,7 +196,7 @@ CsPropertyTable& CsPropertyTable::field( const std::string& Name, CsPropertyValu
 	}
 	
 	// Add to list!
-	FieldList_.push_back( CsPropertyField( ( CatagoryList_.size() - 1 ), Name, ValueType, ContainerType ) );
+	FieldList_.push_back( CsPropertyField( ( CatagoryList_.size() - 1 ), Name, ValueType, ContainerType, AdditionalInfo ) );
 
 	return (*this);
 }
