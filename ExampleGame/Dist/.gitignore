@@ -18,3 +18,7 @@
 /ExampleGame_Production.exp
 /ExampleGame_Production.lib
 /ExampleGame_Production.pdb
+/ContentServer_Release.exe
+/ContentServer_Release.exp
+/ContentServer_Release.lib
+/ContentServer_Release.pdb

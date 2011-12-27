@@ -183,22 +183,32 @@ void GaTopState::preMain()
 // main
 eSysStateReturn GaTopState::main()
 {
-	// Allocate a frame to render using default context.
-	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( NULL );
-
-	// Render all registered states.
-	for( TStateList::iterator Iter( StateList_.begin() ); Iter != StateList_.end(); ++Iter )
+	// Render to all clients.
+	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
-		GaBaseGameState* pState = (*Iter);
+		// Grab client.
+		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
 
-		if( pState->internalStage() == sysBS_MAIN )
+		// Get context.
+		RsContext* pContext = RsCore::pImpl()->getContext( pClient );
+
+		// Allocate a frame to render using default context.
+		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+
+		// Render all registered states.
+		for( TStateList::iterator Iter( StateList_.begin() ); Iter != StateList_.end(); ++Iter )
 		{
-			pState->render( pFrame );
-		}
-	}
+			GaBaseGameState* pState = (*Iter);
 	
-	// Queue frame for render.
-	RsCore::pImpl()->queueFrame( pFrame );
+			if( pState->internalStage() == sysBS_MAIN )
+			{
+				pState->render( pFrame );
+			}
+		}
+		
+		// Queue frame for render.
+		RsCore::pImpl()->queueFrame( pFrame );
+	}
 
 	return sysSR_CONTINUE;
 }

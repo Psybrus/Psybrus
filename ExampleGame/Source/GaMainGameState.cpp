@@ -29,7 +29,7 @@ static BcU32 Level = 0;
 // Ctor
 GaMainGameState::GaMainGameState()
 {
-	
+	pContext_ = NULL;	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,9 @@ void GaMainGameState::enterOnce()
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BAR, Material );
 	Material->createInstance( "barmaterialinstance", BarMaterialInstance_, BcErrorCode );
+
+	// Get default render context.
+	pContext_ = RsCore::pImpl()->getContext( NULL );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +190,8 @@ void GaMainGameState::leaveOnce()
 //virtual
 void GaMainGameState::render( RsFrame* pFrame )
 {
-	RsViewport Viewport( 0, 0, GResolutionWidth, GResolutionHeight );
+	
+	RsViewport Viewport( 0, 0, pFrame->getContext()->getWidth(), pFrame->getContext()->getHeight() );
 
 	// Setup frame.
 	pFrame->setRenderTarget( NULL );
@@ -197,7 +201,7 @@ void GaMainGameState::render( RsFrame* pFrame )
 	Canvas_->clear();
 
 	// Render background.
-	Projection_.perspProjection( BcPIDIV4, (BcReal)GResolutionWidth / (BcReal)GResolutionHeight, 1.0f, 1024.0f );
+	Projection_.perspProjection( BcPIDIV4, (BcReal)pFrame->getContext()->getWidth() / (BcReal)pFrame->getContext()->getHeight(), 1.0f, 1024.0f );
 	WorldView_.lookAt( BcVec3d( 0.0f, 350.0f, 270.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 1.0f ) );
 
 	if( SsCore::pImpl() != NULL )
@@ -256,10 +260,13 @@ void GaMainGameState::setMaterialInstanceParams( ScnMaterialInstanceRef Material
 // getWorldPosition
 void GaMainGameState::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far )
 {
-	RsViewport Viewport( 0, 0, GResolutionWidth, GResolutionHeight );
-	Viewport.projection( Projection_ );
-	Viewport.view( WorldView_ );
-	Viewport.unProject( ScreenPosition, Near, Far );
+	if( pContext_ != NULL )
+	{
+		RsViewport Viewport( 0, 0, pContext_->getWidth(), pContext_->getHeight() );
+		Viewport.projection( Projection_ );
+		Viewport.view( WorldView_ );
+		Viewport.unProject( ScreenPosition, Near, Far );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
