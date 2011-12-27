@@ -17,6 +17,7 @@
 #include "FsTypes.h"
 #include "FsEvents.h"
 #include "BcGlobal.h"
+#include "BcPath.h"
 #include "SysSystem.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,6 +127,11 @@ public:
 	 * Get file stats.
 	 */
 	virtual BcBool fileStats( const BcChar* pFilename, FsStats& Stats ) = 0;
+
+	/**
+	 * Find files.
+	 */
+	virtual void findFiles( BcPath StartPath, BcBool Recursive, BcBool AddThisPath, std::list< BcPath >& OutputPaths ) = 0;
 	
 	/**
 	 *	Add a read operation.

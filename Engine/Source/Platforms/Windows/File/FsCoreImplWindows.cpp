@@ -50,7 +50,7 @@ void FsCoreImplWindows::open()
 	// Set the resource path.
 	// NOTE: May need this again sometime, going to keep code here for ref.
 	//[[NSFileManager defaultManager] changeCurrentDirectoryPath:@"/Users/neilo/Documents/Dev/Psybrus/Examples/TestBed"];
-
+	
 	// Setup file monitor iterator.
 	FileMonitorMapIterator_ = FileMonitorMap_.begin();
 }
@@ -154,6 +154,83 @@ BcBool FsCoreImplWindows::fileStats( const BcChar* pFilename, FsStats& Stats )
 		::close( Descriptor );
 		return BcTrue;
 	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findFiles
+void FsCoreImplWindows::findFiles( BcPath Path, BcBool Recursive, BcBool AddFolders, std::list< BcPath >& OutputPaths )
+{
+	WIN32_FIND_DATA FileData;
+	HANDLE SearchHandle = NULL;
+
+	// If we want to add folders, do so.
+	if( AddFolders == BcTrue )
+	{
+		BcPath NewPath( Path );
+		NewPath.join( "/" );
+		OutputPaths.push_back( NewPath );
+	}
+
+	//
+	while( getFiles( SearchHandle, FileData, Path ) )
+	{
+		// Ignore hidden files
+		if( ( FileData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN ) == 0 )
+		{
+			BcBool IsFolder = ( FileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) ? BcTrue : BcFalse;
+
+			BcPath NewPath( Path );
+			NewPath.join( BcPath( &FileData.cFileName[ 0 ] ) );
+
+			// Add to list if it's a file.
+			if( IsFolder == BcFalse )
+			{
+				OutputPaths.push_back( NewPath );
+			}
+
+			// Recurse folder
+			if ( IsFolder == BcTrue && Recursive == BcTrue )
+			{
+				findFiles( NewPath, BcTrue, AddFolders, OutputPaths );
+			}
+		}
+	}    
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFiles
+BcBool FsCoreImplWindows::getFiles( HANDLE& SearchHandle, WIN32_FIND_DATA& FileData, BcPath Path )
+{
+	BcBool bValid = BcFalse;
+
+	if ( SearchHandle == NULL )
+	{
+		BcPath NewPath( Path );
+		NewPath.join( "*.*" );
+		SearchHandle = ::FindFirstFile( *NewPath, &FileData );
+		bValid = ( SearchHandle == INVALID_HANDLE_VALUE ) ? BcFalse : BcTrue;
+	}
+	else
+	{
+		bValid = ::FindNextFile( SearchHandle, &FileData );
+	}
+
+	// Loop for em
+	while( bValid )
+	{	
+		if ( strcmpi( FileData.cFileName, "." ) != 0 &&
+		     strcmpi( FileData.cFileName, ".." ) != 0 )
+		{
+			return BcTrue;
+		}
+		
+		bValid = ::FindNextFile( SearchHandle, &FileData );
+	}
+
+	::FindClose( SearchHandle );
+	SearchHandle = NULL;
+
 	return BcFalse;
 }
 

@@ -42,6 +42,7 @@ public:
 	virtual void closeFile( FsFileImpl* pFileImpl );
 	virtual BcBool fileExists( const BcChar* pFilename );
 	virtual BcBool fileStats( const BcChar* pFilename, FsStats& Stats );
+	virtual void findFiles( BcPath StartPath, BcBool Recursive, BcBool AddFolders, std::list< BcPath >& OutputPaths );
 	
 	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
 	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
@@ -51,6 +52,10 @@ public:
 
 	void updateFileMonitoring();
 	
+private:
+	BcBool getFiles( HANDLE& SearchHandle, WIN32_FIND_DATA& FileData, BcPath Path );
+
+
 private:
 	// File monitoring.
 	typedef std::map< std::string, FsStats > TFileMonitorMap;
