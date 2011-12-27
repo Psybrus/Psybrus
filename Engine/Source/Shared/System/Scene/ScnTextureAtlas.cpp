@@ -32,6 +32,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 		BcU32 Spread = ( SpreadValue.type() != Json::nullValue ) ? SpreadValue.asUInt() : 0;
 		BcU32 SpreadDouble = Spread * 2;
 		BcBool AlphaFromIntensity = ( AlphaFromIntensityValue.type() != Json::nullValue ) ? AlphaFromIntensityValue.asBool() : BcFalse;
+
 		// Load all source images.
 		ImgImageList ImageList;
 		
@@ -40,7 +41,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			std::string FileName = Source[ Idx ].asString();  
 
 			// Add as dependancy.
-			DependancyList.push_back( FileName );
+			DependancyList.push_back( CsDependancy( FileName ) );
 
 			// Load image.
 			ImgImage* pImage = Img::load( FileName.c_str() );

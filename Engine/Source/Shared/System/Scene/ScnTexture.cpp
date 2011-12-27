@@ -26,7 +26,7 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 	const std::string& FileName = Object[ "source" ].asString();
 
 	// Add root dependancy.
-	DependancyList.push_back( FileName );
+	DependancyList.push_back( CsDependancy( FileName ) );
 
 	// Load texture from file and create the data for export.
 	ImgImage* pImage = Img::load( FileName.c_str() );

@@ -58,7 +58,7 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 			if( File.open( VertexShader.asCString(), bcFM_READ ) )
 			{	
 				// Add dependancy.
-				DependancyList.push_back( VertexShader.asString() );
+				DependancyList.push_back( CsDependancy( VertexShader.asString() ) );
 
 				// Read in whole shader.
 				BcU32 ShaderSize = File.size();
@@ -82,7 +82,7 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 			if( File.open( FragmentShader.asCString(), bcFM_READ ) )
 			{
 				// Add dependancy.
-				DependancyList.push_back( FragmentShader.asString() );
+				DependancyList.push_back( CsDependancy( FragmentShader.asString() ) );
 
 				// Read in whole shader.
 				BcU32 ShaderSize = File.size();

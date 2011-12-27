@@ -32,7 +32,7 @@ BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& Dependancy
 	const std::string& FileName = Object[ "source" ].asString();
 	
 	// Add root dependancy.
-	DependancyList.push_back( FileName );
+	DependancyList.push_back( CsDependancy( FileName ) );
 	
 	// Load texture from file and create the data for export.
 	SndSound* pSound = Snd::load( FileName.c_str() );

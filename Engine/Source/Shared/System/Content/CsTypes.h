@@ -17,6 +17,7 @@
 #include "BcTypes.h"
 #include "BcDebug.h"
 #include "BcName.h"
+#include "BcPath.h"
 
 #include "FsFile.h"
 #include "BcAtomic.h"
@@ -35,17 +36,29 @@ typedef CsDependancyList::iterator CsDependancyListIterator;
 class CsDependancy
 {
 public:
-	CsDependancy( const std::string& FileName );
+	CsDependancy( const BcPath& FileName );
 	CsDependancy( const CsDependancy& Other );
 	~CsDependancy();
 
 	/**
 	 * Get file name.
 	 */
-	const std::string& getFileName() const;
+	const BcPath& getFileName() const;
+
+	/**
+	 * Had dependancy changed?
+	 */
+	BcBool hasChanged();
 	
+	/**
+	 * Update stats.
+	 */
+	void updateStats();
+
+
 private:
-	std::string FileName_;
+	BcPath FileName_;
+	FsStats Stats_;
 };
 
 #endif

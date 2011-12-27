@@ -131,7 +131,7 @@ public:
 	/**
 	 * Find files.
 	 */
-	virtual void findFiles( BcPath StartPath, BcBool Recursive, BcBool AddThisPath, std::list< BcPath >& OutputPaths ) = 0;
+	virtual void findFiles( BcPath StartPath, BcBool Recursive, BcBool AddFolders, std::list< BcPath >& OutputPaths ) = 0;
 	
 	/**
 	 *	Add a read operation.
