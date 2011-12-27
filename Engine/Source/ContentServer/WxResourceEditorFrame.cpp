@@ -23,15 +23,19 @@ END_EVENT_TABLE();
 WxResourceEditorFrame::WxResourceEditorFrame():
 	wxFrame( (wxFrame*)NULL, wxID_ANY, "Resource Editor", wxDefaultPosition, wxSize( 300, 400 ), wxRESIZE_BORDER | wxCLOSE_BOX | wxCAPTION | wxSYSTEM_MENU | wxSTAY_ON_TOP )
 {
-	pFlexGridSizer_ = new wxFlexGridSizer( 2, 1 );
+	pFlexGridSizer_ = new wxFlexGridSizer( 1, 1 );
 	pFlexGridSizer_->AddGrowableRow( 0 );
 	pFlexGridSizer_->AddGrowableCol( 0 );
+
+	wxBoxSizer* pSizer = new wxBoxSizer( wxHORIZONTAL );
 	
 	pPropertyTablePanel_ = new WxPropertyTablePanel( this );
-	pFlexGridSizer_->Add( pPropertyTablePanel_ );
+	//pFlexGridSizer_->Add( pPropertyTablePanel_ );
+	pSizer->Add( pPropertyTablePanel_, 5, wxEXPAND  );
 
 	// Layout.
-	SetSizer( pFlexGridSizer_ );
+	//SetSizer( pFlexGridSizer_ );
+	SetSizer( pSizer );
 	Layout();
 }
 

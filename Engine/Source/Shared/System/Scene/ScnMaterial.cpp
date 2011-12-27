@@ -156,9 +156,9 @@ void ScnMaterial::StaticPropertyTable( CsPropertyTable& PropertyTable )
 	Super::StaticPropertyTable( PropertyTable );
 
 	PropertyTable.beginCatagory( "ScnMaterial" )
-		.field( "shader",		csPVT_RESOURCE,		csPCT_VALUE )
-		.field( "textures",		csPVT_RESOURCE,		csPCT_MAP )
-		.field( "state",		csPVT_RESOURCE,		csPCT_MAP )
+		.field( "shader",		csPVT_RESOURCE,		csPCT_VALUE,	"ScnShader" )
+		.field( "textures",		csPVT_RESOURCE,		csPCT_MAP,		"ScnTexture" )
+		.field( "state",		csPVT_STRING,		csPCT_MAP )
 	.endCatagory();
 }
 
