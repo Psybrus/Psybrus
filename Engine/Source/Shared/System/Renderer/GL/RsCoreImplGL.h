@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class RsFrameGL;
+class RsContextGL;
 class RsStateBlockGL;
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,7 +70,7 @@ protected:
 	RsStateBlockGL*			pStateBlock_;
 	SysFence				RenderSyncFence_;
 
-	typedef std::map< OsClient*, RsContext* > TContextMap;
+	typedef std::map< OsClient*, RsContextGL* > TContextMap;
 	typedef TContextMap::iterator TContextMapIterator;
 
 	TContextMap				ContextMap_;

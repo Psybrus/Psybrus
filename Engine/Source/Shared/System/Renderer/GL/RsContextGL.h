@@ -27,7 +27,7 @@ public:
 	typedef BcDelegate< void(*)() > SwapBuffersDelegate;
 
 public:
-	RsContextGL( OsClient* pClient );
+	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
 	
 	virtual BcU32						getWidth() const;
@@ -48,6 +48,8 @@ private:
 
 	static HDC LastWindowDC_;
 	static HGLRC LastWindowRC_;
+
+	RsContextGL* pParent_;
 #endif
 
 

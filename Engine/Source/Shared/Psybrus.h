@@ -121,9 +121,4 @@ extern PsySetupParams GPsySetupParams;
  */
 extern void PsyGameInit();
 
-
-// NEILO HACK.
-extern BcU32 GResolutionWidth;
-extern BcU32 GResolutionHeight;
-
 #endif

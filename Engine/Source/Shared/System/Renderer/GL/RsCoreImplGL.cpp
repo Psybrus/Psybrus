@@ -200,7 +200,7 @@ RsContext* RsCoreImplGL::getContext( OsClient* pClient )
 	{
 		if( pClient != NULL )
 		{
-			RsContextGL* pResource = new RsContextGL( pClient );
+			RsContextGL* pResource = new RsContextGL( pClient, ContextMap_[ NULL ] );
 			createResource( pResource );
 
 			// If we have no default context, set it.
@@ -335,10 +335,10 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 	pResource->preDestroy();
 
 	// Make default context current.
-	RsContext* pContext = ContextMap_[ NULL ];
+	RsContextGL* pContext = ContextMap_[ NULL ];
 	if( pContext != NULL )
 	{
-		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( static_cast< RsContextGL* >( pContext ) ) );
+		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( ( pContext ) ) );
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 	}
 
@@ -356,10 +356,10 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 	BcAssert( BcIsGameThread() );
 
 	// Make default context current.
-	RsContext* pContext = ContextMap_[ NULL ];
+	RsContextGL* pContext = ContextMap_[ NULL ];
 	if( pContext != NULL )
 	{
-		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( static_cast< RsContextGL* >( pContext ) ) );
+		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( ( pContext ) ) );
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 	}
 
@@ -377,10 +377,10 @@ void RsCoreImplGL::createResource( RsResource* pResource )
 	BcAssert( BcIsGameThread() );
 
 	// Make default context current.
-	RsContext* pContext = ContextMap_[ NULL ];
+	RsContextGL* pContext = ContextMap_[ NULL ];
 	if( pContext != NULL )
 	{
-		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( static_cast< RsContextGL* >( pContext ) ) );
+		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( ( pContext ) ) );
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 	}
 

@@ -23,8 +23,9 @@ HGLRC RsContextGL::LastWindowRC_ = NULL;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsContextGL::RsContextGL( OsClient* pClient ):
-	RsContext( pClient )
+RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
+	RsContext( pClient ),
+	pParent_( pParent )
 {
 
 }
@@ -59,6 +60,9 @@ void RsContextGL::makeCurrent()
 {
 	if( LastWindowDC_ != WindowDC_ || LastWindowRC_ != WindowRC_ )
 	{
+		// Free up previous.
+		wglMakeCurrent( NULL, NULL );
+
 		// Make current.
 		wglMakeCurrent( WindowDC_, WindowRC_ );
 
@@ -123,7 +127,18 @@ void RsContextGL::create()
 	WindowRC_ = wglCreateContext( WindowDC_ );
 	BcAssertMsg( WindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
 
-	// Do the context switch.
+	// If we have a parent, we need to share lists.
+	if( pParent_ != NULL )
+	{
+		// Make parent current.
+		pParent_->makeCurrent();
+
+		// Share parent's lists with this context.
+		BOOL Result = wglShareLists( pParent_->WindowRC_, WindowRC_ );
+		BcAssertMsg( Result != BcFalse, "Unable to share lists." );
+	}
+
+	// Do the switch to this context.
 	makeCurrent();
 
 	// Clear screen and flip.

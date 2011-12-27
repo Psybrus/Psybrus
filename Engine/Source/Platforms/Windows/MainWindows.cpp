@@ -26,21 +26,27 @@ eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
 	return evtRET_PASS;
 }
 
+extern BcU32 GResolutionWidth;
+extern BcU32 GResolutionHeight;
+
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 {
 	if( GPsySetupParams.Flags_ & psySF_WINDOW )
 	{
 		// Create window.
-		OsClientWindows* pMainWindow = new OsClientWindows();
-		if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse ) == BcFalse )
+		//for( BcU32 Idx = 0; Idx < 2; ++Idx )
 		{
-			BcAssertMsg( BcFalse, "Failed to create client!" );
-			return evtRET_REMOVE;
-		}
+			OsClientWindows* pMainWindow = new OsClientWindows();
+			if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse ) == BcFalse )
+			{
+				BcAssertMsg( BcFalse, "Failed to create client!" );
+				return evtRET_REMOVE;
+			}
 		
-		// Get rendering context.
-		RsContext* pContext = RsCore::pImpl()->getContext( pMainWindow );
-		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
+			// Get rendering context.
+			RsContext* pContext = RsCore::pImpl()->getContext( pMainWindow );
+			BcAssertMsg( pContext != NULL, "Failed to create render context!" );
+		}
 	}
 
 	return evtRET_REMOVE;	

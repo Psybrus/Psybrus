@@ -131,7 +131,7 @@ void GaOverlayState::render( RsFrame* pFrame )
 
 	BcMat4d Projection;
 
-	BcReal Aspect = (BcReal)GResolutionWidth / (BcReal)GResolutionHeight;
+	BcReal Aspect = (BcReal)pFrame->getContext()->getWidth() / (BcReal)pFrame->getContext()->getHeight();
 	BcReal DesiredHeight = 240.0f;
 	BcReal DesiredWidth = Aspect * DesiredHeight;
 

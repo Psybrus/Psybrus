@@ -168,7 +168,7 @@ BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 
 	BcBool RetValue = BcTrue;
 
-	if( AdjustWindowRectEx( &WindowSize_, WindowStyle_, BcFalse, WindowStyleEx_ ) == FALSE )
+	if( ::AdjustWindowRectEx( &WindowSize_, WindowStyle_, BcFalse, WindowStyleEx_ ) == FALSE )
 	{
 		RetValue  = BcFalse;
 	}
@@ -182,7 +182,7 @@ RECT OsClientWindows::windowSize( BcS32 SizeX, BcS32 SizeY ) const
 {
 	RECT Rect;
 
-	SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
+	::SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
 
 	BcS32 Width = Rect.right - Rect.left;
 	BcS32 Height = Rect.bottom - Rect.top;
@@ -223,6 +223,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 			case SC_MINIMIZE:
 				{
+					// Get new window rect.
+					::GetWindowRect( hWnd, &WindowSize_ );
+
+					// Send event.
 					OsEventClient Event;
 					Event.pClient_ = this;
 					EvtPublisher::publish( osEVT_CLIENT_MINIMIZE, Event );
@@ -231,6 +235,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 			case SC_MAXIMIZE:
 				{
+					// Get new window rect.
+					::GetWindowRect( hWnd, &WindowSize_ );
+
+					// Send event.
 					OsEventClient Event;
 					Event.pClient_ = this;
 					EvtPublisher::publish( osEVT_CLIENT_MAXIMIZE, Event );
@@ -242,13 +250,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_SIZE:
 		{
-			// TODO: OLD WAY REMOVE!
-			extern BcU32 GResolutionWidth;
-			extern BcU32 GResolutionHeight;
-			GResolutionWidth = lParam & 0xffff;
-			GResolutionHeight = lParam >> 16 & 0xffff;
+			// Get new window rect.
+			::GetWindowRect( hWnd, &WindowSize_ );
 
-			// NEW WAY.
+			// Send resize event.
 			OsEventClientResize Event;
 			Event.pClient_ = this;
 			Event.Width_ = lParam & 0xffff;

@@ -3227,10 +3227,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\External\png\pngvalid.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\External\png\pngvcrd.c"
 					>
 				</File>

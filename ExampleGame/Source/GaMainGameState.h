@@ -142,6 +142,8 @@ private:
 
 	BcReal FoodHealth_;
 
+	RsContext* pContext_;
+
 	ScnMaterialInstanceRef BackgroundMaterialInstance_;
 	ScnMaterialInstanceRef ForegroundMaterialInstance_;
 	ScnMaterialInstanceRef BarMaterialInstance_;
