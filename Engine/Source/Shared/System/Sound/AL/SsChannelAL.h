@@ -32,7 +32,7 @@ public:
 	SsChannelAL( SsCoreImplAL* Parent );
 	virtual ~SsChannelAL();
 
-	void				stop();
+	void				stop( BcBool ReleaseCallback = BcFalse );
 	void				play( SsSampleAL* Sample, SsChannelCallback* Callback );
 	void				update();
 	void				updateParams();

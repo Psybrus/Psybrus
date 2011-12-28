@@ -34,8 +34,8 @@ public:
 	virtual void				render( RsFrame* pFrame );
 
 protected:
-	ScnCanvasRef				Canvas_;
-	ScnMaterialInstanceRef		DefaultMaterialInstance_;
+	ScnCanvasComponentRef				Canvas_;
+	ScnMaterialComponentRef		DefaultMaterialComponent_;
 
 private:
 

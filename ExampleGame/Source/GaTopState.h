@@ -78,7 +78,7 @@ public:
 private:
 	typedef std::list< GaBaseGameState* > TStateList;
 
-	ScnCanvasRef					Canvas_;
+	ScnCanvasComponentRef					Canvas_;
 
 	TStateList						StateList_;
 

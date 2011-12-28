@@ -42,6 +42,7 @@ public:
 	void								setPitch( BcReal Pitch );
 
 	void								play( ScnSoundRef Sound );
+	void								stopAll();
 
 protected:
 	virtual void						onStarted( SsChannel* pSound );

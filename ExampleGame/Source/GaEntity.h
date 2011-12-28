@@ -37,7 +37,7 @@ public:
 	virtual ~GaEntity();
 
 	virtual void update( BcReal Tick );
-	virtual void render( ScnCanvasRef Canvas );
+	virtual void render( ScnCanvasComponentRef Canvas );
 	virtual BcBool isAlive(){ return BcTrue; };
 
 	BcForceInline void setParent( GaMainGameState* pParent )
@@ -77,7 +77,7 @@ protected:
 	typedef std::vector< TEmote > TEmoteList;
 	TEmoteList EmoteList_;
 
-	ScnMaterialInstanceRef EmoteMaterialInstance_;
+	ScnMaterialComponentRef EmoteMaterialComponent_;
 
 	BcU32 LastEmote_;
 	BcReal EmoteTimer_;

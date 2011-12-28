@@ -1451,11 +1451,11 @@
 						Name="Scene"
 						>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnCanvas.cpp"
+							RelativePath="..\..\Source\Shared\System\Scene\ScnCanvasComponent.cpp"
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnCanvas.h"
+							RelativePath="..\..\Source\Shared\System\Scene\ScnCanvasComponent.h"
 							>
 						</File>
 						<File

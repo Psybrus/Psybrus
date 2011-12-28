@@ -26,7 +26,7 @@ GaEntity::GaEntity()
 	ScnMaterialRef Material;
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_EMOTE, Material );
-	Material->createInstance( "emotematerialinstance", EmoteMaterialInstance_, BcErrorCode );
+	Material->createComponent( "emoteMaterialComponent", EmoteMaterialComponent_, BcErrorCode );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,12 +67,12 @@ void GaEntity::update( BcReal Tick )
 ////////////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void GaEntity::render( ScnCanvasRef Canvas )
+void GaEntity::render( ScnCanvasComponentRef Canvas )
 {
 	BcScopedLock< BcMutex > Lock( EmoteLock_ );
 
-	Canvas->setMaterialInstance( EmoteMaterialInstance_ );
-	pParent()->setMaterialInstanceParams( EmoteMaterialInstance_, BcMat4d() );
+	Canvas->setMaterialComponent( EmoteMaterialComponent_ );
+	pParent()->setMaterialComponentParams( EmoteMaterialComponent_, BcMat4d() );
 
 	TEmoteList::iterator It( EmoteList_.begin() );
 

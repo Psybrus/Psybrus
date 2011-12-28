@@ -28,8 +28,8 @@ GaFoodEntity::GaFoodEntity( const BcVec2d& Position )
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_LETTUCE, Material );
 
-	Material->createInstance( "lettucematerialinstance", MaterialInstance_, BcErrorCode );
-	ScnMaterial::Default->createInstance( "shadowmaterialinstance", ShadowMaterialInstance_, BcErrorCode );
+	Material->createComponent( "lettuceMaterialComponent", MaterialComponent_, BcErrorCode );
+	ScnMaterial::Default->createComponent( "shadowMaterialComponent", ShadowMaterialComponent_, BcErrorCode );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ void GaFoodEntity::update( BcReal Tick )
 ////////////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void GaFoodEntity::render( ScnCanvasRef Canvas )
+void GaFoodEntity::render( ScnCanvasComponentRef Canvas )
 {
 	BcVec2d Size( 32.0f, -32.0f );
 
@@ -82,8 +82,8 @@ void GaFoodEntity::render( ScnCanvasRef Canvas )
 	
 	BcRandom RandomAdjustment = BcRandom( BcHash( (BcU8*)&Position_, sizeof( Position_ ) ) );
 
-	Canvas->setMaterialInstance( ShadowMaterialInstance_ );
-	pParent()->setMaterialInstanceParams( ShadowMaterialInstance_, PositionMatrix );
+	Canvas->setMaterialComponent( ShadowMaterialComponent_ );
+	pParent()->setMaterialComponentParams( ShadowMaterialComponent_, PositionMatrix );
 
 	for( BcReal X = -48.0f; X <= 48.0f; X += 24.0f )
 	{
@@ -99,8 +99,8 @@ void GaFoodEntity::render( ScnCanvasRef Canvas )
 
 	RandomAdjustment = BcRandom( BcHash( (BcU8*)&Position_, sizeof( Position_ ) ) );
 
-	Canvas->setMaterialInstance( MaterialInstance_ );
-	pParent()->setMaterialInstanceParams( MaterialInstance_, PositionMatrix );
+	Canvas->setMaterialComponent( MaterialComponent_ );
+	pParent()->setMaterialComponentParams( MaterialComponent_, PositionMatrix );
 
 	for( BcReal X = -48.0f; X <= 48.0f; X += 24.0f )
 	{

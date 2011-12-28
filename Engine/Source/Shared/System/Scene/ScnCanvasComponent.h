@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		ScnCanvas.h
+* File:		ScnCanvasComponent.h
 * Author:	Neil Richardson 
 * Ver/Date:	10/04/11	
 * Description:
@@ -11,22 +11,22 @@
 * 
 **************************************************************************/
 
-#ifndef __ScnCanvas_H__
-#define __ScnCanvas_H__
+#ifndef __ScnCanvasComponentComponent_H__
+#define __ScnCanvasComponentComponent_H__
 
 #include "RsCore.h"
-#include "CsResource.h"
+#include "ScnComponent.h"
 
 #include "ScnTypes.h"
 #include "ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnCanvasRef
-typedef CsResourceRef< class ScnCanvas > ScnCanvasRef;
+// ScnCanvasComponentRef
+typedef CsResourceRef< class ScnCanvasComponent > ScnCanvasComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// ScnCanvasVertex
-struct ScnCanvasVertex
+// ScnCanvasComponentVertex
+struct ScnCanvasComponentVertex
 {
 	BcF32 X_, Y_, Z_;
 	BcF32 NX_, NY_, NZ_;
@@ -36,20 +36,20 @@ struct ScnCanvasVertex
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnCanvasPrimitiveSection
-struct ScnCanvasPrimitiveSection
+// ScnCanvasComponentPrimitiveSection
+struct ScnCanvasComponentPrimitiveSection
 {
 	eRsPrimitiveType		Type_;
 	BcU32					VertexIndex_;
 	BcU32					NoofVertices_;
 	BcU32					Layer_;
-	ScnMaterialInstanceRef	MaterialInstance_;
+	ScnMaterialComponentRef	MaterialComponent_;
 };
 
-class ScnCanvasPrimitiveSectionCompare
+class ScnCanvasComponentPrimitiveSectionCompare
 {
 public:
-	bool operator()( const ScnCanvasPrimitiveSection& A, const ScnCanvasPrimitiveSection& B )
+	bool operator()( const ScnCanvasComponentPrimitiveSection& A, const ScnCanvasComponentPrimitiveSection& B )
 	{
 		return A.Layer_ < B.Layer_;
 	}
@@ -57,14 +57,14 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-// ScnCanvas
-class ScnCanvas:
-	public CsResource
+// ScnCanvasComponent
+class ScnCanvasComponent:
+	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnCanvas );
+	DECLARE_RESOURCE( ScnComponent, ScnCanvasComponent );
 	
-	virtual void						initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMaterialInstance );
+	virtual void						initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
@@ -72,7 +72,7 @@ public:
 	/**
 	 * Set material instance.
 	 */
-	void								setMaterialInstance( ScnMaterialInstanceRef MaterialInstance );
+	void								setMaterialComponent( ScnMaterialComponentRef MaterialComponent );
 	
 	/**
 	 * Push matrix.
@@ -96,12 +96,12 @@ public:
 	 * and to allocate the total number at the end. Provided you don't overrun the buffer!
 	 * @param NoofVertices Number of vertices to allocate.
 	 */
-	ScnCanvasVertex*					allocVertices( BcU32 NoofVertices );
+	ScnCanvasComponentVertex*			allocVertices( BcU32 NoofVertices );
 	
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void								addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void								addPrimitive( eRsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
 
 	/**
 	 * Draw line.
@@ -184,14 +184,20 @@ public:
 	 * @param Sort Sort value to use.
 	 */
 	void								render( RsFrame* pFrame, RsRenderSort Sort );
-	
+
 protected:
-	BcForceInline BcU32					convertVertexPointerToIndex( ScnCanvasVertex* pVertex )
+	virtual void						update( BcReal Tick );
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+
+protected:
+	BcForceInline BcU32					convertVertexPointerToIndex( ScnCanvasComponentVertex* pVertex )
 	{
 		// NOTE: Will probably warn due to converting a 64-bit pointer to 32-bit value, but
 		//       it's actually ok because we should never have over 4GB worth of vertices!
 		BcU32 ByteOffset = BcU32( (BcU8*)pVertex - (BcU8*)pVertices_ );
-		return ByteOffset / sizeof( ScnCanvasVertex );
+		return ByteOffset / sizeof( ScnCanvasComponentVertex );
 	}
 	
 protected:
@@ -199,7 +205,7 @@ protected:
 	{
 		RsVertexBuffer*					pVertexBuffer_;
 		RsPrimitive*					pPrimitive_;
-		ScnCanvasVertex*				pVertices_;
+		ScnCanvasComponentVertex*				pVertices_;
 	};
 
 	BcU32								CurrentRenderResource_;
@@ -208,17 +214,17 @@ protected:
 	TRenderResource*					pRenderResource_;
 
 	// Submission data.
-	ScnCanvasVertex*					pVertices_;
-	ScnCanvasVertex*					pVerticesEnd_;
+	ScnCanvasComponentVertex*					pVertices_;
+	ScnCanvasComponentVertex*					pVerticesEnd_;
 	BcU32								NoofVertices_;
 	BcU32								VertexIndex_;
 	
 	// Materials.
-	ScnMaterialInstanceRef				DefaultMaterialInstance_;
-	ScnMaterialInstanceRef				MaterialInstance_;
+	ScnMaterialComponentRef				DefaultMaterialComponent_;
+	ScnMaterialComponentRef				MaterialComponent_;
 	ScnTextureRef						DiffuseTexture_;
 
-	typedef std::vector< ScnCanvasPrimitiveSection > TPrimitiveSectionList;
+	typedef std::vector< ScnCanvasComponentPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;
 	
 	TPrimitiveSectionList				PrimitiveSectionList_;

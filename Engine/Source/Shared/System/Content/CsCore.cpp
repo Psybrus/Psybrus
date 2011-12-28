@@ -93,7 +93,7 @@ void CsCore::close()
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
 	// Finish processing unloading resources.
-	while( UnloadingResources_.size() > 0 )
+	if( UnloadingResources_.size() > 0 )
 	{
 		processUnloadingResources();
 	}

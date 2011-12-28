@@ -38,8 +38,8 @@ public:
 
 private:
 	ScnMaterialRef FontMaterial_;
-	ScnMaterialInstanceRef MaterialInstance_;
-	ScnFontInstanceRef FontInstance_;
+	ScnMaterialComponentRef MaterialComponent_;
+	ScnFontComponentRef FontComponent_;
 
 	BcU32 CurrOverlay_;
 

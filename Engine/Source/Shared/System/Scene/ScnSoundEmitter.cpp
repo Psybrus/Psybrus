@@ -59,7 +59,7 @@ void ScnSoundEmitter::create()
 //virtual
 void ScnSoundEmitter::destroy()
 {
-	
+	BcAssertMsg( ChannelSoundMap_.size() == 0, "Sounds still playing on ScnSoundEmitter whilst being destroyed! Reference count mismatch!" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,11 +86,23 @@ void ScnSoundEmitter::play( ScnSoundRef Sound )
 	// Add to map, or release if not played.
 	if( pChannel != NULL )
 	{
-		ChannelSoundMap_[ pChannel ] = Sound;		
+		ChannelSoundMap_[ pChannel ] = Sound;
 	}
 	else
 	{
 		CsResource::release();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// stopAll
+void ScnSoundEmitter::stopAll()
+{
+	// Stop all bound channels.
+	for( TChannelSoundMapIterator It( ChannelSoundMap_.begin() ); It != ChannelSoundMap_.end(); ++It )
+	{
+		// Stop channel.
+		(*It).first->stop();
 	}
 }
 
@@ -147,8 +159,7 @@ void ScnSoundEmitter::onEnded( SsChannel* pSound )
 	if( Iter != ChannelSoundMap_.end() )
 	{
 		ChannelSoundMap_.erase( Iter );
-	}
 
-	// Release ourself, no longer in use anymore!
-	CsResource::release();
+		CsResource::release();
+	}
 }

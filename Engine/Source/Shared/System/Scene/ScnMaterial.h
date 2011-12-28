@@ -19,6 +19,7 @@
 
 #include "ScnTexture.h"
 #include "ScnShader.h"
+#include "ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef
@@ -26,7 +27,7 @@ typedef CsResourceRef< class ScnMaterial > ScnMaterialRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef
-typedef CsResourceRef< class ScnMaterialInstance > ScnMaterialInstanceRef;
+typedef CsResourceRef< class ScnMaterialComponent > ScnMaterialComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterial
@@ -44,14 +45,14 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 
-	BcBool								createInstance( const std::string& Name, ScnMaterialInstanceRef& Instance, BcU32 PermutationFlags );
+	BcBool								createComponent( const BcName& Name, ScnMaterialComponentRef& Instance, BcU32 PermutationFlags );
 	
 private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
-	friend class ScnMaterialInstance;
+	friend class ScnMaterialComponent;
 	
 	struct THeader
 	{
@@ -77,17 +78,17 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnMaterialInstance
-class ScnMaterialInstance:
-	public CsResource
+// ScnMaterialComponent
+class ScnMaterialComponent:
+	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnMaterialInstance );
+	DECLARE_RESOURCE( ScnComponent, ScnMaterialComponent );
 	
 	void								initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap );
 	void								destroy();
 	
-	BcU32								findParameter( const std::string& ParameterName );	
+	BcU32								findParameter( const BcName& ParameterName );	
 	void								setParameter( BcU32 Parameter, BcS32 Value );
 	void								setParameter( BcU32 Parameter, BcBool Value );
 	void								setParameter( BcU32 Parameter, BcReal Value );
@@ -105,6 +106,12 @@ public:
 	void								bind( RsFrame* pFrame, RsRenderSort Sort );
 
 	virtual BcBool						isReady();
+
+public:
+	virtual void						update( BcReal Tick );
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
+
 
 private:
 	friend class ScnMaterial;

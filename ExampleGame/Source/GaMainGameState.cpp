@@ -86,13 +86,13 @@ void GaMainGameState::enterOnce()
 
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BACKGROUND, Material );
-	Material->createInstance( "backgroundmaterialinstance", BackgroundMaterialInstance_, BcErrorCode );
+	Material->createComponent( "backgroundMaterialComponent", BackgroundMaterialComponent_, BcErrorCode );
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_FOREGROUND, Material );
-	Material->createInstance( "foregroundmaterialinstance", ForegroundMaterialInstance_, BcErrorCode );
+	Material->createComponent( "foregroundMaterialComponent", ForegroundMaterialComponent_, BcErrorCode );
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BAR, Material );
-	Material->createInstance( "barmaterialinstance", BarMaterialInstance_, BcErrorCode );
+	Material->createComponent( "barMaterialComponent", BarMaterialComponent_, BcErrorCode );
 
 	// Get default render context.
 	pContext_ = RsCore::pImpl()->getContext( NULL );
@@ -223,8 +223,8 @@ void GaMainGameState::render( RsFrame* pFrame )
 		SsCore::pImpl()->setListener( BcVec3d( 0.0f, 350.0f, 270.0f ), BcVec3d( 0.0f, -4.0f, -2.0f ).normal(), BcVec3d( 0.0f, 0.0f, 1.0f  ) );
 	}
 
-	setMaterialInstanceParams( BackgroundMaterialInstance_, BcMat4d() );
-	Canvas_->setMaterialInstance( BackgroundMaterialInstance_ );
+	setMaterialComponentParams( BackgroundMaterialComponent_, BcMat4d() );
+	Canvas_->setMaterialComponent( BackgroundMaterialComponent_ );
 	Canvas_->drawSpriteCentered3D( BcVec3d( 0.0f, 0.0f, 0.0f ), WorldHalfSize_ * 4.0f, 0, RsColour::WHITE, 0 );
 
 	// Render entities.
@@ -239,7 +239,7 @@ void GaMainGameState::render( RsFrame* pFrame )
 	Ortho.orthoProjection( -WorldHalfSize_.x(), WorldHalfSize_.x(), -WorldHalfSize_.y(), WorldHalfSize_.y(), -1.0f, 0.0f );
 
 	Canvas_->pushMatrix( Ortho );
-	Canvas_->setMaterialInstance( ForegroundMaterialInstance_ );
+	Canvas_->setMaterialComponent( ForegroundMaterialComponent_ );
 	Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( WorldHalfSize_.x() * 2.2f, WorldHalfSize_.y() * -2.0f ), 0, RsColour::WHITE, 20 );
 
 	BcReal Width = BcMax( 0.0f, FoodHealth_ - 0.5f ) * 2.0f;
@@ -247,7 +247,7 @@ void GaMainGameState::render( RsFrame* pFrame )
 	RsColour Colour;
 	Colour.lerp( RsColour::RED, RsColour::GREEN, Width );
 
-	Canvas_->setMaterialInstance( BarMaterialInstance_ );
+	Canvas_->setMaterialComponent( BarMaterialComponent_ );
 	Canvas_->drawSpriteCentered( 
 		BcVec2d( 0.0f, WorldHalfSize_.y() - ( WorldHalfSize_.y() * 0.05f ) ), 
 		BcVec2d( WorldHalfSize_.x() * 1.5f * Width, WorldHalfSize_.y() * 0.05f ), 
@@ -260,14 +260,14 @@ void GaMainGameState::render( RsFrame* pFrame )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// setMaterialInstanceParams
-void GaMainGameState::setMaterialInstanceParams( ScnMaterialInstanceRef MaterialInstanceRef, const BcMat4d& Transform )
+// setMaterialComponentParams
+void GaMainGameState::setMaterialComponentParams( ScnMaterialComponentRef MaterialComponentRef, const BcMat4d& Transform )
 {
 	// TODO: Optimise this.
-	BcU32 ClipTransform = MaterialInstanceRef->findParameter( "uClipTransform" );
-	BcU32 WorldTransform = MaterialInstanceRef->findParameter( "uWorldTransform" );
-	MaterialInstanceRef->setParameter( ClipTransform, WorldView_ * Projection_ );
-	MaterialInstanceRef->setParameter( WorldTransform, Transform );
+	BcU32 ClipTransform = MaterialComponentRef->findParameter( "uClipTransform" );
+	BcU32 WorldTransform = MaterialComponentRef->findParameter( "uWorldTransform" );
+	MaterialComponentRef->setParameter( ClipTransform, WorldView_ * Projection_ );
+	MaterialComponentRef->setParameter( WorldTransform, Transform );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

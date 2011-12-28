@@ -36,7 +36,7 @@ public:
 	void								destroy();	
 	
 	virtual BcU32						getParameterBufferSize() const;
-	virtual BcU32						findParameterOffset( const std::string& Name, eRsShaderParameterType& Type, BcU32& Offset ) const;
+	virtual BcU32						findParameterOffset( const BcName& Name, eRsShaderParameterType& Type, BcU32& Offset ) const;
 	virtual void						bind( void* pParameterBuffer );
 
 private:	
@@ -46,7 +46,7 @@ private:
 private:
 	struct TParameter
 	{
-		std::string						Name_;
+		BcName							Name_;
 		GLint							Handle_;
 		BcU32							Offset_;
 		eRsShaderParameterType			Type_;

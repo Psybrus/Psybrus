@@ -85,13 +85,16 @@ GaSwarmEntity::~GaSwarmEntity()
 	// Unbind all events.
 	OsCore::pImpl()->unsubscribeAll( this );
 
-	// Free.
+	// Free stuff.
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
+		// Stop all sounds playing from emitter.
+		AnimationLogicList_[ Idx ]->Emitter_->stopAll();
+
+		// Delete bodies and logic.
 		delete Bodies_[ Idx ];
 		delete AnimationLogicList_[ Idx ];
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -377,7 +380,7 @@ void GaSwarmEntity::updateBody_Threaded( BcReal Tick,  GaFoodEntity* pFoodEntity
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaSwarmEntity::render( ScnCanvasRef Canvas )
+void GaSwarmEntity::render( ScnCanvasComponentRef Canvas )
 {
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
@@ -400,7 +403,7 @@ void GaSwarmEntity::render( ScnCanvasRef Canvas )
 			/*
 			// DEBUG DATA.
 			BcVec2d Size( 32.0f, 32.0f );
-			Canvas->setMaterialInstance( ScnMaterialInstance::Default );
+			Canvas->setMaterialComponent( ScnMaterialComponent::Default );
 			Canvas->drawSpriteCentered( pBody->Position_, Size, 0, RsColour::RED * 0.5f, 2 );
 			Canvas->drawLine( Position, pBody->Position_, Colour, 0 );*/
 		}

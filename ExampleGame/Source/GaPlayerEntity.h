@@ -32,7 +32,7 @@ public:
 	virtual ~GaPlayerEntity();
 
 	virtual void update( BcReal Tick );
-	virtual void render( ScnCanvasRef Canvas );
+	virtual void render( ScnCanvasComponentRef Canvas );
 
 	eEvtReturn onMouseMove( EvtID ID, const OsEventInputMouse& Event );
 	eEvtReturn onMouseDown( EvtID ID, const OsEventInputMouse& Event );

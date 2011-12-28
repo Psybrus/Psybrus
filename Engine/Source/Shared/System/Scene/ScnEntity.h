@@ -41,8 +41,8 @@ public:
 	
 public:
 	virtual void						update( BcReal Tick );
-	virtual void						attach( ScnComponentRef Component );
-	virtual void						detach( ScnComponentRef Component );
+	virtual void						attach( ScnComponent* Component );
+	virtual void						detach( ScnComponent* Component );
 
 protected:
 	virtual void						fileReady();
