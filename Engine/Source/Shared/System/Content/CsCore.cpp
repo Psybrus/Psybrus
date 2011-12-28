@@ -119,12 +119,14 @@ BcBool CsCore::isValidResource( const BcPath& FileName ) const
 
 //////////////////////////////////////////////////////////////////////////
 // importResource
-void CsCore::importResource( const BcPath& FileName )
+void CsCore::importResource( const BcPath& FileName, BcBool ForceImport )
 {
+	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
 	BcBool Import = shouldImportResource( FileName );
 
 	// Only import if dependancies have changed, or there are none.
-	if( Import == BcTrue )
+	if( Import == BcTrue || ForceImport == BcTrue )
 	{
 		ImportList_.push_back( *FileName );
 	}

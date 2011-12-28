@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ContentServer"
-	ProjectGUID="{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}"
+	Name="Samples"
+	ProjectGUID="{98B380F3-69F5-4455-96B2-883EAFD85757}"
 	RootNamespace="TestBed"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;&quot;../../../External/wxWidgets-2.8.12/include&quot;;&quot;../../../External/wxWidgets-2.8.12/include/msvc&quot;;../../../External/propgrid/include"
+				AdditionalIncludeDirectories="../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxbase28d.lib wxmsw28d_core.lib wxcode_msw28d_propgrid.lib winmm.lib comctl32.lib rpcrt4.lib odbc32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;../../../External/wxWidgets-2.8.12/lib/vc_lib&quot;;../../../External/propgrid/lib/vc_lib"
+				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -118,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;&quot;../../../External/wxWidgets-2.8.12/include&quot;;&quot;../../../External/wxWidgets-2.8.12/include/msvc&quot;;../../../External/propgrid/include"
+				AdditionalIncludeDirectories="../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -196,7 +195,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;&quot;../../../External/wxWidgets-2.8.12/include&quot;;&quot;../../../External/wxWidgets-2.8.12/include/msvc&quot;;../../../External/propgrid/include"
+				AdditionalIncludeDirectories="../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -255,53 +254,17 @@
 			Name="Source"
 			>
 			<File
-				RelativePath="..\..\Source\ContentServer\MainContentServer.cpp"
+				RelativePath="..\..\Source\Samples\GaTopState.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\ContentServer\WxAppContentServer.cpp"
+				RelativePath="..\..\Source\Samples\GaTopState.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\ContentServer\WxAppContentServer.h"
+				RelativePath="..\..\Source\Samples\MainGame.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxMainEditorFrame.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxMainEditorFrame.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxPropertyTablePanel.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxPropertyTablePanel.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxResourceEditorFrame.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxResourceEditorFrame.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxViewPanel.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\ContentServer\WxViewPanel.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="NewFilter1"
-			>
 		</Filter>
 	</Files>
 	<Globals>

@@ -99,7 +99,7 @@ public:
 	/**
 	 * Import a resource from file.
 	 */
-	void								importResource( const BcPath& FileName );
+	void								importResource( const BcPath& FileName, BcBool ForceImport );
 
 	/**
 	 * Import a resource using template to derive type.
