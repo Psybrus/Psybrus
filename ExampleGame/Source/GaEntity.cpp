@@ -26,7 +26,7 @@ GaEntity::GaEntity()
 	ScnMaterialRef Material;
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_EMOTE, Material );
-	Material->createComponent( "emoteMaterialComponent", EmoteMaterialComponent_, BcErrorCode );
+	CsCore::pImpl()->createResource( "emoteMaterialComponent", EmoteMaterialComponent_, Material, scnSPF_DEFAULT );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

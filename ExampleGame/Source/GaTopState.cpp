@@ -164,7 +164,7 @@ eSysStateReturn GaTopState::enter()
 		Ready )
 	{
 		// Create default material instance.
-		ScnMaterial::Default->createComponent( "DefaultMaterialComponent", ScnMaterialComponent::Default, BcErrorCode );
+		CsCore::pImpl()->createResource( "DefaultMaterialComponent", ScnMaterialComponent::Default, ScnMaterial::Default, scnSPF_DEFAULT );
 
 		// Spawn main game state.
 		spawnSubState( 0, new GaMainGameState() );

@@ -270,6 +270,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 		Handle->initialise();
 		return BcTrue;
 	}
+	BcVerifyMsg( BcFalse, "CsCore::createResource Failed!" );
 	return BcFalse;
 }
 
@@ -283,6 +284,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 		Handle->initialise( ParamA );
 		return BcTrue;
 	}
+	BcVerifyMsg( BcFalse, "CsCore::createResource Failed!" );
 	return BcFalse;
 }
 
@@ -296,6 +298,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 		Handle->initialise( ParamA, ParamB );
 		return BcTrue;
 	}
+	BcVerifyMsg( BcFalse, "CsCore::createResource Failed!" );
 	return BcFalse;
 }
 
@@ -309,6 +312,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 		Handle->initialise( ParamA, ParamB, ParamC );
 		return BcTrue;
 	}
+	BcVerifyMsg( BcFalse, "CsCore::createResource Failed!" );
 	return BcFalse;
 }
 
@@ -322,6 +326,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD );
 		return BcTrue;
 	}
+	BcVerifyMsg( BcFalse, "CsCore::createResource Failed!" );
 	return BcFalse;
 }
 

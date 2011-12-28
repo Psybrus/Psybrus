@@ -460,7 +460,7 @@ void ScnFontComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
 	Parent_ = Parent; 
-	if( Material->createComponent( getName().getValue(), MaterialComponent_, scnSPF_DEFAULT ) )
+	if( CsCore::pImpl()->createResource( getName(), MaterialComponent_, Material, scnSPF_DEFAULT ) )
 	{	
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )

@@ -54,8 +54,6 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	BcBool								createComponent( const BcName& Name, ScnModelComponentRef& Handle );
-	
 private:
 	void								setup();
 	

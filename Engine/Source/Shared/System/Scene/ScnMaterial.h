@@ -45,8 +45,6 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 
-	BcBool								createComponent( const BcName& Name, ScnMaterialComponentRef& Instance, BcU32 PermutationFlags );
-	
 private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
@@ -85,7 +83,7 @@ class ScnMaterialComponent:
 public:
 	DECLARE_RESOURCE( ScnComponent, ScnMaterialComponent );
 	
-	void								initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap );
+	void								initialise( ScnMaterialRef Parent, BcU32 PermutationFlags );
 	void								destroy();
 	
 	BcU32								findParameter( const BcName& ParameterName );	
