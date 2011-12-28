@@ -17,7 +17,7 @@
 // Ctor
 SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	Active_( BcTrue ),
-	ResumeEvent_( "SysJobQueue_ResumeEvent" ),
+	ResumeEvent_( NULL ),
 	NoofJobsQueued_( 0 ),
 	NoofWorkers_( NoofWorkers ),
 	AvailibleWorkerMask_( ( 1 << NoofWorkers ) - 1 )
@@ -166,7 +166,7 @@ void SysJobQueue::execute()
 	while( Active_ )
 	{
 		// Wait for resume event.
-		ResumeEvent_.wait( 100 ); // NEILO HACK: Should be able to wait infinitely. Look into this.
+		ResumeEvent_.wait();
 
 		// If we've got some jobs queued, enter the scheduling loop.
 		if( NoofJobsQueued_ != 0 )

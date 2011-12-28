@@ -40,12 +40,6 @@ private:
 // Inlines
 inline BcEvent::BcEvent( const BcChar* Name )
 {
-	BcChar InternalHandleName[64];
-	if( Name == NULL ) // If no name is specified generate one.
-	{
-		BcSPrintf( InternalHandleName, "BcEvent_Unnamed%p", this );
-		Name = &InternalHandleName[0];
-	}
 	EventHandle_ = ::CreateEvent( NULL, false, false, Name );
 }
 
