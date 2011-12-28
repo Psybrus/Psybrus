@@ -166,7 +166,7 @@ void SysJobQueue::execute()
 	while( Active_ )
 	{
 		// Wait for resume event.
-		ResumeEvent_.wait();
+		ResumeEvent_.wait( 100 ); // NEILO HACK: Should be able to wait infinitely. Look into this.
 
 		// If we've got some jobs queued, enter the scheduling loop.
 		if( NoofJobsQueued_ != 0 )

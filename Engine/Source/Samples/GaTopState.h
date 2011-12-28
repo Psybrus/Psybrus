@@ -35,7 +35,9 @@ public:
 	virtual void					leaveOnce();
 
 private:
+	typedef std::vector< CsResourceRef<> > TResourceList;
 
+	TResourceList					ResourceList_;
 
 };
 

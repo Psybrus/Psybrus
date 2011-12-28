@@ -37,32 +37,19 @@ void GaTopState::enterOnce()
 // enter
 eSysStateReturn GaTopState::enter()
 {
-	/*
 	BcBool Ready = BcTrue;
 
-	for( BcU32 Idx = 0; Idx < MATERIAL_MAX; ++Idx )
+	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
 	{
-		Ready &= Materials_[ Idx ].isReady();
+		Ready &= ResourceList_[ Idx ].isReady();
 	}
-
-	for( BcU32 Idx = 0; Idx < SOUND_MAX; ++Idx )
-	{
-		Ready &= Sounds_[ Idx ].isReady();
-	}
-
+	
 	// Wait for default material to be ready.
-	if( ScnMaterial::Default->isReady() == BcTrue &&
-		Ready )
+	if( Ready == BcTrue )
 	{
-		// Create default material instance.
-		ScnMaterial::Default->createInstance( "DefaultMaterialInstance", ScnMaterialInstance::Default, BcErrorCode );
-
-		// Spawn main game state.
-		spawnSubState( 0, new GaMainGameState() );
-
+		//
 		return sysSR_FINISHED;
 	}
-	*/
 
 	return sysSR_CONTINUE;
 }
@@ -77,7 +64,6 @@ void GaTopState::preMain()
 // main
 eSysStateReturn GaTopState::main()
 {
-	/*
 	// Render to all clients.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
@@ -90,21 +76,11 @@ eSysStateReturn GaTopState::main()
 		// Allocate a frame to render using default context.
 		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 
-		// Render all registered states.
-		for( TStateList::iterator Iter( StateList_.begin() ); Iter != StateList_.end(); ++Iter )
-		{
-			GaBaseGameState* pState = (*Iter);
-	
-			if( pState->internalStage() == sysBS_MAIN )
-			{
-				pState->render( pFrame );
-			}
-		}
-		
+		// TODO: Do rendering.
+				
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
 	}
-	*/
 
 	return sysSR_CONTINUE;
 }
@@ -113,6 +89,7 @@ eSysStateReturn GaTopState::main()
 // preLeave
 void GaTopState::preLeave()
 {
+	ResourceList_.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
