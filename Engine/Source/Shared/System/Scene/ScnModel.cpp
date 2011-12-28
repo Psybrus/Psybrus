@@ -463,7 +463,7 @@ void ScnModelComponent::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransfo
 //virtual
 void ScnModelComponent::update( BcReal Tick )
 {
-	ScnComponent::update( Tick );
+	Super::update( Tick );
 	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
@@ -498,7 +498,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	}
 	
 	//
-	ScnComponent::onAttach( Parent );
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -514,7 +514,7 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	}
 
 	//
-	ScnComponent::onDetach( Parent );
+	Super::onDetach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -537,6 +537,8 @@ public:
 
 void ScnModelComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 {
+	Super::render( pFrame, Sort );
+
 	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
 

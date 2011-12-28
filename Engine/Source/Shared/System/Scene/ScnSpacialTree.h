@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		SgSpacialTree.h
+* File:		ScnSpacialTree.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,105 +11,99 @@
 * 
 **************************************************************************/
 
-#ifndef __SGSPACIALTREE_H__
-#define __SGSPACIALTREE_H__
+#ifndef __ScnSPACIALTREE_H__
+#define __ScnSPACIALTREE_H__
 
 #include "BcOctTree.h"
 #include "RsCore.h"
-#include "SgVisitor.h"
-
-#include <list>
-
-//////////////////////////////////////////////////////////////////////////
-// Forward Declarations
-class SgNode;
+#include "ScnVisitor.h"
+#include "ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-#define SG_NODELIST_DIVIDESIZE	8
-#define SG_MAX_RENDERNODES		1024
-typedef std::list< SgNode* > SgNodeList;
+#define SCN_ENTITYLIST_DIVIDESIZE	8
+#define SCN_MAX_RENDERNODES			1024
+typedef std::list< ScnEntityWeakRef > ScnEntityWeakRefList;
 
 //////////////////////////////////////////////////////////////////////////
-/**	\class SgSpacialTreeNode
-*	\brief A node in the tree which can contain SgNodes
+/**	\class ScnSpacialTreeNode
+*	\brief A Entity in the tree which can contain ScnEntitys
 *
 *	
 */
-class SgSpacialTreeNode:
-	public BcOctTreeNode,
-	public BcMemoryAllocator< bcMEM_SCENEGRAPH >
+class ScnSpacialTreeNode:
+	public BcOctTreeNode
 {
 public:
-	SgSpacialTreeNode();
-	virtual ~SgSpacialTreeNode();
+	ScnSpacialTreeNode();
+	virtual ~ScnSpacialTreeNode();
 	
 	/**
-	*	Add node.
+	*	Add entity.
 	*/
-	void					addNode( SgNode* pNode );
+	void					addEntity( ScnEntityWeakRef Entity );
 	
 	/**
-	*	Remove node.
+	*	Remove entity.
 	*/
-	void					removeNode( SgNode* pNode );
+	void					removeEntity( ScnEntityWeakRef Entity );
 	
 	/**
-	*	Reinsert node.
+	*	Reinsert entity.
 	*/
-	void					reinsertNode( SgNode* pNode );
+	void					reinsertEntity( ScnEntityWeakRef Entity );
 	
 	/**
 	*	Visit view.
 	*/
-	void					visitView( SgVisitor* pVisitor, const RsViewport& Viewport );
+	void					visitView( ScnVisitor* pVisitor, const RsViewport& Viewport );
 
 	/**
 	*	Visit bounds.
 	*/
-	void					visitBounds( SgVisitor* pVisitor, const BcAABB& Bounds );
+	void					visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds );
 
 private:
-	SgNodeList				NodeList_;
+	ScnEntityWeakRefList				EntityList_;
 
 };
 
 //////////////////////////////////////////////////////////////////////////
-/**	\class SgSpacialTree
-*	\brief Tree to store nodes.
+/**	\class ScnSpacialTree
+*	\brief Tree to store Entitys.
 *
 *	
 */
-class SgSpacialTree:
+class ScnSpacialTree:
 	public BcOctTree
 {
 public:
-	SgSpacialTree();
-	virtual ~SgSpacialTree();
+	ScnSpacialTree();
+	virtual ~ScnSpacialTree();
 	
 	/**
-	*	Add node.
+	*	Add Entity.
 	*/
-	void					addNode( SgNode* pNode );
+	void					addEntity( ScnEntityWeakRef Entity );
 
 	/**
-	*	Remove node.
+	*	Remove Entity.
 	*/
-	void					removeNode( SgNode* pNode );
+	void					removeEntity( ScnEntityWeakRef Entity );
 
 	/**
 	*	Visit view.
 	*/
-	void					visitView( SgVisitor* pVisitor, const RsViewport& Viewport );
+	void					visitView( ScnVisitor* pVisitor, const RsViewport& Viewport );
 	
 	/**
 	*	Visit bounds.
 	*/
-	void					visitBounds( SgVisitor* pVisitor, const BcAABB& Bounds );
+	void					visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds );
 
 private:
 	/**
-	*	Create our own node type.
+	*	Create our own Entity type.
 	*/
 	virtual BcOctTreeNode*	createNode( const BcAABB& AABB );
 };

@@ -22,3 +22,5 @@
 /ContentServer_Release.exp
 /ContentServer_Release.lib
 /ContentServer_Release.pdb
+/*.ScnTextureAtlas.dep
+/*.dep

@@ -22,6 +22,8 @@
 #include "ScnComponent.h"
 
 #include "ScnTransform.h"
+#include "ScnSpacialTree.h"
+#include "ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
@@ -30,6 +32,7 @@ class ScnEntity:
 {
 public:
 	DECLARE_RESOURCE( CsResource, ScnEntity );
+	DECLARE_VISITABLE( ScnEntity );
 	
 #if PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
@@ -43,6 +46,21 @@ public:
 	virtual void						update( BcReal Tick );
 	virtual void						attach( ScnComponent* Component );
 	virtual void						detach( ScnComponent* Component );
+
+	/**
+ 	 * Get AABB which encompasses this entity.
+	 */
+	const BcAABB&						getAABB() const;
+
+	/**
+	 * Set the spacial tree node we belong in.
+	 */
+	void								setSpacialTreeNode( ScnSpacialTreeNode* pNode );
+
+	/**
+	 * Get the spacial tree node we are in.
+	 */
+	ScnSpacialTreeNode*					getSpacialTreeNode();
 
 protected:
 	virtual void						fileReady();
@@ -58,6 +76,9 @@ protected:
 
 	ScnComponentList					Components_;
 	ScnTransform						Transform_;
+
+private:
+	ScnSpacialTreeNode*					pSpacialTreeNode_;
 };
 
 #endif

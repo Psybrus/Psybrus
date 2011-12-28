@@ -19,9 +19,7 @@
 
 #include "SysSystem.h"
 
-// TODO: After LD.
-//#include "ScnNode.h"
-//#include "ScnSpacialTree.h"
+#include "ScnSpacialTree.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCore

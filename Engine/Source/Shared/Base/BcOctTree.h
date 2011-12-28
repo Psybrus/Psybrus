@@ -30,8 +30,8 @@ public:
 	BcOctTreeNode();
 	virtual ~BcOctTreeNode();
 
-	const BcAABB& aabb() const;
-	void aabb( const BcAABB& AABB );
+	const BcAABB& getAABB() const;
+	void setAABB( const BcAABB& AABB );
 
 	BcOctTreeNode* pParent();
 	BcOctTreeNode* pChild( BcU32 iChild );
@@ -75,12 +75,12 @@ inline BcOctTreeNode::~BcOctTreeNode()
 	}
 }
 
-inline const BcAABB& BcOctTreeNode::aabb() const
+inline const BcAABB& BcOctTreeNode::getAABB() const
 {
 	return AABB_;
 }
 
-inline void BcOctTreeNode::aabb( const BcAABB& AABB )
+inline void BcOctTreeNode::setAABB( const BcAABB& AABB )
 {
 	AABB_ = AABB;
 }

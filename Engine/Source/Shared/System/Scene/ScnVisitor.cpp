@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "SgVisitor.h"
+#include "ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SgVisitor::SgVisitor()
+ScnVisitor::ScnVisitor()
 {
 
 }
@@ -23,7 +23,7 @@ SgVisitor::SgVisitor()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-SgVisitor::~SgVisitor()
+ScnVisitor::~ScnVisitor()
 {
 
 }
@@ -31,7 +31,7 @@ SgVisitor::~SgVisitor()
 //////////////////////////////////////////////////////////////////////////
 // preVisit
 //virtual
-void SgVisitor::preScene()
+void ScnVisitor::preScene()
 {
 
 }
@@ -39,23 +39,7 @@ void SgVisitor::preScene()
 //////////////////////////////////////////////////////////////////////////
 // postVisit
 //virtual
-void SgVisitor::postScene()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// preZone
-//virtual
-void SgVisitor::preZone( SgZone* pZone )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// postZone
-//virtual
-void SgVisitor::postZone( SgZone* pZone )
+void ScnVisitor::postScene()
 {
 
 }
@@ -63,23 +47,8 @@ void SgVisitor::postZone( SgZone* pZone )
 //////////////////////////////////////////////////////////////////////////
 // visit
 //virtual
-void SgVisitor::visit( SgNode* pNode )
+void ScnVisitor::visit( ScnEntity* pNode )
 {
 
 }
 
-//////////////////////////////////////////////////////////////////////////
-// visit
-//virtual
-void SgVisitor::visit( SgNodeMesh* pNode )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// visit
-//virtual
-void SgVisitor::visit( SgNodeLight* pNode )
-{
-
-}

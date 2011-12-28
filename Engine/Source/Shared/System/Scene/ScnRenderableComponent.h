@@ -1,8 +1,8 @@
 /**************************************************************************
 *
-* File:		ScnComponent.h
+* File:		ScnRenderableComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:	26/11/11	
+* Ver/Date:	28/12/11	
 * Description:
 *		
 *		
@@ -11,36 +11,26 @@
 * 
 **************************************************************************/
 
-#ifndef __ScnComponent_H__
-#define __ScnComponent_H__
+#ifndef __ScnRenderableComponent_H__
+#define __ScnRenderableComponent_H__
 
 #include "RsCore.h"
-#include "CsResource.h"
-
 #include "ScnTypes.h"
+#include "ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnComponent
-class ScnComponent:
-	public CsResource
+// ScnRenderableComponent
+class ScnRenderableComponent:
+	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnComponent );
+	DECLARE_RESOURCE( ScnComponent, ScnRenderableComponent );
 	
 public:
 	virtual void						update( BcReal Tick );
+	virtual void						render( RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-
-protected:
-
-	struct THeader
-	{
-	};
-	
-	THeader*							pHeader_;
-
-	ScnEntityWeakRef					ParentEntity_;
 };
 
 #endif

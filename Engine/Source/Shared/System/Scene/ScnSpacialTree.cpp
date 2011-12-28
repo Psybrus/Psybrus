@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		SgSpacialTree.cpp
+* File:		ScnSpacialTree.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,20 +11,19 @@
 * 
 **************************************************************************/
 
-#include "SgSpacialTree.h"
-
-#include "SgNode.h"
+#include "ScnSpacialTree.h"
+#include "ScnEntity.h"
 
 #include "RsCore.h"
 #include "RsFrame.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// SgSpacialTreeNode
+// ScnSpacialTreeNode
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SgSpacialTreeNode::SgSpacialTreeNode()
+ScnSpacialTreeNode::ScnSpacialTreeNode()
 {
 	
 }
@@ -32,76 +31,76 @@ SgSpacialTreeNode::SgSpacialTreeNode()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-SgSpacialTreeNode::~SgSpacialTreeNode()
+ScnSpacialTreeNode::~ScnSpacialTreeNode()
 {
-	// Remove SgNodes from the list and clear their parent.
-	SgNodeList::iterator Iter = NodeList_.begin();
+	// Remove ScnEntitys from the list and clear their parent.
+	ScnEntityWeakRefList::iterator Iter = EntityList_.begin();
 
-	while( Iter != NodeList_.end() )
+	while( Iter != EntityList_.end() )
 	{
-		SgNode* pNode = *Iter;
+		ScnEntityWeakRef Entity = *Iter;
 
 		// Validate before removing.
-		BcAssert( pNode->pSpacialNode_ == this );
-		pNode->pSpacialNode_ = NULL;
+		BcAssert( Entity->getSpacialTreeNode() == this );
+		Entity->setSpacialTreeNode( NULL );
 
 		++Iter;
 	}
 
-	NodeList_.clear();
+	EntityList_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addNode
-void SgSpacialTreeNode::addNode( SgNode* pNode )
+// addEntity
+void ScnSpacialTreeNode::addEntity( ScnEntityWeakRef Entity )
 {
 	// Add to self.
 	// TODO: Subdivide and such.
-	NodeList_.push_back( pNode );
-	pNode->pSpacialNode_ = this;
+	EntityList_.push_back( Entity );
+	Entity->setSpacialTreeNode( this );
 
-	// Reinsert node to put it into the correct child node.
-	reinsertNode( pNode );
+	// Reinsert Entity to put it into the correct child Entity.
+	reinsertEntity( Entity );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// removeNode
-void SgSpacialTreeNode::removeNode( SgNode* pNode )
+// removeEntity
+void ScnSpacialTreeNode::removeEntity( ScnEntityWeakRef Entity )
 {
 	// Remove from self/owner.
-	if( pNode->pSpacialNode_ != this )
+	if( Entity->getSpacialTreeNode() != this )
 	{
-		pNode->pSpacialNode_->removeNode( pNode );
+		Entity->getSpacialTreeNode()->removeEntity( Entity );
 	}
 
-	NodeList_.remove( pNode );
-	pNode->pSpacialNode_ = NULL;
+	EntityList_.remove( Entity );
+	Entity->setSpacialTreeNode( NULL );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// reinsertNode
-void SgSpacialTreeNode::reinsertNode( SgNode* pNode )
+// reinsertEntity
+void ScnSpacialTreeNode::reinsertEntity( ScnEntityWeakRef Entity )
 {
 	// If we've got no children, check if we need to subdivide.
 	if( pChild( 0 ) == NULL )
 	{
-		if( NodeList_.size() > SG_NODELIST_DIVIDESIZE )
+		if( EntityList_.size() > SCN_ENTITYLIST_DIVIDESIZE )
 		{
 			subDivide();
 		}
 	}
 
-	// If node does not fit into self, give to parent, they can deal with it.
-	if( pNode->aabb().isEmpty() == BcFalse && aabb().classify( pNode->aabb() ) != BcAABB::bcBC_INSIDE )
+	// If Entity does not fit into self, give to parent, they can deal with it.
+	if( Entity->getAABB().isEmpty() == BcFalse && getAABB().classify( Entity->getAABB() ) != BcAABB::bcBC_INSIDE )
 	{
-		//BcAssertMsg( pParent() != NULL, "Object went outside of scene." );
+		//BcAssertMScn( pParent() != NULL, "Object went outside of scene." );
 
 		if( pParent() != NULL )
 		{
-			SgSpacialTreeNode* pParentNode = static_cast< SgSpacialTreeNode* >( pParent() );
-			NodeList_.remove( pNode );
-			pParentNode->NodeList_.push_back( pNode );
-			pNode->pSpacialNode_ = pParentNode;
+			ScnSpacialTreeNode* pParentNode = static_cast< ScnSpacialTreeNode* >( pParent() );
+			EntityList_.remove( Entity );
+			pParentNode->EntityList_.push_back( Entity );
+			Entity->setSpacialTreeNode( pParentNode );
 		}
 	}
 	else
@@ -111,9 +110,9 @@ void SgSpacialTreeNode::reinsertNode( SgNode* pNode )
 		{
 			for( BcU32 i = 0; i < 8; ++i )
 			{
-				SgSpacialTreeNode* pChildNode = static_cast< SgSpacialTreeNode* >( pChild( i ) );
+				ScnSpacialTreeNode* pChildNode = static_cast< ScnSpacialTreeNode* >( pChild( i ) );
 
-				BcAABB::eClassify Classification = pChildNode->aabb().classify( pNode->aabb() );
+				BcAABB::eClassify Classification = pChildNode->getAABB().classify( Entity->getAABB() );
 
 				// If its spanning, don't attempt any other children.
 				if( Classification == BcAABB::bcBC_SPANNING )
@@ -123,9 +122,9 @@ void SgSpacialTreeNode::reinsertNode( SgNode* pNode )
 				// If its inside the child, hand it over no questions asked.
 				else if( Classification == BcAABB::bcBC_INSIDE )
 				{
-					NodeList_.remove( pNode );
-					pChildNode->NodeList_.push_back( pNode );
-					pNode->pSpacialNode_ = pChildNode;
+					EntityList_.remove( Entity );
+					pChildNode->EntityList_.push_back( Entity );
+					Entity->setSpacialTreeNode( pChildNode );
 				}
 				// Otherwise we're safe to try another.
 			}
@@ -135,18 +134,18 @@ void SgSpacialTreeNode::reinsertNode( SgNode* pNode )
 
 //////////////////////////////////////////////////////////////////////////
 // visitView
-void SgSpacialTreeNode::visitView( SgVisitor* pVisitor, const RsViewport& Viewport )
+void ScnSpacialTreeNode::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
 {
-	// Visit this nodes objects if they are inside the frustum.
-	SgNodeList::iterator Iter = NodeList_.begin();
+	// Visit this Entitys objects if they are inside the frustum.
+	ScnEntityWeakRefList::iterator Iter = EntityList_.begin();
 
-	while( Iter != NodeList_.end() )
+	while( Iter != EntityList_.end() )
 	{
-		SgNode* pNode = *Iter;
+		ScnEntityWeakRef Entity = *Iter;
 
-		if( pNode->aabb().isEmpty() || Viewport.intersect( pNode->aabb() ) == BcTrue )
+		if( Entity->getAABB().isEmpty() || Viewport.intersect( Entity->getAABB() ) == BcTrue )
 		{
-			pNode->visit_accept( pVisitor );
+			Entity->visit_accept( pVisitor );
 		}
 
 		++Iter;
@@ -157,10 +156,10 @@ void SgSpacialTreeNode::visitView( SgVisitor* pVisitor, const RsViewport& Viewpo
 	{
 		for( BcU32 i = 0; i < 8; ++i )
 		{
-			SgSpacialTreeNode* pChildNode = static_cast< SgSpacialTreeNode* >( pChild( i ) );
-			if( Viewport.intersect( pChildNode->aabb() ) )
+			ScnSpacialTreeNode* pChildEntity = static_cast< ScnSpacialTreeNode* >( pChild( i ) );
+			if( Viewport.intersect( pChildEntity->getAABB() ) )
 			{
-				pChildNode->visitView( pVisitor, Viewport );
+				pChildEntity->visitView( pVisitor, Viewport );
 			}
 		}
 	}
@@ -168,18 +167,18 @@ void SgSpacialTreeNode::visitView( SgVisitor* pVisitor, const RsViewport& Viewpo
 
 //////////////////////////////////////////////////////////////////////////
 // visitBounds
-void SgSpacialTreeNode::visitBounds( SgVisitor* pVisitor, const BcAABB& Bounds )
+void ScnSpacialTreeNode::visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds )
 {
-	// Visit this nodes objects if they are inside the frustum.
-	SgNodeList::iterator Iter = NodeList_.begin();
+	// Visit this Entitys objects if they are inside the frustum.
+	ScnEntityWeakRefList::iterator Iter = EntityList_.begin();
 
-	while( Iter != NodeList_.end() )
+	while( Iter != EntityList_.end() )
 	{
-		SgNode* pNode = *Iter;
+		ScnEntityWeakRef Entity = *Iter;
 
-		if( pNode->aabb().isEmpty() || Bounds.boxIntersect( pNode->aabb(), NULL ) == BcTrue )
+		if( Entity->getAABB().isEmpty() || Bounds.boxIntersect( Entity->getAABB(), NULL ) == BcTrue )
 		{
-			pNode->visit_accept( pVisitor );
+			Entity->visit_accept( pVisitor );
 		}
 
 		++Iter;
@@ -190,22 +189,22 @@ void SgSpacialTreeNode::visitBounds( SgVisitor* pVisitor, const BcAABB& Bounds )
 	{
 		for( BcU32 i = 0; i < 8; ++i )
 		{
-			SgSpacialTreeNode* pChildNode = static_cast< SgSpacialTreeNode* >( pChild( i ) );
-			if( Bounds.boxIntersect( pChildNode->aabb(), NULL ) )
+			ScnSpacialTreeNode* pChildEntity = static_cast< ScnSpacialTreeNode* >( pChild( i ) );
+			if( Bounds.boxIntersect( pChildEntity->getAABB(), NULL ) )
 			{
-				pChildNode->visitBounds( pVisitor, Bounds );
+				pChildEntity->visitBounds( pVisitor, Bounds );
 			}
 		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// SgSpacialTree
+// ScnSpacialTree
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SgSpacialTree::SgSpacialTree()
+ScnSpacialTree::ScnSpacialTree()
 {
 	
 }
@@ -213,7 +212,7 @@ SgSpacialTree::SgSpacialTree()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-SgSpacialTree::~SgSpacialTree()
+ScnSpacialTree::~ScnSpacialTree()
 {
 	
 }
@@ -221,45 +220,45 @@ SgSpacialTree::~SgSpacialTree()
 //////////////////////////////////////////////////////////////////////////
 // createNode
 //virtual
-BcOctTreeNode* SgSpacialTree::createNode( const BcAABB& AABB )
+BcOctTreeNode* ScnSpacialTree::createNode( const BcAABB& AABB )
 {
-	SgSpacialTreeNode* pNode = new SgSpacialTreeNode();
-	pNode->aabb( AABB );
-	return pNode;
+	ScnSpacialTreeNode* Entity = new ScnSpacialTreeNode();
+	Entity->setAABB( AABB );
+	return Entity;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addNode
-void SgSpacialTree::addNode( SgNode* pNode )
+// addEntity
+void ScnSpacialTree::addEntity( ScnEntityWeakRef Entity )
 {
-	SgSpacialTreeNode* pRoot = static_cast< SgSpacialTreeNode* >( pRootNode() );
+	ScnSpacialTreeNode* pRoot = static_cast< ScnSpacialTreeNode* >( pRootNode() );
 
-	pRoot->addNode( pNode );
+	pRoot->addEntity( Entity );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// removeNode
-void SgSpacialTree::removeNode( SgNode* pNode )
+// removeEntity
+void ScnSpacialTree::removeEntity( ScnEntityWeakRef Entity )
 {
-	SgSpacialTreeNode* pRoot = static_cast< SgSpacialTreeNode* >( pRootNode() );
+	ScnSpacialTreeNode* pRoot = static_cast< ScnSpacialTreeNode* >( pRootNode() );
 
-	pRoot->removeNode( pNode );
+	pRoot->removeEntity( Entity );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // visitView
-void SgSpacialTree::visitView( SgVisitor* pVisitor, const RsViewport& Viewport )
+void ScnSpacialTree::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
 {
-	SgSpacialTreeNode* pRoot = static_cast< SgSpacialTreeNode* >( pRootNode() );
+	ScnSpacialTreeNode* pRoot = static_cast< ScnSpacialTreeNode* >( pRootNode() );
 	
 	pRoot->visitView( pVisitor, Viewport );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // visitBounds
-void SgSpacialTree::visitBounds( SgVisitor* pVisitor, const BcAABB& Bounds )
+void ScnSpacialTree::visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds )
 {
-	SgSpacialTreeNode* pRoot = static_cast< SgSpacialTreeNode* >( pRootNode() );
+	ScnSpacialTreeNode* pRoot = static_cast< ScnSpacialTreeNode* >( pRootNode() );
 
 	pRoot->visitBounds( pVisitor, Bounds );
 }

@@ -90,6 +90,7 @@ void ScnEntity::initialise()
 {
 	// NULL internals.
 	pHeader_ = NULL;
+	pSpacialTreeNode_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,6 +162,29 @@ void ScnEntity::detach( ScnComponent* Component )
 			break;
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+const BcAABB& ScnEntity::getAABB() const
+{
+	// NEILO TODO!
+	static BcAABB AABB;
+	return AABB;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSpacialTreeNode
+void ScnEntity::setSpacialTreeNode( ScnSpacialTreeNode* pNode )
+{
+	pSpacialTreeNode_ = pNode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSpacialTreeNode
+ScnSpacialTreeNode* ScnEntity::getSpacialTreeNode()
+{
+	return pSpacialTreeNode_;
 }
 
 //////////////////////////////////////////////////////////////////////////
