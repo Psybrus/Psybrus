@@ -74,6 +74,38 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// onCsCorePreClose
+eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
+{
+	// Unregister scene resources.
+	CsCore::pImpl()->unregisterResource< ScnRenderTarget >();
+
+	CsCore::pImpl()->unregisterResource< ScnShader >();
+	CsCore::pImpl()->unregisterResource< ScnTexture >();
+	CsCore::pImpl()->unregisterResource< ScnTextureAtlas >();
+
+	CsCore::pImpl()->unregisterResource< ScnMaterial >();
+	CsCore::pImpl()->unregisterResource< ScnMaterialInstance >();
+
+	CsCore::pImpl()->unregisterResource< ScnFont >();
+	CsCore::pImpl()->unregisterResource< ScnFontInstance >();
+
+	CsCore::pImpl()->unregisterResource< ScnModel >();
+	CsCore::pImpl()->unregisterResource< ScnModelInstance >();
+
+	CsCore::pImpl()->unregisterResource< ScnSound >();
+	CsCore::pImpl()->unregisterResource< ScnSoundEmitter >();
+
+	CsCore::pImpl()->unregisterResource< ScnComponent >();
+	CsCore::pImpl()->unregisterResource< ScnEntity >();
+
+	CsCore::pImpl()->unregisterResource< ScnCanvas >();
+	CsCore::pImpl()->unregisterResource< ScnView >();
+
+	return evtRET_REMOVE;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // MainShared
 void MainShared()
 {
@@ -166,4 +198,8 @@ void MainShared()
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnCsCoreOpened );
+
+	// Setup callback for post CsCore pre close for resource unregistration
+	SysSystemEvent::Delegate OnCsCorePreClose = SysSystemEvent::Delegate::bind< onCsCorePreClose >();
+	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, OnCsCorePreClose );
 }

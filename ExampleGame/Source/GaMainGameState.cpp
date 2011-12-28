@@ -182,7 +182,21 @@ eSysStateReturn GaMainGameState::leave()
 //virtual
 void GaMainGameState::leaveOnce()
 {
+	// Free all entities.
+	for( BcU32 Idx = 0; Idx < SpawnEntities_.size(); ++Idx )
+	{
+		delete SpawnEntities_[ Idx ];
+	}
 
+	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
+	{
+		delete Entities_[ Idx ];
+	}
+
+	for( BcU32 Idx = 0; Idx < KillEntities_.size(); ++Idx )
+	{
+		delete KillEntities_[ Idx ];
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
