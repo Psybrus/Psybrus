@@ -91,8 +91,8 @@ enum PsySetupFlags
 	// Defaults.
 	psySF_DEFAULT_SYSTEMS					= psySF_RENDER | psySF_SOUND,
 	psySF_GAME_FINAL						= psySF_DEFAULT_SYSTEMS | psySF_WINDOW,
-	psySF_GAME_DEV							= psySF_GAME_FINAL | psySF_REMOTE,
-	psySF_SERVER							= psySF_CONSOLE | psySF_REMOTE,
+	psySF_GAME_DEV							= psySF_CONTENT_CLIENT | psySF_GAME_FINAL | psySF_REMOTE,
+	psySF_SERVER							= psySF_CONTENT_SERVER | psySF_CONSOLE | psySF_REMOTE,
 };
 
 struct PsySetupParams

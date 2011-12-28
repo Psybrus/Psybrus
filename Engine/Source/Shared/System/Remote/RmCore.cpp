@@ -86,7 +86,7 @@ BcBool RmCore::send( BcU32 UniqueID, RmParameters& Params )
 // connect
 void RmCore::connect( const BcChar* pAddress )
 {
-	BcScopedLock< BcMutex > Lock( ConnectionLock_ );
+	BcAssert( BcIsGameThread() );
 
 	// Listen for a connection by default.
 	if( pConnection_->connectRange( pAddress, 4000, 32 ) )
@@ -107,7 +107,7 @@ void RmCore::connect( const BcChar* pAddress )
 // listen
 void RmCore::listen()
 {
-	BcScopedLock< BcMutex > Lock( ConnectionLock_ );
+	BcAssert( BcIsGameThread() );
 	
 	// Listen for a connection by default.
 	if( pConnection_->listenRange( "localhost", 4000, 32 ) )

@@ -74,6 +74,12 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SYS_REGISTER( "OsCore", OsCoreImplWindows );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 	SYS_REGISTER( "CsCore", CsCore );
+#ifndef PSY_PRODUCTION
+	SYS_REGISTER( "CsCoreClient", CsCoreClient );
+#if PSY_SERVER
+	SYS_REGISTER( "CsCoreServer", CsCoreServer );
+#endif
+#endif
 	SYS_REGISTER( "RsCore", RsCoreImplGL );
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
 		

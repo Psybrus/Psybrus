@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
+				PreprocessorDefinitions="WIN32;_WIN32;_DEBUG;WINDOWS;_WINDOWS;PSY_DEBUG;PSY_SERVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,7 +61,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenAL32.lib OpenGL32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=""
@@ -119,7 +118,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
+				PreprocessorDefinitions="WIN32;_WIN32;NDEBUG;WINDOWS;_WINDOWS;PSY_RELEASE;PSY_SERVER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -137,7 +136,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenAL32.lib OpenGL32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""
@@ -197,7 +195,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_PRODUCTION"
+				PreprocessorDefinitions="WIN32;_WIN32;NDEBUG;WINDOWS;_WINDOWS;PSY_PRODUCTION"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -215,7 +213,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenAL32.lib OpenGL32.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""

@@ -19,6 +19,7 @@
 // Ctor
 RmTCPConnection::RmTCPConnection()
 {
+	/*
 	ServInfo_ = NULL;
 	SocketDesc_ = BcErrorCode;
 	IsConnected_ = BcFalse;
@@ -33,19 +34,23 @@ RmTCPConnection::RmTCPConnection()
 		IsInitialised = BcTrue;
 	}
 #endif
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dtor
 RmTCPConnection::~RmTCPConnection()
 {
+	/*
 	disconnect();
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // connect
 BcBool RmTCPConnection::connect( const BcChar* Address, BcU16 Port )
 {
+	/*
 	int ReturnCode = 0;
 
 	// Disconnect first.
@@ -69,12 +74,15 @@ BcBool RmTCPConnection::connect( const BcChar* Address, BcU16 Port )
 	// Clean up.
 	disconnect();
 	return BcFalse;
+	*/
+	return BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // connectRange
 BcBool RmTCPConnection::connectRange( const BcChar* Address, BcU16 StartPort, BcU16 TotalPorts )
 {
+	/*
 	BcBool Success = BcFalse;
 	
 	do
@@ -91,12 +99,15 @@ BcBool RmTCPConnection::connectRange( const BcChar* Address, BcU16 StartPort, Bc
 	while( Success == BcFalse );
 	
 	return Success;
+	*/
+	return BcFalse;
 }	
 
 ////////////////////////////////////////////////////////////////////////////////
 // listen
 BcBool RmTCPConnection::listen( const BcChar* Address, BcU16 Port )
 {
+	/*
 	// Disconnect first.
 	if( ServInfo_ != NULL || SocketDesc_ != BcErrorCode )
 	{
@@ -131,12 +142,15 @@ BcBool RmTCPConnection::listen( const BcChar* Address, BcU16 Port )
 	// Clean up.
 	disconnect();
 	return BcFalse;
+	*/
+	return BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // listenRange
 BcBool RmTCPConnection::listenRange( const BcChar* Address, BcU16 StartPort, BcU16 TotalPorts )
 {
+	/*
 	BcBool Success = BcFalse;
 	
 	BcU16 InitialPort = 4 % TotalPorts;
@@ -152,12 +166,15 @@ BcBool RmTCPConnection::listenRange( const BcChar* Address, BcU16 StartPort, BcU
 	}
 	
 	return Success;
+	*/
+	return BcFalse;
 }	
 
 ////////////////////////////////////////////////////////////////////////////////
 // disconnect
 void RmTCPConnection::disconnect()
 {
+	/*
 	if( ServInfo_ != NULL )
 	{
 		::freeaddrinfo( ServInfo_ );
@@ -172,12 +189,14 @@ void RmTCPConnection::disconnect()
 	
 	Port_ = 0;
 	IsConnected_ = BcFalse;
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // send
 BcBool RmTCPConnection::send( const void* pData, BcU32 Bytes )
 {
+	/*
 	if( SocketDesc_ != BcErrorCode )
 	{
 		const BcU8* pDataBuffer( (const BcU8*)pData );
@@ -205,20 +224,20 @@ BcBool RmTCPConnection::send( const void* pData, BcU32 Bytes )
 	}
 	
 	return BcFalse;
+	*/
+	return BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // recv
 BcU32 RmTCPConnection::recv( void* pBuffer, BcU32 Bytes, BcBool Peek, BcBool Block )
 {
+	/*
 	if( SocketDesc_ != 0 )
 	{
 #if PLATFORM_WINDOWS
-		if( Block )
-		{
-			u_long Mode = 1;
-			::ioctlsocket( SocketDesc_, FIONBIO, &Mode );
-		}
+		u_long Mode = Block ? 1 : 0;
+		::ioctlsocket( SocketDesc_, FIONBIO, &Mode );
 #else
 		fcntl( SocketDesc_, F_SETFL, O_RDWR | ( Block ? 0 : O_NONBLOCK ) );
 #endif
@@ -227,12 +246,15 @@ BcU32 RmTCPConnection::recv( void* pBuffer, BcU32 Bytes, BcBool Peek, BcBool Blo
 	}
 	
 	return BcErrorCode;
+	*/
+	return BcErrorCode;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // parseAddressInfo
 BcBool RmTCPConnection::parseAddressInfo( const BcChar* Address, BcU16 Port )
 {
+	/*
 	BcAssert( ServInfo_ == NULL );
 	
 	int Status;		
@@ -270,7 +292,9 @@ BcBool RmTCPConnection::parseAddressInfo( const BcChar* Address, BcU16 Port )
         inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
         printf("  %s: %s\n", ipver, ipstr);
     }
-	 */
+	 */ /*
 	
 	return Status == 0;
+	*/
+	return BcFalse;
 }
