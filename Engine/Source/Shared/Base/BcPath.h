@@ -31,10 +31,10 @@ public:
 	BcPath( const BcChar* pValue );
 	virtual ~BcPath();
 
-	const BcChar* operator * () const;
-	const BcChar* getFileName() const;
-	BcName getExtension() const;
-	BcName getFileNameNoExtension() const;
+	std::string operator * () const;
+	std::string getFileName() const;
+	std::string getExtension() const;
+	std::string getFileNameNoExtension() const;
 
 	void append( const BcPath& PathA );
 	void join( const BcPath& PathA );

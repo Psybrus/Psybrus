@@ -139,7 +139,7 @@ private:
 	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
 	BcBool								parseJsonFile( const BcChar* pFileName, Json::Value& Root );
 
-	BcBool								shouldImportResource( const BcPath& FileName );
+	BcBool								shouldImportResource( const BcPath& FileName, BcBool ForceImport );
 
 	void								saveDependancies( const BcPath& FileName );
 	void								loadDependancies( const BcPath& FileName );

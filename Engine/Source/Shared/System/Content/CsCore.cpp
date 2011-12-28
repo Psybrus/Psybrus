@@ -123,10 +123,10 @@ void CsCore::importResource( const BcPath& FileName, BcBool ForceImport )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	BcBool Import = shouldImportResource( FileName );
+	BcBool Import = shouldImportResource( FileName, ForceImport );
 
 	// Only import if dependancies have changed, or there are none.
-	if( Import == BcTrue || ForceImport == BcTrue )
+	if( Import == BcTrue )
 	{
 		ImportList_.push_back( *FileName );
 	}
@@ -165,7 +165,7 @@ BcPath CsCore::findImportPath( const BcPath& InputPath )
 		BcPath AppendedPath = (*It);
 		AppendedPath.join( InputPath );
 
-		if( FsCore::pImpl()->fileExists( *AppendedPath ) )
+		if( FsCore::pImpl()->fileExists( (*AppendedPath).c_str() ) )
 		{
 			return AppendedPath;
 		}
@@ -182,14 +182,14 @@ BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& 
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
 	// Only import if we should. Otherwise just request.
-	if( shouldImportResource( FileName ) == BcFalse )
+	if( shouldImportResource( FileName, BcFalse ) == BcFalse )
 	{
 		return internalRequestResource( FileName.getFileNameNoExtension(), FileName.getExtension(), Handle );
 	}
 	
 	// Parse Json file.
 	Json::Value Object;
-	if( parseJsonFile( *findImportPath( FileName ), Object ) )
+	if( parseJsonFile( (*findImportPath( FileName )).c_str(), Object ) )
 	{
 		BcBool Success = BcFalse;
 		
@@ -201,7 +201,7 @@ BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& 
 			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
 			{
 				// Add file for monitoring.
-				FsCore::pImpl()->addFileMonitor( *((*Iter).getFileName()) );
+				FsCore::pImpl()->addFileMonitor( (*((*Iter).getFileName())).c_str() );
 			}
 			
 			// Store dependancy list in map for reimporting on file modification.
@@ -365,17 +365,20 @@ BcBool CsCore::parseJsonFile( const BcChar* pFileName, Json::Value& Root )
 
 //////////////////////////////////////////////////////////////////////////
 // shouldImportResource
-BcBool CsCore::shouldImportResource( const BcPath& FileName )
+BcBool CsCore::shouldImportResource( const BcPath& FileName, BcBool ForceImport )
 {
 	BcBool Import = BcFalse;
 
 	// Only attempt import if the resource filename is valid.
 	if( isValidResource( FileName ) )
 	{
+		// Only force import if the resource is actually valid.
+		Import = ForceImport;
+
 		// Check if the packed resource exists.
 		BcPath PackedPath( "./PackedContent" );
 		PackedPath.join( FileName.getFileName() );
-		if( FsCore::pImpl()->fileExists( *PackedPath ) == BcFalse )
+		if( FsCore::pImpl()->fileExists( (*PackedPath).c_str() ) == BcFalse )
 		{
 			Import = BcTrue;
 		}
@@ -445,7 +448,7 @@ void CsCore::saveDependancies( const BcPath& FileName )
 	std::string JsonOutput = Writer.write( Object );
 
 	BcFile OutFile;
-	if( OutFile.open( *DependanciesFileName, bcFM_WRITE ) )
+	if( OutFile.open( (*DependanciesFileName).c_str(), bcFM_WRITE ) )
 	{
 		OutFile.write( JsonOutput.c_str(), JsonOutput.size() );
 		OutFile.close();
@@ -467,7 +470,7 @@ void CsCore::loadDependancies( const BcPath& FileName )
 
 	// Open dependancy file.
 	BcFile OutFile;
-	if( OutFile.open( *DependanciesFileName, bcFM_READ ) )
+	if( OutFile.open( (*DependanciesFileName).c_str(), bcFM_READ ) )
 	{
 		BcU32 BufferSize = OutFile.size() + 1;
 		BcChar* pJsonData = new BcChar[ BufferSize ];
@@ -566,7 +569,7 @@ eEvtReturn CsCore::eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event
 			for( CsDependancyListIterator DepIter( DependancyList.begin() ); DepIter != DependancyList.end(); ++DepIter )
 			{
 				// If the dependancy filename matches the one modified, then add resource to the dependancy list.
-				if( BcStrCompare( *(*DepIter).getFileName(), Event.FileName_ ) )
+				if( BcStrCompare( (*(*DepIter).getFileName()).c_str(), Event.FileName_ ) )
 				{
 					ImportList_.push_back( ResourceName );
 					break;

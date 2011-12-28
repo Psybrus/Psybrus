@@ -300,8 +300,36 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="NewFilter1"
+			Name="Resources"
 			>
+			<File
+				RelativePath="..\..\Source\ContentServer\ContentServer.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\ContentServer\ContentServer.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Dist\Splash\psybrus_logo_16x16.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Dist\Splash\psybrus_logo_32x32.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\ContentServer\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\ContentServer\small.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\ContentServer\targetver.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

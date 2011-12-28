@@ -229,8 +229,7 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 		return BcErrorCode;
 	}
 
-	// If string is too short, return invalid index.
-	BcVerifyMsg( Value.length() > 0, "BcName: String too short to store in name table." );
+	// If string is too short, return invalid index. Don't warn.
 	if( Value.length() == 0 )
 	{
 		return BcErrorCode;
@@ -275,7 +274,7 @@ BcBool BcName::isNameValid( const std::string& Value )
 	{
 		std::string NewValue = Value.substr( 0, Position );
 
-		// Only 'a'-'z', 'A'-'Z', '0'-'9' are valid.
+		// Allow more valid characters.
 		for( BcU32 Idx = 0; Idx < NewValue.length(); ++Idx )
 		{
 			if( ( NewValue[ Idx ] >= 'a' && NewValue[ Idx ] <= 'z' ) ||

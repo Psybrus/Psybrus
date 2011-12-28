@@ -63,7 +63,7 @@ const FsStats& CsDependancy::getStats() const
 BcBool CsDependancy::hasChanged()
 {
 	FsStats Stats;
-	if( FsCore::pImpl()->fileStats( *FileName_, Stats ) )
+	if( FsCore::pImpl()->fileStats( (*FileName_).c_str(), Stats ) )
 	{
 		if( Stats.ModifiedTime_ != Stats_.ModifiedTime_ )
 		{
@@ -78,5 +78,5 @@ BcBool CsDependancy::hasChanged()
 // updateStats
 void CsDependancy::updateStats()
 {
-	FsCore::pImpl()->fileStats( *FileName_, Stats_ );
+	FsCore::pImpl()->fileStats( (*FileName_).c_str(), Stats_ );
 }
