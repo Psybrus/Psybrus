@@ -21,7 +21,7 @@ GaOverlayState::GaOverlayState( ScnMaterialRef Material, const std::string& Text
 	Text_ = Text;
 	if( Material.isValid() )
 	{
-		Material->createComponent( *Material->getName() + "MaterialComponent", MaterialComponent_, BcErrorCode );
+		CsCore::pImpl()->createResource( *Material->getName() + "MaterialComponent", MaterialComponent_, Material, scnSPF_DEFAULT );
 	}
 
 	CurrOverlay_ = 0;

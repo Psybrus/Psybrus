@@ -27,7 +27,7 @@ void doRender( BcU32 Width, BcU32 Height )
 	}
 	if( MaterialRef.isReady() && MaterialComponentRef.isValid() == BcFalse )
 	{
-		MaterialRef->createComponent( "MaterialComponent", MaterialComponentRef, 0 );
+		CsCore::pImpl()->createResource( "MaterialComponent", MaterialComponentRef, MaterialRef, scnSPF_DEFAULT );
 		CsCore::pImpl()->createResource( "canvas", Canvas, 4096, MaterialComponentRef );
 		return;
 	}

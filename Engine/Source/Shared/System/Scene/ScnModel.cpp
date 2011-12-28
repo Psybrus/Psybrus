@@ -273,13 +273,6 @@ BcBool ScnModel::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createInstance
-BcBool ScnModel::createComponent( const BcName& Name, ScnModelComponentRef& Handle )
-{
-	return CsCore::pImpl()->createResource( Name, Handle, this );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setup
 void ScnModel::setup()
 {
@@ -423,8 +416,8 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			pPrimitiveRuntime->MaterialRef_->createComponent( *getName() + "MaterialComponent", MaterialComponentRef, scnSPF_DEFAULT );
-			
+			CsCore::pImpl()->createResource( *getName() + "MaterialComponent", MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_DEFAULT );
+
 			TMaterialComponentDesc MaterialComponentDesc =
 			{
 				MaterialComponentRef,

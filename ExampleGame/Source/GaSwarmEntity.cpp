@@ -123,7 +123,6 @@ GaPhysicsBody* GaSwarmEntity::findNearestBody( GaPhysicsBody* pSource )
 	return pNearest;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // averagePosition
 BcVec2d GaSwarmEntity::averagePosition() const

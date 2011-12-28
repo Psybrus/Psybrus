@@ -176,7 +176,7 @@ void ScnMaterial::initialise()
 //virtual
 void ScnMaterial::create()
 {
-
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,15 +199,8 @@ BcBool ScnMaterial::isReady()
 			return BcFalse;
 		}
 	}
-
+	
 	return Shader_.isReady() && pStateBuffer_ != NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createInstance
-BcBool ScnMaterial::createComponent( const BcName& Name, ScnMaterialComponentRef& Instance, BcU32 PermutationFlags )
-{
-	return CsCore::pImpl()->createResource( Name, Instance, this, Shader_->getProgram( PermutationFlags ), TextureMap_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -228,12 +221,12 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 		getChunk( 0 );
 		return;
 	}
-
+	
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
-	
+		
 		// Request resources.
 		if( CsCore::pImpl()->requestResource( pHeader_->ShaderName_, Shader_ ) )
 		{
@@ -248,7 +241,7 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 				{
 					TextureMap_[ pTextureHeader->SamplerName_ ] = Texture;
 				}
-			}			
+			}
 		}
 		
 		getChunk( ++ChunkIdx );
@@ -274,11 +267,11 @@ void ScnMaterialComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnMaterialComponent::initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap )
+void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationFlags )
 {
 	// Cache parent and program.
 	Parent_ = Parent;
-	pProgram_ = pProgram;
+	pProgram_ = Parent->Shader_->getProgram( PermutationFlags );
 	
 	// Allocate parameter buffer.
 	ParameterBufferSize_ = pProgram_->getParameterBufferSize();
@@ -297,6 +290,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, RsProgram* pProgra
 	BcMemCopy( pStateBuffer_, Parent->pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
 
 	// Build a binding list for textures.
+	ScnTextureMap& TextureMap( Parent->TextureMap_ );
 	for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
 	{
 		const std::string& SamplerName = (*Iter).first;
