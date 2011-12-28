@@ -86,13 +86,13 @@ void GaMainGameState::enterOnce()
 
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BACKGROUND, Material );
-	CsCore::pImpl()->createResource( "backgroundMaterialComponent", BackgroundMaterialComponent_, Material, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, BackgroundMaterialComponent_, Material, scnSPF_DEFAULT );
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_FOREGROUND, Material );
-	CsCore::pImpl()->createResource( "foregroundMaterialComponent", ForegroundMaterialComponent_, Material, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, ForegroundMaterialComponent_, Material, scnSPF_DEFAULT );
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BAR, Material );
-	CsCore::pImpl()->createResource( "barMaterialComponent", BarMaterialComponent_, Material, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, BarMaterialComponent_, Material, scnSPF_DEFAULT );
 
 	// Get default render context.
 	pContext_ = RsCore::pImpl()->getContext( NULL );

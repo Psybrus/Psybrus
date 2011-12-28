@@ -23,7 +23,9 @@
 class BcName
 {
 public:
+	static BcName INVALID;
 	static BcName NONE;
+
 public:
 	enum
 	{
@@ -56,6 +58,11 @@ public:
 	 * Get ID.
 	 */
 	BcU32 getID() const;
+
+	/**
+	 * Get unique(ish) name.
+	 */
+	BcName getUnique() const;
 
 	/**
 	 * Is valid?

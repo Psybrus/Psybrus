@@ -40,7 +40,7 @@ public:
 	virtual void						bind( void* pParameterBuffer );
 
 private:	
-	void								bindAttribute( eRsVertexChannel Channel, const BcChar* Name );
+	void								bindAttribute( eRsVertexChannel Channel, const BcName& Name );
 	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type );
 	
 private:

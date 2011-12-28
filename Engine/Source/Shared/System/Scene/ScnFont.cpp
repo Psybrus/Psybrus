@@ -397,7 +397,7 @@ BcBool ScnFont::isReady()
 // isReady
 BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material )
 {	
-	return CsCore::pImpl()->createResource( Name, FontComponent, this, Material );
+	return CsCore::pImpl()->createResource( BcName::INVALID, FontComponent, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -460,7 +460,7 @@ void ScnFontComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( getName(), MaterialComponent_, Material, scnSPF_DEFAULT ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT ) )
 	{	
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )

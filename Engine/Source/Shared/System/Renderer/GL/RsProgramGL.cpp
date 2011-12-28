@@ -231,14 +231,14 @@ void RsProgramGL::bind( void* pParameterBuffer )
 
 ////////////////////////////////////////////////////////////////////////////////
 // bindAttribute
-void RsProgramGL::bindAttribute( eRsVertexChannel Channel, const BcChar* Name )
+void RsProgramGL::bindAttribute( eRsVertexChannel Channel, const BcName& Name )
 {
 	GLuint Handle = getHandle< GLuint >();
 	
-	glBindAttribLocation( Handle, Channel, Name );
+	glBindAttribLocation( Handle, Channel, (*Name).c_str() );
 	if( glGetError() != GL_NO_ERROR )
 	{
-		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", Name );
+		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", (*Name).c_str() );
 	}
 	
 }

@@ -71,8 +71,8 @@ GaBunnyRenderer::~GaBunnyRenderer()
 // update
 void GaBunnyRenderer::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale )
 {
-	CsCore::pImpl()->createResource( *Material->getName() + "MaterialComponent", MaterialComponent_, Material, scnSPF_DEFAULT );
-	CsCore::pImpl()->createResource( "shadowMaterialComponent", ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
 	Scale_ = Scale;
 }
 
