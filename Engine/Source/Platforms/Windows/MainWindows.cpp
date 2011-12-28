@@ -18,8 +18,8 @@ eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
 		// Check for quit.
 		if( Msg.message == WM_QUIT )
 		{
-			// Stop, join, and free kernel.
-			SysKernel::pImpl()->stop();
+			// Send event to quit.
+			OsCore::pImpl()->publish( osEVT_CORE_QUIT, OsEventCore() );
 		}
 	}
 

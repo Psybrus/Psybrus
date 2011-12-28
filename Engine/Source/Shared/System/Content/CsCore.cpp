@@ -88,8 +88,17 @@ void CsCore::update()
 //virtual 
 void CsCore::close()
 {
+	// Verify we have no more resources to be created or loading.
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
+
+	// Finish processing unloading resources.
+	while( UnloadingResources_.size() > 0 )
+	{
+		processUnloadingResources();
+	}
+
+	// Verify we don't have any left floating loaded or unloading.
 	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing!" );
 	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
 	
@@ -756,6 +765,18 @@ void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc a
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
 	ResourceFactoryInfoMap_[ Type ] = FactoryInfo;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalUnRegisterResource
+void CsCore::internalUnRegisterResource( const BcName& Type )
+{
+	TResourceFactoryInfoMapIterator It = ResourceFactoryInfoMap_.find( Type );
+
+	if( It != ResourceFactoryInfoMap_.end() )
+	{
+		ResourceFactoryInfoMap_.erase( It );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -54,6 +54,12 @@ public:
 	void								registerResource();
 	
 	/**
+	 * Unregister a resource.
+	 */
+	template< typename _Ty >
+	void								unregisterResource();
+
+	/**
 	 * Create a resource.<br/>
 	 * This will create a resource object without a file associated with it.
 	 */
@@ -177,6 +183,7 @@ protected:
 
 public:
 	void								internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc );
+	void								internalUnRegisterResource( const BcName& Type );
 	BcBool								internalCreateResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
 	BcBool								internalRequestResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
 	BcBool								internalFindResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
@@ -237,6 +244,20 @@ BcForceInline void CsCore::registerResource()
 		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetTypeString()).c_str(), _Ty::Default );
 #endif
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Inlines
+template< typename _Ty >
+BcForceInline void CsCore::unregisterResource()
+{
+	BcAssert( BcIsGameThread() );
+
+	// Unregister.
+	internalUnRegisterResource( _Ty::StaticGetTypeString() );
+
+	// Remove default.
+	_Ty::Default = NULL;
 }
 
 template< typename _Ty >
