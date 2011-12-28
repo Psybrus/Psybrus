@@ -18,7 +18,7 @@
 #include "CsResourceRef.h"
 
 #include "ScnMaterial.h"
-#include "ScnComponent.h"
+#include "ScnRenderableComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelRef
@@ -121,10 +121,10 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 // ScnModelComponent
 class ScnModelComponent:
-	public ScnComponent
+	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnModelComponent );
+	DECLARE_RESOURCE( ScnRenderableComponent, ScnModelComponent );
 
 	virtual void						initialise( ScnModelRef Parent );
 	virtual void						destroy();

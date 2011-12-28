@@ -91,7 +91,7 @@ BcOctTreeNode* BcOctTree::findNode( BcOctTreeNode* pNode, const BcVec3d& Point )
 	BcOctTreeNode* pRetNode = NULL;
 
 	// If the point is in the node, check children.
-	if( pNode->aabb().classify( Point ) == BcAABB::bcBC_INSIDE )
+	if( pNode->getAABB().classify( Point ) == BcAABB::bcBC_INSIDE )
 	{
 		// Check children.
 		if( pNode->pChild( 0 ) != NULL )

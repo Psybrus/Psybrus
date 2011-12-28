@@ -15,7 +15,7 @@
 #define __ScnCanvasComponentComponent_H__
 
 #include "RsCore.h"
-#include "ScnComponent.h"
+#include "ScnRenderableComponent.h"
 
 #include "ScnTypes.h"
 #include "ScnMaterial.h"
@@ -59,10 +59,10 @@ public:
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasComponent
 class ScnCanvasComponent:
-	public ScnComponent
+	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnCanvasComponent );
+	DECLARE_RESOURCE( ScnRenderableComponent, ScnCanvasComponent );
 	
 	virtual void						initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
 	virtual void						create();
@@ -177,18 +177,11 @@ public:
 	 */
 	void								clear();
 	
-	/**
-	 * Render canvas.<br/>
-	 * Can be called multiple times on different, or the same, frames.
-	 * @param pFrame Frame to render with.
-	 * @param Sort Sort value to use.
-	 */
-	void								render( RsFrame* pFrame, RsRenderSort Sort );
-
-protected:
+public:
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void						render( RsFrame* pFrame, RsRenderSort Sort );
 
 
 protected:

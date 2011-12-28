@@ -1268,6 +1268,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Source\Shared\Base\BcOctTree.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\Base\BcOctTree.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Source\Shared\Base\BcPath.cpp"
 						>
 					</File>
@@ -1507,6 +1515,14 @@
 							>
 						</File>
 						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRenderableComponent.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRenderableComponent.h"
+							>
+						</File>
+						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnRenderTarget.cpp"
 							>
 						</File>
@@ -1536,6 +1552,14 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnSoundEmitter.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnSpacialTree.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnSpacialTree.h"
 							>
 						</File>
 						<File
@@ -1576,6 +1600,14 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnView.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnVisitor.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnVisitor.h"
 							>
 						</File>
 					</Filter>

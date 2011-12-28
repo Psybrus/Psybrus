@@ -707,6 +707,14 @@ void ScnCanvasComponent::clear()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// update
+//virtual
+void ScnCanvasComponent::update( BcReal Tick )
+{
+	Super::update( Tick );	
+}
+
+//////////////////////////////////////////////////////////////////////////
 // render
 class ScnCanvasComponentRenderNode: public RsRenderNode
 {
@@ -775,21 +783,12 @@ void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 	pVertices_ = pVerticesEnd_ = NULL;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnCanvasComponent::update( BcReal Tick )
-{
-	ScnComponent::update( Tick );	
-}
-
 //////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	ScnComponent::onAttach( Parent );	
+	Super::onAttach( Parent );	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -797,5 +796,5 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	ScnComponent::onDetach( Parent );
+	Super::onDetach( Parent );
 }

@@ -11,15 +11,15 @@
 * 
 **************************************************************************/
 
-#ifndef __SgVisitor_H__
-#define __SgVisitor_H__
+#ifndef __ScnVisitor_H__
+#define __ScnVisitor_H__
 
-#include "SgTypes.h"
+#include "ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Macro
 #define DECLARE_VISITABLE( _ClassName ) \
-	virtual void visit_accept( SgVisitor* pVisitor ) \
+	virtual void visit_accept( ScnVisitor* pVisitor ) \
 	{ \
 		pVisitor->visit( (_ClassName*)this ); \
 	}
