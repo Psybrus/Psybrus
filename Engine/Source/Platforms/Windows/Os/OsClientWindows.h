@@ -30,7 +30,7 @@ public:
 	/**
 	*	Create window.
 	*/
-	BcBool			create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen );
+	BcBool			create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
 
 	/**
 	*	Destroy window.

@@ -37,7 +37,7 @@ OsClientWindows::~OsClientWindows()
 
 //////////////////////////////////////////////////////////////////////////
 // create
-BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen )
+BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible )
 {
 	WNDCLASSEX	wc;
 	RECT		WindowRect;
@@ -108,9 +108,12 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	hDC_ = GetDC( hWnd_ );
 
 	// Show the window
-	::ShowWindow( hWnd_, SW_SHOW );
-	::SetForegroundWindow( hWnd_ );
-	::SetFocus( hWnd_ );
+	if( Visible )
+	{
+		::ShowWindow( hWnd_, SW_SHOW );
+		::SetForegroundWindow( hWnd_ );
+		::SetFocus( hWnd_ );
+	}
 
 	return BcTrue;
 }

@@ -79,6 +79,7 @@ bool WxAppContentServer::OnInit()
 //virtual
 int WxAppContentServer::OnExit()
 {
+	delete pTaskBarIcon_;
 	return 0;
 }
 
