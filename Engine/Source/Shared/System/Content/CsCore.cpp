@@ -646,6 +646,15 @@ void CsCore::processLoadedResource()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
+	static BcBool DumpResources = BcFalse;
+	
+	if( DumpResources )
+	{
+		BcPrintf( "==========================================\n" );
+		BcPrintf( "CsCore: Dump Resource:\n" );
+		BcPrintf( "==========================================\n" );
+	}
+	
 	TResourceListIterator It( LoadedResources_.begin() );
 	while( It != LoadedResources_.end() )
 	{
@@ -654,8 +663,18 @@ void CsCore::processLoadedResource()
 		
 		// NOTE: Placeholder for doing stuff. Probably don't need to other
 		//       than for debug purposes.
+		if( DumpResources )
+		{
+			BcPrintf( "%s (%s)\n", (*pResource->getName()).c_str(), (*pResource->getTypeString()).c_str() );
+		}
 		
 		++It;
+	}
+
+	if( DumpResources )
+	{
+		BcPrintf( "==========================================\n" );
+		DumpResources = BcFalse;
 	}
 }
 
@@ -783,23 +802,18 @@ void CsCore::internalUnRegisterResource( const BcName& Type )
 // internalCreateResource
 BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
-	// Try to find resource, if we can't, allocate a new one and put into create list.
-	//if( internalFindResource( Name, Type, Handle ) == BcFalse )
-	{
-		// Only request if we have a name.
-		if( Name.isValid() )
-		{		
-			// Allocate resource.
-			Handle = allocResource( Name, Type, NULL );
-			
-			// Put into create list.
-			if( Handle.isValid() )
-			{
-				BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	// Generate a unique name for the resource.
+	BcName UniqueName = Name.isValid() ? Name.getUnique() : Type.getUnique();
 
-				CreateResources_.push_back( Handle );
-			}
-		}
+	// Allocate resource with a unique name.
+	Handle = allocResource( UniqueName, Type, NULL );
+	
+	// Put into create list.
+	if( Handle.isValid() )
+	{
+		BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
+		CreateResources_.push_back( Handle );
 	}
 	
 	return Handle.isValid();

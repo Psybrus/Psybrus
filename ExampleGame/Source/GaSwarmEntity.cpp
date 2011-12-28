@@ -59,7 +59,7 @@ GaSwarmEntity::GaSwarmEntity( BcU32 Level )
 		GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BUNNY, Material );
 		AnimationLogicList_[ Idx ]->BunnyRenderer_.setMaterial( Material, BcVec3d( 0.4f, 0.4f, 0.4f ) );
 
-		CsCore::pImpl()->createResource( "bunnyemitter", AnimationLogicList_[ Idx ]->Emitter_ );
+		CsCore::pImpl()->createResource( BcName::INVALID, AnimationLogicList_[ Idx ]->Emitter_ );
 
 		// Slightly different pitch for all bunnies.
 		AnimationLogicList_[ Idx ]->Emitter_->setPitch( BcRandom::Global.randReal() * 0.1f + 1.0f );

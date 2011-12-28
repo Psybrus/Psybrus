@@ -28,8 +28,8 @@ GaFoodEntity::GaFoodEntity( const BcVec2d& Position )
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_LETTUCE, Material );
 
-	CsCore::pImpl()->createResource( "lettuceMaterialComponent", MaterialComponent_, Material, scnSPF_DEFAULT );
-	CsCore::pImpl()->createResource( "shadowMaterialComponent", ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

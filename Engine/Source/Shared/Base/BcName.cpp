@@ -15,7 +15,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
+BcName BcName::INVALID;
 BcName BcName::NONE( "None" );
+
 BcName::TStringEntryList* BcName::pStringEntries_ = NULL;
 
 //////////////////////////////////////////////////////////////////////////
@@ -24,7 +26,7 @@ BcName::BcName():
 	EntryIndex_( BcErrorCode ),
 	ID_( BcErrorCode )
 {
-	(*this) = BcName::NONE;
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,6 +124,24 @@ std::string BcName::getValue() const
 BcU32 BcName::getID() const
 {
 	return ID_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getUnique
+BcName BcName::getUnique() const
+{
+	BcAssert( isValid() );
+	TStringEntryList& StringEntries( getStringEntries() );
+	TStringEntry& StringEntry( StringEntries[ EntryIndex_ ] );
+
+	// Create a new name with stored ID.
+	BcName UniqueName( StringEntry.Value_, StringEntry.ID_ );
+
+	// Advance ID for name.
+	StringEntry.ID_++;
+
+	// Return new unique name.
+	return UniqueName;
 }
 
 //////////////////////////////////////////////////////////////////////////

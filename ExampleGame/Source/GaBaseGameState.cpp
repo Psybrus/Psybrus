@@ -36,7 +36,7 @@ GaBaseGameState::~GaBaseGameState()
 //virtual
 void GaBaseGameState::enterOnce()
 {
-	if( CsCore::pImpl()->createResource( "Canvas", Canvas_, 1024 * 16, ScnMaterialComponent::Default ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, Canvas_, 1024 * 16, ScnMaterialComponent::Default ) )
 	{
 		int a = 0; ++a;
 	}
