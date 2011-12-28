@@ -17,21 +17,6 @@
 #include "BcTypes.h"
 #include "BcDebug.h"
 
-#if PLATFORM_WINDOWS
-#include <Ws2tcpip.h>
-#include <errno.h>
-#include <fcntl.h>
-#else
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <errno.h>
-#include <fcntl.h>
-
-#define closesocket close
-#endif
-
 ////////////////////////////////////////////////////////////////////////////////
 // RmTCPConnection
 class RmTCPConnection
@@ -108,6 +93,7 @@ private:
 	BcBool							parseAddressInfo( const BcChar* Address, BcU16 Port );
 
 private:
+	/*
 	BcBool							IsConnected_;
 	BcU16							Port_;
 	addrinfo*						ServInfo_;
@@ -116,16 +102,24 @@ private:
 	// Used when listening.
 	sockaddr						RemoteInfo_;
 	socklen_t						RemoteSize_;
+	*/
 };
 
 BcForceInline BcBool RmTCPConnection::isConnected() const
 {
+	/*
 	return IsConnected_;
+	*/
+
+	return BcFalse;
 }
 
 BcForceInline BcU16 RmTCPConnection::getPort() const
 {
+	/*
 	return Port_;
+	*/
+	return 0;
 }
 
 

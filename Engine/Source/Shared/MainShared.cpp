@@ -13,6 +13,7 @@
 
 #include "MainShared.h"
 
+
 #ifdef PSY_DEBUG
 BcU32 GResolutionWidth = 1280 / 2;
 BcU32 GResolutionHeight = 720 / 2;
@@ -76,6 +77,9 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 // MainShared
 void MainShared()
 {
+	// HACK: Append a space to sys args for find to work.
+	SysArgs_ += " ";
+
 	// Setup system threads.
 	FsCore::WORKER_MASK = 0x1;
 	RsCore::WORKER_MASK = 0x2;
@@ -103,9 +107,8 @@ void MainShared()
 	SysKernel::SYSTEM_WORKER_MASK = FsCore::WORKER_MASK | RsCore::WORKER_MASK | SsCore::WORKER_MASK;
 
 	// Strip the renderer from the user mask.
-	// - Renderer is a bit of a special case. NEVER allow anything to run on that thread since it will always be high CPU.
+	// - Renderer is a bit of a special case. NEVER allow anything to run on that thread since it should always be high CPU.
 	SysKernel::USER_WORKER_MASK = SysKernel::USER_WORKER_MASK & ~RsCore::WORKER_MASK;
-
 
 	// Parse command line params for disabling systems.
 	if( SysArgs_.find( "-noremote " ) != std::string::npos )
@@ -144,8 +147,21 @@ void MainShared()
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
 	
-	// Start content system.
-	SysKernel::pImpl()->startSystem( "CsCore" );
+	// Start content system, depending on startup flags.
+#ifndef PSY_PRODUCTION
+	if( GPsySetupParams.Flags_ & psySF_CONTENT_SERVER )
+	{
+		SysKernel::pImpl()->startSystem( "CsCoreServer" );
+	}
+	else if( GPsySetupParams.Flags_ & psySF_CONTENT_CLIENT )
+	{
+		SysKernel::pImpl()->startSystem( "CsCoreClient" );
+	}
+	else
+#endif
+	{
+		SysKernel::pImpl()->startSystem( "CsCore" );
+	}
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();

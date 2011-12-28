@@ -32,9 +32,11 @@ GaTopState::~GaTopState()
 // enterOnce
 void GaTopState::enterOnce()
 {
+	RmCore::pImpl()->connect( "127.0.0.1" );
+
 	// NEILO HACKY CODE :(
 	BcBool Imported;
-#ifdef PSY_SERVER
+#if 0 && PSY_SERVER
 	Imported = CsCore::pImpl()->importResource( "GameContent/bunny.ScnMaterial", Materials_[ MATERIAL_BUNNY ] );
 	BcAssert( Imported );
 

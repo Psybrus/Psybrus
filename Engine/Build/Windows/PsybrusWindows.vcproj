@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS;PSY_DEBUG;PSY_SERVER"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include"
+				PreprocessorDefinitions="WIN32;_WIN32;_WINDOWS;_DEBUG;WINDOWS;PSY_DEBUG;PSY_SERVER;HAVE_CONFIG_H"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,8 +61,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="ws2_32.lib OpenAL32.lib OpenGL32.lib"
+				AdditionalDependencies="ws2_32.lib OpenAL32.lib OpenGL32.lib libcurl_imp.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).lib"
+				AdditionalLibraryDirectories="../../../External/curl/lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -107,8 +108,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include"
+				PreprocessorDefinitions="WIN32;_WIN32;_WINDOWS;NDEBUG;WINDOWS;PSY_RELEASE;PSY_SERVER;HAVE_CONFIG_H"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -126,8 +127,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="ws2_32.lib OpenAL32.lib OpenGL32.lib"
+				AdditionalDependencies="ws2_32.lib OpenAL32.lib OpenGL32.lib libcurl_imp.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).lib"
+				AdditionalLibraryDirectories="../../../External/curl/lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -172,8 +174,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_PRODUCTION"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include"
+				PreprocessorDefinitions="WIN32;_WIN32;_WINDOWS;NDEBUG;WINDOWS;PSY_PRODUCTION;HAVE_CONFIG_H"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -191,8 +193,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="ws2_32.lib OpenAL32.lib OpenGL32.lib"
+				AdditionalDependencies="ws2_32.lib OpenAL32.lib OpenGL32.lib libcurl_imp.lib"
 				OutputFile="$(OutDir)/$(ProjectName)_$(ConfigurationName).lib"
+				AdditionalLibraryDirectories="../../../External/curl/lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -2140,22 +2143,6 @@
 							RelativePath="..\..\Source\Shared\System\Content\CsCoreClient.cpp"
 							>
 							<FileConfiguration
-								Name="Debug|Win32"
-								ExcludedFromBuild="true"
-								>
-								<Tool
-									Name="VCCLCompilerTool"
-								/>
-							</FileConfiguration>
-							<FileConfiguration
-								Name="Release|Win32"
-								ExcludedFromBuild="true"
-								>
-								<Tool
-									Name="VCCLCompilerTool"
-								/>
-							</FileConfiguration>
-							<FileConfiguration
 								Name="Production|Win32"
 								ExcludedFromBuild="true"
 								>
@@ -2185,7 +2172,6 @@
 							>
 							<FileConfiguration
 								Name="Debug|Win32"
-								ExcludedFromBuild="true"
 								>
 								<Tool
 									Name="VCCustomBuildTool"
@@ -2193,7 +2179,6 @@
 							</FileConfiguration>
 							<FileConfiguration
 								Name="Release|Win32"
-								ExcludedFromBuild="true"
 								>
 								<Tool
 									Name="VCCustomBuildTool"
@@ -2228,22 +2213,6 @@
 							RelativePath="..\..\Source\Shared\System\Content\CsCoreServer.cpp"
 							>
 							<FileConfiguration
-								Name="Debug|Win32"
-								ExcludedFromBuild="true"
-								>
-								<Tool
-									Name="VCCLCompilerTool"
-								/>
-							</FileConfiguration>
-							<FileConfiguration
-								Name="Release|Win32"
-								ExcludedFromBuild="true"
-								>
-								<Tool
-									Name="VCCLCompilerTool"
-								/>
-							</FileConfiguration>
-							<FileConfiguration
 								Name="Production|Win32"
 								ExcludedFromBuild="true"
 								>
@@ -2273,7 +2242,6 @@
 							>
 							<FileConfiguration
 								Name="Debug|Win32"
-								ExcludedFromBuild="true"
 								>
 								<Tool
 									Name="VCCustomBuildTool"
@@ -2281,7 +2249,6 @@
 							</FileConfiguration>
 							<FileConfiguration
 								Name="Release|Win32"
-								ExcludedFromBuild="true"
 								>
 								<Tool
 									Name="VCCustomBuildTool"
@@ -2332,22 +2299,6 @@
 							RelativePath="..\..\Source\Shared\System\Content\CsFileReaderRPC.cpp"
 							>
 							<FileConfiguration
-								Name="Debug|Win32"
-								ExcludedFromBuild="true"
-								>
-								<Tool
-									Name="VCCLCompilerTool"
-								/>
-							</FileConfiguration>
-							<FileConfiguration
-								Name="Release|Win32"
-								ExcludedFromBuild="true"
-								>
-								<Tool
-									Name="VCCLCompilerTool"
-								/>
-							</FileConfiguration>
-							<FileConfiguration
 								Name="Production|Win32"
 								ExcludedFromBuild="true"
 								>
@@ -2377,7 +2328,6 @@
 							>
 							<FileConfiguration
 								Name="Debug|Win32"
-								ExcludedFromBuild="true"
 								>
 								<Tool
 									Name="VCCustomBuildTool"
@@ -2385,7 +2335,6 @@
 							</FileConfiguration>
 							<FileConfiguration
 								Name="Release|Win32"
-								ExcludedFromBuild="true"
 								>
 								<Tool
 									Name="VCCustomBuildTool"
@@ -3649,6 +3598,54 @@
 						RelativePath="..\..\..\External\libb64\src\cencode.c"
 						>
 					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="curl"
+				>
+				<Filter
+					Name="include"
+					>
+					<Filter
+						Name="curl"
+						>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\curl.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\curlbuild.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\curlrules.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\curlver.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\easy.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\mprintf.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\multi.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\stdcheaders.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\External\curl\include\curl\typecheck-gcc.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>

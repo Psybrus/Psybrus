@@ -4,3 +4,6 @@
 /ContentServer_Release.pdb
 /PsybrusWindows_Debug.lib
 /PsybrusWindows_Release.lib
+/ContentServer_Debug.exp
+/ContentServer_Debug.lib
+/ContentServer_Debug.pdb

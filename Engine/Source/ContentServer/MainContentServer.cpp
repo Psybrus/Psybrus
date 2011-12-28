@@ -19,7 +19,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Psybrus Content Server", psySF_SERVER | psySF_MANUAL, 1.0f / 15.0f );
+PsySetupParams GPsySetupParams( "Psybrus Content Server", psySF_SERVER | psySF_MANUAL, 1.0f / 5.0f );
 
 //////////////////////////////////////////////////////////////////////////
 // PsyGameInit

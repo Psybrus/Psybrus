@@ -19,6 +19,17 @@
 IMPLEMENT_APP_NO_MAIN( WxAppContentServer );
 
 //////////////////////////////////////////////////////////////////////////
+// OnPostRmOpen
+eEvtReturn OnPostRmOpen( EvtID, const SysSystemEvent& )
+{
+	// Listen for connection.
+	RmCore::pImpl()->listen();
+
+	//
+	return evtRET_REMOVE;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // OnPreCsUpdate
 eEvtReturn OnPreCsUpdate( EvtID, const SysSystemEvent& )
 {
@@ -54,6 +65,10 @@ bool WxAppContentServer::OnInit()
 	// Hook file search for importing.
 	SysSystemEvent::Delegate CsPreUpdateDelegate = SysSystemEvent::Delegate::bind< OnPreCsUpdate >();
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, CsPreUpdateDelegate );
+
+	// Hook remoting core post open for connection listening.
+	SysSystemEvent::Delegate RmPostOpenDelegate = SysSystemEvent::Delegate::bind< OnPostRmOpen >();
+	RmCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, RmPostOpenDelegate );
 	
 	// Start up the kernel multithreaded.
 	SysKernel::pImpl()->run( BcTrue );
