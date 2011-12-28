@@ -38,7 +38,7 @@ public:
 	 * @param Offset Offset of parameter (out.)
 	 * @return Success.
 	 */
-	virtual BcU32						findParameterOffset( const std::string& Name, eRsShaderParameterType& Type, BcU32& Offset ) const = 0;
+	virtual BcU32						findParameterOffset( const BcName& Name, eRsShaderParameterType& Type, BcU32& Offset ) const = 0;
 	
 	/**
 	 * Bind program.

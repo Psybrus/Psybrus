@@ -18,14 +18,15 @@
 #include "CsResourceRef.h"
 
 #include "ScnMaterial.h"
+#include "ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelRef
 typedef CsResourceRef< class ScnModel > ScnModelRef;
 
 //////////////////////////////////////////////////////////////////////////
-// ScnModelInstanceRef
-typedef CsResourceRef< class ScnModelInstance > ScnModelInstanceRef;
+// ScnModelComponentRef
+typedef CsResourceRef< class ScnModelComponent > ScnModelComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModel
@@ -53,7 +54,7 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	BcBool								createInstance( const std::string& Name, ScnModelInstanceRef& Handle );
+	BcBool								createComponent( const BcName& Name, ScnModelComponentRef& Handle );
 	
 private:
 	void								setup();
@@ -63,7 +64,7 @@ private:
 	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 protected:
-	friend class ScnModelInstance;
+	friend class ScnModelComponent;
 	
 	// Header.
 	struct THeader
@@ -120,12 +121,12 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnModelInstance
-class ScnModelInstance:
-	public CsResource
+// ScnModelComponent
+class ScnModelComponent:
+	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnModelInstance );
+	DECLARE_RESOURCE( ScnComponent, ScnModelComponent );
 
 	virtual void						initialise( ScnModelRef Parent );
 	virtual void						destroy();
@@ -133,22 +134,25 @@ public:
 
 	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
 	
-	void								update();
+public:
+	virtual void						update( BcReal Tick );
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
 	void								render( RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
 	ScnModelRef							Parent_;
 	ScnModel::TNodeTransformData*		pNodeTransformData_;
 
-	struct TMaterialInstanceDesc
+	struct TMaterialComponentDesc
 	{
-		ScnMaterialInstanceRef MaterialInstanceRef_;
+		ScnMaterialComponentRef MaterialComponentRef_;
 		BcU32 WorldMatrixIdx_;
 	};
 	
-	typedef std::vector< TMaterialInstanceDesc > TMaterialInstanceDescList;
+	typedef std::vector< TMaterialComponentDesc > TMaterialComponentDescList;
 	
-	TMaterialInstanceDescList			MaterialInstanceDescList_;
+	TMaterialComponentDescList			MaterialComponentDescList_;
 };
 
 #endif

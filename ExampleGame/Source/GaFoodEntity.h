@@ -33,14 +33,14 @@ public:
 	BcReal getHealthFraction();
 
 	virtual void update( BcReal Tick );
-	virtual void render( ScnCanvasRef Canvas );
+	virtual void render( ScnCanvasComponentRef Canvas );
 	
 private:
 	BcReal StartingHealth_;
 	BcReal Health_;
 
-	ScnMaterialInstanceRef MaterialInstance_;
-	ScnMaterialInstanceRef ShadowMaterialInstance_;
+	ScnMaterialComponentRef MaterialComponent_;
+	ScnMaterialComponentRef ShadowMaterialComponent_;
 };
 
 #endif

@@ -51,11 +51,11 @@ public:
 	
 	void update( BcReal Tick );
 
-	void render( GaMainGameState* pParent, ScnCanvasRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity );
+	void render( GaMainGameState* pParent, ScnCanvasComponentRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity );
 
 private:
-	ScnMaterialInstanceRef MaterialInstance_;
-	ScnMaterialInstanceRef ShadowMaterialInstance_;
+	ScnMaterialComponentRef MaterialComponent_;
+	ScnMaterialComponentRef ShadowMaterialComponent_;
 
 	struct TLayer
 	{

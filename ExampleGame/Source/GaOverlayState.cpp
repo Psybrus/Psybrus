@@ -21,7 +21,7 @@ GaOverlayState::GaOverlayState( ScnMaterialRef Material, const std::string& Text
 	Text_ = Text;
 	if( Material.isValid() )
 	{
-		Material->createInstance( *Material->getName() + "materialinstance", MaterialInstance_, BcErrorCode );
+		Material->createComponent( *Material->getName() + "MaterialComponent", MaterialComponent_, BcErrorCode );
 	}
 
 	CurrOverlay_ = 0;
@@ -43,11 +43,11 @@ GaOverlayState::~GaOverlayState()
 // onMouseDown
 eEvtReturn GaOverlayState::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
 {
-	if( MaterialInstance_.isValid() )
+	if( MaterialComponent_.isValid() )
 	{
 		CurrOverlay_++;
 
-		if( CurrOverlay_ == MaterialInstance_->getTexture( 0 )->noofRects() )
+		if( CurrOverlay_ == MaterialComponent_->getTexture( 0 )->noofRects() )
 		{
 			if( pNextState_ != NULL ) 
 			{
@@ -87,7 +87,7 @@ eSysStateReturn GaOverlayState::enter()
 
 	if( FontMaterial_->isReady() )
 	{
-		ScnFont::Default->createInstance( "defaultfontinstance", FontInstance_, FontMaterial_ );
+		ScnFont::Default->createInstance( "defaultFontComponent", FontComponent_, FontMaterial_ );
 
 		return sysSR_FINISHED;
 	}
@@ -139,9 +139,9 @@ void GaOverlayState::render( RsFrame* pFrame )
 
 	Canvas_->pushMatrix( Projection );
 
-	if( MaterialInstance_.isValid() )
+	if( MaterialComponent_.isValid() )
 	{
-		Canvas_->setMaterialInstance( MaterialInstance_ );
+		Canvas_->setMaterialComponent( MaterialComponent_ );
 		Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 512.0f, 300.0f ), CurrOverlay_, RsColour::WHITE, 0 );
 	}
 
@@ -169,20 +169,20 @@ void GaOverlayState::render( RsFrame* pFrame )
 		}
 
 		BcVec2d TopPosition( 0.0f, 0.0f );
-		ScnMaterialInstanceRef FontMaterialInstance = FontInstance_->getMaterialInstance();
-		BcU32 ParameterIdx = FontMaterialInstance->findParameter( "aAlphaTestStep" );
-		FontMaterialInstance->setParameter( ParameterIdx, BcVec2d( 0.0f, 0.5f ) );
+		ScnMaterialComponentRef FontMaterialComponent = FontComponent_->getMaterialComponent();
+		BcU32 ParameterIdx = FontMaterialComponent->findParameter( "aAlphaTestStep" );
+		FontMaterialComponent->setParameter( ParameterIdx, BcVec2d( 0.0f, 0.5f ) );
 	
 		for( BcU32 Idx = 0; Idx < StringList.size(); ++Idx )
 		{
-			BcVec2d Size = FontInstance_->draw( Canvas_, StringList[ Idx ], BcTrue );
+			BcVec2d Size = FontComponent_->draw( Canvas_, StringList[ Idx ], BcTrue );
 
 			BcMat4d Translation;
 			Translation.translation( -BcVec3d( Size.x() + TopPosition.x(), Size.y() + TopPosition.y(), 0.0f ) * 0.5f );
 
 			Canvas_->pushMatrix( Translation );
 
-			FontInstance_->draw( Canvas_, StringList[ Idx ] );
+			FontComponent_->draw( Canvas_, StringList[ Idx ] );
 
 			TopPosition -= BcVec2d( 0.0f, BcAbs( Size.y() * 2.0f ) );
 

@@ -17,7 +17,8 @@
 #include "CsResource.h"
 
 #include "ScnMaterial.h"
-#include "ScnCanvas.h"
+#include "ScnComponent.h"
+#include "ScnCanvasComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef
@@ -25,7 +26,7 @@ typedef CsResourceRef< class ScnFont > ScnFontRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef
-typedef CsResourceRef< class ScnFontInstance > ScnFontInstanceRef;
+typedef CsResourceRef< class ScnFontComponent > ScnFontComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFont
@@ -43,14 +44,14 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	BcBool								createInstance( const std::string& Name, ScnFontInstanceRef& FontInstance, ScnMaterialRef Material );
+	BcBool								createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material );
 	
 private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 private:
-	friend class ScnFontInstance;
+	friend class ScnFontComponent;
 	
 	struct THeader
 	{
@@ -88,27 +89,31 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnFontInstance
-class ScnFontInstance:
-	public CsResource
+// ScnFontComponent
+class ScnFontComponent:
+	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnFontInstance );
+	DECLARE_RESOURCE( ScnComponent, ScnFontComponent );
 	
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	
-	BcVec2d								draw( ScnCanvasRef Canvas, const std::string& String, BcBool SizeRun = BcFalse );
+	BcVec2d								draw( ScnCanvasComponentRef Canvas, const std::string& String, BcBool SizeRun = BcFalse );
 
-
-	ScnMaterialInstanceRef				getMaterialInstance();
+	ScnMaterialComponentRef				getMaterialComponent();
 	
 	virtual BcBool						isReady();
-	
+
+public:
+	virtual void						update( BcReal Tick );
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
+
 private:
 	friend class ScnFont;
 
 	ScnFontRef							Parent_;
-	ScnMaterialInstanceRef				MaterialInstance_;
+	ScnMaterialComponentRef				MaterialComponent_;
 };
 
 #endif

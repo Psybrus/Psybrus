@@ -45,7 +45,7 @@ public:
 	
 	virtual void update( BcReal Tick );
 
-	virtual void render( ScnCanvasRef Canvas );
+	virtual void render( ScnCanvasComponentRef Canvas );
 	
 public:
 	struct TAnimationLogic

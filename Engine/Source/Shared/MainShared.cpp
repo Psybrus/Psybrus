@@ -53,13 +53,13 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
 
 	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
+	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
 
 	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnFontInstance >();
+	CsCore::pImpl()->registerResource< ScnFontComponent >();
 
 	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnModelInstance >();
+	CsCore::pImpl()->registerResource< ScnModelComponent >();
 
 	CsCore::pImpl()->registerResource< ScnSound >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
@@ -67,7 +67,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnComponent >();
 	CsCore::pImpl()->registerResource< ScnEntity >();
 
-	CsCore::pImpl()->registerResource< ScnCanvas >();
+	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
 	CsCore::pImpl()->registerResource< ScnView >();
 
 	return evtRET_REMOVE;
@@ -85,13 +85,13 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->unregisterResource< ScnTextureAtlas >();
 
 	CsCore::pImpl()->unregisterResource< ScnMaterial >();
-	CsCore::pImpl()->unregisterResource< ScnMaterialInstance >();
+	CsCore::pImpl()->unregisterResource< ScnMaterialComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnFont >();
-	CsCore::pImpl()->unregisterResource< ScnFontInstance >();
+	CsCore::pImpl()->unregisterResource< ScnFontComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnModel >();
-	CsCore::pImpl()->unregisterResource< ScnModelInstance >();
+	CsCore::pImpl()->unregisterResource< ScnModelComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnSound >();
 	CsCore::pImpl()->unregisterResource< ScnSoundEmitter >();
@@ -99,7 +99,7 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->unregisterResource< ScnComponent >();
 	CsCore::pImpl()->unregisterResource< ScnEntity >();
 
-	CsCore::pImpl()->unregisterResource< ScnCanvas >();
+	CsCore::pImpl()->unregisterResource< ScnCanvasComponent >();
 	CsCore::pImpl()->unregisterResource< ScnView >();
 
 	return evtRET_REMOVE;

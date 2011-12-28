@@ -18,17 +18,17 @@ void doRender( BcU32 Width, BcU32 Height )
 {
 	static int bleh = 1;
 	static ScnMaterialRef MaterialRef;
-	static ScnMaterialInstanceRef MaterialInstanceRef;
-	static ScnCanvasRef Canvas;
+	static ScnMaterialComponentRef MaterialComponentRef;
+	static ScnCanvasComponentRef Canvas;
 	if( MaterialRef.isValid() == BcFalse )
 	{
 		CsCore::pImpl()->importResource< ScnMaterial >( "EngineContent/default.material", MaterialRef );
 		return;
 	}
-	if( MaterialRef.isReady() && MaterialInstanceRef.isValid() == BcFalse )
+	if( MaterialRef.isReady() && MaterialComponentRef.isValid() == BcFalse )
 	{
-		MaterialRef->createInstance( "materialinstance", MaterialInstanceRef, 0 );
-		CsCore::pImpl()->createResource( "canvas", Canvas, 4096, MaterialInstanceRef );
+		MaterialRef->createComponent( "MaterialComponent", MaterialComponentRef, 0 );
+		CsCore::pImpl()->createResource( "canvas", Canvas, 4096, MaterialComponentRef );
 		return;
 	}
 

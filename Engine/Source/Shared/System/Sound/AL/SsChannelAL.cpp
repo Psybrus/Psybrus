@@ -59,8 +59,14 @@ SsChannelAL::~SsChannelAL()
 //////////////////////////////////////////////////////////////////////////
 // stop
 //virtual
-void SsChannelAL::stop()
+void SsChannelAL::stop( BcBool ReleaseCallback )
 {
+	// TODO: Lock/fence!!
+	if( ReleaseCallback )
+	{
+		pCallback_ = NULL;
+	}
+	
 	alSourceStop( ALSource_ );
 }
 
@@ -68,12 +74,9 @@ void SsChannelAL::stop()
 // play
 void SsChannelAL::play( SsSampleAL* Sample, SsChannelCallback* Callback )
 {
+	// TODO: Lock/fence!!
 	BcAssert( State_ == ssCS_IDLE || State_ == ssCS_STOPPED );
 
-	Sample_ = Sample;
-	pCallback_ = Callback;
-	State_ = ssCS_PREPARED;
-	
 	alSourcei( ALSource_, AL_BUFFER, Sample->getHandle< ALuint >() );
 #if SS_AL_EFX_SUPPORTED
 	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
@@ -83,6 +86,11 @@ void SsChannelAL::play( SsSampleAL* Sample, SsChannelCallback* Callback )
 	}
 #endif
 	alBreakOnError();
+
+	Sample_ = Sample;
+	pCallback_ = Callback;
+	State_ = ssCS_PREPARED;
+
 }
 
 //////////////////////////////////////////////////////////////////////////

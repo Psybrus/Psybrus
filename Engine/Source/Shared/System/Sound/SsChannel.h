@@ -67,7 +67,7 @@ public:
 	void position( const BcVec3d& Position );
 	const BcVec3d& position() const;
 
-	virtual void stop() = 0;
+	virtual void stop( BcBool ReleaseCallback = BcFalse ) = 0;
 
 protected:
 	SsChannelCallback*	pCallback_;

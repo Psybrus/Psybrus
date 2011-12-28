@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		ScnCanvas.cpp
+* File:		ScnCanvasComponent.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	10/04/11	
 * Description:
@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "ScnCanvas.h"
+#include "ScnCanvasComponent.h"
 
 
 #ifdef PSY_SERVER
@@ -20,15 +20,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnCanvas );
+DEFINE_RESOURCE( ScnCanvasComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // StaticPropertyTable
-void ScnCanvas::StaticPropertyTable( CsPropertyTable& PropertyTable )
+void ScnCanvasComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
 	Super::StaticPropertyTable( PropertyTable );
 	
-	PropertyTable.beginCatagory( "ScnCanvas" )
+	PropertyTable.beginCatagory( "ScnCanvasComponent" )
 		//.field( "source",					csPVT_FILE,			csPCT_LIST )
 	.endCatagory();
 }
@@ -36,7 +36,7 @@ void ScnCanvas::StaticPropertyTable( CsPropertyTable& PropertyTable )
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMaterialInstance )
+void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent )
 {
 	// NULL internals.
 	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
@@ -51,7 +51,7 @@ void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMa
 	NoofVertices_ = NoofVertices;
 	
 	// Store default material instance.
-	DefaultMaterialInstance_ = DefaultMaterialInstance; 
+	DefaultMaterialComponent_ = DefaultMaterialComponent; 
 
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
@@ -60,11 +60,11 @@ void ScnCanvas::initialise( BcU32 NoofVertices, ScnMaterialInstanceRef DefaultMa
 //////////////////////////////////////////////////////////////////////////
 // create
 //virtual
-void ScnCanvas::create()
+void ScnCanvasComponent::create()
 {
 	// Allocate our own vertex buffer data.
 	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
-	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasVertex ) );
+	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasComponentVertex ) );
 
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -72,7 +72,7 @@ void ScnCanvas::create()
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
 		// Allocate vertices.
-		RenderResource.pVertices_ = new ScnCanvasVertex[ NoofVertices_ ];
+		RenderResource.pVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
 
 		// Allocate render side vertex buffer.
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexFormat, NoofVertices_, RenderResource.pVertices_ );
@@ -85,7 +85,7 @@ void ScnCanvas::create()
 //////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
-void ScnCanvas::destroy()
+void ScnCanvasComponent::destroy()
 {
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
@@ -105,7 +105,7 @@ void ScnCanvas::destroy()
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnCanvas::isReady()
+BcBool ScnCanvasComponent::isReady()
 {
 	// TODO: Just set a sodding flag ok?
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -122,20 +122,20 @@ BcBool ScnCanvas::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setMaterialInstance
-void ScnCanvas::setMaterialInstance( ScnMaterialInstanceRef MaterialInstance )
+// setMaterialComponent
+void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialComponent )
 {
-	if( MaterialInstance_ != MaterialInstance )
+	if( MaterialComponent_ != MaterialComponent )
 	{
-		MaterialInstance_ = MaterialInstance;
-		BcU32 Parameter = MaterialInstance_->findParameter( "aDiffuseTex" );
-		DiffuseTexture_ = MaterialInstance_->getTexture( Parameter );
+		MaterialComponent_ = MaterialComponent;
+		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
+		DiffuseTexture_ = MaterialComponent_->getTexture( Parameter );
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // pushMatrix
-void ScnCanvas::pushMatrix( const BcMat4d& Matrix )
+void ScnCanvasComponent::pushMatrix( const BcMat4d& Matrix )
 {
 	const BcMat4d& CurrMatrix = getMatrix();
 	BcMat4d NewMatrix = Matrix * CurrMatrix;
@@ -145,9 +145,9 @@ void ScnCanvas::pushMatrix( const BcMat4d& Matrix )
 
 //////////////////////////////////////////////////////////////////////////
 // popMatrix
-void ScnCanvas::popMatrix()
+void ScnCanvasComponent::popMatrix()
 {
-	BcAssertMsg( MatrixStack_.size(), "ScnCanvas: Can't pop the last matrix off the stack! Mismatching push/pop?" );
+	BcAssertMsg( MatrixStack_.size(), "ScnCanvasComponent: Can't pop the last matrix off the stack! Mismatching push/pop?" );
 	
 	if( MatrixStack_.size() > 1 )
 	{
@@ -159,17 +159,17 @@ void ScnCanvas::popMatrix()
 
 //////////////////////////////////////////////////////////////////////////
 // getMatrix
-BcMat4d ScnCanvas::getMatrix() const
+BcMat4d ScnCanvasComponent::getMatrix() const
 {
 	return MatrixStack_[ MatrixStack_.size() - 1 ];
 }
 
 //////////////////////////////////////////////////////////////////////////
 // allocVertices
-ScnCanvasVertex* ScnCanvas::allocVertices( BcU32 NoofVertices )
+ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcU32 NoofVertices )
 {
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvas: Don't have vertex buffer lock!" );
-	ScnCanvasVertex* pCurrVertex = NULL;
+	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Don't have vertex buffer lock!" );
+	ScnCanvasComponentVertex* pCurrVertex = NULL;
 	if( ( VertexIndex_ + NoofVertices ) <= NoofVertices_ )
 	{
 		pCurrVertex = &pVertices_[ VertexIndex_ ];
@@ -180,15 +180,15 @@ ScnCanvasVertex* ScnCanvas::allocVertices( BcU32 NoofVertices )
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
 	// Check if the vertices are owned by us, if not copy in.
 	if( pVertices < pVertices_ || pVertices_ >= pVerticesEnd_ )
 	{
-		ScnCanvasVertex* pNewVertices = allocVertices( NoofVertices );
+		ScnCanvasComponentVertex* pNewVertices = allocVertices( NoofVertices );
 		if( pNewVertices != NULL )
 		{
-			BcMemCopy( pNewVertices, pVertices, sizeof( ScnCanvasVertex ) * NoofVertices );
+			BcMemCopy( pNewVertices, pVertices, sizeof( ScnCanvasComponentVertex ) * NoofVertices );
 			pVertices = pNewVertices;
 		}
 	}
@@ -200,7 +200,7 @@ void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices,
 
 		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 		{
-			ScnCanvasVertex* pVertex = &pVertices[ Idx ];
+			ScnCanvasComponentVertex* pVertex = &pVertices[ Idx ];
 			BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 			pVertex->X_ = Vertex.x();
 			pVertex->Y_ = Vertex.y();
@@ -210,13 +210,13 @@ void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices,
 	
 	// TODO: If there was a previous primitive which we can marge into, attempt to.
 	BcU32 VertexIndex = convertVertexPointerToIndex( pVertices );
-	ScnCanvasPrimitiveSection PrimitiveSection = 
+	ScnCanvasComponentPrimitiveSection PrimitiveSection = 
 	{
 		Type,
 		VertexIndex,
 		NoofVertices,
 		Layer,
-		MaterialInstance_
+		MaterialComponent_
 	};
 	
 	PrimitiveSectionList_.push_back( PrimitiveSection );
@@ -225,10 +225,10 @@ void ScnCanvas::addPrimitive( eRsPrimitiveType Type, ScnCanvasVertex* pVertices,
 
 //////////////////////////////////////////////////////////////////////////
 // drawLine
-void ScnCanvas::drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsColour& Colour, BcU32 Layer )
 {
-	ScnCanvasVertex* pVertices = allocVertices( 2 );
-	ScnCanvasVertex* pFirstVertex = pVertices;
+	ScnCanvasComponentVertex* pVertices = allocVertices( 2 );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
@@ -253,11 +253,11 @@ void ScnCanvas::drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const Rs
 
 //////////////////////////////////////////////////////////////////////////
 // drawLines
-void ScnCanvas::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
 {
 	BcU32 NoofVertices = 2 * NoofLines;
-	ScnCanvasVertex* pVertices = allocVertices( NoofVertices );
-	ScnCanvasVertex* pFirstVertex = pVertices;
+	ScnCanvasComponentVertex* pVertices = allocVertices( NoofVertices );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
@@ -281,10 +281,10 @@ void ScnCanvas::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColo
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
 {
-	ScnCanvasVertex* pVertices = allocVertices( 4 );
-	ScnCanvasVertex* pFirstVertex = pVertices;
+	ScnCanvasComponentVertex* pVertices = allocVertices( 4 );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
@@ -330,10 +330,10 @@ void ScnCanvas::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const R
 
 //////////////////////////////////////////////////////////////////////////
 // drawSprite
-void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	ScnCanvasVertex* pVertices = allocVertices( 6 );
-	ScnCanvasVertex* pFirstVertex = pVertices;
+	ScnCanvasComponentVertex* pVertices = allocVertices( 6 );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
 	const BcVec2d CornerA = Position;
 	const BcVec2d CornerB = Position + Size;
@@ -397,13 +397,13 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 		BcBool AddNewPrimitive = BcTrue;
 		if( LastPrimitiveSection_ != BcErrorCode )
 		{
-			ScnCanvasPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+			ScnCanvasComponentPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
 			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
 				PrimitiveSection.Layer_ == Layer &&
-				PrimitiveSection.MaterialInstance_ == MaterialInstance_ )
+				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
 				PrimitiveSection.NoofVertices_ += 6;
 
@@ -415,7 +415,7 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
-						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
+						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
 						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
@@ -437,10 +437,10 @@ void ScnCanvas::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 
 
 //////////////////////////////////////////////////////////////////////////
 // drawSprite
-void ScnCanvas::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	ScnCanvasVertex* pVertices = allocVertices( 6 );
-	ScnCanvasVertex* pFirstVertex = pVertices;
+	ScnCanvasComponentVertex* pVertices = allocVertices( 6 );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
 	const BcVec3d CornerA = Position;
 	const BcVec3d CornerB = Position + BcVec3d( Size.x(), Size.y(), 0.0f );
@@ -504,13 +504,13 @@ void ScnCanvas::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU3
 		BcBool AddNewPrimitive = BcTrue;
 		if( LastPrimitiveSection_ != BcErrorCode )
 		{
-			ScnCanvasPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+			ScnCanvasComponentPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
 			
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
 			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
 			   PrimitiveSection.Layer_ == Layer &&
-			   PrimitiveSection.MaterialInstance_ == MaterialInstance_ )
+			   PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
 				PrimitiveSection.NoofVertices_ += 6;
 				
@@ -522,7 +522,7 @@ void ScnCanvas::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU3
 					
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
-						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
+						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
 						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
@@ -544,10 +544,10 @@ void ScnCanvas::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU3
 
 //////////////////////////////////////////////////////////////////////////
 // drawSprite
-void ScnCanvas::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	ScnCanvasVertex* pVertices = allocVertices( 6 );
-	ScnCanvasVertex* pFirstVertex = pVertices;
+	ScnCanvasComponentVertex* pVertices = allocVertices( 6 );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
 	const BcVec3d CornerA = Position;
 	const BcVec3d CornerB = Position + BcVec3d( Size.x(), 0.0f, Size.y() );
@@ -611,13 +611,13 @@ void ScnCanvas::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, Bc
 		BcBool AddNewPrimitive = BcTrue;
 		if( LastPrimitiveSection_ != BcErrorCode )
 		{
-			ScnCanvasPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+			ScnCanvasComponentPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
 			
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
 			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
 			   PrimitiveSection.Layer_ == Layer &&
-			   PrimitiveSection.MaterialInstance_ == MaterialInstance_ )
+			   PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
 				PrimitiveSection.NoofVertices_ += 6;
 				
@@ -629,7 +629,7 @@ void ScnCanvas::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, Bc
 					
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
-						ScnCanvasVertex* pVertex = &pFirstVertex[ Idx ];
+						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
 						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
@@ -651,7 +651,7 @@ void ScnCanvas::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, Bc
 
 //////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
-void ScnCanvas::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	BcVec2d NewPosition = Position - ( Size * 0.5f );
 	drawSprite( NewPosition, Size, TextureIdx, Colour, Layer );
@@ -659,7 +659,7 @@ void ScnCanvas::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size
 
 //////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
-void ScnCanvas::drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, Size.y() * 0.5f, 0.0f );
 	drawSprite3D( NewPosition, Size, TextureIdx, Colour, Layer );
@@ -667,7 +667,7 @@ void ScnCanvas::drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Si
 
 //////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
-void ScnCanvas::drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, 0.0f, Size.y() * 0.5f );
 	drawSpriteUp3D( NewPosition, Size, TextureIdx, Colour, Layer );
@@ -675,7 +675,7 @@ void ScnCanvas::drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& 
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnCanvas::clear()
+void ScnCanvasComponent::clear()
 {
 	// Set current render resource.
 	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
@@ -703,12 +703,12 @@ void ScnCanvas::clear()
 	LastPrimitiveSection_ = BcErrorCode;
 
 	// Set material instance to default material instance.
-	setMaterialInstance( DefaultMaterialInstance_ );
+	setMaterialComponent( DefaultMaterialComponent_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // render
-class ScnCanvasRenderNode: public RsRenderNode
+class ScnCanvasComponentRenderNode: public RsRenderNode
 {
 public:
 	void render()
@@ -716,45 +716,45 @@ public:
 		// TODO: Cache material instance so we don't rebind?
 		for( BcU32 Idx = 0; Idx < NoofSections_; ++Idx )
 		{
-			ScnCanvasPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
+			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
 			pPrimitive_->render( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	
 	BcU32 NoofSections_;
-	ScnCanvasPrimitiveSection* pPrimitiveSections_;
+	ScnCanvasComponentPrimitiveSection* pPrimitiveSections_;
 	RsPrimitive* pPrimitive_;
 };
 
-void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 {
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvas: Can't render without a vertex buffer lock." );
+	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
 	//       to the scene. Will not sort by transparency or anything either.
-	std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasPrimitiveSectionCompare() );
+	std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasComponentPrimitiveSectionCompare() );
 	
 	// Cache last material instance.
-	ScnMaterialInstance* pLastMaterialInstance = NULL;
+	ScnMaterialComponent* pLastMaterialComponent = NULL;
 	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
-		ScnCanvasRenderNode* pRenderNode = pFrame->newObject< ScnCanvasRenderNode >();
+		ScnCanvasComponentRenderNode* pRenderNode = pFrame->newObject< ScnCanvasComponentRenderNode >();
 	
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
-		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasPrimitiveSection >( 1 );
+		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
 		pRenderNode->pPrimitive_ = pRenderResource_->pPrimitive_;
 		
 		// Copy primitive sections in.
-		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasPrimitiveSection ) * 1 );
+		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
 
 		// Bind material.
-		if( pLastMaterialInstance != pRenderNode->pPrimitiveSections_->MaterialInstance_ )
+		if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
-			pLastMaterialInstance = pRenderNode->pPrimitiveSections_->MaterialInstance_;
-			pLastMaterialInstance->bind( pFrame, Sort );
+			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
+			pLastMaterialComponent->bind( pFrame, Sort );
 		}
 
 		// Add to frame.
@@ -773,4 +773,29 @@ void ScnCanvas::render( RsFrame* pFrame, RsRenderSort Sort )
 	// Reset render resource pointers to aid debugging.
 	pRenderResource_ = NULL;
 	pVertices_ = pVerticesEnd_ = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//virtual
+void ScnCanvasComponent::update( BcReal Tick )
+{
+	ScnComponent::update( Tick );	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	ScnComponent::onAttach( Parent );	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	ScnComponent::onDetach( Parent );
 }

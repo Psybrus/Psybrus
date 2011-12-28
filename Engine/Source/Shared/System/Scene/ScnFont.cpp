@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "ScnFont.h"
+#include "ScnEntity.h"
 
 #include "CsCore.h"
 
@@ -394,9 +395,9 @@ BcBool ScnFont::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcBool ScnFont::createInstance( const std::string& Name, ScnFontInstanceRef& FontInstance, ScnMaterialRef Material )
+BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material )
 {	
-	return CsCore::pImpl()->createResource( Name, FontInstance, this, Material );
+	return CsCore::pImpl()->createResource( Name, FontComponent, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -443,48 +444,48 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* p
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnFontInstance );
+DEFINE_RESOURCE( ScnFontComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // StaticPropertyTable
-void ScnFontInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
+void ScnFontComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.beginCatagory( "ScnFontInstance" )
+	PropertyTable.beginCatagory( "ScnFontComponent" )
 		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
 	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnFontInstance::initialise( ScnFontRef Parent, ScnMaterialRef Material )
+void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
 	Parent_ = Parent; 
-	if( Material->createInstance( getName().getValue(), MaterialInstance_, scnSPF_DEFAULT ) )
+	if( Material->createComponent( getName().getValue(), MaterialComponent_, scnSPF_DEFAULT ) )
 	{	
-		BcU32 Parameter = MaterialInstance_->findParameter( "aDiffuseTex" );
+		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )
 		{
-			MaterialInstance_->setTexture( Parameter, Parent_->Texture_ );
+			MaterialComponent_->setTexture( Parameter, Parent_->Texture_ );
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcVec2d ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String, BcBool SizeRun )
+BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string& String, BcBool SizeRun )
 {
 	// Cached elements from parent.
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
 	ScnFont::TGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	
 	// Allocate enough vertices for each character.
-	ScnCanvasVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
-	ScnCanvasVertex* pVert = pFirstVert;
+	ScnCanvasComponentVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
+	ScnCanvasComponentVertex* pVert = pFirstVert;
 
 	// Zero the buffer.
 	if( pFirstVert != NULL )
 	{
-		BcMemZero( pFirstVert, String.length() * 6 * sizeof( ScnCanvasVertex ) );
+		BcMemZero( pFirstVert, String.length() * 6 * sizeof( ScnCanvasComponentVertex ) );
 	}
 	
 	BcU32 NoofVertices = 0;
@@ -589,29 +590,61 @@ BcVec2d ScnFontInstance::draw( ScnCanvasRef Canvas, const std::string& String, B
 		// Add primitive to canvas.
 		if( NoofVertices > 0 )
 		{
-			Canvas->setMaterialInstance( MaterialInstance_ );
+			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
 		}
 	}
 	else
 	{
-		BcPrintf( "ScnFontInstance: Out of vertices!\n" );
+		BcPrintf( "ScnFontComponent: Out of vertices!\n" );
 	}
 
 	return MaxSize - MinSize;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getMaterialInstance
-ScnMaterialInstanceRef ScnFontInstance::getMaterialInstance()
+// getMaterialComponent
+ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 {
-	return MaterialInstance_;
+	return MaterialComponent_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnFontInstance::isReady()
+BcBool ScnFontComponent::isReady()
 {
-	return Parent_->isReady() && MaterialInstance_.isReady();
+	return Parent_->isReady() && MaterialComponent_.isReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+void ScnFontComponent::update( BcReal Tick )
+{
+	ScnComponent::update( Tick );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	// Attach material to our parent.
+	Parent->attach( MaterialComponent_ );
+
+	//
+	ScnComponent::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	// Detach material from our parent.
+	Parent->detach( MaterialComponent_ );
+
+	//
+	ScnComponent::onDetach( Parent );
 }

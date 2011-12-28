@@ -132,7 +132,7 @@ void ScnEntity::update( BcReal Tick )
 //////////////////////////////////////////////////////////////////////////
 // attach
 //virtual
-void ScnEntity::attach( ScnComponentRef Component )
+void ScnEntity::attach( ScnComponent* Component )
 {
 	// Call the on detach.
 	Component->onAttach( ScnEntityWeakRef( this ) );
@@ -144,7 +144,7 @@ void ScnEntity::attach( ScnComponentRef Component )
 //////////////////////////////////////////////////////////////////////////
 // detach
 //virtual
-void ScnEntity::detach( ScnComponentRef Component )
+void ScnEntity::detach( ScnComponent* Component )
 {
 	// Call the on detach.
 	Component->onDetach( ScnEntityWeakRef( this ) );

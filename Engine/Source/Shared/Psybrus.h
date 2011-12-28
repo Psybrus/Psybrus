@@ -59,7 +59,7 @@
 #include "ScnRenderTarget.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
-#include "ScnCanvas.h"
+#include "ScnCanvasComponent.h"
 #include "ScnShader.h"
 #include "ScnFont.h"
 #include "ScnSound.h"

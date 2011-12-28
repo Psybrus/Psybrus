@@ -52,7 +52,7 @@ protected:
 	
 	THeader*							pHeader_;
 
-	ScnEntityWeakRef					Parent_;
+	ScnEntityWeakRef					ParentEntity_;
 };
 
 #endif

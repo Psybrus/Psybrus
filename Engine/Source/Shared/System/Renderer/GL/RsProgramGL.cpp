@@ -129,7 +129,7 @@ BcU32 RsProgramGL::getParameterBufferSize() const
 ////////////////////////////////////////////////////////////////////////////////
 // findParameterOffset
 //virtual
-BcU32 RsProgramGL::findParameterOffset( const std::string& Name, eRsShaderParameterType& Type, BcU32& Offset ) const
+BcU32 RsProgramGL::findParameterOffset( const BcName& Name, eRsShaderParameterType& Type, BcU32& Offset ) const
 {
 	for( TParameterListConstIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 	{
@@ -221,7 +221,7 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			int Error = glGetError();
 			if( Error != 0 )
 			{
-				BcPrintf( "Error setting parameter \"%s\". Handle=%u, f=%f, i=%u\n", Parameter.Name_.c_str(), ParamHandle, *pFloatParameterOffset, *pIntParameterOffset );
+				BcPrintf( "Error setting parameter \"%s\". Handle=%u, f=%f, i=%u\n", (*Parameter.Name_).c_str(), ParamHandle, *pFloatParameterOffset, *pIntParameterOffset );
 			}
 #endif
 		}

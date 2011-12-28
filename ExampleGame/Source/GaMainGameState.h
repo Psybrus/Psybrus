@@ -117,7 +117,7 @@ public:
 		return pFarthestEntity;
 	}
 
-	void setMaterialInstanceParams( ScnMaterialInstanceRef MaterialInstanceRef, const BcMat4d& WorldView );
+	void setMaterialComponentParams( ScnMaterialComponentRef MaterialComponentRef, const BcMat4d& WorldView );
 
 	void getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far );
 
@@ -144,9 +144,9 @@ private:
 
 	RsContext* pContext_;
 
-	ScnMaterialInstanceRef BackgroundMaterialInstance_;
-	ScnMaterialInstanceRef ForegroundMaterialInstance_;
-	ScnMaterialInstanceRef BarMaterialInstance_;
+	ScnMaterialComponentRef BackgroundMaterialComponent_;
+	ScnMaterialComponentRef ForegroundMaterialComponent_;
+	ScnMaterialComponentRef BarMaterialComponent_;
 };
 
 #endif

@@ -71,8 +71,8 @@ GaBunnyRenderer::~GaBunnyRenderer()
 // update
 void GaBunnyRenderer::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale )
 {
-	Material->createInstance( *Material->getName() + "materialinstance", MaterialInstance_, BcErrorCode );
-	ScnMaterial::Default->createInstance( "shadowmaterialinstance", ShadowMaterialInstance_, BcErrorCode );
+	Material->createComponent( *Material->getName() + "MaterialComponent", MaterialComponent_, BcErrorCode );
+	ScnMaterial::Default->createComponent( "shadowMaterialComponent", ShadowMaterialComponent_, BcErrorCode );
 	Scale_ = Scale;
 }
 
@@ -80,7 +80,7 @@ void GaBunnyRenderer::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale
 // update
 BcBool GaBunnyRenderer::isReady()
 {
-	return MaterialInstance_.isReady();
+	return MaterialComponent_.isReady();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ void GaBunnyRenderer::update( BcReal Tick )
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaBunnyRenderer::render( GaMainGameState* pParent, ScnCanvasRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity )
+void GaBunnyRenderer::render( GaMainGameState* pParent, ScnCanvasComponentRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity )
 {
 	BcBool ShouldAnimate = BcFalse;
 
@@ -126,12 +126,12 @@ void GaBunnyRenderer::render( GaMainGameState* pParent, ScnCanvasRef Canvas, con
 	PositionMatrix.scale( Scale_ );
 	PositionMatrix.translation( BcVec3d( Position.x(), Position.y(), 0.0f ) );
 	
-	Canvas->setMaterialInstance( ShadowMaterialInstance_ );
-	pParent->setMaterialInstanceParams( ShadowMaterialInstance_, RotationMatrix * PositionMatrix );
+	Canvas->setMaterialComponent( ShadowMaterialComponent_ );
+	pParent->setMaterialComponentParams( ShadowMaterialComponent_, RotationMatrix * PositionMatrix );
 	Canvas->drawSpriteCentered3D( BcVec3d( 0.0f, 0.0f, 0.2f ), BcVec2d( 128.0f, 128.0f ), 0, RsColour::WHITE, 6 );
 
-	Canvas->setMaterialInstance( MaterialInstance_ );
-	pParent->setMaterialInstanceParams( MaterialInstance_, RotationMatrix * PositionMatrix );
+	Canvas->setMaterialComponent( MaterialComponent_ );
+	pParent->setMaterialComponentParams( MaterialComponent_, RotationMatrix * PositionMatrix );
 
 	BcVec2d Size = BcVec2d( 192.0f, -172.0f ) * 0.5f;
 

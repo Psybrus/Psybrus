@@ -64,7 +64,7 @@ void GaPlayerEntity::update( BcReal Tick )
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaPlayerEntity::render( ScnCanvasRef Canvas )
+void GaPlayerEntity::render( ScnCanvasComponentRef Canvas )
 {
 	BunnyRenderer_.render( pParent(), Canvas, BcVec3d( Position_.x(), Position_.y(), 0.0f ), pBody_->Velocity_ );
 }

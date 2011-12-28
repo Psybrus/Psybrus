@@ -205,7 +205,7 @@ BcBool ScnMaterial::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // createInstance
-BcBool ScnMaterial::createInstance( const std::string& Name, ScnMaterialInstanceRef& Instance, BcU32 PermutationFlags )
+BcBool ScnMaterial::createComponent( const BcName& Name, ScnMaterialComponentRef& Instance, BcU32 PermutationFlags )
 {
 	return CsCore::pImpl()->createResource( Name, Instance, this, Shader_->getProgram( PermutationFlags ), TextureMap_ );
 }
@@ -261,20 +261,20 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnMaterialInstance );
+DEFINE_RESOURCE( ScnMaterialComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // StaticPropertyTable
-void ScnMaterialInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
+void ScnMaterialComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.beginCatagory( "ScnMaterialInstance" )
+	PropertyTable.beginCatagory( "ScnMaterialComponent" )
 		//.field( "source",					csPVT_FILE,			csPCT_LIST )
 	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnMaterialInstance::initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap )
+void ScnMaterialComponent::initialise( ScnMaterialRef Parent, RsProgram* pProgram, const ScnTextureMap& TextureMap )
 {
 	// Cache parent and program.
 	Parent_ = Parent;
@@ -319,7 +319,7 @@ void ScnMaterialInstance::initialise( ScnMaterialRef Parent, RsProgram* pProgram
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
-void ScnMaterialInstance::destroy()
+void ScnMaterialComponent::destroy()
 {
 	delete pStateBuffer_;
 	pStateBuffer_ = NULL;
@@ -330,7 +330,7 @@ void ScnMaterialInstance::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-BcU32 ScnMaterialInstance::findParameter( const std::string& ParameterName )
+BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
@@ -358,14 +358,14 @@ BcU32 ScnMaterialInstance::findParameter( const std::string& ParameterName )
 		return ParameterBindingList_.size() - 1;
 	}
 	
-	BcPrintf( "ScnMaterialInstance (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), ParameterName.c_str() );
+	BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
 	
 	return BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, BcS32 Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -387,7 +387,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, BcS32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, BcBool Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -404,7 +404,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, BcBool Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, BcReal Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcReal Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -420,7 +420,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, BcReal Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec2d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -437,7 +437,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec2d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec3d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -455,7 +455,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec3d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec4d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -474,7 +474,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcVec4d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcMat3d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -498,7 +498,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcMat3d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcMat4d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -530,7 +530,7 @@ void ScnMaterialInstance::setParameter( BcU32 Parameter, const BcMat4d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialInstance::setTexture( BcU32 Parameter, ScnTextureRef Texture )
+void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -559,7 +559,7 @@ void ScnMaterialInstance::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 
 //////////////////////////////////////////////////////////////////////////
 // setState
-void ScnMaterialInstance::setState( eRsRenderState State, BcU32 Value )
+void ScnMaterialComponent::setState( eRsRenderState State, BcU32 Value )
 {
 	if( State < rsRS_MAX )
 	{
@@ -569,7 +569,7 @@ void ScnMaterialInstance::setState( eRsRenderState State, BcU32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // getTexture
-ScnTextureRef ScnMaterialInstance::getTexture( BcU32 Parameter )
+ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Parameter )
 {
 
 	for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
@@ -587,10 +587,10 @@ ScnTextureRef ScnMaterialInstance::getTexture( BcU32 Parameter )
 
 //////////////////////////////////////////////////////////////////////////
 // bind
-class ScnMaterialInstanceRenderNode: public RsRenderNode
+class ScnMaterialComponentRenderNode: public RsRenderNode
 {
 public:
-	ScnMaterialInstanceRenderNode()
+	ScnMaterialComponentRenderNode()
 	{
 		
 	}
@@ -633,10 +633,10 @@ public:
 	BcU32* pStateBuffer_;
 	
 	// For debugging.
-	ScnMaterialInstance* pParent_;
+	ScnMaterialComponent* pParent_;
 };
 
-void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
+void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Default texture parameters.
 	RsTextureParams DefaultTextureParams = 
@@ -645,7 +645,7 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 	};
 	
 	// Allocate a render node.
-	ScnMaterialInstanceRenderNode* pRenderNode = pFrame->newObject< ScnMaterialInstanceRenderNode >();
+	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
 	
 	// Debugging.
 	pRenderNode->pParent_ = this;
@@ -693,7 +693,7 @@ void ScnMaterialInstance::bind( RsFrame* pFrame, RsRenderSort Sort )
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnMaterialInstance::isReady()
+BcBool ScnMaterialComponent::isReady()
 {
 	for( BcU32 Idx = 0; Idx < TextureBindingList_.size(); ++Idx )
 	{
@@ -704,4 +704,28 @@ BcBool ScnMaterialInstance::isReady()
 	}
 	
 	return Parent_.isReady() && pProgram_->getHandle< BcU64 >() != 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//virtual
+void ScnMaterialComponent::update( BcReal Tick )
+{
+	ScnComponent::update( Tick );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	ScnComponent::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	ScnComponent::onDetach( Parent );
 }

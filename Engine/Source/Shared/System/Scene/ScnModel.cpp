@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "ScnModel.h"
+#include "ScnEntity.h"
 
 #include "CsCore.h"
 
@@ -273,7 +274,7 @@ BcBool ScnModel::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // createInstance
-BcBool ScnModel::createInstance( const std::string& Name, ScnModelInstanceRef& Handle )
+BcBool ScnModel::createComponent( const BcName& Name, ScnModelComponentRef& Handle )
 {
 	return CsCore::pImpl()->createResource( Name, Handle, this );
 }
@@ -385,13 +386,13 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* 
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
-DEFINE_RESOURCE( ScnModelInstance );
+DEFINE_RESOURCE( ScnModelComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // StaticPropertyTable
-void ScnModelInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
+void ScnModelComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
-	PropertyTable.beginCatagory( "ScnModelInstance" )
+	PropertyTable.beginCatagory( "ScnModelComponent" )
 		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
 	.endCatagory();
 }
@@ -399,7 +400,7 @@ void ScnModelInstance::StaticPropertyTable( CsPropertyTable& PropertyTable )
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnModelInstance::initialise( ScnModelRef Parent )
+void ScnModelComponent::initialise( ScnModelRef Parent )
 {
 	// Cache parent.
 	Parent_ = Parent;
@@ -411,8 +412,8 @@ void ScnModelInstance::initialise( ScnModelRef Parent )
 
 	// Create material instances to render with.
 	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
-	ScnMaterialInstanceRef MaterialInstanceRef;
-	MaterialInstanceDescList_.reserve( PrimitiveRuntimes.size() );
+	ScnMaterialComponentRef MaterialComponentRef;
+	MaterialComponentDescList_.reserve( PrimitiveRuntimes.size() );
 	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes.size(); ++Idx )
 	{
 		ScnModel::TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ Idx ];
@@ -422,15 +423,15 @@ void ScnModelInstance::initialise( ScnModelRef Parent )
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			pPrimitiveRuntime->MaterialRef_->createInstance( getName().getValue() + "_MaterialInstance", MaterialInstanceRef, scnSPF_DEFAULT );
+			pPrimitiveRuntime->MaterialRef_->createComponent( *getName() + "MaterialComponent", MaterialComponentRef, scnSPF_DEFAULT );
 			
-			TMaterialInstanceDesc MaterialInstanceDesc =
+			TMaterialComponentDesc MaterialComponentDesc =
 			{
-				MaterialInstanceRef,
-				MaterialInstanceRef->findParameter( "uWorldMatrix" )				
+				MaterialComponentRef,
+				MaterialComponentRef->findParameter( "uWorldMatrix" )				
 			};
 
-			MaterialInstanceDescList_.push_back( MaterialInstanceDesc );
+			MaterialComponentDescList_.push_back( MaterialComponentDesc );
 		}
 	}
 }
@@ -438,7 +439,7 @@ void ScnModelInstance::initialise( ScnModelRef Parent )
 //////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
-void ScnModelInstance::destroy()
+void ScnModelComponent::destroy()
 {
 	// Delete duplicated node data.
 	delete [] pNodeTransformData_;
@@ -448,14 +449,14 @@ void ScnModelInstance::destroy()
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnModelInstance::isReady()
+BcBool ScnModelComponent::isReady()
 {
 	return Parent_->isReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setTransform
-void ScnModelInstance::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform )
+void ScnModelComponent::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform )
 {
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
@@ -465,9 +466,12 @@ void ScnModelInstance::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransfor
 }
 
 //////////////////////////////////////////////////////////////////////////
-// updateNodes
-void ScnModelInstance::update()
+// update
+//virtual
+void ScnModelComponent::update( BcReal Tick )
 {
+	ScnComponent::update( Tick );
+	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
@@ -489,8 +493,40 @@ void ScnModelInstance::update()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	// Attach material components to parent.
+	for( BcU32 Idx = 0 ; Idx < MaterialComponentDescList_.size(); ++Idx )
+	{
+		TMaterialComponentDesc& MaterialComponentDesc( MaterialComponentDescList_[ Idx ] );
+		Parent->attach( MaterialComponentDesc.MaterialComponentRef_ );
+	}
+	
+	//
+	ScnComponent::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	// Detach material components from parent.
+	for( BcU32 Idx = 0 ; Idx < MaterialComponentDescList_.size(); ++Idx )
+	{
+		TMaterialComponentDesc& MaterialComponentDesc( MaterialComponentDescList_[ Idx ] );
+		Parent->detach( MaterialComponentDesc.MaterialComponentRef_ );
+	}
+
+	//
+	ScnComponent::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // renderPrimitives
-class ScnModelInstanceRenderNode: public RsRenderNode
+class ScnModelComponentRenderNode: public RsRenderNode
 {
 public:
 	void render()
@@ -506,7 +542,7 @@ public:
 	RsPrimitive* pPrimitive_;
 };
 
-void ScnModelInstance::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnModelComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 {
 	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
@@ -516,20 +552,20 @@ void ScnModelInstance::render( RsFrame* pFrame, RsRenderSort Sort )
 		ScnModel::TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ PrimitiveIdx ];
 		ScnModel::TPrimitiveData* pPrimitiveData = &pPrimitiveDatas[ pPrimitiveRuntime->PrimitiveDataIndex_ ];
 		ScnModel::TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
-		TMaterialInstanceDesc& MaterialInstanceDesc = MaterialInstanceDescList_[ PrimitiveIdx ];
+		TMaterialComponentDesc& MaterialComponentDesc = MaterialComponentDescList_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
 
 		// If we have a valid material instance, then we can render the node.
-		if( MaterialInstanceDesc.MaterialInstanceRef_.isValid() )
+		if( MaterialComponentDesc.MaterialComponentRef_.isValid() )
 		{
 			// Set model parameters on material.
-			MaterialInstanceDesc.MaterialInstanceRef_->setParameter( MaterialInstanceDesc.WorldMatrixIdx_, pNodeTransformData->AbsoluteTransform_ );
+			MaterialComponentDesc.MaterialComponentRef_->setParameter( MaterialComponentDesc.WorldMatrixIdx_, pNodeTransformData->AbsoluteTransform_ );
 			
 			// Bind material.
-			MaterialInstanceDesc.MaterialInstanceRef_->bind( pFrame, Sort );
+			MaterialComponentDesc.MaterialComponentRef_->bind( pFrame, Sort );
 			
 			// Render primitive.
-			ScnModelInstanceRenderNode* pRenderNode = pFrame->newObject< ScnModelInstanceRenderNode >();
+			ScnModelComponentRenderNode* pRenderNode = pFrame->newObject< ScnModelComponentRenderNode >();
 			
 			pRenderNode->Type_ = pPrimitiveData->Type_;
 			pRenderNode->Offset_ = Offset;
