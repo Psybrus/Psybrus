@@ -208,7 +208,7 @@ BcBool FsCoreImplWindows::getFiles( HANDLE& SearchHandle, WIN32_FIND_DATA& FileD
 	{
 		BcPath NewPath( Path );
 		NewPath.join( "*.*" );
-		SearchHandle = ::FindFirstFile( *NewPath, &FileData );
+		SearchHandle = ::FindFirstFile( (*NewPath).c_str(), &FileData );
 		bValid = ( SearchHandle == INVALID_HANDLE_VALUE ) ? BcFalse : BcTrue;
 	}
 	else

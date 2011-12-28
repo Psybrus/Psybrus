@@ -58,14 +58,14 @@ BcPath::~BcPath()
 
 //////////////////////////////////////////////////////////////////////////
 // operator *
-const BcChar* BcPath::operator * () const
+std::string BcPath::operator * () const
 {
-	return InternalValue_.c_str();
+	return InternalValue_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getFileName
-const BcChar* BcPath::getFileName() const
+std::string BcPath::getFileName() const
 {
 	std::string::size_type PathPosition = InternalValue_.rfind( Seperator );
 
@@ -74,12 +74,12 @@ const BcChar* BcPath::getFileName() const
 		return &InternalValue_[ PathPosition + 1 ];
 	}
 
-	return InternalValue_.c_str();
+	return InternalValue_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getExtension
-BcName BcPath::getExtension() const
+std::string BcPath::getExtension() const
 {
 	std::string::size_type ExtensionPosition = InternalValue_.rfind( "." );
 
@@ -99,7 +99,7 @@ BcName BcPath::getExtension() const
 
 //////////////////////////////////////////////////////////////////////////
 // getFileNameNoExtension
-BcName BcPath::getFileNameNoExtension() const
+std::string BcPath::getFileNameNoExtension() const
 {
 	std::string::size_type PathPosition = InternalValue_.rfind( Seperator );
 	std::string::size_type ExtensionPosition = InternalValue_.rfind( "." );
