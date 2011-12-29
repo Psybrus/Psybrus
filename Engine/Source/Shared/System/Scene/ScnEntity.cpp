@@ -115,7 +115,18 @@ void ScnEntity::destroy()
 //virtual
 BcBool ScnEntity::isReady()
 {
-	return pHeader_ != NULL;
+	// TODO: Set a flag internally once stuff has loaded. Will I ever fucking do this!?
+	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	{
+		ScnComponentRef& Component( *It );
+
+		if( Component.isReady() == BcFalse )
+		{
+			return BcFalse;
+		}
+	}
+
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,6 +139,22 @@ void ScnEntity::update( BcReal Tick )
 		ScnComponentRef& Component( *It );
 
 		Component->update( Tick );
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// render
+//virtual
+void ScnEntity::render( RsFrame* pFrame, RsRenderSort Sort )
+{
+	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	{
+		ScnRenderableComponentWeakRef RenderableComponent( *It );
+		if( RenderableComponent.isValid() )
+		{
+			RenderableComponent->render( pFrame, Sort );
+		}
 	}
 }
 

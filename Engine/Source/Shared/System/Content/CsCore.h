@@ -235,13 +235,13 @@ BcForceInline void CsCore::registerResource()
 	BcAssert( BcIsGameThread() );
 
 	// Register.
-	internalRegisterResource( _Ty::StaticGetTypeString(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
+	internalRegisterResource( _Ty::StaticGetType(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
 
 	// Request resource, if there is a failure, reimport if server.
 	if( !requestResource( "default", _Ty::Default ) )
 	{
 #ifdef PSY_SERVER
-		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetTypeString()).c_str(), _Ty::Default );
+		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetType()).c_str(), _Ty::Default );
 #endif
 	}
 }
@@ -254,7 +254,7 @@ BcForceInline void CsCore::unregisterResource()
 	BcAssert( BcIsGameThread() );
 
 	// Unregister.
-	internalUnRegisterResource( _Ty::StaticGetTypeString() );
+	internalUnRegisterResource( _Ty::StaticGetType() );
 
 	// Remove default.
 	_Ty::Default = NULL;
@@ -265,7 +265,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetType(), InternalHandle ) )
 	{
 		Handle->initialise();
 		return BcTrue;
@@ -279,7 +279,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetType(), InternalHandle ) )
 	{
 		Handle->initialise( ParamA );
 		return BcTrue;
@@ -293,7 +293,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetType(), InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB );
 		return BcTrue;
@@ -307,7 +307,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetType(), InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC );
 		return BcTrue;
@@ -321,7 +321,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsResourceRef< 
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetTypeString(), InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetType(), InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD );
 		return BcTrue;
@@ -335,7 +335,7 @@ BcForceInline BcBool CsCore::requestResource( const BcName& Name, CsResourceRef<
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	return internalRequestResource( Name, _Ty::StaticGetTypeString(), InternalHandle );
+	return internalRequestResource( Name, _Ty::StaticGetType(), InternalHandle );
 }
 
 template< typename _Ty >
@@ -343,7 +343,7 @@ BcForceInline BcBool CsCore::findResource( const BcName& Name, CsResourceRef< _T
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	return internalFindResource( Name, _Ty::StaticGetTypeString(), InternalHandle );
+	return internalFindResource( Name, _Ty::StaticGetType(), InternalHandle );
 }
 
 #ifdef PSY_SERVER
@@ -353,7 +353,7 @@ BcForceInline BcBool CsCore::importResource( const std::string& FileName, CsReso
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalImportResource( FileName, InternalHandle, NULL ) )
 	{
-		if( InternalHandle->isTypeOf( _Ty::StaticGetTypeString() ) )
+		if( InternalHandle->isTypeOf( _Ty::StaticGetType() ) )
 		{
 			return BcTrue;
 		}
@@ -368,7 +368,7 @@ BcForceInline BcBool CsCore::importObject( const Json::Value& Object, CsResource
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
 	if( internalImportObject( Object, InternalHandle, &DependancyList ) )
 	{
-		if( InternalHandle->isTypeOf( _Ty::StaticGetTypeString() ) )
+		if( InternalHandle->isTypeOf( _Ty::StaticGetType() ) )
 		{
 			return BcTrue;
 		}

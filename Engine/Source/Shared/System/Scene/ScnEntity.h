@@ -20,6 +20,7 @@
 #include "ScnTypes.h"
 
 #include "ScnComponent.h"
+#include "ScnRenderableComponent.h"
 
 #include "ScnTransform.h"
 #include "ScnSpacialTree.h"
@@ -44,6 +45,7 @@ public:
 	
 public:
 	virtual void						update( BcReal Tick );
+	virtual void						render( RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	virtual void						attach( ScnComponent* Component );
 	virtual void						detach( ScnComponent* Component );
 

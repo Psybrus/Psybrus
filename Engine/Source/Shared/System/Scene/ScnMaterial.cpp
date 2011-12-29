@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "ScnMaterial.h"
+#include "ScnEntity.h"
 #include "CsCore.h"
 
 #include "ScnTextureAtlas.h"
@@ -69,7 +70,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		{
 			BcStrCopyN( TextureHeader.SamplerName_, (*Iter).first.c_str(), sizeof( TextureHeader.SamplerName_ ) );
 			BcStrCopyN( TextureHeader.TextureName_, (*(*Iter).second->getName()).c_str(), sizeof( TextureHeader.TextureName_ ) );
-			BcStrCopyN( TextureHeader.TextureType_, (*(*Iter).second->getTypeString()).c_str(), sizeof( TextureHeader.TextureType_ ) );
+			BcStrCopyN( TextureHeader.TextureType_, (*(*Iter).second->getType()).c_str(), sizeof( TextureHeader.TextureType_ ) );
 			
 			HeaderStream << TextureHeader;
 		}

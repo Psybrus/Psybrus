@@ -127,7 +127,7 @@ void CsResource::release()
 		}
 		else
 		{
-			BcPrintf( "CsResource::release: %s.%s exists when CsCore is no longer around. Static or global reference held?\n", (*getName()).c_str(), (*getTypeString()).c_str() );
+			BcPrintf( "CsResource::release: %s.%s exists when CsCore is no longer around. Static or global reference held?\n", (*getName()).c_str(), (*getType()).c_str() );
 			
 			// Only doing this so references held by this are cleaned up, and other resources are reported too.
 			delete this;
