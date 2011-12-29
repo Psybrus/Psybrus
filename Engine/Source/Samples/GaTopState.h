@@ -38,7 +38,6 @@ private:
 	typedef std::vector< CsResourceRef<> > TResourceList;
 
 	TResourceList					ResourceList_;
-
 };
 
 #endif

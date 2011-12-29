@@ -64,7 +64,7 @@ public:
 	void					visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds );
 
 private:
-	ScnEntityWeakRefList				EntityList_;
+	ScnEntityWeakRefList	EntityList_;
 
 };
 

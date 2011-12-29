@@ -269,6 +269,8 @@ void ScnMaterialComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 // initialise
 void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationFlags )
 {
+	BcAssert( Parent.isReady() );
+
 	// Cache parent and program.
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags );

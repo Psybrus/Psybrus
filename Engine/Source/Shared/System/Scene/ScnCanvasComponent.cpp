@@ -12,7 +12,7 @@
 **************************************************************************/
 
 #include "ScnCanvasComponent.h"
-
+#include "ScnEntity.h"
 
 #ifdef PSY_SERVER
 #include "BcStream.h"
@@ -52,6 +52,7 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef
 	
 	// Store default material instance.
 	DefaultMaterialComponent_ = DefaultMaterialComponent; 
+	MaterialComponent_ = DefaultMaterialComponent_;
 
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
@@ -125,8 +126,13 @@ BcBool ScnCanvasComponent::isReady()
 // setMaterialComponent
 void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialComponent )
 {
+	// Switch material component.
 	if( MaterialComponent_ != MaterialComponent )
 	{
+		// Ensure the material component is attached to an entity (doesn't have to be the same as us)
+		BcAssertMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity!" );
+
+		// Cache and grab diffuse parameter.
 		MaterialComponent_ = MaterialComponent;
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		DiffuseTexture_ = MaterialComponent_->getTexture( Parameter );

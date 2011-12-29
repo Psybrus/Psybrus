@@ -17,7 +17,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV & ~psySF_WINDOW, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate

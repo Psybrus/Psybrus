@@ -124,6 +124,7 @@ public:
 		return isValid() ? pObject_->isReady() : BcFalse;
 	
 	}
+
 	BcForceInline operator _Ty* ()
 	{
 		return static_cast< _Ty* >( pObject_ );

@@ -41,7 +41,7 @@ typedef ScnComponentMap::const_iterator ScnComponentMapConstIterator;
 // ScnEntityRef
 typedef CsResourceRef< class ScnEntity > ScnEntityRef;
 typedef CsResourceRef< class ScnEntity, true > ScnEntityWeakRef;
-typedef std::vector< ScnEntityRef > ScnEntityList;
+typedef std::list< ScnEntityRef > ScnEntityList;
 typedef ScnEntityList::iterator ScnEntityListIterator;
 typedef ScnEntityList::const_iterator ScnEntityListConstIterator;
 typedef std::map< std::string, ScnEntityRef > ScnEntityMap;
