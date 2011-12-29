@@ -178,7 +178,10 @@ void MainShared()
 	{
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
-	
+
+	// Start scene system.
+	SysKernel::pImpl()->startSystem( "ScnCore" );
+
 	// Start content system, depending on startup flags.
 #ifndef PSY_PRODUCTION
 	if( GPsySetupParams.Flags_ & psySF_CONTENT_SERVER )

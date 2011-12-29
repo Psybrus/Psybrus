@@ -41,7 +41,7 @@ void ScnComponent::update( BcReal Tick )
 //virtual
 void ScnComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	BcAssertMsg( ParentEntity_.isValid() == BcFalse, "Attempting to attach component when it's already attached!" );
+	BcAssertMsg( ParentEntity_.isValid() == BcFalse || ParentEntity_ == Parent, "Attempting to attach component when it's already attached!" );
 
 	ParentEntity_ = Parent;
 }
@@ -55,4 +55,18 @@ void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 	BcAssertMsg( ParentEntity_ == Parent, "Attempting to detach component from an entity it isn't attached to!" );
 
 	ParentEntity_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isAttached
+BcBool ScnComponent::isAttached() const
+{
+	return ParentEntity_.isValid();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isAttached
+BcBool ScnComponent::isAttached( ScnEntityWeakRef Parent ) const
+{
+	return ParentEntity_ == Parent;
 }

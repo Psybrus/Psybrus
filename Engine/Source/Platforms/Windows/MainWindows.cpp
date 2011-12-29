@@ -78,7 +78,8 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 	SYS_REGISTER( "RsCore", RsCoreImplGL );
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
-		
+	SYS_REGISTER( "ScnCore", ScnCore );
+	
 	// Main shared.
 	MainShared();
 

@@ -47,6 +47,9 @@ public:
 	virtual void						attach( ScnComponent* Component );
 	virtual void						detach( ScnComponent* Component );
 
+	virtual void						onAttachScene();
+	virtual void						onDetachScene();
+
 	/**
  	 * Get AABB which encompasses this entity.
 	 */
@@ -79,6 +82,7 @@ protected:
 
 private:
 	ScnSpacialTreeNode*					pSpacialTreeNode_;
+	BcBool								IsAttached_;
 };
 
 #endif

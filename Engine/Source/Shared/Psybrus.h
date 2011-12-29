@@ -51,6 +51,7 @@
 #include "RmCore.h"
 #include "RsCore.h"
 #include "SsCore.h"
+#include "ScnCore.h"
 
 #include "ScnComponent.h"
 #include "ScnEntity.h"

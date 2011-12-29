@@ -30,7 +30,7 @@ GaTopState::~GaTopState()
 // enterOnce
 void GaTopState::enterOnce()
 {
-	
+	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,6 +58,22 @@ eSysStateReturn GaTopState::enter()
 // preMain
 void GaTopState::preMain()
 { 
+	ScnEntityRef Entity;
+	ScnCanvasComponentRef CanvasComponent;
+	ScnMaterialComponentRef MaterialComponent;
+
+	// NOTE: This stuff will be declared in Json, imported, and support duplication.
+	// Create an entity, material component, and canvas component.
+	CsCore::pImpl()->createResource( "CanvasEntity_0", Entity );
+	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, ScnMaterial::Default, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 8192, MaterialComponent );
+
+	// Attach material and canvas component to entity.
+	Entity->attach( MaterialComponent );
+	Entity->attach( CanvasComponent );
+
+	// Add entity to scene.
+	ScnCore::pImpl()->addEntity( Entity );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

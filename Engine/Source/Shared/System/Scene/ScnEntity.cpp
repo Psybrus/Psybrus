@@ -91,6 +91,7 @@ void ScnEntity::initialise()
 	// NULL internals.
 	pHeader_ = NULL;
 	pSpacialTreeNode_ = NULL;
+	IsAttached_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,7 +125,7 @@ void ScnEntity::update( BcReal Tick )
 {
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
 	{
-		ScnComponentRef& Component = (*It);
+		ScnComponentRef& Component( *It );
 
 		Component->update( Tick );
 	}
@@ -135,11 +136,17 @@ void ScnEntity::update( BcReal Tick )
 //virtual
 void ScnEntity::attach( ScnComponent* Component )
 {
-	// Call the on detach.
-	Component->onAttach( ScnEntityWeakRef( this ) );
+	// If we're not attached to ourself, bail.
+	if( Component->isAttached( this ) == BcFalse )
+	{
+		BcAssertMsg( Component->isAttached() == BcFalse, "Component is attached to another entity!" );
 
-	// Put into component list.
-	Components_.push_back( Component );
+		// Call the on detach.
+		Component->onAttach( ScnEntityWeakRef( this ) );
+
+		// Put into component list.
+		Components_.push_back( Component );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -147,21 +154,44 @@ void ScnEntity::attach( ScnComponent* Component )
 //virtual
 void ScnEntity::detach( ScnComponent* Component )
 {
-	// Call the on detach.
-	Component->onDetach( ScnEntityWeakRef( this ) );
-
-	// Remove from the list.
-	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	// If component isn't attached, don't worry. Only a warning?
+	if( Component->isAttached() == BcTrue )
 	{
-		ScnComponentRef& ListComponent = (*It);
+		BcAssertMsg( Component->isAttached( this ) == BcTrue, "Component isn't attached to this entity!" );
+		// Call the on detach.
+		Component->onDetach( ScnEntityWeakRef( this ) );
 
-		if( ListComponent == Component )
+		// Remove from the list.
+		for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
 		{
-			// Remove from component list.
-			Components_.erase( It );
-			break;
+			ScnComponentRef& ListComponent( *It );
+
+			if( ListComponent == Component )
+			{
+				// Remove from component list.
+				Components_.erase( It );
+				break;
+			}
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttachScene
+//virtual
+void ScnEntity::onAttachScene()
+{
+	BcAssert( IsAttached_ == BcFalse );
+	IsAttached_ = BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetachScene
+//virtual
+void ScnEntity::onDetachScene()
+{
+	BcAssert( IsAttached_ == BcTrue );
+	IsAttached_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////

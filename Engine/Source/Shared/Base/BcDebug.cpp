@@ -61,12 +61,7 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line )
 	BcScopedLock< BcMutex > Lock( gOutputLock_ );
 	BcPrintf( "ASSERTION FAILED: \"%s\" in %s on line %u.\n", pMessage, pFile, Line );
 	BcSPrintf( Buffer, "\"%s\" in %s on line %u.\n\nDo you wish to break?", pMessage, pFile, Line );
-	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED!", Buffer, bcMBT_YESNOCANCEL, bcMBI_ERROR );
-
-	if( MessageReturn == bcMBR_CANCEL )
-	{
-		BcBreakpoint;
-	}
+	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED!", Buffer, bcMBT_YESNO, bcMBI_ERROR );
 
 	return MessageReturn == bcMBR_YES;
 #else
