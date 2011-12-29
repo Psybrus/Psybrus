@@ -130,7 +130,7 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 	if( MaterialComponent_ != MaterialComponent )
 	{
 		// Ensure the material component is attached to an entity (doesn't have to be the same as us)
-		BcAssertMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity!" );
+		BcVerifyMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity! Material may not work correctly!" );
 
 		// Cache and grab diffuse parameter.
 		MaterialComponent_ = MaterialComponent;
