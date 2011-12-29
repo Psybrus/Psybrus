@@ -82,6 +82,10 @@ void ScnCore::update()
 		// Allocate a frame to render using default context.
 		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 
+		// Setup render target and viewport.
+		pFrame->setRenderTarget( NULL );
+		pFrame->setViewport( RsViewport( 0, 0, pClient->getWidth(), pClient->getHeight() ) );
+
 		for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
 		{
 			ScnEntityRef& Entity( *It );

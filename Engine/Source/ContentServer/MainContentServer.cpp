@@ -32,3 +32,17 @@ void PsyGameInit()
 	// wxWidgets entry.
 	wxEntry( NULL, NULL, (char*)SysArgs_.c_str(), 1 );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// PsyGameRegisterResources
+void PsyGameRegisterResources()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// PsyGameUnRegisterResources
+void PsyGameUnRegisterResources()
+{
+
+}

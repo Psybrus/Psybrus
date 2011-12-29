@@ -222,6 +222,21 @@ void ScnEntity::onDetachScene()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getNoofComponents
+BcU32 ScnEntity::getNoofComponents() const
+{
+	return Components_.size();
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// getComponent
+ScnComponentRef ScnEntity::getComponent( BcU32 Idx )
+{
+	BcAssert( Idx < Components_.size() );
+	return Components_[ Idx ];
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getAABB
 const BcAABB& ScnEntity::getAABB() const
 {

@@ -53,6 +53,16 @@ public:
 	virtual void						onDetachScene();
 
 	/**
+	 * Get number of components.
+	 */
+	BcU32								getNoofComponents() const;
+	
+	/**
+	 * Get component.
+	 */
+	ScnComponentRef						getComponent( BcU32 Idx );
+
+	/**
  	 * Get AABB which encompasses this entity.
 	 */
 	const BcAABB&						getAABB() const;

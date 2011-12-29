@@ -254,6 +254,14 @@
 			Name="Source"
 			>
 			<File
+				RelativePath="..\..\Source\Samples\GaExampleComponent.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\Samples\GaExampleComponent.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Source\Samples\GaTopState.cpp"
 				>
 			</File>

@@ -15,9 +15,12 @@
 
 #include "GaTopState.h"
 
+#include "GaExampleComponent.h"
+
+
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV & ~psySF_WINDOW, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate
@@ -57,4 +60,18 @@ void PsyGameInit()
 	// Subscribe to quit.
 	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< OnQuit >();
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// PsyGameRegisterResources
+void PsyGameRegisterResources()
+{
+	CsCore::pImpl()->registerResource< GaExampleComponent >();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// PsyGameUnRegisterResources
+void PsyGameUnRegisterResources()
+{
+	CsCore::pImpl()->unregisterResource< GaExampleComponent >();
 }
