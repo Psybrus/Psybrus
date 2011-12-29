@@ -70,6 +70,8 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
 	CsCore::pImpl()->registerResource< ScnView >();
 
+	PsyGameRegisterResources();
+
 	return evtRET_REMOVE;
 }
 
@@ -101,6 +103,8 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 
 	CsCore::pImpl()->unregisterResource< ScnCanvasComponent >();
 	CsCore::pImpl()->unregisterResource< ScnView >();
+
+	PsyGameUnRegisterResources();
 
 	return evtRET_REMOVE;
 }

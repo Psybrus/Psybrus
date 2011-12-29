@@ -13,6 +13,8 @@
 
 #include "GaTopState.h"
 
+#include "GaExampleComponent.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 GaTopState::GaTopState()
@@ -61,16 +63,19 @@ void GaTopState::preMain()
 	ScnEntityRef Entity;
 	ScnCanvasComponentRef CanvasComponent;
 	ScnMaterialComponentRef MaterialComponent;
+	GaExampleComponentRef ExampleComponent;
 
 	// NOTE: This stuff will be declared in Json, imported, and support duplication.
 	// Create an entity, material component, and canvas component.
 	CsCore::pImpl()->createResource( "CanvasEntity_0", Entity );
 	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, ScnMaterial::Default, scnSPF_DEFAULT );
 	CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 8192, MaterialComponent );
+	CsCore::pImpl()->createResource( BcName::INVALID, ExampleComponent );
 
 	// Attach material and canvas component to entity.
 	Entity->attach( MaterialComponent );
 	Entity->attach( CanvasComponent );
+	Entity->attach( ExampleComponent );
 
 	// Add entity to scene.
 	ScnCore::pImpl()->addEntity( Entity );
