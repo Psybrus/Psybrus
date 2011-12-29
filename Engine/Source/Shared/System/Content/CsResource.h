@@ -34,17 +34,22 @@
 #define BASE_DECLARE_RESOURCE( _Type )											\
 	public:																		\
 	static CsResourceRef< class _Type > Default;								\
-	static const BcName& StaticGetTypeString();									\
+	static const BcName& StaticGetType();										\
 	static BcHash StaticGetTypeHash();											\
 	static void StaticPropertyTable( CsPropertyTable& PropertyTable );			\
-	virtual const BcName& getTypeString();										\
+	virtual const BcName& getType();											\
 	virtual BcHash getTypeHash();												\
 	virtual BcBool isType( const BcName& Type );								\
-	virtual BcBool isTypeOf( const BcName& Type );							
+	virtual BcBool isTypeOf( const BcName& Type );								\
+	template < class _Ty >														\
+	BcForceInline BcBool isTypeOf()												\
+	{																			\
+		return this ? isTypeOf( _Ty::StaticGetType() ) : NULL;					\
+	}
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
 	CsResourceRef< class _Type > _Type::Default;								\
-	const BcName& _Type::StaticGetTypeString()									\
+	const BcName& _Type::StaticGetType()									\
 	{																			\
 		static BcName TypeString( #_Type );										\
 		return TypeString;														\
@@ -55,9 +60,9 @@
 		return BcHash( #_Type );												\
 	}																			\
 																				\
-	const BcName& _Type::getTypeString()									\
+	const BcName& _Type::getType()									\
 	{																			\
-		return _Type::StaticGetTypeString();									\
+		return _Type::StaticGetType();									\
 	}																			\
 
 #define DECLARE_CSRESOURCE														\
@@ -72,13 +77,15 @@
 																				\
 	BcBool CsResource::isType( const BcName& Type )						\
 	{																			\
-		return CsResource::StaticGetTypeString() == Type;						\
+		return CsResource::StaticGetType() == Type;						\
 	}																			\
 																				\
 	BcBool CsResource::isTypeOf( const BcName& Type )						\
 	{																			\
-		return CsResource::StaticGetTypeString() == Type;						\
+		return CsResource::StaticGetType() == Type;						\
 	}																			\
+
+
 
 #define DECLARE_RESOURCE( _Base, _Type )										\
 	BASE_DECLARE_RESOURCE( _Type )												\
@@ -108,12 +115,12 @@
 																				\
 	BcBool _Type::isType( const BcName& Type )								\
 	{																			\
-		return  _Type::StaticGetTypeString() == Type;							\
+		return  _Type::StaticGetType() == Type;							\
 	}																			\
 																				\
 	BcBool _Type::isTypeOf( const BcName& Type )							\
 	{																			\
-		return _Type::StaticGetTypeString() == Type || Super::isTypeOf( Type );	\
+		return _Type::StaticGetType() == Type || Super::isTypeOf( Type );	\
 	}																			\
 																				\
 	CsResource* _Type::StaticAllocResource( const BcName& Name,			\

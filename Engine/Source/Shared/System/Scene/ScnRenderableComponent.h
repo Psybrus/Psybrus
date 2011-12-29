@@ -19,6 +19,11 @@
 #include "ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Typedefs
+typedef CsResourceRef< class ScnRenderableComponent > ScnRenderableComponentRef;
+typedef CsResourceRef< class ScnRenderableComponent, false > ScnRenderableComponentWeakRef;
+
+//////////////////////////////////////////////////////////////////////////
 // ScnRenderableComponent
 class ScnRenderableComponent:
 	public ScnComponent

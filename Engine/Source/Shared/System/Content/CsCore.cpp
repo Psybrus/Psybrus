@@ -665,7 +665,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s (%s)\n", (*pResource->getName()).c_str(), (*pResource->getTypeString()).c_str() );
+			BcPrintf( "%s (%s)\n", (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
 		}
 		
 		++It;

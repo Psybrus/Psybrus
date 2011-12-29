@@ -16,6 +16,9 @@
 #include "SysKernel.h"
 #include "SysSystem.h"
 
+#include "OsCore.h"
+#include "RsCore.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( ScnCore );
@@ -52,6 +55,7 @@ void ScnCore::open()
 //virtual
 void ScnCore::update()
 {
+	// Tick all entities.
 	BcReal Tick = SysKernel::pImpl()->getFrameTime();
 
 	// Update all entities.
@@ -59,8 +63,39 @@ void ScnCore::update()
 	{
 		ScnEntityRef Entity( *It );
 
-		Entity->update( Tick );
+		if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+		{
+			Entity->update( Tick );
+		}
 	}
+
+	// NEILO TODO: Move this away from here. Should be managed by ScnView and ScnSpacialTree.
+	// Render to all clients.
+	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
+	{
+		// Grab client.
+		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
+
+		// Get context.
+		RsContext* pContext = RsCore::pImpl()->getContext( pClient );
+
+		// Allocate a frame to render using default context.
+		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+
+		for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+		{
+			ScnEntityRef& Entity( *It );
+
+			if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+			{
+				Entity->render( pFrame, RsRenderSort( 0 ) );
+			}
+		}
+				
+		// Queue frame for render.
+		RsCore::pImpl()->queueFrame( pFrame );
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////

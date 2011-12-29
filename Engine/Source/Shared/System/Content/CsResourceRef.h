@@ -31,7 +31,7 @@ private:
 private:
 	BcForceInline void _acquireNew( CsResource* pObject )
 	{
-		pObject_ = pObject;
+		pObject_ = pObject->isTypeOf< _Ty >() ? pObject : NULL;
 
 		if( _IsWeak == false )
 		{
@@ -44,6 +44,8 @@ private:
 	
 	BcForceInline void _acquireNewReleaseOld( CsResource* pObject )
 	{
+		pObject = pObject->isTypeOf< _Ty >() ? pObject : NULL;
+
 		if( _IsWeak == false )
 		{
 			if( pObject != NULL )
@@ -59,6 +61,8 @@ private:
 
 	BcForceInline void _acquireAssign( CsResource* pObject )
 	{
+		pObject = pObject->isTypeOf< _Ty >() ? pObject : NULL;
+
 		if( _IsWeak == true || pObject_ == NULL )
 		{
 			_acquireNew( pObject );

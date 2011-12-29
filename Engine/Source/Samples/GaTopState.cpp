@@ -80,23 +80,6 @@ void GaTopState::preMain()
 // main
 eSysStateReturn GaTopState::main()
 {
-	// Render to all clients.
-	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
-	{
-		// Grab client.
-		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
-
-		// Get context.
-		RsContext* pContext = RsCore::pImpl()->getContext( pClient );
-
-		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-		// TODO: Do rendering.
-				
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( pFrame );
-	}
 
 	return sysSR_CONTINUE;
 }
