@@ -60,3 +60,17 @@ void PsyGameInit()
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// PsyGameRegisterResources
+void PsyGameRegisterResources()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// PsyGameUnRegisterResources
+void PsyGameUnRegisterResources()
+{
+
+}

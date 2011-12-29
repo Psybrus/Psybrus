@@ -125,6 +125,8 @@ void ScnSpacialTreeNode::reinsertEntity( ScnEntityWeakRef Entity )
 					EntityList_.remove( Entity );
 					pChildNode->EntityList_.push_back( Entity );
 					Entity->setSpacialTreeNode( pChildNode );
+
+					// NEILO NOTE: Shouldn't this, erm, break here?
 				}
 				// Otherwise we're safe to try another.
 			}
