@@ -46,29 +46,29 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 #endif
 
 	// Register scene resources.
-	CsCore::pImpl()->registerResource< ScnRenderTarget >();
+	CsCore::pImpl()->registerResource< ScnRenderTarget >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnShader >();
-	CsCore::pImpl()->registerResource< ScnTexture >();
-	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
+	CsCore::pImpl()->registerResource< ScnShader >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnTexture >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnTextureAtlas >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
+	CsCore::pImpl()->registerResource< ScnMaterial >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnMaterialComponent >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnFontComponent >();
+	CsCore::pImpl()->registerResource< ScnFont >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnFontComponent >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnModelComponent >();
+	CsCore::pImpl()->registerResource< ScnModel >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnModelComponent >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnSound >();
-	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
+	CsCore::pImpl()->registerResource< ScnSound >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnSoundEmitter >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnComponent >();
-	CsCore::pImpl()->registerResource< ScnEntity >();
+	CsCore::pImpl()->registerResource< ScnComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< ScnEntity >( BcFalse );
 
-	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
-	CsCore::pImpl()->registerResource< ScnView >();
+	CsCore::pImpl()->registerResource< ScnCanvasComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< ScnView >( BcFalse );
 
 	PsyGameRegisterResources();
 

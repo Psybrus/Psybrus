@@ -15,10 +15,10 @@
 #define __GAMAINGAMESTATE_H__
 
 #include "GaBaseGameState.h"
+#include "GaGameComponent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-class GaEntity;
 class GaBunnyRenderer;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,11 +63,11 @@ public:
 		BcU32 NoofEntities = 0;
 		for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 		{
-			if( dynamic_cast< _Ty* >( Entities_[ Idx ] ) )
+			if( CsResourceRef< _Ty >( Entities_[ Idx ] ).isValid() )
 			{
 				if( NoofEntities++ == Index )
 				{
-					return dynamic_cast< _Ty* >( Entities_[ Idx ] );
+					return CsResourceRef< _Ty >( Entities_[ Idx ] );
 				}
 			}
 		}
@@ -78,18 +78,18 @@ public:
 	template< class _Ty >
 	_Ty* getNearestEntity( const BcVec2d& Position )
 	{
-		_Ty* pNearestEntity = NULL;
+		CsResourceRef< _Ty > pNearestEntity = NULL;
 		BcReal NearestDistanceSquared = 1e16f;
 		for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 		{
-			if( Entities_[ Idx ]->isAlive() && dynamic_cast< _Ty* >( Entities_[ Idx ] ) )
+			if( Entities_[ Idx ]->isAlive() && CsResourceRef< _Ty >( Entities_[ Idx ] ).isValid() )
 			{
 				BcReal DistanceSquared = ( Entities_[ Idx ]->getPosition() - Position ).magnitudeSquared();
 
 				if( DistanceSquared < NearestDistanceSquared )
 				{
 					NearestDistanceSquared = DistanceSquared;
-					pNearestEntity = dynamic_cast< _Ty* >( Entities_[ Idx ] );
+					pNearestEntity = CsResourceRef< _Ty >( Entities_[ Idx ] );
 				}
 			}
 		}
@@ -99,18 +99,18 @@ public:
 	template< class _Ty >
 	_Ty* getFarthestEntity( const BcVec2d& Position )
 	{
-		_Ty* pFarthestEntity = NULL;
+		CsResourceRef< _Ty > pFarthestEntity = NULL;
 		BcReal FarthestDistanceSquared = 0.0f;
 		for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 		{
-			if( Entities_[ Idx ]->isAlive() && dynamic_cast< _Ty* >( Entities_[ Idx ] ) )
+			if( Entities_[ Idx ]->isAlive() && CsResourceRef< _Ty >( Entities_[ Idx ] ).isValid() )
 			{
 				BcReal DistanceSquared = ( Entities_[ Idx ]->getPosition() - Position ).magnitudeSquared();
 
 				if( DistanceSquared > FarthestDistanceSquared )
 				{
 					FarthestDistanceSquared = DistanceSquared;
-					pFarthestEntity = dynamic_cast< _Ty* >( Entities_[ Idx ] );
+					pFarthestEntity = CsResourceRef< _Ty >( Entities_[ Idx ] );
 				}
 			}
 		}
@@ -121,14 +121,30 @@ public:
 
 	void getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far );
 
-	void spawnEntity( GaEntity* pEntity );
-	void killEntity( GaEntity* pEntity );
+	template< class _Ty >
+	GaGameComponentRef createComponent()
+	{
+		CsResourceRef< _Ty > Component;
+		CsCore::pImpl()->createResource< _Ty >( BcName::INVALID, Component );
+		return GaGameComponentRef( Component );
+	}
+
+	template< class _Ty, typename _P0 >
+	GaGameComponentRef createComponent( const _P0 P0 )
+	{
+		CsResourceRef< _Ty > Component;
+		CsCore::pImpl()->createResource< _Ty >( BcName::INVALID, Component, P0 );
+		return GaGameComponentRef( Component );
+	}
+
+	void spawnEntity( GaGameComponentRef Component );
+	void killEntity( GaGameComponentRef Component );
 
 private:
 	void spawnKill();
 
 private:
-	typedef std::vector< GaEntity* > TEntityList;
+	typedef std::vector< GaGameComponentRef > TEntityList;
 	typedef TEntityList::iterator TEntityListIterator;
 
 	TEntityList Entities_;

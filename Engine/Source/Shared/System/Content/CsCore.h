@@ -51,7 +51,7 @@ public:
 	 * Register a resource.
 	 */
 	template< typename _Ty >
-	void								registerResource();
+	void								registerResource( BcBool CreateDefault );
 	
 	/**
 	 * Unregister a resource.
@@ -230,7 +230,7 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 // Inlines
 template< typename _Ty >
-BcForceInline void CsCore::registerResource()
+BcForceInline void CsCore::registerResource( BcBool CreateDefault )
 {
 	BcAssert( BcIsGameThread() );
 
@@ -238,7 +238,7 @@ BcForceInline void CsCore::registerResource()
 	internalRegisterResource( _Ty::StaticGetType(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
 
 	// Request resource, if there is a failure, reimport if server.
-	if( !requestResource( "default", _Ty::Default ) )
+	if( CreateDefault && !requestResource( "default", _Ty::Default ) )
 	{
 #ifdef PSY_SERVER
 		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetType()).c_str(), _Ty::Default );

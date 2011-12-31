@@ -15,9 +15,9 @@
 
 #include "GaTopState.h"
 
-#include "GaPlayerEntity.h"
-#include "GaSwarmEntity.h"
-#include "GaFoodEntity.h"
+#include "GaPlayerComponent.h"
+#include "GaSwarmComponent.h"
+#include "GaFoodComponent.h"
 
 #include "GaBunnyRenderer.h"
 
@@ -51,37 +51,37 @@ void GaMainGameState::enterOnce()
 
 	//Level = 5;
 
-	spawnEntity( new GaPlayerEntity() );
-	spawnEntity( new GaSwarmEntity( Level ) );
+	spawnEntity( createComponent< GaPlayerComponent >() );
+	spawnEntity( createComponent< GaSwarmComponent >( Level ) );
 
 	switch( Level )
 	{
 	default:
 	case 6:
-		spawnEntity( new GaFoodEntity( BcVec2d( -256.0f,   0.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d( -128.0f,   0.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(    0.0f,   0.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(  128.0f,   0.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(  256.0f,   0.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d( -256.0f,   0.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d( -128.0f,   0.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(    0.0f,   0.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(  128.0f,   0.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(  256.0f,   0.0f ) ) );
 
 	case 5:
 	case 4:
-		spawnEntity( new GaFoodEntity( BcVec2d( -256.0f,   128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d( -128.0f,   128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(    0.0f,   128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(  128.0f,   128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(  256.0f,   128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d( -256.0f,   128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d( -128.0f,   128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(    0.0f,   128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(  128.0f,   128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(  256.0f,   128.0f ) ) );
 
 	case 3:
 	case 2:
-		spawnEntity( new GaFoodEntity( BcVec2d( -256.0f,  -128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(  256.0f,  -128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d( -256.0f,  -128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(  256.0f,  -128.0f ) ) );
 
 	case 1:
 	case 0:
-		spawnEntity( new GaFoodEntity( BcVec2d( -128.0f,  -128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(    0.0f,  -128.0f ) ) );
-		spawnEntity( new GaFoodEntity( BcVec2d(  128.0f,  -128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d( -128.0f,  -128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(    0.0f,  -128.0f ) ) );
+		spawnEntity( createComponent< GaFoodComponent >( BcVec2d(  128.0f,  -128.0f ) ) );
 	}
 
 	ScnMaterialRef Material;
@@ -131,7 +131,7 @@ eSysStateReturn GaMainGameState::main()
 	// Update entities.
 	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 	{
-		GaEntity* pEntity = Entities_[ Idx ];
+		GaGameComponent* pEntity = Entities_[ Idx ];
 		pEntity->update( Tick );
 	}
 
@@ -140,7 +140,7 @@ eSysStateReturn GaMainGameState::main()
 	BcReal TotalFoodHealth = 0.0f;
 	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 	{
-		GaFoodEntity* pFood = dynamic_cast< GaFoodEntity* >( Entities_[ Idx ] );
+		GaFoodComponentRef pFood( Entities_[ Idx ] );
 
 		if( pFood != NULL )
 		{
@@ -158,7 +158,7 @@ eSysStateReturn GaMainGameState::main()
 		doLose();
 	}
 
-	GaSwarmEntity* pSwarm = getEntity< GaSwarmEntity >( 0 );
+	GaSwarmComponent* pSwarm = getEntity< GaSwarmComponent >( 0 );
 
 	// If the swarm is dead, you win.
 	if( pSwarm->isAlive() == BcFalse )
@@ -183,20 +183,9 @@ eSysStateReturn GaMainGameState::leave()
 void GaMainGameState::leaveOnce()
 {
 	// Free all entities.
-	for( BcU32 Idx = 0; Idx < SpawnEntities_.size(); ++Idx )
-	{
-		delete SpawnEntities_[ Idx ];
-	}
-
-	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
-	{
-		delete Entities_[ Idx ];
-	}
-
-	for( BcU32 Idx = 0; Idx < KillEntities_.size(); ++Idx )
-	{
-		delete KillEntities_[ Idx ];
-	}
+	SpawnEntities_.clear();
+	Entities_.clear();
+	KillEntities_.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -230,7 +219,7 @@ void GaMainGameState::render( RsFrame* pFrame )
 	// Render entities.
 	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 	{
-		GaEntity* pEntity = Entities_[ Idx ];
+		GaGameComponent* pEntity = Entities_[ Idx ];
 		pEntity->render( Canvas_ );
 	}
 
@@ -285,18 +274,21 @@ void GaMainGameState::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& 
 
 ////////////////////////////////////////////////////////////////////////////////
 // spawnEntity
-void GaMainGameState::spawnEntity( GaEntity* pEntity )
+void GaMainGameState::spawnEntity( GaGameComponentRef Component )
 {
-	SpawnEntities_.push_back( pEntity );
-	pEntity->setParent( this );
-	pEntity->setProjection( Projection_ );
+	if( Component.isValid() )
+	{
+		SpawnEntities_.push_back( Component );
+		Component->setParent( this );
+		Component->setProjection( Projection_ );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // killEntity
-void GaMainGameState::killEntity( GaEntity* pEntity )
+void GaMainGameState::killEntity( GaGameComponentRef Component )
 {
-	KillEntities_.push_back( pEntity );
+	KillEntities_.push_back( Component );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

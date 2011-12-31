@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaSwarmEntity.cpp
+* File:		GaSwarmComponent.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "GaSwarmEntity.h"
-#include "GaPlayerEntity.h"
-#include "GaFoodEntity.h"
+#include "GaSwarmComponent.h"
+#include "GaPlayerComponent.h"
+#include "GaFoodComponent.h"
 
 #include "GaMainGameState.h"
 
@@ -41,9 +41,26 @@ const BcReal HOP_HEIGHT = 48.0f;
 const BcReal EMOTE_RUN_AWAY_DISTANCE = 64.0f;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ctor
-GaSwarmEntity::GaSwarmEntity( BcU32 Level )
+// Define resource.
+DEFINE_RESOURCE( GaSwarmComponent );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void GaSwarmComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "GaSwarmComponent" )
+	.endCatagory();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void GaSwarmComponent::initialise( BcU32 Level )
+{
+	Super::initialise();
+
 	Position_ = BcVec2d( 256.0f, 0.0f );
 	
 	for( BcU32 Idx = 0; Idx < ( Level + 1 ) * 2; ++Idx )
@@ -66,9 +83,9 @@ GaSwarmEntity::GaSwarmEntity( BcU32 Level )
 	}
 	
 	// Bind input events.
-	//OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseMove >( this );
-	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaSwarmEntity, &GaSwarmEntity::onMouseDown >( this );
-	//OsEventInputMouse::Delegate OnMouseUp = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseUp >( this );
+	//OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseMove >( this );
+	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaSwarmComponent, &GaSwarmComponent::onMouseDown >( this );
+	//OsEventInputMouse::Delegate OnMouseUp = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseUp >( this );
 
 	//OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
@@ -78,9 +95,9 @@ GaSwarmEntity::GaSwarmEntity( BcU32 Level )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dtor
+// destory
 //virtual
-GaSwarmEntity::~GaSwarmEntity()
+void GaSwarmComponent::destroy()
 {
 	// Unbind all events.
 	OsCore::pImpl()->unsubscribeAll( this );
@@ -99,7 +116,7 @@ GaSwarmEntity::~GaSwarmEntity()
 
 ////////////////////////////////////////////////////////////////////////////////
 // findNearestBody
-GaPhysicsBody* GaSwarmEntity::findNearestBody( GaPhysicsBody* pSource )
+GaPhysicsBody* GaSwarmComponent::findNearestBody( GaPhysicsBody* pSource )
 {
 	GaPhysicsBody* pNearest = NULL;
 	BcReal NearestDistanceSquared = 1e16f;
@@ -125,7 +142,7 @@ GaPhysicsBody* GaSwarmEntity::findNearestBody( GaPhysicsBody* pSource )
 
 ////////////////////////////////////////////////////////////////////////////////
 // averagePosition
-BcVec2d GaSwarmEntity::averagePosition() const
+BcVec2d GaSwarmComponent::averagePosition() const
 {
 	BcVec2d TotalPosition( 0.0f, 0.0f );
 
@@ -152,7 +169,7 @@ BcVec2d GaSwarmEntity::averagePosition() const
 
 ////////////////////////////////////////////////////////////////////////////////
 // averageVelocity
-BcVec2d GaSwarmEntity::averageVelocity() const
+BcVec2d GaSwarmComponent::averageVelocity() const
 {
 	BcVec2d TotalVelocity( 0.0f, 0.0f );
 	BcReal Total = 0.0f;
@@ -179,7 +196,7 @@ BcVec2d GaSwarmEntity::averageVelocity() const
 
 ////////////////////////////////////////////////////////////////////////////////
 // onMouseDown
-eEvtReturn GaSwarmEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
+eEvtReturn GaSwarmComponent::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
 {
 	/* TODO: REMOVE>
 	if( Event.ButtonCode_ == 1 )
@@ -200,13 +217,13 @@ eEvtReturn GaSwarmEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event 
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
-void GaSwarmEntity::update( BcReal Tick )
+void GaSwarmComponent::update( BcReal Tick )
 {
 	BcVec2d AverageVelocity = averageVelocity();
 	BcVec2d AveragePosition = averagePosition();
 
 	// Find the nearest food entity.
-	GaFoodEntity* pFoodEntity = pParent()->getNearestEntity< GaFoodEntity >( AveragePosition );
+	GaFoodComponent* pFoodEntity = pParent()->getNearestEntity< GaFoodComponent >( AveragePosition );
 
 	// If we have food, set our swarm position to be that entity's.
 	if( pFoodEntity != NULL )
@@ -222,8 +239,8 @@ void GaSwarmEntity::update( BcReal Tick )
 		}
 		else
 		{
-			GaPlayerEntity* pPlayerEntity = pParent()->getEntity< GaPlayerEntity >( 0 );
-			GaFoodEntity* pFoodEntity = pParent()->getFarthestEntity< GaFoodEntity >( pPlayerEntity->getPosition() );
+			GaPlayerComponent* pPlayerEntity = pParent()->getEntity< GaPlayerComponent >( 0 );
+			GaFoodComponent* pFoodEntity = pParent()->getFarthestEntity< GaFoodComponent >( pPlayerEntity->getPosition() );
 			Position_ = pFoodEntity->getPosition();
 			pTargetFoodEntity_ = pFoodEntity;	
 		}
@@ -237,8 +254,8 @@ void GaSwarmEntity::update( BcReal Tick )
 		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 
 		// Enqueue the delegate.
-		typedef BcDelegate< void(*)( BcReal, GaFoodEntity*, GaPhysicsBody*, GaSwarmEntity::TAnimationLogic* ) > TDelegate;
-		TDelegate Delegate( TDelegate::bind< GaSwarmEntity, &GaSwarmEntity::updateBody_Threaded >( this ) );
+		typedef BcDelegate< void(*)( BcReal, GaFoodComponent*, GaPhysicsBody*, GaSwarmComponent::TAnimationLogic* ) > TDelegate;
+		TDelegate Delegate( TDelegate::bind< GaSwarmComponent, &GaSwarmComponent::updateBody_Threaded >( this ) );
 		SysKernel::pImpl()->enqueueDelegateJob( WorkerMask, Delegate, Tick, pFoodEntity, pBody, pAnimationLogic );
 	}
 
@@ -269,10 +286,10 @@ void GaSwarmEntity::update( BcReal Tick )
 		}
 	}
 
-	GaEntity::update( Tick );
+	GaGameComponent::update( Tick );
 }
 
-void GaSwarmEntity::updateBody_Threaded( BcReal Tick,  GaFoodEntity* pFoodEntity, GaPhysicsBody* pBody, TAnimationLogic* pAnimationLogic )
+void GaSwarmComponent::updateBody_Threaded( BcReal Tick,  GaFoodComponent* pFoodEntity, GaPhysicsBody* pBody, TAnimationLogic* pAnimationLogic )
 {
 	BcVec2d AverageVelocity = averageVelocity();
 	BcVec2d AveragePosition = averagePosition();
@@ -338,7 +355,7 @@ void GaSwarmEntity::updateBody_Threaded( BcReal Tick,  GaFoodEntity* pFoodEntity
 		}
 
 		// Avoid player massively.
-		GaPlayerEntity* pPlayerEntity = pParent()->getEntity< GaPlayerEntity >( 0 );
+		GaPlayerComponent* pPlayerEntity = pParent()->getEntity< GaPlayerComponent >( 0 );
 		pBody->avoid( pPlayerEntity->getPosition(), PLAYER_AVOID_DISTANCE, PLAYER_AVOID_MULTIPLIER );
 
 		// Enclose in the play area.
@@ -379,7 +396,7 @@ void GaSwarmEntity::updateBody_Threaded( BcReal Tick,  GaFoodEntity* pFoodEntity
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaSwarmEntity::render( ScnCanvasComponentRef Canvas )
+void GaSwarmComponent::render( ScnCanvasComponentRef Canvas )
 {
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
@@ -408,12 +425,12 @@ void GaSwarmEntity::render( ScnCanvasComponentRef Canvas )
 		}
 	}
 
-	GaEntity::render( Canvas );
+	GaGameComponent::render( Canvas );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // updateAnimation
-void GaSwarmEntity::updateAnimation( BcU32 Idx, BcReal Tick )
+void GaSwarmComponent::updateAnimation( BcU32 Idx, BcReal Tick )
 {
 	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 	
@@ -434,7 +451,7 @@ void GaSwarmEntity::updateAnimation( BcU32 Idx, BcReal Tick )
 
 ////////////////////////////////////////////////////////////////////////////////
 // animationPosition
-BcVec3d GaSwarmEntity::animationPosition( BcU32 Idx ) const
+BcVec3d GaSwarmComponent::animationPosition( BcU32 Idx ) const
 {
 	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 	
@@ -447,7 +464,7 @@ BcVec3d GaSwarmEntity::animationPosition( BcU32 Idx ) const
 
 ////////////////////////////////////////////////////////////////////////////////
 // shouldStartMoveAnimation
-BcBool GaSwarmEntity::shouldStartMoveAnimation( BcU32 Idx )
+BcBool GaSwarmComponent::shouldStartMoveAnimation( BcU32 Idx )
 {
 	GaPhysicsBody* pBody = Bodies_[ Idx ];
 	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
@@ -469,7 +486,7 @@ BcBool GaSwarmEntity::shouldStartMoveAnimation( BcU32 Idx )
 
 ////////////////////////////////////////////////////////////////////////////////
 // setEnemyAnimation
-void GaSwarmEntity::startMoveAnimation( BcU32 Idx, const BcVec2d& Start, const BcVec2d& End )
+void GaSwarmComponent::startMoveAnimation( BcU32 Idx, const BcVec2d& Start, const BcVec2d& End )
 {
 	TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
 	
@@ -481,7 +498,7 @@ void GaSwarmEntity::startMoveAnimation( BcU32 Idx, const BcVec2d& Start, const B
 
 ////////////////////////////////////////////////////////////////////////////////
 // isAlive
-BcBool GaSwarmEntity::isAlive()
+BcBool GaSwarmComponent::isAlive()
 {
 	for( BcU32 Idx = 0; Idx < Bodies_.size(); ++Idx )
 	{
