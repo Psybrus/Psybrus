@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaSwarmEntity.h
+* File:		GaSwarmComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,18 +11,20 @@
 * 
 **************************************************************************/
 
-#ifndef __GAENTITY_H__
-#define __GAENTITY_H__
+#ifndef __GaGameComponent_H__
+#define __GaGameComponent_H__
 
 #include "Psybrus.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class GaMainGameState;
+typedef CsResourceRef< class GaGameComponent > GaGameComponentRef;
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaEntity
-class GaEntity
+// GaGameComponent
+class GaGameComponent:
+	public ScnComponent
 {
 public:
 	enum 
@@ -33,9 +35,9 @@ public:
 	};
 
 public:
-	GaEntity();
-	virtual ~GaEntity();
+	DECLARE_RESOURCE( ScnComponent, GaGameComponent );
 
+	virtual void initialise();
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasComponentRef Canvas );
 	virtual BcBool isAlive(){ return BcTrue; };

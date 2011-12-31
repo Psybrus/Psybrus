@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaFoodEntity.h
+* File:		GaFoodComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,16 +11,33 @@
 * 
 **************************************************************************/
 
-#include "GaFoodEntity.h"
+#include "GaFoodComponent.h"
 
 #include "GaMainGameState.h"
 
 #include "GaTopState.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaFoodEntity
-GaFoodEntity::GaFoodEntity( const BcVec2d& Position )
+// Define resource.
+DEFINE_RESOURCE( GaFoodComponent );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void GaFoodComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "GaFoodComponent" )
+	.endCatagory();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void GaFoodComponent::initialise( const BcVec2d& Position )
+{
+	Super::initialise();
+
 	Position_ = Position;
 	StartingHealth_ = 10.0f;
 	Health_ = StartingHealth_;
@@ -33,30 +50,22 @@ GaFoodEntity::GaFoodEntity( const BcVec2d& Position )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaFoodEntity
-//virtual
-GaFoodEntity::~GaFoodEntity()
-{
-	
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // eat
-void GaFoodEntity::eat( BcReal Tick )
+void GaFoodComponent::eat( BcReal Tick )
 {
 	Health_ -= Tick;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // isAlive
-BcBool GaFoodEntity::isAlive()
+BcBool GaFoodComponent::isAlive()
 {
 	return Health_ > 0.0f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // getHealthFraction
-BcReal GaFoodEntity::getHealthFraction()
+BcReal GaFoodComponent::getHealthFraction()
 {
 	return Health_ / StartingHealth_;
 }
@@ -64,7 +73,7 @@ BcReal GaFoodEntity::getHealthFraction()
 ////////////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void GaFoodEntity::update( BcReal Tick )
+void GaFoodComponent::update( BcReal Tick )
 {
 
 }
@@ -72,7 +81,7 @@ void GaFoodEntity::update( BcReal Tick )
 ////////////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void GaFoodEntity::render( ScnCanvasComponentRef Canvas )
+void GaFoodComponent::render( ScnCanvasComponentRef Canvas )
 {
 	BcVec2d Size( 32.0f, -32.0f );
 

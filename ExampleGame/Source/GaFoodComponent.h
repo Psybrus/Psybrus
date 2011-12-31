@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaFoodEntity.h
+* File:		GaFoodComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,21 +11,26 @@
 * 
 **************************************************************************/
 
-#ifndef __GAFOODENTITY_H__
-#define __GAFOODENTITY_H__
+#ifndef __GaFoodComponent_H__
+#define __GaFoodComponent_H__
 
 #include "Psybrus.h"
 
-#include "GaEntity.h"
+#include "GaGameComponent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaFoodEntity
-class GaFoodEntity:
-	public GaEntity
+// Typedefs
+typedef CsResourceRef< class GaFoodComponent > GaFoodComponentRef;
+
+////////////////////////////////////////////////////////////////////////////////
+// GaFoodComponent
+class GaFoodComponent:
+	public GaGameComponent
 {
 public:
-	GaFoodEntity( const BcVec2d& Position );
-	virtual ~GaFoodEntity();
+	DECLARE_RESOURCE( GaGameComponent, GaFoodComponent );
+	
+	virtual void initialise( const BcVec2d& Position );
 
 	void eat( BcReal Tick );
 

@@ -270,19 +270,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaEntity.cpp"
+				RelativePath="..\..\Source\GaFoodComponent.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaEntity.h"
+				RelativePath="..\..\Source\GaFoodComponent.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaFoodEntity.cpp"
+				RelativePath="..\..\Source\GaGameComponent.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaFoodEntity.h"
+				RelativePath="..\..\Source\GaGameComponent.h"
 				>
 			</File>
 			<File
@@ -310,19 +310,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaPlayerEntity.cpp"
+				RelativePath="..\..\Source\GaPlayerComponent.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaPlayerEntity.h"
+				RelativePath="..\..\Source\GaPlayerComponent.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaSwarmEntity.cpp"
+				RelativePath="..\..\Source\GaSwarmComponent.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaSwarmEntity.h"
+				RelativePath="..\..\Source\GaSwarmComponent.h"
 				>
 			</File>
 			<File

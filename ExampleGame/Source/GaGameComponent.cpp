@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaSwarmEntity.cpp
+* File:		GaSwarmComponent.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,14 +11,29 @@
 * 
 **************************************************************************/
 
-#include "GaEntity.h"
+#include "GaGameComponent.h"
 
 #include "GaMainGameState.h"
 #include "GaTopState.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ctor
-GaEntity::GaEntity()
+// Define resource.
+DEFINE_RESOURCE( GaGameComponent )
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void GaGameComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "GaGameComponent" )
+	.endCatagory();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void GaGameComponent::initialise()
 {
 	LastEmote_ = BcErrorCode;
 	EmoteTimer_ = 0;
@@ -30,16 +45,9 @@ GaEntity::GaEntity()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dtor
-//virtual
-GaEntity::~GaEntity()
-{
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void GaEntity::update( BcReal Tick )
+void GaGameComponent::update( BcReal Tick )
 {
 	BcScopedLock< BcMutex > Lock( EmoteLock_ );
 
@@ -67,7 +75,7 @@ void GaEntity::update( BcReal Tick )
 ////////////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void GaEntity::render( ScnCanvasComponentRef Canvas )
+void GaGameComponent::render( ScnCanvasComponentRef Canvas )
 {
 	BcScopedLock< BcMutex > Lock( EmoteLock_ );
 
@@ -86,7 +94,7 @@ void GaEntity::render( ScnCanvasComponentRef Canvas )
 
 ////////////////////////////////////////////////////////////////////////////////
 // doEmote
-BcBool GaEntity::doEmote( BcU32 Idx, const BcVec3d& Position )
+BcBool GaGameComponent::doEmote( BcU32 Idx, const BcVec3d& Position )
 {
 	BcScopedLock< BcMutex > Lock( EmoteLock_ );
 

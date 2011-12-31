@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaPlayerEntity.cpp
+* File:		GaPlayerComponent.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,22 +11,38 @@
 * 
 **************************************************************************/
 
-#include "GaPlayerEntity.h"
+#include "GaPlayerComponent.h"
 
 #include "GaTopState.h"
 #include "GaMainGameState.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ctor
-GaPlayerEntity::GaPlayerEntity():
-	pBody_( new GaPhysicsBody( BcVec2d( -256.0f, 0.0f ), 128.0f, 1024.0f ) )
+// Define resource.
+DEFINE_RESOURCE( GaPlayerComponent );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void GaPlayerComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "GaPlayerComponent" )
+	.endCatagory();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// initialise
+void GaPlayerComponent::initialise()
+{
+	Super::initialise();
+
+	pBody_ = new GaPhysicsBody( BcVec2d( -256.0f, 0.0f ), 128.0f, 1024.0f );
 	TargetPosition_ = pBody_->update( 0.0f );
 
 	// Bind input events.
-	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseMove >( this );
-	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseDown >( this );
-	OsEventInputMouse::Delegate OnMouseUp = OsEventInputMouse::Delegate::bind< GaPlayerEntity, &GaPlayerEntity::onMouseUp >( this );
+	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseMove >( this );
+	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseDown >( this );
+	OsEventInputMouse::Delegate OnMouseUp = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseUp >( this );
 
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
@@ -39,9 +55,9 @@ GaPlayerEntity::GaPlayerEntity():
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dtor
+// destroy
 //virtual
-GaPlayerEntity::~GaPlayerEntity()
+void GaPlayerComponent::destroy()
 {
 	// Unbind all events.
 	OsCore::pImpl()->unsubscribeAll( this );
@@ -49,7 +65,7 @@ GaPlayerEntity::~GaPlayerEntity()
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
-void GaPlayerEntity::update( BcReal Tick )
+void GaPlayerComponent::update( BcReal Tick )
 {
 	// Tell the body to target a position, and wander around a little.
 	pBody_->reset();
@@ -64,14 +80,14 @@ void GaPlayerEntity::update( BcReal Tick )
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaPlayerEntity::render( ScnCanvasComponentRef Canvas )
+void GaPlayerComponent::render( ScnCanvasComponentRef Canvas )
 {
 	BunnyRenderer_.render( pParent(), Canvas, BcVec3d( Position_.x(), Position_.y(), 0.0f ), pBody_->Velocity_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // onMouseMove
-eEvtReturn GaPlayerEntity::onMouseMove( EvtID ID, const OsEventInputMouse& Event )
+eEvtReturn GaPlayerComponent::onMouseMove( EvtID ID, const OsEventInputMouse& Event )
 {
 	if( Event.ButtonCode_ == 0 )
 	{
@@ -94,14 +110,14 @@ eEvtReturn GaPlayerEntity::onMouseMove( EvtID ID, const OsEventInputMouse& Event
 
 ////////////////////////////////////////////////////////////////////////////////
 // onMouseDown
-eEvtReturn GaPlayerEntity::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
+eEvtReturn GaPlayerComponent::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
 {
 	return evtRET_PASS;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // onMouseUp
-eEvtReturn GaPlayerEntity::onMouseUp( EvtID ID, const OsEventInputMouse& Event )
+eEvtReturn GaPlayerComponent::onMouseUp( EvtID ID, const OsEventInputMouse& Event )
 {
 	return evtRET_PASS;
 }

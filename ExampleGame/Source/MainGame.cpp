@@ -15,6 +15,11 @@
 
 #include "GaTopState.h"
 
+#include "GaGameComponent.h"
+#include "GaPlayerComponent.h"
+#include "GaSwarmComponent.h"
+#include "GaFoodComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
 PsySetupParams GPsySetupParams( "Leave My Lettuce Alone :(", psySF_GAME_DEV, 1.0f / 60.0f );	
@@ -65,12 +70,18 @@ void PsyGameInit()
 // PsyGameRegisterResources
 void PsyGameRegisterResources()
 {
-
+	CsCore::pImpl()->registerResource< GaGameComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< GaPlayerComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< GaSwarmComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< GaFoodComponent >( BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // PsyGameUnRegisterResources
 void PsyGameUnRegisterResources()
 {
-
+	CsCore::pImpl()->unregisterResource< GaGameComponent >();
+	CsCore::pImpl()->unregisterResource< GaPlayerComponent >();
+	CsCore::pImpl()->unregisterResource< GaSwarmComponent >();
+	CsCore::pImpl()->unregisterResource< GaFoodComponent >();
 }

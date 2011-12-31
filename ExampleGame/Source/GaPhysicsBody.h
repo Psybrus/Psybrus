@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaPlayerEntity.h
+* File:		GaPlayerComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:

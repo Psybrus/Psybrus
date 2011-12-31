@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaPlayerEntity.h
+* File:		GaPlayerComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,26 +11,31 @@
 * 
 **************************************************************************/
 
-#ifndef __GaPlayerEntity_H__
-#define __GaPlayerEntity_H__
+#ifndef __GaPlayerComponent_H__
+#define __GaPlayerComponent_H__
 
 #include "Psybrus.h"
 
-#include "GaEntity.h"
+#include "GaGameComponent.h"
 
 #include "GaPhysicsBody.h"
 
 #include "GaBunnyRenderer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaPlayerEntity
-class GaPlayerEntity:
-	public GaEntity
+// Typedefs
+typedef CsResourceRef< class GaPlayerComponent > GaPlayerComponentRef;
+
+////////////////////////////////////////////////////////////////////////////////
+// GaPlayerComponent
+class GaPlayerComponent:
+	public GaGameComponent
 {
 public:
-	GaPlayerEntity();
-	virtual ~GaPlayerEntity();
+	DECLARE_RESOURCE( GaGameComponent, GaPlayerComponent );
 
+	virtual void initialise();
+	virtual void destroy();
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasComponentRef Canvas );
 

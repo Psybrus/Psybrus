@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaSwarmEntity.h
+* File:		GaSwarmComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -16,7 +16,7 @@
 
 #include "Psybrus.h"
 
-#include "GaEntity.h"
+#include "GaGameComponent.h"
 
 #include "GaPhysicsBody.h"
 
@@ -24,16 +24,22 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
-class GaFoodEntity;
+class GaFoodComponent;
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaSwarmEntity
-class GaSwarmEntity:
-	public GaEntity
+// Typedefs
+typedef CsResourceRef< class GaSwarmComponent > GaSwarmComponentRef;
+
+////////////////////////////////////////////////////////////////////////////////
+// GaSwarmComponent
+class GaSwarmComponent:
+	public GaGameComponent
 {
 public:
-	GaSwarmEntity( BcU32 Level );
-	virtual ~GaSwarmEntity();
+	DECLARE_RESOURCE( GaGameComponent, GaSwarmComponent );
+
+	virtual void initialise( BcU32 Level );
+	virtual void destroy();
 	
 	GaPhysicsBody* findNearestBody( GaPhysicsBody* pSource );
 	BcVec2d averageVelocity() const;
@@ -73,7 +79,7 @@ public:
 	BcBool shouldStartMoveAnimation( BcU32 Idx );
 	void startMoveAnimation( BcU32 Idx, const BcVec2d& Start, const BcVec2d& End );
 	
-	void updateBody_Threaded( BcReal Tick, GaFoodEntity* pFoodEntity, GaPhysicsBody* pBody, TAnimationLogic* pAnimationLogic );
+	void updateBody_Threaded( BcReal Tick, GaFoodComponent* pFoodEntity, GaPhysicsBody* pBody, TAnimationLogic* pAnimationLogic );
 
 private:
 	typedef std::vector< GaPhysicsBody* > TBodyList;
@@ -82,7 +88,7 @@ private:
 	TBodyList Bodies_;
 	TAnimationLogicList AnimationLogicList_;
 	
-	GaFoodEntity* pTargetFoodEntity_;
+	GaFoodComponent* pTargetFoodEntity_;
 };
 
 #endif
