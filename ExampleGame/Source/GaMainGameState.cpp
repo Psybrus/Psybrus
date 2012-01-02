@@ -19,7 +19,7 @@
 #include "GaSwarmComponent.h"
 #include "GaFoodComponent.h"
 
-#include "GaBunnyRenderer.h"
+#include "GaLayeredSpriteComponent.h"
 
 #include "GaOverlayState.h"
 
@@ -129,11 +129,13 @@ eSysStateReturn GaMainGameState::main()
 	spawnKill();
 
 	// Update entities.
+	//*
 	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
 	{
 		GaGameComponent* pEntity = Entities_[ Idx ];
 		pEntity->update( Tick );
 	}
+	//*/
 
 	// Check for win/lose condition.
 	BcReal MaxFoodHealth = 0.0f;
@@ -253,8 +255,10 @@ void GaMainGameState::render( RsFrame* pFrame )
 void GaMainGameState::setMaterialComponentParams( ScnMaterialComponentRef MaterialComponentRef, const BcMat4d& Transform )
 {
 	// TODO: Optimise this.
-	BcU32 ClipTransform = MaterialComponentRef->findParameter( "uClipTransform" );
-	BcU32 WorldTransform = MaterialComponentRef->findParameter( "uWorldTransform" );
+	static BcName NameClipTransform( "uClipTransform" );
+	static BcName NameWorldTransform( "uWorldTransform" );
+	BcU32 ClipTransform = MaterialComponentRef->findParameter( NameClipTransform );
+	BcU32 WorldTransform = MaterialComponentRef->findParameter( NameWorldTransform );
 	MaterialComponentRef->setParameter( ClipTransform, WorldView_ * Projection_ );
 	MaterialComponentRef->setParameter( WorldTransform, Transform );
 }

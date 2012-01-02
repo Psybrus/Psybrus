@@ -29,8 +29,6 @@ typedef CsResourceRef< class ScnCanvasComponent > ScnCanvasComponentRef;
 struct ScnCanvasComponentVertex
 {
 	BcF32 X_, Y_, Z_;
-	BcF32 NX_, NY_, NZ_;
-	BcF32 TX_, TY_, TZ_;
 	BcF32 U_, V_;
 	BcU32 RGBA_;
 };
@@ -189,7 +187,7 @@ protected:
 	{
 		// NOTE: Will probably warn due to converting a 64-bit pointer to 32-bit value, but
 		//       it's actually ok because we should never have over 4GB worth of vertices!
-		BcU32 ByteOffset = BcU32( (BcU8*)pVertex - (BcU8*)pVertices_ );
+		BcU32 ByteOffset = BcU32( ( (BcU8*)pVertex - (BcU8*)pVertices_ ) & 0xffffffff );
 		return ByteOffset / sizeof( ScnCanvasComponentVertex );
 	}
 	
@@ -198,7 +196,7 @@ protected:
 	{
 		RsVertexBuffer*					pVertexBuffer_;
 		RsPrimitive*					pPrimitive_;
-		ScnCanvasComponentVertex*				pVertices_;
+		ScnCanvasComponentVertex*		pVertices_;
 	};
 
 	BcU32								CurrentRenderResource_;
@@ -207,8 +205,8 @@ protected:
 	TRenderResource*					pRenderResource_;
 
 	// Submission data.
-	ScnCanvasComponentVertex*					pVertices_;
-	ScnCanvasComponentVertex*					pVerticesEnd_;
+	ScnCanvasComponentVertex*			pVertices_;
+	ScnCanvasComponentVertex*			pVerticesEnd_;
 	BcU32								NoofVertices_;
 	BcU32								VertexIndex_;
 	

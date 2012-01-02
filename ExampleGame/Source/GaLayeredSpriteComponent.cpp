@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaBunnyRenderer.cpp
+* File:		GaLayeredSpriteComponent.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,16 +11,30 @@
 * 
 **************************************************************************/
 
-#include "GaBunnyRenderer.h"
+#include "GaLayeredSpriteComponent.h"
 
 #include "GaTopState.h"
 
 #include "GaMainGameState.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// Define resource.
+DEFINE_RESOURCE( GaLayeredSpriteComponent );
+
+//////////////////////////////////////////////////////////////////////////
+// StaticPropertyTable
+void GaLayeredSpriteComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
+{
+	Super::StaticPropertyTable( PropertyTable );
+
+	PropertyTable.beginCatagory( "GaLayeredSpriteComponent" )
+	.endCatagory();
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ctor
-GaBunnyRenderer::GaBunnyRenderer()
+// initialise
+//virtual
+void GaLayeredSpriteComponent::initialise()
 {
 	// Feet offsets.
 	Layers_[ LAYER_FOOT_REAR_0 ].TimeTicker_ = 0.5f;
@@ -62,14 +76,15 @@ GaBunnyRenderer::GaBunnyRenderer()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dtor
-GaBunnyRenderer::~GaBunnyRenderer()
+// destroy
+//virtual
+void GaLayeredSpriteComponent::destroy()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
-void GaBunnyRenderer::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale )
+void GaLayeredSpriteComponent::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale )
 {
 	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT );
 	CsCore::pImpl()->createResource( BcName::INVALID, ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
@@ -78,14 +93,15 @@ void GaBunnyRenderer::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
-BcBool GaBunnyRenderer::isReady()
+BcBool GaLayeredSpriteComponent::isReady()
 {
-	return MaterialComponent_.isReady();
+	return Super::isReady() && MaterialComponent_.isReady();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
-void GaBunnyRenderer::update( BcReal Tick )
+//virtual
+void GaLayeredSpriteComponent::update( BcReal Tick )
 {
 	for( BcU32 Idx = 0; Idx < LAYER_MAX; ++Idx )
 	{
@@ -101,7 +117,7 @@ void GaBunnyRenderer::update( BcReal Tick )
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaBunnyRenderer::render( GaMainGameState* pParent, ScnCanvasComponentRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity )
+void GaLayeredSpriteComponent::render( GaMainGameState* pParent, ScnCanvasComponentRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity )
 {
 	BcBool ShouldAnimate = BcFalse;
 

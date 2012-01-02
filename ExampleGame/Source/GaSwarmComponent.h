@@ -20,7 +20,7 @@
 
 #include "GaPhysicsBody.h"
 
-#include "GaBunnyRenderer.h"
+#include "GaLayeredSpriteComponent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
@@ -70,7 +70,7 @@ public:
 		BcReal AnimationPosition_;
 		BcReal AnimationSpeed_;
 		BcBool NotNeeded_;
-		GaBunnyRenderer BunnyRenderer_;
+		GaLayeredSpriteComponentRef LayeredSpriteComponent_;
 		ScnSoundEmitterRef Emitter_;
 	};
 	

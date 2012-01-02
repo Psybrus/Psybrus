@@ -19,6 +19,7 @@
 #include "GaPlayerComponent.h"
 #include "GaSwarmComponent.h"
 #include "GaFoodComponent.h"
+#include "GaLayeredSpriteComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
@@ -74,6 +75,7 @@ void PsyGameRegisterResources()
 	CsCore::pImpl()->registerResource< GaPlayerComponent >( BcFalse );
 	CsCore::pImpl()->registerResource< GaSwarmComponent >( BcFalse );
 	CsCore::pImpl()->registerResource< GaFoodComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< GaLayeredSpriteComponent >( BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,4 +86,5 @@ void PsyGameUnRegisterResources()
 	CsCore::pImpl()->unregisterResource< GaPlayerComponent >();
 	CsCore::pImpl()->unregisterResource< GaSwarmComponent >();
 	CsCore::pImpl()->unregisterResource< GaFoodComponent >();
+	CsCore::pImpl()->unregisterResource< GaLayeredSpriteComponent >();
 }

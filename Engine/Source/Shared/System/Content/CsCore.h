@@ -236,7 +236,7 @@ BcForceInline void CsCore::registerResource( BcBool CreateDefault )
 
 	// Register.
 	internalRegisterResource( _Ty::StaticGetType(), _Ty::StaticAllocResource, _Ty::StaticFreeResource, _Ty::StaticPropertyTable );
-
+	
 	// Request resource, if there is a failure, reimport if server.
 	if( CreateDefault && !requestResource( "default", _Ty::Default ) )
 	{

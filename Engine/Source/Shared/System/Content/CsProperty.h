@@ -131,7 +131,7 @@ private:
 	std::string					Name_;				// Name of property.
 	CsPropertyValueType			ValueType_;			// Value type.
 	CsPropertyContainerType		ContainerType_;		// Container type.	
-	std::string					AdditionalInfo_;			// Additional info.
+	std::string					AdditionalInfo_;	// Additional info.
 };
 
 //////////////////////////////////////////////////////////////////////////

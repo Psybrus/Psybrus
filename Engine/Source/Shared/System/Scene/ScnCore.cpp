@@ -69,6 +69,7 @@ void ScnCore::update()
 		}
 	}
 
+	/*
 	// NEILO TODO: Move this away from here. Should be managed by ScnView and ScnSpacialTree.
 	// Render to all clients.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
@@ -99,6 +100,7 @@ void ScnCore::update()
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
 	}
+	*/
 
 }
 
