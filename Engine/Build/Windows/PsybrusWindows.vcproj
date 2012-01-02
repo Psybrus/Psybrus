@@ -1324,10 +1324,6 @@
 						>
 					</File>
 					<File
-						RelativePath="..\..\Source\Shared\Base\BcSmartPtr.h"
-						>
-					</File>
-					<File
 						RelativePath="..\..\Source\Shared\Base\BcStream.cpp"
 						>
 					</File>
