@@ -14,6 +14,8 @@
 #include "RsContextGL.h"
 #include "OsClient.h"
 
+#include "Img.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Statics
 #if PLATFORM_WINDOWS
@@ -25,7 +27,8 @@ HGLRC RsContextGL::LastWindowRC_ = NULL;
 // Ctor
 RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	RsContext( pClient ),
-	pParent_( pParent )
+	pParent_( pParent ),
+	ScreenshotRequested_( BcFalse )
 {
 
 }
@@ -76,8 +79,59 @@ void RsContextGL::makeCurrent()
 // swapBuffers
 void RsContextGL::swapBuffers()
 {
-	glFlush();
+	if( ScreenshotRequested_ == BcFalse )
+	{
+		glFlush();
+	}
+	else
+	{
+		// Finish all rendering.
+		glFinish();
+		
+		// Read the back buffer.
+		glReadBuffer( GL_BACK );
+		BcU32* pImageData = new BcU32[ getWidth() * getHeight() ];
+		BcU32* pReadImageData = pImageData;
+		glReadPixels(0, 0, getWidth(), getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, pImageData);
+		
+		// Convert to image.
+		ImgImage* pImage = new ImgImage();
+		pImage->create( getWidth(), getHeight(), NULL );
+		
+		BcU32 W = getWidth();
+		BcU32 H = getHeight();
+		for( BcU32 Y = 0; Y < H; ++Y )
+		{
+			BcU32 RealY = ( H - Y ) - 1;
+			for( BcU32 X = 0; X < W; ++X )
+			{
+				ImgColour* pColour = (ImgColour*)pReadImageData++;
+				pImage->setPixel( X, RealY, *pColour );
+			}
+		}
+		
+		// Save out image.				
+		// NEILO TODO: Generate an automatic filename.
+		Img::save( "screenshot.png", pImage );
+
+		// Free image.
+		delete pImage;
+
+		// Free image data.
+		delete [] pImageData;
+
+		// No more screenshot requested.
+		ScreenshotRequested_ = BcFalse;
+	}
+
 	::SwapBuffers( WindowDC_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// takeScreenshot
+void RsContextGL::takeScreenshot()
+{
+	ScreenshotRequested_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
