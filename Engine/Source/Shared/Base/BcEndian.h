@@ -88,7 +88,7 @@ BcInline BcMat4d BcFlipEndian( const BcMat4d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // Macros
-#ifdef PSY_ENDIAN_BIG
+#if PSY_ENDIAN_BIG
 // Convert from or to little endian to native.
 #  define BcLittleEndian( a )		BcFlipEndian( a )
 

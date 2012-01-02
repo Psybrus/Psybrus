@@ -56,32 +56,37 @@
 #if defined( __ia64__ ) || defined( __IA64__ ) || defined( _IA64 ) || defined( _M_IA64 ) || defined( __x86_64__ ) 
 #  define ARCH_X86_64			1
 #  define PSY_ENDIAN_LITTLE		1
+#  define PSY_ENDIAN_BIG		0
 
 // i386 (and higher)
 #elif defined( __i386__ ) || defined( __i486__ ) || defined( __i586__ ) || defined( __i686__ ) || defined( _M_IX86 )
 #  define ARCH_I386				1
 #  define PSY_ENDIAN_LITTLE		1
+#  define PSY_ENDIAN_BIG		0
 
 // PPC
 #elif defined( __ppc__ ) || defined( __PPC__ )
 #  define ARCH_PPC				1
 #  define PSY_ENDIAN_BIG		1
+#  define PSY_ENDIAN_LITTLE		0
 
 // PPC64
 #elif defined( __ppc64__ ) || defined( __PPC64__ )
 #  define ARCH_PPC64			1
 #  define PSY_ENDIAN_BIG		1
+#  define PSY_ENDIAN_LITTLE		0
 
 // ARM
 #elif defined( __arm__ ) || defined( TARGET_OS_IPHONE )
 #  define ARCH_ARM				1
 #  define PSY_ENDIAN_LITTLE		1
+#  define PSY_ENDIAN_LITTLE		0
 
 // THUMB
 #elif defined( __thumb__ )
 #  define ARCH_THUMB			1
 #  define PSY_ENDIAN_LITTLE		1
-
+#  define PSY_ENDIAN_LITTLE		0
 
 // END.
 #endif
