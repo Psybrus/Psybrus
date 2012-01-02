@@ -40,6 +40,11 @@ public:
 	 */
 	virtual BcU32 getHeight() const = 0;
 
+	/**
+	 * Requests a screenshot from the context.
+	 */
+	virtual void takeScreenshot() = 0;
+
 protected:
 	OsClient* pClient_;
 

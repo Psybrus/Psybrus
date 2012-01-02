@@ -35,6 +35,7 @@ public:
 
 	void								makeCurrent();
 	void								swapBuffers();
+	void								takeScreenshot();
 	
 protected:
 	virtual void						create();
@@ -51,7 +52,7 @@ private:
 
 	RsContextGL* pParent_;
 #endif
-
+	BcBool ScreenshotRequested_;
 
 };
 
