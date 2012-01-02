@@ -152,7 +152,7 @@ BcHandle OsClientWindows::getDeviceHandle()
 //virtual
 BcU32 OsClientWindows::getWidth() const
 {
-	return WindowSize_.right - WindowSize_.left;
+	return ClientSize_.right - ClientSize_.left;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ BcU32 OsClientWindows::getWidth() const
 //virtual
 BcU32 OsClientWindows::getHeight() const
 {
-	return WindowSize_.bottom - WindowSize_.top;
+	return ClientSize_.bottom - ClientSize_.top;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -228,6 +228,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 				{
 					// Get new window rect.
 					::GetWindowRect( hWnd, &WindowSize_ );
+					::GetClientRect( hWnd_, &ClientSize_ );
 
 					// Send event.
 					OsEventClient Event;
@@ -240,6 +241,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 				{
 					// Get new window rect.
 					::GetWindowRect( hWnd, &WindowSize_ );
+					::GetClientRect( hWnd_, &ClientSize_ );
 
 					// Send event.
 					OsEventClient Event;
@@ -255,12 +257,13 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 		{
 			// Get new window rect.
 			::GetWindowRect( hWnd, &WindowSize_ );
+			::GetClientRect( hWnd_, &ClientSize_ );
 
 			// Send resize event.
 			OsEventClientResize Event;
 			Event.pClient_ = this;
-			Event.Width_ = lParam & 0xffff;
-			Event.Height_ = lParam >> 16 & 0xffff;
+			Event.Width_ = getWidth();
+			Event.Height_ = getHeight();
 			EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
 		}
 		break;

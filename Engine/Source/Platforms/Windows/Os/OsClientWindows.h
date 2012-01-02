@@ -66,6 +66,7 @@ private:
 	BcChar			ClassName_[ 32 ];
 
 	RECT			WindowSize_;
+	RECT			ClientSize_;
 	DWORD			WindowStyleEx_;
 	DWORD			WindowStyle_;
 };
