@@ -262,14 +262,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaBunnyRenderer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaBunnyRenderer.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Source\GaFoodComponent.cpp"
 				>
 			</File>
@@ -283,6 +275,14 @@
 			</File>
 			<File
 				RelativePath="..\..\Source\GaGameComponent.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\GaLayeredSpriteComponent.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Source\GaLayeredSpriteComponent.h"
 				>
 			</File>
 			<File

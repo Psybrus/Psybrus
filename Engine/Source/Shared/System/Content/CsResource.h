@@ -49,7 +49,7 @@
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
 	CsResourceRef< class _Type > _Type::Default;								\
-	const BcName& _Type::StaticGetType()									\
+	const BcName& _Type::StaticGetType()										\
 	{																			\
 		static BcName TypeString( #_Type );										\
 		return TypeString;														\
@@ -60,9 +60,9 @@
 		return BcHash( #_Type );												\
 	}																			\
 																				\
-	const BcName& _Type::getType()									\
+	const BcName& _Type::getType()												\
 	{																			\
-		return _Type::StaticGetType();									\
+		return _Type::StaticGetType();											\
 	}																			\
 
 #define DECLARE_CSRESOURCE														\
@@ -75,14 +75,14 @@
 		return CsResource::StaticGetTypeHash();									\
 	}																			\
 																				\
-	BcBool CsResource::isType( const BcName& Type )						\
+	BcBool CsResource::isType( const BcName& Type )								\
 	{																			\
-		return CsResource::StaticGetType() == Type;						\
+		return CsResource::StaticGetType() == Type;								\
 	}																			\
 																				\
-	BcBool CsResource::isTypeOf( const BcName& Type )						\
+	BcBool CsResource::isTypeOf( const BcName& Type )							\
 	{																			\
-		return CsResource::StaticGetType() == Type;						\
+		return CsResource::StaticGetType() == Type;								\
 	}																			\
 
 
@@ -95,9 +95,9 @@
 	virtual ~_Type();															\
 	public:																		\
 	static CsResource* StaticAllocResource( const BcName& Name,					\
-	CsFile* pFile );															\
+											CsFile* pFile );					\
 	static void StaticFreeResource( CsResource* pResource );					\
-
+	static BcU32 StaticGetClassSize();
 
 #define DEFINE_RESOURCE( _Type )												\
 	BASE_DEFINE_RESOURCE( _Type )												\
@@ -113,17 +113,17 @@
 		return _Type::StaticGetTypeHash();										\
 	}																			\
 																				\
-	BcBool _Type::isType( const BcName& Type )								\
+	BcBool _Type::isType( const BcName& Type )									\
 	{																			\
-		return  _Type::StaticGetType() == Type;							\
+		return  _Type::StaticGetType() == Type;									\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( const BcName& Type )							\
+	BcBool _Type::isTypeOf( const BcName& Type )								\
 	{																			\
-		return _Type::StaticGetType() == Type || Super::isTypeOf( Type );	\
+		return _Type::StaticGetType() == Type || Super::isTypeOf( Type );		\
 	}																			\
 																				\
-	CsResource* _Type::StaticAllocResource( const BcName& Name,			\
+	CsResource* _Type::StaticAllocResource( const BcName& Name,					\
 	                                        CsFile* pFile )						\
 	{																			\
 		return new _Type( Name, pFile );										\
@@ -132,7 +132,12 @@
 	void _Type::StaticFreeResource( CsResource* pResource )						\
 	{																			\
 		delete pResource;														\
-	}																			
+	}																			\
+																				\
+	BcU32 _Type::StaticGetClassSize()											\
+	{																			\
+		return sizeof( _Type );													\
+	}
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

@@ -64,7 +64,7 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef
 void ScnCanvasComponent::create()
 {
 	// Allocate our own vertex buffer data.
-	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
 	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasComponentVertex ) );
 
 	// Allocate render resources.
@@ -133,8 +133,9 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 		BcVerifyMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity! Material may not work correctly!" );
 
 		// Cache and grab diffuse parameter.
+		static BcName NameDiffuseTex( "aDiffuseTex" );
 		MaterialComponent_ = MaterialComponent;
-		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
+		BcU32 Parameter = MaterialComponent_->findParameter( NameDiffuseTex );
 		DiffuseTexture_ = MaterialComponent_->getTexture( Parameter );
 	}
 }

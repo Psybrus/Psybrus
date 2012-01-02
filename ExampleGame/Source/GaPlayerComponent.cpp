@@ -48,9 +48,11 @@ void GaPlayerComponent::initialise()
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
 
+	CsCore::pImpl()->createResource( BcName::INVALID, LayeredSpriteComponent_ );
+
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_KITTY, Material );
-	BunnyRenderer_.setMaterial( Material, BcVec3d( 0.6f, 0.6f, 0.6f ) );
+	LayeredSpriteComponent_->setMaterial( Material, BcVec3d( 0.6f, 0.6f, 0.6f ) );
 
 }
 
@@ -75,14 +77,14 @@ void GaPlayerComponent::update( BcReal Tick )
 	// Update body.
 	Position_ = pBody_->update( Tick );
 
-	BunnyRenderer_.update( Tick );
+	LayeredSpriteComponent_->update( Tick );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
 void GaPlayerComponent::render( ScnCanvasComponentRef Canvas )
 {
-	BunnyRenderer_.render( pParent(), Canvas, BcVec3d( Position_.x(), Position_.y(), 0.0f ), pBody_->Velocity_ );
+	LayeredSpriteComponent_->render( pParent(), Canvas, BcVec3d( Position_.x(), Position_.y(), 0.0f ), pBody_->Velocity_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

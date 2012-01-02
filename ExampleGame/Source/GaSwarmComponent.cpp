@@ -72,9 +72,12 @@ void GaSwarmComponent::initialise( BcU32 Level )
 		AnimationLogicList_[ Idx ]->StartPosition_ = Bodies_[ Idx ]->Position_;
 		AnimationLogicList_[ Idx ]->EndPosition_ = Bodies_[ Idx ]->Position_;
 
+		// Create layered sprite component.
+		CsCore::pImpl()->createResource( BcName::INVALID, AnimationLogicList_[ Idx ]->LayeredSpriteComponent_ );
+
 		ScnMaterialRef Material;
 		GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BUNNY, Material );
-		AnimationLogicList_[ Idx ]->BunnyRenderer_.setMaterial( Material, BcVec3d( 0.4f, 0.4f, 0.4f ) );
+		AnimationLogicList_[ Idx ]->LayeredSpriteComponent_->setMaterial( Material, BcVec3d( 0.4f, 0.4f, 0.4f ) );
 
 		CsCore::pImpl()->createResource( BcName::INVALID, AnimationLogicList_[ Idx ]->Emitter_ );
 
@@ -412,7 +415,7 @@ void GaSwarmComponent::render( ScnCanvasComponentRef Canvas )
 			
 			BcVec3d Position = animationPosition( Idx );
 
-			pAnimationLogic->BunnyRenderer_.render( pParent(), Canvas, Position, pAnimationLogic->AnimationPosition_ < 1.0f ? pBody->Velocity_ : BcVec2d( 0.0f, 0.0f ) );
+			pAnimationLogic->LayeredSpriteComponent_->render( pParent(), Canvas, Position, pAnimationLogic->AnimationPosition_ < 1.0f ? pBody->Velocity_ : BcVec2d( 0.0f, 0.0f ) );
 
 			pAnimationLogic->Emitter_->setPosition( Position );
 			
@@ -446,7 +449,7 @@ void GaSwarmComponent::updateAnimation( BcU32 Idx, BcReal Tick )
 
 	pAnimationLogic->AnimationPosition_ = NewAnimationPosition;
 
-	pAnimationLogic->BunnyRenderer_.update( TotalTickTime );
+	pAnimationLogic->LayeredSpriteComponent_->update( TotalTickTime );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

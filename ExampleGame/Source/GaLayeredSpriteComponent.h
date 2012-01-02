@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaBunnyRenderer.h
+* File:		GaLayeredSpriteComponent.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#ifndef __GABUNNYRENDERER_H__
-#define __GABUNNYRENDERER_H__
+#ifndef __GaLayeredSpriteComponent_H__
+#define __GaLayeredSpriteComponent_H__
 
 #include "Psybrus.h"
 
@@ -21,8 +21,13 @@
 class GaMainGameState;
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaBunnyRenderer
-class GaBunnyRenderer
+// GaLayeredSpriteComponentRef
+typedef CsResourceRef< class GaLayeredSpriteComponent > GaLayeredSpriteComponentRef;
+
+////////////////////////////////////////////////////////////////////////////////
+// GaLayeredSpriteComponent
+class GaLayeredSpriteComponent:
+	public ScnComponent
 {
 public:
 	enum
@@ -42,14 +47,15 @@ public:
 	};
 
 public:
-	GaBunnyRenderer();
-	~GaBunnyRenderer();
+	DECLARE_RESOURCE( ScnComponent, GaLayeredSpriteComponent );
+	virtual void initialise();
+	virtual void destroy();
 	
 	void setMaterial( ScnMaterialRef Material, const BcVec3d& Scale );
 
 	BcBool isReady();
 	
-	void update( BcReal Tick );
+	virtual void update( BcReal Tick );
 
 	void render( GaMainGameState* pParent, ScnCanvasComponentRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity );
 

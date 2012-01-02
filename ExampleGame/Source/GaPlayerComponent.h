@@ -20,7 +20,7 @@
 
 #include "GaPhysicsBody.h"
 
-#include "GaBunnyRenderer.h"
+#include "GaLayeredSpriteComponent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Typedefs
@@ -49,7 +49,7 @@ private:
 	// Movement control.
 	BcVec2d TargetPosition_;
 	
-	GaBunnyRenderer BunnyRenderer_;
+	GaLayeredSpriteComponentRef LayeredSpriteComponent_;
 };
 
 #endif
