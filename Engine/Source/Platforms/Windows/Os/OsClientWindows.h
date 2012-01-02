@@ -52,8 +52,10 @@ public:
 	 */
 	virtual BcU32 getHeight() const;
 
+	/**
+	 * Centre the window.
+	 */
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
-	RECT windowSize( BcS32 SizeX, BcS32 SizeY ) const;
 
 private:
 	LRESULT wndProcInternal( HWND, UINT, WPARAM, LPARAM );

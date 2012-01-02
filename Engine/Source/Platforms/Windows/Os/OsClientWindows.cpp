@@ -167,8 +167,19 @@ BcU32 OsClientWindows::getHeight() const
 // centreWindow
 BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 {
-	WindowSize_ = windowSize( SizeX, SizeY );
+	RECT Rect;
 
+	::SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
+
+	BcS32 Width = Rect.right - Rect.left;
+	BcS32 Height = Rect.bottom - Rect.top;
+	BcS32 slX = ( ( Width - SizeX ) / 2 ) + Rect.left;
+	BcS32 slY = ( ( Height - SizeY ) / 2 ) + Rect.top;
+
+	WindowSize_.left = slX;
+	WindowSize_.top = slY;
+	WindowSize_.right = ( SizeX + slX );
+	WindowSize_.bottom = ( SizeY + slY ); 
 	BcBool RetValue = BcTrue;
 
 	if( ::AdjustWindowRectEx( &WindowSize_, WindowStyle_, BcFalse, WindowStyleEx_ ) == FALSE )
@@ -178,31 +189,6 @@ BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 	
 	return RetValue; 
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// windowSize
-RECT OsClientWindows::windowSize( BcS32 SizeX, BcS32 SizeY ) const
-{
-	RECT Rect;
-
-	::SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
-
-	BcS32 Width = Rect.right - Rect.left;
-	BcS32 Height = Rect.bottom - Rect.top;
-
-	BcS32 slX = ( ( Width - SizeX ) / 2 ) + Rect.left;	// Default window to middle of screen
-	BcS32 slY = ( ( Height - SizeY ) / 2 ) + Rect.top;
-
-	RECT WindowSize;
-
-	WindowSize.left = slX;
-	WindowSize.top = slY;
-	WindowSize.right = ( SizeX + slX );
-	WindowSize.bottom = ( SizeY + slY ); 
-
-	return WindowSize;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 // wndProcInternal
