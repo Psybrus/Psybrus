@@ -1268,6 +1268,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Source\Shared\Base\BcOBB.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Source\Shared\Base\BcOBB.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Source\Shared\Base\BcOctTree.cpp"
 						>
 					</File>

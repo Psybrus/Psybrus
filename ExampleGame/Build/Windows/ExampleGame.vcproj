@@ -254,54 +254,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Source\GaBaseGameState.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaBaseGameState.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaFoodComponent.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaFoodComponent.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaGameComponent.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaGameComponent.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaLayeredSpriteComponent.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaLayeredSpriteComponent.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaMainGameState.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaMainGameState.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaOverlayState.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaOverlayState.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Source\GaPhysicsBody.cpp"
 				>
 			</File>
@@ -310,33 +262,89 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\GaPlayerComponent.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaPlayerComponent.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaSwarmComponent.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaSwarmComponent.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaTopState.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Source\GaTopState.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Source\MainGame.cpp"
 				>
 			</File>
+			<Filter
+				Name="Components"
+				>
+				<File
+					RelativePath="..\..\Source\GaFoodComponent.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaFoodComponent.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaGameComponent.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaGameComponent.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaLayeredSpriteComponent.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaLayeredSpriteComponent.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaPlayerComponent.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaPlayerComponent.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaSwarmComponent.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaSwarmComponent.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="States"
+				>
+				<File
+					RelativePath="..\..\Source\GaBaseGameState.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaBaseGameState.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaMainGameState.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaMainGameState.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaOverlayState.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaOverlayState.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaTopState.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Source\GaTopState.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
