@@ -458,7 +458,7 @@ union RsRenderSort
 	
 	BcU64				Value_;
 	
-#if defined( PSY_ENDIAN_LITTLE )
+#if PSY_ENDIAN_LITTLE
 	struct 
 	{
 		BcU64			MaterialID_		: 16;		// 16
@@ -470,7 +470,7 @@ union RsRenderSort
 		BcU64			RenderTarget_	: 4;		// 60
 		BcU64			NodeType_		: 4;		// 64
 	};
-#elif defined( PSY_ENDIAN_BIG )
+#elif PSY_ENDIAN_BIG
 	struct 
 	{
 		BcU64			NodeType_		: 4;		// 64

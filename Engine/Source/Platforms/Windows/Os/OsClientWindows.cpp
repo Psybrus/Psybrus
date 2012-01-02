@@ -187,7 +187,7 @@ BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 		RetValue  = BcFalse;
 	}
 	
-	return RetValue; 
+	return RetValue;
 }
 
 //////////////////////////////////////////////////////////////////////////
