@@ -15,6 +15,7 @@
 #define __BCATOMICMUTEXS_H__
 
 #include "BcAtomic.h"
+#include "BcMisc.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtomicMutex
@@ -48,7 +49,7 @@ BcForceInline void BcAtomicMutex::lock()
 {
 	while( Value_.exchange( 1 ) == 1 )
 	{
-		//	
+		BcYield();
 	}
 }
 
