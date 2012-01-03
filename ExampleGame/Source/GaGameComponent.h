@@ -40,6 +40,9 @@ public:
 	virtual void initialise();
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasComponentRef Canvas );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+
 	virtual BcBool isAlive(){ return BcTrue; };
 
 	BcForceInline void setParent( GaMainGameState* pParent )

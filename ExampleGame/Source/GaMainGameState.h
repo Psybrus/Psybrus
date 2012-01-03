@@ -137,10 +137,12 @@ public:
 		return GaGameComponentRef( Component );
 	}
 
-	void spawnEntity( GaGameComponentRef Component );
-	void killEntity( GaGameComponentRef Component );
+	// TODO: Move to data.
+	void spawnPlayerEntity();
+	void spawnSwarmEntity( BcU32 Level );
+	void spawnFoodEntity( const BcVec2d& Position );
 
-private:
+	void killEntity( GaGameComponentRef Component );
 	void spawnKill();
 
 private:

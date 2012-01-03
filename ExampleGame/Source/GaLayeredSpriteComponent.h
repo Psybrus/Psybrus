@@ -48,16 +48,17 @@ public:
 
 public:
 	DECLARE_RESOURCE( ScnComponent, GaLayeredSpriteComponent );
-	virtual void initialise();
+	virtual void initialise( ScnMaterialRef Material, const BcVec3d& Scale );
 	virtual void destroy();
 	
-	void setMaterial( ScnMaterialRef Material, const BcVec3d& Scale );
-
 	BcBool isReady();
 	
 	virtual void update( BcReal Tick );
 
 	void render( GaMainGameState* pParent, ScnCanvasComponentRef Canvas, const BcVec3d& Position, const BcVec2d& Velocity );
+
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
 private:
 	ScnMaterialComponentRef MaterialComponent_;

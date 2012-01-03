@@ -93,6 +93,26 @@ void GaGameComponent::render( ScnCanvasComponentRef Canvas )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );	
+
+	Parent->attach( EmoteMaterialComponent_ );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
+
+	Parent->detach( EmoteMaterialComponent_ );
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // doEmote
 BcBool GaGameComponent::doEmote( BcU32 Idx, const BcVec3d& Position )
 {

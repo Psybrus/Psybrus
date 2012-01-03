@@ -72,13 +72,11 @@ void GaSwarmComponent::initialise( BcU32 Level )
 		AnimationLogicList_[ Idx ]->StartPosition_ = Bodies_[ Idx ]->Position_;
 		AnimationLogicList_[ Idx ]->EndPosition_ = Bodies_[ Idx ]->Position_;
 
-		// Create layered sprite component.
-		CsCore::pImpl()->createResource( BcName::INVALID, AnimationLogicList_[ Idx ]->LayeredSpriteComponent_ );
-
 		ScnMaterialRef Material;
 		GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BUNNY, Material );
-		AnimationLogicList_[ Idx ]->LayeredSpriteComponent_->setMaterial( Material, BcVec3d( 0.4f, 0.4f, 0.4f ) );
 
+		// Create layered sprite component.
+		CsCore::pImpl()->createResource( BcName::INVALID, AnimationLogicList_[ Idx ]->LayeredSpriteComponent_, Material, BcVec3d( 0.4f, 0.4f, 0.4f ) );
 		CsCore::pImpl()->createResource( BcName::INVALID, AnimationLogicList_[ Idx ]->Emitter_ );
 
 		// Slightly different pitch for all bunnies.
@@ -222,6 +220,8 @@ eEvtReturn GaSwarmComponent::onMouseDown( EvtID ID, const OsEventInputMouse& Eve
 // update
 void GaSwarmComponent::update( BcReal Tick )
 {
+	Super::update( Tick );
+
 	BcVec2d AverageVelocity = averageVelocity();
 	BcVec2d AveragePosition = averagePosition();
 
@@ -359,7 +359,14 @@ void GaSwarmComponent::updateBody_Threaded( BcReal Tick,  GaFoodComponent* pFood
 
 		// Avoid player massively.
 		GaPlayerComponent* pPlayerEntity = pParent()->getEntity< GaPlayerComponent >( 0 );
-		pBody->avoid( pPlayerEntity->getPosition(), PLAYER_AVOID_DISTANCE, PLAYER_AVOID_MULTIPLIER );
+		if( pPlayerEntity != NULL )
+		{
+			pBody->avoid( pPlayerEntity->getPosition(), PLAYER_AVOID_DISTANCE, PLAYER_AVOID_MULTIPLIER );
+		}
+		else
+		{
+			int a = 0; ++a;
+		}
 
 		// Enclose in the play area.
 		pBody->enclose( BcVec2d( -320.0f, -240.0f ), BcVec2d( 320.0f, 240.0f ), ENCLOSURE_DISTANCE, ENCLOSURE_MULTIPLIER );
@@ -368,10 +375,13 @@ void GaSwarmComponent::updateBody_Threaded( BcReal Tick,  GaFoodComponent* pFood
 		pBody->update( Tick );
 
 		// If the player is close by we want to do the run away..
-		if( ( pPlayerEntity->getPosition() - pBody->Position_ ).magnitude() < EMOTE_RUN_AWAY_DISTANCE )
+		if( pPlayerEntity != NULL )
 		{
-			// TODO: NOT IN HERE.
-			doEmote( EMOTE_RUNAWAY, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+			if( ( pPlayerEntity->getPosition() - pBody->Position_ ).magnitude() < EMOTE_RUN_AWAY_DISTANCE )
+			{
+				// TODO: NOT IN HERE.
+				doEmote( EMOTE_RUNAWAY, BcVec3d( pBody->Position_.x(), pBody->Position_.y(), 64.0f ) );
+			}
 		}
 	}
 	else
@@ -429,6 +439,40 @@ void GaSwarmComponent::render( ScnCanvasComponentRef Canvas )
 	}
 
 	GaGameComponent::render( Canvas );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void GaSwarmComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
+
+	// Attach all swarm thingies.
+	for( BcU32 Idx = 0; Idx < AnimationLogicList_.size(); ++Idx )
+	{
+		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
+
+		Parent->attach( pAnimationLogic->LayeredSpriteComponent_ );
+		//Parent->attach( pAnimationLogic->Emitter_ );
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void GaSwarmComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
+
+	// Detach all swarm thingies.
+	for( BcU32 Idx = 0; Idx < AnimationLogicList_.size(); ++Idx )
+	{
+		TAnimationLogic* pAnimationLogic = AnimationLogicList_[ Idx ];
+
+		Parent->detach( pAnimationLogic->LayeredSpriteComponent_ );
+		//Parent->detach( pAnimationLogic->Emitter_ );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

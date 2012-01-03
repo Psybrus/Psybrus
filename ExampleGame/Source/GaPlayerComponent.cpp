@@ -48,12 +48,10 @@ void GaPlayerComponent::initialise()
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
 
-	CsCore::pImpl()->createResource( BcName::INVALID, LayeredSpriteComponent_ );
-
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_KITTY, Material );
-	LayeredSpriteComponent_->setMaterial( Material, BcVec3d( 0.6f, 0.6f, 0.6f ) );
 
+	CsCore::pImpl()->createResource( BcName::INVALID, LayeredSpriteComponent_, Material, BcVec3d( 0.6f, 0.6f, 0.6f ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +67,8 @@ void GaPlayerComponent::destroy()
 // update
 void GaPlayerComponent::update( BcReal Tick )
 {
+	Super::update( Tick );
+
 	// Tell the body to target a position, and wander around a little.
 	pBody_->reset();
 	pBody_->target( TargetPosition_, 256.0f );
@@ -85,6 +85,26 @@ void GaPlayerComponent::update( BcReal Tick )
 void GaPlayerComponent::render( ScnCanvasComponentRef Canvas )
 {
 	LayeredSpriteComponent_->render( pParent(), Canvas, BcVec3d( Position_.x(), Position_.y(), 0.0f ), pBody_->Velocity_ );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
+
+	Parent->attach( LayeredSpriteComponent_ );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void GaPlayerComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
+
+	Parent->detach( LayeredSpriteComponent_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
