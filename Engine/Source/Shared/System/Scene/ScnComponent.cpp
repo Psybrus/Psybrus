@@ -71,3 +71,10 @@ BcBool ScnComponent::isAttached( ScnEntityWeakRef Parent ) const
 {
 	return ParentEntity_ == Parent;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getParentEntity
+ScnEntityWeakRef ScnComponent::getParentEntity()
+{
+	return ParentEntity_;
+}

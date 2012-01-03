@@ -34,6 +34,7 @@ public:
 
 	BcBool								isAttached() const;
 	BcBool								isAttached( ScnEntityWeakRef Parent ) const;
+	ScnEntityWeakRef					getParentEntity();
 
 protected:
 

@@ -39,6 +39,9 @@ public:
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasComponentRef Canvas );
 
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+
 	eEvtReturn onMouseMove( EvtID ID, const OsEventInputMouse& Event );
 	eEvtReturn onMouseDown( EvtID ID, const OsEventInputMouse& Event );
 	eEvtReturn onMouseUp( EvtID ID, const OsEventInputMouse& Event );

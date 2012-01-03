@@ -50,9 +50,11 @@ public:
 	eEvtReturn onMouseDown( EvtID ID, const OsEventInputMouse& Event );
 	
 	virtual void update( BcReal Tick );
-
 	virtual void render( ScnCanvasComponentRef Canvas );
-	
+
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+
 public:
 	struct TAnimationLogic
 	{

@@ -34,7 +34,7 @@ void GaLayeredSpriteComponent::StaticPropertyTable( CsPropertyTable& PropertyTab
 ////////////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void GaLayeredSpriteComponent::initialise()
+void GaLayeredSpriteComponent::initialise( ScnMaterialRef Material, const BcVec3d& Scale )
 {
 	// Feet offsets.
 	Layers_[ LAYER_FOOT_REAR_0 ].TimeTicker_ = 0.5f;
@@ -73,6 +73,11 @@ void GaLayeredSpriteComponent::initialise()
 	// Direction.
 	FaceDirection_ = BcVec2d( 1.0f, 0.0f );
 	SmoothFaceDirection_ = FaceDirection_;
+
+	// Material.
+	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT );
+	CsCore::pImpl()->createResource( BcName::INVALID, ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
+	Scale_ = Scale;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -83,16 +88,7 @@ void GaLayeredSpriteComponent::destroy()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// update
-void GaLayeredSpriteComponent::setMaterial( ScnMaterialRef Material, const BcVec3d& Scale )
-{
-	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT );
-	CsCore::pImpl()->createResource( BcName::INVALID, ShadowMaterialComponent_, ScnMaterial::Default, scnSPF_DEFAULT );
-	Scale_ = Scale;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// update
+// isReady
 BcBool GaLayeredSpriteComponent::isReady()
 {
 	return Super::isReady() && MaterialComponent_.isReady();
@@ -103,6 +99,8 @@ BcBool GaLayeredSpriteComponent::isReady()
 //virtual
 void GaLayeredSpriteComponent::update( BcReal Tick )
 {
+	Super::update( Tick );
+
 	for( BcU32 Idx = 0; Idx < LAYER_MAX; ++Idx )
 	{
 		TLayer& Layer = Layers_[ Idx ];
@@ -166,4 +164,26 @@ void GaLayeredSpriteComponent::render( GaMainGameState* pParent, ScnCanvasCompon
 	
 	//Canvas->popMatrix();
 	//Canvas->popMatrix();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void GaLayeredSpriteComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Parent->attach( MaterialComponent_ );
+	Parent->attach( ShadowMaterialComponent_ );
+	
+	Super::onAttach( Parent );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void GaLayeredSpriteComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Parent->detach( MaterialComponent_ );
+	Parent->detach( ShadowMaterialComponent_ );
+
+	Super::onDetach( Parent );
 }
