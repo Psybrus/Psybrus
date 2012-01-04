@@ -78,12 +78,15 @@ public:
 private:
 	typedef std::list< GaBaseGameState* > TStateList;
 
-	ScnCanvasComponentRef					Canvas_;
+	ScnViewComponentRef				ViewComponent_;
+	ScnCanvasComponentRef			CanvasComponent_;
 
 	TStateList						StateList_;
 
 	ScnMaterialRef					Materials_[ MATERIAL_MAX ];
 	ScnSoundRef						Sounds_[ SOUND_MAX ];
+	
+	ScnEntityRef					CameraEntity_;
 };
 
 #endif

@@ -141,6 +141,7 @@ void GaTopState::enterOnce()
 	BcAssert( Imported );
 	Imported = CsCore::pImpl()->requestResource( "rabbitscared", Sounds_[ SOUND_SCARED ] );
 	BcAssert( Imported );
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -158,13 +159,31 @@ eSysStateReturn GaTopState::enter()
 	{
 		Ready &= Sounds_[ Idx ].isReady();
 	}
-
+	
 	// Wait for default material to be ready.
 	if( ScnMaterial::Default->isReady() == BcTrue &&
 		Ready )
 	{
-		// Create default material instance.
-		CsCore::pImpl()->createResource( BcName::INVALID, ScnMaterialComponent::Default, ScnMaterial::Default, scnSPF_DEFAULT );
+		if( CsCore::pImpl()->createResource( "CameraEntity", CameraEntity_ ) )
+		{
+			// Create a view component.
+			CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent_, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1024.0f, BcPIDIV4, 0.0f );
+			
+			// Create default material component.
+			CsCore::pImpl()->createResource( BcName::INVALID, ScnMaterialComponent::Default, ScnMaterial::Default, scnSPF_DEFAULT );
+			
+			// Create a canvas component.
+			CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent_, 1024 * 16, ScnMaterialComponent::Default );
+			
+			// Attach components.
+			CameraEntity_->attach( ViewComponent_ );
+			CameraEntity_->attach( ScnMaterialComponent::Default );
+			CameraEntity_->attach( CanvasComponent_ );
+			
+			// Add entity to the scene.
+			ScnCore::pImpl()->addEntity( CameraEntity_ );
+		}
+
 
 		// Spawn main game state.
 		spawnSubState( 0, new GaMainGameState() );
@@ -185,31 +204,18 @@ void GaTopState::preMain()
 // main
 eSysStateReturn GaTopState::main()
 {
-	// Render to all clients.
-	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
+	// Clear canvas ready for use.
+	CanvasComponent_->clear();
+
+	// Render all registered states.
+	for( TStateList::iterator Iter( StateList_.begin() ); Iter != StateList_.end(); ++Iter )
 	{
-		// Grab client.
-		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
+		GaBaseGameState* pState = (*Iter);
 
-		// Get context.
-		RsContext* pContext = RsCore::pImpl()->getContext( pClient );
-
-		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-		// Render all registered states.
-		for( TStateList::iterator Iter( StateList_.begin() ); Iter != StateList_.end(); ++Iter )
+		if( pState->internalStage() == sysBS_MAIN )
 		{
-			GaBaseGameState* pState = (*Iter);
-	
-			if( pState->internalStage() == sysBS_MAIN )
-			{
-				pState->render( pFrame );
-			}
+			pState->render();
 		}
-		
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( pFrame );
 	}
 
 	return sysSR_CONTINUE;
@@ -219,6 +225,7 @@ eSysStateReturn GaTopState::main()
 // preLeave
 void GaTopState::preLeave()
 {
+	ScnCore::pImpl()->removeEntity( CameraEntity_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

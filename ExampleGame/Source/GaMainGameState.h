@@ -37,7 +37,7 @@ public:
 	virtual eSysStateReturn leave();
 	virtual void leaveOnce();
 	
-	virtual void render( RsFrame* pFrame );
+	virtual void render();
 
 	void doWin();
 	void doLose();
@@ -120,22 +120,6 @@ public:
 	void setMaterialComponentParams( ScnMaterialComponentRef MaterialComponentRef, const BcMat4d& WorldView );
 
 	void getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far );
-
-	template< class _Ty >
-	GaGameComponentRef createComponent()
-	{
-		CsResourceRef< _Ty > Component;
-		CsCore::pImpl()->createResource< _Ty >( BcName::INVALID, Component );
-		return GaGameComponentRef( Component );
-	}
-
-	template< class _Ty, typename _P0 >
-	GaGameComponentRef createComponent( const _P0 P0 )
-	{
-		CsResourceRef< _Ty > Component;
-		CsCore::pImpl()->createResource< _Ty >( BcName::INVALID, Component, P0 );
-		return GaGameComponentRef( Component );
-	}
 
 	// TODO: Move to data.
 	void spawnPlayerEntity();

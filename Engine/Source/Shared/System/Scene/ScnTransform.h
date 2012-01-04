@@ -42,9 +42,19 @@ public:
 	void					setTranslation( const BcVec3d& Translation );
 
 	/**
+	*	Set matrix.
+	*/
+	void					setMatrix( const BcMat4d& InMatrix );
+
+	/**
 	*	Get matrix.
 	*/
 	void					getMatrix( BcMat4d& Result ) const;
+
+	/**
+	*	Get inverted matrix.
+	*/
+	void					getInvertedMatrix( BcMat4d& Result ) const;
 
 private:
 	BcQuat					Rotation_;
@@ -88,10 +98,23 @@ inline void ScnTransform::setTranslation( const BcVec3d& Translation )
 	Translation_ = Translation;
 }
 
+inline void ScnTransform::setMatrix( const BcMat4d& InMatrix )
+{
+	Rotation_.fromMatrix4d( InMatrix );
+	Translation_ = InMatrix.translation();
+}
+
 inline void ScnTransform::getMatrix( BcMat4d& Result ) const
 {
 	Rotation_.asMatrix4d( Result );
 	Result.row3( BcVec4d( Translation_, 1.0f ) );
+}
+
+inline void ScnTransform::getInvertedMatrix( BcMat4d& Result ) const
+{
+	Rotation_.asMatrix4d( Result );
+	Result.row3( BcVec4d( Translation_, 1.0f ) );
+	Result.inverse();
 }
 
 #endif

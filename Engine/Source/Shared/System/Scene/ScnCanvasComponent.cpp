@@ -132,7 +132,7 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 	if( MaterialComponent_ != MaterialComponent )
 	{
 		// Ensure the material component is attached to an entity (doesn't have to be the same as us)
-		BcVerifyMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity! Material may not work correctly!" );
+		BcAssertMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity! Can't use." );
 
 		// Cache and grab diffuse parameter.
 		static BcName NameDiffuseTex( "aDiffuseTex" );
@@ -722,7 +722,7 @@ void ScnCanvasComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
 
-	clear(); // Temporary hack. Need to fix this.
+	//clear(); // Temporary hack. Need to fix this.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -748,6 +748,10 @@ public:
 
 void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 {
+	if( HaveVertexBufferLock_ == BcFalse )
+	{
+		return;
+	}
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
@@ -761,21 +765,21 @@ void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
 		ScnCanvasComponentRenderNode* pRenderNode = pFrame->newObject< ScnCanvasComponentRenderNode >();
-	
+		
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
 		pRenderNode->pPrimitive_ = pRenderResource_->pPrimitive_;
 		
 		// Copy primitive sections in.
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
-
+		
 		// Bind material.
 		if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
 			pLastMaterialComponent->bind( pFrame, Sort );
 		}
-
+		
 		// Add to frame.
 		pRenderNode->Sort_ = Sort;
 		pFrame->addRenderNode( pRenderNode );

@@ -39,7 +39,9 @@ public:
 
 	virtual void update( BcReal Tick );
 	virtual void render( ScnCanvasComponentRef Canvas );
-	
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+
 private:
 	BcReal StartingHealth_;
 	BcReal Health_;

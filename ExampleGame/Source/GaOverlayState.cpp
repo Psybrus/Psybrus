@@ -89,6 +89,8 @@ eSysStateReturn GaOverlayState::enter()
 	{
 		ScnFont::Default->createInstance( "defaultFontComponent", FontComponent_, FontMaterial_ );
 
+		CameraEntity_->attach( MaterialComponent_ );
+
 		return sysSR_FINISHED;
 	}
 
@@ -120,18 +122,19 @@ eSysStateReturn GaOverlayState::leave()
 // leaveOnce
 void GaOverlayState::leaveOnce()
 {
-
+	CameraEntity_->detach( MaterialComponent_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaOverlayState::render( RsFrame* pFrame )
+void GaOverlayState::render()
 {
-	Canvas_->clear();
+	// NEILO HACK: REMOVE.
+	OsClient* pClient = OsCore::pImpl()->getClient( 0 );
 
-	BcMat4d Projection;
+	BcMat4d Projection; 
 
-	BcReal Aspect = (BcReal)pFrame->getContext()->getWidth() / (BcReal)pFrame->getContext()->getHeight();
+	BcReal Aspect = (BcReal)pClient->getWidth() / (BcReal)pClient->getHeight();
 	BcReal DesiredHeight = 240.0f;
 	BcReal DesiredWidth = Aspect * DesiredHeight;
 
@@ -142,7 +145,7 @@ void GaOverlayState::render( RsFrame* pFrame )
 	if( MaterialComponent_.isValid() )
 	{
 		Canvas_->setMaterialComponent( MaterialComponent_ );
-		Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 512.0f, 300.0f ), CurrOverlay_, RsColour::WHITE, 0 );
+		Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 512.0f, 300.0f ), CurrOverlay_, RsColour::WHITE, 8 );
 	}
 
 	// Build up list of strings.
@@ -193,5 +196,5 @@ void GaOverlayState::render( RsFrame* pFrame )
 	Canvas_->popMatrix();
 
 
-	GaBaseGameState::render( pFrame );
+	GaBaseGameState::render();
 }

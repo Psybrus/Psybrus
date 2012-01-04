@@ -34,7 +34,7 @@ public:
 	virtual eSysStateReturn leave();
 	virtual void leaveOnce();
 	
-	virtual void render( RsFrame* pFrame );
+	virtual void render();
 
 private:
 	ScnMaterialRef FontMaterial_;

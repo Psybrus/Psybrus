@@ -87,12 +87,15 @@ void GaMainGameState::enterOnce()
 	ScnMaterialRef Material;
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BACKGROUND, Material );
 	CsCore::pImpl()->createResource( BcName::INVALID, BackgroundMaterialComponent_, Material, scnSPF_DEFAULT );
+	CameraEntity_->attach( BackgroundMaterialComponent_ );
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_FOREGROUND, Material );
 	CsCore::pImpl()->createResource( BcName::INVALID, ForegroundMaterialComponent_, Material, scnSPF_DEFAULT );
+	CameraEntity_->attach( ForegroundMaterialComponent_ );
 
 	GaTopState::pImpl()->getMaterial( GaTopState::MATERIAL_BAR, Material );
 	CsCore::pImpl()->createResource( BcName::INVALID, BarMaterialComponent_, Material, scnSPF_DEFAULT );
+	CameraEntity_->attach( BarMaterialComponent_ );
 
 	// Get default render context.
 	pContext_ = RsCore::pImpl()->getContext( NULL );
@@ -186,12 +189,15 @@ eSysStateReturn GaMainGameState::leave()
 //virtual
 void GaMainGameState::leaveOnce()
 {
-	// Kill all entities.
-	for( BcU32 Idx = 0; Idx < Entities_.size(); ++Idx )
-	{
-		killEntity( Entities_[ Idx ] );
-	}
+	CameraEntity_->detach( BackgroundMaterialComponent_ );
+	CameraEntity_->detach( ForegroundMaterialComponent_ );
+	CameraEntity_->detach( BarMaterialComponent_ );	// Kill all entities.
 
+	// Kill remaining to kill.
+	spawnKill();
+
+	// Kill all entities.
+	KillEntities_ = Entities_;
 	spawnKill();
 
 	// Free all entities.
@@ -203,20 +209,14 @@ void GaMainGameState::leaveOnce()
 ////////////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void GaMainGameState::render( RsFrame* pFrame )
+void GaMainGameState::render()
 {
+	// NEILO HACK: REMOVE.
+	OsClient* pClient = OsCore::pImpl()->getClient( 0 );
+	RsViewport Viewport( 0, 0, pClient->getWidth(), pClient->getHeight() );
 	
-	RsViewport Viewport( 0, 0, pFrame->getContext()->getWidth(), pFrame->getContext()->getHeight() );
-
-	// Setup frame.
-	pFrame->setRenderTarget( NULL );
-	pFrame->setViewport( Viewport );
-
-	// Setup canvas.
-	Canvas_->clear();
-
 	// Render background.
-	Projection_.perspProjection( BcPIDIV4, (BcReal)pFrame->getContext()->getWidth() / (BcReal)pFrame->getContext()->getHeight(), 1.0f, 1024.0f );
+	Projection_.perspProjectionHorizontal( BcPIDIV4, (BcReal)pClient->getWidth() / (BcReal)pClient->getHeight(), 1.0f, 1024.0f );
 	WorldView_.lookAt( BcVec3d( 0.0f, 350.0f, 270.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 1.0f ) );
 
 	if( SsCore::pImpl() != NULL )
@@ -257,7 +257,7 @@ void GaMainGameState::render( RsFrame* pFrame )
 	Canvas_->popMatrix();
 
 	// Base render.
-	GaBaseGameState::render( pFrame );
+	GaBaseGameState::render();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -292,7 +292,7 @@ void GaMainGameState::spawnPlayerEntity()
 {
 	ScnEntityRef Entity;
 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, Entity ) )
+	if( CsCore::pImpl()->createResource( BcName( "PlayerEntity" ), Entity ) )
 	{
 		GaPlayerComponentRef Component;
 		if( CsCore::pImpl()->createResource( BcName::INVALID, Component ) )
@@ -313,7 +313,7 @@ void GaMainGameState::spawnSwarmEntity( BcU32 Level )
 {
 	ScnEntityRef Entity;
 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, Entity ) )
+	if( CsCore::pImpl()->createResource( BcName( "SwarmEntity" ), Entity ) )
 	{
 		GaSwarmComponentRef Component;
 		if( CsCore::pImpl()->createResource( BcName::INVALID, Component, Level ) )
@@ -334,7 +334,7 @@ void GaMainGameState::spawnFoodEntity( const BcVec2d& Position )
 {
 	ScnEntityRef Entity;
 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, Entity ) )
+	if( CsCore::pImpl()->createResource( BcName( "FoodEntity" ), Entity ) )
 	{
 		GaFoodComponentRef Component;
 		if( CsCore::pImpl()->createResource( BcName::INVALID, Component, Position ) )

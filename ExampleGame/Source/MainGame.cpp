@@ -54,9 +54,20 @@ eEvtReturn OnQuit( EvtID ID, const OsEventCore& Event )
 // PsyGameInit
 void PsyGameInit()
 {
+	ScnTransform Transform;
+	BcQuat Rotation;
+	Rotation.fromEular( 0.0f, BcPI, 0.0f );
+	Transform.setTranslation( BcVec3d( 10.0f, 10.0f, 10.0f ) );
+	Transform.setRotation( Rotation );
+	
+	BcMat4d A, B;
+	
+	Transform.getMatrix( A );
+	Transform.getInvertedMatrix( B );
+	
 	// Create a new game top state.
 	new GaTopState();
-
+	
 	// Subscribe to update.
 	SysSystemEvent::Delegate OnUpdateDelegate = SysSystemEvent::Delegate::bind< OnUpdate >();
 	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_UPDATE, OnUpdateDelegate );

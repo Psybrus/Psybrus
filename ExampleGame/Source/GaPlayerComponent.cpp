@@ -68,15 +68,15 @@ void GaPlayerComponent::destroy()
 void GaPlayerComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
+	
 	// Tell the body to target a position, and wander around a little.
 	pBody_->reset();
 	pBody_->target( TargetPosition_, 256.0f );
 	pBody_->wander( 8.0f );
-
+	
 	// Update body.
 	Position_ = pBody_->update( Tick );
-
+	
 	LayeredSpriteComponent_->update( Tick );
 }
 

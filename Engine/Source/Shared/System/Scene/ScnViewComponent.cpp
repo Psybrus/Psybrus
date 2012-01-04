@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include "ScnViewComponent.h"
+#include "ScnEntity.h"
+
 #include "RsCore.h"
 
 #ifdef PSY_SERVER
@@ -93,11 +95,27 @@ void ScnViewComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-//virtual
 void ScnViewComponent::initialise()
 {
 	// NULL internals.
 	pHeader_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV )
+{
+	// Temporary solution.
+	pHeader_ = &TempImportHeaderHack_;
+	
+	pHeader_->X_ = X;
+	pHeader_->Y_ = Y;
+	pHeader_->Width_ = Width;
+	pHeader_->Height_ = Height;
+	pHeader_->Near_ = Near;
+	pHeader_->Far_ = Far;
+	pHeader_->HorizontalFOV_ = HorizontalFOV;
+	pHeader_->VerticalFOV_ = VerticalFOV;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -125,6 +143,62 @@ BcBool ScnViewComponent::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// bind
+void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
+{
+	RsContext* pContext = pFrame->getContext();
+
+	// Calculate the viewport.
+	const BcReal Width = static_cast< BcReal >( pContext->getWidth() );
+	const BcReal Height = static_cast< BcReal >( pContext->getHeight() );
+	const BcReal ViewWidth = pHeader_->Width_ * Width;
+	const BcReal ViewHeight = pHeader_->Height_ * Height;
+	const BcReal Aspect = ViewWidth / ViewHeight;
+
+	// Setup the viewport.
+	Viewport_.viewport( static_cast< BcU32 >( pHeader_->X_ * Width ),
+	                    static_cast< BcU32 >( pHeader_->Y_ * Height ),
+	                    static_cast< BcU32 >( ViewWidth ),
+	                    static_cast< BcU32 >( ViewHeight ),
+	                    pHeader_->Near_,
+	                    pHeader_->Far_ );
+
+	// Setup the view matrix.
+	BcMat4d ViewMatrix;
+	getParentEntity()->getTransform().getInvertedMatrix( ViewMatrix );
+	Viewport_.view( ViewMatrix );
+
+	// TEMP HACK!
+	ViewMatrix.lookAt( BcVec3d( 0.0f, 350.0f, 270.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 1.0f ) );
+	Viewport_.view( ViewMatrix );
+	
+	// Setup the perspective projection.
+	BcMat4d ProjectionMatrix;
+	if( pHeader_->HorizontalFOV_ > 0.0f )
+	{
+		ProjectionMatrix.perspProjectionHorizontal( pHeader_->HorizontalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+	}
+	else
+	{
+		ProjectionMatrix.perspProjectionVertical( pHeader_->VerticalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+	}
+	Viewport_.projection( ProjectionMatrix );
+
+	// Set render target.
+	if( RenderTarget_.isValid() )
+	{
+		RenderTarget_->bind( pFrame );
+	}
+	else
+	{
+		pFrame->setRenderTarget( NULL );
+	}
+	
+	// Set viewport.
+	pFrame->setViewport( Viewport_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnViewComponent::fileReady()
 {
@@ -141,20 +215,6 @@ void ScnViewComponent::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk
 		// Grab pointer to header.
 		pHeader_ = reinterpret_cast< THeader* >( pData );
 				
-		// Setup the viewport.
-		// TODO: Do this on binding to a context/client.
-		Viewport_.viewport( pHeader_->X_, pHeader_->Y_, pHeader_->Width_, pHeader_->Height_, pHeader_->Near_, pHeader_->Far_ );
-
-		// Setup the viewport's projection.
-		BcReal Aspect = (BcReal)pHeader_->X_ / (BcReal)pHeader_->Y_;
-		BcMat4d ProjectionMatrix;
-		if( pHeader_->HorizontalFOV_ > 0.0f )
-		{
-			ProjectionMatrix.perspProjectionHorizontal( pHeader_->HorizontalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
-		}
-		else
-		{
-			ProjectionMatrix.perspProjectionVertical( pHeader_->VerticalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
-		}
+		// TODO STUFF HERE.
 	}
 }

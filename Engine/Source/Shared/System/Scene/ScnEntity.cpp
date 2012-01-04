@@ -157,6 +157,8 @@ void ScnEntity::render( RsFrame* pFrame, RsRenderSort Sort )
 // attach
 void ScnEntity::attach( ScnComponent* Component )
 {
+	BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
+
 	// If we're not attached to ourself, bail.
 	if( Component->isAttached( this ) == BcFalse )
 	{
@@ -180,6 +182,8 @@ void ScnEntity::attach( ScnComponent* Component )
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
+	BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
+
 	// If component isn't attached, don't worry. Only a warning?
 	if( Component->isAttached() == BcTrue )
 	{
@@ -244,6 +248,34 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx )
 {
 	BcAssert( Idx < Components_.size() );
 	return Components_[ Idx ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPosition
+void ScnEntity::setPosition( const BcVec3d& Position )
+{
+	Transform_.setTranslation( Position );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRotation
+void ScnEntity::setRotation( const BcQuat& Rotation )
+{
+	Transform_.setRotation( Rotation );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setMatrix
+void ScnEntity::setMatrix( const BcMat4d& Matrix )
+{
+	Transform_.setMatrix( Matrix );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTransform
+const ScnTransform& ScnEntity::getTransform() const
+{
+	return Transform_;
 }
 
 //////////////////////////////////////////////////////////////////////////

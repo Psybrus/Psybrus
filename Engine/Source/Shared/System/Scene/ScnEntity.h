@@ -78,6 +78,26 @@ public:
 	 */
 	const BcAABB&						getAABB() const;
 
+	/**
+	 * Set position.
+	 */
+	void								setPosition( const BcVec3d& Position );
+
+	/**
+	 * Set rotation.
+	 */
+	void								setRotation( const BcQuat& Rotation );
+
+	/**
+	 * Set matrix.
+	 */
+	void								setMatrix( const BcMat4d& Matrix );
+
+	/**
+	 * Get transform.
+	 */
+	const ScnTransform&					getTransform() const;
+
 protected:
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
