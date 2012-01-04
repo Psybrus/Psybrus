@@ -179,6 +179,14 @@ eSysStateReturn GaTopState::enter()
 			CameraEntity_->attach( ViewComponent_ );
 			CameraEntity_->attach( ScnMaterialComponent::Default );
 			CameraEntity_->attach( CanvasComponent_ );
+
+			// Setup transform for entity.
+			// TODO: Make lookAt generate an object->world transform instead of view.
+			BcMat4d ViewMatrix;
+			ViewMatrix.lookAt( BcVec3d( 0.0f, 350.0f, 270.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 1.0f ) );
+			ViewMatrix.inverse();
+			CameraEntity_->setMatrix( ViewMatrix );
+
 			
 			// Add entity to the scene.
 			ScnCore::pImpl()->addEntity( CameraEntity_ );
