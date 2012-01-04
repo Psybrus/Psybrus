@@ -23,7 +23,7 @@
 #include "ScnRenderableComponent.h"
 
 #include "ScnTransform.h"
-#include "ScnSpacialTree.h"
+#include "ScnSpatialTree.h"
 #include "ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -33,24 +33,35 @@ class ScnEntity:
 {
 public:
 	DECLARE_RESOURCE( CsResource, ScnEntity );
-	DECLARE_VISITABLE( ScnEntity );
 	
 #if PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
+	BcBool								import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif	
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
-	virtual BcBool						isReady();
+	void								initialise();
+	void								create();
+	void								destroy();
+	BcBool								isReady();
 	
 public:
-	virtual void						update( BcReal Tick );
-	virtual void						render( RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
-	virtual void						attach( ScnComponent* Component );
-	virtual void						detach( ScnComponent* Component );
+	void								update( BcReal Tick );
+	void								render( RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
+	void								attach( ScnComponent* Component );
+	void								detach( ScnComponent* Component );
 
-	virtual void						onAttachScene();
-	virtual void						onDetachScene();
+	/**
+	 * Called when attached to the scene.
+	 */
+	void								onAttachScene();
+
+	/**
+	 * Called when detached from the scene.
+	 */
+	void								onDetachScene();
+
+	/**
+	 * Are we attached to the scene?
+	 */
+	BcBool								isAttached() const;
 
 	/**
 	 * Get number of components.
@@ -66,16 +77,6 @@ public:
  	 * Get AABB which encompasses this entity.
 	 */
 	const BcAABB&						getAABB() const;
-
-	/**
-	 * Set the spacial tree node we belong in.
-	 */
-	void								setSpacialTreeNode( ScnSpacialTreeNode* pNode );
-
-	/**
-	 * Get the spacial tree node we are in.
-	 */
-	ScnSpacialTreeNode*					getSpacialTreeNode();
 
 protected:
 	virtual void						fileReady();
@@ -93,7 +94,6 @@ protected:
 	ScnTransform						Transform_;
 
 private:
-	ScnSpacialTreeNode*					pSpacialTreeNode_;
 	BcBool								IsAttached_;
 };
 

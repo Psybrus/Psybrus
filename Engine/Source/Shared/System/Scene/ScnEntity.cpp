@@ -12,7 +12,9 @@
 **************************************************************************/
 
 #include "ScnEntity.h"
-#include "RsCore.h"
+#include "ScnCore.h"
+
+//#include "RsCore.h"
 
 #ifdef PSY_SERVER
 #include "BcStream.h"
@@ -85,18 +87,15 @@ void ScnEntity::StaticPropertyTable( CsPropertyTable& PropertyTable )
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-//virtual
 void ScnEntity::initialise()
 {
 	// NULL internals.
 	pHeader_ = NULL;
-	pSpacialTreeNode_ = NULL;
 	IsAttached_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // create
-//virtual
 void ScnEntity::create()
 {
 
@@ -104,7 +103,6 @@ void ScnEntity::create()
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
-//virtual
 void ScnEntity::destroy()
 {
 
@@ -112,10 +110,9 @@ void ScnEntity::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-//virtual
 BcBool ScnEntity::isReady()
 {
-	// TODO: Set a flag internally once stuff has loaded. Will I ever fucking do this!?
+	// TODO: Set a flag internally once stuff has loaded. Will I ever fucking get round to this!?
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
 	{
 		ScnComponentRef& Component( *It );
@@ -131,7 +128,6 @@ BcBool ScnEntity::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // update
-//virtual
 void ScnEntity::update( BcReal Tick )
 {
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
@@ -145,7 +141,6 @@ void ScnEntity::update( BcReal Tick )
 
 //////////////////////////////////////////////////////////////////////////
 // render
-//virtual
 void ScnEntity::render( RsFrame* pFrame, RsRenderSort Sort )
 {
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
@@ -160,7 +155,6 @@ void ScnEntity::render( RsFrame* pFrame, RsRenderSort Sort )
 
 //////////////////////////////////////////////////////////////////////////
 // attach
-//virtual
 void ScnEntity::attach( ScnComponent* Component )
 {
 	// If we're not attached to ourself, bail.
@@ -173,12 +167,17 @@ void ScnEntity::attach( ScnComponent* Component )
 
 		// Put into component list.
 		Components_.push_back( Component );
+
+		// Tell the scene about it.
+		if( IsAttached_ == BcTrue )
+		{
+			ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), Component );
+		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // detach
-//virtual
 void ScnEntity::detach( ScnComponent* Component )
 {
 	// If component isn't attached, don't worry. Only a warning?
@@ -200,12 +199,17 @@ void ScnEntity::detach( ScnComponent* Component )
 				break;
 			}
 		}
+
+		// Tell the scene about it.
+		if( IsAttached_ )
+		{
+			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
+		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onAttachScene
-//virtual
 void ScnEntity::onAttachScene()
 {
 	BcAssert( IsAttached_ == BcFalse );
@@ -214,11 +218,17 @@ void ScnEntity::onAttachScene()
 
 //////////////////////////////////////////////////////////////////////////
 // onDetachScene
-//virtual
 void ScnEntity::onDetachScene()
 {
 	BcAssert( IsAttached_ == BcTrue );
 	IsAttached_ = BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isAttached
+BcBool ScnEntity::isAttached() const
+{
+	return IsAttached_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -243,20 +253,6 @@ const BcAABB& ScnEntity::getAABB() const
 	// NEILO TODO!
 	static BcAABB AABB;
 	return AABB;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSpacialTreeNode
-void ScnEntity::setSpacialTreeNode( ScnSpacialTreeNode* pNode )
-{
-	pSpacialTreeNode_ = pNode;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getSpacialTreeNode
-ScnSpacialTreeNode* ScnEntity::getSpacialTreeNode()
-{
-	return pSpacialTreeNode_;
 }
 
 //////////////////////////////////////////////////////////////////////////

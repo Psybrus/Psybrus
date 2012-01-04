@@ -65,7 +65,7 @@
 #include "ScnFont.h"
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
-#include "ScnView.h"
+#include "ScnViewComponent.h"
 
 #include "SysEvents.h"
 #include "SysKernel.h"

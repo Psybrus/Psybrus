@@ -43,7 +43,7 @@ ScnCore::~ScnCore()
 void ScnCore::open()
 {
 	// Create spacial tree.
-	pSpacialTree_ = new ScnSpacialTree();
+	pSpacialTree_ = new ScnSpatialTree();
 
 	// Create root node.
 	BcVec3d HalfBounds( BcVec3d( 16.0f, 16.0f, 16.0f ) * 1024.0f );
@@ -70,7 +70,7 @@ void ScnCore::update()
 	}
 
 	/*
-	// NEILO TODO: Move this away from here. Should be managed by ScnView and ScnSpacialTree.
+	// NEILO TODO: Move this away from here. Should be managed by ScnViewComponent and ScnSpatialTree.
 	// Render to all clients.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
@@ -120,9 +120,13 @@ void ScnCore::close()
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
 	Entity->onAttachScene();
-	pSpacialTree_->addEntity( ScnEntityWeakRef( Entity ) );
 	EntityList_.push_back( Entity );
 
+	// Do onAttachComponent for all entities current components.
+	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+	{
+		onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,7 +134,51 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
 	Entity->onDetachScene();
-	pSpacialTree_->removeEntity( ScnEntityWeakRef( Entity ) );
 	EntityList_.remove( Entity );
+
+	// Do onDetachComponent for all entities current components.
+	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+	{
+		onDetachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// onAttachComponent
+void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
+{
+	// NOTE: Useful for debugging and temporary gathering of "special" components.
+	//       Will be considering alternative approaches to this.
+	//       Currently, just gonna be nasty special cases to get stuff done.
 	
+	// Add view components for render usage.
+	if( Component->isTypeOf< ScnViewComponent >() )
+	{
+		ViewComponentList_.push_back( ScnViewComponentRef( Component ) );
+	}
+	// Add renderable components to the spatial tree. (TODO: Use flags or something)
+	else if( Component->isTypeOf< ScnRenderableComponent >() )
+	{
+		pSpacialTree_->addComponent( ScnComponentWeakRef( Entity ) );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetachComponent
+void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
+{
+	// NOTE: Useful for debugging and temporary gathering of "special" components.
+	//       Will be considering alternative approaches to this.
+	//       Currently, just gonna be nasty special cases to get stuff done.
+
+	// Remove view components for render usage.
+	if( Component->isTypeOf< ScnViewComponent >() )
+	{
+		ViewComponentList_.remove( ScnViewComponentRef( Component ) );
+	}
+	// Add renderable components to the spatial tree. (TODO: Use flags or something)
+	else if( Component->isTypeOf< ScnRenderableComponent >() )
+	{
+		pSpacialTree_->removeComponent( ScnComponentWeakRef( Entity ) );
+	}
+}

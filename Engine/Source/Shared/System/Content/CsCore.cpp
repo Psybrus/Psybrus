@@ -608,7 +608,7 @@ void CsCore::processCreateResources()
 		
 		// Remove from list.
 		It = CreateResources_.erase( It );
-	
+		
 		// Put into loading list.
 		LoadingResources_.push_back( ResourceHandle );
 	}
@@ -645,7 +645,7 @@ void CsCore::processLoadingResources()
 void CsCore::processLoadedResource()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
+	
 	static BcBool DumpResources = BcFalse;
 	
 	if( DumpResources )

@@ -38,6 +38,8 @@ void ScnCanvasComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 //virtual
 void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent )
 {
+	Super::initialise();
+
 	// NULL internals.
 	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
 	HaveVertexBufferLock_ = BcFalse;

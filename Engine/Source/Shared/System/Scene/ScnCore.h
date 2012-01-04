@@ -20,7 +20,12 @@
 #include "SysSystem.h"
 
 #include "ScnEntity.h"
-#include "ScnSpacialTree.h"
+#include "ScnSpatialTree.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Special scene components.
+#include "ScnViewComponent.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCore
@@ -36,12 +41,36 @@ public:
 	virtual void				update();
 	virtual void				close();
 
+	/**
+	 * Adds entity into the scene and ready to recieve updates.
+	 */
 	void						addEntity( ScnEntityRef Entity );
-	void						removeEntity( ScnEntityRef Entity );	
-	
+
+	/**
+	 * Removed entity from the scene so it no longer recieves updates.
+	 */
+	void						removeEntity( ScnEntityRef Entity );
+
 private:
-	ScnSpacialTree*				pSpacialTree_;
+	friend class ScnEntity;
+
+	/**
+	 * Called when a component has been attached to an entity that exists in the scene.
+	 */
+	void						onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component );
+
+	/**
+	 * Called when a component has been detached from an entity that exists in the scene.
+	 */
+	void						onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component );
+
+private:
+	ScnSpatialTree*				pSpacialTree_;
 	ScnEntityList				EntityList_;
+	
+	// Special components.
+	ScnViewComponentList		ViewComponentList_;
+
 };
 
 

@@ -30,8 +30,10 @@ class ScnRenderableComponent:
 {
 public:
 	DECLARE_RESOURCE( ScnComponent, ScnRenderableComponent );
-	
+	DECLARE_VISITABLE( ScnRenderableComponent );
+
 public:
+	void								initialise();
 	virtual void						update( BcReal Tick );
 	virtual void						render( RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );

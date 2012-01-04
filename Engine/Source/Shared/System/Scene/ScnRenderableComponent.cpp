@@ -30,7 +30,14 @@ void ScnRenderableComponent::StaticPropertyTable( CsPropertyTable& PropertyTable
 }
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
+// initialise
+void ScnRenderableComponent::initialise()
+{
+	Super::initialise();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
 //virtual
 void ScnRenderableComponent::update( BcReal Tick )
 {
@@ -39,7 +46,7 @@ void ScnRenderableComponent::update( BcReal Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
+// render
 //virtual
 void ScnRenderableComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 {
@@ -47,21 +54,17 @@ void ScnRenderableComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
+// onAttach
 //virtual
 void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
-
-	// NEILO TODO: Add to scene.
 }
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
+// onDetach
 //virtual
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
-
-	// NEILO TODO: Add to scene.
 }

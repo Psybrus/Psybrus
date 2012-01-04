@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		ScnView.cpp
+* File:		ScnViewComponent.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	26/11/11
 * Description:
@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "ScnView.h"
+#include "ScnViewComponent.h"
 #include "RsCore.h"
 
 #ifdef PSY_SERVER
@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnView::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnViewComponent::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	/*
 	const std::string& FileName = Object[ "source" ].asString();
@@ -60,7 +60,7 @@ BcBool ScnView::import( const Json::Value& Object, CsDependancyList& DependancyL
 		// Add chunks and finish up.
 		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 		pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-				
+		
 		//
 		return BcTrue;
 	}
@@ -71,29 +71,30 @@ BcBool ScnView::import( const Json::Value& Object, CsDependancyList& DependancyL
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnView );
+DEFINE_RESOURCE( ScnViewComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // StaticPropertyTable
-void ScnView::StaticPropertyTable( CsPropertyTable& PropertyTable )
+void ScnViewComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
 	Super::StaticPropertyTable( PropertyTable );
 
-	PropertyTable.beginCatagory( "ScnView" )
-		.field( "x",			csPVT_UINT,			csPCT_VALUE )
-		.field( "y",			csPVT_UINT,			csPCT_VALUE )
-		.field( "width",		csPVT_UINT,			csPCT_VALUE )
-		.field( "height",		csPVT_UINT,			csPCT_VALUE )
-		.field( "fieldofview",	csPVT_REAL,			csPCT_VALUE )
-		.field( "near",			csPVT_REAL,			csPCT_VALUE )
-		.field( "far",			csPVT_REAL,			csPCT_VALUE )
+	PropertyTable.beginCatagory( "ScnViewComponent" )
+		.field( "x",				csPVT_REAL,			csPCT_VALUE )
+		.field( "y",				csPVT_REAL,			csPCT_VALUE )
+		.field( "width",			csPVT_REAL,			csPCT_VALUE )
+		.field( "height",			csPVT_REAL,			csPCT_VALUE )
+		.field( "horizontalfov",	csPVT_REAL,			csPCT_VALUE )
+		.field( "verticalfov",		csPVT_REAL,			csPCT_VALUE )
+		.field( "near",				csPVT_REAL,			csPCT_VALUE )
+		.field( "far",				csPVT_REAL,			csPCT_VALUE )
 	.endCatagory();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnView::initialise()
+void ScnViewComponent::initialise()
 {
 	// NULL internals.
 	pHeader_ = NULL;
@@ -102,7 +103,7 @@ void ScnView::initialise()
 //////////////////////////////////////////////////////////////////////////
 // create
 //virtual
-void ScnView::create()
+void ScnViewComponent::create()
 {
 
 }
@@ -110,7 +111,7 @@ void ScnView::create()
 //////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
-void ScnView::destroy()
+void ScnViewComponent::destroy()
 {
 
 }
@@ -118,14 +119,14 @@ void ScnView::destroy()
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnView::isReady()
+BcBool ScnViewComponent::isReady()
 {
 	return pHeader_ != NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileReady
-void ScnView::fileReady()
+void ScnViewComponent::fileReady()
 {
 	// File is ready, get the header chunk.
 	getChunk( 0 );
@@ -133,7 +134,7 @@ void ScnView::fileReady()
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnView::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnViewComponent::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
 {
 	if( pChunk->ID_ == BcHash( "header" ) )
 	{
@@ -141,11 +142,19 @@ void ScnView::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* p
 		pHeader_ = reinterpret_cast< THeader* >( pData );
 				
 		// Setup the viewport.
-		Viewport_.viewport( pHeader_->X_, pHeader_->Y_, pHeader_->Width_, pHeader_->Height_ );
+		// TODO: Do this on binding to a context/client.
+		Viewport_.viewport( pHeader_->X_, pHeader_->Y_, pHeader_->Width_, pHeader_->Height_, pHeader_->Near_, pHeader_->Far_ );
 
 		// Setup the viewport's projection.
 		BcReal Aspect = (BcReal)pHeader_->X_ / (BcReal)pHeader_->Y_;
 		BcMat4d ProjectionMatrix;
-		ProjectionMatrix.perspProjection( pHeader_->FieldOfView_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+		if( pHeader_->HorizontalFOV_ > 0.0f )
+		{
+			ProjectionMatrix.perspProjectionHorizontal( pHeader_->HorizontalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+		}
+		else
+		{
+			ProjectionMatrix.perspProjectionVertical( pHeader_->VerticalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+		}
 	}
 }
