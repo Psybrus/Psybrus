@@ -167,10 +167,6 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	BcMat4d ViewMatrix;
 	getParentEntity()->getTransform().getInvertedMatrix( ViewMatrix );
 	Viewport_.view( ViewMatrix );
-
-	// TEMP HACK!
-	ViewMatrix.lookAt( BcVec3d( 0.0f, 350.0f, 270.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 1.0f ) );
-	Viewport_.view( ViewMatrix );
 	
 	// Setup the perspective projection.
 	BcMat4d ProjectionMatrix;
