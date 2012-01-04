@@ -124,3 +124,25 @@ void GaFoodComponent::render( ScnCanvasComponentRef Canvas )
 		}
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void GaFoodComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
+
+	Parent->attach( MaterialComponent_ );
+	Parent->attach( ShadowMaterialComponent_ );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void GaFoodComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
+
+	Parent->detach( MaterialComponent_ );
+	Parent->detach( ShadowMaterialComponent_ );
+}

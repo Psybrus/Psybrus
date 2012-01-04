@@ -69,9 +69,8 @@ void ScnCore::update()
 		}
 	}
 
-	/*
-	// NEILO TODO: Move this away from here. Should be managed by ScnViewComponent and ScnSpatialTree.
 	// Render to all clients.
+	// TODO: Move client/context into the view component instead.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
 		// Grab client.
@@ -83,25 +82,27 @@ void ScnCore::update()
 		// Allocate a frame to render using default context.
 		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 
-		// Setup render target and viewport.
-		pFrame->setRenderTarget( NULL );
-		pFrame->setViewport( RsViewport( 0, 0, pClient->getWidth(), pClient->getHeight() ) );
-
-		for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+		// Iterate over all view components.
+		for( ScnViewComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
 		{
-			ScnEntityRef& Entity( *It );
-
-			if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+			ScnViewComponentRef ViewComponent( *It );
+			
+			ViewComponent->bind( pFrame, RsRenderSort( 0 ) );
+			
+			for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
 			{
-				Entity->render( pFrame, RsRenderSort( 0 ) );
+				ScnEntityRef& Entity( *It );
+
+				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				{
+					Entity->render( pFrame, RsRenderSort( 0 ) );
+				}
 			}
 		}
-				
+
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
 	}
-	*/
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -159,7 +160,7 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
 	else if( Component->isTypeOf< ScnRenderableComponent >() )
 	{
-		pSpacialTree_->addComponent( ScnComponentWeakRef( Entity ) );
+		pSpacialTree_->addComponent( ScnComponentWeakRef( Component ) );
 	}
 }
 
@@ -179,6 +180,6 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
 	else if( Component->isTypeOf< ScnRenderableComponent >() )
 	{
-		pSpacialTree_->removeComponent( ScnComponentWeakRef( Entity ) );
+		pSpacialTree_->removeComponent( ScnComponentWeakRef( Component ) );
 	}
 }

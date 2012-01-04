@@ -16,6 +16,7 @@
 
 #include "RsCore.h"
 #include "ScnComponent.h"
+#include "ScnRenderTarget.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -39,18 +40,21 @@ public:
 #if PSY_SERVER
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif	
-	virtual void						initialise();
+	void								initialise();
+	void								initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
+	
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
+
+	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 protected:
-	RsViewport							Viewport_;
-	
+
 	struct THeader
 	{
 		// Viewport. Values relative to the size of the client being rendered into.
@@ -60,13 +64,17 @@ protected:
 		BcReal							Height_;
 
 		// Perspective projection.
-		BcReal							HorizontalFOV_;		// Used by default.
-		BcReal							VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
 		BcReal							Near_;
 		BcReal							Far_;
+		BcReal							HorizontalFOV_;		// Used by default.
+		BcReal							VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
 	};
 	
 	THeader*							pHeader_;
+	THeader								TempImportHeaderHack_;
+	
+	ScnRenderTargetRef					RenderTarget_;
+	RsViewport							Viewport_;
 };
 
 #endif

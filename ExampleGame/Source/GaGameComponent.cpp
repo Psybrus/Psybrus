@@ -50,9 +50,9 @@ void GaGameComponent::initialise()
 void GaGameComponent::update( BcReal Tick )
 {
 	BcScopedLock< BcMutex > Lock( EmoteLock_ );
-
+	
 	TEmoteList::iterator It( EmoteList_.begin() );
-
+	
 	while( It != EmoteList_.end() )
 	{
 		TEmote& Emote = (*It);
@@ -68,7 +68,7 @@ void GaGameComponent::update( BcReal Tick )
 			++It;
 		}
 	}
-
+	
 	EmoteTimer_ -= Tick;
 }
 

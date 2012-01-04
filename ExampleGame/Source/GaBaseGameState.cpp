@@ -36,10 +36,19 @@ GaBaseGameState::~GaBaseGameState()
 //virtual
 void GaBaseGameState::enterOnce()
 {
-	if( CsCore::pImpl()->createResource( BcName::INVALID, Canvas_, 1024 * 16, ScnMaterialComponent::Default ) )
+	// TODO: Support finding without ID.
+	if( CsCore::pImpl()->findResource( "CameraEntity_0", CameraEntity_ ) )
 	{
-		int a = 0; ++a;
+		for( BcU32 Idx = 0; Idx < CameraEntity_->getNoofComponents(); ++Idx )
+		{
+			if( CameraEntity_->getComponent( Idx )->isTypeOf< ScnCanvasComponent >() )
+			{
+				Canvas_ = CameraEntity_->getComponent( Idx );
+				break;
+			}
+		}
 	}
+	BcAssert( Canvas_.isValid() );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,8 +66,7 @@ eSysStateReturn GaBaseGameState::enter()
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
-void GaBaseGameState::render( RsFrame* pFrame )
+void GaBaseGameState::render()
 {
-
-	Canvas_->render( pFrame, RsRenderSort( 0 ) );
+	
 }

@@ -31,10 +31,11 @@ public:
 	/**
 	 * Perform rendering for state.
 	 */
-	virtual void				render( RsFrame* pFrame );
+	virtual void				render();
 
 protected:
-	ScnCanvasComponentRef				Canvas_;
+	ScnEntityRef				CameraEntity_;
+	ScnCanvasComponentRef		Canvas_;
 	ScnMaterialComponentRef		DefaultMaterialComponent_;
 
 private:
