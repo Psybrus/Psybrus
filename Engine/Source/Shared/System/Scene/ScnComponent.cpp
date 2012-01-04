@@ -30,6 +30,14 @@ void ScnComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnComponent::initialise()
+{
+	pHeader_ = NULL;
+	pSpacialTreeNode_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnComponent::update( BcReal Tick )
@@ -77,4 +85,27 @@ BcBool ScnComponent::isAttached( ScnEntityWeakRef Parent ) const
 ScnEntityWeakRef ScnComponent::getParentEntity()
 {
 	return ParentEntity_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSpatialTreeNode
+void ScnComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
+{
+	pSpacialTreeNode_ = pNode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSpatialTreeNode
+ScnSpatialTreeNode* ScnComponent::getSpatialTreeNode()
+{
+	return pSpacialTreeNode_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+//virtual
+const BcAABB& ScnComponent::getAABB() const
+{
+	static BcAABB TEMP;
+	return TEMP;
 }

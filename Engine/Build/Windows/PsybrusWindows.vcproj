@@ -1559,11 +1559,11 @@
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnSpacialTree.cpp"
+							RelativePath="..\..\Source\Shared\System\Scene\ScnSpatialTree.cpp"
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnSpacialTree.h"
+							RelativePath="..\..\Source\Shared\System\Scene\ScnSpatialTree.h"
 							>
 						</File>
 						<File
@@ -1599,11 +1599,11 @@
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnView.cpp"
+							RelativePath="..\..\Source\Shared\System\Scene\ScnViewComponent.cpp"
 							>
 						</File>
 						<File
-							RelativePath="..\..\Source\Shared\System\Scene\ScnView.h"
+							RelativePath="..\..\Source\Shared\System\Scene\ScnViewComponent.h"
 							>
 						</File>
 						<File

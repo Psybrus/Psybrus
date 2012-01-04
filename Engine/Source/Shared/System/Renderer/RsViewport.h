@@ -24,11 +24,11 @@ class RsViewport
 {
 public:
 	RsViewport();
-	RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height );
+	RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear = 1.0f, BcReal ZFar = 1024.0f );
 	~RsViewport();
 
 	//
-	void viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height );
+	void viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear = 1.0f, BcReal ZFar = 1024.0f );
 
 	//
 	void view( const BcMat4d& ModelView );
@@ -108,22 +108,20 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline RsViewport::RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height )
+inline RsViewport::RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear, BcReal ZFar )
 {
-	viewport( X, Y, Width, Height );
-	ZNear_ = 1.0f; // hack
-	ZFar_ = 1024.0f;
+	viewport( X, Y, Width, Height, ZNear, ZFar );
 	ClearDepth_ = BcFalse;
 }
 
-inline void RsViewport::viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height )
+inline void RsViewport::viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear, BcReal ZFar )
 {
 	Top_ = Y;
 	Bottom_ = ( Y + Height ) - 1;
 	Left_ = X;
 	Right_ = ( X + Width ) - 1;
-	ZNear_ = 1.0f; // hack
-	ZFar_ = 1024.0f;
+	ZNear_ = ZNear;
+	ZFar_ = ZFar;
 }
 
 inline void RsViewport::view( const BcMat4d& ModelView )

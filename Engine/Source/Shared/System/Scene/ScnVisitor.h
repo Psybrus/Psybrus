@@ -43,9 +43,9 @@ public:
 	virtual void postScene();
 
 	/**
-	*	Called when an entity is hit.
+	*	Called when a component is hit.
 	*/
-	virtual void visit( ScnEntity* pEntity );
+	virtual void visit( class ScnComponent* pComponent );
 
 private:
 
