@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="PsybrusWindows"
+	Name="_PsybrusWindows"
 	ProjectGUID="{FCCB24F4-0727-4D4A-83F7-4D7C3F709BD3}"
 	RootNamespace="TestBed"
 	Keyword="Win32Proj"
@@ -2455,6 +2455,14 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Sound\SsCore.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Sound\SsEnvironment.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Sound\SsEnvironment.h"
 							>
 						</File>
 						<File
