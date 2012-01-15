@@ -66,7 +66,7 @@ void PsyGameInit()
 // PsyGameRegisterResources
 void PsyGameRegisterResources()
 {
-	CsCore::pImpl()->registerResource< GaExampleComponent >();
+	CsCore::pImpl()->registerResource< GaExampleComponent >( BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////

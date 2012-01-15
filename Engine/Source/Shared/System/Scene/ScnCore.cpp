@@ -71,6 +71,7 @@ void ScnCore::update()
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
+	// TODO: Use spatial tree to render.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
 		// Grab client.
@@ -95,6 +96,16 @@ void ScnCore::update()
 
 				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
 				{
+					for( BcU32 ComponentIdx = 0; ComponentIdx < Entity->getNoofComponents(); ++ComponentIdx )
+					{
+						ScnMaterialComponentRef MaterialComponent( Entity->getComponent( ComponentIdx ) );
+
+						if( MaterialComponent.isValid() )
+						{
+							ViewComponent->setMaterialParameters( MaterialComponent );
+						}
+					}
+					
 					Entity->render( pFrame, RsRenderSort( 0 ) );
 				}
 			}
