@@ -139,20 +139,23 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 			// Grab material name.
 			MdlMaterial Material = pSubMesh->material( 0 );
 			BcMemZero( PrimitiveData.MaterialName_, sizeof( PrimitiveData.MaterialName_ ) );
+
+			// Always setup default material.
+			if( Material.Name_.length() == 0 )
+			{
+				Material.Name_ = "EngineContent/default.ScnMaterial";
+			}
 			
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
-			if( Material.Name_.length() > 0 )
+			ScnMaterialRef MaterialRef;
+			if( CsCore::pImpl()->importResource( Material.Name_, MaterialRef ) )
 			{
-				ScnMaterialRef MaterialRef;
-				if( CsCore::pImpl()->importResource( Material.Name_, MaterialRef ) )
-				{
-					BcStrCopyN( PrimitiveData.MaterialName_, (*MaterialRef->getName()).c_str(), sizeof( PrimitiveData.MaterialName_ ) );
-				}
-				else
-				{
-					BcStrCopy( PrimitiveData.MaterialName_, "default" );
-				}
+				BcStrCopyN( PrimitiveData.MaterialName_, (*MaterialRef->getName()).c_str(), sizeof( PrimitiveData.MaterialName_ ) );
+			}
+			else
+			{
+				BcStrCopy( PrimitiveData.MaterialName_, "default" );
 			}
 			
 			PrimitiveStream << PrimitiveData;
@@ -416,12 +419,12 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			CsCore::pImpl()->createResource( *getName() + "MaterialComponent", MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_DEFAULT );
+			CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_DEFAULT );
 
 			TMaterialComponentDesc MaterialComponentDesc =
 			{
 				MaterialComponentRef,
-				MaterialComponentRef->findParameter( "uWorldMatrix" )				
+				MaterialComponentRef->findParameter( "uWorldTransform" )				
 			};
 
 			MaterialComponentDescList_.push_back( MaterialComponentDesc );

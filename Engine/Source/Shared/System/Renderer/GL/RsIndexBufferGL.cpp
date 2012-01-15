@@ -24,11 +24,12 @@ RsIndexBufferGL::RsIndexBufferGL( BcU32 NoofIndices, void* pIndexData )
 	// Setup stride and descriptor.
 	NoofIndices_ = NoofIndices;
 	pData_ = pIndexData;
+	DataSize_ = NoofIndices_ * sizeof( BcU16 );
 	
 	// Create data if we need to.
 	if( pData_ == NULL )
 	{
-		pData_ = new BcU8[ NoofIndices_ * sizeof( BcU16 ) ];
+		pData_ = new BcU8[  ];
 		DeleteData_ = BcTrue;
 	}
 }

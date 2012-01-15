@@ -240,6 +240,7 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 
 			// Build the transform and inverse bind pose.
 			BcQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
+			JointRot.calcFromXYZ();
 			BcMat4d JointRotation;
 			BcMat4d JointTranslate;
 			BcMat4d JointTransform;

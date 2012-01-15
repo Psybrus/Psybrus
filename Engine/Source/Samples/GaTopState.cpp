@@ -61,24 +61,46 @@ eSysStateReturn GaTopState::enter()
 void GaTopState::preMain()
 { 
 	ScnEntityRef Entity;
-	ScnCanvasComponentRef CanvasComponent;
-	ScnMaterialComponentRef MaterialComponent;
-	GaExampleComponentRef ExampleComponent;
 
-	// NOTE: This stuff will be declared in Json, imported, and support duplication.
-	// Create an entity, material component, and canvas component.
-	CsCore::pImpl()->createResource( "CanvasEntity_0", Entity );
-	CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, ScnMaterial::Default, scnSPF_DEFAULT );
-	CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 8192, MaterialComponent );
-	CsCore::pImpl()->createResource( BcName::INVALID, ExampleComponent );
+	// Create model entity.
+	if( CsCore::pImpl()->createResource( "ModelEntity_0", Entity ) )
+	{
+		GaExampleComponentRef ExampleComponent;
+		ScnModelComponentRef ModelComponent;
+	
+		// Create component resources.
+		CsCore::pImpl()->createResource( BcName::INVALID, ExampleComponent );
+		CsCore::pImpl()->createResource( BcName::INVALID, ModelComponent, ScnModel::Default );
 
-	// Attach material and canvas component to entity.
-	Entity->attach( MaterialComponent );
-	Entity->attach( CanvasComponent );
-	Entity->attach( ExampleComponent );
+		// Attach components.
+		Entity->attach( ExampleComponent );
+		Entity->attach( ModelComponent );
 
-	// Add entity to scene.
-	ScnCore::pImpl()->addEntity( Entity );
+		// Add entity to scene.
+		ScnCore::pImpl()->addEntity( Entity );
+	}
+
+	// Create view entity.
+	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
+	{
+		ScnViewComponentRef ViewComponent;
+	
+		// Create component resources.
+		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
+
+		// Attach components.
+		Entity->attach( ViewComponent );
+
+		// Setup entity position to render from.
+		BcMat4d LookAt;
+		LookAt.lookAt( BcVec3d( -10.0f, -10.0f, -10.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 1.0f, 0.0f ) );
+		LookAt.inverse();
+		Entity->setMatrix( LookAt );		
+
+
+		// Add entity to scene.
+		ScnCore::pImpl()->addEntity( Entity );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

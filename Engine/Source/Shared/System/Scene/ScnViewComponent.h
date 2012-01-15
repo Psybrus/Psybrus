@@ -17,6 +17,7 @@
 #include "RsCore.h"
 #include "ScnComponent.h"
 #include "ScnRenderTarget.h"
+#include "ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -46,6 +47,8 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
+
+	void								setMaterialParameters( ScnMaterialComponentRef MaterialComponent );
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	
