@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<Filter Include="Extras">
+			<UniqueIdentifier>{525366E2-2614-4144-AE9B-222109800603}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Extras\Serialize">
+			<UniqueIdentifier>{0E9E93AF-7F24-6F4F-8BD4-3979708C2E3C}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Extras\Serialize\BulletWorldImporter">
+			<UniqueIdentifier>{157050E8-4A0C-D843-90CC-C4A9A8A3AC2D}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+		<ClInclude Include="..\..\Extras\Serialize\BulletWorldImporter\btBulletWorldImporter.h">
+			<Filter>Extras\Serialize\BulletWorldImporter</Filter>
+		</ClInclude>
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="..\..\Extras\Serialize\BulletWorldImporter\btBulletWorldImporter.cpp">
+			<Filter>Extras\Serialize\BulletWorldImporter</Filter>
+		</ClCompile>
+	</ItemGroup>
+</Project>
