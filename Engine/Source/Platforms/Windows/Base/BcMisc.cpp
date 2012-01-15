@@ -26,8 +26,7 @@ void BcSleep( BcReal Seconds )
 // BcYield
 void BcYield()
 {
-	::Sleep( 0 );
-//	::SwitchToThread();
+::SwitchToThread();
 }
 
 //////////////////////////////////////////////////////////////////////////

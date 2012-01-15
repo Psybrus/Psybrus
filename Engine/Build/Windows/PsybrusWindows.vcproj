@@ -3380,10 +3380,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\External\tremor\iseeking_example.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\External\tremor\ivorbiscodec.h"
 					>
 				</File>

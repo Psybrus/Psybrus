@@ -28,6 +28,8 @@ class GaExampleComponent:
 public:
 	DECLARE_RESOURCE( ScnComponent, GaExampleComponent );
 
+	void								initialise();
+
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
@@ -36,6 +38,7 @@ public:
 private:
 	ScnCanvasComponentRef				CanvasComponent_;
 
+	BcReal								Rotation_;
 };
 
 #endif

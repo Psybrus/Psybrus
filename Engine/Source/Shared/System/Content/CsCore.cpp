@@ -75,7 +75,7 @@ void CsCore::update()
 		
 		for( TImportListIterator Iter( ImportList_.begin() ); Iter != ImportList_.end(); ++Iter )
 		{
-			internalImportResource( (*Iter), Handle, NULL );
+			internalImportResource( (*Iter), Handle, NULL, BcTrue );
 		}	
 		
 		ImportList_.clear();
@@ -186,13 +186,16 @@ BcPath CsCore::findImportPath( const BcPath& InputPath )
 
 //////////////////////////////////////////////////////////////////////////
 // internalImportResource
-BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
+BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList, BcBool ForceImport )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
+	BcPrintf("CsCore: Importing \"%s\"\n", (*FileName).c_str());
+
 	// Only import if we should. Otherwise just request.
-	if( shouldImportResource( FileName, BcFalse ) == BcFalse )
+	if( shouldImportResource( FileName, ForceImport ) == BcFalse )
 	{
+		BcPrintf(" - Does not require import.\n" );
 		return internalRequestResource( FileName.getFileNameNoExtension(), FileName.getExtension(), Handle );
 	}
 	
@@ -205,7 +208,7 @@ BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& 
 		if( pDependancyList == NULL )
 		{
 			CsDependancyList DependancyList;
-			Success = internalImportObject( Object, Handle, &DependancyList );
+			Success = internalImportObject( Object, Handle, &DependancyList, ForceImport );
 			
 			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
 			{
@@ -218,7 +221,7 @@ BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& 
 		}
 		else
 		{
-			Success = internalImportObject( Object, Handle, pDependancyList );
+			Success = internalImportObject( Object, Handle, pDependancyList, ForceImport );
 		}
 
 		// Add to import map (doesn't matter if reference is bad, it's just for debugging)
@@ -228,18 +231,21 @@ BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& 
 		if( Success == BcTrue )
 		{
 			saveDependancies( FileName );
-		}
 
+			BcPrintf(" - SUCCESS!\n" );
+		}
 		// Return success.
 		return Success;
 	}
+
+	BcPrintf(" - FAILURE\n" );
 
 	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // internalImportObject
-BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList )
+BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList, BcBool ForceImport )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -248,7 +254,7 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 	if( Object.type() == Json::stringValue )
 	{
 		// We don't pass the dependancy list in if it's a file.
-		return internalImportResource( Object.asString(), Handle, NULL );
+		return internalImportResource( Object.asString(), Handle, NULL, ForceImport );
 	}
 	else if( Object.type() == Json::objectValue )
 	{
@@ -263,7 +269,7 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 			// If the resource is an object, then do appropriate loading.
 			if( Resource.type() == Json::stringValue )
 			{
-				return internalImportResource( Resource.asString(), Handle, pDependancyList );				
+				return internalImportResource( Resource.asString(), Handle, pDependancyList, ForceImport );
 			}
 			else if( Resource.type() == Json::objectValue )
 			{

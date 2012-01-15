@@ -77,7 +77,7 @@ bool WxAppContentServer::OnInit()
 //////////////////////////////////////////////////////////////////////////
 // OnExit
 //virtual
-int WxAppContentServer::OnExit()
+int WxAppContentServer::OnExit() 
 {
 	delete pTaskBarIcon_;
 	return 0;
@@ -103,6 +103,7 @@ void WxAppContentServer::OnMenuScanForContent( wxCommandEvent& Event )
 	std::list< BcPath > OutputFiles;
 	
 	// Search game content & engine content paths.
+	FsCore::pImpl()->findFiles( "./", BcTrue, BcFalse, OutputFiles );
 	FsCore::pImpl()->findFiles( "./EngineContent", BcTrue, BcFalse, OutputFiles );
 	FsCore::pImpl()->findFiles( "./GameContent", BcTrue, BcFalse, OutputFiles );
 

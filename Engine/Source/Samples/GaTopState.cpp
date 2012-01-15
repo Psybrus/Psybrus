@@ -76,10 +76,9 @@ void GaTopState::preMain()
 		Entity->attach( ExampleComponent );
 		Entity->attach( ModelComponent );
 
-		// Add entity to scene.
-		ScnCore::pImpl()->addEntity( Entity );
+		EntityList_.push_back( Entity );
 	}
-
+	
 	// Create view entity.
 	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
 	{
@@ -93,13 +92,17 @@ void GaTopState::preMain()
 
 		// Setup entity position to render from.
 		BcMat4d LookAt;
-		LookAt.lookAt( BcVec3d( -10.0f, -10.0f, -10.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 1.0f, 0.0f ) );
+		LookAt.lookAt( BcVec3d( -10.0f, 10.0f, -10.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 1.0f, 0.0f ) );
 		LookAt.inverse();
 		Entity->setMatrix( LookAt );		
 
+		EntityList_.push_back( Entity );
+	}
 
-		// Add entity to scene.
-		ScnCore::pImpl()->addEntity( Entity );
+	// Add entities to scene.
+	for( BcU32 Idx = 0; Idx < EntityList_.size(); ++Idx )
+	{
+		ScnCore::pImpl()->addEntity( EntityList_[ Idx ] );
 	}
 }
 
@@ -115,7 +118,14 @@ eSysStateReturn GaTopState::main()
 // preLeave
 void GaTopState::preLeave()
 {
+	// Remove entities from the scene.
+	for( BcU32 Idx = 0; Idx < EntityList_.size(); ++Idx )
+	{
+		ScnCore::pImpl()->removeEntity( EntityList_[ Idx ] );
+	}
+
 	ResourceList_.clear();
+	EntityList_.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

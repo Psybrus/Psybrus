@@ -29,6 +29,10 @@ eEvtReturn OnUpdate( EvtID ID, const SysSystemEvent& Event )
 	// If processing has completed stop the kernel.
 	if( GaTopState::pImpl()->process() )
 	{
+		// Free topstate.
+		delete GaTopState::pImpl();
+
+		// Stop kernel.
 		SysKernel::pImpl()->stop();
 
 		return evtRET_REMOVE;
