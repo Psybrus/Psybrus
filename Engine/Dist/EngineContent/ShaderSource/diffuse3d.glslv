@@ -18,5 +18,5 @@ void main()
 	vTexCoord0 = aTexCoord0;
 
 	vec4 AdjustedColour = aNormal + vec4(1.0,1.0,1.0,1.0) * 0.5;
-	vColour = AdjustedColour;
+	vColour = aColour;
 }

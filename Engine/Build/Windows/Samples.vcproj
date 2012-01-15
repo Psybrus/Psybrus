@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Samples"
+	Name="_Samples"
 	ProjectGUID="{98B380F3-69F5-4455-96B2-883EAFD85757}"
 	RootNamespace="TestBed"
 	Keyword="Win32Proj"

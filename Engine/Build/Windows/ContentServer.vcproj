@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ContentServer"
+	Name="_ContentServer"
 	ProjectGUID="{8423690C-F5B9-4C8F-A1C1-37E6E65E90C2}"
 	RootNamespace="TestBed"
 	Keyword="Win32Proj"

@@ -141,7 +141,7 @@ void SsCoreImplAL::open_threaded()
 		{
 			FreeChannels_.push_back( new SsChannelAL( this ) );
 		}
-
+		
 		//
 		ListenerPosition_ = BcVec3d( 0.0f, 0.0f, 0.0f );
 		ListenerLookAt_ = BcVec3d( 0.0f, 0.0f, 1.0f );
