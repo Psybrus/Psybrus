@@ -13,6 +13,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Samples", "Samples.vcproj",
 		{FCCB24F4-0727-4D4A-83F7-4D7C3F709BD3} = {FCCB24F4-0727-4D4A-83F7-4D7C3F709BD3}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BulletCollision", "..\..\..\External\bullet-2.79\msvc\vs2008\BulletCollision.vcproj", "{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BulletDynamics", "..\..\..\External\bullet-2.79\msvc\vs2008\BulletDynamics.vcproj", "{0A910B43-7E06-CB47-BC8F-EB1834836B67}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -38,6 +42,18 @@ Global
 		{98B380F3-69F5-4455-96B2-883EAFD85757}.Production|Win32.Build.0 = Production|Win32
 		{98B380F3-69F5-4455-96B2-883EAFD85757}.Release|Win32.ActiveCfg = Release|Win32
 		{98B380F3-69F5-4455-96B2-883EAFD85757}.Release|Win32.Build.0 = Release|Win32
+		{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}.Debug|Win32.Build.0 = Debug|Win32
+		{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}.Production|Win32.ActiveCfg = Debug|Win32
+		{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}.Production|Win32.Build.0 = Debug|Win32
+		{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}.Release|Win32.ActiveCfg = Release|Win32
+		{AAFB81AD-91DA-5146-A4B9-68E5706CB6C1}.Release|Win32.Build.0 = Release|Win32
+		{0A910B43-7E06-CB47-BC8F-EB1834836B67}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0A910B43-7E06-CB47-BC8F-EB1834836B67}.Debug|Win32.Build.0 = Debug|Win32
+		{0A910B43-7E06-CB47-BC8F-EB1834836B67}.Production|Win32.ActiveCfg = Debug|Win32
+		{0A910B43-7E06-CB47-BC8F-EB1834836B67}.Production|Win32.Build.0 = Debug|Win32
+		{0A910B43-7E06-CB47-BC8F-EB1834836B67}.Release|Win32.ActiveCfg = Release|Win32
+		{0A910B43-7E06-CB47-BC8F-EB1834836B67}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

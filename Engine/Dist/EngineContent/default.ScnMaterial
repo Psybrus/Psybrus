@@ -12,7 +12,7 @@
 
 		// State
 		"state"		: {
-			"depth_write_enable" 		: 0,
+			"depth_write_enable" 		: 1,
 			"depth_test_enable" 		: 1,
 			"depth_test_compare" 		: "lessequal",
 			"depth_bias" 				: 0,

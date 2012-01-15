@@ -123,14 +123,14 @@ public:
 	 * @param Handle Handle to be filled in upon import.
 	 */
 	template< typename _Ty >
-	BcBool								importResource( const std::string& FileName, CsResourceRef< _Ty >& Handle );
+	BcBool								importResource( const std::string& FileName, CsResourceRef< _Ty >& Handle, BcBool ForceImport = BcTrue );
 	
 	/**
 	 * Import a resource from a json object using template to check type.
 	 * @param Object Object containing resource.
 	 */
 	template< typename _Ty >
-	BcBool								importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList );
+	BcBool								importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList, BcBool ForceImport = BcTrue );
 	
 	/**
 	 * Get resource property table.
@@ -151,8 +151,8 @@ public:
 	BcPath								findImportPath( const BcPath& InputPath );
 	
 private:
-	BcBool								internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
-	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList );
+	BcBool								internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList, BcBool ForceImport );
+	BcBool								internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList, BcBool ForceImport );
 	BcBool								parseJsonFile( const BcChar* pFileName, Json::Value& Root );
 
 	BcBool								shouldImportResource( const BcPath& FileName, BcBool ForceImport );
@@ -251,7 +251,7 @@ BcForceInline void CsCore::registerResource( BcBool CreateDefault )
 	if( CreateDefault && !requestResource( "default", _Ty::Default ) )
 	{
 #ifdef PSY_SERVER
-		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetType()).c_str(), _Ty::Default );
+		importResource( (std::string("EngineContent/default.") + *_Ty::StaticGetType()).c_str(), _Ty::Default, BcTrue );
 #endif
 	}
 }
@@ -428,10 +428,10 @@ BcForceInline BcBool CsCore::findResource( const BcName& Name, CsResourceRef< _T
 
 #ifdef PSY_SERVER
 template< typename _Ty >
-BcForceInline BcBool CsCore::importResource( const std::string& FileName, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::importResource( const std::string& FileName, CsResourceRef< _Ty >& Handle, BcBool ForceImport )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalImportResource( FileName, InternalHandle, NULL ) )
+	if( internalImportResource( FileName, InternalHandle, NULL, ForceImport ) )
 	{
 		if( InternalHandle->isTypeOf( _Ty::StaticGetType() ) )
 		{
@@ -443,10 +443,10 @@ BcForceInline BcBool CsCore::importResource( const std::string& FileName, CsReso
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList )
+BcForceInline BcBool CsCore::importObject( const Json::Value& Object, CsResourceRef< _Ty >& Handle, CsDependancyList& DependancyList, BcBool ForceImport )
 {
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalImportObject( Object, InternalHandle, &DependancyList ) )
+	if( internalImportObject( Object, InternalHandle, &DependancyList, ForceImport ) )
 	{
 		if( InternalHandle->isTypeOf( _Ty::StaticGetType() ) )
 		{

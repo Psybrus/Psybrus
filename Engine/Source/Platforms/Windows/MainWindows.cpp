@@ -48,6 +48,19 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 	return evtRET_REMOVE;	
 }
 
+int main(int argc, char** argv)
+{
+	std::string CommandLine;
+
+	for( int Idx = 0; Idx < argc; ++Idx )
+	{
+		CommandLine += argv[ Idx ];
+		CommandLine += " ";
+	}
+
+	return WinMain( NULL, NULL, (LPSTR)CommandLine.c_str(), 0 );
+}
+
 int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
 	( void )hPrevInstance;

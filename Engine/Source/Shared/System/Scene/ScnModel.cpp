@@ -467,7 +467,12 @@ void ScnModelComponent::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransfo
 void ScnModelComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-	
+
+	// Copy parent transform to root node.
+	ScnModel::TNodeTransformData* pRootNode = &pNodeTransformData_[ 0 ];
+	getParentEntity()->getTransform().getMatrix( pRootNode->RelativeTransform_ );
+
+	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{

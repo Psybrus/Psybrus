@@ -28,10 +28,25 @@ void GaExampleComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void GaExampleComponent::initialise()
+{
+	Super::initialise();
+
+	Rotation_ = 0.0f;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // GaExampleComponent
 //virtual
 void GaExampleComponent::update( BcReal Tick )
 {
+	// Setup rotation.
+	BcQuat Rotation;
+	Rotation.fromEular( Rotation_, 0.0f, 0.0f );
+	Rotation_ += Tick;
+	getParentEntity()->setRotation( Rotation );
+
 	if( CanvasComponent_.isValid() )
 	{
 		CanvasComponent_->drawLine( BcVec2d( -1.0f, -1.0f ), BcVec2d( 1.0f, 1.0f ), RsColour::GREEN, 0 );
