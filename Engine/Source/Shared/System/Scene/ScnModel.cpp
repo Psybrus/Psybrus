@@ -149,15 +149,15 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
 			ScnMaterialRef MaterialRef;
-			if( CsCore::pImpl()->importResource( Material.Name_, MaterialRef ) )
+			BcStrCopy( PrimitiveData.MaterialName_, Material.Name_.c_str() );
+			if( Material.Name_.find( "ScnMaterial" ) != std::string::npos )
 			{
-				BcStrCopyN( PrimitiveData.MaterialName_, (*MaterialRef->getName()).c_str(), sizeof( PrimitiveData.MaterialName_ ) );
+				if( CsCore::pImpl()->importResource( Material.Name_, MaterialRef ) )
+				{
+					BcStrCopyN( PrimitiveData.MaterialName_, (*MaterialRef->getName()).c_str(), sizeof( PrimitiveData.MaterialName_ ) );
+				}
 			}
-			else
-			{
-				BcStrCopy( PrimitiveData.MaterialName_, "default" );
-			}
-			
+
 			PrimitiveStream << PrimitiveData;
 			
 			// Export vertices.

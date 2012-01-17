@@ -26,8 +26,10 @@ public:
 	static MdlNode*			loadModel( const BcChar* Filename );
 	static MdlAnim*			loadAnim( const BcChar* Filename );
 	
-	static MdlNode*		loadMD5Mesh( const BcChar* Filename );
-	static MdlAnim*		loadMD5Anim( const BcChar* Filename );
+private:
+	static MdlNode*			loadMD5Mesh( const BcChar* Filename );
+	static MdlAnim*			loadMD5Anim( const BcChar* Filename );
+	static MdlNode*			loadOBJ( const BcChar* Filename );
 };
 
 #endif

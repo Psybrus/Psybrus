@@ -3019,6 +3019,14 @@
 					RelativePath="..\..\..\External\Mdl\MdlTypes.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\External\Mdl\OBJLoader.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\External\Mdl\OBJLoader.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Snd"

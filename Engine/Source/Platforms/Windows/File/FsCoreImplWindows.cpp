@@ -122,7 +122,7 @@ BcBool FsCoreImplWindows::fileStats( const BcChar* pFilename, FsStats& Stats )
 	struct _stat Attrib;
 
 	int Descriptor = ::open(pFilename, _O_RDONLY | _O_BINARY);
-	if( Descriptor != 0 )
+	if( Descriptor != -1 )
 	{
 		if( _fstat( Descriptor, &Attrib ) == 0 )
 		{

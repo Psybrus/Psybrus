@@ -23,6 +23,10 @@ MdlNode* MdlLoader::loadModel( const BcChar* Filename )
 	{
 		return loadMD5Mesh( Filename );
 	}
+	else if( BcStrStr( Filename, ".obj" ) )
+	{
+		return loadOBJ( Filename );
+	}
 	
 	return NULL;
 }
@@ -54,5 +58,14 @@ MdlNode* MdlLoader::loadMD5Mesh( const BcChar* Filename )
 MdlAnim* MdlLoader::loadMD5Anim( const BcChar* Filename )
 {
 	MD5AnimLoader Loader;
+	return Loader.load( Filename, "root" );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// loadOBJ
+#include "OBJLoader.h"
+MdlNode* MdlLoader::loadOBJ( const BcChar* Filename )
+{
+	OBJLoader Loader;
 	return Loader.load( Filename, "root" );
 }
