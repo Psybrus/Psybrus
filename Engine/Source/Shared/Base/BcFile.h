@@ -44,6 +44,7 @@ public:
 	BcU32 tell();
 	void seek( BcU32 Position );
 	void read( void* pDest, BcU32 nBytes );
+	void readLine( BcChar* pBuffer, BcU32 Size );
 	void write( const void* pSrc, BcU32 nBytes );
 	void writeLine( const BcChar* pText );
 

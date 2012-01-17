@@ -198,5 +198,20 @@ inline BcBool BcStrIsNumber( const BcChar* pStr )
 	return BcTrue;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// BcStrCountChars
+inline BcU32 BcStrCountChars( const BcChar* pStr, BcChar Char )
+{
+	BcU32 NoofChars = 0;
+	while( *pStr != '\0' )
+	{
+		if( *pStr++ == Char )
+		{
+			++NoofChars;
+		}
+	}
+	return NoofChars;
+}
+
 #endif
 

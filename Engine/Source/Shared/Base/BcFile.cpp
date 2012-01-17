@@ -14,6 +14,7 @@
 #include "BcFile.h"
 #include "BcDebug.h"
 #include "BcString.h"
+#include "BcMemory.h"
 
 #include <fcntl.h>
 
@@ -188,8 +189,24 @@ void BcFile::seek( BcU32 Position )
 void BcFile::read( void* pDest, BcU32 nBytes )
 {
 	BcAssert( FileHandle_ );
-
+	
 	fread( pDest, nBytes, 1, FileHandle_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// readLine
+void BcFile::readLine( BcChar* pBuffer, BcU32 Size )
+{
+	BcU32 BytesRead = 0;
+	BcMemZero( pBuffer, Size );
+	while( BytesRead < Size )
+	{
+		read( &pBuffer[ BytesRead++ ], 1 );
+		if( pBuffer[ BytesRead - 1 ] == '\n' )
+		{
+			break;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
