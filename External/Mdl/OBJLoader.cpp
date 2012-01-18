@@ -123,7 +123,7 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 					}
 					break;
 				default:
-					BcPrintf( "OBJLoader: Only supports triangulated faces!\n" );
+					BcPrintf( "OBJLoader: Only supports triangulated faces (for now..)!\n" );
 					return NULL;
 					break;
 				}
