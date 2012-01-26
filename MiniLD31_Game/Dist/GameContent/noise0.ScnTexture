@@ -1,0 +1,6 @@
+{ 
+	"ScnTexture" : {
+		"name"		: "noise0",
+		"source"	: "GameContent/Source/noise0.png"
+	}
+}

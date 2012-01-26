@@ -77,12 +77,18 @@ void SsChannelAL::play( SsSampleAL* Sample, SsChannelCallback* Callback )
 	// TODO: Lock/fence!!
 	BcAssert( State_ == ssCS_IDLE || State_ == ssCS_STOPPED );
 
+	alBreakOnError();
 	alSourcei( ALSource_, AL_BUFFER, Sample->getHandle< ALuint >() );
+	alBreakOnError();
+	alSourcei( ALSource_, AL_LOOPING, Sample->isLooping() );
+	alBreakOnError();
+
+
 #if SS_AL_EFX_SUPPORTED
 	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
 	{
 		// NEILO TODO.
-		//alSource3i( ALSource_, AL_AUXILIARY_SEND_FILTER, ALReverbEffectSlot_, 0, NULL );
+		alSource3i( ALSource_, AL_AUXILIARY_SEND_FILTER, SsCore::pImpl< SsCoreImplAL >()->getALReverbAuxSlot(), 0, AL_FILTER_NULL );
 	}
 #endif
 	alBreakOnError();
@@ -261,20 +267,27 @@ void SsChannelAL::updateParams()
 {
 	// Setup source parameters.
 	alSourcef( ALSource_, AL_GAIN, Gain_ );
+	alBreakOnError();
 	alSourcef( ALSource_, AL_PITCH, Pitch_ );
+	alBreakOnError();
 	alSource3f( ALSource_, AL_POSITION, Position_.x(), Position_.y(), Position_.z() );
-	alSourcei( ALSource_, AL_LOOPING, 0 );
+	alBreakOnError();
 
-	alSourcef( ALSource_, AL_REFERENCE_DISTANCE, 250.0f );
+	alSourcef( ALSource_, AL_REFERENCE_DISTANCE, RefDistance_ );
+	alBreakOnError();
+	alSourcef( ALSource_, AL_MAX_DISTANCE, MaxDistance_ );
+	alBreakOnError();
+	alSourcef( ALSource_, AL_ROLLOFF_FACTOR, RolloffFactor_ );
+	alBreakOnError();
 
 #if SS_AL_EFX_SUPPORTED
 	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )
 	{
-		/*NEILO TODO.
 		// Final filter parameters.
+		/*
 		alFilteri( ALFilter_, AL_FILTER_TYPE, AL_FILTER_LOWPASS );
-		alFilterf( ALFilter_, AL_LOWPASS_GAIN, LowpassGain_ );
-		alFilterf( ALFilter_, AL_LOWPASS_GAINHF, LowpassGainHF_ );
+		alFilterf( ALFilter_, AL_LOWPASS_GAIN, 0.5f );
+		alFilterf( ALFilter_, AL_LOWPASS_GAINHF, 1.0f );
 		alSourcei( ALSource_, AL_DIRECT_FILTER, ALFilter_ );
 		*/
 	}

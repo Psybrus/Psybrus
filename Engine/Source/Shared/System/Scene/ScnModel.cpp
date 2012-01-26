@@ -218,7 +218,7 @@ void ScnModel::StaticPropertyTable( CsPropertyTable& PropertyTable )
 {
 	Super::StaticPropertyTable( PropertyTable );
 
-	PropertyTable.beginCatagory( "ScnMaterial" )
+	PropertyTable.beginCatagory( "ScnModel" )
 		.field( "source",					csPVT_FILE,			csPCT_VALUE )
 	.endCatagory();
 }
@@ -324,7 +324,7 @@ void ScnModel::setup()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
+////////////////////////////////// ////////////////////////////////////////
 // fileReady
 void ScnModel::fileReady()
 {

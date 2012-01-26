@@ -1,0 +1,21 @@
+{ 
+	"ScnRigidBody" : {
+		"name"		: "world",
+
+		// Shape
+		"shape"	: {
+			"type"		: "mesh",
+			"source"	: "GameContent/Source/world_Scene.obj",
+			"extentx"	: 0,
+			"extenty"	: 0,
+			"extentz"	: 0
+		},
+
+		// Body.
+		"body" : {
+			"mass"		: 0.0,
+			"e"			: 0.1,
+			"f"			: 0.5
+		}
+	}
+}

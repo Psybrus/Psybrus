@@ -10,7 +10,7 @@
 			>
 			<DebugSettings
 				Command="$(TargetPath)"
-				WorkingDirectory="C:\Dev\Psybrus\Engine\Dist"
+				WorkingDirectory="C:\Dev\Psybrus\MiniLD31_Game\Dist"
 				CommandArguments=""
 				Attach="false"
 				DebuggerType="3"

@@ -1,0 +1,9 @@
+{ 
+	"ScnFont" : {
+		"name"		: "default",
+		"source"	: "EngineContent/FontSource/HoMicIDE-EFfeCt.ttf",
+		"distancefield"	: true,
+		"nominalsize"	: 64,
+		"spread"	: 16
+	}
+}

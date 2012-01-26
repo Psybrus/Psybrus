@@ -105,6 +105,7 @@ BcBool CsFileWriter::save()
 // CsFileWriter
 BcU32 CsFileWriter::addChunk( BcU32 ID, void* pData, BcU32 Size )
 {
+	BcAssert( Size > 0 );
 	CsFileChunkNative Chunk = { ID, new BcU8[ Size ], Size };
 	BcMemCopy( Chunk.pData_, pData, Size );
 	Chunks_.push_back( Chunk );

@@ -47,6 +47,7 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 		// Create mesh node.
 		pNode = new MdlNode();
 		pNode->type( eNT_MESH );
+		pNode->name( NodeName );
 		MdlMesh* pMesh = pNode->pMeshObject();
 		MdlMaterial Material;
 		BcU32 MaterialIdx = BcErrorCode;
@@ -74,14 +75,14 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 				// Vertex position.
 				BcReal X, Y, Z;
 				BcSScanf( LineBuffer, "%s %f %f %f", CommandBuffer, &X, &Y, &Z );
-				Positions_.push_back( BcVec3d( X, Y, Z ) );
+				Positions_.push_back( BcVec3d( -X, Y, Z ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "vn" ) )
 			{
 				// Vertex normal.
 				BcReal X, Y, Z;
 				BcSScanf( LineBuffer, "%s %f %f %f", CommandBuffer, &X, &Y, &Z );
-				Normals_.push_back( BcVec3d( X, Y, Z ) );
+				Normals_.push_back( BcVec3d( -X, Y, Z ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "vt" ) )
 			{

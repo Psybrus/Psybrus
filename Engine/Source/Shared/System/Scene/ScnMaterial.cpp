@@ -355,7 +355,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 		return ParameterBindingList_.size() - 1;
 	}
 	
-	BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
+	//BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
 	
 	return BcErrorCode;
 }

@@ -98,7 +98,7 @@ public:
 	
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	
-	BcVec2d								draw( ScnCanvasComponentRef Canvas, const std::string& String, BcBool SizeRun = BcFalse );
+	BcVec2d								draw( ScnCanvasComponentRef Canvas, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse );
 
 	ScnMaterialComponentRef				getMaterialComponent();
 	

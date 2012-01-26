@@ -1,0 +1,6 @@
+{ 
+	"ScnModel" : {
+		"name"		: "world",
+		"source"	: "GameContent/Source/world_Scene.obj"
+	}
+}

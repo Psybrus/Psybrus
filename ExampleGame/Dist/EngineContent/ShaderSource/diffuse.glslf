@@ -5,5 +5,5 @@ uniform sampler2D aDiffuseTex;
 
 void main()			
 {						
-	gl_FragColor = texture2D( aDiffuseTex, vTexCoord0.xy ) * vColour;
+	gl_FragColor = vColour;//texture2D( aDiffuseTex, vTexCoord0.xy ) * vColour;
 }

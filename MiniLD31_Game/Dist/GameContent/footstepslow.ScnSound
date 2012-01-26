@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "footstepslow",
+		"source"	: "GameContent/Source/footstep_slow.wav"
+	}
+}

@@ -13,14 +13,8 @@
 
 #include "MainShared.h"
 
-
-#ifdef PSY_DEBUG
-BcU32 GResolutionWidth = 1280 / 2;
-BcU32 GResolutionHeight = 720 / 2;
-#else
 BcU32 GResolutionWidth = 1280;
 BcU32 GResolutionHeight = 720;
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
@@ -70,6 +64,12 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >( BcFalse );
 	CsCore::pImpl()->registerResource< ScnViewComponent >( BcFalse );
 
+	CsCore::pImpl()->registerResource< ScnRigidBodyWorld >( BcFalse );
+	CsCore::pImpl()->registerResource< ScnRigidBodyWorldComponent >( BcFalse );
+
+	CsCore::pImpl()->registerResource< ScnRigidBody >( BcTrue );
+	CsCore::pImpl()->registerResource< ScnRigidBodyComponent >( BcFalse );
+	
 	PsyGameRegisterResources();
 
 	return evtRET_REMOVE;

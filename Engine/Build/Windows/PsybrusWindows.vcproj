@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include;&quot;../../../External/bullet-2.79/src&quot;"
 				PreprocessorDefinitions="WIN32;_WIN32;_WINDOWS;_DEBUG;WINDOWS;PSY_DEBUG;PSY_SERVER;HAVE_CONFIG_H"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -108,7 +108,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include;&quot;../../../External/bullet-2.79/src&quot;"
 				PreprocessorDefinitions="WIN32;_WIN32;_WINDOWS;NDEBUG;WINDOWS;PSY_RELEASE;PSY_SERVER;HAVE_CONFIG_H"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -174,7 +174,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include"
+				AdditionalIncludeDirectories="../../Source/Shared;../../Source/Shared/Base;../../Source/Shared/Events;../../Source/Shared/System;../../Source/Shared/System/Scene;../../Source/Shared/System/Renderer;../../Source/Shared/System/Renderer/GL;../../Source/Shared/System/Os;../../Source/Shared/System/Os/SDL;../../Source/Shared/System/Network;../../Source/Shared/System/Game;../../Source/Shared/System/File;../../Source/Shared/System/Content;../../Source/Shared/System/Remote;../../Source/Shared/System/Sound;../../Source/Platforms/Windows/Base;../../Source/Platforms/Windows/Sound;../../Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;../../../External/squish;../../../External/ogg/include;../../../External/enet/include;../../../External/libb64/include;../../../External/curl/include;&quot;../../../External/bullet-2.79/src&quot;"
 				PreprocessorDefinitions="WIN32;_WIN32;_WINDOWS;NDEBUG;WINDOWS;PSY_PRODUCTION;HAVE_CONFIG_H"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1532,6 +1532,22 @@
 						</File>
 						<File
 							RelativePath="..\..\Source\Shared\System\Scene\ScnRenderTarget.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRigidBody.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRigidBody.h"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRigidBodyWorld.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\Source\Shared\System\Scene\ScnRigidBodyWorld.h"
 							>
 						</File>
 						<File

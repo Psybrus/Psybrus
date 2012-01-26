@@ -101,9 +101,18 @@ void SsCoreImplAL::open_threaded()
 	ALContext_ = NULL;
 	ALDevice_ = NULL;
 
+	// Attempt to use generic software.
+	pSelectedDevice_ = "Generic Software";
+
 	// Open device
 	ALDevice_ = alcOpenDevice( pSelectedDevice_ );
-	alBreakOnError();
+	
+	// Fall back to default :(
+	if( ALDevice_ == NULL )
+	{
+		pSelectedDevice_ = NULL;
+		ALDevice_ = alcOpenDevice( pSelectedDevice_ );
+	}
 
 	if( ALDevice_ != NULL )
 	{
@@ -213,7 +222,45 @@ void SsCoreImplAL::update_threaded()
 		pSound = (*Iter);	
 		pSound->update();
 	}
-	
+
+	// Interpolate environment.
+	Environment_.interpolate( &Environment_, &TargetEnvironment_, 0.1f );
+
+	static BcU32 EnvSetTimer = 0;
+	if( ++EnvSetTimer >= 8 )
+	{
+		// Setup environment.
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_DENSITY, Environment_.Density_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_DIFFUSION, Environment_.Diffusion_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_GAIN, Environment_.Gain_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_GAINHF, Environment_.GainHF_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_GAINLF, Environment_.GainLF_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_DECAY_TIME, Environment_.DecayTime_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_DECAY_HFRATIO, Environment_.DecayHFRatio_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_DECAY_LFRATIO, Environment_.DecayLFRatio_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_REFLECTIONS_GAIN, Environment_.ReflectionsGain_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_REFLECTIONS_DELAY, Environment_.ReflectionsDelay_ );
+		alEffectfv( ALReverbEffect_, AL_EAXREVERB_REFLECTIONS_PAN, (ALfloat*)&Environment_.ReflectionsPan_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_LATE_REVERB_GAIN, Environment_.LateReverbGain_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_LATE_REVERB_DELAY, Environment_.LateReverbDelay_ );
+		alEffectfv( ALReverbEffect_, AL_EAXREVERB_LATE_REVERB_PAN, (ALfloat*)&Environment_.LateReverbPan_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_ECHO_TIME, Environment_.EchoTime_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_ECHO_DEPTH, Environment_.EchoDepth_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_MODULATION_TIME, Environment_.ModulationTime_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_MODULATION_DEPTH, Environment_.ModulationDepth_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, Environment_.AirAbsorptionGainHF_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_HFREFERENCE, Environment_.HFReference_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_LFREFERENCE, Environment_.LFReference_ );
+		alEffectf( ALReverbEffect_, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, Environment_.RoomRolloffFactor_ );
+		alEffecti( ALReverbEffect_, AL_EAXREVERB_DECAY_HFLIMIT, Environment_.DecayHFLimit_ > 0.5f ? AL_TRUE : AL_FALSE );
+		alBreakOnError();
+
+		alAuxiliaryEffectSloti( ALReverbEffectSlot_, AL_EFFECTSLOT_EFFECT, ALReverbEffect_ );
+		alBreakOnError();
+
+		EnvSetTimer = 0;
+	}
+
 	// Process context.	
 	alcProcessContext( ALContext_ );
 	alcSuspendContext( ALContext_ );
@@ -239,7 +286,7 @@ void SsCoreImplAL::close_threaded()
 {
 	BcAssert( InternalResourceCount_ == 0 );
 
-	BcAssertMsg( UsedChannels_.size() == 0, "SsCore ImplAL: All channels must be free." );
+ 	BcAssertMsg( UsedChannels_.size() == 0, "SsCore ImplAL: All channels must be free." );
 	
 	// Destroy channels.
 	for( TChannelListIterator Iter( FreeChannels_.begin() ); Iter != FreeChannels_.end(); ++Iter )
@@ -264,6 +311,13 @@ void SsCoreImplAL::close_threaded()
 BcBool SsCoreImplAL::isEFXEnabled() const
 {
 	return bEFXEnabled_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getALReverbAuxSlot
+ALuint SsCoreImplAL::getALReverbAuxSlot() const
+{
+	return ALReverbEffectSlot_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,6 +386,14 @@ void SsCoreImplAL::setListener( const BcVec3d& Position, const BcVec3d& LookAt, 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setEnvironment
+//virtual
+void SsCoreImplAL::setEnvironment( const SsEnvironment& Environment )
+{
+	TargetEnvironment_ = Environment;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocChannel
 SsChannelAL* SsCoreImplAL::allocChannel()
 {
@@ -343,6 +405,7 @@ SsChannelAL* SsCoreImplAL::allocChannel()
 	if( FreeChannels_.size() > 0 )
 	{
 		pChannel = FreeChannels_.front();
+		pChannel->setDefaults();
 		FreeChannels_.pop_front();
 		
 		UsedChannels_.push_back( pChannel );

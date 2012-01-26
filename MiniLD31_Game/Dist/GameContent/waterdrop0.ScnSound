@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "waterdrop0",
+		"source"	: "GameContent/Source/waterdrop0.wav"
+	}
+}
