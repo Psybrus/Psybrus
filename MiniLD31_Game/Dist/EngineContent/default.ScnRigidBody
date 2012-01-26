@@ -1,0 +1,20 @@
+{ 
+	"ScnRigidBody" : {
+		"name"		: "default",
+
+		// Shape
+		"shape"	: {
+			"type"		: "box",
+			"extentx"	: 1.0,
+			"extenty"	: 1.0,
+			"extentz"	: 1.0
+		},
+
+		// Body.
+		"body" : {
+			"mass"		: 1.0,
+			"e"			: 0.5,
+			"f"			: 0.5
+		}
+	}
+}

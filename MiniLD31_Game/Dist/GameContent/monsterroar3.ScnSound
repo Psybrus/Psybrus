@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "monsterroar3",
+		"source"	: "GameContent/Source/monsterroar3.wav"
+	}
+}

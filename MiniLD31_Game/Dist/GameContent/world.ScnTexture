@@ -1,0 +1,6 @@
+{ 
+	"ScnTexture" : {
+		"name"		: "world",
+		"source"	: "GameContent/Source/texture.png"
+	}
+}

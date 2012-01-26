@@ -1,0 +1,9 @@
+{ 
+	"ScnShader" : {
+		"name"		: "world",
+		"shaders"	: {
+			"vertex" 	: "GameContent/Source/world.glslv",
+			"fragment" 	: "GameContent/Source/world.glslf"
+		}
+	}
+}

@@ -68,7 +68,12 @@ public:
 	virtual BcBool						isReady();
 
 	/**
-	 * Set material instance.
+	 * Get material component.
+	 */
+	ScnMaterialComponentRef				getMaterialComponent();
+
+	/**
+	 * Set material component.
 	 */
 	void								setMaterialComponent( ScnMaterialComponentRef MaterialComponent );
 	
@@ -109,7 +114,8 @@ public:
 	 * @param Layer Layer
 	 */
 	void								drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
-	
+	void								drawLine3d( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+
 	/**
 	 * Draw lines.
 	 * @param pPoints Pointer to points.

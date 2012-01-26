@@ -1,0 +1,6 @@
+{ 
+	"ScnModel" : {
+		"name"		: "monster",
+		"source"	: "GameContent/Source/monster_Scene.obj"
+	}
+}

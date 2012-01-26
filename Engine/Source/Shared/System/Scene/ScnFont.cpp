@@ -472,7 +472,7 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string& String, BcBool SizeRun )
+BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string& String, RsColour Colour, BcBool SizeRun )
 {
 	// Cached elements from parent.
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
@@ -493,7 +493,7 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string&
 	BcReal AdvanceX = 0.0f;
 	BcReal AdvanceY = 0.0f;
 		
-	BcU32 RGBA = 0xffffffff;
+	BcU32 RGBA = Colour.asABGR();
 
 	BcVec2d MinSize( 1e16f, 1e16f );
 	BcVec2d MaxSize( -1e16f, -1e16f );

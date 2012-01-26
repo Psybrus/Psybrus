@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "jump",
+		"source"	: "GameContent/Source/jump.wav"
+	}
+}

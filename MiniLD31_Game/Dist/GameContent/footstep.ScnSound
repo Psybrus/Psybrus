@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "footstep",
+		"source"	: "GameContent/Source/monsterstep0.wav"
+	}
+}

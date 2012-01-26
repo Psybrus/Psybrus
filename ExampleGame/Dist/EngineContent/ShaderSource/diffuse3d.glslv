@@ -11,7 +11,7 @@ varying vec4 vTexCoord0;
 void main()
 {
 	vec4 Vertex = aPosition;
-	gl_Position = ( uClipTransform * ( uWorldTransform * Vertex ) );
+	gl_Position = ( uClipTransform * ( Vertex ) );
 	vColour = aColour;
 	vTexCoord0 = aTexCoord0;
 }

@@ -19,6 +19,8 @@
 #include "OsCore.h"
 #include "RsCore.h"
 
+#include "ScnRigidBodyWorld.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( ScnCore );
@@ -114,6 +116,9 @@ void ScnCore::update()
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
 	}
+
+	// Do add/remove.
+	processAddRemove();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -131,27 +136,26 @@ void ScnCore::close()
 // addEntity
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
-	Entity->onAttachScene();
-	EntityList_.push_back( Entity );
-
-	// Do onAttachComponent for all entities current components.
-	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
-	{
-		onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
-	}
+	AddEntityList_.remove( Entity );
+	AddEntityList_.push_back( Entity );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // removeEntity
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
-	Entity->onDetachScene();
-	EntityList_.remove( Entity );
+	RemoveEntityList_.remove( Entity );
+	RemoveEntityList_.push_back( Entity );
+}
 
-	// Do onDetachComponent for all entities current components.
-	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+//////////////////////////////////////////////////////////////////////////
+// removeAllEntities
+void ScnCore::removeAllEntities()
+{
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
 	{
-		onDetachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+		ScnEntityRef Entity( *It );
+		removeEntity( Entity );
 	}
 }
 
@@ -173,6 +177,13 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	{
 		pSpacialTree_->addComponent( ScnComponentWeakRef( Component ) );
 	}
+	// Add rigid body components to the world.
+	else if( Component->isTypeOf< ScnRigidBodyComponent >() )
+	{
+		// Add to rigid body world component.
+		ScnRigidBodyWorldComponentRef RigidBodyWorldComponent = ScnRigidBodyWorldComponent::StaticGetComponent();
+		RigidBodyWorldComponent->addRigidBodyComponent( ScnRigidBodyComponentRef( Component ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -193,4 +204,47 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	{
 		pSpacialTree_->removeComponent( ScnComponentWeakRef( Component ) );
 	}
+	// Add rigid body components to the world.
+	else if( Component->isTypeOf< ScnRigidBodyComponent >() )
+	{
+		// Add to rigid body world component.
+		ScnRigidBodyWorldComponentRef RigidBodyWorldComponent = ScnRigidBodyWorldComponent::StaticGetComponent();
+		RigidBodyWorldComponent->removeRigidBodyComponent( ScnRigidBodyComponentRef( Component ) );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processAddRemove
+void ScnCore::processAddRemove()
+{
+	for( ScnEntityListIterator It( RemoveEntityList_.begin() ); It != RemoveEntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+		Entity->onDetachScene();
+		EntityList_.remove( Entity );
+
+		// Do onDetachComponent for all entities current components.
+		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+		{
+			ScnComponentRef Component( Entity->getComponent( Idx ) );
+			onDetachComponent( ScnEntityWeakRef( Entity ), Component );
+			Component->onDetach( ScnEntityWeakRef( Entity ) );			
+		}
+	}
+	RemoveEntityList_.clear();
+
+	for( ScnEntityListIterator It( AddEntityList_.begin() ); It != AddEntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		Entity->onAttachScene();
+		EntityList_.push_back( Entity );
+
+		// Do onAttachComponent for all entities current components.
+		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+		{
+			onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+		}
+	}
+	AddEntityList_.clear();
 }

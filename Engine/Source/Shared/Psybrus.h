@@ -66,6 +66,8 @@
 #include "ScnSound.h"
 #include "ScnSoundEmitter.h"
 #include "ScnViewComponent.h"
+#include "ScnRigidBodyWorld.h"
+#include "ScnRigidBody.h"
 
 #include "SysEvents.h"
 #include "SysKernel.h"

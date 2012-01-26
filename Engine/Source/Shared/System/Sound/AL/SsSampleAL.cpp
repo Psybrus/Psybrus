@@ -29,6 +29,8 @@ SsSampleAL::SsSampleAL( BcU32 SampleRate, BcU32 Channels, BcBool Looping, void* 
 	{
 		Format_ = AL_FORMAT_STEREO16;
 	}
+
+	IsLooping_ = Looping;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,6 +42,13 @@ SsSampleAL::~SsSampleAL()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isLooping
+BcBool SsSampleAL::isLooping() const
+{
+	return IsLooping_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // create
 //virtual
 void SsSampleAL::create()
@@ -47,6 +56,7 @@ void SsSampleAL::create()
 	ALuint Handle;
 	
 	// Create buffer.
+	alBreakOnError();
 	alGenBuffers( 1, &Handle );
 	alBreakOnError();
 

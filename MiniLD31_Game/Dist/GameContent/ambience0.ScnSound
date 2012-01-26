@@ -1,0 +1,7 @@
+{ 
+	"ScnSound" : {
+		"name"		: "ambience0",
+		"source"	: "GameContent/Source/ambience0.wav",
+		"looping"	: 1
+	}
+}

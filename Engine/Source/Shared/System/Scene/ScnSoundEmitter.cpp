@@ -142,7 +142,8 @@ void ScnSoundEmitter::onPlaying( SsChannel* pSound )
 {
 	// Update parameters.
 	pSound->gain( Gain_ );
-	pSound->minDistance( 1.0f );
+	//pSound->maxDistance( 1.0f );
+	//pSound->maxDistance( 1.0f );
 	pSound->rolloffFactor( 0.05f );
 	pSound->position( Position_ );
 	pSound->pitch( Pitch_ );

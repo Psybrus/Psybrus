@@ -30,6 +30,7 @@
 BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {	
 	const std::string& FileName = Object[ "source" ].asString();
+	BcBool IsLooping = Object[ "looping" ].asInt() ? BcTrue : BcFalse;
 	
 	// Add root dependancy.
 	DependancyList.push_back( CsDependancy( FileName ) );
@@ -47,7 +48,7 @@ BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& Dependancy
 		{
 			pSound->getSampleRate(),
 			pSound->getNumChannels(),
-			BcFalse
+			IsLooping
 		};
 		
 		HeaderStream << Header;

@@ -134,11 +134,17 @@ BcName BcName::getUnique() const
 	TStringEntryList& StringEntries( getStringEntries() );
 	TStringEntry& StringEntry( StringEntries[ EntryIndex_ ] );
 
-	// Create a new name with stored ID.
-	BcName UniqueName( StringEntry.Value_, StringEntry.ID_ );
+	// Create a new name with passed in ID.
+	BcName UniqueName( StringEntry.Value_, ID_ );
 
-	// Advance ID for name.
-	StringEntry.ID_++;
+	// If we haven't got an ID assigned already, then create one.
+	if( ID_ == BcErrorCode )
+	{
+		UniqueName.ID_ = StringEntry.ID_;
+	
+		// Advance ID for name.
+		StringEntry.ID_++;
+	}
 
 	// Return new unique name.
 	return UniqueName;

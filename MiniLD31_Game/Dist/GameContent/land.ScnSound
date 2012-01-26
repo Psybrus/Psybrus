@@ -1,0 +1,6 @@
+{ 
+	"ScnSound" : {
+		"name"		: "land",
+		"source"	: "GameContent/Source/land.wav"
+	}
+}
