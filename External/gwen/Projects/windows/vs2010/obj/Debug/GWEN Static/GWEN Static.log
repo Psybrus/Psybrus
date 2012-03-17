@@ -1,0 +1,71 @@
+﻿  Anim.cpp
+  BaseRender.cpp
+  DragAndDrop.cpp
+  events.cpp
+  Gwen.cpp
+  Hook.cpp
+  inputhandler.cpp
+  Skin.cpp
+..\..\..\src\Gwen.cpp(27): warning C4996: 'vsnprintf': This function or variable may be unsafe. Consider using vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(354) : see declaration of 'vsnprintf'
+  ToolTip.cpp
+  Utility.cpp
+  Base.cpp
+  Button.cpp
+  Canvas.cpp
+..\..\..\src\Utility.cpp(144): warning C4018: '<' : signed/unsigned mismatch
+  CheckBox.cpp
+  CollapsibleCategory.cpp
+  ColorControls.cpp
+  ColorPicker.cpp
+  ComboBox.cpp
+  CrossSplitter.cpp
+  DockBase.cpp
+  DockedTabControl.cpp
+  Dragger.cpp
+  GroupBox.cpp
+  HorizontalScrollBar.cpp
+  HorizontalSlider.cpp
+  HSVColorPicker.cpp
+  ImagePanel.cpp
+  Label.cpp
+  LabelClickable.cpp
+  ListBox.cpp
+  Menu.cpp
+  MenuItem.cpp
+  MenuStrip.cpp
+  NumericUpDown.cpp
+  ProgressBar.cpp
+  Properties.cpp
+  RadioButton.cpp
+  RadioButtonController.cpp
+  ResizableControl.cpp
+  Resizer.cpp
+  RichLabel.cpp
+  ScrollBar.cpp
+  ScrollBarBar.cpp
+  ScrollBarButton.cpp
+  ScrollControl.cpp
+  Slider.cpp
+  SplitterBar.cpp
+  TabButton.cpp
+  TabControl.cpp
+  TabStrip.cpp
+  Text.cpp
+  TextBox.cpp
+  TextBoxNumeric.cpp
+  TreeControl.cpp
+  TreeNode.cpp
+  VerticalScrollBar.cpp
+  VerticalSlider.cpp
+  WindowControl.cpp
+  FileOpen.cpp
+  FileSave.cpp
+  Query.cpp
+  Null.cpp
+  Windows.cpp
+..\..\..\src\Platforms\Windows.cpp(76): warning C4996: 'wcscpy': This function or variable may be unsafe. Consider using wcscpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(283) : see declaration of 'wcscpy'
+Null.obj : warning LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
+ImagePanel.obj : warning LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
+  GWEN Static.vcxproj -> C:\Dev\GGJGame2012\trunk\External\gwen\Projects\windows\vs2010\..\..\..\lib\windows\gwend_static.lib

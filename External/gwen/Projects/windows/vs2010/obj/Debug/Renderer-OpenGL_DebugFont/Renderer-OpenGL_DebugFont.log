@@ -1,0 +1,5 @@
+﻿  OpenGL.cpp
+  OpenGL_DebugFont.cpp
+..\..\..\Renderers\OpenGL\DebugFont\OpenGL_DebugFont.cpp(68): warning C4018: '<' : signed/unsigned mismatch
+..\..\..\Renderers\OpenGL\DebugFont\OpenGL_DebugFont.cpp(110): warning C4018: '<' : signed/unsigned mismatch
+  Renderer-OpenGL_DebugFont.vcxproj -> C:\Dev\GGJGame2012\trunk\External\gwen\Projects\windows\vs2010\..\..\..\lib\windows\GWEN-Renderer-OpenGL_DebugFont.lib
