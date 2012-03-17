@@ -114,6 +114,7 @@ public:
 	void								setState( eRsRenderState State, BcU32 Value );
 	
 	ScnTextureRef						getTexture( BcU32 Parameter );
+	ScnMaterialRef						getMaterial();
 	
 	void								bind( RsFrame* pFrame, RsRenderSort Sort );
 

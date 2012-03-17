@@ -624,6 +624,13 @@ ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Parameter )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMaterial
+ScnMaterialRef ScnMaterialComponent::getMaterial()
+{
+	return Parent_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bind
 class ScnMaterialComponentRenderNode: public RsRenderNode
 {
