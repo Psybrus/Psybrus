@@ -26,3 +26,5 @@
 /*.dep
 /*.png
 /*.pdb
+/ExampleGameDebug.exe
+/ExampleGameDebug.ilk
