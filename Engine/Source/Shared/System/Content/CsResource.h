@@ -239,6 +239,11 @@ public:
 	
 protected:
 	/**
+	 * Get string. (See CsFile)
+	 */
+	const BcChar*					getString( BcU32 Offset );
+
+	/**
 	 * Get chunk. (See CsFile)
 	 */
 	void							getChunk( BcU32 Chunk, BcBool TriggerLoad = BcTrue );

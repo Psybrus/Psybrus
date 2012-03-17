@@ -16,6 +16,7 @@
 
 #include "SsChannel.h"
 #include "SsSample.h"
+#include "SsEnvironment.h"
 
 #include "BcGlobal.h"
 #include "SysSystem.h"
@@ -45,6 +46,10 @@ public:
 public:
 	virtual SsChannel* play( SsSample* Sample, SsChannelCallback* Callback = NULL ) = 0;
 	virtual void setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up ) = 0;
+
+public: //NEILO HACK.
+	virtual void setEnvironment( const SsEnvironment& Environment ) = 0;
+
 };
 
 #endif

@@ -22,6 +22,8 @@
 #include "BcScopedLock.h"
 #include "BcMutex.h"
 
+#include "SsEnvironment.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class SsCoreImplAL;
@@ -52,6 +54,8 @@ public:
 
 
 	BcBool isEFXEnabled() const;
+	ALuint getALReverbAuxSlot() const;
+
 	
 public:
 	virtual SsSample* createSample( BcU32 SampleRate, BcU32 Channels, BcBool Looping, void* pData, BcU32 DataSize );
@@ -64,6 +68,9 @@ private:
 public:
 	virtual SsChannel* play( SsSample* pSample, SsChannelCallback* pCallback = NULL );
 	virtual void setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up );
+
+public: // NEILO HACK.
+	virtual void setEnvironment( const SsEnvironment& Environment );
 
 public:
 	SsChannelAL* allocChannel();
@@ -93,6 +100,9 @@ private:
 	BcVec3d					ListenerUp_;
 
 	// Environment.
+	SsEnvironment			Environment_;
+	SsEnvironment			TargetEnvironment_;
+
 	ALuint					ALReverbEffectSlot_;
 	ALuint					ALReverbEffect_;
 

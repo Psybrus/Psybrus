@@ -17,7 +17,6 @@
 #if PLATFORM_OSX
 #include <execinfo.h>
 
-
 void printBacktrace()
 {
 	void* callstack[16];

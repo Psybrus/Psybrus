@@ -27,6 +27,7 @@ public:
 	// ctor	
 	BcQuat();
 	BcQuat(BcReal lX, BcReal lY, BcReal lZ, BcReal lW);
+	BcQuat( const BcChar* pString );
 	
 	// Arithmetic
 	BcQuat 		operator * (const BcQuat& rhs) const;

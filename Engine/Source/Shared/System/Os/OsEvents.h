@@ -74,6 +74,8 @@ struct OsEventInputMouse: OsEventInput< OsEventInputMouse >
 {
 	BcS16			MouseX_;			///!< X coordinate of mouse relative to window.
 	BcS16			MouseY_;			///!< Y coordinate of mouse relative to window.
+	BcS16			MouseDX_;			///!< Delta X.
+	BcS16			MouseDY_;			///!< Delta Y.
 	BcS16			ButtonCode_;		///!< Button code for event (-1 for not used)
 };
 
@@ -81,7 +83,92 @@ struct OsEventInputMouse: OsEventInput< OsEventInputMouse >
 // OsEventInputKeyboard
 struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 {
+	enum
+	{
+		KEYCODE_FIRST = 255,
+		KEYCODE_LBUTTON,
+		KEYCODE_RBUTTON,
+		KEYCODE_CANCEL,
+		KEYCODE_MBUTTON,
+		KEYCODE_BACKSPACE,
+		KEYCODE_TAB,
+		KEYCODE_CLEAR,
+		KEYCODE_RETURN,
+		KEYCODE_SHIFT,
+		KEYCODE_CONTROL,
+		KEYCODE_ALT,
+		KEYCODE_PAUSE,
+		KEYCODE_CAPSLOCK,
+		KEYCODE_ESCAPE,
+		KEYCODE_SPACE,
+		KEYCODE_PGUP,
+		KEYCODE_PGDN,
+		KEYCODE_END,
+		KEYCODE_HOME,
+		KEYCODE_LEFT,
+		KEYCODE_UP,
+		KEYCODE_RIGHT,
+		KEYCODE_DOWN,
+		KEYCODE_SELECT,
+		KEYCODE_PRINT,
+		KEYCODE_EXECUTE,
+		KEYCODE_PRINT_SCREEN,
+		KEYCODE_INSERT,
+		KEYCODE_DELETE,
+		KEYCODE_HELP,
+		KEYCODE_NUMPAD0,
+		KEYCODE_NUMPAD1,
+		KEYCODE_NUMPAD2,
+		KEYCODE_NUMPAD3,
+		KEYCODE_NUMPAD4,
+		KEYCODE_NUMPAD5,
+		KEYCODE_NUMPAD6,
+		KEYCODE_NUMPAD7,
+		KEYCODE_NUMPAD8,
+		KEYCODE_NUMPAD9,
+		KEYCODE_SEPARATOR,
+		KEYCODE_SUBTRACT,
+		KEYCODE_DECIMAL,
+		KEYCODE_DIVIDE,
+		KEYCODE_F1,
+		KEYCODE_F2,
+		KEYCODE_F3,
+		KEYCODE_F4,
+		KEYCODE_F5,
+		KEYCODE_F6,
+		KEYCODE_F7,
+		KEYCODE_F8,
+		KEYCODE_F9,
+		KEYCODE_F10,
+		KEYCODE_F11,
+		KEYCODE_F12,
+		KEYCODE_F13,
+		KEYCODE_F14,
+		KEYCODE_F15,
+		KEYCODE_F16,
+		KEYCODE_F17,
+		KEYCODE_F18,
+		KEYCODE_F19,
+		KEYCODE_F20,
+		KEYCODE_F21,
+		KEYCODE_F22,
+		KEYCODE_F23,
+		KEYCODE_F24,
+		KEYCODE_NUMLOCK,
+		KEYCODE_SCROLL,
+		KEYCODE_LSHIFT,
+		KEYCODE_RSHIFT,
+		KEYCODE_LCONTROL,
+		KEYCODE_RCONTROL,
+		KEYCODE_LMENU,
+		KEYCODE_RMENU,
+		KEYCODE_PLAY,
+		KEYCODE_ZOOM
+	};
+
 	BcU16			KeyCode_;			///!< Key code.
+	BcU16			ScanCode_;			///!< Scan code.
+	BcU16			AsciiCode_;			///!< ASCII code.
 };
 
 ////////////////////////////////////////////////////////////////////////////////

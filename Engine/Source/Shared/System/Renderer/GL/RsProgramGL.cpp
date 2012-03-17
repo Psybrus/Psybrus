@@ -45,26 +45,24 @@ void RsProgramGL::create()
 	GLuint Handle = glCreateProgram();
 	BcAssert( Handle != 0 );
 
-	// Set handle.
-	setHandle( Handle );
-
 	// Attach shaders.
 	glAttachShader( Handle, pVertexShader_->getHandle< GLuint >() );
 	glAttachShader( Handle, pFragmentShader_->getHandle< GLuint >() );
 	
 	// Bind default vertex attributes.
-	bindAttribute( rsVC_POSITION,		"aPosition" );
-	bindAttribute( rsVC_NORMAL,			"aNormal" );
-	bindAttribute( rsVC_TANGENT,		"aTangent" );
-	bindAttribute( rsVC_TEXCOORD0,		"aTexCoord0" );
-	bindAttribute( rsVC_TEXCOORD1,		"aTexCoord1" );
-	bindAttribute( rsVC_TEXCOORD2,		"aTexCoord2" );
-	bindAttribute( rsVC_TEXCOORD3,		"aTexCoord3" );
-	bindAttribute( rsVC_COLOUR,			"aColour" );
-
+	bindAttribute( Handle, rsVC_POSITION,		"aPosition" );
+	bindAttribute( Handle, rsVC_NORMAL,			"aNormal" );
+	bindAttribute( Handle, rsVC_TANGENT,		"aTangent" );
+	bindAttribute( Handle, rsVC_TEXCOORD0,		"aTexCoord0" );
+	bindAttribute( Handle, rsVC_TEXCOORD1,		"aTexCoord1" );
+	bindAttribute( Handle, rsVC_TEXCOORD2,		"aTexCoord2" );
+	bindAttribute( Handle, rsVC_TEXCOORD3,		"aTexCoord3" );
+	bindAttribute( Handle, rsVC_COLOUR,			"aColour" );
+	
 	// Link program.
 	glLinkProgram( Handle );	
-	
+
+
 	// Catch error.
 	RsGLCatchError;
 	
@@ -97,7 +95,9 @@ void RsProgramGL::create()
 	
 	// Catch error.
 	RsGLCatchError;
-}
+	
+	// Set handle.
+	setHandle( Handle );}
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
@@ -231,11 +231,9 @@ void RsProgramGL::bind( void* pParameterBuffer )
 
 ////////////////////////////////////////////////////////////////////////////////
 // bindAttribute
-void RsProgramGL::bindAttribute( eRsVertexChannel Channel, const BcName& Name )
+void RsProgramGL::bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcName& Name )
 {
-	GLuint Handle = getHandle< GLuint >();
-	
-	glBindAttribLocation( Handle, Channel, (*Name).c_str() );
+	glBindAttribLocation( ProgramHandle, Channel, (*Name).c_str() );
 	if( glGetError() != GL_NO_ERROR )
 	{
 		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", (*Name).c_str() );

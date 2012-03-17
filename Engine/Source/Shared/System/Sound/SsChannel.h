@@ -58,8 +58,11 @@ public:
 	void pitch( BcF32 Pitch );
 	BcF32 pitch() const;
 
-	void minDistance( BcF32 MinDistance );
-	BcF32 minDistance() const;
+	void refDistance( BcF32 Distance );
+	BcF32 refDistance() const;
+
+	void maxDistance( BcF32 Distance );
+	BcF32 maxDistance() const;
 
 	void rolloffFactor( BcF32 RolloffFactor );
 	BcF32 rolloffFactor() const;
@@ -69,27 +72,24 @@ public:
 
 	virtual void stop( BcBool ReleaseCallback = BcFalse ) = 0;
 
+	void setDefaults();
+
 protected:
 	SsChannelCallback*	pCallback_;
 
 	BcF32				Gain_;
 	BcF32				Pitch_;
-	BcF32				MinDistance_;
+	BcF32				RefDistance_;
+	BcF32				MaxDistance_;
 	BcF32				RolloffFactor_;
 	BcVec3d				Position_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline SsChannel::SsChannel():
-	pCallback_( NULL ),
-	Gain_( 1.0f ),
-	Pitch_( 1.0f ),
-	MinDistance_( 1.0f ),
-	RolloffFactor_( 0.05f ),
-	Position_( BcVec3d( 0.0f, 0.0f, 0.0f ) )
+inline SsChannel::SsChannel()
 {
-
+	setDefaults();
 }
 
 inline SsChannel::~SsChannel()
@@ -122,14 +122,24 @@ inline BcF32 SsChannel::pitch() const
 	return Pitch_;
 }
 
-inline void SsChannel::minDistance( BcF32 MinDistance )
+inline void SsChannel::refDistance( BcF32 Distance )
 {
-	MinDistance_ = MinDistance;
+	RefDistance_ = Distance;
 }
 
-inline BcF32 SsChannel::minDistance() const
+inline BcF32 SsChannel::refDistance() const
 {
-	return MinDistance_;
+	return RefDistance_;
+}
+
+inline void SsChannel::maxDistance( BcF32 Distance )
+{
+	MaxDistance_ = Distance;
+}
+
+inline BcF32 SsChannel::maxDistance() const
+{
+	return MaxDistance_;
 }
 
 inline void SsChannel::rolloffFactor( BcF32 RolloffFactor )
@@ -150,6 +160,17 @@ inline void SsChannel::position( const BcVec3d& Position )
 inline const BcVec3d& SsChannel::position() const
 {
 	return Position_;
+}
+
+inline void SsChannel::setDefaults()
+{
+	pCallback_ = NULL;
+	Gain_ = 1.0f;
+	Pitch_ = 1.0f;
+	RefDistance_ = 5.0f;
+	MaxDistance_ = 100.0f;
+	RolloffFactor_ = 1.0f;
+	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
 }
 
 

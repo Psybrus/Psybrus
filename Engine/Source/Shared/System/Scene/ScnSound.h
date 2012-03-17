@@ -54,11 +54,14 @@ protected:
 		BcU32							SampleRate_;
 		BcU32							Channels_;
 		BcBool							Looping_;
+		BcBool							IsOgg_;
 	};
 	
 	THeader*							pHeader_;
 	void*								pSampleData_;
 	BcU32								SampleDataSize_;
+
+	// Ogg stuff.
 };
 
 

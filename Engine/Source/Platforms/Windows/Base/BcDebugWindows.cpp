@@ -53,6 +53,9 @@ BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, B
 			break;
 	}
 
+	// Log.
+	BcPrintf( "%s: %s\n", pTitle, pMessage );
+
 	// TODO: HWND!
 	int RetVal = ::MessageBoxA( NULL, pMessage, pTitle, MBType );
 

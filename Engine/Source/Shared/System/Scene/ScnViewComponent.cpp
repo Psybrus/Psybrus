@@ -147,7 +147,9 @@ BcBool ScnViewComponent::isReady()
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialComponent )
 {
 	BcU32 ClipTransform = MaterialComponent->findParameter( "uClipTransform" );
+	BcU32 ViewTransform = MaterialComponent->findParameter( "uViewTransform" );
 	MaterialComponent->setParameter( ClipTransform, Viewport_.view() * Viewport_.projection() );
+	MaterialComponent->setParameter( ViewTransform, Viewport_.view() );
 }
 
 //////////////////////////////////////////////////////////////////////////

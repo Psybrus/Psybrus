@@ -98,6 +98,8 @@ BcBool SysSystem::process()
 	
 	// Store last tick time.
 	LastTickTime_ = PerfTimer_.time();
+
+	BcAssert( LastTickTime_ >= 0.0f );
 	
 	//BcPrintf( "System %p time: %f ms\n", this, LastTickTime_ * 1000.0f );
 	
@@ -108,6 +110,9 @@ BcBool SysSystem::process()
 // processOpen
 BcBool SysSystem::processOpen()
 {
+	BcPrintf( "============================================================================\n" );
+	BcPrintf( "SysSystem (%s @ 0x%p) open:\n", (*Name_).c_str(), this );
+
 	// Pre-open event.
 	EvtPublisher::publish( sysEVT_SYSTEM_PRE_OPEN, SysSystemEvent( this ) );
 
@@ -126,7 +131,7 @@ BcBool SysSystem::processOpen()
 	{
 		ProcessState_ = STATE_CLOSE;
 	}
-	
+
 	return BcTrue;
 }
 
@@ -156,6 +161,9 @@ BcBool SysSystem::processUpdate()
 // processClose
 BcBool SysSystem::processClose()
 {
+	BcPrintf( "============================================================================\n" );
+	BcPrintf( "SysSystem (%s @ 0x%p) close:\n", (*Name_).c_str(), this );
+
 	// Pre-close event.
 	EvtPublisher::publish( sysEVT_SYSTEM_PRE_CLOSE, SysSystemEvent( this ) );
 
@@ -167,7 +175,7 @@ BcBool SysSystem::processClose()
 
 	// Advance to finished.
 	ProcessState_ = STATE_FINISHED;
-	
+
 	//
 	return BcTrue;	
 }
@@ -180,3 +188,10 @@ BcBool SysSystem::processFinished()
 	return BcFalse;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// setName
+void SysSystem::setName( const BcName& Name )
+{
+	Name_ = Name;
+}

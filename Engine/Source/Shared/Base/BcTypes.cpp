@@ -20,14 +20,14 @@
 void BcTypes_UnitTest()
 {
 	// TODO: Move this into a types unit test.
-	BcAssert( sizeof( BcU8 ) == 1 );
-	BcAssert( sizeof( BcS8 ) == 1 );
-	BcAssert( sizeof( BcU16 ) == 2 );
-	BcAssert( sizeof( BcS16 ) == 2 );
-	BcAssert( sizeof( BcU32 ) == 4 );
-	BcAssert( sizeof( BcS32 ) == 4 );
-	BcAssert( sizeof( BcU64 ) == 8 );
-	BcAssert( sizeof( BcS64 ) == 8 );
-	BcAssert( sizeof( BcF32 ) == 4 );
-	BcAssert( sizeof( BcF64 ) == 8 );
+	BcUnitTest( sizeof( BcU8 ) == 1 );
+	BcUnitTest( sizeof( BcS8 ) == 1 );
+	BcUnitTest( sizeof( BcU16 ) == 2 );
+	BcUnitTest( sizeof( BcS16 ) == 2 );
+	BcUnitTest( sizeof( BcU32 ) == 4 );
+	BcUnitTest( sizeof( BcS32 ) == 4 );
+	BcUnitTest( sizeof( BcU64 ) == 8 );
+	BcUnitTest( sizeof( BcS64 ) == 8 );
+	BcUnitTest( sizeof( BcF32 ) == 4 );
+	BcUnitTest( sizeof( BcF64 ) == 8 );
 }

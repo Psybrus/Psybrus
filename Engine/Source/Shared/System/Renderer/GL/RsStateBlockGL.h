@@ -29,7 +29,11 @@ public:
 	
 protected:
 	void							bindAlphaFunc();
+	void							bindStencilFunc();
+	void							bindStencilOp();
 	void							bindBlendMode( eRsBlendingMode BlendMode );
+	void							bindScissor();
+
 	
 };
 

@@ -16,6 +16,7 @@
 
 #include "BcTypes.h"
 #include "BcDebug.h"
+#include "BcName.h"
 #include "BcTimer.h"
 #include "BcMisc.h"
 
@@ -147,6 +148,9 @@ private:
 	BcBool						processFinished();
 	
 private:
+	friend class SysKernel;
+
+	void						setName( const BcName& Name );
 
 private:
 	enum eProcessState
@@ -159,6 +163,7 @@ private:
 		STATE_MAX
 	};
 	
+	BcName						Name_;
 	SysKernel*					pKernel_;								///!< Parent kernel.
 	eProcessState				ProcessState_;							///!< State we're in.
 	BcBool						StopTriggered_;							///!< Has a stop been triggered?

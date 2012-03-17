@@ -26,6 +26,9 @@ BcU32 GResolutionHeight = 720;
 // MainUnitTests
 void MainUnitTests()
 {
+	BcPrintf( "============================================================================\n" );
+	BcPrintf( "MainUnitTests:\n" );
+
 	// Types unit test.
 	extern void BcTypes_UnitTest();
 	BcTypes_UnitTest();
@@ -113,13 +116,10 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 // MainShared
 void MainShared()
 {
-	// HACK: Append a space to sys args for find to work.
-	SysArgs_ += " ";
-
 	// Setup system threads.
 	FsCore::WORKER_MASK = 0x1;
 	RsCore::WORKER_MASK = 0x2;
-	SsCore::WORKER_MASK = 0x4;
+	SsCore::WORKER_MASK = 0x0;
 
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
@@ -161,6 +161,19 @@ void MainShared()
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
+
+	// Log kernel information.
+	BcPrintf( "============================================================================\n" );
+	BcPrintf( "MainShared:\n" );
+	BcPrintf( " - Command line: %s\n", SysArgs_.c_str() );
+	BcPrintf( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
+	BcPrintf( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
+	BcPrintf( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );
+	BcPrintf( " - SysKernel::SYSTEM_WORKER_MASK: 0x%x\n", SysKernel::SYSTEM_WORKER_MASK );
+	BcPrintf( " - SysKernel::USER_WORKER_MASK: 0x%x\n", SysKernel::USER_WORKER_MASK );
+	BcPrintf( " - FsCore::WORKER_MASK: 0x%x\n", FsCore::WORKER_MASK );
+	BcPrintf( " - RsCore::WORKER_MASK: 0x%x\n", RsCore::WORKER_MASK );
+	BcPrintf( " - SsCore::WORKER_MASK: 0x%x\n", SsCore::WORKER_MASK );
 
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
