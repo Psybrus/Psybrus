@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Production|Win32">
+      <Configuration>Production</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3725388A-60D5-4B53-A68D-63F36725DBB7}</ProjectGuid>
+    <RootNamespace>TestBed</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Production|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Production|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)../../Dist\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../../Dist\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Production|Win32'">$(SolutionDir)../../Dist\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Production|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Production|Win32'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;WINDOWS;_WINDOWS;PSY_DEBUG;PSY_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(ProjectName)_$(Configuration).exe</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;WINDOWS;_WINDOWS;PSY_RELEASE;PSY_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(ProjectName)_$(Configuration).exe</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Production|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;WINDOWS;_WINDOWS;PSY_PRODUCTION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(ProjectName)_$(Configuration).exe</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\GaPhysicsBody.cpp" />
+    <ClCompile Include="..\..\Source\MainGame.cpp" />
+    <ClCompile Include="..\..\Source\GaFoodComponent.cpp" />
+    <ClCompile Include="..\..\Source\GaGameComponent.cpp" />
+    <ClCompile Include="..\..\Source\GaLayeredSpriteComponent.cpp" />
+    <ClCompile Include="..\..\Source\GaPlayerComponent.cpp" />
+    <ClCompile Include="..\..\Source\GaSwarmComponent.cpp" />
+    <ClCompile Include="..\..\Source\GaBaseGameState.cpp" />
+    <ClCompile Include="..\..\Source\GaMainGameState.cpp" />
+    <ClCompile Include="..\..\Source\GaOverlayState.cpp" />
+    <ClCompile Include="..\..\Source\GaTopState.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\GaPhysicsBody.h" />
+    <ClInclude Include="..\..\Source\GaFoodComponent.h" />
+    <ClInclude Include="..\..\Source\GaGameComponent.h" />
+    <ClInclude Include="..\..\Source\GaLayeredSpriteComponent.h" />
+    <ClInclude Include="..\..\Source\GaPlayerComponent.h" />
+    <ClInclude Include="..\..\Source\GaSwarmComponent.h" />
+    <ClInclude Include="..\..\Source\GaBaseGameState.h" />
+    <ClInclude Include="..\..\Source\GaMainGameState.h" />
+    <ClInclude Include="..\..\Source\GaOverlayState.h" />
+    <ClInclude Include="..\..\Source\GaTopState.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Engine\Build\Windows\PsybrusWindows.vcxproj">
+      <Project>{fccb24f4-0727-4d4a-83f7-4d7c3f709bd3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
