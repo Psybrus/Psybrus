@@ -138,7 +138,7 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 	if( MaterialComponent_ != MaterialComponent )
 	{
 		// Ensure the material component is attached to an entity (doesn't have to be the same as us)
-		BcAssertMsg( MaterialComponent->isAttached() == BcTrue, "Material component is not attached to an entity! Can't use." );
+		BcAssertMsg( MaterialComponent->isAttached() == BcTrue, "Material component \"%s\" (Parent \"%s\") is not attached to an entity! Can't use.", (*MaterialComponent->getName()).c_str(),(*MaterialComponent->getMaterial()->getName()).c_str() );
 
 		// Cache and grab diffuse parameter.
 		static BcName NameDiffuseTex( "aDiffuseTex" );
