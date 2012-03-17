@@ -863,9 +863,6 @@
     <ClCompile Include="..\..\..\External\enet\callbacks.c">
       <Filter>External\enet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\External\enet\compress.c">
-      <Filter>External\enet</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\External\enet\host.c">
       <Filter>External\enet</Filter>
     </ClCompile>
@@ -1027,6 +1024,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\External\Box2D_v2.2.1\Box2D\Dynamics\b2WorldCallbacks.cpp">
       <Filter>External\box2d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\External\enet\enet_compress.c">
+      <Filter>External\enet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
