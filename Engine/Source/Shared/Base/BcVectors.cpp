@@ -13,6 +13,23 @@
 
 #include "BcVectors.h"
 
+#include "BcString.h"
+
+BcVec2d::BcVec2d( const BcChar* pString )
+{
+	BcSScanf( pString, "%f,%f", &X_, &Y_ );
+}
+
+BcVec3d::BcVec3d( const BcChar* pString )
+{
+	BcSScanf( pString, "%f,%f,%f", &X_, &Y_, &Z_ );
+}
+
+BcVec4d::BcVec4d( const BcChar* pString )
+{
+	BcSScanf( pString, "%f,%f,%f,%f", &X_, &Y_, &Z_, &W_ );
+}
+
 void BcVec2d::lerp(const BcVec2d& A, const BcVec2d& B, BcReal T)
 {
 	const BcReal lK0 = 1.0f - T;

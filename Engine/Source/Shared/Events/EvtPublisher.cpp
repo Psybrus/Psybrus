@@ -17,7 +17,7 @@
 // Ctor
 EvtPublisher::EvtPublisher()
 {
-	
+	pParent_ = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,8 +29,40 @@ EvtPublisher::~EvtPublisher()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// EvtPublisher::unsubscribe
+void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
+{
+	UnsubscribeByOwnerList_.push_back( TOwnerPair( ID, pOwner ) );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// unsubscribeAll
+void EvtPublisher::unsubscribeAll( void* pOwner )
+{
+	for( TBindingListMapIterator BindingListMapIterator = BindingListMap_.begin(); BindingListMapIterator != BindingListMap_.end(); ++BindingListMapIterator )
+	{
+		unsubscribeByOwner( BindingListMapIterator->first, pOwner );
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// clearParent
+void EvtPublisher::clearParent()
+{
+	pParent_ = NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setParent
+void EvtPublisher::setParent( EvtPublisher* pParent )
+{
+	BcAssert( pParent_ == NULL );
+	pParent_ = pParent;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // publishInternal
-void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
 	BcAssert( BcIsGameThread() );
 	BcUnusedVar( EventSize );
@@ -49,42 +81,56 @@ void EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcS
 	// Update binding map before going ahead.
 	updateBindingMap();
 	
-	// Find the appropriate binding list.
-	TBindingListMapIterator BindingListMapIterator = BindingListMap_.find( ID );
+	// If we have a parent, publish to them first.
+	BcBool ShouldPublish = BcTrue;
 	
-	// Add list if we need to, and grab iterator.
-	if( BindingListMapIterator != BindingListMap_.end() )
+	if( pParent_ != NULL )
 	{
-		// Iterate over all bindings in list and call.
-		TBindingList& BindingList = BindingListMapIterator->second;
-		TBindingListIterator Iter = BindingList.begin();
+		ShouldPublish = pParent_->publishInternal( ID, EventBase, EventSize );
+	}
+
+	// Only publish if the previous call to our parent allows us to.
+	if( ShouldPublish == BcTrue )
+	{
+		// Find the appropriate binding list.
+		TBindingListMapIterator BindingListMapIterator = BindingListMap_.find( ID );
 		
-		while( Iter != BindingList.end() )
+		// Add list if we need to, and grab iterator.
+		if( BindingListMapIterator != BindingListMap_.end() )
 		{
-			EvtBinding& Binding = (*Iter);
+			// Iterate over all bindings in list and call.
+			TBindingList& BindingList = BindingListMapIterator->second;
+			TBindingListIterator Iter = BindingList.begin();
 			
-			// Call binding and handle it's return.
-			eEvtReturn RetVal = Binding( ID, EventBase );
-			switch( RetVal )
+			while( Iter != BindingList.end() )
 			{
-				case evtRET_PASS:
-					++Iter;
-					break;
+				EvtBinding& Binding = (*Iter);
+				
+				// Call binding and handle it's return.
+				eEvtReturn RetVal = Binding( ID, EventBase );
+				switch( RetVal )
+				{
+					case evtRET_PASS:
+						++Iter;
+						break;
 
-				case evtRET_BLOCK:
-					return;
-					break;
+					case evtRET_BLOCK:
+						return BcFalse;
+						break;
 
-				case evtRET_REMOVE:
-					Iter = BindingList.erase( Iter );
-					break;
-					
-				default:
-					BcBreakpoint;
-					break;
+					case evtRET_REMOVE:
+						Iter = BindingList.erase( Iter );
+						break;
+						
+					default:
+						BcBreakpoint;
+						break;
+				}
 			}
 		}
 	}
+
+	return BcTrue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,8 +182,8 @@ void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// unsubscribe
-void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
+// unsubscribeByOwner
+void EvtPublisher::unsubscribeByOwner( EvtID ID, void* pOwner )
 {
 	// Find the appropriate binding list.
 	TBindingListMapIterator BindingListMapIterator = BindingListMap_.find( ID );
@@ -163,29 +209,25 @@ void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// unsubscribeAll
-void EvtPublisher::unsubscribeAll( void* pOwner )
-{
-	for( TBindingListMapIterator BindingListMapIterator = BindingListMap_.begin(); BindingListMapIterator != BindingListMap_.end(); ++BindingListMapIterator )
-	{
-		unsubscribe( BindingListMapIterator->first, pOwner );
-	}
-}
-
 //////////////////////////////////////////////////////////////////////////
 // updateBindingMap
 void EvtPublisher::updateBindingMap()
 {
-	// Subscribe
+	// Subscribe.
 	for( TBindingPairListIterator Iter = SubscribeList_.begin(); Iter != SubscribeList_.end(); Iter = SubscribeList_.erase( Iter ) )
 	{
 		subscribeInternal( Iter->first, Iter->second );
 	}
 
-	// Unsubscribe
+	// Unsubscribe.
 	for( TBindingPairListIterator Iter = UnsubscribeList_.begin(); Iter != UnsubscribeList_.end(); Iter = UnsubscribeList_.erase( Iter ) )
 	{
 		unsubscribeInternal( Iter->first, Iter->second );
+	}
+
+	// Unsubscribe by owner.
+	for( TOwnerPairListIterator Iter = UnsubscribeByOwnerList_.begin(); Iter != UnsubscribeByOwnerList_.end(); Iter = UnsubscribeByOwnerList_.erase( Iter ) )
+	{
+		unsubscribeByOwner( Iter->first, Iter->second );
 	}
 }

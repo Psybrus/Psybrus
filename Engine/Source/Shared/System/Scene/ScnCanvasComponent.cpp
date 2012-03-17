@@ -54,7 +54,6 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef
 	
 	// Store default material instance.
 	DefaultMaterialComponent_ = DefaultMaterialComponent; 
-	MaterialComponent_ = DefaultMaterialComponent_;
 
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
@@ -120,8 +119,15 @@ BcBool ScnCanvasComponent::isReady()
 			return BcFalse;
 		}
 	}
-
+	
 	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnCanvasComponent::getMaterialComponent()
+{
+	return MaterialComponent_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -253,6 +259,34 @@ void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB,
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->RGBA_ = RGBA;
+
+		// Add primitive.	
+		addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawLine3d
+void ScnCanvasComponent::drawLine3d( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer )
+{
+	ScnCanvasComponentVertex* pVertices = allocVertices( 2 );
+	ScnCanvasComponentVertex* pFirstVertex = pVertices;
+	
+	// Only draw if we can allocate vertices.
+	if( pVertices != NULL )
+	{
+		// Now copy in data.
+		BcU32 RGBA = Colour.asABGR();
+		
+		pVertices->X_ = PointA.x();
+		pVertices->Y_ = PointA.y();
+		pVertices->Z_ = PointA.z();
+		pVertices->RGBA_ = RGBA;
+		++pVertices;
+		pVertices->X_ = PointB.x();
+		pVertices->Y_ = PointB.y();
+		pVertices->Z_ = PointB.z();
 		pVertices->RGBA_ = RGBA;
 
 		// Add primitive.	
@@ -691,6 +725,7 @@ void ScnCanvasComponent::clear()
 
 	// Set vertices up.
 	pVertices_ = pVerticesEnd_ = pRenderResource_->pVertices_;
+	pVerticesEnd_ += NoofVertices_;
 	VertexIndex_ = 0;
 	
 	// Empty primitive sections.
@@ -803,6 +838,8 @@ void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 //virtual
 void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	Parent->attach( DefaultMaterialComponent_ );
+
 	Super::onAttach( Parent );	
 }
 
@@ -812,4 +849,6 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+
+	Parent->detach( DefaultMaterialComponent_ );
 }

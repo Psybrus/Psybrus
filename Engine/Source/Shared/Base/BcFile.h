@@ -36,10 +36,11 @@ public:
 	void close();
 		
 	BcU32 size() const;
+	BcBool isOpen() const;
 	BcBool eof();
 
 	void flush();
-
+	
 	// Sync
 	BcU32 tell();
 	void seek( BcU32 Position );
@@ -62,6 +63,11 @@ private:
 inline BcU32 BcFile::size() const
 {
 	return FileSize_;
+}
+
+inline BcBool BcFile::isOpen() const
+{
+	return FileHandle_ != NULL;
 }
 
 #endif

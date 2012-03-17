@@ -152,7 +152,7 @@ RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
 		BcU32* pTextureData = (BcU32*)pTextureData_;
 		BcU32 Index = X + Y * pHeader_->Width_;
 		BcU32 Texel = pTextureData[ Index ] ;
-		return RsColour( Texel );
+		return RsColour( Texel ); // invalid. need to fix.
 	}
 	
 	return RsColour( 0.0f, 0.0f, 0.0f, 0.0f );

@@ -113,8 +113,9 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 	FT_Library	Library;
 	FT_Face		Face;
 	
+	BcU32 OriginalNominalSize = Object[ "nominalsize" ].asInt();
 	BcBool DistanceField = Object[ "distancefield" ].asBool();
-	BcU32 NominalSize = Object[ "nominalsize" ].asInt() * ( DistanceField ? 8 : 1 );
+	BcU32 NominalSize = OriginalNominalSize * ( DistanceField ? 8 : 1 );
 	BcU32 BorderSize = DistanceField ? Object[ "spread" ].asInt(): 1;
 	
 	int Error;
@@ -282,7 +283,8 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 						THeader Header;
 						
 						Header.NoofGlyphs_ = GlyphDescList.size();
-						BcStrCopyN( Header.TextureName_, FontTextureName.c_str(), sizeof( Header.TextureName_ ) );
+						Header.TextureName_ = pFile_->addString( FontTextureName.c_str() );
+						Header.NominalSize_ = (BcReal)OriginalNominalSize;
 
 						HeaderStream << Header;
 						
@@ -427,7 +429,7 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* p
 		getChunk( ++ChunkIdx );
 		
 		// Request texture.
-		CsCore::pImpl()->requestResource( pHeader_->TextureName_, Texture_ );
+		CsCore::pImpl()->requestResource( getString( pHeader_->TextureName_ ), Texture_ );
 	}
 	else if( pChunk->ID_ == BcHash( "glyphs" ) )
 	{
@@ -468,13 +470,26 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 			MaterialComponent_->setTexture( Parameter, Parent_->Texture_ );
 		}
 	}
+
+	// Disable clipping.
+	setClipping( BcFalse );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setClipping
+void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
+{
+	ClippingEnabled_ = Enabled;
+	ClipMin_ = Min;
+	ClipMax_ = Max;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string& String, BcBool SizeRun )
+BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun )
 {
 	// Cached elements from parent.
+	ScnFont::THeader* pHeader = Parent_->pHeader_;
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
 	ScnFont::TGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	
@@ -493,11 +508,13 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string&
 	BcReal AdvanceX = 0.0f;
 	BcReal AdvanceY = 0.0f;
 		
-	BcU32 RGBA = 0xffffffff;
+	BcU32 RGBA = Colour.asABGR();
 
-	BcVec2d MinSize( 1e16f, 1e16f );
-	BcVec2d MaxSize( -1e16f, -1e16f );
+	BcVec2d MinSize( Position );
+	BcVec2d MaxSize( Position );
 	
+	BcBool FirstCharacterOnLine = BcTrue;
+
 	// TODO: UTF-8 support.
 	if( pFirstVert != NULL || SizeRun == BcTrue )
 	{
@@ -509,7 +526,8 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string&
 			if( CharCode == '\n' )
 			{
 				AdvanceX = 0.0f;
-				AdvanceY += 16.0f; // TODO: Take from header.
+				AdvanceY += pHeader->NominalSize_;
+				FirstCharacterOnLine = BcTrue;
 			}
 			
 			// Find glyph.
@@ -518,63 +536,116 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const std::string&
 			if( Iter != CharCodeMap.end() )
 			{
 				ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
-				
-				const BcReal X1 = AdvanceX + pGlyph->OffsetX_;
-				const BcReal Y1 = AdvanceY - pGlyph->OffsetY_;
-				const BcReal X2 = X1 + pGlyph->Width_;
-				const BcReal Y2 = Y1 + pGlyph->Height_;
 
-				MinSize.x( BcMin( MinSize.x(), X1 ) );
-				MinSize.y( BcMin( MinSize.y(), Y1 ) );
-				MaxSize.x( BcMax( MaxSize.x(), X1 ) );
-				MaxSize.y( BcMax( MaxSize.y(), Y1 ) );
+				// Bring first character back to the left so it sits on the cursor.
+				if( FirstCharacterOnLine )
+				{
+					AdvanceX -= pGlyph->OffsetX_;
+					//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
+					FirstCharacterOnLine = BcFalse;
+				}
 				
-				MinSize.x( BcMin( MinSize.x(), X2 ) );
-				MinSize.y( BcMin( MinSize.y(), Y2 ) );
-				MaxSize.x( BcMax( MaxSize.x(), X2 ) );
-				MaxSize.y( BcMax( MaxSize.y(), Y2 ) );
+				// Calculate size and UVs.
+				BcVec2d Size( BcVec2d( pGlyph->Width_, pGlyph->Height_ ) );
+				BcVec2d CornerMin( Position + BcVec2d( AdvanceX + pGlyph->OffsetX_, AdvanceY - pGlyph->OffsetY_ + pHeader->NominalSize_ ) );
+				BcVec2d CornerMax( CornerMin + Size );
+				BcReal U0 = pGlyph->UA_;
+				BcReal V0 = pGlyph->VA_;
+				BcReal U1 = pGlyph->UB_;
+				BcReal V1 = pGlyph->VB_;
+				
+				// Pre-clipping size.
+				MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
+				MinSize.y( BcMin( MinSize.y(), CornerMin.y() ) );
+				MaxSize.x( BcMax( MaxSize.x(), CornerMin.x() ) );
+				MaxSize.y( BcMax( MaxSize.y(), CornerMin.y() ) );
+				MinSize.x( BcMin( MinSize.x(), CornerMax.x() ) );
+				MinSize.y( BcMin( MinSize.y(), CornerMax.y() ) );
+				MaxSize.x( BcMax( MaxSize.x(), CornerMax.x() ) );
+				MaxSize.y( BcMax( MaxSize.y(), CornerMax.y() ) );
+
+				// Draw if not a size run.
 				if( SizeRun == BcFalse )
 				{
+					if ( ClippingEnabled_ )
+					{
+						if ( ( CornerMax.x() < ClipMin_.x() ) || ( CornerMin.x() > ClipMax_.x() ) || ( CornerMax.y() < ClipMin_.y() ) || ( CornerMin.y() > ClipMax_.y() ) )
+						{
+							// Advance.
+							AdvanceX += pGlyph->AdvanceX_;
+
+							// Next character.
+							continue;
+						}
+
+						BcReal TexWidth = U1 - U0;
+						BcReal TexHeight = V1 - V0;
+
+						if ( CornerMin.x() < ClipMin_.x() )
+						{
+							U0 -= ( ( CornerMin.x() - ClipMin_.x() ) / Size.x() ) * TexWidth;
+							CornerMin.x( ClipMin_.x() );
+						}
+
+						if ( CornerMax.x() > ClipMax_.x() )
+						{
+							U1 -= ( ( CornerMax.x() - ClipMax_.x() ) / Size.x() ) * TexWidth;
+							CornerMax.x( ClipMax_.x() );
+						}
+
+						if ( CornerMin.y() < ClipMin_.y() )
+						{
+							V0 -= ( ( CornerMin.y() - ClipMin_.y() ) / Size.y() ) * TexHeight;
+							CornerMin.y( ClipMin_.y() );
+						}
+
+						if ( CornerMax.y() > ClipMax_.y() )
+						{
+							V1 -= ( ( CornerMax.y() - ClipMax_.y() ) / Size.y() ) * TexHeight;
+							CornerMax.y( ClipMax_.y() );
+						}
+					}
+
 					// Add triangle for character.
-					pVert->X_ = X1;
-					pVert->Y_ = Y1;
-					pVert->U_ = pGlyph->UA_;
-					pVert->V_ = pGlyph->VA_;
+					pVert->X_ = CornerMin.x();
+					pVert->Y_ = CornerMin.y();
+					pVert->U_ = U0;
+					pVert->V_ = V0;
 					pVert->RGBA_ = RGBA;
 					++pVert;
 					
-					pVert->X_ = X2;
-					pVert->Y_ = Y1;
-					pVert->U_ = pGlyph->UB_;
-					pVert->V_ = pGlyph->VA_;
+					pVert->X_ = CornerMax.x();
+					pVert->Y_ = CornerMin.y();
+					pVert->U_ = U1;
+					pVert->V_ = V0;
 					pVert->RGBA_ = RGBA;
 					++pVert;
 					
-					pVert->X_ = X1;
-					pVert->Y_ = Y2;
-					pVert->U_ = pGlyph->UA_;
-					pVert->V_ = pGlyph->VB_;
+					pVert->X_ = CornerMin.x();
+					pVert->Y_ = CornerMax.y();
+					pVert->U_ = U0;
+					pVert->V_ = V1;
 					pVert->RGBA_ = RGBA;
 					++pVert;
 					
-					pVert->X_ = X2;
-					pVert->Y_ = Y1;
-					pVert->U_ = pGlyph->UB_;
-					pVert->V_ = pGlyph->VA_;
+					pVert->X_ = CornerMax.x();
+					pVert->Y_ = CornerMin.y();
+					pVert->U_ = U1;
+					pVert->V_ = V0;
 					pVert->RGBA_ = RGBA;
 					++pVert;
 					
-					pVert->X_ = X2;
-					pVert->Y_ = Y2;
-					pVert->U_ = pGlyph->UB_;
-					pVert->V_ = pGlyph->VB_;
+					pVert->X_ = CornerMax.x();
+					pVert->Y_ = CornerMax.y();
+					pVert->U_ = U1;
+					pVert->V_ = V1;
 					pVert->RGBA_ = RGBA;
 					++pVert;
 					
-					pVert->X_ = X1;
-					pVert->Y_ = Y2;
-					pVert->U_ = pGlyph->UA_;
-					pVert->V_ = pGlyph->VB_;
+					pVert->X_ = CornerMin.x();
+					pVert->Y_ = CornerMax.y();
+					pVert->U_ = U0;
+					pVert->V_ = V1;
 					pVert->RGBA_ = RGBA;
 					++pVert;
 

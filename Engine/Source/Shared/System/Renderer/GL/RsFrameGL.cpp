@@ -260,7 +260,7 @@ void RsFrameGL::setViewport( const RsViewport& Viewport )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addInstance
+// addRenderNode
 void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 {
 	BcAssertMsg( pCurrRenderTarget_ != NULL, "RsFrame: No render target set." );

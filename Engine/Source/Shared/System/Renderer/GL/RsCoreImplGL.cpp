@@ -78,10 +78,45 @@ void RsCoreImplGL::open_threaded()
 	// Init GLee.
 	GLeeInit();
 
+	const BcChar* pVersionString = reinterpret_cast< const BcChar* >( glGetString( GL_VERSION ) );
+	const BcChar* pExtensionString = GLeeGetExtStrGL();
+
+	BcPrintf( " - GLee initialised.\n" );
+	BcPrintf( " - Version: %s\n", pVersionString );
+	BcPrintf( " - Extensions: %s\n", pExtensionString );
+
+	// Frame buffer object.
+	if( !GLEE_ARB_framebuffer_object && !GLEE_EXT_framebuffer_object )
+	{
+		BcMessageBox( "ERROR", "Missing ARB_framebuffer_object or EXT_framebuffer_object extension. Can not continue.", bcMBT_OK, bcMBI_ERROR );
+		exit(1);
+	}
+
+	// GLSL.
+	if( !GLEE_ARB_shader_objects && !GLEE_ARB_vertex_shader && !GLEE_ARB_fragment_shader )
+	{
+		BcMessageBox( "ERROR", "Missing ARB_shader_objects, ARB_vertex_shader and ARB_fragment_shader extensions. Can not continue.", bcMBT_OK, bcMBI_ERROR );
+		exit(1);
+	}
+
+	// Texture compression.
+	if( !GLEE_ARB_texture_compression )
+	{
+		BcMessageBox( "ERROR", "Missing ARB_texture_compression extension. Can not continue.", bcMBT_OK, bcMBI_ERROR );
+		exit(1);
+	}
+
+	// Vertex buffer objects.
+	if( !GLEE_ARB_vertex_buffer_object )
+	{
+		BcMessageBox( "ERROR", "Missing ARB_vertex_buffer_object extension. Can not continue.", bcMBT_OK, bcMBI_ERROR );
+		exit(1);
+	}
+
 	// Framebuffer object extension fix up.
 	if( !GLEE_ARB_framebuffer_object && GLEE_EXT_framebuffer_object )
 	{
-		BcPrintf( "RsCoreImplGL: WORKAROUND: Using EXT_framebuffer_object in place of ARB_framebuffer_object.\n" );
+		BcPrintf( " - WORKAROUND: Using EXT_framebuffer_object in place of ARB_framebuffer_object.\n" );
 
 		glIsRenderbuffer = glIsRenderbufferEXT;
 		glBindRenderbuffer = glBindRenderbufferEXT;
@@ -127,7 +162,7 @@ void RsCoreImplGL::open_threaded()
 		pStateBlock_->bind();
 	
 		// Clear.
-		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+		glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	
 		// Line smoothing.

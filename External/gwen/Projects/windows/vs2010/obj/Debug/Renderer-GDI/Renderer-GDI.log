@@ -1,0 +1,4 @@
+﻿  GDIPlus.cpp
+  GDIPlusBuffered.cpp
+..\..\..\Renderers\GDIPlus\GDIPlus.cpp(130): warning C4482: nonstandard extension used: enum 'Gdiplus::CombineMode' used in qualified name
+  Renderer-GDI.vcxproj -> C:\Dev\GGJGame2012\trunk\External\gwen\Projects\windows\vs2010\..\..\..\lib\windows\GWEN-Renderer-GDI.lib

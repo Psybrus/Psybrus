@@ -331,6 +331,17 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 			// Check vertex & fragment shader for closest permutation.
 			RsShader* pVertexShader = getShader( pProgramHeader->VertexShaderPermutationFlags_, VertexShaderMap_ );
 			RsShader* pFragmentShader = getShader( pProgramHeader->FragmentShaderPermutationFlags_, FragmentShaderMap_ );
+			BcAssertMsg( pVertexShader != NULL, "Vertex shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->VertexShaderPermutationFlags_, (*getName()).c_str() );
+			BcAssertMsg( pFragmentShader != NULL, "Fragment shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->FragmentShaderPermutationFlags_, (*getName()).c_str() );
+
+			// Reenter if we have no valid handle.
+			if( pVertexShader->hasHandle() == BcFalse || pFragmentShader->hasHandle() == BcFalse )
+			{
+				getChunk( ChunkIdx );
+				return;
+			}
+
+			// Create program.
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );			
 			
 			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;

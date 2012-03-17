@@ -53,9 +53,7 @@ void RsShaderGL::create()
 	// Create handle for shader.
 	GLuint Handle = glCreateShader( Type_ );
 	setHandle( Handle );
-	
-	GLuint Error = glGetError();
-	BcUnusedVar( Error );
+	RsGLCatchError;
 	
 	if( Handle != 0 )
 	{
@@ -75,9 +73,11 @@ void RsShaderGL::create()
 				
 				// Load the source code into it.
 				glShaderSource( Handle, 1, (const GLchar**)&pData_, NULL );
+				RsGLCatchError;
 				
 				// Compile the source code.
 				glCompileShader( Handle );
+				RsGLCatchError;
 				
 				// Test if compilation succeeded.
 				GLint ShaderCompiled;
@@ -103,8 +103,10 @@ void RsShaderGL::create()
 	}
 	
 	// Destroy if there is a failure.
-	if ( glGetError() != GL_NO_ERROR )
+	GLenum Error = glGetError();
+	if ( Error != GL_NO_ERROR )
 	{
+		BcPrintf( "RsShaderGL: Error has occured: %u\n", Error );
 		destroy();
 	}
 }

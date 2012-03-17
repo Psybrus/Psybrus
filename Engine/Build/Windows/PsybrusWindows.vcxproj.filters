@@ -1,0 +1,1067 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Platforms">
+      <UniqueIdentifier>{66ffd8bf-c8a5-40ce-abf9-91f57a216253}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\OSX">
+      <UniqueIdentifier>{88deb097-505f-402e-ad83-c038f89cdee3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\OSX\Base">
+      <UniqueIdentifier>{da4f9457-6476-4852-957c-c67e6217ba70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\OSX\File">
+      <UniqueIdentifier>{b01817d5-c521-403d-bc2d-bdd380e9c89b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\OSX\OS">
+      <UniqueIdentifier>{2afa3cdc-4023-4a0f-bede-1e6c1e697545}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\Windows">
+      <UniqueIdentifier>{e802f2c6-bcc6-4ce8-8c3a-8c2ddba823c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\Windows\File">
+      <UniqueIdentifier>{9d4d5034-06c8-4f46-8419-6641d27cd69f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\Windows\Base">
+      <UniqueIdentifier>{d708acfa-d609-4ff6-95e7-ae2e4c56c210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Platforms\Windows\Os">
+      <UniqueIdentifier>{d8aa0a2d-29b1-4315-afce-6c24c1e9a163}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared">
+      <UniqueIdentifier>{089a3c66-2c41-485b-96d4-e2ed4ab46915}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\Base">
+      <UniqueIdentifier>{be675973-5d17-4851-a03a-65fead561076}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\Events">
+      <UniqueIdentifier>{9cb403fe-596e-4202-86b8-0f661a518cdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System">
+      <UniqueIdentifier>{45f33705-8331-4512-b66e-a0e53235ddf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Renderer">
+      <UniqueIdentifier>{2805458f-5367-4718-93f5-5c8c56cce952}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Renderer\GL">
+      <UniqueIdentifier>{1221b08e-e156-45b5-b1bc-8a00cd16115b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Remote">
+      <UniqueIdentifier>{e7ae0079-1cb7-4330-8224-cae5e1e9c23a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Os">
+      <UniqueIdentifier>{5284bc10-c464-44cf-959f-09f583b59866}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Network">
+      <UniqueIdentifier>{dc89d016-03ef-40f6-a32a-d0dbd4a7a1f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Content">
+      <UniqueIdentifier>{8e8fb111-dac2-4204-9619-5cbd75f19583}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Sound">
+      <UniqueIdentifier>{7d7c089d-6e5e-4b31-bd18-d003ac80f9d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Sound\AL">
+      <UniqueIdentifier>{7d87c4f3-75a0-417d-8d4b-4d612a994734}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\Scene">
+      <UniqueIdentifier>{c08da6bf-8b1f-456b-be99-11843aa3ef5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\System\File">
+      <UniqueIdentifier>{2ce3daa0-fa55-436d-a07a-ac27eec25eb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\Import">
+      <UniqueIdentifier>{204298ea-761e-4996-a896-2d58532d09c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\Import\Mdl">
+      <UniqueIdentifier>{c2a6883d-1cec-47c4-ba42-d6dff73eac59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\Import\Snd">
+      <UniqueIdentifier>{54d38e9d-a027-48f1-878e-0d63a2d95eac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shared\Import\Img">
+      <UniqueIdentifier>{b6598127-9f9a-4461-b4d2-b2ce92685595}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Source\Platforms\OSX\Os\OsAppDelegateOSX.mm">
+      <Filter>Source\Platforms\OSX\OS</Filter>
+    </None>
+    <None Include="..\..\Source\Platforms\OSX\Os\OsCoreImplOSX.mm">
+      <Filter>Source\Platforms\OSX\OS</Filter>
+    </None>
+    <None Include="..\..\Source\Platforms\OSX\Os\OsViewOSX.mm">
+      <Filter>Source\Platforms\OSX\OS</Filter>
+    </None>
+    <None Include="..\..\Source\Shared\Base\BcDelegate_gen.py">
+      <Filter>Source\Shared\Base</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Platforms\OSX\Base\BcAtomic.cpp">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\OSX\Base\BcEvent.cpp">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\OSX\Base\BcMisc.cpp">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\OSX\Base\BcMutex.cpp">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\OSX\Base\BcThread.cpp">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\OSX\Base\BcTimer.cpp">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\MainWindows.cpp">
+      <Filter>Source\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\File\FsCoreImplWindows.cpp">
+      <Filter>Source\Platforms\Windows\File</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\File\FsFileImplWindows.cpp">
+      <Filter>Source\Platforms\Windows\File</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcAtomic.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcDebugWindows.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcEvent.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcMisc.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcMutex.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcThread.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Base\BcTimer.cpp">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Os\OsClientWindows.cpp">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Os\OsCoreImplWindows.cpp">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Platforms\Windows\Os\OsMinidumpWindows.cpp">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\MainShared.cpp">
+      <Filter>Source\Shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Psybrus.cpp">
+      <Filter>Source\Shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcAABB.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcDebug.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcFile.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcHash.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcLog.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcLogFile.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcMat3d.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcMat4d.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcMemory.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcName.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcOBB.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcOctTree.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcPath.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcPlane.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcQuat.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcRandom.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcStream.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcTypes.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Base\BcVectors.cpp">
+      <Filter>Source\Shared\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Events\EvtEvent.cpp">
+      <Filter>Source\Shared\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Events\EvtPublisher.cpp">
+      <Filter>Source\Shared\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysDelegateDispatcher.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysFence.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysJob.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysJobQueue.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysJobWorker.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysKernel.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysResource.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysState.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\SysSystem.cpp">
+      <Filter>Source\Shared\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsContext.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsCore.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsFrame.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsIndexBuffer.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsLight.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsPrimitive.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsProgram.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsRenderNode.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsResource.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsShader.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsStateBlock.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsTexture.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsTypes.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsVertexBuffer.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\RsViewport.cpp">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\GLee.c">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsContextGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsCoreImplGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsFrameGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsIndexBufferGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsPrimitiveGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsProgramGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsShaderGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsStateBlockGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsTextureGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Renderer\GL\RsVertexBufferGL.cpp">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Remote\RmCore.cpp">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Remote\RmParameters.cpp">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Remote\RmTCPConnection.cpp">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Os\OsClient.cpp">
+      <Filter>Source\Shared\System\Os</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Os\OsCore.cpp">
+      <Filter>Source\Shared\System\Os</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Network\NsCore.cpp">
+      <Filter>Source\Shared\System\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsCore.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsCoreClient.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsCoreServer.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsFile.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsFileReader.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsFileReaderRPC.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsFileWriter.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsProperty.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsResource.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsResourceRef.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Content\CsTypes.cpp">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\SsCore.cpp">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\SsEnvironment.cpp">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\SsResource.cpp">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\SsSample.cpp">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\AL\SsAL.cpp">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\AL\SsChannelAL.cpp">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\AL\SsCoreImplAL.cpp">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Sound\AL\SsSampleAL.cpp">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnCanvasComponent.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnComponent.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnCore.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnEntity.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnFont.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnMaterial.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnModel.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnRenderableComponent.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnRenderTarget.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnShader.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnSound.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnSoundEmitter.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnSpatialTree.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnTexture.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnTextureAtlas.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnTransform.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnTypes.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnViewComponent.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\Scene\ScnVisitor.cpp">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\File\FsCore.cpp">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\File\FsFile.cpp">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\System\File\FsTypes.cpp">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MD5AnimLoader.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MD5MeshLoader.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\Mdl.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MdlAnim.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MdlBsp.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MdlEntity.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MdlLoader.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MdlMesh.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\MdlNode.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Mdl\OBJLoader.cpp">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Snd\Snd.cpp">
+      <Filter>Source\Shared\Import\Snd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Snd\SndFileOGG.cpp">
+      <Filter>Source\Shared\Import\Snd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Snd\SndFileWAV.cpp">
+      <Filter>Source\Shared\Import\Snd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Img\Img.cpp">
+      <Filter>Source\Shared\Import\Img</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Shared\Import\Img\ImgImage.cpp">
+      <Filter>Source\Shared\Import\Img</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\Platforms\OSX\Os\OsAppDelegateOSX.h">
+      <Filter>Source\Platforms\OSX\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\OSX\Os\OsCoreImplOSX.h">
+      <Filter>Source\Platforms\OSX\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\OSX\Os\OsViewOSX.h">
+      <Filter>Source\Platforms\OSX\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\File\FsCoreImplWindows.h">
+      <Filter>Source\Platforms\Windows\File</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\File\FsFileImplWindows.h">
+      <Filter>Source\Platforms\Windows\File</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcAtomic.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcEvent.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcMisc.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcMutex.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcThread.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcTimer.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Base\BcWindows.h">
+      <Filter>Source\Platforms\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Os\OsClientWindows.h">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Os\OsCoreImplWindows.h">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Os\OsMinidumpWindows.h">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Platforms\Windows\Os\OsWindows.h">
+      <Filter>Source\Platforms\Windows\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\MainShared.h">
+      <Filter>Source\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Psybrus.h">
+      <Filter>Source\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcAABB.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcAtomicMutex.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcDebug.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcDelegate.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcEndian.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcFile.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcFixed.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcGlobal.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcHash.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcLog.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcLogFile.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcMat3d.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcMat4d.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcMath.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcMemory.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcName.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcOBB.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcOctTree.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcPath.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcPlane.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcPortability.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcQuat.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcRandom.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcScopedLock.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcStream.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcString.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcTypes.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcUTF8.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Base\BcVectors.h">
+      <Filter>Source\Shared\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Events\EvtBinding.h">
+      <Filter>Source\Shared\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Events\EvtEvent.h">
+      <Filter>Source\Shared\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Events\EvtPublisher.h">
+      <Filter>Source\Shared\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysDelegateDispatcher.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysEvents.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysFence.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysJob.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysJobQueue.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysJobWorker.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysKernel.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysResource.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysState.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\SysSystem.h">
+      <Filter>Source\Shared\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsContext.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsCore.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsEvents.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsFrame.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsIndexBuffer.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsLight.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsPrimitive.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsProgram.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsProjector.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsRenderNode.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsRenderTarget.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsResource.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsShader.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsStateBlock.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsTexture.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsTypes.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsVertex.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsVertexBuffer.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\RsViewport.h">
+      <Filter>Source\Shared\System\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\GLee.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsContextGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsCoreImplGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsFrameBufferGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsFrameGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsIndexBufferGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsPrimitiveGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsProgramGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsRenderBufferGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsRenderTargetGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsShaderGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsStateBlockGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsTextureGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Renderer\GL\RsVertexBufferGL.h">
+      <Filter>Source\Shared\System\Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Os\OsClient.h">
+      <Filter>Source\Shared\System\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Os\OsCore.h">
+      <Filter>Source\Shared\System\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Os\OsEvents.h">
+      <Filter>Source\Shared\System\Os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Network\NsCore.h">
+      <Filter>Source\Shared\System\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsCore.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsFile.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsFileReader.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsFileWriter.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsProperty.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsResource.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsResourceRef.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Content\CsTypes.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\SsChannel.h">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\SsCore.h">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\SsEnvironment.h">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\SsResource.h">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\SsSample.h">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\SsTypes.h">
+      <Filter>Source\Shared\System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\AL\SsAL.h">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\AL\SsChannelAL.h">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\AL\SsCoreImplAL.h">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Sound\AL\SsSampleAL.h">
+      <Filter>Source\Shared\System\Sound\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnCanvasComponent.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnComponent.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnCore.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnEntity.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnFont.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnMaterial.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnModel.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnRenderableComponent.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnRenderTarget.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnShader.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnSound.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnSoundEmitter.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnSpatialTree.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnTexture.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnTextureAtlas.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnTransform.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnTypes.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnViewComponent.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\Scene\ScnVisitor.h">
+      <Filter>Source\Shared\System\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\File\FsCore.h">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\File\FsEvents.h">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\File\FsFile.h">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\System\File\FsTypes.h">
+      <Filter>Source\Shared\System\File</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MD5AnimLoader.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MD5MeshLoader.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\Mdl.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlAnim.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlBsp.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlEntity.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlLoader.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlMesh.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlMorph.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlNode.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\MdlTypes.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Mdl\OBJLoader.h">
+      <Filter>Source\Shared\Import\Mdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Snd\Snd.h">
+      <Filter>Source\Shared\Import\Snd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Snd\SndFileOGG.h">
+      <Filter>Source\Shared\Import\Snd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Snd\SndFileWAV.h">
+      <Filter>Source\Shared\Import\Snd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Img\Img.h">
+      <Filter>Source\Shared\Import\Img</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Img\ImgException.h">
+      <Filter>Source\Shared\Import\Img</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Img\ImgImage.h">
+      <Filter>Source\Shared\Import\Img</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Shared\Import\Img\ImgTypes.h">
+      <Filter>Source\Shared\Import\Img</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\MainMac.mm">
+      <Filter>Source\Platforms\OSX</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcAtomic.h">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcDebug.mm">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcEvent.h">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcMisc.h">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcMutex.h">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcThread.h">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\Base\BcTimer.h">
+      <Filter>Source\Platforms\OSX\Base</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\File\FsCoreImplOSX.h">
+      <Filter>Source\Platforms\OSX\File</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\File\FsCoreImplOSX.mm">
+      <Filter>Source\Platforms\OSX\File</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\File\FsFileImplOSX.h">
+      <Filter>Source\Platforms\OSX\File</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Platforms\OSX\File\FsFileImplOSX.mm">
+      <Filter>Source\Platforms\OSX\File</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Remote\RmCore.h">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Remote\RmEvents.h">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Remote\RmParameters.h">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Remote\RmTCPConnection.h">
+      <Filter>Source\Shared\System\Remote</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Content\CsCoreClient.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Content\CsCoreServer.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\..\Source\Shared\System\Content\CsFileReaderRPC.h">
+      <Filter>Source\Shared\System\Content</Filter>
+    </CustomBuildStep>
+  </ItemGroup>
+</Project>

@@ -143,6 +143,13 @@ const BcName& CsResource::getName() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getString
+const BcChar* CsResource::getString( BcU32 Offset )
+{
+	return pFile_->getString( Offset );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getChunk
 void CsResource::getChunk( BcU32 Chunk, BcBool TriggerLoad )
 {

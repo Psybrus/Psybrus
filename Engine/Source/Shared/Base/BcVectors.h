@@ -58,6 +58,7 @@ public:
 	// Ctors
 	BcVec2d();
 	BcVec2d( BcReal lX, BcReal lY );
+	BcVec2d( const BcChar* pString );
 
 	void			set( BcReal X, BcReal Y );
 
@@ -242,6 +243,7 @@ public:
 	// Ctors
 	BcVec3d();
 	BcVec3d( BcReal X, BcReal Y, BcReal Z );
+	BcVec3d( const BcChar* pString );
 
 	void			set( BcReal X, BcReal Y, BcReal Z );
 
@@ -450,6 +452,7 @@ public:
 	BcVec4d( const BcVec2d& Rhs );
 	BcVec4d( const BcVec3d& Rhs, BcReal W = 0.0f );
 	BcVec4d( BcReal X, BcReal Y, BcReal Z, BcReal W );
+	BcVec4d( const BcChar* pString );
 
 	void			set( BcReal lX, BcReal lY, BcReal lZ, BcReal lW );
 

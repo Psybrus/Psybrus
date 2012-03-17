@@ -49,6 +49,18 @@ void RsStateBlock::setDefaultState()
 	setRenderState( rsRS_ALPHA_TEST_ENABLE,			0,					BcTrue );
 	setRenderState( rsRS_ALPHA_TEST_COMPARE,		0,					BcTrue );
 	setRenderState( rsRS_ALPHA_TEST_THRESHOLD,		0,					BcTrue );
+	setRenderState( rsRS_STENCIL_WRITE_MASK,		0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_ENABLE,		0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_FUNC_COMPARE,	0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_FUNC_REF,		0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_FUNC_MASK,	0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_OP_SFAIL,		0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_OP_DPFAIL,	0,					BcTrue );
+	setRenderState( rsRS_STENCIL_TEST_OP_DPPASS,	0,					BcTrue );
+	setRenderState( rsRS_COLOR_WRITE_RED_ENABLE,	1,					BcTrue );
+	setRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE,	1,					BcTrue );
+	setRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE,	1,					BcTrue );
+	setRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE,	1,					BcTrue );
 	setRenderState( rsRS_BLEND_MODE,				0,					BcTrue );
 	
 	// Setup default texture states.

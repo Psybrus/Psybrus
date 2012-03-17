@@ -47,9 +47,14 @@ public:
 	void						addEntity( ScnEntityRef Entity );
 
 	/**
-	 * Removed entity from the scene so it no longer recieves updates.
+	 * Remove entity from the scene so it no longer recieves updates.
 	 */
 	void						removeEntity( ScnEntityRef Entity );
+
+	/**
+	 * Remove all entities from the scene.
+	 */
+	void						removeAllEntities();
 
 private:
 	friend class ScnEntity;
@@ -65,8 +70,14 @@ private:
 	void						onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component );
 
 private:
+	void						processAddRemove();
+
+private:
 	ScnSpatialTree*				pSpacialTree_;
 	ScnEntityList				EntityList_;
+
+	ScnEntityList				AddEntityList_;
+	ScnEntityList				RemoveEntityList_;
 	
 	// Special components.
 	ScnViewComponentList		ViewComponentList_;

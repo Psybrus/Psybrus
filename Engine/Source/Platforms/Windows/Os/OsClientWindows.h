@@ -58,6 +58,8 @@ public:
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
 
 private:
+	void mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam );
+
 	LRESULT wndProcInternal( HWND, UINT, WPARAM, LPARAM );
 	static LRESULT	CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 
@@ -71,6 +73,13 @@ private:
 	RECT			ClientSize_;
 	DWORD			WindowStyleEx_;
 	DWORD			WindowStyle_;
+
+	typedef std::map< WORD, BcU16 > TKeyCodeMap;
+	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
+	TKeyCodeMap		KeyCodeMap_;
+
+	BcS16			PrevMouseX_;
+	BcS16			PrevMouseY_;
 };
 
 #endif

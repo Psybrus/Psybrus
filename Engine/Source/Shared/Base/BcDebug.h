@@ -18,7 +18,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
-extern void BcPrintf( const BcChar* pString, ... );
+#define BcPrintf( a, ... ) \
+	if( BcLog::pImpl() ) BcLog::pImpl()->write( a, __VA_ARGS__ )
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
@@ -49,13 +50,13 @@ extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMes
 
 //////////////////////////////////////////////////////////////////////////
 // BcAssert
-extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line );
+extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... );
 
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
-#  define BcAssertMsg( Condition, Message )	\
+#  define BcAssertMsg( Condition, Message, ... )	\
 	if( !( Condition ) ) \
 	{ \
-		if( BcAssertInternal( Message, __FILE__, __LINE__ ) ) \
+		if( BcAssertInternal( Message, __FILE__, __LINE__, __VA_ARGS__ ) ) \
 			BcBreakpoint; \
 	}
 #  define BcAssert( Condition )			BcAssertMsg( Condition, #Condition )
@@ -66,8 +67,9 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 	{ \
 		throw Exception; \
 	}
+
 #else
-#  define BcAssertMsg( Condition, Message )
+#  define BcAssertMsg( Condition, Message, ... )
 #  define BcAssert( Condition )
 #  define BcPreCondition( Condition )
 #  define BcPostCondition( Condition )
@@ -80,23 +82,44 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 
 //////////////////////////////////////////////////////////////////////////
 // BcVerify
-extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line );
+extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... );
 
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
-#  define BcVerifyMsg( Condition, Message )	\
+#  define BcVerifyMsg( Condition, Message, ... )	\
 	{ \
 		static BcBool ShouldNotify = BcTrue; \
 		if( ShouldNotify && !( Condition ) ) \
 		{ \
-			if( BcVerifyInternal( Message, __FILE__, __LINE__ ) ) \
+			if( BcVerifyInternal( Message, __FILE__, __LINE__, __VA_ARGS__ ) ) \
 				ShouldNotify = BcFalse; \
 		} \
 	}
 #  define BcVerify( Condition )			BcVerifyMsg( Condition, #Condition )
 #else
-#  define BcVerifyMsg( Condition, Message )
+#  define BcVerifyMsg( Condition, Message, ... )
 #  define BcVerify( Condition )
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////
+// BcUnitTest
+#define BcUnitTest( a )							\
+	BcPrintf( "- Test: %s\n", #a );				\
+	if( a )										\
+	BcPrintf( "- - Passed.\n" );				\
+	else										\
+	BcPrintf( "- - FAILED.\n" )
+
+#define BcUnitTestMsg( a, b )					\
+	BcPrintf( "- Test (%s): %s\n", b, #a );		\
+	if( a )										\
+	BcPrintf( "- - Passed.\n" );				\
+	else										\
+	BcPrintf( "- - FAILED.\n" )
+
+//////////////////////////////////////////////////////////////////////////
+// BcLog - NEILO TODO: Merge some of the debug/log/whatever stuff.
+#include "BcLog.h"
 
 #endif
 

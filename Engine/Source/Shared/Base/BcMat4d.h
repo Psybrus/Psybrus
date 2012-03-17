@@ -102,10 +102,10 @@ public:
 	void			inverse();
 
 	void			lookAt( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& UpVec );
-	void			orthoProjection( BcReal Left, BcReal Right, BcReal Top, BcReal Bottom, BcReal Near, BcReal Far );
+	void			orthoProjection( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far );
 	void			perspProjectionHorizontal( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far );
 	void			perspProjectionVertical( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far );
-	void			frustum( BcReal Left, BcReal Right, BcReal Top, BcReal Bottom, BcReal Near, BcReal Far );
+	void			frustum( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far );
 
 	BcBool			operator == ( const BcMat4d& Other ) const;
 

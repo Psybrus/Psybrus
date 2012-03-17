@@ -13,6 +13,8 @@
 
 #include "CsFileWriter.h"
 
+#include "BcStream.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsFileWriter::CsFileWriter( const std::string& Name ):
@@ -48,13 +50,25 @@ BcBool CsFileWriter::save()
 	
 	if( File_.open( Name_.c_str(), bcFM_WRITE ) )
 	{
+		// Generate string table.
+		BcStream StringTableStream;
+
+		for( BcU32 Idx = 0; Idx < StringList_.size(); ++Idx )
+		{
+			const std::string& StringEntry( StringList_[ Idx ] );
+			StringTableStream.push( StringEntry.c_str(), StringEntry.size() + 1 );
+		}	
+
 		// Write header.
 		Header_.NoofChunks_ = Chunks_.size();
+		Header_.StringTableSize_ = StringTableStream.dataSize();
 		File_.write( &Header_, sizeof( Header_ ) );
+
+		// Write string table.
+		File_.write( StringTableStream.pData(), StringTableStream.dataSize() );
 		
 		// Write chunks.
-		BcU32 Offset = sizeof( CsFileHeader ) + ( sizeof( CsFileChunk ) * Chunks_.size() );
-		
+		BcU32 Offset = sizeof( CsFileHeader ) + StringTableStream.dataSize() + ( sizeof( CsFileChunk ) * Chunks_.size() );
 		{
 			CsFileChunkNativeListIterator Iter = Chunks_.begin();
 			
@@ -102,9 +116,36 @@ BcBool CsFileWriter::save()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// CsFileWriter
+// addString
+BcU32 CsFileWriter::addString( const BcChar* pString )
+{
+	BcU32 CurrentOffset = 0;
+
+	for( BcU32 Idx = 0; Idx < StringList_.size(); ++Idx )
+	{
+		const std::string& StringEntry( StringList_[ Idx ] );
+
+		if( StringEntry == pString )
+		{
+			return CurrentOffset;
+		}
+
+		// String length with null terminator.
+		CurrentOffset += StringEntry.length() + 1;
+	}
+
+	// Add string to list.
+	StringList_.push_back( pString );
+
+	// Return current offset.
+	return CurrentOffset;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addChunk
 BcU32 CsFileWriter::addChunk( BcU32 ID, void* pData, BcU32 Size )
 {
+	BcAssert( Size > 0 );
 	CsFileChunkNative Chunk = { ID, new BcU8[ Size ], Size };
 	BcMemCopy( Chunk.pData_, pData, Size );
 	Chunks_.push_back( Chunk );

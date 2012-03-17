@@ -60,7 +60,7 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		TTextureHeader TextureHeader;
 		
 		// Make header.
-		BcStrCopyN( Header.ShaderName_, (*ShaderRef->getName()).c_str(), sizeof( Header.ShaderName_ ) );
+		Header.ShaderName_ = pFile_->addString( (*ShaderRef->getName()).c_str() );
 		Header.NoofTextures_ = Textures.size();
 		
 		HeaderStream << Header;
@@ -68,10 +68,9 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		// Make texture headers.
 		for( ScnTextureMapIterator Iter( Textures.begin() ); Iter != Textures.end(); ++Iter )
 		{
-			BcStrCopyN( TextureHeader.SamplerName_, (*Iter).first.c_str(), sizeof( TextureHeader.SamplerName_ ) );
-			BcStrCopyN( TextureHeader.TextureName_, (*(*Iter).second->getName()).c_str(), sizeof( TextureHeader.TextureName_ ) );
-			BcStrCopyN( TextureHeader.TextureType_, (*(*Iter).second->getType()).c_str(), sizeof( TextureHeader.TextureType_ ) );
-			
+			TextureHeader.SamplerName_ = pFile_->addString( (*Iter).first.c_str() );
+			TextureHeader.TextureName_ = pFile_->addString( (*(*Iter).second->getName()).c_str() );
+			TextureHeader.TextureType_ = pFile_->addString( (*(*Iter).second->getType()).c_str() );
 			HeaderStream << TextureHeader;
 		}
 		
@@ -85,6 +84,18 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 			"alpha_test_enable",
 			"alpha_test_compare",
 			"alpha_test_threshold",
+			"stencil_write_mask",
+			"stencil_test_enable",
+			"stencil_test_func_compare",
+			"stencil_test_func_ref",
+			"stencil_test_func_mask",
+			"stencil_test_op_sfail",
+			"stencil_test_op_dpfail",
+			"stencil_test_op_dppass",
+			"color_write_red_enable",
+			"color_write_green_enable",
+			"color_write_blue_enable",
+			"color_write_alpha_enable",
 			"blend_mode"
 		};
 		
@@ -102,7 +113,16 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 		ModeNames[ "blend" ] = rsBM_BLEND;
 		ModeNames[ "add" ] = rsBM_ADD;
 		ModeNames[ "subtract" ] = rsBM_SUBTRACT;
-		
+
+		ModeNames[ "keep" ] = rsSO_KEEP;
+		ModeNames[ "zero" ] = rsSO_ZERO;
+		ModeNames[ "replace" ] = rsSO_REPLACE;
+		ModeNames[ "incr" ] = rsSO_INCR;
+		ModeNames[ "incr_wrap" ] = rsSO_INCR_WRAP;
+		ModeNames[ "decr" ] = rsSO_DECR;
+		ModeNames[ "decr_wrap" ] = rsSO_DECR_WRAP;
+		ModeNames[ "invert" ] = rsSO_INVERT;
+
 		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 		{
 			if( State.type() == Json::objectValue )
@@ -121,13 +141,27 @@ BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& Dependa
 				}
 				else
 				{
-					BcU32 IntValue = StateValue.asUInt();
+					BcU32 IntValue = (BcU32)StateValue.asInt();
 					StateBlockStream << BcU32( IntValue );
 				}
 			}
 			else
 			{
-				StateBlockStream << BcU32( 0 );
+				// Horrible default special case. Should have a table.
+				switch( Idx )
+				{
+				case rsRS_COLOR_WRITE_RED_ENABLE:
+				case rsRS_COLOR_WRITE_GREEN_ENABLE:
+				case rsRS_COLOR_WRITE_BLUE_ENABLE:
+				case rsRS_COLOR_WRITE_ALPHA_ENABLE:
+					StateBlockStream << BcU32( 1 );
+					break;
+
+				default:
+					StateBlockStream << BcU32( 0 );
+					break;
+				}
+				
 			}
 		}
 		
@@ -205,6 +239,13 @@ BcBool ScnMaterial::isReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getTexture
+ScnTextureRef ScnMaterial::getTexture( BcName Name )
+{
+	return TextureMap_[ *Name ];
+}
+
+//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnMaterial::fileReady()
 {
@@ -229,7 +270,7 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
 		
 		// Request resources.
-		if( CsCore::pImpl()->requestResource( pHeader_->ShaderName_, Shader_ ) )
+		if( CsCore::pImpl()->requestResource( getString( pHeader_->ShaderName_ ), Shader_ ) )
 		{
 			// HACK: We should be able to handle resource subtypes without this.
 			ScnTextureRef Texture;
@@ -238,9 +279,9 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 			{
 				TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
 				
-				if( CsCore::pImpl()->internalRequestResource( pTextureHeader->TextureName_, pTextureHeader->TextureType_, InternalHandle ) )
+				if( CsCore::pImpl()->internalRequestResource( getString( pTextureHeader->TextureName_ ), getString( pTextureHeader->TextureType_ ), InternalHandle ) )
 				{
-					TextureMap_[ pTextureHeader->SamplerName_ ] = Texture;
+					TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = Texture;
 				}
 			}
 		}
@@ -355,7 +396,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 		return ParameterBindingList_.size() - 1;
 	}
 	
-	BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
+	//BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
 	
 	return BcErrorCode;
 }
@@ -594,29 +635,28 @@ public:
 
 	virtual void render()
 	{
+		// TODO: Some kind of object to batch this crap up properly.
+		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
+
 		// Iterate over textures and bind.
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
-			pStateBlock_->setTextureState( Idx, pTexture, TextureParams );
+			pStateBlock->setTextureState( Idx, pTexture, TextureParams );
 		}
 
 		// Setup states.
 		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 		{
-			pStateBlock_->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
+			pStateBlock->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
 		}
 		
-		// Bind state block.
-		pStateBlock_->bind();
-
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
 	}
 	
 	RsProgram* pProgram_;
-	RsStateBlock* pStateBlock_;
 
 	// Texture binding block.
 	BcU32 NoofTextures_;
@@ -649,7 +689,6 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	
 	// Setup program and state.
 	pRenderNode->pProgram_ = pProgram_;
-	pRenderNode->pStateBlock_ = RsCore::pImpl()->getStateBlock();
 	
 	// Setup texture binding block.
 	pRenderNode->NoofTextures_ = TextureBindingList_.size();

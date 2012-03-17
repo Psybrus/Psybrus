@@ -31,6 +31,13 @@ public:
  	 * @param ChunkDelegate Called when data for a chunk is loaded.
 	 */
 	BcBool					load( CsFileReadyDelegate ReadyDelegate, CsFileChunkDelegate ChunkDelegate );
+
+	/**
+	 * Get string.
+	 * @param Offset Offset of string in table.
+	 * @return String, or NULL pointer if invalid offset.
+	 */
+	const BcChar*			getString( BcU32 Offset );
 	
 	/**
 	 * Get chunk. Calls chunk delegate when it's loaded.
@@ -52,12 +59,14 @@ public:
 		
 private:
 	void					onHeaderLoaded( void* pData, BcSize Size );
+	void					onStringTableLoaded( void* pData, BcSize Size );
 	void					onChunksLoaded( void* pData, BcSize Size );
 	void					onDataLoaded( void* pData, BcSize Size );
 	
 private:
 	FsFile					File_;
 	CsFileHeader			Header_;
+	BcChar*					pStringTable_;
 	CsFileChunk*			pChunks_;
 	CsFileChunkProps*		pChunkProps_;
 	BcU8*					pData_;
