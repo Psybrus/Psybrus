@@ -364,7 +364,7 @@
     <ClCompile Include="..\..\..\External\ogg\src\bitwise.c" />
     <ClCompile Include="..\..\..\External\ogg\src\framing.c" />
     <ClCompile Include="..\..\..\External\enet\callbacks.c" />
-    <ClCompile Include="..\..\..\External\enet\compress.c" />
+    <ClCompile Include="..\..\..\External\enet\enet_compress.c" />
     <ClCompile Include="..\..\..\External\enet\host.c" />
     <ClCompile Include="..\..\..\External\enet\list.c" />
     <ClCompile Include="..\..\..\External\enet\packet.c" />
