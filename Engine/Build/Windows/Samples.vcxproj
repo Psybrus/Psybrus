@@ -111,7 +111,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../../Engine/Source/Shared;../../../Engine/Source/Shared/Base;../../../Engine/Source/Shared/Events;../../../Engine/Source/Shared/System;../../../Engine/Source/Shared/System/Scene;../../../Engine/Source/Shared/System/Renderer;../../../Engine/Source/Shared/System/Renderer/GL;../../../Engine/Source/Shared/System/Os;../../../Engine/Source/Shared/System/Os/SDL;../../../Engine/Source/Shared/System/Network;../../../Engine/Source/Shared/System/Game;../../../Engine/Source/Shared/System/File;../../../Engine/Source/Shared/System/Content;../../../Engine/Source/Shared/System/Remote;../../../Engine/Source/Shared/System/Sound;../../../Engine/Source/Platforms/Windows/Base;../../../Engine/Source/Platforms/Windows/Sound;../../../Engine/Source/Platforms/Windows/Os;../../../External/jsoncpp/include;../../../External/Img;../../../External/Mdl;../../../External/Snd;../../../External/freetype/include;../../../External/png;../../../External/zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_RELEASE;PSY_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WINDOWS;PSY_PRODUCTION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
