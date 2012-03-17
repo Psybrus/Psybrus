@@ -178,18 +178,10 @@ void GaOverlayState::render()
 	
 		for( BcU32 Idx = 0; Idx < StringList.size(); ++Idx )
 		{
-			BcVec2d Size = FontComponent_->draw( Canvas_, StringList[ Idx ], BcTrue );
-
-			BcMat4d Translation;
-			Translation.translation( -BcVec3d( Size.x() + TopPosition.x(), Size.y() + TopPosition.y(), 0.0f ) * 0.5f );
-
-			Canvas_->pushMatrix( Translation );
-
-			FontComponent_->draw( Canvas_, StringList[ Idx ] );
-
+			BcVec2d Size = FontComponent_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), StringList[ Idx ], RsColour::WHITE, BcTrue );
+			BcVec2d Position =  -BcVec2d( Size.x() + TopPosition.x(), Size.y() + TopPosition.y() ) * 0.5f;
+			FontComponent_->draw( Canvas_, Position, StringList[ Idx ], RsColour::WHITE );
 			TopPosition -= BcVec2d( 0.0f, BcAbs( Size.y() * 2.0f ) );
-
-			Canvas_->popMatrix();
 		}
 	}
 
