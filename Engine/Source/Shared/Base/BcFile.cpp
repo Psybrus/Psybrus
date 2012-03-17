@@ -199,7 +199,7 @@ void BcFile::readLine( BcChar* pBuffer, BcU32 Size )
 {
 	BcU32 BytesRead = 0;
 	BcMemZero( pBuffer, Size );
-	while( BytesRead < Size )
+	while( BytesRead < Size && !eof() )
 	{
 		read( &pBuffer[ BytesRead++ ], 1 );
 		if( pBuffer[ BytesRead - 1 ] == '\n' )

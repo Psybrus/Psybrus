@@ -13,6 +13,8 @@
 
 #include "RsPrimitiveGL.h"
 
+#include "RsCore.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsPrimitiveGL::RsPrimitiveGL( RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer )
@@ -59,6 +61,9 @@ void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 
 {
 	if( pVertexBuffer_ != NULL )
 	{
+		// Bind global state block.
+		RsCore::pImpl()->getStateBlock()->bind();
+
 		pVertexBuffer_->bind();
 		
 		if( pIndexBuffer_ != NULL )

@@ -63,11 +63,21 @@ public:
 	 */
 	void unsubscribeAll( void* pOwner );
 
+	/**
+	 * Clear parent.
+	 */
+	void clearParent();
+
+	/**
+	 * Set parent.
+	 */
+	void setParent( EvtPublisher* pParent );
+
 private:
 	/**
 	* Publish internal.
 	*/
-	void publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
 	
 	/**
 	* Subscribe internal.
@@ -78,6 +88,11 @@ private:
 	* Unsubscribe internal.
 	*/
 	void unsubscribeInternal( EvtID ID, const EvtBinding& Binding );
+
+	/**
+	* Unsubscribe by owner.
+	*/
+	void unsubscribeByOwner( EvtID ID, void* );
 
 	/**
 	* Update binding map.
@@ -92,10 +107,15 @@ private:
 	typedef std::pair< EvtID, EvtBinding >		TBindingPair;
 	typedef std::vector< TBindingPair >			TBindingPairList;
 	typedef TBindingPairList::iterator			TBindingPairListIterator;
+	typedef std::pair< EvtID, void* >			TOwnerPair;
+	typedef std::vector< TOwnerPair >			TOwnerPairList;
+	typedef TOwnerPairList::iterator			TOwnerPairListIterator;
 
 	TBindingListMap								BindingListMap_;			///!< Bind list map.
 	TBindingPairList							SubscribeList_;				///!< List of bindings to add to the map.
 	TBindingPairList							UnsubscribeList_;			///!< List of bindings to remove from the map.
+	TOwnerPairList								UnsubscribeByOwnerList_;	///!< List of owners to remove from the map.
+	EvtPublisher*								pParent_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

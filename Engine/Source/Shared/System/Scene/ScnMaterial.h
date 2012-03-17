@@ -24,10 +24,22 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef
 typedef CsResourceRef< class ScnMaterial > ScnMaterialRef;
+typedef std::map< std::string, ScnMaterialRef > ScnMaterialMap;
+typedef ScnMaterialMap::iterator ScnMaterialMapIterator;
+typedef ScnMaterialMap::const_iterator ScnMaterialConstIterator;
+typedef std::vector< ScnMaterialRef > ScnMaterialList;
+typedef ScnMaterialList::iterator ScnMaterialListIterator;
+typedef ScnMaterialList::const_iterator ScnMaterialListConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
-// ScnMaterialRef
+// ScnMaterialComponentRef
 typedef CsResourceRef< class ScnMaterialComponent > ScnMaterialComponentRef;
+typedef std::map< std::string, ScnMaterialComponentRef > ScnMaterialComponentMap;
+typedef ScnMaterialComponentMap::iterator ScnMaterialComponentMapIterator;
+typedef ScnMaterialComponentMap::const_iterator ScnMaterialComponentConstIterator;
+typedef std::vector< ScnMaterialRef > ScnMaterialComponentList;
+typedef ScnMaterialComponentList::iterator ScnMaterialComponentListIterator;
+typedef ScnMaterialComponentList::const_iterator ScnMaterialComponentListConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterial
@@ -45,6 +57,9 @@ public:
 	virtual void						destroy();
 	virtual BcBool						isReady();
 
+	ScnTextureRef						getTexture( BcName Name );
+
+
 private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
@@ -54,16 +69,15 @@ private:
 	
 	struct THeader
 	{
-		// TODO: Store IDs, hash keys, or more packed data.
-		BcChar							ShaderName_[ 64 ];
+		BcU32							ShaderName_;
 		BcU32							NoofTextures_;
 	};
 
 	struct TTextureHeader
 	{
-		BcChar							SamplerName_[ 64 ];
-		BcChar							TextureName_[ 64 ];
-		BcChar							TextureType_[ 64 ];
+		BcU32							SamplerName_;
+		BcU32							TextureName_;
+		BcU32							TextureType_;
 	};
 	
 	THeader*							pHeader_;

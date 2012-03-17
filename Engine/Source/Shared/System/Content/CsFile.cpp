@@ -53,6 +53,14 @@ const std::string& CsFile::getName() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getString
+//virtual
+const BcChar* CsFile::getString( BcU32 Offset )
+{
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getChunk
 //virtual
 const CsFileChunk* CsFile::getChunk( BcU32 Chunk, BcBool TriggerLoad )
@@ -74,6 +82,14 @@ BcU32 CsFile::getID() const
 BcU32 CsFile::getNoofChunks() const
 {
 	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addString
+//virtual
+BcU32 CsFile::addString( const BcChar* pString )
+{
+	return BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////

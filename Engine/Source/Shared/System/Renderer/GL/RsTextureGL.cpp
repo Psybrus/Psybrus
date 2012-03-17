@@ -119,6 +119,7 @@ void RsTextureGL::update()
 	GLuint Handle = getHandle< GLuint >();
 	
 	glBindTexture( GL_TEXTURE_2D, Handle );
+	RsGLCatchError;
 
 	// Call the appropriate method to load the texture.
 	switch( Format_ )
@@ -151,7 +152,8 @@ void RsTextureGL::update()
 		BcBreakpoint; // Unsupported format for platform.
 	}
 
-	RsGLCatchError;
+	GLenum Error = glGetError();
+	BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%u, format %u, %u bytes).\n", Error, Width_, Height_, Format_, DataSize_ );
 
 	UpdateSyncFence_.decrement();
 	

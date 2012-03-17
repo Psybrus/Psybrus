@@ -29,7 +29,8 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public CsResource
+	public CsResource,
+	public EvtPublisher
 {
 public:
 	DECLARE_RESOURCE( CsResource, ScnEntity );
@@ -47,6 +48,7 @@ public:
 	void								render( RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );
+	void								reattach( ScnComponent* Component );
 
 	/**
 	 * Called when attached to the scene.
@@ -103,7 +105,11 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 	
 protected:
+	void								processAttachDetach();
+	void								internalAttach( ScnComponent* Component );
+	void								internalDetach( ScnComponent* Component );
 
+protected:
 	struct THeader
 	{
 	};
@@ -112,6 +118,9 @@ protected:
 
 	ScnComponentList					Components_;
 	ScnTransform						Transform_;
+
+	ScnComponentList					AttachComponents_;
+	ScnComponentList					DetachComponents_;
 
 private:
 	BcBool								IsAttached_;

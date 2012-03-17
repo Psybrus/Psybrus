@@ -38,7 +38,7 @@ SysKernel::SysKernel( BcReal TickRate ):
 	FrameTime_ = 0.0f;
 
 	// Set user mask to the workers we have.
-	SysKernel::USER_WORKER_MASK = ( 1 << JobQueue_.workerCount() ) - 1;
+	SysKernel::USER_WORKER_MASK = ( ( 1 << JobQueue_.workerCount() ) - 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +78,9 @@ SysSystem* SysKernel::startSystem( const BcName& Name )
 		{
 			// Create system.
 			pSystem = (Iter->second)();
+
+			// Set name to what it was instanced from.
+			pSystem->setName( Name );
 		
 			// Add to pending list.
 			PendingAddSystemList_.push_back( pSystem );
@@ -118,6 +121,10 @@ void SysKernel::stop()
 // run
 void SysKernel::run( BcBool Threaded )
 {
+	BcPrintf( "============================================================================\n" );
+	BcPrintf( "SysKernel run\n" );
+	BcPrintf( Threaded ? "Threaded.\n" : "Non-threaded.\n" );
+
 	IsThreaded_ = Threaded;
 	
 	if( Threaded == BcTrue )
@@ -204,7 +211,7 @@ void SysKernel::tick()
 			// Cache system.
 			SysSystem* pSystem = (*Iter);
 			
-			// Process system.
+			//  Process system.
 			if( pSystem->process() == BcFalse )
 			{
 				PendingRemoveSystemList_.push_back( pSystem );		
@@ -278,6 +285,8 @@ void SysKernel::execute()
 
 		// Store frame time.
 		FrameTime_ = BcMin( MainTimer_.time(), TickRate_ * 4.0f );
+
+		BcAssert( FrameTime_ >= 0.0f );
 	}
 	while( SystemList_.size() > 0 );
 }

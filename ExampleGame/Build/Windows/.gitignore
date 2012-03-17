@@ -4,3 +4,6 @@
 /Debug/
 /Release/
 /*.vcproj.NEILO-XP-VM.Neilo.user
+/*.opensdf
+/*.sdf
+/*.sln.old

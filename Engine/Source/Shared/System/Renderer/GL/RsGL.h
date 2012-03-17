@@ -15,6 +15,7 @@
 #define __RSGL_H__
 
 #include "BcTypes.h"
+#include "BcDebug.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
@@ -65,11 +66,7 @@ extern AGLContext GAGLContext;
 #define RsGLCatchError									\
 	{													\
 		GLuint Error = glGetError();					\
-		if( Error != 0 )								\
-		{												\
-			BcPrintf( "RsGL: Error: 0x%x", Error );		\
-			BcBreakpoint;								\
-		}												\
+		BcAssertMsg( Error == 0, "RsGL: Error (%s:%u): 0x%x\n", __FILE__, __LINE__, Error );		\
 	}
 
 #endif

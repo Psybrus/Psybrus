@@ -22,6 +22,8 @@
 #include "BcFile.h"
 #include "BcFixed.h"
 #include "BcGlobal.h"
+#include "BcLog.h"
+#include "BcLogFile.h"
 #include "BcHash.h"
 #include "BcMat3d.h"
 #include "BcMat4d.h"

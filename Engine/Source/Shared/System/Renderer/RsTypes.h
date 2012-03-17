@@ -126,7 +126,7 @@ enum eRsBlendingMode
 // Compare modes
 enum eRsCompareMode
 {
-	rsCM_NEVER,
+	rsCM_NEVER = 0,
 	rsCM_LESS,
 	rsCM_EQUAL,
 	rsCM_LESSEQUAL,
@@ -139,6 +139,24 @@ enum eRsCompareMode
 	rsCM_INVALID = BcErrorCode,
 	rsCM_FORCE_DWORD = 0x7fffffff
 };
+
+//////////////////////////////////////////////////////////////////////////
+// Stencil operations
+enum eRsStencilOp
+{
+	rsSO_KEEP = 0,
+	rsSO_ZERO,
+	rsSO_REPLACE,
+	rsSO_INCR,
+	rsSO_INCR_WRAP,
+	rsSO_DECR,
+	rsSO_DECR_WRAP,
+	rsSO_INVERT,
+	//
+	rsSO_INVALID = BcErrorCode,
+	rsSO_FORCE_DWORD = 0x7fffffff
+};
+
 
 //////////////////////////////////////////////////////////////////////////
 // Colour Format (RT)
@@ -284,6 +302,18 @@ enum eRsRenderState
 	rsRS_ALPHA_TEST_ENABLE,				///!< Alpha test enable/disable. true or false.
 	rsRS_ALPHA_TEST_COMPARE,			///!< Alpha test compare. eRsCompareMode.
 	rsRS_ALPHA_TEST_THRESHOLD,			///!< Alpha test threshold. 0-255.
+	rsRS_STENCIL_WRITE_MASK,			///!< Stencil write mask.
+	rsRS_STENCIL_TEST_ENABLE,			///!< Stencil test enable.
+	rsRS_STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.
+	rsRS_STENCIL_TEST_FUNC_REF,			///!< Stencil test reference value.
+	rsRS_STENCIL_TEST_FUNC_MASK,		///!< Stencil test mask.
+	rsRS_STENCIL_TEST_OP_SFAIL,			///!< Stencil test fail operation.
+	rsRS_STENCIL_TEST_OP_DPFAIL,		///!< Stencil test passes, but depth fails operation.
+	rsRS_STENCIL_TEST_OP_DPPASS,		///!< Stencil test and depth pass operation.
+	rsRS_COLOR_WRITE_RED_ENABLE,		///!< Color write red? true or false.
+	rsRS_COLOR_WRITE_GREEN_ENABLE,		///!< Color write green? true or false.
+	rsRS_COLOR_WRITE_BLUE_ENABLE,		///!< Color write blue? true or false.
+	rsRS_COLOR_WRITE_ALPHA_ENABLE,		///!< Color write alpha? true or false.
 	rsRS_BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
 	
 	//
