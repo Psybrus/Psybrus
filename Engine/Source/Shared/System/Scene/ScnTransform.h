@@ -42,6 +42,16 @@ public:
 	void					setTranslation( const BcVec3d& Translation );
 
 	/**
+	*	Get rotation.
+	*/
+	const BcQuat&			getRotation() const;
+
+	/**
+	*	Get translation.
+	*/
+	const BcVec3d&			getTranslation() const;
+
+	/**
 	*	Set matrix.
 	*/
 	void					setMatrix( const BcMat4d& InMatrix );
@@ -102,6 +112,16 @@ inline void ScnTransform::setMatrix( const BcMat4d& InMatrix )
 {
 	Rotation_.fromMatrix4d( InMatrix );
 	Translation_ = InMatrix.translation();
+}
+
+inline const BcQuat& ScnTransform::getRotation() const
+{
+	return Rotation_;
+}
+
+inline const BcVec3d& ScnTransform::getTranslation() const
+{
+	return Translation_;
 }
 
 inline void ScnTransform::getMatrix( BcMat4d& Result ) const

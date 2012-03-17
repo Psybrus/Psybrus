@@ -58,6 +58,9 @@ void ScnCore::update()
 	// Tick all entities.
 	BcReal Tick = SysKernel::pImpl()->getFrameTime();
 
+	// Do add/remove.
+	processAddRemove();
+
 	// Update all entities.
 	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
 	{
@@ -131,13 +134,10 @@ void ScnCore::close()
 // addEntity
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
-	Entity->onAttachScene();
-	EntityList_.push_back( Entity );
-
-	// Do onAttachComponent for all entities current components.
-	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+	if( !Entity->isAttached() )
 	{
-		onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+		AddEntityList_.remove( Entity );
+		AddEntityList_.push_back( Entity );
 	}
 }
 
@@ -145,13 +145,21 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 // removeEntity
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
-	Entity->onDetachScene();
-	EntityList_.remove( Entity );
-
-	// Do onDetachComponent for all entities current components.
-	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+	if( Entity->isAttached() )
 	{
-		onDetachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+		RemoveEntityList_.remove( Entity );
+		RemoveEntityList_.push_back( Entity );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// removeAllEntities
+void ScnCore::removeAllEntities()
+{
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+		removeEntity( Entity );
 	}
 }
 
@@ -193,4 +201,40 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	{
 		pSpacialTree_->removeComponent( ScnComponentWeakRef( Component ) );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processAddRemove
+void ScnCore::processAddRemove()
+{
+	for( ScnEntityListIterator It( RemoveEntityList_.begin() ); It != RemoveEntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+		Entity->onDetachScene();
+		EntityList_.remove( Entity );
+
+		// Do onDetachComponent for all entities current components.
+		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+		{
+			ScnComponentRef Component( Entity->getComponent( Idx ) );
+			onDetachComponent( ScnEntityWeakRef( Entity ), Component );
+			Component->onDetach( ScnEntityWeakRef( Entity ) );				// HACK? I don't think this should be called. Entities are still attached to the entity.		
+		}
+	}
+	RemoveEntityList_.clear();
+
+	for( ScnEntityListIterator It( AddEntityList_.begin() ); It != AddEntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		Entity->onAttachScene();
+		EntityList_.push_back( Entity );
+
+		// Do onAttachComponent for all entities current components.
+		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+		{
+			onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
+		}
+	}
+	AddEntityList_.clear();
 }

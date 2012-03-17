@@ -14,7 +14,7 @@
 #ifndef __BCGLOBAL_H__
 #define __BCGLOBAL_H__
 
-#include "BcDebug.h"
+#include "BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 /** \class BcGlobal
@@ -31,13 +31,25 @@ class BcGlobal
 public:
 	BcGlobal()
 	{
-		BcAssert( pImpl_ == NULL );
+#if PSY_DEBUG
+		// No assert in here, used by logging system.
+		if( pImpl_ != NULL )
+		{
+			BcBreakpoint;
+		}
+#endif
 		pImpl_ = (_Ty*)this;
 	}
 
 	virtual ~BcGlobal()
 	{
-		BcAssert( pImpl_ == (_Ty*)this );
+#if PSY_DEBUG
+		// No assert in here, used by logging system.
+		if( pImpl_ != (_Ty*)this )
+		{
+			BcBreakpoint;
+		}
+#endif
 		pImpl_ = NULL;
 	}
 	

@@ -134,11 +134,17 @@ BcName BcName::getUnique() const
 	TStringEntryList& StringEntries( getStringEntries() );
 	TStringEntry& StringEntry( StringEntries[ EntryIndex_ ] );
 
-	// Create a new name with stored ID.
-	BcName UniqueName( StringEntry.Value_, StringEntry.ID_ );
+	// Create a new name with passed in ID.
+	BcName UniqueName( StringEntry.Value_, ID_ );
 
-	// Advance ID for name.
-	StringEntry.ID_++;
+	// If we haven't got an ID assigned already, then create one.
+	if( ID_ == BcErrorCode )
+	{
+		UniqueName.ID_ = StringEntry.ID_;
+	
+		// Advance ID for name.
+		StringEntry.ID_++;
+	}
 
 	// Return new unique name.
 	return UniqueName;
@@ -177,7 +183,7 @@ bool BcName::operator < ( const BcName& Other ) const
 void BcName::setInternal( const std::string& Value, BcU32 ID )
 {
 	// Check validity.
-	BcVerifyMsg( isNameValid( Value ), "BcName: String contains invalid characters." );
+	BcVerifyMsg( isNameValid( Value ), "BcName: String (%s) contains invalid characters.", Value.c_str() );
 	if( isNameValid( Value ) == BcFalse )
 	{
 		EntryIndex_ = BcErrorCode;
@@ -243,7 +249,7 @@ BcName::TStringEntryList& BcName::getStringEntries()
 BcU32 BcName::getEntryIndex( const std::string& Value )
 {
 	// If string is too long, return invalid index.
-	BcVerifyMsg( Value.length() < MAX_STRING_LENGTH, "BcName: String too long to store in name table." );
+	BcVerifyMsg( Value.length() < MAX_STRING_LENGTH, "BcName: String(%s) too long to store in name table.", Value.c_str() );
 	if( Value.length() >= MAX_STRING_LENGTH )
 	{
 		return BcErrorCode;

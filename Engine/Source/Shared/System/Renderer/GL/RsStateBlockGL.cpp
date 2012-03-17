@@ -29,6 +29,18 @@ static GLenum gCompareMode[] =
 	GL_ALWAYS
 };
 
+static GLenum gStencilOp[] =
+{
+	GL_KEEP,
+	GL_ZERO,
+	GL_REPLACE,
+	GL_INCR,
+	GL_INCR_WRAP,
+	GL_DECR,
+	GL_DECR_WRAP,
+	GL_INVERT
+};
+
 static GLenum gTextureFiltering[] = 
 {
 	// No mipmapping.
@@ -109,6 +121,22 @@ void RsStateBlockGL::bind()
 				case rsRS_ALPHA_TEST_THRESHOLD:
 					bindAlphaFunc();
 					break;
+				case rsRS_STENCIL_WRITE_MASK:
+					glStencilMask( Value );
+					break;
+				case rsRS_STENCIL_TEST_ENABLE:
+					Value ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
+					break;
+				case rsRS_STENCIL_TEST_FUNC_COMPARE:
+				case rsRS_STENCIL_TEST_FUNC_REF:
+				case rsRS_STENCIL_TEST_FUNC_MASK:
+					bindStencilFunc();
+					break;
+				case rsRS_STENCIL_TEST_OP_SFAIL:
+				case rsRS_STENCIL_TEST_OP_DPFAIL:
+				case rsRS_STENCIL_TEST_OP_DPPASS:
+					bindStencilOp();
+					break;
 				case rsRS_BLEND_MODE:
 					bindBlendMode( (eRsBlendingMode)Value );
 					break;
@@ -116,9 +144,12 @@ void RsStateBlockGL::bind()
 			
 			// No longer dirty.
 			RenderStateValue.Dirty_ = BcFalse;
+
+			// Catch errors.
+	 		RsGLCatchError;
 		}
 	}
-	
+		
 	// Bind texture states.
 	for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )
 	{
@@ -163,6 +194,37 @@ void RsStateBlockGL::bindAlphaFunc()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// bindStencilFunc
+void RsStateBlockGL::bindStencilFunc()
+{
+	TRenderStateValue& CompareValue = RenderStateValues_[ rsRS_STENCIL_TEST_FUNC_COMPARE ];
+	TRenderStateValue& RefValue = RenderStateValues_[ rsRS_STENCIL_TEST_FUNC_REF ];
+	TRenderStateValue& MaskValue = RenderStateValues_[ rsRS_STENCIL_TEST_FUNC_MASK ];
+
+	glStencilFunc( gCompareMode[ CompareValue.Value_ ], RefValue.Value_, MaskValue.Value_ );
+
+	CompareValue.Dirty_ = BcFalse;
+	RefValue.Dirty_ = BcFalse;
+	MaskValue.Dirty_ = BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bindStencilOp
+void RsStateBlockGL::bindStencilOp()
+{
+	TRenderStateValue& SFailValue = RenderStateValues_[ rsRS_STENCIL_TEST_OP_SFAIL ];
+	TRenderStateValue& DPFailValue = RenderStateValues_[ rsRS_STENCIL_TEST_OP_DPFAIL ];
+	TRenderStateValue& DPPassValue = RenderStateValues_[ rsRS_STENCIL_TEST_OP_DPPASS ];
+
+	glStencilOp( gStencilOp[ SFailValue.Value_ ], gStencilOp[ DPFailValue.Value_ ], gStencilOp[ DPPassValue.Value_ ] );
+
+	SFailValue.Dirty_ = BcFalse;
+	DPFailValue.Dirty_ = BcFalse;
+	DPPassValue.Dirty_ = BcFalse;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // bindBlendMode
 void RsStateBlockGL::bindBlendMode( eRsBlendingMode BlendMode )
 {
@@ -193,4 +255,3 @@ void RsStateBlockGL::bindBlendMode( eRsBlendingMode BlendMode )
 			break;
 	}
 }
-

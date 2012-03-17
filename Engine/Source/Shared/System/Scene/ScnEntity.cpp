@@ -130,6 +130,10 @@ BcBool ScnEntity::isReady()
 // update
 void ScnEntity::update( BcReal Tick )
 {
+	// Process attach/detach.
+	processAttachDetach();
+
+	// Update components.
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
 	{
 		ScnComponentRef& Component( *It );
@@ -137,7 +141,6 @@ void ScnEntity::update( BcReal Tick )
 		Component->update( Tick );
 	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // render
@@ -159,23 +162,7 @@ void ScnEntity::attach( ScnComponent* Component )
 {
 	BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
 
-	// If we're not attached to ourself, bail.
-	if( Component->isAttached( this ) == BcFalse )
-	{
-		BcAssertMsg( Component->isAttached() == BcFalse, "Component is attached to another entity!" );
-
-		// Call the on detach.
-		Component->onAttach( ScnEntityWeakRef( this ) );
-
-		// Put into component list.
-		Components_.push_back( Component );
-
-		// Tell the scene about it.
-		if( IsAttached_ == BcTrue )
-		{
-			ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), Component );
-		}
-	}
+	AttachComponents_.push_back( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,38 +171,24 @@ void ScnEntity::detach( ScnComponent* Component )
 {
 	BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
 
-	// If component isn't attached, don't worry. Only a warning?
-	if( Component->isAttached() == BcTrue )
-	{
-		BcAssertMsg( Component->isAttached( this ) == BcTrue, "Component isn't attached to this entity!" );
-		// Call the on detach.
-		Component->onDetach( ScnEntityWeakRef( this ) );
+	DetachComponents_.push_back( Component );
+}
 
-		// Remove from the list.
-		for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-		{
-			ScnComponentRef& ListComponent( *It );
-
-			if( ListComponent == Component )
-			{
-				// Remove from component list.
-				Components_.erase( It );
-				break;
-			}
-		}
-
-		// Tell the scene about it.
-		if( IsAttached_ )
-		{
-			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
-		}
-	}
+//////////////////////////////////////////////////////////////////////////
+// reattach
+void ScnEntity::reattach( ScnComponent* Component )
+{
+	detach( Component );
+	attach( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onAttachScene
 void ScnEntity::onAttachScene()
 {
+	// Process attach/detach.
+	processAttachDetach();
+
 	BcAssert( IsAttached_ == BcFalse );
 	IsAttached_ = BcTrue;
 }
@@ -303,5 +276,91 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 	{
 		// Grab pointer to header.
 		pHeader_ = reinterpret_cast< THeader* >( pData );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processAttachDetach
+void ScnEntity::processAttachDetach()
+{
+	// Detach first.
+	while( DetachComponents_.size() > 0 )
+	{
+		ScnComponentList DetachComponents( DetachComponents_ );
+		DetachComponents_.clear();
+		for( ScnComponentListIterator It( DetachComponents.begin() ); It != DetachComponents.end(); ++It )
+		{
+			internalDetach( (*It) );
+		}
+	}
+
+	// Attach second.
+	while( AttachComponents_.size() > 0 )
+	{
+		ScnComponentList AttachComponents( AttachComponents_ );
+		AttachComponents_.clear();
+		for( ScnComponentListIterator It( AttachComponents.begin() ); It != AttachComponents.end(); ++It )
+		{
+			internalAttach( (*It) );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalAttach
+void ScnEntity::internalAttach( ScnComponent* Component )
+{
+	BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
+
+	// If we're not attached to ourself, bail.
+	if( Component->isAttached( this ) == BcFalse )
+	{
+		BcAssertMsg( Component->isAttached() == BcFalse, "Component is attached to another entity!" );
+
+		// Call the on detach.
+		Component->onAttach( ScnEntityWeakRef( this ) );
+
+		// Put into component list.
+		Components_.push_back( Component );
+
+		// Tell the scene about it.
+		if( IsAttached_ == BcTrue )
+		{
+			ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), Component );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalDetach
+void ScnEntity::internalDetach( ScnComponent* Component )
+{
+	BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
+
+	// If component isn't attached, don't worry. Only a warning?
+	if( Component->isAttached() == BcTrue )
+	{
+		BcAssertMsg( Component->isAttached( this ) == BcTrue, "Component isn't attached to this entity!" );
+		// Call the on detach.
+		Component->onDetach( ScnEntityWeakRef( this ) );
+
+		// Remove from the list.
+		for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+		{
+			ScnComponentRef& ListComponent( *It );
+
+			if( ListComponent == Component )
+			{
+				// Remove from component list.
+				Components_.erase( It );
+				break;
+			}
+		}
+
+		// Tell the scene about it.
+		if( IsAttached_ )
+		{
+			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
+		}
 	}
 }

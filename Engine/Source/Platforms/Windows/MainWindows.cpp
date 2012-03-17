@@ -3,6 +3,7 @@
 #include "OsCore.h"
 
 #include "OsClientWindows.h"
+#include "OsMinidumpWindows.h"
 
 BcHandle GInstance_ = NULL;
 
@@ -50,6 +51,12 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 
 int main(int argc, char** argv)
 {
+	if( OsMinidumpWindows::pImpl() == NULL )
+	{
+		new OsMinidumpWindows();
+	}
+
+	// Start.
 	std::string CommandLine;
 
 	for( int Idx = 0; Idx < argc; ++Idx )
@@ -67,13 +74,32 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	( void )lpCmdLine;
 	( void )nCmdShow;
 
-	GInstance_ = (BcHandle)hInstance;
+	// Initialise minidumping as early as possible.
+	if( OsMinidumpWindows::pImpl() == NULL )
+	{
+		new OsMinidumpWindows();
+	}
+	
+	// Setup for more accurate timing.
+	timeBeginPeriod( 1 );
 
-	// Perform unit tests.
-	MainUnitTests();
+	GInstance_ = (BcHandle)hInstance;
 
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
+	
+	// HACK: Append a space to sys args for find to work.
+	SysArgs_ += " ";
+
+	// Setup log if we have a commandline for it.
+	if( SysArgs_.find( "-log " ) != std::string::npos )
+	{
+		// TODO: File name generation.
+		new BcLogFile( "log.txt" );
+	}
+
+	// Perform unit tests.
+	MainUnitTests();
 	
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
@@ -106,6 +132,14 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Game init.
 	PsyGameInit();
+	
+	// If we have no log, setup a default one.
+#if !PSY_PRODUCTION
+	if( BcLog::pImpl() == NULL )
+	{
+		new BcLog();
+	}
+#endif
 
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
 	{
@@ -115,6 +149,12 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Delete kernel.
 	delete SysKernel::pImpl();
+
+	// Delete log.
+	delete BcLog::pImpl();
+
+	//
+	timeEndPeriod( 1 );
 
 	// Done.
 	return 0;

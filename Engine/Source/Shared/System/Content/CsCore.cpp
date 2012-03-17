@@ -285,9 +285,12 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 					{
 						// Create a file writer for resource (using full name!)
 						CsFile* pFile = createFileWriter( getResourceFullName( Name, Type ) );
-					
+
 						if( pFile != NULL )
 						{
+							// Add name as first string.
+							pFile->addString( Name.c_str() );
+
 							// Allocate resource.
 							Handle = allocResource( Name, Type, pFile );
 						
@@ -695,6 +698,8 @@ void CsCore::processUnloadingResources()
 	{
 		CsResource* pResource = (*It);
 
+
+
 		// Destroy resource.
 		pResource->destroy();
 		
@@ -829,6 +834,18 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, C
 // internalRequestResource
 BcBool CsCore::internalRequestResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
+#if PSY_SERVER
+	// Attempt to import on request if need be.
+	BcPath FileName = getResourceFullName( Name, Type );
+	if( shouldImportResource( FileName, BcFalse ) )
+	{
+		if( internalImportResource( FileName, Handle, NULL, BcFalse ) )
+		{
+			return Handle.isValid();
+		}
+	}
+#endif
+
 	// Try to find resource, if we can't, allocate a new one and put into create list.
 	if( internalFindResource( Name, Type, Handle ) == BcFalse )
 	{

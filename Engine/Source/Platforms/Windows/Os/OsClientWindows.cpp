@@ -25,7 +25,88 @@ static BcU32 gClassID_ = 0;
 // Ctor
 OsClientWindows::OsClientWindows()
 {
+	// Setup keycode map.
+	KeyCodeMap_[ VK_LBUTTON ] = OsEventInputKeyboard::KEYCODE_LBUTTON;
+	KeyCodeMap_[ VK_RBUTTON ] = OsEventInputKeyboard::KEYCODE_RBUTTON;
+	KeyCodeMap_[ VK_CANCEL ] = OsEventInputKeyboard::KEYCODE_CANCEL;
+	KeyCodeMap_[ VK_MBUTTON ] = OsEventInputKeyboard::KEYCODE_MBUTTON;
+	KeyCodeMap_[ VK_BACK ] = OsEventInputKeyboard::KEYCODE_BACKSPACE;
+	KeyCodeMap_[ VK_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
+	KeyCodeMap_[ VK_CLEAR ] = OsEventInputKeyboard::KEYCODE_CLEAR;
+	KeyCodeMap_[ VK_RETURN ] = OsEventInputKeyboard::KEYCODE_RETURN;
+	KeyCodeMap_[ VK_SHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;
+	KeyCodeMap_[ VK_CONTROL ] = OsEventInputKeyboard::KEYCODE_CONTROL;
+	KeyCodeMap_[ VK_MENU ] = OsEventInputKeyboard::KEYCODE_ALT;
+	KeyCodeMap_[ VK_PAUSE ] = OsEventInputKeyboard::KEYCODE_PAUSE;
+	KeyCodeMap_[ VK_CAPITAL ] = OsEventInputKeyboard::KEYCODE_CAPSLOCK;
+	KeyCodeMap_[ VK_ESCAPE ] = OsEventInputKeyboard::KEYCODE_ESCAPE;
+	KeyCodeMap_[ VK_SPACE ] = OsEventInputKeyboard::KEYCODE_SPACE;
+	KeyCodeMap_[ VK_PRIOR ] = OsEventInputKeyboard::KEYCODE_PGUP;
+	KeyCodeMap_[ VK_NEXT ] = OsEventInputKeyboard::KEYCODE_PGDN;
+	KeyCodeMap_[ VK_END ] = OsEventInputKeyboard::KEYCODE_END;
+	KeyCodeMap_[ VK_HOME ] = OsEventInputKeyboard::KEYCODE_HOME;
+	KeyCodeMap_[ VK_LEFT ] = OsEventInputKeyboard::KEYCODE_LEFT;
+	KeyCodeMap_[ VK_UP ] = OsEventInputKeyboard::KEYCODE_UP;
+	KeyCodeMap_[ VK_RIGHT ] = OsEventInputKeyboard::KEYCODE_RIGHT;
+	KeyCodeMap_[ VK_DOWN ] = OsEventInputKeyboard::KEYCODE_DOWN;
+	KeyCodeMap_[ VK_SELECT ] = OsEventInputKeyboard::KEYCODE_SELECT;
+	KeyCodeMap_[ VK_PRINT ] = OsEventInputKeyboard::KEYCODE_PRINT;
+	KeyCodeMap_[ VK_EXECUTE ] = OsEventInputKeyboard::KEYCODE_EXECUTE;
+	KeyCodeMap_[ VK_SNAPSHOT ] = OsEventInputKeyboard::KEYCODE_PRINT_SCREEN;
+	KeyCodeMap_[ VK_INSERT ] = OsEventInputKeyboard::KEYCODE_INSERT;
+	KeyCodeMap_[ VK_DELETE ] = OsEventInputKeyboard::KEYCODE_DELETE;
+	KeyCodeMap_[ VK_HELP ] = OsEventInputKeyboard::KEYCODE_HELP;
+	KeyCodeMap_[ VK_NUMPAD0 ] = OsEventInputKeyboard::KEYCODE_NUMPAD0;
+	KeyCodeMap_[ VK_NUMPAD1 ] = OsEventInputKeyboard::KEYCODE_NUMPAD1;
+	KeyCodeMap_[ VK_NUMPAD2 ] = OsEventInputKeyboard::KEYCODE_NUMPAD2;
+	KeyCodeMap_[ VK_NUMPAD3 ] = OsEventInputKeyboard::KEYCODE_NUMPAD3;
+	KeyCodeMap_[ VK_NUMPAD4 ] = OsEventInputKeyboard::KEYCODE_NUMPAD4;
+	KeyCodeMap_[ VK_NUMPAD5 ] = OsEventInputKeyboard::KEYCODE_NUMPAD5;
+	KeyCodeMap_[ VK_NUMPAD6 ] = OsEventInputKeyboard::KEYCODE_NUMPAD6;
+	KeyCodeMap_[ VK_NUMPAD7 ] = OsEventInputKeyboard::KEYCODE_NUMPAD7;
+	KeyCodeMap_[ VK_NUMPAD8 ] = OsEventInputKeyboard::KEYCODE_NUMPAD8;
+	KeyCodeMap_[ VK_NUMPAD9 ] = OsEventInputKeyboard::KEYCODE_NUMPAD9;
+	KeyCodeMap_[ VK_SEPARATOR ] = OsEventInputKeyboard::KEYCODE_SEPARATOR;
+	KeyCodeMap_[ VK_SUBTRACT ] = OsEventInputKeyboard::KEYCODE_SUBTRACT;
+	KeyCodeMap_[ VK_DECIMAL ] = OsEventInputKeyboard::KEYCODE_DECIMAL;
+	KeyCodeMap_[ VK_DIVIDE ] = OsEventInputKeyboard::KEYCODE_DIVIDE;
+	KeyCodeMap_[ VK_F1 ] = OsEventInputKeyboard::KEYCODE_F1;
+	KeyCodeMap_[ VK_F2 ] = OsEventInputKeyboard::KEYCODE_F2;
+	KeyCodeMap_[ VK_F3 ] = OsEventInputKeyboard::KEYCODE_F3;
+	KeyCodeMap_[ VK_F4 ] = OsEventInputKeyboard::KEYCODE_F4;
+	KeyCodeMap_[ VK_F5 ] = OsEventInputKeyboard::KEYCODE_F5;
+	KeyCodeMap_[ VK_F6 ] = OsEventInputKeyboard::KEYCODE_F6;
+	KeyCodeMap_[ VK_F7 ] = OsEventInputKeyboard::KEYCODE_F7;
+	KeyCodeMap_[ VK_F8 ] = OsEventInputKeyboard::KEYCODE_F8;
+	KeyCodeMap_[ VK_F9 ] = OsEventInputKeyboard::KEYCODE_F9;
+	KeyCodeMap_[ VK_F10 ] = OsEventInputKeyboard::KEYCODE_F10;
+	KeyCodeMap_[ VK_F11 ] = OsEventInputKeyboard::KEYCODE_F11;
+	KeyCodeMap_[ VK_F12 ] = OsEventInputKeyboard::KEYCODE_F12;
+	KeyCodeMap_[ VK_F13 ] = OsEventInputKeyboard::KEYCODE_F13;
+	KeyCodeMap_[ VK_F14 ] = OsEventInputKeyboard::KEYCODE_F14;
+	KeyCodeMap_[ VK_F15 ] = OsEventInputKeyboard::KEYCODE_F15;
+	KeyCodeMap_[ VK_F16 ] = OsEventInputKeyboard::KEYCODE_F16;
+	KeyCodeMap_[ VK_F17 ] = OsEventInputKeyboard::KEYCODE_F17;
+	KeyCodeMap_[ VK_F18 ] = OsEventInputKeyboard::KEYCODE_F18;
+	KeyCodeMap_[ VK_F19 ] = OsEventInputKeyboard::KEYCODE_F19;
+	KeyCodeMap_[ VK_F20 ] = OsEventInputKeyboard::KEYCODE_F20;
+	KeyCodeMap_[ VK_F21 ] = OsEventInputKeyboard::KEYCODE_F21;
+	KeyCodeMap_[ VK_F22 ] = OsEventInputKeyboard::KEYCODE_F22;
+	KeyCodeMap_[ VK_F23 ] = OsEventInputKeyboard::KEYCODE_F23;
+	KeyCodeMap_[ VK_F24 ] = OsEventInputKeyboard::KEYCODE_F24;
+	KeyCodeMap_[ VK_NUMLOCK ] = OsEventInputKeyboard::KEYCODE_NUMLOCK;
+	KeyCodeMap_[ VK_SCROLL ] = OsEventInputKeyboard::KEYCODE_SCROLL;
+	KeyCodeMap_[ VK_LSHIFT ] = OsEventInputKeyboard::KEYCODE_LSHIFT;
+	KeyCodeMap_[ VK_RSHIFT ] = OsEventInputKeyboard::KEYCODE_RSHIFT;
+	KeyCodeMap_[ VK_LCONTROL ] = OsEventInputKeyboard::KEYCODE_LCONTROL;
+	KeyCodeMap_[ VK_RCONTROL ] = OsEventInputKeyboard::KEYCODE_RCONTROL;
+	KeyCodeMap_[ VK_LMENU ] = OsEventInputKeyboard::KEYCODE_LMENU;
+	KeyCodeMap_[ VK_RMENU ] = OsEventInputKeyboard::KEYCODE_RMENU;
+	KeyCodeMap_[ VK_PLAY ] = OsEventInputKeyboard::KEYCODE_PLAY;
+	KeyCodeMap_[ VK_ZOOM ] = OsEventInputKeyboard::KEYCODE_ZOOM;
 
+	PrevMouseX_ = 0;
+	PrevMouseY_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,6 +272,32 @@ BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// mapKeyEvent
+void OsClientWindows::mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam )
+{
+	Event.KeyCode_ = static_cast< BcU16 >( wParam ) & 0xff;
+	Event.ScanCode_ = ::MapVirtualKey( Event.KeyCode_, 0 );
+	WORD AsciiOut = 0;
+	BYTE KeyState[ 256 ];
+	GetKeyboardState( KeyState );
+	if( ::ToAscii( Event.KeyCode_, Event.ScanCode_, KeyState, &AsciiOut, 0 ) > 0 )
+	{
+		Event.AsciiCode_ = static_cast< BcU16 >( AsciiOut );
+	}
+	else
+	{
+		Event.AsciiCode_ = 0;
+	}
+
+	// Get key code, or pass through virtual.
+	TKeyCodeMapIterator It( KeyCodeMap_.find( Event.KeyCode_ ) );
+	if( It != KeyCodeMap_.end() )
+	{
+		Event.KeyCode_ = (*It).second;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // wndProcInternal
 LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
                                           UINT uMsg,
@@ -257,7 +364,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 		{
 			OsEventInputKeyboard Event;
 			Event.DeviceID_ = 0;
-			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
+			mapKeyEvent( Event, wParam );
 			OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_KEYDOWN, Event );
 			return 0;
@@ -268,7 +375,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 		{
 			OsEventInputKeyboard Event;
 			Event.DeviceID_ = 0;
-			Event.KeyCode_ = static_cast< BcU32 >( wParam ) & 0xff;
+			mapKeyEvent( Event, wParam );			
 			OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
 			return 0;
@@ -281,6 +388,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 0;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
@@ -290,10 +401,16 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_LBUTTONDOWN:
 		{
+			SetCapture( hWnd );
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 0;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
@@ -303,10 +420,16 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_LBUTTONUP:
 		{
+			ReleaseCapture();
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 0;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
@@ -316,10 +439,16 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_RBUTTONDOWN:
 		{
+			SetCapture( hWnd );
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 1;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
@@ -329,10 +458,16 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_RBUTTONUP:
 		{
+			ReleaseCapture();
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 1;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
@@ -342,10 +477,16 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_MBUTTONDOWN:
 		{
+			SetCapture( hWnd );
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 2;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
@@ -355,14 +496,26 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_MBUTTONUP:
 		{
+			ReleaseCapture();
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
 			Event.ButtonCode_ = 2;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
 			return 0;
+		}
+		break;
+
+	case WM_MOUSEWHEEL:
+		{
+			int a = 0; ++a;
 		}
 		break;
 

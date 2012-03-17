@@ -21,6 +21,7 @@ CsFileReader::CsFileReader( const std::string& Name ):
 	CsFile( Name )
 {
 	BcMemZero( &Header_, sizeof( Header_ ) );
+	pStringTable_ = NULL;
 	pChunks_ = NULL;
 	pData_ = NULL;
 }
@@ -29,6 +30,7 @@ CsFileReader::CsFileReader( const std::string& Name ):
 // Dtor
 CsFileReader::~CsFileReader()
 {
+	delete [] pStringTable_;
 	delete [] pChunks_;
 	delete [] pData_;
 }
@@ -53,6 +55,18 @@ BcBool CsFileReader::load( CsFileReadyDelegate ReadyDelegate, CsFileChunkDelegat
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getString
+const BcChar* CsFileReader::getString( BcU32 Offset )
+{
+	if( Offset < Header_.StringTableSize_ )
+	{
+		return &pStringTable_[ Offset ];
+	}
+	
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getChunk
 const CsFileChunk* CsFileReader::getChunk( BcU32 Chunk, BcBool TriggerLoad )
 {
@@ -61,7 +75,7 @@ const CsFileChunk* CsFileReader::getChunk( BcU32 Chunk, BcBool TriggerLoad )
 
 	if( TriggerLoad == BcTrue )
 	{
-		BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + sizeof( CsFileChunk ) * Header_.NoofChunks_;
+		BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + Header_.StringTableSize_ + sizeof( CsFileChunk ) * Header_.NoofChunks_;
 		BcU8* pData = pData_ + ( pChunk->Offset_ - TotalHeaderSize );
 
 		// Bind the file op delegate.
@@ -104,9 +118,13 @@ void CsFileReader::onHeaderLoaded( void* pData, BcSize Size )
 	BcAssert( pData == &Header_ );
 	BcAssert( Size == sizeof( Header_ ) );
 	
-	// Loaded header, now allocate the correct number of chunks & props
+	// Loaded header, now allocate the string table, chunks & props.
+	pStringTable_ = new BcChar[ Header_.StringTableSize_ ];
 	pChunks_ = new CsFileChunk[ Header_.NoofChunks_ ];
 	pChunkProps_ = new CsFileChunkProps[ Header_.NoofChunks_ ];
+
+	// Clear string table.
+	BcMemZero( pStringTable_, Header_.StringTableSize_ );
 	
 	// Clear chunk props.
 	for( BcU32 i = 0; i < Header_.NoofChunks_; ++i )
@@ -114,8 +132,24 @@ void CsFileReader::onHeaderLoaded( void* pData, BcSize Size )
 		pChunkProps_[ i ].Status_ = CsFileChunkProps::STATUS_NOT_LOADED;	
 	}
 	
-	// Load the chunks in.
+	// Load the string table in.
 	BcU32 Position = sizeof( Header_ );
+	BcU32 Bytes = Header_.StringTableSize_;
+	File_.readAsync( Position, pStringTable_, Bytes, FsFileOpDelegate::bind< CsFileReader, &CsFileReader::onStringTableLoaded >( this ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onStringTableLoaded
+void CsFileReader::onStringTableLoaded( void* pData, BcSize Size )
+{
+	// Check we have the right data.
+	BcAssert( pData == pStringTable_ );
+	BcAssert( Size == Header_.StringTableSize_ );
+	
+	// No need to do anything here.
+	
+	// Load the chunks in.
+	BcU32 Position = sizeof( Header_ ) + Header_.StringTableSize_;
 	BcU32 Bytes = sizeof( CsFileChunk ) * Header_.NoofChunks_;
 	File_.readAsync( Position, pChunks_, Bytes, FsFileOpDelegate::bind< CsFileReader, &CsFileReader::onChunksLoaded >( this ) );
 }
@@ -150,7 +184,7 @@ void CsFileReader::onDataLoaded( void* pData, BcSize Size )
 	BcUnusedVar( Size );
 	
 	// Find the chunk that data matches to.
-	BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + sizeof( CsFileChunk ) * Header_.NoofChunks_;
+	BcU32 TotalHeaderSize = sizeof( CsFileHeader ) + Header_.StringTableSize_ + sizeof( CsFileChunk ) * Header_.NoofChunks_;
 	BcU32 ChunkIdx = BcErrorCode;
 	CsFileChunk* pFoundChunk = NULL;
 	CsFileChunkProps* pFoundChunkProps = NULL;

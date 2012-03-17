@@ -14,6 +14,14 @@
 #include "BcDebug.h"
 #include "BcQuat.h"
 
+#include "BcString.h"
+
+BcQuat::BcQuat( const BcChar* pString ):
+	BcVec4d( pString )
+{
+
+}
+
 #define SLERP_EPSILON	0.001f
 
 void BcQuat::lerp(const BcQuat& a, const BcQuat& b, BcReal t)

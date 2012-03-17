@@ -143,6 +143,9 @@ void RsVertexBufferGL::update()
 			glBufferData( Type_, NoofVertices_ * Stride_, pData_, Usage_ );
 		}
 
+		// Catch error.
+		RsGLCatchError;
+
 		// Decrement fence.
 		UpdateSyncFence_.decrement();
 	

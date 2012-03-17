@@ -23,10 +23,22 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef
 typedef CsResourceRef< class ScnFont > ScnFontRef;
+typedef std::map< std::string, ScnFontRef > ScnFontMap;
+typedef ScnFontMap::iterator ScnFontMapIterator;
+typedef ScnFontMap::const_iterator ScnFontConstIterator;
+typedef std::vector< ScnFontRef > ScnFontList;
+typedef ScnFontList::iterator ScnFontListIterator;
+typedef ScnFontList::const_iterator ScnFontListConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
-// ScnFontRef
+// ScnFontComponentRef
 typedef CsResourceRef< class ScnFontComponent > ScnFontComponentRef;
+typedef std::map< std::string, ScnFontComponentRef > ScnFontComponentMap;
+typedef ScnFontComponentMap::iterator ScnFontComponentMapIterator;
+typedef ScnFontComponentMap::const_iterator ScnFontComponentConstIterator;
+typedef std::vector< ScnFontComponentRef > ScnFontComponentList;
+typedef ScnFontComponentList::iterator ScnFontComponentListIterator;
+typedef ScnFontComponentList::const_iterator ScnFontComponentListConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFont
@@ -56,7 +68,8 @@ private:
 	struct THeader
 	{
 		BcU32							NoofGlyphs_;
-		BcChar							TextureName_[ 64 ];
+		BcU32							TextureName_;
+		BcReal							NominalSize_;
 	};
 	
 	struct TGlyphDesc
@@ -97,8 +110,10 @@ public:
 	DECLARE_RESOURCE( ScnComponent, ScnFontComponent );
 	
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
+
+	void								setClipping( BcBool Enabled, BcVec2d Min = BcVec2d( 0.0f, 0.0f ), BcVec2d Max = BcVec2d( 0.0f, 0.0f ) );
 	
-	BcVec2d								draw( ScnCanvasComponentRef Canvas, const std::string& String, BcBool SizeRun = BcFalse );
+	BcVec2d								draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse );
 
 	ScnMaterialComponentRef				getMaterialComponent();
 	
@@ -114,6 +129,10 @@ private:
 
 	ScnFontRef							Parent_;
 	ScnMaterialComponentRef				MaterialComponent_;
+
+	BcBool								ClippingEnabled_;
+	BcVec2d								ClipMin_;
+	BcVec2d								ClipMax_;
 };
 
 #endif

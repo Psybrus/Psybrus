@@ -25,6 +25,7 @@ class CsFile;
 struct CsFileHeader
 {
 	BcU32					ID_;
+	BcU32					StringTableSize_;
 	BcU32					NoofChunks_;
 };
 
@@ -90,6 +91,13 @@ public:
 	virtual const std::string&		getName() const;
 
 	/**
+	 * Get string.
+	 * @param Offset Offset of string in table.
+	 * @return String, or NULL pointer if invalid offset.
+	 */
+	virtual const BcChar*			getString( BcU32 Offset );
+
+	/**
 	 * Get chunk. Calls chunk delegate when it's loaded.
 	 * @param Chunk Chunk index.
 	 * @param TriggerLoad Do we want to trigger a load?
@@ -106,6 +114,11 @@ public:
 	 * Get number of chunks.
 	 */
 	virtual BcU32					getNoofChunks() const;
+
+	/**
+	 * Add string.
+	 */
+	virtual BcU32					addString( const BcChar* pString );
 	
 	/**
 	 * Add chunk.

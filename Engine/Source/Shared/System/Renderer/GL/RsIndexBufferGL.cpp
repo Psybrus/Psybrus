@@ -77,6 +77,10 @@ void RsIndexBufferGL::update()
 		// Bind and push data into buffer.
 		glBindBuffer( Type_, Handle );
 		glBufferData( Type_, DataSize_, pData_, Usage_ );
+
+		// Catch error.
+		RsGLCatchError;
+
 		glBindBuffer( Type_, 0 );
 
 		UpdateSyncFence_.decrement();

@@ -29,14 +29,19 @@ public:
 	virtual ~CsFileWriter();
 	
 	virtual BcBool				save();
+	BcU32						addString( const BcChar* pString );
 	BcU32						addChunk( BcU32 ID, void* pData, BcU32 Size );
 	
 private:
 	typedef std::vector< CsFileChunkNative > CsFileChunkNativeList;
 	typedef CsFileChunkNativeList::iterator CsFileChunkNativeListIterator;
+
+	typedef std::vector< std::string > TStringList;
+	typedef TStringList::iterator TStringListIterator;
 	
 	BcFile						File_;
 	CsFileHeader				Header_;
+	TStringList					StringList_;
 	CsFileChunkNativeList		Chunks_;
 };
 
