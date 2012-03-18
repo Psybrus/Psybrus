@@ -17,6 +17,5 @@
 #include "Gwen/Utility.h"
 #include "Gwen/Font.h"
 #include "Gwen/Texture.h"
-#include "Gwen/WindowProvider.h"
 #include "Gwen/BaseRender.h"
 #include "Gwen/Skins/TexturedBase.h"
