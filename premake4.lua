@@ -32,3 +32,6 @@ solution "Psybrus"
 
 	-- Build example game.
 	dofile ("ExampleGame/premake4.lua")
+
+	-- Build template game.
+	dofile ("TemplateGame/premake4.lua")
