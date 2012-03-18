@@ -1,14 +1,14 @@
 /**************************************************************************
 *
 * File:		BcPath.h
-* Author: 	Neil Richardson 
-* Ver/Date:	
+* Author: 	Neil Richardson
+* Ver/Date:
 * Description:
 *		File system path
-*		
 *
 *
-* 
+*
+*
 **************************************************************************/
 
 #ifndef __BCPATH_H__
@@ -22,7 +22,7 @@
 class BcPath
 {
 public:
-	static const BcChar BcPath::Seperator;
+	static const BcChar Seperator;
 
 public:
 	BcPath();

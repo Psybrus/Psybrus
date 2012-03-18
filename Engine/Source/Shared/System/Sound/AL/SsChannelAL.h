@@ -33,6 +33,10 @@ public:
 	virtual ~SsChannelAL();
 
 	void				stop( BcBool ReleaseCallback = BcFalse );
+	void				queue( SsSample* Sample );
+	void				unqueue();
+	BcU32				samplesQueued();
+	BcU32				samplesComplete();
 	void				play( SsSampleAL* Sample, SsChannelCallback* Callback );
 	void				update();
 	void				updateParams();

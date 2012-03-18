@@ -1,20 +1,23 @@
 /**************************************************************************
 *
 * File:		BcWindows.h
-* Author: 	Neil Richardson 
-* Ver/Date:	
+* Author: 	Neil Richardson
+* Ver/Date:
 * Description:
-*		
-*		
 *
 *
-* 
+*
+*
+*
 **************************************************************************/
 
 #ifndef __BCWINDOWS_H__
 #define __BCWINDOWS_H__
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+
 #define NOKANJI
 #define NOHELP
 #define NOPROFILER

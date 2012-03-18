@@ -2,13 +2,13 @@
 *
 * File:		BcLog.cpp
 * Author: 	Neil Richardson
-* Ver/Date:	
+* Ver/Date:
 * Description:
 *		Logging system.
-*		
-*		
-*		
-* 
+*
+*
+*
+*
 **************************************************************************/
 
 #include "BcLog.h"
@@ -38,13 +38,13 @@ BcLog::~BcLog()
 {
 	flush();
 }
-	
+
 //////////////////////////////////////////////////////////////////////////
 // write
 void BcLog::write( const BcChar* pText, ... )
 {
 	BcScopedLock< BcMutex > Lock( Lock_ );
-	
+
 	va_list ArgList;
 	va_start( ArgList, pText );
 	privateWrite( pText, ArgList );
@@ -56,7 +56,7 @@ void BcLog::write( const BcChar* pText, ... )
 void BcLog::write( BcU32 Catagory, const BcChar* pText, ... )
 {
 	BcScopedLock< BcMutex > Lock( Lock_ );
-	
+
 	if( getCatagorySuppression( Catagory ) == BcFalse )
 	{
 		va_list ArgList;
@@ -65,7 +65,7 @@ void BcLog::write( BcU32 Catagory, const BcChar* pText, ... )
 		va_end( ArgList );
 	}
 }
-	
+
 //////////////////////////////////////////////////////////////////////////
 // flush
 void BcLog::flush()
@@ -97,17 +97,17 @@ void BcLog::setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed )
 
 //////////////////////////////////////////////////////////////////////////
 // getCatagorySuppression
-BcBool BcLog::getCatagorySuppression( BcU32 Catagory ) const 
+BcBool BcLog::getCatagorySuppression( BcU32 Catagory ) const
 {
 	BcScopedLock< BcMutex > Lock( Lock_ );
 
 	TSuppressionMap::const_iterator It( SuppressedMap_.find( Catagory ) );
-	
+
 	if( It != SuppressedMap_.end() )
 	{
 		return (*It).second;
 	}
-	
+
 	return BcFalse;
 }
 
@@ -139,6 +139,10 @@ void BcLog::internalFlush()
 // privateWrite
 void BcLog::privateWrite( const BcChar* pText, va_list Args )
 {
+#if COMPILER_MSVC
 	vsprintf_s( TextBuffer_, pText, Args );
+#else
+    vsprintf( TextBuffer_, pText, Args );
+#endif
 	internalWrite( TextBuffer_ );
 }

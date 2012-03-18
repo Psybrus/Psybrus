@@ -1,14 +1,14 @@
 /**************************************************************************
 *
 * File:		CsResource.h
-* Author:	Neil Richardson 
-* Ver/Date:	7/03/11	
+* Author:	Neil Richardson
+* Ver/Date:	7/03/11
 * Description:
-*		
-*		
 *
 *
-* 
+*
+*
+*
 **************************************************************************/
 
 #ifndef __CSRESOURCE_H__
@@ -17,6 +17,7 @@
 #include "CsTypes.h"
 #include "CsFile.h"
 #include "CsProperty.h"
+
 #include "CsResourceRef.h"
 
 #include "BcAtomic.h"
@@ -149,9 +150,10 @@ enum CsResourceStage
 	csRS_LOADED,
 	csRS_DESTROY,
 	csRS_KILL,
-	
+
 	csRS_MAX
 };
+
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -170,7 +172,7 @@ class CsResource
 {
 public:
 	DECLARE_CSRESOURCE;
-	
+
 private: // non-copyable.
 	BcForceInline CsResource( const CsResource& ){};
 	BcForceInline CsResource& operator = ( const CsResource& ){};
@@ -178,38 +180,38 @@ private: // non-copyable.
 public:
 	CsResource( const BcName& Name, CsFile* pFile );
 	virtual ~CsResource();
-	
+
 #ifdef PSY_SERVER
 	/**
 	 * Import resource.
 	 */
 	virtual BcBool					import( const Json::Value& Object, CsDependancyList& DependancyList );
 #endif
-	
+
 	/**
 	 * Initialise resource. <br/>
 	 * Called on construction from thread creating it.
 	 */
 	virtual void					initialise();
-	
+
 	/**
 	 * Create resource.<br/>
 	 * Called on the content system thread.
 	 */
 	virtual void					create();
-	
+
 	/**
 	 * Destroy resource.<br/>
 	 * Called on the content system thread.
 	 */
 	virtual void					destroy();
-	
+
 	/**
 	 * Are we ready to use?<br/>
 	 * Should return true *only* when a resource is fully ready to use.
 	 */
 	virtual BcBool					isReady();
-	
+
 	/**
 	 * File is ready.
 	 */
@@ -225,18 +227,18 @@ public:
 	 * Acquire resource.
 	 */
 	void							acquire();
-	
+
 	/**
 	 * Release resource.
 	 */
 	void							release();
-	
+
 	/**
 	 * Get name.
 	 */
 	const BcName&					getName() const;
-	
-	
+
+
 protected:
 	/**
 	 * Get string. (See CsFile)
@@ -255,7 +257,7 @@ protected:
 
 private:
 	friend class CsCore;
-	
+
 	CsResourceStage					process();
 	void							delegateFileReady( CsFile* pFile );
 	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
@@ -266,7 +268,7 @@ protected:
 private:
 #endif
 	CsFile*							pFile_;
-	
+
 private:
 	BcName							Name_;
 	BcAtomicU32						RefCount_;
@@ -276,6 +278,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
+#include "CsResourceRef.inl"
 
 #endif
 

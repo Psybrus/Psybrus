@@ -2,13 +2,13 @@
 *
 * File:		cMath.h
 * Author: 	Neil Richardson
-* Ver/Date:	
+* Ver/Date:
 * Description:
 *		Common maths stuff.
-*		
-*		
-*		
-* 
+*
+*
+*
+*
 **************************************************************************/
 
 #ifndef __BCMATH_H__
@@ -42,12 +42,12 @@ using namespace streflop;
 // BcSqrt
 inline BcReal BcSqrt( BcReal v )
 {
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
 	__asm fld [v]
 	__asm fsqrt
 	__asm fstp [v]
 	return v;
-#elif defined( PLATFORM_LINUX )
+#elif PLATFORM_LINUX
 	asm(
 		"fld %1\n"
 		"fsqrt\n"
@@ -65,12 +65,12 @@ inline BcReal BcSqrt( BcReal v )
 // BcSin
 inline BcReal BcSin( BcReal r )
 {
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
 	__asm fld [r]
 	__asm fsin
 	__asm fstp [r]
 	return r;
-#elif defined( PLATFORM_LINUX )
+#elif PLATFORM_LINUX
 	asm(
 		"fld %1\n"
 		"fsin\n"
@@ -88,12 +88,12 @@ inline BcReal BcSin( BcReal r )
 // BcCos
 inline BcReal BcCos( BcReal r )
 {
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
 	__asm fld [r]
 	__asm fcos
 	__asm fstp [r]
 	return r;
-#elif defined( PLATFORM_LINUX )
+#elif PLATFORM_LINUX
 	asm(
 		"fld %1\n"
 		"fcos\n"
@@ -133,13 +133,13 @@ inline BcReal BcAcos( BcReal r )
 // BcAtan2
 inline BcReal BcAtan2( BcReal Y, BcReal X )
 {
-#if defined( PLATFORM_WINDOWS )
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
 	__asm fld [Y]
 	__asm fld [X]
 	__asm fpatan
 	__asm fstp [Y]
 	return Y;
-#elif defined( PLATFORM_LINUX )
+#elif PLATFORM_LINUX
 	asm(
 		"fld %1\n"
 		"fld %2\n"

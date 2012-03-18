@@ -1,14 +1,14 @@
 /**************************************************************************
 *
 * File:		RsIndexBufferGL.cpp
-* Author:	Neil Richardson 
-* Ver/Date:	25/02/11	
+* Author:	Neil Richardson
+* Ver/Date:	25/02/11
 * Description:
-*		
-*		
 *
 *
-* 
+*
+*
+*
 **************************************************************************/
 
 #include "RsIndexBufferGL.h"
@@ -20,16 +20,16 @@ RsIndexBufferGL::RsIndexBufferGL( BcU32 NoofIndices, void* pIndexData )
 	// Setup base buffer.
 	Type_ = GL_ELEMENT_ARRAY_BUFFER;
 	Usage_ = pIndexData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
-	
+
 	// Setup stride and descriptor.
 	NoofIndices_ = NoofIndices;
 	pData_ = pIndexData;
 	DataSize_ = NoofIndices_ * sizeof( BcU16 );
-	
+
 	// Create data if we need to.
 	if( pData_ == NULL )
 	{
-		pData_ = new BcU8[  ];
+		pData_ = new BcU8[ DataSize_ ];
 		DeleteData_ = BcTrue;
 	}
 }
@@ -39,7 +39,7 @@ RsIndexBufferGL::RsIndexBufferGL( BcU32 NoofIndices, void* pIndexData )
 //virtual
 RsIndexBufferGL::~RsIndexBufferGL()
 {
-	
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,12 +51,12 @@ void RsIndexBufferGL::create()
 	GLuint Handle;
 	glGenBuffers( 1, &Handle );
 	setHandle( Handle );
-	
+
 	if( Handle != 0 )
 	{
 		UpdateSyncFence_.increment();
 		update();
-		
+
 		// Destroy if there is a failure.
 		if ( glGetError() != GL_NO_ERROR )
 		{
@@ -69,7 +69,7 @@ void RsIndexBufferGL::create()
 // update
 //virtual
 void RsIndexBufferGL::update()
-{	
+{
 	GLuint Handle = getHandle< GLuint >();
 
 	if( pData_ != NULL )
@@ -93,7 +93,7 @@ void RsIndexBufferGL::update()
 void RsIndexBufferGL::destroy()
 {
 	GLuint Handle = getHandle< GLuint >();
-	
+
 	if( Handle != 0 )
 	{
 		glDeleteBuffers( 1, &Handle );
@@ -107,7 +107,7 @@ void RsIndexBufferGL::bind()
 {
 	GLuint Handle = getHandle< GLuint >();
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, Handle );
-	
+
 	// Catch error.
 	RsGLCatchError;
 }

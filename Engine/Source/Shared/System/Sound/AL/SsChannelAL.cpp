@@ -71,17 +71,48 @@ void SsChannelAL::stop( BcBool ReleaseCallback )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// queue
+void SsChannelAL::queue( SsSample* Sample )
+{
+	alSourcei( ALSource_, AL_LOOPING, BcFalse );
+	ALuint Buffer = Sample->getHandle< ALuint >(); 
+	alSourceQueueBuffers( ALSource_, 1, &Buffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// unqueue
+void SsChannelAL::unqueue()
+{
+	ALuint Buffer; 
+	alSourceUnqueueBuffers( ALSource_, 1, &Buffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// samplesQueued
+BcU32 SsChannelAL::samplesQueued()
+{
+	ALint Queued;
+	alGetSourcei( ALSource_, AL_BUFFERS_QUEUED, &Queued );
+	return static_cast< BcU32 >( Queued );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// samplesComplete
+BcU32 SsChannelAL::samplesComplete()
+{
+	ALint Complete;
+	alGetSourcei( ALSource_, AL_BUFFERS_PROCESSED, &Complete );
+	return static_cast< BcU32 >( Complete );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // play
 void SsChannelAL::play( SsSampleAL* Sample, SsChannelCallback* Callback )
 {
 	// TODO: Lock/fence!!
 	BcAssert( State_ == ssCS_IDLE || State_ == ssCS_STOPPED );
-
-	alBreakOnError();
 	alSourcei( ALSource_, AL_BUFFER, Sample->getHandle< ALuint >() );
-	alBreakOnError();
 	alSourcei( ALSource_, AL_LOOPING, Sample->isLooping() );
-	alBreakOnError();
 	
 #if SS_AL_EFX_SUPPORTED
 	if( SsCore::pImpl< SsCoreImplAL >()->isEFXEnabled() )

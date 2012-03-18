@@ -1,0 +1,14 @@
+-- Setup include paths for platform.
+includedirs { "./Shared/**", "./Platforms/Windows/**" }
+
+-- Shared.
+dofile ("Source/Shared/premake4.lua")
+
+-- Do platform specific stuff here.
+dofile ("Source/Platforms/Windows/premake4.lua")
+
+-- Integrations.
+-- dofile ("Source/IntegrationGwen/premake4.lua")
+
+-- Samples.
+dofile ("Source/Samples/premake4.lua")
