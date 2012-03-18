@@ -14,9 +14,9 @@
 #ifndef __RSPROGRAMGL_H__
 #define __RSPROGRAMGL_H__
 
-#include "RsShaderGL.h"
-#include "RsTextureGL.h"
-#include "RsProgram.h"
+#include "System/Renderer/GL/RsShaderGL.h"
+#include "System/Renderer/GL/RsTextureGL.h"
+#include "System/Renderer/RsProgram.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations

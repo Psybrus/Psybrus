@@ -14,10 +14,10 @@
 #ifndef __SCNSHADER_H__
 #define __SCNSHADER_H__
 
-#include "RsCore.h"
-#include "CsResource.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Content/CsResource.h"
 
-#include "ScnTexture.h"
+#include "System/Scene/ScnTexture.h"
 
 //////////////////////////////////////////////////////////////////////////
 // eScnShaderPermutationFlags

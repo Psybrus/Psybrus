@@ -11,12 +11,12 @@
 * 
 **************************************************************************/
 
-#include "ScnTexture.h"
-#include "RsCore.h"
+#include "System/Scene/ScnTexture.h"
+#include "System/Renderer/RsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcStream.h"
-#include "Img.h"
+#include "Base/BcStream.h"
+#include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import

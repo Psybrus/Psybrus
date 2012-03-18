@@ -14,11 +14,11 @@
 #ifndef __ScnFont_H__
 #define __ScnFont_H__
 
-#include "CsResource.h"
+#include "System/Content/CsResource.h"
 
-#include "ScnMaterial.h"
-#include "ScnComponent.h"
-#include "ScnCanvasComponent.h"
+#include "System/Scene/ScnMaterial.h"
+#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnCanvasComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef

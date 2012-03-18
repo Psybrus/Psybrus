@@ -14,7 +14,7 @@
 #ifndef __BCSTREAM_H__
 #define __BCSTREAM_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcStream

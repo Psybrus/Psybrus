@@ -11,14 +11,14 @@
 * 
 **************************************************************************/
 
-#include "ScnModel.h"
-#include "ScnEntity.h"
+#include "System/Scene/ScnModel.h"
+#include "System/Scene/ScnEntity.h"
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcStream.h"
-#include "Mdl.h"
+#include "Base/BcStream.h"
+#include "Import/Mdl/Mdl.h"
 #endif
 
 #ifdef PSY_SERVER

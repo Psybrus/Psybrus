@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
-#include "BcDebug.h"
+#include "Base/BcDebug.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcTypes_UnitTest

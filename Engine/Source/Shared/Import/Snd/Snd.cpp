@@ -15,7 +15,7 @@
 
 #include "SndFileWAV.h"
 #include "SndFileOGG.h"
-#include "BcString.h"
+#include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Snd

@@ -14,13 +14,13 @@
 #ifndef __SYSKERNEL_H__
 #define __SYSKERNEL_H__
 
-#include "BcGlobal.h"
-#include "BcName.h"
-#include "BcTimer.h"
-#include "BcThread.h"
-#include "SysSystem.h"
-#include "SysJobQueue.h"
-#include "SysDelegateDispatcher.h"
+#include "Base/BcGlobal.h"
+#include "Base/BcName.h"
+#include "Base/BcTimer.h"
+#include "Base/BcThread.h"
+#include "System/SysSystem.h"
+#include "System/SysJobQueue.h"
+#include "System/SysDelegateDispatcher.h"
 
 #include <list>
 #include <map>

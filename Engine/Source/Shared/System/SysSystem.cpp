@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "SysSystem.h"
+#include "System/SysSystem.h"
 
-#include "BcMemory.h"
-#include "BcString.h"
+#include "Base/BcMemory.h"
+#include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

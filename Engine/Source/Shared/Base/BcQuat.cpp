@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "BcDebug.h"
-#include "BcQuat.h"
+#include "Base/BcDebug.h"
+#include "Base/BcQuat.h"
 
-#include "BcString.h"
+#include "Base/BcString.h"
 
 BcQuat::BcQuat( const BcChar* pString ):
 	BcVec4d( pString )

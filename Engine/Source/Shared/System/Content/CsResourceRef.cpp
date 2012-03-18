@@ -11,5 +11,5 @@
 * 
 **************************************************************************/
 
-#include "CsResource.h"
-#include "CsResourceRef.h"
+#include "System/Content/CsResource.h"
+#include "System/Content/CsResourceRef.h"

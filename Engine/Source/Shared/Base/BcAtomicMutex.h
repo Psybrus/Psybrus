@@ -14,8 +14,8 @@
 #ifndef __BCATOMICMUTEXS_H__
 #define __BCATOMICMUTEXS_H__
 
-#include "BcAtomic.h"
-#include "BcMisc.h"
+#include "Base/BcAtomic.h"
+#include "Base/BcMisc.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtomicMutex

@@ -14,10 +14,10 @@
 #ifndef __RSPRIMITIVEGL_H__
 #define __RSPRIMITIVEGL_H__
 
-#include "RsVertexBufferGL.h"
-#include "RsIndexBufferGL.h"
+#include "System/Renderer/GL/RsVertexBufferGL.h"
+#include "System/Renderer/GL/RsIndexBufferGL.h"
 
-#include "RsPrimitive.h"
+#include "System/Renderer/RsPrimitive.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsPrimitiveGL

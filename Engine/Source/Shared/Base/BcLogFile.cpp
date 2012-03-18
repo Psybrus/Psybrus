@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "BcLogFile.h"
-#include "BcString.h"
-#include "BcFile.h"
+#include "Base/BcLogFile.h"
+#include "Base/BcString.h"
+#include "Base/BcFile.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

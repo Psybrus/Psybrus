@@ -14,9 +14,9 @@
 #ifndef __RSPROJECTOR_H__
 #define __RSPROJECTOR_H__
 
-#include "RsTypes.h"
+#include "System/Renderer/RsTypes.h"
 
-#include "RsViewport.h"
+#include "System/Renderer/RsViewport.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

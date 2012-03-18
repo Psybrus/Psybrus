@@ -14,8 +14,8 @@
 #ifndef __SndFileOGG_H__
 #define __SndFileOGG_H__
 
-#include "BcFile.h"
-#include "BcDebug.h"
+#include "Base/BcFile.h"
+#include "Base/BcDebug.h"
 
 #include "Snd.h"
 

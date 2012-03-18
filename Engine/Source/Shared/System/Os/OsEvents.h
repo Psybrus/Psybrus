@@ -14,7 +14,7 @@
 #ifndef __OSEVENTS_H__
 #define __OSEVENTS_H__
 
-#include "EvtEvent.h"
+#include "Events/EvtEvent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event groups

@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "BcProperties.h"
+#include "Base/BcProperties.h"
 
 #if 0
 

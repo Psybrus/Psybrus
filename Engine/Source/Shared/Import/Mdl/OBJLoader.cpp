@@ -15,9 +15,9 @@
 
 #include "Mdl.h"
 
-#include "BcFile.h"
-#include "BcString.h"
-#include "BcMemory.h"
+#include "Base/BcFile.h"
+#include "Base/BcString.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

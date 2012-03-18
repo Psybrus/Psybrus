@@ -14,12 +14,12 @@
 #ifndef __OsMinidumpWindows__
 #define __OsMinidumpWindows__
 
-#include "BcPortability.h"
+#include "Base/BcPortability.h"
 
 #if COMPILER_MSVC
 
 #include "OsWindows.h"
-#include "BcGlobal.h"
+#include "Base/BcGlobal.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -14,11 +14,11 @@
 #ifndef __SCNMODEL_H__
 #define __SCNMODEL_H__
 
-#include "RsCore.h"
-#include "CsResourceRef.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Content/CsResourceRef.h"
 
-#include "ScnMaterial.h"
-#include "ScnRenderableComponent.h"
+#include "System/Scene/ScnMaterial.h"
+#include "System/Scene/ScnRenderableComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelRef

@@ -14,8 +14,8 @@
 #ifndef __RSGL_H__
 #define __RSGL_H__
 
-#include "BcTypes.h"
-#include "BcDebug.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linux

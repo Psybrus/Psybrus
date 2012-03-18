@@ -13,10 +13,10 @@
 
 #include "MD5AnimLoader.h"
 
-#include "BcDebug.h"
-#include "BcFile.h"
-#include "BcString.h"
-#include "BcQuat.h"
+#include "Base/BcDebug.h"
+#include "Base/BcFile.h"
+#include "Base/BcString.h"
+#include "Base/BcQuat.h"
 
 #include "MdlAnim.h"
 

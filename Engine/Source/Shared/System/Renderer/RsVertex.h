@@ -14,8 +14,8 @@
 #ifndef __RSVERTEX_H__
 #define __RSVERTEX_H__
 
-#include "BcTypes.h"
-#include "BcVectors.h"
+#include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
 
 struct RsVertex2D
 {

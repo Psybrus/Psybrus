@@ -14,8 +14,8 @@
 #ifndef __RSSHADER_H__
 #define __RSSHADER_H__
 
-#include "RsTypes.h"
-#include "RsResource.h"
+#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsShader

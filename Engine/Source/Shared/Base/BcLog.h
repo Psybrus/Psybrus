@@ -14,9 +14,9 @@
 #ifndef __BCLOG_H__
 #define __BCLOG_H__
 
-#include "BcTypes.h"
-#include "BcMutex.h"
-#include "BcGlobal.h"
+#include "Base/BcTypes.h"
+#include "Base/BcMutex.h"
+#include "Base/BcGlobal.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcLog

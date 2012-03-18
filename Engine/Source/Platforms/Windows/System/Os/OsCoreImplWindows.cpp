@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "OsCoreImplWindows.h"
+#include "System/Os/OsCoreImplWindows.h"
 
-#include "SysKernel.h"
+#include "System/SysKernel.h"
 
 //////////////////////////////////////////////////////////////////////////
 // System Creator

@@ -14,9 +14,9 @@
 #ifndef __ScnSound_H__
 #define __ScnSound_H__
 
-#include "CsResource.h"
+#include "System/Content/CsResource.h"
 
-#include "SsSample.h"
+#include "System/Sound/SsSample.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundRef

@@ -16,7 +16,7 @@
 
 #include "MdlTypes.h"
 
-#include "BcMat4d.h"
+#include "Base/BcMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

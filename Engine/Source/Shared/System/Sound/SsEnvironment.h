@@ -14,8 +14,8 @@
 #ifndef __SSENVIRONMENT_H__
 #define __SSENVIRONMENT_H__
 
-#include "SsTypes.h"
-#include "SsResource.h"
+#include "System/Sound/SsTypes.h"
+#include "System/Sound/SsResource.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // SsEnvironment

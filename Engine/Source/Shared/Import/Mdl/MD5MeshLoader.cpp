@@ -13,10 +13,10 @@
 
 #include "MD5MeshLoader.h"
 
-#include "BcDebug.h"
-#include "BcFile.h"
-#include "BcString.h"
-#include "BcQuat.h"
+#include "Base/BcDebug.h"
+#include "Base/BcFile.h"
+#include "Base/BcString.h"
+#include "Base/BcQuat.h"
 
 #include "MdlNode.h"
 #include "MdlMesh.h"

@@ -14,7 +14,7 @@
 #ifndef __BCTHREAD_H__
 #define __BCTHREAD_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 #include <windows.h>
 

@@ -14,10 +14,10 @@
 #ifndef __SCNTEXTURE_H__
 #define __SCNTEXTURE_H__
 
-#include "RsCore.h"
-#include "CsResource.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Content/CsResource.h"
 
-#include "ScnTypes.h"
+#include "System/Scene/ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef

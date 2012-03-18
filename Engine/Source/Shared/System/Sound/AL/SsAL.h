@@ -14,7 +14,7 @@
 #ifndef __SSAL_H__
 #define __SSAL_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Linux Includes

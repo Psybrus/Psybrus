@@ -14,10 +14,10 @@
 #ifndef __BCPROPERTIES_H__
 #define __BCPROPERTIES_H__
 
-#include "BcTypes.h"
-#include "BcVectors.h"
-#include "BcMat3d.h"
-#include "BcMat4d.h"
+#include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
+#include "Base/BcMat3d.h"
+#include "Base/BcMat4d.h"
 
 #include <string>
 

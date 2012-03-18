@@ -14,11 +14,11 @@
 #ifndef __SysState_H__
 #define __SysState_H__
 
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcName.h"
-#include "BcString.h"
-#include "BcMemory.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcName.h"
+#include "Base/BcString.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // STAGE INC/DEC

@@ -14,7 +14,7 @@
 #ifndef __BCRANDOM_H__
 #define __BCRANDOM_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcRandom

@@ -14,10 +14,10 @@
 #ifndef __BcOBB_H__
 #define __BcOBB_H__
 
-#include "BcVectors.h"
-#include "BcMat4d.h"
-#include "BcPlane.h"
-#include "BcAABB.h"
+#include "Base/BcVectors.h"
+#include "Base/BcMat4d.h"
+#include "Base/BcPlane.h"
+#include "Base/BcAABB.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcOBB

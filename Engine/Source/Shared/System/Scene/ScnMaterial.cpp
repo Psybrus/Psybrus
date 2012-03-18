@@ -11,15 +11,15 @@
 * 
 **************************************************************************/
 
-#include "ScnMaterial.h"
-#include "ScnEntity.h"
-#include "CsCore.h"
+#include "System/Scene/ScnMaterial.h"
+#include "System/Scene/ScnEntity.h"
+#include "System/Content/CsCore.h"
 
-#include "ScnTextureAtlas.h"
+#include "System/Scene/ScnTextureAtlas.h"
 
 #ifdef PSY_SERVER
-#include "BcFile.h"
-#include "BcStream.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import

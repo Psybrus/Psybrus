@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RmTCPConnection.h"
+#include "System/Remote/RmTCPConnection.h"
 
-#include "RmCore.h"
+#include "System/Remote/RmCore.h"
 
 SYS_CREATOR( RmCore );
 

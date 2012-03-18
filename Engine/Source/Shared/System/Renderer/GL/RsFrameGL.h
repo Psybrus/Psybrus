@@ -14,8 +14,8 @@
 #ifndef __RsFrameGL_H__
 #define __RsFrameGL_H__
 
-#include "RsFrame.h"
-#include "RsContextGL.h"
+#include "System/Renderer/RsFrame.h"
+#include "System/Renderer/GL/RsContextGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

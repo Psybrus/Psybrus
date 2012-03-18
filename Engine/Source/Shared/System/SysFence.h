@@ -14,7 +14,7 @@
 #ifndef __SYSFENCE_H__
 #define __SYSFENCE_H__
 
-#include "BcAtomic.h"
+#include "Base/BcAtomic.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // SysFence

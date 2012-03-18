@@ -12,10 +12,10 @@
 **************************************************************************/
 
 
-#include "CsCoreClient.h"
+#include "System/Content/CsCoreClient.h"
 
-#include "BcHash.h"
-#include "RmCore.h"
+#include "Base/BcHash.h"
+#include "System/Remote/RmCore.h"
 
 SYS_CREATOR( CsCoreClient );
 

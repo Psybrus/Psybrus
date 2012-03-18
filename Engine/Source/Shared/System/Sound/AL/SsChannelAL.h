@@ -14,10 +14,10 @@
 #ifndef __SSCHANNELAL_H__
 #define __SSCHANNELAL_H__
 
-#include "SsChannel.h"
+#include "System/Sound/SsChannel.h"
 
-#include "SsAL.h"
-#include "SsSampleAL.h"
+#include "System/Sound/AL/SsAL.h"
+#include "System/Sound/AL/SsSampleAL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

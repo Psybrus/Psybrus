@@ -1,9 +1,9 @@
 #include "MainShared.h"
-#include "SysKernel.h"
-#include "OsCore.h"
+#include "System/SysKernel.h"
+#include "System/Os/OsCore.h"
 
-#include "OsClientWindows.h"
-#include "OsMinidumpWindows.h"
+#include "System/Os/OsClientWindows.h"
+#include "System/Os/OsMinidumpWindows.h"
 
 BcHandle GInstance_ = NULL;
 

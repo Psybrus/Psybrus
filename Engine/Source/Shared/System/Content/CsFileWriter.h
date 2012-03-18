@@ -14,10 +14,10 @@
 #ifndef __CSFILEWRITER_H__
 #define __CSFILEWRITER_H__
 
-#include "CsFile.h"
+#include "System/Content/CsFile.h"
 
-#include "BcFile.h"
-#include "BcHash.h"
+#include "Base/BcFile.h"
+#include "Base/BcHash.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CsFileWriter

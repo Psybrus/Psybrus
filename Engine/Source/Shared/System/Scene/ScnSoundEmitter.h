@@ -14,10 +14,10 @@
 #ifndef __ScnSoundEmitter_H__
 #define __ScnSoundEmitter_H__
 
-#include "CsResource.h"
-#include "ScnSound.h"
+#include "System/Content/CsResource.h"
+#include "System/Scene/ScnSound.h"
 
-#include "SsChannel.h"
+#include "System/Sound/SsChannel.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundEmitterRef

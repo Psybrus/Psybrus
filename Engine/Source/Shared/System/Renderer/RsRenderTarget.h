@@ -14,9 +14,9 @@
 #ifndef __RSRENDERTARGET_H__
 #define __RSRENDERTARGET_H__
 
-#include "RsTypes.h"
-#include "RsResource.h"
-#include "RsTexture.h"
+#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsResource.h"
+#include "System/Renderer/RsTexture.h"
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsRenderTarget

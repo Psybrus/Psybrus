@@ -14,7 +14,7 @@
 #ifndef __ScnVisitor_H__
 #define __ScnVisitor_H__
 
-#include "ScnTypes.h"
+#include "System/Scene/ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Macro

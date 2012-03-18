@@ -14,11 +14,11 @@
 #ifndef __MDLTYPES_H__
 #define __MDLTYPES_H__
 
-#include "BcTypes.h"
-#include "BcVectors.h"
-#include "BcQuat.h"
-#include "BcPlane.h"
-#include "BcAABB.h"
+#include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
+#include "Base/BcQuat.h"
+#include "Base/BcPlane.h"
+#include "Base/BcAABB.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Defines

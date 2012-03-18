@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#include "RsStateBlock.h"
-#include "BcMemory.h"
+#include "System/Renderer/RsStateBlock.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

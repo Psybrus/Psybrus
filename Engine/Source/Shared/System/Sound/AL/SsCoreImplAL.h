@@ -14,15 +14,15 @@
 #ifndef __SSCOREIMPLAL_H__
 #define __SSCOREIMPLAL_H__
 
-#include "SsCore.h"
+#include "System/Sound/SsCore.h"
 
-#include "SsAL.h"
-#include "SsChannelAL.h"
+#include "System/Sound/AL/SsAL.h"
+#include "System/Sound/AL/SsChannelAL.h"
 
-#include "BcScopedLock.h"
-#include "BcMutex.h"
+#include "Base/BcScopedLock.h"
+#include "Base/BcMutex.h"
 
-#include "SsEnvironment.h"
+#include "System/Sound/SsEnvironment.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

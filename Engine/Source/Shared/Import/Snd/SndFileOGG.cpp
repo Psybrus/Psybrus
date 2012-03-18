@@ -13,7 +13,7 @@
 
 #include "SndFileOGG.h"
 
-#include "BcString.h"
+#include "Base/BcString.h"
 
 size_t read_func( void* ptr, size_t size, size_t nmemb, void* datasource )
 {

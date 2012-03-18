@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RmTCPConnection.h"
+#include "System/Remote/RmTCPConnection.h"
 
-#include "BcRandom.h"
+#include "Base/BcRandom.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor

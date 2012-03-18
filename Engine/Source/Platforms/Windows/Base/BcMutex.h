@@ -14,7 +14,7 @@
 #ifndef __BCMUTEX_H__
 #define __BCMUTEX_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 #include <windows.h>
 

@@ -14,7 +14,7 @@
 
 #include "SndFileWAV.h"
 
-#include "BcString.h"
+#include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
 // WORKAROUND.

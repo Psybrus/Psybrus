@@ -14,7 +14,7 @@
 #ifndef __Snd_H__
 #define __Snd_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // SndSound

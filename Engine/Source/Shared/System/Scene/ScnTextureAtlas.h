@@ -14,10 +14,10 @@
 #ifndef __ScnTextureAtlas_H__
 #define __ScnTextureAtlas_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
-#include "ScnTexture.h"
-#include "ScnTypes.h"
+#include "System/Scene/ScnTexture.h"
+#include "System/Scene/ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef

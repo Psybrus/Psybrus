@@ -14,8 +14,8 @@
 #ifndef __SSRESOURCE_H__
 #define __SSRESOURCE_H__
 
-#include "SsTypes.h"
-#include "SysResource.h"
+#include "System/Sound/SsTypes.h"
+#include "System/SysResource.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource

@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "RsRenderNode.h"
+#include "System/Renderer/RsRenderNode.h"
 
 //virtual
 RsRenderNode::~RsRenderNode()

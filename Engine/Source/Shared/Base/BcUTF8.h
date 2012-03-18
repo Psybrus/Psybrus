@@ -14,7 +14,7 @@
 #ifndef __BCUTF8_H__
 #define __BCUTF8_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcUTF8

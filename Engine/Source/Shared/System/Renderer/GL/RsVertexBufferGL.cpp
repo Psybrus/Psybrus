@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RsVertexBufferGL.h"
+#include "System/Renderer/GL/RsVertexBufferGL.h"
 
-#include "RsCore.h"
+#include "System/Renderer/RsCore.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor

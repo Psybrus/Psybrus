@@ -15,7 +15,7 @@
 #define __OSCLIENT_H__
 
 #include "OsEvents.h"
-#include "EvtPublisher.h"
+#include "Events/EvtPublisher.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsClient

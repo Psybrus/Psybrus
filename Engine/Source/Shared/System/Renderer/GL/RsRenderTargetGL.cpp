@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RsRenderTargetGL.h"
+#include "System/Renderer/GL/RsRenderTargetGL.h"
 
-#include "RsCore.h"
+#include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

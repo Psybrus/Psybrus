@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#include "BcMemory.h"
-#include "BcAtomic.h"
+#include "Base/BcMemory.h"
+#include "Base/BcAtomic.h"
 
 #if PLATFORM_OSX
 #include <execinfo.h>

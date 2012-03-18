@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "BcFile.h"
-#include "BcDebug.h"
-#include "BcString.h"
-#include "BcMemory.h"
+#include "Base/BcFile.h"
+#include "Base/BcDebug.h"
+#include "Base/BcString.h"
+#include "Base/BcMemory.h"
 
 #include <fcntl.h>
 

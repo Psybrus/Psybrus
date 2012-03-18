@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "CsFileWriter.h"
+#include "System/Content/CsFileWriter.h"
 
-#include "BcStream.h"
+#include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

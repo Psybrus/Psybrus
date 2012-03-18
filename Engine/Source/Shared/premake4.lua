@@ -2,7 +2,7 @@ project "Engine_Shared"
 	kind "StaticLib"
 	language "C++"
 	files { "./**.h", "./**.c", "./**.cpp", "./**.inl" }
-	includedirs { "./", "./**", "../Platforms/Windows/**" }
+	includedirs { "./", "../Platforms/Windows/" }
 
 	-- External includes.
 	includedirs { "../../../External/enet/include" }

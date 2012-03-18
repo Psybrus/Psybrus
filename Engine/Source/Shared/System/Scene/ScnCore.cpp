@@ -11,13 +11,13 @@
 * 
 **************************************************************************/
 
-#include "ScnCore.h"
+#include "System/Scene/ScnCore.h"
 
-#include "SysKernel.h"
-#include "SysSystem.h"
+#include "System/SysKernel.h"
+#include "System/SysSystem.h"
 
-#include "OsCore.h"
-#include "RsCore.h"
+#include "System/Os/OsCore.h"
+#include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator

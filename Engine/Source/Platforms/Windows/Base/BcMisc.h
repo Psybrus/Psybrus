@@ -14,7 +14,7 @@
 #ifndef __BCMISC_H__
 #define __BCMISC_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcSleep

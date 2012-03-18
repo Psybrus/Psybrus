@@ -14,7 +14,7 @@
 #ifndef __SSSAMPLE_H__
 #define __SSSAMPLE_H__
 
-#include "SsResource.h"
+#include "System/Sound/SsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
 // SsSample

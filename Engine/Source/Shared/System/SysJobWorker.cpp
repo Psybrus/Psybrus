@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#include "SysJobWorker.h"
-#include "SysJobQueue.h"
+#include "System/SysJobWorker.h"
+#include "System/SysJobQueue.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

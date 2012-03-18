@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
-#include "CsFileReader.h"
-#include "CsFileWriter.h"
+#include "System/Content/CsFileReader.h"
+#include "System/Content/CsFileWriter.h"
 
 #ifdef PSY_SERVER
 #define BUFFERSIZE ( 64 * 1024 )

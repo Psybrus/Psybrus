@@ -14,8 +14,8 @@
 #ifndef __BCMATH_H__
 #define __BCMATH_H__
 
-#include "BcDebug.h"
-#include "BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcTypes.h"
 
 // Streflop include.
 #ifdef STREFLOP_X87

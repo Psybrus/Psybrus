@@ -14,12 +14,12 @@
 #ifndef __SysJobWorker_H__
 #define __SysJobWorker_H__
 
-#include "BcTypes.h"
-#include "BcAtomic.h"
-#include "BcEvent.h"
-#include "BcMutex.h"
-#include "BcThread.h"
-#include "SysJob.h"
+#include "Base/BcTypes.h"
+#include "Base/BcAtomic.h"
+#include "Base/BcEvent.h"
+#include "Base/BcMutex.h"
+#include "Base/BcThread.h"
+#include "System/SysJob.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

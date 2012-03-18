@@ -11,9 +11,9 @@
  * 
  **************************************************************************/
 
-#include "SsSampleAL.h"
+#include "System/Sound/AL/SsSampleAL.h"
 
-#include "BcMemory.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -72,7 +72,7 @@ void SsSampleAL::create()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-#include "BcStream.h"
+#include "Base/BcStream.h"
 void SsSampleAL::update()
 {
 	ALuint Handle = getHandle< ALuint >();

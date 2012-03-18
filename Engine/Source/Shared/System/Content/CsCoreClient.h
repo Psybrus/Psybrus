@@ -14,10 +14,10 @@
 #ifndef __CSCORECLIENT_H__
 #define __CSCORECLIENT_H__
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
-#include "CsFileReader.h"
-#include "CsFileReaderRPC.h"
+#include "System/Content/CsFileReader.h"
+#include "System/Content/CsFileReaderRPC.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CsCoreClient

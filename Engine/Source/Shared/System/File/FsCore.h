@@ -14,11 +14,11 @@
 #ifndef __FSCORE_H__
 #define __FSCORE_H__
 
-#include "FsTypes.h"
-#include "FsEvents.h"
-#include "BcGlobal.h"
-#include "BcPath.h"
-#include "SysSystem.h"
+#include "System/File/FsTypes.h"
+#include "System/File/FsEvents.h"
+#include "Base/BcGlobal.h"
+#include "Base/BcPath.h"
+#include "System/SysSystem.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

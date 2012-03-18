@@ -11,9 +11,9 @@
  * 
  **************************************************************************/
 
-#include "SsCoreImplAL.h"
+#include "System/Sound/AL/SsCoreImplAL.h"
 
-#include "SysKernel.h"
+#include "System/SysKernel.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator

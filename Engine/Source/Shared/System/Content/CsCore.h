@@ -14,16 +14,16 @@
 #ifndef __CSCORE_H__
 #define __CSCORE_H__
 
-#include "BcGlobal.h"
-#include "BcPath.h"
-#include "SysSystem.h"
+#include "Base/BcGlobal.h"
+#include "Base/BcPath.h"
+#include "System/SysSystem.h"
 
-#include "CsTypes.h"
-#include "CsResource.h"
-#include "CsResourceRef.h"
+#include "System/Content/CsTypes.h"
+#include "System/Content/CsResource.h"
+#include "System/Content/CsResourceRef.h"
 
 #ifdef PSY_SERVER
-#include "json/json.h"
+#include <json/json.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////

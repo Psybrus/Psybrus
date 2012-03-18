@@ -11,9 +11,9 @@
  * 
  **************************************************************************/
 
-#include "SsChannelAL.h"
+#include "System/Sound/AL/SsChannelAL.h"
 
-#include "SsCoreImplAL.h"
+#include "System/Sound/AL/SsCoreImplAL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

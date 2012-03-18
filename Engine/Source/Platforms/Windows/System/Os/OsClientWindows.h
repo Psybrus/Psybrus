@@ -14,9 +14,9 @@
 #ifndef __OsClientWindows_H__
 #define __OsClientWindows_H__
 
-#include "BcTypes.h"
-#include "OsWindows.h"
-#include "OsClient.h"
+#include "Base/BcTypes.h"
+#include "System/Os/OsWindows.h"
+#include "System/Os/OsClient.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsClientWindows

@@ -15,8 +15,8 @@
 
 #if COMPILER_MSVC
 
-#include "BcDebug.h"
-#include "BcLog.h"
+#include "Base/BcDebug.h"
+#include "Base/BcLog.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs

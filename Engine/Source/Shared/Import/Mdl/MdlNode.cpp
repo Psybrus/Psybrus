@@ -17,8 +17,8 @@
 #include "MdlMorph.h"
 #include "MdlEntity.h"
 
-#include "BcDebug.h"
-#include "BcString.h"
+#include "Base/BcDebug.h"
+#include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

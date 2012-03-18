@@ -11,13 +11,13 @@
 * 
 **************************************************************************/
 
-#include "ScnShader.h"
+#include "System/Scene/ScnShader.h"
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcFile.h"
-#include "BcStream.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
 #endif
 
 #ifdef PSY_SERVER

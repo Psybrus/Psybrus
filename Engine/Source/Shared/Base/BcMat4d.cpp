@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#include "BcMat3d.h"
-#include "BcMat4d.h"
+#include "Base/BcMat3d.h"
+#include "Base/BcMat4d.h"
 
 
 BcMat4d BcMat4d::operator + ( const BcMat4d& Rhs )

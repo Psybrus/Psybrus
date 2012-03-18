@@ -14,8 +14,8 @@
 #ifndef __RSINDEXBUFFERGL_H__
 #define __RSINDEXBUFFERGL_H__
 
-#include "RsIndexBuffer.h"
-#include "RsGL.h"
+#include "System/Renderer/RsIndexBuffer.h"
+#include "System/Renderer/GL/RsGL.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsIndexBufferGL
