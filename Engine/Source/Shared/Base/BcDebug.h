@@ -1,14 +1,14 @@
 /**************************************************************************
 *
 * File:		BcDebug.h
-* Author: 	Neil Richardson 
-* Ver/Date:	
+* Author: 	Neil Richardson
+* Ver/Date:
 * Description:
-*		
-*		
 *
 *
-* 
+*
+*
+*
 **************************************************************************/
 
 #ifndef __BCDEBUG_H__
@@ -18,8 +18,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
-#define BcPrintf( a, ... ) \
+#if 1
+#  define BcPrintf( a, ... ) \
 	if( BcLog::pImpl() ) BcLog::pImpl()->write( a, __VA_ARGS__ )
+#else
+#  define BcPrintf( a, ... )
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
@@ -52,7 +56,7 @@ extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMes
 // BcAssert
 extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... );
 
-#if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
+#if ( defined( PSY_DEBUG ) || defined( PSY_RELEASE ) ) && 1
 #  define BcAssertMsg( Condition, Message, ... )	\
 	if( !( Condition ) ) \
 	{ \
@@ -84,7 +88,7 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 // BcVerify
 extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... );
 
-#if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
+#if ( defined( PSY_DEBUG ) || defined( PSY_RELEASE ) ) && 1
 #  define BcVerifyMsg( Condition, Message, ... )	\
 	{ \
 		static BcBool ShouldNotify = BcTrue; \
@@ -103,20 +107,24 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 
 //////////////////////////////////////////////////////////////////////////
 // BcUnitTest
-#define BcUnitTest( a )							\
+#if 1
+#  define BcUnitTest( a )							\
 	BcPrintf( "- Test: %s\n", #a );				\
 	if( a )										\
 	BcPrintf( "- - Passed.\n" );				\
 	else										\
 	BcPrintf( "- - FAILED.\n" )
 
-#define BcUnitTestMsg( a, b )					\
+#  define BcUnitTestMsg( a, b )					\
 	BcPrintf( "- Test (%s): %s\n", b, #a );		\
 	if( a )										\
 	BcPrintf( "- - Passed.\n" );				\
 	else										\
 	BcPrintf( "- - FAILED.\n" )
-
+#else
+#  define BcUnitTest( a )
+#  define BcUnitTestMsg( a, b )
+#endif
 //////////////////////////////////////////////////////////////////////////
 // BcLog - NEILO TODO: Merge some of the debug/log/whatever stuff.
 #include "BcLog.h"

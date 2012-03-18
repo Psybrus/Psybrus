@@ -1,18 +1,22 @@
 /**************************************************************************
 *
 * File:		OsMinidumpWindows.h
-* Author: 	Neil Richardson 
-* Ver/Date:	
+* Author: 	Neil Richardson
+* Ver/Date:
 * Description:
 *		Minidump crash handler.
-*		
 *
 *
-* 
+*
+*
 **************************************************************************/
 
 #ifndef __OsMinidumpWindows__
 #define __OsMinidumpWindows__
+
+#include "BcPortability.h"
+
+#if COMPILER_MSVC
 
 #include "OsWindows.h"
 #include "BcGlobal.h"
@@ -20,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
+
 #include <DbgHelp.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,4 +48,5 @@ private:
 };
 
 
+#endif
 #endif

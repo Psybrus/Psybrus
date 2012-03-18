@@ -19,6 +19,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class SsChannel;
+class SsSample;
 
 //////////////////////////////////////////////////////////////////////////
 // SsChannelCallback
@@ -71,6 +72,11 @@ public:
 	const BcVec3d& position() const;
 
 	virtual void stop( BcBool ReleaseCallback = BcFalse ) = 0;
+	virtual void queue( SsSample* Sample ) = 0;
+	virtual void unqueue() = 0;
+	virtual BcU32 samplesQueued() = 0;
+	virtual BcU32 samplesComplete() = 0;
+
 
 	void setDefaults();
 

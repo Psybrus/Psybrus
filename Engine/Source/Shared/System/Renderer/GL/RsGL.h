@@ -59,7 +59,7 @@ extern AGLContext GAGLContext;
 #  define NOPROFILER      
 #  define NODEFERWINDOWPOS
 #  define NOMCX
-#  include "GLee.h"
+#  include "GL/glew.h"
 #endif
 
 //

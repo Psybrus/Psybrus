@@ -97,18 +97,29 @@
 // GCC
 #if defined( __GNU__ )
 #  define COMPILER_GCC			1
+#else
+#  define COMPILER_GCC			0
+#endif
 
 // LLVM
-#elif defined( __llvm__ )
+#if defined( __llvm__ )
 #  define COMPILER_LLVM			1
+#else
+#  define COMPILER_LLVM			0
+#endif
 
 // Codewarrior
-#elif defined( __MWERKS__ )
+#if defined( __MWERKS__ )
 #  define COMPILER_CW			1
+#else
+#  define COMPILER_CW			0
+#endif
 
 // MSVC
-#elif defined( _MSC_VER	)
+#if defined( _MSC_VER	)
 #  define COMPILER_MSVC			1
+#else
+#  define COMPILER_MSVC			0
 #endif
 
 #endif

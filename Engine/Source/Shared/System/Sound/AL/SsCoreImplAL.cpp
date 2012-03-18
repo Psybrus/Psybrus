@@ -387,6 +387,15 @@ SsChannel* SsCoreImplAL::play( SsSample* pSample, SsChannelCallback* pCallback )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// queue
+//virtual
+SsChannel* SsCoreImplAL::queue( SsSample* pSample, SsChannelCallback* pCallback )
+{
+	BcBreakpoint;
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setListener
 //virtual
 void SsCoreImplAL::setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up )

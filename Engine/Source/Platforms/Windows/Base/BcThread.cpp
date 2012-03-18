@@ -1,15 +1,15 @@
 /**************************************************************************
 *
 * File:		BcThread.cpp
-* Author: 	Neil Richardson 
+* Author: 	Neil Richardson
 * Ver/Date:	0.2 - 31/01/06
 *			0.3 - 10/12/06
 *			0.4 - 27/02/07
 * Description:
 *		A C++ Class Thread Implementation.
-*		
-*		
-* 
+*
+*
+*
 **************************************************************************/
 
 #include "BcThread.h"
@@ -36,7 +36,8 @@ static void SetThreadName( DWORD dwThreadID, const char* threadName )
 		info.szName = threadName;
 		info.dwThreadID = dwThreadID;
 		info.dwFlags = 0;
-	
+
+#if COMPILER_MSVC
 		__try
 		{
 			RaiseException( MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info );
@@ -44,6 +45,9 @@ static void SetThreadName( DWORD dwThreadID, const char* threadName )
 		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
 		}
+#else
+        RaiseException( MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info );
+#endif
 	}
 }
 
@@ -96,9 +100,9 @@ DWORD WINAPI BcThread::entryPoint( LPVOID l_pThis )
 
 	// Now call users overloaded function...
 	l_pCastThis->execute();
-	
+
 	// Oh, its quit has it? Lets make sure the thread is no longer active then!
 	l_pCastThis->m_isThreadActive = BcFalse;
-	
+
 	return 0;
 }

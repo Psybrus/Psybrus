@@ -1,17 +1,19 @@
 /**************************************************************************
 *
 * File:		OsMinidumpWin32.cpp
-* Author: 	Neil Richardson 
-* Ver/Date:	
+* Author: 	Neil Richardson
+* Ver/Date:
 * Description:
 *		Minidump crash handler.
 *		Taken from Game Coding Complete.
 *		To work in release, generate a pdb.
 *
-* 
+*
 **************************************************************************/
 
 #include "OsMinidumpWindows.h"
+
+#if COMPILER_MSVC
 
 #include "BcDebug.h"
 #include "BcLog.h"
@@ -54,7 +56,7 @@ LONG OsMinidumpWindows::writeMiniDump( _EXCEPTION_POINTERS* pExceptionInfo )
 	BcPrintf( "============================================================================\n" );
 	BcPrintf( "OsMinidumpWindows:\n" );
 	BcPrintf( " - Psybrus has hit an unhandled exception. Attempting to write mini dump.\n" );
-	
+
 	LONG RetVal = EXCEPTION_CONTINUE_SEARCH;
 
 	pExceptionInfo_ = pExceptionInfo;
@@ -161,3 +163,4 @@ LONG OsMinidumpWindows::writeMiniDump( _EXCEPTION_POINTERS* pExceptionInfo )
 	return RetVal;
 }
 
+#endif

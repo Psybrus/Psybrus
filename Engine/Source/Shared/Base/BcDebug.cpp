@@ -2,13 +2,13 @@
 *
 * File:		cDebug.cpp
 * Author: 	Neil Richardson
-* Ver/Date:	
+* Ver/Date:
 * Description:
 *		Some simple debug stuff for use everywhere.
-*		
-*		
-*		
-* 
+*
+*
+*
+*
 **************************************************************************/
 
 #include "BcDebug.h"
@@ -30,7 +30,11 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	BcScopedLock< BcMutex > Lock( gOutputLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
+#if COMPILER_MSVC
 	vsprintf_s( MessageBuffer, pMessage, ArgList );
+#else
+	vsprintf( MessageBuffer, pMessage, ArgList );
+#endif
 	va_end( ArgList );
 	BcSPrintf( Buffer, "\"%s\" in %s on line %u.\n\nDo you wish to break?", MessageBuffer, pFile, Line );
 	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED!", Buffer, bcMBT_YESNO, bcMBI_ERROR );
@@ -53,7 +57,11 @@ BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	BcScopedLock< BcMutex > Lock( gOutputLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
+#if COMPILER_MSVC
 	vsprintf_s( MessageBuffer, pMessage, ArgList );
+#else
+	vsprintf( MessageBuffer, pMessage, ArgList );
+#endif
 	va_end( ArgList );
 	BcSPrintf( Buffer, "\"%s\"in %s on line %u.\n\nIgnore next?", MessageBuffer, pFile, Line );
 	BcMessageBoxReturn MessageReturn = BcMessageBox( "VERIFICATION FAILED!", Buffer, bcMBT_YESNOCANCEL, bcMBI_WARNING );

@@ -46,15 +46,17 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
 	}
 
-	return evtRET_REMOVE;	
+	return evtRET_REMOVE;
 }
 
 int main(int argc, char** argv)
 {
+#if COMPILER_MSVC
 	if( OsMinidumpWindows::pImpl() == NULL )
 	{
 		new OsMinidumpWindows();
 	}
+#endif
 
 	// Start.
 	std::string CommandLine;
@@ -74,12 +76,14 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	( void )lpCmdLine;
 	( void )nCmdShow;
 
+#if COMPILER_MSVC
 	// Initialise minidumping as early as possible.
 	if( OsMinidumpWindows::pImpl() == NULL )
 	{
 		new OsMinidumpWindows();
 	}
-	
+#endif
+
 	// Setup for more accurate timing.
 	timeBeginPeriod( 1 );
 
@@ -87,7 +91,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
-	
+
 	// HACK: Append a space to sys args for find to work.
 	SysArgs_ += " ";
 
@@ -100,10 +104,10 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Perform unit tests.
 	MainUnitTests();
-	
+
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
-	
+
 	// Register systems for creation.
 	SYS_REGISTER( "RmCore", RmCore );
 	SYS_REGISTER( "OsCore", OsCoreImplWindows );
@@ -118,7 +122,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SYS_REGISTER( "RsCore", RsCoreImplGL );
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
 	SYS_REGISTER( "ScnCore", ScnCore );
-	
+
 	// Main shared.
 	MainShared();
 
@@ -132,7 +136,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Game init.
 	PsyGameInit();
-	
+
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
 	if( BcLog::pImpl() == NULL )
