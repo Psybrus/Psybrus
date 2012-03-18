@@ -234,12 +234,12 @@ size_t SsSampleAL::read_func(void *ptr, size_t size, size_t nmemb, void *datasou
 	BytesToCopy = BcMax( BytesToCopy, (ogg_int64_t)0 );
 
 	BcU8* pData = (BcU8*)pSoundStream->pData_;
-	BcMemCopy( ptr, &pData[ OldStreamPos ], BytesToCopy );
+	BcMemCopy( ptr, &pData[ OldStreamPos ], (BcSize)BytesToCopy );
 
 	// Advance stream pos.
 	pSoundStream->StreamPos_ += BytesToCopy;
 	
-	return ( pSoundStream->StreamPos_ - OldStreamPos );
+	return (size_t)( pSoundStream->StreamPos_ - OldStreamPos );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

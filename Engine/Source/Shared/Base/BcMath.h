@@ -26,6 +26,18 @@ using namespace streflop;
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// Some undefining from math.h
+#ifdef min
+#undef min
+#define min min
+#endif
+
+#ifdef max
+#undef max
+#define max max
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // Epsilons
 #define BcVecEpsilon					( 0.001f )
 

@@ -19,10 +19,10 @@
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
 #if 1
-#  define BcPrintf( a, ... ) \
-	if( BcLog::pImpl() ) BcLog::pImpl()->write( a, __VA_ARGS__ )
+#  define BcPrintf( ... ) \
+	if( BcLog::pImpl() ) BcLog::pImpl()->write( __VA_ARGS__ )
 #else
-#  define BcPrintf( a, ... )
+#  define BcPrintf( ... )
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,13 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 		if( BcAssertInternal( Message, __FILE__, __LINE__, __VA_ARGS__ ) ) \
 			BcBreakpoint; \
 	}
-#  define BcAssert( Condition )			BcAssertMsg( Condition, #Condition )
+#  define BcAssert( Condition )	\
+	if( !( Condition ) ) \
+	{ \
+		if( BcAssertInternal( #Condition, __FILE__, __LINE__ ) ) \
+			BcBreakpoint; \
+	}
+
 #  define BcPreCondition( Condition )	BcAssert( Condition )
 #  define BcPostCondition( Condition )	BcAssert( Condition )
 #  define BcAssertException( Condition, Exception )	\
@@ -98,7 +104,15 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 				ShouldNotify = BcFalse; \
 		} \
 	}
-#  define BcVerify( Condition )			BcVerifyMsg( Condition, #Condition )
+#  define BcVerify( Condition )			\
+	{ \
+		static BcBool ShouldNotify = BcTrue; \
+		if( ShouldNotify && !( Condition ) ) \
+		{ \
+			if( BcVerifyInternal( #Condition, __FILE__, __LINE__ ) ) \
+				ShouldNotify = BcFalse; \
+		} \
+	}
 #else
 #  define BcVerifyMsg( Condition, Message, ... )
 #  define BcVerify( Condition )

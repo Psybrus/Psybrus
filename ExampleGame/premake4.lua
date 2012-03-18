@@ -13,8 +13,8 @@ project "ExampleGame"
    			"user32",
    			"gdi32",
    			"opengl32",
-			   "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
    			"winmm",
+            "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
 
    			-- External libs.
    			"External_Box2D_v2.2.1",
