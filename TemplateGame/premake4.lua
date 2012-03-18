@@ -1,11 +1,11 @@
-project "Engine_Samples"
+project "TemplateGame"
 	kind "WindowedApp"
 	language "C++"
-	files { "./**.h", "./**.c", "./**.cpp" }
-	includedirs { "./", "../Shared/", "../Platforms/Windows/" }
+	files { "./Source/**.h", "./Source/**.c", "./Source/**.cpp" }
+	includedirs { "./Source/", "../Engine/Source/Shared/", "../Engine/Source/Platforms/Windows/" }
 
 	-- External includes.
-	includedirs { "../../../External/jsoncpp/include" }
+	includedirs { "../External/jsoncpp/include" }
 
 	configuration "windows"
    		links {
