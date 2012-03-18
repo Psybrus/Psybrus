@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "CsFileReader.h"
+#include "System/Content/CsFileReader.h"
 
-#include "SysKernel.h"
+#include "System/SysKernel.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

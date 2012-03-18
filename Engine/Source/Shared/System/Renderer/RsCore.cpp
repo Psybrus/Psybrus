@@ -11,6 +11,6 @@
 * 
 **************************************************************************/
 
-#include "RsCore.h"
+#include "System/Renderer/RsCore.h"
 
 BcU32 RsCore::WORKER_MASK = 0x0;

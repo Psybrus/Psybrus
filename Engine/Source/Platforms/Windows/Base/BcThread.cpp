@@ -12,8 +12,8 @@
 *
 **************************************************************************/
 
-#include "BcThread.h"
-#include "BcDebug.h"
+#include "Base/BcThread.h"
+#include "Base/BcDebug.h"
 
 const DWORD MS_VC_EXCEPTION=0x406D1388;
 

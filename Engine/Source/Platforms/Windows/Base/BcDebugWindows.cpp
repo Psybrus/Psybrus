@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "BcDebug.h"
+#include "Base/BcDebug.h"
 
 #include <windows.h>
 

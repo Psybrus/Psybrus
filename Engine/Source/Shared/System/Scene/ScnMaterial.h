@@ -14,12 +14,12 @@
 #ifndef __SCNMATERIAL_H__
 #define __SCNMATERIAL_H__
 
-#include "RsCore.h"
-#include "CsResource.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Content/CsResource.h"
 
-#include "ScnTexture.h"
-#include "ScnShader.h"
-#include "ScnComponent.h"
+#include "System/Scene/ScnTexture.h"
+#include "System/Scene/ScnShader.h"
+#include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef

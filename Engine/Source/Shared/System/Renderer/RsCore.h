@@ -14,25 +14,25 @@
 #ifndef __RSCORE_H__
 #define __RSCORE_H__
 
-#include "BcGlobal.h"
-#include "SysSystem.h"
+#include "Base/BcGlobal.h"
+#include "System/SysSystem.h"
 
-#include "RsTypes.h"
-#include "RsVertex.h"
-#include "RsViewport.h"
-#include "RsProjector.h"
-#include "RsLight.h"
-#include "RsFrame.h"
+#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsVertex.h"
+#include "System/Renderer/RsViewport.h"
+#include "System/Renderer/RsProjector.h"
+#include "System/Renderer/RsLight.h"
+#include "System/Renderer/RsFrame.h"
 
-#include "RsContext.h"
-#include "RsTexture.h"
-#include "RsRenderTarget.h"
-#include "RsShader.h"
-#include "RsProgram.h"
-#include "RsVertexBuffer.h"
-#include "RsIndexBuffer.h"
-#include "RsPrimitive.h"
-#include "RsStateBlock.h"
+#include "System/Renderer/RsContext.h"
+#include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsRenderTarget.h"
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsVertexBuffer.h"
+#include "System/Renderer/RsIndexBuffer.h"
+#include "System/Renderer/RsPrimitive.h"
+#include "System/Renderer/RsStateBlock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

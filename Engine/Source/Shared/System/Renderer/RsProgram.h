@@ -14,8 +14,8 @@
 #ifndef __RSPROGRAM_H__
 #define __RSPROGRAM_H__
 
-#include "RsTypes.h"
-#include "RsTexture.h"
+#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsTexture.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsProgram

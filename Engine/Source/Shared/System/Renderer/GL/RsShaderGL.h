@@ -14,8 +14,8 @@
 #ifndef __RSSHADERGL_H__
 #define __RSSHADERGL_H__
 
-#include "RsShader.h"
-#include "RsGL.h"
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/GL/RsGL.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsShaderGL

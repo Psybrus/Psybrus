@@ -14,7 +14,7 @@
 #ifndef __SYSEVENTS_H__
 #define __SYSEVENTS_H__
 
-#include "EvtEvent.h"
+#include "Events/EvtEvent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event groups

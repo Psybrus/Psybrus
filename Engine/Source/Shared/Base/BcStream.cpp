@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "BcStream.h"
-#include "BcDebug.h"
-#include "BcMemory.h"
+#include "Base/BcStream.h"
+#include "Base/BcDebug.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

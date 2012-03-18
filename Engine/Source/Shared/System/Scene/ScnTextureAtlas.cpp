@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "ScnTextureAtlas.h"
+#include "System/Scene/ScnTextureAtlas.h"
 
 #ifdef PSY_SERVER
-#include "BcStream.h"
-#include "Img.h"
+#include "Base/BcStream.h"
+#include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import

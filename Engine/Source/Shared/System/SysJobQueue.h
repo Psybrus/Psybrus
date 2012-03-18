@@ -14,13 +14,13 @@
 #ifndef __SysJobQueue_H__
 #define __SysJobQueue_H__
 
-#include "BcTypes.h"
-#include "BcMutex.h"
-#include "BcThread.h"
-#include "BcMisc.h"
-#include "BcScopedLock.h"
-#include "SysJob.h"
-#include "SysJobWorker.h"
+#include "Base/BcTypes.h"
+#include "Base/BcMutex.h"
+#include "Base/BcThread.h"
+#include "Base/BcMisc.h"
+#include "Base/BcScopedLock.h"
+#include "System/SysJob.h"
+#include "System/SysJobWorker.h"
 
 //////////////////////////////////////////////////////////////////////////
 // SysJobQueue

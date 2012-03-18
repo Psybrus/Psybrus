@@ -14,11 +14,11 @@
 #ifndef __BCENDIAN_H__
 #define __BCENDIAN_H__
 
-#include "BcTypes.h"
-#include "BcVectors.h"
-#include "BcMat3d.h"
-#include "BcMat4d.h"
-#include "BcQuat.h"
+#include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
+#include "Base/BcMat3d.h"
+#include "Base/BcMat4d.h"
+#include "Base/BcQuat.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Utility

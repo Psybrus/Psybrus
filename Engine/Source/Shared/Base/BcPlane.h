@@ -14,10 +14,10 @@
 #ifndef	__BCPLANE_H__
 #define __BCPLANE_H__
 
-#include "BcMath.h"
+#include "Base/BcMath.h"
 
-#include "BcVectors.h"
-#include "BcMat4d.h"
+#include "Base/BcVectors.h"
+#include "Base/BcMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcPlane

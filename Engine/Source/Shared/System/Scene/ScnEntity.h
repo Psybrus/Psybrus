@@ -14,17 +14,17 @@
 #ifndef __ScnEntity_H__
 #define __ScnEntity_H__
 
-#include "RsCore.h"
-#include "CsResource.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Content/CsResource.h"
 
-#include "ScnTypes.h"
+#include "System/Scene/ScnTypes.h"
 
-#include "ScnComponent.h"
-#include "ScnRenderableComponent.h"
+#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnRenderableComponent.h"
 
-#include "ScnTransform.h"
-#include "ScnSpatialTree.h"
-#include "ScnVisitor.h"
+#include "System/Scene/ScnTransform.h"
+#include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity

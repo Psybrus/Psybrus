@@ -14,13 +14,13 @@
 #ifndef __RSFRAME_H__
 #define __RSFRAME_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
-#include "RsContext.h"
-#include "RsRenderNode.h"
-#include "RsRenderTarget.h"
+#include "System/Renderer/RsContext.h"
+#include "System/Renderer/RsRenderNode.h"
+#include "System/Renderer/RsRenderTarget.h"
 
-#include "RsViewport.h"
+#include "System/Renderer/RsViewport.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

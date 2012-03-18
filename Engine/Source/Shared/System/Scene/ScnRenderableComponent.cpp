@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "ScnRenderableComponent.h"
-#include "ScnEntity.h"
-#include "RsCore.h"
+#include "System/Scene/ScnRenderableComponent.h"
+#include "System/Scene/ScnEntity.h"
+#include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.

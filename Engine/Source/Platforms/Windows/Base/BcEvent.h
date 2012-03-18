@@ -14,9 +14,9 @@
 #ifndef __BCEVENT_H__
 #define __BCEVENT_H__
 
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcString.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcString.h"
 
 #include <windows.h>
 

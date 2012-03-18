@@ -14,10 +14,10 @@
 #ifndef __RSLIGHT_H__
 #define __RSLIGHT_H__
 
-#include "BcTypes.h"
-#include "BcVectors.h"
+#include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
 
-#include "RsTypes.h"
+#include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Enums

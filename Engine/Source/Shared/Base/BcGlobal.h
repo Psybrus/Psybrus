@@ -14,7 +14,7 @@
 #ifndef __BCGLOBAL_H__
 #define __BCGLOBAL_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 /** \class BcGlobal

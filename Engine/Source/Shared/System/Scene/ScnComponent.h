@@ -14,12 +14,12 @@
 #ifndef __ScnComponent_H__
 #define __ScnComponent_H__
 
-#include "RsCore.h"
-#include "CsResource.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Content/CsResource.h"
 
-#include "ScnTypes.h"
-#include "ScnVisitor.h"
-#include "ScnSpatialTree.h"
+#include "System/Scene/ScnTypes.h"
+#include "System/Scene/ScnVisitor.h"
+#include "System/Scene/ScnSpatialTree.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnComponent

@@ -11,12 +11,12 @@
 * 
 **************************************************************************/
 
-#include "RsFrameGL.h"
+#include "System/Renderer/GL/RsFrameGL.h"
 
-#include "RsCoreImplGL.h"
-#include "RsRenderTargetGL.h"
+#include "System/Renderer/GL/RsCoreImplGL.h"
+#include "System/Renderer/GL/RsRenderTargetGL.h"
 
-#include "BcMemory.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Vertex structures.

@@ -14,9 +14,9 @@
 #ifndef __ScnTypes_H__
 #define __ScnTypes_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
-#include "CsResourceRef.h"
+#include "System/Content/CsResourceRef.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnRect

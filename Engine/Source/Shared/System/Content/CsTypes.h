@@ -14,17 +14,17 @@
 #ifndef __CSTYPES_H__
 #define __CSTYPES_H__
 
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcName.h"
-#include "BcPath.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcName.h"
+#include "Base/BcPath.h"
 
-#include "FsFile.h"
-#include "BcAtomic.h"
-#include "BcEndian.h"
-#include "BcHash.h"
-#include "BcMutex.h"
-#include "BcScopedLock.h"
+#include "System/File/FsFile.h"
+#include "Base/BcAtomic.h"
+#include "Base/BcEndian.h"
+#include "Base/BcHash.h"
+#include "Base/BcMutex.h"
+#include "Base/BcScopedLock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CsDependancyList

@@ -11,15 +11,15 @@
 * 
 **************************************************************************/
 
-#include "ScnFont.h"
-#include "ScnEntity.h"
+#include "System/Scene/ScnFont.h"
+#include "System/Scene/ScnEntity.h"
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcFile.h"
-#include "BcStream.h"
-#include "Img.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
+#include "Import/Img/Img.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

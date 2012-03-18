@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "BcMisc.h"
-#include "BcDebug.h"
-#include "BcWindows.h"
+#include "Base/BcMisc.h"
+#include "Base/BcDebug.h"
+#include "Base/BcWindows.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcSleep

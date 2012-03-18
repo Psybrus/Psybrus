@@ -14,7 +14,7 @@
 #ifndef __FsTypes_H__
 #define __FsTypes_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // FsTimestamp

@@ -14,8 +14,8 @@
 #ifndef __RSRESOURCE_H__
 #define __RSRESOURCE_H__
 
-#include "RsTypes.h"
-#include "SysResource.h"
+#include "System/Renderer/RsTypes.h"
+#include "System/SysResource.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource

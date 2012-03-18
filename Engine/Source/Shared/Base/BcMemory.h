@@ -14,7 +14,7 @@
 #ifndef __BCMEMORY_H__
 #define __BCMEMORY_H__
 
-#include "BcDebug.h"
+#include "Base/BcDebug.h"
 
 //#define MEM_DEBUG
 

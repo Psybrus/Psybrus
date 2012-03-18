@@ -11,9 +11,9 @@
 *
 **************************************************************************/
 
-#include "BcLog.h"
-#include "BcScopedLock.h"
-#include "BcDebug.h"
+#include "Base/BcLog.h"
+#include "Base/BcScopedLock.h"
+#include "Base/BcDebug.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Platform includes.

@@ -14,7 +14,7 @@
 #ifndef __FSFILE_H__
 #define __FSFILE_H__
 
-#include "FsCore.h"
+#include "System/File/FsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 /** \class FsFile

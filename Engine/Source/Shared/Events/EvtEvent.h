@@ -14,8 +14,8 @@
 #ifndef __EVTEVENT_H__
 #define __EVTEVENT_H__
 
-#include "BcDelegate.h"
-#include "BcMisc.h"
+#include "Base/BcDelegate.h"
+#include "Base/BcMisc.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Typedefs

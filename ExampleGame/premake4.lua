@@ -2,7 +2,7 @@ project "ExampleGame"
 	kind "WindowedApp"
 	language "C++"
 	files { "./Source/**.h", "./Source/**.c", "./Source/**.cpp" }
-	includedirs { "./Source", "./Source/**", "../Engine/Source/Shared", "../Engine/Source/Shared/**", "../Engine/Source/Platforms/Windows/**" }
+	includedirs { "./Source/", "../Engine/Source/Shared/", "../Engine/Source/Platforms/Windows/" }
 
 	-- External includes.
 	includedirs { "../External/jsoncpp/include" }

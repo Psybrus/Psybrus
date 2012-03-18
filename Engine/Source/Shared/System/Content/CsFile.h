@@ -14,7 +14,7 @@
 #ifndef __CSFILE_H__
 #define __CSFILE_H__
 
-#include "CsTypes.h"
+#include "System/Content/CsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

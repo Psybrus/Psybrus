@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "ScnCanvasComponent.h"
-#include "ScnEntity.h"
+#include "System/Scene/ScnCanvasComponent.h"
+#include "System/Scene/ScnEntity.h"
 
 #ifdef PSY_SERVER
-#include "BcStream.h"
+#include "Base/BcStream.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////

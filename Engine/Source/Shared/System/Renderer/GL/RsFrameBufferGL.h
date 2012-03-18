@@ -14,9 +14,9 @@
 #ifndef __RsFrameBufferGL_H__
 #define __RsFrameBufferGL_H__
 
-#include "BcTypes.h"
-#include "RsResource.h"
-#include "RsGL.h"
+#include "Base/BcTypes.h"
+#include "System/Renderer/RsResource.h"
+#include "System/Renderer/GL/RsGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsFrameBufferGL

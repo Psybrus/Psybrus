@@ -14,19 +14,19 @@
 #ifndef __CSRESOURCE_H__
 #define __CSRESOURCE_H__
 
-#include "CsTypes.h"
-#include "CsFile.h"
-#include "CsProperty.h"
+#include "System/Content/CsTypes.h"
+#include "System/Content/CsFile.h"
+#include "System/Content/CsProperty.h"
 
-#include "CsResourceRef.h"
+#include "System/Content/CsResourceRef.h"
 
-#include "BcAtomic.h"
-#include "BcAtomicMutex.h"
-#include "BcScopedLock.h"
-#include "BcName.h"
+#include "Base/BcAtomic.h"
+#include "Base/BcAtomicMutex.h"
+#include "Base/BcScopedLock.h"
+#include "Base/BcName.h"
 
 #ifdef PSY_SERVER
-#include "json/json.h"
+#include <json/json.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -278,7 +278,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-#include "CsResourceRef.inl"
+#include "System/Content/CsResourceRef.inl"
 
 #endif
 

@@ -14,11 +14,11 @@
 #ifndef __ScnCanvasComponentComponent_H__
 #define __ScnCanvasComponentComponent_H__
 
-#include "RsCore.h"
-#include "ScnRenderableComponent.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Scene/ScnRenderableComponent.h"
 
-#include "ScnTypes.h"
-#include "ScnMaterial.h"
+#include "System/Scene/ScnTypes.h"
+#include "System/Scene/ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasComponentRef

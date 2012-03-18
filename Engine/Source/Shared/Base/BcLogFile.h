@@ -14,8 +14,8 @@
 #ifndef __BCLOGFILE_H__
 #define __BCLOGFILE_H__
 
-#include "BcLog.h"
-#include "BcFile.h"
+#include "Base/BcLog.h"
+#include "Base/BcFile.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcLogFile

@@ -14,10 +14,10 @@
 #ifndef __SysJob_H__
 #define __SysJob_H__
 
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcMutex.h"
-#include "BcDelegate.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcMutex.h"
+#include "Base/BcDelegate.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.

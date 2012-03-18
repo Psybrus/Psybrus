@@ -14,8 +14,8 @@
 #ifndef __RSVERTEXBUFFERGL_H__
 #define __RSVERTEXBUFFERGL_H__
 
-#include "RsVertexBuffer.h"
-#include "RsGL.h"
+#include "System/Renderer/RsVertexBuffer.h"
+#include "System/Renderer/GL/RsGL.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsVertexBufferGL

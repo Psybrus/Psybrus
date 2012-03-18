@@ -11,12 +11,12 @@
 * 
 **************************************************************************/
 
-#include "BcMath.h"
+#include "Base/BcMath.h"
 
 
-#include "BcTypes.h"
-#include "BcVectors.h"
-#include "BcMat4d.h"
+#include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
+#include "Base/BcMat4d.h"
 
 #ifndef	__BCQUAT_H__
 #define __BCQUAT_H__

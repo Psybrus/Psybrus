@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RmParameters.h"
-#include "BcMemory.h"
-#include "BcHash.h"
+#include "System/Remote/RmParameters.h"
+#include "Base/BcMemory.h"
+#include "Base/BcHash.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor

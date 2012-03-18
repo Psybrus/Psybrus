@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#include "CsFileReaderRPC.h"
-#include "CsCoreClient.h"
+#include "System/Content/CsFileReaderRPC.h"
+#include "System/Content/CsCoreClient.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

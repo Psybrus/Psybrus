@@ -14,12 +14,12 @@
 #ifndef __RsRenderTargetGL_H__
 #define __RsRenderTargetGL_H__
 
-#include "BcTypes.h"
-#include "RsRenderTarget.h"
+#include "Base/BcTypes.h"
+#include "System/Renderer/RsRenderTarget.h"
 
-#include "RsRenderBufferGL.h"
-#include "RsFrameBufferGL.h"
-#include "RsTextureGL.h"
+#include "System/Renderer/GL/RsRenderBufferGL.h"
+#include "System/Renderer/GL/RsFrameBufferGL.h"
+#include "System/Renderer/GL/RsTextureGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetGL

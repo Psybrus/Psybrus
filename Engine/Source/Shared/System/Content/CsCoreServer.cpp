@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "CsCoreServer.h"
+#include "System/Content/CsCoreServer.h"
 
-#include "BcHash.h"
-#include "RmCore.h"
-#include "FsCore.h"
+#include "Base/BcHash.h"
+#include "System/Remote/RmCore.h"
+#include "System/File/FsCore.h"
 
 SYS_CREATOR( CsCoreServer );
 

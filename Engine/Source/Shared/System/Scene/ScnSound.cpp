@@ -11,16 +11,16 @@
 * 
 **************************************************************************/
 
-#include "ScnSound.h"
+#include "System/Scene/ScnSound.h"
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
-#include "SsCore.h"
+#include "System/Sound/SsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcFile.h"
-#include "BcStream.h"
-#include "Snd.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
+#include "Import/Snd/Snd.h"
 #endif
 
 #ifdef PSY_SERVER

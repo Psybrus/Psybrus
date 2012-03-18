@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "SysKernel.h"
-#include "BcMath.h"
+#include "System/SysKernel.h"
+#include "Base/BcMath.h"
 
 #if PLATFORM_WINDOWS
-#include "BcWindows.h"
+#include "Base/BcWindows.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////

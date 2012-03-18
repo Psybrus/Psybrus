@@ -11,10 +11,10 @@
 *
 **************************************************************************/
 
-#include "BcDebug.h"
-#include "BcString.h"
-#include "BcMutex.h"
-#include "BcScopedLock.h"
+#include "Base/BcDebug.h"
+#include "Base/BcString.h"
+#include "Base/BcMutex.h"
+#include "Base/BcScopedLock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Statics.

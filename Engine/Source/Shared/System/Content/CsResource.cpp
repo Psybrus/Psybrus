@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "CsResource.h"
+#include "System/Content/CsResource.h"
  
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource

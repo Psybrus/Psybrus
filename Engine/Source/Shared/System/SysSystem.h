@@ -14,16 +14,16 @@
 #ifndef __SysSystem_H__
 #define __SysSystem_H__
 
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcName.h"
-#include "BcTimer.h"
-#include "BcMisc.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcName.h"
+#include "Base/BcTimer.h"
+#include "Base/BcMisc.h"
 
-#include "EvtPublisher.h"
+#include "Events/EvtPublisher.h"
 
-#include "SysEvents.h"
-#include "SysFence.h"
+#include "System/SysEvents.h"
+#include "System/SysFence.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

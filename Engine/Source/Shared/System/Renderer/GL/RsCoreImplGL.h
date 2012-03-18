@@ -14,8 +14,8 @@
 #ifndef __RSCOREIMPLGL_H__
 #define __RSCOREIMPLGL_H__
 
-#include "RsCore.h"
-#include "RsGL.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Renderer/GL/RsGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

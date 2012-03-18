@@ -14,8 +14,8 @@
 #ifndef __RSCONTEXTGL_H__
 #define __RSCONTEXTGL_H__
 
-#include "RsContext.h"
-#include "RsGL.h"
+#include "System/Renderer/RsContext.h"
+#include "System/Renderer/GL/RsGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsContextGL

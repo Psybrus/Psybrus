@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "RsTextureGL.h"
+#include "System/Renderer/GL/RsTextureGL.h"
 
-#include "RsCore.h"
-#include "RsCoreImplGL.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Renderer/GL/RsCoreImplGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureGL

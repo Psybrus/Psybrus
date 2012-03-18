@@ -14,7 +14,7 @@
 #ifndef __CSFILEREADER_H__
 #define __CSFILEREADER_H__
 
-#include "CsFile.h"
+#include "System/Content/CsFile.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CsFileReader

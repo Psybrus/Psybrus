@@ -11,13 +11,13 @@
 * 
 **************************************************************************/
 
-#include "ScnEntity.h"
-#include "ScnCore.h"
+#include "System/Scene/ScnEntity.h"
+#include "System/Scene/ScnCore.h"
 
-//#include "RsCore.h"
+//#include "System/Renderer/RsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcStream.h"
+#include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import

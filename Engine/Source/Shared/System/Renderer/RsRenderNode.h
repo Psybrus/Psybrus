@@ -14,7 +14,7 @@
 #ifndef __RSRENDERNODE_H__
 #define __RSRENDERNODE_H__
 
-#include "RsTypes.h"
+#include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

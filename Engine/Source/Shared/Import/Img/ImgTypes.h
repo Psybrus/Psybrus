@@ -16,11 +16,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Includes
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcMemory.h"
-#include "BcString.h"
-#include "BcMath.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcMemory.h"
+#include "Base/BcString.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ImgEncodeFormat

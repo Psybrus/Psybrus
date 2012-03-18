@@ -14,17 +14,17 @@
 #ifndef __RMCORE_H__
 #define __RMCORE_H__
 
-#include "SysSystem.h"
+#include "System/SysSystem.h"
 
-#include "BcDelegate.h"
-#include "BcEndian.h"
-#include "BcGlobal.h"
-#include "BcHash.h"
-#include "BcMutex.h"
-#include "BcScopedLock.h"
+#include "Base/BcDelegate.h"
+#include "Base/BcEndian.h"
+#include "Base/BcGlobal.h"
+#include "Base/BcHash.h"
+#include "Base/BcMutex.h"
+#include "Base/BcScopedLock.h"
 
-#include "RmEvents.h"
-#include "RmParameters.h"
+#include "System/Remote/RmEvents.h"
+#include "System/Remote/RmParameters.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RmDelegate

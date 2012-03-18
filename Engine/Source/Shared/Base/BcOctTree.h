@@ -14,8 +14,8 @@
 #ifndef __BCOCTTREE_H__
 #define __BCOCTTREE_H__
 
-#include "BcAABB.h"
-#include "BcMemory.h"
+#include "Base/BcAABB.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

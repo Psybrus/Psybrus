@@ -14,8 +14,8 @@
 #ifndef __SYSRESOURCE_H__
 #define __SYSRESOURCE_H__
 
-#include "BcDelegate.h"
-#include "SysFence.h"
+#include "Base/BcDelegate.h"
+#include "System/SysFence.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // SysResource

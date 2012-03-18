@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RsPrimitiveGL.h"
+#include "System/Renderer/GL/RsPrimitiveGL.h"
 
-#include "RsCore.h"
+#include "System/Renderer/RsCore.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor

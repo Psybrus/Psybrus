@@ -14,9 +14,9 @@
 #ifndef __RMPARAMETERS_H__
 #define __RMPARAMETERS_H__
 
-#include "BcTypes.h"
-#include "BcStream.h"
-#include "BcDebug.h"
+#include "Base/BcTypes.h"
+#include "Base/BcStream.h"
+#include "Base/BcDebug.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RmParameters

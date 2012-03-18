@@ -14,7 +14,7 @@
 #ifndef __CSCORESERVER_H__
 #define __CSCORESERVER_H__
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CsCoreServer

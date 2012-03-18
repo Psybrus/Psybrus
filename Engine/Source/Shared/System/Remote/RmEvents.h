@@ -14,7 +14,7 @@
 #ifndef __RMEVENTS_H__
 #define __RMEVENTS_H__
 
-#include "EvtEvent.h"
+#include "Events/EvtEvent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event groups

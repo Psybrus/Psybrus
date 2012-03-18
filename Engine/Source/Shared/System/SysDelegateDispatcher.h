@@ -14,9 +14,9 @@
 #ifndef __SysDelegateDispatcher_H__
 #define __SysDelegateDispatcher_H__
 
-#include "BcTypes.h"
-#include "BcDelegate.h"
-#include "BcMutex.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDelegate.h"
+#include "Base/BcMutex.h"
 
 //////////////////////////////////////////////////////////////////////////
 // SysDelegateDispatcher

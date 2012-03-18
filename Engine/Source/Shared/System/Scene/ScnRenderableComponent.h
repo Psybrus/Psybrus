@@ -14,9 +14,9 @@
 #ifndef __ScnRenderableComponent_H__
 #define __ScnRenderableComponent_H__
 
-#include "RsCore.h"
-#include "ScnTypes.h"
-#include "ScnComponent.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Scene/ScnTypes.h"
+#include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs

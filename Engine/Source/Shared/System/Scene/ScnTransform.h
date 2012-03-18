@@ -14,9 +14,9 @@
 #ifndef __ScnTransform_H__
 #define __ScnTransform_H__
 
-#include "BcQuat.h"
-#include "BcMat4d.h"
-#include "BcVectors.h"
+#include "Base/BcQuat.h"
+#include "Base/BcMat4d.h"
+#include "Base/BcVectors.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTransform

@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "ScnSpatialTree.h"
-#include "ScnComponent.h"
+#include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/ScnComponent.h"
 
-#include "RsCore.h"
-#include "RsFrame.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Renderer/RsFrame.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ScnSpatialTreeNode

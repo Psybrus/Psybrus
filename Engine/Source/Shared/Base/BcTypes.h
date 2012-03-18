@@ -14,7 +14,7 @@
 #ifndef __BCTYPES_H__
 #define __BCTYPES_H__
 
-#include "BcPortability.h"
+#include "Base/BcPortability.h"
 
 #include <new>
 #include <memory.h>

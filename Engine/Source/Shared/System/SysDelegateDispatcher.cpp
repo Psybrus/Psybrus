@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "SysDelegateDispatcher.h"
+#include "System/SysDelegateDispatcher.h"
 
-#include "BcScopedLock.h"
+#include "Base/BcScopedLock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

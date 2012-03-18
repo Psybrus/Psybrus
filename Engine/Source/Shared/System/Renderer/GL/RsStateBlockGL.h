@@ -14,7 +14,7 @@
 #ifndef __RsStateBlockGL_H__
 #define __RsStateBlockGL_H__
 
-#include "RsStateBlock.h"
+#include "System/Renderer/RsStateBlock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsStateBlockGL

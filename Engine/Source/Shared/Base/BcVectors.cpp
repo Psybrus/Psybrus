@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "BcVectors.h"
+#include "Base/BcVectors.h"
 
-#include "BcString.h"
+#include "Base/BcString.h"
 
 BcVec2d::BcVec2d( const BcChar* pString )
 {

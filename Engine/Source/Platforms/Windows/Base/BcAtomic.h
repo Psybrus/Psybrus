@@ -14,7 +14,7 @@
 #ifndef __BCATOMIC_H__
 #define __BCATOMIC_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 #include <windows.h>
 

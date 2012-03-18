@@ -14,8 +14,8 @@
 #ifndef __BcTIMER_H__
 #define __BcTIMER_H__
 
-#include "BcTypes.h"
-#include "BcWindows.h"
+#include "Base/BcTypes.h"
+#include "Base/BcWindows.h"
 
 #define USE_PERF_COUNTER 0 
 

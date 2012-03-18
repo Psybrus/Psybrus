@@ -14,17 +14,17 @@
 #ifndef __ScnCore_H__
 #define __ScnCore_H__
 
-#include "BcTypes.h"
-#include "BcGlobal.h"
+#include "Base/BcTypes.h"
+#include "Base/BcGlobal.h"
 
-#include "SysSystem.h"
+#include "System/SysSystem.h"
 
-#include "ScnEntity.h"
-#include "ScnSpatialTree.h"
+#include "System/Scene/ScnEntity.h"
+#include "System/Scene/ScnSpatialTree.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Special scene components.
-#include "ScnViewComponent.h"
+#include "System/Scene/ScnViewComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////

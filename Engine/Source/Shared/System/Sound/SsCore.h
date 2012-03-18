@@ -14,12 +14,12 @@
 #ifndef __SSCOREIMPL_H__
 #define __SSCOREIMPL_H__
 
-#include "SsChannel.h"
-#include "SsSample.h"
-#include "SsEnvironment.h"
+#include "System/Sound/SsChannel.h"
+#include "System/Sound/SsSample.h"
+#include "System/Sound/SsEnvironment.h"
 
-#include "BcGlobal.h"
-#include "SysSystem.h"
+#include "Base/BcGlobal.h"
+#include "System/SysSystem.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward declarations

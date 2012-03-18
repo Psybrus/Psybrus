@@ -14,12 +14,12 @@
 #ifndef __ScnRenderTarget_H__
 #define __ScnRenderTarget_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
-#include "ScnTexture.h"
-#include "ScnTypes.h"
+#include "System/Scene/ScnTexture.h"
+#include "System/Scene/ScnTypes.h"
 
-#include "RsRenderTarget.h"
+#include "System/Renderer/RsRenderTarget.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnRenderTargetRef

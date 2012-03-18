@@ -14,7 +14,7 @@
 #ifndef __SSSOUND_H__
 #define __SSSOUND_H__
 
-#include "SsTypes.h"
+#include "System/Sound/SsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

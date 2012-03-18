@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#include "BcAtomic.h"
-#include "BcDebug.h"
+#include "Base/BcAtomic.h"
+#include "Base/BcDebug.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtomic unit test

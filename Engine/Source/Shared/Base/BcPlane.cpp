@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "BcVectors.h"
-#include "BcPlane.h"
+#include "Base/BcVectors.h"
+#include "Base/BcPlane.h"
 
-#include "BcMath.h"
+#include "Base/BcMath.h"
 
 const BcReal gPlaneEpsilon = BcVecEpsilon;
 

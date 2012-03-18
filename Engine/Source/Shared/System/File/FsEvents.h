@@ -14,8 +14,8 @@
 #ifndef __FsEvents_H__
 #define __FsEvents_H__
 
-#include "EvtEvent.h"
-#include "BcString.h"
+#include "Events/EvtEvent.h"
+#include "Base/BcString.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Event groups

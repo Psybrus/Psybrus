@@ -14,8 +14,8 @@
 #ifndef __BCPATH_H__
 #define __BCPATH_H__
 
-#include "BcTypes.h"
-#include "BcName.h"
+#include "Base/BcTypes.h"
+#include "Base/BcName.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcPath

@@ -14,7 +14,7 @@
 #ifndef __CSPROPERTY_H__
 #define __CSPROPERTY_H__
 
-#include "CsTypes.h"
+#include "System/Content/CsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CsPropertyValueType

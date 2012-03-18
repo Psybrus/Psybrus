@@ -14,11 +14,11 @@
 #ifndef __RsTextureGL_H__
 #define __RsTextureGL_H__
 
-#include "RsTexture.h"
-#include "RsGL.h"
+#include "System/Renderer/RsTexture.h"
+#include "System/Renderer/GL/RsGL.h"
 
-#include "CsFile.h"
-#include "BcAtomicMutex.h"
+#include "System/Content/CsFile.h"
+#include "Base/BcAtomicMutex.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

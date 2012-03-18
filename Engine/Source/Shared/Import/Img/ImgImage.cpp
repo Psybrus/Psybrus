@@ -13,7 +13,7 @@
 
 #include "ImgImage.h"
 
-#include "BcVectors.h"
+#include "Base/BcVectors.h"
 
 #include "squish.h"
 

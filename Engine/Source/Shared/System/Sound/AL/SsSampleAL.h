@@ -14,8 +14,8 @@
 #ifndef __SSSAMPLEAL_H__
 #define __SSSAMPLEAL_H__
 
-#include "SsSample.h"
-#include "SsAL.h"
+#include "System/Sound/SsSample.h"
+#include "System/Sound/AL/SsAL.h"
 
 #include <ivorbisfile.h>
 

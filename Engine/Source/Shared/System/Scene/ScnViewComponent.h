@@ -14,10 +14,10 @@
 #ifndef __ScnViewComponent_H__
 #define __ScnViewComponent_H__
 
-#include "RsCore.h"
-#include "ScnComponent.h"
-#include "ScnRenderTarget.h"
-#include "ScnMaterial.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnRenderTarget.h"
+#include "System/Scene/ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef

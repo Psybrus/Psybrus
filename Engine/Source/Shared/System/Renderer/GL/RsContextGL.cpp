@@ -11,10 +11,10 @@
 * 
 **************************************************************************/
 
-#include "RsContextGL.h"
-#include "OsClient.h"
+#include "System/Renderer/GL/RsContextGL.h"
+#include "System/Os/OsClient.h"
 
-#include "Img.h"
+#include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Statics

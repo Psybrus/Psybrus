@@ -14,8 +14,8 @@
 #ifndef __OSCORE_H__
 #define __OSCORE_H__
 
-#include "BcGlobal.h"
-#include "SysSystem.h"
+#include "Base/BcGlobal.h"
+#include "System/SysSystem.h"
 
 #include "OsEvents.h"
 #include "OsClient.h"

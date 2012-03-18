@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "BcHash.h"
+#include "Base/BcHash.h"
 
 #if HASH_TYPE == HASH_CRC32
 

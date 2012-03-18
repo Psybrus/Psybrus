@@ -14,7 +14,7 @@
 #ifndef __BCMAT3D_H__
 #define __BCMAT3D_H__
 
-#include "BcVectors.h"
+#include "Base/BcVectors.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcMat3d

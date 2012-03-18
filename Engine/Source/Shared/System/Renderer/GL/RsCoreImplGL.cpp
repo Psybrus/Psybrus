@@ -11,22 +11,22 @@
 * 
 **************************************************************************/
 
-#include "RsCoreImplGL.h"
+#include "System/Renderer/GL/RsCoreImplGL.h"
 
-#include "RsFrameGL.h"
+#include "System/Renderer/GL/RsFrameGL.h"
 
-#include "RsTextureGL.h"
-#include "RsRenderTargetGL.h"
-#include "RsRenderBufferGL.h"
-#include "RsFrameBufferGL.h"
-#include "RsVertexBufferGL.h"
-#include "RsIndexBufferGL.h"
-#include "RsShaderGL.h"
-#include "RsProgramGL.h"
-#include "RsPrimitiveGL.h"
-#include "RsStateBlockGL.h"
+#include "System/Renderer/GL/RsTextureGL.h"
+#include "System/Renderer/GL/RsRenderTargetGL.h"
+#include "System/Renderer/GL/RsRenderBufferGL.h"
+#include "System/Renderer/GL/RsFrameBufferGL.h"
+#include "System/Renderer/GL/RsVertexBufferGL.h"
+#include "System/Renderer/GL/RsIndexBufferGL.h"
+#include "System/Renderer/GL/RsShaderGL.h"
+#include "System/Renderer/GL/RsProgramGL.h"
+#include "System/Renderer/GL/RsPrimitiveGL.h"
+#include "System/Renderer/GL/RsStateBlockGL.h"
 
-#include "SysKernel.h"
+#include "System/SysKernel.h"
 
 #if PLATFORM_OSX
 #include "OsViewOSX.h"

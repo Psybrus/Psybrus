@@ -16,9 +16,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Types
-#include "BcTypes.h"
-#include "BcDebug.h"
-#include "BcVectors.h"
-#include "BcMat4d.h"
+#include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
+#include "Base/BcVectors.h"
+#include "Base/BcMat4d.h"
 
 #endif

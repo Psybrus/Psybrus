@@ -13,7 +13,7 @@
 #ifndef __BCFILE_H__
 #define __BCFILE_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 #include <stdio.h>
 
 const BcU32 MAX_LINE_LENGTH = 1024;

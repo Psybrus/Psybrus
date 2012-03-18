@@ -11,14 +11,14 @@
 * 
 **************************************************************************/
 
-#include "ScnSoundEmitter.h"
+#include "System/Scene/ScnSoundEmitter.h"
 
-#include "CsCore.h"
-#include "SsCore.h"
+#include "System/Content/CsCore.h"
+#include "System/Sound/SsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcFile.h"
-#include "BcStream.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////

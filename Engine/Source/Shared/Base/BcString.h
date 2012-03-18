@@ -14,7 +14,7 @@
 #ifndef __BCSTRING_H__
 #define __BCSTRING_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 #include <string.h>
 #include <stdarg.h>

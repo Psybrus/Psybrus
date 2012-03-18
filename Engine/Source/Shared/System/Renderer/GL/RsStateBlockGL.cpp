@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "RsStateBlockGL.h"
+#include "System/Renderer/GL/RsStateBlockGL.h"
 
-#include "RsGL.h"
+#include "System/Renderer/GL/RsGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // State value translation.

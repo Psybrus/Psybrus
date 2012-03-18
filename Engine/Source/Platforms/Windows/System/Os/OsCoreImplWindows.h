@@ -14,7 +14,7 @@
 #ifndef __OSCOREIMPLWINDOWS_H__
 #define __OSCOREIMPLWINDOWS_H__
 
-#include "OsCore.h"
+#include "System/Os/OsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsCoreImplWindows

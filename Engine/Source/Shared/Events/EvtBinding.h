@@ -14,9 +14,9 @@
 #ifndef __EVTBINDING_H__
 #define __EVTBINDING_H__
 
-#include "EvtEvent.h"
+#include "Events/EvtEvent.h"
 
-#include "BcMemory.h"
+#include "Base/BcMemory.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /**	\class EvtBinding

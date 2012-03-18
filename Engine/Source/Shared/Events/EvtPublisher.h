@@ -14,8 +14,8 @@
 #ifndef __EVTPUBLISHER_H__
 #define __EVTPUBLISHER_H__
 
-#include "EvtEvent.h"
-#include "EvtBinding.h"
+#include "Events/EvtEvent.h"
+#include "Events/EvtBinding.h"
 
 #include <list>
 #include <map>

@@ -11,11 +11,11 @@
 * 
 **************************************************************************/
 
-#include "OsClientWindows.h"
+#include "System/Os/OsClientWindows.h"
 
-#include "OsCore.h"
+#include "System/Os/OsCore.h"
 
-#include "BcString.h"
+#include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Class name generation.

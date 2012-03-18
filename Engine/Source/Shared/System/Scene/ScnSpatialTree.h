@@ -14,10 +14,10 @@
 #ifndef __ScnSPACIALTREE_H__
 #define __ScnSPACIALTREE_H__
 
-#include "BcOctTree.h"
-#include "RsCore.h"
-#include "ScnVisitor.h"
-#include "ScnTypes.h"
+#include "Base/BcOctTree.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Scene/ScnVisitor.h"
+#include "System/Scene/ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs

@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "BcMat3d.h"
+#include "Base/BcMat3d.h"
 
 BcMat3d::BcMat3d( const BcVec3d& Row0,
                   const BcVec3d& Row1,
