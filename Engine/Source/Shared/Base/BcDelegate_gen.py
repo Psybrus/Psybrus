@@ -306,7 +306,7 @@ outString = """/****************************************************************
 
 outFile.write( outString )
 
-numParams = 9
+numParams = 5
 
 BcFuncTraits_header( outFile )
 for each in range( 0, numParams ):
