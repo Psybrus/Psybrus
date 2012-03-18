@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "ScnGwenCanvas.h"
+#include "System/Scene/ScnGwenCanvas.h"
 
-#include "GwenRenderer.h"
+#include "System/Scene/Internal/GwenRenderer.h"
 
 #include "Gwen/Gwen.h"
 #include "Gwen/Utility.h"
@@ -25,12 +25,12 @@
 #include "Gwen/UnitTest/UnitTest.h"
 
 
-#include "CsCore.h"
-#include "OsCore.h"
+#include "System/Content/CsCore.h"
+#include "System/Os/OsCore.h"
 
 #ifdef PSY_SERVER
-#include "BcFile.h"
-#include "BcStream.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////

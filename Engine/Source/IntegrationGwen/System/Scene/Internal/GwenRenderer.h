@@ -14,11 +14,11 @@
 #ifndef GWEN_RENDERERS_GwenRenderer_H
 #define GWEN_RENDERERS_GwenRenderer_H
 
-#include "ScnEntity.h"
-#include "ScnCanvasComponent.h"
-#include "ScnFont.h"
+#include "System/Scene/ScnEntity.h"
+#include "System/Scene/ScnCanvasComponent.h"
+#include "System/Scene/ScnFont.h"
 
-#include "ScnGwenCanvas.h"
+#include "System/Scene/ScnGwenCanvas.h"
 
 #include "Gwen/Gwen.h"
 #include "Gwen/Utility.h"

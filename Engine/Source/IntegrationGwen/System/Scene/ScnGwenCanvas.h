@@ -14,11 +14,11 @@
 #ifndef __SCNGWENCANVAS_H__
 #define __SCNGWENCANVAS_H__
 
-#include "ScnComponent.h"
-#include "ScnMaterial.h"
-#include "ScnFont.h"
+#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnMaterial.h"
+#include "System/Scene/ScnFont.h"
 
-#include "OsEvents.h"
+#include "System/Os/OsEvents.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Gwen Forward Declarations.

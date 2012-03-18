@@ -11,9 +11,9 @@
 * 
 **************************************************************************/
 
-#include "GwenRenderer.h"
+#include "System/Scene/Internal/GwenRenderer.h"
 
-#include "CsCore.h"
+#include "System/Content/CsCore.h"
 
 GwenRenderer::GwenRenderer( ScnEntityRef Entity, ScnGwenCanvasComponentRef ParentComponent ):
 	Entity_( Entity ),

@@ -32,4 +32,7 @@ project "ExampleGame"
    			-- Engine libs.
    			"Engine_Shared",
    			"Engine_Windows",
+
+            -- Integration libraries.
+            "Engine_IntegrationGwen",
    		}
