@@ -44,6 +44,8 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	BcUnusedVar( pMessage );
 	BcUnusedVar( pFile );
 	BcUnusedVar( Line );
+
+	return BcFalse;
 #endif
 }
 
@@ -76,5 +78,7 @@ BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	BcUnusedVar( pMessage );
 	BcUnusedVar( pFile );
 	BcUnusedVar( Line );
+
+	return BcFalse;
 #endif
 }
