@@ -188,7 +188,7 @@ void BcFile::seek( BcU32 Position )
 // read
 void BcFile::read( void* pDest, BcU32 nBytes )
 {
-	BcAssert( FileHandle_ );
+	BcAssert( FileHandle_ != NULL );
 	
 	fread( pDest, nBytes, 1, FileHandle_ );
 }
@@ -213,7 +213,7 @@ void BcFile::readLine( BcChar* pBuffer, BcU32 Size )
 // write
 void BcFile::write( const void* pSrc, BcU32 nBytes )
 {
-	BcAssert( FileHandle_ );
+	BcAssert( FileHandle_ != NULL );
 
 	fwrite( pSrc, nBytes, 1, FileHandle_ );
 }
@@ -222,7 +222,7 @@ void BcFile::write( const void* pSrc, BcU32 nBytes )
 // writeLine
 void BcFile::writeLine( const BcChar* pTest )
 {
-	BcAssert( FileHandle_ );
+	BcAssert( FileHandle_ != NULL );
 
 	fwrite( pTest, BcStrLength( pTest ), 1, FileHandle_ );
 	fwrite( "\n", 2, 1, FileHandle_ );

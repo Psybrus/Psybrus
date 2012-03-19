@@ -20,7 +20,7 @@
 // BcPrintf
 #if 1
 #  define BcPrintf( ... ) \
-	if( BcLog::pImpl() ) BcLog::pImpl()->write( __VA_ARGS__ )
+	if( BcLog::pImpl() ) BcLog::pImpl()->write( ##__VA_ARGS__ )
 #else
 #  define BcPrintf( ... )
 #endif
@@ -60,7 +60,7 @@ extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int
 #  define BcAssertMsg( Condition, Message, ... )	\
 	if( !( Condition ) ) \
 	{ \
-		if( BcAssertInternal( Message, __FILE__, __LINE__, __VA_ARGS__ ) ) \
+		if( BcAssertInternal( Message, __FILE__, __LINE__, ##__VA_ARGS__ ) ) \
 			BcBreakpoint; \
 	}
 #  define BcAssert( Condition )	\
@@ -100,7 +100,7 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 		static BcBool ShouldNotify = BcTrue; \
 		if( ShouldNotify && !( Condition ) ) \
 		{ \
-			if( BcVerifyInternal( Message, __FILE__, __LINE__, __VA_ARGS__ ) ) \
+			if( BcVerifyInternal( Message, __FILE__, __LINE__, ##__VA_ARGS__ ) ) \
 				ShouldNotify = BcFalse; \
 		} \
 	}
