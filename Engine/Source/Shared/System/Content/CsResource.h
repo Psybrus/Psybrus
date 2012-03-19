@@ -172,10 +172,9 @@ class CsResource
 {
 public:
 	DECLARE_CSRESOURCE;
-
-private: // non-copyable.
-	BcForceInline CsResource( const CsResource& ){};
-	BcForceInline CsResource& operator = ( const CsResource& ){};
+	
+private:
+	CsResource( const CsResource& ){}
 
 public:
 	CsResource( const BcName& Name, CsFile* pFile );

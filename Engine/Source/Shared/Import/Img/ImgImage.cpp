@@ -42,7 +42,7 @@ ImgImage::ImgImage( const ImgImage& Original )
 	pPixelData_ = NULL;
 
 	//
-	BcAssertException( pPixelData_ != NULL, ImgException( "ImgImage: Pixel data is NULL." ) );
+	BcAssertMsg( pPixelData_ != NULL, "ImgImage: Pixel data is NULL." );
  
 	create( Original.Width_, Original.Height_ );
 	
@@ -76,7 +76,7 @@ void ImgImage::create( BcU32 Width, BcU32 Height, const ImgColour* pFillColour )
 // setPixel
 void ImgImage::setPixel( BcU32 X, BcU32 Y, const ImgColour& Colour )
 {
-	BcAssertException( pPixelData_ != NULL, ImgException( "ImgImage: Pixel data is NULL." ) );
+	BcAssertMsg( pPixelData_ != NULL, "ImgImage: Pixel data is NULL." );
 	if( X < Width_ && Y < Height_ )
 	{
 		BcU32 Index = X + ( Y * Width_ );
@@ -89,7 +89,7 @@ void ImgImage::setPixel( BcU32 X, BcU32 Y, const ImgColour& Colour )
 // getPixel
 const ImgColour& ImgImage::getPixel( BcU32 X, BcU32 Y ) const
 {
-	BcAssertException( pPixelData_ != NULL, ImgException( "ImgImage: Pixel data is NULL." ) );
+	BcAssertMsg( pPixelData_ != NULL, "ImgImage: Pixel data is NULL." );
 	if( X < Width_ && Y < Height_ )
 	{
 		BcU32 Index = X + ( Y * Width_ );
