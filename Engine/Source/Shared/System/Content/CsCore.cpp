@@ -299,12 +299,14 @@ BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>&
 								// Import the resource immediately (blocking operation).
 								if( Handle->import( Resource, *pDependancyList ) )
 								{
-									// Save file.
-									pFile->save();
-																										
-									// Now we need to request the resource, this will delete the imported
-									// one and replace it with a valid loaded resource.
-									internalRequestResource( Name, Type, Handle );
+									BcBool Success = pFile->save();
+									BcAssertMsg( Success, "Failed to save out \"%s\"", getResourceFullName( Name, Type ).c_str() );
+									if( Success )
+									{
+										// Now we need to request the resource, this will delete the imported
+										// one and replace it with a valid loaded resource.
+										internalRequestResource( Name, Type, Handle );
+									}
 								}	
 								else
 								{

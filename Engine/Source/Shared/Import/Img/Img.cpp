@@ -59,13 +59,13 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 	{
 		// Initial setup.
 		png_structp pPngRead = png_create_read_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
-		BcAssertException( pPngRead != NULL, ImgException( "ImgLoader: Can't create read struct" ) );
+		BcAssertMsg( pPngRead != NULL, "ImgLoader: Can't create read struct" ); // TODO: Handle and call png_destroy_read_struct
 		
 		png_infop pPngInfo = png_create_info_struct( pPngRead );
-		BcAssertException( pPngRead != NULL, ImgException( "ImgLoader: Can't create read struct" ) );
+		BcAssertMsg( pPngRead != NULL, "ImgLoader: Can't create read struct" ); // TODO: Handle and call png_destroy_read_struct
 		
 		png_infop pPngEndInfo = png_create_info_struct( pPngRead );
-		BcAssertException( pPngRead != NULL, ImgException( "ImgLoader: Can't create read struct" ) );
+		BcAssertMsg( pPngRead != NULL, "ImgLoader: Can't create read struct" ); // TODO: Handle and call png_destroy_read_struct
 		
 		// Set error handling
 		if ( setjmp( png_jmpbuf( pPngRead ) ) )

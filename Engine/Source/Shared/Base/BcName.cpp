@@ -261,6 +261,7 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 		return BcErrorCode;
 	}
 
+	// TODO: Store in a hash map.
 	// Iterate over array to find if string exists.
 	TStringEntryList& StringEntries( getStringEntries() );
 	for( BcU32 Idx = 0; Idx < StringEntries.size(); ++Idx )
