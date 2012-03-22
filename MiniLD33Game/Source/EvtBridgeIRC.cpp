@@ -13,12 +13,10 @@
 
 #include "EvtBridgeIRC.h"
 
-#ifdef PSY_SERVER
 #define BUFFERSIZE ( 64 * 1024 )
 #include <b64/encode.h>
 #include <b64/decode.h>
 #undef BUFFERSIZE
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
