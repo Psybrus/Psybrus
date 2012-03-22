@@ -1,0 +1,25 @@
+{ 
+	"ScnMaterial" : {
+		"name"		: "font",
+
+		// Shader
+		"shader"	: "EngineContent/font.ScnShader",
+
+		// Textures
+		"textures"	: {
+			"aDiffuseTex"	: "EngineContent/default.ScnTexture"
+		},
+		
+		// State
+		"state"		: {
+			"depth_write_enable" 		: 0,
+			"depth_test_enable" 		: 0,
+			"depth_test_compare" 		: "never",
+			"depth_bias" 				: 0,
+			"alpha_test_enable" 		: 0,
+			"alpha_test_compare" 		: "never",
+			"alpha_test_threshold" 		: 128,
+			"blend_mode" 				: "blend"
+		}
+	}
+}
