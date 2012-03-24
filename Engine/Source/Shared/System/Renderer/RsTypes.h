@@ -92,6 +92,7 @@ public:
 	static const RsColour BLUE;
 	static const RsColour YELLOW;
 	static const RsColour MAGENTA;
+	static const RsColour PURPLE;
 	static const RsColour CYAN;
 };
 

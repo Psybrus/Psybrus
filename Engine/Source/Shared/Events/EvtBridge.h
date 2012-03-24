@@ -37,9 +37,9 @@ protected:
 	/**
 	 * Publish via the publisher.
 	 */
-	void publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+	void publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge = BcFalse, BcBool AllowProxy = BcFalse );
 
-private:
+
 	EvtPublisher* pPublisher_;
 	
 	

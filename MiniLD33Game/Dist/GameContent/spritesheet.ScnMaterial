@@ -1,0 +1,25 @@
+{ 
+	"ScnMaterial" : {
+		"name"		: "spritesheet",
+
+		// Shader
+		"shader"	: "diffuse.ScnShader",
+
+		// Textures
+		"textures"	: {
+			"aDiffuseTex"		: "spritesheet.ScnTextureAtlas"
+		},
+		
+		// State
+		"state"		: {
+			"depth_write_enable" 		: 0,
+			"depth_test_enable" 		: 0,
+			"depth_test_compare" 		: "lessequal",
+			"depth_bias" 				: 0,
+			"alpha_test_enable" 		: 0,
+			"alpha_test_compare" 		: "greater",
+			"alpha_test_threshold" 		: 32,
+			"blend_mode" 				: "blend"
+		}
+	}
+}

@@ -15,7 +15,7 @@
 
 #include "GaTopState.h"
 
-#include "GaExampleComponent.h"
+#include "GaGameComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,12 +70,12 @@ void PsyGameInit()
 // PsyGameRegisterResources
 void PsyGameRegisterResources()
 {
-	CsCore::pImpl()->registerResource< GaExampleComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< GaGameComponent >( BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // PsyGameUnRegisterResources
 void PsyGameUnRegisterResources()
 {
-	CsCore::pImpl()->unregisterResource< GaExampleComponent >();
+	CsCore::pImpl()->unregisterResource< GaGameComponent >();
 }

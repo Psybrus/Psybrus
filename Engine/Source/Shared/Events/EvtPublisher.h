@@ -42,7 +42,7 @@ public:
 	* Publish an event.
 	*/
 	template< typename _Ty >
-	void publish( EvtID ID, const EvtEvent< _Ty >& Event );
+	void publish( EvtID ID, const EvtEvent< _Ty >& Event, BcBool AllowBridge = BcTrue, BcBool AllowProxy = BcTrue );
 
 	/**
 	* Subscribe to an event.
@@ -100,7 +100,7 @@ private:
 	/**
 	* Publish internal.
 	*/
-	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge );
+	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy );
 	
 	/**
 	* Subscribe internal.
@@ -149,16 +149,9 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // Inlines
 template< typename _Ty >
-BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty >& Event )
+BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty >& Event, BcBool AllowBridge, BcBool AllowProxy )
 {
-	if( pProxy_ == NULL )
-	{
-		publishInternal( ID, Event, sizeof( _Ty ), BcTrue );
-	}
-	else
-	{
-		pProxy_->proxy( ID, Event, sizeof( _Ty ) );
-	}
+	publishInternal( ID, Event, sizeof( _Ty ), AllowBridge, AllowProxy );
 }
 
 template< typename _Ty >

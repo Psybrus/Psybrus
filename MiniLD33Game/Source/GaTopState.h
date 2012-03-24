@@ -38,6 +38,8 @@ private:
 	typedef std::vector< CsResourceRef<> > TResourceList;
 	typedef std::vector< ScnEntityRef > TEntityList;
 
+	ScnMaterialRef					SpriteSheetMaterial_;
+
 	TResourceList					ResourceList_;
 	TEntityList						EntityList_;
 

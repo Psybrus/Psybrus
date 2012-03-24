@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		cMath.h
+* File:		BcMath.h
 * Author: 	Neil Richardson
 * Ver/Date:
 * Description:
@@ -16,14 +16,9 @@
 
 #include "Base/BcDebug.h"
 #include "Base/BcTypes.h"
+#include "Base/BcFixed.h"
 
-// Streflop include.
-#ifdef STREFLOP_X87
-#include "SMath.h"
-using namespace streflop;
-#else
 #include <math.h>
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Some undefining from math.h
@@ -49,75 +44,18 @@ using namespace streflop;
 #define BcPIDIV2						(1.57079632679489660f)
 #define BcPIDIV4						(0.78539816339744828f)
 
-
 //////////////////////////////////////////////////////////////////////////
 // BcSqrt
-inline BcReal BcSqrt( BcReal v )
-{
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
-	__asm fld [v]
-	__asm fsqrt
-	__asm fstp [v]
-	return v;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fsqrt\n"
-		"fstp %0\n"
-	: "=g"( v )
-	: "g"( v )
-	);
-	return v;
-#else
-	return sqrtf( v );
-#endif
-}
+BcReal BcSqrt( BcReal v );
+BcFixed BcSqrt( BcFixed v );
 
 //////////////////////////////////////////////////////////////////////////
 // BcSin
-inline BcReal BcSin( BcReal r )
-{
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
-	__asm fld [r]
-	__asm fsin
-	__asm fstp [r]
-	return r;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fsin\n"
-		"fstp %0\n"
-	: "=g"( r )
-	: "g"( r )
-	);
-	return r;
-#else
-	return sinf( r );
-#endif
-}
+BcReal BcSin( BcReal r );
 
 //////////////////////////////////////////////////////////////////////////
 // BcCos
-inline BcReal BcCos( BcReal r )
-{
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
-	__asm fld [r]
-	__asm fcos
-	__asm fstp [r]
-	return r;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fcos\n"
-		"fstp %0\n"
-	: "=g"( r )
-	: "g"( r )
-	);
-	return r;
-#else
-	return cosf( r );
-#endif
-}
+BcReal BcCos( BcReal r );
 
 //////////////////////////////////////////////////////////////////////////
 // BcTan
@@ -183,17 +121,11 @@ inline _Ty BcAbs( _Ty T )
 
 //////////////////////////////////////////////////////////////////////////
 // BcFloor
-inline BcReal BcFloor( BcReal T )
-{
-	return floorf( T );
-}
+BcReal BcFloor( BcReal T );
 
 //////////////////////////////////////////////////////////////////////////
 // BcCeil
-inline BcReal BcCeil( BcReal T )
-{
-	return ceilf( T );
-}
+BcReal BcCeil( BcReal T );
 
 //////////////////////////////////////////////////////////////////////////
 // BcRound

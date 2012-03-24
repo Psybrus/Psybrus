@@ -38,12 +38,11 @@ void EvtBridge::bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSiz
 	BcUnusedVar( ID );
 	BcUnusedVar( EventBase );
 	BcUnusedVar( EventSize );
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // publish
-void EvtBridge::publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+void EvtBridge::publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy )
 {
-	pPublisher_->publishInternal( ID, EventBase, EventSize, BcFalse );
+	pPublisher_->publishInternal( ID, EventBase, EventSize, AllowBridge, AllowProxy );
 }
