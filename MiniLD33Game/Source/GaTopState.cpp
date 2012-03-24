@@ -15,7 +15,7 @@
 
 #include "GaTopState.h"
 
-#include "GaExampleComponent.h"
+#include "GaGameComponent.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,8 +37,11 @@ void GaTopState::enterOnce()
 {
 	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
 
+	CsCore::pImpl()->requestResource( "spritesheet", SpriteSheetMaterial_ );
+
 	// dummy.
-	pBridgeIRC_ = new EvtBridgeIRC( OsCore::pImpl() );
+	//pBridgeIRC_ = new EvtBridgeIRC( OsCore::pImpl() );
+	pBridgeIRC_ = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,6 +49,8 @@ void GaTopState::enterOnce()
 eSysStateReturn GaTopState::enter()
 {
 	BcBool Ready = BcTrue;
+
+	Ready &= SpriteSheetMaterial_.isReady();
 
 	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
 	{
@@ -69,9 +74,10 @@ void GaTopState::preMain()
 	ScnEntityRef Entity;
 
 	// Create model entity.
+	/*
 	if( CsCore::pImpl()->createResource( "ModelEntity_0", Entity ) )
 	{
-		GaExampleComponentRef ExampleComponent;
+		GaGameComponentRef ExampleComponent;
 		ScnModelComponentRef ModelComponent;
 	
 		// Create component resources.
@@ -84,17 +90,27 @@ void GaTopState::preMain()
 
 		EntityList_.push_back( Entity );
 	}
+	*/
 	
 	// Create view entity.
 	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
 	{
+		ScnMaterialComponentRef MaterialComponent;
 		ScnViewComponentRef ViewComponent;
-	
+		ScnCanvasComponentRef CanvasComponent;
+		GaGameComponentRef GameComponent;
+		
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
+		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, SpriteSheetMaterial_, BcErrorCode );
+		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32, MaterialComponent );
+		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent );
 
 		// Attach components.
 		Entity->attach( ViewComponent );
+		Entity->attach( MaterialComponent );
+		Entity->attach( CanvasComponent );
+		Entity->attach( GameComponent );
 
 		// Setup entity position to render from.
 		BcMat4d LookAt;

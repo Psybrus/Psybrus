@@ -40,7 +40,7 @@ void EvtProxy::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize 
 
 ////////////////////////////////////////////////////////////////////////////////
 // publish
-void EvtProxy::publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+void EvtProxy::publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy )
 {
-	pPublisher_->publishInternal( ID, EventBase, EventSize, BcTrue );
+	pPublisher_->publishInternal( ID, EventBase, EventSize, AllowBridge, AllowProxy );
 }

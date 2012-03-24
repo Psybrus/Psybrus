@@ -5,7 +5,12 @@ project "MiniLD33Game"
 	includedirs { "./Source/", "../Engine/Source/Shared/", "../Engine/Source/Platforms/Windows/", }
 
 	-- External includes.
-	includedirs { "../External/jsoncpp/include", "../External/libircclient-1.6/include", "../External/libb64/include" }
+	includedirs {
+      "../External/zlib",
+      "../External/jsoncpp/include",
+      "../External/libircclient-1.6/include",
+      "../External/libb64/include"
+   }
 
 	configuration "windows"
    		links {

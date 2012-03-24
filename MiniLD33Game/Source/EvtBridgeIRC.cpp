@@ -13,12 +13,12 @@
 
 #include "EvtBridgeIRC.h"
 
-#ifdef PSY_SERVER
 #define BUFFERSIZE ( 64 * 1024 )
 #include <b64/encode.h>
 #include <b64/decode.h>
 #undef BUFFERSIZE
-#endif
+
+#include <zlib.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -93,16 +93,28 @@ void EvtBridgeIRC::bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize Event
 		BcStream Stream;
 		Stream.push( &ID, sizeof( ID ) );
 		Stream.push( &EventSize, sizeof( EventSize ) );
-		Stream.push( &EventBase, sizeof( EventSize ) );
+		Stream.push( &EventBase, EventSize );
 
-		BcU32 BufferSize = sizeof( FsStats ) * 2;
-		BcChar* pStatsBuffer = new BcChar[ BufferSize ];
+		// Compress.
+		BcU32 CompressionBufferSize = Stream.dataSize() * 2;
+		BcChar* pCompressionBuffer = new BcChar[ CompressionBufferSize ];
+		uLongf CompressedSize = CompressionBufferSize;
+		compress((Bytef*)pCompressionBuffer, &CompressedSize, (Bytef*)Stream.pData(), Stream.dataSize());
+
+		// Base-64 encode.
+		BcU32 B64BufferSize = Stream.dataSize() * 2;
+		BcChar* pB64Buffer = new BcChar[ B64BufferSize ];
 		base64::base64_encodestate EncodeState;
-		BcMemZero( pStatsBuffer, BufferSize );
+		BcMemZero( pB64Buffer, B64BufferSize );
 		BcMemZero( &EncodeState, sizeof( EncodeState ) );
-		base64::base64_encode_block( reinterpret_cast< const char* >( Stream.pData() ), Stream.dataSize(), reinterpret_cast< char* >( pStatsBuffer ), &EncodeState );
-		irc_dcc_msg( pSession_, DCC_, pStatsBuffer );
-		delete [] pStatsBuffer;
+		base64::base64_encode_block( reinterpret_cast< const char* >( pCompressionBuffer ), (int)CompressedSize, reinterpret_cast< char* >( pB64Buffer ), &EncodeState );
+
+		// Send message.
+		irc_dcc_msg( pSession_, DCC_, pB64Buffer );
+
+		// Delete 
+		delete [] pB64Buffer;
+		delete [] pCompressionBuffer;
 	}
 }
 
@@ -463,19 +475,25 @@ void EvtBridgeIRC::dcc_callback(irc_session_t * session, irc_dcc_t id, int statu
 
 	if(status == 0 && data != NULL && length > 0)
 	{
-		// too much mem, but screw it.
-		char* pEventData = new char[ length ];
+		// Base-64 decode.
+		char* pB64DecodedBuffer = new char[ length ];
 		base64::base64_decodestate DecodeState;
 		BcMemZero( &DecodeState, sizeof( DecodeState ) );
-		base64::base64_decode_block( data, length, pEventData, &DecodeState );
+		base64::base64_decode_block( data, length, pB64DecodedBuffer, &DecodeState );
 
-		EvtID ID = *reinterpret_cast< EvtID* >( &pEventData[ 0 ] );
-		BcU32 EventSize = *reinterpret_cast< EvtID* >( &pEventData[ 4 ] );
+		// Decompress
+		BcU32 DecompressionBufferSize = length * 32; // hacky
+		BcChar* pDecompressedBuffer = new BcChar[ DecompressionBufferSize ];
+		uLongf DecompressedSize = 0;
+		uncompress((Bytef*)pDecompressedBuffer, &DecompressedSize, (Bytef*)pB64DecodedBuffer, length);
+
+		EvtID ID = *reinterpret_cast< EvtID* >( &pDecompressedBuffer[ 0 ] );
+		BcU32 EventSize = *reinterpret_cast< EvtID* >( &pDecompressedBuffer[ 4 ] );
 
 		// Enqueue a callback for the main thread to pick up.
 		typedef BcDelegate< void(*)( EvtID, BcU32, char* ) > PublishDelegate;
 		PublishDelegate PublishCallback( PublishDelegate::bind< EvtBridgeIRC, &EvtBridgeIRC::dcc_publish_event >( pBridge ) );
-		SysKernel::pImpl()->enqueueCallback( PublishCallback, ID, EventSize, pEventData );
+		SysKernel::pImpl()->enqueueCallback( PublishCallback, ID, EventSize, pDecompressedBuffer );
 	}
 }
 

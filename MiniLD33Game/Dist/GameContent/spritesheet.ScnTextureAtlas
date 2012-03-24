@@ -1,0 +1,20 @@
+{ 
+	"ScnTextureAtlas" : {
+		"name"		: "spritesheet",
+
+		// Source
+		"source"	: [
+			"GameContent/Source/white.png",
+			"GameContent/Source/cursor0.png",
+			"GameContent/Source/soldier0.png",
+			"GameContent/Source/archer0.png",
+			"GameContent/Source/trebuchet0.png",
+			"GameContent/Source/archer_projectile0.png",
+			"GameContent/Source/archer_projectile0.png",
+			"GameContent/Source/trebuchet_projectile0.png",
+
+			//
+			"GameContent/Source/white.png"
+		]
+	}
+}

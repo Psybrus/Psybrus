@@ -27,15 +27,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 #ifndef __BCFIXED_H__
 #define __BCFIXED_H__
 
-class BcFixed {
-
-private:
-
-	int	g; // the guts
-
+class BcFixed
+{
+public:
 	const static int BP= 16;  // how many low bits are right of Binary Point
 	const static int BP2= BP*2;  // how many low bits are right of Binary Point
 	const static int BPhalf= BP/2;  // how many low bits are right of Binary Point
+	const static int IB = 32 - BP;  // integer bits
 
 	static BcF32 STEP() { return 1.0f / (1<<BP); }  // smallest step we can represent
 
@@ -43,6 +41,8 @@ private:
 	enum FixedRaw { RAW };
 	BcFixed(FixedRaw, int guts) : g(guts) {}
 
+private:
+	int	g; // the guts
 
 public:
 	BcFixed() : g(0) {}
