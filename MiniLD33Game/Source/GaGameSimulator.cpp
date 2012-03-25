@@ -22,7 +22,7 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	SimulationRate_( SimulationRate ),
 	SimulationSpeed_( SimulationSpeed ),
 	TickAccumulator_( 0.0f ),
-	CurrentFrame_( 0 ),
+	CurrentFrame_( 0 ), // TODO: Fix lockstop proxy to handle starting from 0.
 	UnitID_( 0 )
 {
 	GaGameUnitIdleEvent::Delegate OnUnitIdle( GaGameUnitIdleEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitIdle >( this ) );
@@ -35,8 +35,8 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	subscribe( gaEVT_UNIT_MOVE, OnUnitMove );
 	subscribe( gaEVT_UNIT_ATTACK, OnUnitAttack );
 
-	pEventProxy_ = new EvtProxyLockstep( this );
-	pEventBridge_ = new EvtBridgeIRC( this );
+	pEventProxy_ = new EvtProxyLockstep( this, 0, 1 );
+	//pEventBridge_ = new EvtBridgeIRC( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,8 +48,8 @@ GaGameSimulator::~GaGameSimulator()
 	delete pEventProxy_;
 	pEventProxy_ = NULL;
 
-	delete pEventBridge_;
-	pEventBridge_ = NULL;
+	//delete pEventBridge_;
+	//pEventBridge_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -178,46 +178,55 @@ void GaGameSimulator::applyDamage( const BcFixedVec2d& Position, BcFixed Range, 
 void GaGameSimulator::tick( BcReal Delta )
 {
 	TickAccumulator_ += Delta * SimulationSpeed_;
-	CurrentFrame_ += 1;
 
 	while( TickAccumulator_ > SimulationRate_ )
 	{
 		BcFixed SimulationRate = SimulationRate_;
-		TickAccumulator_ -= SimulationRate;
+
+		// Set the current frame in the proxy.
+		pEventProxy_->setFrameIndex( CurrentFrame_ );
 		
-		// Setup proxy as required.
-		pEventProxy_->dispatchFrameIndex( CurrentFrame_ );
-		pEventProxy_->setFrameIndex( CurrentFrame_ + 8 );
-		
-		// Tick units.
-		for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+		// If we can dispatch for the current frame, we can simulate.
+		if( pEventProxy_->dispatchFrameIndex( CurrentFrame_ ) )
 		{
-			GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-			pGameUnit->tick( SimulationRate );
-		}
-
-		// Advance their state.
-		for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
-		{
-			GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-			pGameUnit->advanceState();
-		}
-
-		// Remove dead units.
-		for( TGameUnitList::iterator It( GameUnitList_.begin() ); It != GameUnitList_.end();  )
-		{
-			GaGameUnit* pGameUnit = (*It);
-
-			if( pGameUnit->isDead() )
+			// Tick units.
+			for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
 			{
-				GameUnitMap_.erase( GameUnitMap_.find( pGameUnit->getID() ) );
-				It = GameUnitList_.erase( It );
-				delete pGameUnit;
+				GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+				pGameUnit->tick( SimulationRate );
 			}
-			else
+
+			// Advance their state.
+			for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
 			{
-				++It;
+				GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+				pGameUnit->advanceState();
 			}
+
+			// Remove dead units.
+			for( TGameUnitList::iterator It( GameUnitList_.begin() ); It != GameUnitList_.end();  )
+			{
+				GaGameUnit* pGameUnit = (*It);
+
+				if( pGameUnit->isDead() )
+				{
+					GameUnitMap_.erase( GameUnitMap_.find( pGameUnit->getID() ) );
+					It = GameUnitList_.erase( It );
+					delete pGameUnit;
+				}
+				else
+				{
+					++It;
+				}
+			}
+
+			// Advance frame counter.
+			CurrentFrame_ += 1;
+			TickAccumulator_ -= SimulationRate;
+		}
+		else
+		{
+			return;
 		}
 	}
 }
@@ -226,6 +235,32 @@ void GaGameSimulator::tick( BcReal Delta )
 // render
 void GaGameSimulator::render( ScnCanvasComponentRef Canvas )
 {
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		pGameUnit->render( Canvas );
+	}	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderHUD
+void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection )
+{
+	for( BcU32 Idx = 0; Idx < CurrentSelection.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = getUnit( CurrentSelection[ Idx ] );
+		if( pGameUnit != NULL )
+		{
+			pGameUnit->renderSelectionHUD( Canvas );
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		pGameUnit->renderHUD( Canvas );
+	}
+
 	for( BcU32 Idx = 0; Idx < DebugPoints_.size(); ++Idx )
 	{
 		TDebugPoint& DebugPoint = DebugPoints_[ Idx ];
@@ -240,12 +275,6 @@ void GaGameSimulator::render( ScnCanvasComponentRef Canvas )
 			DebugPoint.Timer_ -= BcReal( 0.05f );
 		}
 	}
-
-	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
-	{
-		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-		pGameUnit->render( Canvas );
-	}	
 }
 
 //////////////////////////////////////////////////////////////////////////

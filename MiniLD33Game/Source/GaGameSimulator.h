@@ -40,6 +40,7 @@ public:
 	void tick( BcReal Delta );
 
 	void render( ScnCanvasComponentRef Canvas );
+	void renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection );
 
 	void addDebugPoint( const BcFixedVec2d& Position, BcFixed Size, const RsColour& Colour );
 

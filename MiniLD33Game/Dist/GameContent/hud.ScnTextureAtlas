@@ -1,0 +1,15 @@
+{ 
+	"ScnTextureAtlas" : {
+		"name"		: "hud",
+
+		// Source
+		"source"	: [
+			"GameContent/Source/white.png",
+			"GameContent/Source/cursor0.png",
+			"GameContent/Source/corner0.png",
+
+			//
+			"GameContent/Source/white.png"
+		]
+	}
+}

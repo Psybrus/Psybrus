@@ -40,7 +40,7 @@ protected:
 	 */
 	void publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge = BcFalse, BcBool AllowProxy = BcFalse );
 
-private:
+protected:
 	EvtPublisher* pPublisher_;
 	
 	

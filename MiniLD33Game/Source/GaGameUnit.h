@@ -63,6 +63,12 @@ public:
 	const BcFixedVec2d& getVelocity() const;
 	BcBool isDead() const;
 
+	const GaGameUnitDescriptor& getDesc() const;
+	BcFixed getMaxHealth() const;
+	BcFixed getHealth() const;
+	BcFixed getMaxAttackTime() const;
+	BcFixed getAttackTime() const;
+
 	void setBehaviourIdle();
 	void setBehaviourGuard();
 	void setBehaviourMove( const BcFixedVec2d& Target );
@@ -81,6 +87,8 @@ public:
 	void advanceState();	
 
 	void render( ScnCanvasComponentRef Canvas );
+	void renderHUD( ScnCanvasComponentRef Canvas );
+	void renderSelectionHUD( ScnCanvasComponentRef Canvas );
 
 private:
 	enum TBehaviour

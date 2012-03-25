@@ -39,6 +39,7 @@ private:
 	typedef std::vector< ScnEntityRef > TEntityList;
 
 	ScnMaterialRef					SpriteSheetMaterial_;
+	ScnMaterialRef					HUDMaterial_;
 
 	TResourceList					ResourceList_;
 	TEntityList						EntityList_;
