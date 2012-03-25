@@ -74,6 +74,13 @@ BcBool GaGameUnit::isDead() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getInterpolatedPosition
+BcFixedVec2d GaGameUnit::getInterpolatedPosition( BcFixed Fraction ) const
+{
+	return PrevState_.Position_ + ( ( CurrState_.Position_ - PrevState_.Position_ ) * Fraction );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getDesc
 const GaGameUnitDescriptor& GaGameUnit::getDesc() const
 {
@@ -257,12 +264,6 @@ void GaGameUnit::doAttack( BcU32 TargetID )
 void GaGameUnit::applyDamage( BcFixed Amount )
 {
 	Health_ -= Amount;
-	
-	if( Health_ < 0.0f )
-	{
-		Health_ = 0.0f;
-		Behaviour_ = BEHAVIOUR_DEAD;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -416,6 +417,13 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 	{
 		AttackTimer_ = 0.0f;
 	}
+
+	// Death.
+	if( Health_ <= 0.0f )
+	{
+		Health_ = 0.0f;
+		Behaviour_ = BEHAVIOUR_DEAD;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -427,42 +435,48 @@ void GaGameUnit::advanceState()
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void GaGameUnit::render( ScnCanvasComponentRef Canvas )
+void GaGameUnit::render( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 {
 	if( Behaviour_ != BEHAVIOUR_DEAD )
 	{
-		static RsColour TeamColour[] = 
-		{
-			RsColour::RED,
-			RsColour::BLUE,
-		};
-
 		BcU32 TextureIdx = Desc_.Type_;
-		BcFixedVec2d GamePosition( getPosition() );
+		BcFixedVec2d GamePosition( getInterpolatedPosition( TimeFraction ) );
 		const BcReal ScaleFactor = 32.0f;
 		BcVec2d Position( GamePosition.x(), GamePosition.y() );
 		BcVec2d Size( Desc_.Size_.x(), Desc_.Size_.y() );
 
 		Position *= ScaleFactor;
 		Size *= ScaleFactor;
-		Canvas->drawSpriteCentered( Position, Size, TextureIdx, TeamColour[ TeamID_ & 1 ], 2 );
+		Canvas->drawSpriteCentered( Position, Size, TextureIdx, RsColour::WHITE, 2 );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderShadow
+void GaGameUnit::renderShadow( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
+{
+	if( Behaviour_ != BEHAVIOUR_DEAD )
+	{
+		BcU32 TextureIdx = Desc_.Type_;
+		BcFixedVec2d GamePosition( getInterpolatedPosition( TimeFraction ) );
+		const BcReal ScaleFactor = 32.0f;
+		BcVec2d Position( GamePosition.x(), GamePosition.y() );
+		BcVec2d Size( Desc_.Size_.x(), Desc_.Size_.y() );
+
+		Position *= ScaleFactor;
+		Size *= ScaleFactor;
+		Canvas->drawSpriteCentered( Position + BcVec2d( 0.0f, Size.y() * 0.5f ), Size * BcVec2d( 1.4f, 0.4f ), 8, RsColour::WHITE, 1 );
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // renderHUD
-void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas )
+void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 {
 	if( Behaviour_ != BEHAVIOUR_DEAD )
 	{
-		static RsColour TeamColour[] = 
-		{
-			RsColour::RED,
-			RsColour::BLUE,
-		};
-
 		BcU32 TextureIdx = Desc_.Type_;
-		BcFixedVec2d GamePosition( getPosition() );
+		BcFixedVec2d GamePosition( getInterpolatedPosition( TimeFraction ) );
 		const BcReal ScaleFactor = 32.0f;
 		BcVec2d Position( GamePosition.x(), GamePosition.y() );
 		BcVec2d Size( Desc_.Size_.x(), Desc_.Size_.y() );
@@ -472,9 +486,9 @@ void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas )
 		
 		// Draw health bar.
 		BcFixed HealthFraction = Health_ / Desc_.Health_;
-		BcVec2d HealthBarPosition = Position - Size * 0.5f + BcVec2d( 2.0f, -4.0f );
-		BcVec2d HealthBarSize = BcVec2d( HealthFraction * ( Size.x() - 4.0f ), 3.0f );
-		RsColour HealthColour = RsColour::GREEN;
+		BcVec2d HealthBarPosition = Position - Size * 0.5f + BcVec2d( 2.0f, -6.0f );
+		BcVec2d HealthBarSize = BcVec2d( HealthFraction * ( Size.x() - 4.0f ), 2.0f );
+		RsColour HealthColour = RsColour::GREEN ;
 
 		if( HealthFraction <= 0.5f )
 		{
@@ -485,23 +499,23 @@ void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas )
 			HealthColour = RsColour::RED;
 		}
 
-		Canvas->drawSprite( HealthBarPosition, HealthBarSize, 0, HealthColour, 3 );
+		Canvas->drawSprite( HealthBarPosition, HealthBarSize, 0, HealthColour * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
 
 		// Draw cool down bar.
 		BcFixed MaxAttackTime = BcFixed( 1.0f ) / Desc_.RateOfAttack_;
 		BcFixed CoolDownFraction = BcFixed( 1.0f ) - ( AttackTimer_ / MaxAttackTime );
-		BcVec2d CoolDownBarPosition = Position - Size * 0.5f + BcVec2d( 2.0f, 0.0f );
-		BcVec2d CoolDownBarSize = BcVec2d( CoolDownFraction * ( Size.x() - 4.0f ), 3.0f );
+		BcVec2d CoolDownBarPosition = Position - Size * 0.5f + BcVec2d( 2.0f, -4.0f );
+		BcVec2d CoolDownBarSize = BcVec2d( CoolDownFraction * ( Size.x() - 4.0f ), 2.0f );
 		RsColour CoolDownColour = RsColour::PURPLE;
 
-		Canvas->drawSprite( CoolDownBarPosition, CoolDownBarSize, 0, CoolDownColour, 3 );
+		Canvas->drawSprite( CoolDownBarPosition, CoolDownBarSize, 0, CoolDownColour * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 // renderSelectionHUD
-void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas )
+void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 {
 	if( Behaviour_ != BEHAVIOUR_DEAD )
 	{
@@ -512,7 +526,7 @@ void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas )
 		};
 
 		BcU32 TextureIdx = Desc_.Type_;
-		BcFixedVec2d GamePosition( getPosition() );
+		BcFixedVec2d GamePosition( getInterpolatedPosition( TimeFraction ) );
 		const BcReal ScaleFactor = 32.0f;
 		BcVec2d Position( GamePosition.x(), GamePosition.y() );
 		BcVec2d Size( Desc_.Size_.x(), Desc_.Size_.y() );
@@ -530,9 +544,9 @@ void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas )
 		BcVec2d SizeD( BcVec2d(  16.0f, -16.0f ) );
 
 		// Draw selection marker.
-		Canvas->drawSpriteCentered( PositionA, SizeA, 2, RsColour::WHITE, 3 );
-		Canvas->drawSpriteCentered( PositionB, SizeB, 2, RsColour::WHITE, 3 );
-		Canvas->drawSpriteCentered( PositionC, SizeC, 2, RsColour::WHITE, 3 );
-		Canvas->drawSpriteCentered( PositionD, SizeD, 2, RsColour::WHITE, 3 );
+		Canvas->drawSpriteCentered( PositionA, SizeA, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
+		Canvas->drawSpriteCentered( PositionB, SizeB, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
+		Canvas->drawSpriteCentered( PositionC, SizeC, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
+		Canvas->drawSpriteCentered( PositionD, SizeD, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
 	}
 }

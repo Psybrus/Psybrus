@@ -38,7 +38,9 @@ private:
 	typedef std::vector< CsResourceRef<> > TResourceList;
 	typedef std::vector< ScnEntityRef > TEntityList;
 
-	ScnMaterialRef					SpriteSheetMaterial_;
+	ScnMaterialRef					BackgroundMaterial_;
+	ScnMaterialRef					SpriteSheetMaterial0_;
+	ScnMaterialRef					SpriteSheetMaterial1_;
 	ScnMaterialRef					HUDMaterial_;
 
 	TResourceList					ResourceList_;

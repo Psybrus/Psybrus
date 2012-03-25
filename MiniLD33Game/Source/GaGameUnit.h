@@ -63,6 +63,8 @@ public:
 	const BcFixedVec2d& getVelocity() const;
 	BcBool isDead() const;
 
+	BcFixedVec2d getInterpolatedPosition( BcFixed Fraction ) const;
+
 	const GaGameUnitDescriptor& getDesc() const;
 	BcFixed getMaxHealth() const;
 	BcFixed getHealth() const;
@@ -88,9 +90,10 @@ public:
 	void tickBehaviour( BcFixed Delta );
 	void advanceState();	
 
-	void render( ScnCanvasComponentRef Canvas );
-	void renderHUD( ScnCanvasComponentRef Canvas );
-	void renderSelectionHUD( ScnCanvasComponentRef Canvas );
+	void render( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
+	void renderShadow( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
+	void renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
+	void renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
 
 private:
 	enum TBehaviour

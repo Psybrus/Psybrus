@@ -43,7 +43,8 @@ public:
 private:
 	ScnCanvasComponentRef				CanvasComponent_;
 
-	ScnMaterialComponentRef				SpriteSheetMaterial_;
+	ScnMaterialComponentRef				BackgroundMaterial_;
+	ScnMaterialComponentRef				SpriteSheetMaterials_[ 2 ];
 	ScnMaterialComponentRef				HUDMaterial_;
 
 	GaGameSimulator*					pSimulator_;
