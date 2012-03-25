@@ -20,7 +20,7 @@ static GaGameUnitDescriptor GGameProjectile_Soldier =
 	5,
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
 	BcFixed( 32.0f ),				// Move speed.
-	BcFixed( 0.5f ),				// Rate of attack.
+	BcFixed( 2.0f ),				// Rate of attack.
 	BcFixed( 0.1f ),				// Range.
 	BcFixed( 0.1f ),				// Range.
 	BcFixed( 7.0f ),				// Health.
@@ -33,7 +33,7 @@ static GaGameUnitDescriptor GGameProjectile_Archer =
 	6,
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
 	BcFixed( 32.0f ),				// Move speed.
-	BcFixed( 0.25f ),				// Rate of attack.
+	BcFixed( 0.5f ),				// Rate of attack.
 	BcFixed( 0.25f ),				// Range.
 	BcFixed( 0.25f ),				// Range.
 	BcFixed( 10.0f ),				// Health.
@@ -58,9 +58,9 @@ static GaGameUnitDescriptor GGameUnit_Soldier =
 {
 	2,
 	BcFixedVec2d( 1.0f, 1.0f ),		// Unit size.
-	BcFixed( 1.0f ),				// Move speed.
-	BcFixed( 0.5f ),				// Rate of attack.
-	BcFixed( 1.0f ),				// Range.
+	BcFixed( 2.5f ),				// Move speed.
+	BcFixed( 1.2f ),				// Rate of attack.
+	BcFixed( 1.2f ),				// Range.
 	BcFixed( 1.0f ),				// Range.
 	BcFixed( 20.0f ),				// Health.
 	BcTrue,							// Armoured.
@@ -71,8 +71,8 @@ static GaGameUnitDescriptor GGameUnit_Archer =
 {
 	3,
 	BcFixedVec2d( 1.0f, 1.0f ),		// Unit size.
-	BcFixed( 1.0f ),				// Move speed.
-	BcFixed( 0.2f ),				// Rate of attack.
+	BcFixed( 2.5f ),				// Move speed.
+	BcFixed( 0.5f ),				// Rate of attack.
 	BcFixed( 14.0f ),				// Range.
 	BcFixed( 2.0f ),				// Range.
 	BcFixed( 40.0f ),				// Health.
@@ -84,8 +84,8 @@ static GaGameUnitDescriptor GGameUnit_Trebuchet =
 {
 	4,
 	BcFixedVec2d( 2.0f, 2.0f ),		// Unit size.
-	BcFixed( 0.25f ),				// Move speed.
-	BcFixed( 0.1f ),				// Rate of attack.
+	BcFixed( 0.3f ),				// Move speed.
+	BcFixed( 0.25f ),				// Rate of attack.
 	BcFixed( 25.0f ),				// Range.
 	BcFixed( 10.0f ),				// Range.
 	BcFixed( 100.0f ),				// Health.
@@ -197,10 +197,16 @@ void GaGameComponent::update( BcReal Tick )
 		
 			// Clear canvas and push projection matrix.
 			CanvasComponent_->clear();   
+
 			CanvasComponent_->pushMatrix( Ortho );
 
-			CanvasComponent_->setMaterialComponent( SpriteSheetMaterial_ );
-			pSimulator_->render( CanvasComponent_ );
+			CanvasComponent_->setMaterialComponent( BackgroundMaterial_ );
+			CanvasComponent_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 1280.0f, 720.0f ), 0, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 0 );
+
+			CanvasComponent_->setMaterialComponent( SpriteSheetMaterials_[ 0 ] );
+			pSimulator_->render( CanvasComponent_, 0 );
+			CanvasComponent_->setMaterialComponent( SpriteSheetMaterials_[ 1 ] );
+			pSimulator_->render( CanvasComponent_, 1 );
 
 			// Find unit over mouse.
 			GaGameUnitIDList SelectionList = UnitSelection_;
@@ -252,11 +258,25 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Materials.
 	ScnMaterialRef Material;
-	if( CsCore::pImpl()->requestResource( "spritesheet", Material ) )
+	if( CsCore::pImpl()->requestResource( "background", Material ) )
 	{
-		if( CsCore::pImpl()->createResource( BcName::INVALID, SpriteSheetMaterial_, Material, BcErrorCode ) )
+		if( CsCore::pImpl()->createResource( BcName::INVALID, BackgroundMaterial_, Material, BcErrorCode ) )
 		{
-			Parent->attach( SpriteSheetMaterial_ );
+			Parent->attach( BackgroundMaterial_ );
+		}
+	}
+	if( CsCore::pImpl()->requestResource( "spritesheet0", Material ) )
+	{
+		if( CsCore::pImpl()->createResource( BcName::INVALID, SpriteSheetMaterials_[ 0 ], Material, BcErrorCode ) )
+		{
+			Parent->attach( SpriteSheetMaterials_[ 0 ] );
+		}
+	}
+	if( CsCore::pImpl()->requestResource( "spritesheet1", Material ) )
+	{
+		if( CsCore::pImpl()->createResource( BcName::INVALID, SpriteSheetMaterials_[ 1 ], Material, BcErrorCode ) )
+		{
+			Parent->attach( SpriteSheetMaterials_[ 1 ] );
 		}
 	}
 	if( CsCore::pImpl()->requestResource( "hud", Material ) )
@@ -292,7 +312,9 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 	CanvasComponent_ = NULL;
 
 	// Detach materials.
-	Parent->detach( SpriteSheetMaterial_ );
+	Parent->detach( BackgroundMaterial_ );
+	Parent->detach( SpriteSheetMaterials_[ 0 ] );
+	Parent->detach( SpriteSheetMaterials_[ 1 ] );
 	Parent->detach( HUDMaterial_ );
 
 	// Unsubscribe.
@@ -374,6 +396,9 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 
 					GameCursorPosition_ = BcFixedVec2d( ( GameCursorPosition_.x() ), ( GameCursorPosition_.y() ) );
 
+					BcFixed PlayfieldHW = 1280.0f * 0.5f / 32.0f;
+					BcFixed PlayfieldHH = 720.0f * 0.5f / 32.0f;
+
 					for( BcU32 Idx = 0; Idx < UnitSelection_.size(); ++Idx )
 					{
 						GaGameUnit* pGameUnit( pSimulator_->getUnit( UnitSelection_[ Idx ] ) );
@@ -382,6 +407,9 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 							GaGameUnitMoveEvent Event;
 							Event.UnitID_ = pGameUnit->getID();
 							Event.Position_ = ( pGameUnit->getPosition() - CentralPosition ) + GameCursorPosition_;
+
+							Event.Position_.x( BcClamp( Event.Position_.x(), -PlayfieldHW, PlayfieldHW ) );
+							Event.Position_.y( BcClamp( Event.Position_.y(), -PlayfieldHH, PlayfieldHH ) );
 						
 							pSimulator_->publish( gaEVT_UNIT_MOVE, Event );
 						}

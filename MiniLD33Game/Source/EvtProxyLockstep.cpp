@@ -26,7 +26,7 @@ EvtProxyLockstep::EvtProxyLockstep( EvtPublisher* pPublisher, BcU32 ClientID, Bc
 	CurrSchedulingFrameIndex_ = 0;
 	SyncEventsRecv_ = 0;
 	SyncEventsReq_ = 1;
-	SyncEventRate_ = 4;
+	SyncEventRate_ = 2;
 	SyncEventPendingIndex_ = 0;
 	SyncEventFrameIndex_ = SyncEventRate_ * 2;
 	ClientAhead_ = BcFalse;

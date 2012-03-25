@@ -254,12 +254,26 @@ void GaGameSimulator::tick( BcReal Delta )
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void GaGameSimulator::render( ScnCanvasComponentRef Canvas )
+void GaGameSimulator::render( ScnCanvasComponentRef Canvas, BcU32 TeamID )
 {
+	BcFixed TimeFraction = BcClamp( TickAccumulator_ / SimulationRate_, 0.0f, 1.0f );
+
 	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
 	{
 		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-		pGameUnit->render( Canvas );
+		if( ( pGameUnit->getTeamID() % 2 ) == TeamID )
+		{
+			pGameUnit->renderShadow( Canvas, TimeFraction );
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		if( ( pGameUnit->getTeamID() % 2 ) == TeamID )
+		{
+			pGameUnit->render( Canvas, TimeFraction );
+		}
 	}	
 }
 
@@ -267,19 +281,20 @@ void GaGameSimulator::render( ScnCanvasComponentRef Canvas )
 // renderHUD
 void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection )
 {
+	BcFixed TimeFraction = BcClamp( TickAccumulator_ / SimulationRate_, 0.0f, 1.0f );
 	for( BcU32 Idx = 0; Idx < CurrentSelection.size(); ++Idx )
 	{
 		GaGameUnit* pGameUnit = getUnit( CurrentSelection[ Idx ] );
 		if( pGameUnit != NULL )
 		{
-			pGameUnit->renderSelectionHUD( Canvas );
+			pGameUnit->renderSelectionHUD( Canvas, TimeFraction );
 		}
 	}
 
 	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
 	{
 		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-		pGameUnit->renderHUD( Canvas );
+		pGameUnit->renderHUD( Canvas, TimeFraction );
 	}
 
 	for( BcU32 Idx = 0; Idx < DebugPoints_.size(); ++Idx )

@@ -37,7 +37,9 @@ void GaTopState::enterOnce()
 {
 	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
 
-	CsCore::pImpl()->requestResource( "spritesheet", SpriteSheetMaterial_ );
+	CsCore::pImpl()->requestResource( "background", BackgroundMaterial_ );
+	CsCore::pImpl()->requestResource( "spritesheet0", SpriteSheetMaterial0_ );
+	CsCore::pImpl()->requestResource( "spritesheet1", SpriteSheetMaterial1_ );
 	CsCore::pImpl()->requestResource( "hud", HUDMaterial_ );
 
 	// dummy.
@@ -51,7 +53,9 @@ eSysStateReturn GaTopState::enter()
 {
 	BcBool Ready = BcTrue;
 
-	Ready &= SpriteSheetMaterial_.isReady();
+	Ready &= BackgroundMaterial_.isReady();
+	Ready &= SpriteSheetMaterial0_.isReady();
+	Ready &= SpriteSheetMaterial1_.isReady();
 	Ready &= HUDMaterial_.isReady();
 
 	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
@@ -111,7 +115,7 @@ void GaTopState::preMain()
 		
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
-		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, SpriteSheetMaterial_, BcErrorCode );
+		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, SpriteSheetMaterial0_, BcErrorCode );
 		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32, MaterialComponent );
 		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent0, TeamID );
 		//CsCore::pImpl()->createResource( BcName::INVALID, GameComponent1, 1 );
