@@ -23,7 +23,21 @@
 enum EvtProxyEvents
 {
 	evtEVT_PROXY_FIRST = EVT_EVENTGROUP_PROXY,
-	evtEVT_PROXY_EVENT_BUFFER
+	evtEVT_PROXY_EVENT_BUFFER,
+	evtEVT_PROXY_SYNC,	
+};
+
+struct EvtProxyEventBuffer: public EvtEvent< EvtProxyEventBuffer >
+{
+	BcU32 DataSize_;
+	BcU32 ClientID_;
+	BcU32 FrameIndex_;
+};
+
+struct EvtProxySyncEvent: public EvtEvent< EvtProxySyncEvent >
+{
+	BcU32 ClientID_;
+	BcU32 FrameIndex_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,14 +46,18 @@ class EvtProxyLockstep:
 	public EvtProxy
 {
 public:
-	EvtProxyLockstep( EvtPublisher* pPublisher );
+	EvtProxyLockstep( EvtPublisher* pPublisher, BcU32 ClientID, BcU32 NoofClients );
 	virtual ~EvtProxyLockstep();
 
 	void setFrameIndex( BcU32 Index );
-	void dispatchFrameIndex( BcU32 Index );
+	BcBool dispatchFrameIndex( BcU32 Index );
 	
 private:
 	virtual void proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+
+private:
+	eEvtReturn onProxyEventBuffer( EvtID ID, const EvtProxyEventBuffer& Event );
+	eEvtReturn onProxySync( EvtID ID, const EvtProxySyncEvent& Event );
 
 private:
 	struct TEventBuffer
@@ -48,12 +66,29 @@ private:
 		BcStream* pEventStream_;
 	};
 
+	struct TClient
+	{
+		BcU32 FrameIndex_;
+	};
+
 	typedef std::map< BcU32, TEventBuffer > TEventBufferMap;
 	typedef TEventBufferMap::iterator TEventBufferMapIterator;
+
+	BcU32 ClientID_;
+	BcU32 NoofClients_;
 	
-	BcU32 CurrFrameIndex_;
-	TEventBufferMap EventBufferMap_;
+	TEventBufferMap EventBufferMaps_[ 2 ];
+	TClient Clients_[ 2 ];
+
+
+
+	BcU32 CurrSchedulingFrameIndex_;
 	
+	BcU32 SyncEventsRecv_;
+	BcU32 SyncEventsReq_;
+	BcU32 SyncEventRate_;
+	BcU32 SyncEventPendingIndex_;
+	BcU32 SyncEventFrameIndex_;
 };
 
 #endif

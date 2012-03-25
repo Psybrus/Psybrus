@@ -36,7 +36,7 @@ static GaGameUnitDescriptor GGameProjectile_Archer =
 	BcFixed( 0.25f ),				// Rate of attack.
 	BcFixed( 0.25f ),				// Range.
 	BcFixed( 0.25f ),				// Range.
-	BcFixed( 15.0f ),				// Health.
+	BcFixed( 10.0f ),				// Health.
 	BcFalse,						// Armoured.
 	NULL,
 };
@@ -49,7 +49,7 @@ static GaGameUnitDescriptor GGameProjectile_Trebuchet =
 	BcFixed( 0.5f ),				// Rate of attack.
 	BcFixed( 1.25f ),				// Range.
 	BcFixed( 1.25f ),				// Range.
-	BcFixed( 50.0f ),				// Health.
+	BcFixed( 30.0f ),				// Health.
 	BcFalse,						// Armoured.
 	NULL,
 };
@@ -75,7 +75,7 @@ static GaGameUnitDescriptor GGameUnit_Archer =
 	BcFixed( 0.2f ),				// Rate of attack.
 	BcFixed( 14.0f ),				// Range.
 	BcFixed( 2.0f ),				// Range.
-	BcFixed( 30.0f ),				// Health.
+	BcFixed( 40.0f ),				// Health.
 	BcFalse,						// Armoured.
 	&GGameProjectile_Archer,
 };
@@ -114,8 +114,17 @@ void GaGameComponent::initialise()
 	Super::initialise();
 
 	MouseDown_ = BcFalse;
+	BoxSelection_ = BcFalse;
+	CtrlDown_ = BcFalse;
+	AttackMove_ = BcFalse;
 
-	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f );
+	// Setup control groups.
+	for( BcU32 Idx = 0; Idx < 10; ++Idx )
+	{
+		ControlGroups_.push_back( GaGameUnitIDList() );
+	}
+
+	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 8.0f );
 
 	pSimulator_->addUnit( GGameUnit_Trebuchet, 0, BcFixedVec2d( -19.0f,  0.0f ) );
 
@@ -186,17 +195,37 @@ void GaGameComponent::update( BcReal Tick )
 		// Clear canvas and push projection matrix.
 		CanvasComponent_->clear();   
 		CanvasComponent_->pushMatrix( Ortho );
-		CanvasComponent_->drawLine( BcVec2d( -100.0f, -100.0f ), BcVec2d( 100.0f, 100.0f ), RsColour::GREEN, 0 );
-		//CanvasComponent_->drawBox( BcVec2d( 0.0f, 0.0f ), BcVec2d( 1.0f, 1.0f ), RsColour::WHITE, 0 );
 
+		CanvasComponent_->setMaterialComponent( SpriteSheetMaterial_ );
 		pSimulator_->render( CanvasComponent_ );
+
+		// Find unit over mouse.
+		GaGameUnitIDList SelectionList = UnitSelection_;
+		if( MouseDown_ )
+		{
+			if( BoxSelection_ )
+			{
+				pSimulator_->findUnits( SelectionList, StartGameCursorPosition_, EndGameCursorPosition_, BcErrorCode, BcErrorCode );
+			}
+		}
+		else
+		{
+			pSimulator_->findUnits( SelectionList, GameCursorPosition_, 0.5f, BcErrorCode, BcErrorCode );
+		}
+
+		CanvasComponent_->setMaterialComponent( HUDMaterial_ );
+		pSimulator_->renderHUD( CanvasComponent_, SelectionList );
 	}
 
+	//
+	
+
 	// Draw cursor.
+	CanvasComponent_->setMaterialComponent( HUDMaterial_ );
 	CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, RsColour::WHITE, 10 );
 
 	// Draw selection box.
-	if( MouseDown_ ) 
+	if( MouseDown_ && BoxSelection_ ) 
 	{
 		BcVec2d Min = BcVec2d( StartGameCursorPosition_.x(), StartGameCursorPosition_.y() ) * 32.0f;
 		BcVec2d Max = BcVec2d( GameCursorPosition_.x(), GameCursorPosition_.y() ) * 32.0f;
@@ -221,12 +250,32 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		}
 	}
 
+	// Materials.
+	ScnMaterialRef Material;
+	if( CsCore::pImpl()->requestResource( "spritesheet", Material ) )
+	{
+		if( CsCore::pImpl()->createResource( BcName::INVALID, SpriteSheetMaterial_, Material, BcErrorCode ) )
+		{
+			Parent->attach( SpriteSheetMaterial_ );
+		}
+	}
+	if( CsCore::pImpl()->requestResource( "hud", Material ) )
+	{
+		if( CsCore::pImpl()->createResource( BcName::INVALID, HUDMaterial_, Material, BcErrorCode ) )
+		{
+			Parent->attach( HUDMaterial_ );
+		}
+	}
+	
 	// Bind input events.
 	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaGameComponent, &GaGameComponent::onMouseEvent >( this );
+	OsEventInputKeyboard::Delegate OnKeyEvent = OsEventInputKeyboard::Delegate::bind< GaGameComponent, &GaGameComponent::onKeyEvent >( this );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseEvent );
-
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyEvent );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyEvent );
+	
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
@@ -238,6 +287,10 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	// Null canvas reference.
 	CanvasComponent_ = NULL;
+
+	// Detach materials.
+	Parent->detach( SpriteSheetMaterial_ );
+	Parent->detach( HUDMaterial_ );
 
 	// Unsubscribe.
 	OsCore::pImpl()->unsubscribeAll( this );
@@ -256,11 +309,18 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 	BcReal HH = static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
 	CursorPosition_.set( Event.MouseX_ - HW, Event.MouseY_ - HH );
 	GameCursorPosition_ = CursorPosition_ / 32.0f;
+	EndGameCursorPosition_ = GameCursorPosition_;
+
+	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 8.0f ) )
+	{
+		BoxSelection_ = BcTrue;
+	}
 
 	if( ID == osEVT_INPUT_MOUSEDOWN )
 	{
 		StartGameCursorPosition_ = GameCursorPosition_;
 		MouseDown_ = BcTrue;
+		BoxSelection_ = BcFalse;
 	}
 	else if( ID == osEVT_INPUT_MOUSEUP )
 	{
@@ -268,13 +328,13 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 		MouseDown_ = BcFalse;
 		GaGameUnitIDList FoundUnits;
 
-		if( ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 8.0f ) )
+		if( BoxSelection_ )
 		{
 			pSimulator_->findUnits( FoundUnits, StartGameCursorPosition_, EndGameCursorPosition_, BcErrorCode, 1 << 0 );
 		}
 		else
 		{
-			pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.8f, BcErrorCode, 1 << 0 );
+			pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.5f, BcErrorCode, 1 << 0 );
 
 			while( FoundUnits.size() > 1 )
 			{
@@ -289,38 +349,109 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 		}
 		else
 		{
-			// Otherwise, tell found units to move.
-			BcFixedVec2d CentralPosition;
-			for( BcU32 Idx = 0; Idx < UnitSelection_.size(); ++Idx )
+			// If we aren't box selection do action.
+			if( BoxSelection_ == BcFalse )
 			{
-				GaGameUnit* pGameUnit( pSimulator_->getUnit( UnitSelection_[ Idx ] ) );
-				if( pGameUnit != NULL )
-				{
-					CentralPosition += pGameUnit->getPosition();
-				}
-			}
-
-			if( UnitSelection_.size() > 0 )
-			{
-				CentralPosition /= BcFixed( (int)UnitSelection_.size() );
-
-				GameCursorPosition_ = BcFixedVec2d( ( GameCursorPosition_.x() ), ( GameCursorPosition_.y() ) );
-
+				// Otherwise, tell found units to move.
+				BcFixedVec2d CentralPosition;
+				BcFixed Divisor;
 				for( BcU32 Idx = 0; Idx < UnitSelection_.size(); ++Idx )
 				{
 					GaGameUnit* pGameUnit( pSimulator_->getUnit( UnitSelection_[ Idx ] ) );
 					if( pGameUnit != NULL )
 					{
-						GaGameUnitMoveEvent Event;
-						Event.UnitID_ = pGameUnit->getID();
-						Event.Position_ = ( pGameUnit->getPosition() - CentralPosition ) + GameCursorPosition_;
-						
-						pSimulator_->publish( gaEVT_UNIT_MOVE, Event );
+						CentralPosition += pGameUnit->getPosition();
+						Divisor += 1.0f;
 					}
+				}
+
+				if( UnitSelection_.size() > 0 && Divisor > 0.0f )
+				{
+					CentralPosition /= Divisor;
+
+					GameCursorPosition_ = BcFixedVec2d( ( GameCursorPosition_.x() ), ( GameCursorPosition_.y() ) );
+
+					for( BcU32 Idx = 0; Idx < UnitSelection_.size(); ++Idx )
+					{
+						GaGameUnit* pGameUnit( pSimulator_->getUnit( UnitSelection_[ Idx ] ) );
+						if( pGameUnit != NULL )
+						{
+							GaGameUnitMoveEvent Event;
+							Event.UnitID_ = pGameUnit->getID();
+							Event.Position_ = ( pGameUnit->getPosition() - CentralPosition ) + GameCursorPosition_;
+						
+							pSimulator_->publish( gaEVT_UNIT_MOVE, Event );
+						}
+					}
+				}
+			}
+			else
+			{
+				// If we were box selecting clear selection.
+				UnitSelection_.clear();
+			}
+		}
+
+		BoxSelection_ = BcFalse;
+	}
+	
+	return evtRET_PASS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// onKeyEvent
+eEvtReturn GaGameComponent::onKeyEvent( EvtID ID, const OsEventInputKeyboard& Event )
+{
+	if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL )
+	{
+		if( ID == osEVT_INPUT_KEYDOWN )
+		{
+			CtrlDown_ = BcTrue;
+		}
+		else if( ID == osEVT_INPUT_KEYUP )
+		{
+			CtrlDown_ = BcFalse;
+		}
+	}
+	else if( Event.KeyCode_ >= '0' && Event.KeyCode_ <= '9' )
+	{
+		if( ID == osEVT_INPUT_KEYDOWN )
+		{
+			BcU32 Idx = Event.KeyCode_ - '0';
+			if( CtrlDown_ )
+			{
+				ControlGroups_[ Idx ] = UnitSelection_;
+			}
+			else
+			{
+				UnitSelection_ = ControlGroups_[ Idx ];
+			}
+		}
+	}
+	else if( Event.KeyCode_ == 'A' )
+	{
+		if( ID == osEVT_INPUT_KEYDOWN )
+		{
+			AttackMove_ = !AttackMove_;
+		}
+	}
+	else if( Event.KeyCode_ == 'S' )
+	{
+		if( ID == osEVT_INPUT_KEYDOWN )
+		{
+			for( BcU32 Idx = 0; Idx < UnitSelection_.size(); ++Idx )
+			{
+				GaGameUnit* pGameUnit( pSimulator_->getUnit( UnitSelection_[ Idx ] ) );
+				if( pGameUnit != NULL )
+				{
+					GaGameUnitIdleEvent Event;
+					Event.UnitID_ = pGameUnit->getID();
+					pSimulator_->publish( gaEVT_UNIT_IDLE, Event );
 				}
 			}
 		}
 	}
-	
+
 	return evtRET_PASS;
 }

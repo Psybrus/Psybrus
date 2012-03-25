@@ -43,14 +43,21 @@ public:
 private:
 	ScnCanvasComponentRef				CanvasComponent_;
 
+	ScnMaterialComponentRef				SpriteSheetMaterial_;
+	ScnMaterialComponentRef				HUDMaterial_;
+
 	GaGameSimulator*					pSimulator_;
 
 	// 
 	BcBool								MouseDown_;
+	BcBool								BoxSelection_;
 	BcFixedVec2d						CursorPosition_;
 	BcFixedVec2d						GameCursorPosition_;
 	BcFixedVec2d						StartGameCursorPosition_;
 	BcFixedVec2d						EndGameCursorPosition_;
+
+	BcBool								CtrlDown_;
+	BcBool								AttackMove_;
 	
 	// Unit selection.
 	GaGameUnitIDList					UnitSelection_;

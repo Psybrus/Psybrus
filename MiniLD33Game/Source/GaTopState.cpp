@@ -38,6 +38,7 @@ void GaTopState::enterOnce()
 	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
 
 	CsCore::pImpl()->requestResource( "spritesheet", SpriteSheetMaterial_ );
+	CsCore::pImpl()->requestResource( "hud", HUDMaterial_ );
 
 	// dummy.
 	//pBridgeIRC_ = new EvtBridgeIRC( OsCore::pImpl() );
@@ -51,6 +52,7 @@ eSysStateReturn GaTopState::enter()
 	BcBool Ready = BcTrue;
 
 	Ready &= SpriteSheetMaterial_.isReady();
+	Ready &= HUDMaterial_.isReady();
 
 	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
 	{
