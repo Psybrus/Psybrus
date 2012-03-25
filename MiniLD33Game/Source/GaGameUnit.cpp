@@ -109,6 +109,25 @@ BcFixed GaGameUnit::getAttackTime() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getChecksum
+BcU32 GaGameUnit::getChecksum() const
+{
+	BcU32 Checksum = 0;
+
+	Checksum += BcHash( (BcU8*)&TeamID_, sizeof( TeamID_ ) );
+	Checksum += BcHash( (BcU8*)&ID_, sizeof( ID_ ) );
+	Checksum += BcHash( (BcU8*)&Behaviour_, sizeof( Behaviour_ ) );
+	Checksum += BcHash( (BcU8*)&NextState_, sizeof( NextState_ ) );
+	Checksum += BcHash( (BcU8*)&CurrState_, sizeof( CurrState_ ) );
+	Checksum += BcHash( (BcU8*)&PrevState_, sizeof( PrevState_ ) );
+	Checksum += BcHash( (BcU8*)&AttackTimer_, sizeof( AttackTimer_ ) );
+	Checksum += BcHash( (BcU8*)&Health_, sizeof( Health_ ) );
+	Checksum += BcHash( (BcU8*)&MoveTargetPosition_, sizeof( MoveTargetPosition_ ) );
+
+	return Checksum;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setBehaviourIdle
 void GaGameUnit::setBehaviourIdle()
 {

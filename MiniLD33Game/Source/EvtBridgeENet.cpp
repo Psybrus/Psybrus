@@ -13,6 +13,8 @@
 
 #include "EvtBridgeENet.h"
 
+#include <stun.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 EvtBridgeENet::EvtBridgeENet( EvtPublisher* pPublisher ):
@@ -45,6 +47,28 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, const BcChar* pAddress, BcU16 Por
 {
 	ClientID_ = ClientID;
 
+	/*
+	// Get STUN server address.
+	StunAddress4 StunAddress;
+	StunAddress4 LocalAddress;
+	if( stunParseServerName( "stunserver.org", StunAddress ) )
+	{
+		// Set port.
+		int Port = 6000 + ClientID_;
+
+		// Get NAT type.
+		bool PreservePort = 0;
+		bool HairPin = 0;
+		NatType Type = stunNatType( StunAddress, true,  &PreservePort, &HairPin , Port, 0 );
+		
+		UInt32 OutIP;
+		UInt16 OutPort;
+		stunParseHostName( "localhost", OutIP, OutPort, Port );
+
+		int a = 0; ++a;
+	}
+	*/
+	
 	// Setup a server host.
 	ServerAddress_.host = ENET_HOST_ANY;
 	ServerAddress_.port = 6000 + ClientID;
@@ -145,7 +169,7 @@ void EvtBridgeENet::serviceHost( ENetHost* pHost )
 
 	if( pHost )
 	{
-		while( enet_host_service ( pHost, &Event, 1 ) > 0 )
+		while( enet_host_service ( pHost, &Event, 0 ) > 0 )
 		{
 			switch (Event.type)
 			{

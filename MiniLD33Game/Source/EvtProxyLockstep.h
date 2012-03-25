@@ -38,6 +38,7 @@ struct EvtProxySyncEvent: public EvtEvent< EvtProxySyncEvent >
 {
 	BcU32 ClientID_;
 	BcU32 FrameIndex_;
+	BcU32 Checksum_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,8 +50,9 @@ public:
 	EvtProxyLockstep( EvtPublisher* pPublisher, BcU32 ClientID, BcU32 NoofClients );
 	virtual ~EvtProxyLockstep();
 
-	void setFrameIndex( BcU32 Index );
+	void setFrameIndex( BcU32 Index, BcU32 Checksum );
 	BcBool dispatchFrameIndex( BcU32 Index );
+	BcBool isAhead() const;
 	
 private:
 	virtual void proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
@@ -69,6 +71,7 @@ private:
 	struct TClient
 	{
 		BcU32 FrameIndex_;
+		BcU32 Checksum_;
 	};
 
 	typedef std::map< BcU32, TEventBuffer > TEventBufferMap;
@@ -76,6 +79,8 @@ private:
 
 	BcU32 ClientID_;
 	BcU32 NoofClients_;
+
+	BcBool ClientAhead_;
 	
 	TEventBufferMap EventBufferMaps_[ 2 ];
 	TClient Clients_[ 2 ];

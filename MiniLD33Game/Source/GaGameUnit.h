@@ -69,6 +69,8 @@ public:
 	BcFixed getMaxAttackTime() const;
 	BcFixed getAttackTime() const;
 
+	BcU32 getChecksum() const;
+
 	void setBehaviourIdle();
 	void setBehaviourGuard();
 	void setBehaviourMove( const BcFixedVec2d& Target );

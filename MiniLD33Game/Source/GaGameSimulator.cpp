@@ -23,7 +23,8 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	SimulationSpeed_( SimulationSpeed ),
 	TickAccumulator_( 0.0f ),
 	CurrentFrame_( 0 ),
-	UnitID_( 0 )
+	UnitID_( 0 ),
+	Checksum_( 0 )
 {
 	GaGameUnitIdleEvent::Delegate OnUnitIdle( GaGameUnitIdleEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitIdle >( this ) );
 	GaGameUnitGuardEvent::Delegate OnUnitGuard( GaGameUnitGuardEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitGuard >( this ) );
@@ -190,11 +191,18 @@ void GaGameSimulator::tick( BcReal Delta )
 			BcFixed SimulationRate = SimulationRate_;
 
 			// Set the current frame in the proxy.
-			pEventProxy_->setFrameIndex( CurrentFrame_ );
+			pEventProxy_->setFrameIndex( CurrentFrame_, Checksum_ );
 		
 			// If we can dispatch for the current frame, we can simulate.
 			if( pEventProxy_->dispatchFrameIndex( CurrentFrame_ ) )
-			{
+			{				
+				// Checksum the state.
+				for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+				{
+					GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+					Checksum_ += pGameUnit->getChecksum();
+				}
+
 				// Tick units.
 				for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
 				{
@@ -232,6 +240,12 @@ void GaGameSimulator::tick( BcReal Delta )
 			}
 			else
 			{
+				// If we're ahead we need to drop back our tick accumulator
+				// so the other client can catch up.
+				if( pEventProxy_->isAhead() )
+				{
+					TickAccumulator_ -= SimulationRate;
+				}
 				return;
 			}
 		}

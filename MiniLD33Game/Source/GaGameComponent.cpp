@@ -125,7 +125,7 @@ void GaGameComponent::initialise( BcU32 TeamID )
 		ControlGroups_.push_back( GaGameUnitIDList() );
 	}
 
-	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 8.0f, TeamID_ );
+	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID_ );
 
 	pSimulator_->addUnit( GGameUnit_Trebuchet, 0, BcFixedVec2d( -19.0f,  0.0f ) );
 
