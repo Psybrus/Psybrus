@@ -11,18 +11,18 @@
 * 
 **************************************************************************/
 
-#include "EvtBridgeIRC.h"
+#include "EvtBridgeENet.h"
 #include "EvtProxyLockstep.h"
 
 #include "GaGameSimulator.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaGameSimulator
-GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed ):
+GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID ):
 	SimulationRate_( SimulationRate ),
 	SimulationSpeed_( SimulationSpeed ),
 	TickAccumulator_( 0.0f ),
-	CurrentFrame_( 0 ), // TODO: Fix lockstop proxy to handle starting from 0.
+	CurrentFrame_( 0 ),
 	UnitID_( 0 )
 {
 	GaGameUnitIdleEvent::Delegate OnUnitIdle( GaGameUnitIdleEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitIdle >( this ) );
@@ -35,8 +35,11 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	subscribe( gaEVT_UNIT_MOVE, OnUnitMove );
 	subscribe( gaEVT_UNIT_ATTACK, OnUnitAttack );
 
-	pEventProxy_ = new EvtProxyLockstep( this, 0, 1 );
-	//pEventBridge_ = new EvtBridgeIRC( this );
+	pEventProxy_ = new EvtProxyLockstep( this, TeamID, 2 );
+	pEventBridge_ = new EvtBridgeENet( this );
+
+	// Connect up.
+	pEventBridge_->connect( TeamID, "localhost", 6000 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -179,54 +182,58 @@ void GaGameSimulator::tick( BcReal Delta )
 {
 	TickAccumulator_ += Delta * SimulationSpeed_;
 
-	while( TickAccumulator_ > SimulationRate_ )
+	// Only run if we can update the event bridge.
+	if( pEventBridge_->update( Delta ) )
 	{
-		BcFixed SimulationRate = SimulationRate_;
+		while( TickAccumulator_ > SimulationRate_ )
+		{
+			BcFixed SimulationRate = SimulationRate_;
 
-		// Set the current frame in the proxy.
-		pEventProxy_->setFrameIndex( CurrentFrame_ );
+			// Set the current frame in the proxy.
+			pEventProxy_->setFrameIndex( CurrentFrame_ );
 		
-		// If we can dispatch for the current frame, we can simulate.
-		if( pEventProxy_->dispatchFrameIndex( CurrentFrame_ ) )
-		{
-			// Tick units.
-			for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+			// If we can dispatch for the current frame, we can simulate.
+			if( pEventProxy_->dispatchFrameIndex( CurrentFrame_ ) )
 			{
-				GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-				pGameUnit->tick( SimulationRate );
-			}
-
-			// Advance their state.
-			for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
-			{
-				GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
-				pGameUnit->advanceState();
-			}
-
-			// Remove dead units.
-			for( TGameUnitList::iterator It( GameUnitList_.begin() ); It != GameUnitList_.end();  )
-			{
-				GaGameUnit* pGameUnit = (*It);
-
-				if( pGameUnit->isDead() )
+				// Tick units.
+				for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
 				{
-					GameUnitMap_.erase( GameUnitMap_.find( pGameUnit->getID() ) );
-					It = GameUnitList_.erase( It );
-					delete pGameUnit;
+					GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+					pGameUnit->tick( SimulationRate );
 				}
-				else
-				{
-					++It;
-				}
-			}
 
-			// Advance frame counter.
-			CurrentFrame_ += 1;
-			TickAccumulator_ -= SimulationRate;
-		}
-		else
-		{
-			return;
+				// Advance their state.
+				for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+				{
+					GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+					pGameUnit->advanceState();
+				}
+
+				// Remove dead units.
+				for( TGameUnitList::iterator It( GameUnitList_.begin() ); It != GameUnitList_.end();  )
+				{
+					GaGameUnit* pGameUnit = (*It);
+
+					if( pGameUnit->isDead() )
+					{
+						GameUnitMap_.erase( GameUnitMap_.find( pGameUnit->getID() ) );
+						It = GameUnitList_.erase( It );
+						delete pGameUnit;
+					}
+					else
+					{
+						++It;
+					}
+				}
+
+				// Advance frame counter.
+				CurrentFrame_ += 1;
+				TickAccumulator_ -= SimulationRate;
+			}
+			else
+			{
+				return;
+			}
 		}
 	}
 }

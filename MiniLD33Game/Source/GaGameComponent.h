@@ -30,7 +30,7 @@ class GaGameComponent:
 public:
 	DECLARE_RESOURCE( ScnComponent, GaGameComponent );
 
-	void								initialise();
+	void								initialise( BcU32 TeamID );
 	void								destroy();
 
 	virtual void						update( BcReal Tick );
@@ -47,6 +47,8 @@ private:
 	ScnMaterialComponentRef				HUDMaterial_;
 
 	GaGameSimulator*					pSimulator_;
+
+	BcU32								TeamID_;
 
 	// 
 	BcBool								MouseDown_;
