@@ -29,6 +29,7 @@ EvtProxyLockstep::EvtProxyLockstep( EvtPublisher* pPublisher, BcU32 ClientID, Bc
 	SyncEventRate_ = 4;
 	SyncEventPendingIndex_ = 0;
 	SyncEventFrameIndex_ = SyncEventRate_ * 2;
+	ClientAhead_ = BcFalse;
 
 	BcMemZero( &Clients_, sizeof( Clients_ ) );
 	
@@ -49,7 +50,7 @@ EvtProxyLockstep::~EvtProxyLockstep()
 
 ////////////////////////////////////////////////////////////////////////////////
 // setFrameIndex
-void EvtProxyLockstep::setFrameIndex( BcU32 Index )
+void EvtProxyLockstep::setFrameIndex( BcU32 Index, BcU32 Checksum )
 {
 	// Use sync rate to determine scheduling.
 	Index += SyncEventRate_ * 2;
@@ -85,6 +86,7 @@ void EvtProxyLockstep::setFrameIndex( BcU32 Index )
 			EvtProxySyncEvent Event;
 			Event.ClientID_ = ClientID_;
 			Event.FrameIndex_ = Index - 1;
+			Event.Checksum_ = Checksum;
 			publish( evtEVT_PROXY_SYNC, Event, sizeof( Event ), BcTrue, BcFalse );
 		}
 		
@@ -119,16 +121,54 @@ void EvtProxyLockstep::setFrameIndex( BcU32 Index )
 // dispatchFrameIndex
 BcBool EvtProxyLockstep::dispatchFrameIndex( BcU32 Index )
 {
-	// Determine if all clients are up to the right sync./
-	BcU32 MaxSyncIndex = BcErrorCode;
-	for( BcU32 ClientIdx = 0; ClientIdx < NoofClients_; ++ClientIdx )
+	TClient& Client = Clients_[ ClientID_ ];
+
+	// Find the minimum frame index we can execute until.
+	BcBool InSync = BcTrue;
+	BcU32 MinSyncIndex = BcErrorCode;
+	BcU32 MaxSyncIndex = 0;
+	for( BcU32 ClientIdxA = 0; ClientIdxA < NoofClients_; ++ClientIdxA )
 	{
-		TClient& Client = Clients_[ ClientIdx ];
-		MaxSyncIndex = BcMin( MaxSyncIndex, Client.FrameIndex_ );
+		TClient& ClientA = Clients_[ ClientIdxA ];
+		MinSyncIndex = BcMin( MinSyncIndex, ClientA.FrameIndex_ );
+		MaxSyncIndex = BcMax( MaxSyncIndex, ClientA.FrameIndex_ );
+
+		// Check client sync. If the client frame indices match we can check.
+		for( BcU32 ClientIdxB = 0; ClientIdxB < NoofClients_; ++ClientIdxB )
+		{
+			TClient& ClientB = Clients_[ ClientIdxB ];
+
+			if( ClientA.FrameIndex_ == ClientB.FrameIndex_ )
+			{
+				//BcPrintf( "EvtProxyLockstep: Checking sync:\n" );
+				if( ClientA.Checksum_ != ClientB.Checksum_ )
+				{
+					InSync = BcFalse;
+					//BcPrintf( "- FAIL\n" );
+				}
+				else
+				{
+					//BcPrintf( "- SUCCESS.\n" );
+				}
+			}
+		}
 	}
-	
-	// If the max sync index is less or equal to the one we are trying to execute we can dispatch events.
-	if( Index <= MaxSyncIndex )
+
+	// Check we're in sync.
+	BcAssertMsg( InSync, "Games out of sync!" );
+
+	// Determine if we are ahead.
+	ClientAhead_ = BcFalse;
+	if( ( MaxSyncIndex - MinSyncIndex ) > SyncEventRate_ )
+	{
+		if( Client.FrameIndex_ == MaxSyncIndex )
+		{
+			ClientAhead_ = BcTrue;
+		}
+	}
+		
+	// If the sync index is less or equal to the one we are trying to execute we can dispatch events.
+	if( Index <= MinSyncIndex && InSync && !ClientAhead_ )
 	{
 		for( BcU32 ClientIdx = 0; ClientIdx < NoofClients_; ++ClientIdx )
 		{
@@ -177,6 +217,13 @@ BcBool EvtProxyLockstep::dispatchFrameIndex( BcU32 Index )
 	{
 		return BcFalse;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// isAhead
+BcBool EvtProxyLockstep::isAhead() const
+{
+	return ClientAhead_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -243,8 +290,9 @@ eEvtReturn EvtProxyLockstep::onProxySync( EvtID ID, const EvtProxySyncEvent& Eve
 	TClient& Client = Clients_[ Event.ClientID_ ];
 	BcAssert( Client.FrameIndex_ <= Event.FrameIndex_ ); // First sync will always be equal.
 	Client.FrameIndex_ = Event.FrameIndex_;
-
-	BcPrintf( "EvtProxyLockstep: Got sync from client %u for %u\n", Event.ClientID_, Event.FrameIndex_ );
-
+	Client.Checksum_ = Event.Checksum_;
+	
+	//BcPrintf( "EvtProxyLockstep: Got sync from client %u for %u (Checksum: %u)\n", Event.ClientID_, Event.FrameIndex_, Event.Checksum_ );
+	
 	return evtRET_PASS;
 }

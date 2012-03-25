@@ -75,6 +75,8 @@ private:
 	
 	TGameUnitMap GameUnitMap_;
 	TGameUnitList GameUnitList_;
+
+	BcU32 Checksum_;
 	
 	
 };

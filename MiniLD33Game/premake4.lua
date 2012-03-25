@@ -10,6 +10,7 @@ project "MiniLD33Game"
       "../External/jsoncpp/include",
       "../External/libircclient-1.6/include",
       "../External/libb64/include",
+      "../External/stund",
       "../External/zlib"
    }
 
@@ -21,6 +22,7 @@ project "MiniLD33Game"
    			"opengl32",
    			"winmm",
             "ws2_32",
+            "IPHlpApi",
             "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
             "../../External/libircclient-1.6/bin/libircclient", -- Relative path to project.
 
@@ -34,6 +36,7 @@ project "MiniLD33Game"
    			"External_ogg",
    			"External_png",
    			"External_squish",
+            "External_stund",
    			"External_tremor",
    			"External_zlib",
 
