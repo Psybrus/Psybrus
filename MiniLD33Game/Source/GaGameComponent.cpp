@@ -109,7 +109,7 @@ void GaGameComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void GaGameComponent::initialise()
+void GaGameComponent::initialise( BcU32 TeamID )
 {
 	Super::initialise();
 
@@ -117,6 +117,7 @@ void GaGameComponent::initialise()
 	BoxSelection_ = BcFalse;
 	CtrlDown_ = BcFalse;
 	AttackMove_ = BcFalse;
+	TeamID_ = TeamID;
 
 	// Setup control groups.
 	for( BcU32 Idx = 0; Idx < 10; ++Idx )
@@ -124,7 +125,7 @@ void GaGameComponent::initialise()
 		ControlGroups_.push_back( GaGameUnitIDList() );
 	}
 
-	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 8.0f );
+	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 8.0f, TeamID_ );
 
 	pSimulator_->addUnit( GGameUnit_Trebuchet, 0, BcFixedVec2d( -19.0f,  0.0f ) );
 
@@ -182,55 +183,54 @@ void GaGameComponent::update( BcReal Tick )
 {
 	pSimulator_->tick( Tick );
 
-	if( CanvasComponent_.isValid() )
+	//if( TeamID_ == 0 )
 	{
-		OsClient* pClient = OsCore::pImpl()->getClient( 0 );
-		BcReal HW = static_cast< BcReal >( pClient->getWidth() ) / 2.0f;
-		BcReal HH = static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
-		BcReal AspectRatio = HW / HH;
-		
-		BcMat4d Ortho;
-		Ortho.orthoProjection( -HW, HW, HH, -HH, -1.0f, 1.0f );
-		
-		// Clear canvas and push projection matrix.
-		CanvasComponent_->clear();   
-		CanvasComponent_->pushMatrix( Ortho );
-
-		CanvasComponent_->setMaterialComponent( SpriteSheetMaterial_ );
-		pSimulator_->render( CanvasComponent_ );
-
-		// Find unit over mouse.
-		GaGameUnitIDList SelectionList = UnitSelection_;
-		if( MouseDown_ )
+		if( CanvasComponent_.isValid() )
 		{
-			if( BoxSelection_ )
+			OsClient* pClient = OsCore::pImpl()->getClient( 0 );
+			BcReal HW = static_cast< BcReal >( pClient->getWidth() ) / 2.0f;
+			BcReal HH = static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
+			BcReal AspectRatio = HW / HH;
+		
+			BcMat4d Ortho;
+			Ortho.orthoProjection( -HW, HW, HH, -HH, -1.0f, 1.0f );
+		
+			// Clear canvas and push projection matrix.
+			CanvasComponent_->clear();   
+			CanvasComponent_->pushMatrix( Ortho );
+
+			CanvasComponent_->setMaterialComponent( SpriteSheetMaterial_ );
+			pSimulator_->render( CanvasComponent_ );
+
+			// Find unit over mouse.
+			GaGameUnitIDList SelectionList = UnitSelection_;
+			if( MouseDown_ )
 			{
-				pSimulator_->findUnits( SelectionList, StartGameCursorPosition_, EndGameCursorPosition_, BcErrorCode, BcErrorCode );
+				if( BoxSelection_ )
+				{
+					pSimulator_->findUnits( SelectionList, StartGameCursorPosition_, EndGameCursorPosition_, BcErrorCode, BcErrorCode );
+				}
 			}
-		}
-		else
-		{
-			pSimulator_->findUnits( SelectionList, GameCursorPosition_, 0.5f, BcErrorCode, BcErrorCode );
-		}
-
-		CanvasComponent_->setMaterialComponent( HUDMaterial_ );
-		pSimulator_->renderHUD( CanvasComponent_, SelectionList );
-	}
-
-	//
+			else
+			{
+				pSimulator_->findUnits( SelectionList, GameCursorPosition_, 0.5f, BcErrorCode, BcErrorCode );
+			}
 	
+			CanvasComponent_->setMaterialComponent( HUDMaterial_ );
+			pSimulator_->renderHUD( CanvasComponent_, SelectionList );
+		}
 
-	// Draw cursor.
-	CanvasComponent_->setMaterialComponent( HUDMaterial_ );
-	CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, RsColour::WHITE, 10 );
+		// Draw cursor.
+		CanvasComponent_->setMaterialComponent( HUDMaterial_ );
+		CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, RsColour::WHITE, 10 );
 
-	// Draw selection box.
-	if( MouseDown_ && BoxSelection_ ) 
-	{
-		BcVec2d Min = BcVec2d( StartGameCursorPosition_.x(), StartGameCursorPosition_.y() ) * 32.0f;
-		BcVec2d Max = BcVec2d( GameCursorPosition_.x(), GameCursorPosition_.y() ) * 32.0f;
-
-		CanvasComponent_->drawSprite( Min, Max - Min, 0, RsColour::GREEN * RsColour( 1.0f, 1.0f, 1.0f, 0.1f ), 11 );
+		// Draw selection box.
+		if( MouseDown_ && BoxSelection_ ) 
+		{
+			BcVec2d Min = BcVec2d( StartGameCursorPosition_.x(), StartGameCursorPosition_.y() ) * 32.0f;
+			BcVec2d Max = BcVec2d( GameCursorPosition_.x(), GameCursorPosition_.y() ) * 32.0f;
+			CanvasComponent_->drawSprite( Min, Max - Min, 0, RsColour::GREEN * RsColour( 1.0f, 1.0f, 1.0f, 0.1f ), 11 );
+		}
 	}
 }
 
@@ -268,14 +268,17 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	}
 	
 	// Bind input events.
-	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaGameComponent, &GaGameComponent::onMouseEvent >( this );
-	OsEventInputKeyboard::Delegate OnKeyEvent = OsEventInputKeyboard::Delegate::bind< GaGameComponent, &GaGameComponent::onKeyEvent >( this );
-	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseEvent );
-	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
-	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseEvent );
-	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyEvent );
-	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyEvent );
-	
+	//if( TeamID_ == 0 )
+	{
+		OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaGameComponent, &GaGameComponent::onMouseEvent >( this );
+		OsEventInputKeyboard::Delegate OnKeyEvent = OsEventInputKeyboard::Delegate::bind< GaGameComponent, &GaGameComponent::onKeyEvent >( this );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseEvent );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseEvent );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyEvent );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyEvent );
+	}
+
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
@@ -330,11 +333,11 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 
 		if( BoxSelection_ )
 		{
-			pSimulator_->findUnits( FoundUnits, StartGameCursorPosition_, EndGameCursorPosition_, BcErrorCode, 1 << 0 );
+			pSimulator_->findUnits( FoundUnits, StartGameCursorPosition_, EndGameCursorPosition_, BcErrorCode, 1 << TeamID_ );
 		}
 		else
 		{
-			pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.5f, BcErrorCode, 1 << 0 );
+			pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.5f, BcErrorCode, 1 << TeamID_ );
 
 			while( FoundUnits.size() > 1 )
 			{

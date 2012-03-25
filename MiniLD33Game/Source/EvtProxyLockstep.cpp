@@ -207,8 +207,30 @@ eEvtReturn EvtProxyLockstep::onProxyEventBuffer( EvtID ID, const EvtProxyEventBu
 {
 	const BcU8* pData = reinterpret_cast< const BcU8* >( &Event ) + sizeof( EvtProxyEventBuffer );
 	BcU32 DataSize = Event.DataSize_;
-		
 
+	BcPrintf( "EvtProxyLockstep: Got buffer from client %u for %u with %u bytes", Event.ClientID_, Event.FrameIndex_, Event.DataSize_ );
+
+	if( Event.ClientID_ != ClientID_ )
+	{
+		// Add new.
+		TEventBufferMap& EventBufferMap = EventBufferMaps_[ Event.ClientID_ ];
+		TEventBufferMapIterator ItCurr( EventBufferMap.find( Event.FrameIndex_ ) );
+
+		if( ItCurr == EventBufferMap.end() )
+		{
+			TEventBuffer EventBuffer =
+			{
+				Event.FrameIndex_,
+				new BcStream( BcFalse, 32, 32 )
+			};
+			
+			// Push entire event into buffer.
+			EventBuffer.pEventStream_->push( &Event, DataSize );
+			
+			// Add to map.
+			EventBufferMap[ Event.FrameIndex_ ] = EventBuffer;
+		}
+	}
 	
 	return evtRET_PASS;
 }
@@ -221,6 +243,8 @@ eEvtReturn EvtProxyLockstep::onProxySync( EvtID ID, const EvtProxySyncEvent& Eve
 	TClient& Client = Clients_[ Event.ClientID_ ];
 	BcAssert( Client.FrameIndex_ <= Event.FrameIndex_ ); // First sync will always be equal.
 	Client.FrameIndex_ = Event.FrameIndex_;
+
+	BcPrintf( "EvtProxyLockstep: Got sync from client %u for %u\n", Event.ClientID_, Event.FrameIndex_ );
 
 	return evtRET_PASS;
 }

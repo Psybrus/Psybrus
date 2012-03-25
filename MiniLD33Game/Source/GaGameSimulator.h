@@ -24,7 +24,7 @@ class GaGameSimulator:
 	public EvtPublisher
 {
 public:
-	GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed );
+	GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID );
 	virtual ~GaGameSimulator();
 
 	BcFixed getSimulationRate() const;
@@ -52,7 +52,7 @@ private:
 
 private:
 	class EvtProxyLockstep* pEventProxy_;
-	class EvtBridgeIRC* pEventBridge_;
+	class EvtBridgeENet* pEventBridge_;
 
 	BcFixed SimulationRate_;
 	BcFixed SimulationSpeed_;

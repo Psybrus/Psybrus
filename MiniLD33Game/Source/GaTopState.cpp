@@ -97,22 +97,31 @@ void GaTopState::preMain()
 	// Create view entity.
 	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
 	{
+		BcU32 TeamID = 0;
+		if( SysArgs_.find( "-client ") != std::string::npos )
+		{
+			TeamID = 1;
+		}
+
 		ScnMaterialComponentRef MaterialComponent;
 		ScnViewComponentRef ViewComponent;
 		ScnCanvasComponentRef CanvasComponent;
-		GaGameComponentRef GameComponent;
+		GaGameComponentRef GameComponent0;
+		GaGameComponentRef GameComponent1;
 		
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
 		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, SpriteSheetMaterial_, BcErrorCode );
 		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32, MaterialComponent );
-		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent );
+		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent0, TeamID );
+		//CsCore::pImpl()->createResource( BcName::INVALID, GameComponent1, 1 );
 
 		// Attach components.
 		Entity->attach( ViewComponent );
 		Entity->attach( MaterialComponent );
 		Entity->attach( CanvasComponent );
-		Entity->attach( GameComponent );
+		Entity->attach( GameComponent0 );
+		//Entity->attach( GameComponent1 );
 
 		// Setup entity position to render from.
 		BcMat4d LookAt;

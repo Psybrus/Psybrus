@@ -6,10 +6,11 @@ project "MiniLD33Game"
 
 	-- External includes.
 	includedirs {
-      "../External/zlib",
+      "../External/enet/include",
       "../External/jsoncpp/include",
       "../External/libircclient-1.6/include",
-      "../External/libb64/include"
+      "../External/libb64/include",
+      "../External/zlib"
    }
 
 	configuration "windows"
@@ -19,6 +20,7 @@ project "MiniLD33Game"
    			"gdi32",
    			"opengl32",
    			"winmm",
+            "ws2_32",
             "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
             "../../External/libircclient-1.6/bin/libircclient", -- Relative path to project.
 

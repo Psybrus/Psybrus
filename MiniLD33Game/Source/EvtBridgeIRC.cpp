@@ -27,6 +27,7 @@ EvtBridgeIRC::EvtBridgeIRC( EvtPublisher* pPublisher ):
 {
 	HasJoined_ = BcFalse;
 	DCC_ = -1;
+	HasDCC_ = BcFalse;
 
 	Callbacks_.event_connect = event_connect;
 	Callbacks_.event_nick = event_nick;
@@ -49,6 +50,8 @@ EvtBridgeIRC::EvtBridgeIRC( EvtPublisher* pPublisher ):
 	Callbacks_.event_numeric = event_numeric;
 	Callbacks_.event_dcc_chat_req = event_dcc_chat_req;
 	Callbacks_.event_dcc_send_req = event_dcc_send_req;
+
+	PlayTimer_ = BcAbs( BcRandom::Global.randReal() ) * 5.0f + 5.0f;
 
 	pSession_ = irc_create_session( &Callbacks_ );
 
@@ -84,11 +87,39 @@ EvtBridgeIRC::~EvtBridgeIRC()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// update
+BcBool EvtBridgeIRC::update( BcReal Delta )
+{
+	BcScopedLock< BcMutex > Lock( Lock_ );
+	
+	if( irc_is_connected( pSession_ ) && HasJoined_ && HasDCC_ && DCC_ != -1 )
+	{
+		return BcTrue;
+	}
+	else
+	{
+		PlayTimer_ -= Delta;
+
+		if( PlayTimer_ < 0.0f )
+		{
+			PlayTimer_ = BcAbs( BcRandom::Global.randReal() ) * 5.0f + 5.0f;
+
+			// Send "play with me!" to get a game.
+			irc_cmd_msg( pSession_, Channel_, "play with me!" );
+		}
+	}
+
+	return BcFalse;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // bridge
 //virtual
 void EvtBridgeIRC::bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
-	if( irc_is_connected( pSession_ ) && HasJoined_ && DCC_ != -1 )
+	BcScopedLock< BcMutex > Lock( Lock_ );
+	
+	if( irc_is_connected( pSession_ ) && HasJoined_ && HasDCC_ && DCC_ != -1 )
 	{
 		BcStream Stream;
 		Stream.push( &ID, sizeof( ID ) );
@@ -333,7 +364,8 @@ void EvtBridgeIRC::event_channel(irc_session_t * session, const char * event, co
 
 		if( !BcStrCompare( pBridge->ScreenName_, NameCopy ) && BcStrCompare( params[1], "play with me!" ) )
 		{
-			irc_dcc_chat( session, pBridge, NameCopy, dcc_callback, &pBridge->DCC_ );
+			int RetVal = irc_dcc_chat( session, pBridge, NameCopy, dcc_callback, &pBridge->DCC_ );
+			BcPrintf( "irc_dcc_chat: %u\n", RetVal );
 		}
 	}
 }
@@ -426,8 +458,6 @@ void EvtBridgeIRC::event_unknown(irc_session_t * session, const char * event, co
 {
 	EvtBridgeIRC* pBridge = reinterpret_cast< EvtBridgeIRC* >( irc_get_ctx( session ) );
 	BcScopedLock< BcMutex > Lock( pBridge->Lock_ );
-
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -453,7 +483,7 @@ void EvtBridgeIRC::event_dcc_chat_req(irc_session_t * session, const char * nick
 	EvtBridgeIRC* pBridge = reinterpret_cast< EvtBridgeIRC* >( irc_get_ctx( session ) );
 	BcScopedLock< BcMutex > Lock( pBridge->Lock_ );
 
-
+	BcPrintf( "event_dcc_chat_req %s, %s\n", nick, addr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -463,7 +493,7 @@ void EvtBridgeIRC::event_dcc_send_req(irc_session_t * session, const char * nick
 	EvtBridgeIRC* pBridge = reinterpret_cast< EvtBridgeIRC* >( irc_get_ctx( session ) );
 	BcScopedLock< BcMutex > Lock( pBridge->Lock_ );
 
-
+	BcPrintf( "event_dcc_send_req %s, %s\n", nick, addr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -473,8 +503,19 @@ void EvtBridgeIRC::dcc_callback(irc_session_t * session, irc_dcc_t id, int statu
 	EvtBridgeIRC* pBridge = reinterpret_cast< EvtBridgeIRC* >( irc_get_ctx( session ) );
 	BcScopedLock< BcMutex > Lock( pBridge->Lock_ );
 
+	if(status != 0)
+	{
+		irc_dcc_destroy( session, id );
+		pBridge->HasDCC_ = BcFalse;
+		pBridge->DCC_ = BcErrorCode;
+		return;
+	}
+
 	if(status == 0 && data != NULL && length > 0)
 	{
+		//
+		pBridge->HasDCC_ = BcTrue;
+
 		// Base-64 decode.
 		char* pB64DecodedBuffer = new char[ length ];
 		base64::base64_decodestate DecodeState;

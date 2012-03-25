@@ -26,6 +26,8 @@ public:
 	EvtBridgeIRC( EvtPublisher* pPublisher );
 	virtual ~EvtBridgeIRC();
 
+	BcBool update( BcReal Delta );
+
 private:
 	virtual void bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
 
@@ -71,5 +73,7 @@ private:
 
 	BcBool HasJoined_;
 	BcBool HasDCC_;
+
+	BcReal PlayTimer_;
 
 };
