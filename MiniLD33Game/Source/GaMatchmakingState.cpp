@@ -105,11 +105,11 @@ eSysStateReturn GaMatchmakingState::main()
 				{
 					irc_set_ctx( pSession_, this );
 
-					BcSPrintf( ScreenName_, "%s_%x", "ScreenName", BcRandom::Global.rand() );
+					BcSPrintf( ScreenName_, "%s_%x", "PSY_", BcRandom::Global.rand() );
 					BcSPrintf( Channel_, "#psybrus_minild33" );
 
 					// Connect to the server.
-					int RetVal = irc_connect( pSession_, "irc.accessirc.net", 6667, NULL, ScreenName_, ScreenName_, ScreenName_ );
+					int RetVal = irc_connect( pSession_, "www.neilo.gd", 8000, NULL, ScreenName_, ScreenName_, ScreenName_ );
 
 					if( RetVal == 0 )
 					{
