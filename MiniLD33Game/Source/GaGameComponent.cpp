@@ -115,7 +115,7 @@ void GaGameComponent::initialise( BcU32 TeamID )
 
 	MouseDown_ = BcFalse;
 	BoxSelection_ = BcFalse;
-	CtrlDown_ = BcFalse;
+	CtrlDown_ = BcFalse; 
 	AttackMove_ = BcFalse;
 	TeamID_ = TeamID;
 
@@ -125,7 +125,7 @@ void GaGameComponent::initialise( BcU32 TeamID )
 		ControlGroups_.push_back( GaGameUnitIDList() );
 	}
 
-	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID_ );
+	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID, "localhost", 6000 );
 
 	pSimulator_->addUnit( GGameUnit_Trebuchet, 0, BcFixedVec2d( -19.0f,  0.0f ) );
 
@@ -191,10 +191,10 @@ void GaGameComponent::update( BcReal Tick )
 			BcReal HW = static_cast< BcReal >( pClient->getWidth() ) / 2.0f;
 			BcReal HH = static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
 			BcReal AspectRatio = HW / HH;
-		
+
 			BcMat4d Ortho;
 			Ortho.orthoProjection( -HW, HW, HH, -HH, -1.0f, 1.0f );
-		
+
 			// Clear canvas and push projection matrix.
 			CanvasComponent_->clear();   
 
@@ -221,7 +221,7 @@ void GaGameComponent::update( BcReal Tick )
 			{
 				pSimulator_->findUnits( SelectionList, GameCursorPosition_, 0.5f, BcErrorCode, BcErrorCode );
 			}
-	
+
 			CanvasComponent_->setMaterialComponent( HUDMaterial_ );
 			pSimulator_->renderHUD( CanvasComponent_, SelectionList );
 		}

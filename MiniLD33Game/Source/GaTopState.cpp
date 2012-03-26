@@ -11,12 +11,11 @@
 * 
 **************************************************************************/
 
-#include "EvtBridgeIRC.h"
+#include "GaMatchmakingState.h"
 
 #include "GaTopState.h"
 
 #include "GaGameComponent.h"
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -42,9 +41,7 @@ void GaTopState::enterOnce()
 	CsCore::pImpl()->requestResource( "spritesheet1", SpriteSheetMaterial1_ );
 	CsCore::pImpl()->requestResource( "hud", HUDMaterial_ );
 
-	// dummy.
-	//pBridgeIRC_ = new EvtBridgeIRC( OsCore::pImpl() );
-	pBridgeIRC_ = NULL;
+	spawnChildState( new GaMatchmakingState() );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,12 +98,6 @@ void GaTopState::preMain()
 	// Create view entity.
 	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
 	{
-		BcU32 TeamID = 0;
-		if( SysArgs_.find( "-client ") != std::string::npos )
-		{
-			TeamID = 1;
-		}
-
 		ScnMaterialComponentRef MaterialComponent;
 		ScnViewComponentRef ViewComponent;
 		ScnCanvasComponentRef CanvasComponent;
@@ -117,9 +108,8 @@ void GaTopState::preMain()
 		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
 		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, SpriteSheetMaterial0_, BcErrorCode );
 		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32, MaterialComponent );
-		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent0, TeamID );
-		//CsCore::pImpl()->createResource( BcName::INVALID, GameComponent1, 1 );
-
+		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent0, GaMatchmakingState::getClientID() );
+ 
 		// Attach components.
 		Entity->attach( ViewComponent );
 		Entity->attach( MaterialComponent );
@@ -163,9 +153,6 @@ void GaTopState::preLeave()
 
 	ResourceList_.clear();
 	EntityList_.clear();
-
-	delete pBridgeIRC_;
-	pBridgeIRC_ = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

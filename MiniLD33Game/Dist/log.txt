@@ -1,0 +1,1111 @@
+============================================================================
+MainUnitTests:
+- Test: sizeof( BcU8 ) == 1
+- - Passed.
+- Test: sizeof( BcS8 ) == 1
+- - Passed.
+- Test: sizeof( BcU16 ) == 2
+- - Passed.
+- Test: sizeof( BcS16 ) == 2
+- - Passed.
+- Test: sizeof( BcU32 ) == 4
+- - Passed.
+- Test: sizeof( BcS32 ) == 4
+- - Passed.
+- Test: sizeof( BcU64 ) == 8
+- - Passed.
+- Test: sizeof( BcS64 ) == 8
+- - Passed.
+- Test: sizeof( BcF32 ) == 4
+- - Passed.
+- Test: sizeof( BcF64 ) == 8
+- - Passed.
+- Test (Predecrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)1
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0xff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0xfe && B == (BcU8)0xff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0x100
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0x80 && B == (BcU8)0x7f
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0xffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0xfffe && B == (BcU8)0xffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0x10000
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0x8000 && B == (BcU8)0x7fff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0xfffffffe && B == (BcU8)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0x80000000 && B == (BcU8)0x7fffffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)1
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0xff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0xfe && B == (BcS8)0xff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0x100
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0x80 && B == (BcS8)0x7f
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0xffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0xfffe && B == (BcS8)0xffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0x10000
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0x8000 && B == (BcS8)0x7fff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0xffffffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0xfffffffe && B == (BcS8)0xffffffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0x80000000 && B == (BcS8)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)1
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0xff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0xfe && B == (BcU16)0xff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0x100
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0x80 && B == (BcU16)0x7f
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0xffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0xfffe && B == (BcU16)0xffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0x10000
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0x8000 && B == (BcU16)0x7fff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0xfffffffe && B == (BcU16)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0x80000000 && B == (BcU16)0x7fffffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)1
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0xff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0xfe && B == (BcS16)0xff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0x100
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0x80 && B == (BcS16)0x7f
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0xffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0xfffe && B == (BcS16)0xffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0x10000
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0x8000 && B == (BcS16)0x7fff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0xffffffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0xfffffffe && B == (BcS16)0xffffffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0x80000000 && B == (BcS16)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)1
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0xff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0xfe && B == (BcU32)0xff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0x100
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0x80 && B == (BcU32)0x7f
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0xffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0xfffe && B == (BcU32)0xffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0x10000
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0x8000 && B == (BcU32)0x7fff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0xfffffffe && B == (BcU32)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0x80000000 && B == (BcU32)0x7fffffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)1
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0xff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0xfe && B == (BcS32)0xff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0x100
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0x80 && B == (BcS32)0x7f
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0xffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0xfffe && B == (BcS32)0xffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0x10000
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0x8000 && B == (BcS32)0x7fff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0xffffffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0xfffffffe && B == (BcS32)0xffffffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0x80000000 && B == (BcS32)0x7fffffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)1
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0xff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0xfe && B == (BcChar)0xff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0x100
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0x80 && B == (BcChar)0x7f
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0xffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0xfffe && B == (BcChar)0xffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0x10000
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0x8000 && B == (BcChar)0x7fff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0xffffffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0xfffffffe && B == (BcChar)0xffffffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0x80000000 && B == (BcChar)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)1
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0xff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0xfe && B == (BcU8*)0xff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0x100
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0x80 && B == (BcU8*)0x7f
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0xffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0xfffe && B == (BcU8*)0xffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0x10000
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0x8000 && B == (BcU8*)0x7fff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0xfffffffe && B == (BcU8*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0x80000000 && B == (BcU8*)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)1
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0xff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0xfe && B == (BcU16*)0xff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0x100
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0x80 && B == (BcU16*)0x7f
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0xffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0xfffe && B == (BcU16*)0xffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0x10000
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0x8000 && B == (BcU16*)0x7fff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0xfffffffe && B == (BcU16*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0x80000000 && B == (BcU16*)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)1
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0xff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0xfe && B == (BcU32*)0xff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0x100
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0x80 && B == (BcU32*)0x7f
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0xffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0xfffe && B == (BcU32*)0xffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0x10000
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0x8000 && B == (BcU32*)0x7fff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0xfffffffe && B == (BcU32*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0x80000000 && B == (BcU32*)0x7fffffff
+- - Passed.
+============================================================================
+MainShared:
+ - Command line: MiniLD33Game.exe -log  
+ - Setup Flags: 0x172
+ - Name: Psybrus Samples
+ - Tick Rate: 1.0/60.0
+ - SysKernel::SYSTEM_WORKER_MASK: 0x3
+ - SysKernel::USER_WORKER_MASK: 0xfd
+ - FsCore::WORKER_MASK: 0x1
+ - RsCore::WORKER_MASK: 0x2
+ - SsCore::WORKER_MASK: 0x0
+============================================================================
+SysKernel run
+Non-threaded.
+============================================================================
+SysSystem (FsCore @ 0x02B02A60) open:
+============================================================================
+SysSystem (RmCore @ 0x02B02C68) open:
+============================================================================
+SysSystem (OsCore @ 0x02B02DF0) open:
+============================================================================
+SysSystem (RsCore @ 0x02C6A810) open:
+ - glew initialised.
+ - Version: 3.3.10907 Compatibility Profile Context
+ - Extensions: GL_AMDX_debug_output GL_AMDX_vertex_shader_tessellator GL_AMD_conservative_depth GL_AMD_debug_output GL_AMD_depth_clamp_separate GL_AMD_draw_buffers_blend GL_AMD_name_gen_delete GL_AMD_performance_monitor GL_AMD_pinned_memory GL_AMD_sample_positions GL_AMD_seamless_cubemap_per_texture GL_AMD_shader_stencil_export GL_AMD_texture_cube_map_array GL_AMD_texture_texture4 GL_AMD_vertex_shader_tessellator GL_ARB_ES2_compatibility GL_ARB_blend_func_extended GL_ARB_color_buffer_float GL_ARB_copy_buffer GL_ARB_depth_buffer_float GL_ARB_depth_clamp GL_ARB_depth_texture GL_ARB_draw_buffers GL_ARB_draw_buffers_blend GL_ARB_draw_elements_base_vertex GL_ARB_draw_instanced GL_ARB_explicit_attrib_location GL_ARB_fragment_coord_conventions GL_ARB_fragment_program GL_ARB_fragment_program_shadow GL_ARB_fragment_shader GL_ARB_framebuffer_object GL_ARB_framebuffer_sRGB GL_ARB_geometry_shader4 GL_ARB_get_program_binary GL_ARB_half_float_pixel GL_ARB_half_float_vertex GL_ARB_imaging GL_ARB_instanced_arrays GL_ARB_map_buffer_range GL_ARB_multisample GL_ARB_multitexture GL_ARB_occlusion_query GL_ARB_occlusion_query2 GL_ARB_pixel_buffer_object GL_ARB_point_parameters GL_ARB_point_sprite GL_ARB_provoking_vertex GL_ARB_sample_shading GL_ARB_sampler_objects GL_ARB_seamless_cube_map GL_ARB_separate_shader_objects GL_ARB_shader_bit_encoding GL_ARB_shader_objects GL_ARB_shader_precision GL_ARB_shader_stencil_export GL_ARB_shader_texture_lod GL_ARB_shading_language_100 GL_ARB_shadow GL_ARB_shadow_ambient GL_ARB_sync GL_ARB_texture_border_clamp GL_ARB_texture_buffer_object GL_ARB_texture_buffer_object_rgb32 GL_ARB_texture_compression GL_ARB_texture_compression_rgtc GL_ARB_texture_cube_map GL_ARB_texture_cube_map_array GL_ARB_texture_env_add GL_ARB_texture_env_combine GL_ARB_texture_env_crossbar GL_ARB_texture_env_dot3 GL_ARB_texture_float GL_ARB_texture_gather GL_ARB_texture_mirrored_repeat GL_ARB_texture_multisample GL_ARB_texture_non_power_of_two GL_ARB_texture_query_lod GL_ARB_texture_rectangle GL_ARB_texture_rg GL_ARB_texture_rgb10_a2ui GL_ARB_texture_snorm GL_ARB_timer_query GL_ARB_transform_feedback2 GL_ARB_transform_feedback3 GL_ARB_transpose_matrix GL_ARB_uniform_buffer_object GL_ARB_vertex_array_bgra GL_ARB_vertex_array_object GL_ARB_vertex_buffer_object GL_ARB_vertex_program GL_ARB_vertex_shader GL_ARB_vertex_type_2_10_10_10_rev GL_ARB_viewport_array GL_ARB_window_pos GL_ATI_draw_buffers GL_ATI_envmap_bumpmap GL_ATI_fragment_shader GL_ATI_meminfo GL_ATI_separate_stencil GL_ATI_texture_compression_3dc GL_ATI_texture_env_combine3 GL_ATI_texture_float GL_ATI_texture_mirror_once GL_EXT_abgr GL_EXT_bgra GL_EXT_bindable_uniform GL_EXT_blend_color GL_EXT_blend_equation_separate GL_EXT_blend_func_separate GL_EXT_blend_minmax GL_EXT_blend_subtract GL_EXT_compiled_vertex_array GL_EXT_copy_buffer GL_EXT_copy_texture GL_EXT_direct_state_access GL_EXT_draw_buffers2 GL_EXT_draw_instanced GL_EXT_draw_range_elements GL_EXT_fog_coord GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_EXT_framebuffer_object GL_EXT_framebuffer_sRGB GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_EXT_gpu_shader4 GL_EXT_histogram GL_EXT_multi_draw_arrays GL_EXT_packed_depth_stencil GL_EXT_packed_float GL_EXT_packed_pixels GL_EXT_pixel_buffer_object GL_EXT_point_parameters GL_EXT_provoking_vertex GL_EXT_rescale_normal GL_EXT_secondary_color GL_EXT_separate_specular_color GL_EXT_shadow_funcs GL_EXT_stencil_wrap GL_EXT_subtexture GL_EXT_texgen_reflection GL_EXT_texture3D GL_EXT_texture_array GL_EXT_texture_buffer_object GL_EXT_texture_compression_latc GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc GL_EXT_texture_cube_map GL_EXT_texture_edge_clamp GL_EXT_texture_env_add GL_EXT_texture_env_combine GL_EXT_texture_env_dot3 GL_EXT_texture_filter_anisotropic GL_EXT_texture_integer GL_EXT_texture_lod GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp GL_EXT_texture_object GL_EXT_texture_rectangle GL_EXT_texture_sRGB GL_EXT_texture_shared_exponent GL_EXT_texture_snorm GL_EXT_texture_swizzle GL_EXT_timer_query GL_EXT_transform_feedback GL_EXT_vertex_array GL_EXT_vertex_array_bgra GL_IBM_texture_mirrored_repeat GL_KTX_buffer_region GL_NV_blend_square GL_NV_conditional_render GL_NV_copy_depth_to_color GL_NV_explicit_multisample GL_NV_float_buffer GL_NV_half_float GL_NV_primitive_restart GL_NV_texgen_reflection GL_NV_texture_barrier GL_SGIS_generate_mipmap GL_SGIS_texture_edge_clamp GL_SGIS_texture_lod GL_SUN_multi_draw_arrays GL_WIN_swap_hint WGL_EXT_swap_control
+============================================================================
+SysSystem (SsCore @ 0x02C6A8F8) open:
+ - Opening device "Generic Software"...
+ - Context created.
+ - Extensions: ALC_ENUMERATE_ALL_EXT ALC_ENUMERATION_EXT ALC_EXT_CAPTURE ALC_EXT_EFX
+ - Created 32 channels.
+ - EFX is enabled.
+============================================================================
+SysSystem (ScnCore @ 0x02C6AB40) open:
+============================================================================
+SysSystem (CsCoreClient @ 0x02C6B4B0) open:
+CsCore: Importing "default.ScnSound"
+ - FAILURE
+CsCore::requestResource: Failed to load default (./PackedContent/default.ScnSound).
+CsCore: Importing "EngineContent/default.ScnSound"
+ - FAILURE
+RsProgramGL::Adding parameter "uClipTransform". Handle=0
+RsProgramGL::Adding parameter "uWorldTransform". Handle=1
+RsProgramGL::Adding parameter "aDiffuseTex". Handle=2
+event_notice: (null), AUTH
+event_notice: (null), *** Looking up your hostname
+RsProgramGL::Adding parameter "aDiffuseTex". Handle=0
+event_notice: (null), AUTH
+event_notice: (null), *** Checking your IP against DNS ban lists
+event_notice: (null), AUTH
+event_notice: (null), *** Couldn't look up your hostname
+============================================================================
+SysSystem (CsCoreClient @ 0x02C6B4B0) close:
+============================================================================
+SysSystem (ScnCore @ 0x02C6AB40) close:
+============================================================================
+SysSystem (SsCore @ 0x02C6A8F8) close:
+============================================================================
+SysSystem (RsCore @ 0x02C6A810) close:
+============================================================================
+SysSystem (OsCore @ 0x02B02DF0) close:
+============================================================================
+SysSystem (RmCore @ 0x02B02C68) close:
+============================================================================
+SysSystem (FsCore @ 0x02B02A60) close:

@@ -43,48 +43,28 @@ EvtBridgeENet::~EvtBridgeENet()
 
 ////////////////////////////////////////////////////////////////////////////////
 // connect
-BcBool EvtBridgeENet::connect( BcU32 ClientID, const BcChar* pAddress, BcU16 Port )
+BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 RemotePort, BcU16 LocalPort, int ServerSocketFileDesc )
 {
 	ClientID_ = ClientID;
-
-	/*
-	// Get STUN server address.
-	StunAddress4 StunAddress;
-	StunAddress4 LocalAddress;
-	if( stunParseServerName( "stunserver.org", StunAddress ) )
-	{
-		// Set port.
-		int Port = 6000 + ClientID_;
-
-		// Get NAT type.
-		bool PreservePort = 0;
-		bool HairPin = 0;
-		NatType Type = stunNatType( StunAddress, true,  &PreservePort, &HairPin , Port, 0 );
-		
-		UInt32 OutIP;
-		UInt16 OutPort;
-		stunParseHostName( "localhost", OutIP, OutPort, Port );
-
-		int a = 0; ++a;
-	}
-	*/
 	
 	// Setup a server host.
 	ServerAddress_.host = ENET_HOST_ANY;
-	ServerAddress_.port = 6000 + ClientID;
+	ServerAddress_.port = LocalPort;
 	pServerHost_ = enet_host_create( &ServerAddress_ /* the address to bind the server host to */, 
 		                                1               /* allow up to 2 clients and/or outgoing connections */,
 		                                2               /* allow up to 2 channels to be used, 0 and 1 */,
 		                                0               /* assume any amount of incoming bandwidth */,
-		                                0               /* assume any amount of outgoing bandwidth */ );
-
-	enet_address_set_host( &ServerAddress_, pAddress );
-	ServerAddress_.port = 6000 + ( 1 - ClientID );
+		                                0,               /* assume any amount of outgoing bandwidth */
+										ServerSocketFileDesc );
+	
+	ServerAddress_.host = htonl( RemoteAddress ); // lol hax
+	ServerAddress_.port = RemotePort;
 	pClientHost_ = enet_host_create ( NULL /* create a client host */,
 									  1 /* only allow 1 outgoing connection */,
 									  2 /* allow up 2 channels to be used, 0 and 1 */,
 									  57600 / 8 /* 56K modem with 56 Kbps downstream bandwidth */,
-									  14400 / 8 /* 56K modem with 14 Kbps upstream bandwidth */ );
+									  14400 / 8, /* 56K modem with 14 Kbps upstream bandwidth */ 
+									  0 );
 		
 	if( pServerHost_ && pClientHost_ )
 	{
@@ -93,7 +73,7 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, const BcChar* pAddress, BcU16 Por
 
 		if( pPeer_ == NULL )
 		{
-			BcPrintf( "(%u) An error has occurred.\n", ClientID );
+			BcPrintf( "Client (%u) An error has occurred creating peer.\n", ClientID );
 			BcBreakpoint;
 		}
 		else
@@ -171,6 +151,7 @@ void EvtBridgeENet::serviceHost( ENetHost* pHost )
 	{
 		while( enet_host_service ( pHost, &Event, 0 ) > 0 )
 		{
+			BcPrintf( "ENet Event: %u\n", Event.type );
 			switch (Event.type)
 			{
 			case ENET_EVENT_TYPE_CONNECT:

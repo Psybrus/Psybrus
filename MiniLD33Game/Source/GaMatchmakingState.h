@@ -1,10 +1,10 @@
 /**************************************************************************
 *
-* File:		EvtBridgeIRC.h
+* File:		GaMatchmakingState.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Event bridge over IRC.
+*		IRC match maker.
 *		
 *		
 *
@@ -13,23 +13,35 @@
 
 #include <libircclient.h>
 #include <libirc_rfcnumeric.h>
+#include <enet/enet.h>
 
 #include "Psybrus.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// EvtBridgeIRC
-class EvtBridgeIRC: 
-	public EvtBridge,
-	public BcThread
+// GaMatchmakingState
+class GaMatchmakingState: 
+	public BcGlobal< GaMatchmakingState >,
+	public BcThread,
+	public SysState
 {
 public:
-	EvtBridgeIRC( EvtPublisher* pPublisher );
-	virtual ~EvtBridgeIRC();
+	GaMatchmakingState();
+	virtual ~GaMatchmakingState();
 
-	BcBool update( BcReal Delta );
+	eSysStateReturn main();
+	
+	BcBool sendLocalAddress( const BcChar* pDest );
 
-private:
-	virtual void bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+	static int getSocketFileDescriptor();
+	static BcU32 getClientID();
+	static BcU32 getLocalAddr();
+	static BcU16 getLocalPort();
+	static BcU32 getRemoteAddr();
+	static BcU16 getRemotePort();
+	static BcU32 getMappedAddr();
+	static BcU16 getMappedPort();
+	static BcU32 getLANAddr();
+	static BcU16 getLANPort();
 
 private:
 	virtual void execute();
@@ -56,9 +68,6 @@ private:
 	static void event_numeric(irc_session_t * session, unsigned int event, const char * origin, const char ** params, unsigned int count);
 	static void event_dcc_chat_req(irc_session_t * session, const char * nick, const char * addr, irc_dcc_t dccid);
 	static void event_dcc_send_req(irc_session_t * session, const char * nick, const char * addr, const char * filename, unsigned long size, irc_dcc_t dccid);
-	static void dcc_callback(irc_session_t * session, irc_dcc_t id, int status, void * ctx, const char * data, unsigned int length);
-
-	void dcc_publish_event( EvtID ID, BcU32 EventSize, char* pEventData );
 
 private:
 	BcChar ScreenName_[ 64 ];
@@ -67,13 +76,41 @@ private:
 	irc_session_t* pSession_;
 
 	BcMutex Lock_;
-	std::list< std::string > UserList_;
+	
+	enum HandshakeState
+	{
+		HSS_IDLE = 0,
+		HSS_WAIT_INVITE,
+		HSS_WAIT_ADDR,
+		HSS_COMPLETE
+	};
 
-	irc_dcc_t DCC_;
+	HandshakeState HandshakeState_;
 
-	BcBool HasJoined_;
-	BcBool HasDCC_;
+	BcReal ConnectTimer_;
+	BcReal InviteTimer_;
+	BcReal HandshakeTimer_;
 
-	BcReal PlayTimer_;
 
+	// Out socket file descriptor.
+	static int SocketFileDescriptor_;
+
+	// Our client ID.
+	static BcU32 ClientID_;
+
+	// Remote address. (We join this).
+	static BcU32 RemoteHandshakeAddr_;
+	static BcU16 RemoteHandshakePort_;
+
+	// Local address. (We host on this).
+	static BcU32 LocalHandshakeAddr_;
+	static BcU32 LocalHandshakePort_;
+
+	// Mapped local address. (We send this).
+	static BcU32 MappedHandshakeAddr_;
+	static BcU32 MappedHandshakePort_;
+
+	// LAN address. (For LAN play).
+	static BcU32 LANHandshakeAddr_;
+	static BcU16 LANHandshakePort_;
 };

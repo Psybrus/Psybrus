@@ -39,7 +39,7 @@ public:
 
 	eEvtReturn							onKeyEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
-
+	
 private:
 	ScnCanvasComponentRef				CanvasComponent_;
 

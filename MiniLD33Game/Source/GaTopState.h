@@ -45,8 +45,6 @@ private:
 
 	TResourceList					ResourceList_;
 	TEntityList						EntityList_;
-
-	class EvtBridgeIRC*				pBridgeIRC_;
 };
 
 #endif
