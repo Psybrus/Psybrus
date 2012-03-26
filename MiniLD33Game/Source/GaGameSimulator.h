@@ -24,7 +24,7 @@ class GaGameSimulator:
 	public EvtPublisher
 {
 public:
-	GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID );
+	GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID, const BcChar* pAddress, BcU16 Port );
 	virtual ~GaGameSimulator();
 
 	BcFixed getSimulationRate() const;

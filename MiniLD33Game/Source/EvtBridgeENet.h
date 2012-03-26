@@ -27,7 +27,7 @@ public:
 	EvtBridgeENet( EvtPublisher* pPublisher );
 	virtual ~EvtBridgeENet();
 
-	BcBool connect( BcU32 ClientID, const BcChar* pAddress, BcU16 Port );
+	BcBool connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 RemotePort, BcU16 LocalPort, int ServerSocketFileDesc );
 	BcBool update( BcReal Delta );
 
 private:

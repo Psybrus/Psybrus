@@ -13,12 +13,13 @@
 
 #include "EvtBridgeENet.h"
 #include "EvtProxyLockstep.h"
+#include "GaMatchmakingState.h"
 
 #include "GaGameSimulator.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaGameSimulator
-GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID ):
+GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID, const BcChar* pAddress, BcU16 Port ):
 	SimulationRate_( SimulationRate ),
 	SimulationSpeed_( SimulationSpeed ),
 	TickAccumulator_( 0.0f ),
@@ -26,6 +27,8 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	UnitID_( 0 ),
 	Checksum_( 0 )
 {
+	BcAssert( TeamID != BcErrorCode );
+
 	GaGameUnitIdleEvent::Delegate OnUnitIdle( GaGameUnitIdleEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitIdle >( this ) );
 	GaGameUnitGuardEvent::Delegate OnUnitGuard( GaGameUnitGuardEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitGuard >( this ) );
 	GaGameUnitMoveEvent::Delegate OnUnitMove( GaGameUnitMoveEvent::Delegate::bind< GaGameSimulator, &GaGameSimulator::onUnitMove >( this ) );
@@ -39,8 +42,16 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	pEventProxy_ = new EvtProxyLockstep( this, TeamID, 2 );
 	pEventBridge_ = new EvtBridgeENet( this );
 
-	// Connect up.
-	pEventBridge_->connect( TeamID, "localhost", 6000 );
+	// If the remote address we are trying to connect isn't the same as the mapped address we want to connect to, then connect up normally.
+	// If they match, we're behind the same NAT, so use the LAN address we've been given too.
+	if( GaMatchmakingState::getRemoteAddr() != GaMatchmakingState::getMappedAddr() )
+	{
+		pEventBridge_->connect( TeamID, GaMatchmakingState::getRemoteAddr(), GaMatchmakingState::getRemotePort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
+	}
+	else
+	{
+		pEventBridge_->connect( TeamID, GaMatchmakingState::getLANAddr(), GaMatchmakingState::getLANPort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
