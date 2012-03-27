@@ -73,12 +73,9 @@ GaMatchmakingState::GaMatchmakingState()
 GaMatchmakingState::~GaMatchmakingState()
 {
 	BcPrintf("~GaMatchmakingState();\n");
-	if( pSession_ )
+
+	if( pSession_ != NULL )
 	{
-		irc_disconnect( pSession_ );
-		BcSleep( 0.1f );
-		BcThread::join();
-		BcSleep( 0.1f );
 		irc_destroy_session( pSession_ );
 		pSession_ = NULL;
 	}
@@ -191,6 +188,18 @@ eSysStateReturn GaMatchmakingState::main()
 	return sysSR_CONTINUE;
 }
 
+eSysStateReturn GaMatchmakingState::leave()
+{
+	BcPrintf( "Leave!" );
+	if( pSession_ )
+	{
+		irc_disconnect( pSession_ );
+		BcSleep( 0.1f );
+		BcThread::join();
+		BcSleep( 0.1f );
+	}
+	return sysSR_FINISHED;
+}
 ////////////////////////////////////////////////////////////////////////////////
 // bridge
 BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )

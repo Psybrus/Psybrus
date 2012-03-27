@@ -29,6 +29,7 @@ public:
 	virtual ~GaMatchmakingState();
 
 	eSysStateReturn main();
+	eSysStateReturn leave();
 	
 	BcBool sendLocalAddress( const BcChar* pDest );
 

@@ -61,7 +61,7 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 	ServerAddress_.host = ENET_HOST_ANY;
 	ServerAddress_.port = LocalPort;
 	pServerHost_ = enet_host_create( &ServerAddress_ /* the address to bind the server host to */, 
-		                                1               /* allow up to 2 clients and/or outgoing connections */,
+		                                2               /* allow up to 2 clients and/or outgoing connections */,
 		                                2               /* allow up to 2 channels to be used, 0 and 1 */,
 		                                0               /* assume any amount of incoming bandwidth */,
 		                                0,               /* assume any amount of outgoing bandwidth */
@@ -70,7 +70,7 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 	ServerAddress_.host = htonl( RemoteAddress ); // lol hax
 	ServerAddress_.port = RemotePort;
 	pClientHost_ = enet_host_create ( NULL /* create a client host */,
-									  1 /* only allow 1 outgoing connection */,
+									  2 /* only allow 1 outgoing connection */,
 									  2 /* allow up 2 channels to be used, 0 and 1 */,
 									  57600 / 8 /* 56K modem with 56 Kbps downstream bandwidth */,
 									  14400 / 8, /* 56K modem with 14 Kbps upstream bandwidth */ 
@@ -94,6 +94,8 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 			Timer.mark();
 			while( Timer.time() < 20.0f )
 			{
+				BcPrintf("Waiting for connection for %f seconds...\n", Timer.time());
+
 				serviceHost( pServerHost_, 1000 );
 				serviceHost( pClientHost_, 1000 );
 
