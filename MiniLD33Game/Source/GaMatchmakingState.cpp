@@ -85,9 +85,8 @@ GaMatchmakingState::~GaMatchmakingState()
 // update
 eSysStateReturn GaMatchmakingState::main()
 {
-	BcReal Delta = SysKernel::pImpl()->getFrameTime();
-
 	BcScopedLock< BcMutex > Lock( Lock_ );
+	BcReal Delta = SysKernel::pImpl()->getFrameTime();
 
 	switch( HandshakeState_ )
 	{
@@ -188,9 +187,12 @@ eSysStateReturn GaMatchmakingState::main()
 	return sysSR_CONTINUE;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// leave
 eSysStateReturn GaMatchmakingState::leave()
 {
-	BcPrintf( "Leave!" );
+	BcScopedLock< BcMutex > Lock( Lock_ );
+	BcPrintf( "Leave!\n" );
 	if( pSession_ )
 	{
 		irc_disconnect( pSession_ );
@@ -209,6 +211,7 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 	StunAddress4 MappedAddress;
 	BcBool GotPort = BcFalse;
 
+	BcPrintf("Connecting to STUN server..\n");
 	if( stunParseServerName( "stunserver.org", StunAddress ) )
 	{
 		int BasePort = 6000;
@@ -226,12 +229,14 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 				closesocket( SocketFileDescriptor_ );
 				SocketFileDescriptor_ = 0;
 			}
+			BcPrintf("Opening socket on port %u..\n", SrcPort);
 			SocketFileDescriptor_ = stunOpenSocket( StunAddress, &MappedAddress, SrcPort, &NICAddr, false );
-
+			
 			// Ok, we got one.
 			if( SocketFileDescriptor_ > 0 )
 			{
 				GotPort = BcTrue;
+				BcPrintf("Got socket!\n");
 				
 				LocalHandshakeAddr_ = 0;
 				LocalHandshakePort_ = SrcPort;
@@ -281,6 +286,7 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 		BcPrintf( "Send: %s (%u)\n", AddrBuffer, LocalHandshakePort_ );
 				
 		// Send message.
+		BcPrintf( "pre-irc_cmd_msg:\n" );
 		int RetVal = irc_cmd_msg( pSession_, pDest, AddrBuffer );
 		BcPrintf( "irc_cmd_msg: %u\n", RetVal );
 	}
@@ -500,7 +506,7 @@ void GaMatchmakingState::event_privmsg(irc_session_t * session, const char * eve
 	if ( pBridge->HandshakeState_ == HSS_WAIT_INVITE || pBridge->HandshakeState_ == HSS_WAIT_ADDR )
 	{
 		// Grab short name from origin.
-		BcChar NameCopy[ 256 ];
+		static BcChar NameCopy[ 256 ];
 		BcStrCopy( NameCopy, origin );
 		BcChar* pNameEnd = BcStrStr( NameCopy, "!" );
 
