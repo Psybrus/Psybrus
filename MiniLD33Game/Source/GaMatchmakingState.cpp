@@ -72,6 +72,7 @@ GaMatchmakingState::GaMatchmakingState()
 //virtual
 GaMatchmakingState::~GaMatchmakingState()
 {
+	BcPrintf("~GaMatchmakingState();\n");
 	if( pSession_ )
 	{
 		irc_disconnect( pSession_ );
