@@ -46,6 +46,16 @@ EvtBridgeENet::~EvtBridgeENet()
 BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 RemotePort, BcU16 LocalPort, int ServerSocketFileDesc )
 {
 	ClientID_ = ClientID;
+
+	BcPrintf( "EvtBridgeENet RemoteAddr:%u.%u.%u.%u:%u/LocalPort:%u/ServerSock:%u\n", 
+		( RemoteAddress >> 24 ) & 0xff,
+		( RemoteAddress >> 16 ) & 0xff,
+		( RemoteAddress >> 8 ) & 0xff,
+		( RemoteAddress ) & 0xff,
+		RemotePort,
+		LocalPort,
+		ServerSocketFileDesc
+		);
 	
 	// Setup a server host.
 	ServerAddress_.host = ENET_HOST_ANY;
@@ -172,6 +182,8 @@ void EvtBridgeENet::serviceHost( ENetHost* pHost )
 					EvtID InID = *reinterpret_cast< EvtID* >( &Event.packet -> data[ 0 ] );
 					EvtBaseEvent& InEvent = *reinterpret_cast< EvtBaseEvent* >( &Event.packet -> data[ sizeof( InID ) ] );
 					publish( InID, InEvent, Event.packet -> dataLength - sizeof( InID ) );
+
+					BcPrintf( "Publishing event 0x%x. %u bytes.\n", InID, Event.packet -> dataLength - sizeof( InID ) );
 
 					/* Clean up the packet now that we're done using it. */
 					enet_packet_destroy ( Event.packet );

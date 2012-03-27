@@ -30,7 +30,7 @@ BcLogFile::~BcLogFile()
 {
 	
 }
-	
+
 //////////////////////////////////////////////////////////////////////////
 // internalWrite
 //virtual
@@ -41,6 +41,7 @@ void BcLogFile::internalWrite( const BcChar* pText )
 	if( OutputFile_.isOpen() )
 	{
 		OutputFile_.write( pText, BcStrLength( pText ) );
+		internalFlush();
 	}
 }
 
