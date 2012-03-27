@@ -75,8 +75,11 @@ GaMatchmakingState::~GaMatchmakingState()
 	if( pSession_ )
 	{
 		irc_disconnect( pSession_ );
+		BcSleep( 0.1f );
 		BcThread::join();
+		BcSleep( 0.1f );
 		irc_destroy_session( pSession_ );
+		pSession_ = NULL;
 	}
 }
 
@@ -163,13 +166,18 @@ eSysStateReturn GaMatchmakingState::main()
 		break;
 
 	case HSS_COMPLETE:
-		return sysSR_FINISHED;
+		{
+			BcPrintf("GaMatchmakingState: Complete! ClientID of ours is %u\n", ClientID_);
+			return sysSR_FINISHED;
+		}
 		break;
 	}
 
 	if( HandshakeState_ != HSS_IDLE && ( pSession_ == NULL || !irc_is_connected( pSession_ ) ) )
 	{
+		BcSleep( 0.1f );
 		BcThread::join();
+		BcSleep( 0.1f );
 		if( pSession_ != NULL )
 		{
 			irc_destroy_session( pSession_ );
