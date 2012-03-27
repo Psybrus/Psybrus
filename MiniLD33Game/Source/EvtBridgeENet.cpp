@@ -75,7 +75,6 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 									  57600 / 8 /* 56K modem with 56 Kbps downstream bandwidth */,
 									  14400 / 8, /* 56K modem with 14 Kbps upstream bandwidth */ 
 									  0 );
-		
 	if( pServerHost_ && pClientHost_ )
 	{
 		// Get a peer from client host.
@@ -92,7 +91,7 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 		{
 			BcTimer Timer;
 			Timer.mark();
-			while( Timer.time() < 20.0f )
+			while( Timer.time() < 30.0f )
 			{
 				BcReal Time = Timer.time();
 				BcPrintf("Waiting for connection for %f seconds...\n", Time);
