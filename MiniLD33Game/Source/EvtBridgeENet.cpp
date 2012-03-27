@@ -94,10 +94,11 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 			Timer.mark();
 			while( Timer.time() < 20.0f )
 			{
-				BcPrintf("Waiting for connection for %f seconds...\n", Timer.time());
+				BcReal Time = Timer.time();
+				BcPrintf("Waiting for connection for %f seconds...\n", Time);
 
-				serviceHost( pServerHost_, 1000 );
-				serviceHost( pClientHost_, 1000 );
+				serviceHost( pServerHost_, 10 );
+				serviceHost( pClientHost_, 10 );
 
 				if( NoofHosts_ == 2 )
 				{
