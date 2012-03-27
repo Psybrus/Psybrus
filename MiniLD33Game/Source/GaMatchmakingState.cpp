@@ -201,10 +201,11 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 
 	if( stunParseServerName( "stunserver.org", StunAddress ) )
 	{
-		for( BcU32 TryIdx = 0; TryIdx < 3; ++TryIdx )
+		int BasePort = 6000;
+		for( BcU32 TryIdx = 0; TryIdx < 10; ++TryIdx )
 		{
 			// Set port & NIC.
-			int SrcPort = stunRandomPort();
+			int SrcPort = BasePort + TryIdx;
 			StunAddress4 NICAddr;
 			NICAddr.addr = 0; 
 			NICAddr.port = SrcPort; 
