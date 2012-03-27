@@ -34,7 +34,7 @@ private:
 	virtual void bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
 
 private:
-	void serviceHost( ENetHost* pHost );
+	void serviceHost( ENetHost* pHost, BcU32 Timeout = 0 );
 
 private:
 	// SERVER

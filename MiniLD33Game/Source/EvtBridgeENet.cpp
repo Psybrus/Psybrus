@@ -94,8 +94,8 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 			Timer.mark();
 			while( Timer.time() < 20.0f )
 			{
-				serviceHost( pServerHost_ );
-				serviceHost( pClientHost_ );
+				serviceHost( pServerHost_, 1000 );
+				serviceHost( pClientHost_, 1000 );
 
 				if( NoofHosts_ == 2 )
 				{
@@ -155,20 +155,22 @@ void EvtBridgeENet::bridge( EvtID ID, const EvtBaseEvent& EventBase, BcSize Even
 ////////////////////////////////////////////////////////////////////////////////
 // serviceHost
 //virtual
-void EvtBridgeENet::serviceHost( ENetHost* pHost )
+void EvtBridgeENet::serviceHost( ENetHost* pHost, BcU32 Timeout )
 {
 	ENetEvent Event;
 
+	const BcChar* pHostType = pHost == pServerHost_ ? "ServerHost:" : "ClientHost";
+
 	if( pHost )
 	{
-		while( enet_host_service ( pHost, &Event, 0 ) > 0 )
+		while( enet_host_service ( pHost, &Event, Timeout ) > 0 )
 		{
-			BcPrintf( "ENet Event: %u\n", Event.type );
+			BcPrintf( "(%s) ENet Event: %u\n", pHostType, Event.type );
 			switch (Event.type)
 			{
 			case ENET_EVENT_TYPE_CONNECT:
 				{
-					BcPrintf ("A new client connected from %x:%u.\n", 
+					BcPrintf ("(%s) A new client connected from %x:%u.\n", pHostType, 
 							Event.peer -> address.host,
 							Event.peer -> address.port);
 
@@ -185,7 +187,7 @@ void EvtBridgeENet::serviceHost( ENetHost* pHost )
 					EvtBaseEvent& InEvent = *reinterpret_cast< EvtBaseEvent* >( &Event.packet -> data[ sizeof( InID ) ] );
 					publish( InID, InEvent, Event.packet -> dataLength - sizeof( InID ) );
 
-					BcPrintf( "Publishing event 0x%x. %u bytes.\n", InID, Event.packet -> dataLength - sizeof( InID ) );
+					BcPrintf( "(%s) Publishing event 0x%x. %u bytes.\n", pHostType, InID, Event.packet -> dataLength - sizeof( InID ) );
 
 					/* Clean up the packet now that we're done using it. */
 					enet_packet_destroy ( Event.packet );
@@ -194,7 +196,7 @@ void EvtBridgeENet::serviceHost( ENetHost* pHost )
 
 			case ENET_EVENT_TYPE_DISCONNECT:
 				{
-					BcPrintf ("%s disconected.\n", Event.peer -> data);
+					BcPrintf ("(%s) %s disconected.\n", pHostType, Event.peer -> data);
 				
 					/* Reset the peer's client information. */
 				
