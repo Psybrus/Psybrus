@@ -34,6 +34,7 @@ GaMatchmakingState::GaMatchmakingState()
 
 	HandshakeState_ = HSS_IDLE;
 
+	BcMemZero( &Callbacks_, sizeof( Callbacks_ ) );
 	Callbacks_.event_connect = event_connect;
 	Callbacks_.event_nick = event_nick;
 	Callbacks_.event_nick = event_quit;
@@ -550,6 +551,8 @@ void GaMatchmakingState::event_privmsg(irc_session_t * session, const char * eve
 			pBridge->HandshakeState_ = HSS_WAIT_INVITE;
 		}
 	}
+
+	BcPrintf("event_privmsg done.\n");
 }
 
 //////////////////////////////////////////////////////////////////////////
