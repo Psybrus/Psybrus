@@ -29,6 +29,9 @@ GaGameUnit::GaGameUnit( GaGameSimulator* pSimulator, const GaGameUnitDescriptor&
 	NextState_ = CurrState_;
 
 	Health_ = Desc_.Health_;
+	IsAttackMove_ = BcFalse;
+
+	TargetUnitID_ = BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -162,12 +165,13 @@ void GaGameUnit::setBehaviourGuard()
 
 //////////////////////////////////////////////////////////////////////////
 // setBehaviourMove
-void GaGameUnit::setBehaviourMove( const BcFixedVec2d& Target )
+void GaGameUnit::setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMove )
 {
 	if( Health_ > 0.0f )
 	{
 		Behaviour_ = BEHAVIOUR_MOVE;
 		MoveTargetPosition_ = Target;
+		IsAttackMove_ = IsAttackMove;
 
 		pSimulator_->addDebugPoint( CurrState_.Position_, 0.5f, RsColour::GREEN );
 	}
@@ -180,6 +184,7 @@ void GaGameUnit::setBehaviourAttack( BcU32 TargetUnitID )
 	if( Health_ > 0.0f )
 	{
 		Behaviour_ = BEHAVIOUR_ATTACK;
+		TargetUnitID_ = TargetUnitID;
 	}	
 }
 
@@ -205,7 +210,7 @@ void GaGameUnit::setBehaviourDead()
 
 //////////////////////////////////////////////////////////////////////////
 // inRangeForAttack
-BcBool GaGameUnit::inRangeForAttack( BcU32 TargetID )
+GaGameUnit::TRange GaGameUnit::inRangeForAttack( BcU32 TargetID )
 {
 	if( Desc_.pDamageUnit_ != NULL )
 	{
@@ -217,14 +222,22 @@ BcBool GaGameUnit::inRangeForAttack( BcU32 TargetID )
 			BcFixed DistanceSquared = ( pTargetUnit->getPosition() - getPosition() ).magnitudeSquared();
 			BcFixed MinRange = ( Desc_.MinRange_ * Desc_.MinRange_ );
 			BcFixed MaxRange = ( Desc_.Range_ * Desc_.Range_ );
-			if( DistanceSquared < MaxRange && DistanceSquared > MinRange )
+			if( DistanceSquared > MaxRange )
 			{
-				return BcTrue;
+				return RANGE_OUT_MAX;
+			}
+			else if( DistanceSquared < MinRange )
+			{
+				return RANGE_OUT_MIN;
+			}
+			else
+			{
+				return RANGE_IN;
 			}
 		}
 	}
 
-	return BcFalse;
+	return RANGE_NONE;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -232,7 +245,7 @@ BcBool GaGameUnit::inRangeForAttack( BcU32 TargetID )
 void GaGameUnit::doAttack( BcU32 TargetID )
 {
 	// Check in range.
-	if( inRangeForAttack( TargetID ) )
+	if( inRangeForAttack( TargetID ) == RANGE_IN )
 	{
 		// If we can attack, launch projectile.
 		if( AttackTimer_ <= 0.0f )
@@ -281,7 +294,7 @@ void GaGameUnit::tickState( BcFixed Delta )
 	PrevState_ = CurrState_;
 	NextState_ = CurrState_;
 
-	if( NextState_.Velocity_.magnitudeSquared() > 0.0f )
+	//if( NextState_.Velocity_.magnitudeSquared() > 0.0f )
 	{
 		NextState_.Position_ += NextState_.Velocity_ * Delta;
 
@@ -295,10 +308,27 @@ void GaGameUnit::tickState( BcFixed Delta )
 			
 			pSimulator_->findUnits( FoundUnits, Min, Max, ID_, 0x3 );
 
-			// TODO: Recalculate velocity vector.
+			// Move unit away from it's nearest one.
 			if( FoundUnits.size() != 0 )
 			{
-				NextState_ = CurrState_;
+				BcU32 NearestUnit = pSimulator_->findNearestUnit( CurrState_.Position_, ID_, 0x3 );
+				GaGameUnit* pGameUnit = pSimulator_->getUnit( NearestUnit );
+
+				if( pGameUnit != NULL )
+				{
+					BcFixedVec2d Direction = ( CurrState_.Position_ - pGameUnit->CurrState_.Position_ ).normal();
+
+					if( Direction.dot( NextState_.Velocity_.normal() ) > 0.0f || NextState_.Velocity_.magnitudeSquared() == 0.0f )
+					{
+						NextState_ = CurrState_;
+						NextState_.Velocity_ = NextState_.Velocity_ * 0.8f + ( Direction * Desc_.MoveSpeed_ ) * 0.2f;
+						NextState_.Position_ += NextState_.Velocity_ * Delta;
+					}
+				}
+				else
+				{
+					NextState_ = CurrState_;
+				}
 			}
 		}
 	}
@@ -320,6 +350,7 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 	{
 	case BEHAVIOUR_IDLE:
 		{
+			CurrState_.Velocity_ = BcFixedVec2d( 0.0f, 0.0f );
 			BcU32 NearestUnit = pSimulator_->findNearestUnit( CurrState_.Position_, ID_, 1 << ( 1 - TeamID_ ) );
 			if( NearestUnit != BcErrorCode )
 			{
@@ -330,6 +361,7 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 
 	case BEHAVIOUR_GUARD:
 		{
+			CurrState_.Velocity_ = BcFixedVec2d( 0.0f, 0.0f );
 			BcU32 NearestUnit = pSimulator_->findNearestUnit( CurrState_.Position_, ID_, 1 << ( 1 - TeamID_ ) );
 			if( NearestUnit != BcErrorCode )
 			{
@@ -341,7 +373,7 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 	case BEHAVIOUR_MOVE:
 		{
 			BcU32 NearestUnit = pSimulator_->findNearestUnit( CurrState_.Position_, ID_, 1 << ( 1 - TeamID_ ) );
-			if( inRangeForAttack( NearestUnit ) )
+			if( IsAttackMove_ && inRangeForAttack( NearestUnit ) == RANGE_IN )
 			{
 				CurrState_.Velocity_ = BcFixedVec2d( 0.0f, 0.0f );
 
@@ -350,12 +382,15 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 			else
 			{
 				// Reset attack timer.
-				AttackTimer_ = BcFixed( 1.0f ) / Desc_.RateOfAttack_;
+				AttackTimer_ = BcMax( AttackTimer_,  BcFixed( Desc_.CoolDownMultiplier_ ) / Desc_.RateOfAttack_ );
+				
+				// Make longer whe moving.
+				AttackTimer_ = BcMin( BcFixed( 1.0f ) / Desc_.RateOfAttack_, AttackTimer_ + ( BcFixed( 1.0f ) / Desc_.RateOfAttack_ ) * ( Delta * 0.05f ) );
 
 				// Calculate velocity vector.
 				CurrState_.Velocity_ = BcFixedVec2d( MoveTargetPosition_ - CurrState_.Position_ ).normal() * Desc_.MoveSpeed_;
 				BcFixed MoveDistance = Desc_.MoveSpeed_ * Delta;
-				if( ( CurrState_.Position_ - MoveTargetPosition_ ).magnitudeSquared() < MoveDistance )
+				if( ( CurrState_.Position_ - MoveTargetPosition_ ).magnitudeSquared() < ( MoveDistance * MoveDistance ) )
 				{
 					CurrState_.Position_ = MoveTargetPosition_;
 					setBehaviourIdle();
@@ -366,14 +401,33 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 
 	case BEHAVIOUR_ATTACK:
 		{
-			/*
-			BcU32 NearestUnit = pSimulator_->findNearestUnit( CurrState_.Position_, ID_, 1 - TeamID_ );
-			if( NearestUnit != BcErrorCode )
+			TRange Range = inRangeForAttack( TargetUnitID_ );
+			if( Range == RANGE_IN )
 			{
-				doAttack( NearestUnit );
+				doAttack( TargetUnitID_ );
 			}
 			else
 			{
+				// Reset attack timer.
+				AttackTimer_ = BcMax( AttackTimer_,  BcFixed( Desc_.CoolDownMultiplier_ ) / ( Desc_.RateOfAttack_ ) );
+
+				// Make longer whe moving.
+				AttackTimer_ = BcMin( BcFixed( 1.0f ) / Desc_.RateOfAttack_, AttackTimer_ + ( BcFixed( 1.0f ) / Desc_.RateOfAttack_ ) * ( Delta * 0.05f ) );
+
+				// Get unit position.
+				GaGameUnit* pUnit = pSimulator_->getUnit( TargetUnitID_ );
+				if( pUnit != NULL )
+				{
+					BcFixedVec2d Direction = ( getPosition() - pUnit->getPosition() ).normal() * ( ( Desc_.MinRange_ + Desc_.Range_ ) * 0.5f );
+					MoveTargetPosition_ = pUnit->getPosition() + Direction;
+				}
+				else
+				{
+					// Attack move to previous target.
+					IsAttackMove_ = BcTrue;
+					Behaviour_ = BEHAVIOUR_MOVE;
+				}
+
 				// Calculate velocity vector.
 				CurrState_.Velocity_ = BcFixedVec2d( MoveTargetPosition_ - CurrState_.Position_ ).normal() * Desc_.MoveSpeed_;
 
@@ -385,7 +439,6 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 					setBehaviourIdle();
 				}
 			}
-			*/
 		}
 		break;
 
@@ -394,7 +447,7 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 			// Calculate velocity vector.
 			CurrState_.Velocity_ = BcFixedVec2d( MoveTargetPosition_ - CurrState_.Position_ ).normal() * Desc_.MoveSpeed_;
 			BcFixed MoveDistance = Desc_.MoveSpeed_ * Delta;
-			if( ( CurrState_.Position_ - MoveTargetPosition_ ).magnitudeSquared() < MoveDistance )
+			if( ( CurrState_.Position_ - MoveTargetPosition_ ).magnitudeSquared() < ( MoveDistance * MoveDistance ) )
 			{
 				CurrState_.Position_ = MoveTargetPosition_;
 
@@ -515,7 +568,7 @@ void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 
 //////////////////////////////////////////////////////////////////////////
 // renderSelectionHUD
-void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
+void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction, BcU32 TeamID )
 {
 	if( Behaviour_ != BEHAVIOUR_DEAD )
 	{
@@ -544,9 +597,10 @@ void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeF
 		BcVec2d SizeD( BcVec2d(  16.0f, -16.0f ) );
 
 		// Draw selection marker.
-		Canvas->drawSpriteCentered( PositionA, SizeA, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
-		Canvas->drawSpriteCentered( PositionB, SizeB, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
-		Canvas->drawSpriteCentered( PositionC, SizeC, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
-		Canvas->drawSpriteCentered( PositionD, SizeD, 2, RsColour::WHITE * RsColour( 1.0f, 1.0f, 1.0f, 0.75f ), 3 );
+		RsColour MarkerColour = TeamID == TeamID_ ? ( RsColour::WHITE ) : ( RsColour::RED ) * RsColour( 1.0f, 1.0f, 1.0f, 0.75f );
+		Canvas->drawSpriteCentered( PositionA, SizeA, 2, MarkerColour, 3 );
+		Canvas->drawSpriteCentered( PositionB, SizeB, 2, MarkerColour, 3 );
+		Canvas->drawSpriteCentered( PositionC, SizeC, 2, MarkerColour, 3 );
+		Canvas->drawSpriteCentered( PositionD, SizeD, 2, MarkerColour, 3 );
 	}
 }

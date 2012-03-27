@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "EvtBridgeENet.h"
+#include "EvtBridgeRakNet.h"
 #include "EvtProxyLockstep.h"
 #include "GaMatchmakingState.h"
 
@@ -40,7 +40,7 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	subscribe( gaEVT_UNIT_ATTACK, OnUnitAttack );
 
 	pEventProxy_ = new EvtProxyLockstep( this, TeamID, 2 );
-	pEventBridge_ = new EvtBridgeENet( this );
+	pEventBridge_ = new EvtBridgeRakNet( this );
 
 	// If the remote address we are trying to connect isn't the same as the mapped address we want to connect to, then connect up normally.
 	// If they match, we're behind the same NAT, so use the LAN address we've been given too.
@@ -290,7 +290,7 @@ void GaGameSimulator::render( ScnCanvasComponentRef Canvas, BcU32 TeamID )
 
 //////////////////////////////////////////////////////////////////////////
 // renderHUD
-void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection )
+void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection, BcU32 TeamID )
 {
 	BcFixed TimeFraction = BcClamp( TickAccumulator_ / SimulationRate_, 0.0f, 1.0f );
 	for( BcU32 Idx = 0; Idx < CurrentSelection.size(); ++Idx )
@@ -298,7 +298,7 @@ void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitI
 		GaGameUnit* pGameUnit = getUnit( CurrentSelection[ Idx ] );
 		if( pGameUnit != NULL )
 		{
-			pGameUnit->renderSelectionHUD( Canvas, TimeFraction );
+			pGameUnit->renderSelectionHUD( Canvas, TimeFraction, TeamID );
 		}
 	}
 
@@ -360,7 +360,7 @@ eEvtReturn GaGameSimulator::onUnitMove( EvtID ID, const GaGameUnitMoveEvent& Eve
 
 	if( pGameUnit != NULL )
 	{
-		pGameUnit->setBehaviourMove( Event.Position_ );
+		pGameUnit->setBehaviourMove( Event.Position_, Event.IsAttackMove_ );
 	}
 
 	return evtRET_PASS;

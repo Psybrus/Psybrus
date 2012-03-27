@@ -106,8 +106,24 @@ eSysStateReturn GaMatchmakingState::main()
 				{
 					irc_set_ctx( pSession_, this );
 
-					BcSPrintf( ScreenName_, "%s_%x", "PSY_", BcRandom::Global.rand() );
-					BcSPrintf( Channel_, "#psybrus_minild33" );
+					std::string Channel = "#testchannel";
+					BcFile File;
+					if( File.open( "config.json" ) )
+					{
+						char* pData = new char[ File.size() ];
+						File.read( pData, File.size() );
+						Json::Reader Reader;
+		
+						Json::Value Root;
+						if( Reader.parse( pData, pData + File.size(), Root ) )
+						{
+							Channel = Root["channel"].asCString();
+						}
+						delete [] pData;
+					}
+
+					BcSPrintf( ScreenName_, "%s_%x", "PSY", BcRandom::Global.rand() );
+					BcSPrintf( Channel_, Channel.c_str() );
 
 					// Connect to the server.
 					int RetVal = irc_connect( pSession_, "www.neilo.gd", 8000, NULL, ScreenName_, ScreenName_, ScreenName_ );
@@ -236,6 +252,11 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 			// Ok, we got one.
 			if( SocketFileDescriptor_ > 0 )
 			{
+				// RakNet only.
+				closesocket( SocketFileDescriptor_ );
+				SocketFileDescriptor_ = 0;
+				//
+
 				GotPort = BcTrue;
 				BcPrintf("Got socket!\n");
 				
