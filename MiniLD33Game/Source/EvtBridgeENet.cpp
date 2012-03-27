@@ -81,6 +81,8 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 		// Get a peer from client host.
 		pPeer_ = enet_host_connect( pClientHost_, &ServerAddress_, 2, 0 );
 
+		pPeer_->data = "Local client";
+
 		if( pPeer_ == NULL )
 		{
 			BcPrintf( "Client (%u) An error has occurred creating peer.\n", ClientID );
@@ -90,7 +92,7 @@ BcBool EvtBridgeENet::connect( BcU32 ClientID, BcU32 RemoteAddress, BcU16 Remote
 		{
 			BcTimer Timer;
 			Timer.mark();
-			while( Timer.time() < 10.0f )
+			while( Timer.time() < 20.0f )
 			{
 				serviceHost( pServerHost_ );
 				serviceHost( pClientHost_ );
