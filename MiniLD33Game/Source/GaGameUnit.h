@@ -42,6 +42,7 @@ struct GaGameUnitDescriptor
 	BcFixedVec2d Size_;						// Unit size.
 	BcFixed MoveSpeed_;						// How many units per second it can move.
 	BcFixed RateOfAttack_;					// Rate that we can attack.
+	BcFixed CoolDownMultiplier_;			// Cool down after movement. (mult by rate of attack)
 	BcFixed Range_;							// Range of attack.
 	BcFixed MinRange_;						// Min range.
 	BcFixed Health_;						// Unit health.
@@ -53,6 +54,25 @@ struct GaGameUnitDescriptor
 // GaGameUnit
 class GaGameUnit
 {
+public:
+	enum TBehaviour
+	{
+		BEHAVIOUR_IDLE = 0,
+		BEHAVIOUR_GUARD,
+		BEHAVIOUR_MOVE,
+		BEHAVIOUR_ATTACK,
+		BEHAVIOUR_DAMAGE,
+		BEHAVIOUR_DEAD
+	};
+
+	enum TRange
+	{
+		RANGE_IN = 0,
+		RANGE_OUT_MAX,
+		RANGE_OUT_MIN,
+		RANGE_NONE
+	};
+
 public:
 	GaGameUnit( GaGameSimulator* pSimulator, const GaGameUnitDescriptor& Desc, BcU32 TeamID, BcU32 ID, const BcFixedVec2d& Position );
 	~GaGameUnit();
@@ -75,12 +95,12 @@ public:
 
 	void setBehaviourIdle();
 	void setBehaviourGuard();
-	void setBehaviourMove( const BcFixedVec2d& Target );
+	void setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMove );
 	void setBehaviourAttack( BcU32 TargetUnitID );
 	void setBehaviourDamage( const BcFixedVec2d& Target );
 	void setBehaviourDead();
 
-	BcBool inRangeForAttack( BcU32 TargetID );
+	TRange inRangeForAttack( BcU32 TargetID );
 	void doAttack( BcU32 TargetID );
 
 	void applyDamage( BcFixed Amount );
@@ -93,19 +113,9 @@ public:
 	void render( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
 	void renderShadow( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
 	void renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
-	void renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
+	void renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction, BcU32 TeamID );
 
 private:
-	enum TBehaviour
-	{
-		BEHAVIOUR_IDLE = 0,
-		BEHAVIOUR_GUARD,
-		BEHAVIOUR_MOVE,
-		BEHAVIOUR_ATTACK,
-		BEHAVIOUR_DAMAGE,
-		BEHAVIOUR_DEAD
-	};
-
 	GaGameSimulator* pSimulator_;
 	GaGameUnitDescriptor Desc_;
 	BcU32 TeamID_;
@@ -119,6 +129,8 @@ private:
 	BcFixed Health_;
 	
 	BcFixedVec2d MoveTargetPosition_;
+	BcBool IsAttackMove_;
+	BcU32 TargetUnitID_;
 };
 
 #endif

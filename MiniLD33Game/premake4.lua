@@ -11,7 +11,8 @@ project "MiniLD33Game"
       "../External/libircclient-1.6/include",
       "../External/libb64/include",
       "../External/stund",
-      "../External/zlib"
+      "../External/zlib",
+      "../External/RakNet/Source"
    }
 
 	configuration "windows"
@@ -34,6 +35,7 @@ project "MiniLD33Game"
             "External_libircclient-1.6",
    			"External_ogg",
    			"External_png",
+            "External_RakNet",
    			"External_squish",
             "External_stund",
    			"External_tremor",

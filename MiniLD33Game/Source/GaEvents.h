@@ -51,6 +51,7 @@ struct GaGameUnitGuardEvent: GaGameUnitEvent< GaGameUnitGuardEvent >
 struct GaGameUnitMoveEvent: GaGameUnitEvent< GaGameUnitMoveEvent >
 {
 	BcFixedVec2d Position_;
+	BcBool IsAttackMove_;
 };
 
 struct GaGameUnitAttackEvent: GaGameUnitEvent< GaGameUnitAttackEvent >

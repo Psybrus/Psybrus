@@ -40,7 +40,7 @@ public:
 	void tick( BcReal Delta );
 
 	void render( ScnCanvasComponentRef Canvas, BcU32 TeamID );
-	void renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection );
+	void renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection, BcU32 TeamID );
 
 	void addDebugPoint( const BcFixedVec2d& Position, BcFixed Size, const RsColour& Colour );
 
@@ -52,7 +52,7 @@ private:
 
 private:
 	class EvtProxyLockstep* pEventProxy_;
-	class EvtBridgeENet* pEventBridge_;
+	class EvtBridgeRakNet* pEventBridge_;
 
 	BcFixed SimulationRate_;
 	BcFixed SimulationSpeed_;

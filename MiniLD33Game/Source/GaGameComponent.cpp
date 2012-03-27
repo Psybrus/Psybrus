@@ -21,6 +21,7 @@ static GaGameUnitDescriptor GGameProjectile_Soldier =
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
 	BcFixed( 32.0f ),				// Move speed.
 	BcFixed( 2.0f ),				// Rate of attack.
+	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 0.1f ),				// Range.
 	BcFixed( 0.1f ),				// Range.
 	BcFixed( 7.0f ),				// Health.
@@ -34,6 +35,7 @@ static GaGameUnitDescriptor GGameProjectile_Archer =
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
 	BcFixed( 32.0f ),				// Move speed.
 	BcFixed( 0.5f ),				// Rate of attack.
+	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 0.25f ),				// Range.
 	BcFixed( 0.25f ),				// Range.
 	BcFixed( 10.0f ),				// Health.
@@ -47,6 +49,7 @@ static GaGameUnitDescriptor GGameProjectile_Trebuchet =
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
 	BcFixed( 16.0f ),				// Move speed.
 	BcFixed( 0.5f ),				// Rate of attack.
+	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 1.25f ),				// Range.
 	BcFixed( 1.25f ),				// Range.
 	BcFixed( 30.0f ),				// Health.
@@ -60,8 +63,9 @@ static GaGameUnitDescriptor GGameUnit_Soldier =
 	BcFixedVec2d( 1.0f, 1.0f ),		// Unit size.
 	BcFixed( 2.5f ),				// Move speed.
 	BcFixed( 1.2f ),				// Rate of attack.
-	BcFixed( 1.2f ),				// Range.
-	BcFixed( 1.0f ),				// Range.
+	BcFixed( 0.1f ),				// Cool down mult for rate of attack.
+	BcFixed( 1.5f ),				// Range.
+	BcFixed( 0.0f ),				// Range.
 	BcFixed( 20.0f ),				// Health.
 	BcTrue,							// Armoured.
 	&GGameProjectile_Soldier,
@@ -73,6 +77,7 @@ static GaGameUnitDescriptor GGameUnit_Archer =
 	BcFixedVec2d( 1.0f, 1.0f ),		// Unit size.
 	BcFixed( 2.5f ),				// Move speed.
 	BcFixed( 0.5f ),				// Rate of attack.
+	BcFixed( 0.25f ),				// Cool down mult for rate of attack.
 	BcFixed( 14.0f ),				// Range.
 	BcFixed( 2.0f ),				// Range.
 	BcFixed( 40.0f ),				// Health.
@@ -86,6 +91,7 @@ static GaGameUnitDescriptor GGameUnit_Trebuchet =
 	BcFixedVec2d( 2.0f, 2.0f ),		// Unit size.
 	BcFixed( 0.3f ),				// Move speed.
 	BcFixed( 0.25f ),				// Rate of attack.
+	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 25.0f ),				// Range.
 	BcFixed( 10.0f ),				// Range.
 	BcFixed( 100.0f ),				// Health.
@@ -209,7 +215,7 @@ void GaGameComponent::update( BcReal Tick )
 			pSimulator_->render( CanvasComponent_, 1 );
 
 			// Find unit over mouse.
-			GaGameUnitIDList SelectionList = UnitSelection_;
+			GaGameUnitIDList SelectionList;
 			if( MouseDown_ )
 			{
 				if( BoxSelection_ )
@@ -219,16 +225,25 @@ void GaGameComponent::update( BcReal Tick )
 			}
 			else
 			{
-				pSimulator_->findUnits( SelectionList, GameCursorPosition_, 0.5f, BcErrorCode, BcErrorCode );
+				pSimulator_->findUnits( SelectionList, GameCursorPosition_, 0.8f, BcErrorCode, BcErrorCode );
+				while( SelectionList.size() > 1 )
+				{
+					SelectionList.pop_back();
+				}
+			}
+
+			for( BcU32 Idx = 0; Idx < UnitSelection_.size(); ++Idx )
+			{
+				SelectionList.push_back( UnitSelection_[ Idx ] );
 			}
 
 			CanvasComponent_->setMaterialComponent( HUDMaterial_ );
-			pSimulator_->renderHUD( CanvasComponent_, SelectionList );
+			pSimulator_->renderHUD( CanvasComponent_, SelectionList, TeamID_ );
 		}
 
 		// Draw cursor.
 		CanvasComponent_->setMaterialComponent( HUDMaterial_ );
-		CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, RsColour::WHITE, 10 );
+		CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, AttackMove_ ? RsColour::RED : RsColour::WHITE, 10 );
 
 		// Draw selection box.
 		if( MouseDown_ && BoxSelection_ ) 
@@ -336,7 +351,7 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 	GameCursorPosition_ = CursorPosition_ / 32.0f;
 	EndGameCursorPosition_ = GameCursorPosition_;
 
-	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 8.0f ) )
+	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 16.0f ) )
 	{
 		BoxSelection_ = BcTrue;
 	}
@@ -359,8 +374,7 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 		}
 		else
 		{
-			pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.5f, BcErrorCode, 1 << TeamID_ );
-
+			pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.8f, BcErrorCode, 1 << TeamID_ );
 			while( FoundUnits.size() > 1 )
 			{
 				FoundUnits.pop_back();
@@ -377,6 +391,20 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 			// If we aren't box selection do action.
 			if( BoxSelection_ == BcFalse )
 			{
+				BcU32 TargetUnitID = BcErrorCode;
+
+				// Determine if it's an attack move or not.
+				pSimulator_->findUnits( FoundUnits, GameCursorPosition_, 0.8f, BcErrorCode, 1 << ( 1 - TeamID_ ) );
+				while( FoundUnits.size() > 1 )
+				{
+					FoundUnits.pop_back();
+				}
+
+				if( FoundUnits.size() == 1 )
+				{
+					TargetUnitID = FoundUnits[ 0 ];
+				}
+
 				// Otherwise, tell found units to move.
 				BcFixedVec2d CentralPosition;
 				BcFixed Divisor;
@@ -404,17 +432,32 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 						GaGameUnit* pGameUnit( pSimulator_->getUnit( UnitSelection_[ Idx ] ) );
 						if( pGameUnit != NULL )
 						{
-							GaGameUnitMoveEvent Event;
-							Event.UnitID_ = pGameUnit->getID();
-							Event.Position_ = ( pGameUnit->getPosition() - CentralPosition ) + GameCursorPosition_;
+							if( TargetUnitID == BcErrorCode )
+							{
+								GaGameUnitMoveEvent Event;
+								Event.UnitID_ = pGameUnit->getID();
+								Event.Position_ = ( ( pGameUnit->getPosition() - CentralPosition ) * 0.5f ) + GameCursorPosition_;
 
-							Event.Position_.x( BcClamp( Event.Position_.x(), -PlayfieldHW, PlayfieldHW ) );
-							Event.Position_.y( BcClamp( Event.Position_.y(), -PlayfieldHH, PlayfieldHH ) );
-						
-							pSimulator_->publish( gaEVT_UNIT_MOVE, Event );
+								Event.Position_.x( BcClamp( Event.Position_.x(), -PlayfieldHW, PlayfieldHW ) );
+								Event.Position_.y( BcClamp( Event.Position_.y(), -PlayfieldHH, PlayfieldHH ) );
+
+								Event.IsAttackMove_ = AttackMove_;
+								
+								pSimulator_->publish( gaEVT_UNIT_MOVE, Event );
+							}
+							else
+							{
+								GaGameUnitAttackEvent Event;
+								Event.UnitID_ = pGameUnit->getID();
+								Event.TargetUnitID_ = TargetUnitID;
+								pSimulator_->publish( gaEVT_UNIT_ATTACK, Event );
+							}
 						}
 					}
 				}
+
+				// Toggle off attack move.
+				AttackMove_ = BcFalse;
 			}
 			else
 			{
