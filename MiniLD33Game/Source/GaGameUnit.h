@@ -48,6 +48,11 @@ struct GaGameUnitDescriptor
 	BcFixed Health_;						// Unit health.
 	BcBool Armoured_;						// Is armoured?
 	GaGameUnitDescriptor* pDamageUnit_;		// Unit to use for damage.
+
+	// Sounds.
+	const BcChar* pLaunchSound_;
+	const BcChar* pHitSound_;
+	const BcChar* pDieSound_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,6 +119,7 @@ public:
 	void renderShadow( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
 	void renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction );
 	void renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction, BcU32 TeamID );
+	void renderRangeHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction, BcU32 TeamID );
 
 private:
 	GaGameSimulator* pSimulator_;
@@ -131,6 +137,9 @@ private:
 	BcFixedVec2d MoveTargetPosition_;
 	BcBool IsAttackMove_;
 	BcU32 TargetUnitID_;
+
+	/// NONE GAME LOGIC TIMER STUFF.
+	BcFixed WalkTimer_;
 };
 
 #endif

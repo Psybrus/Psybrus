@@ -39,11 +39,14 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	subscribe( gaEVT_UNIT_MOVE, OnUnitMove );
 	subscribe( gaEVT_UNIT_ATTACK, OnUnitAttack );
 
-	pEventProxy_ = new EvtProxyLockstep( this, TeamID, 2 );
-	pEventBridge_ = new EvtBridgeRakNet( this );
+	pEventBridge_ = NULL;
+
+	pEventProxy_ = new EvtProxyLockstep( this, TeamID, 1 );
+	//pEventBridge_ = new EvtBridgeRakNet( this );
 
 	// If the remote address we are trying to connect isn't the same as the mapped address we want to connect to, then connect up normally.
 	// If they match, we're behind the same NAT, so use the LAN address we've been given too.
+	/*
 	if( GaMatchmakingState::getRemoteAddr() != GaMatchmakingState::getMappedAddr() )
 	{
 		pEventBridge_->connect( TeamID, GaMatchmakingState::getRemoteAddr(), GaMatchmakingState::getRemotePort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
@@ -52,6 +55,7 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	{
 		pEventBridge_->connect( TeamID, GaMatchmakingState::getLANAddr(), GaMatchmakingState::getLANPort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
 	}
+	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,8 +67,8 @@ GaGameSimulator::~GaGameSimulator()
 	delete pEventProxy_;
 	pEventProxy_ = NULL;
 
-	//delete pEventBridge_;
-	//pEventBridge_ = NULL;
+	delete pEventBridge_;
+	pEventBridge_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,11 +196,11 @@ void GaGameSimulator::applyDamage( const BcFixedVec2d& Position, BcFixed Range, 
 // tick
 void GaGameSimulator::tick( BcReal Delta )
 {
-	TickAccumulator_ += Delta * SimulationSpeed_;
-
 	// Only run if we can update the event bridge.
-	if( pEventBridge_->update( Delta ) )
+	if( pEventBridge_ == NULL || pEventBridge_->update( Delta ) )
 	{
+		TickAccumulator_ += Delta * SimulationSpeed_;
+
 		while( TickAccumulator_ > SimulationRate_ )
 		{
 			BcFixed SimulationRate = SimulationRate_;
@@ -299,6 +303,7 @@ void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitI
 		if( pGameUnit != NULL )
 		{
 			pGameUnit->renderSelectionHUD( Canvas, TimeFraction, TeamID );
+			pGameUnit->renderRangeHUD( Canvas, TimeFraction, TeamID );
 		}
 	}
 
@@ -308,18 +313,24 @@ void GaGameSimulator::renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitI
 		pGameUnit->renderHUD( Canvas, TimeFraction );
 	}
 
-	for( BcU32 Idx = 0; Idx < DebugPoints_.size(); ++Idx )
+	for( std::vector< TDebugPoint >::iterator It( DebugPoints_.begin() ); It != DebugPoints_.end() ; )
 	{
-		TDebugPoint& DebugPoint = DebugPoints_[ Idx ];
+		TDebugPoint& DebugPoint( *It );
 
 		if( DebugPoint.Timer_ > 0.0f )
 		{		
 			BcVec2d Position = BcVec2d( DebugPoint.Position_.x(), DebugPoint.Position_.y() ) * 32.0f;
 			BcVec2d Size = BcVec2d( DebugPoint.Size_, DebugPoint.Size_ ) * 32.0f;
 
-			Canvas->drawSpriteCentered( Position, Size, 0, DebugPoint.Colour_ * RsColour( 1.0f, 1.0f, 1.0f, DebugPoint.Timer_ ), 1000 );
+			Canvas->drawSpriteCentered( Position, Size, 4, DebugPoint.Colour_ * RsColour( 1.0f, 1.0f, 1.0f, DebugPoint.Timer_ ), 1000 );
 
 			DebugPoint.Timer_ -= BcReal( 0.05f );
+
+			++It;
+		}
+		else
+		{
+			It = DebugPoints_.erase( It );
 		}
 	}
 }

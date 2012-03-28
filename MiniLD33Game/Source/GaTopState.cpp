@@ -41,6 +41,21 @@ void GaTopState::enterOnce()
 	CsCore::pImpl()->requestResource( "spritesheet1", SpriteSheetMaterial1_ );
 	CsCore::pImpl()->requestResource( "hud", HUDMaterial_ );
 
+	ScnSoundRef Sound;
+
+	CsCore::pImpl()->requestResource( "ArrowHit", Sound );
+	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
+	CsCore::pImpl()->requestResource( "ArrowLaunch", Sound );
+	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
+	CsCore::pImpl()->requestResource( "RockHit", Sound );
+	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
+	CsCore::pImpl()->requestResource( "RockLaunch", Sound );
+	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
+	CsCore::pImpl()->requestResource( "Die", Sound );
+	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
+	CsCore::pImpl()->requestResource( "Walk", Sound );
+	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
+
 	spawnChildState( new GaMatchmakingState() );
 }
 
@@ -58,6 +73,11 @@ eSysStateReturn GaTopState::enter()
 	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
 	{
 		Ready &= ResourceList_[ Idx ].isReady();
+	}
+
+	for( TSoundMap::iterator It( SoundMap_.begin() ); It != SoundMap_.end(); ++It )
+	{
+		Ready &= (*It).second.isReady();
 	}
 	
 	// Wait for default material to be ready.
@@ -167,4 +187,27 @@ eSysStateReturn GaTopState::leave()
 void GaTopState::leaveOnce()
 {
 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// playSound
+void GaTopState::playSound( const BcChar* pSoundName, const BcFixedVec2d& Position )
+{
+	TSoundMap::iterator It( SoundMap_.find( pSoundName ) );
+
+	if( It != SoundMap_.end() )
+	{
+		ScnSoundRef Sound( (*It).second );
+
+		if( SsCore::pImpl() )
+		{
+			SsChannel* pChannel = SsCore::pImpl()->play( Sound->getSample(), NULL );
+			if( pChannel != NULL )
+			{
+				pChannel->position( BcVec3d( Position.x(), -Position.y(), 2.0f ) / 800.0f );
+				pChannel->gain( 0.2f );
+				pChannel->pitch( BcAbs( BcRandom::Global.randReal() * 0.1f ) + 0.95f );
+			}
+		}
+	}
 }

@@ -15,6 +15,8 @@
 
 #include "GaGameSimulator.h"
 
+#include "GaTopState.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 GaGameUnit::GaGameUnit( GaGameSimulator* pSimulator, const GaGameUnitDescriptor& Desc, BcU32 TeamID, BcU32 ID, const BcFixedVec2d& Position ):
@@ -32,6 +34,8 @@ GaGameUnit::GaGameUnit( GaGameSimulator* pSimulator, const GaGameUnitDescriptor&
 	IsAttackMove_ = BcFalse;
 
 	TargetUnitID_ = BcErrorCode;
+
+	WalkTimer_ = ( BcAbs( BcRandom::Global.randReal() ) * Desc_.MoveSpeed_ ) * 0.2f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -173,7 +177,7 @@ void GaGameUnit::setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMo
 		MoveTargetPosition_ = Target;
 		IsAttackMove_ = IsAttackMove;
 
-		pSimulator_->addDebugPoint( CurrState_.Position_, 0.5f, RsColour::GREEN );
+		pSimulator_->addDebugPoint( Target, 0.5f, IsAttackMove ? RsColour::RED : RsColour::GREEN );
 	}
 }
 
@@ -185,6 +189,12 @@ void GaGameUnit::setBehaviourAttack( BcU32 TargetUnitID )
 	{
 		Behaviour_ = BEHAVIOUR_ATTACK;
 		TargetUnitID_ = TargetUnitID;
+
+		GaGameUnit* pGameUnit = pSimulator_->getUnit( TargetUnitID );
+		if( pGameUnit )
+		{
+			pSimulator_->addDebugPoint( pGameUnit->getPosition(), 0.5f, RsColour::RED );
+		}
 	}	
 }
 
@@ -196,6 +206,11 @@ void GaGameUnit::setBehaviourDamage( const BcFixedVec2d& Target )
 	{
 		Behaviour_ = BEHAVIOUR_DAMAGE;
 		MoveTargetPosition_ = Target;
+
+		if( Desc_.pLaunchSound_ != NULL )
+		{
+			GaTopState::pImpl()->playSound( Desc_.pLaunchSound_, getPosition() );
+		}
 	}
 }
 
@@ -204,8 +219,13 @@ void GaGameUnit::setBehaviourDamage( const BcFixedVec2d& Target )
 void GaGameUnit::setBehaviourDead()
 {
 	Behaviour_ = BEHAVIOUR_DEAD;
+	
+	if( Desc_.pDieSound_ != NULL )
+	{
+		GaTopState::pImpl()->playSound( Desc_.pDieSound_, getPosition() );
+	}
 
-	pSimulator_->addDebugPoint( CurrState_.Position_, 1.0f, RsColour::RED );
+	pSimulator_->addDebugPoint( CurrState_.Position_, 1.2f, RsColour::RED );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,6 +352,15 @@ void GaGameUnit::tickState( BcFixed Delta )
 			}
 		}
 	}
+
+	//
+	WalkTimer_ -= NextState_.Velocity_.magnitude() * Delta;
+
+	if( WalkTimer_ < 0.0f )
+	{
+		GaTopState::pImpl()->playSound( "Walk", getPosition() );
+		WalkTimer_ += ( Desc_.MoveSpeed_ + (BcAbs( BcRandom::Global.randReal() ) * 0.02f ) ) * 0.2f;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -454,6 +483,14 @@ void GaGameUnit::tickBehaviour( BcFixed Delta )
 				// Cause damage.
 				pSimulator_->applyDamage( MoveTargetPosition_, Desc_.Range_, Desc_.Health_ );
 
+				// Debug point!
+				pSimulator_->addDebugPoint( getPosition(), Desc_.Range_, RsColour::YELLOW );
+
+				if( Desc_.pHitSound_ != NULL )
+				{
+					GaTopState::pImpl()->playSound( Desc_.pHitSound_, MoveTargetPosition_ );
+				}
+
 				// Set as dead.
 				setBehaviourDead();
 			}
@@ -500,6 +537,9 @@ void GaGameUnit::render( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 
 		Position *= ScaleFactor;
 		Size *= ScaleFactor;
+
+		Position = BcVec2d( BcFloor( Position.x() ), BcFloor( Position.y() ) );
+
 		Canvas->drawSpriteCentered( Position, Size, TextureIdx, RsColour::WHITE, 2 );
 	}
 }
@@ -526,6 +566,11 @@ void GaGameUnit::renderShadow( ScnCanvasComponentRef Canvas, BcFixed TimeFractio
 // renderHUD
 void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 {
+	if( TeamID_ > 2 )
+	{
+		return;
+	}
+
 	if( Behaviour_ != BEHAVIOUR_DEAD )
 	{
 		BcU32 TextureIdx = Desc_.Type_;
@@ -536,6 +581,10 @@ void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 
 		Position *= ScaleFactor;
 		Size *= ScaleFactor;
+
+		// Draw range if selected.
+		const BcReal MaxRangeRadius = Desc_.Range_ / ScaleFactor;
+		
 		
 		// Draw health bar.
 		BcFixed HealthFraction = Health_ / Desc_.Health_;
@@ -572,12 +621,6 @@ void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeF
 {
 	if( Behaviour_ != BEHAVIOUR_DEAD )
 	{
-		static RsColour TeamColour[] = 
-		{
-			RsColour::RED,
-			RsColour::BLUE,
-		};
-
 		BcU32 TextureIdx = Desc_.Type_;
 		BcFixedVec2d GamePosition( getInterpolatedPosition( TimeFraction ) );
 		const BcReal ScaleFactor = 32.0f;
@@ -602,5 +645,30 @@ void GaGameUnit::renderSelectionHUD( ScnCanvasComponentRef Canvas, BcFixed TimeF
 		Canvas->drawSpriteCentered( PositionB, SizeB, 2, MarkerColour, 3 );
 		Canvas->drawSpriteCentered( PositionC, SizeC, 2, MarkerColour, 3 );
 		Canvas->drawSpriteCentered( PositionD, SizeD, 2, MarkerColour, 3 );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderRangeHUD
+void GaGameUnit::renderRangeHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction, BcU32 TeamID )
+{
+	if( Behaviour_ != BEHAVIOUR_DEAD )
+	{
+		BcU32 TextureIdx = Desc_.Type_;
+		BcFixedVec2d GamePosition( getInterpolatedPosition( TimeFraction ) );
+		const BcReal ScaleFactor = 32.0f;
+		BcVec2d Position( GamePosition.x(), GamePosition.y() );
+		Position *= ScaleFactor;
+
+		// Draw range markers if need be.
+		if( Desc_.Range_ > 12.0f )
+		{
+			BcReal Radius = Desc_.Range_ * ScaleFactor;
+			for( BcReal Theta = 0.0f; Theta < BcPIMUL2; Theta += (BcPIMUL2 / 48.0f ) )
+			{
+				BcVec2d OutPos = Position + BcVec2d( BcCos( Theta ), -BcSin( Theta ) ) * Radius;
+				Canvas->drawSpriteCentered( OutPos, BcVec2d( 8.0f, 8.0f ), 3, RsColour::WHITE, 4 );
+			}
+		}
 	}
 }

@@ -1,0 +1,1485 @@
+============================================================================
+MainUnitTests:
+- Test: sizeof( BcU8 ) == 1
+- - Passed.
+- Test: sizeof( BcS8 ) == 1
+- - Passed.
+- Test: sizeof( BcU16 ) == 2
+- - Passed.
+- Test: sizeof( BcS16 ) == 2
+- - Passed.
+- Test: sizeof( BcU32 ) == 4
+- - Passed.
+- Test: sizeof( BcS32 ) == 4
+- - Passed.
+- Test: sizeof( BcU64 ) == 8
+- - Passed.
+- Test: sizeof( BcS64 ) == 8
+- - Passed.
+- Test: sizeof( BcF32 ) == 4
+- - Passed.
+- Test: sizeof( BcF64 ) == 8
+- - Passed.
+- Test (Predecrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS8,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS16,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcU32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcS32,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Predecrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postdecrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Preincrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,1): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xfe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x7f): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x80): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xfffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x7fff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x8000): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xffffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0xfffffffe): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x7fffffff): AtomicResult == Result
+- - Passed.
+- Test (Postincrement:BcChar,0x80000000): AtomicResult == Result
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)1
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0xff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0xfe && B == (BcU8)0xff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0x100
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0x80 && B == (BcU8)0x7f
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0xffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0xfffe && B == (BcU8)0xffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0x10000
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0x8000 && B == (BcU8)0x7fff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0 && B == (BcU8)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0xfffffffe && B == (BcU8)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8): AtomicA == (BcU8)0x80000000 && B == (BcU8)0x7fffffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)1
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0xff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0xfe && B == (BcS8)0xff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0x100
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0x80 && B == (BcS8)0x7f
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0xffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0xfffe && B == (BcS8)0xffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0x10000
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0x8000 && B == (BcS8)0x7fff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0 && B == (BcS8)0xffffffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0xfffffffe && B == (BcS8)0xffffffff
+- - Passed.
+- Test (Exchange:BcS8): AtomicA == (BcS8)0x80000000 && B == (BcS8)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)1
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0xff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0xfe && B == (BcU16)0xff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0x100
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0x80 && B == (BcU16)0x7f
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0xffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0xfffe && B == (BcU16)0xffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0x10000
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0x8000 && B == (BcU16)0x7fff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0 && B == (BcU16)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0xfffffffe && B == (BcU16)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16): AtomicA == (BcU16)0x80000000 && B == (BcU16)0x7fffffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)1
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0xff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0xfe && B == (BcS16)0xff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0x100
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0x80 && B == (BcS16)0x7f
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0xffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0xfffe && B == (BcS16)0xffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0x10000
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0x8000 && B == (BcS16)0x7fff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0 && B == (BcS16)0xffffffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0xfffffffe && B == (BcS16)0xffffffff
+- - Passed.
+- Test (Exchange:BcS16): AtomicA == (BcS16)0x80000000 && B == (BcS16)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)1
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0xff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0xfe && B == (BcU32)0xff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0x100
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0x80 && B == (BcU32)0x7f
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0xffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0xfffe && B == (BcU32)0xffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0x10000
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0x8000 && B == (BcU32)0x7fff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0 && B == (BcU32)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0xfffffffe && B == (BcU32)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32): AtomicA == (BcU32)0x80000000 && B == (BcU32)0x7fffffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)1
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0xff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0xfe && B == (BcS32)0xff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0x100
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0x80 && B == (BcS32)0x7f
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0xffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0xfffe && B == (BcS32)0xffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0x10000
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0x8000 && B == (BcS32)0x7fff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0 && B == (BcS32)0xffffffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0xfffffffe && B == (BcS32)0xffffffff
+- - Passed.
+- Test (Exchange:BcS32): AtomicA == (BcS32)0x80000000 && B == (BcS32)0x7fffffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)1
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0xff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0xfe && B == (BcChar)0xff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0x100
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0x80 && B == (BcChar)0x7f
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0xffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0xfffe && B == (BcChar)0xffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0x10000
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0x8000 && B == (BcChar)0x7fff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0 && B == (BcChar)0xffffffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0xfffffffe && B == (BcChar)0xffffffff
+- - Passed.
+- Test (Exchange:BcChar): AtomicA == (BcChar)0x80000000 && B == (BcChar)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)1
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0xff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0xfe && B == (BcU8*)0xff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0x100
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0x80 && B == (BcU8*)0x7f
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0xffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0xfffe && B == (BcU8*)0xffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0x10000
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0x8000 && B == (BcU8*)0x7fff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0 && B == (BcU8*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0xfffffffe && B == (BcU8*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU8*): AtomicA == (BcU8*)0x80000000 && B == (BcU8*)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)1
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0xff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0xfe && B == (BcU16*)0xff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0x100
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0x80 && B == (BcU16*)0x7f
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0xffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0xfffe && B == (BcU16*)0xffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0x10000
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0x8000 && B == (BcU16*)0x7fff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0 && B == (BcU16*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0xfffffffe && B == (BcU16*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU16*): AtomicA == (BcU16*)0x80000000 && B == (BcU16*)0x7fffffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)1
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0xff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0xfe && B == (BcU32*)0xff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0x100
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0x80 && B == (BcU32*)0x7f
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0xffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0xfffe && B == (BcU32*)0xffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0x10000
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0x8000 && B == (BcU32*)0x7fff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0 && B == (BcU32*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0xfffffffe && B == (BcU32*)0xffffffff
+- - Passed.
+- Test (Exchange:BcU32*): AtomicA == (BcU32*)0x80000000 && B == (BcU32*)0x7fffffff
+- - Passed.
+============================================================================
+MainShared:
+ - Command line: ..\..\Build\vs2010\bin\Debug\MiniLD33Game.exe -log -nosound  
+ - Setup Flags: 0x132
+ - Name: Psybrus Samples
+ - Tick Rate: 1.0/60.0
+ - SysKernel::SYSTEM_WORKER_MASK: 0x3
+ - SysKernel::USER_WORKER_MASK: 0xfd
+ - FsCore::WORKER_MASK: 0x1
+ - RsCore::WORKER_MASK: 0x2
+ - SsCore::WORKER_MASK: 0x0
+============================================================================
+SysKernel run
+Non-threaded.
+============================================================================
+SysSystem (FsCore @ 0x02C52BE0) open:
+============================================================================
+SysSystem (RmCore @ 0x02C52DE8) open:
+============================================================================
+SysSystem (OsCore @ 0x0301A800) open:
+============================================================================
+SysSystem (RsCore @ 0x0301A900) open:
+ - glew initialised.
+ - Version: 3.3.10907 Compatibility Profile Context
+ - Extensions: GL_AMDX_debug_output GL_AMDX_vertex_shader_tessellator GL_AMD_conservative_depth GL_AMD_debug_output GL_AMD_depth_clamp_separate GL_AMD_draw_buffers_blend GL_AMD_name_gen_delete GL_AMD_performance_monitor GL_AMD_pinned_memory GL_AMD_sample_positions GL_AMD_seamless_cubemap_per_texture GL_AMD_shader_stencil_export GL_AMD_texture_cube_map_array GL_AMD_texture_texture4 GL_AMD_vertex_shader_tessellator GL_ARB_ES2_compatibility GL_ARB_blend_func_extended GL_ARB_color_buffer_float GL_ARB_copy_buffer GL_ARB_depth_buffer_float GL_ARB_depth_clamp GL_ARB_depth_texture GL_ARB_draw_buffers GL_ARB_draw_buffers_blend GL_ARB_draw_elements_base_vertex GL_ARB_draw_instanced GL_ARB_explicit_attrib_location GL_ARB_fragment_coord_conventions GL_ARB_fragment_program GL_ARB_fragment_program_shadow GL_ARB_fragment_shader GL_ARB_framebuffer_object GL_ARB_framebuffer_sRGB GL_ARB_geometry_shader4 GL_ARB_get_program_binary GL_ARB_half_float_pixel GL_ARB_half_float_vertex GL_ARB_imaging GL_ARB_instanced_arrays GL_ARB_map_buffer_range GL_ARB_multisample GL_ARB_multitexture GL_ARB_occlusion_query GL_ARB_occlusion_query2 GL_ARB_pixel_buffer_object GL_ARB_point_parameters GL_ARB_point_sprite GL_ARB_provoking_vertex GL_ARB_sample_shading GL_ARB_sampler_objects GL_ARB_seamless_cube_map GL_ARB_separate_shader_objects GL_ARB_shader_bit_encoding GL_ARB_shader_objects GL_ARB_shader_precision GL_ARB_shader_stencil_export GL_ARB_shader_texture_lod GL_ARB_shading_language_100 GL_ARB_shadow GL_ARB_shadow_ambient GL_ARB_sync GL_ARB_texture_border_clamp GL_ARB_texture_buffer_object GL_ARB_texture_buffer_object_rgb32 GL_ARB_texture_compression GL_ARB_texture_compression_rgtc GL_ARB_texture_cube_map GL_ARB_texture_cube_map_array GL_ARB_texture_env_add GL_ARB_texture_env_combine GL_ARB_texture_env_crossbar GL_ARB_texture_env_dot3 GL_ARB_texture_float GL_ARB_texture_gather GL_ARB_texture_mirrored_repeat GL_ARB_texture_multisample GL_ARB_texture_non_power_of_two GL_ARB_texture_query_lod GL_ARB_texture_rectangle GL_ARB_texture_rg GL_ARB_texture_rgb10_a2ui GL_ARB_texture_snorm GL_ARB_timer_query GL_ARB_transform_feedback2 GL_ARB_transform_feedback3 GL_ARB_transpose_matrix GL_ARB_uniform_buffer_object GL_ARB_vertex_array_bgra GL_ARB_vertex_array_object GL_ARB_vertex_buffer_object GL_ARB_vertex_program GL_ARB_vertex_shader GL_ARB_vertex_type_2_10_10_10_rev GL_ARB_viewport_array GL_ARB_window_pos GL_ATI_draw_buffers GL_ATI_envmap_bumpmap GL_ATI_fragment_shader GL_ATI_meminfo GL_ATI_separate_stencil GL_ATI_texture_compression_3dc GL_ATI_texture_env_combine3 GL_ATI_texture_float GL_ATI_texture_mirror_once GL_EXT_abgr GL_EXT_bgra GL_EXT_bindable_uniform GL_EXT_blend_color GL_EXT_blend_equation_separate GL_EXT_blend_func_separate GL_EXT_blend_minmax GL_EXT_blend_subtract GL_EXT_compiled_vertex_array GL_EXT_copy_buffer GL_EXT_copy_texture GL_EXT_direct_state_access GL_EXT_draw_buffers2 GL_EXT_draw_instanced GL_EXT_draw_range_elements GL_EXT_fog_coord GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_EXT_framebuffer_object GL_EXT_framebuffer_sRGB GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_EXT_gpu_shader4 GL_EXT_histogram GL_EXT_multi_draw_arrays GL_EXT_packed_depth_stencil GL_EXT_packed_float GL_EXT_packed_pixels GL_EXT_pixel_buffer_object GL_EXT_point_parameters GL_EXT_provoking_vertex GL_EXT_rescale_normal GL_EXT_secondary_color GL_EXT_separate_specular_color GL_EXT_shadow_funcs GL_EXT_stencil_wrap GL_EXT_subtexture GL_EXT_texgen_reflection GL_EXT_texture3D GL_EXT_texture_array GL_EXT_texture_buffer_object GL_EXT_texture_compression_latc GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc GL_EXT_texture_cube_map GL_EXT_texture_edge_clamp GL_EXT_texture_env_add GL_EXT_texture_env_combine GL_EXT_texture_env_dot3 GL_EXT_texture_filter_anisotropic GL_EXT_texture_integer GL_EXT_texture_lod GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp GL_EXT_texture_object GL_EXT_texture_rectangle GL_EXT_texture_sRGB GL_EXT_texture_shared_exponent GL_EXT_texture_snorm GL_EXT_texture_swizzle GL_EXT_timer_query GL_EXT_transform_feedback GL_EXT_vertex_array GL_EXT_vertex_array_bgra GL_IBM_texture_mirrored_repeat GL_KTX_buffer_region GL_NV_blend_square GL_NV_conditional_render GL_NV_copy_depth_to_color GL_NV_explicit_multisample GL_NV_float_buffer GL_NV_half_float GL_NV_primitive_restart GL_NV_texgen_reflection GL_NV_texture_barrier GL_SGIS_generate_mipmap GL_SGIS_texture_edge_clamp GL_SGIS_texture_lod GL_SUN_multi_draw_arrays GL_WIN_swap_hint WGL_EXT_swap_control
+============================================================================
+SysSystem (ScnCore @ 0x0301AA40) open:
+============================================================================
+SysSystem (CsCoreClient @ 0x0301B3B0) open:
+CsCore: Importing "default.ScnSound"
+ - FAILURE
+CsCore::requestResource: Failed to load default (./PackedContent/default.ScnSound).
+CsCore: Importing "EngineContent/default.ScnSound"
+ - FAILURE
+CsCore: Importing "spritesheet0.ScnTextureAtlas"
+ - Does not require import.
+CsCore: Importing "spritesheet1.ScnTextureAtlas"
+ - Does not require import.
+RsProgramGL::Adding parameter "uClipTransform". Handle=0
+RsProgramGL::Adding parameter "uWorldTransform". Handle=1
+RsProgramGL::Adding parameter "aDiffuseTex". Handle=2
+RsProgramGL::Adding parameter "aDiffuseTex". Handle=0
+event_notice: hybrid7.debian.local, AUTH
+event_notice: hybrid7.debian.local, *** Looking up your hostname...
+event_notice: hybrid7.debian.local, AUTH
+event_notice: hybrid7.debian.local, *** Checking Ident
+event_notice: hybrid7.debian.local, AUTH
+event_notice: hybrid7.debian.local, *** Couldn't look up your hostname
+event_notice: hybrid7.debian.local, AUTH
+event_notice: hybrid7.debian.local, *** No Ident response
+event_connect hybrid7.debian.local, PSY_cdf76de0
+event_connect hybrid7.debian.local, End of /MOTD command.
+event_numeric LIBIRC_RFC_RPL_NAMREPLY: hybrid7.debian.local, PSY_cdf76de0
+event_numeric LIBIRC_RFC_RPL_NAMREPLY: hybrid7.debian.local, =
+event_numeric LIBIRC_RFC_RPL_NAMREPLY: hybrid7.debian.local, #testchannel_office
+event_numeric LIBIRC_RFC_RPL_NAMREPLY: hybrid7.debian.local, PSY_cdf76de0 @PSY_51bc6de0
+Connecting to STUN server..
+Opening socket on port 6000..
+Got socket!
+Send: ADDR:10.25.50.83:6000/61.14.114.2:33511 (6000)
+pre-irc_cmd_msg:
+irc_cmd_msg: 0
+Recv: ADDR:10.25.50.83:6000/61.14.114.2:33511
+event_privmsg done.
+GaMatchmakingState: Complete! ClientID of ours is 0
+Leave!
+~GaMatchmakingState();
+EvtProxyLockstep: Got buffer from client 0 for 54 with 524 bytesLockstepDispatch(54): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 68 with 524 bytesLockstepDispatch(68): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 75 with 524 bytesLockstepDispatch(75): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 86 with 524 bytesLockstepDispatch(86): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 93 with 524 bytesEvtProxyLockstep: Got buffer from client 0 for 96 with 524 bytesLockstepDispatch(93): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 98 with 524 bytesLockstepDispatch(96): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 100 with 524 bytesLockstepDispatch(98): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 102 with 524 bytesLockstepDispatch(100): Bytes: 524
+LockstepDispatch(102): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 107 with 524 bytesLockstepDispatch(107): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 146 with 524 bytesEvtProxyLockstep: Got buffer from client 0 for 148 with 524 bytesLockstepDispatch(146): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 150 with 524 bytesLockstepDispatch(148): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 152 with 524 bytesLockstepDispatch(150): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 154 with 524 bytesLockstepDispatch(152): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 156 with 524 bytesLockstepDispatch(154): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 158 with 524 bytesGaGameSimulator: Apply damage to 11 units.
+- TeamID 0, UnitID 3.
+- TeamID 0, UnitID 4.
+- TeamID 0, UnitID 5.
+- TeamID 0, UnitID 7.
+- TeamID 0, UnitID 8.
+- TeamID 0, UnitID 9.
+- TeamID 0, UnitID 10.
+- TeamID 0, UnitID 13.
+- TeamID 0, UnitID 14.
+- TeamID 0, UnitID 15.
+- TeamID 3, UnitID 32.
+LockstepDispatch(156): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 161 with 300 bytesLockstepDispatch(158): Bytes: 524
+EvtProxyLockstep: Got buffer from client 0 for 163 with 300 bytesLockstepDispatch(161): Bytes: 300
+EvtProxyLockstep: Got buffer from client 0 for 165 with 300 bytesLockstepDispatch(163): Bytes: 300
+LockstepDispatch(165): Bytes: 300
+EvtProxyLockstep: Got buffer from client 0 for 169 with 300 bytesEvtProxyLockstep: Got buffer from client 0 for 171 with 156 bytesLockstepDispatch(169): Bytes: 300
+EvtProxyLockstep: Got buffer from client 0 for 173 with 156 bytesLockstepDispatch(171): Bytes: 156
+EvtProxyLockstep: Got buffer from client 0 for 175 with 156 bytesLockstepDispatch(173): Bytes: 156
+LockstepDispatch(175): Bytes: 156
+EvtProxyLockstep: Got buffer from client 0 for 180 with 156 bytesLockstepDispatch(180): Bytes: 156
+EvtProxyLockstep: Got buffer from client 0 for 185 with 300 bytesLockstepDispatch(185): Bytes: 300
+GaGameSimulator: Apply damage to 3 units.
+- TeamID 3, UnitID 34.
+- TeamID 2, UnitID 38.
+- TeamID 2, UnitID 39.
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 35.
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 36.
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 1, UnitID 27.
+- TeamID 2, UnitID 37.
+GaGameSimulator: Apply damage to 3 units.
+- TeamID 1, UnitID 27.
+- TeamID 2, UnitID 37.
+- TeamID 2, UnitID 40.
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 1, UnitID 28.
+- TeamID 2, UnitID 41.
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 42.
+GaGameSimulator: Apply damage to 4 units.
+- TeamID 0, UnitID 6.
+- TeamID 0, UnitID 11.
+- TeamID 0, UnitID 12.
+- TeamID 3, UnitID 33.
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 43.
+EvtProxyLockstep: Got buffer from client 0 for 228 with 204 bytesLockstepDispatch(228): Bytes: 204
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 1, UnitID 28.
+- TeamID 2, UnitID 44.
+GaGameSimulator: Apply damage to 3 units.
+- TeamID 1, UnitID 28.
+- TeamID 2, UnitID 44.
+- TeamID 2, UnitID 45.
+GaGameSimulator: Apply damage to 4 units.
+- TeamID 1, UnitID 28.
+- TeamID 2, UnitID 44.
+- TeamID 2, UnitID 45.
+- TeamID 2, UnitID 46.
+GaGameSimulator: Apply damage to 5 units.
+- TeamID 1, UnitID 28.
+- TeamID 2, UnitID 44.
+- TeamID 2, UnitID 45.
+- TeamID 2, UnitID 46.
+- TeamID 2, UnitID 47.
+GaGameSimulator: Apply damage to 6 units.
+- TeamID 1, UnitID 28.
+- TeamID 2, UnitID 44.
+- TeamID 2, UnitID 45.
+- TeamID 2, UnitID 46.
+- TeamID 2, UnitID 47.
+- TeamID 2, UnitID 48.
+EvtProxyLockstep: Got buffer from client 0 for 242 with 204 bytesEvtProxyLockstep: Got buffer from client 0 for 245 with 204 bytesLockstepDispatch(242): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 247 with 204 bytesLockstepDispatch(245): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 250 with 204 bytesLockstepDispatch(247): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 252 with 204 bytesLockstepDispatch(250): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 254 with 204 bytesLockstepDispatch(252): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 256 with 204 bytesLockstepDispatch(254): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 258 with 204 bytesLockstepDispatch(256): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 260 with 204 bytesLockstepDispatch(258): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 262 with 204 bytesLockstepDispatch(260): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 264 with 204 bytesLockstepDispatch(262): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 267 with 204 bytesLockstepDispatch(264): Bytes: 204
+LockstepDispatch(267): Bytes: 204
+EvtProxyLockstep: Got buffer from client 0 for 277 with 44 bytesGaGameSimulator: Apply damage to 3 units.
+- TeamID 0, UnitID 1.
+- TeamID 0, UnitID 2.
+- TeamID 3, UnitID 49.
+EvtProxyLockstep: Got buffer from client 0 for 279 with 44 bytesLockstepDispatch(277): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 281 with 44 bytesLockstepDispatch(279): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 283 with 44 bytesLockstepDispatch(281): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 285 with 44 bytesLockstepDispatch(283): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 287 with 44 bytesLockstepDispatch(285): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 290 with 44 bytesLockstepDispatch(287): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 292 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 293 with 44 bytesLockstepDispatch(290): Bytes: 44
+LockstepDispatch(292): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 296 with 44 bytesLockstepDispatch(293): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 298 with 44 bytesLockstepDispatch(296): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 300 with 44 bytesLockstepDispatch(298): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 302 with 44 bytesLockstepDispatch(300): Bytes: 44
+LockstepDispatch(302): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 315 with 172 bytesEvtProxyLockstep: Got buffer from client 0 for 317 with 172 bytesLockstepDispatch(315): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 319 with 172 bytesLockstepDispatch(317): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 321 with 172 bytesLockstepDispatch(319): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 323 with 172 bytesLockstepDispatch(321): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 325 with 172 bytesLockstepDispatch(323): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 328 with 172 bytesLockstepDispatch(325): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 329 with 172 bytesEvtProxyLockstep: Got buffer from client 0 for 331 with 172 bytesLockstepDispatch(328): Bytes: 172
+LockstepDispatch(329): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 334 with 172 bytesLockstepDispatch(331): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 336 with 172 bytesLockstepDispatch(334): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 338 with 172 bytesLockstepDispatch(336): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 340 with 172 bytesLockstepDispatch(338): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 342 with 172 bytesLockstepDispatch(340): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 344 with 172 bytesLockstepDispatch(342): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 346 with 172 bytesLockstepDispatch(344): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 348 with 172 bytesLockstepDispatch(346): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 350 with 172 bytesLockstepDispatch(348): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 352 with 172 bytesLockstepDispatch(350): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 354 with 172 bytesLockstepDispatch(352): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 357 with 172 bytesLockstepDispatch(354): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 359 with 172 bytesGaGameSimulator: Apply damage to 5 units.
+- TeamID 0, UnitID 1.
+- TeamID 0, UnitID 3.
+- TeamID 0, UnitID 4.
+- TeamID 0, UnitID 5.
+- TeamID 3, UnitID 50.
+LockstepDispatch(357): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 361 with 44 bytesLockstepDispatch(359): Bytes: 172
+EvtProxyLockstep: Got buffer from client 0 for 363 with 44 bytesLockstepDispatch(361): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 365 with 44 bytesLockstepDispatch(363): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 367 with 44 bytesLockstepDispatch(365): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 369 with 44 bytesLockstepDispatch(367): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 371 with 44 bytesLockstepDispatch(369): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 373 with 44 bytesLockstepDispatch(371): Bytes: 44
+LockstepDispatch(373): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 379 with 28 bytesLockstepDispatch(379): Bytes: 28
+EvtProxyLockstep: Got buffer from client 0 for 386 with 28 bytesLockstepDispatch(386): Bytes: 28
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 51.
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 52.
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 1, UnitID 31.
+- TeamID 2, UnitID 53.
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 54.
+EvtProxyLockstep: Got buffer from client 0 for 396 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 399 with 44 bytesLockstepDispatch(396): Bytes: 44
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 55.
+EvtProxyLockstep: Got buffer from client 0 for 401 with 44 bytesLockstepDispatch(399): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 403 with 44 bytesLockstepDispatch(401): Bytes: 44
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 57.
+EvtProxyLockstep: Got buffer from client 0 for 406 with 44 bytesLockstepDispatch(403): Bytes: 44
+LockstepDispatch(406): Bytes: 44
+GaGameSimulator: Apply damage to 1 units.
+- TeamID 3, UnitID 56.
+EvtProxyLockstep: Got buffer from client 0 for 411 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 414 with 44 bytesLockstepDispatch(411): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 417 with 44 bytesLockstepDispatch(414): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 419 with 44 bytesLockstepDispatch(417): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 421 with 44 bytesLockstepDispatch(419): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 424 with 44 bytesLockstepDispatch(421): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 426 with 44 bytesLockstepDispatch(424): Bytes: 44
+LockstepDispatch(426): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 435 with 44 bytesLockstepDispatch(435): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 462 with 44 bytesLockstepDispatch(462): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 469 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 471 with 44 bytesLockstepDispatch(469): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 473 with 44 bytesLockstepDispatch(471): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 475 with 44 bytesLockstepDispatch(473): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 477 with 44 bytesLockstepDispatch(475): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 480 with 44 bytesLockstepDispatch(477): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 482 with 44 bytesGaGameSimulator: Apply damage to 2 units.
+- TeamID 0, UnitID 2.
+- TeamID 3, UnitID 58.
+LockstepDispatch(480): Bytes: 44
+LockstepDispatch(482): Bytes: 44
+GaGameSimulator: Apply damage to 6 units.
+- TeamID 1, UnitID 23.
+- TeamID 1, UnitID 24.
+- TeamID 1, UnitID 25.
+- TeamID 1, UnitID 29.
+- TeamID 1, UnitID 30.
+- TeamID 2, UnitID 59.
+EvtProxyLockstep: Got buffer from client 0 for 565 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 568 with 44 bytesLockstepDispatch(565): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 570 with 44 bytesLockstepDispatch(568): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 572 with 44 bytesLockstepDispatch(570): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 575 with 44 bytesLockstepDispatch(572): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 577 with 44 bytesLockstepDispatch(575): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 579 with 44 bytesLockstepDispatch(577): Bytes: 44
+GaGameSimulator: Apply damage to 3 units.
+- TeamID 1, UnitID 26.
+- TeamID 1, UnitID 31.
+- TeamID 2, UnitID 60.
+EvtProxyLockstep: Got buffer from client 0 for 582 with 44 bytesLockstepDispatch(579): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 584 with 44 bytesLockstepDispatch(582): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 586 with 44 bytesLockstepDispatch(584): Bytes: 44
+LockstepDispatch(586): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 595 with 44 bytesLockstepDispatch(595): Bytes: 44
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 1, UnitID 22.
+- TeamID 2, UnitID 61.
+EvtProxyLockstep: Got buffer from client 0 for 689 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 691 with 44 bytesLockstepDispatch(689): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 694 with 44 bytesLockstepDispatch(691): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 696 with 44 bytesLockstepDispatch(694): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 699 with 44 bytesLockstepDispatch(696): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 702 with 44 bytesLockstepDispatch(699): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 704 with 44 bytesLockstepDispatch(702): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 707 with 44 bytesLockstepDispatch(704): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 710 with 44 bytesLockstepDispatch(707): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 711 with 44 bytesLockstepDispatch(710): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 714 with 44 bytesLockstepDispatch(711): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 716 with 44 bytesLockstepDispatch(714): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 718 with 44 bytesLockstepDispatch(716): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 720 with 44 bytesLockstepDispatch(718): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 722 with 44 bytesLockstepDispatch(720): Bytes: 44
+LockstepDispatch(722): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 726 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 728 with 44 bytesLockstepDispatch(726): Bytes: 44
+LockstepDispatch(728): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 737 with 44 bytesLockstepDispatch(737): Bytes: 44
+GaGameSimulator: Apply damage to 4 units.
+- TeamID 1, UnitID 19.
+- TeamID 1, UnitID 20.
+- TeamID 1, UnitID 21.
+- TeamID 2, UnitID 62.
+GaGameSimulator: Apply damage to 4 units.
+- TeamID 1, UnitID 19.
+- TeamID 1, UnitID 20.
+- TeamID 1, UnitID 21.
+- TeamID 2, UnitID 63.
+EvtProxyLockstep: Got buffer from client 0 for 903 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 905 with 44 bytesLockstepDispatch(903): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 908 with 44 bytesLockstepDispatch(905): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 910 with 44 bytesLockstepDispatch(908): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 913 with 44 bytesLockstepDispatch(910): Bytes: 44
+LockstepDispatch(913): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 927 with 44 bytesLockstepDispatch(927): Bytes: 44
+GaGameSimulator: Apply damage to 3 units.
+- TeamID 1, UnitID 17.
+- TeamID 1, UnitID 18.
+- TeamID 2, UnitID 64.
+EvtProxyLockstep: Got buffer from client 0 for 1032 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1035 with 44 bytesLockstepDispatch(1032): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1037 with 44 bytesLockstepDispatch(1035): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1039 with 44 bytesLockstepDispatch(1037): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1042 with 44 bytesLockstepDispatch(1039): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1045 with 44 bytesLockstepDispatch(1042): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1048 with 44 bytesLockstepDispatch(1045): Bytes: 44
+LockstepDispatch(1048): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1061 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1064 with 44 bytesLockstepDispatch(1061): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1067 with 44 bytesLockstepDispatch(1064): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1070 with 44 bytesLockstepDispatch(1067): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1072 with 44 bytesLockstepDispatch(1070): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1075 with 44 bytesLockstepDispatch(1072): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1077 with 44 bytesLockstepDispatch(1075): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1080 with 44 bytesLockstepDispatch(1077): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1083 with 44 bytesLockstepDispatch(1080): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1085 with 44 bytesLockstepDispatch(1083): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1088 with 44 bytesLockstepDispatch(1085): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1090 with 44 bytesLockstepDispatch(1088): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1092 with 44 bytesLockstepDispatch(1090): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1094 with 44 bytesLockstepDispatch(1092): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1097 with 44 bytesLockstepDispatch(1094): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1100 with 44 bytesLockstepDispatch(1097): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1102 with 44 bytesLockstepDispatch(1100): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1105 with 44 bytesLockstepDispatch(1102): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1108 with 44 bytesLockstepDispatch(1105): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1111 with 44 bytesLockstepDispatch(1108): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1113 with 44 bytesLockstepDispatch(1111): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1116 with 44 bytesLockstepDispatch(1113): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1119 with 44 bytesLockstepDispatch(1116): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1122 with 44 bytesLockstepDispatch(1119): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1124 with 44 bytesLockstepDispatch(1122): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1126 with 44 bytesLockstepDispatch(1124): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1129 with 44 bytesLockstepDispatch(1126): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1131 with 44 bytesLockstepDispatch(1129): Bytes: 44
+LockstepDispatch(1131): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1141 with 44 bytesLockstepDispatch(1141): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1146 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1148 with 44 bytesLockstepDispatch(1146): Bytes: 44
+LockstepDispatch(1148): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1153 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1155 with 44 bytesLockstepDispatch(1153): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1157 with 44 bytesLockstepDispatch(1155): Bytes: 44
+LockstepDispatch(1157): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1162 with 44 bytesLockstepDispatch(1162): Bytes: 44
+GaGameSimulator: Apply damage to 3 units.
+- TeamID 1, UnitID 17.
+- TeamID 1, UnitID 18.
+- TeamID 2, UnitID 65.
+EvtProxyLockstep: Got buffer from client 0 for 1313 with 44 bytesLockstepDispatch(1313): Bytes: 44
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 0, UnitID 0.
+- TeamID 3, UnitID 66.
+EvtProxyLockstep: Got buffer from client 0 for 1377 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1379 with 44 bytesLockstepDispatch(1377): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1381 with 44 bytesLockstepDispatch(1379): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1384 with 44 bytesLockstepDispatch(1381): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1385 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1387 with 44 bytesLockstepDispatch(1384): Bytes: 44
+LockstepDispatch(1385): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1389 with 44 bytesLockstepDispatch(1387): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1391 with 44 bytesLockstepDispatch(1389): Bytes: 44
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 1, UnitID 16.
+- TeamID 2, UnitID 67.
+EvtProxyLockstep: Got buffer from client 0 for 1394 with 44 bytesLockstepDispatch(1391): Bytes: 44
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 0, UnitID 0.
+- TeamID 3, UnitID 68.
+EvtProxyLockstep: Got buffer from client 0 for 1395 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1397 with 44 bytesLockstepDispatch(1394): Bytes: 44
+LockstepDispatch(1395): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1400 with 44 bytesLockstepDispatch(1397): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1402 with 44 bytesLockstepDispatch(1400): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1404 with 44 bytesLockstepDispatch(1402): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1406 with 44 bytesLockstepDispatch(1404): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1408 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1409 with 44 bytesLockstepDispatch(1406): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1411 with 44 bytesLockstepDispatch(1408): Bytes: 44
+LockstepDispatch(1409): Bytes: 44
+LockstepDispatch(1411): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1416 with 44 bytesLockstepDispatch(1416): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1431 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1433 with 44 bytesLockstepDispatch(1431): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1435 with 44 bytesLockstepDispatch(1433): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1437 with 44 bytesLockstepDispatch(1435): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1439 with 44 bytesLockstepDispatch(1437): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1441 with 44 bytesLockstepDispatch(1439): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1443 with 44 bytesLockstepDispatch(1441): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1445 with 44 bytesLockstepDispatch(1443): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1447 with 44 bytesLockstepDispatch(1445): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1449 with 44 bytesLockstepDispatch(1447): Bytes: 44
+LockstepDispatch(1449): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1453 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1455 with 44 bytesGaGameSimulator: Apply damage to 2 units.
+- TeamID 0, UnitID 0.
+- TeamID 3, UnitID 69.
+LockstepDispatch(1453): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1457 with 44 bytesLockstepDispatch(1455): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1459 with 44 bytesLockstepDispatch(1457): Bytes: 44
+LockstepDispatch(1459): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1470 with 44 bytesEvtProxyLockstep: Got buffer from client 0 for 1472 with 44 bytesLockstepDispatch(1470): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1474 with 44 bytesLockstepDispatch(1472): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1476 with 44 bytesLockstepDispatch(1474): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1478 with 44 bytesLockstepDispatch(1476): Bytes: 44
+EvtProxyLockstep: Got buffer from client 0 for 1480 with 44 bytesLockstepDispatch(1478): Bytes: 44
+LockstepDispatch(1480): Bytes: 44
+GaGameSimulator: Apply damage to 2 units.
+- TeamID 0, UnitID 0.
+- TeamID 3, UnitID 70.
+============================================================================
+SysSystem (CsCoreClient @ 0x0301B3B0) close:
+============================================================================
+SysSystem (ScnCore @ 0x0301AA40) close:
+============================================================================
+SysSystem (RsCore @ 0x0301A900) close:
+============================================================================
+SysSystem (OsCore @ 0x0301A800) close:
+============================================================================
+SysSystem (RmCore @ 0x02C52DE8) close:
+============================================================================
+SysSystem (FsCore @ 0x02C52BE0) close:
