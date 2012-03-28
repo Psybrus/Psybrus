@@ -1,0 +1,8 @@
+{ 
+	"ScnSound" : {
+		"name"		: 		"ArrowHit",
+		
+		// Source
+		"source"	: 		"GameContent/Source/Arrow_Hit.wav"
+	}
+}

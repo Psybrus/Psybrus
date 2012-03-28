@@ -27,13 +27,18 @@ static GaGameUnitDescriptor GGameProjectile_Soldier =
 	BcFixed( 7.0f ),				// Health.
 	BcFalse,						// Armoured.
 	NULL,
+
+	// Sound
+	NULL,
+	NULL,
+	NULL,
 };
 
 static GaGameUnitDescriptor GGameProjectile_Archer = 
 {
 	6,
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
-	BcFixed( 32.0f ),				// Move speed.
+	BcFixed( 24.0f ),				// Move speed.
 	BcFixed( 0.5f ),				// Rate of attack.
 	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 0.25f ),				// Range.
@@ -41,19 +46,29 @@ static GaGameUnitDescriptor GGameProjectile_Archer =
 	BcFixed( 10.0f ),				// Health.
 	BcFalse,						// Armoured.
 	NULL,
+
+	// Sound
+	"ArrowLaunch",
+	"ArrowHit",
+	NULL,
 };
 
 static GaGameUnitDescriptor GGameProjectile_Trebuchet = 
 {
 	7,
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
-	BcFixed( 16.0f ),				// Move speed.
-	BcFixed( 0.5f ),				// Rate of attack.
+	BcFixed( 12.0f ),				// Move speed.
+	BcFixed( 0.6f ),				// Rate of attack.
 	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
-	BcFixed( 1.25f ),				// Range.
-	BcFixed( 1.25f ),				// Range.
+	BcFixed( 2.0f ),				// Range.
+	BcFixed( 2.0f ),				// Range.
 	BcFixed( 30.0f ),				// Health.
 	BcFalse,						// Armoured.
+	NULL,
+
+	// Sound
+	"RockLaunch",
+	"RockHit",
 	NULL,
 };
 
@@ -69,6 +84,11 @@ static GaGameUnitDescriptor GGameUnit_Soldier =
 	BcFixed( 20.0f ),				// Health.
 	BcTrue,							// Armoured.
 	&GGameProjectile_Soldier,
+
+	// Sound
+	NULL,
+	NULL,
+	"Die",
 };
 
 static GaGameUnitDescriptor GGameUnit_Archer = 
@@ -78,25 +98,35 @@ static GaGameUnitDescriptor GGameUnit_Archer =
 	BcFixed( 2.5f ),				// Move speed.
 	BcFixed( 0.5f ),				// Rate of attack.
 	BcFixed( 0.25f ),				// Cool down mult for rate of attack.
-	BcFixed( 14.0f ),				// Range.
+	BcFixed( 10.0f ),				// Range.
 	BcFixed( 2.0f ),				// Range.
 	BcFixed( 40.0f ),				// Health.
 	BcFalse,						// Armoured.
 	&GGameProjectile_Archer,
+
+	// Sound
+	NULL,
+	NULL,
+	"Die",
 };
 
 static GaGameUnitDescriptor GGameUnit_Trebuchet = 
 {
 	4,
 	BcFixedVec2d( 2.0f, 2.0f ),		// Unit size.
-	BcFixed( 0.3f ),				// Move speed.
+	BcFixed( 0.7f ),				// Move speed.
 	BcFixed( 0.25f ),				// Rate of attack.
 	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
-	BcFixed( 25.0f ),				// Range.
+	BcFixed( 20.0f ),				// Range.
 	BcFixed( 10.0f ),				// Range.
 	BcFixed( 100.0f ),				// Health.
 	BcFalse,						// Armoured.
 	&GGameProjectile_Trebuchet,
+
+	// Sound
+	NULL,
+	NULL,
+	"Die",
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -273,6 +303,13 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Materials.
 	ScnMaterialRef Material;
+	if( CsCore::pImpl()->requestResource( "default", Material ) )
+	{
+		if( CsCore::pImpl()->createResource( BcName::INVALID, DefaultMaterial_, Material, BcErrorCode ) )
+		{
+			Parent->attach( DefaultMaterial_ );
+		}
+	}
 	if( CsCore::pImpl()->requestResource( "background", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, BackgroundMaterial_, Material, BcErrorCode ) )
@@ -327,6 +364,7 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 	CanvasComponent_ = NULL;
 
 	// Detach materials.
+	Parent->detach( DefaultMaterial_ );
 	Parent->detach( BackgroundMaterial_ );
 	Parent->detach( SpriteSheetMaterials_[ 0 ] );
 	Parent->detach( SpriteSheetMaterials_[ 1 ] );

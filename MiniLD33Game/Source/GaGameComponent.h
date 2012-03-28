@@ -43,6 +43,7 @@ public:
 private:
 	ScnCanvasComponentRef				CanvasComponent_;
 
+	ScnMaterialComponentRef				DefaultMaterial_;
 	ScnMaterialComponentRef				BackgroundMaterial_;
 	ScnMaterialComponentRef				SpriteSheetMaterials_[ 2 ];
 	ScnMaterialComponentRef				HUDMaterial_;
