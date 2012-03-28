@@ -118,7 +118,7 @@ static GaGameUnitDescriptor GGameUnit_Trebuchet =
 	BcFixed( 0.25f ),				// Rate of attack.
 	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 20.0f ),				// Range.
-	BcFixed( 10.0f ),				// Range.
+	BcFixed( 5.0f ),				// Range.
 	BcFixed( 100.0f ),				// Health.
 	BcFalse,						// Armoured.
 	&GGameProjectile_Trebuchet,
@@ -389,7 +389,7 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 	GameCursorPosition_ = CursorPosition_ / 32.0f;
 	EndGameCursorPosition_ = GameCursorPosition_;
 
-	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 16.0f ) )
+	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 4.0f ) )
 	{
 		BoxSelection_ = BcTrue;
 	}

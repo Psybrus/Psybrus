@@ -566,7 +566,7 @@ void GaGameUnit::renderShadow( ScnCanvasComponentRef Canvas, BcFixed TimeFractio
 // renderHUD
 void GaGameUnit::renderHUD( ScnCanvasComponentRef Canvas, BcFixed TimeFraction )
 {
-	if( TeamID_ > 2 )
+	if( TeamID_ > 1 )
 	{
 		return;
 	}
