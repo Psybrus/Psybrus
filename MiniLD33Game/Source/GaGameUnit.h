@@ -95,13 +95,14 @@ public:
 	BcFixed getHealth() const;
 	BcFixed getMaxAttackTime() const;
 	BcFixed getAttackTime() const;
+	BcFixedVec2d getMoveTargetPosition() const;
 
 	BcU32 getChecksum() const;
 
 	void setBehaviourIdle();
 	void setBehaviourGuard();
-	void setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMove );
-	void setBehaviourAttack( BcU32 TargetUnitID );
+	void setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMove, BcBool DrawDebug = BcTrue );
+	void setBehaviourAttack( BcU32 TargetUnitID, BcBool DrawDebug = BcTrue );
 	void setBehaviourDamage( const BcFixedVec2d& Target );
 	void setBehaviourDead();
 

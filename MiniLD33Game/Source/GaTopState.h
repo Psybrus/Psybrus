@@ -16,6 +16,11 @@
 
 #include "Psybrus.h"
 
+
+#include "GaGameComponent.h"
+#include "GaTitleComponent.h"
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // GaTopState
 class GaTopState: 
@@ -34,6 +39,9 @@ public:
 	virtual eSysStateReturn			leave();
 	virtual void					leaveOnce();
 
+	void							startMatchmaking();
+	void							startGame();
+
 	void							playSound( const BcChar* pSoundName, const BcFixedVec2d& Position );
 
 private:
@@ -42,12 +50,19 @@ private:
 
 	typedef std::map< std::string, ScnSoundRef > TSoundMap;
 
+	ScnMaterialRef					TitleMaterial_;
+	ScnMaterialRef					FontMaterial_;
 	ScnMaterialRef					BackgroundMaterial_;
 	ScnMaterialRef					SpriteSheetMaterial0_;
 	ScnMaterialRef					SpriteSheetMaterial1_;
 	ScnMaterialRef					HUDMaterial_;
 
 	TSoundMap						SoundMap_;
+
+	GaGameComponentRef				GameComponent_;
+	GaTitleComponentRef				TitleComponent_;
+
+	ScnEntityRef					GameEntity_;
 
 	TResourceList					ResourceList_;
 	TEntityList						EntityList_;

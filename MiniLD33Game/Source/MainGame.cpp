@@ -16,11 +16,11 @@
 #include "GaTopState.h"
 
 #include "GaGameComponent.h"
-
+#include "GaTitleComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "R-v-B", psySF_GAME_DEV, 1.0f / 30.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate
@@ -71,6 +71,7 @@ void PsyGameInit()
 void PsyGameRegisterResources()
 {
 	CsCore::pImpl()->registerResource< GaGameComponent >( BcFalse );
+	CsCore::pImpl()->registerResource< GaTitleComponent >( BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,4 +79,5 @@ void PsyGameRegisterResources()
 void PsyGameUnRegisterResources()
 {
 	CsCore::pImpl()->unregisterResource< GaGameComponent >();
+	CsCore::pImpl()->unregisterResource< GaTitleComponent >();
 }

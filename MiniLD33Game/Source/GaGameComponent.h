@@ -51,6 +51,8 @@ private:
 	GaGameSimulator*					pSimulator_;
 
 	BcU32								TeamID_;
+	BcReal								AITickTime_;
+	BcReal								AITickMaxTime_;
 
 	// 
 	BcBool								MouseDown_;

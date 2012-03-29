@@ -123,6 +123,13 @@ BcFixed GaGameUnit::getAttackTime() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMoveTargetPosition
+BcFixedVec2d GaGameUnit::getMoveTargetPosition() const
+{
+	return MoveTargetPosition_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getChecksum
 BcU32 GaGameUnit::getChecksum() const
 {
@@ -169,7 +176,7 @@ void GaGameUnit::setBehaviourGuard()
 
 //////////////////////////////////////////////////////////////////////////
 // setBehaviourMove
-void GaGameUnit::setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMove )
+void GaGameUnit::setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMove, BcBool DrawDebug )
 {
 	if( Health_ > 0.0f )
 	{
@@ -177,13 +184,22 @@ void GaGameUnit::setBehaviourMove( const BcFixedVec2d& Target, BcBool IsAttackMo
 		MoveTargetPosition_ = Target;
 		IsAttackMove_ = IsAttackMove;
 
-		pSimulator_->addDebugPoint( Target, 0.5f, IsAttackMove ? RsColour::RED : RsColour::GREEN );
+		// Hacky clamp.
+		BcFixed HW = ( 1280.0f * 0.5f ) / 32.0f - 1.0f;
+		BcFixed HH = ( 720.0f * 0.5f ) / 32.0f - 1.0f;
+		MoveTargetPosition_.x( BcClamp( MoveTargetPosition_.x(), -HW, HW ) );
+		MoveTargetPosition_.y( BcClamp( MoveTargetPosition_.y(), -HH, HH ) );
+		
+		if( DrawDebug )
+		{
+			pSimulator_->addDebugPoint( Target, 0.5f, IsAttackMove ? RsColour::RED : RsColour::GREEN );
+		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setBehaviourAttack
-void GaGameUnit::setBehaviourAttack( BcU32 TargetUnitID )
+void GaGameUnit::setBehaviourAttack( BcU32 TargetUnitID, BcBool DrawDebug )
 {
 	if( Health_ > 0.0f )
 	{
@@ -191,7 +207,7 @@ void GaGameUnit::setBehaviourAttack( BcU32 TargetUnitID )
 		TargetUnitID_ = TargetUnitID;
 
 		GaGameUnit* pGameUnit = pSimulator_->getUnit( TargetUnitID );
-		if( pGameUnit )
+		if( pGameUnit && DrawDebug )
 		{
 			pSimulator_->addDebugPoint( pGameUnit->getPosition(), 0.5f, RsColour::RED );
 		}
@@ -321,8 +337,8 @@ void GaGameUnit::tickState( BcFixed Delta )
 		if( Behaviour_ != BEHAVIOUR_DAMAGE )
 		{
 			// Check new state is valid.
-			BcFixedVec2d Min( NextState_.Position_ - ( Desc_.Size_ * 0.45f ) );
-			BcFixedVec2d Max( NextState_.Position_ + ( Desc_.Size_ * 0.45f ) );
+			BcFixedVec2d Min( NextState_.Position_ - ( Desc_.Size_ * 0.9f ) );
+			BcFixedVec2d Max( NextState_.Position_ + ( Desc_.Size_ * 0.9f ) );
 			
 			GaGameUnitIDList FoundUnits;
 			
@@ -340,9 +356,10 @@ void GaGameUnit::tickState( BcFixed Delta )
 
 					if( Direction.dot( NextState_.Velocity_.normal() ) > 0.0f || NextState_.Velocity_.magnitudeSquared() == 0.0f )
 					{
+						BcFixedVec2d RandomOffset( (int)( pSimulator_->rand() % 64 ), (int)( pSimulator_->rand() % 64 ) );
 						NextState_ = CurrState_;
-						NextState_.Velocity_ = NextState_.Velocity_ * 0.8f + ( Direction * Desc_.MoveSpeed_ ) * 0.2f;
-						NextState_.Position_ += NextState_.Velocity_ * Delta;
+						NextState_.Velocity_ = NextState_.Velocity_ * 0.4f + ( Direction * Desc_.MoveSpeed_ ) * 0.6f;
+						NextState_.Position_ += NextState_.Velocity_ * Delta + ( RandomOffset / 4096.0f );
 					}
 				}
 				else
@@ -360,6 +377,19 @@ void GaGameUnit::tickState( BcFixed Delta )
 	{
 		GaTopState::pImpl()->playSound( "Walk", getPosition() );
 		WalkTimer_ += ( Desc_.MoveSpeed_ + (BcAbs( BcRandom::Global.randReal() ) * 0.02f ) ) * 0.2f;
+	}
+
+	// Clamp position and move away.
+	BcFixed HW = ( 1280.0f * 0.5f ) / 32.0f - 1.0f;
+	BcFixed HH = ( 720.0f * 0.5f ) / 32.0f - 1.0f;
+	BcFixedVec2d ClampedPosition;
+	ClampedPosition.x( BcClamp( NextState_.Position_.x(), -HW, HW ) );
+	ClampedPosition.y( BcClamp( NextState_.Position_.y(), -HH, HH ) );
+	if( NextState_.Position_ != ClampedPosition )
+	{
+		BcFixedVec2d RandomOffset( (int)( pSimulator_->rand() % 64 ), (int)( pSimulator_->rand() % 64 ) );
+		NextState_.Velocity_ += RandomOffset / 4096.0f;
+		NextState_.Position_ = ClampedPosition;
 	}
 }
 

@@ -13,8 +13,6 @@
 
 #include "GaMatchmakingState.h"
 
-#include <stun.h>
-
 int GaMatchmakingState::SocketFileDescriptor_ = 0;
 BcU32 GaMatchmakingState::ClientID_ = BcErrorCode;
 BcU32 GaMatchmakingState::RemoteHandshakeAddr_ = 0;
@@ -31,6 +29,17 @@ BcU16 GaMatchmakingState::LANHandshakePort_ = 0;
 GaMatchmakingState::GaMatchmakingState()
 {
 	name( "GaMatchmakingState" );
+
+	SocketFileDescriptor_ = 0;
+	ClientID_ = BcErrorCode;
+	RemoteHandshakeAddr_ = 0;
+	RemoteHandshakePort_ = 0;
+	LocalHandshakeAddr_ = 0;
+	LocalHandshakePort_ = 0;
+	MappedHandshakeAddr_ = 0;
+	MappedHandshakePort_ = 0;
+	LANHandshakeAddr_ = 0;
+	LANHandshakePort_ = 0;
 
 	HandshakeState_ = HSS_IDLE;
 
@@ -223,50 +232,7 @@ eSysStateReturn GaMatchmakingState::leave()
 // bridge
 BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 {
-	// Perform STUN to get our local address.
-	StunAddress4 StunAddress;
-	StunAddress4 MappedAddress;
-	BcBool GotPort = BcFalse;
-
-	BcPrintf("Connecting to STUN server..\n");
-	if( stunParseServerName( "stunserver.org", StunAddress ) )
-	{
-		int BasePort = 6000;
-		for( BcU32 TryIdx = 0; TryIdx < 10; ++TryIdx )
-		{
-			// Set port & NIC.
-			int SrcPort = BasePort + TryIdx;
-			StunAddress4 NICAddr;
-			NICAddr.addr = 0; 
-			NICAddr.port = SrcPort; 
-
-			// Open port for NAT punchthrough.
-			if( SocketFileDescriptor_ != 0 )
-			{
-				closesocket( SocketFileDescriptor_ );
-				SocketFileDescriptor_ = 0;
-			}
-			BcPrintf("Opening socket on port %u..\n", SrcPort);
-			SocketFileDescriptor_ = stunOpenSocket( StunAddress, &MappedAddress, SrcPort, &NICAddr, false );
-			
-			// Ok, we got one.
-			if( SocketFileDescriptor_ > 0 )
-			{
-				// RakNet only.
-				closesocket( SocketFileDescriptor_ );
-				SocketFileDescriptor_ = 0;
-				//
-
-				GotPort = BcTrue;
-				BcPrintf("Got socket!\n");
-				
-				LocalHandshakeAddr_ = 0;
-				LocalHandshakePort_ = SrcPort;
-				break;
-			}
-		}
-	}
-	
+	BcBool GotPort = doSTUN();
 	if( GotPort )
 	{
 		// Got a port open, also grab our LAN address.
@@ -294,16 +260,16 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 			Addr.S_un.S_un_b.s_b3,
 			Addr.S_un.S_un_b.s_b4,
 			LocalHandshakePort_,
-			( MappedAddress.addr >> 24 ) & 0xff,
-			( MappedAddress.addr >> 16 ) & 0xff,
-			( MappedAddress.addr >> 8 ) & 0xff,
-			( MappedAddress.addr ) & 0xff,
-			MappedAddress.port
+			( MappedAddress_.addr >> 24 ) & 0xff,
+			( MappedAddress_.addr >> 16 ) & 0xff,
+			( MappedAddress_.addr >> 8 ) & 0xff,
+			( MappedAddress_.addr ) & 0xff,
+			MappedAddress_.port
 			);
 
 		// Store mapped.
-		MappedHandshakeAddr_ = MappedAddress.addr;
-		MappedHandshakePort_ = MappedAddress.port;
+		MappedHandshakeAddr_ = MappedAddress_.addr;
+		MappedHandshakePort_ = MappedAddress_.port;
 
 		BcPrintf( "Send: %s (%u)\n", AddrBuffer, LocalHandshakePort_ );
 				
@@ -311,6 +277,55 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 		BcPrintf( "pre-irc_cmd_msg:\n" );
 		int RetVal = irc_cmd_msg( pSession_, pDest, AddrBuffer );
 		BcPrintf( "irc_cmd_msg: %u\n", RetVal );
+	}
+
+	return GotPort;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// doSTUN
+BcBool GaMatchmakingState::doSTUN()
+{
+	// Perform STUN to get our local address.
+	BcBool GotPort = BcFalse;
+
+	BcPrintf("Connecting to STUN server..\n");
+	if( stunParseServerName( "stunserver.org", StunAddress_ ) )
+	{
+		int BasePort = 6000;
+		for( BcU32 TryIdx = 0; TryIdx < 10; ++TryIdx )
+		{
+			// Set port & NIC.
+			int SrcPort = BasePort + TryIdx;
+			StunAddress4 NICAddr;
+			NICAddr.addr = 0; 
+			NICAddr.port = SrcPort; 
+
+			// Open port for NAT punchthrough.
+			if( SocketFileDescriptor_ != 0 )
+			{
+				closesocket( SocketFileDescriptor_ );
+				SocketFileDescriptor_ = 0;
+			}
+			BcPrintf("Opening socket on port %u..\n", SrcPort);
+			SocketFileDescriptor_ = stunOpenSocket( StunAddress_, &MappedAddress_, SrcPort, &NICAddr, false );
+
+			// Ok, we got one.
+			if( SocketFileDescriptor_ > 0 )
+			{
+				// RakNet only.
+				closesocket( SocketFileDescriptor_ );
+				SocketFileDescriptor_ = 0;
+				//
+
+				GotPort = BcTrue;
+				BcPrintf("Got socket!\n");
+
+				LocalHandshakeAddr_ = 0;
+				LocalHandshakePort_ = SrcPort;
+				break;
+			}
+		}
 	}
 
 	return GotPort;

@@ -13,7 +13,7 @@
 
 #include <libircclient.h>
 #include <libirc_rfcnumeric.h>
-#include <enet/enet.h>
+#include <stun.h>
 
 #include "Psybrus.h"
 
@@ -32,6 +32,7 @@ public:
 	eSysStateReturn leave();
 	
 	BcBool sendLocalAddress( const BcChar* pDest );
+	BcBool doSTUN();
 
 	static int getSocketFileDescriptor();
 	static BcU32 getClientID();
@@ -86,6 +87,9 @@ private:
 		HSS_COMPLETE
 	};
 
+	StunAddress4 StunAddress_;
+	StunAddress4 MappedAddress_;
+	
 	HandshakeState HandshakeState_;
 
 	BcReal ConnectTimer_;

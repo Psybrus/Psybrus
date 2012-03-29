@@ -15,8 +15,6 @@
 
 #include "GaTopState.h"
 
-#include "GaGameComponent.h"
-
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 GaTopState::GaTopState()
@@ -36,6 +34,8 @@ void GaTopState::enterOnce()
 {
 	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
 
+	CsCore::pImpl()->requestResource( "font", FontMaterial_ );
+	CsCore::pImpl()->requestResource( "title", TitleMaterial_ );
 	CsCore::pImpl()->requestResource( "background", BackgroundMaterial_ );
 	CsCore::pImpl()->requestResource( "spritesheet0", SpriteSheetMaterial0_ );
 	CsCore::pImpl()->requestResource( "spritesheet1", SpriteSheetMaterial1_ );
@@ -56,7 +56,7 @@ void GaTopState::enterOnce()
 	CsCore::pImpl()->requestResource( "Walk", Sound );
 	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
 
-	spawnChildState( new GaMatchmakingState() );
+	//spawnChildState( new GaMatchmakingState() );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,10 +65,13 @@ eSysStateReturn GaTopState::enter()
 {
 	BcBool Ready = BcTrue;
 
+	Ready &= TitleMaterial_.isReady();
+	Ready &= FontMaterial_.isReady();
 	Ready &= BackgroundMaterial_.isReady();
 	Ready &= SpriteSheetMaterial0_.isReady();
 	Ready &= SpriteSheetMaterial1_.isReady();
 	Ready &= HUDMaterial_.isReady();
+	Ready &= ScnFont::Default.isReady();
 
 	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
 	{
@@ -95,25 +98,6 @@ eSysStateReturn GaTopState::enter()
 void GaTopState::preMain()
 { 
 	ScnEntityRef Entity;
-
-	// Create model entity.
-	/*
-	if( CsCore::pImpl()->createResource( "ModelEntity_0", Entity ) )
-	{
-		GaGameComponentRef ExampleComponent;
-		ScnModelComponentRef ModelComponent;
-	
-		// Create component resources.
-		CsCore::pImpl()->createResource( BcName::INVALID, ExampleComponent );
-		CsCore::pImpl()->createResource( BcName::INVALID, ModelComponent, ScnModel::Default );
-
-		// Attach components.
-		Entity->attach( ExampleComponent );
-		Entity->attach( ModelComponent );
-
-		EntityList_.push_back( Entity );
-	}
-	*/
 	
 	// Create view entity.
 	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
@@ -121,21 +105,16 @@ void GaTopState::preMain()
 		ScnMaterialComponentRef MaterialComponent;
 		ScnViewComponentRef ViewComponent;
 		ScnCanvasComponentRef CanvasComponent;
-		GaGameComponentRef GameComponent0;
-		GaGameComponentRef GameComponent1;
-		
+
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
 		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, SpriteSheetMaterial0_, BcErrorCode );
 		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32, MaterialComponent );
-		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent0, GaMatchmakingState::getClientID() );
- 
+
 		// Attach components.
 		Entity->attach( ViewComponent );
 		Entity->attach( MaterialComponent );
 		Entity->attach( CanvasComponent );
-		Entity->attach( GameComponent0 );
-		//Entity->attach( GameComponent1 );
 
 		// Setup entity position to render from.
 		BcMat4d LookAt;
@@ -143,6 +122,7 @@ void GaTopState::preMain()
 		LookAt.inverse();
 		Entity->setMatrix( LookAt );		
 
+		GameEntity_ = Entity;
 		EntityList_.push_back( Entity );
 	}
 
@@ -151,6 +131,8 @@ void GaTopState::preMain()
 	{
 		ScnCore::pImpl()->addEntity( EntityList_[ Idx ] );
 	}
+
+	startMatchmaking();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -187,6 +169,22 @@ eSysStateReturn GaTopState::leave()
 void GaTopState::leaveOnce()
 {
 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// startMatchmaking
+void GaTopState::startMatchmaking()
+{
+	CsCore::pImpl()->createResource( BcName::INVALID, TitleComponent_ );
+	GameEntity_->attach( TitleComponent_ ); 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// startGame
+void GaTopState::startGame()
+{
+	CsCore::pImpl()->createResource( BcName::INVALID, GameComponent_, GaMatchmakingState::getClientID() );
+	GameEntity_->attach( GameComponent_ ); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
