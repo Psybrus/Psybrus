@@ -23,12 +23,20 @@ EvtProxyLockstep::EvtProxyLockstep( EvtPublisher* pPublisher, BcU32 ClientID, Bc
 
 	BcAssert( NoofClients_ <= 2 );
 
+	if( NoofClients_ == 1 )
+	{
+		SyncEventRate_ = 1;
+	}
+	else
+	{
+		SyncEventRate_ = 4;
+	}
+
 	CurrSchedulingFrameIndex_ = 0;
 	SyncEventsRecv_ = 0;
 	SyncEventsReq_ = 1;
-	SyncEventRate_ = 2;
 	SyncEventPendingIndex_ = 0;
-	SyncEventFrameIndex_ = SyncEventRate_ * 2;
+	SyncEventFrameIndex_ = SyncEventRate_;
 	ClientAhead_ = BcFalse;
 
 	BcMemZero( &Clients_, sizeof( Clients_ ) );
@@ -53,7 +61,7 @@ EvtProxyLockstep::~EvtProxyLockstep()
 void EvtProxyLockstep::setFrameIndex( BcU32 Index, BcU32 Checksum )
 {
 	// Use sync rate to determine scheduling.
-	Index += SyncEventRate_ * 2;
+	Index += SyncEventRate_;
 
 	// If we're using a different scheduling frame index, continue on.
 	if( Index != CurrSchedulingFrameIndex_ )

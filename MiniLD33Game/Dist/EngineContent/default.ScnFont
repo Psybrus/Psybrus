@@ -1,7 +1,7 @@
 { 
 	"ScnFont" : {
 		"name"		: "default",
-		"source"	: "EngineContent/FontSource/srgt6pack.ttf",
+		"source"	: "EngineContent/FontSource/chintzy.ttf",
 		"distancefield"	: true,
 		"nominalsize"	: 64,
 		"spread"	: 16

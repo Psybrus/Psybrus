@@ -38,7 +38,7 @@ static GaGameUnitDescriptor GGameProjectile_Archer =
 {
 	6,
 	BcFixedVec2d( 0.5f, 0.5f ),		// Unit size.
-	BcFixed( 24.0f ),				// Move speed.
+	BcFixed( 18.0f ),				// Move speed.
 	BcFixed( 0.5f ),				// Rate of attack.
 	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
 	BcFixed( 0.25f ),				// Range.
@@ -114,10 +114,10 @@ static GaGameUnitDescriptor GGameUnit_Trebuchet =
 {
 	4,
 	BcFixedVec2d( 2.0f, 2.0f ),		// Unit size.
-	BcFixed( 0.7f ),				// Move speed.
+	BcFixed( 1.1f ),				// Move speed.
 	BcFixed( 0.25f ),				// Rate of attack.
 	BcFixed( 1.0f ),				// Cool down mult for rate of attack.
-	BcFixed( 20.0f ),				// Range.
+	BcFixed( 18.0f ),				// Range.
 	BcFixed( 5.0f ),				// Range.
 	BcFixed( 100.0f ),				// Health.
 	BcFalse,						// Armoured.
@@ -149,11 +149,20 @@ void GaGameComponent::initialise( BcU32 TeamID )
 {
 	Super::initialise();
 
+	if( TeamID == BcErrorCode )
+	{
+		TeamID = 0;
+	}
+
 	MouseDown_ = BcFalse;
 	BoxSelection_ = BcFalse;
 	CtrlDown_ = BcFalse; 
 	AttackMove_ = BcFalse;
 	TeamID_ = TeamID;
+
+	// Randomly decide for some variation.
+	AITickTime_ = 0.0f;
+	AITickMaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.4f ) + 0.1f;
 
 	// Setup control groups.
 	for( BcU32 Idx = 0; Idx < 10; ++Idx )
@@ -161,7 +170,7 @@ void GaGameComponent::initialise( BcU32 TeamID )
 		ControlGroups_.push_back( GaGameUnitIDList() );
 	}
 
-	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID, "localhost", 6000 );
+	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID, BcFalse );
 
 	pSimulator_->addUnit( GGameUnit_Trebuchet, 0, BcFixedVec2d( -19.0f,  0.0f ) );
 
@@ -218,6 +227,14 @@ void GaGameComponent::destroy()
 void GaGameComponent::update( BcReal Tick )
 {
 	pSimulator_->tick( Tick );
+
+	AITickTime_ -= Tick;
+
+	if( AITickTime_ < 0.0f )
+	{
+		pSimulator_->runAI( 1 - TeamID_ );
+		AITickTime_ = AITickMaxTime_;
+	}
 
 	//if( TeamID_ == 0 )
 	{
@@ -283,6 +300,7 @@ void GaGameComponent::update( BcReal Tick )
 			CanvasComponent_->drawSprite( Min, Max - Min, 0, RsColour::GREEN * RsColour( 1.0f, 1.0f, 1.0f, 0.1f ), 11 );
 		}
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -389,7 +407,7 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 	GameCursorPosition_ = CursorPosition_ / 32.0f;
 	EndGameCursorPosition_ = GameCursorPosition_;
 
-	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 4.0f ) )
+	if( MouseDown_ && ( StartGameCursorPosition_ - EndGameCursorPosition_ ).magnitudeSquared() > BcFixed( 8.0f ) )
 	{
 		BoxSelection_ = BcTrue;
 	}
@@ -474,7 +492,7 @@ eEvtReturn GaGameComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Eve
 							{
 								GaGameUnitMoveEvent Event;
 								Event.UnitID_ = pGameUnit->getID();
-								Event.Position_ = ( ( pGameUnit->getPosition() - CentralPosition ) * 0.5f ) + GameCursorPosition_;
+								Event.Position_ = ( ( pGameUnit->getPosition() - CentralPosition ) * 0.0f ) + GameCursorPosition_;
 
 								Event.Position_.x( BcClamp( Event.Position_.x(), -PlayfieldHW, PlayfieldHW ) );
 								Event.Position_.y( BcClamp( Event.Position_.y(), -PlayfieldHH, PlayfieldHH ) );

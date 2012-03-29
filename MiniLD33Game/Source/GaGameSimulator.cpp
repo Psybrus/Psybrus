@@ -19,7 +19,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // GaGameSimulator
-GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID, const BcChar* pAddress, BcU16 Port ):
+GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID, BcBool Networked ):
 	SimulationRate_( SimulationRate ),
 	SimulationSpeed_( SimulationSpeed ),
 	TickAccumulator_( 0.0f ),
@@ -40,22 +40,24 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	subscribe( gaEVT_UNIT_ATTACK, OnUnitAttack );
 
 	pEventBridge_ = NULL;
+	pEventProxy_ = new EvtProxyLockstep( this, TeamID, Networked ? 2 : 1 );
 
-	pEventProxy_ = new EvtProxyLockstep( this, TeamID, 1 );
-	//pEventBridge_ = new EvtBridgeRakNet( this );
+	// If we're networked, create an event bridge.
+	if( Networked )
+	{
+		pEventBridge_ = new EvtBridgeRakNet( this );
 
-	// If the remote address we are trying to connect isn't the same as the mapped address we want to connect to, then connect up normally.
-	// If they match, we're behind the same NAT, so use the LAN address we've been given too.
-	/*
-	if( GaMatchmakingState::getRemoteAddr() != GaMatchmakingState::getMappedAddr() )
-	{
-		pEventBridge_->connect( TeamID, GaMatchmakingState::getRemoteAddr(), GaMatchmakingState::getRemotePort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
+		// If the remote address we are trying to connect isn't the same as the mapped address we want to connect to, then connect up normally.
+		// If they match, we're behind the same NAT, so use the LAN address we've been given too.
+		if( GaMatchmakingState::getRemoteAddr() != GaMatchmakingState::getMappedAddr() )
+		{
+			pEventBridge_->connect( TeamID, GaMatchmakingState::getRemoteAddr(), GaMatchmakingState::getRemotePort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
+		}
+		else
+		{
+			pEventBridge_->connect( TeamID, GaMatchmakingState::getLANAddr(), GaMatchmakingState::getLANPort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
+		}
 	}
-	else
-	{
-		pEventBridge_->connect( TeamID, GaMatchmakingState::getLANAddr(), GaMatchmakingState::getLANPort(), GaMatchmakingState::getLocalPort(), GaMatchmakingState::getSocketFileDescriptor() );
-	}
-	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,6 +173,20 @@ void GaGameSimulator::findUnits( GaGameUnitIDList& List, const BcFixedVec2d& Sta
 }
 
 //////////////////////////////////////////////////////////////////////////
+// findProjectiles
+void GaGameSimulator::findProjectiles( GaGameUnitIDList& List )
+{
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		if( pGameUnit->getTeamID() > 1 && !pGameUnit->isDead() )
+		{
+			List.push_back( pGameUnit->getID() );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // applyDamage
 void GaGameSimulator::applyDamage( const BcFixedVec2d& Position, BcFixed Range, BcFixed Amount )
 {
@@ -189,7 +205,14 @@ void GaGameSimulator::applyDamage( const BcFixedVec2d& Position, BcFixed Range, 
 
 			pGameUnit->applyDamage( Amount );
 		}
-	}	
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// tick
+BcU32 GaGameSimulator::rand()
+{
+	return RNG_.rand();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -217,6 +240,9 @@ void GaGameSimulator::tick( BcReal Delta )
 					GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
 					Checksum_ += pGameUnit->getChecksum();
 				}
+
+				// Seed RNG with checksum.
+				RNG_ = BcRandom( Checksum_ );
 
 				// Tick units.
 				for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
@@ -404,4 +430,84 @@ void GaGameSimulator::addDebugPoint( const BcFixedVec2d& Position, BcFixed Size,
 	};
 
 	DebugPoints_.push_back( DebugPoint );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// runAI
+void GaGameSimulator::runAI( BcU32 TeamID )
+{
+	// Skill (our of 32)
+	BcU32 Skill = 16;
+
+	// Find average centre of units.
+	BcFixedVec2d Centre;
+	BcFixed Total;
+
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		if( pGameUnit->getTeamID() == TeamID && !pGameUnit->isDead() )
+		{
+			Centre += pGameUnit->getPosition();
+			Total += 1.0f;
+		}
+	}
+
+	if( Total > 0.0f )
+	{
+		Centre /= Total;
+	}
+
+	// Prio 1: Attack nearest unit to centre of group.
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		if( ( rand() % 32 ) < Skill )
+		{
+			if( pGameUnit->getTeamID() == TeamID && !pGameUnit->isDead() )
+			{
+				BcU32 NearestID = findNearestUnit( pGameUnit->getPosition(), BcErrorCode, 1 << ( 1 - TeamID ) );
+				GaGameUnit* pNearestUnit = getUnit( NearestID );
+				if( pNearestUnit != NULL )
+				{
+					pGameUnit->setBehaviourAttack( NearestID, BcFalse );
+				}
+			}
+		}
+	}
+
+	// Prio 2: Dodge projectiles that move slow.
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		if( ( rand() % 32 ) < Skill )
+		{
+			if( pGameUnit->getTeamID() == TeamID && !pGameUnit->isDead() )
+			{
+				GaGameUnitIDList Projectiles;
+				findProjectiles( Projectiles );
+
+				for( BcU32 ProjIdx = 0; ProjIdx < Projectiles.size(); ++ProjIdx )
+				{
+					GaGameUnit* pProjectileUnit = getUnit( Projectiles[ ProjIdx ] );
+					if( pProjectileUnit != NULL )
+					{
+						BcFixedVec2d Direction = ( pGameUnit->getPosition() - pProjectileUnit->getMoveTargetPosition() );
+						BcFixed MagnitudeSquared = Direction.magnitudeSquared();
+						BcFixed RangeSquared = pProjectileUnit->getDesc().Range_ * pProjectileUnit->getDesc().Range_;
+
+						if( MagnitudeSquared == 0.0f )
+						{
+							Direction = BcFixedVec2d( (int)( rand() % 32 - 16 ), (int)( rand() % 32 - 16 ) );
+						}
+
+						if( MagnitudeSquared < RangeSquared && pProjectileUnit->getDesc().MoveSpeed_ < 20.0f )
+						{
+							pGameUnit->setBehaviourMove( pGameUnit->getPosition() + ( Direction.normal() * BcSqrt( RangeSquared )  ), BcFalse, BcFalse );
+						}
+					}
+				}
+			}
+		}
+	}
 }

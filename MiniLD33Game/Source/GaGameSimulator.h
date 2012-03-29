@@ -24,7 +24,7 @@ class GaGameSimulator:
 	public EvtPublisher
 {
 public:
-	GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID, const BcChar* pAddress, BcU16 Port );
+	GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpeed, BcU32 TeamID, BcBool Networked );
 	virtual ~GaGameSimulator();
 
 	BcFixed getSimulationRate() const;
@@ -37,12 +37,18 @@ public:
 	void findUnits( GaGameUnitIDList& List, const BcFixedVec2d& Start, const BcFixedVec2d& End, BcU32 IgnoreID = BcErrorCode, BcU32 TeamIDMask = BcErrorCode );
 	void applyDamage( const BcFixedVec2d& Position, BcFixed Range, BcFixed Amount );
 
+	void findProjectiles( GaGameUnitIDList& List );
+
+	BcU32 rand();
+
 	void tick( BcReal Delta );
 
 	void render( ScnCanvasComponentRef Canvas, BcU32 TeamID );
 	void renderHUD( ScnCanvasComponentRef Canvas, const GaGameUnitIDList& CurrentSelection, BcU32 TeamID );
 
 	void addDebugPoint( const BcFixedVec2d& Position, BcFixed Size, const RsColour& Colour );
+
+	void runAI( BcU32 TeamID );
 
 private:
 	eEvtReturn onUnitIdle( EvtID ID, const GaGameUnitIdleEvent& Event );
@@ -77,6 +83,8 @@ private:
 	TGameUnitList GameUnitList_;
 
 	BcU32 Checksum_;
+
+	BcRandom RNG_;
 	
 	
 };
