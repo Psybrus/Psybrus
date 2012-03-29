@@ -25,7 +25,8 @@ GaGameSimulator::GaGameSimulator( BcFixed SimulationRate, BcFixed SimulationSpee
 	TickAccumulator_( 0.0f ),
 	CurrentFrame_( 0 ),
 	UnitID_( 0 ),
-	Checksum_( 0 )
+	Checksum_( 0 ),
+	TimeOut_( 0.0f )
 {
 	BcAssert( TeamID != BcErrorCode );
 
@@ -290,6 +291,12 @@ void GaGameSimulator::tick( BcReal Delta )
 				return;
 			}
 		}
+
+		TimeOut_ = 0.0f;
+	}
+	else
+	{
+		TimeOut_ += Delta;
 	}
 }
 
@@ -437,7 +444,7 @@ void GaGameSimulator::addDebugPoint( const BcFixedVec2d& Position, BcFixed Size,
 void GaGameSimulator::runAI( BcU32 TeamID )
 {
 	// Skill (our of 32)
-	BcU32 Skill = 16;
+	BcU32 Skill = 24;
 
 	// Find average centre of units.
 	BcFixedVec2d Centre;
@@ -510,4 +517,28 @@ void GaGameSimulator::runAI( BcU32 TeamID )
 			}
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTimeOut
+BcReal GaGameSimulator::getTimeOut() const
+{
+	return TimeOut_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getUnitCount
+BcU32 GaGameSimulator::getUnitCount( BcU32 TeamID ) const
+{
+	BcU32 NoofUnits = 0;
+	for( BcU32 Idx = 0; Idx < GameUnitList_.size(); ++Idx )
+	{
+		GaGameUnit* pGameUnit = GameUnitList_[ Idx ];
+		if( pGameUnit && pGameUnit->getTeamID() == TeamID )
+		{
+			++NoofUnits;
+		}
+	}
+
+	return NoofUnits;
 }

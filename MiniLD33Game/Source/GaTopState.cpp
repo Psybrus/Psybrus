@@ -132,6 +132,10 @@ void GaTopState::preMain()
 		ScnCore::pImpl()->addEntity( EntityList_[ Idx ] );
 	}
 
+	SpawnTitle_ = BcTrue;
+	SpawnGame_ = BcFalse;
+	Networked_ = BcFalse;
+
 	startMatchmaking();
 }
 
@@ -139,7 +143,37 @@ void GaTopState::preMain()
 // main
 eSysStateReturn GaTopState::main()
 {
+	if( SpawnTitle_ )
+	{
+		SpawnTitle_ = BcFalse;
+		if( GameComponent_.isValid() )
+		{
+			GameEntity_->detach( GameComponent_ );
+			GameComponent_ = NULL;
+		}
 
+		if( TitleComponent_.isValid() )
+		{
+			GameEntity_->detach( TitleComponent_ );
+			TitleComponent_ = NULL;
+		}
+
+		CsCore::pImpl()->createResource( BcName::INVALID, TitleComponent_ );
+		GameEntity_->attach( TitleComponent_ ); 
+	}
+	else if( SpawnGame_ )
+	{
+		SpawnGame_ = BcFalse;
+		if( TitleComponent_.isValid() )
+		{
+			GameEntity_->detach( TitleComponent_ );
+			TitleComponent_ = NULL;
+		}
+
+		CsCore::pImpl()->createResource( BcName::INVALID, GameComponent_, GaMatchmakingState::getClientID(), Networked_ );
+		GameEntity_->attach( GameComponent_ ); 
+
+	}
 	return sysSR_CONTINUE;
 }
 
@@ -175,16 +209,17 @@ void GaTopState::leaveOnce()
 // startMatchmaking
 void GaTopState::startMatchmaking()
 {
-	CsCore::pImpl()->createResource( BcName::INVALID, TitleComponent_ );
-	GameEntity_->attach( TitleComponent_ ); 
+	SpawnTitle_ = BcTrue;
+	SpawnGame_ = BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // startGame
-void GaTopState::startGame()
+void GaTopState::startGame( BcBool Networked )
 {
-	CsCore::pImpl()->createResource( BcName::INVALID, GameComponent_, GaMatchmakingState::getClientID() );
-	GameEntity_->attach( GameComponent_ ); 
+	SpawnGame_ = BcTrue;
+	SpawnTitle_ = BcFalse;
+	Networked_ = Networked;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

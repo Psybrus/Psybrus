@@ -40,7 +40,7 @@ public:
 	virtual void					leaveOnce();
 
 	void							startMatchmaking();
-	void							startGame();
+	void							startGame( BcBool Networked );
 
 	void							playSound( const BcChar* pSoundName, const BcFixedVec2d& Position );
 
@@ -66,6 +66,10 @@ private:
 
 	TResourceList					ResourceList_;
 	TEntityList						EntityList_;
+
+	BcBool							SpawnTitle_;
+	BcBool							SpawnGame_;
+	BcBool							Networked_;
 };
 
 #endif

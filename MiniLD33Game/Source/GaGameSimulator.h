@@ -50,6 +50,9 @@ public:
 
 	void runAI( BcU32 TeamID );
 
+	BcReal getTimeOut() const;
+	BcU32 getUnitCount( BcU32 TeamID ) const;
+
 private:
 	eEvtReturn onUnitIdle( EvtID ID, const GaGameUnitIdleEvent& Event );
 	eEvtReturn onUnitGuard( EvtID ID, const GaGameUnitGuardEvent& Event );
@@ -85,6 +88,8 @@ private:
 	BcU32 Checksum_;
 
 	BcRandom RNG_;
+
+	BcReal TimeOut_;
 	
 	
 };

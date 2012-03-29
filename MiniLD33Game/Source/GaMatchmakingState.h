@@ -18,9 +18,19 @@
 #include "Psybrus.h"
 
 ////////////////////////////////////////////////////////////////////////////////
+// GaHandshakeState
+enum GaHandshakeState
+{
+	HSS_STUN = 0,
+	HSS_IDLE,
+	HSS_WAIT_INVITE,
+	HSS_WAIT_ADDR,
+	HSS_COMPLETE
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // GaMatchmakingState
-class GaMatchmakingState: 
-	public BcGlobal< GaMatchmakingState >,
+class GaMatchmakingState:
 	public BcThread,
 	public SysState
 {
@@ -71,7 +81,7 @@ private:
 	static void event_dcc_chat_req(irc_session_t * session, const char * nick, const char * addr, irc_dcc_t dccid);
 	static void event_dcc_send_req(irc_session_t * session, const char * nick, const char * addr, const char * filename, unsigned long size, irc_dcc_t dccid);
 
-private:
+public:
 	BcChar ScreenName_[ 64 ];
 	BcChar Channel_[ 64 ];
 	irc_callbacks_t Callbacks_;
@@ -79,22 +89,16 @@ private:
 
 	BcMutex Lock_;
 	
-	enum HandshakeState
-	{
-		HSS_IDLE = 0,
-		HSS_WAIT_INVITE,
-		HSS_WAIT_ADDR,
-		HSS_COMPLETE
-	};
-
 	StunAddress4 StunAddress_;
 	StunAddress4 MappedAddress_;
 	
-	HandshakeState HandshakeState_;
+	GaHandshakeState HandshakeState_;
 
 	BcReal ConnectTimer_;
 	BcReal InviteTimer_;
 	BcReal HandshakeTimer_;
+
+	BcU32 SysID_;
 
 
 	// Out socket file descriptor.
