@@ -36,12 +36,12 @@ GaMatchmakingState::GaMatchmakingState()
 	RemoteHandshakePort_ = 0;
 	LocalHandshakeAddr_ = 0;
 	LocalHandshakePort_ = 0;
-	MappedHandshakeAddr_ = 0;
-	MappedHandshakePort_ = 0;
+	//MappedHandshakeAddr_ = 0;
+	//MappedHandshakePort_ = 0;
 	LANHandshakeAddr_ = 0;
 	LANHandshakePort_ = 0;
 
-	HandshakeState_ = HSS_IDLE;
+	HandshakeState_ = HSS_STUN;
 
 	BcMemZero( &Callbacks_, sizeof( Callbacks_ ) );
 	Callbacks_.event_connect = event_connect;
@@ -100,6 +100,30 @@ eSysStateReturn GaMatchmakingState::main()
 
 	switch( HandshakeState_ )
 	{
+	case HSS_STUN:
+		{
+			// Only do once.
+			if( MappedHandshakeAddr_ == 0 )
+			{
+				if( doSTUN() )
+				{
+					SysID_ = static_cast< BcU32 >( BcHash( (BcU8*)&MappedHandshakeAddr_, sizeof( MappedHandshakeAddr_ ) ) ); // Hash the mapped address to we don't broadcast it.
+					if( MappedHandshakeAddr_ != 0 )
+					{
+						HandshakeState_ = HSS_IDLE;
+					}
+				}
+				else
+				{
+					HandshakeState_ = HSS_STUN;
+				}
+			}
+			else
+			{
+				HandshakeState_ = HSS_IDLE;
+			}
+		}
+		break;
 	case HSS_IDLE:
 		{
 			ConnectTimer_ -= Delta;
@@ -145,10 +169,10 @@ eSysStateReturn GaMatchmakingState::main()
 						ClientID_ = BcErrorCode;
 						RemoteHandshakeAddr_ = 0;
 						RemoteHandshakePort_ = 0;
-						LocalHandshakeAddr_ = 0;
-						LocalHandshakePort_ = 0;
-						MappedHandshakeAddr_ = 0;
-						MappedHandshakePort_ = 0;
+						//LocalHandshakeAddr_ = 0;
+						//LocalHandshakePort_ = 0;
+						//MappedHandshakeAddr_ = 0;
+						//MappedHandshakePort_ = 0;
 						HandshakeState_ = HSS_WAIT_INVITE;
 					}
 					else
@@ -172,7 +196,10 @@ eSysStateReturn GaMatchmakingState::main()
 				InviteTimer_ = BcAbs( BcRandom::Global.randReal() ) * 5.0f + 5.0f;
 
 				// Send play with me message to channel.
-				irc_cmd_msg( pSession_, Channel_, "play with me!" );
+
+				BcChar PlayBuffer[256];
+				BcSPrintf( PlayBuffer, "REQ:%u", SysID_ );
+				irc_cmd_msg( pSession_, Channel_, PlayBuffer );
 			}
 		}
 		break;
@@ -196,20 +223,23 @@ eSysStateReturn GaMatchmakingState::main()
 		break;
 	}
 
-	if( HandshakeState_ != HSS_IDLE && ( pSession_ == NULL || !irc_is_connected( pSession_ ) ) )
+	if( HandshakeState_ != HSS_STUN )
 	{
-		BcSleep( 0.1f );
-		BcThread::join();
-		BcSleep( 0.1f );
-		if( pSession_ != NULL )
+		if( HandshakeState_ != HSS_IDLE && ( pSession_ == NULL || !irc_is_connected( pSession_ ) ) )
 		{
-			irc_destroy_session( pSession_ );
-			pSession_ = NULL;
+			BcSleep( 0.1f );
+			BcThread::join();
+			BcSleep( 0.1f );
+			if( pSession_ != NULL )
+			{
+				irc_destroy_session( pSession_ );
+				pSession_ = NULL;
+			}
+			HandshakeState_ = HSS_IDLE;
+			ConnectTimer_ = 10.0f;
 		}
-		HandshakeState_ = HSS_IDLE;
-		ConnectTimer_ = 10.0f;
 	}
-	
+
 	return sysSR_CONTINUE;
 }
 
@@ -232,7 +262,14 @@ eSysStateReturn GaMatchmakingState::leave()
 // bridge
 BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 {
-	BcBool GotPort = doSTUN();
+	BcBool GotPort = BcTrue;
+	
+	if( MappedHandshakeAddr_ == 0 )
+	{
+		doSTUN();
+	}
+
+
 	if( GotPort )
 	{
 		// Got a port open, also grab our LAN address.
@@ -267,10 +304,6 @@ BcBool GaMatchmakingState::sendLocalAddress( const BcChar* pDest )
 			MappedAddress_.port
 			);
 
-		// Store mapped.
-		MappedHandshakeAddr_ = MappedAddress_.addr;
-		MappedHandshakePort_ = MappedAddress_.port;
-
 		BcPrintf( "Send: %s (%u)\n", AddrBuffer, LocalHandshakePort_ );
 				
 		// Send message.
@@ -296,17 +329,12 @@ BcBool GaMatchmakingState::doSTUN()
 		for( BcU32 TryIdx = 0; TryIdx < 10; ++TryIdx )
 		{
 			// Set port & NIC.
-			int SrcPort = BasePort + TryIdx;
+			int SrcPort = stunRandomPort();
 			StunAddress4 NICAddr;
 			NICAddr.addr = 0; 
 			NICAddr.port = SrcPort; 
 
 			// Open port for NAT punchthrough.
-			if( SocketFileDescriptor_ != 0 )
-			{
-				closesocket( SocketFileDescriptor_ );
-				SocketFileDescriptor_ = 0;
-			}
 			BcPrintf("Opening socket on port %u..\n", SrcPort);
 			SocketFileDescriptor_ = stunOpenSocket( StunAddress_, &MappedAddress_, SrcPort, &NICAddr, false );
 
@@ -319,10 +347,15 @@ BcBool GaMatchmakingState::doSTUN()
 				//
 
 				GotPort = BcTrue;
-				BcPrintf("Got socket!\n");
+				BcPrintf("Got socket %u!\n", SrcPort);
 
 				LocalHandshakeAddr_ = 0;
 				LocalHandshakePort_ = SrcPort;
+
+				// Store mapped.
+				MappedHandshakeAddr_ = MappedAddress_.addr;
+				MappedHandshakePort_ = MappedAddress_.port;
+
 				break;
 			}
 		}
@@ -515,8 +548,11 @@ void GaMatchmakingState::event_channel(irc_session_t * session, const char * eve
 			*pNameEnd = '\0';
 		}
 
+		BcChar PlayBuffer[256];
+		BcSPrintf( PlayBuffer, "REQ:%u", pBridge->SysID_ );
+
 		// If the message isn't from ourself, and it's the play with me message, then send our local address.
-		if( !BcStrCompare( pBridge->ScreenName_, NameCopy ) && BcStrCompare( params[1], "play with me!" ) )
+		if( !BcStrCompare( pBridge->ScreenName_, NameCopy ) && BcStrCompare( params[1], PlayBuffer ) )
 		{
 			if( pBridge->sendLocalAddress( NameCopy ) )
 			{

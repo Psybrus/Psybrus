@@ -3,7 +3,7 @@
 		"name"		: "default",
 		"source"	: "EngineContent/FontSource/chintzy.ttf",
 		"distancefield"	: true,
-		"nominalsize"	: 64,
+		"nominalsize"	: 48,
 		"spread"	: 16
 	}
 }

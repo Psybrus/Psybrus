@@ -13,6 +13,8 @@
 
 #include "GaGameComponent.h"
 
+#include "GaTopState.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Units
 static GaGameUnitDescriptor GGameProjectile_Soldier = 
@@ -145,7 +147,7 @@ void GaGameComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void GaGameComponent::initialise( BcU32 TeamID )
+void GaGameComponent::initialise( BcU32 TeamID,  BcBool Networked )
 {
 	Super::initialise();
 
@@ -159,6 +161,8 @@ void GaGameComponent::initialise( BcU32 TeamID )
 	CtrlDown_ = BcFalse; 
 	AttackMove_ = BcFalse;
 	TeamID_ = TeamID;
+	Networked_ = Networked;
+	GameState_ = GS_PLAYING;
 
 	// Randomly decide for some variation.
 	AITickTime_ = 0.0f;
@@ -170,7 +174,7 @@ void GaGameComponent::initialise( BcU32 TeamID )
 		ControlGroups_.push_back( GaGameUnitIDList() );
 	}
 
-	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID, BcFalse );
+	pSimulator_ = new GaGameSimulator( 1.0f / 15.0f, 1.0f, TeamID, Networked );
 
 	pSimulator_->addUnit( GGameUnit_Trebuchet, 0, BcFixedVec2d( -19.0f,  0.0f ) );
 
@@ -226,16 +230,37 @@ void GaGameComponent::destroy()
 //virtual
 void GaGameComponent::update( BcReal Tick )
 {
-	pSimulator_->tick( Tick );
+	BcU32 Param = FontMaterial_->findParameter( "aAlphaTestStep" );
+	FontMaterial_->setParameter( Param, BcVec2d( 0.4f, 0.5f ) );
 
-	AITickTime_ -= Tick;
-
-	if( AITickTime_ < 0.0f )
+	if( GameState_ == GS_PLAYING )
 	{
-		pSimulator_->runAI( 1 - TeamID_ );
-		AITickTime_ = AITickMaxTime_;
-	}
+		pSimulator_->tick( Tick );
 
+		if( pSimulator_->getTimeOut() > 5.0f )
+		{
+			GameState_ = GS_TIMEOUT;
+		}
+
+		if( pSimulator_->getUnitCount( TeamID_ ) == 0 ||
+			pSimulator_->getUnitCount( 1 - TeamID_ ) == 0 )
+		{
+			GameState_ = GS_OVER;
+		}
+
+
+		if( !Networked_ )
+		{
+			AITickTime_ -= Tick;
+
+			if( AITickTime_ < 0.0f )
+			{
+				pSimulator_->runAI( 1 - TeamID_ );
+				AITickTime_ = AITickMaxTime_;
+			}
+		}
+	}
+	
 	//if( TeamID_ == 0 )
 	{
 		if( CanvasComponent_.isValid() )
@@ -288,18 +313,65 @@ void GaGameComponent::update( BcReal Tick )
 			pSimulator_->renderHUD( CanvasComponent_, SelectionList, TeamID_ );
 		}
 
-		// Draw cursor.
-		CanvasComponent_->setMaterialComponent( HUDMaterial_ );
-		CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, AttackMove_ ? RsColour::RED : RsColour::WHITE, 10 );
-
-		// Draw selection box.
-		if( MouseDown_ && BoxSelection_ ) 
+		switch( GameState_ )
 		{
-			BcVec2d Min = BcVec2d( StartGameCursorPosition_.x(), StartGameCursorPosition_.y() ) * 32.0f;
-			BcVec2d Max = BcVec2d( GameCursorPosition_.x(), GameCursorPosition_.y() ) * 32.0f;
-			CanvasComponent_->drawSprite( Min, Max - Min, 0, RsColour::GREEN * RsColour( 1.0f, 1.0f, 1.0f, 0.1f ), 11 );
+		case GS_PLAYING:
+			{
+				// Draw cursor.
+				CanvasComponent_->setMaterialComponent( HUDMaterial_ );
+				CanvasComponent_->drawSpriteCentered( BcVec2d( CursorPosition_.x(), CursorPosition_.y() ), BcVec2d( 64.0f, 64.0f ), 1, AttackMove_ ? RsColour::RED : RsColour::WHITE, 10 );
+
+				// Draw selection box.
+				if( MouseDown_ && BoxSelection_ ) 
+				{
+					BcVec2d Min = BcVec2d( StartGameCursorPosition_.x(), StartGameCursorPosition_.y() ) * 32.0f;
+					BcVec2d Max = BcVec2d( GameCursorPosition_.x(), GameCursorPosition_.y() ) * 32.0f;
+					CanvasComponent_->drawSprite( Min, Max - Min, 0, RsColour::GREEN * RsColour( 1.0f, 1.0f, 1.0f, 0.1f ), 11 );
+				}
+
+				std::string Text0 = TeamID_ == 0 ? "YOU ARE RED!" : "YOU ARE BLUE!";
+				BcVec2d TextSize0 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text0, RsColour::WHITE, BcTrue );
+				Font_->draw( CanvasComponent_, ( -TextSize0 / 2.0f ) + BcVec2d( 0.0f, -350.0f ), Text0, TeamID_ == 0 ? RsColour::RED : RsColour::BLUE, BcFalse );
+
+			}
+			break;
+
+		case GS_TIMEOUT:
+			{
+				std::string Text0 = "Connection timed out :(";
+				std::string Text1 = "Press ESC to Quit.";
+				BcVec2d TextSize0 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text0, RsColour::WHITE, BcTrue );
+				Font_->draw( CanvasComponent_, ( -TextSize0 / 2.0f ) + BcVec2d( 0.0f, -64.0f ), Text0, RsColour::WHITE, BcFalse );
+				BcVec2d TextSize1 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text1, RsColour::WHITE, BcTrue );
+				Font_->draw( CanvasComponent_, ( -TextSize1 / 2.0f ) + BcVec2d( 0.0f, 64.0f ), Text1, RsColour::WHITE, BcFalse );
+			}
+			break;
+
+		case GS_OVER:
+			{
+				if( pSimulator_->getUnitCount( TeamID_ ) > 0 )
+				{
+					std::string Text0 = "You Won! :D";
+					std::string Text1 = "Press ESC to Quit.";
+					BcVec2d TextSize0 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text0, RsColour::WHITE, BcTrue );
+					Font_->draw( CanvasComponent_, ( -TextSize0 / 2.0f ) + BcVec2d( 0.0f, -64.0f ), Text0, RsColour::WHITE, BcFalse );
+					BcVec2d TextSize1 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text1, RsColour::WHITE, BcTrue );
+					Font_->draw( CanvasComponent_, ( -TextSize1 / 2.0f ) + BcVec2d( 0.0f, 64.0f ), Text1, RsColour::WHITE, BcFalse );
+				}
+				else
+				{
+					std::string Text0 = "You Lost! :<";
+					std::string Text1 = "Press ESC to Quit.";
+					BcVec2d TextSize0 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text0, RsColour::WHITE, BcTrue );
+					Font_->draw( CanvasComponent_, ( -TextSize0 / 2.0f ) + BcVec2d( 0.0f, -64.0f ), Text0, RsColour::WHITE, BcFalse );
+					BcVec2d TextSize1 = Font_->draw( CanvasComponent_, BcVec2d( 0.0f, 0.0f ), Text1, RsColour::WHITE, BcTrue );
+					Font_->draw( CanvasComponent_, ( -TextSize1 / 2.0f ) + BcVec2d( 0.0f, 64.0f ), Text1, RsColour::WHITE, BcFalse );
+				}
+			}
+			break;
 		}
 	}
+
 
 }
 
@@ -356,6 +428,17 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 			Parent->attach( HUDMaterial_ );
 		}
 	}
+
+	// Font
+	ScnFontRef Font;
+	if( CsCore::pImpl()->requestResource( "default", Font ) && CsCore::pImpl()->requestResource( "font", Material ) )
+	{
+		if( CsCore::pImpl()->createResource( BcName::INVALID, Font_, Font, Material ) )
+		{
+			FontMaterial_ = Font_->getMaterialComponent();
+			Parent->attach( Font_ );
+		}
+	}
 	
 	// Bind input events.
 	//if( TeamID_ == 0 )
@@ -387,6 +470,7 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 	Parent->detach( SpriteSheetMaterials_[ 0 ] );
 	Parent->detach( SpriteSheetMaterials_[ 1 ] );
 	Parent->detach( HUDMaterial_ );
+	Parent->detach( Font_ );
 
 	// Unsubscribe.
 	OsCore::pImpl()->unsubscribeAll( this );
@@ -582,6 +666,11 @@ eEvtReturn GaGameComponent::onKeyEvent( EvtID ID, const OsEventInputKeyboard& Ev
 			}
 		}
 	}
+	else if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ESCAPE )
+	{
+		GaTopState::pImpl()->startMatchmaking();
+	}
+
 
 	return evtRET_PASS;
 }

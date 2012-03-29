@@ -30,12 +30,14 @@ class GaGameComponent:
 public:
 	DECLARE_RESOURCE( ScnComponent, GaGameComponent );
 
-	void								initialise( BcU32 TeamID );
+	void								initialise( BcU32 TeamID, BcBool Networked );
 	void								destroy();
 
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+
 
 	eEvtReturn							onKeyEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
@@ -47,6 +49,9 @@ private:
 	ScnMaterialComponentRef				BackgroundMaterial_;
 	ScnMaterialComponentRef				SpriteSheetMaterials_[ 2 ];
 	ScnMaterialComponentRef				HUDMaterial_;
+
+	ScnMaterialComponentRef				FontMaterial_;
+	ScnFontComponentRef					Font_;
 
 	GaGameSimulator*					pSimulator_;
 
@@ -69,6 +74,15 @@ private:
 	GaGameUnitIDList					UnitSelection_;
 	std::vector< GaGameUnitIDList >		ControlGroups_;
 
+	BcBool Networked_;
+
+	enum GameState
+	{
+		GS_PLAYING,
+		GS_TIMEOUT,
+		GS_OVER,
+	};
+	GameState GameState_;
 };
 
 #endif
