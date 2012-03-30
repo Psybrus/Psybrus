@@ -1,0 +1,8 @@
+{ 
+	"ScnTexture" : {
+		"name"		: "title",
+
+		// Source
+		"source"	: "GameContent/Source/title.png"
+	}
+}

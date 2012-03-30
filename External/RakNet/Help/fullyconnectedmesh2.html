@@ -1,0 +1,107 @@
+<HTML>
+<HEAD>
+
+<TITLE>Fully Connected Mesh 2</TITLE>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</HEAD>
+<link href="RaknetManual.css" rel="stylesheet" type="text/css">
+<meta name="title" content="RakNet - Advanced multiplayer game networking API">
+</HEAD>
+<BODY BGCOLOR="#ffffff" LINK="#003399" vlink="#003399" alink="#003399" LEFTMARGIN="0" TOPMARGIN="0" MARGINWIDTH="0" MARGINHEIGHT="0"">
+<span style="background-color: rgb(255, 255, 255);"><img src="RakNet_Icon_Final-copy.jpg" alt="Jenkins Software" width="150" height="150"></span><BR>
+<BR>
+
+<table width="100%" border="0"><tr>
+  <td bgcolor="#2c5d92" class="RakNetWhiteHeader">
+<img src="spacer.gif" width="8" height="1">Fully Connected 2 Mesh Plugin</td>
+</tr></table>
+<TABLE BORDER="0" CELLPADDING="10" CELLSPACING="0" WIDTH="100%"><TR>
+  <TD><p><span class="RakNetBlueHeader">Generate a fully connected mesh, while automatically choosing a host based on the longest running system.</span></p>
+    <p>Peer to peer games typically need one peer to act as a host for unique events. For example, the host may send out game end notifications or may control the AI. FullyConnectedMesh2 can be used to automatically determine the host after connection.</p>
+    <p><strong>Overview:</strong></p>
+    <ol>
+      <li>Call SetConnectOnNewRemoteConnection(false, &quot;&quot;); and manually connect to every other system to generate a fully connected mesh topology.
+      <li>If every remote connection is a player and always accepted into the game, call SetAutoparticipateConnections(true);. Otherwise call AddParticipant() for each remote system.
+        <li>Use GetHostSystem() and IsHostSystem() to query who is the host
+        <li>Do host migration if necessary when you get ID_FCM2_NEW_HOST</li>
+    </ol>
+<p>SetConnectOnNewRemoteConnection(), if true will call RakPeer::Connect() on remote systems when ID_REMOTE_NEW_INCOMING_CONNECTION through the ConnectionGraph2 plugin. However, this usually won't work since most systems are behind routers. Therefore, you will usually manually connect to other systems.</p>
+<p>SetAutoparticipateConnections() will usually be called with false, because you usually do some type of player validation before accepting a player into a game.</p>
+<p>Until host calculation has completed, GetHostSystem() will return your own guid and GetConnectedHost() will return UNASSIGNED_RAKNET_GUID. You will get ID_FCM2_NEW_HOST as soon as the host is known. The host will generally be whichever system has been running the longest of all systems added with AddParticipant(). If you immediately have to know who is the host on gameplay start, do not start gameplay until you get ID_FCM2_NEW_HOST at least once. Code example:</p>
+<PRE>
+case ID_NEW_INCOMING_CONNECTION:
+case ID_CONNECTION_REQUEST_ACCEPTED:
+{
+	fullyconnectedmesh->AddParticipant(packet->guid);
+	if (fullyconnectedmesh->GetConnectedHost()!=UNASSIGNED_RAKNET_GUID)
+	{
+		// Already know the host, so can add connection to the game immediately
+		AddGameParticipant(packet->guid);
+	}
+	// else do not know host yet, wait for ID_FCM2_NEW_HOST before calling AddGameParticipant()
+}
+case ID_FCM2_NEW_HOST:
+{
+	RakNet::BitStream bs(packet->data,packet->length,false);
+	bs.IgnoreBytes(1);
+	RakNetGUID oldhost;
+	bs.Read(oldhost);
+	// If oldHost is the same as the new host (packet->guid) then this is the first time we got this message
+	if (oldhost==packet->guid)
+	{
+		// Game is ready to start, because we now know the host for the first time
+		SignalGameStart();
+		
+		// Add as game participants systems previously added to FullyConnectedMesh2
+		// from ID_NEW_INCOMING_CONNECTION and ID_CONNECTION_REQUEST_ACCEPTED
+		DataStructures::List&lt;RakNetGUID&gt; participantList;
+		fullyconnectedmesh->GetParticipantList(participantList);
+		for (unsigned int i=0; i < participantList.Size(); i++)
+			AddGameParticipant(participantList[i]);
+	}
+}
+</PRE>
+
+<p>GetParticipantList() and GetHostOrder() can be used to find out which systems were added with AddParticipant().</p>
+<p>If the game does not immediately start networked, you should call ResetHostCalculation() to reinitialize the host timer when network play is now relevant. Otherwise, a user could play a game in single player, connect to a network session, and then be considered the host because his system was running the longest, although he was the last to join the network session. A good time to call ResetHostCalculation() is just before attempting to join a network room or lobby.</p>
+<p><strong>Reading the host:</strong></p>
+<p>ID_FCM2_NEW_HOST has the RakNetGUID of the old host encoded in the network stream. The new host is written to the systemAddress and guid members of the Packet. If the old host and new host are the same, then there was no old host (this is the first host calculation).
+<PRE>	
+case ID_FCM2_NEW_HOST:
+{
+    if (packet->guid==rakPeer->GetMyGUID())
+		printf("Got new host (ourselves)");
+    else
+    	printf("Got new host %s, GUID=%s", packet->systemAddress.ToString(true), packet->guid.ToString());
+    RakNet::BitStream bs(packet->data,packet->length,false);
+    bs.IgnoreBytes(1);
+    RakNetGUID oldHost;
+    bs.Read(oldHost);
+    // If the old host is different, then this message was due to losing connection to the host.
+    if (oldHost!=packet->guid)
+        printf(". Oldhost Guid=%s\n", oldHost.ToString());
+    else
+        printf("\n");
+    }
+    break;
+</PRE>
+See <em>Samples/FCMHost</em> for a demonstration of this plugin</p></TD>
+</TR>
+  <TR>
+    <TD>&nbsp;</TD>
+  </TR>
+</TABLE>
+
+<table width="100%" border="0"><tr><td bgcolor="#2c5d92" class="RakNetWhiteHeader">
+<img src="spacer.gif" width="8" height="1">See Also</td>
+</tr></table>
+<TABLE BORDER="0" CELLPADDING="10" CELLSPACING="0" WIDTH="100%"><TR><TD>
+
+  <p><A HREF="index.html">Index</A><BR>
+      <A HREF="plugininterface.html">PluginInterface</A><br>
+      <a href="natpunchthrough.html">NAT-Punchthrough</a><br>
+      <a href="readyevent.html">Ready Event</a><BR>
+  </p>
+  </TD></TR></TABLE>
+</BODY>
+</HTML>

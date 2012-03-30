@@ -1,0 +1,170 @@
+<HTML>
+<HEAD>
+
+<TITLE>NAT Traversal Architecture</TITLE>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</HEAD>
+<link href="RaknetManual.css" rel="stylesheet" type="text/css">
+<meta name="title" content="RakNet - Advanced multiplayer game networking API">
+</HEAD>
+<BODY BGCOLOR="#ffffff" LINK="#003399" vlink="#003399" alink="#003399" LEFTMARGIN="0" TOPMARGIN="0" MARGINWIDTH="0" MARGINHEIGHT="0"">
+<span style="background-color: rgb(255, 255, 255);"><img src="RakNet_Icon_Final-copy.jpg" alt="Jenkins Software" width="150" height="150"></span><BR>
+<BR>
+
+<table width="100%" border="0"><tr>
+  <td bgcolor="#2c5d92" class="RakNetWhiteHeader">
+<img src="spacer.gif" width="8" height="1">NAT Traversal Architecture</td>
+</tr></table>
+<TABLE BORDER="0" CELLPADDING="10" CELLSPACING="0" WIDTH="100%"><TR>
+  <TD>
+    <p><span class="RakNetBlueHeader">How to use combine UPNP, NAT type detection, NAT punchthrough, and Router2 so P2P connections complete quickly and efficiently</span></p>
+    <p>RakNet utilizes 4 separate systems, each of which deal partly with not being able to connect to other systems. These systems are:</p>
+    <ol>
+      <li><a href="nattypedetection.html">NAT type detection</a> - Find out if we have a router, and how restrictive that router is</li>
+      <li><a href="http://miniupnp.free.fr/">UPNP</a> - Tell the router to open a specified port</li>
+      <li><a href="natpunchthrough.html">NAT punchthrough</a> - Connect past routers by sending simultaneously between two systems</li>
+      <li><a href="router.html">Router2</a> (Optional) - Use other player's bandwidth for routers that cannot connect</li>
+      <li> <a href="natpunchthrough.html">UDPProxyClient</a> (Optional) - Route failed connections through your own servers</li>
+      </ol>
+    <p>What follows is the best way to combine these systems to quickly connect players in a peer to peer network.</p>
+    <p>Requirements:</p>
+    <ol>
+      <li>You have a remote server running the NATCompleteServer (or use the default found at the sample <em>\Samples\NATCompletePeer</em> )</li>
+      <li>On your game client, you have attached the plugins NatTypeDetectionClient, NATPunchthroughClient, and optionally Router2 and/or UDProxyClient</li>
+      <li>On your game client, you have linked in and built miniupnp, located at DependentExtensions\miniupnpc-1.5</li>
+      </ol>
+    <p>To build MiniUPNP    </p>
+    <ol>
+      <li>Include DependentExtensions\miniupnpc-1.5 in the include paths</li>
+      <li>Define STATICLIB in the preprocessor if necessary (See DependentExtensions\miniupnpc-1.5\declspec.h)</li>
+      <li>Link ws2_32.lib and IPHlpApi.Lib</li>
+    </ol>
+    <p><strong>Step 1: Connect to the server</strong></p>
+<p>Connect to your server running NATCompleteServer using the usual method RakPeerInterface::Connect().</p>
+    <p><strong>Step 2: Detect router type</strong></p>
+<p>Call NatTypeDetectionClient::DetectNATType(). You should get back a packet ID_NAT_TYPE_DETECTION_RESULT indicating the NAT type. For example:</p>
+<p class="RakNetCode">if (packet-&gt;data[0]==ID_NAT_TYPE_DETECTION_RESULT)
+{<br>
+RakNet::NATTypeDetectionResult detectionResult = (RakNet::NATTypeDetectionResult) packet-&gt;data[1]; }</p>
+<p>If detectionResult is NATTypeDetectionResult::NAT_TYPE_NONE then this system does not have a router. You can connect to every system, and every system can connect to you.</p>
+<p>You should tell the server this system is directly connectable, so that incoming systems do not waste time trying to do NAT punch to this system. See Appendix A, passing NAT_TYPE_NONE. Connect to every existing user in the game session.</p>
+<p><strong>Step 3: Use UPNP to open the router</strong></p>
+<p>Assuming our router in step 2 was not NATTypeDetectionResult::NAT_TYPE_NONE, we are going to try to use UPNP to open the router.</p>
+<pre>
+#include "miniupnpc.h"
+#include "upnpcommands.h"
+#include "upnperrors.h"
+
+bool OpenUPNP(RakPeerInterface *rakPeer, SystemAddress serverAddress)
+{	
+	struct UPNPDev * devlist = 0;
+	devlist = upnpDiscover(2000, 0, 0, 0);
+	if (devlist)
+	{
+		char lanaddr[64];	/* my ip address on the LAN */
+		struct UPNPUrls urls;
+		struct IGDdatas data;
+		if (UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr))==1)
+		{
+			DataStructures::List< RakNetSmartPtr< RakNetSocket> > sockets;
+			rakPeer->GetSockets(sockets);
+
+			char iport[32];
+			Itoa(sockets[0]->boundAddress.GetPort(),iport,10);
+			char eport[32];
+			Itoa(rakPeer->GetExternalID(serverAddress).GetPort(),eport,10);
+
+			int r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype, eport, iport, lanaddr, 0, "UDP", 0);
+			if(r!=UPNPCOMMAND_SUCCESS)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+}
+</pre>
+If OpenUPNP returned true, you are done. You can connect to every system, and every system can connect to you. Remote systems should connect to your external port as seen by the server.
+<p>You should tell the server this system is directly connectable, so that incoming systems do not waste time trying to do NAT punch to this system. See Appendix A, passing NAT_TYPE_SUPPORTS_UPNP. Connect to every existing user in the game session.</p>
+<p><strong>Step 4: Run NATPunchthroughClient</strong></p>
+<ol>
+  <li>Download the list of remote players in the game session from the server, including their connectivity status.</li>
+  <li>If the remote player's connectivity status is NAT_TYPE_SUPPORTS_UPNP or NAT_TYPE_NONE, you can connect to them directly. Store in memory this player as punchthrough succeeded, we will deal with this player in step 6.</li>
+  <li>If the remote player's connectivity status is NAT_TYPE_SYMMETRIC and our own nat type from step 2 is also NAT_TYPE_SYMMETRIC, NATPunchthroughClient will fail for this player. Store in memory  player as punchthrough failed, we will deal with this player in step 5.</li>
+  <li>Otherwise, call NatPunchthroughClient::OpenNAT for that remote player and mark that player as processing.</li>
+</ol>
+<p>For each player that we called OpenNAT for, we should get one of the following response codes:</p>
+<ul>
+  <li>ID_NAT_TARGET_NOT_CONNECTED - Remove this user from the list of remote players in the game session</li>
+  <li>ID_NAT_TARGET_UNRESPONSIVE - Remove this user from the list of remote players in the game session</li>
+  <li>ID_NAT_CONNECTION_TO_TARGET_LOST - Remote this user from the list of remote players in the game session</li>
+  <li>ID_NAT_ALREADY_IN_PROGRESS - Ignore</li>
+  <li>ID_NAT_PUNCHTHROUGH_FAILED - Store in memory this player as punchthrough failed, we will deal with this player in step 5.</li>
+  <li>ID_NAT_PUNCHTHROUGH_SUCCEEDED - Store in memory this player as punchthrough succeeded, we will deal with this player in step 6.</li>
+</ul>
+<p><strong>Step 5: Use Router2 or UDPProxyClient</strong> <strong> (optional)</strong></p>
+<p>For players that failed NATPunchthrough, you can route their connections through players that did not fail, using the <a href="router.html">Router2</a> plugin. You can also use the <a href="natpunchthrough.html">UDPProxyClient</a> while you are running your own UDPProxyServer to forward those connections through a server.</p>
+<p>Router2 will return ID_ROUTER_2_FORWARDING_NO_PATH if forwarding is not possible and ID_ROUTER_2_FORWARDING_ESTABLISHED on success.</p>
+<p>UDPPRoxyClient will return ID_UDP_PROXY_GENERAL. Byte 1 indicates the return value. Success is returned on ID_UDP_PROXY_FORWARDING_SUCCEEDED. The remote system will get ID_UDP_PROXY_FORWARDING_NOTIFICATION on success. Anything else means failure.</p>
+<p>If these solutions fail, or you do not use them,  then it is not possible to complete a peer to peer gaming session. Leave the game session on the server. You should show a dialog box to the user that they need to manually open ports on their router before they can play. Or you can just try a different session.</p>
+<p><strong>Step 6: Connect to all other players in the session that we did not already connect to.</strong></p>
+<p>Step 6 assumes all users that failed connectivity were already connected to in step 5. If not, leave the game session on the server. You should show a dialog box to the user that they need to manually open ports on their router before they can play.</p>
+<p>For players previously marked with NAT_TYPE_NONE, NAT_TYPE_SUPPORTS_UPNP, or that passed NAT punchthrough, you should now connect to these users. You can assume the connections will complete.</p>
+<p><strong>Appendix A: Inform server of peer's connectivity status</strong></p>
+<p>The server should track which peers are directly connectable, and if not, which type of router they have. This way incoming peers do not waste time performing NAT punchthrough to other peers that do not need it. You can program this manually, however the <a href="cloudcomputing.html">CloudServer</a> plugin can handle this too. Here is an example of how to post to the server our connectivity state:</p>
+<p class="RakNetCode">  void PostConnectivityState(RakNet::NATTypeDetectionResult result, RakNet::CloudClient *cloudClient, RakNet::RakNetGUID serverGuid)<br>
+  {<br>
+RakNet::CloudKey cloudKey(&quot;NATConnectivityState&quot;,0);<br>
+RakNet::BitStream bs;<br>
+bs.WriteCasted&lt;unsigned char&gt;(result); // This could be anything such as player list, game name, etc.<br>
+cloudClient-&gt;Post(&amp;cloudKey, bs.GetData(), bs.GetNumberOfBytesUsed(), serverGuid);<br>
+}</p>
+<p>See the sample <em>\Samples\NATCompletePeer</em></p>
+
+</tr>
+</tbody>
+</table>
+<table border="0" width="100%">
+<tbody>
+<tr>
+<td bgcolor="#2c5d92" class="RakNetWhiteHeader">
+<img src="spacer.gif" height="1" width="8">Simpler Solution</td>
+</tr>
+</tbody>
+</table>
+<table border="0" cellpadding="10" cellspacing="0" width="100%">
+<tbody>
+<tr>
+<td>
+<p><span class="RakNetBlueHeader">Just UPNP and NatPunchthroughClient</span></p>
+<p>This simpler solution will work in nearly all cases, and is easier to code. The drawback is connecting to a game session may take longer, and if a player fails there are no fallbacks.</p>
+<ol>
+  <li>Run step 1 as above</li>
+  <li>Call the OpenUPNP() function in step 3. You don't need to upload any status to the server. If the function fails, just ignore it.</li>
+  <li>Call NatPunchthroughClient::OpenNATGroup() on whichever player is the session/room host. You will get ID_NAT_GROUP_PUNCH_SUCCEEDED, or a failure code. If a failure code, then you can't connect to that room and should tell the user to open the game port on their router.</li>
+</ol>
+<p>See the sample <em>\Samples\NATSimplePeer</em></p></TD>
+</TR></TABLE>
+
+
+<table width="100%" border="0"><tr><td bgcolor="#2c5d92" class="RakNetWhiteHeader">
+<img src="spacer.gif" width="8" height="1">See Also</td>
+</tr></table>
+<TABLE BORDER="0" CELLPADDING="10" CELLSPACING="0" WIDTH="100%"><TR><TD><p><A HREF="index.html">Index</A><BR>
+        <A HREF="cloudcomputing.html">Cloud Computing</A><BR>
+            <A HREF="http://miniupnp.free.fr/">MiniUPnP</A><BR>
+            <A HREF="natpunchthrough.html">NAT punchthrough</A><BR>
+            <A HREF="nattypedetection.html">NAT type detection</A><br>
+        <A HREF="router.html">Router2</A><br>
+        </p></TD></TR></TABLE>
+</BODY>
+</HTML>

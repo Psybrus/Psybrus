@@ -21,6 +21,7 @@
 #include "Base/BcEndian.h"
 #include "Base/BcFile.h"
 #include "Base/BcFixed.h"
+#include "Base/BcFixedVectors.h"
 #include "Base/BcGlobal.h"
 #include "Base/BcLog.h"
 #include "Base/BcLogFile.h"
