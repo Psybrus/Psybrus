@@ -1,0 +1,8 @@
+{ 
+	"ScnSound" : {
+		"name"		: 		"Walk",
+		
+		// Source
+		"source"	: 		"GameContent/Source/Walk.wav"
+	}
+}

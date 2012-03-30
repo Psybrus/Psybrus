@@ -18,6 +18,8 @@
 EvtPublisher::EvtPublisher()
 {
 	pParent_ = NULL;
+	pProxy_ = NULL;
+	pBridge_ = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,8 +63,38 @@ void EvtPublisher::setParent( EvtPublisher* pParent )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// clearProxy
+void EvtPublisher::clearProxy()
+{
+	pProxy_ = NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setProxy
+void EvtPublisher::setProxy( EvtProxy* pProxy )
+{
+	BcAssert( pProxy_ == NULL );
+	pProxy_ = pProxy;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// clearBridge
+void EvtPublisher::clearBridge()
+{
+	pBridge_ = NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setBridge
+void EvtPublisher::setBridge( EvtBridge* pBridge )
+{
+	BcAssert( pBridge_ == NULL );
+	pBridge_ = pBridge;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // publishInternal
-BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy )
 {
 	BcAssert( BcIsGameThread() );
 	BcUnusedVar( EventSize );
@@ -78,6 +110,19 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	}
 	 //*/
 
+	// Proxy event if we need to.
+	if( AllowProxy && pProxy_ )
+	{	
+		pProxy_->proxy( ID, EventBase, EventSize );
+		return BcTrue;
+	}
+
+	// Bridge event if we need to.
+	if( AllowBridge && pBridge_ )
+	{
+		pBridge_->bridge( ID, EventBase, EventSize );
+	}
+	
 	// Update binding map before going ahead.
 	updateBindingMap();
 	
@@ -86,7 +131,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	
 	if( pParent_ != NULL )
 	{
-		ShouldPublish = pParent_->publishInternal( ID, EventBase, EventSize );
+		ShouldPublish = pParent_->publishInternal( ID, EventBase, EventSize, AllowBridge, AllowProxy );
 	}
 
 	// Only publish if the previous call to our parent allows us to.

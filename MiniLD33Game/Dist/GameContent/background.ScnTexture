@@ -1,0 +1,8 @@
+{ 
+	"ScnTexture" : {
+		"name"		: "background",
+
+		// Source
+		"source"	: "GameContent/Source/background.png"
+	}
+}

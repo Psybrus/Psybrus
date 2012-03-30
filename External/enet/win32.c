@@ -260,7 +260,7 @@ enet_socket_receive (ENetSocket socket,
 {
     INT sinLength = sizeof (struct sockaddr_in);
     DWORD flags = 0,
-          recvLength;
+          recvLength = 0;
     struct sockaddr_in sin;
 
     if (WSARecvFrom (socket,
@@ -273,7 +273,8 @@ enet_socket_receive (ENetSocket socket,
                      NULL,
                      NULL) == SOCKET_ERROR)
     {
-       switch (WSAGetLastError ())
+	   int lastError = WSAGetLastError ();
+       switch (lastError)
        {
        case WSAEWOULDBLOCK:
        case WSAECONNRESET:

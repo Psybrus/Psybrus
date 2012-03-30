@@ -58,6 +58,21 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	static BcBool IsInitialised = BcFalse;
+	if( IsInitialised == BcFalse )
+	{
+		WSADATA WsaData;
+		int err = ::WSAStartup( MAKEWORD(2,2), &WsaData );
+		if( err == 0 )
+		{
+			IsInitialised = BcTrue;
+		}
+		else
+		{
+			BcPrintf( "Could not initialise WinSock 2.2\n" );
+		}
+	}
+
 	// Start.
 	std::string CommandLine;
 

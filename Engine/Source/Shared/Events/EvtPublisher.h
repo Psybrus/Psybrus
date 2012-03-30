@@ -16,9 +16,12 @@
 
 #include "Events/EvtEvent.h"
 #include "Events/EvtBinding.h"
+#include "Events/EvtProxy.h"
+#include "Events/EvtBridge.h"
 
 #include <list>
 #include <map>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /**	\class EvtPublisher
@@ -39,7 +42,7 @@ public:
 	* Publish an event.
 	*/
 	template< typename _Ty >
-	void publish( EvtID ID, const EvtEvent< _Ty >& Event );
+	void publish( EvtID ID, const EvtEvent< _Ty >& Event, BcBool AllowBridge = BcTrue, BcBool AllowProxy = BcTrue );
 
 	/**
 	* Subscribe to an event.
@@ -73,11 +76,31 @@ public:
 	 */
 	void setParent( EvtPublisher* pParent );
 
+	/**
+	 * Clear proxy.
+	 */
+	void clearProxy();
+
+	/**
+	 * Set proxy.
+	 */
+	void setProxy( EvtProxy* pProxy );
+
+	/**
+	 * Clear bridge.
+	 */
+	void clearBridge();
+
+	/**
+	 * Set bridge.
+	 */
+	void setBridge( EvtBridge* pBridge );
+
 private:
 	/**
 	* Publish internal.
 	*/
-	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy );
 	
 	/**
 	* Subscribe internal.
@@ -100,6 +123,9 @@ private:
 	void updateBindingMap();
 
 private:
+	friend class EvtProxy;
+	friend class EvtBridge;
+
 	typedef std::vector< EvtBinding >			TBindingList;
 	typedef TBindingList::iterator				TBindingListIterator;
 	typedef std::map< EvtID, TBindingList >		TBindingListMap;
@@ -116,14 +142,16 @@ private:
 	TBindingPairList							UnsubscribeList_;			///!< List of bindings to remove from the map.
 	TOwnerPairList								UnsubscribeByOwnerList_;	///!< List of owners to remove from the map.
 	EvtPublisher*								pParent_;
+	EvtProxy*									pProxy_;
+	EvtBridge*									pBridge_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inlines
 template< typename _Ty >
-BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty >& Event )
+BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty >& Event, BcBool AllowBridge, BcBool AllowProxy )
 {
-	publishInternal( ID, Event, sizeof( _Ty ) );
+	publishInternal( ID, Event, sizeof( _Ty ), AllowBridge, AllowProxy );
 }
 
 template< typename _Ty >
