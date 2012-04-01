@@ -14,11 +14,9 @@ project "TemplateGame"
    			"gdi32",
    			"opengl32",
    			"winmm",
-            "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
+            "../External/openal/libs/Win32/OpenAL32.lib", -- Relative path to project.
 
    			-- External libs.
-   			"External_Box2D_v2.2.1",
-   			"External_enet",
    			"External_freetype",
    			"External_glew",
    			"External_jsoncpp",
@@ -32,7 +30,4 @@ project "TemplateGame"
    			-- Engine libs.
    			"Engine_Shared",
    			"Engine_Windows",
-
-            -- Integration libraries.
-            "Engine_IntegrationGwen",
    		}

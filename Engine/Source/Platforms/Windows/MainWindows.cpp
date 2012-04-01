@@ -1,3 +1,5 @@
+#include <winsock2.h>
+
 #include "MainShared.h"
 #include "System/SysKernel.h"
 #include "System/Os/OsCore.h"

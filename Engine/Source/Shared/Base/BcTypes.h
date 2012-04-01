@@ -55,7 +55,7 @@ typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
-typedef int							BcHandle;
+typedef void*						BcHandle;
 typedef size_t						BcSize;
 
 #define BcTrue						BcBool( 1 )
@@ -127,7 +127,7 @@ typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
-typedef int							BcHandle;
+typedef void*						BcHandle;
 typedef size_t						BcSize;
 
 #define BcTrue						BcBool( 1 )
@@ -186,7 +186,7 @@ typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
-typedef int							BcHandle;
+typedef void*						BcHandle;
 typedef size_t						BcSize;
 
 #ifdef PSY_DEBUG
@@ -211,7 +211,7 @@ typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
 typedef bool						BcBool;
-typedef int							BcHandle;
+typedef void*						BcHandle;
 typedef size_t						BcSize;
 
 #ifdef PSY_DEBUG
@@ -236,7 +236,7 @@ typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
-typedef int							BcHandle;
+typedef void*						BcHandle;
 typedef size_t						BcSize;
 
 #ifdef PSY_DEBUG
@@ -261,7 +261,7 @@ typedef	double						BcF64;
 typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
-typedef int							BcHandle;
+typedef void*						BcHandle;
 typedef std::size_t					BcSize;
 
 #ifdef PSY_DEBUG

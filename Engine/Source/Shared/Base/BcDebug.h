@@ -19,8 +19,8 @@
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
 #if 1
-#  define BcPrintf( ... ) \
-	if( BcLog::pImpl() ) BcLog::pImpl()->write( ##__VA_ARGS__ )
+#  define BcPrintf \
+	if( BcLog::pImpl() ) BcLog::pImpl()->write
 #else
 #  define BcPrintf( ... )
 #endif

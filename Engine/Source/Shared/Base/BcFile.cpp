@@ -18,7 +18,7 @@
 
 #include <fcntl.h>
 
-#if PLATFORM_WINDOWS
+#if COMPILER_MSVC
 
 //////////////////////////////////////////////////////////////////////////
 // Windows Includes
@@ -34,7 +34,7 @@
 #define streamClose			fclose
 
 
-#elif defined( PLATFORM_LINUX ) || defined( PLATFORM_OSX )
+#elif COMPILER_GCC || COMPILER_LLVM
 //////////////////////////////////////////////////////////////////////////
 // *nix Includes
 #include <sys/stat.h>
@@ -71,14 +71,14 @@ BcFile::~BcFile()
 // calcFileSize
 void BcFile::calcFileSize( void )
 {
-#if PLATFORM_WINDOWS
+#if COMPILER_MSVC
 
 	if( FileHandle_ != NULL )
 	{
 		FileSize_ = _filelength( _fileno( FileHandle_ ) );
 	}
 
-#elif PLATFORM_LINUX || PLATFORM_OSX
+#elif COMPILER_GCC || COMPILER_LLVM
 	//Early out if no file open
 	if(FileDescriptor_ == -1)
 	{
@@ -102,13 +102,13 @@ BcBool BcFile::open( const BcChar* FileName, eBcFileMode AccessMode )
 	{
 	case bcFM_READ:
 		{
-#if PLATFORM_WINDOWS
+#if COMPILER_MSVC
 			// Open the stream
 			FileHandle_ = streamOpen(FileName, "rb");
 
 			// Grab the size of the file
 			calcFileSize();
-#elif PLATFORM_LINUX || PLATFORM_OSX
+#elif COMPILER_GCC || COMPILER_LLVM
 			// Open the file
 			FileDescriptor_ = lowLevelOpen(FileName, lowLevelReadFlags);
 
@@ -144,10 +144,10 @@ BcBool BcFile::open( const BcChar* FileName, eBcFileMode AccessMode )
 // close
 void BcFile::close()
 {
-	streamClose( FileHandle_ );
+	fclose( FileHandle_ );
 	FileHandle_ = 0;
 
-#if PLATFORM_LINUX || PLATFORM_OSX
+#if COMPILER_GCC || CONMPILER_LLVM
 	if( FileDescriptor_ != -1)
 	{
 		lowLevelClose(FileDescriptor_);

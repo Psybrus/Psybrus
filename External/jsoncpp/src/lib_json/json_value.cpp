@@ -15,7 +15,12 @@
 
 #define JSON_ASSERT_UNREACHABLE assert( false )
 #define JSON_ASSERT( condition ) assert( condition );  // @todo <= change this into an exception throw
+
+#if __EXCEPTIONS
 #define JSON_ASSERT_MESSAGE( condition, message ) if (!( condition )) throw std::runtime_error( message );
+#else
+#define JSON_ASSERT_MESSAGE( condition, message ) JSON_ASSERT( condition )
+#endif
 
 namespace Json {
 

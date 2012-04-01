@@ -31,7 +31,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Helper defines.
-
 #define BASE_DECLARE_RESOURCE( _Type )											\
 	public:																		\
 	static CsResourceRef< class _Type > Default;								\
@@ -45,7 +44,7 @@
 	template < class _Ty >														\
 	BcForceInline BcBool isTypeOf()												\
 	{																			\
-		return this ? isTypeOf( _Ty::StaticGetType() ) : NULL;					\
+		return this ? isTypeOf( _Ty::StaticGetType() ) : BcFalse;				\
 	}
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
