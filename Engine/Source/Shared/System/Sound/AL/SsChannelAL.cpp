@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SsChannelAL::SsChannelAL( SsCoreImplAL* Parent ):
-	ALSource_( NULL ),
-	ALFilter_( NULL ),
+	ALSource_( 0 ),
+	ALFilter_( 0 ),
 	State_( ssCS_IDLE ),
 	Sample_( NULL ),
 	Parent_( Parent )

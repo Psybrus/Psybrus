@@ -119,6 +119,7 @@ BcBool FsCoreImplWindows::fileExists( const BcChar* pFilename )
 //virtual
 BcBool FsCoreImplWindows::fileStats( const BcChar* pFilename, FsStats& Stats )
 {
+#if COMPILER_MSVC
 	struct _stat Attrib;
 
 	int Descriptor = ::open(pFilename, _O_RDONLY | _O_BINARY);
@@ -154,6 +155,7 @@ BcBool FsCoreImplWindows::fileStats( const BcChar* pFilename, FsStats& Stats )
 		::close( Descriptor );
 		return BcTrue;
 	}
+#endif
 	return BcFalse;
 }
 

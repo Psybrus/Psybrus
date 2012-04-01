@@ -127,7 +127,7 @@ void SsCoreImplAL::open_threaded()
 			ALC_MONO_SOURCES, MAX_AL_MONO_SOURCES,
 			ALC_STEREO_SOURCES, MAX_AL_STEREO_SOURCES,
 			ALC_SYNC, SsCore::WORKER_MASK != 0x0 ? AL_TRUE : AL_FALSE,
-			NULL	
+			0	
 		};
 
 		ALContext_ = alcCreateContext( ALDevice_, &Attr[ 0 ] );
