@@ -151,6 +151,7 @@ protected:
 	typedef std::vector< TMaterialComponentDesc > TMaterialComponentDescList;
 	
 	TMaterialComponentDescList			MaterialComponentDescList_;
+
 };
 
 #endif

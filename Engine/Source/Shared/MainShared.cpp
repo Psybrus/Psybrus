@@ -172,12 +172,6 @@ void MainShared()
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
 
-	// Start systems.
-	if( GPsySetupParams.Flags_ & psySF_REMOTE )
-	{
-		SysKernel::pImpl()->startSystem( "RmCore" );
-	}
-
 	SysKernel::pImpl()->startSystem( "OsCore" );
 
 	if( GPsySetupParams.Flags_ & psySF_RENDER )
@@ -194,20 +188,7 @@ void MainShared()
 	SysKernel::pImpl()->startSystem( "ScnCore" );
 
 	// Start content system, depending on startup flags.
-#ifndef PSY_PRODUCTION
-	if( GPsySetupParams.Flags_ & psySF_CONTENT_SERVER )
-	{
-		SysKernel::pImpl()->startSystem( "CsCoreServer" );
-	}
-	else if( GPsySetupParams.Flags_ & psySF_CONTENT_CLIENT )
-	{
-		SysKernel::pImpl()->startSystem( "CsCoreClient" );
-	}
-	else
-#endif
-	{
-		SysKernel::pImpl()->startSystem( "CsCore" );
-	}
+	SysKernel::pImpl()->startSystem( "CsCore" );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();

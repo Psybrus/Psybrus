@@ -32,11 +32,9 @@ void CsResource::StaticPropertyTable( CsPropertyTable& PropertyTable )
 // Ctor
 CsResource::CsResource( const BcName& Name, CsFile* pFile ):
 	pFile_( pFile ),
-	Name_( Name ),
-	Stage_( csRS_PENDING_CREATE )
+	Name_( Name )
 {
-	// TODO: Delegates should be bound to file here, and CsResource have
-	//       virtuals to pass the data through :)
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,38 +164,6 @@ void CsResource::getChunk( BcU32 Chunk, BcBool TriggerLoad )
 BcU32 CsResource::getNoofChunks() const
 {
 	return pFile_->getNoofChunks();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// process
-CsResourceStage CsResource::process()
-{
-	// Call create/destroy depending on the stage we are in.
-	switch( Stage_ )
-	{
-		case csRS_PENDING_CREATE:
-			// Do nothing, this is up to parent resource.
-			break;
-		case csRS_CREATE:
-			Stage_ = csRS_CREATE;
-			create();
-			break;
-		case csRS_LOADING:
-			if( isReady() == BcTrue )
-			{
-				Stage_ = csRS_LOADED;
-			}
-			break;
-		case csRS_LOADED:
-			// Shouldn't hit here.
-			break;
-		case csRS_DESTROY:
-			Stage_ = csRS_KILL;
-			destroy();
-			break;
-	}
-	
-	return Stage_;
 }
 
 //////////////////////////////////////////////////////////////////////////

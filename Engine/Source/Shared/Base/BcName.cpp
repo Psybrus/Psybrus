@@ -18,7 +18,7 @@
 BcName BcName::INVALID;
 BcName BcName::NONE( "None" );
 
-BcName::TStringEntryList* BcName::pStringEntries_ = NULL;
+BcNameEntryList* BcName::pStringEntries_ = NULL;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -80,16 +80,16 @@ BcName& BcName::operator = ( const BcName& Other )
 std::string BcName::operator * () const
 {
 	BcVerifyMsg( EntryIndex_ != BcErrorCode, "BcName: Converting an invalid name to a string!" );
-	const TStringEntryList& StringEntries( getStringEntries() );
+	const BcNameEntryList& StringEntries( getStringEntries() );
 
 	if( EntryIndex_ < StringEntries.size() )
 	{
-		const TStringEntry& Entry = StringEntries[ EntryIndex_ ];
+		const BcNameEntry& Entry = StringEntries[ EntryIndex_ ];
 
 		if( ID_ != BcErrorCode )
 		{
 			// Generate "value_id" string.
-			static BcChar Buffer[ MAX_STRING_LENGTH + 12 ];
+			static BcChar Buffer[ BcNameEntry::MAX_STRING_LENGTH + 12 ];
 
 			BcSPrintf( Buffer, "%s_%u", &Entry.Value_[ 0 ], ID_ );
 			return Buffer;
@@ -109,7 +109,7 @@ std::string BcName::operator * () const
 std::string BcName::getValue() const
 {
 	BcVerifyMsg( EntryIndex_ != BcErrorCode, "BcName: Converting an invalid name to a string!" );
-	const TStringEntryList& StringEntries( getStringEntries() );
+	const BcNameEntryList& StringEntries( getStringEntries() );
 
 	if( EntryIndex_ < StringEntries.size() )
 	{
@@ -131,8 +131,8 @@ BcU32 BcName::getID() const
 BcName BcName::getUnique() const
 {
 	BcAssert( isValid() );
-	TStringEntryList& StringEntries( getStringEntries() );
-	TStringEntry& StringEntry( StringEntries[ EntryIndex_ ] );
+	BcNameEntryList& StringEntries( getStringEntries() );
+	BcNameEntry& StringEntry( StringEntries[ EntryIndex_ ] );
 
 	// Create a new name with passed in ID.
 	BcName UniqueName( StringEntry.Value_, ID_ );
@@ -230,12 +230,12 @@ void BcName::setInternal( const std::string& Value, BcU32 ID )
 //////////////////////////////////////////////////////////////////////////
 // getStringEntries.
 //static
-BcName::TStringEntryList& BcName::getStringEntries()
+BcNameEntryList& BcName::getStringEntries()
 {
 	// Check if we've been initialised.
 	if( pStringEntries_ == NULL )
 	{
-		pStringEntries_ = new TStringEntryList();
+		pStringEntries_ = new BcNameEntryList();
 		pStringEntries_->reserve( ENTRY_RESERVE_COUNT );
 	}
 
@@ -249,8 +249,8 @@ BcName::TStringEntryList& BcName::getStringEntries()
 BcU32 BcName::getEntryIndex( const std::string& Value )
 {
 	// If string is too long, return invalid index.
-	BcVerifyMsg( Value.length() < MAX_STRING_LENGTH, "BcName: String(%s) too long to store in name table.", Value.c_str() );
-	if( Value.length() >= MAX_STRING_LENGTH )
+	BcVerifyMsg( Value.length() < BcNameEntry::MAX_STRING_LENGTH, "BcName: String(%s) too long to store in name table.", Value.c_str() );
+	if( Value.length() >= BcNameEntry::MAX_STRING_LENGTH )
 	{
 		return BcErrorCode;
 	}
@@ -263,10 +263,10 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 
 	// TODO: Store in a hash map.
 	// Iterate over array to find if string exists.
-	TStringEntryList& StringEntries( getStringEntries() );
+	BcNameEntryList& StringEntries( getStringEntries() );
 	for( BcU32 Idx = 0; Idx < StringEntries.size(); ++Idx )
 	{
-		TStringEntry& Entry = StringEntries[ Idx ];
+		BcNameEntry& Entry = StringEntries[ Idx ];
 
 		// If we find the entry, return it's index.
 		if( BcStrCompare( Value.c_str(), Entry.Value_ ) )
@@ -276,8 +276,8 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 	}
 
 	// If we make it here, add a new entry.
-	TStringEntry NewEntry;
-	BcStrCopyN( &NewEntry.Value_[ 0 ], Value.c_str(), MAX_STRING_LENGTH );
+	BcNameEntry NewEntry;
+	BcStrCopyN( &NewEntry.Value_[ 0 ], Value.c_str(), BcNameEntry::MAX_STRING_LENGTH );
 	NewEntry.ID_ = 0;
 	StringEntries.push_back( NewEntry );
 
