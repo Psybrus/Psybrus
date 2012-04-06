@@ -14,7 +14,9 @@ project "TemplateGame"
    			"gdi32",
    			"opengl32",
    			"winmm",
-            "../External/openal/libs/Win32/OpenAL32.lib", -- Relative path to project.
+            "ws2_32",
+            "IPHlpApi",
+            "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
 
    			-- External libs.
    			"External_freetype",

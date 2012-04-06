@@ -105,7 +105,7 @@
 		Super( Name, pFile )													\
 	{																			\
 	}																			\
-	\
+																				\
 	_Type::~_Type()																\
 	{}																			\
 	BcHash _Type::getTypeHash()													\
@@ -138,21 +138,6 @@
 	{																			\
 		return sizeof( _Type );													\
 	}
-
-//////////////////////////////////////////////////////////////////////////
-// Forward Declarations
-enum CsResourceStage
-{
-	csRS_PENDING_CREATE = 0,
-	csRS_CREATE,
-	csRS_LOADING,
-	csRS_LOADED,
-	csRS_DESTROY,
-	csRS_KILL,
-
-	csRS_MAX
-};
-
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -256,7 +241,6 @@ protected:
 private:
 	friend class CsCore;
 
-	CsResourceStage					process();
 	void							delegateFileReady( CsFile* pFile );
 	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
 
@@ -271,7 +255,6 @@ private:
 	BcName							Name_;
 	BcAtomicU32						RefCount_;
 	BcAtomicMutex					Lock_;
-	CsResourceStage					Stage_;
 };
 
 //////////////////////////////////////////////////////////////////////////

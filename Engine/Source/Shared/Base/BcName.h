@@ -19,6 +19,26 @@
 #include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
+// BcNameEntry
+struct BcNameEntry
+{
+	enum
+	{
+		ENTRY_SIZE_BYTES = 32,									// How large each entry should be.
+		ID_SIZE_BYTES = sizeof( BcU32 ),						// How many bytes the ID takes up.
+		MAX_STRING_LENGTH = ENTRY_SIZE_BYTES - ID_SIZE_BYTES,	// String size taking previous 2 values into account.
+		ENTRY_RESERVE_COUNT = 1024								// How many entries to reserve ahead of time to save reallocation.
+	};
+
+	BcChar Value_[ MAX_STRING_LENGTH ];
+	BcU32 ID_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcNameEntryList
+typedef std::vector< BcNameEntry > BcNameEntryList;
+
+//////////////////////////////////////////////////////////////////////////
 // BcName
 class BcName
 {
@@ -29,9 +49,6 @@ public:
 public:
 	enum
 	{
-		ENTRY_SIZE_BYTES = 32,									// How large each entry should be.
-		ID_SIZE_BYTES = sizeof( BcU32 ),						// How many bytes the ID takes up.
-		MAX_STRING_LENGTH = ENTRY_SIZE_BYTES - ID_SIZE_BYTES,	// String size taking previous 2 values into account.
 		ENTRY_RESERVE_COUNT = 1024								// How many entries to reserve ahead of time to save reallocation.
 	};
 
@@ -81,20 +98,12 @@ private:
 	BcU32 ID_;
 
 private:
-	struct TStringEntry
-	{
-		BcChar Value_[ MAX_STRING_LENGTH ];
-		BcU32 ID_;
-	};
-
-	typedef std::vector< TStringEntry > TStringEntryList;
-
-	static TStringEntryList* pStringEntries_;
+	static BcNameEntryList* pStringEntries_;
 
 	/**
 	 * Get string entries.
 	 */
-	static TStringEntryList& getStringEntries();
+	static BcNameEntryList& getStringEntries();
 
 	/**
 	 * Get entry index. Will return a new entry if it didn't exist.
