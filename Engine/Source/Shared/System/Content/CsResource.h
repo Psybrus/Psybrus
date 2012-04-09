@@ -15,8 +15,6 @@
 #define __CSRESOURCE_H__
 
 #include "System/Content/CsTypes.h"
-#include "System/Content/CsFile.h"
-#include "System/Content/CsProperty.h"
 
 #include "System/Content/CsResourceRef.h"
 
@@ -33,10 +31,8 @@
 // Helper defines.
 #define BASE_DECLARE_RESOURCE( _Type )											\
 	public:																		\
-	static CsResourceRef< class _Type > Default;								\
 	static const BcName& StaticGetType();										\
 	static BcHash StaticGetTypeHash();											\
-	static void StaticPropertyTable( CsPropertyTable& PropertyTable );			\
 	virtual const BcName& getType();											\
 	virtual BcHash getTypeHash();												\
 	virtual BcBool isType( const BcName& Type );								\
@@ -48,7 +44,6 @@
 	}
 
 #define BASE_DEFINE_RESOURCE( _Type )											\
-	CsResourceRef< class _Type > _Type::Default;								\
 	const BcName& _Type::StaticGetType()										\
 	{																			\
 		static BcName TypeString( #_Type );										\
@@ -91,18 +86,19 @@
 	BASE_DECLARE_RESOURCE( _Type )												\
 	typedef _Base Super;														\
 	protected:																	\
-	_Type( const BcName& Name, CsFile* pFile );									\
+	_Type( const BcName& Name, BcU32 Index, CsPackage* pPackage );				\
 	virtual ~_Type();															\
 	public:																		\
 	static CsResource* StaticAllocResource( const BcName& Name,					\
-											CsFile* pFile );					\
+	                                        BcU32 Index,						\
+											CsPackage* pPackage );				\
 	static void StaticFreeResource( CsResource* pResource );					\
 	static BcU32 StaticGetClassSize();
 
 #define DEFINE_RESOURCE( _Type )												\
 	BASE_DEFINE_RESOURCE( _Type )												\
-	_Type::_Type( const BcName& Name, CsFile* pFile ):							\
-		Super( Name, pFile )													\
+	_Type::_Type( const BcName& Name, BcU32 Index, CsPackage* pPackage ):		\
+		Super( Name, Index, pPackage )											\
 	{																			\
 	}																			\
 																				\
@@ -124,9 +120,10 @@
 	}																			\
 																				\
 	CsResource* _Type::StaticAllocResource( const BcName& Name,					\
-	                                        CsFile* pFile )						\
+	                                        BcU32 Index,						\
+	                                        CsPackage* pPackage )				\
 	{																			\
-		return new _Type( Name, pFile );										\
+		return new _Type( Name, Index, pPackage );								\
 	}																			\
 																				\
 	void _Type::StaticFreeResource( CsResource* pResource )						\
@@ -141,14 +138,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
+class CsPackage;
 class CsResource;
 class CsCore;
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-typedef CsResource*( *CsResourceAllocFunc )( const BcName&, CsFile* );
+typedef CsResource*( *CsResourceAllocFunc )( const BcName&, BcU32, CsPackage* );
 typedef void( *CsResourceFreeFunc )( CsResource* );
-typedef void( *CsResourcePropertyTableFunc )( CsPropertyTable& );
 
 //////////////////////////////////////////////////////////////////////////
 // CsResource
@@ -161,14 +158,14 @@ private:
 	CsResource( const CsResource& ){}
 
 public:
-	CsResource( const BcName& Name, CsFile* pFile );
+	CsResource( const BcName& Name, BcU32 Index, CsPackage* pPackage );
 	virtual ~CsResource();
 
 #ifdef PSY_SERVER
 	/**
 	 * Import resource.
 	 */
-	virtual BcBool					import( const Json::Value& Object, CsDependancyList& DependancyList );
+	virtual BcBool					import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif
 
 	/**
@@ -203,7 +200,7 @@ public:
 	/**
 	 * File chunk is ready.
 	 */
-	virtual void					fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
+	virtual void					fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 public:
 	/**
@@ -217,21 +214,45 @@ public:
 	void							release();
 
 	/**
+	 * Get ref count.
+	 */
+	BcU32							refCount() const;
+
+	/**
+	 * Get package.
+	 */
+	CsPackage*						getPackage();
+
+	/**
+	 * Get package name.
+	 */
+	const BcName&					getPackageName() const;
+	
+	/**
 	 * Get name.
 	 */
 	const BcName&					getName() const;
 
+	/**
+	 * Get index.
+	 */
+	BcU32							getIndex() const;
 
 protected:
 	/**
-	 * Get string. (See CsFile)
+	 * Get string.
 	 */
 	const BcChar*					getString( BcU32 Offset );
 
 	/**
-	 * Get chunk. (See CsFile)
+	 * Get chunk.
 	 */
-	void							getChunk( BcU32 Chunk, BcBool TriggerLoad = BcTrue );
+	void							requestChunk( BcU32 Chunk, void* pDataLocation = NULL );
+
+	/**
+	 * Get chunk size.
+	 */
+	BcU32							getChunkSize( BcU32 Chunk );
 
 	/**
 	 * Get number of chunks. (See CsFile)
@@ -240,21 +261,19 @@ protected:
 
 private:
 	friend class CsCore;
+	friend class CsPackageLoader;
 
-	void							delegateFileReady( CsFile* pFile );
-	void							delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
-
-#if PSY_SERVER
-protected:
-#else
-private:
-#endif
-	CsFile*							pFile_;
+	void							onFileReady();
+	void							onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 private:
+	//
 	BcName							Name_;
+	BcU32							Index_;
+	CsPackage*						pPackage_;
+	
+	//
 	BcAtomicU32						RefCount_;
-	BcAtomicMutex					Lock_;
 };
 
 //////////////////////////////////////////////////////////////////////////

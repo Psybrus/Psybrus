@@ -18,16 +18,6 @@
 DEFINE_RESOURCE( GaExampleComponent );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void GaExampleComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "GaExampleComponent" )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 void GaExampleComponent::initialise()
 {

@@ -25,13 +25,13 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnModel::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const std::string& FileName = Object[ "source" ].asString();
 	MdlNode* pNode = MdlLoader::loadModel( FileName.c_str() );
 
 	// Add root dependancy.
-	DependancyList.push_back( CsDependancy( FileName ) );
+	Importer.addDependency( FileName.c_str() );
 	
 	if( pNode != NULL )
 	{
@@ -69,12 +69,12 @@ BcBool ScnModel::import( const Json::Value& Object, CsDependancyList& Dependancy
 		HeaderStream << Header;
 		
 		// Write to file.
-		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		pFile_->addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream.pData(), NodeTransformDataStream.dataSize() );
-		pFile_->addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream.pData(), NodePropertyDataStream.dataSize() );
-		pFile_->addChunk( BcHash( "vertexdata" ), VertexDataStream.pData(), VertexDataStream.dataSize() );
-		pFile_->addChunk( BcHash( "indexdata" ), IndexDataStream.pData(), IndexDataStream.dataSize() );
-		pFile_->addChunk( BcHash( "primitivedata" ), PrimitiveDataStream.pData(), PrimitiveDataStream.dataSize() );
+		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream.pData(), NodeTransformDataStream.dataSize() );
+		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream.pData(), NodePropertyDataStream.dataSize() );
+		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream.pData(), VertexDataStream.dataSize() );
+		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream.pData(), IndexDataStream.dataSize() );
+		Importer.addChunk( BcHash( "primitivedata" ), PrimitiveDataStream.pData(), PrimitiveDataStream.dataSize() );
 		
 		//
 		return BcTrue;
@@ -143,21 +143,12 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 			// Always setup default material.
 			if( Material.Name_.length() == 0 )
 			{
-				Material.Name_ = "EngineContent/default.ScnMaterial";
+				Material.Name_ = "default";
 			}
 			
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
-			ScnMaterialRef MaterialRef;
 			BcStrCopy( PrimitiveData.MaterialName_, Material.Name_.c_str() );
-			if( Material.Name_.find( "ScnMaterial" ) != std::string::npos )
-			{
-				if( CsCore::pImpl()->importResource( Material.Name_, MaterialRef ) )
-				{
-					BcStrCopyN( PrimitiveData.MaterialName_, (*MaterialRef->getName()).c_str(), sizeof( PrimitiveData.MaterialName_ ) );
-				}
-			}
-
 			PrimitiveStream << PrimitiveData;
 			
 			// Export vertices.
@@ -204,24 +195,11 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 	}
 }
 
-
-
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnModel::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnModel" )
-		.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -312,7 +290,7 @@ void ScnModel::setup()
 		};
 		
 		// Get resource.
-		if( CsCore::pImpl()->requestResource( pPrimitiveData->MaterialName_, PrimitiveRuntime.MaterialRef_ ) )
+		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), pPrimitiveData->MaterialName_, PrimitiveRuntime.MaterialRef_ ) )
 		{
 			// Push into array.
 			PrimitiveRuntimes_.push_back( PrimitiveRuntime );
@@ -329,48 +307,48 @@ void ScnModel::setup()
 void ScnModel::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
-	getChunk( 1 );
-	getChunk( 2 );
-	getChunk( 3 );
-	getChunk( 4 );
-	getChunk( 5 );
+	requestChunk( 0 );
+	requestChunk( 1 );
+	requestChunk( 2 );
+	requestChunk( 3 );
+	requestChunk( 4 );
+	requestChunk( 5 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnModel::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	// If we have no render core get chunk 0 so we keep getting entered into.
 	if( RsCore::pImpl() == NULL )
 	{
-		getChunk( 0 );
+		requestChunk( 0 );
 		return;
 	}
 
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 	}
-	else if( pChunk->ID_ == BcHash( "nodetransformdata" ) )
+	else if( ChunkID == BcHash( "nodetransformdata" ) )
 	{
 		pNodeTransformData_ = (TNodeTransformData*)pData;
 	}
-	else if( pChunk->ID_ == BcHash( "nodepropertydata" ) )
+	else if( ChunkID == BcHash( "nodepropertydata" ) )
 	{
 		pNodePropertyData_ = (TNodePropertyData*)pData;
 	}
-	else if( pChunk->ID_ == BcHash( "vertexdata" ) )
+	else if( ChunkID == BcHash( "vertexdata" ) )
 	{
 		BcAssert( pVertexBufferData_ == NULL || pVertexBufferData_ == pData );
 		pVertexBufferData_ = (BcU8*)pData;
 	}
-	else if( pChunk->ID_ == BcHash( "indexdata" ) )
+	else if( ChunkID == BcHash( "indexdata" ) )
 	{
 		BcAssert( pIndexBufferData_ == NULL || pIndexBufferData_ == pData );
 		pIndexBufferData_ = (BcU8*)pData;
 	}
-	else if( pChunk->ID_ == BcHash( "primitivedata" ) )
+	else if( ChunkID == BcHash( "primitivedata" ) )
 	{
 		pPrimitiveData_ = (TPrimitiveData*)pData;
 		
@@ -383,15 +361,6 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
 DEFINE_RESOURCE( ScnModelComponent );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnModelComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	PropertyTable.beginCatagory( "ScnModelComponent" )
-		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

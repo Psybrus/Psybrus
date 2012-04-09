@@ -14,6 +14,8 @@
 #include "System/Scene/ScnTexture.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Content/CsCore.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 #include "Import/Img/Img.h"
@@ -21,12 +23,12 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const std::string& FileName = Object[ "source" ].asString();
 
-	// Add root dependancy.
-	DependancyList.push_back( CsDependancy( FileName ) );
+	// Add root dependency.
+	Importer.addDependency( FileName.c_str() );
 
 	// Load texture from file and create the data for export.
 	ImgImage* pImage = Img::load( FileName.c_str() );
@@ -58,9 +60,9 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 			delete pImage;
 			
 			// Add chunks and finish up.
-			pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-			pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-					
+			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), csPCF_IN_PLACE );
+			Importer.addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
+			
 			//
 			return BcTrue;
 		}
@@ -74,24 +76,12 @@ BcBool ScnTexture::import( const Json::Value& Object, CsDependancyList& Dependan
 DEFINE_RESOURCE( ScnTexture );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnTexture::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnTexture" )
-		.field( "source",		csPVT_FILE,			csPCT_VALUE )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnTexture::initialise()
 {
 	// NULL internals.
 	pTexture_ = NULL;
-	pHeader_ = NULL;
 	pTextureData_ = NULL;
 	CreateNewTexture_ = BcTrue;
 }
@@ -133,24 +123,24 @@ RsTexture* ScnTexture::getTexture()
 // getWidth
 BcU32 ScnTexture::getWidth() const
 {
-	return pHeader_->Width_;
+	return Header_.Width_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getHeight
 BcU32 ScnTexture::getHeight() const
 {
-	return pHeader_->Height_;
+	return Header_.Height_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getTexel
 RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
 {
-	if( pTextureData_ != NULL && X < pHeader_->Width_ && Y < pHeader_->Height_ )
+	if( pTextureData_ != NULL && X < Header_.Width_ && Y < Header_.Height_ )
 	{
 		BcU32* pTextureData = (BcU32*)pTextureData_;
-		BcU32 Index = X + Y * pHeader_->Width_;
+		BcU32 Index = X + Y * Header_.Width_;
 		BcU32 Texel = pTextureData[ Index ] ;
 		return RsColour( Texel ); // invalid. need to fix.
 	}
@@ -193,10 +183,10 @@ void ScnTexture::setup()
 		}
 		
 		// Create new one immediately.
-		pTexture_ = RsCore::pImpl()->createTexture( pHeader_->Width_,
-												    pHeader_->Height_,
-												    pHeader_->Levels_,
-												    pHeader_->Format_,
+		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
+												    Header_.Height_,
+												    Header_.Levels_,
+												    Header_.Format_,
 												    pTextureData_ );
 		CreateNewTexture_ = BcFalse;
 	}
@@ -211,35 +201,32 @@ void ScnTexture::setup()
 void ScnTexture::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0, &Header_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnTexture::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	// If we have no render core get chunk 0 so we keep getting entered into.
 	if( RsCore::pImpl() == NULL )
 	{
-		getChunk( 0 );
+		requestChunk( 0 );
 		return;
 	}
 
-	if( pChunk->ID_ == BcHash( "header" ) )
-	{
-		// Grab pointer to header.
-		pHeader_ = reinterpret_cast< THeader* >( pData );
-				
+	if( ChunkID == BcHash( "header" ) )
+	{		
 		// Request all texture levels.
-		for( BcU32 iLevel = 0; iLevel < pHeader_->Levels_; ++iLevel )
+		for( BcU32 iLevel = 0; iLevel < Header_.Levels_; ++iLevel )
 		{
-			getChunk( ++ChunkIdx );
+			requestChunk( ++ChunkIdx );
 		}
 		
 		// We update the header, create a new texture rather than updating.
 		CreateNewTexture_ = BcTrue;	
 	}
-	else if( pChunk->ID_ == BcHash( "body" ) )
+	else if( ChunkID == BcHash( "body" ) )
 	{
 		// Grab pointer to data.
 		BcAssert( pTextureData_ == NULL || pTextureData_ == pData );

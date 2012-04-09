@@ -32,14 +32,14 @@ public:
 	DECLARE_RESOURCE( ScnTexture, ScnTextureAtlas );
 	
 #if PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
+	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 
 	virtual const ScnRect&				getRect( BcU32 Idx );
 	virtual BcU32						noofRects();
 
 protected:
-	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
+	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
 	struct TAtlasHeader

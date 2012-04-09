@@ -57,6 +57,7 @@ BcBool FsFile::close()
 		if( FsCore::pImpl() != NULL )
 		{
 			FsCore::pImpl()->closeFile( pImpl_ );
+			pImpl_ = NULL;
 		}
 		else
 		{

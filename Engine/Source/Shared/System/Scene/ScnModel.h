@@ -37,7 +37,7 @@ public:
 	DECLARE_RESOURCE( CsResource, ScnModel );
 	
 #if PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
+	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 	void								recursiveSerialiseNodes( class BcStream& TransformStream,
 																 class BcStream& PropertyStream,
 																 class BcStream& VertexStream,
@@ -59,7 +59,7 @@ private:
 	
 private:
 	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
+	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
 	friend class ScnModelComponent;

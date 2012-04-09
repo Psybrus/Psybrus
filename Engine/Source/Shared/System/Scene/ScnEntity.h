@@ -36,7 +36,7 @@ public:
 	DECLARE_RESOURCE( CsResource, ScnEntity );
 	
 #if PSY_SERVER
-	BcBool								import( const Json::Value& Object, CsDependancyList& DependancyList );
+	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	void								initialise();
 	void								create();
@@ -102,7 +102,7 @@ public:
 
 protected:
 	virtual void						fileReady();
-	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
+	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
 	void								processAttachDetach();

@@ -16,11 +16,12 @@
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 #include "Import/Img/Img.h"
+#include "System/Content/CsPackageImporter.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const Json::Value& Source = Object[ "source" ];
 	const Json::Value& DistanceFieldValue = Object[ "distancefield" ];
@@ -41,7 +42,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			std::string FileName = Source[ Idx ].asString();  
 
 			// Add as dependancy.
-			DependancyList.push_back( CsDependancy( FileName ) );
+			Importer.addDependency( FileName.c_str() );
 
 			// Load image.
 			ImgImage* pImage = Img::load( FileName.c_str() );
@@ -132,11 +133,11 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			}
 			
 			// Add chunks.
-			pFile_->addChunk( BcHash( "atlasheader" ), HeaderStream.pData(), HeaderStream.dataSize() );
-			pFile_->addChunk( BcHash( "atlasrects" ), RectsStream.pData(), RectsStream.dataSize() );
+			Importer.addChunk( BcHash( "atlasheader" ), HeaderStream.pData(), HeaderStream.dataSize() );
+			Importer.addChunk( BcHash( "atlasrects" ), RectsStream.pData(), RectsStream.dataSize() );
 
 			// NOTE: Need a better solution for this. Don't want to reimport this texture.
-			CsDependancyList TextureDependancyList;
+			CsDependencyList TextureDependancyList;
 
 			// Create a texture.
 			std::string AtlasName = Object[ "name" ].asString() + "textureatlas";
@@ -156,7 +157,7 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 			BaseObject[ "source" ] = AtlasFileName;
 			
 			// Import base texture.
-			return Super::import( BaseObject, TextureDependancyList );
+			return Super::import( Importer, BaseObject );
 		}
 	}
 		
@@ -167,20 +168,6 @@ BcBool ScnTextureAtlas::import( const Json::Value& Object, CsDependancyList& Dep
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnTextureAtlas );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnTextureAtlas::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnTextureAtlas" )
-		.field( "source",					csPVT_FILE,			csPCT_LIST )
-		.field( "distancefield",			csPVT_BOOL,			csPCT_VALUE )
-		.field( "spread",					csPVT_UINT,			csPCT_VALUE )
-		.field( "alphafromintensity",		csPVT_BOOL,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // getRect
@@ -207,23 +194,23 @@ BcU32 ScnTextureAtlas::noofRects()
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 //virtual
-void ScnTextureAtlas::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnTextureAtlas::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( pChunk->ID_ == BcHash( "atlasheader" ) )
+	if( ChunkID == BcHash( "atlasheader" ) )
 	{
 		pAtlasHeader_ = (TAtlasHeader*)pData;
 		
-		getChunk( ++ChunkIdx );
+		requestChunk( ++ChunkIdx );
 	}
-	else if( pChunk->ID_ == BcHash( "atlasrects" ) )
+	else if( ChunkID == BcHash( "atlasrects" ) )
 	{
 		pAtlasRects_ = (ScnRect*)pData;
 		
-		getChunk( ++ChunkIdx );
+		requestChunk( ++ChunkIdx );
 	}
 	else
 	{
-		Super::fileChunkReady( ChunkIdx, pChunk, pData );
+		Super::fileChunkReady( ChunkIdx, ChunkID, pData );
 	}	
 }
 

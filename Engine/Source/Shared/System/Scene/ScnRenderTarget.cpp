@@ -24,9 +24,9 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnRenderTarget::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnRenderTarget::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	return BcFalse;
+	return Super::import( Importer, Object );
 }
 #endif
 
@@ -35,30 +35,18 @@ BcBool ScnRenderTarget::import( const Json::Value& Object, CsDependancyList& Dep
 DEFINE_RESOURCE( ScnRenderTarget );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnRenderTarget::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnRenderTarget" )
-		//.field( "source",					csPVT_FILE,			csPCT_LIST )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 {
 	ScnTexture::initialise();
 	
-	TextureHeader_.Width_ = Width;
-	TextureHeader_.Height_ = Height;
-	TextureHeader_.Levels_ = 1;
-	TextureHeader_.Format_ = rsTF_RGBA8;	
-	
-	// Pass header to parent.
-	pHeader_ = &TextureHeader_;
+	Header_.Width_ = Width;
+	Header_.Height_ = Height;
+	Header_.Levels_ = 1;
+	Header_.Format_ = rsTF_RGBA8;	
+
+	//
 	pRenderTarget_ = NULL;
 }
 
@@ -68,7 +56,7 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 void ScnRenderTarget::create()
 {
 	// Create render target.
-	pRenderTarget_ = RsCore::pImpl()->createRenderTarget( TextureHeader_.Width_, TextureHeader_.Height_, rsCF_A8R8G8B8, rsDSF_D24S8 );
+	pRenderTarget_ = RsCore::pImpl()->createRenderTarget( Header_.Width_, Header_.Height_, rsCF_A8R8G8B8, rsDSF_D24S8 );
 	
 	// Get texture from target.
 	pTexture_ = pRenderTarget_->getTexture();

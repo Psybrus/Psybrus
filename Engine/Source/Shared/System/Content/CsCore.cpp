@@ -13,16 +13,6 @@
 
 #include "System/Content/CsCore.h"
 
-#include "System/Content/CsFileReader.h"
-#include "System/Content/CsFileWriter.h"
-
-#ifdef PSY_SERVER
-#define BUFFERSIZE ( 64 * 1024 )
-#include <b64/encode.h>
-#include <b64/decode.h>
-#undef BUFFERSIZE
-#endif
-
 SYS_CREATOR( CsCore );
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,14 +35,7 @@ CsCore::~CsCore()
 //virtual
 void CsCore::open()
 {
-#if PSY_SERVER
-	// Bind file hooks.
-	DelegateOnFileModified_ = FsEventMonitor::Delegate::bind< CsCore, &CsCore::eventOnFileModified >( this );
 	
-	BcAssertMsg( FsCore::pImpl() != NULL, "CsCore: FsCore is NULL when unsubscribing from events!" );
-	FsCore::pImpl()->subscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
-	FsCore::pImpl()->subscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,22 +48,6 @@ void CsCore::update()
 	processLoadingResources();
 	processLoadedResource();
 	processUnloadingResources();
-
-
-#ifdef PSY_SERVER
-	{
-		// Import everything in the import list.
-		BcScopedLock< BcMutex > Lock( ContainerLock_ );
-		CsResourceRef<> Handle;
-		
-		for( TImportListIterator Iter( ImportList_.begin() ); Iter != ImportList_.end(); ++Iter )
-		{
-			internalImportResource( (*Iter), Handle, NULL, BcTrue );
-		}	
-		
-		ImportList_.clear();
-	}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,507 +68,171 @@ void CsCore::close()
 	// Verify we don't have any left floating loaded or unloading.
 	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing!" );
 	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
-	
-#if PSY_SERVER
-	BcAssertMsg( FsCore::pImpl() != NULL, "CsCore: FsCore is NULL when unsubscribing from events!" );
-	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_MODIFIED, DelegateOnFileModified_ );
-	FsCore::pImpl()->unsubscribe( fsEVT_MONITOR_CREATED, DelegateOnFileModified_ );
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getResourceFullName
-std::string CsCore::getResourceFullName( const BcName& Name, const BcName& Type ) const
-{
-	return *Name + std::string( "." ) + *Type;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isValidResource
-BcBool CsCore::isValidResource( const BcPath& FileName ) const
-{
-	BcName ExtensionName = BcName( FileName.getExtension() );
-	return ( ResourceFactoryInfoMap_.find( ExtensionName ) != ResourceFactoryInfoMap_.end() );
-}
-
-#ifdef PSY_SERVER
-
-//////////////////////////////////////////////////////////////////////////
-// importResource
-void CsCore::importResource( const BcPath& FileName, BcBool ForceImport )
+// freeUnreferencedPackages
+void CsCore::freeUnreferencedPackages()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	BcBool Import = shouldImportResource( FileName, ForceImport );
-
-	// Only import if dependancies have changed, or there are none.
-	if( Import == BcTrue )
+	// Search for existing package and move to unreferenced list.
+	for( TPackageListIterator It( PackageList_.begin() ); It != PackageList_.end();  )
 	{
-		ImportList_.push_back( *FileName );
+		CsPackage* pPackage = (*It);
+		if( pPackage->hasUnreferencedResources() )
+		{
+			pPackage->releaseUnreferencedResources();
+			
+			++It;
+		}
+		else
+		{
+			++It;
+		}
 	}
+
+	// NOTE: WIP.
+	// Delete all unreferenced packages.
+	for( TPackageListIterator It( UnreferencedPackageList_.begin() ); It != UnreferencedPackageList_.end();  )
+	{
+		CsPackage* pPackage = (*It);
+
+		delete pPackage;
+	}
+
+	// Clear unreferenced packages.
+	UnreferencedPackageList_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getResourcePropertyTable
-BcBool CsCore::getResourcePropertyTable( const BcName& Type, CsPropertyTable& PropertyTable )
+// allocResource
+CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
 	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Type );
+	CsResource* pResource = NULL;
 	
 	if( Iter != ResourceFactoryInfoMap_.end() )
 	{
-		(*Iter).second.propertyTableFunc_( PropertyTable );
-		return BcTrue;
-	}
-
-	return BcFalse;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalImportResource
-void CsCore::addImportOverlayPath( const BcPath& Path )
-{
-	ImportOverlayPaths_.push_front( Path );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// findImportPath
-BcPath CsCore::findImportPath( const BcPath& InputPath )
-{
-	for( TOverlayListIterator It( ImportOverlayPaths_.begin() ); It != ImportOverlayPaths_.end(); ++It )
-	{
-		BcPath AppendedPath = (*It);
-		AppendedPath.join( InputPath );
-
-		if( FsCore::pImpl()->fileExists( (*AppendedPath).c_str() ) )
-		{
-			return AppendedPath;
-		}
-	}
-
-	// Use path passed in on fail.
-	return InputPath;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalImportResource
-BcBool CsCore::internalImportResource( const BcPath& FileName, CsResourceRef<>& Handle, CsDependancyList* pDependancyList, BcBool ForceImport )
-{
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
-	BcPrintf("CsCore: Importing \"%s\"\n", (*FileName).c_str());
-
-	// Only import if we should. Otherwise just request.
-	if( shouldImportResource( FileName, ForceImport ) == BcFalse )
-	{
-		BcPrintf(" - Does not require import.\n" );
-		return internalRequestResource( FileName.getFileNameNoExtension(), FileName.getExtension(), Handle );
+		pResource = (*Iter).second.allocFunc_( Name, Index, pPackage );
 	}
 	
-	// Parse Json file.
-	Json::Value Object;
-	if( parseJsonFile( (*findImportPath( FileName )).c_str(), Object ) )
-	{
-		BcBool Success = BcFalse;
-		
-		if( pDependancyList == NULL )
-		{
-			CsDependancyList DependancyList;
-			Success = internalImportObject( Object, Handle, &DependancyList, ForceImport );
-			
-			for( CsDependancyListIterator Iter( DependancyList.begin() ); Iter != DependancyList.end(); ++Iter )
-			{
-				// Add file for monitoring.
-				FsCore::pImpl()->addFileMonitor( (*((*Iter).getFileName())).c_str() );
-			}
-			
-			// Store dependancy list in map for reimporting on file modification.
-			DependancyMap_[ *FileName ] = DependancyList;
-		}
-		else
-		{
-			Success = internalImportObject( Object, Handle, pDependancyList, ForceImport );
-		}
-
-		// Add to import map (doesn't matter if reference is bad, it's just for debugging)
-		ResourceImportMap_[ *FileName ] = Handle;
-
-		// If we've successfully imported, save dependancies.
-		if( Success == BcTrue )
-		{
-			saveDependancies( FileName );
-
-			BcPrintf(" - SUCCESS!\n" );
-		}
-		// Return success.
-		return Success;
-	}
-
-	BcPrintf(" - FAILURE\n" );
-
-	return BcFalse;
+	return pResource;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// internalImportObject
-BcBool CsCore::internalImportObject( const Json::Value& Object, CsResourceRef<>& Handle, CsDependancyList* pDependancyList, BcBool ForceImport )
+// destroyResource
+void CsCore::destroyResource( CsResource* pResource )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
-	// If we pass in a string value, call into the importResource that takes a file name.
-	// If we pass in an object value, load it from that.
-	if( Object.type() == Json::stringValue )
-	{
-		// We don't pass the dependancy list in if it's a file.
-		return internalImportResource( Object.asString(), Handle, NULL, ForceImport );
-	}
-	else if( Object.type() == Json::objectValue )
-	{
-		Json::Value::Members Members = Object.getMemberNames();
 		
-		if( Members.size() == 1 )
+	// Find the resource in the list.
+	TResourceListIterator FoundIt = LoadedResources_.end();
+	
+	for( TResourceListIterator It( LoadedResources_.begin() ); It != LoadedResources_.end(); ++It )
+	{
+		if( (*It) == pResource )
 		{
-			const std::string& Type = Members[ 0 ];
-			const Json::Value& Resource = Object[ Type ];
-			
-			// If the resource is a string, it's an alias - so we need to load the appropriate file.
-			// If the resource is an object, then do appropriate loading.
-			if( Resource.type() == Json::stringValue )
-			{
-				return internalImportResource( Resource.asString(), Handle, pDependancyList, ForceImport );
-			}
-			else if( Resource.type() == Json::objectValue )
-			{
-				// Check the resource has a name, and it's a string.
-				if( Resource.isMember( "name" ) && Resource[ "name" ].type() == Json::stringValue )
-				{ 
-					// Import resource by string.
-					const std::string& Name = Resource[ "name" ].asString();
-				
-					// Check name is a valid length.
-					// TODO: Check it only contains valid characters.
-					if( Name.length() > 0 )
-					{
-						// Create a file writer for resource (using full name!)
-						CsFile* pFile = createFileWriter( getResourceFullName( Name, Type ) );
-
-						if( pFile != NULL )
-						{
-							// Add name as first string.
-							pFile->addString( Name.c_str() );
-
-							// Allocate resource.
-							Handle = allocResource( Name, Type, pFile );
-						
-							if( Handle.isValid() )
-							{							
-								// Import the resource immediately (blocking operation).
-								if( Handle->import( Resource, *pDependancyList ) )
-								{
-									BcBool Success = pFile->save();
-									BcAssertMsg( Success, "Failed to save out \"%s\"", getResourceFullName( Name, Type ).c_str() );
-									if( Success )
-									{
-										// Now we need to request the resource, this will delete the imported
-										// one and replace it with a valid loaded resource.
-										internalRequestResource( Name, Type, Handle );
-									}
-								}	
-								else
-								{
-									// Failed to import, so set handle to NULL to release it.
-									Handle = NULL;
-								}
-							}
-							else
-							{
-								delete pFile;
-								BcPrintf( "CsCore: Can not allocate resource type %s.\n", Type.c_str() );
-							}
-						}
-						else
-						{
-							BcPrintf( "CsCore: Can not allocate file writer.\n" );
-						}	
-					}
-					else
-					{
-						BcPrintf( "CsCore: Json object does not contain valid name.\n" );
-					}
-				}
-				else
-				{
-					BcPrintf( "CsCore: Json object does not contain name.\n" );
-				}
-			}
-			else
-			{
-				BcPrintf( "CsCore: Json object is neither an alias or valid resource.\n" );
-			}
+			FoundIt = It;
+			break;
 		}
-		else
-		{
-			BcPrintf( "CsCore: Json object contains more than 1 element.\n" );
-		}
+	}
+	
+	// If it's in the loaded list we need to put it into the unloading list,
+	// otherwise delete it right away (imported resource).
+	if( FoundIt != LoadedResources_.end() )
+	{
+		// Remove from list.
+		LoadedResources_.erase( FoundIt );
+	
+		// Put into unloading list.
+		UnloadingResources_.push_back( pResource );
 	}
 	else
 	{
-		BcPrintf( "CsCore: Invalid Json object.\n" );		
+		delete pResource;
 	}
-	return Handle.isValid();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// parseJsonFile
-BcBool CsCore::parseJsonFile( const BcChar* pFileName, Json::Value& Root )
+// requestPackage
+CsPackage* CsCore::requestPackage( const BcName& Package )
 {
-	BcBool Success = BcFalse;
-	BcFile File;
-	if( File.open( pFileName ) )
+	CsPackage* pPackage = findPackage( Package );
+	if( pPackage != NULL )
 	{
-		char* pData = new char[ File.size() ];
-		File.read( pData, File.size() );
-		
-		Json::Reader Reader;
-		
-		if( Reader.parse( pData, pData + File.size(), Root ) )
-		{
-			Success = BcTrue;
-
-			// Add file for monitoring.
-			FsCore::pImpl()->addFileMonitor( pFileName );
-		}
-		else
-		{
-			BcPrintf( "CsCore: Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
-		}
-		
-		delete [] pData;
+		return pPackage;
 	}
-	
-	return Success;
-}
 
-//////////////////////////////////////////////////////////////////////////
-// shouldImportResource
-BcBool CsCore::shouldImportResource( const BcPath& FileName, BcBool ForceImport )
-{
-	BcBool Import = BcFalse;
+	// Check for a packed package.
+	BcPath PackedPackage( getPackagePackedPath( Package ) );
+	BcBool PackageExists = FsCore::pImpl()->fileExists( (*PackedPackage).c_str() );
 
-	// Only attempt import if the resource filename is valid.
-	if( isValidResource( FileName ) )
+#if PSY_SERVER
+	// If the package doesn't exist, import it.
+	if( !PackageExists )
 	{
-		// Only force import if the resource is actually valid.
-		Import = ForceImport;
-
-		// Check if the packed resource exists.
-		BcPath PackedPath( "./PackedContent" );
-		PackedPath.join( FileName.getFileName() );
-		if( FsCore::pImpl()->fileExists( (*PackedPath).c_str() ) == BcFalse )
+		// If it doesn't exist, attempt to import it.
+		BcPath ImportPackage( getPackageImportPath( Package ) );
+		if( FsCore::pImpl()->fileExists( (*ImportPackage).c_str() ) )
 		{
-			Import = BcTrue;
-		}
+			CsPackageImporter Importer;
+			if( Importer.import( Package ) )
+			{
+				int a = 0; ++a;
 
-		// Only do a dependancy check if we have a packed file.
-		// Dependancies will be regenerated on import.
-		if( Import == BcFalse )
-		{
-			// Load dependancies if we don't have any resident in memory.
-			if( DependancyMap_.find( *FileName ) == DependancyMap_.end() )
-			{
-				loadDependancies( FileName );
-			}
-	
-			// Grab dependancy list for file so we don't do more work than required.
-			if( DependancyMap_.find( *FileName ) != DependancyMap_.end() )
-			{
-				CsDependancyList& DependancyList = DependancyMap_[ *FileName ];
-		
-				for( CsDependancyListIterator It( DependancyList.begin() ); It != DependancyList.end(); ++It )
-				{
-					if( (*It).hasChanged() == BcTrue )
-					{
-						// Update dependancy stats.
-						(*It).updateStats();
-		
-						// Set import to true.
-						Import = BcTrue;
-					}
-				}
-			}
-			else
-			{
-				// No dependancy list, do the import.
-				Import = BcTrue;
+				PackageExists = BcTrue;
 			}
 		}
 	}
-
-	return Import;	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// saveDependancy
-void CsCore::saveDependancies( const BcPath& FileName )
-{
-	BcPath DependanciesFileName( FileName );
-	
-	// Append new extension.
-	DependanciesFileName.append( ".dep" );
-	
-	// 
-	Json::Value Object( Json::arrayValue );
-
-	if( DependancyMap_.find( *FileName ) != DependancyMap_.end() )
-	{
-		CsDependancyList& DependancyList = DependancyMap_[ *FileName ];
-	
-		for( CsDependancyListIterator It( DependancyList.begin() ); It != DependancyList.end(); ++It )
-		{
-			Object.append( saveDependancy( (*It) ) );
-		}
-	}
-
-	// Output using styled writer.
-	Json::StyledWriter Writer;
-	std::string JsonOutput = Writer.write( Object );
-
-	BcFile OutFile;
-	if( OutFile.open( (*DependanciesFileName).c_str(), bcFM_WRITE ) )
-	{
-		OutFile.write( JsonOutput.c_str(), JsonOutput.size() );
-		OutFile.close();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// loadDependancies
-void CsCore::loadDependancies( const BcPath& FileName )
-{
-	BcPath DependanciesFileName( FileName );
-	
-	// Append new extension.
-	DependanciesFileName.append( ".dep" );
-
-	// Overwrite old dependancy list.
-	DependancyMap_[ *FileName ] = CsDependancyList();
-
-
-	// Open dependancy file.
-	BcFile OutFile;
-	if( OutFile.open( (*DependanciesFileName).c_str(), bcFM_READ ) )
-	{
-		BcU32 BufferSize = OutFile.size() + 1;
-		BcChar* pJsonData = new BcChar[ BufferSize ];
-		BcMemZero( pJsonData, BufferSize );
-		OutFile.read( pJsonData, OutFile.size() );
-
-		Json::Value Root;
-		Json::Reader JsonReader;
-		if( JsonReader.parse( pJsonData, pJsonData + OutFile.size(), Root ) )
-		{
-			// Create a new dependancy list.
-			CsDependancyList DependancyList;
-
-			// Iterate over all dependancies for file and parse.
-			for( Json::Value::iterator It( Root.begin() ); It != Root.end(); ++It )
-			{
-				const Json::Value& Value = (*It);
-				CsDependancy Dependancy = loadDependancy( Value );
-				DependancyList.push_back( Dependancy );
-			}
-
-			// Assign.
-			DependancyMap_[ *FileName ] = DependancyList;
-		}
-
-		OutFile.close();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// saveDependancy
-Json::Value CsCore::saveDependancy( const CsDependancy& Dependancy )
-{
-	// 
-	Json::Value Object( Json::objectValue );
-
-	Object[ "filename" ] = *Dependancy.getFileName();
-
-	// Encode stats as binary.
-	// NOTE: Endianess isn't taken into account.
-	BcU32 BufferSize = sizeof( FsStats ) * 2;
-	BcChar* pStatsBuffer = new BcChar[ BufferSize ];
-	base64::base64_encodestate EncodeState;
-	BcMemZero( pStatsBuffer, BufferSize );
-	BcMemZero( &EncodeState, sizeof( EncodeState ) );
-	base64::base64_encode_block( reinterpret_cast< const char* >( &Dependancy.getStats() ), sizeof( FsStats ), reinterpret_cast< char* >( pStatsBuffer ), &EncodeState );
-	Object[ "stats" ] = pStatsBuffer;
-	delete [] pStatsBuffer;
-
-	return Object;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// loadDependancy
-CsDependancy CsCore::loadDependancy( const Json::Value& Object )
-{
-	// Grab props..
-	BcPath FileName( Object[ "filename" ].asCString() );
-	std::string StatsB64( Object[ "stats" ].asString() );
-
-	// Encode stats as binary.
-	// NOTE: Endianess isn't taken into account.
-	FsStats Stats;
-	base64::base64_decodestate DecodeState;
-	BcMemZero( &DecodeState, sizeof( DecodeState ) );
-	base64::base64_decode_block( reinterpret_cast< const char* >( StatsB64.c_str() ), StatsB64.size(), reinterpret_cast< char* >( &Stats ), &DecodeState );
-
-	return CsDependancy( FileName, Stats );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// eventOnFileModified
-eEvtReturn CsCore::eventOnFileModified( BcU32 EvtID, const FsEventMonitor& Event )
-{
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
-	// See if the file matches our import list.
-	{
-		TResourceRefMapIterator FoundIter = ResourceImportMap_.find( Event.FileName_ );
-		
-		// Add to import list.
-		if( FoundIter != ResourceImportMap_.end() )
-		{
-			ImportList_.push_back( (*FoundIter).first );
-			return evtRET_PASS;
-		}
-	}
-	
-	// Check dependancies.
-	{
-		for( TDependancyMapIterator Iter( DependancyMap_.begin() ); Iter != DependancyMap_.end(); ++Iter )
-		{
-			const std::string& ResourceName = (*Iter).first;
-			CsDependancyList& DependancyList = (*Iter).second;
-			
-			for( CsDependancyListIterator DepIter( DependancyList.begin() ); DepIter != DependancyList.end(); ++DepIter )
-			{
-				// If the dependancy filename matches the one modified, then add resource to the dependancy list.
-				if( BcStrCompare( (*(*DepIter).getFileName()).c_str(), Event.FileName_ ) )
-				{
-					ImportList_.push_back( ResourceName );
-					break;
-				}
-			}
-		}
-	}
-			
-	return evtRET_PASS;
-}
-
 #endif
+
+	// If it exists, create it. Internally it will trigger it's own load.
+	if( PackageExists )
+	{
+		pPackage = new CsPackage( Package );
+		PackageList_.push_back( pPackage );
+	}	
+
+	//
+	return pPackage;	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findPackage
+CsPackage* CsCore::findPackage( const BcName& Package )
+{
+	// Search for existing package.
+	for( TPackageListIterator It( PackageList_.begin() ); It != PackageList_.end(); ++It )
+	{
+		if( (*It)->getName() == Package )
+		{
+			return (*It);
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPackageImportPath
+BcPath CsCore::getPackageImportPath( const BcName& Package )
+{
+	BcPath Path;
+	Path.join( "Content", *Package + ".pkg" );
+	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPackagePackedPath
+BcPath CsCore::getPackagePackedPath( const BcName& Package )
+{
+	BcPath Path;
+	Path.join( "PackedContent", *Package + ".pak" );
+	return Path;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // processCreateResources
@@ -676,7 +307,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s (%s)\n", (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
 		}
 		
 		++It;
@@ -699,100 +330,26 @@ void CsCore::processUnloadingResources()
 	while( It != UnloadingResources_.end() )
 	{
 		CsResource* pResource = (*It);
-
-
-
+		
 		// Destroy resource.
 		pResource->destroy();
 		
 		// Free resource.
 		delete pResource;
-
+		
 		// Remove from list.
 		It = UnloadingResources_.erase( It );
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
-// allocResource
-CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, CsFile* pFile )
-{
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-
-	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Type );
-	CsResource* pResource = NULL;
-	
-	if( Iter != ResourceFactoryInfoMap_.end() )
-	{
-		pResource = (*Iter).second.allocFunc_( Name, pFile );
-	}
-	
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroyResource
-void CsCore::destroyResource( CsResource* pResource )
-{
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
-		
-	// Find the resource in the list.
-	TResourceListIterator FoundIt = LoadedResources_.end();
-	
-	for( TResourceListIterator It( LoadedResources_.begin() ); It != LoadedResources_.end(); ++It )
-	{
-		if( (*It) == pResource )
-		{
-			FoundIt = It;
-			break;
-		}
-	}
-	
-	// If it's in the loaded list we need to put it into the unloading list,
-	// otherwise delete it right away (imported resource).
-	if( FoundIt != LoadedResources_.end() )
-	{
-		// Remove from list.
-		LoadedResources_.erase( FoundIt );
-	
-		// Put into unloading list.
-		UnloadingResources_.push_back( pResource );
-	}
-	else
-	{
-		delete pResource;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createFileReader
-//virtual
-CsFile* CsCore::createFileReader( const std::string& FileName )
-{
-	return new CsFileReader( FileName );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createFileWriter
-//virtual
-CsFile* CsCore::createFileWriter( const std::string& FileName )
-{
-#ifdef PSY_SERVER
-	return new CsFileWriter( FileName );
-#else
-	return NULL;
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc, CsResourcePropertyTableFunc propertyTableFunc )
+void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
 	FactoryInfo.allocFunc_ = allocFunc;
 	FactoryInfo.freeFunc_ = freeFunc;
-	FactoryInfo.propertyTableFunc_ = propertyTableFunc;
 	
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -813,13 +370,13 @@ void CsCore::internalUnRegisterResource( const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // internalCreateResource
-BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
 {
 	// Generate a unique name for the resource.
-	BcName UniqueName = Name.isValid() ? Name.getUnique() : Type.getUnique();
+	BcName UniqueName = pPackage == NULL ? ( Name.isValid() ? Name.getUnique() : Type.getUnique() ) : Name;
 
 	// Allocate resource with a unique name.
-	Handle = allocResource( UniqueName, Type, NULL );
+	Handle = allocResource( UniqueName, Type, Index, pPackage );
 	
 	// Put into create list.
 	if( Handle.isValid() )
@@ -834,72 +391,20 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, C
 
 //////////////////////////////////////////////////////////////////////////
 // internalRequestResource
-BcBool CsCore::internalRequestResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
-#if PSY_SERVER
-	// Attempt to import on request if need be.
-	BcPath FileName = getResourceFullName( Name, Type );
-	if( shouldImportResource( FileName, BcFalse ) )
+	// Request package
+	if( requestPackage( Package ) )
 	{
-		if( internalImportResource( FileName, Handle, NULL, BcFalse ) )
+		// If we can't find resource, throw an error.
+		if( internalFindResource( Package, Name, Type, Handle ) == BcFalse )
 		{
-			return Handle.isValid();
+			BcPrintf( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(),  (*Type).c_str() );
 		}
 	}
-#endif
-
-	// Try to find resource, if we can't, allocate a new one and put into create list.
-	if( internalFindResource( Name, Type, Handle ) == BcFalse )
+	else
 	{
-		// Only request if we have a name.
-		if( Name.isValid() )
-		{
-			// Create a file reader for resource (using full name!)
-			CsFile* pFile = createFileReader( getResourceFullName( Name, Type ) );
-			
-			// Allocate resource.
-			Handle = allocResource( Name, Type, pFile );
-			
-			if( Handle.isValid() )
-			{
-				// Call default initialiser.
-				Handle->initialise();
-				
-				// Acquire (callback from load will release).
-				Handle->acquire();
-				
-				// Trigger a file load.
-				if( pFile->load( CsFileReadyDelegate::bind< CsResource, &CsResource::delegateFileReady >( (CsResource*)Handle ),
-								CsFileChunkDelegate::bind< CsResource, &CsResource::delegateFileChunkReady >( (CsResource*)Handle ) ) )
-				{
-					// Put into create list.
-					if( Handle.isValid() )
-					{
-						BcScopedLock< BcMutex > Lock( ContainerLock_ );
-						
-						CreateResources_.push_back( Handle );
-					}
-				}
-				else
-				{
-					BcPrintf( "CsCore::requestResource: Failed to load %s (%s).\n", (*Name).c_str(), pFile->getName().c_str() );
-					
-					// Release (callback from load won't happen on failure).
-					Handle->release();
-					Handle = NULL;
-				}
-			}
-			else
-			{
-				BcPrintf( "CsCore::requestResource: Failed to create %s (%s).\n", (*Name).c_str(), pFile->getName().c_str() );
-				Handle = NULL;
-			}
-		}
-		else
-		{
-			BcPrintf( "CsCore::requestResource: Resource name invalid.\n" );
-			Handle = NULL;
-		}
+		BcPrintf( "CsCore::requestResource: Invalid package \"%s\" requested.\n", (*Package).c_str() );
 	}
 	
 	return Handle.isValid();
@@ -907,7 +412,7 @@ BcBool CsCore::internalRequestResource( const BcName& Name, const BcName& Type, 
 
 //////////////////////////////////////////////////////////////////////////
 // internalFindResource
-BcBool CsCore::internalFindResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 

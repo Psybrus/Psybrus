@@ -2,7 +2,7 @@
 *
 * File:		CsPackage.h
 * Author:	Neil Richardson
-* Ver/Date:	19/03/12
+* Ver/Date:	8/04/12
 * Description:
 *
 *
@@ -14,7 +14,11 @@
 #ifndef __CSPACKAGE_H__
 #define __CSPACKAGE_H__
 
-#include "CsResource.h"
+#include "System/Content/CsResource.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Forward Declarations.
+class CsPackageLoader;
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackage
@@ -24,34 +28,61 @@ private:
 	CsPackage( const CsPackage& ){}
 
 public:
-	CsPackage( const BcName& PackageName );
+	CsPackage( const BcName& Name );
 	~CsPackage();
 
 	/**
-	 * Get resource out of package.
+	 * Are we ready?
 	 */
-	template< typename _Ty >
-	BcBool				getResource( const BcName& Name, CsResourceRef< _Ty >& Handle );
+	BcBool							isReady() const;
 
-private:
-	BcBool				internalGetResource( const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
+	/**
+	 * Do we have any unreferenced resources?
+	 */
+	BcBool							hasUnreferencedResources() const;
+
+	/**
+	 * Release unreferenced resources.
+	 */
+	void							releaseUnreferencedResources();
+
+	/**
+	 * Add resource to package.
+	 */
+	void							addResource( CsResource* pResource );
+
+	/**
+	* Get resource.
+	*/
+	CsResource*						getResource( BcU32 ResourceIdx );
+	
+public:
+	/**
+	 * Get name.
+	 */
+	const BcName&					getName() const;
+
+public:
+	/**
+	 * Get string.
+	 * @param Offset Offset of string in table.
+	 * @return String, or NULL pointer if invalid offset.
+	 */
+	const BcChar*					getString( BcU32 Offset );
+	BcU32							getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx );
+	BcU32							getNoofChunks( BcU32 ResourceIdx );	
+	BcBool							requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx, void* pDataLocation = NULL );
 	
 private:
-	typedef std::pair< BcName, BcName > TResourceNameTypePair;
-	typedef std::map< TResourceNameTypePair, CsResourceRef<> > TResourceMap;
-	typedef TResourceMap::iterator TResourceMapIterator;
+	BcName							Name_;
 
-	TResourceMap		ResourceMap_;
+	// Loader we use.
+	CsPackageLoader*				pLoader_;
+
+	// Resources.
+	typedef std::vector< CsResourceRef<> > TResourceHandleList;
+	TResourceHandleList				Resources_;
+	
 };
-
-//////////////////////////////////////////////////////////////////////////
-// Inlines
-template< typename _Ty >
-BcForceInline BcBool CsPackage::getResource( const BcName& Name, CsResourceRef< _Ty >& Handle )
-{
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	return internalGetResource( Name, _Ty::StaticGetType(), InternalHandle );
-}
-
 
 #endif
