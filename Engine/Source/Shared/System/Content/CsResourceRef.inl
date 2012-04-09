@@ -119,7 +119,13 @@ template< class _Ty, bool _IsWeak >
 BcForceInline BcBool CsResourceRef< _Ty, _IsWeak >::isReady() const
 {
     return isValid() ? pObject_->isReady() : BcFalse;
+}
 
+template< class _Ty, bool _IsWeak >
+BcForceInline BcU32 CsResourceRef< _Ty, _IsWeak >::refCount() const
+{
+	BcAssert( pObject_ != NULL );
+    return pObject_->refCount();
 }
 
 template< class _Ty, bool _IsWeak >

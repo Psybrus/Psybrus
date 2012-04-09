@@ -15,7 +15,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsDependancy::CsDependancy( const BcPath& FileName )
+CsDependency::CsDependency( const BcPath& FileName )
 {
 	FileName_ = FileName;
 	updateStats();
@@ -23,7 +23,7 @@ CsDependancy::CsDependancy( const BcPath& FileName )
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsDependancy::CsDependancy( const BcPath& FileName, const FsStats& Stats )
+CsDependency::CsDependency( const BcPath& FileName, const FsStats& Stats )
 {
 	FileName_ = FileName;
 	Stats_ = Stats;
@@ -31,7 +31,7 @@ CsDependancy::CsDependancy( const BcPath& FileName, const FsStats& Stats )
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsDependancy::CsDependancy( const CsDependancy& Other )
+CsDependency::CsDependency( const CsDependency& Other )
 {
 	FileName_ = Other.FileName_;
 	Stats_ = Other.Stats_;
@@ -39,28 +39,28 @@ CsDependancy::CsDependancy( const CsDependancy& Other )
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-CsDependancy::~CsDependancy()
+CsDependency::~CsDependency()
 {
 	
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getFileName
-const BcPath& CsDependancy::getFileName() const
+const BcPath& CsDependency::getFileName() const
 {
 	return FileName_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getStats
-const FsStats& CsDependancy::getStats() const
+const FsStats& CsDependency::getStats() const
 {
 	return Stats_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // hasChanged
-BcBool CsDependancy::hasChanged()
+BcBool CsDependency::hasChanged()
 {
 	FsStats Stats;
 	if( FsCore::pImpl()->fileStats( (*FileName_).c_str(), Stats ) )
@@ -76,7 +76,7 @@ BcBool CsDependancy::hasChanged()
 
 //////////////////////////////////////////////////////////////////////////
 // updateStats
-void CsDependancy::updateStats()
+void CsDependency::updateStats()
 {
 	FsCore::pImpl()->fileStats( (*FileName_).c_str(), Stats_ );
 }

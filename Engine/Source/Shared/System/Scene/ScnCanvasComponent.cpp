@@ -23,17 +23,6 @@
 DEFINE_RESOURCE( ScnCanvasComponent );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnCanvasComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-	
-	PropertyTable.beginCatagory( "ScnCanvasComponent" )
-		//.field( "source",					csPVT_FILE,			csPCT_LIST )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent )

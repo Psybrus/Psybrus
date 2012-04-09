@@ -103,12 +103,12 @@ static ImgImage* makeImageForGlyph( FT_Glyph Glyph, FT_Render_Mode RenderMode, B
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const std::string& FileName = Object[ "source" ].asString();
 	
 	// Add root dependancy.
-	DependancyList.push_back( CsDependancy( FileName ) );
+	Importer.addDependency( FileName.c_str() );
 
 	FT_Library	Library;
 	FT_Face		Face;
@@ -263,63 +263,59 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 					std::string FontTextureName = Object[ "name" ].asString() + "fonttextureatlas";
 					std::string FontTextureFileName = std::string( "IntermediateContent/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage );
-										
-					// Setup texture object, and import.
+					
+					// Setup texture object for import.
 					Json::Value TextureObject;		
-					TextureObject[ "ScnTexture" ][ "name" ] = FontTextureName;
-					TextureObject[ "ScnTexture" ][ "source" ] = FontTextureFileName;		
+					TextureObject[ "name" ] = FontTextureName;
+					TextureObject[ "type" ] = "ScnTexture";
+					TextureObject[ "source" ] = FontTextureFileName;		
 					
-					// NOTE: Need a better solution for this. Don't want to reimport this texture.
-					CsDependancyList TextureDependancyList;
+					// Add the texture to imports.
+					Importer.addImport( TextureObject );
+
+					// Build data.
+					BcStream HeaderStream;
+					BcStream GlyphStream;
 					
-					// Attempt to import texture.
-					ScnTextureRef TextureRef;
-					if( CsCore::pImpl()->importObject( TextureObject, TextureRef, TextureDependancyList ) )
+					THeader Header;
+					
+					Header.NoofGlyphs_ = GlyphDescList.size();
+					Header.TextureName_ = Importer.addString( FontTextureName.c_str() );
+					Header.NominalSize_ = (BcReal)OriginalNominalSize;
+					
+					HeaderStream << Header;
+					
+					// Setup glyph desc UVs & serialise.
+					for( BcU32 Idx = 0; Idx < GlyphDescList.size(); ++Idx )
 					{
-						// Build data.
-						BcStream HeaderStream;
-						BcStream GlyphStream;
-						
-						THeader Header;
-						
-						Header.NoofGlyphs_ = GlyphDescList.size();
-						Header.TextureName_ = pFile_->addString( FontTextureName.c_str() );
-						Header.NominalSize_ = (BcReal)OriginalNominalSize;
-
-						HeaderStream << Header;
-						
-						// Setup glyph desc UVs & serialise.
-						for( BcU32 Idx = 0; Idx < GlyphDescList.size(); ++Idx )
-						{
-							TGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
-							ImgRect& Rect = RectList[ Idx ];
+						TGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
+						ImgRect& Rect = RectList[ Idx ];
 								
-							GlyphDesc.UA_ = BcReal( Rect.X_ ) / BcReal( pAtlasImage->width() );
-							GlyphDesc.VA_ = BcReal( Rect.Y_ ) / BcReal( pAtlasImage->height() );
-							GlyphDesc.UB_ = ( Rect.X_ + Rect.W_ ) / BcReal( pAtlasImage->width() );
-							GlyphDesc.VB_ = ( Rect.Y_ + Rect.H_ ) / BcReal( pAtlasImage->height() );
+						GlyphDesc.UA_ = BcReal( Rect.X_ ) / BcReal( pAtlasImage->width() );
+						GlyphDesc.VA_ = BcReal( Rect.Y_ ) / BcReal( pAtlasImage->height() );
+						GlyphDesc.UB_ = ( Rect.X_ + Rect.W_ ) / BcReal( pAtlasImage->width() );
+						GlyphDesc.VB_ = ( Rect.Y_ + Rect.H_ ) / BcReal( pAtlasImage->height() );
 						
-							GlyphDesc.Width_ = BcReal( Rect.W_ );
-							GlyphDesc.Height_ = BcReal( Rect.H_ );
+						GlyphDesc.Width_ = BcReal( Rect.W_ );
+						GlyphDesc.Height_ = BcReal( Rect.H_ );
 							
-							GlyphStream << GlyphDesc;
-						}
+						GlyphStream << GlyphDesc;
+					}
 						
-						// Write out chunks.											
-						pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-						pFile_->addChunk( BcHash( "glyphs" ), GlyphStream.pData(), GlyphStream.dataSize() );
+					// Write out chunks.											
+					Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+					Importer.addChunk( BcHash( "glyphs" ), GlyphStream.pData(), GlyphStream.dataSize() );
 						
-						// Delete all images.
-						for( BcU32 Idx = 0; Idx < GlyphImageList.size(); ++Idx )
-						{
-							delete GlyphImageList[ Idx ];
-						}
-						GlyphImageList.clear();
-						delete pAtlasImage;
+					// Delete all images.
+					for( BcU32 Idx = 0; Idx < GlyphImageList.size(); ++Idx )
+					{
+						delete GlyphImageList[ Idx ];
+					}
+					GlyphImageList.clear();
+					delete pAtlasImage;
 
 						
-						return BcTrue;
-					}
+					return BcTrue;
 				}
 				else
 				{
@@ -348,20 +344,6 @@ BcBool ScnFont::import( const Json::Value& Object, CsDependancyList& DependancyL
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnFont );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnFont::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnFont" )
-		.field( "source",					csPVT_FILE,			csPCT_VALUE )
-		.field( "distancefield",			csPVT_BOOL,			csPCT_VALUE )
-		.field( "nominalsize",				csPVT_UINT,			csPCT_VALUE )
-		.field( "spread",					csPVT_UINT,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -407,31 +389,31 @@ BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& Fo
 void ScnFont::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	// If we have no render core get chunk 0 so we keep getting entered into.
 	if( RsCore::pImpl() == NULL )
 	{
-		getChunk( 0 );
+		requestChunk( 0 );
 		return;
 	}
 
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 		
 		// Get glyph desc chunk.
-		getChunk( ++ChunkIdx );
+		requestChunk( ++ChunkIdx );
 		
 		// Request texture.
-		CsCore::pImpl()->requestResource( getString( pHeader_->TextureName_ ), Texture_ );
+		CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pHeader_->TextureName_ ), Texture_ );
 	}
-	else if( pChunk->ID_ == BcHash( "glyphs" ) )
+	else if( ChunkID == BcHash( "glyphs" ) )
 	{
 		pGlyphDescs_ = (TGlyphDesc*)pData;
 	
@@ -447,15 +429,6 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* p
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnFontComponent );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnFontComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	PropertyTable.beginCatagory( "ScnFontComponent" )
-		//.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

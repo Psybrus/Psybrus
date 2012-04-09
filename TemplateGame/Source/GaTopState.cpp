@@ -32,13 +32,14 @@ GaTopState::~GaTopState()
 // enterOnce
 void GaTopState::enterOnce()
 {
-	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
+	CsCore::pImpl()->requestPackage( "default" );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // enter
 eSysStateReturn GaTopState::enter()
 {
+	/*
 	BcBool Ready = BcTrue;
 
 	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
@@ -52,6 +53,9 @@ eSysStateReturn GaTopState::enter()
 		//
 		return sysSR_FINISHED;
 	}
+	*/
+
+	CsCore::pImpl()->freeUnreferencedPackages();
 
 	return sysSR_CONTINUE;
 }
@@ -70,7 +74,7 @@ void GaTopState::preMain()
 	
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ExampleComponent );
-		CsCore::pImpl()->createResource( BcName::INVALID, ModelComponent, ScnModel::Default );
+		//CsCore::pImpl()->createResource( BcName::INVALID, ModelComponent, ScnModel::Default );
 
 		// Attach components.
 		Entity->attach( ExampleComponent );

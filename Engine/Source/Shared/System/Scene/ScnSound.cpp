@@ -27,13 +27,13 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {	
 	const std::string& FileName = Object[ "source" ].asString();
 	BcBool IsLooping = Object[ "looping" ].asInt() ? BcTrue : BcFalse;
 	
 	// Add root dependancy.
-	DependancyList.push_back( CsDependancy( FileName ) );
+	Importer.addDependency( FileName.c_str() );
 	
 	// Load texture from file and create the data for export.
 	SndSound* pSound = Snd::load( FileName.c_str() );
@@ -57,8 +57,8 @@ BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& Dependancy
 		SampleStream.push( pSound->getData(), pSound->getDataSize() );
 		
 		// Add chunks.
-		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		pFile_->addChunk( BcHash( "sample" ), SampleStream.pData(), SampleStream.dataSize() );
+		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+		Importer.addChunk( BcHash( "sample" ), SampleStream.pData(), SampleStream.dataSize() );
 		
 		//
 		return BcTrue;
@@ -71,17 +71,6 @@ BcBool ScnSound::import( const Json::Value& Object, CsDependancyList& Dependancy
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnSound );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnSound::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnSound" )
-		.field( "source",					csPVT_FILE,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -143,23 +132,23 @@ void ScnSound::setup()
 void ScnSound::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnSound::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 		
-		getChunk( ++ChunkIdx );
+		requestChunk( ++ChunkIdx );
 	}
-	else if( pChunk->ID_ == BcHash( "sample" ) )
+	else if( ChunkID == BcHash( "sample" ) )
 	{
 		pSampleData_ = pData;
-		SampleDataSize_ = pChunk->Size_;
+		SampleDataSize_ = getChunkSize( ChunkIdx );
 		
 		setup();
 	}

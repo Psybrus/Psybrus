@@ -269,7 +269,7 @@ private:
 
 void FsCoreImplWindows::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	SysKernel::pImpl()->enqueueJob( 0x1, new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ) );
+	SysKernel::pImpl()->enqueueJob( FsCore::WORKER_MASK, new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -306,7 +306,7 @@ private:
 
 void FsCoreImplWindows::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	SysKernel::pImpl()->enqueueJob( 0x1, new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ) );
+	SysKernel::pImpl()->enqueueJob( FsCore::WORKER_MASK, new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

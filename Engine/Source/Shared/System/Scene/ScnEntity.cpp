@@ -22,68 +22,15 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnEntity::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	/*
-	const std::string& FileName = Object[ "source" ].asString();
-
-	// Add root dependancy.
-	DependancyList.push_back( FileName );
-
-	// Load texture from file and create the data for export.
-	ImgImage* pImage = Img::load( FileName.c_str() );
-	
-	if( pImage != NULL )
-	{
-		BcStream HeaderStream;
-		BcStream BodyStream( BcFalse, 1024, ( pImage->width() * pImage->height() * 4 ) );
-		
-		// TODO: Use parameters to pick a format.
-		THeader Header = { pImage->width(), pImage->height(), 1, rsTF_RGBA8 };
-		HeaderStream << Header;
-		
-		// Write body.				
-		for( BcU32 Y = 0; Y < pImage->height(); ++Y )
-		{
-			for( BcU32 X = 0; X < pImage->width(); ++X )
-			{
-				ImgColour Colour = pImage->getPixel( X, Y );
-				
-				BodyStream << Colour.R_;
-				BodyStream << Colour.G_;
-				BodyStream << Colour.B_;
-				BodyStream << Colour.A_;
-			}
-		}
-		
-		// Delete image.
-		delete pImage;
-		
-		// Add chunks and finish up.
-		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		pFile_->addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-				
-		//
-		return BcTrue;
-	}
-	*/
-	return BcFalse;
+	return Super::import( Importer, Object );
 }
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnEntity );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnEntity::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnEntity" )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -265,14 +212,14 @@ const BcAABB& ScnEntity::getAABB() const
 void ScnEntity::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnEntity::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		// Grab pointer to header.
 		pHeader_ = reinterpret_cast< THeader* >( pData );

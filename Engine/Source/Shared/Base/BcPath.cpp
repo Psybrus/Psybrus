@@ -192,7 +192,7 @@ std::string BcPath::stripLeadingSeperator( const std::string& Path )
 //static
 std::string BcPath::appendTrailingSeperator( const std::string& Path )
 {
-	if( Path[ Path.size() - 1 ] != Seperator )
+	if( Path.size() > 0 && Path[ Path.size() - 1 ] != Seperator )
 	{
 		return Path + Seperator;
 	}

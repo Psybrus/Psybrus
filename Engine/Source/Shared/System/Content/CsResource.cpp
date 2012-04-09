@@ -14,25 +14,18 @@
 #include "System/Content/CsResource.h"
  
 #include "System/Content/CsCore.h"
+#include "System/Content/CsPackage.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
 DEFINE_CSRESOURCE;
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void CsResource::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	PropertyTable.beginCatagory( "CsResource" )
-		.field( "name",					csPVT_STRING,		csPCT_VALUE )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // Ctor
-CsResource::CsResource( const BcName& Name, CsFile* pFile ):
-	pFile_( pFile ),
-	Name_( Name )
+CsResource::CsResource( const BcName& Name, BcU32 Index, CsPackage* pPackage ):
+	Name_( Name ),
+	Index_( Index ),
+	pPackage_( pPackage )
 {
 
 }
@@ -42,18 +35,21 @@ CsResource::CsResource( const BcName& Name, CsFile* pFile ):
 //virtual
 CsResource::~CsResource()
 {
-	delete pFile_;
+	
 }
 
 #ifdef PSY_SERVER
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool CsResource::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool CsResource::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
+	BcUnusedVar( Importer );
 	BcUnusedVar( Object );
 
-	return BcFalse;
+	// TODO: Generic property save out?
+
+	return BcTrue;
 }
 #endif
 
@@ -100,9 +96,9 @@ BcBool CsResource::isReady()
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 //virtual
-void CsResource::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	
+	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,16 +117,41 @@ void CsResource::release()
 		// Call into CsCore to destroy this resource.
 		if( CsCore::pImpl() != NULL )
 		{
+			// Detach package.
+			Index_ = BcErrorCode;
+			pPackage_ = NULL;
+
+			// Destroy.
 			CsCore::pImpl()->destroyResource( this );
 		}
 		else
 		{
-			BcPrintf( "CsResource::release: %s.%s exists when CsCore is no longer around. Static or global reference held?\n", (*getName()).c_str(), (*getType()).c_str() );
-			
 			// Only doing this so references held by this are cleaned up, and other resources are reported too.
 			delete this;
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// refCount
+BcU32 CsResource::refCount() const
+{
+	BcAssert( BcIsGameThread() );
+	return RefCount_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getName
+CsPackage* CsResource::getPackage()
+{
+	return pPackage_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getName
+const BcName& CsResource::getPackageName() const
+{
+	return pPackage_ != NULL ? pPackage_->getName() : BcName::INVALID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,45 +162,57 @@ const BcName& CsResource::getName() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getIndex
+BcU32 CsResource::getIndex() const
+{
+	return Index_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getString
 const BcChar* CsResource::getString( BcU32 Offset )
 {
-	return pFile_->getString( Offset );
+	return pPackage_->getString( Offset );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getChunk
-void CsResource::getChunk( BcU32 Chunk, BcBool TriggerLoad )
+void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 {
-	if( TriggerLoad == BcTrue )
+	acquire();
+	if( !pPackage_->requestChunk( Index_, Chunk, pDataLocation ) )
 	{
-		acquire(); // Prevent object being released until callback.
+		// There will be no callback.
+		release();
 	}
+}
 
-	pFile_->getChunk( Chunk, TriggerLoad );
+//////////////////////////////////////////////////////////////////////////
+// getChunkSize
+BcU32 CsResource::getChunkSize( BcU32 Chunk )
+{
+	return pPackage_->getChunkSize( Index_, Chunk );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofChunks
 BcU32 CsResource::getNoofChunks() const
 {
-	return pFile_->getNoofChunks();
+	return pPackage_->getNoofChunks( Index_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// delegateFileReady
-void CsResource::delegateFileReady( CsFile* pFile )
+// onFileReady
+void CsResource::onFileReady()
 {
-	BcScopedLock< BcAtomicMutex > Lock( Lock_ );
 	fileReady();
 	release();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// delegateFileChunkReady
-void CsResource::delegateFileChunkReady( CsFile* pFile, BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+// onFileChunkReady
+void CsResource::onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	BcScopedLock< BcAtomicMutex > Lock( Lock_ );
-	fileChunkReady( ChunkIdx, pChunk, pData );
+	fileChunkReady( ChunkIdx, ChunkID, pData );
 	release();
 }

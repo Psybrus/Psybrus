@@ -34,7 +34,7 @@ public:
 	DECLARE_RESOURCE( ScnTexture, ScnRenderTarget );
 	
 #if PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
+	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	virtual void						initialise( BcU32 Width, BcU32 Height );
 	virtual void						create();
@@ -46,8 +46,7 @@ public:
 	
 protected:
 	RsRenderTarget*						pRenderTarget_;
-	
-	THeader								TextureHeader_;
+
 };
 
 

@@ -27,19 +27,19 @@
 #include "Base/BcScopedLock.h"
 
 //////////////////////////////////////////////////////////////////////////
-// CsDependancyList
-typedef std::list< class CsDependancy > CsDependancyList;
-typedef CsDependancyList::iterator CsDependancyListIterator;
+// CsDependencyList
+typedef std::list< class CsDependency > CsDependencyList;
+typedef CsDependencyList::iterator CsDependencyListIterator;
 
 //////////////////////////////////////////////////////////////////////////
-// CsDependancy
-class CsDependancy
+// CsDependency
+class CsDependency
 {
 public:
-	CsDependancy( const BcPath& FileName );
-	CsDependancy( const BcPath& FileName, const FsStats& Stats );
-	CsDependancy( const CsDependancy& Other );
-	~CsDependancy();
+	CsDependency( const BcPath& FileName );
+	CsDependency( const BcPath& FileName, const FsStats& Stats );
+	CsDependency( const CsDependency& Other );
+	~CsDependency();
 
 	/**
 	 * Get file name.

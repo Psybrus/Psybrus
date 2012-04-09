@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnViewComponent::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnViewComponent::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	/*
 	const std::string& FileName = Object[ "source" ].asString();
@@ -74,24 +74,6 @@ BcBool ScnViewComponent::import( const Json::Value& Object, CsDependancyList& De
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnViewComponent );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnViewComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnViewComponent" )
-		.field( "x",				csPVT_REAL,			csPCT_VALUE )
-		.field( "y",				csPVT_REAL,			csPCT_VALUE )
-		.field( "width",			csPVT_REAL,			csPCT_VALUE )
-		.field( "height",			csPVT_REAL,			csPCT_VALUE )
-		.field( "horizontalfov",	csPVT_REAL,			csPCT_VALUE )
-		.field( "verticalfov",		csPVT_REAL,			csPCT_VALUE )
-		.field( "near",				csPVT_REAL,			csPCT_VALUE )
-		.field( "far",				csPVT_REAL,			csPCT_VALUE )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -209,14 +191,14 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 void ScnViewComponent::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnViewComponent::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnViewComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		// Grab pointer to header.
 		pHeader_ = reinterpret_cast< THeader* >( pData );

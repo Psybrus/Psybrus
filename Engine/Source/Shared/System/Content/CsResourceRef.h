@@ -41,6 +41,7 @@ public:
 	~CsResourceRef();
 	BcBool isValid() const;
 	BcBool isReady() const;
+	BcU32 refCount() const;
 	operator _Ty* ();
 	_Ty* operator -> ();
 	BcBool operator == ( const CsResourceRef& Other ) const;

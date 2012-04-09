@@ -38,7 +38,7 @@ public:
 	DECLARE_RESOURCE( CsResource, ScnTexture );
 	
 #if PSY_SERVER
-	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
+	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	virtual void						initialise();
 	virtual void						create();
@@ -57,7 +57,7 @@ public:
 protected:
 	virtual void						setup();
 	virtual void						fileReady();
-	virtual void						fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData );
+	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
 	RsTexture*							pTexture_;
@@ -70,7 +70,7 @@ protected:
 		eRsTextureFormat				Format_;
 	};
 	
-	THeader*							pHeader_;
+	THeader								Header_;
 	void*								pTextureData_;
 	BcBool								CreateNewTexture_;
 };

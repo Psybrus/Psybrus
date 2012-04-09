@@ -20,16 +20,6 @@
 DEFINE_RESOURCE( ScnRenderableComponent );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnRenderableComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnRenderableComponent" )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnRenderableComponent::initialise()
 {

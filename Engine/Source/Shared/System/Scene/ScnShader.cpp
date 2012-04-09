@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	// NOTE: This will only generate 1 permutation. Later on
 	//       they will be generated on import based on usage flags.
@@ -58,7 +58,7 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 			if( File.open( VertexShader.asCString(), bcFM_READ ) )
 			{	
 				// Add dependancy.
-				DependancyList.push_back( CsDependancy( VertexShader.asString() ) );
+				Importer.addDependency( VertexShader.asCString() );
 
 				// Read in whole shader.
 				BcU32 ShaderSize = File.size();
@@ -82,7 +82,7 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 			if( File.open( FragmentShader.asCString(), bcFM_READ ) )
 			{
 				// Add dependancy.
-				DependancyList.push_back( CsDependancy( FragmentShader.asString() ) );
+				Importer.addDependency( FragmentShader.asCString() );
 
 				// Read in whole shader.
 				BcU32 ShaderSize = File.size();
@@ -113,10 +113,10 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 			ProgramStream << ProgramHeader;
 
 			// Write out chunks.
-			pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-			pFile_->addChunk( BcHash( "vertex" ), VertexShaderStream.pData(), VertexShaderStream.dataSize() );
-			pFile_->addChunk( BcHash( "fragment" ), FragmentShaderStream.pData(), FragmentShaderStream.dataSize() );
-			pFile_->addChunk( BcHash( "program" ), ProgramStream.pData(), ProgramStream.dataSize() );
+			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+			Importer.addChunk( BcHash( "vertex" ), VertexShaderStream.pData(), VertexShaderStream.dataSize() );
+			Importer.addChunk( BcHash( "fragment" ), FragmentShaderStream.pData(), FragmentShaderStream.dataSize() );
+			Importer.addChunk( BcHash( "program" ), ProgramStream.pData(), ProgramStream.dataSize() );
 		
 			return BcTrue;
 		}
@@ -137,17 +137,6 @@ BcBool ScnShader::import( const Json::Value& Object, CsDependancyList& Dependanc
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnShader );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnShader::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnShader" )
-		.field( "shaders",					csPVT_FILE,			csPCT_MAP )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -263,63 +252,63 @@ RsShader* ScnShader::getShader( BcU32 PermutationFlags, ScnShader::TShaderMap& S
 void ScnShader::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	// If we have no render core get chunk 0 so we keep getting entered into.
 	if( RsCore::pImpl() == NULL )
 	{
-		getChunk( 0 );
+		requestChunk( 0 );
 		return;
 	}
 
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 
 		// Grab the rest of the chunks.
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofVertexShaderPermutations_; ++Idx )
 		{
-			getChunk( ++ChunkIdx );
+			requestChunk( ++ChunkIdx );
 		}
 
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofFragmentShaderPermutations_; ++Idx )
 		{
-			getChunk( ++ChunkIdx );
+			requestChunk( ++ChunkIdx );
 		}
 
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofProgramPermutations_; ++Idx )
 		{
-			getChunk( ++ChunkIdx );
+			requestChunk( ++ChunkIdx );
 		}
 	}
-	else if( pChunk->ID_ == BcHash( "vertex" ) )
+	else if( ChunkID == BcHash( "vertex" ) )
 	{
 		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
-		BcU32 ShaderSize = pChunk->Size_ - sizeof( TShaderHeader );
+		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( TShaderHeader );
 		
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
 		
 		// TODO: Lockless list/map.
 		VertexShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
-	else if( pChunk->ID_ == BcHash( "fragment" ) )
+	else if( ChunkID == BcHash( "fragment" ) )
 	{
 		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
-		BcU32 ShaderSize = pChunk->Size_ - sizeof( TShaderHeader );
+		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( TShaderHeader );
 			
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
 			
 		// TODO: Lockless list/map.
 		FragmentShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
-	else if( pChunk->ID_ == BcHash( "program" ) )
+	else if( ChunkID == BcHash( "program" ) )
 	{
 		// Iterate over permutations to generate.
 		TProgramHeader* pProgramHeaders = (TProgramHeader*)pData;
@@ -337,7 +326,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void*
 			// Reenter if we have no valid handle.
 			if( pVertexShader->hasHandle() == BcFalse || pFragmentShader->hasHandle() == BcFalse )
 			{
-				getChunk( ChunkIdx );
+				requestChunk( ChunkIdx );
 				return;
 			}
 

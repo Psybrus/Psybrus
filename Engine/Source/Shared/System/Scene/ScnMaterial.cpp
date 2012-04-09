@@ -24,178 +24,139 @@
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
-BcBool ScnMaterial::import( const Json::Value& Object, CsDependancyList& DependancyList )
+BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const Json::Value& ImportShader = Object[ "shader" ];
 	const Json::Value& ImportTextures = Object[ "textures" ];
 	const Json::Value& State = Object[ "state" ];
 	
-	// Import shader.
-	ScnShaderRef ShaderRef;
-	if( CsCore::pImpl()->importObject( ImportShader, ShaderRef, DependancyList ) )
+	// Export material.
+	BcStream HeaderStream;
+	BcStream StateBlockStream;
+		
+	THeader Header;
+	TTextureHeader TextureHeader;
+		
+	// Make header.
+	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
+
+	Header.ShaderName_ = Importer.addString( ImportShader.asCString() );	// TODO: Go via addImport.
+	Header.NoofTextures_ = TextureMembers.size();	
+	HeaderStream << Header;
+
+	// Make texture headers.
+	for( BcU32 Idx = 0; Idx < TextureMembers.size(); ++Idx )
 	{
-		// Import textures.
-		ScnTextureMap Textures;
-		Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
-		ScnTextureRef TextureRef;
-		for( BcU32 Idx = 0; Idx < TextureMembers.size(); ++Idx )
-		{
-			const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
-			
-			if( CsCore::pImpl()->importObject( Texture, TextureRef, DependancyList ) )
-			{
-				Textures[ TextureMembers[ Idx ] ] = TextureRef;
-			}	
-			else
-			{
-				BcPrintf( "ScnMaterial: Failed to import texture.\n" );
-			}
-		}
-		
-		// Export material.
-		BcStream HeaderStream;
-		BcStream StateBlockStream;
-		
-		THeader Header;
-		TTextureHeader TextureHeader;
-		
-		// Make header.
-		Header.ShaderName_ = pFile_->addString( (*ShaderRef->getName()).c_str() );
-		Header.NoofTextures_ = Textures.size();
-		
-		HeaderStream << Header;
+		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
-		// Make texture headers.
-		for( ScnTextureMapIterator Iter( Textures.begin() ); Iter != Textures.end(); ++Iter )
-		{
-			TextureHeader.SamplerName_ = pFile_->addString( (*Iter).first.c_str() );
-			TextureHeader.TextureName_ = pFile_->addString( (*(*Iter).second->getName()).c_str() );
-			TextureHeader.TextureType_ = pFile_->addString( (*(*Iter).second->getType()).c_str() );
-			HeaderStream << TextureHeader;
-		}
-		
-		// Make state block stream.
-		const BcChar* StateNames[] = 
-		{
-			"depth_write_enable",
-			"depth_test_enable",
-			"depth_test_compare",
-			"depth_bias",
-			"alpha_test_enable",
-			"alpha_test_compare",
-			"alpha_test_threshold",
-			"stencil_write_mask",
-			"stencil_test_enable",
-			"stencil_test_func_compare",
-			"stencil_test_func_ref",
-			"stencil_test_func_mask",
-			"stencil_test_op_sfail",
-			"stencil_test_op_dpfail",
-			"stencil_test_op_dppass",
-			"color_write_red_enable",
-			"color_write_green_enable",
-			"color_write_blue_enable",
-			"color_write_alpha_enable",
-			"blend_mode"
-		};
-		
-		std::map< std::string, BcU32 > ModeNames;
-		
-		ModeNames[ "never" ] = rsCM_NEVER;
-		ModeNames[ "less" ] = rsCM_LESS;
-		ModeNames[ "equal" ] = rsCM_EQUAL;
-		ModeNames[ "lessequal" ] = rsCM_LESSEQUAL;
-		ModeNames[ "greater" ] = rsCM_GREATER;
-		ModeNames[ "notequal" ] = rsCM_NOTEQUAL;
-		ModeNames[ "always" ] = rsCM_ALWAYS;
-		
-		ModeNames[ "none" ] = rsBM_NONE;
-		ModeNames[ "blend" ] = rsBM_BLEND;
-		ModeNames[ "add" ] = rsBM_ADD;
-		ModeNames[ "subtract" ] = rsBM_SUBTRACT;
-
-		ModeNames[ "keep" ] = rsSO_KEEP;
-		ModeNames[ "zero" ] = rsSO_ZERO;
-		ModeNames[ "replace" ] = rsSO_REPLACE;
-		ModeNames[ "incr" ] = rsSO_INCR;
-		ModeNames[ "incr_wrap" ] = rsSO_INCR_WRAP;
-		ModeNames[ "decr" ] = rsSO_DECR;
-		ModeNames[ "decr_wrap" ] = rsSO_DECR_WRAP;
-		ModeNames[ "invert" ] = rsSO_INVERT;
-
-		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
-		{
-			if( State.type() == Json::objectValue )
-			{
-				const Json::Value& StateValue = State[ StateNames[ Idx ] ];
-		
-				if( StateValue.type() == Json::realValue )
-				{
-					BcReal RealValue = (BcReal)StateValue.asDouble();
-					StateBlockStream << BcU32( RealValue );
-				}
-				else if( StateValue.type() == Json::stringValue )
-				{
-					BcU32 IntValue = ModeNames[ StateValue.asCString() ];
-					StateBlockStream << BcU32( IntValue );
-				}
-				else
-				{
-					BcU32 IntValue = (BcU32)StateValue.asInt();
-					StateBlockStream << BcU32( IntValue );
-				}
-			}
-			else
-			{
-				// Horrible default special case. Should have a table.
-				switch( Idx )
-				{
-				case rsRS_COLOR_WRITE_RED_ENABLE:
-				case rsRS_COLOR_WRITE_GREEN_ENABLE:
-				case rsRS_COLOR_WRITE_BLUE_ENABLE:
-				case rsRS_COLOR_WRITE_ALPHA_ENABLE:
-					StateBlockStream << BcU32( 1 );
-					break;
-
-				default:
-					StateBlockStream << BcU32( 0 );
-					break;
-				}
-				
-			}
-		}
-		
-		// Add chunks.
-		pFile_->addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		pFile_->addChunk( BcHash( "stateblock" ), StateBlockStream.pData(), StateBlockStream.dataSize() );
-		
-		return BcTrue;
+		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
+		TextureHeader.TextureName_ = Importer.addString( Texture.asCString() );
+		TextureHeader.TextureType_ = Importer.addString( "ScnTexture" );							// TODO: Could be an atlas? How do we handle that? Should revisit this later.
+		HeaderStream << TextureHeader;
 	}
-	else
-	{
-		BcPrintf( "ScnMaterial: Failed to import shader.\n" );
-	}		
 	
-	return BcFalse;
+	// Make state block stream.
+	const BcChar* StateNames[] = 
+	{
+		"depth_write_enable",
+		"depth_test_enable",
+		"depth_test_compare",
+		"depth_bias",
+		"alpha_test_enable",
+		"alpha_test_compare",
+		"alpha_test_threshold",
+		"stencil_write_mask",
+		"stencil_test_enable",
+		"stencil_test_func_compare",
+		"stencil_test_func_ref",
+		"stencil_test_func_mask",
+		"stencil_test_op_sfail",
+		"stencil_test_op_dpfail",
+		"stencil_test_op_dppass",
+		"color_write_red_enable",
+		"color_write_green_enable",
+		"color_write_blue_enable",
+		"color_write_alpha_enable",
+		"blend_mode"
+	};
+		
+	std::map< std::string, BcU32 > ModeNames;
+		
+	ModeNames[ "never" ] = rsCM_NEVER;
+	ModeNames[ "less" ] = rsCM_LESS;
+	ModeNames[ "equal" ] = rsCM_EQUAL;
+	ModeNames[ "lessequal" ] = rsCM_LESSEQUAL;
+	ModeNames[ "greater" ] = rsCM_GREATER;
+	ModeNames[ "notequal" ] = rsCM_NOTEQUAL;
+	ModeNames[ "always" ] = rsCM_ALWAYS;
+		
+	ModeNames[ "none" ] = rsBM_NONE;
+	ModeNames[ "blend" ] = rsBM_BLEND;
+	ModeNames[ "add" ] = rsBM_ADD;
+	ModeNames[ "subtract" ] = rsBM_SUBTRACT;
+
+	ModeNames[ "keep" ] = rsSO_KEEP;
+	ModeNames[ "zero" ] = rsSO_ZERO;
+	ModeNames[ "replace" ] = rsSO_REPLACE;
+	ModeNames[ "incr" ] = rsSO_INCR;
+	ModeNames[ "incr_wrap" ] = rsSO_INCR_WRAP;
+	ModeNames[ "decr" ] = rsSO_DECR;
+	ModeNames[ "decr_wrap" ] = rsSO_DECR_WRAP;
+	ModeNames[ "invert" ] = rsSO_INVERT;
+
+	for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
+	{
+		if( State.type() == Json::objectValue )
+		{
+			const Json::Value& StateValue = State[ StateNames[ Idx ] ];
+		
+			if( StateValue.type() == Json::realValue )
+			{
+				BcReal RealValue = (BcReal)StateValue.asDouble();
+				StateBlockStream << BcU32( RealValue );
+			}
+			else if( StateValue.type() == Json::stringValue )
+			{
+				BcU32 IntValue = ModeNames[ StateValue.asCString() ];
+				StateBlockStream << BcU32( IntValue );
+			}
+			else
+			{
+				BcU32 IntValue = (BcU32)StateValue.asInt();
+				StateBlockStream << BcU32( IntValue );
+			}
+		}
+		else
+		{
+			// Horrible default special case. Should have a table.
+			switch( Idx )
+			{
+			case rsRS_COLOR_WRITE_RED_ENABLE:
+			case rsRS_COLOR_WRITE_GREEN_ENABLE:
+			case rsRS_COLOR_WRITE_BLUE_ENABLE:
+			case rsRS_COLOR_WRITE_ALPHA_ENABLE:
+				StateBlockStream << BcU32( 1 );
+				break;
+
+			default:
+				StateBlockStream << BcU32( 0 );
+				break;
+			}
+				
+		}
+	}
+	
+	// Add chunks.
+	Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
+	Importer.addChunk( BcHash( "stateblock" ), StateBlockStream.pData(), StateBlockStream.dataSize() );
+		
+	return BcTrue;
 }
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterial );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnMaterial::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "ScnMaterial" )
-		.field( "shader",		csPVT_RESOURCE,		csPCT_VALUE,	"ScnShader" )
-		.field( "textures",		csPVT_RESOURCE,		csPCT_MAP,		"ScnTexture" )
-		.field( "state",		csPVT_STRING,		csPCT_MAP )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -250,27 +211,27 @@ ScnTextureRef ScnMaterial::getTexture( BcName Name )
 void ScnMaterial::fileReady()
 {
 	// File is ready, get the header chunk.
-	getChunk( 0 );
+	requestChunk( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
-void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, void* pData )
+void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	// If we have no render core get chunk 0 so we keep getting entered into.
 	if( RsCore::pImpl() == NULL )
 	{
-		getChunk( 0 );
+		requestChunk( 0 );
 		return;
 	}
 	
-	if( pChunk->ID_ == BcHash( "header" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (THeader*)pData;
 		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
 		
 		// Request resources.
-		if( CsCore::pImpl()->requestResource( getString( pHeader_->ShaderName_ ), Shader_ ) )
+		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pHeader_->ShaderName_ ), Shader_ ) )
 		{
 			// HACK: We should be able to handle resource subtypes without this.
 			ScnTextureRef Texture;
@@ -279,16 +240,16 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 			{
 				TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
 				
-				if( CsCore::pImpl()->internalRequestResource( getString( pTextureHeader->TextureName_ ), getString( pTextureHeader->TextureType_ ), InternalHandle ) )
+				if( CsCore::pImpl()->internalRequestResource( /* WIP */ getPackageName(), getString( pTextureHeader->TextureName_ ), getString( pTextureHeader->TextureType_ ), InternalHandle ) )
 				{
 					TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = Texture;
 				}
 			}
 		}
 		
-		getChunk( ++ChunkIdx );
+		requestChunk( ++ChunkIdx );
 	}
-	else if( pChunk->ID_ == BcHash( "stateblock" ) )
+	else if( ChunkID == BcHash( "stateblock" ) )
 	{
 		pStateBuffer_ = (BcU32*)pData;
 	}
@@ -297,15 +258,6 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, const CsFileChunk* pChunk, voi
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialComponent );
-
-//////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void ScnMaterialComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	PropertyTable.beginCatagory( "ScnMaterialComponent" )
-		//.field( "source",					csPVT_FILE,			csPCT_LIST )
-	.endCatagory();
-}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

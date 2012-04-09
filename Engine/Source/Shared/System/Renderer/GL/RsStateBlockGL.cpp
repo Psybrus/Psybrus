@@ -178,6 +178,9 @@ void RsStateBlockGL::bind()
 	// Reset binds.
 	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
+
+	//
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
 //////////////////////////////////////////////////////////////////////////
