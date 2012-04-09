@@ -67,7 +67,7 @@ enum CsPackageChunkFlags
 	csPCF_MANAGED =						1 << 1,					// Is the memory managed by the package?
 
 	//
-	csPCF_DEFAULT =						csPCF_MANAGED,
+	csPCF_DEFAULT =						csPCF_COMPRESSED | csPCF_MANAGED,
 	csPCF_IN_PLACE =					0x0						// Unmanaged and loaded in place.
 };
 

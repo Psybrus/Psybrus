@@ -16,6 +16,7 @@
 #include "System/Content/CsCore.h"
 
 #include "Base/BcStream.h"
+#include "Base/BcCompression.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -134,10 +135,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 			// Setup chunk offset.
 			ChunkHeader.Offset_ = Offset;
-			Offset += ChunkHeader.UnpackedBytes_;
-
-			BcAssert( ChunkHeader.UnpackedBytes_ == ChunkHeader.PackedBytes_ ); // TODO: Handle compression.
-
+			Offset += ChunkHeader.PackedBytes_;
+			
 			//
 			File_.write( &ChunkHeader, sizeof( CsPackageChunkHeader ) );
 		}
@@ -147,7 +146,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		{
 			CsPackageChunkHeader& ChunkHeader = ChunkHeaders_[ Idx ];
 			CsPackageChunkData& ChunkData = ChunkDatas_[ Idx ];
-			File_.write( ChunkData.pUnpackedData_, ChunkHeader.UnpackedBytes_ );
+			
+			File_.write( ChunkData.pPackedData_, ChunkHeader.PackedBytes_ );
 		}
 
 		// Close file.
@@ -295,24 +295,45 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 BcU32 CsPackageImporter::addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 Flags )
 {
 	BcAssert( Size > 0 );
+
+	// Setup default packed data.
+	BcU8* pPackedData = static_cast< BcU8* >( pData );
+	BcU32 PackedSize = Size;
+
+	// If we need to compress, do so.
+	if( ( Flags & csPCF_COMPRESSED ) != 0 )
+	{
+		if( BcCompressData( static_cast< BcU8* >( pData ), Size, pPackedData, PackedSize ) )
+		{
+			// Do nothing.
+		}
+		else
+		{
+			// On failure, strip compressed flag.
+			Flags &= ~csPCF_COMPRESSED;
+		}
+	}
+
 	
 	// Generate header.
 	CsPackageChunkHeader ChunkHeader;
 	ChunkHeader.ID_ = ID;
 	ChunkHeader.Offset_ = 0;
 	ChunkHeader.Flags_ = Flags;
-	ChunkHeader.PackedBytes_ = Size;
+	ChunkHeader.PackedBytes_ = PackedSize;
 	ChunkHeader.UnpackedBytes_ = Size;
-	ChunkHeader.PackedHash_ = BcHash( (BcU8*)pData, Size );
+	ChunkHeader.PackedHash_ = BcHash( (BcU8*)pPackedData, PackedSize );
 	ChunkHeader.UnpackedHash_ = BcHash( (BcU8*)pData, Size );
 
 	// Generate data.
 	CsPackageChunkData ChunkData;
 	ChunkData.Status_ = csPCS_NOT_LOADED;
 	ChunkData.Managed_ = BcFalse;
-	ChunkData.pPackedData_ = NULL;
-	ChunkData.pUnpackedData_ = new BcU8[ Size ];
-	BcMemCopy( ChunkData.pUnpackedData_, pData, Size );
+	
+	// Store as packed data.
+	ChunkData.pPackedData_ = new BcU8[ PackedSize ];
+	ChunkData.pUnpackedData_ = NULL;
+	BcMemCopy( ChunkData.pPackedData_, pPackedData, PackedSize );
 
 	// Push into lists.
 	ChunkHeaders_.push_back( ChunkHeader );

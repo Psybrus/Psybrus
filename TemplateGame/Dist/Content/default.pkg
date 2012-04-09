@@ -1,7 +1,6 @@
 {
 
 	"resources" : [
-	/*
 		{
 			"type"			: "ScnFont",
 			"name"			: "default",
@@ -11,7 +10,6 @@
 			"nominalsize"	: 64,
 			"spread"		: 16
 		},
-	*/
 
 		{
 			"type"			: "ScnTexture",
