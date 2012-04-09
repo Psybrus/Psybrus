@@ -90,8 +90,6 @@ void CsPackage::releaseUnreferencedResources()
 	{
 		return;
 	}
-
-	BcBool IsUnreferenced = BcTrue;
 	
 	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
 	{

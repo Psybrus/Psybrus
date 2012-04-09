@@ -17,6 +17,8 @@
 
 #include "System/SysKernel.h"
 
+#include "Base/BcCompression.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
@@ -447,22 +449,36 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 	{
 	case csPCS_NOT_LOADED:
 		{
-			// TODO: Handle compressed data later.
-			BcAssert( ( ChunkHeader.Flags_ & csPCF_COMPRESSED ) == 0 );
-
 			// Ensure we've got a pointer for unpacked data.
 			BcAssert( ChunkData.pUnpackedData_ != NULL );
 
 			// Set status to loading.
 			ChunkData.Status_ = csPCS_LOADING;
 
-			// Chunk isn't loaded, need to read in data.
-			BcU32 DataPosition = DataPosition_ + ChunkHeader.Offset_;
-			BcU32 Bytes = ChunkHeader.UnpackedBytes_;
+			// If we've got compressed data, read into it.
+			if( ChunkHeader.Flags_ & csPCF_COMPRESSED )
+			{
+				// Chunk isn't loaded, need to read in data.
+				BcU32 DataPosition = DataPosition_ + ChunkHeader.Offset_;
+				BcU32 Bytes = ChunkHeader.PackedBytes_;
 			
-			// Do async read.
-			++PendingCallbackCount_;
- 			File_.readAsync( DataPosition, ChunkData.pUnpackedData_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onDataLoaded >( this ) );
+				//
+				ChunkData.pPackedData_ = new BcU8[ Bytes ];
+
+				// Do async read.
+				++PendingCallbackCount_;
+ 				File_.readAsync( DataPosition, ChunkData.pPackedData_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onDataLoaded >( this ) );
+			}
+			else
+			{
+				// Chunk isn't loaded, need to read in data.
+				BcU32 DataPosition = DataPosition_ + ChunkHeader.Offset_;
+				BcU32 Bytes = ChunkHeader.UnpackedBytes_;
+			
+				// Do async read.
+				++PendingCallbackCount_;
+ 				File_.readAsync( DataPosition, ChunkData.pUnpackedData_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onDataLoaded >( this ) );
+			}
 		}
 		break;
 
@@ -484,6 +500,22 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 				ChunkData.Status_ = csPCS_UNPACKING;
 
 				// TODO: Async decompress.
+
+				// Uncompress.
+				if( BcDecompressData( ChunkData.pPackedData_, ChunkHeader.PackedBytes_, ChunkData.pUnpackedData_, ChunkHeader.UnpackedBytes_ ) )
+				{
+					// Done, free packed data.
+					delete [] ChunkData.pPackedData_;
+					ChunkData.pPackedData_ = NULL;
+					
+					// Set status to ready.
+					ChunkData.Status_ = csPCS_READY;
+				}
+				else
+				{
+					BcBreakpoint;
+				}
+
 			}
 		}
 		break;
