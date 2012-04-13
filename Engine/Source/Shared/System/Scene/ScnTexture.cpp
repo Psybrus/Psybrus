@@ -40,8 +40,8 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 		BcU32 EncodedImageDataSize = 0;
 
 		// TODO: Take from parameters.
-		ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
-		eRsTextureFormat TextureFormat = rsTF_RGBA8;
+		ImgEncodeFormat EncodeFormat = imgEF_DXT5;//imgEF_RGBA8;
+		eRsTextureFormat TextureFormat = rsTF_DXT5;//rsTF_RGBA8;
 
 		if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 		{
@@ -60,7 +60,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			delete pImage;
 			
 			// Add chunks and finish up.
-			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), csPCF_IN_PLACE );
+			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
 			Importer.addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
 			
 			//

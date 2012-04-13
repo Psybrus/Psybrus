@@ -36,17 +36,17 @@ public:
 	void								destroy();	
 	
 	virtual BcU32						getParameterBufferSize() const;
-	virtual BcU32						findParameterOffset( const BcName& Name, eRsShaderParameterType& Type, BcU32& Offset ) const;
+	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset ) const;
 	virtual void						bind( void* pParameterBuffer );
 
 private:	
-	void								bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcName& Name );
+	void								bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcChar* Name );
 	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type );
 	
 private:
 	struct TParameter
 	{
-		BcName							Name_;
+		std::string						Name_;
 		GLint							Handle_;
 		BcU32							Offset_;
 		eRsShaderParameterType			Type_;

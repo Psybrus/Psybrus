@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "Base/BcName.h"
+#include "Base/BcMisc.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
@@ -33,6 +34,7 @@ BcName::BcName():
 // Ctor
 BcName::BcName( const std::string& String )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( String, BcErrorCode );
 }
 
@@ -40,6 +42,7 @@ BcName::BcName( const std::string& String )
 // Ctor
 BcName::BcName( const std::string& String, BcU32 ID )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( String, ID );
 }
 
@@ -47,6 +50,7 @@ BcName::BcName( const std::string& String, BcU32 ID )
 // Ctor
 BcName::BcName( const BcChar* pString )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( pString, BcErrorCode );
 }
 
@@ -54,6 +58,7 @@ BcName::BcName( const BcChar* pString )
 // Ctor
 BcName::BcName( const BcChar* pString, BcU32 ID )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( pString, ID );
 }
 
@@ -79,6 +84,7 @@ BcName& BcName::operator = ( const BcName& Other )
 // Convert into string
 std::string BcName::operator * () const
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	BcVerifyMsg( EntryIndex_ != BcErrorCode, "BcName: Converting an invalid name to a string!" );
 	const BcNameEntryList& StringEntries( getStringEntries() );
 
@@ -108,6 +114,7 @@ std::string BcName::operator * () const
 // getValue.
 std::string BcName::getValue() const
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	BcVerifyMsg( EntryIndex_ != BcErrorCode, "BcName: Converting an invalid name to a string!" );
 	const BcNameEntryList& StringEntries( getStringEntries() );
 
@@ -130,6 +137,7 @@ BcU32 BcName::getID() const
 // getUnique
 BcName BcName::getUnique() const
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	BcAssert( isValid() );
 	BcNameEntryList& StringEntries( getStringEntries() );
 	BcNameEntry& StringEntry( StringEntries[ EntryIndex_ ] );
@@ -182,6 +190,8 @@ bool BcName::operator < ( const BcName& Other ) const
 // setInternal.
 void BcName::setInternal( const std::string& Value, BcU32 ID )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
+
 	// Check validity.
 	BcVerifyMsg( isNameValid( Value ), "BcName: String (%s) contains invalid characters.", Value.c_str() );
 	if( isNameValid( Value ) == BcFalse )
@@ -232,6 +242,8 @@ void BcName::setInternal( const std::string& Value, BcU32 ID )
 //static
 BcNameEntryList& BcName::getStringEntries()
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
+
 	// Check if we've been initialised.
 	if( pStringEntries_ == NULL )
 	{
@@ -248,6 +260,8 @@ BcNameEntryList& BcName::getStringEntries()
 //static
 BcU32 BcName::getEntryIndex( const std::string& Value )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
+
 	// If string is too long, return invalid index.
 	BcVerifyMsg( Value.length() < BcNameEntry::MAX_STRING_LENGTH, "BcName: String(%s) too long to store in name table.", Value.c_str() );
 	if( Value.length() >= BcNameEntry::MAX_STRING_LENGTH )
@@ -293,6 +307,8 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 //static
 BcBool BcName::isNameValid( const std::string& Value )
 {
+	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
+
 	// Find '_'
 	std::string::size_type Position = Value.find_last_of( '_' );
 		

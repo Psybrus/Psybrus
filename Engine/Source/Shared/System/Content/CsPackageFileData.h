@@ -39,6 +39,10 @@ struct CsPackageHeader
 	BcU32								TotalResources_;		// Total Resources in package.
 	BcU32								TotalChunks_;			// Total chunks in package.
 	BcU32								SourceFile_;			// Path to source package (index into string table).
+	BcU32								TotalAllocSize_;		// Total size package need to allocate (string table, resource headers, chunk headers, managed chunk data).
+	BcU32								MinAlignment_;			// Minimum alignment (default 16)
+	BcU32								MaxAlignment_;			// Maximum alignment (default 4096)
+	BcU32								ResourceDataStart_;		// Start of resource data as an offset to allocated package memory.
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +82,7 @@ struct CsPackageChunkHeader
 	BcU32								ID_;					// ID of chunk (typically a hash of a string, but can be anything).
 	BcU32								Offset_;				// Offset of chunk in file.
 	BcU32								Flags_;					// Flags for this chunk.
+	BcU32								RequiredAlignment_;		// Required alignment.
 	BcU32								PackedBytes_;			// Packed bytes in file.
 	BcU32								UnpackedBytes_;			// Unpacked bytes in memory (same as PackedBytes for uncompressed data).
 	BcU32								PackedHash_;			// Hash of packed data.

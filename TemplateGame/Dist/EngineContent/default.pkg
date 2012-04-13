@@ -86,6 +86,12 @@
 				"alpha_test_threshold" 		: 128,
 				"blend_mode" 				: "blend"
 			}
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "default",
+			"source"	: "EngineContent/ModelSource/default2.obj"
 		}
 	]
 }

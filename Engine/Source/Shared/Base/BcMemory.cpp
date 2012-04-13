@@ -28,6 +28,10 @@ void printBacktrace()
 }
 #endif
 
+#if PLATFORM_WINDOWS
+#include <windows.h>
+#endif
+
 BcAtomicU32 gAllocID = 0;
 
 void initHeap()
@@ -97,4 +101,27 @@ void operator delete[]( void* pMem ) throw()
 	BcPrintf( "PsyDelete: %p\n", pMem );
 #endif
 	free( pMem );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// BcMemAlign
+void* BcMemAlign( BcSize Bytes, BcSize Alignment )
+{
+#if PLATFORM_WINDOWS
+	return _aligned_malloc( Bytes, Alignment );
+#else
+	return memalign( Bytes, Alignment );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcMemFree
+void BcMemFree( void* pMemory )
+{
+#if PLATFORM_WINDOWS
+	_aligned_free( pMemory );
+#else
+	free( pMemory );
+#endif
 }
