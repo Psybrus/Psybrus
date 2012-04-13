@@ -99,6 +99,8 @@ BcBool CsPackageImporter::import( const BcName& Name )
 // save
 BcBool CsPackageImporter::save( const BcPath& Path )
 {
+	// Open package output.
+	// TODO: Write to temp file first, then move.
 	if( File_.open( (*Path).c_str(), bcFM_WRITE ) )
 	{
 		// Generate string table.
@@ -110,11 +112,38 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 			StringTableStream.push( StringEntry.c_str(), StringEntry.size() + 1 );
 		}	
 
-		// Write header.
+		// Setup header.
 		Header_.Magic_ = CsPackageHeader::MAGIC;
 		Header_.StringTableBytes_ = StringTableStream.dataSize();
 		Header_.TotalResources_ = ResourceHeaders_.size();
 		Header_.TotalChunks_ = ChunkHeaders_.size();
+		Header_.TotalAllocSize_ = 0;
+		Header_.MinAlignment_ = 16;		// TODO: Platform specific.
+		Header_.MaxAlignment_ = 4096;	// TODO: Platform specific.
+
+		// Calculate package alloc size.
+		Header_.TotalAllocSize_ += StringTableStream.dataSize();
+		Header_.TotalAllocSize_ += BcCalcAlignment( ResourceHeaders_.size() + sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() + sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() + sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+		
+		// Align total size to 1 page for the start of resource data.
+		Header_.TotalAllocSize_ = BcCalcAlignment( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
+
+		// Set start of resource data.
+		Header_.ResourceDataStart_ = Header_.TotalAllocSize_;
+
+		// Add resource sizes.
+		for( BcU32 Idx = 0; Idx < ChunkHeaders_.size(); ++Idx )
+		{
+			const CsPackageChunkHeader& ChunkHeader = ChunkHeaders_[ Idx ];
+			if( ChunkHeader.Flags_ & csPCF_MANAGED )
+			{
+				Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeader.UnpackedBytes_, ChunkHeader.RequiredAlignment_ );
+			}
+		}
+		
+		// Write header.
 		File_.write( &Header_, sizeof( Header_ ) );
 		
 		// Write string table.
@@ -144,8 +173,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		// Write out all chunk data.
 		for( BcU32 Idx = 0; Idx < ChunkDatas_.size(); ++Idx )
 		{
-			CsPackageChunkHeader& ChunkHeader = ChunkHeaders_[ Idx ];
-			CsPackageChunkData& ChunkData = ChunkDatas_[ Idx ];
+			const CsPackageChunkHeader& ChunkHeader = ChunkHeaders_[ Idx ];
+			const CsPackageChunkData& ChunkData = ChunkDatas_[ Idx ];
 			
 			File_.write( ChunkData.pPackedData_, ChunkHeader.PackedBytes_ );
 		}
@@ -292,9 +321,11 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 
 //////////////////////////////////////////////////////////////////////////
 // addChunk
-BcU32 CsPackageImporter::addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 Flags )
+BcU32 CsPackageImporter::addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 RequiredAlignment, BcU32 Flags )
 {
 	BcAssert( Size > 0 );
+	BcAssert( BcPot( RequiredAlignment ) );
+	BcAssert( RequiredAlignment <= 4096 );
 
 	// Setup default packed data.
 	BcU8* pPackedData = static_cast< BcU8* >( pData );
@@ -313,13 +344,13 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 Flag
 			Flags &= ~csPCF_COMPRESSED;
 		}
 	}
-
 	
 	// Generate header.
 	CsPackageChunkHeader ChunkHeader;
 	ChunkHeader.ID_ = ID;
 	ChunkHeader.Offset_ = 0;
 	ChunkHeader.Flags_ = Flags;
+	ChunkHeader.RequiredAlignment_ = RequiredAlignment;
 	ChunkHeader.PackedBytes_ = PackedSize;
 	ChunkHeader.UnpackedBytes_ = Size;
 	ChunkHeader.PackedHash_ = BcHash( (BcU8*)pPackedData, PackedSize );

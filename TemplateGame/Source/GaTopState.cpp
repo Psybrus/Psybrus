@@ -55,9 +55,10 @@ eSysStateReturn GaTopState::enter()
 	}
 	*/
 
-	CsCore::pImpl()->freeUnreferencedPackages();
-
-	return sysSR_CONTINUE;
+	// omg hax. add package is ready stuff.
+	static int whatever = 123;
+	whatever--;
+	return whatever < 0 ? sysSR_FINISHED : sysSR_CONTINUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,10 +72,14 @@ void GaTopState::preMain()
 	{
 		GaExampleComponentRef ExampleComponent;
 		ScnModelComponentRef ModelComponent;
+
+		ScnModelRef ModelRef;
+		CsCore::pImpl()->requestResource( "default", "default", ModelRef );
+		BcAssert( ModelRef.isReady() );
 	
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ExampleComponent );
-		//CsCore::pImpl()->createResource( BcName::INVALID, ModelComponent, ScnModel::Default );
+		CsCore::pImpl()->createResource( BcName::INVALID, ModelComponent, ModelRef );
 
 		// Attach components.
 		Entity->attach( ExampleComponent );

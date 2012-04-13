@@ -129,7 +129,7 @@ BcU32 RsProgramGL::getParameterBufferSize() const
 ////////////////////////////////////////////////////////////////////////////////
 // findParameterOffset
 //virtual
-BcU32 RsProgramGL::findParameterOffset( const BcName& Name, eRsShaderParameterType& Type, BcU32& Offset ) const
+BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset ) const
 {
 	for( TParameterListConstIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 	{
@@ -221,7 +221,7 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			int Error = glGetError();
 			if( Error != 0 )
 			{
-				BcPrintf( "Error setting parameter \"%s\". Handle=%u, f=%f, i=%u\n", (*Parameter.Name_).c_str(), ParamHandle, *pFloatParameterOffset, *pIntParameterOffset );
+				BcPrintf( "Error setting parameter \"%s\". Handle=%u, f=%f, i=%u\n", Parameter.Name_.c_str(), ParamHandle, *pFloatParameterOffset, *pIntParameterOffset );
 			}
 #endif
 		}
@@ -231,14 +231,13 @@ void RsProgramGL::bind( void* pParameterBuffer )
 
 ////////////////////////////////////////////////////////////////////////////////
 // bindAttribute
-void RsProgramGL::bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcName& Name )
+void RsProgramGL::bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcChar* Name )
 {
-	glBindAttribLocation( ProgramHandle, Channel, (*Name).c_str() );
+	glBindAttribLocation( ProgramHandle, Channel, Name );
 	if( glGetError() != GL_NO_ERROR )
 	{
-		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", (*Name).c_str() );
-	}
-	
+		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", Name );
+	}	
 }
 
 ////////////////////////////////////////////////////////////////////////////////

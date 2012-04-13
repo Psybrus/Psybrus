@@ -48,9 +48,8 @@ private:
 	void							onDataLoaded( void* pData, BcSize Size );
 
 private:
-	void							allocResourceData();
+	void							markupResources();
 	void							initialiseResources();
-	void							freeResourceData();
 
 	BcBool							findResourceChunk( void* pData, BcU32& ResourceIdx, BcU32& ChunkIdx );
 	void							processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx );
@@ -60,6 +59,7 @@ private:
 	BcU32							DataPosition_;
 	FsFile							File_;
 	CsPackageHeader					Header_;
+	void*							pPackageData_;
 	BcChar*							pStringTable_;
 	CsPackageResourceHeader*		pResourceHeaders_;
 	CsPackageChunkHeader*			pChunkHeaders_;

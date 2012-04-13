@@ -24,6 +24,7 @@
 CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 	pPackage_( pPackage ),
 	DataPosition_( 0 ),
+	pPackageData_( NULL ),
 	pStringTable_( NULL ),
 	pResourceHeaders_( NULL ),
 	pChunkHeaders_( NULL ),
@@ -48,7 +49,9 @@ CsPackageLoader::~CsPackageLoader()
 	BcAssertMsg( hasPendingCallback() == BcFalse, "CsPackageLoader: Callbacks are pending." );
 
 	File_.close();
-	freeResourceData();
+	
+	BcMemFree( pPackageData_ );
+	pPackageData_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -148,12 +151,25 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	// Check we have the right data.
 	BcAssert( pData == &Header_ );
 	BcAssert( Size == sizeof( Header_ ) );
+
+	// Allocate all the memory we need up front.
+	pPackageData_ = BcMemAlign( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
+
+	// Use this to advance as we need.
+	BcU8* pCurrPackageData = reinterpret_cast< BcU8* >( pPackageData_ );
 	
-	// Loaded header, now allocate the string table, chunks & props.
-	pStringTable_ = new BcChar[ Header_.StringTableBytes_ ];
-	pResourceHeaders_ = new CsPackageResourceHeader[ Header_.TotalResources_ ];
-	pChunkHeaders_ = new CsPackageChunkHeader[ Header_.TotalChunks_ ];
-	pChunkData_ = new CsPackageChunkData[ Header_.TotalChunks_ ];
+	// Loaded header, now markup the string table, chunks & props.
+	pStringTable_ = reinterpret_cast< BcChar* >( pCurrPackageData );
+	pCurrPackageData += BcCalcAlignment( Header_.StringTableBytes_, Header_.MinAlignment_ );
+
+	pResourceHeaders_ = reinterpret_cast< CsPackageResourceHeader* >( pCurrPackageData );
+	pCurrPackageData += BcCalcAlignment( Header_.TotalResources_ * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+
+	pChunkHeaders_ = reinterpret_cast< CsPackageChunkHeader* >( pCurrPackageData );
+	pCurrPackageData += BcCalcAlignment( Header_.TotalChunks_ * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+
+	pChunkData_ = reinterpret_cast< CsPackageChunkData* >( pCurrPackageData );
+	pCurrPackageData += BcCalcAlignment( Header_.TotalChunks_ * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 
 	// Clear string table.
 	BcMemZero( pStringTable_, Header_.StringTableBytes_ );
@@ -227,8 +243,8 @@ void CsPackageLoader::onChunkHeadersLoaded( void* pData, BcSize Size )
 	BcAssert( pData == pChunkHeaders_ );
 	BcAssert( Size == sizeof( CsPackageChunkHeader ) * Header_.TotalChunks_ );
 
-	// We've got all the data we need to alloc resource data.
-	allocResourceData();
+	// Mark up all the resources.
+	markupResources();
 	
 	// Data is ready.
 	IsDataReady_ = BcTrue;
@@ -258,95 +274,34 @@ void CsPackageLoader::onDataLoaded( void* pData, BcSize Size )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// allocResourceData
-void CsPackageLoader::allocResourceData()
+// markupResources
+void CsPackageLoader::markupResources()
 {
-	// For all resources, allocate the memory they all require.
-	for( BcU32 ResourceIdx = 0; ResourceIdx < Header_.TotalResources_; ++ResourceIdx )
+	// Use this to advance as we need.
+	BcU8* pCurrPackageData = reinterpret_cast< BcU8* >( pPackageData_ ) + Header_.ResourceDataStart_;
+
+	// Allocate chunks.
+	for( BcU32 ChunkIdx = 0; ChunkIdx <= Header_.TotalChunks_; ++ChunkIdx )
 	{
-		CsPackageResourceHeader& ResourceHeader = pResourceHeaders_[ ResourceIdx ];
-		
-		// Handle contiguous resources first.
-		if( ResourceHeader.Flags_ & csPEF_CONTIGUOUS_CHUNKS )
+		CsPackageChunkHeader& ChunkHeader( pChunkHeaders_[ ChunkIdx ] );
+		CsPackageChunkData& ChunkData( pChunkData_[ ChunkIdx ] );
+
+		if( ChunkHeader.Flags_ & csPCF_MANAGED )
 		{
-			BcU32 FirstManagedChunk = BcErrorCode;
-			BcU32 TotalChunkSize = 0;
-			
-			// Iterate over chunks.
-			for( BcU32 ChunkIdx = ResourceHeader.FirstChunk_; ChunkIdx <= ResourceHeader.LastChunk_; ++ChunkIdx )
-			{
-				CsPackageChunkHeader& ChunkHeader( pChunkHeaders_[ ChunkIdx ] );
+			ChunkData.Managed_ = BcTrue;
+			ChunkData.pUnpackedData_ = pCurrPackageData;
 
-				// If chunk is managed, take it's size into account.
-				if( ChunkHeader.Flags_ & csPCF_MANAGED )
-				{
-					if( FirstManagedChunk == BcErrorCode )
-					{
-						FirstManagedChunk = ChunkIdx;
-					}
+			// Advance package data.
+ 			pCurrPackageData += BcCalcAlignment( ChunkHeader.UnpackedBytes_, ChunkHeader.RequiredAlignment_ );
 
-					TotalChunkSize += ChunkHeader.UnpackedBytes_;
-				}
-				else
-				{
-					// Unmanaged chunk, allocate and write out chunks we've passed over.
-					if( FirstManagedChunk != BcErrorCode && TotalChunkSize > 0 )
-					{
-						BcU8* pData = new BcU8[ TotalChunkSize ];
-						for( BcU32 ManagedChunkIdx = FirstManagedChunk; ManagedChunkIdx < ChunkIdx; ++ManagedChunkIdx )
-						{
-							CsPackageChunkHeader& ManagedChunkHeader( pChunkHeaders_[ ManagedChunkIdx ] );						
-							CsPackageChunkData& ManagedChunkData( pChunkData_[ ManagedChunkIdx ] );
-							
-							ManagedChunkData.pUnpackedData_ = pData;
-							ManagedChunkData.Managed_ = ManagedChunkIdx == FirstManagedChunk;
-
-							// Advance data pointer.
-							pData += ManagedChunkHeader.UnpackedBytes_;
-						}
-
-						// Reset chunk.
-						FirstManagedChunk = BcErrorCode;
-						TotalChunkSize = 0;
-					}
-				}
-			}
-
-			// Allocate chunk if we've still got a chunk pending.
-			if( FirstManagedChunk != BcErrorCode && TotalChunkSize > 0 )
-			{
-				BcU8* pData = new BcU8[ TotalChunkSize ];
-				for( BcU32 ManagedChunkIdx = FirstManagedChunk; ManagedChunkIdx <= ResourceHeader.LastChunk_; ++ManagedChunkIdx )
-				{
-					CsPackageChunkHeader& ManagedChunkHeader( pChunkHeaders_[ ManagedChunkIdx ] );						
-					CsPackageChunkData& ManagedChunkData( pChunkData_[ ManagedChunkIdx ] );
-							
-					ManagedChunkData.pUnpackedData_ = pData;
-					ManagedChunkData.Managed_ = ManagedChunkIdx == FirstManagedChunk;
-
-					// Advance data pointer.
-					pData += ManagedChunkHeader.UnpackedBytes_;
-				}
-
-				// Reset chunk.
-				FirstManagedChunk = BcErrorCode;
-				TotalChunkSize = 0;
-			}
+#if PSY_DEBUG
+			// Clear memory.
+			BcMemSet( ChunkData.pUnpackedData_, 0x11, ChunkHeader.UnpackedBytes_ );
+#endif
 		}
 		else
 		{
-			// Allocate chunks.
-			for( BcU32 ChunkIdx = ResourceHeader.FirstChunk_; ChunkIdx <= ResourceHeader.LastChunk_; ++ChunkIdx )
-			{
-				CsPackageChunkHeader& ChunkHeader( pChunkHeaders_[ ChunkIdx ] );
-				CsPackageChunkData& ChunkData( pChunkData_[ ChunkIdx ] );
-
-				ChunkData.Managed_ = BcTrue;
-				ChunkData.pUnpackedData_ = new BcU8[ ChunkHeader.UnpackedBytes_ ];
-				
-				// Clear memory.
-				BcMemSet( ChunkData.pUnpackedData_, 0x11, ChunkHeader.UnpackedBytes_ );
-			}
+			ChunkData.Managed_ = BcFalse;
 		}
 	}
 }
@@ -376,34 +331,6 @@ void CsPackageLoader::initialiseResources()
 
 			// Tell it the file is ready (TODO: DEPRECATE).
 			Handle->fileReady();
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// freeResourceData
-void CsPackageLoader::freeResourceData()
-{
-	// For all resources, allocate the memory they all require.
-	for( BcU32 ResourceIdx = 0; ResourceIdx < Header_.TotalResources_; ++ResourceIdx )
-	{
-		CsPackageResourceHeader& ResourceHeader = pResourceHeaders_[ ResourceIdx ];
-		
-		// Allocate chunks.
-		for( BcU32 ChunkIdx = ResourceHeader.FirstChunk_; ChunkIdx <= ResourceHeader.LastChunk_; ++ChunkIdx )
-		{
-			CsPackageChunkHeader& ChunkHeader( pChunkHeaders_[ ChunkIdx ] );
-			CsPackageChunkData& ChunkData( pChunkData_[ ChunkIdx ] );
-			
-			// If the chunk data is managed, delete it.
-			if( ChunkData.Managed_ )
-			{
-				delete [] ChunkData.pUnpackedData_;
-			}
-			
-			// Clear.
-			ChunkData.pUnpackedData_ = NULL;
-			ChunkData.Managed_ = BcFalse;
 		}
 	}
 }

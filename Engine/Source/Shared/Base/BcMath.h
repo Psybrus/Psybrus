@@ -219,6 +219,14 @@ inline BcU32 BcPotNext( BcU32 Value )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// BcCalcAlignment
+inline BcU32 BcCalcAlignment( BcU32 Value, BcU32 Alignment )
+{
+	BcAssert( BcPot( Alignment ) );
+	return ( Value + ( Alignment - 1 ) ) & ~( Alignment - 1 );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // BcBitsSet
 inline BcU32 BcBitsSet( BcU32 Value )
 {

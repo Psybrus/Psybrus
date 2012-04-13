@@ -326,7 +326,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 	//       save memory and move look ups to it's own creation.
 	BcU32 Offset = BcErrorCode;
 	eRsShaderParameterType Type;
-	if( pProgram_->findParameterOffset( ParameterName, Type, Offset ) )
+	if( pProgram_->findParameterOffset( (*ParameterName).c_str(), Type, Offset ) )
 	{
 		for( BcU32 Idx = 0; Idx < ParameterBindingList_.size(); ++Idx )
 		{
