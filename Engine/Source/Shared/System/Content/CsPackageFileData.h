@@ -15,7 +15,6 @@
 #define __CSPACKAGEFILEDATA_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcEndian.h"
 
 //////////////////////////////////////////////////////////////////////////
 /* CsPackage File Layout
@@ -40,7 +39,7 @@ enum CsPackageFlags
 struct CsPackageHeader
 {
 	static const BcU32 MAGIC = 0x89273491;						// Basic check to make sure it's a valid package file.
-	static const BcU32 VERSION = 3;								// If the package format changes, increment this value to for reimport of packages.
+	static const BcU32 VERSION = 4;								// If the package format changes, increment this value to force reimport of packages.
 
 	BcU32								Magic_;					// Magic number.
 	BcU32								Version_;				// Version.
@@ -116,8 +115,17 @@ struct CsPackageChunkData
 {
 	CsPackageChunkStatus				Status_;				// Loading status.
 	BcBool								Managed_;				// Is our memory managed?
-	BcU8*								pPackedData_;			// Packed data.
-	BcU8*								pUnpackedData_;			// Unpacked data.
+	union
+	{
+		BcU8*							pPackedData_;			// Packed data.
+		BcU64							PackedDataID_;
+	};
+
+	union
+	{
+		BcU8*							pUnpackedData_;			// Unpacked data.
+		BcU64							UnpackedDataID_;
+	};
 };
 
 #endif

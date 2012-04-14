@@ -21,6 +21,8 @@
 #include "System/Scene/ScnVisitor.h"
 #include "System/Scene/ScnSpatialTree.h"
 
+#include <json/json.h>
+
 //////////////////////////////////////////////////////////////////////////
 // ScnComponent
 class ScnComponent:
@@ -31,7 +33,8 @@ public:
 	DECLARE_VISITABLE( ScnComponent );
 
 public:
-	void								initialise();
+	virtual void						initialise();
+	virtual void						initialise( const Json::Value& Object );
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
