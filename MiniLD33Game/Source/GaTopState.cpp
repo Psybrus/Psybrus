@@ -32,60 +32,24 @@ GaTopState::~GaTopState()
 // enterOnce
 void GaTopState::enterOnce()
 {
-	ResourceList_.push_back( CsResourceRef<>( ScnMaterial::Default ) );
-
-	CsCore::pImpl()->requestResource( "font", FontMaterial_ );
-	CsCore::pImpl()->requestResource( "title", TitleMaterial_ );
-	CsCore::pImpl()->requestResource( "background", BackgroundMaterial_ );
-	CsCore::pImpl()->requestResource( "spritesheet0", SpriteSheetMaterial0_ );
-	CsCore::pImpl()->requestResource( "spritesheet1", SpriteSheetMaterial1_ );
-	CsCore::pImpl()->requestResource( "hud", HUDMaterial_ );
-
-	ScnSoundRef Sound;
-
-	CsCore::pImpl()->requestResource( "ArrowHit", Sound );
-	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
-	CsCore::pImpl()->requestResource( "ArrowLaunch", Sound );
-	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
-	CsCore::pImpl()->requestResource( "RockHit", Sound );
-	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
-	CsCore::pImpl()->requestResource( "RockLaunch", Sound );
-	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
-	CsCore::pImpl()->requestResource( "Die", Sound );
-	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
-	CsCore::pImpl()->requestResource( "Walk", Sound );
-	SoundMap_[ (*Sound->getName()).c_str() ] = Sound;
-
-	//spawnChildState( new GaMatchmakingState() );
+	pPackage_ = CsCore::pImpl()->requestPackage( "game" );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // enter
 eSysStateReturn GaTopState::enter()
 {
-	BcBool Ready = BcTrue;
-
-	Ready &= TitleMaterial_.isReady();
-	Ready &= FontMaterial_.isReady();
-	Ready &= BackgroundMaterial_.isReady();
-	Ready &= SpriteSheetMaterial0_.isReady();
-	Ready &= SpriteSheetMaterial1_.isReady();
-	Ready &= HUDMaterial_.isReady();
-	Ready &= ScnFont::Default.isReady();
-
-	for( BcU32 Idx = 0; Idx < ResourceList_.size(); ++Idx )
-	{
-		Ready &= ResourceList_[ Idx ].isReady();
-	}
-
-	for( TSoundMap::iterator It( SoundMap_.begin() ); It != SoundMap_.end(); ++It )
-	{
-		Ready &= (*It).second.isReady();
-	}
+	BcBool Ready = pPackage_->isReady();
 	
 	// Wait for default material to be ready.
 	if( Ready == BcTrue )
-	{
+	{	CsCore::pImpl()->requestResource( "game", "font", FontMaterial_ );
+		CsCore::pImpl()->requestResource( "game", "title", TitleMaterial_ );
+		CsCore::pImpl()->requestResource( "game", "background", BackgroundMaterial_ );
+		CsCore::pImpl()->requestResource( "game", "spritesheet0", SpriteSheetMaterial0_ );
+		CsCore::pImpl()->requestResource( "game", "spritesheet1", SpriteSheetMaterial1_ );
+		CsCore::pImpl()->requestResource( "game", "hud", HUDMaterial_ );
+		
 		//
 		return sysSR_FINISHED;
 	}
@@ -226,12 +190,11 @@ void GaTopState::startGame( BcBool Networked )
 // playSound
 void GaTopState::playSound( const BcChar* pSoundName, const BcFixedVec2d& Position )
 {
-	TSoundMap::iterator It( SoundMap_.find( pSoundName ) );
+	ScnSoundRef Sound;
+	CsCore::pImpl()->requestResource( "game", pSoundName, Sound );
 
-	if( It != SoundMap_.end() )
+	if( Sound.isReady() )
 	{
-		ScnSoundRef Sound( (*It).second );
-
 		if( SsCore::pImpl() )
 		{
 			SsChannel* pChannel = SsCore::pImpl()->play( Sound->getSample(), NULL );

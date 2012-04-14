@@ -19,7 +19,7 @@ SYS_CREATOR( CsCore );
 // Ctor
 CsCore::CsCore()
 {
-	
+	IsCollectingGarbage_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,6 +48,13 @@ void CsCore::update()
 	processLoadingResources();
 	processLoadedResource();
 	processUnloadingResources();
+
+	// Garbage collection.
+	// TODO: Mark packages for clean up instead of just iterating over them.
+	if( IsCollectingGarbage_ )
+	{
+		freeUnreferencedPackages();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,8 +90,17 @@ void CsCore::freeUnreferencedPackages()
 		if( pPackage->hasUnreferencedResources() )
 		{
 			pPackage->releaseUnreferencedResources();
-			
-			++It;
+
+			// If we've got no valid resources we can move to unreferenced list to destroy.
+			if( pPackage->haveAnyValidResources() == BcFalse )
+			{
+				UnreferencedPackageList_.push_back( pPackage );
+				It = PackageList_.erase( It );
+			}
+			else
+			{
+				++It;
+			}
 		}
 		else
 		{
@@ -393,8 +409,9 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, B
 // internalRequestResource
 BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
 {
-	// Request package
-	if( requestPackage( Package ) )
+	// Find package
+	CsPackage* pPackage = findPackage( Package );
+	if( pPackage )
 	{
 		// If we can't find resource, throw an error.
 		if( internalFindResource( Package, Name, Type, Handle ) == BcFalse )
@@ -425,7 +442,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	// amount of resources.
 	for( TResourceHandleListIterator It( CreateResources_.begin() ); It != CreateResources_.end(); ++It )
 	{
-		if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+		if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
 		{
 			Handle = (*It);
 			return BcTrue;
@@ -434,7 +451,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 
 	for( TResourceHandleListIterator It( LoadingResources_.begin() ); It != LoadingResources_.end(); ++It )
 	{
-		if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+		if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
 		{
 			Handle = (*It);
 			return BcTrue;
@@ -443,7 +460,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 
 	for( TResourceListIterator It( LoadedResources_.begin() ); It != LoadedResources_.end(); ++It )
 	{
-		if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+		if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
 		{
 			Handle = (*It);
 			return BcTrue;

@@ -179,8 +179,8 @@ void RsStateBlockGL::bind()
 	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
 
-	//
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	// DEBUG HACK.
+	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
 //////////////////////////////////////////////////////////////////////////

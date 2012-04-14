@@ -206,7 +206,7 @@ void ScnTextureAtlas::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData
 	{
 		pAtlasRects_ = (ScnRect*)pData;
 		
-		requestChunk( ++ChunkIdx );
+		requestChunk( ++ChunkIdx, &Header_ );
 	}
 	else
 	{

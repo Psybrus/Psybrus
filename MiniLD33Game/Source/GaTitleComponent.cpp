@@ -22,16 +22,6 @@
 DEFINE_RESOURCE( GaTitleComponent );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void GaTitleComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "GaTitleComponent" )
-		.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 void GaTitleComponent::initialise()
 {
@@ -128,7 +118,7 @@ void GaTitleComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Materials.
 	ScnMaterialRef Material;
-	if( CsCore::pImpl()->requestResource( "title", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "title", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, BcErrorCode ) )
 		{
@@ -138,7 +128,7 @@ void GaTitleComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Font
 	ScnFontRef Font;
-	if( CsCore::pImpl()->requestResource( "default", Font ) && CsCore::pImpl()->requestResource( "font", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "default", Font ) && CsCore::pImpl()->requestResource( "game", "font", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, Font_, Font, Material ) )
 		{

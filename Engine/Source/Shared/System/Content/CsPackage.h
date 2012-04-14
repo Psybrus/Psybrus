@@ -42,10 +42,15 @@ public:
 	BcBool							hasUnreferencedResources() const;
 
 	/**
+	 * Have we got any valid resources?
+	 */
+	BcBool							haveAnyValidResources() const;
+
+	/**
 	 * Release unreferenced resources.
 	 */
 	void							releaseUnreferencedResources();
-
+	
 	/**
 	 * Add resource to package.
 	 */
