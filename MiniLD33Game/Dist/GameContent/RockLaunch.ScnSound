@@ -1,8 +1,0 @@
-{ 
-	"ScnSound" : {
-		"name"		: 		"RockLaunch",
-		
-		// Source
-		"source"	: 		"GameContent/Source/Rock_Launch.wav"
-	}
-}

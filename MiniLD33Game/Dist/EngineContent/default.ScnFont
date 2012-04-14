@@ -1,9 +1,0 @@
-{ 
-	"ScnFont" : {
-		"name"		: "default",
-		"source"	: "EngineContent/FontSource/chintzy.ttf",
-		"distancefield"	: true,
-		"nominalsize"	: 48,
-		"spread"	: 16
-	}
-}

@@ -1,8 +1,0 @@
-{ 
-	"ScnSound" : {
-		"name"		: 		"Die",
-		
-		// Source
-		"source"	: 		"GameContent/Source/Die.wav"
-	}
-}
