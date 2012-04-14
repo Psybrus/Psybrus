@@ -94,7 +94,7 @@ ScnSpatialTreeNode* ScnComponent::getSpatialTreeNode()
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
-const BcAABB& ScnComponent::getAABB() const
+BcAABB ScnComponent::getAABB()
 {
 	static BcAABB TEMP;
 	return TEMP;

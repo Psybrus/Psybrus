@@ -32,6 +32,7 @@ public:
 	CsPackageLoader( CsPackage* pPackage, const BcPath& Path );
 	~CsPackageLoader();
 
+	BcBool							hasError() const;
 	BcBool							hasPendingCallback() const;
 	BcBool							isDataReady() const;
 	const BcChar*					getSourceFile() const;
@@ -56,6 +57,7 @@ private:
 	
 private:
 	CsPackage*						pPackage_;
+	BcBool							HasError_;
 	BcU32							DataPosition_;
 	FsFile							File_;
 	CsPackageHeader					Header_;

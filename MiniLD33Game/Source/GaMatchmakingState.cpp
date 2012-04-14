@@ -13,6 +13,8 @@
 
 #include "GaMatchmakingState.h"
 
+#include <json/json.h>
+
 int GaMatchmakingState::SocketFileDescriptor_ = 0;
 BcU32 GaMatchmakingState::ClientID_ = BcErrorCode;
 BcU32 GaMatchmakingState::RemoteHandshakeAddr_ = 0;

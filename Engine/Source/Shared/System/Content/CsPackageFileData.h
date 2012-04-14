@@ -15,7 +15,7 @@
 #define __CSPACKAGEFILEDATA_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcAtomic.h"
+#include "Base/BcEndian.h"
 
 //////////////////////////////////////////////////////////////////////////
 /* CsPackage File Layout
@@ -29,15 +29,26 @@
 */
 
 //////////////////////////////////////////////////////////////////////////
+// CsPackageFlags
+enum CsPackageFlags
+{
+	csPF_DEFAULT =						0,						// No resource flags just yet.
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsPackageHeader
 struct CsPackageHeader
 {
-	static const BcU32 MAGIC = 0x89273491;
+	static const BcU32 MAGIC = 0x89273491;						// Basic check to make sure it's a valid package file.
+	static const BcU32 VERSION = 3;								// If the package format changes, increment this value to for reimport of packages.
 
 	BcU32								Magic_;					// Magic number.
+	BcU32								Version_;				// Version.
+	BcU32								Flags_;					// Flags.
 	BcU32								StringTableBytes_;		// Number of bytes in the string table.
 	BcU32								TotalResources_;		// Total Resources in package.
 	BcU32								TotalChunks_;			// Total chunks in package.
+	BcU32								SourceFileStatsHash_;	// Source file stat hash.
 	BcU32								SourceFile_;			// Path to source package (index into string table).
 	BcU32								TotalAllocSize_;		// Total size package need to allocate (string table, resource headers, chunk headers, managed chunk data).
 	BcU32								MinAlignment_;			// Minimum alignment (default 16)
@@ -49,7 +60,7 @@ struct CsPackageHeader
 // CsPackageResourceFlags
 enum CsPackageResourceFlags
 {
-	csPEF_CONTIGUOUS_CHUNKS =			1 << 0,					// All Resources chunks should be contiguous in memory.
+	csPEF_DEFAULT =						0,						// No resource flags just yet.
 };
 
 //////////////////////////////////////////////////////////////////////////

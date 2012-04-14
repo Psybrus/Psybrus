@@ -58,6 +58,18 @@ public:
 	
 	/**
 	*	Stream data from current file position to specified location.	
+	*	SYNC call.
+	*/
+	void read( BcSize Position, void* pData, BcSize Bytes );
+	
+	/**
+	*	Stream data to current file position to specified location.	
+	*	SYNC call.
+	*/
+	void write( BcSize Position, void* pData, BcSize Bytes );
+
+	/**
+	*	Stream data from current file position to specified location.	
 	*	ASYNC call.
 	*/
 	void readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
@@ -89,6 +101,18 @@ inline BcSize FsFile::tell() const
 inline void FsFile::seek( BcSize Position )
 {
 	pImpl_->seek( Position );
+}
+
+inline void FsFile::read( BcSize Position, void* pData, BcSize Bytes )
+{
+	pImpl_->seek( Position );
+	pImpl_->read( pData, Bytes );
+}
+
+inline void FsFile::write( BcSize Position, void* pData, BcSize Bytes )
+{
+	pImpl_->seek( Position );
+	pImpl_->write( pData, Bytes );
 }
 
 inline void FsFile::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )

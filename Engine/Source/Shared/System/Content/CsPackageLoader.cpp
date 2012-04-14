@@ -23,6 +23,7 @@
 // Ctor
 CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 	pPackage_( pPackage ),
+	HasError_( BcFalse ),
 	DataPosition_( 0 ),
 	pPackageData_( NULL ),
 	pStringTable_( NULL ),
@@ -34,11 +35,26 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
 	{
-		// Load in package header.
+#if PSY_SERVER
+		// Load in package header synchronously to catch errors.
+		BcU32 Bytes = sizeof( Header_ );
+		++PendingCallbackCount_;
+		File_.read( DataPosition_, &Header_, Bytes );
+		DataPosition_ += Bytes;
+
+		// Call on header.
+		onHeaderLoaded( &Header_, Bytes );
+#else
+		// Load in package header asynchronously.
 		BcU32 Bytes = sizeof( Header_ );
 		++PendingCallbackCount_;
 		File_.readAsync( DataPosition_, &Header_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onHeaderLoaded >( this ) );
 		DataPosition_ += Bytes;
+#endif
+	}
+	else
+	{
+		HasError_ = BcTrue;
 	}
 }
 
@@ -52,6 +68,13 @@ CsPackageLoader::~CsPackageLoader()
 	
 	BcMemFree( pPackageData_ );
 	pPackageData_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// hasPendingCallback
+BcBool CsPackageLoader::hasError() const
+{
+	return HasError_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -113,7 +136,7 @@ BcU32 CsPackageLoader::getNoofChunks( BcU32 ResourceIdx )
 
 	CsPackageResourceHeader& ResourceHeader = pResourceHeaders_[ ResourceIdx ];
 
-	return ( ResourceHeader.LastChunk_ - ResourceHeader.FirstChunk_ ) + 1;
+	return ( (BcU32)ResourceHeader.LastChunk_ - (BcU32)ResourceHeader.FirstChunk_ ) + 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -151,6 +174,41 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	// Check we have the right data.
 	BcAssert( pData == &Header_ );
 	BcAssert( Size == sizeof( Header_ ) );
+
+	// Check the header is valid.
+	if( Header_.Magic_ != CsPackageHeader::MAGIC )
+	{
+		BcPrintf( "CsPackageLoader: Invalid magic number. Not a valid package.\n" );
+		HasError_ = BcTrue;
+		--PendingCallbackCount_;
+		return;
+	}
+
+	// Check version number.
+	if( Header_.Version_ != CsPackageHeader::VERSION )
+	{
+		BcPrintf( "CsPackageLoader: Out of date package. Requires reimport.\n" );
+		HasError_ = BcTrue;
+		--PendingCallbackCount_;
+		return;
+	}
+
+#if PSY_SERVER
+	// Reimport if source file stats changed.
+	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( pPackage_->getName() ) );
+
+	FsStats Stats;
+	if( FsCore::pImpl()->fileStats( (*ImportPackage).c_str(), Stats ) )
+	{
+		if( Header_.SourceFileStatsHash_ != BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) ))
+		{
+			BcPrintf( "CsPackageLoader: Source file stats have changed.\n" );
+			HasError_ = BcTrue;
+			--PendingCallbackCount_;
+			return;
+		}
+	}
+#endif
 
 	// Allocate all the memory we need up front.
 	pPackageData_ = BcMemAlign( Header_.TotalAllocSize_, Header_.MaxAlignment_ );

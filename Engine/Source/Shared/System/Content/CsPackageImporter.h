@@ -21,7 +21,6 @@
 
 #ifdef PSY_SERVER
 #include <json/json.h>
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageImporter
@@ -61,6 +60,9 @@ private:
 	typedef std::list< Json::Value > TJsonValueList;
 	typedef TJsonValueList::iterator TJsonValueIterator;
 
+	typedef std::list< CsDependency > TDependencyList;
+	typedef TDependencyList::iterator TDependencyIterator;
+
 	TJsonValueList					JsonResources_;
 
 	CsPackageResourceHeader			CurrResourceHeader_;
@@ -72,6 +74,9 @@ private:
 	CsPackageResourceHeaderList		ResourceHeaders_;
 	CsPackageChunkHeaderList		ChunkHeaders_;
 	CsPackageChunkDataList			ChunkDatas_;
+	TDependencyList					DependencyList_;
 };
+
+#endif
 
 #endif

@@ -13,6 +13,7 @@
 
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsPackageLoader.h"
+#include "System/Content/CsPackageImporter.h"
 
 #include "System/Content/CsCore.h"
 
@@ -22,7 +23,49 @@ CsPackage::CsPackage( const BcName& Name ):
 	Name_( Name ),
 	pLoader_( NULL )
 {
-	pLoader_ = new CsPackageLoader( this, CsCore::pImpl()->getPackagePackedPath( Name ) );
+	// Cache paths related to this package.
+	const BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
+	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( Name ) );
+
+	// Keep attempting load.
+	BcBool LoaderValid = BcFalse;
+	do
+	{
+		BcBool PackedPackageExists = FsCore::pImpl()->fileExists( (*PackedPackage).c_str() );
+
+		if( PackedPackageExists )
+		{
+			pLoader_ = new CsPackageLoader( this, PackedPackage );
+	
+			// If the loader has no error it's valid to continue.
+			if( !pLoader_->hasError() )
+			{
+				LoaderValid = BcTrue;
+			}
+			else
+			{
+				delete pLoader_;
+				pLoader_ = NULL;
+			}
+		}
+
+#if PSY_SERVER
+		// Attempt to import.
+		if( LoaderValid == BcFalse )
+		{
+			BcBool ImportPackageExists = FsCore::pImpl()->fileExists( (*ImportPackage).c_str() );
+			BcAssertMsg( ImportPackageExists, "CsPackage: Missing import package \"%s\"", (*ImportPackage).c_str() );
+
+			if( ImportPackageExists )
+			{
+				CsPackageImporter Importer;
+				BcBool ImportSucceeded = Importer.import( Name );
+				BcAssertMsg( ImportSucceeded, "CsPackage: Failed to import \"%s\"", (*ImportPackage).c_str() );
+			}
+		}
+#endif
+	}
+	while( LoaderValid == BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////

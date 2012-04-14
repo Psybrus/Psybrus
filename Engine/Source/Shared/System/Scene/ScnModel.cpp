@@ -19,9 +19,7 @@
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 #include "Import/Mdl/Mdl.h"
-#endif
 
-#ifdef PSY_SERVER
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual

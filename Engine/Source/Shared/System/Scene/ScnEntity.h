@@ -29,16 +29,17 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public CsResource,
+	public ScnComponent,
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnEntity );
+	DECLARE_RESOURCE( ScnComponent, ScnEntity );
 	
 #if PSY_SERVER
 	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	void								initialise();
+	void								initialise( ScnEntityRef Basis );
 	void								create();
 	void								destroy();
 	BcBool								isReady();
@@ -78,7 +79,7 @@ public:
 	/**
  	 * Get AABB which encompasses this entity.
 	 */
-	const BcAABB&						getAABB() const;
+	BcAABB								getAABB();
 
 	/**
 	 * Set position.
@@ -113,12 +114,12 @@ protected:
 	struct THeader
 	{
 	};
-	
-	THeader*							pHeader_;
 
-	ScnComponentList					Components_;
+	ScnEntityRef						Basis_;
+	THeader*							pHeader_;
 	ScnTransform						Transform_;
 
+	ScnComponentList					Components_;
 	ScnComponentList					AttachComponents_;
 	ScnComponentList					DetachComponents_;
 

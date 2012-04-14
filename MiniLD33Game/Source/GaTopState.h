@@ -45,24 +45,17 @@ public:
 	void							playSound( const BcChar* pSoundName, const BcFixedVec2d& Position );
 
 private:
-	typedef std::vector< CsResourceRef<> > TResourceList;
 	typedef std::vector< ScnEntityRef > TEntityList;
 	
 	CsPackage*						pPackage_;
 
-	ScnMaterialRef					TitleMaterial_;
-	ScnMaterialRef					FontMaterial_;
-	ScnMaterialRef					BackgroundMaterial_;
-	ScnMaterialRef					SpriteSheetMaterial0_;
-	ScnMaterialRef					SpriteSheetMaterial1_;
-	ScnMaterialRef					HUDMaterial_;
+	ScnMaterialRef					DefaultMaterial_;
 
 	GaGameComponentRef				GameComponent_;
 	GaTitleComponentRef				TitleComponent_;
 
 	ScnEntityRef					GameEntity_;
 
-	TResourceList					ResourceList_;
 	TEntityList						EntityList_;
 
 	BcBool							SpawnTitle_;
