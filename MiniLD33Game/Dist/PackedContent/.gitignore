@@ -13,3 +13,10 @@
 /spritesheet0.ScnTextureAtlas
 /spritesheet1.ScnMaterial
 /spritesheet1.ScnTextureAtlas
+/ArrowHit.ScnSound
+/ArrowLaunch.ScnSound
+/Die.ScnSound
+/RockHit.ScnSound
+/RockLaunch.ScnSound
+/Walk.ScnSound
+/game.pak
