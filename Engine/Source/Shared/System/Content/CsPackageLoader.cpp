@@ -459,7 +459,7 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 				// Chunk isn't loaded, need to read in data.
 				BcU32 DataPosition = DataPosition_ + ChunkHeader.Offset_;
 				BcU32 Bytes = ChunkHeader.UnpackedBytes_;
-			
+				
 				// Do async read.
 				++PendingCallbackCount_;
  				File_.readAsync( DataPosition, ChunkData.pUnpackedData_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onDataLoaded >( this ) );
@@ -483,6 +483,10 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 			{
 				// Set status to unpacking.
 				ChunkData.Status_ = csPCS_UNPACKING;
+
+				// Check the data is valid.
+				BcU32 Hash = BcHash( ChunkData.pPackedData_, ChunkHeader.PackedBytes_ );
+				BcAssertMsg( Hash == ChunkHeader.PackedHash_, "Corrupted data." );
 
 				// TODO: Async decompress.
 
