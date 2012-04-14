@@ -18,6 +18,8 @@
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
 
+#if PSY_SERVER
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPackageImporter::CsPackageImporter()
@@ -54,7 +56,19 @@ BcBool CsPackageImporter::import( const BcName& Name )
 	BcPrintf( "============================================================================\n" );
 	BcPrintf( "CsPackageImporter: Importing %s...\n", (*Path).c_str() );
 
-	// Store source package to header.
+	BcTimer TotalTimer;
+	TotalTimer.mark();
+
+	// Store source file info.
+	FsStats Stats;
+	if( FsCore::pImpl()->fileStats( (*Path).c_str(), Stats ) )
+	{
+		Header_.SourceFileStatsHash_ = BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) );
+	}
+	else
+	{
+		Header_.SourceFileStatsHash_ = 0;
+	}
 	Header_.SourceFile_ = addString( (*Path).c_str() );
 
 	Json::Value Root;
@@ -77,20 +91,35 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			JsonResources_.pop_front();
 			
 			// Import resource.
+			BcTimer ResourceTimer;
+			ResourceTimer.mark();
 			if( importResource( ResourceObject ) )
 			{
-				BcPrintf( " - - Succeeded.\n" );
+				BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
 			}
 			else
 			{
-				BcPrintf( " - - FAILED.\n" );
+				BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
 				BcBreakpoint;
+				return BcFalse;
 			}
 		}
 		
 		// Save and return.
 		BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
-		return save( PackedPackage );
+		BcBool SaveSuccess = save( PackedPackage );
+
+		if( SaveSuccess )
+		{
+			BcPrintf( " SUCCEEDED. Time: %.2f seconds.\n", TotalTimer.time() );
+		}
+		else
+		{
+			BcPrintf( " FAILED. Time: %.2f seconds.\n", TotalTimer.time() );
+			BcBreakpoint;
+		}
+
+		return SaveSuccess;
 	}
 	
 	return BcFalse;
@@ -115,6 +144,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 		// Setup header.
 		Header_.Magic_ = CsPackageHeader::MAGIC;
+		Header_.Version_ = CsPackageHeader::VERSION;
+		Header_.Flags_ = csPF_DEFAULT; // TODO: Flags.
 		Header_.StringTableBytes_ = StringTableStream.dataSize();
 		Header_.TotalResources_ = ResourceHeaders_.size();
 		Header_.TotalChunks_ = ChunkHeaders_.size();
@@ -244,9 +275,9 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 		BcPrintf( "- importResource: Type not specified for resource.\n" );
 		return BcFalse;
 	}
-
+	
 	BcPrintf( " - importResource: Processing \"%s\" of type \"%s\"\n", Name.asCString(),  Type.asCString() );
-
+	
 	// Get resource index.
 	BcU32 ResourceIndex = ResourceHeaders_.size();
 
@@ -269,7 +300,7 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 		// Setup current resource header.
 		CurrResourceHeader_.Name_ = addString( Name.asCString() );
 		CurrResourceHeader_.Type_ = addString( Type.asCString() );
-		CurrResourceHeader_.Flags_ = csPEF_CONTIGUOUS_CHUNKS;
+		CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
 		CurrResourceHeader_.FirstChunk_ = FirstChunk;
 		CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
 		
@@ -382,5 +413,8 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 Requ
 // addDependency
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
-	BcUnusedVar( pFileName );
+	DependencyList_.push_back( CsDependency( pFileName ) );
 }
+
+#endif
+

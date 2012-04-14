@@ -42,6 +42,18 @@ void ScnEntity::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnEntity::initialise( ScnEntityRef Basis )
+{
+	// Keep a ref to our basis so it isn't unloaded.
+	Basis_ = Basis;
+
+	// Copy over internals.
+	pHeader_ = Basis_->pHeader_;
+	Transform_ = Basis_->Transform_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // create
 void ScnEntity::create()
 {
@@ -77,6 +89,9 @@ BcBool ScnEntity::isReady()
 // update
 void ScnEntity::update( BcReal Tick )
 {
+	// Update as component first.
+	Super::update( Tick );
+
 	// Process attach/detach.
 	processAttachDetach();
 
@@ -200,10 +215,15 @@ const ScnTransform& ScnEntity::getTransform() const
 
 //////////////////////////////////////////////////////////////////////////
 // getAABB
-const BcAABB& ScnEntity::getAABB() const
+BcAABB ScnEntity::getAABB()
 {
-	// NEILO TODO!
-	static BcAABB AABB;
+	BcAABB AABB;
+	
+	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	{
+		AABB.expandBy( (*It)->getAABB() );
+	}
+	
 	return AABB;
 }
 

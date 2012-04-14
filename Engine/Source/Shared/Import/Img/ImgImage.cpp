@@ -365,7 +365,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 			}			
 		}
 		
-		static BcVec2d Compare( Grid& GridX, BcVec2d Cell, BcS32 X, BcS32 Y, BcS32 OffsetX, BcS32 OffsetY )
+		static BcInline BcVec2d Compare( Grid& GridX, const BcVec2d& Cell, BcS32 X, BcS32 Y, BcS32 OffsetX, BcS32 OffsetY )
 		{
 			BcVec2d OtherCell = GridX.getCell( X + OffsetX, Y + OffsetY );
 			OtherCell = BcVec2d( OtherCell.x() + OffsetX, OtherCell.y() + OffsetY );

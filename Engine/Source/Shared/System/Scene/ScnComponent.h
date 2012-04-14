@@ -53,9 +53,8 @@ public:
 	/**
 	 * Get encompassing AABB for component.
 	 */
-	virtual const BcAABB&				getAABB() const;
-
-
+	virtual BcAABB						getAABB();
+	
 protected:
 	struct THeader
 	{

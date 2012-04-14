@@ -23,9 +23,9 @@
 #include "System/Content/CsResourceRef.h"
 
 #include "System/Content/CsPackage.h"
-#include "System/Content/CsPackageImporter.h"
 
 #ifdef PSY_SERVER
+#include "System/Content/CsPackageImporter.h"
 #include <json/json.h>
 #endif
 

@@ -115,7 +115,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 	
 	BcU32 OriginalNominalSize = Object[ "nominalsize" ].asInt();
 	BcBool DistanceField = Object[ "distancefield" ].asBool();
-	BcU32 NominalSize = OriginalNominalSize * ( DistanceField ? 8 : 1 );
+	BcU32 NominalSize = OriginalNominalSize * ( DistanceField ? 4 : 1 );
 	BcU32 BorderSize = DistanceField ? Object[ "spread" ].asInt(): 1;
 	
 	int Error;
@@ -190,7 +190,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 									
 									ImgImage* pImage = makeImageForGlyph( Glyph, RenderMode, BorderSize );
 							
-									BcReal GlyphScale = DistanceField ? 0.125f : 1.0f;
+									BcReal GlyphScale = DistanceField ? 0.25f : 1.0f;
 									
 									// Convert to distance field, and scale down 4x.
 									if( DistanceField == BcTrue && pImage != NULL )
@@ -208,13 +208,12 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 										// Power of 2 round up.
 										ImgImage* pPowerOfTwo = pDistanceFieldImage->canvasSize( WidthPot, HeightPot, &FillColour );
 										
-										// Scale down 8x.
+										// Scale down 4x.
 										ImgImage* pScale1_2 = pPowerOfTwo->resize( WidthPot >> 1, HeightPot >> 1 );
 										ImgImage* pScale1_4 = pScale1_2->resize( WidthPot >> 2, HeightPot >> 2 );			
-										ImgImage* pScale1_8 = pScale1_4->resize( WidthPot >> 3, HeightPot >> 3 );			
 										
 										// Crop to final size.
-										ImgImage* pFinal = pScale1_8->cropByColour( FillColour, BcFalse );
+										ImgImage* pFinal = pScale1_4->cropByColour( FillColour, BcFalse );
 										
 										// Clean up.
 										delete pImage;
@@ -222,7 +221,6 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 										delete pPowerOfTwo;
 										delete pScale1_2;
 										delete pScale1_4;
-										delete pScale1_8;
 										
 										// Assign final image.
 										pImage = pFinal;

@@ -184,26 +184,8 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 
 	// Check for a packed package.
 	BcPath PackedPackage( getPackagePackedPath( Package ) );
-	BcBool PackageExists = FsCore::pImpl()->fileExists( (*PackedPackage).c_str() );
-
-#if PSY_SERVER
-	// If the package doesn't exist, import it.
-	if( !PackageExists )
-	{
-		// If it doesn't exist, attempt to import it.
-		BcPath ImportPackage( getPackageImportPath( Package ) );
-		if( FsCore::pImpl()->fileExists( (*ImportPackage).c_str() ) )
-		{
-			CsPackageImporter Importer;
-			if( Importer.import( Package ) )
-			{
-				int a = 0; ++a;
-
-				PackageExists = BcTrue;
-			}
-		}
-	}
-#endif
+	BcPath ImportPackage( getPackageImportPath( Package ) );
+	BcBool PackageExists = FsCore::pImpl()->fileExists( (*PackedPackage).c_str() ) || FsCore::pImpl()->fileExists( (*ImportPackage).c_str() );
 
 	// If it exists, create it. Internally it will trigger it's own load.
 	if( PackageExists )
