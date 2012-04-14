@@ -37,6 +37,13 @@ CsPackage::~CsPackage()
 // isReady
 BcBool CsPackage::isReady() const
 {
+	// If the data isn't ready, we aren't ready.
+	if( pLoader_->isDataReady() == BcFalse )
+	{
+		return BcFalse;
+	}
+
+	// Check our resources.
 	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
 	{
 		const CsResourceRef<>& Resource( Resources_[ Idx ] );
@@ -76,6 +83,39 @@ BcBool CsPackage::hasUnreferencedResources() const
 		}
 	}
 
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// haveAnyValidResources
+BcBool CsPackage::haveAnyValidResources() const
+{
+	BcAssert( BcIsGameThread() );
+
+	// If the data isn't ready, we will have valid resources soon.
+	if( pLoader_->isDataReady() == BcFalse )
+	{
+		return BcTrue;
+	}
+
+	// If our resource list is empty we can exit early.
+	if( Resources_.size() == 0 )
+	{
+		return BcFalse;
+	}
+
+	// Search through list for all valid resources.
+	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
+	{
+		const CsResourceRef<>& Resource( Resources_[ Idx ] );
+
+		if( Resource.isValid() == BcTrue )
+		{
+			return BcTrue;
+		}
+	}
+
+	//
 	return BcFalse;
 }
 

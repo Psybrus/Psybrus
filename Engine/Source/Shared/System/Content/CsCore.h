@@ -176,6 +176,8 @@ protected:
 	
 	TPackageList						PackageList_;
 	TPackageList						UnreferencedPackageList_;
+
+	BcBool								IsCollectingGarbage_;
 };
 
 //////////////////////////////////////////////////////////////////////////

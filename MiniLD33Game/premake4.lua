@@ -27,7 +27,6 @@ project "MiniLD33Game"
             "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
 
    			-- External libs.
-   			"External_enet",
    			"External_freetype",
    			"External_glew",
    			"External_jsoncpp",

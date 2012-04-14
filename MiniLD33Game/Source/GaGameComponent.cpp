@@ -136,16 +136,6 @@ static GaGameUnitDescriptor GGameUnit_Trebuchet =
 DEFINE_RESOURCE( GaGameComponent );
 
 //////////////////////////////////////////////////////////////////////////
-// StaticPropertyTable
-void GaGameComponent::StaticPropertyTable( CsPropertyTable& PropertyTable )
-{
-	Super::StaticPropertyTable( PropertyTable );
-
-	PropertyTable.beginCatagory( "GaGameComponent" )
-	.endCatagory();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // initialise
 void GaGameComponent::initialise( BcU32 TeamID,  BcBool Networked )
 {
@@ -393,35 +383,35 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Materials.
 	ScnMaterialRef Material;
-	if( CsCore::pImpl()->requestResource( "default", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "default", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, DefaultMaterial_, Material, BcErrorCode ) )
 		{
 			Parent->attach( DefaultMaterial_ );
 		}
 	}
-	if( CsCore::pImpl()->requestResource( "background", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "background", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, BackgroundMaterial_, Material, BcErrorCode ) )
 		{
 			Parent->attach( BackgroundMaterial_ );
 		}
 	}
-	if( CsCore::pImpl()->requestResource( "spritesheet0", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "spritesheet0", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, SpriteSheetMaterials_[ 0 ], Material, BcErrorCode ) )
 		{
 			Parent->attach( SpriteSheetMaterials_[ 0 ] );
 		}
 	}
-	if( CsCore::pImpl()->requestResource( "spritesheet1", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "spritesheet1", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, SpriteSheetMaterials_[ 1 ], Material, BcErrorCode ) )
 		{
 			Parent->attach( SpriteSheetMaterials_[ 1 ] );
 		}
 	}
-	if( CsCore::pImpl()->requestResource( "hud", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "hud", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, HUDMaterial_, Material, BcErrorCode ) )
 		{
@@ -431,7 +421,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Font
 	ScnFontRef Font;
-	if( CsCore::pImpl()->requestResource( "default", Font ) && CsCore::pImpl()->requestResource( "font", Material ) )
+	if( CsCore::pImpl()->requestResource( "game", "default", Font ) && CsCore::pImpl()->requestResource( "game", "font", Material ) )
 	{
 		if( CsCore::pImpl()->createResource( BcName::INVALID, Font_, Font, Material ) )
 		{

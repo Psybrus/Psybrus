@@ -47,8 +47,8 @@ public:
 private:
 	typedef std::vector< CsResourceRef<> > TResourceList;
 	typedef std::vector< ScnEntityRef > TEntityList;
-
-	typedef std::map< std::string, ScnSoundRef > TSoundMap;
+	
+	CsPackage*						pPackage_;
 
 	ScnMaterialRef					TitleMaterial_;
 	ScnMaterialRef					FontMaterial_;
@@ -56,8 +56,6 @@ private:
 	ScnMaterialRef					SpriteSheetMaterial0_;
 	ScnMaterialRef					SpriteSheetMaterial1_;
 	ScnMaterialRef					HUDMaterial_;
-
-	TSoundMap						SoundMap_;
 
 	GaGameComponentRef				GameComponent_;
 	GaTitleComponentRef				TitleComponent_;
