@@ -348,7 +348,8 @@ DEFINE_RESOURCE( ScnFont );
 //virtual
 void ScnFont::initialise()
 {
-	
+	pHeader_ = NULL;
+	pGlyphDescs_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

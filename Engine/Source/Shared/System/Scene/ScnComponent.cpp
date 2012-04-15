@@ -24,7 +24,6 @@ DEFINE_RESOURCE( ScnComponent );
 //virtual
 void ScnComponent::initialise()
 {
-	pHeader_ = NULL;
 	pSpacialTreeNode_ = NULL;
 }
 

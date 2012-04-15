@@ -59,14 +59,7 @@ public:
 	virtual BcAABB						getAABB();
 	
 protected:
-	struct THeader
-	{
-	};
-	
-	THeader*							pHeader_;
-
 	ScnEntityWeakRef					ParentEntity_;
-
 	ScnSpatialTreeNode*					pSpacialTreeNode_;
 };
 

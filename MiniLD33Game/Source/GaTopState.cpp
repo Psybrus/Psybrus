@@ -73,7 +73,7 @@ void GaTopState::preMain()
 		Entity->attach( ViewComponent );
 		Entity->attach( MaterialComponent );
 		Entity->attach( CanvasComponent );
-
+		
 		// Setup entity position to render from.
 		BcMat4d LookAt;
 		LookAt.lookAt( BcVec3d( -10.0f, 10.0f, -10.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 1.0f, 0.0f ) );

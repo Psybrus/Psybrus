@@ -111,12 +111,9 @@ protected:
 	void								internalDetach( ScnComponent* Component );
 
 protected:
-	struct THeader
-	{
-	};
+	const BcChar*						pJsonObject_; // TEMP.
 
 	ScnEntityRef						Basis_;
-	THeader*							pHeader_;
 	ScnTransform						Transform_;
 
 	ScnComponentList					Components_;
