@@ -48,6 +48,16 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 //////////////////////////////////////////////////////////////////////////
 // create
 //virtual
+void ScnCanvasComponent::initialise( const Json::Value& Object )
+{
+	Super::initialise( Object );
+
+	ScnCanvasComponent::initialise( Object[ "noofvertices" ].asUInt() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// create
+//virtual
 void ScnCanvasComponent::create()
 {
 	// Allocate our own vertex buffer data.

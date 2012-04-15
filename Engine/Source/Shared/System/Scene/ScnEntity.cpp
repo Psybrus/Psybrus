@@ -56,8 +56,36 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Basis_ = Basis;
 
 	// Copy over internals.
+	IsAttached_ = BcFalse;
 	pJsonObject_ = Basis_->pJsonObject_;
 	Transform_ = Basis_->Transform_;
+
+	// Create components from Json.
+	// TEMP.
+	Json::Value Root;
+	Json::Reader Reader;
+	if( Reader.parse( pJsonObject_, Root ) )
+	{
+		//
+		const Json::Value& Components = Root[ "components" ];
+
+		for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
+		{
+			const Json::Value& Component( Components[ Idx ] );
+			CsResourceRef<> ResourceRef;
+			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Component[ "type" ].asCString(), BcErrorCode, NULL, ResourceRef ) )
+			{
+				ScnComponentRef ComponentRef( ResourceRef );
+				BcAssert( ComponentRef.isValid() );
+
+				// Initialise has already been called...need to change this later.
+				ComponentRef->initialise( Component );
+
+				// Attach.
+				attach( ComponentRef );
+			}			
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,7 +117,7 @@ BcBool ScnEntity::isReady()
 		}
 	}
 
-	return BcTrue;
+	return pJsonObject_ != NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -27,6 +27,14 @@ void ScnRenderableComponent::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnRenderableComponent::initialise( const Json::Value& Object )
+{
+	Super::initialise( Object );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnRenderableComponent::update( BcReal Tick )
