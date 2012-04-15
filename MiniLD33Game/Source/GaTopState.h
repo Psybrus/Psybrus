@@ -48,9 +48,7 @@ private:
 	typedef std::vector< ScnEntityRef > TEntityList;
 	
 	CsPackage*						pPackage_;
-
-	ScnMaterialRef					DefaultMaterial_;
-
+	
 	GaGameComponentRef				GameComponent_;
 	GaTitleComponentRef				TitleComponent_;
 

@@ -25,7 +25,7 @@ DEFINE_RESOURCE( ScnCanvasComponent );
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent )
+void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 {
 	Super::initialise();
 
@@ -41,9 +41,6 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef
 	// Store number of vertices.
 	NoofVertices_ = NoofVertices;
 	
-	// Store default material instance.
-	DefaultMaterialComponent_ = DefaultMaterialComponent; 
-
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
 }
@@ -734,9 +731,6 @@ void ScnCanvasComponent::clear()
 
 	// Clear last primitive.
 	LastPrimitiveSection_ = BcErrorCode;
-
-	// Set material instance to default material instance.
-	setMaterialComponent( DefaultMaterialComponent_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -827,8 +821,6 @@ void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 //virtual
 void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Parent->attach( DefaultMaterialComponent_ );
-
 	Super::onAttach( Parent );	
 }
 
@@ -838,6 +830,4 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
-
-	Parent->detach( DefaultMaterialComponent_ );
 }

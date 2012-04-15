@@ -44,7 +44,6 @@ eSysStateReturn GaTopState::enter()
 	// Wait for default material to be ready.
 	if( Ready == BcTrue )
 	{
-		CsCore::pImpl()->requestResource( "game", "default", DefaultMaterial_ );
 		return sysSR_FINISHED;
 	}
 
@@ -66,12 +65,10 @@ void GaTopState::preMain()
 
 		// Create component resources.
 		CsCore::pImpl()->createResource( BcName::INVALID, ViewComponent, 0.0f, 0.0f, 1.0f, 1.0f, 0.1f, 1000.0f, BcPIDIV4, 0.0f );
-		CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent, DefaultMaterial_, BcErrorCode );
-		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32, MaterialComponent );
+		CsCore::pImpl()->createResource( BcName::INVALID, CanvasComponent, 1024 * 32 );
 
 		// Attach components.
 		Entity->attach( ViewComponent );
-		Entity->attach( MaterialComponent );
 		Entity->attach( CanvasComponent );
 		
 		// Setup entity position to render from.
