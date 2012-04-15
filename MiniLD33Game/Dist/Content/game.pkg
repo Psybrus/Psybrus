@@ -307,13 +307,6 @@
 					"vfov"			: 0.0
 				},
 
-				// void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationFlags );
-				{
-					"type"			: "ScnMaterialComponent",
-					"parent"		: "default",
-					"permutation" 	: 4294967295
-				},
-
 				// void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
 				{
 					"type"			: "ScnCanvasComponent",

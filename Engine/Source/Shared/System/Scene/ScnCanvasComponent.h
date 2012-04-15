@@ -62,7 +62,7 @@ class ScnCanvasComponent:
 public:
 	DECLARE_RESOURCE( ScnRenderableComponent, ScnCanvasComponent );
 	
-	virtual void						initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
+	virtual void						initialise( BcU32 NoofVertices );
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
@@ -217,7 +217,6 @@ protected:
 	BcU32								VertexIndex_;
 	
 	// Materials.
-	ScnMaterialComponentRef				DefaultMaterialComponent_;
 	ScnMaterialComponentRef				MaterialComponent_;
 	ScnTextureRef						DiffuseTexture_;
 
