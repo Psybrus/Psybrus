@@ -39,7 +39,7 @@ enum CsPackageFlags
 struct CsPackageHeader
 {
 	static const BcU32 MAGIC = 0x89273491;						// Basic check to make sure it's a valid package file.
-	static const BcU32 VERSION = 4;								// If the package format changes, increment this value to force reimport of packages.
+	static const BcU32 VERSION = 5;								// If the package format changes, increment this value to force reimport of packages.
 
 	BcU32								Magic_;					// Magic number.
 	BcU32								Version_;				// Version.

@@ -41,7 +41,7 @@ public:
 	
 	void							addImport( const Json::Value& Resource );
 	BcU32							addString( const BcChar* pString );
-	BcU32							addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
+	BcU32							addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
 	void							addDependency( const BcChar* pFileName );	
 	
 private:

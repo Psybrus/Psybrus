@@ -155,9 +155,9 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 		// Calculate package alloc size.
 		Header_.TotalAllocSize_ += StringTableStream.dataSize();
-		Header_.TotalAllocSize_ += BcCalcAlignment( ResourceHeaders_.size() + sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() + sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() + sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += BcCalcAlignment( ResourceHeaders_.size() * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 		
 		// Align total size to 1 page for the start of resource data.
 		Header_.TotalAllocSize_ = BcCalcAlignment( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
@@ -358,20 +358,19 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 
 //////////////////////////////////////////////////////////////////////////
 // addChunk
-BcU32 CsPackageImporter::addChunk( BcU32 ID, void* pData, BcU32 Size, BcU32 RequiredAlignment, BcU32 Flags )
+BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment, BcU32 Flags )
 {
 	BcAssert( Size > 0 );
 	BcAssert( BcPot( RequiredAlignment ) );
 	BcAssert( RequiredAlignment <= 4096 );
 
-	// Setup default packed data.
-	BcU8* pPackedData = static_cast< BcU8* >( pData );
+	const BcU8* pPackedData = reinterpret_cast< const BcU8* >( pData );
 	BcU32 PackedSize = Size;
 
 	// If we need to compress, do so.
 	if( ( Flags & csPCF_COMPRESSED ) != 0 )
 	{
-		if( BcCompressData( static_cast< BcU8* >( pData ), Size, pPackedData, PackedSize ) )
+		if( BcCompressData( static_cast< const BcU8* >( pData ), Size, pPackedData, PackedSize ) )
 		{
 			// Do nothing.
 		}

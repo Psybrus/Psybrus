@@ -20,7 +20,7 @@
  *
  * Compresses data into an output buffer. Will allocate the output buffer for you.
  */
-extern BcBool BcCompressData( const BcU8* pInputData, BcU32 InputSize, BcU8*& pOutputData, BcU32& OutputSize );
+extern BcBool BcCompressData( const BcU8* pInputData, BcU32 InputSize, const BcU8*& pOutputData, BcU32& OutputSize );
 
 //////////////////////////////////////////////////////////////////////////
 /* @class BcDecompressData

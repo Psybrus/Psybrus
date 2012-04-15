@@ -13,8 +13,7 @@
 
 #include "System/Scene/ScnEntity.h"
 #include "System/Scene/ScnCore.h"
-
-//#include "System/Renderer/RsCore.h"
+#include "System/Content/CsCore.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -24,6 +23,14 @@
 //virtual
 BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
+	// Write out object to be used later.
+	Json::FastWriter Writer;
+	std::string JsonData = Writer.write( Object );
+	
+	//
+	Importer.addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
+	
+	//
 	return Super::import( Importer, Object );
 }
 #endif
@@ -37,8 +44,8 @@ DEFINE_RESOURCE( ScnEntity );
 void ScnEntity::initialise()
 {
 	// NULL internals.
-	pHeader_ = NULL;
 	IsAttached_ = BcFalse;
+	pJsonObject_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,7 +56,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Basis_ = Basis;
 
 	// Copy over internals.
-	pHeader_ = Basis_->pHeader_;
+	pJsonObject_ = Basis_->pJsonObject_;
 	Transform_ = Basis_->Transform_;
 }
 
@@ -239,10 +246,9 @@ void ScnEntity::fileReady()
 // fileChunkReady
 void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( ChunkID == BcHash( "header" ) )
+	if( ChunkID == BcHash( "object" ) )
 	{
-		// Grab pointer to header.
-		pHeader_ = reinterpret_cast< THeader* >( pData );
+		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
 	}
 }
 
