@@ -80,24 +80,38 @@ DEFINE_RESOURCE( ScnViewComponent );
 void ScnViewComponent::initialise()
 {
 	// NULL internals.
-	pHeader_ = NULL;
+	//pHeader_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV )
 {
-	// Temporary solution.
-	pHeader_ = &TempImportHeaderHack_;
-	
-	pHeader_->X_ = X;
-	pHeader_->Y_ = Y;
-	pHeader_->Width_ = Width;
-	pHeader_->Height_ = Height;
-	pHeader_->Near_ = Near;
-	pHeader_->Far_ = Far;
-	pHeader_->HorizontalFOV_ = HorizontalFOV;
-	pHeader_->VerticalFOV_ = VerticalFOV;
+	Header_.X_ = X;
+	Header_.Y_ = Y;
+	Header_.Width_ = Width;
+	Header_.Height_ = Height;
+	Header_.Near_ = Near;
+	Header_.Far_ = Far;
+	Header_.HorizontalFOV_ = HorizontalFOV;
+	Header_.VerticalFOV_ = VerticalFOV;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnViewComponent::initialise( const Json::Value& Object )
+{
+	Super::initialise( Object );
+
+	Header_.X_ = (BcReal)Object[ "x" ].asDouble();
+	Header_.Y_ = (BcReal)Object[ "y" ].asDouble();
+	Header_.Width_ = (BcReal)Object[ "width" ].asDouble();
+	Header_.Height_ = (BcReal)Object[ "height" ].asDouble();
+	Header_.Near_ = (BcReal)Object[ "near" ].asDouble();
+	Header_.Far_ = (BcReal)Object[ "far" ].asDouble();
+	Header_.HorizontalFOV_ = (BcReal)Object[ "hfov" ].asDouble();
+	Header_.VerticalFOV_ = (BcReal)Object[ "vfov" ].asDouble();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,7 +135,7 @@ void ScnViewComponent::destroy()
 //virtual
 BcBool ScnViewComponent::isReady()
 {
-	return pHeader_ != NULL;
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -143,17 +157,17 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	// Calculate the viewport.
 	const BcReal Width = static_cast< BcReal >( pContext->getWidth() );
 	const BcReal Height = static_cast< BcReal >( pContext->getHeight() );
-	const BcReal ViewWidth = pHeader_->Width_ * Width;
-	const BcReal ViewHeight = pHeader_->Height_ * Height;
+	const BcReal ViewWidth = Header_.Width_ * Width;
+	const BcReal ViewHeight = Header_.Height_ * Height;
 	const BcReal Aspect = ViewWidth / ViewHeight;
 
 	// Setup the viewport.
-	Viewport_.viewport( static_cast< BcU32 >( pHeader_->X_ * Width ),
-	                    static_cast< BcU32 >( pHeader_->Y_ * Height ),
+	Viewport_.viewport( static_cast< BcU32 >( Header_.X_ * Width ),
+	                    static_cast< BcU32 >( Header_.Y_ * Height ),
 	                    static_cast< BcU32 >( ViewWidth ),
 	                    static_cast< BcU32 >( ViewHeight ),
-	                    pHeader_->Near_,
-	                    pHeader_->Far_ );
+	                    Header_.Near_,
+	                    Header_.Far_ );
 
 	// Setup the view matrix.
 	BcMat4d ViewMatrix;
@@ -162,13 +176,13 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	
 	// Setup the perspective projection.
 	BcMat4d ProjectionMatrix;
-	if( pHeader_->HorizontalFOV_ > 0.0f )
+	if( Header_.HorizontalFOV_ > 0.0f )
 	{
-		ProjectionMatrix.perspProjectionHorizontal( pHeader_->HorizontalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+		ProjectionMatrix.perspProjectionHorizontal( Header_.HorizontalFOV_, Aspect, Header_.Near_, Header_.Far_ );
 	}
 	else
 	{
-		ProjectionMatrix.perspProjectionVertical( pHeader_->VerticalFOV_, Aspect, pHeader_->Near_, pHeader_->Far_ );
+		ProjectionMatrix.perspProjectionVertical( Header_.VerticalFOV_, Aspect, Header_.Near_, Header_.Far_ );
 	}
 	Viewport_.projection( ProjectionMatrix );
 
@@ -191,7 +205,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 void ScnViewComponent::fileReady()
 {
 	// File is ready, get the header chunk.
-	requestChunk( 0 );
+	requestChunk( 0, &Header_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -200,9 +214,6 @@ void ScnViewComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pDat
 {
 	if( ChunkID == BcHash( "header" ) )
 	{
-		// Grab pointer to header.
-		pHeader_ = reinterpret_cast< THeader* >( pData );
-				
 		// TODO STUFF HERE.
 	}
 }

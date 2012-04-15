@@ -54,12 +54,28 @@ eSysStateReturn GaTopState::enter()
 // preMain
 void GaTopState::preMain()
 { 
+	ScnEntityRef BaseEntity;
 	ScnEntityRef Entity;
-	
-	// Create view entity.
-	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
+
+	if( CsCore::pImpl()->requestResource( "game", "ScreenEntity", BaseEntity ) )
 	{
-		ScnMaterialComponentRef MaterialComponent;
+		if( CsCore::pImpl()->createResource( "ScreenEntity_0", Entity, BaseEntity ) )
+		{
+			// Setup entity position to render from.
+			BcMat4d LookAt;
+			LookAt.lookAt( BcVec3d( -10.0f, 10.0f, -10.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 1.0f, 0.0f ) );
+			LookAt.inverse();
+			Entity->setMatrix( LookAt );		
+
+			GameEntity_ = Entity;
+			EntityList_.push_back( Entity );
+		}
+	}
+	
+	// Create screen entity.
+	/*
+	if( CsCore::pImpl()->createResource( "ScreenEntity_0", Entity ) )
+	{
 		ScnViewComponentRef ViewComponent;
 		ScnCanvasComponentRef CanvasComponent;
 
@@ -80,6 +96,7 @@ void GaTopState::preMain()
 		GameEntity_ = Entity;
 		EntityList_.push_back( Entity );
 	}
+	*/
 
 	// Add entities to scene.
 	for( BcU32 Idx = 0; Idx < EntityList_.size(); ++Idx )

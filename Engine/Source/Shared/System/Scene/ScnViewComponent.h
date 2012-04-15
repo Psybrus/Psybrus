@@ -43,6 +43,7 @@ public:
 #endif	
 	void								initialise();
 	void								initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
+	virtual void						initialise( const Json::Value& Object );
 	
 	virtual void						create();
 	virtual void						destroy();
@@ -73,8 +74,7 @@ protected:
 		BcReal							VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
 	};
 	
-	THeader*							pHeader_;
-	THeader								TempImportHeaderHack_;
+	THeader								Header_;
 	
 	ScnRenderTargetRef					RenderTarget_;
 	RsViewport							Viewport_;

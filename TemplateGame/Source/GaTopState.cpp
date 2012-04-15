@@ -89,7 +89,7 @@ void GaTopState::preMain()
 	}
 	
 	// Create view entity.
-	if( CsCore::pImpl()->createResource( "ViewEntity_0", Entity ) )
+	if( CsCore::pImpl()->createResource( "ScreenEntity_0", Entity ) )
 	{
 		ScnViewComponentRef ViewComponent;
 	
