@@ -43,7 +43,8 @@ BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& O
 		BcU32 NodeIndex = 0;
 		BcU32 PrimitiveIndex = 0;
 		
-		recursiveSerialiseNodes( NodeTransformDataStream,
+		recursiveSerialiseNodes( Importer,
+								 NodeTransformDataStream,
 								 NodePropertyDataStream, 
 								 VertexDataStream, 
 								 IndexDataStream, 
@@ -80,7 +81,8 @@ BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& O
 	return BcFalse;
 }
 
-void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
+void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
+                                        BcStream& TransformStream,
 									    BcStream& PropertyStream,
 									    BcStream& VertexStream,
 									    BcStream& IndexStream,
@@ -136,8 +138,7 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 			
 			// Grab material name.
 			MdlMaterial Material = pSubMesh->material( 0 );
-			BcMemZero( PrimitiveData.MaterialName_, sizeof( PrimitiveData.MaterialName_ ) );
-
+			
 			// Always setup default material.
 			if( Material.Name_.length() == 0 )
 			{
@@ -146,7 +147,7 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 			
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
-			BcStrCopy( PrimitiveData.MaterialName_, Material.Name_.c_str() );
+			PrimitiveData.MaterialName_ = Importer.addString( Material.Name_.c_str() );
 			PrimitiveStream << PrimitiveData;
 			
 			// Export vertices.
@@ -179,7 +180,8 @@ void ScnModel::recursiveSerialiseNodes( BcStream& TransformStream,
 	
 	while( pChild != NULL )
 	{
-		recursiveSerialiseNodes( TransformStream,
+		recursiveSerialiseNodes( Importer,
+								 TransformStream,
 								 PropertyStream,
 								 VertexStream,
 								 IndexStream,
@@ -288,7 +290,7 @@ void ScnModel::setup()
 		};
 		
 		// Get resource.
-		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), pPrimitiveData->MaterialName_, PrimitiveRuntime.MaterialRef_ ) )
+		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pPrimitiveData->MaterialName_ ), PrimitiveRuntime.MaterialRef_ ) )
 		{
 			// Push into array.
 			PrimitiveRuntimes_.push_back( PrimitiveRuntime );
@@ -397,6 +399,20 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 			MaterialComponentDescList_.push_back( MaterialComponentDesc );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnModelComponent::initialise( const Json::Value& Object )
+{
+	ScnModelRef ModelRef;
+	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "model" ].asCString(), ModelRef ) )
+	{
+		BcAssertMsg( BcFalse, "ScnModelComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "model" ].asCString(), "ScnModel" );
+	}
+
+	initialise( ModelRef );
 }
 
 //////////////////////////////////////////////////////////////////////////

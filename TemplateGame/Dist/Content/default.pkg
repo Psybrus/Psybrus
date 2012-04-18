@@ -7,8 +7,8 @@
 
 			"source"		: "EngineContent/FontSource/srgt6pack.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 64,
-			"spread"		: 16
+			"nominalsize"	: 32,
+			"spread"		: 4
 		},
 
 		{
@@ -24,7 +24,7 @@
 
 			"shaders"		: {
 				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/diffuse.glslf"
+				"fragment" 		: "EngineContent/ShaderSource/diffuse3d.glslf"
 			}
 		},
 
@@ -90,8 +90,81 @@
 
 		{
 			"type"		: "ScnModel",
-			"name"		: "default",
-			"source"	: "EngineContent/ModelSource/default2.obj"
+			"name"		: "sphere",
+			"source"	: "Content/Source/sphere.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "cube",
+			"source"	: "Content/Source/cube.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "paddle",
+			"source"	: "Content/Source/paddle.obj"
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Entities.
+		{
+			"name"		:		"ScreenEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
+				{
+					"type"			: "ScnViewComponent",
+					"x"				: 0.0,
+					"y"				: 0.0,
+					"width"			: 1.0,
+					"height"		: 1.0,
+					"near"			: 0.1,
+					"far"			: 1000.0,
+					"hfov"			: 0.75,
+					"vfov"			: 0.0
+				},
+
+				// void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
+				{
+					"type"			: "ScnCanvasComponent",
+					"noofvertices" 	: 32768
+				}
+			]
+		},
+
+		{
+			"name"		:		"PaddleEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaPaddleComponent"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "paddle"	// cube:ScnModel
+				}
+			]
+		},
+
+		{
+			"name"		:		"BallEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaBallComponent"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "sphere"	// sphere:ScnModel
+				}
+			]
 		}
+
 	]
 }

@@ -36,10 +36,8 @@ public:
 
 private:
 	typedef std::vector< CsResourceRef<> > TResourceList;
-	typedef std::vector< ScnEntityRef > TEntityList;
 
-	TResourceList					ResourceList_;
-	TEntityList						EntityList_;
+	CsPackage*						pPackage_;
 };
 
 #endif

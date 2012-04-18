@@ -67,6 +67,11 @@ public:
 	BcBool								isAttached() const;
 
 	/**
+	 * Get basis entity.
+	 */
+	ScnEntityRef						getBasisEntity();
+
+	/**
 	 * Get number of components.
 	 */
 	BcU32								getNoofComponents() const;

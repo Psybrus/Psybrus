@@ -107,7 +107,7 @@ void MainShared()
 	// Setup system threads.
 	FsCore::WORKER_MASK = 0x1;
 	RsCore::WORKER_MASK = 0x2;
-	SsCore::WORKER_MASK = 0x0;
+	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )

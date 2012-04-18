@@ -38,7 +38,8 @@ public:
 	
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-	void								recursiveSerialiseNodes( class BcStream& TransformStream,
+	void								recursiveSerialiseNodes( class CsPackageImporter& Importer,
+										                         class BcStream& TransformStream,
 																 class BcStream& PropertyStream,
 																 class BcStream& VertexStream,
 																 class BcStream& IndexStream,
@@ -93,7 +94,7 @@ protected:
 		BcU32							VertexFormat_;
 		BcU32							NoofVertices_;
 		BcU32							NoofIndices_;
-		BcChar							MaterialName_[ 64 ];		// NOTE: Not optimal...look at packing into a string table.
+		BcU32							MaterialName_;
 	};
 	
 	// Cached pointers for internal use.
@@ -127,6 +128,7 @@ public:
 	DECLARE_RESOURCE( ScnRenderableComponent, ScnModelComponent );
 
 	virtual void						initialise( ScnModelRef Parent );
+	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
 	virtual BcBool						isReady();
 
