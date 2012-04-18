@@ -39,7 +39,7 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
-	BcBool								isAttached() const;
+	virtual BcBool						isAttached() const;
 	BcBool								isAttached( ScnEntityWeakRef Parent ) const;
 	ScnEntityWeakRef					getParentEntity();
 	

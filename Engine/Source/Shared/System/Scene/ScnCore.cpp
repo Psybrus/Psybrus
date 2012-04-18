@@ -66,7 +66,7 @@ void ScnCore::update()
 	{
 		ScnEntityRef Entity( *It );
 
-		if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+		//if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
 		{
 			Entity->update( Tick );
 		}
@@ -97,7 +97,7 @@ void ScnCore::update()
 			{
 				ScnEntityRef& Entity( *It );
 
-				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				//if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
 				{
 					for( BcU32 ComponentIdx = 0; ComponentIdx < Entity->getNoofComponents(); ++ComponentIdx )
 					{

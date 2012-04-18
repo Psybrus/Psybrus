@@ -393,7 +393,7 @@ BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Nam
 {
 	// Find package
 	CsPackage* pPackage = findPackage( Package );
-	if( pPackage )
+	if( pPackage || Package == BcName::NONE )
 	{
 		// If we can't find resource, throw an error.
 		if( internalFindResource( Package, Name, Type, Handle ) == BcFalse )
@@ -422,30 +422,64 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	// Honestly, I don't like having multiple lists for everything as it makes this method a filthy
 	// mess. BUT, it does mean I will have a much easier time debugging, and also process the minimum
 	// amount of resources.
+	// THIS IS A MESS. FIX THIS FUCKING SHIT.
 	for( TResourceHandleListIterator It( CreateResources_.begin() ); It != CreateResources_.end(); ++It )
 	{
-		if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+		if( Package != BcName::NONE )
 		{
-			Handle = (*It);
-			return BcTrue;
+			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			{
+				Handle = (*It);
+				return BcTrue;
+			}
+		}
+		else
+		{
+			if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			{
+				Handle = (*It);
+				return BcTrue;
+			}
 		}
 	}
 
 	for( TResourceHandleListIterator It( LoadingResources_.begin() ); It != LoadingResources_.end(); ++It )
 	{
-		if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+		if( Package != BcName::NONE )
 		{
-			Handle = (*It);
-			return BcTrue;
+			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			{
+				Handle = (*It);
+				return BcTrue;
+			}
+		}
+		else
+		{
+			if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			{
+				Handle = (*It);
+				return BcTrue;
+			}
 		}
 	}
 
 	for( TResourceListIterator It( LoadedResources_.begin() ); It != LoadedResources_.end(); ++It )
 	{
-		if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+		if( Package != BcName::NONE )
 		{
-			Handle = (*It);
-			return BcTrue;
+			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			{
+				Handle = (*It);
+				return BcTrue;
+			}
+		}
+		else
+		{
+			if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			{
+				Handle = (*It);
+				return BcTrue;
+			}
 		}
 	}
 

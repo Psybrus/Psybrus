@@ -52,8 +52,8 @@ void ScnEntity::initialise()
 // initialise
 void ScnEntity::initialise( ScnEntityRef Basis )
 {
-	// Keep a ref to our basis so it isn't unloaded.
-	Basis_ = Basis;
+	// Grab our basis.
+	Basis_ = Basis->getBasisEntity();
 
 	// Copy over internals.
 	IsAttached_ = BcFalse;
@@ -202,7 +202,21 @@ void ScnEntity::onDetachScene()
 // isAttached
 BcBool ScnEntity::isAttached() const
 {
-	return IsAttached_;
+	return IsAttached_ || Super::isAttached();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBasisEntity
+ScnEntityRef ScnEntity::getBasisEntity()
+{
+	// If we have a basis, ask it for it's basis.
+	if( Basis_.isValid() )
+	{
+		return Basis_->getBasisEntity();
+	}
+
+	// We have no basis, therefore we are it.
+	return this;
 }
 
 //////////////////////////////////////////////////////////////////////////
