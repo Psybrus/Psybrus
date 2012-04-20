@@ -92,11 +92,6 @@ public:
 	void								setPosition( const BcVec3d& Position );
 
 	/**
-	 * Set rotation.
-	 */
-	void								setRotation( const BcQuat& Rotation );
-
-	/**
 	 * Set matrix.
 	 */
 	void								setMatrix( const BcMat4d& Matrix );
