@@ -31,9 +31,9 @@ void GaCameraComponent::initialise( const Json::Value& Object )
 //virtual
 void GaCameraComponent::update( BcReal Tick )
 {
-	Ticker_ += Tick * 2.0f;
+	Ticker_ += Tick * 0.5f;
 
-	BcVec3d Position( BcVec3d( BcCos( Ticker_ ), 0.00f, -BcSin( Ticker_ ) ) * 22.0f );
+	BcVec3d Position( BcVec3d( BcCos( Ticker_ ), 0.25f, -BcSin( Ticker_ ) ) * 22.0f );
 
 	// Setup entity position to render from.
 	BcMat4d LookAt;

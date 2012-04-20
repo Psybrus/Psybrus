@@ -27,7 +27,7 @@ typedef CsResourceRef< class ScnParticleSystemComponent, false > ScnParticleSyst
 struct ScnParticleVertex
 {
 	BcF32 X_, Y_, Z_;
-	BcF32 NX_, NY_, NZ_;			// Use for billboarding.
+	BcF32 NX_, NY_, NZ_;			// Offset.
 	BcF32 U_, V_;
 	BcU32 RGBA_;
 };
@@ -43,6 +43,8 @@ struct ScnParticle					// TODO: Factor our into affectors so we can store minimu
 	BcVec2d Scale_;					// Scale.
 	BcVec2d MinScale_;				// Min scale. (time based)
 	BcVec2d MaxScale_;				// Max scale. (time based)
+
+	BcReal RotationMultiplier_;		// Rotation mult. Mult against time.
 
 	RsColour Colour_;				// Colour;
 	RsColour MinColour_;			// Min colour. (time based)
