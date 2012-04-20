@@ -48,6 +48,10 @@ public:
 	void fromMatrix4d( const BcMat4d& Mat );
 	void asMatrix4d( BcMat4d& Matrix ) const;
 
+	//
+	void rotateTo( const BcVec3d& From, const BcVec3d& To );
+	void axisAngle( const BcVec3d& Axis, BcReal Angle );
+	
 	// 
 	void fromEular( BcReal Yaw, BcReal Pitch, BcReal Roll );
 	BcVec3d asEular() const;

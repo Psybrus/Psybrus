@@ -19,6 +19,13 @@
 		},
 
 		{
+			"type"			: "ScnTexture",
+			"name"			: "particle0",
+
+			"source"		: "Content/Source/particle0.png"
+		},
+
+		{
 			"type"			: "ScnShader",
 			"name"			: "default",
 
@@ -89,6 +96,41 @@
 		},
 
 		{
+			"type"			: "ScnShader",
+			"name"			: "particle",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/particle.glslv",
+				"fragment" 		: "Content/Source/particle.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "particle",
+
+			// Shader
+			"shader"		: "particle",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "particle0"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "none"
+			}
+		},
+
+		{
 			"type"		: "ScnModel",
 			"name"		: "sphere",
 			"source"	: "Content/Source/sphere.obj"
@@ -113,6 +155,10 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
+				{
+					"type"			: "GaCameraComponent"
+				},
+
 				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
 				{
 					"type"			: "ScnViewComponent",
@@ -131,6 +177,7 @@
 					"type"			: "ScnCanvasComponent",
 					"noofvertices" 	: 32768
 				}
+
 			]
 		},
 
@@ -151,7 +198,7 @@
 		},
 
 		{
-			"name"		:		"BallEntity",
+			"name"		:		"BallEntity", 
 			"type"		:		"ScnEntity",
 
 			"components" : [
@@ -162,6 +209,12 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "sphere"	// sphere:ScnModel
+				},
+
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 4096,
+					"material"		: "particle"
 				}
 			]
 		}

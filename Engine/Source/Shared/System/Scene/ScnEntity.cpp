@@ -238,26 +238,19 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx )
 // setPosition
 void ScnEntity::setPosition( const BcVec3d& Position )
 {
-	Transform_.setTranslation( Position );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRotation
-void ScnEntity::setRotation( const BcQuat& Rotation )
-{
-	Transform_.setRotation( Rotation );
+	Transform_.translation( Position );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setMatrix
 void ScnEntity::setMatrix( const BcMat4d& Matrix )
 {
-	Transform_.setMatrix( Matrix );
+	Transform_ = Matrix;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getTransform
-const ScnTransform& ScnEntity::getTransform() const
+// getMatrix
+const BcMat4d& ScnEntity::getMatrix() const
 {
 	return Transform_;
 }

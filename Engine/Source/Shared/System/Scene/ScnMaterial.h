@@ -110,6 +110,11 @@ public:
 	void								setParameter( BcU32 Parameter, const BcMat3d& Value );
 	void								setParameter( BcU32 Parameter, const BcMat4d& Value );
 	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
+
+	// Common scene parameters.
+	void								setClipTransform( const BcMat4d& Transform );
+	void								setViewTransform( const BcMat4d& Transform );
+	void								setWorldTransform( const BcMat4d& Transform );
 	
 	void								setState( eRsRenderState State, BcU32 Value );
 	
@@ -158,6 +163,12 @@ private:
 	
 	// TODO: Should be handled by the state block.
 	BcU32*								pStateBuffer_;
+
+	// Common scene parameters.
+	BcU32								ClipTransformParameter_;
+	BcU32								ViewTransformParameter_;
+	BcU32								InverseViewTransformParameter_;
+	BcU32								WorldTransformParameter_;
 };
 
 #endif

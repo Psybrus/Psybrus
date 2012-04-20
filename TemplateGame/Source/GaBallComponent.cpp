@@ -36,10 +36,10 @@ void GaBallComponent::update( BcReal Tick )
 	BcQuat Rotation;
 	Rotation.fromEular( Rotation_, 0.0f, 0.0f );
 	Rotation_ += Tick;
-	getParentEntity()->setRotation( Rotation );
+	//getParentEntity()->setRotation( Rotation );
 
 	// Move ball.
-	const BcVec3d& Position = getParentEntity()->getTransform().getTranslation();
+	const BcVec3d& Position = getParentEntity()->getMatrix().translation();
 	BcVec3d NewPosition = Position + Velocity_ * Tick;
 
 	if( NewPosition.x() < -18.0f || NewPosition.x() > 18.0f )

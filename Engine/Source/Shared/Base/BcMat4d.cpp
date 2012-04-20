@@ -218,6 +218,7 @@ void BcMat4d::lookAt( const BcVec3d& Position, const BcVec3d& LookAt, const BcVe
 	                   BcVec4d( Side.z(),		Up.z(),		-Front.z(),		0.0f ),
 	                   BcVec4d( 0.0f,			0.0f,			0.0f,		1.0f ) );
 
+
 	BcMat4d TransMatrix( BcVec4d( 1.0f,			0.0f,			0.0f,		0.0f ),
 	                   BcVec4d( 0.0f,			1.0f,			0.0f,		0.0f ),
 	                   BcVec4d( 0.0f,			0.0f,			1.0f,		0.0f ),

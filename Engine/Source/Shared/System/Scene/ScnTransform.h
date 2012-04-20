@@ -112,6 +112,12 @@ inline void ScnTransform::setMatrix( const BcMat4d& InMatrix )
 {
 	Rotation_.fromMatrix4d( InMatrix );
 	Translation_ = InMatrix.translation();
+
+#if PSY_DEBUG
+	BcMat4d Matrix;
+	getMatrix( Matrix );
+	BcAssert( InMatrix == Matrix );
+#endif
 }
 
 inline const BcQuat& ScnTransform::getRotation() const
