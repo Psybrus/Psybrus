@@ -85,20 +85,24 @@ void ScnParticleSystemComponent::update( BcReal Tick )
 {
 	/*
 	// TEST CODE.
-	ScnParticle* pParticle = NULL;
-	if( allocParticle( pParticle ) )
+	for( BcU32 Idx = 0; Idx < 4; ++Idx )
 	{
-		pParticle->Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-		pParticle->Velocity_ = BcVec3d( BcRandom::Global.randReal() - 0.5f, BcRandom::Global.randReal() - 0.25f, BcRandom::Global.randReal() - 0.5f ) * 8.0f;
-		pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-		pParticle->MinScale_ = BcVec2d( 0.5f, 0.5f );
-		pParticle->MaxScale_ = BcVec2d( 0.5f, 0.5f );
-		pParticle->MinColour_ = RsColour( 1.0f, 0.0f, 1.0f, 1.0f );
-		pParticle->MaxColour_ = RsColour( 0.0f, 1.0f, 1.0f, 0.0f );
-		pParticle->UVBounds_ = BcVec4d( 0.0f, 0.0f, 1.0f, 1.0f );
-		pParticle->CurrentTime_ = 0.0f;
-		pParticle->MaxTime_ = 2.0f;
-		pParticle->Alive_ = BcTrue;
+		ScnParticle* pParticle = NULL;
+		if( allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Velocity_ = BcVec3d( BcRandom::Global.randReal() - 0.5f, BcRandom::Global.randReal() - 0.5f, BcRandom::Global.randReal() - 0.5f ).normal() * 16.0f;
+			pParticle->Acceleration_ = -pParticle->Velocity_ * 0.5f;
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() - 0.5f ) * 4.0f;
+			pParticle->MinScale_ = BcVec2d( 0.5f, 0.5f );
+			pParticle->MaxScale_ = BcVec2d( 4.0f, 4.0f );
+			pParticle->MinColour_ = RsColour( 1.0f, 0.0f, 1.0f, 0.1f );
+			pParticle->MaxColour_ = RsColour( 0.0f, 1.0f, 1.0f, 0.0f );
+			pParticle->UVBounds_ = BcVec4d( 0.0f, 0.0f, 1.0f, 1.0f );
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = 4.0f;
+			pParticle->Alive_ = BcTrue;
+		}
 	}
 	//*/
 	
@@ -140,8 +144,25 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 
 		if( Particle.Alive_ )
 		{
-			// Use half size of particle. TODO: Ain't optimal.
+			// Half size.
 			const BcVec2d HalfSize = Particle.Scale_ * 0.5f;
+
+			// Crappy rotation implementation :P
+			const BcReal Radians = Particle.CurrentTime_ * Particle.RotationMultiplier_;
+			BcVec2d CornerA = BcVec2d( -1.0f, -1.0f ) * HalfSize;
+			BcVec2d CornerB = BcVec2d(  1.0f, -1.0f ) * HalfSize;
+			BcVec2d CornerC = BcVec2d(  1.0f,  1.0f ) * HalfSize;
+			BcVec2d CornerD = BcVec2d( -1.0f,  1.0f ) * HalfSize;
+			if( Radians != NULL )
+			{
+				BcMat4d Rotation;
+				Rotation.rotation( BcVec3d( 0.0f, 0.0f, Radians ) );
+				CornerA = CornerA * Rotation;
+				CornerB = CornerB * Rotation;
+				CornerC = CornerC * Rotation;
+				CornerD = CornerD * Rotation;
+			}
+
 			const BcU32 Colour = Particle.Colour_.asABGR();
 
 			// Grab vertices.
@@ -157,8 +178,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexA.X_ = Particle.Position_.x();
 			VertexA.Y_ = Particle.Position_.y();
 			VertexA.Z_ = Particle.Position_.z();
-			VertexA.NX_ = -HalfSize.x();
-			VertexA.NY_ = -HalfSize.y();
+			VertexA.NX_ = CornerA.x();
+			VertexA.NY_ = CornerA.y();
 			VertexA.NZ_ = 0.0f;
 			VertexA.U_ = Particle.UVBounds_.x();
 			VertexA.V_ = Particle.UVBounds_.y();
@@ -168,8 +189,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexB.X_ = Particle.Position_.x();
 			VertexB.Y_ = Particle.Position_.y();
 			VertexB.Z_ = Particle.Position_.z();
-			VertexB.NX_ =  HalfSize.x();
-			VertexB.NY_ = -HalfSize.y();
+			VertexB.NX_ = CornerB.x();
+			VertexB.NY_ = CornerB.y();
 			VertexB.NZ_ = 0.0f;
 			VertexB.U_ = Particle.UVBounds_.z();
 			VertexB.V_ = Particle.UVBounds_.y();
@@ -179,8 +200,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexC.X_ = Particle.Position_.x();
 			VertexC.Y_ = Particle.Position_.y();
 			VertexC.Z_ = Particle.Position_.z();
-			VertexC.NX_ =  HalfSize.x();
-			VertexC.NY_ =  HalfSize.y();
+			VertexC.NX_ = CornerC.x();
+			VertexC.NY_ = CornerC.y();
 			VertexC.NZ_ = 0.0f;
 			VertexC.U_ = Particle.UVBounds_.z();
 			VertexC.V_ = Particle.UVBounds_.w();
@@ -190,8 +211,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexD.X_ = Particle.Position_.x();
 			VertexD.Y_ = Particle.Position_.y();
 			VertexD.Z_ = Particle.Position_.z();
-			VertexD.NX_ =  HalfSize.x();
-			VertexD.NY_ =  HalfSize.y();
+			VertexD.NX_ = CornerC.x();
+			VertexD.NY_ = CornerC.y();
 			VertexD.NZ_ = 0.0f;
 			VertexD.U_ = Particle.UVBounds_.z();
 			VertexD.V_ = Particle.UVBounds_.w();
@@ -201,8 +222,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexE.X_ = Particle.Position_.x();
 			VertexE.Y_ = Particle.Position_.y();
 			VertexE.Z_ = Particle.Position_.z();
-			VertexE.NX_ = -HalfSize.x();
-			VertexE.NY_ =  HalfSize.y();
+			VertexE.NX_ = CornerD.x();
+			VertexE.NY_ = CornerD.y();
 			VertexE.NZ_ = 0.0f;
 			VertexE.U_ = Particle.UVBounds_.x();
 			VertexE.V_ = Particle.UVBounds_.w();
@@ -212,8 +233,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexF.X_ = Particle.Position_.x();
 			VertexF.Y_ = Particle.Position_.y();
 			VertexF.Z_ = Particle.Position_.z();
-			VertexF.NX_ = -HalfSize.x();
-			VertexF.NY_ = -HalfSize.y();
+			VertexF.NX_ = CornerA.x();
+			VertexF.NY_ = CornerA.y();
 			VertexF.NZ_ = 0.0f;
 			VertexF.U_ = Particle.UVBounds_.x();
 			VertexF.V_ = Particle.UVBounds_.y();
