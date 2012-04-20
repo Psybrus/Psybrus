@@ -392,8 +392,7 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 
 			TMaterialComponentDesc MaterialComponentDesc =
 			{
-				MaterialComponentRef,
-				MaterialComponentRef->findParameter( "uWorldTransform" )				
+				MaterialComponentRef
 			};
 
 			MaterialComponentDescList_.push_back( MaterialComponentDesc );
@@ -453,7 +452,7 @@ void ScnModelComponent::update( BcReal Tick )
 
 	// Copy parent transform to root node.
 	ScnModel::TNodeTransformData* pRootNode = &pNodeTransformData_[ 0 ];
-	getParentEntity()->getTransform().getMatrix( pRootNode->RelativeTransform_ );
+	pRootNode->RelativeTransform_ = getParentEntity()->getMatrix();
 
 	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
@@ -545,7 +544,7 @@ void ScnModelComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 		if( MaterialComponentDesc.MaterialComponentRef_.isValid() )
 		{
 			// Set model parameters on material.
-			MaterialComponentDesc.MaterialComponentRef_->setParameter( MaterialComponentDesc.WorldMatrixIdx_, pNodeTransformData->AbsoluteTransform_ );
+			MaterialComponentDesc.MaterialComponentRef_->setWorldTransform( pNodeTransformData->AbsoluteTransform_ );
 			
 			// Bind material.
 			MaterialComponentDesc.MaterialComponentRef_->bind( pFrame, Sort );

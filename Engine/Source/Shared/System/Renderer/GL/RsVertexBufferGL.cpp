@@ -21,7 +21,7 @@ RsVertexBufferGL::RsVertexBufferGL( BcU32 Descriptor, BcU32 NoofVertices, void* 
 {
 	// Setup base buffer.
 	Type_ = GL_ARRAY_BUFFER;
-	Usage_ = pVertexData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
+	Usage_ = GL_DYNAMIC_DRAW;//pVertexData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
 	
 	// Setup stride and descriptor.
 	Descriptor_ = Descriptor;

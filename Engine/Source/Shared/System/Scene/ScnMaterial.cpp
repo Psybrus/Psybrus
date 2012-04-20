@@ -305,6 +305,12 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 			TextureBindingList_.push_back( Binding );
 		}
 	}
+
+	// Grab common parameters.
+	ClipTransformParameter_ = findParameter( "uClipTransform" );
+	ViewTransformParameter_ = findParameter( "uViewTransform" );
+	InverseViewTransformParameter_ = findParameter( "uInverseViewTransform" );
+	WorldTransformParameter_ = findParameter( "uWorldTransform" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -545,6 +551,34 @@ void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 			}
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setClipTransform
+void ScnMaterialComponent::setClipTransform( const BcMat4d& Transform )
+{
+	setParameter( ClipTransformParameter_, Transform );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewTransform
+void ScnMaterialComponent::setViewTransform( const BcMat4d& Transform )
+{
+	setParameter( ViewTransformParameter_, Transform );
+
+	if( InverseViewTransformParameter_ != BcErrorCode )
+	{
+		BcMat4d InverseViewTransform = Transform;
+		InverseViewTransform.inverse();
+		setParameter( InverseViewTransformParameter_, InverseViewTransform );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWorldTransform
+void ScnMaterialComponent::setWorldTransform( const BcMat4d& Transform )
+{
+	setParameter( WorldTransformParameter_, Transform );
 }
 
 //////////////////////////////////////////////////////////////////////////

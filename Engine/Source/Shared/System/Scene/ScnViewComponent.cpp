@@ -142,10 +142,9 @@ BcBool ScnViewComponent::isReady()
 // setMaterialParameters
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialComponent )
 {
-	BcU32 ClipTransform = MaterialComponent->findParameter( "uClipTransform" );
-	BcU32 ViewTransform = MaterialComponent->findParameter( "uViewTransform" );
-	MaterialComponent->setParameter( ClipTransform, Viewport_.view() * Viewport_.projection() );
-	MaterialComponent->setParameter( ViewTransform, Viewport_.view() );
+	// TODO: Cache in material component properly.
+	MaterialComponent->setClipTransform( Viewport_.view() * Viewport_.projection() );
+	MaterialComponent->setViewTransform( Viewport_.view() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -170,8 +169,8 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Header_.Far_ );
 
 	// Setup the view matrix.
-	BcMat4d ViewMatrix;
-	getParentEntity()->getTransform().getInvertedMatrix( ViewMatrix );
+	BcMat4d ViewMatrix = getParentEntity()->getMatrix();
+	ViewMatrix.inverse();
 	Viewport_.view( ViewMatrix );
 	
 	// Setup the perspective projection.

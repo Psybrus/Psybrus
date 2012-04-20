@@ -53,12 +53,6 @@ void GaTopState::preMain()
 	// Create screen entity.
  	if( CsCore::pImpl()->requestResource( "default", "ScreenEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "ScreenEntity_0", Entity, TemplateEntity ) )
 	{
-		// Setup entity position to render from.
-		BcMat4d LookAt;
-		LookAt.lookAt( BcVec3d( 0.0f, 20.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 1.0f ) );
-		LookAt.inverse();
-		Entity->setMatrix( LookAt );		
-
 		//
 		ScnCore::pImpl()->addEntity( Entity );
 	}
@@ -87,6 +81,7 @@ void GaTopState::preMain()
 	if( CsCore::pImpl()->requestResource( "default", "BallEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "BallEntity_0", Entity, TemplateEntity ) )
 	{
 		// Setup entity position to render from.
+		Entity->setPosition( BcVec3d( 0.0f, 0.0f, 0.0f ) );
 
 		//
 		ScnCore::pImpl()->addEntity( Entity );

@@ -147,7 +147,6 @@ protected:
 	struct TMaterialComponentDesc
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		BcU32 WorldMatrixIdx_;
 	};
 	
 	typedef std::vector< TMaterialComponentDesc > TMaterialComponentDescList;

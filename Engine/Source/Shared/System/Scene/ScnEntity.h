@@ -102,9 +102,10 @@ public:
 	void								setMatrix( const BcMat4d& Matrix );
 
 	/**
-	 * Get transform.
+	 * Get matrix.
 	 */
-	const ScnTransform&					getTransform() const;
+	const BcMat4d&						getMatrix() const;
+
 
 protected:
 	virtual void						fileReady();
@@ -119,7 +120,7 @@ protected:
 	const BcChar*						pJsonObject_; // TEMP.
 
 	ScnEntityRef						Basis_;
-	ScnTransform						Transform_;
+	BcMat4d								Transform_;
 
 	ScnComponentList					Components_;
 	ScnComponentList					AttachComponents_;

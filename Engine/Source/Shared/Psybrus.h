@@ -64,6 +64,7 @@
 #include "System/Scene/ScnRenderTarget.h"
 #include "System/Scene/ScnMaterial.h"
 #include "System/Scene/ScnModel.h"
+#include "System/Scene/ScnParticleSystemComponent.h"
 #include "System/Scene/ScnCanvasComponent.h"
 #include "System/Scene/ScnShader.h"
 #include "System/Scene/ScnFont.h"

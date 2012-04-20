@@ -242,3 +242,27 @@ BcVec3d BcQuat::asEular() const
 		return BcVec3d( Pitch, Yaw, Roll );
 	}
 }
+
+void BcQuat::rotateTo( const BcVec3d& From, const BcVec3d& To )
+{
+	const BcVec3d FromNormalised( From.normal() );
+	const BcVec3d ToNormalised( To.normal() );
+	const BcVec3d Axis( From.cross( To ) );
+	const BcReal RadSin = BcSqrt( ( 1.0f - ( FromNormalised.dot( To ) ) ) * 0.5f );
+
+	x( RadSin * Axis.x() );
+	y( RadSin * Axis.y() );
+	z( RadSin * Axis.z() );
+	w( BcSqrt( ( 1.0f + ( FromNormalised.dot( To ) ) ) * 0.5f ) );
+}
+
+void BcQuat::axisAngle( const BcVec3d& Axis, BcReal Angle )
+{
+	const BcVec3d AxisNormalised( Axis.normal() );
+	const BcReal RadSin = BcSin( Angle * 0.5f );
+
+	x( RadSin * AxisNormalised.x() );
+	y( RadSin * AxisNormalised.y() );
+	z( RadSin * AxisNormalised.z() );
+	w( BcCos( Angle * 0.5f ) );	
+}
