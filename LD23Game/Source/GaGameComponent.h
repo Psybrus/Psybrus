@@ -15,6 +15,7 @@
 #define __GAGAMECOMPONENT_H__
 
 #include "Psybrus.h"
+#include "GaElementComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
@@ -34,6 +35,22 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
+	//
+private:
+	struct TElement
+	{
+		BcName Type_;
+		ScnEntityRef Entity_;
+		GaElementComponentRef Element_;
+		
+		BcVec3d Position_;
+		BcVec3d Velocity_;
+	};
+
+	void								spawnElement( const BcVec3d& Position, const BcName& Type );
+	void								updateSimulation( BcReal Tick );
+	BcU32								findNearestOfType( const BcVec3d& Position, const BcName& Type, BcU32 Exclude = BcErrorCode );
+	
 private:
 	enum GameState
 	{
@@ -47,6 +64,9 @@ private:
 	// Components.
 	ScnCanvasComponentRef				Canvas_;
 	ScnFontComponentRef					Font_;
+
+	// Element logic.
+	std::vector< TElement >				ElementList_;
 };
 
 #endif

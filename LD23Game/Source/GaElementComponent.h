@@ -35,9 +35,19 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
 private:
+	friend class GaGameComponent;
+
+	RsColour							Colour_;
+	BcReal								MaxSpeed_;
+	BcReal								Direction_;
+	BcReal								Radius_;
+
 	BcReal								Rotation_;
-	BcVec3d								Position_;
-	BcVec3d								Velocity_;
+
+	ScnModelComponentRef				Model_;
+	ScnMaterialComponentRef				Material_;
+
+	BcU32								MaterialColourParam_;
 
 };
 

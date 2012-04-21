@@ -27,7 +27,7 @@ void GaGameComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaGameComponent
+// update
 //virtual
 void GaGameComponent::update( BcReal Tick )
 {
@@ -35,12 +35,15 @@ void GaGameComponent::update( BcReal Tick )
 	{
 	case GS_INIT:
 		{
-			// Create entities and parent to ourself (oh god...will it work? FIRST TEST :3).
-			ScnEntityRef ElementEntity = ScnCore::pImpl()->createEntity( "default", "In0ElementEntity" );
-
-			// Attach to parent.
-			getParentEntity()->attach( ElementEntity );
-
+			// Spawn a bunch of entities for the level.
+			for( BcU32 Idx = 0; Idx < 8; ++Idx )
+			{
+				BcVec3d Position0 = BcRandom::Global.randVec3Normal() * 20.0f; 
+				BcVec3d Position1 = BcRandom::Global.randVec3Normal() * 20.0f; 
+				spawnElement( Position0, "In0ElementEntity" );
+				spawnElement( Position1, "In1ElementEntity" );
+			}
+			
 			// Switch game state.
 			GameState_ = GS_UPDATE;
 		}
@@ -48,6 +51,10 @@ void GaGameComponent::update( BcReal Tick )
 
 	case GS_UPDATE:
 		{
+			// Update.
+			updateSimulation( Tick );
+
+
 			// HUD stuff.
 			BcMat4d Projection;
 			Projection.orthoProjection( -640.0f, 640.0f, 360.0f, -360.0f, -1.0f, 1.0f );
@@ -57,7 +64,7 @@ void GaGameComponent::update( BcReal Tick )
 
 			// Draw centred.
 			BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), "TEST HUD", RsColour::WHITE, BcTrue );
-			Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ) - Size * 0.5f, "TEST HUD", RsColour::WHITE, BcFalse );
+			Font_->draw( Canvas_, BcVec2d( -400.0f, -300.0f ) - Size * 0.5f, "TEST HUD", RsColour::WHITE, BcFalse );
 
 			Canvas_->popMatrix();
 		}
@@ -75,7 +82,7 @@ void GaGameComponent::update( BcReal Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaGameComponent
+// onAttach
 //virtual
 void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 {
@@ -99,10 +106,105 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaGameComponent
+// onDetach
 //virtual
 void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	// Don't forget to detach!
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// spawnElement
+void GaGameComponent::spawnElement( const BcVec3d& Position, const BcName& Type )
+{
+	ScnEntityRef Entity( ScnCore::pImpl()->createEntity( "default", Type ) );
+	BcAssertMsg( Entity.isValid(), "Can't spawn element." );
+
+	GaElementComponentRef Element;
+	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
+	{
+		ScnComponentRef Component( Entity->getComponent( Idx ) );
+
+		if( Component->isTypeOf< GaElementComponent >() )
+		{
+			Element = Component;
+			break;
+		}
+	}
+
+	BcAssertMsg( Element.isValid(), "Element not in entity. Did you use the right template?" );
+
+	// Calculate velocity.
+	BcVec3d Velocity = ( -Position ).normal() * Element->Direction_;
+
+	// Add a little randomisation.
+	Velocity += ( BcRandom::Global.randVec3Normal() * 0.3f );
+	
+	// Clamp, and TODO: make speeds vary a little.
+	Velocity = Velocity.normal() * Element->MaxSpeed_;
+	
+	TElement ElementInternal = 
+	{
+		Type,
+		Entity,
+		Element,
+		Position,
+		Velocity,
+	};
+
+	ElementList_.push_back( ElementInternal );
+
+	// Attach the entity to our parent entity for sequential logic.
+	getParentEntity()->attach( Entity );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateSimulation
+void GaGameComponent::updateSimulation( BcReal Tick )
+{
+	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
+	{
+		TElement& Element( ElementList_[ Idx ] );
+
+		// Find nearest that isn't us, and repel based on distance.
+		BcU32 OtherIdx = findNearestOfType( Element.Position_, BcName::INVALID, Idx );
+		if( OtherIdx != NULL )
+		{
+			TElement& OtherElement( ElementList_[ OtherIdx ] );
+			
+			
+		}
+		
+		// Advance.
+		Element.Position_ += Element.Velocity_ * Tick;
+
+		// Set entity position.
+		Element.Entity_->setPosition( Element.Position_ );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findNearestOfType
+BcU32 GaGameComponent::findNearestOfType( const BcVec3d& Position, const BcName& Type, BcU32 Exclude )
+{
+	BcU32 Nearest = BcErrorCode;
+	BcReal NearestDistanceSquared = 1e24f;
+	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
+	{
+		TElement& Element( ElementList_[ Idx ] );
+
+		if( Exclude != Idx && ( Type == BcName::INVALID || Element.Type_ == Type ) )
+		{
+			BcReal DistanceSquared = ( Position - Element.Position_ ).magnitudeSquared();
+
+			if( DistanceSquared < NearestDistanceSquared )
+			{
+				Nearest = Idx;
+				NearestDistanceSquared = DistanceSquared;
+			}
+		}	
+	}
+
+	return Nearest;
 }
