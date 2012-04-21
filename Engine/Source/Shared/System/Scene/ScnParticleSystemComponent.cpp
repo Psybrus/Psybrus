@@ -83,7 +83,7 @@ void ScnParticleSystemComponent::destroy()
 //virtual
 void ScnParticleSystemComponent::update( BcReal Tick )
 {
-	/*
+	///*
 	// TEST CODE.
 	for( BcU32 Idx = 0; Idx < 4; ++Idx )
 	{
@@ -130,7 +130,7 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Grab vertex buffer and flip for next frame to use.
 	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
-	CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
+	//CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
 
 	// Lock vertex buffer.
 	VertexBuffer.pVertexBuffer_->lock();
