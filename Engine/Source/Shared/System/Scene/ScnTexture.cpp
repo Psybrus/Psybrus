@@ -55,7 +55,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			BcStream HeaderStream;
 			THeader Header = { pImage->width(), pImage->height(), 1, TextureFormat };
 			HeaderStream << Header;
-					
+			
 			// Delete image.
 			delete pImage;
 			
@@ -92,6 +92,26 @@ void ScnTexture::initialise()
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
 	CreateNewTexture_ = BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format )
+{
+	// NULL internals.
+	pTexture_ = NULL;
+	pTextureData_ = NULL;
+	CreateNewTexture_ = BcTrue;
+
+	Header_.Width_ = Width;
+	Header_.Height_ = Height;
+	Header_.Levels_ = Levels;
+	Header_.Format_ = Format; // BAD.
+
+	pTextureData_ = new BcU32[ Header_.Width_ * Header_.Height_ * Header_.Levels_ ];
+
+	setup();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,6 +174,39 @@ RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
 	}
 	
 	return RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTexel
+void ScnTexture::setTexel( BcU32 X, BcU32 Y, const RsColour& Colour )
+{
+	if( pTextureData_ != NULL && X < Header_.Width_ && Y < Header_.Height_ )
+	{
+		BcU32* pTextureData = (BcU32*)pTextureData_;
+		BcU32 Index = X + Y * Header_.Width_;
+		BcU32& Texel = pTextureData[ Index ];
+		Texel = Colour.asABGR();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// lock
+void ScnTexture::lock()
+{
+	if( pTexture_ != NULL )
+	{
+		pTexture_->lockTexture();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// unlock
+void ScnTexture::unlock()
+{
+	if( pTexture_ != NULL )
+	{
+		pTexture_->unlockTexture();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
