@@ -15,6 +15,7 @@
 #define __BCRANDOM_H__
 
 #include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcRandom
@@ -33,6 +34,10 @@ public:
 	BcReal noise( BcU32 X, BcU32 Width );
 	BcReal smoothedNoise( BcReal X, BcU32 Width = 512 );
 	BcReal interpolatedNoise( BcReal X, BcU32 Width = 512 );
+
+	BcVec2d randVec2Normal();
+	BcVec3d randVec3Normal();
+	BcVec4d randVec4Normal();
 
 private:
 	BcU32 Z_;

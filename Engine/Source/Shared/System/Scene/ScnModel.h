@@ -133,6 +133,8 @@ public:
 	virtual BcBool						isReady();
 
 	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+
+	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
 	
 public:
 	virtual void						update( BcReal Tick );
