@@ -388,7 +388,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-
+			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 
@@ -407,7 +410,9 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 
@@ -426,7 +431,9 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 
@@ -445,7 +452,9 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 
@@ -464,7 +473,9 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 
@@ -483,7 +494,9 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 
@@ -502,7 +515,9 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 			PrevMouseX_ = Event.MouseX_;
 			PrevMouseY_ = Event.MouseY_;
 

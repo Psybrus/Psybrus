@@ -157,7 +157,7 @@ void ScnCore::removeAllEntities()
 
 //////////////////////////////////////////////////////////////////////////
 // createEntity
-ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name )
+ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, const BcName& InstanceName )
 {
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
@@ -165,7 +165,7 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name )
 	// Request template entity.
  	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
-		if( CsCore::pImpl()->createResource( Name, Entity, TemplateEntity ) )
+		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? Name : InstanceName, Entity, TemplateEntity ) )
 		{
 			return Entity;
 		}
