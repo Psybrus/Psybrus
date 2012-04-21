@@ -31,6 +31,7 @@ public:
 	DECLARE_RESOURCE( ScnComponent, GaGameComponent );
 
 	void								initialise( const Json::Value& Object );
+	void								destroy();
 
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
@@ -61,6 +62,11 @@ private:
 	void								addElements();
 	void								removeEntities();
 	BcBool								inRemoveEntityList( ScnEntityRef Entity );
+
+	BcReal&								getHeatMapValue( BcS32 X, BcS32 Y, BcU32 Buffer = 0 );
+	void								updateHeatMapTexture();
+	void								addHeatMapValue( const BcVec3d& Position, BcReal Value );
+	BcReal								getHeatMapValue( const BcVec3d& Position );
 	
 private:
 	enum GameState
@@ -90,6 +96,15 @@ private:
 
 	BcReal								SpawnTimer_;
 	BcU32								MaxElements_;
+
+	// Heat map.
+	ScnTextureRef						HeatMapTexture_;
+	ScnModelComponentRef				HeatMapModel_;
+	ScnMaterialComponentRef				HeatMapMaterial_;
+	BcReal*								pHeatMap_;
+	BcReal*								pHeatMapBuffer_;
+	BcU32								HeatMapWidth_;
+	BcU32								HeatMapHeight_;
 };
 
 #endif

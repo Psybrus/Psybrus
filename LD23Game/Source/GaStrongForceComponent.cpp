@@ -142,7 +142,7 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 			}
 			else if( Event.ButtonCode_ == 1 )
 			{
-				TargetRadius_ = 8.0f;
+				TargetRadius_ = 16.0f;
 				IsCharging_ = BcTrue;
 			}
 		}

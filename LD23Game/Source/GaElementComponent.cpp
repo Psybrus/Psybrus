@@ -51,11 +51,13 @@ void GaElementComponent::update( BcReal Tick )
 
 	// Update physics.
 	BcMat4d Matrix( getParentEntity()->getMatrix() );
+	BcMat4d ScaleMatrix;
+	ScaleMatrix.scale( BcVec3d( Radius_, Radius_, Radius_ ) );
 	BcVec3d Position = Matrix.translation();
 	Rotation_ += AngularVelocity_ * Tick;
 	Matrix.rotation( Rotation_ );
 
-	getParentEntity()->setMatrix( Matrix );
+	getParentEntity()->setMatrix( Matrix * ScaleMatrix );
 }
 
 //////////////////////////////////////////////////////////////////////////

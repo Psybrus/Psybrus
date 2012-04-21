@@ -27,6 +27,16 @@
 
 		{
 			"type"			: "ScnShader",
+			"name"			: "default2d",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/diffuse.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/diffuse.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
 			"name"			: "default",
 
 			"shaders"		: {
@@ -67,6 +77,31 @@
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
 				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "heatmap",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
 			}
 		},
 
@@ -208,6 +243,12 @@
 			"source"	: "Content/Source/strongforce.obj"
 		},
 
+		{
+			"type"		: "ScnModel",
+			"name"		: "heatmap",
+			"source"	: "Content/Source/heatmap.obj"
+		},
+
 		//////////////////////////////////////////////////////////////
 		// Entities.
 		{
@@ -254,7 +295,7 @@
 					"colour"		: "0.0,1.0,0.0,1.0",
 					"maxspeed"		: 4.0,
 					"direction"		: 1.0,		// Towards origin.
-					"radius" 		: 2.0,
+					"radius" 		: 1.5,
 
 					"fusetype"		: "In1ElementEntity",
 					"replacetype"	: "Out0ElementEntity",
@@ -306,7 +347,7 @@
 					"colour"		: "1.0,1.0,0.0,1.0",
 					"maxspeed"		: 12.0,
 					"direction"		: -1.0,		// Away from origin.
-					"radius" 		: 2.0
+					"radius" 		: 3.0
 				}
 			]
 		},
@@ -328,7 +369,7 @@
 					"colour"		: "0.0,0.0,1.0,1.0",
 					"maxspeed"		: 12.0,
 					"direction"		: -1.0,		// Away from origin.
-					"radius" 		: 2.0
+					"radius" 		: 1.0
 				}
 			]
 		},
@@ -361,6 +402,11 @@
 
 			"components" : [
 				{
+					"type"			: "ScnModelComponent",
+					"model"			: "heatmap"
+				},
+
+				{
 					"type"			: "ScnCanvasComponent",
 					"noofvertices"	: 8192
 				},
@@ -369,12 +415,6 @@
 					"type"			: "ScnFontComponent",
 					"font"			: "default",
 					"material"		: "font"
-				},
-
-				{
-					"type"			: "ScnModelComponent",
-					"model"			: "axis",
-					"layer"			: 0
 				},
 
 				{
