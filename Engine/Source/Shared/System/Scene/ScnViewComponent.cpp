@@ -142,7 +142,6 @@ BcBool ScnViewComponent::isReady()
 // setMaterialParameters
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialComponent )
 {
-	// TODO: Cache in material component properly.
 	MaterialComponent->setClipTransform( Viewport_.view() * Viewport_.projection() );
 	MaterialComponent->setViewTransform( Viewport_.view() );
 }
