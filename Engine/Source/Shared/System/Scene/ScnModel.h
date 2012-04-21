@@ -146,6 +146,8 @@ protected:
 	ScnModelRef							Parent_;
 	ScnModel::TNodeTransformData*		pNodeTransformData_;
 
+	BcU32								Layer_;
+
 	struct TMaterialComponentDesc
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;

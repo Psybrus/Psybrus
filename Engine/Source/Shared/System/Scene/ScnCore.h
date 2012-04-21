@@ -59,7 +59,7 @@ public:
 	/**
 	 * Create an entity from template.
 	 */
-	ScnEntityRef				createEntity( const BcName& Package, const BcName& Name );
+	ScnEntityRef				createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
 
 private:
 	friend class ScnEntity;

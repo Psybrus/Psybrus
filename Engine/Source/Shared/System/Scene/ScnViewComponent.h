@@ -50,6 +50,7 @@ public:
 	virtual BcBool						isReady();
 
 	void								setMaterialParameters( ScnMaterialComponentRef MaterialComponent );
+	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far );
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	

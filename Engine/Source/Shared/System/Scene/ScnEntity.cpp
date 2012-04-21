@@ -240,19 +240,43 @@ BcU32 ScnEntity::getNoofComponents() const
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponentRef ScnEntity::getComponent( BcU32 Idx )
+ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 {
-	// HACK.
-	if( Components_.size() > 0 )
+	if( Type == BcName::INVALID )
 	{
-		BcAssert( Idx < Components_.size() );
-		return Components_[ Idx ];
+		// HACK.
+		if( Components_.size() > 0 )
+		{
+			BcAssert( Idx < Components_.size() );
+			return Components_[ Idx ];
+		}
+		else
+		{
+			BcAssert( Idx < AttachComponents_.size() );
+			return AttachComponents_[ Idx ];
+		}
 	}
 	else
 	{
-		BcAssert( Idx < AttachComponents_.size() );
-		return AttachComponents_[ Idx ];
+		// HACK: Seperate into seperate function.
+		BcU32 NoofComponents = getNoofComponents();
+		BcU32 SearchIdx = 0;
+		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
+		{
+			ScnComponentRef Component = getComponent( ComponentIdx );
+			if( Component->getType() == Type )
+			{
+				if( SearchIdx == Idx )
+				{
+					return Component;
+				}
+
+				++SearchIdx;
+			}
+		}
 	}
+
+	return NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

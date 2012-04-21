@@ -147,6 +147,14 @@ void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialCo
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getWorldPosition
+void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far )
+{
+	// NOTE: Uses last viewport bound.
+	Viewport_.unProject( ScreenPosition, Near, Far );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bind
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 {

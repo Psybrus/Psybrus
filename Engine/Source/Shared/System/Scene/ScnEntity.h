@@ -80,7 +80,16 @@ public:
 	/**
 	 * Get component.
 	 */
-	ScnComponentRef						getComponent( BcU32 Idx );
+	ScnComponentRef						getComponent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+
+	/**
+	 * Get component by type.
+	 */
+	template< typename _Ty >
+	ScnComponentRef						getComponentByType( BcU32 Idx )
+	{
+		return getComponent( Idx, _Ty::StaticGetType() );
+	}
 
 	/**
 	 * 

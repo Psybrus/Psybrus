@@ -193,6 +193,10 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 		pPackage = new CsPackage( Package );
 		PackageList_.push_back( pPackage );
 	}	
+	else
+	{
+		BcAssertMsg( BcFalse, "CsCore: Can't import package, missing \"%s\" or \"%s\"", (*PackedPackage).c_str(), (*ImportPackage).c_str() );
+	}
 
 	//
 	return pPackage;	

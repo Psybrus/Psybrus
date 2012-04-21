@@ -369,6 +369,8 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 {
 	// Cache parent.
 	Parent_ = Parent;
+
+	Layer_ = 0;
 	
 	// Duplicate node data for update/rendering.
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
@@ -410,8 +412,11 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 	{
 		BcAssertMsg( BcFalse, "ScnModelComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "model" ].asCString(), "ScnModel" );
 	}
-
+	
 	initialise( ModelRef );
+
+	// Setup additional stuff.
+	Layer_ = Object.get( "layer", 0 ).asUInt();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -549,6 +554,10 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 
 	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
+
+	// Set layer.
+
+	Sort.Layer_ = Layer_;
 
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes.size(); ++PrimitiveIdx )
 	{
