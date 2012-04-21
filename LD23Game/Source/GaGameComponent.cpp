@@ -72,15 +72,7 @@ void GaGameComponent::update( BcReal Tick )
 			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
 			getParentEntity()->attach( PlayerEntity );
 
-			for( BcU32 Idx = 0; Idx < PlayerEntity->getNoofComponents(); ++Idx )
-			{
-				ScnComponentRef Component( PlayerEntity->getComponent( Idx ) );
-				if( Component->isTypeOf< GaStrongForceComponent >() )
-				{
-					StrongForce_ = Component;
-					break;
-				}
-			}
+			StrongForce_ = PlayerEntity->getComponentByType< GaStrongForceComponent >( 0 );
 			
 			// Switch game state.
 			GameState_ = GS_UPDATE;
