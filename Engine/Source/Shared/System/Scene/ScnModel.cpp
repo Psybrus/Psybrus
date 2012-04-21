@@ -525,9 +525,9 @@ public:
 	RsPrimitive* pPrimitive_;
 };
 
-void ScnModelComponent::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	Super::render( pFrame, Sort );
+	Super::render( pViewComponent, pFrame, Sort );
 
 	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;

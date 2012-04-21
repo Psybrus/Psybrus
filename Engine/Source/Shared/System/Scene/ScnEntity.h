@@ -21,6 +21,7 @@
 
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnRenderableComponent.h"
+#include "System/Scene/ScnViewComponent.h"
 
 #include "System/Scene/ScnTransform.h"
 #include "System/Scene/ScnSpatialTree.h"
@@ -29,11 +30,11 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public ScnComponent,
+	public ScnRenderableComponent,
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnEntity );
+	DECLARE_RESOURCE( ScnRenderableComponent, ScnEntity );
 	
 #if PSY_SERVER
 	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -46,7 +47,7 @@ public:
 	
 public:
 	void								update( BcReal Tick );
-	void								render( RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
+	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );
 	void								reattach( ScnComponent* Component );
@@ -60,7 +61,7 @@ public:
 	 * Called when detached from the scene.
 	 */
 	void								onDetachScene();
-
+	
 	/**
 	 * Are we attached to the scene?
 	 */

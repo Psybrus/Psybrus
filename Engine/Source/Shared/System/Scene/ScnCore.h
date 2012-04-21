@@ -56,6 +56,11 @@ public:
 	 */
 	void						removeAllEntities();
 
+	/**
+	 * Create an entity from template.
+	 */
+	ScnEntityRef				createEntity( const BcName& Package, const BcName& Name );
+
 private:
 	friend class ScnEntity;
 

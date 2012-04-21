@@ -141,14 +141,25 @@ void ScnEntity::update( BcReal Tick )
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnEntity::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnEntity::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
+	// Set all material parameters that the view has info on. (HACK).
+	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	{
+		ScnMaterialComponentRef MaterialComponent( *It );
+		if( MaterialComponent.isValid() )
+		{
+			pViewComponent->setMaterialParameters( MaterialComponent );
+		}
+	}
+
+	// Render all renderable components.
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
 	{
 		ScnRenderableComponentWeakRef RenderableComponent( *It );
 		if( RenderableComponent.isValid() )
 		{
-			RenderableComponent->render( pFrame, Sort );
+			RenderableComponent->render( pViewComponent, pFrame, Sort );
 		}
 	}
 }
@@ -332,7 +343,7 @@ void ScnEntity::internalAttach( ScnComponent* Component )
 		Components_.push_back( Component );
 
 		// Tell the scene about it.
-		if( IsAttached_ == BcTrue )
+		if( isAttached() == BcTrue )
 		{
 			ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), Component );
 		}
@@ -366,7 +377,7 @@ void ScnEntity::internalDetach( ScnComponent* Component )
 		}
 
 		// Tell the scene about it.
-		if( IsAttached_ )
+		if( isAttached() )
 		{
 			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
 		}

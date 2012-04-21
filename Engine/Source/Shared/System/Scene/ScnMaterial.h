@@ -98,6 +98,7 @@ public:
 	DECLARE_RESOURCE( ScnComponent, ScnMaterialComponent );
 	
 	void								initialise( ScnMaterialRef Parent, BcU32 PermutationFlags );
+	void								initialise( const Json::Value& Object );
 	void								destroy();
 	
 	BcU32								findParameter( const BcName& ParameterName );	

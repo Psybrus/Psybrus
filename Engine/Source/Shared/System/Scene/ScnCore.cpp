@@ -19,6 +19,8 @@
 #include "System/Os/OsCore.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Content/CsCore.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( ScnCore );
@@ -66,7 +68,7 @@ void ScnCore::update()
 	{
 		ScnEntityRef Entity( *It );
 
-		//if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+		if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
 		{
 			Entity->update( Tick );
 		}
@@ -97,19 +99,9 @@ void ScnCore::update()
 			{
 				ScnEntityRef& Entity( *It );
 
-				//if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
-				{
-					for( BcU32 ComponentIdx = 0; ComponentIdx < Entity->getNoofComponents(); ++ComponentIdx )
-					{
-						ScnMaterialComponentRef MaterialComponent( Entity->getComponent( ComponentIdx ) );
-
-						if( MaterialComponent.isValid() )
-						{
-							ViewComponent->setMaterialParameters( MaterialComponent );
-						}
-					}
-					
-					Entity->render( pFrame, RsRenderSort( 0 ) );
+				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				{				
+					Entity->render( ViewComponent, pFrame, RsRenderSort( 0 ) );
 				}
 			}
 		}
@@ -161,6 +153,25 @@ void ScnCore::removeAllEntities()
 		ScnEntityRef Entity( *It );
 		removeEntity( Entity );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createEntity
+ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name )
+{
+	ScnEntityRef Entity;
+	ScnEntityRef TemplateEntity;
+
+	// Request template entity.
+ 	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
+	{
+		if( CsCore::pImpl()->createResource( Name, Entity, TemplateEntity ) )
+		{
+			return Entity;
+		}
+	}
+
+	return NULL;	
 }
 
 //////////////////////////////////////////////////////////////////////////
