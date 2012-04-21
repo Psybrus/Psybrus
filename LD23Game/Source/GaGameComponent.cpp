@@ -24,11 +24,36 @@ DEFINE_RESOURCE( GaGameComponent );
 void GaGameComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
-
-
-	SpawnTimer_ = 0;
+	
+	SpawnTimer_ = 0.0f;
 
 	GameState_ = GS_INIT;
+
+	HeatMapWidth_ = 32;
+	HeatMapHeight_ = 32;
+	BcU32 Texels = HeatMapWidth_ * HeatMapHeight_;
+	pHeatMap_ = new BcReal[ Texels ];
+	pHeatMapBuffer_ = new BcReal[ Texels ];
+	BcMemZero( pHeatMap_, sizeof( BcReal ) * Texels );
+	BcMemZero( pHeatMapBuffer_, sizeof( BcReal ) * Texels );
+
+	for( BcU32 Idx = 0; Idx < Texels; ++Idx )
+	{
+		pHeatMap_[ Idx ] = 0.5f;
+		pHeatMapBuffer_[ Idx ] = 0.5f;
+	}
+
+	CsCore::pImpl()->createResource( BcName::INVALID, HeatMapTexture_, HeatMapWidth_, HeatMapHeight_, 1, rsTF_RGBA8 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void GaGameComponent::destroy()
+{
+	delete [] pHeatMap_;
+	delete [] pHeatMapBuffer_;
+	pHeatMap_ = NULL;
+	pHeatMapBuffer_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,7 +66,7 @@ void GaGameComponent::update( BcReal Tick )
 	case GS_INIT:
 		{
 			// Max elements to spawn.
-			MaxElements_ = 32;
+			MaxElements_ = 48;
 
 			// Spawn player.
 			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
@@ -67,6 +92,8 @@ void GaGameComponent::update( BcReal Tick )
 			// Update.
 			updateSimulation( Tick );
 
+			// Update texture.
+			updateHeatMapTexture();
 
 			// HUD stuff.
 			BcMat4d Projection;
@@ -74,6 +101,9 @@ void GaGameComponent::update( BcReal Tick )
 
 			Canvas_->clear();
 			Canvas_->pushMatrix( Projection );
+
+			//Canvas_->setMaterialComponent( HeatMapMaterial_ );
+			//Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 700.0f, -700.0f ), 0, RsColour::WHITE, 0 ); 
 
 			// Draw centred.
 			BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), "TEST HUD", RsColour::WHITE, BcTrue );
@@ -88,9 +118,7 @@ void GaGameComponent::update( BcReal Tick )
 		}
 		break;
 	}
-
-
-
+	
 	Super::update( Tick );
 }
 
@@ -100,12 +128,20 @@ void GaGameComponent::update( BcReal Tick )
 void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Grab components we need.
+	HeatMapModel_ = Parent->getComponentByType< ScnModelComponent >( 0 );
+	HeatMapMaterial_ = HeatMapModel_->getMaterialComponent( "heatmap" );
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
 	Font_ = Parent->getComponentByType< ScnFontComponent >( 0 );
-
+	
+	// Set heatmap texture.
+	BcU32 TextureParam = HeatMapMaterial_->findParameter( "aDiffuseTex" );
+	BcU32 ColourParam = HeatMapMaterial_->findParameter( "uColour" );
+	HeatMapMaterial_->setTexture( TextureParam, HeatMapTexture_ );
+	HeatMapMaterial_->setParameter( ColourParam, RsColour::WHITE );
+		
 	//
 	BcMat4d Scale;
-	Scale.scale( BcVec3d( 20.0f, 20.0f, 20.0f ) );
+	Scale.scale( BcVec3d( WORLD_SIZE, 1.0f, WORLD_SIZE ) );
 	Parent->setMatrix( Scale );
 
 	// Don't forget to attach!
@@ -125,7 +161,6 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 // spawnElement
 void GaGameComponent::spawnElement( const BcVec3d& Position, const BcVec3d& Velocity, const BcName& Type )
 {
-
 	ScnEntityRef Entity( ScnCore::pImpl()->createEntity( "default", Type ) );
 	BcAssertMsg( Entity.isValid(), "Can't spawn element." );
 
@@ -204,6 +239,9 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 	{
 		TElement& Element( ElementList_[ Idx ] );
 
+		// Reduce heat when moving through.
+		addHeatMapValue( Element.Position_, -0.5f * Tick );
+
 		// Find nearest that isn't us or our type (yeah I know..), and repel based on distance.
 		BcU32 OtherIdx = findNearestOfType( Element.Position_, Element.Element_->Radius_, BcName::INVALID, Idx );
 		if( OtherIdx != BcErrorCode )
@@ -277,11 +315,12 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 			}
 		}
 
-		// Advance.
-		Element.Position_ += Element.Velocity_ * Tick;
+		// Advance (use heatmap multiplier).
+		BcReal HeatMapValue = getHeatMapValue( Element.Position_ ) * 2.0f;
+		Element.Position_ += Element.Velocity_ * Tick * HeatMapValue;
 
 		// If it's moving away from the origin and out of bounds remove it.
-		if( Element.Position_.magnitude() > 20.0f &&
+		if( Element.Position_.magnitude() > WORLD_SIZE &&
 			( Element.Position_ + Element.Velocity_ ).magnitudeSquared() > ( Element.Position_ ).magnitudeSquared() )
 		{
 			// Remove entity.
@@ -346,6 +385,8 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 
 			// Spawn new to take it's place on the opposite side.
 			spawnElement( Element.Position_, Element.Velocity_, Element.ReplaceType_ );
+
+			addHeatMapValue( Element.Position_, 256.0f );
 		}
 	}
 	
@@ -467,4 +508,94 @@ BcBool GaGameComponent::inRemoveEntityList( ScnEntityRef Entity )
 	}
 
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeatMapValue
+BcReal& GaGameComponent::getHeatMapValue( BcS32 X, BcS32 Y, BcU32 Buffer )
+{
+	BcU32 Index = BcClamp( X, 0, (BcS32)HeatMapWidth_ - 1 ) + BcClamp( Y, 0, (BcS32)HeatMapHeight_ - 1 ) * HeatMapWidth_;
+	return Buffer == 0 ? pHeatMap_[ Index ] : pHeatMapBuffer_[ Index ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateHeatMapTexture
+void GaGameComponent::updateHeatMapTexture()
+{
+	// Blur X
+	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
+	{
+		for( BcU32 X = 0; X < HeatMapWidth_; ++X )
+		{
+			BcReal& Out( getHeatMapValue( X, Y, 1 ) );
+			BcReal In[] = 
+			{
+				( getHeatMapValue( X - 2, Y, 0 ) ) * 0.05f,
+				( getHeatMapValue( X - 1, Y, 0 ) ) * 0.1f,
+				( getHeatMapValue( X, Y, 0 ) ) * 0.7f,
+				( getHeatMapValue( X + 1, Y, 0 ) ) * 0.1f,
+				( getHeatMapValue( X + 2, Y, 0 ) ) * 0.05f
+			};
+
+			Out = ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] );
+		}
+	}
+
+	// Blur Y
+	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
+	{
+		for( BcU32 X = 0; X < HeatMapWidth_; ++X )
+		{
+			BcReal& Out( getHeatMapValue( X, Y, 0 ) );
+			BcReal In[] = 
+			{
+				( getHeatMapValue( X, Y - 2, 1 ) ) * 0.05f,
+				( getHeatMapValue( X, Y - 1, 1 ) ) * 0.1f,
+				( getHeatMapValue( X, Y, 1 ) ) * 0.7f,
+				( getHeatMapValue( X, Y + 1, 1 ) ) * 0.1f,
+				( getHeatMapValue( X, Y + 2, 1 ) ) * 0.05f,
+			};
+
+			Out = BcMin( ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] ), 4.0f );
+		}
+	}
+
+	HeatMapTexture_->lock();
+
+	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
+	{
+		for( BcU32 X = 0; X < HeatMapWidth_; ++X )
+		{
+			BcU32 Index = X + Y * HeatMapWidth_;
+			BcReal& HeatMapValue( pHeatMap_[ Index ] );
+			BcReal ClampedValue = BcClamp( HeatMapValue, 0.0f, 1.0f );
+			HeatMapTexture_->setTexel( X, Y, RsColour( ClampedValue, ClampedValue, ClampedValue, 1.0f ) );
+		}
+	}
+
+	HeatMapTexture_->unlock();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addHeatMapValue
+void GaGameComponent::addHeatMapValue( const BcVec3d& Position, BcReal Value )
+{
+	BcVec3d OffsetPosition = Position + BcVec3d( WORLD_SIZE, WORLD_SIZE, WORLD_SIZE );
+	BcVec3d PackedPosition( BcVec3d( OffsetPosition / WORLD_SIZE ) * BcVec3d( (BcReal)HeatMapWidth_, 0.0f, (BcReal)HeatMapHeight_ ) * 0.5f );
+	BcS32 X = static_cast< BcS32 >( BcClamp( PackedPosition.x(), 0, (BcS32)HeatMapWidth_ - 1 ) );
+	BcS32 Y = static_cast< BcS32 >( BcClamp( PackedPosition.z(), 0, (BcS32)HeatMapHeight_ - 1 ) );
+	BcReal& HeatMapValue = getHeatMapValue( X, Y );
+	HeatMapValue = BcMax( HeatMapValue + Value, 0.0f );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeatMapValue
+BcReal GaGameComponent::getHeatMapValue( const BcVec3d& Position )
+{
+	BcVec3d OffsetPosition = Position + BcVec3d( WORLD_SIZE, WORLD_SIZE, WORLD_SIZE );
+	BcVec3d PackedPosition( BcVec3d( OffsetPosition / WORLD_SIZE ) * BcVec3d( (BcReal)HeatMapWidth_, 0.0f, (BcReal)HeatMapHeight_ ) * 0.5f );
+	BcS32 X = static_cast< BcS32 >( BcClamp( PackedPosition.x(), 0, (BcS32)HeatMapWidth_ ) );
+	BcS32 Y = static_cast< BcS32 >( BcClamp( PackedPosition.z(), 0, (BcS32)HeatMapHeight_ ) );
+	BcReal& HeatMapValue = getHeatMapValue( X, Y );
+	return HeatMapValue;	
 }
