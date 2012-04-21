@@ -96,6 +96,31 @@
 		},		
 
 		{
+			"type"			: "ScnMaterial",
+			"name"			: "strongforce",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		{
 			"type"			: "ScnShader",
 			"name"			: "font",
 
@@ -167,20 +192,20 @@
 
 		{
 			"type"		: "ScnModel",
+			"name"		: "axis",
+			"source"	: "Content/Source/axis.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
 			"name"		: "sphere",
 			"source"	: "Content/Source/sphere.obj"
 		},
 
 		{
 			"type"		: "ScnModel",
-			"name"		: "cube",
-			"source"	: "Content/Source/cube.obj"
-		},
-
-		{
-			"type"		: "ScnModel",
-			"name"		: "paddle",
-			"source"	: "Content/Source/paddle.obj"
+			"name"		: "strongforce",
+			"source"	: "Content/Source/strongforce.obj"
 		},
 
 		//////////////////////////////////////////////////////////////
@@ -219,16 +244,21 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere"
+					"model" 		: "sphere",
+					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Deuterium",
 					"colour"		: "0.0,1.0,0.0,1.0",
-					"maxspeed"		: 2.0,
+					"maxspeed"		: 4.0,
 					"direction"		: 1.0,		// Towards origin.
-					"radius" 		: 4.0
+					"radius" 		: 2.0,
+
+					"fusetype"		: "In1ElementEntity",
+					"replacetype"	: "Out0ElementEntity",
+					"respawntype"	: "In0ElementEntity"
 				}
 			]
 		},
@@ -240,16 +270,21 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere"
+					"model" 		: "sphere",
+					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Tritium",
 					"colour"		: "1.0,0.0,0.0,1.0",
-					"maxspeed"		: 2.0,
+					"maxspeed"		: 3.0,
 					"direction"		: 1.0,		// Towards origin.
-					"radius" 		: 6.0
+					"radius" 		: 2.0,
+
+					"fusetype"		: "In0ElementEntity",
+					"replacetype"	: "Out1ElementEntity",
+					"respawntype"	: "In1ElementEntity"
 				}
 			]
 		},
@@ -261,16 +296,17 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere"
+					"model" 		: "sphere",
+					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Helium",
 					"colour"		: "1.0,1.0,0.0,1.0",
-					"maxspeed"		: 4.0,
+					"maxspeed"		: 12.0,
 					"direction"		: -1.0,		// Away from origin.
-					"radius" 		: 8.0
+					"radius" 		: 2.0
 				}
 			]
 		},
@@ -282,16 +318,37 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere"
+					"model" 		: "sphere",
+					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Neutron",
 					"colour"		: "0.0,0.0,1.0,1.0",
-					"maxspeed"		: 4.0,
+					"maxspeed"		: 12.0,
 					"direction"		: -1.0,		// Away from origin.
-					"radius" 		: 1.0
+					"radius" 		: 2.0
+				}
+			]
+		},
+		
+		//////////////////////////////////////////////////////////////
+		// Player entity.
+		{
+			"name"		:		"PlayerEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "strongforce",
+					"layer"			: 1
+				},
+
+				{
+					"type"			: "GaStrongForceComponent",
+					"colour"		: "0.5,0.1,0.1,0.5"
 				}
 			]
 		},
@@ -312,6 +369,12 @@
 					"type"			: "ScnFontComponent",
 					"font"			: "default",
 					"material"		: "font"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "axis",
+					"layer"			: 0
 				},
 
 				{

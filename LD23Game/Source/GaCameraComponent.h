@@ -2,9 +2,9 @@
 *
 * File:		GaCameraComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:	29/12/11	
+* Ver/Date:	21/04/12
 * Description:
-*		Paddle component.
+*		Camera component.
 *		
 *
 *

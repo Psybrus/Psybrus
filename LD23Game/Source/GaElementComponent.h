@@ -2,7 +2,7 @@
 *
 * File:		GaElementComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:	29/12/11	
+* Ver/Date:	21/04/12
 * Description:
 *		Example user component.
 *		
@@ -37,12 +37,17 @@ public:
 private:
 	friend class GaGameComponent;
 
+	BcName								FuseType_;
+	BcName								ReplaceType_;
+	BcName								RespawnType_;
+
 	RsColour							Colour_;
 	BcReal								MaxSpeed_;
 	BcReal								Direction_;
 	BcReal								Radius_;
 
-	BcReal								Rotation_;
+	BcVec3d								AngularVelocity_;
+	BcVec3d								Rotation_;
 
 	ScnModelComponentRef				Model_;
 	ScnMaterialComponentRef				Material_;
