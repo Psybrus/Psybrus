@@ -774,7 +774,7 @@ public:
 	RsPrimitive* pPrimitive_;
 };
 
-void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	if( HaveVertexBufferLock_ == BcFalse )
 	{

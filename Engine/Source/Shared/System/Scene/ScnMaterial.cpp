@@ -314,6 +314,19 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnMaterialComponent::initialise( const Json::Value& Object )
+{
+	ScnMaterialRef MaterialRef;
+	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "material" ].asCString(), MaterialRef ) )
+	{
+		BcAssertMsg( BcFalse, "ScnMaterialComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "material" ].asCString(), "ScnMaterial" );
+	}
+
+	initialise( MaterialRef, BcErrorCode );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // destroy
 void ScnMaterialComponent::destroy()
 {

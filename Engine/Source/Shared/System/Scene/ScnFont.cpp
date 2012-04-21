@@ -448,6 +448,24 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnFontComponent::initialise( const Json::Value& Object )
+{
+	ScnFontRef FontRef;
+	ScnMaterialRef MaterialRef;
+	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "font" ].asCString(), FontRef ) )
+	{
+		BcAssertMsg( BcFalse, "ScnFontComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "model" ].asCString(), "ScnFont" );
+	}
+	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "material" ].asCString(), MaterialRef ) )
+	{
+		BcAssertMsg( BcFalse, "ScnFontComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "material" ].asCString(), "ScnMaterial" );
+	}
+
+	initialise( FontRef, MaterialRef );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setClipping
 void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 {

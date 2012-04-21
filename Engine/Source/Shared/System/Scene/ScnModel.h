@@ -138,7 +138,7 @@ public:
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-	void								render( RsFrame* pFrame, RsRenderSort Sort );
+	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
 	ScnModelRef							Parent_;
