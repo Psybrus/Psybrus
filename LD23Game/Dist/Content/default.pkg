@@ -20,6 +20,34 @@
 
 		{
 			"type"			: "ScnTexture",
+			"name"			: "deuterium",
+
+			"source"		: "Content/Source/deuterium.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "tritium",
+
+			"source"		: "Content/Source/tritium.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "helium",
+
+			"source"		: "Content/Source/helium.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "neutron",
+
+			"source"		: "Content/Source/neutron.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
 			"name"			: "particle0",
 
 			"source"		: "Content/Source/particle0.png"
@@ -129,6 +157,106 @@
 				"blend_mode" 				: "none"
 			}
 		},		
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "deuterium",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "deuterium"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "tritium",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "tritium"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "helium",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "helium"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "neutron",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "neutron"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},	
 
 		{
 			"type"			: "ScnMaterial",
@@ -245,6 +373,30 @@
 
 		{
 			"type"		: "ScnModel",
+			"name"		: "deuterium",
+			"source"	: "Content/Source/deuterium.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "tritium",
+			"source"	: "Content/Source/tritium.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "helium",
+			"source"	: "Content/Source/helium.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "neutron",
+			"source"	: "Content/Source/neutron.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
 			"name"		: "heatmap",
 			"source"	: "Content/Source/heatmap.obj"
 		},
@@ -285,14 +437,14 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere",
+					"model" 		: "deuterium",
 					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Deuterium",
-					"colour"		: "0.0,1.0,0.0,1.0",
+					"colour"		: "1.0,1.0,1.0,1.0",
 					"maxspeed"		: 4.0,
 					"direction"		: 1.0,		// Towards origin.
 					"radius" 		: 1.5,
@@ -311,14 +463,14 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere",
+					"model" 		: "tritium",
 					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Tritium",
-					"colour"		: "1.0,0.0,0.0,1.0",
+					"colour"		: "1.0,1.0,1.0,1.0",
 					"maxspeed"		: 3.0,
 					"direction"		: 1.0,		// Towards origin.
 					"radius" 		: 2.0,
@@ -337,14 +489,14 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere",
+					"model" 		: "helium",
 					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Helium",
-					"colour"		: "1.0,1.0,0.0,1.0",
+					"colour"		: "1.0,1.0,1.0,1.0",
 					"maxspeed"		: 12.0,
 					"direction"		: -1.0,		// Away from origin.
 					"radius" 		: 3.0
@@ -359,14 +511,14 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere",
+					"model" 		: "neutron",
 					"layer"			: 0
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Neutron",
-					"colour"		: "0.0,0.0,1.0,1.0",
+					"colour"		: "1.0,1.0,1.0,1.0",
 					"maxspeed"		: 12.0,
 					"direction"		: -1.0,		// Away from origin.
 					"radius" 		: 1.0

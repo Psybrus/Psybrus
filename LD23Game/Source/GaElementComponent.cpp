@@ -51,13 +51,11 @@ void GaElementComponent::update( BcReal Tick )
 
 	// Update physics.
 	BcMat4d Matrix( getParentEntity()->getMatrix() );
-	BcMat4d ScaleMatrix;
-	ScaleMatrix.scale( BcVec3d( Radius_, Radius_, Radius_ ) );
 	BcVec3d Position = Matrix.translation();
 	Rotation_ += AngularVelocity_ * Tick;
 	Matrix.rotation( Rotation_ );
 
-	getParentEntity()->setMatrix( Matrix * ScaleMatrix );
+	getParentEntity()->setMatrix( Matrix );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,8 +66,8 @@ void GaElementComponent::onAttach( ScnEntityWeakRef Parent )
 	// Get first model component.
 	Model_ = Parent->getComponentByType< ScnModelComponent >( 0 );
 
-	// Get material from model.
-	Material_ = Model_->getMaterialComponent( "element" );
+	// Get the material.
+	Material_ = Parent->getComponentByType< ScnMaterialComponent >( 0 );
 	MaterialColourParam_ = Material_->findParameter( "uColour" );
 
 	// Don't forget to attach!
