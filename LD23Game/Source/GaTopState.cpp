@@ -48,19 +48,8 @@ void GaTopState::preMain()
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
 
-	// Create screen entity.
- 	if( CsCore::pImpl()->requestResource( "default", "ScreenEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "ScreenEntity_0", Entity, TemplateEntity ) )
-	{
-		//
-		ScnCore::pImpl()->addEntity( Entity );
-	}
-
-	// Create game entity.
-	if( CsCore::pImpl()->requestResource( "default", "GameEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "PaddleEntity_0", Entity, TemplateEntity ) )
-	{
-		//
-		ScnCore::pImpl()->addEntity( Entity );
-	}
+	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "ScreenEntity", "ScreenEntity_0" ) );
+	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity", "GameEntity_0" ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

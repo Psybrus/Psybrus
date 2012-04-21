@@ -2,7 +2,7 @@
 *
 * File:		GaGameComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	29/12/11	
+* Ver/Date:	21/04/12
 * Description:
 *		Ball component.
 *		
@@ -13,6 +13,8 @@
 
 #include "GaGameComponent.h"
 
+static const BcReal WORLD_SIZE = 32.0f;
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaGameComponent );
@@ -22,6 +24,9 @@ DEFINE_RESOURCE( GaGameComponent );
 void GaGameComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
+
+
+	SpawnTimer_ = 0;
 
 	GameState_ = GS_INIT;
 }
@@ -35,13 +40,21 @@ void GaGameComponent::update( BcReal Tick )
 	{
 	case GS_INIT:
 		{
-			// Spawn a bunch of entities for the level.
-			for( BcU32 Idx = 0; Idx < 8; ++Idx )
+			// Max elements to spawn.
+			MaxElements_ = 32;
+
+			// Spawn player.
+			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
+			getParentEntity()->attach( PlayerEntity );
+
+			for( BcU32 Idx = 0; Idx < PlayerEntity->getNoofComponents(); ++Idx )
 			{
-				BcVec3d Position0 = BcRandom::Global.randVec3Normal() * 20.0f; 
-				BcVec3d Position1 = BcRandom::Global.randVec3Normal() * 20.0f; 
-				spawnElement( Position0, "In0ElementEntity" );
-				spawnElement( Position1, "In1ElementEntity" );
+				ScnComponentRef Component( PlayerEntity->getComponent( Idx ) );
+				if( Component->isTypeOf< GaStrongForceComponent >() )
+				{
+					StrongForce_ = Component;
+					break;
+				}
 			}
 			
 			// Switch game state.
@@ -86,20 +99,14 @@ void GaGameComponent::update( BcReal Tick )
 //virtual
 void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	// Find canvas component.
-	for( BcU32 Idx = 0; Idx < Parent->getNoofComponents(); ++Idx )
-	{
-		ScnComponentRef Component( Parent->getComponent( Idx ) );
+	// Grab components we need.
+	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
+	Font_ = Parent->getComponentByType< ScnFontComponent >( 0 );
 
-		if( Component->isTypeOf< ScnCanvasComponent >() )
-		{
-			Canvas_ = Component;
-		}
-		else if( Component->isTypeOf< ScnFontComponent >() )
-		{
-			Font_ = Component;
-		}
-	}
+	//
+	BcMat4d Scale;
+	Scale.scale( BcVec3d( 20.0f, 20.0f, 20.0f ) );
+	Parent->setMatrix( Scale );
 
 	// Don't forget to attach!
 	Super::onAttach( Parent );
@@ -116,95 +123,348 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // spawnElement
-void GaGameComponent::spawnElement( const BcVec3d& Position, const BcName& Type )
+void GaGameComponent::spawnElement( const BcVec3d& Position, const BcVec3d& Velocity, const BcName& Type )
 {
+
 	ScnEntityRef Entity( ScnCore::pImpl()->createEntity( "default", Type ) );
 	BcAssertMsg( Entity.isValid(), "Can't spawn element." );
 
-	GaElementComponentRef Element;
-	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
-	{
-		ScnComponentRef Component( Entity->getComponent( Idx ) );
-
-		if( Component->isTypeOf< GaElementComponent >() )
-		{
-			Element = Component;
-			break;
-		}
-	}
-
+	// Get element component.
+	GaElementComponentRef Element =  Entity->getComponentByType< GaElementComponent >( 0 );
 	BcAssertMsg( Element.isValid(), "Element not in entity. Did you use the right template?" );
 
 	// Calculate velocity.
-	BcVec3d Velocity = ( -Position ).normal() * Element->Direction_;
+	BcVec3d CalcVelocity = Velocity;
+		
+	// If velocity is too small just give it a new velocity.
+	if( CalcVelocity.magnitude() < Element->MaxSpeed_ )
+	{
+		CalcVelocity = ( -Position ).normal() * Element->Direction_;
 
-	// Add a little randomisation.
-	Velocity += ( BcRandom::Global.randVec3Normal() * 0.3f );
-	
+		// Add a little randomisation.
+		CalcVelocity += ( BcRandom::Global.randVec3Normal() * 0.3f );
+	}
+
 	// Clamp, and TODO: make speeds vary a little.
-	Velocity = Velocity.normal() * Element->MaxSpeed_;
-	
+	CalcVelocity.y( 0.0f );
+	CalcVelocity = CalcVelocity.normal() * Element->MaxSpeed_;
+
+
 	TElement ElementInternal = 
 	{
 		Type,
+		Element->FuseType_,
+		Element->ReplaceType_,
+		Element->RespawnType_,
 		Entity,
 		Element,
+		BcFalse,
 		Position,
-		Velocity,
+		CalcVelocity,
 	};
 
-	ElementList_.push_back( ElementInternal );
+	ElementInternal.Position_.y( 0.0f );
 
-	// Attach the entity to our parent entity for sequential logic.
-	getParentEntity()->attach( Entity );
+	AddElementList_.push_back( ElementInternal );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateSimulation
 void GaGameComponent::updateSimulation( BcReal Tick )
 {
+	SpawnTimer_ += Tick;
+
+	if( SpawnTimer_ > 0.5f )
+	{
+		SpawnTimer_ = 0.0f;
+
+		// Spawn new ones if need be.
+		if( ElementList_.size() < MaxElements_ )
+		{
+			for( BcU32 Idx = 0; Idx < 1; ++Idx )
+			{
+				BcVec3d Position0 = BcRandom::Global.randVec3Normal(); 
+				BcVec3d Position1 = BcRandom::Global.randVec3Normal();
+
+				// Clamp y to 0.
+				Position0.y( 0.0f );
+				Position1.y( 0.0f );
+				Position0 = Position0.normal() * WORLD_SIZE;
+				Position1 = Position1.normal() * WORLD_SIZE;
+				
+				// Spawn 1 of each type.
+				spawnElement( Position0, BcVec3d( 0.0f, 0.0f, 0.0f ), "In0ElementEntity" );
+				spawnElement( Position1, BcVec3d( 0.0f, 0.0f, 0.0f ), "In1ElementEntity" );
+			}
+		}
+	}
+
+	// Do update tick.
 	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
 	{
 		TElement& Element( ElementList_[ Idx ] );
 
-		// Find nearest that isn't us, and repel based on distance.
-		BcU32 OtherIdx = findNearestOfType( Element.Position_, BcName::INVALID, Idx );
-		if( OtherIdx != NULL )
+		// Find nearest that isn't us or our type (yeah I know..), and repel based on distance.
+		BcU32 OtherIdx = findNearestOfType( Element.Position_, Element.Element_->Radius_, BcName::INVALID, Idx );
+		if( OtherIdx != BcErrorCode )
 		{
 			TElement& OtherElement( ElementList_[ OtherIdx ] );
 			
+			BcVec3d Direction = Element.Position_ - OtherElement.Position_;
+			BcReal DistanceSquared = ( Direction ).magnitudeSquared();
+			BcReal TotalRadius = ( Element.Element_->Radius_ + OtherElement.Element_->Radius_ );
+			BcReal TotalRadiusSquared = TotalRadius * TotalRadius;
 			
+			if( DistanceSquared < TotalRadiusSquared )
+			{
+				// Force ourself away from the other element.
+				Element.Velocity_ += Direction.normal() * ( 1.0f - ( DistanceSquared / TotalRadiusSquared ) ) * 1.0f;
+
+				// Clamp velocity.
+				Element.Velocity_ = Element.Velocity_.normal() * Element.Element_->MaxSpeed_;
+			}
 		}
-		
+
+		// Are we inside the radius of the strong force?
+		BcReal ForceDistanceSquared = ( Element.Position_ - StrongForce_->Position_ ).magnitudeSquared();
+		BcReal ForceRadiusSquared = StrongForce_->Radius_ * StrongForce_->Radius_;
+
+		if( ForceDistanceSquared < ForceRadiusSquared && StrongForce_->IsCharging_ )
+		{
+			if( Element.FuseType_ != BcName::INVALID && StrongForce_->IsCharging_ )
+			{
+				// Find nearest one to fuse with and move towards it.
+				BcU32 FuseIdx = findNearestOfType( Element.Position_, Element.Element_->Radius_, Element.FuseType_, Idx );
+				if( FuseIdx != BcErrorCode )
+				{
+					TElement& FuseElement( ElementList_[ FuseIdx ] );
+
+					BcVec3d Direction = Element.Position_ - FuseElement.Position_;
+					BcReal DistanceSquared = ( Direction ).magnitudeSquared();
+					BcReal TotalRadius = ( Element.Element_->Radius_ + FuseElement.Element_->Radius_ );
+					BcReal TotalRadiusSquared = TotalRadius * TotalRadius;
+			
+					if( DistanceSquared < TotalRadiusSquared )
+					{
+						// Force ourself away from the other element.
+						Element.Velocity_ += -Direction.normal() * ( 1.0f - ( DistanceSquared / TotalRadiusSquared ) ) * 2.5f;
+
+						// Clamp velocity.
+						Element.Velocity_ = Element.Velocity_.normal() * Element.Element_->MaxSpeed_;
+					}
+				}
+
+				// Find nearest of ourself and move away.
+				BcU32 RepelIdx = findNearestOfType( Element.Position_, Element.Element_->Radius_, Element.Type_, Idx );
+				if( RepelIdx != BcErrorCode )
+				{
+					TElement& RepelElement( ElementList_[ RepelIdx ] );
+
+					BcVec3d Direction = Element.Position_ - RepelElement.Position_;
+					BcReal DistanceSquared = ( Direction ).magnitudeSquared();
+					BcReal TotalRadius = ( Element.Element_->Radius_ + RepelElement.Element_->Radius_ );
+					BcReal TotalRadiusSquared = TotalRadius * TotalRadius;
+			
+					if( DistanceSquared < TotalRadiusSquared )
+					{
+						// Force ourself away from the other element.
+						Element.Velocity_ += Direction.normal() * ( 1.0f - ( DistanceSquared / TotalRadiusSquared ) ) * 2.5f;
+
+						// Clamp velocity.
+						Element.Velocity_ = Element.Velocity_.normal() * Element.Element_->MaxSpeed_;
+					}
+				}
+			}
+		}
+
 		// Advance.
 		Element.Position_ += Element.Velocity_ * Tick;
+
+		// If it's moving away from the origin and out of bounds remove it.
+		if( Element.Position_.magnitude() > 20.0f &&
+			( Element.Position_ + Element.Velocity_ ).magnitudeSquared() > ( Element.Position_ ).magnitudeSquared() )
+		{
+			// Remove entity.
+			RemoveEntityList_.push_back( Element.Entity_ );
+
+			// Spawn new to take it's place on the opposite side.
+			if( Element.RespawnType_ != BcName::INVALID )
+			{
+				BcVec3d Position0 = -Element.Position_;
+				spawnElement( Position0, Element.Velocity_, Element.RespawnType_ );
+			}
+		}
 
 		// Set entity position.
 		Element.Entity_->setPosition( Element.Position_ );
 	}
-}
 
-//////////////////////////////////////////////////////////////////////////
-// findNearestOfType
-BcU32 GaGameComponent::findNearestOfType( const BcVec3d& Position, const BcName& Type, BcU32 Exclude )
-{
-	BcU32 Nearest = BcErrorCode;
-	BcReal NearestDistanceSquared = 1e24f;
+	// Mark elements for fusion.
 	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
 	{
 		TElement& Element( ElementList_[ Idx ] );
 
-		if( Exclude != Idx && ( Type == BcName::INVALID || Element.Type_ == Type ) )
-		{
-			BcReal DistanceSquared = ( Position - Element.Position_ ).magnitudeSquared();
+		// Are we inside the radius of the strong force?
+		BcReal ForceDistanceSquared = ( Element.Position_ - StrongForce_->Position_ ).magnitudeSquared();
+		BcReal ForceRadiusSquared = StrongForce_->Radius_ * StrongForce_->Radius_;
 
-			if( DistanceSquared < NearestDistanceSquared )
+		if( ForceDistanceSquared < ForceRadiusSquared && StrongForce_->IsActive_ )
+		{
+			// Find nearest one to fuse with and move towards it.
+			if( Element.FuseType_ != BcName::INVALID )
+			{
+				BcU32 FuseIdx = findNearestOfType( Element.Position_, Element.Element_->Radius_, Element.FuseType_, Idx );
+				if( FuseIdx != BcErrorCode )
+				{
+					TElement& FuseElement( ElementList_[ FuseIdx ] );
+
+					BcReal Distance = ( Element.Position_ - FuseElement.Position_ ).magnitude();
+					BcReal TotalRadius = ( Element.Element_->Radius_ + FuseElement.Element_->Radius_ );
+			
+					if( Distance < ( TotalRadius * 0.25f ) )
+					{
+						Element.MarkedForFusion_ = BcTrue;
+						FuseElement.MarkedForFusion_ = BcTrue;
+
+						BcPrintf( "Marked for fusion: %s & %s\n", (*Element.Type_).c_str(), (*FuseElement.Type_).c_str() );
+					}
+				}
+			}
+		}
+	}
+
+	// Do the fusion core dance!
+	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
+	{
+		TElement& Element( ElementList_[ Idx ] );
+
+		// It's time to dance!
+		if( Element.MarkedForFusion_ && Element.ReplaceType_ != BcName::INVALID )
+		{
+			// Remove entity.
+			RemoveEntityList_.push_back( Element.Entity_ );
+
+			// Spawn new to take it's place on the opposite side.
+			spawnElement( Element.Position_, Element.Velocity_, Element.ReplaceType_ );
+		}
+	}
+	
+	// Remove entities.
+	removeEntities();
+
+	// Add new entities.
+	addElements();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findNearestOfType
+BcU32 GaGameComponent::findNearestOfType( const BcVec3d& Position, BcReal Radius, const BcName& Type, BcU32 Exclude )
+{
+	BcU32 Nearest = BcErrorCode;
+	BcReal NearestDistance = 1e24f;
+	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
+	{
+		TElement& Element( ElementList_[ Idx ] );
+
+		if( Exclude != Idx && ( Type == BcName::INVALID || Element.Type_ == Type ) && Element.MarkedForFusion_ == BcFalse )
+		{
+			BcReal Distance = ( Position - Element.Position_ ).magnitude();
+			BcReal TotalRadius = Radius + Element.Element_->Radius_;
+
+			Distance = BcMax( Distance - TotalRadius, 0.0f );
+
+			if( Distance < NearestDistance )
 			{
 				Nearest = Idx;
-				NearestDistanceSquared = DistanceSquared;
+				NearestDistance = Distance;
 			}
 		}	
 	}
 
 	return Nearest;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findNearestOfType
+BcU32 GaGameComponent::findNearestNotOfType( const BcVec3d& Position, BcReal Radius, const BcName& Type, BcU32 Exclude )
+{
+	BcU32 Nearest = BcErrorCode;
+	BcReal NearestDistance = 1e24f;
+	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
+	{
+		TElement& Element( ElementList_[ Idx ] );
+
+		if( Exclude != Idx && ( Element.Type_ != Type ) && Element.MarkedForFusion_ == BcFalse )
+		{
+			BcReal Distance = ( Position - Element.Position_ ).magnitude();
+			BcReal TotalRadius = Radius + Element.Element_->Radius_;
+
+			Distance = BcMax( Distance - TotalRadius, 0.0f );
+
+			if( Distance < NearestDistance )
+			{
+				Nearest = Idx;
+				NearestDistance = Distance;
+			}
+		}	
+	}
+
+	return Nearest;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addElements
+void GaGameComponent::addElements()
+{
+	for( TElementListIterator It( AddElementList_.begin() ); It != AddElementList_.end(); ++It )
+	{
+		TElement& Element( (*It) );
+
+		ElementList_.push_back( Element );
+
+		// Attach the entity to our parent entity for sequential logic.
+		getParentEntity()->attach( Element.Entity_ );
+	}
+
+	AddElementList_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// removeEntities
+void GaGameComponent::removeEntities()
+{
+	for( TElementListIterator It( ElementList_.begin() ); It != ElementList_.end(); )
+	{
+		TElement& Element( (*It) );
+
+		if( inRemoveEntityList( Element.Entity_ ) )
+		{
+			// Detach from ourselves.
+			getParentEntity()->detach( Element.Entity_ );
+
+			// Remove from list.
+			It = ElementList_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
+
+	RemoveEntityList_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// inRemoveEntityList
+BcBool GaGameComponent::inRemoveEntityList( ScnEntityRef Entity )
+{
+	for( ScnEntityListIterator It( RemoveEntityList_.begin() ); It != RemoveEntityList_.end(); ++It )
+	{
+		if( (*It) == Entity )
+		{
+			return BcTrue;
+		}
+	}
+
+	return BcFalse;
 }

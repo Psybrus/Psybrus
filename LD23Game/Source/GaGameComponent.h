@@ -2,7 +2,7 @@
 *
 * File:		GaGameComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:	29/12/11	
+* Ver/Date:	21/04/12
 * Description:
 *		Example user component.
 *		
@@ -16,6 +16,7 @@
 
 #include "Psybrus.h"
 #include "GaElementComponent.h"
+#include "GaStrongForceComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
@@ -39,17 +40,27 @@ public:
 private:
 	struct TElement
 	{
-		BcName Type_;
+		BcName Type_;					//< What we are.
+		BcName FuseType_;				//< What we fuse with.
+		BcName ReplaceType_;			//< What do we become after fusion?
+		BcName RespawnType_;			//< What do we become when we fly out of bounds?
 		ScnEntityRef Entity_;
 		GaElementComponentRef Element_;
+		BcBool MarkedForFusion_;
 		
 		BcVec3d Position_;
 		BcVec3d Velocity_;
 	};
 
-	void								spawnElement( const BcVec3d& Position, const BcName& Type );
+	void								spawnElement( const BcVec3d& Position, const BcVec3d& Velocity, const BcName& Type );
+	
 	void								updateSimulation( BcReal Tick );
-	BcU32								findNearestOfType( const BcVec3d& Position, const BcName& Type, BcU32 Exclude = BcErrorCode );
+	BcU32								findNearestOfType( const BcVec3d& Position, BcReal Radius, const BcName& Type, BcU32 Exclude = BcErrorCode );
+	BcU32								findNearestNotOfType( const BcVec3d& Position, BcReal Radius, const BcName& Type, BcU32 Exclude = BcErrorCode );
+
+	void								addElements();
+	void								removeEntities();
+	BcBool								inRemoveEntityList( ScnEntityRef Entity );
 	
 private:
 	enum GameState
@@ -65,8 +76,20 @@ private:
 	ScnCanvasComponentRef				Canvas_;
 	ScnFontComponentRef					Font_;
 
+	GaStrongForceComponentRef			StrongForce_;
+
+
 	// Element logic.
-	std::vector< TElement >				ElementList_;
+	typedef std::vector< TElement >		TElementList;
+	typedef TElementList::iterator		TElementListIterator;
+
+	TElementList						ElementList_;
+	TElementList						AddElementList_;
+	
+	ScnEntityList						RemoveEntityList_;
+
+	BcReal								SpawnTimer_;
+	BcU32								MaxElements_;
 };
 
 #endif

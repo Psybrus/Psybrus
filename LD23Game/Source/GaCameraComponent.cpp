@@ -2,7 +2,7 @@
 *
 * File:		GaCameraComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	29/12/11	
+* Ver/Date:	21/04/12
 * Description:
 *		Example user component.
 *		
@@ -31,9 +31,11 @@ void GaCameraComponent::initialise( const Json::Value& Object )
 //virtual
 void GaCameraComponent::update( BcReal Tick )
 {
-	Ticker_ += Tick * 0.1f;
+	Ticker_ += Tick * 1.0f;
 
-	BcVec3d Position( BcVec3d( BcCos( Ticker_ ), 50.0f, -BcSin( Ticker_ ) ) );
+	//BcVec3d Position( BcVec3d( BcCos( Ticker_ ) , 1.0f, -BcSin( Ticker_ ) ) * 50.0f );
+
+	BcVec3d Position( 0.0f, 40.0f, -1.0f );
 
 	// Setup entity position to render from.
 	BcMat4d LookAt;
