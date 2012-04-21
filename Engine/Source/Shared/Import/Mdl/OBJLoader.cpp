@@ -146,6 +146,10 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 					VertA.UV_ = TexCoords_[ T[0] - 1 ];
 					VertB.UV_ = TexCoords_[ T[1] - 1 ];
 					VertC.UV_ = TexCoords_[ T[2] - 1 ];
+
+					VertA.UV_ = BcVec2d( VertA.UV_.x(), -VertA.UV_.y() );
+					VertB.UV_ = BcVec2d( VertB.UV_.x(), -VertB.UV_.y() );
+					VertC.UV_ = BcVec2d( VertC.UV_.x(), -VertC.UV_.y() );
 				}
 
 				if( N[0] != BcErrorCode )
