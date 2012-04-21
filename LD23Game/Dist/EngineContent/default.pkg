@@ -1,0 +1,97 @@
+{
+
+	"resources" : [
+		{
+			"type"			: "ScnFont",
+			"name"			: "default",
+
+			"source"		: "EngineContent/FontSource/srgt6pack.ttf",
+			"distancefield"	: true,
+			"nominalsize"	: 64,
+			"spread"		: 16
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "default",
+
+			"source"		: "EngineContent/TextureSource/default.png"
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "default",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/diffuse.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial".
+			"name"			: "default",
+
+			// Shader
+			"shader"		: "default",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "font",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/font.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/font.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "font",
+
+			// Shader
+			"shader"		: "font",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "never",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "default",
+			"source"	: "EngineContent/ModelSource/default2.obj"
+		}
+	]
+}

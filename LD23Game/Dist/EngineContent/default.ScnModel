@@ -1,0 +1,6 @@
+{ 
+	"ScnModel" : {
+		"name"		: "default",
+		"source"	: "EngineContent/ModelSource/testrig.md5mesh"
+	}
+}

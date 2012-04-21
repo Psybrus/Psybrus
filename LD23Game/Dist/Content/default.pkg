@@ -1,0 +1,277 @@
+{
+
+	"resources" : [
+		{
+			"type"			: "ScnFont",
+			"name"			: "default",
+
+			"source"		: "EngineContent/FontSource/srgt6pack.ttf",
+			"distancefield"	: true,
+			"nominalsize"	: 24,
+			"spread"		: 4
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "default",
+
+			"source"		: "EngineContent/TextureSource/default.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "particle0",
+
+			"source"		: "Content/Source/particle0.png"
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "default",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/diffuse3d.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "default",
+
+			// Shader
+			"shader"		: "default",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "font",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/font.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/font.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "font",
+
+			// Shader
+			"shader"		: "font",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "never",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "particle",
+ 
+			"shaders"		: {
+				"vertex" 		: "Content/Source/particle.glslv",
+				"fragment" 		: "Content/Source/particle.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "particle",
+
+			// Shader
+			"shader"		: "particle",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "particle0"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "add"
+			}
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "sphere",
+			"source"	: "Content/Source/sphere.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "cube",
+			"source"	: "Content/Source/cube.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "paddle",
+			"source"	: "Content/Source/paddle.obj"
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Entities.
+		{
+			"name"		:		"ScreenEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaCameraComponent"
+				},
+
+				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
+				{
+					"type"			: "ScnViewComponent",
+					"x"				: 0.0,
+					"y"				: 0.0,
+					"width"			: 1.0,
+					"height"		: 1.0,
+					"near"			: 0.1,
+					"far"			: 1000.0,
+					"hfov"			: 0.75,
+					"vfov"			: 0.0
+				}
+			]
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Elements.
+
+		{
+			"name"		:		"In0ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Deuterium",
+					"colour"		: "#00ff00"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "sphere"
+				}
+			]
+		},
+
+		{
+			"name"		:		"In1ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Tritium",
+					"colour"		: "#ff0000"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "sphere"
+				}
+			]
+		},
+
+		{
+			"name"		:		"Out0ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Helium",
+					"colour"		: "#ffff00"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "sphere"
+				}
+			]
+		},
+
+		{
+			"name"		:		"Out1ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Neutron",
+					"colour"		: "#0000ff"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "sphere"
+				}
+			]
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Game entity.
+		{
+			"name"		:		"GameEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnCanvasComponent",
+					"noofvertices"	: 8192
+				},
+
+				{
+					"type"			: "ScnFontComponent",
+					"font"			: "default",
+					"material"		: "font"
+				},
+
+				{
+					"type"			: "GaGameComponent"
+				}
+			]
+		}
+
+	]
+}
