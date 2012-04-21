@@ -86,3 +86,23 @@ BcReal BcRandom::interpolatedNoise( BcReal X, BcU32 Width )
 	return V1 + ( V2 - V1 ) * FracX;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
+BcVec2d BcRandom::randVec2Normal()
+{
+	return BcVec2d( randReal() - 0.5f, randReal() - 0.5f ).normal();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
+BcVec3d BcRandom::randVec3Normal()
+{
+	return BcVec3d( randReal() - 0.5f, randReal() - 0.5f, randReal() - 0.5f ).normal();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
+BcVec4d BcRandom::randVec4Normal()
+{
+	return BcVec4d( randReal() - 0.5f, randReal() - 0.5f, randReal() - 0.5f, randReal() - 0.5f ).normal();
+}

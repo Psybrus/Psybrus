@@ -444,6 +444,24 @@ void ScnModelComponent::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransfo
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
+{
+	ScnModel::TPrimitiveData* pPrimitiveData = Parent_->pPrimitiveData_;
+
+	for( BcU32 Idx = 0; Idx < MaterialComponentDescList_.size(); ++Idx )
+	{
+		const BcChar* pPrimitiveMaterialName( Parent_->getString( pPrimitiveData[ Idx ].MaterialName_ ) );
+		if( MaterialName == pPrimitiveMaterialName )
+		{
+			return MaterialComponentDescList_[ Idx ].MaterialComponentRef_;
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnModelComponent::update( BcReal Tick )
