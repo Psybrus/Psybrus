@@ -83,6 +83,10 @@ public:
 	ScnComponentRef						getComponent( BcU32 Idx );
 
 	/**
+	 * 
+	 */
+
+	/**
  	 * Get AABB which encompasses this entity.
 	 */
 	BcAABB								getAABB();

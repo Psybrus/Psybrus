@@ -234,15 +234,25 @@ ScnEntityRef ScnEntity::getBasisEntity()
 // getNoofComponents
 BcU32 ScnEntity::getNoofComponents() const
 {
-	return Components_.size();
+	// HACK.
+	return Components_.size() > 0 ? Components_.size() : AttachComponents_.size();
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
 ScnComponentRef ScnEntity::getComponent( BcU32 Idx )
 {
-	BcAssert( Idx < Components_.size() );
-	return Components_[ Idx ];
+	// HACK.
+	if( Components_.size() > 0 )
+	{
+		BcAssert( Idx < Components_.size() );
+		return Components_[ Idx ];
+	}
+	else
+	{
+		BcAssert( Idx < AttachComponents_.size() );
+		return AttachComponents_[ Idx ];
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
