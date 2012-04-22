@@ -13,8 +13,6 @@
 
 #include "GaGameComponent.h"
 
-static const BcReal WORLD_SIZE = 32.0f;
-
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaGameComponent );
@@ -68,6 +66,10 @@ void GaGameComponent::update( BcReal Tick )
 			// Max elements to spawn.
 			MaxElements_ = 48;
 
+			// Spawn sun.
+			ScnEntityRef SunEntity = ScnCore::pImpl()->createEntity( "default", "SunEntity" );
+			getParentEntity()->attach( SunEntity );
+
 			// Spawn player.
 			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
 			getParentEntity()->attach( PlayerEntity );
@@ -93,10 +95,7 @@ void GaGameComponent::update( BcReal Tick )
 
 			Canvas_->clear();
 			Canvas_->pushMatrix( Projection );
-
-			//Canvas_->setMaterialComponent( HeatMapMaterial_ );
-			//Canvas_->drawSpriteCentered( BcVec2d( 0.0f, 0.0f ), BcVec2d( 700.0f, -700.0f ), 0, RsColour::WHITE, 0 ); 
-
+			
 			// Draw centred.
 			BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), "TEST HUD", RsColour::WHITE, BcTrue );
 			Font_->draw( Canvas_, BcVec2d( -400.0f, -300.0f ) - Size * 0.5f, "TEST HUD", RsColour::WHITE, BcFalse );
@@ -110,6 +109,9 @@ void GaGameComponent::update( BcReal Tick )
 		}
 		break;
 	}
+
+	static BcReal Ticer = 0.0f;
+	Ticer += Tick;
 	
 	Super::update( Tick );
 }
@@ -120,22 +122,43 @@ void GaGameComponent::update( BcReal Tick )
 void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Grab components we need.
-	HeatMapModel_ = Parent->getComponentByType< ScnModelComponent >( 0 );
-	HeatMapMaterial_ = HeatMapModel_->getMaterialComponent( "heatmap" );
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
 	Font_ = Parent->getComponentByType< ScnFontComponent >( 0 );
+	ParticleSystem_ = Parent->getComponentByType< ScnParticleSystemComponent >( 0 );
 	
-	// Set heatmap texture.
-	BcU32 TextureParam = HeatMapMaterial_->findParameter( "aDiffuseTex" );
-	BcU32 ColourParam = HeatMapMaterial_->findParameter( "uColour" );
-	HeatMapMaterial_->setTexture( TextureParam, HeatMapTexture_ );
-	HeatMapMaterial_->setParameter( ColourParam, RsColour::WHITE );
-		
-	//
-	BcMat4d Scale;
-	Scale.scale( BcVec3d( WORLD_SIZE, 1.0f, WORLD_SIZE ) );
-	Parent->setMatrix( Scale );
+	// Set heatmap texture in model.
+	HeatMapModel_ = Parent->getComponentByType< ScnModelComponent >( 0 );
+	if( HeatMapModel_.isValid() )
+	{
+		BcMat4d ScaleMatrix;
+		ScaleMatrix.scale( BcVec3d( WORLD_SIZE, WORLD_SIZE, WORLD_SIZE ) );
+		HeatMapModel_->setTransform( 0, ScaleMatrix );
+		HeatMapMaterial_ = HeatMapModel_->getMaterialComponent( "heatmap" );
+		if( HeatMapMaterial_.isValid() )
+		{
+			BcU32 TextureParam = HeatMapMaterial_->findParameter( "aDiffuseTex" );
+			BcU32 ColourParam = HeatMapMaterial_->findParameter( "uColour" );
+			HeatMapMaterial_->setTexture( TextureParam, HeatMapTexture_ );
+			HeatMapMaterial_->setParameter( ColourParam, RsColour::WHITE );
+		}
+	}
 
+	// Set heatmap texture in particle system.
+	if( ParticleSystem_.isValid() )
+	{
+		BcReal ScaleFactor = 0.5f / WORLD_SIZE;
+		BcMat4d HeatMapMatrix;
+		HeatMapMatrix.row0( BcVec4d( ScaleFactor,	0.0f,			0.0f,			0.0f ) );
+		HeatMapMatrix.row1( BcVec4d( 0.0f,			0.0f,			-ScaleFactor,	0.0f ) );
+		HeatMapMatrix.row2( BcVec4d( 0.0f,			ScaleFactor,	0.0f,			0.0f ) );
+		HeatMapMatrix.row3( BcVec4d( 0.5f,			0.5f,			0.5f,			1.0f ) );
+		ScnMaterialComponentRef MaterialRef = ParticleSystem_->getMaterialComponent();
+		BcU32 HeatMapTextureParam = MaterialRef->findParameter( "aHeatMapTex" );
+		BcU32 HeatMapMatrixParam = MaterialRef->findParameter( "uHeatMapMatrix" );
+		MaterialRef->setTexture( HeatMapTextureParam, HeatMapTexture_ );
+		MaterialRef->setParameter( HeatMapMatrixParam, HeatMapMatrix );
+	}
+	
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
@@ -169,7 +192,7 @@ void GaGameComponent::spawnElement( const BcVec3d& Position, const BcVec3d& Velo
 		CalcVelocity = ( -Position ).normal() * Element->Direction_;
 
 		// Add a little randomisation.
-		CalcVelocity += ( BcRandom::Global.randVec3Normal() * 0.3f );
+		CalcVelocity += ( BcRandom::Global.randVec3Normal() * 0.1f );
 	}
 
 	// Clamp, and TODO: make speeds vary a little.
@@ -271,7 +294,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 
 					BcVec3d Direction = Element.Position_ - FuseElement.Position_;
 					BcReal DistanceSquared = ( Direction ).magnitudeSquared();
-					BcReal TotalRadius = ( Element.Element_->Radius_ + FuseElement.Element_->Radius_ );
+					BcReal TotalRadius = ( Element.Element_->Radius_ + FuseElement.Element_->Radius_ ) * 2.0f;
 					BcReal TotalRadiusSquared = TotalRadius * TotalRadius;
 			
 					if( DistanceSquared < TotalRadiusSquared )
@@ -378,7 +401,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 			// Spawn new to take it's place on the opposite side.
 			spawnElement( Element.Position_, Element.Velocity_, Element.ReplaceType_ );
 
-			addHeatMapValue( Element.Position_, 256.0f );
+			addHeatMapValue( Element.Position_, 1024.0f * 16.0f );
 		}
 	}
 	
@@ -514,6 +537,27 @@ BcReal& GaGameComponent::getHeatMapValue( BcS32 X, BcS32 Y, BcU32 Buffer )
 // updateHeatMapTexture
 void GaGameComponent::updateHeatMapTexture()
 {
+	// Randomise a little.
+	for( BcU32 Idx = 0; Idx < 4; ++Idx )
+	{
+		BcU32 X0 = BcRandom::Global.randRange( 0, HeatMapWidth_ - 1 );
+		BcU32 Y0 = BcRandom::Global.randRange( 0, HeatMapHeight_ - 1 );
+		BcU32 X1 = BcRandom::Global.randRange( 0, HeatMapWidth_ - 1 );
+		BcU32 Y1 = BcRandom::Global.randRange( 0, HeatMapHeight_ - 1 );
+
+		BcReal& Value0 = getHeatMapValue( X0, Y0 );
+		BcReal& Value1 = getHeatMapValue( X1, Y1 );
+
+		//Value0 += 0.09f;
+		//Value1 -= 0.1f;
+	}
+
+	// Calculate falloff for blur.
+	BcVec3d Falloff( 2.0f, 0.1f, 0.5f );
+	BcReal Total = Falloff.x() + ( Falloff.y() + Falloff.z() ) * 2.0f;
+	Falloff /= Total;
+	
+	
 	// Blur X
 	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
 	{
@@ -522,11 +566,11 @@ void GaGameComponent::updateHeatMapTexture()
 			BcReal& Out( getHeatMapValue( X, Y, 1 ) );
 			BcReal In[] = 
 			{
-				( getHeatMapValue( X - 2, Y, 0 ) ) * 0.05f,
-				( getHeatMapValue( X - 1, Y, 0 ) ) * 0.1f,
-				( getHeatMapValue( X, Y, 0 ) ) * 0.7f,
-				( getHeatMapValue( X + 1, Y, 0 ) ) * 0.1f,
-				( getHeatMapValue( X + 2, Y, 0 ) ) * 0.05f
+				( getHeatMapValue( X - 2, Y, 0 ) ) * Falloff.z(),
+				( getHeatMapValue( X - 1, Y, 0 ) ) * Falloff.y(),
+				( getHeatMapValue( X, Y, 0 ) ) * Falloff.x(),
+				( getHeatMapValue( X + 1, Y, 0 ) ) * Falloff.y(),
+				( getHeatMapValue( X + 2, Y, 0 ) ) * Falloff.z()
 			};
 
 			Out = ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] );
@@ -541,17 +585,18 @@ void GaGameComponent::updateHeatMapTexture()
 			BcReal& Out( getHeatMapValue( X, Y, 0 ) );
 			BcReal In[] = 
 			{
-				( getHeatMapValue( X, Y - 2, 1 ) ) * 0.05f,
-				( getHeatMapValue( X, Y - 1, 1 ) ) * 0.1f,
-				( getHeatMapValue( X, Y, 1 ) ) * 0.7f,
-				( getHeatMapValue( X, Y + 1, 1 ) ) * 0.1f,
-				( getHeatMapValue( X, Y + 2, 1 ) ) * 0.05f,
+				( getHeatMapValue( X, Y - 2, 1 ) ) * Falloff.z(),
+				( getHeatMapValue( X, Y - 1, 1 ) ) * Falloff.y(),
+				( getHeatMapValue( X, Y, 1 ) ) * Falloff.x(),
+				( getHeatMapValue( X, Y + 1, 1 ) ) * Falloff.y(),
+				( getHeatMapValue( X, Y + 2, 1 ) ) * Falloff.z(),
 			};
 
-			Out = BcMin( ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] ), 4.0f );
+			Out = BcClamp( ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] ), 0.0f, 4.0f );
 		}
 	}
 
+	// Write out to texture.
 	HeatMapTexture_->lock();
 
 	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
@@ -561,6 +606,7 @@ void GaGameComponent::updateHeatMapTexture()
 			BcU32 Index = X + Y * HeatMapWidth_;
 			BcReal& HeatMapValue( pHeatMap_[ Index ] );
 			BcReal ClampedValue = BcClamp( HeatMapValue, 0.0f, 1.0f );
+			ClampedValue = ClampedValue * ClampedValue;
 			HeatMapTexture_->setTexel( X, Y, RsColour( ClampedValue, ClampedValue, ClampedValue, 1.0f ) );
 		}
 	}

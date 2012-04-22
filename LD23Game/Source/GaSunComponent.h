@@ -1,32 +1,32 @@
 /**************************************************************************
 *
-* File:		GaCameraComponent.h
+* File:		GaSunComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:	21/04/12
+* Ver/Date:	22/04/12
 * Description:
-*		Camera component.
+*	
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GACAMERACOMPONENT_H__
-#define __GACAMERACOMPONENT_H__
+#ifndef __GaSunComponent_H__
+#define __GaSunComponent_H__
 
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
-typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
+typedef CsResourceRef< class GaSunComponent > GaSunComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
-class GaCameraComponent:
+// GaSunComponent
+class GaSunComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaCameraComponent );
+	DECLARE_RESOURCE( ScnComponent, GaSunComponent );
 
 	void								initialise( const Json::Value& Object );
 
@@ -35,11 +35,19 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
 private:
-	BcReal Ticker_;
+	friend class GaGameComponent;
+	
+	RsColour							Colour_;
+	BcReal								Radius_;
+	BcReal								RadiusMult_;
+	BcReal								RotationMult_;
+	BcReal								RotationSpeed_;
 
-	BcVec3d Position_;
-	BcVec3d TargetPosition_;
+	BcReal								Rotation_;
+
+	std::vector< ScnModelComponentRef >		Models_;
+	std::vector< ScnMaterialComponentRef >	Materials_;
+	std::vector< BcU32 >					MaterialColourParams_;
 };
 
 #endif
-

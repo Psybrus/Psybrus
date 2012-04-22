@@ -10,7 +10,10 @@ uniform mat4 uViewTransform;
 uniform mat4 uWorldTransform;
 uniform mat4 uClipTransform;
 
+uniform mat4 uHeatMapMatrix; 
+
 varying vec4 vTexCoord0;
+varying vec4 vHeatMapTexCoord;
 varying vec4 vColour;
 
 void main()
@@ -20,5 +23,6 @@ void main()
 	vec4 Vertex = aPosition + Offset;
 	gl_Position = ( uClipTransform * ( uWorldTransform * Vertex ) );
 	vTexCoord0 = aTexCoord0;
+	vHeatMapTexCoord = uHeatMapMatrix * Vertex;
 	vColour = aColour;
 }
