@@ -43,12 +43,26 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 		ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
 		eRsTextureFormat TextureFormat = rsTF_RGBA8;
 
+		// Use tex compression unless in debug.
+#if !PSY_DEBUG
+		if( pImage->hasAlpha( 8 ) == BcFalse )
+		{
+			EncodeFormat = imgEF_DXT1;
+			TextureFormat = rsTF_DXT1;
+		}
+		else
+		{
+			EncodeFormat = imgEF_DXT5;
+			TextureFormat = rsTF_DXT5;
+		}
+#endif
+
 		if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 		{
 			// Serialize encoded image.
 			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
 			BodyStream.push( pEncodedImageData, EncodedImageDataSize );
-			delete pEncodedImageData;
+			delete [] pEncodedImageData;
 			pEncodedImageData = NULL;
 
 
@@ -92,6 +106,7 @@ void ScnTexture::initialise()
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
 	CreateNewTexture_ = BcTrue;
+	IsUserCreated_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,6 +114,8 @@ void ScnTexture::initialise()
 //virtual
 void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format )
 {
+	Super::initialise();
+
 	// NULL internals.
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
@@ -109,7 +126,9 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTexture
 	Header_.Levels_ = Levels;
 	Header_.Format_ = Format; // BAD.
 
-	pTextureData_ = new BcU32[ Header_.Width_ * Header_.Height_ * Header_.Levels_ ];
+	// Allocate to a 4k alignment.
+	pTextureData_ = BcMemAlign( Header_.Width_ * Header_.Height_ * Header_.Levels_ * 4, 4096 );
+	IsUserCreated_ = BcTrue;
 
 	setup();
 }
@@ -129,6 +148,16 @@ void ScnTexture::destroy()
 {
 	RsCore::pImpl()->destroyResource( pTexture_ );
 	pTexture_ = NULL;
+
+	// Wait for renderer.
+	SysFence Fence( RsCore::WORKER_MASK );
+
+	// Free if it's user created.
+	if( IsUserCreated_ )
+	{
+		BcMemFree( pTextureData_ );
+		pTextureData_ = NULL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,8 +213,8 @@ void ScnTexture::setTexel( BcU32 X, BcU32 Y, const RsColour& Colour )
 	{
 		BcU32* pTextureData = (BcU32*)pTextureData_;
 		BcU32 Index = X + Y * Header_.Width_;
-		BcU32& Texel = pTextureData[ Index ];
-		Texel = Colour.asABGR();
+		BcAssert( Index < ( Header_.Width_ * Header_.Height_ ) );
+		pTextureData[ Index ] = Colour.asABGR();
 	}
 }
 

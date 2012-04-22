@@ -22,6 +22,7 @@ class SysFence
 {
 public:
 	SysFence();
+	SysFence( BcU32 WorkerMask );  // Immediately queue and wait for 0.
 	~SysFence();
 
 	/**

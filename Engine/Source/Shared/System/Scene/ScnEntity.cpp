@@ -66,7 +66,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Json::Reader Reader;
 	if( Reader.parse( pJsonObject_, Root ) )
 	{
-		BcPrintf( "** ScnEntity::initialise:\n" );
+		//BcPrintf( "** ScnEntity::initialise:\n" );
 
 		//
 		const Json::Value& Components = Root[ "components" ];
@@ -80,7 +80,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
 
-				BcPrintf( "** - %s:%s\n", (*ComponentRef->getName()).c_str(), (*ComponentRef->getType()).c_str() );
+				//BcPrintf( "** - %s:%s\n", (*ComponentRef->getName()).c_str(), (*ComponentRef->getType()).c_str() );
 
 				// Initialise has already been called...need to change this later.
 				ComponentRef->initialise( Component );
@@ -90,6 +90,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 			}			
 		}
 	}
+
+	Super::initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -187,30 +189,47 @@ void ScnEntity::detach( ScnComponent* Component )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// reattach
-void ScnEntity::reattach( ScnComponent* Component )
-{
-	detach( Component );
-	attach( Component );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttachScene
-void ScnEntity::onAttachScene()
+void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
 	// Process attach/detach.
 	processAttachDetach();
 
 	BcAssert( IsAttached_ == BcFalse );
 	IsAttached_ = BcTrue;
+
+	// Do onAttachComponent for all entities current components.
+	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
+	{
+		ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), getComponent( Idx ) );
+	}
+
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// onDetachScene
-void ScnEntity::onDetachScene()
+// onAttachScene
+void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
+	// All components, get rid of NOW.
+	// TODO: See about removing stuff from ScnCore for this.
+	Super::onDetach( Parent );
+
 	BcAssert( IsAttached_ == BcTrue );
 	IsAttached_ = BcFalse;
+
+	// Do onDetachComponent for all entities current components.
+	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
+	{
+		ScnComponentRef Component( getComponent( Idx ) );
+
+		// Can be unattached if the entity has been immediately removed from the scene.
+		if( Component->isAttached() == BcTrue )
+		{
+			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
+			Component->onDetach( ScnEntityWeakRef( this ) );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

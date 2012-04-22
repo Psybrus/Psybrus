@@ -77,6 +77,7 @@ protected:
 	THeader								Header_;
 	void*								pTextureData_;
 	BcBool								CreateNewTexture_;
+	BcBool								IsUserCreated_;
 };
 
 #endif

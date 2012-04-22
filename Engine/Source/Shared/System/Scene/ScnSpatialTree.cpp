@@ -68,9 +68,10 @@ void ScnSpatialTreeNode::addComponent( ScnComponentWeakRef Component )
 void ScnSpatialTreeNode::removeComponent( ScnComponentWeakRef Component )
 {
 	// Remove from self/owner.
-	if( Component->getSpatialTreeNode() != this )
+	ScnSpatialTreeNode* pNode = Component->getSpatialTreeNode();
+	if( pNode != NULL && pNode != this )
 	{
-		Component->getSpatialTreeNode()->removeComponent( Component );
+		pNode->removeComponent( Component );
 	}
 
 	ComponentList_.remove( Component );

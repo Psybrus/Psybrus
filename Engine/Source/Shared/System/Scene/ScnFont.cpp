@@ -255,7 +255,8 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					
 					// Create an atlas of glyphs.
 					ImgRectList RectList;
-					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 1024, 1024 );
+					ImgColour ClearColour = { 0, 0, 0, 0 };
+					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 512, 512, ClearColour );
 					
 					// Create a texture.
 					std::string FontTextureName = Object[ "name" ].asString() + "fonttextureatlas";

@@ -24,11 +24,23 @@
 BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const Json::Value& Source = Object[ "source" ];
+	const Json::Value& ClearColourValue = Object[ "clearcolour" ];
 	const Json::Value& DistanceFieldValue = Object[ "distancefield" ];
 	const Json::Value& SpreadValue = Object[ "spread" ];
 	const Json::Value& AlphaFromIntensityValue = Object[ "alphafromintensity" ];
 	if( Source.isArray() )
 	{
+		ImgColour ClearColour = { 0, 0, 0, 0 };
+
+		if( ClearColourValue.type() != Json::nullValue )
+		{
+			RsColour Colour = ClearColourValue.asCString();
+			ClearColour.R_ = BcU8( BcClamp( BcU32( Colour.r() * 255.0f ), 0, 255 ) );
+			ClearColour.G_ = BcU8( BcClamp( BcU32( Colour.g() * 255.0f ), 0, 255 ) );
+			ClearColour.B_ = BcU8( BcClamp( BcU32( Colour.b() * 255.0f ), 0, 255 ) );
+			ClearColour.A_ = BcU8( BcClamp( BcU32( Colour.a() * 255.0f ), 0, 255 ) );
+		}
+
 		BcBool DistanceField = ( DistanceFieldValue.type() != Json::nullValue ) ? DistanceFieldValue.asBool() : BcFalse;
 		BcU32 Spread = ( SpreadValue.type() != Json::nullValue ) ? SpreadValue.asUInt() : 0;
 		BcU32 SpreadDouble = Spread * 2;
@@ -65,8 +77,8 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			if( pImage != NULL && DistanceField == BcTrue )
 			{
 				ImgImage* pPaddedImage = new ImgImage();
+
 				ImgColour FillColour = { 0, 0, 0, 0 };
-				
 				BcU32 NewWidth = BcPotNext( pImage->width() + SpreadDouble );
 				BcU32 NewHeight = BcPotNext( pImage->height() + SpreadDouble );
 				
@@ -108,7 +120,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 						
 			// Create an atlas of all source textures..
 			ImgRectList RectList;
-			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256 );
+			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256, ClearColour );
 			
 			// Setup header.
 			TAtlasHeader Header = 

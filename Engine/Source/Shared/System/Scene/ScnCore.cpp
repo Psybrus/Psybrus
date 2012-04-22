@@ -221,16 +221,8 @@ void ScnCore::processAddRemove()
 	for( ScnEntityListIterator It( RemoveEntityList_.begin() ); It != RemoveEntityList_.end(); ++It )
 	{
 		ScnEntityRef Entity( *It );
-		Entity->onDetachScene();
+		Entity->onDetach( NULL );
 		EntityList_.remove( Entity );
-
-		// Do onDetachComponent for all entities current components.
-		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
-		{
-			ScnComponentRef Component( Entity->getComponent( Idx ) );
-			onDetachComponent( ScnEntityWeakRef( Entity ), Component );
-			Component->onDetach( ScnEntityWeakRef( Entity ) );				// HACK? I don't think this should be called. Entities are still attached to the entity.		
-		}
 	}
 	RemoveEntityList_.clear();
 
@@ -238,14 +230,8 @@ void ScnCore::processAddRemove()
 	{
 		ScnEntityRef Entity( *It );
 
-		Entity->onAttachScene();
+		Entity->onAttach( NULL );
 		EntityList_.push_back( Entity );
-
-		// Do onAttachComponent for all entities current components.
-		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
-		{
-			onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
-		}
 	}
 	AddEntityList_.clear();
 }
