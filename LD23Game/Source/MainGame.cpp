@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Ludum Dare 23: Tiny World: \"Fusion\"", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "Ludum Dare 23: Tiny World: \"Fusion Time!\"", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate
