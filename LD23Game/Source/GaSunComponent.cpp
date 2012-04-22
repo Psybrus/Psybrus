@@ -71,6 +71,12 @@ void GaSunComponent::onAttach( ScnEntityWeakRef Parent )
 		Materials_.push_back( Models_[ Idx ]->getMaterialComponent( "sun" ) );
 		MaterialColourParams_.push_back( Materials_[ Idx ]->findParameter( "uColour" ) );
 	}
+
+	ScnSoundEmitterComponentRef SoundEmitter = Parent->getComponentByType< ScnSoundEmitterComponent >( 0 );
+	if( SoundEmitter.isValid() )
+	{
+		SoundEmitter->play( "default", "music" );
+	}
 	
 	// Don't forget to attach!
 	Super::onAttach( Parent );

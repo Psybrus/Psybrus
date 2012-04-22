@@ -113,6 +113,8 @@ void GaStrongForceComponent::onAttach( ScnEntityWeakRef Parent )
 		}
 	}
 
+	SoundEmitter_ = Parent->getComponentByType< ScnSoundEmitterComponent >( 0 );
+
 	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaStrongForceComponent, &GaStrongForceComponent::onMouseEvent >( this );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseEvent );
@@ -164,15 +166,30 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 		{
 			if( Event.ButtonCode_ == 0 )
 			{
-				IsActive_ = BcTrue;
-				IsCharging_ = BcFalse;
-				TargetRadius_ = 2.0f;
+				if( IsCharging_ == BcTrue )
+				{
+					static BcName Sound( "forceexplode" );
+					playSound( Sound );
+
+					IsActive_ = BcTrue;
+					IsCharging_ = BcFalse;
+					TargetRadius_ = 2.0f;
+				}
 			}
 			else if( Event.ButtonCode_ == 1 )
 			{
-				TargetRadius_ = 16.0f;
-				IsCharging_ = BcTrue;
-				IsActive_ = BcFalse;
+				if( TargetRadius_ < 2.5f )
+				{
+					if( IsCharging_ == BcFalse && IsActive_ == BcFalse )
+					{
+						static BcName Sound( "charge" );
+						playSound( Sound );
+					}
+
+					TargetRadius_ = 16.0f;
+					IsCharging_ = BcTrue;
+					IsActive_ = BcFalse;
+				}
 			}
 		}
 		break;
@@ -193,4 +210,12 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 	}
 
 	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// playSound
+void GaStrongForceComponent::playSound( BcName& Name, BcBool Force )
+{
+	static BcName Default( "default" );
+	SoundEmitter_->play( Default, Name );
 }

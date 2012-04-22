@@ -34,6 +34,8 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
+	void								playSound( BcName& Name, BcBool Force = BcFalse );
+
 private:
 	friend class GaGameComponent;
 
@@ -54,11 +56,13 @@ private:
 	ScnMaterialComponentRef				Material_;
 	BcU32								MaterialColourParam_;
 
+	BcReal								SoundTimer_;
+
 	ScnModelComponentRef				ShadowModel_;
 	ScnMaterialComponentRef				ShadowMaterial_;
 	BcU32								ShadowMaterialColourParam_;
 
-
+	ScnSoundEmitterComponentRef			SoundEmitter_;
 };
 
 #endif
