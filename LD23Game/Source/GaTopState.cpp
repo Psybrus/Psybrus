@@ -47,9 +47,10 @@ void GaTopState::preMain()
 { 
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
-
+	
 	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "ScreenEntity", "ScreenEntity_0" ) );
 	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity", "GameEntity_0" ) );
+	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "SunEntity", "SunEntity_0" ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +72,10 @@ void GaTopState::preLeave()
 // leave
 eSysStateReturn GaTopState::leave()
 {
-	return sysSR_FINISHED;
+	// Wait...
+	static int i = 10;
+	--i;
+	return i < 0 ? sysSR_FINISHED : sysSR_CONTINUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

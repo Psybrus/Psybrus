@@ -71,6 +71,12 @@ private:
 	void								updateHeatMapTexture();
 	void								addHeatMapValue( const BcVec3d& Position, BcReal Value );
 	BcReal								getHeatMapValue( const BcVec3d& Position );
+
+	void								particlesPlasmaCloud();
+	void								particlesFusionExplode( const BcVec3d& Position, const BcVec3d& Direction, const RsColour& Colour );
+	void								particlesCollision( const BcVec3d& Position );
+	void								particlesFusionCharge( const BcVec3d& Position, BcReal Radius );
+	void								particlesFusionActivate( const BcVec3d& Position );
 	
 private:
 	enum GameState
@@ -110,11 +116,11 @@ private:
 	BcReal*								pHeatMapBuffer_;
 	BcU32								HeatMapWidth_;
 	BcU32								HeatMapHeight_;
+	BcReal								HeatAverage_;
 
 	// Sun
 	ScnModelComponentRef				SunModel_;
 	ScnMaterialComponentRef				SunMaterial_;
-
 };
 
 #endif

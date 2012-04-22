@@ -15,7 +15,7 @@
 			"type"			: "ScnTexture",
 			"name"			: "default",
 
-			"source"		: "Content/Source/uvref.png"
+			"source"		: "EngineContent/TextureSource/default.png"
 		},
 
 		{
@@ -49,6 +49,7 @@
 		{
 			"type"			: "ScnTextureAtlas",
 			"name"			: "plasmaparticle",
+			"clearcolour"	: "0.0,0.0,0.0,1.0",
 
 			"source"		: [
 				"Content/Source/plasmaparticle0.png",
@@ -58,7 +59,12 @@
 				"Content/Source/plasmaparticle4.png",
 				"Content/Source/plasmaparticle5.png",
 				"Content/Source/plasmaparticle6.png",
-				"Content/Source/plasmaparticle7.png"
+				"Content/Source/plasmaparticle7.png",
+				"Content/Source/explodeparticle0.png",
+				"Content/Source/explodeparticle1.png",
+				"Content/Source/chargeparticle0.png",
+				"Content/Source/chargeparticle1.png",
+				"Content/Source/haloparticle0.png"
 			]
 		},
 
@@ -374,7 +380,7 @@
 			"name"			: "strongforce",
 
 			// Shader
-			"shader"		: "element",
+			"shader"		: "element", 
 
 			// Textures
 			"textures"		: {
@@ -547,8 +553,8 @@
 					"height"		: 1.0,
 					"near"			: 0.1,
 					"far"			: 1000.0,
-					"hfov"			: 0.75,
-					"vfov"			: 0.0
+					"hfov"			: 0.0,
+					"vfov"			: 0.5
 				}
 			]
 		},
@@ -645,7 +651,7 @@
 					"element"		: "Helium",
 					"colour"		: "0.5,0.5,0.0,1.0",
 					"shadowcolour"	: "0.5,0.5,0.0,1.0",
-					"maxspeed"		: 4.0,
+					"maxspeed"		: 16.0,
 					"direction"		: -1.0,		// Away from origin.
 					"radius" 		: 3.0
 				}
@@ -674,7 +680,7 @@
 					"element"		: "Neutron",
 					"colour"		: "0.0,0.5,0.5,1.0",
 					"shadowcolour"	: "0.0,0.5,0.5,1.0",
-					"maxspeed"		: 4.0,
+					"maxspeed"		: 16.0,
 					"direction"		: -1.0,		// Away from origin.
 					"radius" 		: 1.0
 				}
@@ -688,11 +694,13 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
+			/*
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "strongforce",
 					"layer"			: 4
 				},
+				*/
 
 				{
 					"type"			: "GaStrongForceComponent",
@@ -752,7 +760,6 @@
 					"model"			: "heatmap"
 				},
 				*/				
-
 				{
 					"type"			: "ScnCanvasComponent",
 					"noofvertices"	: 8192
@@ -766,7 +773,7 @@
 
 				{
 					"type"			: "ScnParticleSystemComponent",
-					"noofparticles"	: 12000,
+					"noofparticles"	: 4096,
 					"material"		: "particle"
 				},
 				

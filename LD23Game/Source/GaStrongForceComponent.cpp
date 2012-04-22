@@ -13,6 +13,8 @@
 
 #include "GaStrongForceComponent.h"
 
+#include "GaGameComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaStrongForceComponent );
@@ -27,6 +29,7 @@ void GaStrongForceComponent::initialise( const Json::Value& Object )
 	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
 
 	IsCharging_ = BcFalse;
+	IsActive_ = BcFalse;
 
 	Radius_ = 2.0f;
 	TargetRadius_ = 2.0f;
@@ -45,11 +48,17 @@ void GaStrongForceComponent::update( BcReal Tick )
 	// Set material colour up.
 	if( IsCharging_ )
 	{
-		Material_->setParameter( MaterialColourParam_, Colour_ * ActiveColour );
+		if( Material_.isValid() )
+		{
+			Material_->setParameter( MaterialColourParam_, Colour_ * ActiveColour );
+		}
 	}
 	else
 	{
-		Material_->setParameter( MaterialColourParam_, Colour_ * InactiveColour );
+		if( Material_.isValid() )
+		{
+			Material_->setParameter( MaterialColourParam_, Colour_ * InactiveColour );
+		}
 	}
 
 	if( IsCharging_ )
@@ -73,18 +82,36 @@ void GaStrongForceComponent::update( BcReal Tick )
 void GaStrongForceComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Find the view (used for mouse unprojection).
-	ScnEntityRef ScreenEntity;
-	if( CsCore::pImpl()->requestResource( BcName::NONE, "ScreenEntity_0", ScreenEntity ) )
+	ScnEntityRef Entity;
+	if( CsCore::pImpl()->requestResource( BcName::NONE, "ScreenEntity_0", Entity ) )
 	{
-		View_ = ScreenEntity->getComponentByType< ScnViewComponent >( 0 );
+		View_ = Entity->getComponentByType< ScnViewComponent >( 0 );
+	}
+	else
+	{
+		BcBreakpoint;
 	}
 	
 	// Get first model component.
 	Model_ = Parent->getComponentByType< ScnModelComponent >( 0 );
+	if( Model_.isValid() )
+	{
+		// Get material from model.
+		Material_ = Model_->getMaterialComponent( "strongforce" );
+		if( Material_.isValid() )
+		{
+			MaterialColourParam_ = Material_->findParameter( "uColour" );
 
-	// Get material from model.
-	Material_ = Model_->getMaterialComponent( "strongforce" );
-	MaterialColourParam_ = Material_->findParameter( "uColour" );
+			// Set visible mask stuff.
+			BcReal ScaleFactor = 0.5f / WORLD_SIZE;
+			BcMat4d VisibleMapMatrix;
+			VisibleMapMatrix.row0( BcVec4d( ScaleFactor,	0.0f,			0.0f,			0.0f ) );
+			VisibleMapMatrix.row1( BcVec4d( 0.0f,			0.0f,			-ScaleFactor,	0.0f ) );
+			VisibleMapMatrix.row2( BcVec4d( 0.0f,			ScaleFactor,	0.0f,			0.0f ) );
+			VisibleMapMatrix.row3( BcVec4d( 0.5f,			0.5f,			0.5f,			1.0f ) );
+			Material_->setParameter( Material_->findParameter( "uVisibleMapMatrix" ), VisibleMapMatrix );
+		}
+	}
 
 	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaStrongForceComponent, &GaStrongForceComponent::onMouseEvent >( this );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
