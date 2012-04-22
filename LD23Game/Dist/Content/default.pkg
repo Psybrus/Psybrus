@@ -5,10 +5,10 @@
 			"type"			: "ScnFont",
 			"name"			: "default",
 
-			"source"		: "EngineContent/FontSource/srgt6pack.ttf",
+			"source"		: "Content/Source/autodestructbb_bold.ttf",
 			"distancefield"	: true,
 			"nominalsize"	: 24,
-			"spread"		: 4
+			"spread"		: 6
 		},
 
 		{
@@ -47,6 +47,13 @@
 		},
 
 		{
+			"type"			: "ScnTexture",
+			"name"			: "textbg",
+
+			"source"		: "Content/Source/textbg.png"
+		},
+
+		{
 			"type"			: "ScnTextureAtlas",
 			"name"			: "plasmaparticle",
 			"clearcolour"	: "0.0,0.0,0.0,1.0",
@@ -73,6 +80,13 @@
 			"name"			: "sun",
 
 			"source"		: "Content/Source/sun.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "sky",
+
+			"source"		: "Content/Source/sky.png"
 		},
 
 		{
@@ -123,7 +137,7 @@
 
 		{
 			"type"			: "ScnSound",
-			"name"			: "collide0",
+			"name"			: "collide2",
 
 			"source"		: "Content/Source/collide2.ogg",
 			"looping"		: false
@@ -131,7 +145,7 @@
 
 		{
 			"type"			: "ScnSound",
-			"name"			: "collide1",
+			"name"			: "collide3",
 
 			"source"		: "Content/Source/collide3.ogg",
 			"looping"		: false
@@ -150,6 +164,22 @@
 			"name"			: "fuse",
 
 			"source"		: "Content/Source/fuse.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "lostmultiplier",
+
+			"source"		: "Content/Source/lostmultiplier.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "lost",
+
+			"source"		: "Content/Source/lost.ogg",
 			"looping"		: false
 		},
 
@@ -230,6 +260,30 @@
 
 		{
 			"type"			: "ScnMaterial",
+			"name"			: "textbg",
+
+			// Shader
+			"shader"		: "default2d",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "textbg"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},
+				{
+			"type"			: "ScnMaterial",
 			"name"			: "heatmap",
 
 			// Shader
@@ -303,6 +357,33 @@
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
 				"blend_mode" 				: "blend"
+			}
+		},	
+
+		//////////////////////////////////////////////////////////////////////////
+		// SKY MATERIAL
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "sky",
+
+			// Shader
+			"shader"		: "sun",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "sky"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
 			}
 		},	
 
@@ -587,6 +668,12 @@
 
 		{
 			"type"		: "ScnModel",
+			"name"		: "sky",
+			"source"	: "Content/Source/sky.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
 			"name"		: "shadow",
 			"source"	: "Content/Source/shadow.obj"
 		},
@@ -806,6 +893,12 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
+					"model"			: "sky",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnModelComponent",
 					"model"			: "sun",
 					"layer"			: 0
 				},
@@ -830,7 +923,7 @@
 				{
 					"type"			: "GaSunComponent",
 					"colour"		: "1.0,1.0,1.0,0.25",
-					"radius"		: 64.0,
+					"radius"		: 80.0,
 					"radiusmult"	: 0.99,
 					"rotationmult"	: -0.8,
 					"rotationspeed"	: 0.25
@@ -853,6 +946,10 @@
 					"model"			: "heatmap"
 				},
 				*/				
+				{
+					"type"			: "ScnMaterialComponent",
+					"material"		: "textbg"
+				},
 
 				{
 					"type"			: "ScnSoundEmitterComponent"

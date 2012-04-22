@@ -70,6 +70,17 @@ void GaStrongForceComponent::update( BcReal Tick )
 		Radius_ = BcLerp( Radius_, TargetRadius_, Tick * 10.0f );
 	}
 
+	if( BcAbs( Radius_ - 16.0f ) < 0.2f )
+	{
+		static BcName Sound( "forceexplode" );
+		playSound( Sound );
+
+		IsActive_ = BcTrue;
+		IsCharging_ = BcFalse;
+		TargetRadius_ = 2.0f;
+	}
+
+
 	BcMat4d Matrix;
 	Matrix.scale( BcVec3d( Radius_, Radius_, Radius_ ) );
 	Matrix.translation( Position_ );
@@ -166,18 +177,6 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 		{
 			if( Event.ButtonCode_ == 0 )
 			{
-				if( IsCharging_ == BcTrue )
-				{
-					static BcName Sound( "forceexplode" );
-					playSound( Sound );
-
-					IsActive_ = BcTrue;
-					IsCharging_ = BcFalse;
-					TargetRadius_ = 2.0f;
-				}
-			}
-			else if( Event.ButtonCode_ == 1 )
-			{
 				if( TargetRadius_ < 2.5f )
 				{
 					if( IsCharging_ == BcFalse && IsActive_ == BcFalse )
@@ -198,12 +197,15 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 		{
 			if( Event.ButtonCode_ == 0 )
 			{
-				IsActive_ = BcFalse;
-			}
-			else if( Event.ButtonCode_ == 1 )
-			{
-				TargetRadius_ = 2.0f;
-				IsCharging_ = BcFalse;
+				if( IsCharging_ )
+				{
+					static BcName Sound( "forceexplode" );
+					playSound( Sound );
+
+					IsActive_ = BcTrue;
+					IsCharging_ = BcFalse;
+					TargetRadius_ = 2.0f;
+				}
 			}
 		}
 		break;

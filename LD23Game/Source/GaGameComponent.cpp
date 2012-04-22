@@ -13,6 +13,10 @@
 
 #include "GaGameComponent.h"
 
+#include "GaCameraComponent.h"
+
+BcU32 GaGameComponent::HighScore_ = 0;
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaGameComponent );
@@ -25,7 +29,7 @@ void GaGameComponent::initialise( const Json::Value& Object )
 	
 	SpawnTimer_ = 0.0f;
 
-	GameState_ = GS_INIT;
+	GameState_ = GS_START_SCREEN;
 
 	HeatMapWidth_ = 32;
 	HeatMapHeight_ = 32;
@@ -41,6 +45,11 @@ void GaGameComponent::initialise( const Json::Value& Object )
 		pHeatMap_[ Idx ] = HeatAverage_;
 		pHeatMapBuffer_[ Idx ] = HeatAverage_;
 	}
+
+	HeatMapUpdateAccumulator_ = 0.0f;
+
+	Score_ = 0;
+	ScoreMultiplier_ = 1;
 
 	CsCore::pImpl()->createResource( BcName::INVALID, HeatMapTexture_, HeatMapWidth_, HeatMapHeight_, 1, rsTF_RGBA8 );
 }
@@ -60,12 +69,106 @@ void GaGameComponent::destroy()
 //virtual
 void GaGameComponent::update( BcReal Tick )
 {
+	// HUD stuff.
+	BcMat4d Projection;
+	Projection.orthoProjection( -640.0f, 640.0f, 360.0f, -360.0f, -1.0f, 1.0f );
+
+	Canvas_->clear();
+	Canvas_->pushMatrix( Projection );
+
 	switch( GameState_ )
 	{
+	case GS_START_SCREEN:
+		{
+			// Draw centred.
+			BcVec2d Size;
+			BcChar Buffer[ 4096 ];
+			BcVec2d Position;
+			BcMat4d Matrix;
+
+			Matrix.scale( BcVec3d( 2.0f, 2.0f, 1.0f ) );
+			Canvas_->pushMatrix( Matrix );	
+				Position = BcVec2d( 0.0f, -120.0f );
+				BcSPrintf( Buffer, "Fusion Time!" );
+				Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+				Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
+			Canvas_->popMatrix();
+
+			Position = BcVec2d( 0.0f, -180.0f );
+			BcSPrintf( Buffer, "By NeiloGD for Ludum Dare 23" );
+			Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+			Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
+
+			Position = BcVec2d( 0.0f, -150.0f );
+			BcSPrintf( Buffer, "Theme: Tiny World" );
+			Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+			Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
+
+
+			Position = BcVec2d( 0.0f, 270.0f );
+			BcSPrintf( Buffer, "Press any key to continue." );
+			Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+			Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
+		}
+		break;
+
+	case GS_INSTRUCTIONS:
+		{
+			// Draw centred.
+			BcVec2d Size;
+			BcChar Buffer[ 4096 ];
+			BcVec2d Position;
+			BcMat4d Matrix;
+			
+			Matrix.scale( BcVec3d( 1.5f, 1.5f, 1.0f ) );
+			Canvas_->pushMatrix( Matrix );	
+				Position = BcVec2d( 0.0f, -180.0f );
+				BcSPrintf( Buffer, "Instructions" );
+				Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+				Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
+			Canvas_->popMatrix();
+
+			const BcChar* Lines[] = 
+			{
+				"*** Overview ***",
+				"You are strong force! You must fuse",
+				"red and blue to keep the sun burning!",
+				" - ",
+				"*** Click LMB to start charging ***",
+				"Nearby atoms are drawn towards you when you charge.",
+				" - ",
+				"*** Release LMB to activate ***",
+				"If you have a red and blue atom very close togheter",
+				"when you release, they will fuse and give energy to",
+				"the sun. Be careful, charging sucks energy so time",
+				"it as well as you can!",
+				" - ",
+				"*** Scoring ***",
+				"Your multiplier will keep going up as",
+				"long as you don't miss a fusion.",
+				" - ",
+				"Press any key to begin!"
+			};
+
+			BcU32 NoofLines = sizeof( Lines ) / sizeof( Lines[ 0 ] );
+
+			Position = BcVec2d( 0.0f, -170.0f );
+
+			for( BcU32 Idx = 0; Idx < NoofLines; ++Idx )
+			{
+				Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Lines[ Idx ], RsColour::BLACK, BcTrue );
+				Font_->draw( Canvas_, Position - Size * 0.5f, Lines[ Idx ], RsColour::WHITE, BcFalse );
+				Position.y( Position.y() + Size.y() );
+			}
+		}
+		break;
+
 	case GS_INIT:
 		{
+			GaCameraComponent::pImpl()->startGame();
+
 			// Max elements to spawn.
-			MaxElements_ = 32;
+			MaxElements_ = 64;
 			
 			// Spawn player.
 			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
@@ -84,33 +187,65 @@ void GaGameComponent::update( BcReal Tick )
 			updateSimulation( Tick );
 
 			// Update texture.
-			updateHeatMapTexture();
-
-			// HUD stuff.
-			BcMat4d Projection;
-			Projection.orthoProjection( -640.0f, 640.0f, 360.0f, -360.0f, -1.0f, 1.0f );
-
-			Canvas_->clear();
-			Canvas_->pushMatrix( Projection );
+			updateHeatMapTexture( Tick );
 			
-			// Draw centred.
-			BcChar Buffer[ 4096 ];
-			BcSPrintf( Buffer, "Heat: %u%%\n", BcU32( HeatAverage_ * 100.0f ) );
-			
-			BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
-			Font_->draw( Canvas_, BcVec2d( -400.0f, -300.0f ) - Size * 0.5f, Buffer, RsColour::BLACK, BcFalse );
-
-			Canvas_->popMatrix();
-
-			if( HeatAverage_ < 0.4f )
-			{
-				ScnEntity* pEntity = getParentEntity();
-				ScnCore::pImpl()->removeEntity( pEntity );
-				ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity" ) );
-			}
-
 			// Do particle plasma cloud.
 			particlesPlasmaCloud();
+
+			// Do the game over.
+			if( HeatAverage_ < 0.1f )
+			{
+				GameState_ = GS_GAME_OVER;
+				HighScore_ = BcMax( HighScore_, Score_ );
+
+				SoundEmitter_->setGain( 1.0f );
+				SoundEmitter_->play( "default", "lost" );
+				SoundEmitter_->play( "default", "forceexplode" );
+
+				GaCameraComponent::pImpl()->startMenu();
+
+				// Remove player.
+				getParentEntity()->detach( StrongForce_->getParentEntity() );
+			}
+		}
+		break;
+
+	case GS_GAME_OVER:
+		{
+			// Draw centred.
+			BcVec2d Size;
+			BcChar Buffer[ 4096 ];
+			BcVec2d Position;
+			BcMat4d Matrix;
+			
+			Matrix.scale( BcVec3d( 1.5f, 1.5f, 1.0f ) );
+			Canvas_->pushMatrix( Matrix );	
+				Position = BcVec2d( 0.0f, -180.0f );
+				BcSPrintf( Buffer, "GAME OVER" );
+				Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+				Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
+			Canvas_->popMatrix();
+
+
+			const BcChar* Lines[] = 
+			{
+				( HighScore_ == Score_ ) ? "You got a high score!" : "You didn't get a high score.",
+				" - ",
+				" - ",
+				" - ",
+				"Press any key to try again!"
+			};
+
+			BcU32 NoofLines = sizeof( Lines ) / sizeof( Lines[ 0 ] );
+
+			Position = BcVec2d( 0.0f, -140.0f );
+
+			for( BcU32 Idx = 0; Idx < NoofLines; ++Idx )
+			{
+				Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Lines[ Idx ], RsColour::BLACK, BcTrue );
+				Font_->draw( Canvas_, Position - Size * 0.5f, Lines[ Idx ], RsColour::WHITE, BcFalse );
+				Position.y( Position.y() + Size.y() );
+			}
 		}
 		break;
 
@@ -119,6 +254,16 @@ void GaGameComponent::update( BcReal Tick )
 		}
 		break;
 	}
+
+	// Draw centred.
+	BcVec2d Size;
+	BcChar Buffer[ 4096 ];
+	BcVec2d Position = BcVec2d( -450.0f, -270.0f );
+	BcSPrintf( Buffer, "Best: %u\nScore: %u\nMultiplier: %u\n", HighScore_, Score_, ScoreMultiplier_ );
+	Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+	//Canvas_->setMaterialComponent( TextBgMaterial_ );
+	//Canvas_->drawSpriteCentered( Position, Size * 1.75f, 0, RsColour::BLACK, 0 );
+	Font_->draw( Canvas_, Position - Size * 0.5f, Buffer, RsColour::WHITE, BcFalse );
 
 	static BcReal Ticer = 0.0f;
 	Ticer += Tick;
@@ -132,9 +277,17 @@ void GaGameComponent::update( BcReal Tick )
 void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Grab components we need.
+	TextBgMaterial_ = Parent->getComponentByType< ScnMaterialComponent >( 0 );
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
 	Font_ = Parent->getComponentByType< ScnFontComponent >( 0 );
 	ParticleSystem_ = Parent->getComponentByType< ScnParticleSystemComponent >( 0 );
+
+	// Font
+	{
+		ScnMaterialComponentRef Material = Font_->getMaterialComponent();
+		BcU32 Param = Material->findParameter( "aAlphaTestStep" );
+		Material->setParameter( Param, BcVec2d( 0.3f, 0.9f ) );
+	}
 	
 	// Set heatmap texture in model.
 	HeatMapModel_ = Parent->getComponentByType< ScnModelComponent >( 0 );
@@ -168,6 +321,11 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		MaterialRef->setTexture( HeatMapTextureParam, HeatMapTexture_ );
 		MaterialRef->setParameter( HeatMapMatrixParam, HeatMapMatrix );
 	}
+
+	SoundEmitter_ = Parent->getComponentByType< ScnSoundEmitterComponent >( 0 );
+
+	OsEventInputKeyboard::Delegate OnKeyboardEvent = OsEventInputKeyboard::Delegate::bind< GaGameComponent, &GaGameComponent::onKeyboardEvent >( this );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyboardEvent );
 	
 	// Don't forget to attach!
 	Super::onAttach( Parent );
@@ -178,6 +336,8 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	OsCore::pImpl()->unsubscribeAll( this );
+
 	// Don't forget to detach!
 	Super::onDetach( Parent );
 }
@@ -234,7 +394,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 {
 	SpawnTimer_ += Tick;
 
-	if( SpawnTimer_ > 0.5f )
+	if( SpawnTimer_ > 2.0f )
 	{
 		SpawnTimer_ = 0.0f;
 
@@ -251,10 +411,16 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 				Position1.y( 0.0f );
 				Position0 = Position0.normal() * WORLD_SIZE;
 				Position1 = Position1.normal() * WORLD_SIZE;
+
+				// Pick a random position to move towards.
+				BcVec3d Target = BcRandom::Global.randVec3() * ( WORLD_SIZE * 0.5f );
+
+				BcVec3d Velocity0 = ( Target - Position0 ).normal() * 100.0f;
+				BcVec3d Velocity1 = ( Target - Position1 ).normal() * 100.0f;
 				
 				// Spawn 1 of each type.
-				spawnElement( Position0, BcVec3d( 0.0f, 0.0f, 0.0f ), "In0ElementEntity" );
-				spawnElement( Position1, BcVec3d( 0.0f, 0.0f, 0.0f ), "In1ElementEntity" );
+				spawnElement( Position0, Velocity0, "In0ElementEntity" );
+				spawnElement( Position1, Velocity1, "In1ElementEntity" );
 			}
 		}
 	}
@@ -265,7 +431,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 		TElement& Element( ElementList_[ Idx ] );
 
 		// Reduce heat when moving through.
-		addHeatMapValue( Element.Position_, -0.5f * Tick );
+		addHeatMapValue( Element.Position_, -1.5f * Tick );
 
 		// Find nearest that isn't us or our type (yeah I know..), and repel based on distance.
 		BcU32 OtherIdx = findNearestOfType( Element.Position_, Element.Element_->Radius_, BcName::INVALID, Idx );
@@ -364,7 +530,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 		}
 
 		// Advance (use heatmap multiplier).
-		BcReal HeatMapValue = getHeatMapValue( Element.Position_ ) * 2.0f;
+		BcReal HeatMapValue = getHeatMapValue( Element.Position_ ) * 8.0f;
 		Element.Position_ += Element.Velocity_ * Tick * HeatMapValue;
 
 		// If it's moving away from the origin and out of bounds remove it.
@@ -420,15 +586,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 		}
 	}
 
-	if( StrongForce_->IsCharging_ )
-	{
-		particlesFusionCharge( StrongForce_->Position_, StrongForce_->Radius_ );
-	}
-	
-	if( StrongForce_->IsActive_ )
-	{
-		particlesFusionActivate( StrongForce_->Position_ );
-	}
+	BcU32 NoofFused = 0;
 
 	// Do the fusion core dance!
 	for( BcU32 Idx = 0; Idx < ElementList_.size(); ++Idx )
@@ -444,20 +602,60 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 			// Spawn new to take it's place on the opposite side.
 			spawnElement( Element.Position_, Element.Velocity_, Element.ReplaceType_ );
 
-			particlesFusionExplode( Element.Position_, Element.Velocity_, Element.Element_->Colour_ );
-
-			addHeatMapValue( Element.Position_, 1024.0f * 16.0f );
+			// Radius makes explody smaller.
+			BcReal HeatMultiplier = 16.0f - StrongForce_->Radius_;
+			BcReal ColourMultiplier = HeatMultiplier / 16.0f;
+			particlesFusionExplode( Element.Position_, Element.Velocity_, Element.Element_->Colour_ * ColourMultiplier );
+			addHeatMapValue( Element.Position_, 768.0f * HeatMultiplier );
 
 			static BcName Fuse( "fuse" );
 			StrongForce_->playSound( Fuse );
+
+			Score_ += 5  * ScoreMultiplier_;
+
+			++NoofFused;
 		}
 	}
+
+	if( StrongForce_->IsCharging_ )
+	{
+		particlesFusionCharge( StrongForce_->Position_, StrongForce_->Radius_ );
+
+		// Reduce heat when charging.
+		addHeatMapValue( StrongForce_->Position_, -StrongForce_->Radius_ * 1024.0f );
+	}
+	
+	if( StrongForce_->IsActive_ )
+	{
+		particlesFusionActivate( StrongForce_->Position_ );
+
+		if( NoofFused > 0 )
+		{
+			ScoreMultiplier_ += NoofFused;
+		}
+		else
+		{
+			if( ScoreMultiplier_ > 1 )
+			{
+				static BcName LostMultiplier( "lostmultiplier" );
+				StrongForce_->playSound( LostMultiplier );
+			}
+			ScoreMultiplier_ = 1;
+		}
+	}
+
 	
 	// Remove entities.
 	removeEntities();
 
 	// Add new entities.
 	addElements();
+
+	// HACK. SHOULD BE EVENT DRIVEN.
+	if( StrongForce_->IsActive_ )
+	{
+		StrongForce_->IsActive_ = BcFalse;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -583,73 +781,63 @@ BcReal& GaGameComponent::getHeatMapValue( BcS32 X, BcS32 Y, BcU32 Buffer )
 
 //////////////////////////////////////////////////////////////////////////
 // updateHeatMapTexture
-void GaGameComponent::updateHeatMapTexture()
+void GaGameComponent::updateHeatMapTexture( BcReal Tick )
 {
-	// Randomise a little.
-	for( BcU32 Idx = 0; Idx < 4; ++Idx )
+	HeatMapUpdateAccumulator_ += Tick;
+
+	while( HeatMapUpdateAccumulator_ > 0.0f )
 	{
-		BcU32 X0 = BcRandom::Global.randRange( 0, HeatMapWidth_ - 1 );
-		BcU32 Y0 = BcRandom::Global.randRange( 0, HeatMapHeight_ - 1 );
-		BcU32 X1 = BcRandom::Global.randRange( 0, HeatMapWidth_ - 1 );
-		BcU32 Y1 = BcRandom::Global.randRange( 0, HeatMapHeight_ - 1 );
-
-		BcReal& Value0 = getHeatMapValue( X0, Y0 );
-		BcReal& Value1 = getHeatMapValue( X1, Y1 );
-
-		//Value0 += 0.09f;
-		//Value1 -= 0.1f;
-	}
-
-	// Calculate falloff for blur.
-	BcVec3d Falloff( 2.0f, 0.1f, 0.5f );
-	BcReal Total = Falloff.x() + ( Falloff.y() + Falloff.z() ) * 2.0f;
-	Falloff /= Total;
+		// Calculate falloff for blur.
+		BcVec3d Falloff( 2.0f, 0.1f, 0.5f );
+		BcReal Total = Falloff.x() + ( Falloff.y() + Falloff.z() ) * 2.0f;
+		Falloff /= Total;
 	
 	
-	// Blur X
-	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
-	{
-		for( BcU32 X = 0; X < HeatMapWidth_; ++X )
+		// Blur X
+		for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
 		{
-			BcReal& Out( getHeatMapValue( X, Y, 1 ) );
-			BcReal In[] = 
+			for( BcU32 X = 0; X < HeatMapWidth_; ++X )
 			{
-				( getHeatMapValue( X - 2, Y, 0 ) ) * Falloff.z(),
-				( getHeatMapValue( X - 1, Y, 0 ) ) * Falloff.y(),
-				( getHeatMapValue( X, Y, 0 ) ) * Falloff.x(),
-				( getHeatMapValue( X + 1, Y, 0 ) ) * Falloff.y(),
-				( getHeatMapValue( X + 2, Y, 0 ) ) * Falloff.z()
-			};
+				BcReal& Out( getHeatMapValue( X, Y, 1 ) );
+				BcReal In[] = 
+				{
+					( getHeatMapValue( X - 2, Y, 0 ) ) * Falloff.z(),
+					( getHeatMapValue( X - 1, Y, 0 ) ) * Falloff.y(),
+					( getHeatMapValue( X, Y, 0 ) ) * Falloff.x(),
+					( getHeatMapValue( X + 1, Y, 0 ) ) * Falloff.y(),
+					( getHeatMapValue( X + 2, Y, 0 ) ) * Falloff.z()
+				};
 
-			Out = ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] );
+				Out = ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] );
+			}
 		}
-	}
 
-	// Blur Y
-	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
-	{
-		for( BcU32 X = 0; X < HeatMapWidth_; ++X )
+		// Blur Y
+		for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
 		{
-			BcReal& Out( getHeatMapValue( X, Y, 0 ) );
-			BcReal In[] = 
+			for( BcU32 X = 0; X < HeatMapWidth_; ++X )
 			{
-				( getHeatMapValue( X, Y - 2, 1 ) ) * Falloff.z(),
-				( getHeatMapValue( X, Y - 1, 1 ) ) * Falloff.y(),
-				( getHeatMapValue( X, Y, 1 ) ) * Falloff.x(),
-				( getHeatMapValue( X, Y + 1, 1 ) ) * Falloff.y(),
-				( getHeatMapValue( X, Y + 2, 1 ) ) * Falloff.z(),
-			};
+				BcReal& Out( getHeatMapValue( X, Y, 0 ) );
+				BcReal In[] = 
+				{
+					( getHeatMapValue( X, Y - 2, 1 ) ) * Falloff.z(),
+					( getHeatMapValue( X, Y - 1, 1 ) ) * Falloff.y(),
+					( getHeatMapValue( X, Y, 1 ) ) * Falloff.x(),
+					( getHeatMapValue( X, Y + 1, 1 ) ) * Falloff.y(),
+					( getHeatMapValue( X, Y + 2, 1 ) ) * Falloff.z(),
+				};
 
-			Out = BcClamp( ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] ), 0.0f, 4.0f );
+				Out = BcClamp( ( In[ 0 ] + In[ 1 ] + In[ 2 ] + In[ 3 ] + In[ 4 ] ), 0.0f, 4.0f );
+			}
 		}
+
+		// Decrement accumulator.
+		HeatMapUpdateAccumulator_ -= 1.0f / 60.0f;
 	}
 
 	// Write out to texture & calculate average heat.
 	HeatAverage_ = 0.0f;
-	if( HeatMapTexture_.isValid() )
-	{
-		HeatMapTexture_->lock();
-	}
+	HeatMapTexture_->lock();
 
 	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
 	{
@@ -844,4 +1032,36 @@ void GaGameComponent::particlesFusionActivate( const BcVec3d& Position )
 			pParticle->Alive_ = BcTrue;
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onKeyboardEvent
+eEvtReturn GaGameComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event )
+{
+	switch( GameState_ )
+	{
+	case GS_START_SCREEN:
+		{
+			GameState_ = GS_INSTRUCTIONS;
+		}
+		break;
+
+	case GS_INSTRUCTIONS:
+		{
+			GameState_ = GS_INIT;
+		}
+		break;
+
+	case GS_GAME_OVER:
+		{
+			ScnEntity* pEntity = getParentEntity();
+			ScnCore::pImpl()->removeEntity( pEntity );
+			ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity" ) );
+		}
+
+	default:
+		break;
+	}
+
+	return evtRET_PASS;
 }

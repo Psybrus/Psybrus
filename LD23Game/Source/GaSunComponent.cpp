@@ -49,9 +49,20 @@ void GaSunComponent::update( BcReal Tick )
 
 		BcMat4d Rotation;
 		BcMat4d Scale;
-		Scale.scale( BcVec3d( ScaledRadius, ScaledRadius, ScaledRadius ) );
-		Rotation.rotation( BcVec3d( BcPIDIV2 * 0.75f, ScaledRotation, 0.0f ) );
-		Models_[ Idx ]->setTransform( 0, Scale * Rotation );
+
+		if( Idx != 0 )
+		{
+			Scale.scale( BcVec3d( ScaledRadius, ScaledRadius, ScaledRadius ) );
+			Rotation.rotation( BcVec3d( BcPIDIV2 * 0.75f, ScaledRotation, 0.0f ) );
+			Models_[ Idx ]->setTransform( 0, Scale * Rotation );
+		}
+		else
+		{
+			BcReal SkyRadius = 512.0f;
+			Scale.scale( BcVec3d( SkyRadius, SkyRadius, SkyRadius ) );
+			Rotation.rotation( BcVec3d( BcPIDIV2 * 0.75f, ScaledRotation, 0.0f ) );
+			Models_[ Idx ]->setTransform( 0, Scale * Rotation );
+		}
 
 		ScaledRotation *= RotationMult_;
 		ScaledRadius *= RadiusMult_;
@@ -68,7 +79,7 @@ void GaSunComponent::onAttach( ScnEntityWeakRef Parent )
 	{
 		ScnModelComponentRef ModelRef = Parent->getComponentByType< ScnModelComponent >( Idx );
 		Models_.push_back( ModelRef );
-		Materials_.push_back( Models_[ Idx ]->getMaterialComponent( "sun" ) );
+		Materials_.push_back( Models_[ Idx ]->getMaterialComponent( 0 ) );
 		MaterialColourParams_.push_back( Materials_[ Idx ]->findParameter( "uColour" ) );
 	}
 

@@ -26,7 +26,10 @@ void GaCameraComponent::initialise( const Json::Value& Object )
 	Ticker_ = 0.0f;
 	TargetPosition_ = BcVec3d( 0.0f, 60.0f, -2.0f );
 	Position_ = BcVec3d( 0.0f, 400.0f, -2.0f );
+
+	startMenu();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // GaCameraComponent
@@ -65,3 +68,17 @@ void GaCameraComponent::onDetach( ScnEntityWeakRef Parent )
 	Super::onDetach( Parent );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// startMenu
+void GaCameraComponent::startMenu()
+{
+	TargetPosition_ = BcVec3d( 0.0f, 400.0f, -2.0f );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// startGame
+void GaCameraComponent::startGame()
+{
+	TargetPosition_ = BcVec3d( 0.0f, 60.0f, -2.0f );
+}
