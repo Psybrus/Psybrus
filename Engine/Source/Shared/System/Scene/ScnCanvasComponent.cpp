@@ -94,6 +94,15 @@ void ScnCanvasComponent::destroy()
 	
 		// Allocate render side primitive.
 		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
+	}
+
+	// Wait for renderer.
+	SysFence Fence( RsCore::WORKER_MASK );
+
+	// Delete working data.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
 		// Delete vertices.
 		delete [] RenderResource.pVertices_;

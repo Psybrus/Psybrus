@@ -380,7 +380,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 	}
 
-	// Call destroy.	
+	// Call destroy and wait.
 	{
 		SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );

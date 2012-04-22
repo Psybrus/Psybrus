@@ -525,7 +525,7 @@ public:
 	}
 };
 
-ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height )
+ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height, ImgColour& ClearColour )
 {
 	// Utility funcs.
 	class Atlas
@@ -716,7 +716,6 @@ ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRect
 	
 	// Create image.
 	ImgImage* pAtlasImage = new ImgImage();
-	ImgColour ClearColour = { 0, 0, 0, 0 };
 	pAtlasImage->create( ImageBounds.W_, ImageBounds.H_, &ClearColour );
 
 	// Blit all images into it using output rects.

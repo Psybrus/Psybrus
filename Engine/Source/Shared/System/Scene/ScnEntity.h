@@ -50,17 +50,8 @@ public:
 	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );
-	void								reattach( ScnComponent* Component );
-
-	/**
-	 * Called when attached to the scene.
-	 */
-	void								onAttachScene();
-
-	/**
-	 * Called when detached from the scene.
-	 */
-	void								onDetachScene();
+	void								onAttach( ScnEntityWeakRef Parent );
+	void								onDetach( ScnEntityWeakRef Parent );
 	
 	/**
 	 * Are we attached to the scene?

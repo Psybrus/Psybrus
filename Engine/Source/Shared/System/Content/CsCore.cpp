@@ -72,6 +72,22 @@ void CsCore::close()
 		processUnloadingResources();
 	}
 
+	if( LoadedResources_.size() > 0 )
+	{
+		BcPrintf( "==========================================\n" );
+		BcPrintf( "CsCore: Dump Resource On Exit:\n" );
+		BcPrintf( "==========================================\n" );
+	
+		TResourceListIterator It( LoadedResources_.begin() );
+		while( It != LoadedResources_.end() )
+		{
+			CsResource* pResource = (*It);
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			++It;
+		}
+		BcPrintf( "==========================================\n" );
+	}
+
 	// Verify we don't have any left floating loaded or unloading.
 	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing!" );
 	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );

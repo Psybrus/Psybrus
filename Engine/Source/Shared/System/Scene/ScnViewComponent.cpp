@@ -188,7 +188,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	}
 	else
 	{
-		ProjectionMatrix.perspProjectionVertical( Header_.VerticalFOV_, Aspect, Header_.Near_, Header_.Far_ );
+		ProjectionMatrix.perspProjectionVertical( Header_.VerticalFOV_, 1.0f / Aspect, Header_.Near_, Header_.Far_ );
 	}
 	Viewport_.projection( ProjectionMatrix );
 

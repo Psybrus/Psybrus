@@ -41,34 +41,34 @@ struct RsColour:
 
 	BcU32 asRGBA() const
 	{
-		return ( ( static_cast< BcU32 >( r() * 255.0f ) << 24 ) |
-		         ( static_cast< BcU32 >( g() * 255.0f ) << 16 ) |
-		         ( static_cast< BcU32 >( b() * 255.0f ) << 8 ) |
-		         ( static_cast< BcU32 >( a() * 255.0f ) ) );
+		return ( ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 24 ) |
+		         ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 16 ) |
+		         ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 8 ) |
+		         ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
 	}
 
 	BcU32 asARGB() const
 	{
-		return ( ( static_cast< BcU32 >( a() * 255.0f ) << 24 ) |
-		         ( static_cast< BcU32 >( r() * 255.0f ) << 16 ) |
-		         ( static_cast< BcU32 >( g() * 255.0f ) << 8 ) |
-		         ( static_cast< BcU32 >( b() * 255.0f ) ) );
+		return ( ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) << 24 ) |
+		         ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 16 ) |
+		         ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 8 ) |
+		         ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) ) );
 	}
 
 	BcU32 asABGR() const
 	{
-		return ( ( static_cast< BcU32 >( a() * 255.0f ) << 24 ) |
-				 ( static_cast< BcU32 >( b() * 255.0f ) << 16 ) |
-				 ( static_cast< BcU32 >( g() * 255.0f ) << 8 ) |
-				 ( static_cast< BcU32 >( r() * 255.0f ) ) );
+		return ( ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) << 24 ) |
+				 ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 16 ) |
+				 ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 8 ) |
+				 ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) ) );
 	}
 
 	BcU32 asBGRA() const
 	{
-		return ( ( static_cast< BcU32 >( b() * 255.0f ) << 24 ) |
-		         ( static_cast< BcU32 >( g() * 255.0f ) << 16 ) |
-		         ( static_cast< BcU32 >( r() * 255.0f ) << 8 ) |
-		         ( static_cast< BcU32 >( a() * 255.0f ) ) );
+		return ( ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 24 ) |
+		         ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 16 ) |
+		         ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 8 ) |
+		         ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
 	}
 
 	inline BcReal r() const { return x(); };

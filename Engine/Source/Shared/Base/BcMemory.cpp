@@ -13,6 +13,8 @@
 
 #include "Base/BcMemory.h"
 #include "Base/BcAtomic.h"
+#include "Base/BcMutex.h"
+#include "Base/BcScopedLock.h"
 
 #if PLATFORM_OSX
 #include <execinfo.h>
@@ -49,7 +51,7 @@ void initHeap()
 void* operator new( size_t Size )
 {
 	initHeap();
-	void* pMem = malloc( Size );
+	void* pMem = BcMemAlign( Size, 16 );
 #ifdef PSY_DEBUG // neilogd: stamp 0x69 over uninitialised memory.
 	BcMemSet( pMem, 0x69, Size );
 #endif
@@ -70,7 +72,7 @@ void* operator new( size_t Size )
 void* operator new[]( size_t Size)
 {
 	initHeap();
-	void* pMem = malloc( Size );
+	void* pMem = BcMemAlign( Size, 16 );
 #ifdef PSY_DEBUG // neilogd: stamp 0x69 over uninitialised memory.
 	BcMemSet( pMem, 0x69, Size );
 #endif
@@ -92,7 +94,7 @@ void operator delete( void* pMem ) throw()
 #ifdef MEM_DEBUG
 	BcPrintf( "PsyDelete: %p\n", pMem );
 #endif
-	free( pMem );
+	BcMemFree( pMem );
 }
 
 void operator delete[]( void* pMem ) throw()
@@ -100,7 +102,7 @@ void operator delete[]( void* pMem ) throw()
 #ifdef MEM_DEBUG
 	BcPrintf( "PsyDelete: %p\n", pMem );
 #endif
-	free( pMem );
+	BcMemFree( pMem );
 }
 
 
@@ -111,7 +113,7 @@ void* BcMemAlign( BcSize Bytes, BcSize Alignment )
 #if PLATFORM_WINDOWS
 	return _aligned_malloc( Bytes, Alignment );
 #else
-	return memalign( Bytes, Alignment );
+	return memalign( Alignment, Bytes );
 #endif
 }
 

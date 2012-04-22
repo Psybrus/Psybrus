@@ -75,8 +75,9 @@ public:
 
 	ScnMaterialComponentRef				getMaterialComponent();
 
-private:
 	BcBool								allocParticle( ScnParticle*& pParticle );
+
+private:
 	void								updateParticle( ScnParticle& Particle, BcReal Tick );
 	void								updateParticles( BcReal Tick );
 
