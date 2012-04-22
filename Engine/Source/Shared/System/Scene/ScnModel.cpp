@@ -295,6 +295,10 @@ void ScnModel::setup()
 			// Push into array.
 			PrimitiveRuntimes_.push_back( PrimitiveRuntime );
 		}
+		else
+		{
+			BcVerifyMsg( BcFalse, "ScnModel: Missing material \"%s\"", getString( pPrimitiveData->MaterialName_ ) );
+		}
 				
 		// Advance vertex and index buffers.
 		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
@@ -450,6 +454,18 @@ void ScnModelComponent::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransfo
 
 //////////////////////////////////////////////////////////////////////////
 // getMaterialComponent
+ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
+{
+	if( Index < MaterialComponentDescList_.size() )
+	{
+		return MaterialComponentDescList_[ Index ].MaterialComponentRef_;
+	}
+	
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
 {
 	ScnModel::TPrimitiveData* pPrimitiveData = Parent_->pPrimitiveData_;
@@ -472,11 +488,7 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& M
 void ScnModelComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
-	// Copy parent transform to root node.
-	ScnModel::TNodeTransformData* pRootNode = &pNodeTransformData_[ 0 ];
-	pRootNode->RelativeTransform_ = getParentEntity()->getMatrix();
-
+	
 	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
@@ -489,11 +501,11 @@ void ScnModelComponent::update( BcReal Tick )
 		{
 			ScnModel::TNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
 			
-			pNodeTransformData->AbsoluteTransform_ = pParentNodeTransformData->AbsoluteTransform_ * pNodeTransformData->RelativeTransform_;
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * pParentNodeTransformData->AbsoluteTransform_;
 		}
 		else
 		{
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_;
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * getParentEntity()->getMatrix();
 		}
 	}
 }

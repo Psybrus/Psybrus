@@ -66,6 +66,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Json::Reader Reader;
 	if( Reader.parse( pJsonObject_, Root ) )
 	{
+		BcPrintf( "** ScnEntity::initialise:\n" );
+
 		//
 		const Json::Value& Components = Root[ "components" ];
 
@@ -77,6 +79,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 			{
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
+
+				BcPrintf( "** - %s:%s\n", (*ComponentRef->getName()).c_str(), (*ComponentRef->getType()).c_str() );
 
 				// Initialise has already been called...need to change this later.
 				ComponentRef->initialise( Component );

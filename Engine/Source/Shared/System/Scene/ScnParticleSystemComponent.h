@@ -44,13 +44,14 @@ struct ScnParticle					// TODO: Factor our into affectors so we can store minimu
 	BcVec2d MinScale_;				// Min scale. (time based)
 	BcVec2d MaxScale_;				// Max scale. (time based)
 
-	BcReal RotationMultiplier_;		// Rotation mult. Mult against time.
+	BcReal Rotation_;
+	BcReal RotationMultiplier_;		// Rotation mult.
 
 	RsColour Colour_;				// Colour;
 	RsColour MinColour_;			// Min colour. (time based)
 	RsColour MaxColour_;			// Max colour. (time based)
 
-	BcVec4d UVBounds_;				// UV bounds for each min(xy), max(zw).
+	BcU32 TextureIndex_;			// Texture index.
 	BcReal CurrentTime_;			// Current time.
 	BcReal MaxTime_;				// Max time.
 	BcBool Alive_;					// Are we alive?
@@ -68,9 +69,11 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
 	virtual void						update( BcReal Tick );
-	virtual void						render( RsFrame* pFrame, RsRenderSort Sort );
+	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+	ScnMaterialComponentRef				getMaterialComponent();
 
 private:
 	BcBool								allocParticle( ScnParticle*& pParticle );
@@ -97,6 +100,9 @@ private:
 	// 
 	ScnMaterialComponentRef				MaterialComponent_;
 	BcU32								WorldTransformParam_;
+
+	// UV bounds.
+	std::vector< BcVec4d >				UVBounds_;
 
 };
 

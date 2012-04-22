@@ -28,20 +28,22 @@ public:
 	BcRandom();
 	BcRandom( BcU32 Seed );
 
-	BcU32 rand();
+	BcS32 rand();
 	BcReal randReal();
-	BcU32 randRange( BcU32 Min, BcU32 Max );
+	BcS32 randRange( BcS32 Min, BcS32 Max );
 	BcReal noise( BcU32 X, BcU32 Width );
 	BcReal smoothedNoise( BcReal X, BcU32 Width = 512 );
 	BcReal interpolatedNoise( BcReal X, BcU32 Width = 512 );
 
+	BcVec2d randVec2();
+	BcVec3d randVec3();
+	BcVec4d randVec4();
 	BcVec2d randVec2Normal();
 	BcVec3d randVec3Normal();
 	BcVec4d randVec4Normal();
 
 private:
-	BcU32 Z_;
-	BcU32 W_;
+	BcU32 Seed_;
 };
 
 

@@ -44,7 +44,7 @@ public:
 	void								create();
 	void								destroy();
 	BcBool								isReady();
-	
+
 public:
 	void								update( BcReal Tick );
 	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
