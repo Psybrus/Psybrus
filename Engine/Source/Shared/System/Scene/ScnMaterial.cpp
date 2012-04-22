@@ -691,7 +691,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 {
 	// Setup sort value with material specifics.
 	ScnMaterial* pMaterial_ = Parent_;
-	Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );
+	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
 	Sort.Blend_ = pStateBuffer_[ rsRS_BLEND_MODE ];
 
 	// Default texture parameters.
