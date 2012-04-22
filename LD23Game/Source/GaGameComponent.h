@@ -19,6 +19,10 @@
 #include "GaStrongForceComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Statics.
+static const BcReal WORLD_SIZE = 32.0f;
+
+//////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
 typedef CsResourceRef< class GaGameComponent > GaGameComponentRef;
 
@@ -81,6 +85,7 @@ private:
 	// Components.
 	ScnCanvasComponentRef				Canvas_;
 	ScnFontComponentRef					Font_;
+	ScnParticleSystemComponentRef		ParticleSystem_;
 
 	GaStrongForceComponentRef			StrongForce_;
 
@@ -105,6 +110,11 @@ private:
 	BcReal*								pHeatMapBuffer_;
 	BcU32								HeatMapWidth_;
 	BcU32								HeatMapHeight_;
+
+	// Sun
+	ScnModelComponentRef				SunModel_;
+	ScnMaterialComponentRef				SunMaterial_;
+
 };
 
 #endif

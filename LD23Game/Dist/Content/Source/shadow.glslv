@@ -11,17 +11,13 @@ uniform vec4 uColour;
 
 varying vec4 vNormal;
 varying vec4 vTexCoord0;
-varying vec4 vVisibleMapTexCoord;
 varying vec4 vColour;
-
-uniform mat4 uVisibleMapMatrix; 
 
 void main()
 {
-	vec4 Vertex = ( uWorldTransform * aPosition );
-	gl_Position = ( uClipTransform * Vertex  );
+	vec4 Vertex = aPosition;
+	gl_Position = ( uClipTransform * ( uWorldTransform * Vertex ) );
 	vNormal = aNormal;
 	vTexCoord0 = aTexCoord0;
-	vVisibleMapTexCoord = uVisibleMapMatrix * Vertex;
 	vColour = aColour * uColour;
 }

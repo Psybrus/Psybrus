@@ -15,7 +15,7 @@
 			"type"			: "ScnTexture",
 			"name"			: "default",
 
-			"source"		: "EngineContent/TextureSource/default.png"
+			"source"		: "Content/Source/uvref.png"
 		},
 
 		{
@@ -47,10 +47,40 @@
 		},
 
 		{
-			"type"			: "ScnTexture",
-			"name"			: "particle0",
+			"type"			: "ScnTextureAtlas",
+			"name"			: "plasmaparticle",
 
-			"source"		: "Content/Source/particle0.png"
+			"source"		: [
+				"Content/Source/plasmaparticle0.png",
+				"Content/Source/plasmaparticle1.png",
+				"Content/Source/plasmaparticle2.png",
+				"Content/Source/plasmaparticle3.png",
+				"Content/Source/plasmaparticle4.png",
+				"Content/Source/plasmaparticle5.png",
+				"Content/Source/plasmaparticle6.png",
+				"Content/Source/plasmaparticle7.png"
+			]
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "sun",
+
+			"source"		: "Content/Source/sun.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "shadow",
+
+			"source"		: "Content/Source/shadow.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "visiblemap",
+
+			"source"		: "Content/Source/visiblemap.png"
 		},
 
 		{
@@ -80,6 +110,26 @@
 			"shaders"		: {
 				"vertex" 		: "Content/Source/element.glslv",
 				"fragment" 		: "Content/Source/element.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "shadow",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/shadow.glslv",
+				"fragment" 		: "Content/Source/shadow.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "sun",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/sun.glslv",
+				"fragment" 		: "Content/Source/sun.glslf"
 			}
 		},
 
@@ -158,6 +208,63 @@
 			}
 		},		
 
+		//////////////////////////////////////////////////////////////////////////
+		// SHADOW MATERIAL
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "shadow",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "shadow",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		//////////////////////////////////////////////////////////////////////////
+		// SUN MATERIAL
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "sun",
+
+			// Shader
+			"shader"		: "sun",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "sun"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		//////////////////////////////////////////////////////////////////////////
+		// ELEMENT MATERIALS
 		{
 			"type"			: "ScnMaterial",
 			"name"			: "deuterium",
@@ -167,7 +274,8 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "deuterium"
+				"aDiffuseTex"	: "deuterium",
+				"aVisibleMapTex"	: "visiblemap"
 			},
 
 			// State
@@ -179,7 +287,7 @@
 				"alpha_test_enable" 		: 0,
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "none"
+				"blend_mode" 				: "blend"
 			}
 		},	
 
@@ -192,7 +300,8 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "tritium"
+				"aDiffuseTex"	: "tritium",
+				"aVisibleMapTex"	: "visiblemap"
 			},
 
 			// State
@@ -204,7 +313,7 @@
 				"alpha_test_enable" 		: 0,
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "none"
+				"blend_mode" 				: "blend"
 			}
 		},	
 
@@ -217,7 +326,8 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "helium"
+				"aDiffuseTex"	: "helium",
+				"aVisibleMapTex"	: "visiblemap"
 			},
 
 			// State
@@ -229,7 +339,7 @@
 				"alpha_test_enable" 		: 0,
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "none"
+				"blend_mode" 				: "blend"
 			}
 		},	
 
@@ -242,7 +352,8 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "neutron"
+				"aDiffuseTex"	: "neutron",
+				"aVisibleMapTex"	: "visiblemap"
 			},
 
 			// State
@@ -254,7 +365,7 @@
 				"alpha_test_enable" 		: 0,
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "none"
+				"blend_mode" 				: "blend"
 			}
 		},	
 
@@ -267,7 +378,8 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "default",
+				"aVisibleMapTex"	: "visiblemap"
 			},
 
 			// State
@@ -337,7 +449,9 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "particle0"
+				"aDiffuseTex"	: "plasmaparticle",
+				"aHeatMapTex"	: "default",
+				"aVisibleMapTex"	: "visiblemap"
 			},
 			
 			// State
@@ -397,6 +511,18 @@
 
 		{
 			"type"		: "ScnModel",
+			"name"		: "sun",
+			"source"	: "Content/Source/sun.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "shadow",
+			"source"	: "Content/Source/shadow.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
 			"name"		: "heatmap",
 			"source"	: "Content/Source/heatmap.obj"
 		},
@@ -438,17 +564,24 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "deuterium",
-					"layer"			: 0
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "shadow",
+					"layer"			: 1
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Deuterium",
-					"colour"		: "1.0,1.0,1.0,1.0",
+					"colour"		: "1.0,0.0,0.0,1.0",
+					"shadowcolour"	: "1.0,0.0,0.0,1.0",
 					"maxspeed"		: 4.0,
 					"direction"		: 1.0,		// Towards origin.
 					"radius" 		: 1.5,
-
+					
 					"fusetype"		: "In1ElementEntity",
 					"replacetype"	: "Out0ElementEntity",
 					"respawntype"	: "In0ElementEntity"
@@ -464,16 +597,24 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "tritium",
-					"layer"			: 0
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "shadow",
+					"layer"			: 1
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Tritium",
-					"colour"		: "1.0,1.0,1.0,1.0",
+					"colour"		: "0.0,0.0,1.0,1.0",
+					"shadowcolour"	: "0.0,0.0,1.0,1.0",
 					"maxspeed"		: 3.0,
 					"direction"		: 1.0,		// Towards origin.
 					"radius" 		: 2.0,
+
 
 					"fusetype"		: "In0ElementEntity",
 					"replacetype"	: "Out1ElementEntity",
@@ -490,14 +631,21 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "helium",
-					"layer"			: 0
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "shadow",
+					"layer"			: 1
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Helium",
-					"colour"		: "1.0,1.0,1.0,1.0",
-					"maxspeed"		: 12.0,
+					"colour"		: "0.5,0.5,0.0,1.0",
+					"shadowcolour"	: "0.5,0.5,0.0,1.0",
+					"maxspeed"		: 4.0,
 					"direction"		: -1.0,		// Away from origin.
 					"radius" 		: 3.0
 				}
@@ -512,14 +660,21 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "neutron",
-					"layer"			: 0
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "shadow",
+					"layer"			: 1
 				},
 
 				{
 					"type"			: "GaElementComponent",
 					"element"		: "Neutron",
-					"colour"		: "1.0,1.0,1.0,1.0",
-					"maxspeed"		: 12.0,
+					"colour"		: "0.0,0.5,0.5,1.0",
+					"shadowcolour"	: "0.0,0.5,0.5,1.0",
+					"maxspeed"		: 4.0,
 					"direction"		: -1.0,		// Away from origin.
 					"radius" 		: 1.0
 				}
@@ -536,12 +691,49 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "strongforce",
-					"layer"			: 1
+					"layer"			: 4
 				},
 
 				{
 					"type"			: "GaStrongForceComponent",
 					"colour"		: "0.5,0.1,0.1,0.5"
+				}
+			]
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Sun entity.
+		{
+			"name"		:		"SunEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "sun",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "sun",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "sun",
+					"layer"			: 0
+				},
+			
+				{
+					"type"			: "GaSunComponent",
+					"colour"		: "1.0,1.0,1.0,0.25",
+					"radius"		: 64.0,
+					"radiusmult"	: 0.99,
+					"rotationmult"	: -0.8,
+					"rotationspeed"	: 0.25
+
 				}
 			]
 		},
@@ -553,10 +745,13 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
+				
+				/*	
 				{
 					"type"			: "ScnModelComponent",
 					"model"			: "heatmap"
 				},
+				*/				
 
 				{
 					"type"			: "ScnCanvasComponent",
@@ -569,6 +764,12 @@
 					"material"		: "font"
 				},
 
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 12000,
+					"material"		: "particle"
+				},
+				
 				{
 					"type"			: "GaGameComponent"
 				}

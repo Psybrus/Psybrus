@@ -42,6 +42,7 @@ private:
 	BcName								RespawnType_;
 
 	RsColour							Colour_;
+	RsColour							ShadowColour_;
 	BcReal								MaxSpeed_;
 	BcReal								Direction_;
 	BcReal								Radius_;
@@ -51,8 +52,12 @@ private:
 
 	ScnModelComponentRef				Model_;
 	ScnMaterialComponentRef				Material_;
-
 	BcU32								MaterialColourParam_;
+
+	ScnModelComponentRef				ShadowModel_;
+	ScnMaterialComponentRef				ShadowMaterial_;
+	BcU32								ShadowMaterialColourParam_;
+
 
 };
 

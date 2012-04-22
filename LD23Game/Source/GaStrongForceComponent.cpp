@@ -4,7 +4,7 @@
 * Author:	Neil Richardson 
 * Ver/Date:	21/04/12
 * Description:
-*		Ball component.
+*		
 *		
 *
 *
@@ -145,6 +145,7 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 			{
 				TargetRadius_ = 16.0f;
 				IsCharging_ = BcTrue;
+				IsActive_ = BcFalse;
 			}
 		}
 		break;
