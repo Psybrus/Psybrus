@@ -102,7 +102,7 @@ void GaGameComponent::update( BcReal Tick )
 
 			Canvas_->popMatrix();
 
-			if( HeatAverage_ < 0.1f )
+			if( HeatAverage_ < 0.4f )
 			{
 				ScnEntity* pEntity = getParentEntity();
 				ScnCore::pImpl()->removeEntity( pEntity );
@@ -296,6 +296,17 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 				{
 					BcVec3d AvgPosition( ( Element.Position_ + OtherElement.Position_ ) * 0.5f );
 					particlesCollision( AvgPosition );
+
+					static BcName Collision[] =
+					{
+						BcName( "collide0" ),
+						BcName( "collide1" ),
+						BcName( "collide2" ),
+						BcName( "collide3" ),
+					};
+
+
+					Element.Element_->playSound( Collision[ BcRandom::Global.randRange( 0, 3 ) ] );
 				}
 			}
 		}
@@ -436,6 +447,9 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 			particlesFusionExplode( Element.Position_, Element.Velocity_, Element.Element_->Colour_ );
 
 			addHeatMapValue( Element.Position_, 1024.0f * 16.0f );
+
+			static BcName Fuse( "fuse" );
+			StrongForce_->playSound( Fuse );
 		}
 	}
 	
@@ -782,7 +796,7 @@ void GaGameComponent::particlesCollision( const BcVec3d& Position )
 // particlesFusionCharge
 void GaGameComponent::particlesFusionCharge( const BcVec3d& Position, BcReal Radius )
 {
-	BcU32 Count = BcU32( ( BcPIMUL4 * Radius * Radius ) * 0.05f );
+	BcU32 Count = BcU32( ( BcPIMUL4 * Radius * Radius ) * 0.08f );
 	for( BcU32 Idx = 0; Idx < Count; ++Idx )
 	{
 		ScnParticle* pParticle = NULL;
@@ -795,12 +809,12 @@ void GaGameComponent::particlesFusionCharge( const BcVec3d& Position, BcReal Rad
 			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
 			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 4.5f );
 			pParticle->MinScale_ = BcVec2d( 0.7f, 0.7f );
-			pParticle->MaxScale_ = BcVec2d( 1.0f, 1.0f );
+			pParticle->MaxScale_ = BcVec2d( 2.0f, 2.0f );
 			pParticle->MinColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
-			pParticle->MaxColour_ = RsColour( 1.0f, 0.0f, 1.0f, 0.0f );
+			pParticle->MaxColour_ = RsColour( 1.0f, 0.1f, 1.0f, 0.0f );
 			pParticle->TextureIndex_ = (BcU32)BcRandom::Global.randRange( 8, 11 );
 			pParticle->CurrentTime_ = 0.0f;
-			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.1f ) + 0.05f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.09f ) + 0.04f;
 			pParticle->Alive_ = BcTrue;
 		}
 	}

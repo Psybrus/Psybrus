@@ -36,6 +36,8 @@ public:
 
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
 
+	void								playSound( BcName& Name, BcBool Force = BcFalse );
+
 private:
 	friend class GaGameComponent;
 	
@@ -55,6 +57,8 @@ private:
 	BcReal								TargetRadius_;
 
 	BcU32								MaterialColourParam_;
+
+	ScnSoundEmitterComponentRef			SoundEmitter_;
 };
 
 #endif

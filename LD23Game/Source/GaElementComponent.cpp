@@ -40,6 +40,8 @@ void GaElementComponent::initialise( const Json::Value& Object )
 	FuseType_ = FuseTypeValue.type() != Json::nullValue ? FuseTypeValue.asCString() : BcName::INVALID;
 	ReplaceType_ = ReplaceTypeValue.type() != Json::nullValue ? ReplaceTypeValue.asCString() : BcName::INVALID;
 	RespawnType_ = RespawnTypeValue.type() != Json::nullValue ? RespawnTypeValue.asCString() : BcName::INVALID;
+
+	SoundTimer_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,6 +50,8 @@ void GaElementComponent::initialise( const Json::Value& Object )
 void GaElementComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
+
+	SoundTimer_ -= Tick;
 
 	// Set material colour up.
 	Material_->setParameter( MaterialColourParam_, Colour_ );
@@ -90,6 +94,8 @@ void GaElementComponent::onAttach( ScnEntityWeakRef Parent )
 	Material_->setParameter( Material_->findParameter( "uVisibleMapMatrix" ), VisibleMapMatrix );
 	ShadowMaterial_->setParameter( ShadowMaterial_->findParameter( "uVisibleMapMatrix" ), VisibleMapMatrix );
 
+	SoundEmitter_ = Parent->getComponentByType< ScnSoundEmitterComponent >( 0 );
+
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
@@ -103,3 +109,14 @@ void GaElementComponent::onDetach( ScnEntityWeakRef Parent )
 	Super::onDetach( Parent );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// playSound
+void GaElementComponent::playSound( BcName& Name, BcBool Force )
+{
+	if( SoundTimer_ < 0.0f || Force )
+	{
+		SoundTimer_ = BcAbs( BcRandom::Global.randReal() * 0.12f ) + 0.075f;
+		static BcName Default( "default" );
+		SoundEmitter_->play( Default, Name );
+	}
+}
