@@ -85,8 +85,7 @@ RsStateBlockGL::~RsStateBlockGL()
 void RsStateBlockGL::bind()
 {
 	// TODO: Compare against previous state block.
-	
-	
+		
 	// Bind render states.
 	for( BcU32 RenderStateIdx = 0; RenderStateIdx < NoofRenderStateBinds_; ++RenderStateIdx )
 	{
@@ -240,11 +239,13 @@ void RsStateBlockGL::bindBlendMode( eRsBlendingMode BlendMode )
 					
 		case rsBM_BLEND:
 			glEnable( GL_BLEND );
+			glBlendEquation( GL_FUNC_ADD );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			break;
 					
 		case rsBM_ADD:
 			glEnable( GL_BLEND );
+			glBlendEquation( GL_FUNC_ADD );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 			break;
 
@@ -255,6 +256,7 @@ void RsStateBlockGL::bindBlendMode( eRsBlendingMode BlendMode )
 			break;
 			
 		default:
+			BcBreakpoint;
 			break;
 	}
 }

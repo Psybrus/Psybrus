@@ -134,6 +134,7 @@ public:
 
 	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
 
+	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
 	
 public:

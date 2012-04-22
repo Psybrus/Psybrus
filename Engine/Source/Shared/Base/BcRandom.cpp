@@ -4,8 +4,8 @@
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Marsaglia's MWC.
-*		TODO: Perhaps implement something a bit, well, better?
+*
+*
 *
 *
 * 
@@ -23,38 +23,40 @@ BcRandom BcRandom::Global;
 // Ctor
 BcRandom::BcRandom()
 {
-	Z_ = 0x0000dead;
-	W_ = 0x0000beef;
+	Seed_ = 123;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 BcRandom::BcRandom( BcU32 Seed )
 {
-	Z_ = Seed & 65535;
-	W_ = Seed >> 16;
+	Seed_ = Seed;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // rand
-BcU32 BcRandom::rand()
+BcS32 BcRandom::rand()
 {
-	Z_ = 36969 * ( Z_ & 65535 ) + ( Z_ >> 16 );
-	W_ = 18000 * ( W_ & 65535 ) + ( W_ >> 16 );
+	BcS32 Hi = Seed_ / 127773;
+	BcS32 Lo = Seed_ % 127773;
 
-	return ( Z_ << 16 ) + W_;
+	if( ( Seed_ = 16807 * Lo - 2836 * Hi ) <= 0 )
+	{
+		Seed_ += 2147483647;
+	}
+	return Seed_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // randReal
 BcReal BcRandom::randReal()
 {
-	return BcReal( rand() ) * 2.328306435996595e-10f;
+	return BcReal( randRange( -4096.0f, 4096.0f ) ) / 4096.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // randRange
-BcU32 BcRandom::randRange( BcU32 Min, BcU32 Max )
+BcS32 BcRandom::randRange( BcS32 Min, BcS32 Max )
 {
 	return BcClamp( ( Min + ( rand() % ( Max - Min ) ) ), Min, Max );
 }
@@ -88,21 +90,43 @@ BcReal BcRandom::interpolatedNoise( BcReal X, BcU32 Width )
 
 //////////////////////////////////////////////////////////////////////////
 // interpolatedNoise
+BcVec2d BcRandom::randVec2()
+{
+	return BcVec2d( randReal(), randReal() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
+BcVec3d BcRandom::randVec3()
+{
+	return BcVec3d( randReal(), randReal(), randReal() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
+BcVec4d BcRandom::randVec4()
+{
+	return BcVec4d( randReal(), randReal(), randReal(), randReal() );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// interpolatedNoise
 BcVec2d BcRandom::randVec2Normal()
 {
-	return BcVec2d( randReal() - 0.5f, randReal() - 0.5f ).normal();
+	return BcVec2d( randReal(), randReal() ).normal();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // interpolatedNoise
 BcVec3d BcRandom::randVec3Normal()
 {
-	return BcVec3d( randReal() - 0.5f, randReal() - 0.5f, randReal() - 0.5f ).normal();
+	return BcVec3d( randReal(), randReal(), randReal() ).normal();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // interpolatedNoise
 BcVec4d BcRandom::randVec4Normal()
 {
-	return BcVec4d( randReal() - 0.5f, randReal() - 0.5f, randReal() - 0.5f, randReal() - 0.5f ).normal();
+	return BcVec4d( randReal(), randReal(), randReal(), randReal() ).normal();
 }

@@ -80,7 +80,7 @@ void RsStateBlock::setDefaultState()
 void RsStateBlock::invalidateRenderState()
 {
 	NoofRenderStateBinds_ = 0;
-	for( BcU32 Idx = 0; Idx > rsRS_MAX; ++Idx )
+	for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 	{
 		TRenderStateValue& RenderStateValue = RenderStateValues_[ Idx ];
 

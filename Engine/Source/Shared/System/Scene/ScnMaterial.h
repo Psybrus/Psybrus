@@ -122,7 +122,7 @@ public:
 	ScnTextureRef						getTexture( BcU32 Parameter );
 	ScnMaterialRef						getMaterial();
 	
-	void								bind( RsFrame* pFrame, RsRenderSort Sort );
+	void								bind( RsFrame* pFrame, RsRenderSort& Sort );
 
 	virtual BcBool						isReady();
 

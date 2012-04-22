@@ -109,7 +109,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		if( State.type() == Json::objectValue )
 		{
 			const Json::Value& StateValue = State[ StateNames[ Idx ] ];
-		
+			
 			if( StateValue.type() == Json::realValue )
 			{
 				BcReal RealValue = (BcReal)StateValue.asDouble();
@@ -118,6 +118,10 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			else if( StateValue.type() == Json::stringValue )
 			{
 				BcU32 IntValue = ModeNames[ StateValue.asCString() ];
+				if( BcStrCompare( StateValue.asCString(), "subtract" ) )
+				{
+					int a = 0; ++a;
+				}
 				StateBlockStream << BcU32( IntValue );
 			}
 			else
@@ -243,6 +247,10 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				if( CsCore::pImpl()->internalRequestResource( /* WIP */ getPackageName(), getString( pTextureHeader->TextureName_ ), getString( pTextureHeader->TextureType_ ), InternalHandle ) )
 				{
 					TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = Texture;
+				}
+				else
+				{
+					BcVerifyMsg( BcFalse, "ScnMaterial: Missing texture: %s", getString( pTextureHeader->TextureName_ ) );
 				}
 			}
 		}
@@ -679,8 +687,13 @@ public:
 	ScnMaterialComponent* pParent_;
 };
 
-void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
+void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 {
+	// Setup sort value with material specifics.
+	ScnMaterial* pMaterial_ = Parent_;
+	Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );
+	Sort.Blend_ = pStateBuffer_[ rsRS_BLEND_MODE ];
+
 	// Default texture parameters.
 	RsTextureParams DefaultTextureParams = 
 	{
