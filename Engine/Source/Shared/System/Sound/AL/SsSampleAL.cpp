@@ -87,7 +87,7 @@ void SsSampleAL::update()
 			pData[ 2 ] == 'g' &&
 			pData[ 3 ] == 'S' )
 		{
-			BcStream DecodedAudioData;
+			BcStream DecodedAudioData( 0, 1024 * 1024, 1024 * 1024 );
 
 			openOgg();
 

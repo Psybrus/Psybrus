@@ -11,37 +11,42 @@
 * 
 **************************************************************************/
 
-#ifndef __ScnSoundEmitter_H__
-#define __ScnSoundEmitter_H__
+#ifndef __ScnSoundEmitterComponent_H__
+#define __ScnSoundEmitterComponent_H__
 
-#include "System/Content/CsResource.h"
+#include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnSound.h"
 
 #include "System/Sound/SsChannel.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnSoundEmitterRef
-typedef CsResourceRef< class ScnSoundEmitter > ScnSoundEmitterRef;
+// ScnSoundEmitterComponentRef
+typedef CsResourceRef< class ScnSoundEmitterComponent > ScnSoundEmitterComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// ScnSoundEmitter
-class ScnSoundEmitter:
-	public CsResource,
+// ScnSoundEmitterComponent
+class ScnSoundEmitterComponent:
+	public ScnComponent,
 	public SsChannelCallback
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnSoundEmitter );
+	DECLARE_RESOURCE( ScnComponent, ScnSoundEmitterComponent );
 	
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
 	
-	void								setPosition( const BcVec3d& Position );
 	void								setGain( BcReal Gain );
 	void								setPitch( BcReal Pitch );
 
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+
 	void								play( ScnSoundRef Sound );
+	void								play( const BcName& Package, const BcName& Name );
+
 	void								stopAll();
 
 protected:

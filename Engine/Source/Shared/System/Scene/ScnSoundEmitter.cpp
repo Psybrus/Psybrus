@@ -13,8 +13,12 @@
 
 #include "System/Scene/ScnSoundEmitter.h"
 
+#include "System/Scene/ScnEntity.h"
+
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
+
+#include "Base/BcRandom.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcFile.h"
@@ -23,12 +27,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnSoundEmitter );
+DEFINE_RESOURCE( ScnSoundEmitterComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnSoundEmitter::initialise()
+void ScnSoundEmitterComponent::initialise()
 {
 	
 }
@@ -36,32 +40,34 @@ void ScnSoundEmitter::initialise()
 //////////////////////////////////////////////////////////////////////////
 // create
 //virtual
-void ScnSoundEmitter::create()
+void ScnSoundEmitterComponent::create()
 {
 	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-	Gain_ = 1.0f;
-	Pitch_ = 1.0f;
+
+	// HACKS.
+	Gain_ = 0.5f;
+	Pitch_ = BcRandom::Global.randReal() * 0.05f + 1.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
-void ScnSoundEmitter::destroy()
+void ScnSoundEmitterComponent::destroy()
 {
-	BcAssertMsg( ChannelSoundMap_.size() == 0, "Sounds still playing on ScnSoundEmitter whilst being destroyed! Reference count mismatch!" );
+	BcAssertMsg( ChannelSoundMap_.size() == 0, "Sounds still playing on ScnSoundEmitterComponent whilst being destroyed! Reference count mismatch!" );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnSoundEmitter::isReady()
+BcBool ScnSoundEmitterComponent::isReady()
 {
 	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // play
-void ScnSoundEmitter::play( ScnSoundRef Sound )
+void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 {
 	// Acquire before playing (callback is threaded)
 	CsResource::acquire();
@@ -84,8 +90,20 @@ void ScnSoundEmitter::play( ScnSoundRef Sound )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// play
+void ScnSoundEmitterComponent::play( const BcName& Package, const BcName& Name )
+{
+	// HACK.
+	ScnSoundRef Sound;
+	if( CsCore::pImpl()->requestResource( Package, Name, Sound ) )
+	{
+		play( Sound );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // stopAll
-void ScnSoundEmitter::stopAll()
+void ScnSoundEmitterComponent::stopAll()
 {
 	// Stop all bound channels.
 	for( TChannelSoundMapIterator It( ChannelSoundMap_.begin() ); It != ChannelSoundMap_.end(); ++It )
@@ -96,60 +114,80 @@ void ScnSoundEmitter::stopAll()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPosition
-void ScnSoundEmitter::setPosition( const BcVec3d& Position )
-{
-	Position_ = Position;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setGain
-void ScnSoundEmitter::setGain( BcReal Gain )
+void ScnSoundEmitterComponent::setGain( BcReal Gain )
 {
 	Gain_ = Gain;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setPitch
-void ScnSoundEmitter::setPitch( BcReal Pitch )
+void ScnSoundEmitterComponent::setPitch( BcReal Pitch )
 {
 	Pitch_ = Pitch;
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setPitch
+//virtual
+void ScnSoundEmitterComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPitch
+//virtual
+void ScnSoundEmitterComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	stopAll();
+
+	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onStarted
 //virtual
-void ScnSoundEmitter::onStarted( SsChannel* pSound )
+void ScnSoundEmitterComponent::onStarted( SsChannel* pSound )
 {
-	onPlaying( pSound );
+	if( isAttached() )
+	{
+		onPlaying( pSound );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onPlaying
 //virtual
-void ScnSoundEmitter::onPlaying( SsChannel* pSound )
+void ScnSoundEmitterComponent::onPlaying( SsChannel* pSound )
 {
-	// Update parameters.
-	pSound->gain( Gain_ );
-	//pSound->maxDistance( 1.0f );
-	//pSound->maxDistance( 1.0f );
-	pSound->rolloffFactor( 0.05f );
-	pSound->position( Position_ );
-	pSound->pitch( Pitch_ );
+	if( isAttached() )
+	{
+		// Update parameters.
+		pSound->gain( Gain_ );
+		//pSound->maxDistance( 1.0f );
+		//pSound->maxDistance( 1.0f );
+		pSound->rolloffFactor( 0.05f );
+		pSound->position( getParentEntity()->getMatrix().translation() );
+		pSound->pitch( Pitch_ );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onEnded
 //virtual
-void ScnSoundEmitter::onEnded( SsChannel* pSound )
+void ScnSoundEmitterComponent::onEnded( SsChannel* pSound )
 {
-	// Find in map, and erase reference.
-	TChannelSoundMapIterator Iter = ChannelSoundMap_.find( pSound );
-	
-	if( Iter != ChannelSoundMap_.end() )
+	if( isAttached() )
 	{
-		ChannelSoundMap_.erase( Iter );
-
-		CsResource::release();
+		// Find in map, and erase reference.
+		TChannelSoundMapIterator Iter = ChannelSoundMap_.find( pSound );
+	
+		if( Iter != ChannelSoundMap_.end() )
+		{
+			ChannelSoundMap_.erase( Iter );
+	
+			CsResource::release();
+		}
 	}
 }
