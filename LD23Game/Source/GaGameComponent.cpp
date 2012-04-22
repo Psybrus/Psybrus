@@ -35,10 +35,11 @@ void GaGameComponent::initialise( const Json::Value& Object )
 	BcMemZero( pHeatMap_, sizeof( BcReal ) * Texels );
 	BcMemZero( pHeatMapBuffer_, sizeof( BcReal ) * Texels );
 
+	HeatAverage_ = 0.5f;
 	for( BcU32 Idx = 0; Idx < Texels; ++Idx )
 	{
-		pHeatMap_[ Idx ] = 0.5f;
-		pHeatMapBuffer_[ Idx ] = 0.5f;
+		pHeatMap_[ Idx ] = HeatAverage_;
+		pHeatMapBuffer_[ Idx ] = HeatAverage_;
 	}
 
 	CsCore::pImpl()->createResource( BcName::INVALID, HeatMapTexture_, HeatMapWidth_, HeatMapHeight_, 1, rsTF_RGBA8 );
@@ -64,12 +65,8 @@ void GaGameComponent::update( BcReal Tick )
 	case GS_INIT:
 		{
 			// Max elements to spawn.
-			MaxElements_ = 48;
-
-			// Spawn sun.
-			ScnEntityRef SunEntity = ScnCore::pImpl()->createEntity( "default", "SunEntity" );
-			getParentEntity()->attach( SunEntity );
-
+			MaxElements_ = 32;
+			
 			// Spawn player.
 			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
 			getParentEntity()->attach( PlayerEntity );
@@ -97,10 +94,23 @@ void GaGameComponent::update( BcReal Tick )
 			Canvas_->pushMatrix( Projection );
 			
 			// Draw centred.
-			BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), "TEST HUD", RsColour::WHITE, BcTrue );
-			Font_->draw( Canvas_, BcVec2d( -400.0f, -300.0f ) - Size * 0.5f, "TEST HUD", RsColour::WHITE, BcFalse );
+			BcChar Buffer[ 4096 ];
+			BcSPrintf( Buffer, "Heat: %u%%\n", BcU32( HeatAverage_ * 100.0f ) );
+			
+			BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::BLACK, BcTrue );
+			Font_->draw( Canvas_, BcVec2d( -400.0f, -300.0f ) - Size * 0.5f, Buffer, RsColour::BLACK, BcFalse );
 
 			Canvas_->popMatrix();
+
+			if( HeatAverage_ < 0.1f )
+			{
+				ScnEntity* pEntity = getParentEntity();
+				ScnCore::pImpl()->removeEntity( pEntity );
+				ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity" ) );
+			}
+
+			// Do particle plasma cloud.
+			particlesPlasmaCloud();
 		}
 		break;
 
@@ -267,6 +277,8 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 			BcReal DistanceSquared = ( Direction ).magnitudeSquared();
 			BcReal TotalRadius = ( Element.Element_->Radius_ + OtherElement.Element_->Radius_ );
 			BcReal TotalRadiusSquared = TotalRadius * TotalRadius;
+			BcReal TwiceTotalRadius = ( Element.Element_->Radius_ + OtherElement.Element_->Radius_ ) * 2.0f;
+			BcReal TwiceTotalRadiusSquared = TwiceTotalRadius * TwiceTotalRadius;
 			
 			if( DistanceSquared < TotalRadiusSquared )
 			{
@@ -275,6 +287,16 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 
 				// Clamp velocity.
 				Element.Velocity_ = Element.Velocity_.normal() * Element.Element_->MaxSpeed_;
+			}
+
+			// Signal some are ready to fuse.
+			if( Element.FuseType_ == OtherElement.Type_ )
+			{
+				if( DistanceSquared < TwiceTotalRadius )
+				{
+					BcVec3d AvgPosition( ( Element.Position_ + OtherElement.Position_ ) * 0.5f );
+					particlesCollision( AvgPosition );
+				}
 			}
 		}
 
@@ -375,7 +397,7 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 					BcReal Distance = ( Element.Position_ - FuseElement.Position_ ).magnitude();
 					BcReal TotalRadius = ( Element.Element_->Radius_ + FuseElement.Element_->Radius_ );
 			
-					if( Distance < ( TotalRadius * 0.25f ) )
+					if( Distance < ( TotalRadius * 0.5f ) )
 					{
 						Element.MarkedForFusion_ = BcTrue;
 						FuseElement.MarkedForFusion_ = BcTrue;
@@ -385,6 +407,16 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 				}
 			}
 		}
+	}
+
+	if( StrongForce_->IsCharging_ )
+	{
+		particlesFusionCharge( StrongForce_->Position_, StrongForce_->Radius_ );
+	}
+	
+	if( StrongForce_->IsActive_ )
+	{
+		particlesFusionActivate( StrongForce_->Position_ );
 	}
 
 	// Do the fusion core dance!
@@ -400,6 +432,8 @@ void GaGameComponent::updateSimulation( BcReal Tick )
 
 			// Spawn new to take it's place on the opposite side.
 			spawnElement( Element.Position_, Element.Velocity_, Element.ReplaceType_ );
+
+			particlesFusionExplode( Element.Position_, Element.Velocity_, Element.Element_->Colour_ );
 
 			addHeatMapValue( Element.Position_, 1024.0f * 16.0f );
 		}
@@ -596,8 +630,12 @@ void GaGameComponent::updateHeatMapTexture()
 		}
 	}
 
-	// Write out to texture.
-	HeatMapTexture_->lock();
+	// Write out to texture & calculate average heat.
+	HeatAverage_ = 0.0f;
+	if( HeatMapTexture_.isValid() )
+	{
+		HeatMapTexture_->lock();
+	}
 
 	for( BcU32 Y = 0; Y < HeatMapHeight_; ++Y )
 	{
@@ -605,11 +643,14 @@ void GaGameComponent::updateHeatMapTexture()
 		{
 			BcU32 Index = X + Y * HeatMapWidth_;
 			BcReal& HeatMapValue( pHeatMap_[ Index ] );
+			HeatAverage_ += HeatMapValue;
 			BcReal ClampedValue = BcClamp( HeatMapValue, 0.0f, 1.0f );
 			ClampedValue = ClampedValue * ClampedValue;
 			HeatMapTexture_->setTexel( X, Y, RsColour( ClampedValue, ClampedValue, ClampedValue, 1.0f ) );
 		}
 	}
+
+	HeatAverage_ /= BcReal( HeatMapWidth_ * HeatMapHeight_ );
 
 	HeatMapTexture_->unlock();
 }
@@ -636,4 +677,157 @@ BcReal GaGameComponent::getHeatMapValue( const BcVec3d& Position )
 	BcS32 Y = static_cast< BcS32 >( BcClamp( PackedPosition.z(), 0, (BcS32)HeatMapHeight_ ) );
 	BcReal& HeatMapValue = getHeatMapValue( X, Y );
 	return HeatMapValue;	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particlesPlasmaCloud
+void GaGameComponent::particlesPlasmaCloud()
+{
+	for( BcU32 Idx = 0; Idx < 4; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ParticleSystem_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = BcRandom::Global.randVec3() * BcVec3d( 32.0f, 4.0f, 32.0f );
+			pParticle->Velocity_ = BcRandom::Global.randVec3Normal() * BcVec3d( 1.0f, 1.0f, 1.0f );
+			pParticle->Acceleration_ = -pParticle->Velocity_ * 1.0f;
+			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 0.5f );
+			pParticle->MinScale_ = BcVec2d( 16.0f, 16.0f );
+			pParticle->MaxScale_ = BcVec2d( 16.0f, 16.0f );
+			pParticle->MinColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 0.5f, 0.25f, 0.0f, 0.0f );
+			pParticle->TextureIndex_ = (BcU32)BcRandom::Global.randRange( 0, 7 );
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 1.5f ) + 1.0f;
+			pParticle->Alive_ = BcTrue;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particlesFusionExplode
+void GaGameComponent::particlesFusionExplode( const BcVec3d& Position, const BcVec3d& Direction, const RsColour& Colour )
+{
+	for( BcU32 Idx = 0; Idx < 128; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ParticleSystem_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position + BcRandom::Global.randVec3() * 1.0f;
+			pParticle->Velocity_ = BcRandom::Global.randVec3Normal() * 64.0f;
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 4.5f );
+			pParticle->MinScale_ = BcVec2d( 1.0f, 1.0f );
+			pParticle->MaxScale_ = BcVec2d( 2.0f, 2.0f );
+			pParticle->MinColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 1.0f, 1.0f, 1.0f, 0.0f ) * Colour;
+			pParticle->TextureIndex_ = (BcU32)BcRandom::Global.randRange( 8, 9 );
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.2f ) + 0.2f;
+			pParticle->Alive_ = BcTrue;
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < 32; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ParticleSystem_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position + BcRandom::Global.randVec3() * 0.25f;
+			pParticle->Velocity_ = BcRandom::Global.randVec3Normal() * 16.0f;
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 4.5f );
+			pParticle->MinScale_ = BcVec2d( 2.0f, 2.0f );
+			pParticle->MaxScale_ = BcVec2d( 4.0f, 4.0f );
+			pParticle->MinColour_ = RsColour( 1.0f, 1.0f, 1.0f, 0.0f );
+			pParticle->MaxColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
+			pParticle->TextureIndex_ = (BcU32)BcRandom::Global.randRange( 10, 11 );
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.5f ) + 0.1f;
+			pParticle->Alive_ = BcTrue;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particlesCollision
+void GaGameComponent::particlesCollision( const BcVec3d& Position )
+{
+	for( BcU32 Idx = 0; Idx < 4; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ParticleSystem_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position + BcRandom::Global.randVec3() * 1.0f;
+			pParticle->Velocity_ = BcRandom::Global.randVec3Normal() * 24.0f;
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 4.5f );
+			pParticle->MinScale_ = BcVec2d( 1.0f, 1.0f ) * BcRandom::Global.randReal();
+			pParticle->MaxScale_ = pParticle->MinScale_ * 2.0f;
+			pParticle->MinColour_ = RsColour( 1.0f, 0.0f, 0.0f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 1.0f, 1.0f, 0.0f, 0.0f );
+			pParticle->TextureIndex_ = (BcU32)BcRandom::Global.randRange( 8, 9 );
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.1f ) + 0.12f;
+			pParticle->Alive_ = BcTrue;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particlesFusionCharge
+void GaGameComponent::particlesFusionCharge( const BcVec3d& Position, BcReal Radius )
+{
+	BcU32 Count = BcU32( ( BcPIMUL4 * Radius * Radius ) * 0.05f );
+	for( BcU32 Idx = 0; Idx < Count; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ParticleSystem_->allocParticle( pParticle ) )
+		{
+			BcVec3d RelPosition = BcRandom::Global.randVec3Normal();
+			pParticle->Position_ = Position + RelPosition * Radius;
+			pParticle->Velocity_ = -RelPosition * 16.0f;
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 4.5f );
+			pParticle->MinScale_ = BcVec2d( 0.7f, 0.7f );
+			pParticle->MaxScale_ = BcVec2d( 1.0f, 1.0f );
+			pParticle->MinColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 1.0f, 0.0f, 1.0f, 0.0f );
+			pParticle->TextureIndex_ = (BcU32)BcRandom::Global.randRange( 8, 11 );
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.1f ) + 0.05f;
+			pParticle->Alive_ = BcTrue;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particlesFusionActivate
+void GaGameComponent::particlesFusionActivate( const BcVec3d& Position )
+{
+	for( BcU32 Idx = 0; Idx < 1; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ParticleSystem_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position + BcRandom::Global.randVec3();
+			pParticle->Velocity_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Rotation_ = ( BcRandom::Global.randReal() * BcPIMUL2 );
+			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() * 4.5f );
+			pParticle->MinScale_ = BcVec2d( 0.5f, 0.5f );
+			pParticle->MaxScale_ = BcVec2d( 64.0f, 64.0f );
+			pParticle->MinColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 0.1f, 0.1f, 0.1f, 0.0f );
+			pParticle->TextureIndex_ = 12;
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = BcAbs( BcRandom::Global.randReal() * 0.1f ) + 0.12f;
+			pParticle->Alive_ = BcTrue;
+		}
+	}
 }
