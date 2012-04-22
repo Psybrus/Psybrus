@@ -477,7 +477,7 @@ void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun )
+BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
 	ScnFont::THeader* pHeader = Parent_->pHeader_;
@@ -653,7 +653,7 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 		if( NoofVertices > 0 )
 		{
 			Canvas->setMaterialComponent( MaterialComponent_ );
-			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
+			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, Layer );
 		}
 	}
 	else

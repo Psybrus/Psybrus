@@ -114,7 +114,7 @@ public:
 
 	void								setClipping( BcBool Enabled, BcVec2d Min = BcVec2d( 0.0f, 0.0f ), BcVec2d Max = BcVec2d( 0.0f, 0.0f ) );
 	
-	BcVec2d								draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse );
+	BcVec2d								draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
 
 	ScnMaterialComponentRef				getMaterialComponent();
 	

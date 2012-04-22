@@ -178,16 +178,13 @@ void ScnSoundEmitterComponent::onPlaying( SsChannel* pSound )
 //virtual
 void ScnSoundEmitterComponent::onEnded( SsChannel* pSound )
 {
-	if( isAttached() )
+	// Find in map, and erase reference.
+	TChannelSoundMapIterator Iter = ChannelSoundMap_.find( pSound );
+	
+	if( Iter != ChannelSoundMap_.end() )
 	{
-		// Find in map, and erase reference.
-		TChannelSoundMapIterator Iter = ChannelSoundMap_.find( pSound );
-	
-		if( Iter != ChannelSoundMap_.end() )
-		{
-			ChannelSoundMap_.erase( Iter );
-	
-			CsResource::release();
-		}
+		ChannelSoundMap_.erase( Iter );
+
+		CsResource::release();
 	}
 }

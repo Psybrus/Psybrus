@@ -791,6 +791,9 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	}
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
+	// HUD pass.
+	Sort.Pass_ = 1;
+
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
 	//       to the scene. Will not sort by transparency or anything either.
