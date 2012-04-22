@@ -70,6 +70,7 @@
 #include "System/Scene/ScnFont.h"
 #include "System/Scene/ScnSound.h"
 #include "System/Scene/ScnSoundEmitter.h"
+#include "System/Scene/ScnSoundListenerComponent.h"
 #include "System/Scene/ScnViewComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
