@@ -68,7 +68,7 @@ private:
 	BcBool								inRemoveEntityList( ScnEntityRef Entity );
 
 	BcReal&								getHeatMapValue( BcS32 X, BcS32 Y, BcU32 Buffer = 0 );
-	void								updateHeatMapTexture();
+	void								updateHeatMapTexture( BcReal Tick );
 	void								addHeatMapValue( const BcVec3d& Position, BcReal Value );
 	BcReal								getHeatMapValue( const BcVec3d& Position );
 
@@ -77,12 +77,17 @@ private:
 	void								particlesCollision( const BcVec3d& Position );
 	void								particlesFusionCharge( const BcVec3d& Position, BcReal Radius );
 	void								particlesFusionActivate( const BcVec3d& Position );
-	
+
+	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
+
 private:
 	enum GameState
 	{
-		GS_INIT = 0,
+		GS_START_SCREEN,
+		GS_INSTRUCTIONS,
+		GS_INIT,
 		GS_UPDATE,
+		GS_GAME_OVER,
 		GS_EXIT,
 	};
 
@@ -117,10 +122,16 @@ private:
 	BcU32								HeatMapWidth_;
 	BcU32								HeatMapHeight_;
 	BcReal								HeatAverage_;
+	BcReal								HeatMapUpdateAccumulator_;
 
-	// Sun
-	ScnModelComponentRef				SunModel_;
-	ScnMaterialComponentRef				SunMaterial_;
+	static BcU32						HighScore_;
+	BcU32								Score_;
+	BcU32								ScoreMultiplier_;
+
+	
+	ScnSoundEmitterComponentRef			SoundEmitter_;
+
+	ScnMaterialComponentRef				TextBgMaterial_;
 };
 
 #endif

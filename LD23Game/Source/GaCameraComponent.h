@@ -23,6 +23,7 @@ typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
 //////////////////////////////////////////////////////////////////////////
 // GaCameraComponent
 class GaCameraComponent:
+	public BcGlobal< GaCameraComponent >,	// HACK please forgive me.
 	public ScnComponent
 {
 public:
@@ -34,6 +35,8 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
+	void								startMenu();
+	void								startGame();
 private:
 	BcReal Ticker_;
 
