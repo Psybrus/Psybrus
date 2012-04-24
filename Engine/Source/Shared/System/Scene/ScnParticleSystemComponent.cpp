@@ -46,7 +46,19 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	}
 
 	WorldTransformParam_ = MaterialComponent_->findParameter( "uWorldTransform" );
-	
+
+	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
+	pParticleBuffer_ = NULL;
+	CurrentVertexBuffer_ = 0;
+
+	IsReady_ = BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnParticleSystemComponent::create()
+{
 	// TODO: Allow different types of geom for this.
 	// TODO: Use index buffer.
 	// Calc what we need.
@@ -66,12 +78,11 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	pParticleBuffer_ = new ScnParticle[ NoofParticles_ ];
 	BcMemZero( pParticleBuffer_, sizeof( ScnParticle ) * NoofParticles_ );
 
-	// 
-	CurrentVertexBuffer_ = 0;
+	IsReady_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// destroy
 //virtual
 void ScnParticleSystemComponent::destroy()
 {
@@ -94,6 +105,14 @@ void ScnParticleSystemComponent::destroy()
 
 
 	delete [] pParticleBuffer_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+BcBool ScnParticleSystemComponent::isReady()
+{
+	return IsReady_;
 }
 
 //////////////////////////////////////////////////////////////////////////

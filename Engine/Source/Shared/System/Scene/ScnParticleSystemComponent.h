@@ -67,7 +67,9 @@ public:
 
 public:
 	virtual void						initialise( const Json::Value& Object );
+	virtual void						create();
 	virtual void						destroy();
+	virtual BcBool						isReady();
 	virtual void						update( BcReal Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
@@ -104,6 +106,8 @@ private:
 
 	// UV bounds.
 	std::vector< BcVec4d >				UVBounds_;
+
+	BcBool								IsReady_;
 
 };
 

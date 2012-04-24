@@ -233,8 +233,9 @@ protected:
 	
 	TMatrixStack						MatrixStack_;
 	BcBool								IsIdentity_;
-	
-	
+
+	//
+	BcBool								IsReady_;
 };
 
 #endif
