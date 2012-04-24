@@ -43,6 +43,9 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
+
+	//
+	IsReady_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +81,8 @@ void ScnCanvasComponent::create()
 		// Allocate render side primitive.
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
 	}
+
+	IsReady_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,18 +119,7 @@ void ScnCanvasComponent::destroy()
 //virtual
 BcBool ScnCanvasComponent::isReady()
 {
-	// TODO: Just set a sodding flag ok?
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		if( RenderResource.pVertexBuffer_ == NULL || RenderResource.pPrimitive_ == NULL )
-		{
-			return BcFalse;
-		}
-	}
-	
-	return BcTrue;
+	return IsReady_;
 }
 
 //////////////////////////////////////////////////////////////////////////
