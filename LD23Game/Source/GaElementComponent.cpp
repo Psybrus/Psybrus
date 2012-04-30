@@ -116,7 +116,7 @@ void GaElementComponent::playSound( BcName& Name, BcBool Force )
 	if( SoundTimer_ < 0.0f || Force )
 	{
 		SoundTimer_ = BcAbs( BcRandom::Global.randReal() * 0.12f ) + 0.075f;
-		static BcName Default( "default" );
-		SoundEmitter_->play( Default, Name );
+		static BcName Game( "game" );
+		SoundEmitter_->play( Game, Name );
 	}
 }

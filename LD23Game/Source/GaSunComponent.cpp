@@ -86,7 +86,7 @@ void GaSunComponent::onAttach( ScnEntityWeakRef Parent )
 	ScnSoundEmitterComponentRef SoundEmitter = Parent->getComponentByType< ScnSoundEmitterComponent >( 0 );
 	if( SoundEmitter.isValid() )
 	{
-		SoundEmitter->play( "default", "music" );
+		SoundEmitter->play( "game", "music" );
 	}
 	
 	// Don't forget to attach!

@@ -171,6 +171,8 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 		}
 	}
 
+	BcAssertMsg( BcFalse, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
+
 	return NULL;	
 }
 

@@ -279,7 +279,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					THeader Header;
 					
 					Header.NoofGlyphs_ = GlyphDescList.size();
-					Header.TextureName_ = Importer.addString( FontTextureName.c_str() );
+					Header.TextureRef_ = Importer.addPackageCrossRef( FontTextureName.c_str() );
 					Header.NominalSize_ = (BcReal)OriginalNominalSize;
 					
 					HeaderStream << Header;
@@ -411,7 +411,7 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		requestChunk( ++ChunkIdx );
 		
 		// Request texture.
-		CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pHeader_->TextureName_ ), Texture_ );
+		Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
 	}
 	else if( ChunkID == BcHash( "glyphs" ) )
 	{
@@ -454,15 +454,8 @@ void ScnFontComponent::initialise( const Json::Value& Object )
 {
 	ScnFontRef FontRef;
 	ScnMaterialRef MaterialRef;
-	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "font" ].asCString(), FontRef ) )
-	{
-		BcAssertMsg( BcFalse, "ScnFontComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "model" ].asCString(), "ScnFont" );
-	}
-	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "material" ].asCString(), MaterialRef ) )
-	{
-		BcAssertMsg( BcFalse, "ScnFontComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "material" ].asCString(), "ScnMaterial" );
-	}
-
+	FontRef = CsCore::pImpl()->getResource( Object[ "font" ].asCString() );
+	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
 	initialise( FontRef, MaterialRef );
 }
 
