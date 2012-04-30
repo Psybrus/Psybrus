@@ -69,15 +69,14 @@ private:
 	
 	struct THeader
 	{
-		BcU32							ShaderName_;
+		BcU32							ShaderRef_;
 		BcU32							NoofTextures_;
 	};
 
 	struct TTextureHeader
 	{
 		BcU32							SamplerName_;
-		BcU32							TextureName_;
-		BcU32							TextureType_;
+		BcU32							TextureRef_;
 	};
 	
 	THeader*							pHeader_;

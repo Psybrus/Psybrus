@@ -171,7 +171,7 @@ void GaGameComponent::update( BcReal Tick )
 			MaxElements_ = 64;
 			
 			// Spawn player.
-			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity" );
+			ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "game", "PlayerEntity" );
 			getParentEntity()->attach( PlayerEntity );
 
 			StrongForce_ = PlayerEntity->getComponentByType< GaStrongForceComponent >( 0 );
@@ -346,7 +346,7 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 // spawnElement
 void GaGameComponent::spawnElement( const BcVec3d& Position, const BcVec3d& Velocity, const BcName& Type )
 {
-	ScnEntityRef Entity( ScnCore::pImpl()->createEntity( "default", Type ) );
+	ScnEntityRef Entity( ScnCore::pImpl()->createEntity( "game", Type ) );
 	BcAssertMsg( Entity.isValid(), "Can't spawn element." );
 
 	// Get element component.
@@ -1056,7 +1056,7 @@ eEvtReturn GaGameComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeyboar
 		{
 			ScnEntity* pEntity = getParentEntity();
 			ScnCore::pImpl()->removeEntity( pEntity );
-			ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity" ) );
+			ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "game", "GameEntity" ) );
 		}
 
 	default:

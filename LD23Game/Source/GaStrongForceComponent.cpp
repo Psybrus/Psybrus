@@ -218,6 +218,6 @@ eEvtReturn GaStrongForceComponent::onMouseEvent( EvtID ID, const OsEventInputMou
 // playSound
 void GaStrongForceComponent::playSound( BcName& Name, BcBool Force )
 {
-	static BcName Default( "default" );
-	SoundEmitter_->play( Default, Name );
+	static BcName Game( "game" );
+	SoundEmitter_->play( Game, Name );
 }

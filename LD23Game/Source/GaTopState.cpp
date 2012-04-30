@@ -30,7 +30,7 @@ GaTopState::~GaTopState()
 // enterOnce
 void GaTopState::enterOnce()
 {
-	pPackage_ = CsCore::pImpl()->requestPackage( "default" );
+	pPackage_ = CsCore::pImpl()->requestPackage( "game" );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,9 +48,9 @@ void GaTopState::preMain()
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
 	
-	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "ScreenEntity", "ScreenEntity_0" ) );
-	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "GameEntity", "GameEntity_0" ) );
-	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "default", "SunEntity", "SunEntity_0" ) );
+	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "game", "ScreenEntity", "ScreenEntity_0" ) );
+	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "game", "GameEntity", "GameEntity_0" ) );
+	ScnCore::pImpl()->addEntity( ScnCore::pImpl()->createEntity( "game", "SunEntity", "SunEntity_0" ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

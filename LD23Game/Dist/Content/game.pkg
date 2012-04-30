@@ -1,0 +1,908 @@
+{
+	//"dependencies" : [
+	//	"default"
+	//],
+
+	"resources" : [
+			{
+			"type"			: "ScnTexture",
+			"name"			: "deuterium",
+
+			"source"		: "Content/Source/deuterium.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "tritium",
+
+			"source"		: "Content/Source/tritium.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "helium",
+
+			"source"		: "Content/Source/helium.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "neutron",
+
+			"source"		: "Content/Source/neutron.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "textbg",
+
+			"source"		: "Content/Source/textbg.png"
+		},
+
+		{
+			"type"			: "ScnTextureAtlas",
+			"name"			: "plasmaparticle",
+			"clearcolour"	: "0.0,0.0,0.0,1.0",
+
+			"source"		: [
+				"Content/Source/plasmaparticle0.png",
+				"Content/Source/plasmaparticle1.png",
+				"Content/Source/plasmaparticle2.png",
+				"Content/Source/plasmaparticle3.png",
+				"Content/Source/plasmaparticle4.png",
+				"Content/Source/plasmaparticle5.png",
+				"Content/Source/plasmaparticle6.png",
+				"Content/Source/plasmaparticle7.png",
+				"Content/Source/explodeparticle0.png",
+				"Content/Source/explodeparticle1.png",
+				"Content/Source/chargeparticle0.png",
+				"Content/Source/chargeparticle1.png",
+				"Content/Source/haloparticle0.png"
+			]
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "sun",
+
+			"source"		: "Content/Source/sun.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "sky",
+
+			"source"		: "Content/Source/sky.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "shadow",
+
+			"source"		: "Content/Source/shadow.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "visiblemap",
+
+			"source"		: "Content/Source/visiblemap.png"
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "music",
+
+			"source"		: "Content/Source/music.ogg",
+			"looping"		: true
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "charge",
+
+			"source"		: "Content/Source/charge.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "collide0",
+
+			"source"		: "Content/Source/collide0.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "collide1",
+
+			"source"		: "Content/Source/collide1.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "collide2",
+
+			"source"		: "Content/Source/collide2.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "collide3",
+
+			"source"		: "Content/Source/collide3.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "forceexplode",
+
+			"source"		: "Content/Source/forceexplode.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "fuse",
+
+			"source"		: "Content/Source/fuse.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "lostmultiplier",
+
+			"source"		: "Content/Source/lostmultiplier.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnSound",
+			"name"			: "lost",
+
+			"source"		: "Content/Source/lost.ogg",
+			"looping"		: false
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "element",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/element.glslv",
+				"fragment" 		: "Content/Source/element.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "shadow",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/shadow.glslv",
+				"fragment" 		: "Content/Source/shadow.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "sun",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/sun.glslv",
+				"fragment" 		: "Content/Source/sun.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "textbg",
+
+			// Shader
+			"shader"		: "default.default2d",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "textbg"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},
+				{
+			"type"			: "ScnMaterial",
+			"name"			: "heatmap",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default.default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "element",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default.default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},		
+
+		//////////////////////////////////////////////////////////////////////////
+		// SHADOW MATERIAL
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "shadow",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "shadow",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		//////////////////////////////////////////////////////////////////////////
+		// SKY MATERIAL
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "sky",
+
+			// Shader
+			"shader"		: "sun",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "sky"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},	
+
+		//////////////////////////////////////////////////////////////////////////
+		// SUN MATERIAL
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "sun",
+
+			// Shader
+			"shader"		: "sun",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "sun"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		//////////////////////////////////////////////////////////////////////////
+		// ELEMENT MATERIALS
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "deuterium",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "deuterium",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "tritium",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "tritium",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "helium",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "helium",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "neutron",
+
+			// Shader
+			"shader"		: "element",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "neutron",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "strongforce",
+
+			// Shader
+			"shader"		: "element", 
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default.default",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},	
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "font",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/font.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/font.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "font",
+
+			// Shader
+			"shader"		: "font",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default.default"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "never",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "particle",
+ 
+			"shaders"		: {
+				"vertex" 		: "Content/Source/particle.glslv",
+				"fragment" 		: "Content/Source/particle.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "particle",
+
+			// Shader
+			"shader"		: "particle",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "plasmaparticle",
+				"aHeatMapTex"	: "default.default",
+				"aVisibleMapTex"	: "visiblemap"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "add"
+			}
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "axis",
+			"source"	: "Content/Source/axis.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "sphere",
+			"source"	: "Content/Source/sphere.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "strongforce",
+			"source"	: "Content/Source/strongforce.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "deuterium",
+			"source"	: "Content/Source/deuterium.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "tritium",
+			"source"	: "Content/Source/tritium.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "helium",
+			"source"	: "Content/Source/helium.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "neutron",
+			"source"	: "Content/Source/neutron.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "sun",
+			"source"	: "Content/Source/sun.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "sky",
+			"source"	: "Content/Source/sky.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "shadow",
+			"source"	: "Content/Source/shadow.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "heatmap",
+			"source"	: "Content/Source/heatmap.obj"
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Entities.
+		{
+			"name"		:		"ScreenEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaCameraComponent"
+				},
+
+				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
+				{
+					"type"			: "ScnViewComponent",
+					"x"				: 0.0,
+					"y"				: 0.0,
+					"width"			: 1.0,
+					"height"		: 1.0,
+					"near"			: 0.1,
+					"far"			: 1000.0,
+					"hfov"			: 0.0,
+					"vfov"			: 0.5
+				},
+
+				{
+					"type"			: "ScnSoundListenerComponent"
+				}
+			]
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Elements.
+
+		{
+			"name"		:		"In0ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.deuterium:ScnModel",
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.shadow:ScnModel",
+					"layer"			: 1
+				},
+
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Deuterium",
+					"colour"		: "1.0,0.0,0.0,1.0",
+					"shadowcolour"	: "1.0,0.0,0.0,1.0",
+					"maxspeed"		: 4.0,
+					"direction"		: 1.0,		// Towards origin.
+					"radius" 		: 1.5,
+					
+					"fusetype"		: "In1ElementEntity",
+					"replacetype"	: "Out0ElementEntity",
+					"respawntype"	: "In0ElementEntity"
+				}
+			]
+		},
+
+		{
+			"name"		:		"In1ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.tritium:ScnModel",
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.shadow:ScnModel",
+					"layer"			: 1
+				},
+
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Tritium",
+					"colour"		: "0.0,0.0,1.0,1.0",
+					"shadowcolour"	: "0.0,0.0,1.0,1.0",
+					"maxspeed"		: 3.0,
+					"direction"		: 1.0,		// Towards origin.
+					"radius" 		: 2.0,
+
+
+					"fusetype"		: "In0ElementEntity",
+					"replacetype"	: "Out1ElementEntity",
+					"respawntype"	: "In1ElementEntity"
+				}
+			]
+		},
+
+		{
+			"name"		:		"Out0ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.helium:ScnModel",
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.shadow:ScnModel",
+					"layer"			: 1
+				},
+
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Helium",
+					"colour"		: "0.5,0.5,0.0,1.0",
+					"shadowcolour"	: "0.5,0.5,0.0,1.0",
+					"maxspeed"		: 16.0,
+					"direction"		: -1.0,		// Away from origin.
+					"radius" 		: 3.0
+				}
+			]
+		},
+
+		{
+			"name"		:		"Out1ElementEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.neutron:ScnModel",
+					"layer"			: 2
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model" 		: "game.shadow:ScnModel",
+					"layer"			: 1
+				},
+
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+				{
+					"type"			: "GaElementComponent",
+					"element"		: "Neutron",
+					"colour"		: "0.0,0.5,0.5,1.0",
+					"shadowcolour"	: "0.0,0.5,0.5,1.0",
+					"maxspeed"		: 16.0,
+					"direction"		: -1.0,		// Away from origin.
+					"radius" 		: 1.0
+				}
+			]
+		},
+		
+		//////////////////////////////////////////////////////////////
+		// Player entity.
+		{
+			"name"		:		"PlayerEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+				{
+					"type"			: "GaStrongForceComponent",
+					"colour"		: "0.5,0.1,0.1,0.5"
+				}
+			]
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Sun entity.
+		{
+			"name"		:		"SunEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "game.sky:ScnModel",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "game.sun:ScnModel",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "game.sun:ScnModel",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "game.sun:ScnModel",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+			
+				{
+					"type"			: "GaSunComponent",
+					"colour"		: "1.0,1.0,1.0,0.25",
+					"radius"		: 80.0,
+					"radiusmult"	: 0.99,
+					"rotationmult"	: -0.8,
+					"rotationspeed"	: 0.25
+
+				}
+			]
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Game entity.
+		{
+			"name"		:		"GameEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnMaterialComponent",
+					"material"		: "game.textbg:ScnMaterial"
+				},
+
+				{
+					"type"			: "ScnSoundEmitterComponent"
+				},
+
+				{
+					"type"			: "ScnCanvasComponent",
+					"noofvertices"	: 8192
+				},
+
+				{
+					"type"			: "ScnFontComponent",
+					"font"			: "default.default:ScnFont",
+					"material"		: "game.font:ScnMaterial"
+				},
+
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 4096,
+					"material"		: "game.particle:ScnMaterial"
+				},
+				
+				{
+					"type"			: "GaGameComponent"
+				}
+			]
+		}
+
+	]
+}

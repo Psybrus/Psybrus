@@ -41,13 +41,23 @@ public:
 	
 	void							addImport( const Json::Value& Resource );
 	BcU32							addString( const BcChar* pString );
+	BcU32							addPackageCrossRef( const BcChar* pFullName, const BcName& DefaultTypeName = BcName::INVALID );
 	BcU32							addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
 	void							addDependency( const BcChar* pFileName );	
 	
 private:
+	BcBool							havePackageDependency( const BcName& PackageName );
+
+private:
 	typedef std::vector< std::string > TStringList;
 	typedef TStringList::iterator TStringListIterator;
 
+	typedef std::vector< CsPackageCrossRefData > TPackageCrossRefList;
+	typedef TPackageCrossRefList::iterator TPackageCrossRefIterator;
+
+	typedef std::vector< CsPackageDependencyData > TPackageDependencyDataList;
+	typedef TPackageDependencyDataList::iterator TPackageDependencyDataIterator;
+	
 	typedef std::vector< CsPackageResourceHeader > CsPackageResourceHeaderList;
 	typedef CsPackageResourceHeaderList::iterator CsPackageResourceHeaderIterator;
 
@@ -63,18 +73,26 @@ private:
 	typedef std::list< CsDependency > TDependencyList;
 	typedef TDependencyList::iterator TDependencyIterator;
 
+	typedef std::vector< BcName > TPackageDependencyList;
+	typedef TPackageDependencyList::iterator TPackageDependencyIterator;
+
+	
 	TJsonValueList					JsonResources_;
 
 	CsPackageResourceHeader			CurrResourceHeader_;
 
+	BcName							Name_;
 	BcU32							DataPosition_;
 	BcFile							File_;
 	CsPackageHeader					Header_;
 	TStringList						StringList_;
+	TPackageCrossRefList			PackageCrossRefList_;
+	TPackageDependencyDataList		PackageDependencyDataList_;
 	CsPackageResourceHeaderList		ResourceHeaders_;
 	CsPackageChunkHeaderList		ChunkHeaders_;
 	CsPackageChunkDataList			ChunkDatas_;
 	TDependencyList					DependencyList_;
+	TPackageDependencyList			PackageDependencyList_;
 };
 
 #endif

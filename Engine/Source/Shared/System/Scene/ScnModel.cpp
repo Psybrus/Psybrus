@@ -147,7 +147,7 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 			
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
-			PrimitiveData.MaterialName_ = Importer.addString( Material.Name_.c_str() );
+			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str(), "ScnMaterial" );
 			PrimitiveStream << PrimitiveData;
 			
 			// Export vertices.
@@ -290,16 +290,12 @@ void ScnModel::setup()
 		};
 		
 		// Get resource.
-		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pPrimitiveData->MaterialName_ ), PrimitiveRuntime.MaterialRef_ ) )
-		{
-			// Push into array.
-			PrimitiveRuntimes_.push_back( PrimitiveRuntime );
-		}
-		else
-		{
-			BcVerifyMsg( BcFalse, "ScnModel: Missing material \"%s\"", getString( pPrimitiveData->MaterialName_ ) );
-		}
-				
+		PrimitiveRuntime.MaterialRef_ = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
+		BcAssertMsg( PrimitiveRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
+
+		// Push into array.
+		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
+		
 		// Advance vertex and index buffers.
 		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
 		pIndexBufferData_ += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
@@ -412,11 +408,7 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 void ScnModelComponent::initialise( const Json::Value& Object )
 {
 	ScnModelRef ModelRef;
-	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "model" ].asCString(), ModelRef ) )
-	{
-		BcAssertMsg( BcFalse, "ScnModelComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "model" ].asCString(), "ScnModel" );
-	}
-	
+	ModelRef = CsCore::pImpl()->getResource( Object[ "model" ].asCString() );
 	initialise( ModelRef );
 
 	// Setup additional stuff.
@@ -472,8 +464,7 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& M
 
 	for( BcU32 Idx = 0; Idx < MaterialComponentDescList_.size(); ++Idx )
 	{
-		const BcChar* pPrimitiveMaterialName( Parent_->getString( pPrimitiveData[ Idx ].MaterialName_ ) );
-		if( MaterialName == pPrimitiveMaterialName )
+		if( MaterialName == MaterialComponentDescList_[ Idx ].MaterialComponentRef_->getName() )
 		{
 			return MaterialComponentDescList_[ Idx ].MaterialComponentRef_;
 		}

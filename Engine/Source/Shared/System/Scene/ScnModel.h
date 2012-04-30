@@ -94,7 +94,7 @@ protected:
 		BcU32							VertexFormat_;
 		BcU32							NoofVertices_;
 		BcU32							NoofIndices_;
-		BcU32							MaterialName_;
+		BcU32							MaterialRef_;
 	};
 	
 	// Cached pointers for internal use.

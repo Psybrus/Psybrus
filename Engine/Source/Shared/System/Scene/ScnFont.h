@@ -68,7 +68,7 @@ private:
 	struct THeader
 	{
 		BcU32							NoofGlyphs_;
-		BcU32							TextureName_;
+		BcU32							TextureRef_;
 		BcReal							NominalSize_;
 	};
 	

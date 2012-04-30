@@ -40,7 +40,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	// Make header.
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
 
-	Header.ShaderName_ = Importer.addString( ImportShader.asCString() );	// TODO: Go via addImport.
+	Header.ShaderRef_ = Importer.addPackageCrossRef( ImportShader.asCString(), "ScnShader" );	// TODO: Go via addImport.
 	Header.NoofTextures_ = TextureMembers.size();	
 	HeaderStream << Header;
 
@@ -50,8 +50,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
 		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
-		TextureHeader.TextureName_ = Importer.addString( Texture.asCString() );
-		TextureHeader.TextureType_ = Importer.addString( "ScnTexture" );							// TODO: Could be an atlas? How do we handle that? Should revisit this later.
+		TextureHeader.TextureRef_ = Importer.addPackageCrossRef( Texture.asCString(), "ScnTexture" );
 		HeaderStream << TextureHeader;
 	}
 	
@@ -234,25 +233,12 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pHeader_ = (THeader*)pData;
 		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
 		
-		// Request resources.
-		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pHeader_->ShaderName_ ), Shader_ ) )
+		// Get resources.
+		Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 		{
-			// HACK: We should be able to handle resource subtypes without this.
-			ScnTextureRef Texture;
-			CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Texture ) );
-			for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
-			{
-				TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-				
-				if( CsCore::pImpl()->internalRequestResource( /* WIP */ getPackageName(), getString( pTextureHeader->TextureName_ ), getString( pTextureHeader->TextureType_ ), InternalHandle ) )
-				{
-					TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = Texture;
-				}
-				else
-				{
-					BcVerifyMsg( BcFalse, "ScnMaterial: Missing texture: %s", getString( pTextureHeader->TextureName_ ) );
-				}
-			}
+			TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+			TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
 		}
 		
 		requestChunk( ++ChunkIdx );
@@ -326,11 +312,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
 	ScnMaterialRef MaterialRef;
-	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "material" ].asCString(), MaterialRef ) )
-	{
-		BcAssertMsg( BcFalse, "ScnMaterialComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "material" ].asCString(), "ScnMaterial" );
-	}
-
+	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
 	initialise( MaterialRef, BcErrorCode );
 }
 

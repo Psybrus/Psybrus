@@ -112,6 +112,12 @@ public:
 	BcBool								requestResource( const BcName& Package, const BcName& Name, CsResourceRef< _Ty >& Handle );
 
 	/**
+	 * Get resource. PLACEHOLDER UNTIL COMPONENTS ARE PACKED PROPERLY.
+	 * @param pFullName Full name in package.resource.type format.
+	 */
+	CsResourceRef<>						getResource( const BcChar* pFullName );
+
+	/**
 	 * Request package.
 	 * @param Package Name of package.
 	 * @return Success in requesting the package.
@@ -134,7 +140,7 @@ public:
 	 * Get package packed path.
 	 */
 	BcPath								getPackagePackedPath( const BcName& Package );
-
+	
 protected:
 	friend class CsResource;
 
