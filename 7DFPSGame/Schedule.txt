@@ -1,0 +1,17 @@
+7DFPS Schedule stuffs:
+- Implement simple BSP.
+- - Doom-like, no height or slopes.
+- - Need to know if we're in solid or not for the air pressure simulation code.
+- Port 2D water surface simulation code to 3D for air pressure.
+- - May need to multithread this. Gonna be CPU intensive.
+- - Investigate doing this on GPU, either with shaders or OpenCL/Cuda.
+- Implement volume rendering for said simulation code.
+- - Particle cloud with a 3D texture?
+- - Look up in the simulation buffers and render manually?
+- Prototype visual->audio rendering.
+- - Render from ear perspective and IFFT?
+- - Take a simple trace on one plane and convert depth to pitch?
+- Need a story or some narrative.
+- - Augmentation gone wrong?
+- - Born this way?
+- - Tripping out?
