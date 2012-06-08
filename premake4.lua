@@ -37,5 +37,5 @@ solution "Psybrus"
 	--dofile ("MiniLD33Game/premake4.lua")
 
 	-- Build LD23Game.
-	dofile ("LD23Game/premake4.lua")
+	dofile ("7DFPSGame/premake4.lua")
 
