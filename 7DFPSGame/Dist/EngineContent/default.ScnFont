@@ -1,0 +1,9 @@
+{ 
+	"ScnFont" : {
+		"name"		: "default",
+		"source"	: "EngineContent/FontSource/srgt6pack.ttf",
+		"distancefield"	: true,
+		"nominalsize"	: 64,
+		"spread"	: 16
+	}
+}
