@@ -63,10 +63,9 @@ BcBool BcPlane::lineIntersection( const BcVec3d& Point, const BcVec3d& Dir, BcRe
 
 //////////////////////////////////////////////////////////////////////////
 // lineIntersection
-BcBool BcPlane::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcVec3d& Intersection ) const
+BcBool BcPlane::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcReal& Distance, BcVec3d& Intersection ) const
 {
 	BcBool RetVal = BcFalse;
-	BcReal Distance;
 	if( lineIntersection( A, A - B, Distance ) && Distance >= 0.0f && Distance <= 1.0f )
 	{
 		Intersection = A + ( ( B - A ) * Distance );

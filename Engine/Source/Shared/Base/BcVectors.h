@@ -249,6 +249,7 @@ public:
 	// Ctors
 	BcVec3d();
 	BcVec3d( BcReal X, BcReal Y, BcReal Z );
+	BcVec3d( const BcVec2d& Rhs, BcReal Z );
 	BcVec3d( const BcChar* pString );
 
 	void			set( BcReal X, BcReal Y, BcReal Z );
@@ -306,6 +307,13 @@ BcForceInline BcVec3d::BcVec3d( BcReal X, BcReal Y, BcReal Z ):
 {
 
 }
+
+BcForceInline BcVec3d::BcVec3d( const BcVec2d& Rhs, BcReal Z ):
+	BcVecQuad( Rhs.x(), Rhs.y(), Z )
+{
+
+}
+
 
 BcForceInline void BcVec3d::set( BcReal X, BcReal Y, BcReal Z )
 {

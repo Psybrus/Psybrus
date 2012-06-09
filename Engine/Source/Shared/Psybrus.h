@@ -16,6 +16,7 @@
 
 #include "Base/BcAABB.h"
 #include "Base/BcAtomicMutex.h"
+#include "Base/BcBSPTree.h"
 #include "Base/BcDebug.h"
 #include "Base/BcDelegate.h"
 #include "Base/BcEndian.h"
