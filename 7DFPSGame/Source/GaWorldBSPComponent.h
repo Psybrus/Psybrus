@@ -38,7 +38,7 @@ struct GaWorldBSPEdge
 		B_( B )
 	{
 	}
-
+	
 	BcU32 A_;
 	BcU32 B_;
 };
@@ -68,6 +68,8 @@ public:
 
 	void								removePoint( BcU32 Idx );
 	void								removeEdge( BcU32 Idx );
+
+	void								invertEdge( BcU32 Idx );
 
 	BcU32								nearestEdge( const BcVec2d& Position, BcReal Radius );
 	BcVec2d								nearestPositionOnEdge( const BcVec2d& Position, BcU32 Idx );
