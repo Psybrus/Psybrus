@@ -208,8 +208,8 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 		Position.set( WorldNearPos.x(), WorldNearPos.y() );
 
 		// Find nearest point for 
-		BcU32 PointIdx = nearestPoint( Position, 0.5f );
-		BcU32 EdgeIdx = nearestEdge( Position, 0.5f );
+		BcU32 PointIdx = nearestPoint( Position, 0.25f );
+		BcU32 EdgeIdx = nearestEdge( Position, 0.25f );
 
 		// Cache for UI use.
 		NearestPoint_ = PointIdx;
@@ -223,6 +223,7 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 				{
 				case ES_IDLE:
 					{
+						// Start edging.
 						if( Event.ButtonCode_ == 0 )
 						{
 							// No point? Add.
@@ -234,6 +235,7 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 							LastPointIdx_ = PointIdx;
 							EditorState_ = ES_ADD_POINTS;
 						}
+						// Remove point or edge.
 						else if ( Event.ButtonCode_ == 1 )
 						{
 							if( NearestPoint_ != BcErrorCode )
@@ -248,6 +250,15 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 								NearestEdge_ = BcErrorCode;
 							}
 						}
+						// Invert edge.
+						else if ( Event.ButtonCode_ == 2 )
+						{
+							if( NearestPoint_ == BcErrorCode && NearestEdge_ != BcErrorCode )
+							{
+								invertEdge( NearestEdge_ );
+							}
+						}
+
 					}
 					break;
 
@@ -425,6 +436,16 @@ void GaWorldBSPComponent::removeEdge( BcU32 Idx )
 			break;
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// invertEdge
+void GaWorldBSPComponent::invertEdge( BcU32 Idx )
+{
+	GaWorldBSPEdge& Edge( Edges_[ Idx ] );
+	BcU32 Temp = Edge.B_;
+	Edge.B_ = Edge.A_;
+	Edge.A_ = Temp;
 }
 
 //////////////////////////////////////////////////////////////////////////
