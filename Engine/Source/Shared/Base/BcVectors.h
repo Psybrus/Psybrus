@@ -87,6 +87,7 @@ public:
 	BcReal			magnitude() const;
 	BcReal			magnitudeSquared() const;
 	BcReal			dot( const BcVec2d& Rhs ) const;
+	BcVec2d			cross() const;
 
 	BcVec2d			normal() const;
 	void			normalise();
@@ -223,6 +224,11 @@ BcForceInline void BcVec2d::normalise()
 BcForceInline BcReal BcVec2d::dot( const BcVec2d& Rhs ) const
 {
 	return ( X_ * Rhs.X_ ) + ( Y_ * Rhs.Y_ );
+}
+
+BcForceInline BcVec2d BcVec2d::cross() const
+{
+	return BcVec2d( -Y_, X_ );
 }
 
 BcForceInline BcBool BcVec2d::operator == ( const BcVec2d& Rhs ) const
