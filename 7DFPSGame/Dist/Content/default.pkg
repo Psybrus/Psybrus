@@ -187,12 +187,8 @@
 
 			"components" : [
 				{
-					"type"			: "GaPaddleComponent"
-				},
-
-				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "paddle"	// cube:ScnModel
+					"model" 		: "default.paddle:ScnModel"
 				}
 			]
 		},
@@ -203,18 +199,14 @@
 
 			"components" : [
 				{
-					"type"			: "GaBallComponent"
-				},
-
-				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere"	// sphere:ScnModel
+					"model" 		: "default.sphere:ScnModel"
 				},
 
 				{
 					"type"			: "ScnParticleSystemComponent",
 					"noofparticles"	: 4096,
-					"material"		: "particle"
+					"material"		: "default.particle:ScnMaterial"
 				}
 			]
 		}

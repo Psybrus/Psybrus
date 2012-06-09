@@ -15,14 +15,12 @@
 
 #include "GaTopState.h"
 
-#include "GaBallComponent.h"
 #include "GaCameraComponent.h"
-#include "GaPaddleComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "7DFPS Game", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate
@@ -72,16 +70,12 @@ void PsyGameInit()
 // PsyGameRegisterResources
 void PsyGameRegisterResources()
 {
-	CsCore::pImpl()->registerResource< GaBallComponent >();
 	CsCore::pImpl()->registerResource< GaCameraComponent >();
-	CsCore::pImpl()->registerResource< GaPaddleComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // PsyGameUnRegisterResources
 void PsyGameUnRegisterResources()
 {
-	CsCore::pImpl()->unregisterResource< GaBallComponent >();
 	CsCore::pImpl()->unregisterResource< GaCameraComponent >();
-	CsCore::pImpl()->unregisterResource< GaPaddleComponent >();
 }
