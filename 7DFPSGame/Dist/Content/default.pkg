@@ -181,7 +181,7 @@
 			"components" : [
 				{
 					"type"			: "ScnCanvasComponent",
-					"noofvertices" 	: 32768
+					"noofvertices" 	: 524288
 				},
 
 				{

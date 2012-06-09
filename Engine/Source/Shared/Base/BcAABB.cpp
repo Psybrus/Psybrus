@@ -110,10 +110,11 @@ BcBool BcAABB::lineIntersect( const BcVec3d& Start, const BcVec3d& End, BcVec3d*
 	// Totally inoptimal.
 	BcPlane Planes[6];
 	BcVec3d Intersects[6];
+	BcReal Distance;
 	for( BcU32 i = 0; i < 6; ++i )
 	{
 		Planes[i] = facePlane( i );
-		if( !Planes[i].lineIntersection( Start, End, Intersects[i] ) )
+		if( !Planes[i].lineIntersection( Start, End, Distance, Intersects[i] ) )
 		{
 			Intersects[i] = BcVec3d( 1e24f, 1e24f, 1e24f );
 		}

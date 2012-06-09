@@ -29,6 +29,7 @@ void GaWorldBSPComponent::initialise( const Json::Value& Object )
 
 	NearestPoint_ = BcErrorCode;
 	NearestEdge_ = BcErrorCode;
+	pBSPTree_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -98,7 +99,22 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		{
 		case ES_IDLE:
 			{
-				Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::GREEN, 0 );
+				if( pBSPTree_ != NULL )
+				{
+					BcBSPInfo BSPInfo;
+					if( pBSPTree_->checkPointFront( BcVec3d( MousePointPosition_, 0.0f ) ) )
+					{
+						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::GREEN, 0 );
+					}
+					else
+					{
+						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::RED, 0 );
+					}
+				}
+				else
+				{
+					Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::BLUE, 0 );
+				}
 
 				// Highlight nearest point, if none then nearest edge.
 				if( NearestPoint_ != BcErrorCode )
@@ -118,6 +134,20 @@ void GaWorldBSPComponent::update( BcReal Tick )
 						Canvas_->drawLine( PointA.Position_, PointB.Position_, RsColour::RED, 0 );
 					}
 				}
+
+				// Line intersections out.
+				/*
+				BcBSPPointInfo PointInfo;
+				if( pBSPTree_ != NULL )
+				{
+					for( BcReal Angle = 0.0f; Angle < BcPIMUL2; Angle += BcPI * 0.025f )
+					{
+						BcVec3d Normal( BcVec3d( BcCos( Angle ) * 128.0f, BcSin( Angle ) * 128.0f, 4.0f ) );
+						pBSPTree_->lineIntersection( BcVec3d( MousePosition_, 1.0f ), BcVec3d( MousePosition_, 0.0f ) + Normal, &PointInfo );
+						Canvas_->drawLine( MousePosition_, BcVec2d( PointInfo.Point_.x(), PointInfo.Point_.y() ), RsColour::RED, 0 );
+					}
+				}
+				*/
 			}
 			break;
 
@@ -137,7 +167,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 			break;
 		}
 		
-		Canvas_->popMatrix();
+		//Canvas_->popMatrix(); // hack!
 	}
 }
 
@@ -154,8 +184,10 @@ void GaWorldBSPComponent::render( class ScnViewComponent* pViewComponent, RsFram
 //virtual
 void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	OsEventInputKeyboard::Delegate OnKeyboardEvent = OsEventInputKeyboard::Delegate::bind< GaWorldBSPComponent, &GaWorldBSPComponent::onKeyboardEvent >( this );
 	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaWorldBSPComponent, &GaWorldBSPComponent::onMouseEvent >( this );
 
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyboardEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
 
@@ -178,6 +210,34 @@ void GaWorldBSPComponent::onDetach( ScnEntityWeakRef Parent )
 
 	Canvas_ = NULL;
 	Parent->detach( Material_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onMouseEvent
+eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event )
+{
+	switch( Event.AsciiCode_ )
+	{
+	case 'S':
+	case 's':
+		saveJson();
+		break;
+
+	case 'L':
+	case 'l':
+		loadJson();
+		break;
+
+	case 'B':
+	case 'b':
+		buildBSP();
+		break;
+
+	default:
+		break;
+	}
+
+	return evtRET_PASS;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -485,4 +545,112 @@ BcVec2d GaWorldBSPComponent::nearestPositionOnEdge( const BcVec2d& Position, BcU
 	BcReal APAB = AP.dot( AB );
 	BcReal T = BcClamp( APAB / AB2, 0.0f, 1.0f );
 	return ( PointA + AB * T );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// saveJson
+void GaWorldBSPComponent::saveJson()
+{
+	Json::Value LevelData;
+	Json::Value PointsData( Json::arrayValue );
+	Json::Value EdgesData( Json::arrayValue );
+	
+	PointsData.resize( Points_.size() );
+	for( BcU32 Idx = 0; Idx < Points_.size(); ++Idx )
+	{
+		const GaWorldBSPPoint& Point( Points_[ Idx ] );
+		BcChar Buffer[ 256 ];
+		BcSPrintf(Buffer, "%.2f,%.2f", Point.Position_.x(), Point.Position_.y() );
+		PointsData[ Idx ] = Buffer;
+	}
+
+	EdgesData.resize( Edges_.size() );
+	for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
+	{
+		const GaWorldBSPEdge& Edge( Edges_[ Idx ] );
+		BcChar Buffer[ 256 ];
+		BcSPrintf(Buffer, "%u,%u", Edge.A_, Edge.B_ );
+		EdgesData[ Idx ] = Buffer;
+	}
+
+	LevelData["points"] = PointsData;
+	LevelData["edges"] = EdgesData;
+
+	Json::FastWriter Writer;
+	std::string JsonOutput = Writer.write( LevelData );
+
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// loadJson
+void GaWorldBSPComponent::loadJson()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildBSP
+void GaWorldBSPComponent::buildBSP()
+{
+	delete pBSPTree_;
+	pBSPTree_ = new BcBSPTree();
+
+	// TODO: Add top and bottom? Do we need?
+	
+	// Add edges.
+	for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
+	{
+		const GaWorldBSPEdge& Edge( Edges_[ Idx ] );
+		const GaWorldBSPPoint& PointA( Points_[ Edge.A_ ] );
+		const GaWorldBSPPoint& PointB( Points_[ Edge.B_ ] );
+
+		BcVec3d Vertices[ 4 ] = 
+		{
+			BcVec3d( PointA.Position_, 0.0f ),
+			BcVec3d( PointB.Position_, 0.0f ),
+			BcVec3d( PointB.Position_, 8.0f ),
+			BcVec3d( PointA.Position_, 8.0f ),
+		};
+
+		BcPlane Plane;
+		Plane.fromPoints( Vertices[ 0 ], Vertices[ 1 ], Vertices [ 2 ] );
+
+		pBSPTree_->addNode( Plane, Vertices, 4 );
+	}
+
+	pBSPTree_->buildTree();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// checkPointFront
+BcBool GaWorldBSPComponent::checkPointFront( const BcVec3d& Point, BcBSPInfo* pData, BcBSPNode* pNode )
+{
+	if( pBSPTree_ )
+	{
+		return pBSPTree_->checkPointFront( Point, pData, pNode );
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// checkPointBack
+BcBool GaWorldBSPComponent::checkPointBack( const BcVec3d& Point, BcBSPInfo* pData, BcBSPNode* pNode )
+{
+	if( pBSPTree_ )
+	{
+		return pBSPTree_->checkPointBack( Point, pData, pNode );
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// lineIntersection
+BcBool GaWorldBSPComponent::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode )
+{
+	if( pBSPTree_ )
+	{
+		return pBSPTree_->lineIntersection( A, B, pPointInfo, pNode );
+	}
+	return BcFalse;
 }

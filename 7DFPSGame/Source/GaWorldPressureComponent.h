@@ -16,6 +16,8 @@
 
 #include "Psybrus.h"
 
+#include "GaWorldBSPComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GaWorldPressureSample
 struct GaWorldPressureSample
@@ -39,7 +41,7 @@ public:
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-
+	
 private:
 	GaWorldPressureSample&				sample( BcU32 Buffer, BcU32 X, BcU32 Y, BcU32 Z );
 
@@ -50,9 +52,16 @@ private:
 	BcReal								AccumMultiplier_;
 	BcReal								Damping_;
 
+	BcReal								Scale_;
+	BcVec2d								Offset_;
+
 	GaWorldPressureSample*				pBuffers_[ 2 ];
 	BcU32								BufferSize_;
 	BcU32								CurrBuffer_;
+
+	ScnCanvasComponentRef				Canvas_;
+	ScnMaterialComponentRef				Material_;
+	GaWorldBSPComponentRef				BSP_;
 };
 
 //////////////////////////////////////////////////////////////////////////

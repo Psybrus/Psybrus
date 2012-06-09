@@ -260,8 +260,45 @@ void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB,
 		pVertices->Z_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
 
-		// Add primitive.	
-		addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+		// Quickly check last primitive.
+		BcBool AddNewPrimitive = BcTrue;
+		if( LastPrimitiveSection_ != BcErrorCode )
+		{
+			ScnCanvasComponentPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+
+			// If the last primitive was the same type as ours we can append to it.
+			// NOTE: Need more checks here later.
+			if( PrimitiveSection.Type_ == rsPT_LINELIST &&
+				PrimitiveSection.Layer_ == Layer &&
+				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
+			{
+				PrimitiveSection.NoofVertices_ += 2;
+
+				// Matrix stack.
+				// TODO: Factor into a seperate function.
+				if( IsIdentity_ == BcFalse )
+				{
+					BcMat4d Matrix = getMatrix();
+
+					for( BcU32 Idx = 0; Idx < 2; ++Idx )
+					{
+						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
+						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						pVertex->X_ = Vertex.x();
+						pVertex->Y_ = Vertex.y();
+						pVertex->Z_ = Vertex.z();
+					}
+				}
+				
+				AddNewPrimitive = BcFalse;
+			}
+		}
+		
+		// Add primitive.
+		if( AddNewPrimitive == BcTrue )
+		{
+			addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+		}
 	}
 }
 

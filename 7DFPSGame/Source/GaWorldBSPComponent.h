@@ -17,6 +17,10 @@
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Typedefs
+typedef CsResourceRef< class GaWorldBSPComponent > GaWorldBSPComponentRef;
+
+//////////////////////////////////////////////////////////////////////////
 // GaWorldBSPPoint
 struct GaWorldBSPPoint
 {
@@ -60,6 +64,7 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
+	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
 
 	BcU32								nearestPoint( BcVec2d Position, BcReal Radius );
@@ -74,6 +79,15 @@ public:
 	BcU32								nearestEdge( const BcVec2d& Position, BcReal Radius );
 	BcVec2d								nearestPositionOnEdge( const BcVec2d& Position, BcU32 Idx );
 	
+	void								saveJson();
+	void								loadJson();
+	void								buildBSP();
+
+	BcBool								checkPointFront( const BcVec3d& Point, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool								checkPointBack( const BcVec3d& Point, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool								lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode = NULL );
+
+
 private:
 	BcBool								InEditorMode_;
 
@@ -101,6 +115,8 @@ private:
 
 	BcU32								NearestPoint_;
 	BcU32								NearestEdge_;
+
+	BcBSPTree*							pBSPTree_;
 };
 
 #endif
