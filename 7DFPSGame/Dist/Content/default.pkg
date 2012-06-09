@@ -30,8 +30,8 @@
 			"name"			: "default",
 
 			"shaders"		: {
-				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/diffuse3d.glslf"
+				"vertex" 		: "EngineContent/ShaderSource/diffuse.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/diffuse.glslf"
 			}
 		},
 
@@ -170,15 +170,30 @@
 					"far"			: 1000.0,
 					"hfov"			: 0.75,
 					"vfov"			: 0.0
-				},
+				}
+			]
+		},
 
-				// void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
+		{
+			"name"		:		"WorldEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
 				{
 					"type"			: "ScnCanvasComponent",
 					"noofvertices" 	: 32768
+				},
+
+				{
+					"type"			: "GaWorldBSPComponent"
+				},
+
+				{
+					"type"			: "GaWorldPressureComponent"
 				}
 
 			]
+
 		},
 
 		{

@@ -13,6 +13,8 @@
 
 #include "GaWorldPressureComponent.h"
 
+#define PROFILE_PRESSURE_UPDATE ( 1 )
+
 //////////////////////////////////////////////////////////////////////////
 // Define
 DEFINE_RESOURCE( GaWorldPressureComponent );
@@ -68,17 +70,24 @@ BcBool GaWorldPressureComponent::isReady()
 //virtual
 void GaWorldPressureComponent::update( BcReal Tick )
 {
+#if PROFILE_PRESSURE_UPDATE
+	BcTimer Timer;
+	Timer.mark();
+#endif
+
 	const BcU32 NextBuffer = 1 - CurrBuffer_;
 	const BcU32 WidthLessOne = Width_ - 1;
 	const BcU32 HeightLessOne = Height_ - 1;
 	const BcU32 DepthLessOne = Depth_ - 1;
 
+	// TODO: Optimise a bit.
 	for( BcU32 Z = 1; Z < DepthLessOne; ++Z )
 	{
 		for( BcU32 Y = 1; Y < HeightLessOne; ++Y )
 		{
 			for( BcU32 X = 1; X < WidthLessOne; ++X )
 			{
+				GaWorldPressureSample& Output( sample( NextBuffer, X, Y, Z ) );
 				register BcReal Sample = sample( CurrBuffer_, X - 1, Y, Z ).Value_ +
 				                         sample( CurrBuffer_, X + 1, Y, Z ).Value_ +
 				                         sample( CurrBuffer_, X, Y - 1, Z ).Value_ +
@@ -86,13 +95,18 @@ void GaWorldPressureComponent::update( BcReal Tick )
 				                         sample( CurrBuffer_, X, Y, Z - 1 ).Value_ +
 				                         sample( CurrBuffer_, X, Y, Z + 1 ).Value_;
 				Sample *= AccumMultiplier_;
-				Sample -= sample( NextBuffer, X, Y, Z ).Value_;
-				sample( NextBuffer, X, Y, Z ).Value_ = Sample - ( Sample * Damping_ );
+				Sample -= Output.Value_;
+				Output.Value_ = Sample - ( Sample * Damping_ );
 			}
 		}
 	}
 
 	CurrBuffer_ = NextBuffer;
+
+#if PROFILE_PRESSURE_UPDATE
+	BcReal Time = Timer.time();
+	BcPrintf("GaWorldPressureComponent Time: %.2f ms\n", Time * 1000.0f);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

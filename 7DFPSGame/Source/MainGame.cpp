@@ -16,6 +16,8 @@
 #include "GaTopState.h"
 
 #include "GaCameraComponent.h"
+#include "GaWorldBSPComponent.h"
+#include "GaWorldPressureComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,6 +73,8 @@ void PsyGameInit()
 void PsyGameRegisterResources()
 {
 	CsCore::pImpl()->registerResource< GaCameraComponent >();
+	CsCore::pImpl()->registerResource< GaWorldBSPComponent >();
+	CsCore::pImpl()->registerResource< GaWorldPressureComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,4 +82,6 @@ void PsyGameRegisterResources()
 void PsyGameUnRegisterResources()
 {
 	CsCore::pImpl()->unregisterResource< GaCameraComponent >();
+	CsCore::pImpl()->unregisterResource< GaWorldBSPComponent >();
+	CsCore::pImpl()->unregisterResource< GaWorldPressureComponent >();
 }

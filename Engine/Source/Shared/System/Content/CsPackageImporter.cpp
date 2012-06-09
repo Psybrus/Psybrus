@@ -101,7 +101,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			else
 			{
 				BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
-				BcBreakpoint;
+ 				BcBreakpoint;
 				return BcFalse;
 			}
 		}

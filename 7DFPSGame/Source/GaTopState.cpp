@@ -55,28 +55,8 @@ void GaTopState::preMain()
 		ScnCore::pImpl()->addEntity( Entity );
 	}
 
-	// Create paddle entity.
-	if( CsCore::pImpl()->requestResource( "default", "PaddleEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "PaddleEntity_0", Entity, TemplateEntity ) )
-	{
-		// Setup entity position to render from.
-		Entity->setPosition( BcVec3d( -16.0f, 0.0f, 0.0f ) );
-
-		//
-		ScnCore::pImpl()->addEntity( Entity );
-	}
-
-	// Create paddle entity.
-	if( CsCore::pImpl()->requestResource( "default", "PaddleEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "PaddleEntity_1", Entity, TemplateEntity ) )
-	{
-		// Setup entity position to render from.
-		Entity->setPosition( BcVec3d( 16.0f, 0.0f, 0.0f ) );
-
-		//
-		ScnCore::pImpl()->addEntity( Entity );
-	}
-
-	// Create ball entity.
-	if( CsCore::pImpl()->requestResource( "default", "BallEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "BallEntity_0", Entity, TemplateEntity ) )
+	// Create world entity.
+	if( CsCore::pImpl()->requestResource( "default", "WorldEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "WorldEntity_0", Entity, TemplateEntity ) )
 	{
 		// Setup entity position to render from.
 		Entity->setPosition( BcVec3d( 0.0f, 0.0f, 0.0f ) );

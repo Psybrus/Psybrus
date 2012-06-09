@@ -322,7 +322,19 @@ void ScnCanvasComponent::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, con
 }
 
 //////////////////////////////////////////////////////////////////////////
-// render
+// drawLineBox
+void ScnCanvasComponent::drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
+{
+	// SLOW.
+	drawLine( BcVec2d( CornerA.x(), CornerA.y() ), BcVec2d( CornerB.x(), CornerA.y() ), Colour, Layer );
+	drawLine( BcVec2d( CornerB.x(), CornerA.y() ), BcVec2d( CornerB.x(), CornerB.y() ), Colour, Layer );
+	drawLine( BcVec2d( CornerB.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerB.y() ), Colour, Layer );
+	drawLine( BcVec2d( CornerA.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerA.y() ), Colour, Layer );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// drawBox
 void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 4 );
