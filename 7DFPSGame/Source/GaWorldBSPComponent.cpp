@@ -65,6 +65,8 @@ BcBool GaWorldBSPComponent::isReady()
 //virtual
 void GaWorldBSPComponent::update( BcReal Tick )
 {
+	OsCore::pImpl()->getClient( 0 )->setMouseLock( !InEditorMode_ );
+
 	{
 		const BcReal NormalSize = 0.5f;
 		const BcReal HintSize = 0.125f;

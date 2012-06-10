@@ -23,7 +23,8 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
 	
-	Rotation_ = 0.0f;
+	Yaw_ = 0.0f;
+	Pitch_ = 0.0f;
 	MoveForward_ = BcFalse;
 	MoveBackward_ = BcFalse;
 	MoveLeft_ = BcFalse;
@@ -35,10 +36,19 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 //virtual
 void GaPlayerComponent::update( BcReal Tick )
 {
+	// Mouse update.
+	Yaw_ += -MouseDelta_.x() * Tick * 0.1f;
+	Pitch_ += -MouseDelta_.y() * Tick * 0.1f;
+	Pitch_ = BcClamp( Pitch_, -BcPIDIV2, BcPIDIV2 );
+	MouseDelta_ = BcVec2d( 0.0f, 0.0f );
+
 	BcReal RotationSpeed = 1.0f * Tick;
 	BcReal MoveSpeed = 8.0f;
 	BcReal MoveDirection = 0.0f;
-	BcVec3d MoveVector = BcVec3d( BcCos( Rotation_ ), -BcSin( Rotation_ ), 0.0f );
+	BcVec3d MoveVector = BcVec3d( 1.0f, 0.0f, 0.0f );
+	BcMat4d RotationMatrix;
+	RotationMatrix.rotation( BcVec3d( 0.0f, Pitch_, Yaw_ ) );
+	MoveVector = MoveVector * RotationMatrix;
 	if( MoveForward_ )
 	{
 		MoveDirection = 1.0f;
@@ -49,15 +59,17 @@ void GaPlayerComponent::update( BcReal Tick )
 	}
 	if( MoveLeft_ )
 	{
-		Rotation_ += RotationSpeed;
+		Yaw_ += RotationSpeed;
 	}
 	if( MoveRight_ )
 	{
-		Rotation_ -= RotationSpeed;
+		Yaw_ -= RotationSpeed;
 	}
 	
 	// Set the move.
-	BcVec3d AppliedMoveVector = MoveVector * MoveSpeed * MoveDirection;
+	BcVec3d AppliedMoveVector = MoveVector;
+	AppliedMoveVector.z( 0.0f );
+	AppliedMoveVector = AppliedMoveVector.normal() * MoveSpeed * MoveDirection;
 	Pawn_->setMove( AppliedMoveVector );
 
 	// Set look at.
@@ -68,7 +80,7 @@ void GaPlayerComponent::update( BcReal Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaPlayerComponent
+// onAttach
 //virtual
 void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 {
@@ -76,7 +88,9 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 	
 	OsEventInputKeyboard::Delegate OnKeyboardEvent = OsEventInputKeyboard::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onKeyboardEvent >( this );
+	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseEvent >( this );
 	
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyboardEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyboardEvent );
 
@@ -91,7 +105,7 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaPlayerComponent
+// onDetach
 //virtual
 void GaPlayerComponent::onDetach( ScnEntityWeakRef Parent )
 {
@@ -137,5 +151,13 @@ eEvtReturn GaPlayerComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeybo
 		}
 	}
 
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onMouseEvent
+eEvtReturn GaPlayerComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Event )
+{
+	MouseDelta_.set( Event.MouseDX_, Event.MouseDY_ );
 	return evtRET_PASS;
 }
