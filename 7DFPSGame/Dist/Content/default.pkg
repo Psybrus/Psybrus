@@ -220,6 +220,10 @@
 					"type"			: "GaPlayerComponent"
 				},
 
+				{
+					"type"			: "GaPawnComponent"
+				},
+
 				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
 				{
 					"type"			: "ScnViewComponent",
