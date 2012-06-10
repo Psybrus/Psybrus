@@ -40,6 +40,7 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
 	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
+	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
 	
 private:
 	BcBool								MoveForward_;
@@ -47,7 +48,10 @@ private:
 	BcBool								MoveLeft_;
 	BcBool								MoveRight_;
 	
-	BcReal								Rotation_;
+	BcReal								Yaw_;
+	BcReal								Pitch_;
+
+	BcVec2d								MouseDelta_;
 	
 	ScnCanvasComponentRef				Canvas_;
 	GaWorldBSPComponentRef				BSP_;

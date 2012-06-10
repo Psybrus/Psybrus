@@ -13,7 +13,7 @@
 
 #include "GaWorldPressureComponent.h"
 
-#define PROFILE_PRESSURE_UPDATE ( 1 )
+#define PROFILE_PRESSURE_UPDATE ( 0 )
 
 //////////////////////////////////////////////////////////////////////////
 // Define
