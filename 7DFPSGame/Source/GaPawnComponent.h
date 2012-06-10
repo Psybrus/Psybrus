@@ -1,58 +1,52 @@
 /**************************************************************************
 *
-* File:		GaPlayerComponent.h
+* File:		GaPawnComponent.h
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Player component.
+*		Pawn component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GaPlayerComponent_H__
-#define __GaPlayerComponent_H__
+#ifndef __GaPawnComponent_H__
+#define __GaPawnComponent_H__
 
 #include "Psybrus.h"
 
-#include "GaPawnComponent.h"
 #include "GaWorldBSPComponent.h"
 #include "GaWorldPressureComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
-typedef CsResourceRef< class GaPlayerComponent > GaPlayerComponentRef;
-
+typedef CsResourceRef< class GaPawnComponent > GaPawnComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaPlayerComponent
-class GaPlayerComponent:
+// GaPawnComponent
+class GaPawnComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaPlayerComponent );
+	DECLARE_RESOURCE( ScnComponent, GaPawnComponent );
 
 	void								initialise( const Json::Value& Object );
 
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-	
-	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
-	
+
+	void								setPosition( const BcVec3d& Position );
+	void								setMove( const BcVec3d& MoveDirection );
+
 private:
-	BcBool								MoveForward_;
-	BcBool								MoveBackward_;
-	BcBool								MoveLeft_;
-	BcBool								MoveRight_;
-	
-	BcReal								Rotation_;
+	BcVec3d								Position_;
+	BcVec3d								MoveDirection_;
 	
 	ScnCanvasComponentRef				Canvas_;
 	GaWorldBSPComponentRef				BSP_;
 	GaWorldPressureComponentRef			Pressure_;
-	GaPawnComponentRef					Pawn_;
 };
 
 #endif
