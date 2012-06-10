@@ -801,8 +801,6 @@ void ScnCanvasComponent::clear()
 void ScnCanvasComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
-	//clear(); // Temporary hack. Need to fix this.
 }
 
 //////////////////////////////////////////////////////////////////////////

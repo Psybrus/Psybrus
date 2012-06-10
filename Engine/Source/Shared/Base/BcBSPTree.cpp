@@ -78,7 +78,7 @@ void BcBSPTree::buildTree()
 
 ////////////////////////////////////////////////////////////////////////////////
 // checkPointFront
-BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL */ )
+BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL */ )
 {
 	// Check if we want the root node.
 	if( pNode == NULL )
@@ -87,7 +87,7 @@ BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcBSPInfo* pData /*= NU
 	}
 
 	// Classify against plane
-	if( pNode->Plane_.classify( Point ) == BcPlane::bcPC_BACK )
+	if( pNode->Plane_.classify( Point, Radius ) != BcPlane::bcPC_FRONT )
 	{
 		// Behind plane.
 		if( pNode->pBack_ == NULL )
@@ -101,7 +101,7 @@ BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcBSPInfo* pData /*= NU
 		}
 		else
 		{
-			return checkPointFront( Point, pData, pNode->pBack_ );
+			return checkPointFront( Point, Radius, pData, pNode->pBack_ );
 		}
 	}
 	else
@@ -118,16 +118,16 @@ BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcBSPInfo* pData /*= NU
 		}
 		else
 		{
-			return checkPointFront( Point, pData, pNode->pFront_ );
+			return checkPointFront( Point, Radius, pData, pNode->pFront_ );
 		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // checkPointBack
-BcBool BcBSPTree::checkPointBack( const BcVec3d& Point, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL*/ )
+BcBool BcBSPTree::checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL*/ )
 {
-	return !checkPointFront( Point, pData, pNode );
+	return !checkPointFront( Point, Radius, pData, pNode );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,15 +141,16 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 		if( pPointInfo != NULL )
 		{
 			pPointInfo->Point_ = B;
-			pPointInfo->Distance_ = 1e6f;
+			pPointInfo->Distance_ = 1e24f;
 		}
 	}
 
 	// Really naive way...
 	BcBool Intersected = BcFalse;
 
-	BcPlane::eClassify ClassifyA = pNode->Plane_.classify( A );
-	BcPlane::eClassify ClassifyB = pNode->Plane_.classify( B );
+	BcPlane::eClassify ClassifyA = pNode->Plane_.classify( A, 0.0f );
+	BcPlane::eClassify ClassifyB = pNode->Plane_.classify( B, 0.0f );
+
 	if( ClassifyA == BcPlane::bcPC_FRONT && ClassifyB == BcPlane::bcPC_BACK )
 	{
 		BcReal Distance;
@@ -175,16 +176,22 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 			}
 		}
 	}
-
-	// Now recurse both sides...*sigh*
+	
+	// NOTE: ClassifyB shouldn't be required here ...right?
 	if( pNode->pFront_ != NULL )
 	{
-		lineIntersection( A, B, pPointInfo, pNode->pFront_ );
+		if( ClassifyA == BcPlane::bcPC_FRONT || ClassifyB == BcPlane::bcPC_FRONT )
+		{
+			Intersected |= lineIntersection( A, B, pPointInfo, pNode->pFront_ );
+		}
 	}
 
 	if( pNode->pBack_ != NULL )
 	{
-		lineIntersection( A, B, pPointInfo, pNode->pBack_ );
+		if( ClassifyA == BcPlane::bcPC_BACK || ClassifyB == BcPlane::bcPC_BACK )
+		{
+			Intersected |= lineIntersection( A, B, pPointInfo, pNode->pBack_ );
+		}
 	}
 
 	return Intersected;
@@ -370,7 +377,7 @@ BcBSPNode* BcBSPTree::clipNode( BcBSPNode* pNode, const BcPlane& Clip )
 BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 {
 	// Check if point is coincident.
-	if( pNode->Plane_.classify( Point ) != BcPlane::bcPC_COINCIDING )
+	if( pNode->Plane_.classify( Point, 1e-3f ) != BcPlane::bcPC_COINCIDING )
 	{
 		return BcFalse;
 	}

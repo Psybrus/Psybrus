@@ -177,6 +177,33 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// findEntity
+ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
+{
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( Entity->getName() == InstanceName )
+		{
+			return Entity;
+		}
+	}
+
+	for( ScnEntityListIterator It( AddEntityList_.begin() ); It != AddEntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( Entity->getName() == InstanceName )
+		{
+			return Entity;
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttachComponent
 void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
 {

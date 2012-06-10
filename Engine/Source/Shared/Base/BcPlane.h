@@ -50,7 +50,7 @@ public:
 
 	// Classification
 	BcReal distance( const BcVec3d& Point ) const;
-	eClassify classify( const BcVec3d& Point ) const;
+	eClassify classify( const BcVec3d& Point, BcReal Radius = 1e-3f ) const;
 
 	// Operator
 	BcBool operator == (const BcPlane& Other ) const;
