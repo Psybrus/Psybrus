@@ -102,10 +102,14 @@ public:
 	void								setMatrix( const BcMat4d& Matrix );
 
 	/**
+	 * Get position.
+	 */
+	BcVec3d								getPosition() const;
+
+	/**
 	 * Get matrix.
 	 */
 	const BcMat4d&						getMatrix() const;
-
 
 protected:
 	virtual void						fileReady();
