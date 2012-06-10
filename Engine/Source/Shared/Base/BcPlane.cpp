@@ -29,15 +29,15 @@ void BcPlane::transform( const BcMat4d& Transform )
 
 //////////////////////////////////////////////////////////////////////////
 // pointClassify
-BcPlane::eClassify BcPlane::classify( const BcVec3d& Point ) const
+BcPlane::eClassify BcPlane::classify( const BcVec3d& Point, BcReal Radius ) const
 {
 	BcReal Dist = distance( Point );
 			
-	if( Dist > gPlaneEpsilon )
+	if( Dist > Radius )
 	{
 		return bcPC_FRONT;
 	}
-	else if( Dist < -gPlaneEpsilon )
+	else if( Dist < -Radius )
 	{
 		return bcPC_BACK;
 	}

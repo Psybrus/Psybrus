@@ -90,18 +90,20 @@ public:
 	/**
 	*	Check if a point is infront of all required planes.
 	*	@param Point Point to test.
+	*	@param Radius Radius to test.
 	*	@param Data to set for collisions.
 	*	@param pNode Starting node.
 	*/
-	BcBool checkPointFront( const BcVec3d& Point, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 
 	/**
 	*	Check if a point is behind of all required planes.
 	*	@param Point Point to test.
+	*	@param Radius Radius to test.
 	*	@param Data to set for collisions.
 	*	@param pNode Starting node.
 	*/
-	BcBool checkPointBack( const BcVec3d& Point, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 
 	/**
 	*	Line intersection test.
