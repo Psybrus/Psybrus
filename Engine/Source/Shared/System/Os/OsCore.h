@@ -31,6 +31,11 @@ public:
 	virtual ~OsCore();
 
 	/**
+	 * Update.
+	 */
+	virtual void update();
+
+	/**
 	 * Register client.
 	 */
 	void registerClient( OsClient* pClient );

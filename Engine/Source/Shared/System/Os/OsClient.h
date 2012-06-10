@@ -27,6 +27,11 @@ public:
 	virtual ~OsClient();
 
 	/**
+	 * Update.
+	 */
+	virtual void update() = 0;
+
+	/**
  	 * Get device handle.
 	 */
 	virtual BcHandle getDeviceHandle() = 0;
