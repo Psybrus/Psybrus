@@ -65,8 +65,6 @@ BcBool GaWorldBSPComponent::isReady()
 //virtual
 void GaWorldBSPComponent::update( BcReal Tick )
 {
-	//
-	if( InEditorMode_ )
 	{
 		const BcReal NormalSize = 0.5f;
 		const BcReal HintSize = 0.125f;
@@ -76,7 +74,10 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		Canvas_->pushMatrix( Projection_ );
 		Canvas_->setMaterialComponent( Material_ );
 
-		Canvas_->drawBox( BcVec2d( -32.0f, -18.0f ), BcVec2d( 32.0f, 18.0f ), RsColour( 0.0f, 0.0f, 0.0f, 1.0f ), 0 );
+		if( InEditorMode_ )
+		{
+			Canvas_->drawBox( BcVec2d( -32.0f, -18.0f ), BcVec2d( 32.0f, 18.0f ), RsColour( 0.0f, 0.0f, 0.0f, 1.0f ), 0 );
+		}
 
 		for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
 		{
@@ -107,7 +108,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				if( pBSPTree_ != NULL )
 				{
 					BcBSPInfo BSPInfo;
-					if( pBSPTree_->checkPointFront( BcVec3d( MousePointPosition_, 0.0f ) ) )
+					if( pBSPTree_->checkPointFront( BcVec3d( MousePointPosition_, 0.0f ), 0.25f ) )
 					{
 						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::GREEN, 2 );
 					}
@@ -147,8 +148,9 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				{
 					for( BcReal Angle = 0.0f; Angle < BcPIMUL2; Angle += BcPI * 0.025f )
 					{
-						BcVec3d Normal( BcVec3d( BcCos( Angle ) * 128.0f, BcSin( Angle ) * 128.0f, 4.0f ) );
-						pBSPTree_->lineIntersection( BcVec3d( MousePosition_, 1.0f ), BcVec3d( MousePosition_, 0.0f ) + Normal, &PointInfo );
+						BcVec3d Normal( BcVec3d( BcCos( Angle ) * 128.0f, BcSin( Angle ) * 128.0f, 0.0f ) );
+						PointInfo.Point_ = BcVec3d( MousePosition_, 0.0f ) + Normal;
+						pBSPTree_->lineIntersection( BcVec3d( MousePosition_, 0.0f ), PointInfo.Point_, &PointInfo );
 						Canvas_->drawLine( MousePosition_, BcVec2d( PointInfo.Point_.x(), PointInfo.Point_.y() ), RsColour::RED, 0 );
 					}
 				}
@@ -236,6 +238,14 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 		Parent->attach( MaterialWorld_ );
 		WorldTransformParam_ = MaterialWorld_->findParameter( "uWorldTransform" );
 	}
+
+	// Ok setup player.
+	// TODO: Move to a game state component.
+	// Attach player to world.
+	ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity", "PlayerEntity_0" );
+	Parent->attach( PlayerEntity );
+
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -247,6 +257,8 @@ void GaWorldBSPComponent::onDetach( ScnEntityWeakRef Parent )
 
 	Canvas_ = NULL;
 	Parent->detach( Material_ );
+
+	Super::onDetach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -696,7 +708,7 @@ void GaWorldBSPComponent::buildBSP()
 				pVertex->U_ = 0.0f;
 				pVertex->V_ = 0.0f;
 				pVertex->W_ = 0.0f;
-				pVertex->RGBA_ = 0x00000000;
+				pVertex->RGBA_ = 0x10101010;
 				++pVertex;
 			}
 	
@@ -717,22 +729,22 @@ void GaWorldBSPComponent::buildBSP()
 
 //////////////////////////////////////////////////////////////////////////
 // checkPointFront
-BcBool GaWorldBSPComponent::checkPointFront( const BcVec3d& Point, BcBSPInfo* pData, BcBSPNode* pNode )
+BcBool GaWorldBSPComponent::checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData, BcBSPNode* pNode )
 {
 	if( pBSPTree_ )
 	{
-		return pBSPTree_->checkPointFront( Point, pData, pNode );
+		return pBSPTree_->checkPointFront( Point, Radius, pData, pNode );
 	}
 	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // checkPointBack
-BcBool GaWorldBSPComponent::checkPointBack( const BcVec3d& Point, BcBSPInfo* pData, BcBSPNode* pNode )
+BcBool GaWorldBSPComponent::checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData, BcBSPNode* pNode )
 {
 	if( pBSPTree_ )
 	{
-		return pBSPTree_->checkPointBack( Point, pData, pNode );
+		return pBSPTree_->checkPointBack( Point, Radius, pData, pNode );
 	}
 	return BcFalse;
 }
