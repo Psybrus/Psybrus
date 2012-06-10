@@ -365,22 +365,24 @@ void ScnEntity::processAttachDetach()
 	// Detach first.
 	while( DetachComponents_.size() > 0 )
 	{
-		ScnComponentList DetachComponents( DetachComponents_ );
-		DetachComponents_.clear();
-		for( ScnComponentListIterator It( DetachComponents.begin() ); It != DetachComponents.end(); ++It )
+		for( ScnComponentListIterator It( DetachComponents_.begin() ); It != DetachComponents_.end(); )
 		{
-			internalDetach( (*It) );
+			ScnComponentRef Component( (*It) );
+			DetachComponents_.erase( It );
+			internalDetach( Component );
+			It = DetachComponents_.begin();
 		}
 	}
 
 	// Attach second.
 	while( AttachComponents_.size() > 0 )
 	{
-		ScnComponentList AttachComponents( AttachComponents_ );
-		AttachComponents_.clear();
-		for( ScnComponentListIterator It( AttachComponents.begin() ); It != AttachComponents.end(); ++It )
+		for( ScnComponentListIterator It( AttachComponents_.begin() ); It != AttachComponents_.end(); )
 		{
-			internalAttach( (*It) );
+			ScnComponentRef Component( (*It) );
+			AttachComponents_.erase( It );
+			internalAttach( Component );
+			It = AttachComponents_.begin();
 		}
 	}
 }
