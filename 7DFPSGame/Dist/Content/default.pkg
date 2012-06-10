@@ -133,6 +133,31 @@
 			}
 		},
 
+{
+			"type"			: "ScnMaterial",
+			"name"			: "airsolid",
+
+			// Shader
+			"shader"		: "air",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
+
 		{
 			"type"			: "ScnMaterial",
 			"name"			: "airpreview",

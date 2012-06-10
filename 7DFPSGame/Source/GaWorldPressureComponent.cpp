@@ -28,7 +28,7 @@ void GaWorldPressureComponent::initialise( const Json::Value& Object )
 	Height_ = 128;
 	Depth_ = 8;
 	AccumMultiplier_ = 0.32f;
-	Damping_ = 0.04f;
+	Damping_ = 0.02f;
 
 	Scale_ = 0.25f;
 	Offset_ = BcVec2d( Width_ * Scale_, Height_ * Scale_ ) * -0.5f;
@@ -274,6 +274,7 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	UpdateFence_.wait();
 
 	// Poke sine wave in for debugging.
+	/*
 	static BcReal Ticker = 0.0f;
 	Ticker += Tick * BcPI * 3.0f;
 	sample( CurrBuffer_, 8, 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
@@ -281,6 +282,7 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	sample( CurrBuffer_, Width_ - 8, Height_ - 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
 	sample( CurrBuffer_, 8, Height_ - 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
 	sample( CurrBuffer_, Width_ / 2, Height_ / 2, 1 ).Value_ = -BcSin( Ticker ) * 128.0f;
+	*/
 
 	// Collide with BSP.
 	collideSimulation();
@@ -293,6 +295,9 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	BcDelegate< void(*)() > UpdateSimulationDelegate( BcDelegate< void(*)() >::bind< GaWorldPressureComponent, &GaWorldPressureComponent::updateSimulation >( this ) );
 	SysKernel::pImpl()->enqueueDelegateJob< void(*)() >( SysKernel::USER_WORKER_MASK, UpdateSimulationDelegate );
 
+	// HACK HACK HACK.
+	UpdateFence_.wait();
+	
 	// Editor mode rendering.
 	if( BSP_->InEditorMode_ )
 	{
@@ -331,10 +336,10 @@ void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, R
 	// Setup render node.
 	GaWorldPressureComponentRenderNode* pRenderNode = pFrame->newObject< GaWorldPressureComponentRenderNode >();
 	pRenderNode->pPrimitive_ = pPrimitive_;
-	pRenderNode->NoofIndices_ = ( Width_ + + Height_ + Depth_ ) * 6;
+	pRenderNode->NoofIndices_ = ( Width_ + Height_ + Depth_ ) * 6;
 
 	// Add to frame.
-	pRenderNode->Sort_ = Sort;
+	pRenderNode->Sort_ = Sort;	
 	pFrame->addRenderNode( pRenderNode );
 }
 
@@ -368,6 +373,10 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 		MaterialPreview_->setTexture( Param, Texture_ );
 	}
 
+	// HACK.
+	BcU32 Param = BSP_->MaterialWorld_->findParameter( "aDiffuseTex" );
+	BSP_->MaterialWorld_->setTexture( Param, Texture_ );
+
 	Super::onAttach( Parent );
 }
 
@@ -387,6 +396,40 @@ void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addSample
+void GaWorldPressureComponent::addSample( const BcVec3d& Position, BcReal Value )
+{
+	BcVec3d Offset = BcVec3d( Width_ * Scale_, Height_ * Scale_, Depth_ * Scale_ ) * 0.5f;
+	BcVec3d Index = ( Position + Offset ) / Scale_;
+	
+	BcU32 X = (BcU32)BcClamp( Index.x(), 1, Width_ - 1 );
+	BcU32 Y = (BcU32)BcClamp( Index.y(), 1, Height_ - 1 );
+	BcU32 Z = (BcU32)BcClamp( Index.z(), 1, Depth_ - 1 );
+
+	sample( CurrBuffer_, X, Y, Z ).Value_ += Value;
+}
+//////////////////////////////////////////////////////////////////////////
+// setSample
+void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value )
+{
+	BcVec3d Offset = BcVec3d( Width_ * Scale_, Height_ * Scale_, Depth_ * Scale_ ) * 0.5f;
+	BcVec3d Index = ( Position + Offset ) / Scale_;
+	
+	BcU32 X = (BcU32)BcClamp( Index.x(), 2, Width_ - 2 );
+	BcU32 Y = (BcU32)BcClamp( Index.y(), 2, Height_ - 2 );
+	BcU32 Z = (BcU32)BcClamp( Index.z(), 2, Depth_  - 2 );
+
+	sample( CurrBuffer_, X, Y, Z ).Value_ = Value;
+	sample( CurrBuffer_, X - 1, Y, Z ).Value_ = Value * 0.5f;
+	sample( CurrBuffer_, X + 1, Y, Z ).Value_ = Value * 0.5f;
+	sample( CurrBuffer_, X, Y - 1, Z ).Value_ = Value * 0.5f;
+	sample( CurrBuffer_, X, Y + 1, Z ).Value_ = Value * 0.5f;
+	sample( CurrBuffer_, X, Y, Z - 1 ).Value_ = Value * 0.5f;
+	sample( CurrBuffer_, X, Y, Z + 1 ).Value_ = Value * 0.5f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // updateSimulation
 void GaWorldPressureComponent::updateSimulation()
 {
@@ -395,6 +438,15 @@ void GaWorldPressureComponent::updateSimulation()
 	const register BcU32 DepthLessOne = Depth_ - 1;
 	const register BcU32 W = Width_;
 	const register BcU32 WH = Width_ * Height_;
+
+
+	for( BcU32 Idx = 0; Idx < 32.0f; ++Idx )
+	{
+		BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
+		BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
+		BcU32 RandZ = 1;
+		sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.2f;
+	}
 	
 	// Update simulation.
 	const BcU32 NextBuffer = 1 - CurrBuffer_;
@@ -446,7 +498,7 @@ void GaWorldPressureComponent::collideSimulation()
 		for( BcU32 X = 1; X < WidthLessOne; ++X )
 		{
 			BcVec3d Position( BcVec2d( (BcReal)X, (BcReal)Y ) * Scale_ + Offset_, 4.0f );
-			if( BSP_->checkPointBack( Position, Scale_ ) )
+			if( BSP_->checkPointBack( Position, 0.0f ) )
 			{
 				const BcU32 XYIdx = X + Y * W;
 				for( BcU32 Z = 1; Z < DepthLessOne; ++Z )

@@ -67,16 +67,16 @@ void GaWorldBSPComponent::update( BcReal Tick )
 {
 	OsCore::pImpl()->getClient( 0 )->setMouseLock( !InEditorMode_ );
 
+	Canvas_->clear();
+	Canvas_->pushMatrix( Projection_ );
+	Canvas_->setMaterialComponent( Material_ );
+
+	if( InEditorMode_ )
 	{
 		const BcReal NormalSize = 0.5f;
 		const BcReal HintSize = 0.125f;
 		const BcVec2d HintBoxSize( HintSize, HintSize );
-
-		Canvas_->clear();
-		Canvas_->pushMatrix( Projection_ );
-		Canvas_->setMaterialComponent( Material_ );
-
-		if( InEditorMode_ )
+		
 		{
 			Canvas_->drawBox( BcVec2d( -32.0f, -18.0f ), BcVec2d( 32.0f, 18.0f ), RsColour( 0.0f, 0.0f, 0.0f, 1.0f ), 0 );
 		}
@@ -235,7 +235,7 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 		Parent->attach( Material_ );
 	}
 	
-	if( CsCore::pImpl()->requestResource( "default", "default3d", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, BcErrorCode ) )
+	if( CsCore::pImpl()->requestResource( "default", "airsolid", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, BcErrorCode ) )
 	{
 		Parent->attach( MaterialWorld_ );
 		WorldTransformParam_ = MaterialWorld_->findParameter( "uWorldTransform" );
@@ -691,10 +691,10 @@ void GaWorldBSPComponent::buildBSP()
 			
 			BcVec3d Vertices[ 4 ] = 
 			{
-				BcVec3d( PointA.Position_, -1.0f ),
-				BcVec3d( PointB.Position_, -1.0f ),
-				BcVec3d( PointB.Position_,  1.0f ),
-				BcVec3d( PointA.Position_,  1.0f ),
+				BcVec3d( PointA.Position_, -2.0f ),
+				BcVec3d( PointB.Position_, -2.0f ),
+				BcVec3d( PointB.Position_,  2.0f ),
+				BcVec3d( PointA.Position_,  2.0f ),
 			};
 
 			BcU32 Indices[ 6 ] =
@@ -702,21 +702,23 @@ void GaWorldBSPComponent::buildBSP()
 				0, 1, 2, 2, 3, 0
 			};
 
+			BcVec3d Offset = BcVec3d( 128.0f * 0.25f, 128.0f * 0.25f, 8.0f * 0.25f ) * 0.5f;
 			for( BcU32 Vert = 0; Vert < 6; ++Vert )
 			{
-				pVertex->X_ = Vertices[ Indices[ Vert ] ].x();
-				pVertex->Y_ = Vertices[ Indices[ Vert ] ].y();
-				pVertex->Z_ = Vertices[ Indices[ Vert ] ].z();
-				pVertex->U_ = 0.0f;
-				pVertex->V_ = 0.0f;
-				pVertex->W_ = 0.0f;
-				pVertex->RGBA_ = 0x10101010;
+				BcVec3d Vertex = Vertices[ Indices[ Vert ] ];
+				BcVec3d Index = ( Vertex + Offset ) / 0.25f;
+				pVertex->X_ = Vertex.x();
+				pVertex->Y_ = Vertex.y();
+				pVertex->Z_ = Vertex.z();
+				pVertex->U_ = ( Index.x() / 128.0f );
+				pVertex->V_ = ( Index.y() / 128.0f );
+				pVertex->W_ = ( Index.z() / 8.0f );
+				pVertex->RGBA_ = 0xffffffff;
 				++pVertex;
 			}
 	
 			BcPlane Plane;
 			Plane.fromPoints( Vertices[ 0 ], Vertices[ 1 ], Vertices [ 2 ] );
-
 			pBSPTree_->addNode( Plane, Vertices, 4 );
 		}
 

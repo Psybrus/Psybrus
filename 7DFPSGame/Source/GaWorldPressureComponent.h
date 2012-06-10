@@ -56,6 +56,10 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
+	void								addSample( const BcVec3d& Position, BcReal Value );
+	void								setSample( const BcVec3d& Position, BcReal Value );
+
+protected:
 	GaWorldPressureSample&				sample( BcU32 Buffer, BcU32 X, BcU32 Y, BcU32 Z );
 
 protected:
@@ -99,7 +103,7 @@ private:
 BcForceInline GaWorldPressureSample& GaWorldPressureComponent::sample( BcU32 Buffer, BcU32 X, BcU32 Y, BcU32 Z )
 {
 	const BcU32 Idx = X + ( Y + Z * Height_ ) * Width_;
-#if 1
+#if 0
 	BcAssertMsg( UpdateFence_.count() == 0, "Attempted access during an update!" );
 	BcAssertMsg( Buffer < 2, "Buffer index out of bounds" );
 	BcAssertMsg( Idx < BufferSize_, "Indices out of bounds" );

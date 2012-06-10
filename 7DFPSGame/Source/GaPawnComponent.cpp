@@ -41,7 +41,7 @@ void GaPawnComponent::update( BcReal Tick )
 	BcVec3d SideVector = BcVec3d( 0.0f, 0.0f, 1.0f ).cross( MoveVector );
 	BcReal MoveDirection = 0.0f;
 	BcReal PlayerRadius = 0.25f;
-	BcReal LineCheckRadius = 1.0f;
+	BcReal LineCheckRadius = 0.75f;
 
 	// Collide against walls.
 	BcVec3d AppliedMoveVector = MoveVector * MoveSpeed * Tick;
@@ -60,7 +60,7 @@ void GaPawnComponent::update( BcReal Tick )
 		{
 			BcVec3d SidePositionA = ( Position_ - SideVector * PlayerRadius );
 			BcVec3d SidePositionB = ( Position_ + SideVector * PlayerRadius );
-			BcVec3d SidePositionC = ( Position_ + MoveVector * PlayerRadius * 2.0f );
+			BcVec3d SidePositionC = ( Position_ + MoveVector * PlayerRadius );
 			BcBSPPointInfo BSPPointInfoA;
 			BcBSPPointInfo BSPPointInfoB;
 			BcBSPPointInfo BSPPointInfoC;
@@ -103,6 +103,8 @@ void GaPawnComponent::update( BcReal Tick )
 		if( BSP_->checkPointFront( TargetPosition, PlayerRadius, &BSPInfo ) )
 		{
 			Position_ = TargetPosition;
+
+			Pressure_->addSample( Position_, MoveSpeed * Tick );
 		}
 	}
 
