@@ -29,6 +29,18 @@ OsCore::~OsCore()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// update
+//virtual
+void OsCore::update()
+{
+	// Update clients.
+	for( TClientListIterator It( ClientList_.begin() ); It != ClientList_.end(); ++It )
+	{
+		(*It)->update();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // registerClient
 void OsCore::registerClient( OsClient* pClient )
 {

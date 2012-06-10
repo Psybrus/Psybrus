@@ -15,6 +15,7 @@
 #define __OsClientWindows_H__
 
 #include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
 #include "System/Os/OsWindows.h"
 #include "System/Os/OsClient.h"
 
@@ -31,6 +32,12 @@ public:
 	*	Create window.
 	*/
 	BcBool			create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
+
+	/**
+	 *	Update.
+	 */
+	virtual void	update();
+
 
 	/**
 	*	Destroy window.
@@ -57,6 +64,11 @@ public:
 	 */
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
 
+	/**
+	 * Set mouse lock.
+	 */
+	void setMouseLock( BcBool Enabled );
+
 private:
 	void mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam );
 
@@ -78,8 +90,14 @@ private:
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap		KeyCodeMap_;
 
+	BcBool			MouseLocked_;
+	
 	BcS16			PrevMouseX_;
 	BcS16			PrevMouseY_;
+
+	BcVec2d			MousePrevDelta_;
+	BcVec2d			MouseDelta_;
+	BcVec2d			MousePos_;
 };
 
 #endif

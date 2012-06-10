@@ -47,7 +47,7 @@ void OsCoreImplWindows::open()
 //virtual
 void OsCoreImplWindows::update()
 {
-
+	OsCore::update();
 }
 
 //////////////////////////////////////////////////////////////////////////
