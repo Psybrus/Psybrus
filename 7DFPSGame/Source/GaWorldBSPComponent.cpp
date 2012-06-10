@@ -30,6 +30,10 @@ void GaWorldBSPComponent::initialise( const Json::Value& Object )
 	NearestPoint_ = BcErrorCode;
 	NearestEdge_ = BcErrorCode;
 	pBSPTree_ = NULL;
+
+	pVertexArray_ = NULL;
+	pVertexBuffer_ = NULL;
+	pPrimitive_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,7 +76,8 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		Canvas_->pushMatrix( Projection_ );
 		Canvas_->setMaterialComponent( Material_ );
 
-		//Canvas_->drawLine( BcVec2d( -32.0f, -32.0f ), BcVec2d( 32.0f, 32.0f ), RsColour::GREEN, 0 );
+		Canvas_->drawBox( BcVec2d( -32.0f, -18.0f ), BcVec2d( 32.0f, 18.0f ), RsColour( 0.0f, 0.0f, 0.0f, 1.0f ), 0 );
+
 		for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
 		{
 			const GaWorldBSPEdge& Edge( Edges_[ Idx ] );
@@ -80,18 +85,18 @@ void GaWorldBSPComponent::update( BcReal Tick )
 			const GaWorldBSPPoint& PointB( Points_[ Edge.B_ ] );
 
 			// Draw edge.
-			Canvas_->drawLine( PointA.Position_, PointB.Position_, RsColour::WHITE, 0 );
+			Canvas_->drawLine( PointA.Position_, PointB.Position_, RsColour::WHITE, 1 );
 
 			// Draw normal.
 			BcVec2d Centre( ( PointA.Position_ + PointB.Position_ ) * 0.5f );
 			BcVec2d Normal( ( PointB.Position_ - PointA.Position_ ).normal().cross() );
-			Canvas_->drawLine( Centre, Centre + Normal * NormalSize, RsColour::BLUE, 0 );
+			Canvas_->drawLine( Centre, Centre + Normal * NormalSize, RsColour::BLUE, 1 );
 		}
 
 		for( BcU32 Idx = 0; Idx < Points_.size(); ++Idx )
 		{
 			const GaWorldBSPPoint& Point( Points_[ Idx ] );
-			Canvas_->drawLineBox( Point.Position_ - HintBoxSize, Point.Position_ + HintBoxSize, RsColour::WHITE, 0 );
+			Canvas_->drawLineBox( Point.Position_ - HintBoxSize, Point.Position_ + HintBoxSize, RsColour::WHITE, 1 );
 		}
 
 		// Interface.
@@ -104,23 +109,23 @@ void GaWorldBSPComponent::update( BcReal Tick )
 					BcBSPInfo BSPInfo;
 					if( pBSPTree_->checkPointFront( BcVec3d( MousePointPosition_, 0.0f ) ) )
 					{
-						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::GREEN, 0 );
+						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::GREEN, 2 );
 					}
 					else
 					{
-						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::RED, 0 );
+						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::RED, 2 );
 					}
 				}
 				else
 				{
-					Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::BLUE, 0 );
+					Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::BLUE, 2 );
 				}
 
 				// Highlight nearest point, if none then nearest edge.
 				if( NearestPoint_ != BcErrorCode )
 				{
 					const GaWorldBSPPoint& Point( Points_[ NearestPoint_ ] );
-					Canvas_->drawLineBox( Point.Position_ - HintBoxSize, Point.Position_ + HintBoxSize, RsColour::RED, 0 );
+					Canvas_->drawLineBox( Point.Position_ - HintBoxSize, Point.Position_ + HintBoxSize, RsColour::RED, 2 );
 				}
 				else
 				{
@@ -131,7 +136,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 						const GaWorldBSPPoint& PointB( Points_[ Edge.B_ ] );
 	
 						// Draw edge.
-						Canvas_->drawLine( PointA.Position_, PointB.Position_, RsColour::RED, 0 );
+						Canvas_->drawLine( PointA.Position_, PointB.Position_, RsColour::RED, 2 );
 					}
 				}
 
@@ -157,12 +162,12 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				const GaWorldBSPPoint& Point( Points_[ LastPointIdx_ ] );
 
 				// Draw edge.
-				Canvas_->drawLine( Point.Position_, MousePointPosition_, RsColour::GREEN, 0 );
+				Canvas_->drawLine( Point.Position_, MousePointPosition_, RsColour::GREEN, 2 );
 
 				// Draw normal.
 				BcVec2d Centre( ( Point.Position_ + MousePointPosition_ ) * 0.5f );
 				BcVec2d Normal( ( MousePointPosition_ - Point.Position_ ).normal().cross() );
-				Canvas_->drawLine( Centre, Centre + Normal * NormalSize, RsColour::GREEN, 0 );
+				Canvas_->drawLine( Centre, Centre + Normal * NormalSize, RsColour::GREEN, 2 );
 			}
 			break;
 		}
@@ -173,10 +178,36 @@ void GaWorldBSPComponent::update( BcReal Tick )
 
 //////////////////////////////////////////////////////////////////////////
 // render
+class GaWorldBSPComponenttRenderNode: public RsRenderNode
+{
+public:
+	void render()
+	{
+		pPrimitive_->render( rsPT_TRIANGLELIST, 0, NoofIndices_ );
+	}
+	
+	RsPrimitive* pPrimitive_;
+	BcU32 NoofIndices_;
+};
+
 //virtual
 void GaWorldBSPComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
-{
+{	
+	if( pVertexArray_ != NULL )
+	{
+		// Bind material.
+		MaterialWorld_->setParameter( WorldTransformParam_, BcMat4d() );
+		MaterialWorld_->bind( pFrame, Sort );
 
+		// Setup render node.
+		GaWorldBSPComponenttRenderNode* pRenderNode = pFrame->newObject< GaWorldBSPComponenttRenderNode >();
+		pRenderNode->pPrimitive_ = pPrimitive_;
+		pRenderNode->NoofIndices_ = pVertexBuffer_->getNoofVertices();
+
+		// Add to frame.
+		pRenderNode->Sort_ = Sort;
+		pFrame->addRenderNode( pRenderNode );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,6 +230,12 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 	{
 		Parent->attach( Material_ );
 	}
+	
+	if( CsCore::pImpl()->requestResource( "default", "default3d", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, BcErrorCode ) )
+	{
+		Parent->attach( MaterialWorld_ );
+		WorldTransformParam_ = MaterialWorld_->findParameter( "uWorldTransform" );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -218,19 +255,26 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 {
 	switch( Event.AsciiCode_ )
 	{
+	case 0x9:
+		InEditorMode_ = !InEditorMode_;
+		break;
+
 	case 'S':
 	case 's':
-		saveJson();
+		if( InEditorMode_ )
+			saveJson();
 		break;
 
 	case 'L':
 	case 'l':
-		loadJson();
+		if( InEditorMode_ )
+			loadJson();
 		break;
 
 	case 'B':
 	case 'b':
-		buildBSP();
+		if( InEditorMode_ )
+			buildBSP();
 		break;
 
 	default:
@@ -594,32 +638,81 @@ void GaWorldBSPComponent::loadJson()
 void GaWorldBSPComponent::buildBSP()
 {
 	delete pBSPTree_;
-	pBSPTree_ = new BcBSPTree();
+	pBSPTree_ = NULL;
 
-	// TODO: Add top and bottom? Do we need?
-	
-	// Add edges.
-	for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
+	// Free old vertex buffer.
+	if( pVertexArray_ != NULL )
 	{
-		const GaWorldBSPEdge& Edge( Edges_[ Idx ] );
-		const GaWorldBSPPoint& PointA( Points_[ Edge.A_ ] );
-		const GaWorldBSPPoint& PointB( Points_[ Edge.B_ ] );
+		RsCore::pImpl()->destroyResource( pVertexBuffer_ );
+		pVertexBuffer_ = NULL;
 
-		BcVec3d Vertices[ 4 ] = 
-		{
-			BcVec3d( PointA.Position_, 0.0f ),
-			BcVec3d( PointB.Position_, 0.0f ),
-			BcVec3d( PointB.Position_, 8.0f ),
-			BcVec3d( PointA.Position_, 8.0f ),
-		};
+		RsCore::pImpl()->destroyResource( pPrimitive_ );
+		pVertexBuffer_ = NULL;
 
-		BcPlane Plane;
-		Plane.fromPoints( Vertices[ 0 ], Vertices[ 1 ], Vertices [ 2 ] );
-
-		pBSPTree_->addNode( Plane, Vertices, 4 );
+		// Wait for renderer.
+		SysFence Fence( RsCore::WORKER_MASK );
+		
+		// Delete working data.
+		delete [] pVertexArray_;
+		pVertexArray_ = NULL;
 	}
 
-	pBSPTree_->buildTree();
+	if( Edges_.size() > 0 )
+	{
+		pBSPTree_ = new BcBSPTree();
+
+		BcU32 NoofVertices = Edges_.size() * 6;
+		BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UVW0 | rsVDF_COLOUR_RGBA8;
+
+		// Setup vertex array.
+		pVertexArray_ =  new GaWorldBSPVertex[ NoofVertices ];
+		GaWorldBSPVertex* pVertex =  pVertexArray_;
+		
+		// Add edges.
+		for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
+		{
+			const GaWorldBSPEdge& Edge( Edges_[ Idx ] );
+			const GaWorldBSPPoint& PointA( Points_[ Edge.A_ ] );
+			const GaWorldBSPPoint& PointB( Points_[ Edge.B_ ] );
+			
+			BcVec3d Vertices[ 4 ] = 
+			{
+				BcVec3d( PointA.Position_, -1.0f ),
+				BcVec3d( PointB.Position_, -1.0f ),
+				BcVec3d( PointB.Position_,  1.0f ),
+				BcVec3d( PointA.Position_,  1.0f ),
+			};
+
+			BcU32 Indices[ 6 ] =
+			{
+				0, 1, 2, 2, 3, 0
+			};
+
+			for( BcU32 Vert = 0; Vert < 6; ++Vert )
+			{
+				pVertex->X_ = Vertices[ Indices[ Vert ] ].x();
+				pVertex->Y_ = Vertices[ Indices[ Vert ] ].y();
+				pVertex->Z_ = Vertices[ Indices[ Vert ] ].z();
+				pVertex->U_ = 0.0f;
+				pVertex->V_ = 0.0f;
+				pVertex->W_ = 0.0f;
+				pVertex->RGBA_ = 0x00000000;
+				++pVertex;
+			}
+	
+			BcPlane Plane;
+			Plane.fromPoints( Vertices[ 0 ], Vertices[ 1 ], Vertices [ 2 ] );
+
+			pBSPTree_->addNode( Plane, Vertices, 4 );
+		}
+
+		// Build tree.
+		pBSPTree_->buildTree();
+
+		// Setup primitive and vertex buffer.
+		pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexDescriptor, NoofVertices, pVertexArray_ ); 
+		pPrimitive_ = RsCore::pImpl()->createPrimitive( pVertexBuffer_, NULL );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

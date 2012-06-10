@@ -82,3 +82,10 @@ void SysFence::wait( BcU32 Value )
 		BcYield();
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// count
+BcU32 SysFence::count() const
+{
+	return Count_;
+}

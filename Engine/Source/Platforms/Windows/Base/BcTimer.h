@@ -17,8 +17,6 @@
 #include "Base/BcTypes.h"
 #include "Base/BcWindows.h"
 
-#define USE_PERF_COUNTER 0 
-
 //////////////////////////////////////////////////////////////////////////
 // BcTimer
 class BcTimer
@@ -35,12 +33,9 @@ public:
 	BcReal						time();
 
 private:
-#if USE_PERF_COUNTER
-	LARGE_INTEGER				Freq_;
-	LARGE_INTEGER				MarkedTime_;
-#else
+	LARGE_INTEGER				PerfFreq_;
+	LARGE_INTEGER				PerfMarkedTime_;
 	BcF64						MarkedTime_;
-#endif
 };
 
 #endif

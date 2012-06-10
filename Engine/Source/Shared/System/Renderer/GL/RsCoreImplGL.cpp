@@ -281,6 +281,15 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// createTexture
+//virtual 
+RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData )
+{
+	RsTextureGL* pResource = new RsTextureGL( Width, Levels, Format, pData );
+	createResource( pResource );
+	return pResource;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // createTexture
@@ -288,6 +297,16 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData )
 {
 	RsTextureGL* pResource = new RsTextureGL( Width, Height, Levels, Format, pData );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createTexture
+//virtual 
+RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData )
+{
+	RsTextureGL* pResource = new RsTextureGL( Width, Height, Depth, Levels, Format, pData );
 	createResource( pResource );
 	return pResource;
 }

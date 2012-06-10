@@ -28,6 +28,15 @@ struct GaWorldBSPPoint
 };
 
 //////////////////////////////////////////////////////////////////////////
+// GaWorldBSPVertex
+struct GaWorldBSPVertex
+{
+	BcF32 X_, Y_, Z_;
+	BcF32 U_, V_, W_;
+	BcU32 RGBA_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // GaWorldBSPEdge
 struct GaWorldBSPEdge
 {
@@ -49,10 +58,10 @@ struct GaWorldBSPEdge
 
 //////////////////////////////////////////////////////////////////////////
 // GaWorldBSPComponent
-class GaWorldBSPComponent: public ScnComponent
+class GaWorldBSPComponent: public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaWorldBSPComponent );
+	DECLARE_RESOURCE( ScnRenderableComponent, GaWorldBSPComponent );
 
 public:
 	virtual void						initialise( const Json::Value& Object );
@@ -88,7 +97,7 @@ public:
 	BcBool								lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode = NULL );
 
 
-private:
+public:
 	BcBool								InEditorMode_;
 
 	enum EditorState
@@ -103,6 +112,8 @@ private:
 	EditorState							EditorState_;
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
+	ScnMaterialComponentRef				MaterialWorld_;
+	BcU32								WorldTransformParam_;
 	BcMat4d								Projection_;
 
 	std::vector< GaWorldBSPPoint >		Points_;
@@ -117,6 +128,10 @@ private:
 	BcU32								NearestEdge_;
 
 	BcBSPTree*							pBSPTree_;
+
+	GaWorldBSPVertex*					pVertexArray_;
+	RsVertexBuffer*						pVertexBuffer_;
+	RsPrimitive*						pPrimitive_;
 };
 
 #endif

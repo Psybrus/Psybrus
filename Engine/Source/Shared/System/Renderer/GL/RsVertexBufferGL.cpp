@@ -237,6 +237,12 @@ void RsVertexBufferGL::bind()
 		glVertexAttribPointer( rsVC_TEXCOORD0, 2, GL_FLOAT, 0, Stride, Offset );
 		Offset += 2 * sizeof( BcF32 );
 	}
+	else if( VertexDecl & rsVDF_TEXCOORD_UVW0 )
+	{
+		glEnableVertexAttribArray( rsVC_TEXCOORD0 );
+		glVertexAttribPointer( rsVC_TEXCOORD0, 3, GL_FLOAT, 0, Stride, Offset );
+		Offset += 3 * sizeof( BcF32 );
+	}
 	else
 	{
 		glDisableVertexAttribArray( rsVC_TEXCOORD0 );
@@ -248,6 +254,12 @@ void RsVertexBufferGL::bind()
 		glEnableVertexAttribArray( rsVC_TEXCOORD1 );
 		glVertexAttribPointer( rsVC_TEXCOORD1, 2, GL_FLOAT, 0, Stride, Offset );
 		Offset += 2 * sizeof( BcF32 );
+	}
+	else if( VertexDecl & rsVDF_TEXCOORD_UVW1 )
+	{
+		glEnableVertexAttribArray( rsVC_TEXCOORD1 );
+		glVertexAttribPointer( rsVC_TEXCOORD1, 3, GL_FLOAT, 0, Stride, Offset );
+		Offset += 3 * sizeof( BcF32 );
 	}
 	else
 	{
@@ -261,6 +273,12 @@ void RsVertexBufferGL::bind()
 		glVertexAttribPointer( rsVC_TEXCOORD2, 2, GL_FLOAT, 0, Stride, Offset );
 		Offset += 2 * sizeof( BcF32 );
 	}
+	else if( VertexDecl & rsVDF_TEXCOORD_UVW2 )
+	{
+		glEnableVertexAttribArray( rsVC_TEXCOORD2 );
+		glVertexAttribPointer( rsVC_TEXCOORD2, 3, GL_FLOAT, 0, Stride, Offset );
+		Offset += 3 * sizeof( BcF32 );
+	}
 	else
 	{
 		glDisableVertexAttribArray( rsVC_TEXCOORD2 );
@@ -272,6 +290,12 @@ void RsVertexBufferGL::bind()
 		glEnableVertexAttribArray( rsVC_TEXCOORD3 );
 		glVertexAttribPointer( rsVC_TEXCOORD3, 2, GL_FLOAT, 0, Stride, Offset );
 		Offset += 2 * sizeof( BcF32 );
+	}
+	else if( VertexDecl & rsVDF_TEXCOORD_UVW3 )
+	{
+		glEnableVertexAttribArray( rsVC_TEXCOORD3 );
+		glVertexAttribPointer( rsVC_TEXCOORD3, 3, GL_FLOAT, 0, Stride, Offset );
+		Offset += 3 * sizeof( BcF32 );
 	}
 	else
 	{
