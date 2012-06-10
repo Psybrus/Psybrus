@@ -108,6 +108,10 @@ OsClientWindows::OsClientWindows()
 	PrevMouseX_ = 0;
 	PrevMouseY_ = 0;
 	MouseLocked_ = BcFalse;
+
+	MousePrevDelta_ = BcVec2d( 0.0f, 0.0f );
+	MouseDelta_ = BcVec2d( 0.0f, 0.0f );
+	MousePos_ = BcVec2d( 0.0f, 0.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,7 +229,7 @@ void OsClientWindows::update()
 		const BcS32 WX = ( Rect.right - Rect.left );
 		const BcS32 WY = ( Rect.bottom - Rect.top );
 		MouseDelta_.x( BcReal( MousePosition.x - ( Rect.left + ( WX / 2 ) ) ) );
-		MouseDelta_.x( BcReal( MousePosition.y - ( Rect.top + ( WY / 2 ) ) ) );
+		MouseDelta_.y( BcReal( MousePosition.y - ( Rect.top + ( WY / 2 ) ) ) );
 
 		MousePos_ += MouseDelta_;
 		MousePos_.x( BcClamp( MousePos_.x(), 0.0f, BcReal( WX ) ) );
@@ -247,10 +251,10 @@ void OsClientWindows::update()
 		{
 			OsEventInputMouse Event;
 			Event.DeviceID_ = 0;
-			Event.MouseX_ = (BcS16)MousePosition.x - WindowPosition.x;
-			Event.MouseY_ = (BcS16)MousePosition.y - WindowPosition.y;
-			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.MouseX_ = (BcS16)MousePosition.x - (BcS16)WindowPosition.x;
+			Event.MouseY_ = (BcS16)MousePosition.y - (BcS16)WindowPosition.y;
+			Event.MouseDX_ = MouseDelta_.x();
+			Event.MouseDY_ = MouseDelta_.y();
 			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
 			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
 

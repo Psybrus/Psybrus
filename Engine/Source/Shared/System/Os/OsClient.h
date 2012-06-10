@@ -46,6 +46,11 @@ public:
 	 */
 	virtual BcU32 getHeight() const = 0;
 
+	/**
+	 * Set mouse lock.
+	 */
+	virtual void setMouseLock( BcBool Enabled ) = 0;
+
 };
 
 #endif
