@@ -26,11 +26,20 @@ struct GaWorldPressureSample
 };
 
 //////////////////////////////////////////////////////////////////////////
+// GaWorldPressureVertex
+struct GaWorldPressureVertex
+{
+	BcF32 X_, Y_, Z_;
+	BcF32 U_, V_, W_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // GaWorldPressureComponent
-class GaWorldPressureComponent: public ScnComponent
+class GaWorldPressureComponent:
+	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaWorldPressureComponent );
+	DECLARE_RESOURCE( ScnRenderableComponent, GaWorldPressureComponent );
 
 public:
 	virtual void						initialise( const Json::Value& Object );
@@ -41,11 +50,17 @@ public:
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-	
-private:
+
 	GaWorldPressureSample&				sample( BcU32 Buffer, BcU32 X, BcU32 Y, BcU32 Z );
 
+protected:
+	void								updateSimulation();
+	void								collideSimulation();
+	void								updateTexture();
+
 private:
+	SysFence							UpdateFence_;
+
 	BcU32								Width_;
 	BcU32								Height_;
 	BcU32								Depth_;
@@ -61,15 +76,26 @@ private:
 
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
+	ScnMaterialComponentRef				MaterialPreview_;
+	BcU32								WorldTransformParam_;
+	ScnTextureRef						Texture_;
 	GaWorldBSPComponentRef				BSP_;
+	ScnParticleSystemComponentRef		ParticleSystem_;
+
+	// Graphics data.
+	BcBool								IsReady_;
+	GaWorldPressureVertex*				pVertexArray_;
+	RsVertexBuffer*						pVertexBuffer_;
+	RsPrimitive*						pPrimitive_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // sample
 BcForceInline GaWorldPressureSample& GaWorldPressureComponent::sample( BcU32 Buffer, BcU32 X, BcU32 Y, BcU32 Z )
 {
-	const BcU32 Idx = X + ( Y + Z * Width_ ) * Height_;
+	const BcU32 Idx = X + ( Y + Z * Height_ ) * Width_;
 #if 1
+	BcAssertMsg( UpdateFence_.count() == 0, "Attempted access during an update!" );
 	BcAssertMsg( Buffer < 2, "Buffer index out of bounds" );
 	BcAssertMsg( Idx < BufferSize_, "Indices out of bounds" );
 #endif

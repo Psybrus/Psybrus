@@ -64,6 +64,14 @@ static GLenum gTextureSampling[] =
 	GL_DECAL
 };
 
+static GLenum gTextureTypes[] = 
+{
+	GL_TEXTURE_1D,
+	GL_TEXTURE_2D,
+	GL_TEXTURE_3D,
+	GL_TEXTURE_CUBE_MAP
+};
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsStateBlockGL::RsStateBlockGL()
@@ -109,7 +117,7 @@ void RsStateBlockGL::bind()
 					glDepthFunc( gCompareMode[ Value ] );
 					break;
 				case rsRS_DEPTH_BIAS:
-					// NOT IMPLEMENTED YET.
+					glPolygonOffset( (GLfloat)Value, 0.01f );
 					break;
 				case rsRS_ALPHA_TEST_ENABLE:
 					Value ? glEnable( GL_ALPHA_TEST ) : glDisable( GL_ALPHA_TEST );
@@ -159,16 +167,31 @@ void RsStateBlockGL::bind()
 		{
 			RsTexture* pTexture = TextureStateValue.pTexture_;
 			const RsTextureParams& Params = TextureStateValue.Params_;
+			const eRsTextureType InternalType = pTexture ? pTexture->type() : rsTT_2D;
+			const GLenum TextureType = gTextureTypes[ InternalType ];
 
-			// TODO: Support texture types (1D, 2D, 3D, Cube)
 			glActiveTexture( GL_TEXTURE0 + TextureStateID );
-			glEnable( GL_TEXTURE_2D );
-			glBindTexture( GL_TEXTURE_2D, pTexture ? pTexture->getHandle< GLuint >() : 0 );
+
+			// TODO: Move everything after here into it's own struct for state management. This is not optimal.
+			for( BcU32 Idx = 0; Idx < rsTT_MAX; ++Idx )
+			{
+				if( Idx == InternalType )
+				{
+					glEnable( gTextureTypes[ Idx ] );
+				}
+				else
+				{
+					glDisable( gTextureTypes[ Idx ] );
+				}
+			}
 			
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ Params.MinFilter_ ] );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ Params.MagFilter_ ] );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gTextureSampling[ Params.UMode_ ] );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gTextureSampling[ Params.VMode_ ] );	
+			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
+			
+			glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ Params.MinFilter_ ] );
+			glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ Params.MagFilter_ ] );
+			glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ Params.UMode_ ] );
+			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ Params.VMode_ ] );	
+			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ Params.WMode_ ] );	
 		
 			TextureStateValue.Dirty_ = BcFalse;
 		}

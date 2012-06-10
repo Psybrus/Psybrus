@@ -97,20 +97,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Texture Types
-enum eRsTextureType
-{
-	rsTT_DIFFUSE = 0,
-	rsTT_SPECULAR,
-	rsTT_NORMAL,
-	rsTT_PROJECTED,
-
-	rsTT_MAX = 8,
-	
-	rsTT_FORCE_DWORD = 0x7fffffff
-};
-
-//////////////////////////////////////////////////////////////////////////
 // Blending Modes
 enum eRsBlendingMode
 {
@@ -200,6 +186,17 @@ enum eRsDepthStencilFormat
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Texture Type
+enum eRsTextureType
+{
+	rsTT_1D = 0,
+	rsTT_2D,
+	rsTT_3D,
+	rsTT_CUBEMAP,
+	rsTT_MAX
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Texture Format
 enum eRsTextureFormat
 {
@@ -230,7 +227,7 @@ enum eRsTextureFormat
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
-extern BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Levels );
+extern BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
 
 //////////////////////////////////////////////////////////////////////////
 // Texture filtering mode.
@@ -274,13 +271,15 @@ struct RsTextureParams
 	eRsTextureFilteringMode		MagFilter_;
 	eRsTextureSamplingMode		UMode_;
 	eRsTextureSamplingMode		VMode_;
+	eRsTextureSamplingMode		WMode_;
 	
 	bool operator == ( const RsTextureParams& Other )
 	{
 		return ( MinFilter_ == Other.MinFilter_ ) &&
 		       ( MagFilter_ == Other.MagFilter_ ) &&
 		       ( UMode_ == Other.UMode_ ) &&
-		       ( VMode_ == Other.VMode_ );
+			   ( VMode_ == Other.VMode_ ) &&
+		       ( WMode_ == Other.WMode_ );
 	}
 
 	bool operator != ( const RsTextureParams& Other )
@@ -288,7 +287,8 @@ struct RsTextureParams
 		return ( MinFilter_ != Other.MinFilter_ ) ||
 		       ( MagFilter_ != Other.MagFilter_ ) ||
 		       ( UMode_ != Other.UMode_ ) ||
-		       ( VMode_ != Other.VMode_ );
+		       ( VMode_ != Other.VMode_ ) ||
+		       ( WMode_ != Other.WMode_ );
 	}
 };
 
@@ -353,14 +353,20 @@ enum eRsVertexDeclFlags
 	// Tangent: 0x100
 	rsVDF_TANGENT_XYZ		= 0x00000100,
 
-	// Texcoord: 0x1000
+	// Texcoord UV: 0x1000
 	rsVDF_TEXCOORD_UV0		= 0x00001000,
 	rsVDF_TEXCOORD_UV1		= 0x00002000,
 	rsVDF_TEXCOORD_UV2		= 0x00004000,
 	rsVDF_TEXCOORD_UV3		= 0x00008000,
 
-	// Colour: 0x10000
-	rsVDF_COLOUR_RGBA8		= 0x00010000,
+	// Texcoord UVW: 0x10000
+	rsVDF_TEXCOORD_UVW0		= 0x00010000,
+	rsVDF_TEXCOORD_UVW1		= 0x00020000,
+	rsVDF_TEXCOORD_UVW2		= 0x00040000,
+	rsVDF_TEXCOORD_UVW3		= 0x00080000,
+
+	// Colour: 0x100000
+	rsVDF_COLOUR_RGBA8		= 0x00100000,
 
 	//
 	rsVDF_FORCE_DWORD		= 0x7fffffff

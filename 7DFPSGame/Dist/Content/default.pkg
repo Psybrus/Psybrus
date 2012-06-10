@@ -19,19 +19,42 @@
 		},
 
 		{
-			"type"			: "ScnTexture",
-			"name"			: "particle0",
-
-			"source"		: "Content/Source/particle0.png"
-		},
-
-		{
 			"type"			: "ScnShader",
 			"name"			: "default",
 
 			"shaders"		: {
 				"vertex" 		: "EngineContent/ShaderSource/diffuse.glslv",
 				"fragment" 		: "EngineContent/ShaderSource/diffuse.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "default3d",
+
+			"shaders"		: {
+				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
+				"fragment" 		: "EngineContent/ShaderSource/diffuse3d.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "air",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/air.glslv",
+				"fragment" 		: "Content/Source/air.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "airpreview",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/airpreview.glslv",
+				"fragment" 		: "Content/Source/airpreview.glslf"
 			}
 		},
 
@@ -57,6 +80,81 @@
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
 				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "default3d",
+
+			// Shader
+			"shader"		: "default3d",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 16,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "air",
+
+			// Shader
+			"shader"		: "air",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "add"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "airpreview",
+
+			// Shader
+			"shader"		: "airpreview",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "default"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "add"
 			}
 		},
 
@@ -106,49 +204,12 @@
 		},
 
 		{
-			"type"			: "ScnMaterial",
-			"name"			: "particle",
-
-			// Shader
-			"shader"		: "particle",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "particle0"
-			},
-			
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 0,
-				"depth_test_enable" 		: 1,
-				"depth_test_compare" 		: "lessequal",
-				"depth_bias" 				: 0,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 128,
-				"blend_mode" 				: "add"
-			}
-		},
-
-		{
 			"type"		: "ScnModel",
 			"name"		: "sphere",
 			"source"	: "Content/Source/sphere.obj"
 		},
 
-		{
-			"type"		: "ScnModel",
-			"name"		: "cube",
-			"source"	: "Content/Source/cube.obj"
-		},
-
-		{
-			"type"		: "ScnModel",
-			"name"		: "paddle",
-			"source"	: "Content/Source/paddle.obj"
-		},
-
-		//////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////// 
 		// Entities.
 		{
 			"name"		:		"ScreenEntity",
@@ -181,7 +242,7 @@
 			"components" : [
 				{
 					"type"			: "ScnCanvasComponent",
-					"noofvertices" 	: 524288
+					"noofvertices" 	: 8192
 				},
 
 				{
@@ -191,40 +252,8 @@
 				{
 					"type"			: "GaWorldPressureComponent"
 				}
-
 			]
 
-		},
-
-		{
-			"name"		:		"PaddleEntity",
-			"type"		:		"ScnEntity",
-
-			"components" : [
-				{
-					"type"			: "ScnModelComponent",
-					"model" 		: "default.paddle:ScnModel"
-				}
-			]
-		},
-
-		{
-			"name"		:		"BallEntity", 
-			"type"		:		"ScnEntity",
-
-			"components" : [
-				{
-					"type"			: "ScnModelComponent",
-					"model" 		: "default.sphere:ScnModel"
-				},
-
-				{
-					"type"			: "ScnParticleSystemComponent",
-					"noofparticles"	: 4096,
-					"material"		: "default.particle:ScnMaterial"
-				}
-			]
 		}
-
 	]
 }

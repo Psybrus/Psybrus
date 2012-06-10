@@ -40,6 +40,11 @@ public:
 	 */
 	void queue( BcU32 WorkerMask );
 
+	/*
+	 * Get the count.
+	 */
+	BcU32 count() const;
+
 	/**
 	 * Wait for fence to reach a certain value.
 	 */
