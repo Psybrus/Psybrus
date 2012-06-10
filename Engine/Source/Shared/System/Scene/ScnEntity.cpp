@@ -320,6 +320,13 @@ void ScnEntity::setMatrix( const BcMat4d& Matrix )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPosition
+BcVec3d ScnEntity::getPosition() const
+{
+	return Transform_.translation();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getMatrix
 const BcMat4d& ScnEntity::getMatrix() const
 {
