@@ -27,7 +27,7 @@ void GaWorldPressureComponent::initialise( const Json::Value& Object )
 	Width_ = 128;
 	Height_ = 128;
 	Depth_ = 8;
-	AccumMultiplier_ = 0.333f;
+	AccumMultiplier_ = 0.32f;
 	Damping_ = 0.04f;
 
 	Scale_ = 0.25f;
@@ -367,6 +367,8 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 		BcU32 Param = MaterialPreview_->findParameter( "aDiffuseTex" );
 		MaterialPreview_->setTexture( Param, Texture_ );
 	}
+
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -380,6 +382,8 @@ void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 	BSP_ = NULL;
 	ParticleSystem_ = NULL;
 	Parent->detach( Material_ );
+
+	Super::onDetach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -441,8 +445,8 @@ void GaWorldPressureComponent::collideSimulation()
 	{
 		for( BcU32 X = 1; X < WidthLessOne; ++X )
 		{
-			BcVec3d Position( BcVec2d( X, Y ) * Scale_ + Offset_, 4.0f );
-			if( BSP_->checkPointBack( Position ) )
+			BcVec3d Position( BcVec2d( (BcReal)X, (BcReal)Y ) * Scale_ + Offset_, 4.0f );
+			if( BSP_->checkPointBack( Position, Scale_ ) )
 			{
 				const BcU32 XYIdx = X + Y * W;
 				for( BcU32 Z = 1; Z < DepthLessOne; ++Z )

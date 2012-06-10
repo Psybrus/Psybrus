@@ -45,25 +45,10 @@ eSysStateReturn GaTopState::enter()
 // preMain
 void GaTopState::preMain()
 { 
-	ScnEntityRef Entity;
-	ScnEntityRef TemplateEntity;
+	ScnEntityRef WorldEntity = ScnCore::pImpl()->createEntity( "default", "WorldEntity", "WorldEntity_0" );
 
-	// Create screen entity.
- 	if( CsCore::pImpl()->requestResource( "default", "ScreenEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "ScreenEntity_0", Entity, TemplateEntity ) )
-	{
-		//
-		ScnCore::pImpl()->addEntity( Entity );
-	}
-
-	// Create world entity.
-	if( CsCore::pImpl()->requestResource( "default", "WorldEntity", TemplateEntity ) && CsCore::pImpl()->createResource( "WorldEntity_0", Entity, TemplateEntity ) )
-	{
-		// Setup entity position to render from.
-		Entity->setPosition( BcVec3d( 0.0f, 0.0f, 0.0f ) );
-
-		//
-		ScnCore::pImpl()->addEntity( Entity );
-	}
+	// Add world to scene.
+	ScnCore::pImpl()->addEntity( WorldEntity );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

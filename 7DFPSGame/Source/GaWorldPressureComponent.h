@@ -19,6 +19,11 @@
 #include "GaWorldBSPComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// GaExampleComponentRef
+typedef CsResourceRef< class GaWorldPressureComponent > GaWorldPressureComponentRef;
+
+
+//////////////////////////////////////////////////////////////////////////
 // GaWorldPressureSample
 struct GaWorldPressureSample
 {

@@ -92,8 +92,8 @@ public:
 	void								loadJson();
 	void								buildBSP();
 
-	BcBool								checkPointFront( const BcVec3d& Point, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
-	BcBool								checkPointBack( const BcVec3d& Point, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool								checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool								checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 	BcBool								lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode = NULL );
 
 
