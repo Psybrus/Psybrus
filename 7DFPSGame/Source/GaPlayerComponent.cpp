@@ -29,6 +29,10 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 	MoveBackward_ = BcFalse;
 	MoveLeft_ = BcFalse;
 	MoveRight_ = BcFalse;
+
+	DoRun_ = BcFalse;
+	DoPulse_ = BcFalse;
+	PulseTick_ = -1.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,11 +43,11 @@ void GaPlayerComponent::update( BcReal Tick )
 	// Mouse update.
 	Yaw_ += -MouseDelta_.x() * Tick * 0.1f;
 	Pitch_ += -MouseDelta_.y() * Tick * 0.1f;
-	Pitch_ = BcClamp( Pitch_, -BcPIDIV2, BcPIDIV2 );
+	Pitch_ = BcClamp( Pitch_, -BcPIDIV2 + ( BcPIDIV2 * 0.125f ), BcPIDIV2 - ( BcPIDIV2 * 0.125f ) );
 	MouseDelta_ = BcVec2d( 0.0f, 0.0f );
 
 	BcReal RotationSpeed = 1.0f * Tick;
-	BcReal MoveSpeed = 8.0f;
+	BcReal MoveSpeed = DoRun_ ? 4.0f : 2.0f;
 	BcReal MoveDirection = 0.0f;
 	BcVec3d MoveVector = BcVec3d( 1.0f, 0.0f, 0.0f );
 	BcMat4d RotationMatrix;
@@ -64,6 +68,19 @@ void GaPlayerComponent::update( BcReal Tick )
 	if( MoveRight_ )
 	{
 		Yaw_ -= RotationSpeed;
+	}
+
+	if( DoPulse_ == BcTrue || PulseTick_ > 0.0f )
+	{
+		PulseTick_ += Tick * 8.0f;
+
+		Pressure_->setSample( getParentEntity()->getPosition() + BcVec3d( MoveVector.x(), MoveVector.y(), 0.0f ).normal() * 1.0f, BcSin( PulseTick_ ) * 16.0f );
+
+		if( PulseTick_ > BcPIMUL4 )
+		{
+			DoPulse_ = BcFalse;
+			PulseTick_ = -1.0f;
+		}
 	}
 	
 	// Set the move.
@@ -129,24 +146,36 @@ eEvtReturn GaPlayerComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeybo
 		BcBool State = ID == osEVT_INPUT_KEYDOWN;
 		switch( Event.KeyCode_ )
 		{
-		case OsEventInputKeyboard::KEYCODE_UP:
+		case 'W':
 			MoveForward_ = State;
 			break;
 
-		case OsEventInputKeyboard::KEYCODE_DOWN:
+		case 'S':
 			MoveBackward_ = State;
 			break;
 
-		case OsEventInputKeyboard::KEYCODE_LEFT:
+		case 'A':
 			MoveLeft_ = State;
 			break;
 
-		case OsEventInputKeyboard::KEYCODE_RIGHT:
+		case 'D':
 			MoveRight_ = State;
+			break;
+
+		case OsEventInputKeyboard::KEYCODE_SHIFT:
+			DoRun_ = State;
 			break;
 
 		case OsEventInputKeyboard::KEYCODE_SPACE:
 			Pawn_->setPosition( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+			break;
+
+		case OsEventInputKeyboard::KEYCODE_CONTROL:
+			if( !DoPulse_ )
+			{
+				DoPulse_ = State;
+				PulseTick_ = State ? 0.0f : PulseTick_;
+			}
 			break;
 		}
 	}

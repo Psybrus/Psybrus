@@ -47,6 +47,10 @@ private:
 	BcBool								MoveBackward_;
 	BcBool								MoveLeft_;
 	BcBool								MoveRight_;
+	BcBool								DoRun_;
+	BcBool								DoPulse_;
+
+	BcReal								PulseTick_;
 	
 	BcReal								Yaw_;
 	BcReal								Pitch_;
