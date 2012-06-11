@@ -4,7 +4,7 @@ varying vec4 vTexCoord0;
 
 uniform sampler2D aDiffuseTex;
 
-void main()			
+void main()
 {						
 	gl_FragColor = vColour;
 }

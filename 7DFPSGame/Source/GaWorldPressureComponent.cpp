@@ -27,7 +27,7 @@ void GaWorldPressureComponent::initialise( const Json::Value& Object )
 	Width_ = 128;
 	Height_ = 128;
 	Depth_ = 8;
-	AccumMultiplier_ = 0.32f;
+	AccumMultiplier_ = 0.31f;
 	Damping_ = 0.02f;
 
 	Scale_ = 0.25f;
@@ -330,7 +330,7 @@ public:
 void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {	
 	// Bind material.
-	Material_->setParameter( WorldTransformParam_, BcMat4d() );
+	Material_->setWorldTransform( BcMat4d() );
 	Material_->bind( pFrame, Sort );
 
 	// Setup render node.
@@ -359,7 +359,6 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 	if( CsCore::pImpl()->requestResource( "default", "air", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, BcErrorCode ) )
 	{
 		Parent->attach( Material_ );
-		WorldTransformParam_ = Material_->findParameter( "uWorldTransform" );
 
 		BcU32 Param = Material_->findParameter( "aDiffuseTex" );
 		Material_->setTexture( Param, Texture_ );
@@ -428,7 +427,6 @@ void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value 
 	sample( CurrBuffer_, X, Y, Z + 1 ).Value_ = Value * 0.5f;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // updateSimulation
 void GaWorldPressureComponent::updateSimulation()
@@ -438,14 +436,13 @@ void GaWorldPressureComponent::updateSimulation()
 	const register BcU32 DepthLessOne = Depth_ - 1;
 	const register BcU32 W = Width_;
 	const register BcU32 WH = Width_ * Height_;
-
-
-	for( BcU32 Idx = 0; Idx < 32.0f; ++Idx )
+	
+	for( BcU32 Idx = 0; Idx < 8.0f; ++Idx )
 	{
 		BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
 		BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
 		BcU32 RandZ = 1;
-		sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.2f;
+		sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.1f;
 	}
 	
 	// Update simulation.
@@ -464,11 +461,11 @@ void GaWorldPressureComponent::updateSimulation()
 				++XYZIdx;
 				GaWorldPressureSample& Output( pNextBuffer[ XYZIdx ] );
 				register BcReal Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
-					                        pCurrBuffer[ XYZIdx + 1 ].Value_ +
-					                        pCurrBuffer[ XYZIdx - W ].Value_ +
-					                        pCurrBuffer[ XYZIdx + W ].Value_ +
-					                        pCurrBuffer[ XYZIdx - WH ].Value_ +
-					                        pCurrBuffer[ XYZIdx + WH ].Value_;
+					                     pCurrBuffer[ XYZIdx + 1 ].Value_ +
+					                     pCurrBuffer[ XYZIdx - W ].Value_ +
+					                     pCurrBuffer[ XYZIdx + W ].Value_ +
+					                     pCurrBuffer[ XYZIdx - WH ].Value_ +
+					                     pCurrBuffer[ XYZIdx + WH ].Value_;
 				Sample *= AccumMultiplier_;
 				Sample -= Output.Value_;
 				Output.Value_ = Sample - ( Sample * Damping_ );

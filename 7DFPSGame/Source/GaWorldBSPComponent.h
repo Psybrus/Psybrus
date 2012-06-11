@@ -113,7 +113,6 @@ public:
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
 	ScnMaterialComponentRef				MaterialWorld_;
-	BcU32								WorldTransformParam_;
 	BcMat4d								Projection_;
 
 	std::vector< GaWorldBSPPoint >		Points_;
