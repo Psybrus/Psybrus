@@ -145,21 +145,22 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 		if( pPointInfo != NULL )
 		{
 			pPointInfo->Point_ = B;
-			pPointInfo->Distance_ = 1e24f;
+			pPointInfo->Distance_ = 1e12f;
 		}
 	}
 
 	// Really naive way...
 	BcBool Intersected = BcFalse;
 
+	// TODO: Handle coincident intersection!
 	BcPlane::eClassify ClassifyA = pNode->Plane_.classify( A, 0.0f );
 	BcPlane::eClassify ClassifyB = pNode->Plane_.classify( B, 0.0f );
 
 	if( ClassifyA == BcPlane::bcPC_FRONT && ClassifyB == BcPlane::bcPC_BACK )
 	{
-		BcReal Distance;
+		BcReal T;
 		BcVec3d Intersection;
-		if( pNode->Plane_.lineIntersection( A, B, Distance, Intersection ) )
+		if( pNode->Plane_.lineIntersection( A, B, T, Intersection ) )
 		{
 			// Is point in vertices? If so go down front to find nearer intersection.
 			if( pointOnNode( Intersection, pNode ) )
@@ -167,11 +168,13 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 				// If we want point info recurse deeper to get it.
 				if( pPointInfo != NULL )
 				{
+					BcReal DistanceSquared = ( A - Intersection ).magnitudeSquared();
+
 					// Check the distance, if it's less then go deeper!
-					if( Distance < pPointInfo->Distance_ )
+					if( DistanceSquared < ( pPointInfo->Distance_ * pPointInfo->Distance_ ) )
 					{
 						pPointInfo->Plane_ = pNode->Plane_;
-						pPointInfo->Distance_ = Distance;
+						pPointInfo->Distance_ = BcSqrt( DistanceSquared );
 						pPointInfo->Point_ = Intersection;
 					}
 				}
@@ -211,7 +214,7 @@ BcPlane::eClassify BcBSPTree::classifyNode( BcBSPNode* pNode, const BcPlane& Pla
 	//Make sure remaining tests produce the same result
 	for( BcU32 iNode = 0; iNode < pNode->Vertices_.size(); ++iNode)
 	{
-		BcPlane::eClassify Result = Plane.classify( pNode->Vertices_[ iNode ] );
+		BcPlane::eClassify Result = Plane.classify( pNode->Vertices_[ iNode ], 1e-3f );
 
 		// On as a first result is not useful to us.
 		if( FirstResult == BcPlane::bcPC_COINCIDING && Result != BcPlane::bcPC_COINCIDING )
@@ -250,14 +253,18 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 		// If it's coinciding use normal to determine facing.
 		if( Classify == BcPlane::bcPC_COINCIDING )
 		{
+			/*
 			if( pNode->Plane_.normal().dot( (*It)->Plane_.normal() ) < 0.0f )
 			{
-				Classify = BcPlane::bcPC_BACK;
+				Classify = BcPlane::bcPC_FRONT;
 			}
 			else
 			{
 				Classify = BcPlane::bcPC_FRONT;
 			}
+			*/
+			// HACK, seems to work...just:
+			Classify = BcPlane::bcPC_FRONT;
 		}
 
 		// Classify the node.
@@ -446,6 +453,7 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 // putNonCoincidingNodeAtTheFront
 void BcBSPTree::putNonCoincidingNodeAtTheFront( BcBSPNodeList& List )
 {
+	return;
 	for( BcU32 TotalIdx = 0; TotalIdx < List.size(); ++TotalIdx )
 	{
 		// Get first node.
