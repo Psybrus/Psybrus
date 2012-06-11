@@ -63,6 +63,10 @@ void BcBSPTree::buildTree()
 	// Set root node.
 	if( NodeList_.size() > 0 )
 	{
+		// Put non coinciding node at the front.
+		putNonCoincidingNodeAtTheFront( NodeList_ );
+
+		// Grab first for split.
 		pRootNode_ = NodeList_[ 0 ];
 
 		// Put all items into root node for splitting.
@@ -235,11 +239,29 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 	BcBSPNodeList FList_;			// Front list.
 	BcBSPNodeList BList_;			// Back list.
 
+	// Move non coinciding node to the front.
+	putNonCoincidingNodeAtTheFront( pNode->WorkingList_ );
+
 	// Split up this nodes list into a front and back list.
 	for( BcBSPNodeList::iterator It( pNode->WorkingList_.begin() ); It != pNode->WorkingList_.end(); )
 	{
+		BcPlane::eClassify Classify = classifyNode( (*It), pNode->Plane_ );
+
+		// If it's coinciding use normal to determine facing.
+		if( Classify == BcPlane::bcPC_COINCIDING )
+		{
+			if( pNode->Plane_.normal().dot( (*It)->Plane_.normal() ) < 0.0f )
+			{
+				Classify = BcPlane::bcPC_BACK;
+			}
+			else
+			{
+				Classify = BcPlane::bcPC_FRONT;
+			}
+		}
+
 		// Classify the node.
-		switch( classifyNode( (*It), pNode->Plane_ ) )
+		switch( Classify )
 		{
 		case BcPlane::bcPC_FRONT:
 			{
@@ -251,7 +273,6 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 			}
 			break;
 
-		case BcPlane::bcPC_COINCIDING:		// HACK.
 		case BcPlane::bcPC_BACK:
 			{
 				// Node is entirely behind.
@@ -287,7 +308,7 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 			break;
 		}
 	}
-
+	
 	// Select a front and back node for each list.
 	if( FList_.size() > 0 )
 	{
@@ -419,4 +440,38 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 	}
 
 	return BcFalse;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// putNonCoincidingNodeAtTheFront
+void BcBSPTree::putNonCoincidingNodeAtTheFront( BcBSPNodeList& List )
+{
+	for( BcU32 TotalIdx = 0; TotalIdx < List.size(); ++TotalIdx )
+	{
+		// Get first node.
+		BcBSPNode* pNode = List[ 0 ];
+
+		// Check if it's coinciding with any other in the list (except itself).
+		BcBool IsCoinciding = BcFalse;
+		for( BcU32 Idx = 1; Idx < List.size(); ++Idx )
+		{
+			// Classify the node.
+			if( classifyNode( List[ Idx ], pNode->Plane_ ) == BcPlane::bcPC_COINCIDING )
+			{
+				IsCoinciding = BcTrue;
+			}
+		}
+		
+		// If coinciding, put at the back and repeat, otherwise we can bail.
+		if( IsCoinciding )
+		{
+			// Put to the end of the list.
+			List.erase( List.begin() );
+			List.push_back( pNode );
+		}
+		else
+		{
+			break;
+		}
+	}
 }
