@@ -78,6 +78,7 @@ protected:
 	THeader								Header_;
 	
 	ScnRenderTargetRef					RenderTarget_;
+	BcMat4d								InverseViewMatrix_;
 	RsViewport							Viewport_;
 };
 

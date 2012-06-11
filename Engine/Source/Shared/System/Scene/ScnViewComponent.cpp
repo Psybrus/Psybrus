@@ -144,6 +144,7 @@ void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialCo
 {
 	MaterialComponent->setClipTransform( Viewport_.view() * Viewport_.projection() );
 	MaterialComponent->setViewTransform( Viewport_.view() );
+	MaterialComponent->setEyePosition( InverseViewMatrix_.translation() );	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -176,8 +177,9 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Header_.Far_ );
 
 	// Setup the view matrix.
-	BcMat4d ViewMatrix = getParentEntity()->getMatrix();
-	ViewMatrix.inverse();
+	InverseViewMatrix_ = getParentEntity()->getMatrix();
+	BcMat4d ViewMatrix( InverseViewMatrix_ );
+	ViewMatrix.inverse();	
 	Viewport_.view( ViewMatrix );
 	
 	// Setup the perspective projection.

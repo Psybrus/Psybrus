@@ -376,7 +376,7 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
 		ParameterBufferSize_ += Bytes;
 		
 		// Log.
-		BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u\n", pName, Handle );
+		BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );
 
 	}
 }
