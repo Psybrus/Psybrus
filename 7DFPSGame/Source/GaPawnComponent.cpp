@@ -2,9 +2,9 @@
 *
 * File:		GaPawnComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	29/12/11	
+* Ver/Date:	
 * Description:
-*		Example user component.
+*		Pawn component.
 *		
 *
 *

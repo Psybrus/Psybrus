@@ -14,6 +14,14 @@
 #include "GaWorldBSPComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Round
+static BcVec2d RoundVector( BcVec2d Vector )
+{
+	const BcReal Factor = 1.0f;
+	return BcVec2d( BcRound( Vector.x() / Factor ) * Factor, BcRound( Vector.y() / Factor ) * Factor );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define
 DEFINE_RESOURCE( GaWorldBSPComponent );
 
@@ -34,6 +42,8 @@ void GaWorldBSPComponent::initialise( const Json::Value& Object )
 	pVertexArray_ = NULL;
 	pVertexBuffer_ = NULL;
 	pPrimitive_ = NULL;
+
+	CurrentLevel_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,9 +86,23 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		const BcReal NormalSize = 0.5f;
 		const BcReal HintSize = 0.125f;
 		const BcVec2d HintBoxSize( HintSize, HintSize );
-		
+
+
 		{
 			Canvas_->drawBox( BcVec2d( -32.0f, -18.0f ), BcVec2d( 32.0f, 18.0f ), RsColour( 0.0f, 0.0f, 0.0f, 1.0f ), 0 );
+		}
+
+		// Draw editor grid.
+		BcReal Size = 16.0f;
+		for( BcReal T = -Size; T <= Size; T += 1.0f )
+		{
+			Canvas_->drawLine( BcVec2d( T, -Size ), BcVec2d( T, Size ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
+			Canvas_->drawLine( BcVec2d( -Size,T ), BcVec2d( Size, T ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
+		}
+		for( BcReal T = -Size; T <= Size; T += 4.0f )
+		{
+			Canvas_->drawLine( BcVec2d( T, -Size ), BcVec2d( T, Size ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
+			Canvas_->drawLine( BcVec2d( -Size,T ), BcVec2d( Size, T ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
 		}
 
 		for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
@@ -110,7 +134,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				if( pBSPTree_ != NULL )
 				{
 					BcBSPInfo BSPInfo;
-					if( pBSPTree_->checkPointFront( BcVec3d( MousePosition_, 0.0f ), 0.25f ) )
+					if( pBSPTree_->checkPointFront( BcVec3d( MousePosition_, 0.0f ), 1e-3f ) )
 					{
 						Canvas_->drawLineBox( MousePosition_ - HintBoxSize, MousePosition_ + HintBoxSize, RsColour::GREEN, 2 );
 					}
@@ -119,10 +143,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 						Canvas_->drawLineBox( MousePosition_ - HintBoxSize, MousePosition_ + HintBoxSize, RsColour::RED, 2 );
 					}
 				}
-				else
-				{
-					Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::BLUE, 2 );
-				}
+				Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::BLUE, 2 );
 
 				// Highlight nearest point, if none then nearest edge.
 				if( NearestPoint_ != BcErrorCode )
@@ -144,7 +165,6 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				}
 
 				// Line intersections out.
-				/*
 				BcBSPPointInfo PointInfo;
 				if( pBSPTree_ != NULL )
 				{
@@ -153,10 +173,9 @@ void GaWorldBSPComponent::update( BcReal Tick )
 						BcVec3d Normal( BcVec3d( BcCos( Angle ) * 128.0f, BcSin( Angle ) * 128.0f, 0.0f ) );
 						PointInfo.Point_ = BcVec3d( MousePosition_, 0.0f ) + Normal;
 						pBSPTree_->lineIntersection( BcVec3d( MousePosition_, 0.0f ), PointInfo.Point_, &PointInfo );
-						Canvas_->drawLine( MousePosition_, BcVec2d( PointInfo.Point_.x(), PointInfo.Point_.y() ), RsColour::RED, 0 );
+						Canvas_->drawLine( MousePosition_, BcVec2d( PointInfo.Point_.x(), PointInfo.Point_.y() ), RsColour( 1.0f, 0.0f, 0.0f, 0.25f ), 0 );
 					}
 				}
-				*/
 			}
 			break;
 
@@ -210,7 +229,7 @@ void GaWorldBSPComponent::render( class ScnViewComponent* pViewComponent, RsFram
 
 		// Add to frame.
 		pRenderNode->Sort_ = Sort;
-		pFrame->addRenderNode( pRenderNode );
+		//pFrame->addRenderNode( pRenderNode );
 	}
 }
 
@@ -272,22 +291,37 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 		InEditorMode_ = !InEditorMode_;
 		break;
 
-	case 'S':
-	case 's':
+	case 'X':
+	case 'x':
 		if( InEditorMode_ )
+		{
 			saveJson();
-		break;
-
-	case 'L':
-	case 'l':
-		if( InEditorMode_ )
-			loadJson();
+			buildBSP();
+		}
 		break;
 
 	case 'B':
 	case 'b':
 		if( InEditorMode_ )
 			buildBSP();
+		break;
+
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		if( InEditorMode_ )
+		{
+			CurrentLevel_ = Event.AsciiCode_ - '0';
+			loadJson();
+			buildBSP();
+		}
 		break;
 
 	default:
@@ -420,8 +454,7 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 			{
 				// Store mouse position.
 				MousePosition_ = Position;
-				MousePointPosition_.x( BcRound( Position.x() ) );
-				MousePointPosition_.y( BcRound( Position.y() ) );
+				MousePointPosition_ = RoundVector( Position );
 			}
 			break;
 		}
@@ -435,8 +468,7 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 BcU32 GaWorldBSPComponent::nearestPoint( BcVec2d Position, BcReal Radius )
 {
 	// Round up the position to the nearest int.
-	Position.x( BcRound( Position.x() ) );
-	Position.y( BcRound( Position.y() ) );
+	Position = RoundVector( Position );
 
 	// Find.
 	BcU32 FoundIdx = BcErrorCode;
@@ -462,8 +494,7 @@ BcU32 GaWorldBSPComponent::nearestPoint( BcVec2d Position, BcReal Radius )
 BcU32 GaWorldBSPComponent::addPoint( BcVec2d Position )
 {
 	// Round up the position to the nearest int.
-	Position.x( BcRound( Position.x() ) );
-	Position.y( BcRound( Position.y() ) );
+	Position = RoundVector( Position );
 
 	// Setup point.
 	GaWorldBSPPoint Point = 
@@ -636,14 +667,74 @@ void GaWorldBSPComponent::saveJson()
 	Json::FastWriter Writer;
 	std::string JsonOutput = Writer.write( LevelData );
 
-
+	BcFile OutputFile;
+	BcChar FileName[ 128 ];
+	BcSPrintf( FileName, "./LevelData%u.json", CurrentLevel_ );
+	if( OutputFile.open( FileName, bcFM_WRITE ) )
+	{
+		OutputFile.write( JsonOutput.c_str(), JsonOutput.size() );
+		OutputFile.close();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // loadJson
 void GaWorldBSPComponent::loadJson()
 {
+	Json::Value LevelData;
+	Json::Value PointsData( Json::arrayValue );
+	Json::Value EdgesData( Json::arrayValue );
 
+	// Clear out old level.
+	Points_.clear();
+	Edges_.clear();
+
+	// Load new in.
+	BcFile InputFile;
+	BcChar FileName[ 128 ];
+	BcSPrintf( FileName, "./LevelData%u.json", CurrentLevel_ );
+	if( InputFile.open( FileName, bcFM_READ ) )
+	{
+		BcChar* pBuffer = new BcChar[ InputFile.size() + 1 ];
+		BcMemZero( pBuffer, InputFile.size() + 1 );
+		InputFile.read( pBuffer, InputFile.size() );
+		InputFile.close();
+
+		Json::Reader Reader;
+		if( Reader.parse( pBuffer, pBuffer + InputFile.size(), LevelData ) )
+		{
+			PointsData = LevelData[ "points" ];
+			EdgesData = LevelData[ "edges" ];
+
+			for( BcU32 Idx = 0; Idx < PointsData.size(); ++Idx )
+			{
+				Json::Value& PointData( PointsData[ Idx ] );
+				BcReal X, Y;
+				BcSScanf( PointData.asCString(), "%f,%f", &X, &Y );
+
+				GaWorldBSPPoint Point = { BcVec2d( X, Y ) };
+				Points_.push_back( Point );
+			}
+
+			for( BcU32 Idx = 0; Idx < EdgesData.size(); ++Idx )
+			{
+				Json::Value& EdgeData( EdgesData[ Idx ] );
+
+				BcU32 A, B;
+				BcSScanf( EdgeData.asCString(), "%u,%u", &A, &B );
+				GaWorldBSPEdge Edge( A, B );
+				Edges_.push_back( Edge );
+			}
+		}
+		else
+		{
+			BcPrintf( "GaWorldBSPComponent: Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
+			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", FileName );
+			return;
+		}
+
+		delete [] pBuffer;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
