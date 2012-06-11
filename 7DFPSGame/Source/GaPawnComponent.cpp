@@ -48,9 +48,12 @@ void GaPawnComponent::update( BcReal Tick )
 	BcVec3d RadiusMoveVector = MoveVector * LineCheckRadius;
 	
 	// Debug draw:
-	BcVec2d Position2D = BcVec2d( Position_.x(), Position_.y() );
-	BcVec2d BoxSize2D = BcVec2d( PlayerRadius, PlayerRadius );
-	Canvas_->drawLineBox( Position2D - BoxSize2D, Position2D + BoxSize2D, RsColour::GREEN, 3 );
+	if( BSP_->InEditorMode_ )
+	{
+		BcVec2d Position2D = BcVec2d( Position_.x(), Position_.y() );
+		BcVec2d BoxSize2D = BcVec2d( PlayerRadius, PlayerRadius );
+		Canvas_->drawLineBox( Position2D - BoxSize2D, Position2D + BoxSize2D, RsColour::GREEN, 10 );
+	}
 
 	// If we're moving do the collision checks.
 	if( MoveSpeed > 0.0f )
@@ -68,9 +71,12 @@ void GaPawnComponent::update( BcReal Tick )
 			BcBool PointBIntersection = BSP_->lineIntersection( SidePositionB, SidePositionB + RadiusMoveVector, &BSPPointInfoB );
 			BcBool PointCIntersection = BSP_->lineIntersection( SidePositionC, SidePositionC + RadiusMoveVector, &BSPPointInfoC );
 
-			Canvas_->drawLine( BcVec2d( SidePositionA.x(), SidePositionA.y() ), BcVec2d( BSPPointInfoA.Point_.x(), BSPPointInfoA.Point_.y() ), RsColour::GREEN, 3 );
-			Canvas_->drawLine( BcVec2d( SidePositionB.x(), SidePositionB.y() ), BcVec2d( BSPPointInfoB.Point_.x(), BSPPointInfoB.Point_.y() ), RsColour::GREEN, 3 );
-			Canvas_->drawLine( BcVec2d( SidePositionC.x(), SidePositionC.y() ), BcVec2d( BSPPointInfoC.Point_.x(), BSPPointInfoC.Point_.y() ), RsColour::GREEN, 3 );
+			if( BSP_->InEditorMode_ )
+			{
+				Canvas_->drawLine( BcVec2d( SidePositionA.x(), SidePositionA.y() ), BcVec2d( BSPPointInfoA.Point_.x(), BSPPointInfoA.Point_.y() ), RsColour::GREEN, 10 );
+				Canvas_->drawLine( BcVec2d( SidePositionB.x(), SidePositionB.y() ), BcVec2d( BSPPointInfoB.Point_.x(), BSPPointInfoB.Point_.y() ), RsColour::GREEN, 10 );
+				Canvas_->drawLine( BcVec2d( SidePositionC.x(), SidePositionC.y() ), BcVec2d( BSPPointInfoC.Point_.x(), BSPPointInfoC.Point_.y() ), RsColour::GREEN, 10 );
+			}
 		
 			if( PointAIntersection )
 			{

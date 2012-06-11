@@ -79,15 +79,18 @@ public:
 	BcU32								nearestPoint( BcVec2d Position, BcReal Radius );
 	BcU32								addPoint( BcVec2d Position );
 	BcBool								addEdge( BcU32 IdxA, BcU32 IdxB );
+	BcBool								addEnemy( const BcVec2d& Position );
 
 	void								removePoint( BcU32 Idx );
 	void								removeEdge( BcU32 Idx );
+	void								removeEnemy( BcU32 Idx );
 
 	void								invertEdge( BcU32 Idx );
 
 	BcU32								nearestEdge( const BcVec2d& Position, BcReal Radius );
 	BcVec2d								nearestPositionOnEdge( const BcVec2d& Position, BcU32 Idx );
-	
+	BcU32								nearestEnemy( BcVec2d Position, BcReal Radius );
+
 	void								saveJson();
 	void								loadJson();
 	void								buildBSP();
@@ -117,6 +120,7 @@ public:
 
 	std::vector< GaWorldBSPPoint >		Points_;
 	std::vector< GaWorldBSPEdge >		Edges_;
+	std::vector< BcVec2d >				Enemies_;
 
 	BcU32								LastPointIdx_;
 
@@ -125,6 +129,7 @@ public:
 
 	BcU32								NearestPoint_;
 	BcU32								NearestEdge_;
+	BcU32								NearestEnemy_;
 
 	BcBSPTree*							pBSPTree_;
 

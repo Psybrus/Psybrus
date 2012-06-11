@@ -37,6 +37,7 @@ void GaWorldBSPComponent::initialise( const Json::Value& Object )
 
 	NearestPoint_ = BcErrorCode;
 	NearestEdge_ = BcErrorCode;
+	NearestEnemy_ = BcErrorCode;
 	pBSPTree_ = NULL;
 
 	pVertexArray_ = NULL;
@@ -120,6 +121,19 @@ void GaWorldBSPComponent::update( BcReal Tick )
 			Canvas_->drawLine( Centre, Centre + Normal * NormalSize, RsColour::BLUE, 1 );
 		}
 
+		BcVec2d EnemySize( 0.5f, 0.5f );
+		BcVec2d EnemySizeOther( -EnemySize.x(), EnemySize.y() );
+		for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
+		{
+			BcVec2d Enemy( Enemies_[ Idx ] );
+			Canvas_->drawLineBox( Enemy - EnemySize, Enemy + EnemySize, RsColour::WHITE, 1 );
+			Canvas_->drawLine( Enemy - EnemySize, Enemy + EnemySize, RsColour::WHITE, 1 );
+			Canvas_->drawLine( Enemy - EnemySizeOther, Enemy + EnemySizeOther, RsColour::WHITE, 1 );
+
+			// Do ray casts for enemy position in all 4 directions.
+
+		}
+
 		for( BcU32 Idx = 0; Idx < Points_.size(); ++Idx )
 		{
 			const GaWorldBSPPoint& Point( Points_[ Idx ] );
@@ -161,6 +175,13 @@ void GaWorldBSPComponent::update( BcReal Tick )
 	
 						// Draw edge.
 						Canvas_->drawLine( PointA.Position_, PointB.Position_, RsColour::RED, 2 );
+					}
+					else if ( NearestEnemy_ != BcErrorCode )
+					{
+						BcVec2d Enemy( Enemies_[ NearestEnemy_ ] );
+						Canvas_->drawLineBox( Enemy - EnemySize, Enemy + EnemySize, RsColour::RED, 1 );
+						Canvas_->drawLine( Enemy - EnemySize, Enemy + EnemySize, RsColour::RED, 1 );
+						Canvas_->drawLine( Enemy - EnemySizeOther, Enemy + EnemySizeOther, RsColour::RED, 1 );
 					}
 				}
 
@@ -324,6 +345,14 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 		}
 		break;
 
+	case 'E':
+	case 'e':
+		if( InEditorMode_ )
+		{
+			addEnemy( MousePointPosition_ );			
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -359,12 +388,14 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 		Position.set( WorldNearPos.x(), WorldNearPos.y() );
 
 		// Find nearest point for 
-		BcU32 PointIdx = nearestPoint( Position, 0.25f );
-		BcU32 EdgeIdx = nearestEdge( Position, 0.25f );
+		BcU32 PointIdx = nearestPoint( Position, 0.5f );
+		BcU32 EdgeIdx = nearestEdge( Position, 0.5f );
+		BcU32 EnemyIdx = nearestEnemy( Position, 0.5f );
 
 		// Cache for UI use.
 		NearestPoint_ = PointIdx;
 		NearestEdge_ = EdgeIdx;
+		NearestEnemy_ = EnemyIdx;
 		
 		switch( ID )
 		{
@@ -399,6 +430,11 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 							{
 								removeEdge( NearestEdge_ );
 								NearestEdge_ = BcErrorCode;
+							}
+							else if( NearestEnemy_ != BcErrorCode )
+							{
+								removeEnemy( NearestEnemy_ );
+								NearestEnemy_ = BcErrorCode;
 							}
 						}
 						// Invert edge.
@@ -529,6 +565,25 @@ BcBool GaWorldBSPComponent::addEdge( BcU32 IdxA, BcU32 IdxB )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addEnemy
+BcBool GaWorldBSPComponent::addEnemy( const BcVec2d& Position )
+{
+	// Check it doesn't exist.
+	for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
+	{
+		if( ( Enemies_[ Idx ] - Position ).magnitudeSquared() < 2.0f )
+		{
+			return BcFalse;
+		}
+	}
+	
+	// Add!
+	Enemies_.push_back( Position );
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // removePoint
 void GaWorldBSPComponent::removePoint( BcU32 Idx )
 {
@@ -587,6 +642,22 @@ void GaWorldBSPComponent::removeEdge( BcU32 Idx )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// removeEnemy
+void GaWorldBSPComponent::removeEnemy( BcU32 Idx )
+{
+	// Remove enemy at index.
+	BcU32 EnemyIdx = 0;
+	for( std::vector< BcVec2d >::iterator It( Enemies_.begin() ); It != Enemies_.end(); ++EnemyIdx, ++It )
+	{
+		if( EnemyIdx == Idx )
+		{
+			Enemies_.erase( It );
+			break;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // invertEdge
 void GaWorldBSPComponent::invertEdge( BcU32 Idx )
 {
@@ -633,6 +704,29 @@ BcVec2d GaWorldBSPComponent::nearestPositionOnEdge( const BcVec2d& Position, BcU
 	BcReal APAB = AP.dot( AB );
 	BcReal T = BcClamp( APAB / AB2, 0.0f, 1.0f );
 	return ( PointA + AB * T );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// nearestEnemy
+BcU32 GaWorldBSPComponent::nearestEnemy( BcVec2d Position, BcReal Radius )
+{
+	BcU32 NearestIdx = BcErrorCode;
+	BcReal NearestDistance = Radius;
+
+	// Check edge doesn't exist already.
+	for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
+	{
+		const BcVec2d& NearestPosition( Enemies_[ Idx ] );
+
+		BcReal Distance = ( NearestPosition - Position ).magnitude();
+		if( Distance < NearestDistance )
+		{
+			NearestIdx = Idx;
+			NearestDistance = Distance;
+		}
+	}
+
+	return NearestIdx;
 }
 
 //////////////////////////////////////////////////////////////////////////
