@@ -453,7 +453,6 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 // putNonCoincidingNodeAtTheFront
 void BcBSPTree::putNonCoincidingNodeAtTheFront( BcBSPNodeList& List )
 {
-	return;
 	for( BcU32 TotalIdx = 0; TotalIdx < List.size(); ++TotalIdx )
 	{
 		// Get first node.
