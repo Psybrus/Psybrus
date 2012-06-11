@@ -49,34 +49,38 @@ void GaPlayerComponent::update( BcReal Tick )
 	BcReal RotationSpeed = 1.0f * Tick;
 	BcReal MoveSpeed = DoRun_ ? 4.0f : 2.0f;
 	BcReal MoveDirection = 0.0f;
-	BcVec3d MoveVector = BcVec3d( 1.0f, 0.0f, 0.0f );
+	BcVec3d ViewVector = BcVec3d( 1.0f, 0.0f, 0.0f );
 	BcMat4d RotationMatrix;
 	RotationMatrix.rotation( BcVec3d( 0.0f, Pitch_, Yaw_ ) );
-	MoveVector = MoveVector * RotationMatrix;
+	ViewVector = ViewVector * RotationMatrix;
+	BcVec3d SideVector = ViewVector.cross( BcVec3d( 0.0f, 0.0f, 1.0f ) );
+	BcVec3d MoveVector;
+
 	if( MoveForward_ )
 	{
-		MoveDirection = 1.0f;
+		MoveVector = MoveVector + ViewVector;
 	}
 	if( MoveBackward_ )
 	{
-		MoveDirection = -1.0f;
+		MoveVector = MoveVector - ViewVector;
 	}
 	if( MoveLeft_ )
 	{
-		Yaw_ += RotationSpeed;
+		MoveVector = MoveVector + SideVector;
 	}
 	if( MoveRight_ )
 	{
-		Yaw_ -= RotationSpeed;
+		MoveVector = MoveVector - SideVector;
 	}
 
 	if( DoPulse_ == BcTrue || PulseTick_ > 0.0f )
 	{
+		BcVec3d Position( getParentEntity()->getPosition() );
+		Position.z( -1.0f );
+		Pressure_->setSample( Position, BcSin( PulseTick_ ) * 16.0f );
 		PulseTick_ += Tick * 8.0f;
 
-		Pressure_->setSample( getParentEntity()->getPosition() + BcVec3d( MoveVector.x(), MoveVector.y(), 0.0f ).normal() * 1.0f, BcSin( PulseTick_ ) * 16.0f );
-
-		if( PulseTick_ > BcPIMUL4 )
+		if( PulseTick_ > BcPIMUL2 )
 		{
 			DoPulse_ = BcFalse;
 			PulseTick_ = -1.0f;
@@ -86,12 +90,12 @@ void GaPlayerComponent::update( BcReal Tick )
 	// Set the move.
 	BcVec3d AppliedMoveVector = MoveVector;
 	AppliedMoveVector.z( 0.0f );
-	AppliedMoveVector = AppliedMoveVector.normal() * MoveSpeed * MoveDirection;
+	AppliedMoveVector = AppliedMoveVector.normal() * MoveSpeed;
 	Pawn_->setMove( AppliedMoveVector );
 
 	// Set look at.
 	BcMat4d Transform;
-	Transform.lookAt( BcVec3d( 0.0f, 0.0f, 0.0f ), MoveVector, BcVec3d( 0.0f, 0.0f, 1.0f ) );
+	Transform.lookAt( BcVec3d( 0.0f, 0.0f, 0.0f ), ViewVector, BcVec3d( 0.0f, 0.0f, 1.0f ) );
 	Transform.inverse();
 	getParentEntity()->setMatrix( Transform );
 }

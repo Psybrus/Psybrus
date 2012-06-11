@@ -86,7 +86,6 @@ private:
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
 	ScnMaterialComponentRef				MaterialPreview_;
-	BcU32								WorldTransformParam_;
 	ScnTextureRef						Texture_;
 	GaWorldBSPComponentRef				BSP_;
 	ScnParticleSystemComponentRef		ParticleSystem_;

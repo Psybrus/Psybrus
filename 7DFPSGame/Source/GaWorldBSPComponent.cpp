@@ -110,13 +110,13 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				if( pBSPTree_ != NULL )
 				{
 					BcBSPInfo BSPInfo;
-					if( pBSPTree_->checkPointFront( BcVec3d( MousePointPosition_, 0.0f ), 0.25f ) )
+					if( pBSPTree_->checkPointFront( BcVec3d( MousePosition_, 0.0f ), 0.25f ) )
 					{
-						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::GREEN, 2 );
+						Canvas_->drawLineBox( MousePosition_ - HintBoxSize, MousePosition_ + HintBoxSize, RsColour::GREEN, 2 );
 					}
 					else
 					{
-						Canvas_->drawLineBox( MousePointPosition_ - HintBoxSize, MousePointPosition_ + HintBoxSize, RsColour::RED, 2 );
+						Canvas_->drawLineBox( MousePosition_ - HintBoxSize, MousePosition_ + HintBoxSize, RsColour::RED, 2 );
 					}
 				}
 				else
@@ -200,7 +200,7 @@ void GaWorldBSPComponent::render( class ScnViewComponent* pViewComponent, RsFram
 	if( pVertexArray_ != NULL )
 	{
 		// Bind material.
-		MaterialWorld_->setParameter( WorldTransformParam_, BcMat4d() );
+		MaterialWorld_->setWorldTransform( BcMat4d() );
 		MaterialWorld_->bind( pFrame, Sort );
 
 		// Setup render node.
@@ -238,7 +238,6 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 	if( CsCore::pImpl()->requestResource( "default", "airsolid", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, BcErrorCode ) )
 	{
 		Parent->attach( MaterialWorld_ );
-		WorldTransformParam_ = MaterialWorld_->findParameter( "uWorldTransform" );
 	}
 
 	// Ok setup player.
@@ -691,10 +690,10 @@ void GaWorldBSPComponent::buildBSP()
 			
 			BcVec3d Vertices[ 4 ] = 
 			{
-				BcVec3d( PointA.Position_, -2.0f ),
-				BcVec3d( PointB.Position_, -2.0f ),
-				BcVec3d( PointB.Position_,  2.0f ),
-				BcVec3d( PointA.Position_,  2.0f ),
+				BcVec3d( PointA.Position_, -4.0f ),
+				BcVec3d( PointB.Position_, -4.0f ),
+				BcVec3d( PointB.Position_,  4.0f ),
+				BcVec3d( PointA.Position_,  4.0f ),
 			};
 
 			BcU32 Indices[ 6 ] =
@@ -702,11 +701,11 @@ void GaWorldBSPComponent::buildBSP()
 				0, 1, 2, 2, 3, 0
 			};
 
-			BcVec3d Offset = BcVec3d( 128.0f * 0.25f, 128.0f * 0.25f, 8.0f * 0.25f ) * 0.5f;
+			BcVec3d Offset = BcVec3d( 64.0f, 64.0f, 4.0f );
 			for( BcU32 Vert = 0; Vert < 6; ++Vert )
 			{
 				BcVec3d Vertex = Vertices[ Indices[ Vert ] ];
-				BcVec3d Index = ( Vertex + Offset ) / 0.25f;
+				BcVec3d Index = ( Vertex + Offset );
 				pVertex->X_ = Vertex.x();
 				pVertex->Y_ = Vertex.y();
 				pVertex->Z_ = Vertex.z();
