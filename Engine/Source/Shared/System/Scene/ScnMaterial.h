@@ -115,6 +115,7 @@ public:
 	void								setClipTransform( const BcMat4d& Transform );
 	void								setViewTransform( const BcMat4d& Transform );
 	void								setWorldTransform( const BcMat4d& Transform );
+	void								setEyePosition( const BcVec3d& Position );
 	
 	void								setState( eRsRenderState State, BcU32 Value );
 	
@@ -169,6 +170,7 @@ private:
 	BcU32								ViewTransformParameter_;
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
+	BcU32								EyePositionParameter_;
 };
 
 #endif

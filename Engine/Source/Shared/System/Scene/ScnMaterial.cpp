@@ -305,6 +305,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	ViewTransformParameter_ = findParameter( "uViewTransform" );
 	InverseViewTransformParameter_ = findParameter( "uInverseViewTransform" );
 	WorldTransformParameter_ = findParameter( "uWorldTransform" );
+	EyePositionParameter_ = findParameter( "uEyePosition" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -381,6 +382,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value )
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = Value;
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not an int.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -396,6 +401,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = (BcU32)Value;
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a bool.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -414,6 +423,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcReal Value )
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = (BcF32)Value;
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a real.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -430,6 +443,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value )
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer = (BcF32)Value.y();
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec2.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -449,6 +466,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value )
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer = (BcF32)Value.z();
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec3.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -467,6 +488,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value )
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer++ = (BcF32)Value.z();
 			*pParameterBuffer = (BcF32)Value.w();
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec4.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -491,6 +516,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value )
 			*pParameterBuffer++ = (BcF32)Value[2][0];
 			*pParameterBuffer++ = (BcF32)Value[2][1];
 			*pParameterBuffer = (BcF32)Value[2][2];
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a mat3.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -523,6 +552,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value )
 			*pParameterBuffer++ = (BcF32)Value[3][2];
 			*pParameterBuffer = (BcF32)Value[3][3];
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a mat4.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 	
 }
@@ -553,6 +586,10 @@ void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 				}
 			}
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a texture.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -575,6 +612,13 @@ void ScnMaterialComponent::setViewTransform( const BcMat4d& Transform )
 		InverseViewTransform.inverse();
 		setParameter( InverseViewTransformParameter_, InverseViewTransform );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setEyePosition
+void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
+{
+	setParameter( EyePositionParameter_, EyePosition );
 }
 
 //////////////////////////////////////////////////////////////////////////
