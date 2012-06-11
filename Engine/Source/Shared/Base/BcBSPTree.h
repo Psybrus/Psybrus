@@ -141,6 +141,11 @@ private:
 	BcBool								pointOnNode( const BcVec3d& Point, BcBSPNode* pNode );
 	
 
+	/**
+	 *	Put a non-coinciding node to the front of the list.
+	 */
+	void								putNonCoincidingNodeAtTheFront( BcBSPNodeList& List );
+
 
 private:
 	BcBSPNodeList						NodeList_;
