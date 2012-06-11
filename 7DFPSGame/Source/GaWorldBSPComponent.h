@@ -131,6 +131,8 @@ public:
 	GaWorldBSPVertex*					pVertexArray_;
 	RsVertexBuffer*						pVertexBuffer_;
 	RsPrimitive*						pPrimitive_;
+
+	BcU32								CurrentLevel_;
 };
 
 #endif
