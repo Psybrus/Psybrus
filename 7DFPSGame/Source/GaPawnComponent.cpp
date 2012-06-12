@@ -110,7 +110,7 @@ void GaPawnComponent::update( BcReal Tick )
 		{
 			Position_ = TargetPosition;
 
-			Pressure_->addSample( Position_, MoveSpeed * Tick );
+			Pressure_->addSample( Position_, MoveSpeed * Tick * 2.0f );
 		}
 	}
 
@@ -130,6 +130,9 @@ void GaPawnComponent::onAttach( ScnEntityWeakRef Parent )
 	Canvas_ = WorldEntity->getComponentByType< ScnCanvasComponent >( 0 );
 	BSP_ = WorldEntity->getComponentByType< GaWorldBSPComponent >( 0 );
 	Pressure_ = WorldEntity->getComponentByType< GaWorldPressureComponent >( 0 );
+
+	// Grab position.
+	Position_ = Parent->getPosition();
 }
 
 //////////////////////////////////////////////////////////////////////////

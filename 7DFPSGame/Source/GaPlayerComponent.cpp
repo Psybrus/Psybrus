@@ -31,8 +31,12 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 	MoveRight_ = BcFalse;
 
 	DoRun_ = BcFalse;
+
 	DoPulse_ = BcFalse;
-	PulseTick_ = -1.0f;
+
+	DoShot_ = BcFalse;
+	RateOfShot_ = 0.4f;
+	ShotTick_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,30 +64,47 @@ void GaPlayerComponent::update( BcReal Tick )
 	{
 		MoveVector = MoveVector + ViewVector;
 	}
+
 	if( MoveBackward_ )
 	{
 		MoveVector = MoveVector - ViewVector;
 	}
+
 	if( MoveLeft_ )
 	{
 		MoveVector = MoveVector + SideVector;
 	}
+
 	if( MoveRight_ )
 	{
 		MoveVector = MoveVector - SideVector;
 	}
 
-	if( DoPulse_ == BcTrue || PulseTick_ > 0.0f )
+	if( DoPulse_ == BcTrue )
 	{
-		BcVec3d Position( getParentEntity()->getPosition() );
-		Position.z( -1.0f );
-		Pressure_->setSample( Position, BcSin( PulseTick_ ) * 16.0f );
-		PulseTick_ += Tick * 8.0f;
+		doShot( ViewVector, 0.5f, 0.25f, 0.5f );
+		DoPulse_ = BcFalse;
+	}
 
-		if( PulseTick_ > BcPIMUL2 )
+	if( DoShot_ == BcTrue )
+	{
+		if( ShotTick_ >= RateOfShot_ )
 		{
-			DoPulse_ = BcFalse;
-			PulseTick_ = -1.0f;
+			doShot( ViewVector, 8.0f, 128.0f, 32.0f );
+			ShotTick_ -= 1.0f;
+		}
+
+		ShotTick_ += Tick;
+	}
+	else
+	{
+		if( ShotTick_ > RateOfShot_ )
+		{
+			ShotTick_ = -1.0f;
+		}
+		else
+		{
+			ShotTick_ += Tick;
 		}
 	}
 	
@@ -112,6 +133,8 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 	OsEventInputMouse::Delegate OnMouseEvent = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseEvent >( this );
 	
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseEvent );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyboardEvent );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyboardEvent );
 
@@ -175,10 +198,9 @@ eEvtReturn GaPlayerComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeybo
 			break;
 
 		case OsEventInputKeyboard::KEYCODE_CONTROL:
-			if( !DoPulse_ )
+			if( ID == osEVT_INPUT_KEYDOWN )
 			{
-				DoPulse_ = State;
-				PulseTick_ = State ? 0.0f : PulseTick_;
+				DoPulse_ = BcTrue;
 			}
 			break;
 		}
@@ -191,6 +213,68 @@ eEvtReturn GaPlayerComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeybo
 // onMouseEvent
 eEvtReturn GaPlayerComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& Event )
 {
-	MouseDelta_.set( Event.MouseDX_, Event.MouseDY_ );
+	switch( ID )
+	{
+	case osEVT_INPUT_MOUSEMOVE:
+		MouseDelta_.set( Event.MouseDX_, Event.MouseDY_ );
+		break;
+
+	case osEVT_INPUT_MOUSEDOWN:
+		DoShot_ = BcTrue;
+		if( ShotTick_ < 0.0f )
+		{
+			ShotTick_ = RateOfShot_;
+		}
+		break;
+
+	case osEVT_INPUT_MOUSEUP:
+		DoShot_ = BcFalse;
+		break;
+	}
+	
 	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// doShot
+void GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower )
+{
+	BcVec3d Position = getParentEntity()->getPosition();
+	BcVec3d Target = Position + Direction * 256.0f;
+
+	BcBSPPointInfo BSPPointInfo;
+	if( BSP_->lineIntersection( Position, Target, &BSPPointInfo ) )
+	{
+		BcPrintf( "BANG WALL!\n" );
+	}
+	else
+	{
+		BcPrintf( "BANG FLOOR!\n" );
+		BcPlane Floor( BcVec3d( 0.0f, 0.0f,  1.0f ), 4.0f );
+		BcPlane Ceil( BcVec3d( 0.0f, 0.0f, -1.0f ), 4.0f );
+		BcReal Dist;
+		Floor.lineIntersection( Position, Target, Dist, BSPPointInfo.Point_ );
+		Ceil.lineIntersection( Position, Target, Dist, BSPPointInfo.Point_ );
+	}
+
+	// Draw pressure into the scene at the start and end points.
+	if( MuzzlePower > 0.0f )
+	{
+		Pressure_->setSample( BSPPointInfo.Point_, MuzzlePower );
+	}
+
+	if( ImpactPower > 0.0f )
+	{
+		Pressure_->setSample( BSPPointInfo.Point_, ImpactPower );
+	}
+
+	// Trace a line through the scene.
+	BcReal Distance = ( BSPPointInfo.Point_ - Position ).magnitude() * 2.0f;
+	BcVec3d Point = Position;
+	BcVec3d StepVec = ( BSPPointInfo.Point_ - Position ) / Distance;
+	for( BcU32 Idx = 0; Idx < BcU32( Distance ); ++Idx )
+	{
+		Pressure_->setSample( Point, TrailPower );
+		Point += StepVec;
+	}
 }

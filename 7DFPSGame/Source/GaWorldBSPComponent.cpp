@@ -88,7 +88,6 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		const BcReal HintSize = 0.125f;
 		const BcVec2d HintBoxSize( HintSize, HintSize );
 
-
 		{
 			Canvas_->drawBox( BcVec2d( -32.0f, -18.0f ), BcVec2d( 32.0f, 18.0f ), RsColour( 0.0f, 0.0f, 0.0f, 1.0f ), 0 );
 		}
@@ -295,10 +294,9 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 void GaWorldBSPComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	OsCore::pImpl()->unsubscribeAll( this );
-
+	
 	Canvas_ = NULL;
-	Parent->detach( Material_ );
-
+	
 	Super::onDetach( Parent );
 }
 
@@ -309,7 +307,30 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 	switch( Event.AsciiCode_ )
 	{
 	case 0x9:
-		InEditorMode_ = !InEditorMode_;
+		{
+			InEditorMode_ = !InEditorMode_;
+
+			if( !InEditorMode_ )
+			{
+				for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
+				{
+					BcVec2d Enemy( Enemies_[ Idx ] );
+					ScnEntityRef EnemyEntity = ScnCore::pImpl()->createEntity( "default", "EnemyEntity", "EnemyEntity" );
+					EnemyEntity->setPosition( BcVec3d( Enemy.x(), Enemy.y(), 1.0f ) );
+					EnemyEntities_.push_back( EnemyEntity );
+					getParentEntity()->attach( EnemyEntity );
+				}
+			}
+			else
+			{
+				for( BcU32 Idx = 0; Idx < EnemyEntities_.size(); ++Idx )
+				{
+					ScnEntityRef EnemyEntity = EnemyEntities_[ Idx ];
+					getParentEntity()->detach( EnemyEntity );
+				}
+				EnemyEntities_.clear();
+			}
+		}
 		break;
 
 	case 'X':
@@ -905,7 +926,7 @@ void GaWorldBSPComponent::buildBSP()
 			Plane.fromPoints( Vertices[ 0 ], Vertices[ 1 ], Vertices [ 2 ] );
 			pBSPTree_->addNode( Plane, Vertices, 4 );
 		}
-
+			
 		// Build tree.
 		pBSPTree_->buildTree();
 

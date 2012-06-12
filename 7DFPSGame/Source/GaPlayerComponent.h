@@ -41,6 +41,8 @@ public:
 	
 	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
+
+	void								doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower );
 	
 private:
 	BcBool								MoveForward_;
@@ -49,8 +51,9 @@ private:
 	BcBool								MoveRight_;
 	BcBool								DoRun_;
 	BcBool								DoPulse_;
-
-	BcReal								PulseTick_;
+	BcBool								DoShot_;
+	BcReal								RateOfShot_;
+	BcReal								ShotTick_;
 	
 	BcReal								Yaw_;
 	BcReal								Pitch_;
