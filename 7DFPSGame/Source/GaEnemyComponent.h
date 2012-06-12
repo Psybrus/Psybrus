@@ -21,9 +21,8 @@
 #include "GaWorldPressureComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
-// GaExampleComponentRef
+// GaEnemyComponentRef
 typedef CsResourceRef< class GaEnemyComponent > GaEnemyComponentRef;
-
 
 //////////////////////////////////////////////////////////////////////////
 // GaEnemyComponent
@@ -38,12 +37,20 @@ public:
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+	BcVec3d								findLongestDirection();
 	
 private:
 	ScnCanvasComponentRef				Canvas_;
 	GaWorldBSPComponentRef				BSP_;
 	GaWorldPressureComponentRef			Pressure_;
 	GaPawnComponentRef					Pawn_;
+
+	BcVec3d								Direction_;
+
+	BcReal								PulseTimer_;
+
+	GaPawnComponentRef					PlayerPawn_;
 };
 
 #endif

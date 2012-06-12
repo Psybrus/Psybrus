@@ -265,6 +265,21 @@
 		},
 
 		{
+			"name"		:		"EnemyEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaEnemyComponent"
+				},
+
+				{
+					"type"			: "GaPawnComponent"
+				}
+			]
+		},
+
+		{
 			"name"		:		"WorldEntity",
 			"type"		:		"ScnEntity",
 

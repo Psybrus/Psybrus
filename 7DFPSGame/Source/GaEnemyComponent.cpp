@@ -22,6 +22,8 @@ DEFINE_RESOURCE( GaEnemyComponent );
 void GaEnemyComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
+
+	PulseTimer_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -33,7 +35,35 @@ void GaEnemyComponent::update( BcReal Tick )
 	BcReal MoveSpeed = 2.0f;
 	BcVec3d MoveVector;
 
-	//
+	PulseTimer_ += Tick;
+
+	// Set direction and handle if we need to change direction.
+	BcVec3d Position = getParentEntity()->getPosition();
+	MoveVector = Direction_;
+
+	BcBSPPointInfo BSPPointInfo;
+	if( BSP_->lineIntersection( Position, Position + Direction_ * 256.0f, &BSPPointInfo ) )
+	{
+		if( BSPPointInfo.Distance_ < 1.0f )
+		{
+			// New direction.
+			Direction_ = Direction_.reflect( BSPPointInfo.Plane_.normal() );
+
+			// Belt & braces: it will become denormalised over time.
+			Direction_.normalise();
+			
+			// Clamp position (this is to prevent wandering, if angles aren't sitting on an integer, expect weirdness).
+			Position = BcVec3d( BcRound( Position.x() ), BcRound( Position.y() ), BcRound( Position.z() ) );
+
+		}
+	}
+
+	// Pulse.
+	if( PulseTimer_ > 2.0f )
+	{
+		Pressure_->setSample( Position, 0.5f );
+		PulseTimer_ = -2.0f;
+	}
 	
 	// Set the move.
 	BcVec3d AppliedMoveVector = MoveVector;
@@ -58,6 +88,9 @@ void GaEnemyComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Grab pawn.
 	Pawn_ = Parent->getComponentByType< GaPawnComponent >( 0 );
+
+	// Get direction.
+	Direction_ = findLongestDirection();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,4 +105,39 @@ void GaEnemyComponent::onDetach( ScnEntityWeakRef Parent )
 
 	// Don't forget to detach!
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findLongestDirection
+BcVec3d GaEnemyComponent::findLongestDirection()
+{
+	// Ray cast in the 4 directions to determine path.
+	BcReal LongestDistance = 0.0f;
+	BcVec3d LongestDirection( 0.0f, 0.0f, 0.0f );
+	BcVec3d Directions[] =
+	{
+		BcVec3d(  1.0f,  0.0f,  0.0f ),
+		BcVec3d( -1.0f,  0.0f,  0.0f ),
+		BcVec3d(  0.0f,  1.0f,  0.0f ),
+		BcVec3d(  0.0f, -1.0f,  0.0f ),
+	};
+
+	BcVec3d Position = getParentEntity()->getPosition();
+
+	BcBSPPointInfo BSPPointInfo;
+	for( BcU32 Idx = 0; Idx < 4; ++Idx )
+	{
+		if( BSP_->lineIntersection( Position, Position + Directions[ Idx ] * 256.0f, &BSPPointInfo ) )
+		{
+			if( BSPPointInfo.Distance_ > LongestDistance )
+			{
+				LongestDistance = BSPPointInfo.Distance_;
+				LongestDirection = Directions[ Idx ];
+			}
+		}
+	}
+	
+	BcPrintf( "GaEnemyComponent: Got direction [%.1f, %.1f, %.f1]\n", LongestDirection.x(), LongestDirection.y(), LongestDirection.z() );
+
+	return LongestDirection;
 }

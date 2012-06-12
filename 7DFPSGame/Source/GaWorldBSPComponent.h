@@ -121,6 +121,7 @@ public:
 	std::vector< GaWorldBSPPoint >		Points_;
 	std::vector< GaWorldBSPEdge >		Edges_;
 	std::vector< BcVec2d >				Enemies_;
+	std::vector< ScnEntityRef >			EnemyEntities_;
 
 	BcU32								LastPointIdx_;
 

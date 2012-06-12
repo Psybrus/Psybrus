@@ -389,8 +389,6 @@ void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 	Texture_ = NULL;
 	BSP_ = NULL;
 	ParticleSystem_ = NULL;
-	Parent->detach( Material_ );
-
 	Super::onDetach( Parent );
 }
 
@@ -401,9 +399,9 @@ void GaWorldPressureComponent::addSample( const BcVec3d& Position, BcReal Value 
 	BcVec3d Offset = BcVec3d( Width_ * Scale_, Height_ * Scale_, Depth_ * Scale_ ) * 0.5f;
 	BcVec3d Index = ( Position + Offset ) / Scale_;
 	
-	BcU32 X = (BcU32)BcClamp( Index.x(), 1, Width_ - 1 );
-	BcU32 Y = (BcU32)BcClamp( Index.y(), 1, Height_ - 1 );
-	BcU32 Z = (BcU32)BcClamp( Index.z(), 1, Depth_ - 1 );
+	BcU32 X = (BcU32)BcClamp( Index.x(), 2, Width_ - 2 );
+	BcU32 Y = (BcU32)BcClamp( Index.y(), 2, Height_ - 2 );
+	BcU32 Z = (BcU32)BcClamp( Index.z(), 2, Depth_ - 2 );
 
 	sample( CurrBuffer_, X, Y, Z ).Value_ += Value;
 }
@@ -414,9 +412,9 @@ void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value 
 	BcVec3d Offset = BcVec3d( Width_ * Scale_, Height_ * Scale_, Depth_ * Scale_ ) * 0.5f;
 	BcVec3d Index = ( Position + Offset ) / Scale_;
 	
-	BcU32 X = (BcU32)BcClamp( Index.x(), 2, Width_ - 2 );
-	BcU32 Y = (BcU32)BcClamp( Index.y(), 2, Height_ - 2 );
-	BcU32 Z = (BcU32)BcClamp( Index.z(), 2, Depth_  - 2 );
+	BcU32 X = (BcU32)BcClamp( Index.x(), 3, Width_ - 3 );
+	BcU32 Y = (BcU32)BcClamp( Index.y(), 3, Height_ - 3 );
+	BcU32 Z = (BcU32)BcClamp( Index.z(), 3, Depth_  - 3 );
 
 	sample( CurrBuffer_, X, Y, Z ).Value_ = Value;
 	sample( CurrBuffer_, X - 1, Y, Z ).Value_ = Value * 0.5f;
@@ -437,7 +435,7 @@ void GaWorldPressureComponent::updateSimulation()
 	const register BcU32 W = Width_;
 	const register BcU32 WH = Width_ * Height_;
 	
-	for( BcU32 Idx = 0; Idx < 8.0f; ++Idx )
+	for( BcU32 Idx = 0; Idx < 2.0f; ++Idx )
 	{
 		BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
 		BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
