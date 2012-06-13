@@ -167,7 +167,9 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "default",
+				"aFloorTex"		: "default",
+				"aWallTex"		: "default"
 			},
 
 			// State
@@ -202,7 +204,9 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "default",
+				"aFloorTex"		: "default",
+				"aWallTex"		: "default"
 			},
 			
 			// State

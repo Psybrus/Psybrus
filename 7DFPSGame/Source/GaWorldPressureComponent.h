@@ -66,6 +66,7 @@ protected:
 	void								updateSimulation();
 	void								collideSimulation();
 	void								updateTexture();
+	void								updateGlowTextures();
 
 private:
 	SysFence							UpdateFence_;
@@ -84,11 +85,19 @@ private:
 	BcU32								CurrBuffer_;
 
 	ScnCanvasComponentRef				Canvas_;
-	ScnMaterialComponentRef				Material_;
-	ScnMaterialComponentRef				MaterialPreview_;
-	ScnTextureRef						Texture_;
 	GaWorldBSPComponentRef				BSP_;
-	ScnParticleSystemComponentRef		ParticleSystem_;
+	
+	struct TDynamicMaterial
+	{
+		ScnMaterialComponentRef			PreviewMaterial_;
+		ScnMaterialComponentRef			WorldMaterial_;
+		ScnTextureRef					WorldTexture1D_;
+		ScnTextureRef					WorldTexture2D_;
+		ScnTextureRef					WorldTexture3D_;
+	};
+
+	TDynamicMaterial					DynamicMaterials_[ 2 ];
+	BcU32								CurrMaterial_;
 
 	// Graphics data.
 	BcBool								IsReady_;
