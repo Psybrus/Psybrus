@@ -228,6 +228,8 @@ void GaWorldPressureComponent::create()
 
 	pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexDescriptor, NoofVertices, pVertexArray_ ); 
 	pPrimitive_ = RsCore::pImpl()->createPrimitive( pVertexBuffer_, NULL );
+
+	CurrMaterial_ = 0;
 	
 	IsReady_ = BcTrue;
 }
@@ -272,23 +274,16 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	
 	// Wait for update to have finished.
 	UpdateFence_.wait();
-
-	// Poke sine wave in for debugging.
-	/*
-	static BcReal Ticker = 0.0f;
-	Ticker += Tick * BcPI * 3.0f;
-	sample( CurrBuffer_, 8, 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
-	sample( CurrBuffer_, Width_ - 8, 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
-	sample( CurrBuffer_, Width_ - 8, Height_ - 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
-	sample( CurrBuffer_, 8, Height_ - 8, 1 ).Value_ = BcSin( Ticker ) * 16.0f;
-	sample( CurrBuffer_, Width_ / 2, Height_ / 2, 1 ).Value_ = -BcSin( Ticker ) * 128.0f;
-	*/
-
+	
 	// Collide with BSP.
 	collideSimulation();
 
 	// Update texture.
 	updateTexture();
+
+	// Update glow textures.
+	// TODO: Update once.
+	updateGlowTextures();
 
 	// Kick off the job to update the simulation asynchronously.
 	UpdateFence_.increment();
@@ -301,7 +296,7 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	// Editor mode rendering.
 	if( BSP_->InEditorMode_ )
 	{
-		Canvas_->setMaterialComponent( MaterialPreview_ );
+		Canvas_->setMaterialComponent( DynamicMaterials_[ CurrMaterial_ ].PreviewMaterial_ );
 		BcVec2d HalfBoxSize( BcVec2d( (BcReal)Width_, (BcReal)Height_ ) * Scale_ * 0.5f );
 		Canvas_->drawBox( -HalfBoxSize, HalfBoxSize, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 0 );
 	}
@@ -329,9 +324,11 @@ public:
 //virtual
 void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {	
-	// Bind material.
-	Material_->setWorldTransform( BcMat4d() );
-	Material_->bind( pFrame, Sort );
+	// Bind material and flip it.
+	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
+	CurrMaterial_ = 1 - CurrMaterial_;
+	DynamicMaterial.WorldMaterial_->setWorldTransform( BcMat4d() );
+	DynamicMaterial.WorldMaterial_->bind( pFrame, Sort );
 
 	// Setup render node.
 	GaWorldPressureComponentRenderNode* pRenderNode = pFrame->newObject< GaWorldPressureComponentRenderNode >();
@@ -351,31 +348,55 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 	//
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
 	BSP_ = Parent->getComponentByType< GaWorldBSPComponent >( 0 );
-	ParticleSystem_ = Parent->getComponentByType< ScnParticleSystemComponent >( 0 );
 
-	CsCore::pImpl()->createResource( BcName::INVALID, Texture_, Width_, Height_, Depth_, 1, rsTF_RGBA8 );
-
-	ScnMaterialRef Material;
-	if( CsCore::pImpl()->requestResource( "default", "air", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, BcErrorCode ) )
+	// Grab material
+	ScnMaterialRef WorldMaterial;
+	ScnMaterialRef PreviewMaterial;
+	if( CsCore::pImpl()->requestResource( "default", "air", WorldMaterial ) &&
+		CsCore::pImpl()->requestResource( "default", "airpreview", PreviewMaterial ) )
 	{
-		Parent->attach( Material_ );
+		BcU32 TextureParam;
+		for( BcU32 Idx = 0; Idx < 2; ++Idx )
+		{
+			TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ Idx ] );
+			
+			// Create textures.
+			CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldTexture1D_, Depth_, 1, rsTF_RGBA8 );
+			CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldTexture2D_, Width_, Height_, 1, rsTF_RGBA8 );
+			CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldTexture3D_, Width_, Height_, Depth_, 1, rsTF_RGBA8 );
+			
+			// Create material component, and attach textures.
+			if( CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldMaterial_, WorldMaterial, BcErrorCode ) )
+			{
+				TextureParam = DynamicMaterial.WorldMaterial_->findParameter( "aFloorTex" );
+				DynamicMaterial.WorldMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture1D_ );
+				TextureParam = DynamicMaterial.WorldMaterial_->findParameter( "aWallTex" );
+				DynamicMaterial.WorldMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture2D_ );
+				TextureParam = DynamicMaterial.WorldMaterial_->findParameter( "aDiffuseTex" );
+				DynamicMaterial.WorldMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture3D_ );
+			}
 
-		BcU32 Param = Material_->findParameter( "aDiffuseTex" );
-		Material_->setTexture( Param, Texture_ );
+			// Create material component, and attach textures.
+			if( CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.PreviewMaterial_, PreviewMaterial, BcErrorCode ) )
+			{
+				TextureParam = DynamicMaterial.PreviewMaterial_->findParameter( "aFloorTex" );
+				DynamicMaterial.PreviewMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture1D_ );
+				TextureParam = DynamicMaterial.PreviewMaterial_->findParameter( "aWallTex" );
+				DynamicMaterial.PreviewMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture2D_ );
+				TextureParam = DynamicMaterial.PreviewMaterial_->findParameter( "aDiffuseTex" );
+				DynamicMaterial.PreviewMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture3D_ );
+			}
+		}
 	}
 
-	if( CsCore::pImpl()->requestResource( "default", "airpreview", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialPreview_, Material, BcErrorCode ) )
+	// Attach materials.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
-		Parent->attach( MaterialPreview_ );
-
-		BcU32 Param = MaterialPreview_->findParameter( "aDiffuseTex" );
-		MaterialPreview_->setTexture( Param, Texture_ );
+		TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ Idx ] );
+		Parent->attach( DynamicMaterial.PreviewMaterial_ );
+		Parent->attach( DynamicMaterial.WorldMaterial_ );
 	}
-
-	// HACK.
-	BcU32 Param = BSP_->MaterialWorld_->findParameter( "aDiffuseTex" );
-	BSP_->MaterialWorld_->setTexture( Param, Texture_ );
-
+	
 	Super::onAttach( Parent );
 }
 
@@ -385,10 +406,18 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Canvas_ = NULL;
-	Material_ = NULL;
-	Texture_ = NULL;
 	BSP_ = NULL;
-	ParticleSystem_ = NULL;
+
+	// Detach materials.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ Idx ] );
+		Parent->detach( DynamicMaterial.PreviewMaterial_ );
+		Parent->detach( DynamicMaterial.WorldMaterial_ );
+	}
+
+	BcMemZero( DynamicMaterials_, sizeof( DynamicMaterials_ ) );
+
 	Super::onDetach( Parent );
 }
 
@@ -512,7 +541,8 @@ void GaWorldPressureComponent::collideSimulation()
 void GaWorldPressureComponent::updateTexture()
 {
 	// Update texture.
-	RsTexture* pTexture = Texture_->getTexture();
+	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
+	RsTexture* pTexture = DynamicMaterial.WorldTexture3D_->getTexture();
 	BcU32* pTexelData = reinterpret_cast< BcU32* >( pTexture->lockTexture() );
 	GaWorldPressureSample* pInputBuffer = pBuffers_[ CurrBuffer_ ];
 
@@ -524,4 +554,54 @@ void GaWorldPressureComponent::updateTexture()
 		*pTexelData++ = Colour; 
 	}
 	pTexture->unlockTexture();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateGlowTextures
+void GaWorldPressureComponent::updateGlowTextures()
+{
+	//for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
+		
+		// Update 1D texture.
+		{
+			RsTexture* pTexture = DynamicMaterial.WorldTexture1D_->getTexture();
+			BcU32* pTexelData = reinterpret_cast< BcU32* >( pTexture->lockTexture() );
+			BcU32 NoofTexels = Depth_;
+			for( BcU32 Idx = 0; Idx < NoofTexels; ++Idx )
+			{
+				BcU32 Value = 255;
+				BcU32 Colour = Value << 24 | 0x00ffffff;
+				*pTexelData++ = Colour; 
+			}
+			pTexture->unlockTexture();
+		}
+		
+		// Update 2D texture.
+		{
+			RsTexture* pTexture = DynamicMaterial.WorldTexture2D_->getTexture();
+			BcU32* pTexelData = reinterpret_cast< BcU32* >( pTexture->lockTexture() );
+		
+			// Set solid areas from BSP.
+			for( BcU32 Y = 0; Y < Height_; ++Y )
+			{
+				for( BcU32 X = 0; X < Width_; ++X )
+				{
+					BcVec3d Position( BcVec2d( (BcReal)X, (BcReal)Y ) * Scale_ + Offset_, 4.0f );
+					BcU32 Value = 255;
+					
+					//if( BSP_->checkPointFront( Position, 0.25f ) )
+					{
+						Value = 255;
+					}
+					
+					BcU32 Colour = Value << 24 | 0x00ffffff;
+					*pTexelData++ = Value;
+				}
+			}
+
+			pTexture->unlockTexture();
+		}
+	}
 }
