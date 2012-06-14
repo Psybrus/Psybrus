@@ -91,6 +91,8 @@ public:
 	BcVec2d								nearestPositionOnEdge( const BcVec2d& Position, BcU32 Idx );
 	BcU32								nearestEnemy( BcVec2d Position, BcReal Radius );
 
+	BcBool								killEnemy( const BcVec3d& Position, BcReal Radius );
+
 	void								saveJson();
 	void								loadJson();
 	void								buildBSP();

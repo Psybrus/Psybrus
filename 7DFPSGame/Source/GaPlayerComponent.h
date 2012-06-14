@@ -42,7 +42,7 @@ public:
 	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
 
-	void								doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower );
+	BcVec3d								doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower );
 	
 private:
 	BcBool								MoveForward_;

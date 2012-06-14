@@ -458,49 +458,52 @@ void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value 
 // updateSimulation
 void GaWorldPressureComponent::updateSimulation()
 {
-	const register BcU32 WidthLessOne = Width_ - 1;
-	const register BcU32 HeightLessOne = Height_ - 1;
-	const register BcU32 DepthLessOne = Depth_ - 1;
-	const register BcU32 W = Width_;
-	const register BcU32 WH = Width_ * Height_;
-	
-	for( BcU32 Idx = 0; Idx < 2.0f; ++Idx )
+	//for( BcU32 Iters = 0; Iters < 2; ++Iters )
 	{
-		BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
-		BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
-		BcU32 RandZ = 1;
-		sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.1f;
-	}
-	
-	// Update simulation.
-	const BcU32 NextBuffer = 1 - CurrBuffer_;
-	GaWorldPressureSample* pCurrBuffer = pBuffers_[ CurrBuffer_ ];
-	GaWorldPressureSample* pNextBuffer = pBuffers_[ NextBuffer ];
-	for( BcU32 Z = 1; Z < DepthLessOne; ++Z )
-	{
-		const BcU32 ZIdx = Z * ( Width_ * Height_ );
-		for( BcU32 Y = 1; Y < HeightLessOne; ++Y )
+		const register BcU32 WidthLessOne = Width_ - 1;
+		const register BcU32 HeightLessOne = Height_ - 1;
+		const register BcU32 DepthLessOne = Depth_ - 1;
+		const register BcU32 W = Width_;
+		const register BcU32 WH = Width_ * Height_;
+
+		for( BcU32 Idx = 0; Idx < 2; ++Idx )
 		{
-			const BcU32 YZIdx = Y * ( Width_ ) + ZIdx;
-			register BcU32 XYZIdx = YZIdx;
-			for( BcU32 X = 1; X < WidthLessOne; ++X )
+			BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
+			BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
+			BcU32 RandZ = 1;
+			sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.05f;
+		}
+	
+		// Update simulation.
+		const BcU32 NextBuffer = 1 - CurrBuffer_;
+		GaWorldPressureSample* pCurrBuffer = pBuffers_[ CurrBuffer_ ];
+		GaWorldPressureSample* pNextBuffer = pBuffers_[ NextBuffer ];
+		for( BcU32 Z = 1; Z < DepthLessOne; ++Z )
+		{
+			const BcU32 ZIdx = Z * ( Width_ * Height_ );
+			for( BcU32 Y = 1; Y < HeightLessOne; ++Y )
 			{
-				++XYZIdx;
-				GaWorldPressureSample& Output( pNextBuffer[ XYZIdx ] );
-				register BcReal Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
-					                     pCurrBuffer[ XYZIdx + 1 ].Value_ +
-					                     pCurrBuffer[ XYZIdx - W ].Value_ +
-					                     pCurrBuffer[ XYZIdx + W ].Value_ +
-					                     pCurrBuffer[ XYZIdx - WH ].Value_ +
-					                     pCurrBuffer[ XYZIdx + WH ].Value_;
-				Sample *= AccumMultiplier_;
-				Sample -= Output.Value_;
-				Output.Value_ = Sample - ( Sample * Damping_ );
+				const BcU32 YZIdx = Y * ( Width_ ) + ZIdx;
+				register BcU32 XYZIdx = YZIdx;
+				for( BcU32 X = 1; X < WidthLessOne; ++X )
+				{
+					++XYZIdx;
+					GaWorldPressureSample& Output( pNextBuffer[ XYZIdx ] );
+					register BcReal Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
+											 pCurrBuffer[ XYZIdx + 1 ].Value_ +
+											 pCurrBuffer[ XYZIdx - W ].Value_ +
+											 pCurrBuffer[ XYZIdx + W ].Value_ +
+											 pCurrBuffer[ XYZIdx - WH ].Value_ +
+											 pCurrBuffer[ XYZIdx + WH ].Value_;
+					Sample *= AccumMultiplier_;
+					Sample -= Output.Value_;
+					Output.Value_ = Sample - ( Sample * Damping_ );
+				}
 			}
 		}
-	}
 
-	CurrBuffer_ = NextBuffer;
+		CurrBuffer_ = NextBuffer;
+	}
 	UpdateFence_.decrement();
 }
 
