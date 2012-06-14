@@ -1,6 +1,6 @@
 varying vec4 vTexCoord0;
-varying vec4 vEyePosition;
 varying vec4 vWorldPosition;
+varying vec3 vEyePosition;
 
 //uniform sampler1D aFloorTex;
 //uniform sampler2D aWallTex;

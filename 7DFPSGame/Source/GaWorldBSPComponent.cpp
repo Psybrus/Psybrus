@@ -751,12 +751,40 @@ BcU32 GaWorldBSPComponent::nearestEnemy( BcVec2d Position, BcReal Radius )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// killEnemy
+BcBool GaWorldBSPComponent::killEnemy( const BcVec3d& Position, BcReal Radius )
+{
+	BcReal NearestDistanceSquared = Radius * Radius;
+	std::vector< ScnEntityRef >::iterator NearestIt = EnemyEntities_.end();
+	for( std::vector< ScnEntityRef >::iterator It = EnemyEntities_.begin(); It != EnemyEntities_.end(); ++It )
+	{
+		BcReal DistanceSquared = ( (*It)->getPosition() - Position ).magnitudeSquared();
+		if( DistanceSquared < NearestDistanceSquared )
+		{
+			NearestDistanceSquared = DistanceSquared;
+			NearestIt = It;
+		}
+	}
+
+	if( NearestIt != EnemyEntities_.end() )
+	{
+		ScnEntityRef Entity = (*NearestIt);
+		EnemyEntities_.erase( NearestIt );
+		getParentEntity()->detach( Entity );
+		return BcTrue;
+	}
+
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // saveJson
 void GaWorldBSPComponent::saveJson()
 {
 	Json::Value LevelData;
 	Json::Value PointsData( Json::arrayValue );
 	Json::Value EdgesData( Json::arrayValue );
+	Json::Value EnemiesData( Json::arrayValue );
 	
 	PointsData.resize( Points_.size() );
 	for( BcU32 Idx = 0; Idx < Points_.size(); ++Idx )
@@ -776,8 +804,18 @@ void GaWorldBSPComponent::saveJson()
 		EdgesData[ Idx ] = Buffer;
 	}
 
+	EnemiesData.resize( Enemies_.size() );
+	for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
+	{
+		const BcVec2d& Enemy( Enemies_[ Idx ] );
+		BcChar Buffer[ 256 ];
+		BcSPrintf(Buffer, "%.2f,%.2f", Enemy.x(), Enemy.y() );
+		EnemiesData[ Idx ] = Buffer;
+	}
+
 	LevelData["points"] = PointsData;
 	LevelData["edges"] = EdgesData;
+	LevelData["enemies"] = EnemiesData;
 
 	Json::FastWriter Writer;
 	std::string JsonOutput = Writer.write( LevelData );
@@ -799,10 +837,12 @@ void GaWorldBSPComponent::loadJson()
 	Json::Value LevelData;
 	Json::Value PointsData( Json::arrayValue );
 	Json::Value EdgesData( Json::arrayValue );
+	Json::Value EnemiesData( Json::arrayValue );
 
 	// Clear out old level.
 	Points_.clear();
 	Edges_.clear();
+	Enemies_.clear();
 
 	// Load new in.
 	BcFile InputFile;
@@ -820,6 +860,7 @@ void GaWorldBSPComponent::loadJson()
 		{
 			PointsData = LevelData[ "points" ];
 			EdgesData = LevelData[ "edges" ];
+			EnemiesData = LevelData[ "enemies" ];
 
 			for( BcU32 Idx = 0; Idx < PointsData.size(); ++Idx )
 			{
@@ -839,6 +880,16 @@ void GaWorldBSPComponent::loadJson()
 				BcSScanf( EdgeData.asCString(), "%u,%u", &A, &B );
 				GaWorldBSPEdge Edge( A, B );
 				Edges_.push_back( Edge );
+			}
+
+			for( BcU32 Idx = 0; Idx < EnemiesData.size(); ++Idx )
+			{
+				Json::Value& EnemyData( EnemiesData[ Idx ] );
+				BcReal X, Y;
+				BcSScanf( EnemyData.asCString(), "%f,%f", &X, &Y );
+
+				BcVec2d Enemy = BcVec2d( X, Y );
+				Enemies_.push_back( Enemy );
 			}
 		}
 		else

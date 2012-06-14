@@ -82,7 +82,7 @@ void GaPlayerComponent::update( BcReal Tick )
 
 	if( DoPulse_ == BcTrue )
 	{
-		doShot( ViewVector, 0.5f, 0.25f, 0.5f );
+		doShot( ViewVector, 0.2f, 0.1f, 1.0f );
 		DoPulse_ = BcFalse;
 	}
 
@@ -90,7 +90,10 @@ void GaPlayerComponent::update( BcReal Tick )
 	{
 		if( ShotTick_ >= RateOfShot_ )
 		{
-			doShot( ViewVector, 8.0f, 128.0f, 32.0f );
+			BcVec3d ImpactPosition = doShot( ViewVector, 8.0f, 64.0f, 8.0f );
+			BSP_->killEnemy( ImpactPosition, 3.0f );
+			Pressure_->setSample( ImpactPosition, -512.0f );
+			
 			ShotTick_ -= 1.0f;
 		}
 
@@ -237,7 +240,7 @@ eEvtReturn GaPlayerComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& E
 
 //////////////////////////////////////////////////////////////////////////
 // doShot
-void GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower )
+BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower )
 {
 	BcVec3d Position = getParentEntity()->getPosition();
 	BcVec3d Target = Position + Direction * 256.0f;
@@ -277,4 +280,6 @@ void GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, BcR
 		Pressure_->setSample( Point, TrailPower );
 		Point += StepVec;
 	}
+
+	return BSPPointInfo.Point_;
 }
