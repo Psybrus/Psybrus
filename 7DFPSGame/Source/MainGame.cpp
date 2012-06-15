@@ -19,6 +19,7 @@
 #include "GaEnemyComponent.h"
 #include "GaPawnComponent.h"
 #include "GaPlayerComponent.h"
+#include "GaPlayerSoundComponent.h"
 #include "GaWorldBSPComponent.h"
 #include "GaWorldPressureComponent.h"
 
@@ -79,6 +80,7 @@ void PsyGameRegisterResources()
 	CsCore::pImpl()->registerResource< GaEnemyComponent >();
 	CsCore::pImpl()->registerResource< GaPawnComponent >();
 	CsCore::pImpl()->registerResource< GaPlayerComponent >();
+	CsCore::pImpl()->registerResource< GaPlayerSoundComponent >();
 	CsCore::pImpl()->registerResource< GaWorldBSPComponent >();
 	CsCore::pImpl()->registerResource< GaWorldPressureComponent >();
 }
@@ -91,6 +93,7 @@ void PsyGameUnRegisterResources()
 	CsCore::pImpl()->unregisterResource< GaEnemyComponent >();
 	CsCore::pImpl()->unregisterResource< GaPawnComponent >();
 	CsCore::pImpl()->unregisterResource< GaPlayerComponent >();
+	CsCore::pImpl()->unregisterResource< GaPlayerSoundComponent >();
 	CsCore::pImpl()->unregisterResource< GaWorldBSPComponent >();
 	CsCore::pImpl()->unregisterResource< GaWorldPressureComponent >();
 }

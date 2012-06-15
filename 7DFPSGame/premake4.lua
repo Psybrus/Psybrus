@@ -1,11 +1,11 @@
 project "7FPSGame"
 	kind "WindowedApp"
 	language "C++"
-	files { "./Source/**.h", "./Source/**.c", "./Source/**.cpp" }
+	files { "./Source/**.hh", "./Source/**.h", "./Source/**.c", "./Source/**.cpp" }
 	includedirs { "./Source/", "../Engine/Source/Shared/", "../Engine/Source/Platforms/Windows/" }
 
 	-- External includes.
-	includedirs { "../External/jsoncpp/include" }
+	includedirs { "../External/jsoncpp/include", "../External/portaudio/include" }
 
 	configuration "windows"
    		links {
@@ -25,6 +25,7 @@ project "7FPSGame"
    			"External_libb64",
    			"External_ogg",
    			"External_png",
+            "External_portaudio",
    			"External_squish",
    			"External_tremor",
    			"External_zlib",

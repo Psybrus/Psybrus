@@ -285,14 +285,6 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	// TODO: Update once.
 	// TODO: Post 7DFPS try this again.
 	//updateGlowTextures();
-
-	// Kick off the job to update the simulation asynchronously.
-	UpdateFence_.increment();
-	BcDelegate< void(*)() > UpdateSimulationDelegate( BcDelegate< void(*)() >::bind< GaWorldPressureComponent, &GaWorldPressureComponent::updateSimulation >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob< void(*)() >( SysKernel::USER_WORKER_MASK, UpdateSimulationDelegate );
-
-	// HACK HACK HACK.
-	UpdateFence_.wait();
 	
 	// Editor mode rendering.
 	if( BSP_->InEditorMode_ )
@@ -325,6 +317,11 @@ public:
 //virtual
 void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {	
+	// Kick off the job to update the simulation in parallel to rendering..
+	UpdateFence_.increment();
+	BcDelegate< void(*)() > UpdateSimulationDelegate( BcDelegate< void(*)() >::bind< GaWorldPressureComponent, &GaWorldPressureComponent::updateSimulation >( this ) );
+	SysKernel::pImpl()->enqueueDelegateJob< void(*)() >( SysKernel::USER_WORKER_MASK, UpdateSimulationDelegate );
+
 	// Bind material and flip it.
 	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
 	CurrMaterial_ = 1 - CurrMaterial_;
@@ -346,6 +343,10 @@ void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, R
 //virtual
 void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	// Subscribe to reset event.
+	GaWorldResetEvent::Delegate OnResetEvent = GaWorldResetEvent::Delegate::bind< GaWorldPressureComponent, &GaWorldPressureComponent::onReset >( this );
+	Parent->subscribe( gaEVT_CORE_RESET, OnResetEvent );
+
 	//
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
 	BSP_ = Parent->getComponentByType< GaWorldBSPComponent >( 0 );
@@ -408,6 +409,8 @@ void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Canvas_ = NULL;
 	BSP_ = NULL;
+
+	Parent->unsubscribeAll( this );
 
 	// Detach materials.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -609,4 +612,16 @@ void GaWorldPressureComponent::updateGlowTextures()
 			pTexture->unlockTexture();
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onReset
+eEvtReturn GaWorldPressureComponent::onReset( EvtID ID, const GaWorldResetEvent& Event )
+{
+	BcMemZero( pBuffers_[ 0 ], sizeof( GaWorldPressureSample ) * BufferSize_ );
+	BcMemZero( pBuffers_[ 1 ], sizeof( GaWorldPressureSample ) * BufferSize_ );
+
+	setSample( BcVec3d( Event.Position_, 0.0f ), 4.0f );
+
+	return evtRET_PASS;
 }

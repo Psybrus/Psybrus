@@ -13,6 +13,8 @@
 
 #include "GaWorldBSPComponent.h"
 
+#include "GaPawnComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Round
 static BcVec2d RoundVector( BcVec2d Vector )
@@ -30,7 +32,15 @@ DEFINE_RESOURCE( GaWorldBSPComponent );
 //virtual
 void GaWorldBSPComponent::initialise( const Json::Value& Object )
 {
-	InEditorMode_ = BcTrue;
+	Json::Value Level = Object[ "level" ];
+	Json::Value IsEditor = Object[ "editor" ];
+
+	if( IsEditor.type() == Json::booleanValue )
+	{
+		IsEditor_ = IsEditor.asBool();
+	}
+
+	InEditorMode_ = IsEditor_;
 	EditorState_ = ES_IDLE;
 
 	Projection_.orthoProjection( -32.0f, 32.0f, 18.0f, -18.0f, -1.0f, 1.0f );
@@ -44,7 +54,18 @@ void GaWorldBSPComponent::initialise( const Json::Value& Object )
 	pVertexBuffer_ = NULL;
 	pPrimitive_ = NULL;
 
-	CurrentLevel_ = 0;
+	CurrentLevel_ = 1;
+	TotalLevels_ = 7;
+
+	StartPosition_ = BcVec2d( 0.0f, 0.0f );
+	QuitPosition_ = BcVec2d( 0.0f, 0.0f );
+
+	if( Level.type() == Json::intValue )
+	{
+		CurrentLevel_ = Level.asInt();
+	}
+
+	TextTimer_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,6 +101,33 @@ void GaWorldBSPComponent::update( BcReal Tick )
 
 	Canvas_->clear();
 	Canvas_->pushMatrix( Projection_ );
+
+
+	if( !InEditorMode_ && TextList_.size() > 0 )
+	{
+		BcMat4d TextScaleMatrix;
+		TextScaleMatrix.scale( BcVec4d( 0.1f, 0.1f, 1.0f, 1.0f ) );
+
+		TextTimer_ += Tick;
+		BcReal TextThing = BcAbs( BcSin( TextTimer_ ) ) ;
+		Font_->getMaterialComponent()->setParameter( FontScaleParam_, BcVec2d( 0.4f, 0.6f ) );
+
+		Canvas_->pushMatrix( TextScaleMatrix );
+
+		std::string Text = TextList_[ 0 ];
+		BcVec2d Size = Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Text, RsColour::WHITE, BcTrue, 16 );
+		Font_->draw( Canvas_, Size * -0.5f, Text, RsColour( 1.0f, 1.0f, 1.0f, TextThing ), BcFalse, 16 );
+		Canvas_->popMatrix();
+
+		if( TextTimer_ > BcPI )
+		{
+			TextTimer_ = 0.0f;
+			TextList_.erase( TextList_.begin() );
+		}
+	}
+
+
+	//
 	Canvas_->setMaterialComponent( Material_ );
 
 	if( InEditorMode_ )
@@ -138,6 +186,9 @@ void GaWorldBSPComponent::update( BcReal Tick )
 			const GaWorldBSPPoint& Point( Points_[ Idx ] );
 			Canvas_->drawLineBox( Point.Position_ - HintBoxSize, Point.Position_ + HintBoxSize, RsColour::WHITE, 1 );
 		}
+
+		Canvas_->drawBox( StartPosition_ - HintBoxSize, StartPosition_ + HintBoxSize, RsColour::GREEN, 1 );
+		Canvas_->drawBox( QuitPosition_ - HintBoxSize, QuitPosition_ + HintBoxSize, RsColour::RED, 1 );
 
 		// Interface.
 		switch( EditorState_ )
@@ -217,6 +268,27 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		
 		//Canvas_->popMatrix(); // hack!
 	}
+
+	// Next level stuff.
+	if( !InEditorMode_ )
+	{
+		BcVec3d PlayerPosition = PlayerEntity_->getPosition();
+		BcReal Distance = ( BcVec3d( QuitPosition_, 0.0f ) - PlayerPosition ).magnitude();
+
+		if( Distance < 2.0f )
+		{
+			CurrentLevel_++;
+
+			if( CurrentLevel_ <= TotalLevels_ )
+			{
+				loadJson();
+			}
+			else
+			{
+				BcBreakpoint;
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -279,13 +351,25 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 		Parent->attach( MaterialWorld_ );
 	}
 
+	ScnFontRef Font;
+	if( CsCore::pImpl()->requestResource( "default", "default", Font ) && 
+		CsCore::pImpl()->requestResource( "default", "font", Material ) &&
+		CsCore::pImpl()->createResource( BcName::INVALID, Font_, Font, Material ) )
+	{
+		FontScaleParam_ = Font_->getMaterialComponent()->findParameter( "aAlphaTestStep" );
+		Parent->attach( Font_ );
+	}
+
 	// Ok setup player.
 	// TODO: Move to a game state component.
 	// Attach player to world.
 	PlayerEntity_ = ScnCore::pImpl()->createEntity( "default", "PlayerEntity", "PlayerEntity_0" );
 	Parent->attach( PlayerEntity_ );
-
+	
 	Super::onAttach( Parent );
+
+	// Load in level stuff.
+	loadJson();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -297,8 +381,16 @@ void GaWorldBSPComponent::onDetach( ScnEntityWeakRef Parent )
 	
 	Canvas_ = NULL;
 
-	Parent->detach( PlayerEntity_ );
-	PlayerEntity_ = NULL;
+	if( PlayerEntity_.isValid() )
+	{
+		getParentEntity()->detach( PlayerEntity_ );
+		PlayerEntity_ = NULL;
+	}
+
+	Parent->detach( Font_ );
+	Font_ = NULL;
+	
+	destroyEntities();
 	
 	Super::onDetach( Parent );
 }
@@ -311,27 +403,15 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 	{
 	case 0x9:
 		{
-			InEditorMode_ = !InEditorMode_;
+			InEditorMode_ = !InEditorMode_ && IsEditor_;
 
 			if( !InEditorMode_ )
 			{
-				for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
-				{
-					BcVec2d Enemy( Enemies_[ Idx ] );
-					ScnEntityRef EnemyEntity = ScnCore::pImpl()->createEntity( "default", "EnemyEntity", "EnemyEntity" );
-					EnemyEntity->setPosition( BcVec3d( Enemy.x(), Enemy.y(), 1.0f ) );
-					EnemyEntities_.push_back( EnemyEntity );
-					getParentEntity()->attach( EnemyEntity );
-				}
+				createEntities();
 			}
 			else
 			{
-				for( BcU32 Idx = 0; Idx < EnemyEntities_.size(); ++Idx )
-				{
-					ScnEntityRef EnemyEntity = EnemyEntities_[ Idx ];
-					getParentEntity()->detach( EnemyEntity );
-				}
-				EnemyEntities_.clear();
+				destroyEntities();
 			}
 		}
 		break;
@@ -365,7 +445,6 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 		{
 			CurrentLevel_ = Event.AsciiCode_ - '0';
 			loadJson();
-			buildBSP();
 		}
 		break;
 
@@ -374,6 +453,22 @@ eEvtReturn GaWorldBSPComponent::onKeyboardEvent( EvtID ID, const OsEventInputKey
 		if( InEditorMode_ )
 		{
 			addEnemy( MousePointPosition_ );			
+		}
+		break;
+
+	case 'S':
+	case 's':
+		if( InEditorMode_ )
+		{
+			StartPosition_ = MousePointPosition_;
+		}
+		break;
+
+	case 'Q':
+	case 'q':
+		if( InEditorMode_ )
+		{
+			QuitPosition_ = MousePointPosition_;
 		}
 		break;
 
@@ -774,6 +869,7 @@ BcBool GaWorldBSPComponent::killEnemy( const BcVec3d& Position, BcReal Radius )
 		ScnEntityRef Entity = (*NearestIt);
 		EnemyEntities_.erase( NearestIt );
 		getParentEntity()->detach( Entity );
+		BcPrintf( "Killed enemy!\n" );
 		return BcTrue;
 	}
 
@@ -781,7 +877,15 @@ BcBool GaWorldBSPComponent::killEnemy( const BcVec3d& Position, BcReal Radius )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// saveJson
+// killPlayer
+void GaWorldBSPComponent::killPlayer()
+{
+	BcPrintf( "Kill player :(!\n" );
+	loadJson();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// canSeePlayer
 BcBool GaWorldBSPComponent::canSeePlayer( const BcVec3d& From )
 {
 	BcBSPPointInfo BSPPointInfo;
@@ -797,16 +901,18 @@ BcBool GaWorldBSPComponent::canSeePlayer( const BcVec3d& From )
 // saveJson
 void GaWorldBSPComponent::saveJson()
 {
+	BcChar Buffer[ 256 ];
 	Json::Value LevelData;
 	Json::Value PointsData( Json::arrayValue );
 	Json::Value EdgesData( Json::arrayValue );
 	Json::Value EnemiesData( Json::arrayValue );
+	Json::Value StartData( Json::stringValue );
+	Json::Value QuitData( Json::stringValue );
 	
 	PointsData.resize( Points_.size() );
 	for( BcU32 Idx = 0; Idx < Points_.size(); ++Idx )
 	{
 		const GaWorldBSPPoint& Point( Points_[ Idx ] );
-		BcChar Buffer[ 256 ];
 		BcSPrintf(Buffer, "%.2f,%.2f", Point.Position_.x(), Point.Position_.y() );
 		PointsData[ Idx ] = Buffer;
 	}
@@ -815,7 +921,6 @@ void GaWorldBSPComponent::saveJson()
 	for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
 	{
 		const GaWorldBSPEdge& Edge( Edges_[ Idx ] );
-		BcChar Buffer[ 256 ];
 		BcSPrintf(Buffer, "%u,%u", Edge.A_, Edge.B_ );
 		EdgesData[ Idx ] = Buffer;
 	}
@@ -824,14 +929,20 @@ void GaWorldBSPComponent::saveJson()
 	for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
 	{
 		const BcVec2d& Enemy( Enemies_[ Idx ] );
-		BcChar Buffer[ 256 ];
 		BcSPrintf(Buffer, "%.2f,%.2f", Enemy.x(), Enemy.y() );
 		EnemiesData[ Idx ] = Buffer;
 	}
 
+	BcSPrintf(Buffer, "%.2f,%.2f", StartPosition_.x(), StartPosition_.y() );
+	StartData = Buffer;
+	BcSPrintf(Buffer, "%.2f,%.2f", QuitPosition_.x(), QuitPosition_.y() );
+	QuitData = Buffer;
+
 	LevelData["points"] = PointsData;
 	LevelData["edges"] = EdgesData;
 	LevelData["enemies"] = EnemiesData;
+	LevelData["start"] = StartData;
+	LevelData["quit"] = QuitData;
 
 	Json::FastWriter Writer;
 	std::string JsonOutput = Writer.write( LevelData );
@@ -854,6 +965,15 @@ void GaWorldBSPComponent::loadJson()
 	Json::Value PointsData( Json::arrayValue );
 	Json::Value EdgesData( Json::arrayValue );
 	Json::Value EnemiesData( Json::arrayValue );
+	Json::Value StartData;
+	Json::Value QuitData;
+
+	// Hacky reset of state.
+	EditorState_ = ES_IDLE;
+	LastPointIdx_ = BcErrorCode;
+	NearestPoint_ = BcErrorCode;
+	NearestEdge_ = BcErrorCode;
+	NearestEnemy_ = BcErrorCode;
 
 	// Clear out old level.
 	Points_.clear();
@@ -874,14 +994,16 @@ void GaWorldBSPComponent::loadJson()
 		Json::Reader Reader;
 		if( Reader.parse( pBuffer, pBuffer + InputFile.size(), LevelData ) )
 		{
+			BcReal X, Y;
 			PointsData = LevelData[ "points" ];
 			EdgesData = LevelData[ "edges" ];
 			EnemiesData = LevelData[ "enemies" ];
+			StartData = LevelData[ "start" ];
+			QuitData = LevelData[ "quit" ];
 
 			for( BcU32 Idx = 0; Idx < PointsData.size(); ++Idx )
 			{
 				Json::Value& PointData( PointsData[ Idx ] );
-				BcReal X, Y;
 				BcSScanf( PointData.asCString(), "%f,%f", &X, &Y );
 
 				GaWorldBSPPoint Point = { BcVec2d( X, Y ) };
@@ -901,12 +1023,24 @@ void GaWorldBSPComponent::loadJson()
 			for( BcU32 Idx = 0; Idx < EnemiesData.size(); ++Idx )
 			{
 				Json::Value& EnemyData( EnemiesData[ Idx ] );
-				BcReal X, Y;
 				BcSScanf( EnemyData.asCString(), "%f,%f", &X, &Y );
 
 				BcVec2d Enemy = BcVec2d( X, Y );
 				Enemies_.push_back( Enemy );
 			}
+
+			if( StartData.type() == Json::stringValue )
+			{
+				BcSScanf( StartData.asCString(), "%f,%f", &X, &Y );
+				StartPosition_ = BcVec2d( X, Y );
+			}
+		
+			if( QuitData.type() == Json::stringValue )
+			{
+				BcSScanf( QuitData.asCString(), "%f,%f", &X, &Y );
+				QuitPosition_ = BcVec2d( X, Y );
+			}
+
 		}
 		else
 		{
@@ -917,6 +1051,130 @@ void GaWorldBSPComponent::loadJson()
 
 		delete [] pBuffer;
 	}
+
+	// HACK.
+	if( PlayerEntity_.isValid() )
+	{
+		GaPawnComponentRef Pawn = PlayerEntity_->getComponentByType< GaPawnComponent >( 0 );
+		if( Pawn.isValid() )
+		{
+			Pawn->setPosition( BcVec3d( StartPosition_.x(), StartPosition_.y(), 0.0f ) );
+		}
+	}
+
+	//
+	buildBSP();
+
+	// If not in editor mode, create entities!
+	if(!InEditorMode_)
+	{
+		createEntities();
+	}
+
+	// Reset.
+	GaWorldResetEvent Event;
+
+	// Do level context.
+	switch( CurrentLevel_ )
+	{
+	case 1:
+		clearMessages();
+		addMessage( "Resense - By NeiloGD for 7DFPS" );
+		addMessage( "" );
+		addMessage( "\"W...what in the hell?\"" );
+		addMessage( "\"My head...why does it hurt so much?\"" );
+		addMessage( "\"Have my implants malfunctioned?\"" );
+		addMessage( "\"I must make my way to the lab...\"" );
+		addMessage( "\"The elevator...I remember a circular room\"" );
+		addMessage( "\"I need to sense my way...\" [Use Ctrl Key]" );
+		break;
+
+	case 2:
+		clearMessages();
+		addMessage( "\"Ok.\"" );
+		addMessage( "\"One step at a time...\"" );
+		addMessage( "\"Can I remember?\"" );
+		addMessage( "\"The elevator is just around the corner.\"" );
+		break;
+
+	case 3:
+		clearMessages();
+		addMessage( "\"Something has happened here.\"" );
+		addMessage( "\"I sense I am the only one in the building.\"" );
+		addMessage( "\"I need to find out what...\"" );
+		break;
+
+	case 4:
+		clearMessages();
+		addMessage( "\"*sigh*\"" );
+		addMessage( "\"The security system is active.\"" );
+		addMessage( "\"I must be careful, the bots may attack me.\"" );
+		addMessage( "\"I should still have my gun...\" [LMB/RMB to shoot]" );
+		break;
+
+	case 5:
+		clearMessages();
+		addMessage( "\"It just keeps getting worse.\"" );
+		addMessage( "\"This really isn't my day.\"" );
+		break;
+
+	case 6:
+		clearMessages();
+		addMessage( "\"Several more bots...\"" );
+		addMessage( "\"I can do this...come on!\"" );
+		break;
+
+	case 7:
+		clearMessages();
+		addMessage( "To be continued..." );
+		addMessage( "" );
+		addMessage( "This is the end of the game :'(" );
+		addMessage( "Ran short on time, tired, and feeling sick." );
+		addMessage( "However, I do dare you to try kill all the bots!" );
+		addMessage( "Thanks so much for playing..." );
+		addMessage( "...if you got this far..." );
+		addMessage( "...YOU ARE AWESOME ^_^ <3" );
+		addMessage( "...and always a winner to me - NeiloGD" );
+		break;
+
+	default:
+		break;
+	}
+
+	Event.Position_ = StartPosition_;
+	Event.HasWeapon_ = CurrentLevel_ >= 4 ? BcTrue : BcFalse;
+	getParentEntity()->publish( gaEVT_CORE_RESET, Event );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createEntities
+void GaWorldBSPComponent::createEntities()
+{
+	destroyEntities();
+	
+	//
+	for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
+	{
+		BcVec2d Enemy( Enemies_[ Idx ] );
+		ScnEntityRef EnemyEntity = ScnCore::pImpl()->createEntity( "default", "EnemyEntity", "EnemyEntity" );
+		EnemyEntity->setPosition( BcVec3d( Enemy.x(), Enemy.y(), 1.0f ) );
+		EnemyEntities_.push_back( EnemyEntity );
+		getParentEntity()->attach( EnemyEntity );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyEntities
+void GaWorldBSPComponent::destroyEntities()
+{
+	// Clean up old entities.
+	for( BcU32 Idx = 0; Idx < EnemyEntities_.size(); ++Idx )
+	{
+		ScnEntityRef EnemyEntity = EnemyEntities_[ Idx ];
+		getParentEntity()->detach( EnemyEntity );
+	}
+	EnemyEntities_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1034,4 +1292,24 @@ BcBool GaWorldBSPComponent::lineIntersection( const BcVec3d& A, const BcVec3d& B
 		return pBSPTree_->lineIntersection( A, B, pPointInfo, pNode );
 	}
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// clearMessages
+void GaWorldBSPComponent::clearMessages()
+{
+	if( TextList_.size() > 0 )
+	{
+		std::string CurrMessage = TextList_[ 0 ];
+		TextList_.clear();
+		TextList_.push_back( CurrMessage );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addMessage
+void GaWorldBSPComponent::addMessage( const BcChar* pMessage )
+{
+	TextList_.push_back( pMessage );
+
 }

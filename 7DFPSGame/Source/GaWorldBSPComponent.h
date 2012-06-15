@@ -27,6 +27,25 @@ struct GaWorldBSPPoint
 	BcVec2d Position_;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Events
+#define GA_EVENTGROUP_CORE		EVT_MAKE_ID( 'G', 'a', 0 )
+
+enum GaEvents
+{
+	// All core events.
+	gaEVT_CORE_FIRST			= GA_EVENTGROUP_CORE,
+	gaEVT_CORE_RESET,
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// GaWorldResetEvent
+struct GaWorldResetEvent: EvtEvent< GaWorldResetEvent >
+{
+	BcVec2d Position_;
+	BcBool HasWeapon_;
+};
+
 //////////////////////////////////////////////////////////////////////////
 // GaWorldBSPVertex
 struct GaWorldBSPVertex
@@ -92,19 +111,26 @@ public:
 	BcU32								nearestEnemy( BcVec2d Position, BcReal Radius );
 
 	BcBool								killEnemy( const BcVec3d& Position, BcReal Radius );
+	void								killPlayer();
 
 	BcBool								canSeePlayer(const BcVec3d& From );
 
 	void								saveJson();
 	void								loadJson();
+	void								createEntities();
+	void								destroyEntities();
+
 	void								buildBSP();
 
 	BcBool								checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 	BcBool								checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 	BcBool								lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode = NULL );
 
-
+	void								clearMessages();
+	void								addMessage( const BcChar* pMessage );
+	
 public:
+	BcBool								IsEditor_;
 	BcBool								InEditorMode_;
 
 	enum EditorState
@@ -120,6 +146,9 @@ public:
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
 	ScnMaterialComponentRef				MaterialWorld_;
+	ScnFontComponentRef					Font_;
+	BcU32								FontScaleParam_;
+	
 	BcMat4d								Projection_;
 
 	std::vector< GaWorldBSPPoint >		Points_;
@@ -127,6 +156,9 @@ public:
 	std::vector< BcVec2d >				Enemies_;
 	std::vector< ScnEntityRef >			EnemyEntities_;
 	ScnEntityRef						PlayerEntity_;
+
+	BcVec2d								StartPosition_;
+	BcVec2d								QuitPosition_;
 
 	BcU32								LastPointIdx_;
 
@@ -144,6 +176,10 @@ public:
 	RsPrimitive*						pPrimitive_;
 
 	BcU32								CurrentLevel_;
+	BcU32								TotalLevels_;
+
+	BcReal								TextTimer_;
+	std::vector< std::string >			TextList_;
 };
 
 #endif

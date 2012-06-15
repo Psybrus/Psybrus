@@ -45,7 +45,7 @@ eSysStateReturn GaTopState::enter()
 // preMain
 void GaTopState::preMain()
 { 
-	ScnEntityRef WorldEntity = ScnCore::pImpl()->createEntity( "default", "WorldEntity", "WorldEntity_0" );
+	ScnEntityRef WorldEntity = ScnCore::pImpl()->createEntity( "default", "LevelEntity", "WorldEntity_0" );
 
 	// Add world to scene.
 	ScnCore::pImpl()->addEntity( WorldEntity );

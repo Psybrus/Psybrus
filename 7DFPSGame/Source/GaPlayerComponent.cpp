@@ -37,6 +37,7 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 	DoShot_ = BcFalse;
 	RateOfShot_ = 0.4f;
 	ShotTick_ = 0.0f;
+	HasWeapon_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,13 +87,15 @@ void GaPlayerComponent::update( BcReal Tick )
 		DoPulse_ = BcFalse;
 	}
 
-	if( DoShot_ == BcTrue )
+	if( DoShot_ == BcTrue && HasWeapon_ )
 	{
 		if( ShotTick_ >= RateOfShot_ )
 		{
-			BcVec3d ImpactPosition = doShot( ViewVector, 8.0f, 64.0f, 8.0f );
-			BSP_->killEnemy( ImpactPosition, 3.0f );
-			Pressure_->setSample( ImpactPosition, -512.0f );
+			BcVec3d ImpactPosition = doShot( ViewVector, 0.1f, 4.0f, 32.0f );
+			if( BSP_->killEnemy( ImpactPosition, 4.0f ) )
+			{
+				Pressure_->setSample( ImpactPosition, -512.0f );
+			}
 			
 			ShotTick_ -= 1.0f;
 		}
@@ -122,6 +125,24 @@ void GaPlayerComponent::update( BcReal Tick )
 	Transform.lookAt( BcVec3d( 0.0f, 0.0f, 0.0f ), ViewVector, BcVec3d( 0.0f, 0.0f, 1.0f ) );
 	Transform.inverse();
 	getParentEntity()->setMatrix( Transform );
+
+	// Setup ears.
+	BcVec3d EarLVector = BcVec3d( 1.0f, 0.0f, 0.0f );
+	BcVec3d EarRVector = BcVec3d( 1.0f, 0.0f, 0.0f );
+	BcReal Offset = 0.0f;
+	for( BcU32 Idx = 0; Idx < 4; ++Idx )
+	{
+		EarLVectors_[ Idx ] = EarLVector * RotationMatrix;
+		EarRVectors_[ Idx ] = EarRVector * RotationMatrix;
+
+		EarLVectors_[ Idx ] += SideVector * Offset;
+		EarLVectors_[ Idx ].normalise();
+	
+		EarRVectors_[ Idx ] -= SideVector * Offset;
+		EarRVectors_[ Idx ].normalise();
+
+		Offset += 0.05f;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -147,6 +168,10 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 	BSP_ = WorldEntity->getComponentByType< GaWorldBSPComponent >( 0 );
 	Pressure_ = WorldEntity->getComponentByType< GaWorldPressureComponent >( 0 );
 
+	// Subscribe to reset event.
+	GaWorldResetEvent::Delegate OnResetEvent = GaWorldResetEvent::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onReset >( this );
+	WorldEntity->subscribe( gaEVT_CORE_RESET, OnResetEvent );
+
 	// Grab pawn.
 	Pawn_ = Parent->getComponentByType< GaPawnComponent >( 0 );
 }
@@ -162,7 +187,10 @@ void GaPlayerComponent::onDetach( ScnEntityWeakRef Parent )
 	BSP_ = NULL;
 	Pressure_ = NULL;
 	Pawn_ = NULL;
-
+	
+	ScnEntityRef WorldEntity = ScnCore::pImpl()->findEntity( "WorldEntity_0" );
+	WorldEntity->unsubscribeAll( this );
+	
 	// Don't forget to detach!
 	Super::onDetach( Parent );
 }
@@ -176,28 +204,38 @@ eEvtReturn GaPlayerComponent::onKeyboardEvent( EvtID ID, const OsEventInputKeybo
 		BcBool State = ID == osEVT_INPUT_KEYDOWN;
 		switch( Event.KeyCode_ )
 		{
+		case OsEventInputKeyboard::KEYCODE_UP:
 		case 'W':
 			MoveForward_ = State;
 			break;
 
+		case OsEventInputKeyboard::KEYCODE_DOWN:
 		case 'S':
 			MoveBackward_ = State;
 			break;
 
+		case OsEventInputKeyboard::KEYCODE_LEFT:
 		case 'A':
 			MoveLeft_ = State;
 			break;
 
+		case OsEventInputKeyboard::KEYCODE_RIGHT:
 		case 'D':
 			MoveRight_ = State;
 			break;
 
 		case OsEventInputKeyboard::KEYCODE_SHIFT:
+		case OsEventInputKeyboard::KEYCODE_LSHIFT:
+		case OsEventInputKeyboard::KEYCODE_RSHIFT:
 			DoRun_ = State;
 			break;
 
 		case OsEventInputKeyboard::KEYCODE_SPACE:
-			Pawn_->setPosition( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+			//Pawn_->setPosition( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+			break;
+
+		case OsEventInputKeyboard::KEYCODE_ESCAPE:
+			exit(0);
 			break;
 
 		case OsEventInputKeyboard::KEYCODE_CONTROL:
@@ -248,11 +286,10 @@ BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, 
 	BcBSPPointInfo BSPPointInfo;
 	if( BSP_->lineIntersection( Position, Target, &BSPPointInfo ) )
 	{
-		BcPrintf( "BANG WALL!\n" );
+		
 	}
 	else
 	{
-		BcPrintf( "BANG FLOOR!\n" );
 		BcPlane Floor( BcVec3d( 0.0f, 0.0f,  1.0f ), 4.0f );
 		BcPlane Ceil( BcVec3d( 0.0f, 0.0f, -1.0f ), 4.0f );
 		BcReal Dist;
@@ -283,3 +320,13 @@ BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, 
 
 	return BSPPointInfo.Point_;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// onReset
+eEvtReturn GaPlayerComponent::onReset( EvtID ID, const GaWorldResetEvent& Event )
+{
+	HasWeapon_ = Event.HasWeapon_;
+
+	return evtRET_PASS;
+}
+
