@@ -59,6 +59,8 @@ public:
 	void								addSample( const BcVec3d& Position, BcReal Value );
 	void								setSample( const BcVec3d& Position, BcReal Value );
 
+	eEvtReturn							onReset( EvtID ID, const GaWorldResetEvent& Event );
+
 protected:
 	GaWorldPressureSample&				sample( BcU32 Buffer, BcU32 X, BcU32 Y, BcU32 Z );
 

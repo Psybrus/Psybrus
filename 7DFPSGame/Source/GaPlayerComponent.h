@@ -41,10 +41,11 @@ public:
 	
 	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
+	eEvtReturn							onReset( EvtID ID, const GaWorldResetEvent& Event );
 
 	BcVec3d								doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower );
 	
-private:
+public:
 	BcBool								MoveForward_;
 	BcBool								MoveBackward_;
 	BcBool								MoveLeft_;
@@ -54,11 +55,17 @@ private:
 	BcBool								DoShot_;
 	BcReal								RateOfShot_;
 	BcReal								ShotTick_;
+
+	BcBool								HasWeapon_;
 	
 	BcReal								Yaw_;
 	BcReal								Pitch_;
 
 	BcVec2d								MouseDelta_;
+
+	BcVec3d								LastViewVector_;
+	BcVec3d								EarLVectors_[4];
+	BcVec3d								EarRVectors_[4];
 	
 	ScnCanvasComponentRef				Canvas_;
 	GaWorldBSPComponentRef				BSP_;

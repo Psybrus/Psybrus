@@ -63,8 +63,9 @@ void GaEnemyComponent::update( BcReal Tick )
 
 	BcReal PulseTime = 2.0f;
 
-	if( BSP_->canSeePlayer( getParentEntity()->getPosition() ) )
+	if( BSP_->canSeePlayer( Position ) )
 	{
+		BcPrintf( "I CAN SEE UUU\n" );
 		PulseTime = 0.5f;
 		IsTargetting_ = BcTrue;
 		TargetTimer_ -= Tick;
@@ -85,7 +86,7 @@ void GaEnemyComponent::update( BcReal Tick )
 	// Shoot player.
 	if( IsTargetting_ && TargetTimer_ < 0.0f )
 	{
-		int a = 0; ++a;
+		BSP_->killPlayer();
 	}
 	
 	// Set the move.

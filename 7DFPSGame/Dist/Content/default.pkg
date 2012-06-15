@@ -5,9 +5,9 @@
 			"type"			: "ScnFont",
 			"name"			: "default",
 
-			"source"		: "EngineContent/FontSource/srgt6pack.ttf",
+			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 32,
+			"nominalsize"	: 20,
 			"spread"		: 4
 		},
 
@@ -258,6 +258,10 @@
 					"type"			: "GaPawnComponent"
 				},
 
+				{
+					"type"			: "GaPlayerSoundComponent"
+				},
+
 				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
 				{
 					"type"			: "ScnViewComponent",
@@ -289,7 +293,7 @@
 		},
 
 		{
-			"name"		:		"WorldEntity",
+			"name"		:		"LevelEntity",
 			"type"		:		"ScnEntity",
 
 			"components" : [
@@ -299,14 +303,37 @@
 				},
 
 				{
-					"type"			: "GaWorldBSPComponent"
+					"type"			: "GaWorldBSPComponent",
+					"editor"		: false,
+					"level"			: 1
 				},
 
 				{
 					"type"			: "GaWorldPressureComponent"
 				}
 			]
+		},
 
+		{
+			"name"		:		"EditorEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "ScnCanvasComponent",
+					"noofvertices" 	: 8192
+				},
+
+				{
+					"type"			: "GaWorldBSPComponent",
+					"editor"		: true,
+					"level"			: 1
+				},
+
+				{
+					"type"			: "GaWorldPressureComponent"
+				}
+			]
 		}
 	]
 }
