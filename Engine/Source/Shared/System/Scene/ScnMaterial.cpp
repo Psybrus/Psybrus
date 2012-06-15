@@ -691,6 +691,9 @@ public:
 		{
 			pStateBlock->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
 		}
+
+		// Bind state block.
+		pStateBlock->bind();
 		
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
