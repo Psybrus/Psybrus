@@ -93,6 +93,8 @@ public:
 
 	BcBool								killEnemy( const BcVec3d& Position, BcReal Radius );
 
+	BcBool								canSeePlayer(const BcVec3d& From );
+
 	void								saveJson();
 	void								loadJson();
 	void								buildBSP();
@@ -124,6 +126,7 @@ public:
 	std::vector< GaWorldBSPEdge >		Edges_;
 	std::vector< BcVec2d >				Enemies_;
 	std::vector< ScnEntityRef >			EnemyEntities_;
+	ScnEntityRef						PlayerEntity_;
 
 	BcU32								LastPointIdx_;
 

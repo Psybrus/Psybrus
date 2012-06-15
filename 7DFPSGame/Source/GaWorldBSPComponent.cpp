@@ -282,8 +282,8 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 	// Ok setup player.
 	// TODO: Move to a game state component.
 	// Attach player to world.
-	ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "PlayerEntity", "PlayerEntity_0" );
-	Parent->attach( PlayerEntity );
+	PlayerEntity_ = ScnCore::pImpl()->createEntity( "default", "PlayerEntity", "PlayerEntity_0" );
+	Parent->attach( PlayerEntity_ );
 
 	Super::onAttach( Parent );
 }
@@ -296,6 +296,9 @@ void GaWorldBSPComponent::onDetach( ScnEntityWeakRef Parent )
 	OsCore::pImpl()->unsubscribeAll( this );
 	
 	Canvas_ = NULL;
+
+	Parent->detach( PlayerEntity_ );
+	PlayerEntity_ = NULL;
 	
 	Super::onDetach( Parent );
 }
@@ -771,6 +774,19 @@ BcBool GaWorldBSPComponent::killEnemy( const BcVec3d& Position, BcReal Radius )
 		ScnEntityRef Entity = (*NearestIt);
 		EnemyEntities_.erase( NearestIt );
 		getParentEntity()->detach( Entity );
+		return BcTrue;
+	}
+
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// saveJson
+BcBool GaWorldBSPComponent::canSeePlayer( const BcVec3d& From )
+{
+	BcBSPPointInfo BSPPointInfo;
+	if( !lineIntersection( From, PlayerEntity_->getPosition(), &BSPPointInfo ) )
+	{
 		return BcTrue;
 	}
 

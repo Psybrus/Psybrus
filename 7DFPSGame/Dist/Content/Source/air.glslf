@@ -6,12 +6,12 @@ varying vec3 vEyePosition;
 //uniform sampler2D aWallTex;
 uniform sampler3D aDiffuseTex;
 
-const float AttenuationMultiplier = 0.25;
+const float AttenuationMultiplier = 0.5;
 const float InterpolationMultiplier = 0.06125;
 
 void main()
 {
-	float Distance = length( vWorldPosition - vEyePosition );
+	float Distance = length( vWorldPosition.xyz - vEyePosition );
 	float Attenuation = clamp( ( Distance - 0.25 ) * AttenuationMultiplier, 0.0, 2.0 );
 	float Interpolate = clamp( ( Distance - 0.25 ) * InterpolationMultiplier, 0.0, 1.0 );
 	float Colour = texture3D( aDiffuseTex, vTexCoord0.xyz ).w;

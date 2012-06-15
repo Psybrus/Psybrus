@@ -24,6 +24,9 @@ void GaEnemyComponent::initialise( const Json::Value& Object )
 	Super::initialise( Object );
 
 	PulseTimer_ = 0.0f;
+
+	IsTargetting_ = BcFalse;
+	TargetTimer_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,18 +61,45 @@ void GaEnemyComponent::update( BcReal Tick )
 		}
 	}
 
+	BcReal PulseTime = 2.0f;
+
+	if( BSP_->canSeePlayer( getParentEntity()->getPosition() ) )
+	{
+		PulseTime = 0.5f;
+		IsTargetting_ = BcTrue;
+		TargetTimer_ -= Tick;
+	}
+	else
+	{
+		IsTargetting_ = BcFalse;
+		TargetTimer_ = 3.0f;
+	}
+
 	// Pulse.
-	if( PulseTimer_ > 2.0f )
+	if( PulseTimer_ > PulseTime )
 	{
 		Pressure_->setSample( Position, 0.5f );
-		PulseTimer_ = -2.0f;
+		PulseTimer_ = 0.0f;
+	}
+
+	// Shoot player.
+	if( IsTargetting_ && TargetTimer_ < 0.0f )
+	{
+		int a = 0; ++a;
 	}
 	
 	// Set the move.
-	BcVec3d AppliedMoveVector = MoveVector;
-	AppliedMoveVector.z( 0.0f );
-	AppliedMoveVector = AppliedMoveVector.normal() * MoveSpeed;
-	Pawn_->setMove( AppliedMoveVector );
+	if( !IsTargetting_ )
+	{
+		BcVec3d AppliedMoveVector = MoveVector;
+		AppliedMoveVector.z( 0.0f );
+		AppliedMoveVector = AppliedMoveVector.normal() * MoveSpeed;
+		Pawn_->setMove( AppliedMoveVector );
+	}
+	else
+	{
+		Pawn_->setMove( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

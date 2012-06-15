@@ -245,6 +245,11 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
+			/*
+				{
+					"type"			: "GaCameraComponent"
+				},
+				*/
 				{
 					"type"			: "GaPlayerComponent"
 				},

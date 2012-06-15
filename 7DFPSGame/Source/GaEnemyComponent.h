@@ -51,6 +51,11 @@ private:
 	BcReal								PulseTimer_;
 
 	GaPawnComponentRef					PlayerPawn_;
+
+	BcBool								IsTargetting_;
+	BcReal								TargetTimer_;
+
+
 };
 
 #endif
