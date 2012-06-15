@@ -203,6 +203,7 @@ void RsStateBlockGL::bind()
 
 	// DEBUG HACK.
 	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	RsGLCatchError;
 }
 
 //////////////////////////////////////////////////////////////////////////
