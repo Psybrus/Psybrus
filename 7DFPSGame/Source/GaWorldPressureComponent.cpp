@@ -283,7 +283,8 @@ void GaWorldPressureComponent::update( BcReal Tick )
 
 	// Update glow textures.
 	// TODO: Update once.
-	updateGlowTextures();
+	// TODO: Post 7DFPS try this again.
+	//updateGlowTextures();
 
 	// Kick off the job to update the simulation asynchronously.
 	UpdateFence_.increment();
@@ -543,6 +544,7 @@ void GaWorldPressureComponent::collideSimulation()
 // updateTexture
 void GaWorldPressureComponent::updateTexture()
 {
+	const BcReal Brightness = 2.5f;
 	// Update texture.
 	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
 	RsTexture* pTexture = DynamicMaterial.WorldTexture3D_->getTexture();
@@ -552,7 +554,7 @@ void GaWorldPressureComponent::updateTexture()
 	BcU32 NoofTexels = Width_ * Height_ * Depth_;
 	for( BcU32 Idx = 0; Idx < NoofTexels; ++Idx )
 	{
-		BcU32 Value = static_cast< BcU32 >( BcClamp( ( (*pInputBuffer++).Value_ ), 0.0f, 1.0f ) * 255.0f );
+		BcU32 Value = static_cast< BcU32 >( BcClamp( ( (*pInputBuffer++).Value_ ) * Brightness, 0.0f, 1.0f ) * 255.0f );
 		BcU32 Colour = Value << 24 | 0x00ffffff;
 		*pTexelData++ = Colour; 
 	}
