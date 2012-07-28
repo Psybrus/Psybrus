@@ -1101,7 +1101,7 @@ void GaWorldBSPComponent::loadJson()
 		clearMessages();
 		addMessage( "\"Something has happened here.\"" );
 		addMessage( "\"I sense I am the only one in the building.\"" );
-		addMessage( "\"I need to find out what...\"" );
+		addMessage( "\"I need to find out...\"" );
 		break;
 
 	case 4:
