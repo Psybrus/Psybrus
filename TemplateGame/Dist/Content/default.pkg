@@ -192,7 +192,7 @@
 
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "paddle"	// cube:ScnModel
+					"model" 		: "default.paddle:ScnModel"	// cube:ScnModel
 				}
 			]
 		},
@@ -208,13 +208,13 @@
 
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "sphere"	// sphere:ScnModel
+					"model" 		: "default.sphere:ScnModel"	// sphere:ScnModel
 				},
 
 				{
 					"type"			: "ScnParticleSystemComponent",
 					"noofparticles"	: 4096,
-					"material"		: "particle"
+					"material"		: "default.particle:ScnMaterial"
 				}
 			]
 		}
