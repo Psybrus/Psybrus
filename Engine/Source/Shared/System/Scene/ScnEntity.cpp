@@ -306,6 +306,20 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getComponentAnyParent
+ScnComponentRef ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
+{
+	ScnComponentRef Component = getComponent( Idx, Type );
+
+	if( Component.isValid() == BcFalse && getParentEntity().isValid() )
+	{
+		Component = getParentEntity()->getComponentAnyParent( Idx, Type );
+	}
+
+	return Component;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setPosition
 void ScnEntity::setPosition( const BcVec3d& Position )
 {

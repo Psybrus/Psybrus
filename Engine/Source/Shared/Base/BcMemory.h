@@ -30,6 +30,10 @@ void operator delete[]( void* pMem ) throw();
 extern void* BcMemAlign( BcSize Bytes, BcSize Alignment );
 
 //////////////////////////////////////////////////////////////////////////
+// BcMemRealloc
+extern void* BcMemRealloc( void* pOriginal, BcSize Bytes, BcSize Alignment );
+
+//////////////////////////////////////////////////////////////////////////
 // BcMemFree
 extern void BcMemFree( void* pMemory );
 
