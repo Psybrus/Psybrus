@@ -85,7 +85,6 @@ BcName& BcName::operator = ( const BcName& Other )
 std::string BcName::operator * () const
 {
 	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
-	BcVerifyMsg( EntryIndex_ != BcErrorCode, "BcName: Converting an invalid name to a string!" );
 	const BcNameEntryList& StringEntries( getStringEntries() );
 
 	if( EntryIndex_ < StringEntries.size() )
@@ -107,7 +106,7 @@ std::string BcName::operator * () const
 		}
 	}
 
-	return "invalid";
+	return "<INVALID>";
 }
 
 //////////////////////////////////////////////////////////////////////////

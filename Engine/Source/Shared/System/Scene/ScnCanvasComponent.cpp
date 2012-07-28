@@ -43,6 +43,9 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
+
+	//
+	IsReady_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +81,8 @@ void ScnCanvasComponent::create()
 		// Allocate render side primitive.
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
 	}
+
+	IsReady_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,6 +99,15 @@ void ScnCanvasComponent::destroy()
 	
 		// Allocate render side primitive.
 		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
+	}
+
+	// Wait for renderer.
+	SysFence Fence( RsCore::WORKER_MASK );
+
+	// Delete working data.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
 		// Delete vertices.
 		delete [] RenderResource.pVertices_;
@@ -105,18 +119,7 @@ void ScnCanvasComponent::destroy()
 //virtual
 BcBool ScnCanvasComponent::isReady()
 {
-	// TODO: Just set a sodding flag ok?
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		if( RenderResource.pVertexBuffer_ == NULL || RenderResource.pPrimitive_ == NULL )
-		{
-			return BcFalse;
-		}
-	}
-	
-	return BcTrue;
+	return IsReady_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -257,8 +260,45 @@ void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB,
 		pVertices->Z_ = 0.0f;
 		pVertices->RGBA_ = RGBA;
 
-		// Add primitive.	
-		addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+		// Quickly check last primitive.
+		BcBool AddNewPrimitive = BcTrue;
+		if( LastPrimitiveSection_ != BcErrorCode )
+		{
+			ScnCanvasComponentPrimitiveSection& PrimitiveSection = PrimitiveSectionList_[ LastPrimitiveSection_ ];
+
+			// If the last primitive was the same type as ours we can append to it.
+			// NOTE: Need more checks here later.
+			if( PrimitiveSection.Type_ == rsPT_LINELIST &&
+				PrimitiveSection.Layer_ == Layer &&
+				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
+			{
+				PrimitiveSection.NoofVertices_ += 2;
+
+				// Matrix stack.
+				// TODO: Factor into a seperate function.
+				if( IsIdentity_ == BcFalse )
+				{
+					BcMat4d Matrix = getMatrix();
+
+					for( BcU32 Idx = 0; Idx < 2; ++Idx )
+					{
+						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
+						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						pVertex->X_ = Vertex.x();
+						pVertex->Y_ = Vertex.y();
+						pVertex->Z_ = Vertex.z();
+					}
+				}
+				
+				AddNewPrimitive = BcFalse;
+			}
+		}
+		
+		// Add primitive.
+		if( AddNewPrimitive == BcTrue )
+		{
+			addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+		}
 	}
 }
 
@@ -319,7 +359,19 @@ void ScnCanvasComponent::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, con
 }
 
 //////////////////////////////////////////////////////////////////////////
-// render
+// drawLineBox
+void ScnCanvasComponent::drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
+{
+	// SLOW.
+	drawLine( BcVec2d( CornerA.x(), CornerA.y() ), BcVec2d( CornerB.x(), CornerA.y() ), Colour, Layer );
+	drawLine( BcVec2d( CornerB.x(), CornerA.y() ), BcVec2d( CornerB.x(), CornerB.y() ), Colour, Layer );
+	drawLine( BcVec2d( CornerB.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerB.y() ), Colour, Layer );
+	drawLine( BcVec2d( CornerA.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerA.y() ), Colour, Layer );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// drawBox
 void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 4 );
@@ -749,8 +801,6 @@ void ScnCanvasComponent::clear()
 void ScnCanvasComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
-	//clear(); // Temporary hack. Need to fix this.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -774,13 +824,16 @@ public:
 	RsPrimitive* pPrimitive_;
 };
 
-void ScnCanvasComponent::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	if( HaveVertexBufferLock_ == BcFalse )
 	{
 		return;
 	}
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
+
+	// HUD pass.
+	Sort.Pass_ = 1;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered

@@ -72,6 +72,22 @@ void CsCore::close()
 		processUnloadingResources();
 	}
 
+	if( LoadedResources_.size() > 0 )
+	{
+		BcPrintf( "==========================================\n" );
+		BcPrintf( "CsCore: Dump Resource On Exit:\n" );
+		BcPrintf( "==========================================\n" );
+	
+		TResourceListIterator It( LoadedResources_.begin() );
+		while( It != LoadedResources_.end() )
+		{
+			CsResource* pResource = (*It);
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			++It;
+		}
+		BcPrintf( "==========================================\n" );
+	}
+
 	// Verify we don't have any left floating loaded or unloading.
 	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing!" );
 	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
@@ -173,6 +189,38 @@ void CsCore::destroyResource( CsResource* pResource )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getResource
+CsResourceRef<> CsCore::getResource( const BcChar* pFullName )
+{
+	BcChar FullNameBuffer[ 1024 ];
+	BcAssertMsg( BcStrLength( pFullName ) < sizeof( FullNameBuffer ), "CsPackageImporter: Full name too long." );
+	BcStrCopy( FullNameBuffer, pFullName );
+	BcChar* pPackageNameBuffer = NULL;
+	BcChar* pResourceNameBuffer = NULL;
+	BcChar* pTypeNameBuffer = NULL;
+
+	BcAssertMsg( BcStrStr( FullNameBuffer, "." ) != NULL, "CsCore: Missing package from \"%s\"", FullNameBuffer );
+	BcAssertMsg( BcStrStr( FullNameBuffer, ":" ) != NULL, "CsCore: Missing type from \"%s\"", FullNameBuffer );
+		
+	pPackageNameBuffer = &FullNameBuffer[ 0 ];
+	pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
+	pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
+	*pResourceNameBuffer++ = '\0';
+	*pTypeNameBuffer++ = '\0';
+
+	BcName PackageName = pPackageNameBuffer;
+	BcName ResourceName = pResourceNameBuffer;
+	BcName TypeName = pTypeNameBuffer;
+
+	CsResourceRef<> Handle;
+	internalFindResource( PackageName, ResourceName, TypeName, Handle );
+
+	BcAssertMsg( Handle.isValid(), "CsCore: Unable to find \"%s\"", FullNameBuffer );
+
+	return Handle;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // requestPackage
 CsPackage* CsCore::requestPackage( const BcName& Package )
 {
@@ -193,6 +241,10 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 		pPackage = new CsPackage( Package );
 		PackageList_.push_back( pPackage );
 	}	
+	else
+	{
+		BcAssertMsg( BcFalse, "CsCore: Can't import package, missing \"%s\" or \"%s\"", (*PackedPackage).c_str(), (*ImportPackage).c_str() );
+	}
 
 	//
 	return pPackage;	

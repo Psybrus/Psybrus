@@ -36,7 +36,7 @@ public:
 	void								initialise();
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						update( BcReal Tick );
-	virtual void						render( RsFrame* pFrame, RsRenderSort Sort );
+	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 };

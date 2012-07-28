@@ -66,6 +66,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Json::Reader Reader;
 	if( Reader.parse( pJsonObject_, Root ) )
 	{
+		//BcPrintf( "** ScnEntity::initialise:\n" );
+
 		//
 		const Json::Value& Components = Root[ "components" ];
 
@@ -78,6 +80,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
 
+				//BcPrintf( "** - %s:%s\n", (*ComponentRef->getName()).c_str(), (*ComponentRef->getType()).c_str() );
+
 				// Initialise has already been called...need to change this later.
 				ComponentRef->initialise( Component );
 
@@ -86,6 +90,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 			}			
 		}
 	}
+
+	Super::initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,14 +147,25 @@ void ScnEntity::update( BcReal Tick )
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnEntity::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnEntity::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
+	// Set all material parameters that the view has info on. (HACK).
+	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	{
+		ScnMaterialComponentRef MaterialComponent( *It );
+		if( MaterialComponent.isValid() )
+		{
+			pViewComponent->setMaterialParameters( MaterialComponent );
+		}
+	}
+
+	// Render all renderable components.
 	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
 	{
 		ScnRenderableComponentWeakRef RenderableComponent( *It );
 		if( RenderableComponent.isValid() )
 		{
-			RenderableComponent->render( pFrame, Sort );
+			RenderableComponent->render( pViewComponent, pFrame, Sort );
 		}
 	}
 }
@@ -172,30 +189,47 @@ void ScnEntity::detach( ScnComponent* Component )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// reattach
-void ScnEntity::reattach( ScnComponent* Component )
-{
-	detach( Component );
-	attach( Component );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttachScene
-void ScnEntity::onAttachScene()
+void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
 	// Process attach/detach.
 	processAttachDetach();
 
 	BcAssert( IsAttached_ == BcFalse );
 	IsAttached_ = BcTrue;
+
+	// Do onAttachComponent for all entities current components.
+	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
+	{
+		ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), getComponent( Idx ) );
+	}
+
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// onDetachScene
-void ScnEntity::onDetachScene()
+// onAttachScene
+void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
+	// All components, get rid of NOW.
+	// TODO: See about removing stuff from ScnCore for this.
+	Super::onDetach( Parent );
+
 	BcAssert( IsAttached_ == BcTrue );
 	IsAttached_ = BcFalse;
+
+	// Do onDetachComponent for all entities current components.
+	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
+	{
+		ScnComponentRef Component( getComponent( Idx ) );
+
+		// Can be unattached if the entity has been immediately removed from the scene.
+		if( Component->isAttached() == BcTrue )
+		{
+			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
+			Component->onDetach( ScnEntityWeakRef( this ) );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -223,15 +257,52 @@ ScnEntityRef ScnEntity::getBasisEntity()
 // getNoofComponents
 BcU32 ScnEntity::getNoofComponents() const
 {
-	return Components_.size();
+	return Components_.size() + AttachComponents_.size();
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponentRef ScnEntity::getComponent( BcU32 Idx )
+ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 {
-	BcAssert( Idx < Components_.size() );
-	return Components_[ Idx ];
+	if( Type == BcName::INVALID )
+	{
+		BcU32 CurrIdx = 0;
+		for( BcU32 ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
+		{
+			if( CurrIdx++ == Idx )
+			{
+				return Components_[ ComponentIdx ];
+			}
+		}
+		for( BcU32 ComponentIdx = 0; ComponentIdx < AttachComponents_.size(); ++ComponentIdx )
+		{
+			if( CurrIdx++ == Idx )
+			{
+				return AttachComponents_[ ComponentIdx ];
+			}
+		}
+	}
+	else
+	{
+		// HACK: Seperate into seperate function.
+		BcU32 NoofComponents = getNoofComponents();
+		BcU32 SearchIdx = 0;
+		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
+		{
+			ScnComponentRef Component = getComponent( ComponentIdx );
+			if( Component->getType() == Type )
+			{
+				if( SearchIdx == Idx )
+				{
+					return Component;
+				}
+
+				++SearchIdx;
+			}
+		}
+	}
+
+	return NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -246,6 +317,13 @@ void ScnEntity::setPosition( const BcVec3d& Position )
 void ScnEntity::setMatrix( const BcMat4d& Matrix )
 {
 	Transform_ = Matrix;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPosition
+BcVec3d ScnEntity::getPosition() const
+{
+	return Transform_.translation();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -294,22 +372,24 @@ void ScnEntity::processAttachDetach()
 	// Detach first.
 	while( DetachComponents_.size() > 0 )
 	{
-		ScnComponentList DetachComponents( DetachComponents_ );
-		DetachComponents_.clear();
-		for( ScnComponentListIterator It( DetachComponents.begin() ); It != DetachComponents.end(); ++It )
+		for( ScnComponentListIterator It( DetachComponents_.begin() ); It != DetachComponents_.end(); )
 		{
-			internalDetach( (*It) );
+			ScnComponentRef Component( (*It) );
+			DetachComponents_.erase( It );
+			internalDetach( Component );
+			It = DetachComponents_.begin();
 		}
 	}
 
 	// Attach second.
 	while( AttachComponents_.size() > 0 )
 	{
-		ScnComponentList AttachComponents( AttachComponents_ );
-		AttachComponents_.clear();
-		for( ScnComponentListIterator It( AttachComponents.begin() ); It != AttachComponents.end(); ++It )
+		for( ScnComponentListIterator It( AttachComponents_.begin() ); It != AttachComponents_.end(); )
 		{
-			internalAttach( (*It) );
+			ScnComponentRef Component( (*It) );
+			AttachComponents_.erase( It );
+			internalAttach( Component );
+			It = AttachComponents_.begin();
 		}
 	}
 }
@@ -332,7 +412,7 @@ void ScnEntity::internalAttach( ScnComponent* Component )
 		Components_.push_back( Component );
 
 		// Tell the scene about it.
-		if( IsAttached_ == BcTrue )
+		if( isAttached() == BcTrue )
 		{
 			ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), Component );
 		}
@@ -366,7 +446,7 @@ void ScnEntity::internalDetach( ScnComponent* Component )
 		}
 
 		// Tell the scene about it.
-		if( IsAttached_ )
+		if( isAttached() )
 		{
 			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
 		}

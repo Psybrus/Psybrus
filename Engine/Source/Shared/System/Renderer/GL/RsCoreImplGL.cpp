@@ -162,7 +162,7 @@ void RsCoreImplGL::open_threaded()
 		pStateBlock_->bind();
 	
 		// Clear.
-		glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
+		glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	
 		// Line smoothing.
@@ -281,6 +281,15 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// createTexture
+//virtual 
+RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData )
+{
+	RsTextureGL* pResource = new RsTextureGL( Width, Levels, Format, pData );
+	createResource( pResource );
+	return pResource;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // createTexture
@@ -288,6 +297,16 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData )
 {
 	RsTextureGL* pResource = new RsTextureGL( Width, Height, Levels, Format, pData );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createTexture
+//virtual 
+RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData )
+{
+	RsTextureGL* pResource = new RsTextureGL( Width, Height, Depth, Levels, Format, pData );
 	createResource( pResource );
 	return pResource;
 }
@@ -380,7 +399,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
 	}
 
-	// Call destroy.	
+	// Call destroy and wait.
 	{
 		SysResource::DestroyDelegate Delegate( SysResource::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
 		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );

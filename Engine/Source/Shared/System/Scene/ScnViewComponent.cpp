@@ -144,6 +144,15 @@ void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialCo
 {
 	MaterialComponent->setClipTransform( Viewport_.view() * Viewport_.projection() );
 	MaterialComponent->setViewTransform( Viewport_.view() );
+	MaterialComponent->setEyePosition( InverseViewMatrix_.translation() );	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getWorldPosition
+void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far )
+{
+	// NOTE: Uses last viewport bound.
+	Viewport_.unProject( ScreenPosition, Near, Far );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,8 +177,9 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Header_.Far_ );
 
 	// Setup the view matrix.
-	BcMat4d ViewMatrix = getParentEntity()->getMatrix();
-	ViewMatrix.inverse();
+	InverseViewMatrix_ = getParentEntity()->getMatrix();
+	BcMat4d ViewMatrix( InverseViewMatrix_ );
+	ViewMatrix.inverse();	
 	Viewport_.view( ViewMatrix );
 	
 	// Setup the perspective projection.
@@ -180,7 +190,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	}
 	else
 	{
-		ProjectionMatrix.perspProjectionVertical( Header_.VerticalFOV_, Aspect, Header_.Near_, Header_.Far_ );
+		ProjectionMatrix.perspProjectionVertical( Header_.VerticalFOV_, 1.0f / Aspect, Header_.Near_, Header_.Far_ );
 	}
 	Viewport_.projection( ProjectionMatrix );
 

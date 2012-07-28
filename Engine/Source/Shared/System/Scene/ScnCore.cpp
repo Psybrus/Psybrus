@@ -19,6 +19,8 @@
 #include "System/Os/OsCore.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Content/CsCore.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( ScnCore );
@@ -66,7 +68,7 @@ void ScnCore::update()
 	{
 		ScnEntityRef Entity( *It );
 
-		//if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+		if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
 		{
 			Entity->update( Tick );
 		}
@@ -97,19 +99,9 @@ void ScnCore::update()
 			{
 				ScnEntityRef& Entity( *It );
 
-				//if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
-				{
-					for( BcU32 ComponentIdx = 0; ComponentIdx < Entity->getNoofComponents(); ++ComponentIdx )
-					{
-						ScnMaterialComponentRef MaterialComponent( Entity->getComponent( ComponentIdx ) );
-
-						if( MaterialComponent.isValid() )
-						{
-							ViewComponent->setMaterialParameters( MaterialComponent );
-						}
-					}
-					
-					Entity->render( pFrame, RsRenderSort( 0 ) );
+				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				{				
+					Entity->render( ViewComponent, pFrame, RsRenderSort( 0 ) );
 				}
 			}
 		}
@@ -164,6 +156,54 @@ void ScnCore::removeAllEntities()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createEntity
+ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, const BcName& InstanceName )
+{
+	ScnEntityRef Entity;
+	ScnEntityRef TemplateEntity;
+
+	// Request template entity.
+ 	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
+	{
+		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? Name : InstanceName, Entity, TemplateEntity ) )
+		{
+			return Entity;
+		}
+	}
+
+	BcAssertMsg( BcFalse, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
+
+	return NULL;	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findEntity
+ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
+{
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( Entity->getName() == InstanceName )
+		{
+			return Entity;
+		}
+	}
+
+	for( ScnEntityListIterator It( AddEntityList_.begin() ); It != AddEntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( Entity->getName() == InstanceName )
+		{
+			return Entity;
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttachComponent
 void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
 {
@@ -210,16 +250,8 @@ void ScnCore::processAddRemove()
 	for( ScnEntityListIterator It( RemoveEntityList_.begin() ); It != RemoveEntityList_.end(); ++It )
 	{
 		ScnEntityRef Entity( *It );
-		Entity->onDetachScene();
+		Entity->onDetach( NULL );
 		EntityList_.remove( Entity );
-
-		// Do onDetachComponent for all entities current components.
-		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
-		{
-			ScnComponentRef Component( Entity->getComponent( Idx ) );
-			onDetachComponent( ScnEntityWeakRef( Entity ), Component );
-			Component->onDetach( ScnEntityWeakRef( Entity ) );				// HACK? I don't think this should be called. Entities are still attached to the entity.		
-		}
 	}
 	RemoveEntityList_.clear();
 
@@ -227,14 +259,8 @@ void ScnCore::processAddRemove()
 	{
 		ScnEntityRef Entity( *It );
 
-		Entity->onAttachScene();
+		Entity->onAttach( NULL );
 		EntityList_.push_back( Entity );
-
-		// Do onAttachComponent for all entities current components.
-		for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
-		{
-			onAttachComponent( ScnEntityWeakRef( Entity ), Entity->getComponent( Idx ) );
-		}
 	}
 	AddEntityList_.clear();
 }

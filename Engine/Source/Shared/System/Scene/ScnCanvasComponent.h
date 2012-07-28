@@ -127,6 +127,15 @@ public:
 	void								drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
+	 * Draw line box.
+	 * @param CornerA Corner A
+	 * @param CornerB Corner B
+	 * @param Colour Colour
+	 * @param Layer Layer
+	 */
+	void								drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
 	 * Draw box.
 	 * @param CornerA Corner A
 	 * @param CornerB Corner B
@@ -186,7 +195,7 @@ public:
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-	virtual void						render( RsFrame* pFrame, RsRenderSort Sort );
+	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 
 
 protected:
@@ -233,8 +242,9 @@ protected:
 	
 	TMatrixStack						MatrixStack_;
 	BcBool								IsIdentity_;
-	
-	
+
+	//
+	BcBool								IsReady_;
 };
 
 #endif

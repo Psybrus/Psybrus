@@ -44,7 +44,9 @@ public:
 	virtual RsContext*		getContext( OsClient* pClient );
 	virtual void			destroyContext( OsClient* pClient );
 
+	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
 	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
+	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
 	virtual RsRenderTarget*	createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat );
 	virtual RsVertexBuffer*	createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL );
 	virtual RsIndexBuffer*	createIndexBuffer( BcU32 NoofIndices, void* pIndexData = NULL );

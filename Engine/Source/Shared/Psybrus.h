@@ -16,6 +16,7 @@
 
 #include "Base/BcAABB.h"
 #include "Base/BcAtomicMutex.h"
+#include "Base/BcBSPTree.h"
 #include "Base/BcDebug.h"
 #include "Base/BcDelegate.h"
 #include "Base/BcEndian.h"
@@ -70,6 +71,7 @@
 #include "System/Scene/ScnFont.h"
 #include "System/Scene/ScnSound.h"
 #include "System/Scene/ScnSoundEmitter.h"
+#include "System/Scene/ScnSoundListenerComponent.h"
 #include "System/Scene/ScnViewComponent.h"
 
 //////////////////////////////////////////////////////////////////////////

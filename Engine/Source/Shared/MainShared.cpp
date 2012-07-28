@@ -55,11 +55,12 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
 
 	CsCore::pImpl()->registerResource< ScnSound >();
-	CsCore::pImpl()->registerResource< ScnSoundEmitter >();
-
+	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >();
+	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >();
+	
 	CsCore::pImpl()->registerResource< ScnComponent >();
 	CsCore::pImpl()->registerResource< ScnEntity >();
-
+	
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
 	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
@@ -91,7 +92,8 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->unregisterResource< ScnParticleSystemComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnSound >();
-	CsCore::pImpl()->unregisterResource< ScnSoundEmitter >();
+	CsCore::pImpl()->unregisterResource< ScnSoundEmitterComponent >();
+	CsCore::pImpl()->unregisterResource< ScnSoundListenerComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnComponent >();
 	CsCore::pImpl()->unregisterResource< ScnEntity >();

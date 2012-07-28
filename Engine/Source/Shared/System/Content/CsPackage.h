@@ -37,6 +37,11 @@ public:
 	BcBool							isReady() const;
 
 	/**
+	 * Are we loaded?
+	 */
+	BcBool							isLoaded() const;
+
+	/**
 	 * Do we have any unreferenced resources?
 	 */
 	BcBool							hasUnreferencedResources() const;
@@ -60,6 +65,11 @@ public:
 	* Get resource.
 	*/
 	CsResource*						getResource( BcU32 ResourceIdx );
+
+	/**
+	* Get cross package ref.
+	*/
+	CsResourceRef<>					getPackageCrossRef( BcU32 ID );
 	
 public:
 	/**

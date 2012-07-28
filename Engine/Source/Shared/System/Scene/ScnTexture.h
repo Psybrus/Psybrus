@@ -41,6 +41,9 @@ public:
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	virtual void						initialise();
+	virtual void						initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format );
+	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format );
+	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format );
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
@@ -50,6 +53,9 @@ public:
 	BcU32								getWidth() const;
 	BcU32								getHeight() const;
 	RsColour							getTexel( BcU32 X, BcU32 Y ) const;
+	void								setTexel( BcU32 X, BcU32 Y, const RsColour& Colour );
+	void								lock();
+	void								unlock();
 	
 	virtual const ScnRect&				getRect( BcU32 Idx );
 	virtual BcU32						noofRects();
@@ -66,13 +72,16 @@ protected:
 	{
 		BcU32							Width_;
 		BcU32							Height_;
+		BcU32							Depth_;
 		BcU32							Levels_;
+		eRsTextureType					Type_;
 		eRsTextureFormat				Format_;
 	};
 	
 	THeader								Header_;
 	void*								pTextureData_;
 	BcBool								CreateNewTexture_;
+	BcBool								IsUserCreated_;
 };
 
 #endif

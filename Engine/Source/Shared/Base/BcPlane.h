@@ -46,11 +46,11 @@ public:
 
 	// Intersection
 	BcBool lineIntersection( const BcVec3d& Point, const BcVec3d& Dir, BcReal& Distance ) const;
-	BcBool lineIntersection( const BcVec3d& A, const BcVec3d& B, BcVec3d& Intersection ) const;
+	BcBool lineIntersection( const BcVec3d& A, const BcVec3d& B, BcReal& Distance, BcVec3d& Intersection ) const;
 
 	// Classification
 	BcReal distance( const BcVec3d& Point ) const;
-	eClassify classify( const BcVec3d& Point ) const;
+	eClassify classify( const BcVec3d& Point, BcReal Radius = 1e-3f ) const;
 
 	// Operator
 	BcBool operator == (const BcPlane& Other ) const;

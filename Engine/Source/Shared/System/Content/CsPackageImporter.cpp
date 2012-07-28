@@ -51,6 +51,7 @@ CsPackageImporter::~CsPackageImporter()
 // import
 BcBool CsPackageImporter::import( const BcName& Name )
 {
+	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
 
 	BcPrintf( "============================================================================\n" );
@@ -100,7 +101,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			else
 			{
 				BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
-				BcBreakpoint;
+ 				BcBreakpoint;
 				return BcFalse;
 			}
 		}
@@ -147,6 +148,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		Header_.Version_ = CsPackageHeader::VERSION;
 		Header_.Flags_ = csPF_DEFAULT; // TODO: Flags.
 		Header_.StringTableBytes_ = StringTableStream.dataSize();
+		Header_.TotalPackageCrossRefs_ = PackageCrossRefList_.size();
+		Header_.TotalPackageDependencies_ = PackageDependencyList_.size();
 		Header_.TotalResources_ = ResourceHeaders_.size();
 		Header_.TotalChunks_ = ChunkHeaders_.size();
 		Header_.TotalAllocSize_ = 0;
@@ -155,6 +158,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 		// Calculate package alloc size.
 		Header_.TotalAllocSize_ += StringTableStream.dataSize();
+		Header_.TotalAllocSize_ += BcCalcAlignment( PackageCrossRefList_.size() * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += BcCalcAlignment( PackageDependencyList_.size() * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
 		Header_.TotalAllocSize_ += BcCalcAlignment( ResourceHeaders_.size() * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
 		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
 		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
@@ -180,6 +185,20 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		
 		// Write string table.
 		File_.write( StringTableStream.pData(), StringTableStream.dataSize() );
+
+		// Write package cross refs.
+		for( BcU32 Idx = 0; Idx < PackageCrossRefList_.size(); ++Idx )
+		{
+			CsPackageCrossRefData& CrossRefData = PackageCrossRefList_[ Idx ];
+			File_.write( &CrossRefData, sizeof( CsPackageCrossRefData ) );
+		}
+
+		// Write package dependencies.
+		for( BcU32 Idx = 0; Idx < PackageDependencyDataList_.size(); ++Idx )
+		{
+			CsPackageDependencyData& PackageDependencyData = PackageDependencyDataList_[ Idx ];
+			File_.write( &PackageDependencyData, sizeof( CsPackageDependencyData ) );
+		}
 
 		// Write resource headers.
 		for( BcU32 Idx = 0; Idx < ResourceHeaders_.size(); ++Idx )
@@ -357,6 +376,118 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addPackageCrossRef
+BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName, const BcName& DefaultTypeName )
+{
+	BcChar FullNameBuffer[ 1024 ];
+	BcAssertMsg( BcStrLength( pFullName ) < sizeof( FullNameBuffer ), "CsPackageImporter: Full name too long." );
+	BcStrCopy( FullNameBuffer, pFullName );
+	BcChar* pPackageNameBuffer = NULL;
+	BcChar* pResourceNameBuffer = NULL;
+	BcChar* pTypeNameBuffer = NULL;
+	
+	BcName PackageName = Name_;
+	BcName ResourceName = BcName::INVALID;
+	BcName TypeName = DefaultTypeName != BcName::INVALID ? DefaultTypeName : BcName( "CsResource" );
+
+	BcBool HavePackage = BcStrStr( FullNameBuffer, "." ) != NULL;
+	BcBool HaveType = BcStrStr( FullNameBuffer, ":" ) != NULL;
+	
+	// If we have no default, we need one in the full name.
+	if( TypeName == BcName::INVALID )
+	{
+		BcAssertMsg( HaveType, "CsCrossPackageRef: Missing type name: \"%s\". Format: PACKAGE.RESOURCE:TYPE", pFullName );
+	}
+
+	// Parse from full name.
+	// NOTE: Unsafe.
+	if( HavePackage == BcTrue &&
+		HaveType == BcTrue )
+	{
+		pPackageNameBuffer = &FullNameBuffer[ 0 ];
+		pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
+		pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
+		*pResourceNameBuffer++ = '\0';
+		*pTypeNameBuffer++ = '\0';
+	}
+	else if( HavePackage == BcTrue &&
+		     HaveType == BcFalse )
+	{
+		pPackageNameBuffer = &FullNameBuffer[ 0 ];
+		pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
+		*pResourceNameBuffer++ = '\0';
+	}
+	else if( HavePackage == BcFalse &&
+		     HaveType == BcTrue )
+	{
+		pResourceNameBuffer = &FullNameBuffer[ 0 ];
+		pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
+		*pTypeNameBuffer++ = '\0';
+	}
+	else if( HavePackage == BcFalse &&
+		     HaveType == BcFalse )
+	{
+		pResourceNameBuffer = &FullNameBuffer[ 0 ];
+	}
+
+	if( pPackageNameBuffer != NULL )
+	{
+		BcAssertMsg( BcStrLength( pPackageNameBuffer ) < BcNameEntry::MAX_STRING_LENGTH, "CsCrossPackageRef: Package name too long. Max of %u characters.", BcNameEntry::MAX_STRING_LENGTH - 1 );
+	}
+
+	if( pResourceNameBuffer != NULL )
+	{
+		BcAssertMsg( BcStrLength( pResourceNameBuffer ) < BcNameEntry::MAX_STRING_LENGTH, "CsCrossPackageRef: Resource name too long. Max of %u characters.", BcNameEntry::MAX_STRING_LENGTH - 1 );
+	}
+
+	if( pTypeNameBuffer != NULL )
+	{
+		BcAssertMsg( BcStrLength( pTypeNameBuffer ) < BcNameEntry::MAX_STRING_LENGTH, "CsCrossPackageRef: Type name too long. Max of %u characters.", BcNameEntry::MAX_STRING_LENGTH - 1 );
+	}
+
+	// Save package name.
+	if( pPackageNameBuffer != NULL && BcStrLength( pPackageNameBuffer ) > 0 )
+	{
+		PackageName = pPackageNameBuffer;
+	}
+
+	// Save resource name.
+	BcAssertMsg( pResourceNameBuffer != NULL && BcStrLength( pResourceNameBuffer ) > 0, "CsCrossPackageRef: Resource name has not been specified." );
+	ResourceName = pResourceNameBuffer;
+
+	// Save package name.
+	if( pTypeNameBuffer != NULL && BcStrLength( pTypeNameBuffer ) > 0 )
+	{
+		TypeName = pTypeNameBuffer;
+	}
+
+	// Add cross ref.
+	CsPackageCrossRefData CrossRef = 
+	{
+		addString( (*PackageName).c_str() ),
+		addString( (*ResourceName).c_str() ),
+		addString( (*TypeName).c_str() )
+	};
+
+	PackageCrossRefList_.push_back( CrossRef );
+
+	// Add package dependency if it's not there, and it's not this package.
+	if( PackageName != Name_ && havePackageDependency( PackageName ) == BcFalse )
+	{
+		CsPackageDependencyData PackageDependency =
+		{
+			CrossRef.PackageName_
+		};
+
+		PackageDependencyDataList_.push_back( PackageDependency );
+		PackageDependencyList_.push_back( PackageName );
+	}
+
+	// Resource index to the package cross ref.
+	return PackageCrossRefList_.size() - 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // addChunk
 BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment, BcU32 Flags )
 {
@@ -413,6 +544,21 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU3
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
 	DependencyList_.push_back( CsDependency( pFileName ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// havePackageDependency
+BcBool CsPackageImporter::havePackageDependency( const BcName& PackageName )
+{
+	for( TPackageDependencyIterator It( PackageDependencyList_.begin() ); It != PackageDependencyList_.end(); ++It )
+	{
+		if( PackageName == (*It) )
+		{
+			return BcTrue;
+		}
+	}
+	
+	return BcFalse;
 }
 
 #endif

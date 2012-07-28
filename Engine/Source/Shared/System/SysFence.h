@@ -22,6 +22,7 @@ class SysFence
 {
 public:
 	SysFence();
+	SysFence( BcU32 WorkerMask );  // Immediately queue and wait for 0.
 	~SysFence();
 
 	/**
@@ -38,6 +39,11 @@ public:
 	 * Queue up a fence job.
 	 */
 	void queue( BcU32 WorkerMask );
+
+	/*
+	 * Get the count.
+	 */
+	BcU32 count() const;
 
 	/**
 	 * Wait for fence to reach a certain value.

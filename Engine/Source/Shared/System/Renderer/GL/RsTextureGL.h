@@ -29,20 +29,23 @@ class RsTextureGL:
 	public RsTexture
 {
 public:
-	/**
-	 * Create texture.
-	 * @param Width Width.
-	 * @param Height Height.
-	 * @param Levels Mipmap Levels.
-	 * @param Format Texture format.
-	 * @param pTextureData Texture data.
-	 */
+	// 1D
+	RsTextureGL( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+
+	// 2D
 	RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+
+	// 3D
+	RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
 	virtual ~RsTextureGL();
 	
 	virtual BcU32						width() const;
 	virtual BcU32						height() const;
-	
+	virtual BcU32						depth() const;
+	virtual BcU32						levels() const;
+	virtual eRsTextureType				type() const;
+	virtual eRsTextureFormat			format() const;
+
 	// Editing.
 	virtual void*						lockTexture();
 	virtual void						unlockTexture();
@@ -52,10 +55,18 @@ public:
 	virtual void						update();
 	virtual void						destroy();	
 	
+protected:
+	void								loadTexture1D();
+	void								loadTexture2D();
+	void								loadTexture3D();
+	void								loadTextureCubeMap();
+
 private:
 	BcU32								Width_;
 	BcU32								Height_;
+	BcU32								Depth_;
 	BcU32								Levels_;
+	eRsTextureType						Type_;
 	eRsTextureFormat					Format_;
 	BcBool								Locked_;		// BADNESS: Needs to be atomic!
 

@@ -107,6 +107,11 @@ OsClientWindows::OsClientWindows()
 
 	PrevMouseX_ = 0;
 	PrevMouseY_ = 0;
+	MouseLocked_ = BcFalse;
+
+	MousePrevDelta_ = BcVec2d( 0.0f, 0.0f );
+	MouseDelta_ = BcVec2d( 0.0f, 0.0f );
+	MousePos_ = BcVec2d( 0.0f, 0.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -200,6 +205,71 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 }
 
 //////////////////////////////////////////////////////////////////////////
+// update
+void OsClientWindows::update()
+{
+	// Update mouse if we're in focus.
+	if( ::GetActiveWindow() == hWnd_ )
+	{
+		POINT MousePosition;
+		POINT WindowPosition;
+		RECT Rect;
+
+		// Get window rect in screen space.
+		::GetWindowRect( hWnd_, &Rect );
+		
+		// Screen space cood of the client area.
+		WindowPosition.x = 0;
+		WindowPosition.y = 0;
+		::ClientToScreen( hWnd_, &WindowPosition );
+		
+		// Get the cursor position
+		::GetCursorPos( &MousePosition );
+
+		const BcS32 WX = ( Rect.right - Rect.left );
+		const BcS32 WY = ( Rect.bottom - Rect.top );
+		MouseDelta_.x( BcReal( MousePosition.x - ( Rect.left + ( WX / 2 ) ) ) );
+		MouseDelta_.y( BcReal( MousePosition.y - ( Rect.top + ( WY / 2 ) ) ) );
+
+		MousePos_ += MouseDelta_;
+		MousePos_.x( BcClamp( MousePos_.x(), 0.0f, BcReal( WX ) ) );
+		MousePos_.y( BcClamp( MousePos_.y(), 0.0f, BcReal( WY ) ) );
+
+		// Smooth out delta
+		const BcVec2d TempOld = MouseDelta_;
+		MouseDelta_ = ( MousePrevDelta_ + MouseDelta_ ) * 0.5f;
+		MousePrevDelta_ = TempOld;
+
+		// Lock to centre of screen if we're in focus.
+		if( MouseLocked_ )
+		{
+			::SetCursorPos( Rect.left + ( WX / 2 ), Rect.top + ( WY / 2 ) );
+		}
+
+		// Send event if moved.
+		if( MouseDelta_.magnitude() > 0.5f )
+		{
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = (BcS16)MousePosition.x - (BcS16)WindowPosition.x;
+			Event.MouseY_ = (BcS16)MousePosition.y - (BcS16)WindowPosition.y;
+			Event.MouseDX_ = MouseDelta_.x();
+			Event.MouseDY_ = MouseDelta_.y();
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+
+			// Legacy...
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+
+			Event.ButtonCode_ = 0;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // destroy
 void OsClientWindows::destroy()
 {	
@@ -269,6 +339,37 @@ BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 	}
 	
 	return RetValue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setMouseLock
+void OsClientWindows::setMouseLock( BcBool Enabled )
+{
+	MouseLocked_ = Enabled;
+
+	// Hide cursor too.
+	CURSORINFO CursorInfo;
+	CursorInfo.cbSize = sizeof(CursorInfo);
+	GetCursorInfo( &CursorInfo );
+
+	if( Enabled )
+	{
+		if ( CursorInfo.flags == CURSOR_SHOWING )
+		{
+			while ( ShowCursor( FALSE ) >= 0 )
+			{
+			}
+		}
+	}
+	else
+	{
+		if ( CursorInfo.flags != CURSOR_SHOWING )
+		{
+			while ( ShowCursor( TRUE ) < 0 )
+			{
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -384,17 +485,25 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_MOUSEMOVE:
 		{
-			OsEventInputMouse Event;
-			Event.DeviceID_ = 0;
-			Event.MouseX_ = lParam & 0xffff;
-			Event.MouseY_ = lParam >> 16 & 0xffff;
+			/*
+			if( MouseLocked_ == BcFalse )
+			{
+				OsEventInputMouse Event;
+				Event.DeviceID_ = 0;
+				Event.MouseX_ = lParam & 0xffff;
+				Event.MouseY_ = lParam >> 16 & 0xffff;
+				Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
+				Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+				Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+				Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
 
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
-
-			Event.ButtonCode_ = 0;
-			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
-			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
+				Event.ButtonCode_ = 0;
+				OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
+			}
+			*/
 			return 0;
 		}
 		break;
@@ -407,9 +516,14 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
 
 			Event.ButtonCode_ = 0;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
@@ -426,9 +540,14 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
 
 			Event.ButtonCode_ = 0;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
@@ -445,9 +564,14 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
 
 			Event.ButtonCode_ = 1;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
@@ -464,9 +588,14 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
 
 			Event.ButtonCode_ = 1;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
@@ -483,9 +612,14 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
 
 			Event.ButtonCode_ = 2;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
@@ -502,9 +636,14 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
 			Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
-			Event.MouseDX_ = Event.MouseY_ - PrevMouseY_;
-			PrevMouseX_ = Event.MouseX_;
-			PrevMouseY_ = Event.MouseY_;
+			Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
+			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
+			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
 
 			Event.ButtonCode_ = 2;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
