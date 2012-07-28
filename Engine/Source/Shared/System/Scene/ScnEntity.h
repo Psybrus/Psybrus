@@ -83,8 +83,18 @@ public:
 	}
 
 	/**
-	 * 
+	 * Get component on any parent or self.
 	 */
+	ScnComponentRef						getComponentAnyParent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+
+	/**
+	 * Get component on any parent or self by type.
+	 */
+	template< typename _Ty >
+	ScnComponentRef						getComponentAnyParentByType( BcU32 Idx )
+	{
+		return getComponentAnyParent( Idx, _Ty::StaticGetType() );
+	}
 
 	/**
  	 * Get AABB which encompasses this entity.

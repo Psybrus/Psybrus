@@ -105,7 +105,6 @@ void operator delete[]( void* pMem ) throw()
 	BcMemFree( pMem );
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // BcMemAlign
 void* BcMemAlign( BcSize Bytes, BcSize Alignment )
@@ -114,6 +113,17 @@ void* BcMemAlign( BcSize Bytes, BcSize Alignment )
 	return _aligned_malloc( Bytes, Alignment );
 #else
 	return memalign( Alignment, Bytes );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcMemRealloc
+void* BcMemRealloc( void* pOriginal, BcSize Bytes, BcSize Alignment )
+{
+#if PLATFORM_WINDOWS
+	return _aligned_realloc( pOriginal, Bytes, Alignment );
+#else
+	BcBreakpoint; // Need to implement.
 #endif
 }
 
