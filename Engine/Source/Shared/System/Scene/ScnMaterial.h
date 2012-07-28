@@ -69,15 +69,14 @@ private:
 	
 	struct THeader
 	{
-		BcU32							ShaderName_;
+		BcU32							ShaderRef_;
 		BcU32							NoofTextures_;
 	};
 
 	struct TTextureHeader
 	{
 		BcU32							SamplerName_;
-		BcU32							TextureName_;
-		BcU32							TextureType_;
+		BcU32							TextureRef_;
 	};
 	
 	THeader*							pHeader_;
@@ -98,6 +97,7 @@ public:
 	DECLARE_RESOURCE( ScnComponent, ScnMaterialComponent );
 	
 	void								initialise( ScnMaterialRef Parent, BcU32 PermutationFlags );
+	void								initialise( const Json::Value& Object );
 	void								destroy();
 	
 	BcU32								findParameter( const BcName& ParameterName );	
@@ -115,13 +115,14 @@ public:
 	void								setClipTransform( const BcMat4d& Transform );
 	void								setViewTransform( const BcMat4d& Transform );
 	void								setWorldTransform( const BcMat4d& Transform );
+	void								setEyePosition( const BcVec3d& Position );
 	
 	void								setState( eRsRenderState State, BcU32 Value );
 	
 	ScnTextureRef						getTexture( BcU32 Parameter );
 	ScnMaterialRef						getMaterial();
 	
-	void								bind( RsFrame* pFrame, RsRenderSort Sort );
+	void								bind( RsFrame* pFrame, RsRenderSort& Sort );
 
 	virtual BcBool						isReady();
 
@@ -169,6 +170,7 @@ private:
 	BcU32								ViewTransformParameter_;
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
+	BcU32								EyePositionParameter_;
 };
 
 #endif

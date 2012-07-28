@@ -69,7 +69,7 @@ void RsStateBlock::setDefaultState()
 		rsTFM_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
 	};
 
-	for( BcU32 Sampler = 0; Sampler < rsTT_MAX; ++Sampler )
+	for( BcU32 Sampler = 0; Sampler < NOOF_TEXTURESTATES; ++Sampler )
 	{
 		setTextureState( Sampler, NULL, TextureParams, BcTrue );
 	}
@@ -80,13 +80,13 @@ void RsStateBlock::setDefaultState()
 void RsStateBlock::invalidateRenderState()
 {
 	NoofRenderStateBinds_ = 0;
-	for( BcU32 Idx = 0; Idx > rsRS_MAX; ++Idx )
+	for( BcU32 Idx = 0; Idx < NOOF_RENDERSTATES; ++Idx )
 	{
 		TRenderStateValue& RenderStateValue = RenderStateValues_[ Idx ];
 
 		RenderStateValue.Dirty_ = BcTrue;
 		
-		BcAssert( NoofRenderStateBinds_ < rsRS_MAX );
+		BcAssert( NoofRenderStateBinds_ < NOOF_RENDERSTATES );
 		RenderStateBinds_[ NoofRenderStateBinds_++ ] = Idx;
 	}
 }
@@ -96,13 +96,13 @@ void RsStateBlock::invalidateRenderState()
 void RsStateBlock::invalidateTextureState()
 {
 	NoofTextureStateBinds_ = 0;
-	for( BcU32 Idx = 0; Idx < rsTT_MAX; ++Idx )
+	for( BcU32 Idx = 0; Idx < NOOF_TEXTURESTATES; ++Idx )
 	{
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ Idx ];
 		
 		TextureStateValue.Dirty_ = BcTrue;
 		
-		BcAssert( NoofTextureStateBinds_ < rsTT_MAX );
+		BcAssert( NoofTextureStateBinds_ < NOOF_TEXTURESTATES );
 		TextureStateBinds_[ NoofTextureStateBinds_++ ] = Idx;
 	}
 }
@@ -111,7 +111,7 @@ void RsStateBlock::invalidateTextureState()
 // setRenderState
 void RsStateBlock::setRenderState( eRsRenderState State, BcS32 Value, BcBool Force )
 {
-	if( State < rsRS_MAX )
+	if( State < NOOF_RENDERSTATES )
 	{
 		TRenderStateValue& RenderStateValue = RenderStateValues_[ State ];
 		
@@ -123,7 +123,7 @@ void RsStateBlock::setRenderState( eRsRenderState State, BcS32 Value, BcBool For
 		// If it wasn't dirty, we need to set it.
 		if( WasDirty == BcFalse && RenderStateValue.Dirty_ == BcTrue )
 		{
-			BcAssert( NoofRenderStateBinds_ < rsRS_MAX );
+			BcAssert( NoofRenderStateBinds_ < NOOF_RENDERSTATES );
 			RenderStateBinds_[ NoofRenderStateBinds_++ ] = State;
 		}
 	}
@@ -133,7 +133,7 @@ void RsStateBlock::setRenderState( eRsRenderState State, BcS32 Value, BcBool For
 // setTextureState
 void RsStateBlock::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsTextureParams& Params, BcBool Force )
 {
-	if( Sampler < rsTT_MAX )
+	if( Sampler < NOOF_TEXTURESTATES )
 	{
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ Sampler ];
 		
@@ -146,7 +146,7 @@ void RsStateBlock::setTextureState( BcU32 Sampler, RsTexture* pTexture, const Rs
 		// If it wasn't dirty, we need to set it.
 		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )
 		{
-			BcAssert( NoofTextureStateBinds_ < rsTT_MAX );
+			BcAssert( NoofTextureStateBinds_ < NOOF_TEXTURESTATES );
 			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Sampler;
 		}
 	}

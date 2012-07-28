@@ -85,6 +85,13 @@ BcBool CsPackageLoader::hasPendingCallback() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isDataLoaded
+BcBool CsPackageLoader::isDataLoaded() const
+{
+	return IsDataLoaded_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isDataReady
 BcBool CsPackageLoader::isDataReady() const
 {
@@ -95,8 +102,6 @@ BcBool CsPackageLoader::isDataReady() const
 // getSourceFile
 const BcChar* CsPackageLoader::getSourceFile() const
 {
-	BcAssert( IsDataReady_ );
-
 	return getString( Header_.SourceFile_ );
 }
 
@@ -112,6 +117,18 @@ const BcChar* CsPackageLoader::getString( BcU32 Offset ) const
 	}
 	
 	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPackageCrossRef
+void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName ) const
+{
+	BcAssertMsg( Index < Header_.TotalPackageCrossRefs_, "CsPackageLoader: Invalid package cross ref index." );
+	const CsPackageCrossRefData& PackageCrossRef( pPackageCrossRefs_[ Index ] );
+
+	PackageName = getString( PackageCrossRef.PackageName_ );
+	ResourceName = getString( PackageCrossRef.ResourceName_ );
+	TypeName = getString( PackageCrossRef.TypeName_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -220,6 +237,12 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	pStringTable_ = reinterpret_cast< BcChar* >( pCurrPackageData );
 	pCurrPackageData += BcCalcAlignment( Header_.StringTableBytes_, Header_.MinAlignment_ );
 
+	pPackageCrossRefs_ = reinterpret_cast< CsPackageCrossRefData* >( pCurrPackageData );
+	pCurrPackageData += BcCalcAlignment( Header_.TotalPackageCrossRefs_ * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+
+	pPackageDependencies_ = reinterpret_cast< CsPackageDependencyData* >( pCurrPackageData );
+	pCurrPackageData += BcCalcAlignment( Header_.TotalPackageDependencies_ * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
+
 	pResourceHeaders_ = reinterpret_cast< CsPackageResourceHeader* >( pCurrPackageData );
 	pCurrPackageData += BcCalcAlignment( Header_.TotalResources_ * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
 
@@ -250,12 +273,24 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	File_.readAsync( DataPosition_, pStringTable_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onStringTableLoaded >( this ) );
 	DataPosition_ += Bytes;
 	
-	// Load Resources in.
+	// Load cross refs in.
+	++PendingCallbackCount_;
+	Bytes = Header_.TotalPackageCrossRefs_ * sizeof( CsPackageCrossRefData );
+	File_.readAsync( DataPosition_, pPackageCrossRefs_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onPackageCrossRefsLoaded >( this ) );
+	DataPosition_ += Bytes;
+
+	// Load dependencies in.
+	++PendingCallbackCount_;
+	Bytes = Header_.TotalPackageDependencies_ * sizeof( CsPackageDependencyData );
+	File_.readAsync( DataPosition_, pPackageDependencies_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onPackageDependenciesLoaded >( this ) );
+	DataPosition_ += Bytes;
+
+	// Load resources in.
 	++PendingCallbackCount_;
 	Bytes = Header_.TotalResources_ * sizeof( CsPackageResourceHeader );
 	File_.readAsync( DataPosition_, pResourceHeaders_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onResourceHeadersLoaded >( this ) );
 	DataPosition_ += Bytes;
-
+	
 	// Load chunks in.
 	++PendingCallbackCount_;
 	Bytes = Header_.TotalChunks_ * sizeof( CsPackageChunkHeader );
@@ -282,6 +317,40 @@ void CsPackageLoader::onStringTableLoaded( void* pData, BcSize Size )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// onPackageCrossRefsLoaded
+void CsPackageLoader::onPackageCrossRefsLoaded( void* pData, BcSize Size )
+{
+	// Check we have the right data.
+	BcAssert( pData == pPackageCrossRefs_ );
+	BcAssert( Size == Header_.TotalPackageCrossRefs_ * sizeof( CsPackageCrossRefData ) );
+
+	// This callback is complete.
+	--PendingCallbackCount_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onPackageDependenciesLoaded
+void CsPackageLoader::onPackageDependenciesLoaded( void* pData, BcSize Size )
+{
+	// Check we have the right data.
+	BcAssert( pData == pPackageDependencies_ );
+	BcAssert( Size == Header_.TotalPackageDependencies_ * sizeof( CsPackageDependencyData ) );
+
+	// Request packages.
+	PackageDependencies_.reserve( Header_.TotalPackageDependencies_ );
+	for( BcU32 Idx = 0; Idx < Header_.TotalPackageDependencies_; ++Idx )
+	{
+		CsPackageDependencyData& PackageDependency( pPackageDependencies_[ Idx ] );
+
+		CsPackage* pPackage = CsCore::pImpl()->requestPackage( getString( PackageDependency.PackageName_ ) );
+		PackageDependencies_.push_back( pPackage );
+	}
+
+	// This callback is complete.
+	--PendingCallbackCount_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onResourceHeadersLoaded
 void CsPackageLoader::onResourceHeadersLoaded( void* pData, BcSize Size )
 {
@@ -301,14 +370,27 @@ void CsPackageLoader::onChunkHeadersLoaded( void* pData, BcSize Size )
 	BcAssert( pData == pChunkHeaders_ );
 	BcAssert( Size == sizeof( CsPackageChunkHeader ) * Header_.TotalChunks_ );
 
-	// Mark up all the resources.
-	markupResources();
-	
-	// Data is ready.
-	IsDataReady_ = BcTrue;
+	// Data is loaded.
+	IsDataLoaded_ = BcTrue;
 
-	// Now initialise resources.
-	initialiseResources();
+	if( arePackageDependenciesLoaded() )
+	{
+		// Mark up all the resources.
+		markupResources();
+
+		// Data is ready.
+		IsDataReady_ = BcTrue;
+
+		// Now initialise resources.
+		initialiseResources();
+	}
+	else
+	{
+		// Queue up callback for reentry next frame.
+		BcDelegate< void (*)( void*, BcSize ) > Delegate( BcDelegate< void (*)( void*, BcSize ) >::bind< CsPackageLoader, &CsPackageLoader::onChunkHeadersLoaded >( this ) );
+		SysKernel::pImpl()->enqueueCallback( Delegate, pData, Size );
+		++PendingCallbackCount_;
+	}
 
 	// This callback is complete.
 	--PendingCallbackCount_;
@@ -531,4 +613,19 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 		BcDelegate< void (*)( BcU32, BcU32, void* ) > Delegate( BcDelegate< void (*)( BcU32, BcU32, void* ) >::bind< CsResource, &CsResource::onFileChunkReady >( pResource ) );
 		SysKernel::pImpl()->enqueueCallback( Delegate, ResourceChunkIdx, ChunkHeader.ID_, ChunkData.pUnpackedData_ );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// arePackageDependenciesLoaded
+BcBool CsPackageLoader::arePackageDependenciesLoaded()
+{
+	for( BcU32 Idx = 0; Idx < PackageDependencies_.size(); ++Idx )
+	{
+		if( PackageDependencies_[ Idx ]->isLoaded() == BcFalse )
+		{
+			return BcFalse;
+		}
+	}
+	
+	return BcTrue;
 }

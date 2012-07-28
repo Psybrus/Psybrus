@@ -56,6 +56,16 @@ public:
 	 */
 	void						removeAllEntities();
 
+	/**
+	 * Create an entity from template.
+	 */
+	ScnEntityRef				createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
+
+	/**
+	 * Find an entity. Non recursive, only searching within the manager, not parented entities.
+	 */
+	ScnEntityRef				findEntity( const BcName& InstanceName );
+
 private:
 	friend class ScnEntity;
 

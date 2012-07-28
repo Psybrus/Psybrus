@@ -29,7 +29,7 @@ class RsFrameGL:
 	public RsFrame
 {
 public:
-	RsFrameGL( RsContext* pContext, BcU32 NoofNodes = 8 * 1024, BcU32 NodeMem = 1024 * 1024 );
+	RsFrameGL( RsContext* pContext, BcU32 NoofNodes = 32 * 1024, BcU32 NodeMem = 1024 * 1024 );
 	virtual ~RsFrameGL();
 
 	RsContext*		getContext() const;

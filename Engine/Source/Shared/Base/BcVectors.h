@@ -87,6 +87,7 @@ public:
 	BcReal			magnitude() const;
 	BcReal			magnitudeSquared() const;
 	BcReal			dot( const BcVec2d& Rhs ) const;
+	BcVec2d			cross() const;
 
 	BcVec2d			normal() const;
 	void			normalise();
@@ -225,6 +226,11 @@ BcForceInline BcReal BcVec2d::dot( const BcVec2d& Rhs ) const
 	return ( X_ * Rhs.X_ ) + ( Y_ * Rhs.Y_ );
 }
 
+BcForceInline BcVec2d BcVec2d::cross() const
+{
+	return BcVec2d( -Y_, X_ );
+}
+
 BcForceInline BcBool BcVec2d::operator == ( const BcVec2d& Rhs ) const
 {
 	return ( ( BcAbs( X_ - Rhs.X_ ) < BcVecEpsilon ) && ( BcAbs( Y_ - Rhs.Y_ ) < BcVecEpsilon ) );
@@ -243,6 +249,7 @@ public:
 	// Ctors
 	BcVec3d();
 	BcVec3d( BcReal X, BcReal Y, BcReal Z );
+	BcVec3d( const BcVec2d& Rhs, BcReal Z );
 	BcVec3d( const BcChar* pString );
 
 	void			set( BcReal X, BcReal Y, BcReal Z );
@@ -300,6 +307,13 @@ BcForceInline BcVec3d::BcVec3d( BcReal X, BcReal Y, BcReal Z ):
 {
 
 }
+
+BcForceInline BcVec3d::BcVec3d( const BcVec2d& Rhs, BcReal Z ):
+	BcVecQuad( Rhs.x(), Rhs.y(), Z )
+{
+
+}
+
 
 BcForceInline void BcVec3d::set( BcReal X, BcReal Y, BcReal Z )
 {

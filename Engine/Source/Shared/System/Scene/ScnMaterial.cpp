@@ -40,7 +40,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	// Make header.
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
 
-	Header.ShaderName_ = Importer.addString( ImportShader.asCString() );	// TODO: Go via addImport.
+	Header.ShaderRef_ = Importer.addPackageCrossRef( ImportShader.asCString(), "ScnShader" );	// TODO: Go via addImport.
 	Header.NoofTextures_ = TextureMembers.size();	
 	HeaderStream << Header;
 
@@ -50,8 +50,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
 		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
-		TextureHeader.TextureName_ = Importer.addString( Texture.asCString() );
-		TextureHeader.TextureType_ = Importer.addString( "ScnTexture" );							// TODO: Could be an atlas? How do we handle that? Should revisit this later.
+		TextureHeader.TextureRef_ = Importer.addPackageCrossRef( Texture.asCString(), "ScnTexture" );
 		HeaderStream << TextureHeader;
 	}
 	
@@ -109,7 +108,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		if( State.type() == Json::objectValue )
 		{
 			const Json::Value& StateValue = State[ StateNames[ Idx ] ];
-		
+			
 			if( StateValue.type() == Json::realValue )
 			{
 				BcReal RealValue = (BcReal)StateValue.asDouble();
@@ -118,6 +117,10 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			else if( StateValue.type() == Json::stringValue )
 			{
 				BcU32 IntValue = ModeNames[ StateValue.asCString() ];
+				if( BcStrCompare( StateValue.asCString(), "subtract" ) )
+				{
+					int a = 0; ++a;
+				}
 				StateBlockStream << BcU32( IntValue );
 			}
 			else
@@ -230,21 +233,12 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pHeader_ = (THeader*)pData;
 		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
 		
-		// Request resources.
-		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pHeader_->ShaderName_ ), Shader_ ) )
+		// Get resources.
+		Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 		{
-			// HACK: We should be able to handle resource subtypes without this.
-			ScnTextureRef Texture;
-			CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Texture ) );
-			for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
-			{
-				TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-				
-				if( CsCore::pImpl()->internalRequestResource( /* WIP */ getPackageName(), getString( pTextureHeader->TextureName_ ), getString( pTextureHeader->TextureType_ ), InternalHandle ) )
-				{
-					TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = Texture;
-				}
-			}
+			TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+			TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
 		}
 		
 		requestChunk( ++ChunkIdx );
@@ -311,6 +305,16 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	ViewTransformParameter_ = findParameter( "uViewTransform" );
 	InverseViewTransformParameter_ = findParameter( "uInverseViewTransform" );
 	WorldTransformParameter_ = findParameter( "uWorldTransform" );
+	EyePositionParameter_ = findParameter( "uEyePosition" );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnMaterialComponent::initialise( const Json::Value& Object )
+{
+	ScnMaterialRef MaterialRef;
+	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
+	initialise( MaterialRef, BcErrorCode );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -378,6 +382,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value )
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = Value;
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not an int.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -393,6 +401,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = (BcU32)Value;
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a bool.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -411,6 +423,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcReal Value )
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer = (BcF32)Value;
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a real.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -427,6 +443,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value )
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer = (BcF32)Value.y();
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec2.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -446,6 +466,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value )
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer = (BcF32)Value.z();
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec3.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -464,6 +488,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value )
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer++ = (BcF32)Value.z();
 			*pParameterBuffer = (BcF32)Value.w();
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec4.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -488,6 +516,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value )
 			*pParameterBuffer++ = (BcF32)Value[2][0];
 			*pParameterBuffer++ = (BcF32)Value[2][1];
 			*pParameterBuffer = (BcF32)Value[2][2];
+		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a mat3.\n", (*getName()).c_str(), Parameter );
 		}
 	}
 }
@@ -520,6 +552,10 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value )
 			*pParameterBuffer++ = (BcF32)Value[3][2];
 			*pParameterBuffer = (BcF32)Value[3][3];
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a mat4.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 	
 }
@@ -550,6 +586,10 @@ void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 				}
 			}
 		}
+		else
+		{
+			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a texture.\n", (*getName()).c_str(), Parameter );
+		}
 	}
 }
 
@@ -572,6 +612,13 @@ void ScnMaterialComponent::setViewTransform( const BcMat4d& Transform )
 		InverseViewTransform.inverse();
 		setParameter( InverseViewTransformParameter_, InverseViewTransform );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setEyePosition
+void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
+{
+	setParameter( EyePositionParameter_, EyePosition );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -644,6 +691,9 @@ public:
 		{
 			pStateBlock->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
 		}
+
+		// Bind state block.
+		pStateBlock->bind();
 		
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
@@ -666,8 +716,13 @@ public:
 	ScnMaterialComponent* pParent_;
 };
 
-void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
+void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 {
+	// Setup sort value with material specifics.
+	ScnMaterial* pMaterial_ = Parent_;
+	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
+	Sort.Blend_ = pStateBuffer_[ rsRS_BLEND_MODE ];
+
 	// Default texture parameters.
 	RsTextureParams DefaultTextureParams = 
 	{

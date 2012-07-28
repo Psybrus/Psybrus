@@ -61,10 +61,25 @@ void RsProgramGL::create()
 	
 	// Link program.
 	glLinkProgram( Handle );	
-
-
-	// Catch error.
 	RsGLCatchError;
+
+	GLint ProgramLinked = 0;
+	glGetProgramiv( Handle, GL_LINK_STATUS, &ProgramLinked );
+	if ( !ProgramLinked )
+	{					 
+		// There was an error here, first get the length of the log message.
+		int i32InfoLogLength, i32CharsWritten; 
+		glGetProgramiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+
+		// Allocate enough space for the message, and retrieve it.
+		char* pszInfoLog = new char[i32InfoLogLength];
+		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+		BcPrintf( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		delete [] pszInfoLog;
+
+		destroy();
+		return;
+	}
 	
 	// Clear parameter list and buffer.
 	ParameterList_.clear();
@@ -95,9 +110,15 @@ void RsProgramGL::create()
 	
 	// Catch error.
 	RsGLCatchError;
-	
+
+	// Bind/unbind to ensure it works.
+	glUseProgram( Handle );
+	RsGLCatchError;
+	glUseProgram( 0 );
+
 	// Set handle.
-	setHandle( Handle );}
+	setHandle( Handle );
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // update
@@ -226,7 +247,6 @@ void RsProgramGL::bind( void* pParameterBuffer )
 #endif
 		}
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -377,7 +397,7 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
 		ParameterBufferSize_ += Bytes;
 		
 		// Log.
-		BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u\n", pName, Handle );
+		BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );
 
 	}
 }

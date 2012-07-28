@@ -27,6 +27,11 @@ public:
 	virtual ~OsClient();
 
 	/**
+	 * Update.
+	 */
+	virtual void update() = 0;
+
+	/**
  	 * Get device handle.
 	 */
 	virtual BcHandle getDeviceHandle() = 0;
@@ -40,6 +45,11 @@ public:
  	 * Get height.
 	 */
 	virtual BcU32 getHeight() const = 0;
+
+	/**
+	 * Set mouse lock.
+	 */
+	virtual void setMouseLock( BcBool Enabled ) = 0;
 
 };
 

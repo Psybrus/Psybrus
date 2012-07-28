@@ -255,7 +255,8 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					
 					// Create an atlas of glyphs.
 					ImgRectList RectList;
-					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 1024, 1024 );
+					ImgColour ClearColour = { 0, 0, 0, 0 };
+					ImgImage* pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 512, 512, ClearColour );
 					
 					// Create a texture.
 					std::string FontTextureName = Object[ "name" ].asString() + "fonttextureatlas";
@@ -278,7 +279,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					THeader Header;
 					
 					Header.NoofGlyphs_ = GlyphDescList.size();
-					Header.TextureName_ = Importer.addString( FontTextureName.c_str() );
+					Header.TextureRef_ = Importer.addPackageCrossRef( FontTextureName.c_str() );
 					Header.NominalSize_ = (BcReal)OriginalNominalSize;
 					
 					HeaderStream << Header;
@@ -410,7 +411,7 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		requestChunk( ++ChunkIdx );
 		
 		// Request texture.
-		CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pHeader_->TextureName_ ), Texture_ );
+		Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
 	}
 	else if( ChunkID == BcHash( "glyphs" ) )
 	{
@@ -448,6 +449,17 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnFontComponent::initialise( const Json::Value& Object )
+{
+	ScnFontRef FontRef;
+	ScnMaterialRef MaterialRef;
+	FontRef = CsCore::pImpl()->getResource( Object[ "font" ].asCString() );
+	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
+	initialise( FontRef, MaterialRef );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setClipping
 void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 {
@@ -458,7 +470,7 @@ void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun )
+BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
 	ScnFont::THeader* pHeader = Parent_->pHeader_;
@@ -634,7 +646,7 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 		if( NoofVertices > 0 )
 		{
 			Canvas->setMaterialComponent( MaterialComponent_ );
-			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, 0 );
+			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, Layer );
 		}
 	}
 	else

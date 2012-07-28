@@ -94,7 +94,7 @@ protected:
 		BcU32							VertexFormat_;
 		BcU32							NoofVertices_;
 		BcU32							NoofIndices_;
-		BcU32							MaterialName_;
+		BcU32							MaterialRef_;
 	};
 	
 	// Cached pointers for internal use.
@@ -133,16 +133,21 @@ public:
 	virtual BcBool						isReady();
 
 	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+
+	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
+	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
 	
 public:
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
-	void								render( RsFrame* pFrame, RsRenderSort Sort );
+	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
 	ScnModelRef							Parent_;
 	ScnModel::TNodeTransformData*		pNodeTransformData_;
+
+	BcU32								Layer_;
 
 	struct TMaterialComponentDesc
 	{

@@ -21,6 +21,7 @@
 
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnRenderableComponent.h"
+#include "System/Scene/ScnViewComponent.h"
 
 #include "System/Scene/ScnTransform.h"
 #include "System/Scene/ScnSpatialTree.h"
@@ -29,11 +30,11 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public ScnComponent,
+	public ScnRenderableComponent,
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnEntity );
+	DECLARE_RESOURCE( ScnRenderableComponent, ScnEntity );
 	
 #if PSY_SERVER
 	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -43,24 +44,15 @@ public:
 	void								create();
 	void								destroy();
 	BcBool								isReady();
-	
+
 public:
 	void								update( BcReal Tick );
-	void								render( RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
+	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );
-	void								reattach( ScnComponent* Component );
-
-	/**
-	 * Called when attached to the scene.
-	 */
-	void								onAttachScene();
-
-	/**
-	 * Called when detached from the scene.
-	 */
-	void								onDetachScene();
-
+	void								onAttach( ScnEntityWeakRef Parent );
+	void								onDetach( ScnEntityWeakRef Parent );
+	
 	/**
 	 * Are we attached to the scene?
 	 */
@@ -79,7 +71,20 @@ public:
 	/**
 	 * Get component.
 	 */
-	ScnComponentRef						getComponent( BcU32 Idx );
+	ScnComponentRef						getComponent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+
+	/**
+	 * Get component by type.
+	 */
+	template< typename _Ty >
+	ScnComponentRef						getComponentByType( BcU32 Idx )
+	{
+		return getComponent( Idx, _Ty::StaticGetType() );
+	}
+
+	/**
+	 * 
+	 */
 
 	/**
  	 * Get AABB which encompasses this entity.
@@ -97,10 +102,14 @@ public:
 	void								setMatrix( const BcMat4d& Matrix );
 
 	/**
+	 * Get position.
+	 */
+	BcVec3d								getPosition() const;
+
+	/**
 	 * Get matrix.
 	 */
 	const BcMat4d&						getMatrix() const;
-
 
 protected:
 	virtual void						fileReady();

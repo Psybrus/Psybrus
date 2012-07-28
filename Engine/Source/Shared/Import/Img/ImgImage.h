@@ -104,7 +104,7 @@ public:
 	 *	@param Height Max Height.
 	 *	@return Atlased image.
 	 */	
-	static ImgImage*		generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height );
+	static ImgImage*		generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height, ImgColour& ClearColour );
 	
 	/**
 	*	Get width.

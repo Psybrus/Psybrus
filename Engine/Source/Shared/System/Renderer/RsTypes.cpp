@@ -37,7 +37,7 @@ void RsColour::premultiplyAlpha()
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
-BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Levels )
+BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
 {
 	BcU32 Size = 0;
 	switch( TextureFormat )
@@ -50,6 +50,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Height >>= 1;
 			}
 			Size *= 3;
+			Size *= Depth;
 			break;
 
 		case rsTF_RGBA8:
@@ -60,6 +61,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Height >>= 1;
 			}
 			Size *= 4;
+			Size *= Depth;
 			break;
 		
 		case rsTF_PAL4_RGBA8:
@@ -70,6 +72,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Height >>= 1;
 			}
 			Size = ( Size >> 1 ) + 64;
+			Size *= Depth;
 			break;
 						
 		case rsTF_PAL8_RGBA8:
@@ -80,6 +83,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Height >>= 1;
 			}
 			Size = Size + 1024;
+			Size *= Depth;
 			break;
 
 		case rsTF_DXT1:
@@ -90,6 +94,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Width >>= 1;
 				Height >>= 1;
 			}
+			Size *= Depth;
 			break;
 
 		case rsTF_DXT3:
@@ -101,6 +106,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Width >>= 1;
 				Height >>= 1;
 			}
+			Size *= Depth;
 			break;
 			
 		case rsTF_PVRTC2_RGB:
@@ -111,7 +117,8 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Width >>= 1;
 				Height >>= 1;
 			}
-			Size >>= 2;			
+			Size >>= 2;
+			Size *= Depth;
 			break;
 			
 		case rsTF_PVRTC4_RGB:
@@ -122,7 +129,8 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 				Width >>= 1;
 				Height >>= 1;
 			}
-			Size >>= 1;			
+			Size >>= 1;
+			Size *= Depth;
 			break;
 			
 		default:
@@ -150,6 +158,10 @@ BcU32 RsVertexDeclSize( BcU32 VertexFormat )
 	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV1,	8 );
 	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV2,	8 );
 	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV3,	8 );
+	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW0,	12 );
+	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW1,	12 );
+	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW2,	12 );
+	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW3,	12 );
 	RS_DECL_APPEND_SIZE( rsVDF_COLOUR_RGBA8,	4 );
 #undef RS_DECL_APPEND_SIZE
 	return Size;

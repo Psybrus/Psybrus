@@ -147,7 +147,7 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 			
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
-			PrimitiveData.MaterialName_ = Importer.addString( Material.Name_.c_str() );
+			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str(), "ScnMaterial" );
 			PrimitiveStream << PrimitiveData;
 			
 			// Export vertices.
@@ -290,12 +290,12 @@ void ScnModel::setup()
 		};
 		
 		// Get resource.
-		if( CsCore::pImpl()->requestResource( /* WIP */ getPackageName(), getString( pPrimitiveData->MaterialName_ ), PrimitiveRuntime.MaterialRef_ ) )
-		{
-			// Push into array.
-			PrimitiveRuntimes_.push_back( PrimitiveRuntime );
-		}
-				
+		PrimitiveRuntime.MaterialRef_ = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
+		BcAssertMsg( PrimitiveRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
+
+		// Push into array.
+		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
+		
 		// Advance vertex and index buffers.
 		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
 		pIndexBufferData_ += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
@@ -369,6 +369,8 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 {
 	// Cache parent.
 	Parent_ = Parent;
+
+	Layer_ = 0;
 	
 	// Duplicate node data for update/rendering.
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
@@ -406,12 +408,11 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 void ScnModelComponent::initialise( const Json::Value& Object )
 {
 	ScnModelRef ModelRef;
-	if( !CsCore::pImpl()->requestResource( BcName::NONE, Object[ "model" ].asCString(), ModelRef ) )
-	{
-		BcAssertMsg( BcFalse, "ScnModelComponent: \"%s.%s:%s\" does not exist.", (*BcName::NONE).c_str(), Object[ "model" ].asCString(), "ScnModel" );
-	}
-
+	ModelRef = CsCore::pImpl()->getResource( Object[ "model" ].asCString() );
 	initialise( ModelRef );
+
+	// Setup additional stuff.
+	Layer_ = Object.get( "layer", 0 ).asUInt();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -444,16 +445,41 @@ void ScnModelComponent::setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransfo
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
+{
+	if( Index < MaterialComponentDescList_.size() )
+	{
+		return MaterialComponentDescList_[ Index ].MaterialComponentRef_;
+	}
+	
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
+{
+	ScnModel::TPrimitiveData* pPrimitiveData = Parent_->pPrimitiveData_;
+
+	for( BcU32 Idx = 0; Idx < MaterialComponentDescList_.size(); ++Idx )
+	{
+		if( MaterialName == MaterialComponentDescList_[ Idx ].MaterialComponentRef_->getName() )
+		{
+			return MaterialComponentDescList_[ Idx ].MaterialComponentRef_;
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnModelComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
-	// Copy parent transform to root node.
-	ScnModel::TNodeTransformData* pRootNode = &pNodeTransformData_[ 0 ];
-	pRootNode->RelativeTransform_ = getParentEntity()->getMatrix();
-
+	
 	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
@@ -466,11 +492,11 @@ void ScnModelComponent::update( BcReal Tick )
 		{
 			ScnModel::TNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
 			
-			pNodeTransformData->AbsoluteTransform_ = pParentNodeTransformData->AbsoluteTransform_ * pNodeTransformData->RelativeTransform_;
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * pParentNodeTransformData->AbsoluteTransform_;
 		}
 		else
 		{
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_;
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * getParentEntity()->getMatrix();
 		}
 	}
 }
@@ -525,12 +551,16 @@ public:
 	RsPrimitive* pPrimitive_;
 };
 
-void ScnModelComponent::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	Super::render( pFrame, Sort );
+	Super::render( pViewComponent, pFrame, Sort );
 
 	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
+
+	// Set layer.
+
+	Sort.Layer_ = Layer_;
 
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes.size(); ++PrimitiveIdx )
 	{

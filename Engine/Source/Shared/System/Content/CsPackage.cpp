@@ -102,6 +102,13 @@ BcBool CsPackage::isReady() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isLoaded
+BcBool CsPackage::isLoaded() const
+{
+	return pLoader_->isDataLoaded();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // hasUnreferencedResources
 BcBool CsPackage::hasUnreferencedResources() const
 {
@@ -205,6 +212,30 @@ CsResource* CsPackage::getResource( BcU32 ResourceIdx )
 	}
 	
 	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPackageCrossRef
+CsResourceRef<> CsPackage::getPackageCrossRef( BcU32 ID )
+{
+	CsResourceRef<> Resource;
+	BcName PackageName;
+	BcName ResourceName;
+	BcName TypeName;
+	pLoader_->getPackageCrossRef( ID, PackageName, ResourceName, TypeName );
+
+	// Request package, and check it's ready.
+	CsPackage* pPackage = CsCore::pImpl()->requestPackage( PackageName );
+	BcAssertMsg( pPackage->isLoaded(), "CsPackage: Package \"%s\" is not loaded, \"%s\" needs it loaded.", (*PackageName).c_str(), (*Name_).c_str() );
+	
+	// Find resource.
+	CsCore::pImpl()->internalFindResource( PackageName, ResourceName, TypeName, Resource );
+
+	//
+	BcAssertMsg( Resource.isValid(), "CsPackage: Cross ref isn't valid!" );
+	
+	//
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////

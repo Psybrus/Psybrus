@@ -54,7 +54,7 @@ public:
 	 * Set texture state.
 	 */
 	void							setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
-		
+	
 protected:
 	struct TRenderStateValue
 	{
@@ -68,13 +68,19 @@ protected:
 		RsTextureParams				Params_;
 		BcBool						Dirty_;
 	};
+
+	enum
+	{
+		NOOF_RENDERSTATES = rsRS_MAX,
+		NOOF_TEXTURESTATES = 8
+	};
 		
-	TRenderStateValue				RenderStateValues_[ rsRS_MAX ];
-	TTextureStateValue				TextureStateValues_[ rsTT_MAX ];
+	TRenderStateValue				RenderStateValues_[ NOOF_RENDERSTATES ];
+	TTextureStateValue				TextureStateValues_[ NOOF_TEXTURESTATES ];
 
 	// State setting.
-	BcU32							RenderStateBinds_[ rsRS_MAX ];
-	BcU32							TextureStateBinds_[ rsTT_MAX ];
+	BcU32							RenderStateBinds_[ NOOF_RENDERSTATES ];
+	BcU32							TextureStateBinds_[ NOOF_TEXTURESTATES ];
 	BcU32							NoofRenderStateBinds_;
 	BcU32							NoofTextureStateBinds_;	
 };

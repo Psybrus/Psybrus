@@ -46,7 +46,7 @@ void ScnRenderableComponent::update( BcReal Tick )
 //////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void ScnRenderableComponent::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Do nothing.
 }

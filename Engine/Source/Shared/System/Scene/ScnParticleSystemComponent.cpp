@@ -29,16 +29,34 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 {
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
-	BcName MaterialName = Object["material"].asCString();
-
-	ScnMaterialRef Material;
-	if( !( CsCore::pImpl()->requestResource( BcName::NONE, MaterialName, Material ) && CsCore::pImpl()->createResource( BcName::NONE, MaterialComponent_, Material, BcErrorCode ) ) )
+	ScnMaterialRef Material = CsCore::pImpl()->getResource( Object["material"].asCString() );
+	if( !CsCore::pImpl()->createResource( BcName::NONE, MaterialComponent_, Material, BcErrorCode ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}
 
+	// Cache texture bounds.
+	ScnTextureRef Texture = Material->getTexture( "aDiffuseTex" );
+	for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
+	{
+		ScnRect Rect = Texture->getRect( Idx );
+		UVBounds_.push_back( BcVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
+	}
+
 	WorldTransformParam_ = MaterialComponent_->findParameter( "uWorldTransform" );
-	
+
+	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
+	pParticleBuffer_ = NULL;
+	CurrentVertexBuffer_ = 0;
+
+	IsReady_ = BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnParticleSystemComponent::create()
+{
 	// TODO: Allow different types of geom for this.
 	// TODO: Use index buffer.
 	// Calc what we need.
@@ -58,24 +76,41 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	pParticleBuffer_ = new ScnParticle[ NoofParticles_ ];
 	BcMemZero( pParticleBuffer_, sizeof( ScnParticle ) * NoofParticles_ );
 
-	// 
-	CurrentVertexBuffer_ = 0;
+	IsReady_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// destroy
 //virtual
 void ScnParticleSystemComponent::destroy()
 {
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		delete [] VertexBuffer.pVertexArray_;
 		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( VertexBuffer.pPrimitive_ );
 	}
 
+	// Wait for renderer.
+	SysFence Fence( RsCore::WORKER_MASK );
+	
+	// Delete working data.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
+		delete [] VertexBuffer.pVertexArray_;
+	}
+
+
 	delete [] pParticleBuffer_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isReady
+//virtual
+BcBool ScnParticleSystemComponent::isReady()
+{
+	return IsReady_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,30 +118,6 @@ void ScnParticleSystemComponent::destroy()
 //virtual
 void ScnParticleSystemComponent::update( BcReal Tick )
 {
-	///*
-	// TEST CODE.
-	for( BcU32 Idx = 0; Idx < 4; ++Idx )
-	{
-		ScnParticle* pParticle = NULL;
-		if( allocParticle( pParticle ) )
-		{
-			pParticle->Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-			pParticle->Velocity_ = BcVec3d( BcRandom::Global.randReal() - 0.5f, BcRandom::Global.randReal() - 0.5f, BcRandom::Global.randReal() - 0.5f ).normal() * 16.0f;
-			pParticle->Acceleration_ = -pParticle->Velocity_ * 0.5f;
-			pParticle->RotationMultiplier_ = ( BcRandom::Global.randReal() - 0.5f ) * 4.0f;
-			pParticle->MinScale_ = BcVec2d( 0.5f, 0.5f );
-			pParticle->MaxScale_ = BcVec2d( 4.0f, 4.0f );
-			pParticle->MinColour_ = RsColour( 1.0f, 0.0f, 1.0f, 0.1f );
-			pParticle->MaxColour_ = RsColour( 0.0f, 1.0f, 1.0f, 0.0f );
-			pParticle->UVBounds_ = BcVec4d( 0.0f, 0.0f, 1.0f, 1.0f );
-			pParticle->CurrentTime_ = 0.0f;
-			pParticle->MaxTime_ = 4.0f;
-			pParticle->Alive_ = BcTrue;
-		}
-	}
-	//*/
-	
-
 	// Allocate particles.
 	updateParticles( Tick );
 }
@@ -126,11 +137,11 @@ public:
 };
 
 //virtual
-void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
+void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Grab vertex buffer and flip for next frame to use.
 	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
-	//CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
+	CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
 
 	// Lock vertex buffer.
 	VertexBuffer.pVertexBuffer_->lock();
@@ -147,8 +158,11 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			// Half size.
 			const BcVec2d HalfSize = Particle.Scale_ * 0.5f;
 
+			BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
+			const BcVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
+
 			// Crappy rotation implementation :P
-			const BcReal Radians = Particle.CurrentTime_ * Particle.RotationMultiplier_;
+			const BcReal Radians = Particle.Rotation_;
 			BcVec2d CornerA = BcVec2d( -1.0f, -1.0f ) * HalfSize;
 			BcVec2d CornerB = BcVec2d(  1.0f, -1.0f ) * HalfSize;
 			BcVec2d CornerC = BcVec2d(  1.0f,  1.0f ) * HalfSize;
@@ -181,8 +195,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexA.NX_ = CornerA.x();
 			VertexA.NY_ = CornerA.y();
 			VertexA.NZ_ = 0.0f;
-			VertexA.U_ = Particle.UVBounds_.x();
-			VertexA.V_ = Particle.UVBounds_.y();
+			VertexA.U_ = UVBounds.x();
+			VertexA.V_ = UVBounds.y();
 			VertexA.RGBA_ = Colour;
 
 			// 
@@ -192,8 +206,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexB.NX_ = CornerB.x();
 			VertexB.NY_ = CornerB.y();
 			VertexB.NZ_ = 0.0f;
-			VertexB.U_ = Particle.UVBounds_.z();
-			VertexB.V_ = Particle.UVBounds_.y();
+			VertexB.U_ = UVBounds.z();
+			VertexB.V_ = UVBounds.y();
 			VertexB.RGBA_ = Colour;
 
 			// 
@@ -203,8 +217,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexC.NX_ = CornerC.x();
 			VertexC.NY_ = CornerC.y();
 			VertexC.NZ_ = 0.0f;
-			VertexC.U_ = Particle.UVBounds_.z();
-			VertexC.V_ = Particle.UVBounds_.w();
+			VertexC.U_ = UVBounds.z();
+			VertexC.V_ = UVBounds.w();
 			VertexC.RGBA_ = Colour;
 
 			// 
@@ -214,8 +228,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexD.NX_ = CornerC.x();
 			VertexD.NY_ = CornerC.y();
 			VertexD.NZ_ = 0.0f;
-			VertexD.U_ = Particle.UVBounds_.z();
-			VertexD.V_ = Particle.UVBounds_.w();
+			VertexD.U_ = UVBounds.z();
+			VertexD.V_ = UVBounds.w();
 			VertexD.RGBA_ = Colour;
 
 			// 
@@ -225,8 +239,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexE.NX_ = CornerD.x();
 			VertexE.NY_ = CornerD.y();
 			VertexE.NZ_ = 0.0f;
-			VertexE.U_ = Particle.UVBounds_.x();
-			VertexE.V_ = Particle.UVBounds_.w();
+			VertexE.U_ = UVBounds.x();
+			VertexE.V_ = UVBounds.w();
 			VertexE.RGBA_ = Colour;
 
 			// 
@@ -236,8 +250,8 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 			VertexF.NX_ = CornerA.x();
 			VertexF.NY_ = CornerA.y();
 			VertexF.NZ_ = 0.0f;
-			VertexF.U_ = Particle.UVBounds_.x();
-			VertexF.V_ = Particle.UVBounds_.y();
+			VertexF.U_ = UVBounds.x();
+			VertexF.V_ = UVBounds.y();
 			VertexF.RGBA_ = Colour;
 
 			//
@@ -245,8 +259,12 @@ void ScnParticleSystemComponent::render( RsFrame* pFrame, RsRenderSort Sort )
 		}
 	}
 
-	// Update and unlock vertex buffer.	VertexBuffer.pVertexBuffer_->setNoofUpdateVertices( NoofParticlesToRender * 6 );
+	// Update and unlock vertex buffer.	
+	VertexBuffer.pVertexBuffer_->setNoofUpdateVertices( NoofParticlesToRender * 6 );
 	VertexBuffer.pVertexBuffer_->unlock();
+
+	// Draw particles last.
+	Sort.Layer_ = 15;
 
 	// Bind material.
 	MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
@@ -283,6 +301,13 @@ void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
+{
+	return MaterialComponent_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocParticle
 BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 {
@@ -291,11 +316,16 @@ BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
 	{
 		BcU32 RealIdx = ( Idx + PotentialFreeParticle_ ) % NoofParticles_; // Slow. If we use powers of 2, we can &.
-		ScnParticle& PotentiallyFreeParticle = pParticleBuffer_[ RealIdx ];
+		ScnParticle* pPotentiallyFreeParticle = &pParticleBuffer_[ RealIdx ];
 
-		if( PotentiallyFreeParticle.Alive_ == BcFalse )
+		if( pPotentiallyFreeParticle->Alive_ == BcFalse )
 		{
-			pParticle = &PotentiallyFreeParticle;
+			pParticle = pPotentiallyFreeParticle;
+
+			// Prevent it being rendered for the first frame.
+			pParticle->Scale_ = BcVec2d( 0.0f, 0.0 );
+			pParticle->Colour_ = RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
+
 			++PotentialFreeParticle_;
 			return BcTrue;
 		}
@@ -321,11 +351,14 @@ void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcReal T
 	Particle.Position_ += Particle.Velocity_ * Tick;
 	Particle.Velocity_ += Particle.Acceleration_ * Tick;
 
+	// Do rotation.
+	Particle.Rotation_ += Particle.RotationMultiplier_ * Tick;
+
 	// Calculate interpolators.
 	BcReal LerpValue = Particle.CurrentTime_ / Particle.MaxTime_;
 	Particle.Scale_.lerp( Particle.MinScale_, Particle.MaxScale_, LerpValue );
 	Particle.Colour_.lerp( Particle.MinColour_, Particle.MaxColour_, LerpValue );
-
+	
 	// Advance current time.
 	Particle.CurrentTime_ += Tick;
 	
