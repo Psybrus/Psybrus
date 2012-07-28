@@ -1,5 +1,6 @@
 -- dofile ("Box2D_v2.2.1/premake4.lua")
 -- dofile ("enet/premake4.lua")
+dofile ("dlmalloc/premake4.lua")
 dofile ("freetype/premake4.lua")
 dofile ("glew/premake4.lua")
 -- dofile ("gwen/premake4.lua")
