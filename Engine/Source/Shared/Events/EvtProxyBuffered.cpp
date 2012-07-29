@@ -20,9 +20,9 @@
 EvtProxyBuffered::EvtProxyBuffered( EvtPublisher* pPublisher, BcSize BufferSize ):
 	EvtProxy( pPublisher )
 {
-	BufferSize_ = BufferSize;
-	BufferPosition_ = 0;
-	pBuffer_ = BcMemAlign( BufferSize, 16 );
+	//BufferSize_ = BufferSize;
+	//BufferPosition_ = 0;
+	//pBuffer_ = BcMemAlign( BufferSize, 16 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,10 +30,10 @@ EvtProxyBuffered::EvtProxyBuffered( EvtPublisher* pPublisher, BcSize BufferSize 
 //virtual
 EvtProxyBuffered::~EvtProxyBuffered()
 {
-	BcMemFree( pBuffer_ );
-	pBuffer_ = NULL;
-	BufferSize_ = 0;
-	BufferPosition_ = 0;
+	//BcMemFree( pBuffer_ );
+	//pBuffer_ = NULL;
+	//BufferSize_ = 0;
+	//BufferPosition_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,17 +41,32 @@ EvtProxyBuffered::~EvtProxyBuffered()
 //virtual
 void EvtProxyBuffered::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
-	BcSize StorageRequirements = sizeof( EvtID ) + sizeof( BcSize ) + EventSize;
-	BcSize NewBufferPosition = BufferPosition_ + StorageRequirements;
+	// Create a management object for event.
+	TEventPackage Event;
+	Event.ID_ = ID;
+	Event.Size_ = EventSize;
+	Event.pEventData_ = BcMemAlign( EventSize, 16 ); 
+	BcMemCopy( Event.pEventData_, &EventBase, EventSize );
 
-	BcAssertMsg( NewBufferPosition_ < BufferSize_, "EvtProxyBuffered: Event fills our buffer. Larger event buffer required! Dispatching immediately, expect logic to be broken!" );
+	// Push into vector.
+	Events_.push_back( Event );
+}
 
-	if( NewBufferPosition_ < BufferSize_ )
+//////////////////////////////////////////////////////////////////////////
+// dispatch
+void EvtProxyBuffered::dispatch()
+{
+	if( Events_.size() > 0 )
 	{
-		BcU8* pWriteBuffer = reinterpret_cast< BcU8* >( pBuffer ) + BufferPosition_;
-	}
-	else
-	{
-		EvtProxy::proxy( ID, EventBase, EventSize );
+		// Cache events and clear original.
+		TEventPackageList Events( Events_ );
+		Events_.clear();
+
+		for( BcU32 Idx = 0; Idx < Events.size(); ++Idx )
+		{
+			TEventPackage& Event( Events[ Idx ] );
+			EvtProxy::publish( Event.ID_, *reinterpret_cast< EvtBaseEvent* >( Event.pEventData_ ), Event.Size_ );
+			BcMemFree( Event.pEventData_ );
+		}
 	}
 }
