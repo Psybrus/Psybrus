@@ -19,6 +19,27 @@
 //#define MEM_DEBUG
 
 //////////////////////////////////////////////////////////////////////////
+// BcMemoryAllocator
+class BcMemoryAllocator
+{
+public:
+	BcMemoryAllocator();
+	virtual ~BcMemoryAllocator();
+
+public:
+	virtual void* malloc( BcSize Bytes );
+	virtual void* memalign( BcSize Bytes, BcSize Alignment );
+	virtual void* realloc( void* pMemory, BcSize Bytes );
+	virtual void* reallocaligned( void* pMemory, BcSize Bytes, BcSize Alignment ); 
+	virtual void free( void* pMemory );
+};
+
+//////////////////////////////////////////////////////////////////////////
+// System allocation. Always goes to OS.
+void* BcSysMemAlign( BcSize Bytes, BcSize Alignment );
+void BcSysMemFree( void* pMemory );
+
+//////////////////////////////////////////////////////////////////////////
 // new/delete overloading.
 void* operator new( size_t Size );
 void* operator new[]( size_t Size );
@@ -28,10 +49,6 @@ void operator delete[]( void* pMem ) throw();
 //////////////////////////////////////////////////////////////////////////
 // BcMemAlign
 extern void* BcMemAlign( BcSize Bytes, BcSize Alignment );
-
-//////////////////////////////////////////////////////////////////////////
-// BcMemRealloc
-extern void* BcMemRealloc( void* pOriginal, BcSize Bytes, BcSize Alignment );
 
 //////////////////////////////////////////////////////////////////////////
 // BcMemFree
