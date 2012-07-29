@@ -51,7 +51,7 @@ BcS32 BcRandom::rand()
 // randReal
 BcReal BcRandom::randReal()
 {
-	return BcReal( randRange( -4096.0f, 4096.0f ) ) / 4096.0f;
+	return BcReal( randRange( (BcS32)-4096.0f, (BcS32)4096.0f ) ) / 4096.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
