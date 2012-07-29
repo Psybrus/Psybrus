@@ -17,6 +17,8 @@
 #include "System/Renderer/RsCore.h"
 #include "System/Content/CsResource.h"
 
+#include "Events/EvtProxyBuffered.h"
+
 #include "System/Scene/ScnTypes.h"
 
 #include "System/Scene/ScnComponent.h"
@@ -139,6 +141,8 @@ protected:
 	ScnComponentList					Components_;
 	ScnComponentList					AttachComponents_;
 	ScnComponentList					DetachComponents_;
+
+	EvtProxyBuffered*					pEventProxy_;
 
 private:
 	BcBool								IsAttached_;
