@@ -30,8 +30,21 @@ public:
 	 */
 	virtual void proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
 
-protected:
+	/**
+	 * Dispatch all the events.
+	 */
+	void dispatch();
 
+protected:
+	struct TEventPackage
+	{
+		EvtID ID_;
+		BcSize Size_;
+		void* pEventData_;
+	};
+
+	typedef std::vector< TEventPackage > TEventPackageList;
+	TEventPackageList Events_;
 };
 
 #endif // __EVTPROXYBUFFERED_H__
