@@ -75,9 +75,6 @@ void RsCoreImplGL::open_threaded()
 	OsViewOSX_Interface::MakeContextCurrent();
 
 #elif PLATFORM_WINDOWS
-	// Init glew.
-	glewInit();
-
 	const BcChar* pVersionString = reinterpret_cast< const BcChar* >( glGetString( GL_VERSION ) );
 	const GLubyte* pExtensionString = glGetString( GL_EXTENSIONS );
 

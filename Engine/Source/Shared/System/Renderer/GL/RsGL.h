@@ -60,6 +60,7 @@ extern AGLContext GAGLContext;
 #  define NODEFERWINDOWPOS
 #  define NOMCX
 #  include "GL/glew.h"
+#  include "GL/wglew.h"
 #endif
 
 //
