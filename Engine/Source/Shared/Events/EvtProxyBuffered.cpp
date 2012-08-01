@@ -39,7 +39,7 @@ EvtProxyBuffered::~EvtProxyBuffered()
 //////////////////////////////////////////////////////////////////////////
 // proxy
 //virtual
-void EvtProxyBuffered::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+eEvtReturn EvtProxyBuffered::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
 	// Create a management object for event.
 	TEventPackage Event;
@@ -50,6 +50,9 @@ void EvtProxyBuffered::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize Ev
 
 	// Push into vector.
 	Events_.push_back( Event );
+
+	// Always block, we will dispatch it.
+	return evtRET_BLOCK;
 }
 
 //////////////////////////////////////////////////////////////////////////
