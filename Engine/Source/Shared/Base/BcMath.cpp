@@ -38,11 +38,12 @@ BcReal BcSqrt( BcReal v )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// BcSqrt
-BcFixed BcSqrt( BcFixed v )
+// BcSqrtFixed
+BcU64 BcSqrtFixed( BcU64 FixedValue, BcU64 Precision )
 {
-	const BcU64 Half = 2 << BcFixed::BP;
-	register BcU64 V = v.getGuts();
+	const BcU64 DoublePrecision = Precision << 1;
+	const BcU64 Half = 2 << Precision;
+	register BcU64 V = FixedValue;
 	register BcU64 X =  V >> 1;
 	register BcU64 A = 0;
 	
@@ -50,12 +51,12 @@ BcFixed BcSqrt( BcFixed v )
 	{
 		do
 		{
-			A = ( ( V << BcFixed::BP2 ) / X ) >> BcFixed::BP;
-			X = ( ( ( X + A ) << BcFixed::BP2 ) / Half ) >> BcFixed::BP;
+			A = ( ( V << DoublePrecision ) / X ) >> Precision;
+			X = ( ( ( X + A ) << DoublePrecision ) / Half ) >> Precision;
 		}
-		while( ( X * X ) > ( V << BcFixed::BP ) );
+		while( ( X * X ) > ( V << Precision ) );
 		
-		return BcFixed( BcFixed::RAW, (int)X );
+		return X;
 	}
 
 	return 0;

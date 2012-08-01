@@ -127,14 +127,14 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 	if( a )										\
 	BcPrintf( "- - Passed.\n" );				\
 	else										\
-	BcPrintf( "- - FAILED.\n" )
+	{ BcPrintf( "- - FAILED.\n" ); BcBreakpoint; } 
 
 #  define BcUnitTestMsg( a, b )					\
 	BcPrintf( "- Test (%s): %s\n", b, #a );		\
 	if( a )										\
 	BcPrintf( "- - Passed.\n" );				\
 	else										\
-	BcPrintf( "- - FAILED.\n" )
+	{ BcPrintf( "- - FAILED.\n" ); BcBreakpoint; } 
 #else
 #  define BcUnitTest( a )
 #  define BcUnitTestMsg( a, b )
