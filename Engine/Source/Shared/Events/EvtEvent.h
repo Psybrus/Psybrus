@@ -77,7 +77,7 @@ enum eEvtReturn
 */
 struct EvtBaseEvent
 {
-	
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,9 @@ struct EvtBaseEvent
 template< typename _Ty >
 struct EvtEvent: EvtBaseEvent
 {
+public:
 	typedef BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > Delegate;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
