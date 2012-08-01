@@ -105,16 +105,13 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 			// Event passed. Publisher, or next proxy can deal with it.
 			case evtRET_PASS:
 				break;
-			// Event blocked. Will be dispatched by the proxy.
+			// Event blocked. If we are a parent, we want our child publisher to abort (normal behaviour).
 			case evtRET_BLOCK:
-				return BcTrue;
-				break;
-			// Event removed. Won't ever be dispatched.
-			case evtRET_REMOVE:
 				return BcFalse;
 				break;
-			// Other, let it go as usual.
+			// Unsupported enum value.
 			default:
+				BcBreakpoint;
 				break;
 			}
 		}
