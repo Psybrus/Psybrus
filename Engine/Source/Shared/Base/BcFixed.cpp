@@ -22,6 +22,7 @@ void BcFixed_UnitTest()
 #define FIXED_TEST( _Ty, _Precision, _A, _Op, _B, _Expected, _Msg )					\
 	{																				\
 		typedef BcFixed< _Ty, _Precision > BcFixedDef;								\
+		BcPrintf( "Result: %f, Expected: %f Tolerance: %f\n", ( BcFixedDef( _A ) _Op BcFixedDef( _B ) ).asReal(), BcFixedDef( _Expected ).asReal(), BcFixedDef::STEP() ); \
 		BcUnitTestMsg( ( BcAbs( ( BcFixedDef( _A ) _Op BcFixedDef( _B ) ).asReal() - BcFixedDef( _Expected ).asReal() ) <= BcFixedDef::STEP() ), _Msg ); }
 
 #define FIXED_TEST_SET( _Ty, _Precision ) \
@@ -37,9 +38,9 @@ void BcFixed_UnitTest()
 	FIXED_TEST( _Ty, _Precision, 2.0f, *, 1.0f, 2.0f, "Multiplication Test" );		\
 	FIXED_TEST( _Ty, _Precision, 3.0f, *, 2.0f, 6.0f, "Multiplication Test" );		\
 	FIXED_TEST( _Ty, _Precision, 4.0f, *, 2.0f, 8.0f, "Multiplication Test" );		\
-	FIXED_TEST( _Ty, _Precision, 1.0f, /, 1.0f, 1.0f, "Division Test" );		\
-	FIXED_TEST( _Ty, _Precision, 2.0f, /, 1.0f, 2.0f, "Division Test" );		\
-	FIXED_TEST( _Ty, _Precision, 3.0f, /, 2.0f, 1.5f, "Division Test" );		\
+	FIXED_TEST( _Ty, _Precision, 1.0f, /, 1.0f, 1.0f, "Division Test" );			\
+	FIXED_TEST( _Ty, _Precision, 2.0f, /, 1.0f, 2.0f, "Division Test" );			\
+	FIXED_TEST( _Ty, _Precision, 3.0f, /, 2.0f, 1.5f, "Division Test" );			\
 	FIXED_TEST( _Ty, _Precision, 4.0f, /, 2.0f, 2.0f, "Division Test" ); 
 
 	FIXED_TEST_SET( BcS8, 1 );
@@ -53,5 +54,6 @@ void BcFixed_UnitTest()
 	FIXED_TEST_SET( BcS32, 4 );
 	FIXED_TEST_SET( BcS32, 8 );
 	FIXED_TEST_SET( BcS32, 16 );
-	FIXED_TEST_SET( BcS32, 24 );
+
+	// NOTE: Never go above the half way mark with precision!
 }
