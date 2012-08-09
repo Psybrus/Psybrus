@@ -44,7 +44,15 @@ void AkRTPCComponent::update( BcReal Tick )
 {
 	if( Dirty_ == BcTrue )
 	{
-		AK::SoundEngine::SetRTPCValue( RTPCID_, Value_, GameObject_->getGameObjectID() );
+		// If we have a gamme obejct, set RTPC on that, otherwise do it globally.
+		if( GameObject_.isValid() )
+		{
+			AK::SoundEngine::SetRTPCValue( RTPCID_, Value_, GameObject_->getGameObjectID() );
+		}
+		else
+		{
+			AK::SoundEngine::SetRTPCValue( RTPCID_, Value_, AK_INVALID_GAME_OBJECT );
+		}
 		Dirty_ = BcFalse;
 	}
 }
