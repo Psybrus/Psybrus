@@ -137,7 +137,6 @@ void AkCore::open()
 	}
 #endif // AK_OPTIMIZED
 	
-	/*
 	//
 	// Register plugins
 	/// Note: This a convenience method for rapid prototyping. 
@@ -147,7 +146,6 @@ void AkCore::open()
 	{
 		__AK_OSCHAR_SNPRINTF( ErrorBuffer, ErrorBufferSize, AKTEXT("AK::SoundEngine::RegisterAllPlugins() returned AKRESULT %d."), res );
 	}
-	*/
 }
 
 //////////////////////////////////////////////////////////////////////////

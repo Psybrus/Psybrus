@@ -44,6 +44,15 @@ wwiselibs = {
 	"AkTremoloFX",
 	"AkVorbisDecoder",
 	"CommunicationCentral",
+	"iZHybridReverbFX",
+	"iZTrashBoxModelerFX",
+	"iZTrashDelayFX",
+	"iZTrashDistortionFX",
+	"iZTrashDynamicsFX",
+	"iZTrashFiltersFX",
+	"iZTrashMultibandDistortionFX",
+	"McDSPFutzBoxFX",
+	"McDSPLimiterFX",
 	"SFlib"
 }
 

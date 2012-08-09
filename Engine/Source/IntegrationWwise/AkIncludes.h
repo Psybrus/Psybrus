@@ -26,4 +26,10 @@
 #ifndef AK_OPTIMIZED
 #include <AK/Comm/AkCommunication.h>	// Communication between Wwise and the game (excluded in release build)
 #endif
+
+#include <AK/Plugin/AllPluginsRegistrationHelpers.h>	// Plug-ins
+#ifdef AK_MOTION
+#include <AK/MotionEngine/Common/AkMotionEngine.h>	// Motion Engine (required only for playback of Motion objects)
+#endif // AK_MOTION
+
 #endif // __AKINCLUDES_H__
