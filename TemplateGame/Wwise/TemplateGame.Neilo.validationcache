@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ValidationCache Version="1" SchemaVersion="51">
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Actor-Mixer Hierarchy\Default Work Unit.wwu" DateLow="3087559698" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Actor-Mixer Hierarchy\Factory SoundSeed Air Objects.wwu" DateLow="3905200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Arguments\Default Work Unit.wwu" DateLow="3087429691" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Attenuations\Default Work Unit.wwu" DateLow="3087409690" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Conversion Settings\Default Work Unit.wwu" DateLow="3087499695" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Conversion Settings\Factory Conversion Settings.wwu" DateLow="3925200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Dynamic Dialogue\Default Work Unit.wwu" DateLow="3087449692" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Default Work Unit.wwu" DateLow="3087759710" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory Altiverb - Outdoor and More.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory Convolution Reverb Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Box Modeler.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Delay.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Dynamics.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Filters.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Hybrid Reverb Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Multiband Distortion.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory iZotope Singleband Distortion.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Effects\Factory McDSP Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Events\Default Work Unit.wwu" DateLow="3087599700" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Game Parameters\Default Work Unit.wwu" DateLow="3087709707" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Game Parameters\Factory SoundSeed Air Game Syncs.wwu" DateLow="3905200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Interactive Music Hierarchy\Default Work Unit.wwu" DateLow="3087359687" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Master-Mixer Hierarchy\Default Work Unit.wwu" DateLow="3087529696" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Mixing Sessions\Default Work Unit.wwu" DateLow="3087469693" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Presets\Default Work Unit.wwu" DateLow="3087789711" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Queries\Default Work Unit.wwu" DateLow="3087339686" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Queries\Factory Queries.wwu" DateLow="3925200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\SoundBanks\Default Work Unit.wwu" DateLow="3087689706" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Soundcaster Sessions\Default Work Unit.wwu" DateLow="3087819713" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\States\Default Work Unit.wwu" DateLow="3087649703" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Switches\Default Work Unit.wwu" DateLow="3087629702" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame.Neilo.wsettings" DateLow="395874105" DateHigh="30242330" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame.wproj" DateLow="3087299683" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Actor-Mixer Hierarchy\Default Work Unit.wwu" DateLow="3087559698" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Actor-Mixer Hierarchy\Factory SoundSeed Air Objects.wwu" DateLow="3905200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Arguments\Default Work Unit.wwu" DateLow="3087429691" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Attenuations\Default Work Unit.wwu" DateLow="3087409690" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Conversion Settings\Default Work Unit.wwu" DateLow="3087499695" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Conversion Settings\Factory Conversion Settings.wwu" DateLow="3925200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Dynamic Dialogue\Default Work Unit.wwu" DateLow="3087449692" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Default Work Unit.wwu" DateLow="3087759710" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory Altiverb - Outdoor and More.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory Convolution Reverb Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Box Modeler.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Delay.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Dynamics.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Filters.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Hybrid Reverb Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Multiband Distortion.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory iZotope Singleband Distortion.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Effects\Factory McDSP Effects.wwu" DateLow="3725200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Events\Default Work Unit.wwu" DateLow="3087599700" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Game Parameters\Default Work Unit.wwu" DateLow="3087709707" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Game Parameters\Factory SoundSeed Air Game Syncs.wwu" DateLow="3905200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Interactive Music Hierarchy\Default Work Unit.wwu" DateLow="3087359687" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Master-Mixer Hierarchy\Default Work Unit.wwu" DateLow="3087529696" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Mixing Sessions\Default Work Unit.wwu" DateLow="3087469693" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Presets\Default Work Unit.wwu" DateLow="3087789711" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Queries\Default Work Unit.wwu" DateLow="3087339686" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Queries\Factory Queries.wwu" DateLow="3925200128" DateHigh="30227807" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\SoundBanks\Default Work Unit.wwu" DateLow="3087689706" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Soundcaster Sessions\Default Work Unit.wwu" DateLow="3087819713" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\States\Default Work Unit.wwu" DateLow="3087649703" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Switches\Default Work Unit.wwu" DateLow="3087629702" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\TemplateGame.wproj" DateLow="3087299683" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\TemplateGame\Triggers\Default Work Unit.wwu" DateLow="3087389688" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Dev\Psybrus\TemplateGame\Wwise\Triggers\Default Work Unit.wwu" DateLow="3087389688" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Actor-Mixer Hierarchy\Default Work Unit.wwu" DateLow="2370232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Actor-Mixer Hierarchy\Dialogues.wwu" DateLow="2370232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Actor-Mixer Hierarchy\External Sources.wwu" DateLow="2370232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Actor-Mixer Hierarchy\Factory SoundSeed Air Objects.wwu" DateLow="2370232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Actor-Mixer Hierarchy\Footsteps With Multiple Variables.wwu" DateLow="2370232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Actor-Mixer Hierarchy\Motion.wwu" DateLow="2370232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Arguments\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Arguments\Dialogue.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Attenuations\Default Work Unit.wwu" DateLow="2410232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Conversion Settings\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Conversion Settings\External Sources.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Dynamic Dialogue\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Dynamic Dialogue\Dialogue.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Effects\Default Work Unit.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Effects\Factory Effects.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Effects\Factory McDSP Effects.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Effects\Factory Wii Effects.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Effects\Footsteps Effects.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Events\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Events\External Sources.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Events\InteractiveMusic.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Events\Motion.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Events\MusicCallbacks.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Game Parameters\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Game Parameters\Factory SoundSeed Air Game Syncs.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Game Parameters\Footsteps With Multiple Variables.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\IntegrationDemo.Neilo.wsettings" DateLow="1973986005" DateHigh="30242329" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\IntegrationDemo.wproj" DateLow="2350232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Interactive Music Hierarchy\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Interactive Music Hierarchy\InteractiveMusic.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Interactive Music Hierarchy\Music Callbacks.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Master-Mixer Hierarchy\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Mixing Sessions\Default Work Unit.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Presets\Default Work Unit.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Queries\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Queries\Factory Queries.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\SoundBanks\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\SoundBanks\Surface Related Banks.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Soundcaster Sessions\Default Work Unit.wwu" DateLow="2150232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\States\Default Work Unit.wwu" DateLow="2390232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Switches\Default Work Unit.wwu" DateLow="2350232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Switches\Footsteps With Multiple Variables.wwu" DateLow="2350232832" DateHigh="30227808" />
+	<ValidationCacheItem File="C:\Program Files (x86)\Audiokinetic\Wwise v2012.1.4 build 4260\SDK\samples\IntegrationDemo\WwiseProject\Triggers\Default Work Unit.wwu" DateLow="2150232832" DateHigh="30227808" />
+</ValidationCache>
