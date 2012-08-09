@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" SchemaVersion="51">
+	<AudioObjects>
+		<WorkUnit Name="Default Work Unit" ID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" PersistMode="Standalone">
+			<ChildrenList>
+				<Sound Name="rabbit_chew_0" ID="{D0287AA6-C7F7-4861-9E08-1AADCEDF1236}" ShortID="685647081" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_chew_0" ID="{DBD099C4-D0E4-43FB-A56D-4F484AE88B2F}" ShortID="1012299965">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_chew_0.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_chew_0" ID="{DBD099C4-D0E4-43FB-A56D-4F484AE88B2F}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_chew_1" ID="{E4F325CC-457E-4C70-B324-7AC250149027}" ShortID="602407668" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_chew_1" ID="{F3331532-F492-4C5A-AE30-096CB4BFA4B6}" ShortID="671791028">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_chew_1.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_chew_1" ID="{F3331532-F492-4C5A-AE30-096CB4BFA4B6}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_chew_2" ID="{718B3C7B-1F41-4753-AF5B-E7D0B262D6DD}" ShortID="596352903" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_chew_2" ID="{305265CF-D36D-42B5-9B24-5AFF536924DA}" ShortID="604732665">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_chew_2.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_chew_2" ID="{305265CF-D36D-42B5-9B24-5AFF536924DA}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop0" ID="{F9EA7E53-9AFB-4A03-BF57-C92C33139585}" ShortID="308835930" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop0" ID="{EA9F4A92-CF5C-45A8-B71E-1E023AF966C6}" ShortID="682377247">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop0.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop0" ID="{EA9F4A92-CF5C-45A8-B71E-1E023AF966C6}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop1" ID="{1A89EF68-0D95-4BD1-8AFC-77ABD1598844}" ShortID="435313869" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop1" ID="{73CA05D0-FFB2-4199-B66E-C79AC48AAAD8}" ShortID="632961730">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop1.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop1" ID="{73CA05D0-FFB2-4199-B66E-C79AC48AAAD8}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop3" ID="{2DD32C80-0759-47EE-98F0-9F2D3015C79E}" ShortID="128713843" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop3" ID="{DE1D06B7-C784-43F9-AA2B-6C0CEF92A049}" ShortID="892255912">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop3.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop3" ID="{DE1D06B7-C784-43F9-AA2B-6C0CEF92A049}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop4" ID="{E1C4253F-D6A0-4A74-9C42-2621B5618B9E}" ShortID="116968268" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop4" ID="{A8CA9B48-AA24-4454-B858-168E122C0424}" ShortID="747056195">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop4.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop4" ID="{A8CA9B48-AA24-4454-B858-168E122C0424}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_scared" ID="{AD0F604A-FF72-4BF5-9D56-E40BD6A8FEBE}" ShortID="635858720" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_scared" ID="{7EC7A2D1-94D2-4D3C-9908-81070A20C68B}" ShortID="506163077">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_scared.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_scared" ID="{7EC7A2D1-94D2-4D3C-9908-81070A20C68B}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_chew_01" ID="{6C3E99FA-CDCA-46D7-81C5-E3DBFD951A42}" ShortID="786721592" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_chew_0" ID="{070906EF-86C7-40A2-A16B-47E8AB8BB950}" ShortID="29817055">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_chew_0.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_chew_0" ID="{070906EF-86C7-40A2-A16B-47E8AB8BB950}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_chew_02" ID="{AD8620A2-F468-48E8-9DD9-D158E4303F43}" ShortID="334500018" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_chew_1" ID="{C2273A4A-5EAA-4B60-B599-845EA9AD870F}" ShortID="335431132">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_chew_1.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_chew_1" ID="{C2273A4A-5EAA-4B60-B599-845EA9AD870F}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_chew_03" ID="{702BDA10-5EA6-48E9-A792-3B7B4BB59850}" ShortID="353098383" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_chew_2" ID="{6BDF70C4-7890-4B2D-B56B-A242EB3EE25B}" ShortID="512164961">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_chew_2.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_chew_2" ID="{6BDF70C4-7890-4B2D-B56B-A242EB3EE25B}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop0_01" ID="{4405905A-92C7-4412-BECF-D1EA3DEEF8A4}" ShortID="481338895" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop0" ID="{658EE283-0614-4CF6-86BA-DF96BD0966A6}" ShortID="539471899">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop0.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop0" ID="{658EE283-0614-4CF6-86BA-DF96BD0966A6}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop1_01" ID="{FAE4741A-599B-4109-8C28-083D0B4F3DFD}" ShortID="270351736" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop1" ID="{4446661D-3A05-46AE-BB17-30D2272D1CE5}" ShortID="62287465">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop1.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop1" ID="{4446661D-3A05-46AE-BB17-30D2272D1CE5}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop3_01" ID="{17E2F802-74FC-4129-A4AC-57BC777F2870}" ShortID="327944020" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop3" ID="{23D69125-CFDD-46A5-8D22-C0C2FBED3D3D}" ShortID="831209122">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop3.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop3" ID="{23D69125-CFDD-46A5-8D22-C0C2FBED3D3D}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_hop4_01" ID="{9ECFC1D9-A5E5-4F5F-8139-3A58A07B103E}" ShortID="179883521" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_hop4" ID="{50051E0E-DFA7-450C-8149-06F022C2D9D7}" ShortID="1000841161">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_hop4.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_hop4" ID="{50051E0E-DFA7-450C-8149-06F022C2D9D7}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+				<Sound Name="rabbit_scared_01" ID="{33183A1C-A303-4C11-9796-0CB7C1844C54}" ShortID="78527722" Type="SoundFX">
+					<ChildrenList>
+						<AudioFileSource Name="rabbit_scared" ID="{293C74C7-AE21-492F-AD7F-C99489FCE98B}" ShortID="532906982">
+							<Language>SFX</Language>
+							<AudioFile>rabbit_scared.wav</AudioFile>
+						</AudioFileSource>
+					</ChildrenList>
+					<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<ActiveSourceList>
+						<ActiveSource Name="rabbit_scared" ID="{293C74C7-AE21-492F-AD7F-C99489FCE98B}" Platform="Linked" />
+					</ActiveSourceList>
+				</Sound>
+			</ChildrenList>
+		</WorkUnit>
+	</AudioObjects>
+</WwiseDocument>
