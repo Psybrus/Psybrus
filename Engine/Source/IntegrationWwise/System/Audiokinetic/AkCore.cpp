@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * File:		AksCore.h
+ * File:		AkCore.h
  * Author:		Neil Richardson
  * Ver/Date:	
  * Description:
@@ -11,19 +11,19 @@
  * 
  **************************************************************************/
 
-#include "System/AksCore.h"
+#include "System/Audiokinetic/AkCore.h"
 
-#define DEMO_DEFAULT_POOL_SIZE 2*1024*1024
-#define DEMO_LENGINE_DEFAULT_POOL_SIZE 2*1024*1024
+#define DEMO_DEFAULT_POOL_SIZE (2*1024*1024)
+#define DEMO_LENGINE_DEFAULT_POOL_SIZE (2*1024*1024)
 #define __AK_OSCHAR_SNPRINTF _snwprintf
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
-SYS_CREATOR( AksCore );
+SYS_CREATOR( AkCore );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-AksCore::AksCore()
+AkCore::AkCore()
 {
 
 }
@@ -31,7 +31,7 @@ AksCore::AksCore()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-AksCore::~AksCore()
+AkCore::~AkCore()
 {
 	
 }
@@ -39,7 +39,7 @@ AksCore::~AksCore()
 //////////////////////////////////////////////////////////////////////////
 // open
 //virtual
-void AksCore::open()
+void AkCore::open()
 {
 	// Get default settings from Wwise.
 	MemSettings_.uMaxNumPools = 20;
@@ -153,15 +153,15 @@ void AksCore::open()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void AksCore::update()
+void AkCore::update()
 {
-
+	AK::SoundEngine::RenderAudio();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // close
 //virtual
-void AksCore::close()
+void AkCore::close()
 {
 #ifndef AK_OPTIMIZED
 	// Terminate communications between Wwise and the game
