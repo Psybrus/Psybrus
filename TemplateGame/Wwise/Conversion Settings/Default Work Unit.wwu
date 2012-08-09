@@ -53,7 +53,7 @@
 							<ConversionPlugin Name="" ID="{BA24045C-A75A-4536-8432-300CA317E639}" PluginName="PCM" CompanyID="0" PluginID="1" />
 						</ConversionPluginInfo>
 						<ConversionPluginInfo Platform="Windows">
-							<ConversionPlugin Name="" ID="{E62834AE-2C5D-4836-87E5-18A29C76E341}" PluginName="PCM" CompanyID="0" PluginID="1" />
+							<ConversionPlugin Name="" ID="{DCB58BE3-C4FB-41ED-BD97-0FBE69837AB4}" PluginName="Vorbis" CompanyID="0" PluginID="4" />
 						</ConversionPluginInfo>
 						<ConversionPluginInfo Platform="Wii">
 							<ConversionPlugin Name="" ID="{48B7D07E-0D6B-434C-BE1C-47E44DC64163}" PluginName="PCM" CompanyID="0" PluginID="1" />
@@ -71,10 +71,10 @@
 							<ConversionPlugin Name="" ID="{8FFDE442-E81C-469D-81BB-07445F6107D6}" PluginName="PCM" CompanyID="0" PluginID="1" />
 						</ConversionPluginInfo>
 						<ConversionPluginInfo Platform="iOS">
-							<ConversionPlugin Name="" ID="{64D563DE-1C29-4FCC-A3D8-3590A7E2B67D}" PluginName="PCM" CompanyID="0" PluginID="1" />
+							<ConversionPlugin Name="" ID="{50629839-0F3E-4D72-ADDE-8A6E312ECD97}" PluginName="Vorbis" CompanyID="0" PluginID="4" />
 						</ConversionPluginInfo>
 						<ConversionPluginInfo Platform="Mac">
-							<ConversionPlugin Name="" ID="{6D192ABB-0431-4ED6-B457-E581B523974D}" PluginName="PCM" CompanyID="0" PluginID="1" />
+							<ConversionPlugin Name="" ID="{B65C1F2C-7CD1-43AD-85A8-379657CC7294}" PluginName="Vorbis" CompanyID="0" PluginID="4" />
 						</ConversionPluginInfo>
 						<ConversionPluginInfo Platform="Android">
 							<ConversionPlugin Name="" ID="{34037B9F-1F0D-4996-918D-1CB2E1BF65D5}" PluginName="PCM" CompanyID="0" PluginID="1" />
