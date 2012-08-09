@@ -19,6 +19,7 @@
 #include "GaCameraComponent.h"
 #include "GaPaddleComponent.h"
 
+#include "IntegrationWwise.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
@@ -75,6 +76,8 @@ void PsyGameRegisterResources()
 	CsCore::pImpl()->registerResource< GaBallComponent >();
 	CsCore::pImpl()->registerResource< GaCameraComponent >();
 	CsCore::pImpl()->registerResource< GaPaddleComponent >();
+
+	IntegrationWwise_Register();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,4 +87,6 @@ void PsyGameUnRegisterResources()
 	CsCore::pImpl()->unregisterResource< GaBallComponent >();
 	CsCore::pImpl()->unregisterResource< GaCameraComponent >();
 	CsCore::pImpl()->unregisterResource< GaPaddleComponent >();
+
+	IntegrationWwise_Unregister();
 }
