@@ -176,8 +176,11 @@
 				{
 					"type"			: "ScnCanvasComponent",
 					"noofvertices" 	: 32768
-				}
+				},
 
+				{
+					"type"			: "AkListenerComponent"
+				}
 			]
 		},
 
@@ -193,6 +196,10 @@
 				{
 					"type"			: "ScnModelComponent",
 					"model" 		: "default.paddle:ScnModel"	// cube:ScnModel
+				},
+
+				{
+					"type"			: "AkGameObjectComponent"
 				}
 			]
 		},
@@ -215,6 +222,14 @@
 					"type"			: "ScnParticleSystemComponent",
 					"noofparticles"	: 4096,
 					"material"		: "default.particle:ScnMaterial"
+				},
+
+				{
+					"type"			: "AkGameObjectComponent"
+				},
+
+				{
+					"type"			: "AkRTPCComponent"
 				}
 			]
 		}

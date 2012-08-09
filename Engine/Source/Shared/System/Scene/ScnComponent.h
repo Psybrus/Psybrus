@@ -42,6 +42,11 @@ public:
 	virtual BcBool						isAttached() const;
 	BcBool								isAttached( ScnEntityWeakRef Parent ) const;
 	ScnEntityWeakRef					getParentEntity();
+
+	/**
+	 * Get full name inc. parents.
+	 */
+	std::string							getFullName();
 	
 	/**
 	 * Set the spatial tree node we belong in.

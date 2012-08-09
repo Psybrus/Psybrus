@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * File:		AksCore.h
+ * File:		AkCore.h
  * Author:		Neil Richardson
  * Ver/Date:	
  * Description:
@@ -11,12 +11,11 @@
  * 
  **************************************************************************/
 
-#ifndef __AKSCORE_H__
-#define __AKSCORE_H__
+#ifndef __AkCore_H__
+#define __AkCore_H__
 
-#include "System/Sound/SsChannel.h"
-#include "System/Sound/SsSample.h"
-#include "System/Sound/SsEnvironment.h"
+#include "System/Content/CsTypes.h"
+#include "System/Content/CsResource.h"
 
 #include "Base/BcGlobal.h"
 #include "System/SysSystem.h"
@@ -25,17 +24,17 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Forward declarations
-class AksCore;
+class AkCore;
 
 //////////////////////////////////////////////////////////////////////////
 // SsCore
-class AksCore:
+class AkCore:
 	public SysSystem,
-	public BcGlobal< AksCore >
+	public BcGlobal< AkCore >
 {
 public:
-	AksCore();
-	virtual ~AksCore();
+	AkCore();
+	virtual ~AkCore();
 	
 	virtual void				open();
 	virtual void				update();

@@ -13,6 +13,11 @@
 
 #include "IntegrationWwise.h"
 
+#include "System/Audiokinetic/AkBank.h"
+#include "System/Audiokinetic/AkGameObject.h"
+#include "System/Audiokinetic/AkListener.h"
+#include "System/Audiokinetic/AkRTPC.h"
+
 #include <windows.h>
 
 namespace AK
@@ -50,12 +55,22 @@ namespace AK
 
 void IntegrationWwise_Register()
 {
+	// Register resources.
+	CsCore::pImpl()->registerResource< AkBank >();
+	CsCore::pImpl()->registerResource< AkGameObjectComponent >();
+	CsCore::pImpl()->registerResource< AkListenerComponent >();
+	CsCore::pImpl()->registerResource< AkRTPCComponent >();
+
 	// Register + start Ak system core.
-	SYS_REGISTER( "AksCore", AksCore );
-	SysKernel::pImpl()->startSystem( "AksCore" );
+	SYS_REGISTER( "AkCore", AkCore );
+	SysKernel::pImpl()->startSystem( "AkCore" );
 }
 
 void IntegrationWwise_Unregister()
 {
-
+	// Unregister resources.
+	CsCore::pImpl()->unregisterResource< AkBank >();
+	CsCore::pImpl()->unregisterResource< AkGameObjectComponent >();
+	CsCore::pImpl()->unregisterResource< AkListenerComponent >();
+	CsCore::pImpl()->unregisterResource< AkRTPCComponent >();
 }
