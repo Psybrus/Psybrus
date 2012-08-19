@@ -2,6 +2,17 @@
 
 	"resources" : [
 		{
+			"type"			: "AkBank",
+			"name"			: "init"
+		},
+
+		{
+			"type"			: "AkBank",
+			"name"			: "global"
+		},
+
+
+		{
 			"type"			: "ScnFont",
 			"name"			: "default",
 
@@ -180,6 +191,10 @@
 
 				{
 					"type"			: "AkListenerComponent"
+				},
+
+				{
+					"type"			: "AkGameObjectComponent"
 				}
 			]
 		},
