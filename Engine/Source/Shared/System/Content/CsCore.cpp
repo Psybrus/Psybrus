@@ -538,4 +538,26 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	return BcFalse;
 }
 
+#if PSY_SERVER
+//////////////////////////////////////////////////////////////////////////
+// addStringEnum
+void CsCore::addStringEnum( const std::string& String, BcU32 ID )
+{
+	StringEnumMap_[ String ] = ID;
+}
 
+//////////////////////////////////////////////////////////////////////////
+// getStringEnum
+BcU32 CsCore::getStringEnum( const std::string& String, BcU32 Default )
+{
+	std::map< std::string, BcU32 >::iterator It( StringEnumMap_.find( String ) );
+
+	if( It != StringEnumMap_.end() )
+	{
+		return (*It).second;
+	}
+
+	return Default;
+}
+
+#endif // PSY_SERVER

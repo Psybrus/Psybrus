@@ -16,6 +16,7 @@
 
 #include "Base/BcDelegate.h"
 #include "Base/BcMisc.h"
+#include "Base/BcVectors.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Typedefs
@@ -117,6 +118,63 @@ public:
 struct EvtNullEvent: EvtEvent< EvtNullEvent >
 {
 	
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/**	\class EvtRealEvent
+*	\brief Simple real event implementation
+*
+*/
+struct EvtRealEvent: EvtEvent< EvtRealEvent >
+{
+	EvtRealEvent( BcReal Value ):
+		Value_( Value )
+	{}
+
+	BcReal Value_;
+
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/**	\class EvtVec2Event
+*	\brief Simple Vec2 event implementation
+*
+*/
+struct EvtVec2Event: EvtEvent< EvtVec2Event >
+{
+	EvtVec2Event( const BcVec2d& Value ):
+		Value_( Value )
+	{}
+
+	BcVec2d Value_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/**	\class EvtVec3Event
+*	\brief Simple Vec3 event implementation
+*
+*/
+struct EvtVec3Event: EvtEvent< EvtVec3Event >
+{
+	EvtVec3Event( const BcVec3d& Value ):
+		Value_( Value )
+	{}
+
+	BcVec3d Value_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/**	\class EvtVec4Event
+*	\brief Simple Vec4 event implementation
+*
+*/
+struct EvtVec4Event: EvtEvent< EvtVec4Event >
+{
+	EvtVec4Event( const BcVec4d& Value ):
+		Value_( Value )
+	{}
+
+	BcVec4d Value_;
 };
 
 #endif

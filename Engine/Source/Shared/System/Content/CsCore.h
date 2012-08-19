@@ -140,6 +140,18 @@ public:
 	 * Get package packed path.
 	 */
 	BcPath								getPackagePackedPath( const BcName& Package );
+
+#if PSY_SERVER
+	/**
+	 * Add a string and enum for string comparison on package importing.
+	 */
+	void								addStringEnum( const std::string& String, BcU32 ID );
+
+	/**
+	 * Get string enum.
+	 */
+	BcU32								getStringEnum( const std::string& String, BcU32 Default = BcErrorCode );
+#endif // PSY_SERVER
 	
 protected:
 	friend class CsResource;
@@ -184,6 +196,10 @@ protected:
 	TPackageList						UnreferencedPackageList_;
 
 	BcBool								IsCollectingGarbage_;
+
+#if PSY_SERVER
+	std::map< std::string, BcU32 >		StringEnumMap_;
+#endif
 };
 
 //////////////////////////////////////////////////////////////////////////
