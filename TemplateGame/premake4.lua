@@ -22,15 +22,15 @@ project "TemplateGame"
    -- wwise libs.
    configuration "Debug"
       libdirs { wwisedebuglib }
-      links (wwiselibs)
+      links (wwisedebuglibs)
 
    configuration "Release"
-      libdirs { wwisereleaselib }
-      links (wwiselibs)
+      libdirs { wwiseprofilelib }
+      links (wwiseprofilelibs)
 
    configuration "Production"
       libdirs { wwisereleaselib }
-      links (wwiselibs)
+      links (wwisereleaselibs)
 
    -- DirectX
    configuration "windows"
