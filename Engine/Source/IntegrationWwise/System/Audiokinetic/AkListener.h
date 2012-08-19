@@ -14,8 +14,9 @@
 #ifndef __AkListener_H__
 #define __AkListener_H__
 
-#include "System/Audiokinetic/AkCore.h"
 #include "System/Scene/ScnComponent.h"
+
+#include <AK/SoundEngine/Common/AkTypes.h>
 
 //////////////////////////////////////////////////////////////////////////
 // AkListenerComponentRef

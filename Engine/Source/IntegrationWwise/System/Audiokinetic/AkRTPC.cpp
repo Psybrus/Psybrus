@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Audiokinetic/AkRTPC.h"
+#include "System/Audiokinetic/AkCore.h"
 
 #include "System/Scene/ScnEntity.h"
 

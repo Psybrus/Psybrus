@@ -110,7 +110,8 @@ project "Engine_IntegrationWwise"
 	kind "StaticLib"
 	language "C++"
 	files { "./**.h", "./**.c", "./**.cpp" }
-	includedirs { "./", "../Shared/", "../../../External/jsoncpp/include" }
+	includedirs { "./", "../Shared/" }
+	includedirs { "../../../External/jsoncpp/include" }
 	includedirs { wwisesdkpath .. "/include" }
 
 	configuration "windows"

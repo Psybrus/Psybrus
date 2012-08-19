@@ -48,6 +48,8 @@ private:
 	AkInitSettings			InitSettings_;
 	AkPlatformInitSettings	PlatformInitSettings_;
 	AkMusicSettings			MusicInit_;
+
+	class CAkFilePackageLowLevelIOBlocking* pLowLevelIO_;
 };
 
 #endif

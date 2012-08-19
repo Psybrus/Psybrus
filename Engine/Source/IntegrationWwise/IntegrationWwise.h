@@ -16,6 +16,11 @@
 
 #include "Psybrus.h"
 
+#include "System/Audiokinetic/AkBank.h"
+#include "System/Audiokinetic/AkGameObject.h"
+#include "System/Audiokinetic/AkListener.h"
+#include "System/Audiokinetic/AkRTPC.h"
+
 void IntegrationWwise_Register();
 void IntegrationWwise_Unregister();
 
