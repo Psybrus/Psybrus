@@ -13,6 +13,9 @@
 
 #include "GaBallComponent.h"
 
+#include "System/Audiokinetic/AkEvents.h"
+#include "GeneratedSoundBanks/Wwise_IDs.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaBallComponent );
@@ -39,6 +42,7 @@ void GaBallComponent::update( BcReal Tick )
 	//getParentEntity()->setRotation( Rotation );
 
 	// Move ball.
+	BcBool HasBounced = BcFalse;
 	const BcVec3d& Position = getParentEntity()->getMatrix().translation();
 	BcVec3d NewPosition = Position + Velocity_ * Tick;
 
@@ -46,12 +50,19 @@ void GaBallComponent::update( BcReal Tick )
 	{
 		NewPosition -= BcVec3d( Velocity_.x(), 0.0f, 0.0f ) * Tick;
 		Velocity_.x( -Velocity_.x() );
+		HasBounced = BcTrue;
 	}
 	
 	if( NewPosition.z() < -10.0f || NewPosition.z() > 10.0f )
 	{
 		NewPosition -= BcVec3d( 0.0f, 0.0f, Velocity_.z() ) * Tick;
 		Velocity_.z( -Velocity_.z() );
+		HasBounced = BcTrue;
+	}
+
+	if( HasBounced )
+	{
+		getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::RABBITCHEW_PLAY ), BcFalse );
 	}
 
 	getParentEntity()->setPosition( NewPosition );

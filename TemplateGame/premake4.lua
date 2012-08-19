@@ -19,6 +19,9 @@ project "TemplateGame"
    -- Integration includes.
    includedirs { "../Engine/Source/IntegrationWwise" }
 
+   -- Wwise includes (for types)
+   includedirs { wwisesdkpath .. "/include" }
+
    -- wwise libs.
    configuration "Debug"
       libdirs { wwisedebuglib }

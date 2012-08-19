@@ -3,25 +3,25 @@
 	<Events>
 		<WorkUnit Name="Default Work Unit" ID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" PersistMode="Standalone">
 			<ChildrenList>
-				<Folder Name="Test Sounds" ID="{D825020A-4E17-47DD-964D-C1B51E0DBD4F}" ShortID="86791858">
+				<Folder Name="Rabbit" ID="{D825020A-4E17-47DD-964D-C1B51E0DBD4F}" ShortID="86791858">
 					<ChildrenList>
-						<Event Name="Sound_Play" ID="{D07DC057-6328-456D-B39F-1C717C683845}">
+						<Event Name="RabbitChew_Play" ID="{D07DC057-6328-456D-B39F-1C717C683845}">
 							<ChildrenList>
 								<Action Name="Play" ID="{574E8812-538A-4C70-8F96-CD381783778E}" ShortID="666309894" Type="Play" Scope="One" Global="false">
 									<ElementList>
 										<Element ID="{78C20AA4-3705-4E4A-8B74-31E718645828}" Global="false">
-											<ObjectRef Name="rabbit_chew_0" ID="{D0287AA6-C7F7-4861-9E08-1AADCEDF1236}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
+											<ObjectRef Name="ChewSound" ID="{DAABE3E1-2CAE-4C36-AC77-0642C0987104}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
 										</Element>
 									</ElementList>
 								</Action>
 							</ChildrenList>
 						</Event>
-						<Event Name="Sound_Stop" ID="{BD354F83-7C90-486D-8FB0-3C76C891BA4D}">
+						<Event Name="RabbitChew_Stop" ID="{BD354F83-7C90-486D-8FB0-3C76C891BA4D}">
 							<ChildrenList>
 								<Action Name="Stop" ID="{A41E329A-FC71-4F0D-BF0A-56F0554CCC7B}" ShortID="166599955" Type="Stop" Scope="One" Global="false">
 									<ElementList>
 										<Element ID="{6AB0F445-198D-49C5-B183-544E9E081D8B}" Global="false">
-											<ObjectRef Name="rabbit_chew_0" ID="{D0287AA6-C7F7-4861-9E08-1AADCEDF1236}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
+											<ObjectRef Name="ChewSound" ID="{DAABE3E1-2CAE-4C36-AC77-0642C0987104}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
 										</Element>
 									</ElementList>
 								</Action>
@@ -29,6 +29,68 @@
 						</Event>
 					</ChildrenList>
 				</Folder>
+				<Event Name="Music_Play" ID="{31F85E42-2960-4596-A8FF-1D7EABEC279B}">
+					<ChildrenList>
+						<Action Name="Play" ID="{58F35AEF-6639-477D-B160-FEE42354A2D3}" ShortID="867742037" Type="Play" Scope="One" Global="false">
+							<ElementList>
+								<Element ID="{7315127B-13D9-468C-B2CE-2B36EF8FBCE3}" Global="false">
+									<ObjectRef Name="Music" ID="{00C69093-18CB-4C6F-89B5-03F3F5EA3097}" WorkUnitID="{602B2F75-9EE6-470A-A1A7-A39FE5F31671}" />
+								</Element>
+							</ElementList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Music_Stop" ID="{38A3179C-1B73-4649-906E-B93805A6BCA4}">
+					<ChildrenList>
+						<Action Name="Stop" ID="{6FD52F39-9FEB-40EC-84C3-BC187E8BC466}" ShortID="280576362" Type="Stop" Scope="One" Global="false">
+							<ElementList>
+								<Element ID="{35A0182B-5485-409B-9CCB-A265117C125F}" Global="false">
+									<ObjectRef Name="Music" ID="{00C69093-18CB-4C6F-89B5-03F3F5EA3097}" WorkUnitID="{602B2F75-9EE6-470A-A1A7-A39FE5F31671}" />
+								</Element>
+							</ElementList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Set_State_Bridge" ID="{3E1B8D53-468E-4EBE-9418-51C6D6C6BE4E}">
+					<ChildrenList>
+						<Action Name="Set State" ID="{B75521E6-F564-4D47-A917-3083E3E832B1}" ShortID="18615158" Type="SetState" Scope="All" Global="true">
+							<SetItemParam>
+								<Group Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+								<GroupItem Name="Bridge" ID="{F4B5FA28-8C28-465B-A744-CE209DFF7F50}" />
+							</SetItemParam>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Set_State_Chorus" ID="{923D256F-EC3C-4B89-9880-091A79BAB847}">
+					<ChildrenList>
+						<Action Name="Set State" ID="{328551F6-C824-4028-87E1-39967F07C6F9}" ShortID="552688550" Type="SetState" Scope="All" Global="true">
+							<SetItemParam>
+								<Group Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+								<GroupItem Name="Chorus" ID="{3A37942E-252E-495D-9268-E58D0FBE0CF4}" />
+							</SetItemParam>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Set_State_Intro" ID="{8554DC17-8DEB-40E9-901B-2EE60C62A6E8}">
+					<ChildrenList>
+						<Action Name="Set State" ID="{AF78FCFA-5146-421A-AB0B-8675BE5FB506}" ShortID="400582852" Type="SetState" Scope="All" Global="true">
+							<SetItemParam>
+								<Group Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+								<GroupItem Name="Intro" ID="{A3BCD075-6BF5-4847-A31B-4F2C3ADFEF1D}" />
+							</SetItemParam>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Set_State_Verse" ID="{9EFFA94A-81C7-4561-9679-2C030458F8F4}">
+					<ChildrenList>
+						<Action Name="Set State" ID="{0CAD5FEF-F33C-4F57-8EC3-253719D0EA8B}" ShortID="586551992" Type="SetState" Scope="All" Global="true">
+							<SetItemParam>
+								<Group Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+								<GroupItem Name="Verse" ID="{1BE0B6A8-A1EC-4B59-BE49-6138985B0513}" />
+							</SetItemParam>
+						</Action>
+					</ChildrenList>
+				</Event>
 			</ChildrenList>
 		</WorkUnit>
 	</Events>
