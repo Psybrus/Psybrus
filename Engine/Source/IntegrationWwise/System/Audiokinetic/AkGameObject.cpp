@@ -91,7 +91,9 @@ void AkGameObjectComponent::onDetach( ScnEntityWeakRef Parent )
 // onEventPost
 eEvtReturn AkGameObjectComponent::onEventPost( EvtID ID, const AkEventPost& Event )
 {
-	AK::SoundEngine::PostEvent( Event.ID_, getGameObjectID() );
+	AkPlayingID PlayingID = AK::SoundEngine::PostEvent( Event.ID_, getGameObjectID() );
+
+	BcVerifyMsg( PlayingID != AK_INVALID_PLAYING_ID, "Unable to post Wwise event %u", Event.ID_ );
 
 	return evtRET_PASS;
 }
@@ -100,7 +102,9 @@ eEvtReturn AkGameObjectComponent::onEventPost( EvtID ID, const AkEventPost& Even
 // onEventSetRTPC
 eEvtReturn AkGameObjectComponent::onEventSetRTPC( EvtID ID, const AkEventSetRTPC& Event )
 {
-	AK::SoundEngine::SetRTPCValue( Event.ID_, Event.Value_, getGameObjectID() );
+	AKRESULT Result = AK::SoundEngine::SetRTPCValue( Event.ID_, Event.Value_, getGameObjectID() );
+
+	BcVerifyMsg( Result == AK_Success, "Unable to set Wwise RTPC Value %u", Event.ID_ );
 
 	return evtRET_PASS;
 }
