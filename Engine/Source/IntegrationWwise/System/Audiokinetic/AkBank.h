@@ -16,7 +16,7 @@
 
 #include "System/Content/CsResource.h"
 
-#include "AkIncludes.h"
+#include "System/Audiokinetic/AkEvents.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AkBank

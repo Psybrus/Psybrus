@@ -12,14 +12,29 @@
 **************************************************************************/
 
 #include "System/Audiokinetic/AkBank.h"
+#include "System/Audiokinetic/AkCore.h"
 
 #if PSY_SERVER
+#include "System/Content/CsPackageImporter.h"
+#include "Base/BcStream.h"
+
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
 BcBool AkBank::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	return BcFalse;
+	// Temporary hack until post-LD.
+	std::string BankName = std::string("GeneratedSoundBanks/Windows/") + (*getName());
+
+	BcStream HeaderStream;
+			
+	THeader Header = { Importer.addString( BankName.c_str() ) };
+	HeaderStream << Header;
+			
+	// Add chunks and finish up.
+	Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
+
+	return BcTrue;
 }
 #endif	
 

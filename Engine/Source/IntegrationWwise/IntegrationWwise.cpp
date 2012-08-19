@@ -13,11 +13,6 @@
 
 #include "IntegrationWwise.h"
 
-#include "System/Audiokinetic/AkBank.h"
-#include "System/Audiokinetic/AkGameObject.h"
-#include "System/Audiokinetic/AkListener.h"
-#include "System/Audiokinetic/AkRTPC.h"
-
 #include <windows.h>
 
 namespace AK

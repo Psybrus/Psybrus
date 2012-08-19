@@ -14,8 +14,9 @@
 #ifndef __AkGameObject_H__
 #define __AkGameObject_H__
 
-#include "System/Audiokinetic/AkCore.h"
 #include "System/Scene/ScnComponent.h"
+
+#include "System/Audiokinetic/AkEvents.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AkGameObjectComponentRef
@@ -34,6 +35,9 @@ public:
 	
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+	eEvtReturn							onEventPost( EvtID ID, const AkEventPost& Event );
+	eEvtReturn							onEventSetRTPC( EvtID ID, const AkEventSetRTPC& Event );
 
 	AkGameObjectID						getGameObjectID();
 };

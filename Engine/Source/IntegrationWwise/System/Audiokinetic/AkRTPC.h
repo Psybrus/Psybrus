@@ -14,9 +14,9 @@
 #ifndef __AkRTPC_H__
 #define __AkRTPC_H__
 
-#include "System/Audiokinetic/AkCore.h"
 #include "System/Audiokinetic/AkGameObject.h"
 
+#include <AK/SoundEngine/Common/AkTypes.h>
 
 //////////////////////////////////////////////////////////////////////////
 // AkRTPCComponentRef

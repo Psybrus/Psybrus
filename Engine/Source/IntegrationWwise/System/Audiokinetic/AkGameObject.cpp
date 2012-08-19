@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Audiokinetic/AkGameObject.h"
+#include "System/Audiokinetic/AkCore.h"
 
 #include "System/Scene/ScnEntity.h"
 
@@ -64,6 +65,12 @@ void AkGameObjectComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 
 	AK::SoundEngine::RegisterGameObj( getGameObjectID(), getFullName().c_str() );
+
+	// Subscribe to events we can receive from game.
+	AkEventPost::Delegate OnEventPost = AkEventPost::Delegate::bind< AkGameObjectComponent, &AkGameObjectComponent::onEventPost >( this );
+	AkEventSetRTPC::Delegate OnEventSetRTPC = AkEventSetRTPC::Delegate::bind< AkGameObjectComponent, &AkGameObjectComponent::onEventSetRTPC >( this );
+	Parent->subscribe( akEVT_CORE_POST, OnEventPost );
+	Parent->subscribe( akEVT_CORE_SETRTPC, OnEventSetRTPC );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,6 +81,28 @@ void AkGameObjectComponent::onDetach( ScnEntityWeakRef Parent )
 	Super::onDetach( Parent );
 
 	AK::SoundEngine::UnregisterGameObj( getGameObjectID() );
+
+	// Unsubscribe from the events.
+	Parent->unsubscribe( akEVT_CORE_POST, this );
+	Parent->unsubscribe( akEVT_CORE_SETRTPC, this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onEventPost
+eEvtReturn AkGameObjectComponent::onEventPost( EvtID ID, const AkEventPost& Event )
+{
+	AK::SoundEngine::PostEvent( Event.ID_, getGameObjectID() );
+
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onEventSetRTPC
+eEvtReturn AkGameObjectComponent::onEventSetRTPC( EvtID ID, const AkEventSetRTPC& Event )
+{
+	AK::SoundEngine::SetRTPCValue( Event.ID_, Event.Value_, getGameObjectID() );
+
+	return evtRET_PASS;
 }
 
 //////////////////////////////////////////////////////////////////////////

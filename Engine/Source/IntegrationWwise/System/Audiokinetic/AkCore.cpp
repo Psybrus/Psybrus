@@ -13,6 +13,8 @@
 
 #include "System/Audiokinetic/AkCore.h"
 
+#include "Common/AkFilePackageLowLevelIOBlocking.h"		// Low level io
+
 #define DEMO_DEFAULT_POOL_SIZE (2*1024*1024)
 #define DEMO_LENGINE_DEFAULT_POOL_SIZE (2*1024*1024)
 #define __AK_OSCHAR_SNPRINTF _snwprintf
@@ -25,7 +27,7 @@ SYS_CREATOR( AkCore );
 // Ctor
 AkCore::AkCore()
 {
-
+	pLowLevelIO_ = new CAkFilePackageLowLevelIOBlocking();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -33,7 +35,7 @@ AkCore::AkCore()
 //virtual
 AkCore::~AkCore()
 {
-	
+	delete pLowLevelIO_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,14 +93,12 @@ void AkCore::open()
     
     // CAkFilePackageLowLevelIOBlocking::Init() creates a streaming device
     // in the Stream Manager, and registers itself as the File Location Resolver.
-	/*
-	res = m_pLowLevelIO->Init( DeviceSettings_ );
+	res = pLowLevelIO_->Init( DeviceSettings_ );
 	if ( res != AK_Success )
 	{
 		__AK_OSCHAR_SNPRINTF( ErrorBuffer, ErrorBufferSize, AKTEXT("m_lowLevelIO.Init() returned AKRESULT %d"), res );
         BcBreakpoint;
     }
-	*/
 
     //
     // Create the Sound Engine
