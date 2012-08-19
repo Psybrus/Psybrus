@@ -15,6 +15,18 @@
 							</PropertyList>
 							<ChildrenList>
 								<MusicTrack Name="TestLoop_Bass" ID="{0F8318D6-A14F-4783-8C3A-855FFBEF0E22}" ShortID="640576688">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+									</PropertyList>
 									<ChildrenList>
 										<AudioFileSource Name="TestLoop_Bass" ID="{8CB0A259-3D25-4735-A4CB-7F0D4EF267FD}" ShortID="545535961">
 											<Language>SFX</Language>
@@ -29,6 +41,9 @@
 											</StateGroupInfo>
 										</StateGroupList>
 									</StateInfo>
+									<MotionRouting>
+										<MotionBus Name="Master Motion Bus" ID="{20A630BA-3398-4676-B927-1004DFE41FD8}" />
+									</MotionRouting>
 									<ConversionInfo>
 										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
 									</ConversionInfo>
@@ -48,6 +63,29 @@
 									</SequenceList>
 								</MusicTrack>
 								<MusicTrack Name="TestLoop_Drums" ID="{B7C66D39-2F67-4D4B-9F7E-B6792A3096F8}" ShortID="743638231">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Lowpass" Type="int16">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{8C4E851D-5F1A-4579-A6CE-D8B5C171182B}">
+														<PropertyList>
+															<Property Name="Enabled" Type="bool" Value="False" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
 									<ChildrenList>
 										<AudioFileSource Name="TestLoop_Drums" ID="{9633F715-965D-402B-A1E6-B26174A3D45D}" ShortID="899784072">
 											<Language>SFX</Language>
@@ -107,6 +145,24 @@
 									</SequenceList>
 								</MusicTrack>
 								<MusicTrack Name="TestLoop_Guitar" ID="{096D365D-ABD0-4BFE-81DD-AB2E1706DE8A}" ShortID="623156231">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="OverrideEffect" Type="bool" Value="True" />
+										<Property Name="Volume" Type="Real64">
+											<ValueList>
+												<Value>-5</Value>
+											</ValueList>
+										</Property>
+									</PropertyList>
 									<ChildrenList>
 										<AudioFileSource Name="TestLoop_Guitar" ID="{3C402E30-F9A4-4FBF-9DA2-A128623E37DC}" ShortID="790194234">
 											<Language>SFX</Language>
@@ -114,6 +170,9 @@
 										</AudioFileSource>
 									</ChildrenList>
 									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<EffectInfo>
+										<NoEffect Platform="Linked" Index="0" />
+									</EffectInfo>
 									<StateInfo>
 										<StateGroupList>
 											<StateGroupInfo MusicSyncType="2">
@@ -150,6 +209,19 @@
 									</SequenceList>
 								</MusicTrack>
 								<MusicTrack Name="TestLoop_Pad" ID="{AE81F4B4-7215-426C-BE31-FFB50642902E}" ShortID="867283061">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="OverrideConversion" Type="bool" Value="True" />
+									</PropertyList>
 									<ChildrenList>
 										<AudioFileSource Name="TestLoop_Pad" ID="{ADCBFB06-E465-47AA-AD5A-7212A8826F42}" ShortID="228701876">
 											<Language>SFX</Language>
@@ -216,6 +288,9 @@
 						</MusicSegment>
 					</ChildrenList>
 					<BusRouting Name="Music" ID="{48E42618-047A-42CF-BC10-A57AAC1B1649}" />
+					<EffectInfo>
+						<NoEffect Platform="Linked" Index="0" />
+					</EffectInfo>
 					<ConversionInfo>
 						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
 					</ConversionInfo>

@@ -13,10 +13,9 @@ namespace AK
 {
     namespace EVENTS
     {
+        static const AkUniqueID HOPSOUND_PLAY = 1762155356U;
         static const AkUniqueID MUSIC_PLAY = 202194903U;
         static const AkUniqueID MUSIC_STOP = 3227181061U;
-        static const AkUniqueID RABBITCHEW_PLAY = 142110049U;
-        static const AkUniqueID RABBITCHEW_STOP = 2503749687U;
         static const AkUniqueID SET_STATE_BRIDGE = 1396041131U;
         static const AkUniqueID SET_STATE_CHORUS = 1603954450U;
         static const AkUniqueID SET_STATE_INTRO = 242827154U;
@@ -43,7 +42,9 @@ namespace AK
     namespace GAME_PARAMETERS
     {
         static const AkUniqueID GAMEVOLUME = 366326629U;
+        static const AkUniqueID GLOBALVOLUME = 4071000082U;
         static const AkUniqueID LEVEL = 2782712965U;
+        static const AkUniqueID MUSICVOLUME = 2346531308U;
         static const AkUniqueID SS_AIR_FEAR = 1351367891U;
         static const AkUniqueID SS_AIR_FREEFALL = 3002758120U;
         static const AkUniqueID SS_AIR_FURY = 1029930033U;

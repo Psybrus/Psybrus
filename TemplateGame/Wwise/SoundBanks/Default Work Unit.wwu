@@ -6,12 +6,12 @@
 				<SoundBank Name="Global" ID="{853B8DB3-5228-4AD9-9886-48DC687D8497}">
 					<ObjectInclusionList>
 						<ObjectRef Name="Set_State_Intro" ID="{8554DC17-8DEB-40E9-901B-2EE60C62A6E8}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
-						<ObjectRef Name="Rabbit" ID="{3E5C601F-7CD0-4134-A151-B1563C3F4095}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Music_Play" ID="{31F85E42-2960-4596-A8FF-1D7EABEC279B}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
 						<ObjectRef Name="Set_State_Verse" ID="{9EFFA94A-81C7-4561-9679-2C030458F8F4}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
 						<ObjectRef Name="Set_State_Bridge" ID="{3E1B8D53-468E-4EBE-9418-51C6D6C6BE4E}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
 						<ObjectRef Name="Set_State_Chorus" ID="{923D256F-EC3C-4B89-9880-091A79BAB847}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
-						<ObjectRef Name="Music" ID="{00C69093-18CB-4C6F-89B5-03F3F5EA3097}" WorkUnitID="{602B2F75-9EE6-470A-A1A7-A39FE5F31671}" Filter="7" Origin="Manual" />
-						<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{8F37825B-9B25-4EAB-AE87-90EADFAB46D7}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Music_Stop" ID="{38A3179C-1B73-4649-906E-B93805A6BCA4}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="HopSound_Play" ID="{887E99A3-DA84-446D-8A16-43ADD7C637FB}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
 					</ObjectInclusionList>
 					<ObjectExclusionList />
 					<GameSyncExclusionList />

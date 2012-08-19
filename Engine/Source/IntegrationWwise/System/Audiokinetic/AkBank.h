@@ -14,9 +14,13 @@
 #ifndef __AKBANK_H__
 #define __AKBANK_H__
 
-#include "System/Content/CsResource.h"
+#include "System/Scene/ScnComponent.h"
 
 #include "System/Audiokinetic/AkEvents.h"
+
+//////////////////////////////////////////////////////////////////////////
+// AkBankRef
+typedef CsResourceRef< class AkBank > AkBankRef;
 
 //////////////////////////////////////////////////////////////////////////
 // AkBank
@@ -46,6 +50,26 @@ private:
 	THeader								Header_;
 	const BcChar*						pBankName_;
 	AkBankID							BankID_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// AkBankComponentRef
+typedef CsResourceRef< class AkBankComponent > AkBankComponentRef;
+
+//////////////////////////////////////////////////////////////////////////
+// AkBankComponent
+class AkBankComponent:
+	public ScnComponent
+{
+public:
+	DECLARE_RESOURCE( ScnComponent, AkBankComponent );
+
+	virtual void						initialise( const Json::Value& Object );
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+private:
+	AkBankRef							Bank_;
 };
 
 #endif // __AKBANK_H__

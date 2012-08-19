@@ -3,8 +3,29 @@
 	<GameParameters>
 		<WorkUnit Name="Default Work Unit" ID="{66B9E41E-6942-4708-BA16-D928E7EC9C5F}" PersistMode="Standalone">
 			<ChildrenList>
-				<GameParameter Name="GameVolume" ID="{79E8D3C1-BB03-4F87-9B87-DBA898AD7F56}" />
 				<GameParameter Name="Level" ID="{84EF0BB6-6C71-483D-8299-D9EED3B01A28}" />
+				<Folder Name="Volumes" ID="{60114878-BE30-4424-82FB-26172F3DB58F}" ShortID="447852442">
+					<ChildrenList>
+						<GameParameter Name="GameVolume" ID="{79E8D3C1-BB03-4F87-9B87-DBA898AD7F56}">
+							<PropertyList>
+								<Property Name="InitialValue" Type="Real64" Value="1" />
+								<Property Name="Max" Type="Real64" Value="1" />
+							</PropertyList>
+						</GameParameter>
+						<GameParameter Name="MusicVolume" ID="{87309608-996B-4F20-B866-2B63C9B24A88}">
+							<PropertyList>
+								<Property Name="InitialValue" Type="Real64" Value="1" />
+								<Property Name="Max" Type="Real64" Value="1" />
+							</PropertyList>
+						</GameParameter>
+						<GameParameter Name="GlobalVolume" ID="{6AF1FA36-1114-4CA1-9928-A49903B94F7E}">
+							<PropertyList>
+								<Property Name="InitialValue" Type="Real64" Value="1" />
+								<Property Name="Max" Type="Real64" Value="1" />
+							</PropertyList>
+						</GameParameter>
+					</ChildrenList>
+				</Folder>
 			</ChildrenList>
 		</WorkUnit>
 	</GameParameters>

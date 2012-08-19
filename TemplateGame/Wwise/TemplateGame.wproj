@@ -32,6 +32,20 @@
 						<Value Platform="Android">GeneratedSoundBanks\Android</Value>
 					</ValueList>
 				</Property>
+				<Property Name="GlobalVoiceInstancesLimit" Type="int16">
+					<ValueList>
+						<Value Platform="NGP">256</Value>
+						<Value Platform="Windows">256</Value>
+						<Value Platform="Wii">256</Value>
+						<Value Platform="WiiUSW">256</Value>
+						<Value Platform="Xbox360">256</Value>
+						<Value Platform="3DS">256</Value>
+						<Value Platform="PS3">256</Value>
+						<Value Platform="iOS">256</Value>
+						<Value Platform="Mac">256</Value>
+						<Value Platform="Android">256</Value>
+					</ValueList>
+				</Property>
 				<Property Name="IsPlatformDisplayed" Type="bool">
 					<ValueList>
 						<Value Platform="NGP">False</Value>
@@ -41,16 +55,18 @@
 						<Value Platform="Xbox360">False</Value>
 						<Value Platform="3DS">False</Value>
 						<Value Platform="PS3">False</Value>
-						<Value Platform="iOS">True</Value>
-						<Value Platform="Mac">True</Value>
+						<Value Platform="iOS">False</Value>
+						<Value Platform="Mac">False</Value>
 						<Value Platform="Android">False</Value>
 					</ValueList>
 				</Property>
-				<Property Name="SoundBankHeaderFilePath" Type="string" Value="GeneratedSoundBanks\" />
+				<Property Name="SoundBankGenerateDefinitionFile" Type="bool" Value="False" />
+				<Property Name="SoundBankGenerateHeaderFile" Type="bool" Value="True" />
+				<Property Name="SoundBankHeaderFilePath" Type="string" Value="..\Source\GeneratedSoundBanks\" />
 				<Property Name="SoundBankPaths" Type="string">
 					<ValueList>
 						<Value Platform="NGP">GeneratedSoundBanks\NGP\</Value>
-						<Value Platform="Windows">GeneratedSoundBanks\Windows\</Value>
+						<Value Platform="Windows">..\Dist\GeneratedSoundBanks\Windows\</Value>
 						<Value Platform="Wii">GeneratedSoundBanks\Wii\</Value>
 						<Value Platform="WiiUSW">GeneratedSoundBanks\WiiUSW\</Value>
 						<Value Platform="Xbox360">GeneratedSoundBanks\XBox360\</Value>
@@ -117,8 +133,26 @@
 						<Value Platform="Android"></Value>
 					</ValueList>
 				</Property>
+				<Property Name="VolumeThreshold" Type="Real64">
+					<ValueList>
+						<Value Platform="NGP">-96.3</Value>
+						<Value Platform="Windows">-96.3</Value>
+						<Value Platform="Wii">-96.3</Value>
+						<Value Platform="WiiUSW">-96.3</Value>
+						<Value Platform="Xbox360">-96.3</Value>
+						<Value Platform="3DS">-96.3</Value>
+						<Value Platform="PS3">-96.3</Value>
+						<Value Platform="iOS">-96.3</Value>
+						<Value Platform="Mac">-96.3</Value>
+						<Value Platform="Android">-96.3</Value>
+					</ValueList>
+				</Property>
 				<Property Name="WwiseVersionWhenCreated" Type="string" Value="Branch=wwise_v2012.1|Build=4260|VersionName=v2012.1.4|Config=Release" />
 			</PropertyList>
+			<MiscSettings>
+				<MiscSettingEntry Name="Cache"><![CDATA[.cache]]></MiscSettingEntry>
+				<MiscSettingEntry Name="Originals"><![CDATA[Originals]]></MiscSettingEntry>
+			</MiscSettings>
 			<SharedValues>
 				<SharedPropertyList ClassName="AudioSource" PluginType="0" CompanyID="1" PluginID="0">
 					<PropertyList>
@@ -7090,7 +7124,9 @@
 					</ObsOccCurve>
 				</ObsOccCurves>
 			</EnvironmentalSettings>
-			<MotionDeviceList />
+			<MotionDeviceList>
+				<MotionDevice CompanyID="0" PluginID="406" Enabled="true" />
+			</MotionDeviceList>
 			<DefaultConversion Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
 			<PhysicalFolderList>
 				<PhysicalFolder Path="Actor-Mixer Hierarchy">
