@@ -95,7 +95,7 @@ void AkBank::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pBankName_ = getString( Header_.BankNameID_ );
 		if ( AK::SoundEngine::LoadBank( pBankName_, AK_DEFAULT_POOL_ID, BankID_ ) != AK_Success )
 		{
-			BcBreakpoint;
+			BcVerifyMsg( BcFalse, "Unable to load Wwise sound bank \"%s\". Have they been generated from the Wwise tool?", pBankName_ );
 		}
 	};
 }
