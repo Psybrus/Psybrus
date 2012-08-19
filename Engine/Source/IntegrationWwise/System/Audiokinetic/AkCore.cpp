@@ -124,7 +124,7 @@ void AkCore::open()
         BcBreakpoint;
     }
 
-#ifndef AK_OPTIMIZED
+#if !PSY_PRODUCTION
     //
     // Initialize communications (not in release build!)
     //
@@ -135,7 +135,7 @@ void AkCore::open()
 	{
 		__AK_OSCHAR_SNPRINTF( ErrorBuffer, ErrorBufferSize, AKTEXT("AK::Comm::Init() returned AKRESULT %d. Communication between the Wwise authoring application and the game will not be possible."), res );
 	}
-#endif // AK_OPTIMIZED
+#endif // !PSY_PRODUCTION
 	
 	//
 	// Register plugins
@@ -161,10 +161,11 @@ void AkCore::update()
 //virtual
 void AkCore::close()
 {
-#ifndef AK_OPTIMIZED
+#if !PSY_PRODUCTION
 	// Terminate communications between Wwise and the game
 	AK::Comm::Term();
-#endif // AK_OPTIMIZED
+#endif // !PSY_PRODUCTION
+
 	// Terminate the music engine
 	AK::MusicEngine::Term();
 

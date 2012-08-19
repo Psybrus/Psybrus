@@ -9,8 +9,10 @@ else
 end
 
 wwisedebuglib = wwisesdkpath .. "/Win32_vc100/Debug(StaticCRT)/lib"
+wwiseprofilelib = wwisesdkpath .. "/Win32_vc100/Profile(StaticCRT)/lib"
 wwisereleaselib = wwisesdkpath .. "/Win32_vc100/Release(StaticCRT)/lib"
-wwiselibs = {
+
+wwisedebuglibs = {
 	"AkAudioInputSource",
 	"AkCompressorFX",
 	"AkConvolutionReverbFX",
@@ -56,6 +58,54 @@ wwiselibs = {
 	"SFlib"
 }
 
+wwiseprofilelibs = wwisedebuglibs
+
+wwisereleaselibs = {
+	"AkAudioInputSource",
+	"AkCompressorFX",
+	"AkConvolutionReverbFX",
+	"AkDelayFX",
+	"AkExpanderFX",
+	"AkFlangerFX",
+	"AkGainFX",
+	"AkGuitarDistortionFX",
+	"AkHarmonizerFX",
+	"AkMatrixReverbFX",
+	"AkMemoryMgr",
+	"AkMeterFX",
+	"AkMotionGenerator",
+	"AkMP3Source",
+	"AkMusicEngine",
+	"AkParametricEQFX",
+	"AkPeakLimiterFX",
+	"AkPitchShifterFX",
+	"AkRoomVerbFX",
+	"AkRumble",
+	"AkSilenceSource",
+	"AkSineSource",
+	"AkSoundEngine",
+	"AkSoundSeedImpactFX",
+	"AkSoundSeedWind",
+	"AkSoundSeedWoosh",
+	"AkStereoDelayFX",
+	"AkStreamMgr",
+	"AkTimeStretchFX",
+	"AkToneSource",
+	"AkTremoloFX",
+	"AkVorbisDecoder",
+	"iZHybridReverbFX",
+	"iZTrashBoxModelerFX",
+	"iZTrashDelayFX",
+	"iZTrashDistortionFX",
+	"iZTrashDynamicsFX",
+	"iZTrashFiltersFX",
+	"iZTrashMultibandDistortionFX",
+	"McDSPFutzBoxFX",
+	"McDSPLimiterFX",
+	"SFlib"
+}
+
+
 project "Engine_IntegrationWwise"
 	kind "StaticLib"
 	language "C++"
@@ -68,12 +118,12 @@ project "Engine_IntegrationWwise"
 
 	configuration "Debug"
 		libdirs { wwisedebuglib }
-	   	links (wwiselibs)
+	   	links (wwisedebuglibs)
 
 	configuration "Release"
-		libdirs { wwisereleaselib }
-	   	links (wwiselibs)
+		libdirs { wwiseprofilelib }
+	   	links (wwiseprofilelibs)
 
 	configuration "Production"
 		libdirs { wwisereleaselib }
-	   	links (wwiselibs)
+	   	links (wwisereleaselibs)
