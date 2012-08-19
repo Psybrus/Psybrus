@@ -49,7 +49,7 @@ eEvtReturn OnUpdate( EvtID ID, const SysSystemEvent& Event )
 eEvtReturn OnQuit( EvtID ID, const OsEventCore& Event )
 {
 	GaTopState::pImpl()->leaveState();
-
+	
 	return evtRET_REMOVE;
 }
 

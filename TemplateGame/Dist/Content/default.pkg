@@ -195,6 +195,16 @@
 
 				{
 					"type"			: "AkGameObjectComponent"
+				},
+
+				{
+					"type"			: "AkBankComponent",
+					"name"			: "default.init:AkBank"
+				},
+
+				{
+					"type"			: "AkBankComponent",
+					"name"			: "default.global:AkBank"
 				}
 			]
 		},

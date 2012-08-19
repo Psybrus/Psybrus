@@ -62,7 +62,7 @@ void GaBallComponent::update( BcReal Tick )
 
 	if( HasBounced )
 	{
-		getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::RABBITCHEW_PLAY ), BcFalse );
+		getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::HOPSOUND_PLAY ), BcFalse );
 	}
 
 	getParentEntity()->setPosition( NewPosition );

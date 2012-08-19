@@ -33,7 +33,7 @@ DEFINE_RESOURCE( AkGameObjectComponent );
 //virtual
 void AkGameObjectComponent::initialise()
 {
-	
+	Super::initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,20 +41,25 @@ void AkGameObjectComponent::initialise()
 //virtual
 void AkGameObjectComponent::update( BcReal Tick )
 {
-	const BcMat4d& Matrix( getParentEntity()->getMatrix() );
-	BcMat4d RotationMatrix = Matrix;
-	RotationMatrix.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
-	BcVec3d Forward( 0.0f, 0.0f, 1.0f );
-	Forward = Forward * RotationMatrix;
+	Super::update( Tick );
 
-	AkSoundPosition SoundPosition;
-	SoundPosition.Position.X = Matrix.translation().x();
-	SoundPosition.Position.Y = Matrix.translation().y();
-	SoundPosition.Position.Z = Matrix.translation().z();
-	SoundPosition.Orientation.X = Forward.x();
-	SoundPosition.Orientation.Y = Forward.y();
-	SoundPosition.Orientation.Z = Forward.z();
-	AK::SoundEngine::SetPosition( getGameObjectID(), SoundPosition );
+	if( AkCore::pImpl() )
+	{
+		const BcMat4d& Matrix( getParentEntity()->getMatrix() );
+		BcMat4d RotationMatrix = Matrix;
+		RotationMatrix.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+		BcVec3d Forward( 0.0f, 0.0f, 1.0f );
+		Forward = Forward * RotationMatrix;
+
+		AkSoundPosition SoundPosition;
+		SoundPosition.Position.X = Matrix.translation().x();
+		SoundPosition.Position.Y = Matrix.translation().y();
+		SoundPosition.Position.Z = Matrix.translation().z();
+		SoundPosition.Orientation.X = Forward.x();
+		SoundPosition.Orientation.Y = Forward.y();
+		SoundPosition.Orientation.Z = Forward.z();
+		AK::SoundEngine::SetPosition( getGameObjectID(), SoundPosition );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,13 +69,16 @@ void AkGameObjectComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
-	AK::SoundEngine::RegisterGameObj( getGameObjectID(), getFullName().c_str() );
+	if( AkCore::pImpl() )
+	{
+		AK::SoundEngine::RegisterGameObj( getGameObjectID(), getFullName().c_str() );
 
-	// Subscribe to events we can receive from game.
-	AkEventPost::Delegate OnEventPost = AkEventPost::Delegate::bind< AkGameObjectComponent, &AkGameObjectComponent::onEventPost >( this );
-	AkEventSetRTPC::Delegate OnEventSetRTPC = AkEventSetRTPC::Delegate::bind< AkGameObjectComponent, &AkGameObjectComponent::onEventSetRTPC >( this );
-	Parent->subscribe( akEVT_CORE_POST, OnEventPost );
-	Parent->subscribe( akEVT_CORE_SETRTPC, OnEventSetRTPC );
+		// Subscribe to events we can receive from game.
+		AkEventPost::Delegate OnEventPost = AkEventPost::Delegate::bind< AkGameObjectComponent, &AkGameObjectComponent::onEventPost >( this );
+		AkEventSetRTPC::Delegate OnEventSetRTPC = AkEventSetRTPC::Delegate::bind< AkGameObjectComponent, &AkGameObjectComponent::onEventSetRTPC >( this );
+		Parent->subscribe( akEVT_CORE_POST, OnEventPost );
+		Parent->subscribe( akEVT_CORE_SETRTPC, OnEventSetRTPC );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,11 +88,14 @@ void AkGameObjectComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
 
-	AK::SoundEngine::UnregisterGameObj( getGameObjectID() );
+	if( AkCore::pImpl() )
+	{
+		AK::SoundEngine::UnregisterGameObj( getGameObjectID() );
 
-	// Unsubscribe from the events.
-	Parent->unsubscribe( akEVT_CORE_POST, this );
-	Parent->unsubscribe( akEVT_CORE_SETRTPC, this );
+		// Unsubscribe from the events.
+		Parent->unsubscribe( akEVT_CORE_POST, this );
+		Parent->unsubscribe( akEVT_CORE_SETRTPC, this );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

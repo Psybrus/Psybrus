@@ -105,12 +105,18 @@ void GaTopState::preLeave()
 // leave
 eSysStateReturn GaTopState::leave()
 {
-	return sysSR_FINISHED;
+	// NEILO HACK: Need to rework the engine init/shutdown code.
+	static int LeaveTimer = 10;
+	LeaveTimer--;
+
+	CsCore::pImpl()->freeUnreferencedPackages();
+
+	return LeaveTimer == 0 ? sysSR_FINISHED : sysSR_CONTINUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // leaveOnce
 void GaTopState::leaveOnce()
 {
-
+	
 }

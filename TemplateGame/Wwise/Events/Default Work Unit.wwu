@@ -3,32 +3,7 @@
 	<Events>
 		<WorkUnit Name="Default Work Unit" ID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" PersistMode="Standalone">
 			<ChildrenList>
-				<Folder Name="Rabbit" ID="{D825020A-4E17-47DD-964D-C1B51E0DBD4F}" ShortID="86791858">
-					<ChildrenList>
-						<Event Name="RabbitChew_Play" ID="{D07DC057-6328-456D-B39F-1C717C683845}">
-							<ChildrenList>
-								<Action Name="Play" ID="{574E8812-538A-4C70-8F96-CD381783778E}" ShortID="666309894" Type="Play" Scope="One" Global="false">
-									<ElementList>
-										<Element ID="{78C20AA4-3705-4E4A-8B74-31E718645828}" Global="false">
-											<ObjectRef Name="ChewSound" ID="{DAABE3E1-2CAE-4C36-AC77-0642C0987104}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
-										</Element>
-									</ElementList>
-								</Action>
-							</ChildrenList>
-						</Event>
-						<Event Name="RabbitChew_Stop" ID="{BD354F83-7C90-486D-8FB0-3C76C891BA4D}">
-							<ChildrenList>
-								<Action Name="Stop" ID="{A41E329A-FC71-4F0D-BF0A-56F0554CCC7B}" ShortID="166599955" Type="Stop" Scope="One" Global="false">
-									<ElementList>
-										<Element ID="{6AB0F445-198D-49C5-B183-544E9E081D8B}" Global="false">
-											<ObjectRef Name="ChewSound" ID="{DAABE3E1-2CAE-4C36-AC77-0642C0987104}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
-										</Element>
-									</ElementList>
-								</Action>
-							</ChildrenList>
-						</Event>
-					</ChildrenList>
-				</Folder>
+				<Folder Name="Rabbit" ID="{D825020A-4E17-47DD-964D-C1B51E0DBD4F}" ShortID="86791858" />
 				<Event Name="Music_Play" ID="{31F85E42-2960-4596-A8FF-1D7EABEC279B}">
 					<ChildrenList>
 						<Action Name="Play" ID="{58F35AEF-6639-477D-B160-FEE42354A2D3}" ShortID="867742037" Type="Play" Scope="One" Global="false">
@@ -88,6 +63,17 @@
 								<Group Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
 								<GroupItem Name="Verse" ID="{1BE0B6A8-A1EC-4B59-BE49-6138985B0513}" />
 							</SetItemParam>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="HopSound_Play" ID="{887E99A3-DA84-446D-8A16-43ADD7C637FB}">
+					<ChildrenList>
+						<Action Name="Play" ID="{AD4E78F7-5E3A-45D2-A079-F90828704593}" ShortID="460044147" Type="Play" Scope="One" Global="false">
+							<ElementList>
+								<Element ID="{4FC51C4D-F639-4B90-92B8-665612ED094D}" Global="false">
+									<ObjectRef Name="HopSound" ID="{E908A4D8-2ADB-4C94-97B4-15D59BE12D61}" WorkUnitID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" />
+								</Element>
+							</ElementList>
 						</Action>
 					</ChildrenList>
 				</Event>

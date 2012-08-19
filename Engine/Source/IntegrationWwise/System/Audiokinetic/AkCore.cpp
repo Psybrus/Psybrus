@@ -100,6 +100,9 @@ void AkCore::open()
         BcBreakpoint;
     }
 
+	// Setup base path for sound.
+	pLowLevelIO_->SetBasePath(L"GeneratedSoundBanks/Windows/");
+
     //
     // Create the Sound Engine
     // Using default initialization parameters

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		AkBank.h
+* File:		AkBank.cpp
 * Author:	Neil Richardson 
 * Ver/Date:		
 * Description:
@@ -14,6 +14,10 @@
 #include "System/Audiokinetic/AkBank.h"
 #include "System/Audiokinetic/AkCore.h"
 
+#include "System/Content/CsCore.h"
+
+#include "System/Scene/ScnEntity.h"
+
 #if PSY_SERVER
 #include "System/Content/CsPackageImporter.h"
 #include "Base/BcStream.h"
@@ -24,7 +28,7 @@
 BcBool AkBank::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	// Temporary hack until post-LD.
-	std::string BankName = std::string("GeneratedSoundBanks/Windows/") + (*getName());
+	std::string BankName = (*getName());
 
 	BcStream HeaderStream;
 			
@@ -63,7 +67,7 @@ void AkBank::create()
 //virtual
 void AkBank::destroy()
 {
-	if( pBankName_ != NULL )
+	if( AkCore::pImpl() && pBankName_ )
 	{
 		AK::SoundEngine::UnloadBank( pBankName_ );
 	}
@@ -93,9 +97,40 @@ void AkBank::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( ChunkID == BcHash( "header" ) )
 	{
 		pBankName_ = getString( Header_.BankNameID_ );
-		if ( AK::SoundEngine::LoadBank( pBankName_, AK_DEFAULT_POOL_ID, BankID_ ) != AK_Success )
+		if( AkCore::pImpl() )
 		{
-			BcVerifyMsg( BcFalse, "Unable to load Wwise sound bank \"%s\". Have they been generated from the Wwise tool?", pBankName_ );
+			if ( AK::SoundEngine::LoadBank( pBankName_, AK_DEFAULT_POOL_ID, BankID_ ) != AK_Success )
+			{
+				BcVerifyMsg( BcFalse, "Unable to load Wwise sound bank \"%s\". Have they been generated from the Wwise tool?", pBankName_ );
+			}
 		}
 	};
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Define resource internals.
+DEFINE_RESOURCE( AkBankComponent );
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void AkBankComponent::initialise( const Json::Value& Object )
+{
+	Bank_ = CsCore::pImpl()->getResource( Object["name"].asCString() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void AkBankComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void AkBankComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
 }

@@ -4,6 +4,32 @@
 		<WorkUnit Name="Default Work Unit" ID="{8F37825B-9B25-4EAB-AE87-90EADFAB46D7}" PersistMode="Standalone">
 			<ChildrenList>
 				<Bus Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" ShortID="652183330">
+					<PropertyList>
+						<Property Name="Volume" Type="Real64">
+							<RTPCList>
+								<RTPC Name="" ID="{50E363A6-3DF1-41EE-9566-B65C1E52CB65}" ShortID="1013787074">
+									<GameParameterRef Name="GlobalVolume" ID="{6AF1FA36-1114-4CA1-9928-A49903B94F7E}" />
+									<Curve Name="" ID="{27A058BC-D484-4923-B38E-6655D7E6D196}">
+										<PropertyList>
+											<Property Name="Flags" Type="int32" Value="3" />
+										</PropertyList>
+										<PointList>
+											<Point>
+												<XPos>0</XPos>
+												<YPos>-96.3</YPos>
+												<Flags>5</Flags>
+											</Point>
+											<Point>
+												<XPos>1</XPos>
+												<YPos>0</YPos>
+												<Flags>37</Flags>
+											</Point>
+										</PointList>
+									</Curve>
+								</RTPC>
+							</RTPCList>
+						</Property>
+					</PropertyList>
 					<ChildrenList>
 						<Bus Name="Game" ID="{9E2930BF-8DA2-4919-9823-07E784303225}" ShortID="1027000546">
 							<PropertyList>
@@ -22,7 +48,7 @@
 														<Flags>5</Flags>
 													</Point>
 													<Point>
-														<XPos>100</XPos>
+														<XPos>1</XPos>
 														<YPos>0</YPos>
 														<Flags>37</Flags>
 													</Point>
@@ -33,7 +59,34 @@
 								</Property>
 							</PropertyList>
 						</Bus>
-						<Bus Name="Music" ID="{48E42618-047A-42CF-BC10-A57AAC1B1649}" ShortID="526081564" />
+						<Bus Name="Music" ID="{48E42618-047A-42CF-BC10-A57AAC1B1649}" ShortID="526081564">
+							<PropertyList>
+								<Property Name="Volume" Type="Real64">
+									<RTPCList>
+										<RTPC Name="" ID="{EAAEE5EB-B7F2-4D22-83F4-4019864A3619}" ShortID="61979386">
+											<GameParameterRef Name="MusicVolume" ID="{87309608-996B-4F20-B866-2B63C9B24A88}" />
+											<Curve Name="" ID="{32DBF8CB-52DA-4B4D-A0A8-9D0B07FBF3F7}">
+												<PropertyList>
+													<Property Name="Flags" Type="int32" Value="3" />
+												</PropertyList>
+												<PointList>
+													<Point>
+														<XPos>0</XPos>
+														<YPos>-96.3</YPos>
+														<Flags>5</Flags>
+													</Point>
+													<Point>
+														<XPos>1</XPos>
+														<YPos>0</YPos>
+														<Flags>37</Flags>
+													</Point>
+												</PointList>
+											</Curve>
+										</RTPC>
+									</RTPCList>
+								</Property>
+							</PropertyList>
+						</Bus>
 					</ChildrenList>
 				</Bus>
 				<MotionBus Name="Master Motion Bus" ID="{20A630BA-3398-4676-B927-1004DFE41FD8}" ShortID="730541037" />

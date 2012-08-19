@@ -25,6 +25,16 @@
 							<ChildrenList>
 								<Sound Name="rabbit_chew_1" ID="{E4F325CC-457E-4C70-B324-7AC250149027}" ShortID="602407668" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>
@@ -54,6 +64,16 @@
 								</Sound>
 								<Sound Name="rabbit_chew_0" ID="{D0287AA6-C7F7-4861-9E08-1AADCEDF1236}" ShortID="685647081" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>
@@ -88,6 +108,16 @@
 								</Sound>
 								<Sound Name="rabbit_chew_2" ID="{718B3C7B-1F41-4753-AF5B-E7D0B262D6DD}" ShortID="596352903" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>
@@ -128,6 +158,16 @@
 							<ChildrenList>
 								<Sound Name="rabbit_hop4" ID="{E1C4253F-D6A0-4A74-9C42-2621B5618B9E}" ShortID="116968268" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>
@@ -157,6 +197,16 @@
 								</Sound>
 								<Sound Name="rabbit_hop1" ID="{1A89EF68-0D95-4BD1-8AFC-77ABD1598844}" ShortID="435313869" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>
@@ -186,6 +236,16 @@
 								</Sound>
 								<Sound Name="rabbit_hop3" ID="{2DD32C80-0759-47EE-98F0-9F2D3015C79E}" ShortID="128713843" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>
@@ -226,6 +286,16 @@
 							<ChildrenList>
 								<Sound Name="rabbit_scared" ID="{AD0F604A-FF72-4BF5-9D56-E40BD6A8FEBE}" ShortID="635858720" Type="SoundFX">
 									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
 										<Property Name="Pitch" Type="int32">
 											<ModifierList>
 												<ModifierInfo>

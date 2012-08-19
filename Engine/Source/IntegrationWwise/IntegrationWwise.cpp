@@ -52,20 +52,23 @@ void IntegrationWwise_Register()
 {
 	// Register resources.
 	CsCore::pImpl()->registerResource< AkBank >();
+	CsCore::pImpl()->registerResource< AkBankComponent >();
 	CsCore::pImpl()->registerResource< AkGameObjectComponent >();
 	CsCore::pImpl()->registerResource< AkListenerComponent >();
-	CsCore::pImpl()->registerResource< AkRTPCComponent >();
 
 	// Register + start Ak system core.
-	SYS_REGISTER( "AkCore", AkCore );
-	SysKernel::pImpl()->startSystem( "AkCore" );
+	if( GPsySetupParams.Flags_ & psySF_SOUND )
+	{
+		SYS_REGISTER( "AkCore", AkCore );
+		SysKernel::pImpl()->startSystem( "AkCore" );
+	}
 }
 
 void IntegrationWwise_Unregister()
 {
 	// Unregister resources.
 	CsCore::pImpl()->unregisterResource< AkBank >();
+	CsCore::pImpl()->unregisterResource< AkBankComponent >();
 	CsCore::pImpl()->unregisterResource< AkGameObjectComponent >();
 	CsCore::pImpl()->unregisterResource< AkListenerComponent >();
-	CsCore::pImpl()->unregisterResource< AkRTPCComponent >();
 }

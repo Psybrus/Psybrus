@@ -55,25 +55,28 @@ void AkListenerComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
 
-	const BcMat4d& Matrix( getParentEntity()->getMatrix() );
-	BcMat4d RotationMatrix = Matrix;
-	RotationMatrix.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
-	BcVec3d Up( 0.0f, -1.0f, 0.0f );
-	BcVec3d Forward( 0.0f, 0.0f, -1.0f );
-	Up = Up * RotationMatrix;
-	Forward = Forward * RotationMatrix;
+	if( AkCore::pImpl() )
+	{
+		const BcMat4d& Matrix( getParentEntity()->getMatrix() );
+		BcMat4d RotationMatrix = Matrix;
+		RotationMatrix.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+		BcVec3d Up( 0.0f, -1.0f, 0.0f );
+		BcVec3d Forward( 0.0f, 0.0f, -1.0f );
+		Up = Up * RotationMatrix;
+		Forward = Forward * RotationMatrix;
 
-	AkListenerPosition ListenerPosition;
-	ListenerPosition.Position.X = Matrix.translation().x();
-	ListenerPosition.Position.Y = Matrix.translation().y();
-	ListenerPosition.Position.Z = Matrix.translation().z();
-	ListenerPosition.OrientationTop.X = Up.x();
-	ListenerPosition.OrientationTop.Y = Up.y();
-	ListenerPosition.OrientationTop.Z = Up.z();
-	ListenerPosition.OrientationFront.X = Forward.x();
-	ListenerPosition.OrientationFront.Y = Forward.y();
-	ListenerPosition.OrientationFront.Z = Forward.z();
-	AK::SoundEngine::SetListenerPosition( ListenerPosition, ListenerID_ );
+		AkListenerPosition ListenerPosition;
+		ListenerPosition.Position.X = Matrix.translation().x();
+		ListenerPosition.Position.Y = Matrix.translation().y();
+		ListenerPosition.Position.Z = Matrix.translation().z();
+		ListenerPosition.OrientationTop.X = Up.x();
+		ListenerPosition.OrientationTop.Y = Up.y();
+		ListenerPosition.OrientationTop.Z = Up.z();
+		ListenerPosition.OrientationFront.X = Forward.x();
+		ListenerPosition.OrientationFront.Y = Forward.y();
+		ListenerPosition.OrientationFront.Z = Forward.z();
+		AK::SoundEngine::SetListenerPosition( ListenerPosition, ListenerID_ );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
