@@ -271,11 +271,6 @@ BcBool GaWorldPressureComponent::isReady()
 //virtual
 void GaWorldPressureComponent::update( BcReal Tick )
 {
-#if PROFILE_PRESSURE_UPDATE
-	BcTimer Timer;
-	Timer.mark();
-#endif
-	
 	// Wait for update to have finished.
 	UpdateFence_.wait();
 	
@@ -297,11 +292,6 @@ void GaWorldPressureComponent::update( BcReal Tick )
 		BcVec2d HalfBoxSize( BcVec2d( (BcReal)Width_, (BcReal)Height_ ) * Scale_ * 0.5f );
 		Canvas_->drawBox( -HalfBoxSize, HalfBoxSize, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 0 );
 	}
-
-#if PROFILE_PRESSURE_UPDATE
-	BcReal Time = Timer.time();
-	BcPrintf("GaWorldPressureComponent Time: %.2f ms\n", Time * 1000.0f);
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -352,9 +342,9 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 	Parent->subscribe( gaEVT_CORE_RESET, OnResetEvent );
 
 	//
-	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
-	WorldInfo_ = Parent->getComponentByType< GaWorldInfoComponent >( 0 );
-	BSP_ = Parent->getComponentByType< GaWorldBSPComponent >( 0 );
+	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
+	WorldInfo_ = Parent->getComponentAnyParentByType< GaWorldInfoComponent >( 0 );
+	BSP_ = Parent->getComponentAnyParentByType< GaWorldBSPComponent >( 0 );
 
 	// Create stuff...
 	create__onAttach();
@@ -473,6 +463,8 @@ void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value 
 // updateSimulation
 void GaWorldPressureComponent::updateSimulation()
 {
+	BcScopedLogTimer ScopedTimer("Update Simulation");
+
 	for( BcU32 Iters = 0; Iters < 2; ++Iters )
 	{
 		const register BcU32 WidthLessOne = Width_ - 1;
@@ -481,43 +473,49 @@ void GaWorldPressureComponent::updateSimulation()
 		const register BcU32 W = Width_;
 		const register BcU32 WH = Width_ * Height_;
 
-		for( BcU32 Idx = 0; Idx < 2; ++Idx )
 		{
-			BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
-			BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
-			BcU32 RandZ = 1;
-			sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.05f;
+			BcScopedLogTimer ScopedTimer(" - Add random noise");
+			for( BcU32 Idx = 0; Idx < 2; ++Idx )
+			{
+				BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
+				BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
+				BcU32 RandZ = 1;
+				sample( CurrBuffer_, RandX, RandY, RandZ ).Value_ += 0.05f;
+			}
 		}
 	
 		// Update simulation.
-		const BcU32 NextBuffer = 1 - CurrBuffer_;
-		GaWorldPressureSample* pCurrBuffer = pBuffers_[ CurrBuffer_ ];
-		GaWorldPressureSample* pNextBuffer = pBuffers_[ NextBuffer ];
-		for( BcU32 Z = 1; Z < DepthLessOne; ++Z )
 		{
-			const BcU32 ZIdx = Z * ( Width_ * Height_ );
-			for( BcU32 Y = 1; Y < HeightLessOne; ++Y )
+			BcScopedLogTimer ScopedTimer(" - Process");
+
+			const BcU32 NextBuffer = 1 - CurrBuffer_;
+			GaWorldPressureSample* pCurrBuffer = pBuffers_[ CurrBuffer_ ];
+			GaWorldPressureSample* pNextBuffer = pBuffers_[ NextBuffer ];
+			for( BcU32 Z = 1; Z < DepthLessOne; ++Z )
 			{
-				const BcU32 YZIdx = Y * ( Width_ ) + ZIdx;
-				register BcU32 XYZIdx = YZIdx;
-				for( BcU32 X = 1; X < WidthLessOne; ++X )
+				const BcU32 ZIdx = Z * ( Width_ * Height_ );
+				for( BcU32 Y = 1; Y < HeightLessOne; ++Y )
 				{
-					++XYZIdx;
-					GaWorldPressureSample& Output( pNextBuffer[ XYZIdx ] );
-					register BcReal Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
-											 pCurrBuffer[ XYZIdx + 1 ].Value_ +
-											 pCurrBuffer[ XYZIdx - W ].Value_ +
-											 pCurrBuffer[ XYZIdx + W ].Value_ +
-											 pCurrBuffer[ XYZIdx - WH ].Value_ +
-											 pCurrBuffer[ XYZIdx + WH ].Value_;
-					Sample *= AccumMultiplier_;
-					Sample -= Output.Value_;
-					Output.Value_ = Sample - ( Sample * Damping_ );
+					const BcU32 YZIdx = Y * ( Width_ ) + ZIdx;
+					register BcU32 XYZIdx = YZIdx;
+					for( BcU32 X = 1; X < WidthLessOne; ++X )
+					{
+						++XYZIdx;
+						GaWorldPressureSample& Output( pNextBuffer[ XYZIdx ] );
+						register BcReal Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
+												 pCurrBuffer[ XYZIdx + 1 ].Value_ +
+												 pCurrBuffer[ XYZIdx - W ].Value_ +
+												 pCurrBuffer[ XYZIdx + W ].Value_ +
+												 pCurrBuffer[ XYZIdx - WH ].Value_ +
+												 pCurrBuffer[ XYZIdx + WH ].Value_;
+						Sample *= AccumMultiplier_;
+						Sample -= Output.Value_;
+						Output.Value_ = Sample - ( Sample * Damping_ );
+					}
 				}
 			}
+			CurrBuffer_ = NextBuffer;
 		}
-
-		CurrBuffer_ = NextBuffer;
 	}
 	UpdateFence_.decrement();
 }
@@ -526,6 +524,8 @@ void GaWorldPressureComponent::updateSimulation()
 // collideSimulation
 void GaWorldPressureComponent::collideSimulation()
 {
+	BcScopedLogTimer ScopedTimer("Collide Simulation");
+
 	const register BcU32 WidthLessOne = Width_ - 1;
 	const register BcU32 HeightLessOne = Height_ - 1;
 	const register BcU32 DepthLessOne = Depth_ - 1;
@@ -558,6 +558,8 @@ void GaWorldPressureComponent::collideSimulation()
 // updateTexture
 void GaWorldPressureComponent::updateTexture()
 {
+	BcScopedLogTimer ScopedTimer("Update Texture");
+
 	const BcReal Brightness = 2.5f;
 	// Update texture.
 	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
