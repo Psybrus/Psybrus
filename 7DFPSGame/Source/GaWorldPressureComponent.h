@@ -20,6 +20,30 @@
 #include "GaWorldBSPComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Temporary scoped log timer.
+class BcScopedLogTimer
+{
+public:
+	BcForceInline BcScopedLogTimer(const BcChar* pText)
+	{
+		Text_ = pText;
+		Timer_.mark();
+	}
+
+	BcForceInline ~BcScopedLogTimer()
+	{
+		BcReal Time = Timer_.time();
+
+		BcPrintf("BcScopedLogTimer: %s, %f ms\n", Text_.c_str(), Time * 1000.0f);
+	}
+
+private:
+	BcTimer Timer_;
+	std::string Text_;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
 typedef CsResourceRef< class GaWorldPressureComponent > GaWorldPressureComponentRef;
 

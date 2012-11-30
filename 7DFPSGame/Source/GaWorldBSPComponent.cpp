@@ -338,8 +338,8 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseEvent );
 
 	//
-	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
-	WorldInfo_ = Parent->getComponentByType< GaWorldInfoComponent >( 0 );
+	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
+	WorldInfo_ = Parent->getComponentAnyParentByType< GaWorldInfoComponent >( 0 );
 
 	ScnMaterialRef Material;
 	if( CsCore::pImpl()->requestResource( "default", "default", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, BcErrorCode ) )
