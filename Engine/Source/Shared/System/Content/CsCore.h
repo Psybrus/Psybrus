@@ -140,7 +140,7 @@ public:
 	 * Get package packed path.
 	 */
 	BcPath								getPackagePackedPath( const BcName& Package );
-	
+
 protected:
 	friend class CsResource;
 

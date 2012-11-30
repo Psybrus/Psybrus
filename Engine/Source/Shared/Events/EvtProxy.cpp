@@ -19,7 +19,7 @@
 EvtProxy::EvtProxy( EvtPublisher* pPublisher ):
 	pPublisher_( pPublisher )
 {
-	pPublisher_->setProxy( this );
+	pPublisher_->addProxy( this );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,20 +27,21 @@ EvtProxy::EvtProxy( EvtPublisher* pPublisher ):
 //virtual
 EvtProxy::~EvtProxy()
 {
-	pPublisher_->clearProxy();
+	pPublisher_->removeProxy( this );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // proxy
 //virtual
-void EvtProxy::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+eEvtReturn EvtProxy::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
 {
-	publish( ID, EventBase, EventSize );
+	// Pass event on to publisher.
+	return evtRET_PASS;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // publish
-void EvtProxy::publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy )
+void EvtProxy::publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowProxy )
 {
-	pPublisher_->publishInternal( ID, EventBase, EventSize, AllowBridge, AllowProxy );
+	pPublisher_->publishInternal( ID, EventBase, EventSize, AllowProxy );
 }

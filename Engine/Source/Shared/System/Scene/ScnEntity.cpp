@@ -43,6 +43,9 @@ DEFINE_RESOURCE( ScnEntity );
 // initialise
 void ScnEntity::initialise()
 {
+	// Setup buffered event proxy.
+	pEventProxy_ = new EvtProxyBuffered( this );	
+	
 	// NULL internals.
 	IsAttached_ = BcFalse;
 	pJsonObject_ = NULL;
@@ -52,6 +55,8 @@ void ScnEntity::initialise()
 // initialise
 void ScnEntity::initialise( ScnEntityRef Basis )
 {
+	ScnEntity::initialise();
+
 	// Grab our basis.
 	Basis_ = Basis->getBasisEntity();
 
@@ -105,7 +110,8 @@ void ScnEntity::create()
 // destroy
 void ScnEntity::destroy()
 {
-
+	delete pEventProxy_;
+	pEventProxy_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,6 +136,9 @@ BcBool ScnEntity::isReady()
 // update
 void ScnEntity::update( BcReal Tick )
 {
+	// Dispatch all events.
+	pEventProxy_->dispatch();
+
 	// Update as component first.
 	Super::update( Tick );
 
@@ -303,6 +312,20 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 	}
 
 	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponentAnyParent
+ScnComponentRef ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
+{
+	ScnComponentRef Component = getComponent( Idx, Type );
+
+	if( Component.isValid() == BcFalse && getParentEntity().isValid() )
+	{
+		Component = getParentEntity()->getComponentAnyParent( Idx, Type );
+	}
+
+	return Component;
 }
 
 //////////////////////////////////////////////////////////////////////////

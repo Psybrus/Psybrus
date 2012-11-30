@@ -50,6 +50,7 @@
 #include "Events/EvtBinding.h"
 #include "Events/EvtEvent.h"
 #include "Events/EvtPublisher.h"
+#include "Events/EvtProxyBuffered.h"
 
 #include "System/Content/CsCore.h"
 #include "System/File/FsCore.h"

@@ -17,6 +17,8 @@
 #include "System/Renderer/RsCore.h"
 #include "System/Content/CsResource.h"
 
+#include "Events/EvtProxyBuffered.h"
+
 #include "System/Scene/ScnTypes.h"
 
 #include "System/Scene/ScnComponent.h"
@@ -83,8 +85,18 @@ public:
 	}
 
 	/**
-	 * 
+	 * Get component on any parent or self.
 	 */
+	ScnComponentRef						getComponentAnyParent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+
+	/**
+	 * Get component on any parent or self by type.
+	 */
+	template< typename _Ty >
+	ScnComponentRef						getComponentAnyParentByType( BcU32 Idx )
+	{
+		return getComponentAnyParent( Idx, _Ty::StaticGetType() );
+	}
 
 	/**
  	 * Get AABB which encompasses this entity.
@@ -129,6 +141,8 @@ protected:
 	ScnComponentList					Components_;
 	ScnComponentList					AttachComponents_;
 	ScnComponentList					DetachComponents_;
+
+	EvtProxyBuffered*					pEventProxy_;
 
 private:
 	BcBool								IsAttached_;

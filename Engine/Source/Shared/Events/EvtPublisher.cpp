@@ -18,8 +18,6 @@
 EvtPublisher::EvtPublisher()
 {
 	pParent_ = NULL;
-	pProxy_ = NULL;
-	pBridge_ = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +25,7 @@ EvtPublisher::EvtPublisher()
 //virtual
 EvtPublisher::~EvtPublisher()
 {
-	
+	BcAssertMsg( Proxies_.size() == 0, "EvtPublisher: Not all proxies have been removed." );	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,66 +61,62 @@ void EvtPublisher::setParent( EvtPublisher* pParent )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// clearProxy
-void EvtPublisher::clearProxy()
+// removeProxy
+void EvtPublisher::removeProxy( EvtProxy* pProxy )
 {
-	pProxy_ = NULL;
+	for( TProxyListIterator It( Proxies_.begin() ); It != Proxies_.end(); )
+	{	
+		if( (*It) == pProxy )
+		{
+			It = Proxies_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// setProxy
-void EvtPublisher::setProxy( EvtProxy* pProxy )
+// addProxy
+void EvtPublisher::addProxy( EvtProxy* pProxy )
 {
-	BcAssert( pProxy_ == NULL );
-	pProxy_ = pProxy;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// clearBridge
-void EvtPublisher::clearBridge()
-{
-	pBridge_ = NULL;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setBridge
-void EvtPublisher::setBridge( EvtBridge* pBridge )
-{
-	BcAssert( pBridge_ == NULL );
-	pBridge_ = pBridge;
+	removeProxy( pProxy );
+	Proxies_.push_back( pProxy );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // publishInternal
-BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowBridge, BcBool AllowProxy )
+BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowProxy )
 {
 	BcAssert( BcIsGameThread() );
 	BcUnusedVar( EventSize );
-	
-	/*
-	{
-		BcChar PrefixA = ( ID >> 24 ) & 0xff;
-		BcChar PrefixB = ( ID >> 16 ) & 0xff;
-		BcU32 Group = ( ID >> 8 ) & 0xff;
-		BcU32 Item = ( ID ) & 0xff;
-		
-		BcPrintf( "EvtPublish: %x, \"%c%c\": Group=%u Item=%u\n", ID, PrefixA, PrefixB, Group, Item );
-	}
-	 //*/
 
-	// Proxy event if we need to.
-	if( AllowProxy && pProxy_ )
-	{	
-		pProxy_->proxy( ID, EventBase, EventSize );
-		return BcTrue;
+	// Proxy event through all attached proxies if this event allows it.
+	if( AllowProxy == BcTrue )
+	{
+		for( TProxyListIterator It( Proxies_.begin() ); It != Proxies_.end(); ++It )
+		{	
+			EvtProxy* pProxy( *It );
+			eEvtReturn RetVal = pProxy->proxy( ID, EventBase, EventSize );
+
+			switch( RetVal )
+			{
+			// Event passed. Publisher, or next proxy can deal with it.
+			case evtRET_PASS:
+				break;
+			// Event blocked. If we are a parent, we want our child publisher to abort (normal behaviour).
+			case evtRET_BLOCK:
+				return BcFalse;
+				break;
+			// Unsupported enum value.
+			default:
+				BcBreakpoint;
+				break;
+			}
+		}
 	}
 
-	// Bridge event if we need to.
-	if( AllowBridge && pBridge_ )
-	{
-		pBridge_->bridge( ID, EventBase, EventSize );
-	}
-	
 	// Update binding map before going ahead.
 	updateBindingMap();
 	
@@ -131,7 +125,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	
 	if( pParent_ != NULL )
 	{
-		ShouldPublish = pParent_->publishInternal( ID, EventBase, EventSize, AllowBridge, AllowProxy );
+		ShouldPublish = pParent_->publishInternal( ID, EventBase, EventSize );
 	}
 
 	// Only publish if the previous call to our parent allows us to.

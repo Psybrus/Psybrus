@@ -54,6 +54,7 @@ void CsCore::update()
 	if( IsCollectingGarbage_ )
 	{
 		freeUnreferencedPackages();
+		IsCollectingGarbage_ = BcFalse;
 	}
 }
 
@@ -126,7 +127,7 @@ void CsCore::freeUnreferencedPackages()
 
 	// NOTE: WIP.
 	// Delete all unreferenced packages.
-	for( TPackageListIterator It( UnreferencedPackageList_.begin() ); It != UnreferencedPackageList_.end();  )
+	for( TPackageListIterator It( UnreferencedPackageList_.begin() ); It != UnreferencedPackageList_.end(); ++It )
 	{
 		CsPackage* pPackage = (*It);
 
@@ -192,30 +193,33 @@ void CsCore::destroyResource( CsResource* pResource )
 // getResource
 CsResourceRef<> CsCore::getResource( const BcChar* pFullName )
 {
-	BcChar FullNameBuffer[ 1024 ];
-	BcAssertMsg( BcStrLength( pFullName ) < sizeof( FullNameBuffer ), "CsPackageImporter: Full name too long." );
-	BcStrCopy( FullNameBuffer, pFullName );
-	BcChar* pPackageNameBuffer = NULL;
-	BcChar* pResourceNameBuffer = NULL;
-	BcChar* pTypeNameBuffer = NULL;
-
-	BcAssertMsg( BcStrStr( FullNameBuffer, "." ) != NULL, "CsCore: Missing package from \"%s\"", FullNameBuffer );
-	BcAssertMsg( BcStrStr( FullNameBuffer, ":" ) != NULL, "CsCore: Missing type from \"%s\"", FullNameBuffer );
-		
-	pPackageNameBuffer = &FullNameBuffer[ 0 ];
-	pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
-	pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
-	*pResourceNameBuffer++ = '\0';
-	*pTypeNameBuffer++ = '\0';
-
-	BcName PackageName = pPackageNameBuffer;
-	BcName ResourceName = pResourceNameBuffer;
-	BcName TypeName = pTypeNameBuffer;
-
 	CsResourceRef<> Handle;
-	internalFindResource( PackageName, ResourceName, TypeName, Handle );
+	if( pFullName != NULL )
+	{
+		BcChar FullNameBuffer[ 1024 ];
+		BcAssertMsg( BcStrLength( pFullName ) < sizeof( FullNameBuffer ), "CsPackageImporter: Full name too long." );
+		BcStrCopy( FullNameBuffer, pFullName );
+		BcChar* pPackageNameBuffer = NULL;
+		BcChar* pResourceNameBuffer = NULL;
+		BcChar* pTypeNameBuffer = NULL;
 
-	BcAssertMsg( Handle.isValid(), "CsCore: Unable to find \"%s\"", FullNameBuffer );
+		BcAssertMsg( BcStrStr( FullNameBuffer, "." ) != NULL, "CsCore: Missing package from \"%s\"", FullNameBuffer );
+		BcAssertMsg( BcStrStr( FullNameBuffer, ":" ) != NULL, "CsCore: Missing type from \"%s\"", FullNameBuffer );
+		
+		pPackageNameBuffer = &FullNameBuffer[ 0 ];
+		pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
+		pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
+		*pResourceNameBuffer++ = '\0';
+		*pTypeNameBuffer++ = '\0';
+
+		BcName PackageName = pPackageNameBuffer;
+		BcName ResourceName = pResourceNameBuffer;
+		BcName TypeName = pTypeNameBuffer;
+
+		internalFindResource( PackageName, ResourceName, TypeName, Handle );
+
+		BcAssertMsg( Handle.isValid(), "CsCore: Unable to find \"%s\"", FullNameBuffer );
+	}
 
 	return Handle;
 }
@@ -537,5 +541,3 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 
 	return BcFalse;
 }
-
-

@@ -472,6 +472,11 @@ void CsPackageLoader::initialiseResources()
 			// Tell it the file is ready (TODO: DEPRECATE).
 			Handle->fileReady();
 		}
+		else
+		{
+			// We can't create the resource.
+			BcAssertMsg( BcFalse, "CsPackageLoader: Unable to create resource \"%s\" of type \"%s\"", (*Name).c_str(), (*Type).c_str() );
+		}
 	}
 }
 
@@ -506,9 +511,7 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 	CsPackageChunkHeader& ChunkHeader = pChunkHeaders_[ ChunkIdx ];
 	CsPackageChunkData& ChunkData = pChunkData_[ ChunkIdx ];
 
-	CsResource* pResource = pPackage_->getResource( ResourceIdx );
 	BcU32 ResourceChunkIdx = ChunkIdx - ResourceHeader.FirstChunk_;
-	BcAssert( pResource != NULL );
 	BcAssert( ChunkIdx >= ResourceHeader.FirstChunk_ && ChunkIdx <= ResourceHeader.LastChunk_ );
 		
 	// Update the status.
@@ -607,7 +610,8 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 
 
 	// If state has changed to ready, do callback.
-	if( ChunkData.Status_ == csPCS_READY )
+	CsResource* pResource = pPackage_->getResource( ResourceIdx );
+	if( ChunkData.Status_ == csPCS_READY && pResource != NULL )
 	{
 		// Queue up callback.
 		BcDelegate< void (*)( BcU32, BcU32, void* ) > Delegate( BcDelegate< void (*)( BcU32, BcU32, void* ) >::bind< CsResource, &CsResource::onFileChunkReady >( pResource ) );
