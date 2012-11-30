@@ -16,6 +16,7 @@
 
 #include "Psybrus.h"
 
+#include "GaWorldInfoComponent.h"
 #include "GaWorldBSPComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,8 +49,8 @@ public:
 
 public:
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
+	virtual void						create__onAttach();
+	virtual void						destroy__onDetach();
 	virtual BcBool						isReady();
 	virtual void						update( BcReal Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
@@ -76,6 +77,7 @@ private:
 	BcU32								Width_;
 	BcU32								Height_;
 	BcU32								Depth_;
+	BcU32								Detail_;
 	BcReal								AccumMultiplier_;
 	BcReal								Damping_;
 
@@ -87,6 +89,7 @@ private:
 	BcU32								CurrBuffer_;
 
 	ScnCanvasComponentRef				Canvas_;
+	GaWorldInfoComponentRef				WorldInfo_;
 	GaWorldBSPComponentRef				BSP_;
 	
 	struct TDynamicMaterial

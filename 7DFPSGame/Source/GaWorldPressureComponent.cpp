@@ -24,15 +24,25 @@ DEFINE_RESOURCE( GaWorldPressureComponent );
 //virtual
 void GaWorldPressureComponent::initialise( const Json::Value& Object )
 {
-	Width_ = 128;
-	Height_ = 128;
-	Depth_ = 8;
-	AccumMultiplier_ = 0.31f;
-	Damping_ = 0.02f;
+	IsReady_ = BcFalse;
+}
 
-	Scale_ = 0.25f;
+//////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void GaWorldPressureComponent::create__onAttach()
+{
+	//
+	Width_ = BcPotRoundUp( WorldInfo_->getWidth(), 8 );
+	Height_ = BcPotRoundUp( WorldInfo_->getHeight(), 8 );
+	Depth_ = BcPotRoundUp( WorldInfo_->getDepth(), 8 );
+	AccumMultiplier_ = WorldInfo_->getAccumulatorMultiplier() * WorldInfo_->getScale();
+	Damping_ = WorldInfo_->getDamping() * WorldInfo_->getScale();
+
+	Scale_ = WorldInfo_->getScale();
 	Offset_ = BcVec2d( Width_ * Scale_, Height_ * Scale_ ) * -0.5f;
 
+	// Allocate buffers.
 	BufferSize_ = Width_ * Height_ * Depth_;
 	pBuffers_[ 0 ] = new GaWorldPressureSample[ BufferSize_ ];
 	pBuffers_[ 1 ] = new GaWorldPressureSample[ BufferSize_ ];
@@ -40,14 +50,6 @@ void GaWorldPressureComponent::initialise( const Json::Value& Object )
 	BcMemZero( pBuffers_[ 1 ], sizeof( GaWorldPressureSample ) * BufferSize_ );
 	CurrBuffer_ = 0;
 
-	IsReady_ = BcFalse;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void GaWorldPressureComponent::create()
-{
 	// Calc what we need.
 	BcU32 NoofVertices = ( Width_ + Height_ + Depth_ ) * 6;
 	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UVW0;
@@ -237,7 +239,7 @@ void GaWorldPressureComponent::create()
 //////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
-void GaWorldPressureComponent::destroy()
+void GaWorldPressureComponent::destroy__onDetach()
 {
 	RsCore::pImpl()->destroyResource( pVertexBuffer_ );
 	RsCore::pImpl()->destroyResource( pPrimitive_ );
@@ -252,6 +254,8 @@ void GaWorldPressureComponent::destroy()
 	delete [] pBuffers_[ 1 ];
 	pBuffers_[ 0 ] = NULL;
 	pBuffers_[ 1 ] = NULL;
+
+	IsReady_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -349,7 +353,11 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 
 	//
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
+	WorldInfo_ = Parent->getComponentByType< GaWorldInfoComponent >( 0 );
 	BSP_ = Parent->getComponentByType< GaWorldBSPComponent >( 0 );
+
+	// Create stuff...
+	create__onAttach();
 
 	// Grab material
 	ScnMaterialRef WorldMaterial;
@@ -407,6 +415,9 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	destroy__onDetach();
+
+	//
 	Canvas_ = NULL;
 	BSP_ = NULL;
 
@@ -462,7 +473,7 @@ void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value 
 // updateSimulation
 void GaWorldPressureComponent::updateSimulation()
 {
-	//for( BcU32 Iters = 0; Iters < 2; ++Iters )
+	for( BcU32 Iters = 0; Iters < 2; ++Iters )
 	{
 		const register BcU32 WidthLessOne = Width_ - 1;
 		const register BcU32 HeightLessOne = Height_ - 1;
@@ -536,7 +547,7 @@ void GaWorldPressureComponent::collideSimulation()
 				{
 					const BcU32 XYZIdx = ( Z * WH ) + XYIdx;
 					GaWorldPressureSample& Output( pCurrBuffer[ XYZIdx ] );
-					Output.Value_ = 0.0f;
+					Output.Value_ *= 0.0f;
 				}
 			}
 		}

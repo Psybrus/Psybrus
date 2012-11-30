@@ -7,7 +7,7 @@
 
 			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 20,
+			"nominalsize"	: 10,
 			"spread"		: 4
 		},
 
@@ -303,6 +303,16 @@
 				},
 
 				{
+					"type"			: "GaWorldInfoComponent",
+					"width"			: 256,
+					"height"		: 256,
+					"depth"			: 16,
+					"scale"			: 0.125,
+					"damping"		: 0.08,
+					"accumulatormultiplier" : 2.48
+				},
+
+				{
 					"type"			: "GaWorldBSPComponent",
 					"editor"		: false,
 					"level"			: 1
@@ -322,6 +332,16 @@
 				{
 					"type"			: "ScnCanvasComponent",
 					"noofvertices" 	: 8192
+				},
+
+				{
+					"type"			: "GaWorldInfoComponent",
+					"width"			: 256,
+					"height"		: 256,
+					"depth"			: 16,
+					"scale"			: 0.125,
+					"damping"		: 0.08,
+					"accumulatormultiplier" : 2.48
 				},
 
 				{
