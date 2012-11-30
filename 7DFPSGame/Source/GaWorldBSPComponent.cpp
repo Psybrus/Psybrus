@@ -339,6 +339,7 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 
 	//
 	Canvas_ = Parent->getComponentByType< ScnCanvasComponent >( 0 );
+	WorldInfo_ = Parent->getComponentByType< GaWorldInfoComponent >( 0 );
 
 	ScnMaterialRef Material;
 	if( CsCore::pImpl()->requestResource( "default", "default", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, BcErrorCode ) )
@@ -1184,6 +1185,10 @@ void GaWorldBSPComponent::buildBSP()
 	delete pBSPTree_;
 	pBSPTree_ = NULL;
 
+	BcReal Width = static_cast< BcReal >( WorldInfo_->getWidth() );
+	BcReal Height = static_cast< BcReal >( WorldInfo_->getHeight() );
+	BcReal Depth = static_cast< BcReal >( WorldInfo_->getDepth() );
+
 	// Free old vertex buffer.
 	if( pVertexArray_ != NULL )
 	{
@@ -1232,7 +1237,7 @@ void GaWorldBSPComponent::buildBSP()
 				0, 1, 2, 2, 3, 0
 			};
 
-			BcVec3d Offset = BcVec3d( 64.0f, 64.0f, 4.0f );
+			BcVec3d Offset = BcVec3d( Width, Height, Depth ) * 0.5f;
 			for( BcU32 Vert = 0; Vert < 6; ++Vert )
 			{
 				BcVec3d Vertex = Vertices[ Indices[ Vert ] ];
@@ -1240,9 +1245,9 @@ void GaWorldBSPComponent::buildBSP()
 				pVertex->X_ = Vertex.x();
 				pVertex->Y_ = Vertex.y();
 				pVertex->Z_ = Vertex.z();
-				pVertex->U_ = ( Index.x() / 128.0f );
-				pVertex->V_ = ( Index.y() / 128.0f );
-				pVertex->W_ = ( Index.z() / 8.0f );
+				pVertex->U_ = ( Index.x() / Width );
+				pVertex->V_ = ( Index.y() / Height );
+				pVertex->W_ = ( Index.z() / Depth );
 				pVertex->RGBA_ = 0xffffffff;
 				++pVertex;
 			}

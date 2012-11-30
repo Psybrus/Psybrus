@@ -16,6 +16,8 @@
 
 #include "Psybrus.h"
 
+#include "GaWorldInfoComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
 typedef CsResourceRef< class GaWorldBSPComponent > GaWorldBSPComponentRef;
@@ -144,6 +146,7 @@ public:
 
 	EditorState							EditorState_;
 	ScnCanvasComponentRef				Canvas_;
+	GaWorldInfoComponentRef				WorldInfo_;
 	ScnMaterialComponentRef				Material_;
 	ScnMaterialComponentRef				MaterialWorld_;
 	ScnFontComponentRef					Font_;
