@@ -1,6 +1,0 @@
-{ 
-	"ScnSound" : {
-		"name"		: "rabbitscared",
-		"source"	: "GameContent/Source/rabbit_scared.wav"
-	}
-}

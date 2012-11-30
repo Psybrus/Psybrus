@@ -177,6 +177,16 @@ void RsContextGL::create()
 	    BcPrintf( "Can't Set The PixelFormat." );
 	}
 	
+#if 0
+	// NEILO TODO: Look into using this kind of path?
+	int ContextAttribs[] = 
+	{
+		NULL, NULL
+	};
+	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
+	WindowRC_ = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
+	BcAssertMsg( WindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
+#else
 	// Create a rendering context.
 	WindowRC_ = wglCreateContext( WindowDC_ );
 	BcAssertMsg( WindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
@@ -191,9 +201,13 @@ void RsContextGL::create()
 		BOOL Result = wglShareLists( pParent_->WindowRC_, WindowRC_ );
 		BcAssertMsg( Result != BcFalse, "Unable to share lists." );
 	}
+#endif
 
 	// Do the switch to this context.
 	makeCurrent();
+
+	// Init glew now that the context is up.
+	glewInit();
 
 	// Clear screen and flip.
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );

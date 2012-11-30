@@ -23,17 +23,21 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 // Neilo: Removed doubles, renamed class to BcFixed, replaced float with BcF32.
+// Neilo: Templated to allow controlled number of bits and storage size.
 
 #ifndef __BCFIXED_H__
 #define __BCFIXED_H__
 
+#include "BcTypes.h"
+
+template< typename _Ty = BcS32, int _BP = 16 >
 class BcFixed
 {
 public:
-	const static int BP= 16;  // how many low bits are right of Binary Point
-	const static int BP2= BP*2;  // how many low bits are right of Binary Point
-	const static int BPhalf= BP/2;  // how many low bits are right of Binary Point
-	const static int IB = 32 - BP;  // integer bits
+	const static int BP = _BP;  // how many low bits are right of Binary Point
+	const static int BP2 = BP*2;  // how many low bits are right of Binary Point
+	const static int BPhalf = BP/2;  // how many low bits are right of Binary Point
+	const static int IB = ( sizeof( _Ty ) * 8 ) - BP;  // integer bits
 
 	static BcF32 STEP() { return 1.0f / (1<<BP); }  // smallest step we can represent
 
@@ -42,7 +46,7 @@ public:
 	BcFixed(FixedRaw, int guts) : g(guts) {}
 
 private:
-	int	g; // the guts
+	_Ty	g; // the guts
 
 public:
 	BcFixed() : g(0) {}
@@ -120,32 +124,70 @@ public:
 	bool operator  >(BcF32 a) const { return g  > BcFixed(a).g; }
 };
 
-inline BcFixed operator +(BcF32 a, const BcFixed& b) { return BcFixed(a)+b; }
-inline BcFixed operator -(BcF32 a, const BcFixed& b) { return BcFixed(a)-b; }
-inline BcFixed operator *(BcF32 a, const BcFixed& b) { return BcFixed(a)*b; }
-inline BcFixed operator /(BcF32 a, const BcFixed& b) { return BcFixed(a)/b; }
+template< typename _Ty, int _BP >
+inline BcFixed< _Ty, _BP > operator +(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a)+b; }
 
-inline bool operator ==(BcF32 a, const BcFixed& b) { return BcFixed(a) == b; }
-inline bool operator !=(BcF32 a, const BcFixed& b) { return BcFixed(a) != b; }
-inline bool operator <=(BcF32 a, const BcFixed& b) { return BcFixed(a) <= b; }
-inline bool operator >=(BcF32 a, const BcFixed& b) { return BcFixed(a) >= b; }
-inline bool operator  <(BcF32 a, const BcFixed& b) { return BcFixed(a)  < b; }
-inline bool operator  >(BcF32 a, const BcFixed& b) { return BcFixed(a)  > b; }
+template< typename _Ty, int _BP >
+inline BcFixed< _Ty, _BP > operator -(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a)-b; }
 
+template< typename _Ty, int _BP >
+inline BcFixed< _Ty, _BP > operator *(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a)*b; }
 
-inline int& operator +=(int& a, const BcFixed& b) { a = (BcFixed)a + b; return a; }
-inline int& operator -=(int& a, const BcFixed& b) { a = (BcFixed)a - b; return a; }
-inline int& operator *=(int& a, const BcFixed& b) { a = (BcFixed)a * b; return a; }
-inline int& operator /=(int& a, const BcFixed& b) { a = (BcFixed)a / b; return a; }
+template< typename _Ty, int _BP >
+inline BcFixed< _Ty, _BP > operator /(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a)/b; }
 
-inline long& operator +=(long& a, const BcFixed& b) { a = (BcFixed)a + b; return a; }
-inline long& operator -=(long& a, const BcFixed& b) { a = (BcFixed)a - b; return a; }
-inline long& operator *=(long& a, const BcFixed& b) { a = (BcFixed)a * b; return a; }
-inline long& operator /=(long& a, const BcFixed& b) { a = (BcFixed)a / b; return a; }
+template< typename _Ty, int _BP >
+inline bool operator ==(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a) == b; }
 
-inline BcF32& operator +=(BcF32& a, const BcFixed& b) { a = a + b; return a; }
-inline BcF32& operator -=(BcF32& a, const BcFixed& b) { a = a - b; return a; }
-inline BcF32& operator *=(BcF32& a, const BcFixed& b) { a = a * b; return a; }
-inline BcF32& operator /=(BcF32& a, const BcFixed& b) { a = a / b; return a; }
+template< typename _Ty, int _BP >
+inline bool operator !=(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a) != b; }
+
+template< typename _Ty, int _BP >
+inline bool operator <=(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a) <= b; }
+
+template< typename _Ty, int _BP >
+inline bool operator >=(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a) >= b; }
+
+template< typename _Ty, int _BP >
+inline bool operator  <(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a)  < b; }
+
+template< typename _Ty, int _BP >
+inline bool operator  >(BcF32 a, const BcFixed< _Ty, _BP >& b) { return BcFixed< _Ty, _BP >(a)  > b; }
+
+template< typename _Ty, int _BP >
+inline int& operator +=(int& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a + b; return a; }
+
+template< typename _Ty, int _BP >
+inline int& operator -=(int& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a - b; return a; }
+
+template< typename _Ty, int _BP >
+inline int& operator *=(int& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a * b; return a; }
+
+template< typename _Ty, int _BP >
+inline int& operator /=(int& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a / b; return a; }
+
+template< typename _Ty, int _BP >
+inline long& operator +=(long& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a + b; return a; }
+
+template< typename _Ty, int _BP >
+inline long& operator -=(long& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a - b; return a; }
+
+template< typename _Ty, int _BP >
+inline long& operator *=(long& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a * b; return a; }
+
+template< typename _Ty, int _BP >
+inline long& operator /=(long& a, const BcFixed< _Ty, _BP >& b) { a = (BcFixed< _Ty, _BP >)a / b; return a; }
+
+template< typename _Ty, int _BP >
+inline BcF32& operator +=(BcF32& a, const BcFixed< _Ty, _BP >& b) { a = a + b; return a; }
+
+template< typename _Ty, int _BP >
+inline BcF32& operator -=(BcF32& a, const BcFixed< _Ty, _BP >& b) { a = a - b; return a; }
+
+template< typename _Ty, int _BP >
+inline BcF32& operator *=(BcF32& a, const BcFixed< _Ty, _BP >& b) { a = a * b; return a; }
+
+template< typename _Ty, int _BP >
+inline BcF32& operator /=(BcF32& a, const BcFixed< _Ty, _BP >& b) { a = a / b; return a; }
 
 #endif

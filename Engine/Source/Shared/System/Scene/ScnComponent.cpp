@@ -86,6 +86,24 @@ ScnEntityWeakRef ScnComponent::getParentEntity()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFullName
+std::string ScnComponent::getFullName()
+{
+	std::string FullName;
+
+	ScnEntityWeakRef Parent( getParentEntity() );
+
+	if( Parent.isValid() )
+	{
+		FullName += Parent->getFullName() + ".";
+	}
+
+	FullName += (*getName());
+
+	return FullName;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setSpatialTreeNode
 void ScnComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
 {
