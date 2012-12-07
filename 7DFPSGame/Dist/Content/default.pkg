@@ -23,18 +23,8 @@
 			"name"			: "default",
 
 			"shaders"		: {
-				"vertex" 		: "EngineContent/ShaderSource/diffuse.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/diffuse.glslf"
-			}
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "default3d",
-
-			"shaders"		: {
-				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/diffuse3d.glslf"
+				"vertex" 		: "Content/Engine/default.glslv",
+				"fragment" 		: "Content/Engine/default.glslf"
 			}
 		},
 
@@ -80,31 +70,6 @@
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 0,
 				"blend_mode" 				: "blend"
-			}
-		},
-
-		{
-			"type"			: "ScnMaterial",
-			"name"			: "default3d",
-
-			// Shader
-			"shader"		: "default3d",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "default"
-			},
-
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 1,
-				"depth_test_enable" 		: 1,
-				"depth_test_compare" 		: "lessequal",
-				"depth_bias" 				: 16,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "none"
 			}
 		},
 
@@ -190,8 +155,8 @@
 			"name"			: "font",
 
 			"shaders"		: {
-				"vertex" 		: "EngineContent/ShaderSource/font.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/font.glslf"
+				"vertex" 		: "Content/Engine/font.glslv",
+				"fragment" 		: "Content/Engine/font.glslf"
 			}
 		},
 
@@ -219,16 +184,6 @@
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 128,
 				"blend_mode" 				: "blend"
-			}
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "particle",
- 
-			"shaders"		: {
-				"vertex" 		: "Content/Source/particle.glslv",
-				"fragment" 		: "Content/Source/particle.glslf"
 			}
 		},
 
