@@ -342,12 +342,12 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 	WorldInfo_ = Parent->getComponentAnyParentByType< GaWorldInfoComponent >( 0 );
 
 	ScnMaterialRef Material;
-	if( CsCore::pImpl()->requestResource( "default", "default", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, BcErrorCode ) )
+	if( CsCore::pImpl()->requestResource( "default", "default", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, scnSPF_2D ) )
 	{
 		Parent->attach( Material_ );
 	}
 	
-	if( CsCore::pImpl()->requestResource( "default", "airsolid", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, BcErrorCode ) )
+	if( CsCore::pImpl()->requestResource( "default", "airsolid", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, scnSPF_3D ) )
 	{
 		Parent->attach( MaterialWorld_ );
 	}
