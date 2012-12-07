@@ -390,7 +390,7 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_DEFAULT );
+			CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_3D );
 
 			TMaterialComponentDesc MaterialComponentDesc =
 			{
