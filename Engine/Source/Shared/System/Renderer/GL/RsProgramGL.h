@@ -28,7 +28,7 @@ class RsProgramGL:
 	public RsProgram
 {
 public:
-	RsProgramGL( RsShaderGL* pVertexShader, RsShaderGL* pFragmentShader );
+	RsProgramGL( BcU32 NoofShaders, RsShader** ppShaders );
 	virtual ~RsProgramGL();
 	
 	void								create();
@@ -58,8 +58,8 @@ private:
 	TParameterList						ParameterList_;
 	BcU32								ParameterBufferSize_;
 
-	RsShaderGL*							pVertexShader_;
-	RsShaderGL*							pFragmentShader_;
+	BcU32								NoofShaders_;
+	RsShaderGL**						ppShaders_;
 };
 
 #endif

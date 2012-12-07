@@ -15,12 +15,16 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramGL::RsProgramGL( RsShaderGL* pVertexShader, RsShaderGL* pFragmentShader ):
-	ParameterBufferSize_( 0 ),
-	pVertexShader_( pVertexShader ),
-	pFragmentShader_( pFragmentShader )
+RsProgramGL::RsProgramGL( BcU32 NoofShaders, RsShader** ppShaders ):
+	ParameterBufferSize_( 0 )
 {
-	
+	NoofShaders_ = NoofShaders;
+	ppShaders_ = new RsShaderGL*[ NoofShaders ];	
+
+	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
+	{
+		ppShaders_[ Idx ] = static_cast< RsShaderGL* >( ppShaders[ Idx ] );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,7 +32,9 @@ RsProgramGL::RsProgramGL( RsShaderGL* pVertexShader, RsShaderGL* pFragmentShader
 //virtua
 RsProgramGL::~RsProgramGL()
 {
-
+	delete [] ppShaders_;
+	ppShaders_ = NULL;
+	NoofShaders_ = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,18 +42,18 @@ RsProgramGL::~RsProgramGL()
 void RsProgramGL::create()
 {
 	// Some checks to ensure validity.
-	BcAssert( pVertexShader_ != NULL );
-	BcAssert( pFragmentShader_ != NULL );
-	BcAssert( pVertexShader_->hasHandle() );
-	BcAssert( pFragmentShader_->hasHandle() );	
+	BcAssert( ppShaders_ != NULL );
+	BcAssert( NoofShaders_ > 0 );	
 
 	// Create program.
 	GLuint Handle = glCreateProgram();
 	BcAssert( Handle != 0 );
 
 	// Attach shaders.
-	glAttachShader( Handle, pVertexShader_->getHandle< GLuint >() );
-	glAttachShader( Handle, pFragmentShader_->getHandle< GLuint >() );
+	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
+	{
+		glAttachShader( Handle, ppShaders_[ Idx ]->getHandle< GLuint >() );
+	}
 	
 	// Bind default vertex attributes.
 	bindAttribute( Handle, rsVC_POSITION,		"aPosition" );

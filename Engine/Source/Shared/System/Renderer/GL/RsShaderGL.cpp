@@ -91,7 +91,14 @@ void RsShaderGL::create()
 					// Allocate enough space for the message, and retrieve it.
 					char* pszInfoLog = new char[i32InfoLogLength];
 					glGetShaderInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+
+					BcPrintf( "=======================================================\n" );
+					BcPrintf( "Error Compiling shader:\n" );
+					BcPrintf( "=======================================================\n" );
+					BcPrintf( "%s\n", pData_ );
+					BcPrintf( "=======================================================\n" );
 					BcPrintf( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
+					BcPrintf( "=======================================================\n" );
 					delete [] pszInfoLog;
 
 					destroy();
