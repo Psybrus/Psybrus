@@ -23,9 +23,12 @@
 // eScnShaderPermutationFlags
 enum eScnShaderPermutationFlags
 {
-	scnSPF_DEFAULT					= 0x00000000,		// Default minimal shader.
-	scnSPF_WORLD_TRANSFORM			= 0x00000001,		// Transforms vertices into clip space.
-	scnSPF_CLIP_SPACE_TRANSFORM		= 0x00000002,		// Transform vertices into world space.
+	// Base implementations.
+	scnSPF_2D						= 0x00000001,		// 2D.
+	scnSPF_3D						= 0x00000002,		// 3D.
+	
+	//
+	
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -35,6 +38,17 @@ typedef CsResourceRef< class ScnShader > ScnShaderRef;
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderProgram
 typedef CsResourceRef< class ScnShaderProgram > ScnShaderProgramRef;
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPermutationBootstrap
+struct ScnShaderPermutationBootstrap
+{
+	BcU32							PermutationFlags_;
+	const BcChar*					SourceGeometryShaderName_;
+	const BcChar*					SourceVertexShaderName_;
+	const BcChar*					SourceFragmentShaderName_;
+};
+
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShader
