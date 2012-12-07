@@ -210,6 +210,15 @@ void BcFile::readLine( BcChar* pBuffer, BcU32 Size )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// readAllBytes
+BcU8* BcFile::readAllBytes()
+{
+	BcU8* pBytes = new BcU8[ size() ];
+	read( pBytes, size() );
+	return pBytes;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // write
 void BcFile::write( const void* pSrc, BcU32 nBytes )
 {

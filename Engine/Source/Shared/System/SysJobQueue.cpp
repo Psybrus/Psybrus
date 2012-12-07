@@ -220,6 +220,7 @@ void SysJobQueue::execute()
 					// This means jobs queued by specific systems with particular worker masks
 					// will also keep their order. Differing masks can't possibly keep the same
 					// order.
+					// TODO: Remove the need for this at some point, it's not very nice.
 					if( BlockedMask != 0x0 )
 					{
 						moveJobsBack( BlockedMask );

@@ -60,6 +60,11 @@ public:
 	BcU8* pData();
 
 	/**
+	*	Clear.
+	*/
+	void clear();
+
+	/**
 	*	Push data into buffer.
 	*/
 	BcSize push( const void* pData, BcSize nBytes );
