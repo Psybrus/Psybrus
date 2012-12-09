@@ -1,7 +1,5 @@
 attribute vec4 aTexCoord0;
 
-uniform vec3 uEyePosition;
-
 varying vec3 vEyePosition;
 varying vec4 vWorldPosition;
 varying vec4 vTexCoord0;
