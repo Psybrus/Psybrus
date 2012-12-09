@@ -99,7 +99,7 @@ void ScnCore::update()
 			{
 				ScnEntityRef& Entity( *It );
 
-				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				if( Entity.isReady() && ( Entity->getRenderMask() & ViewComponent->getRenderMask() ) != 0 ) // HACK. Put in a list along side the main one to test.
 				{				
 					Entity->render( ViewComponent, pFrame, RsRenderSort( 0 ) );
 				}
