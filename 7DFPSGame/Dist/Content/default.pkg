@@ -7,7 +7,7 @@
 
 			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 10,
+			"nominalsize"	: 20,
 			"spread"		: 4
 		},
 
