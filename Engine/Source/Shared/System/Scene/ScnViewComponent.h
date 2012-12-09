@@ -54,6 +54,9 @@ public:
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	
+	void								setRenderMask( BcU32 RenderMask );
+	const BcU32							getRenderMask() const;
+
 protected:
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
@@ -80,6 +83,8 @@ protected:
 	ScnRenderTargetRef					RenderTarget_;
 	BcMat4d								InverseViewMatrix_;
 	RsViewport							Viewport_;
+
+	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
 };
 
 #endif

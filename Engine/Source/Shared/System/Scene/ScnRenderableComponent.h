@@ -39,6 +39,12 @@ public:
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+	void								setRenderMask( BcU32 RenderMask );
+	const BcU32							getRenderMask() const;
+
+private:
+	BcU32								RenderMask_;		// Used to specify what kind of object it is for selectively rendering with certain views.
 };
 
 #endif
