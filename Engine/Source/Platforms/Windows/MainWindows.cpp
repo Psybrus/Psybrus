@@ -39,7 +39,7 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
 		return evtRET_REMOVE;
-	}
+	} 
 
 	// Get rendering context.
 	if( RsCore::pImpl() != NULL )
@@ -48,6 +48,35 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
 	}
 
+	return evtRET_REMOVE;
+}
+
+// HACK HACK HACK: Offline package importing is a major hack for now.
+eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const SysSystemEvent& )
+{
+	WIN32_FIND_DATA FindFileData;
+	HANDLE Handle = ::FindFirstFileA( "Content/*.pkg", &FindFileData );
+
+	if( Handle != INVALID_HANDLE_VALUE )
+	{
+		do
+		{
+			BcPath PackagePath( FindFileData.cFileName );
+			CsPackage* pPackage = new CsPackage( PackagePath.getFileNameNoExtension() );
+
+			// HACK: Package importing is a major hack currently so we can automate offline building and packaging for LD25.
+			//       The system is due a change soon, this is a purely temporary measure until we break out importing into
+			//       a seperate tool.
+			// delete pPackage;
+		}
+		while(::FindNextFileA( Handle, &FindFileData ));
+
+		::FindClose( Handle );
+	}
+
+	// HACK: We just wanna bail here. No clean shutdown yet.
+	exit(0);
+	
 	return evtRET_REMOVE;
 }
 
@@ -136,16 +165,26 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Main shared.
 	MainShared();
 
-	// Hook up create client delegate
-	SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
+	// HACK HACK HACK: Offline package importing is a major hack for now.
+	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
+	{
+		// Hook up create client delegate
+		SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
 
-	// Hook up event pump delegate.
-	SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegatePumpMessages );
+		// Hook up event pump delegate.
+		SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegatePumpMessages );
 
-	// Game init.
-	PsyGameInit();
+		// Init game.
+		PsyGameInit();
+	}
+	else
+	{
+		// HACK HACK HACK: Offline package importing is a major hack for now.
+		SysSystemEvent::Delegate OsPostOpenDelegateImportPackages = SysSystemEvent::Delegate::bind< OnPostCsOpen_ImportPackages >();
+		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateImportPackages );
+	}
 
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION

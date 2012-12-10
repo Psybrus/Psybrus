@@ -160,6 +160,12 @@ void MainShared()
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
+	
+	// HACK: If we are importing packages, disable renderer and sound systems.
+	if( SysArgs_.find( "ImportPackages" ) != std::string::npos )
+	{
+		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
+	}
 
 	// Log kernel information.
 	BcPrintf( "============================================================================\n" );
