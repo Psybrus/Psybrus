@@ -112,6 +112,16 @@ public:
 	BcBool								requestResource( const BcName& Package, const BcName& Name, CsResourceRef< _Ty >& Handle );
 
 	/**
+	 * Get number of resources.
+	 */
+	BcU32								getNoofResources();
+
+	/**
+	 * Get resource by index.
+	 */
+	CsResourceRef<>						getResource( BcU32 Idx );
+
+	/**
 	 * Get resource. PLACEHOLDER UNTIL COMPONENTS ARE PACKED PROPERLY.
 	 * @param pFullName Full name in package.resource.type format.
 	 */
@@ -163,9 +173,9 @@ protected:
 		CsResourceFreeFunc freeFunc_;
 	};
 	
-	typedef std::list< CsResource* > TResourceList;
+	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
-	typedef std::list< CsResourceRef<> > TResourceHandleList;
+	typedef std::vector< CsResourceRef<> > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
 	typedef std::map< BcName, TResourceFactoryInfo > TResourceFactoryInfoMap;
 	typedef TResourceFactoryInfoMap::iterator TResourceFactoryInfoMapIterator;
