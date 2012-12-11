@@ -204,6 +204,25 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getEntity
+ScnEntityRef ScnCore::getEntity( BcU32 Idx )
+{
+	// NOTE: Should probably switch to std::vector do I don't need to do this bullshit.
+	BcU32 TotalIdx = 0;
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( TotalIdx++ == Idx )
+		{
+			return Entity;
+		}
+	}
+
+	return ScnEntityRef( NULL );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttachComponent
 void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
 {

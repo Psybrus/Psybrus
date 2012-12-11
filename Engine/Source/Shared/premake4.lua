@@ -10,6 +10,7 @@ project "Engine_Shared"
 	includedirs { "../../../External/glew/include" }
 	includedirs { "../../../External/jsoncpp/include" }
 	includedirs { "../../../External/libb64/include" }
+	includedirs { "../../../External/mongoose" }
 	includedirs { "../../../External/ogg/include" }
 	includedirs { "../../../External/openal/include" }
 	includedirs { "../../../External/png" } -- TODO: Fix this properly.

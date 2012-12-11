@@ -180,16 +180,24 @@ void MainShared()
 	BcPrintf( " - RsCore::WORKER_MASK: 0x%x\n", RsCore::WORKER_MASK );
 	BcPrintf( " - SsCore::WORKER_MASK: 0x%x\n", SsCore::WORKER_MASK );
 
+	// Start debug system if not a production build.
+#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCore" );
+#endif
+
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
 
+	// Start OS system.
 	SysKernel::pImpl()->startSystem( "OsCore" );
 
+	// Start render system.
 	if( GPsySetupParams.Flags_ & psySF_RENDER )
 	{
 		SysKernel::pImpl()->startSystem( "RsCore" );
 	}
 
+	// Start sound system.
 	if( GPsySetupParams.Flags_ & psySF_SOUND )
 	{
 		SysKernel::pImpl()->startSystem( "SsCore" );

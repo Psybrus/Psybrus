@@ -190,6 +190,20 @@ void CsCore::destroyResource( CsResource* pResource )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getNoofResources
+BcU32 CsCore::getNoofResources()
+{
+	return LoadedResources_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResource
+CsResourceRef<> CsCore::getResource( BcU32 Idx )
+{
+	return LoadedResources_[ Idx ];
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getResource
 CsResourceRef<> CsCore::getResource( const BcChar* pFullName )
 {
