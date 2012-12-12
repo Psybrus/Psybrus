@@ -13,6 +13,7 @@ project "Engine_Shared"
 	includedirs { "../../../External/mongoose" }
 	includedirs { "../../../External/ogg/include" }
 	includedirs { "../../../External/openal/include" }
+	includedirs { "../../../External/pcre" }
 	includedirs { "../../../External/png" } -- TODO: Fix this properly.
 	includedirs { "../../../External/squish" } -- TODO: Fix this properly.
 	includedirs { "../../../External/tremor" } -- TODO: Fix this properly.
@@ -30,7 +31,9 @@ project "Engine_Shared"
    			"External_glew",
    			"External_jsoncpp",
    			"External_libb64",
+   			"External_mongoose",
    			"External_ogg",
+   			"External_pcre",
    			"External_png",
    			"External_squish",
    			"External_tremor",
