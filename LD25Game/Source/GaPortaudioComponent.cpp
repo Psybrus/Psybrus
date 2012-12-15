@@ -1,54 +1,50 @@
 /**************************************************************************
 *
-* File:		GaCameraComponent.cpp
+* File:		GaPortaudioComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	15/12/12	
+* Ver/Date:	15/12/12		
 * Description:
-*		Camera component.
+*		Portaudio component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#include "GaCameraComponent.h"
+#include "GaPortaudioComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( GaCameraComponent );
+DEFINE_RESOURCE( GaPortaudioComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void GaCameraComponent::initialise( const Json::Value& Object )
+void GaPortaudioComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaPortaudioComponent
 //virtual
-void GaCameraComponent::update( BcReal Tick )
+void GaPortaudioComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
-	BcMat4d Matrix;
-	Matrix.translation( BcVec3d( 0.0f, 0.0f, -20.0f ) );
-	getParentEntity()->setMatrix( Matrix );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaPortaudioComponent
 //virtual
-void GaCameraComponent::onAttach( ScnEntityWeakRef Parent )
+void GaPortaudioComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaPortaudioComponent
 //virtual
-void GaCameraComponent::onDetach( ScnEntityWeakRef Parent )
+void GaPortaudioComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	// Don't forget to detach!
 	Super::onDetach( Parent );

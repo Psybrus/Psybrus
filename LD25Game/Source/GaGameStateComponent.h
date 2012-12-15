@@ -4,29 +4,29 @@
 * Author:	Neil Richardson 
 * Ver/Date:	15/12/12	
 * Description:
-*		Camera component.
+*		Game state component. Logic.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GACAMERACOMPONENT_H__
-#define __GACAMERACOMPONENT_H__
+#ifndef __GAGAMESTATECOMPONENT_H__
+#define __GAGAMESTATECOMPONENT_H__
 
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
-// GaExampleComponentRef
-typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
+// GaGameStateComponent
+typedef CsResourceRef< class GaGameStateComponent > GaGameStateComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
-class GaCameraComponent:
+// GaGameStateComponent
+class GaGameStateComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaCameraComponent );
+	DECLARE_RESOURCE( ScnComponent, GaGameStateComponent );
 
 	void								initialise( const Json::Value& Object );
 

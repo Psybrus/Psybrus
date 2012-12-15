@@ -15,13 +15,17 @@
 
 #include "GaTopState.h"
 
-#include "GaBallComponent.h"
 #include "GaCameraComponent.h"
-#include "GaPaddleComponent.h"
+#include "GaEnemyComponent.h"
+#include "GaGameInfoComponent.h"
+#include "GaGameStateComponent.h"
+#include "GaLevelComponent.h"
+#include "GaPlayerComponent.h"
+#include "GaPortaudioComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "LD25Game", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate
@@ -71,16 +75,24 @@ void PsyGameInit()
 // PsyGameRegisterResources
 void PsyGameRegisterResources()
 {
-	CsCore::pImpl()->registerResource< GaBallComponent >();
 	CsCore::pImpl()->registerResource< GaCameraComponent >();
-	CsCore::pImpl()->registerResource< GaPaddleComponent >();
+	CsCore::pImpl()->registerResource< GaEnemyComponent >();
+	CsCore::pImpl()->registerResource< GaGameInfoComponent >();
+	CsCore::pImpl()->registerResource< GaGameStateComponent >();
+	CsCore::pImpl()->registerResource< GaLevelComponent >();
+	CsCore::pImpl()->registerResource< GaPlayerComponent >();
+	CsCore::pImpl()->registerResource< GaPortaudioComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // PsyGameUnRegisterResources
 void PsyGameUnRegisterResources()
 {
-	CsCore::pImpl()->unregisterResource< GaBallComponent >();
 	CsCore::pImpl()->unregisterResource< GaCameraComponent >();
-	CsCore::pImpl()->unregisterResource< GaPaddleComponent >();
+	CsCore::pImpl()->unregisterResource< GaEnemyComponent >();
+	CsCore::pImpl()->unregisterResource< GaGameInfoComponent >();
+	CsCore::pImpl()->unregisterResource< GaGameStateComponent >();
+	CsCore::pImpl()->unregisterResource< GaLevelComponent >();
+	CsCore::pImpl()->unregisterResource< GaPlayerComponent >();
+	CsCore::pImpl()->unregisterResource< GaPortaudioComponent >();
 }

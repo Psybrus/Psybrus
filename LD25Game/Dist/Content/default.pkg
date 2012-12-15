@@ -2,23 +2,12 @@
 
 	"resources" : [
 		{
-			"type"			: "AkBank",
-			"name"			: "init"
-		},
-
-		{
-			"type"			: "AkBank",
-			"name"			: "global"
-		},
-
-
-		{
 			"type"			: "ScnFont",
 			"name"			: "default",
 
-			"source"		: "EngineContent/FontSource/srgt6pack.ttf",
+			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 32,
+			"nominalsize"	: 5,
 			"spread"		: 4
 		},
 
@@ -31,9 +20,9 @@
 
 		{
 			"type"			: "ScnTexture",
-			"name"			: "particle0",
+			"name"			: "grid0",
 
-			"source"		: "Content/Source/particle0.png"
+			"source"		: "Content/Source/grid0.png"
 		},
 
 		{
@@ -41,8 +30,8 @@
 			"name"			: "default",
 
 			"shaders"		: {
-				"vertex" 		: "EngineContent/ShaderSource/diffuse3d.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/diffuse3d.glslf"
+				"vertex" 		: "Content/Engine/default.glslv",
+				"fragment" 		: "Content/Engine/default.glslf"
 			}
 		},
 
@@ -76,8 +65,8 @@
 			"name"			: "font",
 
 			"shaders"		: {
-				"vertex" 		: "EngineContent/ShaderSource/font.glslv",
-				"fragment" 		: "EngineContent/ShaderSource/font.glslf"
+				"vertex" 		: "Content/Engine/font.glslv",
+				"fragment" 		: "Content/Engine/font.glslf"
 			}
 		},
 
@@ -90,7 +79,9 @@
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "default",
+				"aFloorTex"		: "default",
+				"aWallTex"		: "default"
 			},
 			
 			// State
@@ -108,43 +99,37 @@
 
 		{
 			"type"			: "ScnShader",
-			"name"			: "particle",
- 
+			"name"			: "grid",
+
 			"shaders"		: {
-				"vertex" 		: "Content/Source/particle.glslv",
-				"fragment" 		: "Content/Source/particle.glslf"
+				"vertex" 		: "Content/Source/grid.glslv",
+				"fragment" 		: "Content/Source/grid.glslf"
 			}
 		},
 
 		{
 			"type"			: "ScnMaterial",
-			"name"			: "particle",
+			"name"			: "grid",
 
 			// Shader
-			"shader"		: "particle",
+			"shader"		: "grid",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "particle0"
+				"aDiffuseTex"	: "grid0"
 			},
 			
 			// State
 			"state"			: {
 				"depth_write_enable" 		: 0,
-				"depth_test_enable" 		: 1,
-				"depth_test_compare" 		: "lessequal",
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "never",
 				"depth_bias" 				: 0,
 				"alpha_test_enable" 		: 0,
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 128,
-				"blend_mode" 				: "add"
+				"blend_mode" 				: "none"
 			}
-		},
-
-		{
-			"type"		: "ScnModel",
-			"name"		: "sphere",
-			"source"	: "Content/Source/sphere.obj"
 		},
 
 		{
@@ -155,11 +140,11 @@
 
 		{
 			"type"		: "ScnModel",
-			"name"		: "paddle",
-			"source"	: "Content/Source/paddle.obj"
+			"name"		: "grid0",
+			"source"	: "Content/Source/grid0.obj"
 		},
 
-		//////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////// 
 		// Entities.
 		{
 			"name"		:		"ScreenEntity",
@@ -181,83 +166,79 @@
 					"far"			: 1000.0,
 					"hfov"			: 0.75,
 					"vfov"			: 0.0
-				},
+				}		
+			]
+		},
 
-				// void ScnCanvasComponent::initialise( BcU32 NoofVertices, ScnMaterialComponentRef DefaultMaterialComponent );
+		{
+			"name"		:		"GameEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
 				{
 					"type"			: "ScnCanvasComponent",
-					"noofvertices" 	: 32768
+					"noofvertices" 	: 8192
 				},
 
 				{
-					"type"			: "AkListenerComponent"
+					"type"			: "GaGameInfoComponent"
 				},
 
 				{
-					"type"			: "AkGameObjectComponent"
-				},
-
-				{
-					"type"			: "AkBankComponent",
-					"name"			: "default.init:AkBank"
-				},
-
-				{
-					"type"			: "AkBankComponent",
-					"name"			: "default.global:AkBank"
+					"type"			: "GaGameStateComponent"
 				}
 			]
 		},
 
 		{
-			"name"		:		"PaddleEntity",
+			"name"		:		"PlayerEntity",
 			"type"		:		"ScnEntity",
 
 			"components" : [
 				{
-					"type"			: "GaPaddleComponent"
-				},
-
-				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "default.paddle:ScnModel"	// cube:ScnModel
+					"model"			: "default.cube:ScnModel",
+					"layer"			: 0
 				},
 
 				{
-					"type"			: "AkGameObjectComponent"
+					"type"			: "GaPlayerComponent"
 				}
 			]
 		},
 
 		{
-			"name"		:		"BallEntity", 
+			"name"		:		"EnemyEntity",
 			"type"		:		"ScnEntity",
 
 			"components" : [
 				{
-					"type"			: "GaBallComponent"
+					"type"			: "ScnModelComponent",
+					"model"			: "default.cube:ScnModel",
+					"layer"			: 0
 				},
 
+				{
+					"type"			: "GaEnemyComponent"
+				}
+			]
+		},
+
+		{
+			"name"		:		"LevelEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model" 		: "default.sphere:ScnModel"	// sphere:ScnModel
+					"model"			: "default.grid0:ScnModel",
+					"layer"			: 0
 				},
 
 				{
-					"type"			: "ScnParticleSystemComponent",
-					"noofparticles"	: 4096,
-					"material"		: "default.particle:ScnMaterial"
-				},
-
-				{
-					"type"			: "AkGameObjectComponent"
-				},
-
-				{
-					"type"			: "AkRTPCComponent"
-				}
+					"type"			: "GaLevelComponent"
+				}				
 			]
 		}
-
 	]
 }
