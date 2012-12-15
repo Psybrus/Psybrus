@@ -201,6 +201,8 @@ void ScnEntity::detach( ScnComponent* Component )
 // onAttachScene
 void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
+	Super::onAttach( Parent );
+
 	// Process attach/detach.
 	processAttachDetach();
 
@@ -212,8 +214,6 @@ void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 	{
 		ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), getComponent( Idx ) );
 	}
-
-	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
