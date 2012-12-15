@@ -4,29 +4,29 @@
 * Author:	Neil Richardson 
 * Ver/Date:	15/12/12	
 * Description:
-*		Camera component.
+*		Enemy component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GACAMERACOMPONENT_H__
-#define __GACAMERACOMPONENT_H__
+#ifndef __GaEnemyComponent_H__
+#define __GaEnemyComponent_H__
 
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
-// GaExampleComponentRef
-typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
+// GaEnemyComponent
+typedef CsResourceRef< class GaEnemyComponent > GaEnemyComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
-class GaCameraComponent:
+// GaEnemyComponent
+class GaEnemyComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaCameraComponent );
+	DECLARE_RESOURCE( ScnComponent, GaEnemyComponent );
 
 	void								initialise( const Json::Value& Object );
 

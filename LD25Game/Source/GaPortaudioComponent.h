@@ -4,29 +4,29 @@
 * Author:	Neil Richardson 
 * Ver/Date:	15/12/12	
 * Description:
-*		Camera component.
+*		Portaudio component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GACAMERACOMPONENT_H__
-#define __GACAMERACOMPONENT_H__
+#ifndef __GaPortaudioComponent_H__
+#define __GaPortaudioComponent_H__
 
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
-// GaExampleComponentRef
-typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
+// GaPortaudioComponent
+typedef CsResourceRef< class GaPortaudioComponent > GaPortaudioComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
-class GaCameraComponent:
+// GaPortaudioComponent
+class GaPortaudioComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaCameraComponent );
+	DECLARE_RESOURCE( ScnComponent, GaPortaudioComponent );
 
 	void								initialise( const Json::Value& Object );
 

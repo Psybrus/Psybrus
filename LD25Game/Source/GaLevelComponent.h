@@ -4,29 +4,29 @@
 * Author:	Neil Richardson 
 * Ver/Date:	15/12/12	
 * Description:
-*		Camera component.
+*		Level component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GACAMERACOMPONENT_H__
-#define __GACAMERACOMPONENT_H__
+#ifndef __GaLevelComponent_H__
+#define __GaLevelComponent_H__
 
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
-// GaExampleComponentRef
-typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
+// GaLevelComponent
+typedef CsResourceRef< class GaLevelComponent > GaLevelComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
-class GaCameraComponent:
+// GaLevelComponent
+class GaLevelComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaCameraComponent );
+	DECLARE_RESOURCE( ScnComponent, GaLevelComponent );
 
 	void								initialise( const Json::Value& Object );
 
@@ -35,7 +35,8 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
 private:
-
+	ScnMaterialComponentRef				LevelMaterial_;
+	BcU32								UVScrollingParam_;
 };
 
 #endif

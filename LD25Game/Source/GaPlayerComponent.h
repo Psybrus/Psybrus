@@ -4,29 +4,29 @@
 * Author:	Neil Richardson 
 * Ver/Date:	15/12/12	
 * Description:
-*		Camera component.
+*		Player component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __GACAMERACOMPONENT_H__
-#define __GACAMERACOMPONENT_H__
+#ifndef __GaPlayerComponent_H__
+#define __GaPlayerComponent_H__
 
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
-// GaExampleComponentRef
-typedef CsResourceRef< class GaCameraComponent > GaCameraComponentRef;
+// GaPlayerComponent
+typedef CsResourceRef< class GaPlayerComponent > GaPlayerComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
-class GaCameraComponent:
+// GaPlayerComponent
+class GaPlayerComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, GaCameraComponent );
+	DECLARE_RESOURCE( ScnComponent, GaPlayerComponent );
 
 	void								initialise( const Json::Value& Object );
 

@@ -1,55 +1,67 @@
 /**************************************************************************
 *
-* File:		GaCameraComponent.cpp
+* File:		GaLevelComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	15/12/12	
+* Ver/Date:	15/12/12		
 * Description:
-*		Camera component.
+*		Level component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#include "GaCameraComponent.h"
+#include "GaLevelComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( GaCameraComponent );
+DEFINE_RESOURCE( GaLevelComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void GaCameraComponent::initialise( const Json::Value& Object )
+void GaLevelComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaLevelComponent
 //virtual
-void GaCameraComponent::update( BcReal Tick )
+void GaLevelComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
 
+	static BcReal Ticker = 0.0f;
+	Ticker += Tick;
 	BcMat4d Matrix;
-	Matrix.translation( BcVec3d( 0.0f, 0.0f, -20.0f ) );
+	//Matrix.rotation( BcVec3d( Ticker * 0.3, Ticker * 0.1, Ticker * 0.2 ) );
 	getParentEntity()->setMatrix( Matrix );
+
+	LevelMaterial_->setParameter( UVScrollingParam_, BcVec4d( 0.0f, Ticker, 0.0f, 0.0f ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaLevelComponent
 //virtual
-void GaCameraComponent::onAttach( ScnEntityWeakRef Parent )
+void GaLevelComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	//
+	ScnModelComponentRef Model = Parent->getComponentByType< ScnModelComponent >( 0 );
+	LevelMaterial_ = Model->getMaterialComponent( 0 );
+
+	UVScrollingParam_ = LevelMaterial_->findParameter( "uUVScrolling" );
+
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaLevelComponent
 //virtual
-void GaCameraComponent::onDetach( ScnEntityWeakRef Parent )
+void GaLevelComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	LevelMaterial_ = NULL;
+
 	// Don't forget to detach!
 	Super::onDetach( Parent );
 }

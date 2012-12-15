@@ -1,54 +1,50 @@
 /**************************************************************************
 *
-* File:		GaCameraComponent.cpp
+* File:		GaEnemyComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	15/12/12	
+* Ver/Date:	15/12/12		
 * Description:
-*		Camera component.
+*		Enemy component.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#include "GaCameraComponent.h"
+#include "GaEnemyComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( GaCameraComponent );
+DEFINE_RESOURCE( GaEnemyComponent );
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void GaCameraComponent::initialise( const Json::Value& Object )
+void GaEnemyComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaEnemyComponent
 //virtual
-void GaCameraComponent::update( BcReal Tick )
+void GaEnemyComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
-
-	BcMat4d Matrix;
-	Matrix.translation( BcVec3d( 0.0f, 0.0f, -20.0f ) );
-	getParentEntity()->setMatrix( Matrix );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaEnemyComponent
 //virtual
-void GaCameraComponent::onAttach( ScnEntityWeakRef Parent )
+void GaEnemyComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaCameraComponent
+// GaEnemyComponent
 //virtual
-void GaCameraComponent::onDetach( ScnEntityWeakRef Parent )
+void GaEnemyComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	// Don't forget to detach!
 	Super::onDetach( Parent );
