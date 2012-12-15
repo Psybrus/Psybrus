@@ -30,12 +30,6 @@ solution "Psybrus"
 	-- Build engine.
 	dofile ("Engine/premake4.lua")
 
-	-- Build TemplateGame.
-	dofile ("TemplateGame/premake4.lua")
-
-	-- Build MiniLD33Game
-	--dofile ("MiniLD33Game/premake4.lua")
-
-	-- Build LD23Game.
-	--dofile ("7DFPSGame/premake4.lua")
+	-- Build LD25Game.
+	dofile ("LD25Game/premake4.lua")
 
