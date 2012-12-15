@@ -16,6 +16,8 @@
 
 #include "Psybrus.h"
 
+#include "GaPortaudioComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GaPlayerComponent
 typedef CsResourceRef< class GaPlayerComponent > GaPlayerComponentRef;
@@ -33,9 +35,36 @@ public:
 	virtual void						update( BcReal Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+	void								autoCorrelateInputBuffer();
+	void								findAutocorrelationPeaks();
+
+	BcReal								estimatePitch();
 	
 private:
+	GaPortaudioComponentRef				PortaudioComponent_;
+	ScnCanvasComponentRef				Canvas_;
 
+	ScnFontComponentRef					Font_;
+
+	struct TPeak
+	{
+		BcF32							Index_;
+		BcF32							Value_;
+	};
+
+	class GaPlayerComponentAutocorrelationPeakSorter
+	{
+	public:
+		bool operator()( const TPeak& A, const TPeak& B )
+		{
+			return A.Value_ > B.Value_;
+		}
+	};
+
+	std::vector< BcF32 >				InputBuffer_;
+	std::vector< BcF32 >				AutocorrelationBuffer_;
+	std::vector< TPeak >				AutocorrelationPeaks_;
 };
 
 #endif

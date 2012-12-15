@@ -11,10 +11,15 @@ project "LD25Game"
 	kind "WindowedApp"
 	language "C++"
 	files { "./Source/**.h", "./Source/**.c", "./Source/**.cpp" }
-	includedirs { "./Source/", "../Engine/Source/Shared/", "../Engine/Source/Platforms/Windows/" }
+	includedirs {
+		"./Source/",
+		"../Engine/Source/Shared/",
+		"../Engine/Source/Platforms/Windows/"
+	}
 
 	-- External includes.
 	includedirs { "../External/jsoncpp/include" }
+	includedirs { "../External/portaudio/include" }
 
    -- DirectX
    configuration "windows"
@@ -47,11 +52,11 @@ project "LD25Game"
 			"External_jsoncpp",
 			"External_libb64",
 			"External_ogg",
-         "External_png",
-         "External_rapidxml-1.13",
-         "External_portaudio",
-         "External_pcre",
-         "External_mongoose",
+         	"External_png",
+         	"External_rapidxml-1.13",
+         	"External_portaudio",
+         	"External_pcre",
+         	"External_mongoose",
 			"External_squish",
 			"External_tremor",
 			"External_zlib",
