@@ -66,6 +66,11 @@ public:
 	 */
 	ScnEntityRef				findEntity( const BcName& InstanceName );
 
+	/**
+	 * Get an entity.
+	 */
+	ScnEntityRef				getEntity( BcU32 Idx );
+
 private:
 	friend class ScnEntity;
 

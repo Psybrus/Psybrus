@@ -99,7 +99,7 @@ void ScnCore::update()
 			{
 				ScnEntityRef& Entity( *It );
 
-				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				if( Entity.isReady() && ( Entity->getRenderMask() & ViewComponent->getRenderMask() ) != 0 ) // HACK. Put in a list along side the main one to test.
 				{				
 					Entity->render( ViewComponent, pFrame, RsRenderSort( 0 ) );
 				}
@@ -201,6 +201,25 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 	}
 
 	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getEntity
+ScnEntityRef ScnCore::getEntity( BcU32 Idx )
+{
+	// NOTE: Should probably switch to std::vector do I don't need to do this bullshit.
+	BcU32 TotalIdx = 0;
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( TotalIdx++ == Idx )
+		{
+			return Entity;
+		}
+	}
+
+	return ScnEntityRef( NULL );
 }
 
 //////////////////////////////////////////////////////////////////////////
