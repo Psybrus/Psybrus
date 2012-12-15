@@ -7,7 +7,7 @@ else
    print ("Got DirectX SDK Path: " .. dxsdkpath)
 end
 
-project "TemplateGame"
+project "LD25Game"
 	kind "WindowedApp"
 	language "C++"
 	files { "./Source/**.h", "./Source/**.c", "./Source/**.cpp" }
@@ -15,25 +15,6 @@ project "TemplateGame"
 
 	-- External includes.
 	includedirs { "../External/jsoncpp/include" }
-
-   -- Integration includes.
-   includedirs { "../Engine/Source/IntegrationWwise" }
-
-   -- Wwise includes (for types)
-   includedirs { wwisesdkpath .. "/include" }
-
-   -- wwise libs.
-   configuration "Debug"
-      libdirs { wwisedebuglib }
-      links (wwisedebuglibs)
-
-   configuration "Release"
-      libdirs { wwiseprofilelib }
-      links (wwiseprofilelibs)
-
-   configuration "Production"
-      libdirs { wwisereleaselib }
-      links (wwisereleaselibs)
 
    -- DirectX
    configuration "windows"
@@ -68,6 +49,9 @@ project "TemplateGame"
 			"External_ogg",
          "External_png",
          "External_rapidxml-1.13",
+         "External_portaudio",
+         "External_pcre",
+         "External_mongoose",
 			"External_squish",
 			"External_tremor",
 			"External_zlib",
@@ -75,7 +59,4 @@ project "TemplateGame"
 			-- Engine libs.
 			"Engine_Shared",
 			"Engine_Windows",
-
-         -- Engine integration libs.
-         "Engine_IntegrationWwise",
 		}

@@ -1,6 +1,0 @@
-{ 
-	"ScnSound" : {
-		"name"		: "rabbithop0",
-		"source"	: "GameContent/Source/rabbit_hop0.wav"
-	}
-}
