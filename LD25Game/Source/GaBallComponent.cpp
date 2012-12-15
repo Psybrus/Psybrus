@@ -13,9 +13,6 @@
 
 #include "GaBallComponent.h"
 
-#include "System/Audiokinetic/AkEvents.h"
-#include "GeneratedSoundBanks/Wwise_IDs.h"
-
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaBallComponent );
@@ -62,7 +59,7 @@ void GaBallComponent::update( BcReal Tick )
 
 	if( HasBounced )
 	{
-		getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::HOPSOUND_PLAY ), BcFalse );
+		//getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::HOPSOUND_PLAY ), BcFalse );
 	}
 
 	getParentEntity()->setPosition( NewPosition );
