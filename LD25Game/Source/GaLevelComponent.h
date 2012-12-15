@@ -16,6 +16,8 @@
 
 #include "Psybrus.h"
 
+#include "GaPortaudioComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GaLevelComponent
 typedef CsResourceRef< class GaLevelComponent > GaLevelComponentRef;
@@ -37,6 +39,7 @@ public:
 private:
 	ScnMaterialComponentRef				LevelMaterial_;
 	BcU32								UVScrollingParam_;
+	ScnCanvasComponentRef				Canvas_;
 };
 
 #endif

@@ -46,8 +46,8 @@ void GaGameStateComponent::onAttach( ScnEntityWeakRef Parent )
 	Parent->attach( PlayerEntity );
 
 	// Spawn enemy.
-	ScnEntityRef PlayerEntity = ScnCore::pImpl()->createEntity( "default", "EnemyEntity" );
-	Parent->attach( PlayerEntity );
+	ScnEntityRef EnemyEntity = ScnCore::pImpl()->createEntity( "default", "EnemyEntity" );
+	Parent->attach( EnemyEntity );
 
 	// Don't forget to attach!
 	Super::onAttach( Parent );

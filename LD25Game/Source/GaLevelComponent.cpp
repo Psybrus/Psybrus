@@ -45,12 +45,14 @@ void GaLevelComponent::update( BcReal Tick )
 //virtual
 void GaLevelComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	//
+	// Grab modwel and it's material, and it's UV scrolling parameter.
 	ScnModelComponentRef Model = Parent->getComponentByType< ScnModelComponent >( 0 );
 	LevelMaterial_ = Model->getMaterialComponent( 0 );
-
 	UVScrollingParam_ = LevelMaterial_->findParameter( "uUVScrolling" );
-
+	
+	// Grab the canvas.
+	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
+	
 	// Don't forget to attach!
 	Super::onAttach( Parent );
 }

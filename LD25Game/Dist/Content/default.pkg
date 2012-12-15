@@ -7,7 +7,7 @@
 
 			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 5,
+			"nominalsize"	: 10,
 			"spread"		: 4
 		},
 
@@ -199,6 +199,22 @@
 					"type"			: "ScnModelComponent",
 					"model"			: "default.cube:ScnModel",
 					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnMaterialComponent",
+					"material"		: "default.default:ScnMaterial",
+					"permutation"	: "2d"
+				},
+
+				{
+					"type"			: "ScnFontComponent",
+					"font"			: "default.default:ScnFont",
+					"material"		: "default.font:ScnMaterial"
+				},
+
+				{
+					"type"			: "GaPortaudioComponent"
 				},
 
 				{
