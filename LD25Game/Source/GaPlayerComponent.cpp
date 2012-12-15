@@ -15,7 +15,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
+#if PSY_DEBUG
 const BcU32 GBufferProcessingSize = 512;
+#else
+const BcU32 GBufferProcessingSize = 2048;
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -26,53 +30,107 @@ DEFINE_RESOURCE( GaPlayerComponent );
 void GaPlayerComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
+
+	SmoothedEstimatedPitch_ = 0.0f;
+
+	LockEstimatedPitch_ = 0.0f;
+	MaxLockTime_ = 100.0f / 1000.0f;
+	MaxCooldownTime_ = 10.0f / 1000.0f;
+	LockTimer_ = MaxLockTime_;
+	LockCooldownTimer_= MaxCooldownTime_;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaPlayerComponent
+// update
 //virtual
 void GaPlayerComponent::update( BcReal Tick )
 {
 	Super::update( Tick );
 
+	// Do pitch detection.
+	BcReal EstimatedPitch = 0.0f;
+	BcReal PeriodSD = 0.0f;
+	BcReal RMS = 0.0f;
+	BcBool IsLoudEnoughToAccept = BcFalse;
+	BcBool GotPitchLock = BcFalse;
+	BcBool IsNoise = BcFalse;
+	
 	// Grab and process the buffers.
+	BcReal AudioTick = 0.0f;
 	while( PortaudioComponent_->noofInputFrames() > GBufferProcessingSize )
 	{
+		AudioTick += static_cast< BcReal> ( GBufferProcessingSize ) / 44100.0f;
+
 		InputBuffer_.clear();
 		PortaudioComponent_->popInputFrames( GBufferProcessingSize, InputBuffer_ );
 	}
 
-	// Autocorrelate.
-	autoCorrelateInputBuffer();
+	{
 
-	// Find the peaks in autocorrelation.
-	findAutocorrelationPeaks();
+		// Autocorrelate.
+		autoCorrelateInputBuffer();
 
-	// Analyze audio.
-	BcReal EstimatedPitch;
-	BcReal PeriodSD;
-	BcReal RMS;
-	analyzeAudio( EstimatedPitch, PeriodSD, RMS );
+		// Find the peaks in autocorrelation.
+		findAutocorrelationPeaks();
 
-	//
+		// Analyze audio.
+		analyzeAudio( EstimatedPitch, PeriodSD, RMS );
+
+		if( RMS > 0.025f )
+		{
+			IsLoudEnoughToAccept = BcTrue;
+		}
+
+		// Got a lock on pitch.
+		if( IsLoudEnoughToAccept )
+		{
+			if( PeriodSD < 32.0f )
+			{
+				SmoothedEstimatedPitch_ = ( 0.1f * EstimatedPitch ) + ( 0.9f * SmoothedEstimatedPitch_ );
+				GotPitchLock = BcTrue;
+			}
+			else if ( PeriodSD > 64.0f )
+			{
+				IsNoise = BcTrue;
+			}
+
+			LockTimer_ -= AudioTick;
+			LockCooldownTimer_ = MaxCooldownTime_;
+
+			if( LockTimer_ < 0.0f )
+			{
+				BcPrintf( "Loud enough, decide on game event to use based on if it was pitch or noise.\n" );
+			}
+		}
+		else
+		{
+			LockCooldownTimer_ -= AudioTick;
+			if( LockCooldownTimer_ < 0.0f )
+			{
+				LockTimer_ = MaxLockTime_;
+			}
+		}
+	}
 	
 	// Debug render waveform.
+	Canvas_->clear();
+	ScnMaterialComponentRef MaterialComponent( getParentEntity()->getComponentByType<ScnMaterialComponent>( 0 ) );
+	Canvas_->setMaterialComponent( MaterialComponent );
+
+	OsClient* pClient = OsCore::pImpl()->getClient( 0 );
+	BcReal HW = static_cast< BcReal >( pClient->getWidth() ) / 2.0f;
+	BcReal HH = static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
+	BcReal AspectRatio = HW / HH;
+		
+	BcMat4d Ortho;
+	Ortho.orthoProjection( -HW, HW, HH, -HH, -1.0f, 1.0f );
+		
+	Canvas_->pushMatrix( Ortho );
+
 #if 1
 	{
-		Canvas_->clear();
-        ScnMaterialComponentRef MaterialComponent( getParentEntity()->getComponentByType<ScnMaterialComponent>( 0 ) );
-        Canvas_->setMaterialComponent( MaterialComponent );
-
-        OsClient* pClient = OsCore::pImpl()->getClient( 0 );
-        BcReal HW = 768.0f / 32.0f; // static_cast< BcReal >( pClient->getWidth() ) / 2.0f;
-        BcReal HH = 432.0f / 32.0f; // static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
-        BcReal AspectRatio = HW / HH;
-		
-        BcMat4d Ortho;
-        Ortho.orthoProjection( -HW, HW, HH, -HH, -1.0f, 1.0f );
-		
-        Canvas_->pushMatrix( Ortho );
-		
+	
 		BcReal IncrementOnX = ( 2.0f * HW ) / static_cast< BcReal >( InputBuffer_.size() );
 		BcReal AccumulatorX;
 		BcVec2d PrevPosition;
@@ -114,25 +172,33 @@ void GaPlayerComponent::update( BcReal Tick )
 				CurrPosition = BcVec2d( -HW + IncrementOnX * Peak.Index_, 1.0f + Peak.Value_ );
 				Canvas_->drawLine( PrevPosition, CurrPosition, RsColour::BLUE, 0 );
 			}
-
-			BcChar Buffer[ 2048 ];
-			BcSPrintf( Buffer, "Estimated Pitch: %f hz\nPeriod SD: %f\nRMS: %f", EstimatedPitch, PeriodSD, RMS );
-
-			BcMat4d ScaleMatrix;
-			ScaleMatrix.scale( BcVec3d( 0.1f, 0.1f, 0.1f ) );
-
-			Canvas_->pushMatrix( ScaleMatrix );
-
-			Font_->draw( Canvas_, BcVec2d( 0.0f, 0.0f ), Buffer, RsColour::WHITE, BcFalse );
-
-			Canvas_->popMatrix();
 		}
-#endif 
 	}
+#endif 
+
+	// Movement.
+	Position_ = ( Position_ * 0.9f ) + ( TargetPosition_ * 0.1f );
+
+	// Hacky floaty.
+	static BcReal Ticker = 0.0f;
+	Ticker += Tick;
+	BcMat4d Matrix;
+	BcVec3d FinalPosition = Position_ + BcVec3d( BcSin( Ticker ) * 0.05f, 0.0f, BcCos( Ticker * 0.7f ) * 0.05f );
+	Matrix.rotation( BcVec3d( BcSin( Ticker ) * 0.05f, BcCos( Ticker * 0.9f ) * 0.1f, 0.0f ) );
+	Matrix.translation( FinalPosition );
+	getParentEntity()->setMatrix( Matrix );
+
+
+	BcChar Buffer[ 2048 ];
+	BcSPrintf( Buffer, "Smoothed Estimated Pitch: %f\nEstimated Pitch: %f hz\nPeriod SD: %f\nRMS: %f\n%s\n%s\n%s", SmoothedEstimatedPitch_, EstimatedPitch, PeriodSD, RMS, 
+		IsLoudEnoughToAccept ? "LOUD ENOUGH TO USE" : "",
+		GotPitchLock ? "GOT PITCH LOCK" : "",
+		IsNoise ? "IS NOISE" : "" );
+	Font_->draw( Canvas_, BcVec2d( -HW + 32.0f, -HH + 32.0f ), Buffer, RsColour::WHITE, BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaPlayerComponent
+// onAttach
 //virtual
 void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 {
@@ -150,7 +216,7 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// GaPlayerComponent
+// onDetach
 //virtual
 void GaPlayerComponent::onDetach( ScnEntityWeakRef Parent )
 {
