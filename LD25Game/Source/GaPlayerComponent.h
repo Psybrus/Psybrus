@@ -39,7 +39,7 @@ public:
 	void								autoCorrelateInputBuffer();
 	void								findAutocorrelationPeaks();
 
-	BcReal								estimatePitch();
+	void								analyzeAudio( BcReal& Pitch, BcReal& PeriodSD, BcReal& RMS );
 	
 private:
 	GaPortaudioComponentRef				PortaudioComponent_;

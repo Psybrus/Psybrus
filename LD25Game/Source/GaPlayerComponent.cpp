@@ -47,8 +47,17 @@ void GaPlayerComponent::update( BcReal Tick )
 
 	// Find the peaks in autocorrelation.
 	findAutocorrelationPeaks();
+
+	// Analyze audio.
+	BcReal EstimatedPitch;
+	BcReal PeriodSD;
+	BcReal RMS;
+	analyzeAudio( EstimatedPitch, PeriodSD, RMS );
+
+	//
 	
 	// Debug render waveform.
+#if 1
 	{
 		Canvas_->clear();
         ScnMaterialComponentRef MaterialComponent( getParentEntity()->getComponentByType<ScnMaterialComponent>( 0 ) );
@@ -94,23 +103,20 @@ void GaPlayerComponent::update( BcReal Tick )
 			PrevPosition = CurrPosition;
 			AccumulatorX += IncrementOnX;
 		}
-
-		if( AutocorrelationPeaks_.size() >= 2 )
+		
+		if( EstimatedPitch > 0.0f )
 		{
-			for( BcU32 Idx = 0; Idx < 2; ++Idx )
+			for( BcU32 Idx = 0; Idx < AutocorrelationPeaks_.size(); ++Idx )
 			{
 				TPeak Peak = AutocorrelationPeaks_[ Idx ];
 				
-				PrevPosition = BcVec2d( -HW + IncrementOnX * Peak.Index_, -120.0f );
-				CurrPosition = BcVec2d( -HW + IncrementOnX * Peak.Index_, 120.0f );
+				PrevPosition = BcVec2d( -HW + IncrementOnX * Peak.Index_, -1.0f + Peak.Value_ );
+				CurrPosition = BcVec2d( -HW + IncrementOnX * Peak.Index_, 1.0f + Peak.Value_ );
 				Canvas_->drawLine( PrevPosition, CurrPosition, RsColour::BLUE, 0 );
-				
 			}
 
-			BcReal EstimatedPitch = estimatePitch();
-
 			BcChar Buffer[ 2048 ];
-			BcSPrintf( Buffer, "Estimated Pitch: %f hz", EstimatedPitch );
+			BcSPrintf( Buffer, "Estimated Pitch: %f hz\nPeriod SD: %f\nRMS: %f", EstimatedPitch, PeriodSD, RMS );
 
 			BcMat4d ScaleMatrix;
 			ScaleMatrix.scale( BcVec3d( 0.1f, 0.1f, 0.1f ) );
@@ -121,6 +127,7 @@ void GaPlayerComponent::update( BcReal Tick )
 
 			Canvas_->popMatrix();
 		}
+#endif 
 	}
 }
 
@@ -207,8 +214,8 @@ void GaPlayerComponent::findAutocorrelationPeaks()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// estimatePitch
-BcReal GaPlayerComponent::estimatePitch()
+// analyzeAudio
+void GaPlayerComponent::analyzeAudio( BcReal& Pitch, BcReal& PeriodSD, BcReal& RMS )
 {
 	if( AutocorrelationPeaks_.size() >= 2 )
 	{
@@ -222,6 +229,8 @@ BcReal GaPlayerComponent::estimatePitch()
 		BcReal MaxDifference = 2.0f;
 		BcReal AveragePeriodDistance = PeriodDistance;
 		BcReal TotalMatchingPeriods = 1.0f;
+		BcReal RealAveragePeriodDistance = PeriodDistance;
+		BcReal RealTotalMatchingPeriods = 1.0f;
 
 		BcU32 TotalPeriods = AutocorrelationPeaks_.size() / 2;
 		for( BcU32 Idx = 1; Idx < TotalPeriods; ++Idx )
@@ -236,12 +245,42 @@ BcReal GaPlayerComponent::estimatePitch()
 				AveragePeriodDistance += ThisPeriodDistance;
 				TotalMatchingPeriods += 1.0f;
 			}
+
+			RealAveragePeriodDistance += ThisPeriodDistance;
+			RealTotalMatchingPeriods += 1.0f;
 		}
 
 		AveragePeriodDistance /= TotalMatchingPeriods;
+		RealAveragePeriodDistance /= RealTotalMatchingPeriods;
 
-		return 44100.0f / AveragePeriodDistance;
+		// Calculate standard deviation of the periods so we can report lock accuracy.
+		BcReal SumSD = 0.0f;
+		for( BcU32 Idx = 1; Idx < TotalPeriods; ++Idx )
+		{
+			TPeak PeakC = AutocorrelationPeaks_[ Idx * 2 ];
+			TPeak PeakD = AutocorrelationPeaks_[ Idx * 2 + 1 ];
+
+			BcReal ThisPeriodDistance = BcAbs( PeakD.Index_ - PeakC.Index_ );
+			
+			SumSD += ( ThisPeriodDistance - RealAveragePeriodDistance ) * ( ThisPeriodDistance - RealAveragePeriodDistance );
+		}
+
+		Pitch = 44100.0f / AveragePeriodDistance;
+		PeriodSD = BcSqrt( SumSD * ( 1.0f / ( TotalPeriods - 1 ) ) );
+	}
+	else
+	{
+		Pitch = 0.0f;
+		PeriodSD = 1e6f;
 	}
 
-	return 0.0f;
+	// Calculate RMS.
+	BcReal SquaredTotal = 0.0f;
+	for( BcU32 Idx = 0; Idx < InputBuffer_.size(); ++Idx )
+	{
+		BcReal FrameValue = InputBuffer_[ Idx ];
+		SquaredTotal += FrameValue * FrameValue;
+	}
+
+	RMS = BcSqrt( SquaredTotal / static_cast< BcReal >( InputBuffer_.size() ) );
 }
