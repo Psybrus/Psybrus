@@ -1,12 +1,11 @@
-# Blender MTL File: 'grid0.blend'
+# Blender MTL File: 'drone_export.blend'
 # Material Count: 1
-newmtl _grid0.png
+newmtl 
 Ns 0
 Ka 0.000000 0.000000 0.000000
 Kd 0.8 0.8 0.8
 Ks 0.8 0.8 0.8
 d 1
 illum 2
-map_Kd grid0.blend\grid0.png
 
 

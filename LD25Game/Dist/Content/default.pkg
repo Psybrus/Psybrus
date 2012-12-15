@@ -7,7 +7,7 @@
 
 			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 10,
+			"nominalsize"	: 20,
 			"spread"		: 4
 		},
 
@@ -23,6 +23,13 @@
 			"name"			: "grid0",
 
 			"source"		: "Content/Source/grid0.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "drone0",
+
+			"source"		: "Content/Source/drone0.png"
 		},
 
 		{
@@ -127,11 +134,46 @@
 				"depth_bias" 				: 0,
 				"alpha_test_enable" 		: 0,
 				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 128,
-				"blend_mode" 				: "none"
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "add"
 			}
 		},
 
+		{
+			"type"			: "ScnShader",
+			"name"			: "drone",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/grid.glslv",
+				"fragment" 		: "Content/Source/grid.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "drone",
+
+			// Shader
+			"shader"		: "drone",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "drone0"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
+		
 		{
 			"type"		: "ScnModel",
 			"name"		: "cube",
@@ -142,6 +184,12 @@
 			"type"		: "ScnModel",
 			"name"		: "grid0",
 			"source"	: "Content/Source/grid0.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "drone0",
+			"source"	: "Content/Source/drone_export.obj"
 		},
 
 		/////////////////////////////////////////////////////////////// 
@@ -197,7 +245,7 @@
 			"components" : [
 				{
 					"type"			: "ScnModelComponent",
-					"model"			: "default.cube:ScnModel",
+					"model"			: "default.drone0:ScnModel",
 					"layer"			: 0
 				},
 
@@ -228,11 +276,13 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
+			/*
 				{
 					"type"			: "ScnModelComponent",
 					"model"			: "default.cube:ScnModel",
 					"layer"			: 0
 				},
+				*/
 
 				{
 					"type"			: "GaEnemyComponent"

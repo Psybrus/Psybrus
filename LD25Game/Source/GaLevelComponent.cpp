@@ -32,12 +32,12 @@ void GaLevelComponent::update( BcReal Tick )
 	Super::update( Tick );
 
 	static BcReal Ticker = 0.0f;
-	Ticker += Tick;
+	Ticker += Tick * 2.0f;
 	BcMat4d Matrix;
 	//Matrix.rotation( BcVec3d( Ticker * 0.3, Ticker * 0.1, Ticker * 0.2 ) );
 	getParentEntity()->setMatrix( Matrix );
 
-	LevelMaterial_->setParameter( UVScrollingParam_, BcVec4d( 0.0f, Ticker, 0.0f, 0.0f ) );
+	LevelMaterial_->setParameter( UVScrollingParam_, BcVec4d( 0.0f, -Ticker, 0.0f, 0.0f ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

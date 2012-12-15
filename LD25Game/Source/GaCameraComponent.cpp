@@ -32,7 +32,8 @@ void GaCameraComponent::update( BcReal Tick )
 	Super::update( Tick );
 
 	BcMat4d Matrix;
-	Matrix.translation( BcVec3d( 0.0f, 0.0f, -20.0f ) );
+	Matrix.rotation( BcVec3d( BcPIDIV2 - ( BcPI / 16.0f ), 0.0f, 0.0f ) );
+	Matrix.translation( BcVec3d( 0.0f, -2.0f, -1.0f ) );
 	getParentEntity()->setMatrix( Matrix );
 }
 

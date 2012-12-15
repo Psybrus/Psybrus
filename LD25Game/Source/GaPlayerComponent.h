@@ -61,10 +61,23 @@ private:
 			return A.Value_ > B.Value_;
 		}
 	};
-
+	
 	std::vector< BcF32 >				InputBuffer_;
 	std::vector< BcF32 >				AutocorrelationBuffer_;
 	std::vector< TPeak >				AutocorrelationPeaks_;
+
+	BcVec3d								Position_;
+	BcVec3d								TargetPosition_;
+
+	BcReal								SmoothedEstimatedPitch_;
+
+	BcReal								LockEstimatedPitch_;
+	BcReal								LockTimer_;
+	BcReal								MaxLockTime_;
+	BcReal								LockCooldownTimer_;
+	BcReal								MaxCooldownTime_;
+	
+	BcReal								LastDecidingPitch_;
 };
 
 #endif
