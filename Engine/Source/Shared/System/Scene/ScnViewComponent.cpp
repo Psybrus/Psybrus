@@ -81,12 +81,16 @@ void ScnViewComponent::initialise()
 {
 	// NULL internals.
 	//pHeader_ = NULL;
+
+	setRenderMask( BcErrorCode );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV )
 {
+	initialise();
+
 	Header_.X_ = X;
 	Header_.Y_ = Y;
 	Header_.Width_ = Width;
@@ -206,6 +210,20 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	
 	// Set viewport.
 	pFrame->setViewport( Viewport_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderMask
+void ScnViewComponent::setRenderMask( BcU32 RenderMask )
+{
+	RenderMask_ = RenderMask;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderMask
+const BcU32 ScnViewComponent::getRenderMask() const
+{
+	return RenderMask_;
 }
 
 //////////////////////////////////////////////////////////////////////////

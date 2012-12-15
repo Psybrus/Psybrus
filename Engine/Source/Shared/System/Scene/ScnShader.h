@@ -23,11 +23,14 @@
 // eScnShaderPermutationFlags
 enum eScnShaderPermutationFlags
 {
-	// Base implementations.
+	// Exclusive base implementations.
 	scnSPF_2D						= 0x00000001,		// 2D.
 	scnSPF_3D						= 0x00000002,		// 3D.
+	scnSPF_EXCLUSIVE = scnSPF_2D | scnSPF_3D,
 	
-	//
+	// Vertex processing.
+	scnSPF_SKINNED					= 0x00000010,		// Skinned mesh.
+	scnSPF_MORPH					= 0x00000020,		// Morph mesh.
 	
 };
 

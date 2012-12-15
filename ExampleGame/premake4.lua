@@ -23,6 +23,7 @@ project "ExampleGame"
    			"External_glew",
    			"External_jsoncpp",
    			"External_libb64",
+            "External_mongoose",
    			"External_ogg",
    			"External_png",
    			"External_squish",
