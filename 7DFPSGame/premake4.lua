@@ -5,7 +5,10 @@ project "7FPSGame"
 	includedirs { "./Source/", "../Engine/Source/Shared/", "../Engine/Source/Platforms/Windows/" }
 
 	-- External includes.
-	includedirs { "../External/jsoncpp/include", "../External/portaudio/include" }
+	includedirs { 
+      "../External/jsoncpp/include", 
+      "../External/portaudio/include"
+   }
 
 	configuration "windows"
    		links {
@@ -25,6 +28,7 @@ project "7FPSGame"
    			"External_libb64",
             "External_mongoose",
    			"External_ogg",
+            "External_pcre",
    			"External_png",
             "External_portaudio",
    			"External_squish",

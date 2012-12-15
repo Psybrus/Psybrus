@@ -15,8 +15,14 @@
 
 #include "System/Content/CsCore.h"
 
+#include "Base/BcRegex.h"
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Regex for resource references (thanks amodo!)
+BcRegex GRegex_Package_Resource_Type( "^\\$\\(((.*)\\.(.*):(.*))\\)" );	// Matches "$(Package.Resource:Type)"
+BcRegex GRegex_Resource_Type( "^\\$\\(((.*):(.*))\\)" );					// Matches "$(Resource:Type)"
 
 #if PSY_SERVER
 
