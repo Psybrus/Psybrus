@@ -314,7 +314,20 @@ void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
 	ScnMaterialRef MaterialRef;
 	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
-	initialise( MaterialRef, BcErrorCode );
+
+	BcU32 PermutationFlags = 0;
+	const BcChar* pPermutation = Object[ "permutation" ].asCString();
+
+	if( BcStrCompare( pPermutation, "2d" ) )
+	{
+		PermutationFlags = scnSPF_2D;
+	}
+	else if( BcStrCompare( pPermutation, "3d" ) )
+	{
+		PermutationFlags = scnSPF_3D;
+	}
+
+	initialise( MaterialRef, PermutationFlags );
 }
 
 //////////////////////////////////////////////////////////////////////////

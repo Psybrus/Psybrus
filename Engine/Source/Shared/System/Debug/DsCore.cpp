@@ -126,6 +126,14 @@ void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 De
 	Output += *Entity->getName();
 	Output += "</li>";
 
+	// Parent entity.
+	Output += "<ul>";
+	Output += "<li>";
+	Output += "Parent Entity: ";
+	Output += Entity->getParentEntity().isValid() ? *Entity->getParentEntity()->getName() : "NULL";
+	Output += "</li>";
+	Output += "</ul>";
+
 	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
 	{
 		ScnComponentRef Component( Entity->getComponent( Idx ) );
@@ -147,8 +155,9 @@ void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 De
 // cmdScene_Component
 void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output, BcU32 Depth )
 {
-	// Component name.
 	Output += "<ul>";
+
+	// Component name.
 	Output += "<li>";
 	Output += "Component: ";
 	Output += *Component->getName();
@@ -156,6 +165,15 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 	Output += *Component->getType();
 	Output += ")";
 	Output += "</li>";
+
+	// Parent entity.
+	Output += "<ul>";
+	Output += "<li>";
+	Output += "Parent Entity: ";
+	Output += Component->getParentEntity().isValid() ? *Component->getParentEntity()->getName() : "NULL";
+	Output += "</li>";
+	Output += "</ul>";
+
 	Output += "</ul>";
 }
 
