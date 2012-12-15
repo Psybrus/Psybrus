@@ -475,7 +475,7 @@ void GaWorldPressureComponent::updateSimulation()
 
 		{
 			BcScopedLogTimer ScopedTimer(" - Add random noise");
-			for( BcU32 Idx = 0; Idx < 2; ++Idx )
+			for( BcU32 Idx = 0; Idx < 16; ++Idx )
 			{
 				BcU32 RandX = BcRandom::Global.randRange( 1, Width_ - 2 );
 				BcU32 RandY = BcRandom::Global.randRange( 1, Height_ - 2 );
