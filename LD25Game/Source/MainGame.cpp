@@ -19,8 +19,6 @@
 #include "GaCameraComponent.h"
 #include "GaPaddleComponent.h"
 
-#include "IntegrationWwise.h"
-
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
 PsySetupParams GPsySetupParams( "Psybrus Samples", psySF_GAME_DEV, 1.0f / 60.0f );	
@@ -76,8 +74,6 @@ void PsyGameRegisterResources()
 	CsCore::pImpl()->registerResource< GaBallComponent >();
 	CsCore::pImpl()->registerResource< GaCameraComponent >();
 	CsCore::pImpl()->registerResource< GaPaddleComponent >();
-
-	IntegrationWwise_Register();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +83,4 @@ void PsyGameUnRegisterResources()
 	CsCore::pImpl()->unregisterResource< GaBallComponent >();
 	CsCore::pImpl()->unregisterResource< GaCameraComponent >();
 	CsCore::pImpl()->unregisterResource< GaPaddleComponent >();
-
-	IntegrationWwise_Unregister();
 }

@@ -13,9 +13,6 @@
 
 #include "GaCameraComponent.h"
 
-#include "System/Audiokinetic/AkEvents.h"
-#include "GeneratedSoundBanks/Wwise_IDs.h"
-
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaCameraComponent );
@@ -47,7 +44,7 @@ void GaCameraComponent::update( BcReal Tick )
 	static BcBool StartMusic = BcTrue;
 	if( StartMusic )
 	{
-		getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::MUSIC_PLAY ), BcFalse );
+		//getParentEntity()->publish( akEVT_CORE_POST, AkEventPost( AK::EVENTS::MUSIC_PLAY ), BcFalse );
 		StartMusic = BcFalse;
 	}
 }
