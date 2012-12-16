@@ -104,6 +104,9 @@ private:
 	ScnMaterialComponentRef				MaterialComponent_;
 	BcU32								WorldTransformParam_;
 
+	//
+	BcBool								IsLocalSpace_;
+
 	// UV bounds.
 	std::vector< BcVec4d >				UVBounds_;
 

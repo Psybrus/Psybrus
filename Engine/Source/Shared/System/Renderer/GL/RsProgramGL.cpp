@@ -53,6 +53,8 @@ void RsProgramGL::create()
 	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
 	{
 		glAttachShader( Handle, ppShaders_[ Idx ]->getHandle< GLuint >() );
+
+		//ppShaders_[ Idx ]->logShader();
 	}
 	
 	// Bind default vertex attributes.
@@ -403,7 +405,6 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
 		ParameterBufferSize_ += Bytes;
 		
 		// Log.
-		BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );
-
+		//BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );
 	}
 }
