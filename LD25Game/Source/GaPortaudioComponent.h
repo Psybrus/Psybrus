@@ -58,7 +58,7 @@ private:
 
 	static BcAtomicU32					GlobalPaRefCount_;
 
-	BcMutex								InputBufferLock_;
+	mutable BcMutex						InputBufferLock_;
 	std::vector< BcF32 >				InputBuffer_;
 
 };

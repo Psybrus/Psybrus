@@ -15,14 +15,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-#if PSY_DEBUG
 const BcU32 GBufferProcessingSize = 512;
-#else
-const BcU32 GBufferProcessingSize = 1024;
-#endif
 
-const BcReal GWidthPitch = 300.0f;
-const BcReal GMiddlePitch = 1500.0f;
+const BcReal GWidthPitch = 150.0f;
+const BcReal GMiddlePitch = 1700.0f;
+
+BcBool GaPlayerComponent::DoneTutorial_ = BcFalse;
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -44,6 +42,14 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 
 	PitchLocked_ = 0.0f;
 	NoiseLocked_ = 0.0f;
+	MaxHealth_ = 30.0f;
+	Health_ = MaxHealth_;
+
+	AutocorrelationBuffer_ = std::vector< BcF32 >( GBufferProcessingSize );
+
+	TutorialGoToLeft_ = BcFalse;
+	TutorialGoToRight_ = BcFalse;
+	TutorialShoot_ = BcFalse;
 
 }
 
@@ -61,6 +67,8 @@ void GaPlayerComponent::update( BcReal Tick )
 	BcBool IsLoudEnoughToAccept = BcFalse;
 	BcBool GotPitchLock = BcFalse;
 	BcBool GotNoiseLock = BcFalse;
+	BcBool TutPitchLock = BcFalse;
+	BcBool TutNoiseLock = BcFalse;
 	
 	// Grab and process the buffers.
 	BcReal AudioTick = 0.0f;
@@ -82,7 +90,7 @@ void GaPlayerComponent::update( BcReal Tick )
 		// Analyze audio.
 		analyzeAudio( EstimatedPitch, PeriodSD, RMS );
 
-		if( RMS > 0.05f )
+		if( RMS > 0.026f )
 		{
 			IsLoudEnoughToAccept = BcTrue;
 		}
@@ -95,7 +103,7 @@ void GaPlayerComponent::update( BcReal Tick )
 				SmoothedEstimatedPitch_ = ( 0.1f * EstimatedPitch ) + ( 0.9f * SmoothedEstimatedPitch_ );
 				GotPitchLock = BcTrue;
 			}
-			else if ( PeriodSD > 64.0f )
+			else if ( PeriodSD > 58.0f )
 			{
 				GotNoiseLock = BcTrue;
 			}
@@ -117,11 +125,19 @@ void GaPlayerComponent::update( BcReal Tick )
 			{
 				if( PitchLocked_ >= NoiseLocked_ )
 				{
-					onPitchLock( SmoothedEstimatedPitch_ );
+					if( Health_ > 0.0f )
+					{
+						onPitchLock( SmoothedEstimatedPitch_ );
+						TutPitchLock = BcTrue;
+					}
 				}
 				else
 				{
-					onNoiseLock();
+					if( Health_ > 0.0f )
+					{
+						onNoiseLock();
+						TutNoiseLock = BcTrue;
+					}
 				}
 
 				PitchLocked_ = 0.0f;
@@ -138,43 +154,67 @@ void GaPlayerComponent::update( BcReal Tick )
 			}
 		}
 	}
-	
-	// Debug render waveform.
-	Canvas_->clear();
-	ScnMaterialComponentRef MaterialComponent( getParentEntity()->getComponentByType<ScnMaterialComponent>( 0 ) );
-	Canvas_->setMaterialComponent( MaterialComponent );
+
+	// Movement.
+	Position_ = ( Position_ * 0.975f ) + ( TargetPosition_ * 0.025f );
+
+	// Roll.
+	BcReal Roll = ( TargetPosition_.x() - Position_.x() ) * 0.2f;
+
+	// Hacky floaty.
+	static BcReal Ticker = 0.0f;
+	Ticker += Tick;
+	BcMat4d Matrix;
+	BcVec3d FinalPosition = Position_ + BcVec3d( BcSin( Ticker ) * 0.05f, 0.0f, BcCos( Ticker * 0.7f ) * 0.05f );
+	Matrix.rotation( BcVec3d( BcSin( Ticker ) * 0.01f, Roll + BcCos( Ticker * 0.9f ) * 0.02f, 0.0f ) );
+	Matrix.translation( FinalPosition );
+	getParentEntity()->setMatrix( Matrix );
+
+	particleEngine( BcVec3d( -0.1f, -0.15f, -0.05f ) );
+	particleEngine( BcVec3d(  0.1f, -0.15f, -0.05f ) );
+
+
+	GaEventPosition Event;
+	Event.pSender_ = this;
+	Event.Position_ = Position_;
+	getParentEntity()->getParentEntity()->publish( gaEVT_PLAYER_POSITION, Event );
 
 	OsClient* pClient = OsCore::pImpl()->getClient( 0 );
 	BcReal HW = static_cast< BcReal >( pClient->getWidth() ) / 2.0f;
 	BcReal HH = static_cast< BcReal >( pClient->getHeight() ) / 2.0f;
 	BcReal AspectRatio = HW / HH;
-		
-	BcMat4d Ortho;
-	Ortho.orthoProjection( -HW, HW, HH, -HH, -1.0f, 1.0f );
-		
-	Canvas_->pushMatrix( Ortho );
 
-#if 0
+	// Debug render waveform.
+	BcReal Width = HW;
+	BcReal YOffset = HH - 32.0f;
+	BcReal HealthSize = BcClamp( Health_ / MaxHealth_, 0.0f, 1.0f ) * Width;
+	Canvas_->setMaterialComponent( DefaultMaterial_ );
+	Canvas_->drawSpriteCentered( BcVec2d( 0.0f, YOffset ), BcVec2d( Width + 4.0f, 18.0f ), 0, RsColour::BLACK, 8 );
+	Canvas_->drawLineBoxCentered( BcVec2d( 0.0f, YOffset ), BcVec2d( Width + 4.0f, 18.0f ), RsColour::WHITE, 9 );
+	Canvas_->drawSpriteCentered( BcVec2d( 0.0f, YOffset ), BcVec2d( HealthSize, 14.0f ), 0, RsColour::GREEN, 11 );
+
 	{
+
 	
-		BcReal IncrementOnX = ( 2.0f * HW ) / static_cast< BcReal >( InputBuffer_.size() );
+		BcReal IncrementOnX = ( Width ) / static_cast< BcReal >( InputBuffer_.size() );
 		BcReal AccumulatorX;
 		BcVec2d PrevPosition;
 		BcVec2d CurrPosition;
 		
-		AccumulatorX = -HW;
-		PrevPosition = BcVec2d( -HW, 0.0f );
-		CurrPosition = BcVec2d( -HW, 0.0f );
+		AccumulatorX = -Width * 0.5f;
+		PrevPosition = BcVec2d( AccumulatorX, YOffset );
+		CurrPosition = BcVec2d( AccumulatorX, YOffset );
 		for( BcU32 Idx = 0; Idx < InputBuffer_.size(); ++Idx )
 		{
 			BcReal FrameValue = InputBuffer_[ Idx ];
 
-			CurrPosition = BcVec2d( AccumulatorX, FrameValue * HH );
-			Canvas_->drawLine( PrevPosition, CurrPosition, RsColour::GREEN, 0 );
+			CurrPosition = BcVec2d( AccumulatorX, YOffset + FrameValue * 64.0f );
+			Canvas_->drawLine( PrevPosition, CurrPosition, RsColour( 1.0f, 0.0f, 0.0f, 0.75f ), 15 );
 			PrevPosition = CurrPosition;
 			AccumulatorX += IncrementOnX;
 		}
 
+#if 0
 		AccumulatorX = -HW;
 		PrevPosition = BcVec2d( -HW, 0.0f );
 		CurrPosition = BcVec2d( -HW, 0.0f );
@@ -199,30 +239,22 @@ void GaPlayerComponent::update( BcReal Tick )
 				Canvas_->drawLine( PrevPosition, CurrPosition, RsColour::BLUE, 0 );
 			}
 		}
-	}
 #endif 
+	}
+	
+	if( DoneTutorial_ == BcFalse )
+	{
+		
+	}
 
-	// Movement.
-	Position_ = ( Position_ * 0.975f ) + ( TargetPosition_ * 0.025f );
-
-	// Hacky floaty.
-	static BcReal Ticker = 0.0f;
-	Ticker += Tick;
-	BcMat4d Matrix;
-	BcVec3d FinalPosition = Position_ + BcVec3d( BcSin( Ticker ) * 0.05f, 0.0f, BcCos( Ticker * 0.7f ) * 0.05f );
-	Matrix.rotation( BcVec3d( BcSin( Ticker ) * 0.01f, BcCos( Ticker * 0.9f ) * 0.02f, 0.0f ) );
-	Matrix.translation( FinalPosition );
-	getParentEntity()->setMatrix( Matrix );
-
-	particleEngine( BcVec3d( -0.1f, -0.18f, -0.05f ) );
-	particleEngine( BcVec3d(  0.1f, -0.18f, -0.05f ) );
-
+#if 0
 	BcChar Buffer[ 2048 ];
 	BcSPrintf( Buffer, "Smoothed Estimated Pitch: %f\nEstimated Pitch: %f hz\nPeriod SD: %f\nRMS: %f\n%s\n%s\n%s", SmoothedEstimatedPitch_, EstimatedPitch, PeriodSD, RMS, 
 		IsLoudEnoughToAccept ? "LOUD ENOUGH TO USE" : "",
 		GotPitchLock ? "GOT PITCH LOCK" : "",
 		GotNoiseLock ? "IS NOISE" : "" );
 	Font_->draw( Canvas_, BcVec2d( -HW + 32.0f, -HH + 32.0f ), Buffer, RsColour::WHITE, BcFalse );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -232,6 +264,9 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Don't forget to attach!
 	Super::onAttach( Parent );
+	
+	// Grab default material.
+	DefaultMaterial_ = Parent->getComponentByType< ScnMaterialComponent >( 0 );
 
 	// Grab port audio component.
 	PortaudioComponent_ = Parent->getComponentByType< GaPortaudioComponent >( 0 );
@@ -244,6 +279,22 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Grab particle system.
 	ShipParticles_ = Parent->getComponentByType< ScnParticleSystemComponent >( 0 );
+
+	// Grab particle system (want solid one).
+	GameParticles_ = Parent->getParentEntity()->getComponentByType< ScnParticleSystemComponent >( 1 );
+	BcAssert( GameParticles_.isValid() );
+
+	GaEventPosition::Delegate OnProjectilePosition = GaEventPosition::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onProjectilePosition >( this );
+	getParentEntity()->getParentEntity()->subscribe( gaEVT_PROJECTILE_POSITION, OnProjectilePosition );
+
+	//
+	/*
+	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseMove >( this );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
+
+	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaPlayerComponent, &GaPlayerComponent::onMouseDown >( this );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
+	//*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,6 +302,20 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void GaPlayerComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	DefaultMaterial_ = NULL;
+	PortaudioComponent_ = NULL;
+	Canvas_ = NULL;
+	Font_ = NULL;
+	ShipParticles_ = NULL;
+	GameParticles_ = NULL;
+
+	if( getParentEntity().isValid() && getParentEntity()->getParentEntity().isValid() )
+	{
+		getParentEntity()->getParentEntity()->unsubscribeAll( this );
+	}
+
+	OsCore::pImpl()->unsubscribeAll( this );
+
 	// Don't forget to detach!
 	Super::onDetach( Parent );
 }
@@ -259,19 +324,20 @@ void GaPlayerComponent::onDetach( ScnEntityWeakRef Parent )
 // autoCorrelateInputBuffer
 void GaPlayerComponent::autoCorrelateInputBuffer()
 {
-	AutocorrelationBuffer_.clear();
-	AutocorrelationBuffer_.reserve( GBufferProcessingSize );
-	
 	if( InputBuffer_.size() > 0 )
 	{
-		for( BcU32 IdxA = 0; IdxA < GBufferProcessingSize; ++IdxA )
+		BcF32* pInputBuffer = &InputBuffer_[ 0 ];
+		BcF32* pAutocorrelationBuffer = &AutocorrelationBuffer_[ 0 ];
+		BcU32 InputBufferSize = InputBuffer_.size();
+
+		for( BcU32 IdxA = 0; IdxA < InputBufferSize; ++IdxA )
 		{
-			BcReal Sum = 0.0f;
-			for( BcU32 IdxB = 0; IdxB < GBufferProcessingSize - IdxA; ++IdxB )
+			register BcReal Sum = 0.0f;
+			for( BcU32 IdxB = 0; IdxB < InputBufferSize - IdxA; ++IdxB )
 			{
-				Sum += InputBuffer_[ IdxB ] * InputBuffer_[ IdxB + IdxA ];
+				Sum += pInputBuffer[ IdxB ] * pInputBuffer[ IdxB + IdxA ];
 			}
-			AutocorrelationBuffer_.push_back( Sum );
+			pAutocorrelationBuffer[ IdxA ] = Sum;
 		}
 	}
 }
@@ -386,26 +452,45 @@ void GaPlayerComponent::analyzeAudio( BcReal& Pitch, BcReal& PeriodSD, BcReal& R
 // onPitchLock
 void GaPlayerComponent::onPitchLock( BcReal Pitch )
 {
-	BcPrintf( "GOT PITCH: %f\n", Pitch );
-
 	const BcReal Width = 1.5f;
 	BcVec3d LeftMost( -Width, 0.0f, 0.0f );
 	BcVec3d RightMost( Width, 0.0f, 0.0f );
 
-	Pitch = ( Pitch - ( GMiddlePitch - GWidthPitch ) ) / ( GWidthPitch * 2 );
-	Pitch = BcClamp( Pitch, 0.0f, 1.0f );
+	BcReal Multipliers[2] = 
+	{
+		1.0f,
+		0.5f,
+	};
 
-	TargetPosition_.lerp( LeftMost, RightMost, Pitch );
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		BcReal Multiplier = Multipliers[ Idx ];
+		BcReal MiddlePitch = GMiddlePitch * Multiplier;
+		BcReal WidthPitch = GWidthPitch * Multiplier;
+		BcReal DoubleWidth = ( WidthPitch * 2.0f );
+		BcReal MinRange = ( MiddlePitch - DoubleWidth );
+		BcReal MaxRange = ( MiddlePitch + DoubleWidth );
+
+		if( Pitch >= MinRange && Pitch <= MaxRange )
+		{
+			Pitch = ( Pitch - ( MiddlePitch - WidthPitch ) ) / ( DoubleWidth );
+			Pitch = BcClamp( Pitch, 0.0f, 1.0f );
+			TargetPosition_.lerp( LeftMost, RightMost, Pitch );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onNoiseLock
 void GaPlayerComponent::onNoiseLock()
 {
-	BcPrintf( "GOT NOISE\n" );
-
 	particleLaser( BcVec3d( -0.1f, 0.18f, -0.14f ) );
 	particleLaser( BcVec3d(  0.1f, 0.18f, -0.14f ) );
+
+	GaEventShoot Event;
+	Event.pSender_ = this;
+	Event.Position_ = Position_;
+	getParentEntity()->getParentEntity()->publish( gaEVT_PLAYER_SHOOT, Event );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -495,11 +580,87 @@ void GaPlayerComponent::particleLaser( BcVec3d Position )
 
 			pParticle->TextureIndex_ = 1;
 			pParticle->CurrentTime_ = 0.0f;
-			pParticle->MaxTime_ = 0.1f;
+			pParticle->MaxTime_ = 0.2f;
 			pParticle->Alive_ = BcTrue;		
 		}
 
 		Position += PositionIncrement;
 	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+// particleHit
+void GaPlayerComponent::particleHit( BcVec3d Position )
+{
+	for( BcU32 Idx = 0; Idx < 32; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( GameParticles_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position;
+			pParticle->Velocity_ = BcVec3d( 0.0f, -1.1f, 0.0f ) + ( BcRandom::Global.randVec3().normal() * BcRandom::Global.randReal() ) ;
+			pParticle->Acceleration_ = BcVec3d( 0.0f, -0.1f, 0.0f );
+
+			pParticle->Scale_ = BcVec2d( 0.1f, 0.1f );
+			pParticle->MinScale_ = BcVec2d( 0.1f, 0.1f );
+			pParticle->MaxScale_ = BcVec2d( 0.9f, 0.9f );
+
+			pParticle->Rotation_ = BcRandom::Global.randReal();
+			pParticle->RotationMultiplier_ = BcRandom::Global.randReal();
+
+			pParticle->Colour_ = RsColour( 1.0f, 0.01f, 0.01f, 1.0f );
+			pParticle->MinColour_ = RsColour( 1.0f, 0.01f, 0.01f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
+
+			pParticle->TextureIndex_ = 2;
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = 0.9f;
+			pParticle->Alive_ = BcTrue;		
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// onMouseMove
+eEvtReturn GaPlayerComponent::onMouseMove( EvtID ID, const OsEventInputMouse& Event )
+{
+	BcReal Pitch = ( Event.NormalisedX_ * GWidthPitch ) + GMiddlePitch;
+
+	BcPrintf( "NX: %f\n", Event.NormalisedX_ );
+
+	onPitchLock( Pitch );	
+	
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onMouseDown
+eEvtReturn GaPlayerComponent::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
+{
+	onNoiseLock();	
+	
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onProjectilePosition
+eEvtReturn GaPlayerComponent::onProjectilePosition( EvtID ID, const GaEventPosition& Event )
+{
+	if( ( Position_ - Event.Position_ ).magnitude() < 0.5f )
+	{
+		particleHit( Position_ );
+
+		Health_ -= 5.0f;
+
+		if( Health_ <= 0.0f )
+		{
+			getParentEntity()->getParentEntity()->publish( gaEVT_PLAYER_DIE, EvtNullEvent() );
+		}
+
+		Event.pSender_->getParentEntity()->detachFromParent();
+	}
+
+	return evtRET_PASS;
 }

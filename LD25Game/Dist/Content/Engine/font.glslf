@@ -4,7 +4,7 @@ uniform sampler2D aDiffuseTex;
 
 //uniform vec2 aAlphaTestStep;
 
-vec2 aAlphaTestStep = vec2( 0.45, 0.55 );
+vec2 aAlphaTestStep = vec2( 0.5, 0.75 );
 
 vec4 shaderMain()
 {						

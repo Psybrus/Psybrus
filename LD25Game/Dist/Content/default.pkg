@@ -5,10 +5,10 @@
 			"type"			: "ScnFont",
 			"name"			: "default",
 
-			"source"		: "EngineContent/FontSource/5thagent.ttf",
+			"source"		: "Content/Source/galaxy_1.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 12,
-			"spread"		: 4
+			"nominalsize"	: 22,
+			"spread"		: 8
 		},
 
 		{
@@ -23,6 +23,20 @@
 			"name"			: "grid0",
 
 			"source"		: "Content/Source/grid0.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "goat0",
+
+			"source"		: "Content/Source/goat0.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "rock",
+
+			"source"		: "Content/Source/rock_export.png"
 		},
 
 		{
@@ -152,6 +166,41 @@
 
 		{
 			"type"			: "ScnShader",
+			"name"			: "particlesolid",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/particlesolid.glslv",
+				"fragment" 		: "Content/Source/particlesolid.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "particlesolid",
+
+			// Shader
+			"shader"		: "particlesolid",
+ 
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "particle"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
 			"name"			: "grid",
 
 			"shaders"		: {
@@ -219,7 +268,77 @@
 				"blend_mode" 				: "none"
 			}
 		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "goat",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/grid.glslv",
+				"fragment" 		: "Content/Source/grid.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "goat",
+
+			// Shader
+			"shader"		: "goat",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "goat0"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
 		
+		{
+			"type"			: "ScnShader",
+			"name"			: "rock",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/grid.glslv",
+				"fragment" 		: "Content/Source/grid.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "rock",
+
+			// Shader
+			"shader"		: "rock",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "rock"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
+
 		{
 			"type"		: "ScnModel",
 			"name"		: "cube",
@@ -230,6 +349,18 @@
 			"type"		: "ScnModel",
 			"name"		: "grid0",
 			"source"	: "Content/Source/grid0.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "goat0",
+			"source"	: "Content/Source/goat_export.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "rock",
+			"source"	: "Content/Source/rock_export.obj"
 		},
 
 		{
@@ -275,7 +406,9 @@
 				},
 
 				{
-					"type"			: "GaGameInfoComponent"
+					"type"			: "ScnFontComponent",
+					"font"			: "default.default:ScnFont",
+					"material"		: "default.font:ScnMaterial"
 				},
 
 				{
@@ -283,6 +416,17 @@
 					"noofparticles"	: 2048,
 					"material"		: "default.particle:ScnMaterial",
 					"localspace"	: true
+				},
+
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 2048,
+					"material"		: "default.particlesolid:ScnMaterial",
+					"localspace"	: true
+				},
+
+				{
+					"type"			: "GaGameInfoComponent"
 				},
 
 				{
@@ -297,28 +441,9 @@
 
 			"components" : [
 				{
-					"type"			: "ScnModelComponent",
-					"model"			: "default.drone0:ScnModel",
-					"layer"			: 0
-				},
-
-				{
 					"type"			: "ScnMaterialComponent",
 					"material"		: "default.default:ScnMaterial",
 					"permutation"	: "2d"
-				},
-
-				{
-					"type"			: "ScnFontComponent",
-					"font"			: "default.default:ScnFont",
-					"material"		: "default.font:ScnMaterial"
-				},
-
-				{
-					"type"			: "ScnParticleSystemComponent",
-					"noofparticles"	: 8192,
-					"material"		: "default.particle:ScnMaterial",
-					"localspace"	: true
 				},
 
 				{
@@ -327,6 +452,19 @@
 
 				{
 					"type"			: "GaPlayerComponent"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "default.drone0:ScnModel",
+					"layer"			: 0
+				},
+
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 8192,
+					"material"		: "default.particle:ScnMaterial",
+					"localspace"	: true
 				}
 			]
 		},
@@ -336,16 +474,37 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
-			/*
 				{
-					"type"			: "ScnModelComponent",
-					"model"			: "default.cube:ScnModel",
-					"layer"			: 0
+					"type"			: "ScnMaterialComponent",
+					"material"		: "default.default:ScnMaterial",
+					"permutation"	: "2d"
 				},
-				*/
 
 				{
 					"type"			: "GaEnemyComponent"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "default.goat0:ScnModel",
+					"layer"			: 0
+				}
+			]
+		},
+
+		{
+			"name"		:		"RockEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"			: "GaProjectileComponent"
+				},
+
+				{
+					"type"			: "ScnModelComponent",
+					"model"			: "default.rock:ScnModel",
+					"layer"			: 0
 				}
 			]
 		},
