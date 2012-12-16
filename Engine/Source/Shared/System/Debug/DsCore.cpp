@@ -212,10 +212,10 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 // mongooseCallback
 void* DsCore::mongooseCallback( enum mg_event Event, struct mg_connection* pConn )
 {
-	BcScopedLock< BcMutex > Lock( Lock_ );
-
 	if( Event == MG_NEW_REQUEST )
 	{
+		BcScopedLock< BcMutex > Lock( Lock_ );
+
 		// Dispatch this event to the game thread.
 		GameThreadWaitFence_.increment();
 		BcDelegate< void (*)( enum mg_event, struct mg_connection* ) > Delegate( BcDelegate< void (*)( enum mg_event, struct mg_connection* ) >::bind< DsCore, &DsCore::gameThreadMongooseCallback >( this ) );

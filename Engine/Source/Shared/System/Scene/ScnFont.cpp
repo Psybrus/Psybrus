@@ -658,6 +658,14 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawCentered
+BcVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
+{
+	BcVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
+	return draw( Canvas, Position - Size * 0.5f, String, Colour, BcFalse, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getMaterialComponent
 ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 {
