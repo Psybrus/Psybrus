@@ -46,9 +46,9 @@ eSysStateReturn GaTopState::enter()
 void GaTopState::preMain()
 { 
 	ScnEntityRef ScreenEntity = ScnCore::pImpl()->createEntity( "default", "ScreenEntity", "ScreenEntity_0" );
-	ScnEntityRef GameEntity = ScnCore::pImpl()->createEntity( "default", "GameEntity", "GameEntity_0" );
-
 	ScnCore::pImpl()->addEntity( ScreenEntity );
+
+	ScnEntityRef GameEntity = ScnCore::pImpl()->createEntity( "default", "GameEntity", "GameEntity_0" );
 	ScnCore::pImpl()->addEntity( GameEntity );
 }
 

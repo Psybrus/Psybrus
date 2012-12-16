@@ -16,6 +16,8 @@
 
 #include "Psybrus.h"
 
+#include "GaEvents.h"
+
 #include "GaPortaudioComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,11 +49,18 @@ public:
 
 	void								particleEngine( BcVec3d Position );
 	void								particleLaser( BcVec3d Position );
+	void								particleHit( BcVec3d Position );
+
+	eEvtReturn							onMouseMove( EvtID ID, const OsEventInputMouse& Event );
+	eEvtReturn							onMouseDown( EvtID ID, const OsEventInputMouse& Event );
+	eEvtReturn							onProjectilePosition( EvtID ID, const GaEventPosition& Event );
 
 private:
+	ScnMaterialComponentRef				DefaultMaterial_;
 	GaPortaudioComponentRef				PortaudioComponent_;
 	ScnCanvasComponentRef				Canvas_;
 	ScnParticleSystemComponentRef		ShipParticles_;
+	ScnParticleSystemComponentRef		GameParticles_;
 
 	ScnFontComponentRef					Font_;
 
@@ -89,6 +98,14 @@ private:
 	BcReal								NoiseLocked_;
 	
 	BcReal								LastDecidingPitch_;
+
+	BcReal								MaxHealth_;
+	BcReal								Health_;
+
+	static BcBool						DoneTutorial_;
+	BcBool								TutorialGoToLeft_;
+	BcBool								TutorialGoToRight_;
+	BcBool								TutorialShoot_;
 };
 
 #endif

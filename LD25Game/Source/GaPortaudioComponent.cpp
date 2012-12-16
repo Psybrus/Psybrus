@@ -50,7 +50,7 @@ void GaPortaudioComponent::onAttach( ScnEntityWeakRef Parent )
 		Pa_Initialize();
 	}
 
-	PaError Error = Pa_OpenDefaultStream( &pPaStream_, 1, 1, paFloat32, 44100.0, 2048, &GaPortaudioComponent::StaticStreamCallback, this );
+	PaError Error = Pa_OpenDefaultStream( &pPaStream_, 1, 0, paFloat32, 44100.0, 2048, &GaPortaudioComponent::StaticStreamCallback, this );
 	BcAssertMsg( Error == paNoError, "Can't init port audio." );
 
 	Pa_StartStream( pPaStream_ );
@@ -73,7 +73,6 @@ void GaPortaudioComponent::onDetach( ScnEntityWeakRef Parent )
 		Pa_Terminate();
 	}
 
-
 	// Don't forget to detach!
 	Super::onDetach( Parent );
 }
@@ -82,6 +81,7 @@ void GaPortaudioComponent::onDetach( ScnEntityWeakRef Parent )
 // noofInputFrames
 BcU32 GaPortaudioComponent::noofInputFrames() const
 {
+	BcScopedLock< BcMutex > Lock( InputBufferLock_ );
 	return InputBuffer_.size();
 }
 
@@ -89,6 +89,7 @@ BcU32 GaPortaudioComponent::noofInputFrames() const
 // popInputFrames
 void GaPortaudioComponent::popInputFrames( BcU32 NoofFrames, std::vector< BcF32 >& OutputBuffer )
 {
+	BcScopedLock< BcMutex > Lock( InputBufferLock_ );
 	BcAssert( noofInputFrames() >= NoofFrames );
 	OutputBuffer.reserve( OutputBuffer.size() + NoofFrames );
 

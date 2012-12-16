@@ -22,10 +22,11 @@
 #include "GaLevelComponent.h"
 #include "GaPlayerComponent.h"
 #include "GaPortaudioComponent.h"
+#include "GaProjectileComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "LD25Game", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "Crazy Dr. Banana's pursuit of The Goat of Good", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // OnUpdate
@@ -82,6 +83,7 @@ void PsyGameRegisterResources()
 	CsCore::pImpl()->registerResource< GaLevelComponent >();
 	CsCore::pImpl()->registerResource< GaPlayerComponent >();
 	CsCore::pImpl()->registerResource< GaPortaudioComponent >();
+	CsCore::pImpl()->registerResource< GaProjectileComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -95,4 +97,5 @@ void PsyGameUnRegisterResources()
 	CsCore::pImpl()->unregisterResource< GaLevelComponent >();
 	CsCore::pImpl()->unregisterResource< GaPlayerComponent >();
 	CsCore::pImpl()->unregisterResource< GaPortaudioComponent >();
+	CsCore::pImpl()->unregisterResource< GaProjectileComponent >();
 }

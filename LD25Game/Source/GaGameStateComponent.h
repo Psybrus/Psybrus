@@ -16,6 +16,8 @@
 
 #include "Psybrus.h"
 
+#include "GaEvents.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GaGameStateComponent
 typedef CsResourceRef< class GaGameStateComponent > GaGameStateComponentRef;
@@ -34,7 +36,26 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
+	eEvtReturn							onMouseDown( EvtID ID, const OsEventInputMouse& Event );
+	eEvtReturn							onPlayerDie( EvtID ID, const EvtNullEvent& Event );
+	eEvtReturn							onEnemyDie( EvtID ID, const EvtNullEvent& Event );
+
 private:
+	enum GameState
+	{
+		GS_SPLASH,
+		GS_GAME,
+		GS_WIN,
+		GS_LOSE
+	};
+
+	GameState							GameState_;
+
+	ScnCanvasComponentRef				Canvas_;
+	ScnFontComponentRef					Font_;
+
+	ScnEntityRef						PlayerEntity_;
+	ScnEntityRef						EnemyEntity_;
 
 };
 
