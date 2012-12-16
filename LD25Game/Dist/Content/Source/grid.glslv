@@ -1,5 +1,3 @@
-attribute vec4 aTexCoord0;
-
 uniform vec4 uUVScrolling;
 
 varying vec4 vUVScrolling;

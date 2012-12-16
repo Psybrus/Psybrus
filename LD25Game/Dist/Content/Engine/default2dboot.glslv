@@ -1,6 +1,8 @@
 #version 120
 
 attribute vec4 aPosition;
+attribute vec4 aNormal;
+attribute vec4 aTexCoord0;
 attribute vec4 aColour;
 
 uniform mat4 uClipTransform;

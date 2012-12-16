@@ -22,6 +22,7 @@
 // GaPlayerComponent
 typedef CsResourceRef< class GaPlayerComponent > GaPlayerComponentRef;
 
+
 //////////////////////////////////////////////////////////////////////////
 // GaPlayerComponent
 class GaPlayerComponent:
@@ -40,10 +41,17 @@ public:
 	void								findAutocorrelationPeaks();
 
 	void								analyzeAudio( BcReal& Pitch, BcReal& PeriodSD, BcReal& RMS );
-	
+
+	void								onPitchLock( BcReal Pitch );
+	void								onNoiseLock();
+
+	void								particleEngine( BcVec3d Position );
+	void								particleLaser( BcVec3d Position );
+
 private:
 	GaPortaudioComponentRef				PortaudioComponent_;
 	ScnCanvasComponentRef				Canvas_;
+	ScnParticleSystemComponentRef		ShipParticles_;
 
 	ScnFontComponentRef					Font_;
 
@@ -76,6 +84,9 @@ private:
 	BcReal								MaxLockTime_;
 	BcReal								LockCooldownTimer_;
 	BcReal								MaxCooldownTime_;
+
+	BcReal								PitchLocked_;
+	BcReal								NoiseLocked_;
 	
 	BcReal								LastDecidingPitch_;
 };

@@ -21,9 +21,10 @@ vec4 shaderMain(vec4 inPosition);
 
 void main()
 {
-	vec4 Vertex = aPosition;
-	vec4 TransformedVertex = ( uClipTransform * ( uWorldTransform * Vertex ) );
+	mat3 BillboardTransform = mat3( uInverseViewTransform[0].xyz, uInverseViewTransform[1].xyz, uInverseViewTransform[2].xyz );
+	vec4 Offset = vec4( BillboardTransform * aNormal.xyz, 0.0 );
+	vec4 Vertex = aPosition + Offset;
 	vColour = aColour;
 
-	gl_Position = shaderMain( TransformedVertex );
+	gl_Position = shaderMain( uClipTransform * ( uWorldTransform * Vertex ) );
 }

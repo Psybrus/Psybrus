@@ -18,8 +18,11 @@
 #if PSY_DEBUG
 const BcU32 GBufferProcessingSize = 512;
 #else
-const BcU32 GBufferProcessingSize = 2048;
+const BcU32 GBufferProcessingSize = 1024;
 #endif
+
+const BcReal GWidthPitch = 300.0f;
+const BcReal GMiddlePitch = 1500.0f;
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -34,10 +37,13 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 	SmoothedEstimatedPitch_ = 0.0f;
 
 	LockEstimatedPitch_ = 0.0f;
-	MaxLockTime_ = 100.0f / 1000.0f;
-	MaxCooldownTime_ = 10.0f / 1000.0f;
+	MaxLockTime_ = 200.0f / 1000.0f;
+	MaxCooldownTime_ = 100.0f / 1000.0f;
 	LockTimer_ = MaxLockTime_;
 	LockCooldownTimer_= MaxCooldownTime_;
+
+	PitchLocked_ = 0.0f;
+	NoiseLocked_ = 0.0f;
 
 }
 
@@ -54,7 +60,7 @@ void GaPlayerComponent::update( BcReal Tick )
 	BcReal RMS = 0.0f;
 	BcBool IsLoudEnoughToAccept = BcFalse;
 	BcBool GotPitchLock = BcFalse;
-	BcBool IsNoise = BcFalse;
+	BcBool GotNoiseLock = BcFalse;
 	
 	// Grab and process the buffers.
 	BcReal AudioTick = 0.0f;
@@ -67,7 +73,6 @@ void GaPlayerComponent::update( BcReal Tick )
 	}
 
 	{
-
 		// Autocorrelate.
 		autoCorrelateInputBuffer();
 
@@ -77,7 +82,7 @@ void GaPlayerComponent::update( BcReal Tick )
 		// Analyze audio.
 		analyzeAudio( EstimatedPitch, PeriodSD, RMS );
 
-		if( RMS > 0.025f )
+		if( RMS > 0.05f )
 		{
 			IsLoudEnoughToAccept = BcTrue;
 		}
@@ -92,15 +97,36 @@ void GaPlayerComponent::update( BcReal Tick )
 			}
 			else if ( PeriodSD > 64.0f )
 			{
-				IsNoise = BcTrue;
+				GotNoiseLock = BcTrue;
 			}
 
 			LockTimer_ -= AudioTick;
 			LockCooldownTimer_ = MaxCooldownTime_;
 
+			if( GotPitchLock )
+			{
+				PitchLocked_ += AudioTick;
+			}
+
+			if( GotNoiseLock )
+			{
+				NoiseLocked_ += AudioTick;
+			}
+
 			if( LockTimer_ < 0.0f )
 			{
-				BcPrintf( "Loud enough, decide on game event to use based on if it was pitch or noise.\n" );
+				if( PitchLocked_ >= NoiseLocked_ )
+				{
+					onPitchLock( SmoothedEstimatedPitch_ );
+				}
+				else
+				{
+					onNoiseLock();
+				}
+
+				PitchLocked_ = 0.0f;
+				NoiseLocked_ = 0.0f;
+				LockTimer_ = MaxCooldownTime_;
 			}
 		}
 		else
@@ -128,7 +154,7 @@ void GaPlayerComponent::update( BcReal Tick )
 		
 	Canvas_->pushMatrix( Ortho );
 
-#if 1
+#if 0
 	{
 	
 		BcReal IncrementOnX = ( 2.0f * HW ) / static_cast< BcReal >( InputBuffer_.size() );
@@ -177,23 +203,25 @@ void GaPlayerComponent::update( BcReal Tick )
 #endif 
 
 	// Movement.
-	Position_ = ( Position_ * 0.9f ) + ( TargetPosition_ * 0.1f );
+	Position_ = ( Position_ * 0.975f ) + ( TargetPosition_ * 0.025f );
 
 	// Hacky floaty.
 	static BcReal Ticker = 0.0f;
 	Ticker += Tick;
 	BcMat4d Matrix;
 	BcVec3d FinalPosition = Position_ + BcVec3d( BcSin( Ticker ) * 0.05f, 0.0f, BcCos( Ticker * 0.7f ) * 0.05f );
-	Matrix.rotation( BcVec3d( BcSin( Ticker ) * 0.05f, BcCos( Ticker * 0.9f ) * 0.1f, 0.0f ) );
+	Matrix.rotation( BcVec3d( BcSin( Ticker ) * 0.01f, BcCos( Ticker * 0.9f ) * 0.02f, 0.0f ) );
 	Matrix.translation( FinalPosition );
 	getParentEntity()->setMatrix( Matrix );
 
+	particleEngine( BcVec3d( -0.1f, -0.18f, -0.05f ) );
+	particleEngine( BcVec3d(  0.1f, -0.18f, -0.05f ) );
 
 	BcChar Buffer[ 2048 ];
 	BcSPrintf( Buffer, "Smoothed Estimated Pitch: %f\nEstimated Pitch: %f hz\nPeriod SD: %f\nRMS: %f\n%s\n%s\n%s", SmoothedEstimatedPitch_, EstimatedPitch, PeriodSD, RMS, 
 		IsLoudEnoughToAccept ? "LOUD ENOUGH TO USE" : "",
 		GotPitchLock ? "GOT PITCH LOCK" : "",
-		IsNoise ? "IS NOISE" : "" );
+		GotNoiseLock ? "IS NOISE" : "" );
 	Font_->draw( Canvas_, BcVec2d( -HW + 32.0f, -HH + 32.0f ), Buffer, RsColour::WHITE, BcFalse );
 }
 
@@ -213,6 +241,9 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Grab the font.
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >( 0 );
+
+	// Grab particle system.
+	ShipParticles_ = Parent->getComponentByType< ScnParticleSystemComponent >( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -349,4 +380,126 @@ void GaPlayerComponent::analyzeAudio( BcReal& Pitch, BcReal& PeriodSD, BcReal& R
 	}
 
 	RMS = BcSqrt( SquaredTotal / static_cast< BcReal >( InputBuffer_.size() ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onPitchLock
+void GaPlayerComponent::onPitchLock( BcReal Pitch )
+{
+	BcPrintf( "GOT PITCH: %f\n", Pitch );
+
+	const BcReal Width = 1.5f;
+	BcVec3d LeftMost( -Width, 0.0f, 0.0f );
+	BcVec3d RightMost( Width, 0.0f, 0.0f );
+
+	Pitch = ( Pitch - ( GMiddlePitch - GWidthPitch ) ) / ( GWidthPitch * 2 );
+	Pitch = BcClamp( Pitch, 0.0f, 1.0f );
+
+	TargetPosition_.lerp( LeftMost, RightMost, Pitch );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onNoiseLock
+void GaPlayerComponent::onNoiseLock()
+{
+	BcPrintf( "GOT NOISE\n" );
+
+	particleLaser( BcVec3d( -0.1f, 0.18f, -0.14f ) );
+	particleLaser( BcVec3d(  0.1f, 0.18f, -0.14f ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particleEngine
+void GaPlayerComponent::particleEngine( BcVec3d Position )
+{
+	for( BcU32 Idx = 0; Idx < 12; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ShipParticles_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position;
+			pParticle->Velocity_ = BcVec3d( 0.0f, -0.5f, 0.0f ) + ( BcRandom::Global.randVec3Normal() * 0.05f );
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+
+			pParticle->Scale_ = BcVec2d( 0.1f, 0.1f );
+			pParticle->MinScale_ = BcVec2d( 0.075f, 0.075f );
+			pParticle->MaxScale_ = BcVec2d( 0.0f, 0.0f );
+
+			pParticle->Rotation_ = BcRandom::Global.randReal();
+			pParticle->RotationMultiplier_ = BcRandom::Global.randReal();
+
+			pParticle->Colour_ = RsColour( 0.0f, 0.2f, 0.5f, 1.0f );
+			pParticle->MinColour_ = RsColour( 0.0f, 0.2f, 0.5f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 1.0f, 1.0f, 0.0f, 0.0f );
+
+			pParticle->TextureIndex_ = 1;
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = 0.25f;
+			pParticle->Alive_ = BcTrue;		
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < 1; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ShipParticles_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position;
+			pParticle->Velocity_ = BcVec3d( 0.0f, -0.3f, 0.0f );
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+
+			pParticle->Scale_ = BcVec2d( 0.1f, 0.1f );
+			pParticle->MinScale_ = BcVec2d( 0.02f, 0.02f );
+			pParticle->MaxScale_ = BcVec2d( 0.02f, 0.02f );
+
+			pParticle->Rotation_ = BcRandom::Global.randReal();
+			pParticle->RotationMultiplier_ = BcRandom::Global.randReal();
+
+			pParticle->Colour_ = RsColour( 0.0f, 0.2f, 0.5f, 1.0f );
+			pParticle->MinColour_ = RsColour( 0.0f, 0.0f, 1.0f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
+
+			pParticle->TextureIndex_ = 1;
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = 2.5f;
+			pParticle->Alive_ = BcTrue;		
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// particleEngine
+void GaPlayerComponent::particleLaser( BcVec3d Position )
+{
+	BcVec3d PositionIncrement( 0.0f, 0.02f, 0.0f );
+
+	for( BcU32 Idx = 0; Idx < 256; ++Idx )
+	{
+		ScnParticle* pParticle = NULL;
+		if( ShipParticles_->allocParticle( pParticle ) )
+		{
+			pParticle->Position_ = Position;
+			pParticle->Velocity_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+			pParticle->Acceleration_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+
+			pParticle->Scale_ = BcVec2d( 0.025f, 0.025f );
+			pParticle->MinScale_ = BcVec2d( 0.025f, 0.025f );
+			pParticle->MaxScale_ = BcVec2d( 0.0f, 0.0f );
+
+			pParticle->Rotation_ = BcRandom::Global.randReal();
+			pParticle->RotationMultiplier_ = BcRandom::Global.randReal();
+
+			pParticle->Colour_ = RsColour( 0.5f, 0.01f, 0.01f, 1.0f );
+			pParticle->MinColour_ = RsColour( 0.5f, 0.01f, 0.01f, 1.0f );
+			pParticle->MaxColour_ = RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
+
+			pParticle->TextureIndex_ = 1;
+			pParticle->CurrentTime_ = 0.0f;
+			pParticle->MaxTime_ = 0.1f;
+			pParticle->Alive_ = BcTrue;		
+		}
+
+		Position += PositionIncrement;
+	}
+
 }
