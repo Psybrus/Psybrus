@@ -95,7 +95,7 @@ void RsShaderGL::create()
 					BcPrintf( "=======================================================\n" );
 					BcPrintf( "Error Compiling shader:\n" );
 					BcPrintf( "=======================================================\n" );
-					BcPrintf( "%s\n", pData_ );
+					logShader();
 					BcPrintf( "=======================================================\n" );
 					BcPrintf( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
 					BcPrintf( "=======================================================\n" );
@@ -137,4 +137,11 @@ void RsShaderGL::destroy()
 		glDeleteShader( Handle );
 		setHandle< GLuint >( Handle );
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// logShader
+void RsShaderGL::logShader()
+{
+	BcPrintf( "%s\n", pData_ );
 }

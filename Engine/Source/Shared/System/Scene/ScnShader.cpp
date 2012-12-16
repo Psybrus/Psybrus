@@ -25,7 +25,8 @@
 static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
 {
 	{ scnSPF_2D, NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
-	{ scnSPF_3D, NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" }
+	{ scnSPF_3D, NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
+	{ scnSPF_PARTICLE_3D, NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
 };
 
 #ifdef PSY_SERVER
