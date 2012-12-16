@@ -369,6 +369,16 @@ void ScnCanvasComponent::drawLineBox( const BcVec2d& CornerA, const BcVec2d& Cor
 	drawLine( BcVec2d( CornerA.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerA.y() ), Colour, Layer );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// drawLineBox
+void ScnCanvasComponent::drawLineBoxCentered( const BcVec2d& Position, const BcVec2d& Size, const RsColour& Colour, BcU32 Layer )
+{
+	BcVec2d HalfSize = Size * 0.5f;
+	BcVec2d CornerA = Position - HalfSize;
+	BcVec2d CornerB = Position + HalfSize;
+	drawLineBox( CornerA, CornerB, Colour, Layer );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // drawBox

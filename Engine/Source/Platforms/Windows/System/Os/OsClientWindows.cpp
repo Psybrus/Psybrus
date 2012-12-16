@@ -255,8 +255,8 @@ void OsClientWindows::update()
 			Event.MouseY_ = (BcS16)MousePosition.y - (BcS16)WindowPosition.y;
 			Event.MouseDX_ = MouseDelta_.x();
 			Event.MouseDY_ = MouseDelta_.y();
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.NormalisedX_ = BcReal( (BcS32)Event.MouseX_ - ( (BcS32)getWidth() / 2 ) ) / BcReal( (BcS32)getWidth() / 2 );
+			Event.NormalisedY_ = BcReal( (BcS32)Event.MouseY_ - ( (BcS32)getHeight() / 2 ) ) / BcReal( (BcS32)getHeight() / 2 );
 
 			// Legacy...
 			PrevMouseX_ = Event.MouseX_;
