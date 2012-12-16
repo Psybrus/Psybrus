@@ -7,7 +7,7 @@
 
 			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 20,
+			"nominalsize"	: 12,
 			"spread"		: 4
 		},
 
@@ -30,6 +30,17 @@
 			"name"			: "drone0",
 
 			"source"		: "Content/Source/drone0.png"
+		},
+
+		{
+			"type"			: "ScnTextureAtlas",
+			"name"			: "particle",
+
+			"source"		: [
+				"Content/Source/particle0.png",
+				"Content/Source/particle1.png",
+				"Content/Source/particle2.png"
+			]
 		},
 
 		{
@@ -101,6 +112,41 @@
 				"alpha_test_compare" 		: "never",
 				"alpha_test_threshold" 		: 128,
 				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "particle",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/particle.glslv",
+				"fragment" 		: "Content/Source/particle.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "particle",
+
+			// Shader
+			"shader"		: "particle",
+ 
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "particle"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "add"
 			}
 		},
 
@@ -214,7 +260,7 @@
 					"far"			: 1000.0,
 					"hfov"			: 0.75,
 					"vfov"			: 0.0
-				}		
+				}
 			]
 		},
 
@@ -225,11 +271,18 @@
 			"components" : [
 				{
 					"type"			: "ScnCanvasComponent",
-					"noofvertices" 	: 8192
+					"noofvertices" 	: 32768
 				},
 
 				{
 					"type"			: "GaGameInfoComponent"
+				},
+
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 2048,
+					"material"		: "default.particle:ScnMaterial",
+					"localspace"	: true
 				},
 
 				{
@@ -259,6 +312,13 @@
 					"type"			: "ScnFontComponent",
 					"font"			: "default.default:ScnFont",
 					"material"		: "default.font:ScnMaterial"
+				},
+
+				{
+					"type"			: "ScnParticleSystemComponent",
+					"noofparticles"	: 8192,
+					"material"		: "default.particle:ScnMaterial",
+					"localspace"	: true
 				},
 
 				{
