@@ -25,7 +25,8 @@
 static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
 {
 	{ scnSPF_2D, NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
-	{ scnSPF_3D, NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" }
+	{ scnSPF_3D, NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
+	{ scnSPF_PARTICLE_3D, NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
 };
 
 #ifdef PSY_SERVER
@@ -106,7 +107,7 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 				}
 				else
 				{
-					BcPrintf( "ScnShader: No vertex shader called %s or %s\n", VertexShader.asCString(), PermutationBootstrap.SourceVertexShaderName_ );
+					BcAssertMsg( BcFalse, "ScnShader: No vertex shader called %s or %s\n", VertexShader.asCString(), PermutationBootstrap.SourceVertexShaderName_ );
 				}
 				
 				// Load fragment shader.
@@ -139,7 +140,7 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 				}
 				else
 				{
-					BcPrintf( "ScnShader: No fragment shader called %s or %s\n", FragmentShader.asCString(), PermutationBootstrap.SourceFragmentShaderName_ );
+					BcAssertMsg( BcFalse, "ScnShader: No fragment shader called %s or %s\n", FragmentShader.asCString(), PermutationBootstrap.SourceFragmentShaderName_ );
 				}
 				
 				// Create program.

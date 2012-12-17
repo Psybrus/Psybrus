@@ -36,6 +36,8 @@ public:
 	void								create();
 	virtual void						update();
 	virtual void						destroy();	
+
+	void								logShader();
 	
 private:
 	GLenum								Type_;

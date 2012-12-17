@@ -30,10 +30,12 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
 	ScnMaterialRef Material = CsCore::pImpl()->getResource( Object["material"].asCString() );
-	if( !CsCore::pImpl()->createResource( BcName::NONE, MaterialComponent_, Material, BcErrorCode ) )
+	if( !CsCore::pImpl()->createResource( BcName::NONE, MaterialComponent_, Material, scnSPF_PARTICLE_3D ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}
+
+	IsLocalSpace_ = Object["localspace"].asBool();
 
 	// Cache texture bounds.
 	ScnTextureRef Texture = Material->getTexture( "aDiffuseTex" );
@@ -48,7 +50,6 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 	pParticleBuffer_ = NULL;
 	CurrentVertexBuffer_ = 0;
-
 	IsReady_ = BcFalse;
 }
 
@@ -267,7 +268,15 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	Sort.Layer_ = 15;
 
 	// Bind material.
-	MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
+	if( IsLocalSpace_ )
+	{
+		MaterialComponent_->setParameter( WorldTransformParam_, getParentEntity()->getMatrix() );
+	}
+	else
+	{
+		MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
+	}
+
 	MaterialComponent_->bind( pFrame, Sort );
 
 	// Setup render node.
