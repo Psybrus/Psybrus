@@ -63,9 +63,16 @@ struct CsPackageHeader
 // CsPackageCrossRefData
 struct CsPackageCrossRefData
 {
+	BcU32								TypeName_;
 	BcU32								PackageName_;
 	BcU32								ResourceName_;
-	BcU32								TypeName_;
+
+	inline bool operator == ( const CsPackageCrossRefData& Other )
+	{
+		return TypeName_ == Other.TypeName_ &&
+		       PackageName_ == Other.PackageName_ &&
+		       ResourceName_ == Other.ResourceName_;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////////

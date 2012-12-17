@@ -269,9 +269,6 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					TextureObject[ "type" ] = "ScnTexture";
 					TextureObject[ "source" ] = FontTextureFileName;		
 					
-					// Add the texture to imports.
-					Importer.addImport( TextureObject );
-
 					// Build data.
 					BcStream HeaderStream;
 					BcStream GlyphStream;
@@ -279,7 +276,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					THeader Header;
 					
 					Header.NoofGlyphs_ = GlyphDescList.size();
-					Header.TextureRef_ = Importer.addPackageCrossRef( FontTextureName.c_str() );
+					Header.TextureRef_ = Importer.addImport( TextureObject );
 					Header.NominalSize_ = (BcReal)OriginalNominalSize;
 					
 					HeaderStream << Header;
