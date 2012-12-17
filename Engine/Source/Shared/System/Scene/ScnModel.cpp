@@ -142,12 +142,12 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 			// Always setup default material.
 			if( Material.Name_.length() == 0 )
 			{
-				Material.Name_ = "default";
+				Material.Name_ = "$(ScnMaterial:this.default)";
 			}
 			
 			// Import material.
 			// TODO: Pass through parameters from the model into import?
-			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str(), "ScnMaterial" );
+			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str() );
 			PrimitiveStream << PrimitiveData;
 			
 			// Export vertices.
