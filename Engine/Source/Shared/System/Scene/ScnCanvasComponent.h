@@ -136,6 +136,15 @@ public:
 	void								drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
+	 * Draw line box centered.
+	 * @param CornerA Corner A
+	 * @param CornerB Corner B
+	 * @param Colour Colour
+	 * @param Layer Layer
+	 */
+	void								drawLineBoxCentered( const BcVec2d& Position, const BcVec2d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
 	 * Draw box.
 	 * @param CornerA Corner A
 	 * @param CornerB Corner B
