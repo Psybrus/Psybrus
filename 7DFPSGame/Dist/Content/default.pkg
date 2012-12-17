@@ -7,7 +7,7 @@
 
 			"source"		: "EngineContent/FontSource/5thagent.ttf",
 			"distancefield"	: true,
-			"nominalsize"	: 20,
+			"nominalsize"	: 5,
 			"spread"		: 4
 		},
 
@@ -53,11 +53,11 @@
 			"name"			: "default",
 
 			// Shader
-			"shader"		: "default",
+			"shader"		: "$(ScnShader:this.default)",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "$(ScnTexture:this.default)"
 			},
 
 			// State
@@ -78,11 +78,11 @@
 			"name"			: "air",
 
 			// Shader
-			"shader"		: "air",
+			"shader"		: "$(ScnShader:this.air)",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "$(ScnTexture:this.default)"
 			},
 
 			// State
@@ -103,11 +103,11 @@
 			"name"			: "airsolid",
 
 			// Shader
-			"shader"		: "air",
+			"shader"		: "$(ScnShader:this.air)",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default"
+				"aDiffuseTex"	: "$(ScnTexture:this.default)"
 			},
 
 			// State
@@ -128,13 +128,13 @@
 			"name"			: "airpreview",
 
 			// Shader
-			"shader"		: "airpreview",
+			"shader"		: "$(ScnShader:this.airpreview)",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default",
-				"aFloorTex"		: "default",
-				"aWallTex"		: "default"
+				"aDiffuseTex"	: "$(ScnTexture:this.default)",
+				"aFloorTex"		: "$(ScnTexture:this.default)",
+				"aWallTex"		: "$(ScnTexture:this.default)"
 			},
 
 			// State
@@ -165,13 +165,13 @@
 			"name"			: "font",
 
 			// Shader
-			"shader"		: "font",
+			"shader"		: "$(ScnShader:this.font)",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "default",
-				"aFloorTex"		: "default",
-				"aWallTex"		: "default"
+				"aDiffuseTex"	: "$(ScnTexture:this.default)",
+				"aFloorTex"		: "$(ScnTexture:this.default)",
+				"aWallTex"		: "$(ScnTexture:this.default)"
 			},
 			
 			// State
@@ -217,7 +217,6 @@
 					"type"			: "GaPlayerSoundComponent"
 				},
 
-				// void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
 				{
 					"type"			: "ScnViewComponent",
 					"x"				: 0.0,
