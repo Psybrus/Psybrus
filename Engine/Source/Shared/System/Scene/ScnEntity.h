@@ -54,6 +54,7 @@ public:
 	void								detach( ScnComponent* Component );
 	void								onAttach( ScnEntityWeakRef Parent );
 	void								onDetach( ScnEntityWeakRef Parent );
+	void								detachFromParent();
 	
 	/**
 	 * Are we attached to the scene?

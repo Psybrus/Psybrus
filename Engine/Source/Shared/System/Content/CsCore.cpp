@@ -394,19 +394,26 @@ void CsCore::processUnloadingResources()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	TResourceListIterator It( UnloadingResources_.begin() );
-	while( It != UnloadingResources_.end() )
+	while( UnloadingResources_.size() > 0 )
 	{
-		CsResource* pResource = (*It);
-		
-		// Destroy resource.
-		pResource->destroy();
-		
-		// Free resource.
-		delete pResource;
-		
-		// Remove from list.
-		It = UnloadingResources_.erase( It );
+		TResourceList ResourceList = UnloadingResources_;
+
+		TResourceListIterator It( ResourceList.begin() );
+		while( It != ResourceList.end() )
+		{
+			CsResource* pResource = (*It);
+			
+			// Destroy resource.
+			pResource->destroy();
+			
+			// Free resource.
+			delete pResource;
+			
+			// Next.
+			++It;
+		}
+	
+		UnloadingResources_.clear();
 	}
 }
 
