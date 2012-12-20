@@ -40,7 +40,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	// Make header.
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
 
-	Header.ShaderRef_ = Importer.addPackageCrossRef( ImportShader.asCString() );	// TODO: Go via addImport.
+	Header.ShaderRef_ = ImportShader.asUInt();	// TODO: Go via addImport. This can then verify for us.
 	Header.NoofTextures_ = TextureMembers.size();	
 	HeaderStream << Header;
 
@@ -50,7 +50,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
 		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
-		TextureHeader.TextureRef_ = Importer.addPackageCrossRef( Texture.asCString() );
+		TextureHeader.TextureRef_ = Texture.asUInt(); // TODO: Go via addImport. This can then verify for us.
 		HeaderStream << TextureHeader;
 	}
 	

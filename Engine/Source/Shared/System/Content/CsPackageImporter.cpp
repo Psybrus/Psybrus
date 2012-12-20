@@ -449,7 +449,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 			{
 				CrossRef.PackageName_
 			};
-
+			
 			PackageDependencyDataList_.push_back( PackageDependency );
 			PackageDependencyList_.push_back( PackageName );
 		}
@@ -526,7 +526,7 @@ void CsPackageImporter::addDependency( const BcChar* pFileName )
 
 //////////////////////////////////////////////////////////////////////////
 // addAllPackageCrossRefs
-void CsPackageImporter::addAllPackageCrossRefs( const Json::Value& Root )
+void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 {
 	// If it's a string value, attempt to match it.
 	if( Root.type() == Json::stringValue )
@@ -535,7 +535,14 @@ void CsPackageImporter::addAllPackageCrossRefs( const Json::Value& Root )
 		BcU32 Matches = GRegex_ResourceReference.match( Root.asCString(), Match );
 		if( Matches == 4 )
 		{
-			addPackageCrossRef( Root.asCString() );
+			BcU32 RefIndex = addPackageCrossRef( Root.asCString() );
+
+			// If we find it, replace string reference with a cross ref index.
+			if( RefIndex != BcErrorCode )
+			{
+				BcPrintf("- Adding crossref %u: %s\n", RefIndex, Root.asCString() );
+				Root = Json::Value( RefIndex );
+			}
 		}
 	}
 	else if( Root.type() == Json::arrayValue )

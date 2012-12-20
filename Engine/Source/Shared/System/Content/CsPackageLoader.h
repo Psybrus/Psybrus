@@ -59,7 +59,7 @@ private:
 	BcBool							findResourceChunk( void* pData, BcU32& ResourceIdx, BcU32& ChunkIdx );
 	void							processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx );
 
-	BcBool							arePackageDependenciesLoaded();
+	BcBool							arePackageDependenciesReady();
 	
 private:
 	CsPackage*						pPackage_;
