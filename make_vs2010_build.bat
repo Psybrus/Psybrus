@@ -1,1 +1,1 @@
-premake4.exe --os=windows --platform=x32 vs2010
+premake4.exe --os=windows --platform=x64 vs2010
