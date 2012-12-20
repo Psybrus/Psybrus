@@ -24,7 +24,7 @@
 #ifndef __APTK_H__
 #define __APTK_H__
 
-#include <aptk/aptk_acf.h>
+//#include <aptk/aptk_acf.h>
 #include <aptk/aptk_biquad_filter.h>
 
 #endif

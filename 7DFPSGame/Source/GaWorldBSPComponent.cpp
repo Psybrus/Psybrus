@@ -342,19 +342,19 @@ void GaWorldBSPComponent::onAttach( ScnEntityWeakRef Parent )
 	WorldInfo_ = Parent->getComponentAnyParentByType< GaWorldInfoComponent >( 0 );
 
 	ScnMaterialRef Material;
-	if( CsCore::pImpl()->requestResource( "default", "default", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, scnSPF_2D ) )
+	if( CsCore::pImpl()->requestResource( "materials", "default", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, Material_, Material, scnSPF_2D ) )
 	{
 		Parent->attach( Material_ );
 	}
 	
-	if( CsCore::pImpl()->requestResource( "default", "airsolid", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, scnSPF_3D ) )
+	if( CsCore::pImpl()->requestResource( "materials", "airsolid", Material ) && CsCore::pImpl()->createResource( BcName::INVALID, MaterialWorld_, Material, scnSPF_3D ) )
 	{
 		Parent->attach( MaterialWorld_ );
 	}
 
 	ScnFontRef Font;
-	if( CsCore::pImpl()->requestResource( "default", "default", Font ) && 
-		CsCore::pImpl()->requestResource( "default", "font", Material ) &&
+	if( CsCore::pImpl()->requestResource( "fonts", "default", Font ) && 
+		CsCore::pImpl()->requestResource( "materials", "font", Material ) &&
 		CsCore::pImpl()->createResource( BcName::INVALID, Font_, Font, Material ) )
 	{
 		FontScaleParam_ = Font_->getMaterialComponent()->findParameter( "aAlphaTestStep" );

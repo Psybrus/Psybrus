@@ -352,8 +352,8 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 	// Grab material
 	ScnMaterialRef WorldMaterial;
 	ScnMaterialRef PreviewMaterial;
-	if( CsCore::pImpl()->requestResource( "default", "air", WorldMaterial ) &&
-		CsCore::pImpl()->requestResource( "default", "airpreview", PreviewMaterial ) )
+	if( CsCore::pImpl()->requestResource( "materials", "air", WorldMaterial ) &&
+		CsCore::pImpl()->requestResource( "materials", "airpreview", PreviewMaterial ) )
 	{
 		BcU32 TextureParam;
 		for( BcU32 Idx = 0; Idx < 2; ++Idx )
