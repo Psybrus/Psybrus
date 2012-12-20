@@ -1,0 +1,132 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "default",
+
+			// Shader
+			"shader"		: "$(ScnShader:shaders.default)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:textures.default)"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "blend"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "air",
+
+			// Shader
+			"shader"		: "$(ScnShader:shaders.air)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:textures.default)"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "add"
+			}
+		},
+
+{
+			"type"			: "ScnMaterial",
+			"name"			: "airsolid",
+
+			// Shader
+			"shader"		: "$(ScnShader:shaders.air)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:textures.default)"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 1,
+				"depth_test_enable" 		: 1,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "none"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "airpreview",
+
+			// Shader
+			"shader"		: "$(ScnShader:shaders.airpreview)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:textures.default)",
+				"aFloorTex"		: "$(ScnTexture:textures.default)",
+				"aWallTex"		: "$(ScnTexture:textures.default)"
+			},
+
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "lessequal",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 0,
+				"blend_mode" 				: "add"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "font",
+
+			// Shader
+			"shader"		: "$(ScnShader:shaders.font)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:textures.default)",
+				"aFloorTex"		: "$(ScnTexture:textures.default)",
+				"aWallTex"		: "$(ScnTexture:textures.default)"
+			},
+			
+			// State
+			"state"			: {
+				"depth_write_enable" 		: 0,
+				"depth_test_enable" 		: 0,
+				"depth_test_compare" 		: "never",
+				"depth_bias" 				: 0,
+				"alpha_test_enable" 		: 0,
+				"alpha_test_compare" 		: "never",
+				"alpha_test_threshold" 		: 128,
+				"blend_mode" 				: "blend"
+			}
+		}
+	]
+}

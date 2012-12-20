@@ -1,0 +1,44 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnShader",
+			"name"			: "default",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Engine/default.glslv",
+				"fragment" 		: "Content/Engine/default.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "air",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/air.glslv",
+				"fragment" 		: "Content/Source/air.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "airpreview",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Source/airpreview.glslv",
+				"fragment" 		: "Content/Source/airpreview.glslf"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "font",
+
+			"shaders"		: {
+				"vertex" 		: "Content/Engine/font.glslv",
+				"fragment" 		: "Content/Engine/font.glslf"
+			}
+		}
+
+	]
+}

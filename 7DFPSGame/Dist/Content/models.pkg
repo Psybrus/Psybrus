@@ -1,0 +1,9 @@
+{
+	"resources" : [
+		{
+			"type"		: "ScnModel",
+			"name"		: "sphere",
+			"source"	: "Content/Source/sphere.obj"
+		}
+	]
+}

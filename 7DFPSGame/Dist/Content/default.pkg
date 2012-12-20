@@ -1,198 +1,6 @@
 {
 
 	"resources" : [
-		{
-			"type"			: "ScnFont",
-			"name"			: "default",
-
-			"source"		: "EngineContent/FontSource/5thagent.ttf",
-			"distancefield"	: true,
-			"nominalsize"	: 5,
-			"spread"		: 4
-		},
-
-		{
-			"type"			: "ScnTexture",
-			"name"			: "default",
-
-			"source"		: "EngineContent/TextureSource/default.png"
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "default",
-
-			"shaders"		: {
-				"vertex" 		: "Content/Engine/default.glslv",
-				"fragment" 		: "Content/Engine/default.glslf"
-			}
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "air",
-
-			"shaders"		: {
-				"vertex" 		: "Content/Source/air.glslv",
-				"fragment" 		: "Content/Source/air.glslf"
-			}
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "airpreview",
-
-			"shaders"		: {
-				"vertex" 		: "Content/Source/airpreview.glslv",
-				"fragment" 		: "Content/Source/airpreview.glslf"
-			}
-		},
-
-		{
-			"type"			: "ScnMaterial",
-			"name"			: "default",
-
-			// Shader
-			"shader"		: "$(ScnShader:this.default)",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "$(ScnTexture:this.default)"
-			},
-
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 1,
-				"depth_test_enable" 		: 1,
-				"depth_test_compare" 		: "lessequal",
-				"depth_bias" 				: 0,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "blend"
-			}
-		},
-
-		{
-			"type"			: "ScnMaterial",
-			"name"			: "air",
-
-			// Shader
-			"shader"		: "$(ScnShader:this.air)",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "$(ScnTexture:this.default)"
-			},
-
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 0,
-				"depth_test_enable" 		: 1,
-				"depth_test_compare" 		: "lessequal",
-				"depth_bias" 				: 0,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "add"
-			}
-		},
-
-{
-			"type"			: "ScnMaterial",
-			"name"			: "airsolid",
-
-			// Shader
-			"shader"		: "$(ScnShader:this.air)",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "$(ScnTexture:this.default)"
-			},
-
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 1,
-				"depth_test_enable" 		: 1,
-				"depth_test_compare" 		: "lessequal",
-				"depth_bias" 				: 0,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "none"
-			}
-		},
-
-		{
-			"type"			: "ScnMaterial",
-			"name"			: "airpreview",
-
-			// Shader
-			"shader"		: "$(ScnShader:this.airpreview)",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "$(ScnTexture:this.default)",
-				"aFloorTex"		: "$(ScnTexture:this.default)",
-				"aWallTex"		: "$(ScnTexture:this.default)"
-			},
-
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 0,
-				"depth_test_enable" 		: 0,
-				"depth_test_compare" 		: "lessequal",
-				"depth_bias" 				: 0,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 0,
-				"blend_mode" 				: "add"
-			}
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "font",
-
-			"shaders"		: {
-				"vertex" 		: "Content/Engine/font.glslv",
-				"fragment" 		: "Content/Engine/font.glslf"
-			}
-		},
-
-		{
-			"type"			: "ScnMaterial",
-			"name"			: "font",
-
-			// Shader
-			"shader"		: "$(ScnShader:this.font)",
-
-			// Textures
-			"textures"		: {
-				"aDiffuseTex"	: "$(ScnTexture:this.default)",
-				"aFloorTex"		: "$(ScnTexture:this.default)",
-				"aWallTex"		: "$(ScnTexture:this.default)"
-			},
-			
-			// State
-			"state"			: {
-				"depth_write_enable" 		: 0,
-				"depth_test_enable" 		: 0,
-				"depth_test_compare" 		: "never",
-				"depth_bias" 				: 0,
-				"alpha_test_enable" 		: 0,
-				"alpha_test_compare" 		: "never",
-				"alpha_test_threshold" 		: 128,
-				"blend_mode" 				: "blend"
-			}
-		},
-
-		{
-			"type"		: "ScnModel",
-			"name"		: "sphere",
-			"source"	: "Content/Source/sphere.obj"
-		},
-
 		/////////////////////////////////////////////////////////////// 
 		// Entities.
 		{
@@ -202,31 +10,31 @@
 			"components" : [
 			/*
 				{
-					"type"			: "GaCameraComponent"
+					"type"					: "GaCameraComponent"
 				},
 				*/
 				{
-					"type"			: "GaPlayerComponent"
+					"type"					: "GaPlayerComponent"
 				},
 
 				{
-					"type"			: "GaPawnComponent"
+					"type"					: "GaPawnComponent"
 				},
 
 				{
-					"type"			: "GaPlayerSoundComponent"
+					"type"					: "GaPlayerSoundComponent"
 				},
 
 				{
-					"type"			: "ScnViewComponent",
-					"x"				: 0.0,
-					"y"				: 0.0,
-					"width"			: 1.0,
-					"height"		: 1.0,
-					"near"			: 0.1,
-					"far"			: 1000.0,
-					"hfov"			: 0.75,
-					"vfov"			: 0.0
+					"type"					: "ScnViewComponent",
+					"x"						: 0.0,
+					"y"						: 0.0,
+					"width"					: 1.0,
+					"height"				: 1.0,
+					"near"					: 0.1,
+					"far"					: 1000.0,
+					"hfov"					: 0.75,
+					"vfov"					: 0.0
 				}
 			]
 		},
@@ -237,11 +45,11 @@
 
 			"components" : [
 				{
-					"type"			: "GaEnemyComponent"
+					"type"					: "GaEnemyComponent"
 				},
 
 				{
-					"type"			: "GaPawnComponent"
+					"type"					: "GaPawnComponent"
 				}
 			]
 		},
@@ -252,28 +60,34 @@
 
 			"components" : [
 				{
-					"type"			: "ScnCanvasComponent",
-					"noofvertices" 	: 8192
+					"type"					: "ScnCanvasComponent",
+					"noofvertices" 			: 8192
 				},
 
 				{
-					"type"			: "GaWorldInfoComponent",
-					"width"			: 256,
-					"height"		: 256,
-					"depth"			: 16,
-					"scale"			: 0.125,
-					"damping"		: 0.08,
+					"type"					: "GaWorldInfoComponent",
+					"width"					: 256,
+					"height"				: 256,
+					"depth"					: 16,
+					"scale"					: 0.125,
+					"damping"				: 0.08,
 					"accumulatormultiplier" : 2.48
 				},
 
 				{
-					"type"			: "GaWorldBSPComponent",
-					"editor"		: false,
-					"level"			: 1
+					"type"					: "GaWorldBSPComponent",
+					"editor"				: false,
+					"level"					: 1,
+					"material"				: "$(ScnMaterial:materials.default)",
+					"fontmaterial"			: "$(ScnMaterial:materials.font)",
+					"font"					: "$(ScnFont:fonts.default)",
+					"player"				: "$(ScnEntity:this.PlayerEntity)"
 				},
 
 				{
-					"type"			: "GaWorldPressureComponent"
+					"type"					: "GaWorldPressureComponent",
+					"airmaterial"			: "$(ScnMaterial:materials.air)",
+					"airpreviewmaterial"	: "$(ScnMaterial:materials.airpreview)"
 				}
 			]
 		},
@@ -284,28 +98,34 @@
 
 			"components" : [
 				{
-					"type"			: "ScnCanvasComponent",
-					"noofvertices" 	: 8192
+					"type"					: "ScnCanvasComponent",
+					"noofvertices" 			: 8192
 				},
 
 				{
-					"type"			: "GaWorldInfoComponent",
-					"width"			: 256,
-					"height"		: 256,
-					"depth"			: 16,
-					"scale"			: 0.125,
-					"damping"		: 0.08,
+					"type"					: "GaWorldInfoComponent",
+					"width"					: 256,
+					"height"				: 256,
+					"depth"					: 16,
+					"scale"					: 0.125,
+					"damping"				: 0.08,
 					"accumulatormultiplier" : 2.48
 				},
 
 				{
-					"type"			: "GaWorldBSPComponent",
-					"editor"		: true,
-					"level"			: 1
+					"type"					: "GaWorldBSPComponent",
+					"editor"				: true,
+					"level"					: 1,
+					"material"				: "$(ScnMaterial:materials.default)",
+					"fontmaterial"			: "$(ScnMaterial:materials.font)",
+					"font"					: "$(ScnFont:fonts.default)",
+					"player"				: "$(ScnEntity:this.PlayerEntity)"
 				},
 
 				{
-					"type"			: "GaWorldPressureComponent"
+					"type"					: "GaWorldPressureComponent",
+					"airmaterial"			: "$(ScnMaterial:materials.air)",
+					"airpreviewmaterial"	: "$(ScnMaterial:materials.airpreview)"
 				}
 			]
 		}

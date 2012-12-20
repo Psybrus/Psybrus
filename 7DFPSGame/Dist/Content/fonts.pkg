@@ -1,0 +1,13 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnFont",
+			"name"			: "default",
+
+			"source"		: "EngineContent/FontSource/5thagent.ttf",
+			"distancefield"	: true,
+			"nominalsize"	: 5,
+			"spread"		: 4
+		}
+	]
+}
