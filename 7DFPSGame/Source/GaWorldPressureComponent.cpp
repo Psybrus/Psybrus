@@ -311,6 +311,7 @@ public:
 //virtual
 void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {	
+	return;
 	// Kick off the job to update the simulation in parallel to rendering..
 	UpdateFence_.increment();
 	BcDelegate< void(*)() > UpdateSimulationDelegate( BcDelegate< void(*)() >::bind< GaWorldPressureComponent, &GaWorldPressureComponent::updateSimulation >( this ) );

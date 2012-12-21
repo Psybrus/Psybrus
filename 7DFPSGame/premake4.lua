@@ -20,6 +20,7 @@ project "7FPSGame"
             "ws2_32",
             "IPHlpApi",
             "../../External/openal/libs/Win32/OpenAL32", -- Relative path to project.
+            -- "../../External/openal/libs/Win64/OpenAL32", -- Relative path to project.
 
    			-- External libs.
    			"External_freetype",
