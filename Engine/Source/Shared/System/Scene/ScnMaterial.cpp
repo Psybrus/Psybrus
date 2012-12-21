@@ -313,8 +313,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
 	ScnMaterialRef MaterialRef;
-	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
-
+	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
 	BcU32 PermutationFlags = 0;
 	const BcChar* pPermutation = Object[ "permutation" ].asCString();
 
