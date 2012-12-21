@@ -1,4 +1,4 @@
 vec4 shaderMain()
 {
-	return vColour;
+	return vec4(1.0,1.0,1.0,1.0);
 }

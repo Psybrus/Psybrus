@@ -50,7 +50,7 @@
 			}
 		},
 
-{
+		{
 			"type"			: "ScnMaterial",
 			"name"			: "airsolid",
 
