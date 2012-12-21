@@ -75,19 +75,38 @@
 				},
 
 				{
+					"type"					: "ScnMaterialComponent",
+					"material"				: "$(ScnMaterial:materials.default)",
+					"permutation"			: "2d"
+				},
+
+				{
+					"type"					: "ScnMaterialComponent",
+					"material"				: "$(ScnMaterial:materials.air)",
+					"permutation"			: "3d"
+				},
+
+				{
+					"type"					: "ScnMaterialComponent",
+					"material"				: "$(ScnMaterial:materials.airpreview)",
+					"permutation"			: "2d"
+				},
+
+				{
+					"type"					: "ScnFontComponent",
+					"font"					: "$(ScnFont:fonts.default)",
+					"material"				: "$(ScnMaterial:materials.font)"
+				},
+
+				{
 					"type"					: "GaWorldBSPComponent",
 					"editor"				: false,
 					"level"					: 1,
-					"material"				: "$(ScnMaterial:materials.default)",
-					"fontmaterial"			: "$(ScnMaterial:materials.font)",
-					"font"					: "$(ScnFont:fonts.default)",
 					"player"				: "$(ScnEntity:this.PlayerEntity)"
 				},
 
 				{
-					"type"					: "GaWorldPressureComponent",
-					"airmaterial"			: "$(ScnMaterial:materials.air)",
-					"airpreviewmaterial"	: "$(ScnMaterial:materials.airpreview)"
+					"type"					: "GaWorldPressureComponent"
 				}
 			]
 		},
@@ -113,19 +132,38 @@
 				},
 
 				{
+					"type"					: "ScnMaterialComponent",
+					"material"				: "$(ScnMaterial:materials.default)",
+					"permutation"			: "2d"
+				},
+
+				{
+					"type"					: "ScnMaterialComponent",
+					"material"				: "$(ScnMaterial:materials.air)",
+					"permutation"			: "3d"
+				},
+
+				{
+					"type"					: "ScnMaterialComponent",
+					"material"				: "$(ScnMaterial:materials.airpreview)",
+					"permutation"			: "2d"
+				},
+
+				{
+					"type"					: "ScnFontComponent",
+					"font"					: "$(ScnFont:fonts.default)",
+					"material"				: "$(ScnMaterial:materials.font)"
+				},
+
+				{
 					"type"					: "GaWorldBSPComponent",
 					"editor"				: true,
 					"level"					: 1,
-					"material"				: "$(ScnMaterial:materials.default)",
-					"fontmaterial"			: "$(ScnMaterial:materials.font)",
-					"font"					: "$(ScnFont:fonts.default)",
 					"player"				: "$(ScnEntity:this.PlayerEntity)"
 				},
 
 				{
-					"type"					: "GaWorldPressureComponent",
-					"airmaterial"			: "$(ScnMaterial:materials.air)",
-					"airpreviewmaterial"	: "$(ScnMaterial:materials.airpreview)"
+					"type"					: "GaWorldPressureComponent"
 				}
 			]
 		}
