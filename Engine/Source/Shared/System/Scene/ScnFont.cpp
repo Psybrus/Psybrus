@@ -378,7 +378,7 @@ BcBool ScnFont::isReady()
 // isReady
 BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material )
 {	
-	return CsCore::pImpl()->createResource( BcName::INVALID, FontComponent, this, Material );
+	return CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), FontComponent, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -432,7 +432,7 @@ DEFINE_RESOURCE( ScnFontComponent );
 void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_2D ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_2D ) )
 	{	
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )
@@ -451,8 +451,8 @@ void ScnFontComponent::initialise( const Json::Value& Object )
 {
 	ScnFontRef FontRef;
 	ScnMaterialRef MaterialRef;
-	FontRef = CsCore::pImpl()->getResource( Object[ "font" ].asCString() );
-	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
+	FontRef = getPackage()->getPackageCrossRef( Object[ "font" ].asUInt() );
+	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
 	initialise( FontRef, MaterialRef );
 }
 

@@ -165,7 +165,8 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 	// Request template entity.
  	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
-		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? Name : InstanceName, Entity, TemplateEntity ) )
+		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
+		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? Name : InstanceName, pPackage, Entity, TemplateEntity ) )
 		{
 			return Entity;
 		}

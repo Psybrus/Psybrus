@@ -80,7 +80,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		{
 			const Json::Value& Component( Components[ Idx ] );
 			CsResourceRef<> ResourceRef;
-			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Component[ "type" ].asCString(), BcErrorCode, NULL, ResourceRef ) )
+			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Component[ "type" ].asCString(), BcErrorCode, getPackage(), ResourceRef ) )
 			{
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
