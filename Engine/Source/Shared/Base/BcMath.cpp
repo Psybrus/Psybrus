@@ -18,7 +18,7 @@
 // BcSqrt
 BcReal BcSqrt( BcReal v )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [v]
 	__asm fsqrt
 	__asm fstp [v]
@@ -66,7 +66,7 @@ BcU64 BcSqrtFixed( BcU64 FixedValue, BcU64 Precision )
 // BcSin
 BcReal BcSin( BcReal r )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [r]
 	__asm fsin
 	__asm fstp [r]
@@ -89,7 +89,7 @@ BcReal BcSin( BcReal r )
 // BcCos
 BcReal BcCos( BcReal r )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [r]
 	__asm fcos
 	__asm fstp [r]

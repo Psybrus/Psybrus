@@ -256,12 +256,10 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 	BcFile File;
 	if( File.open( pFileName ) )
 	{
-		char* pData = new char[ File.size() ];
-		File.read( pData, File.size() );
-		
+		const BcU8* pData = File.readAllBytes();		
 		Json::Reader Reader;
 		
-		if( Reader.parse( pData, pData + File.size(), Root ) )
+		if( Reader.parse( (const char*)pData, (const char*)pData + File.size(), Root ) )
 		{
 			Success = BcTrue;
 		}

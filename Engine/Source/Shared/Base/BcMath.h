@@ -94,7 +94,7 @@ inline BcReal BcAcos( BcReal r )
 // BcAtan2
 inline BcReal BcAtan2( BcReal Y, BcReal X )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [Y]
 	__asm fld [X]
 	__asm fpatan

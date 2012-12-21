@@ -843,6 +843,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
 	// HUD pass.
+	Sort.Layer_ = 0;
 	Sort.Pass_ = 1;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
@@ -865,7 +866,9 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
 		
 		// Bind material.
-		if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
+		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
+		//       if need be. If using multiple canvases we could potentially lose a material bind.
+		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
 			pLastMaterialComponent->bind( pFrame, Sort );
