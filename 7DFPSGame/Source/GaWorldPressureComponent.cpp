@@ -361,12 +361,12 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 			TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ Idx ] );
 			
 			// Create textures.
-			CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldTexture1D_, Depth_, 1, rsTF_RGBA8 );
-			CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldTexture2D_, Width_, Height_, 1, rsTF_RGBA8 );
-			CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldTexture3D_, Width_, Height_, Depth_, 1, rsTF_RGBA8 );
+			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), DynamicMaterial.WorldTexture1D_, Depth_, 1, rsTF_RGBA8 );
+			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), DynamicMaterial.WorldTexture2D_, Width_, Height_, 1, rsTF_RGBA8 );
+			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), DynamicMaterial.WorldTexture3D_, Width_, Height_, Depth_, 1, rsTF_RGBA8 );
 			
 			// Create material component, and attach textures.
-			if( CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.WorldMaterial_, WorldMaterial, scnSPF_3D ) )
+			if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), DynamicMaterial.WorldMaterial_, WorldMaterial, scnSPF_3D ) )
 			{
 				TextureParam = DynamicMaterial.WorldMaterial_->findParameter( "aFloorTex" );
 				DynamicMaterial.WorldMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture1D_ );
@@ -377,7 +377,7 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 			}
 
 			// Create material component, and attach textures.
-			if( CsCore::pImpl()->createResource( BcName::INVALID, DynamicMaterial.PreviewMaterial_, PreviewMaterial, scnSPF_2D ) )
+			if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), DynamicMaterial.PreviewMaterial_, PreviewMaterial, scnSPF_2D ) )
 			{
 				TextureParam = DynamicMaterial.PreviewMaterial_->findParameter( "aFloorTex" );
 				DynamicMaterial.PreviewMaterial_->setTexture( TextureParam, DynamicMaterial.WorldTexture1D_ );
@@ -405,6 +405,8 @@ void GaWorldPressureComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UpdateFence_.wait();
+
 	destroy__onDetach();
 
 	//
