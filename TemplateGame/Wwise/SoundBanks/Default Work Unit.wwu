@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{1CB61524-CDEC-4FB4-893F-F35435C34044}" SchemaVersion="51">
+	<SoundBanks>
+		<WorkUnit Name="Default Work Unit" ID="{1CB61524-CDEC-4FB4-893F-F35435C34044}" PersistMode="Standalone">
+			<ChildrenList>
+				<SoundBank Name="Global" ID="{853B8DB3-5228-4AD9-9886-48DC687D8497}">
+					<ObjectInclusionList>
+						<ObjectRef Name="Set_State_Intro" ID="{8554DC17-8DEB-40E9-901B-2EE60C62A6E8}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Music_Play" ID="{31F85E42-2960-4596-A8FF-1D7EABEC279B}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Set_State_Verse" ID="{9EFFA94A-81C7-4561-9679-2C030458F8F4}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Set_State_Bridge" ID="{3E1B8D53-468E-4EBE-9418-51C6D6C6BE4E}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Set_State_Chorus" ID="{923D256F-EC3C-4B89-9880-091A79BAB847}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="Music_Stop" ID="{38A3179C-1B73-4649-906E-B93805A6BCA4}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+						<ObjectRef Name="HopSound_Play" ID="{887E99A3-DA84-446D-8A16-43ADD7C637FB}" WorkUnitID="{7518EDA6-FF47-44B0-B690-69CCA86C3623}" Filter="7" Origin="Manual" />
+					</ObjectInclusionList>
+					<ObjectExclusionList />
+					<GameSyncExclusionList />
+				</SoundBank>
+			</ChildrenList>
+		</WorkUnit>
+	</SoundBanks>
+</WwiseDocument>

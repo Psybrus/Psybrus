@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{DBDB5FB0-7DBC-4576-A6F4-39CE1CAF8BC0}" SchemaVersion="51">
+	<States>
+		<WorkUnit Name="Default Work Unit" ID="{DBDB5FB0-7DBC-4576-A6F4-39CE1CAF8BC0}" PersistMode="Standalone">
+			<ChildrenList>
+				<StateGroup Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}">
+					<ChildrenList>
+						<State Name="None" ID="{B01C1BBB-B729-4D7A-BCA7-C9D515DE9046}" />
+						<State Name="Intro" ID="{A3BCD075-6BF5-4847-A31B-4F2C3ADFEF1D}" />
+						<State Name="Verse" ID="{1BE0B6A8-A1EC-4B59-BE49-6138985B0513}" />
+						<State Name="Chorus" ID="{3A37942E-252E-495D-9268-E58D0FBE0CF4}" />
+						<State Name="Bridge" ID="{F4B5FA28-8C28-465B-A744-CE209DFF7F50}" />
+					</ChildrenList>
+				</StateGroup>
+			</ChildrenList>
+		</WorkUnit>
+	</States>
+</WwiseDocument>

@@ -24,6 +24,8 @@ DEFINE_RESOURCE( ScnRenderableComponent );
 void ScnRenderableComponent::initialise()
 {
 	Super::initialise();
+
+	setRenderMask( BcErrorCode );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,4 +67,18 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderMask
+void ScnRenderableComponent::setRenderMask( BcU32 RenderMask )
+{
+	RenderMask_ = RenderMask;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderMask
+const BcU32 ScnRenderableComponent::getRenderMask() const
+{
+	return RenderMask_;
 }

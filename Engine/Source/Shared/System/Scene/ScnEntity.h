@@ -25,7 +25,6 @@
 #include "System/Scene/ScnRenderableComponent.h"
 #include "System/Scene/ScnViewComponent.h"
 
-#include "System/Scene/ScnTransform.h"
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/ScnVisitor.h"
 
@@ -54,6 +53,7 @@ public:
 	void								detach( ScnComponent* Component );
 	void								onAttach( ScnEntityWeakRef Parent );
 	void								onDetach( ScnEntityWeakRef Parent );
+	void								detachFromParent();
 	
 	/**
 	 * Are we attached to the scene?

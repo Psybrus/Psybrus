@@ -80,7 +80,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		{
 			const Json::Value& Component( Components[ Idx ] );
 			CsResourceRef<> ResourceRef;
-			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Component[ "type" ].asCString(), BcErrorCode, NULL, ResourceRef ) )
+			BcName Type = Component[ "type" ].asCString();
+			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Type, BcErrorCode, getPackage(), ResourceRef ) )
 			{
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
@@ -146,11 +147,14 @@ void ScnEntity::update( BcReal Tick )
 	processAttachDetach();
 
 	// Update components.
-	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+	if( isReady() ) // DODGY HACK. We need to have a ready state & dirty it.
 	{
-		ScnComponentRef& Component( *It );
-
-		Component->update( Tick );
+		for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
+		{
+			ScnComponentRef& Component( *It );
+	
+			Component->update( Tick );
+		}
 	}
 }
 
@@ -198,9 +202,19 @@ void ScnEntity::detach( ScnComponent* Component )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// detachFromParent
+void ScnEntity::detachFromParent()
+{
+	BcAssertMsg( getParentEntity().isValid(), "Can't detach entity \"%s\", it's not attached.", (*getName()).c_str() );
+	getParentEntity()->detach( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttachScene
 void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
+	Super::onAttach( Parent );
+
 	// Process attach/detach.
 	processAttachDetach();
 
@@ -212,8 +226,6 @@ void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 	{
 		ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), getComponent( Idx ) );
 	}
-
-	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -222,10 +234,6 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
 	// All components, get rid of NOW.
 	// TODO: See about removing stuff from ScnCore for this.
-	Super::onDetach( Parent );
-
-	BcAssert( IsAttached_ == BcTrue );
-	IsAttached_ = BcFalse;
 
 	// Do onDetachComponent for all entities current components.
 	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
@@ -239,6 +247,14 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 			Component->onDetach( ScnEntityWeakRef( this ) );
 		}
 	}
+
+	// We should do this...is this right?
+	Components_.clear();
+
+	Super::onDetach( Parent );
+
+	BcAssert( IsAttached_ == BcTrue );
+	IsAttached_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////

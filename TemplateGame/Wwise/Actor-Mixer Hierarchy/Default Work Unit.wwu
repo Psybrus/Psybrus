@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" SchemaVersion="51">
+	<AudioObjects>
+		<WorkUnit Name="Default Work Unit" ID="{E4A463B8-B3D4-41A2-A45E-3587C9B290D6}" PersistMode="Standalone">
+			<ChildrenList>
+				<Folder Name="Rabbit" ID="{3E5C601F-7CD0-4134-A151-B1563C3F4095}" ShortID="384003132">
+					<ChildrenList>
+						<RandomSequenceContainer Name="ChewSound" ID="{DAABE3E1-2CAE-4C36-AC77-0642C0987104}" ShortID="732985654">
+							<PropertyList>
+								<Property Name="Pitch" Type="int32">
+									<ModifierList>
+										<ModifierInfo>
+											<Modifier Name="" ID="{C77E53F7-E3D9-4BBC-A19F-576AB0A38C5A}">
+												<PropertyList>
+													<Property Name="Enabled" Type="bool" Value="False" />
+													<Property Name="Max" Type="Real64" Value="2000" />
+													<Property Name="Min" Type="Real64" Value="-2000" />
+												</PropertyList>
+											</Modifier>
+										</ModifierInfo>
+									</ModifierList>
+								</Property>
+								<Property Name="PositioningType" Type="int16" Value="1" />
+							</PropertyList>
+							<ChildrenList>
+								<Sound Name="rabbit_chew_1" ID="{E4F325CC-457E-4C70-B324-7AC250149027}" ShortID="602407668" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{42709067-4093-413F-8131-413F71369FD4}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="100" />
+															<Property Name="Min" Type="Real64" Value="-100" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_chew_1" ID="{F3331532-F492-4C5A-AE30-096CB4BFA4B6}" ShortID="671791028">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_chew_1.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_chew_1" ID="{F3331532-F492-4C5A-AE30-096CB4BFA4B6}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+								<Sound Name="rabbit_chew_0" ID="{D0287AA6-C7F7-4861-9E08-1AADCEDF1236}" ShortID="685647081" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{661FCF21-F3F2-4AA0-9B33-F3C7025A4A31}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="100" />
+															<Property Name="Min" Type="Real64" Value="-100" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+										<Property Name="UseMaxSoundPerInstance" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_chew_0" ID="{DBD099C4-D0E4-43FB-A56D-4F484AE88B2F}" ShortID="1012299965">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_chew_0.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_chew_0" ID="{DBD099C4-D0E4-43FB-A56D-4F484AE88B2F}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+								<Sound Name="rabbit_chew_2" ID="{718B3C7B-1F41-4753-AF5B-E7D0B262D6DD}" ShortID="596352903" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{3F1B3D7C-7CD7-4AD9-AC9D-0C4797B527C9}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="100" />
+															<Property Name="Min" Type="Real64" Value="-100" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_chew_2" ID="{305265CF-D36D-42B5-9B24-5AFF536924DA}" ShortID="604732665">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_chew_2.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_chew_2" ID="{305265CF-D36D-42B5-9B24-5AFF536924DA}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+							</ChildrenList>
+							<BusRouting Name="Game" ID="{9E2930BF-8DA2-4919-9823-07E784303225}" />
+							<ConversionInfo>
+								<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+							</ConversionInfo>
+						</RandomSequenceContainer>
+						<RandomSequenceContainer Name="HopSound" ID="{E908A4D8-2ADB-4C94-97B4-15D59BE12D61}" ShortID="654586853">
+							<PropertyList>
+								<Property Name="PositioningType" Type="int16" Value="1" />
+							</PropertyList>
+							<ChildrenList>
+								<Sound Name="rabbit_hop4" ID="{E1C4253F-D6A0-4A74-9C42-2621B5618B9E}" ShortID="116968268" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{E3855745-57FB-4734-B2EE-DF390DADD7A6}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="100" />
+															<Property Name="Min" Type="Real64" Value="-100" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_hop4" ID="{A8CA9B48-AA24-4454-B858-168E122C0424}" ShortID="747056195">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_hop4.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_hop4" ID="{A8CA9B48-AA24-4454-B858-168E122C0424}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+								<Sound Name="rabbit_hop1" ID="{1A89EF68-0D95-4BD1-8AFC-77ABD1598844}" ShortID="435313869" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{21610BAA-8B75-4BF6-A62A-073858F69DED}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="100" />
+															<Property Name="Min" Type="Real64" Value="-100" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_hop1" ID="{73CA05D0-FFB2-4199-B66E-C79AC48AAAD8}" ShortID="632961730">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_hop1.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_hop1" ID="{73CA05D0-FFB2-4199-B66E-C79AC48AAAD8}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+								<Sound Name="rabbit_hop3" ID="{2DD32C80-0759-47EE-98F0-9F2D3015C79E}" ShortID="128713843" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{5F17BFAD-A9AD-43A1-9BB0-D4F383B5606A}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="100" />
+															<Property Name="Min" Type="Real64" Value="-100" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_hop3" ID="{DE1D06B7-C784-43F9-AA2B-6C0CEF92A049}" ShortID="892255912">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_hop3.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_hop3" ID="{DE1D06B7-C784-43F9-AA2B-6C0CEF92A049}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+							</ChildrenList>
+							<BusRouting Name="Game" ID="{9E2930BF-8DA2-4919-9823-07E784303225}" />
+							<ConversionInfo>
+								<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+							</ConversionInfo>
+						</RandomSequenceContainer>
+						<RandomSequenceContainer Name="ScaredSound" ID="{6C568930-B603-42AD-AC97-6634D54FC1AE}" ShortID="304185636">
+							<PropertyList>
+								<Property Name="PositioningType" Type="int16" Value="1" />
+							</PropertyList>
+							<ChildrenList>
+								<Sound Name="rabbit_scared" ID="{AD0F604A-FF72-4BF5-9D56-E40BD6A8FEBE}" ShortID="635858720" Type="SoundFX">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Pitch" Type="int32">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{FAC026C1-B819-4611-B3DC-084ABF2322A1}">
+														<PropertyList>
+															<Property Name="Max" Type="Real64" Value="200" />
+															<Property Name="Min" Type="Real64" Value="-200" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+										<Property Name="Volume" Type="Real64">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{47D04B93-A5F4-4A95-A134-A931639A00F8}">
+														<PropertyList>
+															<Property Name="Enabled" Type="bool" Value="False" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="rabbit_scared" ID="{7EC7A2D1-94D2-4D3C-9908-81070A20C68B}" ShortID="506163077">
+											<Language>SFX</Language>
+											<AudioFile>rabbit_scared.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<ActiveSourceList>
+										<ActiveSource Name="rabbit_scared" ID="{7EC7A2D1-94D2-4D3C-9908-81070A20C68B}" Platform="Linked" />
+									</ActiveSourceList>
+								</Sound>
+							</ChildrenList>
+							<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+							<ConversionInfo>
+								<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+							</ConversionInfo>
+						</RandomSequenceContainer>
+					</ChildrenList>
+				</Folder>
+			</ChildrenList>
+		</WorkUnit>
+	</AudioObjects>
+</WwiseDocument>

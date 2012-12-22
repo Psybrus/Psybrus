@@ -26,7 +26,7 @@ struct TVertex2D
 	BcF32 U_, V_;
 	BcU32 Colour_;
 
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 };
 
 struct TVertex3D
@@ -35,7 +35,7 @@ struct TVertex3D
 	BcF32 U_, V_;
 	BcU32 Colour_;
 	
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 };
 
 //

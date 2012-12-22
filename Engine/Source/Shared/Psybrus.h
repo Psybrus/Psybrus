@@ -34,6 +34,7 @@
 #include "Base/BcName.h"
 #include "Base/BcPlane.h"
 #include "Base/BcPortability.h"
+#include "Base/BcRegex.h"
 #include "Base/BcQuat.h"
 #include "Base/BcRandom.h"
 #include "Base/BcScopedLock.h"

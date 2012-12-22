@@ -20,6 +20,7 @@
 #include "System/Scene/ScnTexture.h"
 #include "System/Scene/ScnShader.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnMaterialFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef
@@ -66,20 +67,8 @@ private:
 	
 private:
 	friend class ScnMaterialComponent;
-	
-	struct THeader
-	{
-		BcU32							ShaderRef_;
-		BcU32							NoofTextures_;
-	};
-
-	struct TTextureHeader
-	{
-		BcU32							SamplerName_;
-		BcU32							TextureRef_;
-	};
-	
-	THeader*							pHeader_;
+		
+	ScnMaterialHeader*					pHeader_;
 	
 	ScnShaderRef						Shader_;
 	ScnTextureMap						TextureMap_;

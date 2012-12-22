@@ -1,0 +1,329 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{602B2F75-9EE6-470A-A1A7-A39FE5F31671}" SchemaVersion="51">
+	<InteractiveMusic>
+		<WorkUnit Name="Default Work Unit" ID="{602B2F75-9EE6-470A-A1A7-A39FE5F31671}" PersistMode="Standalone">
+			<ChildrenList>
+				<MusicPlaylistContainer Name="Music" ID="{00C69093-18CB-4C6F-89B5-03F3F5EA3097}" ShortID="467927416">
+					<PropertyList>
+						<Property Name="Tempo" Type="Real64" Value="85" />
+					</PropertyList>
+					<ChildrenList>
+						<MusicSegment Name="Music" ID="{7E4C5502-3206-4655-85CC-166BE2BDD010}" ShortID="239256808">
+							<PropertyList>
+								<Property Name="EndPosition" Type="Real64" Value="11448.5765839099" />
+								<Property Name="Tempo" Type="Real64" Value="85" />
+							</PropertyList>
+							<ChildrenList>
+								<MusicTrack Name="TestLoop_Bass" ID="{0F8318D6-A14F-4783-8C3A-855FFBEF0E22}" ShortID="640576688">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="TestLoop_Bass" ID="{8CB0A259-3D25-4735-A4CB-7F0D4EF267FD}" ShortID="545535961">
+											<Language>SFX</Language>
+											<AudioFile>Neilo\TestLoop_Bass.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<StateInfo>
+										<StateGroupList>
+											<StateGroupInfo MusicSyncType="2">
+												<StateGroupRef Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+											</StateGroupInfo>
+										</StateGroupList>
+									</StateInfo>
+									<MotionRouting>
+										<MotionBus Name="Master Motion Bus" ID="{20A630BA-3398-4676-B927-1004DFE41FD8}" />
+									</MotionRouting>
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<SequenceList>
+										<MusicTrackSequence Name="" ID="{3F176E6B-FDD1-4250-AFAF-E8E4A91B316E}">
+											<ClipList>
+												<MusicClip Name="TestLoop_Bass" ID="{B7A00F15-2B19-4E4F-808C-C2FE4938DB59}">
+													<PropertyList>
+														<Property Name="EndTrimOffset" Type="Real64" Value="11294.126984127" />
+														<Property Name="FadeInMode" Type="int16" Value="0" />
+														<Property Name="FadeOutMode" Type="int16" Value="0" />
+													</PropertyList>
+													<AudioSourceRef Name="TestLoop_Bass" ID="{8CB0A259-3D25-4735-A4CB-7F0D4EF267FD}" />
+												</MusicClip>
+											</ClipList>
+										</MusicTrackSequence>
+									</SequenceList>
+								</MusicTrack>
+								<MusicTrack Name="TestLoop_Drums" ID="{B7C66D39-2F67-4D4B-9F7E-B6792A3096F8}" ShortID="743638231">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="Lowpass" Type="int16">
+											<ModifierList>
+												<ModifierInfo>
+													<Modifier Name="" ID="{8C4E851D-5F1A-4579-A6CE-D8B5C171182B}">
+														<PropertyList>
+															<Property Name="Enabled" Type="bool" Value="False" />
+														</PropertyList>
+													</Modifier>
+												</ModifierInfo>
+											</ModifierList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="TestLoop_Drums" ID="{9633F715-965D-402B-A1E6-B26174A3D45D}" ShortID="899784072">
+											<Language>SFX</Language>
+											<AudioFile>Neilo\TestLoop_Drums.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<StateInfo>
+										<StateGroupList>
+											<StateGroupInfo MusicSyncType="2">
+												<StateGroupRef Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+											</StateGroupInfo>
+										</StateGroupList>
+										<CustomStateList>
+											<CustomState>
+												<StateRef Name="Bridge" ID="{F4B5FA28-8C28-465B-A744-CE209DFF7F50}" />
+												<State Name="Custom State" ID="{7335FA5F-EC8B-4D37-B09D-2C536E23E4D9}" ShortID="291828358">
+													<PropertyList>
+														<Property Name="Volume" Type="Real64" Value="-96.3" />
+													</PropertyList>
+												</State>
+											</CustomState>
+											<CustomState>
+												<StateRef Name="Intro" ID="{A3BCD075-6BF5-4847-A31B-4F2C3ADFEF1D}" />
+												<State Name="Custom State" ID="{1BC023E0-82DE-4CFC-B9FD-57F03EF99E18}" ShortID="848754710">
+													<PropertyList>
+														<Property Name="Volume" Type="Real64" Value="-96.3" />
+													</PropertyList>
+												</State>
+											</CustomState>
+											<CustomState>
+												<StateRef Name="Verse" ID="{1BE0B6A8-A1EC-4B59-BE49-6138985B0513}" />
+												<State Name="Custom State" ID="{BCF8A918-EC87-4196-A289-B887AA7C8BA4}" ShortID="280060481">
+													<PropertyList>
+														<Property Name="Volume" Type="Real64" Value="-0.3" />
+													</PropertyList>
+												</State>
+											</CustomState>
+										</CustomStateList>
+									</StateInfo>
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<SequenceList>
+										<MusicTrackSequence Name="" ID="{FC5841E2-3D2A-4240-970E-5E2C4E391D2F}">
+											<ClipList>
+												<MusicClip Name="TestLoop_Drums" ID="{0FDCB867-6F5C-4580-9ED9-A4CD96842E6B}">
+													<PropertyList>
+														<Property Name="EndTrimOffset" Type="Real64" Value="11294.126984127" />
+														<Property Name="FadeInMode" Type="int16" Value="0" />
+														<Property Name="FadeOutMode" Type="int16" Value="0" />
+													</PropertyList>
+													<AudioSourceRef Name="TestLoop_Drums" ID="{9633F715-965D-402B-A1E6-B26174A3D45D}" />
+												</MusicClip>
+											</ClipList>
+										</MusicTrackSequence>
+									</SequenceList>
+								</MusicTrack>
+								<MusicTrack Name="TestLoop_Guitar" ID="{096D365D-ABD0-4BFE-81DD-AB2E1706DE8A}" ShortID="623156231">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="OverrideEffect" Type="bool" Value="True" />
+										<Property Name="Volume" Type="Real64">
+											<ValueList>
+												<Value>-5</Value>
+											</ValueList>
+										</Property>
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="TestLoop_Guitar" ID="{3C402E30-F9A4-4FBF-9DA2-A128623E37DC}" ShortID="790194234">
+											<Language>SFX</Language>
+											<AudioFile>Neilo\TestLoop_Guitar.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<EffectInfo>
+										<NoEffect Platform="Linked" Index="0" />
+									</EffectInfo>
+									<StateInfo>
+										<StateGroupList>
+											<StateGroupInfo MusicSyncType="2">
+												<StateGroupRef Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+											</StateGroupInfo>
+										</StateGroupList>
+										<CustomStateList>
+											<CustomState>
+												<StateRef Name="Intro" ID="{A3BCD075-6BF5-4847-A31B-4F2C3ADFEF1D}" />
+												<State Name="Custom State" ID="{537FD6B7-3156-457F-B95E-BDDA01037EE5}" ShortID="566890797">
+													<PropertyList>
+														<Property Name="Volume" Type="Real64" Value="-96.3" />
+													</PropertyList>
+												</State>
+											</CustomState>
+										</CustomStateList>
+									</StateInfo>
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<SequenceList>
+										<MusicTrackSequence Name="" ID="{D5CA5E69-6C17-4737-8F6F-02345CE26BE1}">
+											<ClipList>
+												<MusicClip Name="TestLoop_Guitar" ID="{5B837FFC-3DB5-4072-B56F-700F4C3E66C9}">
+													<PropertyList>
+														<Property Name="EndTrimOffset" Type="Real64" Value="11294.126984127" />
+														<Property Name="FadeInMode" Type="int16" Value="0" />
+														<Property Name="FadeOutMode" Type="int16" Value="0" />
+													</PropertyList>
+													<AudioSourceRef Name="TestLoop_Guitar" ID="{3C402E30-F9A4-4FBF-9DA2-A128623E37DC}" />
+												</MusicClip>
+											</ClipList>
+										</MusicTrackSequence>
+									</SequenceList>
+								</MusicTrack>
+								<MusicTrack Name="TestLoop_Pad" ID="{AE81F4B4-7215-426C-BE31-FFB50642902E}" ShortID="867283061">
+									<PropertyList>
+										<Property Name="IsStreamingEnabled" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="IsZeroLantency" Type="bool">
+											<ValueList>
+												<Value>True</Value>
+											</ValueList>
+										</Property>
+										<Property Name="OverrideConversion" Type="bool" Value="True" />
+									</PropertyList>
+									<ChildrenList>
+										<AudioFileSource Name="TestLoop_Pad" ID="{ADCBFB06-E465-47AA-AD5A-7212A8826F42}" ShortID="228701876">
+											<Language>SFX</Language>
+											<AudioFile>Neilo\TestLoop_Pad.wav</AudioFile>
+										</AudioFileSource>
+									</ChildrenList>
+									<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+									<StateInfo>
+										<StateGroupList>
+											<StateGroupInfo MusicSyncType="2">
+												<StateGroupRef Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+											</StateGroupInfo>
+										</StateGroupList>
+										<CustomStateList>
+											<CustomState>
+												<StateRef Name="Intro" ID="{A3BCD075-6BF5-4847-A31B-4F2C3ADFEF1D}" />
+												<State Name="Custom State" ID="{056D4310-E124-4DBA-81E0-5A93F7C20D7E}" ShortID="222535616">
+													<PropertyList>
+														<Property Name="Volume" Type="Real64" Value="-96.3" />
+													</PropertyList>
+												</State>
+											</CustomState>
+										</CustomStateList>
+									</StateInfo>
+									<ConversionInfo>
+										<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+									</ConversionInfo>
+									<SequenceList>
+										<MusicTrackSequence Name="" ID="{AB0F0067-0CB0-42E8-997D-3A28A433ED9E}">
+											<ClipList>
+												<MusicClip Name="TestLoop_Pad" ID="{D7EE6454-7939-4D26-981C-5905D4FD4144}">
+													<PropertyList>
+														<Property Name="EndTrimOffset" Type="Real64" Value="11294.126984127" />
+														<Property Name="FadeInMode" Type="int16" Value="0" />
+														<Property Name="FadeOutMode" Type="int16" Value="0" />
+													</PropertyList>
+													<AudioSourceRef Name="TestLoop_Pad" ID="{ADCBFB06-E465-47AA-AD5A-7212A8826F42}" />
+												</MusicClip>
+											</ClipList>
+										</MusicTrackSequence>
+									</SequenceList>
+								</MusicTrack>
+							</ChildrenList>
+							<BusRouting Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" />
+							<StateInfo>
+								<StateGroupList>
+									<StateGroupInfo>
+										<StateGroupRef Name="Main" ID="{FD6CEB71-7EE4-4EFE-A4A0-AD931D2FCB64}" />
+									</StateGroupInfo>
+								</StateGroupList>
+							</StateInfo>
+							<ConversionInfo>
+								<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+							</ConversionInfo>
+							<CueList>
+								<MusicCue Name="Entry Cue" ID="{31C9E575-E297-4559-A12E-B5D08103628D}" />
+								<MusicCue Name="Exit Cue" ID="{ECBB9199-8645-4CE3-AC37-AC36A8F95FBF}">
+									<PropertyList>
+										<Property Name="CueType" Type="int16" Value="1" />
+										<Property Name="TimeMs" Type="Real64" Value="11294.1176470588" />
+									</PropertyList>
+								</MusicCue>
+							</CueList>
+						</MusicSegment>
+					</ChildrenList>
+					<BusRouting Name="Music" ID="{48E42618-047A-42CF-BC10-A57AAC1B1649}" />
+					<EffectInfo>
+						<NoEffect Platform="Linked" Index="0" />
+					</EffectInfo>
+					<ConversionInfo>
+						<ConversionRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" />
+					</ConversionInfo>
+					<TransitionList>
+						<Transition>
+							<Source>
+								<Any />
+							</Source>
+							<Destination>
+								<Any />
+							</Destination>
+							<MusicTransition Name="" ID="{70160EEA-1CDA-497A-9F4B-2509D76E034B}">
+								<TransitionInfo />
+							</MusicTransition>
+						</Transition>
+					</TransitionList>
+					<Playlist>
+						<MusicPlaylistItem Name="" ID="{3146AAEF-DF67-48D6-96B2-321A2B28FD26}" ShortID="653583530">
+							<PropertyList>
+								<Property Name="LoopCount" Type="int16" Value="0" />
+							</PropertyList>
+							<ChildrenList>
+								<MusicPlaylistItem Name="" ID="{81F95A81-17F0-4F3E-B8FA-944B8955AFBF}" ShortID="139389821">
+									<PropertyList>
+										<Property Name="PlaylistItemType" Type="int16" Value="1" />
+									</PropertyList>
+									<SegmentRef Name="Music" ID="{7E4C5502-3206-4655-85CC-166BE2BDD010}" />
+								</MusicPlaylistItem>
+							</ChildrenList>
+						</MusicPlaylistItem>
+					</Playlist>
+				</MusicPlaylistContainer>
+			</ChildrenList>
+		</WorkUnit>
+	</InteractiveMusic>
+</WwiseDocument>

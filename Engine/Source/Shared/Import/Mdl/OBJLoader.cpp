@@ -95,6 +95,7 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			{
 				// Use material.
 				BcChar NameBuffer[ 1024 ];
+				BcMemSet( NameBuffer, 0, sizeof( NameBuffer ) );
 				BcSScanf( LineBuffer, "%s %s", CommandBuffer, NameBuffer );
 				Material.Name_ = NameBuffer;
 				MaterialIdx = pMesh->addMaterial( Material );

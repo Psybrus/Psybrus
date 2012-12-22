@@ -120,6 +120,28 @@ void MainShared()
 	RsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
+	// Test resource naming.
+	BcRegex Regex( "\\$\\((.*?):(.*?)\\.(.*?)\\)" );
+	BcRegexMatch Match( 6 );
+	Regex.match( "$(CsResource:Package.Name)", Match );
+
+	BcName Names[] =
+	{
+		"Test",
+		"Test1",
+		"Test_1",
+		"Test_2",
+		"Test_2_3",
+		"Test_2_c",
+		"Test_2_c_2",
+	};
+	
+	for( BcU32 Idx = 0; Idx < Match.noofMatches(); ++Idx )
+	{
+		std::string match;
+		Match.getMatch( Idx, match );
+	}
+
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{
@@ -160,6 +182,12 @@ void MainShared()
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
+	
+	// HACK: If we are importing packages, disable renderer and sound systems.
+	if( SysArgs_.find( "ImportPackages" ) != std::string::npos )
+	{
+		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
+	}
 
 	// Log kernel information.
 	BcPrintf( "============================================================================\n" );
@@ -174,26 +202,34 @@ void MainShared()
 	BcPrintf( " - RsCore::WORKER_MASK: 0x%x\n", RsCore::WORKER_MASK );
 	BcPrintf( " - SsCore::WORKER_MASK: 0x%x\n", SsCore::WORKER_MASK );
 
+	// Start debug system if not a production build.
+#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCore" );
+#endif
+
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
 
+	// Start OS system.
 	SysKernel::pImpl()->startSystem( "OsCore" );
 
+	// Start render system.
 	if( GPsySetupParams.Flags_ & psySF_RENDER )
 	{
 		SysKernel::pImpl()->startSystem( "RsCore" );
 	}
 
+	// Start sound system.
 	if( GPsySetupParams.Flags_ & psySF_SOUND )
 	{
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
 
-	// Start scene system.
-	SysKernel::pImpl()->startSystem( "ScnCore" );
-
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
+
+	// Start scene system.
+	SysKernel::pImpl()->startSystem( "ScnCore" );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
