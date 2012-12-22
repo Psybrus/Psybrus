@@ -31,5 +31,5 @@ solution "Psybrus"
 	dofile ("Engine/premake4.lua")
 
 	-- Build LD23Game.
-	dofile ("7DFPSGame/premake4.lua")
+--	dofile ("7DFPSGame/premake4.lua")
 
