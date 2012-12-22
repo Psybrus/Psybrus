@@ -19,6 +19,8 @@
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
 
+#include "Base/BcRegex.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"

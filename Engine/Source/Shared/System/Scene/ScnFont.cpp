@@ -151,8 +151,8 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 				if( Error == 0 )
 				{
 					// List of glyph descs.			
-					typedef std::vector< TGlyphDesc > TGlyphDescList;
-					TGlyphDescList GlyphDescList;
+					typedef std::vector< ScnFontGlyphDesc > ScnFontGlyphDescList;
+					ScnFontGlyphDescList GlyphDescList;
 					
 					// List of glyph images.
 					ImgImageList GlyphImageList;
@@ -229,7 +229,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 									GlyphImageList.push_back( pImage );										
 										
 									// Add glyph descriptor.
-									TGlyphDesc GlyphDesc = 
+									ScnFontGlyphDesc GlyphDesc = 
 									{
 										0.0f, 0.0f, 0.0f, 0.0f, // UVs, fill in later.
 										
@@ -273,7 +273,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					BcStream HeaderStream;
 					BcStream GlyphStream;
 					
-					THeader Header;
+					ScnFontHeader Header;
 					
 					Header.NoofGlyphs_ = GlyphDescList.size();
 					Header.TextureRef_ = Importer.addImport( TextureObject );
@@ -284,7 +284,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					// Setup glyph desc UVs & serialise.
 					for( BcU32 Idx = 0; Idx < GlyphDescList.size(); ++Idx )
 					{
-						TGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
+						ScnFontGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
 						ImgRect& Rect = RectList[ Idx ];
 								
 						GlyphDesc.UA_ = BcReal( Rect.X_ ) / BcReal( pAtlasImage->width() );
@@ -402,7 +402,7 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnFontHeader*)pData;
 		
 		// Get glyph desc chunk.
 		requestChunk( ++ChunkIdx );
@@ -412,12 +412,12 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 	else if( ChunkID == BcHash( "glyphs" ) )
 	{
-		pGlyphDescs_ = (TGlyphDesc*)pData;
+		pGlyphDescs_ = (ScnFontGlyphDesc*)pData;
 	
 		// Create a char code map.
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
 		{
-			TGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
+			ScnFontGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
 			CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
 		}
 	}
@@ -470,9 +470,9 @@ void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
-	ScnFont::THeader* pHeader = Parent_->pHeader_;
+	ScnFontHeader* pHeader = Parent_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
-	ScnFont::TGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	
 	// Allocate enough vertices for each character.
 	ScnCanvasComponentVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
@@ -489,7 +489,7 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 	BcReal AdvanceX = 0.0f;
 	BcReal AdvanceY = 0.0f;
 		
-	BcU32 RGBA = Colour.asABGR();
+	BcU32 ABGR = Colour.asABGR();
 
 	BcVec2d MinSize( Position );
 	BcVec2d MaxSize( Position );
@@ -516,7 +516,7 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 			
 			if( Iter != CharCodeMap.end() )
 			{
-				ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
+				ScnFontGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
 
 				// Bring first character back to the left so it sits on the cursor.
 				if( FirstCharacterOnLine )
@@ -592,42 +592,42 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 					pVert->Y_ = CornerMin.y();
 					pVert->U_ = U0;
 					pVert->V_ = V0;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMax.x();
 					pVert->Y_ = CornerMin.y();
 					pVert->U_ = U1;
 					pVert->V_ = V0;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMin.x();
 					pVert->Y_ = CornerMax.y();
 					pVert->U_ = U0;
 					pVert->V_ = V1;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMax.x();
 					pVert->Y_ = CornerMin.y();
 					pVert->U_ = U1;
 					pVert->V_ = V0;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMax.x();
 					pVert->Y_ = CornerMax.y();
 					pVert->U_ = U1;
 					pVert->V_ = V1;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMin.x();
 					pVert->Y_ = CornerMax.y();
 					pVert->U_ = U0;
 					pVert->V_ = V1;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 
 					// Add 2 triangles worth of vertices.

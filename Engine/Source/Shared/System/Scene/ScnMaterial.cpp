@@ -34,8 +34,8 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	BcStream HeaderStream;
 	BcStream StateBlockStream;
 		
-	THeader Header;
-	TTextureHeader TextureHeader;
+	ScnMaterialHeader Header;
+	ScnMaterialTextureHeader TextureHeader;
 		
 	// Make header.
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
@@ -230,14 +230,14 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
-		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
+		pHeader_ = (ScnMaterialHeader*)pData;
+		ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
 		
 		// Get resources.
 		Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 		{
-			TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+			ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
 			TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
 		}
 		
