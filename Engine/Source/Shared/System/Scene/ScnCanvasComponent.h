@@ -30,7 +30,7 @@ struct ScnCanvasComponentVertex
 {
 	BcF32 X_, Y_, Z_;
 	BcF32 U_, V_;
-	BcU32 RGBA_;
+	BcU32 ABGR_;
 };
 
 //////////////////////////////////////////////////////////////////////////

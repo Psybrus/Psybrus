@@ -303,7 +303,7 @@ void RsVertexBufferGL::bind()
 	}
 	
 	// Colour.
-	if( VertexDecl & rsVDF_COLOUR_RGBA8 )
+	if( VertexDecl & rsVDF_COLOUR_ABGR8 )
 	{
 		glEnableVertexAttribArray( rsVC_COLOUR );
 		glVertexAttribPointer( rsVC_COLOUR, 4, GL_UNSIGNED_BYTE, 1, Stride, Offset );
@@ -317,4 +317,3 @@ void RsVertexBufferGL::bind()
 	// Catch error.
 	RsGLCatchError;
 }
-

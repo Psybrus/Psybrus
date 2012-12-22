@@ -27,7 +27,8 @@ CsResource::CsResource( const BcName& Name, BcU32 Index, CsPackage* pPackage ):
 	Index_( Index ),
 	pPackage_( pPackage )
 {
-
+	BcAssertMsg( Name != BcName::INVALID, "Resource can not have an invalid name." );
+	BcAssertMsg( Name != BcName::NONE, "Resource can not have a none name." );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,12 +107,20 @@ void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 void CsResource::acquire()
 {
 	++RefCount_;
+
+	/*
+	if(Name_ == BcName("LevelEntity"))
+	{
+		int a = 0; ++a;
+	}
+	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
 // release
 void CsResource::release()
 {
+	//BcPrintf("release: %s, %u\n", (*Name_).c_str(), RefCount_);
 	if( ( --RefCount_ ) == 0 )
 	{
 		// Call into CsCore to destroy this resource.

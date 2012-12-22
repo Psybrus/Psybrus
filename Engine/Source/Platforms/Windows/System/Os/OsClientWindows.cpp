@@ -188,7 +188,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	}
 
 	// Set user data.
-	::SetWindowLongPtr( hWnd_, GWL_USERDATA, (LONG_PTR)this );
+	::SetWindowLongPtr( hWnd_, GWLP_USERDATA, (LONG_PTR)this );
 
 	// Get the device context
 	hDC_ = GetDC( hWnd_ );
@@ -684,7 +684,7 @@ LRESULT CALLBACK OsClientWindows::WndProc( HWND hWnd,
                                     WPARAM wParam,
                                     LPARAM lParam )
 {
-	LONG_PTR ptr = ::GetWindowLongPtr( hWnd, GWL_USERDATA );
+	LONG_PTR ptr = ::GetWindowLongPtr( hWnd, GWLP_USERDATA );
 	OsClientWindows* pWindow = reinterpret_cast< OsClientWindows* >( ptr );
 
 	return pWindow->wndProcInternal( hWnd, uMsg, wParam, lParam );

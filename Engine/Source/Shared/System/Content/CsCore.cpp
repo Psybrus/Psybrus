@@ -67,10 +67,15 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
-	// Finish processing unloading resources.
-	if( UnloadingResources_.size() > 0 )
+	while( LoadedResources_.size() > 0 )
 	{
-		processUnloadingResources();
+		freeUnreferencedPackages();
+
+		// Finish processing unloading resources.
+		if( UnloadingResources_.size() > 0 )
+		{
+			processUnloadingResources();
+		}
 	}
 
 	if( LoadedResources_.size() > 0 )
@@ -448,7 +453,7 @@ void CsCore::internalUnRegisterResource( const BcName& Type )
 BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
 {
 	// Generate a unique name for the resource.
-	BcName UniqueName = pPackage == NULL ? ( Name.isValid() ? Name.getUnique() : Type.getUnique() ) : Name;
+	BcName UniqueName = Name.isValid() ? Name : Type.getUnique();
 
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Type, Index, pPackage );

@@ -31,6 +31,7 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 	pChunkHeaders_( NULL ),
 	pChunkData_( NULL ),
 	IsStringTableReady_( BcFalse ),
+	IsDataLoaded_( BcFalse ),
 	IsDataReady_( BcFalse )
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
@@ -373,7 +374,7 @@ void CsPackageLoader::onChunkHeadersLoaded( void* pData, BcSize Size )
 	// Data is loaded.
 	IsDataLoaded_ = BcTrue;
 
-	if( arePackageDependenciesLoaded() )
+	if( arePackageDependenciesReady() )
 	{
 		// Mark up all the resources.
 		markupResources();
@@ -470,6 +471,7 @@ void CsPackageLoader::initialiseResources()
 			pPackage_->addResource( Handle );		
 
 			// Tell it the file is ready (TODO: DEPRECATE).
+			// NOTE: Will need to do this once we break out the import pipeline.
 			Handle->fileReady();
 		}
 		else
@@ -620,12 +622,12 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// arePackageDependenciesLoaded
-BcBool CsPackageLoader::arePackageDependenciesLoaded()
+// arePackageDependenciesReady
+BcBool CsPackageLoader::arePackageDependenciesReady()
 {
 	for( BcU32 Idx = 0; Idx < PackageDependencies_.size(); ++Idx )
 	{
-		if( PackageDependencies_[ Idx ]->isLoaded() == BcFalse )
+		if( PackageDependencies_[ Idx ]->isReady() == BcFalse )
 		{
 			return BcFalse;
 		}

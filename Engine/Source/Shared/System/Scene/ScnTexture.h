@@ -18,6 +18,8 @@
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTypes.h"
+#include "System/Scene/ScnTextureFileData.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef
@@ -68,17 +70,7 @@ protected:
 protected:
 	RsTexture*							pTexture_;
 	
-	struct THeader
-	{
-		BcU32							Width_;
-		BcU32							Height_;
-		BcU32							Depth_;
-		BcU32							Levels_;
-		eRsTextureType					Type_;
-		eRsTextureFormat				Format_;
-	};
-	
-	THeader								Header_;
+	ScnTextureHeader					Header_;
 	void*								pTextureData_;
 	BcBool								CreateNewTexture_;
 	BcBool								IsUserCreated_;

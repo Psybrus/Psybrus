@@ -18,8 +18,6 @@
 #include "Base/BcDebug.h"
 #include "Base/BcString.h"
 
-#include <string>
-
 //////////////////////////////////////////////////////////////////////////
 // Hash types
 #define HASH_CRC32			0
@@ -30,6 +28,10 @@
 #define HASH_TYPE			HASH_SDBM
 
 //#define HASH_DEBUG
+
+#if defined(HASH_DEBUG)
+#include <string>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // BcHash

@@ -238,7 +238,7 @@ void RsFrame::debugCube( const BcMat4d& Transform, const RsColour& Colour )
 	}
 	
 	//
-	addPrimitive( NULL, NULL, rsPT_TRIANGLELIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_RGBA8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
+	addPrimitive( NULL, NULL, rsPT_TRIANGLELIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -284,6 +284,6 @@ void RsFrame::debugCone( const BcMat4d& Transform, const RsColour& Colour )
 		pVertices[i] = CachedVert;
 	}
 
-	addPrimitive( NULL, NULL, rsPT_TRIANGLELIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_RGBA8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
+	addPrimitive( NULL, NULL, rsPT_TRIANGLELIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
 }
 */

@@ -25,7 +25,6 @@
 #include "System/Scene/ScnRenderableComponent.h"
 #include "System/Scene/ScnViewComponent.h"
 
-#include "System/Scene/ScnTransform.h"
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/ScnVisitor.h"
 

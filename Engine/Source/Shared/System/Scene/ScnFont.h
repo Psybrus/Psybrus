@@ -19,6 +19,7 @@
 #include "System/Scene/ScnMaterial.h"
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnCanvasComponent.h"
+#include "System/Scene/ScnFontFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef
@@ -65,34 +66,8 @@ private:
 private:
 	friend class ScnFontComponent;
 	
-	struct THeader
-	{
-		BcU32							NoofGlyphs_;
-		BcU32							TextureRef_;
-		BcReal							NominalSize_;
-	};
-	
-	struct TGlyphDesc
-	{	
-		// Texture.
-		BcReal							UA_;
-		BcReal							VA_;
-		BcReal							UB_;
-		BcReal							VB_;
-	
-		// Positioning.
-		BcReal							OffsetX_;
-		BcReal							OffsetY_;
-		BcReal							Width_;
-		BcReal							Height_;
-		BcReal							AdvanceX_;
-		
-		// CharCode
-		BcU32							CharCode_;
-	};	
-	
-	THeader*							pHeader_;
-	TGlyphDesc*							pGlyphDescs_;
+	ScnFontHeader*						pHeader_;
+	ScnFontGlyphDesc*					pGlyphDescs_;
 	
 	typedef std::map< BcU32, BcU32 >	TCharCodeMap;
 	typedef TCharCodeMap::iterator		TCharCodeMapIterator;

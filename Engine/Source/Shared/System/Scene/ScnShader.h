@@ -18,41 +18,11 @@
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTexture.h"
-
-//////////////////////////////////////////////////////////////////////////
-// eScnShaderPermutationFlags
-enum eScnShaderPermutationFlags
-{
-	// Exclusive base implementations.
-	scnSPF_2D						= 0x00000001,		// 2D.
-	scnSPF_3D						= 0x00000002,		// 3D.
-	scnSPF_PARTICLE_3D				= 0x00000004,		// Particle 3D.
-	scnSPF_EXCLUSIVE = scnSPF_2D | scnSPF_3D | scnSPF_PARTICLE_3D,
-	
-	// Vertex processing.
-	scnSPF_SKINNED					= 0x00000010,		// Skinned mesh.
-	scnSPF_MORPH					= 0x00000020,		// Morph mesh.
-	
-};
+#include "System/Scene/ScnShaderFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShader
 typedef CsResourceRef< class ScnShader > ScnShaderRef;
-
-//////////////////////////////////////////////////////////////////////////
-// ScnShaderProgram
-typedef CsResourceRef< class ScnShaderProgram > ScnShaderProgramRef;
-
-//////////////////////////////////////////////////////////////////////////
-// ScnShaderPermutationBootstrap
-struct ScnShaderPermutationBootstrap
-{
-	BcU32							PermutationFlags_;
-	const BcChar*					SourceGeometryShaderName_;
-	const BcChar*					SourceVertexShaderName_;
-	const BcChar*					SourceFragmentShaderName_;
-};
-
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShader
@@ -85,26 +55,7 @@ private:
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 private:
-	struct THeader
-	{
-		BcU32							NoofVertexShaderPermutations_;
-		BcU32							NoofFragmentShaderPermutations_;
-		BcU32							NoofProgramPermutations_;
-	};
-	
-	struct TShaderHeader
-	{
-		BcU32							PermutationFlags_;
-	};
-	
-	struct TProgramHeader
-	{
-		BcU32							ProgramPermutationFlags_;
-		BcU32							VertexShaderPermutationFlags_;
-		BcU32							FragmentShaderPermutationFlags_;
-	};
-		
-	THeader*							pHeader_;
+	ScnShaderHeader*					pHeader_;
 	TShaderMap							VertexShaderMap_;
 	TShaderMap							FragmentShaderMap_;
 	TProgramMap							ProgramMap_;
