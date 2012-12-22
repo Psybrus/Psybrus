@@ -39,11 +39,12 @@ public:
 	BcBool							loadJsonFile( const BcChar* pFileName, Json::Value& Root );
 	BcBool							importResource( const Json::Value& Resource );
 	
-	void							addImport( const Json::Value& Resource );
+	BcU32							addImport( const Json::Value& Resource );
 	BcU32							addString( const BcChar* pString );
-	BcU32							addPackageCrossRef( const BcChar* pFullName, const BcName& DefaultTypeName = BcName::INVALID );
+	BcU32							addPackageCrossRef( const BcChar* pFullName );
 	BcU32							addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
-	void							addDependency( const BcChar* pFileName );	
+	void							addDependency( const BcChar* pFileName );
+	void							addAllPackageCrossRefs( Json::Value& Root );
 	
 private:
 	BcBool							havePackageDependency( const BcName& PackageName );

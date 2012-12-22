@@ -34,13 +34,13 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	BcStream HeaderStream;
 	BcStream StateBlockStream;
 		
-	THeader Header;
-	TTextureHeader TextureHeader;
+	ScnMaterialHeader Header;
+	ScnMaterialTextureHeader TextureHeader;
 		
 	// Make header.
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
 
-	Header.ShaderRef_ = Importer.addPackageCrossRef( ImportShader.asCString(), "ScnShader" );	// TODO: Go via addImport.
+	Header.ShaderRef_ = ImportShader.asUInt();	// TODO: Go via addImport. This can then verify for us.
 	Header.NoofTextures_ = TextureMembers.size();	
 	HeaderStream << Header;
 
@@ -50,7 +50,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
 		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
-		TextureHeader.TextureRef_ = Importer.addPackageCrossRef( Texture.asCString(), "ScnTexture" );
+		TextureHeader.TextureRef_ = Texture.asUInt(); // TODO: Go via addImport. This can then verify for us.
 		HeaderStream << TextureHeader;
 	}
 	
@@ -230,14 +230,14 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
-		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
+		pHeader_ = (ScnMaterialHeader*)pData;
+		ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
 		
 		// Get resources.
 		Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 		{
-			TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+			ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
 			TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
 		}
 		
@@ -313,8 +313,20 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
 	ScnMaterialRef MaterialRef;
-	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
-	initialise( MaterialRef, BcErrorCode );
+	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	BcU32 PermutationFlags = 0;
+	const BcChar* pPermutation = Object[ "permutation" ].asCString();
+
+	if( BcStrCompare( pPermutation, "2d" ) )
+	{
+		PermutationFlags = scnSPF_2D;
+	}
+	else if( BcStrCompare( pPermutation, "3d" ) )
+	{
+		PermutationFlags = scnSPF_3D;
+	}
+
+	initialise( MaterialRef, PermutationFlags );
 }
 
 //////////////////////////////////////////////////////////////////////////

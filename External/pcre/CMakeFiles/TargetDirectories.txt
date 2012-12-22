@@ -1,0 +1,10 @@
+C:/Dev/Psybrus/External/pcre/CMakeFiles/ALL_BUILD.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/ZERO_CHECK.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcre.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcre_scanner_unittest.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcre_stringpiece_unittest.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcrecpp.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcrecpp_unittest.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcregrep.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcreposix.dir
+C:/Dev/Psybrus/External/pcre/CMakeFiles/pcretest.dir

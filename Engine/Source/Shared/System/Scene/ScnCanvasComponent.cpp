@@ -64,7 +64,7 @@ void ScnCanvasComponent::initialise( const Json::Value& Object )
 void ScnCanvasComponent::create()
 {
 	// Allocate our own vertex buffer data.
-	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasComponentVertex ) );
 
 	// Allocate render resources.
@@ -196,6 +196,8 @@ ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcU32 NoofVertices 
 // addPrimitive
 void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
+	BcAssertMsg( MaterialComponent_.isValid(), "ScnCanvasComponent: Material component has not been set!" );
+
 	// Check if the vertices are owned by us, if not copy in.
 	if( pVertices < pVertices_ || pVertices_ >= pVerticesEnd_ )
 	{
@@ -248,17 +250,17 @@ void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB,
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 		
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
 		pVertices->Z_ = 0.0f;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = 0.0f;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 
 		// Quickly check last primitive.
 		BcBool AddNewPrimitive = BcTrue;
@@ -313,17 +315,17 @@ void ScnCanvasComponent::drawLine3d( const BcVec3d& PointA, const BcVec3d& Point
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 		
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
 		pVertices->Z_ = PointA.z();
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = PointB.z();
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 
 		// Add primitive.	
 		addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
@@ -342,14 +344,14 @@ void ScnCanvasComponent::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, con
 	if( pVertices != NULL )
 	{	
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 
 		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 		{
 			pVertices->X_ = pPoints[ Idx ].x();
 			pVertices->Y_ = pPoints[ Idx ].y();
 			pVertices->Z_ = 0.0f;
-			pVertices->RGBA_ = RGBA;
+			pVertices->ABGR_ = ABGR;
 			++pVertices;
 		}
 		
@@ -369,6 +371,16 @@ void ScnCanvasComponent::drawLineBox( const BcVec2d& CornerA, const BcVec2d& Cor
 	drawLine( BcVec2d( CornerA.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerA.y() ), Colour, Layer );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// drawLineBox
+void ScnCanvasComponent::drawLineBoxCentered( const BcVec2d& Position, const BcVec2d& Size, const RsColour& Colour, BcU32 Layer )
+{
+	BcVec2d HalfSize = Size * 0.5f;
+	BcVec2d CornerA = Position - HalfSize;
+	BcVec2d CornerB = Position + HalfSize;
+	drawLineBox( CornerA, CornerB, Colour, Layer );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // drawBox
@@ -381,14 +393,14 @@ void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 0.0f;
 		pVertices->V_ = 0.0f;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -396,7 +408,7 @@ void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 1.0f;
 		pVertices->V_ = 0.0f;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerA.x();
@@ -404,7 +416,7 @@ void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 0.0f;
 		pVertices->V_ = 1.0f;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -412,7 +424,7 @@ void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = 1.0f;
 		pVertices->V_ = 1.0f;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		
 		// Add primitive.	
 		addPrimitive( rsPT_TRIANGLESTRIP, pFirstVertex, 4, Layer, BcTrue );
@@ -435,14 +447,14 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -450,7 +462,7 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -458,7 +470,7 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -466,7 +478,7 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -474,7 +486,7 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -482,7 +494,7 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 		pVertices->Z_ = 0.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		
 		// Quickly check last primitive.
 		BcBool AddNewPrimitive = BcTrue;
@@ -542,14 +554,14 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = Position.z();
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -557,7 +569,7 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 		pVertices->Z_ = Position.z();
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -565,7 +577,7 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 		pVertices->Z_ = Position.z();
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -573,7 +585,7 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 		pVertices->Z_ = Position.z();
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -581,7 +593,7 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 		pVertices->Z_ = Position.z();
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -589,7 +601,7 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 		pVertices->Z_ = Position.z();
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		
 		// Quickly check last primitive.
 		BcBool AddNewPrimitive = BcTrue;
@@ -649,14 +661,14 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 RGBA = Colour.asABGR();
+		BcU32 ABGR = Colour.asABGR();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerA.z();
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -664,7 +676,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 		pVertices->Z_ = CornerA.z();
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -672,7 +684,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 		pVertices->Z_ = CornerB.z();
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -680,7 +692,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 		pVertices->Z_ = CornerB.z();
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -688,7 +700,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 		pVertices->Z_ = CornerA.z();
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -696,7 +708,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 		pVertices->Z_ = CornerB.z();
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->RGBA_ = RGBA;
+		pVertices->ABGR_ = ABGR;
 		
 		// Quickly check last primitive.
 		BcBool AddNewPrimitive = BcTrue;
@@ -833,6 +845,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
 	// HUD pass.
+	Sort.Layer_ = 0;
 	Sort.Pass_ = 1;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
@@ -855,7 +868,9 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
 		
 		// Bind material.
-		if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
+		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
+		//       if need be. If using multiple canvases we could potentially lose a material bind.
+		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
 			pLastMaterialComponent->bind( pFrame, Sort );

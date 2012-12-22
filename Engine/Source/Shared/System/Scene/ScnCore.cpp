@@ -99,7 +99,7 @@ void ScnCore::update()
 			{
 				ScnEntityRef& Entity( *It );
 
-				if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+				if( Entity.isReady() && ( Entity->getRenderMask() & ViewComponent->getRenderMask() ) != 0 ) // HACK. Put in a list along side the main one to test.
 				{				
 					Entity->render( ViewComponent, pFrame, RsRenderSort( 0 ) );
 				}
@@ -116,9 +116,12 @@ void ScnCore::update()
 //virtual
 void ScnCore::close()
 {
+	CsCore* pCore = CsCore::pImpl();
+
 	// Destroy spacial tree.
 	delete pSpacialTree_;
 	pSpacialTree_ = NULL;
+
 }
 		
 
@@ -148,6 +151,8 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 // removeAllEntities
 void ScnCore::removeAllEntities()
 {
+	CsCore* pCore = CsCore::pImpl();
+
 	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
 	{
 		ScnEntityRef Entity( *It );
@@ -165,7 +170,9 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 	// Request template entity.
  	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
-		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? Name : InstanceName, Entity, TemplateEntity ) )
+		BcName UniqueName = Name.getUnique();
+		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
+		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? UniqueName : InstanceName, pPackage, Entity, TemplateEntity ) )
 		{
 			return Entity;
 		}
@@ -201,6 +208,25 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 	}
 
 	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getEntity
+ScnEntityRef ScnCore::getEntity( BcU32 Idx )
+{
+	// NOTE: Should probably switch to std::vector do I don't need to do this bullshit.
+	BcU32 TotalIdx = 0;
+	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	{
+		ScnEntityRef Entity( *It );
+
+		if( TotalIdx++ == Idx )
+		{
+			return Entity;
+		}
+	}
+
+	return ScnEntityRef( NULL );
 }
 
 //////////////////////////////////////////////////////////////////////////

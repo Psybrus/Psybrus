@@ -29,11 +29,13 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 {
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
-	ScnMaterialRef Material = CsCore::pImpl()->getResource( Object["material"].asCString() );
-	if( !CsCore::pImpl()->createResource( BcName::NONE, MaterialComponent_, Material, BcErrorCode ) )
+	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
+	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_PARTICLE_3D ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}
+
+	IsLocalSpace_ = Object["localspace"].asBool();
 
 	// Cache texture bounds.
 	ScnTextureRef Texture = Material->getTexture( "aDiffuseTex" );
@@ -48,7 +50,6 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 	pParticleBuffer_ = NULL;
 	CurrentVertexBuffer_ = 0;
-
 	IsReady_ = BcFalse;
 }
 
@@ -61,7 +62,7 @@ void ScnParticleSystemComponent::create()
 	// TODO: Use index buffer.
 	// Calc what we need.
 	BcU32 NoofVertices = NoofParticles_ * 6;	// 2x3 tris.
-	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 
 	// Allocate vertex buffers.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -119,6 +120,9 @@ BcBool ScnParticleSystemComponent::isReady()
 void ScnParticleSystemComponent::update( BcReal Tick )
 {
 	// Allocate particles.
+	// NOTE: Once we have particle emitters setup properly instead of manually
+	//       doing it, we can have them update here, and then do async
+	//       updates.
 	updateParticles( Tick );
 }
 
@@ -267,7 +271,15 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	Sort.Layer_ = 15;
 
 	// Bind material.
-	MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
+	if( IsLocalSpace_ )
+	{
+		MaterialComponent_->setParameter( WorldTransformParam_, getParentEntity()->getMatrix() );
+	}
+	else
+	{
+		MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
+	}
+
 	MaterialComponent_->bind( pFrame, Sort );
 
 	// Setup render node.

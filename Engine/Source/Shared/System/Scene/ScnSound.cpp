@@ -44,7 +44,7 @@ BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& O
 		BcStream SampleStream;
 		
 		// Setup header.
-		THeader Header = 
+		ScnSoundHeader Header = 
 		{
 			pSound->getSampleRate(),
 			pSound->getNumChannels(),
@@ -141,7 +141,7 @@ void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnSoundHeader*)pData;
 		
 		requestChunk( ++ChunkIdx );
 	}

@@ -361,11 +361,27 @@ RsShader* RsCoreImplGL::createShader( eRsShaderType ShaderType, eRsShaderDataTyp
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createProgram
+// createProgram @deprecated
 //virtual
 RsProgram* RsCoreImplGL::createProgram( RsShader* pVertexShader, RsShader* pFragmentShader )
 {
-	RsProgramGL* pResource = new RsProgramGL( static_cast< RsShaderGL* >( pVertexShader ), static_cast< RsShaderGL* >( pFragmentShader ) );
+	RsShader* Shaders[] = 
+	{
+		pVertexShader,
+		pFragmentShader
+	};
+
+	RsProgramGL* pResource = new RsProgramGL( 2, &Shaders[ 0 ] );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgram
+//virtual
+RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders )
+{
+	RsProgramGL* pResource = new RsProgramGL( NoofShaders, ppShaders );
 	createResource( pResource );
 	return pResource;
 }

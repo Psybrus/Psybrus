@@ -171,6 +171,16 @@ void SysKernel::tick()
 {
 	BcAssert( BcIsGameThread() );
 
+#if 0
+	// Reset time working in the job queue for metrics.
+	BcPrintf( "System Kernel: Game thread: %f ms\n", getFrameTime() );
+	for( BcU32 Idx = 0; Idx < JobQueue_.workerCount(); ++Idx )
+	{
+		BcReal Time = JobQueue_.getAndResetTimeWorkingForWorker( Idx );
+		BcPrintf( "System Kernel: Worker %u: %f ms\n", Idx, Time * 1000.0f );
+	}
+#endif
+
 	if( ShuttingDown_ == BcFalse )
 	{
 		BcScopedLock< BcMutex > Lock( SystemLock_ );

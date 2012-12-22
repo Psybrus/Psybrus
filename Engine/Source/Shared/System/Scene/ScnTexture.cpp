@@ -71,7 +71,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 
 			BcStream HeaderStream;
 			
-			THeader Header = { pImage->width(), pImage->height(), 1, 1, TextureType, TextureFormat };	// TODO: Take type from file.
+			ScnTextureHeader Header = { pImage->width(), pImage->height(), 1, 1, TextureType, TextureFormat };	// TODO: Take type from file.
 			HeaderStream << Header;
 			
 			// Delete image.

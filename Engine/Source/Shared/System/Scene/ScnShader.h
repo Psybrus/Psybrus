@@ -18,23 +18,11 @@
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTexture.h"
-
-//////////////////////////////////////////////////////////////////////////
-// eScnShaderPermutationFlags
-enum eScnShaderPermutationFlags
-{
-	scnSPF_DEFAULT					= 0x00000000,		// Default minimal shader.
-	scnSPF_WORLD_TRANSFORM			= 0x00000001,		// Transforms vertices into clip space.
-	scnSPF_CLIP_SPACE_TRANSFORM		= 0x00000002,		// Transform vertices into world space.
-};
+#include "System/Scene/ScnShaderFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShader
 typedef CsResourceRef< class ScnShader > ScnShaderRef;
-
-//////////////////////////////////////////////////////////////////////////
-// ScnShaderProgram
-typedef CsResourceRef< class ScnShaderProgram > ScnShaderProgramRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShader
@@ -67,26 +55,7 @@ private:
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 private:
-	struct THeader
-	{
-		BcU32							NoofVertexShaderPermutations_;
-		BcU32							NoofFragmentShaderPermutations_;
-		BcU32							NoofProgramPermutations_;
-	};
-	
-	struct TShaderHeader
-	{
-		BcU32							PermutationFlags_;
-	};
-	
-	struct TProgramHeader
-	{
-		BcU32							ProgramPermutationFlags_;
-		BcU32							VertexShaderPermutationFlags_;
-		BcU32							FragmentShaderPermutationFlags_;
-	};
-		
-	THeader*							pHeader_;
+	ScnShaderHeader*					pHeader_;
 	TShaderMap							VertexShaderMap_;
 	TShaderMap							FragmentShaderMap_;
 	TProgramMap							ProgramMap_;

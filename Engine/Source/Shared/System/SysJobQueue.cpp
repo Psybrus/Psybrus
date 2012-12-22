@@ -25,7 +25,11 @@ SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	if( NoofWorkers_ > 0 )
 	{
 		// Start our thread.
+		StartedFence_.increment();
 		BcThread::start( "SysJobQueue Main" );
+
+		// Wait on it it to complete starting.
+		StartedFence_.wait();
 	}
 	else
 	{
@@ -119,6 +123,15 @@ BcU32 SysJobQueue::workerCount() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getAndResetTimeWorkingForWorker
+BcReal SysJobQueue::getAndResetTimeWorkingForWorker( BcU32 Idx )
+{
+	BcAssertMsg( Idx < NoofWorkers_, "SysJobQueue: Invalid worker index" );
+	SysJobWorker* pWorker = JobWorkers_[ Idx ];
+	return pWorker->getAndResetTimeWorking();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // moveJobsBack
 void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 {
@@ -161,6 +174,8 @@ void SysJobQueue::execute()
 		JobWorkers_.push_back( pWorker );
 		pWorker->start();
 	}
+
+	StartedFence_.decrement();
 
 	//
 	while( Active_ )
@@ -220,6 +235,7 @@ void SysJobQueue::execute()
 					// This means jobs queued by specific systems with particular worker masks
 					// will also keep their order. Differing masks can't possibly keep the same
 					// order.
+					// TODO: Remove the need for this at some point, it's not very nice.
 					if( BlockedMask != 0x0 )
 					{
 						moveJobsBack( BlockedMask );

@@ -67,10 +67,15 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
-	// Finish processing unloading resources.
-	if( UnloadingResources_.size() > 0 )
+	while( LoadedResources_.size() > 0 )
 	{
-		processUnloadingResources();
+		freeUnreferencedPackages();
+
+		// Finish processing unloading resources.
+		if( UnloadingResources_.size() > 0 )
+		{
+			processUnloadingResources();
+		}
 	}
 
 	if( LoadedResources_.size() > 0 )
@@ -187,6 +192,20 @@ void CsCore::destroyResource( CsResource* pResource )
 	{
 		delete pResource;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofResources
+BcU32 CsCore::getNoofResources()
+{
+	return LoadedResources_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResource
+CsResourceRef<> CsCore::getResource( BcU32 Idx )
+{
+	return LoadedResources_[ Idx ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -380,19 +399,26 @@ void CsCore::processUnloadingResources()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	TResourceListIterator It( UnloadingResources_.begin() );
-	while( It != UnloadingResources_.end() )
+	while( UnloadingResources_.size() > 0 )
 	{
-		CsResource* pResource = (*It);
-		
-		// Destroy resource.
-		pResource->destroy();
-		
-		// Free resource.
-		delete pResource;
-		
-		// Remove from list.
-		It = UnloadingResources_.erase( It );
+		TResourceList ResourceList = UnloadingResources_;
+
+		TResourceListIterator It( ResourceList.begin() );
+		while( It != ResourceList.end() )
+		{
+			CsResource* pResource = (*It);
+			
+			// Destroy resource.
+			pResource->destroy();
+			
+			// Free resource.
+			delete pResource;
+			
+			// Next.
+			++It;
+		}
+	
+		UnloadingResources_.clear();
 	}
 }
 
@@ -427,7 +453,7 @@ void CsCore::internalUnRegisterResource( const BcName& Type )
 BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
 {
 	// Generate a unique name for the resource.
-	BcName UniqueName = pPackage == NULL ? ( Name.isValid() ? Name.getUnique() : Type.getUnique() ) : Name;
+	BcName UniqueName = Name.isValid() ? Name : Type.getUnique();
 
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Type, Index, pPackage );

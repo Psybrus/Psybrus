@@ -107,7 +107,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 				
 				pImage = pFinal;
 			}
-		
+			
 			// Add to list (even if null).
 			ImageList.push_back( pImage );
 		}
@@ -123,7 +123,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256, ClearColour );
 			
 			// Setup header.
-			TAtlasHeader Header = 
+			ScnTextureAtlasHeader Header = 
 			{
 				ImageList.size()
 			};
@@ -133,12 +133,14 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
 			{
 				ImgRect& Rect = RectList[ Idx ];
-				ScnRect OutRect = 
+				ScnTextureAtlasRect OutRect = 
 				{
-					BcReal( Rect.X_ + ( Spread / 4 ) ) / BcReal( pAtlasImage->width() ),
-					BcReal( Rect.Y_ + ( Spread / 4 ) ) / BcReal( pAtlasImage->height() ),
-					BcReal( Rect.W_ - ( SpreadDouble / 4 ) ) / BcReal( pAtlasImage->width() ),
-					BcReal( Rect.H_ - ( SpreadDouble / 4 ) ) / BcReal( pAtlasImage->height() )
+					{
+						BcReal( Rect.X_ + ( Spread / 4 ) ) / BcReal( pAtlasImage->width() ),
+						BcReal( Rect.Y_ + ( Spread / 4 ) ) / BcReal( pAtlasImage->height() ),
+						BcReal( Rect.W_ - ( SpreadDouble / 4 ) ) / BcReal( pAtlasImage->width() ),
+						BcReal( Rect.H_ - ( SpreadDouble / 4 ) ) / BcReal( pAtlasImage->height() )
+					}
 				};
 				
 				RectsStream << OutRect;
@@ -172,7 +174,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			return Super::import( Importer, BaseObject );
 		}
 	}
-		
+	
 	return BcFalse;
 }
 #endif
@@ -188,7 +190,7 @@ const ScnRect& ScnTextureAtlas::getRect( BcU32 Idx )
 {
 	if( Idx < pAtlasHeader_->NoofTextures_ )
 	{
-		return pAtlasRects_[ Idx ];
+		return pAtlasRects_[ Idx ].Rect_;
 	}
 
 	return ScnTexture::getRect( Idx );
@@ -210,13 +212,13 @@ void ScnTextureAtlas::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData
 {
 	if( ChunkID == BcHash( "atlasheader" ) )
 	{
-		pAtlasHeader_ = (TAtlasHeader*)pData;
+		pAtlasHeader_ = (ScnTextureAtlasHeader*)pData;
 		
 		requestChunk( ++ChunkIdx );
 	}
 	else if( ChunkID == BcHash( "atlasrects" ) )
 	{
-		pAtlasRects_ = (ScnRect*)pData;
+		pAtlasRects_ = (ScnTextureAtlasRect*)pData;
 		
 		requestChunk( ++ChunkIdx, &Header_ );
 	}
