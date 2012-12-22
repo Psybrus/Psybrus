@@ -120,6 +120,28 @@ void MainShared()
 	RsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
+	// Test resource naming.
+	BcRegex Regex( "\\$\\((.*?):(.*?)\\.(.*?)\\)" );
+	BcRegexMatch Match( 6 );
+	Regex.match( "$(CsResource:Package.Name)", Match );
+
+	BcName Names[] =
+	{
+		"Test",
+		"Test1",
+		"Test_1",
+		"Test_2",
+		"Test_2_3",
+		"Test_2_c",
+		"Test_2_c_2",
+	};
+	
+	for( BcU32 Idx = 0; Idx < Match.noofMatches(); ++Idx )
+	{
+		std::string match;
+		Match.getMatch( Idx, match );
+	}
+
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{
@@ -203,11 +225,11 @@ void MainShared()
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
 
-	// Start scene system.
-	SysKernel::pImpl()->startSystem( "ScnCore" );
-
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
+
+	// Start scene system.
+	SysKernel::pImpl()->startSystem( "ScnCore" );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();

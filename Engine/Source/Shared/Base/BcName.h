@@ -91,6 +91,9 @@ public:
 	bool operator < ( const BcName& Other ) const;
 
 private:
+	static BcBool validate( const BcChar* pString );
+
+private:
 	void setInternal( const std::string& Value, BcU32 ID );
 
 private:

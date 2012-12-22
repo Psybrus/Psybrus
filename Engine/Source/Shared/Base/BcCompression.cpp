@@ -31,6 +31,7 @@ BcBool BcCompressData( const BcU8* pInputData, BcU32 InputSize, const BcU8*& pOu
 	}
 
 	delete [] pOutData;
+	pOutData = NULL;
 	return BcFalse;
 }
 

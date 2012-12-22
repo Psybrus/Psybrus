@@ -24,9 +24,9 @@
 // Statics
 static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
 {
-	{ scnSPF_2D, NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
-	{ scnSPF_3D, NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
-	{ scnSPF_PARTICLE_3D, NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
+	{ scnSPF_2D,					NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
+	{ scnSPF_3D,					NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
+	//{ scnSPF_PARTICLE_3D, NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
 };
 
 #ifdef PSY_SERVER
@@ -57,9 +57,9 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 			BcStream FragmentShaderStream;
 			BcStream ProgramStream;
 			
-			THeader Header;
-			TShaderHeader ShaderHeader;
-			TProgramHeader ProgramHeader;
+			ScnShaderHeader Header;
+			ScnShaderUnitHeader ShaderHeader;
+			ScnShaderProgramHeader ProgramHeader;
 
 			// For now, generate all permutations.
 			BcU32 NoofPermutations = sizeof( GShaderPermutationBootstraps ) / sizeof( GShaderPermutationBootstraps[ 0 ] );
@@ -304,7 +304,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnShaderHeader*)pData;
 
 		// Grab the rest of the chunks.
 		const BcU32 TotalChunks = pHeader_->NoofVertexShaderPermutations_ + pHeader_->NoofFragmentShaderPermutations_ + pHeader_->NoofProgramPermutations_;
@@ -315,9 +315,9 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 	else if( ChunkID == BcHash( "vertex" ) )
 	{
-		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
+		ScnShaderUnitHeader* pShaderHeader = (ScnShaderUnitHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
-		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( TShaderHeader );
+		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( ScnShaderUnitHeader );
 		
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
 		
@@ -326,9 +326,9 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 	else if( ChunkID == BcHash( "fragment" ) )
 	{
-		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
+		ScnShaderUnitHeader* pShaderHeader = (ScnShaderUnitHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
-		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( TShaderHeader );
+		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( ScnShaderUnitHeader );
 			
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
 			
@@ -338,7 +338,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	else if( ChunkID == BcHash( "program" ) )
 	{
 		// Generate program.
-		TProgramHeader* pProgramHeader = (TProgramHeader*)pData;
+		ScnShaderProgramHeader* pProgramHeader = (ScnShaderProgramHeader*)pData;
 			
 		// Check vertex & fragment shader for closest permutation.
 		RsShader* pVertexShader = getShader( pProgramHeader->VertexShaderPermutationFlags_, VertexShaderMap_ );

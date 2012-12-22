@@ -170,7 +170,7 @@ typedef size_t						BcSize;
 #include <string>
 #include <algorithm>
 
-#if defined( ARCH_I386 )
+#if defined( ARCH_X86 )
 typedef unsigned long long			BcU64;
 typedef unsigned int				BcU32;
 typedef	unsigned short				BcU16;

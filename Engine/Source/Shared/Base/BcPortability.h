@@ -53,14 +53,14 @@
 // Architecture Identification
 
 // X86_64
-#if defined( __ia64__ ) || defined( __IA64__ ) || defined( _IA64 ) || defined( _M_IA64 ) || defined( __x86_64__ ) 
+#if defined( __ia64__ ) || defined( __IA64__ ) || defined( _IA64 ) || defined( _M_IA64 ) || defined( __x86_64__ ) || defined( _M_X64 )
 #  define ARCH_X86_64			1
 #  define PSY_ENDIAN_LITTLE		1
 #  define PSY_ENDIAN_BIG		0
 
 // i386 (and higher)
 #elif defined( __i386__ ) || defined( __i486__ ) || defined( __i586__ ) || defined( __i686__ ) || defined( _M_IX86 )
-#  define ARCH_I386				1
+#  define ARCH_X86				1
 #  define PSY_ENDIAN_LITTLE		1
 #  define PSY_ENDIAN_BIG		0
 
@@ -89,6 +89,10 @@
 #  define PSY_ENDIAN_LITTLE		0
 
 // END.
+#endif
+
+#if !defined( PSY_ENDIAN_LITTLE ) || !defined( PSY_ENDIAN_BIG )
+#error "No endianess defined."
 #endif
 
 //////////////////////////////////////////////////////////////////////////

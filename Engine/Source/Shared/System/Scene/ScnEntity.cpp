@@ -80,7 +80,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		{
 			const Json::Value& Component( Components[ Idx ] );
 			CsResourceRef<> ResourceRef;
-			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Component[ "type" ].asCString(), BcErrorCode, NULL, ResourceRef ) )
+			BcName Type = Component[ "type" ].asCString();
+			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Type, BcErrorCode, getPackage(), ResourceRef ) )
 			{
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
@@ -246,6 +247,9 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 			Component->onDetach( ScnEntityWeakRef( this ) );
 		}
 	}
+
+	// We should do this...is this right?
+	Components_.clear();
 
 	Super::onDetach( Parent );
 
