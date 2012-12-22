@@ -1211,7 +1211,7 @@ void GaWorldBSPComponent::buildBSP()
 		pBSPTree_ = new BcBSPTree();
 
 		BcU32 NoofVertices = Edges_.size() * 6;
-		BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UVW0 | rsVDF_COLOUR_RGBA8;
+		BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UVW0 | rsVDF_COLOUR_ABGR8;
 
 		// Setup vertex array.
 		pVertexArray_ =  new GaWorldBSPVertex[ NoofVertices ];
