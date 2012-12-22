@@ -30,7 +30,7 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
-	if( !CsCore::pImpl()->createResource( BcName::NONE, getPackage(), MaterialComponent_, Material, scnSPF_PARTICLE_3D ) )
+	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_PARTICLE_3D ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}
@@ -62,7 +62,7 @@ void ScnParticleSystemComponent::create()
 	// TODO: Use index buffer.
 	// Calc what we need.
 	BcU32 NoofVertices = NoofParticles_ * 6;	// 2x3 tris.
-	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 
 	// Allocate vertex buffers.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -120,6 +120,9 @@ BcBool ScnParticleSystemComponent::isReady()
 void ScnParticleSystemComponent::update( BcReal Tick )
 {
 	// Allocate particles.
+	// NOTE: Once we have particle emitters setup properly instead of manually
+	//       doing it, we can have them update here, and then do async
+	//       updates.
 	updateParticles( Tick );
 }
 

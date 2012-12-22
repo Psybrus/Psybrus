@@ -225,11 +225,11 @@ void MainShared()
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
 
-	// Start scene system.
-	SysKernel::pImpl()->startSystem( "ScnCore" );
-
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
+
+	// Start scene system.
+	SysKernel::pImpl()->startSystem( "ScnCore" );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();

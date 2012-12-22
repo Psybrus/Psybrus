@@ -35,9 +35,6 @@ SysJob::~SysJob()
 void SysJob::internalExecute()
 {
 	execute();
-	
-	// Clean up.
-	delete this;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -116,9 +116,12 @@ void ScnCore::update()
 //virtual
 void ScnCore::close()
 {
+	CsCore* pCore = CsCore::pImpl();
+
 	// Destroy spacial tree.
 	delete pSpacialTree_;
 	pSpacialTree_ = NULL;
+
 }
 		
 
@@ -148,6 +151,8 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 // removeAllEntities
 void ScnCore::removeAllEntities()
 {
+	CsCore* pCore = CsCore::pImpl();
+
 	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
 	{
 		ScnEntityRef Entity( *It );
@@ -165,8 +170,9 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 	// Request template entity.
  	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
+		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
-		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? Name : InstanceName, pPackage, Entity, TemplateEntity ) )
+		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? UniqueName : InstanceName, pPackage, Entity, TemplateEntity ) )
 		{
 			return Entity;
 		}
