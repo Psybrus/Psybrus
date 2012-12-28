@@ -750,12 +750,6 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	ScnMaterial* pMaterial_ = Parent_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
 	Sort.Blend_ = pStateBuffer_[ rsRS_BLEND_MODE ];
-
-	// Default texture parameters.
-	RsTextureParams DefaultTextureParams = 
-	{
-		rsTFM_LINEAR_MIPMAP_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
-	};
 	
 	// Allocate a render node.
 	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
@@ -776,16 +770,24 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		TTextureBinding& Binding = TextureBindingList_[ Idx ];
 		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
 		RsTextureParams& TextureParams = pRenderNode->pTextureParams_[ Idx ];
-	
-		// Set sampler parameter.	BcU8		B_;
 		
+		// Set sampler parameter.
 		setParameter( Binding.Parameter_, (BcS32)Idx );
 		
 		// Set texture to bind.
 		Texture = Binding.Texture_->getTexture();
 		
+		// Default texture parameters.
+		// TODO: Pull these from the material.
+		RsTextureParams DefaultTextureParams = 
+		{
+			Texture->levels() > 1 ? rsTFM_LINEAR_MIPMAP_LINEAR : rsTFM_LINEAR,
+			rsTFM_LINEAR,
+			rsTSM_WRAP,
+			rsTSM_WRAP
+		};
+
 		// Set texture params.
-		// TODO: Pull these from material instance.
 		TextureParams = DefaultTextureParams;
 	}
 	
