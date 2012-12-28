@@ -43,14 +43,14 @@ public:
 
 	void								initialise( const Json::Value& Object );
 
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
 	BcVec3d								intersection( const BcVec3d& Direction ); 
 	
 	static int							streamCallback( const void *input, void* output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData );
-	void								process( BcU32 Frames, BcReal* pFrames );
+	void								process( BcU32 Frames, BcF32* pFrames );
 
 	eEvtReturn							onReset( EvtID ID, const GaWorldResetEvent& Event );
 
@@ -65,23 +65,23 @@ private:
 	BcU32								BufferSize_;
 	BcU32								SampleRate_;
 	PaStream*							pPaStream_;
-	BcReal*								pWorkingBuffers_[ 2 ];
+	BcF32*								pWorkingBuffers_[ 2 ];
 
 	BcRandom							NoiseGenerator_;
 	
 	BcAtomicMutex						FilterLock_;
 
 	// Game thread.
-	aptk::LowpassRes< BcReal, BcReal >	LowPassPrevL_;
-	aptk::LowpassRes< BcReal, BcReal >	LowPassPrevR_;
-	aptk::LowpassRes< BcReal, BcReal >	LowPassCurrL_;
-	aptk::LowpassRes< BcReal, BcReal >	LowPassCurrR_;
+	aptk::LowpassRes< BcF32, BcF32 >	LowPassPrevL_;
+	aptk::LowpassRes< BcF32, BcF32 >	LowPassPrevR_;
+	aptk::LowpassRes< BcF32, BcF32 >	LowPassCurrL_;
+	aptk::LowpassRes< BcF32, BcF32 >	LowPassCurrR_;
 
 	// Sound thread.
-	aptk::LowpassRes< BcReal, BcReal >	LowPassL_;
-	aptk::LowpassRes< BcReal, BcReal >	LowPassR_;
-	aptk::PeakEQ< BcReal, BcReal >		PeakL_;
-	aptk::PeakEQ< BcReal, BcReal >		PeakR_;
+	aptk::LowpassRes< BcF32, BcF32 >	LowPassL_;
+	aptk::LowpassRes< BcF32, BcF32 >	LowPassR_;
+	aptk::PeakEQ< BcF32, BcF32 >		PeakL_;
+	aptk::PeakEQ< BcF32, BcF32 >		PeakR_;
 };
 
 #endif

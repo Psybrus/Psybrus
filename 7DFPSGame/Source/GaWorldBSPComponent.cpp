@@ -19,13 +19,23 @@
 // Round
 static BcVec2d RoundVector( BcVec2d Vector )
 {
-	const BcReal Factor = 1.0f;
+	const BcF32 Factor = 1.0f;
 	return BcVec2d( BcRound( Vector.x() / Factor ) * Factor, BcRound( Vector.y() / Factor ) * Factor );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Define
 DEFINE_RESOURCE( GaWorldBSPComponent );
+
+BCREFLECTION_EMPTY_REGISTER( GaWorldBSPComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, GaWorldBSPComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -95,7 +105,7 @@ BcBool GaWorldBSPComponent::isReady()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void GaWorldBSPComponent::update( BcReal Tick )
+void GaWorldBSPComponent::update( BcF32 Tick )
 {
 	OsCore::pImpl()->getClient( 0 )->setMouseLock( !InEditorMode_ );
 
@@ -109,7 +119,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		TextScaleMatrix.scale( BcVec4d( 0.1f, 0.1f, 1.0f, 1.0f ) );
 
 		TextTimer_ += Tick;
-		BcReal TextThing = BcAbs( BcSin( TextTimer_ ) ) ;
+		BcF32 TextThing = BcAbs( BcSin( TextTimer_ ) ) ;
 		Font_->getMaterialComponent()->setParameter( FontScaleParam_, BcVec2d( 0.4f, 0.6f ) );
 
 		Canvas_->pushMatrix( TextScaleMatrix );
@@ -132,8 +142,8 @@ void GaWorldBSPComponent::update( BcReal Tick )
 
 	if( InEditorMode_ )
 	{
-		const BcReal NormalSize = 0.5f;
-		const BcReal HintSize = 0.125f;
+		const BcF32 NormalSize = 0.5f;
+		const BcF32 HintSize = 0.125f;
 		const BcVec2d HintBoxSize( HintSize, HintSize );
 
 		{
@@ -141,13 +151,13 @@ void GaWorldBSPComponent::update( BcReal Tick )
 		}
 
 		// Draw editor grid.
-		BcReal Size = 16.0f;
-		for( BcReal T = -Size; T <= Size; T += 1.0f )
+		BcF32 Size = 16.0f;
+		for( BcF32 T = -Size; T <= Size; T += 1.0f )
 		{
 			Canvas_->drawLine( BcVec2d( T, -Size ), BcVec2d( T, Size ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
 			Canvas_->drawLine( BcVec2d( -Size,T ), BcVec2d( Size, T ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
 		}
-		for( BcReal T = -Size; T <= Size; T += 4.0f )
+		for( BcF32 T = -Size; T <= Size; T += 4.0f )
 		{
 			Canvas_->drawLine( BcVec2d( T, -Size ), BcVec2d( T, Size ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
 			Canvas_->drawLine( BcVec2d( -Size,T ), BcVec2d( Size, T ), RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), 1 );
@@ -239,7 +249,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 				BcBSPPointInfo PointInfo;
 				if( pBSPTree_ != NULL )
 				{
-					for( BcReal Angle = 0.0f; Angle < BcPIMUL2; Angle += BcPI * 0.025f )
+					for( BcF32 Angle = 0.0f; Angle < BcPIMUL2; Angle += BcPI * 0.025f )
 					{
 						BcVec3d Normal( BcVec3d( BcCos( Angle ) * 128.0f, BcSin( Angle ) * 128.0f, 0.0f ) );
 						PointInfo.Point_ = BcVec3d( MousePosition_, 0.0f ) + Normal;
@@ -273,7 +283,7 @@ void GaWorldBSPComponent::update( BcReal Tick )
 	if( !InEditorMode_ )
 	{
 		BcVec3d PlayerPosition = PlayerEntity_->getPosition();
-		BcReal Distance = ( BcVec3d( QuitPosition_, 0.0f ) - PlayerPosition ).magnitude();
+		BcF32 Distance = ( BcVec3d( QuitPosition_, 0.0f ) - PlayerPosition ).magnitude();
 
 		if( Distance < 2.0f )
 		{
@@ -621,19 +631,19 @@ eEvtReturn GaWorldBSPComponent::onMouseEvent( EvtID ID, const OsEventInputMouse&
 
 //////////////////////////////////////////////////////////////////////////
 // nearestPoint
-BcU32 GaWorldBSPComponent::nearestPoint( BcVec2d Position, BcReal Radius )
+BcU32 GaWorldBSPComponent::nearestPoint( BcVec2d Position, BcF32 Radius )
 {
 	// Round up the position to the nearest int.
 	Position = RoundVector( Position );
 
 	// Find.
 	BcU32 FoundIdx = BcErrorCode;
-	BcReal Closest = Radius;
+	BcF32 Closest = Radius;
 
 	for( BcU32 Idx = 0; Idx < Points_.size(); ++Idx )
 	{
 		GaWorldBSPPoint& Point( Points_[ Idx ] );
-		BcReal Distance = ( Point.Position_ - Position ).magnitude();
+		BcF32 Distance = ( Point.Position_ - Position ).magnitude();
 
 		if( Distance < Closest )
 		{
@@ -789,17 +799,17 @@ void GaWorldBSPComponent::invertEdge( BcU32 Idx )
 
 //////////////////////////////////////////////////////////////////////////
 // nearestEdge
-BcU32 GaWorldBSPComponent::nearestEdge( const BcVec2d& Position, BcReal Radius )
+BcU32 GaWorldBSPComponent::nearestEdge( const BcVec2d& Position, BcF32 Radius )
 {
 	BcU32 NearestIdx = BcErrorCode;
-	BcReal NearestDistance = Radius;
+	BcF32 NearestDistance = Radius;
 
 	// Check edge doesn't exist already.
 	for( BcU32 Idx = 0; Idx < Edges_.size(); ++Idx )
 	{
 		const BcVec2d& NearestPosition( nearestPositionOnEdge( Position, Idx ) );
 
-		BcReal Distance = ( NearestPosition - Position ).magnitude();
+		BcF32 Distance = ( NearestPosition - Position ).magnitude();
 		if( Distance < NearestDistance )
 		{
 			NearestIdx = Idx;
@@ -820,25 +830,25 @@ BcVec2d GaWorldBSPComponent::nearestPositionOnEdge( const BcVec2d& Position, BcU
 
 	BcVec2d AP = Position - PointA;
 	BcVec2d AB = PointB - PointA;
-	BcReal AB2 = AB.dot( AB );
-	BcReal APAB = AP.dot( AB );
-	BcReal T = BcClamp( APAB / AB2, 0.0f, 1.0f );
+	BcF32 AB2 = AB.dot( AB );
+	BcF32 APAB = AP.dot( AB );
+	BcF32 T = BcClamp( APAB / AB2, 0.0f, 1.0f );
 	return ( PointA + AB * T );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // nearestEnemy
-BcU32 GaWorldBSPComponent::nearestEnemy( BcVec2d Position, BcReal Radius )
+BcU32 GaWorldBSPComponent::nearestEnemy( BcVec2d Position, BcF32 Radius )
 {
 	BcU32 NearestIdx = BcErrorCode;
-	BcReal NearestDistance = Radius;
+	BcF32 NearestDistance = Radius;
 
 	// Check edge doesn't exist already.
 	for( BcU32 Idx = 0; Idx < Enemies_.size(); ++Idx )
 	{
 		const BcVec2d& NearestPosition( Enemies_[ Idx ] );
 
-		BcReal Distance = ( NearestPosition - Position ).magnitude();
+		BcF32 Distance = ( NearestPosition - Position ).magnitude();
 		if( Distance < NearestDistance )
 		{
 			NearestIdx = Idx;
@@ -851,13 +861,13 @@ BcU32 GaWorldBSPComponent::nearestEnemy( BcVec2d Position, BcReal Radius )
 
 //////////////////////////////////////////////////////////////////////////
 // killEnemy
-BcBool GaWorldBSPComponent::killEnemy( const BcVec3d& Position, BcReal Radius )
+BcBool GaWorldBSPComponent::killEnemy( const BcVec3d& Position, BcF32 Radius )
 {
-	BcReal NearestDistanceSquared = Radius * Radius;
+	BcF32 NearestDistanceSquared = Radius * Radius;
 	std::vector< ScnEntityRef >::iterator NearestIt = EnemyEntities_.end();
 	for( std::vector< ScnEntityRef >::iterator It = EnemyEntities_.begin(); It != EnemyEntities_.end(); ++It )
 	{
-		BcReal DistanceSquared = ( (*It)->getPosition() - Position ).magnitudeSquared();
+		BcF32 DistanceSquared = ( (*It)->getPosition() - Position ).magnitudeSquared();
 		if( DistanceSquared < NearestDistanceSquared )
 		{
 			NearestDistanceSquared = DistanceSquared;
@@ -995,7 +1005,7 @@ void GaWorldBSPComponent::loadJson()
 		Json::Reader Reader;
 		if( Reader.parse( pBuffer, pBuffer + InputFile.size(), LevelData ) )
 		{
-			BcReal X, Y;
+			BcF32 X, Y;
 			PointsData = LevelData[ "points" ];
 			EdgesData = LevelData[ "edges" ];
 			EnemiesData = LevelData[ "enemies" ];
@@ -1185,9 +1195,9 @@ void GaWorldBSPComponent::buildBSP()
 	delete pBSPTree_;
 	pBSPTree_ = NULL;
 
-	BcReal Width = static_cast< BcReal >( WorldInfo_->getWidth() );
-	BcReal Height = static_cast< BcReal >( WorldInfo_->getHeight() );
-	BcReal Depth = static_cast< BcReal >( WorldInfo_->getDepth() );
+	BcF32 Width = static_cast< BcF32 >( WorldInfo_->getWidth() );
+	BcF32 Height = static_cast< BcF32 >( WorldInfo_->getHeight() );
+	BcF32 Depth = static_cast< BcF32 >( WorldInfo_->getDepth() );
 
 	// Free old vertex buffer.
 	if( pVertexArray_ != NULL )
@@ -1268,7 +1278,7 @@ void GaWorldBSPComponent::buildBSP()
 
 //////////////////////////////////////////////////////////////////////////
 // checkPointFront
-BcBool GaWorldBSPComponent::checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData, BcBSPNode* pNode )
+BcBool GaWorldBSPComponent::checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData, BcBSPNode* pNode )
 {
 	if( pBSPTree_ )
 	{
@@ -1279,7 +1289,7 @@ BcBool GaWorldBSPComponent::checkPointFront( const BcVec3d& Point, BcReal Radius
 
 //////////////////////////////////////////////////////////////////////////
 // checkPointBack
-BcBool GaWorldBSPComponent::checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData, BcBSPNode* pNode )
+BcBool GaWorldBSPComponent::checkPointBack( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData, BcBSPNode* pNode )
 {
 	if( pBSPTree_ )
 	{

@@ -17,6 +17,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( GaPlayerComponent );
 
+BCREFLECTION_EMPTY_REGISTER( GaPlayerComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, GaPlayerComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void GaPlayerComponent::initialise( const Json::Value& Object )
@@ -43,7 +53,7 @@ void GaPlayerComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // GaPlayerComponent
 //virtual
-void GaPlayerComponent::update( BcReal Tick )
+void GaPlayerComponent::update( BcF32 Tick )
 {
 	// Mouse update.
 	Yaw_ += -MouseDelta_.x() * Tick * 0.1f;
@@ -51,9 +61,9 @@ void GaPlayerComponent::update( BcReal Tick )
 	Pitch_ = BcClamp( Pitch_, -BcPIDIV2 + ( BcPIDIV2 * 0.125f ), BcPIDIV2 - ( BcPIDIV2 * 0.125f ) );
 	MouseDelta_ = BcVec2d( 0.0f, 0.0f );
 
-	BcReal RotationSpeed = 1.0f * Tick;
-	BcReal MoveSpeed = DoRun_ ? 4.0f : 2.0f;
-	BcReal MoveDirection = 0.0f;
+	BcF32 RotationSpeed = 1.0f * Tick;
+	BcF32 MoveSpeed = DoRun_ ? 4.0f : 2.0f;
+	BcF32 MoveDirection = 0.0f;
 	BcVec3d ViewVector = BcVec3d( 1.0f, 0.0f, 0.0f );
 	BcMat4d RotationMatrix;
 	RotationMatrix.rotation( BcVec3d( 0.0f, Pitch_, Yaw_ ) );
@@ -129,7 +139,7 @@ void GaPlayerComponent::update( BcReal Tick )
 	// Setup ears.
 	BcVec3d EarLVector = BcVec3d( 1.0f, 0.0f, 0.0f );
 	BcVec3d EarRVector = BcVec3d( 1.0f, 0.0f, 0.0f );
-	BcReal Offset = 0.0f;
+	BcF32 Offset = 0.0f;
 	for( BcU32 Idx = 0; Idx < 4; ++Idx )
 	{
 		EarLVectors_[ Idx ] = EarLVector * RotationMatrix;
@@ -278,7 +288,7 @@ eEvtReturn GaPlayerComponent::onMouseEvent( EvtID ID, const OsEventInputMouse& E
 
 //////////////////////////////////////////////////////////////////////////
 // doShot
-BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower )
+BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcF32 TrailPower, BcF32 MuzzlePower, BcF32 ImpactPower )
 {
 	BcVec3d Position = getParentEntity()->getPosition();
 	BcVec3d Target = Position + Direction * 256.0f;
@@ -292,7 +302,7 @@ BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, 
 	{
 		BcPlane Floor( BcVec3d( 0.0f, 0.0f,  1.0f ), 4.0f );
 		BcPlane Ceil( BcVec3d( 0.0f, 0.0f, -1.0f ), 4.0f );
-		BcReal Dist;
+		BcF32 Dist;
 		Floor.lineIntersection( Position, Target, Dist, BSPPointInfo.Point_ );
 		Ceil.lineIntersection( Position, Target, Dist, BSPPointInfo.Point_ );
 	}
@@ -309,7 +319,7 @@ BcVec3d GaPlayerComponent::doShot( const BcVec3d& Direction, BcReal TrailPower, 
 	}
 
 	// Trace a line through the scene.
-	BcReal Distance = ( BSPPointInfo.Point_ - Position ).magnitude() * 2.0f;
+	BcF32 Distance = ( BSPPointInfo.Point_ - Position ).magnitude() * 2.0f;
 	BcVec3d Point = Position;
 	BcVec3d StepVec = ( BSPPointInfo.Point_ - Position ) / Distance;
 	for( BcU32 Idx = 0; Idx < BcU32( Distance ); ++Idx )

@@ -34,7 +34,7 @@ public:
 
 	void								initialise( const Json::Value& Object );
 
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
@@ -48,12 +48,12 @@ private:
 
 	BcVec3d								Direction_;
 
-	BcReal								PulseTimer_;
+	BcF32								PulseTimer_;
 
 	GaPawnComponentRef					PlayerPawn_;
 
 	BcBool								IsTargetting_;
-	BcReal								TargetTimer_;
+	BcF32								TargetTimer_;
 
 
 };

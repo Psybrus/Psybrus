@@ -17,6 +17,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( GaPawnComponent );
 
+BCREFLECTION_EMPTY_REGISTER( GaPawnComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, GaPawnComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void GaPawnComponent::initialise( const Json::Value& Object )
@@ -31,17 +41,17 @@ void GaPawnComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // GaPawnComponent
 //virtual
-void GaPawnComponent::update( BcReal Tick )
+void GaPawnComponent::update( BcF32 Tick )
 {
 	BcBSPInfo BSPInfo;
 	BcVec3d TargetPosition = Position_;
-	BcReal RotationSpeed = 1.0f * Tick;
-	BcReal MoveSpeed = MoveDirection_.magnitude();
+	BcF32 RotationSpeed = 1.0f * Tick;
+	BcF32 MoveSpeed = MoveDirection_.magnitude();
 	BcVec3d MoveVector = MoveDirection_.normal();
 	BcVec3d SideVector = BcVec3d( 0.0f, 0.0f, 1.0f ).cross( MoveVector );
-	BcReal MoveDirection = 0.0f;
-	BcReal PlayerRadius = 0.25f;
-	BcReal LineCheckRadius = 0.75f;
+	BcF32 MoveDirection = 0.0f;
+	BcF32 PlayerRadius = 0.25f;
+	BcF32 LineCheckRadius = 0.75f;
 
 	// Collide against walls.
 	BcVec3d AppliedMoveVector = MoveVector * MoveSpeed * Tick;
@@ -81,21 +91,21 @@ void GaPawnComponent::update( BcReal Tick )
 			if( PointAIntersection )
 			{
 				BcVec3d Normal = BSPPointInfoA.Plane_.normal();
-				BcReal MoveAwaySpeed = AppliedMoveVector.dot( Normal );
+				BcF32 MoveAwaySpeed = AppliedMoveVector.dot( Normal );
 				AppliedMoveVector -= Normal * MoveAwaySpeed * 1.001f;
 			}
 
 			if( PointBIntersection )
 			{
 				BcVec3d Normal = BSPPointInfoB.Plane_.normal();
-				BcReal MoveAwaySpeed = AppliedMoveVector.dot( Normal );
+				BcF32 MoveAwaySpeed = AppliedMoveVector.dot( Normal );
 				AppliedMoveVector -= Normal * MoveAwaySpeed * 1.001f;
 			}
 
 			if( PointCIntersection )
 			{
 				BcVec3d Normal = BSPPointInfoC.Plane_.normal();
-				BcReal MoveAwaySpeed = AppliedMoveVector.dot( Normal );
+				BcF32 MoveAwaySpeed = AppliedMoveVector.dot( Normal );
 				AppliedMoveVector -= Normal * MoveAwaySpeed * 1.001f;
 			}
 

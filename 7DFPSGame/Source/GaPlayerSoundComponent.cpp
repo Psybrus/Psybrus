@@ -17,6 +17,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( GaPlayerSoundComponent );
 
+BCREFLECTION_EMPTY_REGISTER( GaPlayerSoundComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, GaPlayerSoundComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // PortAudio init/deinit.
 static BcU32 PortAudioRefs = 0;
@@ -48,8 +58,8 @@ void GaPlayerSoundComponent::initialise( const Json::Value& Object )
 	BufferSize_ = 1024 * 2;
 
 	FilterLock_.lock();
-	LowPassCurrL_.setup( (BcReal)SampleRate_ / 4.0f, 0.0f, (BcReal)SampleRate_ );
-	LowPassCurrR_.setup( (BcReal)SampleRate_ / 4.0f, 0.0f, (BcReal)SampleRate_ );
+	LowPassCurrL_.setup( (BcF32)SampleRate_ / 4.0f, 0.0f, (BcF32)SampleRate_ );
+	LowPassCurrR_.setup( (BcF32)SampleRate_ / 4.0f, 0.0f, (BcF32)SampleRate_ );
 	LowPassPrevL_ = LowPassCurrL_;
 	LowPassPrevR_ = LowPassCurrR_;
 	FilterLock_.unlock();
@@ -59,23 +69,23 @@ void GaPlayerSoundComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // GaPlayerSoundComponent
 //virtual
-void GaPlayerSoundComponent::update( BcReal Tick )
+void GaPlayerSoundComponent::update( BcF32 Tick )
 {
 	// Consts.
-	const BcReal MinCutoff = 100.0f;
-	const BcReal MaxCutoff = 1500.0f;
-	const BcReal MinRes = 0.0f;
-	const BcReal MaxRes = 0.9f;
-	const BcReal MinDistance = 2.0f;
-	const BcReal MaxDistance = 20.0f;
+	const BcF32 MinCutoff = 100.0f;
+	const BcF32 MaxCutoff = 1500.0f;
+	const BcF32 MinRes = 0.0f;
+	const BcF32 MaxRes = 0.9f;
+	const BcF32 MinDistance = 2.0f;
+	const BcF32 MaxDistance = 20.0f;
 	
 	// Send out rays, calc avg. distance.
-	BcReal DistanceL = 0.0f;
-	BcReal DistanceR = 0.0f;
-	BcReal MinDistanceL = MaxDistance;
-	BcReal MinDistanceR = MaxDistance;
-	BcReal MaxDistanceL = 0.0f;
-	BcReal MaxDistanceR = 0.0f;
+	BcF32 DistanceL = 0.0f;
+	BcF32 DistanceR = 0.0f;
+	BcF32 MinDistanceL = MaxDistance;
+	BcF32 MinDistanceR = MaxDistance;
+	BcF32 MaxDistanceL = 0.0f;
+	BcF32 MaxDistanceR = 0.0f;
 	for( BcU32 Idx = 0; Idx < 4; ++Idx )
 	{
 		BcVec3d RayVectorL = Player_->EarLVectors_[ Idx ];
@@ -96,24 +106,24 @@ void GaPlayerSoundComponent::update( BcReal Tick )
 	DistanceR /= 4.0f;
 
 	// Setup cutoffs.
-	BcReal CutoffLerpL = BcClamp( ( DistanceL - MinDistance ) / MaxDistance, 0.0f, 1.0f );
-	BcReal CutoffLerpR = BcClamp( ( DistanceR - MinDistance ) / MaxDistance, 0.0f, 1.0f );
-	BcReal ResLerpL = BcClamp( ( MaxDistanceL - MinDistanceL ) / MaxDistance, 0.0f, 1.0f );
-	BcReal ResLerpR = BcClamp( ( MaxDistanceR - MinDistanceR ) / MaxDistance, 0.0f, 1.0f );
+	BcF32 CutoffLerpL = BcClamp( ( DistanceL - MinDistance ) / MaxDistance, 0.0f, 1.0f );
+	BcF32 CutoffLerpR = BcClamp( ( DistanceR - MinDistance ) / MaxDistance, 0.0f, 1.0f );
+	BcF32 ResLerpL = BcClamp( ( MaxDistanceL - MinDistanceL ) / MaxDistance, 0.0f, 1.0f );
+	BcF32 ResLerpR = BcClamp( ( MaxDistanceR - MinDistanceR ) / MaxDistance, 0.0f, 1.0f );
 	
-	BcReal CutoffL = BcLerp( MinCutoff, MaxCutoff, CutoffLerpL );
-	BcReal CutoffR = BcLerp( MinCutoff, MaxCutoff, CutoffLerpR );
-	BcReal ResL = BcLerp( MinRes, MaxRes, CutoffLerpL );
-	BcReal ResR = BcLerp( MinRes, MaxRes, CutoffLerpR );
+	BcF32 CutoffL = BcLerp( MinCutoff, MaxCutoff, CutoffLerpL );
+	BcF32 CutoffR = BcLerp( MinCutoff, MaxCutoff, CutoffLerpR );
+	BcF32 ResL = BcLerp( MinRes, MaxRes, CutoffLerpL );
+	BcF32 ResR = BcLerp( MinRes, MaxRes, CutoffLerpR );
 	
 	// Setup new filter stuff.
 	if( DoneReset_ == 0 )
 	{
 		FilterLock_.lock();
-		static BcReal Ticker = 0.0f;
+		static BcF32 Ticker = 0.0f;
 		Ticker += Tick;
-		LowPassCurrL_.setup( CutoffL, ResL, (BcReal)SampleRate_ );
-		LowPassCurrR_.setup( CutoffR, ResR, (BcReal)SampleRate_ );
+		LowPassCurrL_.setup( CutoffL, ResL, (BcF32)SampleRate_ );
+		LowPassCurrR_.setup( CutoffR, ResR, (BcF32)SampleRate_ );
 		FilterLock_.unlock();
 	}
 	else
@@ -165,8 +175,8 @@ void GaPlayerSoundComponent::onAttach( ScnEntityWeakRef Parent )
 								          this );
 	BcAssert( Error == paNoError );
 
-	pWorkingBuffers_[ 0 ] = new BcReal[ BufferSize_ ];
-	pWorkingBuffers_[ 1 ] = new BcReal[ BufferSize_ ];
+	pWorkingBuffers_[ 0 ] = new BcF32[ BufferSize_ ];
+	pWorkingBuffers_[ 1 ] = new BcF32[ BufferSize_ ];
 	
 	Pa_StartStream( pPaStream_ );
 
@@ -218,7 +228,7 @@ BcVec3d GaPlayerSoundComponent::intersection( const BcVec3d& Direction )
 	{
 		BcPlane Floor( BcVec3d( 0.0f, 0.0f,  1.0f ), 4.0f );
 		BcPlane Ceil( BcVec3d( 0.0f, 0.0f, -1.0f ), 4.0f );
-		BcReal Dist;
+		BcF32 Dist;
 		Floor.lineIntersection( Position, Target, Dist, BSPPointInfo.Point_ );
 		Ceil.lineIntersection( Position, Target, Dist, BSPPointInfo.Point_ );
 	}
@@ -237,33 +247,33 @@ BcVec3d GaPlayerSoundComponent::intersection( const BcVec3d& Direction )
 int GaPlayerSoundComponent::streamCallback( const void *input, void* output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData )
 {
 	GaPlayerSoundComponent* pSynthesizer = (GaPlayerSoundComponent*)userData;
-	BcReal* pOutput = (BcReal*)output;
+	BcF32* pOutput = (BcF32*)output;
 	pSynthesizer->process( frameCount, pOutput );
 	return paContinue;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // process
-void GaPlayerSoundComponent::process( BcU32 NoofFrames, BcReal* pFrames )
+void GaPlayerSoundComponent::process( BcU32 NoofFrames, BcF32* pFrames )
 {
 	BcAssert( NoofFrames <= BufferSize_ );
 
-	BcReal* pBufferL = pWorkingBuffers_[ 0 ];
-	BcReal* pBufferR = pWorkingBuffers_[ 1 ];
+	BcF32* pBufferL = pWorkingBuffers_[ 0 ];
+	BcF32* pBufferR = pWorkingBuffers_[ 1 ];
 
 	// Fill with equal levels of noise.
 	for( BcU32 Idx = 0; Idx < NoofFrames; ++Idx )
 	{
-		BcReal Value = NoiseGenerator_.randReal();
+		BcF32 Value = NoiseGenerator_.randReal();
 		pBufferL[ Idx ] = Value * 0.25f;
 		pBufferR[ Idx ] = Value * 0.25f;
 	}
 
 	// Setup low pass filters.
-	aptk::LowpassRes< BcReal, BcReal > LowPassPrevL;
-	aptk::LowpassRes< BcReal, BcReal > LowPassPrevR;
-	aptk::LowpassRes< BcReal, BcReal > LowPassCurrL;
-	aptk::LowpassRes< BcReal, BcReal > LowPassCurrR;
+	aptk::LowpassRes< BcF32, BcF32 > LowPassPrevL;
+	aptk::LowpassRes< BcF32, BcF32 > LowPassPrevR;
+	aptk::LowpassRes< BcF32, BcF32 > LowPassCurrL;
+	aptk::LowpassRes< BcF32, BcF32 > LowPassCurrR;
 
 	// Copy over the filter data.
 	FilterLock_.lock();
@@ -278,8 +288,8 @@ void GaPlayerSoundComponent::process( BcU32 NoofFrames, BcReal* pFrames )
 
 	FilterLock_.unlock();
 
-	BcReal LerpValue = 0.0f;
-	BcReal LerpStep = 1.0f / (BcReal)NoofFrames;
+	BcF32 LerpValue = 0.0f;
+	BcF32 LerpStep = 1.0f / (BcF32)NoofFrames;
 
 	// Do lowpass.
 	for( BcU32 Idx = 0; Idx < NoofFrames; ++Idx )
@@ -306,8 +316,8 @@ void GaPlayerSoundComponent::process( BcU32 NoofFrames, BcReal* pFrames )
 eEvtReturn GaPlayerSoundComponent::onReset( EvtID ID, const GaWorldResetEvent& Event )
 {
 	FilterLock_.lock();
-	LowPassCurrL_.setup( (BcReal)SampleRate_ / 4.0f, 0.0f, (BcReal)SampleRate_ );
-	LowPassCurrR_.setup( (BcReal)SampleRate_ / 4.0f, 0.0f, (BcReal)SampleRate_ );
+	LowPassCurrL_.setup( (BcF32)SampleRate_ / 4.0f, 0.0f, (BcF32)SampleRate_ );
+	LowPassCurrR_.setup( (BcF32)SampleRate_ / 4.0f, 0.0f, (BcF32)SampleRate_ );
 	FilterLock_.unlock();
 	DoneReset_ = 8;
 

@@ -89,7 +89,7 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
@@ -97,7 +97,7 @@ public:
 	eEvtReturn							onKeyboardEvent( EvtID ID, const OsEventInputKeyboard& Event );
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
 
-	BcU32								nearestPoint( BcVec2d Position, BcReal Radius );
+	BcU32								nearestPoint( BcVec2d Position, BcF32 Radius );
 	BcU32								addPoint( BcVec2d Position );
 	BcBool								addEdge( BcU32 IdxA, BcU32 IdxB );
 	BcBool								addEnemy( const BcVec2d& Position );
@@ -108,11 +108,11 @@ public:
 
 	void								invertEdge( BcU32 Idx );
 
-	BcU32								nearestEdge( const BcVec2d& Position, BcReal Radius );
+	BcU32								nearestEdge( const BcVec2d& Position, BcF32 Radius );
 	BcVec2d								nearestPositionOnEdge( const BcVec2d& Position, BcU32 Idx );
-	BcU32								nearestEnemy( BcVec2d Position, BcReal Radius );
+	BcU32								nearestEnemy( BcVec2d Position, BcF32 Radius );
 
-	BcBool								killEnemy( const BcVec3d& Position, BcReal Radius );
+	BcBool								killEnemy( const BcVec3d& Position, BcF32 Radius );
 	void								killPlayer();
 
 	BcBool								canSeePlayer(const BcVec3d& From );
@@ -124,8 +124,8 @@ public:
 
 	void								buildBSP();
 
-	BcBool								checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
-	BcBool								checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool								checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool								checkPointBack( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 	BcBool								lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode = NULL );
 
 	void								clearMessages();
@@ -181,7 +181,7 @@ public:
 	BcU32								CurrentLevel_;
 	BcU32								TotalLevels_;
 
-	BcReal								TextTimer_;
+	BcF32								TextTimer_;
 	std::vector< std::string >			TextList_;
 };
 
