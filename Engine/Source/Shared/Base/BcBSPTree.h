@@ -50,7 +50,7 @@ struct BcBSPPointInfo
 {
 	BcPlane								Plane_;
 	BcVec3d								Point_;
-	BcReal								Distance_;
+	BcF32								Distance_;
 };
 
 //-----------------------------------------------------------------------
@@ -94,7 +94,7 @@ public:
 	*	@param Data to set for collisions.
 	*	@param pNode Starting node.
 	*/
-	BcBool checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 
 	/**
 	*	Check if a point is behind of all required planes.
@@ -103,7 +103,7 @@ public:
 	*	@param Data to set for collisions.
 	*	@param pNode Starting node.
 	*/
-	BcBool checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool checkPointBack( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
 
 	/**
 	*	Line intersection test.

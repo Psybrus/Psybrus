@@ -27,6 +27,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSoundListenerComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnSoundListenerComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnSoundListenerComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -38,7 +48,7 @@ void ScnSoundListenerComponent::initialise()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnSoundListenerComponent::update( BcReal Tick )
+void ScnSoundListenerComponent::update( BcF32 Tick )
 {
 	if( SsCore::pImpl() != NULL )
 	{

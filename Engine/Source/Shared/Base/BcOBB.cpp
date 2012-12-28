@@ -128,7 +128,7 @@ BcBool BcOBB::lineIntersect( const BcVec3d& Start, const BcVec3d& End, BcVec3d* 
 	// Totally inoptimal.
 	BcPlane Planes[6];
 	BcVec3d Intersects[6];
-	BcReal Distance;
+	BcF32 Distance;
 	for( BcU32 i = 0; i < 6; ++i )
 	{
 		Planes[i] = facePlane( i );
@@ -139,7 +139,7 @@ BcBool BcOBB::lineIntersect( const BcVec3d& Start, const BcVec3d& End, BcVec3d* 
 	}
 
 	// Reject classified and find nearest.
-	BcReal Nearest = 1e24f;
+	BcF32 Nearest = 1e24f;
 	BcU32 iNearest = BcErrorCode;
 
 	for( BcU32 i = 0; i < 6; ++i )
@@ -159,7 +159,7 @@ BcBool BcOBB::lineIntersect( const BcVec3d& Start, const BcVec3d& End, BcVec3d* 
 		// If its valid, check distance.
 		if( Valid )
 		{
-			BcReal Distance = ( Start - Intersects[i] ).magnitudeSquared();
+			BcF32 Distance = ( Start - Intersects[i] ).magnitudeSquared();
 
 			if( Distance < Nearest )
 			{

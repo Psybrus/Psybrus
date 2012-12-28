@@ -123,25 +123,25 @@ ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
 
 	if( Width != ( Width_ >> 1 ) || Height != ( Height_ >> 1 ) )
 	{
-		BcReal SrcW = BcReal( Width_ - 1 );
-		BcReal SrcH = BcReal( Height_ - 1 );
+		BcF32 SrcW = BcF32( Width_ - 1 );
+		BcF32 SrcH = BcF32( Height_ - 1 );
 
 		BcBreakpoint; // This is broken!
 
 		// Bilinear filtering implementation.
 		for( BcU32 iX = 0; iX < Width; ++iX )
 		{
-			BcReal iXF = BcReal( iX ) / BcReal( Width );
-			BcReal iSrcXF = SrcW * iXF;
+			BcF32 iXF = BcF32( iX ) / BcF32( Width );
+			BcF32 iSrcXF = SrcW * iXF;
 			BcU32 iSrcX = BcU32( iSrcXF );
-			BcReal iLerpX = iSrcXF - BcReal( iSrcX );
+			BcF32 iLerpX = iSrcXF - BcF32( iSrcX );
 
 			for( BcU32 iY = 0; iY < Height; ++iY )
 			{
-				BcReal iYF = BcReal( iY ) / BcReal( Height );
-				BcReal iSrcYF = SrcW * iYF;
+				BcF32 iYF = BcF32( iY ) / BcF32( Height );
+				BcF32 iSrcYF = SrcW * iYF;
 				BcU32 iSrcY = BcU32( iSrcYF );
-				BcReal iLerpY = iSrcYF - BcReal( iSrcY );
+				BcF32 iLerpY = iSrcYF - BcF32( iSrcY );
 
 				const ImgColour& PixelA = getPixel( iSrcX, iSrcY );
 				const ImgColour& PixelB = getPixel( iSrcX + 1, iSrcY );
@@ -152,19 +152,19 @@ ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
 				ImgColour DstPixelB;
 				ImgColour DstPixel;
 
-				DstPixelT.R_ = BcU8( ( BcReal( PixelA.R_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelB.R_ ) * iLerpX ) );
-				DstPixelT.G_ = BcU8( ( BcReal( PixelA.G_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelB.G_ ) * iLerpX ) );
-				DstPixelT.B_ = BcU8( ( BcReal( PixelA.B_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelB.B_ ) * iLerpX ) );
-				DstPixelT.A_ = BcU8( ( BcReal( PixelA.A_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelB.A_ ) * iLerpX ) );
-				DstPixelB.R_ = BcU8( ( BcReal( PixelC.R_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelD.R_ ) * iLerpX ) );
-				DstPixelB.G_ = BcU8( ( BcReal( PixelC.G_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelD.G_ ) * iLerpX ) );
-				DstPixelB.B_ = BcU8( ( BcReal( PixelC.B_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelD.B_ ) * iLerpX ) );
-				DstPixelB.A_ = BcU8( ( BcReal( PixelC.A_ ) * ( 1.0f - iLerpX ) ) + ( BcReal( PixelD.A_ ) * iLerpX ) );
+				DstPixelT.R_ = BcU8( ( BcF32( PixelA.R_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.R_ ) * iLerpX ) );
+				DstPixelT.G_ = BcU8( ( BcF32( PixelA.G_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.G_ ) * iLerpX ) );
+				DstPixelT.B_ = BcU8( ( BcF32( PixelA.B_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.B_ ) * iLerpX ) );
+				DstPixelT.A_ = BcU8( ( BcF32( PixelA.A_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.A_ ) * iLerpX ) );
+				DstPixelB.R_ = BcU8( ( BcF32( PixelC.R_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.R_ ) * iLerpX ) );
+				DstPixelB.G_ = BcU8( ( BcF32( PixelC.G_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.G_ ) * iLerpX ) );
+				DstPixelB.B_ = BcU8( ( BcF32( PixelC.B_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.B_ ) * iLerpX ) );
+				DstPixelB.A_ = BcU8( ( BcF32( PixelC.A_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.A_ ) * iLerpX ) );
 
-				DstPixel.R_ = BcU8( ( BcReal( DstPixelT.R_ ) * ( 1.0f - iLerpY ) ) + ( BcReal( DstPixelB.R_ ) * iLerpY ) );
-				DstPixel.G_ = BcU8( ( BcReal( DstPixelT.G_ ) * ( 1.0f - iLerpY ) ) + ( BcReal( DstPixelB.G_ ) * iLerpY ) );
-				DstPixel.B_ = BcU8( ( BcReal( DstPixelT.B_ ) * ( 1.0f - iLerpY ) ) + ( BcReal( DstPixelB.B_ ) * iLerpY ) );
-				DstPixel.A_ = BcU8( ( BcReal( DstPixelT.A_ ) * ( 1.0f - iLerpY ) ) + ( BcReal( DstPixelB.A_ ) * iLerpY ) );		
+				DstPixel.R_ = BcU8( ( BcF32( DstPixelT.R_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.R_ ) * iLerpY ) );
+				DstPixel.G_ = BcU8( ( BcF32( DstPixelT.G_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.G_ ) * iLerpY ) );
+				DstPixel.B_ = BcU8( ( BcF32( DstPixelT.B_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.B_ ) * iLerpY ) );
+				DstPixel.A_ = BcU8( ( BcF32( DstPixelT.A_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.A_ ) * iLerpY ) );		
 
 				pImage->setPixel( iX, iY, DstPixel );
 			}
@@ -306,7 +306,7 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages )
 static const BcVec2d DistanceFieldInside = BcVec2d( 0.0f, 0.0f );
 static const BcVec2d DistanceFieldOutside = BcVec2d( 1e6f, 1e6f );
 
-ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spread )
+ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread )
 {
 	// Utility funcs.
 	class DistanceField
@@ -428,26 +428,26 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcReal Spre
 				{
 					const BcVec2d& CellA = GridA.getCell( X, Y );
 					const BcVec2d& CellB = GridB.getCell( X, Y );
-					const BcReal DistA = CellA.magnitude();
-					const BcReal DistB = CellB.magnitude();
-					const BcReal SignedDistance = DistA - DistB;
+					const BcF32 DistA = CellA.magnitude();
+					const BcF32 DistB = CellB.magnitude();
+					const BcF32 SignedDistance = DistA - DistB;
 					SignedDistanceGrid.setCell( X, Y, BcVec2d( SignedDistance, 0.0f ) );
 				}
 			}
 		}
 		
-		static void Normalise( ImgImage* pOutputImage, Grid& SignedDistanceGrid, BcReal Spread )
+		static void Normalise( ImgImage* pOutputImage, Grid& SignedDistanceGrid, BcF32 Spread )
 		{
 			const BcU32 Width = SignedDistanceGrid.Width_;
 			const BcU32 Height = SignedDistanceGrid.Height_;
-			BcReal MinDistance = -Spread;
-			BcReal MaxDistance = Spread;
+			BcF32 MinDistance = -Spread;
+			BcF32 MaxDistance = Spread;
 			
 			for( BcS32 Y = 0; Y < (BcS32)Height; ++Y )
 			{
 				for( BcS32 X = 0; X < (BcS32)Width; ++X )
 				{
-					BcReal Distance = SignedDistanceGrid.getCell( X, Y ).x();
+					BcF32 Distance = SignedDistanceGrid.getCell( X, Y ).x();
 					if( Distance < 0.0f )
 					{
 						Distance = -128.0f * ( Distance - MinDistance ) / MinDistance;

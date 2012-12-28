@@ -29,7 +29,7 @@ void GaCameraComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // GaCameraComponent
 //virtual
-void GaCameraComponent::update( BcReal Tick )
+void GaCameraComponent::update( BcF32 Tick )
 {
 	Ticker_ += Tick * 0.5f;
 

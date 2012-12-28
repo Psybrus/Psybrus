@@ -22,11 +22,23 @@
 // Define resource.
 DEFINE_RESOURCE( ScnParticleSystemComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnParticleSystemComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnParticleSystemComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 {
+	Super::initialise();
+
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
@@ -117,7 +129,7 @@ BcBool ScnParticleSystemComponent::isReady()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnParticleSystemComponent::update( BcReal Tick )
+void ScnParticleSystemComponent::update( BcF32 Tick )
 {
 	// Allocate particles.
 	// NOTE: Once we have particle emitters setup properly instead of manually
@@ -166,7 +178,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 			const BcVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
 
 			// Crappy rotation implementation :P
-			const BcReal Radians = Particle.Rotation_;
+			const BcF32 Radians = Particle.Rotation_;
 			BcVec2d CornerA = BcVec2d( -1.0f, -1.0f ) * HalfSize;
 			BcVec2d CornerB = BcVec2d(  1.0f, -1.0f ) * HalfSize;
 			BcVec2d CornerC = BcVec2d(  1.0f,  1.0f ) * HalfSize;
@@ -348,7 +360,7 @@ BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 
 //////////////////////////////////////////////////////////////////////////
 // updateParticle
-void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcReal Tick )
+void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcF32 Tick )
 {
 	// TODO: Move each section of this into "affectors":
 	// - Physics affector: Move physically based on vel/accel.
@@ -367,7 +379,7 @@ void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcReal T
 	Particle.Rotation_ += Particle.RotationMultiplier_ * Tick;
 
 	// Calculate interpolators.
-	BcReal LerpValue = Particle.CurrentTime_ / Particle.MaxTime_;
+	BcF32 LerpValue = Particle.CurrentTime_ / Particle.MaxTime_;
 	Particle.Scale_.lerp( Particle.MinScale_, Particle.MaxScale_, LerpValue );
 	Particle.Colour_.lerp( Particle.MinColour_, Particle.MaxColour_, LerpValue );
 	
@@ -383,7 +395,7 @@ void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcReal T
 
 //////////////////////////////////////////////////////////////////////////
 // updateParticles
-void ScnParticleSystemComponent::updateParticles( BcReal Tick )
+void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 {
 	// TODO: Iterate over every "affector" at a time, rather than by particle.
 	// - See "updateParticle".

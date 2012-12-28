@@ -111,7 +111,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			
 			if( StateValue.type() == Json::realValue )
 			{
-				BcReal RealValue = (BcReal)StateValue.asDouble();
+				BcF32 RealValue = (BcF32)StateValue.asDouble();
 				StateBlockStream << BcU32( RealValue );
 			}
 			else if( StateValue.type() == Json::stringValue )
@@ -160,6 +160,16 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterial );
+
+BCREFLECTION_EMPTY_REGISTER( ScnMaterial );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnMaterial )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -252,6 +262,16 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialComponent );
+
+BCREFLECTION_EMPTY_REGISTER( ScnMaterialComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnMaterialComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -424,7 +444,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcReal Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -805,7 +825,7 @@ BcBool ScnMaterialComponent::isReady()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnMaterialComponent::update( BcReal Tick )
+void ScnMaterialComponent::update( BcF32 Tick )
 {
 	ScnComponent::update( Tick );
 }

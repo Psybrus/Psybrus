@@ -66,17 +66,17 @@ public:
 	const BcVec3d&		min() const;
 	const BcVec3d&		max() const;
 
-	BcReal				width() const;
-	BcReal				height() const;
-	BcReal				depth() const;
-	BcReal				volume() const;
+	BcF32				width() const;
+	BcF32				height() const;
+	BcF32				depth() const;
+	BcF32				volume() const;
 
 	BcVec3d				corner( BcU32 i ) const;
 	BcPlane				facePlane( BcU32 i ) const;
 	BcVec3d				faceCentre( BcU32 i ) const;
 	BcVec3d				centre() const;
 	BcVec3d				dimensions() const;
-	BcReal				diameter() const;
+	BcF32				diameter() const;
 
 	BcBool				isEmpty() const;
 
@@ -141,7 +141,7 @@ inline BcVec3d BcAABB::dimensions() const
 	return ( Max_ - Min_ );
 }
 
-inline BcReal BcAABB::diameter() const
+inline BcF32 BcAABB::diameter() const
 {
 	return ( ( Max_ - Min_ ).magnitude() );
 }
@@ -181,22 +181,22 @@ inline void BcAABB::expandBy( const BcAABB& AABB )
 	Max_.z( BcMax( Max_.z(), AABB.Max_.z() ) );
 }
 
-inline BcReal BcAABB::width() const
+inline BcF32 BcAABB::width() const
 {
 	return Max_.x() - Min_.x();
 }
 
-inline BcReal BcAABB::height() const
+inline BcF32 BcAABB::height() const
 {
 	return Max_.y() - Min_.y();
 }
 
-inline BcReal BcAABB::depth() const
+inline BcF32 BcAABB::depth() const
 {
 	return Max_.z() - Min_.z();
 }
 
-inline BcReal BcAABB::volume() const
+inline BcF32 BcAABB::volume() const
 {
 	return ( width() * height() * depth() );
 }

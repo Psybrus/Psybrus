@@ -35,7 +35,8 @@ CsCore::~CsCore()
 //virtual
 void CsCore::open()
 {
-	
+	// Register types for reflection.
+	CsResource::StaticRegisterReflection();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -144,6 +145,21 @@ void CsCore::freeUnreferencedPackages()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getResourceType
+BcName CsCore::getResourceType( BcU32 Idx ) const
+{
+	// NOTE: Change the map to an array. We want fast lookups by index too :(
+	return BcName::INVALID;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofResourceTypes
+BcU32 CsCore::getNoofResourceTypes() const
+{
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocResource
 CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage )
 {
@@ -154,7 +170,8 @@ CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32
 	
 	if( Iter != ResourceFactoryInfoMap_.end() )
 	{
-		pResource = (*Iter).second.allocFunc_( Name, Index, pPackage );
+		pResource = (*Iter).second.allocFunc_();
+		pResource->preInitialise( Name, Index, pPackage );
 	}
 	
 	return pResource;
@@ -380,7 +397,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
 		
 		++It;

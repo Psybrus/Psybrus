@@ -41,7 +41,7 @@ public:
 	static BcU32 USER_WORKER_MASK;
 
 public:
-	SysKernel( BcReal TickRate );
+	SysKernel( BcF32 TickRate );
 	~SysKernel();
 	
 	/**
@@ -83,7 +83,7 @@ public:
 	/**
 	 * Get frame time.
 	 */
-	BcReal						getFrameTime() const;
+	BcF32						getFrameTime() const;
 
 	/**
 	 * Enqueue job.
@@ -240,9 +240,9 @@ private:
 	
 	BcTimer						MainTimer_;
 	
-	BcReal						SleepAccumulator_;
-	BcReal						TickRate_;
-	BcReal						FrameTime_;
+	BcF32						SleepAccumulator_;
+	BcF32						TickRate_;
+	BcF32						FrameTime_;
 	
 	SysJobQueue					JobQueue_;
 	SysDelegateDispatcher		DelegateDispatcher_;

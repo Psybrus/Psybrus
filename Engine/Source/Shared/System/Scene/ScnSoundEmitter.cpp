@@ -29,6 +29,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSoundEmitterComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnSoundEmitterComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnSoundEmitterComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -115,14 +125,14 @@ void ScnSoundEmitterComponent::stopAll()
 
 //////////////////////////////////////////////////////////////////////////
 // setGain
-void ScnSoundEmitterComponent::setGain( BcReal Gain )
+void ScnSoundEmitterComponent::setGain( BcF32 Gain )
 {
 	Gain_ = Gain;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setPitch
-void ScnSoundEmitterComponent::setPitch( BcReal Pitch )
+void ScnSoundEmitterComponent::setPitch( BcF32 Pitch )
 {
 	Pitch_ = Pitch;
 }

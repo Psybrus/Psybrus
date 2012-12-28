@@ -24,11 +24,11 @@ class RsViewport
 {
 public:
 	RsViewport();
-	RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear = 1.0f, BcReal ZFar = 1024.0f );
+	RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear = 1.0f, BcF32 ZFar = 1024.0f );
 	~RsViewport();
 
 	//
-	void viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear = 1.0f, BcReal ZFar = 1024.0f );
+	void viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear = 1.0f, BcF32 ZFar = 1024.0f );
 
 	//
 	void view( const BcMat4d& ModelView );
@@ -74,8 +74,8 @@ public:
 	BcU32 width() const;
 	BcU32 height() const;
 
-	BcReal zFar() const;
-	BcReal zNear() const;
+	BcF32 zFar() const;
+	BcF32 zNear() const;
 
 	void clearDepth( BcBool ClearDepth );
 	BcBool clearDepth() const;
@@ -91,8 +91,8 @@ private:
 	BcU32 Right_;
 	
 	//
-	BcReal ZFar_;
-	BcReal ZNear_;
+	BcF32 ZFar_;
+	BcF32 ZNear_;
 	
 	// Transforms
 	BcMat4d ModelView_;
@@ -108,13 +108,13 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline RsViewport::RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear, BcReal ZFar )
+inline RsViewport::RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear, BcF32 ZFar )
 {
 	viewport( X, Y, Width, Height, ZNear, ZFar );
 	ClearDepth_ = BcFalse;
 }
 
-inline void RsViewport::viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcReal ZNear, BcReal ZFar )
+inline void RsViewport::viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear, BcF32 ZFar )
 {
 	Top_ = Y;
 	Bottom_ = ( Y + Height ) - 1;
@@ -178,12 +178,12 @@ inline BcU32 RsViewport::height() const
 	return ( Bottom_ - Top_ ) + 1;
 }
 
-inline BcReal RsViewport::zFar() const
+inline BcF32 RsViewport::zFar() const
 {
 	return ZFar_;
 }
 
-inline BcReal RsViewport::zNear() const
+inline BcF32 RsViewport::zNear() const
 {
 	return ZNear_;
 }

@@ -74,10 +74,10 @@ struct OsEventInputMouse: OsEventInput< OsEventInputMouse >
 {
 	BcS16			MouseX_;			///!< X coordinate of mouse relative to window.
 	BcS16			MouseY_;			///!< Y coordinate of mouse relative to window.
-	BcReal			MouseDX_;			///!< Delta X.
-	BcReal			MouseDY_;			///!< Delta Y.
-	BcReal			NormalisedX_;		///!< X in -1.0 to 1.0
-	BcReal			NormalisedY_;		///!< Y in -1.0 to 1.0
+	BcF32			MouseDX_;			///!< Delta X.
+	BcF32			MouseDY_;			///!< Delta Y.
+	BcF32			NormalisedX_;		///!< X in -1.0 to 1.0
+	BcF32			NormalisedY_;		///!< Y in -1.0 to 1.0
 	BcS16			ButtonCode_;		///!< Button code for event (-1 for not used)
 };
 

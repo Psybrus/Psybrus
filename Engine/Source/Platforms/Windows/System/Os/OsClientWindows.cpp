@@ -228,12 +228,12 @@ void OsClientWindows::update()
 
 		const BcS32 WX = ( Rect.right - Rect.left );
 		const BcS32 WY = ( Rect.bottom - Rect.top );
-		MouseDelta_.x( BcReal( MousePosition.x - ( Rect.left + ( WX / 2 ) ) ) );
-		MouseDelta_.y( BcReal( MousePosition.y - ( Rect.top + ( WY / 2 ) ) ) );
+		MouseDelta_.x( BcF32( MousePosition.x - ( Rect.left + ( WX / 2 ) ) ) );
+		MouseDelta_.y( BcF32( MousePosition.y - ( Rect.top + ( WY / 2 ) ) ) );
 
 		MousePos_ += MouseDelta_;
-		MousePos_.x( BcClamp( MousePos_.x(), 0.0f, BcReal( WX ) ) );
-		MousePos_.y( BcClamp( MousePos_.y(), 0.0f, BcReal( WY ) ) );
+		MousePos_.x( BcClamp( MousePos_.x(), 0.0f, BcF32( WX ) ) );
+		MousePos_.y( BcClamp( MousePos_.y(), 0.0f, BcF32( WY ) ) );
 
 		// Smooth out delta
 		const BcVec2d TempOld = MouseDelta_;
@@ -255,8 +255,8 @@ void OsClientWindows::update()
 			Event.MouseY_ = (BcS16)MousePosition.y - (BcS16)WindowPosition.y;
 			Event.MouseDX_ = MouseDelta_.x();
 			Event.MouseDY_ = MouseDelta_.y();
-			Event.NormalisedX_ = BcReal( (BcS32)Event.MouseX_ - ( (BcS32)getWidth() / 2 ) ) / BcReal( (BcS32)getWidth() / 2 );
-			Event.NormalisedY_ = BcReal( (BcS32)Event.MouseY_ - ( (BcS32)getHeight() / 2 ) ) / BcReal( (BcS32)getHeight() / 2 );
+			Event.NormalisedX_ = BcF32( (BcS32)Event.MouseX_ - ( (BcS32)getWidth() / 2 ) ) / BcF32( (BcS32)getWidth() / 2 );
+			Event.NormalisedY_ = BcF32( (BcS32)Event.MouseY_ - ( (BcS32)getHeight() / 2 ) ) / BcF32( (BcS32)getHeight() / 2 );
 
 			// Legacy...
 			PrevMouseX_ = Event.MouseX_;
@@ -494,8 +494,8 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 				Event.MouseY_ = lParam >> 16 & 0xffff;
 				Event.MouseDX_ = Event.MouseX_ - PrevMouseX_;
 				Event.MouseDY_ = Event.MouseY_ - PrevMouseY_;
-				Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-				Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+				Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+				Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
 
@@ -515,10 +515,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-			Event.MouseDX_ = (BcReal)(Event.MouseX_ - PrevMouseX_);
-			Event.MouseDY_ = (BcReal)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 			if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
@@ -539,10 +539,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-			Event.MouseDX_ = (BcReal)(Event.MouseX_ - PrevMouseX_);
-			Event.MouseDY_ = (BcReal)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 			if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
@@ -563,10 +563,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-			Event.MouseDX_ = (BcReal)(Event.MouseX_ - PrevMouseX_);
-			Event.MouseDY_ = (BcReal)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 			if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
@@ -587,10 +587,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-			Event.MouseDX_ = (BcReal)(Event.MouseX_ - PrevMouseX_);
-			Event.MouseDY_ = (BcReal)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 			if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
@@ -611,10 +611,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-			Event.MouseDX_ = (BcReal)(Event.MouseX_ - PrevMouseX_);
-			Event.MouseDY_ = (BcReal)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 			if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
@@ -635,10 +635,10 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.DeviceID_ = 0;
 			Event.MouseX_ = lParam & 0xffff;
 			Event.MouseY_ = lParam >> 16 & 0xffff;
-			Event.MouseDX_ = (BcReal)(Event.MouseX_ - PrevMouseX_);
-			Event.MouseDY_ = (BcReal)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcReal( Event.MouseX_ - getWidth() / 2 ) / BcReal( getWidth() );
-			Event.NormalisedY_ = BcReal( Event.MouseY_ - getHeight() / 2 ) / BcReal( getHeight() );
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
 			if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;

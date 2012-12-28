@@ -62,7 +62,7 @@ public:
 	/**
 	 * Get and reset time working for worker.
 	 */
-	BcReal				getAndResetTimeWorkingForWorker( BcU32 Idx );
+	BcF32				getAndResetTimeWorkingForWorker( BcU32 Idx );
 	
 private:
 	/**

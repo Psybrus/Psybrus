@@ -124,7 +124,7 @@ BcU32 SysJobQueue::workerCount() const
 
 //////////////////////////////////////////////////////////////////////////
 // getAndResetTimeWorkingForWorker
-BcReal SysJobQueue::getAndResetTimeWorkingForWorker( BcU32 Idx )
+BcF32 SysJobQueue::getAndResetTimeWorkingForWorker( BcU32 Idx )
 {
 	BcAssertMsg( Idx < NoofWorkers_, "SysJobQueue: Invalid worker index" );
 	SysJobWorker* pWorker = JobWorkers_[ Idx ];

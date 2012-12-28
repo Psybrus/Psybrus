@@ -97,6 +97,10 @@ private:
 	// Special components.
 	ScnViewComponentList		ViewComponentList_;
 
+	// All components in the scene.
+	ScnComponentList*			pComponentLists_;
+	BcU32						NoofComponentLists_;
+
 };
 
 #endif

@@ -29,11 +29,11 @@ public:
 	BcRandom( BcU32 Seed );
 
 	BcS32 rand();
-	BcReal randReal();
+	BcF32 randReal();
 	BcS32 randRange( BcS32 Min, BcS32 Max );
-	BcReal noise( BcU32 X, BcU32 Width );
-	BcReal smoothedNoise( BcReal X, BcU32 Width = 512 );
-	BcReal interpolatedNoise( BcReal X, BcU32 Width = 512 );
+	BcF32 noise( BcU32 X, BcU32 Width );
+	BcF32 smoothedNoise( BcF32 X, BcU32 Width = 512 );
+	BcF32 interpolatedNoise( BcF32 X, BcU32 Width = 512 );
 
 	BcVec2d randVec2();
 	BcVec3d randVec3();

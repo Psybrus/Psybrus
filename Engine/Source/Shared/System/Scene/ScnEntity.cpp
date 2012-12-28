@@ -39,10 +39,18 @@ BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& 
 // Define resource internals.
 DEFINE_RESOURCE( ScnEntity );
 
+BCREFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnEntity )
+	BCREFLECTION_MEMBER( ScnEntity,							Basis_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcMat4d,							Transform_,						bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcBool,							IsAttached_,					bcRFF_DEFAULT | bcRFF_TRANSIENT )
+BCREFLECTION_DERIVED_END();
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnEntity::initialise()
 {
+	Super::initialise();
+
 	// Setup buffered event proxy.
 	pEventProxy_ = new EvtProxyBuffered( this );	
 	
@@ -91,6 +99,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 				// Initialise has already been called...need to change this later.
 				ComponentRef->initialise( Component );
 
+				ComponentRef->serialiseProperties();
+
 				// Attach.
 				attach( ComponentRef );
 			}			
@@ -98,6 +108,9 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	}
 
 	Super::initialise();
+
+	// Placeholder!
+	serialiseProperties();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,7 +148,7 @@ BcBool ScnEntity::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // update
-void ScnEntity::update( BcReal Tick )
+void ScnEntity::update( BcF32 Tick )
 {
 	// Dispatch all events.
 	pEventProxy_->dispatch();
@@ -315,7 +328,7 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
-			if( Component->getType() == Type )
+			if( Component->getTypeName() == Type )
 			{
 				if( SearchIdx == Idx )
 				{

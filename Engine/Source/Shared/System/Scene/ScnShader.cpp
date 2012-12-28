@@ -26,7 +26,7 @@ static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] =
 {
 	{ scnSPF_2D,					NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
 	{ scnSPF_3D,					NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
-	//{ scnSPF_PARTICLE_3D, NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
+	{ scnSPF_PARTICLE_3D,			NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
 };
 
 #ifdef PSY_SERVER
@@ -173,6 +173,16 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnShader );
+
+BCREFLECTION_EMPTY_REGISTER( ScnShader );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnShader )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

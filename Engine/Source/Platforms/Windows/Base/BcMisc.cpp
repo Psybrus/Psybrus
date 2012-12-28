@@ -17,7 +17,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcSleep
-void BcSleep( BcReal Seconds )
+void BcSleep( BcF32 Seconds )
 {
 	::Sleep( (DWORD)( Seconds * 1000.0f ) );
 }

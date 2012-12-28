@@ -25,34 +25,34 @@ public:
 	SsEnvironment();
 	virtual ~SsEnvironment();
 	
-	void interpolate( SsEnvironment* pEnvA, SsEnvironment* pEnvB, BcReal Amount );
+	void interpolate( SsEnvironment* pEnvA, SsEnvironment* pEnvB, BcF32 Amount );
 	void setDefault();
 	void clamp();
 	
 public:
-	BcReal	Density_;			
-	BcReal	Diffusion_;			
-	BcReal	Gain_;				
-	BcReal	GainHF_;			
-	BcReal	GainLF_;			
-	BcReal	DecayTime_;			
-	BcReal	DecayHFRatio_;		
-	BcReal	DecayLFRatio_;		
-	BcReal	ReflectionsGain_;	
-	BcReal	ReflectionsDelay_;	
+	BcF32	Density_;			
+	BcF32	Diffusion_;			
+	BcF32	Gain_;				
+	BcF32	GainHF_;			
+	BcF32	GainLF_;			
+	BcF32	DecayTime_;			
+	BcF32	DecayHFRatio_;		
+	BcF32	DecayLFRatio_;		
+	BcF32	ReflectionsGain_;	
+	BcF32	ReflectionsDelay_;	
 	BcVec3d	ReflectionsPan_;	
-	BcReal	LateReverbGain_;	
-	BcReal	LateReverbDelay_;
+	BcF32	LateReverbGain_;	
+	BcF32	LateReverbDelay_;
 	BcVec3d	LateReverbPan_;	
-	BcReal	EchoTime_;
-	BcReal	EchoDepth_;
-	BcReal	ModulationTime_;
-	BcReal	ModulationDepth_;
-	BcReal	AirAbsorptionGainHF_;
-	BcReal	HFReference_;
-	BcReal	LFReference_;
-	BcReal	RoomRolloffFactor_;
-	BcReal	DecayHFLimit_;
+	BcF32	EchoTime_;
+	BcF32	EchoDepth_;
+	BcF32	ModulationTime_;
+	BcF32	ModulationDepth_;
+	BcF32	AirAbsorptionGainHF_;
+	BcF32	HFReference_;
+	BcF32	LFReference_;
+	BcF32	RoomRolloffFactor_;
+	BcF32	DecayHFLimit_;
 };
 
 #endif
