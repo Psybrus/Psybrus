@@ -85,7 +85,7 @@ void DsCore::cmdContent( std::string& Output )
 		Output += "<ul>";
 
 		Output += "<li>Type:";
-		Output += *Resource->getType();
+		Output += *Resource->getTypeName();
 		Output += "</li>";
 
 		Output += "<li>Package:";
@@ -110,7 +110,10 @@ void DsCore::cmdScene( std::string& Output )
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
 	{
-		cmdScene_Entity( Entity, Output, 0 );
+		if( !Entity->getParentEntity().isValid() )
+		{
+			cmdScene_Entity( Entity, Output, 0 );
+		}
 	}
 }
 
@@ -162,7 +165,7 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 	Output += "Component: ";
 	Output += *Component->getName();
 	Output += " (";
-	Output += *Component->getType();
+	Output += *Component->getTypeName();
 	Output += ")";
 	Output += "</li>";
 
@@ -174,6 +177,15 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 	Output += "</li>";
 	Output += "</ul>";
 
+	Output += "</ul>";
+
+	BcChar Buffer[ 1024 ];
+
+	Output += "<ul>";
+	Output += "<li>Ref Count:";
+	BcSPrintf( Buffer, "%u", Component->refCount() );
+	Output += Buffer;
+	Output += "</li>";
 	Output += "</ul>";
 }
 
@@ -196,14 +208,25 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 	{
 		cmdScene( Content );
 	}
-	
-	mg_printf(pConn,
+	BcChar Buffer[ 1024 ];
+
+	BcSPrintf( Buffer,
 			"HTTP/1.1 200 OK\r\n"
 			"Content-Type: text/html\r\n"
 			"Content-Length: %d\r\n"        // Always set Content-Length
-			"\r\n"
-			"%s",
-			Content.size(), Content.c_str());
+			"\r\n",
+			Content.size() );
+
+	BcU32 ContentHeaderLength = BcStrLength( Buffer );
+	BcU32 TotalBufferLength = ContentHeaderLength + Content.size() + 1;
+	BcChar* pSendBuffer = new BcChar[ TotalBufferLength ];
+	BcStrCopy( pSendBuffer, Buffer );
+	BcStrCopy( pSendBuffer + ContentHeaderLength, Content.c_str() );
+
+	mg_write( pConn, pSendBuffer, TotalBufferLength );
+	
+	delete [] pSendBuffer;
+	pSendBuffer = NULL;
 
 	GameThreadWaitFence_.decrement();
 }

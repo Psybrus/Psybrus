@@ -48,7 +48,6 @@ public:
 	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 	RsTexture*							getTexture();
 	

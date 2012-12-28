@@ -51,6 +51,9 @@ struct ScnModelPrimitiveData
 	BcU32							NoofVertices_;
 	BcU32							NoofIndices_;
 	BcU32							MaterialRef_;
+	BcU32							Padding0_;
+	BcU32							Padding1_;
+	BcAABB							AABB_;
 };
 
 //////////////////////////////////////////////////////////////////////////

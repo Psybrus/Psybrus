@@ -34,7 +34,6 @@ void MainUnitTests()
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,30 +41,25 @@ void MainUnitTests()
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
 	// Register scene resources.
-	CsCore::pImpl()->registerResource< ScnRenderTarget >();
-
 	CsCore::pImpl()->registerResource< ScnShader >();
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
-
+	CsCore::pImpl()->registerResource< ScnRenderTarget >();
 	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
-
 	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnFontComponent >();
-
 	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnModelComponent >();
-
-	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
-
 	CsCore::pImpl()->registerResource< ScnSound >();
+
+	// Register scene components.
+	CsCore::pImpl()->registerResource< ScnComponent >();
+	CsCore::pImpl()->registerResource< ScnRenderableComponent >();
+	CsCore::pImpl()->registerResource< ScnEntity >();
+	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
+	CsCore::pImpl()->registerResource< ScnFontComponent >();
+	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
+	CsCore::pImpl()->registerResource< ScnModelComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >();
-	
-	CsCore::pImpl()->registerResource< ScnComponent >();
-	CsCore::pImpl()->registerResource< ScnEntity >();
-	
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
 	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
@@ -79,11 +73,14 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 {
 	// Unregister scene resources.
-	CsCore::pImpl()->unregisterResource< ScnRenderTarget >();
+	CsCore::pImpl()->unregisterResource< ScnComponent >();
+	CsCore::pImpl()->unregisterResource< ScnRenderableComponent >();
+	CsCore::pImpl()->unregisterResource< ScnEntity >();
 
 	CsCore::pImpl()->unregisterResource< ScnShader >();
 	CsCore::pImpl()->unregisterResource< ScnTexture >();
 	CsCore::pImpl()->unregisterResource< ScnTextureAtlas >();
+	CsCore::pImpl()->unregisterResource< ScnRenderTarget >();
 
 	CsCore::pImpl()->unregisterResource< ScnMaterial >();
 	CsCore::pImpl()->unregisterResource< ScnMaterialComponent >();
@@ -99,9 +96,6 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->unregisterResource< ScnSound >();
 	CsCore::pImpl()->unregisterResource< ScnSoundEmitterComponent >();
 	CsCore::pImpl()->unregisterResource< ScnSoundListenerComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnComponent >();
-	CsCore::pImpl()->unregisterResource< ScnEntity >();
 
 	CsCore::pImpl()->unregisterResource< ScnCanvasComponent >();
 	CsCore::pImpl()->unregisterResource< ScnViewComponent >();

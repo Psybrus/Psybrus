@@ -22,8 +22,8 @@
 // ScnRect
 struct ScnRect
 {
-	BcReal X_, Y_;
-	BcReal W_, H_;
+	BcF32 X_, Y_;
+	BcF32 W_, H_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,17 @@ typedef ScnComponentList::const_iterator ScnComponentListConstIterator;
 typedef std::map< std::string, ScnComponentRef > ScnComponentMap;
 typedef ScnComponentMap::iterator ScnComponentMapIterator;
 typedef ScnComponentMap::const_iterator ScnComponentMapConstIterator;
+
+//////////////////////////////////////////////////////////////////////////
+// ScnRenderableComponentRef
+typedef CsResourceRef< class ScnRenderableComponent > ScnRenderableComponentRef;
+typedef CsResourceRef< class ScnRenderableComponent, true > ScnRenderableComponentWeakRef;
+typedef std::vector< ScnRenderableComponentRef > ScnRenderableComponentList;
+typedef ScnRenderableComponentList::iterator ScnRenderableComponentListIterator;
+typedef ScnRenderableComponentList::const_iterator ScnRenderableComponentListConstIterator;
+typedef std::map< std::string, ScnRenderableComponentRef > ScnRenderableComponentMap;
+typedef ScnRenderableComponentMap::iterator ScnRenderableComponentMapIterator;
+typedef ScnRenderableComponentMap::const_iterator ScnRenderableComponentMapConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntityRef

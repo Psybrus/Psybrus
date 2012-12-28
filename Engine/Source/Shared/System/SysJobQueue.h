@@ -62,8 +62,13 @@ public:
 	/**
 	 * Get and reset time working for worker.
 	 */
-	BcReal				getAndResetTimeWorkingForWorker( BcU32 Idx );
+	BcF32				getAndResetTimeWorkingForWorker( BcU32 Idx );
 	
+	/**
+	 * Get and jobs executed for worker.
+	 */
+	BcU32				getAndResetJobsExecutedForWorker( BcU32 Idx );
+
 private:
 	/**
 	 * Move jobs to the back of the queue.

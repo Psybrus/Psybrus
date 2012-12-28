@@ -368,7 +368,7 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 			JointRot.calcFromXYZ();
 
 			//
-			const BcReal WeightVal = pMD5Weight->Weight_;
+			const BcF32 WeightVal = pMD5Weight->Weight_;
 
 			WeightPos.set( pMD5Weight->X_, pMD5Weight->Y_, pMD5Weight->Z_ );
 
@@ -382,7 +382,7 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 		}
 
 		// Correct weights.
-		BcReal WeightTotal = 0.0f;
+		BcF32 WeightTotal = 0.0f;
 
 		for( BcU32 j = 0; j < Vert.nWeights_; ++j )
 		{

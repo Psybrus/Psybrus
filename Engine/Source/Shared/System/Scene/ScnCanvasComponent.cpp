@@ -22,6 +22,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnCanvasComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnCanvasComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnCanvasComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -43,9 +53,6 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
-
-	//
-	IsReady_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +89,7 @@ void ScnCanvasComponent::create()
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
 	}
 
-	IsReady_ = BcTrue;
+	Super::create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,11 +122,11 @@ void ScnCanvasComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// getAABB
 //virtual
-BcBool ScnCanvasComponent::isReady()
+BcAABB ScnCanvasComponent::getAABB() const
 {
-	return IsReady_;
+	return BcAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -810,9 +817,12 @@ void ScnCanvasComponent::clear()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnCanvasComponent::update( BcReal Tick )
+void ScnCanvasComponent::preUpdate( BcF32 Tick )
 {
 	Super::update( Tick );
+
+	// TODO: Clear in the pre-update tick.
+	//clear();
 }
 
 //////////////////////////////////////////////////////////////////////////

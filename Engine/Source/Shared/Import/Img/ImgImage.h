@@ -94,7 +94,7 @@ public:
 	 *	@param Spread Spread.
 	 *
 	 */
-	ImgImage*				generateDistanceField( BcU32 IntensityThreshold, BcReal Spread );
+	ImgImage*				generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread );
 	
 	/**
 	 *	Generate atlas.

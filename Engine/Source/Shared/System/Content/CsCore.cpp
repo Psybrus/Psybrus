@@ -35,7 +35,8 @@ CsCore::~CsCore()
 //virtual
 void CsCore::open()
 {
-	
+	// Register types for reflection.
+	CsResource::StaticRegisterReflection();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -144,6 +145,21 @@ void CsCore::freeUnreferencedPackages()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getResourceType
+BcName CsCore::getResourceType( BcU32 Idx ) const
+{
+	// NOTE: Change the map to an array. We want fast lookups by index too :(
+	return BcName::INVALID;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofResourceTypes
+BcU32 CsCore::getNoofResourceTypes() const
+{
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocResource
 CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage )
 {
@@ -154,7 +170,11 @@ CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32
 	
 	if( Iter != ResourceFactoryInfoMap_.end() )
 	{
-		pResource = (*Iter).second.allocFunc_( Name, Index, pPackage );
+		const BcReflectionClass* pClass = Iter->second.pClass_;
+		void* pResourceBuffer = BcMemAlign( pClass->getSize() );
+
+		pResource = pClass->construct< CsResource >( pResourceBuffer );
+		pResource->preInitialise( Name, Index, pPackage );
 	}
 	
 	return pResource;
@@ -190,7 +210,8 @@ void CsCore::destroyResource( CsResource* pResource )
 	}
 	else
 	{
-		delete pResource;
+		pResource->getClass()->destruct( pResource );
+		BcMemFree( pResource );
 	}
 }
 
@@ -380,7 +401,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
 		
 		++It;
@@ -412,7 +433,8 @@ void CsCore::processUnloadingResources()
 			pResource->destroy();
 			
 			// Free resource.
-			delete pResource;
+			pResource->getClass()->destruct( pResource );
+			BcMemFree( pResource );
 			
 			// Next.
 			++It;
@@ -424,16 +446,15 @@ void CsCore::processUnloadingResources()
 
 //////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc )
+void CsCore::internalRegisterResource( const BcReflectionClass* pClass )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
-	FactoryInfo.allocFunc_ = allocFunc;
-	FactoryInfo.freeFunc_ = freeFunc;
+	FactoryInfo.pClass_ = pClass;
 	
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	ResourceFactoryInfoMap_[ Type ] = FactoryInfo;
+	ResourceFactoryInfoMap_[ pClass->getName() ] = FactoryInfo;
 }
 
 //////////////////////////////////////////////////////////////////////////

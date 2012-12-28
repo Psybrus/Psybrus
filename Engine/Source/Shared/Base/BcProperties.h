@@ -63,7 +63,7 @@ struct BcPropertyTrait< BcS32 >
 };
 
 template<>
-struct BcPropertyTrait< BcReal >
+struct BcPropertyTrait< BcF32 >
 {
 	static const BcPropertyType TYPE = bcPT_REAL;
 };

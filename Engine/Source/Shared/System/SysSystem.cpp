@@ -78,7 +78,7 @@ BcBool SysSystem::isFinished() const
 
 //////////////////////////////////////////////////////////////////////////
 // lastTickTime
-BcReal SysSystem::lastTickTime() const
+BcF32 SysSystem::lastTickTime() const
 {
 	return LastTickTime_;
 }

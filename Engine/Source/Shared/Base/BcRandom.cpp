@@ -49,9 +49,9 @@ BcS32 BcRandom::rand()
 
 //////////////////////////////////////////////////////////////////////////
 // randReal
-BcReal BcRandom::randReal()
+BcF32 BcRandom::randReal()
 {
-	return BcReal( randRange( (BcS32)-4096.0f, (BcS32)4096.0f ) ) / 4096.0f;
+	return BcF32( randRange( (BcS32)-4096.0f, (BcS32)4096.0f ) ) / 4096.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ BcS32 BcRandom::randRange( BcS32 Min, BcS32 Max )
 
 //////////////////////////////////////////////////////////////////////////
 // noise
-BcReal BcRandom::noise( BcU32 X, BcU32 Width )
+BcF32 BcRandom::noise( BcU32 X, BcU32 Width )
 {
 	X = X % Width;
 	X = ( X << 13 ) ^ X;
@@ -72,19 +72,19 @@ BcReal BcRandom::noise( BcU32 X, BcU32 Width )
 
 //////////////////////////////////////////////////////////////////////////
 // smoothedNoise
-BcReal BcRandom::smoothedNoise( BcReal X, BcU32 Width )
+BcF32 BcRandom::smoothedNoise( BcF32 X, BcU32 Width )
 {
 	return noise( (BcU32)X, Width ) / 2.0f + noise( (BcU32)X - 1, Width ) / 4 + noise( (BcU32)X + 1, Width ) / 4;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // interpolatedNoise
-BcReal BcRandom::interpolatedNoise( BcReal X, BcU32 Width )
+BcF32 BcRandom::interpolatedNoise( BcF32 X, BcU32 Width )
 {
 	BcU32 iX = BcU32( X );
-	BcReal FracX = X - iX;
-	BcReal V1 = smoothedNoise( (BcReal)iX, Width );
-	BcReal V2 = smoothedNoise( (BcReal)iX + 1.0f, Width );
+	BcF32 FracX = X - iX;
+	BcF32 V1 = smoothedNoise( (BcF32)iX, Width );
+	BcF32 V2 = smoothedNoise( (BcF32)iX + 1.0f, Width );
 	return V1 + ( V2 - V1 ) * FracX;
 }
 
