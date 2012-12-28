@@ -132,6 +132,15 @@ BcF32 SysJobQueue::getAndResetTimeWorkingForWorker( BcU32 Idx )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getAndResetJobsExecutedForWorker
+BcU32 SysJobQueue::getAndResetJobsExecutedForWorker( BcU32 Idx )
+{
+	BcAssertMsg( Idx < NoofWorkers_, "SysJobQueue: Invalid worker index" );
+	SysJobWorker* pWorker = JobWorkers_[ Idx ];
+	return pWorker->getAndResetJobsExecuted();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // moveJobsBack
 void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 {

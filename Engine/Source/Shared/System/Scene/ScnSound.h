@@ -38,7 +38,6 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 	SsSample*							getSample();
 	

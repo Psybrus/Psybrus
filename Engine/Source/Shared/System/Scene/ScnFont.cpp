@@ -373,15 +373,7 @@ void ScnFont::create()
 //virtual
 void ScnFont::destroy()
 {
-	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnFont::isReady()
-{
-	return pHeader_ != NULL && pGlyphDescs_ != NULL && Texture_.isReady();
+	//Texture_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -430,6 +422,9 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			ScnFontGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
 			CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
 		}
+
+		// Mark as ready for use.
+		markReady();
 	}
 }
 
@@ -451,6 +446,8 @@ BCREFLECTION_DERIVED_END();
 // initialise
 void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
+	Super::initialise();
+
 	Parent_ = Parent; 
 	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_2D ) )
 	{	
@@ -692,14 +689,6 @@ ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnFontComponent::isReady()
-{
-	return Parent_->isReady() && MaterialComponent_.isReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
 void ScnFontComponent::update( BcF32 Tick )
 {
 	ScnComponent::update( Tick );
@@ -724,6 +713,8 @@ void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
+
+	MaterialComponent_ = NULL;
 
 	//
 	ScnComponent::onDetach( Parent );

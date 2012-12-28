@@ -66,7 +66,7 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
+	virtual BcAABB						getAABB() const;
 
 	/**
 	 * Get material component.
@@ -201,7 +201,7 @@ public:
 	void								clear();
 	
 public:
-	virtual void						update( BcF32 Tick );
+	virtual void						preUpdate( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
@@ -251,9 +251,6 @@ protected:
 	
 	TMatrixStack						MatrixStack_;
 	BcBool								IsIdentity_;
-
-	//
-	BcBool								IsReady_;
 };
 
 #endif

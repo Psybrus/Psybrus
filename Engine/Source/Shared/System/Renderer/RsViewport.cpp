@@ -18,7 +18,7 @@
 RsViewport::RsViewport()
 {
 	ClearDepth_ = BcFalse;
-	ZNear_ = 1.0f; // hack
+	ZNear_ = 1.0f;
 	ZFar_ = 1024.0f;
 }
 

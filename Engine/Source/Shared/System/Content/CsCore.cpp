@@ -68,7 +68,7 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
-	//while( LoadedResources_.size() > 0 )
+	while( LoadedResources_.size() > 0 )
 	{
 		freeUnreferencedPackages();
 
@@ -89,7 +89,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "$(%s:%s.%s) \n", (*pResource->getTypeName()).c_str(), (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -170,7 +170,10 @@ CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32
 	
 	if( Iter != ResourceFactoryInfoMap_.end() )
 	{
-		pResource = (*Iter).second.allocFunc_();
+		const BcReflectionClass* pClass = Iter->second.pClass_;
+		void* pResourceBuffer = BcMemAlign( pClass->getSize() );
+
+		pResource = pClass->construct< CsResource >( pResourceBuffer );
 		pResource->preInitialise( Name, Index, pPackage );
 	}
 	
@@ -207,7 +210,8 @@ void CsCore::destroyResource( CsResource* pResource )
 	}
 	else
 	{
-		delete pResource;
+		pResource->getClass()->destruct( pResource );
+		BcMemFree( pResource );
 	}
 }
 
@@ -429,7 +433,8 @@ void CsCore::processUnloadingResources()
 			pResource->destroy();
 			
 			// Free resource.
-			delete pResource;
+			pResource->getClass()->destruct( pResource );
+			BcMemFree( pResource );
 			
 			// Next.
 			++It;
@@ -441,16 +446,15 @@ void CsCore::processUnloadingResources()
 
 //////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc )
+void CsCore::internalRegisterResource( const BcReflectionClass* pClass )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
-	FactoryInfo.allocFunc_ = allocFunc;
-	FactoryInfo.freeFunc_ = freeFunc;
+	FactoryInfo.pClass_ = pClass;
 	
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	ResourceFactoryInfoMap_[ Type ] = FactoryInfo;
+	ResourceFactoryInfoMap_[ pClass->getName() ] = FactoryInfo;
 }
 
 //////////////////////////////////////////////////////////////////////////

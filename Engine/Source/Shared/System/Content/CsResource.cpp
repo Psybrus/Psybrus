@@ -18,14 +18,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
-DEFINE_CSRESOURCE;
+BCREFLECTION_DEFINE_BASE( CsResource );
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 BCREFLECTION_BASE_BEGIN( CsResource )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 BCREFLECTION_BASE_END();
 
@@ -34,7 +33,9 @@ BCREFLECTION_BASE_END();
 CsResource::CsResource():
 	Name_( BcName::INVALID ),
 	Index_( BcErrorCode ),
-	pPackage_( NULL )
+	pPackage_( NULL ),
+	RefCount_( 0 ),
+	IsReady_( 0 )
 {
 
 }
@@ -107,11 +108,12 @@ void CsResource::fileReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// fileChunkReady
+// isReady
 //virtual
 BcBool CsResource::isReady()
 {
-	return BcTrue;
+	BcAssertMsg( IsReady_ >= 0 && IsReady_ <= 1 , "CsResource: Invalid ready state." );
+	return IsReady_ > 0 ? BcTrue : BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,38 +128,29 @@ void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // acquire
 void CsResource::acquire()
 {
+	// TODO: Deprecate.
 	++RefCount_;
-
-	/*
-	if(Name_ == BcName("LevelEntity"))
-	{
-		int a = 0; ++a;
-	}
-	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
 // release
 void CsResource::release()
 {
-	//BcPrintf("release: %s, %u\n", (*Name_).c_str(), RefCount_);
+	// TODO: Deprecate.
 	if( ( --RefCount_ ) == 0 )
 	{
-		// Call into CsCore to destroy this resource.
-		if( CsCore::pImpl() != NULL )
-		{
-			// Detach package.
-			Index_ = BcErrorCode;
-			pPackage_ = NULL;
+		// No longer ready.
+		IsReady_--;
 
-			// Destroy.
-			CsCore::pImpl()->destroyResource( this );
-		}
-		else
-		{
-			// Only doing this so references held by this are cleaned up, and other resources are reported too.
-			delete this;
-		}
+		// Call into CsCore to destroy this resource.
+		BcAssertMsg( CsCore::pImpl() != NULL, "Attempted to destroy a resource when there is no CsCore." )
+
+		// Detach package.
+		Index_ = BcErrorCode;
+		pPackage_ = NULL;
+
+		// Destroy.
+		CsCore::pImpl()->destroyResource( this );
 	}
 }
 
@@ -318,6 +311,15 @@ BcU32 CsResource::getChunkSize( BcU32 Chunk )
 BcU32 CsResource::getNoofChunks() const
 {
 	return pPackage_->getNoofChunks( Index_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// markReady
+void CsResource::markReady()
+{
+	// Should really assign 1, but we want to do the reverse on destruction.
+	// Basic before we call into destroy, we mark it not ready.
+	IsReady_++;
 }
 
 //////////////////////////////////////////////////////////////////////////

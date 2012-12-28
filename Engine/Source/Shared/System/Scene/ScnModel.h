@@ -55,7 +55,6 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 private:
 	void								setup();
@@ -75,7 +74,7 @@ protected:
 	BcU8*								pIndexBufferData_;
 	ScnModelPrimitiveData*				pPrimitiveData_;
 	
-	ScnModelPrimitiveRuntimeList				PrimitiveRuntimes_;
+	ScnModelPrimitiveRuntimeList		PrimitiveRuntimes_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,7 +88,8 @@ public:
 	virtual void						initialise( ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
-	virtual BcBool						isReady();
+
+	virtual BcAABB						getAABB() const;
 
 	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
 
@@ -97,7 +97,8 @@ public:
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
 	
 public:
-	virtual void						update( BcF32 Tick );
+	virtual void						postUpdate( BcF32 Tick );
+
 	void								updateNodes( BcMat4d RootMatrix );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
@@ -109,6 +110,8 @@ protected:
 	SysFence							UpdateFence_;
 
 	BcU32								Layer_;
+
+	BcAABB								AABB_;
 
 	struct TMaterialComponentDesc
 	{

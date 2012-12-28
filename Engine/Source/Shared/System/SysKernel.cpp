@@ -173,11 +173,12 @@ void SysKernel::tick()
 
 #if 0
 	// Reset time working in the job queue for metrics.
-	BcPrintf( "System Kernel: Game thread: %f ms\n", getFrameTime() );
+	BcPrintf( "System Kernel: Game thread: %f ms\n", GameThreadTime_ * 1000.0f );
 	for( BcU32 Idx = 0; Idx < JobQueue_.workerCount(); ++Idx )
 	{
 		BcF32 Time = JobQueue_.getAndResetTimeWorkingForWorker( Idx );
-		BcPrintf( "System Kernel: Worker %u: %f ms\n", Idx, Time * 1000.0f );
+		BcU32 Jobs = JobQueue_.getAndResetJobsExecutedForWorker( Idx );
+		BcPrintf( "System Kernel: Worker %u: %f ms (%u jobs)\n", Idx, Time * 1000.0f, Jobs );
 	}
 #endif
 
@@ -274,6 +275,9 @@ void SysKernel::execute()
 		
 		// Tick systems.
 		tick();
+
+		// Store game thread time.
+		GameThreadTime_ = MainTimer_.time();
 		
 		// Sleep if we have a fixed rate specified, otherwise just yield.
 		if( TickRate_ > 0.0f )

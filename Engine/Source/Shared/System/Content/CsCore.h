@@ -170,17 +170,16 @@ protected:
 	void								processUnloadingResources();
 	
 public:
-	void								internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc );
+	void								internalRegisterResource( const BcReflectionClass* pClass );
 	void								internalUnRegisterResource( const BcName& Type );
 	BcBool								internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle );
 	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
 	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
 	
 protected:
-	struct TResourceFactoryInfo
+	struct TResourceFactoryInfo // TODO: Deprecate. We don't need this much longer with having centralised reflection support.
 	{
-		CsResourceAllocFunc allocFunc_;
-		CsResourceFreeFunc freeFunc_;
+		const BcReflectionClass* pClass_;
 	};
 	
 	typedef std::vector< CsResource* > TResourceList;
@@ -213,7 +212,7 @@ BcForceInline void CsCore::registerResource()
 {
 	BcAssert( BcIsGameThread() );
 	_Ty::StaticRegisterReflection();
-	internalRegisterResource( _Ty::StaticGetType(), _Ty::StaticAllocResource, _Ty::StaticFreeResource );
+	internalRegisterResource( _Ty::StaticGetClass() );
 }
 
 //////////////////////////////////////////////////////////////////////////

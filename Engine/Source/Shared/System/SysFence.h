@@ -48,7 +48,7 @@ public:
 	/**
 	 * Wait for fence to reach a certain value.
 	 */
-	void wait( BcU32 Value = 0 );
+	void wait( BcU32 Value = 0 ) const;
 
 private:
 	BcAtomic< BcU32 > Count_;

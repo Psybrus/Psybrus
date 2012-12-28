@@ -201,9 +201,6 @@ void RsFrameGL::render()
 		// Flip context buffers.
 		pContext_->swapBuffers();
 	}
-
-	// TEMP HACK: Free frame.
-	delete this;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -62,8 +62,10 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnSpriteComponent::update( BcF32 Tick )
+void ScnSpriteComponent::postUpdate( BcF32 Tick )
 {
+	Super::postUpdate( Tick );
+
 	ScnEntityWeakRef Entity = getParentEntity();
 	const BcMat4d& Matrix = Entity->getMatrix();
 

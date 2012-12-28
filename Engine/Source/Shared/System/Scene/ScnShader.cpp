@@ -206,29 +206,25 @@ void ScnShader::create()
 //virtual
 void ScnShader::destroy()
 {
-	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnShader::isReady()
-{
-	BcBool IsReady = pHeader_ != NULL && ProgramMap_.size() == pHeader_->NoofProgramPermutations_;
-	
-	if( IsReady == BcTrue )
+	for( TShaderMapIterator Iter = VertexShaderMap_.begin(); Iter != VertexShaderMap_.end(); ++Iter )
 	{
-		for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
-		{
-			if( (*Iter).second->hasHandle() == BcFalse )
-			{
-				IsReady = BcFalse;
-				break;
-			}
-		}
+		RsCore::pImpl()->destroyResource( (*Iter).second );
 	}
-	
-	return IsReady;
+
+	for( TShaderMapIterator Iter = FragmentShaderMap_.begin(); Iter != FragmentShaderMap_.end(); ++Iter )
+	{
+		RsCore::pImpl()->destroyResource( (*Iter).second );
+	}
+
+	for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
+	{
+		RsCore::pImpl()->destroyResource( (*Iter).second );
+	}
+
+	pHeader_ = NULL;
+	VertexShaderMap_.clear();
+	FragmentShaderMap_.clear();
+	ProgramMap_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -331,7 +327,6 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
 		
-		// TODO: Lockless list/map.
 		VertexShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
 	else if( ChunkID == BcHash( "fragment" ) )
@@ -342,7 +337,6 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
 			
-		// TODO: Lockless list/map.
 		FragmentShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
 	else if( ChunkID == BcHash( "program" ) )
@@ -360,5 +354,11 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		RsProgram* pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );			
 			
 		ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
+
+		// Mark ready if we've got all the programs we expect.
+		if( ProgramMap_.size() == pHeader_->NoofProgramPermutations_ )
+		{
+			markReady();
+		}
 	}
 }

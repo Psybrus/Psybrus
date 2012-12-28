@@ -73,6 +73,9 @@ void ScnRenderTarget::create()
 	
 	// Render target manages this.
 	CreateNewTexture_ = BcFalse;
+
+	// Ready to go.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,14 +84,6 @@ void ScnRenderTarget::create()
 void ScnRenderTarget::destroy()
 {
 	RsCore::pImpl()->destroyResource( pRenderTarget_ );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnRenderTarget::isReady()
-{
-	return ScnTexture::isReady() && ( pRenderTarget_ != NULL && pRenderTarget_->hasHandle() );
 }
 
 //////////////////////////////////////////////////////////////////////////

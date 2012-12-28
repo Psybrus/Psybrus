@@ -48,8 +48,10 @@ void ScnSoundListenerComponent::initialise()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnSoundListenerComponent::update( BcF32 Tick )
+void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 {
+	Super::postUpdate( Tick );
+
 	if( SsCore::pImpl() != NULL )
 	{
 		BcVec3d Up( 0.0f, 1.0f, 0.0f );

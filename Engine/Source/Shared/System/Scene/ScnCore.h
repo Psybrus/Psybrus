@@ -71,9 +71,17 @@ public:
 	 */
 	ScnEntityRef				getEntity( BcU32 Idx );
 
-private:
-	friend class ScnEntity;
+	/**
+	 * Queue component for attach/detach.
+	 */
+	void						queueComponentAsPendingOperation( ScnComponentRef Component );
 
+	/**
+	 * Visit view.
+	 */
+	void						visitView( ScnVisitor* pVisitor, const RsViewport& Viewport );
+
+private:
 	/**
 	 * Called when a component has been attached to an entity that exists in the scene.
 	 */
@@ -85,21 +93,23 @@ private:
 	void						onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component );
 
 private:
-	void						processAddRemove();
+	void						processPendingComponents();
 
 private:
-	ScnSpatialTree*				pSpacialTree_;
-	ScnEntityList				EntityList_;
+	ScnSpatialTree*				pSpatialTree_;
 
-	ScnEntityList				AddEntityList_;
-	ScnEntityList				RemoveEntityList_;
+	// Pending components.
+	ScnComponentList			PendingComponentList_;
 	
 	// Special components.
 	ScnViewComponentList		ViewComponentList_;
 
 	// All components in the scene.
+	typedef std::map< const BcReflectionClass*, BcU32 > TComponentClassIndexMap;
 	ScnComponentList*			pComponentLists_;
 	BcU32						NoofComponentLists_;
+
+	TComponentClassIndexMap		ComponentClassIndexMap_;
 
 };
 
