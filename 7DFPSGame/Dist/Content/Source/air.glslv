@@ -1,8 +1,6 @@
-attribute vec4 aTexCoord0;
-
 varying vec3 vEyePosition;
-varying vec4 vWorldPosition;
 varying vec4 vTexCoord0;
+varying vec4 vWorldPosition;
 
 vec4 shaderMain(vec4 inPosition)
 {

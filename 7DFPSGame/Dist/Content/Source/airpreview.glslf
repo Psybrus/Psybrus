@@ -1,6 +1,6 @@
-uniform sampler3D aDiffuseTex;	
-
 varying vec4 vTexCoord0;
+
+uniform sampler3D aDiffuseTex;
 
 vec4 shaderMain()
 {

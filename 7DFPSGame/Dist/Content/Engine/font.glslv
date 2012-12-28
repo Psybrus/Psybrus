@@ -1,5 +1,3 @@
-attribute vec4 aTexCoord0;
-
 varying vec4 vTexCoord0;
 
 vec4 shaderMain(vec4 inPosition)
