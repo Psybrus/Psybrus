@@ -62,7 +62,6 @@ public:
 	virtual BcU32						noofRects();
 	
 protected:
-	virtual void						setup();
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
@@ -71,8 +70,6 @@ protected:
 	
 	ScnTextureHeader					Header_;
 	void*								pTextureData_;
-	BcBool								CreateNewTexture_;
-	BcBool								IsUserCreated_;
 };
 
 #endif

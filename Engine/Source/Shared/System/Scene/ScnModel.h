@@ -57,9 +57,6 @@ public:
 	virtual void						destroy();
 	
 private:
-	void								setup();
-	
-private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	

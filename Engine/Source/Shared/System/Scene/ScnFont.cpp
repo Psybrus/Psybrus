@@ -365,7 +365,18 @@ void ScnFont::initialise()
 //virtual
 void ScnFont::create()
 {
-	
+	// Request texture.
+	Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
+
+	// Create a char code map.
+	for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
+	{
+		ScnFontGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
+		CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
+	}
+
+	// Mark as ready for use.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -408,23 +419,12 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		
 		// Get glyph desc chunk.
 		requestChunk( ++ChunkIdx );
-		
-		// Request texture.
-		Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
 	}
 	else if( ChunkID == BcHash( "glyphs" ) )
 	{
 		pGlyphDescs_ = (ScnFontGlyphDesc*)pData;
-	
-		// Create a char code map.
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
-		{
-			ScnFontGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
-			CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
-		}
 
-		// Mark as ready for use.
-		markReady();
+		markCreate(); // All data loaded, time to create.
 	}
 }
 

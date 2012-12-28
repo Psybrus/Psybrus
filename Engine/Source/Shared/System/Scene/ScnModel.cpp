@@ -238,33 +238,6 @@ void ScnModel::initialise()
 //virtual
 void ScnModel::create()
 {
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnModel::destroy()
-{
-	// Destroy internal data.
-	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes_.size(); ++Idx )
-	{
-		ScnModelPrimitiveRuntime& PrimitiveRuntime( PrimitiveRuntimes_[ Idx ] );
-
-		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pIndexBuffer_ );
-		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pPrimitive_ );
-		
-		PrimitiveRuntime.MaterialRef_ = NULL;
-	}
-
-	PrimitiveRuntimes_.clear();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setup
-void ScnModel::setup()
-{
 	// NOTE: This should try and compact index and vertex buffers so we create less
 	//       GPU resources. This could be done import time, but it could vary
 	//       platform to platform.
@@ -308,6 +281,29 @@ void ScnModel::setup()
 		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
 		pIndexBufferData_ += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
 	}
+
+	// Mark as ready.
+	markReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnModel::destroy()
+{
+	// Destroy internal data.
+	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes_.size(); ++Idx )
+	{
+		ScnModelPrimitiveRuntime& PrimitiveRuntime( PrimitiveRuntimes_[ Idx ] );
+
+		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pVertexBuffer_ );
+		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pIndexBuffer_ );
+		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pPrimitive_ );
+		
+		PrimitiveRuntime.MaterialRef_ = NULL;
+	}
+
+	PrimitiveRuntimes_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -360,11 +356,7 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		pPrimitiveData_ = (ScnModelPrimitiveData*)pData;
 		
-		// We've got everything, it's time to setup.
-		setup();
-
-		// Mark as ready.
-		markReady();
+		markCreate(); // All data loaded, time to create.
 	}
 }
 

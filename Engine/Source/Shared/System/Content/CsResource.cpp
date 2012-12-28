@@ -35,7 +35,7 @@ CsResource::CsResource():
 	Index_( BcErrorCode ),
 	pPackage_( NULL ),
 	RefCount_( 0 ),
-	IsReady_( 0 )
+	InitStage_( INIT_STAGE_INITIAL )
 {
 
 }
@@ -112,8 +112,15 @@ void CsResource::fileReady()
 //virtual
 BcBool CsResource::isReady()
 {
-	BcAssertMsg( IsReady_ >= 0 && IsReady_ <= 1 , "CsResource: Invalid ready state." );
-	return IsReady_ > 0 ? BcTrue : BcFalse;
+	BcAssertMsg( InitStage_ >= INIT_STAGE_INITIAL && InitStage_ <= INIT_STAGE_READY, "CsResource: Invalid ready state." );
+	return InitStage_ == INIT_STAGE_READY ? BcTrue : BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInitStage
+BcU32 CsResource::getInitStage()
+{
+	return InitStage_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,7 +147,7 @@ void CsResource::release()
 	if( ( --RefCount_ ) == 0 )
 	{
 		// No longer ready.
-		IsReady_--;
+		InitStage_.exchange( INIT_STAGE_INITIAL );
 
 		// Call into CsCore to destroy this resource.
 		BcAssertMsg( CsCore::pImpl() != NULL, "Attempted to destroy a resource when there is no CsCore." )
@@ -314,12 +321,19 @@ BcU32 CsResource::getNoofChunks() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// markCreate
+void CsResource::markCreate()
+{
+	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_CREATE );
+	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*Name_).c_str() );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // markReady
 void CsResource::markReady()
 {
-	// Should really assign 1, but we want to do the reverse on destruction.
-	// Basic before we call into destroy, we mark it not ready.
-	IsReady_++;
+	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_READY );
+	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*Name_).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////

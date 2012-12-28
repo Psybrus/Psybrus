@@ -123,7 +123,7 @@ void ScnViewComponent::initialise( BcF32 X, BcF32 Y, BcF32 Width, BcF32 Height, 
 //virtual
 void ScnViewComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise( Object );
+	initialise();
 
 	X_ = (BcF32)Object[ "x" ].asDouble();
 	Y_ = (BcF32)Object[ "y" ].asDouble();

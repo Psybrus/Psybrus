@@ -185,7 +185,18 @@ void ScnMaterial::initialise()
 //virtual
 void ScnMaterial::create()
 {
+	ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
+		
+	// Get resources.
+	Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
+	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
+	{
+		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+		TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
+	}
 	
+	// Mark as ready.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,24 +236,14 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (ScnMaterialHeader*)pData;
-		ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
-		
-		// Get resources.
-		Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
-		{
-			ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-			TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
-		}
-		
+
 		requestChunk( ++ChunkIdx );
 	}
 	else if( ChunkID == BcHash( "stateblock" ) )
 	{
 		pStateBuffer_ = (BcU32*)pData;
 
-		// Mark as ready.
-		markReady();
+		markCreate(); // All data loaded, time to create.
 	}
 }
 

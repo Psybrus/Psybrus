@@ -26,7 +26,27 @@
 //virtual
 BcBool ScnRenderTarget::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	return Super::import( Importer, Object );
+	BcU32 Width = Object[ "width" ].asUInt();
+	BcU32 Height = Object[ "height" ].asUInt();
+
+	// Streams.
+	BcStream HeaderStream;
+
+	// Write header.
+	ScnTextureHeader Header =
+	{
+		Width,
+		Height,
+		1,
+		1, 
+		rsTT_2D, 
+		rsTF_RGBA8
+	};
+	HeaderStream << Header;
+
+	Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
+
+	return BcTrue;
 }
 #endif
 
@@ -53,11 +73,15 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 	
 	Header_.Width_ = Width;
 	Header_.Height_ = Height;
+	Header_.Depth_ = 1;
 	Header_.Levels_ = 1;
-	Header_.Format_ = rsTF_RGBA8;	
+	Header_.Type_ = rsTT_2D;
+	Header_.Format_ = rsTF_RGBA8;
 
 	//
 	pRenderTarget_ = NULL;
+
+	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,9 +95,6 @@ void ScnRenderTarget::create()
 	// Get texture from target.
 	pTexture_ = pRenderTarget_->getTexture();
 	
-	// Render target manages this.
-	CreateNewTexture_ = BcFalse;
-
 	// Ready to go.
 	markReady();
 }
@@ -84,6 +105,25 @@ void ScnRenderTarget::create()
 void ScnRenderTarget::destroy()
 {
 	RsCore::pImpl()->destroyResource( pRenderTarget_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileReady
+//virtual
+void ScnRenderTarget::fileReady()
+{
+	requestChunk( 0, &Header_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileChunkReady
+//virtual
+void ScnRenderTarget::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
+{
+	if( ChunkID == BcHash( "header" ) )
+	{
+		markCreate();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

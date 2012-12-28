@@ -40,6 +40,9 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	
+	virtual void						fileReady();
+	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+
 	void								bind( RsFrame* pFrame );
 	void								unbind( RsFrame* pFrame );
 	

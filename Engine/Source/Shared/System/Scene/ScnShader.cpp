@@ -198,7 +198,8 @@ void ScnShader::initialise()
 //virtual
 void ScnShader::create()
 {
-
+	// TODO: Move some of the fileChunk(...) code into here. Will do for now.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -358,7 +359,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		// Mark ready if we've got all the programs we expect.
 		if( ProgramMap_.size() == pHeader_->NoofProgramPermutations_ )
 		{
-			markReady();
+			markCreate();
 		}
 	}
 }

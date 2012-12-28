@@ -340,10 +340,17 @@ void CsCore::processCreateResources()
 		CsResourceRef<> ResourceHandle = (*It);
 		
 		// Create resource.
-		ResourceHandle->create();
-		
-		// Remove from list.
-		It = CreateResources_.erase( It );
+		if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+		{
+			ResourceHandle->create();
+
+			// Remove from list.
+			It = CreateResources_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
 		
 		// Put into loading list.
 		LoadingResources_.push_back( ResourceHandle );

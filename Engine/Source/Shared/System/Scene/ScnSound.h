@@ -41,8 +41,6 @@ public:
 	
 	SsSample*							getSample();
 	
-	void								setup();
-	
 protected:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
