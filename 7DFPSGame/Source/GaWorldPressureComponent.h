@@ -74,7 +74,7 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create__onAttach();
 	virtual void						destroy__onDetach();
-	virtual BcBool						isReady();
+	virtual BcAABB						getAABB() const;
 	virtual void						update( BcF32 Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );

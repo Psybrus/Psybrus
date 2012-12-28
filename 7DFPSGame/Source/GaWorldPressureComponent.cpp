@@ -34,6 +34,8 @@ BCREFLECTION_DERIVED_END();
 //virtual
 void GaWorldPressureComponent::initialise( const Json::Value& Object )
 {
+	Super::initialise( Object );
+
 	IsReady_ = BcFalse;
 }
 
@@ -269,11 +271,11 @@ void GaWorldPressureComponent::destroy__onDetach()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// getAABB
 //virtual
-BcBool GaWorldPressureComponent::isReady()
+BcAABB GaWorldPressureComponent::getAABB() const 
 {
-	return IsReady_;
+	return BcAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////
