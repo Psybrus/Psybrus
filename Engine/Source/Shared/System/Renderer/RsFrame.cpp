@@ -31,7 +31,7 @@ void RsFrame::debugLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsC
 
 //////////////////////////////////////////////////////////////////////////
 // debugAxis/*
-void RsFrame::debugAxis( const BcVec3d& Point, BcReal Size, const RsColour& Colour )
+void RsFrame::debugAxis( const BcVec3d& Point, BcF32 Size, const RsColour& Colour )
 {
 	beginPrimitive( rsPT_LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 	addLine( Point - BcVec3d( Size, 0.0f, 0.0f ), Point + BcVec3d( Size, 0.0f, 0.0f ), Colour, 0 );
@@ -42,17 +42,17 @@ void RsFrame::debugAxis( const BcVec3d& Point, BcReal Size, const RsColour& Colo
 
 //////////////////////////////////////////////////////////////////////////
 // debugGrid
-void RsFrame::debugGrid( const BcVec3d& Centre, BcReal Step, BcU32 Axis, BcU32 Elements, const RsColour& Colour )
+void RsFrame::debugGrid( const BcVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 Elements, const RsColour& Colour )
 {
-	BcReal LBound = -Step * BcReal( Elements >> 1 );
-	BcReal UBound =  Step * BcReal( Elements >> 1 );
+	BcF32 LBound = -Step * BcF32( Elements >> 1 );
+	BcF32 UBound =  Step * BcF32( Elements >> 1 );
 
 	beginPrimitive( rsPT_LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 
 	switch( Axis )
 	{
 	case 0:
-		for( BcReal i = LBound; i <= UBound; i += Step )
+		for( BcF32 i = LBound; i <= UBound; i += Step )
 		{
 			addLine( BcVec3d( 0.0f, i, LBound ) + Centre, BcVec3d( 0.0f, i, UBound ) + Centre, Colour, 0 );
 			addLine( BcVec3d( 0.0f, LBound, i ) + Centre, BcVec3d( 0.0f, UBound, i ) + Centre, Colour, 0 );
@@ -60,7 +60,7 @@ void RsFrame::debugGrid( const BcVec3d& Centre, BcReal Step, BcU32 Axis, BcU32 E
 		break;
 
 	case 1:
-		for( BcReal i = LBound; i <= UBound; i += Step )
+		for( BcF32 i = LBound; i <= UBound; i += Step )
 		{
 			addLine( BcVec3d( i, 0.0f, LBound ) + Centre, BcVec3d( i, 0.0f, UBound ) + Centre, Colour, 0 );
 			addLine( BcVec3d( LBound, 0.0f, i ) + Centre, BcVec3d( UBound, 0.0f, i ) + Centre, Colour, 0 );
@@ -68,7 +68,7 @@ void RsFrame::debugGrid( const BcVec3d& Centre, BcReal Step, BcU32 Axis, BcU32 E
 		break;
 
 	case 2:
-		for( BcReal i = LBound; i <= UBound; i += Step )
+		for( BcF32 i = LBound; i <= UBound; i += Step )
 		{
 			addLine( BcVec3d( i, LBound, 0.0f ) + Centre, BcVec3d( i, UBound, 0.0f ) + Centre, Colour, 0 );
 			addLine( BcVec3d( LBound, i, 0.0f ) + Centre, BcVec3d( UBound, i, 0.0f ) + Centre, Colour, 0 );
@@ -105,7 +105,7 @@ void RsFrame::debugAABB( const BcAABB& AABB, const RsColour& Colour )
 
 //////////////////////////////////////////////////////////////////////////
 // debugMatrix
-void RsFrame::debugMatrix( const BcMat4d& Matrix, BcReal Scale, const RsColour& Colour )
+void RsFrame::debugMatrix( const BcMat4d& Matrix, BcF32 Scale, const RsColour& Colour )
 {
 	BcVec3d Position( Matrix.row3().x(), Matrix.row3().y(), Matrix.row3().z() );
 	BcVec3d X( Matrix.row0().x(), Matrix.row0().y(), Matrix.row0().z() );
@@ -130,8 +130,8 @@ void RsFrame::debugMatrix( const BcMat4d& Matrix, BcReal Scale, const RsColour& 
 void RsFrame::debugEllipsoid( const BcVec3d& Centre, const BcVec3d& Scale, BcU32 LOD, const RsColour& Colour )
 {
 	// Draw outer circles for all axis.
-	BcReal Angle = 0.0f;
-	BcReal AngleInc = ( BcPI * 2.0f ) / BcReal( LOD );
+	BcF32 Angle = 0.0f;
+	BcF32 AngleInc = ( BcPI * 2.0f ) / BcF32( LOD );
 
 	beginPrimitive( rsPT_LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 

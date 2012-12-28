@@ -15,7 +15,6 @@
 
 #include "System/Content/CsCore.h"
 
-#include "Base/BcRegex.h"
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
 

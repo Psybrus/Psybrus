@@ -24,10 +24,10 @@ BcQuat::BcQuat( const BcChar* pString ):
 
 #define SLERP_EPSILON	0.001f
 
-void BcQuat::lerp(const BcQuat& a, const BcQuat& b, BcReal t)
+void BcQuat::lerp(const BcQuat& a, const BcQuat& b, BcF32 t)
 {
-	BcReal lK0 = 1.0f - t;
-	BcReal lK1 = t;
+	BcF32 lK0 = 1.0f - t;
+	BcF32 lK1 = t;
 	
 	set((a.x() * lK0) + (b.x() * lK1),
 	    (a.y() * lK0) + (b.y() * lK1),
@@ -35,12 +35,12 @@ void BcQuat::lerp(const BcQuat& a, const BcQuat& b, BcReal t)
 	    (a.w() * lK0) + (b.w() * lK1));
 }
 	
-void BcQuat::slerp( const BcQuat& a, const BcQuat& b, BcReal t)
+void BcQuat::slerp( const BcQuat& a, const BcQuat& b, BcF32 t)
 {
 	// The following code is based on what Dunn & Parberry do.
-	BcReal lCosOmega = (a.w() * b.w()) + (a.x() * b.x()) + (a.y() * b.y()) + (a.z() * b.z());
-	BcReal lK0;
-	BcReal lK1;
+	BcF32 lCosOmega = (a.w() * b.w()) + (a.x() * b.x()) + (a.y() * b.y()) + (a.z() * b.z());
+	BcF32 lK0;
+	BcF32 lK1;
 	BcQuat a2 = a;
 
 	if (lCosOmega < 0.0f)
@@ -60,9 +60,9 @@ void BcQuat::slerp( const BcQuat& a, const BcQuat& b, BcReal t)
 	else
 	{
 		// Do Slerp.
-		BcReal lSinOmega = BcSqrt(1.0f - (lCosOmega * lCosOmega));
-		BcReal lOmega = atan2f(lSinOmega, lCosOmega);
-		BcReal lInvSinOmega = (1.0f / lSinOmega);
+		BcF32 lSinOmega = BcSqrt(1.0f - (lCosOmega * lCosOmega));
+		BcF32 lOmega = atan2f(lSinOmega, lCosOmega);
+		BcF32 lInvSinOmega = (1.0f / lSinOmega);
 
 		lK0 = BcSin((1.0f - t) * lOmega) * lInvSinOmega;
 		lK1 = BcSin(t * lOmega) * lInvSinOmega;
@@ -78,13 +78,13 @@ void BcQuat::slerp( const BcQuat& a, const BcQuat& b, BcReal t)
 // fromMatrix4d
 void BcQuat::fromMatrix4d( const BcMat4d& Mat )
 {
-	BcReal FourWSqMinus1 = Mat[0][0] + Mat[1][1] + Mat[2][2];
-	BcReal FourXSqMinus1 = Mat[0][0] - Mat[1][1] - Mat[2][2];
-	BcReal FourYSqMinus1 = Mat[1][1] - Mat[0][0] - Mat[2][2];
-	BcReal FourZSqMinus1 = Mat[2][2] - Mat[0][0] - Mat[1][1];
+	BcF32 FourWSqMinus1 = Mat[0][0] + Mat[1][1] + Mat[2][2];
+	BcF32 FourXSqMinus1 = Mat[0][0] - Mat[1][1] - Mat[2][2];
+	BcF32 FourYSqMinus1 = Mat[1][1] - Mat[0][0] - Mat[2][2];
+	BcF32 FourZSqMinus1 = Mat[2][2] - Mat[0][0] - Mat[1][1];
 
 	BcU32 BiggestIndex = 0;
-	BcReal FourBiggestSqMinus1 = FourWSqMinus1;
+	BcF32 FourBiggestSqMinus1 = FourWSqMinus1;
 	if( FourXSqMinus1 > FourBiggestSqMinus1 )
 	{
 		FourBiggestSqMinus1 = FourXSqMinus1;
@@ -101,8 +101,8 @@ void BcQuat::fromMatrix4d( const BcMat4d& Mat )
 		BiggestIndex = 3;
 	}
 
-	BcReal BiggestVal = BcSqrt( FourBiggestSqMinus1 + 1.0f ) * 0.5f;
-	BcReal Mult = 0.25f / BiggestVal;
+	BcF32 BiggestVal = BcSqrt( FourBiggestSqMinus1 + 1.0f ) * 0.5f;
+	BcF32 Mult = 0.25f / BiggestVal;
 
 	switch( BiggestIndex )
 	{
@@ -152,21 +152,21 @@ void BcQuat::asMatrix4d( BcMat4d& Matrix )  const
 	// This should make this function a touch faster.
 	
 	// Set of w() multiplications required
-	const BcReal lWX2 = 2.0f * w() * x();
-	const BcReal lWY2 = 2.0f * w() * y();
-	const BcReal lWZ2 = 2.0f * w() * z();
+	const BcF32 lWX2 = 2.0f * w() * x();
+	const BcF32 lWY2 = 2.0f * w() * y();
+	const BcF32 lWZ2 = 2.0f * w() * z();
 
 	// Set of x() multiplications required
-	const BcReal lXX2 = 2.0f * x() * x();
-	const BcReal lXY2 = 2.0f * x() * y();
-	const BcReal lXZ2 = 2.0f * x() * z();
+	const BcF32 lXX2 = 2.0f * x() * x();
+	const BcF32 lXY2 = 2.0f * x() * y();
+	const BcF32 lXZ2 = 2.0f * x() * z();
 
 	// Remainder of y() multiplications
-	const BcReal lYY2 = 2.0f * y() * y();
-	const BcReal lYZ2 = 2.0f * y() * z();
+	const BcF32 lYY2 = 2.0f * y() * y();
+	const BcF32 lYZ2 = 2.0f * y() * z();
 
 	// Remainder of z() multiplications
-	const BcReal lZZ2 = 2.0f * z() * z();
+	const BcF32 lZZ2 = 2.0f * z() * z();
 	
 	Matrix[0][0] = ( 1.0f - ( lYY2 + lZZ2 ) );	
 	Matrix[0][1] = ( lXY2 + lWZ2 );
@@ -191,7 +191,7 @@ void BcQuat::asMatrix4d( BcMat4d& Matrix )  const
 
 void BcQuat::calcFromXYZ()
 {
-	BcReal t = 1.0f - ( x() * x() )
+	BcF32 t = 1.0f - ( x() * x() )
 	                - ( y() * y() )
 	                - ( z() * z() );
 
@@ -205,14 +205,14 @@ void BcQuat::calcFromXYZ()
 	}
 }
 
-void BcQuat::fromEular( BcReal Yaw, BcReal Pitch, BcReal Roll )
+void BcQuat::fromEular( BcF32 Yaw, BcF32 Pitch, BcF32 Roll )
 {
-	const BcReal Sin2Y = BcSin( Yaw / 2.0f );
-	const BcReal Cos2Y = BcCos( Yaw / 2.0f );
-	const BcReal Sin2P = BcSin( Pitch / 2.0f );
-	const BcReal Cos2P = BcCos( Pitch / 2.0f );
-	const BcReal Sin2R = BcSin( Roll / 2.0f );
-	const BcReal Cos2R = BcCos( Roll / 2.0f );
+	const BcF32 Sin2Y = BcSin( Yaw / 2.0f );
+	const BcF32 Cos2Y = BcCos( Yaw / 2.0f );
+	const BcF32 Sin2P = BcSin( Pitch / 2.0f );
+	const BcF32 Cos2P = BcCos( Pitch / 2.0f );
+	const BcF32 Sin2R = BcSin( Roll / 2.0f );
+	const BcF32 Cos2R = BcCos( Roll / 2.0f );
 
 	w(  ( Cos2Y * Cos2P * Cos2R ) + ( Sin2Y * Sin2P * Sin2R ) );
 	x( -( Cos2Y * Sin2P * Cos2R ) - ( Sin2Y * Cos2P * Sin2R ) );
@@ -223,21 +223,21 @@ void BcQuat::fromEular( BcReal Yaw, BcReal Pitch, BcReal Roll )
 BcVec3d BcQuat::asEular() const
 {
 	//
-	BcReal Sp = -2.0f * ( y() * z() - w() * x() );
+	BcF32 Sp = -2.0f * ( y() * z() - w() * x() );
 
 	if( BcAbs( Sp ) > 0.9999f )
 	{
-		BcReal Pitch = ( BcPI * 0.5f ) * Sp;
-		BcReal Yaw = BcAtan2( -x() * z() + w() * y(), 0.5f - y() * y() - z() * z() );
-		BcReal Roll = 0.0f;
+		BcF32 Pitch = ( BcPI * 0.5f ) * Sp;
+		BcF32 Yaw = BcAtan2( -x() * z() + w() * y(), 0.5f - y() * y() - z() * z() );
+		BcF32 Roll = 0.0f;
 
 		return BcVec3d( Pitch, Yaw, Roll );
 	}
 	else
 	{
-		BcReal Pitch = BcAsin( Sp );
-		BcReal Yaw = BcAtan2( x() * z() + w() * y(), 0.5f - x() * x() - y() * y() );
-		BcReal Roll = BcAtan2( x() * y() + w() * z(), 0.5f - x() * x() - z() * z() );
+		BcF32 Pitch = BcAsin( Sp );
+		BcF32 Yaw = BcAtan2( x() * z() + w() * y(), 0.5f - x() * x() - y() * y() );
+		BcF32 Roll = BcAtan2( x() * y() + w() * z(), 0.5f - x() * x() - z() * z() );
 
 		return BcVec3d( Pitch, Yaw, Roll );
 	}
@@ -248,7 +248,7 @@ void BcQuat::rotateTo( const BcVec3d& From, const BcVec3d& To )
 	const BcVec3d FromNormalised( From.normal() );
 	const BcVec3d ToNormalised( To.normal() );
 	const BcVec3d Axis( From.cross( To ) );
-	const BcReal RadSin = BcSqrt( ( 1.0f - ( FromNormalised.dot( To ) ) ) * 0.5f );
+	const BcF32 RadSin = BcSqrt( ( 1.0f - ( FromNormalised.dot( To ) ) ) * 0.5f );
 
 	x( RadSin * Axis.x() );
 	y( RadSin * Axis.y() );
@@ -256,10 +256,10 @@ void BcQuat::rotateTo( const BcVec3d& From, const BcVec3d& To )
 	w( BcSqrt( ( 1.0f + ( FromNormalised.dot( To ) ) ) * 0.5f ) );
 }
 
-void BcQuat::axisAngle( const BcVec3d& Axis, BcReal Angle )
+void BcQuat::axisAngle( const BcVec3d& Axis, BcF32 Angle )
 {
 	const BcVec3d AxisNormalised( Axis.normal() );
-	const BcReal RadSin = BcSin( Angle * 0.5f );
+	const BcF32 RadSin = BcSin( Angle * 0.5f );
 
 	x( RadSin * AxisNormalised.x() );
 	y( RadSin * AxisNormalised.y() );

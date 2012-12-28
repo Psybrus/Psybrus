@@ -34,6 +34,16 @@ BcBool ScnRenderTarget::import( class CsPackageImporter& Importer, const Json::V
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderTarget );
 
+BCREFLECTION_EMPTY_REGISTER( ScnRenderTarget );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnRenderTarget )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -63,6 +73,9 @@ void ScnRenderTarget::create()
 	
 	// Render target manages this.
 	CreateNewTexture_ = BcFalse;
+
+	// Ready to go.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,14 +84,6 @@ void ScnRenderTarget::create()
 void ScnRenderTarget::destroy()
 {
 	RsCore::pImpl()->destroyResource( pRenderTarget_ );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnRenderTarget::isReady()
-{
-	return ScnTexture::isReady() && ( pRenderTarget_ != NULL && pRenderTarget_->hasHandle() );
 }
 
 //////////////////////////////////////////////////////////////////////////

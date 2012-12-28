@@ -417,7 +417,7 @@ void MD5AnimLoader::buildNormals()
 		Vert.NY_ = Normal.y();
 		Vert.NZ_ = Normal.z();
 
-		BcReal Mag = Normal.magnitude(); 
+		BcF32 Mag = Normal.magnitude(); 
 		BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
 	}
 }
@@ -449,20 +449,20 @@ void MD5AnimLoader::buildTangents()
 		BcVec2d VertUVB( VertB.U_, VertB.V_ );
 		BcVec2d VertUVC( VertC.U_, VertC.V_ );
 
-		BcReal X1 = VertPosB.x() - VertPosA.x();
-		BcReal X2 = VertPosC.x() - VertPosA.x();
-		BcReal Y1 = VertPosB.y() - VertPosA.y();
-		BcReal Y2 = VertPosC.y() - VertPosA.y();
-		BcReal Z1 = VertPosB.z() - VertPosA.z();
-		BcReal Z2 = VertPosC.z() - VertPosA.z();
+		BcF32 X1 = VertPosB.x() - VertPosA.x();
+		BcF32 X2 = VertPosC.x() - VertPosA.x();
+		BcF32 Y1 = VertPosB.y() - VertPosA.y();
+		BcF32 Y2 = VertPosC.y() - VertPosA.y();
+		BcF32 Z1 = VertPosB.z() - VertPosA.z();
+		BcF32 Z2 = VertPosC.z() - VertPosA.z();
 
-		BcReal S1 = VertUVB.x() - VertUVA.x();
-		BcReal S2 = VertUVC.x() - VertUVA.x();
-		BcReal T1 = VertUVB.y() - VertUVA.y();
-		BcReal T2 = VertUVC.y() - VertUVA.y();
+		BcF32 S1 = VertUVB.x() - VertUVA.x();
+		BcF32 S2 = VertUVC.x() - VertUVA.x();
+		BcF32 T1 = VertUVB.y() - VertUVA.y();
+		BcF32 T2 = VertUVC.y() - VertUVA.y();
 
-		BcReal InvR = ( S1 * T2 - S2 * T1 );
-		BcReal R = 1.0f / InvR;
+		BcF32 InvR = ( S1 * T2 - S2 * T1 );
+		BcF32 R = 1.0f / InvR;
 
 		// Validation so it doesn't break everything, just set to a dummy value.
 		if( InvR == 0.0f )
@@ -494,7 +494,7 @@ void MD5AnimLoader::buildTangents()
 		Tangent.normalise();
 
 		// Calculate handedness
-		BcReal W = ( N.cross( T ).dot( pTan2[ i ] ) < 0.0f ) ? -1.0f : 1.0f;
+		BcF32 W = ( N.cross( T ).dot( pTan2[ i ] ) < 0.0f ) ? -1.0f : 1.0f;
 
 		if ( W < 0.0f )
 		{
@@ -505,7 +505,7 @@ void MD5AnimLoader::buildTangents()
 		Vert.TY_ = Tangent.y();
 		Vert.TZ_ = Tangent.z();
 
-		BcReal Mag = Tangent.magnitude(); 
+		BcF32 Mag = Tangent.magnitude(); 
 		BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
 	}
 

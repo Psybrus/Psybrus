@@ -63,7 +63,7 @@ public:
 	operator int() const { return g>>BP; }
 	operator long() const { return g>>BP; }
 
-	BcReal asReal() const { return g * (BcReal)STEP(); }
+	BcF32 asReal() const { return g * (BcF32)STEP(); }
 
 	int getGuts() const
 	{

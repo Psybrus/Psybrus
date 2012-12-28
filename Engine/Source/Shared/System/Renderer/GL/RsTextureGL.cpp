@@ -236,7 +236,6 @@ void RsTextureGL::update()
 		break;
 	}
 
-
 	GLenum Error = glGetError();
 	BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%ux%u, format %u, %u bytes).\n", Error, Width_, Height_, Depth_, Format_, DataSize_ );
 
@@ -289,35 +288,53 @@ void RsTextureGL::loadTexture1D()
 // loadTexture2D
 void RsTextureGL::loadTexture2D()
 {
-	// Call the appropriate method to load the texture.
-	switch( Format_ )
+	BcU8* pData = reinterpret_cast< BcU8* >( pData_ );
+	BcU32 Width = Width_;
+	BcU32 Height = Height_;
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Levels_ - 1 );
+
+	for( BcU32 Idx = 0; Idx < Levels_; ++Idx )
 	{
-	case rsTF_RGB8:
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, Width_, Height_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
-		break;
+		BcU32 LevelBytes = RsTextureFormatSize( Format_, Width, Height, 1, 1 );
 
-	case rsTF_RGBA8:
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width_, Height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
-		break;
+		// Call the appropriate method to load the texture.
+		switch( Format_ )
+		{
+		case rsTF_RGB8:
+			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData );	
+			break;
 
-	case rsTF_I8:
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_INTENSITY8, Width_, Height_, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData_ );
-		break;
+		case rsTF_RGBA8:
+			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData );	
+			break;
 
-	case rsTF_DXT1:
-		glCompressedTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, Width_, Height_, 0, DataSize_, pData_ );
-		break;
+		case rsTF_I8:
+			glTexImage2D( GL_TEXTURE_2D, Idx, GL_INTENSITY8, Width, Height, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData );
+			break;
 
-	case rsTF_DXT3:
-		glCompressedTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, Width_, Height_, 0, DataSize_, pData_ );
-		break;
+		case rsTF_DXT1:
+			glCompressedTexImage2D( GL_TEXTURE_2D, Idx, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, Width, Height, 0, LevelBytes, pData );
+			break;
 
-	case rsTF_DXT5:
-		glCompressedTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, Width_, Height_, 0, DataSize_, pData_ );
-		break;
+		case rsTF_DXT3:
+			glCompressedTexImage2D( GL_TEXTURE_2D, Idx, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, Width, Height, 0, LevelBytes, pData );
+			break;
 
-	default:
-		BcBreakpoint; // Unsupported format for platform.
+		case rsTF_DXT5:
+			glCompressedTexImage2D( GL_TEXTURE_2D, Idx, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, Width, Height, 0, LevelBytes, pData );
+			break;
+
+		default:
+			BcBreakpoint; // Unsupported format for platform.
+		}
+
+		GLenum Error = glGetError();
+		BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%ux%u, format %u, %u bytes).\n", Error, Width, Height, 1, Format_, LevelBytes );
+	
+		Height >>= 1;
+		Width >>= 1;
+		pData += LevelBytes;
 	}
 }
 

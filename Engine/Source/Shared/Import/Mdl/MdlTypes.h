@@ -105,12 +105,12 @@ public:
 	MdlColour	AmbientColour_;
 	MdlColour	DiffuseColour_;
 	MdlColour	SpecularColour_;
-	BcReal		SpecularPower_;
+	BcF32		SpecularPower_;
 
 	eBlendMode	BlendMode_;
 
 	BcBool		AlphaTest_;
-	BcReal		AlphaTestThreshold_;
+	BcF32		AlphaTestThreshold_;
 	BcBool		DepthTest_;
 	BcBool		DepthWrite_;
 	BcBool		Lit_;
@@ -158,7 +158,7 @@ struct MdlVertex
 	BcBool bColour_;
 
 	BcU32 iJoints_[ 4 ];
-	BcReal Weights_[ 4 ];
+	BcF32 Weights_[ 4 ];
 	BcU32 nWeights_;
 };
 
@@ -188,17 +188,17 @@ public:
 public:
 	eType Type_;
 	MdlColour Colour_;
-	BcReal AttnC_;
-	BcReal AttnL_;
-	BcReal AttnQ_;
+	BcF32 AttnC_;
+	BcF32 AttnL_;
+	BcF32 AttnQ_;
 };
 
 struct MdlProjector
 {
-	BcReal Fov_;
-	BcReal Aspect_;
-	BcReal ZNear_;
-	BcReal ZFar_;
+	BcF32 Fov_;
+	BcF32 Aspect_;
+	BcF32 ZNear_;
+	BcF32 ZFar_;
 };
 
 struct MdlBspNode;

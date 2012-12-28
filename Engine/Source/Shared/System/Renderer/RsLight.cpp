@@ -15,15 +15,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // findAttenuationByDistance
-BcReal RsLight::findAttenuationByDistance( BcReal Distance ) const
+BcF32 RsLight::findAttenuationByDistance( BcF32 Distance ) const
 {
-	BcReal InvA = ( ( AttnC_ + ( Distance * AttnL_ ) + ( Distance * Distance * AttnQ_ ) ) );
+	BcF32 InvA = ( ( AttnC_ + ( Distance * AttnL_ ) + ( Distance * Distance * AttnQ_ ) ) );
 	return 1.0f / InvA;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // findDistanceByAttenuation
-BcReal RsLight::findDistanceByAttenuation( BcReal Attenuation ) const
+BcF32 RsLight::findDistanceByAttenuation( BcF32 Attenuation ) const
 {
 	// If we want it at a low value, return max distance.
 	if( Attenuation < 0.05f )
@@ -31,14 +31,14 @@ BcReal RsLight::findDistanceByAttenuation( BcReal Attenuation ) const
 		Attenuation = 0.05f;
 	}
 
-	BcReal A = AttnQ_;
-	BcReal B = AttnL_;
-	BcReal C = AttnC_ - ( 1.0f / Attenuation );
+	BcF32 A = AttnQ_;
+	BcF32 B = AttnL_;
+	BcF32 C = AttnC_ - ( 1.0f / Attenuation );
 
 	// 0 = Ax2 + Bx + C
 	if( A > 0.0f )
 	{
-		BcReal Discriminant = ( ( B * B ) - ( 4.0f * A * C ) );
+		BcF32 Discriminant = ( ( B * B ) - ( 4.0f * A * C ) );
 		if( Discriminant < 0.0f )
 		{
 			return 1e24f;
@@ -59,7 +59,7 @@ BcReal RsLight::findDistanceByAttenuation( BcReal Attenuation ) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-void RsLight::createAttenuationValues( BcReal MinDistance, BcReal MidDistance, BcReal MaxDistance )
+void RsLight::createAttenuationValues( BcF32 MinDistance, BcF32 MidDistance, BcF32 MaxDistance )
 {
 	// x = min - 1 ( 1 )
 	// y = mid - 12 ( 144 )

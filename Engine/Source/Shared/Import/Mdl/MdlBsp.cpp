@@ -218,7 +218,7 @@ MdlBspNode* MdlBsp::clipNode( MdlBspNode* pSourceNode, MdlBsp::eNodeClassify Cla
 
 		VertexList.push_back( Start );
 
-		BcReal Distance;
+		BcF32 Distance;
 
 		if( ClippingPlane.lineIntersection( Start, Edge, Distance ) )
 		{
@@ -237,7 +237,7 @@ MdlBspNode* MdlBsp::clipNode( MdlBspNode* pSourceNode, MdlBsp::eNodeClassify Cla
 	for( BcU32 iSrc = 0; iSrc < nVertices; ++iSrc )
 	{
 		const BcVec3d& TestVert = VertexList[ iSrc ];
-		const BcReal Dist = ClippingPlane.distance( TestVert );
+		const BcF32 Dist = ClippingPlane.distance( TestVert );
 
 		switch( ClassifyAs )
 		{

@@ -19,6 +19,10 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnRenderableComponent )
+	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
+BCREFLECTION_DERIVED_END();
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnRenderableComponent::initialise()
@@ -26,6 +30,7 @@ void ScnRenderableComponent::initialise()
 	Super::initialise();
 
 	setRenderMask( BcErrorCode );
+	pSpatialTreeNode_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,10 +44,12 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnRenderableComponent::update( BcReal Tick )
+void ScnRenderableComponent::postUpdate( BcF32 Tick )
 {
 	Super::update( Tick );
 
+	// Reinsert node if we need to.
+	pSpatialTreeNode_->reinsertComponent( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,4 +88,28 @@ void ScnRenderableComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnRenderableComponent::getRenderMask() const
 {
 	return RenderMask_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSpatialTreeNode
+void ScnRenderableComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
+{
+	pSpatialTreeNode_ = pNode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSpatialTreeNode
+ScnSpatialTreeNode* ScnRenderableComponent::getSpatialTreeNode()
+{
+	return pSpatialTreeNode_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+//virtual
+BcAABB ScnRenderableComponent::getAABB() const
+{
+	BcAssertMsg( BcFalse, "ScnRenderableComponent: Not implemented a getAABB!" );
+	return BcAABB();
 }
