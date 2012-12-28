@@ -33,7 +33,7 @@ public:
 	BcForceInline ~BcScopedLogTimer()
 	{
 		BcF32 Time = Timer_.time();
-		BcPrintf("BcScopedLogTimer: %s, %f ms\n", Text_.c_str(), Time * 1000.0f);
+		//BcPrintf("BcScopedLogTimer: %s, %f ms\n", Text_.c_str(), Time * 1000.0f);
 	}
 
 private:
