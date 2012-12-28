@@ -97,12 +97,26 @@ public:
 	ScnComponentRef						getComponentAnyParent( BcU32 Idx, const BcName& Type = BcName::INVALID );
 
 	/**
+	 * Get component on any parent or self.
+	 */
+	ScnComponentRef						getComponentAnyParent( BcName Name, const BcName& Type = BcName::INVALID );
+
+	/**
 	 * Get component on any parent or self by type.
 	 */
 	template< typename _Ty >
 	ScnComponentRef						getComponentAnyParentByType( BcU32 Idx )
 	{
 		return getComponentAnyParent( Idx, _Ty::StaticGetType() );
+	}
+
+	/**
+	 * Get component on any parent or self by type.
+	 */
+	template< typename _Ty >
+	ScnComponentRef						getComponentAnyParentByType( BcName Name )
+	{
+		return getComponentAnyParent( Name, _Ty::StaticGetType() );
 	}
 
 	/**

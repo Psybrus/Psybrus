@@ -29,7 +29,7 @@ void ScnRenderableComponent::initialise()
 {
 	Super::initialise();
 
-	setRenderMask( BcErrorCode );
+	setRenderMask( 1 );
 	pSpatialTreeNode_ = NULL;
 }
 
@@ -39,6 +39,12 @@ void ScnRenderableComponent::initialise()
 void ScnRenderableComponent::initialise( const Json::Value& Object )
 {
 	initialise();
+
+	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
+	if( RenderMaskValue.type() != Json::nullValue )
+	{
+		setRenderMask( RenderMaskValue.asUInt() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

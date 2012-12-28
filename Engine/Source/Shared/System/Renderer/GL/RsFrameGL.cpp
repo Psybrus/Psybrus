@@ -66,6 +66,7 @@ public:
 	void render()
 	{
 		//RsCore::pImpl< RsCoreImplGL >()->setViewport( &Viewport_ );	
+		glViewport( 0, 0, Viewport_.width(), Viewport_.height() );
 	}
 
 	RsViewport Viewport_;
@@ -81,12 +82,10 @@ public:
 		{
 			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
 			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
-			glViewport( 0, 0, pRenderTarget_->width(), pRenderTarget_->height() );
 		}
 		else
 		{
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-			glViewport( 0, 0, pContext_->getWidth(), pContext_->getHeight() );
 		}
 
 		
