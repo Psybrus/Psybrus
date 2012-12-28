@@ -26,6 +26,7 @@ struct ScnTextureHeader
 	BcU32							Levels_;
 	eRsTextureType					Type_;
 	eRsTextureFormat				Format_;
+	BcBool							Editable_;
 };
 
 #endif

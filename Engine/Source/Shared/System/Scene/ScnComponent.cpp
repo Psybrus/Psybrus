@@ -32,6 +32,9 @@ void ScnComponent::initialise()
 
 	Flags_ = 0;
 	ParentEntity_ = NULL;
+
+	// Mark for create. Components don't need to load.
+	CsResource::markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,7 +42,7 @@ void ScnComponent::initialise()
 //virtual
 void ScnComponent::initialise( const Json::Value& Object )
 {
-	initialise();
+	BcBreakpoint; // Should never enter here.
 }
 
 //////////////////////////////////////////////////////////////////////////

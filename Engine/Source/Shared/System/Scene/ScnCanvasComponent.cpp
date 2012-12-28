@@ -60,8 +60,6 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 //virtual
 void ScnCanvasComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise( Object );
-
 	ScnCanvasComponent::initialise( Object[ "noofvertices" ].asUInt() );
 }
 

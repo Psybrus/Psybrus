@@ -65,6 +65,8 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	// Grab our basis.
 	Basis_ = Basis->getBasisEntity();
 
+	BcAssertMsg( Basis_->isReady(), "Basis entity is not ready!" );
+
 	// Copy over internals.
 	pJsonObject_ = Basis_->pJsonObject_;
 	Transform_ = Basis_->Transform_;
@@ -75,8 +77,6 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Json::Reader Reader;
 	if( Reader.parse( pJsonObject_, Root ) )
 	{
-		//BcPrintf( "** ScnEntity::initialise:\n" );
-
 		//
 		const Json::Value& Components = Root[ "components" ];
 
@@ -85,7 +85,11 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 			const Json::Value& Component( Components[ Idx ] );
 			CsResourceRef<> ResourceRef;
 			BcName Type = Component[ "type" ].asCString();
-			if( CsCore::pImpl()->internalCreateResource( BcName::INVALID, Type, BcErrorCode, getPackage(), ResourceRef ) )
+			const Json::Value& NameValue = Component[ "name" ];
+
+			BcName Name = NameValue.type() == Json::stringValue ? NameValue.asCString() : BcName::INVALID;
+
+			if( CsCore::pImpl()->internalCreateResource( Name, Type, BcErrorCode, getPackage(), ResourceRef ) )
 			{
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
@@ -250,6 +254,37 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 				}
 
 				++SearchIdx;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponent
+ScnComponentRef ScnEntity::getComponent( BcName Name, const BcName& Type )
+{
+	if( Type == BcName::INVALID )
+	{
+		for( BcU32 ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
+		{
+			if( Components_[ ComponentIdx ]->getName() == Name )
+			{
+				return Components_[ ComponentIdx ];
+			}
+		}
+	}
+	else
+	{
+		BcU32 NoofComponents = getNoofComponents();
+		BcU32 SearchIdx = 0;
+		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
+		{
+			ScnComponentRef Component = getComponent( ComponentIdx );
+			if( Component->getName() == Name && Component->getTypeName() == Type )
+			{
+				return Component;
 			}
 		}
 	}

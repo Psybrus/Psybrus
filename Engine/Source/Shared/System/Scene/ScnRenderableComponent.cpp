@@ -38,7 +38,7 @@ void ScnRenderableComponent::initialise()
 //virtual
 void ScnRenderableComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise( Object );
+	initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////

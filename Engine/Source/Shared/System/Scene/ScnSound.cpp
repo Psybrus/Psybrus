@@ -94,8 +94,14 @@ void ScnSound::initialise()
 // create
 //virtual
 void ScnSound::create()
-{
-	
+{	
+	// Create a new sample.
+	if( SsCore::pImpl() != NULL )
+	{
+		pSample_ = SsCore::pImpl()->createSample( pHeader_->SampleRate_, pHeader_->Channels_, pHeader_->Looping_, pSampleData_, SampleDataSize_ );
+	}
+
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,19 +121,6 @@ void ScnSound::destroy()
 SsSample* ScnSound::getSample()
 {
 	return pSample_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setup
-void ScnSound::setup()
-{
-	// Create a new sample.
-	if( SsCore::pImpl() != NULL )
-	{
-		pSample_ = SsCore::pImpl()->createSample( pHeader_->SampleRate_, pHeader_->Channels_, pHeader_->Looping_, pSampleData_, SampleDataSize_ );
-	}
-
-	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,7 +146,7 @@ void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pSampleData_ = pData;
 		SampleDataSize_ = getChunkSize( ChunkIdx );
 		
-		setup();
+		markCreate();
 	}
 }
 

@@ -58,7 +58,14 @@ class CsCore;
 class CsResource
 {
 	BCREFLECTION_DECLARE_BASE( CsResource );
-	
+public:
+	enum
+	{
+		INIT_STAGE_INITIAL = 0,
+		INIT_STAGE_CREATE,
+		INIT_STAGE_READY
+	};
+
 private:
 	CsResource( const CsResource& ){}
 
@@ -100,6 +107,11 @@ public:
 	 * Are we ready to use?<br/>
 	 */
 	BcBool							isReady();
+
+	/**
+	 * Get the init stage.
+	 */
+	BcU32							getInitStage();
 
 	/**
 	 * File is ready.
@@ -180,6 +192,11 @@ protected:
 	 */
 	void							markReady();
 
+	/**
+	 * Mark for creation.
+	 */
+	void							markCreate();
+
 private:
 	friend class CsCore;
 	friend class CsPackageLoader;
@@ -195,7 +212,7 @@ private:
 	
 	//
 	BcAtomicU32						RefCount_;	// TODO: Deprecate.
-	BcAtomicU32						IsReady_;
+	BcAtomicU32						InitStage_;
 };
 
 //////////////////////////////////////////////////////////////////////////
