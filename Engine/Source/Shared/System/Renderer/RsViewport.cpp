@@ -18,7 +18,7 @@
 RsViewport::RsViewport()
 {
 	ClearDepth_ = BcFalse;
-	ZNear_ = 1.0f; // hack
+	ZNear_ = 1.0f;
 	ZFar_ = 1024.0f;
 }
 
@@ -33,7 +33,7 @@ RsViewport::~RsViewport()
 // unProject
 void RsViewport::unProject( const BcVec2d& ScreenCoord, BcVec3d& WorldNearPos, BcVec3d& WorldFarPos ) const
 {
-	BcVec2d Screen = ScreenCoord - BcVec2d( static_cast<BcReal>(x()), static_cast<BcReal>(y()) );
+	BcVec2d Screen = ScreenCoord - BcVec2d( static_cast<BcF32>(x()), static_cast<BcF32>(y()) );
 	const BcVec2d RealScreen( ( Screen.x() / width() ) * 2.0f - 1.0f, ( Screen.y() / height() ) * 2.0f - 1.0f );
 
 	BcMat4d InvViewMat = view();
@@ -65,8 +65,8 @@ BcVec2d RsViewport::project( const BcVec3d& WorldPos )
 	BcVec4d ScreenSpace = BcVec4d( WorldPos, 1.0f ) * viewProjection();
 	BcVec2d ScreenPosition = BcVec2d( ScreenSpace.x() / ScreenSpace.w(), -ScreenSpace.y() / ScreenSpace.w() );
 
-	BcReal HalfW = BcReal( width() ) * 0.5f;
-	BcReal HalfH = BcReal( height() ) * 0.5f;
+	BcF32 HalfW = BcF32( width() ) * 0.5f;
+	BcF32 HalfH = BcF32( height() ) * 0.5f;
 	return BcVec2d( ( ScreenPosition.x() * HalfW ), ( ScreenPosition.y() * HalfH ) );
 }
 
@@ -75,9 +75,9 @@ BcVec2d RsViewport::project( const BcVec3d& WorldPos )
 BcU32 RsViewport::depth( const BcVec3d& WorldPos ) const
 {
 	BcVec4d ScreenSpace = BcVec4d( WorldPos, 1.0f ) * viewProjection();
-	BcReal Depth = 1.0f - BcClamp( ScreenSpace.z() / ScreenSpace.w(), 0.0f, 1.0f );
+	BcF32 Depth = 1.0f - BcClamp( ScreenSpace.z() / ScreenSpace.w(), 0.0f, 1.0f );
 
-	return BcU32( Depth * BcReal( 0xffffff ) );
+	return BcU32( Depth * BcF32( 0xffffff ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,9 +85,9 @@ BcU32 RsViewport::depth( const BcVec3d& WorldPos ) const
 BcBool RsViewport::intersect( const BcAABB& AABB ) const
 {
 	BcVec3d Centre = AABB.centre();
-	BcReal Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
+	BcF32 Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
 
-	BcReal Distance;
+	BcF32 Distance;
 	for( BcU32 i = 0; i < 6; ++i )
 	{
 		Distance = FrustumPlanes_[ i ].distance( Centre );
@@ -138,7 +138,7 @@ void RsViewport::buildFrustum()
 	for ( BcU32 i = 0; i < 6; ++i )
 	{
 		BcVec3d Normal = FrustumPlanes_[ i ].normal();
-		BcReal Scale = 1.0f / -Normal.magnitude();
+		BcF32 Scale = 1.0f / -Normal.magnitude();
 		FrustumPlanes_[ i ] = BcPlane( FrustumPlanes_[ i ].normal().x() * Scale,
 		                               FrustumPlanes_[ i ].normal().y() * Scale,
 		                               FrustumPlanes_[ i ].normal().z() * Scale,

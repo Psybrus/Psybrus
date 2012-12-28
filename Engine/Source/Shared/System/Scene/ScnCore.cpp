@@ -21,6 +21,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include "System/Scene/ScnRenderingVisitor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( ScnCore );
@@ -45,11 +47,25 @@ ScnCore::~ScnCore()
 void ScnCore::open()
 {
 	// Create spacial tree.
-	pSpacialTree_ = new ScnSpatialTree();
+	pSpatialTree_ = new ScnSpatialTree();
 
-	// Create root node.
+	// Create root node for spatial tree.
 	BcVec3d HalfBounds( BcVec3d( 16.0f, 16.0f, 16.0f ) * 1024.0f );
-	pSpacialTree_->createRoot( BcAABB( -HalfBounds, HalfBounds ) );
+	pSpatialTree_->createRoot( BcAABB( -HalfBounds, HalfBounds ) );
+
+	// Look up all component classes and create update lists for them.
+	NoofComponentLists_ = 0;
+	BcU32 NoofClasses = BcReflection::pImpl()->getNoofClasses();
+	for( BcU32 Idx = 0; Idx < NoofClasses; ++Idx )
+	{
+		const BcReflectionClass* pClass = BcReflection::pImpl()->getClass( Idx );
+		if( pClass->isTypeOfClass( ScnComponent::StaticGetClass() ) )
+		{
+			ComponentClassIndexMap_[ pClass ] = NoofComponentLists_++;
+		}
+	}
+
+	pComponentLists_ = new ScnComponentList[ NoofComponentLists_ ];	 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,25 +74,70 @@ void ScnCore::open()
 void ScnCore::update()
 {
 	// Tick all entities.
-	BcReal Tick = SysKernel::pImpl()->getFrameTime();
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
-	// Do add/remove.
-	processAddRemove();
+	// Process pending components before the update cycle.
+	processPendingComponents();
 
-	// Update all entities.
-	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	// Pre-update.
+	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
-		ScnEntityRef Entity( *It );
+		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 
-		if( Entity.isReady() ) // HACK. Put in a list along side the main one to test.
+		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
-			Entity->update( Tick );
+			ScnComponentRef Component( *It );
+
+			if( Component.isReady() )
+			{
+				Component->preUpdate( Tick );
+			}
+		}
+	}
+
+	// Update.
+	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
+	{
+		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
+
+		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
+		{
+			ScnComponentRef Component( *It );
+
+			if( Component.isReady() )
+			{
+				Component->update( Tick );
+			}
+		}
+	}
+
+	// Post-update.
+	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
+	{
+		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
+
+		// Temporary hack to iron out some minor issues.
+		ScnComponentList CopiedComponentList = ComponentList;
+
+		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
+		{
+			ScnComponentRef Component( *It );
+
+			if( Component.isReady() )
+			{
+				Component->postUpdate( Tick );
+			}
 		}
 	}
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
-	// TODO: Use spatial tree to render.
+	// TODO: Move the whole render process into the view component.
+	//       - Perhaps we want to have frames allocated per client?
+	//         Doing this means we can have the actual queueFrame call
+	//         inside the renderer, and not be a fart on here.
+	//         Also, the view component should be aware of the frame
+	//         and provide access to it for renderable components.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
 		// Grab client.
@@ -94,16 +155,8 @@ void ScnCore::update()
 			ScnViewComponentRef ViewComponent( *It );
 			
 			ViewComponent->bind( pFrame, RsRenderSort( 0 ) );
-			
-			for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
-			{
-				ScnEntityRef& Entity( *It );
 
-				if( Entity.isReady() && ( Entity->getRenderMask() & ViewComponent->getRenderMask() ) != 0 ) // HACK. Put in a list along side the main one to test.
-				{				
-					Entity->render( ViewComponent, pFrame, RsRenderSort( 0 ) );
-				}
-			}
+			ScnRenderingVisitor Visitor( ViewComponent, pFrame );
 		}
 
 		// Queue frame for render.
@@ -116,47 +169,48 @@ void ScnCore::update()
 //virtual
 void ScnCore::close()
 {
-	CsCore* pCore = CsCore::pImpl();
+	removeAllEntities();
+	processPendingComponents();
+
+	delete [] pComponentLists_;
+	pComponentLists_ = NULL;
 
 	// Destroy spacial tree.
-	delete pSpacialTree_;
-	pSpacialTree_ = NULL;
-
+	delete pSpatialTree_;
+	pSpatialTree_ = NULL;
 }
-		
 
 //////////////////////////////////////////////////////////////////////////
 // addEntity
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
-	if( !Entity->isAttached() )
-	{
-		AddEntityList_.remove( Entity );
-		AddEntityList_.push_back( Entity );
-	}
+	Entity->setFlag( scnCF_PENDING_ATTACH );
+	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // removeEntity
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
-	if( Entity->isAttached() )
-	{
-		RemoveEntityList_.remove( Entity );
-		RemoveEntityList_.push_back( Entity );
-	}
+	Entity->setFlag( scnCF_PENDING_DETACH );
+	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // removeAllEntities
 void ScnCore::removeAllEntities()
 {
-	CsCore* pCore = CsCore::pImpl();
-
-	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
+	ScnComponentList& ComponentList( pComponentLists_[ ComponentListIdx ] );
+	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 	{
-		ScnEntityRef Entity( *It );
-		removeEntity( Entity );
+		ScnComponentRef Component( *It );
+		ScnEntityRef Entity( Component );
+		// Only remove root entities, it will cascade down the hierarchy removing them.
+		if( !Entity->getParentEntity().isValid() )
+		{
+			removeEntity( Entity );
+		}
 	}
 }
 
@@ -187,26 +241,18 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 // findEntity
 ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 {
-	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
+	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
+	ScnComponentList& ComponentList( pComponentLists_[ ComponentListIdx ] );
+	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 	{
-		ScnEntityRef Entity( *It );
-
+		ScnComponentRef Component( *It );
+		ScnEntityRef Entity( Component );
 		if( Entity->getName() == InstanceName )
 		{
 			return Entity;
 		}
 	}
-
-	for( ScnEntityListIterator It( AddEntityList_.begin() ); It != AddEntityList_.end(); ++It )
-	{
-		ScnEntityRef Entity( *It );
-
-		if( Entity->getName() == InstanceName )
-		{
-			return Entity;
-		}
-	}
-
+	
 	return NULL;
 }
 
@@ -214,19 +260,29 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 // getEntity
 ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 {
-	// NOTE: Should probably switch to std::vector do I don't need to do this bullshit.
-	BcU32 TotalIdx = 0;
-	for( ScnEntityListIterator It( EntityList_.begin() ); It != EntityList_.end(); ++It )
-	{
-		ScnEntityRef Entity( *It );
+	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
+	ScnComponentList& ComponentList( pComponentLists_[ ComponentListIdx ] );
 
-		if( TotalIdx++ == Idx )
-		{
-			return Entity;
-		}
+	if( Idx < ComponentList.size() )
+	{
+		return ScnEntityRef( ComponentList[ Idx ] );
 	}
 
 	return ScnEntityRef( NULL );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// queueComponentAsPendingOperation
+void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
+{
+	PendingComponentList_.push_back( Component );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// visitView
+void ScnCore::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
+{
+	pSpatialTree_->visitView( pVisitor, Viewport );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -245,8 +301,14 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
 	else if( Component->isTypeOf< ScnRenderableComponent >() )
 	{
-		pSpacialTree_->addComponent( ScnComponentWeakRef( Component ) );
+		pSpatialTree_->addComponent( ScnRenderableComponentWeakRef( Component ) );
 	}
+
+	// All go into the appropriate list.
+	const BcReflectionClass* pClass = Component->getClass();
+	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
+	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
+	ComponentList.push_back( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -256,6 +318,7 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// NOTE: Useful for debugging and temporary gathering of "special" components.
 	//       Will be considering alternative approaches to this.
 	//       Currently, just gonna be nasty special cases to get stuff done.
+	// NOTE: Now that we have component type lists, we don't need to be specific with this.
 
 	// Remove view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
@@ -265,28 +328,36 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
 	else if( Component->isTypeOf< ScnRenderableComponent >() )
 	{
-		pSpacialTree_->removeComponent( ScnComponentWeakRef( Component ) );
+		pSpatialTree_->removeComponent( ScnRenderableComponentWeakRef( Component ) );
 	}
+
+	const BcReflectionClass* pClass = Component->getClass();
+	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
+	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
+	ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
+	ComponentList.erase( It );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // processAddRemove
-void ScnCore::processAddRemove()
+void ScnCore::processPendingComponents()
 {
-	for( ScnEntityListIterator It( RemoveEntityList_.begin() ); It != RemoveEntityList_.end(); ++It )
+	while( PendingComponentList_.size() > 0 )
 	{
-		ScnEntityRef Entity( *It );
-		Entity->onDetach( NULL );
-		EntityList_.remove( Entity );
-	}
-	RemoveEntityList_.clear();
+		//
+		ScnComponentRef Component( *PendingComponentList_.begin() );
+		PendingComponentList_.erase( PendingComponentList_.begin() );
 
-	for( ScnEntityListIterator It( AddEntityList_.begin() ); It != AddEntityList_.end(); ++It )
-	{
-		ScnEntityRef Entity( *It );
-
-		Entity->onAttach( NULL );
-		EntityList_.push_back( Entity );
+		if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
+		{
+			Component->onAttach( Component->getParentEntity() );
+			onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+		}
+		
+		if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
+		{
+			Component->onDetach( Component->getParentEntity() );
+			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+		}
 	}
-	AddEntityList_.clear();
 }

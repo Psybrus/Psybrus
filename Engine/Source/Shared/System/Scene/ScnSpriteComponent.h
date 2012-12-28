@@ -31,7 +31,7 @@ public:
 	
 	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						update( BcReal Tick );
+	virtual void						postUpdate( BcF32 Tick );
 	
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );

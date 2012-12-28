@@ -75,7 +75,7 @@ void SysFence::queue( BcU32 WorkerMask )
 
 ////////////////////////////////////////////////////////////////////////////////
 // wait
-void SysFence::wait( BcU32 Value )
+void SysFence::wait( BcU32 Value ) const
 {
 	while( Count_ > Value )
 	{

@@ -75,10 +75,27 @@ BcBool ScnViewComponent::import( class CsPackageImporter& Importer, const Json::
 // Define resource internals.
 DEFINE_RESOURCE( ScnViewComponent );
 
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnViewComponent )
+	BCREFLECTION_MEMBER( BcF32,							X_,								bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							Y_,								bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							Width_,							bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							Height_,						bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							Near_,							bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							Far_,							bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							HorizontalFOV_,					bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcF32,							VerticalFOV_,					bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcU32,								RenderMask_,					bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( ScnRenderTarget,					RenderTarget_,					bcRFF_REFERENCE ),
+	BCREFLECTION_MEMBER( BcMat4d,							InverseViewMatrix_,				bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( RsViewport,						Viewport_,						bcRFF_DEFAULT | bcRFF_TRANSIENT )
+BCREFLECTION_DERIVED_END();
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnViewComponent::initialise()
 {
+	Super::initialise();
+
 	// NULL internals.
 	//pHeader_ = NULL;
 
@@ -87,18 +104,18 @@ void ScnViewComponent::initialise()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnViewComponent::initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV )
+void ScnViewComponent::initialise( BcF32 X, BcF32 Y, BcF32 Width, BcF32 Height, BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV )
 {
 	initialise();
 
-	Header_.X_ = X;
-	Header_.Y_ = Y;
-	Header_.Width_ = Width;
-	Header_.Height_ = Height;
-	Header_.Near_ = Near;
-	Header_.Far_ = Far;
-	Header_.HorizontalFOV_ = HorizontalFOV;
-	Header_.VerticalFOV_ = VerticalFOV;
+	X_ = X;
+	Y_ = Y;
+	Width_ = Width;
+	Height_ = Height;
+	Near_ = Near;
+	Far_ = Far;
+	HorizontalFOV_ = HorizontalFOV;
+	VerticalFOV_ = VerticalFOV;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,38 +125,14 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise( Object );
 
-	Header_.X_ = (BcReal)Object[ "x" ].asDouble();
-	Header_.Y_ = (BcReal)Object[ "y" ].asDouble();
-	Header_.Width_ = (BcReal)Object[ "width" ].asDouble();
-	Header_.Height_ = (BcReal)Object[ "height" ].asDouble();
-	Header_.Near_ = (BcReal)Object[ "near" ].asDouble();
-	Header_.Far_ = (BcReal)Object[ "far" ].asDouble();
-	Header_.HorizontalFOV_ = (BcReal)Object[ "hfov" ].asDouble();
-	Header_.VerticalFOV_ = (BcReal)Object[ "vfov" ].asDouble();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnViewComponent::create()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnViewComponent::destroy()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnViewComponent::isReady()
-{
-	return BcTrue;
+	X_ = (BcF32)Object[ "x" ].asDouble();
+	Y_ = (BcF32)Object[ "y" ].asDouble();
+	Width_ = (BcF32)Object[ "width" ].asDouble();
+	Height_ = (BcF32)Object[ "height" ].asDouble();
+	Near_ = (BcF32)Object[ "near" ].asDouble();
+	Far_ = (BcF32)Object[ "far" ].asDouble();
+	HorizontalFOV_ = (BcF32)Object[ "hfov" ].asDouble();
+	VerticalFOV_ = (BcF32)Object[ "vfov" ].asDouble();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,10 +146,17 @@ void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialCo
 
 //////////////////////////////////////////////////////////////////////////
 // getWorldPosition
-void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far )
+void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const
 {
 	// NOTE: Uses last viewport bound.
 	Viewport_.unProject( ScreenPosition, Near, Far );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bind
+const RsViewport& ScnViewComponent::getViewport() const
+{
+	return Viewport_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,19 +166,19 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	RsContext* pContext = pFrame->getContext();
 
 	// Calculate the viewport.
-	const BcReal Width = static_cast< BcReal >( pContext->getWidth() );
-	const BcReal Height = static_cast< BcReal >( pContext->getHeight() );
-	const BcReal ViewWidth = Header_.Width_ * Width;
-	const BcReal ViewHeight = Header_.Height_ * Height;
-	const BcReal Aspect = ViewWidth / ViewHeight;
+	const BcF32 Width = static_cast< BcF32 >( pContext->getWidth() );
+	const BcF32 Height = static_cast< BcF32 >( pContext->getHeight() );
+	const BcF32 ViewWidth = Width_ * Width;
+	const BcF32 ViewHeight = Height_ * Height;
+	const BcF32 Aspect = ViewWidth / ViewHeight;
 
 	// Setup the viewport.
-	Viewport_.viewport( static_cast< BcU32 >( Header_.X_ * Width ),
-	                    static_cast< BcU32 >( Header_.Y_ * Height ),
+	Viewport_.viewport( static_cast< BcU32 >( X_ * Width ),
+	                    static_cast< BcU32 >( Y_ * Height ),
 	                    static_cast< BcU32 >( ViewWidth ),
 	                    static_cast< BcU32 >( ViewHeight ),
-	                    Header_.Near_,
-	                    Header_.Far_ );
+	                    Near_,
+	                    Far_ );
 
 	// Setup the view matrix.
 	InverseViewMatrix_ = getParentEntity()->getMatrix();
@@ -188,13 +188,13 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	
 	// Setup the perspective projection.
 	BcMat4d ProjectionMatrix;
-	if( Header_.HorizontalFOV_ > 0.0f )
+	if( HorizontalFOV_ > 0.0f )
 	{
-		ProjectionMatrix.perspProjectionHorizontal( Header_.HorizontalFOV_, Aspect, Header_.Near_, Header_.Far_ );
+		ProjectionMatrix.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
 	}
 	else
 	{
-		ProjectionMatrix.perspProjectionVertical( Header_.VerticalFOV_, 1.0f / Aspect, Header_.Near_, Header_.Far_ );
+		ProjectionMatrix.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
 	}
 	Viewport_.projection( ProjectionMatrix );
 
@@ -224,22 +224,4 @@ void ScnViewComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnViewComponent::getRenderMask() const
 {
 	return RenderMask_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// fileReady
-void ScnViewComponent::fileReady()
-{
-	// File is ready, get the header chunk.
-	requestChunk( 0, &Header_ );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// fileChunkReady
-void ScnViewComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
-{
-	if( ChunkID == BcHash( "header" ) )
-	{
-		// TODO STUFF HERE.
-	}
 }

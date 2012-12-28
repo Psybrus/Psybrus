@@ -29,7 +29,7 @@ SsEnvironment::~SsEnvironment()
 
 ////////////////////////////////////////////////////////////////////////////////
 // interpolate
-void SsEnvironment::interpolate( SsEnvironment* pEnvA, SsEnvironment* pEnvB, BcReal Amount )
+void SsEnvironment::interpolate( SsEnvironment* pEnvA, SsEnvironment* pEnvB, BcF32 Amount )
 {
 	Density_ = BcLerp( pEnvA->Density_, pEnvB->Density_, Amount );
 	Diffusion_ = BcLerp( pEnvA->Diffusion_, pEnvB->Diffusion_, Amount );

@@ -127,11 +127,11 @@ struct EvtNullEvent: EvtEvent< EvtNullEvent >
 */
 struct EvtRealEvent: EvtEvent< EvtRealEvent >
 {
-	EvtRealEvent( BcReal Value ):
+	EvtRealEvent( BcF32 Value ):
 		Value_( Value )
 	{}
 
-	BcReal Value_;
+	BcF32 Value_;
 
 };
 

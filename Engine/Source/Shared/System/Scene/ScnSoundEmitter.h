@@ -35,17 +35,15 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
-	void								setGain( BcReal Gain );
-	void								setPitch( BcReal Pitch );
+	void								setGain( BcF32 Gain );
+	void								setPitch( BcF32 Pitch );
 
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
 
 	void								play( ScnSoundRef Sound );
-	void								play( const BcName& Package, const BcName& Name );
 
 	void								stopAll();
 
@@ -61,8 +59,8 @@ private:
 	TChannelSoundMap					ChannelSoundMap_;
 
 	BcVec3d								Position_;
-	BcReal								Gain_;
-	BcReal								Pitch_;
+	BcF32								Gain_;
+	BcF32								Pitch_;
 };
 
 

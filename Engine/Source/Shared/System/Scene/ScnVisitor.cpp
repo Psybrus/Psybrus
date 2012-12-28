@@ -47,7 +47,7 @@ void ScnVisitor::postScene()
 //////////////////////////////////////////////////////////////////////////
 // visit
 //virtual
-void ScnVisitor::visit( class ScnComponent* pComponent )
+void ScnVisitor::visit( class ScnRenderableComponent* pComponent )
 {
 
 }

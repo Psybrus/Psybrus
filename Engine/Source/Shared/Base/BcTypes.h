@@ -52,7 +52,6 @@ typedef signed char					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
-typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
 typedef void*						BcHandle;
@@ -83,6 +82,8 @@ typedef size_t						BcSize;
 #define BcOffsetOf( s, m ) 			(size_t)&(((s *)0)->m)
 
 #define BcPrefetch( a )				_mm_prefetch( reinterpret_cast<char*>a, _MM_HINT_NTA )
+
+#define BcArraySize( a )			( sizeof( a ) / sizeof( a[0] ) )
 
 #ifndef NULL
 #define NULL						( 0 )
@@ -124,7 +125,6 @@ typedef signed char					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
-typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
 typedef void*						BcHandle;
@@ -183,7 +183,6 @@ typedef signed char					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
-typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
 typedef void*						BcHandle;
@@ -208,7 +207,6 @@ typedef signed char					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
-typedef float						BcReal;
 typedef char						BcChar;
 typedef bool						BcBool;
 typedef void*						BcHandle;
@@ -233,7 +231,6 @@ typedef signed char					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
-typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
 typedef void*						BcHandle;
@@ -258,7 +255,6 @@ typedef signed char					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
-typedef float						BcReal;
 typedef char						BcChar;
 typedef BcU32						BcBool;
 typedef void*						BcHandle;
