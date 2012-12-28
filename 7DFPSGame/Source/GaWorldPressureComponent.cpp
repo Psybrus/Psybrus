@@ -333,6 +333,7 @@ void GaWorldPressureComponent::render( class ScnViewComponent* pViewComponent, R
 	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
 	CurrMaterial_ = 1 - CurrMaterial_;
 	DynamicMaterial.WorldMaterial_->setWorldTransform( BcMat4d() );
+	pViewComponent->setMaterialParameters( DynamicMaterial.WorldMaterial_ );
 	DynamicMaterial.WorldMaterial_->bind( pFrame, Sort );
 
 	// Setup render node.
