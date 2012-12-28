@@ -174,7 +174,7 @@ void GaPlayerComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Cache world stuff we need.
 	ScnEntityRef WorldEntity = ScnCore::pImpl()->findEntity( "WorldEntity_0" );
-	Canvas_ = WorldEntity->getComponentByType< ScnCanvasComponent >( 0 );
+	Canvas_ = WorldEntity->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
 	BSP_ = WorldEntity->getComponentByType< GaWorldBSPComponent >( 0 );
 	Pressure_ = WorldEntity->getComponentByType< GaWorldPressureComponent >( 0 );
 
