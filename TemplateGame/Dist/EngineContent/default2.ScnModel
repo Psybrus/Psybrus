@@ -1,6 +1,0 @@
-{ 
-	"ScnModel" : {
-		"name"		: "default",
-		"source"	: "EngineContent/ModelSource/default2.obj"
-	}
-}
