@@ -29,7 +29,7 @@ std::string SysArgs_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysKernel::SysKernel( BcReal TickRate ):
+SysKernel::SysKernel( BcF32 TickRate ):
 	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) ),
 	TickRate_( TickRate )
 {
@@ -173,11 +173,12 @@ void SysKernel::tick()
 
 #if 0
 	// Reset time working in the job queue for metrics.
-	BcPrintf( "System Kernel: Game thread: %f ms\n", getFrameTime() );
+	BcPrintf( "System Kernel: Game thread: %f ms\n", GameThreadTime_ * 1000.0f );
 	for( BcU32 Idx = 0; Idx < JobQueue_.workerCount(); ++Idx )
 	{
-		BcReal Time = JobQueue_.getAndResetTimeWorkingForWorker( Idx );
-		BcPrintf( "System Kernel: Worker %u: %f ms\n", Idx, Time * 1000.0f );
+		BcF32 Time = JobQueue_.getAndResetTimeWorkingForWorker( Idx );
+		BcU32 Jobs = JobQueue_.getAndResetJobsExecutedForWorker( Idx );
+		BcPrintf( "System Kernel: Worker %u: %f ms (%u jobs)\n", Idx, Time * 1000.0f, Jobs );
 	}
 #endif
 
@@ -252,7 +253,7 @@ void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
 
 //////////////////////////////////////////////////////////////////////////
 // getFrameTime
-BcReal SysKernel::getFrameTime() const
+BcF32 SysKernel::getFrameTime() const
 {
 	return FrameTime_;
 }
@@ -274,16 +275,19 @@ void SysKernel::execute()
 		
 		// Tick systems.
 		tick();
+
+		// Store game thread time.
+		GameThreadTime_ = MainTimer_.time();
 		
 		// Sleep if we have a fixed rate specified, otherwise just yield.
 		if( TickRate_ > 0.0f )
 		{
-			BcReal TimeSpent = MainTimer_.time();
+			BcF32 TimeSpent = MainTimer_.time();
 			SleepAccumulator_ += BcMax( ( TickRate_ ) - TimeSpent, 0.0f );
 		
 			if( SleepAccumulator_ > 0.0f )
 			{
-				BcReal SleepTime = SleepAccumulator_;
+				BcF32 SleepTime = SleepAccumulator_;
 				SleepAccumulator_ -= SleepTime;
 				BcSleep( BcMin( SleepTime, TickRate_ ) );
 			}

@@ -31,7 +31,7 @@ BcMat4d BcMat4d::operator - ( const BcMat4d& Rhs )
 	                Row3_ - Rhs.Row3_ );
 }
 
-BcMat4d BcMat4d::operator * ( BcReal Rhs )
+BcMat4d BcMat4d::operator * ( BcF32 Rhs )
 {
 	return BcMat4d( Row0_ * Rhs,
 	                Row1_ * Rhs,
@@ -39,7 +39,7 @@ BcMat4d BcMat4d::operator * ( BcReal Rhs )
 	                Row3_ * Rhs );
 }
 
-BcMat4d BcMat4d::operator / ( BcReal Rhs )
+BcMat4d BcMat4d::operator / ( BcF32 Rhs )
 {
 	return BcMat4d( Row0_ / Rhs,
 	                Row1_ / Rhs,
@@ -69,7 +69,7 @@ BcMat4d BcMat4d::operator * ( const BcMat4d& Rhs ) const
 	                Lhs[3][0] * Rhs[0][3] + Lhs[3][1] * Rhs[1][3] + Lhs[3][2] * Rhs[2][3] + Lhs[3][3] * Rhs[3][3] );
 }
 
-BcReal BcMat4d::determinant()
+BcF32 BcMat4d::determinant()
 {
 	const BcMat4d& Lhs = (*this);
 
@@ -94,8 +94,8 @@ BcReal BcMat4d::determinant()
 
 void BcMat4d::rotation( const BcVec3d& Angles )
 {
-	BcReal sy, sp, sr;
-	BcReal cy, cp, cr;
+	BcF32 sy, sp, sr;
+	BcF32 cy, cp, cr;
 	
 	sy = BcSin( Angles.y() );
 	sp = BcSin( Angles.x() );
@@ -137,52 +137,52 @@ void BcMat4d::scale( const BcVec4d& Scale )
 void BcMat4d::inverse()
 {
 	const BcMat4d& Lhs = (*this);
-	BcReal Det, InvDet;
+	BcF32 Det, InvDet;
 
-	const BcReal Det2_01_01 = Lhs[0][0] * Lhs[1][1] - Lhs[0][1] * Lhs[1][0];
-	const BcReal Det2_01_02 = Lhs[0][0] * Lhs[1][2] - Lhs[0][2] * Lhs[1][0];
-	const BcReal Det2_01_03 = Lhs[0][0] * Lhs[1][3] - Lhs[0][3] * Lhs[1][0];
-	const BcReal Det2_01_12 = Lhs[0][1] * Lhs[1][2] - Lhs[0][2] * Lhs[1][1];
-	const BcReal Det2_01_13 = Lhs[0][1] * Lhs[1][3] - Lhs[0][3] * Lhs[1][1];
-	const BcReal Det2_01_23 = Lhs[0][2] * Lhs[1][3] - Lhs[0][3] * Lhs[1][2];
+	const BcF32 Det2_01_01 = Lhs[0][0] * Lhs[1][1] - Lhs[0][1] * Lhs[1][0];
+	const BcF32 Det2_01_02 = Lhs[0][0] * Lhs[1][2] - Lhs[0][2] * Lhs[1][0];
+	const BcF32 Det2_01_03 = Lhs[0][0] * Lhs[1][3] - Lhs[0][3] * Lhs[1][0];
+	const BcF32 Det2_01_12 = Lhs[0][1] * Lhs[1][2] - Lhs[0][2] * Lhs[1][1];
+	const BcF32 Det2_01_13 = Lhs[0][1] * Lhs[1][3] - Lhs[0][3] * Lhs[1][1];
+	const BcF32 Det2_01_23 = Lhs[0][2] * Lhs[1][3] - Lhs[0][3] * Lhs[1][2];
 
-	const BcReal Det3_201_012 = Lhs[2][0] * Det2_01_12 - Lhs[2][1] * Det2_01_02 + Lhs[2][2] * Det2_01_01;
-	const BcReal Det3_201_013 = Lhs[2][0] * Det2_01_13 - Lhs[2][1] * Det2_01_03 + Lhs[2][3] * Det2_01_01;
-	const BcReal Det3_201_023 = Lhs[2][0] * Det2_01_23 - Lhs[2][2] * Det2_01_03 + Lhs[2][3] * Det2_01_02;
-	const BcReal Det3_201_123 = Lhs[2][1] * Det2_01_23 - Lhs[2][2] * Det2_01_13 + Lhs[2][3] * Det2_01_12;
+	const BcF32 Det3_201_012 = Lhs[2][0] * Det2_01_12 - Lhs[2][1] * Det2_01_02 + Lhs[2][2] * Det2_01_01;
+	const BcF32 Det3_201_013 = Lhs[2][0] * Det2_01_13 - Lhs[2][1] * Det2_01_03 + Lhs[2][3] * Det2_01_01;
+	const BcF32 Det3_201_023 = Lhs[2][0] * Det2_01_23 - Lhs[2][2] * Det2_01_03 + Lhs[2][3] * Det2_01_02;
+	const BcF32 Det3_201_123 = Lhs[2][1] * Det2_01_23 - Lhs[2][2] * Det2_01_13 + Lhs[2][3] * Det2_01_12;
 
 	Det = ( - Det3_201_123 * Lhs[3][0] + Det3_201_023 * Lhs[3][1] - Det3_201_013 * Lhs[3][2] + Det3_201_012 * Lhs[3][3] );
 
 	InvDet = 1.0f / Det;
 
-	const BcReal Det2_03_01 = Lhs[0][0] * Lhs[3][1] - Lhs[0][1] * Lhs[3][0];
-	const BcReal Det2_03_02 = Lhs[0][0] * Lhs[3][2] - Lhs[0][2] * Lhs[3][0];
-	const BcReal Det2_03_03 = Lhs[0][0] * Lhs[3][3] - Lhs[0][3] * Lhs[3][0];
-	const BcReal Det2_03_12 = Lhs[0][1] * Lhs[3][2] - Lhs[0][2] * Lhs[3][1];
-	const BcReal Det2_03_13 = Lhs[0][1] * Lhs[3][3] - Lhs[0][3] * Lhs[3][1];
-	const BcReal Det2_03_23 = Lhs[0][2] * Lhs[3][3] - Lhs[0][3] * Lhs[3][2];
+	const BcF32 Det2_03_01 = Lhs[0][0] * Lhs[3][1] - Lhs[0][1] * Lhs[3][0];
+	const BcF32 Det2_03_02 = Lhs[0][0] * Lhs[3][2] - Lhs[0][2] * Lhs[3][0];
+	const BcF32 Det2_03_03 = Lhs[0][0] * Lhs[3][3] - Lhs[0][3] * Lhs[3][0];
+	const BcF32 Det2_03_12 = Lhs[0][1] * Lhs[3][2] - Lhs[0][2] * Lhs[3][1];
+	const BcF32 Det2_03_13 = Lhs[0][1] * Lhs[3][3] - Lhs[0][3] * Lhs[3][1];
+	const BcF32 Det2_03_23 = Lhs[0][2] * Lhs[3][3] - Lhs[0][3] * Lhs[3][2];
 
-	const BcReal Det2_13_01 = Lhs[1][0] * Lhs[3][1] - Lhs[1][1] * Lhs[3][0];
-	const BcReal Det2_13_02 = Lhs[1][0] * Lhs[3][2] - Lhs[1][2] * Lhs[3][0];
-	const BcReal Det2_13_03 = Lhs[1][0] * Lhs[3][3] - Lhs[1][3] * Lhs[3][0];
-	const BcReal Det2_13_12 = Lhs[1][1] * Lhs[3][2] - Lhs[1][2] * Lhs[3][1];
-	const BcReal Det2_13_13 = Lhs[1][1] * Lhs[3][3] - Lhs[1][3] * Lhs[3][1];
-	const BcReal Det2_13_23 = Lhs[1][2] * Lhs[3][3] - Lhs[1][3] * Lhs[3][2];
+	const BcF32 Det2_13_01 = Lhs[1][0] * Lhs[3][1] - Lhs[1][1] * Lhs[3][0];
+	const BcF32 Det2_13_02 = Lhs[1][0] * Lhs[3][2] - Lhs[1][2] * Lhs[3][0];
+	const BcF32 Det2_13_03 = Lhs[1][0] * Lhs[3][3] - Lhs[1][3] * Lhs[3][0];
+	const BcF32 Det2_13_12 = Lhs[1][1] * Lhs[3][2] - Lhs[1][2] * Lhs[3][1];
+	const BcF32 Det2_13_13 = Lhs[1][1] * Lhs[3][3] - Lhs[1][3] * Lhs[3][1];
+	const BcF32 Det2_13_23 = Lhs[1][2] * Lhs[3][3] - Lhs[1][3] * Lhs[3][2];
 
-	const BcReal Det3_203_012 = Lhs[2][0] * Det2_03_12 - Lhs[2][1] * Det2_03_02 + Lhs[2][2] * Det2_03_01;
-	const BcReal Det3_203_013 = Lhs[2][0] * Det2_03_13 - Lhs[2][1] * Det2_03_03 + Lhs[2][3] * Det2_03_01;
-	const BcReal Det3_203_023 = Lhs[2][0] * Det2_03_23 - Lhs[2][2] * Det2_03_03 + Lhs[2][3] * Det2_03_02;
-	const BcReal Det3_203_123 = Lhs[2][1] * Det2_03_23 - Lhs[2][2] * Det2_03_13 + Lhs[2][3] * Det2_03_12;
+	const BcF32 Det3_203_012 = Lhs[2][0] * Det2_03_12 - Lhs[2][1] * Det2_03_02 + Lhs[2][2] * Det2_03_01;
+	const BcF32 Det3_203_013 = Lhs[2][0] * Det2_03_13 - Lhs[2][1] * Det2_03_03 + Lhs[2][3] * Det2_03_01;
+	const BcF32 Det3_203_023 = Lhs[2][0] * Det2_03_23 - Lhs[2][2] * Det2_03_03 + Lhs[2][3] * Det2_03_02;
+	const BcF32 Det3_203_123 = Lhs[2][1] * Det2_03_23 - Lhs[2][2] * Det2_03_13 + Lhs[2][3] * Det2_03_12;
 
-	const BcReal Det3_213_012 = Lhs[2][0] * Det2_13_12 - Lhs[2][1] * Det2_13_02 + Lhs[2][2] * Det2_13_01;
-	const BcReal Det3_213_013 = Lhs[2][0] * Det2_13_13 - Lhs[2][1] * Det2_13_03 + Lhs[2][3] * Det2_13_01;
-	const BcReal Det3_213_023 = Lhs[2][0] * Det2_13_23 - Lhs[2][2] * Det2_13_03 + Lhs[2][3] * Det2_13_02;
-	const BcReal Det3_213_123 = Lhs[2][1] * Det2_13_23 - Lhs[2][2] * Det2_13_13 + Lhs[2][3] * Det2_13_12;
+	const BcF32 Det3_213_012 = Lhs[2][0] * Det2_13_12 - Lhs[2][1] * Det2_13_02 + Lhs[2][2] * Det2_13_01;
+	const BcF32 Det3_213_013 = Lhs[2][0] * Det2_13_13 - Lhs[2][1] * Det2_13_03 + Lhs[2][3] * Det2_13_01;
+	const BcF32 Det3_213_023 = Lhs[2][0] * Det2_13_23 - Lhs[2][2] * Det2_13_03 + Lhs[2][3] * Det2_13_02;
+	const BcF32 Det3_213_123 = Lhs[2][1] * Det2_13_23 - Lhs[2][2] * Det2_13_13 + Lhs[2][3] * Det2_13_12;
 
-	const BcReal Det3_301_012 = Lhs[3][0] * Det2_01_12 - Lhs[3][1] * Det2_01_02 + Lhs[3][2] * Det2_01_01;
-	const BcReal Det3_301_013 = Lhs[3][0] * Det2_01_13 - Lhs[3][1] * Det2_01_03 + Lhs[3][3] * Det2_01_01;
-	const BcReal Det3_301_023 = Lhs[3][0] * Det2_01_23 - Lhs[3][2] * Det2_01_03 + Lhs[3][3] * Det2_01_02;
-	const BcReal Det3_301_123 = Lhs[3][1] * Det2_01_23 - Lhs[3][2] * Det2_01_13 + Lhs[3][3] * Det2_01_12;
+	const BcF32 Det3_301_012 = Lhs[3][0] * Det2_01_12 - Lhs[3][1] * Det2_01_02 + Lhs[3][2] * Det2_01_01;
+	const BcF32 Det3_301_013 = Lhs[3][0] * Det2_01_13 - Lhs[3][1] * Det2_01_03 + Lhs[3][3] * Det2_01_01;
+	const BcF32 Det3_301_023 = Lhs[3][0] * Det2_01_23 - Lhs[3][2] * Det2_01_03 + Lhs[3][3] * Det2_01_02;
+	const BcF32 Det3_301_123 = Lhs[3][1] * Det2_01_23 - Lhs[3][2] * Det2_01_13 + Lhs[3][3] * Det2_01_12;
 
 	Row0_.x( -Det3_213_123 * InvDet );
 	Row1_.x(  Det3_213_023 * InvDet );
@@ -230,7 +230,7 @@ void BcMat4d::lookAt( const BcVec3d& Position, const BcVec3d& LookAt, const BcVe
 
 //////////////////////////////////////////////////////////////////////////
 // orthoProjection
-void BcMat4d::orthoProjection( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far )
+void BcMat4d::orthoProjection( BcF32 Left, BcF32 Right, BcF32 Bottom, BcF32 Top, BcF32 Near, BcF32 Far )
 {
 	// TODO: Optimise.
 	BcMat4d& Projection = (*this);
@@ -258,27 +258,27 @@ void BcMat4d::orthoProjection( BcReal Left, BcReal Right, BcReal Bottom, BcReal 
 
 //////////////////////////////////////////////////////////////////////////
 // perspProjectionHorizontal
-void BcMat4d::perspProjectionHorizontal( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far )
+void BcMat4d::perspProjectionHorizontal( BcF32 Fov, BcF32 Aspect, BcF32 Near, BcF32 Far )
 {
-	const BcReal W = BcTan( Fov ) * Near;
-	const BcReal H = W  / Aspect;
+	const BcF32 W = BcTan( Fov ) * Near;
+	const BcF32 H = W  / Aspect;
 	
     frustum( -W, W, H, -H, Near, Far );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // perspProjectionVertical
-void BcMat4d::perspProjectionVertical( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far )
+void BcMat4d::perspProjectionVertical( BcF32 Fov, BcF32 Aspect, BcF32 Near, BcF32 Far )
 {
-	const BcReal H = BcTan( Fov ) * Near;
-	const BcReal W = H / Aspect;
+	const BcF32 H = BcTan( Fov ) * Near;
+	const BcF32 W = H / Aspect;
 	
     frustum( -W, W, H, -H, Near, Far );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // frustum
-void BcMat4d::frustum( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far )
+void BcMat4d::frustum( BcF32 Left, BcF32 Right, BcF32 Bottom, BcF32 Top, BcF32 Near, BcF32 Far )
 {
 	// TODO: Optimise.
 	BcMat4d& Projection = (*this);

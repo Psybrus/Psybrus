@@ -29,12 +29,24 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSoundEmitterComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnSoundEmitterComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnSoundEmitterComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnSoundEmitterComponent::initialise()
 {
-	
+	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+	Gain_ = 1.0f;
+	Pitch_ = 1.0f;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,11 +54,7 @@ void ScnSoundEmitterComponent::initialise()
 //virtual
 void ScnSoundEmitterComponent::create()
 {
-	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-
-	// HACKS.
-	Gain_ = 0.5f;
-	Pitch_ = BcRandom::Global.randReal() * 0.05f + 1.0f;
+	Super::create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,14 +63,6 @@ void ScnSoundEmitterComponent::create()
 void ScnSoundEmitterComponent::destroy()
 {
 	BcAssertMsg( ChannelSoundMap_.size() == 0, "Sounds still playing on ScnSoundEmitterComponent whilst being destroyed! Reference count mismatch!" );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnSoundEmitterComponent::isReady()
-{
-	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,18 +90,6 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// play
-void ScnSoundEmitterComponent::play( const BcName& Package, const BcName& Name )
-{
-	// HACK.
-	ScnSoundRef Sound;
-	if( CsCore::pImpl()->requestResource( Package, Name, Sound ) )
-	{
-		play( Sound );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // stopAll
 void ScnSoundEmitterComponent::stopAll()
 {
@@ -115,14 +103,14 @@ void ScnSoundEmitterComponent::stopAll()
 
 //////////////////////////////////////////////////////////////////////////
 // setGain
-void ScnSoundEmitterComponent::setGain( BcReal Gain )
+void ScnSoundEmitterComponent::setGain( BcF32 Gain )
 {
 	Gain_ = Gain;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setPitch
-void ScnSoundEmitterComponent::setPitch( BcReal Pitch )
+void ScnSoundEmitterComponent::setPitch( BcF32 Pitch )
 {
 	Pitch_ = Pitch;
 }

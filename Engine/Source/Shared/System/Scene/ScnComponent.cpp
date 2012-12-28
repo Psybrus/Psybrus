@@ -19,12 +19,19 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnComponent );
 
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnComponent )
+	BCREFLECTION_MEMBER( ScnEntity,							ParentEntity_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnComponent::initialise()
 {
-	pSpacialTreeNode_ = NULL;
+	Super::initialise();
+
+	Flags_ = 0;
+	ParentEntity_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,9 +43,33 @@ void ScnComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnComponent::create()
+{
+	markReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// preUpdate
+//virtual
+void ScnComponent::preUpdate( BcF32 Tick )
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnComponent::update( BcReal Tick )
+void ScnComponent::update( BcF32 Tick )
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// postUpdate
+//virtual
+void ScnComponent::postUpdate( BcF32 Tick )
 {
 	
 }
@@ -48,7 +79,11 @@ void ScnComponent::update( BcReal Tick )
 //virtual
 void ScnComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	BcAssertMsg( ParentEntity_.isValid() == BcFalse || ParentEntity_ == Parent, "Attempting to attach component when it's already attached!" );
+	BcAssertMsg( !isFlagSet( scnCF_ATTACHED ), "Attempting to attach component when it's already attached!" );
+	BcAssertMsg( isFlagSet( scnCF_PENDING_ATTACH ), "ScnComponent: Not pending attach!" );
+
+	clearFlag( scnCF_PENDING_ATTACH );
+	setFlag( scnCF_ATTACHED );
 
 	ParentEntity_ = Parent;
 }
@@ -58,24 +93,60 @@ void ScnComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	BcAssertMsg( isTypeOf< ScnEntity >() || ParentEntity_.isValid(), "Attempting to detach component that is already detached!" );
 	BcAssertMsg( ParentEntity_ == Parent, "Attempting to detach component from an entity it isn't attached to!" );
+	BcAssertMsg( isFlagSet( scnCF_ATTACHED ), "ScnComponent: Not attached!" );
+	BcAssertMsg( isFlagSet( scnCF_PENDING_DETACH ), "ScnComponent: Not pending detach!" );
+
+	clearFlag( scnCF_PENDING_DETACH );
+	clearFlag( scnCF_ATTACHED );
 
 	ParentEntity_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setFlag
+void ScnComponent::setFlag( ScnComponentFlags Flag )
+{
+	Flags_ = Flags_ | Flag;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// clearFlag
+void ScnComponent::clearFlag( ScnComponentFlags Flag )
+{
+	Flags_ = Flags_ & ~Flag;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isFlagSet
+BcBool ScnComponent::isFlagSet( ScnComponentFlags Flag ) const
+{
+	return ( Flags_ & Flag ) != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isAttached
 BcBool ScnComponent::isAttached() const
 {
-	return ParentEntity_.isValid();
+	return isFlagSet( scnCF_ATTACHED );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isAttached
 BcBool ScnComponent::isAttached( ScnEntityWeakRef Parent ) const
 {
-	return ParentEntity_ == Parent;
+	return isAttached() && ParentEntity_ == Parent;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setParentEntity
+void ScnComponent::setParentEntity( ScnEntityWeakRef Entity )
+{
+	BcAssertMsg( !isFlagSet( scnCF_ATTACHED ), "ScnComponent: Already attached, can't reassign parent entity."  );
+	BcAssertMsg( !isFlagSet( scnCF_PENDING_ATTACH ), "ScnComponent: Currently attaching, can't reassign parent entity."  );
+	BcAssertMsg( !isFlagSet( scnCF_PENDING_DETACH ), "ScnComponent: Currently detaching, can't reassign parent entity."  );
+	BcAssertMsg( !ParentEntity_.isValid(), "ScnComponent: Already have a parent, can't reassign parent entity."  );
+	ParentEntity_ = Entity;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,27 +172,4 @@ std::string ScnComponent::getFullName()
 	FullName += (*getName());
 
 	return FullName;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSpatialTreeNode
-void ScnComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
-{
-	pSpacialTreeNode_ = pNode;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getSpatialTreeNode
-ScnSpatialTreeNode* ScnComponent::getSpatialTreeNode()
-{
-	return pSpacialTreeNode_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getAABB
-//virtual
-BcAABB ScnComponent::getAABB()
-{
-	static BcAABB TEMP;
-	return TEMP;
 }

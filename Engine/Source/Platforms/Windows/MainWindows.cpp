@@ -148,8 +148,19 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		new BcLogFile( "log.txt" );
 	}
 
+	// If we have no log, setup a default one.
+#if !PSY_PRODUCTION
+	if( BcLog::pImpl() == NULL )
+	{
+		new BcLog();
+	}
+#endif
+
 	// Perform unit tests.
 	MainUnitTests();
+
+	// Create reflection database
+	new BcReflection();
 
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
@@ -186,14 +197,6 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		SysSystemEvent::Delegate OsPostOpenDelegateImportPackages = SysSystemEvent::Delegate::bind< OnPostCsOpen_ImportPackages >();
 		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateImportPackages );
 	}
-
-	// If we have no log, setup a default one.
-#if !PSY_PRODUCTION
-	if( BcLog::pImpl() == NULL )
-	{
-		new BcLog();
-	}
-#endif
 
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
 	{

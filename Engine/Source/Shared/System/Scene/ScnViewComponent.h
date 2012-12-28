@@ -36,55 +36,44 @@ class ScnViewComponent:
 {
 public:
 	DECLARE_RESOURCE( ScnComponent, ScnViewComponent );
-	DECLARE_VISITABLE( ScnViewComponent );
 
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	void								initialise();
-	void								initialise( BcReal X, BcReal Y, BcReal Width, BcReal Height, BcReal Near, BcReal Far, BcReal HorizontalFOV, BcReal VerticalFOV );
+	void								initialise( BcF32 X, BcF32 Y, BcF32 Width, BcF32 Height, BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV );
 	virtual void						initialise( const Json::Value& Object );
-	
-	virtual void						create();
-	virtual void						destroy();
-	virtual BcBool						isReady();
 
 	void								setMaterialParameters( ScnMaterialComponentRef MaterialComponent );
-	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far );
+	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
+	const RsViewport&					getViewport() const;
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	
 	void								setRenderMask( BcU32 RenderMask );
 	const BcU32							getRenderMask() const;
-
-protected:
-	virtual void						fileReady();
-	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
 
-	struct THeader
-	{
-		// Viewport. Values relative to the size of the client being rendered into.
-		BcReal							X_;
-		BcReal							Y_;
-		BcReal							Width_;
-		BcReal							Height_;
+	// Viewport. Values relative to the size of the client being rendered into.
+	BcF32								X_;
+	BcF32								Y_;
+	BcF32								Width_;
+	BcF32								Height_;
 
-		// Perspective projection.
-		BcReal							Near_;
-		BcReal							Far_;
-		BcReal							HorizontalFOV_;		// Used by default.
-		BcReal							VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
-	};
-	
-	THeader								Header_;
-	
-	ScnRenderTargetRef					RenderTarget_;
+	// Perspective projection.
+	BcF32								Near_;
+	BcF32								Far_;
+	BcF32								HorizontalFOV_;		// Used by default.
+	BcF32								VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
+		
+	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
 	BcMat4d								InverseViewMatrix_;
+
+	// TODO: Remove this dependency, not really needed.
 	RsViewport							Viewport_;
 
-	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
+	ScnRenderTargetRef					RenderTarget_;
 };
 
 #endif
