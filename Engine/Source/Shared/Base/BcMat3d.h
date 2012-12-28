@@ -27,19 +27,19 @@ public:
 			 const BcVec3d&,
 			 const BcVec3d& );
 
-	BcMat3d( BcReal I00,
-			 BcReal I01,
-			 BcReal I02,
-			 BcReal I10,
-			 BcReal I11,
-			 BcReal I12,
-			 BcReal I20,
-			 BcReal I21,
-			 BcReal I22 );
+	BcMat3d( BcF32 I00,
+			 BcF32 I01,
+			 BcF32 I02,
+			 BcF32 I10,
+			 BcF32 I11,
+			 BcF32 I12,
+			 BcF32 I20,
+			 BcF32 I21,
+			 BcF32 I22 );
 
 	// Accessor
-	BcReal*			operator [] ( BcU32 i );
-	const BcReal*	operator [] ( BcU32 i ) const;
+	BcF32*			operator [] ( BcU32 i );
+	const BcF32*	operator [] ( BcU32 i ) const;
 
 	const BcVec3d&	row0() const;
 	const BcVec3d&	row1() const;
@@ -52,14 +52,14 @@ public:
 	// Arithmetic
 	BcMat3d		operator + ( const BcMat3d& rhs );
 	BcMat3d		operator - ( const BcMat3d& rhs );
-	BcMat3d		operator * ( BcReal rhs );
-	BcMat3d		operator / ( BcReal rhs );
+	BcMat3d		operator * ( BcF32 rhs );
+	BcMat3d		operator / ( BcF32 rhs );
 	BcMat3d		operator * ( const BcMat3d& rhs );
 
 	void		identity();
 	void		transpose();
 
-	BcReal		determinant() const;
+	BcF32		determinant() const;
 
 private:
 	BcVec3d Row0_;
@@ -71,14 +71,14 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // Inlines
 
-inline BcReal* BcMat3d::operator [] ( BcU32 i )
+inline BcF32* BcMat3d::operator [] ( BcU32 i )
 {
-	return reinterpret_cast< BcReal* >( &Row0_ ) + ( i * 3 );
+	return reinterpret_cast< BcF32* >( &Row0_ ) + ( i * 3 );
 }
 
-inline const BcReal* BcMat3d::operator [] ( BcU32 i ) const
+inline const BcF32* BcMat3d::operator [] ( BcU32 i ) const
 {
-	return reinterpret_cast< const BcReal* >( &Row0_ ) + ( i * 3 );
+	return reinterpret_cast< const BcF32* >( &Row0_ ) + ( i * 3 );
 }
 
 inline const BcVec3d& BcMat3d::row0() const

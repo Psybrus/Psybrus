@@ -20,7 +20,7 @@ class TestPropertyObject
 	BCPROPERTIES_DECLARE();
 
 public:
-	BcReal 			TestReal_;
+	BcF32 			TestReal_;
 	BcU32 			TestInt_;
 	std::string 	TestString_;
 	BcMat4d			TestMat4d_;

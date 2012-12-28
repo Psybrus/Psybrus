@@ -47,7 +47,7 @@ public:
 	BcBool								isReady();
 
 public:
-	void								update( BcReal Tick );
+	void								update( BcF32 Tick );
 	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );

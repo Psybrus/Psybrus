@@ -43,25 +43,25 @@ public:
 	RsColour		Colour_;
 
 	// Decay.
-	BcReal			AttnC_;
-	BcReal			AttnL_;
-	BcReal			AttnQ_;
+	BcF32			AttnC_;
+	BcF32			AttnL_;
+	BcF32			AttnQ_;
 
 public:
 	/**
 	*	Find attenuation of light by a distance.
 	*/
-	BcReal findAttenuationByDistance( BcReal Distance ) const;
+	BcF32 findAttenuationByDistance( BcF32 Distance ) const;
 
 	/**
 	*	Find distance from light by an attenuation.
 	*/
-	BcReal findDistanceByAttenuation( BcReal Attenuation ) const;
+	BcF32 findDistanceByAttenuation( BcF32 Attenuation ) const;
 	
 	/**
 	*	Create attenuation values using min, mid and max distances.
 	*/
-	void createAttenuationValues( BcReal MinDistance, BcReal MidDistance, BcReal MaxDistance );
+	void createAttenuationValues( BcF32 MinDistance, BcF32 MidDistance, BcF32 MaxDistance );
 };
 
 #endif

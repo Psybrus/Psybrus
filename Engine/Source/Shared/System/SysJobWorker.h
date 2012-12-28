@@ -60,7 +60,7 @@ public:
 	/**
 	 * Reset time working.
 	 */
-	BcReal				getAndResetTimeWorking();
+	BcF32				getAndResetTimeWorking();
 
 private:
 	virtual void		execute();

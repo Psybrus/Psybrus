@@ -53,17 +53,17 @@ public:
 	~BcOBB();
 
 	// Accessors
-	BcReal				width() const;
-	BcReal				height() const;
-	BcReal				depth() const;
-	BcReal				volume() const;
+	BcF32				width() const;
+	BcF32				height() const;
+	BcF32				depth() const;
+	BcF32				volume() const;
 
 	BcVec3d				corner( BcU32 i ) const;
 	BcPlane				facePlane( BcU32 i ) const;
 	BcVec3d				faceCentre( BcU32 i ) const;
 	BcVec3d				centre() const;
 	BcVec3d				dimensions() const;
-	BcReal				diameter() const;
+	BcF32				diameter() const;
 
 	BcBool				isEmpty() const;
 
@@ -88,22 +88,22 @@ inline BcVec3d BcOBB::corner( BcU32 i ) const
 	return Corners_[ i ];
 }
 
-inline BcReal BcOBB::width() const
+inline BcF32 BcOBB::width() const
 {
 	return ( corner( LBB ) - corner( RBB ) ).magnitude();
 }
 
-inline BcReal BcOBB::height() const
+inline BcF32 BcOBB::height() const
 {
 	return ( corner( LBB ) - corner( LTB ) ).magnitude();
 }
 
-inline BcReal BcOBB::depth() const
+inline BcF32 BcOBB::depth() const
 {
 	return ( corner( LBB ) - corner( LBF ) ).magnitude();
 }
 
-inline BcReal BcOBB::volume() const
+inline BcF32 BcOBB::volume() const
 {
 	return ( width() * height() * depth() );
 }

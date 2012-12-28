@@ -19,6 +19,10 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnRenderableComponent )
+	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
+BCREFLECTION_DERIVED_END();
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnRenderableComponent::initialise()
@@ -39,7 +43,7 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnRenderableComponent::update( BcReal Tick )
+void ScnRenderableComponent::update( BcF32 Tick )
 {
 	Super::update( Tick );
 

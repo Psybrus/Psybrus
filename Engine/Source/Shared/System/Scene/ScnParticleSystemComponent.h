@@ -44,16 +44,16 @@ struct ScnParticle					// TODO: Factor our into affectors so we can store minimu
 	BcVec2d MinScale_;				// Min scale. (time based)
 	BcVec2d MaxScale_;				// Max scale. (time based)
 
-	BcReal Rotation_;
-	BcReal RotationMultiplier_;		// Rotation mult.
+	BcF32 Rotation_;
+	BcF32 RotationMultiplier_;		// Rotation mult.
 
 	RsColour Colour_;				// Colour;
 	RsColour MinColour_;			// Min colour. (time based)
 	RsColour MaxColour_;			// Max colour. (time based)
 
 	BcU32 TextureIndex_;			// Texture index.
-	BcReal CurrentTime_;			// Current time.
-	BcReal MaxTime_;				// Max time.
+	BcF32 CurrentTime_;			// Current time.
+	BcF32 MaxTime_;				// Max time.
 	BcBool Alive_;					// Are we alive?
 };
 
@@ -70,7 +70,7 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	virtual BcBool						isReady();
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
@@ -80,8 +80,8 @@ public:
 	BcBool								allocParticle( ScnParticle*& pParticle );
 
 private:
-	void								updateParticle( ScnParticle& Particle, BcReal Tick );
-	void								updateParticles( BcReal Tick );
+	void								updateParticle( ScnParticle& Particle, BcF32 Tick );
+	void								updateParticles( BcF32 Tick );
 
 private:
 	struct TVertexBuffer

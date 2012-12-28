@@ -202,6 +202,16 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
 
+BCREFLECTION_EMPTY_REGISTER( ScnModel );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnModel )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -363,11 +373,23 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource.
 DEFINE_RESOURCE( ScnModelComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnModelComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnModelComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnModelComponent::initialise( ScnModelRef Parent )
 {
+	Super::initialise();
+
 	// Cache parent.
 	Parent_ = Parent;
 
@@ -477,7 +499,7 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& M
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnModelComponent::update( BcReal Tick )
+void ScnModelComponent::update( BcF32 Tick )
 {
 	Super::update( Tick );
 

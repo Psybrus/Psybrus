@@ -78,10 +78,10 @@ void SysJobWorker::stop()
 
 //////////////////////////////////////////////////////////////////////////
 // getAndResetTimeWorking
-BcReal SysJobWorker::getAndResetTimeWorking()
+BcF32 SysJobWorker::getAndResetTimeWorking()
 {
 	BcU32 TimeWorkingUS = TimeWorkingUS_.exchange( 0 );
-	return static_cast< BcReal >( TimeWorkingUS ) / 1000000.0f;
+	return static_cast< BcF32 >( TimeWorkingUS ) / 1000000.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////

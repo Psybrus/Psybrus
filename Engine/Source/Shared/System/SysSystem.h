@@ -107,7 +107,7 @@ public:
 	/**
 	*	Last tick time.
 	*/
-	BcReal						lastTickTime() const;
+	BcF32						lastTickTime() const;
 
 protected:
 
@@ -172,7 +172,7 @@ private:
 	ProcessFunc					ProcessFuncs_[ STATE_MAX ];
 	
 	BcTimer						PerfTimer_;
-	BcReal						LastTickTime_;
+	BcF32						LastTickTime_;
 };
 
 

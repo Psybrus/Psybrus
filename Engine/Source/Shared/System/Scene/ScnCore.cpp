@@ -58,7 +58,7 @@ void ScnCore::open()
 void ScnCore::update()
 {
 	// Tick all entities.
-	BcReal Tick = SysKernel::pImpl()->getFrameTime();
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
 	// Do add/remove.
 	processAddRemove();

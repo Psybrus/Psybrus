@@ -92,7 +92,7 @@ public:
 	BcU32								findParameter( const BcName& ParameterName );	
 	void								setParameter( BcU32 Parameter, BcS32 Value );
 	void								setParameter( BcU32 Parameter, BcBool Value );
-	void								setParameter( BcU32 Parameter, BcReal Value );
+	void								setParameter( BcU32 Parameter, BcF32 Value );
 	void								setParameter( BcU32 Parameter, const BcVec2d& Value );
 	void								setParameter( BcU32 Parameter, const BcVec3d& Value );
 	void								setParameter( BcU32 Parameter, const BcVec4d& Value );
@@ -116,7 +116,7 @@ public:
 	virtual BcBool						isReady();
 
 public:
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 

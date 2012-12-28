@@ -82,7 +82,7 @@ void BcBSPTree::buildTree()
 
 ////////////////////////////////////////////////////////////////////////////////
 // checkPointFront
-BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL */ )
+BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL */ )
 {
 	// Check if we want the root node.
 	if( pNode == NULL )
@@ -129,7 +129,7 @@ BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcReal Radius, BcBSPInf
 
 ////////////////////////////////////////////////////////////////////////////////
 // checkPointBack
-BcBool BcBSPTree::checkPointBack( const BcVec3d& Point, BcReal Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL*/ )
+BcBool BcBSPTree::checkPointBack( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL*/ )
 {
 	return !checkPointFront( Point, Radius, pData, pNode );
 }
@@ -158,7 +158,7 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 
 	if( ClassifyA == BcPlane::bcPC_FRONT && ClassifyB == BcPlane::bcPC_BACK )
 	{
-		BcReal T;
+		BcF32 T;
 		BcVec3d Intersection;
 		if( pNode->Plane_.lineIntersection( A, B, T, Intersection ) )
 		{
@@ -168,7 +168,7 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 				// If we want point info recurse deeper to get it.
 				if( pPointInfo != NULL )
 				{
-					BcReal DistanceSquared = ( A - Intersection ).magnitudeSquared();
+					BcF32 DistanceSquared = ( A - Intersection ).magnitudeSquared();
 
 					// Check the distance, if it's less then go deeper!
 					if( DistanceSquared < ( pPointInfo->Distance_ * pPointInfo->Distance_ ) )
@@ -371,7 +371,7 @@ BcBSPNode* BcBSPTree::clipNode( BcBSPNode* pNode, const BcPlane& Clip )
 		BcVec3d PointA = pNode->Vertices_[ ( iVert ) ];
 		BcVec3d PointB = pNode->Vertices_[ ( iVert + 1 ) % pNode->Vertices_.size() ];
 		BcVec3d Intersection;
-		BcReal Distance;
+		BcF32 Distance;
 
 		//
 		Vertices.push_back( PointA );
@@ -417,7 +417,7 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 		BcVec3d Origin = pNode->Vertices_[ 0 ];
 		BcVec3d Direction = pNode->Vertices_[ 1 ] - pNode->Vertices_[ 0 ];
 		BcVec3d Vector = Point - Origin;
-		BcReal T = Direction.dot( Vector );
+		BcF32 T = Direction.dot( Vector );
 
 		// Check its on the line.
 		return ( T >= 0.0f ) && ( T <= 1.0f );
@@ -431,7 +431,7 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 			const BcVec3d& PointB = pNode->Vertices_[ ( Idx + 1 ) % pNode->Vertices_.size() ];
 			const BcVec3d AffineSegment = PointB - PointA;
 			const BcVec3d AffinePoint = Point - PointA;
-			BcReal K = AffineSegment.dot( AffinePoint );
+			BcF32 K = AffineSegment.dot( AffinePoint );
 			BcS32 KSign = BcAbs( K ) > 1e-3f ? static_cast< BcS32 >( K / BcAbs( K ) ) : 0;
 			if( Sign == 0 )
 			{

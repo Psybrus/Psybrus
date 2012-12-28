@@ -89,7 +89,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 				pPaddedImage->blit( pImage, SrcRect, DstRect );
 								
 				// Distance field.
-				ImgImage* pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcReal)Spread );
+				ImgImage* pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread );
 								
 				// Scale down 8x.
 				ImgImage* pScale1_2 = pDistanceFieldImage->resize( NewWidth >> 1, NewHeight >> 1 );
@@ -136,10 +136,10 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 				ScnTextureAtlasRect OutRect = 
 				{
 					{
-						BcReal( Rect.X_ + ( Spread / 4 ) ) / BcReal( pAtlasImage->width() ),
-						BcReal( Rect.Y_ + ( Spread / 4 ) ) / BcReal( pAtlasImage->height() ),
-						BcReal( Rect.W_ - ( SpreadDouble / 4 ) ) / BcReal( pAtlasImage->width() ),
-						BcReal( Rect.H_ - ( SpreadDouble / 4 ) ) / BcReal( pAtlasImage->height() )
+						BcF32( Rect.X_ + ( Spread / 4 ) ) / BcF32( pAtlasImage->width() ),
+						BcF32( Rect.Y_ + ( Spread / 4 ) ) / BcF32( pAtlasImage->height() ),
+						BcF32( Rect.W_ - ( SpreadDouble / 4 ) ) / BcF32( pAtlasImage->width() ),
+						BcF32( Rect.H_ - ( SpreadDouble / 4 ) ) / BcF32( pAtlasImage->height() )
 					}
 				};
 				
@@ -182,6 +182,16 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnTextureAtlas );
+
+BCREFLECTION_EMPTY_REGISTER( ScnTextureAtlas );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnTexture, ScnTextureAtlas )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // getRect

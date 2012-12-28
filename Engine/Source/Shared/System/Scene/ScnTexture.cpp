@@ -101,6 +101,16 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 // Define resource internals.
 DEFINE_RESOURCE( ScnTexture );
 
+BCREFLECTION_EMPTY_REGISTER( ScnTexture );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnTexture )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual

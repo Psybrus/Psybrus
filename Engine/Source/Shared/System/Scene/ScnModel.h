@@ -97,7 +97,7 @@ public:
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
 	
 public:
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	void								updateNodes( BcMat4d RootMatrix );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );

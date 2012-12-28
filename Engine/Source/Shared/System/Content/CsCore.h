@@ -66,6 +66,16 @@ public:
 	 * Free unreferenced packages.
 	 */
 	void								freeUnreferencedPackages();
+
+	/**
+	 * Get resource type.
+	 */
+	BcName								getResourceType( BcU32 Idx ) const;
+
+	/**
+	 * Get noof resource types.
+	 */
+	BcU32								getNoofResourceTypes() const;
 	
 	/**
 	 * Allocate resource.
@@ -202,6 +212,7 @@ template< typename _Ty >
 BcForceInline void CsCore::registerResource()
 {
 	BcAssert( BcIsGameThread() );
+	_Ty::StaticRegisterReflection();
 	internalRegisterResource( _Ty::StaticGetType(), _Ty::StaticAllocResource, _Ty::StaticFreeResource );
 }
 
