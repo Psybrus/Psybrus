@@ -35,7 +35,7 @@ public:
 
 	void								initialise( const Json::Value& Object );
 
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
@@ -43,7 +43,7 @@ public:
 	eEvtReturn							onMouseEvent( EvtID ID, const OsEventInputMouse& Event );
 	eEvtReturn							onReset( EvtID ID, const GaWorldResetEvent& Event );
 
-	BcVec3d								doShot( const BcVec3d& Direction, BcReal TrailPower, BcReal MuzzlePower, BcReal ImpactPower );
+	BcVec3d								doShot( const BcVec3d& Direction, BcF32 TrailPower, BcF32 MuzzlePower, BcF32 ImpactPower );
 	
 public:
 	BcBool								MoveForward_;
@@ -53,13 +53,13 @@ public:
 	BcBool								DoRun_;
 	BcBool								DoPulse_;
 	BcBool								DoShot_;
-	BcReal								RateOfShot_;
-	BcReal								ShotTick_;
+	BcF32								RateOfShot_;
+	BcF32								ShotTick_;
 
 	BcBool								HasWeapon_;
 	
-	BcReal								Yaw_;
-	BcReal								Pitch_;
+	BcF32								Yaw_;
+	BcF32								Pitch_;
 
 	BcVec2d								MouseDelta_;
 

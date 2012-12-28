@@ -19,6 +19,16 @@
 // Define
 DEFINE_RESOURCE( GaWorldPressureComponent );
 
+BCREFLECTION_EMPTY_REGISTER( GaWorldPressureComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, GaWorldPressureComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -60,52 +70,52 @@ void GaWorldPressureComponent::create__onAttach()
 	GaWorldPressureVertex* pVertex = pVertexArray_;
 	for( BcU32 Idx = 0; Idx < Width_; ++Idx )
 	{
-		BcReal Position = (BcReal)Idx - (BcReal)( Width_ >> 1 );
-		BcReal Texture =  (BcReal)Idx / (BcReal)Width_;
+		BcF32 Position = (BcF32)Idx - (BcF32)( Width_ >> 1 );
+		BcF32 Texture =  (BcF32)Idx / (BcF32)Width_;
 
 		pVertex->X_ = Position;
-		pVertex->Y_ = -(BcReal)( Height_ >> 1 );
-		pVertex->Z_ = -(BcReal)( Depth_ >> 1 );
+		pVertex->Y_ = -(BcF32)( Height_ >> 1 );
+		pVertex->Z_ = -(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = Texture;
 		pVertex->V_ = 0.0f;
 		pVertex->W_ = 0.0f;
 		++pVertex;
 
 		pVertex->X_ = Position;
-		pVertex->Y_ = +(BcReal)( Height_ >> 1 );
-		pVertex->Z_ = -(BcReal)( Depth_ >> 1 );
+		pVertex->Y_ = +(BcF32)( Height_ >> 1 );
+		pVertex->Z_ = -(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = Texture;
 		pVertex->V_ = 1.0f;
 		pVertex->W_ = 0.0f;
 		++pVertex;
 
 		pVertex->X_ = Position;
-		pVertex->Y_ = +(BcReal)( Height_ >> 1 );
-		pVertex->Z_ = +(BcReal)( Depth_ >> 1 );
+		pVertex->Y_ = +(BcF32)( Height_ >> 1 );
+		pVertex->Z_ = +(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = Texture;
 		pVertex->V_ = 1.0f;
 		pVertex->W_ = 1.0f;
 		++pVertex;
 
 		pVertex->X_ = Position;
-		pVertex->Y_ = +(BcReal)( Height_ >> 1 );
-		pVertex->Z_ = +(BcReal)( Depth_ >> 1 );
+		pVertex->Y_ = +(BcF32)( Height_ >> 1 );
+		pVertex->Z_ = +(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = Texture;
 		pVertex->V_ = 1.0f;
 		pVertex->W_ = 1.0f;
 		++pVertex;
 
 		pVertex->X_ = Position;
-		pVertex->Y_ = -(BcReal)( Height_ >> 1 );
-		pVertex->Z_ = +(BcReal)( Depth_ >> 1 );
+		pVertex->Y_ = -(BcF32)( Height_ >> 1 );
+		pVertex->Z_ = +(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = Texture;
 		pVertex->V_ = 0.0f;
 		pVertex->W_ = 1.0f;
 		++pVertex;
 
 		pVertex->X_ = Position;
-		pVertex->Y_ = -(BcReal)( Height_ >> 1 );
-		pVertex->Z_ = -(BcReal)( Depth_ >> 1 );
+		pVertex->Y_ = -(BcF32)( Height_ >> 1 );
+		pVertex->Z_ = -(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = Texture;
 		pVertex->V_ = 0.0f;
 		pVertex->W_ = 0.0f;
@@ -114,52 +124,52 @@ void GaWorldPressureComponent::create__onAttach()
 
 	for( BcU32 Idx = 0; Idx < Width_; ++Idx )
 	{
-		BcReal Position = (BcReal)Idx - (BcReal)( Height_ >> 1 );
-		BcReal Texture =  (BcReal)Idx / (BcReal)Height_;
+		BcF32 Position = (BcF32)Idx - (BcF32)( Height_ >> 1 );
+		BcF32 Texture =  (BcF32)Idx / (BcF32)Height_;
 
-		pVertex->X_ = -(BcReal)( Width_ >> 1 );
+		pVertex->X_ = -(BcF32)( Width_ >> 1 );
 		pVertex->Y_ = Position;
-		pVertex->Z_ = -(BcReal)( Depth_ >> 1 );
+		pVertex->Z_ = -(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = 0.0f;
 		pVertex->V_ = Texture;
 		pVertex->W_ = 0.0f;
 		++pVertex;
 
-		pVertex->X_ = +(BcReal)( Width_ >> 1 );
+		pVertex->X_ = +(BcF32)( Width_ >> 1 );
 		pVertex->Y_ = Position;
-		pVertex->Z_ = -(BcReal)( Depth_ >> 1 );
+		pVertex->Z_ = -(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = 1.0f;
 		pVertex->V_ = Texture;
 		pVertex->W_ = 0.0f;
 		++pVertex;
 
-		pVertex->X_ = +(BcReal)( Width_ >> 1 );
+		pVertex->X_ = +(BcF32)( Width_ >> 1 );
 		pVertex->Y_ = Position;
-		pVertex->Z_ = +(BcReal)( Depth_ >> 1 );
+		pVertex->Z_ = +(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = 1.0f;
 		pVertex->V_ = Texture;	
 		pVertex->W_ = 1.0f;
 		++pVertex;
 
-		pVertex->X_ = +(BcReal)( Width_ >> 1 );
+		pVertex->X_ = +(BcF32)( Width_ >> 1 );
 		pVertex->Y_ = Position;
-		pVertex->Z_ = +(BcReal)( Depth_ >> 1 );
+		pVertex->Z_ = +(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = 1.0f;
 		pVertex->V_ = Texture;	
 		pVertex->W_ = 1.0f;
 		++pVertex;
 
-		pVertex->X_ = -(BcReal)( Width_ >> 1 );
+		pVertex->X_ = -(BcF32)( Width_ >> 1 );
 		pVertex->Y_ = Position;
-		pVertex->Z_ = +(BcReal)( Depth_ >> 1 );
+		pVertex->Z_ = +(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = 0.0f;
 		pVertex->V_ = Texture;	
 		pVertex->W_ = 1.0f;
 		++pVertex;
 
-		pVertex->X_ = -(BcReal)( Width_ >> 1 );
+		pVertex->X_ = -(BcF32)( Width_ >> 1 );
 		pVertex->Y_ = Position;
-		pVertex->Z_ = -(BcReal)( Depth_ >> 1 );
+		pVertex->Z_ = -(BcF32)( Depth_ >> 1 );
 		pVertex->U_ = 0.0f;
 		pVertex->V_ = Texture;	
 		pVertex->W_ = 0.0f;
@@ -168,51 +178,51 @@ void GaWorldPressureComponent::create__onAttach()
 
 	for( BcU32 Idx = 0; Idx < Depth_; ++Idx )
 	{
-		BcReal Position = (BcReal)Idx - (BcReal)( Depth_ >> 1 );
-		BcReal Texture =  (BcReal)Idx / (BcReal)Depth_;
+		BcF32 Position = (BcF32)Idx - (BcF32)( Depth_ >> 1 );
+		BcF32 Texture =  (BcF32)Idx / (BcF32)Depth_;
 
-		pVertex->X_ = -(BcReal)( Width_ >> 1 );
-		pVertex->Y_ = -(BcReal)( Height_ >> 1 );
+		pVertex->X_ = -(BcF32)( Width_ >> 1 );
+		pVertex->Y_ = -(BcF32)( Height_ >> 1 );
 		pVertex->Z_ = Position;
 		pVertex->U_ = 0.0f;
 		pVertex->V_ = 0.0f;
 		pVertex->W_ = Texture;
 		++pVertex;
 
-		pVertex->X_ = +(BcReal)( Width_ >> 1 );
-		pVertex->Y_ = -(BcReal)( Height_ >> 1 );
+		pVertex->X_ = +(BcF32)( Width_ >> 1 );
+		pVertex->Y_ = -(BcF32)( Height_ >> 1 );
 		pVertex->Z_ = Position;
 		pVertex->U_ = 1.0f;
 		pVertex->V_ = 0.0f;
 		pVertex->W_ = Texture;
 		++pVertex;
 
-		pVertex->X_ = +(BcReal)( Width_ >> 1 );
-		pVertex->Y_ = +(BcReal)( Height_ >> 1 );
+		pVertex->X_ = +(BcF32)( Width_ >> 1 );
+		pVertex->Y_ = +(BcF32)( Height_ >> 1 );
 		pVertex->Z_ = Position;
 		pVertex->U_ = 1.0f;
 		pVertex->V_ = 1.0f;
 		pVertex->W_ = Texture;
 		++pVertex;
 
-		pVertex->X_ = +(BcReal)( Width_ >> 1 );
-		pVertex->Y_ = +(BcReal)( Height_ >> 1 );
+		pVertex->X_ = +(BcF32)( Width_ >> 1 );
+		pVertex->Y_ = +(BcF32)( Height_ >> 1 );
 		pVertex->Z_ = Position;
 		pVertex->U_ = 1.0f;
 		pVertex->V_ = 1.0f;
 		pVertex->W_ = Texture;
 		++pVertex;
 
-		pVertex->X_ = -(BcReal)( Width_ >> 1 );
-		pVertex->Y_ = +(BcReal)( Height_ >> 1 );
+		pVertex->X_ = -(BcF32)( Width_ >> 1 );
+		pVertex->Y_ = +(BcF32)( Height_ >> 1 );
 		pVertex->Z_ = Position;
 		pVertex->U_ = 0.0f;
 		pVertex->V_ = 1.0f;
 		pVertex->W_ = Texture;
 		++pVertex;
 
-		pVertex->X_ = -(BcReal)( Width_ >> 1 );
-		pVertex->Y_ = -(BcReal)( Height_ >> 1 );
+		pVertex->X_ = -(BcF32)( Width_ >> 1 );
+		pVertex->Y_ = -(BcF32)( Height_ >> 1 );
 		pVertex->Z_ = Position;
 		pVertex->U_ = 0.0f;
 		pVertex->V_ = 0.0f;
@@ -269,7 +279,7 @@ BcBool GaWorldPressureComponent::isReady()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void GaWorldPressureComponent::update( BcReal Tick )
+void GaWorldPressureComponent::update( BcF32 Tick )
 {
 	// Wait for update to have finished.
 	UpdateFence_.wait();
@@ -289,7 +299,7 @@ void GaWorldPressureComponent::update( BcReal Tick )
 	if( BSP_->InEditorMode_ )
 	{
 		Canvas_->setMaterialComponent( DynamicMaterials_[ CurrMaterial_ ].PreviewMaterial_ );
-		BcVec2d HalfBoxSize( BcVec2d( (BcReal)Width_, (BcReal)Height_ ) * Scale_ * 0.5f );
+		BcVec2d HalfBoxSize( BcVec2d( (BcF32)Width_, (BcF32)Height_ ) * Scale_ * 0.5f );
 		Canvas_->drawBox( -HalfBoxSize, HalfBoxSize, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 0 );
 	}
 }
@@ -431,7 +441,7 @@ void GaWorldPressureComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // addSample
-void GaWorldPressureComponent::addSample( const BcVec3d& Position, BcReal Value )
+void GaWorldPressureComponent::addSample( const BcVec3d& Position, BcF32 Value )
 {
 	BcVec3d Offset = BcVec3d( Width_ * Scale_, Height_ * Scale_, Depth_ * Scale_ ) * 0.5f;
 	BcVec3d Index = ( Position + Offset ) / Scale_;
@@ -444,7 +454,7 @@ void GaWorldPressureComponent::addSample( const BcVec3d& Position, BcReal Value 
 }
 //////////////////////////////////////////////////////////////////////////
 // setSample
-void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcReal Value )
+void GaWorldPressureComponent::setSample( const BcVec3d& Position, BcF32 Value )
 {
 	BcVec3d Offset = BcVec3d( Width_ * Scale_, Height_ * Scale_, Depth_ * Scale_ ) * 0.5f;
 	BcVec3d Index = ( Position + Offset ) / Scale_;
@@ -505,7 +515,7 @@ void GaWorldPressureComponent::updateSimulation()
 					{
 						++XYZIdx;
 						GaWorldPressureSample& Output( pNextBuffer[ XYZIdx ] );
-						register BcReal Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
+						register BcF32 Sample = pCurrBuffer[ XYZIdx - 1 ].Value_ +
 												 pCurrBuffer[ XYZIdx + 1 ].Value_ +
 												 pCurrBuffer[ XYZIdx - W ].Value_ +
 												 pCurrBuffer[ XYZIdx + W ].Value_ +
@@ -542,7 +552,7 @@ void GaWorldPressureComponent::collideSimulation()
 	{
 		for( BcU32 X = 1; X < WidthLessOne; ++X )
 		{
-			BcVec3d Position( BcVec2d( (BcReal)X, (BcReal)Y ) * Scale_ + Offset_, 4.0f );
+			BcVec3d Position( BcVec2d( (BcF32)X, (BcF32)Y ) * Scale_ + Offset_, 4.0f );
 			if( BSP_->checkPointBack( Position, 0.0f ) )
 			{
 				const BcU32 XYIdx = X + Y * W;
@@ -563,7 +573,7 @@ void GaWorldPressureComponent::updateTexture()
 {
 	BcScopedLogTimer ScopedTimer("Update Texture");
 
-	const BcReal Brightness = 2.5f;
+	const BcF32 Brightness = 2.5f;
 	// Update texture.
 	TDynamicMaterial& DynamicMaterial( DynamicMaterials_[ CurrMaterial_ ] );
 	RsTexture* pTexture = DynamicMaterial.WorldTexture3D_->getTexture();
@@ -612,7 +622,7 @@ void GaWorldPressureComponent::updateGlowTextures()
 			{
 				for( BcU32 X = 0; X < Width_; ++X )
 				{
-					BcVec3d Position( BcVec2d( (BcReal)X, (BcReal)Y ) * Scale_ + Offset_, 4.0f );
+					BcVec3d Position( BcVec2d( (BcF32)X, (BcF32)Y ) * Scale_ + Offset_, 4.0f );
 					BcU32 Value = 255;
 					
 					//if( BSP_->checkPointFront( Position, 0.25f ) )

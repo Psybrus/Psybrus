@@ -17,6 +17,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( GaEnemyComponent );
 
+BCREFLECTION_EMPTY_REGISTER( GaEnemyComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, GaEnemyComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void GaEnemyComponent::initialise( const Json::Value& Object )
@@ -32,10 +42,10 @@ void GaEnemyComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // GaEnemyComponent
 //virtual
-void GaEnemyComponent::update( BcReal Tick )
+void GaEnemyComponent::update( BcF32 Tick )
 {
 	// Find move vector.
-	BcReal MoveSpeed = 2.0f;
+	BcF32 MoveSpeed = 2.0f;
 	BcVec3d MoveVector;
 
 	PulseTimer_ += Tick;
@@ -61,7 +71,7 @@ void GaEnemyComponent::update( BcReal Tick )
 		}
 	}
 
-	BcReal PulseTime = 2.0f;
+	BcF32 PulseTime = 2.0f;
 
 	if( BSP_->canSeePlayer( Position ) )
 	{
@@ -143,7 +153,7 @@ void GaEnemyComponent::onDetach( ScnEntityWeakRef Parent )
 BcVec3d GaEnemyComponent::findLongestDirection()
 {
 	// Ray cast in the 4 directions to determine path.
-	BcReal LongestDistance = 0.0f;
+	BcF32 LongestDistance = 0.0f;
 	BcVec3d LongestDirection( 0.0f, 0.0f, 0.0f );
 	BcVec3d Directions[] =
 	{

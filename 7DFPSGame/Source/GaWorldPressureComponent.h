@@ -32,7 +32,7 @@ public:
 
 	BcForceInline ~BcScopedLogTimer()
 	{
-		BcReal Time = Timer_.time();
+		BcF32 Time = Timer_.time();
 		BcPrintf("BcScopedLogTimer: %s, %f ms\n", Text_.c_str(), Time * 1000.0f);
 	}
 
@@ -51,7 +51,7 @@ typedef CsResourceRef< class GaWorldPressureComponent > GaWorldPressureComponent
 // GaWorldPressureSample
 struct GaWorldPressureSample
 {
-	BcReal							Value_;
+	BcF32							Value_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,13 +75,13 @@ public:
 	virtual void						create__onAttach();
 	virtual void						destroy__onDetach();
 	virtual BcBool						isReady();
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
-	void								addSample( const BcVec3d& Position, BcReal Value );
-	void								setSample( const BcVec3d& Position, BcReal Value );
+	void								addSample( const BcVec3d& Position, BcF32 Value );
+	void								setSample( const BcVec3d& Position, BcF32 Value );
 
 	eEvtReturn							onReset( EvtID ID, const GaWorldResetEvent& Event );
 
@@ -101,10 +101,10 @@ private:
 	BcU32								Height_;
 	BcU32								Depth_;
 	BcU32								Detail_;
-	BcReal								AccumMultiplier_;
-	BcReal								Damping_;
+	BcF32								AccumMultiplier_;
+	BcF32								Damping_;
 
-	BcReal								Scale_;
+	BcF32								Scale_;
 	BcVec2d								Offset_;
 
 	GaWorldPressureSample*				pBuffers_[ 2 ];
