@@ -15,6 +15,7 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Renderer/RsCore.h"
+#include "System/Content/CsCore.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -99,7 +100,7 @@ void ScnViewComponent::initialise()
 	// NULL internals.
 	//pHeader_ = NULL;
 
-	setRenderMask( BcErrorCode );
+	setRenderMask( 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,6 +134,18 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 	Far_ = (BcF32)Object[ "far" ].asDouble();
 	HorizontalFOV_ = (BcF32)Object[ "hfov" ].asDouble();
 	VerticalFOV_ = (BcF32)Object[ "vfov" ].asDouble();
+
+	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
+	if( RenderMaskValue.type() != Json::nullValue )
+	{
+		setRenderMask( RenderMaskValue.asUInt() );
+	}
+
+	const Json::Value& RenderTargetValue = Object[ "rendertarget" ];
+	if( RenderTargetValue.type() != Json::nullValue )
+	{
+		RenderTarget_ = getPackage()->getPackageCrossRef( RenderTargetValue.asUInt() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,8 +179,16 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	RsContext* pContext = pFrame->getContext();
 
 	// Calculate the viewport.
-	const BcF32 Width = static_cast< BcF32 >( pContext->getWidth() );
-	const BcF32 Height = static_cast< BcF32 >( pContext->getHeight() );
+	BcF32 Width = static_cast< BcF32 >( pContext->getWidth() );
+	BcF32 Height = static_cast< BcF32 >( pContext->getHeight() );
+
+	// If we're using a render target, we want to use it for dimensions.
+	if( RenderTarget_.isValid() )
+	{
+		Width = RenderTarget_->getWidth();
+		Height = RenderTarget_->getHeight();
+	}
+
 	const BcF32 ViewWidth = Width_ * Width;
 	const BcF32 ViewHeight = Height_ * Height;
 	const BcF32 Aspect = ViewWidth / ViewHeight;
