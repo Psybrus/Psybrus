@@ -31,6 +31,8 @@ BCREFLECTION_DERIVED_END();
 // initialise
 void GaWorldInfoComponent::initialise( const Json::Value& Object )
 {
+	Super::initialise( Object );
+
 	Width_ = Object["width"].asUInt();
 	Height_ = Object["height"].asUInt();
 	Depth_ = Object["depth"].asUInt();

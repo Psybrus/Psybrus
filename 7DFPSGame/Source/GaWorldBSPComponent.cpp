@@ -42,6 +42,8 @@ BCREFLECTION_DERIVED_END();
 //virtual
 void GaWorldBSPComponent::initialise( const Json::Value& Object )
 {
+	Super::initialise( Object );
+
 	Json::Value Level = Object[ "level" ];
 	Json::Value IsEditor = Object[ "editor" ];
 
@@ -76,22 +78,6 @@ void GaWorldBSPComponent::initialise( const Json::Value& Object )
 	}
 
 	TextTimer_ = 0.0f;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void GaWorldBSPComponent::create()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void GaWorldBSPComponent::destroy()
-{
-
 }
 
 //////////////////////////////////////////////////////////////////////////

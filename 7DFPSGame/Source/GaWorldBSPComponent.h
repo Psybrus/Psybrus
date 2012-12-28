@@ -79,15 +79,13 @@ struct GaWorldBSPEdge
 
 //////////////////////////////////////////////////////////////////////////
 // GaWorldBSPComponent
-class GaWorldBSPComponent: public ScnRenderableComponent
+class GaWorldBSPComponent: public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, GaWorldBSPComponent );
+	DECLARE_RESOURCE( ScnComponent, GaWorldBSPComponent );
 
 public:
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
 	virtual BcBool						isReady();
 	virtual void						update( BcF32 Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
