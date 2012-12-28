@@ -35,7 +35,6 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 	void								setGain( BcF32 Gain );
 	void								setPitch( BcF32 Pitch );
@@ -45,7 +44,6 @@ public:
 
 
 	void								play( ScnSoundRef Sound );
-	void								play( const BcName& Package, const BcName& Name );
 
 	void								stopAll();
 

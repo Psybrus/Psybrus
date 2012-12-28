@@ -44,7 +44,9 @@ BCREFLECTION_DERIVED_END();
 //virtual
 void ScnSoundEmitterComponent::initialise()
 {
-	
+	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+	Gain_ = 1.0f;
+	Pitch_ = 1.0f;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,11 +54,7 @@ void ScnSoundEmitterComponent::initialise()
 //virtual
 void ScnSoundEmitterComponent::create()
 {
-	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-
-	// HACKS.
-	Gain_ = 0.5f;
-	Pitch_ = BcRandom::Global.randReal() * 0.05f + 1.0f;
+	Super::create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,14 +63,6 @@ void ScnSoundEmitterComponent::create()
 void ScnSoundEmitterComponent::destroy()
 {
 	BcAssertMsg( ChannelSoundMap_.size() == 0, "Sounds still playing on ScnSoundEmitterComponent whilst being destroyed! Reference count mismatch!" );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnSoundEmitterComponent::isReady()
-{
-	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,18 +86,6 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 	else
 	{
 		CsResource::release();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// play
-void ScnSoundEmitterComponent::play( const BcName& Package, const BcName& Name )
-{
-	// HACK.
-	ScnSoundRef Sound;
-	if( CsCore::pImpl()->requestResource( Package, Name, Sound ) )
-	{
-		play( Sound );
 	}
 }
 

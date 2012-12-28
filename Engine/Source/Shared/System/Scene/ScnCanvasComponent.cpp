@@ -53,9 +53,6 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
-
-	//
-	IsReady_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,7 +89,7 @@ void ScnCanvasComponent::create()
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
 	}
 
-	IsReady_ = BcTrue;
+	Super::create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -125,11 +122,11 @@ void ScnCanvasComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// getAABB
 //virtual
-BcBool ScnCanvasComponent::isReady()
+BcAABB ScnCanvasComponent::getAABB() const
 {
-	return IsReady_;
+	return BcAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -820,9 +817,12 @@ void ScnCanvasComponent::clear()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnCanvasComponent::update( BcF32 Tick )
+void ScnCanvasComponent::preUpdate( BcF32 Tick )
 {
 	Super::update( Tick );
+
+	// TODO: Clear in the pre-update tick.
+	//clear();
 }
 
 //////////////////////////////////////////////////////////////////////////

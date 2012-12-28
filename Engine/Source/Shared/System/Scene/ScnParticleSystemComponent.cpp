@@ -16,6 +16,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include "System/SysKernel.h"
+
 #include "Base/BcRandom.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,7 +64,8 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 	pParticleBuffer_ = NULL;
 	CurrentVertexBuffer_ = 0;
-	IsReady_ = BcFalse;
+
+	PotentialFreeParticle_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,8 +91,8 @@ void ScnParticleSystemComponent::create()
 	// Allocate particles.
 	pParticleBuffer_ = new ScnParticle[ NoofParticles_ ];
 	BcMemZero( pParticleBuffer_, sizeof( ScnParticle ) * NoofParticles_ );
-
-	IsReady_ = BcTrue;
+	
+	Super::create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,23 +122,31 @@ void ScnParticleSystemComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// getAABB
 //virtual
-BcBool ScnParticleSystemComponent::isReady()
+BcAABB ScnParticleSystemComponent::getAABB() const
 {
-	return IsReady_;
+	UpdateFence_.wait();
+
+	return AABB_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnParticleSystemComponent::update( BcF32 Tick )
+void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 {
-	// Allocate particles.
-	// NOTE: Once we have particle emitters setup properly instead of manually
-	//       doing it, we can have them update here, and then do async
-	//       updates.
+	Super::postUpdate( Tick );
+
+	UpdateFence_.increment();
+
+#if 1
+	typedef BcDelegate< void(*)( BcF32 ) > UpdateNodeDelegate;
+	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnParticleSystemComponent, &ScnParticleSystemComponent::updateParticles >( this );
+	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, Tick );
+#else
 	updateParticles( Tick );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,6 +166,9 @@ public:
 //virtual
 void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
+	// Wait for update fence.
+	UpdateFence_.wait();
+
 	// Grab vertex buffer and flip for next frame to use.
 	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
 	CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
@@ -173,7 +187,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		{
 			// Half size.
 			const BcVec2d HalfSize = Particle.Scale_ * 0.5f;
-
+			const BcF32 MaxHalfSize = BcMax( HalfSize.x(), HalfSize.y() );
 			BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
 			const BcVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
 
@@ -269,7 +283,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 			VertexF.U_ = UVBounds.x();
 			VertexF.V_ = UVBounds.y();
 			VertexF.RGBA_ = Colour;
-
+			
 			//
 			++NoofParticlesToRender;
 		}
@@ -280,28 +294,36 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	VertexBuffer.pVertexBuffer_->unlock();
 
 	// Draw particles last.
-	Sort.Layer_ = 15;
-
-	// Bind material.
-	if( IsLocalSpace_ )
+	if( NoofParticlesToRender > 0 )
 	{
-		MaterialComponent_->setParameter( WorldTransformParam_, getParentEntity()->getMatrix() );
+		Sort.Layer_ = 15;
+
+		// Bind material.
+		if( IsLocalSpace_ )
+		{
+			const BcMat4d& WorldTransform = getParentEntity()->getMatrix();
+			MaterialComponent_->setParameter( WorldTransformParam_, WorldTransform );
+		}
+		else
+		{
+			MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
+		}
+
+		// Set material parameters for view.
+		pViewComponent->setMaterialParameters( MaterialComponent_ );
+
+		// Bind material component.
+		MaterialComponent_->bind( pFrame, Sort );
+
+		// Setup render node.
+		ScnParticleSystemComponentRenderNode* pRenderNode = pFrame->newObject< ScnParticleSystemComponentRenderNode >();
+		pRenderNode->pPrimitive_ = VertexBuffer.pPrimitive_;
+		pRenderNode->NoofIndices_ = NoofParticlesToRender * 6;
+
+		// Add to frame.
+		pRenderNode->Sort_ = Sort;
+		pFrame->addRenderNode( pRenderNode );
 	}
-	else
-	{
-		MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
-	}
-
-	MaterialComponent_->bind( pFrame, Sort );
-
-	// Setup render node.
-	ScnParticleSystemComponentRenderNode* pRenderNode = pFrame->newObject< ScnParticleSystemComponentRenderNode >();
-	pRenderNode->pPrimitive_ = VertexBuffer.pPrimitive_;
-	pRenderNode->NoofIndices_ = NoofParticlesToRender * 6;
-
-	// Add to frame.
-	pRenderNode->Sort_ = Sort;
-	pFrame->addRenderNode( pRenderNode );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -321,6 +343,8 @@ void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Parent->detach( MaterialComponent_ );
 
+	MaterialComponent_ = NULL;
+
 	Super::onDetach( Parent );
 }
 
@@ -335,6 +359,9 @@ ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
 // allocParticle
 BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 {
+	// We can't be allocating whilst we're updating.
+	BcAssert( UpdateFence_.count() == 0 );
+
 	// TODO: Perhaps a free list of indices? Reordering of dead particles?
 	//       Either way I want the update to be cache friendly.
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
@@ -400,6 +427,8 @@ void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 	// TODO: Iterate over every "affector" at a time, rather than by particle.
 	// - See "updateParticle".
 
+	BcAABB FullAABB( BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ) );
+
 	// Not optimal, but clear code is clear. (For now...)
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
 	{
@@ -407,7 +436,26 @@ void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 
 		if( Particle.Alive_ )
 		{
+			// Update particle.
 			updateParticle( Particle, Tick );
+
+			// Expand AABB by particle's max bounds.
+			const BcF32 MaxHalfSize = BcMax( Particle.Scale_.x(), Particle.Scale_.y() ) * 0.5f;
+			FullAABB.expandBy( Particle.Position_ - BcVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
+			FullAABB.expandBy( Particle.Position_ + BcVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
 		}
 	}
+
+	// Transform AABB.
+	if( IsLocalSpace_ )
+	{
+		const BcMat4d& WorldTransform = getParentEntity()->getMatrix();
+		AABB_ = FullAABB.transform( WorldTransform );
+	}
+	else
+	{
+		AABB_ = FullAABB;
+	}
+
+	UpdateFence_.decrement();
 }

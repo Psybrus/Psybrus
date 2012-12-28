@@ -112,15 +112,6 @@ void ScnSound::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-//virtual
-BcBool ScnSound::isReady()
-{
-	// TODO: LOCK!!
-	return pSample_ != NULL || SsCore::pImpl() == NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
 SsSample* ScnSound::getSample()
 {
 	return pSample_;
@@ -135,6 +126,8 @@ void ScnSound::setup()
 	{
 		pSample_ = SsCore::pImpl()->createSample( pHeader_->SampleRate_, pHeader_->Channels_, pHeader_->Looping_, pSampleData_, SampleDataSize_ );
 	}
+
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////

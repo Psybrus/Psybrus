@@ -39,10 +39,9 @@ BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& 
 // Define resource internals.
 DEFINE_RESOURCE( ScnEntity );
 
-BCREFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnEntity )
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnEntity )
 	BCREFLECTION_MEMBER( ScnEntity,							Basis_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcMat4d,							Transform_,						bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcBool,							IsAttached_,					bcRFF_DEFAULT | bcRFF_TRANSIENT )
 BCREFLECTION_DERIVED_END();
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,11 +50,9 @@ void ScnEntity::initialise()
 {
 	Super::initialise();
 
-	// Setup buffered event proxy.
-	pEventProxy_ = new EvtProxyBuffered( this );	
-	
+	pEventProxy_ = NULL;
+
 	// NULL internals.
-	IsAttached_ = BcFalse;
 	pJsonObject_ = NULL;
 }
 
@@ -69,7 +66,6 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Basis_ = Basis->getBasisEntity();
 
 	// Copy over internals.
-	IsAttached_ = BcFalse;
 	pJsonObject_ = Basis_->pJsonObject_;
 	Transform_ = Basis_->Transform_;
 
@@ -107,8 +103,6 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		}
 	}
 
-	Super::initialise();
-
 	// Placeholder!
 	//serialiseProperties();
 }
@@ -117,7 +111,10 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 // create
 void ScnEntity::create()
 {
+	// Setup buffered event proxy.
+	pEventProxy_ = new EvtProxyBuffered( this );	
 
+	Super::create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -129,89 +126,48 @@ void ScnEntity::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
-BcBool ScnEntity::isReady()
-{
-	// TODO: Set a flag internally once stuff has loaded. Will I ever fucking get round to this!?
-	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-	{
-		ScnComponentRef& Component( *It );
-
-		if( Component.isReady() == BcFalse )
-		{
-			return BcFalse;
-		}
-	}
-
-	return pJsonObject_ != NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // update
 void ScnEntity::update( BcF32 Tick )
 {
-	// Dispatch all events.
-	pEventProxy_->dispatch();
-
 	// Update as component first.
 	Super::update( Tick );
 
-	// Process attach/detach.
-	processAttachDetach();
-
-	// Update components.
-	if( isReady() ) // DODGY HACK. We need to have a ready state & dirty it.
-	{
-		for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-		{
-			ScnComponentRef& Component( *It );
-	
-			Component->update( Tick );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// render
-void ScnEntity::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
-{
-	// Set all material parameters that the view has info on. (HACK).
-	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-	{
-		ScnMaterialComponentRef MaterialComponent( *It );
-		if( MaterialComponent.isValid() )
-		{
-			pViewComponent->setMaterialParameters( MaterialComponent );
-		}
-	}
-
-	// Render all renderable components.
-	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-	{
-		ScnRenderableComponentWeakRef RenderableComponent( *It );
-		if( RenderableComponent.isValid() )
-		{
-			RenderableComponent->render( pViewComponent, pFrame, Sort );
-		}
-	}
+	// Dispatch all events.
+	pEventProxy_->dispatch();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // attach
 void ScnEntity::attach( ScnComponent* Component )
 {
-	BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
+	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
+	if( It == Components_.end() )
+	{
+		BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
 
-	AttachComponents_.push_back( Component );
+		Component->setParentEntity( ScnEntityWeakRef( this ) );
+		Component->setFlag( scnCF_PENDING_ATTACH );
+		Components_.push_back( Component );
+	
+		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
-	BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
+	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
+	if( It != Components_.end() )
+	{
+		BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
+		BcAssertMsg( !Component->isFlagSet( scnCF_PENDING_ATTACH ), "Component is currently pending attachment!" )
 
-	DetachComponents_.push_back( Component );
+		Component->setFlag( scnCF_PENDING_DETACH );
+		Components_.erase( It );
+
+		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -227,54 +183,20 @@ void ScnEntity::detachFromParent()
 void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
-
-	// Process attach/detach.
-	processAttachDetach();
-
-	BcAssert( IsAttached_ == BcFalse );
-	IsAttached_ = BcTrue;
-
-	// Do onAttachComponent for all entities current components.
-	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
-	{
-		ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), getComponent( Idx ) );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onAttachScene
 void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
-	// All components, get rid of NOW.
-	// TODO: See about removing stuff from ScnCore for this.
-
-	// Do onDetachComponent for all entities current components.
-	for( BcU32 Idx = 0; Idx < getNoofComponents(); ++Idx )
+	// All our child components want to detach.
+	while( Components_.size() > 0 )
 	{
-		ScnComponentRef Component( getComponent( Idx ) );
-
-		// Can be unattached if the entity has been immediately removed from the scene.
-		if( Component->isAttached() == BcTrue )
-		{
-			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
-			Component->onDetach( ScnEntityWeakRef( this ) );
-		}
+		ScnComponentRef Component( *Components_.begin() );
+		detach( Component );
 	}
 
-	// We should do this...is this right?
-	Components_.clear();
-
 	Super::onDetach( Parent );
-
-	BcAssert( IsAttached_ == BcTrue );
-	IsAttached_ = BcFalse;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isAttached
-BcBool ScnEntity::isAttached() const
-{
-	return IsAttached_ || Super::isAttached();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -295,7 +217,7 @@ ScnEntityRef ScnEntity::getBasisEntity()
 // getNoofComponents
 BcU32 ScnEntity::getNoofComponents() const
 {
-	return Components_.size() + AttachComponents_.size();
+	return Components_.size();
 }
 	
 //////////////////////////////////////////////////////////////////////////
@@ -312,17 +234,9 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 				return Components_[ ComponentIdx ];
 			}
 		}
-		for( BcU32 ComponentIdx = 0; ComponentIdx < AttachComponents_.size(); ++ComponentIdx )
-		{
-			if( CurrIdx++ == Idx )
-			{
-				return AttachComponents_[ ComponentIdx ];
-			}
-		}
 	}
 	else
 	{
-		// HACK: Seperate into seperate function.
 		BcU32 NoofComponents = getNoofComponents();
 		BcU32 SearchIdx = 0;
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
@@ -386,20 +300,6 @@ const BcMat4d& ScnEntity::getMatrix() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getAABB
-BcAABB ScnEntity::getAABB()
-{
-	BcAABB AABB;
-	
-	for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-	{
-		AABB.expandBy( (*It)->getAABB() );
-	}
-	
-	return AABB;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnEntity::fileReady()
 {
@@ -414,93 +314,5 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( ChunkID == BcHash( "object" ) )
 	{
 		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// processAttachDetach
-void ScnEntity::processAttachDetach()
-{
-	// Detach first.
-	while( DetachComponents_.size() > 0 )
-	{
-		for( ScnComponentListIterator It( DetachComponents_.begin() ); It != DetachComponents_.end(); )
-		{
-			ScnComponentRef Component( (*It) );
-			DetachComponents_.erase( It );
-			internalDetach( Component );
-			It = DetachComponents_.begin();
-		}
-	}
-
-	// Attach second.
-	while( AttachComponents_.size() > 0 )
-	{
-		for( ScnComponentListIterator It( AttachComponents_.begin() ); It != AttachComponents_.end(); )
-		{
-			ScnComponentRef Component( (*It) );
-			AttachComponents_.erase( It );
-			internalAttach( Component );
-			It = AttachComponents_.begin();
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalAttach
-void ScnEntity::internalAttach( ScnComponent* Component )
-{
-	BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
-
-	// If we're not attached to ourself, bail.
-	if( Component->isAttached( this ) == BcFalse )
-	{
-		BcAssertMsg( Component->isAttached() == BcFalse, "Component is attached to another entity!" );
-
-		// Call the on detach.
-		Component->onAttach( ScnEntityWeakRef( this ) );
-
-		// Put into component list.
-		Components_.push_back( Component );
-
-		// Tell the scene about it.
-		if( isAttached() == BcTrue )
-		{
-			ScnCore::pImpl()->onAttachComponent( ScnEntityWeakRef( this ), Component );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalDetach
-void ScnEntity::internalDetach( ScnComponent* Component )
-{
-	BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
-
-	// If component isn't attached, don't worry. Only a warning?
-	if( Component->isAttached() == BcTrue )
-	{
-		BcAssertMsg( Component->isAttached( this ) == BcTrue, "Component isn't attached to this entity!" );
-		// Call the on detach.
-		Component->onDetach( ScnEntityWeakRef( this ) );
-
-		// Remove from the list.
-		for( ScnComponentListIterator It( Components_.begin() ); It != Components_.end(); ++It )
-		{
-			ScnComponentRef& ListComponent( *It );
-
-			if( ListComponent == Component )
-			{
-				// Remove from component list.
-				Components_.erase( It );
-				break;
-			}
-		}
-
-		// Tell the scene about it.
-		if( isAttached() )
-		{
-			ScnCore::pImpl()->onDetachComponent( ScnEntityWeakRef( this ), Component );
-		}
 	}
 }

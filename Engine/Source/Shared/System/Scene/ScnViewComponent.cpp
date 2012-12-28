@@ -94,6 +94,8 @@ BCREFLECTION_DERIVED_END();
 // initialise
 void ScnViewComponent::initialise()
 {
+	Super::initialise();
+
 	// NULL internals.
 	//pHeader_ = NULL;
 
@@ -134,30 +136,6 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnViewComponent::create()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnViewComponent::destroy()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnViewComponent::isReady()
-{
-	return BcTrue;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setMaterialParameters
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialComponent )
 {
@@ -168,10 +146,17 @@ void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialCo
 
 //////////////////////////////////////////////////////////////////////////
 // getWorldPosition
-void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far )
+void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const
 {
 	// NOTE: Uses last viewport bound.
 	Viewport_.unProject( ScreenPosition, Near, Far );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bind
+const RsViewport& ScnViewComponent::getViewport() const
+{
+	return Viewport_;
 }
 
 //////////////////////////////////////////////////////////////////////////

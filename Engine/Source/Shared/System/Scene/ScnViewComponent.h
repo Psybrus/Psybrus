@@ -36,7 +36,6 @@ class ScnViewComponent:
 {
 public:
 	DECLARE_RESOURCE( ScnComponent, ScnViewComponent );
-	DECLARE_VISITABLE( ScnViewComponent );
 
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -44,13 +43,10 @@ public:
 	void								initialise();
 	void								initialise( BcF32 X, BcF32 Y, BcF32 Width, BcF32 Height, BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV );
 	virtual void						initialise( const Json::Value& Object );
-	
-	virtual void						create();
-	virtual void						destroy();
-	virtual BcBool						isReady();
 
 	void								setMaterialParameters( ScnMaterialComponentRef MaterialComponent );
-	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far );
+	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
+	const RsViewport&					getViewport() const;
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	

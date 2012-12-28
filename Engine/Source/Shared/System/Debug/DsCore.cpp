@@ -110,7 +110,10 @@ void DsCore::cmdScene( std::string& Output )
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
 	{
-		cmdScene_Entity( Entity, Output, 0 );
+		if( !Entity->getParentEntity().isValid() )
+		{
+			cmdScene_Entity( Entity, Output, 0 );
+		}
 	}
 }
 
@@ -174,6 +177,15 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 	Output += "</li>";
 	Output += "</ul>";
 
+	Output += "</ul>";
+
+	BcChar Buffer[ 1024 ];
+
+	Output += "<ul>";
+	Output += "<li>Ref Count:";
+	BcSPrintf( Buffer, "%u", Component->refCount() );
+	Output += Buffer;
+	Output += "</li>";
 	Output += "</ul>";
 }
 

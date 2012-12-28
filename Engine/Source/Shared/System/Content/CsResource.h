@@ -31,20 +31,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Helper defines.
-#define DECLARE_CSRESOURCE														\
-	BCREFLECTION_DECLARE_BASE( CsResource )										
-
-#define DEFINE_CSRESOURCE														\
-	BCREFLECTION_DEFINE_BASE( CsResource )										\
-
 #define DECLARE_RESOURCE( _Base, _Type )										\
 	BCREFLECTION_DECLARE_DERIVED( _Base, _Type )								\
 	protected:																	\
 	_Type();																	\
 	virtual ~_Type();															\
-	public:																		\
-	static CsResource* StaticAllocResource();									\
-	static void StaticFreeResource( CsResource* pResource );					
+	public:																		
 
 #define DEFINE_RESOURCE( _Type )												\
 	BCREFLECTION_DEFINE_DERIVED( _Type )										\
@@ -53,18 +45,8 @@
 	}																			\
 																				\
 	_Type::~_Type()																\
-	{}																			\
-																				\
-	CsResource* _Type::StaticAllocResource()									\
-	{																			\
-		return new _Type();														\
-	}																			\
-																				\
-	void _Type::StaticFreeResource( CsResource* pResource )						\
-	{																			\
-		delete pResource;														\
-	}																			\
-
+	{}																			
+																				
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class CsPackage;
@@ -72,16 +54,10 @@ class CsResource;
 class CsCore;
 
 //////////////////////////////////////////////////////////////////////////
-// Typedefs
-typedef CsResource*( *CsResourceAllocFunc )();
-typedef void( *CsResourceFreeFunc )( CsResource* );
-
-//////////////////////////////////////////////////////////////////////////
 // CsResource
 class CsResource
 {
-public:
-	DECLARE_CSRESOURCE;
+	BCREFLECTION_DECLARE_BASE( CsResource );
 	
 private:
 	CsResource( const CsResource& ){}
@@ -122,9 +98,8 @@ public:
 
 	/**
 	 * Are we ready to use?<br/>
-	 * Should return true *only* when a resource is fully ready to use.
 	 */
-	virtual BcBool					isReady();
+	BcBool							isReady();
 
 	/**
 	 * File is ready.
@@ -139,11 +114,13 @@ public:
 public:
 	/**
 	 * Acquire resource.
+	 * TODO: Deprecate.
 	 */
 	void							acquire();
 
 	/**
 	 * Release resource.
+	 * TODO: Deprecate.
 	 */
 	void							release();
 
@@ -198,6 +175,11 @@ protected:
 	 */
 	BcU32							getNoofChunks() const;
 
+	/**
+	 * Mark as ready.
+	 */
+	void							markReady();
+
 private:
 	friend class CsCore;
 	friend class CsPackageLoader;
@@ -212,7 +194,8 @@ private:
 	CsPackage*						pPackage_;
 	
 	//
-	BcAtomicU32						RefCount_;
+	BcAtomicU32						RefCount_;	// TODO: Deprecate.
+	BcAtomicU32						IsReady_;
 };
 
 //////////////////////////////////////////////////////////////////////////

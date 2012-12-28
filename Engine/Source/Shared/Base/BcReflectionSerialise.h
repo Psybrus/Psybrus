@@ -31,13 +31,11 @@ public:
 	}
 
 	virtual void					serialise( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseBeginClass( const BcReflectionClass* pClass );
-	virtual void					serialiseEndClass( const BcReflectionClass* pClass );
-	virtual void					serialiseClassFields( const BcReflectionClass* pClass );
-	virtual void					serialiseField( const BcReflectionClass* pParentClass, const BcReflectionField* pField );
-
-protected:
-	void*							pData_;
+	virtual void					serialiseClass( void* pData, const BcReflectionClass* pClass );
+	virtual void					serialiseBeginClass( void* pData, const BcReflectionClass* pClass );
+	virtual void					serialiseEndClass( void* pData, const BcReflectionClass* pClass );
+	virtual void					serialiseClassFields( void* pData, const BcReflectionClass* pClass );
+	virtual void					serialiseField( void* pData, const BcReflectionClass* pParentClass, const BcReflectionField* pField );
 };
 
 #endif

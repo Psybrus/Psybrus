@@ -31,11 +31,11 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public ScnRenderableComponent,
+	public ScnComponent,
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, ScnEntity );
+	DECLARE_RESOURCE( ScnComponent, ScnEntity );
 	
 #if PSY_SERVER
 	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -44,22 +44,15 @@ public:
 	void								initialise( ScnEntityRef Basis );
 	void								create();
 	void								destroy();
-	BcBool								isReady();
 
 public:
 	void								update( BcF32 Tick );
-	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );
 	void								onAttach( ScnEntityWeakRef Parent );
 	void								onDetach( ScnEntityWeakRef Parent );
 	void								detachFromParent();
 	
-	/**
-	 * Are we attached to the scene?
-	 */
-	BcBool								isAttached() const;
-
 	/**
 	 * Get basis entity.
 	 */
@@ -99,11 +92,6 @@ public:
 	}
 
 	/**
- 	 * Get AABB which encompasses this entity.
-	 */
-	BcAABB								getAABB();
-
-	/**
 	 * Set position.
 	 */
 	void								setPosition( const BcVec3d& Position );
@@ -128,24 +116,14 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	void								processAttachDetach();
-	void								internalAttach( ScnComponent* Component );
-	void								internalDetach( ScnComponent* Component );
-
-protected:
 	const BcChar*						pJsonObject_; // TEMP.
 
 	ScnEntityRef						Basis_;
 	BcMat4d								Transform_;
 
 	ScnComponentList					Components_;
-	ScnComponentList					AttachComponents_;
-	ScnComponentList					DetachComponents_;
-
+	
 	EvtProxyBuffered*					pEventProxy_;
-
-private:
-	BcBool								IsAttached_;
 };
 
 #endif

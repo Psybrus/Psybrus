@@ -56,10 +56,8 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 
 	ScnTextureRef						getTexture( BcName Name );
-
 
 private:
 	void								fileReady();
@@ -113,8 +111,6 @@ public:
 	
 	void								bind( RsFrame* pFrame, RsRenderSort& Sort );
 
-	virtual BcBool						isReady();
-
 public:
 	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
@@ -160,6 +156,9 @@ private:
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
 	BcU32								EyePositionParameter_;
+
+public:
+	SysFence							UpdateFence_;
 };
 
 #endif

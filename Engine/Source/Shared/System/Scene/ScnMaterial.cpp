@@ -197,22 +197,6 @@ void ScnMaterial::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnMaterial::isReady()
-{
-	for( ScnTextureMapIterator Iter( TextureMap_.begin() ); Iter != TextureMap_.end(); ++Iter )
-	{
-		if( (*Iter).second->isReady() == BcFalse )
-		{
-			return BcFalse;
-		}
-	}
-	
-	return Shader_.isReady() && pStateBuffer_ != NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getTexture
 ScnTextureRef ScnMaterial::getTexture( BcName Name )
 {
@@ -256,6 +240,9 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	else if( ChunkID == BcHash( "stateblock" ) )
 	{
 		pStateBuffer_ = (BcU32*)pData;
+
+		// Mark as ready.
+		markReady();
 	}
 }
 
@@ -277,6 +264,8 @@ BCREFLECTION_DERIVED_END();
 // initialise
 void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationFlags )
 {
+	Super::initialise();
+
 	BcAssert( Parent.isReady() );
 
 	// Cache parent and program.
@@ -332,8 +321,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 // initialise
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
-	ScnMaterialRef MaterialRef;
-	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	ScnMaterialRef MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
 	BcU32 PermutationFlags = 0;
 	const BcChar* pPermutation = Object[ "permutation" ].asCString();
 
@@ -358,6 +346,8 @@ void ScnMaterialComponent::destroy()
 	
 	delete pParameterBuffer_;
 	pParameterBuffer_ = NULL;
+
+	Parent_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -729,6 +719,8 @@ public:
 		
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
+
+		pUpdateFence_->decrement();
 	}
 	
 	RsProgram* pProgram_;
@@ -744,6 +736,10 @@ public:
 	// State buffer.
 	BcU32* pStateBuffer_;
 	
+	// Update fence (for marking when in use/not)
+	// TODO: Make this a generic feature of the component system?
+	SysFence* pUpdateFence_;
+
 	// For debugging.
 	ScnMaterialComponent* pParent_;
 };
@@ -758,7 +754,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Default texture parameters.
 	RsTextureParams DefaultTextureParams = 
 	{
-		rsTFM_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
+		rsTFM_LINEAR_MIPMAP_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
 	};
 	
 	// Allocate a render node.
@@ -801,25 +797,13 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * rsRS_MAX );
 	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
 	
+	pRenderNode->pUpdateFence_ = &UpdateFence_;
+
+	UpdateFence_.increment();
+
 	// Add node to frame.
 	pRenderNode->Sort_ = Sort;
 	pFrame->addRenderNode( pRenderNode );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnMaterialComponent::isReady()
-{
-	for( BcU32 Idx = 0; Idx < TextureBindingList_.size(); ++Idx )
-	{
-		if( TextureBindingList_[ Idx ].Texture_->isReady() == BcFalse )
-		{
-			return BcFalse;
-		}
-	}
-	
-	return Parent_.isReady() && pProgram_->getHandle< BcU64 >() != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -843,5 +827,7 @@ void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UpdateFence_.wait();
+
 	ScnComponent::onDetach( Parent );
 }

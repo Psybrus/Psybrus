@@ -39,7 +39,6 @@ public:
 	virtual void						initialise( BcU32 Width, BcU32 Height );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 	void								bind( RsFrame* pFrame );
 	void								unbind( RsFrame* pFrame );

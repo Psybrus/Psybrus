@@ -19,6 +19,25 @@
 #include "Base/BcQuat.h"
 #include "Base/BcMisc.h"
 
+// Base types must exist before anything else uses the database.
+BcReflectionType TYPE_BcU8( "BcU8", sizeof( BcU8 ), BcReflectionConstruct< BcU8 >, BcReflectionDestruct< BcU8 > );
+BcReflectionType TYPE_BcS8( "BcS8", sizeof( BcS8 ), BcReflectionConstruct< BcS8 >, BcReflectionDestruct< BcS8 > );
+BcReflectionType TYPE_BcU16( "BcU16", sizeof( BcU16 ), BcReflectionConstruct< BcU16 >, BcReflectionDestruct< BcU16 > );
+BcReflectionType TYPE_BcS16( "BcS16", sizeof( BcS16 ), BcReflectionConstruct< BcS16 >, BcReflectionDestruct< BcS16 > );
+BcReflectionType TYPE_BcU32( "BcU32", sizeof( BcU32 ), BcReflectionConstruct< BcU32 >, BcReflectionDestruct< BcU32 > );
+BcReflectionType TYPE_BcS32( "BcS32", sizeof( BcS32 ), BcReflectionConstruct< BcS32 >, BcReflectionDestruct< BcS32 > );
+BcReflectionType TYPE_BcU64( "BcU64", sizeof( BcU64 ), BcReflectionConstruct< BcU64 >, BcReflectionDestruct< BcU64 > );
+BcReflectionType TYPE_BcS64( "BcS64", sizeof( BcS64 ), BcReflectionConstruct< BcS64 >, BcReflectionDestruct< BcS64 > );
+BcReflectionType TYPE_BcF32( "BcF32", sizeof( BcF32 ), BcReflectionConstruct< BcF32 >, BcReflectionDestruct< BcF32 > );
+BcReflectionType TYPE_BcF64( "BcF64", sizeof( BcF64 ), BcReflectionConstruct< BcF64 >, BcReflectionDestruct< BcF64 > );
+BcReflectionType TYPE_BcChar( "BcChar", sizeof( BcChar ), BcReflectionConstruct< BcChar >, BcReflectionDestruct< BcChar > );
+BcReflectionType TYPE_BcBool( "BcBool", sizeof( BcBool ), BcReflectionConstruct< BcBool >, BcReflectionDestruct< BcBool > );
+BcReflectionType TYPE_BcHandle( "BcHandle", sizeof( BcHandle ), BcReflectionConstruct< BcHandle >, BcReflectionDestruct< BcHandle > );
+BcReflectionType TYPE_BcSize( "BcSize", sizeof( BcSize ), BcReflectionConstruct< BcSize >, BcReflectionDestruct< BcSize > );
+BcReflectionType TYPE_BcName( "BcName", sizeof( BcName ), BcReflectionConstruct< BcName >, BcReflectionDestruct< BcName > );
+BcReflectionType TYPE_BcHash( "BcHash", sizeof( BcHash ), BcReflectionConstruct< BcHash >, BcReflectionDestruct< BcHash > );
+
+
 //////////////////////////////////////////////////////////////////////////
 // RTTI for reflection primitives.
 BCREFLECTION_DEFINE_BASE( BcReflectionPrimitive );
@@ -62,9 +81,14 @@ BCREFLECTION_DERIVED_BEGIN( BcReflectionPrimitive, BcReflectionType )
 	BCREFLECTION_MEMBER( BcU32,							Size_,							bcRFF_DEFAULT )
 BCREFLECTION_DERIVED_END();
 
-BcReflectionType::BcReflectionType( const BcName& Name, BcU32 Size ):
+BcReflectionType::BcReflectionType( const BcName& Name,
+	                                BcU32 Size,
+									BcReflectionConstructFunc constructFunc,
+									BcReflectionDestructFunc destructFunc ):
 	BcReflectionPrimitive( Name ),
-	Size_( Size )
+	Size_( Size ),
+	constructFunc_( constructFunc ),
+	destructFunc_( destructFunc )
 {
 
 }
@@ -94,8 +118,11 @@ BCREFLECTION_DERIVED_BEGIN( BcReflectionType, BcReflectionEnum )
 	BCREFLECTION_MEMBER( BcU32,							NoofEnumConstants_,				bcRFF_DEFAULT )
 BCREFLECTION_DERIVED_END();
 
-BcReflectionEnum::BcReflectionEnum( const BcName& Name, BcU32 Size ):
-	BcReflectionType( Name, Size )
+BcReflectionEnum::BcReflectionEnum( const BcName& Name,
+	                                BcU32 Size,
+	                                BcReflectionConstructFunc constructFunc,
+	                                BcReflectionDestructFunc destructFunc ):
+	BcReflectionType( Name, Size, constructFunc, destructFunc )
 {
 
 }
@@ -140,8 +167,14 @@ BCREFLECTION_DERIVED_BEGIN( BcReflectionType, BcReflectionClass )
 	BCREFLECTION_MEMBER( BcU32,							NoofFields_,					bcRFF_DEFAULT )
 BCREFLECTION_DERIVED_END();
 
-BcReflectionClass::BcReflectionClass( const BcName& Name, BcU32 Size, const BcName Super, const BcReflectionField* pFields, BcU32 NoofFields ):
-	BcReflectionType( Name, Size ),
+BcReflectionClass::BcReflectionClass( const BcName& Name,
+                                      BcU32 Size,
+                                      BcReflectionConstructFunc constructFunc,
+                                      BcReflectionDestructFunc destructFunc,
+                                      const BcName Super,
+                                      const BcReflectionField* pFields,
+                                      BcU32 NoofFields ):
+ 	BcReflectionType( Name, Size, constructFunc, destructFunc ),
 	Super_( Super ),
 	pFields_( pFields ),
 	NoofFields_( NoofFields )
@@ -151,13 +184,24 @@ BcReflectionClass::BcReflectionClass( const BcName& Name, BcU32 Size, const BcNa
 
 const BcReflectionClass* BcReflectionClass::getSuper() const
 {
-	const BcReflectionType* pType = BcReflection::pImpl()->getType( Super_ );
-	if( pType != NULL )
+	return BcReflection::pImpl()->getClass( Super_ );
+}
+
+const BcBool BcReflectionClass::isTypeOfClass( const BcReflectionClass* pClass ) const
+{
+	if( this == pClass )
 	{
-		BcAssert( pType->isTypeOf< BcReflectionClass >() );
-		return static_cast< const BcReflectionClass* >( pType );
+		return BcTrue;
 	}
-	return NULL;
+	else
+	{
+		const BcReflectionClass* pSuperClass = getSuper();
+		if( pSuperClass != NULL )
+		{
+			return pSuperClass->isTypeOfClass( pClass );
+		}
+	}
+	return BcFalse;
 }
 
 const BcReflectionField* BcReflectionClass::getField( BcU32 Idx ) const
@@ -186,40 +230,22 @@ void BcReflectionClass::log() const
 // Ctor
 BcReflection::BcReflection()
 {
-	// Base types must exist before anything else uses the database.
-	static BcReflectionType Type_BcU8( "BcU8", sizeof( BcU8 ) );
-	static BcReflectionType Type_BcS8( "BcS8", sizeof( BcS8 ) );
-	static BcReflectionType Type_BcU16( "BcU16", sizeof( BcU16 ) );
-	static BcReflectionType Type_BcS16( "BcS16", sizeof( BcS16 ) );
-	static BcReflectionType Type_BcU32( "BcU32", sizeof( BcU32 ) );
-	static BcReflectionType Type_BcS32( "BcS32", sizeof( BcS32 ) );
-	static BcReflectionType Type_BcU64( "BcU64", sizeof( BcU64 ) );
-	static BcReflectionType Type_BcS64( "BcS64", sizeof( BcS64 ) );
-	static BcReflectionType Type_BcF32( "BcF32", sizeof( BcF32 ) );
-	static BcReflectionType Type_BcF64( "BcF64", sizeof( BcF64 ) );
-	static BcReflectionType Type_BcChar( "BcChar", sizeof( BcChar ) );
-	static BcReflectionType Type_BcBool( "BcBool", sizeof( BcBool ) );
-	static BcReflectionType Type_BcHandle( "BcHandle", sizeof( BcHandle ) );
-	static BcReflectionType Type_BcSize( "BcSize", sizeof( BcSize ) );
-	static BcReflectionType Type_BcName( "BcName", sizeof( BcName ) );
-	static BcReflectionType Type_BcHash( "BcHash", sizeof( BcHash ) );
-
-	addType( &Type_BcU8 );
-	addType( &Type_BcS8 );
-	addType( &Type_BcU16 );
-	addType( &Type_BcS16 );
-	addType( &Type_BcU32 );
-	addType( &Type_BcS32 );
-	addType( &Type_BcU64 );
-	addType( &Type_BcS64 );
-	addType( &Type_BcF32 );
-	addType( &Type_BcF64 );
-	addType( &Type_BcChar );
-	addType( &Type_BcBool );
-	addType( &Type_BcHandle );
-	addType( &Type_BcSize );
-	addType( &Type_BcName );
-	addType( &Type_BcHash );
+	addType( &TYPE_BcU8 );
+	addType( &TYPE_BcS8 );
+	addType( &TYPE_BcU16 );
+	addType( &TYPE_BcS16 );
+	addType( &TYPE_BcU32 );
+	addType( &TYPE_BcS32 );
+	addType( &TYPE_BcU64 );
+	addType( &TYPE_BcS64 );
+	addType( &TYPE_BcF32 );
+	addType( &TYPE_BcF64 );
+	addType( &TYPE_BcChar );
+	addType( &TYPE_BcBool );
+	addType( &TYPE_BcHandle );
+	addType( &TYPE_BcSize );
+	addType( &TYPE_BcName );
+	addType( &TYPE_BcHash );
 
 	// Vector types.
 	static BcReflectionField Fields_BcVec2d[] =
@@ -243,9 +269,9 @@ BcReflection::BcReflection()
 		BcReflectionField( "W_", "BcF32", 3 * sizeof( BcF32 ), bcRFF_DEFAULT )
 	};
 
-	static BcReflectionClass Class_BcVec2d( "BcVec2d", sizeof( BcVec2d ), BcName::NONE, Fields_BcVec2d, BcArraySize( Fields_BcVec2d ) );
-	static BcReflectionClass Class_BcVec3d( "BcVec3d", sizeof( BcVec3d ), BcName::NONE, Fields_BcVec3d, BcArraySize( Fields_BcVec3d ) );
-	static BcReflectionClass Class_BcVec4d( "BcVec4d", sizeof( BcVec4d ), BcName::NONE, Fields_BcVec4d, BcArraySize( Fields_BcVec4d ) );
+	static BcReflectionClass Class_BcVec2d( "BcVec2d", sizeof( BcVec2d ), BcReflectionConstruct< BcVec2d >, BcReflectionDestruct< BcVec2d >, BcName::NONE, Fields_BcVec2d, BcArraySize( Fields_BcVec2d ) );
+	static BcReflectionClass Class_BcVec3d( "BcVec3d", sizeof( BcVec3d ), BcReflectionConstruct< BcVec3d >, BcReflectionDestruct< BcVec3d >, BcName::NONE, Fields_BcVec3d, BcArraySize( Fields_BcVec3d ) );
+	static BcReflectionClass Class_BcVec4d( "BcVec4d", sizeof( BcVec4d ), BcReflectionConstruct< BcVec4d >, BcReflectionDestruct< BcVec4d >, BcName::NONE, Fields_BcVec4d, BcArraySize( Fields_BcVec4d ) );
 
 	addType( &Class_BcVec2d );
 	addType( &Class_BcVec3d );
@@ -260,7 +286,7 @@ BcReflection::BcReflection()
 		BcReflectionField( "W_", "BcF32", 3 * sizeof( BcF32 ), bcRFF_DEFAULT )
 	};
 
-	static BcReflectionClass Class_BcQuat( "BcQuat", sizeof( BcQuat ), BcName::NONE, Fields_BcQuat, BcArraySize( Fields_BcQuat ) );
+	static BcReflectionClass Class_BcQuat( "BcQuat", sizeof( BcQuat ), BcReflectionConstruct< BcQuat >, BcReflectionDestruct< BcQuat >, BcName::NONE, Fields_BcQuat, BcArraySize( Fields_BcQuat ) );
 
 	addType( &Class_BcQuat );
 
@@ -280,8 +306,8 @@ BcReflection::BcReflection()
 		BcReflectionField( "Row3_", "BcVec4d", 3 * sizeof( BcVec4d ), bcRFF_DEFAULT )
 	};
 
-	static BcReflectionClass Class_BcMat3d( "BcMat3d", sizeof( BcMat3d ), BcName::NONE, Fields_BcMat3d, BcArraySize( Fields_BcMat3d ) );
-	static BcReflectionClass Class_BcMat4d( "BcMat4d", sizeof( BcMat4d ), BcName::NONE, Fields_BcMat4d, BcArraySize( Fields_BcMat4d ) );
+	static BcReflectionClass Class_BcMat3d( "BcMat3d", sizeof( BcMat3d ), BcReflectionConstruct< BcMat3d >, BcReflectionDestruct< BcMat3d >, BcName::NONE, Fields_BcMat3d, BcArraySize( Fields_BcMat3d ) );
+	static BcReflectionClass Class_BcMat4d( "BcMat4d", sizeof( BcMat4d ), BcReflectionConstruct< BcMat4d >, BcReflectionDestruct< BcMat4d >, BcName::NONE, Fields_BcMat4d, BcArraySize( Fields_BcMat4d ) );
 
 	addType( &Class_BcMat3d );
 	addType( &Class_BcMat4d );
@@ -307,9 +333,35 @@ BcReflection::~BcReflection()
 void BcReflection::addType( const BcReflectionType* pType )
 {
 	BcAssert( BcIsGameThread() );
-	TTypeMap::iterator It = Types_.find( pType->getName() );
-	BcAssertMsg( It == Types_.end(), "BcReflection: Type already exists!" );
-	Types_[ pType->getName() ] = pType;
+	TTypeMap::iterator It = TypeMap_.find( pType->getName() );
+	BcAssertMsg( It == TypeMap_.end(), "BcReflection: Type already exists!" );
+	TypeMap_[ pType->getName() ] = pType;
+	TypeList_.push_back( pType );
+
+	// Add to class list for quick look up.
+	if( pType->isTypeOf< BcReflectionClass >() )
+	{
+		const BcReflectionClass* pClass = static_cast< const BcReflectionClass* >( pType );
+		ClassMap_[ pClass->getName() ] = pClass;
+		ClassList_.push_back( pClass );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofTypes
+BcU32 BcReflection::getNoofTypes()
+{
+	BcAssert( BcIsGameThread() );
+	return static_cast< BcU32 >( TypeList_.size() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getType
+const BcReflectionType* BcReflection::getType( BcU32 Idx )
+{
+	BcAssert( BcIsGameThread() );
+	BcAssertMsg( Idx < TypeList_.size(), "BcReflection: Index out of range." );
+	return TypeList_[ Idx ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -317,8 +369,39 @@ void BcReflection::addType( const BcReflectionType* pType )
 const BcReflectionType* BcReflection::getType( const BcName& Type )
 {
 	BcAssert( BcIsGameThread() );
-	TTypeMap::iterator It = Types_.find( Type );
-	if( It != Types_.end() )
+	TTypeMap::iterator It = TypeMap_.find( Type );
+	if( It != TypeMap_.end() )
+	{
+		return (*It).second;
+	}
+
+	return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofClasses
+BcU32 BcReflection::getNoofClasses()
+{
+	BcAssert( BcIsGameThread() );
+	return static_cast< BcU32 >( ClassList_.size() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getClass
+const BcReflectionClass* BcReflection::getClass( BcU32 Idx )
+{
+	BcAssert( BcIsGameThread() );
+	BcAssertMsg( Idx < ClassList_.size(), "BcReflection: Index out of range." );
+	return ClassList_[ Idx ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getClass
+const BcReflectionClass* BcReflection::getClass( const BcName& Class )
+{
+	BcAssert( BcIsGameThread() );
+	TClassMap::iterator It = ClassMap_.find( Class );
+	if( It != ClassMap_.end() )
 	{
 		return (*It).second;
 	}

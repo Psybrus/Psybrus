@@ -243,6 +243,7 @@ private:
 	BcF32						SleepAccumulator_;
 	BcF32						TickRate_;
 	BcF32						FrameTime_;
+	BcF32						GameThreadTime_;
 	
 	SysJobQueue					JobQueue_;
 	SysDelegateDispatcher		DelegateDispatcher_;

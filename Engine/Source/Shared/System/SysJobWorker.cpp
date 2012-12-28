@@ -85,6 +85,13 @@ BcF32 SysJobWorker::getAndResetTimeWorking()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getAndResetJobsExecuted
+BcU32 SysJobWorker::getAndResetJobsExecuted()
+{
+	return JobsExecuted_.exchange( 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // execute
 //virtual
 void SysJobWorker::execute()
@@ -116,6 +123,7 @@ void SysJobWorker::execute()
 			// Add time spent to our total.
 			const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
 			TimeWorkingUS_ += TimeWorkingUS;
+			JobsExecuted_++;
 #endif			
 			// No job now, clean up.
 			delete pCurrentJob_;
