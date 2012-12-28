@@ -68,7 +68,7 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
-	while( LoadedResources_.size() > 0 )
+	//while( LoadedResources_.size() > 0 )
 	{
 		freeUnreferencedPackages();
 
@@ -89,7 +89,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			BcPrintf( "$(%s:%s.%s) \n", (*pResource->getTypeName()).c_str(), (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );

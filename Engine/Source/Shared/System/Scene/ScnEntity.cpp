@@ -99,7 +99,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 				// Initialise has already been called...need to change this later.
 				ComponentRef->initialise( Component );
 
-				ComponentRef->serialiseProperties();
+				//ComponentRef->serialiseProperties();
 
 				// Attach.
 				attach( ComponentRef );
@@ -110,7 +110,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	Super::initialise();
 
 	// Placeholder!
-	serialiseProperties();
+	//serialiseProperties();
 }
 
 //////////////////////////////////////////////////////////////////////////
