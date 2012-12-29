@@ -70,7 +70,7 @@ void ScnSoundEmitterComponent::destroy()
 void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 {
 	// Acquire before playing (callback is threaded)
-	CsResource::acquire();
+	//CsResource::acquire();
 	
 	// Get sample from sound.
 	SsSample* pSample = Sound->getSample();
@@ -85,7 +85,7 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 	}
 	else
 	{
-		CsResource::release();
+		//CsResource::release();
 	}
 }
 
@@ -173,6 +173,6 @@ void ScnSoundEmitterComponent::onEnded( SsChannel* pSound )
 	{
 		ChannelSoundMap_.erase( Iter );
 
-		CsResource::release();
+		//CsResource::release();
 	}
 }

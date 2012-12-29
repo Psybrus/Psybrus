@@ -78,7 +78,7 @@ void DsCore::cmdContent( std::string& Output )
 	{
 		CsResourceRef<> Resource( CsCore::pImpl()->getResource( Idx ) );
 
-		Output += "<li>Resource: ";
+		Output += "<li>Resourc: ";
 		Output += *Resource->getName();
 		Output += "</li>";
 
@@ -90,11 +90,6 @@ void DsCore::cmdContent( std::string& Output )
 
 		Output += "<li>Package:";
 		Output += *Resource->getPackageName();
-		Output += "</li>";
-
-		Output += "<li>Ref Count:";
-		BcSPrintf( Buffer, "%u", Resource->refCount() );
-		Output += Buffer;
 		Output += "</li>";
 
 		Output += "</ul>";
@@ -177,15 +172,6 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 	Output += "</li>";
 	Output += "</ul>";
 
-	Output += "</ul>";
-
-	BcChar Buffer[ 1024 ];
-
-	Output += "<ul>";
-	Output += "<li>Ref Count:";
-	BcSPrintf( Buffer, "%u", Component->refCount() );
-	Output += Buffer;
-	Output += "</li>";
 	Output += "</ul>";
 }
 

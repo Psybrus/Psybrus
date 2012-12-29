@@ -71,6 +71,7 @@ public:
 
 protected:
 	RsStateBlockGL*			pStateBlock_;
+	BcMutex					ResourceLock_;
 	SysFence				RenderSyncFence_;
 
 	typedef std::map< OsClient*, RsContextGL* > TContextMap;

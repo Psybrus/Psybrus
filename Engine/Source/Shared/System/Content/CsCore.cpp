@@ -346,14 +346,14 @@ void CsCore::processCreateResources()
 
 			// Remove from list.
 			It = CreateResources_.erase( It );
+
+			// Put into loading list.
+			LoadingResources_.push_back( ResourceHandle );
 		}
 		else
 		{
 			++It;
 		}
-		
-		// Put into loading list.
-		LoadingResources_.push_back( ResourceHandle );
 	}
 }
 

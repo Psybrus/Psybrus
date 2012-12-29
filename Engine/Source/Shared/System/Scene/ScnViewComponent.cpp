@@ -185,8 +185,8 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	// If we're using a render target, we want to use it for dimensions.
 	if( RenderTarget_.isValid() )
 	{
-		Width = RenderTarget_->getWidth();
-		Height = RenderTarget_->getHeight();
+		Width = static_cast< BcF32 >( RenderTarget_->getWidth() );
+		Height = static_cast< BcF32 >( RenderTarget_->getHeight() );
 	}
 
 	const BcF32 ViewWidth = Width_ * Width;

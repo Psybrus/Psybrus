@@ -63,7 +63,8 @@ public:
 	{
 		INIT_STAGE_INITIAL = 0,
 		INIT_STAGE_CREATE,
-		INIT_STAGE_READY
+		INIT_STAGE_READY,
+		INIT_STAGE_DESTROY
 	};
 
 private:
@@ -125,23 +126,6 @@ public:
 
 public:
 	/**
-	 * Acquire resource.
-	 * TODO: Deprecate.
-	 */
-	void							acquire();
-
-	/**
-	 * Release resource.
-	 * TODO: Deprecate.
-	 */
-	void							release();
-
-	/**
-	 * Get ref count.
-	 */
-	BcU32							refCount() const;
-
-	/**
 	 * Get package.
 	 */
 	CsPackage*						getPackage();
@@ -197,8 +181,14 @@ protected:
 	 */
 	void							markCreate();
 
+	/**
+	 * Mark for destruction.
+	 */
+	void							markDestroy();
+
 private:
 	friend class CsCore;
+	friend class CsPackage;
 	friend class CsPackageLoader;
 
 	void							onFileReady();
@@ -209,9 +199,6 @@ private:
 	BcName							Name_;
 	BcU32							Index_;
 	CsPackage*						pPackage_;
-	
-	//
-	BcAtomicU32						RefCount_;	// TODO: Deprecate.
 	BcAtomicU32						InitStage_;
 };
 

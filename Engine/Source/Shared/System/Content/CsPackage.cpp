@@ -121,25 +121,12 @@ BcBool CsPackage::hasUnreferencedResources() const
 	}
 
 	// If the data isn't ready, we are still referenced.
-	if( pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
 	{
 		return BcFalse;
 	}
 
-	BcBool IsUnreferenced = BcTrue;
-	
-	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
-	{
-		const CsResourceRef<>& Resource( Resources_[ Idx ] );
-
-		// If we've got invalid resources, or a ref count of 1 (self-ref'd) we have unreferenced resources.
-		if( Resource.isValid() == BcFalse || Resource.refCount() == 1 )
-		{
-			return BcTrue;
-		}
-	}
-
-	return BcFalse;
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +136,7 @@ BcBool CsPackage::haveAnyValidResources() const
 	BcAssert( BcIsGameThread() );
 
 	// If the data isn't ready, we will have valid resources soon.
-	if( pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
 	{
 		return BcTrue;
 	}
@@ -181,8 +168,13 @@ void CsPackage::releaseUnreferencedResources()
 {
 	BcAssert( BcIsGameThread() );
 
+	if( RefCount_ != 0 )
+	{
+		return;
+	}
+
 	// If the data isn't ready, we are still referenced.
-	if( pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
 	{
 		return;
 	}
@@ -191,12 +183,10 @@ void CsPackage::releaseUnreferencedResources()
 	{
 		CsResourceRef<>& Resource( Resources_[ Idx ] );
 
-		// Check that the package is the only referencer, if so, NULL it.
-		if( Resource.isValid() && Resource.refCount() == 1 )
-		{
-			Resource = NULL;
-		}
+		Resource->markDestroy();
 	}
+
+	Resources_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////

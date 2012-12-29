@@ -397,7 +397,7 @@ RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsInd
 // destroyResource
 void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
-	BcAssert( BcIsGameThread() );
+	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	pResource->preDestroy();
 
@@ -420,7 +420,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	BcAssert( BcIsGameThread() );
+	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	// Make default context current.
 	RsContextGL* pContext = ContextMap_[ NULL ];
@@ -441,7 +441,7 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
-	BcAssert( BcIsGameThread() );
+	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	// Make default context current.
 	RsContextGL* pContext = ContextMap_[ NULL ];
