@@ -130,6 +130,20 @@ void RsStateBlock::setRenderState( eRsRenderState State, BcS32 Value, BcBool For
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getRenderState
+BcS32 RsStateBlock::getRenderState( eRsRenderState State ) const
+{
+	if( State < NOOF_RENDERSTATES )
+	{
+		const TRenderStateValue& RenderStateValue = RenderStateValues_[ State ];
+
+		return RenderStateValue.Value_;
+	}
+
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setTextureState
 void RsStateBlock::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsTextureParams& Params, BcBool Force )
 {

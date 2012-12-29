@@ -51,6 +51,11 @@ public:
 	void							setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
 	
 	/**
+	 * Get render state.
+	 */
+	BcS32							getRenderState( eRsRenderState State ) const;
+
+	/**
 	 * Set texture state.
 	 */
 	void							setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
