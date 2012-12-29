@@ -331,6 +331,7 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 		pSpatialTree_->removeComponent( ScnRenderableComponentWeakRef( Component ) );
 	}
 
+	// Erase from component list.
 	const BcReflectionClass* pClass = Component->getClass();
 	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
 	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );

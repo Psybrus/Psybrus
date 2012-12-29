@@ -51,8 +51,6 @@ void ScnComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnComponent::create()
 {
-	getPackage()->acquire();
-	
 	markReady();
 }
 
@@ -61,7 +59,7 @@ void ScnComponent::create()
 //virtual
 void ScnComponent::destroy()
 {
-	getPackage()->release();
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,6 +113,8 @@ void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 	clearFlag( scnCF_ATTACHED );
 
 	ParentEntity_ = NULL;
+
+	markDestroy();
 }
 
 //////////////////////////////////////////////////////////////////////////

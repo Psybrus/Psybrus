@@ -25,7 +25,6 @@ BCREFLECTION_DEFINE_BASE( CsResource );
 BCREFLECTION_BASE_BEGIN( CsResource )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 BCREFLECTION_BASE_END();
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +33,6 @@ CsResource::CsResource():
 	Name_( BcName::INVALID ),
 	Index_( BcErrorCode ),
 	pPackage_( NULL ),
-	RefCount_( 0 ),
 	InitStage_( INIT_STAGE_INITIAL )
 {
 
@@ -129,40 +127,6 @@ BcU32 CsResource::getInitStage()
 void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	BcBreakpoint;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// acquire
-void CsResource::acquire()
-{
-	// TODO: Deprecate.
-	++RefCount_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// release
-void CsResource::release()
-{
-	// TODO: Deprecate.
-	if( ( --RefCount_ ) == 0 )
-	{
-		// No longer ready.
-		InitStage_.exchange( INIT_STAGE_INITIAL );
-
-		// Call into CsCore to destroy this resource.
-		BcAssertMsg( CsCore::pImpl() != NULL, "Attempted to destroy a resource when there is no CsCore." )
-
-		// Destroy.
-		CsCore::pImpl()->destroyResource( this );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// refCount
-BcU32 CsResource::refCount() const
-{
-	BcAssert( BcIsGameThread() );
-	return RefCount_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -294,11 +258,9 @@ const BcChar* CsResource::getString( BcU32 Offset )
 // getChunk
 void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 {
-	acquire();
 	if( !pPackage_->requestChunk( Index_, Chunk, pDataLocation ) )
 	{
-		// There will be no callback.
-		release();
+
 	}
 }
 
@@ -333,11 +295,20 @@ void CsResource::markReady()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// markReady
+void CsResource::markDestroy()
+{
+	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_DESTROY );
+	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*Name_).c_str() );
+
+	CsCore::pImpl()->destroyResource( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onFileReady
 void CsResource::onFileReady()
 {
 	fileReady();
-	release();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -345,5 +316,4 @@ void CsResource::onFileReady()
 void CsResource::onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	fileChunkReady( ChunkIdx, ChunkID, pData );
-	release();
 }
