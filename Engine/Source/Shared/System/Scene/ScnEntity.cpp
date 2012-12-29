@@ -118,7 +118,14 @@ void ScnEntity::create()
 	// Setup buffered event proxy.
 	pEventProxy_ = new EvtProxyBuffered( this );	
 
-	Super::create();
+	// If we have a basis entity, we need to acquire the package.
+	if( Basis_.isValid() )
+	{
+		BcAssertMsg( Basis_->getPackage() == getPackage(), "Must reference the same package as the basis entity." );
+		getPackage()->acquire();
+	}
+
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,12 +134,19 @@ void ScnEntity::destroy()
 {
 	delete pEventProxy_;
 	pEventProxy_ = NULL;
+
+	// If we have a basis entity, we need to release the package.
+	if( Basis_.isValid() )
+	{
+		getPackage()->release();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update
 void ScnEntity::update( BcF32 Tick )
 {
+	BcAssert( getPackage() != NULL );
 	// Update as component first.
 	Super::update( Tick );
 
@@ -354,6 +368,10 @@ void ScnEntity::fileReady()
 {
 	// File is ready, get the header chunk.
 	requestChunk( 0 );
+
+	// As we are being loaded by a package, we don't need to reference it.
+	// We acquire in the init of ScnComponent for the general case,
+	// but we can release 
 }
 
 //////////////////////////////////////////////////////////////////////////

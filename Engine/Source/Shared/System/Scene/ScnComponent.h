@@ -49,6 +49,7 @@ public:
 	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
+	virtual void						destroy();
 
 	virtual void						preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.
 	virtual void						update( BcF32 Tick );			// Most will want this tick.

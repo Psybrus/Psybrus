@@ -69,6 +69,12 @@ CsPackageLoader::~CsPackageLoader()
 	
 	BcMemFree( pPackageData_ );
 	pPackageData_ = NULL;
+
+	// Release packages we reference.
+	for( BcU32 Idx = 0; Idx < PackageDependencies_.size(); ++Idx )
+	{
+		PackageDependencies_[ Idx ]->release();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -345,6 +351,9 @@ void CsPackageLoader::onPackageDependenciesLoaded( void* pData, BcSize Size )
 
 		CsPackage* pPackage = CsCore::pImpl()->requestPackage( getString( PackageDependency.PackageName_ ) );
 		PackageDependencies_.push_back( pPackage );
+
+		// Acquire package so it's not freed later.
+		pPackage->acquire();
 	}
 
 	// This callback is complete.

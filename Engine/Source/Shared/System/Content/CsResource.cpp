@@ -152,10 +152,6 @@ void CsResource::release()
 		// Call into CsCore to destroy this resource.
 		BcAssertMsg( CsCore::pImpl() != NULL, "Attempted to destroy a resource when there is no CsCore." )
 
-		// Detach package.
-		Index_ = BcErrorCode;
-		pPackage_ = NULL;
-
 		// Destroy.
 		CsCore::pImpl()->destroyResource( this );
 	}

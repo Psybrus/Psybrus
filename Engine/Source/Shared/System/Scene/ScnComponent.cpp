@@ -13,6 +13,7 @@
 
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnEntity.h"
+#include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,7 +51,17 @@ void ScnComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnComponent::create()
 {
+	getPackage()->acquire();
+	
 	markReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnComponent::destroy()
+{
+	getPackage()->release();
 }
 
 //////////////////////////////////////////////////////////////////////////
