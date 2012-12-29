@@ -70,7 +70,17 @@ public:
 	* Get cross package ref.
 	*/
 	CsResourceRef<>					getPackageCrossRef( BcU32 ID );
-	
+
+	/**
+	* Acquire.
+	*/
+	void							acquire();
+
+	/**
+	* Release
+	*/
+	void							release();
+
 public:
 	/**
 	 * Get name.
@@ -90,6 +100,7 @@ public:
 	
 private:
 	BcName							Name_;
+	BcAtomicU32						RefCount_;
 
 	// Loader we use.
 	CsPackageLoader*				pLoader_;

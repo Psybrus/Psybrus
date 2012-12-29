@@ -72,8 +72,9 @@ CsPackage::CsPackage( const BcName& Name ):
 // Dtor
 CsPackage::~CsPackage()
 {
-	delete pLoader_;
-	pLoader_ = NULL;
+	// The loader is cleaned up when the ref count is 0 (so it frees quick), so we expect ref count to be 0, and loader to be NULL.
+	BcAssert( RefCount_ == 0 );
+	BcAssert( pLoader_ == NULL );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -113,6 +114,11 @@ BcBool CsPackage::isLoaded() const
 BcBool CsPackage::hasUnreferencedResources() const
 {
 	BcAssert( BcIsGameThread() );
+
+	if( RefCount_ != 0 )
+	{
+		return BcFalse;
+	}
 
 	// If the data isn't ready, we are still referenced.
 	if( pLoader_->isDataReady() == BcFalse )
@@ -236,6 +242,24 @@ CsResourceRef<> CsPackage::getPackageCrossRef( BcU32 ID )
 	
 	//
 	return Resource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// acquire
+void CsPackage::acquire()
+{
+	RefCount_++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// release
+void CsPackage::release()
+{
+	if( --RefCount_ == 0 )
+	{
+		delete pLoader_;
+		pLoader_ = NULL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
