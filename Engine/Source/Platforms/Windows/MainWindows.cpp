@@ -29,6 +29,14 @@ eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
 	return evtRET_PASS;
 }
 
+eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
+{
+	extern void PsyLaunchGame();
+	PsyLaunchGame();
+
+	return evtRET_REMOVE;
+}
+
 extern BcU32 GResolutionWidth;
 extern BcU32 GResolutionHeight;
 
@@ -187,6 +195,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		// Hook up event pump delegate.
 		SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegatePumpMessages );
+
+		SysSystemEvent::Delegate OnPostOpenDelegateLaunchGame = SysSystemEvent::Delegate::bind< OnPostOpenScnCore_LaunchGame >();
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
 
 		// Init game.
 		PsyGameInit();

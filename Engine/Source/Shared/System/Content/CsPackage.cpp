@@ -242,7 +242,7 @@ CsResourceRef<> CsPackage::getPackageCrossRef( BcU32 ID )
 
 		// If it's not ready or not loaded, return a NULL resource. Up to the user to handle.
 		if( pPackage == NULL ||
-			pPackage->isLoaded() == BcFalse )
+			pPackage->isReady() == BcFalse )
 		{
 			return NULL;
 		}

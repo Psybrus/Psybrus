@@ -106,6 +106,15 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// OnQuit
+eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
+{
+	SysKernel::pImpl()->stop();
+
+	return evtRET_REMOVE;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // MainShared
 void MainShared()
 {
@@ -232,4 +241,9 @@ void MainShared()
 	// Setup callback for post CsCore pre close for resource unregistration
 	SysSystemEvent::Delegate OnCsCorePreClose = SysSystemEvent::Delegate::bind< onCsCorePreClose >();
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, OnCsCorePreClose );
+
+	// Subscribe to quit.
+	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< onQuit >();
+	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
+
 }
