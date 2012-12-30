@@ -150,6 +150,14 @@ public:
 	 * @return Found package.
 	 */
 	CsPackage*							findPackage( const BcName& Package );
+
+	/**
+	 * Request a callback when a package is ready.
+	 * @params Package Package to register for.
+	 * @params Callback Delegate to call.
+	 * @param ID ID to pass into delegate.
+	 */
+	void								requestPackageReadyCallback( const BcName& Package, const CsPackageReadyCallback& Callback, BcU32 ID );
 	
 	/**
 	 * Get package import path.
@@ -168,6 +176,7 @@ protected:
 	void								processLoadingResources();
 	void								processLoadedResource();
 	void								processUnloadingResources();
+	void								processCallbacks();
 	
 public:
 	void								internalRegisterResource( const BcReflectionClass* pClass );
@@ -189,6 +198,16 @@ protected:
 	typedef std::map< BcName, TResourceFactoryInfo > TResourceFactoryInfoMap;
 	typedef TResourceFactoryInfoMap::iterator TResourceFactoryInfoMapIterator;
 
+	struct TPackageReadyCallback
+	{
+		BcName Package_;
+		CsPackageReadyCallback Callback_;
+		BcU32 ID_;
+	};
+
+	typedef std::list< TPackageReadyCallback > TPackageReadyCallbackList;
+	typedef TPackageReadyCallbackList::iterator TPackageReadyCallbackListIterator;
+
 	typedef std::list< CsPackage* > TPackageList;
 	typedef TPackageList::iterator TPackageListIterator;
 
@@ -201,6 +220,8 @@ protected:
 	
 	TPackageList						PackageList_;
 	TPackageList						UnreferencedPackageList_;
+
+	TPackageReadyCallbackList			PackageReadyCallbackList_;
 
 	BcBool								IsCollectingGarbage_;
 };
