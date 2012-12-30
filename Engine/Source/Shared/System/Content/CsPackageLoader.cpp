@@ -128,7 +128,7 @@ const BcChar* CsPackageLoader::getString( BcU32 Offset ) const
 
 //////////////////////////////////////////////////////////////////////////
 // getPackageCrossRef
-void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName ) const
+void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName, BcBool& IsWeak ) const
 {
 	BcAssertMsg( Index < Header_.TotalPackageCrossRefs_, "CsPackageLoader: Invalid package cross ref index." );
 	const CsPackageCrossRefData& PackageCrossRef( pPackageCrossRefs_[ Index ] );
@@ -136,6 +136,7 @@ void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcNa
 	PackageName = getString( PackageCrossRef.PackageName_ );
 	ResourceName = getString( PackageCrossRef.ResourceName_ );
 	TypeName = getString( PackageCrossRef.TypeName_ );
+	IsWeak = PackageCrossRef.IsWeak_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -349,11 +350,14 @@ void CsPackageLoader::onPackageDependenciesLoaded( void* pData, BcSize Size )
 	{
 		CsPackageDependencyData& PackageDependency( pPackageDependencies_[ Idx ] );
 
-		CsPackage* pPackage = CsCore::pImpl()->requestPackage( getString( PackageDependency.PackageName_ ) );
-		PackageDependencies_.push_back( pPackage );
+		if( PackageDependency.IsWeak_ == BcFalse )
+		{
+			CsPackage* pPackage = CsCore::pImpl()->requestPackage( getString( PackageDependency.PackageName_ ) );
+			PackageDependencies_.push_back( pPackage );
 
-		// Acquire package so it's not freed later.
-		pPackage->acquire();
+			// Acquire package so it's not freed later.
+			pPackage->acquire();
+		}
 	}
 
 	// This callback is complete.

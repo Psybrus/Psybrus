@@ -23,6 +23,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
+BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
 
 #if PSY_SERVER
 
@@ -398,8 +399,18 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 // addPackageCrossRef
 BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 {
+	BcBool IsWeak = BcFalse;
 	BcRegexMatch Match;
 	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
+
+	// Try the weak match.
+	// TODO: Merge into  regex.
+	if( Matches == 0 )
+	{
+		IsWeak = BcTrue;
+		Matches = GRegex_WeakResourceReference.match( pFullName, Match );
+	}
+
 	if( Matches == 4 )
 	{	
 		std::string TypeName;
@@ -422,6 +433,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 			addString( TypeName.c_str() ),
 			addString( PackageName.c_str() ),
 			addString( ResourceName.c_str() ),
+			IsWeak
 		};
 
 		// Add if it doesn't exist already.
@@ -446,7 +458,8 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		{
 			CsPackageDependencyData PackageDependency =
 			{
-				CrossRef.PackageName_
+				CrossRef.PackageName_,
+				IsWeak
 			};
 			
 			PackageDependencyDataList_.push_back( PackageDependency );
@@ -532,6 +545,14 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 	{
 		BcRegexMatch Match;
 		BcU32 Matches = GRegex_ResourceReference.match( Root.asCString(), Match );
+		
+		// Try the weak match.
+		// TODO: Merge into  regex.
+		if( Matches == 0 )
+		{
+			Matches = GRegex_WeakResourceReference.match( Root.asCString(), Match );
+		}
+
 		if( Matches == 4 )
 		{
 			BcU32 RefIndex = addPackageCrossRef( Root.asCString() );

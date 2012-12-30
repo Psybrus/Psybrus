@@ -107,6 +107,13 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		}
 	}
 
+	// If we have a basis entity, we need to acquire the package.
+	if( Basis_.isValid() )
+	{
+		BcAssertMsg( Basis_->getPackage() == getPackage(), "Must reference the same package as the basis entity." );
+		getPackage()->acquire();
+	}
+
 	// Placeholder!
 	//serialiseProperties();
 }
@@ -118,14 +125,11 @@ void ScnEntity::create()
 	// Setup buffered event proxy.
 	pEventProxy_ = new EvtProxyBuffered( this );	
 
-	// If we have a basis entity, we need to acquire the package.
+	// If we have a basis, we're ready.
 	if( Basis_.isValid() )
-	{
-		BcAssertMsg( Basis_->getPackage() == getPackage(), "Must reference the same package as the basis entity." );
-		getPackage()->acquire();
+	{			
+		markReady();
 	}
-
-	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -381,5 +385,7 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( ChunkID == BcHash( "object" ) )
 	{
 		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
+
+		CsResource::markReady();
 	}
 }

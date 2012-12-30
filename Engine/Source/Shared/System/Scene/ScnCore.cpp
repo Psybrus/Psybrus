@@ -31,7 +31,10 @@ SYS_CREATOR( ScnCore );
 // Ctor
 ScnCore::ScnCore()
 {
-
+	pSpatialTree_ = NULL;
+	pComponentLists_ = NULL;
+	NoofComponentLists_ = 0;
+	EntitySpawnID_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -238,6 +241,30 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// spawnEntity
+void ScnCore::spawnEntity( ScnEntityRef Parent, const BcName& Package, const BcName& Name, const BcName& InstanceName )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Get package and acquire.
+	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Package );
+	pPackage->acquire();
+
+	// Setup entity spawn data.
+	TEntitySpawnData EntitySpawnData;
+	EntitySpawnData.Parent_ = Parent;
+	EntitySpawnData.Package_ = Package;
+	EntitySpawnData.Name_ = Name;
+	EntitySpawnData.InstanceName_ = InstanceName;
+
+	EntitySpawnMap_[ EntitySpawnID_ ] = EntitySpawnData;
+	CsCore::pImpl()->requestPackageReadyCallback( Package, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
+
+	// Advance spawn ID.
+	++EntitySpawnID_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // findEntity
 ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 {
@@ -340,7 +367,7 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 }
 
 //////////////////////////////////////////////////////////////////////////
-// processAddRemove
+// processPendingComponents
 void ScnCore::processPendingComponents()
 {
 	while( PendingComponentList_.size() > 0 )
@@ -361,4 +388,32 @@ void ScnCore::processPendingComponents()
 			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onSpawnEntityPackageReady
+void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
+{
+	TEntitySpawnDataMapIterator It = EntitySpawnMap_.find( ID );
+	BcAssertMsg( It != EntitySpawnMap_.end(), "ScnCore: Spawn ID invalid." );
+	TEntitySpawnData& EntitySpawnData( (*It).second );
+
+	// Create entity.
+	ScnEntityRef Entity = createEntity( EntitySpawnData.Package_, EntitySpawnData.Name_, EntitySpawnData.InstanceName_ );
+
+	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
+	if( EntitySpawnData.Parent_.isValid() )
+	{
+		EntitySpawnData.Parent_->attach( Entity );
+	}
+	else
+	{
+		addEntity( Entity );
+	}
+
+	// Release package, the entity is responsible for it now.
+	pPackage->release();
+
+	// Clear out the spawn data.
+	EntitySpawnMap_.erase( It );
 }

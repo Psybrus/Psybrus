@@ -51,7 +51,7 @@ void ScnComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnComponent::create()
 {
-	markReady();
+	CsResource::markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////

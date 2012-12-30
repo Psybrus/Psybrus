@@ -67,7 +67,12 @@ public:
 	CsResource*						getResource( BcU32 ResourceIdx );
 
 	/**
-	* Get cross package ref.
+	* Load a package cross ref.
+	*/
+	CsPackage*						loadPackageCrossRef( BcU32 ID );
+
+	/**
+	* Get package cross ref.
 	*/
 	CsResourceRef<>					getPackageCrossRef( BcU32 ID );
 
