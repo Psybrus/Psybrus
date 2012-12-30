@@ -62,6 +62,11 @@ public:
 	ScnEntityRef				createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
 
 	/**
+	 * Spawn an entity from template. Handles loading and scene attachment.
+	 */
+	void						spawnEntity( ScnEntityRef Parent, const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
+
+	/**
 	 * Find an entity. Non recursive, only searching within the manager, not parented entities.
 	 */
 	ScnEntityRef				findEntity( const BcName& InstanceName );
@@ -96,6 +101,9 @@ private:
 	void						processPendingComponents();
 
 private:
+	void						onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
+
+private:
 	ScnSpatialTree*				pSpatialTree_;
 
 	// Pending components.
@@ -111,6 +119,20 @@ private:
 
 	TComponentClassIndexMap		ComponentClassIndexMap_;
 
+	// Entity spawning data.
+	struct TEntitySpawnData
+	{
+		ScnEntityRef			Parent_;
+		BcName					Package_;
+		BcName					Name_;
+		BcName					InstanceName_;
+	};
+
+	typedef std::map< BcU32, TEntitySpawnData > TEntitySpawnDataMap;
+	typedef TEntitySpawnDataMap::iterator TEntitySpawnDataMapIterator;
+
+	BcU32						EntitySpawnID_;
+	TEntitySpawnDataMap			EntitySpawnMap_;
 };
 
 #endif
