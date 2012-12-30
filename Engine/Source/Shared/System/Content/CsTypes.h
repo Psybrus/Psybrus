@@ -27,6 +27,10 @@
 #include "Base/BcScopedLock.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Callbacks
+typedef BcDelegate< void(*)( class CsPackage*, BcU32 ) > CsPackageReadyCallback;
+
+//////////////////////////////////////////////////////////////////////////
 // CsDependencyList
 typedef std::list< class CsDependency > CsDependencyList;
 typedef CsDependencyList::iterator CsDependencyListIterator;

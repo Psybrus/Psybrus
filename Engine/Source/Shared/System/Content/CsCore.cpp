@@ -44,19 +44,12 @@ void CsCore::open()
 //virtual 
 void CsCore::update()
 {
-	// TODO: Remove these, all is handled in CsResource now!
+	// Should be handled in CsPackage. Look into doing it.
 	processCreateResources();
 	processLoadingResources();
 	processLoadedResource();
 	processUnloadingResources();
-
-	// Garbage collection.
-	// TODO: Mark packages for clean up instead of just iterating over them.
-	if( IsCollectingGarbage_ )
-	{
-		freeUnreferencedPackages();
-		IsCollectingGarbage_ = BcFalse;
-	}
+	processCallbacks();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -295,6 +288,20 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// requestPackageReadyCallback
+void CsCore::requestPackageReadyCallback( const BcName& Package, const CsPackageReadyCallback& Callback, BcU32 ID )
+{
+	TPackageReadyCallback PackageReadyCallback =
+	{
+		Package,
+		Callback,
+		ID
+	};
+
+	PackageReadyCallbackList_.push_back( PackageReadyCallback );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // findPackage
 CsPackage* CsCore::findPackage( const BcName& Package )
 {
@@ -448,6 +455,29 @@ void CsCore::processUnloadingResources()
 		}
 	
 		UnloadingResources_.clear();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processCallbacks
+void CsCore::processCallbacks()
+{
+	TPackageReadyCallbackListIterator It = PackageReadyCallbackList_.begin();
+
+	while( It != PackageReadyCallbackList_.end() )
+	{
+		TPackageReadyCallback& CallbackData( *It );
+		CsPackage* pPackage = findPackage( CallbackData.Package_ );
+		if( pPackage != NULL &&
+			pPackage->isReady() )
+		{
+			CallbackData.Callback_( pPackage, CallbackData.ID_ );
+			It = PackageReadyCallbackList_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
 	}
 }
 
