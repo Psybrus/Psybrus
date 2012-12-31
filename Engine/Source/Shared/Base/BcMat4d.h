@@ -37,26 +37,26 @@ public:
 			 const BcVec4d&,
 			 const BcVec4d& );
 
-	BcMat4d( BcReal I00,
-	         BcReal I01,
-	         BcReal I02,
-	         BcReal I03,
-	         BcReal I10,
-	         BcReal I11,
-	         BcReal I12,
-	         BcReal I13,
-	         BcReal I20,
-	         BcReal I21,
-	         BcReal I22,
-	         BcReal I23,
-	         BcReal I30,
-	         BcReal I31,
-	         BcReal I32,
-	         BcReal I33 );
+	BcMat4d( BcF32 I00,
+	         BcF32 I01,
+	         BcF32 I02,
+	         BcF32 I03,
+	         BcF32 I10,
+	         BcF32 I11,
+	         BcF32 I12,
+	         BcF32 I13,
+	         BcF32 I20,
+	         BcF32 I21,
+	         BcF32 I22,
+	         BcF32 I23,
+	         BcF32 I30,
+	         BcF32 I31,
+	         BcF32 I32,
+	         BcF32 I33 );
 
 	// Accessor
-	BcReal*			operator [] ( BcU32 i );
-	const BcReal*	operator [] ( BcU32 i ) const;
+	BcF32*			operator [] ( BcU32 i );
+	const BcF32*	operator [] ( BcU32 i ) const;
 
 	const BcVec4d&	row0() const;
 	const BcVec4d&	row1() const;
@@ -81,8 +81,8 @@ public:
 	// Arithmetic
 	BcMat4d			operator + (const BcMat4d& rhs);
 	BcMat4d			operator - (const BcMat4d& rhs);
-	BcMat4d			operator * (BcReal rhs);
-	BcMat4d			operator / (BcReal rhs);
+	BcMat4d			operator * (BcF32 rhs);
+	BcMat4d			operator / (BcF32 rhs);
 	BcMat4d			operator * (const BcMat4d& rhs)  const;
 
 	void			identity();
@@ -98,14 +98,14 @@ public:
 	void			scale( const BcVec3d& );
 	void			scale( const BcVec4d& );
 
-	BcReal			determinant();
+	BcF32			determinant();
 	void			inverse();
 
 	void			lookAt( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& UpVec );
-	void			orthoProjection( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far );
-	void			perspProjectionHorizontal( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far );
-	void			perspProjectionVertical( BcReal Fov, BcReal Aspect, BcReal Near, BcReal Far );
-	void			frustum( BcReal Left, BcReal Right, BcReal Bottom, BcReal Top, BcReal Near, BcReal Far );
+	void			orthoProjection( BcF32 Left, BcF32 Right, BcF32 Bottom, BcF32 Top, BcF32 Near, BcF32 Far );
+	void			perspProjectionHorizontal( BcF32 Fov, BcF32 Aspect, BcF32 Near, BcF32 Far );
+	void			perspProjectionVertical( BcF32 Fov, BcF32 Aspect, BcF32 Near, BcF32 Far );
+	void			frustum( BcF32 Left, BcF32 Right, BcF32 Bottom, BcF32 Top, BcF32 Near, BcF32 Far );
 
 	BcBool			operator == ( const BcMat4d& Other ) const;
 
@@ -125,22 +125,22 @@ inline BcMat4d::BcMat4d( const BcVec4d& Row0,
 	Row3_ = Row3;
 }
 
-inline BcMat4d::BcMat4d( BcReal I00,
-	                     BcReal I01,
-	                     BcReal I02,
-	                     BcReal I03,
-	                     BcReal I10,
-	                     BcReal I11,
-	                     BcReal I12,
-	                     BcReal I13,
-	                     BcReal I20,
-	                     BcReal I21,
-	                     BcReal I22,
-	                     BcReal I23,
-	                     BcReal I30,
-	                     BcReal I31,
-	                     BcReal I32,
-	                     BcReal I33 )
+inline BcMat4d::BcMat4d( BcF32 I00,
+	                     BcF32 I01,
+	                     BcF32 I02,
+	                     BcF32 I03,
+	                     BcF32 I10,
+	                     BcF32 I11,
+	                     BcF32 I12,
+	                     BcF32 I13,
+	                     BcF32 I20,
+	                     BcF32 I21,
+	                     BcF32 I22,
+	                     BcF32 I23,
+	                     BcF32 I30,
+	                     BcF32 I31,
+	                     BcF32 I32,
+	                     BcF32 I33 )
 {
 	Row0_.set( I00, I01, I02, I03 );
 	Row1_.set( I10, I11, I12, I13 );
@@ -148,14 +148,14 @@ inline BcMat4d::BcMat4d( BcReal I00,
 	Row3_.set( I30, I31, I32, I33 );
 }
 
-inline BcReal* BcMat4d::operator [] ( BcU32 i )
+inline BcF32* BcMat4d::operator [] ( BcU32 i )
 {
-	return reinterpret_cast< BcReal* >( &Row0_ ) + ( i * 4 );
+	return reinterpret_cast< BcF32* >( &Row0_ ) + ( i * 4 );
 }
 
-inline const BcReal* BcMat4d::operator [] ( BcU32 i ) const
+inline const BcF32* BcMat4d::operator [] ( BcU32 i ) const
 {
-	return reinterpret_cast< const BcReal* >( &Row0_ ) + ( i * 4 );
+	return reinterpret_cast< const BcF32* >( &Row0_ ) + ( i * 4 );
 }
 
 inline const BcVec4d& BcMat4d::row0() const

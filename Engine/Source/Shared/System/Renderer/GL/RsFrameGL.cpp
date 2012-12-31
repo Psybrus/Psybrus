@@ -26,7 +26,7 @@ struct TVertex2D
 	BcF32 U_, V_;
 	BcU32 Colour_;
 
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 };
 
 struct TVertex3D
@@ -35,7 +35,7 @@ struct TVertex3D
 	BcF32 U_, V_;
 	BcU32 Colour_;
 	
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8;
+	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 };
 
 //
@@ -66,6 +66,7 @@ public:
 	void render()
 	{
 		//RsCore::pImpl< RsCoreImplGL >()->setViewport( &Viewport_ );	
+		glViewport( 0, 0, Viewport_.width(), Viewport_.height() );
 	}
 
 	RsViewport Viewport_;
@@ -81,19 +82,39 @@ public:
 		{
 			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
 			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
-			glViewport( 0, 0, pRenderTarget_->width(), pRenderTarget_->height() );
 		}
 		else
 		{
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-			glViewport( 0, 0, pContext_->getWidth(), pContext_->getHeight() );
 		}
 
-		
-		// Enable depth write to clear screen.
+		// Enable colour, depth + stencil write, and then restore previous state.
 		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
+
+		const BcS32 DepthWriteEnable = pStateBlock->getRenderState( rsRS_DEPTH_WRITE_ENABLE );
+		const BcS32 ColourWriteREnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_RED_ENABLE );
+		const BcS32 ColourWriteGEnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE );
+		const BcS32 ColourWriteBEnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE );
+		const BcS32 ColourWriteAEnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE );
+		const BcS32 StencilWriteMask = pStateBlock->getRenderState( rsRS_STENCIL_WRITE_MASK );
+
+		pStateBlock->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1 );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_RED_ENABLE, 1 );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE, 1 );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE, 1 );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE, 1 );
+		pStateBlock->setRenderState( rsRS_STENCIL_WRITE_MASK, 255 );
+
 		pStateBlock->bind();
+
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
+
+		pStateBlock->setRenderState( rsRS_DEPTH_WRITE_ENABLE, DepthWriteEnable );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_RED_ENABLE, ColourWriteREnable );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE, ColourWriteGEnable );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE, ColourWriteBEnable );
+		pStateBlock->setRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE, ColourWriteAEnable );
+		pStateBlock->setRenderState( rsRS_STENCIL_WRITE_MASK, StencilWriteMask );
 	}
 	
 	RsRenderTarget* pRenderTarget_;
@@ -201,9 +222,6 @@ void RsFrameGL::render()
 		// Flip context buffers.
 		pContext_->swapBuffers();
 	}
-
-	// TEMP HACK: Free frame.
-	delete this;
 }
 
 //////////////////////////////////////////////////////////////////////////

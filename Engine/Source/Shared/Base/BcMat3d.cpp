@@ -24,15 +24,15 @@ BcMat3d::BcMat3d( const BcVec3d& Row0,
 
 
 
-BcMat3d::BcMat3d( BcReal I00,
-			      BcReal I01,
-			      BcReal I02,
-			      BcReal I10,
-			      BcReal I11,
-			      BcReal I12,
-			      BcReal I20,
-			      BcReal I21,
-			      BcReal I22 )
+BcMat3d::BcMat3d( BcF32 I00,
+			      BcF32 I01,
+			      BcF32 I02,
+			      BcF32 I10,
+			      BcF32 I11,
+			      BcF32 I12,
+			      BcF32 I20,
+			      BcF32 I21,
+			      BcF32 I22 )
 {
 	Row0_.set( I00, I01, I02 );
 	Row1_.set( I10, I11, I12 );
@@ -53,14 +53,14 @@ BcMat3d BcMat3d::operator - ( const BcMat3d& Rhs )
 	                Row2_ - Rhs.Row2_ );
 }
 
-BcMat3d BcMat3d::operator * ( BcReal Rhs )
+BcMat3d BcMat3d::operator * ( BcF32 Rhs )
 {
 	return BcMat3d( Row0_ * Rhs,
 	                Row1_ * Rhs,
 	                Row2_ * Rhs );
 }
 
-BcMat3d BcMat3d::operator / ( BcReal Rhs )
+BcMat3d BcMat3d::operator / ( BcF32 Rhs )
 {
 	return BcMat3d( Row0_ / Rhs,
 	                Row1_ / Rhs,
@@ -82,7 +82,7 @@ BcMat3d BcMat3d::operator * ( const BcMat3d& Rhs )
 	                Lhs[2][0] * Rhs[0][2] + Lhs[2][1] * Rhs[1][2] + Lhs[2][2] * Rhs[2][2] );
 }
 
-BcReal BcMat3d::determinant() const
+BcF32 BcMat3d::determinant() const
 {
 	const BcMat3d& Lhs = (*this);
 

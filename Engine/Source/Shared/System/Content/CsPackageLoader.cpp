@@ -31,6 +31,7 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 	pChunkHeaders_( NULL ),
 	pChunkData_( NULL ),
 	IsStringTableReady_( BcFalse ),
+	IsDataLoaded_( BcFalse ),
 	IsDataReady_( BcFalse )
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
@@ -68,6 +69,12 @@ CsPackageLoader::~CsPackageLoader()
 	
 	BcMemFree( pPackageData_ );
 	pPackageData_ = NULL;
+
+	// Release packages we reference.
+	for( BcU32 Idx = 0; Idx < PackageDependencies_.size(); ++Idx )
+	{
+		PackageDependencies_[ Idx ]->release();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,7 +128,7 @@ const BcChar* CsPackageLoader::getString( BcU32 Offset ) const
 
 //////////////////////////////////////////////////////////////////////////
 // getPackageCrossRef
-void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName ) const
+void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName, BcBool& IsWeak ) const
 {
 	BcAssertMsg( Index < Header_.TotalPackageCrossRefs_, "CsPackageLoader: Invalid package cross ref index." );
 	const CsPackageCrossRefData& PackageCrossRef( pPackageCrossRefs_[ Index ] );
@@ -129,6 +136,7 @@ void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcNa
 	PackageName = getString( PackageCrossRef.PackageName_ );
 	ResourceName = getString( PackageCrossRef.ResourceName_ );
 	TypeName = getString( PackageCrossRef.TypeName_ );
+	IsWeak = PackageCrossRef.IsWeak_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -342,8 +350,14 @@ void CsPackageLoader::onPackageDependenciesLoaded( void* pData, BcSize Size )
 	{
 		CsPackageDependencyData& PackageDependency( pPackageDependencies_[ Idx ] );
 
-		CsPackage* pPackage = CsCore::pImpl()->requestPackage( getString( PackageDependency.PackageName_ ) );
-		PackageDependencies_.push_back( pPackage );
+		if( PackageDependency.IsWeak_ == BcFalse )
+		{
+			CsPackage* pPackage = CsCore::pImpl()->requestPackage( getString( PackageDependency.PackageName_ ) );
+			PackageDependencies_.push_back( pPackage );
+
+			// Acquire package so it's not freed later.
+			pPackage->acquire();
+		}
 	}
 
 	// This callback is complete.
@@ -373,7 +387,7 @@ void CsPackageLoader::onChunkHeadersLoaded( void* pData, BcSize Size )
 	// Data is loaded.
 	IsDataLoaded_ = BcTrue;
 
-	if( arePackageDependenciesLoaded() )
+	if( arePackageDependenciesReady() )
 	{
 		// Mark up all the resources.
 		markupResources();
@@ -470,6 +484,7 @@ void CsPackageLoader::initialiseResources()
 			pPackage_->addResource( Handle );		
 
 			// Tell it the file is ready (TODO: DEPRECATE).
+			// NOTE: Will need to do this once we break out the import pipeline.
 			Handle->fileReady();
 		}
 		else
@@ -620,12 +635,12 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// arePackageDependenciesLoaded
-BcBool CsPackageLoader::arePackageDependenciesLoaded()
+// arePackageDependenciesReady
+BcBool CsPackageLoader::arePackageDependenciesReady()
 {
 	for( BcU32 Idx = 0; Idx < PackageDependencies_.size(); ++Idx )
 	{
-		if( PackageDependencies_[ Idx ]->isLoaded() == BcFalse )
+		if( PackageDependencies_[ Idx ]->isReady() == BcFalse )
 		{
 			return BcFalse;
 		}

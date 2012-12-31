@@ -44,7 +44,7 @@ BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& O
 		BcStream SampleStream;
 		
 		// Setup header.
-		THeader Header = 
+		ScnSoundHeader Header = 
 		{
 			pSound->getSampleRate(),
 			pSound->getNumChannels(),
@@ -72,6 +72,16 @@ BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& O
 // Define resource internals.
 DEFINE_RESOURCE( ScnSound );
 
+BCREFLECTION_EMPTY_REGISTER( ScnSound );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnSound )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -84,8 +94,14 @@ void ScnSound::initialise()
 // create
 //virtual
 void ScnSound::create()
-{
-	
+{	
+	// Create a new sample.
+	if( SsCore::pImpl() != NULL )
+	{
+		pSample_ = SsCore::pImpl()->createSample( pHeader_->SampleRate_, pHeader_->Channels_, pHeader_->Looping_, pSampleData_, SampleDataSize_ );
+	}
+
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,29 +118,9 @@ void ScnSound::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-//virtual
-BcBool ScnSound::isReady()
-{
-	// TODO: LOCK!!
-	return pSample_ != NULL || SsCore::pImpl() == NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
 SsSample* ScnSound::getSample()
 {
 	return pSample_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setup
-void ScnSound::setup()
-{
-	// Create a new sample.
-	if( SsCore::pImpl() != NULL )
-	{
-		pSample_ = SsCore::pImpl()->createSample( pHeader_->SampleRate_, pHeader_->Channels_, pHeader_->Looping_, pSampleData_, SampleDataSize_ );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,7 +137,7 @@ void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnSoundHeader*)pData;
 		
 		requestChunk( ++ChunkIdx );
 	}
@@ -150,7 +146,7 @@ void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pSampleData_ = pData;
 		SampleDataSize_ = getChunkSize( ChunkIdx );
 		
-		setup();
+		markCreate();
 	}
 }
 

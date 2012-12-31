@@ -24,6 +24,7 @@
 // Ctor
 BcMemoryAllocator::BcMemoryAllocator()
 {
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,39 +32,22 @@ BcMemoryAllocator::BcMemoryAllocator()
 //virtual
 BcMemoryAllocator::~BcMemoryAllocator()
 {
+
 }
 
 //////////////////////////////////////////////////////////////////////////
-// malloc
 //virtual
-void* BcMemoryAllocator::malloc( BcSize Bytes )
+void* BcMemoryAllocator::malloc( BcSize Bytes, BcSize Alignment )
 {
-	return memalign( Bytes, 16 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// memalign
-//virtual
-void* BcMemoryAllocator::memalign( BcSize Bytes, BcSize Alignment )
-{
-	BcBreakpoint;
-	return NULL;
+	return BcSysMemAlign( Bytes, Alignment );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // realloc
 //virtual
-void* BcMemoryAllocator::realloc( void* pMemory, BcSize Bytes )
+void* BcMemoryAllocator::realloc( void* pMemory, BcSize Bytes, BcSize Alignment )
 {
-	return reallocaligned( pMemory, Bytes, 16 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// reallocaligned
-//virtual
-void* BcMemoryAllocator::reallocaligned( void* pMemory, BcSize Bytes, BcSize Alignment )
-{
-	BcBreakpoint;
+	BcSysMemRealloc( pMemory, Bytes, Alignment );
 	return NULL;
 }
 
@@ -72,16 +56,28 @@ void* BcMemoryAllocator::reallocaligned( void* pMemory, BcSize Bytes, BcSize Ali
 //virtual
 void BcMemoryAllocator::free( void* pMemory )
 {
-	BcBreakpoint;
+	BcSysMemFree( pMemory );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// free
+// BcSysMemAlign
 void* BcSysMemAlign( BcSize Bytes, BcSize Alignment )
 {
 #if PLATFORM_WINDOWS
 	return _aligned_malloc( Bytes, Alignment );
 #else
+	return memalign( Alignment, Bytes );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcSysMemRealloc
+void* BcSysMemRealloc( void* pMemory, BcSize Bytes, BcSize Alignment )
+{
+#if PLATFORM_WINDOWS
+	return _aligned_realloc( pMemory, Bytes, Alignment );
+#else
+	BcBreakpoint;
 	return memalign( Alignment, Bytes );
 #endif
 }
@@ -113,18 +109,6 @@ void printBacktrace()
 }
 #endif
 
-BcAtomicU32 gAllocID = 0;
-
-void initHeap()
-{
-	static BcBool Initialised = BcFalse;
-	if( Initialised == BcFalse )
-	{
-		Initialised = BcTrue;
-		gAllocID = 0;
-	}
-}
-
 void* operator new( size_t Size )
 {
 	void* pMem = BcMemAlign( Size, 16 );
@@ -151,17 +135,28 @@ void operator delete[]( void* pMem ) throw()
 // BcMemAlign
 void* BcMemAlign( BcSize Bytes, BcSize Alignment )
 {
-	// Do init of heap.
-	initHeap();
-
-	// Go to system allocator.
-	return BcSysMemAlign( Bytes, Alignment );
+	if( BcMemoryAllocator::pImpl() )
+	{
+		return BcMemoryAllocator::pImpl()->malloc( Bytes, Alignment );
+	}
+	else
+	{
+		// Go to system allocator.
+		return BcSysMemAlign( Bytes, Alignment );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcMemFree
 void BcMemFree( void* pMemory )
 {
-	// Go to system allocator.
-	BcSysMemFree( pMemory );
+	if( BcMemoryAllocator::pImpl() )
+	{
+		return BcMemoryAllocator::pImpl()->free( pMemory );
+	}
+	else
+	{
+		// Go to system allocator.
+		BcSysMemFree( pMemory );
+	}
 }

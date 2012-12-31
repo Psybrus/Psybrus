@@ -73,21 +73,21 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			else if( BcStrCompare( CommandBuffer, "v" ) )
 			{
 				// Vertex position.
-				BcReal X, Y, Z;
+				BcF32 X, Y, Z;
 				BcSScanf( LineBuffer, "%s %f %f %f", CommandBuffer, &X, &Y, &Z );
 				Positions_.push_back( BcVec3d( -X, Y, Z ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "vn" ) )
 			{
 				// Vertex normal.
-				BcReal X, Y, Z;
+				BcF32 X, Y, Z;
 				BcSScanf( LineBuffer, "%s %f %f %f", CommandBuffer, &X, &Y, &Z );
 				Normals_.push_back( BcVec3d( -X, Y, Z ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "vt" ) )
 			{
 				// Vertex texcoord.
-				BcReal U, V;
+				BcF32 U, V;
 				BcSScanf( LineBuffer, "%s %f %f", CommandBuffer, &U, &V );
 				TexCoords_.push_back( BcVec2d( U, V ) );
 			}
@@ -95,6 +95,7 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			{
 				// Use material.
 				BcChar NameBuffer[ 1024 ];
+				BcMemSet( NameBuffer, 0, sizeof( NameBuffer ) );
 				BcSScanf( LineBuffer, "%s %s", CommandBuffer, NameBuffer );
 				Material.Name_ = NameBuffer;
 				MaterialIdx = pMesh->addMaterial( Material );

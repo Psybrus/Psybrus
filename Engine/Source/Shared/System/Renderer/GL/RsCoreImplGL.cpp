@@ -165,9 +165,6 @@ void RsCoreImplGL::open_threaded()
 		// Line smoothing.
 		glEnable( GL_LINE_SMOOTH );
 		glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
-
-		// HACK: Revisit this later!
-		//glDisable( GL_CULL_FACE );
 	}
 }
 
@@ -361,11 +358,27 @@ RsShader* RsCoreImplGL::createShader( eRsShaderType ShaderType, eRsShaderDataTyp
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createProgram
+// createProgram @deprecated
 //virtual
 RsProgram* RsCoreImplGL::createProgram( RsShader* pVertexShader, RsShader* pFragmentShader )
 {
-	RsProgramGL* pResource = new RsProgramGL( static_cast< RsShaderGL* >( pVertexShader ), static_cast< RsShaderGL* >( pFragmentShader ) );
+	RsShader* Shaders[] = 
+	{
+		pVertexShader,
+		pFragmentShader
+	};
+
+	RsProgramGL* pResource = new RsProgramGL( 2, &Shaders[ 0 ] );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgram
+//virtual
+RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders )
+{
+	RsProgramGL* pResource = new RsProgramGL( NoofShaders, ppShaders );
 	createResource( pResource );
 	return pResource;
 }
@@ -384,7 +397,7 @@ RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsInd
 // destroyResource
 void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
-	BcAssert( BcIsGameThread() );
+	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	pResource->preDestroy();
 
@@ -407,7 +420,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
-	BcAssert( BcIsGameThread() );
+	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	// Make default context current.
 	RsContextGL* pContext = ContextMap_[ NULL ];
@@ -428,7 +441,7 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
-	BcAssert( BcIsGameThread() );
+	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	// Make default context current.
 	RsContextGL* pContext = ContextMap_[ NULL ];
@@ -475,6 +488,9 @@ void RsCoreImplGL::queueFrame_threaded( RsFrameGL* pFrame )
 {
 	// Render frame.
 	pFrame->render();
+
+	// Now free.
+	delete pFrame;
 }
 
 //////////////////////////////////////////////////////////////////////////

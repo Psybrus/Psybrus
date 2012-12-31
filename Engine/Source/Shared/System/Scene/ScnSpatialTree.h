@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#ifndef __ScnSPACIALTREE_H__
-#define __ScnSPACIALTREE_H__
+#ifndef __SCNSPACIALTREE_H__
+#define __SCNSPACIALTREE_H__
 
 #include "Base/BcOctTree.h"
 #include "System/Renderer/RsCore.h"
@@ -23,11 +23,11 @@
 // Typedefs
 #define SCN_ENTITYLIST_DIVIDESIZE	8
 #define SCN_MAX_RENDERNODES			1024
-typedef std::list< ScnComponentWeakRef > ScnComponentWeakRefList;
+typedef std::list< ScnRenderableComponentWeakRef > ScnRenderableComponentWeakRefList;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class ScnSpatialTreeNode
-*	\brief A Component in the tree which can contain ScnComponents
+*	\brief A Component in the tree which can contain ScnRenderableComponents
 *
 *	
 */
@@ -41,17 +41,17 @@ public:
 	/**
 	*	Add entity.
 	*/
-	void					addComponent( ScnComponentWeakRef Component );
+	void					addComponent( ScnRenderableComponentWeakRef Component );
 	
 	/**
 	*	Remove entity.
 	*/
-	void					removeComponent( ScnComponentWeakRef Component );
+	void					removeComponent( ScnRenderableComponentWeakRef Component );
 	
 	/**
 	*	Reinsert entity.
 	*/
-	void					reinsertComponent( ScnComponentWeakRef Component );
+	void					reinsertComponent( ScnRenderableComponentWeakRef Component );
 	
 	/**
 	*	Visit view.
@@ -64,7 +64,7 @@ public:
 	void					visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds );
 
 private:
-	ScnComponentWeakRefList	ComponentList_;
+	ScnRenderableComponentWeakRefList	ComponentList_;
 
 };
 
@@ -84,12 +84,12 @@ public:
 	/**
 	*	Add Component.
 	*/
-	void					addComponent( ScnComponentWeakRef Component );
+	void					addComponent( ScnRenderableComponentWeakRef Component );
 
 	/**
 	*	Remove Component.
 	*/
-	void					removeComponent( ScnComponentWeakRef Component );
+	void					removeComponent( ScnRenderableComponentWeakRef Component );
 
 	/**
 	*	Visit view.

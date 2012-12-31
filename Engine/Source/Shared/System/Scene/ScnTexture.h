@@ -18,6 +18,8 @@
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTypes.h"
+#include "System/Scene/ScnTextureFileData.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef
@@ -46,7 +48,6 @@ public:
 	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 	RsTexture*							getTexture();
 	
@@ -61,27 +62,14 @@ public:
 	virtual BcU32						noofRects();
 	
 protected:
-	virtual void						setup();
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
 	RsTexture*							pTexture_;
 	
-	struct THeader
-	{
-		BcU32							Width_;
-		BcU32							Height_;
-		BcU32							Depth_;
-		BcU32							Levels_;
-		eRsTextureType					Type_;
-		eRsTextureFormat				Format_;
-	};
-	
-	THeader								Header_;
+	ScnTextureHeader					Header_;
 	void*								pTextureData_;
-	BcBool								CreateNewTexture_;
-	BcBool								IsUserCreated_;
 };
 
 #endif

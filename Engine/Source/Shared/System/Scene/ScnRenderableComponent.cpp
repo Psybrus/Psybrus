@@ -19,11 +19,18 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnRenderableComponent )
+	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
+BCREFLECTION_DERIVED_END();
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnRenderableComponent::initialise()
 {
 	Super::initialise();
+
+	setRenderMask( 1 );
+	pSpatialTreeNode_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,16 +38,24 @@ void ScnRenderableComponent::initialise()
 //virtual
 void ScnRenderableComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise( Object );
+	initialise();
+
+	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
+	if( RenderMaskValue.type() != Json::nullValue )
+	{
+		setRenderMask( RenderMaskValue.asUInt() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnRenderableComponent::update( BcReal Tick )
+void ScnRenderableComponent::postUpdate( BcF32 Tick )
 {
 	Super::update( Tick );
 
+	// Reinsert node if we need to.
+	pSpatialTreeNode_->reinsertComponent( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,4 +80,42 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderMask
+void ScnRenderableComponent::setRenderMask( BcU32 RenderMask )
+{
+	RenderMask_ = RenderMask;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderMask
+const BcU32 ScnRenderableComponent::getRenderMask() const
+{
+	return RenderMask_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSpatialTreeNode
+void ScnRenderableComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
+{
+	pSpatialTreeNode_ = pNode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSpatialTreeNode
+ScnSpatialTreeNode* ScnRenderableComponent::getSpatialTreeNode()
+{
+	return pSpatialTreeNode_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+//virtual
+BcAABB ScnRenderableComponent::getAABB() const
+{
+	BcAssertMsg( BcFalse, "ScnRenderableComponent: Not implemented a getAABB!" );
+	return BcAABB();
 }

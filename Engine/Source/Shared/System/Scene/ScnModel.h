@@ -20,6 +20,8 @@
 #include "System/Scene/ScnMaterial.h"
 #include "System/Scene/ScnRenderableComponent.h"
 
+#include "System/Scene/ScnModelFileData.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnModelRef
 typedef CsResourceRef< class ScnModel > ScnModelRef;
@@ -53,10 +55,6 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
-	
-private:
-	void								setup();
 	
 private:
 	void								fileReady();
@@ -65,58 +63,15 @@ private:
 protected:
 	friend class ScnModelComponent;
 	
-	// Header.
-	struct THeader
-	{
-		BcU32							NoofNodes_;
-		BcU32							NoofPrimitives_;
-	};
-	
-	// Node transform data.
-	struct TNodeTransformData
-	{
-		BcMat4d							RelativeTransform_;
-		BcMat4d							AbsoluteTransform_;
-		BcMat4d							InverseBindpose_;
-	};
-	
-	// Node property data.
-	struct TNodePropertyData
-	{
-		BcU32							ParentIndex_;
-	};
-	
-	// Primitive data.
-	struct TPrimitiveData
-	{
-		BcU32							NodeIndex_;
-		eRsPrimitiveType				Type_;
-		BcU32							VertexFormat_;
-		BcU32							NoofVertices_;
-		BcU32							NoofIndices_;
-		BcU32							MaterialRef_;
-	};
-	
 	// Cached pointers for internal use.
-	THeader*							pHeader_;
-	TNodeTransformData*					pNodeTransformData_;
-	TNodePropertyData*					pNodePropertyData_;
+	ScnModelHeader*						pHeader_;
+	ScnModelNodeTransformData*			pNodeTransformData_;
+	ScnModelNodePropertyData*			pNodePropertyData_;
 	BcU8*								pVertexBufferData_;
 	BcU8*								pIndexBufferData_;
-	TPrimitiveData*						pPrimitiveData_;
+	ScnModelPrimitiveData*				pPrimitiveData_;
 	
-	// Runtime structures.
-	struct TPrimitiveRuntime
-	{
-		BcU32							PrimitiveDataIndex_;
-		RsVertexBuffer*					pVertexBuffer_;
-		RsIndexBuffer*					pIndexBuffer_;
-		RsPrimitive*					pPrimitive_;
-		ScnMaterialRef					MaterialRef_;
-	};
-	
-	typedef std::vector< TPrimitiveRuntime > TPrimitiveRuntimeList;
-	TPrimitiveRuntimeList				PrimitiveRuntimes_;
+	ScnModelPrimitiveRuntimeList		PrimitiveRuntimes_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,7 +85,8 @@ public:
 	virtual void						initialise( ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
-	virtual BcBool						isReady();
+
+	virtual BcAABB						getAABB() const;
 
 	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
 
@@ -138,16 +94,21 @@ public:
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
 	
 public:
-	virtual void						update( BcReal Tick );
+	virtual void						postUpdate( BcF32 Tick );
+
+	void								updateNodes( BcMat4d RootMatrix );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
 	ScnModelRef							Parent_;
-	ScnModel::TNodeTransformData*		pNodeTransformData_;
+	ScnModelNodeTransformData*			pNodeTransformData_;
+	SysFence							UpdateFence_;
 
 	BcU32								Layer_;
+
+	BcAABB								AABB_;
 
 	struct TMaterialComponentDesc
 	{

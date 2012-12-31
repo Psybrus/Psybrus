@@ -16,9 +16,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcSqrt
-BcReal BcSqrt( BcReal v )
+BcF32 BcSqrt( BcF32 v )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [v]
 	__asm fsqrt
 	__asm fstp [v]
@@ -64,9 +64,9 @@ BcU64 BcSqrtFixed( BcU64 FixedValue, BcU64 Precision )
 
 //////////////////////////////////////////////////////////////////////////
 // BcSin
-BcReal BcSin( BcReal r )
+BcF32 BcSin( BcF32 r )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [r]
 	__asm fsin
 	__asm fstp [r]
@@ -87,9 +87,9 @@ BcReal BcSin( BcReal r )
 
 //////////////////////////////////////////////////////////////////////////
 // BcCos
-BcReal BcCos( BcReal r )
+BcF32 BcCos( BcF32 r )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [r]
 	__asm fcos
 	__asm fstp [r]
@@ -110,14 +110,14 @@ BcReal BcCos( BcReal r )
 
 //////////////////////////////////////////////////////////////////////////
 // BcFloor
-BcReal BcFloor( BcReal T )
+BcF32 BcFloor( BcF32 T )
 {
 	return floorf( T );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcCeil
-BcReal BcCeil( BcReal T )
+BcF32 BcCeil( BcF32 T )
 {
 	return ceilf( T );
 }

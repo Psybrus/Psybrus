@@ -52,6 +52,7 @@ public:
 	virtual RsIndexBuffer*	createIndexBuffer( BcU32 NoofIndices, void* pIndexData = NULL );
 	virtual RsShader*		createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual RsProgram*		createProgram( RsShader* pVertexShader, RsShader* pFragmentShader );
+	virtual RsProgram*		createProgram( BcU32 NoofShaders, RsShader** ppShaders );
 	virtual RsPrimitive*	createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer );
 	virtual void			destroyResource( RsResource* pResource );
 	void					updateResource( RsResource* pResource );
@@ -70,6 +71,7 @@ public:
 
 protected:
 	RsStateBlockGL*			pStateBlock_;
+	BcMutex					ResourceLock_;
 	SysFence				RenderSyncFence_;
 
 	typedef std::map< OsClient*, RsContextGL* > TContextMap;

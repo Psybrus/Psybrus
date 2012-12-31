@@ -72,6 +72,16 @@ public:
 	_Ty operator -- ( int );
 
 	/**
+	* Add.
+	*/
+	void operator += ( _Ty Value );
+
+	/**
+	* Sub.
+	*/
+	void operator -= ( _Ty Value );
+
+	/**
 	* Exchange.
 	* @param Value Value to set to.
 	* @return Old value.
@@ -150,6 +160,18 @@ template< typename _Ty >
 BcForceInline _Ty BcAtomic< _Ty >::operator -- ( int )
 {
 	return (_Ty)( ::InterlockedExchangeAdd( &Internal_, -1 ) );
+}
+
+template< typename _Ty >
+void BcAtomic< _Ty >::operator += ( _Ty Value )
+{
+	::InterlockedExchangeAdd( &Internal_, Value );
+}
+
+template< typename _Ty >
+void BcAtomic< _Ty >::operator -= ( _Ty Value )
+{
+	::InterlockedExchangeAdd( &Internal_, -Value );
 }
 
 template< typename _Ty >

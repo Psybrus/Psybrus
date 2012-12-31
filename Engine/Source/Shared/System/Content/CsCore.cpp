@@ -35,7 +35,8 @@ CsCore::~CsCore()
 //virtual
 void CsCore::open()
 {
-	
+	// Register types for reflection.
+	CsResource::StaticRegisterReflection();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,19 +44,12 @@ void CsCore::open()
 //virtual 
 void CsCore::update()
 {
-	// TODO: Remove these, all is handled in CsResource now!
+	// Should be handled in CsPackage. Look into doing it.
 	processCreateResources();
 	processLoadingResources();
 	processLoadedResource();
 	processUnloadingResources();
-
-	// Garbage collection.
-	// TODO: Mark packages for clean up instead of just iterating over them.
-	if( IsCollectingGarbage_ )
-	{
-		freeUnreferencedPackages();
-		IsCollectingGarbage_ = BcFalse;
-	}
+	processCallbacks();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,10 +61,15 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
-	// Finish processing unloading resources.
-	if( UnloadingResources_.size() > 0 )
+	while( LoadedResources_.size() > 0 )
 	{
-		processUnloadingResources();
+		freeUnreferencedPackages();
+
+		// Finish processing unloading resources.
+		if( UnloadingResources_.size() > 0 )
+		{
+			processUnloadingResources();
+		}
 	}
 
 	if( LoadedResources_.size() > 0 )
@@ -83,7 +82,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -139,6 +138,21 @@ void CsCore::freeUnreferencedPackages()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getResourceType
+BcName CsCore::getResourceType( BcU32 Idx ) const
+{
+	// NOTE: Change the map to an array. We want fast lookups by index too :(
+	return BcName::INVALID;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofResourceTypes
+BcU32 CsCore::getNoofResourceTypes() const
+{
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocResource
 CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage )
 {
@@ -149,7 +163,11 @@ CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32
 	
 	if( Iter != ResourceFactoryInfoMap_.end() )
 	{
-		pResource = (*Iter).second.allocFunc_( Name, Index, pPackage );
+		const BcReflectionClass* pClass = Iter->second.pClass_;
+		void* pResourceBuffer = BcMemAlign( pClass->getSize() );
+
+		pResource = pClass->construct< CsResource >( pResourceBuffer );
+		pResource->preInitialise( Name, Index, pPackage );
 	}
 	
 	return pResource;
@@ -185,8 +203,23 @@ void CsCore::destroyResource( CsResource* pResource )
 	}
 	else
 	{
-		delete pResource;
+		pResource->getClass()->destruct( pResource );
+		BcMemFree( pResource );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofResources
+BcU32 CsCore::getNoofResources()
+{
+	return LoadedResources_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResource
+CsResourceRef<> CsCore::getResource( BcU32 Idx )
+{
+	return LoadedResources_[ Idx ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,6 +288,20 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// requestPackageReadyCallback
+void CsCore::requestPackageReadyCallback( const BcName& Package, const CsPackageReadyCallback& Callback, BcU32 ID )
+{
+	TPackageReadyCallback PackageReadyCallback =
+	{
+		Package,
+		Callback,
+		ID
+	};
+
+	PackageReadyCallbackList_.push_back( PackageReadyCallback );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // findPackage
 CsPackage* CsCore::findPackage( const BcName& Package )
 {
@@ -300,13 +347,20 @@ void CsCore::processCreateResources()
 		CsResourceRef<> ResourceHandle = (*It);
 		
 		// Create resource.
-		ResourceHandle->create();
-		
-		// Remove from list.
-		It = CreateResources_.erase( It );
-		
-		// Put into loading list.
-		LoadingResources_.push_back( ResourceHandle );
+		if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+		{
+			ResourceHandle->create();
+
+			// Remove from list.
+			It = CreateResources_.erase( It );
+
+			// Put into loading list.
+			LoadingResources_.push_back( ResourceHandle );
+		}
+		else
+		{
+			++It;
+		}
 	}
 }
 
@@ -361,7 +415,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getType()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
 		
 		++It;
@@ -380,34 +434,64 @@ void CsCore::processUnloadingResources()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	TResourceListIterator It( UnloadingResources_.begin() );
-	while( It != UnloadingResources_.end() )
+	while( UnloadingResources_.size() > 0 )
 	{
-		CsResource* pResource = (*It);
-		
-		// Destroy resource.
-		pResource->destroy();
-		
-		// Free resource.
-		delete pResource;
-		
-		// Remove from list.
-		It = UnloadingResources_.erase( It );
+		TResourceList ResourceList = UnloadingResources_;
+
+		TResourceListIterator It( ResourceList.begin() );
+		while( It != ResourceList.end() )
+		{
+			CsResource* pResource = (*It);
+			
+			// Destroy resource.
+			pResource->destroy();
+			
+			// Free resource.
+			pResource->getClass()->destruct( pResource );
+			BcMemFree( pResource );
+			
+			// Next.
+			++It;
+		}
+	
+		UnloadingResources_.clear();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// processCallbacks
+void CsCore::processCallbacks()
+{
+	TPackageReadyCallbackListIterator It = PackageReadyCallbackList_.begin();
+
+	while( It != PackageReadyCallbackList_.end() )
+	{
+		TPackageReadyCallback& CallbackData( *It );
+		CsPackage* pPackage = findPackage( CallbackData.Package_ );
+		if( pPackage != NULL &&
+			pPackage->isReady() )
+		{
+			CallbackData.Callback_( pPackage, CallbackData.ID_ );
+			It = PackageReadyCallbackList_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const BcName& Type, CsResourceAllocFunc allocFunc, CsResourceFreeFunc freeFunc )
+void CsCore::internalRegisterResource( const BcReflectionClass* pClass )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
-	FactoryInfo.allocFunc_ = allocFunc;
-	FactoryInfo.freeFunc_ = freeFunc;
+	FactoryInfo.pClass_ = pClass;
 	
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	ResourceFactoryInfoMap_[ Type ] = FactoryInfo;
+	ResourceFactoryInfoMap_[ pClass->getName() ] = FactoryInfo;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -427,7 +511,7 @@ void CsCore::internalUnRegisterResource( const BcName& Type )
 BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
 {
 	// Generate a unique name for the resource.
-	BcName UniqueName = pPackage == NULL ? ( Name.isValid() ? Name.getUnique() : Type.getUnique() ) : Name;
+	BcName UniqueName = Name.isValid() ? Name : Type.getUnique();
 
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Type, Index, pPackage );

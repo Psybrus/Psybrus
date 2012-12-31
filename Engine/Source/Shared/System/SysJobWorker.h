@@ -57,6 +57,16 @@ public:
 	 */
 	void				stop();
 
+	/**
+	 * Get and reset time working.
+	 */
+	BcF32				getAndResetTimeWorking();
+
+	/**
+	 * Get and reset jobs executed.
+	 */
+	BcU32				getAndResetJobsExecuted();
+
 private:
 	virtual void		execute();
 	
@@ -66,6 +76,9 @@ private:
 	BcAtomicBool		HaveJob_;
 	SysJob*				pCurrentJob_;
 	BcEvent				ResumeEvent_;
+
+	BcAtomicU32			TimeWorkingUS_;	// Microseconds.
+	BcAtomicU32			JobsExecuted_;
 };
 
 #endif

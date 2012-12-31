@@ -38,7 +38,7 @@ public:
 	BcBool							isDataReady() const;
 	const BcChar*					getSourceFile() const;
 	const BcChar*					getString( BcU32 Offset ) const;
-	void							getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName ) const;
+	void							getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName, BcBool& IsWeak ) const;
 	BcU32							getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx );
 	BcU32							getNoofChunks( BcU32 ResourceIdx );
 	BcBool							requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx, void* pDataLocation = NULL );
@@ -59,7 +59,7 @@ private:
 	BcBool							findResourceChunk( void* pData, BcU32& ResourceIdx, BcU32& ChunkIdx );
 	void							processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx );
 
-	BcBool							arePackageDependenciesLoaded();
+	BcBool							arePackageDependenciesReady();
 	
 private:
 	CsPackage*						pPackage_;

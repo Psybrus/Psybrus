@@ -13,6 +13,7 @@
 
 #include "System/SysJobWorker.h"
 #include "System/SysJobQueue.h"
+#include "Base/BcTimer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -76,6 +77,21 @@ void SysJobWorker::stop()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getAndResetTimeWorking
+BcF32 SysJobWorker::getAndResetTimeWorking()
+{
+	BcU32 TimeWorkingUS = TimeWorkingUS_.exchange( 0 );
+	return static_cast< BcF32 >( TimeWorkingUS ) / 1000000.0f;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAndResetJobsExecuted
+BcU32 SysJobWorker::getAndResetJobsExecuted()
+{
+	return JobsExecuted_.exchange( 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // execute
 //virtual
 void SysJobWorker::execute()
@@ -94,11 +110,23 @@ void SysJobWorker::execute()
 		if( pCurrentJob_ != NULL )
 		{
 			BcAssertMsg( HaveJob_ == BcTrue, "SysJobWorker: We have a job pointer set, but haven't got it via giveJob." );
-			
+
+			// Start timing the job.
+#if !PSY_PRODUCTION
+			BcTimer Timer;
+			Timer.mark();
+#endif
 			// Execute our job.
 			pCurrentJob_->internalExecute();
-			
+
+#if !PSY_PRODUCTION
+			// Add time spent to our total.
+			const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
+			TimeWorkingUS_ += TimeWorkingUS;
+			JobsExecuted_++;
+#endif			
 			// No job now, clean up.
+			delete pCurrentJob_;
 			pCurrentJob_ = NULL;
 			HaveJob_ = BcFalse;
 			

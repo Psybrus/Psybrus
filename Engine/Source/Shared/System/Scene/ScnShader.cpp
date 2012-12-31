@@ -20,7 +20,17 @@
 #include "Base/BcStream.h"
 #endif
 
+//////////////////////////////////////////////////////////////////////////
+// Statics
+static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
+{
+	{ scnSPF_2D,					NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
+	{ scnSPF_3D,					NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
+	{ scnSPF_PARTICLE_3D,			NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
+};
+
 #ifdef PSY_SERVER
+
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
@@ -40,83 +50,109 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 		if( VertexShader.type() == Json::stringValue &&
 		    FragmentShader.type() == Json::stringValue )
 		{
-			BcFile File;	
+			BcFile ShaderFile;
+			BcFile BootstrapFile;
 			BcStream HeaderStream;
 			BcStream VertexShaderStream;
 			BcStream FragmentShaderStream;
 			BcStream ProgramStream;
 			
-			THeader Header;
-			TShaderHeader ShaderHeader;
-			TProgramHeader ProgramHeader;
+			ScnShaderHeader Header;
+			ScnShaderUnitHeader ShaderHeader;
+			ScnShaderProgramHeader ProgramHeader;
 
-			Header.NoofVertexShaderPermutations_ = 1;
-			Header.NoofFragmentShaderPermutations_ = 1;
-			Header.NoofProgramPermutations_ = 1;
+			// For now, generate all permutations.
+			BcU32 NoofPermutations = sizeof( GShaderPermutationBootstraps ) / sizeof( GShaderPermutationBootstraps[ 0 ] );
 
-			// Load vertex shader.
-			if( File.open( VertexShader.asCString(), bcFM_READ ) )
-			{	
-				// Add dependancy.
-				Importer.addDependency( VertexShader.asCString() );
+			Header.NoofVertexShaderPermutations_ = NoofPermutations;
+			Header.NoofFragmentShaderPermutations_ = NoofPermutations;
+			Header.NoofProgramPermutations_ = NoofPermutations;
 
-				// Read in whole shader.
-				BcU32 ShaderSize = File.size();
-				BcU8* pShader = new BcU8[ ShaderSize ];
-				File.read( pShader, ShaderSize );
-	
-				ShaderHeader.PermutationFlags_ = scnSPF_DEFAULT;
-		
-				VertexShaderStream << ShaderHeader;
-				VertexShaderStream.push( pShader, ShaderSize );
-				VertexShaderStream << BcU8( 0 ); // NULL terminator.
-				delete [] pShader;
-				File.close();
-			}
-			else
-			{
-				BcPrintf( "ScnShader: No vertex shader called %s\n", VertexShader.asCString() );
-			}
-	
-			// Load fragment shader.
-			if( File.open( FragmentShader.asCString(), bcFM_READ ) )
-			{
-				// Add dependancy.
-				Importer.addDependency( FragmentShader.asCString() );
-
-				// Read in whole shader.
-				BcU32 ShaderSize = File.size();
-				BcU8* pShader = new BcU8[ ShaderSize ];
-				File.read( pShader, ShaderSize );
-		
-				ShaderHeader.PermutationFlags_ = scnSPF_DEFAULT;
-		
-				FragmentShaderStream << ShaderHeader;
-				FragmentShaderStream.push( pShader, ShaderSize );
-				FragmentShaderStream << BcU8( 0 ); // NULL terminator.
-				delete [] pShader;
-				File.close();
-			}
-			else
-			{
-				BcPrintf( "ScnShader: No fragment shader called %s\n", VertexShader.asCString() );
-			}
-			
 			// Serialise header.
 			HeaderStream << Header;
 			
-			// Create program.
-			ProgramHeader.ProgramPermutationFlags_ = scnSPF_DEFAULT;
-			ProgramHeader.VertexShaderPermutationFlags_ = scnSPF_DEFAULT;
-			ProgramHeader.FragmentShaderPermutationFlags_ = scnSPF_DEFAULT;
-	
-			ProgramStream << ProgramHeader;
-
 			// Write out chunks.
 			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-			Importer.addChunk( BcHash( "vertex" ), VertexShaderStream.pData(), VertexShaderStream.dataSize() );
-			Importer.addChunk( BcHash( "fragment" ), FragmentShaderStream.pData(), FragmentShaderStream.dataSize() );
-			Importer.addChunk( BcHash( "program" ), ProgramStream.pData(), ProgramStream.dataSize() );
+
+			// Load shaders.
+			for( BcU32 PermutationIdx = 0; PermutationIdx < NoofPermutations; ++PermutationIdx )
+			{
+				ScnShaderPermutationBootstrap PermutationBootstrap( GShaderPermutationBootstraps[ PermutationIdx ] );
+
+				if( ShaderFile.open( VertexShader.asCString(), bcFM_READ ) && BootstrapFile.open( PermutationBootstrap.SourceVertexShaderName_, bcFM_READ ) )
+				{	
+					// Add dependancies.
+					Importer.addDependency( VertexShader.asCString() );
+					Importer.addDependency( PermutationBootstrap.SourceVertexShaderName_ );
+
+					// Setup permutation flags.
+					ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
+
+					// Read in whole shader.
+					BcU8* pBootstrapShader = BootstrapFile.readAllBytes();
+					BcU8* pShader = ShaderFile.readAllBytes();
+			
+					// Serialise.
+					VertexShaderStream << ShaderHeader;
+					VertexShaderStream.push( pBootstrapShader, BootstrapFile.size() );
+					VertexShaderStream.push( pShader, ShaderFile.size() );
+					VertexShaderStream << BcU8( 0 ); // NULL terminator.
+					delete [] pShader;
+					delete [] pBootstrapShader;
+					ShaderFile.close();
+					BootstrapFile.close();
+
+					Importer.addChunk( BcHash( "vertex" ), VertexShaderStream.pData(), VertexShaderStream.dataSize() );
+					VertexShaderStream.clear();
+				}
+				else
+				{
+					BcAssertMsg( BcFalse, "ScnShader: No vertex shader called %s or %s\n", VertexShader.asCString(), PermutationBootstrap.SourceVertexShaderName_ );
+				}
+				
+				// Load fragment shader.
+				if( ShaderFile.open( FragmentShader.asCString(), bcFM_READ ) && BootstrapFile.open( PermutationBootstrap.SourceFragmentShaderName_, bcFM_READ ) )
+				{
+					// Add dependancies.
+					Importer.addDependency( FragmentShader.asCString() );
+					Importer.addDependency( PermutationBootstrap.SourceFragmentShaderName_ );
+
+					// Setup permutation flags.
+					ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
+					
+					// Read in whole shader.
+					BcU8* pBootstrapShader = BootstrapFile.readAllBytes();
+					BcU8* pShader = ShaderFile.readAllBytes();
+					
+					// Serialise.
+					FragmentShaderStream << ShaderHeader;
+					FragmentShaderStream.push( pBootstrapShader, BootstrapFile.size() );
+					FragmentShaderStream.push( pShader, ShaderFile.size() );
+					FragmentShaderStream << BcU8( 0 ); // NULL terminator.
+					delete [] pShader;
+					delete [] pBootstrapShader;
+					ShaderFile.close();
+					BootstrapFile.close();
+
+					Importer.addChunk( BcHash( "fragment" ), FragmentShaderStream.pData(), FragmentShaderStream.dataSize() );
+					FragmentShaderStream.clear();
+
+				}
+				else
+				{
+					BcAssertMsg( BcFalse, "ScnShader: No fragment shader called %s or %s\n", FragmentShader.asCString(), PermutationBootstrap.SourceFragmentShaderName_ );
+				}
+				
+				// Create program.
+				ProgramHeader.ProgramPermutationFlags_ = PermutationBootstrap.PermutationFlags_;
+				ProgramHeader.VertexShaderPermutationFlags_ = PermutationBootstrap.PermutationFlags_;
+				ProgramHeader.FragmentShaderPermutationFlags_ = PermutationBootstrap.PermutationFlags_;
+	
+				ProgramStream << ProgramHeader;
+
+				Importer.addChunk( BcHash( "program" ), ProgramStream.pData(), ProgramStream.dataSize() );
+				ProgramStream.clear();
+			}
 		
 			return BcTrue;
 		}
@@ -138,6 +174,16 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 // Define resource internals.
 DEFINE_RESOURCE( ScnShader );
 
+BCREFLECTION_EMPTY_REGISTER( ScnShader );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnShader )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -152,7 +198,8 @@ void ScnShader::initialise()
 //virtual
 void ScnShader::create()
 {
-
+	// TODO: Move some of the fileChunk(...) code into here. Will do for now.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,29 +207,25 @@ void ScnShader::create()
 //virtual
 void ScnShader::destroy()
 {
-	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnShader::isReady()
-{
-	BcBool IsReady = pHeader_ != NULL && ProgramMap_.size() == pHeader_->NoofProgramPermutations_;
-	
-	if( IsReady == BcTrue )
+	for( TShaderMapIterator Iter = VertexShaderMap_.begin(); Iter != VertexShaderMap_.end(); ++Iter )
 	{
-		for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
-		{
-			if( (*Iter).second->hasHandle() == BcFalse )
-			{
-				IsReady = BcFalse;
-				break;
-			}
-		}
+		RsCore::pImpl()->destroyResource( (*Iter).second );
 	}
-	
-	return IsReady;
+
+	for( TShaderMapIterator Iter = FragmentShaderMap_.begin(); Iter != FragmentShaderMap_.end(); ++Iter )
+	{
+		RsCore::pImpl()->destroyResource( (*Iter).second );
+	}
+
+	for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
+	{
+		RsCore::pImpl()->destroyResource( (*Iter).second );
+	}
+
+	pHeader_ = NULL;
+	VertexShaderMap_.clear();
+	FragmentShaderMap_.clear();
+	ProgramMap_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -268,72 +311,55 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnShaderHeader*)pData;
 
 		// Grab the rest of the chunks.
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofVertexShaderPermutations_; ++Idx )
-		{
-			requestChunk( ++ChunkIdx );
-		}
-
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofFragmentShaderPermutations_; ++Idx )
-		{
-			requestChunk( ++ChunkIdx );
-		}
-
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofProgramPermutations_; ++Idx )
+		const BcU32 TotalChunks = pHeader_->NoofVertexShaderPermutations_ + pHeader_->NoofFragmentShaderPermutations_ + pHeader_->NoofProgramPermutations_;
+		for( BcU32 Idx = 0; Idx < TotalChunks; ++Idx )
 		{
 			requestChunk( ++ChunkIdx );
 		}
 	}
 	else if( ChunkID == BcHash( "vertex" ) )
 	{
-		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
+		ScnShaderUnitHeader* pShaderHeader = (ScnShaderUnitHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
-		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( TShaderHeader );
+		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( ScnShaderUnitHeader );
 		
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_VERTEX, rsSDT_SOURCE, pShaderData, ShaderSize );
 		
-		// TODO: Lockless list/map.
 		VertexShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
 	else if( ChunkID == BcHash( "fragment" ) )
 	{
-		TShaderHeader* pShaderHeader = (TShaderHeader*)pData;
+		ScnShaderUnitHeader* pShaderHeader = (ScnShaderUnitHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
-		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( TShaderHeader );
+		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( ScnShaderUnitHeader );
 			
 		RsShader* pShader = RsCore::pImpl()->createShader( rsST_FRAGMENT, rsSDT_SOURCE, pShaderData, ShaderSize );
 			
-		// TODO: Lockless list/map.
 		FragmentShaderMap_[ pShaderHeader->PermutationFlags_ ] = pShader;
 	}
 	else if( ChunkID == BcHash( "program" ) )
 	{
-		// Iterate over permutations to generate.
-		TProgramHeader* pProgramHeaders = (TProgramHeader*)pData;
-		
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofProgramPermutations_; ++Idx )
+		// Generate program.
+		ScnShaderProgramHeader* pProgramHeader = (ScnShaderProgramHeader*)pData;
+			
+		// Check vertex & fragment shader for closest permutation.
+		RsShader* pVertexShader = getShader( pProgramHeader->VertexShaderPermutationFlags_, VertexShaderMap_ );
+		RsShader* pFragmentShader = getShader( pProgramHeader->FragmentShaderPermutationFlags_, FragmentShaderMap_ );
+		BcAssertMsg( pVertexShader != NULL, "Vertex shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->VertexShaderPermutationFlags_, (*getName()).c_str() );
+		BcAssertMsg( pFragmentShader != NULL, "Fragment shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->FragmentShaderPermutationFlags_, (*getName()).c_str() );
+
+		// Create program.
+		RsProgram* pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );			
+			
+		ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
+
+		// Mark ready if we've got all the programs we expect.
+		if( ProgramMap_.size() == pHeader_->NoofProgramPermutations_ )
 		{
-			TProgramHeader* pProgramHeader = &pProgramHeaders[ Idx ];
-			
-			// Check vertex & fragment shader for closest permutation.
-			RsShader* pVertexShader = getShader( pProgramHeader->VertexShaderPermutationFlags_, VertexShaderMap_ );
-			RsShader* pFragmentShader = getShader( pProgramHeader->FragmentShaderPermutationFlags_, FragmentShaderMap_ );
-			BcAssertMsg( pVertexShader != NULL, "Vertex shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->VertexShaderPermutationFlags_, (*getName()).c_str() );
-			BcAssertMsg( pFragmentShader != NULL, "Fragment shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->FragmentShaderPermutationFlags_, (*getName()).c_str() );
-
-			// Reenter if we have no valid handle.
-			if( pVertexShader->hasHandle() == BcFalse || pFragmentShader->hasHandle() == BcFalse )
-			{
-				requestChunk( ChunkIdx );
-				return;
-			}
-
-			// Create program.
-			RsProgram* pProgram = RsCore::pImpl()->createProgram( pVertexShader, pFragmentShader );			
-			
-			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
+			markCreate();
 		}
 	}
 }

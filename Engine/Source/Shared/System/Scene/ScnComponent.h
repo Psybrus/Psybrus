@@ -24,23 +24,47 @@
 #include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
+// ScnComponentFlags
+enum ScnComponentFlags
+{
+	scnCF_ATTACHED =					0x00000001,
+	scnCF_PENDING_ATTACH =				0x00000002,
+	scnCF_PENDING_DETACH =				0x00000004,
+	scnCF_DIRTY_ATTACHMENTS =			0x00000008,
+
+	scnCF_WANTS_PREUPDATE =				0x00000100,
+	scnCF_WANTS_UPDATE =				0x00000200,
+	scnCF_WANTS_POSTUPDATE =			0x00000400,
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnComponent
 class ScnComponent:
 	public CsResource
 {
 public:
 	DECLARE_RESOURCE( CsResource, ScnComponent );
-	DECLARE_VISITABLE( ScnComponent );
 
 public:
 	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						update( BcReal Tick );
+	virtual void						create();
+	virtual void						destroy();
+
+	virtual void						preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.
+	virtual void						update( BcF32 Tick );			// Most will want this tick.
+	virtual void						postUpdate( BcF32 Tick );		// Anything that needs a tick after the game wants this.
+
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
-	virtual BcBool						isAttached() const;
+	void								setFlag( ScnComponentFlags Flag );
+	void								clearFlag( ScnComponentFlags Flag );
+	BcBool								isFlagSet( ScnComponentFlags Flag ) const;
+
+	BcBool								isAttached() const;
 	BcBool								isAttached( ScnEntityWeakRef Parent ) const;
+	void								setParentEntity( ScnEntityWeakRef Entity );
 	ScnEntityWeakRef					getParentEntity();
 
 	/**
@@ -48,24 +72,9 @@ public:
 	 */
 	std::string							getFullName();
 	
-	/**
-	 * Set the spatial tree node we belong in.
-	 */
-	void								setSpatialTreeNode( ScnSpatialTreeNode* pNode );
-
-	/**
-	 * Get the spatial tree node we are in.
-	 */
-	ScnSpatialTreeNode*					getSpatialTreeNode();
-
-	/**
-	 * Get encompassing AABB for component.
-	 */
-	virtual BcAABB						getAABB();
-	
 protected:
+	BcU32								Flags_;
 	ScnEntityWeakRef					ParentEntity_;
-	ScnSpatialTreeNode*					pSpacialTreeNode_;
 };
 
 #endif

@@ -9,7 +9,7 @@
 *
 *
 *
-**************************************************************************/
+*************************************************************************/
 
 #ifndef __BCMATH_H__
 #define __BCMATH_H__
@@ -50,7 +50,7 @@ BcU64 BcSqrtFixed( BcU64 FixedValue, BcU64 Precision );
 
 //////////////////////////////////////////////////////////////////////////
 // BcSqrt
-BcReal BcSqrt( BcReal v );
+BcF32 BcSqrt( BcF32 v );
 
 //////////////////////////////////////////////////////////////////////////
 // BcSqrt
@@ -62,22 +62,22 @@ inline BcFixed< _Ty, _BP > BcSqrt( BcFixed< _Ty, _BP > v )
 
 //////////////////////////////////////////////////////////////////////////
 // BcSin
-BcReal BcSin( BcReal r );
+BcF32 BcSin( BcF32 r );
 
 //////////////////////////////////////////////////////////////////////////
 // BcCos
-BcReal BcCos( BcReal r );
+BcF32 BcCos( BcF32 r );
 
 //////////////////////////////////////////////////////////////////////////
 // BcTan
-inline BcReal BcTan( BcReal r )
+inline BcF32 BcTan( BcF32 r )
 {
 	return tanf( r );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcAsin
-inline BcReal BcAsin( BcReal r )
+inline BcF32 BcAsin( BcF32 r )
 {
 	return asinf( r );
 }
@@ -85,16 +85,16 @@ inline BcReal BcAsin( BcReal r )
 
 //////////////////////////////////////////////////////////////////////////
 // BcAcos
-inline BcReal BcAcos( BcReal r )
+inline BcF32 BcAcos( BcF32 r )
 {
 	return acosf( r );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtan2
-inline BcReal BcAtan2( BcReal Y, BcReal X )
+inline BcF32 BcAtan2( BcF32 Y, BcF32 X )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_I386
+#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
 	__asm fld [Y]
 	__asm fld [X]
 	__asm fpatan
@@ -117,7 +117,7 @@ inline BcReal BcAtan2( BcReal Y, BcReal X )
 
 //////////////////////////////////////////////////////////////////////////
 // BcExp
-inline BcReal BcExp( BcReal T )
+inline BcF32 BcExp( BcF32 T )
 {
 	return expf( T );
 }
@@ -132,15 +132,15 @@ inline _Ty BcAbs( _Ty T )
 
 //////////////////////////////////////////////////////////////////////////
 // BcFloor
-BcReal BcFloor( BcReal T );
+BcF32 BcFloor( BcF32 T );
 
 //////////////////////////////////////////////////////////////////////////
 // BcCeil
-BcReal BcCeil( BcReal T );
+BcF32 BcCeil( BcF32 T );
 
 //////////////////////////////////////////////////////////////////////////
 // BcRound
-inline BcReal BcRound( BcReal T )
+inline BcF32 BcRound( BcF32 T )
 {
 	return BcFloor( T + 0.5f );
 }
@@ -180,23 +180,23 @@ inline _Ty BcMax( _Ty A, _Ty B )
 
 //////////////////////////////////////////////////////////////////////////
 // BcLerp
-inline BcReal BcLerp( BcReal A, BcReal B, BcReal T )
+inline BcF32 BcLerp( BcF32 A, BcF32 B, BcF32 T )
 {
 	return ( A * ( 1.0f - T ) ) + ( B * T );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcSigmoid
-inline BcReal BcSigmoid( BcReal T )
+inline BcF32 BcSigmoid( BcF32 T )
 {
 	return ( 1.0f / ( 1.0f + BcExp( -T ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcSigmoidRange
-inline BcReal BcSigmoidRange( BcReal T, BcReal Min, BcReal Max, BcReal Scale, BcReal Bias )
+inline BcF32 BcSigmoidRange( BcF32 T, BcF32 Min, BcF32 Max, BcF32 Scale, BcF32 Bias )
 {
-	BcReal S = BcSigmoid( ( T * Scale ) + Bias );
+	BcF32 S = BcSigmoid( ( T * Scale ) + Bias );
 
 	return ( Min + ( ( Max - Min ) * S ) );
 }
@@ -250,14 +250,14 @@ inline BcU32 BcBitsSet( BcU32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // BcSmoothStep
-inline BcReal BcSmoothStep( BcReal T )
+inline BcF32 BcSmoothStep( BcF32 T )
 {
 	return T * T * ( 3 - 2 * T );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // BcSquaredKeepSign
-inline BcReal BcSquaredKeepSign( BcReal T )
+inline BcF32 BcSquaredKeepSign( BcF32 T )
 {
 	return ( T * T ) * ( T > 0.0f ? 1.0f : -1.0f );
 }

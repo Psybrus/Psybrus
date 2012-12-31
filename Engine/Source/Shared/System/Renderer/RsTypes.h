@@ -35,7 +35,7 @@ struct RsColour:
 				 ( ( RGBA >> 24 ) & 0xff ) / 255.0f )
 				
 	{};
-	RsColour( BcReal R, BcReal G, BcReal B, BcReal A ):
+	RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A ):
 		BcVec4d( R, G, B, A )
 	{};
 
@@ -71,15 +71,15 @@ struct RsColour:
 		         ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
 	}
 
-	inline BcReal r() const { return x(); };
-	inline BcReal g() const { return y(); };
-	inline BcReal b() const { return z(); };
-	inline BcReal a() const { return w(); };
+	inline BcF32 r() const { return x(); };
+	inline BcF32 g() const { return y(); };
+	inline BcF32 b() const { return z(); };
+	inline BcF32 a() const { return w(); };
 
-	inline void r( BcReal V ){ x( V ); };
-	inline void g( BcReal V ){ y( V ); };
-	inline void b( BcReal V ){ z( V ); };
-	inline void a( BcReal V ){ w( V ); };
+	inline void r( BcF32 V ){ x( V ); };
+	inline void g( BcF32 V ){ y( V ); };
+	inline void b( BcF32 V ){ z( V ); };
+	inline void a( BcF32 V ){ w( V ); };
 
 	void premultiplyAlpha();
 
@@ -366,7 +366,7 @@ enum eRsVertexDeclFlags
 	rsVDF_TEXCOORD_UVW3		= 0x00080000,
 
 	// Colour: 0x100000
-	rsVDF_COLOUR_RGBA8		= 0x00100000,
+	rsVDF_COLOUR_ABGR8		= 0x00100000,
 
 	//
 	rsVDF_FORCE_DWORD		= 0x7fffffff
@@ -397,7 +397,7 @@ enum eRsVertexChannelMask
 	rsVCM_TEXCOORD1 = rsVDF_TEXCOORD_UV1,
 	rsVCM_TEXCOORD2 = rsVDF_TEXCOORD_UV2,
 	rsVCM_TEXCOORD3 = rsVDF_TEXCOORD_UV3,
-	rsVCM_COLOUR = rsVDF_COLOUR_RGBA8,
+	rsVCM_COLOUR = rsVDF_COLOUR_ABGR8,
 
 	//
 	rsVCM_FORCE_DWORD = 0x7fffffff

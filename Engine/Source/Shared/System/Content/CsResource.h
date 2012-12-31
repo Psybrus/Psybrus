@@ -22,6 +22,8 @@
 #include "Base/BcAtomicMutex.h"
 #include "Base/BcScopedLock.h"
 #include "Base/BcName.h"
+#include "Base/BcReflection.h"
+#include "Base/BcReflectionSerialise.h"
 
 #ifdef PSY_SERVER
 #include <json/json.h>
@@ -29,113 +31,22 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Helper defines.
-#define BASE_DECLARE_RESOURCE( _Type )											\
-	public:																		\
-	static const BcName& StaticGetType();										\
-	static BcHash StaticGetTypeHash();											\
-	virtual const BcName& getType();											\
-	virtual BcHash getTypeHash();												\
-	virtual BcBool isType( const BcName& Type );								\
-	virtual BcBool isTypeOf( const BcName& Type );								\
-	template < class _Ty >														\
-	BcForceInline BcBool isTypeOf()												\
-	{																			\
-		return this ? isTypeOf( _Ty::StaticGetType() ) : BcFalse;				\
-	}
-
-#define BASE_DEFINE_RESOURCE( _Type )											\
-	const BcName& _Type::StaticGetType()										\
-	{																			\
-		static BcName TypeString( #_Type );										\
-		return TypeString;														\
-	}																			\
-																				\
-	BcHash _Type::StaticGetTypeHash()											\
-	{																			\
-		return BcHash( #_Type );												\
-	}																			\
-																				\
-	const BcName& _Type::getType()												\
-	{																			\
-		return _Type::StaticGetType();											\
-	}																			\
-
-#define DECLARE_CSRESOURCE														\
-	BASE_DECLARE_RESOURCE( CsResource )											\
-
-#define DEFINE_CSRESOURCE														\
-	BASE_DEFINE_RESOURCE( CsResource )											\
-	BcHash CsResource::getTypeHash()											\
-	{																			\
-		return CsResource::StaticGetTypeHash();									\
-	}																			\
-																				\
-	BcBool CsResource::isType( const BcName& Type )								\
-	{																			\
-		return CsResource::StaticGetType() == Type;								\
-	}																			\
-																				\
-	BcBool CsResource::isTypeOf( const BcName& Type )							\
-	{																			\
-		return CsResource::StaticGetType() == Type;								\
-	}																			\
-
-
-
 #define DECLARE_RESOURCE( _Base, _Type )										\
-	BASE_DECLARE_RESOURCE( _Type )												\
-	typedef _Base Super;														\
+	BCREFLECTION_DECLARE_DERIVED( _Base, _Type )								\
 	protected:																	\
-	_Type( const BcName& Name, BcU32 Index, CsPackage* pPackage );				\
+	_Type();																	\
 	virtual ~_Type();															\
-	public:																		\
-	static CsResource* StaticAllocResource( const BcName& Name,					\
-	                                        BcU32 Index,						\
-											CsPackage* pPackage );				\
-	static void StaticFreeResource( CsResource* pResource );					\
-	static BcU32 StaticGetClassSize();
+	public:																		
 
 #define DEFINE_RESOURCE( _Type )												\
-	BASE_DEFINE_RESOURCE( _Type )												\
-	_Type::_Type( const BcName& Name, BcU32 Index, CsPackage* pPackage ):		\
-		Super( Name, Index, pPackage )											\
+	BCREFLECTION_DEFINE_DERIVED( _Type )										\
+	_Type::_Type()																\
 	{																			\
 	}																			\
 																				\
 	_Type::~_Type()																\
-	{}																			\
-	BcHash _Type::getTypeHash()													\
-	{																			\
-		return _Type::StaticGetTypeHash();										\
-	}																			\
-																				\
-	BcBool _Type::isType( const BcName& Type )									\
-	{																			\
-		return  _Type::StaticGetType() == Type;									\
-	}																			\
-																				\
-	BcBool _Type::isTypeOf( const BcName& Type )								\
-	{																			\
-		return _Type::StaticGetType() == Type || Super::isTypeOf( Type );		\
-	}																			\
-																				\
-	CsResource* _Type::StaticAllocResource( const BcName& Name,					\
-	                                        BcU32 Index,						\
-	                                        CsPackage* pPackage )				\
-	{																			\
-		return new _Type( Name, Index, pPackage );								\
-	}																			\
-																				\
-	void _Type::StaticFreeResource( CsResource* pResource )						\
-	{																			\
-		delete pResource;														\
-	}																			\
-																				\
-	BcU32 _Type::StaticGetClassSize()											\
-	{																			\
-		return sizeof( _Type );													\
-	}
-
+	{}																			
+																				
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class CsPackage;
@@ -143,23 +54,30 @@ class CsResource;
 class CsCore;
 
 //////////////////////////////////////////////////////////////////////////
-// Typedefs
-typedef CsResource*( *CsResourceAllocFunc )( const BcName&, BcU32, CsPackage* );
-typedef void( *CsResourceFreeFunc )( CsResource* );
-
-//////////////////////////////////////////////////////////////////////////
 // CsResource
 class CsResource
 {
+	BCREFLECTION_DECLARE_BASE( CsResource );
 public:
-	DECLARE_CSRESOURCE;
-	
+	enum
+	{
+		INIT_STAGE_INITIAL = 0,
+		INIT_STAGE_CREATE,
+		INIT_STAGE_READY,
+		INIT_STAGE_DESTROY
+	};
+
 private:
 	CsResource( const CsResource& ){}
 
 public:
-	CsResource( const BcName& Name, BcU32 Index, CsPackage* pPackage );
+	CsResource();
 	virtual ~CsResource();
+
+	/**
+	 * Pre-initialise. Setup everything before derived initialisation.
+	 */
+	void							preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPackage );
 
 #ifdef PSY_SERVER
 	/**
@@ -188,9 +106,13 @@ public:
 
 	/**
 	 * Are we ready to use?<br/>
-	 * Should return true *only* when a resource is fully ready to use.
 	 */
-	virtual BcBool					isReady();
+	BcBool							isReady();
+
+	/**
+	 * Get the init stage.
+	 */
+	BcU32							getInitStage();
 
 	/**
 	 * File is ready.
@@ -203,21 +125,6 @@ public:
 	virtual void					fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 public:
-	/**
-	 * Acquire resource.
-	 */
-	void							acquire();
-
-	/**
-	 * Release resource.
-	 */
-	void							release();
-
-	/**
-	 * Get ref count.
-	 */
-	BcU32							refCount() const;
-
 	/**
 	 * Get package.
 	 */
@@ -237,6 +144,11 @@ public:
 	 * Get index.
 	 */
 	BcU32							getIndex() const;
+
+	/**
+	 * Serialise properties.
+	 */
+	virtual void					serialiseProperties();
 
 protected:
 	/**
@@ -259,8 +171,24 @@ protected:
 	 */
 	BcU32							getNoofChunks() const;
 
+	/**
+	 * Mark as ready.
+	 */
+	void							markReady();
+
+	/**
+	 * Mark for creation.
+	 */
+	void							markCreate();
+
+	/**
+	 * Mark for destruction.
+	 */
+	void							markDestroy();
+
 private:
 	friend class CsCore;
+	friend class CsPackage;
 	friend class CsPackageLoader;
 
 	void							onFileReady();
@@ -271,9 +199,7 @@ private:
 	BcName							Name_;
 	BcU32							Index_;
 	CsPackage*						pPackage_;
-	
-	//
-	BcAtomicU32						RefCount_;
+	BcAtomicU32						InitStage_;
 };
 
 //////////////////////////////////////////////////////////////////////////

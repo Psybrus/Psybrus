@@ -72,8 +72,9 @@ CsPackage::CsPackage( const BcName& Name ):
 // Dtor
 CsPackage::~CsPackage()
 {
-	delete pLoader_;
-	pLoader_ = NULL;
+	// The loader is cleaned up when the ref count is 0 (so it frees quick), so we expect ref count to be 0, and loader to be NULL.
+	BcAssert( RefCount_ == 0 );
+	BcAssert( pLoader_ == NULL );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,26 +115,18 @@ BcBool CsPackage::hasUnreferencedResources() const
 {
 	BcAssert( BcIsGameThread() );
 
-	// If the data isn't ready, we are still referenced.
-	if( pLoader_->isDataReady() == BcFalse )
+	if( RefCount_ != 0 )
 	{
 		return BcFalse;
 	}
 
-	BcBool IsUnreferenced = BcTrue;
-	
-	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
+	// If the data isn't ready, we are still referenced.
+	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
 	{
-		const CsResourceRef<>& Resource( Resources_[ Idx ] );
-
-		// If we've got invalid resources, or a ref count of 1 (self-ref'd) we have unreferenced resources.
-		if( Resource.isValid() == BcFalse || Resource.refCount() == 1 )
-		{
-			return BcTrue;
-		}
+		return BcFalse;
 	}
 
-	return BcFalse;
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -143,7 +136,7 @@ BcBool CsPackage::haveAnyValidResources() const
 	BcAssert( BcIsGameThread() );
 
 	// If the data isn't ready, we will have valid resources soon.
-	if( pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
 	{
 		return BcTrue;
 	}
@@ -175,8 +168,13 @@ void CsPackage::releaseUnreferencedResources()
 {
 	BcAssert( BcIsGameThread() );
 
+	if( RefCount_ != 0 )
+	{
+		return;
+	}
+
 	// If the data isn't ready, we are still referenced.
-	if( pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
 	{
 		return;
 	}
@@ -185,12 +183,10 @@ void CsPackage::releaseUnreferencedResources()
 	{
 		CsResourceRef<>& Resource( Resources_[ Idx ] );
 
-		// Check that the package is the only referencer, if so, NULL it.
-		if( Resource.isValid() && Resource.refCount() == 1 )
-		{
-			Resource = NULL;
-		}
+		Resource->markDestroy();
 	}
+
+	Resources_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -215,27 +211,76 @@ CsResource* CsPackage::getResource( BcU32 ResourceIdx )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// loadPackageCrossRef
+CsPackage* CsPackage::loadPackageCrossRef( BcU32 ID )
+{
+	BcName PackageName;
+	BcName ResourceName;
+	BcName TypeName;
+	BcBool IsWeak;
+	pLoader_->getPackageCrossRef( ID, PackageName, ResourceName, TypeName, IsWeak );
+	return CsCore::pImpl()->requestPackage( PackageName );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getPackageCrossRef
 CsResourceRef<> CsPackage::getPackageCrossRef( BcU32 ID )
 {
 	CsResourceRef<> Resource;
+	CsPackage* pPackage = NULL;
 	BcName PackageName;
 	BcName ResourceName;
 	BcName TypeName;
-	pLoader_->getPackageCrossRef( ID, PackageName, ResourceName, TypeName );
+	BcBool IsWeak;
+	pLoader_->getPackageCrossRef( ID, PackageName, ResourceName, TypeName, IsWeak );
 
-	// Request package, and check it's ready.
-	CsPackage* pPackage = CsCore::pImpl()->requestPackage( PackageName );
-	BcAssertMsg( pPackage->isLoaded(), "CsPackage: Package \"%s\" is not loaded, \"%s\" needs it loaded.", (*PackageName).c_str(), (*Name_).c_str() );
-	
+	// If it's a weak reference, we only want to find...not request.
+	if( IsWeak )
+	{
+		// Request package, and check it's ready
+		pPackage = CsCore::pImpl()->findPackage( PackageName );
+
+		// If it's not ready or not loaded, return a NULL resource. Up to the user to handle.
+		if( pPackage == NULL ||
+			pPackage->isReady() == BcFalse )
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		// Request package, and check it's ready
+		pPackage = CsCore::pImpl()->requestPackage( PackageName );
+		BcAssertMsg( pPackage->isLoaded(), "CsPackage: Package \"%s\" is not loaded, \"%s\" needs it loaded.", (*PackageName).c_str(), (*Name_).c_str() );
+	}
+
 	// Find resource.
+	// NOTE: Should get from package for faster lookup.
 	CsCore::pImpl()->internalFindResource( PackageName, ResourceName, TypeName, Resource );
 
-	//
+	// If there is no valid resource at this point, then we must fail.
 	BcAssertMsg( Resource.isValid(), "CsPackage: Cross ref isn't valid!" );
-	
+
 	//
 	return Resource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// acquire
+void CsPackage::acquire()
+{
+	RefCount_++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// release
+void CsPackage::release()
+{
+	if( --RefCount_ == 0 )
+	{
+		delete pLoader_;
+		pLoader_ = NULL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -137,3 +137,10 @@ BcSize BcStream::push( const void* pData, BcSize nBytes )
 
 	return CurrentPosition;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// clear
+void BcStream::clear()
+{
+	CurrentPosition_ = 0;
+}

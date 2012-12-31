@@ -34,7 +34,6 @@ void MainUnitTests()
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,30 +41,25 @@ void MainUnitTests()
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
 	// Register scene resources.
-	CsCore::pImpl()->registerResource< ScnRenderTarget >();
-
 	CsCore::pImpl()->registerResource< ScnShader >();
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
-
+	CsCore::pImpl()->registerResource< ScnRenderTarget >();
 	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
-
 	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnFontComponent >();
-
 	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnModelComponent >();
-
-	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
-
 	CsCore::pImpl()->registerResource< ScnSound >();
+
+	// Register scene components.
+	CsCore::pImpl()->registerResource< ScnComponent >();
+	CsCore::pImpl()->registerResource< ScnRenderableComponent >();
+	CsCore::pImpl()->registerResource< ScnEntity >();
+	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
+	CsCore::pImpl()->registerResource< ScnFontComponent >();
+	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
+	CsCore::pImpl()->registerResource< ScnModelComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >();
-	
-	CsCore::pImpl()->registerResource< ScnComponent >();
-	CsCore::pImpl()->registerResource< ScnEntity >();
-	
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
 	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
@@ -79,11 +73,14 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 {
 	// Unregister scene resources.
-	CsCore::pImpl()->unregisterResource< ScnRenderTarget >();
+	CsCore::pImpl()->unregisterResource< ScnComponent >();
+	CsCore::pImpl()->unregisterResource< ScnRenderableComponent >();
+	CsCore::pImpl()->unregisterResource< ScnEntity >();
 
 	CsCore::pImpl()->unregisterResource< ScnShader >();
 	CsCore::pImpl()->unregisterResource< ScnTexture >();
 	CsCore::pImpl()->unregisterResource< ScnTextureAtlas >();
+	CsCore::pImpl()->unregisterResource< ScnRenderTarget >();
 
 	CsCore::pImpl()->unregisterResource< ScnMaterial >();
 	CsCore::pImpl()->unregisterResource< ScnMaterialComponent >();
@@ -100,13 +97,19 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->unregisterResource< ScnSoundEmitterComponent >();
 	CsCore::pImpl()->unregisterResource< ScnSoundListenerComponent >();
 
-	CsCore::pImpl()->unregisterResource< ScnComponent >();
-	CsCore::pImpl()->unregisterResource< ScnEntity >();
-
 	CsCore::pImpl()->unregisterResource< ScnCanvasComponent >();
 	CsCore::pImpl()->unregisterResource< ScnViewComponent >();
 
 	PsyGameUnRegisterResources();
+
+	return evtRET_REMOVE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// OnQuit
+eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
+{
+	SysKernel::pImpl()->stop();
 
 	return evtRET_REMOVE;
 }
@@ -119,6 +122,28 @@ void MainShared()
 	FsCore::WORKER_MASK = 0x1;
 	RsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
+
+	// Test resource naming.
+	BcRegex Regex( "\\$\\((.*?):(.*?)\\.(.*?)\\)" );
+	BcRegexMatch Match( 6 );
+	Regex.match( "$(CsResource:Package.Name)", Match );
+
+	BcName Names[] =
+	{
+		"Test",
+		"Test1",
+		"Test_1",
+		"Test_2",
+		"Test_2_3",
+		"Test_2_c",
+		"Test_2_c_2",
+	};
+	
+	for( BcU32 Idx = 0; Idx < Match.noofMatches(); ++Idx )
+	{
+		std::string match;
+		Match.getMatch( Idx, match );
+	}
 
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
@@ -160,6 +185,12 @@ void MainShared()
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
+	
+	// HACK: If we are importing packages, disable renderer and sound systems.
+	if( SysArgs_.find( "ImportPackages" ) != std::string::npos )
+	{
+		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
+	}
 
 	// Log kernel information.
 	BcPrintf( "============================================================================\n" );
@@ -174,26 +205,34 @@ void MainShared()
 	BcPrintf( " - RsCore::WORKER_MASK: 0x%x\n", RsCore::WORKER_MASK );
 	BcPrintf( " - SsCore::WORKER_MASK: 0x%x\n", SsCore::WORKER_MASK );
 
+	// Start debug system if not a production build.
+#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCore" );
+#endif
+
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
 
+	// Start OS system.
 	SysKernel::pImpl()->startSystem( "OsCore" );
 
+	// Start render system.
 	if( GPsySetupParams.Flags_ & psySF_RENDER )
 	{
 		SysKernel::pImpl()->startSystem( "RsCore" );
 	}
 
+	// Start sound system.
 	if( GPsySetupParams.Flags_ & psySF_SOUND )
 	{
 		SysKernel::pImpl()->startSystem( "SsCore" );
 	}
 
-	// Start scene system.
-	SysKernel::pImpl()->startSystem( "ScnCore" );
-
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
+
+	// Start scene system.
+	SysKernel::pImpl()->startSystem( "ScnCore" );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
@@ -202,4 +241,9 @@ void MainShared()
 	// Setup callback for post CsCore pre close for resource unregistration
 	SysSystemEvent::Delegate OnCsCorePreClose = SysSystemEvent::Delegate::bind< onCsCorePreClose >();
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, OnCsCorePreClose );
+
+	// Subscribe to quit.
+	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< onQuit >();
+	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
+
 }
