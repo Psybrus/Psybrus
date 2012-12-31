@@ -21,6 +21,7 @@
 #include "Base/BcScopedLock.h"
 #include "System/SysJob.h"
 #include "System/SysJobWorker.h"
+#include "System/SysFence.h"
 
 //////////////////////////////////////////////////////////////////////////
 // SysJobQueue
@@ -57,7 +58,17 @@ public:
 	 * Get worker count.
 	 */
 	BcU32				workerCount() const;
+
+	/**
+	 * Get and reset time working for worker.
+	 */
+	BcF32				getAndResetTimeWorkingForWorker( BcU32 Idx );
 	
+	/**
+	 * Get and jobs executed for worker.
+	 */
+	BcU32				getAndResetJobsExecutedForWorker( BcU32 Idx );
+
 private:
 	/**
 	 * Move jobs to the back of the queue.
@@ -73,6 +84,7 @@ private:
 	typedef TJobQueue::iterator TJobQueueIterator;
 	typedef std::vector< SysJobWorker* > TJobWorkerList;
 	
+	SysFence			StartedFence_;
 	BcBool				Active_;
 	BcEvent				ResumeEvent_;
 	BcAtomicU32			NoofJobsQueued_;

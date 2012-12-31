@@ -186,13 +186,12 @@ void RsStateBlockGL::bind()
 			}
 			
 			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
-			
 			glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ Params.MinFilter_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ Params.MagFilter_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ Params.UMode_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ Params.VMode_ ] );	
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ Params.WMode_ ] );	
-		
+
 			TextureStateValue.Dirty_ = BcFalse;
 		}
 	}
@@ -201,8 +200,6 @@ void RsStateBlockGL::bind()
 	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
 
-	// DEBUG HACK.
-	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	RsGLCatchError;
 }
 

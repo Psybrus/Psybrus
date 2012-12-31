@@ -25,74 +25,151 @@
 //virtual
 BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	const std::string& FileName = Object[ "source" ].asString();
+	const Json::Value& Source = Object[ "source" ];
 
-	// Add root dependency.
-	Importer.addDependency( FileName.c_str() );
-
-	// Load texture from file and create the data for export.
-	ImgImage* pImage = Img::load( FileName.c_str() );
-	
-	if( pImage != NULL )
+	if( Source.type() == Json::stringValue )
 	{
-		// Encode the image as a format.
-		BcU8* pEncodedImageData = NULL;
-		BcU32 EncodedImageDataSize = 0;
+		const std::string& FileName = Object[ "source" ].asString();
 
-		// TODO: Take from parameters.
-		ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
-		eRsTextureFormat TextureFormat = rsTF_RGBA8;
-		eRsTextureType TextureType = pImage->height() == 1 ? rsTT_1D : rsTT_2D;
-		
-		// Use tex compression unless in debug.
-#if !PSY_DEBUG
-		if( TextureType == rsTT_2D )
-		{
-			if( pImage->hasAlpha( 8 ) == BcFalse )
-			{
-				EncodeFormat = imgEF_DXT1;
-				TextureFormat = rsTF_DXT1;
-			}
-			else
-			{
-				EncodeFormat = imgEF_DXT5;
-				TextureFormat = rsTF_DXT5;
-			}
-		}
-#endif
-		
-		if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
-		{
-			// Serialize encoded image.
-			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
-			BodyStream.push( pEncodedImageData, EncodedImageDataSize );
-			delete [] pEncodedImageData;
-			pEncodedImageData = NULL;
+		// Add root dependency.
+		Importer.addDependency( FileName.c_str() );
 
+		// Load texture from file and create the data for export.
+		ImgImage* pImage = Img::load( FileName.c_str() );
+		ImgImage* pTopLevelImage = pImage;
+
+		if( pImage != NULL )
+		{
+			std::vector< ImgImage* > MipImages;
+			BcU32 W = pImage->width();
+			BcU32 H = pImage->height();
+
+			// Push main image in first.
+			MipImages.push_back( pImage );
+		
+			// Downsample texture for mip maps.
+			if( BcPot( W ) && BcPot( H ) )
+			{
+				// Down to a minimum of 4x4.
+				while( W > 4 && H > 4 )
+				{
+					W >>= 1;
+					H >>= 1;
+
+					pImage = pImage->resize( W, H );
+					MipImages.push_back( pImage );
+				}
+			}
+
+			// Encode the image as a format.
+			BcU8* pEncodedImageData = NULL;
+			BcU32 EncodedImageDataSize = 0;
+
+			// TODO: Take from parameters.
+			ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
+			eRsTextureFormat TextureFormat = rsTF_RGBA8;
+			eRsTextureType TextureType = pTopLevelImage->height() == 1 ? rsTT_1D : rsTT_2D;
+		
+			// Use tex compression unless in debug.
+	#if !PSY_DEBUG
+			if( TextureType == rsTT_2D )
+			{
+				if( pImage->hasAlpha( 8 ) == BcFalse )
+				{
+					EncodeFormat = imgEF_DXT1;
+					TextureFormat = rsTF_DXT1;
+				}
+				else
+				{
+					EncodeFormat = imgEF_DXT5;
+					TextureFormat = rsTF_DXT5;
+				}
+			}
+	#endif
+			// Streams.
 			BcStream HeaderStream;
-			
-			THeader Header = { pImage->width(), pImage->height(), 1, 1, TextureType, TextureFormat };	// TODO: Take type from file.
+			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
+
+			// Write header.
+			ScnTextureHeader Header = { pTopLevelImage->width(), pTopLevelImage->height(), 1, MipImages.size(), TextureType, TextureFormat, BcFalse };	// TODO: Take type from file.
 			HeaderStream << Header;
-			
-			// Delete image.
-			delete pImage;
-			
-			// Add chunks and finish up.
+
+			// Write all mip images into the same body for now.
+			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
+			{
+				pImage = MipImages[ Idx ];
+				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
+				{
+					// Serialize encoded images.
+					BodyStream.push( pEncodedImageData, EncodedImageDataSize );
+					delete [] pEncodedImageData;
+					pEncodedImageData = NULL;
+					EncodedImageDataSize = 0;
+							
+					// Delete image.
+					delete pImage;
+				}
+				else
+				{
+					BcPrintf( "Failed to encode image \"%s\"\n", FileName.c_str() );
+				}
+			}
+
+			// Clear images.
+			MipImages.clear();
+
+			// Add chunks.
 			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
 			Importer.addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-			
-			//
+
 			return BcTrue;
 		}
 		else
 		{
-			BcPrintf( "Failed to encode image \"%s\"\n", FileName.c_str() );
+			BcPrintf( "Failed to load image \"%s\"\n", FileName.c_str() );
 		}
 	}
 	else
 	{
-		BcPrintf( "Failed to load image \"%s\"\n", FileName.c_str() );
+		// User created texture.
+		BcU32 Width = 1;
+		BcU32 Height = 1;
+		BcU32 Depth = 1;
+
+		eRsTextureType TextureType;
+
+		const Json::Value& Type = Object[ "texturetype" ];
+		const Json::Value& WidthValue = Object[ "width" ];
+		const Json::Value& HeightValue = Object[ "height" ];
+		const Json::Value& DepthValue = Object[ "depth" ];
+
+		if( BcStrCompare( Type.asCString(), "1d" ) )
+		{
+			TextureType = rsTT_1D;
+			Width = WidthValue.asUInt();
+		}
+		else if( BcStrCompare( Type.asCString(), "2d" ) )
+		{
+			TextureType = rsTT_2D;
+			Width = WidthValue.asUInt();
+			Height = HeightValue.asUInt();
+		}
+		else if( BcStrCompare( Type.asCString(), "3d" ) )
+		{
+			TextureType = rsTT_3D;
+			Width = WidthValue.asUInt();
+			Height = HeightValue.asUInt();
+			Depth = DepthValue.asUInt();
+		}
+
+
+		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, rsTF_RGBA8, BcTrue };
+		BcStream HeaderStream;
+		HeaderStream << Header;
+		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
+		return BcTrue;
 	}
+
 	return BcFalse;
 }
 #endif
@@ -100,6 +177,16 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnTexture );
+
+BCREFLECTION_EMPTY_REGISTER( ScnTexture );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnTexture )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -109,8 +196,6 @@ void ScnTexture::initialise()
 	// NULL internals.
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
-	CreateNewTexture_ = BcTrue;
-	IsUserCreated_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,7 +208,6 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format 
 	// NULL internals.
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
-	CreateNewTexture_ = BcTrue;
 
 	Header_.Width_ = Width;
 	Header_.Height_ = 1;
@@ -131,12 +215,9 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format 
 	Header_.Levels_ = Levels;
 	Header_.Type_ = rsTT_1D;
 	Header_.Format_ = Format;
+	Header_.Editable_ = BcTrue;
 
-	// Allocate to a 4k alignment.
-	pTextureData_ = BcMemAlign( Header_.Width_ * Header_.Height_ * Header_.Depth_ * Header_.Levels_ * 4, 4096 );
-	IsUserCreated_ = BcTrue;
-
-	setup();
+	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +230,6 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTexture
 	// NULL internals.
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
-	CreateNewTexture_ = BcTrue;
 
 	Header_.Width_ = Width;
 	Header_.Height_ = Height;
@@ -157,12 +237,9 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTexture
 	Header_.Levels_ = Levels;
 	Header_.Type_ = rsTT_2D;
 	Header_.Format_ = Format;
+	Header_.Editable_ = BcTrue;
 
-	// Allocate to a 4k alignment.
-	pTextureData_ = BcMemAlign( Header_.Width_ * Header_.Height_ * Header_.Depth_ * Header_.Levels_ * 4, 4096 );
-	IsUserCreated_ = BcTrue;
-
-	setup();
+	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -175,7 +252,6 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Level
 	// NULL internals.
 	pTexture_ = NULL;
 	pTextureData_ = NULL;
-	CreateNewTexture_ = BcTrue;
 
 	Header_.Width_ = Width;
 	Header_.Height_ = Height;
@@ -183,12 +259,9 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Level
 	Header_.Levels_ = Levels;
 	Header_.Type_ = rsTT_3D;
 	Header_.Format_ = Format;
+	Header_.Editable_ = BcTrue;
 
-	// Allocate to a 4k alignment.
-	pTextureData_ = BcMemAlign( Header_.Width_ * Header_.Height_ * Header_.Depth_ * Header_.Levels_ * 4, 4096 );
-	IsUserCreated_ = BcTrue;
-
-	setup();
+	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,7 +269,46 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Level
 //virtual
 void ScnTexture::create()
 {
+	if( Header_.Editable_ )
+	{
+		// Allocate to a 4k alignment.
+		pTextureData_ = BcMemAlign( Header_.Width_ * Header_.Height_ * Header_.Depth_ * Header_.Levels_ * 4, 4096 );
+	}
 
+	// Create new one immediately.
+	switch( Header_.Type_ )
+	{
+	case rsTT_1D:
+		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
+													Header_.Levels_,
+													Header_.Format_,
+													pTextureData_ );
+		break;
+
+	case rsTT_2D:
+		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
+													Header_.Height_,
+													Header_.Levels_,
+													Header_.Format_,
+													pTextureData_ );
+		break;
+
+	case rsTT_3D:
+		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
+													Header_.Height_,
+													Header_.Depth_,
+													Header_.Levels_,
+													Header_.Format_,
+													pTextureData_ );
+		break;
+
+	default:
+		BcBreakpoint;
+		break;
+
+	}
+
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,20 +323,11 @@ void ScnTexture::destroy()
 	SysFence Fence( RsCore::WORKER_MASK );
 
 	// Free if it's user created.
-	if( IsUserCreated_ )
+	if( Header_.Editable_ )
 	{
 		BcMemFree( pTextureData_ );
 		pTextureData_ = NULL;
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnTexture::isReady()
-{
-	// We're ready if we have a valid texture pointer.
-	return pTexture_ != NULL && pTexture_->hasHandle();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -319,58 +422,6 @@ BcU32 ScnTexture::noofRects()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setup
-void ScnTexture::setup()
-{
-	if( CreateNewTexture_ == BcTrue )
-	{
-		// Destroy the old texture.
-		if( pTexture_ != NULL )
-		{
-			RsCore::pImpl()->destroyResource( pTexture_ );
-		}
-		
-		// Create new one immediately.
-		switch( Header_.Type_ )
-		{
-		case rsTT_1D:
-			pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
-														Header_.Levels_,
-														Header_.Format_,
-														pTextureData_ );
-			break;
-
-		case rsTT_2D:
-			pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
-														Header_.Height_,
-														Header_.Levels_,
-														Header_.Format_,
-														pTextureData_ );
-			break;
-
-		case rsTT_3D:
-			pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
-														Header_.Height_,
-														Header_.Depth_,
-														Header_.Levels_,
-														Header_.Format_,
-														pTextureData_ );
-			break;
-
-		default:
-			BcBreakpoint;
-			break;
-
-		}
-		CreateNewTexture_ = BcFalse;
-	}
-	else
-	{
-		RsCore::pImpl()->updateResource( pTexture_ );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnTexture::fileReady()
 {
@@ -391,14 +442,22 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 	if( ChunkID == BcHash( "header" ) )
 	{		
+		/*
 		// Request all texture levels.
 		for( BcU32 iLevel = 0; iLevel < Header_.Levels_; ++iLevel )
 		{
 			requestChunk( ++ChunkIdx );
 		}
-		
-		// We update the header, create a new texture rather than updating.
-		CreateNewTexture_ = BcTrue;	
+		*/
+
+		if( Header_.Editable_ == BcFalse )
+		{
+			requestChunk( ++ChunkIdx );
+		}
+		else
+		{
+			markCreate();
+		}
 	}
 	else if( ChunkID == BcHash( "body" ) )
 	{
@@ -406,8 +465,7 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		BcAssert( pTextureData_ == NULL || pTextureData_ == pData );
 		pTextureData_ = pData;
 		
-		// Setup.
-		setup();
+		markCreate();
 	}
 }
 

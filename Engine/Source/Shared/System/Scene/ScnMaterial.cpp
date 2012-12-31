@@ -34,13 +34,13 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	BcStream HeaderStream;
 	BcStream StateBlockStream;
 		
-	THeader Header;
-	TTextureHeader TextureHeader;
+	ScnMaterialHeader Header;
+	ScnMaterialTextureHeader TextureHeader;
 		
 	// Make header.
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
 
-	Header.ShaderRef_ = Importer.addPackageCrossRef( ImportShader.asCString(), "ScnShader" );	// TODO: Go via addImport.
+	Header.ShaderRef_ = ImportShader.asUInt();	// TODO: Go via addImport. This can then verify for us.
 	Header.NoofTextures_ = TextureMembers.size();	
 	HeaderStream << Header;
 
@@ -50,7 +50,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
 		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
-		TextureHeader.TextureRef_ = Importer.addPackageCrossRef( Texture.asCString(), "ScnTexture" );
+		TextureHeader.TextureRef_ = Texture.asUInt(); // TODO: Go via addImport. This can then verify for us.
 		HeaderStream << TextureHeader;
 	}
 	
@@ -111,7 +111,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			
 			if( StateValue.type() == Json::realValue )
 			{
-				BcReal RealValue = (BcReal)StateValue.asDouble();
+				BcF32 RealValue = (BcF32)StateValue.asDouble();
 				StateBlockStream << BcU32( RealValue );
 			}
 			else if( StateValue.type() == Json::stringValue )
@@ -161,6 +161,16 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterial );
 
+BCREFLECTION_EMPTY_REGISTER( ScnMaterial );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnMaterial )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -175,7 +185,18 @@ void ScnMaterial::initialise()
 //virtual
 void ScnMaterial::create()
 {
+	ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
+		
+	// Get resources.
+	Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
+	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
+	{
+		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+		TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
+	}
 	
+	// Mark as ready.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,22 +205,6 @@ void ScnMaterial::create()
 void ScnMaterial::destroy()
 {
 	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnMaterial::isReady()
-{
-	for( ScnTextureMapIterator Iter( TextureMap_.begin() ); Iter != TextureMap_.end(); ++Iter )
-	{
-		if( (*Iter).second->isReady() == BcFalse )
-		{
-			return BcFalse;
-		}
-	}
-	
-	return Shader_.isReady() && pStateBuffer_ != NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -230,22 +235,15 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
-		TTextureHeader* pTextureHeaders = (TTextureHeader*)( pHeader_ + 1 );
-		
-		// Get resources.
-		Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
-		{
-			TTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-			TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
-		}
-		
+		pHeader_ = (ScnMaterialHeader*)pData;
+
 		requestChunk( ++ChunkIdx );
 	}
 	else if( ChunkID == BcHash( "stateblock" ) )
 	{
 		pStateBuffer_ = (BcU32*)pData;
+
+		markCreate(); // All data loaded, time to create.
 	}
 }
 
@@ -253,10 +251,22 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnMaterialComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnMaterialComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationFlags )
 {
+	Super::initialise();
+
 	BcAssert( Parent.isReady() );
 
 	// Cache parent and program.
@@ -312,9 +322,20 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 // initialise
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
-	ScnMaterialRef MaterialRef;
-	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
-	initialise( MaterialRef, BcErrorCode );
+	ScnMaterialRef MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	BcU32 PermutationFlags = 0;
+	const BcChar* pPermutation = Object[ "permutation" ].asCString();
+
+	if( BcStrCompare( pPermutation, "2d" ) )
+	{
+		PermutationFlags = scnSPF_2D;
+	}
+	else if( BcStrCompare( pPermutation, "3d" ) )
+	{
+		PermutationFlags = scnSPF_3D;
+	}
+
+	initialise( MaterialRef, PermutationFlags );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -326,6 +347,8 @@ void ScnMaterialComponent::destroy()
 	
 	delete pParameterBuffer_;
 	pParameterBuffer_ = NULL;
+
+	Parent_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -412,7 +435,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcReal Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -697,6 +720,8 @@ public:
 		
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
+
+		pUpdateFence_->decrement();
 	}
 	
 	RsProgram* pProgram_;
@@ -712,6 +737,10 @@ public:
 	// State buffer.
 	BcU32* pStateBuffer_;
 	
+	// Update fence (for marking when in use/not)
+	// TODO: Make this a generic feature of the component system?
+	SysFence* pUpdateFence_;
+
 	// For debugging.
 	ScnMaterialComponent* pParent_;
 };
@@ -722,12 +751,6 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	ScnMaterial* pMaterial_ = Parent_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
 	Sort.Blend_ = pStateBuffer_[ rsRS_BLEND_MODE ];
-
-	// Default texture parameters.
-	RsTextureParams DefaultTextureParams = 
-	{
-		rsTFM_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
-	};
 	
 	// Allocate a render node.
 	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
@@ -748,16 +771,24 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		TTextureBinding& Binding = TextureBindingList_[ Idx ];
 		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
 		RsTextureParams& TextureParams = pRenderNode->pTextureParams_[ Idx ];
-	
-		// Set sampler parameter.	BcU8		B_;
 		
+		// Set sampler parameter.
 		setParameter( Binding.Parameter_, (BcS32)Idx );
 		
 		// Set texture to bind.
 		Texture = Binding.Texture_->getTexture();
 		
+		// Default texture parameters.
+		// TODO: Pull these from the material.
+		RsTextureParams DefaultTextureParams = 
+		{
+			Texture->levels() > 1 ? rsTFM_LINEAR_MIPMAP_LINEAR : rsTFM_LINEAR,
+			rsTFM_LINEAR,
+			rsTSM_WRAP,
+			rsTSM_WRAP
+		};
+
 		// Set texture params.
-		// TODO: Pull these from material instance.
 		TextureParams = DefaultTextureParams;
 	}
 	
@@ -769,31 +800,19 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * rsRS_MAX );
 	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
 	
+	pRenderNode->pUpdateFence_ = &UpdateFence_;
+
+	UpdateFence_.increment();
+
 	// Add node to frame.
 	pRenderNode->Sort_ = Sort;
 	pFrame->addRenderNode( pRenderNode );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnMaterialComponent::isReady()
-{
-	for( BcU32 Idx = 0; Idx < TextureBindingList_.size(); ++Idx )
-	{
-		if( TextureBindingList_[ Idx ].Texture_->isReady() == BcFalse )
-		{
-			return BcFalse;
-		}
-	}
-	
-	return Parent_.isReady() && pProgram_->getHandle< BcU64 >() != 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnMaterialComponent::update( BcReal Tick )
+void ScnMaterialComponent::update( BcF32 Tick )
 {
 	ScnComponent::update( Tick );
 }
@@ -811,5 +830,7 @@ void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UpdateFence_.wait();
+
 	ScnComponent::onDetach( Parent );
 }

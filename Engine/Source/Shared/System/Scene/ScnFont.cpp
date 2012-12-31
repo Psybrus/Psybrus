@@ -151,8 +151,8 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 				if( Error == 0 )
 				{
 					// List of glyph descs.			
-					typedef std::vector< TGlyphDesc > TGlyphDescList;
-					TGlyphDescList GlyphDescList;
+					typedef std::vector< ScnFontGlyphDesc > ScnFontGlyphDescList;
+					ScnFontGlyphDescList GlyphDescList;
 					
 					// List of glyph images.
 					ImgImageList GlyphImageList;
@@ -190,7 +190,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 									
 									ImgImage* pImage = makeImageForGlyph( Glyph, RenderMode, BorderSize );
 							
-									BcReal GlyphScale = DistanceField ? 0.25f : 1.0f;
+									BcF32 GlyphScale = DistanceField ? 0.25f : 1.0f;
 									
 									// Convert to distance field, and scale down 4x.
 									if( DistanceField == BcTrue && pImage != NULL )
@@ -203,7 +203,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 										ImgColour FillColour = { 0, 0, 0, 0 };
 										
 										// Distance field.
-										ImgImage* pDistanceFieldImage = pImage->generateDistanceField( 128, (BcReal)BorderSize );
+										ImgImage* pDistanceFieldImage = pImage->generateDistanceField( 128, (BcF32)BorderSize );
 										
 										// Power of 2 round up.
 										ImgImage* pPowerOfTwo = pDistanceFieldImage->canvasSize( WidthPot, HeightPot, &FillColour );
@@ -229,15 +229,15 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 									GlyphImageList.push_back( pImage );										
 										
 									// Add glyph descriptor.
-									TGlyphDesc GlyphDesc = 
+									ScnFontGlyphDesc GlyphDesc = 
 									{
 										0.0f, 0.0f, 0.0f, 0.0f, // UVs, fill in later.
 										
-										( (BcReal)BitmapGlyph->left + BorderSize ) * GlyphScale,
-										( (BcReal)BitmapGlyph->top + BorderSize ) * GlyphScale,
+										( (BcF32)BitmapGlyph->left + BorderSize ) * GlyphScale,
+										( (BcF32)BitmapGlyph->top + BorderSize ) * GlyphScale,
 										BitmapGlyph->bitmap.width * GlyphScale,
 										BitmapGlyph->bitmap.rows * GlyphScale,
-										( (BcReal)( Glyph->advance.x >> 16 ) + (BcReal)( Glyph->advance.x & 0xffff ) / 65536.0f ) * GlyphScale,
+										( (BcF32)( Glyph->advance.x >> 16 ) + (BcF32)( Glyph->advance.x & 0xffff ) / 65536.0f ) * GlyphScale,
 									
 										CharCode
 									};
@@ -269,34 +269,31 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					TextureObject[ "type" ] = "ScnTexture";
 					TextureObject[ "source" ] = FontTextureFileName;		
 					
-					// Add the texture to imports.
-					Importer.addImport( TextureObject );
-
 					// Build data.
 					BcStream HeaderStream;
 					BcStream GlyphStream;
 					
-					THeader Header;
+					ScnFontHeader Header;
 					
 					Header.NoofGlyphs_ = GlyphDescList.size();
-					Header.TextureRef_ = Importer.addPackageCrossRef( FontTextureName.c_str() );
-					Header.NominalSize_ = (BcReal)OriginalNominalSize;
+					Header.TextureRef_ = Importer.addImport( TextureObject );
+					Header.NominalSize_ = (BcF32)OriginalNominalSize;
 					
 					HeaderStream << Header;
 					
 					// Setup glyph desc UVs & serialise.
 					for( BcU32 Idx = 0; Idx < GlyphDescList.size(); ++Idx )
 					{
-						TGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
+						ScnFontGlyphDesc& GlyphDesc = GlyphDescList[ Idx ];
 						ImgRect& Rect = RectList[ Idx ];
 								
-						GlyphDesc.UA_ = BcReal( Rect.X_ ) / BcReal( pAtlasImage->width() );
-						GlyphDesc.VA_ = BcReal( Rect.Y_ ) / BcReal( pAtlasImage->height() );
-						GlyphDesc.UB_ = ( Rect.X_ + Rect.W_ ) / BcReal( pAtlasImage->width() );
-						GlyphDesc.VB_ = ( Rect.Y_ + Rect.H_ ) / BcReal( pAtlasImage->height() );
+						GlyphDesc.UA_ = BcF32( Rect.X_ ) / BcF32( pAtlasImage->width() );
+						GlyphDesc.VA_ = BcF32( Rect.Y_ ) / BcF32( pAtlasImage->height() );
+						GlyphDesc.UB_ = ( Rect.X_ + Rect.W_ ) / BcF32( pAtlasImage->width() );
+						GlyphDesc.VB_ = ( Rect.Y_ + Rect.H_ ) / BcF32( pAtlasImage->height() );
 						
-						GlyphDesc.Width_ = BcReal( Rect.W_ );
-						GlyphDesc.Height_ = BcReal( Rect.H_ );
+						GlyphDesc.Width_ = BcF32( Rect.W_ );
+						GlyphDesc.Height_ = BcF32( Rect.H_ );
 							
 						GlyphStream << GlyphDesc;
 					}
@@ -344,6 +341,16 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 // Define resource internals.
 DEFINE_RESOURCE( ScnFont );
 
+BCREFLECTION_EMPTY_REGISTER( ScnFont );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnFont )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -358,7 +365,18 @@ void ScnFont::initialise()
 //virtual
 void ScnFont::create()
 {
-	
+	// Request texture.
+	Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
+
+	// Create a char code map.
+	for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
+	{
+		ScnFontGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
+		CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
+	}
+
+	// Mark as ready for use.
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -366,22 +384,14 @@ void ScnFont::create()
 //virtual
 void ScnFont::destroy()
 {
-	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnFont::isReady()
-{
-	return pHeader_ != NULL && pGlyphDescs_ != NULL && Texture_.isReady();
+	//Texture_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
 BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material )
 {	
-	return CsCore::pImpl()->createResource( BcName::INVALID, FontComponent, this, Material );
+	return CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), FontComponent, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -405,24 +415,16 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnFontHeader*)pData;
 		
 		// Get glyph desc chunk.
 		requestChunk( ++ChunkIdx );
-		
-		// Request texture.
-		Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
 	}
 	else if( ChunkID == BcHash( "glyphs" ) )
 	{
-		pGlyphDescs_ = (TGlyphDesc*)pData;
-	
-		// Create a char code map.
-		for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
-		{
-			TGlyphDesc* pGlyph = &pGlyphDescs_[ Idx ];
-			CharCodeMap_[ pGlyph->CharCode_ ] = Idx;
-		}
+		pGlyphDescs_ = (ScnFontGlyphDesc*)pData;
+
+		markCreate(); // All data loaded, time to create.
 	}
 }
 
@@ -430,12 +432,24 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource internals.
 DEFINE_RESOURCE( ScnFontComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnFontComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnFontComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
+	Super::initialise();
+
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponent_, Material, scnSPF_DEFAULT ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_2D ) )
 	{	
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )
@@ -454,8 +468,8 @@ void ScnFontComponent::initialise( const Json::Value& Object )
 {
 	ScnFontRef FontRef;
 	ScnMaterialRef MaterialRef;
-	FontRef = CsCore::pImpl()->getResource( Object[ "font" ].asCString() );
-	MaterialRef = CsCore::pImpl()->getResource( Object[ "material" ].asCString() );
+	FontRef = getPackage()->getPackageCrossRef( Object[ "font" ].asUInt() );
+	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
 	initialise( FontRef, MaterialRef );
 }
 
@@ -473,9 +487,9 @@ void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
-	ScnFont::THeader* pHeader = Parent_->pHeader_;
+	ScnFontHeader* pHeader = Parent_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
-	ScnFont::TGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	
 	// Allocate enough vertices for each character.
 	ScnCanvasComponentVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
@@ -489,10 +503,10 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 	
 	BcU32 NoofVertices = 0;
 	
-	BcReal AdvanceX = 0.0f;
-	BcReal AdvanceY = 0.0f;
+	BcF32 AdvanceX = 0.0f;
+	BcF32 AdvanceY = 0.0f;
 		
-	BcU32 RGBA = Colour.asABGR();
+	BcU32 ABGR = Colour.asABGR();
 
 	BcVec2d MinSize( Position );
 	BcVec2d MaxSize( Position );
@@ -519,7 +533,7 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 			
 			if( Iter != CharCodeMap.end() )
 			{
-				ScnFont::TGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
+				ScnFontGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
 
 				// Bring first character back to the left so it sits on the cursor.
 				if( FirstCharacterOnLine )
@@ -533,10 +547,10 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 				BcVec2d Size( BcVec2d( pGlyph->Width_, pGlyph->Height_ ) );
 				BcVec2d CornerMin( Position + BcVec2d( AdvanceX + pGlyph->OffsetX_, AdvanceY - pGlyph->OffsetY_ + pHeader->NominalSize_ ) );
 				BcVec2d CornerMax( CornerMin + Size );
-				BcReal U0 = pGlyph->UA_;
-				BcReal V0 = pGlyph->VA_;
-				BcReal U1 = pGlyph->UB_;
-				BcReal V1 = pGlyph->VB_;
+				BcF32 U0 = pGlyph->UA_;
+				BcF32 V0 = pGlyph->VA_;
+				BcF32 U1 = pGlyph->UB_;
+				BcF32 V1 = pGlyph->VB_;
 				
 				// Pre-clipping size.
 				MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
@@ -562,8 +576,8 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 							continue;
 						}
 
-						BcReal TexWidth = U1 - U0;
-						BcReal TexHeight = V1 - V0;
+						BcF32 TexWidth = U1 - U0;
+						BcF32 TexHeight = V1 - V0;
 
 						if ( CornerMin.x() < ClipMin_.x() )
 						{
@@ -595,42 +609,42 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 					pVert->Y_ = CornerMin.y();
 					pVert->U_ = U0;
 					pVert->V_ = V0;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMax.x();
 					pVert->Y_ = CornerMin.y();
 					pVert->U_ = U1;
 					pVert->V_ = V0;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMin.x();
 					pVert->Y_ = CornerMax.y();
 					pVert->U_ = U0;
 					pVert->V_ = V1;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMax.x();
 					pVert->Y_ = CornerMin.y();
 					pVert->U_ = U1;
 					pVert->V_ = V0;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMax.x();
 					pVert->Y_ = CornerMax.y();
 					pVert->U_ = U1;
 					pVert->V_ = V1;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 					
 					pVert->X_ = CornerMin.x();
 					pVert->Y_ = CornerMax.y();
 					pVert->U_ = U0;
 					pVert->V_ = V1;
-					pVert->RGBA_ = RGBA;
+					pVert->ABGR_ = ABGR;
 					++pVert;
 
 					// Add 2 triangles worth of vertices.
@@ -658,6 +672,14 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawCentered
+BcVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
+{
+	BcVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
+	return draw( Canvas, Position - Size * 0.5f, String, Colour, BcFalse, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getMaterialComponent
 ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 {
@@ -667,15 +689,7 @@ ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool ScnFontComponent::isReady()
-{
-	return Parent_->isReady() && MaterialComponent_.isReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-void ScnFontComponent::update( BcReal Tick )
+void ScnFontComponent::update( BcF32 Tick )
 {
 	ScnComponent::update( Tick );
 }
@@ -699,6 +713,8 @@ void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
+
+	MaterialComponent_ = NULL;
 
 	//
 	ScnComponent::onDetach( Parent );

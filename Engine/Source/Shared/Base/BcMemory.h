@@ -15,28 +15,29 @@
 #define __BCMEMORY_H__
 
 #include "Base/BcDebug.h"
+#include "Base/BcGlobal.h"
 
 //#define MEM_DEBUG
 
 //////////////////////////////////////////////////////////////////////////
 // BcMemoryAllocator
-class BcMemoryAllocator
+class BcMemoryAllocator:
+	public BcGlobal< BcMemoryAllocator >
 {
 public:
 	BcMemoryAllocator();
 	virtual ~BcMemoryAllocator();
 
 public:
-	virtual void* malloc( BcSize Bytes );
-	virtual void* memalign( BcSize Bytes, BcSize Alignment );
-	virtual void* realloc( void* pMemory, BcSize Bytes );
-	virtual void* reallocaligned( void* pMemory, BcSize Bytes, BcSize Alignment ); 
+	virtual void* malloc( BcSize Bytes, BcSize Alignment = 16 );
+	virtual void* realloc( void* pMemory, BcSize Bytes, BcSize Alignment = 16 );
 	virtual void free( void* pMemory );
 };
 
 //////////////////////////////////////////////////////////////////////////
 // System allocation. Always goes to OS.
 void* BcSysMemAlign( BcSize Bytes, BcSize Alignment );
+void* BcSysMemRealloc( void* pMemory, BcSize Bytes, BcSize Alignment );
 void BcSysMemFree( void* pMemory );
 
 //////////////////////////////////////////////////////////////////////////

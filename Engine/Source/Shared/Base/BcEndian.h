@@ -34,12 +34,12 @@ BcForceInline BcU32 BcFlipEndian( BcU32 Value )
 	return pValue[ 0 ] << 24 | pValue[ 1 ] << 16 | pValue[ 2 ] << 8 | pValue[ 3 ];
 }
 
-BcForceInline BcReal BcFlipEndian( BcReal Value )
+BcForceInline BcF32 BcFlipEndian( BcF32 Value )
 {
-	BcAssert( sizeof( BcReal ) == 4 );
+	BcAssert( sizeof( BcF32 ) == 4 );
 	const BcU8* pValue = (const BcU8*)&Value;
 	BcU32 ConvertedValue = pValue[ 0 ] << 24 | pValue[ 1 ] << 16 | pValue[ 2 ] << 8 | pValue[ 3 ];
-	return ( *( (BcReal*)&ConvertedValue ) );
+	return ( *( (BcF32*)&ConvertedValue ) );
 }
 
 BcInline BcVec2d BcFlipEndian( const BcVec2d& Value )
@@ -140,7 +140,7 @@ BcInline BcEndianValue< _Ty >::operator _Ty() const
 // Typedefs
 typedef BcEndianValue< BcU16 >		BcEndianU16;
 typedef BcEndianValue< BcU32 >		BcEndianU32;
-typedef BcEndianValue< BcReal >		BcEndianReal;
+typedef BcEndianValue< BcF32 >		BcEndianReal;
 typedef BcEndianValue< BcVec2d >	BcEndianVec2d;
 typedef BcEndianValue< BcVec3d >	BcEndianVec3d;
 typedef BcEndianValue< BcVec4d >	BcEndianVec4d;

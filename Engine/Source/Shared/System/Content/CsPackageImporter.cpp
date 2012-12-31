@@ -18,6 +18,13 @@
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
 
+#include "Base/BcRegex.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Regex for resource references.
+BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
+BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+
 #if PSY_SERVER
 
 //////////////////////////////////////////////////////////////////////////
@@ -77,6 +84,9 @@ BcBool CsPackageImporter::import( const BcName& Name )
 	{
 		// Get resource list.
 		Json::Value Resources( Root.get( "resources", Json::Value( Json::arrayValue ) ) );
+
+		// Add all package cross refs.
+		addAllPackageCrossRefs( Resources );
 
 		// Add resources to import list.
 		for( BcU32 Idx = 0; Idx < Resources.size(); ++Idx )
@@ -248,12 +258,10 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 	BcFile File;
 	if( File.open( pFileName ) )
 	{
-		char* pData = new char[ File.size() ];
-		File.read( pData, File.size() );
-		
+		const BcU8* pData = File.readAllBytes();		
 		Json::Reader Reader;
 		
-		if( Reader.parse( pData, pData + File.size(), Root ) )
+		if( Reader.parse( (const char*)pData, (const char*)pData + File.size(), Root ) )
 		{
 			Success = BcTrue;
 		}
@@ -334,7 +342,7 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 
 //////////////////////////////////////////////////////////////////////////
 // addImport
-void CsPackageImporter::addImport( const Json::Value& Resource )
+BcU32 CsPackageImporter::addImport( const Json::Value& Resource )
 {
 	// Validate it's an object.
 	BcAssertMsg( Resource.type() == Json::objectValue, "CsPackageImporter: Can't import a value that isn't an object." );
@@ -347,6 +355,18 @@ void CsPackageImporter::addImport( const Json::Value& Resource )
 
 	// Put to front of list so it's imported next.
 	JsonResources_.push_front( Resource );
+
+	// Construct and add package cross ref.
+	std::string CrossRef;
+	CrossRef += "$(";
+	CrossRef += Type.asString();
+	CrossRef += ":";
+	CrossRef += *Name_;
+	CrossRef += ".";
+	CrossRef += Name.asString();
+	CrossRef += ")";
+
+	return addPackageCrossRef( CrossRef.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -377,114 +397,84 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 
 //////////////////////////////////////////////////////////////////////////
 // addPackageCrossRef
-BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName, const BcName& DefaultTypeName )
+BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 {
-	BcChar FullNameBuffer[ 1024 ];
-	BcAssertMsg( BcStrLength( pFullName ) < sizeof( FullNameBuffer ), "CsPackageImporter: Full name too long." );
-	BcStrCopy( FullNameBuffer, pFullName );
-	BcChar* pPackageNameBuffer = NULL;
-	BcChar* pResourceNameBuffer = NULL;
-	BcChar* pTypeNameBuffer = NULL;
-	
-	BcName PackageName = Name_;
-	BcName ResourceName = BcName::INVALID;
-	BcName TypeName = DefaultTypeName != BcName::INVALID ? DefaultTypeName : BcName( "CsResource" );
+	BcBool IsWeak = BcFalse;
+	BcRegexMatch Match;
+	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
 
-	BcBool HavePackage = BcStrStr( FullNameBuffer, "." ) != NULL;
-	BcBool HaveType = BcStrStr( FullNameBuffer, ":" ) != NULL;
-	
-	// If we have no default, we need one in the full name.
-	if( TypeName == BcName::INVALID )
+	// Try the weak match.
+	// TODO: Merge into  regex.
+	if( Matches == 0 )
 	{
-		BcAssertMsg( HaveType, "CsCrossPackageRef: Missing type name: \"%s\". Format: PACKAGE.RESOURCE:TYPE", pFullName );
+		IsWeak = BcTrue;
+		Matches = GRegex_WeakResourceReference.match( pFullName, Match );
 	}
 
-	// Parse from full name.
-	// NOTE: Unsafe.
-	if( HavePackage == BcTrue &&
-		HaveType == BcTrue )
-	{
-		pPackageNameBuffer = &FullNameBuffer[ 0 ];
-		pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
-		pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
-		*pResourceNameBuffer++ = '\0';
-		*pTypeNameBuffer++ = '\0';
-	}
-	else if( HavePackage == BcTrue &&
-		     HaveType == BcFalse )
-	{
-		pPackageNameBuffer = &FullNameBuffer[ 0 ];
-		pResourceNameBuffer = BcStrStr( FullNameBuffer, "." );
-		*pResourceNameBuffer++ = '\0';
-	}
-	else if( HavePackage == BcFalse &&
-		     HaveType == BcTrue )
-	{
-		pResourceNameBuffer = &FullNameBuffer[ 0 ];
-		pTypeNameBuffer = BcStrStr( FullNameBuffer, ":" );
-		*pTypeNameBuffer++ = '\0';
-	}
-	else if( HavePackage == BcFalse &&
-		     HaveType == BcFalse )
-	{
-		pResourceNameBuffer = &FullNameBuffer[ 0 ];
-	}
+	if( Matches == 4 )
+	{	
+		std::string TypeName;
+		std::string PackageName;
+		std::string ResourceName;
 
-	if( pPackageNameBuffer != NULL )
-	{
-		BcAssertMsg( BcStrLength( pPackageNameBuffer ) < BcNameEntry::MAX_STRING_LENGTH, "CsCrossPackageRef: Package name too long. Max of %u characters.", BcNameEntry::MAX_STRING_LENGTH - 1 );
-	}
+		Match.getMatch( 1, TypeName );
+		Match.getMatch( 2, PackageName );
+		Match.getMatch( 3, ResourceName );
 
-	if( pResourceNameBuffer != NULL )
-	{
-		BcAssertMsg( BcStrLength( pResourceNameBuffer ) < BcNameEntry::MAX_STRING_LENGTH, "CsCrossPackageRef: Resource name too long. Max of %u characters.", BcNameEntry::MAX_STRING_LENGTH - 1 );
-	}
-
-	if( pTypeNameBuffer != NULL )
-	{
-		BcAssertMsg( BcStrLength( pTypeNameBuffer ) < BcNameEntry::MAX_STRING_LENGTH, "CsCrossPackageRef: Type name too long. Max of %u characters.", BcNameEntry::MAX_STRING_LENGTH - 1 );
-	}
-
-	// Save package name.
-	if( pPackageNameBuffer != NULL && BcStrLength( pPackageNameBuffer ) > 0 )
-	{
-		PackageName = pPackageNameBuffer;
-	}
-
-	// Save resource name.
-	BcAssertMsg( pResourceNameBuffer != NULL && BcStrLength( pResourceNameBuffer ) > 0, "CsCrossPackageRef: Resource name has not been specified." );
-	ResourceName = pResourceNameBuffer;
-
-	// Save package name.
-	if( pTypeNameBuffer != NULL && BcStrLength( pTypeNameBuffer ) > 0 )
-	{
-		TypeName = pTypeNameBuffer;
-	}
-
-	// Add cross ref.
-	CsPackageCrossRefData CrossRef = 
-	{
-		addString( (*PackageName).c_str() ),
-		addString( (*ResourceName).c_str() ),
-		addString( (*TypeName).c_str() )
-	};
-
-	PackageCrossRefList_.push_back( CrossRef );
-
-	// Add package dependency if it's not there, and it's not this package.
-	if( PackageName != Name_ && havePackageDependency( PackageName ) == BcFalse )
-	{
-		CsPackageDependencyData PackageDependency =
+		// Handle "this" for package.
+		if( PackageName == "this" )
 		{
-			CrossRef.PackageName_
+			PackageName = *Name_;
+		}
+	
+		// Add cross ref.
+		CsPackageCrossRefData CrossRef = 
+		{
+			addString( TypeName.c_str() ),
+			addString( PackageName.c_str() ),
+			addString( ResourceName.c_str() ),
+			IsWeak
 		};
 
-		PackageDependencyDataList_.push_back( PackageDependency );
-		PackageDependencyList_.push_back( PackageName );
+		// Add if it doesn't exist already.
+		BcU32 FoundIdx = BcErrorCode;
+		for( BcU32 Idx = 0; Idx < PackageCrossRefList_.size(); ++Idx )
+		{
+			if( PackageCrossRefList_[ Idx ] == CrossRef )
+			{
+				FoundIdx = Idx;
+				break;
+			}
+		}
+
+		if( FoundIdx == BcErrorCode )
+		{
+			PackageCrossRefList_.push_back( CrossRef );
+			FoundIdx = PackageCrossRefList_.size() - 1;
+		}
+
+		// Add package dependency if it's not there, and it's not this package.
+		if( PackageName != *Name_ && havePackageDependency( PackageName ) == BcFalse )
+		{
+			CsPackageDependencyData PackageDependency =
+			{
+				CrossRef.PackageName_,
+				IsWeak
+			};
+			
+			PackageDependencyDataList_.push_back( PackageDependency );
+			PackageDependencyList_.push_back( PackageName );
+		}
+
+		// Resource index to the package cross ref.
+		return FoundIdx;
+	}
+	else
+	{
+		BcAssertMsg( BcFalse, "Cross package ref \"%s\" is not formatted correctly.", pFullName );
 	}
 
-	// Resource index to the package cross ref.
-	return PackageCrossRefList_.size() - 1;
+	return BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -544,6 +534,53 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU3
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
 	DependencyList_.push_back( CsDependency( pFileName ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addAllPackageCrossRefs
+void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
+{
+	// If it's a string value, attempt to match it.
+	if( Root.type() == Json::stringValue )
+	{
+		BcRegexMatch Match;
+		BcU32 Matches = GRegex_ResourceReference.match( Root.asCString(), Match );
+		
+		// Try the weak match.
+		// TODO: Merge into  regex.
+		if( Matches == 0 )
+		{
+			Matches = GRegex_WeakResourceReference.match( Root.asCString(), Match );
+		}
+
+		if( Matches == 4 )
+		{
+			BcU32 RefIndex = addPackageCrossRef( Root.asCString() );
+
+			// If we find it, replace string reference with a cross ref index.
+			if( RefIndex != BcErrorCode )
+			{
+				BcPrintf("- Adding crossref %u: %s\n", RefIndex, Root.asCString() );
+				Root = Json::Value( RefIndex );
+			}
+		}
+	}
+	else if( Root.type() == Json::arrayValue )
+	{
+		for( BcU32 Idx = 0; Idx < Root.size(); ++Idx )
+		{
+			addAllPackageCrossRefs( Root[ Idx ] );
+		}
+	}
+	else if( Root.type() == Json::objectValue )
+	{
+		Json::Value::Members MemberValues = Root.getMemberNames();
+
+		for( BcU32 Idx = 0; Idx < MemberValues.size(); ++Idx )
+		{
+			addAllPackageCrossRefs( Root[ MemberValues[ Idx ] ] );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

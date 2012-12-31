@@ -62,13 +62,31 @@ public:
 	ScnEntityRef				createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
 
 	/**
+	 * Spawn an entity from template. Handles loading and scene attachment.
+	 */
+	void						spawnEntity( ScnEntityRef Parent, const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
+
+	/**
 	 * Find an entity. Non recursive, only searching within the manager, not parented entities.
 	 */
 	ScnEntityRef				findEntity( const BcName& InstanceName );
 
-private:
-	friend class ScnEntity;
+	/**
+	 * Get an entity.
+	 */
+	ScnEntityRef				getEntity( BcU32 Idx );
 
+	/**
+	 * Queue component for attach/detach.
+	 */
+	void						queueComponentAsPendingOperation( ScnComponentRef Component );
+
+	/**
+	 * Visit view.
+	 */
+	void						visitView( ScnVisitor* pVisitor, const RsViewport& Viewport );
+
+private:
 	/**
 	 * Called when a component has been attached to an entity that exists in the scene.
 	 */
@@ -80,18 +98,41 @@ private:
 	void						onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component );
 
 private:
-	void						processAddRemove();
+	void						processPendingComponents();
 
 private:
-	ScnSpatialTree*				pSpacialTree_;
-	ScnEntityList				EntityList_;
+	void						onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
 
-	ScnEntityList				AddEntityList_;
-	ScnEntityList				RemoveEntityList_;
+private:
+	ScnSpatialTree*				pSpatialTree_;
+
+	// Pending components.
+	ScnComponentList			PendingComponentList_;
 	
 	// Special components.
 	ScnViewComponentList		ViewComponentList_;
 
+	// All components in the scene.
+	typedef std::map< const BcReflectionClass*, BcU32 > TComponentClassIndexMap;
+	ScnComponentList*			pComponentLists_;
+	BcU32						NoofComponentLists_;
+
+	TComponentClassIndexMap		ComponentClassIndexMap_;
+
+	// Entity spawning data.
+	struct TEntitySpawnData
+	{
+		ScnEntityRef			Parent_;
+		BcName					Package_;
+		BcName					Name_;
+		BcName					InstanceName_;
+	};
+
+	typedef std::map< BcU32, TEntitySpawnData > TEntitySpawnDataMap;
+	typedef TEntitySpawnDataMap::iterator TEntitySpawnDataMapIterator;
+
+	BcU32						EntitySpawnID_;
+	TEntitySpawnDataMap			EntitySpawnMap_;
 };
 
 #endif

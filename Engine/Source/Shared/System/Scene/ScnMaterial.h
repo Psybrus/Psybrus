@@ -20,6 +20,7 @@
 #include "System/Scene/ScnTexture.h"
 #include "System/Scene/ScnShader.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnMaterialFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef
@@ -55,10 +56,8 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 
 	ScnTextureRef						getTexture( BcName Name );
-
 
 private:
 	void								fileReady();
@@ -66,20 +65,8 @@ private:
 	
 private:
 	friend class ScnMaterialComponent;
-	
-	struct THeader
-	{
-		BcU32							ShaderRef_;
-		BcU32							NoofTextures_;
-	};
-
-	struct TTextureHeader
-	{
-		BcU32							SamplerName_;
-		BcU32							TextureRef_;
-	};
-	
-	THeader*							pHeader_;
+		
+	ScnMaterialHeader*					pHeader_;
 	
 	ScnShaderRef						Shader_;
 	ScnTextureMap						TextureMap_;
@@ -103,7 +90,7 @@ public:
 	BcU32								findParameter( const BcName& ParameterName );	
 	void								setParameter( BcU32 Parameter, BcS32 Value );
 	void								setParameter( BcU32 Parameter, BcBool Value );
-	void								setParameter( BcU32 Parameter, BcReal Value );
+	void								setParameter( BcU32 Parameter, BcF32 Value );
 	void								setParameter( BcU32 Parameter, const BcVec2d& Value );
 	void								setParameter( BcU32 Parameter, const BcVec3d& Value );
 	void								setParameter( BcU32 Parameter, const BcVec4d& Value );
@@ -124,10 +111,8 @@ public:
 	
 	void								bind( RsFrame* pFrame, RsRenderSort& Sort );
 
-	virtual BcBool						isReady();
-
 public:
-	virtual void						update( BcReal Tick );
+	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
@@ -171,6 +156,9 @@ private:
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
 	BcU32								EyePositionParameter_;
+
+public:
+	SysFence							UpdateFence_;
 };
 
 #endif

@@ -15,6 +15,7 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"
+#include "System/SysKernel.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -59,7 +60,7 @@ BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& O
 		pNode = NULL;
 		
 		// Setup header.
-		THeader Header = 
+		ScnModelHeader Header = 
 		{
 			NodeIndex,
 			PrimitiveIndex
@@ -93,14 +94,14 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 									    BcU32& PrimitiveIndex )
 {
 	// Setup structs.
-	TNodeTransformData NodeTransformData =
+	ScnModelNodeTransformData NodeTransformData =
 	{
 		pNode->relativeTransform(),
 		pNode->absoluteTransform(),
 		pNode->inverseBindpose()
 	};
 	
-	TNodePropertyData NodePropertyData = 
+	ScnModelNodePropertyData NodePropertyData = 
 	{
 		ParentIndex
 	};
@@ -127,29 +128,19 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 			const MdlMesh* pSubMesh = &SubMeshes[ SubMeshIdx ];
 
 			// NOTE: This next section needs to be picky to be optimal. Optimise later :)
-			TPrimitiveData PrimitiveData = 
+			ScnModelPrimitiveData PrimitiveData = 
 			{
 				ParentIndex,
 				rsPT_TRIANGLELIST,	
-				rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_RGBA8,
+				rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8,
 				pSubMesh->nVertices(),
-				pSubMesh->nIndices()
+				pSubMesh->nIndices(),
+				BcErrorCode,
+				0, // padding0
+				0, // padding1
+				BcAABB()
 			};
-			
-			// Grab material name.
-			MdlMaterial Material = pSubMesh->material( 0 );
-			
-			// Always setup default material.
-			if( Material.Name_.length() == 0 )
-			{
-				Material.Name_ = "default";
-			}
-			
-			// Import material.
-			// TODO: Pass through parameters from the model into import?
-			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str(), "ScnMaterial" );
-			PrimitiveStream << PrimitiveData;
-			
+						
 			// Export vertices.
 			MdlVertex Vertex;
 			for( BcU32 VertexIdx = 0; VertexIdx < pSubMesh->nVertices(); ++VertexIdx )
@@ -159,9 +150,26 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 				VertexStream << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
 				VertexStream << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
 				VertexStream << Vertex.UV_.x() << Vertex.UV_.y();
-				VertexStream << RsColour( Vertex.Colour_ ).asRGBA();
+				VertexStream << RsColour( Vertex.Colour_ ).asABGR();
+
+				// Expand AABB.
+				PrimitiveData.AABB_.expandBy( Vertex.Position_ );
 			}
-		
+
+			// Grab material name.
+			MdlMaterial Material = pSubMesh->material( 0 );
+			
+			// Always setup default material.
+			if( Material.Name_.length() == 0 )
+			{
+				Material.Name_ = "$(ScnMaterial:default.default)";
+			}
+
+			// Import material.
+			// TODO: Pass through parameters from the model into import?
+			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str() );
+			PrimitiveStream << PrimitiveData;
+					
 			// Export indices.
 			MdlIndex Index;
 			for( BcU32 IndexIdx = 0; IndexIdx < pSubMesh->nIndices(); ++IndexIdx )
@@ -201,6 +209,16 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
 
+BCREFLECTION_EMPTY_REGISTER( ScnModel );
+/*
+BCREFLECTION_DERIVED_BEGIN( CsResource, ScnModel )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
@@ -220,43 +238,6 @@ void ScnModel::initialise()
 //virtual
 void ScnModel::create()
 {
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnModel::destroy()
-{
-	// TODO: Release runtime data.
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-//virtual
-BcBool ScnModel::isReady()
-{
-	if( pHeader_ != NULL )
-	{
-		for( BcU32 Idx = 0; Idx < PrimitiveRuntimes_.size(); ++Idx )
-		{
-			if( PrimitiveRuntimes_[ Idx ].MaterialRef_.isValid() )
-			{
-				if( PrimitiveRuntimes_[ Idx ].MaterialRef_.isReady() == BcFalse )
-				{
-					return BcFalse;
-				}
-			}
-		}
-		
-	}
-	return pHeader_ != NULL && PrimitiveRuntimes_.size() > 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setup
-void ScnModel::setup()
-{
 	// NOTE: This should try and compact index and vertex buffers so we create less
 	//       GPU resources. This could be done import time, but it could vary
 	//       platform to platform.
@@ -271,8 +252,8 @@ void ScnModel::setup()
 	
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
-		TPrimitiveData* pPrimitiveData = &pPrimitiveData_[ PrimitiveIdx ];
-		//TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
+		ScnModelPrimitiveData* pPrimitiveData = &pPrimitiveData_[ PrimitiveIdx ];
+		//ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
 
 		// Create GPU resources.
 		RsVertexBuffer* pVertexBuffer = RsCore::pImpl() ? RsCore::pImpl()->createVertexBuffer( pPrimitiveData->VertexFormat_, pPrimitiveData->NoofVertices_, pVertexBufferData ) : NULL;
@@ -280,7 +261,7 @@ void ScnModel::setup()
 		RsPrimitive* pPrimitive = RsCore::pImpl() ? RsCore::pImpl()->createPrimitive( pVertexBuffer, pIndexBuffer ) : NULL;
 
 		// Setup runtime structure.
-		TPrimitiveRuntime PrimitiveRuntime = 
+		ScnModelPrimitiveRuntime PrimitiveRuntime = 
 		{
 			PrimitiveIdx,
 			pVertexBuffer,
@@ -300,6 +281,29 @@ void ScnModel::setup()
 		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
 		pIndexBufferData_ += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
 	}
+
+	// Mark as ready.
+	markReady();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnModel::destroy()
+{
+	// Destroy internal data.
+	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes_.size(); ++Idx )
+	{
+		ScnModelPrimitiveRuntime& PrimitiveRuntime( PrimitiveRuntimes_[ Idx ] );
+
+		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pVertexBuffer_ );
+		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pIndexBuffer_ );
+		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pPrimitive_ );
+		
+		PrimitiveRuntime.MaterialRef_ = NULL;
+	}
+
+	PrimitiveRuntimes_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -328,15 +332,15 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pHeader_ = (THeader*)pData;
+		pHeader_ = (ScnModelHeader*)pData;
 	}
 	else if( ChunkID == BcHash( "nodetransformdata" ) )
 	{
-		pNodeTransformData_ = (TNodeTransformData*)pData;
+		pNodeTransformData_ = (ScnModelNodeTransformData*)pData;
 	}
 	else if( ChunkID == BcHash( "nodepropertydata" ) )
 	{
-		pNodePropertyData_ = (TNodePropertyData*)pData;
+		pNodePropertyData_ = (ScnModelNodePropertyData*)pData;
 	}
 	else if( ChunkID == BcHash( "vertexdata" ) )
 	{
@@ -350,10 +354,9 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 	else if( ChunkID == BcHash( "primitivedata" ) )
 	{
-		pPrimitiveData_ = (TPrimitiveData*)pData;
+		pPrimitiveData_ = (ScnModelPrimitiveData*)pData;
 		
-		// We've got everything, it's time to setup.
-		setup();
+		markCreate(); // All data loaded, time to create.
 	}
 }
 
@@ -362,35 +365,46 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource.
 DEFINE_RESOURCE( ScnModelComponent );
 
+BCREFLECTION_EMPTY_REGISTER( ScnModelComponent );
+/*
+BCREFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnModelComponent )
+	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+BCREFLECTION_DERIVED_END();
+*/
+
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnModelComponent::initialise( ScnModelRef Parent )
 {
+	Super::initialise();
+
 	// Cache parent.
 	Parent_ = Parent;
-
 	Layer_ = 0;
 	
 	// Duplicate node data for update/rendering.
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
-	pNodeTransformData_ = new ScnModel::TNodeTransformData[ NoofNodes ];
-	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModel::TNodeTransformData ) * NoofNodes );
+	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
+	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
 
 	// Create material instances to render with.
-	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
+	ScnModelPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnMaterialComponentRef MaterialComponentRef;
 	MaterialComponentDescList_.reserve( PrimitiveRuntimes.size() );
 	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes.size(); ++Idx )
 	{
-		ScnModel::TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ Idx ];
+		ScnModelPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ Idx ];
 		
 		if( pPrimitiveRuntime->MaterialRef_.isValid() )
 		{
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			CsCore::pImpl()->createResource( BcName::INVALID, MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_DEFAULT );
+			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, scnSPF_3D );
 
 			TMaterialComponentDesc MaterialComponentDesc =
 			{
@@ -408,7 +422,7 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 void ScnModelComponent::initialise( const Json::Value& Object )
 {
 	ScnModelRef ModelRef;
-	ModelRef = CsCore::pImpl()->getResource( Object[ "model" ].asCString() );
+	ModelRef = getPackage()->getPackageCrossRef( Object[ "model" ].asUInt() );
 	initialise( ModelRef );
 
 	// Setup additional stuff.
@@ -420,17 +434,21 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnModelComponent::destroy()
 {
+	SysFence Fence( RsCore::WORKER_MASK );
+
 	// Delete duplicated node data.
 	delete [] pNodeTransformData_;
 	pNodeTransformData_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// getAABB
 //virtual
-BcBool ScnModelComponent::isReady()
+BcAABB ScnModelComponent::getAABB() const
 {
-	return Parent_->isReady();
+	UpdateFence_.wait();
+
+	return AABB_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -460,7 +478,7 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
 // getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
 {
-	ScnModel::TPrimitiveData* pPrimitiveData = Parent_->pPrimitiveData_;
+	ScnModelPrimitiveData* pPrimitiveData = Parent_->pPrimitiveData_;
 
 	for( BcU32 Idx = 0; Idx < MaterialComponentDescList_.size(); ++Idx )
 	{
@@ -476,29 +494,56 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& M
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnModelComponent::update( BcReal Tick )
+void ScnModelComponent::postUpdate( BcF32 Tick )
 {
-	Super::update( Tick );
-	
+	Super::postUpdate( Tick );
+
+	UpdateFence_.increment();
+#if 1
+	// TODO: Break out into it's own job class.
+	typedef BcDelegate< void(*)( BcMat4d ) > UpdateNodeDelegate;
+	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
+	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, getParentEntity()->getMatrix() );
+#else
+	updateNodes( getParentEntity()->getMatrix() );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateNodes
+void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
+{
+	BcAABB FullAABB;
+
 	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
-		ScnModel::TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		ScnModel::TNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
-		
+		BcAABB NodeAABB;
+		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
+		ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
+		ScnModelPrimitiveRuntime* pNodePrimitiveRuntime = &Parent_->PrimitiveRuntimes_[ NodeIdx ];
+		ScnModelPrimitiveData* pNodePrimitiveData = &Parent_->pPrimitiveData_[ pNodePrimitiveRuntime->PrimitiveDataIndex_ ];
+		NodeAABB = pNodePrimitiveData->AABB_;
+
 		// Check parent index and process.
 		if( pNodePropertyData->ParentIndex_ != BcErrorCode )
 		{
-			ScnModel::TNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
+			ScnModelNodeTransformData* pParenScnModelNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
 			
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * pParentNodeTransformData->AbsoluteTransform_;
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * pParenScnModelNodeTransformData->AbsoluteTransform_;
 		}
 		else
 		{
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * getParentEntity()->getMatrix();
+			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * RootMatrix;
 		}
+
+		FullAABB.expandBy( NodeAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
 	}
+
+	AABB_ = FullAABB;
+
+	UpdateFence_.decrement();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -522,11 +567,15 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	// Wait for update to complete.
+	UpdateFence_.wait();
+
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < MaterialComponentDescList_.size(); ++Idx )
 	{
 		TMaterialComponentDesc& MaterialComponentDesc( MaterialComponentDescList_[ Idx ] );
 		Parent->detach( MaterialComponentDesc.MaterialComponentRef_ );
+		MaterialComponentDesc.MaterialComponentRef_ = NULL;
 	}
 
 	//
@@ -555,18 +604,19 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 {
 	Super::render( pViewComponent, pFrame, Sort );
 
-	ScnModel::TPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
-	ScnModel::TPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
+	UpdateFence_.wait();
+
+	ScnModelPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
+	ScnModelPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
 
 	// Set layer.
-
 	Sort.Layer_ = Layer_;
 
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes.size(); ++PrimitiveIdx )
 	{
-		ScnModel::TPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ PrimitiveIdx ];
-		ScnModel::TPrimitiveData* pPrimitiveData = &pPrimitiveDatas[ pPrimitiveRuntime->PrimitiveDataIndex_ ];
-		ScnModel::TNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
+		ScnModelPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ PrimitiveIdx ];
+		ScnModelPrimitiveData* pPrimitiveData = &pPrimitiveDatas[ pPrimitiveRuntime->PrimitiveDataIndex_ ];
+		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
 		TMaterialComponentDesc& MaterialComponentDesc = MaterialComponentDescList_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
 
@@ -576,6 +626,9 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 			// Set model parameters on material.
 			MaterialComponentDesc.MaterialComponentRef_->setWorldTransform( pNodeTransformData->AbsoluteTransform_ );
 			
+			// Set material components for view.
+			pViewComponent->setMaterialParameters( MaterialComponentDesc.MaterialComponentRef_ );
+
 			// Bind material.
 			MaterialComponentDesc.MaterialComponentRef_->bind( pFrame, Sort );
 			

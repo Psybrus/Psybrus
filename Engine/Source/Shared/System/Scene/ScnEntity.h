@@ -25,18 +25,17 @@
 #include "System/Scene/ScnRenderableComponent.h"
 #include "System/Scene/ScnViewComponent.h"
 
-#include "System/Scene/ScnTransform.h"
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public ScnRenderableComponent,
+	public ScnComponent,
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, ScnEntity );
+	DECLARE_RESOURCE( ScnComponent, ScnEntity );
 	
 #if PSY_SERVER
 	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -45,21 +44,15 @@ public:
 	void								initialise( ScnEntityRef Basis );
 	void								create();
 	void								destroy();
-	BcBool								isReady();
 
 public:
-	void								update( BcReal Tick );
-	void								render( ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ); // NEILO TODO: Don't implement here. Test code only.
+	void								update( BcF32 Tick );
 	void								attach( ScnComponent* Component );
 	void								detach( ScnComponent* Component );
 	void								onAttach( ScnEntityWeakRef Parent );
 	void								onDetach( ScnEntityWeakRef Parent );
+	void								detachFromParent();
 	
-	/**
-	 * Are we attached to the scene?
-	 */
-	BcBool								isAttached() const;
-
 	/**
 	 * Get basis entity.
 	 */
@@ -76,6 +69,11 @@ public:
 	ScnComponentRef						getComponent( BcU32 Idx, const BcName& Type = BcName::INVALID );
 
 	/**
+	 * Get component.
+	 */
+	ScnComponentRef						getComponent( BcName Name, const BcName& Type = BcName::INVALID );
+
+	/**
 	 * Get component by type.
 	 */
 	template< typename _Ty >
@@ -85,9 +83,23 @@ public:
 	}
 
 	/**
+	 * Get component by type.
+	 */
+	template< typename _Ty >
+	ScnComponentRef						getComponentByType( BcName Name )
+	{
+		return getComponent( Name, _Ty::StaticGetType() );
+	}
+
+	/**
 	 * Get component on any parent or self.
 	 */
 	ScnComponentRef						getComponentAnyParent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+
+	/**
+	 * Get component on any parent or self.
+	 */
+	ScnComponentRef						getComponentAnyParent( BcName Name, const BcName& Type = BcName::INVALID );
 
 	/**
 	 * Get component on any parent or self by type.
@@ -99,9 +111,13 @@ public:
 	}
 
 	/**
- 	 * Get AABB which encompasses this entity.
+	 * Get component on any parent or self by type.
 	 */
-	BcAABB								getAABB();
+	template< typename _Ty >
+	ScnComponentRef						getComponentAnyParentByType( BcName Name )
+	{
+		return getComponentAnyParent( Name, _Ty::StaticGetType() );
+	}
 
 	/**
 	 * Set position.
@@ -128,24 +144,14 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	void								processAttachDetach();
-	void								internalAttach( ScnComponent* Component );
-	void								internalDetach( ScnComponent* Component );
-
-protected:
 	const BcChar*						pJsonObject_; // TEMP.
 
 	ScnEntityRef						Basis_;
 	BcMat4d								Transform_;
 
 	ScnComponentList					Components_;
-	ScnComponentList					AttachComponents_;
-	ScnComponentList					DetachComponents_;
-
+	
 	EvtProxyBuffered*					pEventProxy_;
-
-private:
-	BcBool								IsAttached_;
 };
 
 #endif

@@ -16,7 +16,7 @@
 
 #include "Base/BcMath.h"
 
-const BcReal gPlaneEpsilon = BcVecEpsilon;
+const BcF32 gPlaneEpsilon = BcVecEpsilon;
 
 //////////////////////////////////////////////////////////////////////////
 // pointClassify
@@ -29,9 +29,9 @@ void BcPlane::transform( const BcMat4d& Transform )
 
 //////////////////////////////////////////////////////////////////////////
 // pointClassify
-BcPlane::eClassify BcPlane::classify( const BcVec3d& Point, BcReal Radius ) const
+BcPlane::eClassify BcPlane::classify( const BcVec3d& Point, BcF32 Radius ) const
 {
-	BcReal Dist = distance( Point );
+	BcF32 Dist = distance( Point );
 			
 	if( Dist > Radius )
 	{
@@ -47,10 +47,10 @@ BcPlane::eClassify BcPlane::classify( const BcVec3d& Point, BcReal Radius ) cons
 
 //////////////////////////////////////////////////////////////////////////
 // lineIntersection
-BcBool BcPlane::lineIntersection( const BcVec3d& Point, const BcVec3d& Dir, BcReal& Distance ) const
+BcBool BcPlane::lineIntersection( const BcVec3d& Point, const BcVec3d& Dir, BcF32& Distance ) const
 {
-	const BcReal Dist = ( Normal_.dot( Point ) ) + D_;
-	const BcReal Ndiv = Normal_.dot( Dir );
+	const BcF32 Dist = ( Normal_.dot( Point ) ) + D_;
+	const BcF32 Ndiv = Normal_.dot( Dir );
 
 	if( BcAbs( Ndiv ) > 0.0f )
 	{
@@ -63,7 +63,7 @@ BcBool BcPlane::lineIntersection( const BcVec3d& Point, const BcVec3d& Dir, BcRe
 
 //////////////////////////////////////////////////////////////////////////
 // lineIntersection
-BcBool BcPlane::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcReal& Distance, BcVec3d& Intersection ) const
+BcBool BcPlane::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcF32& Distance, BcVec3d& Intersection ) const
 {
 	BcBool RetVal = BcFalse;
 	if( lineIntersection( A, A - B, Distance ) && Distance >= 0.0f && Distance <= 1.0f )
@@ -78,7 +78,7 @@ BcBool BcPlane::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcReal& Di
 // intersect
 BcBool BcPlane::intersect( const BcPlane& A, const BcPlane& B, const BcPlane& C, BcVec3d& Point )
 {
-	const BcReal Denom = A.Normal_.dot( ( B.Normal_.cross( C.Normal_ ) ) );
+	const BcF32 Denom = A.Normal_.dot( ( B.Normal_.cross( C.Normal_ ) ) );
 
 	if ( BcAbs( Denom ) < ( gPlaneEpsilon ) )
 	{

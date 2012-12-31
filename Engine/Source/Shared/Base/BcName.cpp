@@ -206,20 +206,25 @@ void BcName::setInternal( const std::string& Value, BcU32 ID )
 	// Find '_'
 	std::string::size_type Position = Value.find_last_of( '_' );
 		
-	// If we have a trailing '_', strip out and use as ID.
+	// If we have a trailing '_', strip out and use as ID if we can.
 	if( Position != std::string::npos )
 	{
-		std::string NewValue = Value.substr( 0, Position );
-		EntryIndex = getEntryIndex( NewValue );
-
 		std::string NewID = Value.substr( Position + 1, Value.length() - ( Position + 1 ) );
-		ID = BcStrAtoi( NewID.c_str() );
+		if( BcStrIsNumber( NewID.c_str() ) )
+		{
+			std::string NewValue = Value.substr( 0, Position );
+			EntryIndex = getEntryIndex( NewValue );
+			ID = BcStrAtoi( NewID.c_str() );
+		}
+		else
+		{
+			EntryIndex = getEntryIndex( Value );
+		}
 	}
 	else
 	{
 		EntryIndex = getEntryIndex( Value );
 	}
-
 
 	if( EntryIndex != BcErrorCode )
 	{
@@ -308,55 +313,31 @@ BcBool BcName::isNameValid( const std::string& Value )
 {
 	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 
-	// Find '_'
-	std::string::size_type Position = Value.find_last_of( '_' );
-		
-	// If we have a trailing '_', strip out and use as ID.
-	if( Position != std::string::npos )
+	if( !validate( Value.c_str() ) )
 	{
-		std::string NewValue = Value.substr( 0, Position );
+		return BcFalse;
+	}
 
-		// Allow more valid characters.
-		for( BcU32 Idx = 0; Idx < NewValue.length(); ++Idx )
-		{
-			if( ( NewValue[ Idx ] >= 'a' && NewValue[ Idx ] <= 'z' ) ||
-				( NewValue[ Idx ] >= 'A' && NewValue[ Idx ] <= 'Z' ) ||
-				( NewValue[ Idx ] >= '0' && NewValue[ Idx ] <= '9' ) )
-			{
-				continue;
-			}
-			else
-			{
-				return BcFalse;
-			}
-	
-		}
+	return BcTrue;
+}
 
-		// And only numbers are valid for the trailing.
-		std::string NewID = Value.substr( Position + 1, Value.length() - ( Position + 1 ) );
-		if( BcStrIsNumber( NewID.c_str() ) == BcFalse )
+//////////////////////////////////////////////////////////////////////////
+// validate.
+//static
+BcBool BcName::validate( const BcChar* pString )
+{
+	// Only 'a'-'z', 'A'-'Z', '0'-'9' & '_' are valid.
+	BcChar Char = 0;
+	while( ( Char = *pString++ ) != NULL )
+	{
+		if( !( ( Char >= 'a' && Char <= 'z' ) ||
+			   ( Char >= 'A' && Char <= 'Z' ) ||
+			   ( Char >= '0' && Char <= '9' ) ||
+		         Char == '_' ) )
 		{
 			return BcFalse;
-		}
-	}
-	else
-	{
-		// Only 'a'-'z', 'A'-'Z' & '0'-'9' are valid.
-		for( BcU32 Idx = 0; Idx < Value.length(); ++Idx )
-		{
-			if( ( Value[ Idx ] >= 'a' && Value[ Idx ] <= 'z' ) ||
-				( Value[ Idx ] >= 'A' && Value[ Idx ] <= 'Z' ) ||
-				( Value[ Idx ] >= '0' && Value[ Idx ] <= '9' ) )
-			{
-				continue;
-			}
-			else
-			{
-				return BcFalse;
-			}
 		}
 	}
 
 	return BcTrue;
 }
- 

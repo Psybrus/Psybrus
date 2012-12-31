@@ -41,7 +41,7 @@ enum CsPackageFlags
 struct CsPackageHeader
 {
 	static const BcU32 MAGIC = 0x89273491;							// Basic check to make sure it's a valid package file.
-	static const BcU32 VERSION = 7;									// If the package format changes, increment this value to force reimport of packages.
+	static const BcU32 VERSION = 12;								// If the package format changes, increment this value to force reimport of packages.
 
 	BcU32								Magic_;						// Magic number.
 	BcU32								Version_;					// Version.
@@ -63,16 +63,26 @@ struct CsPackageHeader
 // CsPackageCrossRefData
 struct CsPackageCrossRefData
 {
+	BcU32								TypeName_;
 	BcU32								PackageName_;
 	BcU32								ResourceName_;
-	BcU32								TypeName_;
+	BcBool								IsWeak_;					// TODO: Change to flags.
+
+	inline bool operator == ( const CsPackageCrossRefData& Other )
+	{
+		return TypeName_ == Other.TypeName_ &&
+		       PackageName_ == Other.PackageName_ &&
+		       ResourceName_ == Other.ResourceName_ &&
+			   IsWeak_ == Other.IsWeak_;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencyData
 struct CsPackageDependencyData
 {
-	BcU32								PackageName_;
+	BcU32								PackageName_;				// Name of package.
+	BcBool								IsWeak_;					// Loaded on request only.
 };
 
 //////////////////////////////////////////////////////////////////////////

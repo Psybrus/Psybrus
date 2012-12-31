@@ -140,8 +140,16 @@ public:
 	 * Create program.
 	 * @param pVertexShader Vertex shader.
 	 * @param pFragmentShader Fragment shader.
+	 * @deprecated.
 	 */
 	virtual RsProgram*		createProgram( RsShader* pVertexShader, RsShader* pFragmentShader ) = 0;
+
+	/**
+	 * Create program.
+	 * @param NoofShaders Number of shaders.
+	 * @param ppShaders Array of shaders to use for program.
+	 */
+	virtual RsProgram*		createProgram( BcU32 NoofShaders, RsShader** ppShaders ) = 0;
 
 	/**
 	 * Create primitive.

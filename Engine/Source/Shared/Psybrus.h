@@ -14,6 +14,10 @@
 #ifndef __PSYBRUS_H__
 #define __PSYBRUS_H__
 
+// Include this first.
+#include "Base/BcReflection.h"
+#include "Base/BcReflectionSerialise.h"
+
 #include "Base/BcAABB.h"
 #include "Base/BcAtomicMutex.h"
 #include "Base/BcBSPTree.h"
@@ -34,6 +38,7 @@
 #include "Base/BcName.h"
 #include "Base/BcPlane.h"
 #include "Base/BcPortability.h"
+#include "Base/BcRegex.h"
 #include "Base/BcQuat.h"
 #include "Base/BcRandom.h"
 #include "Base/BcScopedLock.h"
@@ -104,7 +109,7 @@ struct PsySetupParams
 {
 	PsySetupParams( const std::string& Name = "Psybrus Game", 
 		            BcU32 Flags = 0,
-					BcReal TickRate = 1.0f / 60.0f ):
+					BcF32 TickRate = 1.0f / 60.0f ):
 		Name_( Name ),
 		Flags_( Flags ),
 		TickRate_( TickRate )
@@ -113,7 +118,7 @@ struct PsySetupParams
 
 	BcU32			Flags_;
 	std::string		Name_;
-	BcReal			TickRate_;
+	BcF32			TickRate_;
 };
 
 /**

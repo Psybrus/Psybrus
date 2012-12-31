@@ -30,7 +30,7 @@ struct ScnCanvasComponentVertex
 {
 	BcF32 X_, Y_, Z_;
 	BcF32 U_, V_;
-	BcU32 RGBA_;
+	BcU32 ABGR_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
+	virtual BcAABB						getAABB() const;
 
 	/**
 	 * Get material component.
@@ -136,6 +136,15 @@ public:
 	void								drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
+	 * Draw line box centered.
+	 * @param CornerA Corner A
+	 * @param CornerB Corner B
+	 * @param Colour Colour
+	 * @param Layer Layer
+	 */
+	void								drawLineBoxCentered( const BcVec2d& Position, const BcVec2d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
 	 * Draw box.
 	 * @param CornerA Corner A
 	 * @param CornerB Corner B
@@ -192,7 +201,7 @@ public:
 	void								clear();
 	
 public:
-	virtual void						update( BcReal Tick );
+	virtual void						preUpdate( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
@@ -242,9 +251,6 @@ protected:
 	
 	TMatrixStack						MatrixStack_;
 	BcBool								IsIdentity_;
-
-	//
-	BcBool								IsReady_;
 };
 
 #endif

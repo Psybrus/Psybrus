@@ -17,7 +17,8 @@
 #include "Base/BcTypes.h"
 
 #include "System/Scene/ScnTexture.h"
-#include "System/Scene/ScnTypes.h"
+
+#include "System/Scene/ScnTextureAtlasFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef
@@ -42,13 +43,13 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
-	struct TAtlasHeader
+	struct ScnTextureAtlasHeader
 	{
 		BcU32 NoofTextures_;
 	};
 	
-	TAtlasHeader* pAtlasHeader_;	
-	ScnRect* pAtlasRects_;
+	ScnTextureAtlasHeader* pAtlasHeader_;	
+	ScnTextureAtlasRect* pAtlasRects_;
 };
 
 

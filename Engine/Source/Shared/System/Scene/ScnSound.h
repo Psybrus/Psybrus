@@ -18,6 +18,8 @@
 
 #include "System/Sound/SsSample.h"
 
+#include "System/Scene/ScnSoundFileData.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundRef
 typedef CsResourceRef< class ScnSound > ScnSoundRef;
@@ -36,11 +38,8 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcBool						isReady();
 	
 	SsSample*							getSample();
-	
-	void								setup();
 	
 protected:
 	void								fileReady();
@@ -48,16 +47,8 @@ protected:
 	
 protected:
 	SsSample*							pSample_;
-
-	struct THeader
-	{
-		BcU32							SampleRate_;
-		BcU32							Channels_;
-		BcBool							Looping_;
-		BcBool							IsOgg_;
-	};
 	
-	THeader*							pHeader_;
+	ScnSoundHeader*						pHeader_;
 	void*								pSampleData_;
 	BcU32								SampleDataSize_;
 
