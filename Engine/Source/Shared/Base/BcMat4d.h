@@ -86,7 +86,7 @@ public:
 	BcMat4d			operator * (const BcMat4d& rhs)  const;
 
 	void			identity();
-	BcMat4d			transposed();
+	BcMat4d			transposed() const;
 	void			transpose();
 
 	void			rotation( const BcVec3d& );
@@ -258,7 +258,7 @@ inline void BcMat4d::identity()
 	Row3_.set( 0.0f, 0.0f, 0.0f, 1.0f );
 }
 
-inline BcMat4d BcMat4d::transposed()
+inline BcMat4d BcMat4d::transposed() const
 {
 	return BcMat4d( col0(), col1(), col2(), col3() );
 }

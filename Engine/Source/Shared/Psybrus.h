@@ -64,6 +64,8 @@
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
 
+#include "System/Scene/Animation/ScnAnimation.h"
+#include "System/Scene/Animation/ScnAnimationComponent.h"
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Scene/ScnTexture.h"

@@ -13,8 +13,6 @@
 
 #include "Base/BcHash.h"
 
-#if HASH_TYPE == HASH_CRC32
-
 ////////////////////////////////////////////////////////////////////////////////
 // CRC32 Table
 static const BcU32 gCRC32Table_[256] =
@@ -74,33 +72,16 @@ static const BcU32 gCRC32Table_[256] =
 };
 
 //////////////////////////////////////////////////////////////////////////
-// generateHash - string
+// GenerateCRC32
 //static
-BcHash BcHash::generateHash( const BcChar* pString )
+BcU32 BcHash::GenerateCRC32( const void* pInData, BcU32 Size )
 {
+	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 CRC = 0;
 
 	CRC = ~CRC;
 
-	while( *pString )
-	{
-		BcChar CharVal = BcStrToLower( *pString++ );
-		CRC = gCRC32Table_[ ( CRC ^ CharVal ) & 0xff ] ^ ( CRC >> 8 );
-	}
-
-	return ~CRC;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// generateHash - data
-//static
-BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
-{
-	BcU32 CRC = 0;
-
-	CRC = ~CRC;
-
-	while( Bytes-- )
+	while( Size-- )
 	{
 		CRC = gCRC32Table_[ ( CRC ^ *pData++ ) & 0xff ] ^ ( CRC >> 8 );
 	}
@@ -108,32 +89,15 @@ BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
 	return ~CRC;
 }
 
-#elif HASH_TYPE == HASH_SDBM
-
 //////////////////////////////////////////////////////////////////////////
-// generateHash - string
+// GenerateSDBM
 //static
-BcHash BcHash::generateHash( const BcChar* pString )
+BcU32 BcHash::GenerateSDBM( const void* pInData, BcU32 Size )
 {
+	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 Hash = 0;
 
-	while( *pString )
-	{
-		BcChar CharVal = ( *pString++ );
-		Hash = (BcU32)CharVal + ( Hash << 6 ) + ( Hash << 16 ) - Hash;
-	}
-
-	return Hash;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// generateHash - data
-//static
-BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
-{
-	BcU32 Hash = 0;
-
-	while( Bytes-- )
+	while( Size-- )
 	{
 		Hash = (BcU32)*pData++ + ( Hash << 6 ) + ( Hash << 16 ) - Hash;
 	}
@@ -141,33 +105,15 @@ BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
 	return Hash;
 }
 
-
-#elif HASH_TYPE == HASH_DJB
-
 //////////////////////////////////////////////////////////////////////////
-// generateHash - string
+// GenerateDJB
 //static
-BcHash BcHash::generateHash( const BcChar* pString )
+BcU32 BcHash::GenerateDJB( const void* pInData, BcU32 Size )
 {
+	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 Hash = 5381;
 
-	while( *pString )
-	{
-		BcChar CharVal = ( *pString++ );
-		Hash = (BcU32)CharVal + ( ( Hash << 5 ) + Hash );
-	}
-
-	return Hash;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// generateHash - data
-//static
-BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
-{
-	BcU32 Hash = 5381;
-
-	while( Bytes-- )
+	while( Size-- )
 	{
 		Hash = (BcU32)*pData++ + ( ( Hash << 5 ) + Hash );
 	}
@@ -175,44 +121,16 @@ BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
 	return Hash;
 }
 
-#elif HASH_TYPE == HASH_AP
-
-//////////////////////////////////////////////////////////////////////////
-// generateHash - string
-//static
-BcHash BcHash::generateHash( const BcChar* pString )
-{
-	BcU32 Hash = 0;
-	BcU32 Idx = 0;
-
-	while( *pString )
-	{
-		BcChar CharVal = ( *pString++ );
-
-		if( (Idx & 1) == 0 )
-		{
-			Hash ^= ( Hash << 7 ) ^ (BcU32)CharVal ^ ( Hash >> 3 );
-		}
-		else
-		{
-			Hash ^= ( Hash << 11 ) ^ (BcU32)CharVal ^ ( Hash >> 5 );
-		}
-
-		++Idx;
-	}
-
-	return Hash;
-}
-
 //////////////////////////////////////////////////////////////////////////
 // generateHash - data
 //static
-BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
+BcU32 BcHash::GenerateAP( const void* pInData, BcU32 Size )
 {
+	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 Hash = 0;
 	BcU32 Idx = 0;
 
-	while( Bytes-- )
+	while( Size-- )
 	{
 		if( (Idx & 1) == 0 )
 		{
@@ -229,5 +147,34 @@ BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
 	return Hash;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// generateHash - string
+//static
+BcHash BcHash::generateHash( const BcChar* pString )
+{
+#if HASH_TYPE == HASH_CRC32
+	return GenerateCRC32( pString, BcStrLength( pString ) );
+#elif HASH_TYPE == HASH_SDBM	
+	return GenerateSDBM( pString, BcStrLength( pString ) );
+#elif HASH_TYPE == HASH_DJB	
+	return GenerateDJB( pString, BcStrLength( pString ) );
+#elif HASH_TYPE == HASH_AP	
+	return GenerateAP( pString, BcStrLength( pString ) );
 #endif
+}
 
+//////////////////////////////////////////////////////////////////////////
+// generateHash - data
+//static
+BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
+{
+#if HASH_TYPE == HASH_CRC32
+	return GenerateCRC32( pData, Bytes );
+#elif HASH_TYPE == HASH_SDBM	
+	return GenerateSDBM( pData, Bytes );
+#elif HASH_TYPE == HASH_DJB	
+	return GenerateDJB( pData, Bytes );
+#elif HASH_TYPE == HASH_AP	
+	return GenerateAP( pData, Bytes );
+#endif
+}

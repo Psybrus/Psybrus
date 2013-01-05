@@ -98,9 +98,10 @@ public:
 	 * @param Offset Offset of string in table.
 	 * @return String, or NULL pointer if invalid offset.
 	 */
-	const BcChar*					getString( BcU32 Offset );
-	BcU32							getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx );
-	BcU32							getNoofChunks( BcU32 ResourceIdx );	
+	const BcChar*					getString( BcU32 Offset ) const;
+	BcU32							getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx ) const;
+	BcU32							getNoofChunks( BcU32 ResourceIdx ) const;	
+	void							markupName( BcName& Name ) const;
 	BcBool							requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx, void* pDataLocation = NULL );
 	
 private:

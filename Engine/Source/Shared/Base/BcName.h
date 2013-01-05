@@ -54,6 +54,7 @@ public:
 
 public:
 	BcName();													// Constructs invalid name.
+	BcName( BcU32 ID );											// Stores as a packed ID. Should be marked up.
 	BcName( const std::string& String );						// Constructs name, autoassigns ID.
 	BcName( const std::string& String, BcU32 ID );				// Constructs name, manual ID assignment. BcErrorCode means no ID.
 	BcName( const BcChar* pString );							// Constructs name, autoassigns ID.
@@ -90,6 +91,11 @@ public:
 	bool operator != ( const BcName& Other ) const;
 	bool operator < ( const BcName& Other ) const;
 
+	/**
+	 * Strip invalid characters from a string.
+	 */
+	static std::string StripInvalidChars( const BcChar* pString );
+
 private:
 	static BcBool validate( const BcChar* pString );
 
@@ -122,6 +128,11 @@ private:
 	 * Validate string is valid as a name.
 	 */
 	static BcBool isNameValid( const std::string& Value );
+
+	/**
+	 * Validate a char.
+	 */
+	static BcBool isCharValid( const BcChar Value );
 };
 
 

@@ -42,7 +42,9 @@ public:
 	BcBool isValid() const;
 	BcBool isReady() const;
 	operator _Ty* ();
+	operator const _Ty* () const;
 	_Ty* operator -> ();
+	const _Ty* operator -> () const;
 	BcBool operator == ( const CsResourceRef& Other ) const;
 	BcBool operator != ( const CsResourceRef& Other ) const;
 	BcBool operator == ( _Ty* pObject ) const;

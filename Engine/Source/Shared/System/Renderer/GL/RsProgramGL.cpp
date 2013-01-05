@@ -65,10 +65,12 @@ void RsProgramGL::create()
 	bindAttribute( Handle, rsVC_TEXCOORD1,		"aTexCoord1" );
 	bindAttribute( Handle, rsVC_TEXCOORD2,		"aTexCoord2" );
 	bindAttribute( Handle, rsVC_TEXCOORD3,		"aTexCoord3" );
+	bindAttribute( Handle, rsVC_SKIN_INDICES,	"aSkinIndices" );
+	bindAttribute( Handle, rsVC_SKIN_WEIGHTS,	"aSkinWeights" );
 	bindAttribute( Handle, rsVC_COLOUR,			"aColour" );
 	
 	// Link program.
-	glLinkProgram( Handle );	
+	glLinkProgram( Handle );
 	RsGLCatchError;
 
 	GLint ProgramLinked = 0;
@@ -112,7 +114,15 @@ void RsProgramGL::create()
 		if( UniformNameLength > 0 && Type != GL_INVALID_VALUE )
 		{
 			GLint UniformLocation = glGetUniformLocation( Handle, UniformName );
-			addParameter( UniformName, UniformLocation, Type );
+
+			// Trim index off.
+			BcChar* pIndexStart = BcStrStr( UniformName, "[0]" );
+			if( pIndexStart != NULL )
+			{
+				*pIndexStart = '\0';
+			}
+
+			addParameter( UniformName, UniformLocation, Type, Size );
 		}
 	}
 	
@@ -158,7 +168,7 @@ BcU32 RsProgramGL::getParameterBufferSize() const
 ////////////////////////////////////////////////////////////////////////////////
 // findParameterOffset
 //virtual
-BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset ) const
+BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& Bytes ) const
 {
 	for( TParameterListConstIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 	{
@@ -166,6 +176,7 @@ BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, eRsShaderParameterTy
 		{
 			Type = (*It).Type_;
 			Offset = (*It).Offset_;
+			Bytes = (*It).TypeBytes_;
 			return BcTrue;
 		}
 	}
@@ -193,6 +204,7 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			TParameter& Parameter = (*It);
 			const GLint ParamHandle = Parameter.Handle_;
 			const BcU32 Offset = Parameter.Offset_;
+			const BcU32 Count = Parameter.Size_;
 #ifdef PSY_DEBUG
 			BcF32* pFloatParameterOffset = &pFloatParameter[ Offset ];
 			BcS32* pIntParameterOffset = &pIntParameter[ Offset ];
@@ -201,25 +213,25 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			switch( Parameter.Type_ )
 			{
 				case rsSPT_FLOAT:
-					glUniform1fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
+					glUniform1fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_VEC2:
-					glUniform2fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
+					glUniform2fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_VEC3:
-					glUniform3fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
+					glUniform3fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_VEC4:
-					glUniform4fv( ParamHandle, 1, &pFloatParameter[ Offset ] );
+					glUniform4fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_MAT2:
-					glUniformMatrix2fv( ParamHandle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					glUniformMatrix2fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_MAT3:
-					glUniformMatrix3fv( ParamHandle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					glUniformMatrix3fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_FLOAT_MAT4:
-					glUniformMatrix4fv( ParamHandle, 1, GL_FALSE, &pFloatParameter[ Offset ] );
+					glUniformMatrix4fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
 				case rsSPT_INT:
 				case rsSPT_BOOL:
@@ -229,19 +241,19 @@ void RsProgramGL::bind( void* pParameterBuffer )
 				case rsSPT_SAMPLER_CUBE:
 				case rsSPT_SAMPLER_1D_SHADOW:
 				case rsSPT_SAMPLER_2D_SHADOW:
-					glUniform1iv( ParamHandle, 1, &pIntParameter[ Offset ] );
+					glUniform1iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
 				case rsSPT_INT_VEC2:
 				case rsSPT_BOOL_VEC2:
-					glUniform2iv( ParamHandle, 1, &pIntParameter[ Offset ] );
+					glUniform2iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
 				case rsSPT_INT_VEC3:
 				case rsSPT_BOOL_VEC3:
-					glUniform3iv( ParamHandle, 1, &pIntParameter[ Offset ] );
+					glUniform3iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
 				case rsSPT_INT_VEC4:
 				case rsSPT_BOOL_VEC4:
-					glUniform4iv( ParamHandle, 1, &pIntParameter[ Offset ] );
+					glUniform4iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
 					break;
 			}
@@ -270,7 +282,7 @@ void RsProgramGL::bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel,
 
 ////////////////////////////////////////////////////////////////////////////////
 // addParameter
-void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
+void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size )
 {
 	// Calculate number of bytes it needs and size.
 	eRsShaderParameterType InternalType;
@@ -395,6 +407,8 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
 			pName,
 			Handle,
 			ParameterBufferSize_ >> 2,
+			Size,
+			Bytes,
 			InternalType
 		};
 		
@@ -402,7 +416,7 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type )
 		ParameterList_.push_back( Parameter );
 	
 		// Increate parameter buffer size.
-		ParameterBufferSize_ += Bytes;
+		ParameterBufferSize_ += Bytes * Size;
 		
 		// Log.
 		//BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );

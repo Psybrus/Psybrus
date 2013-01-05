@@ -71,7 +71,6 @@ void DsCore::close()
 // cmdContent
 void DsCore::cmdContent( std::string& Output )
 {
-	BcChar Buffer[ 1024 ];
 	Output += "<ul>";
 
 	for( BcU32 Idx = 0; Idx < CsCore::pImpl()->getNoofResources(); ++Idx )
