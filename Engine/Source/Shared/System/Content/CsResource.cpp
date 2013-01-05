@@ -249,9 +249,16 @@ void CsResource::serialiseProperties()
 
 //////////////////////////////////////////////////////////////////////////
 // getString
-const BcChar* CsResource::getString( BcU32 Offset )
+const BcChar* CsResource::getString( BcU32 Offset ) const
 {
 	return pPackage_->getString( Offset );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// markupName
+void CsResource::markupName( BcName& Name ) const
+{
+	pPackage_->markupName( Name );
 }
 
 //////////////////////////////////////////////////////////////////////////

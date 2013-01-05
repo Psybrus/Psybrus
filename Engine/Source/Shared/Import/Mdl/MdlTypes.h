@@ -164,9 +164,7 @@ struct MdlVertex
 
 struct MdlAnimKey
 {
-	BcQuat	R_;
-	BcVec3d S_;
-	BcVec3d T_;
+	BcMat4d Matrix_;
 };
 
 struct MdlAnimNode

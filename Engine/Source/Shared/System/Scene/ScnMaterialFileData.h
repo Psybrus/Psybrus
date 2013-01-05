@@ -28,7 +28,7 @@ struct ScnMaterialHeader
 // ScnMaterialTextureHeader
 struct ScnMaterialTextureHeader
 {
-	BcU32							SamplerName_;
+	BcName							SamplerName_;
 	BcU32							TextureRef_;
 };
 

@@ -449,7 +449,7 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 	Super::initialise();
 
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_2D ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_STATIC_2D ) )
 	{	
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )

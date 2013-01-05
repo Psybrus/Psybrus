@@ -88,7 +88,10 @@ public:
 
 	virtual BcAABB						getAABB() const;
 
-	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+	BcU32								findNodeIndexByName( const BcName& Name ) const;
+	void								setNode( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+	const BcMat4d&						getNode( BcU32 NodeIdx ) const;
+	BcU32								getNoofNodes() const;
 
 	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );

@@ -39,6 +39,7 @@ struct ScnModelNodeTransformData
 struct ScnModelNodePropertyData
 {
 	BcU32							ParentIndex_;
+	BcName							Name_;
 };
 	
 //////////////////////////////////////////////////////////////////////////
@@ -48,12 +49,14 @@ struct ScnModelPrimitiveData
 	BcU32							NodeIndex_;
 	eRsPrimitiveType				Type_;
 	BcU32							VertexFormat_;
+	BcU32							ShaderPermutation_;
 	BcU32							NoofVertices_;
 	BcU32							NoofIndices_;
 	BcU32							MaterialRef_;
 	BcU32							Padding0_;
 	BcU32							Padding1_;
 	BcAABB							AABB_;
+	BcU32							BonePalette_[ 24 ];
 };
 
 //////////////////////////////////////////////////////////////////////////

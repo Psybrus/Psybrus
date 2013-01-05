@@ -49,7 +49,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	{
 		const Json::Value& Texture = ImportTextures[ TextureMembers[ Idx ] ];
 
-		TextureHeader.SamplerName_ = Importer.addString( TextureMembers[ Idx ].c_str() );
+		TextureHeader.SamplerName_ = Importer.addString( BcName::StripInvalidChars( TextureMembers[ Idx ].c_str() ).c_str() );
 		TextureHeader.TextureRef_ = Texture.asUInt(); // TODO: Go via addImport. This can then verify for us.
 		HeaderStream << TextureHeader;
 	}
@@ -192,7 +192,7 @@ void ScnMaterial::create()
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 	{
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-		TextureMap_[ getString( pTextureHeader->SamplerName_ ) ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
+		TextureMap_[ pTextureHeader->SamplerName_ ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
 	}
 	
 	// Mark as ready.
@@ -211,7 +211,7 @@ void ScnMaterial::destroy()
 // getTexture
 ScnTextureRef ScnMaterial::getTexture( BcName Name )
 {
-	return TextureMap_[ *Name ];
+	return TextureMap_[ Name ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -236,6 +236,15 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( ChunkID == BcHash( "header" ) )
 	{
 		pHeader_ = (ScnMaterialHeader*)pData;
+		ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
+
+		// Markup names now.
+		// TODO: Automate this process with reflection!
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
+		{
+			ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+			markupName( pTextureHeader->SamplerName_ );
+		}
 
 		requestChunk( ++ChunkIdx );
 	}
@@ -293,7 +302,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	ScnTextureMap& TextureMap( Parent->TextureMap_ );
 	for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
 	{
-		const std::string& SamplerName = (*Iter).first;
+		const BcName& SamplerName = (*Iter).first;
 		ScnTextureRef Texture = (*Iter).second;
 		
 		// Find sampler in program.
@@ -316,6 +325,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	InverseViewTransformParameter_ = findParameter( "uInverseViewTransform" );
 	WorldTransformParameter_ = findParameter( "uWorldTransform" );
 	EyePositionParameter_ = findParameter( "uEyePosition" );
+	BoneTransformParameter_ = findParameter( "uBoneTransform" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -328,11 +338,11 @@ void ScnMaterialComponent::initialise( const Json::Value& Object )
 
 	if( BcStrCompare( pPermutation, "2d" ) )
 	{
-		PermutationFlags = scnSPF_2D;
+		PermutationFlags = scnSPF_STATIC_2D;
 	}
 	else if( BcStrCompare( pPermutation, "3d" ) )
 	{
-		PermutationFlags = scnSPF_3D;
+		PermutationFlags = scnSPF_STATIC_3D;
 	}
 
 	initialise( MaterialRef, PermutationFlags );
@@ -359,7 +369,8 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 	//       save memory and move look ups to it's own creation.
 	BcU32 Offset = BcErrorCode;
 	eRsShaderParameterType Type;
-	if( pProgram_->findParameterOffset( (*ParameterName).c_str(), Type, Offset ) )
+	BcU32 TypeBytes = 0;
+	if( pProgram_->findParameterOffset( (*ParameterName).c_str(), Type, Offset, TypeBytes ) )
 	{
 		for( BcU32 Idx = 0; Idx < ParameterBindingList_.size(); ++Idx )
 		{
@@ -374,7 +385,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 		// If it doesn't exist, add it.
 		TParameterBinding Binding = 
 		{
-			Type, Offset
+			Type, Offset, TypeBytes
 		};
 		
 		ParameterBindingList_.push_back( Binding );
@@ -388,7 +399,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -402,7 +413,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value )
 			Binding.Type_ == rsSPT_SAMPLER_2D_SHADOW )	   
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
+			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer = Value;
 		}
 		else
@@ -414,7 +425,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -422,7 +433,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 		if( Binding.Type_ == rsSPT_BOOL )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_;			
+			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer = (BcU32)Value;
 		}
 		else
@@ -435,7 +446,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -443,7 +454,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value )
 		if( Binding.Type_ == rsSPT_FLOAT )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
+			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer = (BcF32)Value;
 		}
 		else
@@ -455,7 +466,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -463,7 +474,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value )
 		if( Binding.Type_ == rsSPT_FLOAT_VEC2 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
+			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer = (BcF32)Value.y();
 		}
@@ -476,7 +487,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -484,7 +495,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value )
 		if( Binding.Type_ == rsSPT_FLOAT_VEC3 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
+			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer = (BcF32)Value.z();
@@ -498,7 +509,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -506,7 +517,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value )
 		if( Binding.Type_ == rsSPT_FLOAT_VEC4 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
+			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer++ = (BcF32)Value.z();
@@ -521,7 +532,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -529,7 +540,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value )
 		if( Binding.Type_ == rsSPT_FLOAT_MAT3 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
+			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
 			*pParameterBuffer++ = (BcF32)Value[0][0];
 			*pParameterBuffer++ = (BcF32)Value[0][1];
 			*pParameterBuffer++ = (BcF32)Value[0][2];
@@ -549,7 +560,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -557,7 +568,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value )
 		if( Binding.Type_ == rsSPT_FLOAT_MAT4 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_;			
+			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );
 			*pParameterBuffer++ = (BcF32)Value[0][0];
 			*pParameterBuffer++ = (BcF32)Value[0][1];
 			*pParameterBuffer++ = (BcF32)Value[0][2];
@@ -638,6 +649,14 @@ void ScnMaterialComponent::setViewTransform( const BcMat4d& Transform )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setWorldTransform
+void ScnMaterialComponent::setWorldTransform( const BcMat4d& Transform )
+{
+	setParameter( WorldTransformParameter_, Transform );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // setEyePosition
 void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
 {
@@ -645,10 +664,10 @@ void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setWorldTransform
-void ScnMaterialComponent::setWorldTransform( const BcMat4d& Transform )
+// setBoneTransform
+void ScnMaterialComponent::setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform )
 {
-	setParameter( WorldTransformParameter_, Transform );
+	setParameter( BoneTransformParameter_, Transform, BoneIndex );
 }
 
 //////////////////////////////////////////////////////////////////////////
