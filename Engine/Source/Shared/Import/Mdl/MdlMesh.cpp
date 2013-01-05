@@ -276,8 +276,8 @@ void MdlMesh::buildNormals()
 		Vert.bNormal_ = BcTrue;
 		Vert.Normal_.normalise();
 
-		BcF32 Mag = Vert.Normal_.magnitude(); 
-		BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
+		//BcF32 Mag = Vert.Normal_.magnitude(); 
+		//BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
 	}
 }
 

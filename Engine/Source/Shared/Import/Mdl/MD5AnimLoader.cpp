@@ -333,6 +333,7 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			Key.S_.set( 1.0f, 1.0f, 1.0f );
 			Key.T_.set( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
 
+			Key.R_ = ~Key.R_;
 			Key.R_.calcFromXYZ();
 
 			Node.KeyList_.push_back( Key );

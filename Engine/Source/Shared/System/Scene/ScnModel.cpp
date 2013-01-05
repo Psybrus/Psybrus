@@ -127,59 +127,68 @@ void ScnModel::recursiveSerialiseNodes( class CsPackageImporter& Importer,
 		{
 			const MdlMesh* pSubMesh = &SubMeshes[ SubMeshIdx ];
 
-			// NOTE: This next section needs to be picky to be optimal. Optimise later :)
-			ScnModelPrimitiveData PrimitiveData = 
+			if( pSubMesh->nVertices() > 0 )
 			{
-				ParentIndex,
-				rsPT_TRIANGLELIST,	
-				rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8,
-				pSubMesh->nVertices(),
-				pSubMesh->nIndices(),
-				BcErrorCode,
-				0, // padding0
-				0, // padding1
-				BcAABB()
-			};
+				// NOTE: This next section needs to be picky to be optimal. Optimise later :)
+				ScnModelPrimitiveData PrimitiveData = 
+				{
+					ParentIndex,
+					rsPT_TRIANGLELIST,	
+					rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8,
+					pSubMesh->nVertices(),
+					pSubMesh->nIndices(),
+					BcErrorCode,
+					0, // padding0
+					0, // padding1
+					BcAABB()
+				};
 						
-			// Export vertices.
-			MdlVertex Vertex;
-			for( BcU32 VertexIdx = 0; VertexIdx < pSubMesh->nVertices(); ++VertexIdx )
-			{
-				Vertex = pSubMesh->vertex( VertexIdx );
-				VertexStream << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
-				VertexStream << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
-				VertexStream << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
-				VertexStream << Vertex.UV_.x() << Vertex.UV_.y();
-				VertexStream << RsColour( Vertex.Colour_ ).asABGR();
+				// Export vertices.
+				MdlVertex Vertex;
+				for( BcU32 VertexIdx = 0; VertexIdx < pSubMesh->nVertices(); ++VertexIdx )
+				{
+					Vertex = pSubMesh->vertex( VertexIdx );
+					VertexStream << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
+					VertexStream << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
+					VertexStream << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
+					VertexStream << Vertex.UV_.x() << Vertex.UV_.y();
+					VertexStream << RsColour( Vertex.Colour_ ).asABGR();
 
-				// Expand AABB.
-				PrimitiveData.AABB_.expandBy( Vertex.Position_ );
-			}
+					// Expand AABB.
+					PrimitiveData.AABB_.expandBy( Vertex.Position_ );
+				}
 
-			// Grab material name.
-			MdlMaterial Material = pSubMesh->material( 0 );
+				// Grab material name.
+				MdlMaterial Material = pSubMesh->material( 0 );
 			
-			// Always setup default material.
-			if( Material.Name_.length() == 0 )
-			{
-				Material.Name_ = "$(ScnMaterial:default.default)";
-			}
+				// Always setup default material.
+				if( Material.Name_.length() == 0 )
+				{
+					Material.Name_ = "$(ScnMaterial:default.default)";
+				}
+				else
+				{
+					// Add the cross package reference.
+					Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
+				}
 
-			// Import material.
-			// TODO: Pass through parameters from the model into import?
-			PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str() );
-			PrimitiveStream << PrimitiveData;
+				// Import material.
+				// TODO: Pass through parameters from the model into import?
+				PrimitiveData.MaterialRef_ = Importer.addPackageCrossRef( Material.Name_.c_str() );
+				PrimitiveStream << PrimitiveData;
 					
-			// Export indices.
-			MdlIndex Index;
-			for( BcU32 IndexIdx = 0; IndexIdx < pSubMesh->nIndices(); ++IndexIdx )
-			{
-				Index = pSubMesh->index( IndexIdx );
-				IndexStream << BcU16( IndexIdx );
-			}
+				// Export indices.
+				MdlIndex Index;
+				for( BcU32 IndexIdx = 0; IndexIdx < pSubMesh->nIndices(); ++IndexIdx )
+				{
+					Index = pSubMesh->index( IndexIdx );
+					BcAssert( Index.iVertex_ < 0x10000 );
+					IndexStream << BcU16( Index.iVertex_ );
+				}
 			
-			// Update primitive index.
-			++PrimitiveIndex;
+				// Update primitive index.
+				++PrimitiveIndex;
+			}
 		}
 	}
 		
@@ -278,8 +287,8 @@ void ScnModel::create()
 		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
 		
 		// Advance vertex and index buffers.
-		pVertexBufferData_ += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
-		pIndexBufferData_ += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
+		pVertexBufferData += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
+		pIndexBufferData += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
 	}
 
 	// Mark as ready.
@@ -519,12 +528,8 @@ void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
-		BcAABB NodeAABB;
 		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
 		ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
-		ScnModelPrimitiveRuntime* pNodePrimitiveRuntime = &Parent_->PrimitiveRuntimes_[ NodeIdx ];
-		ScnModelPrimitiveData* pNodePrimitiveData = &Parent_->pPrimitiveData_[ pNodePrimitiveRuntime->PrimitiveDataIndex_ ];
-		NodeAABB = pNodePrimitiveData->AABB_;
 
 		// Check parent index and process.
 		if( pNodePropertyData->ParentIndex_ != BcErrorCode )
@@ -538,7 +543,18 @@ void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
 			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * RootMatrix;
 		}
 
-		FullAABB.expandBy( NodeAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
+	}
+
+	// Calculate bounds.
+	BcU32 NoofPrimitives = Parent_->pHeader_->NoofPrimitives_;
+	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
+	{
+		ScnModelPrimitiveRuntime* pNodePrimitiveRuntime = &Parent_->PrimitiveRuntimes_[ PrimitiveIdx ];
+		ScnModelPrimitiveData* pNodePrimitiveData = &Parent_->pPrimitiveData_[ pNodePrimitiveRuntime->PrimitiveDataIndex_ ];
+		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
+		
+		BcAABB PrimitiveAABB = pNodePrimitiveData->AABB_;
+		FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
 	}
 
 	AABB_ = FullAABB;

@@ -105,22 +105,6 @@ void ScnViewComponent::initialise()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnViewComponent::initialise( BcF32 X, BcF32 Y, BcF32 Width, BcF32 Height, BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV )
-{
-	initialise();
-
-	X_ = X;
-	Y_ = Y;
-	Width_ = Width;
-	Height_ = Height;
-	Near_ = Near;
-	Far_ = Far;
-	HorizontalFOV_ = HorizontalFOV;
-	VerticalFOV_ = VerticalFOV;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
 //virtual
 void ScnViewComponent::initialise( const Json::Value& Object )
 {
