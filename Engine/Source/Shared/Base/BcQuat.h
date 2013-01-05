@@ -63,7 +63,7 @@ public:
 // ctor
 inline BcQuat::BcQuat()
 {
-
+	makeIdentity();
 }
 
 inline BcQuat::BcQuat(BcF32 lX, BcF32 lY, BcF32 lZ, BcF32 lW):
