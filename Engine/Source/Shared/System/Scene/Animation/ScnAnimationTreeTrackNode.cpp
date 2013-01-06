@@ -87,10 +87,6 @@ void ScnAnimationTreeTrackNode::preUpdate( BcF32 Tick )
 {
 	// Do time line updating, and kick off job to unpack the animation.
 	decodeFrames();
-	interpolatePose();
-
-	// Advance time.
-	Time_ += Tick;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -98,7 +94,11 @@ void ScnAnimationTreeTrackNode::preUpdate( BcF32 Tick )
 //virtual
 void ScnAnimationTreeTrackNode::update( BcF32 Tick )
 {
+	// Interpolate poses.
+	interpolatePose();
 
+	// Advance time.
+	Time_ += Tick;
 }
 
 //////////////////////////////////////////////////////////////////////////
