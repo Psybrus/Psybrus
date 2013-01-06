@@ -113,6 +113,7 @@ void ScnAnimationTreeTrackNode::postUpdate( BcF32 Tick )
 // queueAnimation
 void ScnAnimationTreeTrackNode::queueAnimation( ScnAnimation* pAnimation )
 {
+	BcAssert( pAnimation != NULL );
 	AnimationQueue_.push_back( pAnimation );
 }
 

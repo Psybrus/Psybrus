@@ -69,6 +69,8 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 	return BcFalse;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// recursiveSerialiseNodes
 void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 									          BcU32 ParentIndex,
 									          BcU32& NodeIndex,
@@ -102,115 +104,18 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 		BcBool IsSkin = pNode->pSkinObject() != NULL;
 		
 		// Split up mesh by material.
-		const std::vector< MdlMesh >& SubMeshes = pMesh->splitByMaterial();
+		std::vector< MdlMesh >& SubMeshes = pMesh->splitByMaterial();
 		
 		// Export a primitive for each submesh.
 		for( BcU32 SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
 		{
-			const MdlMesh* pSubMesh = &SubMeshes[ SubMeshIdx ];
-
-			if( pSubMesh->nVertices() > 0 )
+			if( IsSkin )
 			{
-				BcU32 VertexFormat = 0;
-				BcU32 ShaderPermutation = 0;
-				if( IsSkin )
-				{
-					VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_SKIN_INDICES | rsVDF_SKIN_WEIGHTS | rsVDF_COLOUR_ABGR8;
-					ShaderPermutation = scnSPF_SKINNED_3D;
-				}
-				else
-				{
-					VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-					ShaderPermutation = scnSPF_STATIC_3D;
-				}
-
-				// NOTE: This next section needs to be picky to be optimal. Optimise later :)
-				ScnModelPrimitiveData PrimitiveData = 
-				{
-					ParentIndex,
-					rsPT_TRIANGLELIST,	
-					VertexFormat,
-					ShaderPermutation,
-					pSubMesh->nVertices(),
-					pSubMesh->nIndices(),
-					BcErrorCode,
-					0, // padding0
-					0, // padding1
-					BcAABB()
-				};
-
-				// Export vertices.
-				MdlVertex Vertex;
-				BcU32 MaxBone = 0;
-				for( BcU32 VertexIdx = 0; VertexIdx < pSubMesh->nVertices(); ++VertexIdx )
-				{
-					Vertex = pSubMesh->vertex( VertexIdx );
-					VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
-					VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
-					VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
-					VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
-
-					if( IsSkin )
-					{
-						VertexDataStream_ << BcF32( Vertex.iJoints_[ 0 ] ) << BcF32( Vertex.iJoints_[ 1 ] ) << BcF32( Vertex.iJoints_[ 2 ] ) << BcF32( Vertex.iJoints_[ 3 ] );
-						VertexDataStream_ << Vertex.Weights_[ 0 ] << Vertex.Weights_[ 1 ] << Vertex.Weights_[ 2 ] << Vertex.Weights_[ 3 ];
-
-						MaxBone = BcMax( MaxBone, Vertex.iJoints_[ 0 ] );
-						MaxBone = BcMax( MaxBone, Vertex.iJoints_[ 1 ] );
-						MaxBone = BcMax( MaxBone, Vertex.iJoints_[ 2 ] );
-						MaxBone = BcMax( MaxBone, Vertex.iJoints_[ 3 ] );
-					}
-					
-					VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
-
-					// Expand AABB.
-					PrimitiveData.AABB_.expandBy( Vertex.Position_ );
-				}
-
-				// Setup bone palette with an offset.
-				// TODO: Need to break up into multiple meshes for this really!!
-				for( BcU32 BoneIdx = 0; BoneIdx < 24; ++BoneIdx )
-				{
-					if( BoneIdx <= MaxBone )
-					{
-						PrimitiveData.BonePalette_[ BoneIdx ] = BoneIdx + NodeIndex;
-					}
-					else
-					{
-						PrimitiveData.BonePalette_[ BoneIdx ] = BcErrorCode;
-					}
-				}
-
-				// Grab material name.
-				MdlMaterial Material = pSubMesh->material( 0 );
-			
-				// Always setup default material.
-				if( Material.Name_.length() == 0 )
-				{
-					Material.Name_ = "$(ScnMaterial:default.default)";
-				}
-				else
-				{
-					// Add the cross package reference.
-					Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
-				}
-
-				// Import material.
-				// TODO: Pass through parameters from the model into import?
-				PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
-				PrimitiveDataStream_ << PrimitiveData;
-					
-				// Export indices.
-				MdlIndex Index;
-				for( BcU32 IndexIdx = 0; IndexIdx < pSubMesh->nIndices(); ++IndexIdx )
-				{
-					Index = pSubMesh->index( IndexIdx );
-					BcAssert( Index.iVertex_ < 0x10000 );
-					IndexDataStream_ << BcU16( Index.iVertex_ );
-				}
-			
-				// Update primitive index.
-				++PrimitiveIndex;
+				serialiseSkin( &SubMeshes[ SubMeshIdx ], ParentIndex, NodeIndex, PrimitiveIndex );
+			}
+			else
+			{
+				serialiseMesh( &SubMeshes[ SubMeshIdx ], ParentIndex, NodeIndex, PrimitiveIndex );
 			}
 		}
 	}
@@ -226,6 +131,187 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 								 PrimitiveIndex );
 		
 		pChild = pChild->pNext();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseMesh
+void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
+                                    BcU32 ParentIndex,
+                                    BcU32& NodeIndex,
+									BcU32& PrimitiveIndex )
+{
+	if( pMesh->nVertices() > 0 )
+	{
+		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
+		BcU32 ShaderPermutation = scnSPF_STATIC_3D;
+
+		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
+		ScnModelPrimitiveData PrimitiveData = 
+		{
+			ParentIndex,
+			rsPT_TRIANGLELIST,	
+			VertexFormat,
+			ShaderPermutation,
+			pMesh->nVertices(),
+			pMesh->nIndices(),
+			BcErrorCode,
+			0, // padding0
+			0, // padding1
+			BcAABB()
+		};
+
+		// Export vertices.
+		MdlVertex Vertex;
+		BcU32 MaxBone = 0;
+		for( BcU32 VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )
+		{
+			Vertex = pMesh->vertex( VertexIdx );
+			VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
+			VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
+			VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
+			VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
+					
+			VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
+
+			// Expand AABB.
+			PrimitiveData.AABB_.expandBy( Vertex.Position_ );
+		}
+		
+		// Grab material name.
+		MdlMaterial Material = pMesh->material( 0 );
+			
+		// Always setup default material.
+		if( Material.Name_.length() == 0 )
+		{
+			Material.Name_ = "$(ScnMaterial:default.default)";
+		}
+		else
+		{
+			// Add the cross package reference.
+			Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
+		}
+
+		// Import material.
+		// TODO: Pass through parameters from the model into import?
+		PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
+		PrimitiveDataStream_ << PrimitiveData;
+					
+		// Export indices.
+		MdlIndex Index;
+		for( BcU32 IndexIdx = 0; IndexIdx < pMesh->nIndices(); ++IndexIdx )
+		{
+			Index = pMesh->index( IndexIdx );
+			BcAssert( Index.iVertex_ < 0x10000 );
+			IndexDataStream_ << BcU16( Index.iVertex_ );
+		}
+		
+		// Update primitive index.
+		++PrimitiveIndex;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseSkin
+void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
+                                    BcU32 ParentIndex,
+                                    BcU32& NodeIndex,
+									BcU32& PrimitiveIndex )
+{
+	BcU32 BonePaletteSize = 24;
+	if( pSkin->findBoneCount() > BonePaletteSize )
+	{
+		std::vector< MdlMesh >& SubMeshes = pSkin->splitIntoBonePalettes( BonePaletteSize );
+		
+		// Export a primitive for each submesh.
+		for( BcU32 SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
+		{
+			serialiseSkin( &SubMeshes[ SubMeshIdx ], ParentIndex, NodeIndex, PrimitiveIndex );
+		}
+	}
+	else if( pSkin->nVertices() > 0 )
+	{
+		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_SKIN_INDICES | rsVDF_SKIN_WEIGHTS | rsVDF_COLOUR_ABGR8;
+		BcU32 ShaderPermutation = scnSPF_SKINNED_3D;
+
+		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
+		ScnModelPrimitiveData PrimitiveData = 
+		{
+			ParentIndex,
+			rsPT_TRIANGLELIST,	
+			VertexFormat,
+			ShaderPermutation,
+			pSkin->nVertices(),
+			pSkin->nIndices(),
+			BcErrorCode,
+			0, // padding0
+			0, // padding1
+			BcAABB()
+		};
+
+		// Export vertices.
+		MdlVertex Vertex;
+		BcU32 MaxBone = 0;
+		for( BcU32 VertexIdx = 0; VertexIdx < pSkin->nVertices(); ++VertexIdx )
+		{
+			Vertex = pSkin->vertex( VertexIdx );
+			VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
+			VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
+			VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
+			VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
+
+			VertexDataStream_ << BcF32( Vertex.iJoints_[ 0 ] ) << BcF32( Vertex.iJoints_[ 1 ] ) << BcF32( Vertex.iJoints_[ 2 ] ) << BcF32( Vertex.iJoints_[ 3 ] );
+			VertexDataStream_ << Vertex.Weights_[ 0 ] << Vertex.Weights_[ 1 ] << Vertex.Weights_[ 2 ] << Vertex.Weights_[ 3 ];
+					
+			VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
+
+			// Expand AABB.
+			PrimitiveData.AABB_.expandBy( Vertex.Position_ );
+		}
+
+		// Setup bone palette with an offset.
+		// TODO: Need to break up into multiple meshes for this really!!
+		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
+		BcMemSet( PrimitiveData.BonePalette_, 0xff, sizeof( PrimitiveData.BonePalette_ ) );
+		BcAssert( BonePalette.BonePalette_.size() <= 24 );
+		for( BcU32 BoneIdx = 0; BoneIdx < BonePalette.BonePalette_.size(); ++BoneIdx )
+		{
+			if( BoneIdx < BonePalette.BonePalette_.size() )
+			{
+				PrimitiveData.BonePalette_[ BoneIdx ] = BonePalette.BonePalette_[ BoneIdx ] + NodeIndex;
+			}
+		}
+
+		// Grab material name.
+		MdlMaterial Material = pSkin->material( 0 );
+			
+		// Always setup default material.
+		if( Material.Name_.length() == 0 )
+		{
+			Material.Name_ = "$(ScnMaterial:default.default)";
+		}
+		else
+		{
+			// Add the cross package reference.
+			Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
+		}
+
+		// Import material.
+		// TODO: Pass through parameters from the model into import?
+		PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
+		PrimitiveDataStream_ << PrimitiveData;
+					
+		// Export indices.
+		MdlIndex Index;
+		for( BcU32 IndexIdx = 0; IndexIdx < pSkin->nIndices(); ++IndexIdx )
+		{
+			Index = pSkin->index( IndexIdx );
+			BcAssert( Index.iVertex_ < 0x10000 );
+			IndexDataStream_ << BcU16( Index.iVertex_ );
+		}
+		
+		// Update primitive index.
+		++PrimitiveIndex;
 	}
 }
 
