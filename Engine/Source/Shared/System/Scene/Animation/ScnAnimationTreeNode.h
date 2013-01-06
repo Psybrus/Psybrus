@@ -22,7 +22,10 @@
 class ScnAnimationTreeNode
 {
 public:
-	ScnAnimationTreeNode();
+	BCREFLECTION_DECLARE_BASE( ScnAnimationTreeNode );
+
+public:
+	ScnAnimationTreeNode( const BcName& Name );
 	virtual ~ScnAnimationTreeNode();
 	
 public: // Overrides to implement interface.
@@ -65,8 +68,9 @@ public: // Overrides to implement interface.
 	const ScnAnimationPose* getWorkingPose() const;
 
 protected:
-	ScnAnimationPose* pReferencePose_;
-	ScnAnimationPose* pWorkingPose_;
+	BcName					Name_;
+	ScnAnimationPose*		pReferencePose_;
+	ScnAnimationPose*		pWorkingPose_;
 };
 
 #endif

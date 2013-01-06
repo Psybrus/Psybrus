@@ -14,8 +14,13 @@
 #include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection.
+BCREFLECTION_DEFINE_DERIVED( ScnAnimationTreeTrackNode );
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationTreeTrackNode::ScnAnimationTreeTrackNode()
+ScnAnimationTreeTrackNode::ScnAnimationTreeTrackNode( const BcName& Name ):
+	ScnAnimationTreeNode( Name )
 {
 	pPoseA_ = NULL;
 	pPoseB_ = NULL;
