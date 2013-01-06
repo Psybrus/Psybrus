@@ -31,6 +31,7 @@ public:
 	DECLARE_RESOURCE( ScnComponent, ScnAnimationComponent );
 	
 	virtual void						initialise( const Json::Value& Object );
+	void								initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object );
 
 	virtual void						preUpdate( BcF32 Tick );
 	virtual void						update( BcF32 Tick );

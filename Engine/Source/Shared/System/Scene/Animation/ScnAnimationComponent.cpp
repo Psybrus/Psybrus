@@ -13,6 +13,8 @@
 
 #include "System/Scene/Animation/ScnAnimationComponent.h"
 
+#include "System/Scene/Animation/ScnAnimationTreeNode.h"
+#include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
 
 #include "System/Content/CsCore.h"
@@ -40,6 +42,17 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
 
+	// HACK: Setup a way to add child types in the defines.
+	static BcBool HasRegisteredReflection = BcFalse;
+	if( HasRegisteredReflection == BcFalse )
+	{
+		HasRegisteredReflection = BcTrue;
+		ScnAnimationTreeNode::StaticRegisterReflection();
+		ScnAnimationTreeBlendNode::StaticRegisterReflection();
+		ScnAnimationTreeTrackNode::StaticRegisterReflection();
+		ScnAnimationPose::StaticRegisterReflection();
+	}
+
 	//
 	TargetComponentName_ = Object[ "target" ].asCString();
 
@@ -47,7 +60,40 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 	pRootTreeNode_ = NULL;
 	pReferencePose_ = NULL;
 
-	pRootTreeNode_ = new ScnAnimationTreeTrackNode( BcName( "ScnAnimationTreeTrackNode_0" ) );
+	// Initialise tree nodes.
+	// TODO: Setup with reflection.
+	const Json::Value& TreeValue = Object[ "tree" ];
+	initialiseNode( NULL, 0, TreeValue );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialiseNode
+void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object )
+{
+	const Json::Value& TypeValue = Object[ "type" ];
+	const Json::Value& NameValue = Object[ "name" ];
+	const Json::Value& ChildrenValue = Object[ "children" ];
+	const BcReflectionClass* pClass = BcReflection::pImpl()->getClass( TypeValue.asCString() );
+	ScnAnimationTreeNode* pNode = pClass->construct< ScnAnimationTreeNode >();
+	pNode->setName( NameValue.asCString() );
+
+	if( pParentNode != NULL )
+	{
+		pParentNode->setChildNode( ChildIndex, pNode );
+	}
+	else
+	{
+		pRootTreeNode_ = pNode;
+	}
+
+	if( ChildrenValue.type() != Json::nullValue )
+	{
+		for( BcU32 Idx = 0; Idx < ChildrenValue.size(); ++Idx )
+		{
+			const Json::Value& ChildValue = ChildrenValue[ Idx ];
+			initialiseNode( pNode, Idx, ChildValue );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,12 +143,6 @@ void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 	if( Model_.isValid() )
 	{
 		buildReferencePose();
-
-		// Dirty hack.
-		ScnAnimationRef Animation;
-		CsCore::pImpl()->requestResource( "models", "test", Animation );
-		static_cast< ScnAnimationTreeTrackNode* >( pRootTreeNode_ )->queueAnimation( Animation );
-
 	}
 
 	Super::onAttach( Parent );

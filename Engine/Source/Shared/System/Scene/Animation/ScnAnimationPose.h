@@ -24,6 +24,7 @@ public:
 	BCREFLECTION_DECLARE_BASE( ScnAnimationPose );
 
 public:
+	ScnAnimationPose();
 	ScnAnimationPose( BcU32 NoofTransforms );
 	ScnAnimationPose( const ScnAnimationPose& Pose );
 	virtual ~ScnAnimationPose();

@@ -50,7 +50,10 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	BcU32 iFrame = 0;
 	BcU32 iAnimComp = 0;
 
-	File.open( FileName );
+	if( File.open( FileName ) == BcFalse )
+	{
+		return NULL;
+	}
 
 	BcChar Buffer[1024];
 	BcChar Command[1024];

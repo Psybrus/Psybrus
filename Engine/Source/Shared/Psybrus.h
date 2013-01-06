@@ -66,6 +66,10 @@
 
 #include "System/Scene/Animation/ScnAnimation.h"
 #include "System/Scene/Animation/ScnAnimationComponent.h"
+#include "System/Scene/Animation/ScnAnimationTreeNode.h"
+#include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
+#include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
+
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Scene/ScnTexture.h"

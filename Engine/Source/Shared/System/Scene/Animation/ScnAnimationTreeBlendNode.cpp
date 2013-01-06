@@ -16,11 +16,11 @@
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
 BCREFLECTION_DEFINE_DERIVED( ScnAnimationTreeBlendNode );
+BCREFLECTION_EMPTY_REGISTER( ScnAnimationTreeBlendNode );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationTreeBlendNode::ScnAnimationTreeBlendNode( const BcName& Name ):
-	ScnAnimationTreeNode( Name )
+ScnAnimationTreeBlendNode::ScnAnimationTreeBlendNode()
 {
 	pNodes_[ 0 ] = NULL;
 	pNodes_[ 1 ] = NULL;
@@ -91,8 +91,11 @@ void ScnAnimationTreeBlendNode::update( BcF32 Tick )
 	pNodes_[ 0 ]->update( Tick );
 	pNodes_[ 1 ]->update( Tick );
 
-	// Blend nodes into out working pose.
-	pWorkingPose_->blend( pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+	// Only blend if we need to do any work.
+	if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
+	{
+		pWorkingPose_->blend( pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,6 +105,28 @@ void ScnAnimationTreeBlendNode::postUpdate( BcF32 Tick )
 {
 	pNodes_[ 0 ]->postUpdate( Tick );
 	pNodes_[ 1 ]->postUpdate( Tick );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getWorkingPose
+//virtual
+const ScnAnimationPose& ScnAnimationTreeBlendNode::getWorkingPose() const
+{
+	BcAssert( pWorkingPose_ != NULL );
+
+	// Return our child working nodes if we don't need to do any blending work.
+	if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
+	{
+		return *pWorkingPose_;
+	}
+	else if( BlendValue_ <= 0.0f )
+	{
+		return pNodes_[ 0 ]->getWorkingPose();
+	}
+	else
+	{
+		return pNodes_[ 1 ]->getWorkingPose();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
