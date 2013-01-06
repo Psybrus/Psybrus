@@ -14,8 +14,13 @@
 #include "System/Scene/Animation/ScnAnimationTreeNode.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection
+BCREFLECTION_DEFINE_BASE( ScnAnimationTreeNode );
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationTreeNode::ScnAnimationTreeNode()
+ScnAnimationTreeNode::ScnAnimationTreeNode( const BcName& Name ):
+	Name_( Name )
 {
 	pWorkingPose_ = NULL;
 	pReferencePose_ = NULL;

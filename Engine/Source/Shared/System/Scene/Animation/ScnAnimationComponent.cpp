@@ -25,7 +25,7 @@ DEFINE_RESOURCE( ScnAnimationComponent );
 
 BCREFLECTION_EMPTY_REGISTER( ScnAnimationComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnCanvasComponent )
+BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnAnimationComponent )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
@@ -47,7 +47,7 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 	pRootTreeNode_ = NULL;
 	pReferencePose_ = NULL;
 
-	pRootTreeNode_ = new ScnAnimationTreeTrackNode();
+	pRootTreeNode_ = new ScnAnimationTreeTrackNode( BcName( "ScnAnimationTreeTrackNode_0" ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

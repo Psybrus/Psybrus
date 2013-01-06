@@ -18,6 +18,7 @@
 #include "Base/BcVectors.h"
 #include "Base/BcQuat.h"
 #include "Base/BcMat4d.h"
+#include "Base/BcReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationTransform
