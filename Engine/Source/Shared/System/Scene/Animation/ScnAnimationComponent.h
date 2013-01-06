@@ -39,9 +39,20 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
+	/**
+	 * Find a node by type.
+	 */
+	template< class _Ty >
+	_Ty*								findNodeByType( const BcName& Name )
+	{
+		return static_cast< _Ty* >( findNodeRecursively( pRootTreeNode_, Name, _Ty::StaticGetType() ) );
+	}
+
 private:
 	void								buildReferencePose();
 	void								applyPose();
+
+	ScnAnimationTreeNode*				findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const BcName& Type );
 
 private:
 	BcName								TargetComponentName_;
