@@ -28,8 +28,15 @@ public:
 	ScnAnimationTreeNode( const BcName& Name );
 	virtual ~ScnAnimationTreeNode();
 	
-public: // Overrides to implement interface.
+public:
+	/**
+	 * Get name of the node.
+	 */
+	const BcName& getName() const;
 
+	/**
+	 * Initialise.
+	 */
 	virtual void initialise( ScnAnimationPose* pReferencePose );
 
 	/**

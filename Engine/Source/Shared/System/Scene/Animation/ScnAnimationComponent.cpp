@@ -151,3 +151,26 @@ void ScnAnimationComponent::applyPose()
 		Model_->setNode( Idx, Matrix );
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// findNodeRecursively
+ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const BcName& Type )
+{
+	if( pStartNode->getName() == Name &&
+		pStartNode->getTypeName() == Type )
+	{
+		return pStartNode;
+	}
+
+	BcU32 NoofNodes = pStartNode->getNoofChildNodes();
+	for( BcU32 Idx = 0; Idx < NoofNodes; ++Idx )
+	{
+		ScnAnimationTreeNode* pNode = pStartNode->getChildNode( Idx );
+		if( ( pNode = findNodeRecursively( pNode, Name, Type ) ) != NULL )
+		{
+			return pNode;
+		}
+	}
+
+	return NULL;
+}

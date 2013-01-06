@@ -38,6 +38,13 @@ ScnAnimationTreeNode::~ScnAnimationTreeNode()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getName
+const BcName& ScnAnimationTreeNode::getName() const
+{
+	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnAnimationTreeNode::initialise( ScnAnimationPose* pReferencePose )
