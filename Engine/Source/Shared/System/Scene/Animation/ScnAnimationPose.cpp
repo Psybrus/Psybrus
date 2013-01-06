@@ -18,6 +18,18 @@
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
 BCREFLECTION_DEFINE_BASE( ScnAnimationPose );
+BCREFLECTION_BASE_BEGIN( ScnAnimationPose )
+	BCREFLECTION_MEMBER( BcU32,								NoofTransforms_,				bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( ScnAnimationTransform,				pTransforms_,					bcRFF_POINTER ),
+BCREFLECTION_BASE_END();
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnAnimationPose::ScnAnimationPose()
+{
+	NoofTransforms_ = 0;
+	pTransforms_ = NULL;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

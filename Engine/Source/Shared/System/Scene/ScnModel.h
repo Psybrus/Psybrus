@@ -40,16 +40,6 @@ public:
 	
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-	void								recursiveSerialiseNodes( class CsPackageImporter& Importer,
-										                         class BcStream& TransformStream,
-																 class BcStream& PropertyStream,
-																 class BcStream& VertexStream,
-																 class BcStream& IndexStream,
-																 class BcStream& PrimitiveStream,
-																 class MdlNode* pNode,
-																 BcU32 ParentIndex,
-																 BcU32& NodeIndex,
-																 BcU32& PrimitiveIndex );
 #endif
 	
 	virtual void						initialise();

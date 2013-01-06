@@ -55,8 +55,8 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 		return NULL;
 	}
 
-	BcChar Buffer[1024];
-	BcChar Command[1024];
+	BcChar Buffer[4096];
+	BcChar Command[4096];
 	BcChar* pBuffer;
 
 	// Begin the parsage.
@@ -83,7 +83,7 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 				{
 					*pBuffer = TheChar;
 					++pBuffer;
-					Ret	= ( pBuffer < ( Buffer + 1024 ) );
+					Ret	= ( pBuffer < ( Buffer + 4096 ) );
 					BcAssert( Ret );
 					if( !Ret )
 					{
@@ -359,7 +359,7 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 		Vert.nWeights_ = 0;
 		for ( BcU32 j = 0; j < pMD5Vert->nWeights_; ++j )
 		{
-			if ( j > 4 ) 
+			if ( j > 3 ) 
 			{
 				break;
 			}

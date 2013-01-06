@@ -16,11 +16,11 @@
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
 BCREFLECTION_DEFINE_DERIVED( ScnAnimationTreeTrackNode );
+BCREFLECTION_EMPTY_REGISTER( ScnAnimationTreeTrackNode );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationTreeTrackNode::ScnAnimationTreeTrackNode( const BcName& Name ):
-	ScnAnimationTreeNode( Name )
+ScnAnimationTreeTrackNode::ScnAnimationTreeTrackNode()
 {
 	pPoseA_ = NULL;
 	pPoseB_ = NULL;
@@ -151,9 +151,14 @@ void ScnAnimationTreeTrackNode::decodeFrames()
 // interpolatePose
 void ScnAnimationTreeTrackNode::interpolatePose()
 {
-	const BcF32 TimeLength = pPoseFileDataB_->Time_ - pPoseFileDataA_->Time_;
-	const BcF32 TimeRelative = Time_ - pPoseFileDataA_->Time_;
-	const BcF32 LerpAmount = TimeRelative / TimeLength;
+	if( AnimationQueue_.size() > 0 )
+	{
+		BcAssert( pPoseFileDataA_ != NULL );
+		BcAssert( pPoseFileDataB_ != NULL );
+		const BcF32 TimeLength = pPoseFileDataB_->Time_ - pPoseFileDataA_->Time_;
+		const BcF32 TimeRelative = Time_ - pPoseFileDataA_->Time_;
+		const BcF32 LerpAmount = TimeRelative / TimeLength;
 	
-	pWorkingPose_->blend( *pPoseA_, *pPoseB_, LerpAmount );
+		pWorkingPose_->blend( *pPoseA_, *pPoseB_, LerpAmount );
+	}
 }

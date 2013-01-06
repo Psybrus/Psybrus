@@ -26,7 +26,7 @@ public:
 	BCREFLECTION_DECLARE_DERIVED( ScnAnimationTreeNode, ScnAnimationTreeTrackNode );
 
 public:
-	ScnAnimationTreeTrackNode( const BcName& Name );
+	ScnAnimationTreeTrackNode();
 	virtual ~ScnAnimationTreeTrackNode();
 
 	virtual void initialise( ScnAnimationPose* pReferencePose );

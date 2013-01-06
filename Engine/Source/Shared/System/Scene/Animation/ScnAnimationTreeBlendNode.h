@@ -26,7 +26,7 @@ public:
 	BCREFLECTION_DECLARE_DERIVED( ScnAnimationTreeNode, ScnAnimationTreeBlendNode );
 
 public:
-	ScnAnimationTreeBlendNode( const BcName& Name );
+	ScnAnimationTreeBlendNode();
 	virtual ~ScnAnimationTreeBlendNode();
 
 	virtual void initialise( ScnAnimationPose* pReferencePose );
@@ -36,6 +36,7 @@ public:
 	virtual void preUpdate( BcF32 Tick );
 	virtual void update( BcF32 Tick );
 	virtual void postUpdate( BcF32 Tick );
+	virtual const ScnAnimationPose& getWorkingPose() const;
 
 	void setBlendValue( BcF32 Value );
 	BcF32 getBlendValue() const;

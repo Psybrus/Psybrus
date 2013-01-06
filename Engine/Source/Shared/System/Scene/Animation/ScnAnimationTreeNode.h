@@ -25,10 +25,15 @@ public:
 	BCREFLECTION_DECLARE_BASE( ScnAnimationTreeNode );
 
 public:
-	ScnAnimationTreeNode( const BcName& Name );
+	ScnAnimationTreeNode();
 	virtual ~ScnAnimationTreeNode();
 	
 public:
+	/**
+	* Set name of the node.
+	*/
+	void setName( const BcName& Name );
+
 	/**
 	 * Get name of the node.
 	 */
@@ -72,7 +77,7 @@ public:
 	/**
 	 * Get working pose.
 	 */
-	const ScnAnimationPose& getWorkingPose() const;
+	virtual const ScnAnimationPose& getWorkingPose() const;
 
 protected:
 	BcName					Name_;
