@@ -39,6 +39,16 @@ private:
 																 BcU32& NodeIndex,
 																 BcU32& PrimitiveIndex );
 
+	void								serialiseMesh( class MdlMesh* pSkin,
+	                                                   BcU32 ParentIndex,
+	                                                   BcU32& NodeIndex,
+													   BcU32& PrimitiveIndex );
+
+	void								serialiseSkin( class MdlMesh* pSkin,
+	                                                   BcU32 ParentIndex,
+	                                                   BcU32& NodeIndex,
+													   BcU32& PrimitiveIndex );
+
 private:
 	std::string							Source_;
 

@@ -30,11 +30,13 @@ public:
 	void addIndex( const MdlIndex& Index );
 	BcU32 addVertex( const MdlVertex& Vertex );
 	BcU32 addMaterial( const MdlMaterial& Material );
+	void bonePalette( const MdlBonePalette& BonePalette );
 
 	// Accessors
 	const MdlIndex& index( BcU32 iIndex ) const;
 	const MdlVertex& vertex( BcU32 iVertex ) const;
 	const MdlMaterial& material( BcU32 iMaterial ) const;
+	const MdlBonePalette& bonePalette() const;
 
 	void index( BcU32 iIndex, const MdlIndex& Index );
 	void vertex( BcU32 iVertex, const MdlVertex& Vertex );
@@ -56,9 +58,6 @@ public:
 	// Will return first index, and number of indices for a material.
 	BcBool materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndices );
 
-	// Count the number of joints used by a material/group
-	BcU32 countJointsUsed( BcU32 iMaterial );
-
 	// Transform.
 	void bakeTransform( const BcMat4d& Transform );
 
@@ -72,8 +71,13 @@ public:
 	//
 	BcAABB findAABB() const;
 
+	BcU32 findBoneCount() const;
+
 	// Split up mesh by material.
-	const std::vector< MdlMesh >& splitByMaterial();
+	std::vector< MdlMesh >& splitByMaterial();
+
+	// Split up mesh into bone palettes.
+	std::vector< MdlMesh >& splitIntoBonePalettes( BcU32 PaletteSize );
 
 	// Flip on z to interchange left and right coordinate systems.
 	void flipCoordinateSpace();
@@ -87,6 +91,9 @@ private:
 	MdlVertexArray		aVertices_;
 	MdlMaterialArray	aMaterials_;
 
+	std::map< BcU32, BcU32 > aVertexHashes_;
+
+	MdlBonePalette		BonePalette_;
 	std::vector< MdlMesh > SubMeshes_;
 };
 
@@ -114,6 +121,12 @@ inline const MdlMaterial& MdlMesh::material( BcU32 iMaterial ) const
 	return aMaterials_[ iMaterial ];
 }
 
+inline const MdlBonePalette& MdlMesh::bonePalette() const
+{
+	return BonePalette_;
+}
+
+
 inline void MdlMesh::index( BcU32 iIndex, const MdlIndex& Index )
 {
 	BcAssert( iIndex < aIndices_.size() );
@@ -135,6 +148,10 @@ inline void MdlMesh::material( BcU32 iMaterial, const MdlMaterial& Material )
 	aMaterials_[ iMaterial ] = Material;
 }
 
+inline void MdlMesh::bonePalette( const MdlBonePalette& BonePalette )
+{
+	BonePalette_ = BonePalette;
+}
 
 inline BcU32 MdlMesh::nIndices() const
 {
