@@ -58,7 +58,8 @@ void ScnAnimationTreeNode::initialise( ScnAnimationPose* pReferencePose )
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-const ScnAnimationPose* ScnAnimationTreeNode::getWorkingPose() const
+const ScnAnimationPose& ScnAnimationTreeNode::getWorkingPose() const
 {
-	return pWorkingPose_;
+	BcAssert( pWorkingPose_ != NULL );
+	return *pWorkingPose_;
 }

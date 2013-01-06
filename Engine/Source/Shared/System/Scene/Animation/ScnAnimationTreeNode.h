@@ -72,7 +72,7 @@ public:
 	/**
 	 * Get working pose.
 	 */
-	const ScnAnimationPose* getWorkingPose() const;
+	const ScnAnimationPose& getWorkingPose() const;
 
 protected:
 	BcName					Name_;

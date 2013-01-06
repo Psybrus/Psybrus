@@ -141,12 +141,12 @@ void ScnAnimationComponent::buildReferencePose()
 // applyPose
 void ScnAnimationComponent::applyPose()
 {
-	const ScnAnimationPose* pWorkingPose = pRootTreeNode_->getWorkingPose();
+	const ScnAnimationPose& WorkingPose( pRootTreeNode_->getWorkingPose() );
 	const BcU32 NoofNodes = Model_->getNoofNodes();
 	BcMat4d Matrix;
 	for( BcU32 Idx = 1; Idx < NoofNodes; ++Idx )
 	{
-		const ScnAnimationTransform& Transform( pWorkingPose->getTransform( Idx - 1 ) );
+		const ScnAnimationTransform& Transform( WorkingPose.getTransform( Idx - 1 ) );
 		Transform.toMatrix( Matrix );
 		Model_->setNode( Idx, Matrix );
 	}
