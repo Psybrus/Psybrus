@@ -49,6 +49,10 @@ private:
 	                                                   BcU32& NodeIndex,
 													   BcU32& PrimitiveIndex );
 
+	void								serialiseVertices( class MdlMesh* pMesh,
+	                                                       BcU32 VertexFormat,
+														   BcAABB& AABB );
+
 private:
 	std::string							Source_;
 

@@ -48,7 +48,7 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 
 		ScnAnimationHeader Header;
 		Header.NoofNodes_ = pAnim->nNodes();
-		Header.NoofPoses_ = KeyCount;
+		Header.NoofPoses_ = KeyCount + 1; // means we always have the first frame as the last for smooth looping. TODO: Optional.
 		Header.Flags_ = scnAF_DEFAULT;
 		HeaderStream << Header;
 
@@ -56,8 +56,9 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 		ScnAnimationTransformKey OutKey;
 		BcF32 FrameTime = 0.0f;
 		BcF32 FrameRate = 1.0f / 24.0f;
-		for( BcU32 KeyIdx = 0; KeyIdx < KeyCount; ++KeyIdx )
+		for( BcU32 KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
 		{
+			BcU32 WrappedKeyIdx = KeyIdx % KeyCount;
 			ScnAnimationPoseFileData Pose;
 			Pose.Time_ = FrameTime;
 			Pose.KeyDataOffset_ = KeyStream.dataSize();
@@ -70,7 +71,7 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 			for( BcU32 NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
 			{
 				MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-				MdlAnimKey InKey = pNode->KeyList_[ KeyIdx ];
+				MdlAnimKey InKey = pNode->KeyList_[ WrappedKeyIdx ];
 				Transform.fromMatrix( InKey.Matrix_ );
 				OutKey.pack( Transform.R_, Transform.S_, Transform.T_ );
 				KeyStream << OutKey;

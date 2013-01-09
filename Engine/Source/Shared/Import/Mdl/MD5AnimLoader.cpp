@@ -338,9 +338,7 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			KeyTransform.R_ = BcQuat( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
 			KeyTransform.S_ = BcVec3d( 1.0f, 1.0f, 1.0f );
 			KeyTransform.T_ = BcVec3d( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
-
 			KeyTransform.R_.calcFromXYZ();
-			KeyTransform.R_ = KeyTransform.R_;
 
 			KeyTransform.toMatrix( Key.Matrix_ );
 

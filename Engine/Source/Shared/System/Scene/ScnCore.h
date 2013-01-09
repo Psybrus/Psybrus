@@ -64,7 +64,7 @@ public:
 	/**
 	 * Spawn an entity from template. Handles loading and scene attachment.
 	 */
-	void						spawnEntity( ScnEntityRef Parent, const BcName& Package, const BcName& Name, const BcName& InstanceName = BcName::INVALID );
+	void						spawnEntity( const ScnEntitySpawnParams& Params );
 
 	/**
 	 * Find an entity. Non recursive, only searching within the manager, not parented entities.
@@ -119,16 +119,7 @@ private:
 
 	TComponentClassIndexMap		ComponentClassIndexMap_;
 
-	// Entity spawning data.
-	struct TEntitySpawnData
-	{
-		ScnEntityRef			Parent_;
-		BcName					Package_;
-		BcName					Name_;
-		BcName					InstanceName_;
-	};
-
-	typedef std::map< BcU32, TEntitySpawnData > TEntitySpawnDataMap;
+	typedef std::map< BcU32, ScnEntitySpawnParams > TEntitySpawnDataMap;
 	typedef TEntitySpawnDataMap::iterator TEntitySpawnDataMapIterator;
 
 	BcU32						EntitySpawnID_;

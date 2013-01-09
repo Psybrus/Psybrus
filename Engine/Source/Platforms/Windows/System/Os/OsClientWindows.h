@@ -72,6 +72,8 @@ public:
 private:
 	void mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam );
 
+	void centreMouse();
+
 	LRESULT wndProcInternal( HWND, UINT, WPARAM, LPARAM );
 	static LRESULT	CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 

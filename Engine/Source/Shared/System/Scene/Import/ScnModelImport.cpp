@@ -105,7 +105,7 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 		
 		// Split up mesh by material.
 		std::vector< MdlMesh >& SubMeshes = pMesh->splitByMaterial();
-		
+
 		// Export a primitive for each submesh.
 		for( BcU32 SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
 		{
@@ -162,21 +162,7 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		};
 
 		// Export vertices.
-		MdlVertex Vertex;
-		BcU32 MaxBone = 0;
-		for( BcU32 VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )
-		{
-			Vertex = pMesh->vertex( VertexIdx );
-			VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
-			VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
-			VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
-			VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
-					
-			VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
-
-			// Expand AABB.
-			PrimitiveData.AABB_.expandBy( Vertex.Position_ );
-		}
+		serialiseVertices( pMesh, VertexFormat, PrimitiveData.AABB_ );
 		
 		// Grab material name.
 		MdlMaterial Material = pMesh->material( 0 );
@@ -250,27 +236,9 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		};
 
 		// Export vertices.
-		MdlVertex Vertex;
-		BcU32 MaxBone = 0;
-		for( BcU32 VertexIdx = 0; VertexIdx < pSkin->nVertices(); ++VertexIdx )
-		{
-			Vertex = pSkin->vertex( VertexIdx );
-			VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
-			VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
-			VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
-			VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
+		serialiseVertices( pSkin, VertexFormat, PrimitiveData.AABB_ );
 
-			VertexDataStream_ << BcF32( Vertex.iJoints_[ 0 ] ) << BcF32( Vertex.iJoints_[ 1 ] ) << BcF32( Vertex.iJoints_[ 2 ] ) << BcF32( Vertex.iJoints_[ 3 ] );
-			VertexDataStream_ << Vertex.Weights_[ 0 ] << Vertex.Weights_[ 1 ] << Vertex.Weights_[ 2 ] << Vertex.Weights_[ 3 ];
-					
-			VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
-
-			// Expand AABB.
-			PrimitiveData.AABB_.expandBy( Vertex.Position_ );
-		}
-
-		// Setup bone palette with an offset.
-		// TODO: Need to break up into multiple meshes for this really!!
+		// Setup bone palette for primitive.
 		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
 		BcMemSet( PrimitiveData.BonePalette_, 0xff, sizeof( PrimitiveData.BonePalette_ ) );
 		BcAssert( BonePalette.BonePalette_.size() <= 24 );
@@ -312,6 +280,57 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		
 		// Update primitive index.
 		++PrimitiveIndex;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseVertices
+void ScnModelImport::serialiseVertices( class MdlMesh* pMesh,
+                                        BcU32 VertexFormat,
+										BcAABB& AABB )
+{
+	AABB.empty();
+	for( BcU32 VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )
+	{
+		const MdlVertex& Vertex = pMesh->vertex( VertexIdx );
+
+		if( VertexFormat & rsVDF_POSITION_XYZ )
+		{
+			VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
+		}
+
+		if( VertexFormat & rsVDF_NORMAL_XYZ )
+		{
+			VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
+		}
+
+		if( VertexFormat & rsVDF_TANGENT_XYZ )
+		{
+			VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
+		}
+
+		if( VertexFormat & rsVDF_TEXCOORD_UV0 )
+		{
+			VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
+		}
+
+		if( VertexFormat & rsVDF_SKIN_INDICES )
+		{
+			VertexDataStream_ << BcF32( Vertex.iJoints_[ 0 ] ) << BcF32( Vertex.iJoints_[ 1 ] ) << BcF32( Vertex.iJoints_[ 2 ] ) << BcF32( Vertex.iJoints_[ 3 ] );
+		}
+
+		if( VertexFormat & rsVDF_SKIN_WEIGHTS )
+		{
+			VertexDataStream_ << Vertex.Weights_[ 0 ] << Vertex.Weights_[ 1 ] << Vertex.Weights_[ 2 ] << Vertex.Weights_[ 3 ];
+		}
+					
+		if( VertexFormat & rsVDF_COLOUR_ABGR8 )
+		{
+			VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
+		}
+
+		// Expand AABB.
+		AABB.expandBy( Vertex.Position_ );
 	}
 }
 

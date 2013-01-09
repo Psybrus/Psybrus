@@ -37,6 +37,7 @@ public:
 	virtual void update( BcF32 Tick );
 	virtual void postUpdate( BcF32 Tick );
 
+	void setSpeed( BcF32 Speed );
 	void queueAnimation( ScnAnimation* pAnimation );
 
 private:
@@ -54,6 +55,7 @@ private:
 	
 	BcU32 CurrPoseIndex_;
 
+	BcF32 Speed_;
 	BcF32 Time_;
 
 	TAnimationQueue AnimationQueue_;
