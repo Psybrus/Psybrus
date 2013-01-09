@@ -50,10 +50,11 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 		Header.NoofNodes_ = pAnim->nNodes();
 		Header.NoofPoses_ = KeyCount + 1; // means we always have the first frame as the last for smooth looping. TODO: Optional.
 		Header.Flags_ = scnAF_DEFAULT;
+		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
 		HeaderStream << Header;
 
 		// Build up frames of poses.
-		ScnAnimationTransformKey OutKey;
+		ScnAnimationTransformKey_R16S16T16 OutKey;
 		BcF32 FrameTime = 0.0f;
 		BcF32 FrameRate = 1.0f / 24.0f;
 		for( BcU32 KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
@@ -199,14 +200,15 @@ BcF32 ScnAnimation::getLength() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// decodePoseAtIndex
-void ScnAnimation::decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose ) const
+// decodePoseAtIndexTyped
+template< typename _Ty >
+void ScnAnimation::decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputPose ) const
 {
 	const ScnAnimationPoseFileData* pPoseFileData = findPoseAtIndex( Idx );
 	if( pPoseFileData != NULL )
 	{
 		const BcU8* pKeyData = findKeyDataStartForPose( pPoseFileData );
-		const ScnAnimationTransformKey* pTransformKeys = reinterpret_cast< const ScnAnimationTransformKey* >( pKeyData );
+		const _Ty* pTransformKeys = reinterpret_cast< const _Ty* >( pKeyData );
 
 		ScnAnimationTransform Transform;
 		for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
@@ -214,6 +216,27 @@ void ScnAnimation::decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose )
 			pTransformKeys[ Idx ].unpack( Transform.R_, Transform.S_, Transform.T_ );
 			pOutputPose->setTransform( Idx, Transform ); // TEMP HACK.
 		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// decodePoseAtIndex
+void ScnAnimation::decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose ) const
+{
+	switch( Header_.Packing_ )
+	{
+	case scnAP_R16S32T32:
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16S32T32 >( Idx, pOutputPose );
+		break;
+	case scnAP_R16S16T16:
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16S16T16 >( Idx, pOutputPose );
+		break;
+	case scnAP_R16T32:
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T32 >( Idx, pOutputPose );
+		break;
+	case scnAP_R16T16:
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T16 >( Idx, pOutputPose );
+		break;
 	}
 }
 
