@@ -39,6 +39,9 @@ void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 {
 	if( pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
 	{
-		pComponent->render( pViewComponent_, pFrame_, RsRenderSort( 0 ) );
+		if( pComponent->isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
+		{
+			pComponent->render( pViewComponent_, pFrame_, RsRenderSort( 0 ) );
+		}
 	}
 }

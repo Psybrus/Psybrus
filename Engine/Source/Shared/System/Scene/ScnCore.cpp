@@ -91,7 +91,7 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() )
+			if( Component.isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
 			{
 				Component->preUpdate( Tick );
 			}
@@ -107,7 +107,7 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() )
+			if( Component.isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
 			{
 				Component->update( Tick );
 			}
@@ -126,7 +126,7 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() )
+			if( Component.isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
 			{
 				Component->postUpdate( Tick );
 			}
