@@ -79,9 +79,6 @@ void ScnCore::update()
 	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
-	// Process pending components before the update cycle.
-	processPendingComponents();
-
 	// Pre-update.
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
@@ -91,10 +88,8 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
-			{
-				Component->preUpdate( Tick );
-			}
+			BcAssert( Component.isReady() );
+			Component->preUpdate( Tick );
 		}
 	}
 
@@ -107,10 +102,8 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
-			{
-				Component->update( Tick );
-			}
+			BcAssert( Component.isReady() );
+			Component->update( Tick );
 		}
 	}
 
@@ -126,10 +119,8 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() ) // TEMP HACK. Need to fix component attachment and ready state.
-			{
-				Component->postUpdate( Tick );
-			}
+			BcAssert( Component.isReady() );
+			Component->postUpdate( Tick );
 		}
 	}
 
@@ -165,6 +156,11 @@ void ScnCore::update()
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
 	}
+
+	// Process pending components at the end of the tick.
+	// We do this because they can be immediately created,
+	// and need a create tick from CsCore next frame.
+	processPendingComponents();
 }
 
 //////////////////////////////////////////////////////////////////////////
