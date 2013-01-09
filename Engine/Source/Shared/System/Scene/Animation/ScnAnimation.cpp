@@ -214,7 +214,7 @@ void ScnAnimation::decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputP
 		for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
 		{
 			pTransformKeys[ Idx ].unpack( Transform.R_, Transform.S_, Transform.T_ );
-			pOutputPose->setTransform( Idx, Transform ); // TEMP HACK.
+			pOutputPose->setTransform( Idx, Transform );
 		}
 	}
 }
