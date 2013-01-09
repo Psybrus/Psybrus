@@ -48,6 +48,10 @@ public:
 	void								decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose ) const;
 
 private:
+	template< typename _Ty >
+	void								decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputPose ) const;
+
+private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
