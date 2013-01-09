@@ -19,6 +19,7 @@
 #include "Base/BcQuat.h"
 #include "Base/BcPlane.h"
 #include "Base/BcAABB.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Defines
@@ -140,7 +141,10 @@ struct MdlVertex
 		Colour_( MdlColour( 1.0f, 1.0f, 1.0f, 1.0f ) ),
 		bColour_( BcFalse ),
 		nWeights_( 0 )
-	{}
+	{
+		BcMemSet( &iJoints_, 0xff, sizeof( iJoints_ ) );
+		BcMemSet( &Weights_, 0, sizeof( Weights_ ) );
+	}
 
 	MdlPosition Position_;
 	BcBool bPosition_;

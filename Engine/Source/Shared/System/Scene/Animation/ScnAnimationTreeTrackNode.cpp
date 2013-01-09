@@ -98,7 +98,7 @@ void ScnAnimationTreeTrackNode::update( BcF32 Tick )
 	interpolatePose();
 
 	// Advance time.
-	Time_ += Tick;
+	Time_ += Tick * Speed_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -107,6 +107,14 @@ void ScnAnimationTreeTrackNode::update( BcF32 Tick )
 void ScnAnimationTreeTrackNode::postUpdate( BcF32 Tick )
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSpeed
+void ScnAnimationTreeTrackNode::setSpeed( BcF32 Speed )
+{
+	BcAssert( Speed >= 0.0f );
+	Speed_ = Speed;
 }
 
 //////////////////////////////////////////////////////////////////////////

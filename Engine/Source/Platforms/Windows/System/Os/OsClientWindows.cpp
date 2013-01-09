@@ -399,6 +399,13 @@ void OsClientWindows::mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// centreMouse
+void OsClientWindows::centreMouse()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // wndProcInternal
 LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
                                           UINT uMsg,
@@ -519,7 +526,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
 			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
 			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
-			if( MouseLocked_ == BcFalse )
+			//if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
@@ -543,7 +550,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
 			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
 			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
-			if( MouseLocked_ == BcFalse )
+			//if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
@@ -567,7 +574,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
 			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
 			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
-			if( MouseLocked_ == BcFalse )
+			//if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
@@ -591,7 +598,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
 			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
 			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
-			if( MouseLocked_ == BcFalse )
+			//if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
@@ -615,7 +622,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
 			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
 			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
-			if( MouseLocked_ == BcFalse )
+			//if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
@@ -639,7 +646,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
 			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
 			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
-			if( MouseLocked_ == BcFalse )
+			//if( MouseLocked_ == BcFalse )
 			{
 				PrevMouseX_ = Event.MouseX_;
 				PrevMouseY_ = Event.MouseY_;
@@ -654,7 +661,26 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 
 	case WM_MOUSEWHEEL:
 		{
-			int a = 0; ++a;
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = lParam & 0xffff;
+			Event.MouseY_ = lParam >> 16 & 0xffff;
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
+			//if( MouseLocked_ == BcFalse )
+			{
+				PrevMouseX_ = Event.MouseX_;
+				PrevMouseY_ = Event.MouseY_;
+			}
+
+			BcS16 WheelDirection = wParam >> 16 & 0xffff;
+
+			Event.ButtonCode_ = WheelDirection > 0 ? 3 : 4;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEWHEEL, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEWHEEL, Event );
+			return 0;
 		}
 		break;
 

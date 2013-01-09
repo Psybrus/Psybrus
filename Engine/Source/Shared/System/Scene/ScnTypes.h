@@ -15,6 +15,8 @@
 #define __ScnTypes_H__
 
 #include "Base/BcTypes.h"
+#include "Base/BcName.h"
+#include "Base/BcMat4d.h"
 
 #include "System/Content/CsResourceRef.h"
 
@@ -58,6 +60,17 @@ typedef ScnEntityList::const_iterator ScnEntityListConstIterator;
 typedef std::map< std::string, ScnEntityRef > ScnEntityMap;
 typedef ScnEntityMap::iterator ScnEntityMapIterator;
 typedef ScnEntityMap::const_iterator ScnEntityMapConstIterator;
+
+//////////////////////////////////////////////////////////////////////////
+// ScnEntitySpawnParams
+struct ScnEntitySpawnParams
+{
+	BcName			Package_;
+	BcName			Name_;
+	BcName			InstanceName_;
+	BcMat4d			Transform_;
+	ScnEntityRef	Parent_;
+};
 
 #endif
 

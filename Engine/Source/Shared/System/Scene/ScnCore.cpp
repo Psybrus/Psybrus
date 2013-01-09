@@ -242,23 +242,17 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 //////////////////////////////////////////////////////////////////////////
 // spawnEntity
-void ScnCore::spawnEntity( ScnEntityRef Parent, const BcName& Package, const BcName& Name, const BcName& InstanceName )
+void ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 {
 	BcAssert( BcIsGameThread() );
 
 	// Get package and acquire.
-	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Package );
+	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Params.Package_ );
 	pPackage->acquire();
-
-	// Setup entity spawn data.
-	TEntitySpawnData EntitySpawnData;
-	EntitySpawnData.Parent_ = Parent;
-	EntitySpawnData.Package_ = Package;
-	EntitySpawnData.Name_ = Name;
-	EntitySpawnData.InstanceName_ = InstanceName;
-
-	EntitySpawnMap_[ EntitySpawnID_ ] = EntitySpawnData;
-	CsCore::pImpl()->requestPackageReadyCallback( Package, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
+	
+	// Register for ready callback.
+	EntitySpawnMap_[ EntitySpawnID_ ] = Params;
+	CsCore::pImpl()->requestPackageReadyCallback( Params.Package_, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
 
 	// Advance spawn ID.
 	++EntitySpawnID_;
@@ -396,10 +390,13 @@ void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 {
 	TEntitySpawnDataMapIterator It = EntitySpawnMap_.find( ID );
 	BcAssertMsg( It != EntitySpawnMap_.end(), "ScnCore: Spawn ID invalid." );
-	TEntitySpawnData& EntitySpawnData( (*It).second );
+	ScnEntitySpawnParams& EntitySpawnData( (*It).second );
 
 	// Create entity.
 	ScnEntityRef Entity = createEntity( EntitySpawnData.Package_, EntitySpawnData.Name_, EntitySpawnData.InstanceName_ );
+
+	// Set it's transform.
+	Entity->setMatrix( EntitySpawnData.Transform_ );
 
 	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
 	if( EntitySpawnData.Parent_.isValid() )

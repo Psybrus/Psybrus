@@ -427,7 +427,7 @@ std::vector< MdlMesh >& MdlMesh::splitByMaterial()
 			{
 				// Add corresponding vertex.
 				MdlIndex NewIndex;
-				NewIndex.iVertex_ = SubMesh.addVertex( vertex( aIndices_[ iIndex ].iVertex_ ) );
+				NewIndex.iVertex_ = SubMesh.addVertexShared( vertex( aIndices_[ iIndex ].iVertex_ ) );
 				NewIndex.iMaterial_ = iMaterial;
 
 				// Add new index.
@@ -506,7 +506,7 @@ std::vector< MdlMesh >& MdlMesh::splitIntoBonePalettes( BcU32 PaletteSize )
 			for( BcU32 VertIdx = 0; VertIdx < 3; ++VertIdx )
 			{
 				MdlIndex Index;
-				Index.iVertex_ = NewMesh.addVertex( Triangle.Vertex_[ VertIdx ] );
+				Index.iVertex_ = NewMesh.addVertexShared( Triangle.Vertex_[ VertIdx ] );
 				Index.iMaterial_ = 0;
 				NewMesh.addIndex( Index );
 			}
