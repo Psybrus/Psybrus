@@ -18,6 +18,14 @@
 #include "System/Scene/Animation/ScnAnimation.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnAnimationTreeBlendType
+enum ScnAnimationTreeBlendType
+{
+	scnATBT_LERP,
+	scnATBT_ADD
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnAnimationTreeBlendNode
 class ScnAnimationTreeBlendNode:
 	public ScnAnimationTreeNode
@@ -38,11 +46,15 @@ public:
 	virtual void postUpdate( BcF32 Tick );
 	virtual const ScnAnimationPose& getWorkingPose() const;
 
+	void setBlendType( ScnAnimationTreeBlendType Type );
+	ScnAnimationTreeBlendType getBlendType() const;
+
 	void setBlendValue( BcF32 Value );
 	BcF32 getBlendValue() const;
 
 private:
 	ScnAnimationTreeNode* pNodes_[ 2 ];
+	ScnAnimationTreeBlendType BlendType_;
 	BcF32 BlendValue_;
 };
 
