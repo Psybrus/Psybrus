@@ -25,6 +25,7 @@ ScnAnimationTreeBlendNode::ScnAnimationTreeBlendNode()
 	pNodes_[ 0 ] = NULL;
 	pNodes_[ 1 ] = NULL;
 	BlendValue_ = 0.0f;
+	BlendType_ = scnATBT_LERP;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,9 +93,17 @@ void ScnAnimationTreeBlendNode::update( BcF32 Tick )
 	pNodes_[ 1 ]->update( Tick );
 
 	// Only blend if we need to do any work.
-	if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
+	switch( BlendType_ )
 	{
-		pWorkingPose_->blend( pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+	case scnATBT_LERP:
+		if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
+		{
+			pWorkingPose_->blend( pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+		}
+		break;
+	case scnATBT_ADD:
+		pWorkingPose_->add( *pReferencePose_, pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+		break;
 	}
 }
 
@@ -114,19 +123,43 @@ const ScnAnimationPose& ScnAnimationTreeBlendNode::getWorkingPose() const
 {
 	BcAssert( pWorkingPose_ != NULL );
 
-	// Return our child working nodes if we don't need to do any blending work.
-	if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
+	switch( BlendType_ )
 	{
+	case scnATBT_LERP:
+		if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
+		{
+			return *pWorkingPose_;
+		}
+		else if( BlendValue_ <= 0.0f )
+		{
+			return pNodes_[ 0 ]->getWorkingPose();
+		}
+		else
+		{
+			return pNodes_[ 1 ]->getWorkingPose();
+		}
+		break;
+	case scnATBT_ADD:
+		return *pWorkingPose_;
+		break;
+
+	default:
 		return *pWorkingPose_;
 	}
-	else if( BlendValue_ <= 0.0f )
-	{
-		return pNodes_[ 0 ]->getWorkingPose();
-	}
-	else
-	{
-		return pNodes_[ 1 ]->getWorkingPose();
-	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setBlendType
+void ScnAnimationTreeBlendNode::setBlendType( ScnAnimationTreeBlendType Type )
+{
+	BlendType_ = Type;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBlendType
+ScnAnimationTreeBlendType ScnAnimationTreeBlendNode::getBlendType() const
+{
+	return BlendType_;
 }
 
 //////////////////////////////////////////////////////////////////////////
