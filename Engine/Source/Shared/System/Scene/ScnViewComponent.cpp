@@ -11,11 +11,15 @@
 * 
 **************************************************************************/
 
-#include "System/Scene/ScnViewComponent.h"
-#include "System/Scene/ScnEntity.h"
-
 #include "System/Renderer/RsCore.h"
 #include "System/Content/CsCore.h"
+#include "System/Os/OsCore.h"
+
+#include "System/Scene/ScnViewComponent.h"
+#include "System/Scene/ScnMaterial.h"
+#include "System/Scene/ScnEntity.h"
+
+#include "System/Scene/ScnRenderingVisitor.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -134,7 +138,7 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 
 //////////////////////////////////////////////////////////////////////////
 // setMaterialParameters
-void ScnViewComponent::setMaterialParameters( ScnMaterialComponentRef MaterialComponent )
+void ScnViewComponent::setMaterialParameters( ScnMaterialComponent* MaterialComponent ) const
 {
 	MaterialComponent->setClipTransform( Viewport_.view() * Viewport_.projection() );
 	MaterialComponent->setViewTransform( Viewport_.view() );

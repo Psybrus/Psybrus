@@ -517,7 +517,7 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 			
 			// Set material components for view.
 			pViewComponent->setMaterialParameters( MaterialComponentDesc.MaterialComponentRef_ );
-
+			
 			// Bind material.
 			MaterialComponentDesc.MaterialComponentRef_->bind( pFrame, Sort );
 			

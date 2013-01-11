@@ -15,6 +15,8 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Scene/ScnLightManagerComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
@@ -72,6 +74,9 @@ void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsF
 void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+
+	// Grab the light manager.
+	LightManager_ = getParentEntity()->getComponentAnyParentByType< ScnLightManagerComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,6 +85,8 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+
+	LightManager_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,6 +101,16 @@ void ScnRenderableComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnRenderableComponent::getRenderMask() const
 {
 	return RenderMask_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setLightingMaterialParams
+void ScnRenderableComponent::setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent )
+{
+	if( LightManager_ != NULL )
+	{
+		LightManager_->setMaterialParameters( MaterialComponent );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

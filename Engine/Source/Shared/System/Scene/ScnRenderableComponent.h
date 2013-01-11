@@ -38,6 +38,11 @@ public:
 	const BcU32							getRenderMask() const;
 
 	/**
+	 * Set lighting material parameters.
+	 */
+	void								setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent );
+
+	/**
 	 * Set the spatial tree node we belong in.
 	 */
 	void								setSpatialTreeNode( ScnSpatialTreeNode* pNode );
@@ -52,6 +57,8 @@ public:
 private:
 	BcU32								RenderMask_;		// Used to specify what kind of object it is for selectively rendering with certain views.
 	ScnSpatialTreeNode*					pSpatialTreeNode_;
+
+	class ScnLightManagerComponent*		LightManager_;
 };
 
 #endif

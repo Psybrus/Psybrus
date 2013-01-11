@@ -63,9 +63,12 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >();
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
-	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
+	// Register game resources before the view.
 	PsyGameRegisterResources();
+
+	// View is the last thing we want to update.
+	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
 	return evtRET_REMOVE;
 }
