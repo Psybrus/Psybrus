@@ -26,6 +26,10 @@ enum ScnShaderPermutationFlags
 	scnSPF_SKINNED_3D				= 0x00000004,		// Skinned 3D.
 	scnSPF_PARTICLE_3D				= 0x00000008,		// Particle 3D.
 	scnSPF_EXCLUSIVE_BASE = scnSPF_STATIC_2D | scnSPF_STATIC_3D | scnSPF_SKINNED_3D | scnSPF_PARTICLE_3D,
+
+	// Lighting.
+	scnSPF_UNLIT					= 0x00000010,		// Unlit geometry.
+	scnSPF_DIFFUSE_LIT				= 0x00000020,		// Diffuse lit geometry.
 };
 
 //////////////////////////////////////////////////////////////////////////

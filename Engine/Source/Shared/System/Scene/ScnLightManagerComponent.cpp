@@ -87,4 +87,17 @@ void ScnLightManagerComponent::setMaterialParameters( ScnMaterialComponent* Mate
 	{
 		LightComponents_[ Idx ]->setMaterialParameters( Idx, MaterialComponent );
 	}	
+
+	for( BcU32 Idx = Count; Idx < 4; ++Idx )
+	{
+		MaterialComponent->setLightParameters( Idx,
+	                                           BcVec3d( 0.0f, 0.0f, 0.0f ),
+	                                           BcVec3d( 0.0f, 0.0f, 0.0f ),
+	                                           RsColour::BLACK,
+	                                           RsColour::BLACK,
+	                                           0.0f,
+	                                           0.0f,
+	                                           0.0f );
+	}
+
 }

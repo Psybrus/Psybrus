@@ -208,9 +208,9 @@ BCREFLECTION_DERIVED_END();
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnModelComponent::initialise( ScnModelRef Parent )
+void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Parent )
 {
-	Super::initialise();
+	Super::initialise( Object );
 
 	// Cache parent.
 	Parent_ = Parent;
@@ -233,9 +233,21 @@ void ScnModelComponent::initialise( ScnModelRef Parent )
 		if( pPrimitiveRuntime->MaterialRef_.isValid() )
 		{
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
+
+			BcU32 ShaderPermutation = pPrimitiveData->ShaderPermutation_;
+
+			// Setup lighting.
+			if( isLit() )
+			{
+				ShaderPermutation |= scnSPF_DIFFUSE_LIT;
+			}
+			else
+			{
+				ShaderPermutation |= scnSPF_UNLIT;
+			}
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, pPrimitiveData->ShaderPermutation_ );
+			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, ShaderPermutation );
 
 			TMaterialComponentDesc MaterialComponentDesc =
 			{
@@ -254,7 +266,7 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 {
 	ScnModelRef ModelRef;
 	ModelRef = getPackage()->getPackageCrossRef( Object[ "model" ].asUInt() );
-	initialise( ModelRef );
+	initialise( Object, ModelRef );
 
 	// Setup additional stuff.
 	Layer_ = Object.get( "layer", 0 ).asUInt();
@@ -496,41 +508,42 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		TMaterialComponentDesc& MaterialComponentDesc = MaterialComponentDescList_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
 
-		// If we have a valid material instance, then we can render the node.
-		if( MaterialComponentDesc.MaterialComponentRef_.isValid() )
-		{
-			// Set model parameters on material.
-			MaterialComponentDesc.MaterialComponentRef_->setWorldTransform( pNodeTransformData->AbsoluteTransform_ );
+		BcAssertMsg( MaterialComponentDesc.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
 
-			// Set skinning parameters.
-			if( ( pPrimitiveData->ShaderPermutation_ & scnSPF_SKINNED_3D ) != 0 )
+		// Set model parameters on material.
+		MaterialComponentDesc.MaterialComponentRef_->setWorldTransform( pNodeTransformData->AbsoluteTransform_ );
+
+		// Set skinning parameters.
+		if( ( pPrimitiveData->ShaderPermutation_ & scnSPF_SKINNED_3D ) != 0 )
+		{
+			for( BcU32 Idx = 0; Idx < 24; ++Idx )
 			{
-				for( BcU32 Idx = 0; Idx < 24; ++Idx )
+				BcU32 NodeIndex = pPrimitiveData->BonePalette_[ Idx ];
+				if( NodeIndex != BcErrorCode )
 				{
-					BcU32 NodeIndex = pPrimitiveData->BonePalette_[ Idx ];
-					if( NodeIndex != BcErrorCode )
-					{
-						MaterialComponentDesc.MaterialComponentRef_->setBoneTransform( Idx, pNodeTransformData_[ NodeIndex ].InverseBindpose_ * pNodeTransformData_[ NodeIndex ].AbsoluteTransform_ );
-					}
+					MaterialComponentDesc.MaterialComponentRef_->setBoneTransform( Idx, pNodeTransformData_[ NodeIndex ].InverseBindpose_ * pNodeTransformData_[ NodeIndex ].AbsoluteTransform_ );
 				}
 			}
-			
-			// Set material components for view.
-			pViewComponent->setMaterialParameters( MaterialComponentDesc.MaterialComponentRef_ );
-			
-			// Bind material.
-			MaterialComponentDesc.MaterialComponentRef_->bind( pFrame, Sort );
-			
-			// Render primitive.
-			ScnModelComponentRenderNode* pRenderNode = pFrame->newObject< ScnModelComponentRenderNode >();
-			
-			pRenderNode->Type_ = pPrimitiveData->Type_;
-			pRenderNode->Offset_ = Offset;
-			pRenderNode->NoofIndices_ = pPrimitiveData->NoofIndices_;
-			pRenderNode->pPrimitive_ = pPrimitiveRuntime->pPrimitive_;
-			pRenderNode->Sort_ = Sort;
-			
-			pFrame->addRenderNode( pRenderNode );
 		}
+
+		// Set lighting parameters.
+		setLightingMaterialParams( MaterialComponentDesc.MaterialComponentRef_ );
+			
+		// Set material components for view.
+		pViewComponent->setMaterialParameters( MaterialComponentDesc.MaterialComponentRef_ );
+			
+		// Bind material.
+		MaterialComponentDesc.MaterialComponentRef_->bind( pFrame, Sort );
+			
+		// Render primitive.
+		ScnModelComponentRenderNode* pRenderNode = pFrame->newObject< ScnModelComponentRenderNode >();
+			
+		pRenderNode->Type_ = pPrimitiveData->Type_;
+		pRenderNode->Offset_ = Offset;
+		pRenderNode->NoofIndices_ = pPrimitiveData->NoofIndices_;
+		pRenderNode->pPrimitive_ = pPrimitiveRuntime->pPrimitive_;
+		pRenderNode->Sort_ = Sort;
+			
+		pFrame->addRenderNode( pRenderNode );
 	}
 }

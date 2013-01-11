@@ -32,7 +32,9 @@ void ScnRenderableComponent::initialise()
 	Super::initialise();
 
 	setRenderMask( 1 );
+	IsLit_ = BcFalse;
 	pSpatialTreeNode_ = NULL;
+	LightManager_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,6 +48,12 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 	if( RenderMaskValue.type() != Json::nullValue )
 	{
 		setRenderMask( RenderMaskValue.asUInt() );
+	}
+
+	const Json::Value& IsLitValue = Object[ "islit" ];
+	if( IsLitValue.type() == Json::booleanValue )
+	{
+		IsLit_ = IsLitValue.asBool();
 	}
 }
 
@@ -107,7 +115,7 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 // setLightingMaterialParams
 void ScnRenderableComponent::setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent )
 {
-	if( LightManager_ != NULL )
+	if( IsLit_ && LightManager_ != NULL )
 	{
 		LightManager_->setMaterialParameters( MaterialComponent );
 	}
@@ -135,4 +143,11 @@ BcAABB ScnRenderableComponent::getAABB() const
 {
 	BcAssertMsg( BcFalse, "ScnRenderableComponent: Not implemented a getAABB!" );
 	return BcAABB();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isLit
+BcBool ScnRenderableComponent::isLit() const
+{
+	return IsLit_;
 }

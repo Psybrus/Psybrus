@@ -63,7 +63,8 @@ public:
 private:
 	class ScnLightManagerComponent*		LightManager_;
 	ScnLightType						Type_;
-	RsColour							Colour_;
+	RsColour							AmbientColour_;
+	RsColour							DiffuseColour_;
 	BcF32								AttnC_;
 	BcF32								AttnL_;
 	BcF32								AttnQ_;
