@@ -104,7 +104,7 @@ public:
 	void								setWorldTransform( const BcMat4d& Transform );
 	void								setEyePosition( const BcVec3d& Position );
 	void								setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform );
-	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& Colour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
+	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
 
 
 	void								setState( eRsRenderState State, BcU32 Value );
@@ -164,7 +164,8 @@ private:
 	BcU32								BoneTransformParameter_;
 	BcU32								LightPositionParameter_;
 	BcU32								LightDirectionParameter_;
-	BcU32								LightColourParameter_;
+	BcU32								LightAmbientColourParameter_;
+	BcU32								LightDiffuseColourParameter_;
 	BcU32								LightAttnParameter_;
 
 public:

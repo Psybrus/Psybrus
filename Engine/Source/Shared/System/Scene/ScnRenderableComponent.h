@@ -54,8 +54,11 @@ public:
 
 	virtual BcAABB						getAABB() const;
 
+	BcBool								isLit() const;
+
 private:
 	BcU32								RenderMask_;		// Used to specify what kind of object it is for selectively rendering with certain views.
+	BcBool								IsLit_;				// Does this need to be lit?
 	ScnSpatialTreeNode*					pSpatialTreeNode_;
 
 	class ScnLightManagerComponent*		LightManager_;

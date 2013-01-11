@@ -72,7 +72,7 @@ class ScnModelComponent:
 public:
 	DECLARE_RESOURCE( ScnRenderableComponent, ScnModelComponent );
 
-	virtual void						initialise( ScnModelRef Parent );
+	virtual void						initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
 

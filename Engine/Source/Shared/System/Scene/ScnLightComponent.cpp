@@ -26,7 +26,8 @@ DEFINE_RESOURCE( ScnLightComponent );
 
 BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnLightComponent )
 	BCREFLECTION_MEMBER( ScnLightType,						Type_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( RsColour,							Colour_,						bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( RsColour,							AmbientColour_,					bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( RsColour,							DiffuseColour_,					bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,								AttnC_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,								AttnL_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,								AttnQ_,							bcRFF_DEFAULT ),
@@ -39,10 +40,10 @@ void ScnLightComponent::initialise()
 	Super::initialise();
 
 	Type_ = scnLT_POINT;
-	Colour_ = RsColour::WHITE;
-	AttnC_= 1.0f;
-	AttnL_ = 1.0f;
-	AttnQ_ = 0.0f;
+	AmbientColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
+	DiffuseColour_ = RsColour::WHITE;
+	
+	createAttenuationValues( 32.0f, 128.0f, 256.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,7 @@ void ScnLightComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 
 	LightManager_ = getParentEntity()->getComponentAnyParentByType< ScnLightManagerComponent >();
-	BcAssertMsg( LightManager_ != NULL, "Can't find an ScnLightManagerComponent in any of our entity's parents. Did you forget to add one to the root entity?" );
+	BcAssertMsg( LightManager_ != NULL, "Can't find an ScnLightManagerComponent in any of our entity's parents. Did you forget to add one to the root entity, or did you attach this entity to the wrong parent?" );
 
 	LightManager_->registerLightComponent( this );
 }
@@ -155,7 +156,8 @@ void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComp
 	MaterialComponent->setLightParameters( LightIndex,
 	                                       BcVec3d( Position.x(), Position.y(), Position.z() ),
 	                                       BcVec3d( Direction.x(), Direction.y(), Direction.z() ),
-	                                       Colour_,
+	                                       AmbientColour_,
+										   DiffuseColour_,
 	                                       AttnC_,
 	                                       AttnL_,
 	                                       AttnQ_ );

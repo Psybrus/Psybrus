@@ -328,7 +328,8 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	BoneTransformParameter_ = findParameter( "uBoneTransform" );
 	LightPositionParameter_ = findParameter( "uLightPosition" );
 	LightDirectionParameter_ = findParameter( "uLightDirection" );
-	LightColourParameter_ = findParameter( "uLightColour" );
+	LightAmbientColourParameter_ = findParameter( "uLightAmbientColour" );
+	LightDiffuseColourParameter_ = findParameter( "uLightDiffuseColour" );
 	LightAttnParameter_ = findParameter( "uLightAttn" );
 }
 
@@ -676,12 +677,13 @@ void ScnMaterialComponent::setBoneTransform( BcU32 BoneIndex, const BcMat4d& Tra
 
 //////////////////////////////////////////////////////////////////////////
 // setLightParameters
-void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& Colour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
+void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
 {
 	// TODO: Perhaps store light values in a matrix to save on setting parameters?
 	setParameter( LightPositionParameter_, Position, LightIndex );
 	setParameter( LightDirectionParameter_, Direction, LightIndex );
-	setParameter( LightColourParameter_, Colour, LightIndex );
+	setParameter( LightAmbientColourParameter_, AmbientColour, LightIndex );
+	setParameter( LightDiffuseColourParameter_, DiffuseColour, LightIndex );
 	setParameter( LightAttnParameter_, BcVec3d( AttnC, AttnL, AttnQ ), LightIndex );
 }
 
