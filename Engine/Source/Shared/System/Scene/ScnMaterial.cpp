@@ -326,6 +326,10 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	WorldTransformParameter_ = findParameter( "uWorldTransform" );
 	EyePositionParameter_ = findParameter( "uEyePosition" );
 	BoneTransformParameter_ = findParameter( "uBoneTransform" );
+	LightPositionParameter_ = findParameter( "uLightPosition" );
+	LightDirectionParameter_ = findParameter( "uLightDirection" );
+	LightColourParameter_ = findParameter( "uLightColour" );
+	LightAttnParameter_ = findParameter( "uLightAttn" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -668,6 +672,17 @@ void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
 void ScnMaterialComponent::setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform )
 {
 	setParameter( BoneTransformParameter_, Transform, BoneIndex );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setLightParameters
+void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& Colour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
+{
+	// TODO: Perhaps store light values in a matrix to save on setting parameters?
+	setParameter( LightPositionParameter_, Position, LightIndex );
+	setParameter( LightDirectionParameter_, Direction, LightIndex );
+	setParameter( LightColourParameter_, Colour, LightIndex );
+	setParameter( LightAttnParameter_, BcVec3d( AttnC, AttnL, AttnQ ), LightIndex );
 }
 
 //////////////////////////////////////////////////////////////////////////

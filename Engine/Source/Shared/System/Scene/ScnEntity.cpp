@@ -244,7 +244,7 @@ BcU32 ScnEntity::getNoofComponents() const
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
+ScnComponent* ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 {
 	if( Type == BcName::INVALID )
 	{
@@ -281,7 +281,7 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponentRef ScnEntity::getComponent( BcName Name, const BcName& Type )
+ScnComponent* ScnEntity::getComponent( BcName Name, const BcName& Type )
 {
 	if( Type == BcName::INVALID )
 	{
@@ -312,7 +312,7 @@ ScnComponentRef ScnEntity::getComponent( BcName Name, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponentRef ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
+ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
 {
 	ScnComponentRef Component = getComponent( Idx, Type );
 
@@ -326,7 +326,7 @@ ScnComponentRef ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type 
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponentRef ScnEntity::getComponentAnyParent( BcName Name, const BcName& Type )
+ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const BcName& Type )
 {
 	ScnComponentRef Component = getComponent( Name, Type );
 

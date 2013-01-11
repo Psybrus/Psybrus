@@ -17,7 +17,6 @@
 #include "System/Renderer/RsCore.h"
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnRenderTarget.h"
-#include "System/Scene/ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -43,7 +42,7 @@ public:
 	void								initialise();
 	virtual void						initialise( const Json::Value& Object );
 
-	void								setMaterialParameters( ScnMaterialComponentRef MaterialComponent );
+	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
 	const RsViewport&					getViewport() const;
 

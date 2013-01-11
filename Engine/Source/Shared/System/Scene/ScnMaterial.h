@@ -104,7 +104,9 @@ public:
 	void								setWorldTransform( const BcMat4d& Transform );
 	void								setEyePosition( const BcVec3d& Position );
 	void								setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform );
-	
+	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& Colour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
+
+
 	void								setState( eRsRenderState State, BcU32 Value );
 	
 	ScnTextureRef						getTexture( BcU32 Parameter );
@@ -153,12 +155,17 @@ private:
 	BcU32*								pStateBuffer_;
 
 	// Common scene parameters.
+	// TODO: Move these into the parent material?
 	BcU32								ClipTransformParameter_;
 	BcU32								ViewTransformParameter_;
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
 	BcU32								EyePositionParameter_;
 	BcU32								BoneTransformParameter_;
+	BcU32								LightPositionParameter_;
+	BcU32								LightDirectionParameter_;
+	BcU32								LightColourParameter_;
+	BcU32								LightAttnParameter_;
 
 public:
 	SysFence							UpdateFence_;
