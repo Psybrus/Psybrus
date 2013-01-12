@@ -419,6 +419,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value, BcU32 Ind
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer = Value;
 		}
 		else
@@ -439,6 +440,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value, BcU32 In
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer = (BcU32)Value;
 		}
 		else
@@ -460,6 +462,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value, BcU32 Ind
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer = (BcF32)Value;
 		}
 		else
@@ -480,6 +483,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value, 
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer = (BcF32)Value.y();
 		}
@@ -501,6 +505,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value, 
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer = (BcF32)Value.z();
@@ -523,6 +528,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value, 
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer++ = (BcF32)Value.x();
 			*pParameterBuffer++ = (BcF32)Value.y();
 			*pParameterBuffer++ = (BcF32)Value.z();
@@ -546,6 +552,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value, 
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer++ = (BcF32)Value[0][0];
 			*pParameterBuffer++ = (BcF32)Value[0][1];
 			*pParameterBuffer++ = (BcF32)Value[0][2];
@@ -574,6 +581,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value, 
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );
+			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
 			*pParameterBuffer++ = (BcF32)Value[0][0];
 			*pParameterBuffer++ = (BcF32)Value[0][1];
 			*pParameterBuffer++ = (BcF32)Value[0][2];
