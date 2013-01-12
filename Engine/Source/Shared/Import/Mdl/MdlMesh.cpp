@@ -302,7 +302,7 @@ void MdlMesh::buildTangents()
 		BcF32 R = 1.0f / InvR;
 
 		// Validation so it doesn't break everything, just set to a dummy value.
-		if( BcAbs( InvR ) < 1e6f )
+		if( BcAbs( InvR ) < 1e-6f )
 		{
 			R = 0.0f;
 		}

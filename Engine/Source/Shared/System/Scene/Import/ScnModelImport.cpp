@@ -204,7 +204,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
                                     BcU32& NodeIndex,
 									BcU32& PrimitiveIndex )
 {
-	BcU32 BonePaletteSize = 24;
+	BcU32 BonePaletteSize = SCN_MODEL_BONE_PALETTE_SIZE;
 	if( pSkin->findBoneCount() > BonePaletteSize )
 	{
 		std::vector< MdlMesh >& SubMeshes = pSkin->splitIntoBonePalettes( BonePaletteSize );
@@ -241,7 +241,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		// Setup bone palette for primitive.
 		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
 		BcMemSet( PrimitiveData.BonePalette_, 0xff, sizeof( PrimitiveData.BonePalette_ ) );
-		BcAssert( BonePalette.BonePalette_.size() <= 24 );
+		BcAssert( BonePalette.BonePalette_.size() <= SCN_MODEL_BONE_PALETTE_SIZE );
 		for( BcU32 BoneIdx = 0; BoneIdx < BonePalette.BonePalette_.size(); ++BoneIdx )
 		{
 			if( BoneIdx < BonePalette.BonePalette_.size() )

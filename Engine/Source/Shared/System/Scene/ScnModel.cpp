@@ -516,7 +516,7 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		// Set skinning parameters.
 		if( ( pPrimitiveData->ShaderPermutation_ & scnSPF_SKINNED_3D ) != 0 )
 		{
-			for( BcU32 Idx = 0; Idx < 24; ++Idx )
+			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 			{
 				BcU32 NodeIndex = pPrimitiveData->BonePalette_[ Idx ];
 				if( NodeIndex != BcErrorCode )

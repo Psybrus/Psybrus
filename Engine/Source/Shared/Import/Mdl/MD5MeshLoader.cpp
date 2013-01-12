@@ -285,6 +285,13 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	pMeshes_ = NULL;
 
 	BcMat4d RootTransform;
+#if 1
+	// Convert from Z up to Y up & right hand to left hand.
+	RootTransform.row0( BcVec4d(  1.0f,  0.0f,  0.0f,  0.0f ) );
+	RootTransform.row1( BcVec4d(  0.0f,  0.0f,  1.0f,  0.0f ) );
+	RootTransform.row2( BcVec4d(  0.0f, -1.0f,  0.0f,  0.0f ) );
+	RootTransform.row3( BcVec4d(  0.0f,  0.0f,  0.0f,  1.0f ) );
+#endif
 	pRootNode->makeRelativeTransform( RootTransform );
 
 	return pRootNode;

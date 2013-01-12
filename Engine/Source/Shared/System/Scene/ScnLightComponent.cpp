@@ -43,7 +43,7 @@ void ScnLightComponent::initialise()
 	AmbientColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
 	DiffuseColour_ = RsColour::WHITE;
 	
-	createAttenuationValues( 32.0f, 128.0f, 256.0f );
+	createAttenuationValues( 64.0f, 256.0f, 1024.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////

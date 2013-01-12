@@ -18,6 +18,10 @@
 #include "System/Scene/ScnMaterial.h" // TODO: Get rid of this reference.
 
 //////////////////////////////////////////////////////////////////////////
+// Defines
+#define SCN_MODEL_BONE_PALETTE_SIZE		( 24 )
+
+//////////////////////////////////////////////////////////////////////////
 // ScnModelHeader
 struct ScnModelHeader
 {
@@ -56,7 +60,7 @@ struct ScnModelPrimitiveData
 	BcU32							Padding0_;
 	BcU32							Padding1_;
 	BcAABB							AABB_;
-	BcU32							BonePalette_[ 24 ];
+	BcU32							BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };
 
 //////////////////////////////////////////////////////////////////////////
