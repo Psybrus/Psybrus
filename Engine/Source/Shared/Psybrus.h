@@ -72,6 +72,7 @@
 
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnEntity.h"
+#include "System/Scene/ScnDebugRenderComponent.h"
 #include "System/Scene/ScnTexture.h"
 #include "System/Scene/ScnTextureAtlas.h"
 #include "System/Scene/ScnRenderTarget.h"

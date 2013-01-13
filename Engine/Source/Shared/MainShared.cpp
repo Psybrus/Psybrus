@@ -56,6 +56,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnRenderableComponent >();
 	CsCore::pImpl()->registerResource< ScnSpatialComponent >();
 	CsCore::pImpl()->registerResource< ScnEntity >();
+	CsCore::pImpl()->registerResource< ScnDebugRenderComponent >();
 	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
 	CsCore::pImpl()->registerResource< ScnFontComponent >();
 	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
@@ -84,6 +85,7 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->unregisterResource< ScnRenderableComponent >();
 	CsCore::pImpl()->unregisterResource< ScnSpatialComponent >();
 	CsCore::pImpl()->unregisterResource< ScnEntity >();
+	CsCore::pImpl()->unregisterResource< ScnDebugRenderComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnShader >();
 	CsCore::pImpl()->unregisterResource< ScnTexture >();
@@ -132,8 +134,8 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 void MainShared()
 {
 	// Setup system threads.
-	FsCore::WORKER_MASK = 0x1;
-	RsCore::WORKER_MASK = 0x2;
+	RsCore::WORKER_MASK = 0x1;
+	FsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
 	// Test resource naming.

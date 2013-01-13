@@ -38,8 +38,19 @@ public:
 public:
 	void								initialise();
 	virtual void						initialise( const Json::Value& Object );
+	virtual void						update( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
+
+	/**
+	*	Get ambient colour.
+	*/ 
+	const RsColour&						getAmbientColour() const;
+
+	/**
+	*	Get diffuse colour.
+	*/ 
+	const RsColour&						getDiffuseColour() const;
 
 	/**
 	*	Find attenuation of light by a distance.

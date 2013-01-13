@@ -15,6 +15,8 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Scene/ScnDebugRenderComponent.h"
+
 #include "System/Scene/ScnLightingVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,8 +60,10 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnRenderableComponent::postUpdate( BcF32 Tick )
+void ScnRenderableComponent::update( BcF32 Tick )
 {
+	//ScnDebugRenderComponent::pImpl()->drawAABB( getAABB(), RsColour::BLUE );
+
 	Super::update( Tick );
 }
 
@@ -68,7 +72,7 @@ void ScnRenderableComponent::postUpdate( BcF32 Tick )
 //virtual
 void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	// Do nothing.
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
