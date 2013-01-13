@@ -116,22 +116,32 @@ public:
 	/**
 	 * Set position.
 	 */
-	void								setPosition( const BcVec3d& Position );
+	void								setLocalPosition( const BcVec3d& Position );
 
 	/**
 	 * Set matrix.
 	 */
-	void								setMatrix( const BcMat4d& Matrix );
+	void								setLocalMatrix( const BcMat4d& Matrix );
+
+	/**
+	 * Get local position.
+	 */
+	BcVec3d								getLocalPosition() const;
 
 	/**
 	 * Get position.
 	 */
-	BcVec3d								getPosition() const;
+	BcVec3d								getWorldPosition() const;
 
 	/**
 	 * Get matrix.
 	 */
-	const BcMat4d&						getMatrix() const;
+	const BcMat4d&						getLocalMatrix() const;
+
+	/**
+	 * Get matrix.
+	 */
+	const BcMat4d&						getWorldMatrix() const;
 
 protected:
 	virtual void						fileReady();
@@ -141,7 +151,8 @@ protected:
 	const BcChar*						pJsonObject_; // TEMP.
 
 	ScnEntityRef						Basis_;
-	BcMat4d								Transform_;
+	BcMat4d								LocalTransform_;
+	BcMat4d								WorldTransform_;
 
 	ScnComponentList					Components_;
 	

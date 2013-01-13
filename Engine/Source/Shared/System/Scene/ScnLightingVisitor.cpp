@@ -31,8 +31,8 @@ public:
 
 	bool operator()( class ScnLightComponent*& A, class ScnLightComponent*& B )
 	{
-		BcF32 DistanceA = ( Position_ - A->getParentEntity()->getPosition() ).magnitude();
-		BcF32 DistanceB = ( Position_ - B->getParentEntity()->getPosition() ).magnitude();
+		BcF32 DistanceA = ( Position_ - A->getParentEntity()->getWorldPosition() ).magnitude();
+		BcF32 DistanceB = ( Position_ - B->getParentEntity()->getWorldPosition() ).magnitude();
 		BcF32 AttnA = A->findAttenuationByDistance( DistanceA );
 		BcF32 AttnB = B->findAttenuationByDistance( DistanceB );
 		return AttnA > AttnB;
