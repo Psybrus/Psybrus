@@ -71,7 +71,7 @@ void ScnLightComponent::initialise( const Json::Value& Object )
 		MidValue != Json::nullValue &&
 		MaxValue != Json::nullValue )
 	{
-		createAttenuationValues( MinValue.asDouble(), MidValue.asDouble(), MaxValue.asDouble() );
+		createAttenuationValues( (BcF32)MinValue.asDouble(), (BcF32)MidValue.asDouble(), (BcF32)MaxValue.asDouble() );
 	}
 }
 
