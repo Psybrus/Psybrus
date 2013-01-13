@@ -16,7 +16,7 @@
 
 #include "System/Renderer/RsCore.h"
 #include "System/Scene/ScnTypes.h"
-#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnSpatialComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnLightType
@@ -29,10 +29,11 @@ enum ScnLightType
 //////////////////////////////////////////////////////////////////////////
 // ScnLightComponent
 class ScnLightComponent:
-	public ScnComponent
+	public ScnSpatialComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnLightComponent );
+	DECLARE_RESOURCE( ScnSpatialComponent, ScnLightComponent );
+	DECLARE_VISITABLE( ScnLightComponent );
 
 public:
 	void								initialise();
@@ -60,8 +61,22 @@ public:
 	*/
 	void								setMaterialParameters( BcU32 LightIndex, class ScnMaterialComponent* MaterialComponent );
 
+	/**
+	 * Set the light tree node we are in.
+	 */
+	void								setLightTreeNode( class ScnLightTreeNode* Node );
+
+	/**
+	 * Get the light tree node we are in.
+	 */
+	class ScnLightTreeNode*				getLightTreeNode();
+
+	/**
+	 *	Get light AABB.
+	 */
+	BcAABB								getAABB() const;
+
 private:
-	class ScnLightManagerComponent*		LightManager_;
 	ScnLightType						Type_;
 	RsColour							AmbientColour_;
 	RsColour							DiffuseColour_;

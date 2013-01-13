@@ -4,7 +4,7 @@
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Scenegraph Spacial Tree
+*		Scenegraph Spatial Tree
 *		
 *
 *
@@ -12,10 +12,15 @@
 **************************************************************************/
 
 #include "System/Scene/ScnSpatialTree.h"
-#include "System/Scene/ScnRenderableComponent.h"
+#include "System/Scene/ScnTypes.h"
+#include "System/Scene/ScnVisitor.h"
+#include "System/Scene/ScnSpatialComponent.h"
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsFrame.h"
+
+
+#define SCN_ENTITYLIST_DIVIDESIZE	8
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ScnSpatialTreeNode
@@ -34,11 +39,11 @@ ScnSpatialTreeNode::ScnSpatialTreeNode()
 ScnSpatialTreeNode::~ScnSpatialTreeNode()
 {
 	// Remove ScnRenderableComponents from the list and clear their parent.
-	ScnRenderableComponentWeakRefList::iterator Iter = ComponentList_.begin();
+	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
 
 	while( Iter != ComponentList_.end() )
 	{
-		ScnRenderableComponentWeakRef Component = *Iter;
+		ScnSpatialComponent* Component = *Iter;
 
 		// Validate before removing.
 		BcAssert( Component->getSpatialTreeNode() == this );
@@ -52,7 +57,7 @@ ScnSpatialTreeNode::~ScnSpatialTreeNode()
 
 //////////////////////////////////////////////////////////////////////////
 // addComponent
-void ScnSpatialTreeNode::addComponent( ScnRenderableComponentWeakRef Component )
+void ScnSpatialTreeNode::addComponent( ScnSpatialComponent* Component )
 {
 	// Add to self.
 	// TODO: Subdivide and such.
@@ -65,7 +70,7 @@ void ScnSpatialTreeNode::addComponent( ScnRenderableComponentWeakRef Component )
 
 //////////////////////////////////////////////////////////////////////////
 // removeComponent
-void ScnSpatialTreeNode::removeComponent( ScnRenderableComponentWeakRef Component )
+void ScnSpatialTreeNode::removeComponent( ScnSpatialComponent* Component )
 {
 	// Remove from self/owner.
 	ScnSpatialTreeNode* pNode = Component->getSpatialTreeNode();
@@ -80,7 +85,7 @@ void ScnSpatialTreeNode::removeComponent( ScnRenderableComponentWeakRef Componen
 
 //////////////////////////////////////////////////////////////////////////
 // reinsertComponent
-void ScnSpatialTreeNode::reinsertComponent( ScnRenderableComponentWeakRef Component )
+void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 {
 	// If we've got no children, check if we need to subdivide.
 	if( pChild( 0 ) == NULL )
@@ -139,11 +144,11 @@ void ScnSpatialTreeNode::reinsertComponent( ScnRenderableComponentWeakRef Compon
 void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
 {
 	// Visit this Components objects if they are inside the frustum.
-	ScnRenderableComponentWeakRefList::iterator Iter = ComponentList_.begin();
+	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
 
 	while( Iter != ComponentList_.end() )
 	{
-		ScnRenderableComponentWeakRef Component = *Iter;
+		ScnSpatialComponent* Component = *Iter;
 
 		if( Component->getAABB().isEmpty() || Viewport.intersect( Component->getAABB() ) == BcTrue )
 		{
@@ -172,11 +177,11 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const RsViewport& View
 void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds )
 {
 	// Visit this Components objects if they are inside the frustum.
-	ScnRenderableComponentWeakRefList::iterator Iter = ComponentList_.begin();
+	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
 
 	while( Iter != ComponentList_.end() )
 	{
-		ScnRenderableComponentWeakRef Component = *Iter;
+		ScnSpatialComponent* Component = *Iter;
 
 		if( Component->getAABB().isEmpty() || Bounds.boxIntersect( Component->getAABB(), NULL ) == BcTrue )
 		{
@@ -231,7 +236,7 @@ BcOctTreeNode* ScnSpatialTree::createNode( const BcAABB& AABB )
 
 //////////////////////////////////////////////////////////////////////////
 // addComponent
-void ScnSpatialTree::addComponent( ScnRenderableComponentWeakRef Component )
+void ScnSpatialTree::addComponent( ScnSpatialComponent* Component )
 {
 	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
 
@@ -240,7 +245,7 @@ void ScnSpatialTree::addComponent( ScnRenderableComponentWeakRef Component )
 
 //////////////////////////////////////////////////////////////////////////
 // removeComponent
-void ScnSpatialTree::removeComponent( ScnRenderableComponentWeakRef Component )
+void ScnSpatialTree::removeComponent( ScnSpatialComponent* Component )
 {
 	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
 

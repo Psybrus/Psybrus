@@ -16,15 +16,15 @@
 
 #include "System/Renderer/RsCore.h"
 #include "System/Scene/ScnTypes.h"
-#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnSpatialComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnRenderableComponent
 class ScnRenderableComponent:
-	public ScnComponent
+	public ScnSpatialComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnRenderableComponent );
+	DECLARE_RESOURCE( ScnSpatialComponent, ScnRenderableComponent );
 	DECLARE_VISITABLE( ScnRenderableComponent );
 
 public:
@@ -38,30 +38,13 @@ public:
 	const BcU32							getRenderMask() const;
 
 	/**
-	 * Set lighting material parameters.
+	 * Is this renderable component lit?
 	 */
-	void								setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent );
-
-	/**
-	 * Set the spatial tree node we belong in.
-	 */
-	void								setSpatialTreeNode( ScnSpatialTreeNode* pNode );
-
-	/**
-	 * Get the spatial tree node we are in.
-	 */
-	ScnSpatialTreeNode*					getSpatialTreeNode();
-
-	virtual BcAABB						getAABB() const;
-
 	BcBool								isLit() const;
 
 private:
 	BcU32								RenderMask_;		// Used to specify what kind of object it is for selectively rendering with certain views.
 	BcBool								IsLit_;				// Does this need to be lit?
-	ScnSpatialTreeNode*					pSpatialTreeNode_;
-
-	class ScnLightManagerComponent*		LightManager_;
 };
 
 #endif

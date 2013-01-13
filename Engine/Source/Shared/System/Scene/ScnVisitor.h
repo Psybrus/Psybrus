@@ -45,7 +45,17 @@ public:
 	/**
 	*	Called when a component is hit.
 	*/
+	virtual void visit( class ScnSpatialComponent* pComponent );
+
+	/**
+	*	Called when a component is hit.
+	*/
 	virtual void visit( class ScnRenderableComponent* pComponent );
+
+	/**
+	*	Called when a component is hit.
+	*/
+	virtual void visit( class ScnLightComponent* pComponent );
 
 private:
 

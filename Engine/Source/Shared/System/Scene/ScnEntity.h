@@ -20,13 +20,7 @@
 #include "Events/EvtProxyBuffered.h"
 
 #include "System/Scene/ScnTypes.h"
-
 #include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnRenderableComponent.h"
-#include "System/Scene/ScnViewComponent.h"
-
-#include "System/Scene/ScnSpatialTree.h"
-#include "System/Scene/ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity

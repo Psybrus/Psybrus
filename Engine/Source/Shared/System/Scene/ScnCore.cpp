@@ -21,6 +21,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include "System/Scene/ScnSpatialComponent.h"
+
 #include "System/Scene/ScnRenderingVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -303,8 +305,15 @@ void ScnCore::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// visitBounds
+void ScnCore::visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds )
+{
+	pSpatialTree_->visitBounds( pVisitor, Bounds );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttachComponent
-void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
+void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Component )
 {
 	// NOTE: Useful for debugging and temporary gathering of "special" components.
 	//       Will be considering alternative approaches to this.
@@ -313,12 +322,12 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Add view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
 	{
-		ViewComponentList_.push_back( ScnViewComponentRef( Component ) );
+		ViewComponentList_.push_back( static_cast< ScnViewComponent* >( Component ) );
 	}
-	// Add renderable components to the spatial tree. (TODO: Use flags or something)
-	else if( Component->isTypeOf< ScnRenderableComponent >() )
+	// Add spatial components to the spatial tree. (TODO: Use flags or something)
+	else if( Component->isTypeOf< ScnSpatialComponent >() )
 	{
-		pSpatialTree_->addComponent( ScnRenderableComponentWeakRef( Component ) );
+		pSpatialTree_->addComponent( static_cast< ScnSpatialComponent* >( Component ) );
 	}
 
 	// All go into the appropriate list.
@@ -330,7 +339,7 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 
 //////////////////////////////////////////////////////////////////////////
 // onDetachComponent
-void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
+void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Component )
 {
 	// NOTE: Useful for debugging and temporary gathering of "special" components.
 	//       Will be considering alternative approaches to this.
@@ -340,12 +349,12 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Remove view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
 	{
-		ViewComponentList_.remove( ScnViewComponentRef( Component ) );
+		ViewComponentList_.remove( static_cast< ScnViewComponent* >( Component ) );
 	}
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
-	else if( Component->isTypeOf< ScnRenderableComponent >() )
+	else if( Component->isTypeOf< ScnSpatialComponent >() )
 	{
-		pSpatialTree_->removeComponent( ScnRenderableComponentWeakRef( Component ) );
+		pSpatialTree_->removeComponent( static_cast< ScnSpatialComponent* >( Component ) );
 	}
 
 	// Erase from component list.
