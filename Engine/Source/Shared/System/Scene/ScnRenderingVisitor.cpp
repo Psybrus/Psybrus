@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/ScnRenderingVisitor.h"
+#include "System/Scene/ScnRenderableComponent.h"
 
 #include "System/Scene/ScnCore.h"
 

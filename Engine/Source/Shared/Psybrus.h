@@ -76,7 +76,6 @@
 #include "System/Scene/ScnTextureAtlas.h"
 #include "System/Scene/ScnRenderTarget.h"
 #include "System/Scene/ScnLightComponent.h"
-#include "System/Scene/ScnLightManagerComponent.h"
 #include "System/Scene/ScnMaterial.h"
 #include "System/Scene/ScnModel.h"
 #include "System/Scene/ScnParticleSystemComponent.h"

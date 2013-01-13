@@ -13,6 +13,9 @@
 
 #include "System/Scene/ScnModel.h"
 #include "System/Scene/ScnEntity.h"
+#include "System/Scene/ScnViewComponent.h"
+
+#include "System/Scene/ScnLightingVisitor.h"
 
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
@@ -492,7 +495,11 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 {
 	Super::render( pViewComponent, pFrame, Sort );
 
+	// Wait for model to have updated.
 	UpdateFence_.wait();
+
+	// Gather lights.
+	ScnLightingVisitor LightingVisitor( this );
 
 	ScnModelPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
 	ScnModelPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
@@ -527,7 +534,7 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		}
 
 		// Set lighting parameters.
-		setLightingMaterialParams( MaterialComponentDesc.MaterialComponentRef_ );
+		LightingVisitor.setMaterialParameters( MaterialComponentDesc.MaterialComponentRef_ );
 			
 		// Set material components for view.
 		pViewComponent->setMaterialParameters( MaterialComponentDesc.MaterialComponentRef_ );

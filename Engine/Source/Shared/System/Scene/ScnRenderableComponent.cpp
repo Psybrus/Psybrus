@@ -15,13 +15,13 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 
-#include "System/Scene/ScnLightManagerComponent.h"
+#include "System/Scene/ScnLightingVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnRenderableComponent )
+BCREFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnRenderableComponent )
 	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
 BCREFLECTION_DERIVED_END();
 
@@ -33,8 +33,6 @@ void ScnRenderableComponent::initialise()
 
 	setRenderMask( 1 );
 	IsLit_ = BcFalse;
-	pSpatialTreeNode_ = NULL;
-	LightManager_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,9 +61,6 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 void ScnRenderableComponent::postUpdate( BcF32 Tick )
 {
 	Super::update( Tick );
-
-	// Reinsert node if we need to.
-	pSpatialTreeNode_->reinsertComponent( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,9 +77,6 @@ void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsF
 void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
-
-	// Grab the light manager.
-	LightManager_ = getParentEntity()->getComponentAnyParentByType< ScnLightManagerComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,8 +85,6 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
-
-	LightManager_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -109,40 +99,6 @@ void ScnRenderableComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnRenderableComponent::getRenderMask() const
 {
 	return RenderMask_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setLightingMaterialParams
-void ScnRenderableComponent::setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent )
-{
-	if( IsLit_ && LightManager_ != NULL )
-	{
-		LightManager_->setMaterialParameters( MaterialComponent );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSpatialTreeNode
-void ScnRenderableComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
-{
-	pSpatialTreeNode_ = pNode;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getSpatialTreeNode
-ScnSpatialTreeNode* ScnRenderableComponent::getSpatialTreeNode()
-{
-	return pSpatialTreeNode_;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// getAABB
-//virtual
-BcAABB ScnRenderableComponent::getAABB() const
-{
-	BcAssertMsg( BcFalse, "ScnRenderableComponent: Not implemented a getAABB!" );
-	return BcAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -29,6 +29,7 @@ static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] =
 	{ scnSPF_SKINNED_3D | scnSPF_UNLIT,										NULL, "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf" },
 	{ scnSPF_PARTICLE_3D | scnSPF_UNLIT,									NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
 
+	{ scnSPF_STATIC_3D | scnSPF_DIFFUSE_LIT,								NULL, "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf" },
 	{ scnSPF_SKINNED_3D | scnSPF_DIFFUSE_LIT,								NULL, "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf" },
 };
 

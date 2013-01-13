@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/ScnParticleSystemComponent.h"
+#include "System/Scene/ScnViewComponent.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"

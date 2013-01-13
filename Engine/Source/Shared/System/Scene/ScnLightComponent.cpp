@@ -2,7 +2,7 @@
 *
 * File:		ScnLightComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	28/12/11	
+* Ver/Date:	11/01/13
 * Description:
 *		
 *		
@@ -14,7 +14,6 @@
 #include "System/Renderer/RsCore.h"
 
 #include "System/Scene/ScnLightComponent.h"
-#include "System/Scene/ScnLightManagerComponent.h"
 #include "System/Scene/ScnMaterial.h"
 
 #include "System/Scene/ScnEntity.h"
@@ -24,7 +23,7 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnLightComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnLightComponent )
+BCREFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnLightComponent )
 	BCREFLECTION_MEMBER( ScnLightType,						Type_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( RsColour,							AmbientColour_,					bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( RsColour,							DiffuseColour_,					bcRFF_DEFAULT ),
@@ -52,6 +51,18 @@ void ScnLightComponent::initialise()
 void ScnLightComponent::initialise( const Json::Value& Object )
 {
 	initialise();
+
+	const Json::Value& AmbientColourValue = Object[ "ambientcolour" ];
+	if( AmbientColourValue != Json::nullValue )
+	{
+		AmbientColour_ = BcVec4d( AmbientColourValue.asCString() );
+	}
+
+	const Json::Value& DiffuseColourValue = Object[ "diffusecolour" ];
+	if( DiffuseColourValue != Json::nullValue )
+	{
+		DiffuseColour_ = BcVec4d( DiffuseColourValue.asCString() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,11 +71,6 @@ void ScnLightComponent::initialise( const Json::Value& Object )
 void ScnLightComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
-
-	LightManager_ = getParentEntity()->getComponentAnyParentByType< ScnLightManagerComponent >();
-	BcAssertMsg( LightManager_ != NULL, "Can't find an ScnLightManagerComponent in any of our entity's parents. Did you forget to add one to the root entity, or did you attach this entity to the wrong parent?" );
-
-	LightManager_->registerLightComponent( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,9 +79,6 @@ void ScnLightComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnLightComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
-
-	LightManager_->unregisterLightComponent( this );
-	LightManager_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,4 +164,14 @@ void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComp
 	                                       AttnC_,
 	                                       AttnL_,
 	                                       AttnQ_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+BcAABB ScnLightComponent::getAABB() const
+{
+	const BcF32 MinAttn = 0.01f;
+	const BcF32 MaxDistance = findDistanceByAttenuation( MinAttn );
+	const BcVec3d MaxDistanceVec3( MaxDistance, MaxDistance, MaxDistance );
+	return BcAABB( -MaxDistanceVec3, MaxDistanceVec3 );
 }
