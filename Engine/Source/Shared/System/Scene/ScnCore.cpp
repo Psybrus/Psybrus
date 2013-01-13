@@ -401,7 +401,7 @@ void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 	ScnEntityRef Entity = createEntity( EntitySpawnData.Package_, EntitySpawnData.Name_, EntitySpawnData.InstanceName_ );
 
 	// Set it's transform.
-	Entity->setMatrix( EntitySpawnData.Transform_ );
+	Entity->setLocalMatrix( EntitySpawnData.Transform_ );
 
 	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
 	if( EntitySpawnData.Parent_.isValid() )

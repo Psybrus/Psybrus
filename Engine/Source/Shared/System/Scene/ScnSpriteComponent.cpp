@@ -67,7 +67,7 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	Super::postUpdate( Tick );
 
 	ScnEntityWeakRef Entity = getParentEntity();
-	const BcMat4d& Matrix = Entity->getMatrix();
+	const BcMat4d& Matrix = Entity->getWorldMatrix();
 
 	// Push matrix onto canvas.
 	Canvas_->pushMatrix( Matrix );

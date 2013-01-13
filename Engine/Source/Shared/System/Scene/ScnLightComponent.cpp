@@ -63,6 +63,16 @@ void ScnLightComponent::initialise( const Json::Value& Object )
 	{
 		DiffuseColour_ = BcVec4d( DiffuseColourValue.asCString() );
 	}
+
+	const Json::Value& MinValue = Object[ "min" ];
+	const Json::Value& MidValue = Object[ "mid" ];
+	const Json::Value& MaxValue = Object[ "max" ];
+	if( MinValue != Json::nullValue &&
+		MidValue != Json::nullValue &&
+		MaxValue != Json::nullValue )
+	{
+		createAttenuationValues( MinValue.asDouble(), MidValue.asDouble(), MaxValue.asDouble() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,8 +164,8 @@ void ScnLightComponent::createAttenuationValues( BcF32 MinDistance, BcF32 MidDis
 // setMaterialParameters
 void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComponent* MaterialComponent )
 {
-	const BcVec4d& Position( getParentEntity()->getMatrix().row3() );
-	const BcVec4d& Direction( getParentEntity()->getMatrix().row2() );
+	const BcVec4d& Position( getParentEntity()->getWorldMatrix().row3() );
+	const BcVec4d& Direction( getParentEntity()->getWorldMatrix().row2() );
 	MaterialComponent->setLightParameters( LightIndex,
 	                                       BcVec3d( Position.x(), Position.y(), Position.z() ),
 	                                       BcVec3d( Direction.x(), Direction.y(), Direction.z() ),

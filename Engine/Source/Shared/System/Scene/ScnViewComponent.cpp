@@ -190,7 +190,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Far_ );
 
 	// Setup the view matrix.
-	InverseViewMatrix_ = getParentEntity()->getMatrix();
+	InverseViewMatrix_ = getParentEntity()->getWorldMatrix();
 	BcMat4d ViewMatrix( InverseViewMatrix_ );
 	ViewMatrix.inverse();	
 	Viewport_.view( ViewMatrix );

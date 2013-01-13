@@ -388,9 +388,9 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	// TODO: Break out into it's own job class.
 	typedef BcDelegate< void(*)( BcMat4d ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
-	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, getParentEntity()->getMatrix() );
+	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, getParentEntity()->getWorldMatrix() );
 #else
-	updateNodes( getParentEntity()->getMatrix() );
+	updateNodes( getParentEntity()->getWorldMatrix() );
 #endif
 }
 
