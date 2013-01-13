@@ -58,7 +58,7 @@ BcF32 BcRandom::randReal()
 // randRange
 BcS32 BcRandom::randRange( BcS32 Min, BcS32 Max )
 {
-	return BcClamp( ( Min + ( rand() % ( Max - Min ) ) ), Min, Max );
+	return BcClamp( ( Min + ( rand() % ( 1 + Max - Min ) ) ), Min, Max );
 }
 
 //////////////////////////////////////////////////////////////////////////

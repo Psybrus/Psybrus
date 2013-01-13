@@ -271,7 +271,7 @@ inline void BcMat4d::transpose()
 inline BcVec2d operator * ( const BcVec2d& Lhs, const BcMat4d& Rhs )
 {
 	return BcVec2d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Rhs[3][0],
-				   Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Rhs[3][1] );
+				    Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Rhs[3][1] );
 }
 
 inline BcVec3d operator * ( const BcVec3d& Lhs, const BcMat4d& Rhs )

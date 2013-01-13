@@ -79,7 +79,9 @@ void ScnLightingVisitor::setMaterialParameters( class ScnMaterialComponent* Mate
 	BcU32 Count = BcMin( (BcU32)4, (BcU32)LightComponents_.size() );
 	for( BcU32 Idx = 0; Idx < Count; ++Idx )
 	{
-		LightComponents_[ Idx ]->setMaterialParameters( Idx, MaterialComponent );
+		ScnLightComponent* LightComponent = LightComponents_[ Idx ];
+		LightComponent->setMaterialParameters( Idx, MaterialComponent );
+
 	}	
 
 	for( BcU32 Idx = Count; Idx < 4; ++Idx )

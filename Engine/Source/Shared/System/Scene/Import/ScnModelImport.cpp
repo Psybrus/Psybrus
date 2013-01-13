@@ -87,7 +87,8 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 	ScnModelNodePropertyData NodePropertyData = 
 	{
 		ParentIndex,
-		pImporter_->addString( BcName::StripInvalidChars( pNode->name() ).c_str() )
+		pImporter_->addString( BcName::StripInvalidChars( pNode->name() ).c_str() ),
+		pNode->type() == eNT_JOINT
 	};
 	
 	// Serialise.
@@ -150,6 +151,7 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		ScnModelPrimitiveData PrimitiveData = 
 		{
 			ParentIndex,
+			BcFalse,
 			rsPT_TRIANGLELIST,	
 			VertexFormat,
 			ShaderPermutation,
@@ -224,6 +226,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		ScnModelPrimitiveData PrimitiveData = 
 		{
 			ParentIndex,
+			BcTrue,
 			rsPT_TRIANGLELIST,	
 			VertexFormat,
 			ShaderPermutation,

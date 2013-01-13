@@ -426,10 +426,46 @@ void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
 	{
 		ScnModelPrimitiveRuntime* pNodePrimitiveRuntime = &Parent_->PrimitiveRuntimes_[ PrimitiveIdx ];
 		ScnModelPrimitiveData* pNodePrimitiveData = &Parent_->pPrimitiveData_[ pNodePrimitiveRuntime->PrimitiveDataIndex_ ];
-		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
+
+		// Special case the skinned models for now.
+		if( pNodePrimitiveData->IsSkinned_ == BcFalse )
+		{
+			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
 		
-		BcAABB PrimitiveAABB = pNodePrimitiveData->AABB_;
-		FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
+			BcAABB PrimitiveAABB = pNodePrimitiveData->AABB_;
+			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
+		}
+		else
+		{
+			BcAABB SkeletalAABB;
+			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
+			{
+				BcU32 BoneIndex = pNodePrimitiveData->BonePalette_[ Idx ];
+				if( BoneIndex != BcErrorCode )
+				{
+					// Get the distance from the parent bone, and make an AABB that size.
+					ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ BoneIndex ];
+					if( pNodePropertyData->ParentIndex_ != BcErrorCode && pNodePropertyData->IsBone_ )
+					{
+						ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ BoneIndex ];
+						ScnModelNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
+						BcAABB NewAABB( pNodeTransformData->AbsoluteTransform_.translation(), pParentNodeTransformData->AbsoluteTransform_.translation() );
+
+						//
+						SkeletalAABB.expandBy( NewAABB );
+					}
+				}
+			}
+
+			// HACK: Expand AABB slightly to cover skin. Should calculate bone sizes and pack them really.
+			BcVec3d Centre = SkeletalAABB.centre();
+			BcVec3d Dimensions = SkeletalAABB.dimensions() * 0.75f;	// 1.5 x size.
+			SkeletalAABB.min( Centre - Dimensions );
+			SkeletalAABB.max( Centre + Dimensions );
+
+			//
+			FullAABB.expandBy( SkeletalAABB );
+		}
 	}
 
 	AABB_ = FullAABB;

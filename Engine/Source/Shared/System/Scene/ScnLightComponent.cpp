@@ -18,6 +18,7 @@
 
 #include "System/Scene/ScnEntity.h"
 
+#include "System/Scene/ScnDebugRenderComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -77,6 +78,13 @@ void ScnLightComponent::initialise( const Json::Value& Object )
 
 //////////////////////////////////////////////////////////////////////////
 // onAttach
+void ScnLightComponent::update( BcF32 Tick )
+{
+	//ScnDebugRenderComponent::pImpl()->drawEllipsoid( getParentEntity()->getWorldPosition(), BcVec3d( 1.0f, 1.0f, 1.0f ), DiffuseColour_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
 //virtual
 void ScnLightComponent::onAttach( ScnEntityWeakRef Parent )
 {
@@ -89,6 +97,20 @@ void ScnLightComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnLightComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAmbientColour
+const RsColour& ScnLightComponent::getAmbientColour() const
+{
+	return AmbientColour_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getDiffuseColour
+const RsColour& ScnLightComponent::getDiffuseColour() const
+{
+	return DiffuseColour_;
 }
 
 //////////////////////////////////////////////////////////////////////////
