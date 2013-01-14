@@ -19,6 +19,7 @@
 #include "Base/BcQuat.h"
 #include "Base/BcPlane.h"
 #include "Base/BcAABB.h"
+#include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Defines
@@ -140,7 +141,10 @@ struct MdlVertex
 		Colour_( MdlColour( 1.0f, 1.0f, 1.0f, 1.0f ) ),
 		bColour_( BcFalse ),
 		nWeights_( 0 )
-	{}
+	{
+		BcMemSet( &iJoints_, 0xff, sizeof( iJoints_ ) );
+		BcMemSet( &Weights_, 0, sizeof( Weights_ ) );
+	}
 
 	MdlPosition Position_;
 	BcBool bPosition_;
@@ -164,9 +168,7 @@ struct MdlVertex
 
 struct MdlAnimKey
 {
-	BcQuat	R_;
-	BcVec3d S_;
-	BcVec3d T_;
+	BcMat4d Matrix_;
 };
 
 struct MdlAnimNode
@@ -175,6 +177,119 @@ struct MdlAnimNode
 	BcChar					Parent_[ MDL_NODENAME_LEN ];
 	std::vector< MdlAnimKey > KeyList_;
 };
+
+struct MdlTriangle
+{
+	MdlVertex Vertex_[ 3 ];
+};
+
+struct MdlBonePalette
+{
+	std::vector< BcU32 > BonePalette_;
+
+	MdlBonePalette( BcU32 Size = 24 )
+	{
+		BonePalette_.resize( Size );
+		for( BcU32 Idx = 0; Idx < Size; ++Idx )
+		{
+			BonePalette_[ Idx ] = BcErrorCode;
+		}
+	}
+	
+	BcBool haveJoint( BcU32 JointIdx ) const
+	{
+		for( BcU32 Idx = 0; Idx < BonePalette_.size(); ++Idx )
+		{
+			const BcU32& BoneIdx = BonePalette_[ Idx ];
+			if( BoneIdx == JointIdx )
+			{
+				return BcTrue;
+			}
+		}
+
+		return BcFalse;
+	}
+
+	BcU32 addJoint( BcU32 JointIdx )
+	{
+		for( BcU32 Idx = 0; Idx < BonePalette_.size(); ++Idx )
+		{
+			BcU32& BoneIdx = BonePalette_[ Idx ];
+			if( BoneIdx == BcErrorCode ||
+				BoneIdx == JointIdx )
+			{
+				BoneIdx = JointIdx;
+				return Idx;
+			}
+		}
+
+		return BcErrorCode;
+	}
+
+	BcU32 freeBonePaletteEntries() const
+	{
+		BcU32 TotalFree = 0;
+		for( BcU32 Idx = 0; Idx < BonePalette_.size(); ++Idx )
+		{
+			if( BonePalette_[ Idx ] == BcErrorCode )
+			{
+				++TotalFree;
+			}
+		}
+		return TotalFree;
+	}
+
+	BcBool addTriangle( MdlTriangle& Triangle )
+	{
+		BcU32 FreeBonePaletteEntries = freeBonePaletteEntries();
+		for( BcU32 TriIdx = 0; TriIdx < 3; ++TriIdx )
+		{
+			MdlVertex& Vertex = Triangle.Vertex_[ TriIdx ];
+			for( BcU32 JointIdx = 0; JointIdx < 4; ++JointIdx )
+			{
+				BcF32 Weight = Vertex.Weights_[ JointIdx ];
+				BcU32 Joint = Vertex.iJoints_[ JointIdx ];
+				if( Weight > 0.0f && Joint != BcErrorCode )
+				{
+					if( haveJoint( Joint ) == BcFalse )
+					{
+						if( FreeBonePaletteEntries > 0 )
+						{
+							--FreeBonePaletteEntries;
+						}
+						else
+						{
+							return BcFalse;
+						}
+					}
+				}
+			}
+		}
+
+		for( BcU32 TriIdx = 0; TriIdx < 3; ++TriIdx )
+		{
+			MdlVertex& Vertex = Triangle.Vertex_[ TriIdx ];
+			for( BcU32 JointIdx = 0; JointIdx < 4; ++JointIdx )
+			{
+				BcF32& Weight = Vertex.Weights_[ JointIdx ];
+				BcU32& Joint = Vertex.iJoints_[ JointIdx ];
+				if( Weight > 0.0f && Joint != BcErrorCode )
+				{
+					Joint = addJoint( Joint );
+					BcAssert( Joint != BcErrorCode );
+				}
+				else
+				{
+					Weight = 0.0f;
+					Joint = BcErrorCode;
+				}
+			}
+		}
+
+		return BcTrue;
+	}
+};
+
 
 class MdlLight
 {
@@ -240,6 +355,7 @@ struct MdlEntityProp
 // Utility
 
 typedef std::vector< MdlIndex >			MdlIndexArray;
+typedef std::vector< MdlTriangle >		MdlTriangleArray;
 typedef std::vector< MdlVertex >		MdlVertexArray;
 typedef std::vector< MdlMaterial >		MdlMaterialArray;
 typedef std::vector< MdlEntityProp >	MdlEntityPropArray;

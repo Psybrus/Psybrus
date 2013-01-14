@@ -55,8 +55,8 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 		return NULL;
 	}
 
-	BcChar Buffer[1024];
-	BcChar Command[1024];
+	BcChar Buffer[4096];
+	BcChar Command[4096];
 	BcChar* pBuffer;
 
 	// Begin the parsage.
@@ -83,7 +83,7 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 				{
 					*pBuffer = TheChar;
 					++pBuffer;
-					Ret	= ( pBuffer < ( Buffer + 1024 ) );
+					Ret	= ( pBuffer < ( Buffer + 4096 ) );
 					BcAssert( Ret );
 					if( !Ret )
 					{
@@ -284,9 +284,14 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	delete [] pMeshes_;
 	pMeshes_ = NULL;
 
-	//
 	BcMat4d RootTransform;
-	RootTransform.identity();
+#if 1
+	// Convert from Z up to Y up & right hand to left hand.
+	RootTransform.row0( BcVec4d(  1.0f,  0.0f,  0.0f,  0.0f ) );
+	RootTransform.row1( BcVec4d(  0.0f,  0.0f,  1.0f,  0.0f ) );
+	RootTransform.row2( BcVec4d(  0.0f, -1.0f,  0.0f,  0.0f ) );
+	RootTransform.row3( BcVec4d(  0.0f,  0.0f,  0.0f,  1.0f ) );
+#endif
 	pRootNode->makeRelativeTransform( RootTransform );
 
 	return pRootNode;
@@ -320,16 +325,16 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 	BcU32 iMaterial = pMesh->addMaterial( Material );
 
 	// Add indices.
+	BcU32 BaseIndex = pMesh->nVertices();
 	for( BcU32 i = 0; i < pMeshes->nIndices_; ++i )
 	{
 		MdlIndex Index;
 		Index.iMaterial_ = iMaterial;
-		Index.iVertex_ = pMeshes->pIndices_[ i ];
+		Index.iVertex_ = pMeshes->pIndices_[ i ] + BaseIndex;
 		pMesh->addIndex( Index );
 	}
 
 	BcVec3d WeightPos;
-
 	for ( BcU32 i = 0; i < pMeshes->nVerts_; ++i )
 	{
 		MD5_Vert* pMD5Vert = &pMeshes->pVerts_[ i ];
@@ -345,15 +350,14 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 		for ( BcU32 j = 0; j < 4; ++j )
 		{
 			Vert.Weights_[ j ] = 0.0f;
-			Vert.iJoints_[ j ]  = 0;
+			Vert.iJoints_[ j ]  = BcErrorCode;
 		}
 
-		// Get bind pose vertex.
+		// Create weights.
 		Vert.nWeights_ = 0;
-
 		for ( BcU32 j = 0; j < pMD5Vert->nWeights_; ++j )
 		{
-			if ( j > 4 ) 
+			if ( j > 3 ) 
 			{
 				break;
 			}
@@ -361,27 +365,14 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 			BcU32 WeightIndex = pMD5Vert->WeightIndex_ + j;
 			MD5_Weight* pMD5Weight = &pMeshes->pWeights_[ WeightIndex ];
 
-			// Fix up a joint.
-			MD5_Joint* pJoint = &pJoints[ pMD5Weight->JointID_ ];
-			BcVec3d JointTran( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
-			BcQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
-			JointRot.calcFromXYZ();
-
-			//
-			const BcF32 WeightVal = pMD5Weight->Weight_;
-
-			WeightPos.set( pMD5Weight->X_, pMD5Weight->Y_, pMD5Weight->Z_ );
-
-			JointRot.rotateVector( WeightPos );
-			Position += ( WeightPos + JointTran ) * WeightVal;
-
 			// Setup vertex indices and weights:
 			Vert.iJoints_[ j ] = pMD5Weight->JointID_;
-			Vert.Weights_[ j ] = WeightVal;
+			Vert.Weights_[ j ] = pMD5Weight->Weight_;
 			Vert.nWeights_++;
 		}
 
-		// Correct weights.
+		// Normalise weights.
+
 		BcF32 WeightTotal = 0.0f;
 
 		for( BcU32 j = 0; j < Vert.nWeights_; ++j )
@@ -392,6 +383,36 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 		for( BcU32 j = 0; j < Vert.nWeights_; ++j )
 		{
 			Vert.Weights_[ j ] = Vert.Weights_[ j ] / WeightTotal;
+		}
+		
+		// Generate bind pose.
+		BcVec3d VertexWeights[ 4 ];
+		BcVec3d JointPositions[ 4 ];
+		BcQuat JointQuats[ 4 ];
+		for ( BcU32 j = 0; j < Vert.nWeights_; ++j )
+		{
+			BcU32 WeightIndex = pMD5Vert->WeightIndex_ + j;
+			MD5_Weight* pMD5Weight = &pMeshes->pWeights_[ WeightIndex ];
+
+			// Fix up a joint.
+			MD5_Joint* pJoint = &pJoints[ pMD5Weight->JointID_ ];
+			BcVec3d JointTran( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
+			BcQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
+			JointRot.calcFromXYZ();
+
+			VertexWeights[ j ] = BcVec3d( pMD5Weight->X_, pMD5Weight->Y_, pMD5Weight->Z_ );
+			JointPositions[ j ] = JointTran;
+			JointQuats[ j ] = JointRot;
+		}
+
+		for ( BcU32 j = 0; j < Vert.nWeights_; ++j )
+		{
+			BcVec3d WeightPos( VertexWeights[ j ] );
+			const BcVec3d& JointTran( JointPositions[ j ] );
+			const BcQuat& JointRot( JointQuats[ j ] );
+
+			JointRot.rotateVector( WeightPos );
+			Position += ( WeightPos + JointTran ) * Vert.Weights_[ j ];
 		}
 
 

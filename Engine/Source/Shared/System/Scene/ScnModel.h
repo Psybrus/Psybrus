@@ -40,16 +40,6 @@ public:
 	
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-	void								recursiveSerialiseNodes( class CsPackageImporter& Importer,
-										                         class BcStream& TransformStream,
-																 class BcStream& PropertyStream,
-																 class BcStream& VertexStream,
-																 class BcStream& IndexStream,
-																 class BcStream& PrimitiveStream,
-																 class MdlNode* pNode,
-																 BcU32 ParentIndex,
-																 BcU32& NodeIndex,
-																 BcU32& PrimitiveIndex );
 #endif
 	
 	virtual void						initialise();
@@ -82,13 +72,16 @@ class ScnModelComponent:
 public:
 	DECLARE_RESOURCE( ScnRenderableComponent, ScnModelComponent );
 
-	virtual void						initialise( ScnModelRef Parent );
+	virtual void						initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
 
 	virtual BcAABB						getAABB() const;
 
-	void								setTransform( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+	BcU32								findNodeIndexByName( const BcName& Name ) const;
+	void								setNode( BcU32 NodeIdx, const BcMat4d& LocalTransform );
+	const BcMat4d&						getNode( BcU32 NodeIdx ) const;
+	BcU32								getNoofNodes() const;
 
 	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );

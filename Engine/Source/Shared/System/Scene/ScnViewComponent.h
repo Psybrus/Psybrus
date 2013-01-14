@@ -17,7 +17,6 @@
 #include "System/Renderer/RsCore.h"
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnRenderTarget.h"
-#include "System/Scene/ScnMaterial.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -41,10 +40,9 @@ public:
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	void								initialise();
-	void								initialise( BcF32 X, BcF32 Y, BcF32 Width, BcF32 Height, BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV );
 	virtual void						initialise( const Json::Value& Object );
 
-	void								setMaterialParameters( ScnMaterialComponentRef MaterialComponent );
+	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
 	const RsViewport&					getViewport() const;
 

@@ -156,7 +156,7 @@ void ScnSoundEmitterComponent::onPlaying( SsChannel* pSound )
 		//pSound->maxDistance( 1.0f );
 		//pSound->maxDistance( 1.0f );
 		pSound->rolloffFactor( 0.05f );
-		pSound->position( getParentEntity()->getMatrix().translation() );
+		pSound->position( getParentEntity()->getWorldMatrix().translation() );
 		pSound->pitch( Pitch_ );
 	}
 }

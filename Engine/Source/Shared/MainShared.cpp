@@ -41,6 +41,7 @@ void MainUnitTests()
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
 	// Register scene resources.
+	CsCore::pImpl()->registerResource< ScnAnimation >();
 	CsCore::pImpl()->registerResource< ScnShader >();
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
@@ -53,17 +54,24 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	// Register scene components.
 	CsCore::pImpl()->registerResource< ScnComponent >();
 	CsCore::pImpl()->registerResource< ScnRenderableComponent >();
+	CsCore::pImpl()->registerResource< ScnSpatialComponent >();
 	CsCore::pImpl()->registerResource< ScnEntity >();
+	CsCore::pImpl()->registerResource< ScnDebugRenderComponent >();
 	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
 	CsCore::pImpl()->registerResource< ScnFontComponent >();
 	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
+	CsCore::pImpl()->registerResource< ScnAnimationComponent >();
+	CsCore::pImpl()->registerResource< ScnLightComponent >();
 	CsCore::pImpl()->registerResource< ScnModelComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >();
 	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >();
 	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
-	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
+	// Register game resources before the view.
 	PsyGameRegisterResources();
+
+	// View is the last thing we want to update.
+	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
 	return evtRET_REMOVE;
 }
@@ -75,7 +83,9 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 	// Unregister scene resources.
 	CsCore::pImpl()->unregisterResource< ScnComponent >();
 	CsCore::pImpl()->unregisterResource< ScnRenderableComponent >();
+	CsCore::pImpl()->unregisterResource< ScnSpatialComponent >();
 	CsCore::pImpl()->unregisterResource< ScnEntity >();
+	CsCore::pImpl()->unregisterResource< ScnDebugRenderComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnShader >();
 	CsCore::pImpl()->unregisterResource< ScnTexture >();
@@ -87,6 +97,11 @@ eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
 
 	CsCore::pImpl()->unregisterResource< ScnFont >();
 	CsCore::pImpl()->unregisterResource< ScnFontComponent >();
+
+	CsCore::pImpl()->unregisterResource< ScnAnimation >();
+	CsCore::pImpl()->unregisterResource< ScnAnimationComponent >();
+
+	CsCore::pImpl()->unregisterResource< ScnLightComponent >();
 
 	CsCore::pImpl()->unregisterResource< ScnModel >();
 	CsCore::pImpl()->unregisterResource< ScnModelComponent >();
@@ -119,8 +134,8 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 void MainShared()
 {
 	// Setup system threads.
-	FsCore::WORKER_MASK = 0x1;
-	RsCore::WORKER_MASK = 0x2;
+	RsCore::WORKER_MASK = 0x1;
+	FsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
 	// Test resource naming.

@@ -27,12 +27,6 @@
 
 #define HASH_TYPE			HASH_SDBM
 
-//#define HASH_DEBUG
-
-#if defined(HASH_DEBUG)
-#include <string>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // BcHash
 class BcHash
@@ -51,6 +45,13 @@ public:
 	BcBool operator < ( const BcHash& Hash ) const;
 	BcBool operator > ( const BcHash& Hash ) const;
 
+public:
+	static BcU32	GenerateCRC32( const void* pInData, BcU32 Size );
+	static BcU32	GenerateSDBM( const void* pInData, BcU32 Size );
+	static BcU32	GenerateDJB( const void* pInData, BcU32 Size );
+	static BcU32	GenerateAP( const void* pInData, BcU32 Size );
+
+private:
 	/**
 	*	Hash a string.
 	*/
@@ -63,9 +64,6 @@ public:
 
 private:
 	BcU32			Value_;				///< 32bit hash value.
-#ifdef HASH_DEBUG
-	std::string		String_;			///< Debugging.
-#endif
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,41 +71,26 @@ private:
 inline BcHash::BcHash()
 {
 	Value_ = BcErrorCode;
-#ifdef HASH_DEBUG
-	String_ = "BcErrorCode";
-#endif
 }
 
 inline BcHash::BcHash( BcU32 Value )
 {
 	Value_ = Value;
-#ifdef HASH_DEBUG
-	String_ = "BcU32 Value";
-#endif
 }
 
 inline BcHash::BcHash( const BcChar* pString )
 {
 	Value_ = generateHash( pString );
-#ifdef HASH_DEBUG
-	String_ = pString;
-#endif
 }
 
 inline BcHash::BcHash( const BcU8* pData, BcU32 Bytes )
 {
 	Value_ = generateHash( pData, Bytes );
-#ifdef HASH_DEBUG
-	String_ = "Data Value";
-#endif
 }
 
 inline BcHash::BcHash( const BcHash& Hash )
 {
 	Value_ = Hash.Value_;
-#ifdef HASH_DEBUG
-	String_ = Hash.String_;
-#endif
 }
 
 inline BcHash::operator BcU32() const
@@ -118,30 +101,17 @@ inline BcHash::operator BcU32() const
 inline BcHash& BcHash::operator = ( BcU32 Value )
 {
 	Value_ = Value;
-#ifdef HASH_DEBUG
-	String_ =  "BcU32 Value";
-#endif
 	return *this;
 }
 
 inline BcHash& BcHash::operator = ( const BcHash& Hash )
 {
 	Value_ = Hash.Value_;
-#ifdef HASH_DEBUG
-	String_ = Hash.String_;
-#endif
 	return *this;
 }
 
 inline BcBool BcHash::operator == ( const BcHash& Hash ) const
 {
-#ifdef HASH_DEBUG
-	if( Value_ == Hash.Value_ )
-	{
-		BcAssertMsg( String_ == Hash.String_, "BcHash: Collision detected." );
-	}
-#endif
-
 	return Value_ == Hash.Value_;
 }
 

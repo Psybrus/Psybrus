@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/ScnParticleSystemComponent.h"
+#include "System/Scene/ScnViewComponent.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"
@@ -301,7 +302,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		// Bind material.
 		if( IsLocalSpace_ )
 		{
-			const BcMat4d& WorldTransform = getParentEntity()->getMatrix();
+			const BcMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
 			MaterialComponent_->setParameter( WorldTransformParam_, WorldTransform );
 		}
 		else
@@ -449,7 +450,7 @@ void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 	// Transform AABB.
 	if( IsLocalSpace_ )
 	{
-		const BcMat4d& WorldTransform = getParentEntity()->getMatrix();
+		const BcMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
 		AABB_ = FullAABB.transform( WorldTransform );
 	}
 	else

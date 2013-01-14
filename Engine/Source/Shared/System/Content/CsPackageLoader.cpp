@@ -32,7 +32,8 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 	pChunkData_( NULL ),
 	IsStringTableReady_( BcFalse ),
 	IsDataLoaded_( BcFalse ),
-	IsDataReady_( BcFalse )
+	IsDataReady_( BcFalse ),
+	PendingCallbackCount_( 0 )
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
 	{
@@ -588,23 +589,8 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 				BcU32 Hash = BcHash( ChunkData.pPackedData_, ChunkHeader.PackedBytes_ );
 				BcAssertMsg( Hash == ChunkHeader.PackedHash_, "Corrupted data." );
 
-				// TODO: Async decompress.
-
-				// Uncompress.
-				if( BcDecompressData( ChunkData.pPackedData_, ChunkHeader.PackedBytes_, ChunkData.pUnpackedData_, ChunkHeader.UnpackedBytes_ ) )
-				{
-					// Done, free packed data.
-					delete [] ChunkData.pPackedData_;
-					ChunkData.pPackedData_ = NULL;
-					
-					// Set status to ready.
-					ChunkData.Status_ = csPCS_READY;
-				}
-				else
-				{
-					BcBreakpoint;
-				}
-
+				decompressChunk( ResourceIdx, ChunkIdx );
+				return;
 			}
 		}
 		break;
@@ -623,6 +609,41 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 		break;
 	}
 
+	// If state has changed to ready, do callback.
+	CsResource* pResource = pPackage_->getResource( ResourceIdx );
+	if( ChunkData.Status_ == csPCS_READY && pResource != NULL )
+	{
+		// Queue up callback.
+		BcDelegate< void (*)( BcU32, BcU32, void* ) > Delegate( BcDelegate< void (*)( BcU32, BcU32, void* ) >::bind< CsResource, &CsResource::onFileChunkReady >( pResource ) );
+		SysKernel::pImpl()->enqueueCallback( Delegate, ResourceChunkIdx, ChunkHeader.ID_, ChunkData.pUnpackedData_ );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// decompressChunk
+void CsPackageLoader::decompressChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
+{
+	CsPackageResourceHeader& ResourceHeader = pResourceHeaders_[ ResourceIdx ];
+	CsPackageChunkHeader& ChunkHeader = pChunkHeaders_[ ChunkIdx ];
+	CsPackageChunkData& ChunkData = pChunkData_[ ChunkIdx ];
+
+	BcU32 ResourceChunkIdx = ChunkIdx - ResourceHeader.FirstChunk_;
+	BcAssert( ChunkIdx >= ResourceHeader.FirstChunk_ && ChunkIdx <= ResourceHeader.LastChunk_ );
+		
+	// Uncompress.
+	if( BcDecompressData( ChunkData.pPackedData_, ChunkHeader.PackedBytes_, ChunkData.pUnpackedData_, ChunkHeader.UnpackedBytes_ ) )
+	{
+		// Done, free packed data.
+		delete [] ChunkData.pPackedData_;
+		ChunkData.pPackedData_ = NULL;
+					
+		// Set status to ready.
+		ChunkData.Status_ = csPCS_READY;
+	}
+	else
+	{
+		BcBreakpoint;
+	}
 
 	// If state has changed to ready, do callback.
 	CsResource* pResource = pPackage_->getResource( ResourceIdx );

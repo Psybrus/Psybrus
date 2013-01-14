@@ -27,7 +27,7 @@ typedef CsResourceRef< class ScnTexture > ScnTextureRef;
 typedef std::vector< ScnTextureRef > ScnTextureList;
 typedef ScnTextureList::iterator ScnTextureListIterator;
 typedef ScnTextureList::const_iterator ScnTextureListConstIterator;
-typedef std::map< std::string, ScnTextureRef > ScnTextureMap;
+typedef std::map< BcName, ScnTextureRef > ScnTextureMap;
 typedef ScnTextureMap::iterator ScnTextureMapIterator;
 typedef ScnTextureMap::const_iterator ScnTextureMapConstIterator;
 

@@ -21,17 +21,15 @@
 enum ScnShaderPermutationFlags
 {
 	// Exclusive base implementations.
-	scnSPF_2D						= 0x00000001,		// 2D.
-	scnSPF_3D						= 0x00000002,		// 3D.
-	scnSPF_PARTICLE_3D				= 0x00000004,		// Particle 3D.
-	scnSPF_EXCLUSIVE_BASE = scnSPF_2D | scnSPF_3D | scnSPF_PARTICLE_3D,
-	
-	// Vertex processing.
-	scnSPF_STATIC					= 0x00000010,		// Static mesh.
-	scnSPF_SKINNED					= 0x00000020,		// Skinned mesh.
-	scnSPF_MORPH					= 0x00000040,		// Morph mesh.
-	
-	scnSPF_EXCLUSIVE_VERTEX = scnSPF_STATIC | scnSPF_SKINNED | scnSPF_MORPH
+	scnSPF_STATIC_2D				= 0x00000001,		// Static 2D.
+	scnSPF_STATIC_3D				= 0x00000002,		// Static 3D.
+	scnSPF_SKINNED_3D				= 0x00000004,		// Skinned 3D.
+	scnSPF_PARTICLE_3D				= 0x00000008,		// Particle 3D.
+	scnSPF_EXCLUSIVE_BASE = scnSPF_STATIC_2D | scnSPF_STATIC_3D | scnSPF_SKINNED_3D | scnSPF_PARTICLE_3D,
+
+	// Lighting.
+	scnSPF_UNLIT					= 0x00000010,		// Unlit geometry.
+	scnSPF_DIFFUSE_LIT				= 0x00000020,		// Diffuse lit geometry.
 };
 
 //////////////////////////////////////////////////////////////////////////

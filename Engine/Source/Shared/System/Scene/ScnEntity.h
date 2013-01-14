@@ -20,13 +20,7 @@
 #include "Events/EvtProxyBuffered.h"
 
 #include "System/Scene/ScnTypes.h"
-
 #include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnRenderableComponent.h"
-#include "System/Scene/ScnViewComponent.h"
-
-#include "System/Scene/ScnSpatialTree.h"
-#include "System/Scene/ScnVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
@@ -66,18 +60,18 @@ public:
 	/**
 	 * Get component.
 	 */
-	ScnComponentRef						getComponent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponent( BcU32 Idx = 0, const BcName& Type = BcName::INVALID );
 
 	/**
 	 * Get component.
 	 */
-	ScnComponentRef						getComponent( BcName Name, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponent( BcName Name, const BcName& Type = BcName::INVALID );
 
 	/**
 	 * Get component by type.
 	 */
 	template< typename _Ty >
-	ScnComponentRef						getComponentByType( BcU32 Idx )
+	ScnComponent*						getComponentByType( BcU32 Idx = 0 )
 	{
 		return getComponent( Idx, _Ty::StaticGetType() );
 	}
@@ -94,50 +88,60 @@ public:
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponentRef						getComponentAnyParent( BcU32 Idx, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponentAnyParent( BcU32 Idx = 0, const BcName& Type = BcName::INVALID );
 
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponentRef						getComponentAnyParent( BcName Name, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponentAnyParent( BcName Name, const BcName& Type = BcName::INVALID );
 
 	/**
 	 * Get component on any parent or self by type.
 	 */
 	template< typename _Ty >
-	ScnComponentRef						getComponentAnyParentByType( BcU32 Idx )
+	_Ty*								getComponentAnyParentByType( BcU32 Idx = 0 )
 	{
-		return getComponentAnyParent( Idx, _Ty::StaticGetType() );
+		return static_cast< _Ty* >( getComponentAnyParent( Idx, _Ty::StaticGetType() ) );
 	}
 
 	/**
 	 * Get component on any parent or self by type.
 	 */
 	template< typename _Ty >
-	ScnComponentRef						getComponentAnyParentByType( BcName Name )
+	_Ty*								getComponentAnyParentByType( BcName Name )
 	{
-		return getComponentAnyParent( Name, _Ty::StaticGetType() );
+		return static_cast< _Ty* >( getComponentAnyParent( Name, _Ty::StaticGetType() ) );
 	}
 
 	/**
 	 * Set position.
 	 */
-	void								setPosition( const BcVec3d& Position );
+	void								setLocalPosition( const BcVec3d& Position );
 
 	/**
 	 * Set matrix.
 	 */
-	void								setMatrix( const BcMat4d& Matrix );
+	void								setLocalMatrix( const BcMat4d& Matrix );
+
+	/**
+	 * Get local position.
+	 */
+	BcVec3d								getLocalPosition() const;
 
 	/**
 	 * Get position.
 	 */
-	BcVec3d								getPosition() const;
+	BcVec3d								getWorldPosition() const;
 
 	/**
 	 * Get matrix.
 	 */
-	const BcMat4d&						getMatrix() const;
+	const BcMat4d&						getLocalMatrix() const;
+
+	/**
+	 * Get matrix.
+	 */
+	const BcMat4d&						getWorldMatrix() const;
 
 protected:
 	virtual void						fileReady();
@@ -147,7 +151,8 @@ protected:
 	const BcChar*						pJsonObject_; // TEMP.
 
 	ScnEntityRef						Basis_;
-	BcMat4d								Transform_;
+	BcMat4d								LocalTransform_;
+	BcMat4d								WorldTransform_;
 
 	ScnComponentList					Components_;
 	

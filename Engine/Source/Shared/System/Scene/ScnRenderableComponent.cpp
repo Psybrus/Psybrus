@@ -15,11 +15,15 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Scene/ScnDebugRenderComponent.h"
+
+#include "System/Scene/ScnLightingVisitor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnRenderableComponent )
+BCREFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnRenderableComponent )
 	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
 BCREFLECTION_DERIVED_END();
 
@@ -30,7 +34,7 @@ void ScnRenderableComponent::initialise()
 	Super::initialise();
 
 	setRenderMask( 1 );
-	pSpatialTreeNode_ = NULL;
+	IsLit_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,17 +49,22 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 	{
 		setRenderMask( RenderMaskValue.asUInt() );
 	}
+
+	const Json::Value& IsLitValue = Object[ "islit" ];
+	if( IsLitValue.type() == Json::booleanValue )
+	{
+		IsLit_ = IsLitValue.asBool();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void ScnRenderableComponent::postUpdate( BcF32 Tick )
+void ScnRenderableComponent::update( BcF32 Tick )
 {
-	Super::update( Tick );
+	//ScnDebugRenderComponent::pImpl()->drawAABB( getAABB(), RsColour::BLUE );
 
-	// Reinsert node if we need to.
-	pSpatialTreeNode_->reinsertComponent( this );
+	Super::update( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,7 +72,7 @@ void ScnRenderableComponent::postUpdate( BcF32 Tick )
 //virtual
 void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	// Do nothing.
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,25 +106,8 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setSpatialTreeNode
-void ScnRenderableComponent::setSpatialTreeNode( ScnSpatialTreeNode* pNode )
+// isLit
+BcBool ScnRenderableComponent::isLit() const
 {
-	pSpatialTreeNode_ = pNode;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getSpatialTreeNode
-ScnSpatialTreeNode* ScnRenderableComponent::getSpatialTreeNode()
-{
-	return pSpatialTreeNode_;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// getAABB
-//virtual
-BcAABB ScnRenderableComponent::getAABB() const
-{
-	BcAssertMsg( BcFalse, "ScnRenderableComponent: Not implemented a getAABB!" );
-	return BcAABB();
+	return IsLit_;
 }

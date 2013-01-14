@@ -32,6 +32,15 @@ BcName::BcName():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
+BcName::BcName( BcU32 ID ):
+	EntryIndex_( BcErrorCode ),
+	ID_( ID )
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 BcName::BcName( const std::string& String )
 {
 	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
@@ -322,22 +331,50 @@ BcBool BcName::isNameValid( const std::string& Value )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isCharValid.
+//static
+BcBool BcName::isCharValid( const BcChar Value )
+{
+	return ( ( Value >= 'a' && Value <= 'z' ) ||
+		     ( Value >= 'A' && Value <= 'Z' ) ||
+			 ( Value >= '0' && Value <= '9' ) ||
+		       Value == '_' || 
+			   Value == '.' );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // validate.
 //static
 BcBool BcName::validate( const BcChar* pString )
 {
-	// Only 'a'-'z', 'A'-'Z', '0'-'9' & '_' are valid.
+	// Only 'a'-'z', 'A'-'Z', '0'-'9', '_' '.' are valid.
 	BcChar Char = 0;
 	while( ( Char = *pString++ ) != NULL )
 	{
-		if( !( ( Char >= 'a' && Char <= 'z' ) ||
-			   ( Char >= 'A' && Char <= 'Z' ) ||
-			   ( Char >= '0' && Char <= '9' ) ||
-		         Char == '_' ) )
+		if( !isCharValid( Char ) )
 		{
 			return BcFalse;
 		}
 	}
 
 	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// StripInvalidChars.
+//static
+std::string BcName::StripInvalidChars( const BcChar* pString )
+{
+	std::string Value;
+
+	BcChar Char = 0;
+	while( ( Char = *pString++ ) != NULL )
+	{
+		if( isCharValid( Char ) )
+		{
+			Value += Char;
+		}
+	}
+
+	return Value;
 }

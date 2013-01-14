@@ -88,14 +88,14 @@ public:
 	void								destroy();
 	
 	BcU32								findParameter( const BcName& ParameterName );	
-	void								setParameter( BcU32 Parameter, BcS32 Value );
-	void								setParameter( BcU32 Parameter, BcBool Value );
-	void								setParameter( BcU32 Parameter, BcF32 Value );
-	void								setParameter( BcU32 Parameter, const BcVec2d& Value );
-	void								setParameter( BcU32 Parameter, const BcVec3d& Value );
-	void								setParameter( BcU32 Parameter, const BcVec4d& Value );
-	void								setParameter( BcU32 Parameter, const BcMat3d& Value );
-	void								setParameter( BcU32 Parameter, const BcMat4d& Value );
+	void								setParameter( BcU32 Parameter, BcS32 Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, BcBool Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, BcF32 Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const BcVec2d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const BcVec3d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const BcVec4d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const BcMat3d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const BcMat4d& Value, BcU32 Index = 0 );
 	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
 
 	// Common scene parameters.
@@ -103,7 +103,10 @@ public:
 	void								setViewTransform( const BcMat4d& Transform );
 	void								setWorldTransform( const BcMat4d& Transform );
 	void								setEyePosition( const BcVec3d& Position );
-	
+	void								setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform );
+	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
+
+
 	void								setState( eRsRenderState State, BcU32 Value );
 	
 	ScnTextureRef						getTexture( BcU32 Parameter );
@@ -124,6 +127,7 @@ private:
 	{
 		eRsShaderParameterType			Type_;
 		BcU32							Offset_;
+		BcU32							TypeBytes_;
 	};
 	
 	typedef std::vector< TParameterBinding > TParameterBindingList;
@@ -151,11 +155,18 @@ private:
 	BcU32*								pStateBuffer_;
 
 	// Common scene parameters.
+	// TODO: Move these into the parent material?
 	BcU32								ClipTransformParameter_;
 	BcU32								ViewTransformParameter_;
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
 	BcU32								EyePositionParameter_;
+	BcU32								BoneTransformParameter_;
+	BcU32								LightPositionParameter_;
+	BcU32								LightDirectionParameter_;
+	BcU32								LightAmbientColourParameter_;
+	BcU32								LightDiffuseColourParameter_;
+	BcU32								LightAttnParameter_;
 
 public:
 	SysFence							UpdateFence_;

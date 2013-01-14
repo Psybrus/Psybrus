@@ -59,6 +59,8 @@ private:
 	BcBool							findResourceChunk( void* pData, BcU32& ResourceIdx, BcU32& ChunkIdx );
 	void							processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx );
 
+	void							decompressChunk( BcU32 ResourceIdx, BcU32 ChunkIdx );
+
 	BcBool							arePackageDependenciesReady();
 	
 private:
