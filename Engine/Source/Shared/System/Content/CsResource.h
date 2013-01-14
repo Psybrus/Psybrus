@@ -154,7 +154,12 @@ protected:
 	/**
 	 * Get string.
 	 */
-	const BcChar*					getString( BcU32 Offset );
+	const BcChar*					getString( BcU32 Offset ) const;
+
+	/**
+	 * Markup name.
+	 */
+	void							markupName( BcName& Name ) const;
 
 	/**
 	 * Get chunk.

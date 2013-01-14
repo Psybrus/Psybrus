@@ -199,6 +199,9 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 				// Object.
 			}
 		}
+
+		pMesh->buildNormals();
+		pMesh->buildTangents();
 	}
 
 	return pNode;

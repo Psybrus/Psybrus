@@ -21,6 +21,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include "System/Scene/ScnSpatialComponent.h"
+
 #include "System/Scene/ScnRenderingVisitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,9 +81,6 @@ void ScnCore::update()
 	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
-	// Process pending components before the update cycle.
-	processPendingComponents();
-
 	// Pre-update.
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
@@ -91,10 +90,8 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() )
-			{
-				Component->preUpdate( Tick );
-			}
+			BcAssert( Component.isReady() );
+			Component->preUpdate( Tick );
 		}
 	}
 
@@ -107,10 +104,8 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() )
-			{
-				Component->update( Tick );
-			}
+			BcAssert( Component.isReady() );
+			Component->update( Tick );
 		}
 	}
 
@@ -126,10 +121,8 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			if( Component.isReady() )
-			{
-				Component->postUpdate( Tick );
-			}
+			BcAssert( Component.isReady() );
+			Component->postUpdate( Tick );
 		}
 	}
 
@@ -165,6 +158,11 @@ void ScnCore::update()
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
 	}
+
+	// Process pending components at the end of the tick.
+	// We do this because they can be immediately created,
+	// and need a create tick from CsCore next frame.
+	processPendingComponents();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -242,23 +240,17 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 //////////////////////////////////////////////////////////////////////////
 // spawnEntity
-void ScnCore::spawnEntity( ScnEntityRef Parent, const BcName& Package, const BcName& Name, const BcName& InstanceName )
+void ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 {
 	BcAssert( BcIsGameThread() );
 
 	// Get package and acquire.
-	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Package );
+	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Params.Package_ );
 	pPackage->acquire();
-
-	// Setup entity spawn data.
-	TEntitySpawnData EntitySpawnData;
-	EntitySpawnData.Parent_ = Parent;
-	EntitySpawnData.Package_ = Package;
-	EntitySpawnData.Name_ = Name;
-	EntitySpawnData.InstanceName_ = InstanceName;
-
-	EntitySpawnMap_[ EntitySpawnID_ ] = EntitySpawnData;
-	CsCore::pImpl()->requestPackageReadyCallback( Package, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
+	
+	// Register for ready callback.
+	EntitySpawnMap_[ EntitySpawnID_ ] = Params;
+	CsCore::pImpl()->requestPackageReadyCallback( Params.Package_, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
 
 	// Advance spawn ID.
 	++EntitySpawnID_;
@@ -313,8 +305,15 @@ void ScnCore::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// visitBounds
+void ScnCore::visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds )
+{
+	pSpatialTree_->visitBounds( pVisitor, Bounds );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttachComponent
-void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
+void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Component )
 {
 	// NOTE: Useful for debugging and temporary gathering of "special" components.
 	//       Will be considering alternative approaches to this.
@@ -323,12 +322,12 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Add view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
 	{
-		ViewComponentList_.push_back( ScnViewComponentRef( Component ) );
+		ViewComponentList_.push_back( static_cast< ScnViewComponent* >( Component ) );
 	}
-	// Add renderable components to the spatial tree. (TODO: Use flags or something)
-	else if( Component->isTypeOf< ScnRenderableComponent >() )
+	// Add spatial components to the spatial tree. (TODO: Use flags or something)
+	else if( Component->isTypeOf< ScnSpatialComponent >() )
 	{
-		pSpatialTree_->addComponent( ScnRenderableComponentWeakRef( Component ) );
+		pSpatialTree_->addComponent( static_cast< ScnSpatialComponent* >( Component ) );
 	}
 
 	// All go into the appropriate list.
@@ -340,7 +339,7 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 
 //////////////////////////////////////////////////////////////////////////
 // onDetachComponent
-void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Component )
+void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Component )
 {
 	// NOTE: Useful for debugging and temporary gathering of "special" components.
 	//       Will be considering alternative approaches to this.
@@ -350,12 +349,12 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponentRef Compon
 	// Remove view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
 	{
-		ViewComponentList_.remove( ScnViewComponentRef( Component ) );
+		ViewComponentList_.remove( static_cast< ScnViewComponent* >( Component ) );
 	}
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
-	else if( Component->isTypeOf< ScnRenderableComponent >() )
+	else if( Component->isTypeOf< ScnSpatialComponent >() )
 	{
-		pSpatialTree_->removeComponent( ScnRenderableComponentWeakRef( Component ) );
+		pSpatialTree_->removeComponent( static_cast< ScnSpatialComponent* >( Component ) );
 	}
 
 	// Erase from component list.
@@ -396,10 +395,13 @@ void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 {
 	TEntitySpawnDataMapIterator It = EntitySpawnMap_.find( ID );
 	BcAssertMsg( It != EntitySpawnMap_.end(), "ScnCore: Spawn ID invalid." );
-	TEntitySpawnData& EntitySpawnData( (*It).second );
+	ScnEntitySpawnParams& EntitySpawnData( (*It).second );
 
 	// Create entity.
 	ScnEntityRef Entity = createEntity( EntitySpawnData.Package_, EntitySpawnData.Name_, EntitySpawnData.InstanceName_ );
+
+	// Set it's transform.
+	Entity->setLocalMatrix( EntitySpawnData.Transform_ );
 
 	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
 	if( EntitySpawnData.Parent_.isValid() )

@@ -185,6 +185,25 @@ extern BcReflectionType TYPE_BcHash;
 		BcReflection::pImpl()->addType( &Class );								\
 	}
 
+#define BCREFLECTION_ABSTRACT_BASE_BEGIN( _Type )								\
+	void _Type::StaticRegisterReflection()										\
+	{																			\
+		typedef _Type ThisType;													\
+		static BcReflectionField Fields[] =										\
+		{
+
+#define BCREFLECTION_ABSTRACT_BASE_END()										\
+		};																		\
+		static BcReflectionClass Class( ThisType::StaticGetType(),				\
+		                                sizeof( ThisType ),						\
+ 		                                NULL,									\
+ 		                                NULL,									\
+		                                BcName::NONE,							\
+		                                Fields,									\
+		                                BcArraySize( Fields ) );				\
+		BcReflection::pImpl()->addType( &Class );								\
+	}
+
 #define BCREFLECTION_DERIVED_BEGIN( _Base, _Type )								\
 	void _Type::StaticRegisterReflection()										\
 	{				                                                            \
@@ -414,6 +433,17 @@ public:
 	template< class _Ty >
 	_Ty*							construct( void* pData ) const
 	{
+		constructFunc_( pData );
+		return reinterpret_cast< _Ty* >( pData );
+	}
+
+	/**
+	 * Construct object.
+	 */
+	template< class _Ty >
+	_Ty*							construct() const
+	{
+		void* pData = BcMemAlign( getSize() );
 		constructFunc_( pData );
 		return reinterpret_cast< _Ty* >( pData );
 	}

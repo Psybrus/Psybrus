@@ -36,9 +36,10 @@ public:
 	 * Find offset of parameter in the buffer.
 	 * @param Type Type of parameter (out.)
 	 * @param Offset Offset of parameter (out.)
+	 * @param TypeBytes Size of type in bytes (out.)
 	 * @return Success.
 	 */
-	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset ) const = 0;
+	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const = 0;
 	
 	/**
 	 * Bind program.

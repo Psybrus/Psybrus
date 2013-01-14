@@ -4,7 +4,7 @@
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Scenegraph Spacial Tree
+*		Scenegraph Spatial Tree
 *		
 *
 *
@@ -15,15 +15,10 @@
 #define __SCNSPACIALTREE_H__
 
 #include "Base/BcOctTree.h"
-#include "System/Renderer/RsCore.h"
-#include "System/Scene/ScnVisitor.h"
-#include "System/Scene/ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-#define SCN_ENTITYLIST_DIVIDESIZE	8
-#define SCN_MAX_RENDERNODES			1024
-typedef std::list< ScnRenderableComponentWeakRef > ScnRenderableComponentWeakRefList;
+typedef std::list< class ScnSpatialComponent* > ScnSpatialComponentList;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class ScnSpatialTreeNode
@@ -41,30 +36,30 @@ public:
 	/**
 	*	Add entity.
 	*/
-	void					addComponent( ScnRenderableComponentWeakRef Component );
+	void					addComponent( ScnSpatialComponent* Component );
 	
 	/**
 	*	Remove entity.
 	*/
-	void					removeComponent( ScnRenderableComponentWeakRef Component );
+	void					removeComponent( ScnSpatialComponent* Component );
 	
 	/**
 	*	Reinsert entity.
 	*/
-	void					reinsertComponent( ScnRenderableComponentWeakRef Component );
+	void					reinsertComponent( ScnSpatialComponent* Component );
 	
 	/**
 	*	Visit view.
 	*/
-	void					visitView( ScnVisitor* pVisitor, const RsViewport& Viewport );
+	void					visitView( class ScnVisitor* pVisitor, const class RsViewport& Viewport );
 
 	/**
 	*	Visit bounds.
 	*/
-	void					visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds );
+	void					visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds );
 
 private:
-	ScnRenderableComponentWeakRefList	ComponentList_;
+	ScnSpatialComponentList	ComponentList_;
 
 };
 
@@ -84,22 +79,22 @@ public:
 	/**
 	*	Add Component.
 	*/
-	void					addComponent( ScnRenderableComponentWeakRef Component );
+	void					addComponent( class ScnSpatialComponent* Component );
 
 	/**
 	*	Remove Component.
 	*/
-	void					removeComponent( ScnRenderableComponentWeakRef Component );
+	void					removeComponent( class ScnSpatialComponent* Component );
 
 	/**
 	*	Visit view.
 	*/
-	void					visitView( ScnVisitor* pVisitor, const RsViewport& Viewport );
+	void					visitView( class ScnVisitor* pVisitor, const class RsViewport& Viewport );
 	
 	/**
 	*	Visit bounds.
 	*/
-	void					visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds );
+	void					visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds );
 
 private:
 	/**

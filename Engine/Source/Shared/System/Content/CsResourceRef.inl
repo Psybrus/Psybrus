@@ -74,9 +74,21 @@ BcForceInline CsResourceRef< _Ty, _IsWeak >::operator _Ty* ()
 }
 
 template< class _Ty, bool _IsWeak >
+BcForceInline CsResourceRef< _Ty, _IsWeak >::operator const _Ty* () const
+{
+    return static_cast< const _Ty* >( pObject_ );
+}
+
+template< class _Ty, bool _IsWeak >
 BcForceInline _Ty* CsResourceRef< _Ty, _IsWeak >::operator -> ()
 {
     return static_cast< _Ty* >( pObject_ );
+}
+
+template< class _Ty, bool _IsWeak >
+BcForceInline const _Ty* CsResourceRef< _Ty, _IsWeak >::operator -> () const
+{
+    return static_cast< const _Ty* >( pObject_ );
 }
 
 template< class _Ty, bool _IsWeak >

@@ -13,11 +13,17 @@
 
 #include "MdlMesh.h"
 
+#include "Base/BcHash.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 MdlMesh::MdlMesh()
 {
-
+	// Default bone palette.
+	for( BcU32 Idx = 0; Idx < BonePalette_.BonePalette_.size(); ++Idx )
+	{
+		BonePalette_.BonePalette_[ Idx ] = Idx;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,7 +45,12 @@ void MdlMesh::addIndex( const MdlIndex& Index )
 BcU32 MdlMesh::addVertex( const MdlVertex& Vertex )
 {
 	aVertices_.push_back( Vertex );
-	return (BcU32)( aVertices_.size() - 1 );
+
+	BcU32 VertexHash = BcHash::GenerateCRC32( &Vertex, sizeof( Vertex ) ) ;
+	BcU32 VertexIdx = aVertices_.size() - 1;
+	aVertexHashes_[ VertexHash ] = VertexIdx;
+
+	return (BcU32)( VertexIdx );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,25 +85,19 @@ BcU32 MdlMesh::addVertexShared( const MdlVertex& Vertex )
 	// Go through all our vertices, and if we find a matching one,
 	// return the index to it, else just add this vert and return
 	// the index to it.
-	BcU32 iVertex = 0;
-	BcBool bFoundVertex = BcFalse;
+	BcU32 iVertex = BcErrorCode;
 
-	for( BcU32 i = 0; i < aVertices_.size(); ++i )
+	std::map< BcU32, BcU32 >::iterator VertexIt = aVertexHashes_.find( BcHash::GenerateCRC32( &Vertex, sizeof( Vertex ) ) );
+	if( VertexIt != aVertexHashes_.end() )
 	{
-		// If we find the vertex, we can bail.
-		if( compareVertices( Vertex, aVertices_[ i ] ) )
-		{
-			iVertex = i;
-			bFoundVertex = BcTrue;
-			break;
-		}
+		iVertex = VertexIt->second;
+		BcAssert( compareVertices( Vertex, aVertices_[ iVertex ] ) );
 	}
 
 	// If we didn't find a vertex then add it.
-	if( bFoundVertex == BcFalse )
+	if( iVertex == BcErrorCode )
 	{
-		addVertex( Vertex );
-		iVertex = BcU32( aVertices_.size() ) - 1;
+		iVertex = addVertex( Vertex );
 	}
 
 	return iVertex;
@@ -203,33 +208,6 @@ BcBool MdlMesh::materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndi
 }
 
 //////////////////////////////////////////////////////////////////////////
-// countJointsUsed
-BcU32 MdlMesh::countJointsUsed( BcU32 iMaterial )
-{
-	BcU32 nJoints = 0;
-
-	MdlVertex CurrVertex;
-
-	for( BcU32 i = 0; i < aIndices_.size(); ++i )
-	{
-		if( aIndices_[ i ].iMaterial_ == iMaterial )
-		{
-			CurrVertex = aVertices_[ aIndices_[ i ].iVertex_ ];
-
-			for( BcU32 j = 0; j < 4; ++j )
-			{
-				if( CurrVertex.iJoints_[ j ] > nJoints )
-				{
-					nJoints = CurrVertex.iJoints_[ j ];
-				}
-			}
-		}
-	}
-
-	return nJoints + 1;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // bakeTransform
 void MdlMesh::bakeTransform( const BcMat4d& Transform )
 {
@@ -276,8 +254,8 @@ void MdlMesh::buildNormals()
 		Vert.bNormal_ = BcTrue;
 		Vert.Normal_.normalise();
 
-		BcF32 Mag = Vert.Normal_.magnitude(); 
-		BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
+		//BcF32 Mag = Vert.Normal_.magnitude(); 
+		//BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
 	}
 }
 
@@ -324,7 +302,7 @@ void MdlMesh::buildTangents()
 		BcF32 R = 1.0f / InvR;
 
 		// Validation so it doesn't break everything, just set to a dummy value.
-		if( BcAbs( InvR ) < 1e6f )
+		if( BcAbs( InvR ) < 1e-6f )
 		{
 			R = 0.0f;
 		}
@@ -392,17 +370,40 @@ BcAABB MdlMesh::findAABB() const
 {
 	BcAABB MeshBounds;
 
-	for( BcU32 i = 0; i < aVertices_.size(); ++i )
+	for( BcU32 VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
 	{
-		MeshBounds.expandBy( aVertices_[ i ].Position_ );
+		MeshBounds.expandBy( aVertices_[ VertIdx ].Position_ );
 	}
 
 	return MeshBounds;
 }
 
 //////////////////////////////////////////////////////////////////////////
+// findBoneCount
+BcU32 MdlMesh::findBoneCount() const
+{
+	std::map< BcU32, BcBool > BoneMap;
+
+	for( BcU32 VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
+	{
+		const MdlVertex& Vertex = aVertices_[ VertIdx ];
+		for( BcU32 BoneIdx = 0; BoneIdx < 4; ++BoneIdx )
+		{
+			BcF32 Weight = Vertex.Weights_[ BoneIdx ];
+			BcU32 Joint = Vertex.iJoints_[ BoneIdx ];
+			if( Weight > 0.0f && Joint != BcErrorCode )
+			{
+				BoneMap[ Joint ] = BcTrue;
+			}
+		}
+	}
+
+	return BoneMap.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // splitByMaterial
-const std::vector< MdlMesh >& MdlMesh::splitByMaterial()
+std::vector< MdlMesh >& MdlMesh::splitByMaterial()
 {
 	// Empty current submeshes.
 	SubMeshes_.clear();
@@ -426,13 +427,94 @@ const std::vector< MdlMesh >& MdlMesh::splitByMaterial()
 			{
 				// Add corresponding vertex.
 				MdlIndex NewIndex;
-				NewIndex.iVertex_ = SubMesh.addVertex( vertex( aIndices_[ iIndex ].iVertex_ ) );
+				NewIndex.iVertex_ = SubMesh.addVertexShared( vertex( aIndices_[ iIndex ].iVertex_ ) );
 				NewIndex.iMaterial_ = iMaterial;
 
 				// Add new index.
 				SubMesh.addIndex( NewIndex );
 			}
 		}
+
+		BcAssert( SubMesh.nIndices() % 3 == 0 );
+	}
+	
+	return SubMeshes_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// splitIntoBonePalettes
+std::vector< MdlMesh >& MdlMesh::splitIntoBonePalettes( BcU32 PaletteSize )
+{
+	// Empty current submeshes.
+	SubMeshes_.clear();
+
+	// Build a triangle array.
+	MdlTriangleArray Triangles;
+	BcU32 NoofTriangles = aIndices_.size() / 3;
+	Triangles.reserve( NoofTriangles );
+	for( BcU32 Idx = 0; Idx < NoofTriangles; ++Idx )
+	{
+		BcU32 StartIndex = Idx * 3;
+		MdlTriangle Triangle = 
+		{
+			aVertices_[ aIndices_[ StartIndex + 0 ].iVertex_ ],
+			aVertices_[ aIndices_[ StartIndex + 1 ].iVertex_ ],
+			aVertices_[ aIndices_[ StartIndex + 2 ].iVertex_ ]
+		};
+		Triangles.push_back( Triangle );
+	}
+
+	while( Triangles.size() > 0 )
+	{
+		MdlBonePalette NewBonePalette( PaletteSize );
+		MdlTriangleArray NewTriangles;
+		NewTriangles.reserve( Triangles.size() );
+
+		// Iterate over triangles, and add them to the bone palette if possible.
+		for( MdlTriangleArray::iterator It( Triangles.begin() ); It != Triangles.end(); )
+		{
+			MdlTriangle& Triangle = (*It);
+
+			// If we can add it, add it to the new triangles array + erase it.
+			if( NewBonePalette.addTriangle( Triangle ) )
+			{
+				NewTriangles.push_back( Triangle );
+				It = Triangles.erase( It );
+			}
+			else
+			{
+				++It;
+			}
+		}
+
+		// Construct a new mesh for the triangles.
+		MdlMesh NewMesh;
+		NewMesh.bonePalette( NewBonePalette );
+
+		// Add materials.
+		BcAssert( aMaterials_.size() == 1 );
+		for( BcU32 Idx = 0; Idx < aMaterials_.size(); ++Idx )
+		{
+			NewMesh.addMaterial( aMaterials_[ Idx ] );
+		}
+
+		// Add triangles.
+		for( BcU32 Idx = 0; Idx < NewTriangles.size(); ++Idx )
+		{
+			const MdlTriangle& Triangle( NewTriangles[ Idx ] );
+			
+			for( BcU32 VertIdx = 0; VertIdx < 3; ++VertIdx )
+			{
+				MdlIndex Index;
+				Index.iVertex_ = NewMesh.addVertexShared( Triangle.Vertex_[ VertIdx ] );
+				Index.iMaterial_ = 0;
+				NewMesh.addIndex( Index );
+			}
+		}
+
+		BcAssert( NewMesh.findBoneCount() <= PaletteSize );
+
+		SubMeshes_.push_back( NewMesh );
 	}
 	
 	return SubMeshes_;

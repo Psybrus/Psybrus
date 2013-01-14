@@ -20,6 +20,8 @@
 
 #include "MdlAnim.h"
 
+#include "System/Scene/Animation/ScnAnimationTransform.h" // TODO: MOVE INTO BASE!!!
+
 //////////////////////////////////////////////////////////////////////////
 // Constructor
 MD5AnimLoader::MD5AnimLoader()
@@ -48,7 +50,10 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	BcU32 iFrame = 0;
 	BcU32 iAnimComp = 0;
 
-	File.open( FileName );
+	if( File.open( FileName ) == BcFalse )
+	{
+		return NULL;
+	}
 
 	BcChar Buffer[1024];
 	BcChar Command[1024];
@@ -312,7 +317,6 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	for( BcU32 i = 0; i < nJoints_; ++i )
 	{
 		MdlAnimNode Node;
-
 		BcStrCopy( Node.Name_, pJoints_[ i ].Name_ );
 		if( pJoints_[ i ].ParentID_ != -1 )
 		{
@@ -326,20 +330,48 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 		for( BcU32 j = 0; j < nFrames_; ++j )
 		{
 			MD5_Joint* pJoint = &pFrames_[ j ].pKeys_[ i ];
+			MD5_Joint* pParentJoint = pJoints_[ i ].ParentID_ != -1 ? &pFrames_[ j ].pKeys_[ pJoint->ParentID_ ] : NULL;
 
 			MdlAnimKey Key;
 
-			Key.R_.set( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
-			Key.S_.set( 1.0f, 1.0f, 1.0f );
-			Key.T_.set( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
+			ScnAnimationTransform KeyTransform;
+			KeyTransform.R_ = BcQuat( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
+			KeyTransform.S_ = BcVec3d( 1.0f, 1.0f, 1.0f );
+			KeyTransform.T_ = BcVec3d( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
+			KeyTransform.R_.calcFromXYZ();
 
-			Key.R_.calcFromXYZ();
+			KeyTransform.toMatrix( Key.Matrix_ );
 
 			Node.KeyList_.push_back( Key );
 		}
 
 		pAnimation->addNode( Node );
 	}
+
+	// Make transform keys relative.
+	for( BcU32 i1 = 0; i1 < nJoints_; ++i1 )
+	{
+		BcU32 i = ( nJoints_ - i1 ) - 1;
+		for( BcU32 j = 0; j < nFrames_; ++j )
+		{
+			MD5_Joint* pJoint = &pFrames_[ j ].pKeys_[ i ];
+			MD5_Joint* pParentJoint = pJoints_[ i ].ParentID_ != -1 ? &pFrames_[ j ].pKeys_[ pJoint->ParentID_ ] : NULL;
+			MdlAnimNode* pNode = pAnimation->pNode( i );
+			MdlAnimKey Key = pNode->KeyList_[ j ];
+
+			// Undo parent joint transform.
+			if( pParentJoint != NULL )
+			{
+				MdlAnimNode* pParentNode = pAnimation->pNode( pJoint->ParentID_ );
+				MdlAnimKey ParentKey = pParentNode->KeyList_[ j ];
+				BcMat4d ParentMatrixInverse = ParentKey.Matrix_;
+				ParentMatrixInverse.inverse();
+				Key.Matrix_ = ParentMatrixInverse * Key.Matrix_;
+			}
+		}
+	}
+
+
 
 	// Cleanup
 	nJoints_ = 0;
@@ -362,152 +394,6 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	nFrames_ = 0;
 	delete [] pFrames_;
 	pFrames_ = NULL;
-
-	//
-	/*
-	BcMat4d RootTransform;
-	RootTransform.identity();
-	pRootNode->makeRelativeTransform( RootTransform );
-	*/
-
-	return pAnimation;//pRootNode;
+	
+	return pAnimation;
 }
-
-/*
-//////////////////////////////////////////////////////////////////////////
-// buildNormals
-void MD5AnimLoader::buildNormals()
-{
-	for ( BcU32 i = 0; i < ( nIndices_ / 3 ); ++i )
-	{
-		BcU32 TA = pIndices_[ ( i * 3 ) + 0 ];
-		BcU32 TB = pIndices_[ ( i * 3 ) + 1 ];
-		BcU32 TC = pIndices_[ ( i * 3 ) + 2 ];
-
-		RsVertexSkinGL& VertA = pVerts_[ TA ];
-		RsVertexSkinGL& VertB = pVerts_[ TB ];
-		RsVertexSkinGL& VertC = pVerts_[ TC ];
-
-		BcVec3d VertPosA( VertA.X_, VertA.Y_, VertA.Z_ );
-		BcVec3d VertPosB( VertB.X_, VertB.Y_, VertB.Z_ );
-		BcVec3d VertPosC( VertC.X_, VertC.Y_, VertC.Z_ );
-
-		BcVec3d Normal = ( VertPosA - VertPosB ).cross( ( VertPosB - VertPosC ) );
-
-		VertA.NX_ += Normal.x();
-		VertB.NX_ += Normal.x();
-		VertC.NX_ += Normal.x();
-
-		VertA.NY_ += Normal.y();
-		VertB.NY_ += Normal.y();
-		VertC.NY_ += Normal.y();
-
-		VertA.NZ_ += Normal.z();
-		VertB.NZ_ += Normal.z();
-		VertC.NZ_ += Normal.z();
-	}
-
-	for ( BcU32 i = 0; i < nVerts_; ++i )
-	{
-		RsVertexSkinGL& Vert = pVerts_[ i ];
-		BcVec3d Normal( Vert.NX_, Vert.NY_, Vert.NZ_ );
-		Normal.normalise();
-
-		Vert.NX_ = Normal.x();
-		Vert.NY_ = Normal.y();
-		Vert.NZ_ = Normal.z();
-
-		BcF32 Mag = Normal.magnitude(); 
-		BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// buildTangents
-void MD5AnimLoader::buildTangents()
-{
-	BcVec3d *pTan1 = new BcVec3d[ nVerts_ * 2 ];
-	BcVec3d *pTan2 = pTan1 + nVerts_;
-
-	memset( pTan1, 0, sizeof( BcVec3d ) * nVerts_ * 2 );
-
-	for ( BcU32 i = 0; i < ( nIndices_ / 3 ); ++i )
-	{
-		BcU32 TA = pIndices_[ ( i * 3 ) + 0 ];
-		BcU32 TB = pIndices_[ ( i * 3 ) + 1 ];
-		BcU32 TC = pIndices_[ ( i * 3 ) + 2 ];
-
-		RsVertexSkinGL& VertA = pVerts_[ TA ];
-		RsVertexSkinGL& VertB = pVerts_[ TB ];
-		RsVertexSkinGL& VertC = pVerts_[ TC ];
-
-		BcVec3d VertPosA( VertA.X_, VertA.Y_, VertA.Z_ );
-		BcVec3d VertPosB( VertB.X_, VertB.Y_, VertB.Z_ );
-		BcVec3d VertPosC( VertC.X_, VertC.Y_, VertC.Z_ );
-
-		BcVec2d VertUVA( VertA.U_, VertA.V_ );
-		BcVec2d VertUVB( VertB.U_, VertB.V_ );
-		BcVec2d VertUVC( VertC.U_, VertC.V_ );
-
-		BcF32 X1 = VertPosB.x() - VertPosA.x();
-		BcF32 X2 = VertPosC.x() - VertPosA.x();
-		BcF32 Y1 = VertPosB.y() - VertPosA.y();
-		BcF32 Y2 = VertPosC.y() - VertPosA.y();
-		BcF32 Z1 = VertPosB.z() - VertPosA.z();
-		BcF32 Z2 = VertPosC.z() - VertPosA.z();
-
-		BcF32 S1 = VertUVB.x() - VertUVA.x();
-		BcF32 S2 = VertUVC.x() - VertUVA.x();
-		BcF32 T1 = VertUVB.y() - VertUVA.y();
-		BcF32 T2 = VertUVC.y() - VertUVA.y();
-
-		BcF32 InvR = ( S1 * T2 - S2 * T1 );
-		BcF32 R = 1.0f / InvR;
-
-		// Validation so it doesn't break everything, just set to a dummy value.
-		if( InvR == 0.0f )
-		{
-			R = 0.0f;
-		}
-
-		BcVec3d SDir( ( T2 * X1 - T1 * X2 ) * R, ( T2 * Y1 - T1 * Y2 ) * R, ( T2 * Z1 - T1 * Z2 ) * R );
-		BcVec3d TDir( ( S1 * X2 - S2 * X1 ) * R, ( S1 * Y2 - S2 * Y1 ) * R, ( S1 * Z2 - S2 * Z1 ) * R );
-
-		pTan1[ TA ] += SDir;
-		pTan1[ TB ] += SDir;
-		pTan1[ TC ] += SDir;
-
-		pTan2[ TA ] += TDir;
-		pTan2[ TB ] += TDir;
-		pTan2[ TC ] += TDir;
-	}
-
-	for ( BcU32 i = 0; i < nVerts_ ; ++i )
-	{
-		RsVertexSkinGL& Vert = pVerts_[ i ];
-		BcVec3d Tangent;
-
-		const BcVec3d N( Vert.NX_, Vert.NY_, Vert.NZ_ );
-		const BcVec3d& T = pTan1[ i ];
-
-		Tangent = ( T - N * N.dot( T ) );
-		Tangent.normalise();
-
-		// Calculate handedness
-		BcF32 W = ( N.cross( T ).dot( pTan2[ i ] ) < 0.0f ) ? -1.0f : 1.0f;
-
-		if ( W < 0.0f )
-		{
-			Tangent = -Tangent;
-		}
-
-		Vert.TX_ = Tangent.x();
-		Vert.TY_ = Tangent.y();
-		Vert.TZ_ = Tangent.z();
-
-		BcF32 Mag = Tangent.magnitude(); 
-		BcAssert( BcAbs( Mag - 1.0f ) < 0.00001f );
-	}
-
-	delete[] pTan1;
-}*/

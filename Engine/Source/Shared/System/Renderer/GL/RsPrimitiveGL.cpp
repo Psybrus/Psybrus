@@ -101,7 +101,14 @@ void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 
 		
 		if( GLPrimitiveType != 0 )
 		{
-			glDrawArrays( GLPrimitiveType, Offset, NoofIndices );
+			if( pIndexBuffer_ == NULL )
+			{
+				glDrawArrays( GLPrimitiveType, Offset, NoofIndices );
+			}
+			else
+			{
+				glDrawElements( GLPrimitiveType, NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
+			}
 			
 			// Catch error.
 			RsGLCatchError;

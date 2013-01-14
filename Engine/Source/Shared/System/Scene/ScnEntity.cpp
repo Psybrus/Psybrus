@@ -41,7 +41,8 @@ DEFINE_RESOURCE( ScnEntity );
 
 BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnEntity )
 	BCREFLECTION_MEMBER( ScnEntity,							Basis_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcMat4d,							Transform_,						bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcMat4d,							LocalTransform_,				bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( BcMat4d,							WorldTransform_,				bcRFF_DEFAULT ),
 BCREFLECTION_DERIVED_END();
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,7 +70,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 
 	// Copy over internals.
 	pJsonObject_ = Basis_->pJsonObject_;
-	Transform_ = Basis_->Transform_;
+	LocalTransform_ = Basis_->LocalTransform_;
 
 	// Create components from Json.
 	// TEMP.
@@ -151,6 +152,17 @@ void ScnEntity::destroy()
 void ScnEntity::update( BcF32 Tick )
 {
 	BcAssert( getPackage() != NULL );
+	
+	// Get parent entity to calculate world transform.
+	if( getParentEntity() )
+	{
+		WorldTransform_ = LocalTransform_ * getParentEntity()->WorldTransform_;
+	}
+	else
+	{
+		WorldTransform_ = LocalTransform_;
+	}
+	
 	// Update as component first.
 	Super::update( Tick );
 
@@ -244,7 +256,7 @@ BcU32 ScnEntity::getNoofComponents() const
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
+ScnComponent* ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 {
 	if( Type == BcName::INVALID )
 	{
@@ -281,7 +293,7 @@ ScnComponentRef ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponentRef ScnEntity::getComponent( BcName Name, const BcName& Type )
+ScnComponent* ScnEntity::getComponent( BcName Name, const BcName& Type )
 {
 	if( Type == BcName::INVALID )
 	{
@@ -312,7 +324,7 @@ ScnComponentRef ScnEntity::getComponent( BcName Name, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponentRef ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
+ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
 {
 	ScnComponentRef Component = getComponent( Idx, Type );
 
@@ -326,7 +338,7 @@ ScnComponentRef ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type 
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponentRef ScnEntity::getComponentAnyParent( BcName Name, const BcName& Type )
+ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const BcName& Type )
 {
 	ScnComponentRef Component = getComponent( Name, Type );
 
@@ -339,31 +351,45 @@ ScnComponentRef ScnEntity::getComponentAnyParent( BcName Name, const BcName& Typ
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPosition
-void ScnEntity::setPosition( const BcVec3d& Position )
+// setLocalPosition
+void ScnEntity::setLocalPosition( const BcVec3d& Position )
 {
-	Transform_.translation( Position );
+	LocalTransform_.translation( Position );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setMatrix
-void ScnEntity::setMatrix( const BcMat4d& Matrix )
+// setLocalMatrix
+void ScnEntity::setLocalMatrix( const BcMat4d& Matrix )
 {
-	Transform_ = Matrix;
+	LocalTransform_ = Matrix;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getPosition
-BcVec3d ScnEntity::getPosition() const
+// getLocalPosition
+BcVec3d ScnEntity::getLocalPosition() const
 {
-	return Transform_.translation();
+	return LocalTransform_.translation();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getMatrix
-const BcMat4d& ScnEntity::getMatrix() const
+// getWorldPosition
+BcVec3d ScnEntity::getWorldPosition() const
 {
-	return Transform_;
+	return WorldTransform_.translation();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getLocalMatrix
+const BcMat4d& ScnEntity::getLocalMatrix() const
+{
+	return LocalTransform_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getWorldMatrix
+const BcMat4d& ScnEntity::getWorldMatrix() const
+{
+	return WorldTransform_;
 }
 
 //////////////////////////////////////////////////////////////////////////

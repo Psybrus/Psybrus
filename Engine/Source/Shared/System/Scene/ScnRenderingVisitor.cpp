@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/ScnRenderingVisitor.h"
+#include "System/Scene/ScnRenderableComponent.h"
 
 #include "System/Scene/ScnCore.h"
 
@@ -39,6 +40,7 @@ void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 {
 	if( pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
 	{
+		BcAssert( pComponent->isReady() );
 		pComponent->render( pViewComponent_, pFrame_, RsRenderSort( 0 ) );
 	}
 }

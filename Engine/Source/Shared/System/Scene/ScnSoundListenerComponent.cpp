@@ -56,7 +56,7 @@ void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 	{
 		BcVec3d Up( 0.0f, 1.0f, 0.0f );
 		BcVec3d Forward( 0.0f, 0.0f, 1.0f );
-		BcMat4d Matrix = getParentEntity()->getMatrix();
+		BcMat4d Matrix = getParentEntity()->getWorldMatrix();
 		BcMat4d RotationMatrix = Matrix;
 		RotationMatrix.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
 		Up = Up * RotationMatrix;

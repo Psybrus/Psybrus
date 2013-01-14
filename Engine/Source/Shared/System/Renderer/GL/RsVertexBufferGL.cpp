@@ -301,7 +301,31 @@ void RsVertexBufferGL::bind()
 	{
 		glDisableVertexAttribArray( rsVC_TEXCOORD3 );
 	}
-	
+
+	// Skin indices.
+	if( VertexDecl & rsVDF_SKIN_INDICES )
+	{
+		glEnableVertexAttribArray( rsVC_SKIN_INDICES );
+		glVertexAttribPointer( rsVC_SKIN_INDICES, 4, GL_FLOAT, 0, Stride, Offset );
+		Offset += 4 * sizeof( BcF32 );
+	}
+	else
+	{
+		glDisableVertexAttribArray( rsVC_SKIN_INDICES );
+	}
+
+	// Skin weights.
+	if( VertexDecl & rsVDF_SKIN_WEIGHTS )
+	{
+		glEnableVertexAttribArray( rsVC_SKIN_WEIGHTS );
+		glVertexAttribPointer( rsVC_SKIN_WEIGHTS, 4, GL_FLOAT, 0, Stride, Offset );
+		Offset += 4 * sizeof( BcF32 );
+	}
+	else
+	{
+		glDisableVertexAttribArray( rsVC_SKIN_WEIGHTS );
+	}
+
 	// Colour.
 	if( VertexDecl & rsVDF_COLOUR_ABGR8 )
 	{

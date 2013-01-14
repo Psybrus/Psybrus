@@ -291,24 +291,31 @@ const BcName& CsPackage::getName() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getName
-const BcChar* CsPackage::getString( BcU32 Offset )
+// getString
+const BcChar* CsPackage::getString( BcU32 Offset ) const
 {
 	return pLoader_->getString( Offset );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getChunkSize
-BcU32 CsPackage::getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx )
+BcU32 CsPackage::getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx ) const
 {
 	return pLoader_->getChunkSize( ResourceIdx, ResourceChunkIdx );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofChunks
-BcU32 CsPackage::getNoofChunks( BcU32 ResourceIdx )
+BcU32 CsPackage::getNoofChunks( BcU32 ResourceIdx ) const
 {
 	return pLoader_->getNoofChunks( ResourceIdx );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// markupName
+void CsPackage::markupName( BcName& Name ) const
+{
+	Name = BcName( getString( Name.getID() ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
