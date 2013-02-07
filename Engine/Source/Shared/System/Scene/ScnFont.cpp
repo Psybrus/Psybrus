@@ -268,6 +268,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					TextureObject[ "name" ] = FontTextureName;
 					TextureObject[ "type" ] = "ScnTexture";
 					TextureObject[ "source" ] = FontTextureFileName;		
+					TextureObject[ "format" ] = "rgba8";
 					
 					// Build data.
 					BcStream HeaderStream;
@@ -680,6 +681,14 @@ BcVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const BcVe
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setAlphaTestStepping
+void ScnFontComponent::setAlphaTestStepping( const BcVec2d& Stepping )
+{
+	BcU32 Param = MaterialComponent_->findParameter( "aAlphaTestStep" );
+	MaterialComponent_->setParameter( Param, Stepping );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getMaterialComponent
 ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 {
@@ -701,6 +710,8 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Attach material to our parent.
 	Parent->attach( MaterialComponent_ );
+
+	// TEMP HACK: 
 
 	//
 	ScnComponent::onAttach( Parent );

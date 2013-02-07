@@ -55,7 +55,7 @@ public:
 	/**
 	*	Get 2D screen space coordinate from a 3D world space point in the viewport.
 	*/
-	BcVec2d project( const BcVec3d& WorldPos );
+	BcVec2d project( const BcVec3d& WorldPos ) const;
 	
 	/**
 	*	Get integer depth value.

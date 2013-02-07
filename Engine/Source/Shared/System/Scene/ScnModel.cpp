@@ -273,6 +273,8 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 
 	// Setup additional stuff.
 	Layer_ = Object.get( "layer", 0 ).asUInt();
+	Pass_ = Object.get( "pass", 0 ).asUInt();
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -542,6 +544,7 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 
 	// Set layer.
 	Sort.Layer_ = Layer_;
+	Sort.Pass_ = Pass_;
 
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes.size(); ++PrimitiveIdx )
 	{

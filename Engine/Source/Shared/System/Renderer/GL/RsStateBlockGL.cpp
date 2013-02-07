@@ -272,7 +272,7 @@ void RsStateBlockGL::bindBlendMode( eRsBlendingMode BlendMode )
 
 		case rsBM_SUBTRACT:
 			glEnable( GL_BLEND );
-			glBlendEquation( GL_FUNC_SUBTRACT );
+			glBlendEquation( GL_FUNC_REVERSE_SUBTRACT );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 			break;
 			

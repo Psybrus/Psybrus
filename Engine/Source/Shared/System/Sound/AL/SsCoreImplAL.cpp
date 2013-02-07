@@ -396,6 +396,20 @@ SsChannel* SsCoreImplAL::queue( SsSample* pSample, SsChannelCallback* pCallback 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// unregister
+//virtual
+void SsCoreImplAL::unregister( SsChannelCallback* Callback )
+{
+	for( TChannelListIterator Iter( UsedChannels_.begin() ); Iter != UsedChannels_.end(); ++Iter )
+	{
+		if( (*Iter)->getCallback() == Callback )
+		{
+			(*Iter)->setCallback( NULL );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setListener
 //virtual
 void SsCoreImplAL::setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up )

@@ -854,7 +854,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 
 	// HUD pass.
 	Sort.Layer_ = 0;
-	Sort.Pass_ = 1;
+	Sort.Pass_ = RS_SORT_PASS_MAX;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
