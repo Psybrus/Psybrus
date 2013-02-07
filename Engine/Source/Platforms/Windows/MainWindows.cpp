@@ -167,6 +167,11 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Perform unit tests.
 	MainUnitTests();
 
+	// Initialise RNG.
+#if !PSY_DEBUG
+	BcRandom::Global = BcRandom( (BcU32)::GetTickCount() );
+#endif
+
 	// Create reflection database
 	new BcReflection();
 

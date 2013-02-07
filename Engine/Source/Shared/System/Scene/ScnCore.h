@@ -63,8 +63,9 @@ public:
 
 	/**
 	 * Spawn an entity from template. Handles loading and scene attachment.
+	 * Will return NULL if async.
 	 */
-	void						spawnEntity( const ScnEntitySpawnParams& Params );
+	ScnEntity*					spawnEntity( const ScnEntitySpawnParams& Params );
 
 	/**
 	 * Find an entity. Non recursive, only searching within the manager, not parented entities.
@@ -107,6 +108,8 @@ private:
 	void						processPendingComponents();
 
 private:
+	ScnEntity*					internalSpawnEntity( ScnEntitySpawnParams Params );
+
 	void						onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
 
 private:
@@ -133,4 +136,5 @@ private:
 };
 
 #endif
+
 

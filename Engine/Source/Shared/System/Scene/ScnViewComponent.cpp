@@ -154,6 +154,13 @@ void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d&
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getScreenPosition
+BcVec2d ScnViewComponent::getScreenPosition( const BcVec3d& WorldPosition ) const
+{
+	return Viewport_.project( WorldPosition );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bind
 const RsViewport& ScnViewComponent::getViewport() const
 {

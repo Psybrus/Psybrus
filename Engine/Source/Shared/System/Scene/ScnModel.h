@@ -100,6 +100,7 @@ protected:
 	SysFence							UpdateFence_;
 
 	BcU32								Layer_;
+	BcU32								Pass_;
 
 	BcAABB								AABB_;
 

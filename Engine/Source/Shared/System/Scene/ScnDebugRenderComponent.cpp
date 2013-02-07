@@ -458,7 +458,7 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 
 	// HUD pass.
 	Sort.Layer_ = RS_SORT_LAYER_MAX;
-	Sort.Pass_ = RS_SORT_PASS_MAX;
+	Sort.Pass_ = 0;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
@@ -517,6 +517,8 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
+	getParentEntity()->attach( MaterialComponent_ );
+
 	BcAssert( pImpl_ == NULL );
 	pImpl_ = this;
 }
@@ -526,8 +528,10 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnDebugRenderComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	Super::onDetach( Parent );
+	getParentEntity()->detach( MaterialComponent_ );
 
 	BcAssert( pImpl_ == this );
 	pImpl_ = NULL;
+
+	Super::onDetach( Parent );
 }

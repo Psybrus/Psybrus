@@ -213,6 +213,7 @@ protected:
 
 	BcMutex								ContainerLock_;
 	TResourceFactoryInfoMap				ResourceFactoryInfoMap_;
+	TResourceHandleList					PrecreateResources_;
 	TResourceHandleList					CreateResources_;
 	TResourceHandleList					LoadingResources_;
 	TResourceList						LoadedResources_;

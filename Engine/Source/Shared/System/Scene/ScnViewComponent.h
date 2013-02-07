@@ -44,6 +44,7 @@ public:
 
 	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
+	BcVec2d								getScreenPosition( const BcVec3d& WorldPosition ) const;
 	const RsViewport&					getViewport() const;
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );

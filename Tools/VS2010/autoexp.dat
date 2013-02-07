@@ -1,0 +1,85 @@
+;------------------------------------------------------------------------------
+;  Psybrus types.
+;------------------------------------------------------------------------------
+
+[Visualizer]
+BcName{
+	preview(
+		; std::vector container.
+		#if ($e.EntryIndex_ == 4294967295) (
+			"Invalid"
+		) #elif ($e.ID_ == 4294967295) (
+			#(
+				(*$e.pStringEntries_)._Myfirst[$e.EntryIndex_].Value_
+			)
+		) #else (
+			#(
+				(*$e.pStringEntries_)._Myfirst[$e.EntryIndex_].Value_, "_", $e.ID_
+			)
+		)
+	)
+}
+
+BcPath{
+	preview(
+		#(
+			$e.InternalValue_
+		)
+	)
+}
+
+CsResource{
+	preview(
+		#(
+			$e.Name_
+		)
+	)
+}
+
+ScnComponent{
+	preview(
+		#(
+			$e.Name_
+		)
+	)
+}
+
+ScnEntity{
+	preview(
+		#(
+			$e.Name_
+		)
+	)
+}
+
+BcVec2d{
+	preview(
+		#(
+			[$e.X_,f], ", ", [$e.Y_,f]
+		)
+	)
+}
+
+BcVec3d{
+	preview(
+		#(
+			[$e.X_,f], ", ", [$e.Y_,f], ", ", [$e.Z_,f]
+		)
+	)
+}
+
+BcVec4d{
+	preview(
+		#(
+			[$e.X_,f], ", ", [$e.Y_,f], ", ", [$e.Z_,f], ", ", [$e.W_,f]
+		)
+	)
+}
+
+BcQuat{
+	preview(
+		#(
+			[$e.X_,f], ", ", [$e.Y_,f], ", ", [$e.Z_,f], ", ", [$e.W_,f]
+		)
+	)
+}
