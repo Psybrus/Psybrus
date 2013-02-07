@@ -196,7 +196,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	// Show the window
 	if( Visible )
 	{
-		::ShowWindow( hWnd_, SW_SHOW );
+		::ShowWindow( hWnd_, SW_SHOWMAXIMIZED );
 		::SetForegroundWindow( hWnd_ );
 		::SetFocus( hWnd_ );
 	}
@@ -345,8 +345,6 @@ BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 // setMouseLock
 void OsClientWindows::setMouseLock( BcBool Enabled )
 {
-	MouseLocked_ = Enabled;
-
 	// Hide cursor too.
 	CURSORINFO CursorInfo;
 	CursorInfo.cbSize = sizeof(CursorInfo);
@@ -354,10 +352,38 @@ void OsClientWindows::setMouseLock( BcBool Enabled )
 
 	if( Enabled )
 	{
-		if ( CursorInfo.flags == CURSOR_SHOWING )
+		if( MouseLocked_ == BcFalse )
 		{
-			while ( ShowCursor( FALSE ) >= 0 )
+			POINT MousePosition;
+			POINT WindowPosition;
+			RECT Rect;
+
+			// Get window rect in screen space.
+			::GetWindowRect( hWnd_, &Rect );
+		
+			// Screen space cood of the client area.
+			WindowPosition.x = 0;
+			WindowPosition.y = 0;
+			::ClientToScreen( hWnd_, &WindowPosition );
+		
+			// Get the cursor position
+			::GetCursorPos( &MousePosition );
+
+			const BcS32 WX = ( Rect.right - Rect.left );
+			const BcS32 WY = ( Rect.bottom - Rect.top );
+
+			// Reset delta.
+			MouseDelta_ = BcVec2d( 0.0f, 0.0f );
+			MousePrevDelta_ = BcVec2d( 0.0f, 0.0f );
+
+			// Position in center of screen.
+			::SetCursorPos( Rect.left + ( WX / 2 ), Rect.top + ( WY / 2 ) );
+
+			if ( CursorInfo.flags == CURSOR_SHOWING )
 			{
+				while ( ShowCursor( FALSE ) >= 0 )
+				{
+				}
 			}
 		}
 	}
@@ -370,6 +396,8 @@ void OsClientWindows::setMouseLock( BcBool Enabled )
 			}
 		}
 	}
+
+	MouseLocked_ = Enabled;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -31,7 +31,7 @@ class ScnSoundListenerComponent:
 public:
 	DECLARE_RESOURCE( ScnComponent, ScnSoundListenerComponent );
 	
-	virtual void						initialise();
+	virtual void						initialise( const Json::Value& Object );
 	virtual void						postUpdate( BcF32 Tick );
 	
 	virtual void						onAttach( ScnEntityWeakRef Parent );

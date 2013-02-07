@@ -40,9 +40,10 @@ BCREFLECTION_DERIVED_END();
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnSoundListenerComponent::initialise()
+void ScnSoundListenerComponent::initialise( const Json::Value& Object )
 {
-	
+	Super::initialise();
+
 }
 
 //////////////////////////////////////////////////////////////////////////

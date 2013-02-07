@@ -65,6 +65,11 @@ public:
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
 
 	/**
+	 * Get window center.
+	 */
+	BcVec2d getWindowCentre() const;
+
+	/**
 	 * Set mouse lock.
 	 */
 	void setMouseLock( BcBool Enabled );

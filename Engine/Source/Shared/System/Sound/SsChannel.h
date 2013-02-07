@@ -51,6 +51,7 @@ public:
 	SsChannel();
 	virtual ~SsChannel();
 
+	void setCallback(SsChannelCallback* Callback);
 	SsChannelCallback* getCallback();
 
 	void gain( BcF32 Position );
@@ -101,6 +102,11 @@ inline SsChannel::SsChannel()
 inline SsChannel::~SsChannel()
 {
 
+}
+
+inline void SsChannel::setCallback( SsChannelCallback* Callback )
+{
+	pCallback_ = Callback;
 }
 
 inline SsChannelCallback* SsChannel::getCallback()

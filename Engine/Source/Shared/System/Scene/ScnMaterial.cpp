@@ -791,6 +791,8 @@ public:
 
 void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 {
+	BcAssertMsg( isAttached(), "Material \"%s\" needs to be attached to an entity!", (*getName()).c_str() );
+
 	// Setup sort value with material specifics.
 	ScnMaterial* pMaterial_ = Parent_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!

@@ -193,8 +193,15 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 // removeEntity
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
-	Entity->setFlag( scnCF_PENDING_DETACH );
-	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
+	if(Entity->getParentEntity() == NULL )
+	{
+		Entity->setFlag( scnCF_PENDING_DETACH );
+		queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
+	}
+	else
+	{
+		Entity->getParentEntity()->detach( Entity );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -208,7 +215,7 @@ void ScnCore::removeAllEntities()
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );
 		// Only remove root entities, it will cascade down the hierarchy removing them.
-		if( !Entity->getParentEntity().isValid() )
+		if( Entity->getParentEntity() != NULL )
 		{
 			removeEntity( Entity );
 		}
@@ -240,20 +247,30 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 //////////////////////////////////////////////////////////////////////////
 // spawnEntity
-void ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
+ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 {
 	BcAssert( BcIsGameThread() );
 
 	// Get package and acquire.
 	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Params.Package_ );
-	pPackage->acquire();
-	
-	// Register for ready callback.
-	EntitySpawnMap_[ EntitySpawnID_ ] = Params;
-	CsCore::pImpl()->requestPackageReadyCallback( Params.Package_, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
 
-	// Advance spawn ID.
-	++EntitySpawnID_;
+	if(pPackage->isReady())
+	{
+		return internalSpawnEntity( Params );
+	}
+	else
+	{
+		pPackage->acquire();
+	
+		// Register for ready callback.
+		EntitySpawnMap_[ EntitySpawnID_ ] = Params;
+		CsCore::pImpl()->requestPackageReadyCallback( Params.Package_, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
+
+		// Advance spawn ID.
+		++EntitySpawnID_;
+	}
+
+	return NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -390,6 +407,29 @@ void ScnCore::processPendingComponents()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// internalSpawnEntity
+ScnEntity* ScnCore::internalSpawnEntity( ScnEntitySpawnParams Params )
+{
+	// Create entity.
+	ScnEntityRef Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
+
+	// Set it's transform.
+	Entity->setLocalMatrix( Params.Transform_ );
+
+	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
+	if( Params.Parent_.isValid() )
+	{
+		Params.Parent_->attach( Entity );
+	}
+	else
+	{
+		addEntity( Entity );
+	}
+
+	return Entity;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onSpawnEntityPackageReady
 void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 {
@@ -397,21 +437,8 @@ void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 	BcAssertMsg( It != EntitySpawnMap_.end(), "ScnCore: Spawn ID invalid." );
 	ScnEntitySpawnParams& EntitySpawnData( (*It).second );
 
-	// Create entity.
-	ScnEntityRef Entity = createEntity( EntitySpawnData.Package_, EntitySpawnData.Name_, EntitySpawnData.InstanceName_ );
-
-	// Set it's transform.
-	Entity->setLocalMatrix( EntitySpawnData.Transform_ );
-
-	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
-	if( EntitySpawnData.Parent_.isValid() )
-	{
-		EntitySpawnData.Parent_->attach( Entity );
-	}
-	else
-	{
-		addEntity( Entity );
-	}
+	// Spawn!
+	internalSpawnEntity( EntitySpawnData );
 
 	// Release package, the entity is responsible for it now.
 	pPackage->release();

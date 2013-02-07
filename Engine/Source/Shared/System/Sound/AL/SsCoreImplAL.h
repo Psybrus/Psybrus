@@ -68,6 +68,7 @@ private:
 public:
 	virtual SsChannel* play( SsSample* pSample, SsChannelCallback* pCallback = NULL );
 	virtual SsChannel* queue( SsSample* pSample, SsChannelCallback* pCallback = NULL );
+	virtual void unregister( SsChannelCallback* Callback = NULL );
 	virtual void setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up );
 
 public: // NEILO HACK.

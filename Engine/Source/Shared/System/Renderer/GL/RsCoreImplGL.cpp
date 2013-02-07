@@ -165,6 +165,9 @@ void RsCoreImplGL::open_threaded()
 		// Line smoothing.
 		glEnable( GL_LINE_SMOOTH );
 		glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+
+		// GGJ2013 HACK.
+		glDisable( GL_CULL_FACE );
 	}
 }
 

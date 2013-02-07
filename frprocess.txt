@@ -1,0 +1,4 @@
+Find: ([a-zA-Z]*?)(WeakRef|Ref|Ref<>)(?= )
+Replace: $1*
+
+Find 

@@ -42,8 +42,10 @@ BCREFLECTION_DERIVED_END();
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnSoundEmitterComponent::initialise()
+void ScnSoundEmitterComponent::initialise( const Json::Value& Object )
 {
+	Super::initialise();
+
 	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
 	Gain_ = 1.0f;
 	Pitch_ = 1.0f;	
@@ -62,7 +64,12 @@ void ScnSoundEmitterComponent::create()
 //virtual
 void ScnSoundEmitterComponent::destroy()
 {
-	BcAssertMsg( ChannelSoundMap_.size() == 0, "Sounds still playing on ScnSoundEmitterComponent whilst being destroyed! Reference count mismatch!" );
+	if( SsCore::pImpl() )
+	{
+		SsCore::pImpl()->unregister( this );
+	}
+
+	Super::destroy();
 }
 
 //////////////////////////////////////////////////////////////////////////

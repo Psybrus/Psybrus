@@ -47,6 +47,8 @@ public:
 
 	void						cmdContent( std::string& Output );
 
+	void						cmdContent_Resource( std::string& Output );
+
 	void						cmdScene( std::string& Output );
 	void						cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth );
 	void						cmdScene_Component( ScnComponentRef Entity, std::string& Output, BcU32 Depth );

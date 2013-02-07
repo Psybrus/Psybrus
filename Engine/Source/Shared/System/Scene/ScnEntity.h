@@ -71,18 +71,18 @@ public:
 	 * Get component by type.
 	 */
 	template< typename _Ty >
-	ScnComponent*						getComponentByType( BcU32 Idx = 0 )
+	_Ty*								getComponentByType( BcU32 Idx = 0 )
 	{
-		return getComponent( Idx, _Ty::StaticGetType() );
+		return static_cast< _Ty* >( getComponent( Idx, _Ty::StaticGetType() ) );
 	}
 
 	/**
 	 * Get component by type.
 	 */
 	template< typename _Ty >
-	ScnComponentRef						getComponentByType( BcName Name )
+	_Ty*								getComponentByType( BcName Name )
 	{
-		return getComponent( Name, _Ty::StaticGetType() );
+		return static_cast< _Ty* >( getComponent( Name, _Ty::StaticGetType() ) );
 	}
 
 	/**
