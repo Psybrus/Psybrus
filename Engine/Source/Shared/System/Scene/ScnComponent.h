@@ -65,7 +65,8 @@ public:
 	BcBool								isAttached() const;
 	BcBool								isAttached( ScnEntityWeakRef Parent ) const;
 	void								setParentEntity( ScnEntityWeakRef Entity );
-	ScnEntityWeakRef					getParentEntity();
+	ScnEntity*							getParentEntity();
+	const ScnEntity*					getParentEntity() const;
 
 	/**
 	 * Get full name inc. parents.

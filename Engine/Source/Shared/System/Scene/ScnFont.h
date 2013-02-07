@@ -91,6 +91,8 @@ public:
 	BcVec2d								draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
 	BcVec2d								drawCentered( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
 
+	void								setAlphaTestStepping( const BcVec2d& Stepping );
+
 	ScnMaterialComponentRef				getMaterialComponent();
 
 public:

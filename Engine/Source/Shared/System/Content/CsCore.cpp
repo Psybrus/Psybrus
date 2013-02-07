@@ -61,7 +61,7 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
-	while( LoadedResources_.size() > 0 )
+	while( PackageList_.size() > 0 )
 	{
 		freeUnreferencedPackages();
 
@@ -89,7 +89,7 @@ void CsCore::close()
 	}
 
 	// Verify we don't have any left floating loaded or unloading.
-	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing!" );
+	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing! Has the scene cleaned up properly?" );
 	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
 }
 
@@ -340,20 +340,30 @@ BcPath CsCore::getPackagePackedPath( const BcName& Package )
 void CsCore::processCreateResources()
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+
+	// Copy precreate in.
+	TResourceHandleListIterator CreateIt( PrecreateResources_.begin() );
+	while( CreateIt != PrecreateResources_.end() )
+	{
+		CreateResources_.push_back( *CreateIt );
+		++CreateIt;
+	}
+	PrecreateResources_.clear();
 	
+	// Iterate create resources.
 	TResourceHandleListIterator It( CreateResources_.begin() );
 	while( It != CreateResources_.end() )
 	{
 		CsResourceRef<> ResourceHandle = (*It);
-		
+			
 		// Create resource.
 		if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
 		{
 			ResourceHandle->create();
-
+	
 			// Remove from list.
 			It = CreateResources_.erase( It );
-
+	
 			// Put into loading list.
 			LoadingResources_.push_back( ResourceHandle );
 		}
@@ -362,6 +372,7 @@ void CsCore::processCreateResources()
 			++It;
 		}
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -521,7 +532,7 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, B
 	{
 		BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-		CreateResources_.push_back( Handle );
+		PrecreateResources_.push_back( Handle );
 	}
 	
 	return Handle.isValid();

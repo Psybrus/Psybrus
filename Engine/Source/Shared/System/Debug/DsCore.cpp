@@ -104,7 +104,7 @@ void DsCore::cmdScene( std::string& Output )
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
 	{
-		if( !Entity->getParentEntity().isValid() )
+		if( Entity->getParentEntity() != NULL )
 		{
 			cmdScene_Entity( Entity, Output, 0 );
 		}
@@ -122,14 +122,6 @@ void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 De
 	Output += "Entity: ";
 	Output += *Entity->getName();
 	Output += "</li>";
-
-	// Parent entity.
-	Output += "<ul>";
-	Output += "<li>";
-	Output += "Parent Entity: ";
-	Output += Entity->getParentEntity().isValid() ? *Entity->getParentEntity()->getName() : "NULL";
-	Output += "</li>";
-	Output += "</ul>";
 
 	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
 	{
@@ -163,14 +155,6 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 	Output += ")";
 	Output += "</li>";
 
-	// Parent entity.
-	Output += "<ul>";
-	Output += "<li>";
-	Output += "Parent Entity: ";
-	Output += Component->getParentEntity().isValid() ? *Component->getParentEntity()->getName() : "NULL";
-	Output += "</li>";
-	Output += "</ul>";
-
 	Output += "</ul>";
 }
 
@@ -186,6 +170,10 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 	Content += "<br/><br/>";
 
 	if( BcStrCompare( pRequestInfo->uri, "/Content" ) )
+	{
+		cmdContent( Content );
+	}
+	else if( BcStrCompare( pRequestInfo->uri, "/ContentQuery" ) )
 	{
 		cmdContent( Content );
 	}

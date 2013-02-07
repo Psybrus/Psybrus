@@ -40,7 +40,7 @@ BCREFLECTION_DERIVED_END();
 //virtual
 void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise();
+	Super::initialise( Object );
 
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();

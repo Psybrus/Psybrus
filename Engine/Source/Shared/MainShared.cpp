@@ -126,6 +126,7 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 {
 	SysKernel::pImpl()->stop();
 
+	exit(0);
 	return evtRET_REMOVE;
 }
 
@@ -138,28 +139,25 @@ void MainShared()
 	FsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
-	// Test resource naming.
-	BcRegex Regex( "\\$\\((.*?):(.*?)\\.(.*?)\\)" );
-	BcRegexMatch Match( 6 );
-	Regex.match( "$(CsResource:Package.Name)", Match );
+	BcRegex Regex( "/(.*?)/" );
+	BcRegexMatch Match;
+	Regex.match( "/Content/Type/Package/Name/", Match );
 
-	BcName Names[] =
+	// Allocate a huge chunk of memory up front to prewarm.
+	BcU32 MemSize = 1024 * 1024 * 128;
+	BcU8* Prewarm = (BcU8*)BcMemAlign( MemSize, 4096 );
+	for( BcU32 Idx = 0; Idx < MemSize / 4096; ++Idx )
 	{
-		"Test",
-		"Test1",
-		"Test_1",
-		"Test_2",
-		"Test_2_3",
-		"Test_2_c",
-		"Test_2_c_2",
-	};
+		Prewarm[ Idx * 4096 ]++;
+	}
+	BcMemFree( Prewarm );
 	
+	std::string String;
 	for( BcU32 Idx = 0; Idx < Match.noofMatches(); ++Idx )
 	{
-		std::string match;
-		Match.getMatch( Idx, match );
-	}
+		Match.getMatch( Idx, String );
 
+	}
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{

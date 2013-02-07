@@ -26,6 +26,7 @@
 BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
 	const Json::Value& Source = Object[ "source" ];
+	const Json::Value& Format = Object[ "format" ];
 
 	if( Source.type() == Json::stringValue )
 	{
@@ -74,15 +75,22 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 	#if !PSY_DEBUG
 			if( TextureType == rsTT_2D )
 			{
-				if( pImage->hasAlpha( 8 ) == BcFalse )
+				if( Format.type() == Json::nullValue )
 				{
-					EncodeFormat = imgEF_DXT1;
-					TextureFormat = rsTF_DXT1;
+					if( pImage->hasAlpha( 8 ) == BcFalse )
+					{
+						EncodeFormat = imgEF_DXT1;
+						TextureFormat = rsTF_DXT1;
+					}
+					else
+					{
+						EncodeFormat = imgEF_DXT5;
+						TextureFormat = rsTF_DXT5;
+					}
 				}
 				else
 				{
-					EncodeFormat = imgEF_DXT5;
-					TextureFormat = rsTF_DXT5;
+					// HACK.
 				}
 			}
 	#endif

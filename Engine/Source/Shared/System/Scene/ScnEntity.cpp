@@ -123,9 +123,6 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 // create
 void ScnEntity::create()
 {
-	// Setup buffered event proxy.
-	pEventProxy_ = new EvtProxyBuffered( this );	
-
 	// If we have a basis, we're ready.
 	if( Basis_.isValid() )
 	{			
@@ -137,9 +134,6 @@ void ScnEntity::create()
 // destroy
 void ScnEntity::destroy()
 {
-	delete pEventProxy_;
-	pEventProxy_ = NULL;
-
 	// If we have a basis entity, we need to release the package.
 	if( Basis_.isValid() )
 	{
@@ -208,7 +202,7 @@ void ScnEntity::detach( ScnComponent* Component )
 // detachFromParent
 void ScnEntity::detachFromParent()
 {
-	BcAssertMsg( getParentEntity().isValid(), "Can't detach entity \"%s\", it's not attached.", (*getName()).c_str() );
+	BcAssertMsg( getParentEntity() == NULL, "Can't detach entity \"%s\", it's not attached.", (*getName()).c_str() );
 	getParentEntity()->detach( this );
 }
 
@@ -216,6 +210,9 @@ void ScnEntity::detachFromParent()
 // onAttachScene
 void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
+	// Setup buffered event proxy.
+	pEventProxy_ = new EvtProxyBuffered( this );	
+
 	Super::onAttach( Parent );
 }
 
@@ -223,6 +220,10 @@ void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 // onAttachScene
 void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
+	// Free event proxy.
+	delete pEventProxy_;
+	pEventProxy_ = NULL;
+
 	// All our child components want to detach.
 	while( Components_.size() > 0 )
 	{
@@ -328,7 +329,7 @@ ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
 {
 	ScnComponentRef Component = getComponent( Idx, Type );
 
-	if( Component.isValid() == BcFalse && getParentEntity().isValid() )
+	if( Component.isValid() == BcFalse && getParentEntity() != NULL )
 	{
 		Component = getParentEntity()->getComponentAnyParent( Idx, Type );
 	}
@@ -342,7 +343,7 @@ ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const BcName& Type 
 {
 	ScnComponentRef Component = getComponent( Name, Type );
 
-	if( Component.isValid() == BcFalse && getParentEntity().isValid() )
+	if( Component.isValid() == BcFalse && getParentEntity() != NULL )
 	{
 		Component = getParentEntity()->getComponentAnyParent( Name, Type );
 	}

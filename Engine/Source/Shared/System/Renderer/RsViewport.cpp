@@ -60,7 +60,7 @@ void RsViewport::unProject( const BcVec2d& ScreenCoord, BcVec3d& WorldNearPos, B
 
 //////////////////////////////////////////////////////////////////////////
 // project
-BcVec2d RsViewport::project( const BcVec3d& WorldPos )
+BcVec2d RsViewport::project( const BcVec3d& WorldPos ) const
 {
 	BcVec4d ScreenSpace = BcVec4d( WorldPos, 1.0f ) * viewProjection();
 	BcVec2d ScreenPosition = BcVec2d( ScreenSpace.x() / ScreenSpace.w(), -ScreenSpace.y() / ScreenSpace.w() );

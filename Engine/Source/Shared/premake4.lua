@@ -18,6 +18,7 @@ project "Engine_Shared"
 	includedirs { "../../../External/squish" } -- TODO: Fix this properly.
 	includedirs { "../../../External/tremor" } -- TODO: Fix this properly.
 	includedirs { "../../../External/zlib" } -- TODO: Fix this properly.
+    includedirs { "../../../External/libcurl/include" }
 
 	-- GLEW config.
 	defines { "GLEW_STATIC" }
@@ -31,6 +32,7 @@ project "Engine_Shared"
    			"External_glew",
    			"External_jsoncpp",
    			"External_libb64",
+   			"External_libcurl",
    			"External_mongoose",
    			"External_ogg",
    			"External_pcre",
@@ -38,4 +40,5 @@ project "Engine_Shared"
    			"External_squish",
    			"External_tremor",
    			"External_zlib",
+   			"External_libcurl",
    		}

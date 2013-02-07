@@ -165,7 +165,12 @@ void ScnComponent::setParentEntity( ScnEntityWeakRef Entity )
 
 //////////////////////////////////////////////////////////////////////////
 // getParentEntity
-ScnEntityWeakRef ScnComponent::getParentEntity()
+ScnEntity* ScnComponent::getParentEntity()
+{
+	return ParentEntity_;
+}
+
+const ScnEntity* ScnComponent::getParentEntity() const
 {
 	return ParentEntity_;
 }
