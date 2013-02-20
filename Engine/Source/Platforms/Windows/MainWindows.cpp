@@ -164,9 +164,6 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 #endif
 
-	// Perform unit tests.
-	MainUnitTests();
-
 	// Initialise RNG.
 #if !PSY_DEBUG
 	BcRandom::Global = BcRandom( (BcU32)::GetTickCount() );
@@ -189,6 +186,11 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Main shared.
 	MainShared();
+
+#if !PSY_PRODUCTION
+	// Perform unit tests.
+	MainUnitTests();
+#endif
 
 	// HACK HACK HACK: Offline package importing is a major hack for now.
 	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )

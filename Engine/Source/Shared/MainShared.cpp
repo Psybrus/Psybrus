@@ -34,6 +34,10 @@ void MainUnitTests()
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
+
+	// Reflection serialisation JSON unit test.
+	extern void BcReflectionSerialisationJson_UnitTest();
+	BcReflectionSerialisationJson_UnitTest();
 }
 
 //////////////////////////////////////////////////////////////////////////
