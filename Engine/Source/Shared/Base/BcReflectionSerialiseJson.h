@@ -24,13 +24,19 @@ class BcReflectionSerialiseJson:
 	public BcReflectionSerialise
 {
 public:
+	BcForceInline BcReflectionSerialiseJson( void* pData, const BcReflectionClass* pClass )
+	{
+		RootValue_ = Json::Value( Json::objectValue );
+		pCurrValue_ = &RootValue_;
+		serialise( pData, pClass );
+	}
+
 	template< typename _Ty >
 	BcForceInline BcReflectionSerialiseJson( _Ty* pData )
 	{
 		RootValue_ = Json::Value( Json::objectValue );
 		pCurrValue_ = &RootValue_;
-
-		serialise< _Ty >( pData );
+		serialise( pData, pData->getClass() );
 	}
 
 	virtual ~BcReflectionSerialiseJson();
@@ -43,7 +49,8 @@ protected:
 	virtual void					serialiseField( void* pData, const BcReflectionClass* pParentClass, const BcReflectionField* pField );
 
 protected:
-	Json::Value						getValue( void* pData, const BcReflectionField* pField );
+	BcBool							getValue( void* pData, const BcReflectionField* pField, Json::Value& Value );
+	BcBool							setValue( void* pData, const BcReflectionField* pField, const Json::Value& Value );
 
 protected:
 	Json::Value						RootValue_;
@@ -53,6 +60,8 @@ protected:
 	Json::Value*					pCurrValue_;
 	std::string						CurrMember_;
 	BcName							CurrClass_;
+
+	std::map< BcU32, Json::Value >	SubTypeMap_;
 };
 
 #endif

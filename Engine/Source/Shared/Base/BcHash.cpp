@@ -164,6 +164,22 @@ BcHash BcHash::generateHash( const BcChar* pString )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// generateHash - pointer
+//static
+BcHash BcHash::generateHash( const void* pPointer )
+{
+#if HASH_TYPE == HASH_CRC32
+	return GenerateCRC32( pPointer, sizeof( pPointer ) );
+#elif HASH_TYPE == HASH_SDBM	
+	return GenerateSDBM( pPointer, sizeof( pPointer ) );
+#elif HASH_TYPE == HASH_DJB	
+	return GenerateDJB( pPointer, sizeof( pPointer ) );
+#elif HASH_TYPE == HASH_AP	
+	return GenerateAP( pPointer, sizeof( pPointer ) );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
 // generateHash - data
 //static
 BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
