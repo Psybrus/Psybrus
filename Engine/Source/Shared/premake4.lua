@@ -5,6 +5,7 @@ project "Engine_Shared"
 	includedirs { "./", "../Platforms/Windows/" }
 
 	-- External includes.
+	includedirs { "../../../External/bullet-2.81-rev2613/src" }
 	includedirs { "../../../External/enet/include" }
 	includedirs { "../../../External/freetype/include" }
 	includedirs { "../../../External/glew/include" }
@@ -26,7 +27,7 @@ project "Engine_Shared"
 	configuration "windows"
    		links {
    			-- External libs.
-   			"External_Box2D_v2.2.1",
+   			"External_BulletPhysics",
    			"External_enet",
    			"External_freetype",
    			"External_glew",
