@@ -19,6 +19,7 @@
 #include "Base/BcQuat.h"
 #include "Base/BcMisc.h"
 
+
 // Base types must exist before anything else uses the database.
 BcReflectionType TYPE_BcU8( "BcU8", sizeof( BcU8 ), BcReflectionConstruct< BcU8 >, BcReflectionDestruct< BcU8 > );
 BcReflectionType TYPE_BcS8( "BcS8", sizeof( BcS8 ), BcReflectionConstruct< BcS8 >, BcReflectionDestruct< BcS8 > );

@@ -35,6 +35,7 @@ public:
 	BcHash();
 	BcHash( BcU32 Value );
 	BcHash( const BcChar* pString );
+	BcHash( const void* pPointer );
 	BcHash( const BcU8* pData, BcU32 Bytes );
 	BcHash( const BcHash& Hash );
 	operator BcU32() const;
@@ -56,6 +57,11 @@ private:
 	*	Hash a string.
 	*/
 	static BcHash	generateHash( const BcChar* pString );
+
+	/**
+	*	Hash a pointer.
+	*/
+	static BcHash	generateHash( const void* pPointer );
 
 	/**
 	*	Hash data.
@@ -81,6 +87,11 @@ inline BcHash::BcHash( BcU32 Value )
 inline BcHash::BcHash( const BcChar* pString )
 {
 	Value_ = generateHash( pString );
+}
+
+inline BcHash::BcHash( const void* pPointer )
+{
+	Value_ = generateHash( pPointer );
 }
 
 inline BcHash::BcHash( const BcU8* pData, BcU32 Bytes )
