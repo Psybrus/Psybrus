@@ -109,12 +109,8 @@ void BcReflectionSerialise::serialiseField( void* pData, const BcReflectionClass
 			}
 		}
 	}
-	// Determine type for serialisation.
-	if( pType != NULL )
-	{
-		
-	}
-	else
+	
+	if( pType == NULL )
 	{
 		BcPrintf( "%s %s::%s: \n", "Unknown", (*pParentClass->getName()).c_str(), (*pField->getName()).c_str() );
 	}
