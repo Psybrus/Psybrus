@@ -186,6 +186,29 @@ enum eRsDepthStencilFormat
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Vertex data type.
+enum eRsVertexDataType
+{
+	rsVDT_FLOAT32 = 0,
+	rsVDT_FLOAT16,
+	rsVDT_FIXED,
+	rsVDT_BYTE,
+	rsVDT_BYTE_NORM,
+	rsVDT_UBYTE,
+	rsVDT_UBYTE_NORM,
+	rsVDT_SHORT,
+	rsVDT_SHORT_NORM,
+	rsVDT_USHORT,
+	rsVDT_USHORT_NORM,
+	rsVDT_INT,
+	rsVDT_INT_NORM,
+	rsVDT_UINT,
+	rsVDT_UINT_NORM,
+	
+	rsVDF_MAX,
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Texture Type
 enum eRsTextureType
 {
@@ -412,9 +435,12 @@ extern BcU32 RsVertexDeclSize( BcU32 VertexFormat );
 // Handy defines
 enum eRsShaderType
 {
-	rsST_GEOMETRY = 0,
-	rsST_VERTEX,
+	rsST_VERTEX = 0,
+	rsST_TESSELATION_CONTROL,
+	rsST_TESSELATION_EVALUATION,
+	rsST_GEOMETRY,
 	rsST_FRAGMENT,
+	rsST_COMPUTE,
 	
 	//
 	rsST_MAX,
