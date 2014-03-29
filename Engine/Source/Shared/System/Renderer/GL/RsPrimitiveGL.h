@@ -45,6 +45,9 @@ public:
 private:
 	RsVertexBufferGL*					pVertexBuffer_;
 	RsIndexBufferGL*					pIndexBuffer_;	
+
+	BcU32								VAO_;
+
 };
 
 #endif
