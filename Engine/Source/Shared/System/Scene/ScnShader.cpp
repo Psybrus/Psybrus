@@ -24,13 +24,13 @@
 // Statics
 static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
 {
-	{ scnSPF_STATIC_2D | scnSPF_UNLIT,										NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
-	{ scnSPF_STATIC_3D | scnSPF_UNLIT,										NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
-	{ scnSPF_SKINNED_3D | scnSPF_UNLIT,										NULL, "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf" },
-	{ scnSPF_PARTICLE_3D | scnSPF_UNLIT,									NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
+	{ scnSPF_STATIC_2D | scnSPF_UNLIT,										"Content/Engine/uniforms.glsl", NULL, "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf" },
+	{ scnSPF_STATIC_3D | scnSPF_UNLIT,										"Content/Engine/uniforms.glsl", NULL, "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf" },
+	{ scnSPF_SKINNED_3D | scnSPF_UNLIT,										"Content/Engine/uniforms.glsl", NULL, "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf" },
+	{ scnSPF_PARTICLE_3D | scnSPF_UNLIT,									"Content/Engine/uniforms.glsl", NULL, "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf" },
 
-	{ scnSPF_STATIC_3D | scnSPF_DIFFUSE_LIT,								NULL, "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf" },
-	{ scnSPF_SKINNED_3D | scnSPF_DIFFUSE_LIT,								NULL, "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf" },
+	{ scnSPF_STATIC_3D | scnSPF_DIFFUSE_LIT,								"Content/Engine/uniforms.glsl", NULL, "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf" },
+	{ scnSPF_SKINNED_3D | scnSPF_DIFFUSE_LIT,								"Content/Engine/uniforms.glsl", NULL, "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf" },
 };
 
 #ifdef PSY_SERVER
@@ -54,6 +54,7 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 		if( VertexShader.type() == Json::stringValue &&
 		    FragmentShader.type() == Json::stringValue )
 		{
+			BcFile UniformsFile;
 			BcFile ShaderFile;
 			BcFile BootstrapFile;
 			BcStream HeaderStream;
@@ -83,28 +84,35 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 			{
 				ScnShaderPermutationBootstrap PermutationBootstrap( GShaderPermutationBootstraps[ PermutationIdx ] );
 
-				if( ShaderFile.open( VertexShader.asCString(), bcFM_READ ) && BootstrapFile.open( PermutationBootstrap.SourceVertexShaderName_, bcFM_READ ) )
+				if( ShaderFile.open( VertexShader.asCString(), bcFM_READ ) && 
+					UniformsFile.open( PermutationBootstrap.SourceUniformIncludeName_, bcFM_READ ) &&
+					BootstrapFile.open( PermutationBootstrap.SourceVertexShaderName_, bcFM_READ ) )
 				{	
 					// Add dependancies.
 					Importer.addDependency( VertexShader.asCString() );
+					Importer.addDependency( PermutationBootstrap.SourceUniformIncludeName_ );
 					Importer.addDependency( PermutationBootstrap.SourceVertexShaderName_ );
 
 					// Setup permutation flags.
 					ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
 
 					// Read in whole shader.
+					BcU8* pUniformsShader = UniformsFile.readAllBytes();
 					BcU8* pBootstrapShader = BootstrapFile.readAllBytes();
 					BcU8* pShader = ShaderFile.readAllBytes();
 			
 					// Serialise.
 					VertexShaderStream << ShaderHeader;
+					VertexShaderStream.push( pUniformsShader, UniformsFile.size() );
 					VertexShaderStream.push( pBootstrapShader, BootstrapFile.size() );
 					VertexShaderStream.push( pShader, ShaderFile.size() );
 					VertexShaderStream << BcU8( 0 ); // NULL terminator.
 					delete [] pShader;
 					delete [] pBootstrapShader;
+					delete [] pUniformsShader;
 					ShaderFile.close();
 					BootstrapFile.close();
+					UniformsFile.close();
 
 					Importer.addChunk( BcHash( "vertex" ), VertexShaderStream.pData(), VertexShaderStream.dataSize() );
 					VertexShaderStream.clear();
@@ -115,28 +123,35 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 				}
 				
 				// Load fragment shader.
-				if( ShaderFile.open( FragmentShader.asCString(), bcFM_READ ) && BootstrapFile.open( PermutationBootstrap.SourceFragmentShaderName_, bcFM_READ ) )
+				if( ShaderFile.open( FragmentShader.asCString(), bcFM_READ ) && 
+					UniformsFile.open( PermutationBootstrap.SourceUniformIncludeName_, bcFM_READ ) &&
+					BootstrapFile.open( PermutationBootstrap.SourceFragmentShaderName_, bcFM_READ ) )
 				{
 					// Add dependancies.
 					Importer.addDependency( FragmentShader.asCString() );
+					Importer.addDependency( PermutationBootstrap.SourceUniformIncludeName_ );
 					Importer.addDependency( PermutationBootstrap.SourceFragmentShaderName_ );
 
 					// Setup permutation flags.
 					ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
 					
 					// Read in whole shader.
+					BcU8* pUniformsShader = UniformsFile.readAllBytes();
 					BcU8* pBootstrapShader = BootstrapFile.readAllBytes();
 					BcU8* pShader = ShaderFile.readAllBytes();
 					
 					// Serialise.
 					FragmentShaderStream << ShaderHeader;
+					FragmentShaderStream.push( pUniformsShader, UniformsFile.size() );
 					FragmentShaderStream.push( pBootstrapShader, BootstrapFile.size() );
 					FragmentShaderStream.push( pShader, ShaderFile.size() );
 					FragmentShaderStream << BcU8( 0 ); // NULL terminator.
 					delete [] pShader;
 					delete [] pBootstrapShader;
+					delete [] pUniformsShader;
 					ShaderFile.close();
 					BootstrapFile.close();
+					UniformsFile.close();
 
 					Importer.addChunk( BcHash( "fragment" ), FragmentShaderStream.pData(), FragmentShaderStream.dataSize() );
 					FragmentShaderStream.clear();
