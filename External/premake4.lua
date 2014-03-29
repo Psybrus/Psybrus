@@ -1,6 +1,4 @@
-dofile ("aptk/premake4.lua")
 dofile ("bullet-2.81-rev2613/premake4.lua")
-dofile ("dlmalloc/premake4.lua")
 dofile ("enet/premake4.lua")
 dofile ("freetype/premake4.lua")
 dofile ("glew/premake4.lua")
