@@ -124,7 +124,9 @@ void RsContextGL::swapBuffers()
 		ScreenshotRequested_ = BcFalse;
 	}
 
+#if PLATFORM_WINDOWS
 	::SwapBuffers( WindowDC_ );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,10 +190,28 @@ void RsContextGL::create()
 	glewInit();
 
 	
-	// Attempt to create core profile:
+	// Attempt to create core profile.
+	std::pair< BcU32, BcU32 > versions[] = 
+	{
+		std::pair< BcU32, BcU32 >( 4, 4 ),
+		std::pair< BcU32, BcU32 >( 4, 3 ),
+		std::pair< BcU32, BcU32 >( 4, 2 ),
+		std::pair< BcU32, BcU32 >( 4, 1 ),
+		std::pair< BcU32, BcU32 >( 4, 0 ),
+		std::pair< BcU32, BcU32 >( 3, 3 ),
+		std::pair< BcU32, BcU32 >( 3, 2 ),
+	};
+
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
 	bool success = false;
-	createProfile( 3, 2, BcTrue, ParentContext );
+	for( auto version : versions )
+	{
+		if( createProfile( version.first, version.second, BcTrue, ParentContext ) )
+		{
+			BcPrintf( "RsContextGL: Created OpenGL %u.%u Core Profile.\n", version.first, version.second );
+			break;
+		}
+	}
 
 	// If we have a parent, we need to share lists.
 	if( pParent_ != NULL )
@@ -266,6 +286,8 @@ bool RsContextGL::createProfile( BcU32 Maj, BcU32 Min, BcBool IsCore, HGLRC Pare
 
 		return true;
 	}
+
+	return false;
 }
 
 #endif
