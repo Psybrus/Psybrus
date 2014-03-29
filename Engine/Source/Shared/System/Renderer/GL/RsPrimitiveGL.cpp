@@ -28,7 +28,7 @@ RsPrimitiveGL::RsPrimitiveGL( RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* 
 //virtual
 RsPrimitiveGL::~RsPrimitiveGL()
 {
-	
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,15 @@ RsPrimitiveGL::~RsPrimitiveGL()
 //virtual
 void RsPrimitiveGL::create()
 {
-	
+	GLuint Handle;
+	glGenVertexArrays( 1, &Handle );
+	setHandle( Handle );
+
+	// Increment fence, update will decrement it.
+	UpdateSyncFence_.increment();
+
+	// Update resource.
+	update();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +52,21 @@ void RsPrimitiveGL::create()
 //virtual
 void RsPrimitiveGL::update()
 {
-	
+	GLuint Handle = getHandle< GLuint >();
+
+	glBindVertexArray( Handle );
+
+	// Bind global state block.
+	RsCore::pImpl()->getStateBlock()->bind();
+
+	pVertexBuffer_->bind();
+		
+	if( pIndexBuffer_ != NULL )
+	{
+		pIndexBuffer_->bind();
+	}
+
+	glBindVertexArray( 0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,24 +74,18 @@ void RsPrimitiveGL::update()
 //virtual
 void RsPrimitiveGL::destroy()
 {
-	
+	GLuint Handle = getHandle< GLuint >();
+	glDeleteVertexArrays( 1, &Handle );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // render
 void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
 {
+	GLuint Handle = getHandle< GLuint >();
 	if( pVertexBuffer_ != NULL )
 	{
-		// Bind global state block.
-		RsCore::pImpl()->getStateBlock()->bind();
-
-		pVertexBuffer_->bind();
-		
-		if( pIndexBuffer_ != NULL )
-		{
-			pIndexBuffer_->bind();
-		}
+		glBindVertexArray( Handle );
 
 		GLenum GLPrimitiveType = 0;
 		switch( PrimitiveType )

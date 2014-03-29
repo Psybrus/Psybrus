@@ -76,8 +76,7 @@ static GLenum gTextureTypes[] =
 // Ctor
 RsStateBlockGL::RsStateBlockGL()
 {
-	glGenVertexArrays( 1, &VAO_ );
-	glBindVertexArray( VAO_ );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +84,6 @@ RsStateBlockGL::RsStateBlockGL()
 //virtual
 RsStateBlockGL::~RsStateBlockGL()
 {
-	glDeleteVertexArrays( 1, &VAO_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
