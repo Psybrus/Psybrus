@@ -56,9 +56,6 @@ void RsPrimitiveGL::update()
 
 	glBindVertexArray( Handle );
 
-	// Bind global state block.
-	RsCore::pImpl()->getStateBlock()->bind();
-
 	pVertexBuffer_->bind();
 		
 	if( pIndexBuffer_ != NULL )
@@ -85,6 +82,10 @@ void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 
 	GLuint Handle = getHandle< GLuint >();
 	if( pVertexBuffer_ != NULL )
 	{
+		// Bind global state block.
+		RsCore::pImpl()->getStateBlock()->bind();
+
+		//
 		glBindVertexArray( Handle );
 
 		GLenum GLPrimitiveType = 0;
