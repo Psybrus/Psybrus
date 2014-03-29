@@ -46,9 +46,6 @@ void RsStateBlock::setDefaultState()
 	setRenderState( rsRS_DEPTH_TEST_ENABLE,			0,					BcTrue );
 	setRenderState( rsRS_DEPTH_TEST_COMPARE,		0,					BcTrue );
 	setRenderState( rsRS_DEPTH_BIAS,				0,					BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_ENABLE,			0,					BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_COMPARE,		0,					BcTrue );
-	setRenderState( rsRS_ALPHA_TEST_THRESHOLD,		0,					BcTrue );
 	setRenderState( rsRS_STENCIL_WRITE_MASK,		0,					BcTrue );
 	setRenderState( rsRS_STENCIL_TEST_ENABLE,		0,					BcTrue );
 	setRenderState( rsRS_STENCIL_TEST_FUNC_COMPARE,	0,					BcTrue );
