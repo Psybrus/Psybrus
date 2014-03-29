@@ -15,7 +15,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource
-RsResource::RsResource()
+RsResource::RsResource( class RsContext* pContext ):
+	pContext_( pContext )
 {
 	
 }
@@ -26,4 +27,11 @@ RsResource::RsResource()
 RsResource::~RsResource()
 {
 	
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getContext
+class RsContext* RsResource::getContext()
+{
+	return pContext_;
 }

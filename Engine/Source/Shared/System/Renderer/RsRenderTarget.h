@@ -28,7 +28,12 @@ class RsRenderTarget:
 	public RsResource
 {
 public:
-	virtual ~RsRenderTarget(){};
+	RsRenderTarget( class RsContext* pContext ):
+		RsResource( pContext )
+	{}
+
+	virtual ~RsRenderTarget()
+	{}
 
 	/**
 	 *	Get width.
@@ -43,7 +48,7 @@ public:
 	/**
 	 *	Get colour format.
 	 */
-	virtual eRsColourFormat				colourFormat() const = 0;
+	virtual eRsColourFormat				colourFormat( BcU32 Index ) const = 0;
 
 	/**
 	 *	Get depth stencil format.

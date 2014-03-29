@@ -322,7 +322,6 @@ enum eRsRenderState
 	rsRS_DEPTH_WRITE_ENABLE = 0,		///!< Depth write enable/disable. true or false.
 	rsRS_DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
 	rsRS_DEPTH_TEST_COMPARE,			///!< Depth test compare. eRsCompareMode
-	rsRS_DEPTH_BIAS,					///!< Depth bias. Z.
 	rsRS_STENCIL_WRITE_MASK,			///!< Stencil write mask.
 	rsRS_STENCIL_TEST_ENABLE,			///!< Stencil test enable.
 	rsRS_STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.
@@ -331,10 +330,10 @@ enum eRsRenderState
 	rsRS_STENCIL_TEST_OP_SFAIL,			///!< Stencil test fail operation.
 	rsRS_STENCIL_TEST_OP_DPFAIL,		///!< Stencil test passes, but depth fails operation.
 	rsRS_STENCIL_TEST_OP_DPPASS,		///!< Stencil test and depth pass operation.
-	rsRS_COLOR_WRITE_RED_ENABLE,		///!< Color write red? true or false.
-	rsRS_COLOR_WRITE_GREEN_ENABLE,		///!< Color write green? true or false.
-	rsRS_COLOR_WRITE_BLUE_ENABLE,		///!< Color write blue? true or false.
-	rsRS_COLOR_WRITE_ALPHA_ENABLE,		///!< Color write alpha? true or false.
+	rsRS_COLOR_WRITE_MASK_0,			///!< Color write mask, RT 0. Bits 0-3, RGBA
+	rsRS_COLOR_WRITE_MASK_1,			///!< Color write mask, RT 1. Bits 0-3, RGBA
+	rsRS_COLOR_WRITE_MASK_2,			///!< Color write mask, RT 2. Bits 0-3, RGBA
+	rsRS_COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
 	rsRS_BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
 	
 	//
@@ -352,6 +351,7 @@ enum eRsPrimitiveType
 	rsPT_TRIANGLELIST,
 	rsPT_TRIANGLESTRIP,
 	rsPT_TRIANGLEFAN,
+	rsPT_PATCHES,
 	rsPT_MAX,
 	//
 	rsPT_INVALID = BcErrorCode,

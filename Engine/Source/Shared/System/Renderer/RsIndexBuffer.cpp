@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsIndexBuffer::RsIndexBuffer()
+RsIndexBuffer::RsIndexBuffer( class RsContext* pContext ):
+	RsResource( pContext )
 {
 	
 }

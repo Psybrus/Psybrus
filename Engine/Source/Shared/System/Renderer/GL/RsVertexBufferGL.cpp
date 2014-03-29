@@ -17,7 +17,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsVertexBufferGL::RsVertexBufferGL( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData )
+RsVertexBufferGL::RsVertexBufferGL( RsContext* pContext, BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData ):
+	RsVertexBuffer( pContext )
 {
 	// Setup base buffer.
 	Type_ = GL_ARRAY_BUFFER;

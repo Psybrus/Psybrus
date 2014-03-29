@@ -15,7 +15,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgram::RsProgram()
+RsProgram::RsProgram( class RsContext* pContext ):
+	RsResource( pContext )
 {
 	
 }

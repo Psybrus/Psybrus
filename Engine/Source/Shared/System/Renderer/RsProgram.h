@@ -23,7 +23,7 @@ class RsProgram:
 	public RsResource
 {
 public:
-	RsProgram();
+	RsProgram( class RsContext* pContext );
 	virtual ~RsProgram();
 	
 	/**

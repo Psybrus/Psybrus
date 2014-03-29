@@ -24,8 +24,8 @@ class RsRenderBufferGL:
 	public RsResource
 {
 public:
-	RsRenderBufferGL( eRsColourFormat Format, BcU32 Width, BcU32 Height );
-	RsRenderBufferGL( eRsDepthStencilFormat Format, BcU32 Width, BcU32 Height );
+	RsRenderBufferGL( RsContext* pContext, eRsColourFormat Format, BcU32 Width, BcU32 Height );
+	RsRenderBufferGL( RsContext* pContext, eRsDepthStencilFormat Format, BcU32 Width, BcU32 Height );
 	virtual ~RsRenderBufferGL();
 	
 protected:

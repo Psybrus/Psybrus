@@ -30,7 +30,7 @@ public:
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
 	 */
-	RsShaderGL( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
+	RsShaderGL( RsContext* pContext, eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual ~RsShaderGL();
 	
 	void								create();

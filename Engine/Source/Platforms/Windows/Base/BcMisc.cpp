@@ -41,11 +41,18 @@ BcU32 BcGetHardwareThreadCount()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// BcCurrentThreadId
+BcThreadId BcCurrentThreadId()
+{
+	return (BcThreadId)::GetCurrentThreadId();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // BcSetMainThread
-static DWORD GMainThreadID = BcErrorCode;
+static BcThreadId GMainThreadID = BcErrorCode;
 void BcSetGameThread()
 {
-	GMainThreadID = ::GetCurrentThreadId();
+	GMainThreadID = BcCurrentThreadId();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,5 +60,5 @@ void BcSetGameThread()
 BcBool BcIsGameThread()
 {
 	return GMainThreadID == BcErrorCode ||					// Game thread not setup yet (static initialisers)
-		   GMainThreadID == ::GetCurrentThreadId();			// Game thread matches.
+		   GMainThreadID == BcCurrentThreadId();			// Game thread matches.
 }

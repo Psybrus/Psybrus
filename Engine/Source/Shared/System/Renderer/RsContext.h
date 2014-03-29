@@ -27,29 +27,60 @@ class RsContext:
 	public RsResource
 {
 public:
-	RsContext( OsClient* pClient );
+	RsContext( RsContext* pParentContext ):
+		RsResource( pParentContext )
+	{}
 	virtual ~RsContext();
 
 	/**
  	 * Get width.
 	 */
-	virtual BcU32 getWidth() const = 0;
+	virtual BcU32					getWidth() const = 0;
 
 	/**
  	 * Get height.
 	 */
-	virtual BcU32 getHeight() const = 0;
+	virtual BcU32					getHeight() const = 0;
 
 	/**
 	 * Requests a screenshot from the context.
 	 */
-	virtual void takeScreenshot() = 0;
+	virtual void					takeScreenshot() = 0;
 
-protected:
-	OsClient* pClient_;
+	/**
+	 * Set default state.
+	 */
+	virtual void					setDefaultState() = 0;
+	
+	/**
+	 * Invalidate render state.
+	 */
+	virtual void					invalidateRenderState() = 0;
+	
+	/**
+	 * Invalidate texture state.
+	 */
+	virtual void					invalidateTextureState() = 0;
+	
+	/**
+	 * Set render state.
+	 */
+	virtual void					setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse ) = 0;
+	
+	/**
+	 * Get render state.
+	 */
+	virtual BcS32					getRenderState( eRsRenderState State ) const = 0;
 
-private:
+	/**
+	 * Set texture state.
+	 */
+	virtual void					setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse ) = 0;
 
+	/**
+	 * Flush state.
+	 */
+	virtual void					flushState() = 0;
 };
 
 

@@ -31,7 +31,7 @@ public:
 	 * @param pVertexBuffer Vertex buffer.
 	 * @param pIndexBuffer Index buffer.
 	 */
-	RsPrimitiveGL( RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer );
+	RsPrimitiveGL( RsContext* pContext, RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer );
 	virtual ~RsPrimitiveGL();
 	
 protected:

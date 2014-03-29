@@ -28,7 +28,7 @@ class RsProgramGL:
 	public RsProgram
 {
 public:
-	RsProgramGL( BcU32 NoofShaders, RsShader** ppShaders );
+	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders );
 	virtual ~RsProgramGL();
 	
 	void								create();
