@@ -24,10 +24,26 @@ RsShaderGL::RsShaderGL( eRsShaderType ShaderType, eRsShaderDataType ShaderDataTy
 			Type_ = GL_VERTEX_SHADER;
 			break;
 
+		case rsST_TESSELATION_CONTROL:
+			Type_ = GL_TESS_CONTROL_SHADER;
+			break;
+
+		case rsST_TESSELATION_EVALUATION:
+			Type_ = GL_TESS_EVALUATION_SHADER;
+			break;
+
+		case rsST_GEOMETRY:
+			Type_ = GL_GEOMETRY_SHADER;
+			break;
+
 		case rsST_FRAGMENT:
 			Type_ = GL_FRAGMENT_SHADER;
 			break;
 			
+		case rsST_COMPUTE:
+			Type_ = GL_COMPUTE_SHADER;
+			break;
+
 		default:
 			BcBreakpoint;
 			break;

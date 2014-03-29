@@ -4,32 +4,25 @@
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Vertex Descriptors
+*		Vertex stuff
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __RSVERTEX_H__
-#define __RSVERTEX_H__
+#ifndef __RSVERTEXDATA_H__
+#define __RSVERTEXDATA_H__
 
-#include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "System/Renderer/RsTypes.h"
 
-struct RsVertex2D
+struct RsVertexElement
 {
-	BcVec2d		Position_;
-	BcVec2d		UV_;
-	BcF32		R_, G_, B_, A_;
+	BcU32				Components_;
+	BcU32				Stride_;
+	eRsVertexDataType	Type_;
+	BcU32				StreamIdx_;
 };
 
-struct RsVertex3D
-{
-	BcVec3d		Position_;
-	BcVec3d		Normal_;
-	BcVec2d		UV_;
-	BcF32		R_, G_, B_, A_;
-};
 
 #endif
