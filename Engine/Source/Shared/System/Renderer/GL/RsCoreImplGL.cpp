@@ -21,6 +21,7 @@
 #include "System/Renderer/GL/RsFrameBufferGL.h"
 #include "System/Renderer/GL/RsVertexBufferGL.h"
 #include "System/Renderer/GL/RsIndexBufferGL.h"
+#include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 #include "System/Renderer/GL/RsPrimitiveGL.h"
@@ -272,6 +273,16 @@ RsVertexBuffer* RsCoreImplGL::createVertexBuffer( BcU32 Descriptor, BcU32 NoofVe
 RsIndexBuffer* RsCoreImplGL::createIndexBuffer( BcU32 NoofIndices, void* pIndexData )
 {
 	RsIndexBufferGL* pResource = new RsIndexBufferGL( getContext( NULL ), NoofIndices, pIndexData );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createUniformBuffer
+//virtual 
+RsUniformBuffer* RsCoreImplGL::createUniformBuffer( BcU32 BufferSize, void* pBufferData )
+{
+	RsUniformBufferGL* pResource = new RsUniformBufferGL( getContext( NULL ), BufferSize, pBufferData );
 	createResource( pResource );
 	return pResource;
 }
