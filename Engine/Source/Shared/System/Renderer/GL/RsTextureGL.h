@@ -30,13 +30,13 @@ class RsTextureGL:
 {
 public:
 	// 1D
-	RsTextureGL( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
 
 	// 2D
-	RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
 
 	// 3D
-	RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
 	virtual ~RsTextureGL();
 	
 	virtual BcU32						width() const;

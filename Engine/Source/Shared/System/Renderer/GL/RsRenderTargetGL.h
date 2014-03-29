@@ -27,7 +27,7 @@ class RsRenderTargetGL:
 	public RsRenderTarget
 {
 public:
-	RsRenderTargetGL( eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat, BcU32 Width, BcU32 Height, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture );
+	RsRenderTargetGL( RsContext* pContext, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat, BcU32 Width, BcU32 Height, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture );
 	virtual ~RsRenderTargetGL();
 	
 	void								bind();
@@ -35,7 +35,7 @@ public:
 protected:
 	virtual BcU32						width() const;
 	virtual BcU32						height() const;
-	virtual eRsColourFormat				colourFormat() const;
+	virtual eRsColourFormat				colourFormat( BcU32 Index ) const;
 	virtual eRsDepthStencilFormat		depthStencilFormat() const;
 	virtual RsTexture*					getTexture();
 

@@ -23,7 +23,7 @@ class RsVertexBuffer:
 	public RsResource
 {
 public:
-	RsVertexBuffer();
+	RsVertexBuffer( class RsContext* pContext );
 	virtual ~RsVertexBuffer();
 
 	/**

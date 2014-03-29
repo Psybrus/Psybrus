@@ -17,7 +17,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsPrimitiveGL::RsPrimitiveGL( RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer )
+RsPrimitiveGL::RsPrimitiveGL( RsContext* pContext, RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer ):
+	RsPrimitive( pContext )
 {
 	pVertexBuffer_ = pVertexBuffer;
 	pIndexBuffer_ = pIndexBuffer;
@@ -82,8 +83,8 @@ void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 
 	GLuint Handle = getHandle< GLuint >();
 	if( pVertexBuffer_ != NULL )
 	{
-		// Bind global state block.
-		RsCore::pImpl()->getStateBlock()->bind();
+		// Flush state.
+		getContext()->flushState();
 
 		//
 		glBindVertexArray( Handle );

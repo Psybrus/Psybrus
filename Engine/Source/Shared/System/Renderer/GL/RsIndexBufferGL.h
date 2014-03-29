@@ -28,7 +28,7 @@ public:
 	 * @param NoofIndices Number of indices.
 	 * @param pIndexData Pointer to index data, NULL to create own.
 	 */
-	RsIndexBufferGL( BcU32 NoofIndices, void* pIndexData );
+	RsIndexBufferGL( RsContext* pContext, BcU32 NoofIndices, void* pIndexData );
 	virtual ~RsIndexBufferGL();
 	
 protected:

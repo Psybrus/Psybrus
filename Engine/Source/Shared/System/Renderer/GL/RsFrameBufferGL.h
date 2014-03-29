@@ -24,7 +24,7 @@ class RsFrameBufferGL:
 	public RsResource
 {
 public:
-	RsFrameBufferGL();
+	RsFrameBufferGL( RsContext* pContext );
 	virtual ~RsFrameBufferGL();
 	
 protected:

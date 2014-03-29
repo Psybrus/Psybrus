@@ -60,10 +60,6 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		"depth_write_enable",
 		"depth_test_enable",
 		"depth_test_compare",
-		"depth_bias",
-		"alpha_test_enable",
-		"alpha_test_compare",
-		"alpha_test_threshold",
 		"stencil_write_mask",
 		"stencil_test_enable",
 		"stencil_test_func_compare",
@@ -72,10 +68,10 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		"stencil_test_op_sfail",
 		"stencil_test_op_dpfail",
 		"stencil_test_op_dppass",
-		"color_write_red_enable",
-		"color_write_green_enable",
-		"color_write_blue_enable",
-		"color_write_alpha_enable",
+		"color_write_mask_0",
+		"color_write_mask_1",
+		"color_write_mask_2",
+		"color_write_mask_3",
 		"blend_mode"
 	};
 		
@@ -134,11 +130,8 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			// Horrible default special case. Should have a table.
 			switch( Idx )
 			{
-			case rsRS_COLOR_WRITE_RED_ENABLE:
-			case rsRS_COLOR_WRITE_GREEN_ENABLE:
-			case rsRS_COLOR_WRITE_BLUE_ENABLE:
-			case rsRS_COLOR_WRITE_ALPHA_ENABLE:
-				StateBlockStream << BcU32( 1 );
+			case rsRS_COLOR_WRITE_MASK_0:
+				StateBlockStream << BcU32( 7 );
 				break;
 
 			default:
@@ -742,25 +735,22 @@ public:
 
 	virtual void render()
 	{
-		// TODO: Some kind of object to batch this crap up properly.
-		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
-
 		// Iterate over textures and bind.
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
-			pStateBlock->setTextureState( Idx, pTexture, TextureParams );
+			pContext_->setTextureState( Idx, pTexture, TextureParams );
 		}
 
 		// Setup states.
 		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 		{
-			pStateBlock->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
+			pContext_->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
 		}
 
 		// Bind state block.
-		pStateBlock->bind();
+		pContext_->flushState();
 		
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );

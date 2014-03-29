@@ -264,7 +264,6 @@ BcF32 SysKernel::getFrameTime() const
 void SysKernel::execute()
 {
 	// Set main thread.
-	extern void BcSetGameThread();
 	BcSetGameThread();
 
 	// Run until there are no more systems to run.

@@ -17,7 +17,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsRenderTargetGL::RsRenderTargetGL( eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat, BcU32 Width, BcU32 Height, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture ):
+RsRenderTargetGL::RsRenderTargetGL( RsContext* pContext, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat, BcU32 Width, BcU32 Height, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture ):
+	RsRenderTarget( pContext ),
 	ColourFormat_( ColourFormat ),
 	DepthStencilFormat_( DepthStencilFormat ),
 	Width_( Width ),
@@ -72,8 +73,9 @@ BcU32 RsRenderTargetGL::height() const
 //////////////////////////////////////////////////////////////////////////
 //colourFormat
 //virtual
-eRsColourFormat RsRenderTargetGL::colourFormat() const
+eRsColourFormat RsRenderTargetGL::colourFormat( BcU32 Index ) const
 {
+	BcAssert( Index == 0 );
 	return ColourFormat_;
 }
 
@@ -114,6 +116,7 @@ void RsRenderTargetGL::update()
 	// Bind framebuffer.
 	glBindFramebuffer( GL_FRAMEBUFFER, FrameBufferHandle );
 	
+	// NOTE: Don't need a render buffer for colour attachment. Remove this when we get to MRT.
 	// Setup attachments.
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER_EXT, ColourBufferHandle );
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER_EXT, DepthStencilBufferHandle );

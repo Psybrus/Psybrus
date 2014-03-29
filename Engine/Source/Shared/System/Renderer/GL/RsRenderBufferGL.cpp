@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor (colour)
-RsRenderBufferGL::RsRenderBufferGL( eRsColourFormat Format, BcU32 Width, BcU32 Height )
+RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, eRsColourFormat Format, BcU32 Width, BcU32 Height ):
+	RsResource( pContext )
 {
 	switch( Format )
 	{
@@ -56,7 +57,8 @@ RsRenderBufferGL::RsRenderBufferGL( eRsColourFormat Format, BcU32 Width, BcU32 H
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor (depth/stencil)
-RsRenderBufferGL::RsRenderBufferGL( eRsDepthStencilFormat Format, BcU32 Width, BcU32 Height )
+RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, eRsDepthStencilFormat Format, BcU32 Width, BcU32 Height ):
+	RsResource( pContext )
 {
 	switch( Format )
 	{
