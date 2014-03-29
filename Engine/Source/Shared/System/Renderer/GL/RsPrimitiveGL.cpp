@@ -68,12 +68,7 @@ void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 
 		
 		if( pIndexBuffer_ != NULL )
 		{
-			glEnableClientState( GL_INDEX_ARRAY );
 			pIndexBuffer_->bind();
-		}
-		else
-		{
-			glDisableClientState( GL_INDEX_ARRAY );
 		}
 
 		GLenum GLPrimitiveType = 0;
