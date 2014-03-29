@@ -97,6 +97,7 @@ public:
 protected:
 	ScnModelRef							Parent_;
 	ScnModelNodeTransformData*			pNodeTransformData_;
+
 	SysFence							UpdateFence_;
 
 	BcU32								Layer_;
@@ -104,14 +105,15 @@ protected:
 
 	BcAABB								AABB_;
 
-	struct TMaterialComponentDesc
+	struct TPerComponentPrimitiveData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
+		RsUniformBuffer*		BoneUniformBuffer_;
 	};
 	
-	typedef std::vector< TMaterialComponentDesc > TMaterialComponentDescList;
+	typedef std::vector< TPerComponentPrimitiveData > TPerComponentPrimitiveDataList;
 	
-	TMaterialComponentDescList			MaterialComponentDescList_;
+	TPerComponentPrimitiveDataList		PerComponentPrimitiveDataList_;
 
 };
 

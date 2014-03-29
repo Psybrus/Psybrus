@@ -85,3 +85,10 @@ void SysResource::wait()
 {
 	UpdateSyncFence_.wait( 0 );
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// getDataSize
+BcU32 SysResource::getDataSize()
+{
+	return DataSize_;
+}

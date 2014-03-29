@@ -55,6 +55,11 @@ public:
 	 */
 	void								wait();
 
+	/**
+	 * Get data size.
+	 */
+	BcU32								getDataSize();
+
 public:
 	template< typename _Ty >
 	BcForceInline _Ty					getHandle() const

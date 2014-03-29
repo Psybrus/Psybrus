@@ -15,7 +15,7 @@
 #define __RSPROGRAM_H__
 
 #include "System/Renderer/RsTypes.h"
-#include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsUniformBuffer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsProgram
@@ -46,6 +46,20 @@ public:
 	 * @param pParameterBuffer Pointer to parameter buffer for binding.
 	 */
 	virtual void						bind( void* pParameterBuffer ) = 0;
+	
+	/**
+	 * Find uniform block by name.
+	 * @param Name
+	 * @return Index.
+	 */
+	virtual BcU32						findUniformBlockIndex( const BcChar* Name ) = 0;
+
+	/**
+	 * Set uniform block.
+	 * @param Index
+	 * @param Uniform buffer to set to.
+	 */
+	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer ) = 0;
 };
 
 #endif
