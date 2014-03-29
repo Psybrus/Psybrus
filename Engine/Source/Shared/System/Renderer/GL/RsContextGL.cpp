@@ -147,7 +147,7 @@ void RsContextGL::create()
 	static  PIXELFORMATDESCRIPTOR pfd =                 // pfd Tells Windows How We Want Things To Be
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),                  // Size Of This Pixel Format Descriptor
-		3,												// Version Number
+		2,												// Version Number
 		PFD_DRAW_TO_WINDOW |							// Format Must Support Window
 		PFD_SUPPORT_OPENGL |							// Format Must Support OpenGL
 		PFD_DOUBLEBUFFER,								// Must Support Double Buffering
@@ -176,20 +176,22 @@ void RsContextGL::create()
 	{
 	    BcPrintf( "Can't Set The PixelFormat." );
 	}
-	
-#if 0
-	// NEILO TODO: Look into using this kind of path?
-	int ContextAttribs[] = 
-	{
-		NULL, NULL
-	};
-	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
-	WindowRC_ = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
-	BcAssertMsg( WindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
-#else
-	// Create a rendering context.
+
+	// Create a rendering context to start with.
 	WindowRC_ = wglCreateContext( WindowDC_ );
 	BcAssertMsg( WindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
+
+	// Make current.
+	wglMakeCurrent( WindowDC_, WindowRC_ );
+
+	// Init GLEW.
+	glewInit();
+
+	
+	// Attempt to create core profile:
+	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
+	bool success = false;
+	createProfile( 3, 2, BcTrue, ParentContext );
 
 	// If we have a parent, we need to share lists.
 	if( pParent_ != NULL )
@@ -201,13 +203,12 @@ void RsContextGL::create()
 		BOOL Result = wglShareLists( pParent_->WindowRC_, WindowRC_ );
 		BcAssertMsg( Result != BcFalse, "Unable to share lists." );
 	}
-#endif
 
 	// Do the switch to this context.
 	makeCurrent();
 
-	// Init glew now that the context is up.
-	glewInit();
+	//
+	RsGLCatchError;
 
 	// Clear screen and flip.
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -237,5 +238,34 @@ void RsContextGL::destroy()
 #endif
 }
 
+//////////////////////////////////////////////////////////////////////////
+// createProfile
+bool RsContextGL::createProfile( BcU32 Maj, BcU32 Min, BcBool IsCore, HGLRC ParentContext )
+{
+	int ContextAttribs[] = 
+	{
+		WGL_CONTEXT_MAJOR_VERSION_ARB, Maj,
+		WGL_CONTEXT_MINOR_VERSION_ARB, Min,
+		WGL_CONTEXT_PROFILE_MASK_ARB, IsCore ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		NULL
+	};
+
+	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
+	if( CoreProfile != NULL )
+	{
+		// release old context.
+		wglMakeCurrent( WindowDC_, NULL );
+		wglDeleteContext( WindowRC_ );
+
+
+		// make new current.
+		wglMakeCurrent( WindowDC_, CoreProfile );
+
+		// Assign new.
+		WindowRC_ = CoreProfile;
+
+		return true;
+	}
+}
 
 #endif

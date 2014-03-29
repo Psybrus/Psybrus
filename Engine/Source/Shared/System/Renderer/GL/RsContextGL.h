@@ -36,11 +36,16 @@ public:
 	void								makeCurrent();
 	void								swapBuffers();
 	void								takeScreenshot();
-	
+
+
 protected:
 	virtual void						create();
 	virtual void						update();
 	virtual void						destroy();	
+
+#if PLATFORM_WINDOWS
+	bool								createProfile( BcU32 Maj, BcU32 Min, BcBool IsCore, HGLRC ParentContext );
+#endif
 
 private:
 #if PLATFORM_WINDOWS
