@@ -15,6 +15,7 @@
 #define __SCNMATERIAL_H__
 
 #include "System/Renderer/RsCore.h"
+#include "System/Renderer/RsUniformBuffer.h"
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTexture.h"
@@ -98,13 +99,18 @@ public:
 	void								setParameter( BcU32 Parameter, const BcMat4d& Value, BcU32 Index = 0 );
 	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
 
+	BcU32								findUniformBlock( const BcName& UniformBlockName );	
+	void								setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer );
+
 	// Common scene parameters.
 	void								setClipTransform( const BcMat4d& Transform );
 	void								setViewTransform( const BcMat4d& Transform );
 	void								setWorldTransform( const BcMat4d& Transform );
 	void								setEyePosition( const BcVec3d& Position );
-	void								setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform );
 	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
+
+	// Common uniform blocks.
+	void								setBoneUniformBlock( RsUniformBuffer* UniformBuffer );
 
 
 	void								setState( eRsRenderState State, BcU32 Value );
@@ -142,11 +148,21 @@ private:
 	typedef std::vector< TTextureBinding > TTextureBindingList;
 	typedef TTextureBindingList::iterator TTextureBindingListIterator;
 	
+	struct TUniformBlockBinding
+	{
+		BcU32							Index_;
+		RsUniformBuffer*				UniformBuffer_;
+	};
+	
+	typedef std::vector< TUniformBlockBinding > TUniformBlockBindingList;
+	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
+
 	ScnMaterialRef						Parent_;
 	RsProgram*							pProgram_;
 
 	TParameterBindingList				ParameterBindingList_;
 	TTextureBindingList					TextureBindingList_;
+	TUniformBlockBindingList			UniformBlockBindingList_;
 
 	BcU32								ParameterBufferSize_;
 	BcU8*								pParameterBuffer_;
@@ -161,12 +177,13 @@ private:
 	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
 	BcU32								EyePositionParameter_;
-	BcU32								BoneTransformParameter_;
 	BcU32								LightPositionParameter_;
 	BcU32								LightDirectionParameter_;
 	BcU32								LightAmbientColourParameter_;
 	BcU32								LightDiffuseColourParameter_;
 	BcU32								LightAttnParameter_;
+
+	BcU32								BoneUniformBlockIndex_;
 
 public:
 	SysFence							UpdateFence_;

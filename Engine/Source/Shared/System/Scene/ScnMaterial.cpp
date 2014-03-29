@@ -318,12 +318,14 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	InverseViewTransformParameter_ = findParameter( "uInverseViewTransform" );
 	WorldTransformParameter_ = findParameter( "uWorldTransform" );
 	EyePositionParameter_ = findParameter( "uEyePosition" );
-	BoneTransformParameter_ = findParameter( "uBoneTransform" );
 	LightPositionParameter_ = findParameter( "uLightPosition" );
 	LightDirectionParameter_ = findParameter( "uLightDirection" );
 	LightAmbientColourParameter_ = findParameter( "uLightAmbientColour" );
 	LightDiffuseColourParameter_ = findParameter( "uLightDiffuseColour" );
 	LightAttnParameter_ = findParameter( "uLightAttn" );
+
+	// Grab uniform blocks.
+	BoneUniformBlockIndex_ = findUniformBlock( "BoneUniformBlock" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -360,7 +362,7 @@ void ScnMaterialComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setTexture
+// findParameter
 BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
@@ -634,6 +636,44 @@ void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// findUniformBlock
+BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
+{
+	BcU32 Index = pProgram_->findUniformBlockIndex( (*UniformBlockName).c_str() );
+	if( Index != BcErrorCode )
+	{
+		for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
+		{
+			auto& Binding = UniformBlockBindingList_[ Idx ];
+			
+			if( Binding.Index_ == Index )
+			{
+				return Idx;
+			}
+		}
+		
+		// If it doesn't exist, add it.
+		TUniformBlockBinding Binding = 
+		{
+			Index, nullptr
+		};
+		
+		UniformBlockBindingList_.push_back( Binding );
+		return UniformBlockBindingList_.size() - 1;
+	}
+	
+	return BcErrorCode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setUniformBlock
+void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer )
+{
+	auto& UniformBlockBinding = UniformBlockBindingList_[ Index ];
+	UniformBlockBinding.UniformBuffer_ = UniformBuffer;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setClipTransform
 void ScnMaterialComponent::setClipTransform( const BcMat4d& Transform )
 {
@@ -670,13 +710,6 @@ void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setBoneTransform
-void ScnMaterialComponent::setBoneTransform( BcU32 BoneIndex, const BcMat4d& Transform )
-{
-	setParameter( BoneTransformParameter_, Transform, BoneIndex );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setLightParameters
 void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
 {
@@ -686,6 +719,13 @@ void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& 
 	setParameter( LightAmbientColourParameter_, AmbientColour, LightIndex );
 	setParameter( LightDiffuseColourParameter_, DiffuseColour, LightIndex );
 	setParameter( LightAttnParameter_, BcVec3d( AttnC, AttnL, AttnQ ), LightIndex );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setBoneUniformBlock
+void ScnMaterialComponent::setBoneUniformBlock( RsUniformBuffer* UniformBuffer )
+{
+	setUniformBlock( BoneUniformBlockIndex_, UniformBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -748,13 +788,22 @@ public:
 		{
 			pContext_->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
 		}
+	
+		// Set uniform blocks.
+		for( BcU32 Idx = 0; Idx < NoofUniformBlocks_; ++Idx )
+		{
+			BcU32 Index = pUniformBlockIndices_[ Idx ];
+			RsUniformBuffer* pUniformBuffer = ppUniformBuffers_[ Idx ];
+			pProgram_->setUniformBlock( Index, pUniformBuffer );
+		}
 
-		// Bind state block.
-		pContext_->flushState();
-		
 		// Bind program.
 		pProgram_->bind( pParameterBuffer_ );
 
+		// Flush state in context.
+		pContext_->flushState();
+
+		// Done.
 		pUpdateFence_->decrement();
 	}
 	
@@ -770,6 +819,11 @@ public:
 	
 	// State buffer.
 	BcU32* pStateBuffer_;
+
+	// Uniform blocks.
+	BcU32 NoofUniformBlocks_;
+	BcU32* pUniformBlockIndices_;
+	RsUniformBuffer** ppUniformBuffers_;
 	
 	// Update fence (for marking when in use/not)
 	// TODO: Make this a generic feature of the component system?
@@ -827,6 +881,17 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		// Set texture params.
 		TextureParams = DefaultTextureParams;
 	}
+
+	// Setup uniform blocks.
+	pRenderNode->NoofUniformBlocks_ = UniformBlockBindingList_.size();
+	pRenderNode->pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * pRenderNode->NoofUniformBlocks_ );
+	pRenderNode->ppUniformBuffers_ = (RsUniformBuffer**)pFrame->allocMem( sizeof( RsUniformBuffer ) * pRenderNode->NoofUniformBlocks_ );
+
+	for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
+	{
+		pRenderNode->pUniformBlockIndices_[ Idx ] = UniformBlockBindingList_[ Idx ].Index_;
+		pRenderNode->ppUniformBuffers_[ Idx ] = UniformBlockBindingList_[ Idx ].UniformBuffer_;
+	}
 	
 	// Setup parameter buffer.
 	pRenderNode->pParameterBuffer_ = (BcU8*)pFrame->allocMem( ParameterBufferSize_ );
@@ -836,8 +901,8 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * rsRS_MAX );
 	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
 	
+	// Update fence.
 	pRenderNode->pUpdateFence_ = &UpdateFence_;
-
 	UpdateFence_.increment();
 
 	// Add node to frame.

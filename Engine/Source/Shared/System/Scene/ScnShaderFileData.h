@@ -69,8 +69,8 @@ struct ScnShaderProgramHeader
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnShaderViewUniformBufferData
-struct ScnShaderViewUniformBufferData
+// ScnShaderViewUniformBlockData
+struct ScnShaderViewUniformBlockData
 {
 	BcMat4d							ClipTransform_;
 	BcMat4d							ViewTransform_;
@@ -80,8 +80,8 @@ struct ScnShaderViewUniformBufferData
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnShaderLightUniformBufferData
-struct ScnShaderLightUniformBufferData
+// ScnShaderLightUniformBlockData
+struct ScnShaderLightUniformBlockData
 {
 	BcVec3d							LightPosition_[4];
 	BcVec3d							LightDirection_[4];
@@ -91,8 +91,8 @@ struct ScnShaderLightUniformBufferData
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnShaderBoneUniformBufferData
-struct ScnShaderBoneUniformBufferData
+// ScnShaderBoneUniformBlockData
+struct ScnShaderBoneUniformBlockData
 {
 	BcMat4d							BoneTransform_[24];
 };
