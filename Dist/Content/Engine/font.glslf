@@ -1,7 +1,5 @@
 uniform sampler2D aDiffuseTex;	
 
-uniform vec2 aAlphaTestStep;
-
 vec4 shaderMain()
 {						
 	vec4 Colour = texture2D( aDiffuseTex, vTexCoord0.xy );
