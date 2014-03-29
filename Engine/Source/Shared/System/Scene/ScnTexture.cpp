@@ -75,7 +75,9 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 	#if !PSY_DEBUG
 			if( TextureType == rsTT_2D )
 			{
-				if( Format.type() == Json::nullValue )
+				if( Format.type() == Json::nullValue &&
+					pTopLevelImage->width() % 4 == 0 && 
+					pTopLevelImage->height() % 4 == 0 )
 				{
 					if( pImage->hasAlpha( 8 ) == BcFalse )
 					{
