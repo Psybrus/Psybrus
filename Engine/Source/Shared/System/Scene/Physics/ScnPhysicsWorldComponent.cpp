@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
+#include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"
 
@@ -73,7 +74,7 @@ void ScnPhysicsWorldComponent::update( BcF32 Tick )
 	// Step simulation.
 	DynamicsWorld_->stepSimulation( Tick, 0 );
 
-	Super::update( Tick ):
+	Super::update( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
