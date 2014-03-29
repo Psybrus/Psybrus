@@ -76,7 +76,8 @@ static GLenum gTextureTypes[] =
 // Ctor
 RsStateBlockGL::RsStateBlockGL()
 {
-	
+	glGenVertexArrays( 1, &VAO_ );
+	glBindVertexArray( VAO_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,7 +85,7 @@ RsStateBlockGL::RsStateBlockGL()
 //virtual
 RsStateBlockGL::~RsStateBlockGL()
 {
-
+	glDeleteVertexArrays( 1, &VAO_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,15 +119,6 @@ void RsStateBlockGL::bind()
 					break;
 				case rsRS_DEPTH_BIAS:
 					glPolygonOffset( (GLfloat)Value, 0.01f );
-					break;
-				case rsRS_ALPHA_TEST_ENABLE:
-					Value ? glEnable( GL_ALPHA_TEST ) : glDisable( GL_ALPHA_TEST );
-					break;
-				case rsRS_ALPHA_TEST_COMPARE:
-					bindAlphaFunc();
-					break;
-				case rsRS_ALPHA_TEST_THRESHOLD:
-					bindAlphaFunc();
 					break;
 				case rsRS_STENCIL_WRITE_MASK:
 					glStencilMask( Value );
@@ -171,26 +163,14 @@ void RsStateBlockGL::bind()
 			const GLenum TextureType = gTextureTypes[ InternalType ];
 
 			glActiveTexture( GL_TEXTURE0 + TextureStateID );
-
-			// TODO: Move everything after here into it's own struct for state management. This is not optimal.
-			for( BcU32 Idx = 0; Idx < rsTT_MAX; ++Idx )
-			{
-				if( Idx == InternalType )
-				{
-					glEnable( gTextureTypes[ Idx ] );
-				}
-				else
-				{
-					glDisable( gTextureTypes[ Idx ] );
-				}
-			}
-			
 			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
 			glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ Params.MinFilter_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ Params.MagFilter_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ Params.UMode_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ Params.VMode_ ] );	
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ Params.WMode_ ] );	
+
+			RsGLCatchError;
 
 			TextureStateValue.Dirty_ = BcFalse;
 		}
@@ -201,19 +181,6 @@ void RsStateBlockGL::bind()
 	NoofTextureStateBinds_ = 0;
 
 	RsGLCatchError;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// bindAlphaFunc
-void RsStateBlockGL::bindAlphaFunc()
-{
-	TRenderStateValue& CompareValue = RenderStateValues_[ rsRS_ALPHA_TEST_COMPARE ];
-	TRenderStateValue& ThresholdValue = RenderStateValues_[ rsRS_ALPHA_TEST_THRESHOLD ];
-
-	glAlphaFunc( gCompareMode[ CompareValue.Value_ ], ThresholdValue.Value_ / 255.0f );
-
-	CompareValue.Dirty_ = BcFalse;
-	ThresholdValue.Dirty_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////

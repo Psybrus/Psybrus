@@ -300,9 +300,6 @@ enum eRsRenderState
 	rsRS_DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
 	rsRS_DEPTH_TEST_COMPARE,			///!< Depth test compare. eRsCompareMode
 	rsRS_DEPTH_BIAS,					///!< Depth bias. Z.
-	rsRS_ALPHA_TEST_ENABLE,				///!< Alpha test enable/disable. true or false.
-	rsRS_ALPHA_TEST_COMPARE,			///!< Alpha test compare. eRsCompareMode.
-	rsRS_ALPHA_TEST_THRESHOLD,			///!< Alpha test threshold. 0-255.
 	rsRS_STENCIL_WRITE_MASK,			///!< Stencil write mask.
 	rsRS_STENCIL_TEST_ENABLE,			///!< Stencil test enable.
 	rsRS_STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.

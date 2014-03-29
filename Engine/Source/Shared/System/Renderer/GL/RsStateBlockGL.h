@@ -28,12 +28,13 @@ public:
 	virtual void					bind();
 	
 protected:
-	void							bindAlphaFunc();
 	void							bindStencilFunc();
 	void							bindStencilOp();
 	void							bindBlendMode( eRsBlendingMode BlendMode );
 	void							bindScissor();
 
+private:
+	BcU32							VAO_; // temp.
 	
 };
 
