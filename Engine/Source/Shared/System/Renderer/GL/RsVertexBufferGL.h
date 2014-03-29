@@ -29,7 +29,7 @@ public:
 	 * @param NoofVertices Number of vertices.
 	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	RsVertexBufferGL( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL );
+	RsVertexBufferGL( RsContext* pContext, BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL );
 	virtual ~RsVertexBufferGL();
 
 	virtual void*						lock();

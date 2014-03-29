@@ -21,7 +21,6 @@
 // Forward Declarations
 class RsFrameGL;
 class RsContextGL;
-class RsStateBlockGL;
 
 //////////////////////////////////////////////////////////////////////////
 // RsCoreImplGL
@@ -64,13 +63,11 @@ public:
 	RsFrame*				allocateFrame( RsContext* pContext );
 	void					queueFrame( RsFrame* pFrame );
 	void					queueFrame_threaded( RsFrameGL* pFrame );
-	RsStateBlock*			getStateBlock();
 
 public:
 	// Platform specific interface.
 
 protected:
-	RsStateBlockGL*			pStateBlock_;
 	BcMutex					ResourceLock_;
 	SysFence				RenderSyncFence_;
 

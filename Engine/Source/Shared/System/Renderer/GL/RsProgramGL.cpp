@@ -15,7 +15,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramGL::RsProgramGL( BcU32 NoofShaders, RsShader** ppShaders ):
+RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders ):
+	RsProgram( pContext ),
 	ParameterBufferSize_( 0 )
 {
 	NoofShaders_ = NoofShaders;

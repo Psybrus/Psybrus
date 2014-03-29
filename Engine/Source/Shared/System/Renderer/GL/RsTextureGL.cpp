@@ -31,7 +31,8 @@ static GLenum gTextureTypes[] =
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData )
+RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData ):
+	RsTexture( pContext )
 {
 	// Setup parameters.
 	Width_ = Width;
@@ -54,7 +55,8 @@ RsTextureGL::RsTextureGL( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, vo
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData )
+RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData ):
+	RsTexture( pContext )
 {
 	// Setup parameters.
 	Width_ = Width;
@@ -77,7 +79,8 @@ RsTextureGL::RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFor
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData )
+RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData ):
+	RsTexture( pContext )
 {
 	// Setup parameters.
 	Width_ = Width;
@@ -242,8 +245,8 @@ void RsTextureGL::update()
 	UpdateSyncFence_.decrement();
 	
 	// Invalidate texture state.
-	RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
-	pStateBlock->invalidateTextureState();
+	// TODO: Go entirely through context.
+	getContext()->invalidateTextureState();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +267,8 @@ void RsTextureGL::destroy()
 // loadTexture1D
 void RsTextureGL::loadTexture1D()
 {
+	glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MAX_LEVEL, Levels_ - 1 );
+
 	// Call the appropriate method to load the texture.
 	switch( Format_ )
 	{
@@ -342,7 +347,9 @@ void RsTextureGL::loadTexture2D()
 // loadTexture3D
 void RsTextureGL::loadTexture3D()
 {
-		// Call the appropriate method to load the texture.
+	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, Levels_ - 1 );
+
+	// Call the appropriate method to load the texture.
 	switch( Format_ )
 	{
 	case rsTF_RGB8:

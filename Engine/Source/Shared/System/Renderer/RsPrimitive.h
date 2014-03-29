@@ -23,7 +23,7 @@ class RsPrimitive:
 	public RsResource
 {
 public:
-	RsPrimitive();
+	RsPrimitive( class RsContext* pContext );
 	virtual ~RsPrimitive();
 
 	/**

@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsFrameBufferGL::RsFrameBufferGL()
+RsFrameBufferGL::RsFrameBufferGL( RsContext* pContext ):
+	RsResource( pContext )
 {
 	
 }

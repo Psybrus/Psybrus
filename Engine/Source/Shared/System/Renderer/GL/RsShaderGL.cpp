@@ -15,7 +15,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsShaderGL::RsShaderGL( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
+RsShaderGL::RsShaderGL( RsContext* pContext, eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ):
+	RsShader( pContext )
 {
 	// Setup basic parameters.
 	switch( ShaderType )

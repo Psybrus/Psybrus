@@ -88,33 +88,21 @@ public:
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		}
 
-		// Enable colour, depth + stencil write, and then restore previous state.
-		RsStateBlock* pStateBlock = RsCore::pImpl()->getStateBlock();
+		const BcS32 DepthWriteEnable = pContext_->getRenderState( rsRS_DEPTH_WRITE_ENABLE );
+		const BcS32 ColourWriteMask0 = pContext_->getRenderState( rsRS_COLOR_WRITE_MASK_0 );
+		const BcS32 StencilWriteMask = pContext_->getRenderState( rsRS_STENCIL_WRITE_MASK );
 
-		const BcS32 DepthWriteEnable = pStateBlock->getRenderState( rsRS_DEPTH_WRITE_ENABLE );
-		const BcS32 ColourWriteREnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_RED_ENABLE );
-		const BcS32 ColourWriteGEnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE );
-		const BcS32 ColourWriteBEnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE );
-		const BcS32 ColourWriteAEnable = pStateBlock->getRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE );
-		const BcS32 StencilWriteMask = pStateBlock->getRenderState( rsRS_STENCIL_WRITE_MASK );
+		pContext_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1 );
+		pContext_->setRenderState( rsRS_COLOR_WRITE_MASK_0, 15 );
+		pContext_->setRenderState( rsRS_STENCIL_WRITE_MASK, 255 );
 
-		pStateBlock->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1 );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_RED_ENABLE, 1 );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE, 1 );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE, 1 );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE, 1 );
-		pStateBlock->setRenderState( rsRS_STENCIL_WRITE_MASK, 255 );
-
-		pStateBlock->bind();
+		pContext_->flushState();
 
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
 
-		pStateBlock->setRenderState( rsRS_DEPTH_WRITE_ENABLE, DepthWriteEnable );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_RED_ENABLE, ColourWriteREnable );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_GREEN_ENABLE, ColourWriteGEnable );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_BLUE_ENABLE, ColourWriteBEnable );
-		pStateBlock->setRenderState( rsRS_COLOR_WRITE_ALPHA_ENABLE, ColourWriteAEnable );
-		pStateBlock->setRenderState( rsRS_STENCIL_WRITE_MASK, StencilWriteMask );
+		pContext_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, DepthWriteEnable );
+		pContext_->setRenderState( rsRS_COLOR_WRITE_MASK_0, ColourWriteMask0 );
+		pContext_->setRenderState( rsRS_STENCIL_WRITE_MASK, StencilWriteMask );
 	}
 	
 	RsRenderTarget* pRenderTarget_;
@@ -199,11 +187,8 @@ void RsFrameGL::render()
 	// Only render if we have a valid context.
 	if( pContext_ != NULL )
 	{
-		// Make context current.
-		pContext_->makeCurrent();
-
 		// Set default state.
-		RsCore::pImpl< RsCoreImplGL >()->getStateBlock()->setDefaultState();
+		pContext_->setDefaultState();
 
 		// Sort all nodes.
 		sortNodes();

@@ -32,7 +32,6 @@
 #include "System/Renderer/RsVertexBuffer.h"
 #include "System/Renderer/RsIndexBuffer.h"
 #include "System/Renderer/RsPrimitive.h"
-#include "System/Renderer/RsStateBlock.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -183,11 +182,6 @@ public:
 	*	GAME FUNCTION: Called from game thread to queue frame to be rendered.
 	*/
 	virtual void			queueFrame( RsFrame* pFrame ) = 0;
-
-	/**
-	 *	Get render state block.
-	 */
-	virtual RsStateBlock*	getStateBlock() = 0;
 };
 
 #endif
