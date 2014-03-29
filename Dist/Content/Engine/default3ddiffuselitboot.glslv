@@ -1,5 +1,3 @@
-#version 150
-
 in vec4 aPosition;
 in vec4 aNormal;
 in vec4 aTangent;
@@ -8,18 +6,6 @@ in vec4 aTexCoord1;
 in vec4 aTexCoord2;
 in vec4 aTexCoord3;
 in vec4 aColour;
-
-uniform vec3 uLightPosition[4];
-uniform vec3 uLightDirection[4];
-uniform vec4 uLightAmbientColour[4];
-uniform vec4 uLightDiffuseColour[4];
-uniform vec3 uLightAttn[4];
-
-uniform mat4 uClipTransform;
-uniform mat4 uViewTransform;
-uniform mat4 uInverseViewTransform;
-uniform mat4 uWorldTransform;
-uniform vec3 uEyePosition;
 
 out vec4 vColour;
 out vec3 vNormal;

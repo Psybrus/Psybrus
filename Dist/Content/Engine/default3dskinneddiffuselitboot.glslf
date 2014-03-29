@@ -1,18 +1,3 @@
-#version 150
-
-uniform mat4 uClipTransform;
-uniform mat4 uViewTransform;
-uniform mat4 uInverseViewTransform;
-uniform mat4 uWorldTransform;
-uniform vec3 uEyePosition;
-uniform mat4 uBoneTransform[24];
-
-uniform vec3 uLightPosition[4];
-uniform vec3 uLightDirection[4];
-uniform vec4 uLightAmbientColour[4];
-uniform vec4 uLightDiffuseColour[4];
-uniform vec3 uLightAttn[4];
-
 in vec4 vColour;
 in vec3 vNormal;
 in vec3 vTangent;

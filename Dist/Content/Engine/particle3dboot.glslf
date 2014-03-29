@@ -1,11 +1,3 @@
-#version 150
-
-uniform mat4 uClipTransform;
-uniform mat4 uViewTransform;
-uniform mat4 uInverseViewTransform;
-uniform mat4 uWorldTransform;
-uniform vec3 uEyePosition;
-
 in vec4 vColour;
 in vec4 vTexCoord0;
 in vec4 vTexCoord1;

@@ -37,6 +37,7 @@ enum ScnShaderPermutationFlags
 struct ScnShaderPermutationBootstrap
 {
 	BcU32							PermutationFlags_;
+	const BcChar*					SourceUniformIncludeName_;
 	const BcChar*					SourceGeometryShaderName_;
 	const BcChar*					SourceVertexShaderName_;
 	const BcChar*					SourceFragmentShaderName_;
@@ -65,6 +66,35 @@ struct ScnShaderProgramHeader
 	BcU32							ProgramPermutationFlags_;
 	BcU32							VertexShaderPermutationFlags_;
 	BcU32							FragmentShaderPermutationFlags_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderViewUniformBufferData
+struct ScnShaderViewUniformBufferData
+{
+	BcMat4d							ClipTransform_;
+	BcMat4d							ViewTransform_;
+	BcMat4d							InverseViewTransform_;
+	BcMat4d							WorldTransform_;
+	BcVec3d							EyePosition_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderLightUniformBufferData
+struct ScnShaderLightUniformBufferData
+{
+	BcVec3d							LightPosition_[4];
+	BcVec3d							LightDirection_[4];
+	BcVec4d							LightAmbientColour_[4];
+	BcVec4d							LightDiffuseColour_[4];
+	BcVec3d							LightAttn_[4];
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderBoneUniformBufferData
+struct ScnShaderBoneUniformBufferData
+{
+	BcMat4d							BoneTransform_[24];
 };
 
 #endif
