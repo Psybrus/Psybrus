@@ -23,7 +23,9 @@ class RsTexture:
 	public RsResource
 {
 public:
-	RsTexture(){};
+	RsTexture( RsContext* pContext ):
+		RsResource( pContext )
+	{};
 	virtual ~RsTexture(){};
 
 	virtual BcU32 width() const = 0;

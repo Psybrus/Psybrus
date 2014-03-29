@@ -24,7 +24,6 @@
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 #include "System/Renderer/GL/RsPrimitiveGL.h"
-#include "System/Renderer/GL/RsStateBlockGL.h"
 
 #include "System/SysKernel.h"
 
@@ -79,18 +78,12 @@ void RsCoreImplGL::open_threaded()
 	RsContextGL* pContext = static_cast< RsContextGL* >( ContextMap_[ NULL ] );
 	if( pContext != NULL )
 	{
-		// Make current.
-		pContext->makeCurrent();
-
 		// Setup default viewport.
 		glViewport( 0, 0, pContext->getWidth(), pContext->getHeight() );
 		
-		// Allocate a state block for rendering.
-		pStateBlock_ = new RsStateBlockGL();
-	
 		//
-		pStateBlock_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
-		pStateBlock_->bind();
+		pContext->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
+		pContext->flushState();
 	
 		// Clear.
 		glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -149,8 +142,7 @@ void RsCoreImplGL::close()
 // close_threaded
 void RsCoreImplGL::close_threaded()
 {
-	// Free the state block.
-	delete pStateBlock_;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -217,7 +209,7 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 //virtual 
 RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData )
 {
-	RsTextureGL* pResource = new RsTextureGL( Width, Levels, Format, pData );
+	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Width, Levels, Format, pData );
 	createResource( pResource );
 	return pResource;
 }
@@ -227,7 +219,7 @@ RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Levels, eRsTextureFor
 //virtual 
 RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData )
 {
-	RsTextureGL* pResource = new RsTextureGL( Width, Height, Levels, Format, pData );
+	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Width, Height, Levels, Format, pData );
 	createResource( pResource );
 	return pResource;
 }
@@ -237,7 +229,7 @@ RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels,
 //virtual 
 RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData )
 {
-	RsTextureGL* pResource = new RsTextureGL( Width, Height, Depth, Levels, Format, pData );
+	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Width, Height, Depth, Levels, Format, pData );
 	createResource( pResource );
 	return pResource;
 }
@@ -247,10 +239,10 @@ RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, 
 //virtual
 RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat )
 {
-	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( ColourFormat, Width, Height );
-	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( DepthStencilFormat, Width, Height );
-	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL();
-	RsTextureGL* pTexture = new RsTextureGL( Width, Height, 1, rsTF_RGBA8, NULL );
+	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), ColourFormat, Width, Height );
+	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), DepthStencilFormat, Width, Height );
+	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL( getContext( NULL ) );
+	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), Width, Height, 1, rsTF_RGBA8, NULL );
 
 	createResource( pColourBuffer );
 	createResource( pDepthStencilBuffer );
@@ -258,7 +250,7 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRs
 	createResource( pTexture );
 
 	// Create the render target.
-	RsRenderTargetGL* pRenderTarget = new RsRenderTargetGL( ColourFormat, DepthStencilFormat, Width, Height, pColourBuffer, pDepthStencilBuffer, pFrameBuffer, pTexture );	
+	RsRenderTargetGL* pRenderTarget = new RsRenderTargetGL( getContext( NULL ), ColourFormat, DepthStencilFormat, Width, Height, pColourBuffer, pDepthStencilBuffer, pFrameBuffer, pTexture );	
 	createResource( pRenderTarget );
 	
 	return pRenderTarget;
@@ -269,7 +261,7 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRs
 //virtual 
 RsVertexBuffer* RsCoreImplGL::createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData )
 {
-	RsVertexBufferGL* pResource = new RsVertexBufferGL( Descriptor, NoofVertices, pVertexData );
+	RsVertexBufferGL* pResource = new RsVertexBufferGL( getContext( NULL ), Descriptor, NoofVertices, pVertexData );
 	createResource( pResource );
 	return pResource;
 }
@@ -279,7 +271,7 @@ RsVertexBuffer* RsCoreImplGL::createVertexBuffer( BcU32 Descriptor, BcU32 NoofVe
 //virtual 
 RsIndexBuffer* RsCoreImplGL::createIndexBuffer( BcU32 NoofIndices, void* pIndexData )
 {
-	RsIndexBufferGL* pResource = new RsIndexBufferGL( NoofIndices, pIndexData );
+	RsIndexBufferGL* pResource = new RsIndexBufferGL( getContext( NULL ), NoofIndices, pIndexData );
 	createResource( pResource );
 	return pResource;
 }
@@ -289,7 +281,7 @@ RsIndexBuffer* RsCoreImplGL::createIndexBuffer( BcU32 NoofIndices, void* pIndexD
 //virtual
 RsShader* RsCoreImplGL::createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
 {
-	RsShaderGL* pResource = new RsShaderGL( ShaderType, ShaderDataType, pShaderData, ShaderDataSize );
+	RsShaderGL* pResource = new RsShaderGL( getContext( NULL ), ShaderType, ShaderDataType, pShaderData, ShaderDataSize );
 	createResource( pResource );
 	return pResource;
 }
@@ -305,7 +297,7 @@ RsProgram* RsCoreImplGL::createProgram( RsShader* pVertexShader, RsShader* pFrag
 		pFragmentShader
 	};
 
-	RsProgramGL* pResource = new RsProgramGL( 2, &Shaders[ 0 ] );
+	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), 2, &Shaders[ 0 ] );
 	createResource( pResource );
 	return pResource;
 }
@@ -315,7 +307,7 @@ RsProgram* RsCoreImplGL::createProgram( RsShader* pVertexShader, RsShader* pFrag
 //virtual
 RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders )
 {
-	RsProgramGL* pResource = new RsProgramGL( NoofShaders, ppShaders );
+	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), NoofShaders, ppShaders );
 	createResource( pResource );
 	return pResource;
 }
@@ -325,7 +317,7 @@ RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders 
 //virtual
 RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer )
 {
-	RsPrimitiveGL* pResource = new RsPrimitiveGL( static_cast< RsVertexBufferGL* >( pVertexBuffer ), static_cast< RsIndexBufferGL* >( pIndexBuffer ) );
+	RsPrimitiveGL* pResource = new RsPrimitiveGL( getContext( NULL ), static_cast< RsVertexBufferGL* >( pVertexBuffer ), static_cast< RsIndexBufferGL* >( pIndexBuffer ) );
 	createResource( pResource );
 	return pResource;
 }
@@ -337,14 +329,6 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
 
 	pResource->preDestroy();
-
-	// Make default context current.
-	RsContextGL* pContext = ContextMap_[ NULL ];
-	if( pContext != NULL )
-	{
-		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( ( pContext ) ) );
-		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-	}
 
 	// Call destroy and wait.
 	{
@@ -358,15 +342,7 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
 	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
-
-	// Make default context current.
-	RsContextGL* pContext = ContextMap_[ NULL ];
-	if( pContext != NULL )
-	{
-		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( ( pContext ) ) );
-		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-	}
-
+	
 	// Call update.
 	{
 		SysResource::UpdateDelegate Delegate( SysResource::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
@@ -379,14 +355,6 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
 	BcScopedLock< BcMutex > Lock( ResourceLock_ ); // HACK: Should be invoking on game thread if not in game thread!
-
-	// Make default context current.
-	RsContextGL* pContext = ContextMap_[ NULL ];
-	if( pContext != NULL )
-	{
-		RsContextGL::MakeCurrentDelegate Delegate( RsContextGL::MakeCurrentDelegate::bind< RsContextGL, &RsContextGL::makeCurrent >( ( pContext ) ) );
-		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-	}
 
 	// Call create.
 	{
@@ -428,12 +396,5 @@ void RsCoreImplGL::queueFrame_threaded( RsFrameGL* pFrame )
 
 	// Now free.
 	delete pFrame;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getStateBlock
-RsStateBlock* RsCoreImplGL::getStateBlock()
-{
-	return pStateBlock_;
 }
 

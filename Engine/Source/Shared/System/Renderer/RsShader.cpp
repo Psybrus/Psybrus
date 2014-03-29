@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsShader::RsShader()
+RsShader::RsShader( class RsContext* pContext ):
+	RsResource( pContext )
 {
 	
 }

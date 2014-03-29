@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsVertexBuffer::RsVertexBuffer()
+RsVertexBuffer::RsVertexBuffer( class RsContext* pContext ):
+	RsResource( pContext )
 {
 	
 }

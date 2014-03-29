@@ -23,8 +23,16 @@ class RsResource:
 	public SysResource
 {
 public:
-	RsResource();
+	RsResource( class RsContext* pContext );
 	virtual ~RsResource();
+
+	/**
+	 * Get context resource belongs to.
+	 */
+	class RsContext*				getContext();
+
+private:
+	class RsContext*				pContext_;
 
 };
 

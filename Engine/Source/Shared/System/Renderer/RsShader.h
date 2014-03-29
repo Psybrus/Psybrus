@@ -23,7 +23,7 @@ class RsShader:
 	public RsResource
 {
 public:
-	RsShader();
+	RsShader( class RsContext* pContext );
 	virtual ~RsShader();
 };
 

@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsPrimitive::RsPrimitive()
+RsPrimitive::RsPrimitive( class RsContext* pContext ):
+	RsResource( pContext )
 {
 	
 }

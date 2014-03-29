@@ -15,7 +15,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsIndexBufferGL::RsIndexBufferGL( BcU32 NoofIndices, void* pIndexData )
+RsIndexBufferGL::RsIndexBufferGL( RsContext* pContext, BcU32 NoofIndices, void* pIndexData ):
+	RsIndexBuffer( pContext )
 {
 	// Setup base buffer.
 	Type_ = GL_ELEMENT_ARRAY_BUFFER;

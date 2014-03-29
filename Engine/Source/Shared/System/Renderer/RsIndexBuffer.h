@@ -23,7 +23,7 @@ class RsIndexBuffer:
 	public RsResource
 {
 public:
-	RsIndexBuffer();
+	RsIndexBuffer( class RsContext* pContext );
 	virtual ~RsIndexBuffer();
 };
 
