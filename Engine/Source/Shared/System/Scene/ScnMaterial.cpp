@@ -313,11 +313,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	}
 
 	// Grab common parameters.
-	ClipTransformParameter_ = findParameter( "uClipTransform" );
-	ViewTransformParameter_ = findParameter( "uViewTransform" );
-	InverseViewTransformParameter_ = findParameter( "uInverseViewTransform" );
 	WorldTransformParameter_ = findParameter( "uWorldTransform" );
-	EyePositionParameter_ = findParameter( "uEyePosition" );
 	LightPositionParameter_ = findParameter( "uLightPosition" );
 	LightDirectionParameter_ = findParameter( "uLightDirection" );
 	LightAmbientColourParameter_ = findParameter( "uLightAmbientColour" );
@@ -325,6 +321,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	LightAttnParameter_ = findParameter( "uLightAttn" );
 
 	// Grab uniform blocks.
+	ViewUniformBlockIndex_ = findUniformBlock( "ViewUniformBlock" );
 	BoneUniformBlockIndex_ = findUniformBlock( "BoneUniformBlock" );
 }
 
@@ -674,39 +671,10 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsUniformBuffer* Unifor
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setClipTransform
-void ScnMaterialComponent::setClipTransform( const BcMat4d& Transform )
-{
-	setParameter( ClipTransformParameter_, Transform );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setViewTransform
-void ScnMaterialComponent::setViewTransform( const BcMat4d& Transform )
-{
-	setParameter( ViewTransformParameter_, Transform );
-
-	if( InverseViewTransformParameter_ != BcErrorCode )
-	{
-		BcMat4d InverseViewTransform = Transform;
-		InverseViewTransform.inverse();
-		setParameter( InverseViewTransformParameter_, InverseViewTransform );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setWorldTransform
 void ScnMaterialComponent::setWorldTransform( const BcMat4d& Transform )
 {
 	setParameter( WorldTransformParameter_, Transform );
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// setEyePosition
-void ScnMaterialComponent::setEyePosition( const BcVec3d& EyePosition )
-{
-	setParameter( EyePositionParameter_, EyePosition );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -719,6 +687,13 @@ void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& 
 	setParameter( LightAmbientColourParameter_, AmbientColour, LightIndex );
 	setParameter( LightDiffuseColourParameter_, DiffuseColour, LightIndex );
 	setParameter( LightAttnParameter_, BcVec3d( AttnC, AttnL, AttnQ ), LightIndex );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewUniformBlock
+void ScnMaterialComponent::setViewUniformBlock( RsUniformBuffer* UniformBuffer )
+{
+	setUniformBlock( ViewUniformBlockIndex_, UniformBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////
