@@ -85,7 +85,7 @@ public:
 	/**
 	 * Visit view.
 	 */
-	void						visitView( class ScnVisitor* pVisitor, const RsViewport& Viewport );
+	void						visitView( class ScnVisitor* pVisitor, const ScnViewComponent* View );
 
 	/**
 	 * Visit bounds.

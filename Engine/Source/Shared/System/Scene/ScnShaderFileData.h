@@ -72,6 +72,8 @@ struct ScnShaderProgramHeader
 // ScnShaderViewUniformBlockData
 struct ScnShaderViewUniformBlockData
 {
+	BcMat4d							InverseProjectionTransform_;
+	BcMat4d							ProjectionTransform_;
 	BcMat4d							InverseViewTransform_;
 	BcMat4d							ViewTransform_;
 	BcMat4d							ClipTransform_;
