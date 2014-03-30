@@ -10,6 +10,8 @@
 #endif
 
 BEGIN_UBO( ViewUniformBlock )
+	uniform mat4 uInverseProjectionTransform;
+	uniform mat4 uProjectionTransform;
 	uniform mat4 uInverseViewTransform;
 	uniform mat4 uViewTransform;
 	uniform mat4 uClipTransform;

@@ -168,22 +168,74 @@ void ScnViewComponent::setMaterialParameters( ScnMaterialComponent* MaterialComp
 // getWorldPosition
 void ScnViewComponent::getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const
 {
-	// NOTE: Uses last viewport bound.
-	Viewport_.unProject( ScreenPosition, Near, Far );
+	// TODO: Take normalised screen coordinates.
+	BcVec2d Screen = ScreenPosition - BcVec2d( static_cast<BcF32>( Viewport_.x() ), static_cast<BcF32>( Viewport_.y() ) );
+	const BcVec2d RealScreen( ( Screen.x() / Viewport_.width() ) * 2.0f - 1.0f, ( Screen.y() / Viewport_.height() ) * 2.0f - 1.0f );
+
+	Near.set( RealScreen.x(), -RealScreen.y(), 0.0f );
+	Far.set( RealScreen.x(), -RealScreen.y(), 1.0f );
+
+	Near = Near * ViewUniformBlock_.InverseProjectionTransform_;
+	Far = Far * ViewUniformBlock_.InverseProjectionTransform_;
+
+	if( ViewUniformBlock_.ProjectionTransform_[3][3] == 0.0f )
+	{
+		Near *= Viewport_.zNear();
+		Far *= Viewport_.zFar();
+	}
+
+	Near = Near * ViewUniformBlock_.InverseViewTransform_;
+	Far = Far * ViewUniformBlock_.InverseViewTransform_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getScreenPosition
 BcVec2d ScnViewComponent::getScreenPosition( const BcVec3d& WorldPosition ) const
 {
-	return Viewport_.project( WorldPosition );
+	BcVec4d ScreenSpace = BcVec4d( WorldPosition, 1.0f ) * ViewUniformBlock_.ClipTransform_;
+	BcVec2d ScreenPosition = BcVec2d( ScreenSpace.x() / ScreenSpace.w(), -ScreenSpace.y() / ScreenSpace.w() );
+
+	BcF32 HalfW = BcF32( Viewport_.width() ) * 0.5f;
+	BcF32 HalfH = BcF32( Viewport_.height() ) * 0.5f;
+	return BcVec2d( ( ScreenPosition.x() * HalfW ), ( ScreenPosition.y() * HalfH ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// bind
+// getDepth
+BcU32 ScnViewComponent::getDepth( const BcVec3d& WorldPos ) const
+{
+	BcVec4d ScreenSpace = BcVec4d( WorldPos, 1.0f ) * ViewUniformBlock_.ClipTransform_;
+	BcF32 Depth = 1.0f - BcClamp( ScreenSpace.z() / ScreenSpace.w(), 0.0f, 1.0f );
+
+	return BcU32( Depth * BcF32( 0xffffff ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewport
 const RsViewport& ScnViewComponent::getViewport() const
 {
 	return Viewport_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// intersect
+BcBool ScnViewComponent::intersect( const BcAABB& AABB ) const
+{
+	BcVec3d Centre = AABB.centre();
+	BcF32 Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
+
+	BcF32 Distance;
+	for( BcU32 i = 0; i < 6; ++i )
+	{
+		Distance = FrustumPlanes_[ i ].distance( Centre );
+		if( Distance > Radius )
+		{
+			return BcFalse;
+		}
+	}
+
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -215,29 +267,74 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Near_,
 	                    Far_ );
 	
-	// Setup the perspective projection.
-	BcMat4d ProjectionMatrix;
-	if( HorizontalFOV_ > 0.0f )
-	{
-		ProjectionMatrix.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
-	}
-	else
-	{
-		ProjectionMatrix.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
-	}
-	Viewport_.projection( ProjectionMatrix );
-
 	// Setup matrices in view uniform block.
 	if( ViewUniformBuffer_->lock() )
 	{
+		// Create appropriate projection matrix.
+		if( HorizontalFOV_ > 0.0f )
+		{
+			ViewUniformBlock_.ProjectionTransform_.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
+		}
+		else
+		{
+			ViewUniformBlock_.ProjectionTransform_.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
+		}
+
+		ViewUniformBlock_.InverseProjectionTransform_ = ViewUniformBlock_.ProjectionTransform_;
+		ViewUniformBlock_.InverseProjectionTransform_.inverse();
+
+		// Setup view matrix.
 		ViewUniformBlock_.InverseViewTransform_ = getParentEntity()->getWorldMatrix();
 		ViewUniformBlock_.ViewTransform_ = ViewUniformBlock_.InverseViewTransform_;
 		ViewUniformBlock_.ViewTransform_.inverse();
-		ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ProjectionMatrix;
 
-		Viewport_.view( ViewUniformBlock_.ViewTransform_ );
+		// Clip transform.
+		ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
 
 		ViewUniformBuffer_->unlock();
+	}
+
+	// Build frustum planes.
+	// TODO: revisit this later as we don't need to do it I don't think.
+	FrustumPlanes_[ 0 ] = BcPlane( ( ViewUniformBlock_.ClipTransform_[0][3] + ViewUniformBlock_.ClipTransform_[0][0] ),
+	                               ( ViewUniformBlock_.ClipTransform_[1][3] + ViewUniformBlock_.ClipTransform_[1][0] ),
+	                               ( ViewUniformBlock_.ClipTransform_[2][3] + ViewUniformBlock_.ClipTransform_[2][0] ),
+	                               ( ViewUniformBlock_.ClipTransform_[3][3] + ViewUniformBlock_.ClipTransform_[3][0]) );
+
+	FrustumPlanes_[ 1 ] = BcPlane( ( ViewUniformBlock_.ClipTransform_[0][3] - ViewUniformBlock_.ClipTransform_[0][0] ),
+	                               ( ViewUniformBlock_.ClipTransform_[1][3] - ViewUniformBlock_.ClipTransform_[1][0] ),
+	                               ( ViewUniformBlock_.ClipTransform_[2][3] - ViewUniformBlock_.ClipTransform_[2][0] ),
+	                               ( ViewUniformBlock_.ClipTransform_[3][3] - ViewUniformBlock_.ClipTransform_[3][0] ) );
+
+	FrustumPlanes_[ 2 ] = BcPlane( ( ViewUniformBlock_.ClipTransform_[0][3] + ViewUniformBlock_.ClipTransform_[0][1] ),
+	                               ( ViewUniformBlock_.ClipTransform_[1][3] + ViewUniformBlock_.ClipTransform_[1][1] ),
+	                               ( ViewUniformBlock_.ClipTransform_[2][3] + ViewUniformBlock_.ClipTransform_[2][1] ),
+	                               ( ViewUniformBlock_.ClipTransform_[3][3] + ViewUniformBlock_.ClipTransform_[3][1] ) );
+
+	FrustumPlanes_[ 3 ] = BcPlane( ( ViewUniformBlock_.ClipTransform_[0][3] - ViewUniformBlock_.ClipTransform_[0][1] ),
+	                               ( ViewUniformBlock_.ClipTransform_[1][3] - ViewUniformBlock_.ClipTransform_[1][1] ),
+	                               ( ViewUniformBlock_.ClipTransform_[2][3] - ViewUniformBlock_.ClipTransform_[2][1] ),
+	                               ( ViewUniformBlock_.ClipTransform_[3][3] - ViewUniformBlock_.ClipTransform_[3][1] ) );
+
+	FrustumPlanes_[ 4 ] = BcPlane( ( ViewUniformBlock_.ClipTransform_[0][3] - ViewUniformBlock_.ClipTransform_[0][2] ),
+	                               ( ViewUniformBlock_.ClipTransform_[1][3] - ViewUniformBlock_.ClipTransform_[1][2] ),
+	                               ( ViewUniformBlock_.ClipTransform_[2][3] - ViewUniformBlock_.ClipTransform_[2][2] ),
+	                               ( ViewUniformBlock_.ClipTransform_[3][3] - ViewUniformBlock_.ClipTransform_[3][2] ) );
+	
+	FrustumPlanes_[ 5 ] = BcPlane( ( ViewUniformBlock_.ClipTransform_[0][3] ),
+	                               ( ViewUniformBlock_.ClipTransform_[1][3] ),
+	                               ( ViewUniformBlock_.ClipTransform_[2][3] ),
+	                               ( ViewUniformBlock_.ClipTransform_[3][3] ) );
+
+	// Normalise frustum planes.
+	for ( BcU32 i = 0; i < 6; ++i )
+	{
+		BcVec3d Normal = FrustumPlanes_[ i ].normal();
+		BcF32 Scale = 1.0f / -Normal.magnitude();
+		FrustumPlanes_[ i ] = BcPlane( FrustumPlanes_[ i ].normal().x() * Scale,
+		                               FrustumPlanes_[ i ].normal().y() * Scale,
+		                               FrustumPlanes_[ i ].normal().z() * Scale,
+		                               FrustumPlanes_[ i ].d() * Scale );
 	}
 
 	// Set render target.
