@@ -72,11 +72,9 @@ struct ScnShaderProgramHeader
 // ScnShaderViewUniformBlockData
 struct ScnShaderViewUniformBlockData
 {
-	BcMat4d							ClipTransform_;
-	BcMat4d							ViewTransform_;
 	BcMat4d							InverseViewTransform_;
-	BcMat4d							WorldTransform_;
-	BcVec3d							EyePosition_;
+	BcMat4d							ViewTransform_;
+	BcMat4d							ClipTransform_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,10 +89,24 @@ struct ScnShaderLightUniformBlockData
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderObjectUniformBlockData
+struct ScnShaderObjectUniformBlockData
+{
+	BcMat4d							WorldTransform_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderBoneUniformBlockData
 struct ScnShaderBoneUniformBlockData
 {
 	BcMat4d							BoneTransform_[24];
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderAlphaTestUniformBlockData
+struct ScnShaderAlphaTestUniformBlockData
+{
+	BcVec2d							AlphaTestStep_;
 };
 
 #endif

@@ -103,13 +103,11 @@ public:
 	void								setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer );
 
 	// Common scene parameters.
-	void								setClipTransform( const BcMat4d& Transform );
-	void								setViewTransform( const BcMat4d& Transform );
 	void								setWorldTransform( const BcMat4d& Transform );
-	void								setEyePosition( const BcVec3d& Position );
 	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
 
 	// Common uniform blocks.
+	void								setViewUniformBlock( RsUniformBuffer* UniformBuffer );
 	void								setBoneUniformBlock( RsUniformBuffer* UniformBuffer );
 
 
@@ -172,17 +170,14 @@ private:
 
 	// Common scene parameters.
 	// TODO: Move these into the parent material?
-	BcU32								ClipTransformParameter_;
-	BcU32								ViewTransformParameter_;
-	BcU32								InverseViewTransformParameter_;
 	BcU32								WorldTransformParameter_;
-	BcU32								EyePositionParameter_;
 	BcU32								LightPositionParameter_;
 	BcU32								LightDirectionParameter_;
 	BcU32								LightAmbientColourParameter_;
 	BcU32								LightDiffuseColourParameter_;
 	BcU32								LightAttnParameter_;
 
+	BcU32								ViewUniformBlockIndex_;
 	BcU32								BoneUniformBlockIndex_;
 
 public:

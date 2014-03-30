@@ -89,10 +89,10 @@ BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnViewComponent )
 	BCREFLECTION_MEMBER( BcF32,							Far_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,							HorizontalFOV_,					bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,							VerticalFOV_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcU32,								RenderMask_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( ScnRenderTarget,					RenderTarget_,					bcRFF_REFERENCE ),
-	BCREFLECTION_MEMBER( BcMat4d,							InverseViewMatrix_,				bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( RsViewport,						Viewport_,						bcRFF_DEFAULT | bcRFF_TRANSIENT )
+	BCREFLECTION_MEMBER( BcU32,							RenderMask_,					bcRFF_DEFAULT ),
+	BCREFLECTION_MEMBER( ScnRenderTarget,				RenderTarget_,					bcRFF_REFERENCE ),
+	BCREFLECTION_MEMBER( RsViewport,					Viewport_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
+	BCREFLECTION_MEMBER( ScnShaderViewUniformBlockData,	ViewUniformBlock_,				bcRFF_DEFAULT | bcRFF_TRANSIENT )
 BCREFLECTION_DERIVED_END();
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,12 +137,31 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnViewComponent::create()
+{
+	ScnComponent::create();
+	ViewUniformBuffer_ = RsCore::pImpl()->createUniformBuffer( sizeof( ViewUniformBlock_ ), &ViewUniformBlock_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnViewComponent::destroy()
+{
+	SysFence Fence( RsCore::WORKER_MASK );
+
+	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
+
+	ScnComponent::destroy();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setMaterialParameters
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponent* MaterialComponent ) const
 {
-	MaterialComponent->setClipTransform( Viewport_.view() * Viewport_.projection() );
-	MaterialComponent->setViewTransform( Viewport_.view() );
-	MaterialComponent->setEyePosition( InverseViewMatrix_.translation() );	
+	MaterialComponent->setViewUniformBlock( ViewUniformBuffer_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -195,12 +214,6 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    static_cast< BcU32 >( ViewHeight ),
 	                    Near_,
 	                    Far_ );
-
-	// Setup the view matrix.
-	InverseViewMatrix_ = getParentEntity()->getWorldMatrix();
-	BcMat4d ViewMatrix( InverseViewMatrix_ );
-	ViewMatrix.inverse();	
-	Viewport_.view( ViewMatrix );
 	
 	// Setup the perspective projection.
 	BcMat4d ProjectionMatrix;
@@ -213,6 +226,19 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		ProjectionMatrix.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
 	}
 	Viewport_.projection( ProjectionMatrix );
+
+	// Setup matrices in view uniform block.
+	if( ViewUniformBuffer_->lock() )
+	{
+		ViewUniformBlock_.InverseViewTransform_ = getParentEntity()->getWorldMatrix();
+		ViewUniformBlock_.ViewTransform_ = ViewUniformBlock_.InverseViewTransform_;
+		ViewUniformBlock_.ViewTransform_.inverse();
+		ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ProjectionMatrix;
+
+		Viewport_.view( ViewUniformBlock_.ViewTransform_ );
+
+		ViewUniformBuffer_->unlock();
+	}
 
 	// Set render target.
 	if( RenderTarget_.isValid() )

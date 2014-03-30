@@ -9,14 +9,13 @@
 	#define END_UBO
 #endif
 
-//BEGIN_UBO( ViewUniformBlock )
-	uniform mat4 uClipTransform;
-	uniform mat4 uViewTransform;
+BEGIN_UBO( ViewUniformBlock )
 	uniform mat4 uInverseViewTransform;
-	uniform mat4 uWorldTransform;
-	uniform vec3 uEyePosition;
-//END_UBO
+	uniform mat4 uViewTransform;
+	uniform mat4 uClipTransform;
+END_UBO
 
+// TODO.
 //BEGIN_UBO( LightUniformBlock )
 	uniform vec3 uLightPosition[4];
 	uniform vec3 uLightDirection[4];
@@ -25,10 +24,16 @@
 	uniform vec3 uLightAttn[4];
 //END_UBO
 
+// TODO.
+//BEGIN_UBO( ObjectUniformBlock )
+	uniform mat4 uWorldTransform;
+//END_UBO
+
 BEGIN_UBO( BoneUniformBlock )
 	uniform mat4 uBoneTransform[24];
 END_UBO
 
-//BEGIN_UBO( AlphaTestBlock )
+// TODO.
+//BEGIN_UBO( AlphaTestUniformBlock )
 	uniform vec2 aAlphaTestStep;
 //END_UBO
