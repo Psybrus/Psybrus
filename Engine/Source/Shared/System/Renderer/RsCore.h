@@ -18,6 +18,7 @@
 #include "System/SysSystem.h"
 
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsVertex.h"
 #include "System/Renderer/RsViewport.h"
 #include "System/Renderer/RsProjector.h"

@@ -110,6 +110,37 @@ enum eRsBlendingMode
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Blend type
+enum eRsBlendType
+{
+	rsBT_ZERO = 0,
+	rsBT_ONE,
+	rsBT_SRC_COLOUR,
+	rsBT_INV_SRC_COLOUR,
+	rsBT_SRC_ALPHA,
+	rsBT_INV_SRC_ALPHA,
+	rsBT_DEST_COLOUR,
+	rsBT_INV_DEST_COLOUR,
+	rsBT_DEST_ALPHA,
+	rsBT_INV_DEST_ALPHA,
+
+	rsBT_FORCE_DWORD = 0x7fffffff
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Blend op
+enum eRsBlendOp
+{
+	rsBO_ADD = 0,
+	rsBO_SUBTRACT,
+	rsBO_REV_SUBTRACT,
+	rsBO_MIN,
+	rsBO_MAX,
+
+	rsBO_FORCE_DWORD = 0x7fffffff
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Compare modes
 enum eRsCompareMode
 {
@@ -500,6 +531,7 @@ enum eRsLockFlags
 #define RS_MAX_LIGHTS					4
 
 #define RS_RENDEROBJECTMEM				( 1024 * 1024 * 8 )
+
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderSort
