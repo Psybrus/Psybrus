@@ -46,10 +46,10 @@ public:
 	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
 	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
 	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL );
-	virtual RsRenderTarget*		createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat );
-	virtual RsVertexBuffer*		createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL );
-	virtual RsIndexBuffer*		createIndexBuffer( BcU32 NoofIndices, void* pIndexData = NULL );
-	virtual RsUniformBuffer*	createUniformBuffer( BcU32 BufferSize, void* pBufferData = NULL );
+	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc );
+	virtual RsVertexBuffer*		createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData = NULL );
+	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL );
+	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL );
 	virtual RsShader*			createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual RsProgram*			createProgram( RsShader* pVertexShader, RsShader* pFragmentShader );
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders );

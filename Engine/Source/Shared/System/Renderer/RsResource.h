@@ -17,6 +17,19 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/SysResource.h"
 
+/**
+* Render data input descriptor.
+*/
+struct RsResourceDataInputDesc
+{
+	RsResourceDataInputDesc( void* pData, BcU32 DataSize );
+	RsResourceDataInputDesc( void* pData, BcU32 DataSize, BcU32 TargetOffset );
+
+	void* pData_;
+	BcU32 DataSize_;
+	BcU32 TargetOffset_;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource
 class RsResource:

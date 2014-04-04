@@ -238,12 +238,12 @@ RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, 
 //////////////////////////////////////////////////////////////////////////
 // createRenderTarget
 //virtual
-RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat )
+RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc )
 {
-	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), ColourFormat, Width, Height );
-	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), DepthStencilFormat, Width, Height );
+	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.ColourFormats_[ 0 ], Desc.Width_, Desc.Height_ );
+	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.DepthStencilFormat_, Desc.Width_, Desc.Height_ );
 	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL( getContext( NULL ) );
-	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), Width, Height, 1, rsTF_RGBA8, NULL );
+	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), Desc.Width_, Desc.Height_, 1, rsTF_RGBA8, NULL );
 
 	createResource( pColourBuffer );
 	createResource( pDepthStencilBuffer );
@@ -251,7 +251,7 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRs
 	createResource( pTexture );
 
 	// Create the render target.
-	RsRenderTargetGL* pRenderTarget = new RsRenderTargetGL( getContext( NULL ), ColourFormat, DepthStencilFormat, Width, Height, pColourBuffer, pDepthStencilBuffer, pFrameBuffer, pTexture );	
+	RsRenderTargetGL* pRenderTarget = new RsRenderTargetGL( getContext( NULL ), Desc, pColourBuffer, pDepthStencilBuffer, pFrameBuffer, pTexture );	
 	createResource( pRenderTarget );
 	
 	return pRenderTarget;
@@ -260,9 +260,9 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( BcU32 Width, BcU32 Height, eRs
 //////////////////////////////////////////////////////////////////////////
 // createVertexBuffer
 //virtual 
-RsVertexBuffer* RsCoreImplGL::createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData )
+RsVertexBuffer* RsCoreImplGL::createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData )
 {
-	RsVertexBufferGL* pResource = new RsVertexBufferGL( getContext( NULL ), Descriptor, NoofVertices, pVertexData );
+	RsVertexBufferGL* pResource = new RsVertexBufferGL( getContext( NULL ), Desc, pVertexData );
 	createResource( pResource );
 	return pResource;
 }
@@ -270,9 +270,9 @@ RsVertexBuffer* RsCoreImplGL::createVertexBuffer( BcU32 Descriptor, BcU32 NoofVe
 //////////////////////////////////////////////////////////////////////////
 // createIndexBuffer
 //virtual 
-RsIndexBuffer* RsCoreImplGL::createIndexBuffer( BcU32 NoofIndices, void* pIndexData )
+RsIndexBuffer* RsCoreImplGL::createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData )
 {
-	RsIndexBufferGL* pResource = new RsIndexBufferGL( getContext( NULL ), NoofIndices, pIndexData );
+	RsIndexBufferGL* pResource = new RsIndexBufferGL( getContext( NULL ), Desc, pIndexData );
 	createResource( pResource );
 	return pResource;
 }
@@ -280,9 +280,9 @@ RsIndexBuffer* RsCoreImplGL::createIndexBuffer( BcU32 NoofIndices, void* pIndexD
 //////////////////////////////////////////////////////////////////////////
 // createUniformBuffer
 //virtual 
-RsUniformBuffer* RsCoreImplGL::createUniformBuffer( BcU32 BufferSize, void* pBufferData )
+RsUniformBuffer* RsCoreImplGL::createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData )
 {
-	RsUniformBufferGL* pResource = new RsUniformBufferGL( getContext( NULL ), BufferSize, pBufferData );
+	RsUniformBufferGL* pResource = new RsUniformBufferGL( getContext( NULL ), Desc, pBufferData );
 	createResource( pResource );
 	return pResource;
 }

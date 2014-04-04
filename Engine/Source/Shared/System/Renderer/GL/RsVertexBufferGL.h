@@ -29,7 +29,7 @@ public:
 	 * @param NoofVertices Number of vertices.
 	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	RsVertexBufferGL( RsContext* pContext, BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL );
+	RsVertexBufferGL( RsContext* pContext, const RsVertexBufferDesc& Desc, void* pVertexData = NULL );
 	virtual ~RsVertexBufferGL();
 
 	virtual void*						lock();
@@ -51,9 +51,8 @@ private:
 	GLenum								Type_;
 	GLenum								Usage_;
 
-	BcU32								Descriptor_;
-	BcU32								Stride_;
-	BcU32								NoofVertices_;
+	RsVertexBufferDesc					Desc_;
+
 	BcU32								NoofUpdateVertices_;
 	BcBool								Created_;
 };

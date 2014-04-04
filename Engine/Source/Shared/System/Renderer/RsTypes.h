@@ -180,7 +180,8 @@ enum eRsStencilOp
 // Colour Format (RT)
 enum eRsColourFormat
 {
-	rsCF_A2R10G10B10 = 0,
+	rsCF_NONE = 0,
+	rsCF_A2R10G10B10,
 	rsCF_A8R8G8B8,
 	rsCF_X8R8G8B8,
 	rsCF_A1R5G5B5,
@@ -202,7 +203,8 @@ enum eRsColourFormat
 // Depth Stencil Format (RT)
 enum eRsDepthStencilFormat
 {
-	rsDSF_D16 = 0,
+	rsDSF_NONE = 0,
+	rsDSF_D16,
 	rsDSF_D32,
 	rsDSF_D15S1,
 	rsDSF_D24S8,

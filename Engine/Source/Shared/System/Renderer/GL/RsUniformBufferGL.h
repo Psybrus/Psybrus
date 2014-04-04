@@ -25,10 +25,10 @@ class RsUniformBufferGL:
 public:
 	/**
 	 * Create index buffer.
-	 * @param BufferSize Buffer size.
+	 * @param Desc Buffer descriptor.
 	 * @param pBufferData Pointer to index data, NULL to create own.
 	 */
-	RsUniformBufferGL( RsContext* pContext, BcU32 BufferSize, void* pBufferData );
+	RsUniformBufferGL( RsContext* pContext, const RsUniformBufferDesc& Desc, void* pBufferData );
 	virtual ~RsUniformBufferGL();
 	
 protected:
@@ -42,6 +42,7 @@ protected:
 private:
 	GLenum								Type_;
 	GLenum								Usage_;
+	RsUniformBufferDesc					Desc_;
 };
 
 #endif

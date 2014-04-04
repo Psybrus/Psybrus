@@ -17,6 +17,17 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
 
+/**
+ * RsUniformBufferDesc
+ */
+struct RsUniformBufferDesc
+{
+	RsUniformBufferDesc();
+	RsUniformBufferDesc( BcU32 BufferSize );
+
+	BcU32 BufferSize_;
+};
+
 //////////////////////////////////////////////////////////////////////////
 // RsUniformBuffer
 class RsUniformBuffer:

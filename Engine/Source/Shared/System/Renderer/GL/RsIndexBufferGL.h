@@ -25,10 +25,10 @@ class RsIndexBufferGL:
 public:
 	/**
 	 * Create index buffer.
-	 * @param NoofIndices Number of indices.
+	 * @param Desc Buffer descriptor.
 	 * @param pIndexData Pointer to index data, NULL to create own.
 	 */
-	RsIndexBufferGL( RsContext* pContext, BcU32 NoofIndices, void* pIndexData );
+	RsIndexBufferGL( RsContext* pContext, const RsIndexBufferDesc& Desc, void* pIndexData );
 	virtual ~RsIndexBufferGL();
 	
 protected:
@@ -42,9 +42,7 @@ public:
 private:
 	GLenum								Type_;
 	GLenum								Usage_;
-
-	BcU32								NoofIndices_;
-	
+	RsIndexBufferDesc					Desc_;
 };
 
 #endif

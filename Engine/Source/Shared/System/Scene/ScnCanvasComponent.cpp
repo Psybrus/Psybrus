@@ -81,7 +81,7 @@ void ScnCanvasComponent::create()
 		RenderResource.pVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
 
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexFormat, NoofVertices_, RenderResource.pVertices_ );
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexFormat, NoofVertices_ ), RenderResource.pVertices_ );
 	
 		// Allocate render side primitive.
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
