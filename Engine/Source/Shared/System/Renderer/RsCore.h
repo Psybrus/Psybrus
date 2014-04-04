@@ -106,34 +106,30 @@ public:
 
 	/**
 	 *	Create a render target.
-	 *	@param Width Width.
-	 *	@param Height Height.
-	 *  @param ColourFormat Colour format.
-	 *  @param DepthStencilFormat Depth/stencil format.
+	 *	@param Desc Descriptor object.
 	 */
-	virtual RsRenderTarget*		createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat ) = 0;
+	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc ) = 0;
 
 	/*
 	 * Create a vertex buffer.
-	 * @param Descriptor Vertex descriptor flags.
-	 * @param NoofVertices Number of vertices.
+	 * @param Desc Buffer descriptor
 	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	virtual RsVertexBuffer*		createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL ) = 0;
+	virtual RsVertexBuffer*		createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData = NULL ) = 0;
 	
 	/**
 	 * Create index buffer.
-	 * @param NoofIndices Number of indices.
+	 * @param Desc Buffer descriptor
 	 * @param pIndexData Pointer to index data, NULL to create own.
 	 */
-	virtual RsIndexBuffer*		createIndexBuffer( BcU32 NoofIndices, void* pIndexData = NULL ) = 0;
+	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL ) = 0;
 	
 	/**
 	 * Create uniform buffer.
-	 * @param BufferSize Buffer size.
+	 * @param Desc Buffer descriptor
 	 * @param pBufferData Pointer to buffer data, NULL to create own.
 	 */
-	virtual RsUniformBuffer*	createUniformBuffer( BcU32 BufferSize, void* pBufferData = NULL ) = 0;
+	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL ) = 0;
 
 	/**
 	 * Create shader.

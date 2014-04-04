@@ -17,12 +17,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsRenderTargetGL::RsRenderTargetGL( RsContext* pContext, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat, BcU32 Width, BcU32 Height, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture ):
+RsRenderTargetGL::RsRenderTargetGL( RsContext* pContext, const RsRenderTargetDesc& Desc, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture ):
 	RsRenderTarget( pContext ),
-	ColourFormat_( ColourFormat ),
-	DepthStencilFormat_( DepthStencilFormat ),
-	Width_( Width ),
-	Height_( Height ),
+	Desc_( Desc ),
 	pColourBuffer_( pColourBuffer ),
 	pDepthStencilBuffer_( pDepthStencilBuffer ),
 	pFrameBuffer_( pFrameBuffer ),
@@ -59,7 +56,7 @@ void RsRenderTargetGL::bind()
 //virtual
 BcU32 RsRenderTargetGL::width() const
 {
-	return Width_;
+	return Desc_.Width_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,7 +64,7 @@ BcU32 RsRenderTargetGL::width() const
 //virtual
 BcU32 RsRenderTargetGL::height() const
 {
-	return Height_;
+	return Desc_.Height_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,8 +72,7 @@ BcU32 RsRenderTargetGL::height() const
 //virtual
 eRsColourFormat RsRenderTargetGL::colourFormat( BcU32 Index ) const
 {
-	BcAssert( Index == 0 );
-	return ColourFormat_;
+	return Desc_.ColourFormats_[ Index ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,14 +80,15 @@ eRsColourFormat RsRenderTargetGL::colourFormat( BcU32 Index ) const
 //virtual
 eRsDepthStencilFormat RsRenderTargetGL::depthStencilFormat() const
 {
-	return DepthStencilFormat_;
+	return Desc_.DepthStencilFormat_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getTexture
 //virtual
-RsTexture* RsRenderTargetGL::getTexture()
+RsTexture* RsRenderTargetGL::getTexture( BcU32 Index )
 {
+	BcAssert( Index == 0 );
 	return pTexture_;
 }
 

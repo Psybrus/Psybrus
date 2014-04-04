@@ -14,6 +14,21 @@
 #include "System/Renderer/RsUniformBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
+// RsUniformBufferDesc
+RsUniformBufferDesc::RsUniformBufferDesc():
+	BufferSize_( 0 )
+{
+
+}
+//////////////////////////////////////////////////////////////////////////
+// RsUniformBufferDesc
+RsUniformBufferDesc::RsUniformBufferDesc( BcU32 BufferSize ):
+	BufferSize_( BufferSize )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 RsUniformBuffer::RsUniformBuffer( class RsContext* pContext ):
 	RsResource( pContext )

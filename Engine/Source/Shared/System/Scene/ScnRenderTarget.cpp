@@ -90,10 +90,10 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 void ScnRenderTarget::create()
 {
 	// Create render target.
-	pRenderTarget_ = RsCore::pImpl()->createRenderTarget( Header_.Width_, Header_.Height_, rsCF_A8R8G8B8, rsDSF_D24S8 );
+	pRenderTarget_ = RsCore::pImpl()->createRenderTarget( RsRenderTargetDesc( rsCF_A8R8G8B8, rsDSF_D24S8, Header_.Width_, Header_.Height_ ) );
 	
 	// Get texture from target.
-	pTexture_ = pRenderTarget_->getTexture();
+	pTexture_ = pRenderTarget_->getTexture( 0 );
 	
 	// Ready to go.
 	markReady();

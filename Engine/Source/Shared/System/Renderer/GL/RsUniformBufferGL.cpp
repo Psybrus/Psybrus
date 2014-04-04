@@ -17,7 +17,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsUniformBufferGL::RsUniformBufferGL( RsContext* pContext, BcU32 BufferSize, void* pBufferData ):
+RsUniformBufferGL::RsUniformBufferGL( RsContext* pContext, const RsUniformBufferDesc& Desc, void* pBufferData ):
 	RsUniformBuffer( pContext )
 {
 	// Setup base buffer.
@@ -25,8 +25,9 @@ RsUniformBufferGL::RsUniformBufferGL( RsContext* pContext, BcU32 BufferSize, voi
 	Usage_ = pBufferData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
 
 	// Setup stride and descriptor.
+	Desc_ = Desc;
 	pData_ = pBufferData;
-	DataSize_ = BufferSize;
+	DataSize_ = Desc_.BufferSize_;
 
 	// Create data if we need to.
 	if( pData_ == NULL )

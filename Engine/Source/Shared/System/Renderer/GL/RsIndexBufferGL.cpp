@@ -15,7 +15,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsIndexBufferGL::RsIndexBufferGL( RsContext* pContext, BcU32 NoofIndices, void* pIndexData ):
+RsIndexBufferGL::RsIndexBufferGL( RsContext* pContext, const RsIndexBufferDesc& Desc, void* pIndexData ):
 	RsIndexBuffer( pContext )
 {
 	// Setup base buffer.
@@ -23,9 +23,9 @@ RsIndexBufferGL::RsIndexBufferGL( RsContext* pContext, BcU32 NoofIndices, void* 
 	Usage_ = pIndexData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
 
 	// Setup stride and descriptor.
-	NoofIndices_ = NoofIndices;
+	Desc_ = Desc;
 	pData_ = pIndexData;
-	DataSize_ = NoofIndices_ * sizeof( BcU16 );
+	DataSize_ = Desc.NoofIndices_ * sizeof( BcU16 );
 
 	// Create data if we need to.
 	if( pData_ == NULL )

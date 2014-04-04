@@ -85,7 +85,7 @@ void ScnParticleSystemComponent::create()
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( VertexDescriptor, NoofVertices, VertexBuffer.pVertexArray_ ); 
+		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexDescriptor, NoofVertices ), VertexBuffer.pVertexArray_ ); 
 		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( VertexBuffer.pVertexBuffer_, NULL );
 	}
 
