@@ -531,6 +531,12 @@ void RsContextGL::flushState()
 				case rsRS_BLEND_MODE:
 					bindBlendMode( (eRsBlendingMode)Value );
 					break;
+				case rsRS_COLOR_WRITE_MASK_0:
+				case rsRS_COLOR_WRITE_MASK_1:
+				case rsRS_COLOR_WRITE_MASK_2:
+				case rsRS_COLOR_WRITE_MASK_3:
+					glColorMaski( RenderStateID - rsRS_COLOR_WRITE_MASK_0, ( Value & 0x8 ) >> 3, ( Value & 0x4 ) >> 2,( Value & 0x2 ) >> 1, ( Value & 0x1 ) );
+					break;
 			}
 			
 			// No longer dirty.
