@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+	<!-- BcName visualiser -->
+	<Type Name="BcName">
+		<DisplayString Condition="EntryIndex_ == 4294967295">Entry invalid.</DisplayString> 
+		<DisplayString Condition="ID_ == 4294967295">{(*pStringEntries_)._Myfirst[EntryIndex_].Value_}</DisplayString> 
+		<DisplayString Condition="ID_ != 4294967295">{(*pStringEntries_)._Myfirst[EntryIndex_].Value_}_{ID_}</DisplayString> 
+	</Type>
+
+	<!-- CsResource visualiser -->
+	<Type Name="CsResource">
+		<DisplayString>{Name_}</DisplayString> 
+	</Type>
+
+	<!-- ScnComponent visualiser -->
+	<Type Name="ScnComponent">
+		<DisplayString>{Name_}</DisplayString> 
+	</Type>
+
+	<!-- ScnEntity visualiser -->
+	<Type Name="ScnEntity">
+		<DisplayString>{Name_}</DisplayString> 
+	</Type>
+
+	<!-- BcVec2d visualiser -->
+	<Type Name="BcVec2d">
+		<DisplayString>{X_}, {Y_}</DisplayString> 
+	</Type>
+
+	<!-- BcVec3d visualiser -->
+	<Type Name="BcVec3d">
+		<DisplayString>{X_}, {Y_}, {Z_}</DisplayString> 
+	</Type>
+
+	<!-- BcVec4d visualiser -->
+	<Type Name="BcVec4d">
+		<DisplayString>{X_}, {Y_}, {Z_}, {W_}</DisplayString> 
+	</Type>
+
+</AutoVisualizer>
