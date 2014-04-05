@@ -65,6 +65,9 @@ void RsPrimitiveGL::update()
 	}
 
 	glBindVertexArray( 0 );
+
+	// Decrement now that we're done.
+	UpdateSyncFence_.decrement();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
