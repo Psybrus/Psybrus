@@ -74,7 +74,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		"color_write_mask_3",
 		"blend_mode"
 	};
-		
+	
 	std::map< std::string, BcU32 > ModeNames;
 		
 	ModeNames[ "never" ] = rsCM_NEVER;
@@ -101,6 +101,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 
 	for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
 	{
+		bool WriteDefaultState = BcFalse;
 		if( State.type() == Json::objectValue )
 		{
 			const Json::Value& StateValue = State[ StateNames[ Idx ] ];
@@ -113,25 +114,31 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			else if( StateValue.type() == Json::stringValue )
 			{
 				BcU32 IntValue = ModeNames[ StateValue.asCString() ];
-				if( BcStrCompare( StateValue.asCString(), "subtract" ) )
-				{
-					int a = 0; ++a;
-				}
 				StateBlockStream << BcU32( IntValue );
 			}
-			else
+			else if( StateValue.type() == Json::intValue ||
+					 StateValue.type() == Json::uintValue )
 			{
 				BcU32 IntValue = (BcU32)StateValue.asInt();
 				StateBlockStream << BcU32( IntValue );
 			}
+			else
+			{
+				WriteDefaultState = BcTrue;
+			}
 		}
 		else
+		{
+			WriteDefaultState = BcTrue;
+		}
+
+		if( WriteDefaultState )
 		{
 			// Horrible default special case. Should have a table.
 			switch( Idx )
 			{
 			case rsRS_COLOR_WRITE_MASK_0:
-				StateBlockStream << BcU32( 7 );
+				StateBlockStream << BcU32( 0xf );
 				break;
 
 			default:
