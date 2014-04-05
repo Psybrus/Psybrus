@@ -124,6 +124,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			}
 			else
 			{
+				BcPrintf( "ScnMaterial::import: Unable to parse value for \"%s\"\n", StateNames[ Idx ] );
 				WriteDefaultState = BcTrue;
 			}
 		}
