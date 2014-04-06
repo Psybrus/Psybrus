@@ -23,16 +23,11 @@
 */
 struct RsRenderTargetDesc
 {
-	RsRenderTargetDesc( eRsColourFormat ColourFormat, 
-						eRsDepthStencilFormat DepthStencilFormat,
-						BcU32 Width,
+	RsRenderTargetDesc( BcU32 Width,
 						BcU32 Height );
 
-	RsRenderTargetDesc( BcU32 NoofColourFormats,
-						eRsColourFormat* ColourFormats, 
-						eRsDepthStencilFormat DepthStencilFormat,
-						BcU32 Width,
-						BcU32 Height );
+	RsRenderTargetDesc& renderSurface( BcU32 Idx, eRsColourFormat Format );
+	RsRenderTargetDesc& depthStencilSurface( eRsDepthStencilFormat Format );
 
 	std::array< eRsColourFormat, 8 >	ColourFormats_;
 	eRsDepthStencilFormat				DepthStencilFormat_;

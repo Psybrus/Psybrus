@@ -15,38 +15,24 @@
 
 #include "Base/BcMemory.h"
 
-RsRenderTargetDesc::RsRenderTargetDesc( eRsColourFormat ColourFormat, 
-						eRsDepthStencilFormat DepthStencilFormat,
+RsRenderTargetDesc::RsRenderTargetDesc(
 						BcU32 Width,
 						BcU32 Height )
 {
 	// zero off all colour formats.
 	BcMemZero( &ColourFormats_[ 0 ], sizeof( ColourFormats_ ) );
-
-	// setup everything.
-	ColourFormats_[ 0 ] = ColourFormat;
-	DepthStencilFormat_ = DepthStencilFormat;
 	Width_ = Width;
 	Height_ = Height;
 }
 
-RsRenderTargetDesc::RsRenderTargetDesc( BcU32 NoofColourFormats,
-						eRsColourFormat* ColourFormats, 
-						eRsDepthStencilFormat DepthStencilFormat,
-						BcU32 Width,
-						BcU32 Height )
+RsRenderTargetDesc& RsRenderTargetDesc::renderSurface( BcU32 Idx, eRsColourFormat Format )
 {
-	BcAssert( NoofColourFormats < (BcU32)ColourFormats_.size() );
-	// zero off all colour formats.
-	BcMemZero( &ColourFormats_[ 0 ], sizeof( ColourFormats_ ) );
+	ColourFormats_[ Idx ] = Format;
+	return *this;
+}
 
-	// setup everything.
-	for( BcU32 Idx = 0; Idx < NoofColourFormats; ++Idx )
-	{
-		ColourFormats_[ Idx ] = ColourFormats[ Idx ];
-	}
-	
-	DepthStencilFormat_ = DepthStencilFormat;
-	Width_ = Width;
-	Height_ = Height;
+RsRenderTargetDesc& RsRenderTargetDesc::depthStencilSurface( eRsDepthStencilFormat Format )
+{
+	DepthStencilFormat_ = Format;
+	return *this;
 }
