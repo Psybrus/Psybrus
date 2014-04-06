@@ -394,7 +394,7 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	Super::postUpdate( Tick );
 
 	UpdateFence_.increment();
-#if 1
+#if 0
 	// TODO: Break out into it's own job class.
 	typedef BcDelegate< void(*)( BcMat4d ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
