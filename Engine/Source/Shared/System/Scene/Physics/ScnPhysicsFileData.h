@@ -15,6 +15,7 @@
 #define __SCNPHYSICSFILEDATA__
 
 #include "Base/BcTypes.h"
+#include "Base/BcVectors.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsCollisionShapeHeader

@@ -5,19 +5,8 @@ Introduction:
 -------------
 My personal engine which I use for Ludum Dare, tech prototyping, and testing out new ideas.
 
-Root Game Projects:
--------------------
-- ExampleGame is a previous Ludum Dare entry that I use as a test bed currently. It is not always in a fully working state (but should be really).
-- TemplateGame is a very bare project which has an example component class, and loads in a model.
+No demo games are in this repo anymore, please see my other repos, Psybrus_DevelopmentGame, and ResenseGame. They have instructions on setting up.
 
-How to create a new project:
-----------------------------
-- Copy the "TemplateGame" folder and name it whatever you like.
-- Update the project name in premake4.lua file that exists within that folder.
-- Update the root premake4.lua file to build only the games you wish.
-- Run the appropriate batch file to create either vs2008 or vs2010 projects. These will go into the "Build/[vs2008/vs2010]" folder, the solution is "Psybrus.sln".
-
-How to run the game:
---------------------
-- Set the working directory of the game project in Visual Studio to be the "Dist" folder within your game's folder.
-- When ran in Debug or Release, the game will reimport the content. Production will only load PackedContent.
+VS2012 Users:
+-------------
+I've setup a natvis file for use with Psybrus, as it helps a lot with debugging (particularly decoding names and resource structures for an at a glance view). Drop this in the "My Documents\Visual Studio 2012\Visualizers" folder and it should start to work. I will soon provide a setup tool to setup this, and possibly more.

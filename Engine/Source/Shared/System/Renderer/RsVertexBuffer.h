@@ -17,6 +17,20 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
 
+/**
+ * RsVertexBufferDesc
+ */
+struct RsVertexBufferDesc
+{
+	RsVertexBufferDesc();
+	RsVertexBufferDesc( BcU32 Descriptor, BcU32 NoofVertices );
+	RsVertexBufferDesc( BcU32 Descriptor, BcU32 NoofVertices, BcU32 Stride );
+
+	BcU32 Descriptor_;
+	BcU32 NoofVertices_;
+	BcU32 Stride_;
+};
+
 //////////////////////////////////////////////////////////////////////////
 // RsVertexBuffer
 class RsVertexBuffer:

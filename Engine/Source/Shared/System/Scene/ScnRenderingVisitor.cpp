@@ -22,7 +22,7 @@ ScnRenderingVisitor::ScnRenderingVisitor( class ScnViewComponent* pViewComponent
 	pViewComponent_( pViewComponent ),
 	pFrame_( pFrame )
 {
-	ScnCore::pImpl()->visitView( this, pViewComponent_->getViewport() );
+	ScnCore::pImpl()->visitView( this, pViewComponent_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

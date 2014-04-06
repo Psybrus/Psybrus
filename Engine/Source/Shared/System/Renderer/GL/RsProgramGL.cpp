@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
 *
 * File:		RsProgramGL.cpp
 * Author:	Neil Richardson 
@@ -127,6 +127,30 @@ void RsProgramGL::create()
 		}
 	}
 	
+	// Attempt to find uniform block names.
+	GLint ActiveUniformBlocks = 0;
+	glGetProgramiv( Handle, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
+	
+	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
+	{
+		// Uniform information.
+		GLchar UniformBlockName[ 256 ];
+		GLsizei UniformBlockNameLength = 0;
+		GLint Size = 0;
+
+		// Get the uniform block size.
+		glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
+		glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
+		
+		// Add it as a parameter.
+		if( UniformBlockNameLength > 0  )
+		{
+			auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
+			BcAssert( TestIdx == Idx );
+			addBlock( UniformBlockName, Idx, Size );
+		}
+	}
+
 	// Catch error.
 	RsGLCatchError;
 
@@ -268,6 +292,47 @@ void RsProgramGL::bind( void* pParameterBuffer )
 #endif
 		}
 	}
+
+	// Bind up uniform blocks.
+	BcU32 BindingPoint = 0;
+	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
+	{
+		if( (*It).Buffer_ != nullptr )
+		{
+			glUniformBlockBinding( Handle, (*It).Index_, BindingPoint );
+			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDataSize() );
+
+			++BindingPoint;
+			RsGLCatchError;
+		}
+	}
+		
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// findUniformBlockIndex
+//virtual
+BcU32 RsProgramGL::findUniformBlockIndex( const BcChar* Name )
+{
+	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
+	{
+		if( (*It).Name_ == Name )
+		{
+			return (*It).Index_;
+		}
+	}
+
+	return BcErrorCode;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setUniformBlock
+//virtual
+void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
+{
+	auto& UniformBlock( UniformBlockList_[ Index ] );
+	BcAssert( Buffer->getDataSize() == UniformBlock.Size_ );
+	UniformBlock.Buffer_ = Buffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -422,4 +487,18 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type, 
 		// Log.
 		//BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// addBlock
+void RsProgramGL::addBlock( const GLchar* pName, GLint Handle, BcU32 Size )
+{
+	TUniformBlock Block = 
+	{
+		pName,
+		Handle,
+		Size
+	};
+
+	UniformBlockList_.push_back( Block );
 }
