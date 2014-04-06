@@ -16,6 +16,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
+BcU32 CsResource::UniqueIdCounter_ = 0;
+
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
 BCREFLECTION_DEFINE_BASE( CsResource );
@@ -33,7 +35,8 @@ CsResource::CsResource():
 	Name_( BcName::INVALID ),
 	Index_( BcErrorCode ),
 	pPackage_( NULL ),
-	InitStage_( INIT_STAGE_INITIAL )
+	InitStage_( INIT_STAGE_INITIAL ),
+	UniqueId_(UniqueIdCounter_++)
 {
 
 }
@@ -323,4 +326,11 @@ void CsResource::onFileReady()
 void CsResource::onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	fileChunkReady( ChunkIdx, ChunkID, pData );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getUniqueId
+BcU32 CsResource::getUniqueId()
+{
+	return UniqueId_;
 }

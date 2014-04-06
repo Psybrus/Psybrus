@@ -150,6 +150,10 @@ public:
 	 */
 	virtual void					serialiseProperties();
 
+	/**
+	 * Get unique identifier for resource
+	 */
+	BcU32							getUniqueId();
 protected:
 	/**
 	 * Get string.
@@ -205,6 +209,10 @@ private:
 	BcU32							Index_;
 	CsPackage*						pPackage_;
 	BcAtomicU32						InitStage_;
+
+	BcU32							UniqueId_;
+
+	static BcU32					UniqueIdCounter_;
 };
 
 //////////////////////////////////////////////////////////////////////////

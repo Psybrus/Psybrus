@@ -77,7 +77,7 @@ void DsCore::cmdContent( std::string& Output )
 	{
 		CsResourceRef<> Resource( CsCore::pImpl()->getResource( Idx ) );
 
-		Output += "<li>Resourc: ";
+		Output += "<li>Resource: ";
 		Output += *Resource->getName();
 		Output += "</li>";
 
@@ -104,7 +104,7 @@ void DsCore::cmdScene( std::string& Output )
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
 	{
-		if( Entity->getParentEntity() != NULL )
+		if( Entity->getParentEntity() == NULL )
 		{
 			cmdScene_Entity( Entity, Output, 0 );
 		}
@@ -112,24 +112,48 @@ void DsCore::cmdScene( std::string& Output )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// cmdScene_Entity
-void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth )
+// cmdMenu
+void DsCore::cmdMenu(std::string& Output)
 {
+
 	Output += "<ul>";
 
 	// Entity name.
 	Output += "<li>";
-	Output += "Entity: ";
-	Output += *Entity->getName();
+	Output += "<a href=\"/Content\">Content</a>";
+	Output += "</li>";
+	Output += "<li>";
+	Output += "<a href=\"/Scene\">Scene</a>";
 	Output += "</li>";
 
+
+	Output += "</ul>";
+}
+
+//////////////////////////////////////////////////////////////////////////
+// cmdScene_Entity
+void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth)
+{
+	Output += "<ul>";
+	BcChar Id[32];
+	BcSPrintf(Id, "%d", Entity->getUniqueId());
+	
+	// Entity name.
+	Output += "<li>";
+	Output += "Entity: ";
+	Output += "<a href=\"/Resource/";
+	Output += Id;
+	Output += "\">";
+	Output += *Entity->getName();
+	Output += "</a>";
+	Output += "</li>";
 	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
 	{
 		ScnComponentRef Component( Entity->getComponent( Idx ) );
 	
 		if( Component->isTypeOf< ScnEntity >() )
 		{
-			cmdScene_Entity( ScnEntityRef( Component ), Output, Depth + 1 );
+			cmdScene_Entity( ScnEntityRef( Component ), Output, Depth + 1);
 		}
 		else
 		{
@@ -144,12 +168,18 @@ void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 De
 // cmdScene_Component
 void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output, BcU32 Depth )
 {
+	BcChar Id[32];
+	BcSPrintf(Id, "%d", Component->getUniqueId());
 	Output += "<ul>";
 
 	// Component name.
 	Output += "<li>";
 	Output += "Component: ";
+	Output += "<a href=\"/Resource/";
+	Output += Id;
+	Output += "\">";
 	Output += *Component->getName();
+	Output += "</a>";
 	Output += " (";
 	Output += *Component->getTypeName();
 	Output += ")";
@@ -163,41 +193,55 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output,
 void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connection* pConn )
 {
 	const struct mg_request_info* pRequestInfo = mg_get_request_info( pConn );
-
+	std::string type = "html";
 	std::string Content;
-	Content += "Output for: ";
-	Content += pRequestInfo->uri;
-	Content += "<br/><br/>";
-
-	if( BcStrCompare( pRequestInfo->uri, "/Content" ) )
+	BcU8* Output;
+	int OutLength = 0;
+	if (BcStrStr(pRequestInfo->uri, "/files/"))
 	{
-		cmdContent( Content );
+		Output = writeFile(&pRequestInfo->uri[7], OutLength, type);
 	}
-	else if( BcStrCompare( pRequestInfo->uri, "/ContentQuery" ) )
+	else
 	{
-		cmdContent( Content );
-	}
-	else if( BcStrCompare( pRequestInfo->uri, "/Scene" ) )
-	{
-		cmdScene( Content );
+		writeHeader(Content);
+		if (BcStrCompare(pRequestInfo->uri, "/Content"))
+		{
+			cmdContent(Content);
+		}
+		else if (BcStrCompare(pRequestInfo->uri, "/"))
+		{
+			cmdMenu(Content);
+		}
+		else if (BcStrCompare(pRequestInfo->uri, "/Scene"))
+		{
+			cmdScene(Content);
+		}
+		else if (BcStrStr(pRequestInfo->uri, "/Resource/"))
+		{
+			cmdResource(&pRequestInfo->uri[10], Content);
+		}
+		writeFooter(Content);
+		OutLength = Content.size();
+		Output = new BcU8[OutLength + 1];
+		BcMemCopy(Output, &Content[0], OutLength);
 	}
 	BcChar Buffer[ 1024 ];
 
 	BcSPrintf( Buffer,
 			"HTTP/1.1 200 OK\r\n"
-			"Content-Type: text/html\r\n"
+			"Content-Type: text/%s\r\n"
 			"Content-Length: %d\r\n"        // Always set Content-Length
 			"\r\n",
-			Content.size() );
+			type.c_str(), OutLength );
 
 	BcU32 ContentHeaderLength = BcStrLength( Buffer );
-	BcU32 TotalBufferLength = ContentHeaderLength + Content.size() + 1;
+	BcU32 TotalBufferLength = ContentHeaderLength + OutLength + 1;
 	BcChar* pSendBuffer = new BcChar[ TotalBufferLength ];
 	BcStrCopy( pSendBuffer, Buffer );
-	BcStrCopy( pSendBuffer + ContentHeaderLength, Content.c_str() );
 
+	BcMemCopy(pSendBuffer + ContentHeaderLength, Output, OutLength);
 	mg_write( pConn, pSendBuffer, TotalBufferLength );
-	
+	delete [] Output;
 	delete [] pSendBuffer;
 	pSendBuffer = NULL;
 
@@ -230,4 +274,92 @@ void* DsCore::mongooseCallback( enum mg_event Event, struct mg_connection* pConn
 void* DsCore::MongooseCallback( enum mg_event Event, struct mg_connection* pConn )
 {
 	return DsCore::pImpl()->mongooseCallback( Event, pConn );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// writeHeader
+void DsCore::writeHeader(std::string& Output)
+{
+	Output += "<!DOCTYPE html>";
+	Output += "<html>";
+	Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";
+	Output += "<body>";
+	Output += "<h1>";
+	Output += GPsySetupParams.Name_;
+	Output += "</h1>";
+}
+
+//////////////////////////////////////////////////////////////////////////
+// writeFooter
+void DsCore::writeFooter(std::string& Output)
+{
+	Output += "Footer";
+
+	Output += "</body></html>";
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Gets a file for the output stream
+BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
+{
+	BcFile file;
+	std::string f = "Content/Debug/";
+	f += filename;
+	file.open(f.c_str());
+	if (!file.isOpen())
+		return 0;
+	BcU8* data;// = new BcU8[file.size()];
+	data = file.readAllBytes();
+	OutLength = file.size();
+	type = "css";
+	// TODO: Actually load files
+	return data;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// cmdResource
+void DsCore::cmdResource(std::string EntityId, std::string& Output)
+{
+	if (!BcStrIsNumber(EntityId.c_str()))
+	{
+		Output += "Invalid resource Id <br/>";
+		return;
+	}
+	BcU32 id = BcStrAtoi(EntityId.c_str());
+
+	CsResourceRef<> Resource(CsCore::pImpl()->getResourceByUniqueId(id));
+
+	if (Resource == NULL)
+	{
+		Output += "Invalid resource Id <br/>";
+		return;
+	}
+
+	if (Resource->getClass() == ScnEntity::StaticGetClass())
+	{
+		cmdScene_Entity(ScnEntityRef(Resource), Output, 0);
+	}
+	else
+	{
+		Output += "<ul>";
+
+		Output += "<li>Resource: ";
+		Output += *Resource->getName();
+		Output += "</li>";
+
+		Output += "<ul>";
+
+
+		Output += "<li>Type:";
+		Output += *Resource->getTypeName();
+		Output += "</li>";
+
+		Output += "<li>Package:";
+		Output += *Resource->getPackageName();
+		Output += "</li>";
+
+		Output += "</ul>";
+
+		Output += "</ul>";
+	}
 }
