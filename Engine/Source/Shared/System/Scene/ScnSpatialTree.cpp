@@ -15,6 +15,7 @@
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnVisitor.h"
 #include "System/Scene/ScnSpatialComponent.h"
+#include "System/Scene/ScnViewComponent.h"
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsFrame.h"
@@ -141,7 +142,7 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 
 //////////////////////////////////////////////////////////////////////////
 // visitView
-void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
+void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewComponent* View )
 {
 	// Visit this Components objects if they are inside the frustum.
 	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
@@ -150,7 +151,7 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const RsViewport& View
 	{
 		ScnSpatialComponent* Component = *Iter;
 
-		if( Component->getAABB().isEmpty() || Viewport.intersect( Component->getAABB() ) == BcTrue )
+		if( Component->getAABB().isEmpty() || View->intersect( Component->getAABB() ) == BcTrue )
 		{
 			Component->visit_accept( pVisitor );
 		}
@@ -164,9 +165,9 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const RsViewport& View
 		for( BcU32 i = 0; i < 8; ++i )
 		{
 			ScnSpatialTreeNode* pChildComponent = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
-			if( Viewport.intersect( pChildComponent->getAABB() ) )
+			if( View->intersect( pChildComponent->getAABB() ) )
 			{
-				pChildComponent->visitView( pVisitor, Viewport );
+				pChildComponent->visitView( pVisitor, View );
 			}
 		}
 	}
@@ -254,11 +255,11 @@ void ScnSpatialTree::removeComponent( ScnSpatialComponent* Component )
 
 //////////////////////////////////////////////////////////////////////////
 // visitView
-void ScnSpatialTree::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
+void ScnSpatialTree::visitView( ScnVisitor* pVisitor, const ScnViewComponent* View )
 {
 	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
 	
-	pRoot->visitView( pVisitor, Viewport );
+	pRoot->visitView( pVisitor, View );
 }
 
 //////////////////////////////////////////////////////////////////////////

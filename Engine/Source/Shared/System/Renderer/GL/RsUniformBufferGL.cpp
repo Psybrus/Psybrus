@@ -1,8 +1,8 @@
 /**************************************************************************
 *
-* File:		RsIndexBufferGL.cpp
+* File:		RsUniformBufferGL.cpp
 * Author:	Neil Richardson
-* Ver/Date:	25/02/11
+* Ver/Date:	
 * Description:
 *
 *
@@ -11,21 +11,23 @@
 *
 **************************************************************************/
 
-#include "System/Renderer/GL/RsIndexBufferGL.h"
+#include "System/Renderer/GL/RsUniformBufferGL.h"
+
+#include "System/Renderer/RsCore.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsIndexBufferGL::RsIndexBufferGL( RsContext* pContext, const RsIndexBufferDesc& Desc, void* pIndexData ):
-	RsIndexBuffer( pContext )
+RsUniformBufferGL::RsUniformBufferGL( RsContext* pContext, const RsUniformBufferDesc& Desc, void* pBufferData ):
+	RsUniformBuffer( pContext )
 {
 	// Setup base buffer.
-	Type_ = GL_ELEMENT_ARRAY_BUFFER;
-	Usage_ = pIndexData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
+	Type_ = GL_UNIFORM_BUFFER;
+	Usage_ = pBufferData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
 
 	// Setup stride and descriptor.
 	Desc_ = Desc;
-	pData_ = pIndexData;
-	DataSize_ = Desc.NoofIndices_ * sizeof( BcU16 );
+	pData_ = pBufferData;
+	DataSize_ = Desc_.BufferSize_;
 
 	// Create data if we need to.
 	if( pData_ == NULL )
@@ -38,7 +40,7 @@ RsIndexBufferGL::RsIndexBufferGL( RsContext* pContext, const RsIndexBufferDesc& 
 ////////////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-RsIndexBufferGL::~RsIndexBufferGL()
+RsUniformBufferGL::~RsUniformBufferGL()
 {
 
 }
@@ -46,7 +48,7 @@ RsIndexBufferGL::~RsIndexBufferGL()
 ////////////////////////////////////////////////////////////////////////////////
 // create
 //virtual
-void RsIndexBufferGL::create()
+void RsUniformBufferGL::create()
 {
 	// Generate buffers.
 	GLuint Handle;
@@ -69,7 +71,7 @@ void RsIndexBufferGL::create()
 ////////////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void RsIndexBufferGL::update()
+void RsUniformBufferGL::update()
 {
 	GLuint Handle = getHandle< GLuint >();
 
@@ -91,7 +93,7 @@ void RsIndexBufferGL::update()
 ////////////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
-void RsIndexBufferGL::destroy()
+void RsUniformBufferGL::destroy()
 {
 	GLuint Handle = getHandle< GLuint >();
 
@@ -102,13 +104,22 @@ void RsIndexBufferGL::destroy()
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// bind
-void RsIndexBufferGL::bind()
-{
-	GLuint Handle = getHandle< GLuint >();
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, Handle );
 
-	// Catch error.
-	RsGLCatchError;
+
+////////////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void* RsUniformBufferGL::lock()
+{
+	wait();
+	return pData_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void RsUniformBufferGL::unlock()
+{
+	UpdateSyncFence_.increment();
+	RsCore::pImpl()->updateResource( this );
 }

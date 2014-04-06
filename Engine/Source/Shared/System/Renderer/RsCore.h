@@ -18,6 +18,7 @@
 #include "System/SysSystem.h"
 
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsVertex.h"
 #include "System/Renderer/RsViewport.h"
 #include "System/Renderer/RsProjector.h"
@@ -31,6 +32,7 @@
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexBuffer.h"
 #include "System/Renderer/RsIndexBuffer.h"
+#include "System/Renderer/RsUniformBuffer.h"
 #include "System/Renderer/RsPrimitive.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,13 +66,13 @@ public:
 	 *	Get rendering context for client.
 	 *	@param pClient Client to get a context for.
 	 */
-	virtual RsContext*		getContext( OsClient* pClient ) = 0;
+	virtual RsContext*			getContext( OsClient* pClient ) = 0;
 	
 	/**
 	 *	Destroy rendering context for client.
 	 *	@param pClient Client to get a context for.
 	 */
-	virtual void			destroyContext( OsClient* pClient ) = 0;
+	virtual void				destroyContext( OsClient* pClient ) = 0;
 
 	/**
 	 *	Create a texture.
@@ -79,7 +81,7 @@ public:
 	 *	@param Format Texture format.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a texture.
@@ -89,7 +91,7 @@ public:
 	 *	@param Format Texture format.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a texture.
@@ -100,32 +102,35 @@ public:
 	 *	@param Format Texture format.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*		createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a render target.
-	 *	@param Width Width.
-	 *	@param Height Height.
-	 *  @param ColourFormat Colour format.
-	 *  @param DepthStencilFormat Depth/stencil format.
+	 *	@param Desc Descriptor object.
 	 */
-	virtual RsRenderTarget*	createRenderTarget( BcU32 Width, BcU32 Height, eRsColourFormat ColourFormat, eRsDepthStencilFormat DepthStencilFormat ) = 0;
+	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc ) = 0;
 
 	/*
 	 * Create a vertex buffer.
-	 * @param Descriptor Vertex descriptor flags.
-	 * @param NoofVertices Number of vertices.
+	 * @param Desc Buffer descriptor
 	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	virtual RsVertexBuffer*	createVertexBuffer( BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData = NULL ) = 0;
+	virtual RsVertexBuffer*		createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData = NULL ) = 0;
 	
 	/**
 	 * Create index buffer.
-	 * @param NoofIndices Number of indices.
+	 * @param Desc Buffer descriptor
 	 * @param pIndexData Pointer to index data, NULL to create own.
 	 */
-	virtual RsIndexBuffer*	createIndexBuffer( BcU32 NoofIndices, void* pIndexData = NULL ) = 0;
+	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL ) = 0;
 	
+	/**
+	 * Create uniform buffer.
+	 * @param Desc Buffer descriptor
+	 * @param pBufferData Pointer to buffer data, NULL to create own.
+	 */
+	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL ) = 0;
+
 	/**
 	 * Create shader.
 	 * @param ShaderType Shader type.
@@ -133,7 +138,7 @@ public:
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
 	 */
-	virtual RsShader*		createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ) = 0;
+	virtual RsShader*			createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ) = 0;
 
 	/**
 	 * Create program.
@@ -141,33 +146,33 @@ public:
 	 * @param pFragmentShader Fragment shader.
 	 * @deprecated.
 	 */
-	virtual RsProgram*		createProgram( RsShader* pVertexShader, RsShader* pFragmentShader ) = 0;
+	virtual RsProgram*			createProgram( RsShader* pVertexShader, RsShader* pFragmentShader ) = 0;
 
 	/**
 	 * Create program.
 	 * @param NoofShaders Number of shaders.
 	 * @param ppShaders Array of shaders to use for program.
 	 */
-	virtual RsProgram*		createProgram( BcU32 NoofShaders, RsShader** ppShaders ) = 0;
+	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders ) = 0;
 
 	/**
 	 * Create primitive.
 	 * @param pVertexBuffer Vertex buffer.
 	 * @param pIndexBuffer Index buffer.
 	 */
-	virtual RsPrimitive*	createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer ) = 0;
+	virtual RsPrimitive*		createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
 	 * @param pResource Resource to update.
 	 */
-	virtual void			updateResource( RsResource* pResource ) = 0;
+	virtual void				updateResource( RsResource* pResource ) = 0;
 
 	/**
 	 * Destroy resource. Work done on render thread.
 	 * @param pResource Resource to destroy.
 	 */
-	virtual void			destroyResource( RsResource* pResource ) = 0;
+	virtual void				destroyResource( RsResource* pResource ) = 0;
 	
 public:
 	/**
@@ -175,13 +180,13 @@ public:
 	*	GAME FUCTION: Called to get a frame prior to queuing up render objects.
 	*	@param pContext Rendering context to allocate frame for use with.
 	*/
-	virtual RsFrame*		allocateFrame( RsContext* pContext ) = 0;
+	virtual RsFrame*			allocateFrame( RsContext* pContext ) = 0;
 
 	/**
 	*	Queue a frame for rendering.\n
 	*	GAME FUNCTION: Called from game thread to queue frame to be rendered.
 	*/
-	virtual void			queueFrame( RsFrame* pFrame ) = 0;
+	virtual void				queueFrame( RsFrame* pFrame ) = 0;
 };
 
 #endif

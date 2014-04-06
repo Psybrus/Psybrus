@@ -110,6 +110,37 @@ enum eRsBlendingMode
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Blend type
+enum eRsBlendType
+{
+	rsBT_ZERO = 0,
+	rsBT_ONE,
+	rsBT_SRC_COLOUR,
+	rsBT_INV_SRC_COLOUR,
+	rsBT_SRC_ALPHA,
+	rsBT_INV_SRC_ALPHA,
+	rsBT_DEST_COLOUR,
+	rsBT_INV_DEST_COLOUR,
+	rsBT_DEST_ALPHA,
+	rsBT_INV_DEST_ALPHA,
+
+	rsBT_FORCE_DWORD = 0x7fffffff
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Blend op
+enum eRsBlendOp
+{
+	rsBO_ADD = 0,
+	rsBO_SUBTRACT,
+	rsBO_REV_SUBTRACT,
+	rsBO_MIN,
+	rsBO_MAX,
+
+	rsBO_FORCE_DWORD = 0x7fffffff
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Compare modes
 enum eRsCompareMode
 {
@@ -149,7 +180,8 @@ enum eRsStencilOp
 // Colour Format (RT)
 enum eRsColourFormat
 {
-	rsCF_A2R10G10B10 = 0,
+	rsCF_NONE = 0,
+	rsCF_A2R10G10B10,
 	rsCF_A8R8G8B8,
 	rsCF_X8R8G8B8,
 	rsCF_A1R5G5B5,
@@ -171,7 +203,8 @@ enum eRsColourFormat
 // Depth Stencil Format (RT)
 enum eRsDepthStencilFormat
 {
-	rsDSF_D16 = 0,
+	rsDSF_NONE = 0,
+	rsDSF_D16,
 	rsDSF_D32,
 	rsDSF_D15S1,
 	rsDSF_D24S8,
@@ -500,6 +533,7 @@ enum eRsLockFlags
 #define RS_MAX_LIGHTS					4
 
 #define RS_RENDEROBJECTMEM				( 1024 * 1024 * 8 )
+
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderSort

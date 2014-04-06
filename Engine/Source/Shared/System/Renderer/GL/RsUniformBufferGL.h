@@ -1,48 +1,48 @@
 /**************************************************************************
  *
- * File:	RsIndexBufferGL.h
+ * File:	RsUniformBufferGL.h
  * Author: 	Neil Richardson 
  * Ver/Date:	
  * Description:
- *		GL index buffer.
+ *		GL uniform buffer.
  *		
  *
  *
  * 
  **************************************************************************/
 
-#ifndef __RSINDEXBUFFERGL_H__
-#define __RSINDEXBUFFERGL_H__
+#ifndef __RSUNIFORMBUFFERGL_H__
+#define __RSUNIFORMBUFFERGL_H__
 
-#include "System/Renderer/RsIndexBuffer.h"
+#include "System/Renderer/RsUniformBuffer.h"
 #include "System/Renderer/GL/RsGL.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsIndexBufferGL
-class RsIndexBufferGL:
-	public RsIndexBuffer
+class RsUniformBufferGL:
+	public RsUniformBuffer
 {
 public:
 	/**
 	 * Create index buffer.
 	 * @param Desc Buffer descriptor.
-	 * @param pIndexData Pointer to index data, NULL to create own.
+	 * @param pBufferData Pointer to index data, NULL to create own.
 	 */
-	RsIndexBufferGL( RsContext* pContext, const RsIndexBufferDesc& Desc, void* pIndexData );
-	virtual ~RsIndexBufferGL();
+	RsUniformBufferGL( RsContext* pContext, const RsUniformBufferDesc& Desc, void* pBufferData );
+	virtual ~RsUniformBufferGL();
 	
 protected:
 	virtual void						create();
 	virtual void						update();
-	virtual void						destroy();	
+	virtual void						destroy();
 
-public:
-	void								bind();
+	virtual void*						lock();
+	virtual void						unlock();
 		
 private:
 	GLenum								Type_;
 	GLenum								Usage_;
-	RsIndexBufferDesc					Desc_;
+	RsUniformBufferDesc					Desc_;
 };
 
 #endif

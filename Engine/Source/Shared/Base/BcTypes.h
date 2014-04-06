@@ -102,6 +102,12 @@ typedef size_t						BcSize;
 #include <map>
 #include <string>
 #include <algorithm>
+#include <array>
+
+namespace std
+{
+	using std::tr1::array;
+};
 
 #endif
 

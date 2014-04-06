@@ -1,8 +1,8 @@
 /**************************************************************************
 *
-* File:		RsIndexBuffer.cpp
+* File:		RsUniformBuffer.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	28/02/11	
+* Ver/Date:		
 * Description:
 *		
 *		
@@ -11,27 +11,26 @@
 * 
 **************************************************************************/
 
-#include "System/Renderer/RsIndexBuffer.h"
+#include "System/Renderer/RsUniformBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
-// RsIndexBufferDesc
-RsIndexBufferDesc::RsIndexBufferDesc():
-	NoofIndices_( 0 )
+// RsUniformBufferDesc
+RsUniformBufferDesc::RsUniformBufferDesc():
+	BufferSize_( 0 )
 {
 
 }
-
 //////////////////////////////////////////////////////////////////////////
-// RsIndexBufferDesc
-RsIndexBufferDesc::RsIndexBufferDesc( BcU32 NoofIndices ):
-	NoofIndices_( NoofIndices )
+// RsUniformBufferDesc
+RsUniformBufferDesc::RsUniformBufferDesc( BcU32 BufferSize ):
+	BufferSize_( BufferSize )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsIndexBuffer::RsIndexBuffer( class RsContext* pContext ):
+RsUniformBuffer::RsUniformBuffer( class RsContext* pContext ):
 	RsResource( pContext )
 {
 	
@@ -40,7 +39,7 @@ RsIndexBuffer::RsIndexBuffer( class RsContext* pContext ):
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-RsIndexBuffer::~RsIndexBuffer()
+RsUniformBuffer::~RsUniformBuffer()
 {
 	
 }

@@ -261,7 +261,7 @@ RsProgram* ScnShader::getProgram( BcU32 PermutationFlags )
 		for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
 		{
 			BcU32 FlagsSet = BcBitsSet( (*Iter).first & PermutationFlags );
-			if( FlagsSet >= BestFlagsSet )
+			if( FlagsSet > BestFlagsSet )
 			{
 				BestIter = Iter;
 				BestFlagsSet = FlagsSet;

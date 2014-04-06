@@ -15,7 +15,9 @@
 #define __ScnViewComponent_H__
 
 #include "System/Renderer/RsCore.h"
+#include "System/Renderer/RsUniformBuffer.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnShaderFileData.h"
 #include "System/Scene/ScnRenderTarget.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,11 +43,16 @@ public:
 #endif	
 	void								initialise();
 	virtual void						initialise( const Json::Value& Object );
+	virtual void						create();
+	virtual void						destroy();
 
 	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
 	BcVec2d								getScreenPosition( const BcVec3d& WorldPosition ) const;
+	BcU32								getDepth( const BcVec3d& WorldPos ) const;
 	const RsViewport&					getViewport() const;
+
+	BcBool								intersect( const BcAABB& AABB ) const;
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	
@@ -67,10 +74,18 @@ protected:
 	BcF32								VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
 		
 	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
-	BcMat4d								InverseViewMatrix_;
+
 
 	// TODO: Remove this dependency, not really needed.
 	RsViewport							Viewport_;
+
+	// Uniform block data.
+	ScnShaderViewUniformBlockData		ViewUniformBlock_;
+	RsUniformBuffer*					ViewUniformBuffer_;
+
+	// Used for culling.
+	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?
+	BcPlane								FrustumPlanes_[ 6 ];
 
 	ScnRenderTargetRef					RenderTarget_;
 };

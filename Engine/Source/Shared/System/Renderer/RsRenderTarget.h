@@ -18,6 +18,24 @@
 #include "System/Renderer/RsResource.h"
 #include "System/Renderer/RsTexture.h"
 
+/**
+* Render target descriptor.
+*/
+struct RsRenderTargetDesc
+{
+	RsRenderTargetDesc( BcU32 Width,
+						BcU32 Height );
+
+	RsRenderTargetDesc& renderSurface( BcU32 Idx, eRsColourFormat Format );
+	RsRenderTargetDesc& depthStencilSurface( eRsDepthStencilFormat Format );
+
+	std::array< eRsColourFormat, 8 >	ColourFormats_;
+	eRsDepthStencilFormat				DepthStencilFormat_;
+	BcU32								Width_;
+	BcU32								Height_;
+
+};
+
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsRenderTarget
 *	\brief Render target.
@@ -27,6 +45,12 @@
 class RsRenderTarget:
 	public RsResource
 {
+public:
+	enum
+	{
+		MAX_COLOUR_TARGETS = 8
+	};
+
 public:
 	RsRenderTarget( class RsContext* pContext ):
 		RsResource( pContext )
@@ -58,7 +82,7 @@ public:
 	/**
 	 * Get texture that we render to.
 	 */
-	virtual RsTexture*					getTexture() = 0;
+	virtual RsTexture*					getTexture( BcU32 Index ) = 0;
 };
 
 #endif

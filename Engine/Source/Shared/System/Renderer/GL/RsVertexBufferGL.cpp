@@ -17,7 +17,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsVertexBufferGL::RsVertexBufferGL( RsContext* pContext, BcU32 Descriptor, BcU32 NoofVertices, void* pVertexData ):
+RsVertexBufferGL::RsVertexBufferGL( RsContext* pContext, const RsVertexBufferDesc& Desc, void* pVertexData ):
 	RsVertexBuffer( pContext )
 {
 	// Setup base buffer.
@@ -25,17 +25,15 @@ RsVertexBufferGL::RsVertexBufferGL( RsContext* pContext, BcU32 Descriptor, BcU32
 	Usage_ = GL_DYNAMIC_DRAW;//pVertexData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
 	
 	// Setup stride and descriptor.
-	Descriptor_ = Descriptor;
-	Stride_ = RsVertexDeclSize( Descriptor );
-	NoofVertices_ = NoofVertices;
-	NoofUpdateVertices_ = NoofVertices;
+	Desc_ = Desc;
+	NoofUpdateVertices_ = Desc_.NoofVertices_;
 	pData_ = pVertexData;
-	DataSize_ = Stride_ * NoofVertices;
+	DataSize_ = Desc_.Stride_ * Desc_.NoofVertices_;
 	
 	// Create data if we need to.
 	if( pData_ == NULL )
 	{
-		pData_ = new BcU8[ Stride_ * NoofVertices_ ];
+		pData_ = new BcU8[ DataSize_ ];
 		DeleteData_ = BcTrue;
 	}
 
@@ -73,7 +71,7 @@ void RsVertexBufferGL::unlock()
 //virtual
 void RsVertexBufferGL::setNoofUpdateVertices( BcU32 NoofVertices )
 {
-	NoofUpdateVertices_ = BcMin( NoofVertices, NoofVertices_ );
+	NoofUpdateVertices_ = BcMin( NoofVertices, Desc_.NoofVertices_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +79,7 @@ void RsVertexBufferGL::setNoofUpdateVertices( BcU32 NoofVertices )
 //virtual
 BcU32 RsVertexBufferGL::getNoofVertices()
 {
-	return NoofVertices_;
+	return Desc_.NoofVertices_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +87,7 @@ BcU32 RsVertexBufferGL::getNoofVertices()
 //virtual
 BcU32 RsVertexBufferGL::getVertexFormat()
 {
-	return Descriptor_;
+	return Desc_.Descriptor_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,11 +135,11 @@ void RsVertexBufferGL::update()
 		// Lock, buffer, and unlock.
 		if( Created_ )
 		{
-			glBufferSubData( Type_, 0, NoofUpdateVertices_ * Stride_, pData_ );
+			glBufferSubData( Type_, 0, NoofUpdateVertices_ * Desc_.Stride_, pData_ );
 		}
 		else
 		{
-			glBufferData( Type_, NoofVertices_ * Stride_, pData_, Usage_ );
+			glBufferData( Type_, Desc_.NoofVertices_ * Desc_.Stride_, pData_, Usage_ );
 		}
 
 		// Catch error.
@@ -173,8 +171,8 @@ void RsVertexBufferGL::destroy()
 // bind
 void RsVertexBufferGL::bind()
 {
-	const BcU32 VertexDecl = Descriptor_;
-	const BcU32 Stride = Stride_;
+	const BcU32 VertexDecl = Desc_.Descriptor_;
+	const BcU32 Stride = Desc_.Stride_;
 	char* Offset = NULL;
 
 	// Bind vertex buffer.

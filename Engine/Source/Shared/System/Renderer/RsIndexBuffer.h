@@ -17,6 +17,17 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
 
+/**
+ * RsIndexBufferDesc
+ */
+struct RsIndexBufferDesc
+{
+	RsIndexBufferDesc();
+	RsIndexBufferDesc( BcU32 NoofIndices );
+
+	BcU32 NoofIndices_;
+};
+
 //////////////////////////////////////////////////////////////////////////
 // RsIndexBuffer
 class RsIndexBuffer:

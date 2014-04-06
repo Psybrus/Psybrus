@@ -316,9 +316,9 @@ void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
 
 //////////////////////////////////////////////////////////////////////////
 // visitView
-void ScnCore::visitView( ScnVisitor* pVisitor, const RsViewport& Viewport )
+void ScnCore::visitView( ScnVisitor* pVisitor, const ScnViewComponent* View )
 {
-	pSpatialTree_->visitView( pVisitor, Viewport );
+	pSpatialTree_->visitView( pVisitor, View );
 }
 
 //////////////////////////////////////////////////////////////////////////
