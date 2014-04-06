@@ -87,6 +87,11 @@ public:
 	 */
 	void								destroyResource( CsResource* pResource );
 	
+	/*
+	* Get a resource by its Unique Id
+	*/
+	CsResourceRef<>						getResourceByUniqueId(BcU32 UId);
+
 	/**
 	 * Create a resource.<br/>
 	 * This will create a resource object without a file associated with it.
