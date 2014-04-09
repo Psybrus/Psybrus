@@ -13,6 +13,8 @@
 
 #include "System/SysKernel.h"
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
+#include "Base/BcProfilerInternal.h"
 
 #if PLATFORM_WINDOWS
 #include "Base/BcWindows.h"
@@ -169,6 +171,8 @@ void SysKernel::run( BcBool Threaded )
 // tick
 void SysKernel::tick()
 {
+	PSY_PROFILER_SECTION( TickRoot, "SysKernel::tick" );
+
 	BcAssert( BcIsGameThread() );
 
 #if 0
@@ -266,9 +270,16 @@ void SysKernel::execute()
 	// Set main thread.
 	BcSetGameThread();
 
+	BcU32 FrameCount = 0;
+
 	// Run until there are no more systems to run.
 	do
 	{
+		if( FrameCount == 0 )
+		{
+			BcProfiler::pImpl()->beginProfiling();
+		}
+
 		// Mark main timer.
 		MainTimer_.mark();
 		
@@ -276,12 +287,14 @@ void SysKernel::execute()
 		tick();
 
 		// Store game thread time.
-		GameThreadTime_ = MainTimer_.time();
+		GameThreadTime_ = (BcF32)MainTimer_.time();
 		
 		// Sleep if we have a fixed rate specified, otherwise just yield.
 		if( TickRate_ > 0.0f )
 		{
-			BcF32 TimeSpent = MainTimer_.time();
+			PSY_PROFILER_SECTION( TickSleep, "Sleep" );
+
+			BcF32 TimeSpent = (BcF32)MainTimer_.time();
 			SleepAccumulator_ += BcMax( ( TickRate_ ) - TimeSpent, 0.0f );
 		
 			if( SleepAccumulator_ > 0.0f )
@@ -297,9 +310,17 @@ void SysKernel::execute()
 		}
 
 		// Store frame time.
-		FrameTime_ = BcMin( MainTimer_.time(), TickRate_ * 4.0f );
+		FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
 
 		BcAssert( FrameTime_ >= 0.0f );
+
+		++FrameCount;
+
+		if( FrameCount == 9 )
+		{
+			BcProfiler::pImpl()->endProfiling();
+			FrameCount = 0;
+		}
 	}
 	while( SystemList_.size() > 0 );
 }
