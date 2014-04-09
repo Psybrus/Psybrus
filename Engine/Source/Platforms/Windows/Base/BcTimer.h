@@ -30,7 +30,7 @@ public:
 	/**
 	*	Read time relative to point of reference.
 	*/
-	BcF32						time();
+	BcF64						time();
 
 private:
 	LARGE_INTEGER				PerfFreq_;

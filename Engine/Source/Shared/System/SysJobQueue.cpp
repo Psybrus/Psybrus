@@ -13,6 +13,8 @@
 
 #include "System/SysJobQueue.h"
 
+#include "Base/BcProfiler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
@@ -176,6 +178,9 @@ void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 //virtual
 void SysJobQueue::execute()
 {
+	// Register with profiler.
+	BcProfiler::pImpl()->registerThreadId( BcCurrentThreadId(), "SysJobQueue" );
+
 	// Create & start worker threads.
 	for( BcU32 Idx = 0; Idx < NoofWorkers_; ++Idx )
 	{

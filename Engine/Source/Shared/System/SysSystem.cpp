@@ -15,6 +15,7 @@
 
 #include "Base/BcMemory.h"
 #include "Base/BcString.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -87,6 +88,8 @@ BcF32 SysSystem::lastTickTime() const
 // process
 BcBool SysSystem::process()
 {
+	PSY_PROFILER_SECTION( TickRoot, "SysSystem::process" );
+
 	// Mark perf timer.
 	PerfTimer_.mark();
 	
@@ -97,7 +100,7 @@ BcBool SysSystem::process()
 	BcBool RetVal = (this->*processFunc)();
 	
 	// Store last tick time.
-	LastTickTime_ = PerfTimer_.time();
+	LastTickTime_ = (BcF32)PerfTimer_.time();
 
 	BcAssert( LastTickTime_ >= 0.0f );
 	

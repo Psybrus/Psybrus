@@ -29,14 +29,14 @@ void BcTimer::mark()
 
 //////////////////////////////////////////////////////////////////////////
 // time
-BcF32 BcTimer::time()
+BcF64 BcTimer::time()
 {
 #if USE_PERF_COUNTER
 	LARGE_INTEGER Time;
 	::QueryPerformanceCounter( &Time );
 	LONGLONG DeltaTime = Time.QuadPart - PerfMarkedTime_.QuadPart;
-	return BcF32( (double)DeltaTime / (double)PerfFreq_.QuadPart );
+	return BcF64( (double)DeltaTime / (double)PerfFreq_.QuadPart );
 #else
-	return BcF32( ( (BcF64)timeGetTime() / 1000.0 ) - MarkedTime_ );
+	return BcF64( ( (BcF64)timeGetTime() / 1000.0 ) - MarkedTime_ );
 #endif
 }

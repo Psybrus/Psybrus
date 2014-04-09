@@ -14,6 +14,7 @@
 #include "System/SysJobWorker.h"
 #include "System/SysJobQueue.h"
 #include "Base/BcTimer.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -96,6 +97,10 @@ BcU32 SysJobWorker::getAndResetJobsExecuted()
 //virtual
 void SysJobWorker::execute()
 {
+	// Register with profiler.
+	BcProfiler::pImpl()->registerThreadId( BcCurrentThreadId(), "SysJobWorker" );
+
+	// Enter loop.
 	while( Active_ )
 	{
 		// Wait till we are told to resume.
