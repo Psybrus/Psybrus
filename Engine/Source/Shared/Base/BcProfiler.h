@@ -41,13 +41,6 @@ public:
 	virtual void endProfiling() = 0;
 
 	/**
-	 * Register thread ID to be profiled.
-	 * This ensures we won't need to create a profiling
-	 * stack for a thread at profile time if need be.
-	 */
-	virtual void registerThreadId( BcThreadId Id, const BcChar* Name ) = 0;
-
-	/**
 	 * Enter section to profile.
 	 * Should be thread safe, and track appropriately.
 	 */
@@ -57,7 +50,19 @@ public:
 	 * Exit section.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void exitSection() = 0;
+	virtual void exitSection( const BcChar* Tag ) = 0;
+
+	/**
+	 * Start async section. Tag MUST be unique.
+	 * Should be thread safe, and track appropriately.
+	 */
+	virtual void startAsync( const BcChar* Tag ) = 0;
+
+	/**
+	 * End async section. Tag MUST be unique.
+	 * Should be thread safe, and track appropriately.
+	 */
+	virtual void endAsync( const BcChar* Tag ) = 0;
 
 private:
 
@@ -70,14 +75,25 @@ class BcProfilerSectionScope
 public:
 	BcProfilerSectionScope( const std::string& Tag )
 	{
-		BcProfiler::pImpl()->enterSection( Tag.c_str() );
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			Tag_ = Tag;
+			BcProfiler::pImpl()->enterSection( Tag_.c_str() );
+		}
 	}
 
 	~BcProfilerSectionScope()
 	{
-		BcProfiler::pImpl()->exitSection();
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			BcProfiler::pImpl()->exitSection( Tag_.c_str() );
+		}
 	}
+
+private:
+	std::string Tag_;
 };
+
 
 #define PSY_PROFILER_SECTION( _LocalName, _Tag ) \
 	BcProfilerSectionScope _LocalName( _Tag ) 

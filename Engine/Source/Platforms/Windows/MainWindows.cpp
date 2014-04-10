@@ -177,7 +177,6 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #if PSY_USE_PROFILER
 	// new profiler.
 	new BcProfilerInternal();
-	BcProfiler::pImpl()->registerThreadId( BcCurrentThreadId(), "Main Thread" );
 #endif
 
 	// Create kernel.

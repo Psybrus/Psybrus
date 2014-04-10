@@ -51,17 +51,7 @@ void BcProfilerInternal::beginProfiling()
 
 		// Mark timer!
 		Timer_.mark();
-
-		// Setup thread profiler sections.
-		PerThreadProfilerSections_.clear();
-		for( const auto& Thread : Threads_ )
-		{
-			TProfilerSection* Section = allocSection();
-			Section->Tag_ = Thread.Name_;
-			Section->StartTime_ = Timer_.time();
-			PerThreadProfilerSections_[ Thread.Id_ ] = Section;
-		}
-
+		
 		// And we're off!
 		++ProfilingActive_;
 
@@ -98,24 +88,19 @@ void BcProfilerInternal::endProfiling()
 		Stream << "{\"traceEvents\" : [";
 
 		// Clear all per thread sections back down to the root nodes.
-		for( auto& Thread : Threads_ )
+		for( BcU32 Idx = 0; Idx < ProfilerSectionIndex_; ++Idx )
 		{
-			TProfilerSection* RootSection = PerThreadProfilerSections_[ Thread.Id_ ];
-			while( RootSection->Parent_ != nullptr )
-			{
-				RootSection = RootSection->Parent_;
-			}
+			TProfilerEvent* Event = &ProfilerSectionPool_[ Idx ];
 
-			// Stamp final time if non-zero.
-			if( RootSection->EndTime_ == 0.0f )
-			{
-				RootSection->EndTime_ = Timer_.time();
-			}
-
-			PerThreadProfilerSections_[ Thread.Id_ ] = RootSection;
-
-			// Dump section.
-			Stream << dumpSection( &Thread, RootSection );
+			Stream << "{"
+			       << "\"cat\": \"" << "Psybrus" << "\","
+			       << "\"pid\": 0,"
+		 		   << "\"tid\": " << Event->ThreadId_ << ","
+			       << "\"ts\": " << Event->StartTime_ * 1000000.0 << ","
+			       << "\"ph\": \"" << Event->Type_ << "\","
+			       << "\"name\": \"" << Event->Tag_ << "\","
+			       << "\"args\": {}"
+			       << "},\n";
 		}
 
 		Stream << "{}]}";
@@ -132,22 +117,6 @@ void BcProfilerInternal::endProfiling()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// registerThreadId
-//virtual
-void BcProfilerInternal::registerThreadId( BcThreadId Id, const BcChar* Name )
-{
-	TProfilerThread Thread = 
-	{
-		Name,
-		Id
-	};
-	
-	RegisterLock_.lock();
-	Threads_.push_back( Thread );
-	RegisterLock_.unlock();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // enterSection
 //virtual
 void BcProfilerInternal::enterSection( const BcChar* Tag )
@@ -155,24 +124,14 @@ void BcProfilerInternal::enterSection( const BcChar* Tag )
 	if( ProfilingActive_ == 1 )
 	{
 		// New section.
-		TProfilerSection* NewSection = allocSection();
-		if( NewSection != nullptr )
+		TProfilerEvent* Event = allocEvent();
+		if( Event != nullptr )
 		{
-			// Grab thread id.
-			BcThreadId Id = BcCurrentThreadId();
-				
-			// Grab old section.
-			TProfilerSection* OldSection = PerThreadProfilerSections_[ Id ];
-		
 			// Setup section.
-			NewSection->Tag_ = Tag;
-			NewSection->StartTime_ = Timer_.time();
-
-			// Insert into tree.
-			NewSection->Parent_ = OldSection;
-			NewSection->Next_ = OldSection->Child_;
-			OldSection->Child_ = NewSection;
-			PerThreadProfilerSections_[ Id ] = NewSection;
+			Event->Tag_ = Tag;
+			Event->Type_ = "B";
+			Event->ThreadId_ = BcCurrentThreadId();
+			Event->StartTime_ = Timer_.time();
 		}
 	}
 }
@@ -180,79 +139,79 @@ void BcProfilerInternal::enterSection( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // exitSection
 //virtual
-void BcProfilerInternal::exitSection()
+void BcProfilerInternal::exitSection( const BcChar* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
-		// Grab thread id.
-		BcThreadId Id = BcCurrentThreadId();
-
-		// Grab section.
-		TProfilerSection* Section = PerThreadProfilerSections_[ Id ];
-
-		// Stamp end time.
-		Section->EndTime_ = Timer_.time();
-
-		// Pop down a level if we can.
-		if( Section->Parent_ != nullptr )
+		// New section.
+		TProfilerEvent* Event = allocEvent();
+		if( Event != nullptr )
 		{
-			PerThreadProfilerSections_[ Id ] = Section->Parent_;
+			// Setup section.
+			Event->Tag_ = Tag;
+			Event->Type_ = "E";
+			Event->ThreadId_ = BcCurrentThreadId();
+			Event->StartTime_ = Timer_.time();
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
-// allocSection
-BcProfilerInternal::TProfilerSection* BcProfilerInternal::allocSection()
+// startAsync
+//virtual
+void BcProfilerInternal::startAsync( const BcChar* Tag )
+{
+	if( ProfilingActive_ == 1 )
+	{
+		// New section.
+		TProfilerEvent* Event = allocEvent();
+		if( Event != nullptr )
+		{
+			// Setup section.
+			Event->Tag_ = Tag;
+			Event->Type_ = "S";
+			Event->ThreadId_ = BcCurrentThreadId();
+			Event->StartTime_ = Timer_.time();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endAsync
+//virtual
+void BcProfilerInternal::endAsync( const BcChar* Tag )
+{
+	if( ProfilingActive_ == 1 )
+	{
+		// New section.
+		TProfilerEvent* Event = allocEvent();
+		if( Event != nullptr )
+		{
+			// Setup section.
+			Event->Tag_ = Tag;
+			Event->Type_ = "F";
+			Event->ThreadId_ = BcCurrentThreadId();
+			Event->StartTime_ = Timer_.time();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// allocEvent
+BcProfilerInternal::TProfilerEvent* BcProfilerInternal::allocEvent()
 {
 	BcU32 Idx = ProfilerSectionIndex_++;
 	if( Idx < ProfilerSectionPool_.size() )
 	{
 		auto Section = &ProfilerSectionPool_[ Idx ];
-		*Section = TProfilerSection();
+		*Section = TProfilerEvent();
 		return Section;
 	}
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// dumpSection
-std::string BcProfilerInternal::dumpSection( TProfilerThread* Thread, TProfilerSection* Section )
-{
-	std::stringstream Stream;
-
-	// Write begin event.
-	Stream << "{"
-	       << "\"cat\": \"" << Thread->Name_ << "\","
-	       << "\"tid\": 0,"
-		   << "\"pid\": " << Thread->Id_ << ","
-	       << "\"ts\": " << Section->StartTime_ * 1000000.0 << ","
-	       << "\"ph\": \"B\","
-	       << "\"name\": \"" << Section->Tag_ << "\","
-	       << "\"args\": {}"
-	       << "},\n";
-
-	// Dump children.
-	TProfilerSection* Child = Section->Child_;
-	while( Child != nullptr )
+	else
 	{
-		Stream << dumpSection( Thread, Child );
-		Child = Child->Next_;
+		// end and dump.
 	}
-
-	// Write end event.
-	// Write begin event.
-	Stream << "{"
-	       << "\"cat\": \"" << Thread->Name_ << "\","
-	       << "\"tid\": 0,"
-		   << "\"pid\": " << Thread->Id_ << ","
-	       << "\"ts\": " << Section->EndTime_ * 1000000.0 << ","
-	       << "\"ph\": \"E\","
-	       << "\"name\": \"" << Section->Tag_ << "\","
-	       << "\"args\": {}"
-	       << "},\n";
-
-	return Stream.str();
+	return nullptr;
 }
 
 #endif // PSY_USE_PROFILER

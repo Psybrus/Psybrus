@@ -97,9 +97,6 @@ BcU32 SysJobWorker::getAndResetJobsExecuted()
 //virtual
 void SysJobWorker::execute()
 {
-	// Register with profiler.
-	BcProfiler::pImpl()->registerThreadId( BcCurrentThreadId(), "SysJobWorker" );
-
 	// Enter loop.
 	while( Active_ )
 	{

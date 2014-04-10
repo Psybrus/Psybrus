@@ -33,30 +33,26 @@ public:
 
 	virtual void beginProfiling();
 	virtual void endProfiling();
-	virtual void registerThreadId( BcThreadId Id, const BcChar* Name );
 	virtual void enterSection( const BcChar* Tag );
-	virtual void exitSection();
+	virtual void exitSection( const BcChar* Tag );
+	virtual void startAsync( const BcChar* Tag );
+	virtual void endAsync( const BcChar* Tag );
 
 protected:
-	struct TProfilerSection
+	struct TProfilerEvent
 	{
-		TProfilerSection():
+		TProfilerEvent():
 			Tag_( "" ),
-			StartTime_( 0.0f ),
-			EndTime_( 0.0f ),
-			Parent_( nullptr ),
-			Child_( nullptr ),
-			Next_( nullptr )
+			Type_( "" ),
+			ThreadId_( 0 ),
+			StartTime_( 0.0f )
 		{
 		}
 
 		std::string			Tag_;
+		std::string			Type_;
+		BcThreadId			ThreadId_;
 		BcF64				StartTime_;
-		BcF64				EndTime_;
-		
-		TProfilerSection*	Parent_;
-		TProfilerSection*	Child_;
-		TProfilerSection*	Next_;
 	};
 
 	struct TProfilerThread
@@ -65,25 +61,17 @@ protected:
 		BcThreadId			Id_;
 	};
 	
-	TProfilerSection* allocSection();
-
-	std::string dumpSection( TProfilerThread* Thread, TProfilerSection* Section );
+	TProfilerEvent* allocEvent();
 
 private:
-	typedef std::map< BcThreadId, TProfilerSection* > TProfilerSectionMap;
-	typedef std::vector< TProfilerSection > TProfilerSectionVector;
-	typedef std::vector< TProfilerThread > TProfilerThreadVector;
+	typedef std::vector< TProfilerEvent > TProfilerEventVector;
 	
-	TProfilerSectionVector ProfilerSectionPool_;
+	TProfilerEventVector ProfilerSectionPool_;
 	BcAtomic< BcU32 > ProfilerSectionIndex_;
 	BcTimer Timer_;
 
-	TProfilerThreadVector Threads_;
-	TProfilerSectionMap PerThreadProfilerSections_;
-
 	BcAtomic< BcU32 > BeginCount_;
 	BcAtomic< BcU32 > ProfilingActive_;
-	BcMutex RegisterLock_;
 };
 
 //////////////////////////////////////////////////////////////////////////
