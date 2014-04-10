@@ -1,17 +1,17 @@
 /**************************************************************************
 *
-* File:		BcProfilerInternal.cpp
+* File:		SysProfilerChromeTracing.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
-*			Internal profiler implementation.
-*			TODO: Move into sys.		
+*			Chrome Tracing (chrome://tracing) profiler.
+*			
 *
 *
 * 
 **************************************************************************/
 
-#include "Base/BcProfilerInternal.h"
+#include "System/SysProfilerChromeTracing.h"
 
 #include "System/SysFence.h"
 
@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-BcProfilerInternal::BcProfilerInternal()
+SysProfilerChromeTracing::SysProfilerChromeTracing()
 {
 	ProfilerSectionPool_.resize( 65536 );
 	ProfilerSectionIndex_ = 0;
@@ -31,7 +31,7 @@ BcProfilerInternal::BcProfilerInternal()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-BcProfilerInternal::~BcProfilerInternal()
+SysProfilerChromeTracing::~SysProfilerChromeTracing()
 {
 
 }
@@ -39,7 +39,7 @@ BcProfilerInternal::~BcProfilerInternal()
 //////////////////////////////////////////////////////////////////////////
 // registerThreadId
 //virtual
-void BcProfilerInternal::beginProfiling()
+void SysProfilerChromeTracing::beginProfiling()
 {
 	if( BeginCount_++ == 0 )
 	{
@@ -67,7 +67,7 @@ void BcProfilerInternal::beginProfiling()
 //////////////////////////////////////////////////////////////////////////
 // registerThreadId
 //virtual
-void BcProfilerInternal::endProfiling()
+void SysProfilerChromeTracing::endProfiling()
 {
 	if( --BeginCount_ == 0 )
 	{	
@@ -119,7 +119,7 @@ void BcProfilerInternal::endProfiling()
 //////////////////////////////////////////////////////////////////////////
 // enterSection
 //virtual
-void BcProfilerInternal::enterSection( const BcChar* Tag )
+void SysProfilerChromeTracing::enterSection( const BcChar* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -139,7 +139,7 @@ void BcProfilerInternal::enterSection( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // exitSection
 //virtual
-void BcProfilerInternal::exitSection( const BcChar* Tag )
+void SysProfilerChromeTracing::exitSection( const BcChar* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -159,7 +159,7 @@ void BcProfilerInternal::exitSection( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // startAsync
 //virtual
-void BcProfilerInternal::startAsync( const BcChar* Tag )
+void SysProfilerChromeTracing::startAsync( const BcChar* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -179,7 +179,7 @@ void BcProfilerInternal::startAsync( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // endAsync
 //virtual
-void BcProfilerInternal::endAsync( const BcChar* Tag )
+void SysProfilerChromeTracing::endAsync( const BcChar* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -198,7 +198,7 @@ void BcProfilerInternal::endAsync( const BcChar* Tag )
 
 //////////////////////////////////////////////////////////////////////////
 // allocEvent
-BcProfilerInternal::TProfilerEvent* BcProfilerInternal::allocEvent()
+SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent()
 {
 	BcU32 Idx = ProfilerSectionIndex_++;
 	if( Idx < ProfilerSectionPool_.size() )

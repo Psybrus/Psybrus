@@ -7,7 +7,7 @@
 #include "System/Os/OsClientWindows.h"
 #include "System/Os/OsMinidumpWindows.h"
 
-#include "Base/BcProfilerInternal.h"
+#include "System/SysProfilerChromeTracing.h"
 
 BcHandle GInstance_ = NULL;
 
@@ -176,7 +176,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 #if PSY_USE_PROFILER
 	// new profiler.
-	new BcProfilerInternal();
+	new SysProfilerChromeTracing();
 #endif
 
 	// Create kernel.

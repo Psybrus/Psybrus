@@ -12,9 +12,9 @@
 **************************************************************************/
 
 #include "System/SysKernel.h"
+#include "System/SysProfilerChromeTracing.h"
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
-#include "Base/BcProfilerInternal.h"
 
 #if PLATFORM_WINDOWS
 #include "Base/BcWindows.h"

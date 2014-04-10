@@ -1,18 +1,18 @@
 /**************************************************************************
 *
-* File:		BcProfilerInternal.h
+* File:		SysProfilerChromeTracing.h
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
-*			Internal profiler implementation.
-*		
+*			Chrome Tracing (chrome://tracing) profiler.
+*			
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __BCPROFILERINTERNAL_H__
-#define __BCPROFILERINTERNAL_H__
+#ifndef __SysProfilerChromeTracing_H__
+#define __SysProfilerChromeTracing_H__
 
 #include "Base/BcProfiler.h"
 #include "Base/BcAtomic.h"
@@ -24,12 +24,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcProfiler
-class BcProfilerInternal:
+class SysProfilerChromeTracing:
 	public BcProfiler
 {
 public:
-	BcProfilerInternal();
-	virtual ~BcProfilerInternal();
+	SysProfilerChromeTracing();
+	virtual ~SysProfilerChromeTracing();
 
 	virtual void beginProfiling();
 	virtual void endProfiling();
@@ -81,4 +81,4 @@ private:
 
 
 
-#endif // __BCPROFILERINTERNAL_H__
+#endif // __SysProfilerChromeTracing_H__
