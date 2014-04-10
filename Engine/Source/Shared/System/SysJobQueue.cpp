@@ -178,9 +178,6 @@ void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 //virtual
 void SysJobQueue::execute()
 {
-	// Register with profiler.
-	BcProfiler::pImpl()->registerThreadId( BcCurrentThreadId(), "SysJobQueue" );
-
 	// Create & start worker threads.
 	for( BcU32 Idx = 0; Idx < NoofWorkers_; ++Idx )
 	{
