@@ -15,6 +15,8 @@
 #include "System/Scene/ScnCore.h"
 #include "System/Content/CsCore.h"
 
+#include "Base/BcProfiler.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 
@@ -145,6 +147,8 @@ void ScnEntity::destroy()
 // update
 void ScnEntity::update( BcF32 Tick )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnEntity::update (" ) + *getName() + std::string( ")" ) );
+
 	BcAssert( getPackage() != NULL );
 	
 	// Get parent entity to calculate world transform.

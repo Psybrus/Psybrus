@@ -23,6 +23,8 @@
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnModelImport.h"
 
+#include "Base/BcProfiler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
@@ -550,6 +552,7 @@ class ScnModelComponentRenderNode: public RsRenderNode
 public:
 	void render()
 	{
+		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
 		pPrimitive_->render( Type_,
 		                     Offset_,
 		                     NoofIndices_ );
@@ -563,6 +566,8 @@ public:
 
 void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
+	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnModelComponent::render (" ) + *getName() + std::string( ")" ) );
+
 	Super::render( pViewComponent, pFrame, Sort );
 
 	// Wait for model to have updated.

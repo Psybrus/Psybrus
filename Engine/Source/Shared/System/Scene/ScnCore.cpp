@@ -25,6 +25,8 @@
 
 #include "System/Scene/ScnRenderingVisitor.h"
 
+#include "Base/BcProfiler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( ScnCore );
@@ -78,6 +80,8 @@ void ScnCore::open()
 //virtual
 void ScnCore::update()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnCore::update" ) );
+
 	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
@@ -136,6 +140,8 @@ void ScnCore::update()
 	//         and provide access to it for renderable components.
 	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 	{
+		PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnCore::render" ) );
+
 		// Grab client.
 		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
 
