@@ -197,6 +197,26 @@ void SysProfilerChromeTracing::endAsync( const BcChar* Tag )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// instantEvent
+//virtual
+void SysProfilerChromeTracing::instantEvent( const BcChar* Tag )
+{
+	if( ProfilingActive_ == 1 )
+	{
+		// New section.
+		TProfilerEvent* Event = allocEvent();
+		if( Event != nullptr )
+		{
+			// Setup section.
+			Event->Tag_ = Tag;
+			Event->Type_ = "I";
+			Event->ThreadId_ = BcCurrentThreadId();
+			Event->StartTime_ = Timer_.time();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocEvent
 SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent()
 {
