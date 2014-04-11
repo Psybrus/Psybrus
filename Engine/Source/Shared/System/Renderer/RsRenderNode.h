@@ -54,11 +54,4 @@ public:
 	RsRenderSort			Sort_;
 };
 
-//////////////////////////////////////////////////////////////////////////
-// Inlines
-inline RsRenderNode::RsRenderNode()
-{
-	Sort_.Value_ = 0;
-}
-
 #endif
