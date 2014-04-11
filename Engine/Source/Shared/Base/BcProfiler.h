@@ -64,6 +64,12 @@ public:
 	 */
 	virtual void endAsync( const BcChar* Tag ) = 0;
 
+	/**
+	 * Instant event.
+	 * Should be thread safe, and track appropriately.
+	 */
+	virtual void instantEvent( const BcChar* Tag ) = 0;
+
 private:
 
 };
@@ -95,12 +101,33 @@ private:
 };
 
 
-#define PSY_PROFILER_SECTION( _LocalName, _Tag ) \
+#define PSY_PROFILER_SECTION( _LocalName, _Tag )		\
 	BcProfilerSectionScope _LocalName( _Tag ) 
+
+#define PSY_PROFILER_START_ASYNC( _Tag )				\
+	if( BcProfiler::pImpl() != nullptr )				\
+	{													\
+		BcProfiler::pImpl()->startAsync( _Tag );		\
+	}												
+
+#define PSY_PROFILER_FINISH_ASYNC( _Tag )				\
+	if( BcProfiler::pImpl() != nullptr )				\
+	{													\
+		BcProfiler::pImpl()->endAsync( _Tag );			\
+	}												
+
+#define PSY_PROFILER_INSTANT_EVENT( _Tag )				\
+	if( BcProfiler::pImpl() != nullptr )				\
+	{													\
+		BcProfiler::pImpl()->instantEvent( _Tag );		\
+	}												
 
 #else
 
 #define PSY_PROFILER_SECTION( _LocalName, _Tag )
+#define PSY_PROFILER_START_ASYNC( _Tag )
+#define PSY_PROFILER_FINISH_ASYNC( _Tag )
+#define PSY_PROFILER_INSTANT_EVENT( _Tag )
 
 #endif // PSY_USE_PROFILER
 

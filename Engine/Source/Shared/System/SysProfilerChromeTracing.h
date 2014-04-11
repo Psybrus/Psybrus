@@ -37,6 +37,7 @@ public:
 	virtual void exitSection( const BcChar* Tag );
 	virtual void startAsync( const BcChar* Tag );
 	virtual void endAsync( const BcChar* Tag );
+	virtual void instantEvent( const BcChar* Tag );
 
 protected:
 	struct TProfilerEvent
