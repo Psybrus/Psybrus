@@ -42,6 +42,8 @@ BcBool FsFileImplWindows::open( const BcChar* FileName, eFsFileMode FileMode )
 
 	if( pFileHandle_ == NULL )
 	{
+		FileName_ = FileName;
+
 		// Read access.
 		if( FileMode == fsFM_READ )
 		{
@@ -80,10 +82,19 @@ BcBool FsFileImplWindows::close()
 		fclose( pFileHandle_ );
 		pFileHandle_ = NULL;
 		FileSize_ = 0;
+		FileName_.clear();
 		RetVal = BcTrue;
 	}
 
 	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileName
+//virtual
+const BcChar* FsFileImplWindows::fileName() const
+{
+	return FileName_.c_str();
 }
 
 //////////////////////////////////////////////////////////////////////////

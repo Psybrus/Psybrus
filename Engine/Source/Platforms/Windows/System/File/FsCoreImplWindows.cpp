@@ -16,6 +16,8 @@
 
 #include "System/SysKernel.h"
 
+#include "Base/BcProfiler.h"
+
 #include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -249,13 +251,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		
+		PSY_PROFILER_START_ASYNC( BcStringPrintf( "FsCoreImplWindows::addReadOp (%s)", pImpl_->fileName() ).c_str() );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
+		PSY_PROFILER_FINISH_ASYNC( BcStringPrintf( "FsCoreImplWindows::addReadOp (%s)", pImpl_->fileName() ).c_str() );	
 		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
 	}
 	
@@ -285,13 +288,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		
+		PSY_PROFILER_START_ASYNC( BcStringPrintf( "FsCoreImplWindows::addWriteOp (%s)", pImpl_->fileName() ).c_str() );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
+		PSY_PROFILER_FINISH_ASYNC( BcStringPrintf( "FsCoreImplWindows::addWriteOp (%s)", pImpl_->fileName() ).c_str() );	
 		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
 	}
 	

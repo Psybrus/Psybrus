@@ -28,6 +28,7 @@ public:
 	
 	virtual BcBool		open( const BcChar* FileName, eFsFileMode FileMode );
 	virtual BcBool		close();
+	virtual const BcChar* fileName() const;
 	virtual BcSize		size() const;
 	virtual BcSize		tell() const;
 	virtual void		seek( BcSize Position );
@@ -40,6 +41,7 @@ public:
 	virtual void		writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
 	
 private:	
+	std::string			FileName_;
 	FILE*				pFileHandle_;
 	BcU64				FileSize_;
 };
