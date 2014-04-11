@@ -59,6 +59,11 @@ public:
 	virtual BcBool close() = 0;
 
 	/**
+	 * Get file name.
+	 */
+	virtual const BcChar* fileName() const = 0;
+
+	/**
 	*	Get size of file in bytes.
 	*/
 	virtual BcSize size() const = 0;
