@@ -16,8 +16,6 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcVectors.h"
-#include "Base/BcMat4d.h"
-#include "Base/BcName.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Datatypes

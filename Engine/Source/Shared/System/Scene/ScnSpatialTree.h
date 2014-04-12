@@ -16,6 +16,8 @@
 
 #include "Base/BcOctTree.h"
 
+#include <list>
+
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
 typedef std::list< class ScnSpatialComponent* > ScnSpatialComponentList;

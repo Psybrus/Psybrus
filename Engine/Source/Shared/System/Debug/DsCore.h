@@ -21,7 +21,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
-#include "../../Psybrus.h"
+
 #include <mongoose.h>
 
 //////////////////////////////////////////////////////////////////////////

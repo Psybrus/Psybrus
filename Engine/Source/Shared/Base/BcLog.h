@@ -18,6 +18,8 @@
 #include "Base/BcMutex.h"
 #include "Base/BcGlobal.h"
 
+#include <map>
+
 //////////////////////////////////////////////////////////////////////////
 // BcLog
 class BcLog:

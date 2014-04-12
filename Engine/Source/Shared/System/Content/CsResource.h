@@ -23,7 +23,6 @@
 #include "Base/BcScopedLock.h"
 #include "Base/BcName.h"
 #include "Base/BcReflection.h"
-#include "Base/BcReflectionSerialise.h"
 
 #ifdef PSY_SERVER
 #include <json/json.h>
@@ -212,7 +211,7 @@ private:
 
 	BcU32							UniqueId_;
 
-	static BcU32					UniqueIdCounter_;
+	static BcAtomicU32				UniqueIdCounter_;
 };
 
 //////////////////////////////////////////////////////////////////////////

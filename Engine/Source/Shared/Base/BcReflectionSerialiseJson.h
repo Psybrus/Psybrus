@@ -17,6 +17,7 @@
 #include "BcReflectionSerialise.h"
 
 #include <json/json.h>
+#include <list>
 
 //////////////////////////////////////////////////////////////////////////
 // BcReflectionSerialiseJson

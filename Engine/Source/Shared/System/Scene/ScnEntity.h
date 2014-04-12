@@ -14,10 +14,7 @@
 #ifndef __ScnEntity_H__
 #define __ScnEntity_H__
 
-#include "System/Renderer/RsCore.h"
 #include "System/Content/CsResource.h"
-
-#include "Events/EvtProxyBuffered.h"
 
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnComponent.h"
@@ -156,7 +153,7 @@ protected:
 
 	ScnComponentList					Components_;
 	
-	EvtProxyBuffered*					pEventProxy_;
+	class EvtProxyBuffered*				pEventProxy_;
 };
 
 #endif

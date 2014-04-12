@@ -20,6 +20,13 @@
 
 #include "System/Content/CsResourceRef.h"
 
+#include <vector>
+#include <map>
+#include <list>
+
+// NOTE: Look at breaking this up a little. It's mostly a hack to forward declare
+//       everything.
+
 //////////////////////////////////////////////////////////////////////////
 // ScnRect
 struct ScnRect

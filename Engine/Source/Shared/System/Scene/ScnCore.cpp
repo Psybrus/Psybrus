@@ -21,8 +21,10 @@
 
 #include "System/Content/CsCore.h"
 
-#include "System/Scene/ScnSpatialComponent.h"
+#include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/ScnViewComponent.h"
 
+#include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/ScnRenderingVisitor.h"
 
 #include "Base/BcProfiler.h"
@@ -152,7 +154,7 @@ void ScnCore::update()
 		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 
 		// Iterate over all view components.
-		for( ScnViewComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
+		for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
 		{
 			ScnViewComponentRef ViewComponent( *It );
 			
@@ -372,7 +374,7 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	// Remove view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
 	{
-		ViewComponentList_.remove( static_cast< ScnViewComponent* >( Component ) );
+		ViewComponentList_.erase( std::find( ViewComponentList_.begin(), ViewComponentList_.end(), static_cast< ScnViewComponent* >( Component ) ) );
 	}
 	// Add renderable components to the spatial tree. (TODO: Use flags or something)
 	else if( Component->isTypeOf< ScnSpatialComponent >() )

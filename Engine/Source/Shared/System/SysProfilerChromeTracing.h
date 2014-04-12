@@ -20,6 +20,8 @@
 #include "Base/BcString.h"
 #include "Base/BcTimer.h"
 
+#include <vector>
+
 #if PSY_USE_PROFILER
 
 //////////////////////////////////////////////////////////////////////////

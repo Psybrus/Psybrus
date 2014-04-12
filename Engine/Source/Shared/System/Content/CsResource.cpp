@@ -16,7 +16,9 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
-BcU32 CsResource::UniqueIdCounter_ = 0;
+#include "Base/BcReflectionSerialise.h"
+
+BcAtomicU32 CsResource::UniqueIdCounter_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
@@ -36,7 +38,7 @@ CsResource::CsResource():
 	Index_( BcErrorCode ),
 	pPackage_( NULL ),
 	InitStage_( INIT_STAGE_INITIAL ),
-	UniqueId_(UniqueIdCounter_++)
+	UniqueId_( UniqueIdCounter_++ )
 {
 
 }

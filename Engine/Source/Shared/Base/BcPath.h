@@ -17,6 +17,8 @@
 #include "Base/BcTypes.h"
 #include "Base/BcName.h"
 
+#include <string>
+
 //////////////////////////////////////////////////////////////////////////
 // BcPath
 class BcPath

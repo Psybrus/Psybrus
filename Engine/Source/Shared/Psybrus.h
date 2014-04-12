@@ -14,79 +14,12 @@
 #ifndef __PSYBRUS_H__
 #define __PSYBRUS_H__
 
-// Include this first.
-#include "Base/BcReflection.h"
-#include "Base/BcReflectionSerialise.h"
-
-#include "Base/BcAABB.h"
-#include "Base/BcAtomicMutex.h"
-#include "Base/BcBSPTree.h"
-#include "Base/BcDebug.h"
-#include "Base/BcDelegate.h"
-#include "Base/BcEndian.h"
-#include "Base/BcFile.h"
-#include "Base/BcFixed.h"
-#include "Base/BcFixedVectors.h"
-#include "Base/BcGlobal.h"
-#include "Base/BcLog.h"
-#include "Base/BcLogFile.h"
-#include "Base/BcHash.h"
-#include "Base/BcMat3d.h"
-#include "Base/BcMat4d.h"
-#include "Base/BcMath.h"
-#include "Base/BcMemory.h"
-#include "Base/BcName.h"
-#include "Base/BcPlane.h"
-#include "Base/BcPortability.h"
-#include "Base/BcRegex.h"
-#include "Base/BcQuat.h"
-#include "Base/BcRandom.h"
-#include "Base/BcScopedLock.h"
-#include "Base/BcStream.h"
-#include "Base/BcString.h"
 #include "Base/BcTypes.h"
-#include "Base/BcUTF8.h"
-#include "Base/BcVectors.h"
 
-#include "System/SysEvents.h"
-#include "System/SysKernel.h"
-#include "System/SysState.h"
-
-#include "Events/EvtBinding.h"
-#include "Events/EvtEvent.h"
-#include "Events/EvtPublisher.h"
-#include "Events/EvtProxyBuffered.h"
-
-#include "System/Content/CsCore.h"
-#include "System/File/FsCore.h"
-#include "System/Os/OsCore.h"
-#include "System/Renderer/RsCore.h"
-#include "System/Sound/SsCore.h"
+// Most of the game code will interact with the scene core at some point, so include this only.
 #include "System/Scene/ScnCore.h"
 
-#include "System/Scene/Animation/ScnAnimation.h"
-#include "System/Scene/Animation/ScnAnimationComponent.h"
-#include "System/Scene/Animation/ScnAnimationTreeNode.h"
-#include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
-#include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
-
-#include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnEntity.h"
-#include "System/Scene/ScnDebugRenderComponent.h"
-#include "System/Scene/ScnTexture.h"
-#include "System/Scene/ScnTextureAtlas.h"
-#include "System/Scene/ScnRenderTarget.h"
-#include "System/Scene/ScnLightComponent.h"
-#include "System/Scene/ScnMaterial.h"
-#include "System/Scene/ScnModel.h"
-#include "System/Scene/ScnParticleSystemComponent.h"
-#include "System/Scene/ScnCanvasComponent.h"
-#include "System/Scene/ScnShader.h"
-#include "System/Scene/ScnFont.h"
-#include "System/Scene/ScnSound.h"
-#include "System/Scene/ScnSoundEmitter.h"
-#include "System/Scene/ScnSoundListenerComponent.h"
-#include "System/Scene/ScnViewComponent.h"
+#include <string>
 
 //////////////////////////////////////////////////////////////////////////
 // Setup and initialisation.

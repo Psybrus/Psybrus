@@ -96,12 +96,7 @@ typedef size_t						BcSize;
 #undef max
 #define max max
 
-#include <deque>
-#include <vector>
-#include <list>
-#include <map>
-#include <string>
-#include <algorithm>
+// array hack.
 #include <array>
 
 namespace std
