@@ -22,6 +22,8 @@
 #include "Base/BcString.h"
 #include "Base/BcMath.h"
 
+#include <vector>
+
 //////////////////////////////////////////////////////////////////////////
 // ImgEncodeFormat
 enum ImgEncodeFormat

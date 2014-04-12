@@ -17,6 +17,9 @@
 
 #include "Base/BcProfiler.h"
 
+#include "System/Renderer/RsCore.h"
+#include "Events/EvtProxyBuffered.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 

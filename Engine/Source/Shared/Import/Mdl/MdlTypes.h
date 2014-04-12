@@ -21,6 +21,9 @@
 #include "Base/BcAABB.h"
 #include "Base/BcMemory.h"
 
+#include <vector>
+#include <string>
+
 //////////////////////////////////////////////////////////////////////////
 // Defines
 
@@ -317,7 +320,7 @@ struct MdlProjector
 };
 
 struct MdlBspNode;
-typedef std::list< MdlBspNode* > MdlBspNodeList;
+typedef std::vector< MdlBspNode* > MdlBspNodeList;
 
 struct MdlBspNode
 {

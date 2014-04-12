@@ -13,6 +13,10 @@
 
 #include "System/Renderer/GL/RsProgramGL.h"
 
+#include "Base/BcString.h"
+
+#include <string>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders ):

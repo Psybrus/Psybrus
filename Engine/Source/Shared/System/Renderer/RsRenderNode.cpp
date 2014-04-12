@@ -14,6 +14,7 @@
 #include "System/Renderer/RsRenderNode.h"
 
 #include "Base/BcProfiler.h"
+#include "Base/BcString.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

@@ -23,6 +23,9 @@
 #include "System/SysJobWorker.h"
 #include "System/SysFence.h"
 
+#include <list>
+#include <vector>
+
 //////////////////////////////////////////////////////////////////////////
 // SysJobQueue
 class SysJobQueue:

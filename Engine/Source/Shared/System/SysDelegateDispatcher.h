@@ -18,6 +18,8 @@
 #include "Base/BcDelegate.h"
 #include "Base/BcMutex.h"
 
+#include <vector>
+
 //////////////////////////////////////////////////////////////////////////
 // SysDelegateDispatcher
 class SysDelegateDispatcher

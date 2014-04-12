@@ -16,6 +16,46 @@
 BcU32 GResolutionWidth = 1280;
 BcU32 GResolutionHeight = 720;
 
+#include "Events/EvtBinding.h"
+#include "Events/EvtEvent.h"
+#include "Events/EvtPublisher.h"
+#include "Events/EvtProxyBuffered.h"
+
+#include "System/SysKernel.h"
+
+#include "System/Content/CsCore.h"
+#include "System/File/FsCore.h"
+#include "System/Os/OsCore.h"
+#include "System/Renderer/RsCore.h"
+#include "System/Sound/SsCore.h"
+#include "System/Scene/ScnCore.h"
+
+#include "System/Scene/Animation/ScnAnimation.h"
+#include "System/Scene/Animation/ScnAnimationComponent.h"
+#include "System/Scene/Animation/ScnAnimationTreeNode.h"
+#include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
+#include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
+
+#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnEntity.h"
+#include "System/Scene/ScnDebugRenderComponent.h"
+#include "System/Scene/ScnTexture.h"
+#include "System/Scene/ScnTextureAtlas.h"
+#include "System/Scene/ScnRenderTarget.h"
+#include "System/Scene/ScnLightComponent.h"
+#include "System/Scene/ScnMaterial.h"
+#include "System/Scene/ScnModel.h"
+#include "System/Scene/ScnParticleSystemComponent.h"
+#include "System/Scene/ScnCanvasComponent.h"
+#include "System/Scene/ScnShader.h"
+#include "System/Scene/ScnFont.h"
+#include "System/Scene/ScnSound.h"
+#include "System/Scene/ScnSoundEmitter.h"
+#include "System/Scene/ScnSoundListenerComponent.h"
+#include "System/Scene/ScnViewComponent.h"
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
 void MainUnitTests()
@@ -143,25 +183,6 @@ void MainShared()
 	FsCore::WORKER_MASK = 0x2;
 	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
 
-	BcRegex Regex( "/(.*?)/" );
-	BcRegexMatch Match;
-	Regex.match( "/Content/Type/Package/Name/", Match );
-
-	// Allocate a huge chunk of memory up front to prewarm.
-	BcU32 MemSize = 1024 * 1024 * 128;
-	BcU8* Prewarm = (BcU8*)BcMemAlign( MemSize, 4096 );
-	for( BcU32 Idx = 0; Idx < MemSize / 4096; ++Idx )
-	{
-		Prewarm[ Idx * 4096 ]++;
-	}
-	BcMemFree( Prewarm );
-	
-	std::string String;
-	for( BcU32 Idx = 0; Idx < Match.noofMatches(); ++Idx )
-	{
-		Match.getMatch( Idx, String );
-
-	}
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{

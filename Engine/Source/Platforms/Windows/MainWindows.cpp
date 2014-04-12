@@ -1,7 +1,12 @@
 #include <winsock2.h>
 
 #include "MainShared.h"
+
+#include "Base/BcLog.h"
+#include "Base/BcLogFile.h"
+
 #include "System/SysKernel.h"
+#include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
 #include "System/Os/OsClientWindows.h"

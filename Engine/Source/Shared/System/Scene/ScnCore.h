@@ -20,12 +20,6 @@
 #include "System/SysSystem.h"
 
 #include "System/Scene/ScnEntity.h"
-#include "System/Scene/ScnSpatialTree.h"
-
-//////////////////////////////////////////////////////////////////////////
-// Special scene components.
-#include "System/Scene/ScnViewComponent.h"
-
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCore
@@ -85,7 +79,7 @@ public:
 	/**
 	 * Visit view.
 	 */
-	void						visitView( class ScnVisitor* pVisitor, const ScnViewComponent* View );
+	void						visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
 
 	/**
 	 * Visit bounds.
@@ -113,13 +107,13 @@ private:
 	void						onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
 
 private:
-	ScnSpatialTree*				pSpatialTree_;
+	class ScnSpatialTree*		pSpatialTree_;
 
 	// Pending components.
 	ScnComponentList			PendingComponentList_;
 	
 	// Special components.
-	ScnViewComponentList		ViewComponentList_;
+	ScnComponentList			ViewComponentList_;
 
 	// All components in the scene.
 	typedef std::map< const BcReflectionClass*, BcU32 > TComponentClassIndexMap;

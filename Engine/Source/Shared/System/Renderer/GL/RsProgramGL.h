@@ -18,6 +18,8 @@
 #include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/RsProgram.h"
 
+#include <vector>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class RsProgramGL;
