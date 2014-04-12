@@ -17,6 +17,9 @@ project "Engine_Windows"
 	includedirs { "../../../../External/tremor" } -- TODO: Fix this properly.
 	includedirs { "../../../../External/zlib" } -- TODO: Fix this properly.
 
+    -- Boost
+	includedirs { boostInclude }
+
 	configuration "windows"
    		links {
    			-- Engine lins.
