@@ -21,10 +21,17 @@ project "Engine_Shared"
 	includedirs { "../../../External/zlib" } -- TODO: Fix this properly.
     includedirs { "../../../External/libcurl/include" }
 
+    -- Boost
+	includedirs { boostInclude }
+
 	-- GLEW config.
 	defines { "GLEW_STATIC" }
 
 	configuration "windows"
+	    libdirs {
+           boostLib
+        }
+
    		links {
    			-- External libs.
    			"External_BulletPhysics",
@@ -42,4 +49,9 @@ project "Engine_Shared"
    			"External_tremor",
    			"External_zlib",
    			"External_libcurl",
+   		}
+
+   	configuration "vs2012"
+   		links {
+
    		}
