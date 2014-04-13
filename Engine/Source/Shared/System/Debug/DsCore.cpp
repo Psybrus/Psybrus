@@ -24,7 +24,10 @@ SYS_CREATOR( DsCore );
 DsCore::DsCore():
 	pContext_( NULL )
 {
-
+	registerFunction( "", &cmdMenu);
+	registerFunction("Content", &cmdContent, "Content");
+	registerFunction("Scene", &cmdScene, "Scene");
+	registerFunction("Resource/(?<Id>.*)", &cmdResource);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,7 +72,7 @@ void DsCore::close()
 
 //////////////////////////////////////////////////////////////////////////
 // cmdContent
-void DsCore::cmdContent( std::string& Output )
+void DsCore::cmdContent(DsParameters params, std::string& Output)
 {
 	Output += "<ul>";
 
@@ -98,8 +101,40 @@ void DsCore::cmdContent( std::string& Output )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// registerFunction
+void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn, std::string display)
+{
+	DsCoreMessage cm(regex, display);
+	cm.Function_ = fn;
+	MessageFunctions_.push_back(cm);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerFunction
+void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn)
+{
+	DsCoreMessage cm(regex);
+	cm.Function_ = fn;
+	MessageFunctions_.push_back(cm);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterFunction
+void DsCore::deregisterFunction(std::string regex)
+{
+	for (auto iter = MessageFunctions_.begin(); iter != MessageFunctions_.end(); ++iter)
+	{
+		if ((*iter).Text_.compare(regex.c_str())){
+			MessageFunctions_.erase(iter);
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // cmdScene
-void DsCore::cmdScene( std::string& Output )
+void DsCore::cmdScene(DsParameters params, std::string& Output)
 {
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
@@ -113,19 +148,24 @@ void DsCore::cmdScene( std::string& Output )
 
 //////////////////////////////////////////////////////////////////////////
 // cmdMenu
-void DsCore::cmdMenu(std::string& Output)
+void DsCore::cmdMenu(DsParameters params, std::string& Output)
 {
 
 	Output += "<ul>";
-
-	// Entity name.
-	Output += "<li>";
-	Output += "<a href=\"/Content\">Content</a>";
-	Output += "</li>";
-	Output += "<li>";
-	Output += "<a href=\"/Scene\">Scene</a>";
-	Output += "</li>";
-
+	DsCore* core = pImpl();
+	for (BcU32 Idx = 0; Idx < core->MessageFunctions_.size(); ++Idx)
+	{
+		if (core->MessageFunctions_[Idx].Visible_)
+		{
+			Output += "<li>";
+			Output += "<a href=\"/";
+			Output += core->MessageFunctions_[Idx].Text_;
+			Output += "\">";
+			Output += core->MessageFunctions_[Idx].Display_;
+			Output += "</a>";
+			Output += "</li>";
+		}
+	}
 
 	Output += "</ul>";
 }
@@ -204,22 +244,25 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 	else
 	{
 		writeHeader(Content);
-		if (BcStrCompare(pRequestInfo->uri, "/Content"))
+		//std::map<std::string, std::string> data;
+		std::vector<std::string> data;
+		for (BcU32 Idx = MessageFunctions_.size() - 1; Idx >= 0; --Idx)
 		{
-			cmdContent(Content);
+			BcRegexMatch match;
+			BcU32 res = MessageFunctions_[Idx].Regex_.match(&pRequestInfo->uri[1], match);
+			if (res > 0)
+			{
+				for (BcU32 Idx2 = 1; Idx2 < match.noofMatches(); ++Idx2)
+				{
+					std::string u;
+					match.getMatch(Idx2, u);
+					data.push_back(u);
+				}
+				MessageFunctions_[Idx].Function_(data, Content);
+				break;
+			}
 		}
-		else if (BcStrCompare(pRequestInfo->uri, "/"))
-		{
-			cmdMenu(Content);
-		}
-		else if (BcStrCompare(pRequestInfo->uri, "/Scene"))
-		{
-			cmdScene(Content);
-		}
-		else if (BcStrStr(pRequestInfo->uri, "/Resource/"))
-		{
-			cmdResource(&pRequestInfo->uri[10], Content);
-		}
+
 		writeFooter(Content);
 		OutLength = Content.size();
 		Output = new BcU8[OutLength + 1];
@@ -287,6 +330,8 @@ void DsCore::writeHeader(std::string& Output)
 	Output += "<h1>";
 	Output += GPsySetupParams.Name_;
 	Output += "</h1>";
+
+	Output += "<a href=\"Menu\">Menu</a><br />";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -318,8 +363,13 @@ BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdResource
-void DsCore::cmdResource(std::string EntityId, std::string& Output)
+void DsCore::cmdResource(DsParameters params, std::string& Output)
 {
+	std::string EntityId = "";
+	/*auto par = params.find("id");
+	if (par != params.end())
+		EntityId = (*par).second;/**/
+	EntityId = params[0];
 	if (!BcStrIsNumber(EntityId.c_str()))
 	{
 		Output += "Invalid resource Id <br/>";
