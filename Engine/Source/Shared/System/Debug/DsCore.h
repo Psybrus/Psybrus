@@ -23,6 +23,37 @@
 #include "System/Scene/ScnCore.h"
 #include "../../Psybrus.h"
 #include <mongoose.h>
+#include <functional>
+#include <map>
+//////////////////////////////////////////////////////////////////////////
+/**	\struct DsCoreMessage
+*	\brief Storage struct for functions
+*
+*	
+*/
+
+// typedef const std::map < std::string, std::string>& DsParameters;
+typedef const std::vector< std::string>& DsParameters;
+
+typedef struct DsCoreMessage
+{
+	DsCoreMessage(std::string r, std::string display)
+	: Regex_(r.c_str()),
+		Text_(r),
+		Display_(display),
+		Visible_(true) {}
+
+	DsCoreMessage(std::string r)
+		: Regex_(r.c_str()),
+		Text_(r),
+		Visible_(false) {}
+
+	BcRegex Regex_;
+	std::string Text_;
+	std::string Display_;
+	bool Visible_;
+	std::function <void(DsParameters, std::string&)> Function_;
+} DsCoreMessage;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class DsCore
@@ -30,7 +61,7 @@
 *
 *	Debugging system core.
 */
-class DsCore:
+class DsCore :
 	public BcGlobal< DsCore >,
 	public SysSystem
 {
@@ -45,17 +76,16 @@ public:
 	virtual void				update();
 	virtual void				close();
 
-	void						cmdMenu( std::string& Output );
-
-	void						cmdContent( std::string& Output );
+	static void					cmdMenu(DsParameters params, std::string& Output);
+	static void					cmdContent( DsParameters params, std::string& Output );
 
 	void						cmdContent_Resource( std::string& Output );
 
-	void						cmdScene( std::string& Output );
-	void						cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth);
-	void						cmdScene_Component( ScnComponentRef Entity, std::string& Output, BcU32 Depth );
+	static void					cmdScene( DsParameters params, std::string& Output );
+	static void					cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth);
+	static void					cmdScene_Component( ScnComponentRef Entity, std::string& Output, BcU32 Depth );
 
-	void						cmdResource(std::string EntityId, std::string& Output);
+	static void					cmdResource(DsParameters params, std::string& Output);
 
 	void						gameThreadMongooseCallback( enum mg_event Event, struct mg_connection* pConn );
 	void*						mongooseCallback( enum mg_event Event, struct mg_connection* pConn );
@@ -64,10 +94,16 @@ public:
 	void						writeHeader(std::string& Output);
 	void						writeFooter(std::string& Output);
 	BcU8*						writeFile(std::string filename, int& OutLength, std::string& type);
+	void						registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn, std::string display);
+	void						registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn);
+	void						deregisterFunction(std::string regex);
+
+
 private:
 	mg_context*					pContext_;
 	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
+	std::vector<DsCoreMessage>	MessageFunctions_;
 };
 
 
