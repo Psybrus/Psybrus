@@ -14,7 +14,6 @@
 #ifndef __BCAABB_H__
 #define __BCAABB_H__
 
-#include "Base/BcVectors.h"
 #include "Base/BcMat4d.h"
 #include "Base/BcPlane.h"
 

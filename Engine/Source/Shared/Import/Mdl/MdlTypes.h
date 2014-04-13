@@ -15,7 +15,8 @@
 #define __MDLTYPES_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "Base/BcVec2d.h"
+#include "Base/BcVec3d.h"
 #include "Base/BcQuat.h"
 #include "Base/BcPlane.h"
 #include "Base/BcAABB.h"

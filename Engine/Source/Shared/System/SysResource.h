@@ -14,18 +14,13 @@
 #ifndef __SYSRESOURCE_H__
 #define __SYSRESOURCE_H__
 
-#include "Base/BcDelegate.h"
+#include "Base/BcTypes.h"
 #include "System/SysFence.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // SysResource
 class SysResource
 {
-public:
-	typedef BcDelegate< void(*)() > CreateDelegate;
-	typedef BcDelegate< void(*)() > UpdateDelegate;
-	typedef BcDelegate< void(*)() > DestroyDelegate;
-
 public:
 	SysResource();
 	virtual ~SysResource();

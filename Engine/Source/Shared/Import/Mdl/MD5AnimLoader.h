@@ -14,7 +14,9 @@
 #ifndef __MD5AnimLoader_H__
 #define __MD5AnimLoader_H__
 
-#include "Base/BcVectors.h"
+#include "Base/BcVec2d.h"
+#include "Base/BcVec3d.h"
+#include "Base/BcVec4d.h"
 #include "Base/BcQuat.h"
 
 #include "MD5MeshLoader.h"

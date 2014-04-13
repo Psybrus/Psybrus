@@ -11,7 +11,6 @@
 * 
 **************************************************************************/
 
-#include "Base/BcVectors.h"
 #include "Base/BcPlane.h"
 
 #include "Base/BcMath.h"

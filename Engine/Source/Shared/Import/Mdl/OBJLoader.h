@@ -14,7 +14,6 @@
 #ifndef __OBJLOADER_H__
 #define __OBJLOADER_H__
 
-#include "Base/BcVectors.h"
 #include "Base/BcQuat.h"
 #include "Mdl.h"
 

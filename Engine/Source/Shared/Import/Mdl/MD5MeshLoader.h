@@ -14,7 +14,7 @@
 #ifndef __MD5MESHLOADER_H__
 #define __MD5MESHLOADER_H__
 
-#include "Base/BcVectors.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

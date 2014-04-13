@@ -15,7 +15,8 @@
 
 
 #include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "Base/BcVec3d.h"
+#include "Base/BcVec4d.h"
 #include "Base/BcMat4d.h"
 
 #ifndef	__BCQUAT_H__

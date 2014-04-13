@@ -13,7 +13,9 @@
 
 #include "Base/BcReflection.h"
 
-#include "Base/BcVectors.h"
+#include "Base/BcVec2d.h"
+#include "Base/BcVec3d.h"
+#include "Base/BcVec4d.h"
 #include "Base/BcMat3d.h"
 #include "Base/BcMat4d.h"
 #include "Base/BcQuat.h"
