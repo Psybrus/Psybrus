@@ -14,7 +14,7 @@
 #ifndef __SCNPHYSICS_H__
 #define __SCNPHYSICS_H__
 
-#include "Base/BcVectors.h"
+#include "Base/BcVec3d.h"
 #include "Base/BcMat4d.h"
 
 #include "btBulletCollisionCommon.h"

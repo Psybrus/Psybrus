@@ -15,7 +15,7 @@
 #define __RSLIGHT_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "Base/BcVec4d.h"
 
 #include "System/Renderer/RsTypes.h"
 

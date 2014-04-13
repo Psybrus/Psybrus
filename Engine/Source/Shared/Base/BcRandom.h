@@ -15,7 +15,9 @@
 #define __BCRANDOM_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "Base/BcVec2d.h"
+#include "Base/BcVec3d.h"
+#include "Base/BcVec4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcRandom

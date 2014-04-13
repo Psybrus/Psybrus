@@ -15,7 +15,7 @@
 #define __OsClientWindows_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "Base/BcVec2d.h"
 #include "System/Os/OsWindows.h"
 #include "System/Os/OsClient.h"
 

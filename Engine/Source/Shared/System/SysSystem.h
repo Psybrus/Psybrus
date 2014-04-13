@@ -64,6 +64,11 @@ class SysSystem:
 	public EvtPublisher
 {
 public:
+	typedef BcDelegate< void(*)() > CreateDelegate;
+	typedef BcDelegate< void(*)() > UpdateDelegate;
+	typedef BcDelegate< void(*)() > DestroyDelegate;
+
+public:
 	enum
 	{
 		MAX_SYSTEM_NAME = 32

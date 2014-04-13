@@ -15,7 +15,7 @@
 #define __SCNANIMATIONTRANSFORM_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVectors.h"
+#include "Base/BcVec3d.h"
 #include "Base/BcQuat.h"
 #include "Base/BcMat4d.h"
 #include "Base/BcReflection.h"

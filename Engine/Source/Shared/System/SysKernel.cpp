@@ -270,15 +270,19 @@ void SysKernel::execute()
 	// Set main thread.
 	BcSetGameThread();
 
+#if PSY_USE_PROFILER
 	BcU32 FrameCount = 0;
-
+#endif
+	
 	// Run until there are no more systems to run.
 	do
 	{
+#if PSY_USE_PROFILER
 		if( FrameCount == 0 )
 		{
 			BcProfiler::pImpl()->beginProfiling();
 		}
+#endif
 
 		// Mark main timer.
 		MainTimer_.mark();
@@ -314,6 +318,7 @@ void SysKernel::execute()
 
 		BcAssert( FrameTime_ >= 0.0f );
 
+#if PSY_USE_PROFILER
 		++FrameCount;
 
 		if( FrameCount == 9 )
@@ -321,6 +326,7 @@ void SysKernel::execute()
 			BcProfiler::pImpl()->endProfiling();
 			FrameCount = 0;
 		}
+#endif
 	}
 	while( SystemList_.size() > 0 );
 }

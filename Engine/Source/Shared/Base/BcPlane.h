@@ -16,7 +16,7 @@
 
 #include "Base/BcMath.h"
 
-#include "Base/BcVectors.h"
+#include "Base/BcVec3d.h"
 #include "Base/BcMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////

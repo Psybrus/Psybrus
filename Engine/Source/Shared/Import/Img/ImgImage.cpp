@@ -13,7 +13,9 @@
 
 #include "ImgImage.h"
 
-#include "Base/BcVectors.h"
+#include "Base/BcVec2d.h"
+#include "Base/BcVec3d.h"
+#include "Base/BcVec4d.h"
 
 #include "squish.h"
 
