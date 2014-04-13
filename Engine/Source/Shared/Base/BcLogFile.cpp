@@ -36,7 +36,7 @@ BcLogFile::~BcLogFile()
 //virtual
 void BcLogFile::internalWrite( const BcChar* pText )
 {
-	BcLog::internalWrite( pText );
+	BcLogImpl::internalWrite( pText );
 
 	if( OutputFile_.isOpen() )
 	{
@@ -50,7 +50,7 @@ void BcLogFile::internalWrite( const BcChar* pText )
 //virtual
 void BcLogFile::internalFlush()
 {
-	BcLog::internalFlush();
+	BcLogImpl::internalFlush();
 
 	if( OutputFile_.isOpen() )
 	{

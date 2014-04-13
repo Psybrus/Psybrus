@@ -2,7 +2,7 @@
 
 #include "MainShared.h"
 
-#include "Base/BcLog.h"
+#include "Base/BcLogImpl.h"
 #include "Base/BcLogFile.h"
 
 #include "System/SysKernel.h"
@@ -167,7 +167,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #if !PSY_PRODUCTION
 	if( BcLog::pImpl() == NULL )
 	{
-		new BcLog();
+		new BcLogImpl();
 	}
 #endif
 

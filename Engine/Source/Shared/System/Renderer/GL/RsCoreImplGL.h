@@ -14,6 +14,8 @@
 #ifndef __RSCOREIMPLGL_H__
 #define __RSCOREIMPLGL_H__
 
+#include "Base/BcMutex.h"
+
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/GL/RsGL.h"
 
