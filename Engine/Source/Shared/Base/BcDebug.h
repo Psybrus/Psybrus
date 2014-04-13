@@ -15,6 +15,7 @@
 #define __BCDEBUG_H__
 
 #include "Base/BcTypes.h"
+#include "Base/BcLog.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
@@ -139,9 +140,6 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 #  define BcUnitTest( a )
 #  define BcUnitTestMsg( a, b )
 #endif
-//////////////////////////////////////////////////////////////////////////
-// BcLog - NEILO TODO: Merge some of the debug/log/whatever stuff.
-#include "Base/BcLog.h"
 
 #endif
 

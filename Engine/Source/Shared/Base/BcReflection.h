@@ -19,6 +19,9 @@
 #include "Base/BcName.h"
 #include "Base/BcGlobal.h"
 
+#include <vector>
+#include <map>
+
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
 class BcReflectionPrimitive;

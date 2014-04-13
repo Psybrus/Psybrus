@@ -14,13 +14,13 @@
 #ifndef __BCLOGFILE_H__
 #define __BCLOGFILE_H__
 
-#include "Base/BcLog.h"
+#include "Base/BcLogImpl.h"
 #include "Base/BcFile.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcLogFile
 class BcLogFile:
-	public BcLog
+	public BcLogImpl
 {
 public:
 	BcLogFile( const BcChar* pFileName );
