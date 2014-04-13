@@ -18,7 +18,6 @@
 #include "Base/BcMisc.h"
 #include "Base/BcGlobal.h"
 
-#define PSY_USE_PROFILER 1
 #if PSY_USE_PROFILER
 
 //////////////////////////////////////////////////////////////////////////
