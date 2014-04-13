@@ -119,7 +119,7 @@ void SysProfilerChromeTracing::endProfiling()
 //////////////////////////////////////////////////////////////////////////
 // enterSection
 //virtual
-void SysProfilerChromeTracing::enterSection( const BcChar* Tag )
+void SysProfilerChromeTracing::enterSection( const std::string& Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -139,7 +139,7 @@ void SysProfilerChromeTracing::enterSection( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // exitSection
 //virtual
-void SysProfilerChromeTracing::exitSection( const BcChar* Tag )
+void SysProfilerChromeTracing::exitSection( const std::string& Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -159,7 +159,7 @@ void SysProfilerChromeTracing::exitSection( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // startAsync
 //virtual
-void SysProfilerChromeTracing::startAsync( const BcChar* Tag )
+void SysProfilerChromeTracing::startAsync( const std::string& Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -179,7 +179,7 @@ void SysProfilerChromeTracing::startAsync( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // endAsync
 //virtual
-void SysProfilerChromeTracing::endAsync( const BcChar* Tag )
+void SysProfilerChromeTracing::endAsync( const std::string& Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -199,7 +199,7 @@ void SysProfilerChromeTracing::endAsync( const BcChar* Tag )
 //////////////////////////////////////////////////////////////////////////
 // instantEvent
 //virtual
-void SysProfilerChromeTracing::instantEvent( const BcChar* Tag )
+void SysProfilerChromeTracing::instantEvent( const std::string& Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{

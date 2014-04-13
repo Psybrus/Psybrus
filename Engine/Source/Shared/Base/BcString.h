@@ -92,128 +92,25 @@ inline BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Cou
 #define BcSScanf		sscanf
 
 //////////////////////////////////////////////////////////////////////////
-// BcStringPrintf
-std::string BcStringPrintf( const BcChar* Format, ... );
-
-//////////////////////////////////////////////////////////////////////////
 // T.K. - waz 'ere messing with you strings ;-) 
-inline void BcStrReverse( BcChar* pStart, BcChar* pEnd )
-{
-	char aux;
-	while ( pEnd > pStart )
-	{
-		aux = *pEnd;
-		*pEnd-- = *pStart;
-		*pStart++ = aux;
-	}
-}
+void BcStrReverse( BcChar* pStart, BcChar* pEnd );
 
 //////////////////////////////////////////////////////////////////////////
 // T.K. - waz 'ere messing with you strings ;-) 
 // NOTE: this bad inline, but no cpp?
-inline void BcStrItoa( BcS32 value, BcChar* pStr, BcU32 base = 10 )
-{
-	  static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-	  char* wstr = pStr;
-	  int sign;
-
-	  // Validate base
-	  if ( base < 2 || base > 35 )
-	  {
-		  *wstr = '\0';
-		  return;
-	  }
-
-	  // Take care of sign
-	  if (( sign = value ) < 0 )
-	  {
-		  value = -value;
-	  }
-
-	  // Conversion. Number is reversed.
-	  do
-	  {
-		  *wstr++ = num[value%base];
-	  }
-	  while ( value /= base );
-
-	  if ( sign < 0 )
-	  {
-		  *wstr++ = '-';
-	  }
-	  *wstr = '\0';
-
-	  // Reverse string
-	  BcStrReverse( pStr, wstr - 1 );
-}
+void BcStrItoa( BcS32 value, BcChar* pStr, BcU32 base = 10 );
 
 //////////////////////////////////////////////////////////////////////////
 // T.K. - waz 'ere messing with you strings ;-) 
-inline BcS32 BcStrAtoi( const BcChar* str )
-{
-	return atoi( str );
-}
+BcS32 BcStrAtoi( const BcChar* str );
 
 //////////////////////////////////////////////////////////////////////////
 // Is string a number?
-inline BcBool BcStrIsNumber( const BcChar* pStr )
-{
-	BcBool HadDecimal = BcFalse;
-
-	// Strip sign if need be.
-	if( *pStr == '+' || *pStr == '-' )
-	{
-		++pStr;
-	}
-
-	// Terminated early, not a number.
-	if( *pStr == '\0' )
-	{
-		return BcFalse;
-	}
-	
-	// Iterate over and check values.
-	for( const BcChar* pWStr = pStr; *pWStr != '\0'; ++pWStr )
-	{
-		// If we find a decimal point, we need to see if we've hit one already, or bail (invalid number).
-		if( *pWStr >= '0' && *pWStr <= '9' )
-		{
-			continue;
-		}
-		else if( *pWStr == '.' )
-		{
-			if( HadDecimal == BcFalse )
-			{
-				HadDecimal = BcTrue;
-			}
-			else
-			{
-				return BcFalse;
-			}
-		}
-		else
-		{
-			return BcFalse;
-		}
-	}
-
-	return BcTrue;
-}
+BcBool BcStrIsNumber( const BcChar* pStr );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCountChars
-inline BcU32 BcStrCountChars( const BcChar* pStr, BcChar Char )
-{
-	BcU32 NoofChars = 0;
-	while( *pStr != '\0' )
-	{
-		if( *pStr++ == Char )
-		{
-			++NoofChars;
-		}
-	}
-	return NoofChars;
-}
+BcU32 BcStrCountChars( const BcChar* pStr, BcChar Char );
 
 #endif
 

@@ -15,7 +15,6 @@
 #define __BCVECTORS_H__
 
 #include "Base/BcMath.h"
-#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcVecQuad

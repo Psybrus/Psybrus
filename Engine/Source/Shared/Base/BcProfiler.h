@@ -44,31 +44,31 @@ public:
 	 * Enter section to profile.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void enterSection( const BcChar* Tag ) = 0;
+	virtual void enterSection( const std::string& Tag ) = 0;
 
 	/**
 	 * Exit section.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void exitSection( const BcChar* Tag ) = 0;
+	virtual void exitSection( const std::string& Tag ) = 0;
 
 	/**
 	 * Start async section. Tag MUST be unique.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void startAsync( const BcChar* Tag ) = 0;
+	virtual void startAsync( const std::string& Tag ) = 0;
 
 	/**
 	 * End async section. Tag MUST be unique.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void endAsync( const BcChar* Tag ) = 0;
+	virtual void endAsync( const std::string& Tag ) = 0;
 
 	/**
 	 * Instant event.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void instantEvent( const BcChar* Tag ) = 0;
+	virtual void instantEvent( const std::string& Tag ) = 0;
 
 private:
 

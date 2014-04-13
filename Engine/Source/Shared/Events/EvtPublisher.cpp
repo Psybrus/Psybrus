@@ -98,7 +98,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	BcUnusedVar( EventSize );
 
 #if PSY_USE_PROFILER
-	PSY_PROFILER_INSTANT_EVENT( BcStringPrintf( "EvtPublisher::publishInternal( ID: 0x%x, Size: 0x%x )", ID, EventSize ).c_str() );
+	PSY_PROFILER_INSTANT_EVENT( boost::str( boost::format( "EvtPublisher::publishInternal( ID: %1%, Size: %2% )" ) % ID % EventSize ) );
 #endif
 
 	// Proxy event through all attached proxies if this event allows it.
