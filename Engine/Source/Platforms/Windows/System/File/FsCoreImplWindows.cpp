@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#include <boost/format.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // System Creator
 SYS_CREATOR( FsCoreImplWindows );
@@ -251,14 +253,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( BcStringPrintf( "FsCoreImplWindows::addReadOp (%s)", pImpl_->fileName() ).c_str() );	
+		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addReadOp (%1%)" ) % pImpl_->fileName() ) );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( BcStringPrintf( "FsCoreImplWindows::addReadOp (%s)", pImpl_->fileName() ).c_str() );	
+		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addReadOp (%1%)" ) % pImpl_->fileName() ) );	
 		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
 	}
 	
@@ -288,14 +290,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( BcStringPrintf( "FsCoreImplWindows::addWriteOp (%s)", pImpl_->fileName() ).c_str() );	
+		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( BcStringPrintf( "FsCoreImplWindows::addWriteOp (%s)", pImpl_->fileName() ).c_str() );	
+		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
 		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
 	}
 	

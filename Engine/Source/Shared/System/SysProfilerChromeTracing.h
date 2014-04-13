@@ -35,11 +35,11 @@ public:
 
 	virtual void beginProfiling();
 	virtual void endProfiling();
-	virtual void enterSection( const BcChar* Tag );
-	virtual void exitSection( const BcChar* Tag );
-	virtual void startAsync( const BcChar* Tag );
-	virtual void endAsync( const BcChar* Tag );
-	virtual void instantEvent( const BcChar* Tag );
+	virtual void enterSection( const std::string& Tag );
+	virtual void exitSection( const std::string& Tag );
+	virtual void startAsync( const std::string& Tag );
+	virtual void endAsync( const std::string& Tag );
+	virtual void instantEvent( const std::string& Tag );
 
 protected:
 	struct TProfilerEvent
