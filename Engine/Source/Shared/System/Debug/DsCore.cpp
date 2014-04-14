@@ -12,7 +12,7 @@
 **************************************************************************/
 
 #include "System/Debug/DsCore.h"
-
+#include "Base/BcHtml.h"
 #include "System/SysKernel.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,37 +72,26 @@ void DsCore::close()
 
 //////////////////////////////////////////////////////////////////////////
 // cmdContent
-void DsCore::cmdContent(DsParameters params, std::string& Output)
+void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
 {
-	Output += "<ul>";
+	BcHtmlNode& ul = Output.createChildNode("ul");
 
 	for( BcU32 Idx = 0; Idx < CsCore::pImpl()->getNoofResources(); ++Idx )
 	{
 		CsResourceRef<> Resource( CsCore::pImpl()->getResource( Idx ) );
+		BcHtmlNode& li = ul.createChildNode("li");
+		li.setContents("Resource: " + *Resource->getName());
 
-		Output += "<li>Resource: ";
-		Output += *Resource->getName();
-		Output += "</li>";
-
-		Output += "<ul>";
-
-		Output += "<li>Type:";
-		Output += *Resource->getTypeName();
-		Output += "</li>";
-
-		Output += "<li>Package:";
-		Output += *Resource->getPackageName();
-		Output += "</li>";
-
-		Output += "</ul>";
+		BcHtmlNode& ul2 = ul.createChildNode("ul");
+		ul2.createChildNode("li").setContents("Type: " + *Resource->getTypeName());
+		ul2.createChildNode("li").setContents("Package: " + *Resource->getPackageName());
 	}
 
-	Output += "</ul>";
 }
 
 //////////////////////////////////////////////////////////////////////////
 // registerFunction
-void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn, std::string display)
+void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display)
 {
 	DsCoreMessage cm(regex, display);
 	cm.Function_ = fn;
@@ -111,7 +100,7 @@ void DsCore::registerFunction(std::string regex, std::function < void(DsParamete
 
 //////////////////////////////////////////////////////////////////////////
 // registerFunction
-void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn)
+void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn)
 {
 	DsCoreMessage cm(regex);
 	cm.Function_ = fn;
@@ -134,7 +123,7 @@ void DsCore::deregisterFunction(std::string regex)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdScene
-void DsCore::cmdScene(DsParameters params, std::string& Output)
+void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output)
 {
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
@@ -148,45 +137,36 @@ void DsCore::cmdScene(DsParameters params, std::string& Output)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdMenu
-void DsCore::cmdMenu(DsParameters params, std::string& Output)
+void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output)
 {
-
-	Output += "<ul>";
+	BcHtmlNode& ul = Output.createChildNode("ul");
 	DsCore* core = pImpl();
 	for (BcU32 Idx = 0; Idx < core->MessageFunctions_.size(); ++Idx)
 	{
 		if (core->MessageFunctions_[Idx].Visible_)
 		{
-			Output += "<li>";
-			Output += "<a href=\"/";
-			Output += core->MessageFunctions_[Idx].Text_;
-			Output += "\">";
-			Output += core->MessageFunctions_[Idx].Display_;
-			Output += "</a>";
-			Output += "</li>";
+			BcHtmlNode& a = ul.createChildNode("li").createChildNode("a");
+			a.setAttribute("href", core->MessageFunctions_[Idx].Text_);
+			a.setContents(core->MessageFunctions_[Idx].Display_);
 		}
 	}
 
-	Output += "</ul>";
 }
 
 //////////////////////////////////////////////////////////////////////////
 // cmdScene_Entity
-void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth)
+void DsCore::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth)
 {
-	Output += "<ul>";
+	BcHtmlNode& ul = Output.createChildNode("ul");
 	BcChar Id[32];
 	BcSPrintf(Id, "%d", Entity->getUniqueId());
 	
 	// Entity name.
-	Output += "<li>";
-	Output += "Entity: ";
-	Output += "<a href=\"/Resource/";
-	Output += Id;
-	Output += "\">";
-	Output += *Entity->getName();
-	Output += "</a>";
-	Output += "</li>";
+	BcHtmlNode& li = Output.createChildNode("li");
+	li.setContents("Entity; ");
+	BcHtmlNode& a = Output.createChildNode("a");
+	a.setAttribute("href", "/Resource/" + std::string(Id));
+	a.setContents(*Entity->getName());
 	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
 	{
 		ScnComponentRef Component( Entity->getComponent( Idx ) );
@@ -201,31 +181,22 @@ void DsCore::cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 De
 		}
 	}
 
-	Output += "</ul>";
 }
 
 //////////////////////////////////////////////////////////////////////////
 // cmdScene_Component
-void DsCore::cmdScene_Component( ScnComponentRef Component, std::string& Output, BcU32 Depth )
+void DsCore::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, BcU32 Depth )
 {
 	BcChar Id[32];
 	BcSPrintf(Id, "%d", Component->getUniqueId());
-	Output += "<ul>";
-
+	BcHtmlNode& ul = Output.createChildNode("ul");
 	// Component name.
-	Output += "<li>";
-	Output += "Component: ";
-	Output += "<a href=\"/Resource/";
-	Output += Id;
-	Output += "\">";
-	Output += *Component->getName();
-	Output += "</a>";
-	Output += " (";
-	Output += *Component->getTypeName();
-	Output += ")";
-	Output += "</li>";
-
-	Output += "</ul>";
+	BcHtmlNode& li = ul.createChildNode("li");
+	li.setContents("Component: ");
+	BcHtmlNode& a = li.createChildNode("a");
+	a.setAttribute("href", "/Resource/" + std::string(Id));
+	a.setContents(*Component->getName());
+	li.createChildNode("").setContents(" (" + *Component->getTypeName() + ")");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -234,7 +205,7 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 {
 	const struct mg_request_info* pRequestInfo = mg_get_request_info( pConn );
 	std::string type = "html";
-	std::string Content;
+	BcHtml HtmlContent;
 	BcU8* Output;
 	int OutLength = 0;
 	if (BcStrStr(pRequestInfo->uri, "/files/"))
@@ -243,7 +214,17 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 	}
 	else
 	{
-		writeHeader(Content);
+		/*Output += "<title>";
+		Output += GPsySetupParams.Name_;
+		Output += "</title>";
+		Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";/**/
+		HtmlContent.getRootNode().createChildNode("title").setContents(GPsySetupParams.Name_);
+		BcHtmlNode& link = HtmlContent.getRootNode().createChildNode("link");
+		link.setAttribute("rel", "stylesheet");
+		link.setAttribute("type", "text/css");
+		link.setAttribute("href", "/files/style.css");
+		BcHtmlNode& body = HtmlContent.getRootNode().createChildNode("body");
+		writeHeader(body);
 		//std::map<std::string, std::string> data;
 		std::vector<std::string> data;
 		for (BcU32 Idx = MessageFunctions_.size() - 1; Idx >= 0; --Idx)
@@ -258,12 +239,14 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 					match.getMatch(Idx2, u);
 					data.push_back(u);
 				}
-				MessageFunctions_[Idx].Function_(data, Content);
+				MessageFunctions_[Idx].Function_(data, body);
 				break;
 			}
 		}
 
-		writeFooter(Content);
+		writeFooter(body);
+
+		std::string Content = HtmlContent.getHtml();
 		OutLength = Content.size();
 		Output = new BcU8[OutLength + 1];
 		BcMemCopy(Output, &Content[0], OutLength);
@@ -321,26 +304,29 @@ void* DsCore::MongooseCallback( enum mg_event Event, struct mg_connection* pConn
 
 //////////////////////////////////////////////////////////////////////////
 // writeHeader
-void DsCore::writeHeader(std::string& Output)
+void DsCore::writeHeader(BcHtmlNode& Output)
 {
-	Output += "<!DOCTYPE html>";
+	/*Output += "<!DOCTYPE html>";
 	Output += "<html>";
-	Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";
-	Output += "<body>";
-	Output += "<h1>";
+	Output += "<title>";
 	Output += GPsySetupParams.Name_;
-	Output += "</h1>";
+	Output += "</title>";
+	Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";
+	Output += "<body>";/**/
+	Output.createChildNode("h1").setContents(GPsySetupParams.Name_);
+	BcHtmlNode& a = Output.createChildNode("a");
+	a.setAttribute("href", "Menu");
+	a.setContents("Menu");
+	Output.createChildNode("br");
 
-	Output += "<a href=\"Menu\">Menu</a><br />";
 }
 
 //////////////////////////////////////////////////////////////////////////
 // writeFooter
-void DsCore::writeFooter(std::string& Output)
+void DsCore::writeFooter(BcHtmlNode& Output)
 {
-	Output += "Footer";
+	Output.createChildNode("").setContents("Footer");
 
-	Output += "</body></html>";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -363,7 +349,7 @@ BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdResource
-void DsCore::cmdResource(DsParameters params, std::string& Output)
+void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 {
 	std::string EntityId = "";
 	/*auto par = params.find("id");
@@ -372,7 +358,8 @@ void DsCore::cmdResource(DsParameters params, std::string& Output)
 	EntityId = params[0];
 	if (!BcStrIsNumber(EntityId.c_str()))
 	{
-		Output += "Invalid resource Id <br/>";
+		Output.createChildNode("").setContents("Invalid resource Id");
+		Output.createChildNode("br");
 		return;
 	}
 	BcU32 id = BcStrAtoi(EntityId.c_str());
@@ -381,7 +368,8 @@ void DsCore::cmdResource(DsParameters params, std::string& Output)
 
 	if (Resource == NULL)
 	{
-		Output += "Invalid resource Id <br/>";
+		Output.createChildNode("").setContents("Invalid resource Id");
+		Output.createChildNode("br");
 		return;
 	}
 
@@ -391,25 +379,142 @@ void DsCore::cmdResource(DsParameters params, std::string& Output)
 	}
 	else
 	{
-		Output += "<ul>";
+		BcHtmlNode& ul = Output.createChildNode("ul");
 
-		Output += "<li>Resource: ";
-		Output += *Resource->getName();
-		Output += "</li>";
+		ul.createChildNode("li").setContents("Resource: " + *Resource->getName());
 
-		Output += "<ul>";
+		ul = ul.createChildNode("ul");
+
+		ul.createChildNode("li").setContents("Type: " + *Resource->getTypeName());
+		ul.createChildNode("li").setContents("Package: " + *Resource->getPackageName());
 
 
-		Output += "<li>Type:";
-		Output += *Resource->getTypeName();
-		Output += "</li>";
+		// Iterate over all properties and do stuff.
+		const BcReflectionClass* pClass = Resource ->getClass();
 
-		Output += "<li>Package:";
-		Output += *Resource->getPackageName();
-		Output += "</li>";
+		// NOTE: Do not want to hit this. Ever.
+		if (pClass == NULL)
+		{
+			int a = 0; ++a;
+		}
 
-		Output += "</ul>";
+		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
+		BcChar temp[256];
+		// Iterate over to grab offsets for classes.
+		while (pClass != NULL)
+		{
+			BcHtmlNode& ul2 = Output.createChildNode("ul");
+			BcSPrintf(temp, "Class: %s (Size: 0x%x)\n", (*pClass->getName()).c_str(), pClass->getSize());
+			ul2.setContents(temp);
 
-		Output += "</ul>";
+			BcHtmlNode& ul3 = ul2.createChildNode("ul");
+			ul3.setContents(" ");
+			for (BcU32 Idx = 0; Idx < pClass->getNoofFields(); ++Idx)
+			{
+				const BcReflectionField* pField = pClass->getField(Idx);
+				const BcReflectionType* pType = pField->getType();
+				if (pType != NULL)
+				{
+					// Output += "<li>";
+					BcHtmlNode& div = ul3.createChildNode("div");
+					div.setAttribute("id", "fieldData");
+					//BcSPrintf(temp, "%s %s; // Offset 0x%x, Size 0x%x, Flags: 0x%x\n", (*pType->getName()).c_str(), (*pField->getName()).c_str(), pField->getOffset(), pType->getSize(), pField->getFlags());
+					//BcSPrintf(temp, "%s")
+					//Output += temp;
+					BcHtmlNode& fName = div.createChildNode("div");
+					fName.setAttribute("id", "fName");
+					fName.setContents(*pField->getName());
+
+					BcHtmlNode& fType = div.createChildNode("div");
+					fType.setAttribute("id", "fType");
+					fType.setContents(*pType->getName());
+
+					BcHtmlNode& fValue = div.createChildNode("div");
+					fValue.setAttribute("id", "fValue");
+					if (pType->getName() == "BcU8")
+					{
+						const BcU8* pData = reinterpret_cast<const BcU8*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%u\n", *pData);
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcU16")
+					{
+						const BcU16* pData = reinterpret_cast<const BcU16*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%u\n", *pData);
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcU32")
+					{
+						const BcU32* pData = reinterpret_cast<const BcU32*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%u\n", *pData);
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcF32")
+					{
+						const BcF32* pData = reinterpret_cast<const BcF32*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%f\n", *pData);
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcName")
+					{
+						const BcName* pData = reinterpret_cast<const BcName*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%s\n", (**pData).c_str());
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcBool")
+					{
+						const BcBool* pData = reinterpret_cast<const BcBool*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%u\n", *pData);
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcVec2d")
+					{
+						const BcVec2d* pData = reinterpret_cast<const BcVec2d*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%f, %f\n", pData->x(), pData->y());
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcVec3d")
+					{
+						const BcVec3d* pData = reinterpret_cast<const BcVec3d*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%f, %f, %f\n", pData->x(), pData->y(), pData->z());
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcVec4d")
+					{
+						const BcVec4d* pData = reinterpret_cast<const BcVec4d*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w());
+						fValue.setContents(temp);
+					}
+					else if (pType->getName() == "BcMat4d")
+					{
+						/*const BcMat4d* pData = reinterpret_cast<const BcMat4d*>(&pClassData[pField->getOffset()]);
+						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w());
+						Output += temp;
+						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row1().x(), pData->row1().y(), pData->row1().z(), pData->row1().w());
+						Output += temp;
+						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row2().x(), pData->row2().y(), pData->row2().z(), pData->row2().w());
+						Output += temp;
+						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row3().x(), pData->row3().y(), pData->row3().z(), pData->row3().w());
+						Output += temp;/**/
+						fValue.setContents("Not yet implimented");
+					}
+					else if (pType->getName() == "ScnEntity")
+					{
+						/*const ScnEntityRef* pData = reinterpret_cast<const ScnEntityRef*>(&pClassData[pField->getOffset()]);
+						const BcReflectionClass* pClass = static_cast< const BcReflectionClass* >(pType);
+						void* pNewData = reinterpret_cast< BcU8* >(pClassData)+pField->getOffset();
+						ScnEntity* ptr = (ScnEntity*)pNewData;
+						BcSPrintf(temp, "<a href=\"/Resource/%u\">Link</a>", (*pData)->getUniqueId());/**/
+						fValue.setContents("Not yet implemented");
+					}
+
+					// Output += "</li>";
+				}
+			}
+
+			pClass = pClass->getSuper();
+			
+		}
+
 	}
 }
