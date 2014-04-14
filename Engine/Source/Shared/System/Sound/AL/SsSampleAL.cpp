@@ -14,6 +14,7 @@
 #include "System/Sound/AL/SsSampleAL.h"
 
 #include "Base/BcMemory.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

@@ -162,72 +162,10 @@ BcForceInline BcCPUVec4d BcCPUVec4d::operator - () const
 	return BcCPUVec4d( -X_, -Y_, -Z_, -W_ );
 }
 
-BcForceInline BcF32 BcCPUVec4d::magnitude() const
-{
-	return BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
-}
-
-BcForceInline BcF32 BcCPUVec4d::magnitudeSquared() const
-{
-	return ( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
-}
-
-BcForceInline void BcCPUVec4d::normalise()
-{
-	BcF32 Mag = magnitude();
-	
-	if ( Mag == 0.0f )
-	{
-		return;
-	}
-
-	const BcF32 InvMag = 1.0f / Mag;
-	X_ *= InvMag;
-	Y_ *= InvMag;
-	Z_ *= InvMag;
-	W_ *= InvMag;
-}
-
-BcForceInline void BcCPUVec4d::normalise3()
-{
-	BcF32 Mag = BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ );
-
-	if ( Mag == 0.0f )
-	{
-		return;
-	}
-
-	const BcF32 InvMag = 1.0f / Mag;
-	X_ *= InvMag;
-	Y_ *= InvMag;
-	Z_ *= InvMag;
-}
-
-BcForceInline BcCPUVec4d BcCPUVec4d::normal() const
-{
-	BcF32 Mag = magnitude();
-	
-	if ( Mag == 0.0f )
-	{
-		return BcCPUVec4d(0,0,0,0);
-	}
-	
-	const BcF32 InvMag = 1.0f / Mag;
-	return BcCPUVec4d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag, W_ * InvMag );
-}
-
 
 BcForceInline BcF32 BcCPUVec4d::dot( const BcCPUVec4d& Rhs ) const
 {
 	return ( X_* Rhs.X_ )+( Y_ * Rhs.Y_ )+( Z_* Rhs.Z_ )+( W_ * Rhs.W_ );
-}
-
-BcForceInline BcBool BcCPUVec4d::operator == ( const BcCPUVec4d &Rhs ) const
-{
-	return ( ( BcAbs( X_ - Rhs.X_ ) < BcVecEpsilon ) &&
-	         ( BcAbs( Y_ - Rhs.Y_ ) < BcVecEpsilon ) &&
-			 ( BcAbs( Z_ - Rhs.Z_ ) < BcVecEpsilon ) &&
-			 ( BcAbs( W_ - Rhs.W_ ) < BcVecEpsilon ) );
 }
 
 BcForceInline BcBool BcCPUVec4d::operator != ( const BcCPUVec4d &Rhs ) const
@@ -235,9 +173,6 @@ BcForceInline BcBool BcCPUVec4d::operator != ( const BcCPUVec4d &Rhs ) const
 	return !( (*this) == Rhs );
 }
 
-inline BcBool BcCheckFloat( BcCPUVec4d T )
-{
-	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() ) && BcCheckFloat( T.z() ) && BcCheckFloat( T.w() );
-}
+BcBool BcCheckFloat( BcCPUVec4d T );
 
 #endif // __BCCPUVEC4D_H__

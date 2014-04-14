@@ -28,7 +28,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #ifndef __BCFIXED_H__
 #define __BCFIXED_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
+#include "Base/BcMath.h"
 
 template< typename _Ty = BcS32, int _BP = 16 >
 class BcFixed
@@ -189,5 +190,13 @@ inline BcF32& operator *=(BcF32& a, const BcFixed< _Ty, _BP >& b) { a = a * b; r
 
 template< typename _Ty, int _BP >
 inline BcF32& operator /=(BcF32& a, const BcFixed< _Ty, _BP >& b) { a = a / b; return a; }
+
+//////////////////////////////////////////////////////////////////////////
+// BcSqrt
+template< typename _Ty, int _BP >
+inline BcFixed< _Ty, _BP > BcSqrt( BcFixed< _Ty, _BP > v )
+{
+	return BcFixed< _Ty, _BP >( BcFixed< _Ty, _BP >::RAW, (_Ty)BcSqrtFixed( v.getGuts(), _BP ) );
+}
 
 #endif

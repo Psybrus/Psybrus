@@ -270,31 +270,11 @@ inline void BcMat4d::transpose()
 	(*this) = transposed();
 }
 
-inline BcVec2d operator * ( const BcVec2d& Lhs, const BcMat4d& Rhs )
-{
-	return BcVec2d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Rhs[3][0],
-				    Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Rhs[3][1] );
-}
+BcVec2d operator * ( const BcVec2d& Lhs, const BcMat4d& Rhs );
 
-inline BcVec3d operator * ( const BcVec3d& Lhs, const BcMat4d& Rhs )
-{
-	return BcVec3d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Lhs.z() * Rhs[2][0] + Rhs[3][0],
-		            Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Lhs.z() * Rhs[2][1] + Rhs[3][1],
-		            Lhs.x() * Rhs[0][2] + Lhs.y() * Rhs[1][2] + Lhs.z() * Rhs[2][2] + Rhs[3][2] );
-}
+BcVec3d operator * ( const BcVec3d& Lhs, const BcMat4d& Rhs );
 
-inline BcVec4d operator * ( const BcVec4d& Lhs, const BcMat4d& Rhs )
-{
-	return BcVec4d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Lhs.z() * Rhs[2][0] + Lhs.w() * Rhs[3][0],
-	                Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Lhs.z() * Rhs[2][1] + Lhs.w() * Rhs[3][1],
-	                Lhs.x() * Rhs[0][2] + Lhs.y() * Rhs[1][2] + Lhs.z() * Rhs[2][2] + Lhs.w() * Rhs[3][2],
-	                Lhs.x() * Rhs[0][3] + Lhs.y() * Rhs[1][3] + Lhs.z() * Rhs[2][3] + Lhs.w() * Rhs[3][3] );
-}
-
-inline BcVec3d BcMat4d::translation() const
-{
-	return BcVec3d( Row3_.x(), Row3_.y(), Row3_.z() );
-}
+BcVec4d operator * ( const BcVec4d& Lhs, const BcMat4d& Rhs );
 
 
 #endif

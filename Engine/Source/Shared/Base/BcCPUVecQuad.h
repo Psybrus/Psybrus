@@ -14,7 +14,7 @@
 #ifndef __BCCPUVECQUADH__
 #define __BCCPUVECQUADH__
 
-#include "Base/BcMath.h"
+#include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcCPUVecQuad

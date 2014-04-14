@@ -14,6 +14,12 @@
 #include "Base/BcMat3d.h"
 #include "Base/BcMat4d.h"
 
+#include "Base/BcVec2d.h"
+#include "Base/BcVec3d.h"
+
+#include "Base/BcMath.h"
+
+
 
 BcMat4d BcMat4d::operator + ( const BcMat4d& Rhs )
 {
@@ -323,3 +329,28 @@ BcBool BcMat4d::isIdentity() const
 	return (*this) == Identity;
 }
 
+BcVec2d operator * ( const BcVec2d& Lhs, const BcMat4d& Rhs )
+{
+	return BcVec2d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Rhs[3][0],
+				    Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Rhs[3][1] );
+}
+
+BcVec3d operator * ( const BcVec3d& Lhs, const BcMat4d& Rhs )
+{
+	return BcVec3d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Lhs.z() * Rhs[2][0] + Rhs[3][0],
+		            Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Lhs.z() * Rhs[2][1] + Rhs[3][1],
+		            Lhs.x() * Rhs[0][2] + Lhs.y() * Rhs[1][2] + Lhs.z() * Rhs[2][2] + Rhs[3][2] );
+}
+
+BcVec4d operator * ( const BcVec4d& Lhs, const BcMat4d& Rhs )
+{
+	return BcVec4d( Lhs.x() * Rhs[0][0] + Lhs.y() * Rhs[1][0] + Lhs.z() * Rhs[2][0] + Lhs.w() * Rhs[3][0],
+	                Lhs.x() * Rhs[0][1] + Lhs.y() * Rhs[1][1] + Lhs.z() * Rhs[2][1] + Lhs.w() * Rhs[3][1],
+	                Lhs.x() * Rhs[0][2] + Lhs.y() * Rhs[1][2] + Lhs.z() * Rhs[2][2] + Lhs.w() * Rhs[3][2],
+	                Lhs.x() * Rhs[0][3] + Lhs.y() * Rhs[1][3] + Lhs.z() * Rhs[2][3] + Lhs.w() * Rhs[3][3] );
+}
+
+BcVec3d BcMat4d::translation() const
+{
+	return BcVec3d( Row3_.x(), Row3_.y(), Row3_.z() );
+}

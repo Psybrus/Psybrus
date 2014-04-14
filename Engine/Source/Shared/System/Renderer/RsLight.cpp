@@ -13,6 +13,8 @@
 
 #include "System/Renderer/RsLight.h"
 
+#include "Base/BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // findAttenuationByDistance
 BcF32 RsLight::findAttenuationByDistance( BcF32 Distance ) const
