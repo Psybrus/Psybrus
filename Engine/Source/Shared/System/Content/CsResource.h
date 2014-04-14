@@ -152,7 +152,11 @@ public:
 	/**
 	 * Get unique identifier for resource
 	 */
-	BcU32							getUniqueId();
+	inline const BcU32				getUniqueId() const
+	{
+		return (BcU32)this;
+//		return UniqueId_;
+	}
 protected:
 	/**
 	 * Get string.
