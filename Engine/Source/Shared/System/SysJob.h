@@ -16,8 +16,6 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
-#include "Base/BcMutex.h"
-#include "Base/BcDelegate.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
@@ -50,13 +48,13 @@ class SysDelegateJob:
 	public SysJob
 {
 public:
-	SysDelegateJob( BcDelegateCallBase* pDelegateCall );
+	SysDelegateJob( class BcDelegateCallBase* pDelegateCall );
 	virtual ~SysDelegateJob();
 	
 	virtual void execute();
 	
 private:
-	BcDelegateCallBase* pDelegateCall_;
+	class BcDelegateCallBase* pDelegateCall_;
 	
 };
 

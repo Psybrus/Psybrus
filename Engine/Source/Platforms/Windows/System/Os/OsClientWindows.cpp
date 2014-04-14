@@ -16,6 +16,7 @@
 #include "System/Os/OsCore.h"
 
 #include "Base/BcString.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Class name generation.

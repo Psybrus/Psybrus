@@ -103,23 +103,6 @@ public:
 	template< typename _Ty >
 	_Ty*			newObject();
 
-	/*
-	template< typename _Ty, typename _P1 >
-	_Ty*			newObject( _P1 P1 );
-
-	template< typename _Ty, typename _P1, typename _P2 >
-	_Ty*			newObject( _P1 P1, _P2 P2 );
-
-	template< typename _Ty, typename _P1, typename _P2, typename _P3 >
-	_Ty*			newObject( _P1 P1, _P2 P2, _P3 P3 );
-
-	template< typename _Ty, typename _P1, typename _P2, typename _P3, typename _P4 >
-	_Ty*			newObject( _P1 P1, _P2 P2, _P3 P3, _P4 P4 );
-
-	template< typename _Ty, typename _P1, typename _P2, typename _P3, typename _P4, typename _P5 >
-	_Ty*			newObject( _P1 P1, _P2 P2, _P3 P3, _P4 P4, _P5 P5 );
-
-	 */
 protected:
 
 };
@@ -136,38 +119,7 @@ inline _Ty* RsFrame::alloc( BcU32 NoofObjects )
 template< typename _Ty >
 inline _Ty* RsFrame::newObject()
 {
-	return placement_new< _Ty >( alloc< _Ty >() );
+	return new ( alloc< _Ty >() ) _Ty();
 }
 
-/*
-template< typename _Ty, typename _P1 >
-inline _Ty* RsFrame::newObject( _P1 P1 )
-{
-	return placement_new ( alloc< _Ty >() ) _Ty( P1 );
-}
-
-template< typename _Ty, typename _P1, typename _P2 >
-inline _Ty* RsFrame::newObject( _P1 P1, _P2 P2 )
-{
-	return placement_new ( alloc< _Ty >() ) _Ty( P1, P2 );
-}
-
-template< typename _Ty, typename _P1, typename _P2, typename _P3 >
-inline _Ty* RsFrame::newObject( _P1 P1, _P2 P2, _P3 P3 )
-{
-	return placement_new ( alloc< _Ty >() ) _Ty( P1, P2, P3 );
-}
-
-template< typename _Ty, typename _P1, typename _P2, typename _P3, typename _P4 >
-inline _Ty* RsFrame::newObject( _P1 P1, _P2 P2, _P3 P3, _P4 P4 )
-{
-	return placement_new ( alloc< _Ty >() ) _Ty( P1, P2, P3, P4 );
-}
-
-template< typename _Ty, typename _P1, typename _P2, typename _P3, typename _P4, typename _P5 >
-inline _Ty* RsFrame::newObject( _P1 P1, _P2 P2, _P3 P3, _P4 P4, _P5 P5 )
-{
-	return placement_new ( alloc< _Ty >() ) _Ty( P1, P2, P3, P4, P5 );
-}
-*/
 #endif

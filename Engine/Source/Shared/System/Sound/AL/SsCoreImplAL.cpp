@@ -14,6 +14,7 @@
 #include "System/Sound/AL/SsCoreImplAL.h"
 
 #include "System/SysKernel.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator

@@ -259,3 +259,100 @@ BcAABB BcAABB::transform( const BcMat4d& Transform ) const
 
 	return NewAABB;
 }
+
+void BcAABB::min( const BcVec3d& Min )
+{
+	Min_ = Min;
+}
+
+void BcAABB::max( const BcVec3d& Max )
+{
+	Max_ = Max;
+}
+
+const BcVec3d& BcAABB::min() const
+{
+	return Min_;
+}
+
+const BcVec3d& BcAABB::max() const
+{
+	return Max_;
+}
+
+BcVec3d BcAABB::corner( BcU32 i ) const
+{
+	return BcVec3d( ( i & 1 ) ? Min_.x() : Max_.x(),
+	                ( i & 2 ) ? Min_.y() : Max_.y(),
+	                ( i & 4 ) ? Min_.z() : Max_.z() );
+}
+
+BcVec3d BcAABB::centre() const
+{
+	return ( ( Min_ + Max_ ) * 0.5f );
+}
+
+BcVec3d BcAABB::dimensions() const
+{
+	return ( Max_ - Min_ );
+}
+
+BcF32 BcAABB::diameter() const
+{
+	return ( ( Max_ - Min_ ).magnitude() );
+}
+
+void BcAABB::empty()
+{
+	Min_.set( 1e24f, 1e24f, 1e24f );
+	Max_.set( -1e24f, -1e24f, -1e24f );
+}
+
+BcBool BcAABB::isEmpty() const
+{
+	return ( ( Min_.x() > Max_.x() ) ||
+	         ( Min_.y() > Max_.y() ) ||
+	         ( Min_.z() > Max_.z() ) );
+}
+
+void BcAABB::expandBy( const BcVec3d& Point )
+{
+	Min_.x( BcMin( Min_.x(), Point.x() ) );
+	Min_.y( BcMin( Min_.y(), Point.y() ) );
+	Min_.z( BcMin( Min_.z(), Point.z() ) );
+
+	Max_.x( BcMax( Max_.x(), Point.x() ) );
+	Max_.y( BcMax( Max_.y(), Point.y() ) );
+	Max_.z( BcMax( Max_.z(), Point.z() ) );
+}
+
+void BcAABB::expandBy( const BcAABB& AABB )
+{
+	Min_.x( BcMin( Min_.x(), AABB.Min_.x() ) );
+	Min_.y( BcMin( Min_.y(), AABB.Min_.y() ) );
+	Min_.z( BcMin( Min_.z(), AABB.Min_.z() ) );
+
+	Max_.x( BcMax( Max_.x(), AABB.Max_.x() ) );
+	Max_.y( BcMax( Max_.y(), AABB.Max_.y() ) );
+	Max_.z( BcMax( Max_.z(), AABB.Max_.z() ) );
+}
+
+BcF32 BcAABB::width() const
+{
+	return Max_.x() - Min_.x();
+}
+
+BcF32 BcAABB::height() const
+{
+	return Max_.y() - Min_.y();
+}
+
+BcF32 BcAABB::depth() const
+{
+	return Max_.z() - Min_.z();
+}
+
+BcF32 BcAABB::volume() const
+{
+	return ( width() * height() * depth() );
+}

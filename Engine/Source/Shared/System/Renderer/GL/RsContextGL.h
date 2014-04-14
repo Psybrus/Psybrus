@@ -25,9 +25,6 @@ class RsContextGL:
 	public RsContext
 {
 public:
-	typedef BcDelegate< void(*)() > SwapBuffersDelegate;
-
-public:
 	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
 	

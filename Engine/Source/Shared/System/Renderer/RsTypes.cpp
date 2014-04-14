@@ -13,6 +13,8 @@
 
 #include "System/Renderer/RsTypes.h"
 
+#include "Base/BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // RsColour Statics
 const RsColour RsColour::WHITE =		RsColour( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -25,6 +27,62 @@ const RsColour RsColour::YELLOW =		RsColour( 1.0f, 1.0f, 0.0f, 1.0f );
 const RsColour RsColour::MAGENTA =		RsColour( 1.0f, 0.0f, 1.0f, 1.0f );
 const RsColour RsColour::PURPLE =		RsColour( 0.5f, 0.0f, 0.5f, 1.0f );
 const RsColour RsColour::CYAN =			RsColour( 0.0f, 1.0f, 1.0f, 1.0f );
+
+RsColour::RsColour()
+{
+}
+
+RsColour::RsColour( const BcVec4d& Vec ):
+	BcVec4d( Vec )
+{
+}
+
+RsColour::RsColour( BcU32 RGBA ):
+	BcVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
+				( ( RGBA >> 8 ) & 0xff ) / 255.0f,
+				( ( RGBA >> 16 ) & 0xff ) / 255.0f,
+				( ( RGBA >> 24 ) & 0xff ) / 255.0f )
+				
+{
+}
+
+RsColour::RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A ):
+	BcVec4d( R, G, B, A )
+{
+}
+
+
+BcU32 RsColour::asRGBA() const
+{
+	return ( ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 24 ) |
+		        ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 16 ) |
+		        ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 8 ) |
+		        ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
+}
+
+BcU32 RsColour::asARGB() const
+{
+	return ( ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) << 24 ) |
+		        ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 16 ) |
+		        ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 8 ) |
+		        ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) ) );
+}
+
+BcU32 RsColour::asABGR() const
+{
+	return ( ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) << 24 ) |
+				( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 16 ) |
+				( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 8 ) |
+				( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) ) );
+}
+
+BcU32 RsColour::asBGRA() const
+{
+	return ( ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 24 ) |
+		        ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 16 ) |
+		        ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 8 ) |
+		        ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // premultiplyAlpha

@@ -14,6 +14,7 @@
 #include "Base/BcCPUVec4d.h"
 #include "Base/BcCPUVec3d.h"
 #include "Base/BcCPUVec2d.h"
+#include "Base/BcMath.h"
 
 #include "Base/BcString.h"
 
@@ -56,4 +57,71 @@ BcCPUVec3d BcCPUVec4d::normal3() const
 	
 	const BcF32 InvMag = 1.0f / Mag;
 	return BcCPUVec3d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag );
+}
+
+BcF32 BcCPUVec4d::magnitude() const
+{
+	return BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
+}
+
+BcF32 BcCPUVec4d::magnitudeSquared() const
+{
+	return ( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
+}
+
+void BcCPUVec4d::normalise()
+{
+	BcF32 Mag = magnitude();
+	
+	if ( Mag == 0.0f )
+	{
+		return;
+	}
+
+	const BcF32 InvMag = 1.0f / Mag;
+	X_ *= InvMag;
+	Y_ *= InvMag;
+	Z_ *= InvMag;
+	W_ *= InvMag;
+}
+
+void BcCPUVec4d::normalise3()
+{
+	BcF32 Mag = BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ );
+
+	if ( Mag == 0.0f )
+	{
+		return;
+	}
+
+	const BcF32 InvMag = 1.0f / Mag;
+	X_ *= InvMag;
+	Y_ *= InvMag;
+	Z_ *= InvMag;
+}
+
+BcCPUVec4d BcCPUVec4d::normal() const
+{
+	BcF32 Mag = magnitude();
+	
+	if ( Mag == 0.0f )
+	{
+		return BcCPUVec4d(0,0,0,0);
+	}
+	
+	const BcF32 InvMag = 1.0f / Mag;
+	return BcCPUVec4d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag, W_ * InvMag );
+}
+
+BcBool BcCPUVec4d::operator == ( const BcCPUVec4d &Rhs ) const
+{
+	return ( ( BcAbs( X_ - Rhs.X_ ) < BcVecEpsilon ) &&
+	         ( BcAbs( Y_ - Rhs.Y_ ) < BcVecEpsilon ) &&
+			 ( BcAbs( Z_ - Rhs.Z_ ) < BcVecEpsilon ) &&
+			 ( BcAbs( W_ - Rhs.W_ ) < BcVecEpsilon ) );
+}
+
+BcBool BcCheckFloat( BcCPUVec4d T )
+{
+	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() ) && BcCheckFloat( T.z() ) && BcCheckFloat( T.w() );
 }

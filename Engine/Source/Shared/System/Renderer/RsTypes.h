@@ -22,52 +22,15 @@
 struct RsColour:
 	public BcVec4d
 {
-	RsColour(){};
-	RsColour( const BcVec4d& Vec ):
-		BcVec4d( Vec )
-	{};
-	RsColour( BcU32 RGBA ):
-		BcVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
-				 ( ( RGBA >> 8 ) & 0xff ) / 255.0f,
-				 ( ( RGBA >> 16 ) & 0xff ) / 255.0f,
-				 ( ( RGBA >> 24 ) & 0xff ) / 255.0f )
-				
-	{};
-	RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A ):
-		BcVec4d( R, G, B, A )
-	{};
+	RsColour();
+	RsColour( const BcVec4d& Vec );
+	RsColour( BcU32 RGBA );
+	RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A );
 
-	BcU32 asRGBA() const
-	{
-		return ( ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 24 ) |
-		         ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 16 ) |
-		         ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 8 ) |
-		         ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
-	}
-
-	BcU32 asARGB() const
-	{
-		return ( ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) << 24 ) |
-		         ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 16 ) |
-		         ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 8 ) |
-		         ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) ) );
-	}
-
-	BcU32 asABGR() const
-	{
-		return ( ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) << 24 ) |
-				 ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 16 ) |
-				 ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 8 ) |
-				 ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) ) );
-	}
-
-	BcU32 asBGRA() const
-	{
-		return ( ( BcClamp( static_cast< BcU32 >( b() * 255.0f ), 0, 255 ) << 24 ) |
-		         ( BcClamp( static_cast< BcU32 >( g() * 255.0f ), 0, 255 ) << 16 ) |
-		         ( BcClamp( static_cast< BcU32 >( r() * 255.0f ), 0, 255 ) << 8 ) |
-		         ( BcClamp( static_cast< BcU32 >( a() * 255.0f ), 0, 255 ) ) );
-	}
+	BcU32 asRGBA() const;
+	BcU32 asARGB() const;
+	BcU32 asABGR() const;
+	BcU32 asBGRA() const;
 
 	inline BcF32 r() const { return x(); };
 	inline BcF32 g() const { return y(); };
