@@ -327,10 +327,3 @@ void CsResource::onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	fileChunkReady( ChunkIdx, ChunkID, pData );
 }
-
-//////////////////////////////////////////////////////////////////////////
-// getUniqueId
-BcU32 CsResource::getUniqueId()
-{
-	return UniqueId_;
-}

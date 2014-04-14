@@ -17,6 +17,7 @@
 #include "Base/BcGlobal.h"
 #include "Base/BcMutex.h"
 #include "Base/BcScopedLock.h"
+#include "Base/BcHtml.h"
 #include "System/SysSystem.h"
 
 #include "System/Content/CsCore.h"
@@ -52,7 +53,7 @@ typedef struct DsCoreMessage
 	std::string Text_;
 	std::string Display_;
 	bool Visible_;
-	std::function <void(DsParameters, std::string&)> Function_;
+	std::function <void(DsParameters, BcHtmlNode&)> Function_;
 } DsCoreMessage;
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,26 +77,26 @@ public:
 	virtual void				update();
 	virtual void				close();
 
-	static void					cmdMenu(DsParameters params, std::string& Output);
-	static void					cmdContent( DsParameters params, std::string& Output );
+	static void					cmdMenu(DsParameters params, BcHtmlNode& Output);
+	static void					cmdContent(DsParameters params, BcHtmlNode& Output);
 
-	void						cmdContent_Resource( std::string& Output );
+	void						cmdContent_Resource(BcHtmlNode& Output);
 
-	static void					cmdScene( DsParameters params, std::string& Output );
-	static void					cmdScene_Entity( ScnEntityRef Entity, std::string& Output, BcU32 Depth);
-	static void					cmdScene_Component( ScnComponentRef Entity, std::string& Output, BcU32 Depth );
+	static void					cmdScene(DsParameters params, BcHtmlNode& Output);
+	static void					cmdScene_Entity(ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth);
+	static void					cmdScene_Component(ScnComponentRef Entity, BcHtmlNode& Output, BcU32 Depth);
 
-	static void					cmdResource(DsParameters params, std::string& Output);
+	static void					cmdResource(DsParameters params, BcHtmlNode& Output);
 
 	void						gameThreadMongooseCallback( enum mg_event Event, struct mg_connection* pConn );
 	void*						mongooseCallback( enum mg_event Event, struct mg_connection* pConn );
 	static void*				MongooseCallback( enum mg_event Event, struct mg_connection* pConn );
 
-	void						writeHeader(std::string& Output);
-	void						writeFooter(std::string& Output);
+	void						writeHeader(BcHtmlNode& Output);
+	void						writeFooter(BcHtmlNode& Output);
 	BcU8*						writeFile(std::string filename, int& OutLength, std::string& type);
-	void						registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn, std::string display);
-	void						registerFunction(std::string regex, std::function < void(DsParameters, std::string&)> fn);
+	void						registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
+	void						registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
 	void						deregisterFunction(std::string regex);
 
 
