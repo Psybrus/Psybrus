@@ -16,6 +16,10 @@
 
 #include "Base/BcTypes.h"
 
+#include <map>
+#include <vector>
+#include <string>
+
 class BcHtml;
 
 //////////////////////////////////////////////////////////////////////////

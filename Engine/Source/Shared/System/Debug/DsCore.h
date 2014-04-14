@@ -18,6 +18,7 @@
 #include "Base/BcMutex.h"
 #include "Base/BcScopedLock.h"
 #include "Base/BcHtml.h"
+#include "Base/BcRegex.h"
 #include "System/SysSystem.h"
 
 #include "System/Content/CsCore.h"
@@ -26,6 +27,7 @@
 #include <mongoose.h>
 #include <functional>
 #include <map>
+
 //////////////////////////////////////////////////////////////////////////
 /**	\struct DsCoreMessage
 *	\brief Storage struct for functions
