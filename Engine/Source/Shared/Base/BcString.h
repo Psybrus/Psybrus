@@ -16,72 +16,33 @@
 
 #include "Base/BcTypes.h"
 
-#include <string.h>
-#include <stdarg.h>
 #include <stdio.h>
-#include <cstdlib>
-
-#if PLATFORM_WINDOWS
-#define caseInsensitiveComparison stricmp
-#define safeCaseInsensitiveComparison strnicmp
-#elif PLATFORM_LINUX || PLATFORM_OSX
-#define caseInsensitiveComparison strcasecmp
-#define safeCaseInsensitiveComparison strncasecmp
-#else
-
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrLength
-inline BcU32 BcStrLength( const BcChar* pString )
-{
-	return static_cast< BcU32 >( strlen( pString ) );
-}
+BcU32 BcStrLength( const BcChar* pString );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCopy
-inline void BcStrCopy( BcChar* pDest, const BcChar* pSrc )
-{
-	strcpy( pDest, pSrc );
-}
+void BcStrCopy( BcChar* pDest, const BcChar* pSrc );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrStr
-inline BcChar* BcStrStr( BcChar* pStr, const BcChar* pSubStr )
-{
-	return strstr( pStr, pSubStr );
-}
-
-inline const BcChar* BcStrStr( const BcChar* pStr, const BcChar* pSubStr )
-{
-	return strstr( (char*)pStr, pSubStr );
-}
+BcChar* BcStrStr( BcChar* pStr, const BcChar* pSubStr );
+const BcChar* BcStrStr( const BcChar* pStr, const BcChar* pSubStr );
 
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrNCopy
-inline void BcStrCopyN( BcChar* pDest, const BcChar* pSrc, BcU32 Count )
-{
-	strncpy( pDest, pSrc, Count );
-	pDest[ Count - 1 ] = '\0';		// Auto termination.
-}
+void BcStrCopyN( BcChar* pDest, const BcChar* pSrc, BcU32 Count );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCompare
-inline BcBool BcStrCompare( const BcChar* pStr1, const BcChar* pStr2 )
-{
-	BcU32 Result = caseInsensitiveComparison( pStr1, pStr2 );
-	return ( Result == 0 );
-}
+BcBool BcStrCompare( const BcChar* pStr1, const BcChar* pStr2 );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrNCompare
-inline BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count )
-{
-	BcU32 Result = safeCaseInsensitiveComparison( pStr1, pStr2, Count );
-	return ( Result == 0 );
-}
+BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
 
 //////////////////////////////////////////////////////////////////////////
 // BcSPrintf
