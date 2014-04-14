@@ -13,6 +13,66 @@
 
 #include "Base/BcString.h"
 
+#if PLATFORM_WINDOWS
+#define caseInsensitiveComparison stricmp
+#define safeCaseInsensitiveComparison strnicmp
+#elif PLATFORM_LINUX || PLATFORM_OSX
+#define caseInsensitiveComparison strcasecmp
+#define safeCaseInsensitiveComparison strncasecmp
+#else
+
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrLength
+BcU32 BcStrLength( const BcChar* pString )
+{
+	return static_cast< BcU32 >( strlen( pString ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrCopy
+void BcStrCopy( BcChar* pDest, const BcChar* pSrc )
+{
+	strcpy( pDest, pSrc );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrStr
+BcChar* BcStrStr( BcChar* pStr, const BcChar* pSubStr )
+{
+	return strstr( pStr, pSubStr );
+}
+
+const BcChar* BcStrStr( const BcChar* pStr, const BcChar* pSubStr )
+{
+	return strstr( (char*)pStr, pSubStr );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrNCopy
+void BcStrCopyN( BcChar* pDest, const BcChar* pSrc, BcU32 Count )
+{
+	strncpy( pDest, pSrc, Count );
+	pDest[ Count - 1 ] = '\0';		// Auto termination.
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrCompare
+BcBool BcStrCompare( const BcChar* pStr1, const BcChar* pStr2 )
+{
+	BcU32 Result = caseInsensitiveComparison( pStr1, pStr2 );
+	return ( Result == 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrNCompare
+BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count )
+{
+	BcU32 Result = safeCaseInsensitiveComparison( pStr1, pStr2, Count );
+	return ( Result == 0 );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // T.K. - waz 'ere messing with you strings ;-) 
