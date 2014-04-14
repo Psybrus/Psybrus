@@ -14,8 +14,6 @@
 #ifndef	__BCPLANE_H__
 #define __BCPLANE_H__
 
-#include "Base/BcMath.h"
-
 #include "Base/BcVec3d.h"
 #include "Base/BcMat4d.h"
 
@@ -85,51 +83,6 @@ inline BcPlane::BcPlane( BcF32 A, BcF32 B, BcF32 C, BcF32 D )
 {
 	Normal_ = BcVec3d( A, B, C );
 	D_ = D;
-}
-
-inline void BcPlane::fromPoints( const BcVec3d& V1, const BcVec3d& V2, const BcVec3d& V3 )
-{
-	Normal_ = ( V1 - V2 ).cross( ( V3 - V2 ) );
-	Normal_.normalise();
-	D_ = -( V1.dot( Normal_ ) );
-}
-
-inline void BcPlane::fromPointNormal( const BcVec3d& Point, const BcVec3d& Normal )
-{
-	Normal_ = Normal;
-	Normal_.normalise();
-	D_ = -( Point.dot( Normal_ ) );
-}
-
-inline BcF32 BcPlane::distance( const BcVec3d& P ) const
-{
-	return ( Normal_.dot(P) ) + D_;
-}
-
-inline void BcPlane::normalise()
-{
-	D_ = D_ / Normal_.magnitude();
-	Normal_.normalise();
-};
-
-inline const BcVec3d& BcPlane::normal() const
-{
-	return Normal_;
-}
-
-inline BcF32 BcPlane::d() const
-{
-	return D_;
-};
-
-inline BcBool BcPlane::operator == (const BcPlane& Other ) const
-{
-	return ( Other.normal() == normal() && Other.d() == d() );
-}
-
-inline BcPlane BcPlane::operator -() const
-{
-	return BcPlane( -Normal_, D_ );
 }
 
 #endif

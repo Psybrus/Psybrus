@@ -20,6 +20,8 @@
 
 #include "System/Scene/ScnDebugRenderComponent.h"
 
+#include "Base/BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnLightComponent );

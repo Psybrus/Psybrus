@@ -15,6 +15,8 @@
 
 #include "System/Renderer/RsCore.h"
 
+#include "Base/BcMath.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsVertexBufferGL::RsVertexBufferGL( RsContext* pContext, const RsVertexBufferDesc& Desc, void* pVertexData ):

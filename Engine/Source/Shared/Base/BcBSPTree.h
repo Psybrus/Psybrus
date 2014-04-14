@@ -157,12 +157,4 @@ private:
 
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// BcBSPData::set
-inline void BcBSPInfo::set( BcBSPNode* pNode )
-{
-	BcAssert( pNode != NULL );
-	Plane_ = pNode->Plane_;
-}
-
 #endif

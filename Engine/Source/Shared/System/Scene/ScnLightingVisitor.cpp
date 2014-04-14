@@ -19,6 +19,8 @@
 
 #include "System/Scene/ScnCore.h"
 
+#include "Base/BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnLightingVisitorLightSort
 class ScnLightingVisitorLightSort

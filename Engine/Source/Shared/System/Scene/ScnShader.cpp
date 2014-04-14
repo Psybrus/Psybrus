@@ -15,6 +15,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include "Base/BcMath.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"

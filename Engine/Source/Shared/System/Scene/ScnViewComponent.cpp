@@ -21,6 +21,8 @@
 
 #include "System/Scene/ScnRenderingVisitor.h"
 
+#include "Base/BcMath.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 

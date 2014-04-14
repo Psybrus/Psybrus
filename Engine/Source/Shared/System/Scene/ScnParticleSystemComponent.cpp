@@ -20,6 +20,7 @@
 #include "System/SysKernel.h"
 
 #include "Base/BcRandom.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.

@@ -128,29 +128,7 @@ public:
 		pDelegateCall->deferCall( P0, P1, P2 );
 		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
 	}
-	
-	/**
-	 * Enqueue job.
-	 */
-	template< typename _Fn, typename _P0, typename _P1, typename _P2, typename _P3 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2, _P3 P3 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1, P2, P3 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
-	}
-
-	/**
-	 * Enqueue job.
-	 */
-	template< typename _Fn, typename _P0, typename _P1, typename _P2, typename _P3, typename _P4 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2, _P3 P3, _P4 P4 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1, P2, P3, P4 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
-	}
-
+		
 	/**
 	 * Enqueue callback.
 	 */
@@ -195,17 +173,6 @@ public:
 		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
 	}
 	
-	/**
-	 * Enqueue callback.
-	 */
-	template< typename _Fn, typename _P0, typename _P1, typename _P2, typename _P3 >
-	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2, _P3 P3 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1, P2, P3 );
-		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
-	}
-
 private:
 	/**
 	 * Execute.

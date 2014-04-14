@@ -19,6 +19,8 @@
 
 #include "Base/BcCompression.h"
 
+#include "Base/BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
