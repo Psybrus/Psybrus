@@ -19,8 +19,6 @@
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
 #include "Base/BcMemory.h"
-#include "Base/BcString.h"
-#include "Base/BcMath.h"
 
 #include <vector>
 

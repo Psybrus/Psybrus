@@ -13,6 +13,8 @@
 
 #include "System/Scene/ScnTextureAtlas.h"
 
+#include "Base/BcMath.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 #include "Import/Img/Img.h"

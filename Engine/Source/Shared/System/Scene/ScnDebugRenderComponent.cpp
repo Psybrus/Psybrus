@@ -18,6 +18,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
+#include "Base/BcMath.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 #endif

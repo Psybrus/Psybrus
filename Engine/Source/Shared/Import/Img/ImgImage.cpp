@@ -16,6 +16,7 @@
 #include "Base/BcVec2d.h"
 #include "Base/BcVec3d.h"
 #include "Base/BcVec4d.h"
+#include "Base/BcMath.h"
 
 #include "squish.h"
 

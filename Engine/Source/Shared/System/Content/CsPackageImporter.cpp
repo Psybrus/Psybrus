@@ -19,6 +19,7 @@
 #include "Base/BcCompression.h"
 
 #include "Base/BcRegex.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.

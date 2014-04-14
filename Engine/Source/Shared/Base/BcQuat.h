@@ -11,9 +11,6 @@
 * 
 **************************************************************************/
 
-#include "Base/BcMath.h"
-
-
 #include "Base/BcTypes.h"
 #include "Base/BcVec3d.h"
 #include "Base/BcVec4d.h"
@@ -71,49 +68,6 @@ inline BcQuat::BcQuat(BcF32 lX, BcF32 lY, BcF32 lZ, BcF32 lW):
 	BcVec4d( lX, lY, lZ, lW )
 {
 
-}
-
-// Arithmetic
-
-// Cross Product
-inline BcQuat BcQuat::operator * (const BcQuat& rhs) const
-{
-	return BcQuat( (w() * rhs.x()) + (x() * rhs.w()) + (y() * rhs.z()) - (z() * rhs.y()) ,
-	               (w() * rhs.y()) + (y() * rhs.w()) + (z() * rhs.x()) - (x() * rhs.z()) ,
-	               (w() * rhs.z()) + (z() * rhs.w()) + (x() * rhs.y()) - (y() * rhs.x()) ,
-	               (w() * rhs.w()) - (x() * rhs.x()) - (y() * rhs.y()) - (z() * rhs.z()) );
-}
-
-// Inverse
-inline BcQuat BcQuat::operator ~ () const
-{
-	return BcQuat(-x(), -y(), -z(), w());
-}
-
-// Additional stuff
-
-// Make an identity quaternion 1.0(0.0, 0.0, 0.0)
-inline void BcQuat::makeIdentity()
-{
-	x( 0.0f );
-	y( 0.0f );
-	z( 0.0f );
-	w( 1.0f );
-}
-
-// Return the magnitude
-inline BcF32 BcQuat::magnitude()
-{
-	return BcSqrt(w() * w() + x() * x() + y() * y() + z() * z());
-}
-
-// Quick speed up - needs optimising
-inline void BcQuat::rotateVector( BcVec3d& vec ) const
-{	
-	const BcQuat& This = (*this);
-	const BcQuat OutVec = This * BcQuat( vec.x(), vec.y(), vec.z(), 1.0f ) * ~This;
-
-	vec.set( OutVec.x(), OutVec.y(), OutVec.z() );       		
 }
 
 #endif

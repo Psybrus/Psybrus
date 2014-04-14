@@ -90,3 +90,49 @@ BcBool BcPlane::intersect( const BcPlane& A, const BcPlane& B, const BcPlane& C,
 
 	return BcTrue;
 }
+
+void BcPlane::fromPoints( const BcVec3d& V1, const BcVec3d& V2, const BcVec3d& V3 )
+{
+	Normal_ = ( V1 - V2 ).cross( ( V3 - V2 ) );
+	Normal_.normalise();
+	D_ = -( V1.dot( Normal_ ) );
+}
+
+void BcPlane::fromPointNormal( const BcVec3d& Point, const BcVec3d& Normal )
+{
+	Normal_ = Normal;
+	Normal_.normalise();
+	D_ = -( Point.dot( Normal_ ) );
+}
+
+BcF32 BcPlane::distance( const BcVec3d& P ) const
+{
+	return ( Normal_.dot(P) ) + D_;
+}
+
+void BcPlane::normalise()
+{
+	D_ = D_ / Normal_.magnitude();
+	Normal_.normalise();
+};
+
+const BcVec3d& BcPlane::normal() const
+{
+	return Normal_;
+}
+
+BcF32 BcPlane::d() const
+{
+	return D_;
+};
+
+BcBool BcPlane::operator == (const BcPlane& Other ) const
+{
+	return ( Other.normal() == normal() && Other.d() == d() );
+}
+
+BcPlane BcPlane::operator -() const
+{
+	return BcPlane( -Normal_, D_ );
+}
+

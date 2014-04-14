@@ -13,6 +13,17 @@
 
 #include "BcBSPTree.h"
 
+#include "Base/BcDebug.h"
+#include "Base/BcMath.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// BcBSPData::set
+void BcBSPInfo::set( BcBSPNode* pNode )
+{
+	BcAssert( pNode != NULL );
+	Plane_ = pNode->Plane_;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 BcBSPTree::BcBSPTree():
