@@ -1,0 +1,62 @@
+#include "Reflection/ReReflection.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Definitions
+REFLECTION_DEFINE_BASE( ClassSerialiser );
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ClassSerialiser::ClassSerialiser( const std::string& Name )
+{
+	Class_ = GetClass( Name );
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ClassSerialiser::~ClassSerialiser()
+{
+			
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBinaryDataSize
+BcU32 ClassSerialiser::getBinaryDataSize( const void* ) const
+{
+	return Class_->getSize();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseToBinary
+BcBool ClassSerialiser::serialiseToBinary( const void*, BcBinaryData::Stream& ) const
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseFromBinary
+BcBool ClassSerialiser::serialiseFromBinary( void*, const BcBinaryData::Stream& ) const 
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseToString
+BcBool ClassSerialiser::serialiseToString( const void*, std::string& ) const
+{
+	return false;
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// serialiseFromString
+BcBool ClassSerialiser::serialiseFromString( void*, const std::string& ) const
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// copy
+BcBool ClassSerialiser::copy( void* pDst, void* pSrc ) const 
+{
+	return false;
+}
