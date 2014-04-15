@@ -1,0 +1,354 @@
+#ifndef __REFLECTION_UTILITY_H__
+#define __REFLECTION_UTILITY_H__
+
+#include "Base/BcTypes.h"
+#include "Base/BcBinaryData.h"
+#include "Base/BcHash.h"
+#include "Base/BcAtomic.h"
+
+#include "Reflection/ReMacros.h"
+#include "Reflection/ReObjectRef.h"
+
+#include <vector>
+#include <map>
+#include <list>
+
+//////////////////////////////////////////////////////////////////////////
+// FieldFlags
+enum FieldFlags
+{
+	// Pointer type info.
+	bcRFF_POINTER =					0x00000001,		// Pointer type.
+	bcRFF_REFERENCE =				0x00000002,		// Reference type.
+	bcRFF_OBJECT_REFERENCE =		0x00000004,		// Smart pointer type (ref counted).
+
+	// Basic type info.
+	bcRFF_CONST =					0x00000010,		// Const.
+	bcRFF_ATOMIC =					0x00000020,		// Atomic type.
+	bcRFF_POD =						0x00000040,		// Plain old data.
+
+	// Properties.
+	bcRFF_HIDDEN =					0x00000100,		// Hidden from existance, but included in size & offset calculation.
+	bcRFF_TRANSIENT =				0x00000200,		// Don't bother serialising unless specified.
+	bcRFF_SHALLOW_COPY =			0x00000400,		// Only perform a shallow copy on this field when using as a basis.
+
+	// Simple deref when traversing.
+	bcRFF_SIMPLE_DEREF = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,
+
+	// Any pointer type.
+	bcRFF_ANY_POINTER_TYPE = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE
+};
+
+//////////////////////////////////////////////////////////////////////////
+// TypeTraits
+template< typename _Ty >
+struct TypeTraits
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = 0;
+	static const bool IsEnum = std::is_enum< Type >::value;
+	static const char* Name()
+	{
+		return typeid( Type ).name();
+	}
+};
+		
+template<>
+struct TypeTraits< BcU8 >
+{
+	typedef BcU8 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcU8";
+	}
+};
+
+template<>
+struct TypeTraits< BcS8 >
+{
+	typedef BcS8 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcS8";
+	}
+};
+
+template<>
+struct TypeTraits< BcU16 >
+{
+	typedef BcU16 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcU16";
+	}
+};
+
+template<>
+struct TypeTraits< BcS16 >
+{
+	typedef BcS16 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcS16";
+	}
+};
+
+template<>
+struct TypeTraits< BcU32 >
+{
+	typedef BcU32 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcU32";
+	}
+};
+
+template<>
+struct TypeTraits< BcS32 >
+{
+	typedef BcS32 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcS32";
+	}
+};
+
+template<>
+struct TypeTraits< BcU64 >
+{
+	typedef BcU64 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcU64";
+	}
+};
+
+template<>
+struct TypeTraits< BcS64 >
+{
+	typedef BcS64 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcS64";
+	}
+};
+
+template<>
+struct TypeTraits< BcF32 >
+{
+	typedef BcF32 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcF32";
+	}
+};
+
+template<>
+struct TypeTraits< BcF64 >
+{
+	typedef BcF64 Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "BcF64";
+	}
+};
+
+template<>
+struct TypeTraits< std::string >
+{
+	typedef std::string Type;
+	static const BcU32 Flags = 0;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "string";
+	}
+};
+
+template< typename _Ty >
+struct TypeTraits< _Ty* >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_POINTER;
+	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+		return TypeTraits< Type >::Name();
+	}
+};
+
+template< typename _Ty >
+struct TypeTraits< _Ty& >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_REFERENCE;
+	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+		return TypeTraits< Type >::Name();
+	}
+};
+
+template< typename _Ty >
+struct TypeTraits< ObjectRef< _Ty > >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_OBJECT_REFERENCE;
+	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+		return TypeTraits< Type >::Name();
+	}
+};
+		
+template< typename _Ty >
+struct TypeTraits< const  _Ty* >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_POINTER | bcRFF_CONST;
+	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+		return TypeTraits< Type >::Name();
+	}
+};
+
+template< typename _Ty >
+struct TypeTraits< const _Ty& >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_REFERENCE | bcRFF_CONST;
+	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+		return TypeTraits< Type >::Name();
+	}
+};
+		
+template< typename _Ty >
+struct TypeTraits< BcAtomic< _Ty > >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_ATOMIC;
+	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+		return TypeTraits< Type >::Name();
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BaseTypeConversion
+template < typename _Ty >
+struct BaseTypeConversion
+{
+	typedef _Ty BaseType;
+	typedef _Ty CastType;
+	static const int precision = std::numeric_limits< BaseType >::digits10;
+};
+
+template <>
+struct BaseTypeConversion< BcU8 >
+{
+	typedef BcU8 BaseType;
+	typedef BcU32 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcU16 >
+{
+	typedef BcU16 BaseType;
+	typedef BcU32 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcU32 >
+{
+	typedef BcU32 BaseType;
+	typedef BcU32 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcU64 >
+{
+	typedef BcU64 BaseType;
+	typedef BcU64 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcS8 >
+{
+	typedef BcS8 BaseType;
+	typedef BcS32 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcS16 >
+{
+	typedef BcS16 BaseType;
+	typedef BcS32 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcS32 >
+{
+	typedef BcS32 BaseType;
+	typedef BcS32 CastType;
+	static const int precision = 0;
+};
+
+template <>
+struct BaseTypeConversion< BcS64 >
+{
+	typedef BcS64 BaseType;
+	typedef BcS64 CastType;
+	static const int precision = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// NoInit
+enum NoInit
+{
+	NOINIT
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Forward Declarations.
+class ITypeSerialiser;
+class IContainerAccessor;
+class Object;
+class Primitive;
+class Type;
+class EnumConstant;
+class Enum;
+class Field;
+class Class;
+class ClassSerialiser;
+
+#endif

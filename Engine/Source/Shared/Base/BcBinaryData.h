@@ -16,8 +16,8 @@ public:
 	class Stream
 	{
 	public:
-		Stream( BcBinaryData& BinaryData, size_t CurrOffset = 0 ):
-			BinaryData_( BinaryData ),
+		Stream( BcBinaryData& BcBinaryData, size_t CurrOffset = 0 ):
+			BinaryData_( BcBinaryData ),
 			CurrOffset_( CurrOffset )
 		{
 		}
