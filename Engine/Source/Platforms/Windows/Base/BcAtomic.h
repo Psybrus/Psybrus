@@ -72,6 +72,16 @@ public:
 	_Ty operator -- ( int );
 
 	/**
+	* Or.
+	*/
+	_Ty operator |= ( _Ty Value );
+
+	/**
+	* And.
+	*/
+	_Ty operator &= ( _Ty Value );
+
+	/**
 	* Add.
 	*/
 	void operator += ( _Ty Value );
@@ -160,6 +170,18 @@ template< typename _Ty >
 BcForceInline _Ty BcAtomic< _Ty >::operator -- ( int )
 {
 	return (_Ty)( ::InterlockedExchangeAdd( &Internal_, -1 ) );
+}
+
+template< typename _Ty >
+BcForceInline _Ty BcAtomic< _Ty >::operator |= ( _Ty Value )
+{
+	return (_Ty) _InterlockedOr( &Internal_, Value );
+}
+
+template< typename _Ty >
+BcForceInline _Ty BcAtomic< _Ty >::operator &= ( _Ty Value )
+{
+	return (_Ty) _InterlockedAnd( &Internal_, Value );
 }
 
 template< typename _Ty >

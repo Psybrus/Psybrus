@@ -1,0 +1,195 @@
+#ifndef __REFLECTION_MACROS_H__
+#define __REFLECTION_MACROS_H__
+
+#include <string>
+
+//////////////////////////////////////////////////////////////////////////
+// Reflection Defines.
+
+/**
+ * Internal
+ */
+#define __REFLECTION_DECLARE_BASIC( _Type )										\
+	public:																		\
+	static const std::string& StaticGetTypeName();								\
+	static BcU32 StaticGetTypeNameHash();										\
+	static const Class* StaticGetClass();										\
+	static void StaticRegisterClass();											\
+	friend class ClassSerialiser_##_Type;										\
+
+/**
+ * Internal
+ */
+#define __REFLECTION_DEFINE_BASIC( _Type )										\
+	const std::string& _Type::StaticGetTypeName()								\
+	{																			\
+		static std::string Name( TypeTraits< _Type >::Name() );					\
+		return Name;															\
+	}																			\
+																				\
+	BcU32 _Type::StaticGetTypeNameHash()										\
+	{																			\
+		static BcU32 TypeHash = BcHash( StaticGetTypeName().c_str() );			\
+		return TypeHash;														\
+	}																			\
+																				\
+	const Class* _Type::StaticGetClass()										\
+	{																			\
+		static const Class* pClass = GetClass( StaticGetTypeName() );			\
+		return pClass;															\
+	}																			\
+
+/**
+ * Internal
+ */
+#define __REFLECTION_DECLARE_BASE( _Type )										\
+	__REFLECTION_DECLARE_BASIC( _Type )											\
+	virtual const std::string& getTypeName() const;								\
+	virtual BcU32 getTypeHash() const;											\
+	virtual const Class* getClass() const;										\
+	virtual BcBool isType( const std::string& Type ) const;						\
+	virtual BcBool isTypeOf( const std::string& Type ) const;					\
+	virtual BcBool isTypeOf( const Class* pClass ) const;						\
+	template < class _Ty >														\
+	inline BcBool isTypeOf() const												\
+	{																			\
+		return this ? isTypeOf( _Ty::StaticGetTypeName() ) : false;				\
+	}																			\
+
+/**
+ * Internal
+ */
+#define __REFLECTION_DEFINE_BASE( _Type )										\
+	__REFLECTION_DEFINE_BASIC( _Type )											\
+	const std::string& _Type::getTypeName() const								\
+	{																			\
+		return _Type::StaticGetTypeName();										\
+	}																			\
+																				\
+	const Class* _Type::getClass() const										\
+	{																			\
+		return _Type::StaticGetClass();											\
+	}																			\
+
+/**
+ * @brief Declare basic type.
+ * 
+ * Used for POD types that don't want a v-table.
+ * Should be put in the header inside the class definition.
+ */
+#define REFLECTION_DECLARE_BASIC( _Type )										\
+	__REFLECTION_DECLARE_BASIC( _Type )											\
+	_Type( NoInit ){};
+
+/**
+ * @brief Define basic type.
+ * 
+ * Used for POD types that don't want a v-table.
+ * Should be put in the cpp.
+ */
+#define REFLECTION_DEFINE_BASIC( _Type )										\
+	__REFLECTION_DEFINE_BASIC( _Type )											\
+
+
+/**
+ * @brief Declare base type.
+ * 
+ * Used for base types that want RTTI support.
+ */
+#define REFLECTION_DECLARE_BASE( _Type )										\
+	__REFLECTION_DECLARE_BASE( _Type )											\
+	_Type( NoInit ){};
+
+/**
+ * @brief Declare base type with manual NoInit.
+ * 
+ * Used for base types that want RTTI support.
+ * Should be put in the header in the class definition.
+ * Must define you own constructor with constructor:
+ *   TYPE( NoInit )
+ */
+#define REFLECTION_DECLARE_BASE_MANUAL_NOINIT( _Type )							\
+	__REFLECTION_DECLARE_BASE( _Type )											\
+
+/**
+ * @brief Define base type.
+ * 
+ * Used for base types that want RTTI support.
+ * Should be put in the cpp.
+ */
+#define REFLECTION_DEFINE_BASE( _Type )											\
+	__REFLECTION_DEFINE_BASE( _Type )											\
+	BcU32 _Type::getTypeHash() const											\
+	{																			\
+		return _Type::StaticGetTypeNameHash();									\
+	}																			\
+																				\
+	BcBool _Type::isType( const std::string& Type ) const						\
+	{																			\
+		return _Type::StaticGetTypeName() == Type;								\
+	}																			\
+																				\
+	BcBool _Type::isTypeOf( const std::string& Type ) const 					\
+	{																			\
+		return _Type::StaticGetTypeName() == Type;								\
+	}																			\
+																				\
+	BcBool _Type::isTypeOf( const Class* pClass ) const 						\
+	{																			\
+		return _Type::StaticGetClass() == pClass;								\
+	}																			\
+
+/**
+ * @brief Declare derived type.
+ * 
+ * Used for derived types that want RTTI support.
+ * Should be put in the header in the class definition.
+ */
+#define REFLECTION_DECLARE_DERIVED( _Type, _Base )								\
+	public:																		\
+		typedef _Base Super;													\
+		__REFLECTION_DECLARE_BASE( _Type )										\
+	_Type( NoInit ): _Base( NOINIT ) {};
+
+/**
+ * @brief Declare derived type.
+ * 
+ * Used for derived types that want RTTI support.
+ * Should be put in the header in the class definition.
+  * Must define you own constructor with constructor:
+ *   TYPE( NoInit )
+ */
+#define REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( _Type, _Base )				\
+	public:																		\
+		typedef _Base Super;													\
+		__REFLECTION_DECLARE_BASE( _Type )										\
+
+/**
+ * @brief Define derived type.
+ * 
+ * Used for derived types that want RTTI support.
+ * Should be put in the cpp.
+ */
+#define REFLECTION_DEFINE_DERIVED( _Type )										\
+	__REFLECTION_DEFINE_BASE( _Type )											\
+	BcU32 _Type::getTypeHash() const											\
+	{																			\
+		return _Type::StaticGetTypeNameHash();									\
+	}																			\
+																				\
+	BcBool _Type::isType( const std::string& Type ) const						\
+	{																			\
+		return  _Type::StaticGetTypeName() == Type;								\
+	}																			\
+																				\
+	BcBool _Type::isTypeOf( const std::string& Type ) const 					\
+	{																			\
+		return _Type::StaticGetTypeName() == Type || Super::isTypeOf( Type );	\
+	}																			\
+																				\
+	BcBool _Type::isTypeOf( const Class* pClass ) const 						\
+	{																			\
+		return _Type::StaticGetClass() == pClass || Super::isTypeOf( pClass );	\
+	}																			\
+
+#endif
