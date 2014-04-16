@@ -98,7 +98,7 @@ BcBool ReClassSerialiser_BinaryDataType::serialiseFromString( void* pInstance, c
 	BcU64 BytesRequired = ( InString.length() * 3 / 4 );
 	BcAssert( BytesRequired < std::numeric_limits< size_t >::max() );
 	*pBinaryData = BcBinaryData( (size_t)BytesRequired );
-	Memory::Zero( pBinaryData->getData< BcU8 >(), pBinaryData->getDataSize() );
+	BcMemZero( pBinaryData->getData< BcU8 >(), pBinaryData->getDataSize() );
 	base64_decodestate DecodeState;
 	base64_init_decodestate( &DecodeState );
 	auto InBytes = base64_decode_block( &InString[ 0 ], InString.length(), pBinaryData->getData< char >(), &DecodeState );
