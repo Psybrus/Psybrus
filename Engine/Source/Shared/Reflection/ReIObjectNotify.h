@@ -12,7 +12,7 @@ public:
 	/**
 		* @brief Notify on deletion.
 		*/
-	virtual void onObjectDeleted( class Object* Object ) = 0;
+	virtual void onObjectDeleted( class ReObject* Object ) = 0;
 			
 };
 

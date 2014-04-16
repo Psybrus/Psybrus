@@ -63,7 +63,7 @@ struct Factory
 			Types_[ Name ] = FoundType;
 		}
 
-		if( FoundType->isTypeOf< Class >() )
+		if( FoundType->isTypeOf< ReClass >() )
 		{
 			return static_cast< ReClass* >( FoundType );
 		}
@@ -78,7 +78,7 @@ struct Factory
 		for( auto TypeIter : Types_ )
 		{
 			auto Type = TypeIter.second;
-			if( Type->isTypeOf< Class >() )
+			if( Type->isTypeOf< ReClass >() )
 			{
 				const ReClass* OutClass = static_cast< const ReClass* >( Type );
 				if( OutClass->hasBaseClass( Base ) )
@@ -99,7 +99,7 @@ struct Factory
 			Types_[ Name ] = FoundType;
 		}
 
-		if( FoundType->isTypeOf< Enum >() )
+		if( FoundType->isTypeOf< ReEnum >() )
 		{
 			return static_cast< ReEnum* >( FoundType );
 		}
