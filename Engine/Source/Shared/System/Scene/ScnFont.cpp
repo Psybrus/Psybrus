@@ -344,15 +344,16 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 // Define resource internals.
 DEFINE_RESOURCE( ScnFont );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnFont );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnFont )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnFont::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "CharCodeMap_",	&ScnFont::CharCodeMap_ ),
+		ReField( "Texture_",		&ScnFont::Texture_ ),
+	};
+		
+	ReRegisterClass< ScnFont, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -435,15 +436,19 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource internals.
 DEFINE_RESOURCE( ScnFontComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnFontComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnFontComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnFontComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Parent_",					&ScnFontComponent::Parent_ ),
+		ReField( "MaterialComponent_",		&ScnFontComponent::MaterialComponent_ ),
+		ReField( "ClippingEnabled_",		&ScnFontComponent::ClippingEnabled_ ),
+		ReField( "ClipMin_",				&ScnFontComponent::ClipMin_ ),
+		ReField( "ClipMax_",				&ScnFontComponent::ClipMax_ ),
+	};
+		
+	ReRegisterClass< ScnFontComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

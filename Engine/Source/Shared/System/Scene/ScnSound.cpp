@@ -72,15 +72,17 @@ BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& O
 // Define resource internals.
 DEFINE_RESOURCE( ScnSound );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnSound );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnSound )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnSound::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pSample_",			&ScnSound::pSample_ ),
+		ReField( "pHeader_",			&ScnSound::pHeader_ ),
+		ReField( "SampleDataSize_",		&ScnSound::SampleDataSize_ ),
+	};
+		
+	ReRegisterClass< ScnSound, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

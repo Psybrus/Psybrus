@@ -20,11 +20,15 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnComponent );
 
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnComponent )
-	BCREFLECTION_MEMBER( ScnEntity,							ParentEntity_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "ParentEntity_",		&ScnComponent::ParentEntity_ )
+	};
+		
+	ReRegisterClass< ScnComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

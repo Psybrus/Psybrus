@@ -22,15 +22,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnCanvasComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnCanvasComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnCanvasComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnCanvasComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "MaterialComponent_",	&ScnCanvasComponent::MaterialComponent_ ),
+		ReField( "DiffuseTexture_",		&ScnCanvasComponent::DiffuseTexture_ )
+	};
+		
+	ReRegisterClass< ScnCanvasComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

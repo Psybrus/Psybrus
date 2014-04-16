@@ -26,12 +26,16 @@ REFLECTION_DEFINE_BASE( CsResource );
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
-/*
-BCREFLECTION_BASE_BEGIN( CsResource )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT ),
-BCREFLECTION_BASE_END();
-*/
+void CsResource::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Name_",				&CsResource::Name_ ),
+		ReField( "Index_",				&CsResource::Index_ ),
+	};
+		
+	ReRegisterClass< CsResource, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

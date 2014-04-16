@@ -65,7 +65,9 @@ public:
 		// Increment reference count if we are an object reference.
 		if( *DataRef != nullptr && ( Field_->getFlags() & bcRFF_OBJECT_REFERENCE ) != 0 )
 		{
-            reinterpret_cast< ReObject* >( *DataRef )->incRefCount();
+#if REFLECTION_ENABLE_GC
+			reinterpret_cast< ReObject* >( *DataRef )->incRefCount();
+#endif
 		}
 	}
 
