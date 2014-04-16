@@ -5,21 +5,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Type
-class Type:
-	public Primitive
+class ReType:
+	public RePrimitive
 {
 public:
-	REFLECTION_DECLARE_DERIVED( Type, Primitive );
+    REFLECTION_DECLARE_DERIVED( ReType, RePrimitive );
 
 public:
-	Type();
-	virtual ~Type();
+    ReType();
+    virtual ~ReType();
 
 	/**
 		* Set type.
 		*/
 	template< typename _Ty >
-	void							setType( ITypeSerialiser* Serialiser )
+	void							setType( ReITypeSerialiser* Serialiser )
 	{
 		Size_ = sizeof( _Ty );
 		Serialiser_ = Serialiser;
@@ -39,7 +39,7 @@ public:
 		* @brief Get Type Serialiser
 		* @return
 		*/
-	inline const ITypeSerialiser*	getTypeSerialiser() const
+	inline const ReITypeSerialiser*	getTypeSerialiser() const
 	{
 		return Serialiser_;
 	}
@@ -51,7 +51,7 @@ public:
 
 protected:
 	BcU32								Size_;
-	ITypeSerialiser*				Serialiser_;
+	ReITypeSerialiser*				Serialiser_;
 
 };
 

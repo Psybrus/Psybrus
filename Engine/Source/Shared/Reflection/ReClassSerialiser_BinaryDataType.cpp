@@ -10,43 +10,43 @@ extern "C"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ClassSerialiser_BinaryDataType::ClassSerialiser_BinaryDataType( const std::string& Name ):
-	ClassSerialiser( Name )
+ReClassSerialiser_BinaryDataType::ReClassSerialiser_BinaryDataType( const std::string& Name ):
+	ReClassSerialiser( Name )
 {
 	Class_->setType< BcBinaryData >( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-ClassSerialiser_BinaryDataType::~ClassSerialiser_BinaryDataType()
+ReClassSerialiser_BinaryDataType::~ReClassSerialiser_BinaryDataType()
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // construct
-void ClassSerialiser_BinaryDataType::construct( void* pMemory ) const
+void ReClassSerialiser_BinaryDataType::construct( void* pMemory ) const
 {
 	new ( pMemory ) BcBinaryData();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // constructNoInit
-void ClassSerialiser_BinaryDataType::constructNoInit( void* pMemory ) const
+void ReClassSerialiser_BinaryDataType::constructNoInit( void* pMemory ) const
 {
 	new ( pMemory ) BcBinaryData();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destruct
-void ClassSerialiser_BinaryDataType::destruct( void* pMemory ) const
+void ReClassSerialiser_BinaryDataType::destruct( void* pMemory ) const
 {
 	reinterpret_cast< BcBinaryData* >( pMemory )->~BcBinaryData();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
+BcU32 ReClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
 {
 	const BcBinaryData* pBinaryData( reinterpret_cast< const BcBinaryData* >( pMemory ) );
 	return sizeof( BcU64 ) + pBinaryData->getDataSize();
@@ -54,7 +54,7 @@ BcU32 ClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
 						
 //////////////////////////////////////////////////////////////////////////
 // serialiseToBinary
-BcBool ClassSerialiser_BinaryDataType::serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+BcBool ReClassSerialiser_BinaryDataType::serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
 {
 	const BcBinaryData* pBinaryData( reinterpret_cast< const BcBinaryData* >( pInstance ) );
 	Serialiser << BcU64( pBinaryData->getDataSize() );
@@ -64,7 +64,7 @@ BcBool ClassSerialiser_BinaryDataType::serialiseToBinary( const void* pInstance,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromBinary
-BcBool ClassSerialiser_BinaryDataType::serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+BcBool ReClassSerialiser_BinaryDataType::serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
 {
 	BcBinaryData* pBinaryData( reinterpret_cast< BcBinaryData* >( pInstance ) );
 	BcU64 Length = 0;
@@ -77,7 +77,7 @@ BcBool ClassSerialiser_BinaryDataType::serialiseFromBinary( void* pInstance, con
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseToString
-BcBool ClassSerialiser_BinaryDataType::serialiseToString( const void* pInstance, std::string& OutString ) const
+BcBool ReClassSerialiser_BinaryDataType::serialiseToString( const void* pInstance, std::string& OutString ) const
 {
 	const BcBinaryData* pBinaryData( reinterpret_cast< const BcBinaryData* >( pInstance ) );
 	BcU64 BytesRequired = ( pBinaryData->getDataSize() * 4 / 3 + 4 );
@@ -92,7 +92,7 @@ BcBool ClassSerialiser_BinaryDataType::serialiseToString( const void* pInstance,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromString
-BcBool ClassSerialiser_BinaryDataType::serialiseFromString( void* pInstance, const std::string& InString ) const
+BcBool ReClassSerialiser_BinaryDataType::serialiseFromString( void* pInstance, const std::string& InString ) const
 {
 	BcBinaryData* pBinaryData( reinterpret_cast< BcBinaryData* >( pInstance ) );
 	BcU64 BytesRequired = ( InString.length() * 3 / 4 );
@@ -107,7 +107,7 @@ BcBool ClassSerialiser_BinaryDataType::serialiseFromString( void* pInstance, con
 
 //////////////////////////////////////////////////////////////////////////
 // copy
-BcBool ClassSerialiser_BinaryDataType::copy( void* pDst, void* pSrc ) const
+BcBool ReClassSerialiser_BinaryDataType::copy( void* pDst, void* pSrc ) const
 {
 	BcBinaryData& Dst = *reinterpret_cast< BcBinaryData* >( pDst );
 	BcBinaryData& Src = *reinterpret_cast< BcBinaryData* >( pSrc );

@@ -27,7 +27,7 @@
 	* class, and should be treated as a potential bottleneck or memory
 	* consumer.
 	*/
-class Object
+class ReObject
 {
 public:
 	enum class Flags: BcU32
@@ -37,12 +37,12 @@ public:
 	};
 
 public:
-	REFLECTION_DECLARE_BASE_MANUAL_NOINIT( Object );
+    REFLECTION_DECLARE_BASE_MANUAL_NOINIT( ReObject );
 
 public:
-	Object();
-	Object( NoInit );
-	virtual ~Object();
+    ReObject();
+    ReObject( ReNoInit );
+    virtual ~ReObject();
 	
 	/**
 		* @brief Set name.
@@ -62,12 +62,12 @@ public:
 	/**
 		* @brief Get owner.
 		*/
-	Object*							getOwner() const;
+    ReObject*							getOwner() const;
 
 	/**
 		* @brief Set owner.
 		*/
-	void							setOwner( Object* Owner );
+    void							setOwner( ReObject* Owner );
 
 	/**
 		* @brief Get root owner.
@@ -78,19 +78,19 @@ public:
 		* and unreferencable regarding serialisation for the
 		* most part.
 		*/
-	Object*							getRootOwner() const;
+    ReObject*							getRootOwner() const;
 					
 	/**
 		* @brief Set root owner.
 		*
 		* Recurses down to set the root owner.
 		*/
-	void							setRootOwner( Object* RootOwner );
+    void							setRootOwner( ReObject* RootOwner );
 
 	/**
 		* @brief Get basis.
 		*/
-	Object*							getBasis() const;
+    ReObject*							getBasis() const;
 
 	/**
 		* @brief Increment ref count.
@@ -105,28 +105,28 @@ public:
 	/**
 		* @brief Add notifier.
 		*/
-	void							addNotifier( IObjectNotify* ObjectNotify ) const;
+	void							addNotifier( ReIObjectNotify* ObjectNotify ) const;
 			
 	/**
 		* @brief Remove notifier.
 		*/
-	void							removeNotifier( IObjectNotify* ObjectNotify ) const;
+	void							removeNotifier( ReIObjectNotify* ObjectNotify ) const;
 
 private:
-	friend Object* ConstructObject( const Class* InClass, const std::string& InName, Object* InOwner, Object* InBasis );
+    friend ReObject* ConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
 
 	template< class _Ty > friend class ObjectRef;
 
 	mutable BcAtomic< BcU32 >		RefCount_;			///!< Ref count.
 	mutable BcAtomic< BcU32 >		Flags_;				///!< Flags.
-	Object*							Owner_;					///!< Owner.
-	Object*							Basis_;					///!< Object we're based upon.
+    ReObject*							Owner_;					///!< Owner.
+    ReObject*							Basis_;					///!< Object we're based upon.
 	std::string						Name_;					///!< Name of object.
 
 private:
-	typedef std::list< Object* > ObjectList;
-	typedef std::list< IObjectNotify* > ObjectNotifyList;
-	typedef std::map< const Object*, ObjectNotifyList > ObjectNotifyMap;
+    typedef std::list< ReObject* > ObjectList;
+	typedef std::list< ReIObjectNotify* > ObjectNotifyList;
+    typedef std::map< const ReObject*, ObjectNotifyList > ObjectNotifyMap;
 
 	static BcMutex					ObjectListMutex_;		///!< Lock for object list. Access should be avoided.
 	static ObjectList				ObjectList_;			///!< List of all active objects. Access should be avoided.
@@ -137,12 +137,12 @@ private:
 	/**
 		* Add object to the object list.
 		*/
-	static void						StaticAdd( Object* Object );
+    static void						StaticAdd( ReObject* ReObject );
 
 	/**
 		* Remove object from object list.
 		*/
-	static void						StaticRemove( Object* Object );
+    static void						StaticRemove( ReObject* ReObject );
 public:
 
 	/**
@@ -153,19 +153,19 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline Object* Object::getOwner() const
+inline ReObject* ReObject::getOwner() const
 {
 	return Owner_;
 }
 
-inline void Object::setOwner( Object* Owner )
+inline void ReObject::setOwner( ReObject* Owner )
 {
 		Owner_ = Owner;
 }
 
-inline Object* Object::getRootOwner() const
+inline ReObject* ReObject::getRootOwner() const
 {
-	Object* Owner = Owner_;
+    ReObject* Owner = Owner_;
 	while( Owner != nullptr && Owner != Owner->Owner_ )
 	{
 		Owner = Owner->Owner_;
@@ -173,9 +173,9 @@ inline Object* Object::getRootOwner() const
 	return Owner;
 }
 
-inline void Object::setRootOwner( Object* RootOwner )
+inline void ReObject::setRootOwner( ReObject* RootOwner )
 {
-	Object* Owner = this;
+    ReObject* Owner = this;
 
 	for(;;)
 	{
@@ -191,24 +191,24 @@ inline void Object::setRootOwner( Object* RootOwner )
 	}
 }
 
-inline Object* Object::getBasis() const
+inline ReObject* ReObject::getBasis() const
 {
 	return Basis_;
 }
 
-inline BcU32 Object::incRefCount() const
+inline BcU32 ReObject::incRefCount() const
 {
-	BcAssert( ( Flags_ & (BcU32)Object::Flags::MarkedForDeletion ) == 0 );
+    BcAssert( ( Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
 	return ++RefCount_;
 }
 
-inline BcU32 Object::decRefCount() const
+inline BcU32 ReObject::decRefCount() const
 {
-	BcAssert( ( Flags_ & (BcU32)Object::Flags::MarkedForDeletion ) == 0 );
+    BcAssert( ( Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
 	BcU32 RefCount;
 	if( ( RefCount = --RefCount_ ) == 0 )
 	{
-		Flags_ |= (BcU32)Object::Flags::MarkedForDeletion;
+        Flags_ |= (BcU32)ReObject::Flags::MarkedForDeletion;
 	}
 	return RefCount;
 }

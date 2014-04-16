@@ -6,11 +6,11 @@
 //////////////////////////////////////////////////////////////////////////
 // ArrayContainerAccessor
 template< typename _Ty, size_t _Size >
-class ArrayContainerAccessor:
-	public ContainerAccessor
+class ReArrayContainerAccessor:
+	public ReContainerAccessor
 {
 public:
-	typedef typename TypeTraits< _Ty > ValueTraits;
+    typedef typename ReTypeTraits< _Ty > ValueTraits;
 
 public:
 	class ArrayWriteIterator:
@@ -96,7 +96,7 @@ public:
 	};
 
 public:
-	ArrayContainerAccessor()
+    ReArrayContainerAccessor()
 	{
 		pKeyType_ = nullptr;
 		pValueType_ = GetClass< ValueTraits::Type >();
@@ -104,7 +104,7 @@ public:
 		ValueFlags_ = ValueTraits::Flags;
 	}
 
-	virtual ~ArrayContainerAccessor()
+    virtual ~ReArrayContainerAccessor()
 	{
 
 	}
@@ -121,25 +121,25 @@ public:
 };
 
 template < typename _Ty, size_t _Size >
-ContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const Type*& pKeyType, const Type*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-	typedef TypeTraits< _Ty > ValueTraits;
+    typedef ReTypeTraits< _Ty > ValueTraits;
 	pKeyType = nullptr;
 	pValueType = GetClass< ValueTraits::Type >();
 	KeyFlags = 0;
 	ValueFlags = ValueTraits::Flags;
-	return new ArrayContainerAccessor< _Ty, _Size >();
+    return new ReArrayContainerAccessor< _Ty, _Size >();
 }
 		
 template < typename _Ty, size_t _Size >
-ContainerAccessor* CreateContainerAccessor( std::array< _Ty, _Size >&, const Type*& pKeyType, const Type*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::array< _Ty, _Size >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-	typedef TypeTraits< _Ty > ValueTraits;
+    typedef ReTypeTraits< _Ty > ValueTraits;
 	pKeyType = nullptr;
 	pValueType = GetClass< ValueTraits::Type >();
 	KeyFlags = 0;
 	ValueFlags = ValueTraits::Flags;
-	return new ArrayContainerAccessor< _Ty, _Size >();
+    return new ReArrayContainerAccessor< _Ty, _Size >();
 }
 
 #endif

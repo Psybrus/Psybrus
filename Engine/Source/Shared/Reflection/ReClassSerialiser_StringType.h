@@ -5,15 +5,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ClassSerialiser_StringType.
-class ClassSerialiser_StringType:
-		public ClassSerialiser
+class ReClassSerialiser_StringType:
+		public ReClassSerialiser
 {
 public:
 	typedef std::string BaseType;
 
 public:
-	ClassSerialiser_StringType( const std::string& Name );
-	virtual ~ClassSerialiser_StringType();
+    ReClassSerialiser_StringType( const std::string& Name );
+    virtual ~ReClassSerialiser_StringType();
 	void construct( void* pMemory ) const;
 	void constructNoInit( void* pMemory ) const;
 	void destruct( void* pMemory ) const;

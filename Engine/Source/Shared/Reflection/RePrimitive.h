@@ -6,15 +6,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Primitive
-class Primitive:
-	public Object
+class RePrimitive:
+	public ReObject
 {
 public:
-	REFLECTION_DECLARE_DERIVED( Primitive, Object );
+    REFLECTION_DECLARE_DERIVED( RePrimitive, ReObject );
 
 public:
-	Primitive();
-	virtual ~Primitive(){};
+    RePrimitive();
+    virtual ~RePrimitive(){};
 
 private:
 

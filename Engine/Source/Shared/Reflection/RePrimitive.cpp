@@ -4,16 +4,16 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_DERIVED( Primitive );
+REFLECTION_DEFINE_DERIVED( RePrimitive );
 
-void Primitive::StaticRegisterClass()
+void RePrimitive::StaticRegisterClass()
 {
-	RegisterClass< Primitive, Object >();
+	ReRegisterClass< RePrimitive, ReObject >();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Primitive
-Primitive::Primitive()
+RePrimitive::RePrimitive()
 {
 	
 }

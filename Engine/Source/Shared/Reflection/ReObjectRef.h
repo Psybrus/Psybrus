@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
-class Object;
+class ReObject;
 
 //////////////////////////////////////////////////////////////////////////
 /**
@@ -20,31 +20,31 @@ class Object;
 	* local in the cases where the object may be lost due to an owning object
 	* being destructed.
 	*/
-template< class _Ty = Object >
-class ObjectRef
+template< class _Ty = ReObject >
+class ReObjectRef
 {
 private:
-	Object* pObject_;
+	ReObject* pObject_;
 
 private:
-	inline void _acquireNew( Object* pObject );
-	inline void _acquireNewReleaseOld( Object* pObject );
-	inline void _acquireAssign( Object* pObject );
+	inline void _acquireNew( ReObject* pObject );
+	inline void _acquireNewReleaseOld( ReObject* pObject );
+	inline void _acquireAssign( ReObject* pObject );
 	inline void _releaseThis();
-	inline static void assertPendingDeletion( const Object* pObject );
+	inline static void assertPendingDeletion( const ReObject* pObject );
 
 public:
-	inline ObjectRef();
-	inline ObjectRef( const ObjectRef& Other );
-	inline ObjectRef( Object* pObject );
-	inline ObjectRef& operator = ( const ObjectRef& Other );
-	inline ObjectRef& operator = ( Object* pObject );
-	inline ~ObjectRef();
+    inline ReObjectRef();
+    inline ReObjectRef( const ReObjectRef& Other );
+    inline ReObjectRef( ReObject* pObject );
+    inline ReObjectRef& operator = ( const ReObjectRef& Other );
+    inline ReObjectRef& operator = ( ReObject* pObject );
+    inline ~ReObjectRef();
 	inline bool isValid() const;
 	inline operator _Ty* ();
 	inline _Ty* operator -> ();
-	inline bool operator == ( const ObjectRef& Other ) const;
-	inline bool operator != ( const ObjectRef& Other ) const;
+    inline bool operator == ( const ReObjectRef& Other ) const;
+    inline bool operator != ( const ReObjectRef& Other ) const;
 	inline bool operator == ( _Ty* pObject ) const;
 	inline bool operator != ( _Ty* pObject ) const;
 	inline void reset();

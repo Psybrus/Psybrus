@@ -5,32 +5,32 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_DERIVED( Enum );
+REFLECTION_DEFINE_DERIVED( ReEnum );
 
-void Enum::StaticRegisterClass()
+void ReEnum::StaticRegisterClass()
 {
-	static const Field Fields[] = 
+	static const ReField Fields[] = 
 	{
-		Field( "EnumConstants_", &Enum::EnumConstants_ ),
+		ReField( "EnumConstants_", &ReEnum::EnumConstants_ ),
 	};
 		
-	RegisterClass< Enum, Class >( Fields );
+	ReRegisterClass< ReEnum, ReClass >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Enum
-Enum::Enum()
+ReEnum::ReEnum()
 {
 	
 }
 
-Enum::Enum( const std::string& Name ):
-	Class( Name )
+ReEnum::ReEnum( const std::string& Name ):
+	ReClass( Name )
 {
 			
 }
 
-void Enum::setConstants( const EnumConstant* EnumConstants, BcU32 Elements )
+void ReEnum::setConstants( const ReEnumConstant* EnumConstants, BcU32 Elements )
 {
 	EnumConstants_.reserve( Elements );
 	for( BcU32 Idx = 0; Idx < Elements; ++Idx )
@@ -39,7 +39,7 @@ void Enum::setConstants( const EnumConstant* EnumConstants, BcU32 Elements )
 	}
 }
 
-const EnumConstant* Enum::getEnumConstant( BcU32 Value )
+const ReEnumConstant* ReEnum::getEnumConstant( BcU32 Value )
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{
@@ -52,7 +52,7 @@ const EnumConstant* Enum::getEnumConstant( BcU32 Value )
 	return nullptr;
 }
 
-const EnumConstant* Enum::getEnumConstant( const std::string& Name )
+const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name )
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{

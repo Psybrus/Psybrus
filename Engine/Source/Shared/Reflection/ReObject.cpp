@@ -4,25 +4,25 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Object class definition
-REFLECTION_DEFINE_BASE( Object );
+REFLECTION_DEFINE_BASE( ReObject );
 	
-void Object::StaticRegisterClass()
+void ReObject::StaticRegisterClass()
 {
-	static const Field Fields[] = 
+	static const ReField Fields[] = 
 	{
-		Field( "RefCount_",				&Object::RefCount_,		bcRFF_TRANSIENT ),
-		Field( "Flags_",				&Object::Flags_ ),
-		Field( "Owner_",				&Object::Owner_ ),
-		Field( "Basis_",				&Object::Basis_ ),
-		Field( "Name_",					&Object::Name_ ),
+		ReField( "RefCount_",				&ReObject::RefCount_,		bcRFF_TRANSIENT ),
+		ReField( "Flags_",				&ReObject::Flags_ ),
+		ReField( "Owner_",				&ReObject::Owner_ ),
+		ReField( "Basis_",				&ReObject::Basis_ ),
+		ReField( "Name_",					&ReObject::Name_ ),
 	};
 		
-	RegisterClass< Object >( Fields );
+	ReRegisterClass< ReObject >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-Object::Object():
+ReObject::ReObject():
 	Owner_( nullptr ),
 	Basis_( nullptr )
 {
@@ -31,7 +31,7 @@ Object::Object():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-Object::Object( NoInit ):
+ReObject::ReObject( ReNoInit ):
 	Owner_( nullptr ),
 	Basis_( nullptr )
 {
@@ -40,13 +40,13 @@ Object::Object( NoInit ):
 	
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-Object::~Object()
+ReObject::~ReObject()
 {
 	// Remove from global object list.
 	StaticRemove( this );
 
 	// Handle destruction notification.
-	if( Flags_ & (BcU32)Object::Flags::NotifyOnDeletion )
+	if( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion )
 	{
 		BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
 		auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
@@ -68,21 +68,21 @@ Object::~Object()
 
 //////////////////////////////////////////////////////////////////////////
 // setName
-void Object::setName( const std::string& Name )
+void ReObject::setName( const std::string& Name )
 {
 	Name_ = Name;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getName
-const std::string& Object::getName() const
+const std::string& ReObject::getName() const
 {
 	return Name_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getFullName
-std::string Object::getFullName() const
+std::string ReObject::getFullName() const
 {
 	const Object* Object = this;
 	std::string Name = getName();
@@ -96,10 +96,10 @@ std::string Object::getFullName() const
 
 //////////////////////////////////////////////////////////////////////////
 // addNotifier
-void Object::addNotifier( IObjectNotify* ObjectNotify ) const
+void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 {
 	// Add notifier flag so it knows to notify.
-	Flags_ |= (BcU32)Object::Flags::NotifyOnDeletion;
+	Flags_ |= (BcU32)ReObject::Flags::NotifyOnDeletion;
 
 	BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
@@ -118,9 +118,9 @@ void Object::addNotifier( IObjectNotify* ObjectNotify ) const
 			
 //////////////////////////////////////////////////////////////////////////
 // removeNotifier
-void Object::removeNotifier( IObjectNotify* ObjectNotify ) const
+void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 {
-	BcAssertMsg( Flags_ & (BcU32)Object::Flags::NotifyOnDeletion, "Can't remove notifier from object that is flagged to not notify!" );
+	BcAssertMsg( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion, "Can't remove notifier from object that is flagged to not notify!" );
 
 	BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
@@ -132,10 +132,10 @@ void Object::removeNotifier( IObjectNotify* ObjectNotify ) const
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
-BcMutex Object::ObjectListMutex_;
-Object::ObjectList Object::ObjectList_;
-BcMutex Object::ObjectNotifyMutex_;
-Object::ObjectNotifyMap Object::ObjectNotifyMap_;
+BcMutex ReObject::ObjectListMutex_;
+ReObject::ObjectList ReObject::ObjectList_;
+BcMutex ReObject::ObjectNotifyMutex_;
+ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 
 //////////////////////////////////////////////////////////////////////////
 // StaticAdd
@@ -159,7 +159,7 @@ void Object::StaticRemove( Object* Object )
 //////////////////////////////////////////////////////////////////////////
 // StaticCollectGarbage
 //static
-void Object::StaticCollectGarbage()
+void ReObject::StaticCollectGarbage()
 {
 	// This is mostly a functional placeholder before we experiment
 	// with kicking off GC as a job so it can run in parallel to the

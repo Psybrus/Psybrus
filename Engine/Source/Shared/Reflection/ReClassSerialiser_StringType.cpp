@@ -3,50 +3,50 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ClassSerialiser_StringType::ClassSerialiser_StringType( const std::string& Name ):
-	ClassSerialiser( Name )
+ReClassSerialiser_StringType::ReClassSerialiser_StringType( const std::string& Name ):
+	ReClassSerialiser( Name )
 {
 	Class_->setType< std::string >( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-ClassSerialiser_StringType::~ClassSerialiser_StringType()
+ReClassSerialiser_StringType::~ReClassSerialiser_StringType()
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // construct
-void ClassSerialiser_StringType::construct( void* pMemory ) const
+void ReClassSerialiser_StringType::construct( void* pMemory ) const
 {
 	new ( pMemory ) BaseType();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // constructNoInit
-void ClassSerialiser_StringType::constructNoInit( void* pMemory ) const
+void ReClassSerialiser_StringType::constructNoInit( void* pMemory ) const
 {
 	new ( pMemory ) BaseType();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destruct
-void ClassSerialiser_StringType::destruct( void* pMemory ) const
+void ReClassSerialiser_StringType::destruct( void* pMemory ) const
 {
 	reinterpret_cast< BaseType* >( pMemory )->~BaseType();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ClassSerialiser_StringType::getBinaryDataSize( void* pMemory ) const
+BcU32 ReClassSerialiser_StringType::getBinaryDataSize( void* pMemory ) const
 {
 	return sizeof( char ) * ( reinterpret_cast< BaseType* >( pMemory )->length() ) + sizeof( BcU32 );
 }
 						
 //////////////////////////////////////////////////////////////////////////
 // serialiseToBinary
-BcBool ClassSerialiser_StringType::serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+BcBool ReClassSerialiser_StringType::serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
 {
 	const BaseType& Value( *reinterpret_cast< const BaseType* >( pInstance ) );
 	Serialiser << BcU32( Value.length() );
@@ -59,7 +59,7 @@ BcBool ClassSerialiser_StringType::serialiseToBinary( const void* pInstance, BcB
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromBinary
-BcBool ClassSerialiser_StringType::serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+BcBool ReClassSerialiser_StringType::serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
 {
 	BaseType& Value( *reinterpret_cast< BaseType* >( pInstance ) );
 	BcU32 Length = 0;
@@ -76,7 +76,7 @@ BcBool ClassSerialiser_StringType::serialiseFromBinary( void* pInstance, const B
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseToString
-BcBool ClassSerialiser_StringType::serialiseToString( const void* pInstance, std::string& OutString ) const
+BcBool ReClassSerialiser_StringType::serialiseToString( const void* pInstance, std::string& OutString ) const
 {
 	const BaseType& Value( *reinterpret_cast< const BaseType* >( pInstance ) );
 	OutString = Value;
@@ -85,7 +85,7 @@ BcBool ClassSerialiser_StringType::serialiseToString( const void* pInstance, std
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromString
-BcBool ClassSerialiser_StringType::serialiseFromString( void* pInstance, const std::string& InString ) const
+BcBool ReClassSerialiser_StringType::serialiseFromString( void* pInstance, const std::string& InString ) const
 {
 	BaseType& Value( *reinterpret_cast< std::string* >( pInstance ) );
 	Value = InString;
@@ -94,7 +94,7 @@ BcBool ClassSerialiser_StringType::serialiseFromString( void* pInstance, const s
 
 //////////////////////////////////////////////////////////////////////////
 // copy
-BcBool ClassSerialiser_StringType::copy( void* pDst, void* pSrc ) const
+BcBool ReClassSerialiser_StringType::copy( void* pDst, void* pSrc ) const
 {
 	BaseType& Dst = *reinterpret_cast< BaseType* >( pDst );
 	BaseType& Src = *reinterpret_cast< BaseType* >( pSrc );

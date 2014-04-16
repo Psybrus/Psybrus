@@ -6,12 +6,12 @@
 //////////////////////////////////////////////////////////////////////////
 // ClassSerialiser_AbstractComplexType.
 template < typename _Ty >
-class ClassSerialiser_AbstractComplexType:
-		public ClassSerialiser
+class ReClassSerialiser_AbstractComplexType:
+		public ReClassSerialiser
 {
 public:
-	ClassSerialiser_AbstractComplexType( const std::string& Name ): ClassSerialiser( Name ) {}
-	virtual ~ClassSerialiser_AbstractComplexType() {}
+    ReClassSerialiser_AbstractComplexType( const std::string& Name ): ReClassSerialiser( Name ) {}
+    virtual ~ReClassSerialiser_AbstractComplexType() {}
 
 	virtual void construct( void* ) const
 	{

@@ -5,50 +5,50 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ClassSerialiser_EnumType::ClassSerialiser_EnumType( const std::string& Name ):
-	ClassSerialiser( Name )
+ReClassSerialiser_EnumType::ReClassSerialiser_EnumType( const std::string& Name ):
+	ReClassSerialiser( Name )
 {
 	Class_->setType< std::string >( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-ClassSerialiser_EnumType::~ClassSerialiser_EnumType()
+ReClassSerialiser_EnumType::~ReClassSerialiser_EnumType()
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // construct
-void ClassSerialiser_EnumType::construct( void* pMemory ) const
+void ReClassSerialiser_EnumType::construct( void* pMemory ) const
 {
 	pMemory = BcMemAlign( Class_->getSize() );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // constructNoInit
-void ClassSerialiser_EnumType::constructNoInit( void* pMemory ) const
+void ReClassSerialiser_EnumType::constructNoInit( void* pMemory ) const
 {
 	pMemory = BcMemAlign( Class_->getSize() );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destruct
-void ClassSerialiser_EnumType::destruct( void* ) const
+void ReClassSerialiser_EnumType::destruct( void* ) const
 {
 			
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ClassSerialiser_EnumType::getBinaryDataSize( void* pMemory ) const
+BcU32 ReClassSerialiser_EnumType::getBinaryDataSize( void* pMemory ) const
 {
 	return Class_->getSize();
 }
 						
 //////////////////////////////////////////////////////////////////////////
 // serialiseToBinary
-BcBool ClassSerialiser_EnumType::serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+BcBool ReClassSerialiser_EnumType::serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
 {
 	switch( Class_->getSize() )
 	{
@@ -70,7 +70,7 @@ BcBool ClassSerialiser_EnumType::serialiseToBinary( const void* pInstance, BcBin
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromBinary
-BcBool ClassSerialiser_EnumType::serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+BcBool ReClassSerialiser_EnumType::serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
 {
 	BcU32 Value;
 	Serialiser >> Value;
@@ -94,7 +94,7 @@ BcBool ClassSerialiser_EnumType::serialiseFromBinary( void* pInstance, const BcB
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseToString
-BcBool ClassSerialiser_EnumType::serialiseToString( const void* pInstance, std::string& OutString ) const
+BcBool ReClassSerialiser_EnumType::serialiseToString( const void* pInstance, std::string& OutString ) const
 {
 	BcU32 Value;
 	switch( Class_->getSize() )
@@ -113,7 +113,7 @@ BcBool ClassSerialiser_EnumType::serialiseToString( const void* pInstance, std::
 		return false;
 	}
 
-	auto EnumConstant = static_cast< Enum* >( Class_ )->getEnumConstant( Value );
+	auto EnumConstant = static_cast< ReEnum* >( Class_ )->getEnumConstant( Value );
 	if( EnumConstant != nullptr )
 	{
 		OutString = EnumConstant->getName();
@@ -123,9 +123,9 @@ BcBool ClassSerialiser_EnumType::serialiseToString( const void* pInstance, std::
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromString
-BcBool ClassSerialiser_EnumType::serialiseFromString( void* pInstance, const std::string& InString ) const
+BcBool ReClassSerialiser_EnumType::serialiseFromString( void* pInstance, const std::string& InString ) const
 {
-	auto EnumConstant = static_cast< Enum* >( Class_ )->getEnumConstant( InString );
+	auto EnumConstant = static_cast< ReEnum* >( Class_ )->getEnumConstant( InString );
 
 	if( EnumConstant != nullptr )
 	{
@@ -151,7 +151,7 @@ BcBool ClassSerialiser_EnumType::serialiseFromString( void* pInstance, const std
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromString
-BcBool ClassSerialiser_EnumType::copy( void* pDst, void* pSrc ) const
+BcBool ReClassSerialiser_EnumType::copy( void* pDst, void* pSrc ) const
 {
 	BcU32& Dst = *reinterpret_cast< BcU32* >( pDst );
 	BcU32& Src = *reinterpret_cast< BcU32* >( pSrc );

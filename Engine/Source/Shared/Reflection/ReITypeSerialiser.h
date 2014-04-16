@@ -5,14 +5,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ITypeSerialiser
-class ITypeSerialiser
+class ReITypeSerialiser
 {
 public:
-	REFLECTION_DECLARE_BASE( ITypeSerialiser );
+    REFLECTION_DECLARE_BASE( ReITypeSerialiser );
 
 public:
-	ITypeSerialiser(){};
-	virtual ~ITypeSerialiser(){};
+    ReITypeSerialiser(){};
+    virtual ~ReITypeSerialiser(){};
 
 	/**
 		* @brief Construct.
