@@ -23,10 +23,10 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnPhysicsCollisionShape );
 
-BCREFLECTION_EMPTY_REGISTER( ScnPhysicsCollisionShape );
+//BCREFLECTION_EMPTY_REGISTER( ScnPhysicsCollisionShape );
 /*
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnPhysicsCollisionShape )
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_BEGIN( CsResource, ScnPhysicsCollisionShape )
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

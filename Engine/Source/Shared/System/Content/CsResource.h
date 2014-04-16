@@ -22,7 +22,7 @@
 #include "Base/BcAtomicMutex.h"
 #include "Base/BcScopedLock.h"
 #include "Base/BcName.h"
-#include "Base/BcReflection.h"
+#include "Reflection/ReReflection.h"
 
 #ifdef PSY_SERVER
 #include <json/json.h>
@@ -31,14 +31,14 @@
 //////////////////////////////////////////////////////////////////////////
 // Helper defines.
 #define DECLARE_RESOURCE( _Base, _Type )										\
-	BCREFLECTION_DECLARE_DERIVED( _Base, _Type )								\
+	REFLECTION_DECLARE_DERIVED( _Type, _Base )									\
 	protected:																	\
 	_Type();																	\
 	virtual ~_Type();															\
 	public:																		
 
 #define DEFINE_RESOURCE( _Type )												\
-	BCREFLECTION_DEFINE_DERIVED( _Type )										\
+	REFLECTION_DEFINE_DERIVED( _Type )											\
 	_Type::_Type()																\
 	{																			\
 	}																			\
@@ -56,7 +56,7 @@ class CsCore;
 // CsResource
 class CsResource
 {
-	BCREFLECTION_DECLARE_BASE( CsResource );
+	REFLECTION_DECLARE_BASE( CsResource );
 public:
 	enum
 	{

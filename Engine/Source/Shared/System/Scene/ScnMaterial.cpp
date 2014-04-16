@@ -162,14 +162,14 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterial );
 
-BCREFLECTION_EMPTY_REGISTER( ScnMaterial );
+//BCREFLECTION_EMPTY_REGISTER( ScnMaterial );
 /*
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnMaterial )
+REFLECTION_DERIVED_BEGIN( CsResource, ScnMaterial )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,14 +261,14 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialComponent );
 
-BCREFLECTION_EMPTY_REGISTER( ScnMaterialComponent );
+//BCREFLECTION_EMPTY_REGISTER( ScnMaterialComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnMaterialComponent )
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnMaterialComponent )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

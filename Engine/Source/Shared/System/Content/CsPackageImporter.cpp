@@ -313,7 +313,7 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 	BcU32 FirstChunk = ChunkHeaders_.size();
 
 	// Allocate a resource (TODO: Use static member for import instead of instance.)
-	CsResource* pResource = CsCore::pImpl()->allocResource( Name.asCString(), Type.asCString(), ResourceIndex, NULL );
+	CsResource* pResource = CsCore::pImpl()->allocResource( Name.asCString(), ReManager::GetClass( Type.asCString() ), ResourceIndex, NULL );
 	if( pResource == NULL )
 	{
 		BcPrintf( "CsPackageImporter: Can't allocate resource \"%s\" of type \"%s\".\n", Name.asCString(), Type.asCString() );

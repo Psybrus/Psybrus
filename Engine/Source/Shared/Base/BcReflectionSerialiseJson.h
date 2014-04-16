@@ -11,7 +11,7 @@
 *
 **************************************************************************/
 
-#ifndef __BCREFLECTIONSERIALISEJSON_H__
+#if !defined( __BCREFLECTIONSERIALISEJSON_H__ ) && 0
 #define __BCREFLECTIONSERIALISEJSON_H__
 
 #include "BcReflectionSerialise.h"
@@ -25,7 +25,7 @@ class BcReflectionSerialiseJson:
 	public BcReflectionSerialise
 {
 public:
-	BcForceInline BcReflectionSerialiseJson( void* pData, const BcReflectionClass* pClass )
+	BcForceInline BcReflectionSerialiseJson( void* pData, const ReClass* pClass )
 	{
 		RootValue_ = Json::Value( Json::objectValue );
 		pCurrValue_ = &RootValue_;
@@ -45,9 +45,9 @@ public:
 	const Json::Value&				getRootValue() const;
 
 protected:
-	virtual void					serialiseBeginClass( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseEndClass( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseField( void* pData, const BcReflectionClass* pParentClass, const BcReflectionField* pField );
+	virtual void					serialiseBeginClass( void* pData, const ReClass* pClass );
+	virtual void					serialiseEndClass( void* pData, const ReClass* pClass );
+	virtual void					serialiseField( void* pData, const ReClass* pParentClass, const BcReflectionField* pField );
 
 protected:
 	BcBool							getValue( void* pData, const BcReflectionField* pField, Json::Value& Value );

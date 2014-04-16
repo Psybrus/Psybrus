@@ -44,11 +44,13 @@ BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& 
 // Define resource internals.
 DEFINE_RESOURCE( ScnEntity );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnEntity )
+/*
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnEntity )
 	BCREFLECTION_MEMBER( ScnEntity,							Basis_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcMat4d,							LocalTransform_,				bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcMat4d,							WorldTransform_,				bcRFF_DEFAULT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -90,12 +92,12 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		{
 			const Json::Value& Component( Components[ Idx ] );
 			CsResourceRef<> ResourceRef;
-			BcName Type = Component[ "type" ].asCString();
+			const ReClass* Class = ReManager::GetClass( Component[ "type" ].asCString() );
 			const Json::Value& NameValue = Component[ "name" ];
 
 			BcName Name = NameValue.type() == Json::stringValue ? NameValue.asCString() : BcName::INVALID;
 
-			if( CsCore::pImpl()->internalCreateResource( Name, Type, BcErrorCode, getPackage(), ResourceRef ) )
+			if( CsCore::pImpl()->internalCreateResource( Name, Class, BcErrorCode, getPackage(), ResourceRef ) )
 			{
 				ScnComponentRef ComponentRef( ResourceRef );
 				BcAssert( ComponentRef.isValid() );
@@ -264,9 +266,9 @@ BcU32 ScnEntity::getNoofComponents() const
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponent* ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
+ScnComponent* ScnEntity::getComponent( BcU32 Idx, const ReClass* Class )
 {
-	if( Type == BcName::INVALID )
+	if( Class == nullptr )
 	{
 		BcU32 CurrIdx = 0;
 		for( BcU32 ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
@@ -284,7 +286,7 @@ ScnComponent* ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
-			if( Component->getTypeName() == Type )
+			if( Component->getClass() == Class )
 			{
 				if( SearchIdx == Idx )
 				{
@@ -301,9 +303,9 @@ ScnComponent* ScnEntity::getComponent( BcU32 Idx, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponent* ScnEntity::getComponent( BcName Name, const BcName& Type )
+ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 {
-	if( Type == BcName::INVALID )
+	if( Class == nullptr )
 	{
 		for( BcU32 ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
 		{
@@ -320,7 +322,7 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const BcName& Type )
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
-			if( Component->getName() == Name && Component->getTypeName() == Type )
+			if( Component->getName() == Name && Component->getClass() == Class )
 			{
 				return Component;
 			}
@@ -332,13 +334,13 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
+ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const ReClass* Class )
 {
-	ScnComponentRef Component = getComponent( Idx, Type );
+	ScnComponentRef Component = getComponent( Idx, Class );
 
 	if( Component.isValid() == BcFalse && getParentEntity() != NULL )
 	{
-		Component = getParentEntity()->getComponentAnyParent( Idx, Type );
+		Component = getParentEntity()->getComponentAnyParent( Idx, Class );
 	}
 
 	return Component;
@@ -346,13 +348,13 @@ ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const BcName& Type )
+ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const ReClass* Class )
 {
-	ScnComponentRef Component = getComponent( Name, Type );
+	ScnComponentRef Component = getComponent( Name, Class );
 
 	if( Component.isValid() == BcFalse && getParentEntity() != NULL )
 	{
-		Component = getParentEntity()->getComponentAnyParent( Name, Type );
+		Component = getParentEntity()->getComponentAnyParent( Name, Class );
 	}
 
 	return Component;

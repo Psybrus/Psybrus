@@ -57,12 +57,12 @@ public:
 	/**
 	 * Get component.
 	 */
-	ScnComponent*						getComponent( BcU32 Idx = 0, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr );
 
 	/**
 	 * Get component.
 	 */
-	ScnComponent*						getComponent( BcName Name, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponent( BcName Name, const ReClass* Class = nullptr );
 
 	/**
 	 * Get component by type.
@@ -70,27 +70,27 @@ public:
 	template< typename _Ty >
 	_Ty*								getComponentByType( BcU32 Idx = 0 )
 	{
-		return static_cast< _Ty* >( getComponent( Idx, _Ty::StaticGetType() ) );
+		return static_cast< _Ty* >( getComponent( Idx, _Ty::StaticGetClass() ) );
 	}
 
 	/**
 	 * Get component by type.
 	 */
 	template< typename _Ty >
-	_Ty*								getComponentByType( BcName Name )
+	_Ty*								getComponentByType( const ReClass* Class )
 	{
-		return static_cast< _Ty* >( getComponent( Name, _Ty::StaticGetType() ) );
+		return static_cast< _Ty* >( getComponent( 0, _Ty::StaticGetClass() ) );
 	}
 
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponent*						getComponentAnyParent( BcU32 Idx = 0, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr );
 
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponent*						getComponentAnyParent( BcName Name, const BcName& Type = BcName::INVALID );
+	ScnComponent*						getComponentAnyParent( BcName Name, const ReClass* Class = nullptr );
 
 	/**
 	 * Get component on any parent or self by type.
@@ -98,7 +98,7 @@ public:
 	template< typename _Ty >
 	_Ty*								getComponentAnyParentByType( BcU32 Idx = 0 )
 	{
-		return static_cast< _Ty* >( getComponentAnyParent( Idx, _Ty::StaticGetType() ) );
+		return static_cast< _Ty* >( getComponentAnyParent( Idx, _Ty::StaticGetClass() ) );
 	}
 
 	/**
@@ -107,7 +107,7 @@ public:
 	template< typename _Ty >
 	_Ty*								getComponentAnyParentByType( BcName Name )
 	{
-		return static_cast< _Ty* >( getComponentAnyParent( Name, _Ty::StaticGetType() ) );
+		return static_cast< _Ty* >( getComponentAnyParent( Name, _Ty::StaticGetClass() ) );
 	}
 
 	/**

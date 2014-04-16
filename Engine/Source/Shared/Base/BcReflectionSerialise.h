@@ -11,7 +11,7 @@
 *
 **************************************************************************/
 
-#ifndef __BCREFLECTIONSERIALISE_H__
+#if !defined( __BCREFLECTIONSERIALISE_H__ ) && 0
 #define __BCREFLECTIONSERIALISE_H__
 
 #include "Base/BcReflection.h"
@@ -30,12 +30,12 @@ public:
 		serialise( reinterpret_cast< void* >( pBaseClass ), pBaseClass->getClass() );
 	}
 
-	virtual void					serialise( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseClass( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseBeginClass( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseEndClass( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseClassFields( void* pData, const BcReflectionClass* pClass );
-	virtual void					serialiseField( void* pData, const BcReflectionClass* pParentClass, const BcReflectionField* pField );
+	virtual void					serialise( void* pData, const ReClass* pClass );
+	virtual void					serialiseClass( void* pData, const ReClass* pClass );
+	virtual void					serialiseBeginClass( void* pData, const ReClass* pClass );
+	virtual void					serialiseEndClass( void* pData, const ReClass* pClass );
+	virtual void					serialiseClassFields( void* pData, const ReClass* pClass );
+	virtual void					serialiseField( void* pData, const ReClass* pParentClass, const BcReflectionField* pField );
 };
 
 #endif

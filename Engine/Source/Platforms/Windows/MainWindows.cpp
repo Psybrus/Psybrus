@@ -177,7 +177,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 
 	// Create reflection database
-	new BcReflection();
+	ReManager::Init();
 
 #if PSY_USE_PROFILER
 	// new profiler.

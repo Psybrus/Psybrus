@@ -27,14 +27,14 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSpriteComponent );
 
-BCREFLECTION_EMPTY_REGISTER( ScnSpriteComponent );
+//BCREFLECTION_EMPTY_REGISTER( ScnSpriteComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnSpriteComponent )
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnSpriteComponent )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

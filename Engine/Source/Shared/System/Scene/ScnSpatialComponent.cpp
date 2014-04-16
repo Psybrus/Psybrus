@@ -18,9 +18,11 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSpatialComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnSpatialComponent )
+/*
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnSpatialComponent )
 	BCREFLECTION_MEMBER( ScnSpatialTreeNode,					pSpatialTreeNode_,						bcRFF_POINTER ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

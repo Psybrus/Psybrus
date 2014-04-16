@@ -15,8 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
-BCREFLECTION_DEFINE_DERIVED( ScnAnimationTreeTrackNode );
-BCREFLECTION_EMPTY_REGISTER( ScnAnimationTreeTrackNode );
+REFLECTION_DEFINE_DERIVED( ScnAnimationTreeTrackNode );
+//BCREFLECTION_EMPTY_REGISTER( ScnAnimationTreeTrackNode );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
