@@ -22,14 +22,16 @@ BcAtomicU32 CsResource::UniqueIdCounter_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
-BCREFLECTION_DEFINE_BASE( CsResource );
+REFLECTION_DEFINE_BASE( CsResource );
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
+/*
 BCREFLECTION_BASE_BEGIN( CsResource )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT ),
 BCREFLECTION_BASE_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -170,7 +172,7 @@ void CsResource::serialiseProperties()
 	BcPrintf("=============================================\n");
 
 	// Iterate over all properties and do stuff.
-	const BcReflectionClass* pClass = getClass();
+	const ReClass* pClass = getClass();
 
 	// NOTE: Do not want to hit this. Ever.
 	if( pClass == NULL )
@@ -180,6 +182,7 @@ void CsResource::serialiseProperties()
 
 	BcU8* pClassData = reinterpret_cast< BcU8* >( this );
 
+#if 0
 	// Iterate over to grab offsets for classes.
 	while( pClass != NULL )
 	{
@@ -249,6 +252,9 @@ void CsResource::serialiseProperties()
 
 		pClass = pClass->getSuper();
 	}
+#else
+	BcBreakpoint;
+#endif 
 	BcPrintf("=============================================\n");
 }
 

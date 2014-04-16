@@ -24,10 +24,10 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnPhysicsWorldComponent );
 
-BCREFLECTION_EMPTY_REGISTER( ScnPhysicsWorldComponent );
+//BCREFLECTION_EMPTY_REGISTER( ScnPhysicsWorldComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnPhysicsWorldComponent )
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_BEGIN( CsResource, ScnPhysicsWorldComponent )
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

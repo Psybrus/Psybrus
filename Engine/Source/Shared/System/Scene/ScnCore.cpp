@@ -64,13 +64,13 @@ void ScnCore::open()
 
 	// Look up all component classes and create update lists for them.
 	NoofComponentLists_ = 0;
-	BcU32 NoofClasses = BcReflection::pImpl()->getNoofClasses();
-	for( BcU32 Idx = 0; Idx < NoofClasses; ++Idx )
+	auto Classes = ReManager::GetClasses();
+
+	for( auto Class : Classes )
 	{
-		const BcReflectionClass* pClass = BcReflection::pImpl()->getClass( Idx );
-		if( pClass->isTypeOfClass( ScnComponent::StaticGetClass() ) )
+		if( Class->isTypeOf( ScnComponent::StaticGetClass() ) )
 		{
-			ComponentClassIndexMap_[ pClass ] = NoofComponentLists_++;
+			ComponentClassIndexMap_[ Class ] = NoofComponentLists_++;
 		}
 	}
 
@@ -356,7 +356,7 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// All go into the appropriate list.
-	const BcReflectionClass* pClass = Component->getClass();
+	const ReClass* pClass = Component->getClass();
 	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
 	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
 	ComponentList.push_back( Component );
@@ -383,7 +383,7 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// Erase from component list.
-	const BcReflectionClass* pClass = Component->getClass();
+	const ReClass* pClass = Component->getClass();
 	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
 	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
 	ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );

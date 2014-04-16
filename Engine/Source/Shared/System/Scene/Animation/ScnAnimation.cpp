@@ -103,10 +103,10 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 // Define resource internals.
 DEFINE_RESOURCE( ScnAnimation );
 
-BCREFLECTION_EMPTY_REGISTER( ScnAnimation );
+//BCREFLECTION_EMPTY_REGISTER( ScnAnimation );
 /*
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnAnimation )
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_BEGIN( CsResource, ScnAnimation )
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

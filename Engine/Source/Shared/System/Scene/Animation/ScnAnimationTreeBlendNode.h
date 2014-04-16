@@ -31,7 +31,7 @@ class ScnAnimationTreeBlendNode:
 	public ScnAnimationTreeNode
 {
 public:
-	BCREFLECTION_DECLARE_DERIVED( ScnAnimationTreeNode, ScnAnimationTreeBlendNode );
+	REFLECTION_DECLARE_DERIVED( ScnAnimationTreeBlendNode, ScnAnimationTreeNode );
 
 public:
 	ScnAnimationTreeBlendNode();

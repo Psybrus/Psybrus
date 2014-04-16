@@ -11,7 +11,7 @@
 *
 **************************************************************************/
 
-#ifndef __BCREFLECTION_H__
+#if !defined( __BCREFLECTION_H__ ) && 0
 #define __BCREFLECTION_H__
 
 #include "Base/BcTypes.h"
@@ -29,7 +29,7 @@ class BcReflectionType;
 class BcReflectionEnumConstant;
 class BcReflectionEnum;
 class BcReflectionField;
-class BcReflectionClass;
+class ReClass;
 class BcReflection;
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ extern BcReflectionType TYPE_BcHash;
 
 //////////////////////////////////////////////////////////////////////////
 // RTTI Defines.
-#define __BCREFLECTION_DECLARE_BASE( _Type )									\
+#define __REFLECTION_DECLARE_BASE( _Type )									\
 	public:			                                                            \
 	template< typename _Ty >                                                    \
 	friend void BcReflectionConstruct< _Ty >( void* pData );					\
@@ -62,11 +62,11 @@ extern BcReflectionType TYPE_BcHash;
 	friend void BcReflectionDestruct< _Ty >( void* pData );	 		     		\
 	static const BcName& StaticGetType();										\
 	static BcHash StaticGetTypeHash();											\
-	static const BcReflectionClass* StaticGetClass();							\
+	static const ReClass* StaticGetClass();							\
 	static void StaticRegisterReflection();										\
 	virtual const BcName& getTypeName() const;									\
 	virtual BcHash getTypeHash() const;											\
-	virtual const BcReflectionClass* getClass() const;							\
+	virtual const ReClass* getClass() const;							\
 	virtual BcBool isType( const BcName& Type ) const;							\
 	virtual BcBool isTypeOf( const BcName& Type ) const;						\
 	template < class _Ty >														\
@@ -75,7 +75,7 @@ extern BcReflectionType TYPE_BcHash;
 		return this ? isTypeOf( _Ty::StaticGetType() ) : BcFalse;				\
 	}
 
-#define __BCREFLECTION_DEFINE_BASE( _Type )										\
+#define __REFLECTION_DEFINE_BASE( _Type )										\
 	const BcName& _Type::StaticGetType()										\
 	{																			\
 		static BcName TypeString( #_Type );										\
@@ -87,9 +87,9 @@ extern BcReflectionType TYPE_BcHash;
 		return BcHash( #_Type );												\
 	}																			\
 																				\
-	const BcReflectionClass* _Type::StaticGetClass()							\
+	const ReClass* _Type::StaticGetClass()							\
 	{																			\
-		static const BcReflectionClass* pClass = BcReflection::pImpl()->getClass( StaticGetType() ); \
+		static const ReClass* pClass = BcReflection::pImpl()->getClass( StaticGetType() ); \
 		BcAssertMsg( pClass != NULL, "Can not find reflection data for \"%s\"", (*StaticGetType()).c_str() ); \
 		return pClass;															\
 	}																			\
@@ -98,20 +98,20 @@ extern BcReflectionType TYPE_BcHash;
 		return _Type::StaticGetType();											\
 	}																			\
 																				\
-	const BcReflectionClass* _Type::getClass() const							\
+	const ReClass* _Type::getClass() const							\
 	{																			\
 		return _Type::StaticGetClass();											\
 	}
 
-#define BCREFLECTION_DECLARE_BASE( _Type )										\
-	__BCREFLECTION_DECLARE_BASE( _Type )										\
+#define REFLECTION_DECLARE_BASE( _Type )										\
+	__REFLECTION_DECLARE_BASE( _Type )										\
 	BcForceInline _Type* getSuper()												\
 	{																			\
 		return NULL;															\
 	}																			\
 
-#define BCREFLECTION_DEFINE_BASE( _Type )										\
-	__BCREFLECTION_DEFINE_BASE( _Type )											\
+#define REFLECTION_DEFINE_BASE( _Type )										\
+	__REFLECTION_DEFINE_BASE( _Type )											\
 	BcHash _Type::getTypeHash() const											\
 	{																			\
 		return _Type::StaticGetTypeHash();										\
@@ -127,17 +127,17 @@ extern BcReflectionType TYPE_BcHash;
 		return _Type::StaticGetType() == Type;									\
 	}																			\
 
-#define BCREFLECTION_DECLARE_DERIVED( _Base, _Type )							\
+#define REFLECTION_DECLARE_DERIVED( _Base, _Type )							\
 	public:																		\
 		typedef _Base Super;													\
-		__BCREFLECTION_DECLARE_BASE( _Type )									\
+		__REFLECTION_DECLARE_BASE( _Type )									\
 		BcForceInline Super* getSuper()											\
 		{																		\
 			return this;														\
 		}																		\
 
-#define BCREFLECTION_DEFINE_DERIVED( _Type )									\
-	__BCREFLECTION_DEFINE_BASE( _Type )											\
+#define REFLECTION_DEFINE_DERIVED( _Type )									\
+	__REFLECTION_DEFINE_BASE( _Type )											\
 	BcHash _Type::getTypeHash() const 											\
 	{																			\
 		return _Type::StaticGetTypeHash();										\
@@ -159,7 +159,7 @@ extern BcReflectionType TYPE_BcHash;
 	void _Type::StaticRegisterReflection()										\
 	{																			\
 		typedef _Type ThisType;													\
-		static BcReflectionClass Class( ThisType::StaticGetType(),				\
+		static ReClass Class( ThisType::StaticGetType(),				\
 		                                sizeof( ThisType ),						\
  		                                BcReflectionConstruct< ThisType >,		\
  		                                BcReflectionDestruct< ThisType >,		\
@@ -178,7 +178,7 @@ extern BcReflectionType TYPE_BcHash;
 
 #define BCREFLECTION_BASE_END()													\
 		};																		\
-		static BcReflectionClass Class( ThisType::StaticGetType(),				\
+		static ReClass Class( ThisType::StaticGetType(),				\
 		                                sizeof( ThisType ),						\
  		                                BcReflectionConstruct< ThisType >,		\
  		                                BcReflectionDestruct< ThisType >,		\
@@ -197,7 +197,7 @@ extern BcReflectionType TYPE_BcHash;
 
 #define BCREFLECTION_ABSTRACT_BASE_END()										\
 		};																		\
-		static BcReflectionClass Class( ThisType::StaticGetType(),				\
+		static ReClass Class( ThisType::StaticGetType(),				\
 		                                sizeof( ThisType ),						\
  		                                NULL,									\
  		                                NULL,									\
@@ -207,7 +207,7 @@ extern BcReflectionType TYPE_BcHash;
 		BcReflection::pImpl()->addType( &Class );								\
 	}
 
-#define BCREFLECTION_DERIVED_BEGIN( _Base, _Type )								\
+#define REFLECTION_DERIVED_BEGIN( _Base, _Type )								\
 	void _Type::StaticRegisterReflection()										\
 	{				                                                            \
 		typedef _Base BaseType;													\
@@ -215,9 +215,9 @@ extern BcReflectionType TYPE_BcHash;
 		static BcReflectionField Fields[] =										\
 		{
 
-#define BCREFLECTION_DERIVED_END()												\
+#define REFLECTION_DERIVED_END()												\
 		};																		\
-		static BcReflectionClass Class( ThisType::StaticGetType(),				\
+		static ReClass Class( ThisType::StaticGetType(),				\
 		                                sizeof( ThisType ),						\
  		                                BcReflectionConstruct< ThisType >,		\
  		                                BcReflectionDestruct< ThisType >,		\
@@ -251,7 +251,7 @@ typedef void (*BcReflectionDestructFunc)( void* );
 // BcReflectionPrimitive
 class BcReflectionPrimitive
 {
-	BCREFLECTION_DECLARE_BASE( BcReflectionPrimitive );
+	REFLECTION_DECLARE_BASE( BcReflectionPrimitive );
 protected:
 	BcReflectionPrimitive(){};
 
@@ -294,7 +294,7 @@ enum BcReflectionFieldFlags
 class BcReflectionType: 
 	public BcReflectionPrimitive
 {
-	BCREFLECTION_DECLARE_DERIVED( BcReflectionPrimitive, BcReflectionType );
+	REFLECTION_DECLARE_DERIVED( BcReflectionPrimitive, BcReflectionType );
 
 protected:
 	BcReflectionType(){};
@@ -320,7 +320,7 @@ protected:
 class BcReflectionEnumConstant: 
 	public BcReflectionPrimitive
 {
-	BCREFLECTION_DECLARE_DERIVED( BcReflectionPrimitive, BcReflectionEnumConstant );
+	REFLECTION_DECLARE_DERIVED( BcReflectionPrimitive, BcReflectionEnumConstant );
 
 public:
 	BcReflectionEnumConstant(){};
@@ -336,7 +336,7 @@ protected:
 class BcReflectionEnum: 
 	public BcReflectionType
 {
-	BCREFLECTION_DECLARE_DERIVED( BcReflectionType, BcReflectionEnum );
+	REFLECTION_DECLARE_DERIVED( BcReflectionType, BcReflectionEnum );
 
 protected:
 	BcReflectionEnum(){};
@@ -358,7 +358,7 @@ protected:
 class BcReflectionField: 
 	public BcReflectionPrimitive
 {
-	BCREFLECTION_DECLARE_DERIVED( BcReflectionPrimitive, BcReflectionField );
+	REFLECTION_DECLARE_DERIVED( BcReflectionPrimitive, BcReflectionField );
 
 protected:
 	BcReflectionField(){};
@@ -384,17 +384,17 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// BcReflectionClass
-class BcReflectionClass: 
+// ReClass
+class ReClass: 
 	public BcReflectionType
 {
-	BCREFLECTION_DECLARE_DERIVED( BcReflectionType, BcReflectionClass );
+	REFLECTION_DECLARE_DERIVED( BcReflectionType, ReClass );
 
 protected:
-	BcReflectionClass(){};
+	ReClass(){};
 
 public:
-	BcReflectionClass( const BcName& Name,
+	ReClass( const BcName& Name,
 	                   BcU32 Size,
 					   BcReflectionConstructFunc constructFunc,
 					   BcReflectionDestructFunc destructFunc,
@@ -402,17 +402,17 @@ public:
 					   const BcReflectionField* pFields,
 					   BcU32 NoofFields );
 
-	virtual ~BcReflectionClass(){};
+	virtual ~ReClass(){};
 
 	/**
 	 * Get super.
 	 */
-	const BcReflectionClass*		getSuper() const;
+	const ReClass*		getSuper() const;
 
 	/**
 	 * Is this a type of a class?
 	 */
-	const BcBool					isTypeOfClass( const BcReflectionClass* pClass ) const;
+	const BcBool					isTypeOfClass( const ReClass* pClass ) const;
 
 	/**
 	 * Get field.
@@ -503,18 +503,18 @@ public:
 	/**
 	 * Get a class.
 	 */
-	const BcReflectionClass*		getClass( BcU32 Idx );
+	const ReClass*		getClass( BcU32 Idx );
 
 	/**
 	 * Get a class.
 	 */
-	const BcReflectionClass*		getClass( const BcName& Class );
+	const ReClass*		getClass( const BcName& Class );
 
 protected:
 	typedef std::map< BcName, const BcReflectionType* > TTypeMap;
 	typedef std::vector< const BcReflectionType* > TTypeList;
-	typedef std::map< BcName, const BcReflectionClass* > TClassMap;
-	typedef std::vector< const BcReflectionClass* > TClassList;
+	typedef std::map< BcName, const ReClass* > TClassMap;
+	typedef std::vector< const ReClass* > TClassList;
 	
 	TTypeMap						TypeMap_;
 	TTypeList						TypeList_;
@@ -522,5 +522,8 @@ protected:
 	TClassMap						ClassMap_;
 	TClassList						ClassList_;
 };
+
+#else
+#define BCREFLECTION_EMPTY_REGISTER( _Type )
 
 #endif

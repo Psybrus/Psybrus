@@ -25,14 +25,14 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnAnimationComponent );
 
-BCREFLECTION_EMPTY_REGISTER( ScnAnimationComponent );
+//BCREFLECTION_EMPTY_REGISTER( ScnAnimationComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnAnimationComponent )
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnAnimationComponent )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,10 +47,11 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 	if( HasRegisteredReflection == BcFalse )
 	{
 		HasRegisteredReflection = BcTrue;
-		ScnAnimationTreeNode::StaticRegisterReflection();
-		ScnAnimationTreeBlendNode::StaticRegisterReflection();
-		ScnAnimationTreeTrackNode::StaticRegisterReflection();
-		ScnAnimationPose::StaticRegisterReflection();
+		BcBreakpoint;
+		//ScnAnimationTreeNode::StaticRegisterReflection();
+		//ScnAnimationTreeBlendNode::StaticRegisterReflection();
+		//ScnAnimationTreeTrackNode::StaticRegisterReflection();
+		//ScnAnimationPose::StaticRegisterReflection();
 	}
 
 	//
@@ -73,7 +74,7 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 	const Json::Value& TypeValue = Object[ "type" ];
 	const Json::Value& NameValue = Object[ "name" ];
 	const Json::Value& ChildrenValue = Object[ "children" ];
-	const BcReflectionClass* pClass = BcReflection::pImpl()->getClass( TypeValue.asCString() );
+	const ReClass* pClass = ReManager::GetClass( TypeValue.asCString() );
 	ScnAnimationTreeNode* pNode = pClass->construct< ScnAnimationTreeNode >();
 	pNode->setName( NameValue.asCString() );
 
@@ -136,7 +137,7 @@ void ScnAnimationComponent::postUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( TargetComponentName_ );
+	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( ReManager::GetClass( *TargetComponentName_ ) );
 	BcAssertMsg( Model_.isValid(), "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
 
 	// Setup the reference pose.
@@ -194,10 +195,10 @@ void ScnAnimationComponent::applyPose()
 
 //////////////////////////////////////////////////////////////////////////
 // findNodeRecursively
-ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const BcName& Type )
+ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class )
 {
 	if( pStartNode->getName() == Name &&
-		pStartNode->getTypeName() == Type )
+		pStartNode->getClass()->getTypeName() == Class->getTypeName() )
 	{
 		return pStartNode;
 	}
@@ -206,7 +207,7 @@ ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTr
 	for( BcU32 Idx = 0; Idx < NoofNodes; ++Idx )
 	{
 		ScnAnimationTreeNode* pNode = pStartNode->getChildNode( Idx );
-		if( ( pNode = findNodeRecursively( pNode, Name, Type ) ) != NULL )
+		if( ( pNode = findNodeRecursively( pNode, Name, Class ) ) != NULL )
 		{
 			return pNode;
 		}
