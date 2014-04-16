@@ -125,7 +125,7 @@ public:
 		{
 			GatheredObjectList_.push_back( SrcObject );
 
-			const Class* Class = InClass;
+			const ReClass* Class = InClass;
 			while( Class != nullptr )
 			{
 				for( BcU32 Idx = 0; Idx < Class->getNoofFields(); ++Idx )
@@ -288,12 +288,12 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // CopyClass
-void CopyClass( void* DstObject, void* SrcObject, const ReType* InType )
+void ReCopyClass( void* DstObject, void* SrcObject, const ReType* InType )
 {
-	if( InType->isTypeOf< Class >() )
+	if( InType->isTypeOf< ReClass >() )
 	{
 		const ReClass* InClass = static_cast< const ReClass* >( InType );
-		CopyClass( DstObject, SrcObject, InClass );
+		ReCopyClass( DstObject, SrcObject, InClass );
 	}
 	else
 	{
@@ -303,7 +303,7 @@ void CopyClass( void* DstObject, void* SrcObject, const ReType* InType )
 			
 //////////////////////////////////////////////////////////////////////////
 // CopyClass
-void CopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
+void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
 	// Now create all objects that exist as pointers in fields, and mark up.
 	ObjectCopyContext ObjectCopyContext;
@@ -319,7 +319,7 @@ void CopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 // ConstructObject
 ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis )
 {
-	auto NewObject = InClass->constructNoInit< Object >();
+	auto NewObject = InClass->constructNoInit< ReObject >();
 
 	if( NewObject != nullptr )
 	{
@@ -330,7 +330,7 @@ ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, 
 		// If we have a basis, we need to perform a deep copy.
 		if( InBasis != nullptr )
 		{
-			CopyClass( NewObject, InBasis, NewObject->getClass() );
+			ReCopyClass( NewObject, InBasis, NewObject->getClass() );
 		}
 	}
 			

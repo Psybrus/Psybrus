@@ -84,7 +84,7 @@ const std::string& ReObject::getName() const
 // getFullName
 std::string ReObject::getFullName() const
 {
-	const Object* Object = this;
+	const ReObject* Object = this;
 	std::string Name = getName();
 	while( Object->Owner_ != nullptr )
 	{
@@ -140,7 +140,7 @@ ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 //////////////////////////////////////////////////////////////////////////
 // StaticAdd
 //static
-void Object::StaticAdd( Object* Object )
+void ReObject::StaticAdd( ReObject* Object )
 {
 	BcScopedLock< BcMutex > Lock( ObjectListMutex_ );
 	ObjectList_.push_back( Object );
@@ -149,7 +149,7 @@ void Object::StaticAdd( Object* Object )
 //////////////////////////////////////////////////////////////////////////
 // StaticRemove
 //static
-void Object::StaticRemove( Object* Object )
+void ReObject::StaticRemove( ReObject* Object )
 {
 	BcScopedLock< BcMutex > Lock( ObjectListMutex_ );
 	ObjectList_.remove( Object );
@@ -174,7 +174,7 @@ void ReObject::StaticCollectGarbage()
 	// if required.
 	for( auto Object : ObjectList )
 	{
-		if( ( Object->Flags_ & (BcU32)Object::Flags::MarkedForDeletion ) != 0 )
+		if( ( Object->Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) != 0 )
 		{
 			delete Object;
 		}

@@ -8,7 +8,7 @@ REFLECTION_DEFINE_BASE( ReClassSerialiser );
 // Ctor
 ReClassSerialiser::ReClassSerialiser( const std::string& Name )
 {
-	Class_ = GetClass( Name );
+	Class_ = ReManager::GetClass( Name );
 }
 	
 //////////////////////////////////////////////////////////////////////////

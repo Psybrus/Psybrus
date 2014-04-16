@@ -47,13 +47,13 @@ public:
     template< typename _Ty >
     static ReClass* GetClass()
     {
-        if( TypeTraits< _Ty >::IsEnum )
+        if( ReTypeTraits< _Ty >::IsEnum )
         {
-            return GetEnum( TypeTraits< _Ty >::Name() );
+            return ReManager::GetEnum( ReTypeTraits< _Ty >::Name() );
         }
         else
         {
-            return GetClass( TypeTraits< _Ty >::Name() );
+            return ReManager::GetClass( ReTypeTraits< _Ty >::Name() );
         }
     }
 
@@ -61,7 +61,7 @@ public:
 	* @brief Get Classes of a base.
 	* @return Pointer to class, or nullptr if out of range.
 	*/
-static void GetClassesOfBase( std::vector< const ReClass* >& OutClasses, const ReClass* Base );
+	static void GetClassesOfBase( std::vector< const ReClass* >& OutClasses, const ReClass* Base );
 
     /**
 	* @brief Get Classes of a base.
