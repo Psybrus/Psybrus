@@ -32,7 +32,7 @@
 // Helper defines.
 #define DECLARE_RESOURCE( _Base, _Type )										\
 	REFLECTION_DECLARE_DERIVED( _Type, _Base )									\
-	protected:																	\
+	public:																	\
 	_Type();																	\
 	virtual ~_Type();															\
 	public:																		
@@ -54,9 +54,10 @@ class CsCore;
 
 //////////////////////////////////////////////////////////////////////////
 // CsResource
-class CsResource
+class CsResource:
+	public ReObject
 {
-	REFLECTION_DECLARE_BASE( CsResource );
+	REFLECTION_DECLARE_DERIVED( CsResource, ReObject );
 public:
 	enum
 	{

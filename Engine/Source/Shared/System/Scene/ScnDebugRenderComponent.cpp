@@ -28,15 +28,15 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnDebugRenderComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnDebugRenderComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnDebugRenderComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnDebugRenderComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_ )
+	};
+		
+	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
