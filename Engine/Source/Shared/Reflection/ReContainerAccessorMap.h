@@ -100,8 +100,8 @@ public:
 public:
     ReMapContainerAccessor()
 	{
-		pKeyType_ = GetClass< typename KeyTraits::Type >();
-		pValueType_ = GetClass< typename ValueTraits::Type >();
+		pKeyType_ = ReManager::GetClass< typename KeyTraits::Type >();
+		pValueType_ = ReManager::GetClass< typename ValueTraits::Type >();
 		KeyFlags_ = typename KeyTraits::Flags;
 		ValueFlags_ = typename ValueTraits::Flags;
 
@@ -129,8 +129,8 @@ public:
 template < typename _Key, typename _Ty, typename _Pr, typename _Alloc >
 ReContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-    pKeyType =  GetClass< ReTypeTraits< _Key >::Type >();
-    pValueType = GetClass< ReTypeTraits< _Ty >::Type >();
+    pKeyType =  ReManager::GetClass< ReTypeTraits< _Key >::Type >();
+    pValueType = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
     KeyFlags = ReTypeTraits< _Key >::Flags;
     ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReMapContainerAccessor< _Key, _Ty, _Pr, _Alloc >();

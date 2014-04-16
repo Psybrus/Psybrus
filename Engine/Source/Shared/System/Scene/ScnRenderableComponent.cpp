@@ -23,11 +23,15 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
-/*
-REFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnRenderableComponent )
-	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnRenderableComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "RenderMask_",		&ScnRenderableComponent::RenderMask_ ),
+	};
+		
+	ReRegisterClass< ScnRenderableComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

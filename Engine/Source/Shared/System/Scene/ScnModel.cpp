@@ -40,11 +40,15 @@ BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& O
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnModel );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnModel )
-REFLECTION_DERIVED_END();
-*/
+void ScnModel::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pHeader_",				&ScnModel::pHeader_ ),
+	};
+		
+	ReRegisterClass< ScnModel, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -200,15 +204,19 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource.
 DEFINE_RESOURCE( ScnModelComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnModelComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnModelComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnModelComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Parent_",							&ScnModelComponent::Parent_ ),
+		ReField( "Layer_",							&ScnModelComponent::Layer_ ),
+		ReField( "Pass_",							&ScnModelComponent::Pass_ ),
+		ReField( "AABB_",							&ScnModelComponent::AABB_ ),
+		ReField( "PerComponentPrimitiveDataList_",	&ScnModelComponent::PerComponentPrimitiveDataList_ ),
+	};
+		
+	ReRegisterClass< ScnModelComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
