@@ -10,11 +10,13 @@ void ReObject::StaticRegisterClass()
 {
 	static const ReField Fields[] = 
 	{
-		ReField( "RefCount_",				&ReObject::RefCount_,		bcRFF_TRANSIENT ),
+#if REFLECTION_ENABLE_GC
+		ReField( "RefCount_",			&ReObject::RefCount_,		bcRFF_TRANSIENT ),
+#endif
 		ReField( "Flags_",				&ReObject::Flags_ ),
 		ReField( "Owner_",				&ReObject::Owner_ ),
 		ReField( "Basis_",				&ReObject::Basis_ ),
-		ReField( "Name_",					&ReObject::Name_ ),
+		ReField( "Name_",				&ReObject::Name_ ),
 	};
 		
 	ReRegisterClass< ReObject >( Fields );
@@ -164,7 +166,7 @@ void ReObject::StaticCollectGarbage()
 	// This is mostly a functional placeholder before we experiment
 	// with kicking off GC as a job so it can run in parallel to the
 	// game.
-
+#if REFLECTION_ENABLE_GC
 	// Lock and grab a copy of the object list.
 	ObjectListMutex_.lock();
 	ObjectList ObjectList( ObjectList_ );
@@ -179,4 +181,5 @@ void ReObject::StaticCollectGarbage()
 			delete Object;
 		}
 	}
+#endif
 }

@@ -2,24 +2,26 @@ template< class _Ty >
 inline void ReObjectRef< _Ty >::_acquireNew( ReObject* pObject )
 {
 	pObject_ = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
-
+#if REFLECTION_ENABLE_GC
 	if( pObject_ != nullptr )
 	{
 		pObject_->incRefCount();
 	}
+#endif
 }
 
 template< class _Ty >
 inline void ReObjectRef< _Ty >::_acquireNewReleaseOld( ReObject* pObject )
 {
 	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
-
+#if REFLECTION_ENABLE_GC
 	if( pObject != nullptr )
 	{
 		pObject->incRefCount();
 	}
 
 	pObject_->decRefCount();
+#endif
 	pObject_ = pObject;
 }
 
@@ -27,7 +29,7 @@ template< class _Ty >
 inline void ReObjectRef< _Ty >::_acquireAssign( ReObject* pObject )
 {
 	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
-
+#if REFLECTION_ENABLE_GC
 	if( pObject_ == nullptr )
 	{
 		_acquireNew( pObject );
@@ -36,6 +38,7 @@ inline void ReObjectRef< _Ty >::_acquireAssign( ReObject* pObject )
 	{
 		_acquireNewReleaseOld( pObject );
 	}
+#endif
 }
 
 template< class _Ty >
@@ -43,7 +46,9 @@ inline void ReObjectRef< _Ty >::_releaseThis()
 {
 	if( pObject_ != nullptr )
 	{
+#if REFLECTION_ENABLE_GC
 		pObject_->decRefCount();
+#endif
 		pObject_ = nullptr;
 	}
 }
@@ -52,7 +57,7 @@ inline void ReObjectRef< _Ty >::_releaseThis()
 template< class _Ty >
 inline void ReObjectRef< _Ty >::assertPendingDeletion( const ReObject* pObject )
 {
-#if PSY_DEBUG
+#if PSY_DEBUG && REFLECTION_ENABLE_GC
 	if( pObject != nullptr )
 	{
 		BcAssert( ( pObject->Flags_ & (BcU32)Object::Flags::MarkedForDeletion ) == 0 );
