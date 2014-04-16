@@ -20,9 +20,11 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnComponent );
 
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnComponent )
+/*
+REFLECTION_DERIVED_BEGIN( CsResource, ScnComponent )
 	BCREFLECTION_MEMBER( ScnEntity,							ParentEntity_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

@@ -46,14 +46,14 @@ public:
 	template< class _Ty >
 	_Ty*								findNodeByType( const BcName& Name )
 	{
-		return static_cast< _Ty* >( findNodeRecursively( pRootTreeNode_, Name, _Ty::StaticGetType() ) );
+		return static_cast< _Ty* >( findNodeRecursively( pRootTreeNode_, Name, _Ty::StaticGetClass() ) );
 	}
 
 private:
 	void								buildReferencePose();
 	void								applyPose();
 
-	ScnAnimationTreeNode*				findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const BcName& Type );
+	ScnAnimationTreeNode*				findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class );
 
 private:
 	BcName								TargetComponentName_;

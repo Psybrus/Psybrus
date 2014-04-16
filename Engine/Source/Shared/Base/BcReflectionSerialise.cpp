@@ -11,6 +11,7 @@
 *
 **************************************************************************/
 
+#if 0
 #include "Base/BcReflectionSerialise.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,7 +32,7 @@ BcReflectionSerialise::~BcReflectionSerialise()
 //////////////////////////////////////////////////////////////////////////
 // serialise
 //virtual
-void BcReflectionSerialise::serialise( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialise::serialise( void* pData, const ReClass* pClass )
 {
 	serialiseClass( pData, pClass );
 }
@@ -39,7 +40,7 @@ void BcReflectionSerialise::serialise( void* pData, const BcReflectionClass* pCl
 //////////////////////////////////////////////////////////////////////////
 // serialiseClass
 //virtual
-void BcReflectionSerialise::serialiseClass( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialise::serialiseClass( void* pData, const ReClass* pClass )
 {
 	serialiseBeginClass( pData, pClass );
 	serialiseClassFields( pData, pClass ); 
@@ -49,7 +50,7 @@ void BcReflectionSerialise::serialiseClass( void* pData, const BcReflectionClass
 //////////////////////////////////////////////////////////////////////////
 // serialiseBeginClass
 //virtual
-void BcReflectionSerialise::serialiseBeginClass( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialise::serialiseBeginClass( void* pData, const ReClass* pClass )
 {
 
 }
@@ -57,7 +58,7 @@ void BcReflectionSerialise::serialiseBeginClass( void* pData, const BcReflection
 //////////////////////////////////////////////////////////////////////////
 // serialiseEndClass
 //virtual
-void BcReflectionSerialise::serialiseEndClass( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialise::serialiseEndClass( void* pData, const ReClass* pClass )
 {
 
 }
@@ -65,9 +66,9 @@ void BcReflectionSerialise::serialiseEndClass( void* pData, const BcReflectionCl
 //////////////////////////////////////////////////////////////////////////
 // serialiseClassFields
 //virtual
-void BcReflectionSerialise::serialiseClassFields( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialise::serialiseClassFields( void* pData, const ReClass* pClass )
 {
-	const BcReflectionClass* pSuperClass = pClass->getSuper();
+	const ReClass* pSuperClass = pClass->getSuper();
 	
 	// Serialise supers first.
 	if( pSuperClass != NULL )
@@ -86,22 +87,22 @@ void BcReflectionSerialise::serialiseClassFields( void* pData, const BcReflectio
 //////////////////////////////////////////////////////////////////////////
 // serialiseField
 //virtual
-void BcReflectionSerialise::serialiseField( void* pData, const BcReflectionClass* pParentClass, const BcReflectionField* pField )
+void BcReflectionSerialise::serialiseField( void* pData, const ReClass* pParentClass, const BcReflectionField* pField )
 {
 	const BcReflectionType* pType = pField->getType();
 
-	if( pType->isTypeOf< BcReflectionClass >() )
+	if( pType->isTypeOf< ReClass >() )
 	{
 		BcU32 PointerFlags = bcRFF_POINTER | bcRFF_REFERENCE;
 		if( ( pField->getFlags() & PointerFlags ) == 0 )
 		{
-				const BcReflectionClass* pClass = static_cast< const BcReflectionClass* >( pType );
+				const ReClass* pClass = static_cast< const ReClass* >( pType );
 				void* pNewData = reinterpret_cast< BcU8* >( pData ) + pField->getOffset();
 				serialiseClass( pNewData, pClass );
 		}
 		else
 		{
-			const BcReflectionClass* pClass = static_cast< const BcReflectionClass* >( pType );
+			const ReClass* pClass = static_cast< const ReClass* >( pType );
 			void* pPointerData = *pField->getData< void** >( pData );
 			if( pPointerData != NULL )
 			{
@@ -115,3 +116,4 @@ void BcReflectionSerialise::serialiseField( void* pData, const BcReflectionClass
 		BcPrintf( "%s %s::%s: \n", "Unknown", (*pParentClass->getName()).c_str(), (*pField->getName()).c_str() );
 	}
 }
+#endif

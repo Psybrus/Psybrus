@@ -23,9 +23,11 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderableComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnRenderableComponent )
+/*
+REFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnRenderableComponent )
 	BCREFLECTION_MEMBER( BcU32,								RenderMask_,							bcRFF_DEFAULT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

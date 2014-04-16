@@ -21,7 +21,7 @@
 class ScnAnimationPose
 {
 public:
-	BCREFLECTION_DECLARE_BASE( ScnAnimationPose );
+	REFLECTION_DECLARE_BASE( ScnAnimationPose );
 
 public:
 	ScnAnimationPose();

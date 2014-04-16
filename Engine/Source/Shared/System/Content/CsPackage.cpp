@@ -256,7 +256,7 @@ CsResourceRef<> CsPackage::getPackageCrossRef( BcU32 ID )
 
 	// Find resource.
 	// NOTE: Should get from package for faster lookup.
-	CsCore::pImpl()->internalFindResource( PackageName, ResourceName, TypeName, Resource );
+	CsCore::pImpl()->internalFindResource( PackageName, ResourceName, ReManager::GetClass( *TypeName ), Resource );
 
 	// If there is no valid resource at this point, then we must fail.
 	BcAssertMsg( Resource.isValid(), "CsPackage: Cross ref isn't valid!" );

@@ -11,6 +11,7 @@
 *
 **************************************************************************/
 
+#if 0
 #include "BcReflectionSerialiseJson.h"
 
 #include "BcFile.h"
@@ -27,7 +28,7 @@
 
 class BcReflectionSerialisationJson_UnitTest_Class
 {
-	BCREFLECTION_DECLARE_BASE( BcReflectionSerialisationJson_UnitTest_Class );
+	REFLECTION_DECLARE_BASE( BcReflectionSerialisationJson_UnitTest_Class );
 
 public:
 	BcReflectionSerialisationJson_UnitTest_Class()
@@ -40,7 +41,7 @@ public:
 	BcVec4d TestBcVec4d_;
 };
 
-BCREFLECTION_DEFINE_BASE( BcReflectionSerialisationJson_UnitTest_Class );
+REFLECTION_DEFINE_BASE( BcReflectionSerialisationJson_UnitTest_Class );
 
 BCREFLECTION_BASE_BEGIN( BcReflectionSerialisationJson_UnitTest_Class )
 	BCREFLECTION_MEMBER( BcU32,							TestBcU32_,						bcRFF_DEFAULT ),
@@ -108,7 +109,7 @@ const Json::Value& BcReflectionSerialiseJson::getRootValue() const
 //////////////////////////////////////////////////////////////////////////
 // serialiseBeginClass
 //virtual
-void BcReflectionSerialiseJson::serialiseBeginClass( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialiseJson::serialiseBeginClass( void* pData, const ReClass* pClass )
 {
 	ValueStack_.push_back( pCurrValue_ );
 	ClassStack_.push_back( CurrClass_ );
@@ -126,7 +127,7 @@ void BcReflectionSerialiseJson::serialiseBeginClass( void* pData, const BcReflec
 //////////////////////////////////////////////////////////////////////////
 // serialiseEndClass
 //virtual
-void BcReflectionSerialiseJson::serialiseEndClass( void* pData, const BcReflectionClass* pClass )
+void BcReflectionSerialiseJson::serialiseEndClass( void* pData, const ReClass* pClass )
 {
 	pCurrValue_ = ValueStack_.back();
 	CurrClass_ = ClassStack_.back();
@@ -140,7 +141,7 @@ void BcReflectionSerialiseJson::serialiseEndClass( void* pData, const BcReflecti
 //////////////////////////////////////////////////////////////////////////
 // serialiseField
 //virtual
-void BcReflectionSerialiseJson::serialiseField( void* pData, const BcReflectionClass* pParentClass, const BcReflectionField* pField )
+void BcReflectionSerialiseJson::serialiseField( void* pData, const ReClass* pParentClass, const BcReflectionField* pField )
 {
 	std::string CurrMember;
 	// Differentiate super class's members.
@@ -166,7 +167,7 @@ void BcReflectionSerialiseJson::serialiseField( void* pData, const BcReflectionC
 		// Default to an object value.
 		MemberValue[ CurrMember ] = Json::Value( Json::objectValue );
 
-		if( pField->getType()->isTypeOf< BcReflectionClass >() )
+		if( pField->getType()->isTypeOf< ReClass >() )
 		{
 			ValueStack_.push_back( pCurrValue_ );
 
@@ -407,3 +408,4 @@ BcBool BcReflectionSerialiseJson::setValue( void* pData, const BcReflectionField
 
 	return BcFalse;
 }
+#endif

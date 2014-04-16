@@ -80,7 +80,7 @@ public:
 	/**
 	 * Allocate resource.
 	 */
-	CsResource*							allocResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage );
+	CsResource*							allocResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage );
 
 	/*
 	 * Destroy resource.
@@ -184,23 +184,23 @@ protected:
 	void								processCallbacks();
 	
 public:
-	void								internalRegisterResource( const BcReflectionClass* pClass );
-	void								internalUnRegisterResource( const BcName& Type );
-	BcBool								internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle );
-	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
-	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle );
+	void								internalRegisterResource( const ReClass* pClass );
+	void								internalUnRegisterResource( const ReClass* Class );
+	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle );
+	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle );
+	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle );
 	
 protected:
 	struct TResourceFactoryInfo // TODO: Deprecate. We don't need this much longer with having centralised reflection support.
 	{
-		const BcReflectionClass* pClass_;
+		const ReClass* pClass_;
 	};
 	
 	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
 	typedef std::vector< CsResourceRef<> > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
-	typedef std::map< BcName, TResourceFactoryInfo > TResourceFactoryInfoMap;
+	typedef std::map< const ReClass*, TResourceFactoryInfo > TResourceFactoryInfoMap;
 	typedef TResourceFactoryInfoMap::iterator TResourceFactoryInfoMapIterator;
 
 	struct TPackageReadyCallback
@@ -238,7 +238,7 @@ template< typename _Ty >
 BcForceInline void CsCore::registerResource()
 {
 	BcAssert( BcIsGameThread() );
-	_Ty::StaticRegisterReflection();
+	// TODO _Ty::StaticRegisterReflection();
 	internalRegisterResource( _Ty::StaticGetClass() );
 }
 
@@ -248,7 +248,7 @@ template< typename _Ty >
 BcForceInline void CsCore::unregisterResource()
 {
 	BcAssert( BcIsGameThread() );
-	internalUnRegisterResource( _Ty::StaticGetType() );
+	internalUnRegisterResource( _Ty::StaticGetClass() );
 }
 
 template< typename _Ty >
@@ -256,7 +256,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise();
 		return BcTrue;
@@ -270,7 +270,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA );
 		return BcTrue;
@@ -284,7 +284,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB );
 		return BcTrue;
@@ -298,7 +298,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC );
 		return BcTrue;
@@ -312,7 +312,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD );
 		return BcTrue;
@@ -326,7 +326,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE );
 		return BcTrue;
@@ -340,7 +340,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF );
 		return BcTrue;
@@ -354,7 +354,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF, ParamG );
 		return BcTrue;
@@ -368,7 +368,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF, ParamG, ParamH );
 		return BcTrue;
@@ -382,7 +382,7 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	if( internalCreateResource( Name, _Ty::StaticGetType(), BcErrorCode, pPackage, InternalHandle ) )
+	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF, ParamG, ParamH, ParamI );
 		return BcTrue;
@@ -396,7 +396,7 @@ BcForceInline BcBool CsCore::requestResource( const BcName& Package, const BcNam
 {
 	BcAssert( BcIsGameThread() );
 	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
-	return internalRequestResource( Package, Name, _Ty::StaticGetType(), InternalHandle );
+	return internalRequestResource( Package, Name, _Ty::StaticGetClass(), InternalHandle );
 }
 
 #endif

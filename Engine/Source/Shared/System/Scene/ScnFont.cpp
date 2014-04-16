@@ -344,14 +344,14 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 // Define resource internals.
 DEFINE_RESOURCE( ScnFont );
 
-BCREFLECTION_EMPTY_REGISTER( ScnFont );
+//BCREFLECTION_EMPTY_REGISTER( ScnFont );
 /*
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnFont )
+REFLECTION_DERIVED_BEGIN( CsResource, ScnFont )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////
@@ -435,14 +435,14 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource internals.
 DEFINE_RESOURCE( ScnFontComponent );
 
-BCREFLECTION_EMPTY_REGISTER( ScnFontComponent );
+//BCREFLECTION_EMPTY_REGISTER( ScnFontComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnFontComponent )
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnFontComponent )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

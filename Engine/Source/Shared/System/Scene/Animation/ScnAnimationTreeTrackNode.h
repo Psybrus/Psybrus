@@ -23,7 +23,7 @@ class ScnAnimationTreeTrackNode:
 	public ScnAnimationTreeNode
 {
 public:
-	BCREFLECTION_DECLARE_DERIVED( ScnAnimationTreeNode, ScnAnimationTreeTrackNode );
+	REFLECTION_DECLARE_DERIVED( ScnAnimationTreeTrackNode, ScnAnimationTreeNode );
 
 public:
 	ScnAnimationTreeTrackNode();

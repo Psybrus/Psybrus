@@ -22,7 +22,7 @@
 class ScnAnimationTreeNode
 {
 public:
-	BCREFLECTION_DECLARE_BASE( ScnAnimationTreeNode );
+	REFLECTION_DECLARE_BASE( ScnAnimationTreeNode );
 
 public:
 	ScnAnimationTreeNode();
