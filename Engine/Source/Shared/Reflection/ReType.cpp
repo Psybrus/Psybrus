@@ -4,21 +4,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_DERIVED( Type );
+REFLECTION_DEFINE_DERIVED( ReType );
 
-void Type::StaticRegisterClass()
+void ReType::StaticRegisterClass()
 {
-	static const Field Fields[] = 
+	static const ReField Fields[] = 
 	{
-		Field( "Size_", &Type::Size_ ),
+		ReField( "Size_", &ReType::Size_ ),
 	};
 		
-	RegisterClass< Type, Primitive >( Fields );
+	ReRegisterClass< ReType, RePrimitive >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-Type::Type():
+ReType::ReType():
 	Size_( 0 ),
 	Serialiser_( nullptr )
 {
@@ -28,7 +28,7 @@ Type::Type():
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-Type::~Type()
+ReType::~ReType()
 {
 	delete Serialiser_;
 	Serialiser_ = nullptr;
@@ -37,7 +37,7 @@ Type::~Type()
 	
 //////////////////////////////////////////////////////////////////////////
 // getSize
-BcU32 Type::getSize() const
+BcU32 ReType::getSize() const
 {
 	return Size_;
 }

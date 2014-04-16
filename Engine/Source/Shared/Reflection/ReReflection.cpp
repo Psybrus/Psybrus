@@ -5,7 +5,7 @@
 class ObjectCopyContext
 {
 private:
-	typedef std::vector< FieldAccessor > FieldAccessors;
+	typedef std::vector< ReFieldAccessor > FieldAccessors;
 	struct FieldCopyInfo
 	{
 		FieldCopyInfo():
@@ -17,7 +17,7 @@ private:
 
 		void* SrcData_;
 		void* DstData_;
-		const Class* SrcClass_;
+		const ReClass* SrcClass_;
 	};
 
 	typedef std::vector< FieldCopyInfo > FieldCopyInfoList;
@@ -31,7 +31,7 @@ public:
 		* @brief Get field copy info for source data pointer.
 		* Will create new info if there is no info.
 		*/
-	FieldCopyInfo& getFieldCopyInfo( void* SrcData, const Class* InClass )
+	FieldCopyInfo& getFieldCopyInfo( void* SrcData, const ReClass* InClass )
 	{
 		// Search for matching source data.
 		auto Iter = std::find_if( FieldCopyInfoList_.begin(), FieldCopyInfoList_.end(), [ &SrcData ]( FieldCopyInfo& FieldCopyInfo )
@@ -63,7 +63,7 @@ public:
 	/**
 		* @brief Gather from a pointer.
 		*/
-	void gatherFieldPointer( const FieldAccessor& SrcFieldAccessor )
+	void gatherFieldPointer( const ReFieldAccessor& SrcFieldAccessor )
 	{
 		BcAssert( SrcFieldAccessor.isPointerType() );
 
@@ -77,7 +77,7 @@ public:
 	/**
 		* @brief Gather from a container.
 		*/
-	void gatherFieldContainer( const FieldAccessor& SrcFieldAccessor )
+	void gatherFieldContainer( const ReFieldAccessor& SrcFieldAccessor )
 	{
 		BcAssert( SrcFieldAccessor.isContainerType() );
 		BcAssert( SrcFieldAccessor.isContainerOfPointerValues() || SrcFieldAccessor.isContainerOfPointerKeys() );
@@ -116,7 +116,7 @@ public:
 		* Recurses downwards and gathers all field accessors for pointer types
 		* so we can correctly copy duplicated pointers.
 		*/
-	void gatherFields( void* SrcObject, const Class* InClass )
+	void gatherFields( void* SrcObject, const ReClass* InClass )
 	{
 		// Check we've not gathered it.
 		// TODO: Maybe need a faster method to do this? Could mark the objects...but requires
@@ -130,7 +130,7 @@ public:
 			{
 				for( BcU32 Idx = 0; Idx < Class->getNoofFields(); ++Idx )
 				{
-					FieldAccessor SrcFieldAccessor( SrcObject, Class->getField( Idx ) );
+					ReFieldAccessor SrcFieldAccessor( SrcObject, Class->getField( Idx ) );
 
 					// Ignore null pointers, transients, and shallow copies.
 					if( !SrcFieldAccessor.isNullptr() && 
@@ -157,26 +157,26 @@ public:
 		* @brief Copy class data from one to another.
 		* Will create new objects based on ones that were previously gathered.
 		*/
-	void copyClassData( void* DstObject, void* SrcObject, const Class* InClass )
+	void copyClassData( void* DstObject, void* SrcObject, const ReClass* InClass )
 	{
 		// Slow copy. Copy each field individually, we can validate here initially.
 		// TODO: Perhaps do a memcpy, then mark up pointer/ref fields individually?
 		// TODO: Do the copy in stages.
 		//       - Recurse and gather pointer types.
-		const Class* CopyingClass = InClass;
+		const ReClass* CopyingClass = InClass;
 		while( CopyingClass != nullptr )
 		{
 			for( BcU32 Idx = 0; Idx < CopyingClass->getNoofFields(); ++Idx )
 			{
 				auto Field = CopyingClass->getField( Idx );
 				auto FieldType = Field->getType();
-				FieldAccessor SrcFieldAccessor( SrcObject, Field );
+				ReFieldAccessor SrcFieldAccessor( SrcObject, Field );
 					
 				// Only copy non-transient fields.
 				if( !SrcFieldAccessor.isTransient() && ! SrcFieldAccessor.isNullptr() )
 				{
-					FieldAccessor DstFieldAccessor( DstObject, Field );
-					const Class* FieldClass = SrcFieldAccessor.getUpperClass();
+					ReFieldAccessor DstFieldAccessor( DstObject, Field );
+					const ReClass* FieldClass = SrcFieldAccessor.getUpperClass();
 
 					// Is it a container?
 					if( !Field->isContainer() )
@@ -229,7 +229,7 @@ public:
 									FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( Value, SrcFieldAccessor.getUpperClass() );
 									if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo.DstData_, Value ) )
 									{
-										copyClassData( FieldCopyInfo.DstData_, Value, static_cast< const Class* >( ValueType ) );
+										copyClassData( FieldCopyInfo.DstData_, Value, static_cast< const ReClass* >( ValueType ) );
 									}
 									Value = &FieldCopyInfo.DstData_;
 								}
@@ -254,7 +254,7 @@ public:
 										FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( Key, SrcFieldAccessor.getUpperClass() );
 										if( !KeyType->getTypeSerialiser()->copy( FieldCopyInfo.DstData_, Value ) )
 										{
-											copyClassData( FieldCopyInfo.DstData_, Key, static_cast< const Class* >( KeyType ) );
+											copyClassData( FieldCopyInfo.DstData_, Key, static_cast< const ReClass* >( KeyType ) );
 										}
 										Key = &FieldCopyInfo.DstData_;
 									}
@@ -264,7 +264,7 @@ public:
 										FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( Value, SrcFieldAccessor.getUpperClass() );
 										if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo.DstData_, Value ) )
 										{
-											copyClassData( FieldCopyInfo.DstData_, Value, static_cast< const Class* >( ValueType ) );
+											copyClassData( FieldCopyInfo.DstData_, Value, static_cast< const ReClass* >( ValueType ) );
 										}
 										Value = &FieldCopyInfo.DstData_;
 									}
@@ -288,11 +288,11 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // CopyClass
-void CopyClass( void* DstObject, void* SrcObject, const Type* InType )
+void CopyClass( void* DstObject, void* SrcObject, const ReType* InType )
 {
 	if( InType->isTypeOf< Class >() )
 	{
-		const Class* InClass = static_cast< const Class* >( InType );
+		const ReClass* InClass = static_cast< const ReClass* >( InType );
 		CopyClass( DstObject, SrcObject, InClass );
 	}
 	else
@@ -303,7 +303,7 @@ void CopyClass( void* DstObject, void* SrcObject, const Type* InType )
 			
 //////////////////////////////////////////////////////////////////////////
 // CopyClass
-void CopyClass( void* DstObject, void* SrcObject, const Class* InClass )
+void CopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
 	// Now create all objects that exist as pointers in fields, and mark up.
 	ObjectCopyContext ObjectCopyContext;
@@ -317,7 +317,7 @@ void CopyClass( void* DstObject, void* SrcObject, const Class* InClass )
 
 //////////////////////////////////////////////////////////////////////////
 // ConstructObject
-Object* ConstructObject( const Class* InClass, const std::string& InName, Object* InOwner, Object* InBasis )
+ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis )
 {
 	auto NewObject = InClass->constructNoInit< Object >();
 

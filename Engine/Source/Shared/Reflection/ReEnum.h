@@ -5,38 +5,38 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Enum
-class Enum:
-	public Class
+class ReEnum:
+	public ReClass
 {
 public:
-	REFLECTION_DECLARE_DERIVED( Enum, Class );
+    REFLECTION_DECLARE_DERIVED( ReEnum, ReClass );
 
 public:
-	Enum();
-	Enum( const std::string& Name );
-	virtual ~Enum(){};
+    ReEnum();
+    ReEnum( const std::string& Name );
+    virtual ~ReEnum(){};
 
 	/**
 		* @brief Set constants.
 		* @param EnumConstants Constant array to add.
 		* @param Elements Number of constants in array.
 		*/
-	void setConstants( const EnumConstant* EnumConstants, BcU32 Elements );
+    void setConstants( const ReEnumConstant* EnumConstants, BcU32 Elements );
 
 	/**
 		* @brief Get enum constant
 		* @param Value Value of enum.
 		*/
-	const EnumConstant* getEnumConstant( BcU32 Value );
+    const ReEnumConstant* getEnumConstant( BcU32 Value );
 
 	/**
 		* @brief Get enum constant
 		* @param Name Name of enum.
 		*/
-	const EnumConstant* getEnumConstant( const std::string& Name );
+    const ReEnumConstant* getEnumConstant( const std::string& Name );
 		
 protected:
-	std::vector< const EnumConstant* > EnumConstants_;
+    std::vector< const ReEnumConstant* > EnumConstants_;
 };
 
 #endif

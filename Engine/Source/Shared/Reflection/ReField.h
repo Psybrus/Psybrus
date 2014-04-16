@@ -6,15 +6,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Field
-class Field:
-	public Primitive
+class ReField:
+    public RePrimitive
 {
 public:
-	REFLECTION_DECLARE_DERIVED( Field, Primitive );
+    REFLECTION_DECLARE_DERIVED( ReField, RePrimitive );
 
 public:
-	Field();
-	virtual ~Field()
+    ReField();
+    virtual ~ReField()
 	{
 		delete ContainerAccessor_;
 		ContainerAccessor_ = nullptr;
@@ -24,7 +24,7 @@ public:
 		* Initialisation.
 		*/
 	template< typename _Class, typename _Ty >
-	Field( const std::string& Name,
+	ReField( const std::string& Name,
 			_Ty( _Class::*field ),
 			BcU32 Flags = 0 ):
 		Type_( nullptr ),
@@ -34,7 +34,7 @@ public:
 		KeyType_( nullptr ),
 		ValueType_( nullptr )
 	{
-		typedef TypeTraits< _Ty > LocalTypeTraits;
+        typedef ReTypeTraits< _Ty > LocalTypeTraits;
 		setName( Name );
 		setFlags( Flags | LocalTypeTraits::Flags );
 		setOffset( offsetof( _Class, *field ) );
@@ -45,11 +45,11 @@ public:
 		{
 			if( std::is_enum< _Ty >::value )
 			{
-				setType( GetEnum( LocalTypeTraits::Name() ) );
+				setType( ReManager::GetEnum( LocalTypeTraits::Name() ) );
 			}
 			else
 			{
-				setType( GetClass( LocalTypeTraits::Name() ) );
+				setType( ReManager::GetClass( LocalTypeTraits::Name() ) );
 			}
 		}
 		else
@@ -61,12 +61,12 @@ public:
 	/**
 		* Set type.
 		*/
-	void							setType( const Type* pType );
+    void							setType( const ReType* pType );
 
 	/**
 		* Get type.
 		*/
-	const Type*						getType() const;
+    const ReType*						getType() const;
 
 	/**
 		* Set offset.
@@ -118,12 +118,12 @@ public:
 	/**
 		* Get type.
 		*/
-	const Type*						getKeyType() const;
+    const ReType*						getKeyType() const;
 
 	/**
 		* Get type.
 		*/
-	const Type*						getValueType() const;
+    const ReType*						getValueType() const;
 
 	/**
 		* Get flags.
@@ -138,21 +138,21 @@ public:
 	/**
 		* @brief New write iterator. Returns nullptr if it's not a container. Owner must delete.
 		*/
-	ContainerAccessor::WriteIterator* newWriteIterator( void* pContainerData ) const;
+	ReContainerAccessor::WriteIterator* newWriteIterator( void* pContainerData ) const;
 
 	/**
 		* @brief New read iterator. Returns nullptr if it's not a container. Owner must delete.
 		*/
-	ContainerAccessor::ReadIterator* newReadIterator( void* pContainerData ) const;
+	ReContainerAccessor::ReadIterator* newReadIterator( void* pContainerData ) const;
 
 protected:
 	BcU32								Offset_;
-	const Type*						Type_;
+    const ReType*						Type_;
 	BcU32								Flags_;
 
-	ContainerAccessor*				ContainerAccessor_;
-	const Type*						KeyType_;
-	const Type*						ValueType_;
+	ReContainerAccessor*				ContainerAccessor_;
+    const ReType*						KeyType_;
+    const ReType*						ValueType_;
 	BcU32								KeyFlags_;
 	BcU32								ValueFlags_;		
 };

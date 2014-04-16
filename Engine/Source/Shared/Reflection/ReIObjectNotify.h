@@ -3,11 +3,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // IObjectNotify
-class IObjectNotify
+class ReIObjectNotify
 {
 public:
-	IObjectNotify(){};
-	virtual ~IObjectNotify(){};
+    ReIObjectNotify(){};
+    virtual ~ReIObjectNotify(){};
 
 	/**
 		* @brief Notify on deletion.

@@ -8,42 +8,42 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Class
-class Class:
-	public Type
+class ReClass:
+    public ReType
 {
 public:
-	REFLECTION_DECLARE_DERIVED( Class, Type );
+    REFLECTION_DECLARE_DERIVED( ReClass, ReType );
 
 public:
-	Class();
-	Class( const std::string& Name );
-	virtual ~Class(){};
+    ReClass();
+    ReClass( const std::string& Name );
+    virtual ~ReClass(){};
 
 	/**
 		* Set super.
 		*/
-	void							setSuper( const Class* Super );
+    void							setSuper( const ReClass* Super );
 
 	/**
 		* Get super.
 		*/
-	const Class*					getSuper() const;
+    const ReClass*					getSuper() const;
 
 	/**
 		* Have super class?
 		*/
-	BcBool							hasBaseClass( const Class* pClass ) const;
+    BcBool							hasBaseClass( const ReClass* pClass ) const;
 
 	/**
 		* Set fields.
 		*/
-	void							setFields( BcU32 NoofFields, const Field* pFields );
+    void							setFields( BcU32 NoofFields, const ReField* pFields );
 
 	/**
 		* Set fields by array.
 		*/
 	template< int _Size >
-	void							setFields( const Field ( & Fields )[ _Size ] )
+    void							setFields( const ReField ( & Fields )[ _Size ] )
 	{
 		setFields( _Size, &Fields[ 0 ] );
 	}
@@ -51,7 +51,7 @@ public:
 	/**
 		* Get field.
 		*/
-	const Field*					getField( BcU32 Idx ) const;
+    const ReField*					getField( BcU32 Idx ) const;
 
 	/**
 		* Get noof fields.
@@ -109,8 +109,8 @@ public:
 	}
 
 protected:
-	const Class*					Super_;
-	std::vector< const Field* >		Fields_;
+    const ReClass*					Super_;
+    std::vector< const ReField* >		Fields_;
 };
 
 #endif

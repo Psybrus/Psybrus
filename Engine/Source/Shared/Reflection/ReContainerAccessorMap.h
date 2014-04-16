@@ -8,12 +8,12 @@
 /////////////////////////////////////////////////////////////////////////
 // MapContainerAccessor
 template < typename _Key, typename _Ty, typename _Pr, typename _Alloc >
-class MapContainerAccessor:
-	public ContainerAccessor
+class ReMapContainerAccessor:
+	public ReContainerAccessor
 {
 public:
-	typedef typename TypeTraits< _Key > KeyTraits;
-	typedef typename TypeTraits< _Ty > ValueTraits;
+    typedef typename ReTypeTraits< _Key > KeyTraits;
+    typedef typename ReTypeTraits< _Ty > ValueTraits;
 	typedef std::map< _Key, _Ty, _Pr, _Alloc > Container;
 	typedef typename Container::iterator ContainerIterator;
 public:
@@ -98,7 +98,7 @@ public:
 	};
 
 public:
-	MapContainerAccessor()
+    ReMapContainerAccessor()
 	{
 		pKeyType_ = GetClass< typename KeyTraits::Type >();
 		pValueType_ = GetClass< typename ValueTraits::Type >();
@@ -109,7 +109,7 @@ public:
 		BcAssertMsg( ( KeyFlags_ & bcRFF_ANY_POINTER_TYPE ) == 0, "MapContainerAccessor: Pointer type for key is unsupported yet." );
 	}
 
-	virtual ~MapContainerAccessor()
+    virtual ~ReMapContainerAccessor()
 	{
 
 	}
@@ -127,13 +127,13 @@ public:
 
 	
 template < typename _Key, typename _Ty, typename _Pr, typename _Alloc >
-ContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const Type*& pKeyType, const Type*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-	pKeyType =  GetClass< TypeTraits< _Key >::Type >();
-	pValueType = GetClass< TypeTraits< _Ty >::Type >();
-	KeyFlags = TypeTraits< _Key >::Flags;
-	ValueFlags = TypeTraits< _Ty >::Flags;
-	return new MapContainerAccessor< _Key, _Ty, _Pr, _Alloc >();
+    pKeyType =  GetClass< ReTypeTraits< _Key >::Type >();
+    pValueType = GetClass< ReTypeTraits< _Ty >::Type >();
+    KeyFlags = ReTypeTraits< _Key >::Flags;
+    ValueFlags = ReTypeTraits< _Ty >::Flags;
+    return new ReMapContainerAccessor< _Key, _Ty, _Pr, _Alloc >();
 }
 
 #endif

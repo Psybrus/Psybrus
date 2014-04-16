@@ -5,12 +5,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ClassSerialiser_EnumType.
-class ClassSerialiser_EnumType:
-		public ClassSerialiser
+class ReClassSerialiser_EnumType:
+		public ReClassSerialiser
 {
 public:
-	ClassSerialiser_EnumType( const std::string& Name );
-	virtual ~ClassSerialiser_EnumType();
+    ReClassSerialiser_EnumType( const std::string& Name );
+    virtual ~ReClassSerialiser_EnumType();
 	void construct( void* pMemory ) const;
 	void constructNoInit( void* pMemory ) const;
 	void destruct( void* pMemory ) const;

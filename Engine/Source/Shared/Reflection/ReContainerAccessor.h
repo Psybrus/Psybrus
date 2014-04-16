@@ -5,7 +5,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ContainerAccessor
-class ContainerAccessor
+class ReContainerAccessor
 {
 public:
 	class WriteIterator
@@ -32,12 +32,12 @@ public:
 		virtual bool isValid() const = 0;
 	};
 public:
-	ContainerAccessor()
+    ReContainerAccessor()
 	{
 
 	}
 
-	virtual ~ContainerAccessor()
+    virtual ~ReContainerAccessor()
 	{
 
 	}
@@ -55,15 +55,15 @@ public:
 	virtual ReadIterator* newReadIterator( void* pContainerData ) const = 0;
 		
 protected:
-	const Type* pKeyType_;
-	const Type* pValueType_;
+    const ReType* pKeyType_;
+    const ReType* pValueType_;
 
 	BcU32 KeyFlags_;
 	BcU32 ValueFlags_;
 };
 
 template < typename _Ty >
-ContainerAccessor* CreateContainerAccessor( _Ty&, const Type*& pKeyType, const Type*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( _Ty&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
 	pValueType = nullptr;
