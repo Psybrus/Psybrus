@@ -22,11 +22,9 @@ namespace base64
 		base64_decodestate _state;
 		int _buffersize;
 
-		/* neilogd: removed.
 		decoder(int buffersize_in = BUFFERSIZE)
 		: _buffersize(buffersize_in)
 		{}
-		*/
 
 		int decode(char value_in)
 		{
