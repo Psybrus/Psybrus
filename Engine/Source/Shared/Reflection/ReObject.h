@@ -8,6 +8,11 @@
 #include "Reflection/ReObjectRef.h"
 #include "Reflection/ReIObjectNotify.h"
 
+/**
+ * Do we want garbage collection?
+ */
+#define REFLECTION_ENABLE_GC		( 0 )
+
 //////////////////////////////////////////////////////////////////////////
 /* @class Object
 	* @brief Root reflection object with basic management.
@@ -117,11 +122,13 @@ private:
 
 	template< class _Ty > friend class ObjectRef;
 
+#if REFLECTION_ENABLE_GC
 	mutable BcAtomic< BcU32 >		RefCount_;			///!< Ref count.
+#endif
 	mutable BcAtomic< BcU32 >		Flags_;				///!< Flags.
-    ReObject*						Owner_;					///!< Owner.
-    ReObject*						Basis_;					///!< Object we're based upon.
-	std::string						Name_;					///!< Name of object.
+    ReObject*						Owner_;				///!< Owner.
+    ReObject*						Basis_;				///!< Object we're based upon.
+	std::string						Name_;				///!< Name of object.
 
 private:
     typedef std::list< ReObject* > ObjectList;
@@ -196,6 +203,8 @@ inline ReObject* ReObject::getBasis() const
 	return Basis_;
 }
 
+#if REFLECTION_ENABLE_GC
+
 inline BcU32 ReObject::incRefCount() const
 {
     BcAssert( ( Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
@@ -212,6 +221,8 @@ inline BcU32 ReObject::decRefCount() const
 	}
 	return RefCount;
 }
+
+#endif
 
 // Object reference inlines.
 #include "Reflection/ReObjectRef.inl"
