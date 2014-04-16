@@ -29,15 +29,17 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSoundEmitterComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnSoundEmitterComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnSoundEmitterComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnSoundEmitterComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Position_",			&ScnSoundEmitterComponent::Position_ ),
+		ReField( "Gain_",				&ScnSoundEmitterComponent::Gain_ ),
+		ReField( "Pitch_",				&ScnSoundEmitterComponent::Pitch_ ),
+	};
+		
+	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

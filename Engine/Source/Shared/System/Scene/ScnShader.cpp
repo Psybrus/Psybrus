@@ -195,15 +195,18 @@ BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& 
 // Define resource internals.
 DEFINE_RESOURCE( ScnShader );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnShader );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnShader )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnShader::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pHeader_",			&ScnShader::pHeader_ ),
+		ReField( "VertexShaderMap_",	&ScnShader::VertexShaderMap_ ),
+		ReField( "FragmentShaderMap_",	&ScnShader::FragmentShaderMap_ ),
+		ReField( "ProgramMap_",			&ScnShader::ProgramMap_ ),
+	};
+		
+	ReRegisterClass< ScnShader, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

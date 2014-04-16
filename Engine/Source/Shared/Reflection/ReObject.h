@@ -67,7 +67,7 @@ public:
 	/**
 		* @brief Get owner.
 		*/
-    ReObject*							getOwner() const;
+    ReObject*						getOwner() const;
 
 	/**
 		* @brief Set owner.
@@ -83,7 +83,7 @@ public:
 		* and unreferencable regarding serialisation for the
 		* most part.
 		*/
-    ReObject*							getRootOwner() const;
+    ReObject*						getRootOwner() const;
 					
 	/**
 		* @brief Set root owner.
@@ -95,17 +95,19 @@ public:
 	/**
 		* @brief Get basis.
 		*/
-    ReObject*							getBasis() const;
+    ReObject*						getBasis() const;
 
+#if REFLECTION_ENABLE_GC
 	/**
 		* @brief Increment ref count.
 		*/
-	BcU32								incRefCount() const;
+	BcU32							incRefCount() const;
 
 	/**
 		* @brief Decerement ref count.
 		*/
-	BcU32								decRefCount() const;
+	BcU32							decRefCount() const;
+#endif
 
 	/**
 		* @brief Add notifier.

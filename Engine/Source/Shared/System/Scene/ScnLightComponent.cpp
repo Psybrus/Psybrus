@@ -26,16 +26,20 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnLightComponent );
 
-/*
-REFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnLightComponent )
-	BCREFLECTION_MEMBER( ScnLightType,						Type_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( RsColour,							AmbientColour_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( RsColour,							DiffuseColour_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,								AttnC_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,								AttnL_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,								AttnQ_,							bcRFF_DEFAULT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnLightComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Type_",				&ScnLightComponent::Type_ ),
+		ReField( "AmbientColour_",		&ScnLightComponent::AmbientColour_ ),
+		ReField( "DiffuseColour_",		&ScnLightComponent::DiffuseColour_ ),
+		ReField( "AttnC_",				&ScnLightComponent::AttnC_ ),
+		ReField( "AttnL_",				&ScnLightComponent::AttnL_ ),
+		ReField( "AttnQ_",				&ScnLightComponent::AttnQ_ ),
+	};
+		
+	ReRegisterClass< ScnLightComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

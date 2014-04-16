@@ -162,15 +162,16 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterial );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnMaterial );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnMaterial )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnMaterial::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Shader_",				&ScnMaterial::Shader_ ),
+		ReField( "TextureMap_",			&ScnMaterial::TextureMap_ ),
+	};
+		
+	ReRegisterClass< ScnMaterial, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -261,15 +262,25 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnMaterialComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnMaterialComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnMaterialComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Parent_",						&ScnMaterialComponent::Parent_ ),
+		ReField( "pProgram_",					&ScnMaterialComponent::pProgram_ ),
+		ReField( "ParameterBufferSize_",		&ScnMaterialComponent::ParameterBufferSize_ ),
+		ReField( "WorldTransformParameter_",	&ScnMaterialComponent::WorldTransformParameter_ ),
+		ReField( "LightPositionParameter_",		&ScnMaterialComponent::LightPositionParameter_ ),
+		ReField( "LightDirectionParameter_",	&ScnMaterialComponent::LightDirectionParameter_ ),
+		ReField( "LightAmbientColourParameter_",&ScnMaterialComponent::LightAmbientColourParameter_ ),
+		ReField( "LightDiffuseColourParameter_",&ScnMaterialComponent::LightDiffuseColourParameter_ ),
+		ReField( "LightAttnParameter_",			&ScnMaterialComponent::LightAttnParameter_ ),
+		ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
+		ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
+	};
+		
+	ReRegisterClass< ScnMaterialComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

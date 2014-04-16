@@ -44,13 +44,19 @@ BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& 
 // Define resource internals.
 DEFINE_RESOURCE( ScnEntity );
 
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnEntity )
-	BCREFLECTION_MEMBER( ScnEntity,							Basis_,							bcRFF_REFERENCE | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcMat4d,							LocalTransform_,				bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcMat4d,							WorldTransform_,				bcRFF_DEFAULT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnEntity::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Basis_",			&ScnEntity::Basis_ ),
+		ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
+		ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
+		ReField( "Components_",		&ScnEntity::Components_ ),
+		ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
+	};
+		
+	ReRegisterClass< ScnEntity, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
