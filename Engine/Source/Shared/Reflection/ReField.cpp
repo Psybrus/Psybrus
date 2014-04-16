@@ -38,7 +38,7 @@ ReField::ReField():
 	
 //////////////////////////////////////////////////////////////////////////
 // setType
-void ReField::setType( const Type* Type )
+void ReField::setType( const ReType* Type )
 {
 	Type_ = Type;
 }

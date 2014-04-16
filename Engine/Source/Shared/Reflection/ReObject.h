@@ -113,14 +113,14 @@ public:
 	void							removeNotifier( ReIObjectNotify* ObjectNotify ) const;
 
 private:
-    friend ReObject* ConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
+    friend ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
 
 	template< class _Ty > friend class ObjectRef;
 
 	mutable BcAtomic< BcU32 >		RefCount_;			///!< Ref count.
 	mutable BcAtomic< BcU32 >		Flags_;				///!< Flags.
-    ReObject*							Owner_;					///!< Owner.
-    ReObject*							Basis_;					///!< Object we're based upon.
+    ReObject*						Owner_;					///!< Owner.
+    ReObject*						Basis_;					///!< Object we're based upon.
 	std::string						Name_;					///!< Name of object.
 
 private:
