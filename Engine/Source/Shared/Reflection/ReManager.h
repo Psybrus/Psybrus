@@ -33,6 +33,13 @@ public:
     static ReClass* GetClass( const std::string& InName );
 
     /**
+	* @brief Get Classes
+	* @return
+	*/
+    static std::vector< ReClass* > GetClasses();
+
+
+	/**
 	* @brief Get Enum. Will always return, will add a new empty enum if it does not exist.
 	* @param InName Name of enum.
 	* @return

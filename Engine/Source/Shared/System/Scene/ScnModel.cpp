@@ -40,10 +40,10 @@ BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& O
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
 
-BCREFLECTION_EMPTY_REGISTER( ScnModel );
+//BCREFLECTION_EMPTY_REGISTER( ScnModel );
 /*
-BCREFLECTION_DERIVED_BEGIN( CsResource, ScnModel )
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_BEGIN( CsResource, ScnModel )
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////
@@ -200,14 +200,14 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 // Define resource.
 DEFINE_RESOURCE( ScnModelComponent );
 
-BCREFLECTION_EMPTY_REGISTER( ScnModelComponent );
+//BCREFLECTION_EMPTY_REGISTER( ScnModelComponent );
 /*
-BCREFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnModelComponent )
+REFLECTION_DERIVED_BEGIN( ScnRenderableComponent, ScnModelComponent )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
 */
 
 //////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,7 @@ CsCore::~CsCore()
 void CsCore::open()
 {
 	// Register types for reflection.
-	CsResource::StaticRegisterReflection();
+	//CsResource::StaticRegisterReflection();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), pResource->getTypeName().c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -154,16 +154,16 @@ BcU32 CsCore::getNoofResourceTypes() const
 
 //////////////////////////////////////////////////////////////////////////
 // allocResource
-CsResource* CsCore::allocResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage )
+CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Type );
+	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Class );
 	CsResource* pResource = NULL;
 	
 	if( Iter != ResourceFactoryInfoMap_.end() )
 	{
-		const BcReflectionClass* pClass = Iter->second.pClass_;
+		const ReClass* pClass = Iter->second.pClass_;
 		void* pResourceBuffer = BcMemAlign( pClass->getSize() );
 
 		pResource = pClass->construct< CsResource >( pResourceBuffer );
@@ -247,9 +247,8 @@ CsResourceRef<> CsCore::getResource( const BcChar* pFullName )
 
 		BcName PackageName = pPackageNameBuffer;
 		BcName ResourceName = pResourceNameBuffer;
-		BcName TypeName = pTypeNameBuffer;
 
-		internalFindResource( PackageName, ResourceName, TypeName, Handle );
+		internalFindResource( PackageName, ResourceName, ReManager::GetClass( pTypeNameBuffer ), Handle );
 
 		BcAssertMsg( Handle.isValid(), "CsCore: Unable to find \"%s\"", FullNameBuffer );
 	}
@@ -426,7 +425,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), pResource->getTypeName().c_str() );
 		}
 		
 		++It;
@@ -494,7 +493,7 @@ void CsCore::processCallbacks()
 
 //////////////////////////////////////////////////////////////////////////
 // internalRegisterResource
-void CsCore::internalRegisterResource( const BcReflectionClass* pClass )
+void CsCore::internalRegisterResource( const ReClass* pClass )
 {
 	TResourceFactoryInfo FactoryInfo;
 	
@@ -502,14 +501,14 @@ void CsCore::internalRegisterResource( const BcReflectionClass* pClass )
 	
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
-	ResourceFactoryInfoMap_[ pClass->getName() ] = FactoryInfo;
+	ResourceFactoryInfoMap_[ pClass ] = FactoryInfo;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // internalUnRegisterResource
-void CsCore::internalUnRegisterResource( const BcName& Type )
+void CsCore::internalUnRegisterResource( const ReClass* Class )
 {
-	TResourceFactoryInfoMapIterator It = ResourceFactoryInfoMap_.find( Type );
+	TResourceFactoryInfoMapIterator It = ResourceFactoryInfoMap_.find( Class );
 
 	if( It != ResourceFactoryInfoMap_.end() )
 	{
@@ -519,13 +518,13 @@ void CsCore::internalUnRegisterResource( const BcName& Type )
 
 //////////////////////////////////////////////////////////////////////////
 // internalCreateResource
-BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
+BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
 {
 	// Generate a unique name for the resource.
-	BcName UniqueName = Name.isValid() ? Name : Type.getUnique();
+	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getTypeName() ).getUnique();
 
 	// Allocate resource with a unique name.
-	Handle = allocResource( UniqueName, Type, Index, pPackage );
+	Handle = allocResource( UniqueName, Class, Index, pPackage );
 	
 	// Put into create list.
 	if( Handle.isValid() )
@@ -540,16 +539,16 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const BcName& Type, B
 
 //////////////////////////////////////////////////////////////////////////
 // internalRequestResource
-BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle )
 {
 	// Find package
 	CsPackage* pPackage = findPackage( Package );
 	if( pPackage || Package == BcName::NONE )
 	{
 		// If we can't find resource, throw an error.
-		if( internalFindResource( Package, Name, Type, Handle ) == BcFalse )
+		if( internalFindResource( Package, Name, Class, Handle ) == BcFalse )
 		{
-			BcPrintf( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(),  (*Type).c_str() );
+			BcPrintf( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(),  Class->getTypeName().c_str() );
 		}
 	}
 	else
@@ -562,7 +561,7 @@ BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Nam
 
 //////////////////////////////////////////////////////////////////////////
 // internalFindResource
-BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, const BcName& Type, CsResourceRef<>& Handle )
+BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -578,7 +577,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	{
 		if( Package != BcName::NONE )
 		{
-			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
 			{
 				Handle = (*It);
 				return BcTrue;
@@ -586,7 +585,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 		}
 		else
 		{
-			if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			if( (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
 			{
 				Handle = (*It);
 				return BcTrue;
@@ -598,7 +597,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	{
 		if( Package != BcName::NONE )
 		{
-			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
 			{
 				Handle = (*It);
 				return BcTrue;
@@ -606,7 +605,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 		}
 		else
 		{
-			if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			if( (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
 			{
 				Handle = (*It);
 				return BcTrue;
@@ -618,7 +617,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	{
 		if( Package != BcName::NONE )
 		{
-			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
 			{
 				Handle = (*It);
 				return BcTrue;
@@ -626,7 +625,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 		}
 		else
 		{
-			if( (*It)->getName() == Name && (*It)->isTypeOf( Type ) )
+			if( (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
 			{
 				Handle = (*It);
 				return BcTrue;

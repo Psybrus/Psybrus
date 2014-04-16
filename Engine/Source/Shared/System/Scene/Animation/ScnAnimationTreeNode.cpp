@@ -15,12 +15,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
-BCREFLECTION_DEFINE_BASE( ScnAnimationTreeNode );
+REFLECTION_DEFINE_BASE( ScnAnimationTreeNode );
+
+/*
 BCREFLECTION_ABSTRACT_BASE_BEGIN( ScnAnimationTreeNode )
 	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( ScnAnimationPose,					pReferencePose_,				bcRFF_POINTER ),
 	BCREFLECTION_MEMBER( ScnAnimationPose,					pWorkingPose_,					bcRFF_POINTER ),
 BCREFLECTION_ABSTRACT_BASE_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

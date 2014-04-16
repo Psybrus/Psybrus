@@ -85,8 +85,8 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
 		li.setContents("Resource: " + *Resource->getName());
 
 		BcHtmlNode& ul2 = ul.createChildNode("ul");
-		ul2.createChildNode("li").setContents("Type: " + *Resource->getTypeName());
-		ul2.createChildNode("li").setContents("Package: " + *Resource->getPackageName());
+		ul2.createChildNode("li").setContents("Type: " + Resource->getClass()->getName());
+		ul2.createChildNode("li").setContents("Package: " + Resource->getClass()->getName());
 	}
 
 }
@@ -199,7 +199,7 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, 
 	BcHtmlNode& a = li.createChildNode("a");
 	a.setAttribute("href", "/Resource/" + std::string(Id));
 	a.setContents(*Component->getName());
-	li.createChildNode("").setContents(" (" + *Component->getTypeName() + ")");
+	li.createChildNode("").setContents(" (" + Component->getClass()->getName() + ")");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -388,12 +388,12 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 
 		ul = ul.createChildNode("ul");
 
-		ul.createChildNode("li").setContents("Type: " + *Resource->getTypeName());
+		ul.createChildNode("li").setContents("Type: " + Resource->getClass()->getTypeName());
 		ul.createChildNode("li").setContents("Package: " + *Resource->getPackageName());
 
 
 		// Iterate over all properties and do stuff.
-		const BcReflectionClass* pClass = Resource ->getClass();
+		const ReClass* pClass = Resource ->getClass();
 
 		// NOTE: Do not want to hit this. Ever.
 		if (pClass == NULL)
@@ -401,6 +401,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 			int a = 0; ++a;
 		}
 
+#if 0
 		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		BcChar temp[256];
 		// Iterate over to grab offsets for classes.
@@ -414,14 +415,14 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 			ul3.setContents(" ");
 			for (BcU32 Idx = 0; Idx < pClass->getNoofFields(); ++Idx)
 			{
-				const BcReflectionField* pField = pClass->getField(Idx);
-				const BcReflectionType* pType = pField->getType();
+				const ReField* pField = pClass->getField(Idx);
+				const ReType* pType = pField->getType();
 				if (pType != NULL)
 				{
 					// Output += "<li>";
 					BcHtmlNode& div = ul3.createChildNode("div");
 					div.setAttribute("id", "fieldData");
-					//BcSPrintf(temp, "%s %s; // Offset 0x%x, Size 0x%x, Flags: 0x%x\n", (*pType->getName()).c_str(), (*pField->getName()).c_str(), pField->getOffset(), pType->getSize(), pField->getFlags());
+					//BcSPrintf(temp, "%s %s; // Offset 0x%x, Size 0x%x, Flags: 0x%x\n", (*pType->getTypeName()()).c_str(), (*pField->getName()).c_str(), pField->getOffset(), pType->getSize(), pField->getFlags());
 					//BcSPrintf(temp, "%s")
 					//Output += temp;
 					BcHtmlNode& fName = div.createChildNode("div");
@@ -430,65 +431,65 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 
 					BcHtmlNode& fType = div.createChildNode("div");
 					fType.setAttribute("id", "fType");
-					fType.setContents(*pType->getName());
+					fType.setContents(*pType->getTypeName()());
 
 					BcHtmlNode& fValue = div.createChildNode("div");
 					fValue.setAttribute("id", "fValue");
-					if (pType->getName() == "BcU8")
+					if (pType->getTypeName()() == "BcU8")
 					{
 						const BcU8* pData = reinterpret_cast<const BcU8*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%u\n", *pData);
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcU16")
+					else if (pType->getTypeName()() == "BcU16")
 					{
 						const BcU16* pData = reinterpret_cast<const BcU16*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%u\n", *pData);
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcU32")
+					else if (pType->getTypeName()() == "BcU32")
 					{
 						const BcU32* pData = reinterpret_cast<const BcU32*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%u\n", *pData);
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcF32")
+					else if (pType->getTypeName()() == "BcF32")
 					{
 						const BcF32* pData = reinterpret_cast<const BcF32*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f\n", *pData);
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcName")
+					else if (pType->getTypeName()() == "BcName")
 					{
 						const BcName* pData = reinterpret_cast<const BcName*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%s\n", (**pData).c_str());
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcBool")
+					else if (pType->getTypeName()() == "BcBool")
 					{
 						const BcBool* pData = reinterpret_cast<const BcBool*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%u\n", *pData);
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcVec2d")
+					else if (pType->getTypeName()() == "BcVec2d")
 					{
 						const BcVec2d* pData = reinterpret_cast<const BcVec2d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f\n", pData->x(), pData->y());
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcVec3d")
+					else if (pType->getTypeName()() == "BcVec3d")
 					{
 						const BcVec3d* pData = reinterpret_cast<const BcVec3d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f, %f\n", pData->x(), pData->y(), pData->z());
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcVec4d")
+					else if (pType->getTypeName()() == "BcVec4d")
 					{
 						const BcVec4d* pData = reinterpret_cast<const BcVec4d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w());
 						fValue.setContents(temp);
 					}
-					else if (pType->getName() == "BcMat4d")
+					else if (pType->getTypeName()() == "BcMat4d")
 					{
 						/*const BcMat4d* pData = reinterpret_cast<const BcMat4d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w());
@@ -501,10 +502,10 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 						Output += temp;/**/
 						fValue.setContents("Not yet implimented");
 					}
-					else if (pType->getName() == "ScnEntity")
+					else if (pType->getTypeName()() == "ScnEntity")
 					{
 						/*const ScnEntityRef* pData = reinterpret_cast<const ScnEntityRef*>(&pClassData[pField->getOffset()]);
-						const BcReflectionClass* pClass = static_cast< const BcReflectionClass* >(pType);
+						const ReClass* pClass = static_cast< const ReClass* >(pType);
 						void* pNewData = reinterpret_cast< BcU8* >(pClassData)+pField->getOffset();
 						ScnEntity* ptr = (ScnEntity*)pNewData;
 						BcSPrintf(temp, "<a href=\"/Resource/%u\">Link</a>", (*pData)->getUniqueId());/**/
@@ -518,6 +519,6 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 			pClass = pClass->getSuper();
 			
 		}
-
+#endif 
 	}
 }

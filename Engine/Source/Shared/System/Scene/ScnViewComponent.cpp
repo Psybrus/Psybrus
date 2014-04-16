@@ -82,7 +82,8 @@ BcBool ScnViewComponent::import( class CsPackageImporter& Importer, const Json::
 // Define resource internals.
 DEFINE_RESOURCE( ScnViewComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnViewComponent )
+/*
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnViewComponent )
 	BCREFLECTION_MEMBER( BcF32,							X_,								bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,							Y_,								bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,							Width_,							bcRFF_DEFAULT ),
@@ -95,7 +96,8 @@ BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnViewComponent )
 	BCREFLECTION_MEMBER( ScnRenderTarget,				RenderTarget_,					bcRFF_REFERENCE ),
 	BCREFLECTION_MEMBER( RsViewport,					Viewport_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
 	BCREFLECTION_MEMBER( ScnShaderViewUniformBlockData,	ViewUniformBlock_,				bcRFF_DEFAULT | bcRFF_TRANSIENT )
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

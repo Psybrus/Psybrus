@@ -116,7 +116,7 @@ private:
 	ScnComponentList			ViewComponentList_;
 
 	// All components in the scene.
-	typedef std::map< const BcReflectionClass*, BcU32 > TComponentClassIndexMap;
+	typedef std::map< const ReClass*, BcU32 > TComponentClassIndexMap;
 	ScnComponentList*			pComponentLists_;
 	BcU32						NoofComponentLists_;
 

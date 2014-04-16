@@ -25,11 +25,13 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnPhysicsRigidBodyComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnComponent, ScnPhysicsRigidBodyComponent )
+/*
+REFLECTION_DERIVED_BEGIN( ScnComponent, ScnPhysicsRigidBodyComponent )
 	BCREFLECTION_MEMBER( BcF32,							Mass_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,							Friction_,						bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,							Restitution_,					bcRFF_DEFAULT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

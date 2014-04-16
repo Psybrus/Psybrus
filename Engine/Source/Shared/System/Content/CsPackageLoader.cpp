@@ -478,7 +478,7 @@ void CsPackageLoader::initialiseResources()
 
 		// Allocate resource, and signal ready.
 		CsResourceRef<> Handle;
-		if( CsCore::pImpl()->internalCreateResource( Name, Type, ResourceIdx, pPackage_, Handle ) )
+		if( CsCore::pImpl()->internalCreateResource( Name, ReManager::GetClass( *Type ), ResourceIdx, pPackage_, Handle ) )
 		{
 			// Initialise.
 			Handle->initialise();

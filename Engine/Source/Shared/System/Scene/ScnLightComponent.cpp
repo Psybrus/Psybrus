@@ -26,14 +26,16 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnLightComponent );
 
-BCREFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnLightComponent )
+/*
+REFLECTION_DERIVED_BEGIN( ScnSpatialComponent, ScnLightComponent )
 	BCREFLECTION_MEMBER( ScnLightType,						Type_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( RsColour,							AmbientColour_,					bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( RsColour,							DiffuseColour_,					bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,								AttnC_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,								AttnL_,							bcRFF_DEFAULT ),
 	BCREFLECTION_MEMBER( BcF32,								AttnQ_,							bcRFF_DEFAULT ),
-BCREFLECTION_DERIVED_END();
+REFLECTION_DERIVED_END();
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
