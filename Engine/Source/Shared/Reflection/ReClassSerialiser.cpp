@@ -2,11 +2,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_BASE( ClassSerialiser );
+REFLECTION_DEFINE_BASE( ReClassSerialiser );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ClassSerialiser::ClassSerialiser( const std::string& Name )
+ReClassSerialiser::ReClassSerialiser( const std::string& Name )
 {
 	Class_ = GetClass( Name );
 }
@@ -14,49 +14,49 @@ ClassSerialiser::ClassSerialiser( const std::string& Name )
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-ClassSerialiser::~ClassSerialiser()
+ReClassSerialiser::~ReClassSerialiser()
 {
 			
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ClassSerialiser::getBinaryDataSize( const void* ) const
+BcU32 ReClassSerialiser::getBinaryDataSize( const void* ) const
 {
 	return Class_->getSize();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseToBinary
-BcBool ClassSerialiser::serialiseToBinary( const void*, BcBinaryData::Stream& ) const
+BcBool ReClassSerialiser::serialiseToBinary( const void*, BcBinaryData::Stream& ) const
 {
 	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromBinary
-BcBool ClassSerialiser::serialiseFromBinary( void*, const BcBinaryData::Stream& ) const 
+BcBool ReClassSerialiser::serialiseFromBinary( void*, const BcBinaryData::Stream& ) const 
 {
 	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseToString
-BcBool ClassSerialiser::serialiseToString( const void*, std::string& ) const
+BcBool ReClassSerialiser::serialiseToString( const void*, std::string& ) const
 {
 	return false;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // serialiseFromString
-BcBool ClassSerialiser::serialiseFromString( void*, const std::string& ) const
+BcBool ReClassSerialiser::serialiseFromString( void*, const std::string& ) const
 {
 	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // copy
-BcBool ClassSerialiser::copy( void* pDst, void* pSrc ) const 
+BcBool ReClassSerialiser::copy( void* pDst, void* pSrc ) const 
 {
 	return false;
 }

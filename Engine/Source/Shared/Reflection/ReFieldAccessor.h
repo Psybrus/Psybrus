@@ -14,7 +14,7 @@
 	* serialisation that we don't want to bloat the field class with,
 	* which is where this comes in.
 	*/
-class FieldAccessor
+class ReFieldAccessor
 {
 public:
 	/**
@@ -22,11 +22,11 @@ public:
 		* @param ParentObjectData Object the field is in.
 		* @param Field Field.
 		*/
-	inline FieldAccessor( void* ParentObjectData, const Field* Field ):
+    inline ReFieldAccessor( void* ParentObjectData, const ReField* Field ):
 		Data_( ParentObjectData ),
 		Field_( Field )
 	{
-		BcAssert( Field_->getType()->isTypeOf< Class >() );
+		BcAssert( Field_->getType()->isTypeOf< ReClass >() );
 	}
 
 	/**
@@ -34,11 +34,11 @@ public:
 		* @param ParentObjectData Object the field is in.
 		* @param OtherFieldAccessor Other field accessor.
 		*/
-	inline FieldAccessor( void* ParentObjectData, const FieldAccessor& OtherFieldAccessor ):
+    inline ReFieldAccessor( void* ParentObjectData, const ReFieldAccessor& OtherFieldAccessor ):
 		Data_( ParentObjectData ),
 		Field_( OtherFieldAccessor.Field_ )
 	{
-		BcAssert( Field_->getType()->isTypeOf< Class >() );
+		BcAssert( Field_->getType()->isTypeOf< ReClass >() );
 	}
 				
 
@@ -65,7 +65,7 @@ public:
 		// Increment reference count if we are an object reference.
 		if( *DataRef != nullptr && ( Field_->getFlags() & bcRFF_OBJECT_REFERENCE ) != 0 )
 		{
-			reinterpret_cast< Object* >( *DataRef )->incRefCount();
+            reinterpret_cast< ReObject* >( *DataRef )->incRefCount();
 		}
 	}
 
@@ -76,7 +76,7 @@ public:
 		*/
 	inline BcBool copy( void* Data ) const
 	{
-		const Class* FieldClass = static_cast< const Class* >( Field_->getType() );
+		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getType() );
 		if( Field_->isPointerType() )
 		{
 			BcAssert( getData() != nullptr );
@@ -117,13 +117,13 @@ public:
 	/**
 		* @brief Get upper class.
 		*/
-	inline const Class* getUpperClass() const
+	inline const ReClass* getUpperClass() const
 	{
-		const Class* FieldClass = static_cast< const Class* >( Field_->getType() );
-		const Class* UpcastFieldType = FieldClass;
-		if( FieldClass->hasBaseClass( Object::StaticGetClass() ) )
+		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getType() );
+		const ReClass* UpcastFieldType = FieldClass;
+        if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			UpcastFieldType = reinterpret_cast< Object* >( getData() )->getClass();
+            UpcastFieldType = reinterpret_cast< ReObject* >( getData() )->getClass();
 		}
 		return UpcastFieldType;
 	}
@@ -132,14 +132,14 @@ public:
 		* @brief Get key upper class.
 		* @pre Is a container.
 		*/
-	inline const Class* getKeyUpperClass() const
+	inline const ReClass* getKeyUpperClass() const
 	{
 		BcAssert( Field_->isContainer() );
-		const Class* FieldClass = static_cast< const Class* >( Field_->getKeyType() );
-		const Class* UpcastFieldType = FieldClass;
-		if( FieldClass->hasBaseClass( Object::StaticGetClass() ) )
+		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getKeyType() );
+		const ReClass* UpcastFieldType = FieldClass;
+        if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			UpcastFieldType = reinterpret_cast< Object* >( getData() )->getClass();
+            UpcastFieldType = reinterpret_cast< ReObject* >( getData() )->getClass();
 		}
 		return UpcastFieldType;
 	}
@@ -148,14 +148,14 @@ public:
 		* @brief Get value upper class.
 		* @pre Is a container.
 		*/
-	inline const Class* getValueUpperClass() const
+	inline const ReClass* getValueUpperClass() const
 	{
 		BcAssert( Field_->isContainer() );
-		const Class* FieldClass = static_cast< const Class* >( Field_->getValueType() );
-		const Class* UpcastFieldType = FieldClass;
-		if( FieldClass->hasBaseClass( Object::StaticGetClass() ) )
+		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getValueType() );
+		const ReClass* UpcastFieldType = FieldClass;
+        if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			UpcastFieldType = reinterpret_cast< Object* >( getData() )->getClass();
+            UpcastFieldType = reinterpret_cast< ReObject* >( getData() )->getClass();
 		}
 		return UpcastFieldType;
 	}
@@ -164,7 +164,7 @@ public:
 		* @brief New write iterator. Owner must delete.
 		* @pre Is a container.
 		*/
-	inline ContainerAccessor::WriteIterator* newWriteIterator() const
+	inline ReContainerAccessor::WriteIterator* newWriteIterator() const
 	{
 		BcAssert( Field_->isContainer() );
 		return Field_->newWriteIterator( getRawData() );
@@ -174,7 +174,7 @@ public:
 		* @brief New read iterator. Owner must delete.
 		* @pre Is a container.
 		*/
-	inline ContainerAccessor::ReadIterator* newReadIterator() const
+	inline ReContainerAccessor::ReadIterator* newReadIterator() const
 	{
 		BcAssert( Field_->isContainer() );
 		return Field_->newReadIterator( getRawData() );
@@ -209,8 +209,8 @@ public:
 	 	*/
 	inline BcBool isObjectType() const
 	{
-		const Class* FieldClass = static_cast< const Class* >( Field_->getType() );
-		return FieldClass->hasBaseClass( Object::StaticGetClass() );
+		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getType() );
+        return FieldClass->hasBaseClass( ReObject::StaticGetClass() );
 	}
 
 
@@ -240,7 +240,7 @@ public:
 
 private:
 	void* Data_;
-	const Field* Field_;
+	const ReField* Field_;
 
 };
 

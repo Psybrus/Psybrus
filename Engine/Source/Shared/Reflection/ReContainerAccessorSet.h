@@ -8,11 +8,11 @@
 /////////////////////////////////////////////////////////////////////////
 // SetContainerAccessor
 template < typename _Ty, typename _Comp, typename _Alloc >
-class SetContainerAccessor:
-	public ContainerAccessor
+class ReSetContainerAccessor:
+	public ReContainerAccessor
 {
 public:
-	typedef TypeTraits< _Ty > ValueTraits;
+    typedef ReTypeTraits< _Ty > ValueTraits;
 	typedef std::set< _Ty, _Comp, _Alloc > Container;
 	typedef typename Container::iterator ContainerIterator;
 public:
@@ -97,15 +97,15 @@ public:
 	};
 
 public:
-	SetContainerAccessor()
+    ReSetContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-		pValueType_ = GetClass< TypeTraits< _Ty >::Type >();
+        pValueType_ = GetClass< ReTypeTraits< _Ty >::Type >();
 		KeyFlags_ = 0;
-		ValueFlags_ = TypeTraits< _Ty >::Flags;
+        ValueFlags_ = ReTypeTraits< _Ty >::Flags;
 	}
 
-	virtual ~SetContainerAccessor()
+    virtual ~ReSetContainerAccessor()
 	{
 
 	}
@@ -123,13 +123,13 @@ public:
 
 	
 template < typename _Ty, typename _Comp, typename _Alloc >
-ContainerAccessor* CreateContainerAccessor( std::set< _Ty, _Comp, _Alloc >&, const Type*& pKeyType, const Type*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::set< _Ty, _Comp, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType =  nullptr;
-	pValueType = GetClass< TypeTraits< _Ty >::Type >();
+    pValueType = GetClass< ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
-	ValueFlags = TypeTraits< _Ty >::Flags;
-	return new SetContainerAccessor< _Ty, _Comp, _Alloc >();
+    ValueFlags = ReTypeTraits< _Ty >::Flags;
+    return new ReSetContainerAccessor< _Ty, _Comp, _Alloc >();
 }
 
 #endif

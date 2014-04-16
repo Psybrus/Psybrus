@@ -4,27 +4,27 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_DERIVED( Field );
+REFLECTION_DEFINE_DERIVED( ReField );
 
-void Field::StaticRegisterClass()
+void ReField::StaticRegisterClass()
 {
-	static const Field Fields[] = 
+	static const ReField Fields[] = 
 	{
-		Field( "Offset_", &Field::Offset_ ),
-		Field( "Type_", &Field::Type_ ),
-		Field( "Flags_", &Field::Flags_ ),
-		Field( "KeyType_", &Field::KeyType_ ),
-		Field( "ValueType_", &Field::ValueType_ ),
-		Field( "KeyFlags_", &Field::KeyFlags_ ),
-		Field( "ValueFlags_", &Field::ValueFlags_ ),
+		ReField( "Offset_", &ReField::Offset_ ),
+		ReField( "Type_", &ReField::Type_ ),
+		ReField( "Flags_", &ReField::Flags_ ),
+		ReField( "KeyType_", &ReField::KeyType_ ),
+		ReField( "ValueType_", &ReField::ValueType_ ),
+		ReField( "KeyFlags_", &ReField::KeyFlags_ ),
+		ReField( "ValueFlags_", &ReField::ValueFlags_ ),
 	};
 		
-	RegisterClass< Field, Primitive >( Fields );
+	ReRegisterClass< ReField, RePrimitive >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Field
-Field::Field():
+ReField::ReField():
 	Offset_( 0 ),
 	Type_( nullptr ),
 	Flags_( 0 ),
@@ -38,91 +38,91 @@ Field::Field():
 	
 //////////////////////////////////////////////////////////////////////////
 // setType
-void Field::setType( const Type* Type )
+void ReField::setType( const Type* Type )
 {
 	Type_ = Type;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getType
-const Type* Field::getType() const
+const ReType* ReField::getType() const
 {
 	return Type_;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // setOffset
-void Field::setOffset( BcU32 Offset )
+void ReField::setOffset( BcU32 Offset )
 {
 	Offset_ = Offset;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getOffset
-BcU32 Field::getOffset() const
+BcU32 ReField::getOffset() const
 {
 	return Offset_;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // setFlags
-void Field::setFlags( BcU32 Flags )
+void ReField::setFlags( BcU32 Flags )
 {
 	Flags_ = Flags;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getFlags
-BcU32 Field::getFlags() const
+BcU32 ReField::getFlags() const
 {
 	return Flags_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isContainer
-bool Field::isContainer() const
+bool ReField::isContainer() const
 {
 	return ContainerAccessor_ != nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isPointerType
-bool Field::isPointerType() const
+bool ReField::isPointerType() const
 {
 	return ( getFlags() & bcRFF_ANY_POINTER_TYPE ) != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getKeyType
-const Type* Field::getKeyType() const
+const ReType* ReField::getKeyType() const
 {
 	return KeyType_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getValueType
-const Type* Field::getValueType() const
+const ReType* ReField::getValueType() const
 {
 	return ValueType_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getKeyFlags
-BcU32 Field::getKeyFlags() const
+BcU32 ReField::getKeyFlags() const
 {
 	return KeyFlags_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getValueFlags
-BcU32 Field::getValueFlags() const
+BcU32 ReField::getValueFlags() const
 {
 	return ValueFlags_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // newWriteIterator
-ContainerAccessor::WriteIterator* Field::newWriteIterator( void* pContainerData ) const
+ReContainerAccessor::WriteIterator* ReField::newWriteIterator( void* pContainerData ) const
 {
 	if( ContainerAccessor_ != nullptr )
 	{
@@ -133,7 +133,7 @@ ContainerAccessor::WriteIterator* Field::newWriteIterator( void* pContainerData 
 
 //////////////////////////////////////////////////////////////////////////
 // newReadIterator
-ContainerAccessor::ReadIterator* Field::newReadIterator( void* pContainerData ) const
+ReContainerAccessor::ReadIterator* ReField::newReadIterator( void* pContainerData ) const
 {
 	if( ContainerAccessor_ != nullptr )
 	{

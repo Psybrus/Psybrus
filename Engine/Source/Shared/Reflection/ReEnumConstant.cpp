@@ -4,21 +4,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_DERIVED( EnumConstant );
+REFLECTION_DEFINE_DERIVED( ReEnumConstant );
 
-void EnumConstant::StaticRegisterClass()
+void ReEnumConstant::StaticRegisterClass()
 {
-	static const Field Fields[] = 
+	static const ReField Fields[] = 
 	{
-		Field( "Value_", &EnumConstant::Value_ ),
+		ReField( "Value_", &ReEnumConstant::Value_ ),
 	};
 		
-	RegisterClass< EnumConstant, Primitive >( Fields );
+	ReRegisterClass< ReEnumConstant, RePrimitive >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // EnumConstant
-EnumConstant::EnumConstant():
+ReEnumConstant::ReEnumConstant():
 	Value_( 0 )
 {
 	
@@ -26,7 +26,7 @@ EnumConstant::EnumConstant():
 
 //////////////////////////////////////////////////////////////////////////
 // EnumConstant
-EnumConstant::EnumConstant( const std::string& Name, BcU32 Value ):
+ReEnumConstant::ReEnumConstant( const std::string& Name, BcU32 Value ):
 	Value_( Value )
 {
 	setName( Name );
@@ -34,14 +34,14 @@ EnumConstant::EnumConstant( const std::string& Name, BcU32 Value ):
 	
 //////////////////////////////////////////////////////////////////////////
 // setValue
-void EnumConstant::setValue( BcU32 Value )
+void ReEnumConstant::setValue( BcU32 Value )
 {
 	Value_ = Value;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getValue
-BcU32 EnumConstant::getValue() const
+BcU32 ReEnumConstant::getValue() const
 {
 	return Value_;
 }

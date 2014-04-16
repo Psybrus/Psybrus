@@ -4,29 +4,29 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_DERIVED( Class );
+REFLECTION_DEFINE_DERIVED( ReClass );
 
-void Class::StaticRegisterClass()
+void ReClass::StaticRegisterClass()
 {
-	static const Field Fields[] = 
+	static const ReField Fields[] = 
 	{
-		Field( "Super_",		&Class::Super_ ),
-		Field( "Fields_",		&Class::Fields_ ),
+		ReField( "Super_",		&ReClass::Super_ ),
+		ReField( "Fields_",		&ReClass::Fields_ ),
 	};
 		
-	RegisterClass< Class, Type >( Fields );
+	ReRegisterClass< ReClass, ReType >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Class
-Class::Class():
+ReClass::ReClass():
 	Super_( nullptr )
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Class
-Class::Class( const std::string& Name ):
+ReClass::ReClass( const std::string& Name ):
 	Super_( nullptr )
 {
 	setName( Name );
@@ -34,21 +34,21 @@ Class::Class( const std::string& Name ):
 	
 //////////////////////////////////////////////////////////////////////////
 // setSuper
-void Class::setSuper( const Class* Super )
+void ReClass::setSuper( const ReClass* Super )
 {
 	Super_ = Super;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getSuper
-const Class* Class::getSuper() const
+const ReClass* ReClass::getSuper() const
 {
 	return Super_;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // hasBaseClass
-BcBool Class::hasBaseClass( const Class* pClass ) const
+BcBool ReClass::hasBaseClass( const ReClass* pClass ) const
 {
 	if( this == pClass )
 	{
@@ -56,7 +56,7 @@ BcBool Class::hasBaseClass( const Class* pClass ) const
 	}
 	else
 	{
-		const Class* pSuperClass = getSuper();
+		const ReClass* pSuperClass = getSuper();
 		if( pSuperClass != nullptr )
 		{
 			return pSuperClass->hasBaseClass( pClass );
@@ -67,7 +67,7 @@ BcBool Class::hasBaseClass( const Class* pClass ) const
 	
 //////////////////////////////////////////////////////////////////////////
 // setFields
-void Class::setFields( BcU32 NoofFields, const Field* pFields )
+void ReClass::setFields( BcU32 NoofFields, const ReField* pFields )
 {
 	Fields_.reserve( NoofFields );
 	for( BcU32 Idx = 0; Idx < NoofFields; ++Idx )
@@ -78,14 +78,14 @@ void Class::setFields( BcU32 NoofFields, const Field* pFields )
 	
 //////////////////////////////////////////////////////////////////////////
 // getField
-const Field* Class::getField( BcU32 Idx ) const
+const ReField* ReClass::getField( BcU32 Idx ) const
 {
 	return Fields_[ Idx ];
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getNoofFields
-BcU32 Class::getNoofFields() const
+BcU32 ReClass::getNoofFields() const
 {
 	return Fields_.size();
 }
