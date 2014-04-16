@@ -5,15 +5,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ClassSerialiser
-class ClassSerialiser:
-	public ITypeSerialiser
+class ReClassSerialiser:
+    public ReITypeSerialiser
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ClassSerialiser, ITypeSerialiser );
+    REFLECTION_DECLARE_DERIVED( ReClassSerialiser, ReITypeSerialiser );
 
 public:
-	ClassSerialiser( const std::string& Name );
-	virtual ~ClassSerialiser();
+    ReClassSerialiser( const std::string& Name );
+    virtual ~ReClassSerialiser();
 
 	virtual BcU32					getBinaryDataSize( const void* pInstance ) const;
 	virtual BcBool					serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const;
@@ -23,7 +23,7 @@ public:
 	virtual BcBool					copy( void* pDst, void* pSrc ) const;
 
 protected:
-	Class*							Class_;
+	ReClass*							Class_;
 };
 
 

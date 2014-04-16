@@ -5,15 +5,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ClassSerialiser_BinaryDataType.
-class ClassSerialiser_BinaryDataType:
-		public ClassSerialiser
+class ReClassSerialiser_BinaryDataType:
+		public ReClassSerialiser
 {
 public:
 	typedef std::string BaseType;
 
 public:
-	ClassSerialiser_BinaryDataType( const std::string& Name );
-	virtual ~ClassSerialiser_BinaryDataType();
+    ReClassSerialiser_BinaryDataType( const std::string& Name );
+    virtual ~ReClassSerialiser_BinaryDataType();
 	void construct( void* pMemory ) const;
 	void constructNoInit( void* pMemory ) const;
 	void destruct( void* pMemory ) const;

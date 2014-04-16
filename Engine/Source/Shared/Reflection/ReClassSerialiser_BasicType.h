@@ -9,22 +9,22 @@
 //////////////////////////////////////////////////////////////////////////
 // ClassSerialiser_BasicType.
 template < typename _Ty >
-class ClassSerialiser_BasicType:
-		public ClassSerialiser
+class ReClassSerialiser_BasicType:
+		public ReClassSerialiser
 {
 public:
-	typedef typename BaseTypeConversion< _Ty >::BaseType BaseType;
-	typedef typename BaseTypeConversion< _Ty >::CastType CastType;
-	static const int precision = BaseTypeConversion< _Ty >::precision;
+    typedef typename ReBaseTypeConversion< _Ty >::BaseType BaseType;
+    typedef typename ReBaseTypeConversion< _Ty >::CastType CastType;
+    static const int precision = ReBaseTypeConversion< _Ty >::precision;
 
 public:
-	ClassSerialiser_BasicType( const std::string& Name ):
-		ClassSerialiser( Name )
+    ReClassSerialiser_BasicType( const std::string& Name ):
+		ReClassSerialiser( Name )
 	{
 		Class_->setType< BaseType >( this );
 	}
 
-	virtual ~ClassSerialiser_BasicType() {}
+    virtual ~ReClassSerialiser_BasicType() {}
 
 	void construct( void* pMemory ) const
 	{

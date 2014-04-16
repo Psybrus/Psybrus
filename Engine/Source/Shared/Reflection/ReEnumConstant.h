@@ -5,25 +5,25 @@
 
 //////////////////////////////////////////////////////////////////////////
 // EnumConstant
-class EnumConstant:
-	public Primitive
+class ReEnumConstant:
+    public RePrimitive
 {
 public:
-	REFLECTION_DECLARE_DERIVED( EnumConstant, Primitive );
+    REFLECTION_DECLARE_DERIVED( ReEnumConstant, RePrimitive );
 
 public:
-	EnumConstant();
-	EnumConstant( const std::string& Name, BcU32 Value );
+    ReEnumConstant();
+    ReEnumConstant( const std::string& Name, BcU32 Value );
 
 	template< typename _Ty >
-	EnumConstant( const std::string& Name, _Ty Value )
+	ReEnumConstant( const std::string& Name, _Ty Value )
 	{
 		setName( Name );
 		Value_ = static_cast< BcU32 >( Value );
 	}
 
 
-	virtual ~EnumConstant(){};
+    virtual ~ReEnumConstant(){};
 
 	/**
 		* Set value.

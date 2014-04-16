@@ -1,5 +1,5 @@
 template< class _Ty >
-inline void ObjectRef< _Ty >::_acquireNew( Object* pObject )
+inline void ReObjectRef< _Ty >::_acquireNew( ReObject* pObject )
 {
 	pObject_ = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
 
@@ -10,7 +10,7 @@ inline void ObjectRef< _Ty >::_acquireNew( Object* pObject )
 }
 
 template< class _Ty >
-inline void ObjectRef< _Ty >::_acquireNewReleaseOld( Object* pObject )
+inline void ReObjectRef< _Ty >::_acquireNewReleaseOld( ReObject* pObject )
 {
 	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
 
@@ -24,7 +24,7 @@ inline void ObjectRef< _Ty >::_acquireNewReleaseOld( Object* pObject )
 }
 
 template< class _Ty >
-inline void ObjectRef< _Ty >::_acquireAssign( Object* pObject )
+inline void ReObjectRef< _Ty >::_acquireAssign( ReObject* pObject )
 {
 	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
 
@@ -39,7 +39,7 @@ inline void ObjectRef< _Ty >::_acquireAssign( Object* pObject )
 }
 
 template< class _Ty >
-inline void ObjectRef< _Ty >::_releaseThis()
+inline void ReObjectRef< _Ty >::_releaseThis()
 {
 	if( pObject_ != nullptr )
 	{
@@ -50,7 +50,7 @@ inline void ObjectRef< _Ty >::_releaseThis()
 
 //static
 template< class _Ty >
-inline void ObjectRef< _Ty >::assertPendingDeletion( const Object* pObject )
+inline void ReObjectRef< _Ty >::assertPendingDeletion( const ReObject* pObject )
 {
 #if PSY_DEBUG
 	if( pObject != nullptr )
@@ -61,27 +61,27 @@ inline void ObjectRef< _Ty >::assertPendingDeletion( const Object* pObject )
 }
 
 template< class _Ty >
-inline ObjectRef< _Ty >::ObjectRef():
+inline ReObjectRef< _Ty >::ReObjectRef():
 	pObject_( nullptr )
 {
 }
 
 template< class _Ty >
-inline ObjectRef< _Ty >::ObjectRef( const ObjectRef& Other )
+inline ReObjectRef< _Ty >::ReObjectRef( const ReObjectRef& Other )
 {
 	assertPendingDeletion( Other.pObject_ );
 	_acquireNew( Other.pObject_ );
 }
 
 template< class _Ty >
-inline ObjectRef< _Ty >::ObjectRef( Object* pObject )
+inline ReObjectRef< _Ty >::ReObjectRef( ReObject* pObject )
 {
 	assertPendingDeletion( pObject );
 	_acquireNew( pObject );
 }
 
 template< class _Ty >
-inline ObjectRef< _Ty >& ObjectRef< _Ty >::operator = ( const ObjectRef& Other )
+inline ReObjectRef< _Ty >& ReObjectRef< _Ty >::operator = ( const ReObjectRef& Other )
 {
 	assertPendingDeletion( Other.pObject_ );
 	_acquireAssign( Other.pObject_ );
@@ -89,7 +89,7 @@ inline ObjectRef< _Ty >& ObjectRef< _Ty >::operator = ( const ObjectRef& Other )
 }
 
 template< class _Ty >
-inline ObjectRef< _Ty >& ObjectRef< _Ty >::operator = ( Object* pObject )
+inline ReObjectRef< _Ty >& ReObjectRef< _Ty >::operator = ( ReObject* pObject )
 {
 	assertPendingDeletion( pObject );
 	_acquireAssign( pObject );
@@ -97,26 +97,26 @@ inline ObjectRef< _Ty >& ObjectRef< _Ty >::operator = ( Object* pObject )
 }
 
 template< class _Ty >
-inline ObjectRef< _Ty >::~ObjectRef()
+inline ReObjectRef< _Ty >::~ReObjectRef()
 {
 	_releaseThis();
 }
 
 template< class _Ty >
-inline bool ObjectRef< _Ty >::isValid() const
+inline bool ReObjectRef< _Ty >::isValid() const
 {
-	return ( pObject_ != nullptr && ( ( pObject_->Flags_ & Object::MarkedForDeletion ) == 0 ) );
+	return ( pObject_ != nullptr && ( ( pObject_->Flags_ & ReObject::MarkedForDeletion ) == 0 ) );
 }
 		
 template< class _Ty >
-inline ObjectRef< _Ty >::operator _Ty* ()
+inline ReObjectRef< _Ty >::operator _Ty* ()
 {
 	assertPendingDeletion( pObject_ );
 	return static_cast< _Ty* >( pObject_ );
 }
 
 template< class _Ty >
-inline _Ty* ObjectRef< _Ty >::operator -> ()
+inline _Ty* ReObjectRef< _Ty >::operator -> ()
 {
 	BcAssert( pObject_ != nullptr );
 	assertPendingDeletion( pObject_ );
@@ -124,7 +124,7 @@ inline _Ty* ObjectRef< _Ty >::operator -> ()
 }
 
 template< class _Ty >
-inline bool ObjectRef< _Ty >::operator == ( const ObjectRef& Other ) const
+inline bool ReObjectRef< _Ty >::operator == ( const ReObjectRef& Other ) const
 {
 	assertPendingDeletion( pObject_ );
 	assertPendingDeletion( Other.pObject_ );
@@ -132,7 +132,7 @@ inline bool ObjectRef< _Ty >::operator == ( const ObjectRef& Other ) const
 }
 
 template< class _Ty >
-inline bool ObjectRef< _Ty >::operator != ( const ObjectRef& Other ) const
+inline bool ReObjectRef< _Ty >::operator != ( const ReObjectRef& Other ) const
 {
 	assertPendingDeletion( pObject_ );
 	assertPendingDeletion( Other.pObject_ );
@@ -140,7 +140,7 @@ inline bool ObjectRef< _Ty >::operator != ( const ObjectRef& Other ) const
 }
 
 template< class _Ty >
-inline bool ObjectRef< _Ty >::operator == ( _Ty* pObject ) const
+inline bool ReObjectRef< _Ty >::operator == ( _Ty* pObject ) const
 {
 	assertPendingDeletion( pObject_ );
 	assertPendingDeletion( Other.pObject_ );
@@ -148,7 +148,7 @@ inline bool ObjectRef< _Ty >::operator == ( _Ty* pObject ) const
 }
 
 template< class _Ty >
-inline bool ObjectRef< _Ty >::operator != ( _Ty* pObject ) const
+inline bool ReObjectRef< _Ty >::operator != ( _Ty* pObject ) const
 {
 	assertPendingDeletion( pObject_ );
 	assertPendingDeletion( Other.pObject_ );
@@ -156,7 +156,7 @@ inline bool ObjectRef< _Ty >::operator != ( _Ty* pObject ) const
 }
 
 template< class _Ty >
-inline void ObjectRef< _Ty >::reset()
+inline void ReObjectRef< _Ty >::reset()
 {
 	_releaseThis();
 }

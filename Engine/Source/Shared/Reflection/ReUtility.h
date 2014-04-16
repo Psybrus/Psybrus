@@ -15,7 +15,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // FieldFlags
-enum FieldFlags
+enum ReFieldFlags
 {
 	// Pointer type info.
 	bcRFF_POINTER =					0x00000001,		// Pointer type.
@@ -42,7 +42,7 @@ enum FieldFlags
 //////////////////////////////////////////////////////////////////////////
 // TypeTraits
 template< typename _Ty >
-struct TypeTraits
+struct ReTypeTraits
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = 0;
@@ -54,7 +54,7 @@ struct TypeTraits
 };
 		
 template<>
-struct TypeTraits< BcU8 >
+struct ReTypeTraits< BcU8 >
 {
 	typedef BcU8 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -66,7 +66,7 @@ struct TypeTraits< BcU8 >
 };
 
 template<>
-struct TypeTraits< BcS8 >
+struct ReTypeTraits< BcS8 >
 {
 	typedef BcS8 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -78,7 +78,7 @@ struct TypeTraits< BcS8 >
 };
 
 template<>
-struct TypeTraits< BcU16 >
+struct ReTypeTraits< BcU16 >
 {
 	typedef BcU16 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -90,7 +90,7 @@ struct TypeTraits< BcU16 >
 };
 
 template<>
-struct TypeTraits< BcS16 >
+struct ReTypeTraits< BcS16 >
 {
 	typedef BcS16 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -102,7 +102,7 @@ struct TypeTraits< BcS16 >
 };
 
 template<>
-struct TypeTraits< BcU32 >
+struct ReTypeTraits< BcU32 >
 {
 	typedef BcU32 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -114,7 +114,7 @@ struct TypeTraits< BcU32 >
 };
 
 template<>
-struct TypeTraits< BcS32 >
+struct ReTypeTraits< BcS32 >
 {
 	typedef BcS32 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -126,7 +126,7 @@ struct TypeTraits< BcS32 >
 };
 
 template<>
-struct TypeTraits< BcU64 >
+struct ReTypeTraits< BcU64 >
 {
 	typedef BcU64 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -138,7 +138,7 @@ struct TypeTraits< BcU64 >
 };
 
 template<>
-struct TypeTraits< BcS64 >
+struct ReTypeTraits< BcS64 >
 {
 	typedef BcS64 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -150,7 +150,7 @@ struct TypeTraits< BcS64 >
 };
 
 template<>
-struct TypeTraits< BcF32 >
+struct ReTypeTraits< BcF32 >
 {
 	typedef BcF32 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -162,7 +162,7 @@ struct TypeTraits< BcF32 >
 };
 
 template<>
-struct TypeTraits< BcF64 >
+struct ReTypeTraits< BcF64 >
 {
 	typedef BcF64 Type;
 	static const BcU32 Flags = bcRFF_POD;
@@ -174,7 +174,7 @@ struct TypeTraits< BcF64 >
 };
 
 template<>
-struct TypeTraits< std::string >
+struct ReTypeTraits< std::string >
 {
 	typedef std::string Type;
 	static const BcU32 Flags = 0;
@@ -186,81 +186,81 @@ struct TypeTraits< std::string >
 };
 
 template< typename _Ty >
-struct TypeTraits< _Ty* >
+struct ReTypeTraits< _Ty* >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_POINTER;
-	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
 	static const char* Name()
 	{
-		return TypeTraits< Type >::Name();
+        return ReTypeTraits< Type >::Name();
 	}
 };
 
 template< typename _Ty >
-struct TypeTraits< _Ty& >
+struct ReTypeTraits< _Ty& >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_REFERENCE;
-	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
 	static const char* Name()
 	{
-		return TypeTraits< Type >::Name();
+        return ReTypeTraits< Type >::Name();
 	}
 };
 
 template< typename _Ty >
-struct TypeTraits< ObjectRef< _Ty > >
+struct ReTypeTraits< ReObjectRef< _Ty > >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_OBJECT_REFERENCE;
-	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
 	static const char* Name()
 	{
-		return TypeTraits< Type >::Name();
+        return ReTypeTraits< Type >::Name();
 	}
 };
 		
 template< typename _Ty >
-struct TypeTraits< const  _Ty* >
+struct ReTypeTraits< const  _Ty* >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_POINTER | bcRFF_CONST;
-	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
 	static const char* Name()
 	{
-		return TypeTraits< Type >::Name();
+        return ReTypeTraits< Type >::Name();
 	}
 };
 
 template< typename _Ty >
-struct TypeTraits< const _Ty& >
+struct ReTypeTraits< const _Ty& >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_REFERENCE | bcRFF_CONST;
-	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
 	static const char* Name()
 	{
-		return TypeTraits< Type >::Name();
+        return ReTypeTraits< Type >::Name();
 	}
 };
 		
 template< typename _Ty >
-struct TypeTraits< BcAtomic< _Ty > >
+struct ReTypeTraits< BcAtomic< _Ty > >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_ATOMIC;
-	static const bool IsEnum = TypeTraits< Type >::IsEnum;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
 	static const char* Name()
 	{
-		return TypeTraits< Type >::Name();
+        return ReTypeTraits< Type >::Name();
 	}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // BaseTypeConversion
 template < typename _Ty >
-struct BaseTypeConversion
+struct ReBaseTypeConversion
 {
 	typedef _Ty BaseType;
 	typedef _Ty CastType;
@@ -268,7 +268,7 @@ struct BaseTypeConversion
 };
 
 template <>
-struct BaseTypeConversion< BcU8 >
+struct ReBaseTypeConversion< BcU8 >
 {
 	typedef BcU8 BaseType;
 	typedef BcU32 CastType;
@@ -276,7 +276,7 @@ struct BaseTypeConversion< BcU8 >
 };
 
 template <>
-struct BaseTypeConversion< BcU16 >
+struct ReBaseTypeConversion< BcU16 >
 {
 	typedef BcU16 BaseType;
 	typedef BcU32 CastType;
@@ -284,7 +284,7 @@ struct BaseTypeConversion< BcU16 >
 };
 
 template <>
-struct BaseTypeConversion< BcU32 >
+struct ReBaseTypeConversion< BcU32 >
 {
 	typedef BcU32 BaseType;
 	typedef BcU32 CastType;
@@ -292,7 +292,7 @@ struct BaseTypeConversion< BcU32 >
 };
 
 template <>
-struct BaseTypeConversion< BcU64 >
+struct ReBaseTypeConversion< BcU64 >
 {
 	typedef BcU64 BaseType;
 	typedef BcU64 CastType;
@@ -300,7 +300,7 @@ struct BaseTypeConversion< BcU64 >
 };
 
 template <>
-struct BaseTypeConversion< BcS8 >
+struct ReBaseTypeConversion< BcS8 >
 {
 	typedef BcS8 BaseType;
 	typedef BcS32 CastType;
@@ -308,7 +308,7 @@ struct BaseTypeConversion< BcS8 >
 };
 
 template <>
-struct BaseTypeConversion< BcS16 >
+struct ReBaseTypeConversion< BcS16 >
 {
 	typedef BcS16 BaseType;
 	typedef BcS32 CastType;
@@ -316,7 +316,7 @@ struct BaseTypeConversion< BcS16 >
 };
 
 template <>
-struct BaseTypeConversion< BcS32 >
+struct ReBaseTypeConversion< BcS32 >
 {
 	typedef BcS32 BaseType;
 	typedef BcS32 CastType;
@@ -324,7 +324,7 @@ struct BaseTypeConversion< BcS32 >
 };
 
 template <>
-struct BaseTypeConversion< BcS64 >
+struct ReBaseTypeConversion< BcS64 >
 {
 	typedef BcS64 BaseType;
 	typedef BcS64 CastType;
@@ -333,22 +333,22 @@ struct BaseTypeConversion< BcS64 >
 
 //////////////////////////////////////////////////////////////////////////
 // NoInit
-enum NoInit
+enum ReNoInit
 {
 	NOINIT
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
-class ITypeSerialiser;
+class ReITypeSerialiser;
 class IContainerAccessor;
-class Object;
-class Primitive;
-class Type;
-class EnumConstant;
-class Enum;
-class Field;
-class Class;
-class ClassSerialiser;
+class ReObject;
+class RePrimitive;
+class ReType;
+class ReEnumConstant;
+class ReEnum;
+class ReField;
+class ReClass;
+class ReClassSerialiser;
 
 #endif

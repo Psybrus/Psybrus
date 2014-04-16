@@ -8,11 +8,11 @@
 //////////////////////////////////////////////////////////////////////////
 // VectorContainerAccessor
 template < typename _Ty, typename _Alloc >
-class VectorContainerAccessor:
-	public ContainerAccessor
+class ReVectorContainerAccessor:
+	public ReContainerAccessor
 {
 public:
-	typedef TypeTraits< _Ty > ValueTraits;
+    typedef ReTypeTraits< _Ty > ValueTraits;
 	typedef std::vector< _Ty, _Alloc > Container;
 
 public:
@@ -97,15 +97,15 @@ public:
 	};
 
 public:
-	VectorContainerAccessor()
+    ReVectorContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-		pValueType_ = GetClass< TypeTraits< _Ty >::Type >();
+        pValueType_ = GetClass< ReTypeTraits< _Ty >::Type >();
 		KeyFlags_ = 0;
-		ValueFlags_ = TypeTraits< _Ty >::Flags;
+        ValueFlags_ = ReTypeTraits< _Ty >::Flags;
 	}
 
-	virtual ~VectorContainerAccessor()
+    virtual ~ReVectorContainerAccessor()
 	{
 
 	}
@@ -123,13 +123,13 @@ public:
 
 	
 template < typename _Ty, typename _Alloc >
-ContainerAccessor* CreateContainerAccessor( std::vector< _Ty, _Alloc >&, const Type*& pKeyType, const Type*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::vector< _Ty, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
-	pValueType = GetClass< TypeTraits< _Ty >::Type >();
+    pValueType = GetClass< ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
-	ValueFlags = TypeTraits< _Ty >::Flags;
-	return new VectorContainerAccessor< _Ty, _Alloc >();
+    ValueFlags = ReTypeTraits< _Ty >::Flags;
+    return new ReVectorContainerAccessor< _Ty, _Alloc >();
 }
 
 #endif

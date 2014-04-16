@@ -4,7 +4,7 @@
 #include <string>
 
 //////////////////////////////////////////////////////////////////////////
-// Reflection Defines.
+// Reflection Defines
 
 /**
  * Internal
@@ -13,9 +13,9 @@
 	public:																		\
 	static const std::string& StaticGetTypeName();								\
 	static BcU32 StaticGetTypeNameHash();										\
-	static const Class* StaticGetClass();										\
+	static const ReClass* StaticGetClass();										\
 	static void StaticRegisterClass();											\
-	friend class ClassSerialiser_##_Type;										\
+	friend class ReClassSerialiser_##_Type;										\
 
 /**
  * Internal
@@ -23,7 +23,7 @@
 #define __REFLECTION_DEFINE_BASIC( _Type )										\
 	const std::string& _Type::StaticGetTypeName()								\
 	{																			\
-		static std::string Name( TypeTraits< _Type >::Name() );					\
+		static std::string Name( ReTypeTraits< _Type >::Name() );				\
 		return Name;															\
 	}																			\
 																				\
@@ -33,9 +33,9 @@
 		return TypeHash;														\
 	}																			\
 																				\
-	const Class* _Type::StaticGetClass()										\
+	const ReClass* _Type::StaticGetClass()										\
 	{																			\
-		static const Class* pClass = GetClass( StaticGetTypeName() );			\
+		static const ReClass* pClass = ReManager::GetClass( StaticGetTypeName() );\
 		return pClass;															\
 	}																			\
 
@@ -46,10 +46,10 @@
 	__REFLECTION_DECLARE_BASIC( _Type )											\
 	virtual const std::string& getTypeName() const;								\
 	virtual BcU32 getTypeHash() const;											\
-	virtual const Class* getClass() const;										\
+	virtual const ReClass* getClass() const;									\
 	virtual BcBool isType( const std::string& Type ) const;						\
 	virtual BcBool isTypeOf( const std::string& Type ) const;					\
-	virtual BcBool isTypeOf( const Class* pClass ) const;						\
+	virtual BcBool isTypeOf( const ReClass* pClass ) const;						\
 	template < class _Ty >														\
 	inline BcBool isTypeOf() const												\
 	{																			\
@@ -66,7 +66,7 @@
 		return _Type::StaticGetTypeName();										\
 	}																			\
 																				\
-	const Class* _Type::getClass() const										\
+	const ReClass* _Type::getClass() const										\
 	{																			\
 		return _Type::StaticGetClass();											\
 	}																			\
@@ -98,7 +98,7 @@
  */
 #define REFLECTION_DECLARE_BASE( _Type )										\
 	__REFLECTION_DECLARE_BASE( _Type )											\
-	_Type( NoInit ){};
+	_Type( ReNoInit ){};
 
 /**
  * @brief Declare base type with manual NoInit.
@@ -134,7 +134,7 @@
 		return _Type::StaticGetTypeName() == Type;								\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( const Class* pClass ) const 						\
+	BcBool _Type::isTypeOf( const ReClass* pClass ) const 						\
 	{																			\
 		return _Type::StaticGetClass() == pClass;								\
 	}																			\
@@ -149,7 +149,7 @@
 	public:																		\
 		typedef _Base Super;													\
 		__REFLECTION_DECLARE_BASE( _Type )										\
-	_Type( NoInit ): _Base( NOINIT ) {};
+	_Type( ReNoInit ): _Base( NOINIT ) {};
 
 /**
  * @brief Declare derived type.
@@ -187,7 +187,7 @@
 		return _Type::StaticGetTypeName() == Type || Super::isTypeOf( Type );	\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( const Class* pClass ) const 						\
+	BcBool _Type::isTypeOf( const ReClass* pClass ) const 						\
 	{																			\
 		return _Type::StaticGetClass() == pClass || Super::isTypeOf( pClass );	\
 	}																			\
