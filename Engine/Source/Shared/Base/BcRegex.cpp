@@ -1,6 +1,7 @@
 /**************************************************************************
 *
-* File:		BcRegex.cpp
+* File:		Bc
+.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	12/12/12	
 * Description:
