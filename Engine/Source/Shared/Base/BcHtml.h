@@ -39,9 +39,11 @@ public:
 	BcHtmlNode operator[](std::string tag);
 	std::string getOuterXml();
 	bool operator=(const int&v);
+	BcHtmlNode NextSiblingNode();
 private:
 	BcHtmlNode(BcHtmlNodeInternal* node);
 	BcHtmlNodeInternal* InternalNode_;
+	std::string NextTag_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,11 +64,12 @@ public:
 	BcHtmlNodeInternal* operator[](std::string tag);
 	std::string getOuterXml();
 private:
-	BcHtmlNodeInternal(std::string tag);
+	BcHtmlNodeInternal(std::string tag, BcHtmlNodeInternal* parent);
 	std::map<std::string, std::string> Attributes_;
 	std::string Tag_;
 	std::vector<BcHtmlNodeInternal> Children;
 	std::string Contents_;
+	BcHtmlNodeInternal* Parent_;
 };
 
 
