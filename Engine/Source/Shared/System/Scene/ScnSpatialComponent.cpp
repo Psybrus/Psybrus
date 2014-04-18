@@ -18,11 +18,15 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSpatialComponent );
 
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnSpatialComponent )
-	BCREFLECTION_MEMBER( ScnSpatialTreeNode,					pSpatialTreeNode_,						bcRFF_POINTER ),
-REFLECTION_DERIVED_END();
-*/
+void ScnSpatialComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pSpatialTreeNode_",			&ScnSpatialComponent::pSpatialTreeNode_ ),
+	};
+		
+	ReRegisterClass< ScnSpatialComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

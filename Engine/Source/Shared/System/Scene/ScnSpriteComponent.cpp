@@ -27,15 +27,21 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnSpriteComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnSpriteComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnSpriteComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnSpriteComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Canvas_",				&ScnSpriteComponent::Canvas_ ),
+		ReField( "Material_",			&ScnSpriteComponent::Material_ ),
+		ReField( "Position_",			&ScnSpriteComponent::Position_ ),
+		ReField( "Size_",				&ScnSpriteComponent::Size_ ),
+		ReField( "Colour_",				&ScnSpriteComponent::Colour_ ),
+		ReField( "Index_",				&ScnSpriteComponent::Index_ ),
+		ReField( "Layer_",				&ScnSpriteComponent::Layer_ ),
+	};
+		
+	ReRegisterClass< ScnSpriteComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

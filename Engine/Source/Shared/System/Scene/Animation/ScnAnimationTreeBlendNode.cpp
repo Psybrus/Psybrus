@@ -16,7 +16,18 @@
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
 REFLECTION_DEFINE_DERIVED( ScnAnimationTreeBlendNode );
-//BCREFLECTION_EMPTY_REGISTER( ScnAnimationTreeBlendNode );
+
+void ScnAnimationTreeBlendNode::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pNodes_",			&ScnAnimationTreeBlendNode::pNodes_ ),
+		ReField( "BlendType_",		&ScnAnimationTreeBlendNode::BlendType_ ),
+		ReField( "BlendValue_",		&ScnAnimationTreeBlendNode::BlendValue_ ),
+	};
+		
+	ReRegisterClass< ScnAnimationTreeBlendNode, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

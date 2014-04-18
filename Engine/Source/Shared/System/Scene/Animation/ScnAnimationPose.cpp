@@ -18,12 +18,16 @@
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
 REFLECTION_DEFINE_BASE( ScnAnimationPose );
-/*
-BCREFLECTION_BASE_BEGIN( ScnAnimationPose )
-	BCREFLECTION_MEMBER( BcU32,								NoofTransforms_,				bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( ScnAnimationTransform,				pTransforms_,					bcRFF_POINTER ),
-BCREFLECTION_BASE_END();
-*/
+
+void ScnAnimationPose::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "NoofTransforms_",		&ScnAnimationPose::NoofTransforms_ ),
+	};
+		
+	ReRegisterClass< ScnAnimationPose >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

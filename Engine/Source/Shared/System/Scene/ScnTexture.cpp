@@ -190,15 +190,16 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 // Define resource internals.
 DEFINE_RESOURCE( ScnTexture );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnTexture );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnTexture )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnTexture::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pTexture_",			&ScnTexture::pTexture_ ),
+		ReField( "Header_",				&ScnTexture::Header_ ),
+	};
+		
+	ReRegisterClass< ScnTexture, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
