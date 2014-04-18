@@ -54,15 +54,15 @@ BcBool ScnRenderTarget::import( class CsPackageImporter& Importer, const Json::V
 // Define resource internals.
 DEFINE_RESOURCE( ScnRenderTarget );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnRenderTarget );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnRenderTarget )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnRenderTarget::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pRenderTarget_",			&ScnRenderTarget::pRenderTarget_ ),
+	};
+		
+	ReRegisterClass< ScnRenderTarget, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

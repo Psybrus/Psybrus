@@ -17,13 +17,18 @@
 // Reflection
 REFLECTION_DEFINE_BASE( ScnAnimationTreeNode );
 
-/*
-BCREFLECTION_ABSTRACT_BASE_BEGIN( ScnAnimationTreeNode )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( ScnAnimationPose,					pReferencePose_,				bcRFF_POINTER ),
-	BCREFLECTION_MEMBER( ScnAnimationPose,					pWorkingPose_,					bcRFF_POINTER ),
-BCREFLECTION_ABSTRACT_BASE_END();
-*/
+void ScnAnimationTreeNode::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Name_",				&ScnAnimationTreeNode::Name_ ),
+		ReField( "pReferencePose_",		&ScnAnimationTreeNode::pReferencePose_ ),
+		ReField( "pWorkingPose_",		&ScnAnimationTreeNode::pWorkingPose_ ),
+	};
+		
+	ReRegisterAbstractClass< ScnAnimationTreeNode >( Fields );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

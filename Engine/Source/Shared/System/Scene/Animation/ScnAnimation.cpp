@@ -103,11 +103,15 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 // Define resource internals.
 DEFINE_RESOURCE( ScnAnimation );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnAnimation );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnAnimation )
-REFLECTION_DERIVED_END();
-*/
+void ScnAnimation::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Header_",			&ScnAnimation::Header_ ),
+	};
+		
+	ReRegisterClass< ScnAnimation, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

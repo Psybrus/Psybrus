@@ -99,7 +99,7 @@ public:
     ReArrayContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-		pValueType_ = GetClass< ValueTraits::Type >();
+		pValueType_ = ReManager::GetClass< ValueTraits::Type >();
 		KeyFlags_ = 0;
 		ValueFlags_ = ValueTraits::Flags;
 	}
@@ -125,7 +125,7 @@ ReContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const ReType*&
 {
     typedef ReTypeTraits< _Ty > ValueTraits;
 	pKeyType = nullptr;
-	pValueType = GetClass< ValueTraits::Type >();
+	pValueType = ReManager::GetClass< ValueTraits::Type >();
 	KeyFlags = 0;
 	ValueFlags = ValueTraits::Flags;
     return new ReArrayContainerAccessor< _Ty, _Size >();
@@ -136,7 +136,7 @@ ReContainerAccessor* CreateContainerAccessor( std::array< _Ty, _Size >&, const R
 {
     typedef ReTypeTraits< _Ty > ValueTraits;
 	pKeyType = nullptr;
-	pValueType = GetClass< ValueTraits::Type >();
+	pValueType = ReManager::GetClass< ValueTraits::Type >();
 	KeyFlags = 0;
 	ValueFlags = ValueTraits::Flags;
     return new ReArrayContainerAccessor< _Ty, _Size >();
