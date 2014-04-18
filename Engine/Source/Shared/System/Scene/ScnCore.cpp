@@ -68,11 +68,13 @@ void ScnCore::open()
 
 	for( auto Class : Classes )
 	{
-		if( Class->isTypeOf( ScnComponent::StaticGetClass() ) )
+		if( Class->hasBaseClass( ScnComponent::StaticGetClass() ) )
 		{
 			ComponentClassIndexMap_[ Class ] = NoofComponentLists_++;
 		}
 	}
+
+	BcAssert( NoofComponentLists_ > 0 );
 
 	pComponentLists_ = new ScnComponentList[ NoofComponentLists_ ];	 
 }

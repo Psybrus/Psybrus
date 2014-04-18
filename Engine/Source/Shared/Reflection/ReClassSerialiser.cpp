@@ -6,7 +6,7 @@ REFLECTION_DEFINE_BASE( ReClassSerialiser );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ReClassSerialiser::ReClassSerialiser( const std::string& Name )
+ReClassSerialiser::ReClassSerialiser( BcName Name )
 {
 	Class_ = ReManager::GetClass( Name );
 }

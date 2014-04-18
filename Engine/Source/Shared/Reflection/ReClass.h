@@ -16,7 +16,7 @@ public:
 
 public:
     ReClass();
-    ReClass( const std::string& Name );
+    ReClass( BcName Name );
     virtual ~ReClass(){};
 
 	/**

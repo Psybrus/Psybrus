@@ -13,7 +13,7 @@ public:
 
 public:
     ReEnum();
-    ReEnum( const std::string& Name );
+    ReEnum( BcName Name );
     virtual ~ReEnum(){};
 
 	/**
