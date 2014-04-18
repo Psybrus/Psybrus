@@ -82,22 +82,28 @@ BcBool ScnViewComponent::import( class CsPackageImporter& Importer, const Json::
 // Define resource internals.
 DEFINE_RESOURCE( ScnViewComponent );
 
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnViewComponent )
-	BCREFLECTION_MEMBER( BcF32,							X_,								bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							Y_,								bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							Width_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							Height_,						bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							Near_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							Far_,							bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							HorizontalFOV_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcF32,							VerticalFOV_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( BcU32,							RenderMask_,					bcRFF_DEFAULT ),
-	BCREFLECTION_MEMBER( ScnRenderTarget,				RenderTarget_,					bcRFF_REFERENCE ),
-	BCREFLECTION_MEMBER( RsViewport,					Viewport_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( ScnShaderViewUniformBlockData,	ViewUniformBlock_,				bcRFF_DEFAULT | bcRFF_TRANSIENT )
-REFLECTION_DERIVED_END();
-*/
+void ScnViewComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "X_",					&ScnViewComponent::X_ ),
+		ReField( "Y_",					&ScnViewComponent::Y_ ),
+		ReField( "Width_",				&ScnViewComponent::Width_ ),
+		ReField( "Height_",				&ScnViewComponent::Height_ ),
+		ReField( "Near_",				&ScnViewComponent::Near_ ),
+		ReField( "Far_",				&ScnViewComponent::Far_ ),
+		ReField( "HorizontalFOV_",		&ScnViewComponent::HorizontalFOV_ ),
+		ReField( "VerticalFOV_",		&ScnViewComponent::VerticalFOV_ ),
+		ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
+		ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
+		ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
+		ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_ ),
+		ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
+		ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
+	};
+		
+	ReRegisterClass< ScnViewComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

@@ -339,6 +339,7 @@ BcBool BcName::isCharValid( const BcChar Value )
 		     ( Value >= 'A' && Value <= 'Z' ) ||
 			 ( Value >= '0' && Value <= '9' ) ||
 		       Value == '_' || 
+		       Value == ' ' || 
 			   Value == '.' );
 }
 

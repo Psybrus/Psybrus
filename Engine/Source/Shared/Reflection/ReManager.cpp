@@ -53,8 +53,16 @@ struct Factory
 		return FoundType;
 	}
 
-	ReClass* GetClass( const std::string& Name )
+	ReClass* GetClass( std::string Name )
 	{
+		// If it doesn't begin with Class, prepend it.
+		if( Name.substr( 0, 5 ) != "class" &&
+			Name.substr( 0, 6 ) != "struct" &&
+			Name.substr( 0, 4 ) != "enum" )
+		{
+			Name = "class " + Name;
+		}
+
 		// Try find class.
         ReType* FoundType = GetType( Name );
 		if( FoundType == nullptr )
