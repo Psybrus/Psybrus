@@ -14,7 +14,7 @@
 #include "BcHtml.h"
 
 BcHtml::BcHtml() :
-RootNode_("html")
+RootNode_("html", 0)
 {
 }
 
@@ -42,6 +42,7 @@ BcHtmlNode::BcHtmlNode(BcHtmlNodeInternal* node)
 BcHtmlNode::BcHtmlNode(BcHtmlNode& cpy)
 {
 	InternalNode_ = cpy.InternalNode_;
+	NextTag_ = cpy.NextTag_;
 }
 
 
@@ -106,7 +107,30 @@ bool BcHtmlNode::operator = (const int&v)
 	return (v == (int)InternalNode_);
 }
 
-
+BcHtmlNode BcHtmlNode::NextSiblingNode()
+{
+	if (InternalNode_->Parent_ == 0)
+		return BcHtmlNode(0);
+	BcU32 Idx;
+	for (Idx = 0; Idx < InternalNode_->Parent_->Children.size(); ++Idx)
+	{
+		if (&InternalNode_->Parent_->Children[Idx] == InternalNode_)
+		{
+			break;
+		}
+	}
+	Idx = Idx + 1;
+	for (; Idx < InternalNode_->Parent_->Children.size(); ++Idx)
+	{
+		if ((InternalNode_->Parent_->Children[Idx].Tag_ == NextTag_) || (NextTag_ == ""))
+		{
+			BcHtmlNode ret(&InternalNode_->Parent_->Children[Idx]);
+			ret.NextTag_ = NextTag_;
+			return ret;
+		}
+	}
+	return BcHtmlNode(0);
+}
 
 
 /**************************************************************************
@@ -114,15 +138,15 @@ bool BcHtmlNode::operator = (const int&v)
 * BcHtmlNodeInternal implementation
 *
 */
-BcHtmlNodeInternal::BcHtmlNodeInternal(std::string tag)
-: Tag_(tag)
+BcHtmlNodeInternal::BcHtmlNodeInternal(std::string tag, BcHtmlNodeInternal* parent)
+: Tag_(tag), Parent_(parent)
 {
 
 }
 
 BcHtmlNodeInternal* BcHtmlNodeInternal::createChildNode(std::string tag)
 {
-	Children.push_back(BcHtmlNodeInternal(tag));
+	Children.push_back(BcHtmlNodeInternal(tag, this));
 	return &Children[Children.size() - 1];
 }
 
