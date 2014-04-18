@@ -24,7 +24,7 @@ ReEnum::ReEnum()
 	
 }
 
-ReEnum::ReEnum( const std::string& Name ):
+ReEnum::ReEnum( BcName Name ):
 	ReClass( Name )
 {
 			

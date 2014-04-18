@@ -13,7 +13,7 @@ REFLECTION_DEFINE_BASE( ReITypeSerialiser );
 
 // TODO: Move into Manager class.
 			
-typedef std::map< std::string, ReType* > TypeMap;
+typedef std::map< BcName, ReType* > TypeMap;
 
 struct Factory
 {
@@ -40,7 +40,7 @@ struct Factory
 		Types_.clear();
 	}
 
-    ReType* GetType( const std::string& Name )
+    ReType* GetType( BcName Name )
 	{
 		// Try find class.
 		TypeMap::iterator FoundTypeIt = Types_.find( Name );
@@ -53,14 +53,15 @@ struct Factory
 		return FoundType;
 	}
 
-	ReClass* GetClass( std::string Name )
+	ReClass* GetClass( BcName Name )
 	{
 		// If it doesn't begin with Class, prepend it.
-		if( Name.substr( 0, 5 ) != "class" &&
-			Name.substr( 0, 6 ) != "struct" &&
-			Name.substr( 0, 4 ) != "enum" )
+		// HACK HACK
+		if( (*Name).substr( 0, 5 ) != "class" &&
+			(*Name).substr( 0, 6 ) != "struct" &&
+			(*Name).substr( 0, 4 ) != "enum" )
 		{
-			Name = "class " + Name;
+			Name = BcName( std::string( "class " + *Name ) );
 		}
 
 		// Try find class.
@@ -97,7 +98,7 @@ struct Factory
 		}
 	}
 
-	ReEnum* GetEnum( const std::string& Name )
+	ReEnum* GetEnum( BcName Name )
 	{
 		// Try find class.
         ReType* FoundType = GetType( Name );
@@ -169,14 +170,14 @@ void ReManager::Fini()
 	
 //////////////////////////////////////////////////////////////////////////
 // GetType
-ReType* ReManager::GetType( const std::string& Name )
+ReType* ReManager::GetType( BcName Name )
 {
 	return Factory::Instance().GetType( Name );		
 }
 
 //////////////////////////////////////////////////////////////////////////
 // GetClass
-ReClass* ReManager::GetClass( const std::string& Name )
+ReClass* ReManager::GetClass( BcName Name )
 {
 	return Factory::Instance().GetClass( Name );		
 }
@@ -199,7 +200,7 @@ std::vector< ReClass* > ReManager::GetClasses()
 
 //////////////////////////////////////////////////////////////////////////
 // GetEnum
-ReEnum* ReManager::GetEnum( const std::string& Name )
+ReEnum* ReManager::GetEnum( BcName Name )
 {
 	return Factory::Instance().GetEnum( Name );		
 }

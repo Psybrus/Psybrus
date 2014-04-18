@@ -70,14 +70,14 @@ ReObject::~ReObject()
 
 //////////////////////////////////////////////////////////////////////////
 // setName
-void ReObject::setName( const std::string& Name )
+void ReObject::setName( BcName Name )
 {
 	Name_ = Name;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getName
-const std::string& ReObject::getName() const
+BcName ReObject::getName() const
 {
 	return Name_;
 }
@@ -87,11 +87,11 @@ const std::string& ReObject::getName() const
 std::string ReObject::getFullName() const
 {
 	const ReObject* Object = this;
-	std::string Name = getName();
+	std::string Name = *getName();
 	while( Object->Owner_ != nullptr )
 	{
 		Object = Object->Owner_;
-		Name = Object->getName() + "/" + Name;
+		Name = *Object->getName() + "/" + Name;
 	}
 	return Name;
 }

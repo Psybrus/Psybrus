@@ -86,8 +86,8 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
 		li.setContents("Resource: " + *Resource->getName());
 
 		BcHtmlNode& ul2 = ul.createChildNode("ul");
-		ul2.createChildNode("li").setContents("Type: " + Resource->getClass()->getName());
-		ul2.createChildNode("li").setContents("Package: " + Resource->getClass()->getName());
+		ul2.createChildNode("li").setContents("Type: " + *Resource->getClass()->getName());
+		ul2.createChildNode("li").setContents("Package: " + *Resource->getClass()->getName());
 	}
 
 }
@@ -235,7 +235,7 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, 
 	BcHtmlNode& a = li.createChildNode("a");
 	a.setAttribute("href", "/Resource/" + std::string(Id));
 	a.setContents(*Component->getName());
-	li.createChildNode("").setContents(" (" + Component->getClass()->getName() + ")");
+	li.createChildNode("").setContents(" (" + *Component->getClass()->getName() + ")");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -445,7 +445,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 
 		ul = ul.createChildNode("ul");
 
-		ul.createChildNode("li").setContents("Type: " + Resource->getClass()->getTypeName());
+		ul.createChildNode("li").setContents("Type: " + *Resource->getClass()->getTypeName());
 		ul.createChildNode("li").setContents("Package: " + *Resource->getPackageName());
 
 
