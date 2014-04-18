@@ -25,15 +25,18 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnAnimationComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnAnimationComponent );
-/*
-REFLECTION_DERIVED_BEGIN( ScnComponent, ScnAnimationComponent )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnAnimationComponent::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "TargetComponentName_",		&ScnAnimationComponent::TargetComponentName_ ),
+		ReField( "Model_",						&ScnAnimationComponent::Model_ ),
+		ReField( "pRootTreeNode_",				&ScnAnimationComponent::pRootTreeNode_ ),
+		ReField( "pReferencePose_",				&ScnAnimationComponent::pReferencePose_ ),
+	};
+		
+	ReRegisterClass< ScnAnimationComponent, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

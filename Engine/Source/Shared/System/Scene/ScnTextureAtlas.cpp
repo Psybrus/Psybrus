@@ -185,15 +185,15 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 // Define resource internals.
 DEFINE_RESOURCE( ScnTextureAtlas );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnTextureAtlas );
-/*
-REFLECTION_DERIVED_BEGIN( ScnTexture, ScnTextureAtlas )
-	BCREFLECTION_MEMBER( BcName,							Name_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								Index_,							bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( CsPackage,							pPackage_,						bcRFF_POINTER | bcRFF_TRANSIENT ),
-	BCREFLECTION_MEMBER( BcU32,								RefCount_,						bcRFF_DEFAULT | bcRFF_TRANSIENT ),
-REFLECTION_DERIVED_END();
-*/
+void ScnTextureAtlas::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "pAtlasHeader_",		&ScnTextureAtlas::pAtlasHeader_ ),
+	};
+		
+	ReRegisterClass< ScnTextureAtlas, Super >( Fields );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // getRect

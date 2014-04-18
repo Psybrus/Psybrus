@@ -238,7 +238,7 @@ template< typename _Ty >
 BcForceInline void CsCore::registerResource()
 {
 	BcAssert( BcIsGameThread() );
-	// TODO _Ty::StaticRegisterReflection();
+	_Ty::StaticRegisterClass();
 	internalRegisterResource( _Ty::StaticGetClass() );
 }
 
