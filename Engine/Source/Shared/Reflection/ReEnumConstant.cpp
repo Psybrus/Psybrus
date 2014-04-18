@@ -26,7 +26,7 @@ ReEnumConstant::ReEnumConstant():
 
 //////////////////////////////////////////////////////////////////////////
 // EnumConstant
-ReEnumConstant::ReEnumConstant( const std::string& Name, BcU32 Value ):
+ReEnumConstant::ReEnumConstant( BcName Name, BcU32 Value ):
 	Value_( Value )
 {
 	setName( Name );

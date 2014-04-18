@@ -4,6 +4,7 @@
 #include "Reflection/ReManager.h"
 #include "Base/BcMutex.h"
 #include "Base/BcScopedLock.h"
+#include "Base/BcName.h"
 
 #include "Reflection/ReObjectRef.h"
 #include "Reflection/ReIObjectNotify.h"
@@ -52,13 +53,13 @@ public:
 	/**
 		* @brief Set name.
 		*/
-	void							setName( const std::string& Name );
+	void							setName( BcName Name );
 
 	/**
 		* @brief Get object's name.
 		*/
-	const std::string&				getName() const;
-
+	BcName							getName() const;
+	
 	/**
 		* @brief Get object's full name.
 		*/
@@ -130,7 +131,7 @@ private:
 	mutable BcAtomic< BcU32 >		Flags_;				///!< Flags.
     ReObject*						Owner_;				///!< Owner.
     ReObject*						Basis_;				///!< Object we're based upon.
-	std::string						Name_;				///!< Name of object.
+	BcName							Name_;				///!< Name of object.
 
 private:
     typedef std::list< ReObject* > ObjectList;

@@ -23,14 +23,14 @@ public:
 	* @param InName Name of type.
 	* @return
 	*/
-    static ReType* GetType( const std::string& InName );
+    static ReType* GetType( BcName InName );
 
     /**
 	* @brief Get Class. Will always return, will add a new empty class if it does not exist.
 	* @param InName Name of class.
 	* @return
 	*/
-    static ReClass* GetClass( const std::string& InName );
+    static ReClass* GetClass( BcName InName );
 
     /**
 	* @brief Get Classes
@@ -44,7 +44,7 @@ public:
 	* @param InName Name of enum.
 	* @return
 	*/
-    static ReEnum* GetEnum( const std::string& InName );
+    static ReEnum* GetEnum( BcName InName );
 
     /**
 	* @brief Get Class. Will always return, will add a new empty class if it does not exist.

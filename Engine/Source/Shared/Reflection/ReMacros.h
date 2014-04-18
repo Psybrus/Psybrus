@@ -11,7 +11,7 @@
  */
 #define __REFLECTION_DECLARE_BASIC( _Type )										\
 	public:																		\
-	static const std::string& StaticGetTypeName();								\
+	static BcName StaticGetTypeName();								\
 	static BcU32 StaticGetTypeNameHash();										\
 	static const ReClass* StaticGetClass();										\
 	static void StaticRegisterClass();											\
@@ -21,7 +21,7 @@
  * Internal
  */
 #define __REFLECTION_DEFINE_BASIC( _Type )										\
-	const std::string& _Type::StaticGetTypeName()								\
+	BcName _Type::StaticGetTypeName()								\
 	{																			\
 		static std::string Name( ReTypeTraits< _Type >::Name() );				\
 		return Name;															\
@@ -29,7 +29,7 @@
 																				\
 	BcU32 _Type::StaticGetTypeNameHash()										\
 	{																			\
-		static BcU32 TypeHash = BcHash( StaticGetTypeName().c_str() );			\
+		static BcU32 TypeHash = BcHash( (*StaticGetTypeName()).c_str() );		\
 		return TypeHash;														\
 	}																			\
 																				\
@@ -44,11 +44,11 @@
  */
 #define __REFLECTION_DECLARE_BASE( _Type )										\
 	__REFLECTION_DECLARE_BASIC( _Type )											\
-	virtual const std::string& getTypeName() const;								\
+	virtual BcName getTypeName() const;											\
 	virtual BcU32 getTypeHash() const;											\
 	virtual const ReClass* getClass() const;									\
-	virtual BcBool isType( const std::string& Type ) const;						\
-	virtual BcBool isTypeOf( const std::string& Type ) const;					\
+	virtual BcBool isType( BcName Type ) const;									\
+	virtual BcBool isTypeOf( BcName Type ) const;								\
 	virtual BcBool isTypeOf( const ReClass* pClass ) const;						\
 	template < class _Ty >														\
 	inline BcBool isTypeOf() const												\
@@ -61,7 +61,7 @@
  */
 #define __REFLECTION_DEFINE_BASE( _Type )										\
 	__REFLECTION_DEFINE_BASIC( _Type )											\
-	const std::string& _Type::getTypeName() const								\
+	BcName _Type::getTypeName() const								\
 	{																			\
 		return _Type::StaticGetTypeName();										\
 	}																			\
@@ -124,12 +124,12 @@
 		return _Type::StaticGetTypeNameHash();									\
 	}																			\
 																				\
-	BcBool _Type::isType( const std::string& Type ) const						\
+	BcBool _Type::isType( BcName Type ) const									\
 	{																			\
 		return _Type::StaticGetTypeName() == Type;								\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( const std::string& Type ) const 					\
+	BcBool _Type::isTypeOf( BcName Type ) const 								\
 	{																			\
 		return _Type::StaticGetTypeName() == Type;								\
 	}																			\
@@ -177,12 +177,12 @@
 		return _Type::StaticGetTypeNameHash();									\
 	}																			\
 																				\
-	BcBool _Type::isType( const std::string& Type ) const						\
+	BcBool _Type::isType( BcName Type ) const						\
 	{																			\
 		return  _Type::StaticGetTypeName() == Type;								\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( const std::string& Type ) const 					\
+	BcBool _Type::isTypeOf( BcName Type ) const 					\
 	{																			\
 		return _Type::StaticGetTypeName() == Type || Super::isTypeOf( Type );	\
 	}																			\

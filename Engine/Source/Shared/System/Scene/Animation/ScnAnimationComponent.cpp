@@ -50,11 +50,10 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 	if( HasRegisteredReflection == BcFalse )
 	{
 		HasRegisteredReflection = BcTrue;
-		BcBreakpoint;
-		//ScnAnimationTreeNode::StaticRegisterReflection();
-		//ScnAnimationTreeBlendNode::StaticRegisterReflection();
-		//ScnAnimationTreeTrackNode::StaticRegisterReflection();
-		//ScnAnimationPose::StaticRegisterReflection();
+		ScnAnimationTreeNode::StaticRegisterClass();
+		ScnAnimationTreeBlendNode::StaticRegisterClass();
+		ScnAnimationTreeTrackNode::StaticRegisterClass();
+		ScnAnimationPose::StaticRegisterClass();
 	}
 
 	//

@@ -335,12 +335,8 @@ BcBool BcName::isNameValid( const std::string& Value )
 //static
 BcBool BcName::isCharValid( const BcChar Value )
 {
-	return ( ( Value >= 'a' && Value <= 'z' ) ||
-		     ( Value >= 'A' && Value <= 'Z' ) ||
-			 ( Value >= '0' && Value <= '9' ) ||
-		       Value == '_' || 
-		       Value == ' ' || 
-			   Value == '.' );
+	// Lets just enable all characters. Why restrict it?
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -348,7 +344,6 @@ BcBool BcName::isCharValid( const BcChar Value )
 //static
 BcBool BcName::validate( const BcChar* pString )
 {
-	// Only 'a'-'z', 'A'-'Z', '0'-'9', '_' '.' are valid.
 	BcChar Char = 0;
 	while( ( Char = *pString++ ) != NULL )
 	{
