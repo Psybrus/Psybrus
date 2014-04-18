@@ -82,7 +82,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), pResource->getTypeName().c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -425,7 +425,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), pResource->getTypeName().c_str() );
+			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
 		
 		++It;
@@ -521,7 +521,7 @@ void CsCore::internalUnRegisterResource( const ReClass* Class )
 BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
 {
 	// Generate a unique name for the resource.
-	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getTypeName() ).getUnique();
+	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getName() ).getUnique();
 
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Class, Index, pPackage );
@@ -548,7 +548,7 @@ BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Nam
 		// If we can't find resource, throw an error.
 		if( internalFindResource( Package, Name, Class, Handle ) == BcFalse )
 		{
-			BcPrintf( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(),  Class->getTypeName().c_str() );
+			BcPrintf( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(), (*Class->getName()).c_str() );
 		}
 	}
 	else

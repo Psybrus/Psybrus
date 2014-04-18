@@ -10,7 +10,7 @@ class ReClassSerialiser_ComplexType:
 		public ReClassSerialiser_AbstractComplexType< _Ty >
 {
 public:
-    ReClassSerialiser_ComplexType( const std::string& Name ): ReClassSerialiser_AbstractComplexType< _Ty >( Name ) {}
+    ReClassSerialiser_ComplexType( BcName Name ): ReClassSerialiser_AbstractComplexType< _Ty >( Name ) {}
     virtual ~ReClassSerialiser_ComplexType() {}
 
 	void construct( void* pMemory ) const

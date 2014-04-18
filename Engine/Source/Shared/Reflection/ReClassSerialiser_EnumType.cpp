@@ -116,7 +116,7 @@ BcBool ReClassSerialiser_EnumType::serialiseToString( const void* pInstance, std
 	auto EnumConstant = static_cast< ReEnum* >( Class_ )->getEnumConstant( Value );
 	if( EnumConstant != nullptr )
 	{
-		OutString = EnumConstant->getName();
+		OutString = *EnumConstant->getName();
 	}
 	return true;
 }

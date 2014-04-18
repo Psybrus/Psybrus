@@ -12,7 +12,7 @@ public:
     REFLECTION_DECLARE_DERIVED( ReClassSerialiser, ReITypeSerialiser );
 
 public:
-    ReClassSerialiser( const std::string& Name );
+    ReClassSerialiser( BcName Name );
     virtual ~ReClassSerialiser();
 
 	virtual BcU32					getBinaryDataSize( const void* pInstance ) const;

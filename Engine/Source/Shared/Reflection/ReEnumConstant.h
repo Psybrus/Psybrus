@@ -13,10 +13,10 @@ public:
 
 public:
     ReEnumConstant();
-    ReEnumConstant( const std::string& Name, BcU32 Value );
+    ReEnumConstant( BcName Name, BcU32 Value );
 
 	template< typename _Ty >
-	ReEnumConstant( const std::string& Name, _Ty Value )
+	ReEnumConstant( BcName Name, _Ty Value )
 	{
 		setName( Name );
 		Value_ = static_cast< BcU32 >( Value );
@@ -28,7 +28,7 @@ public:
 	/**
 		* Set value.
 		*/
-	void							setValue( BcU32 Value );
+	void								setValue( BcU32 Value );
 
 	/**
 		* Get value.

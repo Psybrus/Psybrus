@@ -26,7 +26,7 @@ ReClass::ReClass():
 
 //////////////////////////////////////////////////////////////////////////
 // Class
-ReClass::ReClass( const std::string& Name ):
+ReClass::ReClass( BcName Name ):
 	Super_( nullptr )
 {
 	setName( Name );
