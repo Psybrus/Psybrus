@@ -103,7 +103,7 @@ void ScnViewComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2000 ) );
+		.addAttribute( new ScnComponentAttribute( 2000 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
