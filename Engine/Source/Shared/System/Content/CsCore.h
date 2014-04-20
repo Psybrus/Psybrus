@@ -215,7 +215,7 @@ protected:
 	typedef std::list< CsPackage* > TPackageList;
 	typedef TPackageList::iterator TPackageListIterator;
 
-	BcMutex								ContainerLock_;
+	std::recursive_mutex				ContainerLock_;
 	TResourceFactoryInfoMap				ResourceFactoryInfoMap_;
 	TResourceHandleList					PrecreateResources_;
 	TResourceHandleList					CreateResources_;

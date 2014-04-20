@@ -17,8 +17,7 @@
 #include "System/Content/CsTypes.h"
 
 #include <atomic>
-#include "Base/BcAtomicMutex.h"
-#include "Base/BcScopedLock.h"
+
 #include "Base/BcName.h"
 #include "Reflection/ReReflection.h"
 

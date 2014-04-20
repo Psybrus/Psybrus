@@ -2,8 +2,8 @@
 #define __REFLECTION_OBJECT_H__
 
 #include "Reflection/ReManager.h"
-#include "Base/BcMutex.h"
-#include "Base/BcScopedLock.h"
+#include <mutex>
+
 #include "Base/BcName.h"
 
 #include "Reflection/ReObjectRef.h"
@@ -138,10 +138,10 @@ private:
 	typedef std::list< ReIObjectNotify* > ObjectNotifyList;
     typedef std::map< const ReObject*, ObjectNotifyList > ObjectNotifyMap;
 
-	static BcMutex					ObjectListMutex_;		///!< Lock for object list. Access should be avoided.
+	static std::mutex					ObjectListMutex_;		///!< Lock for object list. Access should be avoided.
 	static ObjectList				ObjectList_;			///!< List of all active objects. Access should be avoided.
 
-	static BcMutex					ObjectNotifyMutex_;		///!< Lock for object notify map.
+	static std::mutex					ObjectNotifyMutex_;		///!< Lock for object notify map.
 	static ObjectNotifyMap			ObjectNotifyMap_;		///!< Map of objects to notify for.
 
 	/**

@@ -284,7 +284,7 @@ void* DsCore::mongooseCallback( enum mg_event Event, struct mg_connection* pConn
 {
 	if( Event == MG_NEW_REQUEST )
 	{
-		BcScopedLock< BcMutex > Lock( Lock_ );
+		std::lock_guard< std::mutex > Lock( Lock_ );
 
 		// Dispatch this event to the game thread.
 		GameThreadWaitFence_.increment();

@@ -432,7 +432,7 @@ void SsCoreImplAL::setEnvironment( const SsEnvironment& Environment )
 // allocChannel
 SsChannelAL* SsCoreImplAL::allocChannel()
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
+	std::lock_guard< std::mutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
 
 	SsChannelAL* pChannel = NULL;
 
@@ -453,7 +453,7 @@ SsChannelAL* SsCoreImplAL::allocChannel()
 // freeChannel
 void SsCoreImplAL::freeChannel( SsChannelAL* pSound )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
+	std::lock_guard< std::mutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
 
 	// Remove from used list.
 	for( TChannelListIterator Iter( UsedChannels_.begin() ); Iter != UsedChannels_.end(); ++Iter )

@@ -15,10 +15,10 @@
 #define __SysJobQueue_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcMutex.h"
+#include <mutex>
 #include "Base/BcThread.h"
 #include "Base/BcMisc.h"
-#include "Base/BcScopedLock.h"
+
 #include "System/SysJob.h"
 #include "System/SysJobWorker.h"
 #include "System/SysFence.h"
@@ -94,7 +94,7 @@ private:
 	BcU32				NoofWorkers_;
 	BcU32				AvailibleWorkerMask_;
 	
-	BcMutex				QueueLock_;
+	std::mutex				QueueLock_;
 	TJobQueue			JobQueue_;
 	
 	TJobWorkerList		JobWorkers_;

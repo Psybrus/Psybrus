@@ -16,6 +16,8 @@
 #include "Base/BcTimer.h"
 #include "Base/BcProfiler.h"
 
+#include <mutex>
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysJobWorker::SysJobWorker( SysJobQueue* pParent ):

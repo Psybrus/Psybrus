@@ -13,12 +13,13 @@
 
 #include "Base/BcDebug.h"
 #include "Base/BcString.h"
-#include "Base/BcMutex.h"
-#include "Base/BcScopedLock.h"
+#include <mutex>
+
+#include <cstdarg>
 
 //////////////////////////////////////////////////////////////////////////
 // Statics.
-static BcMutex gOutputLock_;
+static std::mutex gOutputLock_;
 
 //////////////////////////////////////////////////////////////////////////
 // BcAssertInternal
@@ -27,7 +28,7 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 	static BcChar Buffer[ 4096 ];
 	static BcChar MessageBuffer[ 4096 ];
-	BcScopedLock< BcMutex > Lock( gOutputLock_ );
+	std::lock_guard< std::mutex > Lock( gOutputLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
 #if COMPILER_MSVC
@@ -56,7 +57,7 @@ BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 	static BcChar Buffer[ 4096 ];
 	static BcChar MessageBuffer[ 4096 ];
-	BcScopedLock< BcMutex > Lock( gOutputLock_ );
+	std::lock_guard< std::mutex > Lock( gOutputLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
 #if COMPILER_MSVC

@@ -16,8 +16,8 @@
 
 #include "System/File/FsCore.h"
 
-#include "Base/BcScopedLock.h"
-#include "Base/BcMutex.h"
+
+#include <mutex>
 
 #include <deque>
 
@@ -61,7 +61,7 @@ private:
 	typedef std::map< std::string, FsStats > TFileMonitorMap;
 	typedef TFileMonitorMap::iterator TFileMonitorMapIterator;
 
-	BcMutex FileMonitorLock_;
+	std::mutex FileMonitorLock_;
 	TFileMonitorMap FileMonitorMap_;
 	TFileMonitorMapIterator FileMonitorMapIterator_;
 };
