@@ -6,23 +6,32 @@ solution "Psybrus"
 	location ( "Build/" .. action )
 	configurations { "Debug", "Release", "Production" }
 
+	configuration { "native" }
+		openal32LibPath = psybrusSDK .. "/External/openal/libs/Win32/"
+
+	configuration { "x32" }
+		openal32LibPath = psybrusSDK .. "/External/openal/libs/Win32/"
+
+--	configuration { "x64" }
+--		openal32LibPath = psybrusSDK .. "/External/openal/libs/Win64/"
+
 	configuration "vs*"
 		defines { "STATICLIB", "_CRT_SECURE_NO_WARNINGS", "_STATIC_CPPLIB", "_HAS_EXCEPTIONS=0" }	
 
 	configuration "Debug"
 		targetdir ( "Build/" .. action .. "/bin/Debug" )
 		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "DEBUG", "PSY_DEBUG", "PSY_SERVER" }
-		flags { "StaticRuntime", "EnableSSE", "EnableSSE2", "FloatFast", "NativeWChar", "NoPCH", "NoRTTI", "NoExceptions", "Symbols" }
+		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoPCH", "Symbols" }
 
 	configuration "Release"
 		targetdir ( "Build/" .. action .. "/bin/Release" )
 		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "NDEBUG", "PSY_RELEASE", "PSY_SERVER" }
-		flags { "StaticRuntime", "EnableSSE", "EnableSSE2", "FloatFast", "NativeWChar", "NoPCH", "NoRTTI", "NoExceptions", "Symbols", "Optimize" }
+		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoPCH", "Symbols", "Optimize" }
 
 	configuration "Production"
 		targetdir ( "Build/" .. action .. "/bin/Production" )
 		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "NDEBUG", "PSY_PRODUCTION" }
-		flags { "StaticRuntime", "EnableSSE", "EnableSSE2", "FloatFast", "NativeWChar", "NoPCH", "NoRTTI", "NoExceptions", "NoFramePointer", "Optimize" }
+		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoPCH", "NoFramePointer", "Optimize" }
 
 	-- Build externals.
 	dofile ("External/premake4.lua")
