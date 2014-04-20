@@ -16,7 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcGlobal.h"
-
+#include <vector>
 //////////////////////////////////////////////////////////////////////////
 // BcLog
 class BcLog:
@@ -50,6 +50,11 @@ public:
 	 * Get catagory suppression.
 	 */
 	virtual BcBool getCatagorySuppression( BcU32 Catagory ) const = 0;
+
+	/*
+	* Get log data
+	*/
+	virtual std::vector<std::string> getLogData() = 0;
 };
 
 

@@ -26,10 +26,11 @@ SYS_CREATOR( DsCore );
 DsCore::DsCore():
 	pContext_( NULL )
 {
-	registerFunction( "", &cmdMenu);
-	registerFunction("Content", &cmdContent, "Content");
-	registerFunction("Scene", &cmdScene, "Scene");
-	registerFunction("Resource/(?<Id>.*)", &cmdResource);
+	registerPage("", &cmdMenu);
+	registerPage("Content", &cmdContent, "Content");
+	registerPage("Scene", &cmdScene, "Scene");
+	registerPage("Log", &cmdLog, "Log");
+	registerPage("Resource/(?<Id>.*)", &cmdResource);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,31 +93,51 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// registerFunction
-void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display)
+// registerPage
+void DsCore::registerFunction(std::string Display, std::function<void()> Function)
 {
-	DsCoreMessage cm(regex, display);
-	cm.Function_ = fn;
-	MessageFunctions_.push_back(cm);
+	ButtonFunctions_.push_back(DsFunctionDefinition(Display, Function));
 }
 
 //////////////////////////////////////////////////////////////////////////
-// registerFunction
-void DsCore::registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn)
+// registerPage
+void DsCore::deregisterFunction(std::string Display)
 {
-	DsCoreMessage cm(regex);
-	cm.Function_ = fn;
-	MessageFunctions_.push_back(cm);
+	for (auto iter = ButtonFunctions_.begin(); iter != ButtonFunctions_.end(); ++iter)
+	{
+		if ((*iter).DisplayText_.compare(Display)){
+			ButtonFunctions_.erase(iter);
+			break;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
-// deregisterFunction
-void DsCore::deregisterFunction(std::string regex)
+// registerPage
+void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display)
 {
-	for (auto iter = MessageFunctions_.begin(); iter != MessageFunctions_.end(); ++iter)
+	DsPageDefinition cm(regex, display);
+	cm.Function_ = fn;
+	PageFunctions_.push_back(cm);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerPage
+void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn)
+{
+	DsPageDefinition cm(regex);
+	cm.Function_ = fn;
+	PageFunctions_.push_back(cm);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterPage
+void DsCore::deregisterPage(std::string regex)
+{
+	for (auto iter = PageFunctions_.begin(); iter != PageFunctions_.end(); ++iter)
 	{
 		if ((*iter).Text_.compare(regex.c_str())){
-			MessageFunctions_.erase(iter);
+			PageFunctions_.erase(iter);
 			break;
 		}
 	}
@@ -141,16 +162,31 @@ void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output)
 // cmdMenu
 void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output)
 {
-	BcHtmlNode& ul = Output.createChildNode("ul");
+	BcHtmlNode mainNode = Output.createChildNode("div");
+	mainNode.setAttribute("id", "menuWrapper");
+	BcHtmlNode pages = mainNode.createChildNode("div");
+	pages.setAttribute("id", "pages");
+	BcHtmlNode ul = pages.createChildNode("ul");
 	DsCore* core = pImpl();
-	for (BcU32 Idx = 0; Idx < core->MessageFunctions_.size(); ++Idx)
+	for (BcU32 Idx = 0; Idx < core->PageFunctions_.size(); ++Idx)
 	{
-		if (core->MessageFunctions_[Idx].Visible_)
+		if (core->PageFunctions_[Idx].Visible_)
 		{
-			BcHtmlNode& a = ul.createChildNode("li").createChildNode("a");
-			a.setAttribute("href", core->MessageFunctions_[Idx].Text_);
-			a.setContents(core->MessageFunctions_[Idx].Display_);
+			BcHtmlNode a = ul.createChildNode("li").createChildNode("a");
+			a.setAttribute("href", core->PageFunctions_[Idx].Text_);
+			a.setContents(core->PageFunctions_[Idx].Display_);
 		}
+	}
+	BcHtmlNode functions = mainNode.createChildNode("div");
+	functions.setAttribute("id", "pages");
+	for (auto Item : core->ButtonFunctions_)
+	{
+		BcHtmlNode ahref = functions.createChildNode("a");
+		ahref.setAttribute("href", "Functions/" + Item.DisplayText_);
+
+		BcHtmlNode button = ahref.createChildNode("button");
+		button.setAttribute("type", "button");
+		button.setContents(Item.DisplayText_);
 	}
 
 }
@@ -221,30 +257,51 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 		Output += GPsySetupParams.Name_;
 		Output += "</title>";
 		Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";/**/
-		HtmlContent.getRootNode().createChildNode("title");
 		HtmlContent.getRootNode().createChildNode("title").setContents(GPsySetupParams.Name_);
-		BcHtmlNode& link = HtmlContent.getRootNode().createChildNode("link");
+		BcHtmlNode node = HtmlContent.getRootNode();
+		BcHtmlNode link = node.createChildNode("link");
 		link.setAttribute("rel", "stylesheet");
 		link.setAttribute("type", "text/css");
 		link.setAttribute("href", "/files/style.css");
-		BcHtmlNode& body = HtmlContent.getRootNode().createChildNode("body");
+		int t = sizeof(BcHtmlNode);
+		BcHtmlNode redirect = node.createChildNode("meta");
+		BcHtmlNode body = node.createChildNode("body");
+		//redirect = node["meta"];
 		writeHeader(body);
 		//std::map<std::string, std::string> data;
 		std::vector<std::string> data;
-		for (BcU32 Idx = MessageFunctions_.size() - 1; Idx >= 0; --Idx)
+		bool success = false;
+		std::string uri = &pRequestInfo->uri[1];
+
+		for (auto Item : ButtonFunctions_)
 		{
-			BcRegexMatch match;
-			BcU32 res = MessageFunctions_[Idx].Regex_.match(&pRequestInfo->uri[1], match);
-			if (res > 0)
+			if (uri == ("Functions/" + Item.DisplayText_))
 			{
-				for (BcU32 Idx2 = 1; Idx2 < match.noofMatches(); ++Idx2)
+				
+				redirect.setAttribute("http-equiv", "refresh");
+				redirect.setAttribute("content", "0; url=/Menu");
+				Item.Function_();
+				success = true;
+			} 
+		}
+
+		if (!success)
+		{
+			for (BcU32 Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
+			{
+				BcRegexMatch match;
+				BcU32 res = PageFunctions_[Idx].Regex_.match(&pRequestInfo->uri[1], match);
+				if (res > 0)
 				{
-					std::string u;
-					match.getMatch(Idx2, u);
-					data.push_back(u);
+					for (BcU32 Idx2 = 1; Idx2 < match.noofMatches(); ++Idx2)
+					{
+						std::string u;
+						match.getMatch(Idx2, u);
+						data.push_back(u);
+					}
+					PageFunctions_[Idx].Function_(data, body);
+					break;
 				}
-				MessageFunctions_[Idx].Function_(data, body);
-				break;
 			}
 		}
 
@@ -519,5 +576,17 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 			
 		}
 
+	}
+}
+
+void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output)
+{
+	BcLog* log = BcLog::pImpl();
+
+	BcHtmlNode ul = Output.createChildNode("ul");
+	std::vector<std::string> logs = log->getLogData();
+	for (auto val : logs)
+	{
+		ul.createChildNode("li").setContents(val);
 	}
 }

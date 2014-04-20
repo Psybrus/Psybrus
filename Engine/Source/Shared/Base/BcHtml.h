@@ -63,11 +63,13 @@ public:
 	BcHtmlNodeInternal* operator[](BcU32 idx);
 	BcHtmlNodeInternal* operator[](std::string tag);
 	std::string getOuterXml();
+
+	~BcHtmlNodeInternal();
 private:
 	BcHtmlNodeInternal(std::string tag, BcHtmlNodeInternal* parent);
 	std::map<std::string, std::string> Attributes_;
 	std::string Tag_;
-	std::vector<BcHtmlNodeInternal> Children;
+	std::vector<BcHtmlNodeInternal*> Children;
 	std::string Contents_;
 	BcHtmlNodeInternal* Parent_;
 };
