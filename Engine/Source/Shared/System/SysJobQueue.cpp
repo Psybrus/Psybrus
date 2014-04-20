@@ -192,11 +192,15 @@ void SysJobQueue::execute()
 	//
 	while( Active_ )
 	{
+		PSY_PROFILER_SECTION( SysJobQueue_BeginWait_Profile, "SysJobQueue_BeginWait" );
+
 		// Wait for resume event.
 		{
 			std::unique_lock< std::mutex > ResumeLock( ResumeMutex_ );
 			ResumeEvent_.wait( ResumeLock, [ this ]{ return NoofJobsQueued_ != 0; } );
 		}
+
+		PSY_PROFILER_SECTION( SysJobQueue_EndWait_Profile, "SysJobQueue_EndWait" );
 
 		do
 		{
