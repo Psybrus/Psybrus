@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnDebugRenderComponentRef
-typedef CsResourceRef< class ScnDebugRenderComponent > ScnDebugRenderComponentRef;
+typedef ReObjectRef< class ScnDebugRenderComponent > ScnDebugRenderComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnDebugRenderComponentVertex

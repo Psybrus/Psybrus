@@ -98,7 +98,7 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
 		{
 			const Json::Value& Component( Components[ Idx ] );
-			CsResourceRef<> ResourceRef;
+			ReObjectRef< CsResource > ResourceRef;
 			const ReClass* Class = ReManager::GetClass( Component[ "type" ].asCString() );
 			const Json::Value& NameValue = Component[ "name" ];
 

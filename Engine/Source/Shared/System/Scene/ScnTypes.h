@@ -18,7 +18,7 @@
 #include "Base/BcName.h"
 #include "Base/BcMat4d.h"
 
-#include "System/Content/CsResourceRef.h"
+#include "Reflection/ReObjectRef.h"
 
 #include <vector>
 #include <map>
@@ -37,8 +37,8 @@ struct ScnRect
 
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentRef
-typedef CsResourceRef< class ScnComponent > ScnComponentRef;
-typedef CsResourceRef< class ScnComponent, true > ScnComponentWeakRef;
+typedef ReObjectRef< class ScnComponent > ScnComponentRef;
+typedef ReObjectRef< class ScnComponent, true > ScnComponentWeakRef;
 typedef std::vector< ScnComponentRef > ScnComponentList;
 typedef ScnComponentList::iterator ScnComponentListIterator;
 typedef ScnComponentList::const_iterator ScnComponentListConstIterator;
@@ -48,8 +48,8 @@ typedef ScnComponentMap::const_iterator ScnComponentMapConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnRenderableComponentRef
-typedef CsResourceRef< class ScnRenderableComponent > ScnRenderableComponentRef;
-typedef CsResourceRef< class ScnRenderableComponent, true > ScnRenderableComponentWeakRef;
+typedef ReObjectRef< class ScnRenderableComponent > ScnRenderableComponentRef;
+typedef ReObjectRef< class ScnRenderableComponent, true > ScnRenderableComponentWeakRef;
 typedef std::vector< ScnRenderableComponentRef > ScnRenderableComponentList;
 typedef ScnRenderableComponentList::iterator ScnRenderableComponentListIterator;
 typedef ScnRenderableComponentList::const_iterator ScnRenderableComponentListConstIterator;
@@ -59,8 +59,8 @@ typedef ScnRenderableComponentMap::const_iterator ScnRenderableComponentMapConst
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntityRef
-typedef CsResourceRef< class ScnEntity > ScnEntityRef;
-typedef CsResourceRef< class ScnEntity, true > ScnEntityWeakRef;
+typedef ReObjectRef< class ScnEntity > ScnEntityRef;
+typedef ReObjectRef< class ScnEntity, true > ScnEntityWeakRef;
 typedef std::list< ScnEntityRef > ScnEntityList;
 typedef ScnEntityList::iterator ScnEntityListIterator;
 typedef ScnEntityList::const_iterator ScnEntityListConstIterator;

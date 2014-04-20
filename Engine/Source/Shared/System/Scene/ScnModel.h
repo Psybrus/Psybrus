@@ -15,7 +15,6 @@
 #define __SCNMODEL_H__
 
 #include "System/Renderer/RsCore.h"
-#include "System/Content/CsResourceRef.h"
 
 #include "System/Scene/ScnMaterial.h"
 #include "System/Scene/ScnRenderableComponent.h"
@@ -24,11 +23,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelRef
-typedef CsResourceRef< class ScnModel > ScnModelRef;
+typedef ReObjectRef< class ScnModel > ScnModelRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelComponentRef
-typedef CsResourceRef< class ScnModelComponent > ScnModelComponentRef;
+typedef ReObjectRef< class ScnModelComponent > ScnModelComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModel

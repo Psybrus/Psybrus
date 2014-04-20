@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundEmitterComponentRef
-typedef CsResourceRef< class ScnSoundEmitterComponent > ScnSoundEmitterComponentRef;
+typedef ReObjectRef< class ScnSoundEmitterComponent > ScnSoundEmitterComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundEmitterComponent
