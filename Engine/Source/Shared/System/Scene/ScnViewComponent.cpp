@@ -102,7 +102,8 @@ void ScnViewComponent::StaticRegisterClass()
 		ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
 	};
 		
-	ReRegisterClass< ScnViewComponent, Super >( Fields );
+	ReRegisterClass< ScnViewComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( -2000 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

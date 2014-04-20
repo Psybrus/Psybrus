@@ -30,7 +30,8 @@ void ScnRenderableComponent::StaticRegisterClass()
 		ReField( "RenderMask_",		&ScnRenderableComponent::RenderMask_ ),
 	};
 		
-	ReRegisterClass< ScnRenderableComponent, Super >( Fields );
+	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2120 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,8 +69,6 @@ void ScnRenderableComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnRenderableComponent::update( BcF32 Tick )
 {
-	//ScnDebugRenderComponent::pImpl()->drawAABB( getAABB(), RsColour::BLUE );
-
 	Super::update( Tick );
 }
 
@@ -79,22 +78,6 @@ void ScnRenderableComponent::update( BcF32 Tick )
 void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onAttach
-//virtual
-void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
-{
-	Super::onAttach( Parent );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onDetach
-//virtual
-void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
-{
-	Super::onDetach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////

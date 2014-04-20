@@ -25,7 +25,8 @@ void ScnSpatialComponent::StaticRegisterClass()
 		ReField( "pSpatialTreeNode_",			&ScnSpatialComponent::pSpatialTreeNode_ ),
 	};
 		
-	ReRegisterClass< ScnSpatialComponent, Super >( Fields );
+	ReRegisterClass< ScnSpatialComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2110 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,11 +47,11 @@ void ScnSpatialComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// postUpdate
 //virtual
 void ScnSpatialComponent::postUpdate( BcF32 Tick )
 {
-	Super::update( Tick );
+	Super::postUpdate( Tick );
 
 	// Reinsert node if we need to.
 	pSpatialTreeNode_->reinsertComponent( this );

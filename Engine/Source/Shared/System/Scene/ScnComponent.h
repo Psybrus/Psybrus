@@ -38,6 +38,22 @@ enum ScnComponentFlags
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnComponentAttribute
+class ScnComponentAttribute:
+	public ReAttribute
+{
+public:
+	REFLECTION_DECLARE_DERIVED( ScnComponentAttribute, ReAttribute );
+
+public:
+	ScnComponentAttribute( BcS32 UpdatePriority );
+	int getUpdatePriority() const;
+
+private:
+	BcS32 UpdatePriority_;
+};
+	
+//////////////////////////////////////////////////////////////////////////
 // ScnComponent
 class ScnComponent:
 	public CsResource
