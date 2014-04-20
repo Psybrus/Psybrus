@@ -56,7 +56,7 @@ void ScnEntity::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnEntity, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2100 ) );
+		.addAttribute( new ScnComponentAttribute( -2100 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

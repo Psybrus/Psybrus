@@ -30,7 +30,7 @@ DEFINE_RESOURCE( ScnSoundListenerComponent );
 void ScnSoundListenerComponent::StaticRegisterClass()
 {	
 	ReRegisterClass< ScnSoundListenerComponent, Super >()
-		.addAttribute( new ScnComponentAttribute( 2020 ) );
+		.addAttribute( new ScnComponentAttribute( -2020 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

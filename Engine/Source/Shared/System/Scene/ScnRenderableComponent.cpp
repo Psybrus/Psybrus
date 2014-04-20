@@ -31,7 +31,7 @@ void ScnRenderableComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2120 ) );
+		.addAttribute( new ScnComponentAttribute( -2120 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
