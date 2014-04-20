@@ -14,8 +14,8 @@
 #ifndef __BCATOMICMUTEXS_H__
 #define __BCATOMICMUTEXS_H__
 
-#include "Base/BcAtomic.h"
 #include "Base/BcMisc.h"
+#include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
 // BcAtomicMutex
@@ -29,7 +29,7 @@ public:
 	void unlock();
 
 private:
-	BcAtomicU8				Value_;
+	std::atomic< BcU8 >		Value_;
 };
 
 //////////////////////////////////////////////////////////////////////////

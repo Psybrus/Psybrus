@@ -15,7 +15,7 @@
 #define __SysProfilerChromeTracing_H__
 
 #include "Base/BcProfiler.h"
-#include "Base/BcAtomic.h"
+#include <atomic>
 #include "Base/BcMutex.h"
 #include "Base/BcString.h"
 #include "Base/BcTimer.h"
@@ -70,11 +70,11 @@ private:
 	typedef std::vector< TProfilerEvent > TProfilerEventVector;
 	
 	TProfilerEventVector ProfilerSectionPool_;
-	BcAtomic< BcU32 > ProfilerSectionIndex_;
+	std::atomic< BcU32 > ProfilerSectionIndex_;
 	BcTimer Timer_;
 
-	BcAtomic< BcU32 > BeginCount_;
-	BcAtomic< BcU32 > ProfilingActive_;
+	std::atomic< BcU32 > BeginCount_;
+	std::atomic< BcU32 > ProfilingActive_;
 };
 
 //////////////////////////////////////////////////////////////////////////

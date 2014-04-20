@@ -40,16 +40,15 @@ SysJobWorker::~SysJobWorker()
 // giveJob
 BcBool SysJobWorker::giveJob( SysJob* pJob )
 {
-	BcBool HaveJob = HaveJob_.compareExchange( BcTrue, BcFalse );
+	BcU32 Exp = 0;
 	
-	// We don't have a job, we can handle this one.
-	if( HaveJob == BcFalse )
+	if( HaveJob_.compare_exchange_strong( Exp, 1 ) )
 	{
 		pCurrentJob_ = pJob;
 		ResumeEvent_.signal();
 	}
 	
-	return !HaveJob;
+	return Exp == 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -106,7 +106,7 @@ public:
 	
 private:
 	BcName							Name_;
-	BcAtomicU32						RefCount_;
+	std::atomic< BcU32 >			RefCount_;
 
 	// Loader we use.
 	CsPackageLoader*				pLoader_;

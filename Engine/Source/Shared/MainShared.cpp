@@ -67,10 +67,6 @@ void MainUnitTests()
 	extern void BcTypes_UnitTest();
 	BcTypes_UnitTest();
 	
-	// Atomic unit test.
-	extern void BcAtomic_UnitTest();
-	BcAtomic_UnitTest();
-
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();

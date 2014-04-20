@@ -4,7 +4,6 @@
 #include "Base/BcTypes.h"
 #include "Base/BcBinaryData.h"
 #include "Base/BcHash.h"
-#include "Base/BcAtomic.h"
 #include "Base/BcName.h"
 
 #include "Reflection/ReMacros.h"
@@ -13,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
 // FieldFlags
@@ -247,7 +247,7 @@ struct ReTypeTraits< const _Ty& >
 };
 		
 template< typename _Ty >
-struct ReTypeTraits< BcAtomic< _Ty > >
+struct ReTypeTraits< std::atomic< _Ty > >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_ATOMIC;
