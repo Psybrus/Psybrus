@@ -15,7 +15,7 @@
 #define __SysJobWorker_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcAtomic.h"
+#include <atomic>
 #include "Base/BcEvent.h"
 #include "Base/BcMutex.h"
 #include "Base/BcThread.h"
@@ -73,12 +73,12 @@ private:
 private:
 	SysJobQueue*		pParent_;
 	BcBool				Active_;
-	BcAtomicBool		HaveJob_;
+	std::atomic< BcU32 > HaveJob_;
 	SysJob*				pCurrentJob_;
 	BcEvent				ResumeEvent_;
 
-	BcAtomicU32			TimeWorkingUS_;	// Microseconds.
-	BcAtomicU32			JobsExecuted_;
+	std::atomic< BcU32 > TimeWorkingUS_;	// Microseconds.
+	std::atomic< BcU32 > JobsExecuted_;
 };
 
 #endif

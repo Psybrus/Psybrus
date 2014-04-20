@@ -16,7 +16,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
-BcAtomicU32 CsResource::UniqueIdCounter_ = 0;
+std::atomic< BcU32 > CsResource::UniqueIdCounter_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource

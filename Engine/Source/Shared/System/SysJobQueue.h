@@ -90,7 +90,7 @@ private:
 	SysFence			StartedFence_;
 	BcBool				Active_;
 	BcEvent				ResumeEvent_;
-	BcAtomicU32			NoofJobsQueued_;
+	std::atomic< BcU32 > NoofJobsQueued_;
 	BcU32				NoofWorkers_;
 	BcU32				AvailibleWorkerMask_;
 	

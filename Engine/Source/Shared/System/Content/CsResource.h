@@ -16,7 +16,7 @@
 
 #include "System/Content/CsTypes.h"
 
-#include "Base/BcAtomic.h"
+#include <atomic>
 #include "Base/BcAtomicMutex.h"
 #include "Base/BcScopedLock.h"
 #include "Base/BcName.h"
@@ -210,11 +210,11 @@ private:
 	BcName							Name_;
 	BcU32							Index_;
 	CsPackage*						pPackage_;
-	BcAtomicU32						InitStage_;
+	std::atomic< BcU32 >			InitStage_;
 
 	BcU32							UniqueId_;
 
-	static BcAtomicU32				UniqueIdCounter_;
+	static std::atomic< BcU32 >		UniqueIdCounter_;
 };
 
 #endif

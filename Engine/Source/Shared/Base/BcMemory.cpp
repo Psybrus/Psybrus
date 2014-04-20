@@ -12,7 +12,7 @@
 **************************************************************************/
 
 #include "Base/BcMemory.h"
-#include "Base/BcAtomic.h"
+#include <atomic>
 #include "Base/BcMutex.h"
 #include "Base/BcScopedLock.h"
 

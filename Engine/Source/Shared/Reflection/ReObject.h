@@ -126,9 +126,9 @@ private:
 	template< class _Ty, bool _IsWeak > friend class ReObjectRef;
 
 #if REFLECTION_ENABLE_GC
-	mutable BcAtomic< BcU32 >		RefCount_;			///!< Ref count.
+	mutable std::atomic< BcU32 >		RefCount_;			///!< Ref count.
 #endif
-	mutable BcAtomic< BcU32 >		Flags_;				///!< Flags.
+	mutable std::atomic< BcU32 >		Flags_;				///!< Flags.
     ReObject*						Owner_;				///!< Owner.
     ReObject*						Basis_;				///!< Object we're based upon.
 	BcName							Name_;				///!< Name of object.
