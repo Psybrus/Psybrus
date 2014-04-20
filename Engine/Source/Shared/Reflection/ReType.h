@@ -1,15 +1,15 @@
 #ifndef __REFLECTION_TYPE_H__
 #define __REFLECTION_TYPE_H__
 
-#include "Reflection/RePrimitive.h"
+#include "Reflection/ReAttributable.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Type
 class ReType:
-	public RePrimitive
+	public ReAttributable
 {
 public:
-    REFLECTION_DECLARE_DERIVED( ReType, RePrimitive );
+    REFLECTION_DECLARE_DERIVED( ReType, ReAttributable );
 
 public:
     ReType();
