@@ -103,7 +103,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
 
 			// Write header.
-			ScnTextureHeader Header = { pTopLevelImage->width(), pTopLevelImage->height(), 1, MipImages.size(), TextureType, TextureFormat, BcFalse };	// TODO: Take type from file.
+			ScnTextureHeader Header = { pTopLevelImage->width(), pTopLevelImage->height(), 1, (BcU32)MipImages.size(), TextureType, TextureFormat, BcFalse };	// TODO: Take type from file.
 			HeaderStream << Header;
 
 			// Write all mip images into the same body for now.

@@ -46,7 +46,7 @@ struct CsPackageHeader
 	BcU32								Magic_;						// Magic number.
 	BcU32								Version_;					// Version.
 	BcU32								Flags_;						// Flags.
-	BcU32								StringTableBytes_;			// Number of bytes in the string table.
+	BcU64								StringTableBytes_;			// Number of bytes in the string table.
 	BcU32								TotalPackageCrossRefs_;		// Number of cross package refs in package.
 	BcU32								TotalPackageDependencies_;	// Number of package dependencies.
 	BcU32								TotalResources_;			// Total Resources in package.

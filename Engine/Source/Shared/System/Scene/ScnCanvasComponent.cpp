@@ -187,7 +187,7 @@ BcMat4d ScnCanvasComponent::getMatrix() const
 
 //////////////////////////////////////////////////////////////////////////
 // allocVertices
-ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcU32 NoofVertices )
+ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices )
 {
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Don't have vertex buffer lock!" );
 	ScnCanvasComponentVertex* pCurrVertex = NULL;
@@ -243,7 +243,7 @@ void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponent
 	};
 	
 	PrimitiveSectionList_.push_back( PrimitiveSection );
-	LastPrimitiveSection_ = PrimitiveSectionList_.size() - 1;
+	LastPrimitiveSection_ = (BcU32)PrimitiveSectionList_.size() - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

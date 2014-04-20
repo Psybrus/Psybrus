@@ -10,7 +10,7 @@
 class BcBinaryData
 {
 public:
-	static const size_t OWN_DATA_FLAG = 1 << ( ( sizeof( size_t ) * 8 ) - 1 ); // MSB of the data size can be used for flagging if we own the data.
+	static const size_t OWN_DATA_FLAG = (size_t)1 << (size_t)( ( sizeof( size_t ) * 8 ) - 1 ); // MSB of the data size can be used for flagging if we own the data.
 
 public:
 	class Stream

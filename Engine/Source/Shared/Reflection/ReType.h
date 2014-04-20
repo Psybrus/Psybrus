@@ -50,8 +50,8 @@ public:
 	BcU32								getSize() const;
 
 protected:
-	BcU32								Size_;
-	ReITypeSerialiser*				Serialiser_;
+	BcSize								Size_;
+	ReITypeSerialiser*					Serialiser_;
 
 };
 

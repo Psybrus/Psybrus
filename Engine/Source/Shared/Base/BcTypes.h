@@ -17,6 +17,7 @@
 #include "Base/BcPortability.h"
 
 #include <new>
+#include <cstdint>
 
 //////////////////////////////////////////////////////////////////////////
 // Windows defines
@@ -29,25 +30,15 @@
 #pragma warning ( disable : 4100 )
 #pragma warning ( disable : 4201 )
 
-#if COMPILER_MSVC
-typedef unsigned _int64				BcU64;
-#else
-typedef unsigned long long				BcU64;
-#endif
+typedef std::uint64_t				BcU64;
+typedef std::uint32_t				BcU32;
+typedef	std::uint16_t				BcU16;
+typedef std::uint8_t				BcU8;
 
-typedef unsigned int				BcU32;
-typedef	unsigned short				BcU16;
-typedef unsigned char				BcU8;
-
-#if COMPILER_MSVC
-typedef signed _int64				BcS64;
-#else
-typedef signed long long				BcS64;
-#endif
-
-typedef signed int					BcS32;
-typedef	signed short				BcS16;
-typedef signed char					BcS8;
+typedef std::int64_t				BcS64;
+typedef std::int32_t				BcS32;
+typedef	std::int16_t				BcS16;
+typedef std::int8_t					BcS8;
 
 typedef	float						BcF32;
 typedef	double						BcF64;
