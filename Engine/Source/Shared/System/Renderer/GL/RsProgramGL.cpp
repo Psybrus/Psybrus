@@ -335,7 +335,10 @@ BcU32 RsProgramGL::findUniformBlockIndex( const BcChar* Name )
 void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
 {
 	auto& UniformBlock( UniformBlockList_[ Index ] );
-	BcAssert( Buffer->getDataSize() == UniformBlock.Size_ );
+	if (Buffer != nullptr)
+	{
+		BcAssert( Buffer->getDataSize() == UniformBlock.Size_ );
+	}
 	UniformBlock.Buffer_ = Buffer;
 }
 
