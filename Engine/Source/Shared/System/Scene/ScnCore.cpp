@@ -64,15 +64,33 @@ void ScnCore::open()
 
 	// Look up all component classes and create update lists for them.
 	NoofComponentLists_ = 0;
-	auto Classes = ReManager::GetClasses();
+	typedef std::pair< ReClass*, BcS32 > ComponentPriorityPair;
+	typedef std::vector< ComponentPriorityPair > ComponentClasses;
+	ComponentClasses ComponentClasses_;
 
+	// Extract all the classes with the right attribute.
+	auto Classes = ReManager::GetClasses();
 	for( auto Class : Classes )
 	{
 		auto* Attr = Class->getAttribute< ScnComponentAttribute >();
 		if( Attr != nullptr )
 		{
-			ComponentClassIndexMap_[ Class ] = NoofComponentLists_++;
+			ComponentClasses_.push_back( std::make_pair( Class, Attr->getUpdatePriority() ) );
 		}
+	}
+
+	// Sort by their update priority.
+	std::sort( ComponentClasses_.begin(), ComponentClasses_.end(), 
+		[] ( ComponentPriorityPair A, ComponentPriorityPair B )
+		{
+			return A.second < B.second;
+		}
+	);
+
+	// Write list index map out.
+	for( auto ComponentClass : ComponentClasses_ )
+	{
+		ComponentClassIndexMap_[ ComponentClass.first ] = NoofComponentLists_++;
 	}
 
 	BcAssert( NoofComponentLists_ > 0 );
