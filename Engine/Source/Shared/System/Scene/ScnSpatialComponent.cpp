@@ -26,7 +26,7 @@ void ScnSpatialComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnSpatialComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2110 ) );
+		.addAttribute( new ScnComponentAttribute( -2110 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -34,7 +34,7 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2060 ) );
+		.addAttribute( new ScnComponentAttribute( -2060 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

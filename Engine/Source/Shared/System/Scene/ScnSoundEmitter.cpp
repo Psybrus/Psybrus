@@ -39,7 +39,7 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2010 ) );
+		.addAttribute( new ScnComponentAttribute( -2010 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
