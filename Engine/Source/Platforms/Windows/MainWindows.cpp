@@ -4,6 +4,7 @@
 
 #include "Base/BcLogImpl.h"
 #include "Base/BcLogFile.h"
+#include "Base/BcRandom.h"
 
 #include "System/SysKernel.h"
 #include "System/Content/CsCore.h"

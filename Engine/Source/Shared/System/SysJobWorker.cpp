@@ -48,6 +48,7 @@ BcBool SysJobWorker::giveJob( SysJob* pJob )
 		std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
 		pCurrentJob_ = pJob;
 		ResumeEvent_.notify_all();
+		PSY_PROFILER_INSTANT_EVENT( "SysJobWorker::giveJob" );
 	}
 	
 	return Exp == 0;
@@ -102,11 +103,15 @@ void SysJobWorker::execute()
 	// Enter loop.
 	while( Active_ )
 	{
+		PSY_PROFILER_SECTION( SysJobWorker_BeginWait_Profile, "SysJobWorker_BeginWait" );
+
 		// Wait till we are told to resume.
 		{
 			std::unique_lock< std::mutex > ResumeLock( ResumeMutex_ );
 			ResumeEvent_.wait( ResumeLock, [ this ]{ return pCurrentJob_ != NULL; } );
 		}
+
+		PSY_PROFILER_SECTION( SysJobWorker_EndWait_Profile, "SysJobWorker_EndWait" );
 
 		if( Active_ == BcTrue )
 		{
