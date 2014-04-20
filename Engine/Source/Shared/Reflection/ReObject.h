@@ -123,7 +123,7 @@ public:
 private:
     friend ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
 
-	template< class _Ty > friend class ObjectRef;
+	template< class _Ty, bool _IsWeak > friend class ReObjectRef;
 
 #if REFLECTION_ENABLE_GC
 	mutable BcAtomic< BcU32 >		RefCount_;			///!< Ref count.

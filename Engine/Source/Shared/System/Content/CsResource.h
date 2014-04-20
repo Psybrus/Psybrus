@@ -16,8 +16,6 @@
 
 #include "System/Content/CsTypes.h"
 
-#include "System/Content/CsResourceRef.h"
-
 #include "Base/BcAtomic.h"
 #include "Base/BcAtomicMutex.h"
 #include "Base/BcScopedLock.h"
@@ -107,12 +105,12 @@ public:
 	/**
 	 * Are we ready to use?<br/>
 	 */
-	BcBool							isReady();
+	BcBool							isReady() const;
 
 	/**
 	 * Get the init stage.
 	 */
-	BcU32							getInitStage();
+	BcU32							getInitStage() const;
 
 	/**
 	 * File is ready.
@@ -218,10 +216,6 @@ private:
 
 	static BcAtomicU32				UniqueIdCounter_;
 };
-
-//////////////////////////////////////////////////////////////////////////
-// Inlines
-#include "System/Content/CsResourceRef.inl"
 
 #endif
 

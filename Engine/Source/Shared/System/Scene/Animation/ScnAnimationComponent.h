@@ -20,7 +20,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationComponentRef
-typedef CsResourceRef< class ScnAnimationComponent > ScnAnimationComponentRef;
+typedef ReObjectRef< class ScnAnimationComponent > ScnAnimationComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasComponent

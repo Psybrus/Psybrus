@@ -19,8 +19,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-typedef CsResourceRef< class ScnParticleSystemComponent > ScnParticleSystemComponentRef;
-typedef CsResourceRef< class ScnParticleSystemComponent, false > ScnParticleSystemComponentWeakRef;
+typedef ReObjectRef< class ScnParticleSystemComponent > ScnParticleSystemComponentRef;
+typedef ReObjectRef< class ScnParticleSystemComponent, false > ScnParticleSystemComponentWeakRef;
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs

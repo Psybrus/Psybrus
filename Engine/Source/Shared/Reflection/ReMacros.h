@@ -48,12 +48,11 @@
 	virtual BcU32 getTypeHash() const;											\
 	virtual const ReClass* getClass() const;									\
 	virtual BcBool isType( BcName Type ) const;									\
-	virtual BcBool isTypeOf( BcName Type ) const;								\
 	virtual BcBool isTypeOf( const ReClass* pClass ) const;						\
 	template < class _Ty >														\
 	inline BcBool isTypeOf() const												\
 	{																			\
-		return this ? isTypeOf( _Ty::StaticGetTypeName() ) : false;				\
+		return this ? isTypeOf( _Ty::StaticGetClass() ) : false;				\
 	}																			\
 
 /**
@@ -129,11 +128,6 @@
 		return _Type::StaticGetTypeName() == Type;								\
 	}																			\
 																				\
-	BcBool _Type::isTypeOf( BcName Type ) const 								\
-	{																			\
-		return _Type::StaticGetTypeName() == Type;								\
-	}																			\
-																				\
 	BcBool _Type::isTypeOf( const ReClass* pClass ) const 						\
 	{																			\
 		return _Type::StaticGetClass() == pClass;								\
@@ -177,14 +171,9 @@
 		return _Type::StaticGetTypeNameHash();									\
 	}																			\
 																				\
-	BcBool _Type::isType( BcName Type ) const						\
+	BcBool _Type::isType( BcName Type ) const									\
 	{																			\
 		return  _Type::StaticGetTypeName() == Type;								\
-	}																			\
-																				\
-	BcBool _Type::isTypeOf( BcName Type ) const 					\
-	{																			\
-		return _Type::StaticGetTypeName() == Type || Super::isTypeOf( Type );	\
 	}																			\
 																				\
 	BcBool _Type::isTypeOf( const ReClass* pClass ) const 						\

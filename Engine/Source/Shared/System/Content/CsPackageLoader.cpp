@@ -477,7 +477,7 @@ void CsPackageLoader::initialiseResources()
 		BcName Type( getString( ResourceHeader.Type_ ) );
 
 		// Allocate resource, and signal ready.
-		CsResourceRef<> Handle;
+		ReObjectRef< CsResource > Handle;
 		if( CsCore::pImpl()->internalCreateResource( Name, ReManager::GetClass( *Type ), ResourceIdx, pPackage_, Handle ) )
 		{
 			// Initialise.

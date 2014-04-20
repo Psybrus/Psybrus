@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef
-typedef CsResourceRef< class ScnFont > ScnFontRef;
+typedef ReObjectRef< class ScnFont > ScnFontRef;
 typedef std::map< std::string, ScnFontRef > ScnFontMap;
 typedef ScnFontMap::iterator ScnFontMapIterator;
 typedef ScnFontMap::const_iterator ScnFontConstIterator;
@@ -33,7 +33,7 @@ typedef ScnFontList::const_iterator ScnFontListConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontComponentRef
-typedef CsResourceRef< class ScnFontComponent > ScnFontComponentRef;
+typedef ReObjectRef< class ScnFontComponent > ScnFontComponentRef;
 typedef std::map< std::string, ScnFontComponentRef > ScnFontComponentMap;
 typedef ScnFontComponentMap::iterator ScnFontComponentMapIterator;
 typedef ScnFontComponentMap::const_iterator ScnFontComponentConstIterator;

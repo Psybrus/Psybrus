@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundListenerComponentRef
-typedef CsResourceRef< class ScnSoundListenerComponent > ScnSoundListenerComponentRef;
+typedef ReObjectRef< class ScnSoundListenerComponent > ScnSoundListenerComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundListenerComponent
