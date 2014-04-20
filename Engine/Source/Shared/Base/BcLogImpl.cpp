@@ -143,5 +143,22 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 #else
     vsprintf( TextBuffer_, pText, Args );
 #endif
+	if (LogBuffer.size() == 30)
+		LogBuffer.pop_front();
+	LogBuffer.push_back(TextBuffer_);
 	internalWrite( TextBuffer_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getLogData
+std::vector<std::string> BcLogImpl::getLogData()
+{
+	BcScopedLock< BcMutex > Lock(Lock_);
+	
+	std::vector<std::string> data;
+	for each (std::string u in LogBuffer)
+	{
+		data.push_back(u);
+	}
+	return data;
 }

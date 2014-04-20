@@ -38,15 +38,15 @@
 // typedef const std::map < std::string, std::string>& DsParameters;
 typedef const std::vector< std::string>& DsParameters;
 
-typedef struct DsCoreMessage
+typedef struct DsPageDefinition
 {
-	DsCoreMessage(std::string r, std::string display)
+	DsPageDefinition(std::string r, std::string display)
 	: Regex_(r.c_str()),
 		Text_(r),
 		Display_(display),
 		Visible_(true) {}
 
-	DsCoreMessage(std::string r)
+	DsPageDefinition(std::string r)
 		: Regex_(r.c_str()),
 		Text_(r),
 		Visible_(false) {}
@@ -56,7 +56,19 @@ typedef struct DsCoreMessage
 	std::string Display_;
 	bool Visible_;
 	std::function <void(DsParameters, BcHtmlNode&)> Function_;
-} DsCoreMessage;
+} DsPageDefinition;
+
+typedef struct DsFunctionDefinition
+{
+	DsFunctionDefinition(std::string text, std::function<void()> fn)
+	:
+	DisplayText_(text), Function_(fn)
+	{}
+
+	std::string DisplayText_;
+	std::function<void()> Function_;
+} DsFunctionDefinition;
+
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class DsCore
@@ -87,6 +99,7 @@ public:
 	static void					cmdScene(DsParameters params, BcHtmlNode& Output);
 	static void					cmdScene_Entity(ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth);
 	static void					cmdScene_Component(ScnComponentRef Entity, BcHtmlNode& Output, BcU32 Depth);
+	static void					cmdLog(DsParameters params, BcHtmlNode& Output);
 
 	static void					cmdResource(DsParameters params, BcHtmlNode& Output);
 
@@ -97,16 +110,19 @@ public:
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
 	BcU8*						writeFile(std::string filename, int& OutLength, std::string& type);
-	void						registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
-	void						registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
-	void						deregisterFunction(std::string regex);
+	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
+	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
+	void						deregisterPage(std::string regex);
 
+	void						registerFunction(std::string Display, std::function<void()> Function);
+	void						deregisterFunction(std::string Display);
 
 private:
 	mg_context*					pContext_;
 	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
-	std::vector<DsCoreMessage>	MessageFunctions_;
+	std::vector<DsPageDefinition>	PageFunctions_;
+	std::vector<DsFunctionDefinition>	ButtonFunctions_;
 };
 
 

@@ -37,6 +37,10 @@ protected:
 	 */
 	virtual void internalFlush();
 
+	/*
+	* Get log data
+	*/
+	std::vector<std::string> getLogData();
 private:
 	BcFile OutputFile_;
 };
