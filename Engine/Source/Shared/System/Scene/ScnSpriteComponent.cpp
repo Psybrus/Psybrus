@@ -40,7 +40,8 @@ void ScnSpriteComponent::StaticRegisterClass()
 		ReField( "Layer_",				&ScnSpriteComponent::Layer_ ),
 	};
 		
-	ReRegisterClass< ScnSpriteComponent, Super >( Fields );
+	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( -2100 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

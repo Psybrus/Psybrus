@@ -36,7 +36,7 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2090 ) );
+		.addAttribute( new ScnComponentAttribute( -2090 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

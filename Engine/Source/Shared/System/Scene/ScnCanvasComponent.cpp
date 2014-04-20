@@ -31,7 +31,7 @@ void ScnCanvasComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2000 ) );
+		.addAttribute( new ScnComponentAttribute( -2000 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
