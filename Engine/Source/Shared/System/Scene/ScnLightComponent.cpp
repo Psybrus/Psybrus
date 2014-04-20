@@ -38,7 +38,8 @@ void ScnLightComponent::StaticRegisterClass()
 		ReField( "AttnQ_",				&ScnLightComponent::AttnQ_ ),
 	};
 		
-	ReRegisterClass< ScnLightComponent, Super >( Fields );
+	ReRegisterClass< ScnLightComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2040 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -17,6 +17,21 @@
 #include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnComponentAttribute
+REFLECTION_DEFINE_DERIVED( ScnComponentAttribute );
+
+ScnComponentAttribute::ScnComponentAttribute( BcS32 UpdatePriority ):
+	UpdatePriority_( UpdatePriority )
+{
+}
+
+int ScnComponentAttribute::getUpdatePriority() const
+{
+	return UpdatePriority_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnComponent );
 

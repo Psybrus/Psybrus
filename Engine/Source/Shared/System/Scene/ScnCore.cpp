@@ -68,7 +68,8 @@ void ScnCore::open()
 
 	for( auto Class : Classes )
 	{
-		if( Class->hasBaseClass( ScnComponent::StaticGetClass() ) )
+		auto* Attr = Class->getAttribute< ScnComponentAttribute >();
+		if( Attr != nullptr )
 		{
 			ComponentClassIndexMap_[ Class ] = NoofComponentLists_++;
 		}
@@ -358,10 +359,14 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// All go into the appropriate list.
-	const ReClass* pClass = Component->getClass();
-	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
-	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
-	ComponentList.push_back( Component );
+	const auto* pClass = Component->getClass();
+	auto FoundIndexIt = ComponentClassIndexMap_.find( pClass );
+	if( FoundIndexIt != ComponentClassIndexMap_.end() )
+	{
+		BcU32 Idx( FoundIndexIt->second );
+		ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
+		ComponentList.push_back( Component );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -386,10 +391,14 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 
 	// Erase from component list.
 	const ReClass* pClass = Component->getClass();
-	BcU32 Idx( ComponentClassIndexMap_[ pClass ] );
-	ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
-	ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
-	ComponentList.erase( It );
+	auto FoundIndexIt = ComponentClassIndexMap_.find( pClass );
+	if( FoundIndexIt != ComponentClassIndexMap_.end() )
+	{
+		BcU32 Idx( FoundIndexIt->second );
+		ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
+		ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
+		ComponentList.erase( It );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

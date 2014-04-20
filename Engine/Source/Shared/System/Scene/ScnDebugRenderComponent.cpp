@@ -35,7 +35,8 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 		ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_ )
 	};
 		
-	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields );
+	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2090 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
