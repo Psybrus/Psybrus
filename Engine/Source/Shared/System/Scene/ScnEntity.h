@@ -77,9 +77,9 @@ public:
 	 * Get component by type.
 	 */
 	template< typename _Ty >
-	_Ty*								getComponentByType( const ReClass* Class )
+	_Ty*								getComponentByType( BcName Name )
 	{
-		return static_cast< _Ty* >( getComponent( 0, _Ty::StaticGetClass() ) );
+		return static_cast< _Ty* >( getComponent( Name, _Ty::StaticGetClass() ) );
 	}
 
 	/**

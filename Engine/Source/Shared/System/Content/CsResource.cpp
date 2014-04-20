@@ -16,8 +16,6 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
-#include "Base/BcReflectionSerialise.h"
-
 BcAtomicU32 CsResource::UniqueIdCounter_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
