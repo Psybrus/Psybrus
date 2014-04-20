@@ -20,7 +20,6 @@
 
 #include "System/Content/CsTypes.h"
 #include "System/Content/CsResource.h"
-#include "System/Content/CsResourceRef.h"
 
 #include "System/Content/CsPackage.h"
 
@@ -90,32 +89,32 @@ public:
 	/*
 	* Get a resource by its Unique Id
 	*/
-	CsResourceRef<>						getResourceByUniqueId(BcU32 UId);
+	ReObjectRef< CsResource >						getResourceByUniqueId(BcU32 UId);
 
 	/**
 	 * Create a resource.<br/>
 	 * This will create a resource object without a file associated with it.
 	 */
 	template< typename _Ty >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle );
 	template< typename _Ty, typename _TyA >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA );
 	template< typename _Ty, typename _TyA, typename _TyB >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD  >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE  >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF  >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF, typename _TyG >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF, typename _TyG, typename _TyH >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH );
 	template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF, typename _TyG, typename _TyH, typename _TyI >
-	BcBool								createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH, _TyI ParamI );
+	BcBool								createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH, _TyI ParamI );
 	
 	/**
 	 * Request a resource. Will load if it isn't already.
@@ -124,7 +123,7 @@ public:
 	 * @param Handle Handle to be filled in when requested.
 	 */
 	template< typename _Ty >
-	BcBool								requestResource( const BcName& Package, const BcName& Name, CsResourceRef< _Ty >& Handle );
+	BcBool								requestResource( const BcName& Package, const BcName& Name, ReObjectRef< _Ty >& Handle );
 
 	/**
 	 * Get number of resources.
@@ -134,13 +133,13 @@ public:
 	/**
 	 * Get resource by index.
 	 */
-	CsResourceRef<>						getResource( BcU32 Idx );
+	ReObjectRef< CsResource >			getResource( BcU32 Idx );
 
 	/**
 	 * Get resource. PLACEHOLDER UNTIL COMPONENTS ARE PACKED PROPERLY.
 	 * @param pFullName Full name in package.resource.type format.
 	 */
-	CsResourceRef<>						getResource( const BcChar* pFullName );
+	ReObjectRef< CsResource >			getResource( const BcChar* pFullName );
 
 	/**
 	 * Request package.
@@ -186,9 +185,9 @@ protected:
 public:
 	void								internalRegisterResource( const ReClass* pClass );
 	void								internalUnRegisterResource( const ReClass* Class );
-	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle );
-	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle );
-	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle );
+	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle );
+	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
+	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
 	
 protected:
 	struct TResourceFactoryInfo // TODO: Deprecate. We don't need this much longer with having centralised reflection support.
@@ -198,7 +197,7 @@ protected:
 	
 	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
-	typedef std::vector< CsResourceRef<> > TResourceHandleList;
+	typedef std::vector< ReObjectRef< CsResource > > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
 	typedef std::map< const ReClass*, TResourceFactoryInfo > TResourceFactoryInfoMap;
 	typedef TResourceFactoryInfoMap::iterator TResourceFactoryInfoMapIterator;
@@ -252,10 +251,10 @@ BcForceInline void CsCore::unregisterResource()
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise();
@@ -266,10 +265,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA );
@@ -280,10 +279,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB );
@@ -294,10 +293,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC );
@@ -308,10 +307,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD );
@@ -322,10 +321,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE );
@@ -336,10 +335,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF );
@@ -350,10 +349,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF, typename _TyG >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF, ParamG );
@@ -364,10 +363,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF, typename _TyG, typename _TyH >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF, ParamG, ParamH );
@@ -378,10 +377,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty, typename _TyA, typename _TyB, typename _TyC, typename _TyD, typename _TyE, typename _TyF, typename _TyG, typename _TyH, typename _TyI >
-BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, CsResourceRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH, _TyI ParamI )
+BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle, _TyA ParamA, _TyB ParamB, _TyC ParamC, _TyD ParamD, _TyE ParamE, _TyF ParamF, _TyG ParamG, _TyH ParamH, _TyI ParamI )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	if( internalCreateResource( Name, _Ty::StaticGetClass(), BcErrorCode, pPackage, InternalHandle ) )
 	{
 		Handle->initialise( ParamA, ParamB, ParamC, ParamD, ParamE, ParamF, ParamG, ParamH, ParamI );
@@ -392,10 +391,10 @@ BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPac
 }
 
 template< typename _Ty >
-BcForceInline BcBool CsCore::requestResource( const BcName& Package, const BcName& Name, CsResourceRef< _Ty >& Handle )
+BcForceInline BcBool CsCore::requestResource( const BcName& Package, const BcName& Name, ReObjectRef< _Ty >& Handle )
 {
 	BcAssert( BcIsGameThread() );
-	CsResourceRef<>& InternalHandle = *( reinterpret_cast< CsResourceRef<>* >( &Handle ) );
+	ReObjectRef< CsResource >& InternalHandle = *( reinterpret_cast< ReObjectRef< CsResource >* >( &Handle ) );
 	return internalRequestResource( Package, Name, _Ty::StaticGetClass(), InternalHandle );
 }
 

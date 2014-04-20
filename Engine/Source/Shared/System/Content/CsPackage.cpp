@@ -90,10 +90,10 @@ BcBool CsPackage::isReady() const
 	// Check our resources.
 	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
 	{
-		const CsResourceRef<>& Resource( Resources_[ Idx ] );
+		const ReObjectRef< CsResource >& Resource( Resources_[ Idx ] );
 
 		// Check that the package is the only referencer.
-		if( Resource.isReady() == BcFalse )
+		if( ( Resource.isValid() && Resource->isReady() ) == BcFalse )
 		{
 			return BcFalse;
 		}
@@ -150,7 +150,7 @@ BcBool CsPackage::haveAnyValidResources() const
 	// Search through list for all valid resources.
 	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
 	{
-		const CsResourceRef<>& Resource( Resources_[ Idx ] );
+		const ReObjectRef< CsResource >& Resource( Resources_[ Idx ] );
 
 		if( Resource.isValid() == BcTrue )
 		{
@@ -181,7 +181,7 @@ void CsPackage::releaseUnreferencedResources()
 	
 	for( BcU32 Idx = 0; Idx < Resources_.size(); ++Idx )
 	{
-		CsResourceRef<>& Resource( Resources_[ Idx ] );
+		ReObjectRef< CsResource >& Resource( Resources_[ Idx ] );
 
 		Resource->markDestroy();
 	}
@@ -224,9 +224,9 @@ CsPackage* CsPackage::loadPackageCrossRef( BcU32 ID )
 
 //////////////////////////////////////////////////////////////////////////
 // getPackageCrossRef
-CsResourceRef<> CsPackage::getPackageCrossRef( BcU32 ID )
+ReObjectRef< CsResource > CsPackage::getPackageCrossRef( BcU32 ID )
 {
-	CsResourceRef<> Resource;
+	ReObjectRef< CsResource > Resource;
 	CsPackage* pPackage = NULL;
 	BcName PackageName;
 	BcName ResourceName;

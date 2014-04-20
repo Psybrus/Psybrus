@@ -288,8 +288,8 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 {
 	Super::initialise();
 
-	BcAssert( Parent.isReady() );
-
+	BcAssert( Parent.isValid() && Parent->isReady() );
+	 
 	// Cache parent and program.
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags );

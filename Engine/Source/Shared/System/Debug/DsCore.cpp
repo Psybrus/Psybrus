@@ -80,7 +80,7 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
 
 	for( BcU32 Idx = 0; Idx < CsCore::pImpl()->getNoofResources(); ++Idx )
 	{
-		CsResourceRef<> Resource( CsCore::pImpl()->getResource( Idx ) );
+		ReObjectRef< CsResource > Resource( CsCore::pImpl()->getResource( Idx ) );
 		BcHtmlNode& li = ul.createChildNode("li");
 		li.setContents("Resource: " + *Resource->getName());
 
@@ -367,7 +367,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 	}
 	BcU32 id = BcStrAtoi(EntityId.c_str());
 
-	CsResourceRef<> Resource(CsCore::pImpl()->getResourceByUniqueId(id));
+	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
 	if (Resource == NULL)
 	{

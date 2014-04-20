@@ -117,7 +117,7 @@ void CsResource::fileReady()
 //////////////////////////////////////////////////////////////////////////
 // isReady
 //virtual
-BcBool CsResource::isReady()
+BcBool CsResource::isReady() const
 {
 	BcAssertMsg( InitStage_ >= INIT_STAGE_INITIAL && InitStage_ <= INIT_STAGE_READY, "CsResource: Invalid ready state." );
 	return InitStage_ == INIT_STAGE_READY ? BcTrue : BcFalse;
@@ -125,7 +125,7 @@ BcBool CsResource::isReady()
 
 //////////////////////////////////////////////////////////////////////////
 // getInitStage
-BcU32 CsResource::getInitStage()
+BcU32 CsResource::getInitStage() const
 {
 	return InitStage_;
 }

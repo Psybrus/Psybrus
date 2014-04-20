@@ -217,16 +217,16 @@ BcU32 CsCore::getNoofResources()
 
 //////////////////////////////////////////////////////////////////////////
 // getResource
-CsResourceRef<> CsCore::getResource( BcU32 Idx )
+ReObjectRef< CsResource > CsCore::getResource( BcU32 Idx )
 {
 	return LoadedResources_[ Idx ];
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getResource
-CsResourceRef<> CsCore::getResource( const BcChar* pFullName )
+ReObjectRef< CsResource > CsCore::getResource( const BcChar* pFullName )
 {
-	CsResourceRef<> Handle;
+	ReObjectRef< CsResource > Handle;
 	if( pFullName != NULL )
 	{
 		BcChar FullNameBuffer[ 1024 ];
@@ -353,7 +353,7 @@ void CsCore::processCreateResources()
 	TResourceHandleListIterator It( CreateResources_.begin() );
 	while( It != CreateResources_.end() )
 	{
-		CsResourceRef<> ResourceHandle = (*It);
+		ReObjectRef< CsResource > ResourceHandle = (*It);
 			
 		// Create resource.
 		if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
@@ -383,10 +383,10 @@ void CsCore::processLoadingResources()
 	TResourceHandleListIterator It( LoadingResources_.begin() );
 	while( It != LoadingResources_.end() )
 	{
-		CsResourceRef<> ResourceHandle = (*It);
+		ReObjectRef< CsResource > ResourceHandle = (*It);
 		
 		// If resource is ready remove it from the list.
-		if( ResourceHandle.isReady() )
+		if( ResourceHandle.isValid() && ResourceHandle->isReady() )
 		{
 			It = LoadingResources_.erase( It );
 			
@@ -518,7 +518,7 @@ void CsCore::internalUnRegisterResource( const ReClass* Class )
 
 //////////////////////////////////////////////////////////////////////////
 // internalCreateResource
-BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, CsResourceRef<>& Handle )
+BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle )
 {
 	// Generate a unique name for the resource.
 	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getName() ).getUnique();
@@ -539,7 +539,7 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class,
 
 //////////////////////////////////////////////////////////////////////////
 // internalRequestResource
-BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle )
+BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle )
 {
 	// Find package
 	CsPackage* pPackage = findPackage( Package );
@@ -561,7 +561,7 @@ BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Nam
 
 //////////////////////////////////////////////////////////////////////////
 // internalFindResource
-BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, CsResourceRef<>& Handle )
+BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle )
 {
 	BcScopedLock< BcMutex > Lock( ContainerLock_ );
 
@@ -638,7 +638,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 
 //////////////////////////////////////////////////////////////////////////
 // getResourceByUniqueId
-CsResourceRef<> CsCore::getResourceByUniqueId(BcU32 UId)
+ReObjectRef< CsResource > CsCore::getResourceByUniqueId(BcU32 UId)
 {
 	for (BcU32 Idx = 0; Idx < LoadedResources_.size(); ++Idx)
 	{

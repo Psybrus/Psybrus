@@ -20,7 +20,7 @@ class ReObject;
 	* local in the cases where the object may be lost due to an owning object
 	* being destructed.
 	*/
-template< class _Ty = ReObject >
+template< class _Ty = ReObject, bool _IsWeak = false >
 class ReObjectRef
 {
 private:
@@ -42,7 +42,9 @@ public:
     inline ~ReObjectRef();
 	inline bool isValid() const;
 	inline operator _Ty* ();
+	inline operator const _Ty* () const;
 	inline _Ty* operator -> ();
+	inline const _Ty* operator -> () const;
     inline bool operator == ( const ReObjectRef& Other ) const;
     inline bool operator != ( const ReObjectRef& Other ) const;
 	inline bool operator == ( _Ty* pObject ) const;

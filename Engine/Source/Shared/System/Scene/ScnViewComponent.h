@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
-typedef CsResourceRef< class ScnViewComponent > ScnViewComponentRef;
+typedef ReObjectRef< class ScnViewComponent > ScnViewComponentRef;
 typedef std::list< ScnViewComponentRef > ScnViewComponentList;
 typedef ScnViewComponentList::iterator ScnViewComponentListIterator;
 typedef ScnViewComponentList::const_iterator ScnViewComponentListConstIterator;
