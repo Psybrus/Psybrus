@@ -33,7 +33,8 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 		ReField( "MaterialComponent_",		&ScnParticleSystemComponent::MaterialComponent_ ),
 	};
 		
-	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields );
+	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2060 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
