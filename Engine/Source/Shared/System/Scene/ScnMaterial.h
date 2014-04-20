@@ -25,7 +25,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialRef
-typedef CsResourceRef< class ScnMaterial > ScnMaterialRef;
+typedef ReObjectRef< class ScnMaterial > ScnMaterialRef;
 typedef std::map< std::string, ScnMaterialRef > ScnMaterialMap;
 typedef ScnMaterialMap::iterator ScnMaterialMapIterator;
 typedef ScnMaterialMap::const_iterator ScnMaterialConstIterator;
@@ -35,7 +35,7 @@ typedef ScnMaterialList::const_iterator ScnMaterialListConstIterator;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialComponentRef
-typedef CsResourceRef< class ScnMaterialComponent > ScnMaterialComponentRef;
+typedef ReObjectRef< class ScnMaterialComponent > ScnMaterialComponentRef;
 typedef std::map< std::string, ScnMaterialComponentRef > ScnMaterialComponentMap;
 typedef ScnMaterialComponentMap::iterator ScnMaterialComponentMapIterator;
 typedef ScnMaterialComponentMap::const_iterator ScnMaterialComponentConstIterator;

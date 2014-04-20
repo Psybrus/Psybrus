@@ -117,7 +117,7 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			BcAssert( Component.isReady() );
+			BcAssert( Component.isValid() && Component->isReady() );
 			Component->preUpdate( Tick );
 		}
 	}
@@ -131,7 +131,7 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			BcAssert( Component.isReady() );
+			BcAssert( Component.isValid() && Component->isReady() );
 			Component->update( Tick );
 		}
 	}
@@ -148,7 +148,7 @@ void ScnCore::update()
 		{
 			ScnComponentRef Component( *It );
 
-			BcAssert( Component.isReady() );
+			BcAssert( Component.isValid() && Component->isReady() );
 			Component->postUpdate( Tick );
 		}
 	}

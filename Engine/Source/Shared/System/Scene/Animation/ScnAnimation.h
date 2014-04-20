@@ -15,14 +15,13 @@
 #define __SCNANIMATION_H__
 
 #include "System/Content/CsResource.h"
-#include "System/Content/CsResourceRef.h"
 
 #include "System/Scene/Animation/ScnAnimationFileData.h"
 #include "System/Scene/Animation/ScnAnimationPose.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelRef
-typedef CsResourceRef< class ScnAnimation > ScnAnimationRef;
+typedef ReObjectRef< class ScnAnimation > ScnAnimationRef;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimation

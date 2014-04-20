@@ -247,7 +247,7 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 
 		if( pPrimitiveRuntime->MaterialRef_.isValid() )
 		{
-			BcAssert( pPrimitiveRuntime->MaterialRef_.isReady() );
+			BcAssert( pPrimitiveRuntime->MaterialRef_.isValid() && pPrimitiveRuntime->MaterialRef_->isReady() );
 
 			BcU32 ShaderPermutation = pPrimitiveData->ShaderPermutation_;
 

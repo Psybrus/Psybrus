@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureRef
-typedef CsResourceRef< class ScnTexture > ScnTextureRef;
+typedef ReObjectRef< class ScnTexture > ScnTextureRef;
 typedef std::vector< ScnTextureRef > ScnTextureList;
 typedef ScnTextureList::iterator ScnTextureListIterator;
 typedef ScnTextureList::const_iterator ScnTextureListConstIterator;

@@ -74,7 +74,7 @@ public:
 	/**
 	* Get package cross ref.
 	*/
-	CsResourceRef<>					getPackageCrossRef( BcU32 ID );
+	ReObjectRef< CsResource >					getPackageCrossRef( BcU32 ID );
 
 	/**
 	* Acquire.
@@ -112,7 +112,7 @@ private:
 	CsPackageLoader*				pLoader_;
 
 	// Resources.
-	typedef std::vector< CsResourceRef<> > TResourceHandleList;
+	typedef std::vector< ReObjectRef< CsResource > > TResourceHandleList;
 	TResourceHandleList				Resources_;
 	
 };

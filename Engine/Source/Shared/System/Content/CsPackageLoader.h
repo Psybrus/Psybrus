@@ -81,7 +81,7 @@ private:
 	BcBool							IsDataReady_;
 	BcAtomicU32						PendingCallbackCount_;
 	
-	std::vector< CsResourceRef<> >	Resources_;
+	std::vector< ReObjectRef< CsResource > >	Resources_;
 	std::vector< CsPackage* >		PackageDependencies_;
 };
 

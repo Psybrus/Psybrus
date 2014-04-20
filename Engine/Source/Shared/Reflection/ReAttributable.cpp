@@ -27,7 +27,7 @@ ReAttribute* ReAttributable::getAttribute( const ReClass* Class )
 
 	for( auto* Attribute : Attributes_ )
 	{
-		if( Attribute->isTypeOf( Class->getName() ) )
+		if( Attribute->isTypeOf( Class ) )
 		{
 			RetVal = Attribute;
 			break;
