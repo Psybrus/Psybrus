@@ -15,13 +15,13 @@
 #define __SysJobQueue_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcThread.h"
 #include "Base/BcMisc.h"
 
 #include "System/SysJob.h"
 #include "System/SysJobWorker.h"
 #include "System/SysFence.h"
 
+#include <thread>
 #include <list>
 #include <vector>
 #include <mutex>
@@ -29,8 +29,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // SysJobQueue
-class SysJobQueue:
-	public BcThread
+class SysJobQueue
 {
 public:
 	SysJobQueue( BcU32 NoofWorkers );
@@ -89,6 +88,7 @@ private:
 	typedef std::vector< SysJobWorker* > TJobWorkerList;
 	
 	SysFence				StartedFence_;
+	std::thread				ExecutionThread_;
 	BcBool					Active_;
 	std::condition_variable ResumeEvent_;
 	std::mutex				ResumeMutex_;

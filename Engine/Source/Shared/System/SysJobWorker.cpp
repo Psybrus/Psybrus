@@ -34,7 +34,7 @@ SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
 //virtual
 SysJobWorker::~SysJobWorker()
 {
-	BcAssertMsg( BcThread::isActive() == BcFalse, "SysJobWorker: Not been stopped before destruction." );
+	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ BcBool SysJobWorker::inUse() const
 void SysJobWorker::start()
 {
 	// Just start the thread.
-	BcThread::start( "SysJobWorker Main" );
+	ExecutionThread_ = std::thread( &SysJobWorker::execute, this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ void SysJobWorker::stop()
 	Active_ = BcFalse;
 	std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
 	ResumeEvent_.notify_all();
-	BcThread::join();
+	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////

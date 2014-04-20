@@ -27,7 +27,7 @@ SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	{
 		// Start our thread.
 		StartedFence_.increment();
-		BcThread::start( "SysJobQueue Main" );
+		ExecutionThread_ = std::thread( &SysJobQueue::execute, this );
 
 		// Wait on it it to complete starting.
 		StartedFence_.wait();
@@ -52,7 +52,7 @@ SysJobQueue::~SysJobQueue()
 		ResumeEvent_.notify_all();
 		
 		// Now join.
-		BcThread::join();	
+		ExecutionThread_.join();
 	}
 }
 
