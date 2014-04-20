@@ -15,11 +15,13 @@
 #define __SysJobWorker_H__
 
 #include "Base/BcTypes.h"
-#include <atomic>
-#include "Base/BcEvent.h"
-#include <mutex>
 #include "Base/BcThread.h"
 #include "System/SysJob.h"
+#include "System/SysFence.h"
+
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -71,14 +73,16 @@ private:
 	virtual void		execute();
 	
 private:
-	SysJobQueue*		pParent_;
-	BcBool				Active_;
-	std::atomic< BcU32 > HaveJob_;
-	SysJob*				pCurrentJob_;
-	BcEvent				ResumeEvent_;
+	SysJobQueue*			pParent_;
+	BcBool					Active_;
+	std::atomic< BcU32 >	HaveJob_;
+	SysJob*					pCurrentJob_;
+	std::condition_variable	ResumeEvent_;
+	std::mutex				ResumeMutex_;
+	SysFence				StartFence_;
 
-	std::atomic< BcU32 > TimeWorkingUS_;	// Microseconds.
-	std::atomic< BcU32 > JobsExecuted_;
+	std::atomic< BcU32 >	TimeWorkingUS_;	// Microseconds.
+	std::atomic< BcU32 >	JobsExecuted_;
 };
 
 #endif

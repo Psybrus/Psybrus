@@ -24,8 +24,7 @@ SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
 	pParent_( pParent ),
 	Active_( BcTrue ),
 	HaveJob_( BcFalse ),
-	pCurrentJob_( NULL ),
-	ResumeEvent_( NULL )
+	pCurrentJob_( NULL )
 {
 	
 }
@@ -46,8 +45,9 @@ BcBool SysJobWorker::giveJob( SysJob* pJob )
 	
 	if( HaveJob_.compare_exchange_strong( Exp, 1 ) )
 	{
+		std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
 		pCurrentJob_ = pJob;
-		ResumeEvent_.signal();
+		ResumeEvent_.notify_all();
 	}
 	
 	return Exp == 0;
@@ -74,7 +74,8 @@ void SysJobWorker::stop()
 {
 	// Set to not be active, trigger resume, and join thread.
 	Active_ = BcFalse;
-	ResumeEvent_.signal();
+	std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
+	ResumeEvent_.notify_all();
 	BcThread::join();
 }
 
@@ -102,39 +103,38 @@ void SysJobWorker::execute()
 	while( Active_ )
 	{
 		// Wait till we are told to resume.
-		ResumeEvent_.wait();
+		{
+			std::unique_lock< std::mutex > ResumeLock( ResumeMutex_ );
+			ResumeEvent_.wait( ResumeLock, [ this ]{ return pCurrentJob_ != NULL; } );
+		}
 
 		if( Active_ == BcTrue )
 		{
 			BcAssertMsg( pCurrentJob_ != NULL, "No job has been given!" );
 		}
 
-		// If we have a job set, we need to execute it.
-		if( pCurrentJob_ != NULL )
-		{
-			BcAssertMsg( HaveJob_ == BcTrue, "SysJobWorker: We have a job pointer set, but haven't got it via giveJob." );
+		BcAssertMsg( HaveJob_ == BcTrue, "SysJobWorker: We have a job pointer set, but haven't got it via giveJob." );
 
-			// Start timing the job.
+		// Start timing the job.
 #if !PSY_PRODUCTION
-			BcTimer Timer;
-			Timer.mark();
+		BcTimer Timer;
+		Timer.mark();
 #endif
-			// Execute our job.
-			pCurrentJob_->internalExecute();
+		// Execute our job.
+		pCurrentJob_->internalExecute();
 
 #if !PSY_PRODUCTION
-			// Add time spent to our total.
-			const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
-			TimeWorkingUS_ += TimeWorkingUS;
-			JobsExecuted_++;
+		// Add time spent to our total.
+		const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
+		TimeWorkingUS_ += TimeWorkingUS;
+		JobsExecuted_++;
 #endif			
-			// No job now, clean up.
-			delete pCurrentJob_;
-			pCurrentJob_ = NULL;
-			HaveJob_ = BcFalse;
+		// No job now, clean up.
+		delete pCurrentJob_;
+		pCurrentJob_ = NULL;
+		HaveJob_ = BcFalse;
 			
-			// Signal job queue parent to schedule.
-			pParent_->schedule();
-		}
+		// Signal job queue parent to schedule.
+		pParent_->schedule();
 	}
 }
