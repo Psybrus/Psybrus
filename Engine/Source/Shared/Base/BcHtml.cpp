@@ -14,13 +14,13 @@
 #include "BcHtml.h"
 
 BcHtml::BcHtml() :
-RootNode_("html")
+RootNode_("html", 0)
 {
 }
 
-BcHtmlNode& BcHtml::getRootNode()
+BcHtmlNode BcHtml::getRootNode()
 {
-	return RootNode_;
+	return BcHtmlNode(&RootNode_);
 }
 
 std::string BcHtml::getHtml()
@@ -33,64 +33,149 @@ std::string BcHtml::getHtml()
 * BcHtmlNode implementation
 *
 */
-BcHtmlNode::BcHtmlNode(std::string tag)
-: Tag_(tag)
+BcHtmlNode::BcHtmlNode(BcHtmlNodeInternal* node)
+: InternalNode_(node)
 {
 
 }
 
-BcHtmlNode* BcHtmlNode::operator[](BcU32 idx)
+BcHtmlNode::BcHtmlNode(BcHtmlNode& cpy)
 {
-	if (idx < Children.size())
-		return &Children[idx];
+	InternalNode_ = cpy.InternalNode_;
+	NextTag_ = cpy.NextTag_;
+}
+
+
+BcHtmlNode BcHtmlNode::operator[](BcU32 idx)
+{
+	if (idx < InternalNode_->Children.size())
+		return BcHtmlNode(&InternalNode_->Children[idx]);
 	return 0;
 }
 
-BcHtmlNode* BcHtmlNode::operator[](std::string tag)
+BcHtmlNode BcHtmlNode::operator[](std::string tag)
 {
-	for (BcU32 Idx = 0; Idx < Children.size(); ++Idx)
+	for (BcU32 Idx = 0; Idx < InternalNode_->Children.size(); ++Idx)
 	{
-		if (Children[Idx].Tag_ == tag)
+		if (InternalNode_->Children[Idx].Tag_ == tag)
 		{
-			return &Children[Idx];
+			return BcHtmlNode(&InternalNode_->Children[Idx]);
 		}
 	}
-	return 0;
+	return 0;/**/
 }
 
 
-BcHtmlNode& BcHtmlNode::createChildNode(std::string tag)
+BcHtmlNode BcHtmlNode::createChildNode(std::string tag)
 {
-	Children.push_back(BcHtmlNode(tag));
-	return Children[Children.size() - 1];
+	BcHtmlNodeInternal* ret = InternalNode_->createChildNode(tag);
+	return BcHtmlNode(ret);
 }
 
 std::string BcHtmlNode::getTag()
 {
-	return Tag_;
+	return InternalNode_->getTag();
 }
 
 std::string BcHtmlNode::getContents()
 {
-	return Contents_;
+	return InternalNode_->getContents();
 }
 
 void BcHtmlNode::setAttribute(std::string attr, std::string value)
 {
-	Attributes_[attr] = value;
+	InternalNode_->setAttribute(attr, value);
 }
 
 void BcHtmlNode::setTag(std::string tag)
 {
-	Tag_ = tag;
+	InternalNode_->setTag(tag);
 }
 
 void BcHtmlNode::setContents(std::string contents)
 {
-	Contents_ = contents;
+	InternalNode_->setContents(contents);
 }
 
 std::string BcHtmlNode::getOuterXml()
+{
+	return InternalNode_->getOuterXml();
+}
+
+bool BcHtmlNode::operator = (const int&v)
+{
+	return (v == (int)InternalNode_);
+}
+
+BcHtmlNode BcHtmlNode::NextSiblingNode()
+{
+	if (InternalNode_->Parent_ == 0)
+		return BcHtmlNode(0);
+	BcU32 Idx;
+	for (Idx = 0; Idx < InternalNode_->Parent_->Children.size(); ++Idx)
+	{
+		if (&InternalNode_->Parent_->Children[Idx] == InternalNode_)
+		{
+			break;
+		}
+	}
+	Idx = Idx + 1;
+	for (; Idx < InternalNode_->Parent_->Children.size(); ++Idx)
+	{
+		if ((InternalNode_->Parent_->Children[Idx].Tag_ == NextTag_) || (NextTag_ == ""))
+		{
+			BcHtmlNode ret(&InternalNode_->Parent_->Children[Idx]);
+			ret.NextTag_ = NextTag_;
+			return ret;
+		}
+	}
+	return BcHtmlNode(0);
+}
+
+
+/**************************************************************************
+*
+* BcHtmlNodeInternal implementation
+*
+*/
+BcHtmlNodeInternal::BcHtmlNodeInternal(std::string tag, BcHtmlNodeInternal* parent)
+: Tag_(tag), Parent_(parent)
+{
+
+}
+
+BcHtmlNodeInternal* BcHtmlNodeInternal::createChildNode(std::string tag)
+{
+	Children.push_back(BcHtmlNodeInternal(tag, this));
+	return &Children[Children.size() - 1];
+}
+
+std::string BcHtmlNodeInternal::getTag()
+{
+	return Tag_;
+}
+
+std::string BcHtmlNodeInternal::getContents()
+{
+	return Contents_;
+}
+
+void BcHtmlNodeInternal::setAttribute(std::string attr, std::string value)
+{
+	Attributes_[attr] = value;
+}
+
+void BcHtmlNodeInternal::setTag(std::string tag)
+{
+	Tag_ = tag;
+}
+
+void BcHtmlNodeInternal::setContents(std::string contents)
+{
+	Contents_ = contents;
+}
+
+std::string BcHtmlNodeInternal::getOuterXml()
 {
 	if (Tag_ == "")
 		return Contents_;
@@ -102,17 +187,18 @@ std::string BcHtmlNode::getOuterXml()
 		output += attr.second;
 		output += "\" ";
 	}
-	if ((Contents_ == "") && (Children.size() == 0))
+	if ((Contents_ == "") && (Children.size() == 0) &&
+		((Tag_ == "p") || (Tag_ == "br")))
 	{
 		return output + "/>";
 	}
 	else
 	{
-		
+
 
 		output += ">";
 		output += Contents_;
-		for each (BcHtmlNode var in Children)
+		for each (BcHtmlNodeInternal var in Children)
 		{
 			output += var.getOuterXml();
 		}

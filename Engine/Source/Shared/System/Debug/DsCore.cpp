@@ -164,22 +164,23 @@ void DsCore::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Dep
 	BcSPrintf(Id, "%d", Entity->getUniqueId());
 	
 	// Entity name.
-	BcHtmlNode& li = Output.createChildNode("li");
+	BcHtmlNode& li = ul.createChildNode("li");
 	li.setContents("Entity; ");
-	BcHtmlNode& a = Output.createChildNode("a");
+	BcHtmlNode& a = li.createChildNode("a");
 	a.setAttribute("href", "/Resource/" + std::string(Id));
 	a.setContents(*Entity->getName());
+	
 	for( BcU32 Idx = 0; Idx < Entity->getNoofComponents(); ++Idx )
 	{
 		ScnComponentRef Component( Entity->getComponent( Idx ) );
 	
 		if( Component->isTypeOf< ScnEntity >() )
 		{
-			cmdScene_Entity( ScnEntityRef( Component ), Output, Depth + 1);
+			cmdScene_Entity( ScnEntityRef( Component ), li, Depth + 1);
 		}
 		else
 		{
-			cmdScene_Component( Component, Output, Depth + 1 );
+			cmdScene_Component( Component, li, Depth + 1 );
 		}
 	}
 
@@ -220,6 +221,7 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 		Output += GPsySetupParams.Name_;
 		Output += "</title>";
 		Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";/**/
+		HtmlContent.getRootNode().createChildNode("title");
 		HtmlContent.getRootNode().createChildNode("title").setContents(GPsySetupParams.Name_);
 		BcHtmlNode& link = HtmlContent.getRootNode().createChildNode("link");
 		link.setAttribute("rel", "stylesheet");
@@ -317,10 +319,9 @@ void DsCore::writeHeader(BcHtmlNode& Output)
 	Output += "<body>";/**/
 	Output.createChildNode("h1").setContents(GPsySetupParams.Name_);
 	BcHtmlNode& a = Output.createChildNode("a");
-	a.setAttribute("href", "Menu");
+	a.setAttribute("href", "/Menu");
 	a.setContents("Menu");
 	Output.createChildNode("br");
-
 }
 
 //////////////////////////////////////////////////////////////////////////
