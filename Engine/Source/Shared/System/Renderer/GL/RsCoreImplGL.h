@@ -14,7 +14,7 @@
 #ifndef __RSCOREIMPLGL_H__
 #define __RSCOREIMPLGL_H__
 
-#include "Base/BcMutex.h"
+#include <mutex>
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/GL/RsGL.h"
@@ -71,7 +71,7 @@ public:
 	// Platform specific interface.
 
 protected:
-	BcMutex					ResourceLock_;
+	std::mutex					ResourceLock_;
 	SysFence				RenderSyncFence_;
 
 	typedef std::map< OsClient*, RsContextGL* > TContextMap;

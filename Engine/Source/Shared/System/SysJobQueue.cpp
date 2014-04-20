@@ -65,7 +65,7 @@ void SysJobQueue::enqueueJob( SysJob* pJob, BcU32 WorkerMask )
 	// Check mask validity and queue if we can.
 	if( ( WorkerMask & AvailibleWorkerMask_ ) != 0 )
 	{
-		BcScopedLock< BcMutex > Lock( QueueLock_ );
+		std::lock_guard< std::mutex > Lock( QueueLock_ );
 	
 		// Setup worker mask.
 		pJob->WorkerMask_ = WorkerMask;
@@ -146,7 +146,7 @@ BcU32 SysJobQueue::getAndResetJobsExecutedForWorker( BcU32 Idx )
 // moveJobsBack
 void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 {
-	BcScopedLock< BcMutex > Lock( QueueLock_ ); // NOTE: Have a pending add queue instead of shared global one to prevent this.
+	std::lock_guard< std::mutex > Lock( QueueLock_ ); // NOTE: Have a pending add queue instead of shared global one to prevent this.
 
 	// Remove all jobs which don't fit specified worker mask, and put aside.
 	// NOTE: Doing it backwards means we only need one splice, and the fact is
@@ -203,7 +203,7 @@ void SysJobQueue::execute()
 
 				// Grab job at front of queue.
 				{
-					BcScopedLock< BcMutex > Lock( QueueLock_ );	
+					std::lock_guard< std::mutex > Lock( QueueLock_ );	
 					pJob = JobQueue_.front();
 				}
 
@@ -233,7 +233,7 @@ void SysJobQueue::execute()
 				// If we've scheduled, pop it off.
 				if( HasScheduled )
 				{
-					BcScopedLock< BcMutex > Lock( QueueLock_ );	
+					std::lock_guard< std::mutex > Lock( QueueLock_ );	
 					JobQueue_.pop_front();
 					
 					// Count down number of jobs queued.

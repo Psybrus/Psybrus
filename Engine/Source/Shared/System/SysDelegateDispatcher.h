@@ -16,7 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDelegate.h"
-#include "Base/BcMutex.h"
+#include <mutex>
 
 #include <vector>
 
@@ -36,7 +36,7 @@ private:
 	typedef TDelegateCallList::iterator TDelegateCallListIterator;
 	
 	TDelegateCallList DelegateCallList_;
-	BcMutex DelegateCallListLock_;
+	std::mutex DelegateCallListLock_;
 };
 
 #endif

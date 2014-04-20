@@ -15,8 +15,8 @@
 #define __DSCORE_H__
 
 #include "Base/BcGlobal.h"
-#include "Base/BcMutex.h"
-#include "Base/BcScopedLock.h"
+#include <mutex>
+
 #include "Base/BcHtml.h"
 #include "Base/BcRegex.h"
 #include "System/SysSystem.h"
@@ -104,7 +104,7 @@ public:
 
 private:
 	mg_context*					pContext_;
-	BcMutex						Lock_;
+	std::mutex						Lock_;
 	SysFence					GameThreadWaitFence_;
 	std::vector<DsCoreMessage>	MessageFunctions_;
 };

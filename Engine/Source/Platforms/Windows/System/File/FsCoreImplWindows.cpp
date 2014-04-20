@@ -319,7 +319,7 @@ void FsCoreImplWindows::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pD
 // addFileMonitor
 void FsCoreImplWindows::addFileMonitor( const BcChar* pFilename )
 {
-	BcScopedLock< BcMutex > Lock( FileMonitorLock_ );
+	std::lock_guard< std::mutex > Lock( FileMonitorLock_ );
 	
 	// Attempt to find it.
 	TFileMonitorMapIterator FoundIter = FileMonitorMap_.find( pFilename );
@@ -344,7 +344,7 @@ void FsCoreImplWindows::addFileMonitor( const BcChar* pFilename )
 // removeFileMonitor
 void FsCoreImplWindows::removeFileMonitor( const BcChar* pFilename )
 {
-	BcScopedLock< BcMutex > Lock( FileMonitorLock_ );
+	std::lock_guard< std::mutex > Lock( FileMonitorLock_ );
 
 	// Attempt to find it.
 	TFileMonitorMapIterator FoundIter = FileMonitorMap_.find( pFilename );
@@ -363,7 +363,7 @@ void FsCoreImplWindows::removeFileMonitor( const BcChar* pFilename )
 // updateFileMonitoring
 void FsCoreImplWindows::updateFileMonitoring()
 {
-	BcScopedLock< BcMutex > Lock( FileMonitorLock_ );
+	std::lock_guard< std::mutex > Lock( FileMonitorLock_ );
 
 	// Check 1 file per update to prevent slowdown.
 	if( FileMonitorMapIterator_ == FileMonitorMap_.end() )

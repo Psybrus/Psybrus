@@ -50,7 +50,7 @@ ReObject::~ReObject()
 	// Handle destruction notification.
 	if( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion )
 	{
-		BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
+		std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 		auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
 
 		// If we find an entry, move list out, erase entry, and call all notifiers.
@@ -103,7 +103,7 @@ void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 	// Add notifier flag so it knows to notify.
 	Flags_ |= (BcU32)ReObject::Flags::NotifyOnDeletion;
 
-	BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
 
 	// If we find an entry, move list out, erase entry, and call all notifiers.
@@ -124,7 +124,7 @@ void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 {
 	BcAssertMsg( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion, "Can't remove notifier from object that is flagged to not notify!" );
 
-	BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
 
 	BcAssertMsg( ObjectNotifyListIt != ObjectNotifyMap_.end(), "Can't remove notifier from object without a notification list." );
@@ -134,9 +134,9 @@ void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
-BcMutex ReObject::ObjectListMutex_;
+std::mutex ReObject::ObjectListMutex_;
 ReObject::ObjectList ReObject::ObjectList_;
-BcMutex ReObject::ObjectNotifyMutex_;
+std::mutex ReObject::ObjectNotifyMutex_;
 ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 //static
 void ReObject::StaticAdd( ReObject* Object )
 {
-	BcScopedLock< BcMutex > Lock( ObjectListMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
 	ObjectList_.push_back( Object );
 }
 
@@ -153,7 +153,7 @@ void ReObject::StaticAdd( ReObject* Object )
 //static
 void ReObject::StaticRemove( ReObject* Object )
 {
-	BcScopedLock< BcMutex > Lock( ObjectListMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
 	ObjectList_.remove( Object );
 }
 

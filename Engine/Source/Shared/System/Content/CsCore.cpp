@@ -97,7 +97,7 @@ void CsCore::close()
 // freeUnreferencedPackages
 void CsCore::freeUnreferencedPackages()
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	// Search for existing package and move to unreferenced list.
 	for( TPackageListIterator It( PackageList_.begin() ); It != PackageList_.end();  )
@@ -156,7 +156,7 @@ BcU32 CsCore::getNoofResourceTypes() const
 // allocResource
 CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage )
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Class );
 	CsResource* pResource = NULL;
@@ -177,7 +177,7 @@ CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU
 // destroyResource
 void CsCore::destroyResource( CsResource* pResource )
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 		
 	// Find the resource in the list.
 	TResourceListIterator FoundIt = LoadedResources_.end();
@@ -338,7 +338,7 @@ BcPath CsCore::getPackagePackedPath( const BcName& Package )
 // processCreateResources
 void CsCore::processCreateResources()
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	// Copy precreate in.
 	TResourceHandleListIterator CreateIt( PrecreateResources_.begin() );
@@ -378,7 +378,7 @@ void CsCore::processCreateResources()
 // processLoadingResources
 void CsCore::processLoadingResources()
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	TResourceHandleListIterator It( LoadingResources_.begin() );
 	while( It != LoadingResources_.end() )
@@ -404,7 +404,7 @@ void CsCore::processLoadingResources()
 // processLoadedResource
 void CsCore::processLoadedResource()
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 	
 	static BcBool DumpResources = BcFalse;
 	
@@ -442,7 +442,7 @@ void CsCore::processLoadedResource()
 // processUnloadingResources
 void CsCore::processUnloadingResources()
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	while( UnloadingResources_.size() > 0 )
 	{
@@ -499,7 +499,7 @@ void CsCore::internalRegisterResource( const ReClass* pClass )
 	
 	FactoryInfo.pClass_ = pClass;
 	
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	ResourceFactoryInfoMap_[ pClass ] = FactoryInfo;
 }
@@ -529,7 +529,7 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class,
 	// Put into create list.
 	if( Handle.isValid() )
 	{
-		BcScopedLock< BcMutex > Lock( ContainerLock_ );
+		std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 		PrecreateResources_.push_back( Handle );
 	}
@@ -563,7 +563,7 @@ BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Nam
 // internalFindResource
 BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle )
 {
-	BcScopedLock< BcMutex > Lock( ContainerLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	// Make the handle null, this method must return a failure correctly.
 	Handle = NULL;

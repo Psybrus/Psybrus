@@ -202,7 +202,7 @@ private:
 	TSystemList					SystemList_;
 	BcBool						ShuttingDown_;
 	
-	BcMutex						SystemLock_;
+	std::recursive_mutex		SystemLock_;
 	BcBool						IsThreaded_;
 	
 	BcTimer						MainTimer_;

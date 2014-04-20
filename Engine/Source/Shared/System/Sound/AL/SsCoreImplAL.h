@@ -19,8 +19,8 @@
 #include "System/Sound/AL/SsAL.h"
 #include "System/Sound/AL/SsChannelAL.h"
 
-#include "Base/BcScopedLock.h"
-#include "Base/BcMutex.h"
+
+#include <mutex>
 
 #include "System/Sound/SsEnvironment.h"
 
@@ -108,7 +108,7 @@ private:
 	ALuint					ALReverbEffectSlot_;
 	ALuint					ALReverbEffect_;
 
-	BcMutex					ChannelLock_;
+	std::mutex					ChannelLock_;
 
 };
 

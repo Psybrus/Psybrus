@@ -12,7 +12,7 @@
 **************************************************************************/
 
 #include "Base/BcLogImpl.h"
-#include "Base/BcScopedLock.h"
+
 #include "Base/BcDebug.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ BcLogImpl::~BcLogImpl()
 // write
 void BcLogImpl::write( const BcChar* pText, ... )
 {
-	BcScopedLock< BcMutex > Lock( Lock_ );
+	std::lock_guard< std::mutex > Lock( Lock_ );
 
 	va_list ArgList;
 	va_start( ArgList, pText );
@@ -54,7 +54,7 @@ void BcLogImpl::write( const BcChar* pText, ... )
 // write
 void BcLogImpl::write( BcU32 Catagory, const BcChar* pText, ... )
 {
-	BcScopedLock< BcMutex > Lock( Lock_ );
+	std::lock_guard< std::mutex > Lock( Lock_ );
 
 	if( getCatagorySuppression( Catagory ) == BcFalse )
 	{
@@ -69,7 +69,7 @@ void BcLogImpl::write( BcU32 Catagory, const BcChar* pText, ... )
 // flush
 void BcLogImpl::flush()
 {
-	BcScopedLock< BcMutex > Lock( Lock_ );
+	std::lock_guard< std::mutex > Lock( Lock_ );
 
 	internalFlush();
 }
@@ -78,7 +78,7 @@ void BcLogImpl::flush()
 // setCatagorySuppression
 void BcLogImpl::setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed )
 {
-	BcScopedLock< BcMutex > Lock( Lock_ );
+	std::lock_guard< std::mutex > Lock( Lock_ );
 
 	if( IsSuppressed == BcTrue )
 	{
@@ -98,7 +98,7 @@ void BcLogImpl::setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed )
 // getCatagorySuppression
 BcBool BcLogImpl::getCatagorySuppression( BcU32 Catagory ) const
 {
-	BcScopedLock< BcMutex > Lock( Lock_ );
+	std::lock_guard< std::mutex > Lock( Lock_ );
 
 	TSuppressionMap::const_iterator It( SuppressedMap_.find( Catagory ) );
 
