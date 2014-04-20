@@ -278,7 +278,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					
 					ScnFontHeader Header;
 					
-					Header.NoofGlyphs_ = GlyphDescList.size();
+					Header.NoofGlyphs_ = (BcU32)GlyphDescList.size();
 					Header.TextureRef_ = Importer.addImport( TextureObject );
 					Header.NominalSize_ = (BcF32)OriginalNominalSize;
 					

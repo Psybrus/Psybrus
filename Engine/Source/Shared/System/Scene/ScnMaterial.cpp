@@ -41,7 +41,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	Json::Value::Members TextureMembers = ImportTextures.getMemberNames();
 
 	Header.ShaderRef_ = ImportShader.asUInt();	// TODO: Go via addImport. This can then verify for us.
-	Header.NoofTextures_ = TextureMembers.size();	
+	Header.NoofTextures_ = (BcU32)TextureMembers.size();	
 	HeaderStream << Header;
 
 	// Make texture headers.
@@ -405,7 +405,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 		};
 		
 		ParameterBindingList_.push_back( Binding );
-		return ParameterBindingList_.size() - 1;
+		return (BcU32)ParameterBindingList_.size() - 1;
 	}
 	
 	//BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
@@ -675,7 +675,7 @@ BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 		};
 		
 		UniformBlockBindingList_.push_back( Binding );
-		return UniformBlockBindingList_.size() - 1;
+		return (BcU32)UniformBlockBindingList_.size() - 1;
 	}
 	
 	return BcErrorCode;
@@ -846,7 +846,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->pProgram_ = pProgram_;
 	
 	// Setup texture binding block.
-	pRenderNode->NoofTextures_ = TextureBindingList_.size();
+	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
 	pRenderNode->ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * pRenderNode->NoofTextures_ );
 	pRenderNode->pTextureParams_ = (RsTextureParams*)pFrame->allocMem( sizeof( RsTextureParams ) * pRenderNode->NoofTextures_ );
 	
@@ -877,7 +877,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	}
 
 	// Setup uniform blocks.
-	pRenderNode->NoofUniformBlocks_ = UniformBlockBindingList_.size();
+	pRenderNode->NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
 	pRenderNode->pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * pRenderNode->NoofUniformBlocks_ );
 	pRenderNode->ppUniformBuffers_ = (RsUniformBuffer**)pFrame->allocMem( sizeof( RsUniformBuffer ) * pRenderNode->NoofUniformBlocks_ );
 

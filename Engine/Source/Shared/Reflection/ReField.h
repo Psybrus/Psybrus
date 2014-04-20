@@ -66,17 +66,17 @@ public:
 	/**
 		* Get type.
 		*/
-    const ReType*						getType() const;
+    const ReType*					getType() const;
 
 	/**
 		* Set offset.
 		*/
-	void							setOffset( BcU32 Offset );
+	void							setOffset( BcSize Offset );
 
 	/**
 		* Get offset.
 		*/
-	BcU32								getOffset() const;
+	BcSize							getOffset() const;
 
 	/**
 		* Set flags.
@@ -86,7 +86,7 @@ public:
 	/**
 		* Get flags.
 		*/
-	BcU32								getFlags() const;
+	BcU32							getFlags() const;
 
 	/**
 		* Get data from source pointer.
@@ -146,7 +146,7 @@ public:
 	ReContainerAccessor::ReadIterator* newReadIterator( void* pContainerData ) const;
 
 protected:
-	BcU32								Offset_;
+	BcSize								Offset_;
     const ReType*						Type_;
 	BcU32								Flags_;
 

@@ -187,7 +187,7 @@ void ScnDebugRenderComponent::addPrimitive( eRsPrimitiveType Type, ScnDebugRende
 	};
 	
 	PrimitiveSectionList_.push_back( PrimitiveSection );
-	LastPrimitiveSection_ = PrimitiveSectionList_.size() - 1;
+	LastPrimitiveSection_ = (BcU32)PrimitiveSectionList_.size() - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

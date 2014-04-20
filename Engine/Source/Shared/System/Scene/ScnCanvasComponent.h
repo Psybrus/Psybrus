@@ -100,7 +100,7 @@ public:
 	 * and to allocate the total number at the end. Provided you don't overrun the buffer!
 	 * @param NoofVertices Number of vertices to allocate.
 	 */
-	ScnCanvasComponentVertex*			allocVertices( BcU32 NoofVertices );
+	ScnCanvasComponentVertex*			allocVertices( BcSize NoofVertices );
 	
 	/**
 	 * Add raw primitive.<br/>
@@ -232,8 +232,8 @@ protected:
 	// Submission data.
 	ScnCanvasComponentVertex*			pVertices_;
 	ScnCanvasComponentVertex*			pVerticesEnd_;
-	BcU32								NoofVertices_;
-	BcU32								VertexIndex_;
+	BcSize								NoofVertices_;
+	BcSize								VertexIndex_;
 	
 	// Materials.
 	ScnMaterialComponentRef				MaterialComponent_;

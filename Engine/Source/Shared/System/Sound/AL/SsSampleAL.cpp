@@ -103,7 +103,7 @@ void SsSampleAL::update()
 		
 			closeOgg();
 			
-			alBufferData( Handle, Format_, DecodedAudioData.pData(), DecodedAudioData.dataSize(), SampleRate_ );
+			alBufferData( Handle, Format_, DecodedAudioData.pData(), (ALsizei)DecodedAudioData.dataSize(), SampleRate_ );
 		}
 		else
 		{
