@@ -31,9 +31,9 @@ public:
 	 * Get attribute.
 	 */
 	template< class _Ty >
-	ReAttribute* getAttribute()
+	_Ty* getAttribute()
 	{
-		return getAttribute( _Ty::StaticGetClass() );
+		return static_cast< _Ty* >( getAttribute( _Ty::StaticGetClass() ) );
 	}
 
 private:
