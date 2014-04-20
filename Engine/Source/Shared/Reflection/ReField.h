@@ -1,16 +1,16 @@
 #ifndef __REFLECTION_FIELD_H__
 #define __REFLECTION_FIELD_H__
 
-#include "Reflection/RePrimitive.h"
+#include "Reflection/ReAttributable.h"
 #include "Reflection/ReContainerAccessor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Field
 class ReField:
-    public RePrimitive
+    public ReAttributable
 {
 public:
-    REFLECTION_DECLARE_DERIVED( ReField, RePrimitive );
+    REFLECTION_DECLARE_DERIVED( ReField, ReAttributable );
 
 public:
     ReField();

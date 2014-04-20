@@ -88,12 +88,12 @@ inline _Ty* ReConstructClass( const ReClass* InClass )
 	* @return Registered class.
 	*/
 template< typename _Class, std::size_t _Size >
-ReClass* ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setFields( Fields );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
-	return Class;
+	return *Class;
 }
 
 /**
@@ -102,11 +102,11 @@ ReClass* ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser
 	* @return Registered class.
 	*/
 template< typename _Class >
-ReClass* ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
-	return Class;
+	return *Class;
 }
 		
 /**
@@ -117,14 +117,14 @@ ReClass* ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 	* @return Registered class.
 	*/
 template< typename _Class, typename _Super, std::size_t _Size >
-ReClass* ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
 	Class->setFields( Fields );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
-	return Class;
+	return *Class;
 }
 
 /**
@@ -134,13 +134,13 @@ ReClass* ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser
 	* @return Registered class.
 	*/
 template< typename _Class, typename _Super >
-ReClass* ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
-	return Class;
+	return *Class;
 }
 
 /**
@@ -150,12 +150,12 @@ ReClass* ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 	* @return Registered class.
 	*/
 template< typename _Class, std::size_t _Size >
-ReClass* ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setFields( Fields );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
-	return Class;
+	return *Class;
 }
 
 /**
@@ -166,14 +166,14 @@ ReClass* ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSe
 	* @return Registered class.
 	*/
 template< typename _Class, typename _Super, std::size_t _Size >
-ReClass* ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
 	Class->setFields( Fields );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
-	return Class;
+	return *Class;
 }
 
 /**
@@ -183,12 +183,12 @@ ReClass* ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSe
 	* @return Registered class.
 	*/
 template< typename _Enum, std::size_t _Size >
-ReEnum* ReRegisterEnum( const ReEnumConstant ( & EnumConstants )[ _Size ] )
+ReEnum& ReRegisterEnum( const ReEnumConstant ( & EnumConstants )[ _Size ] )
 {
     auto Enum = ReManager::GetEnum( ReTypeTraits< _Enum >::Name() );
 	Enum->setConstants( EnumConstants, _Size );
 	Enum->setType< _Enum >( new ReClassSerialiser_EnumType( Enum->getName() )  );
-	return Enum;
+	return *Enum;
 }
 
 #endif
