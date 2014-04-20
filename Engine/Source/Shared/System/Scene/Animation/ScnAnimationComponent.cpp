@@ -35,7 +35,8 @@ void ScnAnimationComponent::StaticRegisterClass()
 		ReField( "pReferencePose_",				&ScnAnimationComponent::pReferencePose_ ),
 	};
 		
-	ReRegisterClass< ScnAnimationComponent, Super >( Fields );
+	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2050 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

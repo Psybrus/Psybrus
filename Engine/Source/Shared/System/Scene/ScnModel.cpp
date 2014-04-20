@@ -215,7 +215,8 @@ void ScnModelComponent::StaticRegisterClass()
 		ReField( "PerComponentPrimitiveDataList_",	&ScnModelComponent::PerComponentPrimitiveDataList_ ),
 	};
 		
-	ReRegisterClass< ScnModelComponent, Super >( Fields );
+	ReRegisterClass< ScnModelComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2030 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

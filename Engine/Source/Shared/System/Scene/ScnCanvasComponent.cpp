@@ -30,7 +30,8 @@ void ScnCanvasComponent::StaticRegisterClass()
 		ReField( "DiffuseTexture_",		&ScnCanvasComponent::DiffuseTexture_ )
 	};
 		
-	ReRegisterClass< ScnCanvasComponent, Super >( Fields );
+	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2000 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

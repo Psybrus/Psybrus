@@ -55,7 +55,8 @@ void ScnEntity::StaticRegisterClass()
 		ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
 	};
 		
-	ReRegisterClass< ScnEntity, Super >( Fields );
+	ReRegisterClass< ScnEntity, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( 2100 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -92,26 +92,24 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnSound >();
 
 	// Register scene components.
-	CsCore::pImpl()->registerResource< ScnComponent >();
-	CsCore::pImpl()->registerResource< ScnRenderableComponent >();
-	CsCore::pImpl()->registerResource< ScnSpatialComponent >();
-	CsCore::pImpl()->registerResource< ScnEntity >();
-	CsCore::pImpl()->registerResource< ScnDebugRenderComponent >();
-	CsCore::pImpl()->registerResource< ScnMaterialComponent >();
-	CsCore::pImpl()->registerResource< ScnFontComponent >();
-	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >();
-	CsCore::pImpl()->registerResource< ScnAnimationComponent >();
-	CsCore::pImpl()->registerResource< ScnLightComponent >();
-	CsCore::pImpl()->registerResource< ScnModelComponent >();
-	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >();
-	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >();
-	CsCore::pImpl()->registerResource< ScnCanvasComponent >();
+	CsCore::pImpl()->registerResource< ScnComponent >(); // 2130
+	CsCore::pImpl()->registerResource< ScnRenderableComponent >(); // 2120
+	CsCore::pImpl()->registerResource< ScnSpatialComponent >(); // 2110
+	CsCore::pImpl()->registerResource< ScnEntity >(); // 2100
+	CsCore::pImpl()->registerResource< ScnDebugRenderComponent >(); // 2090
+	CsCore::pImpl()->registerResource< ScnMaterialComponent >(); // 2080
+	CsCore::pImpl()->registerResource< ScnFontComponent >(); // 2070
+	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >(); // 2060
+	CsCore::pImpl()->registerResource< ScnAnimationComponent >(); // 2050
+	CsCore::pImpl()->registerResource< ScnLightComponent >(); // 2040
+	CsCore::pImpl()->registerResource< ScnModelComponent >(); // 2030
+	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >(); // 2020
+	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >(); // 2010
+	CsCore::pImpl()->registerResource< ScnCanvasComponent >(); // 2000
+	CsCore::pImpl()->registerResource< ScnViewComponent >(); // -2000
 
 	// Register game resources before the view.
 	PsyGameRegisterResources();
-
-	// View is the last thing we want to update.
-	CsCore::pImpl()->registerResource< ScnViewComponent >();
 
 	return evtRET_REMOVE;
 }
