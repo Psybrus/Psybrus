@@ -51,7 +51,7 @@ SysKernel::~SysKernel()
 	stop();
 
 	// Join.
-	BcThread::join();
+	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ void SysKernel::run( BcBool Threaded )
 		addSystems();
 
 		// Start up the thread.
-		BcThread::start( "SysKernel Main" );
+		ExecutionThread_ = std::thread( &SysKernel::execute, this );
 	
 		// Wait until all systems have opened.
 		BcBool AllOpened = BcFalse;

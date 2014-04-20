@@ -15,10 +15,10 @@
 #define __SysJobWorker_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcThread.h"
 #include "System/SysJob.h"
 #include "System/SysFence.h"
 
+#include <thread>
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -29,8 +29,7 @@ class SysJobQueue;
 
 //////////////////////////////////////////////////////////////////////////
 // SysJobWorker
-class SysJobWorker:
-	public BcThread
+class SysJobWorker
 {
 public:
 	SysJobWorker( SysJobQueue* pParent );
@@ -74,6 +73,7 @@ private:
 	
 private:
 	SysJobQueue*			pParent_;
+	std::thread				ExecutionThread_;
 	BcBool					Active_;
 	std::atomic< BcU32 >	HaveJob_;
 	SysJob*					pCurrentJob_;
