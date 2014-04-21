@@ -28,7 +28,6 @@ void CsResource::StaticRegisterClass()
 {
 	static const ReField Fields[] = 
 	{
-		ReField( "Name_",				&CsResource::Name_ ),
 		ReField( "Index_",				&CsResource::Index_ ),
 	};
 		
@@ -38,7 +37,6 @@ void CsResource::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsResource::CsResource():
-	Name_( BcName::INVALID ),
 	Index_( BcErrorCode ),
 	pPackage_( NULL ),
 	InitStage_( INIT_STAGE_INITIAL ),
@@ -62,7 +60,7 @@ void CsResource::preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPac
 	BcAssertMsg( Name != BcName::INVALID, "Resource can not have an invalid name." );
 	BcAssertMsg( Name != BcName::NONE, "Resource can not have a none name." );
 
-	Name_ = Name;
+	setName( Name );
 	Index_ = Index;
 	pPackage_ = pPackage;
 }
@@ -150,13 +148,6 @@ CsPackage* CsResource::getPackage()
 const BcName& CsResource::getPackageName() const
 {
 	return pPackage_ != NULL ? pPackage_->getName() : BcName::INVALID;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getName
-const BcName& CsResource::getName() const
-{
-	return Name_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -303,7 +294,7 @@ BcU32 CsResource::getNoofChunks() const
 void CsResource::markCreate()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_CREATE );
-	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*Name_).c_str() );
+	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*getName()).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -311,7 +302,7 @@ void CsResource::markCreate()
 void CsResource::markReady()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_READY );
-	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*Name_).c_str() );
+	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*getName()).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -319,7 +310,7 @@ void CsResource::markReady()
 void CsResource::markDestroy()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_DESTROY );
-	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*Name_).c_str() );
+	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*getName()).c_str() );
 
 	CsCore::pImpl()->destroyResource( this );
 }
