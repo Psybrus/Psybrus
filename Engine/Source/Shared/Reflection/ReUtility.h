@@ -4,7 +4,6 @@
 #include "Base/BcTypes.h"
 #include "Base/BcBinaryData.h"
 #include "Base/BcHash.h"
-#include "Base/BcAtomic.h"
 #include "Base/BcName.h"
 
 #include "Reflection/ReMacros.h"

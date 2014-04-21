@@ -153,7 +153,7 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 // getLogData
 std::vector<std::string> BcLogImpl::getLogData()
 {
-	BcScopedLock< BcMutex > Lock(Lock_);
+	std::lock_guard< std::mutex > Lock( Lock_ );
 	
 	std::vector<std::string> data;
 	for each (std::string u in LogBuffer)
