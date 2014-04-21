@@ -7,6 +7,8 @@
 #include "Reflection/ReEnum.h"
 #include "Reflection/ReEnumConstant.h"
 
+#include "Base/BcMisc.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Definitions
 REFLECTION_DEFINE_BASE( ReITypeSerialiser );
@@ -68,6 +70,7 @@ struct Factory
         ReType* FoundType = GetType( Name );
 		if( FoundType == nullptr )
 		{
+			BcAssertMsg( BcIsGameThread(), "Reflection can only modify database on the game thread." );
 			FoundType = new ReClass( Name );
 			Types_[ Name ] = FoundType;
 		}
@@ -104,6 +107,7 @@ struct Factory
         ReType* FoundType = GetType( Name );
 		if( FoundType == nullptr )
 		{
+			BcAssertMsg( BcIsGameThread(), "Reflection can only modify database on the game thread." );
 			FoundType = new ReEnum( Name );
 			Types_[ Name ] = FoundType;
 		}
