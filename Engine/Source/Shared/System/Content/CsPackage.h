@@ -22,12 +22,17 @@ class CsPackageLoader;
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackage
-class CsPackage
+class CsPackage:
+	public ReObject
 {
+public:
+	REFLECTION_DECLARE_DERIVED( CsPackage, ReObject );
+
 private:
 	CsPackage( const CsPackage& ){}
 
 public:
+	CsPackage();
 	CsPackage( const BcName& Name );
 	~CsPackage();
 
@@ -88,12 +93,6 @@ public:
 
 public:
 	/**
-	 * Get name.
-	 */
-	const BcName&					getName() const;
-
-public:
-	/**
 	 * Get string.
 	 * @param Offset Offset of string in table.
 	 * @return String, or NULL pointer if invalid offset.
@@ -105,7 +104,6 @@ public:
 	BcBool							requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx, void* pDataLocation = NULL );
 	
 private:
-	BcName							Name_;
 	std::atomic< BcU32 >			RefCount_;
 
 	// Loader we use.

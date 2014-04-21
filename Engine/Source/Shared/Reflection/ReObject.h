@@ -58,7 +58,7 @@ public:
 	/**
 		* @brief Get object's name.
 		*/
-	BcName							getName() const;
+	const BcName&					getName() const;
 	
 	/**
 		* @brief Get object's full name.

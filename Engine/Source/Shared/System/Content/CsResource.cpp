@@ -29,6 +29,8 @@ void CsResource::StaticRegisterClass()
 	static const ReField Fields[] = 
 	{
 		ReField( "Index_",				&CsResource::Index_ ),
+		ReField( "InitStage_",			&CsResource::InitStage_ ),
+		ReField( "UniqueId_",			&CsResource::UniqueId_ ),
 	};
 		
 	ReRegisterClass< CsResource, Super >( Fields );
@@ -38,7 +40,6 @@ void CsResource::StaticRegisterClass()
 // Ctor
 CsResource::CsResource():
 	Index_( BcErrorCode ),
-	pPackage_( NULL ),
 	InitStage_( INIT_STAGE_INITIAL ),
 	UniqueId_( UniqueIdCounter_++ )
 {
@@ -61,8 +62,8 @@ void CsResource::preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPac
 	BcAssertMsg( Name != BcName::NONE, "Resource can not have a none name." );
 
 	setName( Name );
+	setOwner( pPackage );
 	Index_ = Index;
-	pPackage_ = pPackage;
 }
 
 #ifdef PSY_SERVER
@@ -138,16 +139,23 @@ void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // getName
-CsPackage* CsResource::getPackage()
+CsPackage* CsResource::getPackage() const
 {
-	return pPackage_;
+	CsPackage* RetVal = nullptr;
+	if( getOwner() != nullptr )
+	{
+		BcAssert( getOwner()->isTypeOf< CsPackage >() );
+		RetVal = static_cast< CsPackage* >( getOwner() );
+	}
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getName
 const BcName& CsResource::getPackageName() const
 {
-	return pPackage_ != NULL ? pPackage_->getName() : BcName::INVALID;
+	return getPackage() != nullptr ? getPackage()->getName() : BcName::INVALID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,21 +263,21 @@ void CsResource::serialiseProperties()
 // getString
 const BcChar* CsResource::getString( BcU32 Offset ) const
 {
-	return pPackage_->getString( Offset );
+	return getPackage()->getString( Offset );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // markupName
 void CsResource::markupName( BcName& Name ) const
 {
-	pPackage_->markupName( Name );
+	getPackage()->markupName( Name );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getChunk
 void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 {
-	if( !pPackage_->requestChunk( Index_, Chunk, pDataLocation ) )
+	if( !getPackage()->requestChunk( Index_, Chunk, pDataLocation ) )
 	{
 
 	}
@@ -279,14 +287,14 @@ void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 // getChunkSize
 BcU32 CsResource::getChunkSize( BcU32 Chunk )
 {
-	return pPackage_->getChunkSize( Index_, Chunk );
+	return getPackage()->getChunkSize( Index_, Chunk );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofChunks
 BcU32 CsResource::getNoofChunks() const
 {
-	return pPackage_->getNoofChunks( Index_ );
+	return getPackage()->getNoofChunks( Index_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

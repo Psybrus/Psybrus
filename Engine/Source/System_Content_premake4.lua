@@ -25,6 +25,7 @@ project "Engine_System_Content"
    		links {
         -- Engine libs.
         "Engine_System",
+        "Engine_System_File",
    		}
 
    	configuration "vs2012"

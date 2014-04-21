@@ -125,7 +125,7 @@ public:
 	/**
 	 * Get package.
 	 */
-	CsPackage*						getPackage();
+	CsPackage*						getPackage() const;
 
 	/**
 	 * Get package name.
@@ -202,7 +202,6 @@ private:
 private:
 	//
 	BcU32							Index_;
-	CsPackage*						pPackage_;
 	std::atomic< BcU32 >			InitStage_;
 
 	BcU32							UniqueId_;
