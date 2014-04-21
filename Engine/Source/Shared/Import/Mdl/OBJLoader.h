@@ -14,7 +14,7 @@
 #ifndef __OBJLOADER_H__
 #define __OBJLOADER_H__
 
-#include "Base/BcQuat.h"
+#include "Math/MaQuat.h"
 #include "Mdl.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -33,9 +33,9 @@ public:
 	MdlNode* load( const BcChar* FileName, const BcChar* NodeName );
 
 private:
-	std::vector< BcVec3d > Positions_;
-	std::vector< BcVec3d > Normals_;
-	std::vector< BcVec2d > TexCoords_;
+	std::vector< MaVec3d > Positions_;
+	std::vector< MaVec3d > Normals_;
+	std::vector< MaVec2d > TexCoords_;
 
 };
 

@@ -43,7 +43,6 @@ project "Engine_System_Scene"
         "External_BulletPhysics",
         "External_freetype",
         "External_jsoncpp",
-        "External_libb64",
    		}
 
    	configuration "vs2012"

@@ -59,8 +59,8 @@ void ScnCore::open()
 	pSpatialTree_ = new ScnSpatialTree();
 
 	// Create root node for spatial tree.
-	BcVec3d HalfBounds( BcVec3d( 16.0f, 16.0f, 16.0f ) * 1024.0f );
-	pSpatialTree_->createRoot( BcAABB( -HalfBounds, HalfBounds ) );
+	MaVec3d HalfBounds( MaVec3d( 16.0f, 16.0f, 16.0f ) * 1024.0f );
+	pSpatialTree_->createRoot( MaAABB( -HalfBounds, HalfBounds ) );
 
 	// Look up all component classes and create update lists for them.
 	NoofComponentLists_ = 0;
@@ -352,7 +352,7 @@ void ScnCore::visitView( ScnVisitor* pVisitor, const ScnViewComponent* View )
 
 //////////////////////////////////////////////////////////////////////////
 // visitBounds
-void ScnCore::visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds )
+void ScnCore::visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds )
 {
 	pSpatialTree_->visitBounds( pVisitor, Bounds );
 }

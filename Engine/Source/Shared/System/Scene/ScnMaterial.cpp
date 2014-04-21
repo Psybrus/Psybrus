@@ -485,7 +485,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value, BcU32 Ind
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value, BcU32 Index )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec2d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -507,7 +507,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec2d& Value, 
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value, BcU32 Index )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec3d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -530,7 +530,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec3d& Value, 
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value, BcU32 Index )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec4d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -554,36 +554,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcVec4d& Value, 
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat3d& Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_FLOAT_MAT3 )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer++ = (BcF32)Value[0][0];
-			*pParameterBuffer++ = (BcF32)Value[0][1];
-			*pParameterBuffer++ = (BcF32)Value[0][2];
-			*pParameterBuffer++ = (BcF32)Value[1][0];
-			*pParameterBuffer++ = (BcF32)Value[1][1];
-			*pParameterBuffer++ = (BcF32)Value[1][2];
-			*pParameterBuffer++ = (BcF32)Value[2][0];
-			*pParameterBuffer++ = (BcF32)Value[2][1];
-			*pParameterBuffer = (BcF32)Value[2][2];
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a mat3.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const BcMat4d& Value, BcU32 Index )
+void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaMat4d& Value, BcU32 Index )
 {
 	if( Parameter < ParameterBindingList_.size() )
 	{
@@ -691,21 +662,21 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsUniformBuffer* Unifor
 
 //////////////////////////////////////////////////////////////////////////
 // setWorldTransform
-void ScnMaterialComponent::setWorldTransform( const BcMat4d& Transform )
+void ScnMaterialComponent::setWorldTransform( const MaMat4d& Transform )
 {
 	setParameter( WorldTransformParameter_, Transform );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setLightParameters
-void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
+void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const MaVec3d& Position, const MaVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
 {
 	// TODO: Perhaps store light values in a matrix to save on setting parameters?
 	setParameter( LightPositionParameter_, Position, LightIndex );
 	setParameter( LightDirectionParameter_, Direction, LightIndex );
 	setParameter( LightAmbientColourParameter_, AmbientColour, LightIndex );
 	setParameter( LightDiffuseColourParameter_, DiffuseColour, LightIndex );
-	setParameter( LightAttnParameter_, BcVec3d( AttnC, AttnL, AttnQ ), LightIndex );
+	setParameter( LightAttnParameter_, MaVec3d( AttnC, AttnL, AttnQ ), LightIndex );
 }
 
 //////////////////////////////////////////////////////////////////////////

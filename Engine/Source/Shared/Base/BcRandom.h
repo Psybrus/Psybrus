@@ -15,10 +15,6 @@
 #define __BCRANDOM_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec2d.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcVec4d.h"
-
 //////////////////////////////////////////////////////////////////////////
 // BcRandom
 class BcRandom
@@ -36,13 +32,6 @@ public:
 	BcF32 noise( BcU32 X, BcU32 Width );
 	BcF32 smoothedNoise( BcF32 X, BcU32 Width = 512 );
 	BcF32 interpolatedNoise( BcF32 X, BcU32 Width = 512 );
-
-	BcVec2d randVec2();
-	BcVec3d randVec3();
-	BcVec4d randVec4();
-	BcVec2d randVec2Normal();
-	BcVec3d randVec3Normal();
-	BcVec4d randVec4Normal();
 
 private:
 	BcU32 Seed_;

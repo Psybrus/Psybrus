@@ -203,18 +203,18 @@ MdlBsp::eNodeClassify MdlBsp::classifyNode( MdlBspNode* pToClassify, MdlBspNode*
 
 //////////////////////////////////////////////////////////////////////////
 // clipNode
-MdlBspNode* MdlBsp::clipNode( MdlBspNode* pSourceNode, MdlBsp::eNodeClassify ClassifyAs, const BcPlane& ClippingPlane )
+MdlBspNode* MdlBsp::clipNode( MdlBspNode* pSourceNode, MdlBsp::eNodeClassify ClassifyAs, const MaPlane& ClippingPlane )
 {
 	// Add new vertices to list where required.
-	std::vector< BcVec3d > VertexList;
+	std::vector< MaVec3d > VertexList;
 
 	VertexList.reserve( 32 );
 
 	for( BcU32 i = 0; i < pSourceNode->nVertices_; ++i )
 	{
-		const BcVec3d Start = pSourceNode->Vertices_[ i ];
-		const BcVec3d End = pSourceNode->Vertices_[ ( i + 1 ) % pSourceNode->nVertices_ ];
-		const BcVec3d Edge = ( End - Start );
+		const MaVec3d Start = pSourceNode->Vertices_[ i ];
+		const MaVec3d End = pSourceNode->Vertices_[ ( i + 1 ) % pSourceNode->nVertices_ ];
+		const MaVec3d Edge = ( End - Start );
 
 		VertexList.push_back( Start );
 
@@ -222,7 +222,7 @@ MdlBspNode* MdlBsp::clipNode( MdlBspNode* pSourceNode, MdlBsp::eNodeClassify Cla
 
 		if( ClippingPlane.lineIntersection( Start, Edge, Distance ) )
 		{
-			BcVec3d Intersection = Start - ( Edge * Distance );
+			MaVec3d Intersection = Start - ( Edge * Distance );
 			VertexList.push_back( Intersection );
 		}
 	}
@@ -236,7 +236,7 @@ MdlBspNode* MdlBsp::clipNode( MdlBspNode* pSourceNode, MdlBsp::eNodeClassify Cla
 
 	for( BcU32 iSrc = 0; iSrc < nVertices; ++iSrc )
 	{
-		const BcVec3d& TestVert = VertexList[ iSrc ];
+		const MaVec3d& TestVert = VertexList[ iSrc ];
 		const BcF32 Dist = ClippingPlane.distance( TestVert );
 
 		switch( ClassifyAs )

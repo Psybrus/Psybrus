@@ -40,10 +40,10 @@ public:
 	BcF32	DecayLFRatio_;		
 	BcF32	ReflectionsGain_;	
 	BcF32	ReflectionsDelay_;	
-	BcVec3d	ReflectionsPan_;	
+	MaVec3d	ReflectionsPan_;	
 	BcF32	LateReverbGain_;	
 	BcF32	LateReverbDelay_;
-	BcVec3d	LateReverbPan_;	
+	MaVec3d	LateReverbPan_;	
 	BcF32	EchoTime_;
 	BcF32	EchoDepth_;
 	BcF32	ModulationTime_;

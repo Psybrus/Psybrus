@@ -32,13 +32,13 @@ RsColour::RsColour()
 {
 }
 
-RsColour::RsColour( const BcVec4d& Vec ):
-	BcVec4d( Vec )
+RsColour::RsColour( const MaVec4d& Vec ):
+	MaVec4d( Vec )
 {
 }
 
 RsColour::RsColour( BcU32 RGBA ):
-	BcVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
+	MaVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
 				( ( RGBA >> 8 ) & 0xff ) / 255.0f,
 				( ( RGBA >> 16 ) & 0xff ) / 255.0f,
 				( ( RGBA >> 24 ) & 0xff ) / 255.0f )
@@ -47,7 +47,7 @@ RsColour::RsColour( BcU32 RGBA ):
 }
 
 RsColour::RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A ):
-	BcVec4d( R, G, B, A )
+	MaVec4d( R, G, B, A )
 {
 }
 

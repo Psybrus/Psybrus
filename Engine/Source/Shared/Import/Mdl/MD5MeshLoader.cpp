@@ -16,7 +16,7 @@
 #include "Base/BcDebug.h"
 #include "Base/BcFile.h"
 #include "Base/BcString.h"
-#include "Base/BcQuat.h"
+#include "Math/MaQuat.h"
 
 #include "MdlNode.h"
 #include "MdlMesh.h"
@@ -239,15 +239,15 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			pNode->type( eNT_JOINT );
 
 			// Build the transform and inverse bind pose.
-			BcQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
+			MaQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
 			JointRot.calcFromXYZ();
-			BcMat4d JointRotation;
-			BcMat4d JointTranslate;
-			BcMat4d JointTransform;
-			BcMat4d InverseBindpose;
+			MaMat4d JointRotation;
+			MaMat4d JointTranslate;
+			MaMat4d JointTransform;
+			MaMat4d InverseBindpose;
 			JointRot.asMatrix4d( JointRotation );
 			JointTranslate.identity();
-			JointTranslate.row3( BcVec4d( pJoint->TX_, pJoint->TY_, pJoint->TZ_, 1.0f ) );
+			JointTranslate.row3( MaVec4d( pJoint->TX_, pJoint->TY_, pJoint->TZ_, 1.0f ) );
 
 			JointTransform = JointRotation * JointTranslate;
 			InverseBindpose = JointTransform;
@@ -284,13 +284,13 @@ MdlNode* MD5MeshLoader::load( const BcChar* FileName, const BcChar* NodeName )
 	delete [] pMeshes_;
 	pMeshes_ = NULL;
 
-	BcMat4d RootTransform;
+	MaMat4d RootTransform;
 #if 1
 	// Convert from Z up to Y up & right hand to left hand.
-	RootTransform.row0( BcVec4d(  1.0f,  0.0f,  0.0f,  0.0f ) );
-	RootTransform.row1( BcVec4d(  0.0f,  0.0f,  1.0f,  0.0f ) );
-	RootTransform.row2( BcVec4d(  0.0f, -1.0f,  0.0f,  0.0f ) );
-	RootTransform.row3( BcVec4d(  0.0f,  0.0f,  0.0f,  1.0f ) );
+	RootTransform.row0( MaVec4d(  1.0f,  0.0f,  0.0f,  0.0f ) );
+	RootTransform.row1( MaVec4d(  0.0f,  0.0f,  1.0f,  0.0f ) );
+	RootTransform.row2( MaVec4d(  0.0f, -1.0f,  0.0f,  0.0f ) );
+	RootTransform.row3( MaVec4d(  0.0f,  0.0f,  0.0f,  1.0f ) );
 #endif
 	pRootNode->makeRelativeTransform( RootTransform );
 
@@ -334,11 +334,11 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 		pMesh->addIndex( Index );
 	}
 
-	BcVec3d WeightPos;
+	MaVec3d WeightPos;
 	for ( BcU32 i = 0; i < pMeshes->nVerts_; ++i )
 	{
 		MD5_Vert* pMD5Vert = &pMeshes->pVerts_[ i ];
-		BcVec3d Position( 0.0f, 0.0f, 0.0f );
+		MaVec3d Position( 0.0f, 0.0f, 0.0f );
 
 		// Setup vertex.
 		MdlVertex Vert;
@@ -386,9 +386,9 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 		}
 		
 		// Generate bind pose.
-		BcVec3d VertexWeights[ 4 ];
-		BcVec3d JointPositions[ 4 ];
-		BcQuat JointQuats[ 4 ];
+		MaVec3d VertexWeights[ 4 ];
+		MaVec3d JointPositions[ 4 ];
+		MaQuat JointQuats[ 4 ];
 		for ( BcU32 j = 0; j < Vert.nWeights_; ++j )
 		{
 			BcU32 WeightIndex = pMD5Vert->WeightIndex_ + j;
@@ -396,20 +396,20 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 
 			// Fix up a joint.
 			MD5_Joint* pJoint = &pJoints[ pMD5Weight->JointID_ ];
-			BcVec3d JointTran( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
-			BcQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
+			MaVec3d JointTran( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
+			MaQuat JointRot( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
 			JointRot.calcFromXYZ();
 
-			VertexWeights[ j ] = BcVec3d( pMD5Weight->X_, pMD5Weight->Y_, pMD5Weight->Z_ );
+			VertexWeights[ j ] = MaVec3d( pMD5Weight->X_, pMD5Weight->Y_, pMD5Weight->Z_ );
 			JointPositions[ j ] = JointTran;
 			JointQuats[ j ] = JointRot;
 		}
 
 		for ( BcU32 j = 0; j < Vert.nWeights_; ++j )
 		{
-			BcVec3d WeightPos( VertexWeights[ j ] );
-			const BcVec3d& JointTran( JointPositions[ j ] );
-			const BcQuat& JointRot( JointQuats[ j ] );
+			MaVec3d WeightPos( VertexWeights[ j ] );
+			const MaVec3d& JointTran( JointPositions[ j ] );
+			const MaQuat& JointRot( JointQuats[ j ] );
 
 			JointRot.rotateVector( WeightPos );
 			Position += ( WeightPos + JointTran ) * Vert.Weights_[ j ];
@@ -427,7 +427,7 @@ void MD5MeshLoader::buildBindPose( MdlNode* pNode, BcU32 iMesh )
 	pMesh->buildTangents();
 
 	// Setup AABB to be larger than the skin to account for motion.
-	BcAABB AABB = pMesh->findAABB();
+	MaAABB AABB = pMesh->findAABB();
 
 	AABB.min( AABB.min() * 1.5f );
 	AABB.max( AABB.max() * 1.5f );

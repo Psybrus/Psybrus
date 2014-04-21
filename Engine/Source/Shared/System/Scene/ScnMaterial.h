@@ -92,19 +92,18 @@ public:
 	void								setParameter( BcU32 Parameter, BcS32 Value, BcU32 Index = 0 );
 	void								setParameter( BcU32 Parameter, BcBool Value, BcU32 Index = 0 );
 	void								setParameter( BcU32 Parameter, BcF32 Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const BcVec2d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const BcVec3d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const BcVec4d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const BcMat3d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const BcMat4d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const MaVec2d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const MaVec3d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const MaVec4d& Value, BcU32 Index = 0 );
+	void								setParameter( BcU32 Parameter, const MaMat4d& Value, BcU32 Index = 0 );
 	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
 
 	BcU32								findUniformBlock( const BcName& UniformBlockName );	
 	void								setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer );
 
 	// Common scene parameters.
-	void								setWorldTransform( const BcMat4d& Transform );
-	void								setLightParameters( BcU32 LightIndex, const BcVec3d& Position, const BcVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
+	void								setWorldTransform( const MaMat4d& Transform );
+	void								setLightParameters( BcU32 LightIndex, const MaVec3d& Position, const MaVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
 
 	// Common uniform blocks.
 	void								setViewUniformBlock( RsUniformBuffer* UniformBuffer );

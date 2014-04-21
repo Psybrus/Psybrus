@@ -52,7 +52,7 @@ public:
 	 */
 	ScnSpatialTreeNode*					getSpatialTreeNode();
 
-	virtual BcAABB						getAABB() const;
+	virtual MaAABB						getAABB() const;
 
 	BcBool								isLit() const;
 

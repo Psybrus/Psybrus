@@ -25,10 +25,6 @@ project "Engine_System_Os"
    		links {
         -- Engine libs.
         "Engine_System",
-
-   			-- External libs.
-        "External_jsoncpp",
-        "External_libb64",
    		}
 
    	configuration "vs2012"

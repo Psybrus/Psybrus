@@ -15,7 +15,7 @@
 #define __RSLIGHT_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec4d.h"
+#include "Math/MaVec4d.h"
 
 #include "System/Renderer/RsTypes.h"
 
@@ -37,7 +37,7 @@ public:
 	eRsLightType	Type_;
 
 	// Position/Direction.
-	BcVec4d			PosDir_;
+	MaVec4d			PosDir_;
 
 	// Colour.
 	RsColour		Colour_;

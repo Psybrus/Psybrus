@@ -110,9 +110,9 @@ OsClientWindows::OsClientWindows()
 	PrevMouseY_ = 0;
 	MouseLocked_ = BcFalse;
 
-	MousePrevDelta_ = BcVec2d( 0.0f, 0.0f );
-	MouseDelta_ = BcVec2d( 0.0f, 0.0f );
-	MousePos_ = BcVec2d( 0.0f, 0.0f );
+	MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
+	MouseDelta_ = MaVec2d( 0.0f, 0.0f );
+	MousePos_ = MaVec2d( 0.0f, 0.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -237,7 +237,7 @@ void OsClientWindows::update()
 		MousePos_.y( BcClamp( MousePos_.y(), 0.0f, BcF32( WY ) ) );
 
 		// Smooth out delta
-		const BcVec2d TempOld = MouseDelta_;
+		const MaVec2d TempOld = MouseDelta_;
 		MouseDelta_ = ( MousePrevDelta_ + MouseDelta_ ) * 0.5f;
 		MousePrevDelta_ = TempOld;
 
@@ -374,8 +374,8 @@ void OsClientWindows::setMouseLock( BcBool Enabled )
 			const BcS32 WY = ( Rect.bottom - Rect.top );
 
 			// Reset delta.
-			MouseDelta_ = BcVec2d( 0.0f, 0.0f );
-			MousePrevDelta_ = BcVec2d( 0.0f, 0.0f );
+			MouseDelta_ = MaVec2d( 0.0f, 0.0f );
+			MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
 
 			// Position in center of screen.
 			::SetCursorPos( Rect.left + ( WX / 2 ), Rect.top + ( WY / 2 ) );

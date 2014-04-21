@@ -15,7 +15,7 @@
 #define __OsClientWindows_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec2d.h"
+#include "Math/MaVec2d.h"
 #include "System/Os/OsWindows.h"
 #include "System/Os/OsClient.h"
 
@@ -67,7 +67,7 @@ public:
 	/**
 	 * Get window center.
 	 */
-	BcVec2d getWindowCentre() const;
+	MaVec2d getWindowCentre() const;
 
 	/**
 	 * Set mouse lock.
@@ -102,9 +102,9 @@ private:
 	BcS16			PrevMouseX_;
 	BcS16			PrevMouseY_;
 
-	BcVec2d			MousePrevDelta_;
-	BcVec2d			MouseDelta_;
-	BcVec2d			MousePos_;
+	MaVec2d			MousePrevDelta_;
+	MaVec2d			MouseDelta_;
+	MaVec2d			MousePos_;
 };
 
 #endif

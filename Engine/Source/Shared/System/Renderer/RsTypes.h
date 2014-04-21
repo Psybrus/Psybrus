@@ -15,15 +15,15 @@
 #define __RSTYPES_MANGLE_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec4d.h"
+#include "Math/MaVec4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Datatypes
 struct RsColour:
-	public BcVec4d
+	public MaVec4d
 {
 	RsColour();
-	RsColour( const BcVec4d& Vec );
+	RsColour( const MaVec4d& Vec );
 	RsColour( BcU32 RGBA );
 	RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A );
 

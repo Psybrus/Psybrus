@@ -72,43 +72,43 @@ struct ScnShaderProgramHeader
 // ScnShaderViewUniformBlockData
 struct ScnShaderViewUniformBlockData
 {
-	BcMat4d							InverseProjectionTransform_;
-	BcMat4d							ProjectionTransform_;
-	BcMat4d							InverseViewTransform_;
-	BcMat4d							ViewTransform_;
-	BcMat4d							ClipTransform_;
+	MaMat4d							InverseProjectionTransform_;
+	MaMat4d							ProjectionTransform_;
+	MaMat4d							InverseViewTransform_;
+	MaMat4d							ViewTransform_;
+	MaMat4d							ClipTransform_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderLightUniformBlockData
 struct ScnShaderLightUniformBlockData
 {
-	BcVec3d							LightPosition_[4];
-	BcVec3d							LightDirection_[4];
-	BcVec4d							LightAmbientColour_[4];
-	BcVec4d							LightDiffuseColour_[4];
-	BcVec3d							LightAttn_[4];
+	MaVec3d							LightPosition_[4];
+	MaVec3d							LightDirection_[4];
+	MaVec4d							LightAmbientColour_[4];
+	MaVec4d							LightDiffuseColour_[4];
+	MaVec3d							LightAttn_[4];
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderObjectUniformBlockData
 struct ScnShaderObjectUniformBlockData
 {
-	BcMat4d							WorldTransform_;
+	MaMat4d							WorldTransform_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderBoneUniformBlockData
 struct ScnShaderBoneUniformBlockData
 {
-	BcMat4d							BoneTransform_[24];
+	MaMat4d							BoneTransform_[24];
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderAlphaTestUniformBlockData
 struct ScnShaderAlphaTestUniformBlockData
 {
-	BcVec2d							AlphaTestStep_;
+	MaVec2d							AlphaTestStep_;
 };
 
 #endif

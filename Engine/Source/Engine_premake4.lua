@@ -39,6 +39,7 @@ project "Engine"
         "Engine_Base",
         "Engine_Events",
         "Engine_Import",
+        "Engine_Math",
         "Engine_Reflection",
         "Engine_Serialisation",
         "Engine_System",

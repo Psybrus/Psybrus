@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		BcCPUVec4d.cpp
+* File:		MaCPUVec4d.cpp
 * Author: 	Neil Richardson
 * Ver/Date:	
 * Description:
@@ -11,31 +11,31 @@
 * 
 **************************************************************************/
 
-#include "Base/BcCPUVec4d.h"
-#include "Base/BcCPUVec3d.h"
-#include "Base/BcCPUVec2d.h"
+#include "Math/MaCPUVec4d.h"
+#include "Math/MaCPUVec3d.h"
+#include "Math/MaCPUVec2d.h"
 #include "Base/BcMath.h"
 
 #include "Base/BcString.h"
 
-BcCPUVec4d::BcCPUVec4d( const BcChar* pString )
+MaCPUVec4d::MaCPUVec4d( const BcChar* pString )
 {
 	BcSScanf( pString, "%f,%f,%f,%f", &X_, &Y_, &Z_, &W_ );
 }
 
-BcCPUVec4d::BcCPUVec4d( const BcCPUVec2d& Rhs ):
-	BcCPUVecQuad( Rhs.x(), Rhs.y(), 0.0f, 0.0f )
+MaCPUVec4d::MaCPUVec4d( const MaCPUVec2d& Rhs ):
+	MaCPUVecQuad( Rhs.x(), Rhs.y(), 0.0f, 0.0f )
 {
 
 }
 
-BcCPUVec4d::BcCPUVec4d( const BcCPUVec3d& Rhs, BcF32 W ):
-	BcCPUVecQuad( Rhs.x(), Rhs.y(), Rhs.z(), W )
+MaCPUVec4d::MaCPUVec4d( const MaCPUVec3d& Rhs, BcF32 W ):
+	MaCPUVecQuad( Rhs.x(), Rhs.y(), Rhs.z(), W )
 {
 
 }
 
-void BcCPUVec4d::lerp(const BcCPUVec4d& A, const BcCPUVec4d& B, BcF32 T)
+void MaCPUVec4d::lerp(const MaCPUVec4d& A, const MaCPUVec4d& B, BcF32 T)
 {
 	const BcF32 lK0 = 1.0f - T;
 	const BcF32 lK1 = T;
@@ -46,30 +46,30 @@ void BcCPUVec4d::lerp(const BcCPUVec4d& A, const BcCPUVec4d& B, BcF32 T)
 		(A.W_ * lK0) + (B.W_ * lK1));
 }
 
-BcCPUVec3d BcCPUVec4d::normal3() const
+MaCPUVec3d MaCPUVec4d::normal3() const
 {
 	BcF32 Mag = BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ );
 	
 	if ( Mag == 0.0f )
 	{
-		return BcCPUVec3d(0,0,0);
+		return MaCPUVec3d(0,0,0);
 	}
 	
 	const BcF32 InvMag = 1.0f / Mag;
-	return BcCPUVec3d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag );
+	return MaCPUVec3d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag );
 }
 
-BcF32 BcCPUVec4d::magnitude() const
+BcF32 MaCPUVec4d::magnitude() const
 {
 	return BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
 }
 
-BcF32 BcCPUVec4d::magnitudeSquared() const
+BcF32 MaCPUVec4d::magnitudeSquared() const
 {
 	return ( X_ * X_ + Y_ * Y_ + Z_ * Z_ + W_ * W_ );
 }
 
-void BcCPUVec4d::normalise()
+void MaCPUVec4d::normalise()
 {
 	BcF32 Mag = magnitude();
 	
@@ -85,7 +85,7 @@ void BcCPUVec4d::normalise()
 	W_ *= InvMag;
 }
 
-void BcCPUVec4d::normalise3()
+void MaCPUVec4d::normalise3()
 {
 	BcF32 Mag = BcSqrt( X_ * X_ + Y_ * Y_ + Z_ * Z_ );
 
@@ -100,20 +100,20 @@ void BcCPUVec4d::normalise3()
 	Z_ *= InvMag;
 }
 
-BcCPUVec4d BcCPUVec4d::normal() const
+MaCPUVec4d MaCPUVec4d::normal() const
 {
 	BcF32 Mag = magnitude();
 	
 	if ( Mag == 0.0f )
 	{
-		return BcCPUVec4d(0,0,0,0);
+		return MaCPUVec4d(0,0,0,0);
 	}
 	
 	const BcF32 InvMag = 1.0f / Mag;
-	return BcCPUVec4d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag, W_ * InvMag );
+	return MaCPUVec4d( X_ * InvMag, Y_ * InvMag, Z_ * InvMag, W_ * InvMag );
 }
 
-BcBool BcCPUVec4d::operator == ( const BcCPUVec4d &Rhs ) const
+BcBool MaCPUVec4d::operator == ( const MaCPUVec4d &Rhs ) const
 {
 	return ( ( BcAbs( X_ - Rhs.X_ ) < BcVecEpsilon ) &&
 	         ( BcAbs( Y_ - Rhs.Y_ ) < BcVecEpsilon ) &&
@@ -121,7 +121,7 @@ BcBool BcCPUVec4d::operator == ( const BcCPUVec4d &Rhs ) const
 			 ( BcAbs( W_ - Rhs.W_ ) < BcVecEpsilon ) );
 }
 
-BcBool BcCheckFloat( BcCPUVec4d T )
+BcBool BcCheckFloat( MaCPUVec4d T )
 {
 	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() ) && BcCheckFloat( T.z() ) && BcCheckFloat( T.w() );
 }

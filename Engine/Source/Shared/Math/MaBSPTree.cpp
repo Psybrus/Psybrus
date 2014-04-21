@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		BcBSPTree.cpp
+* File:		MaBSPTree.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,14 +11,14 @@
 * 
 **************************************************************************/
 
-#include "BcBSPTree.h"
+#include "Math/MaBSPTree.h"
 
 #include "Base/BcDebug.h"
 #include "Base/BcMath.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // BcBSPData::set
-void BcBSPInfo::set( BcBSPNode* pNode )
+void MaBSPInfo::set( MaBSPNode* pNode )
 {
 	BcAssert( pNode != NULL );
 	Plane_ = pNode->Plane_;
@@ -26,7 +26,7 @@ void BcBSPInfo::set( BcBSPNode* pNode )
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
-BcBSPTree::BcBSPTree():
+MaBSPTree::MaBSPTree():
 	pRootNode_( NULL )
 {
 	
@@ -35,7 +35,7 @@ BcBSPTree::BcBSPTree():
 ////////////////////////////////////////////////////////////////////////////////
 // Destructor
 //virtual
-BcBSPTree::~BcBSPTree()
+MaBSPTree::~MaBSPTree()
 {
 	for( BcU32 Idx = 0; Idx < NodeList_.size(); ++Idx )
 	{
@@ -47,9 +47,9 @@ BcBSPTree::~BcBSPTree()
 
 ////////////////////////////////////////////////////////////////////////////////
 // addNode
-void BcBSPTree::addNode( const BcPlane& Plane, const BcVec3d* pVertices, BcU32 nVertices )
+void MaBSPTree::addNode( const MaPlane& Plane, const MaVec3d* pVertices, BcU32 nVertices )
 {
-	BcBSPNode* pNewNode = new BcBSPNode();
+	MaBSPNode* pNewNode = new MaBSPNode();
 
 	pNewNode->pFront_ = NULL;
 	pNewNode->pBack_ = NULL;
@@ -58,7 +58,7 @@ void BcBSPTree::addNode( const BcPlane& Plane, const BcVec3d* pVertices, BcU32 n
 	for( BcU32 i = 0; i < nVertices; ++i )
 	{
 		// Debug check, check point is coplanar.
-		BcAssertMsg( Plane.classify( pVertices[ i ] ) == BcPlane::bcPC_COINCIDING, "Point is non-coplanar." );
+		BcAssertMsg( Plane.classify( pVertices[ i ] ) == MaPlane::bcPC_COINCIDING, "Point is non-coplanar." );
 
 		// Set vertex.
 		pNewNode->Vertices_.push_back( pVertices[ i ] );
@@ -69,7 +69,7 @@ void BcBSPTree::addNode( const BcPlane& Plane, const BcVec3d* pVertices, BcU32 n
 
 ////////////////////////////////////////////////////////////////////////////////
 // buildTree
-void BcBSPTree::buildTree()
+void MaBSPTree::buildTree()
 {
 	// Set root node.
 	if( NodeList_.size() > 0 )
@@ -93,7 +93,7 @@ void BcBSPTree::buildTree()
 
 ////////////////////////////////////////////////////////////////////////////////
 // checkPointFront
-BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL */ )
+BcBool MaBSPTree::checkPointFront( const MaVec3d& Point, BcF32 Radius, MaBSPInfo* pData /*= NULL*/, MaBSPNode* pNode /*= NULL */ )
 {
 	// Check if we want the root node.
 	if( pNode == NULL )
@@ -102,7 +102,7 @@ BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo
 	}
 
 	// Classify against plane
-	if( pNode->Plane_.classify( Point, Radius ) != BcPlane::bcPC_FRONT )
+	if( pNode->Plane_.classify( Point, Radius ) != MaPlane::bcPC_FRONT )
 	{
 		// Behind plane.
 		if( pNode->pBack_ == NULL )
@@ -140,14 +140,14 @@ BcBool BcBSPTree::checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo
 
 ////////////////////////////////////////////////////////////////////////////////
 // checkPointBack
-BcBool BcBSPTree::checkPointBack( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData /*= NULL*/, BcBSPNode* pNode /*= NULL*/ )
+BcBool MaBSPTree::checkPointBack( const MaVec3d& Point, BcF32 Radius, MaBSPInfo* pData /*= NULL*/, MaBSPNode* pNode /*= NULL*/ )
 {
 	return !checkPointFront( Point, Radius, pData, pNode );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // findPointOnEdge
-BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode /*= NULL*/ )
+BcBool MaBSPTree::lineIntersection( const MaVec3d& A, const MaVec3d& B, BcBSPPointInfo* pPointInfo, MaBSPNode* pNode /*= NULL*/ )
 {
 	// Check if we want the root node.
 	if( pNode == NULL )
@@ -164,13 +164,13 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 	BcBool Intersected = BcFalse;
 
 	// TODO: Handle coincident intersection!
-	BcPlane::eClassify ClassifyA = pNode->Plane_.classify( A, 0.0f );
-	BcPlane::eClassify ClassifyB = pNode->Plane_.classify( B, 0.0f );
+	MaPlane::eClassify ClassifyA = pNode->Plane_.classify( A, 0.0f );
+	MaPlane::eClassify ClassifyB = pNode->Plane_.classify( B, 0.0f );
 
-	if( ClassifyA == BcPlane::bcPC_FRONT && ClassifyB == BcPlane::bcPC_BACK )
+	if( ClassifyA == MaPlane::bcPC_FRONT && ClassifyB == MaPlane::bcPC_BACK )
 	{
 		BcF32 T;
-		BcVec3d Intersection;
+		MaVec3d Intersection;
 		if( pNode->Plane_.lineIntersection( A, B, T, Intersection ) )
 		{
 			// Is point in vertices? If so go down front to find nearer intersection.
@@ -198,7 +198,7 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 	// NOTE: ClassifyB shouldn't be required here ...right?
 	if( pNode->pFront_ != NULL )
 	{
-		if( ClassifyA == BcPlane::bcPC_FRONT || ClassifyB == BcPlane::bcPC_FRONT )
+		if( ClassifyA == MaPlane::bcPC_FRONT || ClassifyB == MaPlane::bcPC_FRONT )
 		{
 			Intersected |= lineIntersection( A, B, pPointInfo, pNode->pFront_ );
 		}
@@ -206,7 +206,7 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 
 	if( pNode->pBack_ != NULL )
 	{
-		if( ClassifyA == BcPlane::bcPC_BACK || ClassifyB == BcPlane::bcPC_BACK )
+		if( ClassifyA == MaPlane::bcPC_BACK || ClassifyB == MaPlane::bcPC_BACK )
 		{
 			Intersected |= lineIntersection( A, B, pPointInfo, pNode->pBack_ );
 		}
@@ -217,26 +217,26 @@ BcBool BcBSPTree::lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPoi
 
 ////////////////////////////////////////////////////////////////////////////////
 // classifyNode
-BcPlane::eClassify BcBSPTree::classifyNode( BcBSPNode* pNode, const BcPlane& Plane )
+MaPlane::eClassify MaBSPTree::classifyNode( MaBSPNode* pNode, const MaPlane& Plane )
 {
 	//Grab result of first test
-	BcPlane::eClassify FirstResult = Plane.classify( pNode->Vertices_[0] );
+	MaPlane::eClassify FirstResult = Plane.classify( pNode->Vertices_[0] );
 
 	//Make sure remaining tests produce the same result
 	for( BcU32 iNode = 0; iNode < pNode->Vertices_.size(); ++iNode)
 	{
-		BcPlane::eClassify Result = Plane.classify( pNode->Vertices_[ iNode ], 1e-3f );
+		MaPlane::eClassify Result = Plane.classify( pNode->Vertices_[ iNode ], 1e-3f );
 
 		// On as a first result is not useful to us.
-		if( FirstResult == BcPlane::bcPC_COINCIDING && Result != BcPlane::bcPC_COINCIDING )
+		if( FirstResult == MaPlane::bcPC_COINCIDING && Result != MaPlane::bcPC_COINCIDING )
 		{
 			FirstResult = Result;
 		}
 
-		if( Result != FirstResult && Result != BcPlane::bcPC_COINCIDING )
+		if( Result != FirstResult && Result != MaPlane::bcPC_COINCIDING )
 		{
 			//Different result for test -> bail out
-			return BcPlane::bcPC_SPANNING;
+			return MaPlane::bcPC_SPANNING;
 		}
 	}
 
@@ -246,9 +246,9 @@ BcPlane::eClassify BcBSPTree::classifyNode( BcBSPNode* pNode, const BcPlane& Pla
 
 ////////////////////////////////////////////////////////////////////////////////
 // splitNode
-void BcBSPTree::splitNode( BcBSPNode* pNode )
+void MaBSPTree::splitNode( MaBSPNode* pNode )
 {
-	BcBSPNode* pSwappedNode = NULL;
+	MaBSPNode* pSwappedNode = NULL;
 
 	BcBSPNodeList FList_;			// Front list.
 	BcBSPNodeList BList_;			// Back list.
@@ -259,29 +259,29 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 	// Split up this nodes list into a front and back list.
 	for( BcBSPNodeList::iterator It( pNode->WorkingList_.begin() ); It != pNode->WorkingList_.end(); )
 	{
-		BcPlane::eClassify Classify = classifyNode( (*It), pNode->Plane_ );
+		MaPlane::eClassify Classify = classifyNode( (*It), pNode->Plane_ );
 
 		// If it's coinciding use normal to determine facing.
-		if( Classify == BcPlane::bcPC_COINCIDING )
+		if( Classify == MaPlane::bcPC_COINCIDING )
 		{
 			/*
 			if( pNode->Plane_.normal().dot( (*It)->Plane_.normal() ) < 0.0f )
 			{
-				Classify = BcPlane::bcPC_FRONT;
+				Classify = MaPlane::bcPC_FRONT;
 			}
 			else
 			{
-				Classify = BcPlane::bcPC_FRONT;
+				Classify = MaPlane::bcPC_FRONT;
 			}
 			*/
 			// HACK, seems to work...just:
-			Classify = BcPlane::bcPC_FRONT;
+			Classify = MaPlane::bcPC_FRONT;
 		}
 
 		// Classify the node.
 		switch( Classify )
 		{
-		case BcPlane::bcPC_FRONT:
+		case MaPlane::bcPC_FRONT:
 			{
 				// Node is entirely infront.
 				pSwappedNode = (*It);				
@@ -291,7 +291,7 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 			}
 			break;
 
-		case BcPlane::bcPC_BACK:
+		case MaPlane::bcPC_BACK:
 			{
 				// Node is entirely behind.
 				pSwappedNode = (*It);
@@ -301,11 +301,11 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 			}
 			break;
 
-		case BcPlane::bcPC_SPANNING:
+		case MaPlane::bcPC_SPANNING:
 			{
 				// Node spans the plane. Must be clipped.
-				BcBSPNode* pFront = clipNode( (*It), BcPlane( pNode->Plane_.normal().x(), pNode->Plane_.normal().y(), pNode->Plane_.normal().z(), pNode->Plane_.d() ) );
-				BcBSPNode* pBack = clipNode( (*It), BcPlane( -pNode->Plane_.normal().x(), -pNode->Plane_.normal().y(), -pNode->Plane_.normal().z(), -pNode->Plane_.d() ) );
+				MaBSPNode* pFront = clipNode( (*It), MaPlane( pNode->Plane_.normal().x(), pNode->Plane_.normal().y(), pNode->Plane_.normal().z(), pNode->Plane_.d() ) );
+				MaBSPNode* pBack = clipNode( (*It), MaPlane( -pNode->Plane_.normal().x(), -pNode->Plane_.normal().y(), -pNode->Plane_.normal().z(), -pNode->Plane_.d() ) );
 
 				// Original node can be dropped.
 				pSwappedNode = (*It);
@@ -333,7 +333,7 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 		pNode->pFront_ = (*FList_.begin());
 		FList_.erase( FList_.begin() );
 
-		BcBSPNode* pSwappedNode = NULL;
+		MaBSPNode* pSwappedNode = NULL;
 		for( BcBSPNodeList::iterator It( FList_.begin() ); It != FList_.end(); )
 		{
 			pSwappedNode = (*It);
@@ -350,7 +350,7 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 		pNode->pBack_ = (*BList_.begin());
 		BList_.erase( BList_.begin() );
 
-		BcBSPNode* pSwappedNode = NULL;
+		MaBSPNode* pSwappedNode = NULL;
 		for( BcBSPNodeList::iterator It( BList_.begin() ); It != BList_.end(); )
 		{
 			pSwappedNode = (*It);
@@ -367,21 +367,21 @@ void BcBSPTree::splitNode( BcBSPNode* pNode )
 
 ////////////////////////////////////////////////////////////////////////////////
 // clipNode
-BcBSPNode* BcBSPTree::clipNode( BcBSPNode* pNode, const BcPlane& Clip )
+MaBSPNode* MaBSPTree::clipNode( MaBSPNode* pNode, const MaPlane& Clip )
 {
-	BcBSPNode* pNewNode = new BcBSPNode();
+	MaBSPNode* pNewNode = new MaBSPNode();
 
 	pNewNode->pFront_ = NULL;
 	pNewNode->pBack_ = NULL;
 	pNewNode->Plane_ = pNode->Plane_;
 
-	std::vector< BcVec3d > Vertices;
+	std::vector< MaVec3d > Vertices;
 
 	for( BcU32 iVert = 0; iVert < pNode->Vertices_.size(); ++iVert )
 	{
-		BcVec3d PointA = pNode->Vertices_[ ( iVert ) ];
-		BcVec3d PointB = pNode->Vertices_[ ( iVert + 1 ) % pNode->Vertices_.size() ];
-		BcVec3d Intersection;
+		MaVec3d PointA = pNode->Vertices_[ ( iVert ) ];
+		MaVec3d PointB = pNode->Vertices_[ ( iVert + 1 ) % pNode->Vertices_.size() ];
+		MaVec3d Intersection;
 		BcF32 Distance;
 
 		//
@@ -400,7 +400,7 @@ BcBSPNode* BcBSPTree::clipNode( BcBSPNode* pNode, const BcPlane& Clip )
 	// Classify all these points and add correct ones to new node.
 	for( BcU32 iVert = 0; iVert < Vertices.size(); ++iVert )
 	{
-		if( Clip.classify( Vertices[ iVert ] ) != BcPlane::bcPC_BACK )
+		if( Clip.classify( Vertices[ iVert ] ) != MaPlane::bcPC_BACK )
 		{
 			pNewNode->Vertices_.push_back( Vertices[ iVert ] );
 		}
@@ -413,10 +413,10 @@ BcBSPNode* BcBSPTree::clipNode( BcBSPNode* pNode, const BcPlane& Clip )
 
 ////////////////////////////////////////////////////////////////////////////////
 // pointOnNode
-BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
+BcBool MaBSPTree::pointOnNode( const MaVec3d& Point, MaBSPNode* pNode )
 {
 	// Check if point is coincident.
-	if( pNode->Plane_.classify( Point, 1e-3f ) != BcPlane::bcPC_COINCIDING )
+	if( pNode->Plane_.classify( Point, 1e-3f ) != MaPlane::bcPC_COINCIDING )
 	{
 		return BcFalse;
 	}
@@ -425,9 +425,9 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 	if( pNode->Vertices_.size() == 2 )
 	{
 		// If we only have 2 verts, test we are on the defining line.
-		BcVec3d Origin = pNode->Vertices_[ 0 ];
-		BcVec3d Direction = pNode->Vertices_[ 1 ] - pNode->Vertices_[ 0 ];
-		BcVec3d Vector = Point - Origin;
+		MaVec3d Origin = pNode->Vertices_[ 0 ];
+		MaVec3d Direction = pNode->Vertices_[ 1 ] - pNode->Vertices_[ 0 ];
+		MaVec3d Vector = Point - Origin;
 		BcF32 T = Direction.dot( Vector );
 
 		// Check its on the line.
@@ -438,10 +438,10 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 		BcS32 Sign = 0;
 		for( BcU32 Idx = 0; Idx < pNode->Vertices_.size(); ++Idx )
 		{
-			const BcVec3d& PointA = pNode->Vertices_[ Idx ];
-			const BcVec3d& PointB = pNode->Vertices_[ ( Idx + 1 ) % pNode->Vertices_.size() ];
-			const BcVec3d AffineSegment = PointB - PointA;
-			const BcVec3d AffinePoint = Point - PointA;
+			const MaVec3d& PointA = pNode->Vertices_[ Idx ];
+			const MaVec3d& PointB = pNode->Vertices_[ ( Idx + 1 ) % pNode->Vertices_.size() ];
+			const MaVec3d AffineSegment = PointB - PointA;
+			const MaVec3d AffinePoint = Point - PointA;
 			BcF32 K = AffineSegment.dot( AffinePoint );
 			BcS32 KSign = BcAbs( K ) > 1e-3f ? static_cast< BcS32 >( K / BcAbs( K ) ) : 0;
 			if( Sign == 0 )
@@ -462,19 +462,19 @@ BcBool BcBSPTree::pointOnNode( const BcVec3d& Point, BcBSPNode* pNode )
 
 ////////////////////////////////////////////////////////////////////////////////
 // putNonCoincidingNodeAtTheFront
-void BcBSPTree::putNonCoincidingNodeAtTheFront( BcBSPNodeList& List )
+void MaBSPTree::putNonCoincidingNodeAtTheFront( BcBSPNodeList& List )
 {
 	for( BcU32 TotalIdx = 0; TotalIdx < List.size(); ++TotalIdx )
 	{
 		// Get first node.
-		BcBSPNode* pNode = List[ 0 ];
+		MaBSPNode* pNode = List[ 0 ];
 
 		// Check if it's coinciding with any other in the list (except itself).
 		BcBool IsCoinciding = BcFalse;
 		for( BcU32 Idx = 1; Idx < List.size(); ++Idx )
 		{
 			// Classify the node.
-			if( classifyNode( List[ Idx ], pNode->Plane_ ) == BcPlane::bcPC_COINCIDING )
+			if( classifyNode( List[ Idx ], pNode->Plane_ ) == MaPlane::bcPC_COINCIDING )
 			{
 				IsCoinciding = BcTrue;
 			}

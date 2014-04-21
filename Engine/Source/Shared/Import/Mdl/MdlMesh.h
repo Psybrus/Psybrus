@@ -61,7 +61,7 @@ public:
 	BcBool materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndices );
 
 	// Transform.
-	void bakeTransform( const BcMat4d& Transform );
+	void bakeTransform( const MaMat4d& Transform );
 
 	//
 	void buildNormals();
@@ -71,7 +71,7 @@ public:
 	void flipIndices();
 
 	//
-	BcAABB findAABB() const;
+	MaAABB findAABB() const;
 
 	BcU32 findBoneCount() const;
 

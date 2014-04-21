@@ -311,7 +311,7 @@ void ScnModelComponent::destroy()
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
-BcAABB ScnModelComponent::getAABB() const
+MaAABB ScnModelComponent::getAABB() const
 {
 	UpdateFence_.wait();
 
@@ -337,7 +337,7 @@ BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 
 //////////////////////////////////////////////////////////////////////////
 // setNode
-void ScnModelComponent::setNode( BcU32 NodeIdx, const BcMat4d& LocalTransform )
+void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 {
 	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
@@ -348,7 +348,7 @@ void ScnModelComponent::setNode( BcU32 NodeIdx, const BcMat4d& LocalTransform )
 
 //////////////////////////////////////////////////////////////////////////
 // getNode
-const BcMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
+const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 {
 	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
@@ -356,7 +356,7 @@ const BcMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 		return pNodeTransformData_[ NodeIdx ].RelativeTransform_;
 	}
 
-	static BcMat4d Default;
+	static MaMat4d Default;
 	return Default;
 }
 
@@ -407,7 +407,7 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	UpdateFence_.increment();
 #if 0
 	// TODO: Break out into it's own job class.
-	typedef BcDelegate< void(*)( BcMat4d ) > UpdateNodeDelegate;
+	typedef BcDelegate< void(*)( MaMat4d ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
 	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, getParentEntity()->getWorldMatrix() );
 #else
@@ -417,9 +417,9 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 
 //////////////////////////////////////////////////////////////////////////
 // updateNodes
-void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
+void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 {
-	BcAABB FullAABB;
+	MaAABB FullAABB;
 
 	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
@@ -453,12 +453,12 @@ void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
 		{
 			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
 		
-			BcAABB PrimitiveAABB = pNodePrimitiveData->AABB_;
+			MaAABB PrimitiveAABB = pNodePrimitiveData->AABB_;
 			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
 		}
 		else
 		{
-			BcAABB SkeletalAABB;
+			MaAABB SkeletalAABB;
 			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 			{
 				BcU32 BoneIndex = pNodePrimitiveData->BonePalette_[ Idx ];
@@ -470,7 +470,7 @@ void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
 					{
 						ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ BoneIndex ];
 						ScnModelNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
-						BcAABB NewAABB( pNodeTransformData->AbsoluteTransform_.translation(), pParentNodeTransformData->AbsoluteTransform_.translation() );
+						MaAABB NewAABB( pNodeTransformData->AbsoluteTransform_.translation(), pParentNodeTransformData->AbsoluteTransform_.translation() );
 
 						//
 						SkeletalAABB.expandBy( NewAABB );
@@ -479,8 +479,8 @@ void ScnModelComponent::updateNodes( BcMat4d RootMatrix )
 			}
 
 			// HACK: Expand AABB slightly to cover skin. Should calculate bone sizes and pack them really.
-			BcVec3d Centre = SkeletalAABB.centre();
-			BcVec3d Dimensions = SkeletalAABB.dimensions() * 0.75f;	// 1.5 x size.
+			MaVec3d Centre = SkeletalAABB.centre();
+			MaVec3d Dimensions = SkeletalAABB.dimensions() * 0.75f;	// 1.5 x size.
 			SkeletalAABB.min( Centre - Dimensions );
 			SkeletalAABB.max( Centre + Dimensions );
 

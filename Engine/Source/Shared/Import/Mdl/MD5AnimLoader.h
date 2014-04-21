@@ -14,10 +14,10 @@
 #ifndef __MD5AnimLoader_H__
 #define __MD5AnimLoader_H__
 
-#include "Base/BcVec2d.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcVec4d.h"
-#include "Base/BcQuat.h"
+#include "Math/MaVec2d.h"
+#include "Math/MaVec3d.h"
+#include "Math/MaVec4d.h"
+#include "Math/MaQuat.h"
 
 #include "MD5MeshLoader.h"
 

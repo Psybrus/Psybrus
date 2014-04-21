@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		BcCPUVec2d.cpp
+* File:		MaCPUVec2d.cpp
 * Author: 	Neil Richardson
 * Ver/Date:
 * Description:
@@ -11,17 +11,17 @@
 *
 **************************************************************************/
 
-#include "Base/BcCPUVec2d.h"
+#include "Math/MaCPUVec2d.h"
 #include "Base/BcMath.h"
 
 #include "Base/BcString.h"
 
-BcCPUVec2d::BcCPUVec2d( const BcChar* pString )
+MaCPUVec2d::MaCPUVec2d( const BcChar* pString )
 {
 	BcSScanf( pString, "%f,%f", &X_, &Y_ );
 }
 
-void BcCPUVec2d::lerp(const BcCPUVec2d& A, const BcCPUVec2d& B, BcF32 T)
+void MaCPUVec2d::lerp(const MaCPUVec2d& A, const MaCPUVec2d& B, BcF32 T)
 {
 	const BcF32 lK0 = 1.0f - T;
 	const BcF32 lK1 = T;
@@ -30,30 +30,30 @@ void BcCPUVec2d::lerp(const BcCPUVec2d& A, const BcCPUVec2d& B, BcF32 T)
 	    (A.Y_ * lK0) + (B.Y_ * lK1));
 }
 
-BcF32 BcCPUVec2d::magnitudeSquared() const
+BcF32 MaCPUVec2d::magnitudeSquared() const
 {
 	return ( ( X_ * X_ ) + ( Y_ * Y_ ) );
 }
 
-BcF32 BcCPUVec2d::magnitude() const
+BcF32 MaCPUVec2d::magnitude() const
 {
 	return BcSqrt( magnitudeSquared() );
 }
 
-BcCPUVec2d BcCPUVec2d::normal() const
+MaCPUVec2d MaCPUVec2d::normal() const
 {
 	BcF32 Mag = magnitude();
 	
 	if ( Mag == 0.0f )
 	{
-		return BcCPUVec2d(0,0);
+		return MaCPUVec2d(0,0);
 	}
 	
 	const BcF32 InvMag = 1.0f / Mag;
-	return BcCPUVec2d( X_ * InvMag, Y_ * InvMag );
+	return MaCPUVec2d( X_ * InvMag, Y_ * InvMag );
 }
 
-void BcCPUVec2d::normalise()
+void MaCPUVec2d::normalise()
 {
 	BcF32 Mag = magnitude();
 	
@@ -67,13 +67,13 @@ void BcCPUVec2d::normalise()
 	Y_ *= InvMag;
 }
 
-BcBool BcCPUVec2d::operator == ( const BcCPUVec2d& Rhs ) const
+BcBool MaCPUVec2d::operator == ( const MaCPUVec2d& Rhs ) const
 {
 	return ( ( BcAbs( X_ - Rhs.X_ ) < BcVecEpsilon ) &&
 	         ( BcAbs( Y_ - Rhs.Y_ ) < BcVecEpsilon ) );
 }
 
-BcBool BcCheckFloat( BcCPUVec2d T )
+BcBool BcCheckFloat( MaCPUVec2d T )
 {
 	return BcCheckFloat( T.x() ) && BcCheckFloat( T.y() );
 }

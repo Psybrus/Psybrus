@@ -66,7 +66,7 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcAABB						getAABB() const;
+	virtual MaAABB						getAABB() const;
 
 	/**
 	 * Get material component.
@@ -82,7 +82,7 @@ public:
 	 * Push matrix.
 	 * @param Matrix Matrix.
 	 */
-	void								pushMatrix( const BcMat4d& Matrix );
+	void								pushMatrix( const MaMat4d& Matrix );
 	
 	/*
 	 * Pop matrix.
@@ -92,7 +92,7 @@ public:
 	/*
 	 * Get current matrix.
 	 */
-	BcMat4d								getMatrix() const;
+	MaMat4d								getMatrix() const;
 
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -114,8 +114,8 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
-	void								drawLine3d( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLine3d( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw lines.
@@ -124,7 +124,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLines( const MaVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw line box.
@@ -133,7 +133,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLineBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw line box centered.
@@ -142,7 +142,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLineBoxCentered( const BcVec2d& Position, const BcVec2d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLineBoxCentered( const MaVec2d& Position, const MaVec2d& Size, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw box.
@@ -151,7 +151,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite.
@@ -161,7 +161,7 @@ public:
 	 * @param Colour Colour.
 	 * @param Layer Layer.
 	 */
-	void								drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSprite( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite in 3D
@@ -171,8 +171,8 @@ public:
 	 * @param Colour Colour.
 	 * @param Layer Layer.
 	 */
-	void								drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
-	void								drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSprite3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSpriteUp3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite centered.
@@ -182,7 +182,7 @@ public:
 	 * @param Colour Colour.
 	 * @param Layer Layer.
 	 */
-	void								drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSpriteCentered( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite centered in 3D.
@@ -192,8 +192,8 @@ public:
 	 * @param Colour Colour.
 	 * @param Layer Layer.
 	 */
-	void								drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
-	void								drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSpriteCentered3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawSpriteCenteredUp3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear canvas.
@@ -246,7 +246,7 @@ protected:
 	BcU32								LastPrimitiveSection_;
 
 	// Matrix stack.
-	typedef std::vector< BcMat4d > TMatrixStack;
+	typedef std::vector< MaMat4d > TMatrixStack;
 	typedef TMatrixStack::iterator TMatrixStackIterator;
 	
 	TMatrixStack						MatrixStack_;

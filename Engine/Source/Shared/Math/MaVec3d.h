@@ -1,8 +1,8 @@
 #ifndef __BCVEC3DH__
 #define __BCVEC3DH__
 
-#include "BcCPUVec3d.h"
+#include "Math/MaCPUVec3d.h"
 
-typedef BcCPUVec3d BcVec3d;
+typedef MaCPUVec3d MaVec3d;
 
 #endif // __BCVEC3DH__

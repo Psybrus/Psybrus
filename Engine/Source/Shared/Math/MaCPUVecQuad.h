@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		BcCPUVecQuad.h
+* File:		MaCPUVecQuad.h
 * Author: 	Neil Richardson
 * Ver/Date:
 * Description:
@@ -17,25 +17,25 @@
 #include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// BcCPUVecQuad
-struct BcCPUVecQuad
+// MaCPUVecQuad
+struct MaCPUVecQuad
 {
 public:
-	BcForceInline BcCPUVecQuad()
+	BcForceInline MaCPUVecQuad()
 	{}
 
-	BcForceInline BcCPUVecQuad( BcF32 X, BcF32 Y ):
+	BcForceInline MaCPUVecQuad( BcF32 X, BcF32 Y ):
 		X_( X ),
 		Y_( Y )
 	{}
 
-	BcForceInline BcCPUVecQuad( BcF32 X, BcF32 Y, BcF32 Z ):
+	BcForceInline MaCPUVecQuad( BcF32 X, BcF32 Y, BcF32 Z ):
 		X_( X ),
 		Y_( Y ),
 		Z_( Z )
 	{}
 
-	BcForceInline BcCPUVecQuad( BcF32 X, BcF32 Y, BcF32 Z, BcF32 W ):
+	BcForceInline MaCPUVecQuad( BcF32 X, BcF32 Y, BcF32 Z, BcF32 W ):
 		X_( X ),
 		Y_( Y ),
 		Z_( Z ),
