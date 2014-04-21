@@ -142,14 +142,6 @@ public:
 	 */
 	virtual void					serialiseProperties();
 
-	/**
-	 * Get unique identifier for resource
-	 */
-	inline const BcU32				getUniqueId() const
-	{
-//		return (BcU32)this;
-		return UniqueId_;
-	}
 protected:
 	/**
 	 * Get string.
@@ -203,10 +195,6 @@ private:
 	//
 	BcU32							Index_;
 	std::atomic< BcU32 >			InitStage_;
-
-	BcU32							UniqueId_;
-
-	static std::atomic< BcU32 >		UniqueIdCounter_;
 };
 
 #endif

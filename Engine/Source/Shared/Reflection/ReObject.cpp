@@ -17,10 +17,15 @@ void ReObject::StaticRegisterClass()
 		ReField( "Owner_",				&ReObject::Owner_ ),
 		ReField( "Basis_",				&ReObject::Basis_ ),
 		ReField( "Name_",				&ReObject::Name_ ),
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+		ReField( "UniqueId_",			&ReObject::UniqueId_ ),
+#endif
 	};
 		
 	ReRegisterClass< ReObject >( Fields );
 }
+
+std::atomic< BcU32 > ReObject::UniqueIdCounter_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -133,6 +138,61 @@ void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getOwner
+ReObject* ReObject::getOwner() const
+{
+	return Owner_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setOwner
+void ReObject::setOwner( ReObject* Owner )
+{
+		Owner_ = Owner;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRootOwner
+ReObject* ReObject::getRootOwner() const
+{
+    ReObject* Owner = Owner_;
+	while( Owner != nullptr &&
+	       Owner->Owner_ != nullptr &&
+		   Owner != Owner->Owner_ )
+	{
+		Owner = Owner->Owner_;
+	}
+	return Owner;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRootOwner
+void ReObject::setRootOwner( ReObject* RootOwner )
+{
+    ReObject* Owner = this;
+
+	for(;;)
+	{
+		if( Owner->Owner_ == nullptr || Owner == Owner->Owner_ )
+		{
+			Owner->Owner_ = RootOwner;
+			return;
+		}
+		else
+		{
+			Owner = Owner->Owner_;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBasis
+ReObject* ReObject::getBasis() const
+{
+	return Basis_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Statics
 std::mutex ReObject::ObjectListMutex_;
 ReObject::ObjectList ReObject::ObjectList_;
@@ -146,6 +206,10 @@ void ReObject::StaticAdd( ReObject* Object )
 {
 	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
 	ObjectList_.push_back( Object );
+
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+	Object->UniqueId_ = UniqueIdCounter_++;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -157,6 +221,19 @@ void ReObject::StaticRemove( ReObject* Object )
 	ObjectList_.remove( Object );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// StaticRemove
+//static
+ReObject* ReObject::StaticFindByUniqueId( BcU32 UniqueId )
+{
+	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
+	auto Object = std::find_if( ObjectList_.begin(), ObjectList_.end(), 
+		[ UniqueId ]( ReObject* Object )
+		{
+			return Object->getUniqueId() == UniqueId;
+		});
+	return Object != ObjectList_.end() ? *Object : nullptr;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // StaticCollectGarbage

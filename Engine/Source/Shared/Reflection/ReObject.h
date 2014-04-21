@@ -12,7 +12,13 @@
 /**
  * Do we want garbage collection?
  */
-#define REFLECTION_ENABLE_GC		( 0 )
+#define REFLECTION_ENABLE_GC					( 0 )
+
+/**
+ * Do we want simple unique ID?
+ */
+#define REFLECTION_ENABLE_SIMPLE_UNIQUE_ID		( 1 )
+
 
 //////////////////////////////////////////////////////////////////////////
 /* @class Object
@@ -51,75 +57,86 @@ public:
     virtual ~ReObject();
 	
 	/**
-		* @brief Set name.
-		*/
+	 * @brief Set name.
+	 */
 	void							setName( BcName Name );
 
 	/**
-		* @brief Get object's name.
-		*/
+	 * @brief Get object's name.
+	 */
 	const BcName&					getName() const;
 	
 	/**
-		* @brief Get object's full name.
-		*/
+	 * @brief Get object's full name.
+	 */
 	std::string						getFullName() const;
 
 	/**
-		* @brief Get owner.
-		*/
+	 * @brief Get owner.
+	 */
     ReObject*						getOwner() const;
 
 	/**
-		* @brief Set owner.
-		*/
+	 * @brief Set owner.
+	 */
     void							setOwner( ReObject* Owner );
 
 	/**
-		* @brief Get root owner.
-		*
-		* Recurses down to find the root owner. Call infrequently.
-		* A root owner should always have itself as it's owner.
-		* An object with a null owner should be considered free
-		* and unreferencable regarding serialisation for the
-		* most part.
-		*/
+	 * @brief Get root owner.
+	 *
+	 * Recurses down to find the root owner. Call infrequently.
+	 * A root owner should always have itself as it's owner.
+	 * An object with a null owner should be considered free
+	 * and unreferencable regarding serialisation for the
+	 * most part.
+	 */
     ReObject*						getRootOwner() const;
 					
 	/**
-		* @brief Set root owner.
-		*
-		* Recurses down to set the root owner.
-		*/
+	 * @brief Set root owner.
+	 *
+	 * Recurses down to set the root owner.
+	 */
     void							setRootOwner( ReObject* RootOwner );
 
 	/**
-		* @brief Get basis.
-		*/
+	 * @brief Get basis.
+	 */
     ReObject*						getBasis() const;
 
 #if REFLECTION_ENABLE_GC
 	/**
-		* @brief Increment ref count.
-		*/
+	 * @brief Increment ref count.
+	 */
 	BcU32							incRefCount() const;
 
 	/**
-		* @brief Decerement ref count.
-		*/
+	 * @brief Decerement ref count.
+	 */
 	BcU32							decRefCount() const;
 #endif
 
 	/**
-		* @brief Add notifier.
-		*/
+	 * @brief Add notifier.
+	 */
 	void							addNotifier( ReIObjectNotify* ObjectNotify ) const;
 			
 	/**
-		* @brief Remove notifier.
-		*/
+	 * @brief Remove notifier.
+	 */
 	void							removeNotifier( ReIObjectNotify* ObjectNotify ) const;
 
+	/**
+	 * Get unique identifier for resource
+	 */
+	inline const BcU32				getUniqueId() const
+	{
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+		return UniqueId_;
+#else
+		return BcHash( this );
+#endif
+	}
 private:
     friend ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
 
@@ -129,9 +146,14 @@ private:
 	mutable std::atomic< BcU32 >		RefCount_;			///!< Ref count.
 #endif
 	mutable std::atomic< BcU32 >		Flags_;				///!< Flags.
-    ReObject*						Owner_;				///!< Owner.
-    ReObject*						Basis_;				///!< Object we're based upon.
-	BcName							Name_;				///!< Name of object.
+    ReObject*							Owner_;				///!< Owner.
+    ReObject*							Basis_;				///!< Object we're based upon.
+	BcName								Name_;				///!< Name of object.
+
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+	BcU32								UniqueId_;
+	static std::atomic< BcU32 >			UniqueIdCounter_;
+#endif
 
 private:
     typedef std::list< ReObject* > ObjectList;
@@ -145,67 +167,30 @@ private:
 	static ObjectNotifyMap			ObjectNotifyMap_;		///!< Map of objects to notify for.
 
 	/**
-		* Add object to the object list.
-		*/
+	 * Add object to the object list.
+	 */
     static void						StaticAdd( ReObject* ReObject );
 
 	/**
-		* Remove object from object list.
-		*/
+	 * Remove object from object list.
+	 */
     static void						StaticRemove( ReObject* ReObject );
+
 public:
 
 	/**
-		* Perform basic garbage collection. Naive and simple.
-		*/
+	 * Find object by unique id.
+	 */
+    static ReObject*				StaticFindByUniqueId( BcU32 UniqueId );
+
+	/**
+	 * Perform basic garbage collection. Naive and simple.
+	 */
 	static void						StaticCollectGarbage();
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline ReObject* ReObject::getOwner() const
-{
-	return Owner_;
-}
-
-inline void ReObject::setOwner( ReObject* Owner )
-{
-		Owner_ = Owner;
-}
-
-inline ReObject* ReObject::getRootOwner() const
-{
-    ReObject* Owner = Owner_;
-	while( Owner != nullptr && Owner != Owner->Owner_ )
-	{
-		Owner = Owner->Owner_;
-	}
-	return Owner;
-}
-
-inline void ReObject::setRootOwner( ReObject* RootOwner )
-{
-    ReObject* Owner = this;
-
-	for(;;)
-	{
-		if( Owner->Owner_ == nullptr || Owner == Owner->Owner_ )
-		{
-			Owner->Owner_ = RootOwner;
-			return;
-		}
-		else
-		{
-			Owner = Owner->Owner_;
-		}
-	}
-}
-
-inline ReObject* ReObject::getBasis() const
-{
-	return Basis_;
-}
-
 #if REFLECTION_ENABLE_GC
 
 inline BcU32 ReObject::incRefCount() const

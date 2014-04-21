@@ -16,8 +16,6 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
-std::atomic< BcU32 > CsResource::UniqueIdCounter_ = 0;
-
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
 REFLECTION_DEFINE_DERIVED( CsResource );
@@ -30,7 +28,6 @@ void CsResource::StaticRegisterClass()
 	{
 		ReField( "Index_",				&CsResource::Index_ ),
 		ReField( "InitStage_",			&CsResource::InitStage_ ),
-		ReField( "UniqueId_",			&CsResource::UniqueId_ ),
 	};
 		
 	ReRegisterClass< CsResource, Super >( Fields );
@@ -40,8 +37,7 @@ void CsResource::StaticRegisterClass()
 // Ctor
 CsResource::CsResource():
 	Index_( BcErrorCode ),
-	InitStage_( INIT_STAGE_INITIAL ),
-	UniqueId_( UniqueIdCounter_++ )
+	InitStage_( INIT_STAGE_INITIAL )
 {
 
 }
@@ -142,10 +138,10 @@ void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 CsPackage* CsResource::getPackage() const
 {
 	CsPackage* RetVal = nullptr;
-	if( getOwner() != nullptr )
+	if( getRootOwner() != nullptr )
 	{
 		BcAssert( getOwner()->isTypeOf< CsPackage >() );
-		RetVal = static_cast< CsPackage* >( getOwner() );
+		RetVal = static_cast< CsPackage* >( getRootOwner() );
 	}
 
 	return RetVal;
@@ -277,9 +273,12 @@ void CsResource::markupName( BcName& Name ) const
 // getChunk
 void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 {
-	if( !getPackage()->requestChunk( Index_, Chunk, pDataLocation ) )
+	if( Index_ != BcErrorCode )
 	{
-
+		if( !getPackage()->requestChunk( Index_, Chunk, pDataLocation ) )
+		{
+	
+		}
 	}
 }
 
@@ -287,14 +286,20 @@ void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 // getChunkSize
 BcU32 CsResource::getChunkSize( BcU32 Chunk )
 {
-	return getPackage()->getChunkSize( Index_, Chunk );
+	if( Index_ != BcErrorCode )
+	{
+		return getPackage()->getChunkSize( Index_, Chunk );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofChunks
 BcU32 CsResource::getNoofChunks() const
 {
-	return getPackage()->getNoofChunks( Index_ );
+	if( Index_ != BcErrorCode )
+	{
+		return getPackage()->getNoofChunks( Index_ );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
