@@ -133,11 +133,6 @@ public:
 	const BcName&					getPackageName() const;
 	
 	/**
-	 * Get name.
-	 */
-	const BcName&					getName() const;
-
-	/**
 	 * Get index.
 	 */
 	BcU32							getIndex() const;
@@ -206,7 +201,6 @@ private:
 
 private:
 	//
-	BcName							Name_;
 	BcU32							Index_;
 	CsPackage*						pPackage_;
 	std::atomic< BcU32 >			InitStage_;

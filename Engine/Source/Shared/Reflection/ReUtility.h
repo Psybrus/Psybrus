@@ -211,7 +211,7 @@ struct ReTypeTraits< _Ty& >
 };
 
 template< typename _Ty >
-struct ReTypeTraits< ReObjectRef< _Ty > >
+struct ReTypeTraits< ReObjectRef< _Ty, false > >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_OBJECT_REFERENCE;
@@ -223,7 +223,19 @@ struct ReTypeTraits< ReObjectRef< _Ty > >
 };
 		
 template< typename _Ty >
-struct ReTypeTraits< const  _Ty* >
+struct ReTypeTraits< ReObjectRef< _Ty, true > >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_OBJECT_REFERENCE;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+        return ReTypeTraits< Type >::Name();
+	}
+};
+
+template< typename _Ty >
+struct ReTypeTraits< const _Ty* >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_POINTER | bcRFF_CONST;
