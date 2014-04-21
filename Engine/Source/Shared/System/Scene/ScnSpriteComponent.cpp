@@ -49,8 +49,8 @@ void ScnSpriteComponent::StaticRegisterClass()
 //virtual
 void ScnSpriteComponent::initialise()
 {
-	Position_ = BcVec2d( 0.0f, 0.0f );
-	Size_ = BcVec2d( 0.0f, 0.0f );
+	Position_ = MaVec2d( 0.0f, 0.0f );
+	Size_ = MaVec2d( 0.0f, 0.0f );
 	Colour_ = RsColour::WHITE;
 	Index_ = 0;
 	Layer_ = 0;
@@ -74,7 +74,7 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	Super::postUpdate( Tick );
 
 	ScnEntityWeakRef Entity = getParentEntity();
-	const BcMat4d& Matrix = Entity->getWorldMatrix();
+	const MaMat4d& Matrix = Entity->getWorldMatrix();
 
 	// Push matrix onto canvas.
 	Canvas_->pushMatrix( Matrix );

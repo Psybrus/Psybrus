@@ -33,9 +33,9 @@ struct ScnModelHeader
 // ScnModelNodeTransformData
 struct ScnModelNodeTransformData
 {
-	BcMat4d							RelativeTransform_;
-	BcMat4d							AbsoluteTransform_;
-	BcMat4d							InverseBindpose_;
+	MaMat4d							RelativeTransform_;
+	MaMat4d							AbsoluteTransform_;
+	MaMat4d							InverseBindpose_;
 };
 	
 //////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ struct ScnModelPrimitiveData
 	BcU32							MaterialRef_;
 	BcU32							Padding0_;
 	BcU32							Padding1_;
-	BcAABB							AABB_;
+	MaAABB							AABB_;
 	BcU32							BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };
 

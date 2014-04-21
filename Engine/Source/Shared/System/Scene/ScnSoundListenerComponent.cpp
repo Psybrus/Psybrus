@@ -51,11 +51,11 @@ void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 
 	if( SsCore::pImpl() != NULL )
 	{
-		BcVec3d Up( 0.0f, 1.0f, 0.0f );
-		BcVec3d Forward( 0.0f, 0.0f, 1.0f );
-		BcMat4d Matrix = getParentEntity()->getWorldMatrix();
-		BcMat4d RotationMatrix = Matrix;
-		RotationMatrix.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+		MaVec3d Up( 0.0f, 1.0f, 0.0f );
+		MaVec3d Forward( 0.0f, 0.0f, 1.0f );
+		MaMat4d Matrix = getParentEntity()->getWorldMatrix();
+		MaMat4d RotationMatrix = Matrix;
+		RotationMatrix.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
 		Up = Up * RotationMatrix;
 		Forward = Forward * RotationMatrix;
 		SsCore::pImpl()->setListener( Matrix.translation(), Forward, Up );

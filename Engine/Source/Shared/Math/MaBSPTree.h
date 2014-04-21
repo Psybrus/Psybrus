@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		BcBSPTree.h
+* File:		MaBSPTree.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -14,7 +14,7 @@
 #ifndef __BCBSPTREE_H__
 #define __BCBSPTREE_H__
 
-#include "BcPlane.h"
+#include "MaPlane.h"
 
 #include <vector>
 
@@ -24,57 +24,57 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-typedef std::vector< struct BcBSPNode* > BcBSPNodeList;
+typedef std::vector< struct MaBSPNode* > BcBSPNodeList;
 
 //////////////////////////////////////////////////////////////////////////
-// BcBSPNode
-struct BcBSPNode
+// MaBSPNode
+struct MaBSPNode
 {
-	BcBSPNode*							pFront_;						///!< Front Node.
-	BcBSPNode*							pBack_;							///!< Back node.
+	MaBSPNode*							pFront_;						///!< Front Node.
+	MaBSPNode*							pBack_;							///!< Back node.
 
-	BcPlane								Plane_;							///!< Plane dividing this node.
-	std::vector< BcVec3d >				Vertices_;						///!< Vertices inside of this node.
+	MaPlane								Plane_;							///!< Plane dividing this node.
+	std::vector< MaVec3d >				Vertices_;						///!< Vertices inside of this node.
 
 	BcBSPNodeList						WorkingList_;					///!< List used during tree construction.
 };
 
-struct BcBSPInfo
+struct MaBSPInfo
 {
 	// Plane we intersect with.
-	BcPlane								Plane_;
+	MaPlane								Plane_;
 
 	//
-	void								set( BcBSPNode* pNode );
+	void								set( MaBSPNode* pNode );
 };
 
 struct BcBSPPointInfo
 {
-	BcPlane								Plane_;
-	BcVec3d								Point_;
+	MaPlane								Plane_;
+	MaVec3d								Point_;
 	BcF32								Distance_;
 };
 
 //-----------------------------------------------------------------------
-///	@class BcBSPTree
+///	@class MaBSPTree
 /// @brief BSP Tree class.
 /// @author Neil Richardson
 ///	@date [26/8/2008]
 /// @version 1.0
 ///
 /// BSP Tree container/builder class designed for collision detection
-/// purposes. Could very easily be extended by virtualising BcBSPNode,
+/// purposes. Could very easily be extended by virtualising MaBSPNode,
 /// that way it could have its function expanded and become useful for
 /// more things.
 ///
 /// If the planes given describes a non-manifold object, then you may get
 /// unexpected results in certain situations!
 //-----------------------------------------------------------------------
-class BcBSPTree
+class MaBSPTree
 {
 public:
-	BcBSPTree();
-	virtual ~BcBSPTree();
+	MaBSPTree();
+	virtual ~MaBSPTree();
 
 	/**
 	*	Set a nodes plane and vertices.
@@ -82,7 +82,7 @@ public:
 	*	@param pVertices Pointer to vertices for this node.
 	*	@param nVertices Number of vertices.
 	*/
-	void								addNode( const BcPlane& Plane, const BcVec3d* pVertices, BcU32 nVertices );
+	void								addNode( const MaPlane& Plane, const MaVec3d* pVertices, BcU32 nVertices );
 
 	/**
 	*	Build the tree.
@@ -96,7 +96,7 @@ public:
 	*	@param Data to set for collisions.
 	*	@param pNode Starting node.
 	*/
-	BcBool checkPointFront( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool checkPointFront( const MaVec3d& Point, BcF32 Radius, MaBSPInfo* pData = NULL, MaBSPNode* pNode = NULL );
 
 	/**
 	*	Check if a point is behind of all required planes.
@@ -105,12 +105,12 @@ public:
 	*	@param Data to set for collisions.
 	*	@param pNode Starting node.
 	*/
-	BcBool checkPointBack( const BcVec3d& Point, BcF32 Radius, BcBSPInfo* pData = NULL, BcBSPNode* pNode = NULL );
+	BcBool checkPointBack( const MaVec3d& Point, BcF32 Radius, MaBSPInfo* pData = NULL, MaBSPNode* pNode = NULL );
 
 	/**
 	*	Line intersection test.
 	*/
-	BcBool lineIntersection( const BcVec3d& A, const BcVec3d& B, BcBSPPointInfo* pPointInfo, BcBSPNode* pNode = NULL );
+	BcBool lineIntersection( const MaVec3d& A, const MaVec3d& B, BcBSPPointInfo* pPointInfo, MaBSPNode* pNode = NULL );
 
 private:
 	/**
@@ -118,13 +118,13 @@ private:
 	*	@param pNode Node to classify.
 	*	@param Plane Plane to classify node against.
 	*/
-	BcPlane::eClassify					classifyNode( BcBSPNode* pNode, const BcPlane& Plane );
+	MaPlane::eClassify					classifyNode( MaBSPNode* pNode, const MaPlane& Plane );
 
 	/**
 	*	Split node.
 	*	@param pNode Node to split.
 	*/
-	void								splitNode( BcBSPNode* pNode );
+	void								splitNode( MaBSPNode* pNode );
 
 	/**
 	*	Clip a node and create a new node for it.	
@@ -133,14 +133,14 @@ private:
 	*	@param Clip Clip plane.
 	*	@return New clipped node.
 	*/
-	BcBSPNode*							clipNode( BcBSPNode* pNode, const BcPlane& Clip );
+	MaBSPNode*							clipNode( MaBSPNode* pNode, const MaPlane& Clip );
 
 	/**
 	*	Check if a point is in a node.
 	*	@param Point Point to test.
 	*	@param pNode Node to test again.
 	*/
-	BcBool								pointOnNode( const BcVec3d& Point, BcBSPNode* pNode );
+	BcBool								pointOnNode( const MaVec3d& Point, MaBSPNode* pNode );
 	
 
 	/**
@@ -151,7 +151,7 @@ private:
 
 private:
 	BcBSPNodeList						NodeList_;
-	BcBSPNode*							pRootNode_;
+	MaBSPNode*							pRootNode_;
 	BcU32								nInitialNodes_;
 	BcU32								nTotalNodes_;
 

@@ -153,6 +153,8 @@ void ReManager::Init()
 	GetClass( "string" )->setType< std::string >( new ReClassSerialiser_StringType( "string" ) );
 	GetClass( "class BcBinaryData" )->setType< BcBinaryData >( new ReClassSerialiser_BinaryDataType( "class BcBinaryData" ) );
 
+	ReAttribute::StaticRegisterClass();
+	ReAttributable::StaticRegisterClass();
     RePrimitive::StaticRegisterClass();
     ReType::StaticRegisterClass();
 	ReClass::StaticRegisterClass();

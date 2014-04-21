@@ -369,42 +369,42 @@ ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const ReClass* Clas
 
 //////////////////////////////////////////////////////////////////////////
 // setLocalPosition
-void ScnEntity::setLocalPosition( const BcVec3d& Position )
+void ScnEntity::setLocalPosition( const MaVec3d& Position )
 {
 	LocalTransform_.translation( Position );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setLocalMatrix
-void ScnEntity::setLocalMatrix( const BcMat4d& Matrix )
+void ScnEntity::setLocalMatrix( const MaMat4d& Matrix )
 {
 	LocalTransform_ = Matrix;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getLocalPosition
-BcVec3d ScnEntity::getLocalPosition() const
+MaVec3d ScnEntity::getLocalPosition() const
 {
 	return LocalTransform_.translation();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getWorldPosition
-BcVec3d ScnEntity::getWorldPosition() const
+MaVec3d ScnEntity::getWorldPosition() const
 {
 	return WorldTransform_.translation();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getLocalMatrix
-const BcMat4d& ScnEntity::getLocalMatrix() const
+const MaMat4d& ScnEntity::getLocalMatrix() const
 {
 	return LocalTransform_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getWorldMatrix
-const BcMat4d& ScnEntity::getWorldMatrix() const
+const MaMat4d& ScnEntity::getWorldMatrix() const
 {
 	return WorldTransform_;
 }

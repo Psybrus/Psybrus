@@ -30,8 +30,6 @@ project "Engine_System_Network"
 
    			-- External libs.
         "External_enet",
-        "External_jsoncpp",
-        "External_libb64",
         "External_mongoose",
    		}
 

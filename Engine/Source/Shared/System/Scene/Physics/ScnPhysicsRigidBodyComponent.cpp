@@ -67,7 +67,7 @@ void ScnPhysicsRigidBodyComponent::update( BcF32 Tick )
 {
 	// Set transform from rigid body.
 	const btTransform& BulletTransform = RigidBody_->getCenterOfMassTransform();
-	BcMat4d Transform;
+	MaMat4d Transform;
 
 	// Set transform using bullet's GL matrix stuff.
 	BulletTransform.getOpenGLMatrix( reinterpret_cast< btScalar* >( &Transform ) );
@@ -100,7 +100,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	
 	// Create rigid body.
 	btTransform StartTransform;
-	const BcMat4d& LocalMatrix = getParentEntity()->getLocalMatrix();
+	const MaMat4d& LocalMatrix = getParentEntity()->getLocalMatrix();
 	StartTransform.setFromOpenGLMatrix( reinterpret_cast< const btScalar* >( &LocalMatrix ) );
 
 	btRigidBody::btRigidBodyConstructionInfo ConstructionInfo(

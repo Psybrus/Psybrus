@@ -69,8 +69,8 @@ public:
 	void rolloffFactor( BcF32 RolloffFactor );
 	BcF32 rolloffFactor() const;
 
-	void position( const BcVec3d& Position );
-	const BcVec3d& position() const;
+	void position( const MaVec3d& Position );
+	const MaVec3d& position() const;
 
 	virtual void stop( BcBool ReleaseCallback = BcFalse ) = 0;
 	virtual void queue( SsSample* Sample ) = 0;
@@ -89,7 +89,7 @@ protected:
 	BcF32				RefDistance_;
 	BcF32				MaxDistance_;
 	BcF32				RolloffFactor_;
-	BcVec3d				Position_;
+	MaVec3d				Position_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,12 +164,12 @@ inline BcF32 SsChannel::rolloffFactor() const
 	return RolloffFactor_;
 }
 
-inline void SsChannel::position( const BcVec3d& Position )
+inline void SsChannel::position( const MaVec3d& Position )
 {
 	Position_ = Position;
 }
 
-inline const BcVec3d& SsChannel::position() const
+inline const MaVec3d& SsChannel::position() const
 {
 	return Position_;
 }
@@ -182,7 +182,7 @@ inline void SsChannel::setDefaults()
 	RefDistance_ = 5.0f;
 	MaxDistance_ = 100.0f;
 	RolloffFactor_ = 1.0f;
-	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+	Position_ = MaVec3d( 0.0f, 0.0f, 0.0f );
 }
 
 

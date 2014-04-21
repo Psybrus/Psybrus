@@ -24,12 +24,6 @@ project "Engine_Events"
    		links {
         -- Engine libs.
         "Engine_Base",
-
-   			-- External libs.
-   			"External_pcre",
-   			"External_zlib",
-        "External_jsoncpp",
-        "External_libb64",
    		}
 
    	configuration "vs2012"

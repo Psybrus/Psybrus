@@ -86,12 +86,12 @@ public:
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	void								initialise( const Json::Value& Object );
 
-	void								setClipping( BcBool Enabled, BcVec2d Min = BcVec2d( 0.0f, 0.0f ), BcVec2d Max = BcVec2d( 0.0f, 0.0f ) );
+	void								setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
 	
-	BcVec2d								draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
-	BcVec2d								drawCentered( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
+	MaVec2d								draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
+	MaVec2d								drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
 
-	void								setAlphaTestStepping( const BcVec2d& Stepping );
+	void								setAlphaTestStepping( const MaVec2d& Stepping );
 
 	ScnMaterialComponentRef				getMaterialComponent();
 
@@ -107,8 +107,8 @@ private:
 	ScnMaterialComponentRef				MaterialComponent_;
 
 	BcBool								ClippingEnabled_;
-	BcVec2d								ClipMin_;
-	BcVec2d								ClipMax_;
+	MaVec2d								ClipMin_;
+	MaVec2d								ClipMax_;
 };
 
 #endif

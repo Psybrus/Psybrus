@@ -346,7 +346,7 @@ void RsFrameGL::endPrimitive()
 
 //////////////////////////////////////////////////////////////////////////
 // addLine
-void RsFrameGL::addLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsColour& Colour, BcU32 Layer )
+void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer )
 {
 	BcBreakpoint;
 
@@ -411,7 +411,7 @@ void RsFrameGL::addLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsC
 
 //////////////////////////////////////////////////////////////////////////
 // addLine
-void RsFrameGL::addLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer )
+void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer )
 {
 	BcBreakpoint;
 
@@ -479,7 +479,7 @@ void RsFrameGL::addLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsC
 
 //////////////////////////////////////////////////////////////////////////
 // addBox
-void RsFrameGL::addBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
+void RsFrameGL::addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
 {
 	BcBreakpoint;
 
@@ -538,7 +538,7 @@ void RsFrameGL::addBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const Rs
 
 //////////////////////////////////////////////////////////////////////////
 // addSprite
-void RsFrameGL::addSprite( RsMaterial* pMaterial, const BcVec2d& Position )
+void RsFrameGL::addSprite( RsMaterial* pMaterial, const MaVec2d& Position )
 {
 	BcBreakpoint;
 

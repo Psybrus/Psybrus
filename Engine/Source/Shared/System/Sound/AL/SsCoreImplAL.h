@@ -69,7 +69,7 @@ public:
 	virtual SsChannel* play( SsSample* pSample, SsChannelCallback* pCallback = NULL );
 	virtual SsChannel* queue( SsSample* pSample, SsChannelCallback* pCallback = NULL );
 	virtual void unregister( SsChannelCallback* Callback = NULL );
-	virtual void setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up );
+	virtual void setListener( const MaVec3d& Position, const MaVec3d& LookAt, const MaVec3d& Up );
 
 public: // NEILO HACK.
 	virtual void setEnvironment( const SsEnvironment& Environment );
@@ -97,9 +97,9 @@ private:
 	TChannelList			UsedChannels_;
 	
 	// Listener.
-	BcVec3d					ListenerPosition_;
-	BcVec3d					ListenerLookAt_;
-	BcVec3d					ListenerUp_;
+	MaVec3d					ListenerPosition_;
+	MaVec3d					ListenerLookAt_;
+	MaVec3d					ListenerUp_;
 
 	// Environment.
 	SsEnvironment			Environment_;

@@ -14,7 +14,7 @@
 #ifndef __SCNSPACIALTREE_H__
 #define __SCNSPACIALTREE_H__
 
-#include "Base/BcOctTree.h"
+#include "Math/MaOctTree.h"
 
 #include <list>
 
@@ -29,7 +29,7 @@ typedef std::list< class ScnSpatialComponent* > ScnSpatialComponentList;
 *	
 */
 class ScnSpatialTreeNode:
-	public BcOctTreeNode
+	public MaOctTreeNode
 {
 public:
 	ScnSpatialTreeNode();
@@ -58,7 +58,7 @@ public:
 	/**
 	*	Visit bounds.
 	*/
-	void					visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds );
+	void					visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
 
 private:
 	ScnSpatialComponentList	ComponentList_;
@@ -96,13 +96,13 @@ public:
 	/**
 	*	Visit bounds.
 	*/
-	void					visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds );
+	void					visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
 
 private:
 	/**
 	*	Create our own Component type.
 	*/
-	virtual BcOctTreeNode*	createNode( const BcAABB& AABB );
+	virtual MaOctTreeNode*	createNode( const MaAABB& AABB );
 };
 
 #endif

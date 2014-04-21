@@ -85,7 +85,7 @@ public:
 	/**
 	 *	Get light AABB.
 	 */
-	BcAABB								getAABB() const;
+	MaAABB								getAABB() const;
 
 private:
 	ScnLightType						Type_;

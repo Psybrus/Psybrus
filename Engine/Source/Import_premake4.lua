@@ -28,13 +28,11 @@ project "Engine_Import"
    		links {
         -- Engine libs.
         "Engine_Base",
+        "Engine_Math",
         "Engine_Reflection",
 
    			-- External libs.
-   			"External_pcre",
    			"External_zlib",
-        "External_jsoncpp",
-        "External_libb64",
         "External_ogg",
         "External_png",
         "External_squish",

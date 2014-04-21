@@ -139,9 +139,9 @@ void ScnDebugRenderComponent::destroy()
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
-BcAABB ScnDebugRenderComponent::getAABB() const
+MaAABB ScnDebugRenderComponent::getAABB() const
 {
-	return BcAABB();
+	return MaAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ void ScnDebugRenderComponent::addPrimitive( eRsPrimitiveType Type, ScnDebugRende
 
 //////////////////////////////////////////////////////////////////////////
 // drawLine
-void ScnDebugRenderComponent::drawLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer )
+void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer )
 {
 	ScnDebugRenderComponentVertex* pVertices = allocVertices( 2 );
 	ScnDebugRenderComponentVertex* pFirstVertex = pVertices;
@@ -241,7 +241,7 @@ void ScnDebugRenderComponent::drawLine( const BcVec3d& PointA, const BcVec3d& Po
 
 //////////////////////////////////////////////////////////////////////////
 // drawLines
-void ScnDebugRenderComponent::drawLines( const BcVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
+void ScnDebugRenderComponent::drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
 {
 	BcU32 NoofVertices = 2 * NoofLines;
 	ScnDebugRenderComponentVertex* pVertices = allocVertices( NoofVertices );
@@ -269,36 +269,36 @@ void ScnDebugRenderComponent::drawLines( const BcVec3d* pPoints, BcU32 NoofLines
 
 //////////////////////////////////////////////////////////////////////////
 // drawGrid
-void ScnDebugRenderComponent::drawGrid( const BcVec3d& Position, const BcVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer )
+void ScnDebugRenderComponent::drawGrid( const MaVec3d& Position, const MaVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer )
 {
 	BcU32 NoofAxis = ( Size.x() > 0 ? 1 : 0  ) + ( Size.y() > 0 ? 1 : 0  ) + ( Size.z() > 0 ? 1 : 0 );
 	BcAssertMsg( NoofAxis == 2, "Only supports 2 axis in the grid!" );
 	
 	// Determine which axis to draw along.
-	BcVec3d XAxis;
-	BcVec3d YAxis;
+	MaVec3d XAxis;
+	MaVec3d YAxis;
 	BcF32 XSize = 0.0f;
 	BcF32 YSize = 0.0f;
 
 	if( Size.x() > 0.0f )
 	{
-		XAxis = BcVec3d( Size.x(), 0.0f, 0.0f );
+		XAxis = MaVec3d( Size.x(), 0.0f, 0.0f );
 		XSize = Size.x();
 		if( Size.y() > 0.0f )
 		{
-			YAxis = BcVec3d( 0.0f, Size.y(), 0.0f );
+			YAxis = MaVec3d( 0.0f, Size.y(), 0.0f );
 			YSize = Size.y();
 		}
 		else
 		{
-			YAxis = BcVec3d( 0.0f, 0.0f, Size.z() );
+			YAxis = MaVec3d( 0.0f, 0.0f, Size.z() );
 			YSize = Size.z();
 		}
 	}
 	else
 	{
-		XAxis = BcVec3d( 0.0f, Size.y(), 0.0f );
-		YAxis = BcVec3d( 0.0f, 0.0f, Size.z() );
+		XAxis = MaVec3d( 0.0f, Size.y(), 0.0f );
+		YAxis = MaVec3d( 0.0f, 0.0f, Size.z() );
 		XSize = Size.y();
 		YSize = Size.z();
 	}
@@ -312,20 +312,20 @@ void ScnDebugRenderComponent::drawGrid( const BcVec3d& Position, const BcVec3d& 
 		// Draw grid.
 		for( BcF32 X = 0.0f; X <= XSize; X += StepSize )
 		{
-			BcVec3d A1( Position + ( XAxis * X ) + ( YAxis *  YSize ) );
-			BcVec3d B1( Position + ( XAxis * X ) + ( YAxis * -YSize ) );
-			BcVec3d A2( Position + ( XAxis * -X ) + ( YAxis *  YSize ) );
-			BcVec3d B2( Position + ( XAxis * -X ) + ( YAxis * -YSize ) );
+			MaVec3d A1( Position + ( XAxis * X ) + ( YAxis *  YSize ) );
+			MaVec3d B1( Position + ( XAxis * X ) + ( YAxis * -YSize ) );
+			MaVec3d A2( Position + ( XAxis * -X ) + ( YAxis *  YSize ) );
+			MaVec3d B2( Position + ( XAxis * -X ) + ( YAxis * -YSize ) );
 			drawLine( A1, B1, RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), Layer );
 			drawLine( A2, B2, RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), Layer );
 		}
 
 		for( BcF32 Y = 0.0f; Y <= YSize; Y += StepSize )
 		{
-			BcVec3d A1( Position + ( XAxis *  YSize ) + ( YAxis * Y ) );
-			BcVec3d B1( Position + ( XAxis * -YSize ) + ( YAxis * Y ) );
-			BcVec3d A2( Position + ( XAxis *  YSize ) + ( YAxis * -Y ) );
-			BcVec3d B2( Position + ( XAxis * -YSize ) + ( YAxis * -Y ) );
+			MaVec3d A1( Position + ( XAxis *  YSize ) + ( YAxis * Y ) );
+			MaVec3d B1( Position + ( XAxis * -YSize ) + ( YAxis * Y ) );
+			MaVec3d A2( Position + ( XAxis *  YSize ) + ( YAxis * -Y ) );
+			MaVec3d B2( Position + ( XAxis * -YSize ) + ( YAxis * -Y ) );
 			drawLine( A1, B1, RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), Layer );
 			drawLine( A2, B2, RsColour( 1.0f, 1.0f, 1.0f, 0.05f ), Layer );
 		}
@@ -336,7 +336,7 @@ void ScnDebugRenderComponent::drawGrid( const BcVec3d& Position, const BcVec3d& 
 
 //////////////////////////////////////////////////////////////////////////
 // drawEllipsoid
-void ScnDebugRenderComponent::drawEllipsoid( const BcVec3d& Position, const BcVec3d& Size, const RsColour& Colour, BcU32 Layer )
+void ScnDebugRenderComponent::drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer )
 {
 	// Draw outer circles for all axis.
 	BcU32 LOD = 16;
@@ -346,15 +346,15 @@ void ScnDebugRenderComponent::drawEllipsoid( const BcVec3d& Position, const BcVe
 	// Draw axis lines.
 	for( BcU32 i = 0; i < LOD; ++i )
 	{
-		BcVec2d PosA( BcCos( Angle ), -BcSin( Angle ) );
-		BcVec2d PosB( BcCos( Angle + AngleInc ), -BcSin( Angle + AngleInc ) );
+		MaVec2d PosA( BcCos( Angle ), -BcSin( Angle ) );
+		MaVec2d PosB( BcCos( Angle + AngleInc ), -BcSin( Angle + AngleInc ) );
 
-		BcVec3d XAxisA = BcVec3d( 0.0f,                 PosA.x() * Size.y(), PosA.y() * Size.z() );
-		BcVec3d YAxisA = BcVec3d( PosA.x() * Size.x(), 0.0f,                 PosA.y() * Size.z() );
-		BcVec3d ZAxisA = BcVec3d( PosA.x() * Size.x(), PosA.y() * Size.y(), 0.0f                 );
-		BcVec3d XAxisB = BcVec3d( 0.0f,                 PosB.x() * Size.y(), PosB.y() * Size.z() );
-		BcVec3d YAxisB = BcVec3d( PosB.x() * Size.x(), 0.0f,                 PosB.y() * Size.z() );
-		BcVec3d ZAxisB = BcVec3d( PosB.x() * Size.x(), PosB.y() * Size.y(), 0.0f                 );
+		MaVec3d XAxisA = MaVec3d( 0.0f,                 PosA.x() * Size.y(), PosA.y() * Size.z() );
+		MaVec3d YAxisA = MaVec3d( PosA.x() * Size.x(), 0.0f,                 PosA.y() * Size.z() );
+		MaVec3d ZAxisA = MaVec3d( PosA.x() * Size.x(), PosA.y() * Size.y(), 0.0f                 );
+		MaVec3d XAxisB = MaVec3d( 0.0f,                 PosB.x() * Size.y(), PosB.y() * Size.z() );
+		MaVec3d YAxisB = MaVec3d( PosB.x() * Size.x(), 0.0f,                 PosB.y() * Size.z() );
+		MaVec3d ZAxisB = MaVec3d( PosB.x() * Size.x(), PosB.y() * Size.y(), 0.0f                 );
 
 		drawLine( XAxisA + Position, XAxisB + Position, Colour, 0 );
 		drawLine( YAxisA + Position, YAxisB + Position, Colour, 0 );
@@ -364,9 +364,9 @@ void ScnDebugRenderComponent::drawEllipsoid( const BcVec3d& Position, const BcVe
 	}
 
 	// Draw a cross down centre.
-	BcVec3d XAxis = BcVec3d( Size.x(), 0.0f, 0.0f );
-	BcVec3d YAxis = BcVec3d( 0.0f, Size.y(), 0.0f );
-	BcVec3d ZAxis = BcVec3d( 0.0f, 0.0f, Size.z() );
+	MaVec3d XAxis = MaVec3d( Size.x(), 0.0f, 0.0f );
+	MaVec3d YAxis = MaVec3d( 0.0f, Size.y(), 0.0f );
+	MaVec3d ZAxis = MaVec3d( 0.0f, 0.0f, Size.z() );
 	drawLine( Position - XAxis, Position + XAxis, Colour, Layer );
 	drawLine( Position - YAxis, Position + YAxis, Colour, Layer );
 	drawLine( Position - ZAxis, Position + ZAxis, Colour, Layer );
@@ -374,7 +374,7 @@ void ScnDebugRenderComponent::drawEllipsoid( const BcVec3d& Position, const BcVe
 
 //////////////////////////////////////////////////////////////////////////
 // drawAABB
-void ScnDebugRenderComponent::drawAABB( const BcAABB& AABB, const RsColour& Colour, BcU32 Layer )
+void ScnDebugRenderComponent::drawAABB( const MaAABB& AABB, const RsColour& Colour, BcU32 Layer )
 {
 	drawLine( AABB.corner( 0 ), AABB.corner( 1 ), Colour, Layer );
 	drawLine( AABB.corner( 1 ), AABB.corner( 3 ), Colour, Layer );
@@ -427,7 +427,7 @@ void ScnDebugRenderComponent::preUpdate( BcF32 Tick )
 
 	clear();
 
-	//drawGrid( BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 1000.0f, 0.0f, 1000.0f ), 1.0f, 10.0f, 0 );
+	//drawGrid( MaVec3d( 0.0f, 0.0f, 0.0f ), MaVec3d( 1000.0f, 0.0f, 1000.0f ), 1.0f, 10.0f, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////

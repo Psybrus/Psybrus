@@ -75,11 +75,11 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						destroy();
 
-	virtual BcAABB						getAABB() const;
+	virtual MaAABB						getAABB() const;
 
 	BcU32								findNodeIndexByName( const BcName& Name ) const;
-	void								setNode( BcU32 NodeIdx, const BcMat4d& LocalTransform );
-	const BcMat4d&						getNode( BcU32 NodeIdx ) const;
+	void								setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform );
+	const MaMat4d&						getNode( BcU32 NodeIdx ) const;
 	BcU32								getNoofNodes() const;
 
 	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
@@ -88,7 +88,7 @@ public:
 public:
 	virtual void						postUpdate( BcF32 Tick );
 
-	void								updateNodes( BcMat4d RootMatrix );
+	void								updateNodes( MaMat4d RootMatrix );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
@@ -102,7 +102,7 @@ protected:
 	BcU32								Layer_;
 	BcU32								Pass_;
 
-	BcAABB								AABB_;
+	MaAABB								AABB_;
 
 	struct TPerComponentPrimitiveData
 	{

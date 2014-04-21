@@ -1,8 +1,8 @@
 #ifndef __BcCPUVecQUADH__
 #define __BcCPUVecQUADH__
 
-#include "BcCPUVecQuad.h"
+#include "Math/MaCPUVecQuad.h"
 
-typedef BcCPUVecQuad BcCPUVecQuad;
+typedef MaCPUVecQuad MaVecQuad;
 
 #endif // __BcCPUVecQUADH__

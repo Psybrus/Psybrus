@@ -15,11 +15,11 @@
 #define __MDLTYPES_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec2d.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcQuat.h"
-#include "Base/BcPlane.h"
-#include "Base/BcAABB.h"
+#include "Math/MaVec2d.h"
+#include "Math/MaVec3d.h"
+#include "Math/MaQuat.h"
+#include "Math/MaPlane.h"
+#include "Math/MaAABB.h"
 #include "Base/BcMemory.h"
 
 #include <vector>
@@ -52,11 +52,11 @@ enum
 //////////////////////////////////////////////////////////////////////////
 // Fundamental types
 
-typedef BcVec3d			MdlPosition;
-typedef BcVec3d			MdlNormal;
-typedef BcVec3d			MdlTangent;
-typedef BcVec2d			MdlUV;
-typedef BcVec4d			MdlColour;
+typedef MaVec3d			MdlPosition;
+typedef MaVec3d			MdlNormal;
+typedef MaVec3d			MdlTangent;
+typedef MaVec2d			MdlUV;
+typedef MaVec4d			MdlColour;
 typedef BcU32			MdlMaterialIndex;
 
 class MdlMaterial
@@ -172,7 +172,7 @@ struct MdlVertex
 
 struct MdlAnimKey
 {
-	BcMat4d Matrix_;
+	MaMat4d Matrix_;
 };
 
 struct MdlAnimNode
@@ -336,9 +336,9 @@ struct MdlBspNode
 	MdlBspNode* pFront_;
 	MdlBspNode* pBack_;
 
-	BcPlane Plane_;
+	MaPlane Plane_;
 	BcU32 nVertices_;
-	BcVec3d Vertices_[ MDL_MAXBSP_VERTS ];
+	MaVec3d Vertices_[ MDL_MAXBSP_VERTS ];
 
 	MdlBspNodeList FrontList_;		// Infront of us
 	MdlBspNodeList BackList_;		// Behind us.

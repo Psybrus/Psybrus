@@ -44,6 +44,7 @@ project "Engine_System"
         "Engine_Events",
         "Engine_Import",
         "Engine_Reflection",
+        "Engine_Math",
         "Engine_Serialisation",
    		}
 

@@ -75,21 +75,21 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 				// Vertex position.
 				BcF32 X, Y, Z;
 				BcSScanf( LineBuffer, "%s %f %f %f", CommandBuffer, &X, &Y, &Z );
-				Positions_.push_back( BcVec3d( -X, Y, Z ) );
+				Positions_.push_back( MaVec3d( -X, Y, Z ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "vn" ) )
 			{
 				// Vertex normal.
 				BcF32 X, Y, Z;
 				BcSScanf( LineBuffer, "%s %f %f %f", CommandBuffer, &X, &Y, &Z );
-				Normals_.push_back( BcVec3d( -X, Y, Z ) );
+				Normals_.push_back( MaVec3d( -X, Y, Z ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "vt" ) )
 			{
 				// Vertex texcoord.
 				BcF32 U, V;
 				BcSScanf( LineBuffer, "%s %f %f", CommandBuffer, &U, &V );
-				TexCoords_.push_back( BcVec2d( U, V ) );
+				TexCoords_.push_back( MaVec2d( U, V ) );
 			}
 			else if( BcStrCompare( CommandBuffer, "usemtl" ) )
 			{
@@ -148,9 +148,9 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 					VertB.UV_ = TexCoords_[ T[1] - 1 ];
 					VertC.UV_ = TexCoords_[ T[2] - 1 ];
 
-					VertA.UV_ = BcVec2d( VertA.UV_.x(), -VertA.UV_.y() );
-					VertB.UV_ = BcVec2d( VertB.UV_.x(), -VertB.UV_.y() );
-					VertC.UV_ = BcVec2d( VertC.UV_.x(), -VertC.UV_.y() );
+					VertA.UV_ = MaVec2d( VertA.UV_.x(), -VertA.UV_.y() );
+					VertB.UV_ = MaVec2d( VertB.UV_.x(), -VertB.UV_.y() );
+					VertC.UV_ = MaVec2d( VertC.UV_.x(), -VertC.UV_.y() );
 				}
 
 				if( N[0] != BcErrorCode )

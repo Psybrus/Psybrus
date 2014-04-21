@@ -84,7 +84,7 @@ public:
 	/**
 	 * Visit bounds.
 	 */
-	void						visitBounds( class ScnVisitor* pVisitor, const BcAABB& Bounds );
+	void						visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
 
 
 private:

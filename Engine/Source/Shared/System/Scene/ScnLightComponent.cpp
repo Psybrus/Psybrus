@@ -65,13 +65,13 @@ void ScnLightComponent::initialise( const Json::Value& Object )
 	const Json::Value& AmbientColourValue = Object[ "ambientcolour" ];
 	if( AmbientColourValue != Json::nullValue )
 	{
-		AmbientColour_ = BcVec4d( AmbientColourValue.asCString() );
+		AmbientColour_ = MaVec4d( AmbientColourValue.asCString() );
 	}
 
 	const Json::Value& DiffuseColourValue = Object[ "diffusecolour" ];
 	if( DiffuseColourValue != Json::nullValue )
 	{
-		DiffuseColour_ = BcVec4d( DiffuseColourValue.asCString() );
+		DiffuseColour_ = MaVec4d( DiffuseColourValue.asCString() );
 	}
 
 	const Json::Value& MinValue = Object[ "min" ];
@@ -89,7 +89,7 @@ void ScnLightComponent::initialise( const Json::Value& Object )
 // onAttach
 void ScnLightComponent::update( BcF32 Tick )
 {
-	//ScnDebugRenderComponent::pImpl()->drawEllipsoid( getParentEntity()->getWorldPosition(), BcVec3d( 1.0f, 1.0f, 1.0f ), DiffuseColour_ );
+	//ScnDebugRenderComponent::pImpl()->drawEllipsoid( getParentEntity()->getWorldPosition(), MaVec3d( 1.0f, 1.0f, 1.0f ), DiffuseColour_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -195,11 +195,11 @@ void ScnLightComponent::createAttenuationValues( BcF32 MinDistance, BcF32 MidDis
 // setMaterialParameters
 void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComponent* MaterialComponent )
 {
-	const BcVec4d& Position( getParentEntity()->getWorldMatrix().row3() );
-	const BcVec4d& Direction( getParentEntity()->getWorldMatrix().row2() );
+	const MaVec4d& Position( getParentEntity()->getWorldMatrix().row3() );
+	const MaVec4d& Direction( getParentEntity()->getWorldMatrix().row2() );
 	MaterialComponent->setLightParameters( LightIndex,
-	                                       BcVec3d( Position.x(), Position.y(), Position.z() ),
-	                                       BcVec3d( Direction.x(), Direction.y(), Direction.z() ),
+	                                       MaVec3d( Position.x(), Position.y(), Position.z() ),
+	                                       MaVec3d( Direction.x(), Direction.y(), Direction.z() ),
 	                                       AmbientColour_,
 										   DiffuseColour_,
 	                                       AttnC_,
@@ -209,10 +209,10 @@ void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComp
 
 //////////////////////////////////////////////////////////////////////////
 // getAABB
-BcAABB ScnLightComponent::getAABB() const
+MaAABB ScnLightComponent::getAABB() const
 {
 	const BcF32 MinAttn = 0.01f;
 	const BcF32 MaxDistance = findDistanceByAttenuation( MinAttn );
-	const BcVec3d MaxDistanceVec3( MaxDistance, MaxDistance, MaxDistance );
-	return BcAABB( -MaxDistanceVec3, MaxDistanceVec3 );
+	const MaVec3d MaxDistanceVec3( MaxDistance, MaxDistance, MaxDistance );
+	return MaAABB( -MaxDistanceVec3, MaxDistanceVec3 );
 }

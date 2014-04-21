@@ -64,7 +64,7 @@ private:
 	eNodeClassify classifyNode( MdlBspNode* pToClassify, MdlBspNode* pAgainst );
 
 	//
-	MdlBspNode* clipNode( MdlBspNode* pSourceNode, eNodeClassify ClassifyAs, const BcPlane& ClippingPlane );
+	MdlBspNode* clipNode( MdlBspNode* pSourceNode, eNodeClassify ClassifyAs, const MaPlane& ClippingPlane );
 
 
 private:

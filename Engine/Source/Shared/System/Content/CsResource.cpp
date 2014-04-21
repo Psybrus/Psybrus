@@ -226,24 +226,24 @@ void CsResource::serialiseProperties()
 					const BcBool* pData = reinterpret_cast< const BcBool* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %u\n", *pData );
 				}
-				else if( pType->getName() == "BcVec2d" )
+				else if( pType->getName() == "MaVec2d" )
 				{
-					const BcVec2d* pData = reinterpret_cast< const BcVec2d* >( &pClassData[ pField->getOffset() ] );
+					const MaVec2d* pData = reinterpret_cast< const MaVec2d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f\n", pData->x(), pData->y() );
 				}
-				else if( pType->getName() == "BcVec3d" )
+				else if( pType->getName() == "MaVec3d" )
 				{
-					const BcVec3d* pData = reinterpret_cast< const BcVec3d* >( &pClassData[ pField->getOffset() ] );
+					const MaVec3d* pData = reinterpret_cast< const MaVec3d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f, %f\n", pData->x(), pData->y(), pData->z() );
 				}
-				else if( pType->getName() == "BcVec4d" )
+				else if( pType->getName() == "MaVec4d" )
 				{
-					const BcVec4d* pData = reinterpret_cast< const BcVec4d* >( &pClassData[ pField->getOffset() ] );
+					const MaVec4d* pData = reinterpret_cast< const MaVec4d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w() );
 				}
-				else if( pType->getName() == "BcMat4d" )
+				else if( pType->getName() == "MaMat4d" )
 				{
-					const BcMat4d* pData = reinterpret_cast< const BcMat4d* >( &pClassData[ pField->getOffset() ] );
+					const MaMat4d* pData = reinterpret_cast< const MaMat4d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w() );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->row1().x(), pData->row1().y(), pData->row1().z(), pData->row1().w() );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->row2().x(), pData->row2().y(), pData->row2().z(), pData->row2().w() );

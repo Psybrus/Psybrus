@@ -471,27 +471,27 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 						BcSPrintf(temp, "%u\n", *pData);
 						fValue.setContents(temp);
 					}
-					else if (pType->getTypeName()() == "BcVec2d")
+					else if (pType->getTypeName()() == "MaVec2d")
 					{
-						const BcVec2d* pData = reinterpret_cast<const BcVec2d*>(&pClassData[pField->getOffset()]);
+						const MaVec2d* pData = reinterpret_cast<const MaVec2d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f\n", pData->x(), pData->y());
 						fValue.setContents(temp);
 					}
-					else if (pType->getTypeName()() == "BcVec3d")
+					else if (pType->getTypeName()() == "MaVec3d")
 					{
-						const BcVec3d* pData = reinterpret_cast<const BcVec3d*>(&pClassData[pField->getOffset()]);
+						const MaVec3d* pData = reinterpret_cast<const MaVec3d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f, %f\n", pData->x(), pData->y(), pData->z());
 						fValue.setContents(temp);
 					}
-					else if (pType->getTypeName()() == "BcVec4d")
+					else if (pType->getTypeName()() == "MaVec4d")
 					{
-						const BcVec4d* pData = reinterpret_cast<const BcVec4d*>(&pClassData[pField->getOffset()]);
+						const MaVec4d* pData = reinterpret_cast<const MaVec4d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w());
 						fValue.setContents(temp);
 					}
-					else if (pType->getTypeName()() == "BcMat4d")
+					else if (pType->getTypeName()() == "MaMat4d")
 					{
-						/*const BcMat4d* pData = reinterpret_cast<const BcMat4d*>(&pClassData[pField->getOffset()]);
+						/*const MaMat4d* pData = reinterpret_cast<const MaMat4d*>(&pClassData[pField->getOffset()]);
 						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w());
 						Output += temp;
 						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row1().x(), pData->row1().y(), pData->row1().z(), pData->row1().w());
