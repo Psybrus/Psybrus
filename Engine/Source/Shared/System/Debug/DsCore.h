@@ -88,9 +88,9 @@ public:
 	DsCore();
 	virtual ~DsCore();
 
-	virtual void				open();
-	virtual void				update();
-	virtual void				close();
+	virtual void				open() = 0;
+	virtual void				update() = 0;
+	virtual void				close() = 0;
 
 	static void					cmdMenu(DsParameters params, BcHtmlNode& Output);
 	static void					cmdContent(DsParameters params, BcHtmlNode& Output);
@@ -103,10 +103,6 @@ public:
 	static void					cmdLog(DsParameters params, BcHtmlNode& Output);
 
 	static void					cmdResource(DsParameters params, BcHtmlNode& Output);
-
-	void						gameThreadMongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-	void*						mongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-	static void*				MongooseCallback( enum mg_event Event, struct mg_connection* pConn );
 
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
@@ -122,6 +118,7 @@ private:
 	mg_context*					pContext_;
 	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
+protected:
 	std::vector<DsPageDefinition>	PageFunctions_;
 	std::vector<DsFunctionDefinition>	ButtonFunctions_;
 };
