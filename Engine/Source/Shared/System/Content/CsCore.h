@@ -50,18 +50,6 @@ public:
 
 public:
 	/**
-	 * Register a resource.
-	 */
-	template< typename _Ty >
-	void								registerResource();
-	
-	/**
-	 * Unregister a resource.
-	 */
-	template< typename _Ty >
-	void								unregisterResource();
-
-	/**
 	 * Free unreferenced packages.
 	 */
 	void								freeUnreferencedPackages();
@@ -89,7 +77,7 @@ public:
 	/*
 	* Get a resource by its Unique Id
 	*/
-	ReObjectRef< CsResource >						getResourceByUniqueId(BcU32 UId);
+	ReObjectRef< CsResource >					getResourceByUniqueId(BcU32 UId);
 
 	/**
 	 * Create a resource.<br/>
@@ -183,24 +171,15 @@ protected:
 	void								processCallbacks();
 	
 public:
-	void								internalRegisterResource( const ReClass* pClass );
-	void								internalUnRegisterResource( const ReClass* Class );
 	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle );
 	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
 	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
 	
 protected:
-	struct TResourceFactoryInfo // TODO: Deprecate. We don't need this much longer with having centralised reflection support.
-	{
-		const ReClass* pClass_;
-	};
-	
 	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
 	typedef std::vector< ReObjectRef< CsResource > > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
-	typedef std::map< const ReClass*, TResourceFactoryInfo > TResourceFactoryInfoMap;
-	typedef TResourceFactoryInfoMap::iterator TResourceFactoryInfoMapIterator;
 
 	struct TPackageReadyCallback
 	{
@@ -216,7 +195,6 @@ protected:
 	typedef TPackageList::iterator TPackageListIterator;
 
 	std::recursive_mutex				ContainerLock_;
-	TResourceFactoryInfoMap				ResourceFactoryInfoMap_;
 	TResourceHandleList					PrecreateResources_;
 	TResourceHandleList					CreateResources_;
 	TResourceHandleList					LoadingResources_;
@@ -233,23 +211,6 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-template< typename _Ty >
-BcForceInline void CsCore::registerResource()
-{
-	BcAssert( BcIsGameThread() );
-	_Ty::StaticRegisterClass();
-	internalRegisterResource( _Ty::StaticGetClass() );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Inlines
-template< typename _Ty >
-BcForceInline void CsCore::unregisterResource()
-{
-	BcAssert( BcIsGameThread() );
-	internalUnRegisterResource( _Ty::StaticGetClass() );
-}
-
 template< typename _Ty >
 BcForceInline BcBool CsCore::createResource( const BcName& Name, CsPackage* pPackage, ReObjectRef< _Ty >& Handle )
 {

@@ -158,17 +158,10 @@ CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	TResourceFactoryInfoMapIterator Iter = ResourceFactoryInfoMap_.find( Class );
 	CsResource* pResource = NULL;
-	
-	if( Iter != ResourceFactoryInfoMap_.end() )
-	{
-		const ReClass* pClass = Iter->second.pClass_;
-		void* pResourceBuffer = BcMemAlign( pClass->getSize() );
-
-		pResource = pClass->construct< CsResource >( pResourceBuffer );
-		pResource->preInitialise( Name, Index, pPackage );
-	}
+	void* pResourceBuffer = BcMemAlign( Class->getSize() );
+	pResource = Class->construct< CsResource >( pResourceBuffer );
+	pResource->preInitialise( Name, Index, pPackage );
 	
 	return pResource;
 }
@@ -488,31 +481,6 @@ void CsCore::processCallbacks()
 		{
 			++It;
 		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalRegisterResource
-void CsCore::internalRegisterResource( const ReClass* pClass )
-{
-	TResourceFactoryInfo FactoryInfo;
-	
-	FactoryInfo.pClass_ = pClass;
-	
-	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
-
-	ResourceFactoryInfoMap_[ pClass ] = FactoryInfo;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalUnRegisterResource
-void CsCore::internalUnRegisterResource( const ReClass* Class )
-{
-	TResourceFactoryInfoMapIterator It = ResourceFactoryInfoMap_.find( Class );
-
-	if( It != ResourceFactoryInfoMap_.end() )
-	{
-		ResourceFactoryInfoMap_.erase( It );
 	}
 }
 
