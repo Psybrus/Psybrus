@@ -57,3 +57,12 @@ void BcLogFile::internalFlush()
 		OutputFile_.flush();
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getLogData
+std::vector<std::string> BcLogFile::getLogData()
+{
+	std::vector<std::string> ret;
+	ret.push_back("Not available during file output");
+	return ret;
+}

@@ -94,7 +94,7 @@ public:
 	{
 		if( Field_->isPointerType() )
 		{
-			return *reinterpret_cast< void** >( getRawData() );
+			return getRawData() != nullptr ? *reinterpret_cast< void** >( getRawData() ) : nullptr;
 		}
 		else
 		{
@@ -125,7 +125,7 @@ public:
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-            UpcastFieldType = reinterpret_cast< ReObject* >( getData() )->getClass();
+			UpcastFieldType = getData() != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
 		}
 		return UpcastFieldType;
 	}
@@ -141,7 +141,7 @@ public:
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-            UpcastFieldType = reinterpret_cast< ReObject* >( getData() )->getClass();
+			UpcastFieldType = getData() != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
 		}
 		return UpcastFieldType;
 	}
@@ -157,7 +157,7 @@ public:
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-            UpcastFieldType = reinterpret_cast< ReObject* >( getData() )->getClass();
+			UpcastFieldType = getData() != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
 		}
 		return UpcastFieldType;
 	}

@@ -17,7 +17,8 @@
 #include "Base/BcLog.h"
 #include <mutex>
 #include "Base/BcGlobal.h"
-
+#include <list>
+#include <vector>
 #include <map>
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,6 +55,10 @@ public:
 	 */
 	BcBool getCatagorySuppression( BcU32 Catagory ) const;
 	
+	/*
+	 * Get log data
+	 */
+	std::vector<std::string> getLogData();
 protected:
 	/**
 	 * Overridable internal for all writes.
@@ -78,6 +83,8 @@ private:
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
 	BcChar TextBuffer_[ 1024 * 64 ];
+
+	std::list<std::string> LogBuffer;
 
 };
 

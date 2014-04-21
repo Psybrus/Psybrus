@@ -152,8 +152,8 @@ public:
 	 */
 	inline const BcU32				getUniqueId() const
 	{
-		return (BcU32)this;
-//		return UniqueId_;
+//		return (BcU32)this;
+		return UniqueId_;
 	}
 protected:
 	/**
