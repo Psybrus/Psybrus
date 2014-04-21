@@ -17,14 +17,15 @@
 
 #include "Psybrus.h"
 
+#include <boost/lexical_cast.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 // SYS_CREATOR( DsCore );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-DsCore::DsCore():
-	pContext_( NULL )
+DsCore::DsCore()
 {
 	registerPage("", &cmdMenu);
 	registerPage("Content", &cmdContent, "Content");
