@@ -608,12 +608,5 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 // getResourceByUniqueId
 ReObjectRef< CsResource > CsCore::getResourceByUniqueId(BcU32 UId)
 {
-	for (BcU32 Idx = 0; Idx < LoadedResources_.size(); ++Idx)
-	{
-		if (LoadedResources_[Idx]->getUniqueId() == UId)
-		{
-			return LoadedResources_[Idx];
-		}
-	}
-	return NULL;
+	return ReObject::StaticFindByUniqueId( UId );
 }
