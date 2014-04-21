@@ -79,32 +79,32 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsResource::StaticRegisterClass();
 
 	// Register scene resources.
-	CsCore::pImpl()->registerResource< ScnAnimation >();
-	CsCore::pImpl()->registerResource< ScnShader >();
-	CsCore::pImpl()->registerResource< ScnTexture >();
-	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
-	CsCore::pImpl()->registerResource< ScnRenderTarget >();
-	CsCore::pImpl()->registerResource< ScnMaterial >();
-	CsCore::pImpl()->registerResource< ScnFont >();
-	CsCore::pImpl()->registerResource< ScnModel >();
-	CsCore::pImpl()->registerResource< ScnSound >();
+	ScnAnimation::StaticRegisterClass();
+	ScnShader::StaticRegisterClass();
+	ScnTexture::StaticRegisterClass();
+	ScnTextureAtlas::StaticRegisterClass();
+	ScnRenderTarget::StaticRegisterClass();
+	ScnMaterial::StaticRegisterClass();
+	ScnFont::StaticRegisterClass();
+	ScnModel::StaticRegisterClass();
+	ScnSound::StaticRegisterClass();
 
 	// Register scene components.
-	CsCore::pImpl()->registerResource< ScnViewComponent >(); // 2000
-	CsCore::pImpl()->registerResource< ScnComponent >(); // -2130
-	CsCore::pImpl()->registerResource< ScnRenderableComponent >(); // -2120
-	CsCore::pImpl()->registerResource< ScnSpatialComponent >(); // -2110
-	CsCore::pImpl()->registerResource< ScnEntity >(); // -2100
-	CsCore::pImpl()->registerResource< ScnDebugRenderComponent >(); // -2090
-	CsCore::pImpl()->registerResource< ScnMaterialComponent >(); // -2080
-	CsCore::pImpl()->registerResource< ScnFontComponent >(); // -2070
-	CsCore::pImpl()->registerResource< ScnParticleSystemComponent >(); // -2060
-	CsCore::pImpl()->registerResource< ScnAnimationComponent >(); // -2050
-	CsCore::pImpl()->registerResource< ScnLightComponent >(); // -2040
-	CsCore::pImpl()->registerResource< ScnModelComponent >(); // -2030
-	CsCore::pImpl()->registerResource< ScnSoundListenerComponent >(); // -2020
-	CsCore::pImpl()->registerResource< ScnSoundEmitterComponent >(); // -2010
-	CsCore::pImpl()->registerResource< ScnCanvasComponent >(); // -2000
+	ScnViewComponent::StaticRegisterClass();
+	ScnComponent::StaticRegisterClass();
+	ScnRenderableComponent::StaticRegisterClass();
+	ScnSpatialComponent::StaticRegisterClass();
+	ScnEntity::StaticRegisterClass();
+	ScnDebugRenderComponent::StaticRegisterClass();
+	ScnMaterialComponent::StaticRegisterClass();
+	ScnFontComponent::StaticRegisterClass();
+	ScnParticleSystemComponent::StaticRegisterClass();
+	ScnAnimationComponent::StaticRegisterClass();
+	ScnLightComponent::StaticRegisterClass();
+	ScnModelComponent::StaticRegisterClass();
+	ScnSoundListenerComponent::StaticRegisterClass();
+	ScnSoundEmitterComponent::StaticRegisterClass();
+	ScnCanvasComponent::StaticRegisterClass();
 
 	// Register game resources before the view.
 	PsyGameRegisterResources();
@@ -112,49 +112,6 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	return evtRET_REMOVE;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// onCsCorePreClose
-eEvtReturn onCsCorePreClose( EvtID ID, const SysSystemEvent& Event )
-{
-	// Unregister scene resources.
-	CsCore::pImpl()->unregisterResource< ScnComponent >();
-	CsCore::pImpl()->unregisterResource< ScnRenderableComponent >();
-	CsCore::pImpl()->unregisterResource< ScnSpatialComponent >();
-	CsCore::pImpl()->unregisterResource< ScnEntity >();
-	CsCore::pImpl()->unregisterResource< ScnDebugRenderComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnShader >();
-	CsCore::pImpl()->unregisterResource< ScnTexture >();
-	CsCore::pImpl()->unregisterResource< ScnTextureAtlas >();
-	CsCore::pImpl()->unregisterResource< ScnRenderTarget >();
-
-	CsCore::pImpl()->unregisterResource< ScnMaterial >();
-	CsCore::pImpl()->unregisterResource< ScnMaterialComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnFont >();
-	CsCore::pImpl()->unregisterResource< ScnFontComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnAnimation >();
-	CsCore::pImpl()->unregisterResource< ScnAnimationComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnLightComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnModel >();
-	CsCore::pImpl()->unregisterResource< ScnModelComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnParticleSystemComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnSound >();
-	CsCore::pImpl()->unregisterResource< ScnSoundEmitterComponent >();
-	CsCore::pImpl()->unregisterResource< ScnSoundListenerComponent >();
-
-	CsCore::pImpl()->unregisterResource< ScnCanvasComponent >();
-	CsCore::pImpl()->unregisterResource< ScnViewComponent >();
-
-	PsyGameUnRegisterResources();
-
-	return evtRET_REMOVE;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // OnQuit
@@ -267,10 +224,6 @@ void MainShared()
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnCsCoreOpened );
-
-	// Setup callback for post CsCore pre close for resource unregistration
-	SysSystemEvent::Delegate OnCsCorePreClose = SysSystemEvent::Delegate::bind< onCsCorePreClose >();
-	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, OnCsCorePreClose );
 
 	// Subscribe to quit.
 	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< onQuit >();
