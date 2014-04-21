@@ -27,6 +27,7 @@
 #include <mongoose.h>
 #include <functional>
 #include <map>
+#include <boost/lexical_cast.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 /**	\struct DsCoreMessage
