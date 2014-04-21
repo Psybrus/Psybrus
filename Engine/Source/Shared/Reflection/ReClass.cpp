@@ -69,6 +69,7 @@ BcBool ReClass::hasBaseClass( const ReClass* pClass ) const
 // setFields
 void ReClass::setFields( BcU32 NoofFields, const ReField* pFields )
 {
+	BcAssertMsg( Fields_.size() == 0, "Fields already set." );
 	Fields_.reserve( NoofFields );
 	for( BcU32 Idx = 0; Idx < NoofFields; ++Idx )
 	{

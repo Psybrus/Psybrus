@@ -27,6 +27,7 @@
 #include <mongoose.h>
 #include <functional>
 #include <map>
+#include <boost/lexical_cast.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 /**	\struct DsCoreMessage
@@ -38,15 +39,15 @@
 // typedef const std::map < std::string, std::string>& DsParameters;
 typedef const std::vector< std::string>& DsParameters;
 
-typedef struct DsCoreMessage
+typedef struct DsPageDefinition
 {
-	DsCoreMessage(std::string r, std::string display)
+	DsPageDefinition(std::string r, std::string display)
 	: Regex_(r.c_str()),
 		Text_(r),
 		Display_(display),
 		Visible_(true) {}
 
-	DsCoreMessage(std::string r)
+	DsPageDefinition(std::string r)
 		: Regex_(r.c_str()),
 		Text_(r),
 		Visible_(false) {}
@@ -56,7 +57,19 @@ typedef struct DsCoreMessage
 	std::string Display_;
 	bool Visible_;
 	std::function <void(DsParameters, BcHtmlNode&)> Function_;
-} DsCoreMessage;
+} DsPageDefinition;
+
+typedef struct DsFunctionDefinition
+{
+	DsFunctionDefinition(std::string text, std::function<void()> fn)
+	:
+	DisplayText_(text), Function_(fn)
+	{}
+
+	std::string DisplayText_;
+	std::function<void()> Function_;
+} DsFunctionDefinition;
+
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class DsCore
@@ -75,9 +88,9 @@ public:
 	DsCore();
 	virtual ~DsCore();
 
-	virtual void				open();
-	virtual void				update();
-	virtual void				close();
+	virtual void				open() = 0;
+	virtual void				update() = 0;
+	virtual void				close() = 0;
 
 	static void					cmdMenu(DsParameters params, BcHtmlNode& Output);
 	static void					cmdContent(DsParameters params, BcHtmlNode& Output);
@@ -87,26 +100,27 @@ public:
 	static void					cmdScene(DsParameters params, BcHtmlNode& Output);
 	static void					cmdScene_Entity(ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth);
 	static void					cmdScene_Component(ScnComponentRef Entity, BcHtmlNode& Output, BcU32 Depth);
+	static void					cmdLog(DsParameters params, BcHtmlNode& Output);
 
 	static void					cmdResource(DsParameters params, BcHtmlNode& Output);
-
-	void						gameThreadMongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-	void*						mongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-	static void*				MongooseCallback( enum mg_event Event, struct mg_connection* pConn );
 
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
 	BcU8*						writeFile(std::string filename, int& OutLength, std::string& type);
-	void						registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
-	void						registerFunction(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
-	void						deregisterFunction(std::string regex);
+	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
+	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
+	void						deregisterPage(std::string regex);
 
+	void						registerFunction(std::string Display, std::function<void()> Function);
+	void						deregisterFunction(std::string Display);
 
 private:
 	mg_context*					pContext_;
 	std::mutex						Lock_;
 	SysFence					GameThreadWaitFence_;
-	std::vector<DsCoreMessage>	MessageFunctions_;
+protected:
+	std::vector<DsPageDefinition>	PageFunctions_;
+	std::vector<DsFunctionDefinition>	ButtonFunctions_;
 };
 
 

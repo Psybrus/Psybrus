@@ -32,9 +32,9 @@ public:
 	std::string getTag();
 	std::string getContents();
 
-	void setTag(std::string tag);
-	void setContents(std::string contents);
-	void setAttribute(std::string attr, std::string value);
+	BcHtmlNode& setTag(std::string tag);
+	BcHtmlNode& setContents(std::string contents);
+	BcHtmlNode& setAttribute(std::string attr, std::string value);
 	BcHtmlNode operator[](BcU32 idx);
 	BcHtmlNode operator[](std::string tag);
 	std::string getOuterXml();
@@ -63,11 +63,13 @@ public:
 	BcHtmlNodeInternal* operator[](BcU32 idx);
 	BcHtmlNodeInternal* operator[](std::string tag);
 	std::string getOuterXml();
+
+	~BcHtmlNodeInternal();
 private:
 	BcHtmlNodeInternal(std::string tag, BcHtmlNodeInternal* parent);
 	std::map<std::string, std::string> Attributes_;
 	std::string Tag_;
-	std::vector<BcHtmlNodeInternal> Children;
+	std::vector<BcHtmlNodeInternal*> Children;
 	std::string Contents_;
 	BcHtmlNodeInternal* Parent_;
 };
