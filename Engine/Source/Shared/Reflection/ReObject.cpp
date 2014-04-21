@@ -77,7 +77,7 @@ void ReObject::setName( BcName Name )
 	
 //////////////////////////////////////////////////////////////////////////
 // getName
-BcName ReObject::getName() const
+const BcName& ReObject::getName() const
 {
 	return Name_;
 }

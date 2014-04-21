@@ -18,11 +18,38 @@
 #include "System/Content/CsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Define CsResource
+REFLECTION_DEFINE_DERIVED( CsPackage );
+
+//////////////////////////////////////////////////////////////////////////
+// Reflection
+void CsPackage::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "RefCount_",			&CsPackage::RefCount_ ),
+		ReField( "pLoader_",			&CsPackage::pLoader_ ),
+		ReField( "Resources_",			&CsPackage::Resources_ ),
+	};
+		
+	ReRegisterClass< CsPackage, Super >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsPackage::CsPackage()
+{
+	// TODO: Path not implemented just yet.
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPackage::CsPackage( const BcName& Name ):
-	Name_( Name ),
 	pLoader_( NULL )
 {
+	setName( Name );
+
 	// Cache paths related to this package.
 	const BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
 	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( Name ) );
@@ -251,7 +278,7 @@ ReObjectRef< CsResource > CsPackage::getPackageCrossRef( BcU32 ID )
 	{
 		// Request package, and check it's ready
 		pPackage = CsCore::pImpl()->requestPackage( PackageName );
-		BcAssertMsg( pPackage->isLoaded(), "CsPackage: Package \"%s\" is not loaded, \"%s\" needs it loaded.", (*PackageName).c_str(), (*Name_).c_str() );
+		BcAssertMsg( pPackage->isLoaded(), "CsPackage: Package \"%s\" is not loaded, \"%s\" needs it loaded.", (*PackageName).c_str(), (*getName()).c_str() );
 	}
 
 	// Find resource.
@@ -281,13 +308,6 @@ void CsPackage::release()
 		delete pLoader_;
 		pLoader_ = NULL;
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getName
-const BcName& CsPackage::getName() const
-{
-	return Name_;
 }
 
 //////////////////////////////////////////////////////////////////////////
