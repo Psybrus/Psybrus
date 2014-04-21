@@ -188,7 +188,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-	SYS_REGISTER( "DsCore", DsCore );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplWindows );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 	SYS_REGISTER( "CsCore", CsCore );
