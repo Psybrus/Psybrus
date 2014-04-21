@@ -81,6 +81,7 @@ void MainUnitTests()
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
 	// Register scene resources.
+	CsResource::StaticRegisterClass();
 	CsCore::pImpl()->registerResource< ScnAnimation >();
 	CsCore::pImpl()->registerResource< ScnShader >();
 	CsCore::pImpl()->registerResource< ScnTexture >();

@@ -32,9 +32,9 @@ public:
 	std::string getTag();
 	std::string getContents();
 
-	void setTag(std::string tag);
-	void setContents(std::string contents);
-	void setAttribute(std::string attr, std::string value);
+	BcHtmlNode& setTag(std::string tag);
+	BcHtmlNode& setContents(std::string contents);
+	BcHtmlNode& setAttribute(std::string attr, std::string value);
 	BcHtmlNode operator[](BcU32 idx);
 	BcHtmlNode operator[](std::string tag);
 	std::string getOuterXml();

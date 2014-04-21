@@ -82,19 +82,22 @@ std::string BcHtmlNode::getContents()
 	return InternalNode_->getContents();
 }
 
-void BcHtmlNode::setAttribute(std::string attr, std::string value)
+BcHtmlNode& BcHtmlNode::setAttribute(std::string attr, std::string value)
 {
 	InternalNode_->setAttribute(attr, value);
+	return *this;
 }
 
-void BcHtmlNode::setTag(std::string tag)
+BcHtmlNode& BcHtmlNode::setTag(std::string tag)
 {
 	InternalNode_->setTag(tag);
+	return *this;
 }
 
-void BcHtmlNode::setContents(std::string contents)
+BcHtmlNode& BcHtmlNode::setContents(std::string contents)
 {
 	InternalNode_->setContents(contents);
+	return *this;
 }
 
 std::string BcHtmlNode::getOuterXml()
@@ -197,7 +200,8 @@ std::string BcHtmlNodeInternal::getOuterXml()
 	if ((Contents_ == "") && (Children.size() == 0) &&
 		((Tag_ == "p") || (Tag_ == "br")))
 	{
-		return output + "/>";
+		output += ">";
+		return output;
 	}
 	else
 	{

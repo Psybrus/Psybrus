@@ -77,17 +77,25 @@ void DsCore::close()
 // cmdContent
 void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
 {
-	BcHtmlNode& ul = Output.createChildNode("ul");
+	Output.createChildNode("h1").setContents("Contents");
+	BcHtmlNode table = Output.createChildNode("table");
+	//table.setAttribute("style", "width:100%;");
+	table.createChildNode("col").setAttribute("width", "100px");
+	table.createChildNode("col").setAttribute("width", "100px");
+	BcHtmlNode row = table.createChildNode("tr");
+	row.createChildNode("th").setContents("Name");
+	row.createChildNode("th").setContents("Type");
+	row.createChildNode("th").setContents("Package");
 
 	for( BcU32 Idx = 0; Idx < CsCore::pImpl()->getNoofResources(); ++Idx )
 	{
 		ReObjectRef< CsResource > Resource( CsCore::pImpl()->getResource( Idx ) );
-		BcHtmlNode& li = ul.createChildNode("li");
-		li.setContents("Resource: " + *Resource->getName());
+		BcHtmlNode row = table.createChildNode("tr");
+		std::string id = boost::lexical_cast<std::string>(Resource->getUniqueId());
+		row.createChildNode("td").createChildNode("a").setAttribute("href", "Resource/" + id).setContents(*Resource->getName());
+		row.createChildNode("td").setContents(*Resource->getClass()->getName());
+		row.createChildNode("td").setContents(*Resource->getPackageName());
 
-		BcHtmlNode& ul2 = ul.createChildNode("ul");
-		ul2.createChildNode("li").setContents("Type: " + *Resource->getClass()->getName());
-		ul2.createChildNode("li").setContents("Package: " + *Resource->getClass()->getName());
 	}
 
 }
@@ -265,9 +273,10 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 		link.setAttribute("href", "/files/style.css");
 		int t = sizeof(BcHtmlNode);
 		BcHtmlNode redirect = node.createChildNode("meta");
-		BcHtmlNode body = node.createChildNode("body");
+		BcHtmlNode body = node.createChildNode("body").createChildNode("div").setAttribute("id", "mainBody");
 		//redirect = node["meta"];
 		writeHeader(body);
+		BcHtmlNode innerBody = body.createChildNode("div").setAttribute("id", "innerBody");
 		//std::map<std::string, std::string> data;
 		std::vector<std::string> data;
 		bool success = false;
@@ -299,7 +308,7 @@ void DsCore::gameThreadMongooseCallback( enum mg_event Event, struct mg_connecti
 						match.getMatch(Idx2, u);
 						data.push_back(u);
 					}
-					PageFunctions_[Idx].Function_(data, body);
+					PageFunctions_[Idx].Function_(data, innerBody);
 					break;
 				}
 			}
@@ -367,25 +376,20 @@ void* DsCore::MongooseCallback( enum mg_event Event, struct mg_connection* pConn
 // writeHeader
 void DsCore::writeHeader(BcHtmlNode& Output)
 {
-	/*Output += "<!DOCTYPE html>";
-	Output += "<html>";
-	Output += "<title>";
-	Output += GPsySetupParams.Name_;
-	Output += "</title>";
-	Output += "<link rel =\"stylesheet\" type=\"text/css\" href=\"/files/style.css\">";
-	Output += "<body>";/**/
-	Output.createChildNode("h1").setContents(GPsySetupParams.Name_);
-	BcHtmlNode& a = Output.createChildNode("a");
-	a.setAttribute("href", "/Menu");
-	a.setContents("Menu");
-	Output.createChildNode("br");
+	BcHtmlNode header = Output.createChildNode("div").setAttribute("id", "headerSection");
+	header.createChildNode("h1").setContents(GPsySetupParams.Name_);
+
+	BcHtmlNode link = Output.createChildNode("div").setAttribute("id", "headerLink");
+	link.createChildNode("a").setAttribute("href", "/Menu").setContents("Menu").setAttribute("id", "headerLinkText");
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 // writeFooter
 void DsCore::writeFooter(BcHtmlNode& Output)
 {
-	Output.createChildNode("").setContents("Footer");
+	BcHtmlNode footer = Output.createChildNode("div").setAttribute("id", "footer").setContents("Footer");
+	
 
 }
 
@@ -412,9 +416,7 @@ BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 {
 	std::string EntityId = "";
-	/*auto par = params.find("id");
-	if (par != params.end())
-		EntityId = (*par).second;/**/
+
 	EntityId = params[0];
 	if (!BcStrIsNumber(EntityId.c_str()))
 	{
@@ -439,16 +441,25 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 	}
 	else
 	{
-		BcHtmlNode& ul = Output.createChildNode("ul");
+		Output.createChildNode("h2").setContents("Information");
+		BcHtmlNode table = Output.createChildNode("table");
+		table.createChildNode("col").setAttribute("wid", "150px");
+		table.createChildNode("col").setAttribute("wid", "150px");
 
-		ul.createChildNode("li").setContents("Resource: " + *Resource->getName());
+		BcHtmlNode row = table.createChildNode("tr");
+		row.createChildNode("td").setContents("Resource:");
+		row.createChildNode("td").setContents(*Resource->getName());
 
-		ul = ul.createChildNode("ul");
+		row = table.createChildNode("tr");
+		row.createChildNode("td").setContents("Type:");
+		row.createChildNode("td").setContents(*Resource->getClass()->getName());
 
-		ul.createChildNode("li").setContents("Type: " + *Resource->getClass()->getTypeName());
-		ul.createChildNode("li").setContents("Package: " + *Resource->getPackageName());
+		row = table.createChildNode("tr");
+		row.createChildNode("td").setContents("Package:");
+		row.createChildNode("td").setContents(*Resource->getPackageName());
+		BcHtmlNode ul = Output.createChildNode("ul");
 
-
+		Output.createChildNode("h2").setContents("Fields");
 		// Iterate over all properties and do stuff.
 		const ReClass* pClass = Resource ->getClass();
 
@@ -457,126 +468,81 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 		{
 			int a = 0; ++a;
 		}
-
-#if 0
 		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
-		BcChar temp[256];
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
-			BcHtmlNode& ul2 = Output.createChildNode("ul");
-			BcSPrintf(temp, "Class: %s (Size: 0x%x)\n", (*pClass->getName()).c_str(), pClass->getSize());
-			ul2.setContents(temp);
+			BcHtmlNode base = Output.createChildNode("div");
+			base.createChildNode("div").setContents(pClass->getName().getValue()).setAttribute("id", "classHeader");
+			BcHtmlNode div = base.createChildNode("div").setAttribute("id", "innerData");
+			BcHtmlNode tbl = div.createChildNode("table");
+			BcHtmlNode header = tbl.createChildNode("tr");
+			header.createChildNode("th").setContents("Name").setAttribute("width", "15%");
+			header.createChildNode("th").setContents("Type").setAttribute("width", "20%");
+			header.createChildNode("th").setContents("Value").setAttribute("width", "70%*");
 
-			BcHtmlNode& ul3 = ul2.createChildNode("ul");
-			ul3.setContents(" ");
+
 			for (BcU32 Idx = 0; Idx < pClass->getNoofFields(); ++Idx)
 			{
-				const ReField* pField = pClass->getField(Idx);
-				const ReType* pType = pField->getType();
-				if (pType != NULL)
+				BcHtmlNode row = tbl.createChildNode("tr");
+				ReFieldAccessor SrcFieldAccessor(Resource, pClass->getField(Idx)); 
+				auto Field = pClass->getField(Idx);
+
+				row.createChildNode("td").setContents(Field->getName().getValue());
+				row.createChildNode("td").setContents(Field->getType()->getName().getValue());
+				BcHtmlNode fValue = row.createChildNode("td");
+
+				if (!SrcFieldAccessor.isContainerType())
 				{
-					// Output += "<li>";
-					BcHtmlNode& div = ul3.createChildNode("div");
-					div.setAttribute("id", "fieldData");
-					//BcSPrintf(temp, "%s %s; // Offset 0x%x, Size 0x%x, Flags: 0x%x\n", (*pType->getTypeName()()).c_str(), (*pField->getName()).c_str(), pField->getOffset(), pType->getSize(), pField->getFlags());
-					//BcSPrintf(temp, "%s")
-					//Output += temp;
-					BcHtmlNode& fName = div.createChildNode("div");
-					fName.setAttribute("id", "fName");
-					fName.setContents(*pField->getName());
+					const ReClass* FieldClass = SrcFieldAccessor.getUpperClass();
+					void* data = SrcFieldAccessor.getData();
+					std::string str = "UNKNOWN";
+					
+					if (SrcFieldAccessor.getUpperClass()->hasBaseClass(CsResource::StaticGetClass()))
+					{
+						CsResource* resource = static_cast<CsResource*>(SrcFieldAccessor.getData());
+						fValue.createChildNode("a").setAttribute("href", "/Resource/" + boost::lexical_cast<std::string>(resource->getUniqueId())).setContents("Resource");
+						str = "";
+					} else if (FieldClass->getTypeSerialiser() != nullptr)
+					{
+						FieldClass->getTypeSerialiser()->serialiseToString(data, str);
+					}
+					fValue.setContents(str);
+				}
+				else
+				{
+					fValue.setContents("CONTAINER");
+					auto SrcIter = SrcFieldAccessor.newReadIterator();
+					auto KeyType = Field->getKeyType();
+					auto ValueType = Field->getValueType();
 
-					BcHtmlNode& fType = div.createChildNode("div");
-					fType.setAttribute("id", "fType");
-					fType.setContents(*pType->getTypeName()());
-
-					BcHtmlNode& fValue = div.createChildNode("div");
-					fValue.setAttribute("id", "fValue");
-					if (pType->getTypeName()() == "BcU8")
+					if (KeyType == nullptr)
 					{
-						const BcU8* pData = reinterpret_cast<const BcU8*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%u\n", *pData);
-						fValue.setContents(temp);
+						// Do something I guess
 					}
-					else if (pType->getTypeName()() == "BcU16")
+					else
 					{
-						const BcU16* pData = reinterpret_cast<const BcU16*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%u\n", *pData);
-						fValue.setContents(temp);
 					}
-					else if (pType->getTypeName()() == "BcU32")
+				}
+				// Ignore null pointers, transients, and shallow copies.
+				if (!SrcFieldAccessor.isNullptr() &&
+					!SrcFieldAccessor.isTransient() &&
+					!SrcFieldAccessor.isShallowCopy())
+				{
+					if (SrcFieldAccessor.isPointerType())
 					{
-						const BcU32* pData = reinterpret_cast<const BcU32*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%u\n", *pData);
-						fValue.setContents(temp);
+						//gatherFieldPointer(SrcFieldAccessor);
 					}
-					else if (pType->getTypeName()() == "BcF32")
+					else if (SrcFieldAccessor.isContainerType() && SrcFieldAccessor.isContainerOfPointerValues())
 					{
-						const BcF32* pData = reinterpret_cast<const BcF32*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%f\n", *pData);
-						fValue.setContents(temp);
+						//gatherFieldContainer(SrcFieldAccessor);
 					}
-					else if (pType->getTypeName()() == "BcName")
-					{
-						const BcName* pData = reinterpret_cast<const BcName*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%s\n", (**pData).c_str());
-						fValue.setContents(temp);
-					}
-					else if (pType->getTypeName()() == "BcBool")
-					{
-						const BcBool* pData = reinterpret_cast<const BcBool*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%u\n", *pData);
-						fValue.setContents(temp);
-					}
-					else if (pType->getTypeName()() == "BcVec2d")
-					{
-						const BcVec2d* pData = reinterpret_cast<const BcVec2d*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%f, %f\n", pData->x(), pData->y());
-						fValue.setContents(temp);
-					}
-					else if (pType->getTypeName()() == "BcVec3d")
-					{
-						const BcVec3d* pData = reinterpret_cast<const BcVec3d*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%f, %f, %f\n", pData->x(), pData->y(), pData->z());
-						fValue.setContents(temp);
-					}
-					else if (pType->getTypeName()() == "BcVec4d")
-					{
-						const BcVec4d* pData = reinterpret_cast<const BcVec4d*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w());
-						fValue.setContents(temp);
-					}
-					else if (pType->getTypeName()() == "BcMat4d")
-					{
-						/*const BcMat4d* pData = reinterpret_cast<const BcMat4d*>(&pClassData[pField->getOffset()]);
-						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w());
-						Output += temp;
-						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row1().x(), pData->row1().y(), pData->row1().z(), pData->row1().w());
-						Output += temp;
-						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row2().x(), pData->row2().y(), pData->row2().z(), pData->row2().w());
-						Output += temp;
-						BcSPrintf(temp, "%f, %f, %f, %f\n", pData->row3().x(), pData->row3().y(), pData->row3().z(), pData->row3().w());
-						Output += temp;/**/
-						fValue.setContents("Not yet implimented");
-					}
-					else if (pType->getTypeName()() == "ScnEntity")
-					{
-						/*const ScnEntityRef* pData = reinterpret_cast<const ScnEntityRef*>(&pClassData[pField->getOffset()]);
-						const ReClass* pClass = static_cast< const ReClass* >(pType);
-						void* pNewData = reinterpret_cast< BcU8* >(pClassData)+pField->getOffset();
-						ScnEntity* ptr = (ScnEntity*)pNewData;
-						BcSPrintf(temp, "<a href=\"/Resource/%u\">Link</a>", (*pData)->getUniqueId());/**/
-						fValue.setContents("Not yet implemented");
-					}
-
-					// Output += "</li>";
 				}
 			}
-
+			Output.createChildNode("br");
 			pClass = pClass->getSuper();
 			
 		}
-#endif 
 	}
 }
 
