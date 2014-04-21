@@ -41,22 +41,22 @@ enum CsPackageFlags
 struct CsPackageHeader
 {
 	static const BcU32 MAGIC = 0x89273491;							// Basic check to make sure it's a valid package file.
-	static const BcU32 VERSION = 14;								// If the package format changes, increment this value to force reimport of packages.
+	static const BcU32 VERSION = 15;								// If the package format changes, increment this value to force reimport of packages.
 
 	BcU32								Magic_;						// Magic number.
 	BcU32								Version_;					// Version.
+	BcU32								MinAlignment_;				// Minimum alignment (default 16)
+	BcU32								MaxAlignment_;				// Maximum alignment (default 4096)
+	BcU32								StringTableBytes_;			// Number of bytes in the string table.
+	BcU32								TotalAllocSize_;			// Total size package need to allocate (string table, resource headers, chunk headers, managed chunk data).
+	BcU32								ResourceDataStart_;			// Start of resource data as an offset to allocated package memory.
 	BcU32								Flags_;						// Flags.
-	BcU64								StringTableBytes_;			// Number of bytes in the string table.
 	BcU32								TotalPackageCrossRefs_;		// Number of cross package refs in package.
 	BcU32								TotalPackageDependencies_;	// Number of package dependencies.
 	BcU32								TotalResources_;			// Total Resources in package.
 	BcU32								TotalChunks_;				// Total chunks in package.
 	BcU32								SourceFileStatsHash_;		// Source file stat hash.
 	BcU32								SourceFile_;				// Path to source package (index into string table).
-	BcU32								TotalAllocSize_;			// Total size package need to allocate (string table, resource headers, chunk headers, managed chunk data).
-	BcU32								MinAlignment_;				// Minimum alignment (default 16)
-	BcU32								MaxAlignment_;				// Maximum alignment (default 4096)
-	BcU32								ResourceDataStart_;			// Start of resource data as an offset to allocated package memory.
 };
 
 //////////////////////////////////////////////////////////////////////////
