@@ -17,6 +17,58 @@
 
 #include "Base/BcString.h"
 
+#include <boost/format.hpp>
+
+void MaQuat::StaticRegisterClass()
+{
+	class MaQuatSerialiser:
+		public ReClassSerialiser_ComplexType< MaQuat >
+	{
+	public:
+		MaQuatSerialiser( BcName Name ): 
+			ReClassSerialiser_ComplexType< MaQuat >( Name )
+		{}
+
+		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
+		{
+			const MaQuat& Vec = *reinterpret_cast< const MaQuat* >( pInstance );
+			OutString = boost::str( boost::format( "%1%, %2%, %3%, %4%" ) % Vec.x() % Vec.y() % Vec.z() % Vec.w() );
+			return true;
+		}
+
+		virtual BcBool serialiseFromString( void* pInstance, const std::string& InString ) const
+		{
+			MaQuat& Vec = *reinterpret_cast< MaQuat* >( pInstance );
+			Vec = MaQuat( InString.c_str() );
+			return true;
+		}
+
+		virtual BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+		{
+			const MaQuat& Vec = *reinterpret_cast< const MaQuat* >( pInstance );
+			Serialiser << Vec;
+			return true;
+		}
+
+		virtual BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+		{
+			MaQuat& Vec = *reinterpret_cast< MaQuat* >( pInstance );
+			Serialiser >> Vec;
+			return true;
+		}
+
+		virtual BcBool copy( void* pDst, void* pSrc ) const
+		{
+			MaQuat& Dst = *reinterpret_cast< MaQuat* >( pDst );
+			MaQuat& Src = *reinterpret_cast< MaQuat* >( pSrc );
+			Dst = Src;
+			return true;
+		}
+	};
+
+	ReRegisterClass< MaQuat >( new MaQuatSerialiser( "class MaQuat" ) );
+}
+
 MaQuat::MaQuat( const BcChar* pString ):
 	MaVec4d( pString )
 {

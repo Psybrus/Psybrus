@@ -13,9 +13,64 @@
 
 #include "Math/MaCPUVec3d.h"
 #include "Math/MaCPUVec2d.h"
+#include "Math/MaVec3d.h"
+#include "Math/MaVec2d.h"
 #include "Base/BcMath.h"
 
 #include "Base/BcString.h"
+
+
+#include <boost/format.hpp>
+
+void MaCPUVec3d::StaticRegisterClass()
+{
+	class MaCPUVec3dSerialiser:
+		public ReClassSerialiser_ComplexType< MaCPUVec3d >
+	{
+	public:
+		MaCPUVec3dSerialiser( BcName Name ): 
+			ReClassSerialiser_ComplexType< MaCPUVec3d >( Name )
+		{}
+
+		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
+		{
+			const MaCPUVec3d& Vec = *reinterpret_cast< const MaCPUVec3d* >( pInstance );
+			OutString = boost::str( boost::format( "%1%, %2%, %3%" ) % Vec.x() % Vec.y() % Vec.z() );
+			return true;
+		}
+
+		virtual BcBool serialiseFromString( void* pInstance, const std::string& InString ) const
+		{
+			MaCPUVec3d& Vec = *reinterpret_cast< MaCPUVec3d* >( pInstance );
+			Vec = MaCPUVec3d( InString.c_str() );
+			return true;
+		}
+
+		virtual BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+		{
+			const MaCPUVec3d& Vec = *reinterpret_cast< const MaCPUVec3d* >( pInstance );
+			Serialiser << Vec;
+			return true;
+		}
+
+		virtual BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+		{
+			MaCPUVec3d& Vec = *reinterpret_cast< MaCPUVec3d* >( pInstance );
+			Serialiser >> Vec;
+			return true;
+		}
+
+		virtual BcBool copy( void* pDst, void* pSrc ) const
+		{
+			MaCPUVec3d& Dst = *reinterpret_cast< MaCPUVec3d* >( pDst );
+			MaCPUVec3d& Src = *reinterpret_cast< MaCPUVec3d* >( pSrc );
+			Dst = Src;
+			return true;
+		}
+	};
+
+	ReRegisterClass< MaCPUVec3d >( new MaCPUVec3dSerialiser( "class MaVec3d" ) );
+}
 
 MaCPUVec3d::MaCPUVec3d( const BcChar* pString )
 {

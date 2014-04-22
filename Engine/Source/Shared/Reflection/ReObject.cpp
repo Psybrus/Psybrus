@@ -79,7 +79,7 @@ void ReObject::setName( BcName Name )
 {
 	Name_ = Name;
 }
-	
+
 //////////////////////////////////////////////////////////////////////////
 // getName
 const BcName& ReObject::getName() const

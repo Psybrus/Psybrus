@@ -15,12 +15,16 @@
 #include "Math/MaVec3d.h"
 #include "Math/MaVec4d.h"
 #include "Math/MaMat4d.h"
+#include "Reflection/ReReflection.h"
 
 #ifndef	__BCQUAT_H__
 #define __BCQUAT_H__
 
 class MaQuat : public MaVec4d
 {
+public:
+	REFLECTION_DECLARE_BASIC( MaQuat );
+
 public:
 	// ctor	
 	MaQuat();

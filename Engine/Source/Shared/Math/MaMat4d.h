@@ -17,11 +17,15 @@
 #include "Math/MaVec2d.h"
 #include "Math/MaVec3d.h"
 #include "Math/MaVec4d.h"
+#include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaMat4d
 class MaMat4d
 {
+public:
+	REFLECTION_DECLARE_BASIC( MaMat4d );
+
 private:
 	MaVec4d Row0_;
 	MaVec4d Row1_;

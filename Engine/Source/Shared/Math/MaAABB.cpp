@@ -15,6 +15,19 @@
 
 #include "Base/BcMath.h"
 
+REFLECTION_DEFINE_BASIC( MaAABB );
+
+void MaAABB::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Min_",		&MaAABB::Min_ ),
+		ReField( "Max_",		&MaAABB::Max_ ),
+	};
+		
+	ReRegisterClass< MaAABB >( Fields );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 MaAABB::MaAABB()

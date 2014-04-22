@@ -21,6 +21,9 @@ BcU32 GResolutionHeight = 720;
 #include "Events/EvtPublisher.h"
 #include "Events/EvtProxyBuffered.h"
 
+#include "Math/MaMat3d.h"
+#include "Math/MaMat4d.h"
+
 #include "System/SysKernel.h"
 
 #include "System/Content/CsCore.h"
@@ -54,8 +57,6 @@ BcU32 GResolutionHeight = 720;
 #include "System/Scene/ScnSoundListenerComponent.h"
 #include "System/Scene/ScnViewComponent.h"
 
-
-
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
 void MainUnitTests()
@@ -76,7 +77,27 @@ void MainUnitTests()
 // onCsCoreOpened
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
+	// Register math libraries.
+	MaVec2d::StaticRegisterClass();
+	MaVec3d::StaticRegisterClass();
+	MaVec4d::StaticRegisterClass();
+	MaAABB::StaticRegisterClass();
+	MaMat3d::StaticRegisterClass();
+	MaMat4d::StaticRegisterClass();
+	MaPlane::StaticRegisterClass();
+
+	// Register content.
 	CsResource::StaticRegisterClass();
+	CsPackage::StaticRegisterClass();
+
+	// Register debug.
+	// Register file.
+	// Register network.
+	// Register os
+	// Register renderer
+	RsColour::StaticRegisterClass();
+
+	// Register sound
 
 	// Register scene resources.
 	ScnAnimation::StaticRegisterClass();

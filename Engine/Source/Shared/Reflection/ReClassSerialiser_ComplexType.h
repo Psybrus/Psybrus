@@ -28,17 +28,17 @@ public:
 		reinterpret_cast< _Ty* >( pMemory )->~_Ty();
 	}
 
-	BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+	virtual BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
 	{
 		return false;
 	}
 
-	BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+	virtual BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
 	{
 		return false;
 	}
 
-	BcBool copy( void* pDst, void* pSrc ) const
+	virtual BcBool copy( void* pDst, void* pSrc ) const
 	{
 		return false;
 	}

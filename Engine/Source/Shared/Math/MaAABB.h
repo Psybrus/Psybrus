@@ -16,11 +16,15 @@
 
 #include "Math/MaMat4d.h"
 #include "Math/MaPlane.h"
+#include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaAABB
 class MaAABB
 {
+public:
+	REFLECTION_DECLARE_BASIC( MaAABB );
+
 public:
 	enum eClassify
 	{

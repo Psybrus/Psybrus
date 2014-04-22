@@ -19,7 +19,20 @@
 
 #include "Base/BcMath.h"
 
+REFLECTION_DEFINE_BASIC( MaMat4d );
 
+void MaMat4d::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Row0_",		&MaMat4d::Row0_ ),
+		ReField( "Row1_",		&MaMat4d::Row1_ ),
+		ReField( "Row2_",		&MaMat4d::Row2_ ),
+		ReField( "Row3_",		&MaMat4d::Row3_ ),
+	};
+		
+	ReRegisterClass< MaMat4d >( Fields );
+}
 
 MaMat4d MaMat4d::operator + ( const MaMat4d& Rhs )
 {

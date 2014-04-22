@@ -15,11 +15,15 @@
 #define __BCMAT3D_H__
 
 #include "Math/MaVec3d.h"
+#include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaMat3d
 class MaMat3d
 {
+public:
+	REFLECTION_DECLARE_BASIC( MaMat3d );
+
 public:
 
 	MaMat3d(){}	
