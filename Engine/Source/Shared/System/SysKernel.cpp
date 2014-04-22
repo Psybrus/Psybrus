@@ -52,8 +52,7 @@ std::string SysArgs_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysKernel::SysKernel( ReNoInit ):
-	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) )
+SysKernel::SysKernel( ReNoInit )
 {
 	BcBreakpoint; // Shouldn't hit here ever.
 }
@@ -61,15 +60,11 @@ SysKernel::SysKernel( ReNoInit ):
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysKernel::SysKernel( BcF32 TickRate ):
-	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) ),
 	TickRate_( TickRate )
 {
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
 	FrameTime_ = 0.0f;
-
-	// Set user mask to the workers we have.
-	SysKernel::USER_WORKER_MASK = ( ( 1 << JobQueue_.workerCount() ) - 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,6 +76,24 @@ SysKernel::~SysKernel()
 
 	// Join.
 	ExecutionThread_.join();
+	
+	// Free job queues.
+	for( auto JobQueue : JobQueues_ )
+	{
+		delete JobQueue;
+	}
+	JobQueues_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createJobQueue
+BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers )
+{
+	BcAssertMsg( BcIsGameThread(), "Should only create job queues on the game thread." );
+
+	auto JobQueue = new SysJobQueue( NoofWorkers );
+	JobQueues_.push_back( JobQueue );
+	return (BcU32)JobQueues_.size() - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -156,6 +169,9 @@ void SysKernel::run( BcBool Threaded )
 	BcPrintf( "SysKernel run\n" );
 	BcPrintf( Threaded ? "Threaded.\n" : "Non-threaded.\n" );
 
+	// Temporary job queue create until it's left to the systems.
+	createJobQueue( std::thread::hardware_concurrency() );
+
 	IsThreaded_ = Threaded;
 	
 	if( Threaded == BcTrue )
@@ -203,17 +219,6 @@ void SysKernel::tick()
 	PSY_PROFILER_SECTION( TickRoot, "SysKernel::tick" );
 
 	BcAssert( BcIsGameThread() );
-
-#if 0
-	// Reset time working in the job queue for metrics.
-	BcPrintf( "System Kernel: Game thread: %f ms\n", GameThreadTime_ * 1000.0f );
-	for( BcU32 Idx = 0; Idx < JobQueue_.workerCount(); ++Idx )
-	{
-		BcF32 Time = JobQueue_.getAndResetTimeWorkingForWorker( Idx );
-		BcU32 Jobs = JobQueue_.getAndResetJobsExecutedForWorker( Idx );
-		BcPrintf( "System Kernel: Worker %u: %f ms (%u jobs)\n", Idx, Time * 1000.0f, Jobs );
-	}
-#endif
 
 	if( ShuttingDown_ == BcFalse )
 	{
@@ -274,14 +279,14 @@ void SysKernel::tick()
 // workerCount
 BcU32 SysKernel::workerCount() const
 {
-	return JobQueue_.workerCount();
+	return JobQueues_[ 0 ]->workerCount();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addSystems
 void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
 {
-	JobQueue_.enqueueJob( pJob, WorkerMask );
+	JobQueues_[ 0 ]->enqueueJob( pJob, WorkerMask );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -414,7 +419,7 @@ void SysKernel::removeSystems()
 		}
 		
 		// Flush jobs before deleting a system.
-		JobQueue_.flushJobs();
+		JobQueues_[ 0 ]->flushJobs();
 		
 		// Delete system.
 		delete pRemSystem;
