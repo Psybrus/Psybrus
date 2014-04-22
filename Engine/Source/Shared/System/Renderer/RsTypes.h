@@ -19,9 +19,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Datatypes
-struct RsColour:
+class RsColour:
 	public MaVec4d
 {
+public:
+	REFLECTION_DECLARE_BASIC( RsColour );
+
+public:
 	RsColour();
 	RsColour( const MaVec4d& Vec );
 	RsColour( BcU32 RGBA );

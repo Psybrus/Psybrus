@@ -16,11 +16,15 @@
 
 #include "Math/MaVec3d.h"
 #include "Math/MaMat4d.h"
+#include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaPlane
 class MaPlane
 {
+public:
+	REFLECTION_DECLARE_BASIC( MaPlane );
+
 public:
 	enum eClassify
 	{

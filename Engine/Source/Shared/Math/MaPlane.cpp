@@ -17,6 +17,19 @@
 
 const BcF32 gPlaneEpsilon = BcVecEpsilon;
 
+REFLECTION_DEFINE_BASIC( MaPlane );
+
+void MaPlane::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Normal_",		&MaPlane::Normal_ ),
+		ReField( "D_",			&MaPlane::D_ ),
+	};
+		
+	ReRegisterClass< MaPlane >( Fields );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // pointClassify
 void MaPlane::transform( const MaMat4d& Transform )

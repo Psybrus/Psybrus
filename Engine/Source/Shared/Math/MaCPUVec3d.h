@@ -15,11 +15,15 @@
 #define __BCCPUVEC3D_H__
 
 #include "Math/MaCPUVecQuad.h"
+#include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec3d
 class MaCPUVec3d: public MaCPUVecQuad
 {
+public:
+	REFLECTION_DECLARE_BASIC( MaCPUVec3d );
+
 public:
 	// Ctors
 	MaCPUVec3d();
