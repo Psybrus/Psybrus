@@ -101,7 +101,7 @@ public:
     ReListContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-        pValueType_ = GetClass< ReTypeTraits< _Ty >::Type >();
+        pValueType_ = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
 		KeyFlags_ = 0;
         ValueFlags_ = ReTypeTraits< _Ty >::Flags;
 	}
@@ -127,7 +127,7 @@ template < typename _Ty, typename _Alloc >
 ReContainerAccessor* CreateContainerAccessor( std::list< _Ty, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
-    pValueType = GetClass< ReTypeTraits< _Ty >::Type >();
+    pValueType = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
     ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReListContainerAccessor< _Ty, _Alloc >();

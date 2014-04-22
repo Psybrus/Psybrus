@@ -21,6 +21,27 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_BASE( SysKernel );
+
+void SysKernel::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "SystemList_",			&SysKernel::SystemList_ ),
+		ReField( "ShuttingDown_",		&SysKernel::ShuttingDown_ ),
+		ReField( "IsThreaded_",			&SysKernel::IsThreaded_ ),
+		ReField( "MainTimer_",			&SysKernel::MainTimer_ ),
+		ReField( "SleepAccumulator_",	&SysKernel::SleepAccumulator_ ),
+		ReField( "TickRate_",			&SysKernel::TickRate_ ),
+		ReField( "FrameTime_",			&SysKernel::FrameTime_ ),
+		ReField( "GameThreadTime_",		&SysKernel::GameThreadTime_ ),
+	};
+		
+	ReRegisterClass< SysKernel >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Worker masks.
 BcU32 SysKernel::SYSTEM_WORKER_MASK = 0x0;
 BcU32 SysKernel::USER_WORKER_MASK = 0x0;
@@ -28,6 +49,14 @@ BcU32 SysKernel::USER_WORKER_MASK = 0x0;
 //////////////////////////////////////////////////////////////////////////
 // Command line
 std::string SysArgs_;
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+SysKernel::SysKernel( ReNoInit ):
+	JobQueue_( BcMax( BcGetHardwareThreadCount(), BcU32( 1 ) ) )
+{
+	BcBreakpoint; // Shouldn't hit here ever.
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
