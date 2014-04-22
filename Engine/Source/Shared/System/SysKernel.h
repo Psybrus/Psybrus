@@ -48,6 +48,14 @@ public:
 	SysKernel( ReNoInit );
 	SysKernel( BcF32 TickRate = 1.0f / 60.0f );
 	~SysKernel();
+
+	/**
+	 * Create job queue.
+	 * Not thread safe. Should only call from the game thread during initialisation.
+	 * @param NoofWorkers Number of workers to create.
+	 * @return ID of job queue.
+	 */
+	BcU32						createJobQueue( BcU32 NoofWorkers );
 	
 	/**
 	 * Register system.
@@ -219,7 +227,7 @@ private:
 	BcF32						FrameTime_;
 	BcF32						GameThreadTime_;
 	
-	SysJobQueue					JobQueue_;
+	std::vector< SysJobQueue* >	JobQueues_;
 	SysDelegateDispatcher		DelegateDispatcher_;
 };
 
