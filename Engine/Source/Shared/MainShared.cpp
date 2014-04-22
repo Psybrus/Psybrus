@@ -86,6 +86,10 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	MaMat4d::StaticRegisterClass();
 	MaPlane::StaticRegisterClass();
 
+	// Register system.
+	SysKernel::StaticRegisterClass();
+	SysSystem::StaticRegisterClass();
+
 	// Register content.
 	CsResource::StaticRegisterClass();
 	CsPackage::StaticRegisterClass();

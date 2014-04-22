@@ -21,6 +21,8 @@
 #include "System/SysJobQueue.h"
 #include "System/SysDelegateDispatcher.h"
 
+#include "Reflection/ReReflection.h"
+
 #include <thread>
 #include <list>
 #include <map>
@@ -36,11 +38,15 @@ class SysKernel:
 	public BcGlobal< SysKernel >
 {
 public:
+	REFLECTION_DECLARE_BASE_MANUAL_NOINIT( SysKernel );
+
+public:
 	static BcU32 SYSTEM_WORKER_MASK;
 	static BcU32 USER_WORKER_MASK;
 
 public:
-	SysKernel( BcF32 TickRate );
+	SysKernel( ReNoInit );
+	SysKernel( BcF32 TickRate = 1.0f / 60.0f );
 	~SysKernel();
 	
 	/**

@@ -18,6 +18,25 @@
 #include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_BASE( SysSystem );
+
+void SysSystem::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Name_",				&SysSystem::Name_ ),
+		ReField( "pKernel_",			&SysSystem::pKernel_ ),
+		ReField( "ProcessState_",		&SysSystem::ProcessState_ ),
+		ReField( "StopTriggered_",		&SysSystem::StopTriggered_ ),
+		ReField( "PerfTimer_",			&SysSystem::PerfTimer_ ),
+		ReField( "LastTickTime_",		&SysSystem::LastTickTime_ ),
+	};
+		
+	ReRegisterAbstractClass< SysSystem >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 SysSystem::SysSystem():
 	pKernel_( NULL ),
