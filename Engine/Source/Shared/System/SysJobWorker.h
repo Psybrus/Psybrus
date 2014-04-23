@@ -17,6 +17,7 @@
 #include "Base/BcTypes.h"
 #include "System/SysJob.h"
 #include "System/SysFence.h"
+#include "System/SysJobQueue.h"
 
 #include <thread>
 #include <atomic>
@@ -32,57 +33,42 @@ class SysJobQueue;
 class SysJobWorker
 {
 public:
-	SysJobWorker( SysJobQueue* pParent );
+	SysJobWorker( class SysKernel* Parent );
 	virtual ~SysJobWorker();
-	
-	/**
-	 * Give a job. Should only be called from one specific thread.
-	 * @param pJob Job to execute.
-	 * @param Returns BcTrue if succeeded.
-	 */
-	BcBool				giveJob( SysJob* pJob );
-	
-	/**
-	 * Is worker in use?
-	 * Only used for performance and utilisation checking.
-	 */
-	BcBool				inUse() const;
 	
 	/**
 	 * Start worker.
 	 */
-	void				start();
+	void					start();
 	
 	/**
 	 * Stop worker.
 	 */
-	void				stop();
+	void					stop();
 
 	/**
-	 * Get and reset time working.
+	 * Update job queues.
 	 */
-	BcF32				getAndResetTimeWorking();
+	void					updateJobQueues( SysJobQueueList JobQueues );
 
 	/**
-	 * Get and reset jobs executed.
+	 * Do we have any jobs waiting?
 	 */
-	BcU32				getAndResetJobsExecuted();
+	BcBool					anyJobsWaiting();
 
 private:
-	virtual void		execute();
+	virtual void			execute();
 	
 private:
-	SysJobQueue*			pParent_;
-	std::thread				ExecutionThread_;
+	class SysKernel*		Parent_;
 	BcBool					Active_;
-	std::atomic< BcU32 >	HaveJob_;
-	SysJob*					pCurrentJob_;
-	std::condition_variable	ResumeEvent_;
-	std::mutex				ResumeMutex_;
-	SysFence				StartFence_;
+	std::atomic< BcU32 >	PendingJobQueue_;
+	std::mutex				JobQueuesLock_;
+	std::thread				ExecutionThread_;
 
-	std::atomic< BcU32 >	TimeWorkingUS_;	// Microseconds.
-	std::atomic< BcU32 >	JobsExecuted_;
+	SysJobQueueList			NextJobQueues_;
+	SysJobQueueList			CurrJobQueues_;
+	size_t					JobQueueIndex_;
 };
 
 #endif
