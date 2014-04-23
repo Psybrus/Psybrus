@@ -42,8 +42,7 @@ public:
 	REFLECTION_DECLARE_BASE_MANUAL_NOINIT( SysKernel );
 
 public:
-	static BcU32 SYSTEM_WORKER_MASK;
-	static BcU32 USER_WORKER_MASK;
+	static BcU32 DEFAULT_JOB_QUEUE_ID;
 
 public:
 	SysKernel( ReNoInit );
@@ -53,10 +52,12 @@ public:
 	/**
 	 * Create job queue.
 	 * Not thread safe. Should only call from the game thread during initialisation.
+	 * Job queues are destroyed when the engine shuts down.
 	 * @param NoofWorkers Number of workers to create.
+	 * @param MinimumHardwareThreads Minimum number of hardware threads required to create a worker.
 	 * @return ID of job queue.
 	 */
-	BcU32						createJobQueue( BcU32 NoofWorkers );
+	BcU32						createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads );
 	
 	/**
 	 * Register system.
@@ -90,9 +91,21 @@ public:
 	BcU32						workerCount() const;
 	
 	/**
-	 * Enqueue job.
+	 * Push job.
+	 * @param JobQueueId ID of job queue to use.
 	 */
-	void						enqueueJob( BcU32 WorkerMask, class SysJob* pJob );
+	BcBool						pushJob( BcU32 JobQueueId, class SysJob* pJob );
+
+	/**
+	 * Flush all jobs in the queue.
+	 * @param JobQueueId Job queue ID.
+	 */
+	void						flushJobQueue( BcU32 JobQueueId );
+
+	/**
+	 * Flush all job queues.
+	 */
+	void						flushAllJobQueues();
 
 	/**
 	 * Get frame time.
@@ -103,46 +116,50 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall();
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
 	}
 
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0 )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
 	}
 
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
-	}
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
+	}	
 	
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1, P2 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
 	}
-		
+
 	/**
 	 * Enqueue callback.
 	 */
@@ -189,6 +206,7 @@ public:
 
 private:
 	friend class SysJobWorker;
+	friend class SysJobQueue;
 
 	/**
 	 * Wait for schedule.
@@ -201,12 +219,9 @@ private:
 	}
 
 	/**
-	 * Notify schedule.
+	 * Notify for scheduling.
 	 */
-	inline void notifySchedule()
-	{
-		JobQueued_.notify_all();
-	}
+	void notifySchedule();
 	
 private:
 	/**
@@ -251,6 +266,7 @@ private:
 	
 	std::vector< class SysJobQueue* >	JobQueues_;
 	std::vector< class SysJobWorker* >	JobWorkers_;
+	BcU32						CurrWorkerAllocIdx_;
 
 	std::condition_variable		JobQueued_;
 	std::mutex					JobQueuedMutex_;

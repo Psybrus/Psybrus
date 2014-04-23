@@ -13,7 +13,7 @@
 
 #include "System/SysProfilerChromeTracing.h"
 
-#include "System/SysFence.h"
+#include "System/SysKernel.h"
 
 #include <sstream>
 #include <fstream>
@@ -44,7 +44,7 @@ void SysProfilerChromeTracing::beginProfiling()
 	if( BeginCount_++ == 0 )
 	{
 		// Final flush out.
-		SysFence Flush( BcErrorCode );
+		SysKernel::pImpl()->flushAllJobQueues();
 
 		// Reset allocation
 		ProfilerSectionIndex_ = 0;
@@ -56,7 +56,7 @@ void SysProfilerChromeTracing::beginProfiling()
 		++ProfilingActive_;
 
 		//
-		SysFence Fence( BcErrorCode );
+		SysKernel::pImpl()->flushAllJobQueues();
 	}
 	else
 	{
@@ -72,16 +72,13 @@ void SysProfilerChromeTracing::endProfiling()
 	if( --BeginCount_ == 0 )
 	{	
 		// Final flush out.
-		SysFence Flush( BcErrorCode );
+		SysKernel::pImpl()->flushAllJobQueues();
 
 		// Stop profiling.
 		--ProfilingActive_;
 
 		// Wait for all workers to complete.
-		SysFence Fence( BcErrorCode );
-		SysFence Fence1( BcErrorCode );
-		SysFence Fence2( BcErrorCode );
-		SysFence Fence3( BcErrorCode );
+		SysKernel::pImpl()->flushAllJobQueues();
 
 		std::stringstream Stream;
 

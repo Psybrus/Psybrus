@@ -46,8 +46,7 @@ void SysKernel::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Worker masks.
-BcU32 SysKernel::SYSTEM_WORKER_MASK = 0x0;
-BcU32 SysKernel::USER_WORKER_MASK = 0x0;
+BcU32 SysKernel::DEFAULT_JOB_QUEUE_ID = BcErrorCode;
 
 //////////////////////////////////////////////////////////////////////////
 // Command line
@@ -68,9 +67,10 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
 	FrameTime_ = 0.0f;
+	CurrWorkerAllocIdx_ = 0;
 
 	// Create job workers for the number of threads we have.
-	BcU32 NoofThreads = 1; //BcMax( std::thread::hardware_concurrency(), 1 );
+	BcU32 NoofThreads = BcMax( std::thread::hardware_concurrency(), 1 );
 	JobWorkers_.reserve( NoofThreads );
 	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
 	{
@@ -88,36 +88,63 @@ SysKernel::~SysKernel()
 	// Join.
 	ExecutionThread_.join();
 	
-	// Free job queues.
-	for( auto JobQueue : JobQueues_ )
-	{
-		delete JobQueue;
-	}
-	JobQueues_.clear();
-
 	// Free job workers.
 	for( auto JobWorker : JobWorkers_ )
 	{
 		delete JobWorker;
 	}
 	JobWorkers_.clear();
+
+	// Free job queues.
+	for( auto JobQueue : JobQueues_ )
+	{
+		delete JobQueue;
+	}
+	JobQueues_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createJobQueue
-BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers )
+BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads )
 {
 	BcAssertMsg( BcIsGameThread(), "Should only create job queues on the game thread." );
 
-	auto JobQueue = new SysJobQueue();
-	JobQueues_.push_back( JobQueue );
-
-	// TEMP TEMP
-	for( auto JobWorker : JobWorkers_ )
+	// Number of workers 0? Then create as many as there are workers.
+	if( NoofWorkers == 0 )
 	{
-		JobWorker->updateJobQueues( JobQueues_ );
+		NoofWorkers = JobWorkers_.size();
 	}
 
+	// If we have less than the minimum required number of hardware threads,
+	// then we just want to return an error code.
+	if( NoofWorkers == 0 || MinimumHardwareThreads > std::thread::hardware_concurrency() )
+	{
+		return BcErrorCode;
+	}
+	else
+	{
+		MinimumHardwareThreads = JobWorkers_.size();
+	}
+
+	// Clamp number of workers.
+	NoofWorkers = BcMin( NoofWorkers, MinimumHardwareThreads );
+
+	auto JobQueue = new SysJobQueue( this );
+	JobQueues_.push_back( JobQueue );
+
+	// Add new job queue to the workers.
+	for( BcU32 Idx = 0; Idx < NoofWorkers; ++Idx )
+	{
+		BcU32 RealIdx = ( CurrWorkerAllocIdx_ + Idx ) % JobWorkers_.size();
+		auto JobWorker( JobWorkers_[ RealIdx ] );
+		auto JobQueueList = JobWorker->getJobQueueList();
+		JobQueueList.push_back( JobQueue );
+		JobWorker->updateJobQueues( JobQueueList );
+	}
+
+	CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
+
+	// Kick off workers so they pick up new job queue.
 	notifySchedule();
 
 	return (BcU32)JobQueues_.size() - 1;
@@ -195,10 +222,7 @@ void SysKernel::run( BcBool Threaded )
 	BcPrintf( "============================================================================\n" );
 	BcPrintf( "SysKernel run\n" );
 	BcPrintf( Threaded ? "Threaded.\n" : "Non-threaded.\n" );
-
-	// Temporary job queue create until it's left to the systems.
-	createJobQueue( std::thread::hardware_concurrency() );
-
+	
 	IsThreaded_ = Threaded;
 	
 	if( Threaded == BcTrue )
@@ -311,10 +335,38 @@ BcU32 SysKernel::workerCount() const
 
 //////////////////////////////////////////////////////////////////////////
 // addSystems
-void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
+BcBool SysKernel::pushJob( BcU32 JobQueueId, SysJob* pJob )
 {
-	JobQueues_[ 0 ]->pushJob( pJob );
-	notifySchedule();
+	// Check if we're out of range.
+	if( JobQueueId < JobQueues_.size() )
+	{
+		return JobQueues_[ JobQueueId ]->pushJob( pJob );
+	}
+
+	// No queue we can use, execute on this thread.
+	pJob->internalExecute();
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// flushJobQueue
+void SysKernel::flushJobQueue( BcU32 JobQueueId )
+{
+	// Check if we're out of range.
+	if( JobQueueId < JobQueues_.size() )
+	{
+		return JobQueues_[ JobQueueId ]->flushJobs( BcFalse );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// flushAllJobQueues
+void SysKernel::flushAllJobQueues()
+{
+	for( auto JobQueue : JobQueues_ )
+	{
+		JobQueue->flushJobs( BcFalse );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -383,7 +435,7 @@ void SysKernel::execute()
 #if PSY_USE_PROFILER
 		++FrameCount;
 
-		if( FrameCount == 9 )
+		if( FrameCount == 60 )
 		{
 			BcProfiler::pImpl()->endProfiling();
 			FrameCount = 0;
@@ -391,6 +443,14 @@ void SysKernel::execute()
 #endif
 	}
 	while( SystemList_.size() > 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// notifySchedule
+void SysKernel::notifySchedule()
+{
+	std::lock_guard< std::mutex > Lock( JobQueuedMutex_ );
+	JobQueued_.notify_all();
 }
 
 //////////////////////////////////////////////////////////////////////////

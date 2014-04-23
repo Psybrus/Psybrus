@@ -108,9 +108,6 @@ void ScnCanvasComponent::destroy()
 		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
 	}
 
-	// Wait for renderer.
-	SysFence Fence( RsCore::WORKER_MASK );
-
 	// Delete working data.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{

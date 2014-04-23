@@ -52,6 +52,16 @@ public:
 	void					updateJobQueues( SysJobQueueList JobQueues );
 
 	/**
+	 * Get current job queue list.
+	 */
+	SysJobQueueList			getJobQueueList() const;
+
+	/**
+	 * Wait for pending job queue list.
+	 */
+	void					waitForPendingJobQueueList() const;
+
+	/**
 	 * Do we have any jobs waiting?
 	 */
 	BcBool					anyJobsWaiting();
