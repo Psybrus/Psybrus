@@ -75,6 +75,7 @@ private:
 	std::atomic< BcU32 >	PendingJobQueue_;
 	std::mutex				JobQueuesLock_;
 	std::thread				ExecutionThread_;
+	std::mutex				ScheduleConditionMutex_;
 
 	SysJobQueueList			NextJobQueues_;
 	SysJobQueueList			CurrJobQueues_;

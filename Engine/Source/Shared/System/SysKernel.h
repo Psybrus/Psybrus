@@ -212,9 +212,9 @@ private:
 	 * Wait for schedule.
 	 */
 	template < class _Predicate >
-	inline void waitForSchedule( _Predicate Pred )
+	inline void waitForSchedule( std::mutex& Mutex, _Predicate Pred )
 	{
-		std::unique_lock< std::mutex > Lock( JobQueuedMutex_ );
+		std::unique_lock< std::mutex > Lock( Mutex );
 		JobQueued_.wait( Lock, Pred );
 	}
 
@@ -269,7 +269,6 @@ private:
 	BcU32						CurrWorkerAllocIdx_;
 
 	std::condition_variable		JobQueued_;
-	std::mutex					JobQueuedMutex_;
 	SysDelegateDispatcher		DelegateDispatcher_;
 };
 
