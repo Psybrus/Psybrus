@@ -130,7 +130,7 @@ void SysJobWorker::execute()
 		PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker_WaitSchedule" );
 
 		// Wait to be scheduled.
-		Parent_->waitForSchedule( [ this ]()
+		Parent_->waitForSchedule( ScheduleConditionMutex_, [ this ]()
 			{
 				return anyJobsWaiting() || PendingJobQueue_.load() > 0;
 			});

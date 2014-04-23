@@ -449,7 +449,6 @@ void SysKernel::execute()
 // notifySchedule
 void SysKernel::notifySchedule()
 {
-	std::lock_guard< std::mutex > Lock( JobQueuedMutex_ );
 	JobQueued_.notify_all();
 }
 
