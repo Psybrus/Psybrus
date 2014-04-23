@@ -12,9 +12,12 @@
 **************************************************************************/
 
 #include "System/SysKernel.h"
-#include "System/SysProfilerChromeTracing.h"
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
+
+#include "System/SysProfilerChromeTracing.h"
+#include "System/SysJobQueue.h"
+#include "System/SysJobWorker.h"
 
 #if PLATFORM_WINDOWS
 #include "Base/BcWindows.h"
@@ -65,6 +68,14 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	ShuttingDown_ = BcFalse;
 	SleepAccumulator_ = 0.0f;
 	FrameTime_ = 0.0f;
+
+	// Create job workers for the number of threads we have.
+	BcU32 NoofThreads = 1; //BcMax( std::thread::hardware_concurrency(), 1 );
+	JobWorkers_.reserve( NoofThreads );
+	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
+	{
+		JobWorkers_.push_back( new SysJobWorker( this ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,6 +94,13 @@ SysKernel::~SysKernel()
 		delete JobQueue;
 	}
 	JobQueues_.clear();
+
+	// Free job workers.
+	for( auto JobWorker : JobWorkers_ )
+	{
+		delete JobWorker;
+	}
+	JobWorkers_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,8 +109,17 @@ BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers )
 {
 	BcAssertMsg( BcIsGameThread(), "Should only create job queues on the game thread." );
 
-	auto JobQueue = new SysJobQueue( NoofWorkers );
+	auto JobQueue = new SysJobQueue();
 	JobQueues_.push_back( JobQueue );
+
+	// TEMP TEMP
+	for( auto JobWorker : JobWorkers_ )
+	{
+		JobWorker->updateJobQueues( JobQueues_ );
+	}
+
+	notifySchedule();
+
 	return (BcU32)JobQueues_.size() - 1;
 }
 
@@ -279,14 +306,15 @@ void SysKernel::tick()
 // workerCount
 BcU32 SysKernel::workerCount() const
 {
-	return JobQueues_[ 0 ]->workerCount();
+	return (BcU32)JobWorkers_.size();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addSystems
 void SysKernel::enqueueJob( BcU32 WorkerMask, SysJob* pJob )
 {
-	JobQueues_[ 0 ]->enqueueJob( pJob, WorkerMask );
+	JobQueues_[ 0 ]->pushJob( pJob );
+	notifySchedule();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -419,7 +447,7 @@ void SysKernel::removeSystems()
 		}
 		
 		// Flush jobs before deleting a system.
-		JobQueues_[ 0 ]->flushJobs();
+		JobQueues_[ 0 ]->flushJobs( BcFalse );
 		
 		// Delete system.
 		delete pRemSystem;

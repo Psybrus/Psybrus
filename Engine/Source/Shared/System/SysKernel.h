@@ -18,7 +18,7 @@
 #include "Base/BcName.h"
 #include "Base/BcTimer.h"
 #include "System/SysSystem.h"
-#include "System/SysJobQueue.h"
+#include "System/SysJob.h"
 #include "System/SysDelegateDispatcher.h"
 
 #include "Reflection/ReReflection.h"
@@ -27,6 +27,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <condition_variable>
 
 //////////////////////////////////////////////////////////////////////////
 // Command line params
@@ -91,7 +92,7 @@ public:
 	/**
 	 * Enqueue job.
 	 */
-	void						enqueueJob( BcU32 WorkerMask, SysJob* pJob );
+	void						enqueueJob( BcU32 WorkerMask, class SysJob* pJob );
 
 	/**
 	 * Get frame time.
@@ -185,6 +186,27 @@ public:
 		pDelegateCall->deferCall( P0, P1, P2 );
 		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
 	}
+
+private:
+	friend class SysJobWorker;
+
+	/**
+	 * Wait for schedule.
+	 */
+	template < class _Predicate >
+	inline void waitForSchedule( _Predicate Pred )
+	{
+		std::unique_lock< std::mutex > Lock( JobQueuedMutex_ );
+		JobQueued_.wait( Lock, Pred );
+	}
+
+	/**
+	 * Notify schedule.
+	 */
+	inline void notifySchedule()
+	{
+		JobQueued_.notify_all();
+	}
 	
 private:
 	/**
@@ -227,7 +249,11 @@ private:
 	BcF32						FrameTime_;
 	BcF32						GameThreadTime_;
 	
-	std::vector< SysJobQueue* >	JobQueues_;
+	std::vector< class SysJobQueue* >	JobQueues_;
+	std::vector< class SysJobWorker* >	JobWorkers_;
+
+	std::condition_variable		JobQueued_;
+	std::mutex					JobQueuedMutex_;
 	SysDelegateDispatcher		DelegateDispatcher_;
 };
 

@@ -2,7 +2,7 @@
 *
 * File:		SysJobWorker.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	6/07/11
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -13,6 +13,7 @@
 
 #include "System/SysJobWorker.h"
 #include "System/SysJobQueue.h"
+#include "System/SysKernel.h"
 #include "Base/BcTimer.h"
 #include "Base/BcProfiler.h"
 
@@ -20,13 +21,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
-	pParent_( pParent ),
+SysJobWorker::SysJobWorker( class SysKernel* Parent ):
+	Parent_( Parent ),
 	Active_( BcTrue ),
-	HaveJob_( BcFalse ),
-	pCurrentJob_( NULL )
+	PendingJobQueue_( 0 )
 {
-	
+	// Start immediately.
+	start();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,37 +35,20 @@ SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
 //virtual
 SysJobWorker::~SysJobWorker()
 {
+	// Stop immediately.
+	stop();
+
+	//
 	ExecutionThread_.join();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// giveJob
-BcBool SysJobWorker::giveJob( SysJob* pJob )
-{
-	BcU32 Exp = 0;
-	
-	if( HaveJob_.compare_exchange_strong( Exp, 1 ) )
-	{
-		std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
-		pCurrentJob_ = pJob;
-		ResumeEvent_.notify_all();
-		PSY_PROFILER_INSTANT_EVENT( "SysJobWorker::giveJob" );
-	}
-	
-	return Exp == 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// inUse
-BcBool SysJobWorker::inUse() const
-{
-	return HaveJob_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // start
 void SysJobWorker::start()
 {
+	// Mark active.
+	Active_ = BcTrue;
+
 	// Just start the thread.
 	ExecutionThread_ = std::thread( &SysJobWorker::execute, this );
 }
@@ -75,24 +59,36 @@ void SysJobWorker::stop()
 {
 	// Set to not be active, trigger resume, and join thread.
 	Active_ = BcFalse;
-	std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
-	ResumeEvent_.notify_all();
+	//std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
+	//ResumeEvent_.notify_all();
 	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getAndResetTimeWorking
-BcF32 SysJobWorker::getAndResetTimeWorking()
+// updateJobQueues
+void SysJobWorker::updateJobQueues( SysJobQueueList JobQueues )
 {
-	BcU32 TimeWorkingUS = TimeWorkingUS_.exchange( 0 );
-	return static_cast< BcF32 >( TimeWorkingUS ) / 1000000.0f;
+	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
+	NextJobQueues_ = std::move( JobQueues );
+	PendingJobQueue_++;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getAndResetJobsExecuted
-BcU32 SysJobWorker::getAndResetJobsExecuted()
+// anyJobsWaiting
+BcBool SysJobWorker::anyJobsWaiting()
 {
-	return JobsExecuted_.exchange( 0 );
+	BcBool RetVal = BcFalse;
+	for( auto JobQueue : CurrJobQueues_ )
+	{
+		// Check if job queue has any jobs pending.
+		if( JobQueue->anyJobsPending() )
+		{
+			RetVal = BcTrue;
+			break;
+		}
+	}
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -103,43 +99,44 @@ void SysJobWorker::execute()
 	// Enter loop.
 	while( Active_ )
 	{
-		PSY_PROFILER_SECTION( SysJobWorker_BeginWait_Profile, "SysJobWorker_BeginWait" );
+		// Wait to be scheduled.
+		Parent_->waitForSchedule( [ this ]()
+			{
+				return anyJobsWaiting() || PendingJobQueue_.load() > 0;
+			});
 
-		// Wait till we are told to resume.
+		// Check for a job queues update.
+		if( PendingJobQueue_.load() > 0 )
 		{
-			std::unique_lock< std::mutex > ResumeLock( ResumeMutex_ );
-			ResumeEvent_.wait( ResumeLock, [ this ]{ return pCurrentJob_ != NULL; } );
+			std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
+			CurrJobQueues_ = std::move( NextJobQueues_ );
+
+			// Wrap job queue index round to fit into new size.
+			JobQueueIndex_ = JobQueueIndex_ % CurrJobQueues_.size();
+
+			// No more pending job queue.
+			// NOTE: Safe to reset as we have a lock
+			//       on the job queues as it is.
+			PendingJobQueue_.store( 0 );
 		}
 
-		PSY_PROFILER_SECTION( SysJobWorker_EndWait_Profile, "SysJobWorker_EndWait" );
-
-		if( Active_ == BcTrue )
+		// Grab job from current job queue.
+		SysJob* Job = nullptr;
+		for( size_t Idx = 0; Idx < CurrJobQueues_.size(); ++Idx )
 		{
-			BcAssertMsg( pCurrentJob_ != NULL, "No job has been given!" );
+			// Grab job queue.
+			auto& JobQueue( CurrJobQueues_[ JobQueueIndex_ ] );
+
+			// Advance.
+			JobQueueIndex_ = ( JobQueueIndex_ + 1 ) % CurrJobQueues_.size();
+
+			// If we can pop, execute and break out.
+			if( JobQueue->popJob( Job ) )
+			{
+				// Execute.
+				Job->internalExecute();
+				break;
+			}
 		}
-
-		BcAssertMsg( HaveJob_ == BcTrue, "SysJobWorker: We have a job pointer set, but haven't got it via giveJob." );
-
-		// Start timing the job.
-#if !PSY_PRODUCTION
-		BcTimer Timer;
-		Timer.mark();
-#endif
-		// Execute our job.
-		pCurrentJob_->internalExecute();
-
-#if !PSY_PRODUCTION
-		// Add time spent to our total.
-		const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
-		TimeWorkingUS_ += TimeWorkingUS;
-		JobsExecuted_++;
-#endif			
-		// No job now, clean up.
-		delete pCurrentJob_;
-		pCurrentJob_ = NULL;
-		HaveJob_ = BcFalse;
-			
-		// Signal job queue parent to schedule.
-		pParent_->schedule();
 	}
 }
