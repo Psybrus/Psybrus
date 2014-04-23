@@ -59,8 +59,11 @@ void SysJobWorker::stop()
 {
 	// Set to not be active, trigger resume, and join thread.
 	Active_ = BcFalse;
-	//std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
-	//ResumeEvent_.notify_all();
+
+	// Signal parent to notify waiting workers.
+	Parent_->notifySchedule();
+
+	// Wait for join.
 	ExecutionThread_.join();
 }
 
@@ -68,9 +71,34 @@ void SysJobWorker::stop()
 // updateJobQueues
 void SysJobWorker::updateJobQueues( SysJobQueueList JobQueues )
 {
+	BcAssert( BcIsGameThread() );
+
 	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
 	NextJobQueues_ = std::move( JobQueues );
 	PendingJobQueue_++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getJobQueueList
+SysJobQueueList SysJobWorker::getJobQueueList() const
+{
+	BcAssert( BcIsGameThread() );
+
+	// Wait until pending job queue is being copied in.
+	waitForPendingJobQueueList();
+
+	// Return current.
+	return CurrJobQueues_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// anyJobsWaiting
+void SysJobWorker::waitForPendingJobQueueList() const
+{
+	while( PendingJobQueue_.load() > 0 )
+	{
+		std::this_thread::yield();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,11 +127,15 @@ void SysJobWorker::execute()
 	// Enter loop.
 	while( Active_ )
 	{
+		PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker_WaitSchedule" );
+
 		// Wait to be scheduled.
 		Parent_->waitForSchedule( [ this ]()
 			{
 				return anyJobsWaiting() || PendingJobQueue_.load() > 0;
 			});
+
+		PSY_PROFILER_SECTION( DoneSchedule_Profiler, "SysJobWorker_DoneSchedule" );
 
 		// Check for a job queues update.
 		if( PendingJobQueue_.load() > 0 )
@@ -125,7 +157,7 @@ void SysJobWorker::execute()
 		for( size_t Idx = 0; Idx < CurrJobQueues_.size(); ++Idx )
 		{
 			// Grab job queue.
-			auto& JobQueue( CurrJobQueues_[ JobQueueIndex_ ] );
+			auto JobQueue( CurrJobQueues_[ JobQueueIndex_ ] );
 
 			// Advance.
 			JobQueueIndex_ = ( JobQueueIndex_ + 1 ) % CurrJobQueues_.size();
@@ -133,6 +165,8 @@ void SysJobWorker::execute()
 			// If we can pop, execute and break out.
 			if( JobQueue->popJob( Job ) )
 			{
+				PSY_PROFILER_SECTION( ExecuteJob_Profiler, "SysJobWorker_ExecuteJob" );
+
 				// Execute.
 				Job->internalExecute();
 				break;

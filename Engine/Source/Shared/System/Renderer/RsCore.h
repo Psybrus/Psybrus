@@ -55,7 +55,7 @@ class RsCore:
 	public SysSystem
 {
 public:
-	static BcU32 WORKER_MASK;
+	static BcU32 JOB_QUEUE_ID;
 
 public:
 	virtual ~RsCore(){};

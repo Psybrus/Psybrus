@@ -152,35 +152,32 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 // MainShared
 void MainShared()
 {
-	// Setup system threads.
-	RsCore::WORKER_MASK = 0x1;
-	FsCore::WORKER_MASK = 0x2;
-	SsCore::WORKER_MASK = 0x0; // TODO DONT ENABLE.
+	// Setup default system job queues.
+	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
+	FsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 1 );
+	RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
+	SsCore::JOB_QUEUE_ID = BcErrorCode;
 
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{
-		RsCore::WORKER_MASK = 0x0;
+		RsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
 
 	// Disable sound thread for debugging.
 	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
 	{
-		SsCore::WORKER_MASK = 0x0;
+		SsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
 
 	// Disable file thread for debugging.
 	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
 	{
-		FsCore::WORKER_MASK = 0x0;
+		FsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
 
-	// System worker mask.
-	SysKernel::SYSTEM_WORKER_MASK = FsCore::WORKER_MASK | RsCore::WORKER_MASK | SsCore::WORKER_MASK;
-
-	// Strip the renderer from the user mask.
-	// - Renderer is a bit of a special case. NEVER allow anything to run on that thread since it should always be high CPU.
-	SysKernel::USER_WORKER_MASK = SysKernel::USER_WORKER_MASK & ~RsCore::WORKER_MASK;
+	// Create default job queue.
+	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 0, 0 );
 
 	// Parse command line params for disabling systems.
 	if( SysArgs_.find( "-noremote " ) != std::string::npos )
@@ -211,11 +208,10 @@ void MainShared()
 	BcPrintf( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
 	BcPrintf( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
 	BcPrintf( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );
-	BcPrintf( " - SysKernel::SYSTEM_WORKER_MASK: 0x%x\n", SysKernel::SYSTEM_WORKER_MASK );
-	BcPrintf( " - SysKernel::USER_WORKER_MASK: 0x%x\n", SysKernel::USER_WORKER_MASK );
-	BcPrintf( " - FsCore::WORKER_MASK: 0x%x\n", FsCore::WORKER_MASK );
-	BcPrintf( " - RsCore::WORKER_MASK: 0x%x\n", RsCore::WORKER_MASK );
-	BcPrintf( " - SsCore::WORKER_MASK: 0x%x\n", SsCore::WORKER_MASK );
+	BcPrintf( " - SysKernel::DEFAULT_JOB_QUEUE_ID: 0x%x\n", SysKernel::DEFAULT_JOB_QUEUE_ID );
+	BcPrintf( " - FsCore::JOB_QUEUE_ID: 0x%x\n", FsCore::JOB_QUEUE_ID );
+	BcPrintf( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
+	BcPrintf( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
 	// Start debug system if not a production build.
 #if !defined( PSY_PRODUCTION )

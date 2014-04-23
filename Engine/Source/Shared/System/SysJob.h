@@ -35,6 +35,7 @@ public:
 private:
 	friend class SysJobQueue;
 	friend class SysJobWorker;
+	friend class SysKernel;
 	
 	void				internalExecute();
 	

@@ -117,11 +117,26 @@ inline void FsFile::write( BcSize Position, void* pData, BcSize Bytes )
 
 inline void FsFile::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	pImpl_->readAsync( Position, pData, Bytes, DoneCallback );
+	if( Bytes > 0 )
+	{
+		pImpl_->readAsync( Position, pData, Bytes, DoneCallback );
+	}
+	else
+	{
+		DoneCallback( pData, Bytes );
+	}
 }
 
 inline void FsFile::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
 {
-	pImpl_->writeAsync( Position, pData, Bytes, DoneCallback );
+	if( Bytes > 0 )
+	{
+		pImpl_->writeAsync( Position, pData, Bytes, DoneCallback );
+	}
+	else
+	{
+		DoneCallback( pData, Bytes );
+	}
 }
+
 #endif

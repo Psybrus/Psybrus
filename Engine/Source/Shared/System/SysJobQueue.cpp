@@ -12,12 +12,14 @@
 **************************************************************************/
 
 #include "System/SysJobQueue.h"
+#include "System/SysKernel.h"
 
 #include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysJobQueue::SysJobQueue():
+SysJobQueue::SysJobQueue( class SysKernel* Parent ):
+	Parent_( Parent ),
 	JobQueue_( 32 )
 {
 
@@ -34,14 +36,25 @@ SysJobQueue::~SysJobQueue()
 // pushJob
 BcBool SysJobQueue::pushJob( SysJob* Job )
 {
-	return JobQueue_.push( Job );
+	BcBool RetVal = JobQueue_.push( Job );
+	if( RetVal )
+	{
+		++NoofJobs_;
+	}
+	Parent_->notifySchedule();
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // popJob
 BcBool SysJobQueue::popJob( SysJob*& Job )
 {
-	return JobQueue_.pop( Job );
+	BcBool RetVal = JobQueue_.pop( Job );
+	if( RetVal )
+	{
+		--NoofJobs_;
+	}
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -59,6 +72,7 @@ void SysJobQueue::flushJobs( BcBool ForceExecute )
 			}
 		}
 
+		Parent_->notifySchedule();
 		std::this_thread::yield();
 	}
 }
@@ -67,5 +81,6 @@ void SysJobQueue::flushJobs( BcBool ForceExecute )
 // anyJobsPending
 BcBool SysJobQueue::anyJobsPending()
 {
-	return !JobQueue_.empty();
+	BcBool Empty = JobQueue_.empty();
+	return !Empty;
 }

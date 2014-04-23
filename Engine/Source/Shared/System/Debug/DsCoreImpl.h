@@ -37,7 +37,7 @@ class DsCoreImpl :
 	public DsCore
 {
 public:
-	static BcU32 WORKER_MASK;
+	static BcU32 JOB_QUEUE_ID;
 
 public:
 	DsCoreImpl();

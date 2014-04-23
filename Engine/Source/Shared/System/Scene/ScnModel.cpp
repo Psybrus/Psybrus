@@ -296,8 +296,6 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnModelComponent::destroy()
 {
-	SysFence Fence( RsCore::WORKER_MASK );
-
 	for( BcU32 Idx = 0; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
 	{
 		RsCore::pImpl()->destroyResource( PerComponentPrimitiveDataList_[ Idx ].BoneUniformBuffer_ );
@@ -409,7 +407,7 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	// TODO: Break out into it's own job class.
 	typedef BcDelegate< void(*)( MaMat4d ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
-	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, getParentEntity()->getWorldMatrix() );
+	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, getParentEntity()->getWorldMatrix() );
 #else
 	updateNodes( getParentEntity()->getWorldMatrix() );
 #endif

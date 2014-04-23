@@ -109,9 +109,6 @@ void ScnParticleSystemComponent::destroy()
 		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( VertexBuffer.pPrimitive_ );
 	}
-
-	// Wait for renderer.
-	SysFence Fence( RsCore::WORKER_MASK );
 	
 	// Delete working data.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -146,7 +143,7 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 #if 1
 	typedef BcDelegate< void(*)( BcF32 ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnParticleSystemComponent, &ScnParticleSystemComponent::updateParticles >( this );
-	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, Tick );
+	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, Tick );
 #else
 	updateParticles( Tick );
 #endif

@@ -42,7 +42,7 @@ typedef std::vector< SysJobQueue* > SysJobQueueList;
 class SysJobQueue
 {
 public:
-	SysJobQueue();
+	SysJobQueue( class SysKernel* Parent );
 	virtual ~SysJobQueue();
 	
 	/**
@@ -75,7 +75,9 @@ public:
 private:
 	typedef boost::lockfree::queue< class SysJob* > TJobQueue;
 	
+	class SysKernel*		Parent_;
 	TJobQueue				JobQueue_;
+	std::atomic< BcU32 >	NoofJobs_;
 };
 
 #endif
