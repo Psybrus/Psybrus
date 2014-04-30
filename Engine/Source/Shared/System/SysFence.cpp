@@ -14,6 +14,8 @@
 #include "System/SysFence.h"
 #include "System/SysKernel.h"
 
+#include "Base/BcProfiler.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 SysFence::SysFence():
@@ -48,6 +50,8 @@ void SysFence::decrement()
 // wait
 void SysFence::wait( BcU32 Value ) const
 {
+	PSY_PROFILER_SECTION( FenceProfiler, "SysFence:wait" );
+
 	while( Count_ > Value )
 	{
 		BcYield();
