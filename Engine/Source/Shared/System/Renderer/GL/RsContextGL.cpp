@@ -22,6 +22,10 @@
 
 #include "System/Os/OsClient.h"
 
+#if PLATFORM_WINDOWS
+#include "System/Os/OsClientWindows.h"
+#endif
+
 #include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,8 +196,11 @@ void RsContextGL::takeScreenshot()
 void RsContextGL::create()
 {
 #if PLATFORM_WINDOWS
-	// Get client device handle.
-	WindowDC_ = (HDC)pClient_->getDeviceHandle();
+	OsClientWindows* pClient = dynamic_cast< OsClientWindows* >( pClient_ );
+	BcAssertMsg( pClient != nullptr, "Windows client is not being used!" );
+
+	// Get client device context.
+	WindowDC_ = pClient->getHDC();
 
 	// Pixel format.
 	static  PIXELFORMATDESCRIPTOR pfd =                 // pfd Tells Windows How We Want Things To Be
