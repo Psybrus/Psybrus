@@ -125,9 +125,9 @@ void RsContextD3D11::update()
 //virtual
 void RsContextD3D11::destroy()
 {
-	SwapChain_->Release();
-	Device_->Release();
-	Context_->Release();
+	SwapChain_ = nullptr;
+	Device_ = nullptr;
+	Context_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
