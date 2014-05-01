@@ -74,6 +74,16 @@ public:
 	 */
 	void setMouseLock( BcBool Enabled );
 
+	/**
+	 * Get device context.
+	 */
+	HDC	getHDC();
+
+	/**
+	 * Get window handle.
+	 */
+	HWND getHWND();
+
 private:
 	void mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam );
 
