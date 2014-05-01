@@ -14,8 +14,13 @@
 #include "System/Renderer/D3D11/RsContextD3D11.h"
 
 #include "System/Os/OsClient.h"
+#include "System/Os/OsClientWindows.h"
 
 #include "Import/Img/Img.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Direct3D 11 library.
+#pragma comment (lib, "d3d11.lib")
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -23,6 +28,9 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	RsContext( pParent ),
 	pParent_( pParent ),
 	pClient_( pClient ),
+	Adapter_( nullptr ),
+	Device_( nullptr ),
+	Context_( nullptr ),
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode )
 {
@@ -59,7 +67,7 @@ void RsContextD3D11::swapBuffers()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	SwapChain_->Present( 0, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,7 +82,34 @@ void RsContextD3D11::takeScreenshot()
 //virtual
 void RsContextD3D11::create()
 {
-	BcBreakpoint;
+	OsClientWindows* pClient = dynamic_cast< OsClientWindows* >( pClient_ );
+	BcAssertMsg( pClient != nullptr, "Windows client is not being used!" );
+
+	// Setup swap chain desc.
+	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
+    SwapChainDesc_.BufferCount = 1;
+    SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	SwapChainDesc_.OutputWindow = pClient->getHWND();
+    SwapChainDesc_.Windowed = TRUE;
+	SwapChainDesc_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	// Create device and swap chain.
+	D3D11CreateDeviceAndSwapChain( Adapter_,
+		D3D_DRIVER_TYPE_HARDWARE,
+		NULL,
+		D3D11_CREATE_DEVICE_SINGLETHREADED,
+		nullptr,
+		0,
+		D3D11_SDK_VERSION,
+		&SwapChainDesc_,
+		&SwapChain_,
+		&Device_,
+		&FeatureLevel_,
+		&Context_ );
+
+	// Get back buffer from swap chain.
+	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +117,7 @@ void RsContextD3D11::create()
 //virtual
 void RsContextD3D11::update()
 {
-	BcBreakpoint;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,6 +125,7 @@ void RsContextD3D11::update()
 //virtual
 void RsContextD3D11::destroy()
 {
+	SwapChain_->Release();
 	Device_->Release();
 	Context_->Release();
 }

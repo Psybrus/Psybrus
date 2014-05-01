@@ -52,12 +52,14 @@ private:
 	OsClient* pClient_;
 
 	IDXGIAdapter* Adapter_;
+	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
+	IDXGISwapChain* SwapChain_;
 	ID3D11Device* Device_;
 	ID3D11DeviceContext* Context_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
+	ID3D11Texture2D* BackBuffer_;
+
 	BcThreadId OwningThread_;
-
-
 	BcBool ScreenshotRequested_;
 };
 
