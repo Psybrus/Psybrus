@@ -34,14 +34,6 @@ public:
 	void								swapBuffers();
 	void								takeScreenshot();
 
-	void								setDefaultState();
-	void								invalidateRenderState();
-	void								invalidateTextureState();
-	void								setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32								getRenderState( eRsRenderState State ) const;
-	void								setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
-	void								flushState();
-
 protected:
 	virtual void						create();
 	virtual void						update();
