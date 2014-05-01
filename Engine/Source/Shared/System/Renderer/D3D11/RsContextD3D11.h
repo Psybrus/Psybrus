@@ -17,6 +17,7 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/D3D11/RsD3D11.h"
 
+#include "Base/BcComRef.h"
 #include "Base/BcMisc.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,13 +44,14 @@ private:
 	RsContextD3D11* pParent_;
 	OsClient* pClient_;
 
-	IDXGIAdapter* Adapter_;
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
-	IDXGISwapChain* SwapChain_;
-	ID3D11Device* Device_;
-	ID3D11DeviceContext* Context_;
+	BcComRef<IDXGIAdapter> Adapter_;
+	BcComRef<IDXGISwapChain> SwapChain_;
+	BcComRef<ID3D11Device> Device_;
+	BcComRef<ID3D11DeviceContext> Context_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
-	ID3D11Texture2D* BackBuffer_;
+
+	BcComRef<ID3D11Texture2D> BackBuffer_;
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
