@@ -1,0 +1,28 @@
+#include "PsybrusUniforms.hlsl"
+
+#ifdef PERM_MESH_SKINNED
+
+/**
+ * Make a world space vertex.
+ * @param _o Output vertex. Should be float4.
+ * @param _v Input vertex. Should be a structure containing Position_, BlendIndices_, and BlendWeights_.
+ */
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) 																\
+		_o = float4( 0.0, 0.0, 0.0, 0.0 );															\
+		_o += mul( uBoneTransform[ int(_v.BlendIndices_.x) ], _v.Position_ ) * _v.BlendWeights_.x;	\
+		_o += mul( uBoneTransform[ int(_v.BlendIndices_.y) ], _v.Position_ ) * _v.BlendWeights_.y;	\
+		_o += mul( uBoneTransform[ int(_v.BlendIndices_.z) ], _v.Position_ ) * _v.BlendWeights_.z;	\
+		_o += mul( uBoneTransform[ int(_v.BlendIndices_.w) ], _v.Position_ ) * _v.BlendWeights_.w;	\
+
+
+#else
+
+/**
+ * Make a world space vertex.
+ * @param _o Output vertex. Should be float4.
+ * @param _v Input vertex. Should be a structure containing Position_.
+ */
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) 																\
+		_o = mul( uWorldTransform, _v.Position_ );													\
+
+#endif
