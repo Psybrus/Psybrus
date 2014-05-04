@@ -53,8 +53,7 @@ public:
 	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL );
 	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL );
 	virtual RsShader*			createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
-	virtual RsProgram*			createProgram( RsShader* pVertexShader, RsShader* pFragmentShader );
-	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders );
+	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
 	virtual RsPrimitive*		createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer );
 	virtual void				destroyResource( RsResource* pResource );
 	void						updateResource( RsResource* pResource );

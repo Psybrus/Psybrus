@@ -40,12 +40,17 @@ public:
 	virtual void						destroy();
 	
 	RsProgram*							getProgram( BcU32 PermutationFlags );
-		
+	
 private:
 	typedef std::map< BcU32, RsShader* > TShaderMap;
 	typedef std::map< BcU32, RsProgram* > TProgramMap;
 	typedef TShaderMap::iterator TShaderMapIterator;
 	typedef TProgramMap::iterator TProgramMapIterator;
+
+	struct ShaderContainer
+	{
+		TShaderMap Shaders_;
+	};
 
 	RsShader*							getShader( BcU32 PermutationFlags, TShaderMap& ShaderMap );
 	
@@ -55,10 +60,10 @@ private:
 	
 private:
 	ScnShaderHeader*					pHeader_;
-	TShaderMap							VertexShaderMap_;
-	TShaderMap							FragmentShaderMap_;
+	RsProgramVertexAttribute*			pVertexAttributes_;
+	std::array< ShaderContainer, rsST_MAX > ShaderMappings_;
 	TProgramMap							ProgramMap_;
-};
 
+};
 
 #endif

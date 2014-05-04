@@ -409,6 +409,7 @@ enum eRsVertexChannel
 
 	//
 	rsVC_MAX,
+	rcVC_INVALID,
 	rsVC_FORCE_DWORD = 0x7fffffff
 };
 
@@ -478,6 +479,14 @@ enum eRsShaderParameterType
 	rsSPT_MAX,
 	rsSPT_INVALID = BcErrorCode,
 	rsSPT_FORCE_DWORD = 0x7fffffff
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramVertexAttribute
+struct RsProgramVertexAttribute
+{
+	BcName							AttributeName_;
+	eRsVertexChannel				Channel_;
 };
 
 //////////////////////////////////////////////////////////////////////////

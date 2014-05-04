@@ -19,7 +19,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders ):
+RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes ):
 	RsProgram( pContext ),
 	ParameterBufferSize_( 0 )
 {
@@ -29,6 +29,13 @@ RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppS
 	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
 	{
 		ppShaders_[ Idx ] = static_cast< RsShaderGL* >( ppShaders[ Idx ] );
+	}
+
+	AttributeList_.reserve( NoofVertexAttributes );
+	for( BcU32 Idx = 0; Idx < NoofVertexAttributes; ++Idx )
+	{
+		TAttribute Attribute = { *pVertexAttributes[ Idx ].AttributeName_, pVertexAttributes[ Idx ].Channel_ };
+		AttributeList_.push_back( Attribute );
 	}
 }
 
@@ -63,16 +70,10 @@ void RsProgramGL::create()
 	}
 	
 	// Bind default vertex attributes.
-	bindAttribute( Handle, rsVC_POSITION,		"aPosition" );
-	bindAttribute( Handle, rsVC_NORMAL,			"aNormal" );
-	bindAttribute( Handle, rsVC_TANGENT,		"aTangent" );
-	bindAttribute( Handle, rsVC_TEXCOORD0,		"aTexCoord0" );
-	bindAttribute( Handle, rsVC_TEXCOORD1,		"aTexCoord1" );
-	bindAttribute( Handle, rsVC_TEXCOORD2,		"aTexCoord2" );
-	bindAttribute( Handle, rsVC_TEXCOORD3,		"aTexCoord3" );
-	bindAttribute( Handle, rsVC_SKIN_INDICES,	"aSkinIndices" );
-	bindAttribute( Handle, rsVC_SKIN_WEIGHTS,	"aSkinWeights" );
-	bindAttribute( Handle, rsVC_COLOUR,			"aColour" );
+	for( auto& Attribute : AttributeList_ )
+	{
+		bindAttribute( Handle, Attribute.Channel_, Attribute.Name_.c_str() );
+	}
 	
 	// Link program.
 	glLinkProgram( Handle );
