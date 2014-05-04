@@ -85,3 +85,4 @@ struct VertexDefault
 					_p.WorldMatrix3_ ), _v );	 														\
 
 #endif
+
