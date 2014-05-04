@@ -272,7 +272,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
 		
-		delete [] pData;
+		BcMemFree( (void*)pData );
 	}
 	else
 	{

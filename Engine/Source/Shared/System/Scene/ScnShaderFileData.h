@@ -25,7 +25,8 @@ enum ScnShaderPermutationFlags
 	scnSPF_STATIC_3D				= 0x00000002,		// Static 3D.
 	scnSPF_SKINNED_3D				= 0x00000004,		// Skinned 3D.
 	scnSPF_PARTICLE_3D				= 0x00000008,		// Particle 3D.
-	scnSPF_EXCLUSIVE_BASE = scnSPF_STATIC_2D | scnSPF_STATIC_3D | scnSPF_SKINNED_3D | scnSPF_PARTICLE_3D,
+	scnSPF_PARTICLE_POINT_3D		= 0x00000010,		// Particle point 3D.
+	scnSPF_EXCLUSIVE_BASE = scnSPF_STATIC_2D | scnSPF_STATIC_3D | scnSPF_SKINNED_3D | scnSPF_PARTICLE_3D | scnSPF_PARTICLE_POINT_3D,
 
 	// Lighting.
 	scnSPF_UNLIT					= 0x00000010,		// Unlit geometry.
@@ -38,9 +39,9 @@ struct ScnShaderPermutationBootstrap
 {
 	BcU32							PermutationFlags_;
 	const BcChar*					SourceUniformIncludeName_;
-	const BcChar*					SourceGeometryShaderName_;
 	const BcChar*					SourceVertexShaderName_;
 	const BcChar*					SourceFragmentShaderName_;
+	const BcChar*					SourceGeometryShaderName_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,6 +50,9 @@ struct ScnShaderHeader
 {
 	BcU32							NoofVertexShaderPermutations_;
 	BcU32							NoofFragmentShaderPermutations_;
+	BcU32							NoofGeometryShaderPermutations_;
+	BcU32							NoofTessControlShaderPermutations_;
+	BcU32							NoofTessEvaluationShaderPermutations_;
 	BcU32							NoofProgramPermutations_;
 };
 	
@@ -56,6 +60,8 @@ struct ScnShaderHeader
 // ScnShaderUnitHeader
 struct ScnShaderUnitHeader
 {
+	eRsShaderType					ShaderType_;
+	eRsShaderDataType				ShaderDataType_;
 	BcU32							PermutationFlags_;
 };
 	
@@ -64,8 +70,8 @@ struct ScnShaderUnitHeader
 struct ScnShaderProgramHeader
 {
 	BcU32							ProgramPermutationFlags_;
-	BcU32							VertexShaderPermutationFlags_;
-	BcU32							FragmentShaderPermutationFlags_;
+	BcU32							ShaderFlags_;
+	BcU32							NoofVertexAttributes_;
 };
 
 //////////////////////////////////////////////////////////////////////////

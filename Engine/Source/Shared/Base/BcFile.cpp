@@ -144,8 +144,11 @@ BcBool BcFile::open( const BcChar* FileName, eBcFileMode AccessMode )
 // close
 void BcFile::close()
 {
-	fclose( FileHandle_ );
-	FileHandle_ = 0;
+	if( FileHandle_ != 0 )
+	{
+		fclose( FileHandle_ );
+		FileHandle_ = 0;
+	}
 
 #if COMPILER_GCC || CONMPILER_LLVM
 	if( FileDescriptor_ != -1)
@@ -213,7 +216,7 @@ void BcFile::readLine( BcChar* pBuffer, BcU32 Size )
 // readAllBytes
 BcU8* BcFile::readAllBytes()
 {
-	BcU8* pBytes = new BcU8[ size() ];
+	BcU8* pBytes = (BcU8*)BcMemAlign( size() );
 	read( pBytes, size() );
 	return pBytes;
 }

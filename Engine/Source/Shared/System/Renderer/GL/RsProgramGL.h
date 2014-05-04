@@ -30,7 +30,7 @@ class RsProgramGL:
 	public RsProgram
 {
 public:
-	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders );
+	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes );
 	virtual ~RsProgramGL();
 	
 	void								create();
@@ -70,6 +70,12 @@ private:
 		RsUniformBuffer*				Buffer_;
 	};
 
+	struct TAttribute
+	{
+		std::string						Name_;
+		eRsVertexChannel				Channel_;
+	};
+
 	typedef std::vector< TParameter > TParameterList;
 	typedef TParameterList::iterator TParameterListIterator;
 	typedef TParameterList::const_iterator TParameterListConstIterator;
@@ -81,8 +87,11 @@ private:
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
 	TUniformBlockList					UniformBlockList_;
 
+	typedef std::vector< TAttribute > TAttributeList;
+
 	BcU32								NoofShaders_;
 	RsShaderGL**						ppShaders_;
+	TAttributeList						AttributeList_;
 };
 
 #endif
