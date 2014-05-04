@@ -77,6 +77,7 @@ public:
 	BcBinaryData( void* pData, size_t DataSize );
 	BcBinaryData( size_t DataSize );
 	BcBinaryData( const BcBinaryData& Other );
+	BcBinaryData( BcBinaryData&& Other );
 	~BcBinaryData();
 
 	/**

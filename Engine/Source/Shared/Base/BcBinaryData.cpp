@@ -36,19 +36,15 @@ BcBinaryData::BcBinaryData( const BcBinaryData& Other )
 	BcMemCopy( pData_, Other.pData_, getDataSize() );		
 }
 
+BcBinaryData::BcBinaryData( BcBinaryData&& Other )
+{
+	pData_ = std::move( Other.pData_ );
+	DataSize_ = std::move( Other.DataSize_ );
+}
+
 BcBinaryData::~BcBinaryData()
 {
 	internalFree();
-}
-
-void BcBinaryData::swap( BcBinaryData& Other )
-{
-	BcU8* TempData = Other.pData_;
-	size_t TempDataSize = Other.DataSize_;
-	Other.pData_ = pData_;
-	Other.DataSize_ = DataSize_;
-	pData_ = TempData;
-	DataSize_ = TempDataSize;
 }
 
 void BcBinaryData::internalFree()
