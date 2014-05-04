@@ -72,7 +72,8 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	IncludePaths.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
 	
 	Defines.clear();
-	Defines[ "SHADER_VERTEX" ] = "1";
+	Defines[ "PERM_MESH_STATIC" ] = "1";
+	Defines[ "PSY_USE_CBUFFER" ] = "1";
 
 	BcStream VertexShaderByteCode;
 	if( compileShader( Shader.asCString(), "vertexMain", Defines, IncludePaths, "vs_4_0_level_9_3", VertexShaderByteCode, ErrorMessages ) )
@@ -81,8 +82,8 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		GLSLCrossDependencyData GLSLDependencies;
 		GLSLShader GLSLResult;
 		TranslateHLSLFromMem( (const char*)VertexShaderByteCode.pData(),
-			HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO,
-			LANG_150,
+			HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT,
+			LANG_ES_100,
 			nullptr,
 			&GLSLDependencies,
 			&GLSLResult
