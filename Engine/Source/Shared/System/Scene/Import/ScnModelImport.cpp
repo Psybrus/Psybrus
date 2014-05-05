@@ -145,7 +145,7 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 	if( pMesh->nVertices() > 0 )
 	{
 		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-		BcU32 ShaderPermutation = scnSPF_STATIC_3D;
+		BcU32 ShaderPermutation = scnSPF_MESH_STATIC_3D;
 
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelPrimitiveData PrimitiveData = 
@@ -220,7 +220,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 	else if( pSkin->nVertices() > 0 )
 	{
 		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_SKIN_INDICES | rsVDF_SKIN_WEIGHTS | rsVDF_COLOUR_ABGR8;
-		BcU32 ShaderPermutation = scnSPF_SKINNED_3D;
+		BcU32 ShaderPermutation = scnSPF_MESH_SKINNED_3D;
 
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelPrimitiveData PrimitiveData = 

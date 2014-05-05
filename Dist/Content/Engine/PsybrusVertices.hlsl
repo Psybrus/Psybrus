@@ -6,24 +6,34 @@ struct VertexDefault
 	float4 Colour_			: COLOR0;
 	float4 Tangent_			: TANGENT;
 
-#if defined( PERM_MESH_SKINNED )
+#if defined( PERM_MESH_SKINNED_3D )
 	float4 BlendIndices_	: BLENDINDICES;
 	float4 BlendWeights_	: BLENDWEIGHTS;
 
-#elif defined( PERM_MESH_PARTICLE )
+#elif defined( PERM_MESH_PARTICLE_3D )
 	float4 VertexOffset_	: NORMAL;
 
-#elif defined( PERM_MESH_PARTICLE )
-	float4 WorldMatrix0_	: TEXCOORD0;
-	float4 WorldMatrix1_	: TEXCOORD1;
-	float4 WorldMatrix2_	: TEXCOORD2;
-	float4 WorldMatrix3_	: TEXCOORD3;
+#elif defined( PERM_MESH_INSTANCED_3D )
+	float4 WorldMatrix0_	: TEXCOORD4;
+	float4 WorldMatrix1_	: TEXCOORD5;
+	float4 WorldMatrix2_	: TEXCOORD6;
+	float4 WorldMatrix3_	: TEXCOORD7;
 #endif
 };
 
 ////////////////////////////////////////////////////////////////////////
 // PSY_MAKE_WORLD_SPACE_VERTEX
-#if defined( PERM_MESH_STATIC )
+#if defined( PERM_MESH_STATIC_2D )
+/**
+ * Make a world space vertex.
+ * @param _o Output vertex. Should be float4.
+ * @param _v Input vertex. Should be float4.
+ * @param _p Input properties. Unused.
+ */
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
+		_o = float4( _v.xy, 0.0, 1.0 );																\
+
+#elif defined( PERM_MESH_STATIC_3D )
 /**
  * Make a world space vertex.
  * @param _o Output vertex. Should be float4.
@@ -34,7 +44,7 @@ struct VertexDefault
 		_o = mul( uWorldTransform, _v );																\
 
 
-#elif defined( PERM_MESH_SKINNED )
+#elif defined( PERM_MESH_SKINNED_3D )
 
 /**
  * Make a world space vertex.
@@ -50,7 +60,7 @@ struct VertexDefault
 		_o += mul( uBoneTransform[ int(_p.BlendIndices_.w) ], _v ) * _p.BlendWeights_.w;				\
 
 
-#elif defined( PERM_MESH_PARTICLE )
+#elif defined( PERM_MESH_PARTICLE_3D )
 
 /**
  * Make a world space vertex.
@@ -68,7 +78,7 @@ struct VertexDefault
 							uInverseViewTransform[2].xyz ),												\
 			 			_p.VertexOffset_.xyz ),	0.0 );													\
 
-#elif defined( PERM_MESH_INSTANCED )
+#elif defined( PERM_MESH_INSTANCED_3D )
 
 /**
  * Make a world space vertex.

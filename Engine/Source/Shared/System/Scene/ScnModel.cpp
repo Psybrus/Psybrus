@@ -254,11 +254,11 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 			// Setup lighting.
 			if( isLit() )
 			{
-				ShaderPermutation |= scnSPF_DIFFUSE_LIT;
+				ShaderPermutation |= scnSPF_LIGHTING_DIFFUSE;
 			}
 			else
 			{
-				ShaderPermutation |= scnSPF_UNLIT;
+				ShaderPermutation |= scnSPF_LIGHTING_NONE;
 			}
 						
 			// Even on failure add. List must be of same size for quick lookups.
