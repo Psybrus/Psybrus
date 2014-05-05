@@ -35,6 +35,17 @@ public:
 	void								swapBuffers();
 	void								takeScreenshot();
 
+	void								setDefaultState();
+	void								invalidateRenderState();
+	void								invalidateTextureState();
+	void								setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
+	BcS32								getRenderState( eRsRenderState State ) const;
+	void								setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void								flushState();
+
+	ID3D11Device*						device();
+	ID3D11DeviceContext*				deviceContext();
+
 protected:
 	virtual void						create();
 	virtual void						update();
