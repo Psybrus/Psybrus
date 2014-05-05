@@ -20,28 +20,21 @@
 // ScnShaderPermutationFlags
 enum ScnShaderPermutationFlags
 {
-	// Exclusive base implementations.
-	scnSPF_STATIC_2D				= 0x00000001,		// Static 2D.
-	scnSPF_STATIC_3D				= 0x00000002,		// Static 3D.
-	scnSPF_SKINNED_3D				= 0x00000004,		// Skinned 3D.
-	scnSPF_PARTICLE_3D				= 0x00000008,		// Particle 3D.
-	scnSPF_INSTANCED_3D				= 0x00000010,		// Instanced 3D.
-	scnSPF_EXCLUSIVE_BASE = scnSPF_STATIC_2D | scnSPF_STATIC_3D | scnSPF_SKINNED_3D | scnSPF_PARTICLE_3D | scnSPF_INSTANCED_3D,
+	// Render type.
+	scnSPF_RENDER_FORWARD				= 0x00000001,		// Forward rendering.
+	scnSPF_RENDER_DEFERRED				= 0x00000002,		// Deferred rendering.
+	scnSPF_RENDER_FORWARD_PLUS			= 0x00000004,		// Forward plus rendering.
 
-	// Lighting.
-	scnSPF_UNLIT					= 0x00000010,		// Unlit geometry.
-	scnSPF_DIFFUSE_LIT				= 0x00000020,		// Diffuse lit geometry.
-};
+	// Mesh type.
+	scnSPF_MESH_STATIC_2D				= 0x00000100,		// Static 2D.
+	scnSPF_MESH_STATIC_3D				= 0x00000200,		// Static 3D.
+	scnSPF_MESH_SKINNED_3D				= 0x00000400,		// Skinned 3D.
+	scnSPF_MESH_PARTICLE_3D				= 0x00000800,		// Particle 3D.
+	scnSPF_MESH_INSTANCED_3D			= 0x00001000,		// Instanced 3D.
 
-//////////////////////////////////////////////////////////////////////////
-// ScnShaderPermutationBootstrap
-struct ScnShaderPermutationBootstrap
-{
-	BcU32							PermutationFlags_;
-	const BcChar*					SourceUniformIncludeName_;
-	const BcChar*					SourceVertexShaderName_;
-	const BcChar*					SourceFragmentShaderName_;
-	const BcChar*					SourceGeometryShaderName_;
+	// Lighting type.
+	scnSPF_LIGHTING_NONE				= 0x00010000,		// Unlit geometry.
+	scnSPF_LIGHTING_DIFFUSE				= 0x00020000,		// Diffuse lit geometry.
 };
 
 //////////////////////////////////////////////////////////////////////////

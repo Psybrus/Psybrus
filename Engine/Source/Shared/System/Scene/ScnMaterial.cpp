@@ -354,11 +354,11 @@ void ScnMaterialComponent::initialise( const Json::Value& Object )
 
 	if( BcStrCompare( pPermutation, "2d" ) )
 	{
-		PermutationFlags = scnSPF_STATIC_2D;
+		PermutationFlags = scnSPF_MESH_STATIC_2D;
 	}
 	else if( BcStrCompare( pPermutation, "3d" ) )
 	{
-		PermutationFlags = scnSPF_STATIC_3D;
+		PermutationFlags = scnSPF_MESH_STATIC_3D;
 	}
 
 	initialise( MaterialRef, PermutationFlags );

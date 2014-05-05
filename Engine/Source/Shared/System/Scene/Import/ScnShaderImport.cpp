@@ -22,23 +22,82 @@
 #include <hlslcc.h>
 
 #include <boost/format.hpp>
-
 #include <boost/wave.hpp>
 #include <boost/wave/cpplexer/cpp_lex_interface.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
 
 //////////////////////////////////////////////////////////////////////////
-// Statics
+// Legacy boot strap shader generation.
+struct ScnShaderPermutationBootstrap
+{
+	BcU32							PermutationFlags_;
+	const BcChar*					SourceUniformIncludeName_;
+	const BcChar*					SourceVertexShaderName_;
+	const BcChar*					SourceFragmentShaderName_;
+	const BcChar*					SourceGeometryShaderName_;
+};
+
 static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
 {
-	{ scnSPF_STATIC_2D | scnSPF_UNLIT,										"Content/Engine/uniforms.glsl", "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf", "" },
-	{ scnSPF_STATIC_3D | scnSPF_UNLIT,										"Content/Engine/uniforms.glsl", "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf", "" },
-	{ scnSPF_SKINNED_3D | scnSPF_UNLIT,										"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf", "Content/Engine/default3dskinnedboot.glslg" },
-	{ scnSPF_PARTICLE_3D | scnSPF_UNLIT,									"Content/Engine/uniforms.glsl", "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf", "" },
+	{ scnSPF_MESH_STATIC_2D | scnSPF_LIGHTING_NONE,										"Content/Engine/uniforms.glsl", "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf", "" },
+	{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_NONE,										"Content/Engine/uniforms.glsl", "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf", "" },
+	{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_NONE,										"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf", "Content/Engine/default3dskinnedboot.glslg" },
+	{ scnSPF_MESH_PARTICLE_3D | scnSPF_LIGHTING_NONE,									"Content/Engine/uniforms.glsl", "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf", "" },
 
-	{ scnSPF_STATIC_3D | scnSPF_DIFFUSE_LIT,								"Content/Engine/uniforms.glsl", "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf", "" },
-	{ scnSPF_SKINNED_3D | scnSPF_DIFFUSE_LIT,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf", "" },
+	{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf", "" },
+	{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf", "" },
+};
+
+//////////////////////////////////////////////////////////////////////////
+// New permutations.
+struct ScnShaderPermutationEntry
+{
+	BcU32							Flag_;
+	std::string						Define_;
+};
+
+struct ScnShaderPermutationGroup
+{
+	template < size_t _Size >
+	ScnShaderPermutationGroup( ScnShaderPermutationEntry ( &Entries )[ _Size ] ):
+		Entries_( Entries ),
+		NoofEntries_( _Size )
+	{
+		
+	}
+
+	ScnShaderPermutationEntry*		Entries_;
+	BcU32							NoofEntries_;
+};
+
+static ScnShaderPermutationEntry GPermutationsRenderType[] = 
+{
+	{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD" },
+	{ scnSPF_RENDER_DEFERRED,			"PERM_RENDER_DEFERRED" },
+	{ scnSPF_RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS" },
+};
+
+static ScnShaderPermutationEntry GPermutationsMeshType[] = 
+{
+	{ scnSPF_MESH_STATIC_2D,			"PERM_MESH_STATIC_2D" },
+	{ scnSPF_MESH_STATIC_3D,			"PERM_MESH_STATIC_3D" },
+	{ scnSPF_MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D" },
+	{ scnSPF_MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D" },
+	{ scnSPF_MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D" },
+};
+
+static ScnShaderPermutationEntry GPermutationsLightingType[] = 
+{
+	{ scnSPF_LIGHTING_NONE,				"PERM_LIGHTING_NONE" },
+	{ scnSPF_LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE" },
+};
+
+static ScnShaderPermutationGroup GPermutationGroups[] =
+{
+	ScnShaderPermutationGroup( GPermutationsRenderType ),
+	ScnShaderPermutationGroup( GPermutationsMeshType ),
+	ScnShaderPermutationGroup( GPermutationsLightingType ),
 };
 
 //////////////////////////////////////////////////////////////////////////

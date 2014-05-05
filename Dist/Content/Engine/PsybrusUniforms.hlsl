@@ -43,5 +43,5 @@ END_CBUFFER
 ////////////////////////////////////////////////////////////////////////
 // AlphaTestUniformBlock
 BEGIN_CBUFFER( AlphaTestUniformBlock )
-	float2 aAlphaTestStep;
+	float3 uAlphaTestParams; // x = smoothstep min, y = smoothstep max, z = ref (<)
 END_CBUFFER
