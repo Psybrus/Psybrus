@@ -194,3 +194,16 @@ void RsContextD3D11::flushState()
 	BcBreakpoint;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// device
+ID3D11Device* RsContextD3D11::device()
+{
+	return Device_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deviceContext
+ID3D11DeviceContext* RsContextD3D11::deviceContext()
+{
+	return Context_;
+}

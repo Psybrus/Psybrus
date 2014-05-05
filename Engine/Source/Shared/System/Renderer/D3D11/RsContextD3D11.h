@@ -43,6 +43,9 @@ public:
 	void								setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void								flushState();
 
+	ID3D11Device*						device();
+	ID3D11DeviceContext*				deviceContext();
+
 protected:
 	virtual void						create();
 	virtual void						update();
