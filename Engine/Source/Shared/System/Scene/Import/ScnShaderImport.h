@@ -20,6 +20,35 @@
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Import structures.
+struct ScnShaderPermutationEntry
+{
+	BcU32							Flag_;
+	std::string						Define_;
+	std::string						Value_;
+};
+
+struct ScnShaderPermutationGroup
+{
+	template < size_t _Size >
+	ScnShaderPermutationGroup( ScnShaderPermutationEntry ( &Entries )[ _Size ] ):
+		Entries_( Entries ),
+		NoofEntries_( _Size )
+	{
+		
+	}
+
+	ScnShaderPermutationEntry*		Entries_;
+	BcU32							NoofEntries_;
+};
+
+struct ScnShaderPermutation
+{
+	BcU32							Flags_;
+	std::map< std::string, std::string > Defines_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderImport
 class ScnShaderImport
 {
@@ -42,9 +71,16 @@ private:
 						  BcStream& ShaderByteCode,
 						  std::vector< std::string >& ErrorMessages );
 
+	void generatePermutations( BcU32 GroupIdx, 
+	                           ScnShaderPermutationGroup* PermutationGroups, 
+	                           ScnShaderPermutation Permutation );
+
 	std::string removeComments( std::string Input );
 
 	eRsVertexChannel semanticToVertexChannel( const std::string& Name, BcU32 Index );
+
+private:
+	std::vector< ScnShaderPermutation > Permutations_;
 };
 
 #endif // PSY_SERVER
