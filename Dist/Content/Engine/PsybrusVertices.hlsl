@@ -3,8 +3,9 @@
 struct VertexDefault
 {
 	float4 Position_		: POSITION;
+	float4 Normal_			: NORMAL;
 	float4 Colour_			: COLOR0;
-	float4 Tangent_			: TANGENT;
+	float4 TexCoord0_		: TEXCOORD0;
 
 #if defined( PERM_MESH_SKINNED_3D )
 	float4 BlendIndices_	: BLENDINDICES;

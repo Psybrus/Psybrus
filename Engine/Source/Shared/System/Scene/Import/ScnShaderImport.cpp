@@ -26,6 +26,7 @@
 #include <boost/wave/cpplexer/cpp_lex_interface.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
+#include <boost/filesystem.hpp>
 
 namespace
 {
@@ -548,7 +549,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 						BcAssert( VertexChannel != rcVC_INVALID );
 
 						RsProgramVertexAttribute VertexAttribute;
-						VertexAttribute.AttributeName_ = Importer.addString( boost::str( boost::format( "decl_Input%s" ) % Idx ).c_str() );
+						VertexAttribute.AttributeName_ = Importer.addString( boost::str( boost::format( "dcl_Input%s" ) % Idx ).c_str() );
 						VertexAttribute.Channel_ = VertexChannel;
 						VertexAttributes.push_back( VertexAttribute );
 					}
@@ -556,6 +557,38 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 					D3D11Header.NoofVertexAttributes_ = VertexAttributes.size();
 					GLSLHeader.NoofVertexAttributes_ = VertexAttributes.size();
 				}
+
+				// Write out intermediate shader for reference.
+				std::string ShaderType;
+				switch( Entry.Type_ )
+				{
+				case rsST_VERTEX:
+					ShaderType = "vs";
+					break;
+				case rsST_TESSELATION_CONTROL:
+					ShaderType = "hs";
+					break;
+				case rsST_TESSELATION_EVALUATION:
+					ShaderType = "ds";
+					break;
+				case rsST_GEOMETRY:
+					ShaderType = "gs";
+					break;
+				case rsST_FRAGMENT:
+					ShaderType = "fs";
+					break;
+				case rsST_COMPUTE:
+					ShaderType = "cs";
+					break;	
+				}
+				std::string Path = boost::str( boost::format( "IntermediateContent/%s/%x" ) % Filename_ % GLSLHeader.ProgramPermutationFlags_ );
+				std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
+				boost::filesystem::create_directories( Path );
+
+				BcFile FileOut;
+				FileOut.open( Filename.c_str(), bcFM_WRITE );
+				FileOut.write( GLSLShader.Code_.getData< char >(), GLSLShader.Code_.getDataSize() );
+				FileOut.close();
 
 				// Free GLSL shader.
 				FreeGLSLShader( &GLSLResult );
