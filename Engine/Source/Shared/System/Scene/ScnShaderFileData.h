@@ -24,6 +24,7 @@ enum ScnShaderPermutationFlags
 	scnSPF_RENDER_FORWARD				= 0x00000001,		// Forward rendering.
 	scnSPF_RENDER_DEFERRED				= 0x00000002,		// Deferred rendering.
 	scnSPF_RENDER_FORWARD_PLUS			= 0x00000004,		// Forward plus rendering.
+	scnSPF_RENDER_POST_PROCESS			= 0x00000008,		// Post process rendering.
 
 	// Mesh type.
 	scnSPF_MESH_STATIC_2D				= 0x00000100,		// Static 2D.
@@ -38,14 +39,43 @@ enum ScnShaderPermutationFlags
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderCodeType
+enum ScnShaderCodeType
+{
+	scnSCT_INVALID = 0,
+
+	// D3D11
+	scnSCT_D3D11_4_0_level_9_1,
+	scnSCT_D3D11_4_0_level_9_3,
+	scnSCT_D3D11_4_0,
+	scnSCT_D3D11_4_1,
+	scnSCT_D3D11_5_1,
+
+	// GLSL ES
+	scnSCT_GLSL_ES_100,
+	scnSCT_GLSL_ES_300,
+	scnSCT_GLSL_ES_310,
+
+	// GLSL
+	scnSCT_GLSL_120,
+	scnSCT_GLSL_130,
+	scnSCT_GLSL_140,
+	scnSCT_GLSL_150,
+	scnSCT_GLSL_330,
+	scnSCT_GLSL_400,
+	scnSCT_GLSL_410,
+	scnSCT_GLSL_420,
+	scnSCT_GLSL_430,
+	scnSCT_GLSL_440,
+
+	scnSCT_MAX
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader
 struct ScnShaderHeader
 {
-	BcU32							NoofVertexShaderPermutations_;
-	BcU32							NoofFragmentShaderPermutations_;
-	BcU32							NoofGeometryShaderPermutations_;
-	BcU32							NoofTessControlShaderPermutations_;
-	BcU32							NoofTessEvaluationShaderPermutations_;
+	BcU32							NoofShaderPermutations_;
 	BcU32							NoofProgramPermutations_;
 };
 	
@@ -55,16 +85,20 @@ struct ScnShaderUnitHeader
 {
 	eRsShaderType					ShaderType_;
 	eRsShaderDataType				ShaderDataType_;
+	ScnShaderCodeType				ShaderCodeType_;
+	BcU32							ShaderHash_;
 	BcU32							PermutationFlags_;
 };
-	
+
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderProgramHeader
 struct ScnShaderProgramHeader
 {
 	BcU32							ProgramPermutationFlags_;
 	BcU32							ShaderFlags_;
+	ScnShaderCodeType				ShaderCodeType_;
 	BcU32							NoofVertexAttributes_;
+	BcU32							ShaderHashes_[ rsST_MAX ];
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -31,7 +31,7 @@ struct ScnShaderPermutationEntry
 struct ScnShaderPermutationGroup
 {
 	template < size_t _Size >
-	ScnShaderPermutationGroup( ScnShaderPermutationEntry ( &Entries )[ _Size ] ):
+	inline ScnShaderPermutationGroup( ScnShaderPermutationEntry ( &Entries )[ _Size ] ):
 		Entries_( Entries ),
 		NoofEntries_( _Size )
 	{
@@ -44,8 +44,61 @@ struct ScnShaderPermutationGroup
 
 struct ScnShaderPermutation
 {
+	inline ScnShaderPermutation():
+		Flags_( 0 )
+	{
+
+	}
+
 	BcU32							Flags_;
 	std::map< std::string, std::string > Defines_;
+};
+
+struct ScnShaderLevelEntry
+{
+	std::string						Level_;
+	std::string						Entry_;
+	eRsShaderType					Type_;
+};
+
+struct ScnShaderBuiltData
+{
+	inline ScnShaderBuiltData():
+		Hash_( 0 ),
+		ShaderType_( rsST_INVALID ),
+		CodeType_( scnSCT_INVALID ) 
+	{
+	}
+
+	inline ScnShaderBuiltData( ScnShaderBuiltData&& Other )
+	{
+		Hash_ = std::move( Other.Hash_ );
+		ShaderType_ = std::move( Other.ShaderType_ );
+		CodeType_ = std::move( Other.CodeType_ );
+		Code_ = std::move( Other.Code_ );
+	}
+
+	inline BcBool operator == ( const ScnShaderBuiltData& Other ) const
+	{
+		return Hash_ == Other.Hash_ &&
+			   ShaderType_ == Other.ShaderType_ &&
+		       CodeType_ == Other.CodeType_ &&
+		       Code_ == Other.Code_;
+	}
+
+	inline BcBool operator != ( const ScnShaderBuiltData& Other ) const
+	{
+		return Hash_ != Other.Hash_ ||
+			   ShaderType_ != Other.ShaderType_ ||
+		       CodeType_ != Other.CodeType_ ||
+		       Code_ != Other.Code_;
+	}
+
+
+	BcU32							Hash_;
+	eRsShaderType					ShaderType_;
+	ScnShaderCodeType				CodeType_;
+	BcBinaryData					Code_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,19 +121,30 @@ private:
 	                      const std::map< std::string, std::string >& Defines, 
 						  const std::vector< std::string >& IncludePaths,
 						  const std::string& Target,
-						  BcStream& ShaderByteCode,
+						  BcBinaryData& ShaderByteCode,
 						  std::vector< std::string >& ErrorMessages );
 
 	void generatePermutations( BcU32 GroupIdx, 
+							   BcU32 NoofGroups,
 	                           ScnShaderPermutationGroup* PermutationGroups, 
 	                           ScnShaderPermutation Permutation );
+
+	BcBool buildPermutation( class CsPackageImporter& Importer, const ScnShaderPermutation& Permutation );
 
 	std::string removeComments( std::string Input );
 
 	eRsVertexChannel semanticToVertexChannel( const std::string& Name, BcU32 Index );
 
 private:
+	std::string							Filename_;
 	std::vector< ScnShaderPermutation > Permutations_;
+	std::list< ScnShaderLevelEntry >	Entries_;
+	std::vector< std::string >			IncludePaths_;
+	std::vector< std::string >			ErrorMessages_;
+
+	std::map< BcU32, ScnShaderBuiltData > BuiltShaderData_;
+	std::vector< ScnShaderProgramHeader > BuiltProgramData_;
+	std::vector< std::vector< RsProgramVertexAttribute > > BuiltVertexAttributes_;
 };
 
 #endif // PSY_SERVER
