@@ -51,46 +51,26 @@ static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] =
 
 //////////////////////////////////////////////////////////////////////////
 // New permutations.
-struct ScnShaderPermutationEntry
-{
-	BcU32							Flag_;
-	std::string						Define_;
-};
-
-struct ScnShaderPermutationGroup
-{
-	template < size_t _Size >
-	ScnShaderPermutationGroup( ScnShaderPermutationEntry ( &Entries )[ _Size ] ):
-		Entries_( Entries ),
-		NoofEntries_( _Size )
-	{
-		
-	}
-
-	ScnShaderPermutationEntry*		Entries_;
-	BcU32							NoofEntries_;
-};
-
 static ScnShaderPermutationEntry GPermutationsRenderType[] = 
 {
-	{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD" },
-	{ scnSPF_RENDER_DEFERRED,			"PERM_RENDER_DEFERRED" },
-	{ scnSPF_RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS" },
+	{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD",			"1" },
+	{ scnSPF_RENDER_DEFERRED,			"PERM_RENDER_DEFERRED",			"1" },
+	{ scnSPF_RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS",		"1" },
 };
 
 static ScnShaderPermutationEntry GPermutationsMeshType[] = 
 {
-	{ scnSPF_MESH_STATIC_2D,			"PERM_MESH_STATIC_2D" },
-	{ scnSPF_MESH_STATIC_3D,			"PERM_MESH_STATIC_3D" },
-	{ scnSPF_MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D" },
-	{ scnSPF_MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D" },
-	{ scnSPF_MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D" },
+	{ scnSPF_MESH_STATIC_2D,			"PERM_MESH_STATIC_2D",			"1" },
+	{ scnSPF_MESH_STATIC_3D,			"PERM_MESH_STATIC_3D",			"1" },
+	{ scnSPF_MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D",			"1" },
+	{ scnSPF_MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D",		"1" },
+	{ scnSPF_MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D",		"1" },
 };
 
 static ScnShaderPermutationEntry GPermutationsLightingType[] = 
 {
-	{ scnSPF_LIGHTING_NONE,				"PERM_LIGHTING_NONE" },
-	{ scnSPF_LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE" },
+	{ scnSPF_LIGHTING_NONE,				"PERM_LIGHTING_NONE",			"1" },
+	{ scnSPF_LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE",		"1" },
 };
 
 static ScnShaderPermutationGroup GPermutationGroups[] =
@@ -99,6 +79,8 @@ static ScnShaderPermutationGroup GPermutationGroups[] =
 	ScnShaderPermutationGroup( GPermutationsMeshType ),
 	ScnShaderPermutationGroup( GPermutationsLightingType ),
 };
+
+static BcU32 GNoofPermutationGroups = ( sizeof( GPermutationGroups ) / sizeof( GPermutationGroups[ 0 ] ) );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -365,6 +347,32 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 	}
 	
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// generatePermutations
+void ScnShaderImport::generatePermutations( BcU32 GroupIdx, 
+                                            ScnShaderPermutationGroup* PermutationGroups, 
+                                            ScnShaderPermutation Permutation )
+{
+	const auto& PermutationGroup = PermutationGroups[ GroupIdx ];
+
+	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
+	{
+		auto PermutationEntry = PermutationGroup.Entries_[ Idx ];
+		auto NewPermutation = Permutation; 
+		NewPermutation.Flags_ |= PermutationEntry.Flag_;
+		NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
+
+		if( GroupIdx < ( GNoofPermutationGroups - 1 ) )
+		{
+			generatePermutations( GroupIdx + 1, PermutationGroups, NewPermutation );
+		}
+		else
+		{
+			Permutations_.push_back( NewPermutation );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
