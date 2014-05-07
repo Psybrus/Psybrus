@@ -27,60 +27,93 @@
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
 
-//////////////////////////////////////////////////////////////////////////
-// Legacy boot strap shader generation.
-struct ScnShaderPermutationBootstrap
+namespace
 {
-	BcU32							PermutationFlags_;
-	const BcChar*					SourceUniformIncludeName_;
-	const BcChar*					SourceVertexShaderName_;
-	const BcChar*					SourceFragmentShaderName_;
-	const BcChar*					SourceGeometryShaderName_;
-};
+	//////////////////////////////////////////////////////////////////////////
+	// Legacy boot strap shader generation.
+	struct ScnShaderPermutationBootstrap
+	{
+		BcU32							PermutationFlags_;
+		const BcChar*					SourceUniformIncludeName_;
+		const BcChar*					SourceVertexShaderName_;
+		const BcChar*					SourceFragmentShaderName_;
+		const BcChar*					SourceGeometryShaderName_;
+	};
 
-static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
-{
-	{ scnSPF_MESH_STATIC_2D | scnSPF_LIGHTING_NONE,										"Content/Engine/uniforms.glsl", "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf", "" },
-	{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_NONE,										"Content/Engine/uniforms.glsl", "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf", "" },
-	{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_NONE,										"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf", "Content/Engine/default3dskinnedboot.glslg" },
-	{ scnSPF_MESH_PARTICLE_3D | scnSPF_LIGHTING_NONE,									"Content/Engine/uniforms.glsl", "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf", "" },
+	static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
+	{
+		{ scnSPF_MESH_STATIC_2D | scnSPF_LIGHTING_NONE,									"Content/Engine/uniforms.glsl", "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf", "" },
+		{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_NONE,									"Content/Engine/uniforms.glsl", "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf", "" },
+		{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_NONE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf", "Content/Engine/default3dskinnedboot.glslg" },
+		{ scnSPF_MESH_PARTICLE_3D | scnSPF_LIGHTING_NONE,								"Content/Engine/uniforms.glsl", "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf", "" },
 
-	{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf", "" },
-	{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf", "" },
-};
+		{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf", "" },
+		{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf", "" },
+	};
 
-//////////////////////////////////////////////////////////////////////////
-// New permutations.
-static ScnShaderPermutationEntry GPermutationsRenderType[] = 
-{
-	{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD",			"1" },
-	{ scnSPF_RENDER_DEFERRED,			"PERM_RENDER_DEFERRED",			"1" },
-	{ scnSPF_RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS",		"1" },
-};
+	//////////////////////////////////////////////////////////////////////////
+	// New permutations.
+	static ScnShaderPermutationEntry GPermutationsRenderType[] = 
+	{
+		{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD",			"1" },
+		{ scnSPF_RENDER_DEFERRED,			"PERM_RENDER_DEFERRED",			"1" },
+		{ scnSPF_RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS",		"1" },
+		{ scnSPF_RENDER_POST_PROCESS,		"PERM_RENDER_POST_PROCESS",		"1" },
+	};
 
-static ScnShaderPermutationEntry GPermutationsMeshType[] = 
-{
-	{ scnSPF_MESH_STATIC_2D,			"PERM_MESH_STATIC_2D",			"1" },
-	{ scnSPF_MESH_STATIC_3D,			"PERM_MESH_STATIC_3D",			"1" },
-	{ scnSPF_MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D",			"1" },
-	{ scnSPF_MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D",		"1" },
-	{ scnSPF_MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D",		"1" },
-};
+	static ScnShaderPermutationEntry GPermutationsMeshType[] = 
+	{
+		{ scnSPF_MESH_STATIC_2D,			"PERM_MESH_STATIC_2D",			"1" },
+		{ scnSPF_MESH_STATIC_3D,			"PERM_MESH_STATIC_3D",			"1" },
+		{ scnSPF_MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D",			"1" },
+		{ scnSPF_MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D",		"1" },
+		{ scnSPF_MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D",		"1" },
+	};
 
-static ScnShaderPermutationEntry GPermutationsLightingType[] = 
-{
-	{ scnSPF_LIGHTING_NONE,				"PERM_LIGHTING_NONE",			"1" },
-	{ scnSPF_LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE",		"1" },
-};
+	static ScnShaderPermutationEntry GPermutationsLightingType[] = 
+	{
+		{ scnSPF_LIGHTING_NONE,				"PERM_LIGHTING_NONE",			"1" },
+		{ scnSPF_LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE",		"1" },
+	};
 
-static ScnShaderPermutationGroup GPermutationGroups[] =
-{
-	ScnShaderPermutationGroup( GPermutationsRenderType ),
-	ScnShaderPermutationGroup( GPermutationsMeshType ),
-	ScnShaderPermutationGroup( GPermutationsLightingType ),
-};
+	static ScnShaderPermutationGroup GPermutationGroups[] =
+	{
+		ScnShaderPermutationGroup( GPermutationsRenderType ),
+		ScnShaderPermutationGroup( GPermutationsMeshType ),
+		ScnShaderPermutationGroup( GPermutationsLightingType ),
+	};
 
-static BcU32 GNoofPermutationGroups = ( sizeof( GPermutationGroups ) / sizeof( GPermutationGroups[ 0 ] ) );
+	static BcU32 GNoofPermutationGroups = ( sizeof( GPermutationGroups ) / sizeof( GPermutationGroups[ 0 ] ) );
+
+	// NOTE: Put these in the order that HLSLCC needs to build them.
+	static ScnShaderLevelEntry GShaderLevelEntries[] =
+	{
+		{ "ps_4_0",							"",					rsST_FRAGMENT },
+		{ "ps_4_0_level_9_1",				"",					rsST_FRAGMENT },
+		{ "ps_4_0_level_9_3",				"",					rsST_FRAGMENT },
+		{ "ps_4_1",							"",					rsST_FRAGMENT },
+		{ "ps_5_0",							"",					rsST_FRAGMENT },
+
+		{ "hs_5_0",							"",					rsST_TESSELATION_CONTROL },
+		{ "ds_5_0",							"",					rsST_TESSELATION_EVALUATION },
+
+		{ "vs_4_0",							"",					rsST_VERTEX },
+		{ "vs_4_0_level_9_1",				"",					rsST_VERTEX },
+		{ "vs_4_0_level_9_3",				"",					rsST_VERTEX },
+		{ "vs_4_1",							"",					rsST_VERTEX },
+		{ "vs_5_0",							"",					rsST_VERTEX },
+
+		{ "gs_4_0",							"",					rsST_GEOMETRY },
+		{ "gs_4_1",							"",					rsST_GEOMETRY },
+		{ "gs_5_0",							"",					rsST_GEOMETRY },
+
+		{ "cs_4_0",							"",					rsST_COMPUTE },
+		{ "cs_4_1",							"",					rsST_COMPUTE },
+		{ "cs_5_0",							"",					rsST_COMPUTE },
+	};
+
+	static BcU32 GNoofShaderLevelEntries = ( sizeof( GShaderLevelEntries ) / sizeof( GShaderLevelEntries[ 0 ] ) ); 
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -103,68 +136,107 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
 	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
 
-	std::vector< std::string > IncludePaths;
-	std::map< std::string, std::string > Defines;
-	std::vector< std::string > ErrorMessages;
+	// Grab shader entries to build.
+	const Json::Value& Entries = Object[ "entries" ];
+
+	// File name.
+	if( Shader.type() != Json::stringValue )
+	{
+		return BcFalse;
+	}
+
+	Filename_ = Shader.asCString();
+
+	// Entries.
+	if( Entries.type() != Json::objectValue )
+	{
+		return BcFalse;
+	}
+
+	// TODO: Check if there are any missing.
+	for( auto& ShaderLevelEntry : GShaderLevelEntries )
+	{
+		auto& Entry = Entries[ ShaderLevelEntry.Level_ ];
+		if( Entry.type() == Json::stringValue )
+		{
+			ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
+			NewEntry.Entry_ = Entry.asCString();
+			Entries_.push_back( NewEntry );
+		}
+	}
 
 	// Setup include paths.
-	IncludePaths.clear();
-	IncludePaths.push_back( ".\\" );
-	IncludePaths.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
+	IncludePaths_.clear();
+	IncludePaths_.push_back( ".\\" );
+	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
 	
-	Defines.clear();
-	Defines[ "PERM_MESH_STATIC" ] = "1";
-	Defines[ "PSY_USE_CBUFFER" ] = "1";
+	// Generate permutations.
+	ScnShaderPermutation Permutation;
+	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
+	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
 
-	BcStream VertexShaderByteCode;
-	if( compileShader( Shader.asCString(), "vertexMain", Defines, IncludePaths, "vs_4_0_level_9_3", VertexShaderByteCode, ErrorMessages ) )
+	// Iterate over permutations to build.
+	// TODO: Parallelise.
+	BcBool RetVal = BcTrue;
+	for( auto& Permutation : Permutations_ )
 	{
-		// Attempt to convert shaders.
-		GLSLCrossDependencyData GLSLDependencies;
-		GLSLShader GLSLResult;
-		TranslateHLSLFromMem( (const char*)VertexShaderByteCode.pData(),
-			HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT,
-			LANG_ES_100,
-			nullptr,
-			&GLSLDependencies,
-			&GLSLResult
-			);
+		BcBool RetVal = buildPermutation( Importer, Permutation );
 
-		// Strip comments out of code for more compact GLSL.
-		std::string GLSLSource = removeComments( GLSLResult.sourceCode );
-
-		// Generate vertex attributes.
-		std::vector< RsProgramVertexAttribute > VertexAttributes;
-		VertexAttributes.reserve( GLSLResult.reflection.ui32NumInputSignatures );
-		for( BcU32 Idx = 0; Idx < GLSLResult.reflection.ui32NumInputSignatures; ++Idx )
+		if( RetVal == BcFalse )
 		{
-			auto InputSignature = GLSLResult.reflection.psInputSignatures[ Idx ];
-			auto VertexChannel = semanticToVertexChannel( InputSignature.SemanticName, InputSignature.ui32SemanticIndex );
-			BcAssert( VertexChannel != rcVC_INVALID );
-
-			RsProgramVertexAttribute VertexAttribute;
-			VertexAttribute.AttributeName_ = Importer.addString( boost::str( boost::format( "decl_Input%s" ) % Idx ).c_str() );
-			VertexAttribute.Channel_ = VertexChannel;
-			VertexAttributes.push_back( VertexAttribute );
-		}
-
-
-
-		// Print out for now.
-		BcPrintf( GLSLSource.c_str() );
-		FreeGLSLShader( &GLSLResult );
-	}
-
-	if( ErrorMessages.size() > 0 )
-	{
-		BcPrintf( "ScnShaderImport: Errors:\n" );
-		for( auto& Error : ErrorMessages )
-		{
-			BcPrintf( Error.c_str() );
+			RetVal = BcFalse;
+			break;
 		}
 	}
 
-	return BcFalse;
+	// Export.
+	if( RetVal == BcTrue )
+	{
+		BcStream Stream;
+		ScnShaderHeader Header;
+		ScnShaderUnitHeader ShaderUnit;
+		BcMemZero( &Header, sizeof( Header ) );
+		BcMemZero( &ShaderUnit, sizeof( ShaderUnit ) );
+
+		// Export header.
+		Header.NoofShaderPermutations_ = BuiltShaderData_.size();
+		Header.NoofProgramPermutations_ = BuiltProgramData_.size();
+
+		Importer.addChunk( BcHash( "header" ), &Header, sizeof( Header ) );
+
+		// Export shaders.
+		for( auto& ShaderData : BuiltShaderData_ )
+		{
+			ShaderUnit.ShaderType_ = ShaderData.second.ShaderType_;
+			ShaderUnit.ShaderDataType_ = rsSDT_SOURCE;
+			ShaderUnit.ShaderCodeType_ = ShaderData.second.CodeType_;
+			ShaderUnit.ShaderHash_ = ShaderData.second.Hash_;
+			ShaderUnit.PermutationFlags_ = 0;
+
+			Stream.clear();
+			Stream.push( &ShaderUnit, sizeof( ShaderUnit ) );
+			Stream.push( ShaderData.second.Code_.getData< BcU8* >(), ShaderData.second.Code_.getDataSize() );
+
+			Importer.addChunk( BcHash( "shader" ), Stream.pData(), Stream.dataSize() );
+		}
+
+		// Export programs.
+		BcAssert( BuiltProgramData_.size() == BuiltVertexAttributes_.size() );
+		for( BcU32 Idx = 0; Idx < BuiltProgramData_.size(); ++Idx )
+		{
+			auto& ProgramData = BuiltProgramData_[ Idx ];
+			auto& VertexAttributes = BuiltVertexAttributes_[ Idx ];
+
+			Stream.clear();
+			Stream.push( &ProgramData, sizeof( ProgramData ) );
+			BcAssert( VertexAttributes.size() > 0 );
+			Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
+	
+			Importer.addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
+		}
+	}
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -189,12 +261,13 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 			
 			ScnShaderHeader Header;
 			ScnShaderProgramHeader ProgramHeader;
+			BcMemZero( &Header, sizeof( Header ) );
+			BcMemZero( &ProgramHeader, sizeof( ProgramHeader ) );
 
 			// For now, generate all permutations.
 			BcU32 NoofPermutations = sizeof( GShaderPermutationBootstraps ) / sizeof( GShaderPermutationBootstraps[ 0 ] );
 
-			Header.NoofVertexShaderPermutations_ = NoofPermutations;
-			Header.NoofFragmentShaderPermutations_ = NoofPermutations;
+			Header.NoofShaderPermutations_ = NoofPermutations * 2;
 			Header.NoofProgramPermutations_ = NoofPermutations;
 
 			// Serialise header.
@@ -214,6 +287,8 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 				                                                              const std::string& Bootstrap )
 				{
 					ScnShaderUnitHeader ShaderHeader;
+					BcMemZero( &ShaderHeader, sizeof( ShaderHeader ) );
+
 					BcFile UniformsFile;
 					BcFile ShaderFile;
 					BcFile BootstrapFile;
@@ -245,6 +320,7 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 						// Setup permutation flags.
 						ShaderHeader.ShaderType_ = Type;
 						ShaderHeader.ShaderDataType_ = rsSDT_SOURCE;
+						ShaderHeader.ShaderCodeType_ = scnSCT_GLSL_150;
 						ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
 			
 						// Serialise.
@@ -310,6 +386,7 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 					( FragmentLoaded ? ( 1 << rsST_FRAGMENT ) : 0 ) |
 					( GeometryLoaded ? ( 1 << rsST_GEOMETRY ) : 0 );
 				ProgramHeader.NoofVertexAttributes_ = rsVC_MAX;
+				ProgramHeader.ShaderCodeType_ = scnSCT_GLSL_150;
 	
 				ProgramStream << ProgramHeader;
 
@@ -323,6 +400,10 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 					{ Importer.addString( "aTexCoord1" ),		rsVC_TEXCOORD1 },
 					{ Importer.addString( "aTexCoord2" ),		rsVC_TEXCOORD2 },
 					{ Importer.addString( "aTexCoord3" ),		rsVC_TEXCOORD3 },
+					{ Importer.addString( "aTexCoord4" ),		rsVC_TEXCOORD4 },
+					{ Importer.addString( "aTexCoord5" ),		rsVC_TEXCOORD5 },
+					{ Importer.addString( "aTexCoord6" ),		rsVC_TEXCOORD6 },
+					{ Importer.addString( "aTexCoord7" ),		rsVC_TEXCOORD7 },
 					{ Importer.addString( "aSkinIndices" ),		rsVC_SKIN_INDICES },
 					{ Importer.addString( "aSkinWeights" ),		rsVC_SKIN_WEIGHTS },
 					{ Importer.addString( "aColour" ),			rsVC_COLOUR },
@@ -352,6 +433,7 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 //////////////////////////////////////////////////////////////////////////
 // generatePermutations
 void ScnShaderImport::generatePermutations( BcU32 GroupIdx, 
+										    BcU32 NoofGroups,
                                             ScnShaderPermutationGroup* PermutationGroups, 
                                             ScnShaderPermutation Permutation )
 {
@@ -364,15 +446,150 @@ void ScnShaderImport::generatePermutations( BcU32 GroupIdx,
 		NewPermutation.Flags_ |= PermutationEntry.Flag_;
 		NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
 
-		if( GroupIdx < ( GNoofPermutationGroups - 1 ) )
+		if( GroupIdx < ( NoofGroups - 1 ) )
 		{
-			generatePermutations( GroupIdx + 1, PermutationGroups, NewPermutation );
+			generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
 		}
 		else
 		{
 			Permutations_.push_back( NewPermutation );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildPermutation
+BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, const ScnShaderPermutation& Permutation )
+{
+	BcBool RetVal = BcFalse;
+
+	// Cross dependenies needed for GLSL.
+	GLSLCrossDependencyData GLSLDependencies;
+
+	ScnShaderProgramHeader D3D11Header;
+	ScnShaderProgramHeader GLSLHeader;
+	BcMemZero( &D3D11Header, sizeof( D3D11Header ) );
+	BcMemZero( &GLSLHeader, sizeof( GLSLHeader ) );
+
+	D3D11Header.ProgramPermutationFlags_ = Permutation.Flags_;
+	D3D11Header.ShaderFlags_ = 0;
+	D3D11Header.ShaderCodeType_ = scnSCT_D3D11_5_1;
+	GLSLHeader.ProgramPermutationFlags_ = Permutation.Flags_;
+	GLSLHeader.ShaderFlags_ = 0;
+	GLSLHeader.ShaderCodeType_ = scnSCT_GLSL_150;
+	
+	std::vector< RsProgramVertexAttribute > VertexAttributes;
+	
+	for( auto& Entry : Entries_ )
+	{
+		BcBinaryData ByteCode;
+		if( compileShader( Filename_, Entry.Entry_, Permutation.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages_ ) )
+		{
+			// Shader.
+			ScnShaderBuiltData D3D11Shader;
+			D3D11Shader.ShaderType_ = Entry.Type_;
+			D3D11Shader.CodeType_ = scnSCT_D3D11_5_1;
+			D3D11Shader.Code_ = std::move( ByteCode );
+			D3D11Shader.Hash_ = BcHash( D3D11Shader.Code_.getData< const BcU8 >(), D3D11Shader.Code_.getDataSize() );
+
+			// Attempt to convert shaders.
+			GLSLShader GLSLResult;
+			int GLSLSuccess = TranslateHLSLFromMem( ByteCode.getData< const char >(),
+				HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT,
+				LANG_150,
+				nullptr,
+				&GLSLDependencies,
+				&GLSLResult
+				);
+
+			// Check success.
+			if( GLSLSuccess )
+			{
+				// Strip comments out of code for more compact GLSL.
+				std::string GLSLSource = removeComments( GLSLResult.sourceCode );
+
+				// Shader.
+				ScnShaderBuiltData GLSLShader;
+				GLSLShader.ShaderType_ = Entry.Type_;
+				GLSLShader.CodeType_ = scnSCT_GLSL_150;
+				GLSLShader.Code_ = std::move( BcBinaryData( (void*)GLSLSource.c_str(), GLSLSource.size() + 1, BcTrue ) );
+				GLSLShader.Hash_ = BcHash( GLSLShader.Code_.getData< const BcU8 >(), GLSLShader.Code_.getDataSize() );
+
+				// Push shaders into map.
+				auto FoundD3D11Shader = BuiltShaderData_.find( D3D11Shader.Hash_ );
+				if( FoundD3D11Shader != BuiltShaderData_.end() )
+				{
+					BcAssertMsg( FoundD3D11Shader->second == D3D11Shader, "Hash key collision" );
+				}
+
+				auto FoundGLSLShader = BuiltShaderData_.find( GLSLShader.Hash_ );
+				if( FoundGLSLShader != BuiltShaderData_.end() )
+				{
+					BcAssertMsg( FoundGLSLShader->second == GLSLShader, "Hash key collision" );
+				}
+
+				BuiltShaderData_[ D3D11Shader.Hash_ ] = std::move( D3D11Shader );
+				BuiltShaderData_[ GLSLShader.Hash_ ] = std::move( GLSLShader );
+
+				// Headers
+				D3D11Header.ShaderHashes_[ Entry.Type_ ] = D3D11Shader.Hash_;
+				GLSLHeader.ShaderHashes_[ Entry.Type_ ] = GLSLShader.Hash_;
+				
+				// Vertex shader attributes.
+				if( Entry.Type_ == rsST_VERTEX )
+				{
+					// Generate vertex attributes.
+					BcAssert( VertexAttributes.size() == 0 );
+					VertexAttributes.reserve( GLSLResult.reflection.ui32NumInputSignatures );
+					for( BcU32 Idx = 0; Idx < GLSLResult.reflection.ui32NumInputSignatures; ++Idx )
+					{
+						auto InputSignature = GLSLResult.reflection.psInputSignatures[ Idx ];
+						auto VertexChannel = semanticToVertexChannel( InputSignature.SemanticName, InputSignature.ui32SemanticIndex );
+						BcAssert( VertexChannel != rcVC_INVALID );
+
+						RsProgramVertexAttribute VertexAttribute;
+						VertexAttribute.AttributeName_ = Importer.addString( boost::str( boost::format( "decl_Input%s" ) % Idx ).c_str() );
+						VertexAttribute.Channel_ = VertexChannel;
+						VertexAttributes.push_back( VertexAttribute );
+					}
+
+					D3D11Header.NoofVertexAttributes_ = VertexAttributes.size();
+					GLSLHeader.NoofVertexAttributes_ = VertexAttributes.size();
+				}
+
+				// Free GLSL shader.
+				FreeGLSLShader( &GLSLResult );
+			}
+			RetVal = BcTrue;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	// Write out all shaders and programs.
+	if( RetVal != BcFalse )
+	{
+		BcAssert( VertexAttributes.size() > 0 );
+
+		BuiltProgramData_.push_back( std::move( D3D11Header ) );
+		BuiltProgramData_.push_back( std::move( GLSLHeader ) );
+		BuiltVertexAttributes_.push_back( VertexAttributes );
+		BuiltVertexAttributes_.push_back( VertexAttributes );
+	}
+
+	// Write out warning/error messages.
+	if( ErrorMessages_.size() > 0 )
+	{
+		BcPrintf( "ScnShaderImport: Errors:\n" );
+		for( auto& Error : ErrorMessages_ )
+		{
+			BcPrintf( Error.c_str() );
+		}
+	}
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -432,6 +649,22 @@ eRsVertexChannel ScnShaderImport::semanticToVertexChannel( const std::string& Na
 	else if( Name == "TEXCOORD" && Index == 3 )
 	{
 		return rsVC_TEXCOORD3;
+	}
+	else if( Name == "TEXCOORD" && Index == 4 )
+	{
+		return rsVC_TEXCOORD4;
+	}
+	else if( Name == "TEXCOORD" && Index == 5 )
+	{
+		return rsVC_TEXCOORD5;
+	}
+	else if( Name == "TEXCOORD" && Index == 6 )
+	{
+		return rsVC_TEXCOORD6;
+	}
+	else if( Name == "TEXCOORD" && Index == 7 )
+	{
+		return rsVC_TEXCOORD7;
 	}
 	else if( Name == "BLENDINDICES" && Index == 0 )
 	{

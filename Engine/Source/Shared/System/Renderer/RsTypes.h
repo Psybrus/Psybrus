@@ -403,6 +403,10 @@ enum eRsVertexChannel
 	rsVC_TEXCOORD1,
 	rsVC_TEXCOORD2,
 	rsVC_TEXCOORD3,
+	rsVC_TEXCOORD4,
+	rsVC_TEXCOORD5,
+	rsVC_TEXCOORD6,
+	rsVC_TEXCOORD7,
 	rsVC_SKIN_INDICES,
 	rsVC_SKIN_WEIGHTS,
 	rsVC_COLOUR,
@@ -434,7 +438,8 @@ extern BcU32 RsVertexDeclSize( BcU32 VertexFormat );
 // Handy defines
 enum eRsShaderType
 {
-	rsST_VERTEX = 0,
+	rsST_INVALID = 0,
+	rsST_VERTEX,
 	rsST_TESSELATION_CONTROL,
 	rsST_TESSELATION_EVALUATION,
 	rsST_GEOMETRY,

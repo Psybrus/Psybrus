@@ -67,7 +67,7 @@ BcBool ScnShaderImport::compileShader( const std::string& FileName,
 	                                   const std::map< std::string, std::string >& Defines, 
 	                                   const std::vector< std::string >& IncludePaths,
 	                                   const std::string& Target,
-	                                   BcStream& ShaderByteCode,
+	                                   BcBinaryData& ShaderByteCode,
 	                                   std::vector< std::string >& ErrorMessages )
 {
 	BcBool RetVal = BcFalse;
@@ -91,7 +91,7 @@ BcBool ScnShaderImport::compileShader( const std::string& FileName,
 	// Extract byte code if we have it.
 	if( OutByteCode != nullptr )
 	{
-		ShaderByteCode.push( OutByteCode->GetBufferPointer(), OutByteCode->GetBufferSize() );
+		ShaderByteCode = std::move( BcBinaryData( OutByteCode->GetBufferPointer(), OutByteCode->GetBufferSize(), BcTrue ) );
 		OutByteCode->Release();
 
 		RetVal = BcTrue;
