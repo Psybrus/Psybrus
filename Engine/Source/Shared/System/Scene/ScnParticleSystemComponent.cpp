@@ -89,6 +89,7 @@ void ScnParticleSystemComponent::create()
 		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
 		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexDescriptor, NoofVertices ), VertexBuffer.pVertexArray_ ); 
 		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( VertexBuffer.pVertexBuffer_, NULL );
+		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( VertexBuffer.ObjectUniforms_ ) ), &VertexBuffer.ObjectUniforms_ );
 	}
 
 	// Allocate particles.
@@ -108,6 +109,7 @@ void ScnParticleSystemComponent::destroy()
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( VertexBuffer.pPrimitive_ );
+		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
 	}
 	
 	// Delete working data.
@@ -293,21 +295,22 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	VertexBuffer.pVertexBuffer_->setNoofUpdateVertices( NoofParticlesToRender * 6 );
 	VertexBuffer.pVertexBuffer_->unlock();
 
+	// Update uniform buffer.
+	VertexBuffer.UniformBuffer_->lock();
+	if( IsLocalSpace_ )
+	{
+		VertexBuffer.ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+	}
+	else
+	{
+		VertexBuffer.ObjectUniforms_.WorldTransform_ = MaMat4d();
+	}
+	VertexBuffer.UniformBuffer_->unlock();
+
 	// Draw particles last.
 	if( NoofParticlesToRender > 0 )
 	{
 		Sort.Layer_ = 15;
-
-		// Bind material.
-		if( IsLocalSpace_ )
-		{
-			const MaMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
-			MaterialComponent_->setParameter( WorldTransformParam_, WorldTransform );
-		}
-		else
-		{
-			MaterialComponent_->setParameter( WorldTransformParam_, MaMat4d() );
-		}
 
 		// Set material parameters for view.
 		pViewComponent->setMaterialParameters( MaterialComponent_ );
