@@ -91,6 +91,8 @@ private:
 		ScnParticleVertex*				pVertexArray_;
 		RsVertexBuffer*					pVertexBuffer_;
 		RsPrimitive*					pPrimitive_;
+		RsUniformBuffer*				UniformBuffer_;
+		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};
 
 	// Graphics data.
