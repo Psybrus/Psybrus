@@ -267,8 +267,15 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 			ComponentData.MaterialComponentRef_ = MaterialComponentRef;
 		}
 
-		// Create bone uniform buffer.
-		ComponentData.BoneUniformBuffer_ = pPrimitiveData->IsSkinned_ && RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderBoneUniformBlockData ), NULL ) : NULL;
+		// Create uniform buffer for object.
+		if( pPrimitiveData->IsSkinned_ )
+		{
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderBoneUniformBlockData ) , nullptr ) : nullptr;
+		}
+		else
+		{
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderObjectUniformBlockData ), nullptr ) : nullptr;
+		}
 
 		//
 		PerComponentPrimitiveDataList_.push_back( ComponentData );
@@ -298,7 +305,7 @@ void ScnModelComponent::destroy()
 {
 	for( BcU32 Idx = 0; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
 	{
-		RsCore::pImpl()->destroyResource( PerComponentPrimitiveDataList_[ Idx ].BoneUniformBuffer_ );
+		RsCore::pImpl()->destroyResource( PerComponentPrimitiveDataList_[ Idx ].UniformBuffer_ );
 	}
 	
 	// Delete duplicated node data.
@@ -498,8 +505,8 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 
 		if( pNodePrimitiveData->IsSkinned_ )
 		{
-			BcAssertMsg( PerComponentPrimitiveData.BoneUniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
-			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentPrimitiveData.BoneUniformBuffer_->lock() );
+			BcAssertMsg( PerComponentPrimitiveData.UniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
+			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentPrimitiveData.UniformBuffer_->lock() );
 			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 			{
 				BcU32 NodeIndex = pNodePrimitiveData->BonePalette_[ Idx ];
@@ -509,7 +516,15 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				}
 			}
 
-			PerComponentPrimitiveData.BoneUniformBuffer_->unlock();		
+			PerComponentPrimitiveData.UniformBuffer_->unlock();		
+		}
+		else
+		{
+			BcAssertMsg( PerComponentPrimitiveData.UniformBuffer_->getDataSize() == sizeof( ScnShaderObjectUniformBlockData ), "ObjectUniformBlock size mismatch." );
+			ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( PerComponentPrimitiveData.UniformBuffer_->lock() );
+			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
+			ObjectUniformBlock->WorldTransform_ = pNodeTransformData->AbsoluteTransform_;
+			PerComponentPrimitiveData.UniformBuffer_->unlock();		
 		}
 	}
 
@@ -600,13 +615,14 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 
 		BcAssertMsg( PerComponentPrimitiveData.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
 
-		// Set model parameters on material.
-		PerComponentPrimitiveData.MaterialComponentRef_->setWorldTransform( pNodeTransformData->AbsoluteTransform_ );
-
 		// Set skinning parameters.
 		if( pPrimitiveData->IsSkinned_ )
 		{
-			PerComponentPrimitiveData.MaterialComponentRef_->setBoneUniformBlock( PerComponentPrimitiveData.BoneUniformBuffer_ );
+			PerComponentPrimitiveData.MaterialComponentRef_->setBoneUniformBlock( PerComponentPrimitiveData.UniformBuffer_ );
+		}
+		else
+		{
+			PerComponentPrimitiveData.MaterialComponentRef_->setObjectUniformBlock( PerComponentPrimitiveData.UniformBuffer_ );
 		}
 
 		// Set lighting parameters.

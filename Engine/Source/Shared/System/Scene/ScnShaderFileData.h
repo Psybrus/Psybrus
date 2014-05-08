@@ -141,7 +141,7 @@ struct ScnShaderBoneUniformBlockData
 // ScnShaderAlphaTestUniformBlockData
 struct ScnShaderAlphaTestUniformBlockData
 {
-	MaVec2d							AlphaTestStep_;
+	MaVec4d							AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 };
 
 #endif

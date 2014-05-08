@@ -108,6 +108,7 @@ public:
 	// Common uniform blocks.
 	void								setViewUniformBlock( RsUniformBuffer* UniformBuffer );
 	void								setBoneUniformBlock( RsUniformBuffer* UniformBuffer );
+	void								setObjectUniformBlock( RsUniformBuffer* UniformBuffer );
 
 
 	void								setState( eRsRenderState State, BcU32 Value );
@@ -178,6 +179,7 @@ private:
 
 	BcU32								ViewUniformBlockIndex_;
 	BcU32								BoneUniformBlockIndex_;
+	BcU32								ObjectUniformBlockIndex_;
 
 public:
 	SysFence							UpdateFence_;
