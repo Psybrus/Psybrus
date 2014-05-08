@@ -107,7 +107,7 @@ protected:
 	struct TPerComponentPrimitiveData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsUniformBuffer*		BoneUniformBuffer_;
+		RsUniformBuffer*		UniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentPrimitiveData > TPerComponentPrimitiveDataList;

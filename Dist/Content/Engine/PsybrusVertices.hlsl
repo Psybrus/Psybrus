@@ -97,3 +97,25 @@ struct VertexDefault
 
 #endif
 
+////////////////////////////////////////////////////////////////////////
+// PSY_MAKE_CLIP_SPACE_VERTEX
+#if defined( PERM_MESH_STATIC_2D )
+/**
+ * Make a clip transformed vertex.
+ * @param _o Output vertex. Should be float4.
+ * @param _v Input vertex. Should be float4.
+ */
+#  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
+		o.Position_ = _v; 																		\
+
+#else
+
+/**
+ * Make a clip transformed vertex.
+ * @param _o Output vertex. Should be float4.
+ * @param _v Input vertex. Should be float4.
+ */
+#  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
+		o.Position_ = mul( uClipTransform, _v ); 												\
+
+#endif

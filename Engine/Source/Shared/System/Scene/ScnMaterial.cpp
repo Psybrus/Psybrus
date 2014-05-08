@@ -277,6 +277,7 @@ void ScnMaterialComponent::StaticRegisterClass()
 		ReField( "LightAttnParameter_",			&ScnMaterialComponent::LightAttnParameter_ ),
 		ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
 		ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
+		ReField( "ObjectUniformBlockIndex_",	&ScnMaterialComponent::ObjectUniformBlockIndex_ ),
 	};
 		
 	ReRegisterClass< ScnMaterialComponent, Super >( Fields );
@@ -342,6 +343,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	// Grab uniform blocks.
 	ViewUniformBlockIndex_ = findUniformBlock( "ViewUniformBlock" );
 	BoneUniformBlockIndex_ = findUniformBlock( "BoneUniformBlock" );
+	ObjectUniformBlockIndex_ = findUniformBlock( "ObjectUniformBlock" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -691,6 +693,13 @@ void ScnMaterialComponent::setViewUniformBlock( RsUniformBuffer* UniformBuffer )
 void ScnMaterialComponent::setBoneUniformBlock( RsUniformBuffer* UniformBuffer )
 {
 	setUniformBlock( BoneUniformBlockIndex_, UniformBuffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setObjectUniformBlock
+void ScnMaterialComponent::setObjectUniformBlock( RsUniformBuffer* UniformBuffer )
+{
+	setUniformBlock( ObjectUniformBlockIndex_, UniformBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////

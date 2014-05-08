@@ -100,6 +100,9 @@ void ScnDebugRenderComponent::create()
 		// Allocate render side vertex buffer.
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexFormat, NoofVertices_ ), RenderResource.pVertices_ );
 	
+		// Allocate uniform buffer object.
+		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( RenderResource.ObjectUniforms_ ) ), &RenderResource.ObjectUniforms_ );
+
 		// Allocate render side primitive.
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
 	}
@@ -121,6 +124,9 @@ void ScnDebugRenderComponent::destroy()
 	
 		// Allocate render side primitive.
 		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
+
+		// Allocate render side uniform buffer.
+		RsCore::pImpl()->destroyResource( RenderResource.UniformBuffer_ );
 	}
 
 	// Delete working data.
@@ -485,8 +491,13 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
+
 			// Set model parameters on material.
-			pLastMaterialComponent->setWorldTransform( getParentEntity()->getWorldMatrix() );
+			pRenderResource_->UniformBuffer_->lock();
+			pRenderResource_->ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+			pRenderResource_->UniformBuffer_->unlock();
+			pLastMaterialComponent->setObjectUniformBlock( pRenderResource_->UniformBuffer_ );
+
 			pViewComponent->setMaterialParameters( pLastMaterialComponent );
 
 			pLastMaterialComponent->bind( pFrame, Sort );
