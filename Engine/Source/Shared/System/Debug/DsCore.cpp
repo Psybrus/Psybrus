@@ -45,7 +45,7 @@ DsCore::~DsCore()
 
 //////////////////////////////////////////////////////////////////////////
 // cmdContent
-void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	Output.createChildNode("h1").setContents("Contents");
 	BcHtmlNode table = Output.createChildNode("table");
@@ -83,7 +83,8 @@ void DsCore::deregisterFunction(std::string Display)
 {
 	for (auto iter = ButtonFunctions_.begin(); iter != ButtonFunctions_.end(); ++iter)
 	{
-		if ((*iter).DisplayText_.compare(Display)){
+		if ((*iter).DisplayText_.compare(Display))
+		{
 			ButtonFunctions_.erase(iter);
 			break;
 		}
@@ -92,7 +93,7 @@ void DsCore::deregisterFunction(std::string Display)
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display)
+void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
 {
 	DsPageDefinition cm(regex, display);
 	cm.Function_ = fn;
@@ -101,7 +102,7 @@ void DsCore::registerPage(std::string regex, std::function < void(DsParameters, 
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn)
+void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
 	DsPageDefinition cm(regex);
 	cm.Function_ = fn;
@@ -114,7 +115,8 @@ void DsCore::deregisterPage(std::string regex)
 {
 	for (auto iter = PageFunctions_.begin(); iter != PageFunctions_.end(); ++iter)
 	{
-		if ((*iter).Text_.compare(regex.c_str())){
+		if ((*iter).Text_.compare(regex.c_str()))
+		{
 			PageFunctions_.erase(iter);
 			break;
 		}
@@ -124,7 +126,7 @@ void DsCore::deregisterPage(std::string regex)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdScene
-void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
@@ -138,7 +140,7 @@ void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdMenu
-void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcHtmlNode mainNode = Output.createChildNode("div");
 	mainNode.setAttribute("id", "menuWrapper");
@@ -239,7 +241,7 @@ void DsCore::writeFooter(BcHtmlNode& Output)
 
 //////////////////////////////////////////////////////////////////////////
 // Gets a file for the output stream
-BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
+char* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 {
 	BcFile file;
 	std::string f = "Content/Debug/";
@@ -247,8 +249,8 @@ BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 	file.open(f.c_str());
 	if (!file.isOpen())
 		return 0;
-	BcU8* data;// = new BcU8[file.size()];
-	data = file.readAllBytes();
+	char* data;// = new BcU8[file.size()];
+	data = (char*)file.readAllBytes();
 	OutLength = file.size();
 	type = "css";
 	// TODO: Actually load files
@@ -257,7 +259,7 @@ BcU8* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdResource
-void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	std::string EntityId = "";
 
@@ -398,7 +400,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 	}
 }
 
-void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcLog* log = BcLog::pImpl();
 
@@ -408,4 +410,83 @@ void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output)
 	{
 		ul.createChildNode("li").setContents(val);
 	}
+}
+
+char* DsCore::handleFile(std::string Uri, int& FileSize, std::string PostContent)
+{
+	std::string type;
+	char* Output;
+	if (BcStrStr(Uri.c_str(), "/files/"))
+	{
+		Output = writeFile(&Uri[7], FileSize, type);
+		return Output;
+	}
+	else
+	{
+		std::string out = loadHtmlFile(Uri, PostContent);
+		FileSize = out.length();
+		Output = new char[FileSize + 1];
+		BcMemSet(Output, 0, FileSize +1);
+		BcMemCopy(Output, &out[0], FileSize);
+		return Output;
+	}
+	return 0;
+}
+
+std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
+{
+	BcHtml HtmlContent;
+	HtmlContent.getRootNode().createChildNode("title").setContents(GPsySetupParams.Name_);
+	BcHtmlNode node = HtmlContent.getRootNode();
+	BcHtmlNode link = node.createChildNode("link");
+	link.setAttribute("rel", "stylesheet");
+	link.setAttribute("type", "text/css");
+	link.setAttribute("href", "/files/style.css");
+	int t = sizeof(BcHtmlNode);
+	BcHtmlNode redirect = node.createChildNode("meta");
+	BcHtmlNode body = node.createChildNode("body").createChildNode("div").setAttribute("id", "mainBody");
+	//redirect = node["meta"];
+	writeHeader(body);
+	BcHtmlNode innerBody = body.createChildNode("div").setAttribute("id", "innerBody");
+	//std::map<std::string, std::string> data;
+	std::vector<std::string> data;
+	bool success = false;
+	std::string uri = &Uri[1];
+
+	for (auto Item : ButtonFunctions_)
+	{
+		if (uri == ("Functions/" + Item.DisplayText_))
+		{
+				
+			redirect.setAttribute("http-equiv", "refresh");
+			redirect.setAttribute("content", "0; url=/Menu");
+			Item.Function_();
+			success = true;
+		} 
+	}
+
+	if (!success)
+	{
+		for (BcU32 Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
+		{
+			BcRegexMatch match;
+			BcU32 res = PageFunctions_[Idx].Regex_.match(&Uri[1], match);
+			if (res > 0)
+			{
+				for (BcU32 Idx2 = 1; Idx2 < match.noofMatches(); ++Idx2)
+				{
+					std::string u;
+					match.getMatch(Idx2, u);
+					data.push_back(u);
+				}
+				PageFunctions_[Idx].Function_(data, innerBody, Content);
+				break;
+			}
+		}
+	}
+
+	writeFooter(body);
+
+	std::string Output = HtmlContent.getHtml();
+	return Output;
 }

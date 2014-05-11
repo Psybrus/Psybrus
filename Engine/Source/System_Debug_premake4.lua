@@ -14,7 +14,7 @@ project "Engine_System_Debug"
     "./Platforms/Windows/",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/mongoose/",
+    psybrusSDK .. "/External/webby/",
     boostInclude,
   }
 
@@ -31,7 +31,7 @@ project "Engine_System_Debug"
    			-- External libs.
         "External_jsoncpp",
         "External_libb64",
-        "External_mongoose",
+        "External_webby",
    		}
 
    	configuration "vs2012"
