@@ -15,7 +15,7 @@ project "Engine_System_Network"
     psybrusSDK .. "/External/enet/include",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/mongoose/",
+    psybrusSDK .. "/External/webby/",
     boostInclude,
   }
 
@@ -30,7 +30,7 @@ project "Engine_System_Network"
 
    			-- External libs.
         "External_enet",
-        "External_mongoose",
+        "External_webby",
    		}
 
    	configuration "vs2012"
