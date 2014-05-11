@@ -111,14 +111,19 @@ void DsCoreImpl::close()
 int DsCoreImpl::webbyDispatch(WebbyConnection *connection)
 {
 	int size = 0;
-	char* file = handleFile(connection->request.uri, size);
+	char* data = new char[connection->request.content_length + 1];
+	BcMemZero(data, connection->request.content_length + 1);
+	char* file = handleFile(connection->request.uri, size, data);
+	WebbyRead(connection, data, connection->request.content_length);
 	WebbyBeginResponse(connection, 200, size, NULL, 0);
 	WebbyWrite(connection, file, size);
 	WebbyEndResponse(connection);
+
+	delete data;
 	return 0;
 }
 
-int DsCoreImpl::webbyConnect(struct WebbyConnection *connection)
+int DsCoreImpl::webbyConnect(WebbyConnection *connection)
 {
 	/* Allow websocket upgrades on /wstest */
 	if (0 == strcmp(connection->request.uri, "/wstest") && ConnectionCount_ < MAX_WSCONN)
