@@ -45,12 +45,6 @@ public:
 	virtual void				update();
 	virtual void				close();
 
-	void						gameThreadMongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-	void*						mongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-	static void*				MongooseCallback( enum mg_event Event, struct mg_connection* pConn );
-
-
-
 private:
 //	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
