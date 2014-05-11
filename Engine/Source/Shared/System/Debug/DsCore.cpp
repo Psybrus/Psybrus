@@ -45,7 +45,7 @@ DsCore::~DsCore()
 
 //////////////////////////////////////////////////////////////////////////
 // cmdContent
-void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	Output.createChildNode("h1").setContents("Contents");
 	BcHtmlNode table = Output.createChildNode("table");
@@ -83,7 +83,8 @@ void DsCore::deregisterFunction(std::string Display)
 {
 	for (auto iter = ButtonFunctions_.begin(); iter != ButtonFunctions_.end(); ++iter)
 	{
-		if ((*iter).DisplayText_.compare(Display)){
+		if ((*iter).DisplayText_.compare(Display))
+		{
 			ButtonFunctions_.erase(iter);
 			break;
 		}
@@ -92,7 +93,7 @@ void DsCore::deregisterFunction(std::string Display)
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display)
+void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
 {
 	DsPageDefinition cm(regex, display);
 	cm.Function_ = fn;
@@ -101,7 +102,7 @@ void DsCore::registerPage(std::string regex, std::function < void(DsParameters, 
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn)
+void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
 	DsPageDefinition cm(regex);
 	cm.Function_ = fn;
@@ -114,7 +115,8 @@ void DsCore::deregisterPage(std::string regex)
 {
 	for (auto iter = PageFunctions_.begin(); iter != PageFunctions_.end(); ++iter)
 	{
-		if ((*iter).Text_.compare(regex.c_str())){
+		if ((*iter).Text_.compare(regex.c_str()))
+		{
 			PageFunctions_.erase(iter);
 			break;
 		}
@@ -124,7 +126,7 @@ void DsCore::deregisterPage(std::string regex)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdScene
-void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcU32 Idx = 0;
 	while( ScnEntityRef Entity = ScnCore::pImpl()->getEntity( Idx++ ) )
@@ -138,7 +140,7 @@ void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdMenu
-void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcHtmlNode mainNode = Output.createChildNode("div");
 	mainNode.setAttribute("id", "menuWrapper");
@@ -257,7 +259,7 @@ char* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
 
 //////////////////////////////////////////////////////////////////////////
 // cmdResource
-void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	std::string EntityId = "";
 
@@ -398,7 +400,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 	}
 }
 
-void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output)
+void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcLog* log = BcLog::pImpl();
 
@@ -410,7 +412,7 @@ void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output)
 	}
 }
 
-char* DsCore::handleFile(std::string Uri, int& FileSize)
+char* DsCore::handleFile(std::string Uri, int& FileSize, std::string PostContent)
 {
 	std::string type;
 	char* Output;
@@ -421,7 +423,7 @@ char* DsCore::handleFile(std::string Uri, int& FileSize)
 	}
 	else
 	{
-		std::string out = loadHtmlFile(Uri);
+		std::string out = loadHtmlFile(Uri, PostContent);
 		FileSize = out.length();
 		Output = new char[FileSize + 1];
 		BcMemSet(Output, 0, FileSize +1);
@@ -431,7 +433,7 @@ char* DsCore::handleFile(std::string Uri, int& FileSize)
 	return 0;
 }
 
-std::string DsCore::loadHtmlFile(std::string Uri)
+std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 {
 	BcHtml HtmlContent;
 	HtmlContent.getRootNode().createChildNode("title").setContents(GPsySetupParams.Name_);
@@ -477,7 +479,7 @@ std::string DsCore::loadHtmlFile(std::string Uri)
 					match.getMatch(Idx2, u);
 					data.push_back(u);
 				}
-				PageFunctions_[Idx].Function_(data, innerBody);
+				PageFunctions_[Idx].Function_(data, innerBody, Content);
 				break;
 			}
 		}
@@ -485,6 +487,6 @@ std::string DsCore::loadHtmlFile(std::string Uri)
 
 	writeFooter(body);
 
-	std::string Content = HtmlContent.getHtml();
-	return Content;
+	std::string Output = HtmlContent.getHtml();
+	return Output;
 }

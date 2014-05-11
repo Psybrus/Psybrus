@@ -37,7 +37,7 @@
 // typedef const std::map < std::string, std::string>& DsParameters;
 typedef const std::vector< std::string>& DsParameters;
 
-typedef struct DsPageDefinition
+struct DsPageDefinition
 {
 	DsPageDefinition(std::string r, std::string display)
 	: Regex_(r.c_str()),
@@ -54,10 +54,10 @@ typedef struct DsPageDefinition
 	std::string Text_;
 	std::string Display_;
 	bool Visible_;
-	std::function <void(DsParameters, BcHtmlNode&)> Function_;
-} DsPageDefinition;
+	std::function <void(DsParameters, BcHtmlNode&, std::string)> Function_;
+};
 
-typedef struct DsFunctionDefinition
+struct DsFunctionDefinition
 {
 	DsFunctionDefinition(std::string text, std::function<void()> fn)
 	:
@@ -66,7 +66,7 @@ typedef struct DsFunctionDefinition
 
 	std::string DisplayText_;
 	std::function<void()> Function_;
-} DsFunctionDefinition;
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,29 +90,29 @@ public:
 	virtual void				update() = 0;
 	virtual void				close() = 0;
 
-	static void					cmdMenu(DsParameters params, BcHtmlNode& Output);
-	static void					cmdContent(DsParameters params, BcHtmlNode& Output);
+	static void					cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	static void					cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
 	void						cmdContent_Resource(BcHtmlNode& Output);
 
-	static void					cmdScene(DsParameters params, BcHtmlNode& Output);
+	static void					cmdScene(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 	static void					cmdScene_Entity(ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth);
 	static void					cmdScene_Component(ScnComponentRef Entity, BcHtmlNode& Output, BcU32 Depth);
-	static void					cmdLog(DsParameters params, BcHtmlNode& Output);
+	static void					cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
-	static void					cmdResource(DsParameters params, BcHtmlNode& Output);
+	static void					cmdResource(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
 	char*						writeFile(std::string filename, int& OutLength, std::string& type);
-	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
-	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
+	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display);
+	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
 	void						deregisterPage(std::string regex);
 
 	void						registerFunction(std::string Display, std::function<void()> Function);
 	void						deregisterFunction(std::string Display);
-	char*						handleFile(std::string Uri, int& FileSize);
-	std::string					loadHtmlFile(std::string Uri);
+	char*						handleFile(std::string Uri, int& FileSize, std::string Content);
+	std::string					loadHtmlFile(std::string Uri, std::string Content);
 private:
 //	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
