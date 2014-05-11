@@ -160,7 +160,7 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 			BcErrorCode,
 			0, // padding0
 			0, // padding1
-			BcAABB()
+			MaAABB()
 		};
 
 		// Export vertices.
@@ -235,7 +235,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 			BcErrorCode,
 			0, // padding0
 			0, // padding1
-			BcAABB()
+			MaAABB()
 		};
 
 		// Export vertices.
@@ -290,7 +290,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 // serialiseVertices
 void ScnModelImport::serialiseVertices( class MdlMesh* pMesh,
                                         BcU32 VertexFormat,
-										BcAABB& AABB )
+										MaAABB& AABB )
 {
 	AABB.empty();
 	for( BcU32 VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )

@@ -13,9 +13,9 @@
 
 #include "ImgImage.h"
 
-#include "Base/BcVec2d.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcVec4d.h"
+#include "Math/MaVec2d.h"
+#include "Math/MaVec3d.h"
+#include "Math/MaVec4d.h"
 #include "Base/BcMath.h"
 
 #include "squish.h"
@@ -306,8 +306,8 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages )
 
 //////////////////////////////////////////////////////////////////////////
 // generateDistanceField
-static const BcVec2d DistanceFieldInside = BcVec2d( 0.0f, 0.0f );
-static const BcVec2d DistanceFieldOutside = BcVec2d( 1e6f, 1e6f );
+static const MaVec2d DistanceFieldInside = MaVec2d( 0.0f, 0.0f );
+static const MaVec2d DistanceFieldOutside = MaVec2d( 1e6f, 1e6f );
 
 ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread )
 {
@@ -320,14 +320,14 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 		public:
 			BcU32 Width_;
 			BcU32 Height_;
-			BcVec2d* pCells_;
+			MaVec2d* pCells_;
 			
 		public:
 			Grid( BcU32 W, BcU32 H )
 			{
 				Width_ = W;
 				Height_ = H;
-				pCells_ = new BcVec2d[ W * H ];
+				pCells_ = new MaVec2d[ W * H ];
 			}
 			
 			~Grid()
@@ -335,7 +335,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 				delete [] pCells_;
 			}
 			
-			const BcVec2d& getCell( BcS32 X, BcS32 Y ) const
+			const MaVec2d& getCell( BcS32 X, BcS32 Y ) const
 			{
 				if( X < 0 || X >= (BcS32)Width_ || Y < 0 || Y >= (BcS32)Height_ )
 				{
@@ -344,7 +344,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 				return pCells_[ X + Y * Width_ ];
 			}
 			
-			void setCell( BcS32 X, BcS32 Y, const BcVec2d& Value )
+			void setCell( BcS32 X, BcS32 Y, const MaVec2d& Value )
 			{
 				if( X >= 0 && X < (BcS32)Width_ && Y >= 0 && Y < (BcS32)Height_ )
 				{
@@ -368,10 +368,10 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 			}			
 		}
 		
-		static BcInline BcVec2d Compare( Grid& GridX, const BcVec2d& Cell, BcS32 X, BcS32 Y, BcS32 OffsetX, BcS32 OffsetY )
+		static BcInline MaVec2d Compare( Grid& GridX, const MaVec2d& Cell, BcS32 X, BcS32 Y, BcS32 OffsetX, BcS32 OffsetY )
 		{
-			BcVec2d OtherCell = GridX.getCell( X + OffsetX, Y + OffsetY );
-			OtherCell = BcVec2d( OtherCell.x() + OffsetX, OtherCell.y() + OffsetY );
+			MaVec2d OtherCell = GridX.getCell( X + OffsetX, Y + OffsetY );
+			OtherCell = MaVec2d( OtherCell.x() + OffsetX, OtherCell.y() + OffsetY );
 			return ( OtherCell.magnitudeSquared() < Cell.magnitudeSquared() ) ? OtherCell : Cell;
 		}
 		
@@ -383,7 +383,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 			{
 				for( BcS32 X = 0; X < Width; ++X )
 				{
-					BcVec2d Cell = GridX.getCell( X, Y );
+					MaVec2d Cell = GridX.getCell( X, Y );
 					Cell = Compare( GridX, Cell, X, Y, -1,  0 );
 					Cell = Compare( GridX, Cell, X, Y,  0, -1 );
 					Cell = Compare( GridX, Cell, X, Y, -1, -1 );
@@ -393,7 +393,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 				
 				for( BcS32 X = Width - 1; X > 0; --X )
 				{
-					BcVec2d Cell = GridX.getCell( X, Y );
+					MaVec2d Cell = GridX.getCell( X, Y );
 					Cell = Compare( GridX, Cell, X, Y,  1,  0 );
 					GridX.setCell( X, Y, Cell );
 				}
@@ -403,7 +403,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 			{
 				for( BcS32 X = Width - 1; X > 0; --X )
 				{
-					BcVec2d Cell = GridX.getCell( X, Y );
+					MaVec2d Cell = GridX.getCell( X, Y );
 					Cell = Compare( GridX, Cell, X, Y,  1,  0 );
 					Cell = Compare( GridX, Cell, X, Y,  0,  1 );
 					Cell = Compare( GridX, Cell, X, Y,  1,  1 );
@@ -413,7 +413,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 				
 				for( BcS32 X = 0; X < Width; ++X )
 				{
-					BcVec2d Cell = GridX.getCell( X, Y );
+					MaVec2d Cell = GridX.getCell( X, Y );
 					Cell = Compare( GridX, Cell, X, Y, -1,  0 );
 					GridX.setCell( X, Y, Cell );
 				}
@@ -429,12 +429,12 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 			{
 				for( BcS32 X = 0; X < (BcS32)Width; ++X )
 				{
-					const BcVec2d& CellA = GridA.getCell( X, Y );
-					const BcVec2d& CellB = GridB.getCell( X, Y );
+					const MaVec2d& CellA = GridA.getCell( X, Y );
+					const MaVec2d& CellB = GridB.getCell( X, Y );
 					const BcF32 DistA = CellA.magnitude();
 					const BcF32 DistB = CellB.magnitude();
 					const BcF32 SignedDistance = DistA - DistB;
-					SignedDistanceGrid.setCell( X, Y, BcVec2d( SignedDistance, 0.0f ) );
+					SignedDistanceGrid.setCell( X, Y, MaVec2d( SignedDistance, 0.0f ) );
 				}
 			}
 		}

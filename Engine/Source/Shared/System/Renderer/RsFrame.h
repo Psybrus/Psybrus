@@ -79,14 +79,14 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Debug routines.
 	/*
-	void			debugLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour = RsColour::WHITE );
-	void			debugAxis( const BcVec3d& Point, BcF32 Size, const RsColour& Colour = RsColour::WHITE );
-	void			debugGrid( const BcVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 Elements, const RsColour& Colour = RsColour::WHITE );
-	void			debugAABB( const BcAABB& AABB, const RsColour& Colour = RsColour::WHITE );
-	void			debugMatrix( const BcMat4d& Matrix, BcF32 Scale = 1.0f, const RsColour& Colour = RsColour::WHITE  );
-	void			debugEllipsoid( const BcVec3d& Centre, const BcVec3d& Scale, BcU32 LOD = 8, const RsColour& Colour = RsColour::WHITE );
-	void			debugCube( const BcMat4d& Transform, const RsColour& Colour = RsColour::WHITE );
-	void			debugCone( const BcMat4d& Transform, const RsColour& Colour = RsColour::WHITE );
+	void			debugLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour = RsColour::WHITE );
+	void			debugAxis( const MaVec3d& Point, BcF32 Size, const RsColour& Colour = RsColour::WHITE );
+	void			debugGrid( const MaVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 Elements, const RsColour& Colour = RsColour::WHITE );
+	void			debugAABB( const MaAABB& AABB, const RsColour& Colour = RsColour::WHITE );
+	void			debugMatrix( const MaMat4d& Matrix, BcF32 Scale = 1.0f, const RsColour& Colour = RsColour::WHITE  );
+	void			debugEllipsoid( const MaVec3d& Centre, const MaVec3d& Scale, BcU32 LOD = 8, const RsColour& Colour = RsColour::WHITE );
+	void			debugCube( const MaMat4d& Transform, const RsColour& Colour = RsColour::WHITE );
+	void			debugCone( const MaMat4d& Transform, const RsColour& Colour = RsColour::WHITE );
 	 */
 	
 public:

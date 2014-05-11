@@ -199,9 +199,20 @@ BcBool BcPot( BcU32 T )
 	return ( ( T & ( T - 1 ) ) == 0 ) || ( T == 1 );
 }
 
+BcBool BcPot( BcU64 T )
+{
+	return ( ( T & ( T - 1 ) ) == 0 ) || ( T == 1 );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // BcPotRoundUp
 BcU32 BcPotRoundUp( BcU32 Value, BcU32 RoundUpTo )
+{
+	BcAssert( BcPot( RoundUpTo ) == BcTrue );
+	return ( Value + ( RoundUpTo - 1 ) ) & ~( ( RoundUpTo - 1 ) );
+}
+
+BcU64 BcPotRoundUp( BcU64 Value, BcU64 RoundUpTo )
 {
 	BcAssert( BcPot( RoundUpTo ) == BcTrue );
 	return ( Value + ( RoundUpTo - 1 ) ) & ~( ( RoundUpTo - 1 ) );
@@ -220,9 +231,33 @@ BcU32 BcPotNext( BcU32 Value )
 	return ++Value;
 }
 
+BcU64 BcPotNext( BcU64 Value )
+{
+	--Value;
+	Value |= Value >> 1;
+	Value |= Value >> 2;
+	Value |= Value >> 4;
+	Value |= Value >> 8;
+	Value |= Value >> 16;
+	Value |= Value >> 32;
+	return ++Value;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // BcCalcAlignment
 BcU32 BcCalcAlignment( BcU32 Value, BcU32 Alignment )
+{
+	BcAssert( BcPot( Alignment ) );
+	return ( Value + ( Alignment - 1 ) ) & ~( Alignment - 1 );
+}
+
+BcU64 BcCalcAlignment( BcU64 Value, BcU32 Alignment )
+{
+	BcAssert( BcPot( Alignment ) );
+	return ( Value + BcU64( Alignment - 1 ) ) & ~( BcU64( Alignment - 1 ) );
+}
+
+BcU64 BcCalcAlignment( BcU64 Value, BcU64 Alignment )
 {
 	BcAssert( BcPot( Alignment ) );
 	return ( Value + ( Alignment - 1 ) ) & ~( Alignment - 1 );
@@ -237,6 +272,12 @@ BcU32 BcBitsSet( BcU32 Value )
     Value = ( Value & 0x0F0F0F0FU ) + ( ( Value & 0xF0F0F0F0U ) >> 4 );
     Value = ( Value & 0x00FF00FFU ) + ( ( Value & 0xFF00FF00U ) >> 8 );
     return  ( Value & 0x0000FFFFU ) + ( ( Value & 0xFFFF0000U ) >> 16 );
+}
+
+BcU32 BcBitsSet( BcU64 Value )
+{
+	return BcBitsSet( static_cast< BcU32 >( Value & 0xffffffff ) ) + 
+	       BcBitsSet( static_cast< BcU32 >( Value >> 32 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

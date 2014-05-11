@@ -4,7 +4,6 @@
 #include "Base/BcTypes.h"
 #include "Base/BcBinaryData.h"
 #include "Base/BcHash.h"
-#include "Base/BcAtomic.h"
 #include "Base/BcName.h"
 
 #include "Reflection/ReMacros.h"
@@ -13,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
 // FieldFlags
@@ -211,7 +211,7 @@ struct ReTypeTraits< _Ty& >
 };
 
 template< typename _Ty >
-struct ReTypeTraits< ReObjectRef< _Ty > >
+struct ReTypeTraits< ReObjectRef< _Ty, false > >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_OBJECT_REFERENCE;
@@ -223,7 +223,19 @@ struct ReTypeTraits< ReObjectRef< _Ty > >
 };
 		
 template< typename _Ty >
-struct ReTypeTraits< const  _Ty* >
+struct ReTypeTraits< ReObjectRef< _Ty, true > >
+{
+	typedef _Ty Type;
+	static const BcU32 Flags = bcRFF_OBJECT_REFERENCE;
+    static const bool IsEnum = ReTypeTraits< Type >::IsEnum;
+	static const char* Name()
+	{
+        return ReTypeTraits< Type >::Name();
+	}
+};
+
+template< typename _Ty >
+struct ReTypeTraits< const _Ty* >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_POINTER | bcRFF_CONST;
@@ -247,7 +259,7 @@ struct ReTypeTraits< const _Ty& >
 };
 		
 template< typename _Ty >
-struct ReTypeTraits< BcAtomic< _Ty > >
+struct ReTypeTraits< std::atomic< _Ty > >
 {
 	typedef _Ty Type;
 	static const BcU32 Flags = bcRFF_ATOMIC;

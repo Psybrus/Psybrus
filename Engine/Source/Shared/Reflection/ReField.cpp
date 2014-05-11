@@ -52,14 +52,14 @@ const ReType* ReField::getType() const
 	
 //////////////////////////////////////////////////////////////////////////
 // setOffset
-void ReField::setOffset( BcU32 Offset )
+void ReField::setOffset( BcSize Offset )
 {
 	Offset_ = Offset;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getOffset
-BcU32 ReField::getOffset() const
+BcSize ReField::getOffset() const
 {
 	return Offset_;
 }

@@ -14,9 +14,9 @@
 #ifndef __RSVIEWPORT_H__
 #define __RSVIEWPORT_H__
 
-#include "Base/BcMat4d.h"
-#include "Base/BcAABB.h"
-#include "Base/BcPlane.h"
+#include "Math/MaMat4d.h"
+#include "Math/MaAABB.h"
+#include "Math/MaPlane.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsViewport

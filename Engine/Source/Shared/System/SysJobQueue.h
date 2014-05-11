@@ -15,21 +15,21 @@
 #define __SysJobQueue_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcMutex.h"
-#include "Base/BcThread.h"
 #include "Base/BcMisc.h"
-#include "Base/BcScopedLock.h"
+
 #include "System/SysJob.h"
 #include "System/SysJobWorker.h"
 #include "System/SysFence.h"
 
+#include <thread>
 #include <list>
 #include <vector>
+#include <mutex>
+#include <condition_variable>
 
 //////////////////////////////////////////////////////////////////////////
 // SysJobQueue
-class SysJobQueue:
-	public BcThread
+class SysJobQueue
 {
 public:
 	SysJobQueue( BcU32 NoofWorkers );
@@ -87,17 +87,19 @@ private:
 	typedef TJobQueue::iterator TJobQueueIterator;
 	typedef std::vector< SysJobWorker* > TJobWorkerList;
 	
-	SysFence			StartedFence_;
-	BcBool				Active_;
-	BcEvent				ResumeEvent_;
-	BcAtomicU32			NoofJobsQueued_;
-	BcU32				NoofWorkers_;
-	BcU32				AvailibleWorkerMask_;
+	SysFence				StartedFence_;
+	std::thread				ExecutionThread_;
+	BcBool					Active_;
+	std::condition_variable ResumeEvent_;
+	std::mutex				ResumeMutex_;
+	std::atomic< BcU32 >	NoofJobsQueued_;
+	BcU32					NoofWorkers_;
+	BcU32					AvailibleWorkerMask_;
 	
-	BcMutex				QueueLock_;
-	TJobQueue			JobQueue_;
+	std::mutex				QueueLock_;
+	TJobQueue				JobQueue_;
 	
-	TJobWorkerList		JobWorkers_;
+	TJobWorkerList			JobWorkers_;
 };
 
 #endif

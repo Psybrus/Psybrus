@@ -77,7 +77,7 @@ struct ScnAnimationTransformKey_R16S32T32
 	BcF32							TY_;
 	BcF32							TZ_;
 
-	BcForceInline void pack( const BcQuat& R, const BcVec3d& S, const BcVec3d& T )
+	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
 		RX_ = static_cast< BcS16 >( R.x() * 32767.0f );
 		RY_ = static_cast< BcS16 >( R.y() * 32767.0f );
@@ -91,7 +91,7 @@ struct ScnAnimationTransformKey_R16S32T32
 		TZ_ = T.z();
 	}
 
-	BcForceInline void unpack( BcQuat& R, BcVec3d& S, BcVec3d& T ) const
+	BcForceInline void unpack( MaQuat& R, MaVec3d& S, MaVec3d& T ) const
 	{
 		R.x( static_cast< BcF32 >( RX_ ) / 32767.0f );
 		R.y( static_cast< BcF32 >( RY_ ) / 32767.0f );
@@ -117,7 +117,7 @@ struct ScnAnimationTransformKey_R16S16T16
 	BcU16							TY_;
 	BcU16							TZ_;
 
-	BcForceInline void pack( const BcQuat& R, const BcVec3d& S, const BcVec3d& T )
+	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
 		RX_ = static_cast< BcS16 >( R.x() * 32767.0f );
 		RY_ = static_cast< BcS16 >( R.y() * 32767.0f );
@@ -131,7 +131,7 @@ struct ScnAnimationTransformKey_R16S16T16
 		TZ_ = BcF32ToHalf( T.z() );
 	}
 
-	BcForceInline void unpack( BcQuat& R, BcVec3d& S, BcVec3d& T ) const
+	BcForceInline void unpack( MaQuat& R, MaVec3d& S, MaVec3d& T ) const
 	{
 		R.x( static_cast< BcF32 >( RX_ ) / 32767.0f );
 		R.y( static_cast< BcF32 >( RY_ ) / 32767.0f );
@@ -154,7 +154,7 @@ struct ScnAnimationTransformKey_R16T32
 	BcF32							TY_;
 	BcF32							TZ_;
 
-	BcForceInline void pack( const BcQuat& R, const BcVec3d& S, const BcVec3d& T )
+	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
 		RX_ = static_cast< BcS16 >( R.x() * 32767.0f );
 		RY_ = static_cast< BcS16 >( R.y() * 32767.0f );
@@ -165,7 +165,7 @@ struct ScnAnimationTransformKey_R16T32
 		TZ_ = T.z();
 	}
 
-	BcForceInline void unpack( BcQuat& R, BcVec3d& S, BcVec3d& T ) const
+	BcForceInline void unpack( MaQuat& R, MaVec3d& S, MaVec3d& T ) const
 	{
 		R.x( static_cast< BcF32 >( RX_ ) / 32767.0f );
 		R.y( static_cast< BcF32 >( RY_ ) / 32767.0f );
@@ -188,7 +188,7 @@ struct ScnAnimationTransformKey_R16T16
 	BcU16							TY_;
 	BcU16							TZ_;
 
-	BcForceInline void pack( const BcQuat& R, const BcVec3d& S, const BcVec3d& T )
+	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
 		RX_ = static_cast< BcS16 >( R.x() * 32767.0f );
 		RY_ = static_cast< BcS16 >( R.y() * 32767.0f );
@@ -199,7 +199,7 @@ struct ScnAnimationTransformKey_R16T16
 		TZ_ = BcF32ToHalf( T.z() );
 	}
 
-	BcForceInline void unpack( BcQuat& R, BcVec3d& S, BcVec3d& T ) const
+	BcForceInline void unpack( MaQuat& R, MaVec3d& S, MaVec3d& T ) const
 	{
 		R.x( static_cast< BcF32 >( RX_ ) / 32767.0f );
 		R.y( static_cast< BcF32 >( RY_ ) / 32767.0f );

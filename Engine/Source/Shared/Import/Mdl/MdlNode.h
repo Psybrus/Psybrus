@@ -16,7 +16,7 @@
 
 #include "MdlTypes.h"
 
-#include "Base/BcMat4d.h"
+#include "Math/MaMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -37,26 +37,26 @@ public:
 
 	BcBool parentNode( MdlNode* pNode, const BcChar* ParentName );
 
-	void makeRelativeTransform( const BcMat4d& ParentAbsolute );
-	void makeAbsoluteTransform( const BcMat4d& ParentAbsolute );
+	void makeRelativeTransform( const MaMat4d& ParentAbsolute );
+	void makeAbsoluteTransform( const MaMat4d& ParentAbsolute );
 
-	void flipTransform( BcMat4d& Transform );
+	void flipTransform( MaMat4d& Transform );
 	void flipCoordinateSpace();
 
 	void type( BcU32 NodeType );
 	BcU32 type() const;
 
-	void relativeTransform( const BcMat4d& Transform );
-	const BcMat4d& relativeTransform();
+	void relativeTransform( const MaMat4d& Transform );
+	const MaMat4d& relativeTransform();
 
-	void absoluteTransform( const BcMat4d& Transform );
-	const BcMat4d& absoluteTransform();
+	void absoluteTransform( const MaMat4d& Transform );
+	const MaMat4d& absoluteTransform();
 
-	void inverseBindpose( const BcMat4d& Transform );
-	const BcMat4d& inverseBindpose();
+	void inverseBindpose( const MaMat4d& Transform );
+	const MaMat4d& inverseBindpose();
 
-	void aabb( const BcAABB& AABB );
-	const BcAABB& aabb() const;
+	void aabb( const MaAABB& AABB );
+	const MaAABB& aabb() const;
 
 	void findAllAABBs();
 
@@ -95,11 +95,11 @@ private:
 	MdlNode*			pChild_;
 	MdlNode*			pNext_;
 
-	BcMat4d				RelativeTransform_;
-	BcMat4d				AbsoluteTransform_;
-	BcMat4d				InverseBindpose_;
+	MaMat4d				RelativeTransform_;
+	MaMat4d				AbsoluteTransform_;
+	MaMat4d				InverseBindpose_;
 
-	BcAABB				AABB_;
+	MaAABB				AABB_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,42 +146,42 @@ inline MdlProjector* MdlNode::pProjectorObject()
 	return pNodeProjectorObject_;
 }
 
-inline void MdlNode::relativeTransform( const BcMat4d& RelativeTransform )
+inline void MdlNode::relativeTransform( const MaMat4d& RelativeTransform )
 {
 	RelativeTransform_ = RelativeTransform;
 }
 
-inline const BcMat4d& MdlNode::relativeTransform()
+inline const MaMat4d& MdlNode::relativeTransform()
 {
 	return RelativeTransform_;
 }
 
-inline void MdlNode::absoluteTransform( const BcMat4d& AbsoluteTransform )
+inline void MdlNode::absoluteTransform( const MaMat4d& AbsoluteTransform )
 {
 	AbsoluteTransform_ = AbsoluteTransform;
 }
 
-inline const BcMat4d& MdlNode::absoluteTransform()
+inline const MaMat4d& MdlNode::absoluteTransform()
 {
 	return AbsoluteTransform_;
 }
 
-inline void MdlNode::inverseBindpose( const BcMat4d& InverseBindpose )
+inline void MdlNode::inverseBindpose( const MaMat4d& InverseBindpose )
 {
 	InverseBindpose_ = InverseBindpose;
 }
 
-inline const BcMat4d& MdlNode::inverseBindpose()
+inline const MaMat4d& MdlNode::inverseBindpose()
 {
 	return InverseBindpose_;
 }
 
-inline void MdlNode::aabb( const BcAABB& AABB )
+inline void MdlNode::aabb( const MaAABB& AABB )
 {
 	AABB_ = AABB;
 }
 
-inline const BcAABB& MdlNode::aabb() const
+inline const MaAABB& MdlNode::aabb() const
 {
 	return AABB_;
 }

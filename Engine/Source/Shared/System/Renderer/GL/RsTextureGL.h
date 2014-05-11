@@ -17,8 +17,6 @@
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/GL/RsGL.h"
 
-#include "Base/BcAtomicMutex.h"
-
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class RsCoreImplGL;

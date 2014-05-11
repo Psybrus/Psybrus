@@ -1,0 +1,79 @@
+body {
+	background-color:#ffffff;
+	color: #000000;
+	margin-left: 2.5%;
+	margin-right: 2.5%;
+	background-color: #EEEEEE;
+}
+#mainBody { 
+	border: 1px black solid;
+	background-color: white;
+}
+
+#fName {
+	float: left;
+	width: 20%;
+}
+
+#fType {
+	float: left;
+	width: 20%;
+}
+
+#fValue {
+	floats: left;
+	width: 60%;
+}
+
+#fieldData {
+	floats: left;
+	width: 100%;
+}
+
+#pages{
+	float: left;
+	width: 30%;
+}
+
+#menuWrapper {
+	float: left;
+	width: 98%;
+	margin-left: 2%;
+}
+th {
+	text-align: left;
+}
+table {
+	width: 100%;
+}
+
+#headerSection {
+	width: 100%;
+	text-align: center;
+	border-bottom: 1px solid black;
+}
+
+#headerLink {
+	border-bottom: 1px solid black;
+	width: 100%;
+	background-color: #DDDDFF;
+}
+
+#headerLinkText {
+	padding: 30px;
+}
+
+#innerBody {
+	width: 100%;
+	margin-left: 2.5%;
+}
+
+#innerData {
+	width: 95%;
+	margin-left: 2.5%;
+}
+
+#classHeader {
+	font-size: 1.1em;
+	font-weight: bold;
+}

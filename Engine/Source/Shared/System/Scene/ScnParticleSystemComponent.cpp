@@ -59,7 +59,7 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
 	{
 		ScnRect Rect = Texture->getRect( Idx );
-		UVBounds_.push_back( BcVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
+		UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
 	}
 
 	WorldTransformParam_ = MaterialComponent_->findParameter( "uWorldTransform" );
@@ -127,7 +127,7 @@ void ScnParticleSystemComponent::destroy()
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
-BcAABB ScnParticleSystemComponent::getAABB() const
+MaAABB ScnParticleSystemComponent::getAABB() const
 {
 	UpdateFence_.wait();
 
@@ -189,21 +189,21 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		if( Particle.Alive_ )
 		{
 			// Half size.
-			const BcVec2d HalfSize = Particle.Scale_ * 0.5f;
+			const MaVec2d HalfSize = Particle.Scale_ * 0.5f;
 			const BcF32 MaxHalfSize = BcMax( HalfSize.x(), HalfSize.y() );
 			BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
-			const BcVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
+			const MaVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
 
 			// Crappy rotation implementation :P
 			const BcF32 Radians = Particle.Rotation_;
-			BcVec2d CornerA = BcVec2d( -1.0f, -1.0f ) * HalfSize;
-			BcVec2d CornerB = BcVec2d(  1.0f, -1.0f ) * HalfSize;
-			BcVec2d CornerC = BcVec2d(  1.0f,  1.0f ) * HalfSize;
-			BcVec2d CornerD = BcVec2d( -1.0f,  1.0f ) * HalfSize;
+			MaVec2d CornerA = MaVec2d( -1.0f, -1.0f ) * HalfSize;
+			MaVec2d CornerB = MaVec2d(  1.0f, -1.0f ) * HalfSize;
+			MaVec2d CornerC = MaVec2d(  1.0f,  1.0f ) * HalfSize;
+			MaVec2d CornerD = MaVec2d( -1.0f,  1.0f ) * HalfSize;
 			if( Radians != NULL )
 			{
-				BcMat4d Rotation;
-				Rotation.rotation( BcVec3d( 0.0f, 0.0f, Radians ) );
+				MaMat4d Rotation;
+				Rotation.rotation( MaVec3d( 0.0f, 0.0f, Radians ) );
 				CornerA = CornerA * Rotation;
 				CornerB = CornerB * Rotation;
 				CornerC = CornerC * Rotation;
@@ -304,12 +304,12 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		// Bind material.
 		if( IsLocalSpace_ )
 		{
-			const BcMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
+			const MaMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
 			MaterialComponent_->setParameter( WorldTransformParam_, WorldTransform );
 		}
 		else
 		{
-			MaterialComponent_->setParameter( WorldTransformParam_, BcMat4d() );
+			MaterialComponent_->setParameter( WorldTransformParam_, MaMat4d() );
 		}
 
 		// Set material parameters for view.
@@ -377,7 +377,7 @@ BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 			pParticle = pPotentiallyFreeParticle;
 
 			// Prevent it being rendered for the first frame.
-			pParticle->Scale_ = BcVec2d( 0.0f, 0.0 );
+			pParticle->Scale_ = MaVec2d( 0.0f, 0.0 );
 			pParticle->Colour_ = RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
 
 			++PotentialFreeParticle_;
@@ -430,7 +430,7 @@ void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 	// TODO: Iterate over every "affector" at a time, rather than by particle.
 	// - See "updateParticle".
 
-	BcAABB FullAABB( BcVec3d( 0.0f, 0.0f, 0.0f ), BcVec3d( 0.0f, 0.0f, 0.0f ) );
+	MaAABB FullAABB( MaVec3d( 0.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
 
 	// Not optimal, but clear code is clear. (For now...)
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
@@ -444,15 +444,15 @@ void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 
 			// Expand AABB by particle's max bounds.
 			const BcF32 MaxHalfSize = BcMax( Particle.Scale_.x(), Particle.Scale_.y() ) * 0.5f;
-			FullAABB.expandBy( Particle.Position_ - BcVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
-			FullAABB.expandBy( Particle.Position_ + BcVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
+			FullAABB.expandBy( Particle.Position_ - MaVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
+			FullAABB.expandBy( Particle.Position_ + MaVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
 		}
 	}
 
 	// Transform AABB.
 	if( IsLocalSpace_ )
 	{
-		const BcMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
+		const MaMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
 		AABB_ = FullAABB.transform( WorldTransform );
 	}
 	else

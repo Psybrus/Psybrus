@@ -210,10 +210,10 @@ BcBool MdlMesh::materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndi
 
 //////////////////////////////////////////////////////////////////////////
 // bakeTransform
-void MdlMesh::bakeTransform( const BcMat4d& Transform )
+void MdlMesh::bakeTransform( const MaMat4d& Transform )
 {
-	BcMat4d NrmTransform = Transform;
-	NrmTransform.translation( BcVec3d( 0.0f, 0.0f, 0.0f ) );
+	MaMat4d NrmTransform = Transform;
+	NrmTransform.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
 	for( BcU32 i = 0; i < aVertices_.size(); ++i )
 	{
 		aVertices_[ i ].Position_ = aVertices_[ i ].Position_ * Transform;
@@ -238,11 +238,11 @@ void MdlMesh::buildNormals()
 		MdlVertex& VertB = aVertices_[ TB ];
 		MdlVertex& VertC = aVertices_[ TC ];
 
-		BcVec3d VertPosA( VertA.Position_.x(), VertA.Position_.y(), VertA.Position_.z() );
-		BcVec3d VertPosB( VertB.Position_.x(), VertB.Position_.y(), VertB.Position_.z() );
-		BcVec3d VertPosC( VertC.Position_.x(), VertC.Position_.y(), VertC.Position_.z() );
+		MaVec3d VertPosA( VertA.Position_.x(), VertA.Position_.y(), VertA.Position_.z() );
+		MaVec3d VertPosB( VertB.Position_.x(), VertB.Position_.y(), VertB.Position_.z() );
+		MaVec3d VertPosC( VertC.Position_.x(), VertC.Position_.y(), VertC.Position_.z() );
 
-		BcVec3d Normal = ( VertPosA - VertPosB ).cross( ( VertPosB - VertPosC ) );
+		MaVec3d Normal = ( VertPosA - VertPosB ).cross( ( VertPosB - VertPosC ) );
 
 		VertA.Normal_ += Normal;
 		VertB.Normal_ += Normal;
@@ -264,10 +264,10 @@ void MdlMesh::buildNormals()
 // buildTangents
 void MdlMesh::buildTangents()
 {
-	BcVec3d* pTan1 = new BcVec3d[ aVertices_.size() * 2 ];
-	BcVec3d* pTan2 = pTan1 + aVertices_.size();
+	MaVec3d* pTan1 = new MaVec3d[ aVertices_.size() * 2 ];
+	MaVec3d* pTan2 = pTan1 + aVertices_.size();
 
-	memset( pTan1, 0, sizeof( BcVec3d ) * aVertices_.size() * 2 );
+	memset( pTan1, 0, sizeof( MaVec3d ) * aVertices_.size() * 2 );
 
 	for ( BcU32 i = 0; i < ( aIndices_.size() / 3 ); ++i )
 	{
@@ -279,13 +279,13 @@ void MdlMesh::buildTangents()
 		MdlVertex& VertB = aVertices_[ TB ];
 		MdlVertex& VertC = aVertices_[ TC ];
 
-		BcVec3d VertPosA = VertA.Position_;
-		BcVec3d VertPosB = VertB.Position_;
-		BcVec3d VertPosC = VertC.Position_;
+		MaVec3d VertPosA = VertA.Position_;
+		MaVec3d VertPosB = VertB.Position_;
+		MaVec3d VertPosC = VertC.Position_;
 
-		BcVec2d VertUVA = VertA.UV_;
-		BcVec2d VertUVB = VertB.UV_;
-		BcVec2d VertUVC = VertC.UV_;
+		MaVec2d VertUVA = VertA.UV_;
+		MaVec2d VertUVB = VertB.UV_;
+		MaVec2d VertUVC = VertC.UV_;
 
 		BcF32 X1 = VertPosB.x() - VertPosA.x();
 		BcF32 X2 = VertPosC.x() - VertPosA.x();
@@ -308,8 +308,8 @@ void MdlMesh::buildTangents()
 			R = 0.0f;
 		}
 
-		BcVec3d SDir( ( T2 * X1 - T1 * X2 ) * R, ( T2 * Y1 - T1 * Y2 ) * R, ( T2 * Z1 - T1 * Z2 ) * R );
-		BcVec3d TDir( ( S1 * X2 - S2 * X1 ) * R, ( S1 * Y2 - S2 * Y1 ) * R, ( S1 * Z2 - S2 * Z1 ) * R );
+		MaVec3d SDir( ( T2 * X1 - T1 * X2 ) * R, ( T2 * Y1 - T1 * Y2 ) * R, ( T2 * Z1 - T1 * Z2 ) * R );
+		MaVec3d TDir( ( S1 * X2 - S2 * X1 ) * R, ( S1 * Y2 - S2 * Y1 ) * R, ( S1 * Z2 - S2 * Z1 ) * R );
 
 		pTan1[ TA ] += SDir;
 		pTan1[ TB ] += SDir;
@@ -323,10 +323,10 @@ void MdlMesh::buildTangents()
 	for ( BcU32 i = 0; i < aVertices_.size(); ++i )
 	{
 		MdlVertex& Vert = aVertices_[ i ];
-		BcVec3d Tangent;
+		MaVec3d Tangent;
 
-		const BcVec3d N = Vert.Normal_;
-		const BcVec3d& T = pTan1[ i ];
+		const MaVec3d N = Vert.Normal_;
+		const MaVec3d& T = pTan1[ i ];
 
 		Tangent = ( T - N * N.dot( T ) );
 		Tangent.normalise();
@@ -367,9 +367,9 @@ void MdlMesh::flipIndices()
 
 //////////////////////////////////////////////////////////////////////////
 // findAABB
-BcAABB MdlMesh::findAABB() const
+MaAABB MdlMesh::findAABB() const
 {
-	BcAABB MeshBounds;
+	MaAABB MeshBounds;
 
 	for( BcU32 VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
 	{

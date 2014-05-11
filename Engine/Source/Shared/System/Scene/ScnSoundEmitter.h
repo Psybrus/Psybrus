@@ -58,7 +58,7 @@ private:
 
 	TChannelSoundMap					ChannelSoundMap_;
 
-	BcVec3d								Position_;
+	MaVec3d								Position_;
 	BcF32								Gain_;
 	BcF32								Pitch_;
 };

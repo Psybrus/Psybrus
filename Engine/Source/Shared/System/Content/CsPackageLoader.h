@@ -79,7 +79,7 @@ private:
 	BcBool							IsStringTableReady_;
 	BcBool							IsDataLoaded_;
 	BcBool							IsDataReady_;
-	BcAtomicU32						PendingCallbackCount_;
+	std::atomic< BcU32 >			PendingCallbackCount_;
 	
 	std::vector< ReObjectRef< CsResource > >	Resources_;
 	std::vector< CsPackage* >		PackageDependencies_;

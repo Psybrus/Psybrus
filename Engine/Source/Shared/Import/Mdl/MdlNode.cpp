@@ -129,13 +129,13 @@ BcBool MdlNode::parentNode( MdlNode* pNode, const BcChar* ParentName )
 
 //////////////////////////////////////////////////////////////////////////
 // makeRelativeTransform
-void MdlNode::makeRelativeTransform( const BcMat4d& ParentAbsolute )
+void MdlNode::makeRelativeTransform( const MaMat4d& ParentAbsolute )
 {
 	// Parent another node to this tree.
 	MdlNode* pNextNode = pChild_;
 
 	//
-	BcMat4d InverseParent = ParentAbsolute;
+	MaMat4d InverseParent = ParentAbsolute;
 	InverseParent.inverse();
 
 	RelativeTransform_ = AbsoluteTransform_ * InverseParent;
@@ -150,13 +150,13 @@ void MdlNode::makeRelativeTransform( const BcMat4d& ParentAbsolute )
 
 //////////////////////////////////////////////////////////////////////////
 // makeAbsoluteTransform
-void MdlNode::makeAbsoluteTransform( const BcMat4d& ParentAbsolute )
+void MdlNode::makeAbsoluteTransform( const MaMat4d& ParentAbsolute )
 {
 	// Parent another node to this tree.
 	MdlNode* pNextNode = pChild_;
 
 	//
-	BcMat4d InverseParent = ParentAbsolute;
+	MaMat4d InverseParent = ParentAbsolute;
 	InverseParent.inverse();
 
 	AbsoluteTransform_ = ParentAbsolute * RelativeTransform_;
@@ -171,7 +171,7 @@ void MdlNode::makeAbsoluteTransform( const BcMat4d& ParentAbsolute )
 
 //////////////////////////////////////////////////////////////////////////
 // flipTransform
-void MdlNode::flipTransform( BcMat4d& Transform )
+void MdlNode::flipTransform( MaMat4d& Transform )
 {
 	Transform.transpose();
 	Transform[0][2] = -Transform[0][2];

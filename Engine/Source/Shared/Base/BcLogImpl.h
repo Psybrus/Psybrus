@@ -15,7 +15,7 @@
 #define __BcLogImpl_H__
 
 #include "Base/BcLog.h"
-#include "Base/BcMutex.h"
+#include <mutex>
 #include "Base/BcGlobal.h"
 #include <list>
 #include <vector>
@@ -79,7 +79,7 @@ private:
 private:
 	typedef std::map< BcU32, BcBool > TSuppressionMap;
 
-	mutable BcMutex Lock_;
+	mutable std::mutex Lock_;
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
 	BcChar TextBuffer_[ 1024 * 64 ];

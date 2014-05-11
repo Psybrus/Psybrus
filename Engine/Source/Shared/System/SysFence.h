@@ -14,7 +14,9 @@
 #ifndef __SYSFENCE_H__
 #define __SYSFENCE_H__
 
-#include "Base/BcAtomic.h"
+#include "Base/BcTypes.h"
+
+#include <atomic>
 
 ////////////////////////////////////////////////////////////////////////////////
 // SysFence
@@ -51,7 +53,7 @@ public:
 	void wait( BcU32 Value = 0 ) const;
 
 private:
-	BcAtomic< BcU32 > Count_;
+	std::atomic< BcU32 > Count_;
 
 };
 

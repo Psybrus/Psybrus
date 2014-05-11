@@ -15,8 +15,8 @@
 #define __DSCORE_H__
 
 #include "Base/BcGlobal.h"
-#include "Base/BcMutex.h"
-#include "Base/BcScopedLock.h"
+#include <mutex>
+
 #include "Base/BcHtml.h"
 #include "Base/BcRegex.h"
 #include "System/SysSystem.h"
@@ -24,10 +24,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
 
-#include <mongoose.h>
 #include <functional>
 #include <map>
-#include <boost/lexical_cast.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 /**	\struct DsCoreMessage
@@ -115,8 +113,7 @@ public:
 	void						deregisterFunction(std::string Display);
 
 private:
-	mg_context*					pContext_;
-	BcMutex						Lock_;
+	std::mutex						Lock_;
 	SysFence					GameThreadWaitFence_;
 protected:
 	std::vector<DsPageDefinition>	PageFunctions_;

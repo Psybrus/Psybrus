@@ -15,12 +15,6 @@
 #define __BCENDIAN_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec2d.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcVec4d.h"
-#include "Base/BcMat3d.h"
-#include "Base/BcMat4d.h"
-#include "Base/BcQuat.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Utility
@@ -42,50 +36,6 @@ BcForceInline BcF32 BcFlipEndian( BcF32 Value )
 	const BcU8* pValue = (const BcU8*)&Value;
 	BcU32 ConvertedValue = pValue[ 0 ] << 24 | pValue[ 1 ] << 16 | pValue[ 2 ] << 8 | pValue[ 3 ];
 	return ( *( (BcF32*)&ConvertedValue ) );
-}
-
-BcInline BcVec2d BcFlipEndian( const BcVec2d& Value )
-{
-	return BcVec2d( BcFlipEndian( Value.x() ),
-	                BcFlipEndian( Value.y() ) );
-}
-
-BcInline BcVec3d BcFlipEndian( const BcVec3d& Value )
-{
-	return BcVec3d( BcFlipEndian( Value.x() ),
-	                BcFlipEndian( Value.y() ),
-	                BcFlipEndian( Value.z() ) );
-}
-
-BcInline BcVec4d BcFlipEndian( const BcVec4d& Value )
-{
-	return BcVec4d( BcFlipEndian( Value.x() ),
-	                BcFlipEndian( Value.y() ),
-	                BcFlipEndian( Value.z() ),
-	                BcFlipEndian( Value.w() ) );
-}
-
-BcInline BcQuat BcFlipEndian( const BcQuat& Value )
-{
-	return BcQuat( BcFlipEndian( Value.x() ),
-	               BcFlipEndian( Value.y() ),
-	               BcFlipEndian( Value.z() ),
-	               BcFlipEndian( Value.w() ) );
-}
-
-BcInline BcMat3d BcFlipEndian( const BcMat3d& Value )
-{
-	return BcMat3d( BcFlipEndian( Value.row0() ),
-	                BcFlipEndian( Value.row1() ),
-	                BcFlipEndian( Value.row2() ) );
-}
-
-BcInline BcMat4d BcFlipEndian( const BcMat4d& Value )
-{
-	return BcMat4d( BcFlipEndian( Value.row0() ),
-	                BcFlipEndian( Value.row1() ),
-	                BcFlipEndian( Value.row2() ),
-	                BcFlipEndian( Value.row3() ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,17 +87,5 @@ BcInline BcEndianValue< _Ty >::operator _Ty() const
 {
 	return BcBigEndian( Value_ );
 }
-
-//////////////////////////////////////////////////////////////////////////
-// Typedefs
-typedef BcEndianValue< BcU16 >		BcEndianU16;
-typedef BcEndianValue< BcU32 >		BcEndianU32;
-typedef BcEndianValue< BcF32 >		BcEndianReal;
-typedef BcEndianValue< BcVec2d >	BcEndianVec2d;
-typedef BcEndianValue< BcVec3d >	BcEndianVec3d;
-typedef BcEndianValue< BcVec4d >	BcEndianVec4d;
-typedef BcEndianValue< BcQuat >		BcEndianQuat;
-typedef BcEndianValue< BcMat3d >	BcEndianMat3d;
-typedef BcEndianValue< BcMat4d >	BcEndianMat4d;
 
 #endif

@@ -36,7 +36,7 @@ void ScnAnimationComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2050 ) );
+		.addAttribute( new ScnComponentAttribute( -2050 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -187,7 +187,7 @@ void ScnAnimationComponent::applyPose()
 {
 	const ScnAnimationPose& WorkingPose( pRootTreeNode_->getWorkingPose() );
 	const BcU32 NoofNodes = Model_->getNoofNodes();
-	BcMat4d Matrix;
+	MaMat4d Matrix;
 	for( BcU32 Idx = 1; Idx < NoofNodes; ++Idx )
 	{
 		const ScnAnimationTransform& Transform( WorkingPose.getTransform( Idx - 1 ) );

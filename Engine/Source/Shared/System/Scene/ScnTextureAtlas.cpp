@@ -127,7 +127,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			// Setup header.
 			ScnTextureAtlasHeader Header = 
 			{
-				ImageList.size()
+				(BcU32)ImageList.size()
 			};
 			
 			HeaderStream << Header;

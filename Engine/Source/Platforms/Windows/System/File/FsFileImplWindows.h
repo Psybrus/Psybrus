@@ -15,7 +15,7 @@
 #define __FSFILEIMPLWindows_H__
 
 #include "System/File/FsCore.h"
-#include "Base/BcAtomic.h"
+#include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
 // FsFileImplWindows

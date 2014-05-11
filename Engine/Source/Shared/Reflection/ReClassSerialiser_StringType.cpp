@@ -65,7 +65,7 @@ BcBool ReClassSerialiser_StringType::serialiseFromBinary( void* pInstance, const
 	BcU32 Length = 0;
 	Serialiser >> Length;
 	Value.reserve( Length );
-	for( size_t Idx = 0; Idx < Value.length(); ++Idx )
+	for( size_t Idx = 0; Idx < Length; ++Idx )
 	{
 		char Char = 0;
 		Serialiser >> Char;

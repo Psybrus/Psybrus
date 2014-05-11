@@ -26,7 +26,7 @@
 class ScnLightingVisitorLightSort
 {
 public:
-	ScnLightingVisitorLightSort( const BcVec3d& Position ):
+	ScnLightingVisitorLightSort( const MaVec3d& Position ):
 		Position_( Position )
 	{
 	}
@@ -41,7 +41,7 @@ public:
 	}
 
 private:
-	BcVec3d Position_;
+	MaVec3d Position_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,8 +89,8 @@ void ScnLightingVisitor::setMaterialParameters( class ScnMaterialComponent* Mate
 	for( BcU32 Idx = Count; Idx < 4; ++Idx )
 	{
 		MaterialComponent->setLightParameters( Idx,
-	                                           BcVec3d( 0.0f, 0.0f, 0.0f ),
-	                                           BcVec3d( 0.0f, 0.0f, 0.0f ),
+	                                           MaVec3d( 0.0f, 0.0f, 0.0f ),
+	                                           MaVec3d( 0.0f, 0.0f, 0.0f ),
 	                                           RsColour::BLACK,
 	                                           RsColour::BLACK,
 	                                           0.0f,

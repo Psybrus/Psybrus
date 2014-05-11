@@ -15,6 +15,58 @@
 
 #include "Base/BcMath.h"
 
+#include <boost/format.hpp>
+
+void RsColour::StaticRegisterClass()
+{
+	class RsColourSerialiser:
+		public ReClassSerialiser_ComplexType< RsColour >
+	{
+	public:
+		RsColourSerialiser( BcName Name ): 
+			ReClassSerialiser_ComplexType< RsColour >( Name )
+		{}
+
+		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
+		{
+			const RsColour& Vec = *reinterpret_cast< const RsColour* >( pInstance );
+			OutString = boost::str( boost::format( "%1%, %2%, %3%, %4%" ) % Vec.x() % Vec.y() % Vec.z() % Vec.w() );
+			return true;
+		}
+
+		virtual BcBool serialiseFromString( void* pInstance, const std::string& InString ) const
+		{
+			RsColour& Vec = *reinterpret_cast< RsColour* >( pInstance );
+			Vec = RsColour( InString.c_str() );
+			return true;
+		}
+
+		virtual BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+		{
+			const RsColour& Vec = *reinterpret_cast< const RsColour* >( pInstance );
+			Serialiser << Vec;
+			return true;
+		}
+
+		virtual BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+		{
+			RsColour& Vec = *reinterpret_cast< RsColour* >( pInstance );
+			Serialiser >> Vec;
+			return true;
+		}
+
+		virtual BcBool copy( void* pDst, void* pSrc ) const
+		{
+			RsColour& Dst = *reinterpret_cast< RsColour* >( pDst );
+			RsColour& Src = *reinterpret_cast< RsColour* >( pSrc );
+			Dst = Src;
+			return true;
+		}
+	};
+
+	ReRegisterClass< RsColour >( new RsColourSerialiser( "class RsColour" ) );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // RsColour Statics
 const RsColour RsColour::WHITE =		RsColour( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -32,13 +84,13 @@ RsColour::RsColour()
 {
 }
 
-RsColour::RsColour( const BcVec4d& Vec ):
-	BcVec4d( Vec )
+RsColour::RsColour( const MaVec4d& Vec ):
+	MaVec4d( Vec )
 {
 }
 
 RsColour::RsColour( BcU32 RGBA ):
-	BcVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
+	MaVec4d( ( ( RGBA ) & 0xff ) / 255.0f,
 				( ( RGBA >> 8 ) & 0xff ) / 255.0f,
 				( ( RGBA >> 16 ) & 0xff ) / 255.0f,
 				( ( RGBA >> 24 ) & 0xff ) / 255.0f )
@@ -47,7 +99,7 @@ RsColour::RsColour( BcU32 RGBA ):
 }
 
 RsColour::RsColour( BcF32 R, BcF32 G, BcF32 B, BcF32 A ):
-	BcVec4d( R, G, B, A )
+	MaVec4d( R, G, B, A )
 {
 }
 

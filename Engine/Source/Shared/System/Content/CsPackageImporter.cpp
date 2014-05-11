@@ -159,10 +159,10 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		Header_.Version_ = CsPackageHeader::VERSION;
 		Header_.Flags_ = csPF_DEFAULT; // TODO: Flags.
 		Header_.StringTableBytes_ = StringTableStream.dataSize();
-		Header_.TotalPackageCrossRefs_ = PackageCrossRefList_.size();
-		Header_.TotalPackageDependencies_ = PackageDependencyList_.size();
-		Header_.TotalResources_ = ResourceHeaders_.size();
-		Header_.TotalChunks_ = ChunkHeaders_.size();
+		Header_.TotalPackageCrossRefs_ = (BcU32)PackageCrossRefList_.size();
+		Header_.TotalPackageDependencies_ = (BcU32)PackageDependencyList_.size();
+		Header_.TotalResources_ = (BcU32)ResourceHeaders_.size();
+		Header_.TotalChunks_ = (BcU32)ChunkHeaders_.size();
 		Header_.TotalAllocSize_ = 0;
 		Header_.MinAlignment_ = 16;		// TODO: Platform specific.
 		Header_.MaxAlignment_ = 4096;	// TODO: Platform specific.
@@ -480,7 +480,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 
 //////////////////////////////////////////////////////////////////////////
 // addChunk
-BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment, BcU32 Flags )
+BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment, BcU32 Flags )
 {
 	BcAssert( Size > 0 );
 	BcAssert( BcPot( RequiredAlignment ) );

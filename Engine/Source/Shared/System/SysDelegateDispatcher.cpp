@@ -13,7 +13,7 @@
 
 #include "System/SysDelegateDispatcher.h"
 
-#include "Base/BcScopedLock.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -33,7 +33,7 @@ SysDelegateDispatcher::~SysDelegateDispatcher()
 // enqueueDelegateCall
 void SysDelegateDispatcher::enqueueDelegateCall( BcDelegateCallBase* pDelegateCall )
 {
-	BcScopedLock< BcMutex > Lock( DelegateCallListLock_ );
+	std::lock_guard< std::mutex > Lock( DelegateCallListLock_ );
 	DelegateCallList_.push_back( pDelegateCall );
 }
 
