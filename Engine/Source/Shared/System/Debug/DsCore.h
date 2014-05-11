@@ -104,16 +104,17 @@ public:
 
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
-	BcU8*						writeFile(std::string filename, int& OutLength, std::string& type);
+	char*						writeFile(std::string filename, int& OutLength, std::string& type);
 	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn, std::string display);
 	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&)> fn);
 	void						deregisterPage(std::string regex);
 
 	void						registerFunction(std::string Display, std::function<void()> Function);
 	void						deregisterFunction(std::string Display);
-
+	char*						handleFile(std::string Uri, int& FileSize);
+	std::string					loadHtmlFile(std::string Uri);
 private:
-	std::mutex						Lock_;
+//	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
 protected:
 	std::vector<DsPageDefinition>	PageFunctions_;
