@@ -12,9 +12,9 @@
 **************************************************************************/
 
 #include "Base/BcMemory.h"
-#include "Base/BcAtomic.h"
-#include "Base/BcMutex.h"
-#include "Base/BcScopedLock.h"
+#include <atomic>
+#include <mutex>
+
 
 #if PLATFORM_WINDOWS
 #include <windows.h>
@@ -109,6 +109,17 @@ void printBacktrace()
 }
 #endif
 
+#if COMPILER_MSVC && 0
+void* operator _concrt_new( size_t Size )
+{
+	void* pMem = BcMemAlign( Size, 16 );
+	return pMem;
+}
+
+#endif
+
+#if 0
+
 void* operator new( size_t Size )
 {
 	void* pMem = BcMemAlign( Size, 16 );
@@ -130,6 +141,8 @@ void operator delete[]( void* pMem ) throw()
 {
 	BcMemFree( pMem );
 }
+
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // BcMemAlign

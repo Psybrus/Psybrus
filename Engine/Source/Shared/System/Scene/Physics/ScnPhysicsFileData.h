@@ -15,7 +15,7 @@
 #define __SCNPHYSICSFILEDATA__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec3d.h"
+#include "Math/MaVec3d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsCollisionShapeHeader
@@ -29,7 +29,7 @@ struct ScnPhysicsCollisionShapeHeader
 struct ScnPhysicsBoxCollisionShapeHeader:
 	public ScnPhysicsCollisionShapeHeader
 {
-	BcVec3d HalfExtents_;
+	MaVec3d HalfExtents_;
 };
 
 //////////////////////////////////////////////////////////////////////////

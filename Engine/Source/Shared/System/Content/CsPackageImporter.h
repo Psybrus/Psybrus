@@ -42,7 +42,7 @@ public:
 	BcU32							addImport( const Json::Value& Resource );
 	BcU32							addString( const BcChar* pString );
 	BcU32							addPackageCrossRef( const BcChar* pFullName );
-	BcU32							addChunk( BcU32 ID, const void* pData, BcU32 Size, BcU32 RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
+	BcU32							addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
 	void							addDependency( const BcChar* pFileName );
 	void							addAllPackageCrossRefs( Json::Value& Root );
 	

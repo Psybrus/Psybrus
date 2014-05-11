@@ -17,11 +17,11 @@
 #include "Base/BcGlobal.h"
 #include "Base/BcName.h"
 #include "Base/BcTimer.h"
-#include "Base/BcThread.h"
 #include "System/SysSystem.h"
 #include "System/SysJobQueue.h"
 #include "System/SysDelegateDispatcher.h"
 
+#include <thread>
 #include <list>
 #include <map>
 #include <string>
@@ -33,8 +33,7 @@ extern std::string SysArgs_;
 //////////////////////////////////////////////////////////////////////////
 // SysKernel
 class SysKernel:
-	public BcGlobal< SysKernel >,
-	public BcThread
+	public BcGlobal< SysKernel >
 {
 public:
 	static BcU32 SYSTEM_WORKER_MASK;
@@ -195,6 +194,8 @@ private:
 	typedef TSystemList::reverse_iterator TSystemListReverseIterator;
 	typedef std::map< BcName, SysSystemCreator > TSystemCreatorMap;
 	typedef TSystemCreatorMap::iterator TSystemCreatorMapIterator;
+
+	std::thread					ExecutionThread_;
 	
 	TSystemCreatorMap			SystemCreatorMap_;
 	TSystemList					PendingAddSystemList_;
@@ -202,7 +203,7 @@ private:
 	TSystemList					SystemList_;
 	BcBool						ShuttingDown_;
 	
-	BcMutex						SystemLock_;
+	std::recursive_mutex		SystemLock_;
 	BcBool						IsThreaded_;
 	
 	BcTimer						MainTimer_;

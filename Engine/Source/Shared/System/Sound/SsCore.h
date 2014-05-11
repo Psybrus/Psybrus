@@ -47,7 +47,7 @@ public:
 	virtual SsChannel* play( SsSample* Sample, SsChannelCallback* Callback = NULL ) = 0;
 	virtual SsChannel* queue( SsSample* Sample, SsChannelCallback* Callback = NULL ) = 0;
 	virtual void unregister( SsChannelCallback* Callback = NULL ) = 0;
-	virtual void setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up ) = 0;
+	virtual void setListener( const MaVec3d& Position, const MaVec3d& LookAt, const MaVec3d& Up ) = 0;
 
 public: //NEILO HACK.
 	virtual void setEnvironment( const SsEnvironment& Environment ) = 0;

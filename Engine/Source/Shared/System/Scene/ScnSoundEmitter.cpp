@@ -49,7 +49,7 @@ void ScnSoundEmitterComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
 
-	Position_ = BcVec3d( 0.0f, 0.0f, 0.0f );
+	Position_ = MaVec3d( 0.0f, 0.0f, 0.0f );
 	Gain_ = 1.0f;
 	Pitch_ = 1.0f;	
 }

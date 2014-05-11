@@ -15,9 +15,9 @@
 #define __SCNANIMATIONTRANSFORM_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcQuat.h"
-#include "Base/BcMat4d.h"
+#include "Math/MaVec3d.h"
+#include "Math/MaQuat.h"
+#include "Math/MaMat4d.h"
 #include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,17 +40,17 @@ public:
 	/**
 	 * Get matrix from this transform.
 	 */
-	void						toMatrix( BcMat4d& Matrix ) const;
+	void						toMatrix( MaMat4d& Matrix ) const;
 
 	/**
 	 * Set from matrix.
 	 */
-	void						fromMatrix( const BcMat4d& Matrix );
+	void						fromMatrix( const MaMat4d& Matrix );
 
 public:
-	BcAlign( BcQuat 			R_, 16 );
-	BcAlign( BcVec3d 			S_, 16 );
-	BcAlign( BcVec3d 			T_, 16 );
+	BcAlign( MaQuat 			R_, 16 );
+	BcAlign( MaVec3d 			S_, 16 );
+	BcAlign( MaVec3d 			T_, 16 );
 };
 
 
@@ -65,8 +65,8 @@ BcForceInline void ScnAnimationTransform::blend( const ScnAnimationTransform& A,
 
 BcForceInline void ScnAnimationTransform::add( const ScnAnimationTransform& Reference, const ScnAnimationTransform& A, const ScnAnimationTransform& B, BcF32 T )
 {
-	BcQuat RotQuat;
-	RotQuat.slerp( BcQuat(), ( ~Reference.R_ ) * B.R_, T );
+	MaQuat RotQuat;
+	RotQuat.slerp( MaQuat(), ( ~Reference.R_ ) * B.R_, T );
 	R_ = A.R_ * RotQuat;
 	S_ = A.S_ + ( B.S_ - Reference.S_ ) * T;
 	T_ = A.T_ + ( B.T_ - Reference.T_ ) * T;

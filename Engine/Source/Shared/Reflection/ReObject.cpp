@@ -17,10 +17,15 @@ void ReObject::StaticRegisterClass()
 		ReField( "Owner_",				&ReObject::Owner_ ),
 		ReField( "Basis_",				&ReObject::Basis_ ),
 		ReField( "Name_",				&ReObject::Name_ ),
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+		ReField( "UniqueId_",			&ReObject::UniqueId_ ),
+#endif
 	};
 		
 	ReRegisterClass< ReObject >( Fields );
 }
+
+std::atomic< BcU32 > ReObject::UniqueIdCounter_ = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -50,7 +55,7 @@ ReObject::~ReObject()
 	// Handle destruction notification.
 	if( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion )
 	{
-		BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
+		std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 		auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
 
 		// If we find an entry, move list out, erase entry, and call all notifiers.
@@ -74,10 +79,10 @@ void ReObject::setName( BcName Name )
 {
 	Name_ = Name;
 }
-	
+
 //////////////////////////////////////////////////////////////////////////
 // getName
-BcName ReObject::getName() const
+const BcName& ReObject::getName() const
 {
 	return Name_;
 }
@@ -103,7 +108,7 @@ void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 	// Add notifier flag so it knows to notify.
 	Flags_ |= (BcU32)ReObject::Flags::NotifyOnDeletion;
 
-	BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
 
 	// If we find an entry, move list out, erase entry, and call all notifiers.
@@ -124,7 +129,7 @@ void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 {
 	BcAssertMsg( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion, "Can't remove notifier from object that is flagged to not notify!" );
 
-	BcScopedLock< BcMutex > Lock( ObjectNotifyMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
 
 	BcAssertMsg( ObjectNotifyListIt != ObjectNotifyMap_.end(), "Can't remove notifier from object without a notification list." );
@@ -133,10 +138,65 @@ void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getOwner
+ReObject* ReObject::getOwner() const
+{
+	return Owner_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setOwner
+void ReObject::setOwner( ReObject* Owner )
+{
+		Owner_ = Owner;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRootOwner
+ReObject* ReObject::getRootOwner() const
+{
+    ReObject* Owner = Owner_;
+	while( Owner != nullptr &&
+	       Owner->Owner_ != nullptr &&
+		   Owner != Owner->Owner_ )
+	{
+		Owner = Owner->Owner_;
+	}
+	return Owner;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRootOwner
+void ReObject::setRootOwner( ReObject* RootOwner )
+{
+    ReObject* Owner = this;
+
+	for(;;)
+	{
+		if( Owner->Owner_ == nullptr || Owner == Owner->Owner_ )
+		{
+			Owner->Owner_ = RootOwner;
+			return;
+		}
+		else
+		{
+			Owner = Owner->Owner_;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBasis
+ReObject* ReObject::getBasis() const
+{
+	return Basis_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Statics
-BcMutex ReObject::ObjectListMutex_;
+std::mutex ReObject::ObjectListMutex_;
 ReObject::ObjectList ReObject::ObjectList_;
-BcMutex ReObject::ObjectNotifyMutex_;
+std::mutex ReObject::ObjectNotifyMutex_;
 ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,8 +204,12 @@ ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 //static
 void ReObject::StaticAdd( ReObject* Object )
 {
-	BcScopedLock< BcMutex > Lock( ObjectListMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
 	ObjectList_.push_back( Object );
+
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+	Object->UniqueId_ = UniqueIdCounter_++;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,10 +217,23 @@ void ReObject::StaticAdd( ReObject* Object )
 //static
 void ReObject::StaticRemove( ReObject* Object )
 {
-	BcScopedLock< BcMutex > Lock( ObjectListMutex_ );
+	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
 	ObjectList_.remove( Object );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// StaticRemove
+//static
+ReObject* ReObject::StaticFindByUniqueId( BcU32 UniqueId )
+{
+	std::lock_guard< std::mutex > Lock( ObjectListMutex_ );
+	auto Object = std::find_if( ObjectList_.begin(), ObjectList_.end(), 
+		[ UniqueId ]( ReObject* Object )
+		{
+			return Object->getUniqueId() == UniqueId;
+		});
+	return Object != ObjectList_.end() ? *Object : nullptr;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // StaticCollectGarbage

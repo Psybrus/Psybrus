@@ -78,7 +78,7 @@
  */
 #define REFLECTION_DECLARE_BASIC( _Type )										\
 	__REFLECTION_DECLARE_BASIC( _Type )											\
-	_Type( NoInit ){};
+	_Type( ReNoInit ){};
 
 /**
  * @brief Define basic type.

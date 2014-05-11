@@ -36,13 +36,13 @@ struct ScnParticleVertex
 // ScnParticle
 struct ScnParticle					// TODO: Factor our into affectors so we can store minimum amount.
 {
-	BcVec3d Position_;				// Position.
-	BcVec3d Velocity_;				// Velocity.
-	BcVec3d Acceleration_;			// Acceleration.
+	MaVec3d Position_;				// Position.
+	MaVec3d Velocity_;				// Velocity.
+	MaVec3d Acceleration_;			// Acceleration.
 
-	BcVec2d Scale_;					// Scale.
-	BcVec2d MinScale_;				// Min scale. (time based)
-	BcVec2d MaxScale_;				// Max scale. (time based)
+	MaVec2d Scale_;					// Scale.
+	MaVec2d MinScale_;				// Min scale. (time based)
+	MaVec2d MaxScale_;				// Max scale. (time based)
 
 	BcF32 Rotation_;
 	BcF32 RotationMultiplier_;		// Rotation mult.
@@ -70,7 +70,7 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 
-	virtual BcAABB						getAABB() const;
+	virtual MaAABB						getAABB() const;
 
 	virtual void						postUpdate( BcF32 Tick );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
@@ -110,11 +110,11 @@ private:
 	BcBool								IsLocalSpace_;
 
 	// UV bounds.
-	std::vector< BcVec4d >				UVBounds_;
+	std::vector< MaVec4d >				UVBounds_;
 
 	SysFence							UpdateFence_;
 
-	BcAABB								AABB_;
+	MaAABB								AABB_;
 };
 
 #endif

@@ -2,10 +2,13 @@
 
 #include "Reflection/ReClass.h"
 #include "Reflection/ReClassSerialiser_BasicType.h"
+#include "Reflection/ReClassSerialiser_NameType.h"
 #include "Reflection/ReClassSerialiser_StringType.h"
 #include "Reflection/ReClassSerialiser_BinaryDataType.h"
 #include "Reflection/ReEnum.h"
 #include "Reflection/ReEnumConstant.h"
+
+#include "Base/BcMisc.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
@@ -68,6 +71,7 @@ struct Factory
         ReType* FoundType = GetType( Name );
 		if( FoundType == nullptr )
 		{
+			BcAssertMsg( BcIsGameThread(), "Reflection can only modify database on the game thread." );
 			FoundType = new ReClass( Name );
 			Types_[ Name ] = FoundType;
 		}
@@ -104,6 +108,7 @@ struct Factory
         ReType* FoundType = GetType( Name );
 		if( FoundType == nullptr )
 		{
+			BcAssertMsg( BcIsGameThread(), "Reflection can only modify database on the game thread." );
 			FoundType = new ReEnum( Name );
 			Types_[ Name ] = FoundType;
 		}
@@ -147,8 +152,11 @@ void ReManager::Init()
 	GetClass( "BcF64" )->setType< BcF64 >( new ReClassSerialiser_BasicType< BcF64 >( "BcF64" ) );
 	GetClass( "BcBool" )->setType< BcBool >( new ReClassSerialiser_BasicType< BcBool >( "BcBool" ) );
 	GetClass( "string" )->setType< std::string >( new ReClassSerialiser_StringType( "string" ) );
+	GetClass( "class BcName" )->setType< BcName >( new ReClassSerialiser_NameType( "class BcName" ) );
 	GetClass( "class BcBinaryData" )->setType< BcBinaryData >( new ReClassSerialiser_BinaryDataType( "class BcBinaryData" ) );
 
+	ReAttribute::StaticRegisterClass();
+	ReAttributable::StaticRegisterClass();
     RePrimitive::StaticRegisterClass();
     ReType::StaticRegisterClass();
 	ReClass::StaticRegisterClass();

@@ -555,29 +555,29 @@ void invert_affine(AffineParts *parts, AffineParts *inverse)
 
 //////////////////////////////////////////////////////////////////////////
 // fromMatrix
-void ScnAnimationTransform::toMatrix( BcMat4d& Matrix ) const
+void ScnAnimationTransform::toMatrix( MaMat4d& Matrix ) const
 {
 	R_.asMatrix4d( Matrix );
 	Matrix.translation( T_ );
-	BcMat4d Scale;
+	MaMat4d Scale;
 	Scale.scale( S_ );
 	Matrix = Scale * Matrix;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fromMatrix
-void ScnAnimationTransform::fromMatrix( const BcMat4d& Matrix )
+void ScnAnimationTransform::fromMatrix( const MaMat4d& Matrix )
 {
-	BcMat4d T = Matrix.transposed();
+	MaMat4d T = Matrix.transposed();
 	HMatrix& M = reinterpret_cast< HMatrix& >( T );
 	AffineParts Affine;
 	KSDecompose::decomp_affine( M, &Affine );
-	R_ = BcQuat( Affine.q.x, Affine.q.y, Affine.q.z, Affine.q.w );
-	S_ = BcVec3d( Affine.k.x, Affine.k.y, Affine.k.z );
-	T_ = BcVec3d( Affine.t.x, Affine.t.y, Affine.t.z );
+	R_ = MaQuat( Affine.q.x, Affine.q.y, Affine.q.z, Affine.q.w );
+	S_ = MaVec3d( Affine.k.x, Affine.k.y, Affine.k.z );
+	T_ = MaVec3d( Affine.t.x, Affine.t.y, Affine.t.z );
 
 #if PSY_DEBUG & 0 // NOTE: This can reproduce a different, but valid transform. It's just a rough check.
-	BcMat4d T2;
+	MaMat4d T2;
 	toMatrix( T2 );
 	BcAssert( T2.row0() == T.col0() );
 	BcAssert( T2.row1() == T.col1() );

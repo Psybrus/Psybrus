@@ -162,9 +162,9 @@ void SsCoreImplAL::open_threaded()
 		BcPrintf( " - Created %u channels.\n", ChannelCount_ );
 		
 		//
-		ListenerPosition_ = BcVec3d( 0.0f, 0.0f, 0.0f );
-		ListenerLookAt_ = BcVec3d( 0.0f, 0.0f, 1.0f );
-		ListenerUp_ = BcVec3d( 0.0f, 1.0f, 0.0f );
+		ListenerPosition_ = MaVec3d( 0.0f, 0.0f, 0.0f );
+		ListenerLookAt_ = MaVec3d( 0.0f, 0.0f, 1.0f );
+		ListenerUp_ = MaVec3d( 0.0f, 1.0f, 0.0f );
 
 		if( bEFXEnabled_ == BcTrue )
 		{
@@ -413,7 +413,7 @@ void SsCoreImplAL::unregister( SsChannelCallback* Callback )
 //////////////////////////////////////////////////////////////////////////
 // setListener
 //virtual
-void SsCoreImplAL::setListener( const BcVec3d& Position, const BcVec3d& LookAt, const BcVec3d& Up )
+void SsCoreImplAL::setListener( const MaVec3d& Position, const MaVec3d& LookAt, const MaVec3d& Up )
 {
 	ListenerPosition_ = Position;
 	ListenerLookAt_ = LookAt;
@@ -432,7 +432,7 @@ void SsCoreImplAL::setEnvironment( const SsEnvironment& Environment )
 // allocChannel
 SsChannelAL* SsCoreImplAL::allocChannel()
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
+	std::lock_guard< std::mutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
 
 	SsChannelAL* pChannel = NULL;
 
@@ -453,7 +453,7 @@ SsChannelAL* SsCoreImplAL::allocChannel()
 // freeChannel
 void SsCoreImplAL::freeChannel( SsChannelAL* pSound )
 {
-	BcScopedLock< BcMutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
+	std::lock_guard< std::mutex > Lock( ChannelLock_ ); // TODO: Lockless queue? Avoid this crap.
 
 	// Remove from used list.
 	for( TChannelListIterator Iter( UsedChannels_.begin() ); Iter != UsedChannels_.end(); ++Iter )

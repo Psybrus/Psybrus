@@ -16,11 +16,9 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsPackage.h"
 
-BcAtomicU32 CsResource::UniqueIdCounter_ = 0;
-
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource
-REFLECTION_DEFINE_DERIVED( CsResource, ReObject );
+REFLECTION_DEFINE_DERIVED( CsResource );
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -28,8 +26,8 @@ void CsResource::StaticRegisterClass()
 {
 	static const ReField Fields[] = 
 	{
-		ReField( "Name_",				&CsResource::Name_ ),
 		ReField( "Index_",				&CsResource::Index_ ),
+		ReField( "InitStage_",			&CsResource::InitStage_ ),
 	};
 		
 	ReRegisterClass< CsResource, Super >( Fields );
@@ -38,11 +36,8 @@ void CsResource::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsResource::CsResource():
-	Name_( BcName::INVALID ),
 	Index_( BcErrorCode ),
-	pPackage_( NULL ),
-	InitStage_( INIT_STAGE_INITIAL ),
-	UniqueId_( UniqueIdCounter_++ )
+	InitStage_( INIT_STAGE_INITIAL )
 {
 
 }
@@ -62,9 +57,9 @@ void CsResource::preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPac
 	BcAssertMsg( Name != BcName::INVALID, "Resource can not have an invalid name." );
 	BcAssertMsg( Name != BcName::NONE, "Resource can not have a none name." );
 
-	Name_ = Name;
+	setName( Name );
+	setOwner( pPackage );
 	Index_ = Index;
-	pPackage_ = pPackage;
 }
 
 #ifdef PSY_SERVER
@@ -140,23 +135,23 @@ void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // getName
-CsPackage* CsResource::getPackage()
+CsPackage* CsResource::getPackage() const
 {
-	return pPackage_;
+	CsPackage* RetVal = nullptr;
+	if( getRootOwner() != nullptr )
+	{
+		BcAssert( getOwner()->isTypeOf< CsPackage >() );
+		RetVal = static_cast< CsPackage* >( getRootOwner() );
+	}
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getName
 const BcName& CsResource::getPackageName() const
 {
-	return pPackage_ != NULL ? pPackage_->getName() : BcName::INVALID;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getName
-const BcName& CsResource::getName() const
-{
-	return Name_;
+	return getPackage() != nullptr ? getPackage()->getName() : BcName::INVALID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -226,24 +221,24 @@ void CsResource::serialiseProperties()
 					const BcBool* pData = reinterpret_cast< const BcBool* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %u\n", *pData );
 				}
-				else if( pType->getName() == "BcVec2d" )
+				else if( pType->getName() == "MaVec2d" )
 				{
-					const BcVec2d* pData = reinterpret_cast< const BcVec2d* >( &pClassData[ pField->getOffset() ] );
+					const MaVec2d* pData = reinterpret_cast< const MaVec2d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f\n", pData->x(), pData->y() );
 				}
-				else if( pType->getName() == "BcVec3d" )
+				else if( pType->getName() == "MaVec3d" )
 				{
-					const BcVec3d* pData = reinterpret_cast< const BcVec3d* >( &pClassData[ pField->getOffset() ] );
+					const MaVec3d* pData = reinterpret_cast< const MaVec3d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f, %f\n", pData->x(), pData->y(), pData->z() );
 				}
-				else if( pType->getName() == "BcVec4d" )
+				else if( pType->getName() == "MaVec4d" )
 				{
-					const BcVec4d* pData = reinterpret_cast< const BcVec4d* >( &pClassData[ pField->getOffset() ] );
+					const MaVec4d* pData = reinterpret_cast< const MaVec4d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w() );
 				}
-				else if( pType->getName() == "BcMat4d" )
+				else if( pType->getName() == "MaMat4d" )
 				{
-					const BcMat4d* pData = reinterpret_cast< const BcMat4d* >( &pClassData[ pField->getOffset() ] );
+					const MaMat4d* pData = reinterpret_cast< const MaMat4d* >( &pClassData[ pField->getOffset() ] );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w() );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->row1().x(), pData->row1().y(), pData->row1().z(), pData->row1().w() );
 					BcPrintf( " - - %f, %f, %f, %f\n", pData->row2().x(), pData->row2().y(), pData->row2().z(), pData->row2().w() );
@@ -264,23 +259,26 @@ void CsResource::serialiseProperties()
 // getString
 const BcChar* CsResource::getString( BcU32 Offset ) const
 {
-	return pPackage_->getString( Offset );
+	return getPackage()->getString( Offset );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // markupName
 void CsResource::markupName( BcName& Name ) const
 {
-	pPackage_->markupName( Name );
+	getPackage()->markupName( Name );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getChunk
 void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 {
-	if( !pPackage_->requestChunk( Index_, Chunk, pDataLocation ) )
+	if( Index_ != BcErrorCode )
 	{
-
+		if( !getPackage()->requestChunk( Index_, Chunk, pDataLocation ) )
+		{
+	
+		}
 	}
 }
 
@@ -288,14 +286,32 @@ void CsResource::requestChunk( BcU32 Chunk, void* pDataLocation )
 // getChunkSize
 BcU32 CsResource::getChunkSize( BcU32 Chunk )
 {
-	return pPackage_->getChunkSize( Index_, Chunk );
+	if( Index_ != BcErrorCode )
+	{
+		return getPackage()->getChunkSize( Index_, Chunk );
+	}
+	else
+	{
+		BcPrintf( "WARNING: Attempting to get chunk size where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
+	}
+
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofChunks
 BcU32 CsResource::getNoofChunks() const
 {
-	return pPackage_->getNoofChunks( Index_ );
+	if( Index_ != BcErrorCode )
+	{
+		return getPackage()->getNoofChunks( Index_ );
+	}
+	else
+	{
+		BcPrintf( "WARNING: Attempting to get number of chunks where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
+	}
+
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -303,7 +319,7 @@ BcU32 CsResource::getNoofChunks() const
 void CsResource::markCreate()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_CREATE );
-	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*Name_).c_str() );
+	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*getName()).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -311,7 +327,7 @@ void CsResource::markCreate()
 void CsResource::markReady()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_READY );
-	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*Name_).c_str() );
+	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*getName()).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -319,7 +335,7 @@ void CsResource::markReady()
 void CsResource::markDestroy()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_DESTROY );
-	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*Name_).c_str() );
+	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*getName()).c_str() );
 
 	CsCore::pImpl()->destroyResource( this );
 }

@@ -19,7 +19,6 @@
 // Ctor
 SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	Active_( BcTrue ),
-	ResumeEvent_( NULL ),
 	NoofJobsQueued_( 0 ),
 	NoofWorkers_( NoofWorkers ),
 	AvailibleWorkerMask_( ( 1 << NoofWorkers ) - 1 )
@@ -28,7 +27,7 @@ SysJobQueue::SysJobQueue( BcU32 NoofWorkers ):
 	{
 		// Start our thread.
 		StartedFence_.increment();
-		BcThread::start( "SysJobQueue Main" );
+		ExecutionThread_ = std::thread( &SysJobQueue::execute, this );
 
 		// Wait on it it to complete starting.
 		StartedFence_.wait();
@@ -49,10 +48,11 @@ SysJobQueue::~SysJobQueue()
 		Active_ = BcFalse;
 		
 		// Resume thread.
-		ResumeEvent_.signal();
+		std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
+		ResumeEvent_.notify_all();
 		
 		// Now join.
-		BcThread::join();	
+		ExecutionThread_.join();
 	}
 }
 
@@ -65,7 +65,7 @@ void SysJobQueue::enqueueJob( SysJob* pJob, BcU32 WorkerMask )
 	// Check mask validity and queue if we can.
 	if( ( WorkerMask & AvailibleWorkerMask_ ) != 0 )
 	{
-		BcScopedLock< BcMutex > Lock( QueueLock_ );
+		std::lock_guard< std::mutex > Lock( QueueLock_ );
 	
 		// Setup worker mask.
 		pJob->WorkerMask_ = WorkerMask;
@@ -100,7 +100,8 @@ void SysJobQueue::flushJobs()
 // schedule
 void SysJobQueue::schedule()
 {
-	ResumeEvent_.signal();
+	std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
+	ResumeEvent_.notify_all();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,7 +147,7 @@ BcU32 SysJobQueue::getAndResetJobsExecutedForWorker( BcU32 Idx )
 // moveJobsBack
 void SysJobQueue::moveJobsBack( BcU32 WorkerMask )
 {
-	BcScopedLock< BcMutex > Lock( QueueLock_ ); // NOTE: Have a pending add queue instead of shared global one to prevent this.
+	std::lock_guard< std::mutex > Lock( QueueLock_ ); // NOTE: Have a pending add queue instead of shared global one to prevent this.
 
 	// Remove all jobs which don't fit specified worker mask, and put aside.
 	// NOTE: Doing it backwards means we only need one splice, and the fact is
@@ -191,71 +192,74 @@ void SysJobQueue::execute()
 	//
 	while( Active_ )
 	{
+		PSY_PROFILER_SECTION( SysJobQueue_BeginWait_Profile, "SysJobQueue_BeginWait" );
+
 		// Wait for resume event.
-		ResumeEvent_.wait();
-
-		// If we've got some jobs queued, enter the scheduling loop.
-		if( NoofJobsQueued_ != 0 )
 		{
-			do
+			std::unique_lock< std::mutex > ResumeLock( ResumeMutex_ );
+			ResumeEvent_.wait( ResumeLock, [ this ]{ return NoofJobsQueued_ != 0; } );
+		}
+
+		PSY_PROFILER_SECTION( SysJobQueue_EndWait_Profile, "SysJobQueue_EndWait" );
+
+		do
+		{
+			SysJob* pJob = NULL;
+
+			// Grab job at front of queue.
 			{
-				SysJob* pJob = NULL;
+				std::lock_guard< std::mutex > Lock( QueueLock_ );	
+				pJob = JobQueue_.front();
+			}
 
-				// Grab job at front of queue.
+			// Attempt to schedule.
+			BcBool HasScheduled = BcFalse;
+			BcU32 BlockedMask = 0x0; 
+			for( BcU32 Idx = 0; Idx < NoofWorkers_; ++Idx )
+			{
+				BcU32 CurrMask = ( 1 << Idx );
+				if( pJob->WorkerMask_ & CurrMask )
 				{
-					BcScopedLock< BcMutex > Lock( QueueLock_ );	
-					pJob = JobQueue_.front();
-				}
-
-				// Attempt to schedule.
-				BcBool HasScheduled = BcFalse;
-				BcU32 BlockedMask = 0x0; 
-				for( BcU32 Idx = 0; Idx < NoofWorkers_; ++Idx )
-				{
-					BcU32 CurrMask = ( 1 << Idx );
-					if( pJob->WorkerMask_ & CurrMask )
-					{
-						SysJobWorker* pWorker = JobWorkers_[ Idx ];
-						HasScheduled = pWorker->giveJob( pJob );
+					SysJobWorker* pWorker = JobWorkers_[ Idx ];
+					HasScheduled = pWorker->giveJob( pJob );
 						
-						if( HasScheduled )
-						{
-							//BcPrintf( "SysJobQueue: Scheduled %p on worker 0x%x\n", pJob, Idx );
-							break;
-						}
-						else
-						{
-							BlockedMask |= CurrMask;
-						}
-					}
-				}
-				
-				// If we've scheduled, pop it off.
-				if( HasScheduled )
-				{
-					BcScopedLock< BcMutex > Lock( QueueLock_ );	
-					JobQueue_.pop_front();
-					
-					// Count down number of jobs queued.
-					--NoofJobsQueued_;
-				}
-				else
-				{
-					// If a mask is blocked, move all jobs which have an exact match to the
-					// blocked mask to the back of the queue to prevent contention.
-					// This means jobs queued by specific systems with particular worker masks
-					// will also keep their order. Differing masks can't possibly keep the same
-					// order.
-					// TODO: Remove the need for this at some point, it's not very nice.
-					if( BlockedMask != 0x0 )
+					if( HasScheduled )
 					{
-						moveJobsBack( BlockedMask );
-						BcYield();
+						//BcPrintf( "SysJobQueue: Scheduled %p on worker 0x%x\n", pJob, Idx );
+						break;
+					}
+					else
+					{
+						BlockedMask |= CurrMask;
 					}
 				}
 			}
-			while( NoofJobsQueued_ != 0 );
+				
+			// If we've scheduled, pop it off.
+			if( HasScheduled )
+			{
+				std::lock_guard< std::mutex > Lock( QueueLock_ );	
+				JobQueue_.pop_front();
+					
+				// Count down number of jobs queued.
+				--NoofJobsQueued_;
+			}
+			else
+			{
+				// If a mask is blocked, move all jobs which have an exact match to the
+				// blocked mask to the back of the queue to prevent contention.
+				// This means jobs queued by specific systems with particular worker masks
+				// will also keep their order. Differing masks can't possibly keep the same
+				// order.
+				// TODO: Remove the need for this at some point, it's not very nice.
+				if( BlockedMask != 0x0 )
+				{
+					moveJobsBack( BlockedMask );
+					BcYield();
+				}
+			}
 		}
+		while( NoofJobsQueued_ != 0 );
 	}
 	
 	// Stop and destroy worker threads.

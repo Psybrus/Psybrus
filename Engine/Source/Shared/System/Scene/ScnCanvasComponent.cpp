@@ -47,7 +47,7 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	
 	// Setup matrix stack with an identity matrix and reserve.
 	MatrixStack_.reserve( 16 );
-	MatrixStack_.push_back( BcMat4d() );
+	MatrixStack_.push_back( MaMat4d() );
 	IsIdentity_ = BcTrue;
 	
 	// Store number of vertices.
@@ -124,9 +124,9 @@ void ScnCanvasComponent::destroy()
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
-BcAABB ScnCanvasComponent::getAABB() const
+MaAABB ScnCanvasComponent::getAABB() const
 {
-	return BcAABB();
+	return MaAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -156,10 +156,10 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 
 //////////////////////////////////////////////////////////////////////////
 // pushMatrix
-void ScnCanvasComponent::pushMatrix( const BcMat4d& Matrix )
+void ScnCanvasComponent::pushMatrix( const MaMat4d& Matrix )
 {
-	const BcMat4d& CurrMatrix = getMatrix();
-	BcMat4d NewMatrix = Matrix * CurrMatrix;
+	const MaMat4d& CurrMatrix = getMatrix();
+	MaMat4d NewMatrix = Matrix * CurrMatrix;
 	MatrixStack_.push_back( NewMatrix );
 	IsIdentity_ = NewMatrix.isIdentity();
 }
@@ -173,21 +173,21 @@ void ScnCanvasComponent::popMatrix()
 	if( MatrixStack_.size() > 1 )
 	{
 		MatrixStack_.pop_back();
-		const BcMat4d& CurrMatrix = getMatrix();
+		const MaMat4d& CurrMatrix = getMatrix();
 		IsIdentity_ = CurrMatrix.isIdentity();
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getMatrix
-BcMat4d ScnCanvasComponent::getMatrix() const
+MaMat4d ScnCanvasComponent::getMatrix() const
 {
 	return MatrixStack_[ MatrixStack_.size() - 1 ];
 }
 
 //////////////////////////////////////////////////////////////////////////
 // allocVertices
-ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcU32 NoofVertices )
+ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices )
 {
 	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Don't have vertex buffer lock!" );
 	ScnCanvasComponentVertex* pCurrVertex = NULL;
@@ -219,12 +219,12 @@ void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponent
 	// Matrix stack.
 	if( UseMatrixStack == BcTrue && IsIdentity_ == BcFalse )
 	{
-		BcMat4d Matrix = getMatrix();
+		MaMat4d Matrix = getMatrix();
 
 		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 		{
 			ScnCanvasComponentVertex* pVertex = &pVertices[ Idx ];
-			BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+			MaVec3d Vertex = MaVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 			pVertex->X_ = Vertex.x();
 			pVertex->Y_ = Vertex.y();
 			pVertex->Z_ = Vertex.z();
@@ -243,12 +243,12 @@ void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponent
 	};
 	
 	PrimitiveSectionList_.push_back( PrimitiveSection );
-	LastPrimitiveSection_ = PrimitiveSectionList_.size() - 1;
+	LastPrimitiveSection_ = (BcU32)PrimitiveSectionList_.size() - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawLine
-void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 2 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
@@ -287,12 +287,12 @@ void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB,
 				// TODO: Factor into a seperate function.
 				if( IsIdentity_ == BcFalse )
 				{
-					BcMat4d Matrix = getMatrix();
+					MaMat4d Matrix = getMatrix();
 
 					for( BcU32 Idx = 0; Idx < 2; ++Idx )
 					{
 						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
-						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						MaVec3d Vertex = MaVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
@@ -313,7 +313,7 @@ void ScnCanvasComponent::drawLine( const BcVec2d& PointA, const BcVec2d& PointB,
 
 //////////////////////////////////////////////////////////////////////////
 // drawLine3d
-void ScnCanvasComponent::drawLine3d( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLine3d( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 2 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
@@ -341,7 +341,7 @@ void ScnCanvasComponent::drawLine3d( const BcVec3d& PointA, const BcVec3d& Point
 
 //////////////////////////////////////////////////////////////////////////
 // drawLines
-void ScnCanvasComponent::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
 {
 	BcU32 NoofVertices = 2 * NoofLines;
 	ScnCanvasComponentVertex* pVertices = allocVertices( NoofVertices );
@@ -369,29 +369,29 @@ void ScnCanvasComponent::drawLines( const BcVec2d* pPoints, BcU32 NoofLines, con
 
 //////////////////////////////////////////////////////////////////////////
 // drawLineBox
-void ScnCanvasComponent::drawLineBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLineBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
 {
 	// SLOW.
-	drawLine( BcVec2d( CornerA.x(), CornerA.y() ), BcVec2d( CornerB.x(), CornerA.y() ), Colour, Layer );
-	drawLine( BcVec2d( CornerB.x(), CornerA.y() ), BcVec2d( CornerB.x(), CornerB.y() ), Colour, Layer );
-	drawLine( BcVec2d( CornerB.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerB.y() ), Colour, Layer );
-	drawLine( BcVec2d( CornerA.x(), CornerB.y() ), BcVec2d( CornerA.x(), CornerA.y() ), Colour, Layer );
+	drawLine( MaVec2d( CornerA.x(), CornerA.y() ), MaVec2d( CornerB.x(), CornerA.y() ), Colour, Layer );
+	drawLine( MaVec2d( CornerB.x(), CornerA.y() ), MaVec2d( CornerB.x(), CornerB.y() ), Colour, Layer );
+	drawLine( MaVec2d( CornerB.x(), CornerB.y() ), MaVec2d( CornerA.x(), CornerB.y() ), Colour, Layer );
+	drawLine( MaVec2d( CornerA.x(), CornerB.y() ), MaVec2d( CornerA.x(), CornerA.y() ), Colour, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawLineBox
-void ScnCanvasComponent::drawLineBoxCentered( const BcVec2d& Position, const BcVec2d& Size, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawLineBoxCentered( const MaVec2d& Position, const MaVec2d& Size, const RsColour& Colour, BcU32 Layer )
 {
-	BcVec2d HalfSize = Size * 0.5f;
-	BcVec2d CornerA = Position - HalfSize;
-	BcVec2d CornerB = Position + HalfSize;
+	MaVec2d HalfSize = Size * 0.5f;
+	MaVec2d CornerA = Position - HalfSize;
+	MaVec2d CornerB = Position + HalfSize;
 	drawLineBox( CornerA, CornerB, Colour, Layer );
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 // drawBox
-void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 4 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
@@ -440,13 +440,13 @@ void ScnCanvasComponent::drawBox( const BcVec2d& CornerA, const BcVec2d& CornerB
 
 //////////////////////////////////////////////////////////////////////////
 // drawSprite
-void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 6 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
-	const BcVec2d CornerA = Position;
-	const BcVec2d CornerB = Position + Size;
+	const MaVec2d CornerA = Position;
+	const MaVec2d CornerB = Position + Size;
 
 	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
 	
@@ -521,12 +521,12 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 				// TODO: Factor into a seperate function.
 				if( IsIdentity_ == BcFalse )
 				{
-					BcMat4d Matrix = getMatrix();
+					MaMat4d Matrix = getMatrix();
 
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
 						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
-						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						MaVec3d Vertex = MaVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
@@ -547,13 +547,13 @@ void ScnCanvasComponent::drawSprite( const BcVec2d& Position, const BcVec2d& Siz
 
 //////////////////////////////////////////////////////////////////////////
 // drawSprite
-void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 6 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
-	const BcVec3d CornerA = Position;
-	const BcVec3d CornerB = Position + BcVec3d( Size.x(), Size.y(), 0.0f );
+	const MaVec3d CornerA = Position;
+	const MaVec3d CornerB = Position + MaVec3d( Size.x(), Size.y(), 0.0f );
 	
 	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
 	
@@ -628,12 +628,12 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 				// TODO: Factor into a seperate function.
 				if( IsIdentity_ == BcFalse )
 				{
-					BcMat4d Matrix = getMatrix();
+					MaMat4d Matrix = getMatrix();
 					
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
 						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
-						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						MaVec3d Vertex = MaVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
@@ -654,13 +654,13 @@ void ScnCanvasComponent::drawSprite3D( const BcVec3d& Position, const BcVec2d& S
 
 //////////////////////////////////////////////////////////////////////////
 // drawSprite
-void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
 	ScnCanvasComponentVertex* pVertices = allocVertices( 6 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
-	const BcVec3d CornerA = Position;
-	const BcVec3d CornerB = Position + BcVec3d( Size.x(), 0.0f, Size.y() );
+	const MaVec3d CornerA = Position;
+	const MaVec3d CornerB = Position + MaVec3d( Size.x(), 0.0f, Size.y() );
 	
 	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
 	
@@ -735,12 +735,12 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 				// TODO: Factor into a seperate function.
 				if( IsIdentity_ == BcFalse )
 				{
-					BcMat4d Matrix = getMatrix();
+					MaMat4d Matrix = getMatrix();
 					
 					for( BcU32 Idx = 0; Idx < 6; ++Idx )
 					{
 						ScnCanvasComponentVertex* pVertex = &pFirstVertex[ Idx ];
-						BcVec3d Vertex = BcVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
+						MaVec3d Vertex = MaVec3d( pVertex->X_, pVertex->Y_, pVertex->Z_ ) * Matrix;
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
@@ -761,25 +761,25 @@ void ScnCanvasComponent::drawSpriteUp3D( const BcVec3d& Position, const BcVec2d&
 
 //////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
-void ScnCanvasComponent::drawSpriteCentered( const BcVec2d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteCentered( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	BcVec2d NewPosition = Position - ( Size * 0.5f );
+	MaVec2d NewPosition = Position - ( Size * 0.5f );
 	drawSprite( NewPosition, Size, TextureIdx, Colour, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
-void ScnCanvasComponent::drawSpriteCentered3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteCentered3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, Size.y() * 0.5f, 0.0f );
+	MaVec3d NewPosition = Position - MaVec3d( Size.x() * 0.5f, Size.y() * 0.5f, 0.0f );
 	drawSprite3D( NewPosition, Size, TextureIdx, Colour, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawSpriteCentered
-void ScnCanvasComponent::drawSpriteCenteredUp3D( const BcVec3d& Position, const BcVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
+void ScnCanvasComponent::drawSpriteCenteredUp3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer )
 {
-	BcVec3d NewPosition = Position - BcVec3d( Size.x() * 0.5f, 0.0f, Size.y() * 0.5f );
+	MaVec3d NewPosition = Position - MaVec3d( Size.x() * 0.5f, 0.0f, Size.y() * 0.5f );
 	drawSpriteUp3D( NewPosition, Size, TextureIdx, Colour, Layer );
 }
 
@@ -800,7 +800,7 @@ void ScnCanvasComponent::clear()
 	
 	// Reset matrix stack.
 	MatrixStack_.clear();
-	MatrixStack_.push_back( BcMat4d() );
+	MatrixStack_.push_back( MaMat4d() );
 	IsIdentity_ = BcTrue;
 
 	// Lock vertex buffer for use.

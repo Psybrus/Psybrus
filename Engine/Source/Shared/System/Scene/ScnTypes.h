@@ -16,7 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcName.h"
-#include "Base/BcMat4d.h"
+#include "Math/MaMat4d.h"
 
 #include "Reflection/ReObjectRef.h"
 
@@ -75,7 +75,7 @@ struct ScnEntitySpawnParams
 	BcName			Package_;
 	BcName			Name_;
 	BcName			InstanceName_;
-	BcMat4d			Transform_;
+	MaMat4d			Transform_;
 	ScnEntityRef	Parent_;
 };
 

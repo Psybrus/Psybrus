@@ -16,14 +16,15 @@
 #include "Base/BcTimer.h"
 #include "Base/BcProfiler.h"
 
+#include <mutex>
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
 	pParent_( pParent ),
 	Active_( BcTrue ),
 	HaveJob_( BcFalse ),
-	pCurrentJob_( NULL ),
-	ResumeEvent_( NULL )
+	pCurrentJob_( NULL )
 {
 	
 }
@@ -33,23 +34,24 @@ SysJobWorker::SysJobWorker( SysJobQueue* pParent ):
 //virtual
 SysJobWorker::~SysJobWorker()
 {
-	BcAssertMsg( BcThread::isActive() == BcFalse, "SysJobWorker: Not been stopped before destruction." );
+	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // giveJob
 BcBool SysJobWorker::giveJob( SysJob* pJob )
 {
-	BcBool HaveJob = HaveJob_.compareExchange( BcTrue, BcFalse );
+	BcU32 Exp = 0;
 	
-	// We don't have a job, we can handle this one.
-	if( HaveJob == BcFalse )
+	if( HaveJob_.compare_exchange_strong( Exp, 1 ) )
 	{
+		std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
 		pCurrentJob_ = pJob;
-		ResumeEvent_.signal();
+		ResumeEvent_.notify_all();
+		PSY_PROFILER_INSTANT_EVENT( "SysJobWorker::giveJob" );
 	}
 	
-	return !HaveJob;
+	return Exp == 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,7 +66,7 @@ BcBool SysJobWorker::inUse() const
 void SysJobWorker::start()
 {
 	// Just start the thread.
-	BcThread::start( "SysJobWorker Main" );
+	ExecutionThread_ = std::thread( &SysJobWorker::execute, this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,8 +75,9 @@ void SysJobWorker::stop()
 {
 	// Set to not be active, trigger resume, and join thread.
 	Active_ = BcFalse;
-	ResumeEvent_.signal();
-	BcThread::join();
+	std::lock_guard< std::mutex > ResumeLock( ResumeMutex_ );
+	ResumeEvent_.notify_all();
+	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,40 +103,43 @@ void SysJobWorker::execute()
 	// Enter loop.
 	while( Active_ )
 	{
+		PSY_PROFILER_SECTION( SysJobWorker_BeginWait_Profile, "SysJobWorker_BeginWait" );
+
 		// Wait till we are told to resume.
-		ResumeEvent_.wait();
+		{
+			std::unique_lock< std::mutex > ResumeLock( ResumeMutex_ );
+			ResumeEvent_.wait( ResumeLock, [ this ]{ return pCurrentJob_ != NULL; } );
+		}
+
+		PSY_PROFILER_SECTION( SysJobWorker_EndWait_Profile, "SysJobWorker_EndWait" );
 
 		if( Active_ == BcTrue )
 		{
 			BcAssertMsg( pCurrentJob_ != NULL, "No job has been given!" );
 		}
 
-		// If we have a job set, we need to execute it.
-		if( pCurrentJob_ != NULL )
-		{
-			BcAssertMsg( HaveJob_ == BcTrue, "SysJobWorker: We have a job pointer set, but haven't got it via giveJob." );
+		BcAssertMsg( HaveJob_ == BcTrue, "SysJobWorker: We have a job pointer set, but haven't got it via giveJob." );
 
-			// Start timing the job.
+		// Start timing the job.
 #if !PSY_PRODUCTION
-			BcTimer Timer;
-			Timer.mark();
+		BcTimer Timer;
+		Timer.mark();
 #endif
-			// Execute our job.
-			pCurrentJob_->internalExecute();
+		// Execute our job.
+		pCurrentJob_->internalExecute();
 
 #if !PSY_PRODUCTION
-			// Add time spent to our total.
-			const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
-			TimeWorkingUS_ += TimeWorkingUS;
-			JobsExecuted_++;
+		// Add time spent to our total.
+		const BcU32 TimeWorkingUS = static_cast< BcU32 >( Timer.time() * 1000000.0f );;
+		TimeWorkingUS_ += TimeWorkingUS;
+		JobsExecuted_++;
 #endif			
-			// No job now, clean up.
-			delete pCurrentJob_;
-			pCurrentJob_ = NULL;
-			HaveJob_ = BcFalse;
+		// No job now, clean up.
+		delete pCurrentJob_;
+		pCurrentJob_ = NULL;
+		HaveJob_ = BcFalse;
 			
-			// Signal job queue parent to schedule.
-			pParent_->schedule();
-		}
+		// Signal job queue parent to schedule.
+		pParent_->schedule();
 	}
 }

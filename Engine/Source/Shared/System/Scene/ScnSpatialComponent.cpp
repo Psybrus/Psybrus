@@ -90,8 +90,8 @@ ScnSpatialTreeNode* ScnSpatialComponent::getSpatialTreeNode()
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
-BcAABB ScnSpatialComponent::getAABB() const
+MaAABB ScnSpatialComponent::getAABB() const
 {
 	BcAssertMsg( BcFalse, "ScnSpatialComponent: Not implemented a getAABB!" );
-	return BcAABB();
+	return MaAABB();
 }

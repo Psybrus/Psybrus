@@ -51,14 +51,14 @@ SysKernel::~SysKernel()
 	stop();
 
 	// Join.
-	BcThread::join();
+	ExecutionThread_.join();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // registerSystem
 void SysKernel::registerSystem( const BcName& Name, SysSystemCreator creator )
 {
-	BcScopedLock< BcMutex > Lock( SystemLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( SystemLock_ );
 
 	// Add to creator map.
 	SystemCreatorMap_[ Name ] = creator;
@@ -68,7 +68,7 @@ void SysKernel::registerSystem( const BcName& Name, SysSystemCreator creator )
 // startSystem
 SysSystem* SysKernel::startSystem( const BcName& Name )
 {
-	BcScopedLock< BcMutex > Lock( SystemLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( SystemLock_ );
 
 	SysSystem* pSystem = NULL;
 	
@@ -99,7 +99,7 @@ SysSystem* SysKernel::startSystem( const BcName& Name )
 // stop
 void SysKernel::stop()
 {
-	BcScopedLock< BcMutex > Lock( SystemLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( SystemLock_ );
 	
 	// Iterate over and process all systems.
 	TSystemListReverseIterator Iter = SystemList_.rbegin();
@@ -135,7 +135,7 @@ void SysKernel::run( BcBool Threaded )
 		addSystems();
 
 		// Start up the thread.
-		BcThread::start( "SysKernel Main" );
+		ExecutionThread_ = std::thread( &SysKernel::execute, this );
 	
 		// Wait until all systems have opened.
 		BcBool AllOpened = BcFalse;
@@ -188,7 +188,7 @@ void SysKernel::tick()
 
 	if( ShuttingDown_ == BcFalse )
 	{
-		BcScopedLock< BcMutex > Lock( SystemLock_ );
+		std::lock_guard< std::recursive_mutex > Lock( SystemLock_ );
 
 		// Add systems.
 		addSystems();
@@ -216,7 +216,7 @@ void SysKernel::tick()
 	}
 	else
 	{
-		BcScopedLock< BcMutex > Lock( SystemLock_ );
+		std::lock_guard< std::recursive_mutex > Lock( SystemLock_ );
 
 		// Iterate over and process all systems.
 		TSystemListReverseIterator Iter = SystemList_.rbegin();

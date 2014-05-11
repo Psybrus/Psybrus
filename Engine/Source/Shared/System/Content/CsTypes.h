@@ -20,11 +20,11 @@
 #include "Base/BcPath.h"
 
 #include "System/File/FsFile.h"
-#include "Base/BcAtomic.h"
+#include <atomic>
 #include "Base/BcEndian.h"
 #include "Base/BcHash.h"
-#include "Base/BcMutex.h"
-#include "Base/BcScopedLock.h"
+#include <mutex>
+
 
 //////////////////////////////////////////////////////////////////////////
 // Callbacks

@@ -18,7 +18,7 @@
 // Types
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
-#include "Base/BcVec3d.h"
-#include "Base/BcMat4d.h"
+#include "Math/MaVec3d.h"
+#include "Math/MaMat4d.h"
 
 #endif

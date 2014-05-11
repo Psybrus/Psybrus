@@ -24,25 +24,25 @@ struct TVertex
 
 //////////////////////////////////////////////////////////////////////////
 // debugLine
-void RsFrame::debugLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour )
+void RsFrame::debugLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour )
 {
 	addLine( PointA, PointB, Colour, Colour.a() < 1.0f ? 1 : 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // debugAxis/*
-void RsFrame::debugAxis( const BcVec3d& Point, BcF32 Size, const RsColour& Colour )
+void RsFrame::debugAxis( const MaVec3d& Point, BcF32 Size, const RsColour& Colour )
 {
 	beginPrimitive( rsPT_LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
-	addLine( Point - BcVec3d( Size, 0.0f, 0.0f ), Point + BcVec3d( Size, 0.0f, 0.0f ), Colour, 0 );
-	addLine( Point - BcVec3d( 0.0f, Size, 0.0f ), Point + BcVec3d( 0.0f, Size, 0.0f ), Colour, 0 );
-	addLine( Point - BcVec3d( 0.0f, 0.0f, Size ), Point + BcVec3d( 0.0f, 0.0f, Size ), Colour, 0 );
+	addLine( Point - MaVec3d( Size, 0.0f, 0.0f ), Point + MaVec3d( Size, 0.0f, 0.0f ), Colour, 0 );
+	addLine( Point - MaVec3d( 0.0f, Size, 0.0f ), Point + MaVec3d( 0.0f, Size, 0.0f ), Colour, 0 );
+	addLine( Point - MaVec3d( 0.0f, 0.0f, Size ), Point + MaVec3d( 0.0f, 0.0f, Size ), Colour, 0 );
 	endPrimitive();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // debugGrid
-void RsFrame::debugGrid( const BcVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 Elements, const RsColour& Colour )
+void RsFrame::debugGrid( const MaVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 Elements, const RsColour& Colour )
 {
 	BcF32 LBound = -Step * BcF32( Elements >> 1 );
 	BcF32 UBound =  Step * BcF32( Elements >> 1 );
@@ -54,24 +54,24 @@ void RsFrame::debugGrid( const BcVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 El
 	case 0:
 		for( BcF32 i = LBound; i <= UBound; i += Step )
 		{
-			addLine( BcVec3d( 0.0f, i, LBound ) + Centre, BcVec3d( 0.0f, i, UBound ) + Centre, Colour, 0 );
-			addLine( BcVec3d( 0.0f, LBound, i ) + Centre, BcVec3d( 0.0f, UBound, i ) + Centre, Colour, 0 );
+			addLine( MaVec3d( 0.0f, i, LBound ) + Centre, MaVec3d( 0.0f, i, UBound ) + Centre, Colour, 0 );
+			addLine( MaVec3d( 0.0f, LBound, i ) + Centre, MaVec3d( 0.0f, UBound, i ) + Centre, Colour, 0 );
 		}
 		break;
 
 	case 1:
 		for( BcF32 i = LBound; i <= UBound; i += Step )
 		{
-			addLine( BcVec3d( i, 0.0f, LBound ) + Centre, BcVec3d( i, 0.0f, UBound ) + Centre, Colour, 0 );
-			addLine( BcVec3d( LBound, 0.0f, i ) + Centre, BcVec3d( UBound, 0.0f, i ) + Centre, Colour, 0 );
+			addLine( MaVec3d( i, 0.0f, LBound ) + Centre, MaVec3d( i, 0.0f, UBound ) + Centre, Colour, 0 );
+			addLine( MaVec3d( LBound, 0.0f, i ) + Centre, MaVec3d( UBound, 0.0f, i ) + Centre, Colour, 0 );
 		}
 		break;
 
 	case 2:
 		for( BcF32 i = LBound; i <= UBound; i += Step )
 		{
-			addLine( BcVec3d( i, LBound, 0.0f ) + Centre, BcVec3d( i, UBound, 0.0f ) + Centre, Colour, 0 );
-			addLine( BcVec3d( LBound, i, 0.0f ) + Centre, BcVec3d( UBound, i, 0.0f ) + Centre, Colour, 0 );
+			addLine( MaVec3d( i, LBound, 0.0f ) + Centre, MaVec3d( i, UBound, 0.0f ) + Centre, Colour, 0 );
+			addLine( MaVec3d( LBound, i, 0.0f ) + Centre, MaVec3d( UBound, i, 0.0f ) + Centre, Colour, 0 );
 		}
 		break;
 	}
@@ -81,7 +81,7 @@ void RsFrame::debugGrid( const BcVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 El
 
 //////////////////////////////////////////////////////////////////////////
 // debugAABB
-void RsFrame::debugAABB( const BcAABB& AABB, const RsColour& Colour )
+void RsFrame::debugAABB( const MaAABB& AABB, const RsColour& Colour )
 {
 	beginPrimitive( rsPT_LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 
@@ -105,12 +105,12 @@ void RsFrame::debugAABB( const BcAABB& AABB, const RsColour& Colour )
 
 //////////////////////////////////////////////////////////////////////////
 // debugMatrix
-void RsFrame::debugMatrix( const BcMat4d& Matrix, BcF32 Scale, const RsColour& Colour )
+void RsFrame::debugMatrix( const MaMat4d& Matrix, BcF32 Scale, const RsColour& Colour )
 {
-	BcVec3d Position( Matrix.row3().x(), Matrix.row3().y(), Matrix.row3().z() );
-	BcVec3d X( Matrix.row0().x(), Matrix.row0().y(), Matrix.row0().z() );
-	BcVec3d Y( Matrix.row1().x(), Matrix.row1().y(), Matrix.row1().z() );
-	BcVec3d Z( Matrix.row2().x(), Matrix.row2().y(), Matrix.row2().z() );
+	MaVec3d Position( Matrix.row3().x(), Matrix.row3().y(), Matrix.row3().z() );
+	MaVec3d X( Matrix.row0().x(), Matrix.row0().y(), Matrix.row0().z() );
+	MaVec3d Y( Matrix.row1().x(), Matrix.row1().y(), Matrix.row1().z() );
+	MaVec3d Z( Matrix.row2().x(), Matrix.row2().y(), Matrix.row2().z() );
 
 	X = X * Scale;
 	Y = Y * Scale;
@@ -127,7 +127,7 @@ void RsFrame::debugMatrix( const BcMat4d& Matrix, BcF32 Scale, const RsColour& C
 
 //////////////////////////////////////////////////////////////////////////
 // debugEllipsoid
-void RsFrame::debugEllipsoid( const BcVec3d& Centre, const BcVec3d& Scale, BcU32 LOD, const RsColour& Colour )
+void RsFrame::debugEllipsoid( const MaVec3d& Centre, const MaVec3d& Scale, BcU32 LOD, const RsColour& Colour )
 {
 	// Draw outer circles for all axis.
 	BcF32 Angle = 0.0f;
@@ -138,15 +138,15 @@ void RsFrame::debugEllipsoid( const BcVec3d& Centre, const BcVec3d& Scale, BcU32
 	// Draw axis lines.
 	for( BcU32 i = 0; i < LOD; ++i )
 	{
-		BcVec2d PosA( BcCos( Angle ), -BcSin( Angle ) );
-		BcVec2d PosB( BcCos( Angle + AngleInc ), -BcSin( Angle + AngleInc ) );
+		MaVec2d PosA( BcCos( Angle ), -BcSin( Angle ) );
+		MaVec2d PosB( BcCos( Angle + AngleInc ), -BcSin( Angle + AngleInc ) );
 
-		BcVec3d XAxisA = BcVec3d( 0.0f,                 PosA.x() * Scale.y(), PosA.y() * Scale.z() );
-		BcVec3d YAxisA = BcVec3d( PosA.x() * Scale.x(), 0.0f,                 PosA.y() * Scale.z() );
-		BcVec3d ZAxisA = BcVec3d( PosA.x() * Scale.x(), PosA.y() * Scale.y(), 0.0f                 );
-		BcVec3d XAxisB = BcVec3d( 0.0f,                 PosB.x() * Scale.y(), PosB.y() * Scale.z() );
-		BcVec3d YAxisB = BcVec3d( PosB.x() * Scale.x(), 0.0f,                 PosB.y() * Scale.z() );
-		BcVec3d ZAxisB = BcVec3d( PosB.x() * Scale.x(), PosB.y() * Scale.y(), 0.0f                 );
+		MaVec3d XAxisA = MaVec3d( 0.0f,                 PosA.x() * Scale.y(), PosA.y() * Scale.z() );
+		MaVec3d YAxisA = MaVec3d( PosA.x() * Scale.x(), 0.0f,                 PosA.y() * Scale.z() );
+		MaVec3d ZAxisA = MaVec3d( PosA.x() * Scale.x(), PosA.y() * Scale.y(), 0.0f                 );
+		MaVec3d XAxisB = MaVec3d( 0.0f,                 PosB.x() * Scale.y(), PosB.y() * Scale.z() );
+		MaVec3d YAxisB = MaVec3d( PosB.x() * Scale.x(), 0.0f,                 PosB.y() * Scale.z() );
+		MaVec3d ZAxisB = MaVec3d( PosB.x() * Scale.x(), PosB.y() * Scale.y(), 0.0f                 );
 
 		addLine( XAxisA + Centre, XAxisB + Centre, Colour, 0 );
 		addLine( YAxisA + Centre, YAxisB + Centre, Colour, 0 );
@@ -156,9 +156,9 @@ void RsFrame::debugEllipsoid( const BcVec3d& Centre, const BcVec3d& Scale, BcU32
 	}
 
 	// Draw a cross down centre.
-	BcVec3d XAxis = BcVec3d( Scale.x(), 0.0f, 0.0f );
-	BcVec3d YAxis = BcVec3d( 0.0f, Scale.y(), 0.0f );
-	BcVec3d ZAxis = BcVec3d( 0.0f, 0.0f, Scale.z() );
+	MaVec3d XAxis = MaVec3d( Scale.x(), 0.0f, 0.0f );
+	MaVec3d YAxis = MaVec3d( 0.0f, Scale.y(), 0.0f );
+	MaVec3d ZAxis = MaVec3d( 0.0f, 0.0f, Scale.z() );
 	addLine( Centre - XAxis, Centre + XAxis, Colour, 0 );
 	addLine( Centre - YAxis, Centre + YAxis, Colour, 0 );
 	addLine( Centre - ZAxis, Centre + ZAxis, Colour, 0 );
@@ -168,7 +168,7 @@ void RsFrame::debugEllipsoid( const BcVec3d& Centre, const BcVec3d& Scale, BcU32
 
 //////////////////////////////////////////////////////////////////////////
 // debugCube
-void RsFrame::debugCube( const BcMat4d& Transform, const RsColour& Colour )
+void RsFrame::debugCube( const MaMat4d& Transform, const RsColour& Colour )
 {
 	TVertex* pVertices = alloc< TVertex >( 36 );
 
@@ -230,7 +230,7 @@ void RsFrame::debugCube( const BcMat4d& Transform, const RsColour& Colour )
 	for( BcU32 i = 0; i < NoofIndices; ++i )
 	{
 		TVertex CachedVert = CubeFaces[ Indices[i] ];
-		BcVec3d Position = BcVec3d( CachedVert.X_, CachedVert.Y_, CachedVert.Z_ ) * Transform;
+		MaVec3d Position = MaVec3d( CachedVert.X_, CachedVert.Y_, CachedVert.Z_ ) * Transform;
 		CachedVert.X_ = Position.x();
 		CachedVert.Y_ = Position.y();
 		CachedVert.Z_ = Position.z();
@@ -243,7 +243,7 @@ void RsFrame::debugCube( const BcMat4d& Transform, const RsColour& Colour )
 
 //////////////////////////////////////////////////////////////////////////
 // debugCube
-void RsFrame::debugCone( const BcMat4d& Transform, const RsColour& Colour )
+void RsFrame::debugCone( const MaMat4d& Transform, const RsColour& Colour )
 {
 	TVertex* pVertices = alloc< TVertex >( 18 );
 	
@@ -277,7 +277,7 @@ void RsFrame::debugCone( const BcMat4d& Transform, const RsColour& Colour )
 	for( BcU32 i = 0; i < NoofIndices; ++i )
 	{
 		TVertex CachedVert = CubeFaces[ Indices[i] ];
-		BcVec3d Position = BcVec3d( CachedVert.X_, CachedVert.Y_, CachedVert.Z_ ) * Transform;
+		MaVec3d Position = MaVec3d( CachedVert.X_, CachedVert.Y_, CachedVert.Z_ ) * Transform;
 		CachedVert.X_ = Position.x();
 		CachedVert.Y_ = Position.y();
 		CachedVert.Z_ = Position.z();

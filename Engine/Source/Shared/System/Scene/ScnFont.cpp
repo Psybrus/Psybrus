@@ -278,7 +278,7 @@ BcBool ScnFont::import( class CsPackageImporter& Importer, const Json::Value& Ob
 					
 					ScnFontHeader Header;
 					
-					Header.NoofGlyphs_ = GlyphDescList.size();
+					Header.NoofGlyphs_ = (BcU32)GlyphDescList.size();
 					Header.TextureRef_ = Importer.addImport( TextureObject );
 					Header.NominalSize_ = (BcF32)OriginalNominalSize;
 					
@@ -483,7 +483,7 @@ void ScnFontComponent::initialise( const Json::Value& Object )
 
 //////////////////////////////////////////////////////////////////////////
 // setClipping
-void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
+void ScnFontComponent::setClipping( BcBool Enabled, MaVec2d Min, MaVec2d Max )
 {
 	ClippingEnabled_ = Enabled;
 	ClipMin_ = Min;
@@ -492,7 +492,7 @@ void ScnFontComponent::setClipping( BcBool Enabled, BcVec2d Min, BcVec2d Max )
 
 //////////////////////////////////////////////////////////////////////////
 // isReady
-BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
+MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
 	ScnFontHeader* pHeader = Parent_->pHeader_;
@@ -516,8 +516,8 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 		
 	BcU32 ABGR = Colour.asABGR();
 
-	BcVec2d MinSize( Position );
-	BcVec2d MaxSize( Position );
+	MaVec2d MinSize( Position );
+	MaVec2d MaxSize( Position );
 	
 	BcBool FirstCharacterOnLine = BcTrue;
 
@@ -552,9 +552,9 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 				}
 				
 				// Calculate size and UVs.
-				BcVec2d Size( BcVec2d( pGlyph->Width_, pGlyph->Height_ ) );
-				BcVec2d CornerMin( Position + BcVec2d( AdvanceX + pGlyph->OffsetX_, AdvanceY - pGlyph->OffsetY_ + pHeader->NominalSize_ ) );
-				BcVec2d CornerMax( CornerMin + Size );
+				MaVec2d Size( MaVec2d( pGlyph->Width_, pGlyph->Height_ ) );
+				MaVec2d CornerMin( Position + MaVec2d( AdvanceX + pGlyph->OffsetX_, AdvanceY - pGlyph->OffsetY_ + pHeader->NominalSize_ ) );
+				MaVec2d CornerMax( CornerMin + Size );
 				BcF32 U0 = pGlyph->UA_;
 				BcF32 V0 = pGlyph->VA_;
 				BcF32 U1 = pGlyph->UB_;
@@ -681,15 +681,15 @@ BcVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const BcVec2d& Pos
 
 //////////////////////////////////////////////////////////////////////////
 // drawCentered
-BcVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const BcVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
+MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
 {
-	BcVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
+	MaVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
 	return draw( Canvas, Position - Size * 0.5f, String, Colour, BcFalse, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setAlphaTestStepping
-void ScnFontComponent::setAlphaTestStepping( const BcVec2d& Stepping )
+void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 {
 	BcU32 Param = MaterialComponent_->findParameter( "aAlphaTestStep" );
 	MaterialComponent_->setParameter( Param, Stepping );

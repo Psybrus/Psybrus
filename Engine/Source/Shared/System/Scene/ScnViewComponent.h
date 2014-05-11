@@ -47,12 +47,12 @@ public:
 	virtual void						destroy();
 
 	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
-	void								getWorldPosition( const BcVec2d& ScreenPosition, BcVec3d& Near, BcVec3d& Far ) const;
-	BcVec2d								getScreenPosition( const BcVec3d& WorldPosition ) const;
-	BcU32								getDepth( const BcVec3d& WorldPos ) const;
+	void								getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
+	MaVec2d								getScreenPosition( const MaVec3d& WorldPosition ) const;
+	BcU32								getDepth( const MaVec3d& WorldPos ) const;
 	const RsViewport&					getViewport() const;
 
-	BcBool								intersect( const BcAABB& AABB ) const;
+	BcBool								intersect( const MaAABB& AABB ) const;
 
 	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
 	
@@ -85,7 +85,7 @@ protected:
 
 	// Used for culling.
 	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?
-	BcPlane								FrustumPlanes_[ 6 ];
+	MaPlane								FrustumPlanes_[ 6 ];
 
 	ScnRenderTargetRef					RenderTarget_;
 };

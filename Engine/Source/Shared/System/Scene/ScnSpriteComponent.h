@@ -40,8 +40,8 @@ private:
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
 
-	BcVec2d								Position_;
-	BcVec2d								Size_;
+	MaVec2d								Position_;
+	MaVec2d								Size_;
 	RsColour							Colour_;
 	BcU32								Index_;
 	BcU32								Layer_;

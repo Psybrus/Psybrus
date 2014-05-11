@@ -16,9 +16,8 @@
 
 #include "System/Content/CsTypes.h"
 
-#include "Base/BcAtomic.h"
-#include "Base/BcAtomicMutex.h"
-#include "Base/BcScopedLock.h"
+#include <atomic>
+
 #include "Base/BcName.h"
 #include "Reflection/ReReflection.h"
 
@@ -126,18 +125,13 @@ public:
 	/**
 	 * Get package.
 	 */
-	CsPackage*						getPackage();
+	CsPackage*						getPackage() const;
 
 	/**
 	 * Get package name.
 	 */
 	const BcName&					getPackageName() const;
 	
-	/**
-	 * Get name.
-	 */
-	const BcName&					getName() const;
-
 	/**
 	 * Get index.
 	 */
@@ -148,14 +142,6 @@ public:
 	 */
 	virtual void					serialiseProperties();
 
-	/**
-	 * Get unique identifier for resource
-	 */
-	inline const BcU32				getUniqueId() const
-	{
-//		return (BcU32)this;
-		return UniqueId_;
-	}
 protected:
 	/**
 	 * Get string.
@@ -207,14 +193,8 @@ private:
 
 private:
 	//
-	BcName							Name_;
 	BcU32							Index_;
-	CsPackage*						pPackage_;
-	BcAtomicU32						InitStage_;
-
-	BcU32							UniqueId_;
-
-	static BcAtomicU32				UniqueIdCounter_;
+	std::atomic< BcU32 >			InitStage_;
 };
 
 #endif

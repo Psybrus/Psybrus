@@ -17,14 +17,15 @@
 
 #include "Psybrus.h"
 
+#include <boost/lexical_cast.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 // SYS_CREATOR( DsCore );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-DsCore::DsCore():
-	pContext_( NULL )
+DsCore::DsCore()
 {
 	registerPage("", &cmdMenu);
 	registerPage("Content", &cmdContent, "Content");
@@ -344,8 +345,16 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output)
 					if (SrcFieldAccessor.getUpperClass()->hasBaseClass(CsResource::StaticGetClass()))
 					{
 						CsResource* resource = static_cast<CsResource*>(SrcFieldAccessor.getData());
-						fValue.createChildNode("a").setAttribute("href", "/Resource/" + boost::lexical_cast<std::string>(resource->getUniqueId())).setContents("Resource");
-						str = "";
+						if( resource != nullptr )
+						{
+							fValue.createChildNode("a").setAttribute("href", "/Resource/" + boost::lexical_cast<std::string>(resource->getUniqueId())).setContents("Resource");
+							str = "";
+						}
+						else
+						{
+							str = "NULL";
+						}
+
 					} else if (FieldClass->getTypeSerialiser() != nullptr)
 					{
 						FieldClass->getTypeSerialiser()->serialiseToString(data, str);

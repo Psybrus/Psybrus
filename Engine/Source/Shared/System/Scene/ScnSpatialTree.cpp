@@ -98,7 +98,7 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 	}
 
 	// If Component does not fit into self, give to parent, they can deal with it.
-	if( Component->getAABB().isEmpty() == BcFalse && getAABB().classify( Component->getAABB() ) != BcAABB::bcBC_INSIDE )
+	if( Component->getAABB().isEmpty() == BcFalse && getAABB().classify( Component->getAABB() ) != MaAABB::bcBC_INSIDE )
 	{
 		//BcAssertMScn( pParent() != NULL, "Object went outside of scene." );
 
@@ -119,15 +119,15 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 			{
 				ScnSpatialTreeNode* pChildNode = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
 
-				BcAABB::eClassify Classification = pChildNode->getAABB().classify( Component->getAABB() );
+				MaAABB::eClassify Classification = pChildNode->getAABB().classify( Component->getAABB() );
 
 				// If its spanning, don't attempt any other children.
-				if( Classification == BcAABB::bcBC_SPANNING )
+				if( Classification == MaAABB::bcBC_SPANNING )
 				{
 					break;
 				}
 				// If its inside the child, hand it over no questions asked.
-				else if( Classification == BcAABB::bcBC_INSIDE )
+				else if( Classification == MaAABB::bcBC_INSIDE )
 				{
 					ComponentList_.remove( Component );
 					pChildNode->ComponentList_.push_back( Component );
@@ -175,7 +175,7 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewCom
 
 //////////////////////////////////////////////////////////////////////////
 // visitBounds
-void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds )
+void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const MaAABB& Bounds )
 {
 	// Visit this Components objects if they are inside the frustum.
 	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
@@ -228,7 +228,7 @@ ScnSpatialTree::~ScnSpatialTree()
 //////////////////////////////////////////////////////////////////////////
 // createNode
 //virtual
-BcOctTreeNode* ScnSpatialTree::createNode( const BcAABB& AABB )
+MaOctTreeNode* ScnSpatialTree::createNode( const MaAABB& AABB )
 {
 	ScnSpatialTreeNode* Component = new ScnSpatialTreeNode();
 	Component->setAABB( AABB );
@@ -264,7 +264,7 @@ void ScnSpatialTree::visitView( ScnVisitor* pVisitor, const ScnViewComponent* Vi
 
 //////////////////////////////////////////////////////////////////////////
 // visitBounds
-void ScnSpatialTree::visitBounds( ScnVisitor* pVisitor, const BcAABB& Bounds )
+void ScnSpatialTree::visitBounds( ScnVisitor* pVisitor, const MaAABB& Bounds )
 {
 	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
 

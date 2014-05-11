@@ -16,7 +16,7 @@
 #include "Base/BcDebug.h"
 #include "Base/BcFile.h"
 #include "Base/BcString.h"
-#include "Base/BcQuat.h"
+#include "Math/MaQuat.h"
 
 #include "MdlAnim.h"
 
@@ -335,9 +335,9 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			MdlAnimKey Key;
 
 			ScnAnimationTransform KeyTransform;
-			KeyTransform.R_ = BcQuat( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
-			KeyTransform.S_ = BcVec3d( 1.0f, 1.0f, 1.0f );
-			KeyTransform.T_ = BcVec3d( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
+			KeyTransform.R_ = MaQuat( pJoint->QX_, pJoint->QY_, pJoint->QZ_, 0.0f );
+			KeyTransform.S_ = MaVec3d( 1.0f, 1.0f, 1.0f );
+			KeyTransform.T_ = MaVec3d( pJoint->TX_, pJoint->TY_, pJoint->TZ_ );
 			KeyTransform.R_.calcFromXYZ();
 
 			KeyTransform.toMatrix( Key.Matrix_ );
@@ -364,7 +364,7 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 			{
 				MdlAnimNode* pParentNode = pAnimation->pNode( pJoint->ParentID_ );
 				MdlAnimKey ParentKey = pParentNode->KeyList_[ j ];
-				BcMat4d ParentMatrixInverse = ParentKey.Matrix_;
+				MaMat4d ParentMatrixInverse = ParentKey.Matrix_;
 				ParentMatrixInverse.inverse();
 				Key.Matrix_ = ParentMatrixInverse * Key.Matrix_;
 			}

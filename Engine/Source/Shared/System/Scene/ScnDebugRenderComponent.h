@@ -66,7 +66,7 @@ public:
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
 	virtual void						destroy();
-	virtual BcAABB						getAABB() const;
+	virtual MaAABB						getAABB() const;
 	
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -88,7 +88,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLine( const BcVec3d& PointA, const BcVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
 	
 	/**
 	 * Draw lines.
@@ -97,7 +97,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLines( const BcVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw grid.
@@ -107,7 +107,7 @@ public:
 	 * @param SubDivideMultiple Multiple to use to subdivide grid.
 	 * @param Layer Layer
 	 */
-	void								drawGrid( const BcVec3d& Position, const BcVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer = 0 );
+	void								drawGrid( const MaVec3d& Position, const MaVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer = 0 );
 
 	/**
 	 * Draw ellipsoid.
@@ -116,7 +116,7 @@ public:
 	 * @params Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void								drawEllipsoid( const BcVec3d& Position, const BcVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	* Draw AABB.
@@ -124,7 +124,7 @@ public:
 	 * @params Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void								drawAABB( const BcAABB& AABB, const RsColour& Colour, BcU32 Layer = 0 );
+	void								drawAABB( const MaAABB& AABB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear

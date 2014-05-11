@@ -1,7 +1,19 @@
 #include "Reflection/ReAttributable.h"
 #include "Reflection/ReClass.h"
 
+#include "Reflection/ReReflection.h"
+
 REFLECTION_DEFINE_DERIVED( ReAttributable );
+
+void ReAttributable::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Attributes_",		&ReAttributable::Attributes_ ),
+	};
+		
+	ReRegisterClass< ReAttributable, RePrimitive >( Fields );
+}
 
 ReAttributable::ReAttributable()
 {
