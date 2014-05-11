@@ -42,18 +42,9 @@ DsCoreImpl::~DsCoreImpl()
 //virtual
 void DsCoreImpl::open()
 {
-	// Configuration.
-	const char* Options[] = {
-		"document_root", "./",
-		"listening_ports", "1337",
-		NULL
-	};
-	int i;
-	int frame_counter = 0;
-	void *memory;
+
 	int memory_size;
-	struct WebbyServer *server;
-	struct WebbyServerConfig config;
+	WebbyServerConfig config;
 
 #if defined(_WIN32)
 	{
@@ -69,7 +60,7 @@ void DsCoreImpl::open()
 
 	memset(&config, 0, sizeof config);
 	config.bind_address = "127.0.0.1";
-	config.listening_port = 8081;
+	config.listening_port = 1337;
 	config.flags = WEBBY_SERVER_WEBSOCKETS;
 	config.connection_max = 4;
 	config.request_buffer_size = 2048;
@@ -81,12 +72,13 @@ void DsCoreImpl::open()
 	config.ws_closed = &DsCoreImpl::externalWebbyClosed;
 	config.ws_frame = &DsCoreImpl::externalWebbyFrame;
 	memory_size = WebbyServerMemoryNeeded(&config);
-	memory = malloc(memory_size);
-	server = WebbyServerInit(&config, memory, memory_size);
+	ServerMemory_ = malloc(memory_size);
+	Server_ = WebbyServerInit(&config, ServerMemory_, memory_size);
 
-	if (!server)
+	if (!Server_)
 	{
 		fprintf(stderr, "failed to init server\n");
+		
 	}
 
 
@@ -98,6 +90,7 @@ void DsCoreImpl::open()
 //virtual
 void DsCoreImpl::update()
 {
+    WebbyServerUpdate(Server_);
 
 }
 
@@ -238,7 +231,13 @@ void* DsCoreImpl::MongooseCallback(enum mg_event Event, struct mg_connection* pC
 
 int DsCoreImpl::webbyDispatch(WebbyConnection *connection)
 {
-	if (0 == strcmp("/foo", connection->request.uri))
+	int size = 0;
+	char* file = handleFile(connection->request.uri, size);
+	WebbyBeginResponse(connection, 200, size, NULL, 0);
+	WebbyWrite(connection, file, size);
+	WebbyEndResponse(connection);
+	return 0;
+	/*if (0 == strcmp("/foo", connection->request.uri))
 	{
 		WebbyBeginResponse(connection, 200, 14, NULL, 0);
 		WebbyWrite(connection, "Hello, world!\n", 14);
@@ -254,7 +253,7 @@ int DsCoreImpl::webbyDispatch(WebbyConnection *connection)
 		return 0;
 	}
 	else
-		return 1;
+		return 1;/**/
 }
 
 int DsCoreImpl::webbyConnect(struct WebbyConnection *connection)

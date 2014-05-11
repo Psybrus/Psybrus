@@ -16,7 +16,7 @@
 #include "Base/BcProfiler.h"
 #include "Base/BcString.h"
 
-#include <boost/format.hpp>
+	#include <boost/format.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor

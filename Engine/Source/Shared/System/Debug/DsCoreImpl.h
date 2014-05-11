@@ -22,11 +22,9 @@
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
 #include "DsCore.h"
-
-#include <mongoose.h>
 #include <functional>
 #include <map>
-
+#include "webby.h"
 //////////////////////////////////////////////////////////////////////////
 /**	\class DsCore
 *	\brief Debug System Core
@@ -54,11 +52,35 @@ public:
 
 
 private:
-	mg_context*					pContext_;
-	std::mutex					Lock_;
+//	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
 
+
+	// Variables for Webby
+	int							ConnectionCount_;
+	WebbyServer *				Server_;
+	void*						ServerMemory_;
+#ifndef MAX_WSCONN
+#define MAX_WSCONN 8
+#endif
+	WebbyConnection*			ws_connections[MAX_WSCONN];
+
+
+	static int					externalWebbyDispatch(WebbyConnection *connection);
+	static int					externalWebbyConnect(WebbyConnection *connection);
+	static void					externalWebbyConnected(WebbyConnection *connection);
+	static void					externalWebbyClosed(WebbyConnection *connection);
+	static int					externalWebbyFrame(WebbyConnection *connection, const WebbyWsFrame *frame);
+
+	int							webbyDispatch(WebbyConnection *connection);
+	int							webbyConnect(WebbyConnection *connection);
+	void						webbyConnected(WebbyConnection *connection);
+	void						webbyClosed(WebbyConnection *connection);
+	int							webbyFrame(WebbyConnection *connection, const WebbyWsFrame *frame);
+
+
 };
+
 
 
 #endif

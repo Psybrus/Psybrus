@@ -20,7 +20,7 @@ project "Engine"
     psybrusSDK .. "/External/zlib/",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/mongoose/",
+    psybrusSDK .. "/External/webby/",
     psybrusSDK .. "/External/openal/include/",
     psybrusSDK .. "/External/ogg/include/",
     psybrusSDK .. "/External/png/",
