@@ -98,15 +98,15 @@ namespace
 		{ "hs_5_0",							"",					rsST_TESSELATION_CONTROL },
 		{ "ds_5_0",							"",					rsST_TESSELATION_EVALUATION },
 
+		{ "gs_4_0",							"",					rsST_GEOMETRY },
+		{ "gs_4_1",							"",					rsST_GEOMETRY },
+		{ "gs_5_0",							"",					rsST_GEOMETRY },
+
 		{ "vs_4_0",							"",					rsST_VERTEX },
 		{ "vs_4_0_level_9_1",				"",					rsST_VERTEX },
 		{ "vs_4_0_level_9_3",				"",					rsST_VERTEX },
 		{ "vs_4_1",							"",					rsST_VERTEX },
 		{ "vs_5_0",							"",					rsST_VERTEX },
-
-		{ "gs_4_0",							"",					rsST_GEOMETRY },
-		{ "gs_4_1",							"",					rsST_GEOMETRY },
-		{ "gs_5_0",							"",					rsST_GEOMETRY },
 
 		{ "cs_4_0",							"",					rsST_COMPUTE },
 		{ "cs_4_1",							"",					rsST_COMPUTE },
@@ -478,7 +478,28 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	GLSLHeader.ProgramPermutationFlags_ = Permutation.Flags_;
 	GLSLHeader.ShaderFlags_ = 0;
 	GLSLHeader.ShaderCodeType_ = scnSCT_GLSL_150;
-	
+
+	int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
+	            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
+
+	// Patch in geometry shader flag if we have one in the entries list.
+	if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
+		{
+			return Entry.Type_ == rsST_GEOMETRY;
+		} ) != Entries_.end() )
+	{
+		Flags |= HLSLCC_FLAG_GS_ENABLED;
+	}
+
+	// Patch in tesselation shader flag if we have one in the entries list.
+	if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
+		{
+			return Entry.Type_ == rsST_TESSELATION_CONTROL || Entry.Type_ == rsST_TESSELATION_EVALUATION;
+		} ) != Entries_.end() )
+	{
+		Flags |= HLSLCC_FLAG_TESS_ENABLED;
+	}
+
 	std::vector< RsProgramVertexAttribute > VertexAttributes;
 	
 	for( auto& Entry : Entries_ )
@@ -496,7 +517,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 			// Attempt to convert shaders.
 			GLSLShader GLSLResult;
 			int GLSLSuccess = TranslateHLSLFromMem( ByteCode.getData< const char >(),
-				HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT,
+				Flags,
 				LANG_150,
 				nullptr,
 				&GLSLDependencies,
