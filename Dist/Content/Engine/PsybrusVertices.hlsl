@@ -106,7 +106,7 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
-		o.Position_ = _v; 																		\
+		_o = _v; 																				\
 
 #else
 
@@ -116,6 +116,6 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
-		o.Position_ = mul( uClipTransform, _v ); 												\
+		_o = mul( uClipTransform, _v ); 														\
 
 #endif
