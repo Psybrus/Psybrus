@@ -45,7 +45,7 @@ public:
 	BcU32							addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
 	void							addDependency( const BcChar* pFileName );
 	void							addAllPackageCrossRefs( Json::Value& Root );
-	
+
 private:
 	BcBool							havePackageDependency( const BcName& PackageName );
 

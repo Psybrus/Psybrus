@@ -614,6 +614,10 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 				// Free GLSL shader.
 				FreeGLSLShader( &GLSLResult );
 			}
+			else
+			{
+				throw CsImportException( "Failed to convert to GLSL.", Filename_ );
+			}
 			RetVal = BcTrue;
 		}
 		else
@@ -636,11 +640,13 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	// Write out warning/error messages.
 	if( ErrorMessages_.size() > 0 )
 	{
-		BcPrintf( "ScnShaderImport: Errors:\n" );
+		std::string Errors;
 		for( auto& Error : ErrorMessages_ )
 		{
-			BcPrintf( Error.c_str() );
+			Errors += Error;
 		}
+
+		throw CsImportException( Errors, Filename_ );
 	}
 
 	return RetVal;
