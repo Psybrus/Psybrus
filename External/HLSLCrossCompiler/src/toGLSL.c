@@ -497,8 +497,9 @@ void TranslateToGLSL(HLSLCrossCompilerContext* psContext, GLLang* planguage,cons
         psContext->currentPhase = HS_FORK_PHASE;
         for(forkIndex = 0; forkIndex < psShader->ui32ForkPhaseCount; ++forkIndex)
         {
+            haveInstancedForkPhase = 0; // neilr: reset for each fork phase for cases we don't have a fork phase instance count opcode.
             bcatcstr(glsl, "//Fork phase declarations\n");
-            for(i=0; i < psShader->aui32HSForkDeclCount[forkIndex]; ++i)
+			for(i=0; i < psShader->aui32HSForkDeclCount[forkIndex]; ++i)
             {
                 TranslateDeclaration(psContext, psShader->apsHSForkPhaseDecl[forkIndex]+i);
                 if(psShader->apsHSForkPhaseDecl[forkIndex][i].eOpcode == OPCODE_DCL_HS_FORK_PHASE_INSTANCE_COUNT)
