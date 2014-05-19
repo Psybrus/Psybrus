@@ -40,6 +40,10 @@ public:
 	void								setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32								getRenderState( eRsRenderState State ) const;
 	void								setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void								setVertexDeclaration( class RsVertexDeclaration* pVertexDeclaration );
+	void								setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* pVertexBuffer );
+	void								setIndexBuffer( class RsIndexBuffer* pIndexBuffer );
+
 	void								flushState();
 
 private:
@@ -83,18 +87,23 @@ private:
 		BcBool						Dirty_;
 	};
 
+	struct TVertexBufferSlot
+	{
+		class RsVertexBuffer*		VertexBuffer_;
+	};
+
 	enum
 	{
 		NOOF_RENDERSTATES = rsRS_MAX,
-		NOOF_TEXTURESTATES = 8
+		NOOF_TEXTURESTATES = 8,
 	};
 		
-	TRenderStateValue				RenderStateValues_[ NOOF_RENDERSTATES ];
-	TTextureStateValue				TextureStateValues_[ NOOF_TEXTURESTATES ];
+	std::array< TRenderStateValue, NOOF_RENDERSTATES >		RenderStateValues_;
+	std::array< TTextureStateValue, NOOF_TEXTURESTATES >	TextureStateValues_;
 
 	// State setting.
-	BcU32							RenderStateBinds_[ NOOF_RENDERSTATES ];
-	BcU32							TextureStateBinds_[ NOOF_TEXTURESTATES ];
+	std::array< BcU32, NOOF_RENDERSTATES >					RenderStateBinds_;
+	std::array< BcU32, NOOF_TEXTURESTATES >					TextureStateBinds_;
 	BcU32							NoofRenderStateBinds_;
 	BcU32							NoofTextureStateBinds_;	
 };

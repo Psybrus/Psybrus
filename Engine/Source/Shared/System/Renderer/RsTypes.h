@@ -207,6 +207,28 @@ enum eRsVertexDataType
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Vertex data type.
+enum eRsVertexUsage
+{
+	rsVU_POSITION = 0,
+	rsVU_BLENDWEIGHT,
+	rsVU_BLENDINDICES,
+	rsVU_NORMAL,
+	rsVU_PSIZE,
+	rsVU_TEXCOORD,
+	rsVU_TANGENT,
+	rsVU_BINORMAL,
+	rsVU_TESSFACTOR,
+	rsVU_POSITIONT,
+	rsVU_COLOUR,
+	rsVU_FOG,
+	rsVU_DEPTH,
+	rsVU_SAMPLE,
+
+	rsVU_MAX,
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Texture Type
 enum eRsTextureType
 {

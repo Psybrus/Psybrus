@@ -37,7 +37,7 @@ struct ScnModelNodeTransformData
 	MaMat4d							AbsoluteTransform_;
 	MaMat4d							InverseBindpose_;
 };
-	
+
 //////////////////////////////////////////////////////////////////////////
 // ScnModelNodePropertyData
 struct ScnModelNodePropertyData
@@ -54,7 +54,7 @@ struct ScnModelPrimitiveData
 	BcU32							NodeIndex_;
 	BcBool							IsSkinned_;
 	eRsPrimitiveType				Type_;
-	BcU32							VertexFormat_;
+	BcU32							VertexElements_;
 	BcU32							ShaderPermutation_;
 	BcU32							NoofVertices_;
 	BcU32							NoofIndices_;
@@ -70,6 +70,7 @@ struct ScnModelPrimitiveData
 struct ScnModelPrimitiveRuntime
 {
 	BcU32							PrimitiveDataIndex_;
+	class RsVertexDeclaration*		pVertexDeclaration_;
 	class RsVertexBuffer*			pVertexBuffer_;
 	class RsIndexBuffer*			pIndexBuffer_;
 	class RsPrimitive*				pPrimitive_;

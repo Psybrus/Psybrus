@@ -250,6 +250,16 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+//virtual
+RsVertexDeclaration* RsCoreImplGL::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
+{
+	RsVertexDeclaration* pResource = new RsVertexDeclaration( getContext( NULL ), Desc );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexBuffer
 //virtual 
 RsVertexBuffer* RsCoreImplGL::createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData )
@@ -302,9 +312,9 @@ RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders,
 //////////////////////////////////////////////////////////////////////////
 // createPrimitive
 //virtual
-RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer )
+RsPrimitive* RsCoreImplGL::createPrimitive( const RsPrimitiveDesc& Desc )
 {
-	RsPrimitiveGL* pResource = new RsPrimitiveGL( getContext( NULL ), static_cast< RsVertexBufferGL* >( pVertexBuffer ), static_cast< RsIndexBufferGL* >( pIndexBuffer ) );
+	RsPrimitiveGL* pResource = new RsPrimitiveGL( getContext( NULL ), Desc );
 	createResource( pResource );
 	return pResource;
 }
