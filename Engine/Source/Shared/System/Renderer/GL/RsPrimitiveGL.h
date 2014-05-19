@@ -19,6 +19,7 @@
 
 #include "System/Renderer/RsPrimitive.h"
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // RsPrimitiveGL
 class RsPrimitiveGL:
@@ -27,11 +28,8 @@ class RsPrimitiveGL:
 public:
 	/**
 	 * Create primitive.<br/>
-	 * TODO: Support multiple vertex buffers and binding by mask.
-	 * @param pVertexBuffer Vertex buffer.
-	 * @param pIndexBuffer Index buffer.
 	 */
-	RsPrimitiveGL( RsContext* pContext, RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer );
+	RsPrimitiveGL( RsContext* pContext, const RsPrimitiveDesc& Desc );
 	virtual ~RsPrimitiveGL();
 	
 protected:
@@ -43,11 +41,6 @@ public:
 	virtual void						render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
 	
 private:
-	RsVertexBufferGL*					pVertexBuffer_;
-	RsIndexBufferGL*					pIndexBuffer_;	
-
-	BcU32								VAO_;
-
 };
 
 #endif

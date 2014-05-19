@@ -96,6 +96,7 @@ private:
 	};
 
 	// Graphics data.
+	RsVertexDeclaration*				VertexDeclaration_;
 	TVertexBuffer						VertexBuffers_[ 2 ];
 	BcU32								CurrentVertexBuffer_;
 

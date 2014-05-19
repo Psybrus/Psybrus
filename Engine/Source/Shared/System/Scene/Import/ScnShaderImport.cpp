@@ -321,7 +321,7 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 						// Setup permutation flags.
 						ShaderHeader.ShaderType_ = Type;
 						ShaderHeader.ShaderDataType_ = rsSDT_SOURCE;
-						ShaderHeader.ShaderCodeType_ = scnSCT_GLSL_150;
+						ShaderHeader.ShaderCodeType_ = scnSCT_GLSL_430;
 						ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
 			
 						// Serialise.
@@ -387,7 +387,7 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 					( FragmentLoaded ? ( 1 << rsST_FRAGMENT ) : 0 ) |
 					( GeometryLoaded ? ( 1 << rsST_GEOMETRY ) : 0 );
 				ProgramHeader.NoofVertexAttributes_ = rsVC_MAX;
-				ProgramHeader.ShaderCodeType_ = scnSCT_GLSL_150;
+				ProgramHeader.ShaderCodeType_ = scnSCT_GLSL_430;
 	
 				ProgramStream << ProgramHeader;
 
@@ -462,7 +462,7 @@ void ScnShaderImport::generatePermutations( BcU32 GroupIdx,
 // buildPermutation
 BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, const ScnShaderPermutation& Permutation )
 {
-	BcBool RetVal = BcFalse;
+	BcBool RetVal = BcTrue;
 
 	// Cross dependenies needed for GLSL.
 	GLSLCrossDependencyData GLSLDependencies;
@@ -477,18 +477,17 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	D3D11Header.ShaderCodeType_ = scnSCT_D3D11_5_1;
 	GLSLHeader.ProgramPermutationFlags_ = Permutation.Flags_;
 	GLSLHeader.ShaderFlags_ = 0;
-	GLSLHeader.ShaderCodeType_ = scnSCT_GLSL_150;
+	GLSLHeader.ShaderCodeType_ = scnSCT_GLSL_430;
 
-	int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
-	            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
-
+	bool HasGeometry = false;
+	bool HasTesselation = false;
 	// Patch in geometry shader flag if we have one in the entries list.
 	if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
 		{
 			return Entry.Type_ == rsST_GEOMETRY;
 		} ) != Entries_.end() )
 	{
-		Flags |= HLSLCC_FLAG_GS_ENABLED;
+		HasGeometry = true;
 	}
 
 	// Patch in tesselation shader flag if we have one in the entries list.
@@ -497,13 +496,35 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 			return Entry.Type_ == rsST_TESSELATION_CONTROL || Entry.Type_ == rsST_TESSELATION_EVALUATION;
 		} ) != Entries_.end() )
 	{
-		Flags |= HLSLCC_FLAG_TESS_ENABLED;
+		HasTesselation = true;
 	}
 
 	std::vector< RsProgramVertexAttribute > VertexAttributes;
 	
 	for( auto& Entry : Entries_ )
 	{
+		int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
+	                HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
+
+		// Geometry shader in entries?
+		if( HasGeometry )
+		{
+			if( Entry.Type_ == rsST_VERTEX )
+			{
+				Flags |= HLSLCC_FLAG_GS_ENABLED;
+			}
+		}
+
+		// Tesselation shadrs in entries?
+		if( HasTesselation )
+		{
+			if( Entry.Type_ == rsST_TESSELATION_CONTROL ||
+				Entry.Type_ == rsST_TESSELATION_EVALUATION )
+			{
+				Flags |= HLSLCC_FLAG_TESS_ENABLED;
+			}
+		}
+
 		BcBinaryData ByteCode;
 		if( compileShader( Filename_, Entry.Entry_, Permutation.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages_ ) )
 		{
@@ -518,7 +539,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 			GLSLShader GLSLResult;
 			int GLSLSuccess = TranslateHLSLFromMem( ByteCode.getData< const char >(),
 				Flags,
-				LANG_150,
+				LANG_430,
 				nullptr,
 				&GLSLDependencies,
 				&GLSLResult
@@ -533,7 +554,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 				// Shader.
 				ScnShaderBuiltData GLSLShader;
 				GLSLShader.ShaderType_ = Entry.Type_;
-				GLSLShader.CodeType_ = scnSCT_GLSL_150;
+				GLSLShader.CodeType_ = scnSCT_GLSL_430;
 				GLSLShader.Code_ = std::move( BcBinaryData( (void*)GLSLSource.c_str(), GLSLSource.size() + 1, BcTrue ) );
 				GLSLShader.Hash_ = BcHash( GLSLShader.Code_.getData< const BcU8 >(), GLSLShader.Code_.getDataSize() );
 
@@ -616,12 +637,13 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 			}
 			else
 			{
+				RetVal = BcFalse;
 				throw CsImportException( "Failed to convert to GLSL.", Filename_ );
 			}
-			RetVal = BcTrue;
 		}
 		else
 		{
+			RetVal = BcFalse;
 			break;
 		}
 	}
@@ -683,6 +705,10 @@ std::string ScnShaderImport::removeComments( std::string Input )
 eRsVertexChannel ScnShaderImport::semanticToVertexChannel( const std::string& Name, BcU32 Index )
 {
 	if( Name == "POSITION" && Index == 0 )
+	{
+		return rsVC_POSITION;
+	}
+	else if( Name == "SV_POSITION" && Index == 0 )
 	{
 		return rsVC_POSITION;
 	}

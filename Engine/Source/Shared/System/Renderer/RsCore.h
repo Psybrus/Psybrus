@@ -30,6 +30,7 @@
 #include "System/Renderer/RsRenderTarget.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsVertexBuffer.h"
 #include "System/Renderer/RsIndexBuffer.h"
 #include "System/Renderer/RsUniformBuffer.h"
@@ -110,6 +111,12 @@ public:
 	 */
 	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc ) = 0;
 
+	/**
+	 *	Create a vertex declaration.
+	 *	@param Desc Descriptor object.
+	 */
+	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc ) = 0;
+
 	/*
 	 * Create a vertex buffer.
 	 * @param Desc Buffer descriptor
@@ -151,10 +158,9 @@ public:
 
 	/**
 	 * Create primitive.
-	 * @param pVertexBuffer Vertex buffer.
-	 * @param pIndexBuffer Index buffer.
+	 * @param Desc Descriptor object.
 	 */
-	virtual RsPrimitive*		createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer ) = 0;
+	virtual RsPrimitive*		createPrimitive( const RsPrimitiveDesc& Desc ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
