@@ -43,17 +43,22 @@ struct DsPageDefinition
 	: Regex_(r.c_str()),
 		Text_(r),
 		Display_(display),
-		Visible_(true) {}
+		Visible_(true),
+		IsHtml_(true) 
+	{}
 
 	DsPageDefinition(std::string r)
 		: Regex_(r.c_str()),
 		Text_(r),
-		Visible_(false) {}
+		Visible_(false),
+		IsHtml_(true)
+	{}
 
 	BcRegex Regex_;
 	std::string Text_;
 	std::string Display_;
 	bool Visible_;
+	bool IsHtml_;
 	std::function <void(DsParameters, BcHtmlNode&, std::string)> Function_;
 };
 
@@ -81,7 +86,7 @@ class DsCore :
 {
 public:
 	static BcU32 WORKER_MASK;
-
+	static const BcU32			DsCoreSerialised = 0x08;
 public:
 	DsCore();
 	virtual ~DsCore();
@@ -102,17 +107,23 @@ public:
 
 	static void					cmdResource(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
+	static void					cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	static void					cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
 	char*						writeFile(std::string filename, int& OutLength, std::string& type);
 	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display);
 	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
+	void						registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
 	void						deregisterPage(std::string regex);
 
 	void						registerFunction(std::string Display, std::function<void()> Function);
 	void						deregisterFunction(std::string Display);
 	char*						handleFile(std::string Uri, int& FileSize, std::string Content);
 	std::string					loadHtmlFile(std::string Uri, std::string Content);
+
+	static void					cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostContent);					
 private:
 //	BcMutex						Lock_;
 	SysFence					GameThreadWaitFence_;
