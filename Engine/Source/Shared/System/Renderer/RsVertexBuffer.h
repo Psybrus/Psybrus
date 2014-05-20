@@ -23,10 +23,9 @@
 struct RsVertexBufferDesc
 {
 	RsVertexBufferDesc();
-	RsVertexBufferDesc( BcU32 Descriptor, BcU32 NoofVertices );
-	RsVertexBufferDesc( BcU32 Descriptor, BcU32 NoofVertices, BcU32 Stride );
+	RsVertexBufferDesc( BcU32 NoofVertices );
+	RsVertexBufferDesc( BcU32 NoofVertices, BcU32 Stride );
 
-	BcU32 Descriptor_;
 	BcU32 NoofVertices_;
 	BcU32 Stride_;
 };
@@ -61,12 +60,12 @@ public:
 	/**
 	 *  Get number of vertices.
 	 */
-	virtual BcU32						getNoofVertices() = 0;
+	virtual BcU32						getNoofVertices() const = 0;
 	
 	/**
-	 * Get vertex format.
+	 * Get vertex stride.
 	 */
-	virtual BcU32						getVertexFormat() = 0;
+	virtual BcU32						getVertexStride() const= 0;
 };
 
 #endif

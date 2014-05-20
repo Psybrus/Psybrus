@@ -150,6 +150,7 @@ protected:
 protected:
 	static ScnDebugRenderComponent*		pImpl_;
 
+	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
 		RsUniformBuffer*				UniformBuffer_;

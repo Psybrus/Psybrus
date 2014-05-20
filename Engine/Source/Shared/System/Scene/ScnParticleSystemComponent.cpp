@@ -83,11 +83,12 @@ void ScnParticleSystemComponent::create()
 	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 
 	// Create vertex declaration.
-	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( RsVertexDeclarationDesc( 4 )
-		.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
-		.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 ) )
-		.addElement( RsVertexElement( 0, 24,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
-		.addElement( RsVertexElement( 0, 32,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 4 )
+			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 ) )
+			.addElement( RsVertexElement( 0, 24,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 32,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
 
 	// Allocate vertex buffers.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )

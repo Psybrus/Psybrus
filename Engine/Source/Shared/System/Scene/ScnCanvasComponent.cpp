@@ -74,6 +74,12 @@ void ScnCanvasComponent::create()
 	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasComponentVertex ) );
 
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 3 )
+			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 20,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
@@ -86,7 +92,9 @@ void ScnCanvasComponent::create()
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexFormat, NoofVertices_ ), RenderResource.pVertices_ );
 	
 		// Allocate render side primitive.
-		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
+		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( 
+			RsPrimitiveDesc( VertexDeclaration_ )
+				.setVertexBuffer( 0, RenderResource.pVertexBuffer_ ) );
 	}
 
 	Super::create();
@@ -107,6 +115,8 @@ void ScnCanvasComponent::destroy()
 		// Allocate render side primitive.
 		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
 	}
+
+	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )

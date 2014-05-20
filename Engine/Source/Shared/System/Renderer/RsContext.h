@@ -78,21 +78,6 @@ public:
 	virtual void					setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse ) = 0;
 
 	/**
-	 * Set vertex declaration.
-	 */
-	virtual void					setVertexDeclaration( class RsVertexDeclaration* pVertexDeclaration ) = 0;
-
-	/**
-	 * Set vertex buffer.
-	 */
-	virtual void					setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* pVertexBuffer ) = 0;
-
-	/**
-	 * Set index buffer.
-	 */
-	virtual void					setIndexBuffer( class RsIndexBuffer* pIndexBuffer ) = 0;
-
-	/**
 	 * Flush state.
 	 */
 	virtual void					flushState() = 0;
