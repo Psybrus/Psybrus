@@ -51,6 +51,17 @@ public:
      */
     virtual BcU32 getFileVersion() const = 0;
 
+	/**
+	 * @brief Serialises class to string
+	 * @param pData Pointer to class data
+	 * @param pType Type to serialise as.
+	 */
+	template< typename _Ty >
+    std::string serialiseToString( _Ty* pData, const ReType* pType )
+    {
+        return ( internalSerialiseString( reinterpret_cast< void* >( pData ), pType ) );
+    }
+
     /**
      * @brief Serialise class.
      * @param pData Pointer to class data
@@ -88,6 +99,13 @@ protected:
      * @return New data pointer (may be the same)
      */
     virtual void* internalSerialise( void* pData, const ReType* pType ) = 0;
+    /**
+     * @brief Serialise class to std::string.
+     * @param pData Pointer to class data
+     * @param pType Type to serialise as.
+     * @return std::string Data as string
+     */
+    virtual std::string internalSerialiseString( void* pData, const ReType* pType ) = 0;
 };
 
 #endif

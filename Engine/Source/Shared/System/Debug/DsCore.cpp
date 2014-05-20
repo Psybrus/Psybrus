@@ -14,10 +14,12 @@
 #include "System/Debug/DsCore.h"
 #include "Base/BcHtml.h"
 #include "System/SysKernel.h"
-
+#include "Serialisation/SeJsonWriter.h"
 #include "Psybrus.h"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/regex.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -32,6 +34,9 @@ DsCore::DsCore()
 	registerPage("Scene", &cmdScene, "Scene");
 	registerPage("Log", &cmdLog, "Log");
 	registerPage("Resource/(?<Id>.*)", &cmdResource);
+	registerPageNoHtml("Json/(?<Id>\\d*)", &cmdJson);
+	registerPageNoHtml("JsonSerialise/(?<Id>\\d*)", &cmdJsonSerialiser);
+	registerPageNoHtml("Wadl", &cmdWADL);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,6 +111,17 @@ void DsCore::registerPage(std::string regex, std::function < void(DsParameters, 
 {
 	DsPageDefinition cm(regex);
 	cm.Function_ = fn;
+	cm.IsHtml_ = true;
+	PageFunctions_.push_back(cm);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerPageNoHtml
+void DsCore::registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
+{
+	DsPageDefinition cm(regex);
+	cm.Function_ = fn;
+	cm.IsHtml_ = false;
 	PageFunctions_.push_back(cm);
 }
 
@@ -452,7 +468,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	std::vector<std::string> data;
 	bool success = false;
 	std::string uri = &Uri[1];
-
+		
 	for (auto Item : ButtonFunctions_)
 	{
 		if (uri == ("Functions/" + Item.DisplayText_))
@@ -479,7 +495,10 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 					match.getMatch(Idx2, u);
 					data.push_back(u);
 				}
+
 				PageFunctions_[Idx].Function_(data, innerBody, Content);
+				if (!PageFunctions_[Idx].IsHtml_)
+					return innerBody.getContents();
 				break;
 			}
 		}
@@ -489,4 +508,214 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 
 	std::string Output = HtmlContent.getHtml();
 	return Output;
+}
+
+void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostContent)
+{
+	std::string EntityId = "";
+
+	EntityId = params[0];
+	if (!BcStrIsNumber(EntityId.c_str()))
+	{
+		Output.createChildNode("").setContents("Invalid resource Id");
+		Output.createChildNode("br");
+		return;
+	}
+	BcU32 id = BcStrAtoi(EntityId.c_str());
+
+	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
+
+	if (Resource == NULL)
+	{
+		Output.createChildNode("").setContents("Invalid resource Id");
+		Output.createChildNode("br");
+		return;
+	}
+	SeJsonWriter writer("out.json");
+	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
+
+	//boost::replace_all(output, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+	//boost::replace_all(output, "\n", "<br />");
+
+	//output = output.replace(output.begin(), output.end(), "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+	//output = output.replace(output.begin(), output.end(), "\n", "\n<br/>");
+	//Output.createChildNode("Pre").setContents(output);
+	Output.setContents(output);
+	// delete data;
+	//SeJsonWriter::serialise<CsResource>(Resource, Resource->getClass());
+}
+
+void DsCore::cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostContent)
+{
+	DsCore* core = DsCore::pImpl();
+	BcHtml html;
+	html.getRootNode().setTag("application");
+	html.getRootNode().setAttribute("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance" )
+						.setAttribute("xsi:schemaLocation","http://wadl.dev.java.net/2009/02 wadl.xsd" )
+						.setAttribute("xmlns:tns","urn:yahoo:yn")
+						.setAttribute("xmlns:xsd","http://www.w3.org/2001/XMLSchema")
+						.setAttribute("xmlns:yn","urn:yahoo:yn")
+						.setAttribute("xmlns:ya","urn:yahoo:api")
+ 						.setAttribute("xmlns","http://wadl.dev.java.net/2009/02");
+	BcHtmlNode node = html.getRootNode();
+	// TODO: Make this adjust depending on the port somehow :S
+	BcHtmlNode resources = node.createChildNode("resources").setAttribute("base", "http://127.0.0.1:1337");
+	// THAT REGEX
+	// \(\?\<(?<name>\w*)\>\.\*\)
+	// THIS WILL LOOK HORRIBLE
+	boost::regex re("\\(\\?\\<(?<name>\\w*)\\>\\.\\*\\)");
+	
+	for (BcU32 Idx = 0; Idx < core->PageFunctions_.size(); ++Idx)
+	{
+		boost::smatch results;
+		BcHtmlNode resource = resources.createChildNode("resource");
+		std::string replacement = core->PageFunctions_[Idx].Text_;
+		auto wat = re.get_named_subs();
+		
+		if (boost::regex_search(replacement, results, re)) 
+		{
+			for (auto item : results)
+			{
+				resource.createChildNode("item").setContents(item.str());
+			}
+		}
+
+		boost::replace_all(replacement, re, "{$1}");
+
+		//std::string other = boost::regex_replace();
+		resource.setAttribute("path", core->PageFunctions_[Idx].Text_);
+
+
+	}
+	Output.setContents(html.getHtml());
+}
+
+void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::string PostContent)
+{
+	std::string EntityId = "";
+
+	EntityId = params[0];
+	if (!BcStrIsNumber(EntityId.c_str()))
+	{
+		Output.createChildNode("").setContents("Invalid resource Id");
+		Output.createChildNode("br");
+		return;
+	}
+	BcU32 id = BcStrAtoi(EntityId.c_str());
+	std::string OutputString = "{\n";
+	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
+
+	if (Resource == NULL)
+	{
+		Output.createChildNode("").setContents("Invalid resource Id");
+		Output.createChildNode("br");
+		OutputString = " { } ";
+		Output.setContents(OutputString);
+		return;
+	}
+	Json::Value readRoot;
+	Json::Reader reader;
+	bool PostContentAvailable = PostContent.size() > 0;
+	bool success = reader.parse(PostContent, readRoot);
+	Json::Value root;
+
+	Json::Value classes = Json::Value(Json::arrayValue);
+	if (Resource->getClass() == ScnEntity::StaticGetClass())
+	{
+		cmdScene_Entity(ScnEntityRef(Resource), Output, 0);
+	}
+	else
+	{
+		// Iterate over all properties and do stuff.
+		const ReClass* pClass = Resource ->getClass();
+
+		// NOTE: Do not want to hit this. Ever.
+		if (pClass == NULL)
+		{
+			int a = 0; ++a;
+		}
+		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
+		// Iterate over to grab offsets for classes.
+		while (pClass != NULL)
+		{
+			Json::Value theClass;
+			theClass["className"] = pClass->getName().getValue();
+
+			Json::Value readNode;
+			for (auto v : readRoot["classes"])
+			{
+				if (v["className"].asString() == pClass->getName().getValue())
+				{
+					readNode = v;
+				}
+			}
+			for (BcU32 Idx = 0; Idx < pClass->getNoofFields(); ++Idx)
+			{
+				ReFieldAccessor SrcFieldAccessor(Resource, pClass->getField(Idx)); 
+				auto Field = pClass->getField(Idx);
+
+				if (!SrcFieldAccessor.isContainerType())
+				{
+					const ReClass* FieldClass = SrcFieldAccessor.getUpperClass();
+					void* data = SrcFieldAccessor.getData();
+					std::string str = "UNKNOWN";
+					std::string fieldName = Field->getName().getValue();
+					
+					if (SrcFieldAccessor.getUpperClass()->hasBaseClass(CsResource::StaticGetClass()))
+					{
+						CsResource* resource = static_cast<CsResource*>(SrcFieldAccessor.getData());
+						if( resource != nullptr )
+						{
+							str = "";
+						}
+
+					} else if (FieldClass->getTypeSerialiser() != nullptr)
+					{
+						if (PostContentAvailable && (Field->getFlags() & DsCore::DsCoreSerialised))
+						{
+							std::string newValue = readNode["data"][fieldName].asString();
+							FieldClass->getTypeSerialiser()->serialiseFromString(data, newValue);
+						}
+						FieldClass->getTypeSerialiser()->serialiseToString(data, str);
+					}
+					if (Field->getFlags() & DsCore::DsCoreSerialised)
+					{
+						theClass["data"][fieldName] = str;
+					}
+				}
+				else
+				{
+					auto SrcIter = SrcFieldAccessor.newReadIterator();
+					auto KeyType = Field->getKeyType();
+					auto ValueType = Field->getValueType();
+
+					if (KeyType == nullptr)
+					{
+						// Do something I guess
+					}
+					else
+					{
+					}
+				}
+				// Ignore null pointers, transients, and shallow copies.
+				if (!SrcFieldAccessor.isNullptr() &&
+					!SrcFieldAccessor.isTransient() &&
+					!SrcFieldAccessor.isShallowCopy())
+				{
+					if (SrcFieldAccessor.isPointerType())
+					{
+						//gatherFieldPointer(SrcFieldAccessor);
+					}
+					else if (SrcFieldAccessor.isContainerType() && SrcFieldAccessor.isContainerOfPointerValues())
+					{
+						//gatherFieldContainer(SrcFieldAccessor);
+					}
+				}
+			}
+			pClass = pClass->getSuper();
+			classes.append(theClass);
+		}
+	}
+	root["classes"] = (classes);
+	Output.setContents(root.toStyledString());
 }
