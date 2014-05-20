@@ -16,7 +16,6 @@
 //////////////////////////////////////////////////////////////////////////
 // RsVertexBufferDesc
 RsVertexBufferDesc::RsVertexBufferDesc():
-	Descriptor_( 0 ),
 	NoofVertices_( 0 ),
 	Stride_( 0 )
 {
@@ -25,18 +24,15 @@ RsVertexBufferDesc::RsVertexBufferDesc():
 
 //////////////////////////////////////////////////////////////////////////
 // RsVertexBufferDesc
-RsVertexBufferDesc::RsVertexBufferDesc( BcU32 Descriptor, BcU32 NoofVertices ):
-	Descriptor_( Descriptor ),
-	NoofVertices_( NoofVertices ),
-	Stride_( RsVertexDeclSize( Descriptor ) )
+RsVertexBufferDesc::RsVertexBufferDesc( BcU32 NoofVertices ):
+	NoofVertices_( NoofVertices )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // RsVertexBufferDesc
-RsVertexBufferDesc::RsVertexBufferDesc( BcU32 Descriptor, BcU32 NoofVertices, BcU32 Stride ):
-	Descriptor_( Descriptor ),
+RsVertexBufferDesc::RsVertexBufferDesc( BcU32 NoofVertices, BcU32 Stride ):
 	NoofVertices_( NoofVertices ),
 	Stride_( Stride )
 {

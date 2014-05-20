@@ -79,17 +79,17 @@ void RsVertexBufferGL::setNoofUpdateVertices( BcU32 NoofVertices )
 ////////////////////////////////////////////////////////////////////////////////
 // getNoofVertices
 //virtual
-BcU32 RsVertexBufferGL::getNoofVertices()
+BcU32 RsVertexBufferGL::getNoofVertices() const
 {
 	return Desc_.NoofVertices_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// getVertexFormat
+// getVertexStride
 //virtual
-BcU32 RsVertexBufferGL::getVertexFormat()
+BcU32 RsVertexBufferGL::getVertexStride() const
 {
-	return Desc_.Descriptor_;
+	return Desc_.Stride_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,6 @@ void RsVertexBufferGL::destroy()
 // bind
 void RsVertexBufferGL::bind()
 {
-	const BcU32 VertexDecl = Desc_.Descriptor_;
 	const BcU32 Stride = Desc_.Stride_;
 	char* Offset = NULL;
 
@@ -183,6 +182,7 @@ void RsVertexBufferGL::bind()
 
 	RsGLCatchError;
 
+#if 0
 	// NOTE: This should be optimised to use a lookup table or similar.
 
 	// Position.
@@ -363,4 +363,5 @@ void RsVertexBufferGL::bind()
 		
 	// Catch error.
 	RsGLCatchError;
+#endif
 }

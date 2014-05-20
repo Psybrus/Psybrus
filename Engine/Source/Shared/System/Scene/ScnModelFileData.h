@@ -54,14 +54,15 @@ struct ScnModelPrimitiveData
 	BcU32							NodeIndex_;
 	BcBool							IsSkinned_;
 	eRsPrimitiveType				Type_;
-	BcU32							VertexElements_;
 	BcU32							ShaderPermutation_;
-	BcU32							NoofVertices_;
 	BcU32							NoofIndices_;
 	BcU32							MaterialRef_;
 	BcU32							Padding0_;
 	BcU32							Padding1_;
 	MaAABB							AABB_;
+	BcU32							NoofVertices_;
+	BcU32							NoofVertexElements_;
+	RsVertexElement*				VertexElements_;
 	BcU32							BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };
 

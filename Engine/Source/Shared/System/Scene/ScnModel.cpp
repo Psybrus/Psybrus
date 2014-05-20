@@ -84,17 +84,29 @@ void ScnModel::create()
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
 		ScnModelPrimitiveData* pPrimitiveData = &pPrimitiveData_[ PrimitiveIdx ];
+		
 		//ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
 		
 		// Create GPU resources.
-		RsVertexBuffer* pVertexBuffer = RsCore::pImpl() ? RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->VertexFormat_, pPrimitiveData->NoofVertices_ ), pVertexBufferData ) : NULL;
-		RsIndexBuffer* pIndexBuffer = RsCore::pImpl() ? RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData ) : NULL;
-		RsPrimitive* pPrimitive = RsCore::pImpl() ? RsCore::pImpl()->createPrimitive( pVertexBuffer, pIndexBuffer ) : NULL;
+		RsVertexDeclarationDesc VertexDeclarationDesc( pPrimitiveData_->NoofVertexElements_ );
+		for( BcU32 Idx = 0; Idx < pPrimitiveData_->NoofVertexElements_; ++Idx )
+		{
+			VertexDeclarationDesc.addElement( pPrimitiveData_->VertexElements_[ Idx ] );
+		}
+		
+		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
+		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->NoofVertices_ ), pVertexBufferData );
+		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData );
+		RsPrimitive* pPrimitive = RsCore::pImpl()->createPrimitive( 
+			RsPrimitiveDesc( pVertexDeclaration )
+				.setIndexBuffer( pIndexBuffer )
+				.setVertexBuffer( 0, pVertexBuffer ) );
 		
 		// Setup runtime structure.
 		ScnModelPrimitiveRuntime PrimitiveRuntime = 
 		{
 			PrimitiveIdx,
+			pVertexDeclaration,
 			pVertexBuffer,
 			pIndexBuffer,
 			pPrimitive,
@@ -109,7 +121,7 @@ void ScnModel::create()
 		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
 		
 		// Advance vertex and index buffers.
-		pVertexBufferData += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
+		pVertexBufferData += pPrimitiveData->NoofVertices_ * PrimitiveRuntime.pVertexBuffer_->getVertexStride();
 		pIndexBufferData += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
 	}
 
@@ -194,6 +206,7 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	else if( ChunkID == BcHash( "primitivedata" ) )
 	{
 		pPrimitiveData_ = (ScnModelPrimitiveData*)pData;
+		pPrimitiveData_->VertexElements_ = (RsVertexElement*)( pPrimitiveData_ + 1 );
 		
 		markCreate(); // All data loaded, time to create.
 	}

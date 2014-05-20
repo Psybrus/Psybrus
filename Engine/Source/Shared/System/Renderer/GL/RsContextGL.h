@@ -40,9 +40,6 @@ public:
 	void								setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32								getRenderState( eRsRenderState State ) const;
 	void								setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
-	void								setVertexDeclaration( class RsVertexDeclaration* pVertexDeclaration );
-	void								setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* pVertexBuffer );
-	void								setIndexBuffer( class RsIndexBuffer* pIndexBuffer );
 
 	void								flushState();
 
