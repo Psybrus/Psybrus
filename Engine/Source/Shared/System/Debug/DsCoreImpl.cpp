@@ -113,8 +113,8 @@ int DsCoreImpl::webbyDispatch(WebbyConnection *connection)
 	int size = 0;
 	char* data = new char[connection->request.content_length + 1];
 	BcMemZero(data, connection->request.content_length + 1);
-	char* file = handleFile(connection->request.uri, size, data);
 	WebbyRead(connection, data, connection->request.content_length);
+	char* file = handleFile(connection->request.uri, size, data);
 	WebbyBeginResponse(connection, 200, size, NULL, 0);
 	WebbyWrite(connection, file, size);
 	WebbyEndResponse(connection);

@@ -127,6 +127,14 @@ public:
 	void							removeNotifier( ReIObjectNotify* ObjectNotify ) const;
 
 	/**
+	 *@brief Gets flags for resource
+	*/
+	inline const BcU32				getFlags() const
+	{
+		return Flags_;
+	}
+
+	/**
 	 * Get unique identifier for resource
 	 */
 	inline const BcU32				getUniqueId() const
