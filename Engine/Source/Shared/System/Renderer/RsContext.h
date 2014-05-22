@@ -81,6 +81,16 @@ public:
 	 * Flush state.
 	 */
 	virtual void					flushState() = 0;
+
+	/**
+	 * Clear.
+	 */
+	virtual void					clear();
+
+	/**
+	 * Draw.
+	 */
+	virtual void					draw( class RsProgram* Program, class RsPrimitive* Primitive, eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
 };
 
 

@@ -59,3 +59,10 @@ RsPrimitive::~RsPrimitive()
 {
 
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getDesc
+const RsPrimitiveDesc& RsPrimitive::getDesc() const
+{
+	return Desc_;
+}

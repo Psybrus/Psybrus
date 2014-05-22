@@ -17,6 +17,8 @@
 
 #include <string>
 
+#include <boost/format.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes ):
@@ -34,8 +36,7 @@ RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppS
 	AttributeList_.reserve( NoofVertexAttributes );
 	for( BcU32 Idx = 0; Idx < NoofVertexAttributes; ++Idx )
 	{
-		TAttribute Attribute = { *pVertexAttributes[ Idx ].AttributeName_, pVertexAttributes[ Idx ].Channel_ };
-		AttributeList_.push_back( Attribute );
+		AttributeList_.push_back( pVertexAttributes[ Idx ] );
 	}
 }
 
@@ -69,10 +70,13 @@ void RsProgramGL::create()
 		//ppShaders_[ Idx ]->logShader();
 	}
 	
-	// Bind default vertex attributes.
-	for( auto& Attribute : AttributeList_ )
+	// Bind all slots up.
+	// NOTE: We shouldn't need this in later GL versions with explicit
+	//       binding slots.
+	for( BcU32 Channel = 0; Channel < 16; ++Channel )
 	{
-		bindAttribute( Handle, Attribute.Channel_, Attribute.Name_.c_str() );
+		const std::string Name = boost::str( boost::format( "dcl_Input%0%" ) % Channel );
+		glBindAttribLocation( Handle, Channel, Name.c_str() );
 	}
 	
 	// Link program.
@@ -341,17 +345,6 @@ void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
 		BcAssert( Buffer->getDataSize() == UniformBlock.Size_ );
 	}
 	UniformBlock.Buffer_ = Buffer;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// bindAttribute
-void RsProgramGL::bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcChar* Name )
-{
-	glBindAttribLocation( ProgramHandle, Channel, Name );
-	if( glGetError() != GL_NO_ERROR )
-	{
-		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", Name );
-	}	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
