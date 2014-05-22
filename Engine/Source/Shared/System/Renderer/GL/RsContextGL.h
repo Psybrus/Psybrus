@@ -43,6 +43,8 @@ public:
 
 	void								flushState();
 
+	void								draw( class RsProgram* Program, class RsPrimitive* Primitive, eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+
 private:
 	protected:
 	void								bindStencilFunc();
@@ -103,6 +105,9 @@ private:
 	std::array< BcU32, NOOF_TEXTURESTATES >					TextureStateBinds_;
 	BcU32							NoofRenderStateBinds_;
 	BcU32							NoofTextureStateBinds_;	
+
+	// VAO
+	BcU32							GlobalVAO_;
 };
 
 

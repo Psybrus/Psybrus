@@ -48,6 +48,11 @@ public:
 	 */
 	virtual void					render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
 
+	/**
+	 * Get descriptor.
+	 */
+	const RsPrimitiveDesc&			getDesc() const;
+
 protected:
 	RsPrimitiveDesc Desc_;
 };

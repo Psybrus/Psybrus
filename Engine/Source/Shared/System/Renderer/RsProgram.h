@@ -60,6 +60,13 @@ public:
 	 * @param Uniform buffer to set to.
 	 */
 	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer ) = 0;
+
+
+	/**
+	 * Get vertex attribute list.
+	 */
+	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const = 0;
+
 };
 
 #endif

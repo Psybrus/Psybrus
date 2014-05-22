@@ -20,6 +20,8 @@
 #include "System/Renderer/GL/RsIndexBufferGL.h"
 #include "System/Renderer/GL/RsTextureGL.h"
 
+#include "System/Renderer/RsVertexDeclaration.h"
+
 #include "System/Os/OsClient.h"
 
 #include "Import/Img/Img.h"
@@ -277,6 +279,10 @@ void RsContextGL::create()
 	}
 #endif
 
+	// Create + bind global VAO.
+	glGenVertexArrays( 1, &GlobalVAO_ );
+	glBindVertexArray( GlobalVAO_ );
+
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
@@ -308,6 +314,10 @@ void RsContextGL::update()
 //virtual
 void RsContextGL::destroy()
 {
+	// Destroy global VAO.
+	glBindVertexArray( 0 );
+	glDeleteVertexArrays( 1, &GlobalVAO_ );
+
 #if PLATFORM_WINDOWS
 	// Destroy rendering context.
 	wglMakeCurrent( WindowDC_, NULL );
@@ -546,7 +556,7 @@ void RsContextGL::flushState()
 	 		RsGLCatchError;
 		}
 	}
-		
+	
 	// Bind texture states.
 	for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )
 	{
@@ -579,6 +589,20 @@ void RsContextGL::flushState()
 	NoofTextureStateBinds_ = 0;
 
 	RsGLCatchError;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// draw
+void RsContextGL::draw( class RsProgram* Program, class RsPrimitive* Primitive, eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+{
+	const auto& VertexAttributeList = Program->getVertexAttributeList();
+	const auto& PrimitiveDesc = Primitive->getDesc();
+	const auto VertexDeclarationDesc = PrimitiveDesc.VertexDeclaration_->getDesc();
+
+	for( const auto& Element : VertexDeclarationDesc.Elements_ )
+	{
+
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

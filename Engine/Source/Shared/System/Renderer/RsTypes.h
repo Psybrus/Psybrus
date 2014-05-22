@@ -512,9 +512,12 @@ enum eRsShaderParameterType
 // RsProgramVertexAttribute
 struct RsProgramVertexAttribute
 {
-	BcName							AttributeName_;
-	eRsVertexChannel				Channel_;
+	BcU32							Channel_;
+	eRsVertexUsage					Usage_;
+	BcU32							UsageIdx_;
 };
+
+typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
 //////////////////////////////////////////////////////////////////////////
 // Lock flags

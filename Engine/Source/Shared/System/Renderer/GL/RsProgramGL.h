@@ -45,9 +45,10 @@ public:
 	// New, shiny interface!
 	virtual BcU32						findUniformBlockIndex( const BcChar* Name );
 	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer );
+	
+	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
 
 private:	
-	void								bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcChar* Name );
 	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size );
 	void								addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
 	
@@ -70,12 +71,6 @@ private:
 		RsUniformBuffer*				Buffer_;
 	};
 
-	struct TAttribute
-	{
-		std::string						Name_;
-		eRsVertexChannel				Channel_;
-	};
-
 	typedef std::vector< TParameter > TParameterList;
 	typedef TParameterList::iterator TParameterListIterator;
 	typedef TParameterList::const_iterator TParameterListConstIterator;
@@ -87,11 +82,9 @@ private:
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
 	TUniformBlockList					UniformBlockList_;
 
-	typedef std::vector< TAttribute > TAttributeList;
-
 	BcU32								NoofShaders_;
 	RsShaderGL**						ppShaders_;
-	TAttributeList						AttributeList_;
+	RsProgramVertexAttributeList		AttributeList_;
 };
 
 #endif
