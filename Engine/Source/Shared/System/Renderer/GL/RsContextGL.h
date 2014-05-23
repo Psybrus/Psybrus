@@ -43,7 +43,9 @@ public:
 
 	void								flushState();
 
-	void								draw( class RsProgram* Program, class RsPrimitive* Primitive, eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void								clear( const RsColour& Colour );
+	void								setPrimitive( class RsProgram* Program, class RsPrimitive* Primitive );
+	void								draw( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
 
 private:
 	protected:
