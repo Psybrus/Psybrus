@@ -290,7 +290,10 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	Super::initialise();
 
 	BcAssert( Parent.isValid() && Parent->isReady() );
-	 
+	
+	// HACK
+	PermutationFlags |= scnSPF_RENDER_FORWARD;
+
 	// Cache parent and program.
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags );
@@ -771,11 +774,8 @@ public:
 			pProgram_->setUniformBlock( Index, pUniformBuffer );
 		}
 
-		// Bind program.
-		pProgram_->bind( pParameterBuffer_ );
-
-		// Flush state in context.
-		pContext_->flushState();
+		// Set program.
+		pContext_->setProgram( pProgram_ );
 
 		// Done.
 		pUpdateFence_->decrement();

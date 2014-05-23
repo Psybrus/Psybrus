@@ -391,26 +391,7 @@ BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const J
 	
 				ProgramStream << ProgramHeader;
 
-				// Export vertex attributes.
-				RsProgramVertexAttribute VertexAttributes[] = 
-				{
-					{ Importer.addString( "aPosition" ),		rsVC_POSITION },
-					{ Importer.addString( "aNormal" ),			rsVC_NORMAL },
-					{ Importer.addString( "aTangent" ),			rsVC_TANGENT },
-					{ Importer.addString( "aTexCoord0" ),		rsVC_TEXCOORD0 },
-					{ Importer.addString( "aTexCoord1" ),		rsVC_TEXCOORD1 },
-					{ Importer.addString( "aTexCoord2" ),		rsVC_TEXCOORD2 },
-					{ Importer.addString( "aTexCoord3" ),		rsVC_TEXCOORD3 },
-					{ Importer.addString( "aTexCoord4" ),		rsVC_TEXCOORD4 },
-					{ Importer.addString( "aTexCoord5" ),		rsVC_TEXCOORD5 },
-					{ Importer.addString( "aTexCoord6" ),		rsVC_TEXCOORD6 },
-					{ Importer.addString( "aTexCoord7" ),		rsVC_TEXCOORD7 },
-					{ Importer.addString( "aSkinIndices" ),		rsVC_SKIN_INDICES },
-					{ Importer.addString( "aSkinWeights" ),		rsVC_SKIN_WEIGHTS },
-					{ Importer.addString( "aColour" ),			rsVC_COLOUR },
-				};
-
-				ProgramStream << VertexAttributes;
+				BcBreakpoint;
 
 				Importer.addChunk( BcHash( "program" ), ProgramStream.pData(), ProgramStream.dataSize() );
 				ProgramStream.clear();
@@ -587,12 +568,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 					for( BcU32 Idx = 0; Idx < GLSLResult.reflection.ui32NumInputSignatures; ++Idx )
 					{
 						auto InputSignature = GLSLResult.reflection.psInputSignatures[ Idx ];
-						auto VertexChannel = semanticToVertexChannel( InputSignature.SemanticName, InputSignature.ui32SemanticIndex );
-						BcAssert( VertexChannel != rcVC_INVALID );
-
-						RsProgramVertexAttribute VertexAttribute;
-						VertexAttribute.AttributeName_ = Importer.addString( boost::str( boost::format( "dcl_Input%s" ) % Idx ).c_str() );
-						VertexAttribute.Channel_ = VertexChannel;
+						auto VertexAttribute = semanticToVertexAttribute( Idx, InputSignature.SemanticName, InputSignature.ui32SemanticIndex );
 						VertexAttributes.push_back( VertexAttribute );
 					}
 
@@ -702,70 +678,72 @@ std::string ScnShaderImport::removeComments( std::string Input )
 
 //////////////////////////////////////////////////////////////////////////
 // semanticToVertexChannel
-eRsVertexChannel ScnShaderImport::semanticToVertexChannel( const std::string& Name, BcU32 Index )
+RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index )
 {
-	if( Name == "POSITION" && Index == 0 )
+	RsProgramVertexAttribute VertexAttribute;
+
+	VertexAttribute.Channel_ = Channel;
+	VertexAttribute.Usage_ = rsVU_INVALID;
+	VertexAttribute.UsageIdx_ = Index;
+
+	if( Name == "POSITION" )
 	{
-		return rsVC_POSITION;
+		VertexAttribute.Usage_ = rsVU_POSITION;
 	}
-	else if( Name == "SV_POSITION" && Index == 0 )
+	else if( Name == "SV_POSITION" )
 	{
-		return rsVC_POSITION;
+		VertexAttribute.Usage_ = rsVU_POSITION;
 	}
-	else if( Name == "NORMAL" && Index == 0 )
+	else if( Name == "BLENDWEIGHT" )
 	{
-		return rsVC_NORMAL;
+		VertexAttribute.Usage_ = rsVU_BLENDWEIGHT;
 	}
-	else if( Name == "TANGENT" && Index == 0 )
+	else if( Name == "BLENDINDICES" )
 	{
-		return rsVC_TANGENT;
+		VertexAttribute.Usage_ = rsVU_BLENDINDICES;
 	}
-	else if( Name == "TEXCOORD" && Index == 0 )
+	else if( Name == "NORMAL" )
 	{
-		return rsVC_TEXCOORD0;
+		VertexAttribute.Usage_ = rsVU_NORMAL;
 	}
-	else if( Name == "TEXCOORD" && Index == 1 )
+	else if( Name == "PSIZE" )
 	{
-		return rsVC_TEXCOORD1;
+		VertexAttribute.Usage_ = rsVU_PSIZE;
 	}
-	else if( Name == "TEXCOORD" && Index == 2 )
+	else if( Name == "TEXCOORD" )
 	{
-		return rsVC_TEXCOORD2;
+		VertexAttribute.Usage_ = rsVU_TEXCOORD;
 	}
-	else if( Name == "TEXCOORD" && Index == 3 )
+	else if( Name == "BINORMAL" )
 	{
-		return rsVC_TEXCOORD3;
+		VertexAttribute.Usage_ = rsVU_BINORMAL;
 	}
-	else if( Name == "TEXCOORD" && Index == 4 )
+	else if( Name == "TESSFACTOR" )
 	{
-		return rsVC_TEXCOORD4;
+		VertexAttribute.Usage_ = rsVU_TESSFACTOR;
 	}
-	else if( Name == "TEXCOORD" && Index == 5 )
+	else if( Name == "POISITIONT" )
 	{
-		return rsVC_TEXCOORD5;
+		VertexAttribute.Usage_ = rsVU_POSITIONT;
 	}
-	else if( Name == "TEXCOORD" && Index == 6 )
+	else if( Name == "COLOR" )
 	{
-		return rsVC_TEXCOORD6;
+		VertexAttribute.Usage_ = rsVU_COLOUR;
 	}
-	else if( Name == "TEXCOORD" && Index == 7 )
+	else if( Name == "FOG" )
 	{
-		return rsVC_TEXCOORD7;
+		VertexAttribute.Usage_ = rsVU_FOG;
 	}
-	else if( Name == "BLENDINDICES" && Index == 0 )
+	else if( Name == "DEPTH" )
 	{
-		return rsVC_SKIN_INDICES;
+		VertexAttribute.Usage_ = rsVU_DEPTH;
 	}
-	else if( Name == "BLENDWEIGHTS" && Index == 0 )
+	else if( Name == "SAMPLE" )
 	{
-		return rsVC_SKIN_WEIGHTS;
-	}
-	else if( Name == "COLOR" && Index == 0 )
-	{
-		return rsVC_COLOUR;
+		VertexAttribute.Usage_ = rsVU_SAMPLE;
 	}
 
-	return rcVC_INVALID;
+	return VertexAttribute;
 }
 
 #endif

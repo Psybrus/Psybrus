@@ -88,14 +88,24 @@ public:
 	virtual void					clear( const RsColour& Colour ) = 0;
 
 	/**
-	 * Set primitive.
+	 * Set program.
 	 */
-	virtual void					setPrimitive( class RsProgram* Program, class RsPrimitive* Primitive ) = 0;
+	virtual void					setProgram( class RsProgram* Program ) = 0;
 
 	/**
-	 * Draw.
+	 * Set primitive.
 	 */
-	virtual void					draw( class RsProgram* Program, class RsPrimitive* Primitive, eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+	virtual void					setPrimitive( class RsPrimitive* Primitive ) = 0;
+	
+	/**
+	 * Draw primitives.
+	 */
+	virtual void					drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+
+	/**
+	 * Draw indexed primitives.
+	 */
+	virtual void					drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
 };
 
 

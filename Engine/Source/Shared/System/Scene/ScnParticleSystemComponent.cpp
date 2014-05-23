@@ -95,7 +95,7 @@ void ScnParticleSystemComponent::create()
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexDescriptor, NoofVertices ), VertexBuffer.pVertexArray_ ); 
+		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices, 36 ), VertexBuffer.pVertexArray_ ); 
 		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( RsPrimitiveDesc( VertexDeclaration_ )
 			.setVertexBuffer( 0, VertexBuffer.pVertexBuffer_ ) );
 		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( VertexBuffer.ObjectUniforms_ ) ), &VertexBuffer.ObjectUniforms_ );
@@ -169,7 +169,8 @@ class ScnParticleSystemComponentRenderNode: public RsRenderNode
 public:
 	void render()
 	{
-		pPrimitive_->render( rsPT_TRIANGLELIST, 0, NoofIndices_ );
+		pContext_->setPrimitive( pPrimitive_ );
+		pContext_->drawPrimitives( rsPT_TRIANGLELIST, 0, NoofIndices_ );
 	}
 	
 	RsPrimitive* pPrimitive_;

@@ -158,7 +158,12 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	pParent_( pParent ),
 	pClient_( pClient ),
 	ScreenshotRequested_( BcFalse ),
-	OwningThread_( BcErrorCode )
+	OwningThread_( BcErrorCode ),
+	GlobalVAO_( 0 ),
+	ProgramDirty_( BcTrue ),
+	PrimitiveDirty_( BcTrue ),
+	Program_( nullptr ),
+	Primitive_( nullptr )
 {
 	BcMemZero( &RenderStateValues_[ 0 ], sizeof( RenderStateValues_ ) );
 	BcMemZero( &TextureStateValues_[ 0 ], sizeof( TextureStateValues_ ) );
@@ -656,6 +661,79 @@ void RsContextGL::flushState()
 	NoofTextureStateBinds_ = 0;
 
 	RsGLCatchError;
+
+	// Bind program and primitive.
+	if( ( Program_ != nullptr ||
+		  Primitive_ != nullptr ) &&
+		( ProgramDirty_ || PrimitiveDirty_ ) )
+	{
+		const auto& ProgramVertexAttributeList = Program_->getVertexAttributeList();
+		const auto& PrimitiveDesc = Primitive_->getDesc();
+		const auto& VertexDeclarationDesc = PrimitiveDesc.VertexDeclaration_->getDesc();
+		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
+
+		// Bind program.
+		Program_->bind( nullptr );
+
+		// Cached vertex handle for binding.
+		GLuint BoundVertexHandle = 0;
+
+		// Brute force disable vertex arrays.
+		for( BcU32 Idx = 0; Idx < 16; ++Idx )
+		{
+			glDisableVertexAttribArray( Idx );
+		}
+
+		// Bind up all elements to attributes.
+		for( const auto& Attribute : ProgramVertexAttributeList )
+		{
+			for( const auto& Element : PrimitiveVertexElementList )
+			{
+				// Found an element we can bind to.
+				if( Attribute.Usage_ == Element.Usage_ &&
+					Attribute.UsageIdx_ == Element.UsageIdx_ )
+				{
+					auto VertexBuffer = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ];
+				
+					// Bind up new vertex buffer if we need to.
+					BcAssertMsg( Element.StreamIdx_ < PrimitiveDesc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+					BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
+					GLuint VertexHandle = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ]->getHandle< GLuint >();
+					if( BoundVertexHandle != VertexHandle )
+					{
+						glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
+						BoundVertexHandle = VertexHandle;
+					}
+
+					// Enable array.
+					glEnableVertexAttribArray( Attribute.Channel_ );
+
+					// Bind.
+					BcU32 CalcOffset = Element.Offset_ * gVertexDataSize[ Element.DataType_ ];
+
+					glVertexAttribPointer( Attribute.Channel_, 
+						Element.Components_,
+						gVertexDataTypes[ Element.DataType_ ],
+						gVertexDataNormalised[ Element.DataType_ ],
+						VertexBuffer->getVertexStride(),
+						(GLvoid*)CalcOffset );
+
+					break;	
+				}
+			}
+		}
+
+		// Bind indices.
+		GLuint IndicesHandle = PrimitiveDesc.IndexBuffer_ != nullptr ? PrimitiveDesc.IndexBuffer_->getHandle< GLuint >() : 0;
+		if( IndicesHandle != 0 )
+		{
+			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle );
+		}
+
+		ProgramDirty_ = BcFalse;
+		PrimitiveDirty_ = BcFalse;
+		RsGLCatchError;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -667,79 +745,41 @@ void RsContextGL::clear( const RsColour& Colour )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPrimitive
-void RsContextGL::setPrimitive( class RsProgram* Program, class RsPrimitive* Primitive )
+// setProgram
+void RsContextGL::setProgram( class RsProgram* Program )
 {
-	// Bind primitive to program.
-	const auto& ProgramVertexAttributeList = Program->getVertexAttributeList();
-	const auto& PrimitiveDesc = Primitive->getDesc();
-	const auto& VertexDeclarationDesc = PrimitiveDesc.VertexDeclaration_->getDesc();
-	const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
-
-	// Bind program.
-	Program->bind( nullptr );
-
-	// Cached vertex handle for binding.
-	GLuint BoundVertexHandle = 0;
-
-	// Brute force disable vertex arrays.
-	for( BcU32 Idx = 0; Idx < 16; ++Idx )
+	if( Program_ != Program )
 	{
-		glDisableVertexAttribArray( Idx );
-	}
-
-	// Bind up all elements to attributes.
-	for( const auto& Attribute : ProgramVertexAttributeList )
-	{
-		for( const auto& Element : PrimitiveVertexElementList )
-		{
-			// Found an element we can bind to.
-			if( Attribute.Usage_ == Element.Usage_ &&
-				Attribute.UsageIdx_ == Element.UsageIdx_ )
-			{
-				auto VertexBuffer = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ];
-				
-				// Bind up new vertex buffer if we need to.
-				BcAssertMsg( Element.StreamIdx_ < PrimitiveDesc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
-				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-				GLuint VertexHandle = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ]->getHandle< GLuint >();
-				if( BoundVertexHandle != VertexHandle )
-				{
-					glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
-					BoundVertexHandle = VertexHandle;
-				}
-
-				// Enable array.
-				glEnableVertexAttribArray( Attribute.Channel_ );
-
-				// Bind.
-				BcU32 CalcOffset = Element.Offset_ * gVertexDataSize[ Element.DataType_ ];
-
-				glVertexAttribPointer( Attribute.Channel_, 
-					Element.Components_,
-					gVertexDataTypes[ Element.DataType_ ],
-					gVertexDataNormalised[ Element.DataType_ ],
-					VertexBuffer->getVertexStride(),
-					(GLvoid*)CalcOffset );
-
-				break;	
-			}
-		}
-	}
-
-	// Bind indices.
-	GLuint IndicesHandle = PrimitiveDesc.IndexBuffer_->getHandle< GLuint >();
-	if( IndicesHandle != 0 )
-	{
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle );
+		Program_ = Program;
+		ProgramDirty_ = BcTrue;
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
-// draw
-void RsContextGL::draw( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+// setPrimitive
+void RsContextGL::setPrimitive( class RsPrimitive* Primitive )
 {
-	//
+	if( Primitive_ != Primitive )
+	{
+		Primitive_ = Primitive;
+		PrimitiveDirty_ = BcTrue;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawPrimitives
+void RsContextGL::drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+{
+	flushState();
+	glDrawArrays( gPrimitiveType[ PrimitiveType ], Offset, NoofIndices );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawIndexedPrimitives
+void RsContextGL::drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+{
+	flushState();
+	glDrawElements( gPrimitiveType[ PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

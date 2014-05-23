@@ -58,6 +58,7 @@ protected:
 	ScnModelNodePropertyData*			pNodePropertyData_;
 	BcU8*								pVertexBufferData_;
 	BcU8*								pIndexBufferData_;
+	RsVertexElement*					pVertexElements_;
 	ScnModelPrimitiveData*				pPrimitiveData_;
 	
 	ScnModelPrimitiveRuntimeList		PrimitiveRuntimes_;

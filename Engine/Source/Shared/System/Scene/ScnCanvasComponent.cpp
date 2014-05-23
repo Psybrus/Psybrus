@@ -89,7 +89,7 @@ void ScnCanvasComponent::create()
 		RenderResource.pVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
 
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexFormat, NoofVertices_ ), RenderResource.pVertices_ );
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 24 ), RenderResource.pVertices_ );
 	
 		// Allocate render side primitive.
 		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( 
@@ -844,7 +844,8 @@ public:
 		{
 			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pPrimitive_->render( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
+			pContext_->setPrimitive( pPrimitive_ );
+			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	

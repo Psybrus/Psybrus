@@ -249,11 +249,6 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 		pVertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 
-		for( BcU32 Idx = 0; Idx < pProgramHeader->NoofVertexAttributes_; ++Idx )
-		{
-			markupName( pVertexAttributes_[ Idx ].AttributeName_ );
-		}
-
 		// HACK
 		if( pProgramHeader->ShaderCodeType_ == scnSCT_GLSL_430 )
 		{

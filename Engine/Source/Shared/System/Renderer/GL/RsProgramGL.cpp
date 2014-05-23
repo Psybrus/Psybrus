@@ -75,7 +75,7 @@ void RsProgramGL::create()
 	//       binding slots.
 	for( BcU32 Channel = 0; Channel < 16; ++Channel )
 	{
-		const std::string Name = boost::str( boost::format( "dcl_Input%0%" ) % Channel );
+		const std::string Name = boost::str( boost::format( "dcl_Input%1%" ) % Channel );
 		glBindAttribLocation( Handle, Channel, Name.c_str() );
 	}
 	
@@ -345,6 +345,14 @@ void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
 		BcAssert( Buffer->getDataSize() == UniformBlock.Size_ );
 	}
 	UniformBlock.Buffer_ = Buffer;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// addParameter
+//virtual
+const RsProgramVertexAttributeList& RsProgramGL::getVertexAttributeList() const
+{
+	return AttributeList_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

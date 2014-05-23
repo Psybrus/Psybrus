@@ -16,7 +16,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsPrimitiveDesc
-RsPrimitiveDesc::RsPrimitiveDesc( class RsVertexDeclaration* VertexDeclaration )
+RsPrimitiveDesc::RsPrimitiveDesc( class RsVertexDeclaration* VertexDeclaration ):
+	VertexDeclaration_( VertexDeclaration ),
+	IndexBuffer_( nullptr )
 {
 	BcU32 MaxStream = 0;
 	for( auto Element : VertexDeclaration->getDesc().Elements_ )

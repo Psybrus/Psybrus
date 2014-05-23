@@ -61,6 +61,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
 		Importer.addChunk( BcHash( "primitivedata" ), PrimitiveDataStream_.pData(), PrimitiveDataStream_.dataSize() );
 		
 		//
@@ -160,7 +161,8 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 			0, // padding1
 			MaAABB(),
 			pMesh->nVertices(),
-			0,
+			5,
+			48,
 			nullptr
 		};
 
@@ -187,11 +189,11 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		PrimitiveDataStream_ << PrimitiveData;
 					
 		// Vertex format.
-		PrimitiveDataStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
-		PrimitiveDataStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
-		PrimitiveDataStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
-		PrimitiveDataStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
-		PrimitiveDataStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
 
 		// Export indices.
 		MdlIndex Index;
@@ -234,7 +236,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		ScnModelPrimitiveData PrimitiveData = 
 		{
 			ParentIndex,
-			BcFalse,
+			BcTrue,
 			rsPT_TRIANGLELIST,	
 			ShaderPermutation,
 			pSkin->nIndices(),
@@ -243,7 +245,8 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 			0, // padding1
 			MaAABB(),
 			pSkin->nVertices(),
-			0,
+			7,
+			80,
 			nullptr
 		};
 
@@ -282,13 +285,13 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		PrimitiveDataStream_ << PrimitiveData;
 
 		// Vertex format.
-		PrimitiveDataStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
-		PrimitiveDataStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
-		PrimitiveDataStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
-		PrimitiveDataStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
-		PrimitiveDataStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDWEIGHT,	0 );
-		PrimitiveDataStream_ << RsVertexElement( 0, 60,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDINDICES,	0 );
-		PrimitiveDataStream_ << RsVertexElement( 0, 76,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDWEIGHT,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 60,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDINDICES,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 76,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
 							
 		// Export indices.
 		MdlIndex Index;
