@@ -83,6 +83,74 @@ static GLenum gTextureTypes[] =
 	GL_TEXTURE_CUBE_MAP
 };
 
+static GLenum gVertexDataTypes[] = 
+{
+	GL_FLOAT,			// rsVDT_FLOAT32 = 0,
+	GL_HALF_FLOAT,		// rsVDT_FLOAT16,
+	GL_FIXED,			// rsVDT_FIXED,
+	GL_BYTE,			// rsVDT_BYTE,
+	GL_BYTE,			// rsVDT_BYTE_NORM,
+	GL_UNSIGNED_BYTE,	// rsVDT_UBYTE,
+	GL_UNSIGNED_BYTE,	// rsVDT_UBYTE_NORM,
+	GL_SHORT,			// rsVDT_SHORT,
+	GL_SHORT,			// rsVDT_SHORT_NORM,
+	GL_UNSIGNED_SHORT,	// rsVDT_USHORT,
+	GL_UNSIGNED_SHORT,	// rsVDT_USHORT_NORM,
+	GL_INT,				// rsVDT_INT,
+	GL_INT,				// rsVDT_INT_NORM,
+	GL_UNSIGNED_INT,	// rsVDT_UINT,
+	GL_UNSIGNED_INT		// rsVDT_UINT_NORM,
+};
+
+static GLboolean gVertexDataNormalised[] = 
+{
+	GL_FALSE,			// rsVDT_FLOAT32 = 0,
+	GL_FALSE,			// rsVDT_FLOAT16,
+	GL_FALSE,			// rsVDT_FIXED,
+	GL_FALSE,			// rsVDT_BYTE,
+	GL_TRUE,			// rsVDT_BYTE_NORM,
+	GL_FALSE,			// rsVDT_UBYTE,
+	GL_TRUE,			// rsVDT_UBYTE_NORM,
+	GL_FALSE,			// rsVDT_SHORT,
+	GL_TRUE,			// rsVDT_SHORT_NORM,
+	GL_FALSE,			// rsVDT_USHORT,
+	GL_TRUE,			// rsVDT_USHORT_NORM,
+	GL_FALSE,			// rsVDT_INT,
+	GL_TRUE,			// rsVDT_INT_NORM,
+	GL_FALSE,			// rsVDT_UINT,
+	GL_TRUE				// rsVDT_UINT_NORM,
+};
+
+static GLboolean gVertexDataSize[] = 
+{
+	4,					// rsVDT_FLOAT32 = 0,
+	2,					// rsVDT_FLOAT16,
+	4,					// rsVDT_FIXED,
+	1,					// rsVDT_BYTE,
+	1,					// rsVDT_BYTE_NORM,
+	1,					// rsVDT_UBYTE,
+	1,					// rsVDT_UBYTE_NORM,
+	2,					// rsVDT_SHORT,
+	2,					// rsVDT_SHORT_NORM,
+	2,					// rsVDT_USHORT,
+	2,					// rsVDT_USHORT_NORM,
+	4,					// rsVDT_INT,
+	4,					// rsVDT_INT_NORM,
+	4,					// rsVDT_UINT,
+	4					// rsVDT_UINT_NORM,
+};
+
+static GLenum gPrimitiveType[] =
+{
+	GL_POINTS,			// rsPT_POINTLIST = 0,
+	GL_LINES,			// rsPT_LINELIST,
+	GL_LINE_STRIP,		// rsPT_LINESTRIP,
+	GL_TRIANGLES,		// rsPT_TRIANGLELIST,
+	GL_TRIANGLE_STRIP,	// rsPT_TRIANGLESTRIP,
+	GL_TRIANGLE_FAN,	// rsPT_TRIANGLEFAN,
+	GL_PATCHES			// rsPT_PATCHES,
+};
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
@@ -294,9 +362,8 @@ void RsContextGL::create()
 	setDefaultState();
 
 	// Clear screen and flip.
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-	
+	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) );
+
 	// Swap buffers.
 	swapBuffers();
 }
@@ -592,17 +659,87 @@ void RsContextGL::flushState()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// draw
-void RsContextGL::draw( class RsProgram* Program, class RsPrimitive* Primitive, eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+// clear
+void RsContextGL::clear( const RsColour& Colour )
 {
-	const auto& VertexAttributeList = Program->getVertexAttributeList();
+	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPrimitive
+void RsContextGL::setPrimitive( class RsProgram* Program, class RsPrimitive* Primitive )
+{
+	// Bind primitive to program.
+	const auto& ProgramVertexAttributeList = Program->getVertexAttributeList();
 	const auto& PrimitiveDesc = Primitive->getDesc();
-	const auto VertexDeclarationDesc = PrimitiveDesc.VertexDeclaration_->getDesc();
+	const auto& VertexDeclarationDesc = PrimitiveDesc.VertexDeclaration_->getDesc();
+	const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
-	for( const auto& Element : VertexDeclarationDesc.Elements_ )
+	// Bind program.
+	Program->bind( nullptr );
+
+	// Cached vertex handle for binding.
+	GLuint BoundVertexHandle = 0;
+
+	// Brute force disable vertex arrays.
+	for( BcU32 Idx = 0; Idx < 16; ++Idx )
 	{
-
+		glDisableVertexAttribArray( Idx );
 	}
+
+	// Bind up all elements to attributes.
+	for( const auto& Attribute : ProgramVertexAttributeList )
+	{
+		for( const auto& Element : PrimitiveVertexElementList )
+		{
+			// Found an element we can bind to.
+			if( Attribute.Usage_ == Element.Usage_ &&
+				Attribute.UsageIdx_ == Element.UsageIdx_ )
+			{
+				auto VertexBuffer = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ];
+				
+				// Bind up new vertex buffer if we need to.
+				BcAssertMsg( Element.StreamIdx_ < PrimitiveDesc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
+				GLuint VertexHandle = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ]->getHandle< GLuint >();
+				if( BoundVertexHandle != VertexHandle )
+				{
+					glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
+					BoundVertexHandle = VertexHandle;
+				}
+
+				// Enable array.
+				glEnableVertexAttribArray( Attribute.Channel_ );
+
+				// Bind.
+				BcU32 CalcOffset = Element.Offset_ * gVertexDataSize[ Element.DataType_ ];
+
+				glVertexAttribPointer( Attribute.Channel_, 
+					Element.Components_,
+					gVertexDataTypes[ Element.DataType_ ],
+					gVertexDataNormalised[ Element.DataType_ ],
+					VertexBuffer->getVertexStride(),
+					(GLvoid*)CalcOffset );
+
+				break;	
+			}
+		}
+	}
+
+	// Bind indices.
+	GLuint IndicesHandle = PrimitiveDesc.IndexBuffer_->getHandle< GLuint >();
+	if( IndicesHandle != 0 )
+	{
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// draw
+void RsContextGL::draw( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+{
+	//
 }
 
 //////////////////////////////////////////////////////////////////////////

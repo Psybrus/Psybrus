@@ -85,7 +85,12 @@ public:
 	/**
 	 * Clear.
 	 */
-	virtual void					clear();
+	virtual void					clear( const RsColour& Colour ) = 0;
+
+	/**
+	 * Set primitive.
+	 */
+	virtual void					setPrimitive( class RsProgram* Program, class RsPrimitive* Primitive ) = 0;
 
 	/**
 	 * Draw.
