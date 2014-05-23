@@ -95,7 +95,7 @@ void ScnModel::create()
 		}
 		
 		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
-		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->NoofVertices_ ), pVertexBufferData );
+		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->NoofVertices_, pPrimitiveData->VertexStride_ ), pVertexBufferData );
 		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData );
 		RsPrimitive* pPrimitive = RsCore::pImpl()->createPrimitive( 
 			RsPrimitiveDesc( pVertexDeclaration )
@@ -114,7 +114,8 @@ void ScnModel::create()
 		};
 		
 		// Get resource.
-		PrimitiveRuntime.MaterialRef_ = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
+		auto Resource = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
+		PrimitiveRuntime.MaterialRef_ = Resource;
 		BcAssertMsg( PrimitiveRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
 
 		// Push into array.
@@ -160,6 +161,7 @@ void ScnModel::fileReady()
 	requestChunk( 3 );
 	requestChunk( 4 );
 	requestChunk( 5 );
+	requestChunk( 6 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -203,10 +205,20 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		BcAssert( pIndexBufferData_ == NULL || pIndexBufferData_ == pData );
 		pIndexBufferData_ = (BcU8*)pData;
 	}
+	else if( ChunkID == BcHash( "vertexelements" ) )
+	{
+		pVertexElements_ = (RsVertexElement*)pData;
+	}
 	else if( ChunkID == BcHash( "primitivedata" ) )
 	{
 		pPrimitiveData_ = (ScnModelPrimitiveData*)pData;
-		pPrimitiveData_->VertexElements_ = (RsVertexElement*)( pPrimitiveData_ + 1 );
+
+		RsVertexElement* pVertexElements = pVertexElements_;
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofPrimitives_; ++Idx )
+		{
+			pPrimitiveData_->VertexElements_ = pVertexElements;
+			pVertexElements += pPrimitiveData_->NoofVertexElements_;
+		}
 		
 		markCreate(); // All data loaded, time to create.
 	}
@@ -588,9 +600,8 @@ public:
 	void render()
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
-		pPrimitive_->render( Type_,
-		                     Offset_,
-		                     NoofIndices_ );
+		pContext_->setPrimitive( pPrimitive_ );
+		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_ );
 	}
 
 	eRsPrimitiveType Type_;

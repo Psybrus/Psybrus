@@ -44,8 +44,10 @@ public:
 	void								flushState();
 
 	void								clear( const RsColour& Colour );
-	void								setPrimitive( class RsProgram* Program, class RsPrimitive* Primitive );
-	void								draw( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void								setProgram( class RsProgram* Program );
+	void								setPrimitive( class RsPrimitive* Primitive );
+	void								drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void								drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
 
 private:
 	protected:
@@ -110,6 +112,12 @@ private:
 
 	// VAO
 	BcU32							GlobalVAO_;
+
+	//
+	BcBool							ProgramDirty_;
+	BcBool							PrimitiveDirty_;
+	RsProgram*						Program_;
+	RsPrimitive*					Primitive_;
 };
 
 

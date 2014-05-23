@@ -62,6 +62,7 @@ struct ScnModelPrimitiveData
 	MaAABB							AABB_;
 	BcU32							NoofVertices_;
 	BcU32							NoofVertexElements_;
+	BcU32							VertexStride_;
 	RsVertexElement*				VertexElements_;
 	BcU32							BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };

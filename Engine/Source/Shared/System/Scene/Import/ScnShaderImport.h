@@ -133,7 +133,7 @@ private:
 
 	std::string removeComments( std::string Input );
 
-	eRsVertexChannel semanticToVertexChannel( const std::string& Name, BcU32 Index );
+	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
 private:
 	std::string							Filename_;

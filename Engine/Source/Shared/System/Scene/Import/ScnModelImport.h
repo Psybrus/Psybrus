@@ -62,8 +62,8 @@ private:
 	BcStream							NodePropertyDataStream_;
 	BcStream							VertexDataStream_;
 	BcStream							IndexDataStream_;
+	BcStream							VertexElementStream_;
 	BcStream							PrimitiveDataStream_;
-
 };
 
 #endif

@@ -32,14 +32,6 @@ public:
 	RsPrimitiveGL( RsContext* pContext, const RsPrimitiveDesc& Desc );
 	virtual ~RsPrimitiveGL();
 	
-protected:
-	virtual void						create();
-	virtual void						update();
-	virtual void						destroy();	
-	
-public:
-	virtual void						render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
-	
 private:
 };
 
