@@ -75,31 +75,32 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		"blend_mode"
 	};
 	
+	// This code is bad code. Use the reflection system.
 	std::map< std::string, BcU32 > ModeNames;
 		
-	ModeNames[ "never" ] = rsCM_NEVER;
-	ModeNames[ "less" ] = rsCM_LESS;
-	ModeNames[ "equal" ] = rsCM_EQUAL;
-	ModeNames[ "lessequal" ] = rsCM_LESSEQUAL;
-	ModeNames[ "greater" ] = rsCM_GREATER;
-	ModeNames[ "notequal" ] = rsCM_NOTEQUAL;
-	ModeNames[ "always" ] = rsCM_ALWAYS;
+	ModeNames[ "never" ] = (BcU32)RsCompareMode::NEVER;
+	ModeNames[ "less" ] = (BcU32)RsCompareMode::LESS;
+	ModeNames[ "equal" ] = (BcU32)RsCompareMode::EQUAL;
+	ModeNames[ "lessequal" ] = (BcU32)RsCompareMode::LESSEQUAL;
+	ModeNames[ "greater" ] = (BcU32)RsCompareMode::GREATER;
+	ModeNames[ "notequal" ] = (BcU32)RsCompareMode::NOTEQUAL;
+	ModeNames[ "always" ] = (BcU32)RsCompareMode::ALWAYS;
 		
-	ModeNames[ "none" ] = rsBM_NONE;
-	ModeNames[ "blend" ] = rsBM_BLEND;
-	ModeNames[ "add" ] = rsBM_ADD;
-	ModeNames[ "subtract" ] = rsBM_SUBTRACT;
+	ModeNames[ "none" ] = (BcU32)RsBlendingMode::NONE;
+	ModeNames[ "blend" ] = (BcU32)RsBlendingMode::BLEND;
+	ModeNames[ "add" ] = (BcU32)RsBlendingMode::ADD;
+	ModeNames[ "subtract" ] = (BcU32)RsBlendingMode::SUBTRACT;
 
-	ModeNames[ "keep" ] = rsSO_KEEP;
-	ModeNames[ "zero" ] = rsSO_ZERO;
-	ModeNames[ "replace" ] = rsSO_REPLACE;
-	ModeNames[ "incr" ] = rsSO_INCR;
-	ModeNames[ "incr_wrap" ] = rsSO_INCR_WRAP;
-	ModeNames[ "decr" ] = rsSO_DECR;
-	ModeNames[ "decr_wrap" ] = rsSO_DECR_WRAP;
-	ModeNames[ "invert" ] = rsSO_INVERT;
+	ModeNames[ "keep" ] = (BcU32)RsStencilOp::KEEP;
+	ModeNames[ "zero" ] = (BcU32)RsStencilOp::ZERO;
+	ModeNames[ "replace" ] = (BcU32)RsStencilOp::REPLACE;
+	ModeNames[ "incr" ] = (BcU32)RsStencilOp::INCR;
+	ModeNames[ "incr_wrap" ] = (BcU32)RsStencilOp::INCR_WRAP;
+	ModeNames[ "decr" ] = (BcU32)RsStencilOp::DECR;
+	ModeNames[ "decr_wrap" ] = (BcU32)RsStencilOp::DECR_WRAP;
+	ModeNames[ "invert" ] = (BcU32)RsStencilOp::INVERT;
 
-	for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
+	for( BcU32 Idx = 0; Idx < (BcU32)RsRenderStateType::MAX; ++Idx )
 	{
 		bool WriteDefaultState = BcFalse;
 		if( State.type() == Json::objectValue )
@@ -138,7 +139,7 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 			// Horrible default special case. Should have a table.
 			switch( Idx )
 			{
-			case rsRS_COLOR_WRITE_MASK_0:
+			case RsRenderStateType::COLOR_WRITE_MASK_0:
 				StateBlockStream << BcU32( 0xf );
 				break;
 
@@ -311,8 +312,8 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	}
 	
 	// Allocate state buffer and copy defaults in.
-	pStateBuffer_ = new BcU32[ rsRS_MAX ];
-	BcMemCopy( pStateBuffer_, Parent->pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
+	pStateBuffer_ = new BcU32[ (BcU32)RsRenderStateType::MAX ];
+	BcMemCopy( pStateBuffer_, Parent->pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
 
 	// Build a binding list for textures.
 	ScnTextureMap& TextureMap( Parent->TextureMap_ );
@@ -389,7 +390,7 @@ BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
 	BcU32 Offset = BcErrorCode;
-	eRsShaderParameterType Type;
+	RsShaderParameterType Type;
 	BcU32 TypeBytes = 0;
 	if( pProgram_->findParameterOffset( (*ParameterName).c_str(), Type, Offset, TypeBytes ) )
 	{
@@ -425,13 +426,13 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value, BcU32 Ind
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_INT ||
-		    Binding.Type_ == rsSPT_SAMPLER_1D ||
-			Binding.Type_ == rsSPT_SAMPLER_2D ||
-			Binding.Type_ == rsSPT_SAMPLER_3D ||
-			Binding.Type_ == rsSPT_SAMPLER_CUBE ||
-			Binding.Type_ == rsSPT_SAMPLER_1D_SHADOW ||
-			Binding.Type_ == rsSPT_SAMPLER_2D_SHADOW )	   
+		if( Binding.Type_ == RsShaderParameterType::INT ||
+		    Binding.Type_ == RsShaderParameterType::SAMPLER_1D ||
+			Binding.Type_ == RsShaderParameterType::SAMPLER_2D ||
+			Binding.Type_ == RsShaderParameterType::SAMPLER_3D ||
+			Binding.Type_ == RsShaderParameterType::SAMPLER_CUBE ||
+			Binding.Type_ == RsShaderParameterType::SAMPLER_1D_SHADOW ||
+			Binding.Type_ == RsShaderParameterType::SAMPLER_2D_SHADOW )	   
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
@@ -452,7 +453,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value, BcU32 In
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_BOOL )
+		if( Binding.Type_ == RsShaderParameterType::BOOL )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
@@ -474,7 +475,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value, BcU32 Ind
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_FLOAT )
+		if( Binding.Type_ == RsShaderParameterType::FLOAT )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
@@ -495,7 +496,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec2d& Value, 
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_FLOAT_VEC2 )
+		if( Binding.Type_ == RsShaderParameterType::FLOAT_VEC2 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
@@ -517,7 +518,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec3d& Value, 
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_FLOAT_VEC3 )
+		if( Binding.Type_ == RsShaderParameterType::FLOAT_VEC3 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
@@ -540,7 +541,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec4d& Value, 
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_FLOAT_VEC4 )
+		if( Binding.Type_ == RsShaderParameterType::FLOAT_VEC4 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
@@ -564,7 +565,7 @@ void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaMat4d& Value, 
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_FLOAT_MAT4 )
+		if( Binding.Type_ == RsShaderParameterType::FLOAT_MAT4 )
 		{
 			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
 			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );
@@ -601,12 +602,12 @@ void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
 	if( Parameter < ParameterBindingList_.size() )
 	{
 		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == rsSPT_SAMPLER_1D ||
-		    Binding.Type_ == rsSPT_SAMPLER_2D ||
-		    Binding.Type_ == rsSPT_SAMPLER_3D ||
-		    Binding.Type_ == rsSPT_SAMPLER_CUBE ||
-		    Binding.Type_ == rsSPT_SAMPLER_1D_SHADOW ||
-		    Binding.Type_ == rsSPT_SAMPLER_2D_SHADOW )	   
+		if( Binding.Type_ == RsShaderParameterType::SAMPLER_1D ||
+		    Binding.Type_ == RsShaderParameterType::SAMPLER_2D ||
+		    Binding.Type_ == RsShaderParameterType::SAMPLER_3D ||
+		    Binding.Type_ == RsShaderParameterType::SAMPLER_CUBE ||
+		    Binding.Type_ == RsShaderParameterType::SAMPLER_1D_SHADOW ||
+		    Binding.Type_ == RsShaderParameterType::SAMPLER_2D_SHADOW )	   
 		{
 			// Find the texture slot to put this in.
 			for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
@@ -707,11 +708,11 @@ void ScnMaterialComponent::setObjectUniformBlock( RsUniformBuffer* UniformBuffer
 
 //////////////////////////////////////////////////////////////////////////
 // setState
-void ScnMaterialComponent::setState( eRsRenderState State, BcU32 Value )
+void ScnMaterialComponent::setState( RsRenderStateType State, BcU32 Value )
 {
-	if( State < rsRS_MAX )
+	if( State < RsRenderStateType::MAX )
 	{
-		pStateBuffer_[ State ] = Value;
+		pStateBuffer_[ (BcU32)State ] = Value;
 	}
 }
 
@@ -761,9 +762,9 @@ public:
 		}
 
 		// Setup states.
-		for( BcU32 Idx = 0; Idx < rsRS_MAX; ++Idx )
+		for( BcU32 Idx = 0; Idx < (BcU32)RsRenderStateType::MAX; ++Idx )
 		{
-			pContext_->setRenderState( (eRsRenderState)Idx, pStateBuffer_[ Idx ], BcFalse );
+			pContext_->setRenderState( (RsRenderStateType)Idx, pStateBuffer_[ Idx ], BcFalse );
 		}
 	
 		// Set uniform blocks.
@@ -814,7 +815,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup sort value with material specifics.
 	ScnMaterial* pMaterial_ = Parent_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
-	Sort.Blend_ = pStateBuffer_[ rsRS_BLEND_MODE ];
+	Sort.Blend_ = pStateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
 	
 	// Allocate a render node.
 	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
@@ -846,10 +847,10 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		// TODO: Pull these from the material.
 		RsTextureParams DefaultTextureParams = 
 		{
-			Texture->levels() > 1 ? rsTFM_LINEAR_MIPMAP_LINEAR : rsTFM_LINEAR,
-			rsTFM_LINEAR,
-			rsTSM_WRAP,
-			rsTSM_WRAP
+			Texture->levels() > 1 ? RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR : RsTextureFilteringMode::LINEAR,
+			RsTextureFilteringMode::LINEAR,
+			RsTextureSamplingMode::WRAP,
+			RsTextureSamplingMode::WRAP
 		};
 
 		// Set texture params.
@@ -872,8 +873,8 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	BcMemCopy( pRenderNode->pParameterBuffer_, pParameterBuffer_, ParameterBufferSize_ );
 
 	// Setup state buffer.
-	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * rsRS_MAX );
-	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * rsRS_MAX );
+	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
+	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
 	
 	// Update fence.
 	pRenderNode->pUpdateFence_ = &UpdateFence_;

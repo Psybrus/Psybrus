@@ -43,9 +43,9 @@ public:
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	virtual void						initialise();
-	virtual void						initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format );
-	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format );
-	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format );
+	virtual void						initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
+	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
+	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
 	virtual void						create();
 	virtual void						destroy();
 	

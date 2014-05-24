@@ -25,13 +25,13 @@ RsRenderTargetDesc::RsRenderTargetDesc(
 	Height_ = Height;
 }
 
-RsRenderTargetDesc& RsRenderTargetDesc::renderSurface( BcU32 Idx, eRsColourFormat Format )
+RsRenderTargetDesc& RsRenderTargetDesc::renderSurface( BcU32 Idx, RsColourFormat Format )
 {
 	ColourFormats_[ Idx ] = Format;
 	return *this;
 }
 
-RsRenderTargetDesc& RsRenderTargetDesc::depthStencilSurface( eRsDepthStencilFormat Format )
+RsRenderTargetDesc& RsRenderTargetDesc::depthStencilSurface( RsDepthStencilFormat Format )
 {
 	DepthStencilFormat_ = Format;
 	return *this;

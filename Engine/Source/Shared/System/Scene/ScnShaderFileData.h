@@ -83,8 +83,8 @@ struct ScnShaderHeader
 // ScnShaderUnitHeader
 struct ScnShaderUnitHeader
 {
-	eRsShaderType					ShaderType_;
-	eRsShaderDataType				ShaderDataType_;
+	RsShaderType					ShaderType_;
+	RsShaderDataType				ShaderDataType_;
 	ScnShaderCodeType				ShaderCodeType_;
 	BcU32							ShaderHash_;
 	BcU32							PermutationFlags_;
@@ -98,7 +98,7 @@ struct ScnShaderProgramHeader
 	BcU32							ShaderFlags_;
 	ScnShaderCodeType				ShaderCodeType_;
 	BcU32							NoofVertexAttributes_;
-	BcU32							ShaderHashes_[ rsST_MAX ];
+	BcU32							ShaderHashes_[ RsShaderType::MAX ];
 };
 
 //////////////////////////////////////////////////////////////////////////

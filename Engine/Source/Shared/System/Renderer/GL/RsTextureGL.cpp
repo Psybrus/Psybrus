@@ -31,7 +31,7 @@ static GLenum gTextureTypes[] =
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData ):
+RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pTextureData ):
 	RsTexture( pContext )
 {
 	// Setup parameters.
@@ -39,7 +39,7 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, eRsTex
 	Height_ = 1;
 	Depth_ = 1;
 	Levels_ = Levels;
-	Type_ = rsTT_1D;
+	Type_ = RsTextureType::TEX1D;
 	Format_ = Format;
 	Locked_ = BcFalse;
 	pData_ = pTextureData;
@@ -55,7 +55,7 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, eRsTex
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData ):
+RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pTextureData ):
 	RsTexture( pContext )
 {
 	// Setup parameters.
@@ -63,7 +63,7 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 
 	Height_ = Height;
 	Depth_ = 1;
 	Levels_ = Levels;
-	Type_ = rsTT_2D;
+	Type_ = RsTextureType::TEX2D;
 	Format_ = Format;
 	Locked_ = BcFalse;
 	pData_ = pTextureData;
@@ -79,7 +79,7 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData ):
+RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pTextureData ):
 	RsTexture( pContext )
 {
 	// Setup parameters.
@@ -87,7 +87,7 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 
 	Height_ = Height;
 	Depth_ = Depth;
 	Levels_ = Levels;
-	Type_ = rsTT_3D;
+	Type_ = RsTextureType::TEX3D;
 	Format_ = Format;
 	Locked_ = BcFalse;
 	pData_ = pTextureData;
@@ -144,7 +144,7 @@ BcU32 RsTextureGL::levels() const
 //////////////////////////////////////////////////////////////////////////
 // type
 //virtual
-eRsTextureType RsTextureGL::type() const
+RsTextureType RsTextureGL::type() const
 {
 	return Type_;	
 }
@@ -152,7 +152,7 @@ eRsTextureType RsTextureGL::type() const
 //////////////////////////////////////////////////////////////////////////
 // format
 //virtual
-eRsTextureFormat RsTextureGL::format() const
+RsTextureFormat RsTextureGL::format() const
 {
 	return Format_;
 }
@@ -211,26 +211,26 @@ void RsTextureGL::update()
 	// Bind and upload.
 	GLuint Handle = getHandle< GLuint >();
 	
-	GLenum TextureType = gTextureTypes[ Type_ ];
+	GLenum TextureType = gTextureTypes[ (BcU32)Type_ ];
 
 	glBindTexture( TextureType, Handle );
 	RsGLCatchError;
 
 	switch( Type_ )
 	{
-	case rsTT_1D:
+	case RsTextureType::TEX1D:
 		loadTexture1D();
 		break;
 	
-	case rsTT_2D:
+	case RsTextureType::TEX2D:
 		loadTexture2D();
 		break;
 
-	case rsTT_3D:
+	case RsTextureType::TEX3D:
 		loadTexture3D();
 		break;
 
-	case rsTT_CUBEMAP:
+	case RsTextureType::TEXCUBE:
 		loadTextureCubeMap();
 		break;
 	
@@ -272,15 +272,15 @@ void RsTextureGL::loadTexture1D()
 	// Call the appropriate method to load the texture.
 	switch( Format_ )
 	{
-	case rsTF_RGB8:
+	case RsTextureFormat::RGB8:
 		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGB, Width_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
-	case rsTF_RGBA8:
+	case RsTextureFormat::RGBA8:
 		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGBA, Width_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
-	case rsTF_I8:
+	case RsTextureFormat::I8:
 		glTexImage1D( GL_TEXTURE_1D, 0, GL_INTENSITY8, Width_, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData_ );
 		break;
 
@@ -306,27 +306,27 @@ void RsTextureGL::loadTexture2D()
 		// Call the appropriate method to load the texture.
 		switch( Format_ )
 		{
-		case rsTF_RGB8:
+		case RsTextureFormat::RGB8:
 			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData );	
 			break;
 
-		case rsTF_RGBA8:
+		case RsTextureFormat::RGBA8:
 			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData );	
 			break;
 
-		case rsTF_I8:
+		case RsTextureFormat::I8:
 			glTexImage2D( GL_TEXTURE_2D, Idx, GL_INTENSITY8, Width, Height, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData );
 			break;
 
-		case rsTF_DXT1:
+		case RsTextureFormat::DXT1:
 			glCompressedTexImage2D( GL_TEXTURE_2D, Idx, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, Width, Height, 0, LevelBytes, pData );
 			break;
 
-		case rsTF_DXT3:
+		case RsTextureFormat::DXT3:
 			glCompressedTexImage2D( GL_TEXTURE_2D, Idx, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, Width, Height, 0, LevelBytes, pData );
 			break;
 
-		case rsTF_DXT5:
+		case RsTextureFormat::DXT5:
 			glCompressedTexImage2D( GL_TEXTURE_2D, Idx, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, Width, Height, 0, LevelBytes, pData );
 			break;
 
@@ -352,15 +352,15 @@ void RsTextureGL::loadTexture3D()
 	// Call the appropriate method to load the texture.
 	switch( Format_ )
 	{
-	case rsTF_RGB8:
+	case RsTextureFormat::RGB8:
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGB, Width_, Height_, Depth_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
-	case rsTF_RGBA8:
+	case RsTextureFormat::RGBA8:
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA, Width_, Height_, Depth_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
-	case rsTF_I8:
+	case RsTextureFormat::I8:
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_INTENSITY8, Width_, Height_, Depth_, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData_ );
 		break;
 

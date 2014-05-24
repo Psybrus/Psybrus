@@ -39,8 +39,8 @@ BcBool ScnRenderTarget::import( class CsPackageImporter& Importer, const Json::V
 		Height,
 		1,
 		1, 
-		rsTT_2D, 
-		rsTF_RGBA8
+		RsTextureType::TEX2D, 
+		RsTextureFormat::RGBA8
 	};
 	HeaderStream << Header;
 
@@ -75,8 +75,8 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 	Header_.Height_ = Height;
 	Header_.Depth_ = 1;
 	Header_.Levels_ = 1;
-	Header_.Type_ = rsTT_2D;
-	Header_.Format_ = rsTF_RGBA8;
+	Header_.Type_ = RsTextureType::TEX2D;
+	Header_.Format_ = RsTextureFormat::RGBA8;
 
 	//
 	pRenderTarget_ = NULL;
@@ -92,8 +92,8 @@ void ScnRenderTarget::create()
 	// Create render target.
 	pRenderTarget_ = RsCore::pImpl()->createRenderTarget( 
 		RsRenderTargetDesc( Header_.Width_, Header_.Height_ )
-			.renderSurface( 0, rsCF_A8R8G8B8 )
-			.depthStencilSurface( rsDSF_D24S8 )
+			.renderSurface( 0, RsColourFormat::A8R8G8B8 )
+			.depthStencilSurface( RsDepthStencilFormat::D24S8 )
 		);
 	
 	// Get texture from target.

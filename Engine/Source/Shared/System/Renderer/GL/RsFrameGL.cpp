@@ -20,25 +20,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Vertex structures.
-struct TVertex2D
-{
-	BcF32 X_, Y_;
-	BcF32 U_, V_;
-	BcU32 Colour_;
-
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-};
-
-struct TVertex3D
-{
-	BcF32 X_, Y_, Z_;
-	BcF32 U_, V_;
-	BcU32 Colour_;
-	
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-};
-
-//
 class RsPrimitiveNode: public RsRenderNode
 {
 public:
@@ -65,10 +46,9 @@ class RsViewportNode: public RsRenderNode
 public:
 	void render()
 	{
-		//RsCore::pImpl< RsCoreImplGL >()->setViewport( &Viewport_ );	
 		glViewport( 0, 0, Viewport_.width(), Viewport_.height() );
 	}
-
+	
 	RsViewport Viewport_;
 };
 
@@ -88,21 +68,21 @@ public:
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		}
 
-		const BcS32 DepthWriteEnable = pContext_->getRenderState( rsRS_DEPTH_WRITE_ENABLE );
-		const BcS32 ColourWriteMask0 = pContext_->getRenderState( rsRS_COLOR_WRITE_MASK_0 );
-		const BcS32 StencilWriteMask = pContext_->getRenderState( rsRS_STENCIL_WRITE_MASK );
+		const BcS32 DepthWriteEnable = pContext_->getRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE );
+		const BcS32 ColourWriteMask0 = pContext_->getRenderState( RsRenderStateType::COLOR_WRITE_MASK_0 );
+		const BcS32 StencilWriteMask = pContext_->getRenderState( RsRenderStateType::STENCIL_WRITE_MASK );
 
-		pContext_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1 );
-		pContext_->setRenderState( rsRS_COLOR_WRITE_MASK_0, 15 );
-		pContext_->setRenderState( rsRS_STENCIL_WRITE_MASK, 255 );
+		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1 );
+		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, 15 );
+		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, 255 );
 
 		pContext_->flushState();
 
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
 
-		pContext_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, DepthWriteEnable );
-		pContext_->setRenderState( rsRS_COLOR_WRITE_MASK_0, ColourWriteMask0 );
-		pContext_->setRenderState( rsRS_STENCIL_WRITE_MASK, StencilWriteMask );
+		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, DepthWriteEnable );
+		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, ColourWriteMask0 );
+		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, StencilWriteMask );
 	}
 	
 	RsRenderTarget* pRenderTarget_;
@@ -280,7 +260,7 @@ void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 
 //////////////////////////////////////////////////////////////////////////
 // beginPrimitive
-void RsFrameGL::beginPrimitive( eRsPrimitiveType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer )
+void RsFrameGL::beginPrimitive( RsPrimitiveType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer )
 {
 	BcAssertMsg( pCurrPrimitive_ == NULL, "RsFrameGL: Primitive already started." );
 	BcBreakpoint;
@@ -318,7 +298,7 @@ void RsFrameGL::beginPrimitive( eRsPrimitiveType Type, eRsFramePrimitiveMode Pri
 	BcAssert( Layer <= RS_SORT_LAYER_MAX );
 	Sort.Value_ = 0;
 	Sort.Depth_ = RS_SORT_DEPTH_MAX;
-	Sort.Blend_ = rsBM_BLEND;
+	Sort.Blend_ = RsBlendingMode::BLEND;
 	Sort.Pass_ = RS_SORT_PASS_FORWARD;
 	Sort.Layer_ = Layer;
 	pNode->Sort_.Value_ |= Sort.Value_;
@@ -383,7 +363,7 @@ void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsC
 	if( pCurrPrimitive_ == NULL )
 	{
 		pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-		pNode->PrimType_= rsPT_LINELIST;
+		pNode->PrimType_= RsPrimitiveType::LINELIST;
 		pNode->NoofPrims_ = 1;
 		pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
 		pNode->VertexStride_ = sizeof( TVertex2D );
@@ -394,7 +374,7 @@ void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsC
 		RsRenderSort Sort;
 
 		Sort.Value_ = 0;
-		Sort.Blend_ = rsBM_BLEND;
+		Sort.Blend_ = RsBlendingMode::BLEND;
 		Sort.Pass_ = RS_SORT_PASS_FORWARD;
 		Sort.Layer_ = Layer;
 		pNode->Sort_.Value_ |= Sort.Value_;
@@ -403,7 +383,7 @@ void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsC
 	}
 	else
 	{
-		BcAssert( pNode->PrimType_ == rsPT_LINELIST );
+		BcAssert( pNode->PrimType_ == RsPrimitiveType::LINELIST );
 		pNode->NoofPrims_ += 1;
 	}
 	*/
@@ -450,7 +430,7 @@ void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsC
 	if( pCurrPrimitive_ == NULL )
 	{	
 		pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_3D );
-		pNode->PrimType_= rsPT_LINELIST;
+		pNode->PrimType_= RsPrimitiveType::LINELIST;
 		pNode->NoofPrims_ = 1;
 		pNode->VertexFormat_ = TVertex3D::VERTEX_TYPE;
 		pNode->VertexStride_ = sizeof( TVertex3D );
@@ -462,7 +442,7 @@ void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsC
 
 		Sort.Value_ = 0;
 		Sort.Depth_ = RS_SORT_DEPTH_MAX;
-		Sort.Blend_ = rsBM_BLEND;
+		Sort.Blend_ = RsBlendingMode::BLEND;
 		Sort.Pass_ = RS_SORT_PASS_FORWARD;
 		Sort.Layer_ = Layer;
 		pNode->Sort_.Value_ |= Sort.Value_;
@@ -471,7 +451,7 @@ void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsC
 	}
 	else
 	{
-		BcAssert( pNode->PrimType_ == rsPT_LINELIST );
+		BcAssert( pNode->PrimType_ == RsPrimitiveType::LINELIST );
 		pNode->NoofPrims_ += 1;
 	}
 	*/
@@ -515,7 +495,7 @@ void RsFrameGL::addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const Rs
 
 	// If we've got no prim list, just add the node now.
 	pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-	pNode->PrimType_= rsPT_TRIANGLESTRIP;
+	pNode->PrimType_= RsPrimitiveType::TRIANGLESTRIP;
 	pNode->NoofPrims_ = 2;
 	pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
 	pNode->VertexStride_ = sizeof( TVertex2D );
@@ -527,7 +507,7 @@ void RsFrameGL::addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const Rs
 
 	Sort.Value_ = 0;
 	Sort.Depth_ = RS_SORT_DEPTH_MAX;
-	Sort.Blend_ = rsBM_BLEND;
+	Sort.Blend_ = RsBlendingMode::BLEND;
 	Sort.Pass_ = RS_SORT_PASS_FORWARD;
 	Sort.Layer_ = Layer;
 	pNode->Sort_.Value_ |= Sort.Value_;
@@ -581,7 +561,7 @@ void RsFrameGL::addSprite( RsMaterial* pMaterial, const MaVec2d& Position )
 	pVertices[3].Colour_ = Colour;
 
 	pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-	pNode->PrimType_= rsPT_TRIANGLESTRIP;
+	pNode->PrimType_= RsPrimitiveType::TRIANGLESTRIP;
 	pNode->NoofPrims_ = 2;
 	pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
 	pNode->VertexStride_ = sizeof( TVertex2D );
@@ -600,7 +580,7 @@ void RsFrameGL::addSprite( RsMaterial* pMaterial, const MaVec2d& Position )
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void RsFrameGL::addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, eRsPrimitiveType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth )
+void RsFrameGL::addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, RsPrimitiveType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth )
 {
 	BcBreakpoint;
 
@@ -656,7 +636,7 @@ void RsFrameGL::addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, eRsPrimi
 		BcAssert( Layer <= RS_SORT_LAYER_MAX );
 		Sort.Value_ = 0;
 		pNode->Sort_.Depth_ = Depth;
-		pNode->Sort_.Blend_ = rsBM_BLEND;
+		pNode->Sort_.Blend_ = RsBlendingMode::BLEND;
 		pNode->Sort_.Pass_ = RS_SORT_PASS_FORWARD;
 		pNode->Sort_.Layer_ = Layer;
 		pNode->Sort_.Value_ |= Sort.Value_;

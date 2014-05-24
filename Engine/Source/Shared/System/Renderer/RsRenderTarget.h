@@ -26,11 +26,11 @@ struct RsRenderTargetDesc
 	RsRenderTargetDesc( BcU32 Width,
 						BcU32 Height );
 
-	RsRenderTargetDesc& renderSurface( BcU32 Idx, eRsColourFormat Format );
-	RsRenderTargetDesc& depthStencilSurface( eRsDepthStencilFormat Format );
+	RsRenderTargetDesc& renderSurface( BcU32 Idx, RsColourFormat Format );
+	RsRenderTargetDesc& depthStencilSurface( RsDepthStencilFormat Format );
 
-	std::array< eRsColourFormat, 8 >	ColourFormats_;
-	eRsDepthStencilFormat				DepthStencilFormat_;
+	std::array< RsColourFormat, 8 >	ColourFormats_;
+	RsDepthStencilFormat				DepthStencilFormat_;
 	BcU32								Width_;
 	BcU32								Height_;
 
@@ -72,12 +72,12 @@ public:
 	/**
 	 *	Get colour format.
 	 */
-	virtual eRsColourFormat				colourFormat( BcU32 Index ) const = 0;
+	virtual RsColourFormat				colourFormat( BcU32 Index ) const = 0;
 
 	/**
 	 *	Get depth stencil format.
 	 */
-	virtual eRsDepthStencilFormat		depthStencilFormat() const = 0;
+	virtual RsDepthStencilFormat		depthStencilFormat() const = 0;
 	
 	/**
 	 * Get texture that we render to.

@@ -88,8 +88,8 @@ void ScnDebugRenderComponent::create()
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 2 )
-			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 	
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -169,7 +169,7 @@ ScnDebugRenderComponentVertex* ScnDebugRenderComponent::allocVertices( BcU32 Noo
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnDebugRenderComponent::addPrimitive( eRsPrimitiveType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnDebugRenderComponent::addPrimitive( RsPrimitiveType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
 	BcAssertMsg( MaterialComponent_.isValid(), "ScnDebugRenderComponent: Material component has not been set!" );
 
@@ -230,7 +230,7 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_LINELIST &&
+			if( PrimitiveSection.Type_ == RsPrimitiveType::LINELIST &&
 				PrimitiveSection.Layer_ == Layer &&
 				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -243,7 +243,7 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+			addPrimitive( RsPrimitiveType::LINELIST, pFirstVertex, 2, Layer, BcTrue );
 		}
 	}
 }
@@ -272,7 +272,7 @@ void ScnDebugRenderComponent::drawLines( const MaVec3d* pPoints, BcU32 NoofLines
 		}
 		
 		// Add primitive.		
-		addPrimitive( rsPT_LINESTRIP, pFirstVertex, NoofVertices, Layer, BcTrue );
+		addPrimitive( RsPrimitiveType::LINESTRIP, pFirstVertex, NoofVertices, Layer, BcTrue );
 	}
 }
 

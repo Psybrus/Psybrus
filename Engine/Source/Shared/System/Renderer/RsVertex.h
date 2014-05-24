@@ -27,8 +27,8 @@ struct RsVertexElement
 	RsVertexElement( BcU32 StreamIdx,
 	                 BcU32 Offset,
 	                 BcU32 Components,
-	                 eRsVertexDataType DataType,
-	                 eRsVertexUsage Usage,
+	                 RsVertexDataType DataType,
+	                 RsVertexUsage Usage,
 	                 BcU32 UsageIdx ):
 		StreamIdx_( StreamIdx ),
 		Offset_( Offset ),
@@ -43,8 +43,8 @@ struct RsVertexElement
 	BcU32				StreamIdx_;
 	BcU32				Offset_;
 	BcU32				Components_;
-	eRsVertexDataType	DataType_;
-	eRsVertexUsage		Usage_;
+	RsVertexDataType	DataType_;
+	RsVertexUsage		Usage_;
 	BcU32				UsageIdx_;
 };
 

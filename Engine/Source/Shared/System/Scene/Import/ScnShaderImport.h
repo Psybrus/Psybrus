@@ -58,14 +58,14 @@ struct ScnShaderLevelEntry
 {
 	std::string						Level_;
 	std::string						Entry_;
-	eRsShaderType					Type_;
+	RsShaderType					Type_;
 };
 
 struct ScnShaderBuiltData
 {
 	inline ScnShaderBuiltData():
 		Hash_( 0 ),
-		ShaderType_( rsST_INVALID ),
+		ShaderType_( RsShaderType::INVALID ),
 		CodeType_( scnSCT_INVALID ) 
 	{
 	}
@@ -96,7 +96,7 @@ struct ScnShaderBuiltData
 
 
 	BcU32							Hash_;
-	eRsShaderType					ShaderType_;
+	RsShaderType					ShaderType_;
 	ScnShaderCodeType				CodeType_;
 	BcBinaryData					Code_;
 };

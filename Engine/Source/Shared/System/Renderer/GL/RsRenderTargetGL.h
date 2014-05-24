@@ -35,8 +35,8 @@ public:
 protected:
 	virtual BcU32						width() const;
 	virtual BcU32						height() const;
-	virtual eRsColourFormat				colourFormat( BcU32 Index ) const;
-	virtual eRsDepthStencilFormat		depthStencilFormat() const;
+	virtual RsColourFormat				colourFormat( BcU32 Index ) const;
+	virtual RsDepthStencilFormat		depthStencilFormat() const;
 	virtual RsTexture*					getTexture( BcU32 Index );
 
 protected:

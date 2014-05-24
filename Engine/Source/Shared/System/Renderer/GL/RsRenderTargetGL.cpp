@@ -70,7 +70,7 @@ BcU32 RsRenderTargetGL::height() const
 //////////////////////////////////////////////////////////////////////////
 //colourFormat
 //virtual
-eRsColourFormat RsRenderTargetGL::colourFormat( BcU32 Index ) const
+RsColourFormat RsRenderTargetGL::colourFormat( BcU32 Index ) const
 {
 	return Desc_.ColourFormats_[ Index ];
 }
@@ -78,7 +78,7 @@ eRsColourFormat RsRenderTargetGL::colourFormat( BcU32 Index ) const
 //////////////////////////////////////////////////////////////////////////
 // depthStencilFormat
 //virtual
-eRsDepthStencilFormat RsRenderTargetGL::depthStencilFormat() const
+RsDepthStencilFormat RsRenderTargetGL::depthStencilFormat() const
 {
 	return Desc_.DepthStencilFormat_;
 }

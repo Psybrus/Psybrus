@@ -71,14 +71,11 @@ void ScnCanvasComponent::initialise( const Json::Value& Object )
 void ScnCanvasComponent::create()
 {
 	// Allocate our own vertex buffer data.
-	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasComponentVertex ) );
-
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 3 )
-			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 20,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 20,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -208,7 +205,7 @@ ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnCanvasComponent::addPrimitive( RsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
 	BcAssertMsg( MaterialComponent_.isValid(), "ScnCanvasComponent: Material component has not been set!" );
 
@@ -284,7 +281,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_LINELIST &&
+			if( PrimitiveSection.Type_ == RsPrimitiveType::LINELIST &&
 				PrimitiveSection.Layer_ == Layer &&
 				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -313,7 +310,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+			addPrimitive( RsPrimitiveType::LINELIST, pFirstVertex, 2, Layer, BcTrue );
 		}
 	}
 }
@@ -342,7 +339,7 @@ void ScnCanvasComponent::drawLine3d( const MaVec3d& PointA, const MaVec3d& Point
 		pVertices->ABGR_ = ABGR;
 
 		// Add primitive.	
-		addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+		addPrimitive( RsPrimitiveType::LINELIST, pFirstVertex, 2, Layer, BcTrue );
 	}
 }
 
@@ -370,7 +367,7 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 		}
 		
 		// Add primitive.		
-		addPrimitive( rsPT_LINELIST, pFirstVertex, NoofVertices, Layer, BcTrue );
+		addPrimitive( RsPrimitiveType::LINELIST, pFirstVertex, NoofVertices, Layer, BcTrue );
 	}
 }
 
@@ -441,7 +438,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->ABGR_ = ABGR;
 		
 		// Add primitive.	
-		addPrimitive( rsPT_TRIANGLESTRIP, pFirstVertex, 4, Layer, BcTrue );
+		addPrimitive( RsPrimitiveType::TRIANGLESTRIP, pFirstVertex, 4, Layer, BcTrue );
 	}
 }
 
@@ -518,7 +515,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			if( PrimitiveSection.Type_ == RsPrimitiveType::TRIANGLELIST &&
 				PrimitiveSection.Layer_ == Layer &&
 				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -547,7 +544,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+			addPrimitive( RsPrimitiveType::TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }
@@ -625,7 +622,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 			
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			if( PrimitiveSection.Type_ == RsPrimitiveType::TRIANGLELIST &&
 			   PrimitiveSection.Layer_ == Layer &&
 			   PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -654,7 +651,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+			addPrimitive( RsPrimitiveType::TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }
@@ -732,7 +729,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 			
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			if( PrimitiveSection.Type_ == RsPrimitiveType::TRIANGLELIST &&
 			   PrimitiveSection.Layer_ == Layer &&
 			   PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -761,7 +758,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+			addPrimitive( RsPrimitiveType::TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }

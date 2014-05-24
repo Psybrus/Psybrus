@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		RsRenderState.cpp
+* File:		RsRenderStateType.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -21,12 +21,12 @@
 struct RsRenderTargetBlendState
 {
 	BcBool			Enable_;
-	eRsBlendType	SrcBlend_;
-	eRsBlendType	DestBlend_;
-	eRsBlendOp		BlendOp_;
-	eRsBlendType	SrcBlendAlpha_;
-	eRsBlendType	DestBlendAlpha_;
-	eRsBlendOp		BlendOpAlpha_;
+	RsBlendType	SrcBlend_;
+	RsBlendType	DestBlend_;
+	RsBlendOp		BlendOp_;
+	RsBlendType	SrcBlendAlpha_;
+	RsBlendType	DestBlendAlpha_;
+	RsBlendOp		BlendOpAlpha_;
 	BcU8			WriteMask_;
 };
 
@@ -41,10 +41,10 @@ struct RsBlendState
 // RsStencilFaceState
 struct RsStencilFaceState
 {
-	eRsStencilOp	Fail_;
-	eRsStencilOp	DepthFail_;
-	eRsStencilOp	PassFail_;
-	eRsCompareMode	Func_;
+	RsStencilOp	Fail_;
+	RsStencilOp	DepthFail_;
+	RsStencilOp	PassFail_;
+	RsCompareMode	Func_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ struct RsDepthStencilState
 {
 	BcBool			DepthTestEnable_;
 	BcBool			DepthWriteEnable_;
-	eRsCompareMode	DepthFunc_;
+	RsCompareMode	DepthFunc_;
 	BcBool			StencilEnable_;
 	BcU8			StencilRead_;
 	BcU8			StencilWrite_;

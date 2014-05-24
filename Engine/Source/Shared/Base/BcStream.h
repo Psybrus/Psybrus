@@ -53,7 +53,7 @@ public:
 	*	Buffer's data size.
 	*/
 	BcSize dataSize();
-	
+
 	/**
 	*	Raw data access.
 	*/

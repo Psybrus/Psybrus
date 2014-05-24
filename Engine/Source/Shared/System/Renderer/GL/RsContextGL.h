@@ -37,8 +37,8 @@ public:
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();
-	void setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32 getRenderState( eRsRenderState State ) const;
+	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
+	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
 	void setPrimitive( class RsPrimitive* Primitive );
@@ -46,15 +46,15 @@ public:
 	void flushState();
 
 	void clear( const RsColour& Colour );
-	void drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
 private:
 	void bindStencilFunc();
 	void bindStencilOp();
-	void bindBlendMode( eRsBlendingMode BlendMode );
+	void bindBlendMode( RsBlendingMode BlendMode );
 	void bindScissor();
 
 protected:
@@ -100,7 +100,7 @@ private:
 
 	enum
 	{
-		NOOF_RENDERSTATES = rsRS_MAX,
+		NOOF_RENDERSTATES = RsRenderStateType::MAX,
 		NOOF_TEXTURESTATES = 8,
 	};
 		

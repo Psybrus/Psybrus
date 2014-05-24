@@ -39,7 +39,7 @@ public:
 	
 	// Old, dirty interface.
 	virtual BcU32						getParameterBufferSize() const;
-	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const;
+	virtual BcU32						findParameterOffset( const BcChar* Name, RsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const;
 	virtual void						bind( void* pParameterBuffer );
 
 	// New, shiny interface!
@@ -60,7 +60,7 @@ private:
 		BcU32							Offset_;
 		BcU32							Size_;
 		BcU32							TypeBytes_;
-		eRsShaderParameterType			Type_;
+		RsShaderParameterType			Type_;
 	};
 
 	struct TUniformBlock

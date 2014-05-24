@@ -89,28 +89,28 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
-		{ "ps_4_0",							"",					rsST_FRAGMENT },
-		{ "ps_4_0_level_9_1",				"",					rsST_FRAGMENT },
-		{ "ps_4_0_level_9_3",				"",					rsST_FRAGMENT },
-		{ "ps_4_1",							"",					rsST_FRAGMENT },
-		{ "ps_5_0",							"",					rsST_FRAGMENT },
+		{ "ps_4_0",							"",					RsShaderType::FRAGMENT },
+		{ "ps_4_0_level_9_1",				"",					RsShaderType::FRAGMENT },
+		{ "ps_4_0_level_9_3",				"",					RsShaderType::FRAGMENT },
+		{ "ps_4_1",							"",					RsShaderType::FRAGMENT },
+		{ "ps_5_0",							"",					RsShaderType::FRAGMENT },
 
-		{ "hs_5_0",							"",					rsST_TESSELATION_CONTROL },
-		{ "ds_5_0",							"",					rsST_TESSELATION_EVALUATION },
+		{ "hs_5_0",							"",					RsShaderType::TESSELATION_CONTROL },
+		{ "ds_5_0",							"",					RsShaderType::TESSELATION_EVALUATION },
 
-		{ "gs_4_0",							"",					rsST_GEOMETRY },
-		{ "gs_4_1",							"",					rsST_GEOMETRY },
-		{ "gs_5_0",							"",					rsST_GEOMETRY },
+		{ "gs_4_0",							"",					RsShaderType::GEOMETRY },
+		{ "gs_4_1",							"",					RsShaderType::GEOMETRY },
+		{ "gs_5_0",							"",					RsShaderType::GEOMETRY },
 
-		{ "vs_4_0",							"",					rsST_VERTEX },
-		{ "vs_4_0_level_9_1",				"",					rsST_VERTEX },
-		{ "vs_4_0_level_9_3",				"",					rsST_VERTEX },
-		{ "vs_4_1",							"",					rsST_VERTEX },
-		{ "vs_5_0",							"",					rsST_VERTEX },
+		{ "vs_4_0",							"",					RsShaderType::VERTEX },
+		{ "vs_4_0_level_9_1",				"",					RsShaderType::VERTEX },
+		{ "vs_4_0_level_9_3",				"",					RsShaderType::VERTEX },
+		{ "vs_4_1",							"",					RsShaderType::VERTEX },
+		{ "vs_5_0",							"",					RsShaderType::VERTEX },
 
-		{ "cs_4_0",							"",					rsST_COMPUTE },
-		{ "cs_4_1",							"",					rsST_COMPUTE },
-		{ "cs_5_0",							"",					rsST_COMPUTE },
+		{ "cs_4_0",							"",					RsShaderType::COMPUTE },
+		{ "cs_4_1",							"",					RsShaderType::COMPUTE },
+		{ "cs_5_0",							"",					RsShaderType::COMPUTE },
 	};
 
 	static BcU32 GNoofShaderLevelEntries = ( sizeof( GShaderLevelEntries ) / sizeof( GShaderLevelEntries[ 0 ] ) ); 
@@ -131,7 +131,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	if( Shader.type() == Json::nullValue )
 	{
 		BcPrintf( "WARNING: Shader has not been updated to use latest shader importer.\n" );
-		return legacyImport( Importer, Object );
+		return BcFalse;
 	}
 
 	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
@@ -209,7 +209,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		for( auto& ShaderData : BuiltShaderData_ )
 		{
 			ShaderUnit.ShaderType_ = ShaderData.second.ShaderType_;
-			ShaderUnit.ShaderDataType_ = rsSDT_SOURCE;
+			ShaderUnit.ShaderDataType_ = RsShaderDataType::SOURCE;
 			ShaderUnit.ShaderCodeType_ = ShaderData.second.CodeType_;
 			ShaderUnit.ShaderHash_ = ShaderData.second.Hash_;
 			ShaderUnit.PermutationFlags_ = 0;
@@ -238,178 +238,6 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	}
 
 	return RetVal;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// legacyImport
-BcBool ScnShaderImport::legacyImport( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	const Json::Value& Shaders = Object[ "shaders" ];
-	
-	// Check we have shaders specified.
-	if( Shaders.type() == Json::objectValue )
-	{
-		const Json::Value& VertexShader = Shaders[ "vertex" ];
-		const Json::Value& FragmentShader = Shaders[ "fragment" ];
-		const Json::Value& GeometryShader = Shaders[ "geometry" ];
-	
-		// Verify we have shaders.
-		if( VertexShader.type() == Json::stringValue &&
-		    FragmentShader.type() == Json::stringValue )
-		{
-			BcStream HeaderStream;
-			BcStream ProgramStream;
-			
-			ScnShaderHeader Header;
-			ScnShaderProgramHeader ProgramHeader;
-			BcMemZero( &Header, sizeof( Header ) );
-			BcMemZero( &ProgramHeader, sizeof( ProgramHeader ) );
-
-			// For now, generate all permutations.
-			BcU32 NoofPermutations = sizeof( GShaderPermutationBootstraps ) / sizeof( GShaderPermutationBootstraps[ 0 ] );
-
-			Header.NoofShaderPermutations_ = NoofPermutations * 2;
-			Header.NoofProgramPermutations_ = NoofPermutations;
-
-			// Serialise header.
-			HeaderStream << Header;
-			
-			// Write out chunks.
-			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-
-			// Load shaders.
-			for( BcU32 PermutationIdx = 0; PermutationIdx < NoofPermutations; ++PermutationIdx )
-			{
-				ScnShaderPermutationBootstrap PermutationBootstrap( GShaderPermutationBootstraps[ PermutationIdx ] );
-
-				auto LoadShader = [ this, &Importer, &PermutationBootstrap ]( eRsShaderType Type,
-				                                                              const std::string& Shader,
-				                                                              const std::string& UniformInclude, 
-				                                                              const std::string& Bootstrap )
-				{
-					ScnShaderUnitHeader ShaderHeader;
-					BcMemZero( &ShaderHeader, sizeof( ShaderHeader ) );
-
-					BcFile UniformsFile;
-					BcFile ShaderFile;
-					BcFile BootstrapFile;
-					BcStream Stream;
-					if( ShaderFile.open( Shader.c_str(), bcFM_READ ) )
-					{	
-						// Read in whole shader.
-						BcU8* pShader = ShaderFile.readAllBytes();
-						BcU8* pUniformsShader = nullptr;
-						BcU8* pBootstrapShader = nullptr;
-
-						// Load include if need be.
-						if( UniformInclude.length() > 0 && UniformsFile.open( UniformInclude.c_str(), bcFM_READ ) )
-						{
-							pUniformsShader = UniformsFile.readAllBytes();
-						}
-
-						// Load in bootstrap if need be.
-						if( Bootstrap.length() > 0 && BootstrapFile.open( Bootstrap.c_str(), bcFM_READ ) )
-						{
-							pBootstrapShader = BootstrapFile.readAllBytes();
-						}
-
-						// Add dependancies.
-						Importer.addDependency( Shader.c_str() );
-						Importer.addDependency( UniformInclude.c_str() );
-						Importer.addDependency( Bootstrap.c_str() );
-
-						// Setup permutation flags.
-						ShaderHeader.ShaderType_ = Type;
-						ShaderHeader.ShaderDataType_ = rsSDT_SOURCE;
-						ShaderHeader.ShaderCodeType_ = scnSCT_GLSL_430;
-						ShaderHeader.PermutationFlags_ = PermutationBootstrap.PermutationFlags_;
-			
-						// Serialise.
-						Stream << ShaderHeader;
-						if( pUniformsShader != nullptr )
-						{
-							Stream.push( pUniformsShader, UniformsFile.size() );
-						}
-
-						if( pBootstrapShader != nullptr )
-						{
-							Stream.push( pBootstrapShader, BootstrapFile.size() );
-						}
-
-						Stream.push( pShader, ShaderFile.size() );
-						Stream << BcU8( 0 ); // NULL terminator.
-						BcMemFree( pShader );
-						BcMemFree( pBootstrapShader );
-						BcMemFree( pUniformsShader );
-
-						ShaderFile.close();
-						BootstrapFile.close();
-						UniformsFile.close();
-
-						Importer.addChunk( BcHash( "shader" ), Stream.pData(), Stream.dataSize() );
-						Stream.clear();
-
-						return true;
-					}
-					else
-					{
-						BcAssertMsg( BcFalse, "ScnShader: No shader of type %u called %s or %s\n", Type, Shader.c_str(), Bootstrap.c_str() );
-					}
-
-					return false;
-				};
-				bool VertexLoaded = false;
-				bool FragmentLoaded = false;
-				bool GeometryLoaded = false;
-				
-				if( VertexShader.type() == Json::stringValue )
-				{
-					VertexLoaded = LoadShader( rsST_VERTEX, VertexShader.asCString(), PermutationBootstrap.SourceUniformIncludeName_, PermutationBootstrap.SourceVertexShaderName_ );
-					BcAssertMsg( VertexLoaded, "Failed to load vertex shader" );
-				}
-				
-				if( FragmentShader.type() == Json::stringValue )
-				{
-					FragmentLoaded = LoadShader( rsST_FRAGMENT, FragmentShader.asCString(), PermutationBootstrap.SourceUniformIncludeName_, PermutationBootstrap.SourceFragmentShaderName_ );
-					BcAssertMsg( FragmentLoaded, "Failed to load fragment shader" );
-				}
-				
-				if( GeometryShader.type() == Json::stringValue )
-				{
-					GeometryLoaded = LoadShader( rsST_GEOMETRY, GeometryShader.asCString(), "", PermutationBootstrap.SourceGeometryShaderName_ );
-					BcAssertMsg( GeometryLoaded, "Failed to load geometry shader" );
-				}
-
-				// Create program.
-				ProgramHeader.ProgramPermutationFlags_ = PermutationBootstrap.PermutationFlags_;
-				ProgramHeader.ShaderFlags_ = 
-					( VertexLoaded ? ( 1 << rsST_VERTEX ) : 0 ) |
-					( FragmentLoaded ? ( 1 << rsST_FRAGMENT ) : 0 ) |
-					( GeometryLoaded ? ( 1 << rsST_GEOMETRY ) : 0 );
-				ProgramHeader.NoofVertexAttributes_ = rsVC_MAX;
-				ProgramHeader.ShaderCodeType_ = scnSCT_GLSL_430;
-	
-				ProgramStream << ProgramHeader;
-
-				BcBreakpoint;
-
-				Importer.addChunk( BcHash( "program" ), ProgramStream.pData(), ProgramStream.dataSize() );
-				ProgramStream.clear();
-			}
-		
-			return BcTrue;
-		}
-		else
-		{
-			BcPrintf( "ScnShader: Not all shaders specified.\n" );
-		}
-	}
-	else
-	{
-		BcPrintf( "ScnShader: Shaders not listed.\n" );
-	}
-	
-	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -465,7 +293,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	// Patch in geometry shader flag if we have one in the entries list.
 	if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
 		{
-			return Entry.Type_ == rsST_GEOMETRY;
+			return Entry.Type_ == RsShaderType::GEOMETRY;
 		} ) != Entries_.end() )
 	{
 		HasGeometry = true;
@@ -474,7 +302,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	// Patch in tesselation shader flag if we have one in the entries list.
 	if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
 		{
-			return Entry.Type_ == rsST_TESSELATION_CONTROL || Entry.Type_ == rsST_TESSELATION_EVALUATION;
+			return Entry.Type_ == RsShaderType::TESSELATION_CONTROL || Entry.Type_ == RsShaderType::TESSELATION_EVALUATION;
 		} ) != Entries_.end() )
 	{
 		HasTesselation = true;
@@ -490,7 +318,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 		// Geometry shader in entries?
 		if( HasGeometry )
 		{
-			if( Entry.Type_ == rsST_VERTEX )
+			if( Entry.Type_ == RsShaderType::VERTEX )
 			{
 				Flags |= HLSLCC_FLAG_GS_ENABLED;
 			}
@@ -499,8 +327,8 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 		// Tesselation shadrs in entries?
 		if( HasTesselation )
 		{
-			if( Entry.Type_ == rsST_TESSELATION_CONTROL ||
-				Entry.Type_ == rsST_TESSELATION_EVALUATION )
+			if( Entry.Type_ == RsShaderType::TESSELATION_CONTROL ||
+				Entry.Type_ == RsShaderType::TESSELATION_EVALUATION )
 			{
 				Flags |= HLSLCC_FLAG_TESS_ENABLED;
 			}
@@ -556,11 +384,11 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 				BuiltShaderData_[ GLSLShader.Hash_ ] = std::move( GLSLShader );
 
 				// Headers
-				D3D11Header.ShaderHashes_[ Entry.Type_ ] = D3D11Shader.Hash_;
-				GLSLHeader.ShaderHashes_[ Entry.Type_ ] = GLSLShader.Hash_;
+				D3D11Header.ShaderHashes_[ (BcU32)Entry.Type_ ] = D3D11Shader.Hash_;
+				GLSLHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = GLSLShader.Hash_;
 				
 				// Vertex shader attributes.
-				if( Entry.Type_ == rsST_VERTEX )
+				if( Entry.Type_ == RsShaderType::VERTEX )
 				{
 					// Generate vertex attributes.
 					BcAssert( VertexAttributes.size() == 0 );
@@ -580,22 +408,22 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 				std::string ShaderType;
 				switch( Entry.Type_ )
 				{
-				case rsST_VERTEX:
+				case RsShaderType::VERTEX:
 					ShaderType = "vs";
 					break;
-				case rsST_TESSELATION_CONTROL:
+				case RsShaderType::TESSELATION_CONTROL:
 					ShaderType = "hs";
 					break;
-				case rsST_TESSELATION_EVALUATION:
+				case RsShaderType::TESSELATION_EVALUATION:
 					ShaderType = "ds";
 					break;
-				case rsST_GEOMETRY:
+				case RsShaderType::GEOMETRY:
 					ShaderType = "gs";
 					break;
-				case rsST_FRAGMENT:
+				case RsShaderType::FRAGMENT:
 					ShaderType = "fs";
 					break;
-				case rsST_COMPUTE:
+				case RsShaderType::COMPUTE:
 					ShaderType = "cs";
 					break;	
 				}
@@ -683,64 +511,64 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 	RsProgramVertexAttribute VertexAttribute;
 
 	VertexAttribute.Channel_ = Channel;
-	VertexAttribute.Usage_ = rsVU_INVALID;
+	VertexAttribute.Usage_ = RsVertexUsage::INVALID;
 	VertexAttribute.UsageIdx_ = Index;
 
 	if( Name == "POSITION" )
 	{
-		VertexAttribute.Usage_ = rsVU_POSITION;
+		VertexAttribute.Usage_ = RsVertexUsage::POSITION;
 	}
 	else if( Name == "SV_POSITION" )
 	{
-		VertexAttribute.Usage_ = rsVU_POSITION;
+		VertexAttribute.Usage_ = RsVertexUsage::POSITION;
 	}
 	else if( Name == "BLENDWEIGHTS" )
 	{
-		VertexAttribute.Usage_ = rsVU_BLENDWEIGHTS;
+		VertexAttribute.Usage_ = RsVertexUsage::BLENDWEIGHTS;
 	}
 	else if( Name == "BLENDINDICES" )
 	{
-		VertexAttribute.Usage_ = rsVU_BLENDINDICES;
+		VertexAttribute.Usage_ = RsVertexUsage::BLENDINDICES;
 	}
 	else if( Name == "NORMAL" )
 	{
-		VertexAttribute.Usage_ = rsVU_NORMAL;
+		VertexAttribute.Usage_ = RsVertexUsage::NORMAL;
 	}
 	else if( Name == "PSIZE" )
 	{
-		VertexAttribute.Usage_ = rsVU_PSIZE;
+		VertexAttribute.Usage_ = RsVertexUsage::PSIZE;
 	}
 	else if( Name == "TEXCOORD" )
 	{
-		VertexAttribute.Usage_ = rsVU_TEXCOORD;
+		VertexAttribute.Usage_ = RsVertexUsage::TEXCOORD;
 	}
 	else if( Name == "BINORMAL" )
 	{
-		VertexAttribute.Usage_ = rsVU_BINORMAL;
+		VertexAttribute.Usage_ = RsVertexUsage::BINORMAL;
 	}
 	else if( Name == "TESSFACTOR" )
 	{
-		VertexAttribute.Usage_ = rsVU_TESSFACTOR;
+		VertexAttribute.Usage_ = RsVertexUsage::TESSFACTOR;
 	}
 	else if( Name == "POISITIONT" )
 	{
-		VertexAttribute.Usage_ = rsVU_POSITIONT;
+		VertexAttribute.Usage_ = RsVertexUsage::POSITIONT;
 	}
 	else if( Name == "COLOR" )
 	{
-		VertexAttribute.Usage_ = rsVU_COLOUR;
+		VertexAttribute.Usage_ = RsVertexUsage::COLOUR;
 	}
 	else if( Name == "FOG" )
 	{
-		VertexAttribute.Usage_ = rsVU_FOG;
+		VertexAttribute.Usage_ = RsVertexUsage::FOG;
 	}
 	else if( Name == "DEPTH" )
 	{
-		VertexAttribute.Usage_ = rsVU_DEPTH;
+		VertexAttribute.Usage_ = RsVertexUsage::DEPTH;
 	}
 	else if( Name == "SAMPLE" )
 	{
-		VertexAttribute.Usage_ = rsVU_SAMPLE;
+		VertexAttribute.Usage_ = RsVertexUsage::SAMPLE;
 	}
 
 	return VertexAttribute;

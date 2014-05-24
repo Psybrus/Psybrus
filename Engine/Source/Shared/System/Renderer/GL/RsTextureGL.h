@@ -28,21 +28,21 @@ class RsTextureGL:
 {
 public:
 	// 1D
-	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pTextureData );
 
 	// 2D
-	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pTextureData );
 
 	// 3D
-	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pTextureData );
 	virtual ~RsTextureGL();
 	
 	virtual BcU32						width() const;
 	virtual BcU32						height() const;
 	virtual BcU32						depth() const;
 	virtual BcU32						levels() const;
-	virtual eRsTextureType				type() const;
-	virtual eRsTextureFormat			format() const;
+	virtual RsTextureType				type() const;
+	virtual RsTextureFormat			format() const;
 
 	// Editing.
 	virtual void*						lockTexture();
@@ -64,8 +64,8 @@ private:
 	BcU32								Height_;
 	BcU32								Depth_;
 	BcU32								Levels_;
-	eRsTextureType						Type_;
-	eRsTextureFormat					Format_;
+	RsTextureType						Type_;
+	RsTextureFormat					Format_;
 	BcBool								Locked_;		// BADNESS: Needs to be atomic!
 
 };
