@@ -315,24 +315,28 @@ void RsContextGL::create()
 	glewInit();
 	
 	// Attempt to create core profile.
-	std::pair< BcU32, BcU32 > versions[] = 
+	RsOpenGLVersion Versions[] = 
 	{
-		std::pair< BcU32, BcU32 >( 4, 4 ),
-		std::pair< BcU32, BcU32 >( 4, 3 ),
-		std::pair< BcU32, BcU32 >( 4, 2 ),
-		std::pair< BcU32, BcU32 >( 4, 1 ),
-		std::pair< BcU32, BcU32 >( 4, 0 ),
-		std::pair< BcU32, BcU32 >( 3, 3 ),
-		std::pair< BcU32, BcU32 >( 3, 2 ),
+		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE ),
 	};
 
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
-	bool success = false;
-	for( auto version : versions )
+	bool Success = false;
+	for( auto Version : Versions )
 	{
-		if( createProfile( version.first, version.second, BcTrue, ParentContext ) )
+		if( createProfile( Version, ParentContext ) )
 		{
-			BcPrintf( "RsContextGL: Created OpenGL %u.%u Core Profile.\n", version.first, version.second );
+			Version_ = Version;
+			BcPrintf( "RsContextGL: Created OpenGL %u.%u %s Profile.\n", 
+				Version.Major_, 
+				Version.Minor_,
+				Version.Type_ == RsOpenGLType::CORE ? "Core" : "Compatibility" );
 			break;
 		}
 	}
@@ -399,13 +403,16 @@ void RsContextGL::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // createProfile
-bool RsContextGL::createProfile( BcU32 Maj, BcU32 Min, BcBool IsCore, HGLRC ParentContext )
+bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 {
+	BcAssert( Version.Type_ == RsOpenGLType::CORE ||
+	          Version.Type_ == RsOpenGLType::COMPATIBILITY );
+	
 	int ContextAttribs[] = 
 	{
-		WGL_CONTEXT_MAJOR_VERSION_ARB, Maj,
-		WGL_CONTEXT_MINOR_VERSION_ARB, Min,
-		WGL_CONTEXT_PROFILE_MASK_ARB, IsCore ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		WGL_CONTEXT_MAJOR_VERSION_ARB, Version.Major_,
+		WGL_CONTEXT_MINOR_VERSION_ARB, Version.Minor_,
+		WGL_CONTEXT_PROFILE_MASK_ARB, Version.Type_ == RsOpenGLType::CORE ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 		NULL
 	};
 
@@ -564,6 +571,28 @@ void RsContextGL::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsT
 			BcAssert( NoofTextureStateBinds_ < NOOF_TEXTURESTATES );
 			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Sampler;
 		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setProgram
+void RsContextGL::setProgram( class RsProgram* Program )
+{
+	if( Program_ != Program )
+	{
+		Program_ = Program;
+		ProgramDirty_ = BcTrue;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPrimitive
+void RsContextGL::setPrimitive( class RsPrimitive* Primitive )
+{
+	if( Primitive_ != Primitive )
+	{
+		Primitive_ = Primitive;
+		PrimitiveDirty_ = BcTrue;
 	}
 }
 
@@ -741,30 +770,9 @@ void RsContextGL::flushState()
 // clear
 void RsContextGL::clear( const RsColour& Colour )
 {
+	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setProgram
-void RsContextGL::setProgram( class RsProgram* Program )
-{
-	if( Program_ != Program )
-	{
-		Program_ = Program;
-		ProgramDirty_ = BcTrue;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setPrimitive
-void RsContextGL::setPrimitive( class RsPrimitive* Primitive )
-{
-	if( Primitive_ != Primitive )
-	{
-		Primitive_ = Primitive;
-		PrimitiveDirty_ = BcTrue;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -781,6 +789,13 @@ void RsContextGL::drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 O
 {
 	flushState();
 	glDrawElements( gPrimitiveType[ PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getOpenGLVersion
+const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
+{
+	return Version_;
 }
 
 //////////////////////////////////////////////////////////////////////////
