@@ -211,7 +211,7 @@ enum eRsVertexDataType
 enum eRsVertexUsage
 {
 	rsVU_POSITION = 0,
-	rsVU_BLENDWEIGHT,
+	rsVU_BLENDWEIGHTS,
 	rsVU_BLENDINDICES,
 	rsVU_NORMAL,
 	rsVU_PSIZE,

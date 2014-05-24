@@ -289,8 +289,8 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
 		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
 		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDWEIGHT,	0 );
-		VertexElementStream_ << RsVertexElement( 0, 60,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDINDICES,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDINDICES,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 60,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDWEIGHTS,	0 );
 		VertexElementStream_ << RsVertexElement( 0, 76,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
 							
 		// Export indices.

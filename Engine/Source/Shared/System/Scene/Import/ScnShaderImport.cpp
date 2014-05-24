@@ -694,9 +694,9 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 	{
 		VertexAttribute.Usage_ = rsVU_POSITION;
 	}
-	else if( Name == "BLENDWEIGHT" )
+	else if( Name == "BLENDWEIGHTS" )
 	{
-		VertexAttribute.Usage_ = rsVU_BLENDWEIGHT;
+		VertexAttribute.Usage_ = rsVU_BLENDWEIGHTS;
 	}
 	else if( Name == "BLENDINDICES" )
 	{
