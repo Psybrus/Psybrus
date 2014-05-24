@@ -217,6 +217,7 @@ protected:
 	}
 	
 protected:
+	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
 		RsVertexBuffer*					pVertexBuffer_;

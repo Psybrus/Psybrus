@@ -74,16 +74,23 @@ public:
 
 public:
 	BcBinaryData();
-	BcBinaryData( void* pData, size_t DataSize );
+	BcBinaryData( void* pData, size_t DataSize, BcBool Copy = BcFalse );
 	BcBinaryData( size_t DataSize );
 	BcBinaryData( const BcBinaryData& Other );
+	BcBinaryData( BcBinaryData&& Other );
 	~BcBinaryData();
 
+	BcBinaryData& operator = ( const BcBinaryData& Other );
+
 	/**
-		* @brief Swap data with other binary data object. Saves doing a heavy weight copy when you don't need to retain both copies.
-		* TODO: Move semantics.
-		*/
-	void swap( BcBinaryData& Other );
+	 * Compare data.
+	 */
+	BcBool operator == ( const BcBinaryData& Other ) const;
+
+	/**
+	 * Compare data.
+	 */
+	BcBool operator != ( const BcBinaryData& Other ) const;
 
 	/**
 		* @brief Create a stream.

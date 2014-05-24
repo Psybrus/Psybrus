@@ -18,7 +18,6 @@
 #include "Base/BcMisc.h"
 
 #include "System/SysJob.h"
-#include "System/SysJobWorker.h"
 #include "System/SysFence.h"
 
 #include <thread>
@@ -27,79 +26,58 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <boost/lockfree/policies.hpp>
+#include <boost/lockfree/queue.hpp>
+
+//////////////////////////////////////////////////////////////////////////
+// Forward declarations
+class SysJobQueue;
+
+//////////////////////////////////////////////////////////////////////////
+// Typedefs
+typedef std::vector< SysJobQueue* > SysJobQueueList;
+
 //////////////////////////////////////////////////////////////////////////
 // SysJobQueue
 class SysJobQueue
 {
 public:
-	SysJobQueue( BcU32 NoofWorkers );
-	~SysJobQueue();
+	SysJobQueue( class SysKernel* Parent );
+	virtual ~SysJobQueue();
 	
 	/**
-	 * Enqueue a job.
-	 * @param pJob Job to queue.
-	 * @param WorkerMask Used to specify which workers the job is allowed to schedule on.
+	 * Push a job.
+	 * Thread safe.
+	 * @param Job Job to push.
+	 * @return true if successfully queued.
 	 */
-	void				enqueueJob( SysJob* pJob, BcU32 WorkerMask = 0xffffffff );
+	BcBool				pushJob( SysJob* Job );
 	
+	/**
+	 * Pop a job.
+	 * Thread safe.
+	 * @param Job Job we have popped.
+	 * @return true if successfully popped.
+	 */
+	BcBool				popJob( SysJob*& Job );
+
 	/**
 	 * Flush jobs.
+	 * @param ForceExecute Force execute on this call.
 	 */
-	void				flushJobs();
+	void				flushJobs( BcBool ForceExecute );
 
 	/**
-	 * Signal a schedule cycle.
+	 * Do we have jobs?
 	 */
-	void				schedule();
-	
-	/**
-	 * Get worker usage mask.
-	 */
-	BcU32				workerUsageMask() const;
-
-	/**
-	 * Get worker count.
-	 */
-	BcU32				workerCount() const;
-
-	/**
-	 * Get and reset time working for worker.
-	 */
-	BcF32				getAndResetTimeWorkingForWorker( BcU32 Idx );
-	
-	/**
-	 * Get and jobs executed for worker.
-	 */
-	BcU32				getAndResetJobsExecutedForWorker( BcU32 Idx );
-
-private:
-	/**
-	 * Move jobs to the back of the queue.
-	 * @param WorkerMask Mask to move to the front of the queue.
-	 */
-	void				moveJobsBack( BcU32 WorkerMask );
+	BcBool				anyJobsPending();
 	
 private:
-	virtual void		execute();
+	typedef boost::lockfree::queue< class SysJob* > TJobQueue;
 	
-private:
-	typedef std::list< SysJob* > TJobQueue;
-	typedef TJobQueue::iterator TJobQueueIterator;
-	typedef std::vector< SysJobWorker* > TJobWorkerList;
-	
-	SysFence				StartedFence_;
-	std::thread				ExecutionThread_;
-	BcBool					Active_;
-	std::condition_variable ResumeEvent_;
-	std::mutex				ResumeMutex_;
-	std::atomic< BcU32 >	NoofJobsQueued_;
-	BcU32					NoofWorkers_;
-	BcU32					AvailibleWorkerMask_;
-	
-	std::mutex				QueueLock_;
+	class SysKernel*		Parent_;
 	TJobQueue				JobQueue_;
-	
-	TJobWorkerList			JobWorkers_;
+	std::atomic< BcU32 >	NoofJobs_;
 };
 
 #endif

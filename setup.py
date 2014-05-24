@@ -28,17 +28,6 @@ if vs110ComnTools == None:
 else:
 	print "...got!"
 
-
-# Check for DXSDK
-print "Checking for DirectX SDK (June 2010)..."
-vs110ComnTools = os.getenv("DXSDK_DIR", None)
-if vs110ComnTools == None:
-	print "Can't find, is DXSDK_DIR set?"
-	exit(1)
-else:
-	print "...got!"
-
-
 # Check for boost.
 print "Checking for Boost..."
 boostRoot = os.getenv("BOOST_ROOT", None)

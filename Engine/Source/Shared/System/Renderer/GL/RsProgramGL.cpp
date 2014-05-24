@@ -17,9 +17,11 @@
 
 #include <string>
 
+#include <boost/format.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders ):
+RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes ):
 	RsProgram( pContext ),
 	ParameterBufferSize_( 0 )
 {
@@ -29,6 +31,12 @@ RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppS
 	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
 	{
 		ppShaders_[ Idx ] = static_cast< RsShaderGL* >( ppShaders[ Idx ] );
+	}
+
+	AttributeList_.reserve( NoofVertexAttributes );
+	for( BcU32 Idx = 0; Idx < NoofVertexAttributes; ++Idx )
+	{
+		AttributeList_.push_back( pVertexAttributes[ Idx ] );
 	}
 }
 
@@ -62,17 +70,14 @@ void RsProgramGL::create()
 		//ppShaders_[ Idx ]->logShader();
 	}
 	
-	// Bind default vertex attributes.
-	bindAttribute( Handle, rsVC_POSITION,		"aPosition" );
-	bindAttribute( Handle, rsVC_NORMAL,			"aNormal" );
-	bindAttribute( Handle, rsVC_TANGENT,		"aTangent" );
-	bindAttribute( Handle, rsVC_TEXCOORD0,		"aTexCoord0" );
-	bindAttribute( Handle, rsVC_TEXCOORD1,		"aTexCoord1" );
-	bindAttribute( Handle, rsVC_TEXCOORD2,		"aTexCoord2" );
-	bindAttribute( Handle, rsVC_TEXCOORD3,		"aTexCoord3" );
-	bindAttribute( Handle, rsVC_SKIN_INDICES,	"aSkinIndices" );
-	bindAttribute( Handle, rsVC_SKIN_WEIGHTS,	"aSkinWeights" );
-	bindAttribute( Handle, rsVC_COLOUR,			"aColour" );
+	// Bind all slots up.
+	// NOTE: We shouldn't need this in later GL versions with explicit
+	//       binding slots.
+	for( BcU32 Channel = 0; Channel < 16; ++Channel )
+	{
+		const std::string Name = boost::str( boost::format( "dcl_Input%1%" ) % Channel );
+		glBindAttribLocation( Handle, Channel, Name.c_str() );
+	}
 	
 	// Link program.
 	glLinkProgram( Handle );
@@ -343,14 +348,11 @@ void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// bindAttribute
-void RsProgramGL::bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcChar* Name )
+// addParameter
+//virtual
+const RsProgramVertexAttributeList& RsProgramGL::getVertexAttributeList() const
 {
-	glBindAttribLocation( ProgramHandle, Channel, Name );
-	if( glGetError() != GL_NO_ERROR )
-	{
-		BcPrintf( "WARNING: RsProgramGL: Could not bind attribute \"%s\"\n", Name );
-	}	
+	return AttributeList_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

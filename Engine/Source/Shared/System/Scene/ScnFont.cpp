@@ -457,11 +457,11 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 	Super::initialise();
 
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_STATIC_2D ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_STATIC_2D ) )
 	{	
 		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
 		if( Parameter != BcErrorCode )
-		{
+		{ 
 			MaterialComponent_->setTexture( Parameter, Parent_->Texture_ );
 		}
 	}
@@ -691,8 +691,9 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 // setAlphaTestStepping
 void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 {
-	BcU32 Param = MaterialComponent_->findParameter( "aAlphaTestStep" );
-	MaterialComponent_->setParameter( Param, Stepping );
+	UniformBuffer_->lock();
+	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
+	UniformBuffer_->unlock();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -718,7 +719,9 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	// Attach material to our parent.
 	Parent->attach( MaterialComponent_ );
 
-	// TEMP HACK: 
+	UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( AlphaTestUniforms_ ) ), &AlphaTestUniforms_ );
+	auto UniformBlock = MaterialComponent_->findUniformBlock( "AlphaTestUniformBlock" );
+	MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );
 
 	//
 	ScnComponent::onAttach( Parent );
@@ -733,6 +736,8 @@ void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 	Parent->detach( MaterialComponent_ );
 
 	MaterialComponent_ = NULL;
+	
+	RsCore::pImpl()->destroyResource( UniformBuffer_ );
 
 	//
 	ScnComponent::onDetach( Parent );

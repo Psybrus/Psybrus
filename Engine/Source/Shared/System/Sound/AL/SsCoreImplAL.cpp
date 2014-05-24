@@ -85,12 +85,8 @@ BcBool SsCoreImplAL::initEFX()
 void SsCoreImplAL::open()
 {
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< SsCoreImplAL, &SsCoreImplAL::open_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
-
-	// Wait for the render thread to complete.
-	SysFence Fence;
-	Fence.queue( SsCore::WORKER_MASK );
-	Fence.wait();
+	SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate );
+	SysKernel::pImpl()->flushJobQueue( SsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,7 +123,7 @@ void SsCoreImplAL::open_threaded()
 			ALC_FREQUENCY, 44100,
 			ALC_MONO_SOURCES, MAX_AL_MONO_SOURCES,
 			ALC_STEREO_SOURCES, MAX_AL_STEREO_SOURCES,
-			ALC_SYNC, SsCore::WORKER_MASK != 0x0 ? AL_TRUE : AL_FALSE,
+			ALC_SYNC, SsCore::JOB_QUEUE_ID != 0x0 ? AL_TRUE : AL_FALSE,
 			0	
 		};
 
@@ -193,7 +189,7 @@ void SsCoreImplAL::open_threaded()
 void SsCoreImplAL::update()
 {
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< SsCoreImplAL, &SsCoreImplAL::update_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
+	SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -284,12 +280,8 @@ void SsCoreImplAL::update_threaded()
 void SsCoreImplAL::close()
 {
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< SsCoreImplAL, &SsCoreImplAL::close_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
-
-	// Wait for the render thread to complete.
-	SysFence Fence;
-	Fence.queue( SsCore::WORKER_MASK );
-	Fence.wait();
+	SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate );
+	SysKernel::pImpl()->flushJobQueue( SsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -349,7 +341,7 @@ void SsCoreImplAL::destroyResource( SsResource* pResource )
 	pResource->preDestroy();
 
 	SysSystem::DestroyDelegate Delegate( SysSystem::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
-	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
+	SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -357,7 +349,7 @@ void SsCoreImplAL::destroyResource( SsResource* pResource )
 void SsCoreImplAL::updateResource( SsResource* pResource )
 {
 	SysSystem::UpdateDelegate Delegate( SysSystem::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
-	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
+	SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -366,7 +358,7 @@ void SsCoreImplAL::updateResource( SsResource* pResource )
 void SsCoreImplAL::createResource( SsResource* pResource )
 {
 	SysSystem::CreateDelegate Delegate( SysSystem::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
-	SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate );
+	SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -381,7 +373,7 @@ SsChannel* SsCoreImplAL::play( SsSample* pSample, SsChannelCallback* pCallback )
 	{
 		typedef BcDelegate< void(*)(SsSampleAL*, SsChannelCallback*) >  PlayDelegate;
 		PlayDelegate Delegate( PlayDelegate::bind< SsChannelAL, &SsChannelAL::play >( pChannel ) );
-		SysKernel::pImpl()->enqueueDelegateJob( SsCore::WORKER_MASK, Delegate, static_cast< SsSampleAL* >( pSample ), pCallback );
+		SysKernel::pImpl()->pushDelegateJob( SsCore::JOB_QUEUE_ID, Delegate, static_cast< SsSampleAL* >( pSample ), pCallback );
 	}
 	
 	return pChannel;

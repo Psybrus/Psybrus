@@ -17,11 +17,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsPrimitiveGL::RsPrimitiveGL( RsContext* pContext, RsVertexBufferGL* pVertexBuffer, RsIndexBufferGL* pIndexBuffer ):
-	RsPrimitive( pContext )
+RsPrimitiveGL::RsPrimitiveGL( RsContext* pContext, const RsPrimitiveDesc& Desc ):
+	RsPrimitive( pContext, Desc )
 {
-	pVertexBuffer_ = pVertexBuffer;
-	pIndexBuffer_ = pIndexBuffer;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -31,104 +30,3 @@ RsPrimitiveGL::~RsPrimitiveGL()
 {
 
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void RsPrimitiveGL::create()
-{
-	GLuint Handle;
-	glGenVertexArrays( 1, &Handle );
-	setHandle( Handle );
-
-	// Increment fence, update will decrement it.
-	UpdateSyncFence_.increment();
-
-	// Update resource.
-	update();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void RsPrimitiveGL::update()
-{
-	GLuint Handle = getHandle< GLuint >();
-
-	glBindVertexArray( Handle );
-
-	pVertexBuffer_->bind();
-		
-	if( pIndexBuffer_ != NULL )
-	{
-		pIndexBuffer_->bind();
-	}
-
-	glBindVertexArray( 0 );
-
-	// Decrement now that we're done.
-	UpdateSyncFence_.decrement();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void RsPrimitiveGL::destroy()
-{
-	GLuint Handle = getHandle< GLuint >();
-	glDeleteVertexArrays( 1, &Handle );
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// render
-void RsPrimitiveGL::render( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
-{
-	GLuint Handle = getHandle< GLuint >();
-	if( pVertexBuffer_ != NULL )
-	{
-		// Flush state.
-		getContext()->flushState();
-
-		//
-		glBindVertexArray( Handle );
-
-		GLenum GLPrimitiveType = 0;
-		switch( PrimitiveType )
-		{
-			case rsPT_POINTLIST:
-				GLPrimitiveType = GL_POINTS;
-				break;
-			case rsPT_LINELIST:
-				GLPrimitiveType = GL_LINES;
-				break;
-			case rsPT_LINESTRIP:
-				GLPrimitiveType = GL_LINE_STRIP;
-				break;
-			case rsPT_TRIANGLELIST:
-				GLPrimitiveType = GL_TRIANGLES;
-				break;
-			case rsPT_TRIANGLESTRIP:
-				GLPrimitiveType = GL_TRIANGLE_STRIP;
-				break;
-			case rsPT_TRIANGLEFAN:
-				GLPrimitiveType = GL_TRIANGLE_FAN;
-				break;
-		}
-		
-		if( GLPrimitiveType != 0 )
-		{
-			if( pIndexBuffer_ == NULL )
-			{
-				glDrawArrays( GLPrimitiveType, Offset, NoofIndices );
-			}
-			else
-			{
-				glDrawElements( GLPrimitiveType, NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
-			}
-			
-			// Catch error.
-			RsGLCatchError;
-		}
-	}
-}
-

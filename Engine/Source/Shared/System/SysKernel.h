@@ -18,13 +18,16 @@
 #include "Base/BcName.h"
 #include "Base/BcTimer.h"
 #include "System/SysSystem.h"
-#include "System/SysJobQueue.h"
+#include "System/SysJob.h"
 #include "System/SysDelegateDispatcher.h"
+
+#include "Reflection/ReReflection.h"
 
 #include <thread>
 #include <list>
 #include <map>
 #include <string>
+#include <condition_variable>
 
 //////////////////////////////////////////////////////////////////////////
 // Command line params
@@ -36,12 +39,25 @@ class SysKernel:
 	public BcGlobal< SysKernel >
 {
 public:
-	static BcU32 SYSTEM_WORKER_MASK;
-	static BcU32 USER_WORKER_MASK;
+	REFLECTION_DECLARE_BASE_MANUAL_NOINIT( SysKernel );
 
 public:
-	SysKernel( BcF32 TickRate );
+	static BcU32 DEFAULT_JOB_QUEUE_ID;
+
+public:
+	SysKernel( ReNoInit );
+	SysKernel( BcF32 TickRate = 1.0f / 60.0f );
 	~SysKernel();
+
+	/**
+	 * Create job queue.
+	 * Not thread safe. Should only call from the game thread during initialisation.
+	 * Job queues are destroyed when the engine shuts down.
+	 * @param NoofWorkers Number of workers to create.
+	 * @param MinimumHardwareThreads Minimum number of hardware threads required to create a worker.
+	 * @return ID of job queue.
+	 */
+	BcU32						createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads );
 	
 	/**
 	 * Register system.
@@ -75,9 +91,21 @@ public:
 	BcU32						workerCount() const;
 	
 	/**
-	 * Enqueue job.
+	 * Push job.
+	 * @param JobQueueId ID of job queue to use.
 	 */
-	void						enqueueJob( BcU32 WorkerMask, SysJob* pJob );
+	BcBool						pushJob( BcU32 JobQueueId, class SysJob* pJob );
+
+	/**
+	 * Flush all jobs in the queue.
+	 * @param JobQueueId Job queue ID.
+	 */
+	void						flushJobQueue( BcU32 JobQueueId );
+
+	/**
+	 * Flush all job queues.
+	 */
+	void						flushAllJobQueues();
 
 	/**
 	 * Get frame time.
@@ -88,46 +116,50 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall();
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
 	}
 
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0 )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
 	}
 
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
-	}
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
+	}	
 	
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
-	BcForceInline void			enqueueDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
+	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1, P2 );
-		enqueueJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
 	}
-		
+
 	/**
 	 * Enqueue callback.
 	 */
@@ -171,6 +203,25 @@ public:
 		pDelegateCall->deferCall( P0, P1, P2 );
 		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
 	}
+
+private:
+	friend class SysJobWorker;
+	friend class SysJobQueue;
+
+	/**
+	 * Wait for schedule.
+	 */
+	template < class _Predicate >
+	inline void waitForSchedule( std::mutex& Mutex, _Predicate Pred )
+	{
+		std::unique_lock< std::mutex > Lock( Mutex );
+		JobQueued_.wait( Lock, Pred );
+	}
+
+	/**
+	 * Notify for scheduling.
+	 */
+	void notifySchedule();
 	
 private:
 	/**
@@ -213,7 +264,11 @@ private:
 	BcF32						FrameTime_;
 	BcF32						GameThreadTime_;
 	
-	SysJobQueue					JobQueue_;
+	std::vector< class SysJobQueue* >	JobQueues_;
+	std::vector< class SysJobWorker* >	JobWorkers_;
+	BcU32						CurrWorkerAllocIdx_;
+
+	std::condition_variable		JobQueued_;
 	SysDelegateDispatcher		DelegateDispatcher_;
 };
 

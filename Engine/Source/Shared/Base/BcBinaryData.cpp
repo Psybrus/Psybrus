@@ -7,33 +7,41 @@ BcBinaryData::BcBinaryData():
 
 }
 	
-BcBinaryData::BcBinaryData( void* pData, size_t DataSize )
+BcBinaryData::BcBinaryData( void* pData, size_t DataSize, BcBool Copy )
 {
 	BcAssertMsg( pData != nullptr, "If passing a pointer to data, it must not be null." );
 	BcAssertMsg( ( DataSize & OWN_DATA_FLAG ) == 0, "Data size includes our signal flag to determine ownership. Can't use." );
-	pData_ = reinterpret_cast< BcU8* >( pData );
-	DataSize_ = DataSize;
+	if( Copy == BcFalse )
+	{
+		pData_ = reinterpret_cast< BcU8* >( pData );
+		DataSize_ = DataSize;
+	}
+	else
+	{
+		pData_ = reinterpret_cast< BcU8* >( BcMemAlign( DataSize, 16 ) );
+		BcMemCopy( pData_, pData, DataSize );
+		DataSize_ = DataSize | OWN_DATA_FLAG;
+	}
 }
 
 BcBinaryData::BcBinaryData( size_t DataSize )
 {
 	pData_ = reinterpret_cast< BcU8* >( BcMemAlign( DataSize, 16 ) );
-	DataSize_ = DataSize;
+	DataSize_ = DataSize | OWN_DATA_FLAG;
 }
 
 BcBinaryData::BcBinaryData( const BcBinaryData& Other )
 {
-	if( ( Other.DataSize_ & OWN_DATA_FLAG ) )
-	{
-		pData_ = reinterpret_cast< BcU8* >( BcMemAlign( Other.getDataSize(), 16 ) );
-	}
-	else
-	{
-		pData_ = Other.pData_;
-	}
-
-	DataSize_ = Other.DataSize_;
+	pData_ = reinterpret_cast< BcU8* >( BcMemAlign( Other.getDataSize(), 16 ) );
+	DataSize_ = Other.DataSize_ | OWN_DATA_FLAG;
 	BcMemCopy( pData_, Other.pData_, getDataSize() );		
+}
+
+BcBinaryData::BcBinaryData( BcBinaryData&& Other )
+{
+	internalFree();
+	pData_ = std::move( Other.pData_ );
+	DataSize_ = std::move( Other.DataSize_ );
 }
 
 BcBinaryData::~BcBinaryData()
@@ -41,14 +49,30 @@ BcBinaryData::~BcBinaryData()
 	internalFree();
 }
 
-void BcBinaryData::swap( BcBinaryData& Other )
+BcBinaryData& BcBinaryData::operator = ( const BcBinaryData& Other )
 {
-	BcU8* TempData = Other.pData_;
-	size_t TempDataSize = Other.DataSize_;
-	Other.pData_ = pData_;
-	Other.DataSize_ = DataSize_;
-	pData_ = TempData;
-	DataSize_ = TempDataSize;
+	pData_ = reinterpret_cast< BcU8* >( BcMemAlign( Other.getDataSize(), 16 ) );
+	DataSize_ = Other.DataSize_ | OWN_DATA_FLAG;
+	BcMemCopy( pData_, Other.pData_, getDataSize() );		
+	return *this;
+}
+
+BcBool BcBinaryData::operator == ( const BcBinaryData& Other ) const
+{
+	if( getDataSize() == Other.getDataSize() )
+	{
+		return BcMemCompare( getData< BcU8* >(), Other.getData< BcU8* >(), getDataSize() );
+	}
+	return BcFalse;
+}
+
+BcBool BcBinaryData::operator != ( const BcBinaryData& Other ) const
+{
+	if( getDataSize() == Other.getDataSize() )
+	{
+		return !BcMemCompare( getData< BcU8* >(), Other.getData< BcU8* >(), getDataSize() );
+	}
+	return BcTrue;
 }
 
 void BcBinaryData::internalFree()
@@ -58,4 +82,7 @@ void BcBinaryData::internalFree()
 	{
 		BcMemFree( pData_ );
 	}
+
+	pData_ = nullptr;
+	DataSize_ = 0;
 }

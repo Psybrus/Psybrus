@@ -32,7 +32,7 @@ class SsCore:
 	public BcGlobal< SsCore >
 {
 public:
-	static BcU32 WORKER_MASK;
+	static BcU32 JOB_QUEUE_ID;
 
 public:
 	SsCore(){};

@@ -58,6 +58,7 @@ protected:
 	ScnModelNodePropertyData*			pNodePropertyData_;
 	BcU8*								pVertexBufferData_;
 	BcU8*								pIndexBufferData_;
+	RsVertexElement*					pVertexElements_;
 	ScnModelPrimitiveData*				pPrimitiveData_;
 	
 	ScnModelPrimitiveRuntimeList		PrimitiveRuntimes_;
@@ -107,7 +108,7 @@ protected:
 	struct TPerComponentPrimitiveData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsUniformBuffer*		BoneUniformBuffer_;
+		RsUniformBuffer*		UniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentPrimitiveData > TPerComponentPrimitiveDataList;

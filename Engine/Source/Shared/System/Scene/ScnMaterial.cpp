@@ -277,6 +277,7 @@ void ScnMaterialComponent::StaticRegisterClass()
 		ReField( "LightAttnParameter_",			&ScnMaterialComponent::LightAttnParameter_ ),
 		ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
 		ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
+		ReField( "ObjectUniformBlockIndex_",	&ScnMaterialComponent::ObjectUniformBlockIndex_ ),
 	};
 		
 	ReRegisterClass< ScnMaterialComponent, Super >( Fields );
@@ -289,7 +290,10 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	Super::initialise();
 
 	BcAssert( Parent.isValid() && Parent->isReady() );
-	 
+	
+	// HACK
+	PermutationFlags |= scnSPF_RENDER_FORWARD;
+
 	// Cache parent and program.
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags );
@@ -342,6 +346,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 	// Grab uniform blocks.
 	ViewUniformBlockIndex_ = findUniformBlock( "ViewUniformBlock" );
 	BoneUniformBlockIndex_ = findUniformBlock( "BoneUniformBlock" );
+	ObjectUniformBlockIndex_ = findUniformBlock( "ObjectUniformBlock" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -354,11 +359,11 @@ void ScnMaterialComponent::initialise( const Json::Value& Object )
 
 	if( BcStrCompare( pPermutation, "2d" ) )
 	{
-		PermutationFlags = scnSPF_STATIC_2D;
+		PermutationFlags = scnSPF_MESH_STATIC_2D;
 	}
 	else if( BcStrCompare( pPermutation, "3d" ) )
 	{
-		PermutationFlags = scnSPF_STATIC_3D;
+		PermutationFlags = scnSPF_MESH_STATIC_3D;
 	}
 
 	initialise( MaterialRef, PermutationFlags );
@@ -694,6 +699,13 @@ void ScnMaterialComponent::setBoneUniformBlock( RsUniformBuffer* UniformBuffer )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setObjectUniformBlock
+void ScnMaterialComponent::setObjectUniformBlock( RsUniformBuffer* UniformBuffer )
+{
+	setUniformBlock( ObjectUniformBlockIndex_, UniformBuffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setState
 void ScnMaterialComponent::setState( eRsRenderState State, BcU32 Value )
 {
@@ -762,11 +774,8 @@ public:
 			pProgram_->setUniformBlock( Index, pUniformBuffer );
 		}
 
-		// Bind program.
-		pProgram_->bind( pParameterBuffer_ );
-
-		// Flush state in context.
-		pContext_->flushState();
+		// Set program.
+		pContext_->setProgram( pProgram_ );
 
 		// Done.
 		pUpdateFence_->decrement();
