@@ -604,7 +604,7 @@ public:
 		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_ );
 	}
 
-	eRsPrimitiveType Type_;
+	RsPrimitiveType Type_;
 	BcU32 Offset_;
 	BcU32 NoofIndices_;
 	RsPrimitive* pPrimitive_;

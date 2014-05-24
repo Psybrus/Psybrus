@@ -147,12 +147,12 @@ void RsColour::premultiplyAlpha()
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
-BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
+BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
 {
 	BcU32 Size = 0;
 	switch( TextureFormat )
 	{
-		case rsTF_RGB8:
+		case RsTextureFormat::RGB8:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				Size += Width * Height;
@@ -163,7 +163,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 
-		case rsTF_RGBA8:
+		case RsTextureFormat::RGBA8:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				Size += Width * Height;
@@ -174,7 +174,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 		
-		case rsTF_PAL4_RGBA8:
+		case RsTextureFormat::PAL4_RGBA8:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				Size += Width * Height;
@@ -185,7 +185,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 						
-		case rsTF_PAL8_RGBA8:
+		case RsTextureFormat::PAL8_RGBA8:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				Size += Width * Height;
@@ -196,7 +196,7 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 
-		case rsTF_DXT1:
+		case RsTextureFormat::DXT1:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
@@ -207,8 +207,8 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 
-		case rsTF_DXT3:
-		case rsTF_DXT5:			
+		case RsTextureFormat::DXT3:
+		case RsTextureFormat::DXT5:			
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
@@ -219,8 +219,8 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 			
-		case rsTF_PVRTC2_RGB:
-		case rsTF_PVRTC2_RGBA:
+		case RsTextureFormat::PVRTC2_RGB:
+		case RsTextureFormat::PVRTC2_RGBA:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				Size += Width * Height;
@@ -231,8 +231,8 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			Size *= Depth;
 			break;
 			
-		case rsTF_PVRTC4_RGB:
-		case rsTF_PVRTC4_RGBA:
+		case RsTextureFormat::PVRTC4_RGB:
+		case RsTextureFormat::PVRTC4_RGBA:
 			for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 			{
 				Size += Width * Height;
@@ -247,34 +247,5 @@ BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 He
 			break;
 	}
 	
-	return Size;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// RsVertexDeclSize
-BcU32 RsVertexDeclSize( BcU32 VertexFormat )
-{
-	BcU32 Size = 0;
-#define RS_DECL_APPEND_SIZE( flag, size ) \
-	if( VertexFormat & flag ) \
-	Size += size
-
-	RS_DECL_APPEND_SIZE( rsVDF_POSITION_XY,		8 );
-	RS_DECL_APPEND_SIZE( rsVDF_POSITION_XYZ,	12 );
-	RS_DECL_APPEND_SIZE( rsVDF_POSITION_XYZW,	16 );
-	RS_DECL_APPEND_SIZE( rsVDF_NORMAL_XYZ,		12 );
-	RS_DECL_APPEND_SIZE( rsVDF_TANGENT_XYZ,		12 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV0,	8 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV1,	8 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV2,	8 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UV3,	8 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW0,	12 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW1,	12 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW2,	12 );
-	RS_DECL_APPEND_SIZE( rsVDF_TEXCOORD_UVW3,	12 );
-	RS_DECL_APPEND_SIZE( rsVDF_SKIN_INDICES,	16 );
-	RS_DECL_APPEND_SIZE( rsVDF_SKIN_WEIGHTS,	16 );
-	RS_DECL_APPEND_SIZE( rsVDF_COLOUR_ABGR8,	4 );
-#undef RS_DECL_APPEND_SIZE
 	return Size;
 }

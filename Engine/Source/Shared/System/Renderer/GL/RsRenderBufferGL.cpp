@@ -15,33 +15,33 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor (colour)
-RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, eRsColourFormat Format, BcU32 Width, BcU32 Height ):
+RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, RsColourFormat Format, BcU32 Width, BcU32 Height ):
 	RsResource( pContext )
 {
 	switch( Format )
 	{
-		case rsCF_A2R10G10B10:
+		case RsColourFormat::A2R10G10B10:
 			Format_ = GL_RGB10_A2;
 			break;
-		case rsCF_A8R8G8B8:
+		case RsColourFormat::A8R8G8B8:
 			Format_ = GL_RGBA8;
 			break;
-		case rsCF_X8R8G8B8:
+		case RsColourFormat::X8R8G8B8:
 			Format_ = GL_RGBA8;
 			break;
-		case rsCF_R16F:
+		case RsColourFormat::R16F:
 			Format_ = GL_R16F;
 			break;
-		case rsCF_G16R16F:
+		case RsColourFormat::G16R16F:
 			Format_ = GL_RG16F;
 			break;
-		case rsCF_A16B16G16R16F:
+		case RsColourFormat::A16B16G16R16F:
 			Format_ = GL_RGBA16;
 			break;
-		case rsCF_R32F:
+		case RsColourFormat::R32F:
 			Format_ = GL_R32F;
 			break;
-		case rsCF_G32R32F:
+		case RsColourFormat::G32R32F:
 			Format_ = GL_RG32F;
 			break;
 
@@ -57,21 +57,21 @@ RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, eRsColourFormat Format,
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor (depth/stencil)
-RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, eRsDepthStencilFormat Format, BcU32 Width, BcU32 Height ):
+RsRenderBufferGL::RsRenderBufferGL( RsContext* pContext, RsDepthStencilFormat Format, BcU32 Width, BcU32 Height ):
 	RsResource( pContext )
 {
 	switch( Format )
 	{
-		case rsDSF_D16:
+		case RsDepthStencilFormat::D16:
 			Format_ = GL_DEPTH_COMPONENT16;
 			break;
-		case rsDSF_D32:
+		case RsDepthStencilFormat::D32:
 			Format_ = GL_DEPTH_COMPONENT32;
 			break;
-		case rsDSF_D24S8:
+		case RsDepthStencilFormat::D24S8:
 			Format_ = GL_DEPTH24_STENCIL8;
 			break;
-		case rsDSF_D32F:
+		case RsDepthStencilFormat::D32F:
 			Format_ = GL_DEPTH_COMPONENT32F;
 			break;
 

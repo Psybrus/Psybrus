@@ -82,7 +82,7 @@ public:
 	 *	@param Format Texture format.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a texture.
@@ -92,7 +92,7 @@ public:
 	 *	@param Format Texture format.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a texture.
@@ -103,7 +103,7 @@ public:
 	 *	@param Format Texture format.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a render target.
@@ -145,7 +145,7 @@ public:
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
 	 */
-	virtual RsShader*			createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ) = 0;
+	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ) = 0;
 
 	/**
 	 * Create program.

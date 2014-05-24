@@ -668,7 +668,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 		if( NoofVertices > 0 )
 		{
 			Canvas->setMaterialComponent( MaterialComponent_ );
-			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, Layer );
+			Canvas->addPrimitive( RsPrimitiveType::TRIANGLELIST, pFirstVert, NoofVertices, Layer );
 		}
 	}
 	else

@@ -13,7 +13,30 @@
 
 #include "ScnModelImport.h"
 
+#include <memory>
+
 #ifdef PSY_SERVER
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+static BcU32 gVertexDataSize[] = 
+{
+	4,					// RsVertexDataType::FLOAT32 = 0,
+	2,					// RsVertexDataType::FLOAT16,
+	4,					// RsVertexDataType::FIXED,
+	1,					// RsVertexDataType::BYTE,
+	1,					// RsVertexDataType::BYTE_NORM,
+	1,					// RsVertexDataType::UBYTE,
+	1,					// RsVertexDataType::UBYTE_NORM,
+	2,					// RsVertexDataType::SHORT,
+	2,					// RsVertexDataType::SHORT_NORM,
+	2,					// RsVertexDataType::USHORT,
+	2,					// RsVertexDataType::USHORT_NORM,
+	4,					// RsVertexDataType::INT,
+	4,					// RsVertexDataType::INT_NORM,
+	4,					// RsVertexDataType::UINT,
+	4					// RsVertexDataType::UINT_NORM,
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -145,7 +168,6 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 {
 	if( pMesh->nVertices() > 0 )
 	{
-		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 		BcU32 ShaderPermutation = scnSPF_MESH_STATIC_3D;
 
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
@@ -153,7 +175,7 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		{
 			ParentIndex,
 			BcFalse,
-			rsPT_TRIANGLELIST,	
+			RsPrimitiveType::TRIANGLELIST,	
 			ShaderPermutation,
 			pMesh->nIndices(),
 			BcErrorCode,
@@ -166,8 +188,16 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 			nullptr
 		};
 
+		// Vertex format.
+		auto CurrentPosition = VertexElementStream_.dataSize();
+		VertexElementStream_ << RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 );
+		VertexElementStream_ << RsVertexElement( 0, 36,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 );
+
 		// Export vertices.
-		serialiseVertices( pMesh, VertexFormat, PrimitiveData.AABB_ );
+		serialiseVertices( pMesh, (RsVertexElement*)(&(VertexElementStream_.pData()[ CurrentPosition ])), 5, PrimitiveData.AABB_ );
 		
 		// Grab material name.
 		MdlMaterial Material = pMesh->material( 0 );
@@ -188,12 +218,6 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
 		PrimitiveDataStream_ << PrimitiveData;
 					
-		// Vertex format.
-		VertexElementStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
 
 		// Export indices.
 		MdlIndex Index;
@@ -229,7 +253,6 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 	}
 	else if( pSkin->nVertices() > 0 )
 	{
-		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_SKIN_INDICES | rsVDF_SKIN_WEIGHTS | rsVDF_COLOUR_ABGR8;
 		BcU32 ShaderPermutation = scnSPF_MESH_SKINNED_3D;
 
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
@@ -237,7 +260,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		{
 			ParentIndex,
 			BcTrue,
-			rsPT_TRIANGLELIST,	
+			RsPrimitiveType::TRIANGLELIST,	
 			ShaderPermutation,
 			pSkin->nIndices(),
 			BcErrorCode,
@@ -250,8 +273,18 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 			nullptr
 		};
 
+		// Vertex format.
+		auto CurrentPosition = VertexElementStream_.dataSize();
+		VertexElementStream_ << RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 );
+		VertexElementStream_ << RsVertexElement( 0, 36,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDINDICES,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 60,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDWEIGHTS,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 76,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 );
+
 		// Export vertices.
-		serialiseVertices( pSkin, VertexFormat, PrimitiveData.AABB_ );
+		serialiseVertices( pSkin, (RsVertexElement*)(&(VertexElementStream_.pData()[ CurrentPosition ])), 7, PrimitiveData.AABB_ );
 
 		// Setup bone palette for primitive.
 		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
@@ -283,15 +316,6 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		// TODO: Pass through parameters from the model into import?
 		PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
 		PrimitiveDataStream_ << PrimitiveData;
-
-		// Vertex format.
-		VertexElementStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDINDICES,	0 );
-		VertexElementStream_ << RsVertexElement( 0, 60,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDWEIGHTS,	0 );
-		VertexElementStream_ << RsVertexElement( 0, 76,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
 							
 		// Export indices.
 		MdlIndex Index;
@@ -310,51 +334,113 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 //////////////////////////////////////////////////////////////////////////
 // serialiseVertices
 void ScnModelImport::serialiseVertices( class MdlMesh* pMesh,
-                                        BcU32 VertexFormat,
+                                        RsVertexElement* pVertexElements,
+										BcU32 NoofVertexElements,
 										MaAABB& AABB )
 {
 	AABB.empty();
+
+	// Calculate output vertex size.
+	// TODO: Stride.
+	BcU32 Stride = 0;
+	for( BcU32 ElementIdx = 0; ElementIdx < NoofVertexElements; ++ElementIdx )
+	{
+		const auto VertexElement( pVertexElements[ ElementIdx ] );
+		BcU32 Size = VertexElement.Components_ * gVertexDataSize[(BcU32)VertexElement.DataType_];
+		Stride = std::max( Stride, VertexElement.Offset_ + Size );
+	}
+
+	std::vector< BcU8 > VertexData( Stride, 0 );
+
 	for( BcU32 VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )
 	{
 		const MdlVertex& Vertex = pMesh->vertex( VertexIdx );
 
-		if( VertexFormat & rsVDF_POSITION_XYZ )
-		{
-			VertexDataStream_ << Vertex.Position_.x() << Vertex.Position_.y() << Vertex.Position_.z();
-		}
-
-		if( VertexFormat & rsVDF_NORMAL_XYZ )
-		{
-			VertexDataStream_ << Vertex.Normal_.x() << Vertex.Normal_.y() << Vertex.Normal_.z();
-		}
-
-		if( VertexFormat & rsVDF_TANGENT_XYZ )
-		{
-			VertexDataStream_ << Vertex.Tangent_.x() << Vertex.Tangent_.y() << Vertex.Tangent_.z();
-		}
-
-		if( VertexFormat & rsVDF_TEXCOORD_UV0 )
-		{
-			VertexDataStream_ << Vertex.UV_.x() << Vertex.UV_.y();
-		}
-
-		if( VertexFormat & rsVDF_SKIN_INDICES )
-		{
-			VertexDataStream_ << BcF32( Vertex.iJoints_[ 0 ] ) << BcF32( Vertex.iJoints_[ 1 ] ) << BcF32( Vertex.iJoints_[ 2 ] ) << BcF32( Vertex.iJoints_[ 3 ] );
-		}
-
-		if( VertexFormat & rsVDF_SKIN_WEIGHTS )
-		{
-			VertexDataStream_ << Vertex.Weights_[ 0 ] << Vertex.Weights_[ 1 ] << Vertex.Weights_[ 2 ] << Vertex.Weights_[ 3 ];
-		}
-					
-		if( VertexFormat & rsVDF_COLOUR_ABGR8 )
-		{
-			VertexDataStream_ << RsColour( Vertex.Colour_ ).asABGR();
-		}
-
 		// Expand AABB.
 		AABB.expandBy( Vertex.Position_ );
+
+		for( BcU32 ElementIdx = 0; ElementIdx < NoofVertexElements; ++ElementIdx )
+		{
+			const auto VertexElement( pVertexElements[ ElementIdx ] );
+
+			switch( VertexElement.Usage_ )
+			{
+			case RsVertexUsage::POSITION:
+				BcAssert( VertexElement.Components_ == 3 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
+				{
+					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = Vertex.Position_.x();
+					*OutVal++ = Vertex.Position_.y();
+					*OutVal++ = Vertex.Position_.z();
+				}
+				break;
+			case RsVertexUsage::NORMAL:
+				BcAssert( VertexElement.Components_ == 3 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
+				{
+					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = Vertex.Normal_.x();
+					*OutVal++ = Vertex.Normal_.y();
+					*OutVal++ = Vertex.Normal_.z();
+				}
+				break;
+			case RsVertexUsage::TANGENT:
+				BcAssert( VertexElement.Components_ == 3 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
+				{
+					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = Vertex.Tangent_.x();
+					*OutVal++ = Vertex.Tangent_.y();
+					*OutVal++ = Vertex.Tangent_.z();
+				}
+				break;
+			case RsVertexUsage::TEXCOORD:
+				BcAssert( VertexElement.Components_ == 2 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
+				{
+					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = Vertex.UV_.x();
+					*OutVal++ = Vertex.UV_.y();
+				}
+				break;
+			case RsVertexUsage::BLENDINDICES:
+				BcAssert( VertexElement.Components_ == 4 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
+				{
+					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = (BcF32)Vertex.iJoints_[0];
+					*OutVal++ = (BcF32)Vertex.iJoints_[1];
+					*OutVal++ = (BcF32)Vertex.iJoints_[2];
+					*OutVal++ = (BcF32)Vertex.iJoints_[3];
+				}
+				break;
+			case RsVertexUsage::BLENDWEIGHTS:
+				BcAssert( VertexElement.Components_ == 4 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
+				{
+					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = (BcF32)Vertex.Weights_[0];
+					*OutVal++ = (BcF32)Vertex.Weights_[1];
+					*OutVal++ = (BcF32)Vertex.Weights_[2];
+					*OutVal++ = (BcF32)Vertex.Weights_[3];
+				}
+				break;
+			case RsVertexUsage::COLOUR:
+				BcAssert( VertexElement.Components_ == 4 );
+				BcAssert( VertexElement.DataType_ == RsVertexDataType::UBYTE_NORM );
+				{
+					BcU32* OutVal = reinterpret_cast< BcU32* >( &VertexData[ VertexElement.Offset_ ] );
+					*OutVal++ = RsColour( Vertex.Colour_ ).asABGR();
+				}
+				break;
+
+			default:
+				break;
+			};
+		}
+
+		VertexDataStream_.push( &VertexData[0], VertexData.size() );
 	}
 }
 

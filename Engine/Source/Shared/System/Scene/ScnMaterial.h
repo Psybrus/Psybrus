@@ -111,7 +111,7 @@ public:
 	void								setObjectUniformBlock( RsUniformBuffer* UniformBuffer );
 
 
-	void								setState( eRsRenderState State, BcU32 Value );
+	void								setState( RsRenderStateType State, BcU32 Value );
 	
 	ScnTextureRef						getTexture( BcU32 Parameter );
 	ScnMaterialRef						getMaterial();
@@ -129,7 +129,7 @@ private:
 			
 	struct TParameterBinding
 	{
-		eRsShaderParameterType			Type_;
+		RsShaderParameterType			Type_;
 		BcU32							Offset_;
 		BcU32							TypeBytes_;
 	};

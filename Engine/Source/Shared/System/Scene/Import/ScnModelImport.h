@@ -31,39 +31,46 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( class CsPackageImporter& Importer, const Json::Value& Object );
+	BcBool import( 
+		class CsPackageImporter& Importer, 
+		const Json::Value& Object );
 
 private:
-	void								recursiveSerialiseNodes( class MdlNode* pNode,
-																 BcU32 ParentIndex,
-																 BcU32& NodeIndex,
-																 BcU32& PrimitiveIndex );
+	void recursiveSerialiseNodes( 
+		class MdlNode* pNode,
+		BcU32 ParentIndex,
+		BcU32& NodeIndex,
+		BcU32& PrimitiveIndex );
 
-	void								serialiseMesh( class MdlMesh* pSkin,
-	                                                   BcU32 ParentIndex,
-	                                                   BcU32& NodeIndex,
-													   BcU32& PrimitiveIndex );
+	void serialiseMesh( 
+		class MdlMesh* pSkin,
+		BcU32 ParentIndex,
+		BcU32& NodeIndex,
+		BcU32& PrimitiveIndex );
 
-	void								serialiseSkin( class MdlMesh* pSkin,
-	                                                   BcU32 ParentIndex,
-	                                                   BcU32& NodeIndex,
-													   BcU32& PrimitiveIndex );
+	void serialiseSkin( 
+		class MdlMesh* pSkin,
+		BcU32 ParentIndex,
+		BcU32& NodeIndex,
+		BcU32& PrimitiveIndex );
 
-	void								serialiseVertices( class MdlMesh* pMesh,
-	                                                       BcU32 VertexFormat,
-														   MaAABB& AABB );
+	void serialiseVertices( 
+		class MdlMesh* pMesh,
+		RsVertexElement* pVertexElements,
+		BcU32 NoofVertexElements,
+		MaAABB& AABB );
 
 private:
-	std::string							Source_;
+	std::string Source_;
 
-	CsPackageImporter*					pImporter_;
-	BcStream							HeaderStream_;
-	BcStream							NodeTransformDataStream_;
-	BcStream							NodePropertyDataStream_;
-	BcStream							VertexDataStream_;
-	BcStream							IndexDataStream_;
-	BcStream							VertexElementStream_;
-	BcStream							PrimitiveDataStream_;
+	CsPackageImporter* pImporter_;
+	BcStream HeaderStream_;
+	BcStream NodeTransformDataStream_;
+	BcStream NodePropertyDataStream_;
+	BcStream VertexDataStream_;
+	BcStream IndexDataStream_;
+	BcStream VertexElementStream_;
+	BcStream PrimitiveDataStream_;
 };
 
 #endif

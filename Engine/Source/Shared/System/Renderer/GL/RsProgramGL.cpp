@@ -202,7 +202,7 @@ BcU32 RsProgramGL::getParameterBufferSize() const
 ////////////////////////////////////////////////////////////////////////////////
 // findParameterOffset
 //virtual
-BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& Bytes ) const
+BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, RsShaderParameterType& Type, BcU32& Offset, BcU32& Bytes ) const
 {
 	for( TParameterListConstIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
 	{
@@ -246,47 +246,47 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			
 			switch( Parameter.Type_ )
 			{
-				case rsSPT_FLOAT:
+				case RsShaderParameterType::FLOAT:
 					glUniform1fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_FLOAT_VEC2:
+				case RsShaderParameterType::FLOAT_VEC2:
 					glUniform2fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_FLOAT_VEC3:
+				case RsShaderParameterType::FLOAT_VEC3:
 					glUniform3fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_FLOAT_VEC4:
+				case RsShaderParameterType::FLOAT_VEC4:
 					glUniform4fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_FLOAT_MAT2:
+				case RsShaderParameterType::FLOAT_MAT2:
 					glUniformMatrix2fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_FLOAT_MAT3:
+				case RsShaderParameterType::FLOAT_MAT3:
 					glUniformMatrix3fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_FLOAT_MAT4:
+				case RsShaderParameterType::FLOAT_MAT4:
 					glUniformMatrix4fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
 					break;
-				case rsSPT_INT:
-				case rsSPT_BOOL:
-				case rsSPT_SAMPLER_1D:
-				case rsSPT_SAMPLER_2D:
-				case rsSPT_SAMPLER_3D:
-				case rsSPT_SAMPLER_CUBE:
-				case rsSPT_SAMPLER_1D_SHADOW:
-				case rsSPT_SAMPLER_2D_SHADOW:
+				case RsShaderParameterType::INT:
+				case RsShaderParameterType::BOOL:
+				case RsShaderParameterType::SAMPLER_1D:
+				case RsShaderParameterType::SAMPLER_2D:
+				case RsShaderParameterType::SAMPLER_3D:
+				case RsShaderParameterType::SAMPLER_CUBE:
+				case RsShaderParameterType::SAMPLER_1D_SHADOW:
+				case RsShaderParameterType::SAMPLER_2D_SHADOW:
 					glUniform1iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
-				case rsSPT_INT_VEC2:
-				case rsSPT_BOOL_VEC2:
+				case RsShaderParameterType::INT_VEC2:
+				case RsShaderParameterType::BOOL_VEC2:
 					glUniform2iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
-				case rsSPT_INT_VEC3:
-				case rsSPT_BOOL_VEC3:
+				case RsShaderParameterType::INT_VEC3:
+				case RsShaderParameterType::BOOL_VEC3:
 					glUniform3iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
-				case rsSPT_INT_VEC4:
-				case rsSPT_BOOL_VEC4:
+				case RsShaderParameterType::INT_VEC4:
+				case RsShaderParameterType::BOOL_VEC4:
 					glUniform4iv( ParamHandle, Count, &pIntParameter[ Offset ] );
 					break;
 					break;
@@ -360,68 +360,68 @@ const RsProgramVertexAttributeList& RsProgramGL::getVertexAttributeList() const
 void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size )
 {
 	// Calculate number of bytes it needs and size.
-	eRsShaderParameterType InternalType;
+	RsShaderParameterType InternalType;
 	BcU32 Bytes = 0;
 	switch( Type )
 	{
 		case GL_FLOAT:
-			InternalType = rsSPT_FLOAT;
+			InternalType = RsShaderParameterType::FLOAT;
 			Bytes = 4;
 			break;
 		case GL_FLOAT_VEC2:
-			InternalType = rsSPT_FLOAT_VEC2;
+			InternalType = RsShaderParameterType::FLOAT_VEC2;
 			Bytes = 8;
 			break;
 		case GL_FLOAT_VEC3:
-			InternalType = rsSPT_FLOAT_VEC3;
+			InternalType = RsShaderParameterType::FLOAT_VEC3;
 			Bytes = 12;
 			break;
 		case GL_FLOAT_VEC4:
-			InternalType = rsSPT_FLOAT_VEC4;
+			InternalType = RsShaderParameterType::FLOAT_VEC4;
 			Bytes = 16;
 			break;
 		case GL_INT:
-			InternalType = rsSPT_INT;
+			InternalType = RsShaderParameterType::INT;
 			Bytes = 4;
 			break;
 		case GL_INT_VEC2:
-			InternalType = rsSPT_INT_VEC2;
+			InternalType = RsShaderParameterType::INT_VEC2;
 			Bytes = 8;
 			break;
 		case GL_INT_VEC3:
-			InternalType = rsSPT_INT_VEC3;
+			InternalType = RsShaderParameterType::INT_VEC3;
 			Bytes = 12;
 			break;
 		case GL_INT_VEC4:
-			InternalType = rsSPT_INT_VEC4;
+			InternalType = RsShaderParameterType::INT_VEC4;
 			Bytes = 16;
 			break;
 		case GL_BOOL:
-			InternalType = rsSPT_BOOL;
+			InternalType = RsShaderParameterType::BOOL;
 			Bytes = 4;
 			break;
 		case GL_BOOL_VEC2:
-			InternalType = rsSPT_BOOL_VEC2;
+			InternalType = RsShaderParameterType::BOOL_VEC2;
 			Bytes = 8;
 			break;
 		case GL_BOOL_VEC3:
-			InternalType = rsSPT_BOOL_VEC3;
+			InternalType = RsShaderParameterType::BOOL_VEC3;
 			Bytes = 12;
 			break;
 		case GL_BOOL_VEC4:
-			InternalType = rsSPT_BOOL_VEC4;
+			InternalType = RsShaderParameterType::BOOL_VEC4;
 			Bytes = 16;
 			break;
 		case GL_FLOAT_MAT2:
-			InternalType = rsSPT_FLOAT_MAT2;
+			InternalType = RsShaderParameterType::FLOAT_MAT2;
 			Bytes = 16;
 			break;
 		case GL_FLOAT_MAT3:
-			InternalType = rsSPT_FLOAT_MAT3;
+			InternalType = RsShaderParameterType::FLOAT_MAT3;
 			Bytes = 36;
 			break;
 		case GL_FLOAT_MAT4:
-			InternalType = rsSPT_FLOAT_MAT4;
+			InternalType = RsShaderParameterType::FLOAT_MAT4;
 			Bytes = 64;
 			break;
 			/* NOTE: GL2.1 or later, ignore for now!
@@ -445,37 +445,37 @@ void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type, 
 			break;
 			*/
 		case GL_SAMPLER_1D:
-			InternalType = rsSPT_SAMPLER_1D;
+			InternalType = RsShaderParameterType::SAMPLER_1D;
 			Bytes = 4;
 			break;
 		case GL_SAMPLER_2D:
-			InternalType = rsSPT_SAMPLER_2D;
+			InternalType = RsShaderParameterType::SAMPLER_2D;
 			Bytes = 4;
 			break;
 		case GL_SAMPLER_3D:
-			InternalType = rsSPT_SAMPLER_3D;
+			InternalType = RsShaderParameterType::SAMPLER_3D;
 			Bytes = 4;
 			break;
 		case GL_SAMPLER_CUBE:
-			InternalType = rsSPT_SAMPLER_CUBE;
+			InternalType = RsShaderParameterType::SAMPLER_CUBE;
 			Bytes = 4;
 			break;
 		case GL_SAMPLER_1D_SHADOW:
-			InternalType = rsSPT_SAMPLER_1D_SHADOW;
+			InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
 			Bytes = 4;
 			break;
 		case GL_SAMPLER_2D_SHADOW:
-			InternalType = rsSPT_SAMPLER_2D_SHADOW;
+			InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
 			Bytes = 4;
 			break;
 		default:
-			InternalType = rsSPT_INVALID;
+			InternalType = RsShaderParameterType::INVALID;
 			Bytes = 0;
 			break;
 	}
 
 	// If parameter is valid, add it.
-	if( InternalType != rsSPT_INVALID )
+	if( InternalType != RsShaderParameterType::INVALID )
 	{
 		TParameter Parameter = 
 		{

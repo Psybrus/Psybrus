@@ -32,8 +32,8 @@ public:
 	virtual BcU32 height() const = 0;
 	virtual BcU32 depth() const = 0;
 	virtual BcU32 levels() const = 0;
-	virtual eRsTextureType type() const = 0;
-	virtual eRsTextureFormat format() const = 0;
+	virtual RsTextureType type() const = 0;
+	virtual RsTextureFormat format() const = 0;
 
 	// Editing.
 	virtual void* lockTexture() = 0;

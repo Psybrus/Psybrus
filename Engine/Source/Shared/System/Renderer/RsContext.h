@@ -65,12 +65,12 @@ public:
 	/**
 	 * Set render state.
 	 */
-	virtual void setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse ) = 0;
+	virtual void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse ) = 0;
 	
 	/**
 	 * Get render state.
 	 */
-	virtual BcS32 getRenderState( eRsRenderState State ) const = 0;
+	virtual BcS32 getRenderState( RsRenderStateType State ) const = 0;
 
 	/**
 	 * Set texture state.
@@ -100,12 +100,12 @@ public:
 	/**
 	 * Draw primitives.
 	 */
-	virtual void drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+	virtual void drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
 
 	/**
 	 * Draw indexed primitives.
 	 */
-	virtual void drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+	virtual void drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
 };
 
 

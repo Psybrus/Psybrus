@@ -198,7 +198,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		if( pShaderHeader->PermutationFlags_ != 0 )
 		{
 			RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
-			ShaderMappings_[ pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->PermutationFlags_ ] = pShader;
+			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->PermutationFlags_ ] = pShader;
 		}
 		else
 		{
@@ -206,21 +206,21 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			if( pShaderHeader->ShaderCodeType_ == scnSCT_GLSL_430 )
 			{
 				RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
-				ShaderMappings_[ pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
+				ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
 			}
 		}
 	}
 	else if( ChunkID == BcHash( "program" ) )
 	{
 		BcU32 NoofShaders = 0;
-		std::array< RsShader*, rsST_MAX > Shaders;
+		std::array< RsShader*, (BcU32)RsShaderType::MAX > Shaders;
 
 		// Generate program.
 		ScnShaderProgramHeader* pProgramHeader = (ScnShaderProgramHeader*)pData;
 		
 		if( pProgramHeader->ShaderFlags_ != 0 )
 		{
-			for( BcU32 Idx = 0; Idx < rsST_MAX; ++Idx )
+			for( BcU32 Idx = 0; Idx <(BcU32) RsShaderType::MAX; ++Idx )
 			{
 				// If we expect this shader type, try to get it and assert on failure.
 				if( ( ( 1 << Idx ) & pProgramHeader->ShaderFlags_ ) != 0 )
@@ -234,7 +234,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		}
 		else
 		{
-			for( BcU32 Idx = 0; Idx < rsST_MAX; ++Idx )
+			for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
 			{
 				if( pProgramHeader->ShaderHashes_[ Idx ] != 0 )
 				{

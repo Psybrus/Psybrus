@@ -85,70 +85,70 @@ static GLenum gTextureTypes[] =
 
 static GLenum gVertexDataTypes[] = 
 {
-	GL_FLOAT,			// rsVDT_FLOAT32 = 0,
-	GL_HALF_FLOAT,		// rsVDT_FLOAT16,
-	GL_FIXED,			// rsVDT_FIXED,
-	GL_BYTE,			// rsVDT_BYTE,
-	GL_BYTE,			// rsVDT_BYTE_NORM,
-	GL_UNSIGNED_BYTE,	// rsVDT_UBYTE,
-	GL_UNSIGNED_BYTE,	// rsVDT_UBYTE_NORM,
-	GL_SHORT,			// rsVDT_SHORT,
-	GL_SHORT,			// rsVDT_SHORT_NORM,
-	GL_UNSIGNED_SHORT,	// rsVDT_USHORT,
-	GL_UNSIGNED_SHORT,	// rsVDT_USHORT_NORM,
-	GL_INT,				// rsVDT_INT,
-	GL_INT,				// rsVDT_INT_NORM,
-	GL_UNSIGNED_INT,	// rsVDT_UINT,
-	GL_UNSIGNED_INT		// rsVDT_UINT_NORM,
+	GL_FLOAT,			// RsVertexDataType::FLOAT32 = 0,
+	GL_HALF_FLOAT,		// RsVertexDataType::FLOAT16,
+	GL_FIXED,			// RsVertexDataType::FIXED,
+	GL_BYTE,			// RsVertexDataType::BYTE,
+	GL_BYTE,			// RsVertexDataType::BYTE_NORM,
+	GL_UNSIGNED_BYTE,	// RsVertexDataType::UBYTE,
+	GL_UNSIGNED_BYTE,	// RsVertexDataType::UBYTE_NORM,
+	GL_SHORT,			// RsVertexDataType::SHORT,
+	GL_SHORT,			// RsVertexDataType::SHORT_NORM,
+	GL_UNSIGNED_SHORT,	// RsVertexDataType::USHORT,
+	GL_UNSIGNED_SHORT,	// RsVertexDataType::USHORT_NORM,
+	GL_INT,				// RsVertexDataType::INT,
+	GL_INT,				// RsVertexDataType::INT_NORM,
+	GL_UNSIGNED_INT,	// RsVertexDataType::UINT,
+	GL_UNSIGNED_INT		// RsVertexDataType::UINT_NORM,
 };
 
 static GLboolean gVertexDataNormalised[] = 
 {
-	GL_FALSE,			// rsVDT_FLOAT32 = 0,
-	GL_FALSE,			// rsVDT_FLOAT16,
-	GL_FALSE,			// rsVDT_FIXED,
-	GL_FALSE,			// rsVDT_BYTE,
-	GL_TRUE,			// rsVDT_BYTE_NORM,
-	GL_FALSE,			// rsVDT_UBYTE,
-	GL_TRUE,			// rsVDT_UBYTE_NORM,
-	GL_FALSE,			// rsVDT_SHORT,
-	GL_TRUE,			// rsVDT_SHORT_NORM,
-	GL_FALSE,			// rsVDT_USHORT,
-	GL_TRUE,			// rsVDT_USHORT_NORM,
-	GL_FALSE,			// rsVDT_INT,
-	GL_TRUE,			// rsVDT_INT_NORM,
-	GL_FALSE,			// rsVDT_UINT,
-	GL_TRUE				// rsVDT_UINT_NORM,
+	GL_FALSE,			// RsVertexDataType::FLOAT32 = 0,
+	GL_FALSE,			// RsVertexDataType::FLOAT16,
+	GL_FALSE,			// RsVertexDataType::FIXED,
+	GL_FALSE,			// RsVertexDataType::BYTE,
+	GL_TRUE,			// RsVertexDataType::BYTE_NORM,
+	GL_FALSE,			// RsVertexDataType::UBYTE,
+	GL_TRUE,			// RsVertexDataType::UBYTE_NORM,
+	GL_FALSE,			// RsVertexDataType::SHORT,
+	GL_TRUE,			// RsVertexDataType::SHORT_NORM,
+	GL_FALSE,			// RsVertexDataType::USHORT,
+	GL_TRUE,			// RsVertexDataType::USHORT_NORM,
+	GL_FALSE,			// RsVertexDataType::INT,
+	GL_TRUE,			// RsVertexDataType::INT_NORM,
+	GL_FALSE,			// RsVertexDataType::UINT,
+	GL_TRUE				// RsVertexDataType::UINT_NORM,
 };
 
-static GLboolean gVertexDataSize[] = 
+static GLuint gVertexDataSize[] = 
 {
-	4,					// rsVDT_FLOAT32 = 0,
-	2,					// rsVDT_FLOAT16,
-	4,					// rsVDT_FIXED,
-	1,					// rsVDT_BYTE,
-	1,					// rsVDT_BYTE_NORM,
-	1,					// rsVDT_UBYTE,
-	1,					// rsVDT_UBYTE_NORM,
-	2,					// rsVDT_SHORT,
-	2,					// rsVDT_SHORT_NORM,
-	2,					// rsVDT_USHORT,
-	2,					// rsVDT_USHORT_NORM,
-	4,					// rsVDT_INT,
-	4,					// rsVDT_INT_NORM,
-	4,					// rsVDT_UINT,
-	4					// rsVDT_UINT_NORM,
+	4,					// RsVertexDataType::FLOAT32 = 0,
+	2,					// RsVertexDataType::FLOAT16,
+	4,					// RsVertexDataType::FIXED,
+	1,					// RsVertexDataType::BYTE,
+	1,					// RsVertexDataType::BYTE_NORM,
+	1,					// RsVertexDataType::UBYTE,
+	1,					// RsVertexDataType::UBYTE_NORM,
+	2,					// RsVertexDataType::SHORT,
+	2,					// RsVertexDataType::SHORT_NORM,
+	2,					// RsVertexDataType::USHORT,
+	2,					// RsVertexDataType::USHORT_NORM,
+	4,					// RsVertexDataType::INT,
+	4,					// RsVertexDataType::INT_NORM,
+	4,					// RsVertexDataType::UINT,
+	4					// RsVertexDataType::UINT_NORM,
 };
 
 static GLenum gPrimitiveType[] =
 {
-	GL_POINTS,			// rsPT_POINTLIST = 0,
-	GL_LINES,			// rsPT_LINELIST,
-	GL_LINE_STRIP,		// rsPT_LINESTRIP,
-	GL_TRIANGLES,		// rsPT_TRIANGLELIST,
-	GL_TRIANGLE_STRIP,	// rsPT_TRIANGLESTRIP,
-	GL_TRIANGLE_FAN,	// rsPT_TRIANGLEFAN,
-	GL_PATCHES			// rsPT_PATCHES,
+	GL_POINTS,			// RsPrimitiveType::POINTLIST = 0,
+	GL_LINES,			// RsPrimitiveType::LINELIST,
+	GL_LINE_STRIP,		// RsPrimitiveType::LINESTRIP,
+	GL_TRIANGLES,		// RsPrimitiveType::TRIANGLELIST,
+	GL_TRIANGLE_STRIP,	// RsPrimitiveType::TRIANGLESTRIP,
+	GL_TRIANGLE_FAN,	// RsPrimitiveType::TRIANGLEFAN,
+	GL_PATCHES			// RsPrimitiveType::PATCHES,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -442,27 +442,27 @@ void RsContextGL::setDefaultState()
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Setup default render states.
-	setRenderState( rsRS_DEPTH_WRITE_ENABLE,		1,					BcTrue );
-	setRenderState( rsRS_DEPTH_TEST_ENABLE,			0,					BcTrue );
-	setRenderState( rsRS_DEPTH_TEST_COMPARE,		0,					BcTrue );
-	setRenderState( rsRS_STENCIL_WRITE_MASK,		0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_ENABLE,		0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_FUNC_COMPARE,	0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_FUNC_REF,		0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_FUNC_MASK,	0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_OP_SFAIL,		0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_OP_DPFAIL,	0,					BcTrue );
-	setRenderState( rsRS_STENCIL_TEST_OP_DPPASS,	0,					BcTrue );
-	setRenderState( rsRS_COLOR_WRITE_MASK_0,		15,					BcTrue );
-	setRenderState( rsRS_COLOR_WRITE_MASK_1,		0,					BcTrue );
-	setRenderState( rsRS_COLOR_WRITE_MASK_2,		0,					BcTrue );
-	setRenderState( rsRS_COLOR_WRITE_MASK_3,		0,					BcTrue );
-	setRenderState( rsRS_BLEND_MODE,				0,					BcTrue );
+	setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE,			1,					BcTrue );
+	setRenderState( RsRenderStateType::DEPTH_TEST_ENABLE,			0,					BcTrue );
+	setRenderState( RsRenderStateType::DEPTH_TEST_COMPARE,			0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_WRITE_MASK,			0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_ENABLE,			0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_FUNC_COMPARE,	0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_FUNC_REF,		0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_FUNC_MASK,		0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_OP_SFAIL,		0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_OP_DPFAIL,		0,					BcTrue );
+	setRenderState( RsRenderStateType::STENCIL_TEST_OP_DPPASS,		0,					BcTrue );
+	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0,			15,					BcTrue );
+	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_1,			0,					BcTrue );
+	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_2,			0,					BcTrue );
+	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_3,			0,					BcTrue );
+	setRenderState( RsRenderStateType::BLEND_MODE,					0,					BcTrue );
 	
 	// Setup default texture states.
 	RsTextureParams TextureParams = 
 	{
-		rsTFM_LINEAR, rsTFM_LINEAR, rsTSM_WRAP, rsTSM_WRAP
+		RsTextureFilteringMode::LINEAR, RsTextureFilteringMode::LINEAR, RsTextureSamplingMode::WRAP, RsTextureSamplingMode::WRAP
 	};
 
 	for( BcU32 Sampler = 0; Sampler < NOOF_TEXTURESTATES; ++Sampler )
@@ -511,13 +511,13 @@ void RsContextGL::invalidateTextureState()
 
 //////////////////////////////////////////////////////////////////////////
 // setRenderState
-void RsContextGL::setRenderState( eRsRenderState State, BcS32 Value, BcBool Force )
+void RsContextGL::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	if( State < NOOF_RENDERSTATES )
+	if( (BcU32)State < NOOF_RENDERSTATES )
 	{
-		TRenderStateValue& RenderStateValue = RenderStateValues_[ State ];
+		TRenderStateValue& RenderStateValue = RenderStateValues_[ (BcU32)State ];
 		
 		const BcBool WasDirty = RenderStateValue.Dirty_;
 		
@@ -528,20 +528,20 @@ void RsContextGL::setRenderState( eRsRenderState State, BcS32 Value, BcBool Forc
 		if( WasDirty == BcFalse && RenderStateValue.Dirty_ == BcTrue )
 		{
 			BcAssert( NoofRenderStateBinds_ < NOOF_RENDERSTATES );
-			RenderStateBinds_[ NoofRenderStateBinds_++ ] = State;
+			RenderStateBinds_[ NoofRenderStateBinds_++ ] = (BcU32)State;
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getRenderState
-BcS32 RsContextGL::getRenderState( eRsRenderState State ) const
+BcS32 RsContextGL::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	if( State < NOOF_RENDERSTATES )
+	if( (BcU32)State < NOOF_RENDERSTATES )
 	{
-		const TRenderStateValue& RenderStateValue = RenderStateValues_[ State ];
+		const TRenderStateValue& RenderStateValue = RenderStateValues_[ (BcU32)State ];
 
 		return RenderStateValue.Value_;
 	}
@@ -614,39 +614,39 @@ void RsContextGL::flushState()
 		
 			switch( RenderStateID )
 			{
-				case rsRS_DEPTH_WRITE_ENABLE:
+				case RsRenderStateType::DEPTH_WRITE_ENABLE:
 					glDepthMask( Value );
 					break;
-				case rsRS_DEPTH_TEST_ENABLE:
+				case RsRenderStateType::DEPTH_TEST_ENABLE:
 					Value ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
 					break;
-				case rsRS_DEPTH_TEST_COMPARE:
+				case RsRenderStateType::DEPTH_TEST_COMPARE:
 					glDepthFunc( gCompareMode[ Value ] );
 					break;
-				case rsRS_STENCIL_WRITE_MASK:
+				case RsRenderStateType::STENCIL_WRITE_MASK:
 					glStencilMask( Value );
 					break;
-				case rsRS_STENCIL_TEST_ENABLE:
+				case RsRenderStateType::STENCIL_TEST_ENABLE:
 					Value ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
 					break;
-				case rsRS_STENCIL_TEST_FUNC_COMPARE:
-				case rsRS_STENCIL_TEST_FUNC_REF:
-				case rsRS_STENCIL_TEST_FUNC_MASK:
+				case RsRenderStateType::STENCIL_TEST_FUNC_COMPARE:
+				case RsRenderStateType::STENCIL_TEST_FUNC_REF:
+				case RsRenderStateType::STENCIL_TEST_FUNC_MASK:
 					bindStencilFunc();
 					break;
-				case rsRS_STENCIL_TEST_OP_SFAIL:
-				case rsRS_STENCIL_TEST_OP_DPFAIL:
-				case rsRS_STENCIL_TEST_OP_DPPASS:
+				case RsRenderStateType::STENCIL_TEST_OP_SFAIL:
+				case RsRenderStateType::STENCIL_TEST_OP_DPFAIL:
+				case RsRenderStateType::STENCIL_TEST_OP_DPPASS:
 					bindStencilOp();
 					break;
-				case rsRS_BLEND_MODE:
-					bindBlendMode( (eRsBlendingMode)Value );
+				case RsRenderStateType::BLEND_MODE:
+					bindBlendMode( (RsBlendingMode)Value );
 					break;
-				case rsRS_COLOR_WRITE_MASK_0:
-				case rsRS_COLOR_WRITE_MASK_1:
-				case rsRS_COLOR_WRITE_MASK_2:
-				case rsRS_COLOR_WRITE_MASK_3:
-					glColorMaski( RenderStateID - rsRS_COLOR_WRITE_MASK_0, ( Value & 0x8 ) >> 3, ( Value & 0x4 ) >> 2,( Value & 0x2 ) >> 1, ( Value & 0x1 ) );
+				case RsRenderStateType::COLOR_WRITE_MASK_0:
+				case RsRenderStateType::COLOR_WRITE_MASK_1:
+				case RsRenderStateType::COLOR_WRITE_MASK_2:
+				case RsRenderStateType::COLOR_WRITE_MASK_3:
+					glColorMaski( RenderStateID - (BcU32)RsRenderStateType::COLOR_WRITE_MASK_0, ( Value & 0x8 ) >> 3, ( Value & 0x4 ) >> 2,( Value & 0x2 ) >> 1, ( Value & 0x1 ) );
 					break;
 			}
 			
@@ -668,16 +668,16 @@ void RsContextGL::flushState()
 		{
 			RsTexture* pTexture = TextureStateValue.pTexture_;
 			const RsTextureParams& Params = TextureStateValue.Params_;
-			const eRsTextureType InternalType = pTexture ? pTexture->type() : rsTT_2D;
-			const GLenum TextureType = gTextureTypes[ InternalType ];
+			const RsTextureType InternalType = pTexture ? pTexture->type() : RsTextureType::TEX2D;
+			const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
 
 			glActiveTexture( GL_TEXTURE0 + TextureStateID );
 			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
-			glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ Params.MinFilter_ ] );
-			glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ Params.MagFilter_ ] );
-			glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ Params.UMode_ ] );
-			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ Params.VMode_ ] );	
-			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ Params.WMode_ ] );	
+			glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)Params.MinFilter_ ] );
+			glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)Params.MagFilter_ ] );
+			glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)Params.UMode_ ] );
+			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)Params.VMode_ ] );	
+			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)Params.WMode_ ] );	
 
 			RsGLCatchError;
 
@@ -742,8 +742,8 @@ void RsContextGL::flushState()
 
 					glVertexAttribPointer( Attribute.Channel_, 
 						Element.Components_,
-						gVertexDataTypes[ Element.DataType_ ],
-						gVertexDataNormalised[ Element.DataType_ ],
+						gVertexDataTypes[ (BcU32)Element.DataType_ ],
+						gVertexDataNormalised[ (BcU32)Element.DataType_ ],
 						VertexBuffer->getVertexStride(),
 						(GLvoid*)CalcOffset );
 					break;	
@@ -777,18 +777,18 @@ void RsContextGL::clear( const RsColour& Colour )
 
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
-void RsContextGL::drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+void RsContextGL::drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
 {
 	flushState();
-	glDrawArrays( gPrimitiveType[ PrimitiveType ], Offset, NoofIndices );
+	glDrawArrays( gPrimitiveType[ (BcU32)PrimitiveType ], Offset, NoofIndices );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
-void RsContextGL::drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+void RsContextGL::drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
 {
 	flushState();
-	glDrawElements( gPrimitiveType[ PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
+	glDrawElements( gPrimitiveType[ (BcU32)PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -802,9 +802,9 @@ const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
 // bindStencilFunc
 void RsContextGL::bindStencilFunc()
 {
-	TRenderStateValue& CompareValue = RenderStateValues_[ rsRS_STENCIL_TEST_FUNC_COMPARE ];
-	TRenderStateValue& RefValue = RenderStateValues_[ rsRS_STENCIL_TEST_FUNC_REF ];
-	TRenderStateValue& MaskValue = RenderStateValues_[ rsRS_STENCIL_TEST_FUNC_MASK ];
+	TRenderStateValue& CompareValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_COMPARE ];
+	TRenderStateValue& RefValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_REF ];
+	TRenderStateValue& MaskValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_MASK ];
 
 	glStencilFunc( gCompareMode[ CompareValue.Value_ ], RefValue.Value_, MaskValue.Value_ );
 
@@ -817,9 +817,9 @@ void RsContextGL::bindStencilFunc()
 // bindStencilOp
 void RsContextGL::bindStencilOp()
 {
-	TRenderStateValue& SFailValue = RenderStateValues_[ rsRS_STENCIL_TEST_OP_SFAIL ];
-	TRenderStateValue& DPFailValue = RenderStateValues_[ rsRS_STENCIL_TEST_OP_DPFAIL ];
-	TRenderStateValue& DPPassValue = RenderStateValues_[ rsRS_STENCIL_TEST_OP_DPPASS ];
+	TRenderStateValue& SFailValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_SFAIL ];
+	TRenderStateValue& DPFailValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPFAIL ];
+	TRenderStateValue& DPPassValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPPASS ];
 
 	glStencilOp( gStencilOp[ SFailValue.Value_ ], gStencilOp[ DPFailValue.Value_ ], gStencilOp[ DPPassValue.Value_ ] );
 
@@ -831,28 +831,28 @@ void RsContextGL::bindStencilOp()
 
 //////////////////////////////////////////////////////////////////////////
 // bindBlendMode
-void RsContextGL::bindBlendMode( eRsBlendingMode BlendMode )
+void RsContextGL::bindBlendMode( RsBlendingMode BlendMode )
 {
 	switch( BlendMode )
 	{
-		case rsBM_NONE:
+		case RsBlendingMode::NONE:
 			glDisable( GL_BLEND );
 			glBlendFunc( GL_ONE, GL_ZERO );
 			break;
 					
-		case rsBM_BLEND:
+		case RsBlendingMode::BLEND:
 			glEnable( GL_BLEND );
 			glBlendEquation( GL_FUNC_ADD );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			break;
 					
-		case rsBM_ADD:
+		case RsBlendingMode::ADD:
 			glEnable( GL_BLEND );
 			glBlendEquation( GL_FUNC_ADD );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 			break;
 
-		case rsBM_SUBTRACT:
+		case RsBlendingMode::SUBTRACT:
 			glEnable( GL_BLEND );
 			glBlendEquation( GL_FUNC_REVERSE_SUBTRACT );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE );

@@ -36,7 +36,7 @@ struct ScnDebugRenderComponentVertex
 // ScnDebugRenderComponentPrimitiveSection
 struct ScnDebugRenderComponentPrimitiveSection
 {
-	eRsPrimitiveType		Type_;
+	RsPrimitiveType		Type_;
 	BcU32					VertexIndex_;
 	BcU32					NoofVertices_;
 	BcU32					Layer_;
@@ -79,7 +79,7 @@ public:
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void								addPrimitive( eRsPrimitiveType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void								addPrimitive( RsPrimitiveType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
 
 	/**
 	 * Draw line.

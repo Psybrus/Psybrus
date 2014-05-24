@@ -39,7 +39,7 @@ public:
 	 * @param TypeBytes Size of type in bytes (out.)
 	 * @return Success.
 	 */
-	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const = 0;
+	virtual BcU32						findParameterOffset( const BcChar* Name, RsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const = 0;
 	
 	/**
 	 * Bind program.
