@@ -61,6 +61,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
 		Importer.addChunk( BcHash( "primitivedata" ), PrimitiveDataStream_.pData(), PrimitiveDataStream_.dataSize() );
 		
 		//
@@ -145,7 +146,7 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 	if( pMesh->nVertices() > 0 )
 	{
 		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-		BcU32 ShaderPermutation = scnSPF_STATIC_3D;
+		BcU32 ShaderPermutation = scnSPF_MESH_STATIC_3D;
 
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelPrimitiveData PrimitiveData = 
@@ -153,14 +154,16 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 			ParentIndex,
 			BcFalse,
 			rsPT_TRIANGLELIST,	
-			VertexFormat,
 			ShaderPermutation,
-			pMesh->nVertices(),
 			pMesh->nIndices(),
 			BcErrorCode,
 			0, // padding0
 			0, // padding1
-			MaAABB()
+			MaAABB(),
+			pMesh->nVertices(),
+			5,
+			48,
+			nullptr
 		};
 
 		// Export vertices.
@@ -185,6 +188,13 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
 		PrimitiveDataStream_ << PrimitiveData;
 					
+		// Vertex format.
+		VertexElementStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
+
 		// Export indices.
 		MdlIndex Index;
 		for( BcU32 IndexIdx = 0; IndexIdx < pMesh->nIndices(); ++IndexIdx )
@@ -220,7 +230,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 	else if( pSkin->nVertices() > 0 )
 	{
 		BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TANGENT_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_SKIN_INDICES | rsVDF_SKIN_WEIGHTS | rsVDF_COLOUR_ABGR8;
-		BcU32 ShaderPermutation = scnSPF_SKINNED_3D;
+		BcU32 ShaderPermutation = scnSPF_MESH_SKINNED_3D;
 
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelPrimitiveData PrimitiveData = 
@@ -228,14 +238,16 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 			ParentIndex,
 			BcTrue,
 			rsPT_TRIANGLELIST,	
-			VertexFormat,
 			ShaderPermutation,
-			pSkin->nVertices(),
 			pSkin->nIndices(),
 			BcErrorCode,
 			0, // padding0
 			0, // padding1
-			MaAABB()
+			MaAABB(),
+			pSkin->nVertices(),
+			7,
+			80,
+			nullptr
 		};
 
 		// Export vertices.
@@ -271,7 +283,16 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		// TODO: Pass through parameters from the model into import?
 		PrimitiveData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
 		PrimitiveDataStream_ << PrimitiveData;
-					
+
+		// Vertex format.
+		VertexElementStream_ << RsVertexElement( 0, 0,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 );
+		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TANGENT,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 36,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 );
+		VertexElementStream_ << RsVertexElement( 0, 44,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDINDICES,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 60,			4,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_BLENDWEIGHTS,	0 );
+		VertexElementStream_ << RsVertexElement( 0, 76,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 );
+							
 		// Export indices.
 		MdlIndex Index;
 		for( BcU32 IndexIdx = 0; IndexIdx < pSkin->nIndices(); ++IndexIdx )

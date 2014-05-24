@@ -30,6 +30,7 @@
 #include "System/Renderer/RsRenderTarget.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsVertexBuffer.h"
 #include "System/Renderer/RsIndexBuffer.h"
 #include "System/Renderer/RsUniformBuffer.h"
@@ -55,7 +56,7 @@ class RsCore:
 	public SysSystem
 {
 public:
-	static BcU32 WORKER_MASK;
+	static BcU32 JOB_QUEUE_ID;
 
 public:
 	virtual ~RsCore(){};
@@ -110,6 +111,12 @@ public:
 	 */
 	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc ) = 0;
 
+	/**
+	 *	Create a vertex declaration.
+	 *	@param Desc Descriptor object.
+	 */
+	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc ) = 0;
+
 	/*
 	 * Create a vertex buffer.
 	 * @param Desc Buffer descriptor
@@ -142,25 +149,18 @@ public:
 
 	/**
 	 * Create program.
-	 * @param pVertexShader Vertex shader.
-	 * @param pFragmentShader Fragment shader.
-	 * @deprecated.
-	 */
-	virtual RsProgram*			createProgram( RsShader* pVertexShader, RsShader* pFragmentShader ) = 0;
-
-	/**
-	 * Create program.
 	 * @param NoofShaders Number of shaders.
 	 * @param ppShaders Array of shaders to use for program.
+	 * @param NoofVertexAttributes Number of vertex attributes.
+	 * @param pVertexAttributes Vertex attributes.
 	 */
-	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders ) = 0;
+	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  ) = 0;
 
 	/**
 	 * Create primitive.
-	 * @param pVertexBuffer Vertex buffer.
-	 * @param pIndexBuffer Index buffer.
+	 * @param Desc Descriptor object.
 	 */
-	virtual RsPrimitive*		createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer ) = 0;
+	virtual RsPrimitive*		createPrimitive( const RsPrimitiveDesc& Desc ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.

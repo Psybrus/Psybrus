@@ -13,4 +13,4 @@
 
 #include "System/Renderer/RsCore.h"
 
-BcU32 RsCore::WORKER_MASK = 0x0;
+BcU32 RsCore::JOB_QUEUE_ID = BcErrorCode;

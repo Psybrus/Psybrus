@@ -47,7 +47,7 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
-	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_PARTICLE_3D ) )
+	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_PARTICLE_3D ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}
@@ -82,13 +82,23 @@ void ScnParticleSystemComponent::create()
 	BcU32 NoofVertices = NoofParticles_ * 6;	// 2x3 tris.
 	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 
+	// Create vertex declaration.
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 4 )
+			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 ) )
+			.addElement( RsVertexElement( 0, 24,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 32,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+
 	// Allocate vertex buffers.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexDescriptor, NoofVertices ), VertexBuffer.pVertexArray_ ); 
-		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( VertexBuffer.pVertexBuffer_, NULL );
+		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices, 36 ), VertexBuffer.pVertexArray_ ); 
+		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( RsPrimitiveDesc( VertexDeclaration_ )
+			.setVertexBuffer( 0, VertexBuffer.pVertexBuffer_ ) );
+		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( VertexBuffer.ObjectUniforms_ ) ), &VertexBuffer.ObjectUniforms_ );
 	}
 
 	// Allocate particles.
@@ -108,10 +118,10 @@ void ScnParticleSystemComponent::destroy()
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( VertexBuffer.pPrimitive_ );
+		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
 	}
 
-	// Wait for renderer.
-	SysFence Fence( RsCore::WORKER_MASK );
+	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 	
 	// Delete working data.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -146,7 +156,7 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 #if 1
 	typedef BcDelegate< void(*)( BcF32 ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnParticleSystemComponent, &ScnParticleSystemComponent::updateParticles >( this );
-	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, Tick );
+	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, Tick );
 #else
 	updateParticles( Tick );
 #endif
@@ -159,7 +169,8 @@ class ScnParticleSystemComponentRenderNode: public RsRenderNode
 public:
 	void render()
 	{
-		pPrimitive_->render( rsPT_TRIANGLELIST, 0, NoofIndices_ );
+		pContext_->setPrimitive( pPrimitive_ );
+		pContext_->drawPrimitives( rsPT_TRIANGLELIST, 0, NoofIndices_ );
 	}
 	
 	RsPrimitive* pPrimitive_;
@@ -296,21 +307,22 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	VertexBuffer.pVertexBuffer_->setNoofUpdateVertices( NoofParticlesToRender * 6 );
 	VertexBuffer.pVertexBuffer_->unlock();
 
+	// Update uniform buffer.
+	VertexBuffer.UniformBuffer_->lock();
+	if( IsLocalSpace_ )
+	{
+		VertexBuffer.ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+	}
+	else
+	{
+		VertexBuffer.ObjectUniforms_.WorldTransform_ = MaMat4d();
+	}
+	VertexBuffer.UniformBuffer_->unlock();
+
 	// Draw particles last.
 	if( NoofParticlesToRender > 0 )
 	{
 		Sort.Layer_ = 15;
-
-		// Bind material.
-		if( IsLocalSpace_ )
-		{
-			const MaMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
-			MaterialComponent_->setParameter( WorldTransformParam_, WorldTransform );
-		}
-		else
-		{
-			MaterialComponent_->setParameter( WorldTransformParam_, MaMat4d() );
-		}
 
 		// Set material parameters for view.
 		pViewComponent->setMaterialParameters( MaterialComponent_ );

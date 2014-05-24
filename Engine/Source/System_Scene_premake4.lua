@@ -16,6 +16,7 @@ project "Engine_System_Scene"
     psybrusSDK .. "/External/freetype/include",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
+    psybrusSDK .. "/External/HLSLCrossCompiler/include/",
     boostInclude,
   }
 
@@ -43,6 +44,7 @@ project "Engine_System_Scene"
         "External_BulletPhysics",
         "External_freetype",
         "External_jsoncpp",
+        "External_HLSLCrossCompiler"
    		}
 
    	configuration "vs2012"

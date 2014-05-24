@@ -109,6 +109,9 @@ private:
 	BcBool								ClippingEnabled_;
 	MaVec2d								ClipMin_;
 	MaVec2d								ClipMax_;
+
+	RsUniformBuffer*					UniformBuffer_;
+	ScnShaderAlphaTestUniformBlockData	AlphaTestUniforms_;
 };
 
 #endif

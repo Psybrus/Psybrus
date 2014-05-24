@@ -71,4 +71,26 @@ private:
 	FsStats Stats_;
 };
 
+//////////////////////////////////////////////////////////////////////////
+// CsImportException
+class CsImportException:
+	public std::exception
+{
+public:
+	CsImportException( const std::string& Error,
+		const std::string& File ):
+		std::exception( Error.c_str() ),
+		File_( File )
+	{}
+	virtual ~CsImportException(){}
+
+	const std::string& file() const
+	{
+		return File_;
+	}
+
+private:
+	std::string File_;
+};
+
 #endif

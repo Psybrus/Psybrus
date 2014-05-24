@@ -22,6 +22,8 @@
 
 #include "Events/EvtPublisher.h"
 
+#include "Reflection/ReReflection.h"
+
 #include "System/SysEvents.h"
 #include "System/SysFence.h"
 
@@ -63,6 +65,9 @@ typedef SysSystem* (*SysSystemCreator)();
 class SysSystem:
 	public EvtPublisher
 {
+public:
+	REFLECTION_DECLARE_BASE( SysSystem );
+
 public:
 	typedef BcDelegate< void(*)() > CreateDelegate;
 	typedef BcDelegate< void(*)() > UpdateDelegate;

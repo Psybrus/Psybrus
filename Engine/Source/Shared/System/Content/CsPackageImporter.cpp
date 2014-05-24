@@ -105,18 +105,27 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			// Import resource.
 			BcTimer ResourceTimer;
 			ResourceTimer.mark();
-			if( importResource( ResourceObject ) )
+			try
 			{
-				BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
+				if( importResource( ResourceObject ) )
+				{
+					BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
+				}
+				else
+				{
+					BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
+ 					BcBreakpoint;
+					return BcFalse;
+				}
 			}
-			else
+			catch( CsImportException ImportException )
 			{
 				BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
- 				BcBreakpoint;
+				BcPrintf( "CsPackageImporter: Import error in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
 				return BcFalse;
 			}
 		}
-		
+
 		// Save and return.
 		BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
 		BcBool SaveSuccess = save( PackedPackage );
@@ -272,7 +281,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
 		
-		delete [] pData;
+		BcMemFree( (void*)pData );
 	}
 	else
 	{
@@ -321,24 +330,33 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 	}
 	
 	// Call resource import.
-	BcBool SuccessfulImport = pResource->import( *this, Resource );
-
-	if( SuccessfulImport )
+	try
 	{
-		// Setup current resource header.
-		CurrResourceHeader_.Name_ = addString( Name.asCString() );
-		CurrResourceHeader_.Type_ = addString( Type.asCString() );
-		CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
-		CurrResourceHeader_.FirstChunk_ = FirstChunk;
-		CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
-		
-		// Make sure chunk indices are valid.
-		BcAssert( CurrResourceHeader_.FirstChunk_ <= CurrResourceHeader_.LastChunk_ );
+		BcBool SuccessfulImport = pResource->import( *this, Resource );
 
-		ResourceHeaders_.push_back( CurrResourceHeader_ );
-	}
+		if( SuccessfulImport )
+		{
+			// Setup current resource header.
+			CurrResourceHeader_.Name_ = addString( Name.asCString() );
+			CurrResourceHeader_.Type_ = addString( Type.asCString() );
+			CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
+			CurrResourceHeader_.FirstChunk_ = FirstChunk;
+			CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
+		
+			// Make sure chunk indices are valid.
+			BcAssert( CurrResourceHeader_.FirstChunk_ <= CurrResourceHeader_.LastChunk_ );
+
+			ResourceHeaders_.push_back( CurrResourceHeader_ );
+		}
 	
-	return SuccessfulImport;
+		return SuccessfulImport;
+	}
+	catch( CsImportException ImportException )
+	{
+		throw ImportException;
+	}
+
+	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////

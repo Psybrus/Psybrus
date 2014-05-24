@@ -84,17 +84,29 @@ void ScnModel::create()
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
 		ScnModelPrimitiveData* pPrimitiveData = &pPrimitiveData_[ PrimitiveIdx ];
+		
 		//ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
 		
 		// Create GPU resources.
-		RsVertexBuffer* pVertexBuffer = RsCore::pImpl() ? RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->VertexFormat_, pPrimitiveData->NoofVertices_ ), pVertexBufferData ) : NULL;
-		RsIndexBuffer* pIndexBuffer = RsCore::pImpl() ? RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData ) : NULL;
-		RsPrimitive* pPrimitive = RsCore::pImpl() ? RsCore::pImpl()->createPrimitive( pVertexBuffer, pIndexBuffer ) : NULL;
+		RsVertexDeclarationDesc VertexDeclarationDesc( pPrimitiveData_->NoofVertexElements_ );
+		for( BcU32 Idx = 0; Idx < pPrimitiveData_->NoofVertexElements_; ++Idx )
+		{
+			VertexDeclarationDesc.addElement( pPrimitiveData_->VertexElements_[ Idx ] );
+		}
+		
+		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
+		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->NoofVertices_, pPrimitiveData->VertexStride_ ), pVertexBufferData );
+		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData );
+		RsPrimitive* pPrimitive = RsCore::pImpl()->createPrimitive( 
+			RsPrimitiveDesc( pVertexDeclaration )
+				.setIndexBuffer( pIndexBuffer )
+				.setVertexBuffer( 0, pVertexBuffer ) );
 		
 		// Setup runtime structure.
 		ScnModelPrimitiveRuntime PrimitiveRuntime = 
 		{
 			PrimitiveIdx,
+			pVertexDeclaration,
 			pVertexBuffer,
 			pIndexBuffer,
 			pPrimitive,
@@ -102,14 +114,15 @@ void ScnModel::create()
 		};
 		
 		// Get resource.
-		PrimitiveRuntime.MaterialRef_ = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
+		auto Resource = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
+		PrimitiveRuntime.MaterialRef_ = Resource;
 		BcAssertMsg( PrimitiveRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
 
 		// Push into array.
 		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
 		
 		// Advance vertex and index buffers.
-		pVertexBufferData += pPrimitiveData->NoofVertices_ * RsVertexDeclSize( pPrimitiveData->VertexFormat_ );
+		pVertexBufferData += pPrimitiveData->NoofVertices_ * PrimitiveRuntime.pVertexBuffer_->getVertexStride();
 		pIndexBufferData += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
 	}
 
@@ -148,6 +161,7 @@ void ScnModel::fileReady()
 	requestChunk( 3 );
 	requestChunk( 4 );
 	requestChunk( 5 );
+	requestChunk( 6 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,9 +205,20 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		BcAssert( pIndexBufferData_ == NULL || pIndexBufferData_ == pData );
 		pIndexBufferData_ = (BcU8*)pData;
 	}
+	else if( ChunkID == BcHash( "vertexelements" ) )
+	{
+		pVertexElements_ = (RsVertexElement*)pData;
+	}
 	else if( ChunkID == BcHash( "primitivedata" ) )
 	{
 		pPrimitiveData_ = (ScnModelPrimitiveData*)pData;
+
+		RsVertexElement* pVertexElements = pVertexElements_;
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofPrimitives_; ++Idx )
+		{
+			pPrimitiveData_->VertexElements_ = pVertexElements;
+			pVertexElements += pPrimitiveData_->NoofVertexElements_;
+		}
 		
 		markCreate(); // All data loaded, time to create.
 	}
@@ -254,11 +279,11 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 			// Setup lighting.
 			if( isLit() )
 			{
-				ShaderPermutation |= scnSPF_DIFFUSE_LIT;
+				ShaderPermutation |= scnSPF_LIGHTING_DIFFUSE;
 			}
 			else
 			{
-				ShaderPermutation |= scnSPF_UNLIT;
+				ShaderPermutation |= scnSPF_LIGHTING_NONE;
 			}
 						
 			// Even on failure add. List must be of same size for quick lookups.
@@ -267,8 +292,15 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 			ComponentData.MaterialComponentRef_ = MaterialComponentRef;
 		}
 
-		// Create bone uniform buffer.
-		ComponentData.BoneUniformBuffer_ = pPrimitiveData->IsSkinned_ && RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderBoneUniformBlockData ), NULL ) : NULL;
+		// Create uniform buffer for object.
+		if( pPrimitiveData->IsSkinned_ )
+		{
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderBoneUniformBlockData ) , nullptr ) : nullptr;
+		}
+		else
+		{
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderObjectUniformBlockData ), nullptr ) : nullptr;
+		}
 
 		//
 		PerComponentPrimitiveDataList_.push_back( ComponentData );
@@ -296,11 +328,9 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnModelComponent::destroy()
 {
-	SysFence Fence( RsCore::WORKER_MASK );
-
 	for( BcU32 Idx = 0; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
 	{
-		RsCore::pImpl()->destroyResource( PerComponentPrimitiveDataList_[ Idx ].BoneUniformBuffer_ );
+		RsCore::pImpl()->destroyResource( PerComponentPrimitiveDataList_[ Idx ].UniformBuffer_ );
 	}
 	
 	// Delete duplicated node data.
@@ -409,7 +439,7 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	// TODO: Break out into it's own job class.
 	typedef BcDelegate< void(*)( MaMat4d ) > UpdateNodeDelegate;
 	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
-	SysKernel::pImpl()->enqueueDelegateJob( SysKernel::USER_WORKER_MASK, Delegate, getParentEntity()->getWorldMatrix() );
+	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, getParentEntity()->getWorldMatrix() );
 #else
 	updateNodes( getParentEntity()->getWorldMatrix() );
 #endif
@@ -500,8 +530,8 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 
 		if( pNodePrimitiveData->IsSkinned_ )
 		{
-			BcAssertMsg( PerComponentPrimitiveData.BoneUniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
-			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentPrimitiveData.BoneUniformBuffer_->lock() );
+			BcAssertMsg( PerComponentPrimitiveData.UniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
+			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentPrimitiveData.UniformBuffer_->lock() );
 			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 			{
 				BcU32 NodeIndex = pNodePrimitiveData->BonePalette_[ Idx ];
@@ -511,7 +541,15 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				}
 			}
 
-			PerComponentPrimitiveData.BoneUniformBuffer_->unlock();		
+			PerComponentPrimitiveData.UniformBuffer_->unlock();		
+		}
+		else
+		{
+			BcAssertMsg( PerComponentPrimitiveData.UniformBuffer_->getDataSize() == sizeof( ScnShaderObjectUniformBlockData ), "ObjectUniformBlock size mismatch." );
+			ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( PerComponentPrimitiveData.UniformBuffer_->lock() );
+			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
+			ObjectUniformBlock->WorldTransform_ = pNodeTransformData->AbsoluteTransform_;
+			PerComponentPrimitiveData.UniformBuffer_->unlock();		
 		}
 	}
 
@@ -562,9 +600,8 @@ public:
 	void render()
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
-		pPrimitive_->render( Type_,
-		                     Offset_,
-		                     NoofIndices_ );
+		pContext_->setPrimitive( pPrimitive_ );
+		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_ );
 	}
 
 	eRsPrimitiveType Type_;
@@ -602,13 +639,14 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 
 		BcAssertMsg( PerComponentPrimitiveData.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
 
-		// Set model parameters on material.
-		PerComponentPrimitiveData.MaterialComponentRef_->setWorldTransform( pNodeTransformData->AbsoluteTransform_ );
-
 		// Set skinning parameters.
 		if( pPrimitiveData->IsSkinned_ )
 		{
-			PerComponentPrimitiveData.MaterialComponentRef_->setBoneUniformBlock( PerComponentPrimitiveData.BoneUniformBuffer_ );
+			PerComponentPrimitiveData.MaterialComponentRef_->setBoneUniformBlock( PerComponentPrimitiveData.UniformBuffer_ );
+		}
+		else
+		{
+			PerComponentPrimitiveData.MaterialComponentRef_->setObjectUniformBlock( PerComponentPrimitiveData.UniformBuffer_ );
 		}
 
 		// Set lighting parameters.

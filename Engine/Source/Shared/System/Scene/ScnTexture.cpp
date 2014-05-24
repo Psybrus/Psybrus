@@ -332,9 +332,6 @@ void ScnTexture::destroy()
 	RsCore::pImpl()->destroyResource( pTexture_ );
 	pTexture_ = NULL;
 
-	// Wait for renderer.
-	SysFence Fence( RsCore::WORKER_MASK );
-
 	// Free if it's user created.
 	if( Header_.Editable_ )
 	{

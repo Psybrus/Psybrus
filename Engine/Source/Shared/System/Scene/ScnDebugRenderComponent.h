@@ -142,7 +142,7 @@ protected:
 	BcForceInline BcU32					convertVertexPointerToIndex( ScnDebugRenderComponentVertex* pVertex )
 	{
 		// NOTE: Will probably warn due to converting a 64-bit pointer to 32-bit value, but
-		//       it's actually ok because we should never have over 4GB worth of vertices!
+		//       it's actually ok because we should never (lol famous words) have over 4GB worth of vertices!
 		BcU32 ByteOffset = BcU32( ( (BcU8*)pVertex - (BcU8*)pVertices_ ) & 0xffffffff );
 		return ByteOffset / sizeof( ScnDebugRenderComponentVertex );
 	}
@@ -150,10 +150,13 @@ protected:
 protected:
 	static ScnDebugRenderComponent*		pImpl_;
 
+	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
+		RsUniformBuffer*				UniformBuffer_;
 		RsVertexBuffer*					pVertexBuffer_;
 		RsPrimitive*					pPrimitive_;
+		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 		ScnDebugRenderComponentVertex*	pVertices_;
 	};
 

@@ -30,7 +30,7 @@ class RsProgramGL:
 	public RsProgram
 {
 public:
-	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders );
+	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes );
 	virtual ~RsProgramGL();
 	
 	void								create();
@@ -45,9 +45,10 @@ public:
 	// New, shiny interface!
 	virtual BcU32						findUniformBlockIndex( const BcChar* Name );
 	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer );
+	
+	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
 
 private:	
-	void								bindAttribute( GLuint ProgramHandle, eRsVertexChannel Channel, const BcChar* Name );
 	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size );
 	void								addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
 	
@@ -83,6 +84,7 @@ private:
 
 	BcU32								NoofShaders_;
 	RsShaderGL**						ppShaders_;
+	RsProgramVertexAttributeList		AttributeList_;
 };
 
 #endif

@@ -81,6 +81,31 @@ public:
 	 * Flush state.
 	 */
 	virtual void					flushState() = 0;
+
+	/**
+	 * Clear.
+	 */
+	virtual void					clear( const RsColour& Colour ) = 0;
+
+	/**
+	 * Set program.
+	 */
+	virtual void					setProgram( class RsProgram* Program ) = 0;
+
+	/**
+	 * Set primitive.
+	 */
+	virtual void					setPrimitive( class RsPrimitive* Primitive ) = 0;
+	
+	/**
+	 * Draw primitives.
+	 */
+	virtual void					drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+
+	/**
+	 * Draw indexed primitives.
+	 */
+	virtual void					drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
 };
 
 

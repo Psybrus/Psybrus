@@ -58,12 +58,8 @@ void RsCoreImplGL::open()
 {
 	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::open_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-
-	// Wait for the render thread to complete.
-	SysFence Fence;
-	Fence.queue( RsCore::WORKER_MASK );
-	Fence.wait();
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,7 +106,7 @@ void RsCoreImplGL::update()
 
 	// Queue update job.
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::update_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 
 	// Wait for frames if we fall more than 1 update cycle behind.
 	RenderSyncFence_.wait( 1 );
@@ -131,12 +127,8 @@ void RsCoreImplGL::close()
 {
 	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplGL, &RsCoreImplGL::close_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
-
-	// Wait for the render thread to complete.
-	SysFence Fence;
-	Fence.queue( RsCore::WORKER_MASK );
-	Fence.wait();
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -258,6 +250,16 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+//virtual
+RsVertexDeclaration* RsCoreImplGL::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
+{
+	RsVertexDeclaration* pResource = new RsVertexDeclaration( getContext( NULL ), Desc );
+	createResource( pResource );
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexBuffer
 //virtual 
 RsVertexBuffer* RsCoreImplGL::createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData )
@@ -298,27 +300,11 @@ RsShader* RsCoreImplGL::createShader( eRsShaderType ShaderType, eRsShaderDataTyp
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createProgram @deprecated
-//virtual
-RsProgram* RsCoreImplGL::createProgram( RsShader* pVertexShader, RsShader* pFragmentShader )
-{
-	RsShader* Shaders[] = 
-	{
-		pVertexShader,
-		pFragmentShader
-	};
-
-	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), 2, &Shaders[ 0 ] );
-	createResource( pResource );
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // createProgram
 //virtual
-RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders )
+RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
 {
-	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), NoofShaders, ppShaders );
+	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), NoofShaders, ppShaders, NoofVertexAttributes, pVertexAttributes );
 	createResource( pResource );
 	return pResource;
 }
@@ -326,9 +312,9 @@ RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders 
 //////////////////////////////////////////////////////////////////////////
 // createPrimitive
 //virtual
-RsPrimitive* RsCoreImplGL::createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer )
+RsPrimitive* RsCoreImplGL::createPrimitive( const RsPrimitiveDesc& Desc )
 {
-	RsPrimitiveGL* pResource = new RsPrimitiveGL( getContext( NULL ), static_cast< RsVertexBufferGL* >( pVertexBuffer ), static_cast< RsIndexBufferGL* >( pIndexBuffer ) );
+	RsPrimitiveGL* pResource = new RsPrimitiveGL( getContext( NULL ), Desc );
 	createResource( pResource );
 	return pResource;
 }
@@ -339,13 +325,20 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
 
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	// Pre destroy.
 	pResource->preDestroy();
 
 	// Call destroy and wait.
 	{
 		SysSystem::DestroyDelegate Delegate( SysSystem::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
-		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	}
+
+	// Now flush to ensure it's finished being destroyed.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -357,7 +350,7 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 	// Call update.
 	{
 		SysSystem::UpdateDelegate Delegate( SysSystem::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
-		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	}
 }
 
@@ -370,7 +363,7 @@ void RsCoreImplGL::createResource( RsResource* pResource )
 	// Call create.
 	{
 		SysSystem::CreateDelegate Delegate( SysSystem::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
-		SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	}
 }
 
@@ -395,7 +388,7 @@ void RsCoreImplGL::queueFrame( RsFrame* pFrame )
 {
 	BcAssert( BcIsGameThread() );
 	BcDelegate< void(*)( RsFrameGL* ) > Delegate( BcDelegate< void(*)( RsFrameGL* ) >::bind< RsCoreImplGL, &RsCoreImplGL::queueFrame_threaded >( this ) );
-	SysKernel::pImpl()->enqueueDelegateJob( RsCore::WORKER_MASK, Delegate, (RsFrameGL*)pFrame );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, (RsFrameGL*)pFrame );
 }
 
 //////////////////////////////////////////////////////////////////////////

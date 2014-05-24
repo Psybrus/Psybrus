@@ -161,8 +161,6 @@ void ScnViewComponent::create()
 //virtual
 void ScnViewComponent::destroy()
 {
-	SysFence Fence( RsCore::WORKER_MASK );
-
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
 
 	ScnComponent::destroy();

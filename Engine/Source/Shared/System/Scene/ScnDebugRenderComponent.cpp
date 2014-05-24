@@ -77,7 +77,7 @@ void ScnDebugRenderComponent::initialise( const Json::Value& Object )
 
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
 
-	CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_STATIC_3D | scnSPF_UNLIT );
+	CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_NONE );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,9 +86,11 @@ void ScnDebugRenderComponent::initialise( const Json::Value& Object )
 void ScnDebugRenderComponent::create()
 {
 	// Allocate our own vertex buffer data.
-	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8;
-	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnDebugRenderComponentVertex ) );
-
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 2 )
+			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+	
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
@@ -98,10 +100,15 @@ void ScnDebugRenderComponent::create()
 		RenderResource.pVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
 
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( VertexFormat, NoofVertices_ ), RenderResource.pVertices_ );
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 16 ), RenderResource.pVertices_ );
 	
+		// Allocate uniform buffer object.
+		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( RenderResource.ObjectUniforms_ ) ), &RenderResource.ObjectUniforms_ );
+
 		// Allocate render side primitive.
-		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( RenderResource.pVertexBuffer_, NULL );
+		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( 
+			RsPrimitiveDesc( VertexDeclaration_ )
+				.setVertexBuffer( 0, RenderResource.pVertexBuffer_ ) );
 	}
 
 	Super::create();
@@ -121,10 +128,12 @@ void ScnDebugRenderComponent::destroy()
 	
 		// Allocate render side primitive.
 		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
+
+		// Allocate render side uniform buffer.
+		RsCore::pImpl()->destroyResource( RenderResource.UniformBuffer_ );
 	}
 
-	// Wait for renderer.
-	SysFence Fence( RsCore::WORKER_MASK );
+	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -442,7 +451,8 @@ public:
 		{
 			ScnDebugRenderComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pPrimitive_->render( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
+			pContext_->setPrimitive( pPrimitive_ );
+			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	
@@ -488,8 +498,13 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
+
 			// Set model parameters on material.
-			pLastMaterialComponent->setWorldTransform( getParentEntity()->getWorldMatrix() );
+			pRenderResource_->UniformBuffer_->lock();
+			pRenderResource_->ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+			pRenderResource_->UniformBuffer_->unlock();
+			pLastMaterialComponent->setObjectUniformBlock( pRenderResource_->UniformBuffer_ );
+
 			pViewComponent->setMaterialParameters( pLastMaterialComponent );
 
 			pLastMaterialComponent->bind( pFrame, Sort );
