@@ -709,7 +709,7 @@ void RsContextGL::flushState()
 					glEnableVertexAttribArray( Attribute.Channel_ );
 
 					// Bind.
-					BcU32 CalcOffset = Element.Offset_ * gVertexDataSize[ Element.DataType_ ];
+					BcU32 CalcOffset = Element.Offset_;
 
 					glVertexAttribPointer( Attribute.Channel_, 
 						Element.Components_,
@@ -717,7 +717,6 @@ void RsContextGL::flushState()
 						gVertexDataNormalised[ Element.DataType_ ],
 						VertexBuffer->getVertexStride(),
 						(GLvoid*)CalcOffset );
-
 					break;	
 				}
 			}
@@ -734,6 +733,8 @@ void RsContextGL::flushState()
 		PrimitiveDirty_ = BcFalse;
 		RsGLCatchError;
 	}
+
+	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
 //////////////////////////////////////////////////////////////////////////
