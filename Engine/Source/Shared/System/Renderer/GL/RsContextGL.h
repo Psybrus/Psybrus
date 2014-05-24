@@ -28,41 +28,42 @@ public:
 	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
 	
-	virtual BcU32						getWidth() const;
-	virtual BcU32						getHeight() const;
+	virtual BcU32 getWidth() const;
+	virtual BcU32 getHeight() const;
 
-	void								swapBuffers();
-	void								takeScreenshot();
+	void swapBuffers();
+	void takeScreenshot();
 
-	void								setDefaultState();
-	void								invalidateRenderState();
-	void								invalidateTextureState();
-	void								setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32								getRenderState( eRsRenderState State ) const;
-	void								setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void setDefaultState();
+	void invalidateRenderState();
+	void invalidateTextureState();
+	void setRenderState( eRsRenderState State, BcS32 Value, BcBool Force = BcFalse );
+	BcS32 getRenderState( eRsRenderState State ) const;
+	void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void setProgram( class RsProgram* Program );
+	void setPrimitive( class RsPrimitive* Primitive );
+	
+	void flushState();
 
-	void								flushState();
+	void clear( const RsColour& Colour );
+	void drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
 
-	void								clear( const RsColour& Colour );
-	void								setProgram( class RsProgram* Program );
-	void								setPrimitive( class RsPrimitive* Primitive );
-	void								drawPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
-	void								drawIndexedPrimitives( eRsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	const RsOpenGLVersion& getOpenGLVersion() const;
 
 private:
-	protected:
-	void								bindStencilFunc();
-	void								bindStencilOp();
-	void								bindBlendMode( eRsBlendingMode BlendMode );
-	void								bindScissor();
+	void bindStencilFunc();
+	void bindStencilOp();
+	void bindBlendMode( eRsBlendingMode BlendMode );
+	void bindScissor();
 
 protected:
-	virtual void						create();
-	virtual void						update();
-	virtual void						destroy();	
+	virtual void create();
+	virtual void update();
+	virtual void destroy();	
 
 #if PLATFORM_WINDOWS
-	bool								createProfile( BcU32 Maj, BcU32 Min, BcBool IsCore, HGLRC ParentContext );
+	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext );
 #endif
 
 private:
@@ -74,25 +75,27 @@ private:
 #endif
 	OsClient* pClient_;
 
+	RsOpenGLVersion Version_;
+
 	BcBool ScreenshotRequested_;
 	BcThreadId OwningThread_;
 
 	struct TRenderStateValue
 	{
-		BcS32						Value_;
-		BcBool						Dirty_;
+		BcS32 Value_;
+		BcBool Dirty_;
 	};
 
 	struct TTextureStateValue
 	{
-		RsTexture*					pTexture_;
-		RsTextureParams				Params_;
-		BcBool						Dirty_;
+		RsTexture* pTexture_;
+		RsTextureParams Params_;
+		BcBool Dirty_;
 	};
 
 	struct TVertexBufferSlot
 	{
-		class RsVertexBuffer*		VertexBuffer_;
+		class RsVertexBuffer* VertexBuffer_;
 	};
 
 	enum
@@ -101,23 +104,23 @@ private:
 		NOOF_TEXTURESTATES = 8,
 	};
 		
-	std::array< TRenderStateValue, NOOF_RENDERSTATES >		RenderStateValues_;
-	std::array< TTextureStateValue, NOOF_TEXTURESTATES >	TextureStateValues_;
+	std::array< TRenderStateValue, NOOF_RENDERSTATES > RenderStateValues_;
+	std::array< TTextureStateValue, NOOF_TEXTURESTATES > TextureStateValues_;
 
 	// State setting.
-	std::array< BcU32, NOOF_RENDERSTATES >					RenderStateBinds_;
-	std::array< BcU32, NOOF_TEXTURESTATES >					TextureStateBinds_;
-	BcU32							NoofRenderStateBinds_;
-	BcU32							NoofTextureStateBinds_;	
+	std::array< BcU32, NOOF_RENDERSTATES > RenderStateBinds_;
+	std::array< BcU32, NOOF_TEXTURESTATES > TextureStateBinds_;
+	BcU32 NoofRenderStateBinds_;
+	BcU32 NoofTextureStateBinds_;	
 
 	// VAO
-	BcU32							GlobalVAO_;
+	BcU32 GlobalVAO_;
 
 	//
-	BcBool							ProgramDirty_;
-	BcBool							PrimitiveDirty_;
-	RsProgram*						Program_;
-	RsPrimitive*					Primitive_;
+	BcBool ProgramDirty_;
+	BcBool PrimitiveDirty_;
+	RsProgram* Program_;
+	RsPrimitive* Primitive_;
 };
 
 

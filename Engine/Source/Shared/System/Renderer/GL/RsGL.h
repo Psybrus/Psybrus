@@ -17,6 +17,8 @@
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
 
+#include <tuple>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
 #if PLATFORM_LINUX
@@ -69,6 +71,43 @@ extern AGLContext GAGLContext;
 		GLuint Error = glGetError();					\
 		BcAssertMsg( Error == 0, "RsGL: Error (%s:%u): 0x%x\n", __FILE__, __LINE__, Error );		\
 	}
+
+////////////////////////////////////////////////////////////////////////////////
+// RsOpenGLType
+enum class RsOpenGLType
+{
+	CORE = 0,
+	COMPATIBILITY,
+	ES,
+	WEB
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// RsOpenGLVersion
+struct RsOpenGLVersion
+{
+	RsOpenGLVersion()
+	{
+	}
+
+	RsOpenGLVersion( BcU32 Major, BcU32 Minor, RsOpenGLType Type ):
+		Major_( Major ),
+		Minor_( Minor ),
+		Type_( Type )
+	{
+	}
+
+	bool operator < ( const RsOpenGLVersion& Other ) const 
+	{
+		return std::make_tuple( Major_, Minor_, Type_ ) < std::make_tuple( Other.Major_, Minor_, Type_ );
+	}
+
+	BcU32 Major_;
+	BcU32 Minor_;
+	RsOpenGLType Type_;
+};
+
+
 
 #endif
 
