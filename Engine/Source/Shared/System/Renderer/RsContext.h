@@ -47,6 +47,11 @@ public:
 	 */
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const = 0;
 
+	/** 
+	 * Get max shader type supported.
+	 */
+	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const = 0;
+
 	/**
 	 * Requests a screenshot from the context.
 	 */

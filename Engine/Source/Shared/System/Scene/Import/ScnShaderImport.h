@@ -129,7 +129,8 @@ private:
 	                           ScnShaderPermutationGroup* PermutationGroups, 
 	                           ScnShaderPermutation Permutation );
 
-	BcBool buildPermutation( class CsPackageImporter& Importer, RsShaderCodeType CodeType, const ScnShaderPermutation& Permutation );
+	BcBool buildPermutation( class CsPackageImporter& Importer, RsShaderCodeType InputCodeType, RsShaderCodeType OutputCodeType, const ScnShaderPermutation& Permutation );
+	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
 	std::string removeComments( std::string Input );
 
@@ -137,6 +138,8 @@ private:
 
 private:
 	std::string Filename_;
+	std::vector< RsShaderCodeType > InputCodeTypes_;
+	std::vector< RsShaderBackendType > BackendTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;
 	std::list< ScnShaderLevelEntry > Entries_;
 	std::vector< std::string > IncludePaths_;

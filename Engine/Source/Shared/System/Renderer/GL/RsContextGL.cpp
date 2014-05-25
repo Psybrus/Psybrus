@@ -260,6 +260,14 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// maxShaderCodeType
+//virtual
+RsShaderCodeType RsContextGL::maxShaderCodeType( RsShaderCodeType CodeType ) const
+{
+	return Version_.MaxCodeType_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // swapBuffers
 void RsContextGL::swapBuffers()
 {

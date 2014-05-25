@@ -410,7 +410,7 @@ enum class RsShaderBackendType : BcU32
 enum class RsShaderCodeType : BcU32
 {
 	// GLSL
-	GLSL_150,
+	GLSL_150 = 0,
 	GLSL_330,
 	GLSL_400,
 	GLSL_410,
@@ -427,6 +427,7 @@ enum class RsShaderCodeType : BcU32
 	D3D11_4_0_level_9_3,
 	D3D11_4_0,
 	D3D11_4_1,
+	D3D11_5_0,
 	D3D11_5_1,
 
 	// D3D12
@@ -437,6 +438,12 @@ enum class RsShaderCodeType : BcU32
 	MAX,
 	INVALID = BcErrorCode
 };
+
+inline RsShaderCodeType& operator ++ ( RsShaderCodeType& A )
+{
+	((int&)A)++;
+	return A;
+}
 
 /**
  * Convert shader code type to backend.
@@ -449,9 +456,19 @@ RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType );
 std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType );
 
 /**
+ * Convert string to shader code type.
+ */
+RsShaderCodeType RsStringToShaderCodeType( std::string String );
+
+/**
  * Convert code type to another code type of a specific backend.
  */
 RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, RsShaderBackendType Backend );
+
+/**
+ * Is code type compatible with a higher code type?
+ */
+BcBool RsIsLowerCodeTypeCompatibleWithHigher( RsShaderCodeType LowerCodeType, RsShaderCodeType HigherCodeType );
 
 //////////////////////////////////////////////////////////////////////////
 // RsShaderParameterType

@@ -31,6 +31,7 @@ public:
 	virtual BcU32 getWidth() const;
 	virtual BcU32 getHeight() const;
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
+	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const;
 
 	void swapBuffers();
 	void takeScreenshot();
