@@ -277,7 +277,10 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		Header.NoofShaderCodeTypes_ = OutputCodeTypes_.size();
 		
 		Stream << Header;
-		//for( BcU32 Idx =-
+		for( auto OutputCodeType : OutputCodeTypes_ )
+		{
+			Stream << OutputCodeType;
+		}
 
 		Importer.addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 

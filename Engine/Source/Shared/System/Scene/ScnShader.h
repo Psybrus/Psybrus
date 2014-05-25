@@ -64,6 +64,7 @@ private:
 	std::array< ShaderContainer, (BcU32)RsShaderType::MAX > ShaderMappings_;
 	TProgramMap							ProgramMap_;
 	RsShaderCodeType					TargetCodeType_;
+	BcU32								TotalProgramsLoaded_;
 
 };
 
