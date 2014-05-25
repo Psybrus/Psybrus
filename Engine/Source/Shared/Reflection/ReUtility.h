@@ -32,6 +32,7 @@ enum ReFieldFlags
 	bcRFF_HIDDEN =					0x00000100,		// Hidden from existance, but included in size & offset calculation.
 	bcRFF_TRANSIENT =				0x00000200,		// Don't bother serialising unless specified.
 	bcRFF_SHALLOW_COPY =			0x00000400,		// Only perform a shallow copy on this field when using as a basis.
+	bcRFF_DEBUG_EDIT =				0x00000800,		// Allows for the flag to be read and written to by the DsCore post commands
 
 	// Simple deref when traversing.
 	bcRFF_SIMPLE_DEREF = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,

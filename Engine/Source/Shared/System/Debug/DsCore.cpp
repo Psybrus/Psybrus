@@ -683,14 +683,14 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 
 					} else if (FieldClass->getTypeSerialiser() != nullptr)
 					{
-						if (PostContentAvailable && (Field->getFlags() & DsCore::DsCoreSerialised))
+						if (PostContentAvailable && (Field->getFlags() & ReFieldFlags::bcRFF_DEBUG_EDIT))
 						{
 							std::string newValue = readNode["data"][fieldName].asString();
 							FieldClass->getTypeSerialiser()->serialiseFromString(data, newValue);
 						}
 						FieldClass->getTypeSerialiser()->serialiseToString(data, str);
 					}
-					if (Field->getFlags() & DsCore::DsCoreSerialised)
+					if (Field->getFlags() & ReFieldFlags::bcRFF_DEBUG_EDIT)
 					{
 						theClass["data"][fieldName] = str;
 					}
