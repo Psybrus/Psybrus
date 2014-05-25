@@ -222,6 +222,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	BackendTypes_.clear();
 	BackendTypes_.push_back( RsShaderBackendType::D3D11 );
 	BackendTypes_.push_back( RsShaderBackendType::GLSL );
+	BackendTypes_.push_back( RsShaderBackendType::GLSL_ES );
 
 	// Kick off all permutation building jobs.
 	BcBool RetVal = BcTrue;
@@ -229,7 +230,6 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	{
 		for( const auto& InputCodeType : InputCodeTypes_ )
 		{
-
 			// Setup entries for input code type.
 			std::vector< ScnShaderLevelEntry > Entries;
 			for( auto& ShaderLevelEntry : GShaderLevelEntries )
@@ -418,30 +418,6 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	// Vertex attributes needed by GLSL.
 	std::vector< RsProgramVertexAttribute > VertexAttributes;
 
-	// Setup HLSLCC to convert HLSL to GLSL.
-	if( Params.InputCodeType_ != Params.OutputCodeType_ )
-	{
-		bool HasGeometry = false;
-		bool HasTesselation = false;
-		// Patch in geometry shader flag if we have one in the entries list.
-		if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
-			{
-				return Entry.Type_ == RsShaderType::GEOMETRY;
-			} ) != Params.Entries_.end() )
-		{
-			HasGeometry = true;
-		}
-
-		// Patch in tesselation shader flag if we have one in the entries list.
-		if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
-			{
-				return Entry.Type_ == RsShaderType::TESSELATION_CONTROL || Entry.Type_ == RsShaderType::TESSELATION_EVALUATION;
-			} ) != Params.Entries_.end() )
-		{
-			HasTesselation = true;
-		}
-	}
-
     for( auto& Entry : Params.Entries_ )
     {
 		BcBinaryData ByteCode;
@@ -458,26 +434,37 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			{
 				bool HasGeometry = false;
 				bool HasTesselation = false;
+				// Patch in geometry shader flag if we have one in the entries list.
+				if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
+					{
+						return Entry.Type_ == RsShaderType::GEOMETRY;
+					} ) != Params.Entries_.end() )
+				{
+					HasGeometry = true;
+				}
+
+				// Patch in tesselation shader flag if we have one in the entries list.
+				if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
+					{
+						return Entry.Type_ == RsShaderType::TESSELATION_CONTROL || Entry.Type_ == RsShaderType::TESSELATION_EVALUATION;
+					} ) != Params.Entries_.end() )
+				{
+					HasTesselation = true;
+				}
+			
 				int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
 				            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
 
 				// Geometry shader in entries?
 				if( HasGeometry )
 				{
-					if( Entry.Type_ == RsShaderType::VERTEX )
-					{
-						Flags |= HLSLCC_FLAG_GS_ENABLED;
-					}
+					Flags |= HLSLCC_FLAG_GS_ENABLED;
 				}
 
 				// Tesselation shadrs in entries?
 				if( HasTesselation )
 				{
-					if( Entry.Type_ == RsShaderType::TESSELATION_CONTROL ||
-						Entry.Type_ == RsShaderType::TESSELATION_EVALUATION )
-					{
-						Flags |= HLSLCC_FLAG_TESS_ENABLED;
-					}
+					Flags |= HLSLCC_FLAG_TESS_ENABLED;
 				}
 
 				// Attempt to convert shaders.
@@ -545,7 +532,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 						break;	
 					}
 
-					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%x" ) % Filename_ % ProgramHeader.ProgramPermutationFlags_ );
+					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Filename_ % ProgramHeader.ProgramPermutationFlags_ );
 					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
 					{
 						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
