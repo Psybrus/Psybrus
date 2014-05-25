@@ -29,6 +29,7 @@ public:
 
 protected:
     virtual void* internalSerialise( void* pData, const ReType* pType );
+    virtual std::string internalSerialiseString( void* pData, const ReType* pType );
 
 protected:
     virtual Json::Value serialiseClass( void* pData, const ReClass* pClass, bool StoreID );
