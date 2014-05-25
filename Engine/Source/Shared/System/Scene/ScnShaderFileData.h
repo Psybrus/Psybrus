@@ -44,8 +44,9 @@ struct ScnShaderHeader
 {
 	BcU32							NoofShaderPermutations_;
 	BcU32							NoofProgramPermutations_;
+	BcU32							NoofShaderCodeTypes_;
 };
-	
+
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderUnitHeader
 struct ScnShaderUnitHeader
