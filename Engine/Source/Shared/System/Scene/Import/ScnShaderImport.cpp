@@ -69,7 +69,7 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
-		{ "ps_4_0_level_9_3",				"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0_level_9_3 },
+		{ "ps_4_0_level_9_3",				"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "ps_4_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0 },
 		{ "ps_4_1",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_1 },
 		{ "ps_5_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_5_0 },
@@ -81,7 +81,7 @@ namespace
 		{ "gs_4_1",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
 		{ "gs_5_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 
-		{ "vs_4_0_level_9_3",				"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_level_9_3 },
+		{ "vs_4_0_level_9_3",				"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "vs_4_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
 		{ "vs_4_1",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
 		{ "vs_5_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_5_0 },
@@ -168,23 +168,33 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	IncludePaths_.push_back( ".\\" );
 	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
 	
-	// Generate permutations.
+	// Setup permutations.
 	ScnShaderPermutation Permutation;
 	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
-	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
 
 	// Add code type defines.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderCodeType::MAX; ++Idx )
 	{
 		auto CodeTypeString = RsShaderCodeTypeToString( (RsShaderCodeType)Idx );
-		auto Define = boost::str( boost::format( "PSY_CODETYPE_%1%" ) % CodeTypeString );
+		auto Define = boost::str( boost::format( "PSY_CODE_TYPE_%1%" ) % CodeTypeString );
 		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
 	}
+
+	// Add backend type defines.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderBackendType::MAX; ++Idx )
+	{
+		auto BackendTypeString = RsShaderBackendTypeToString( (RsShaderBackendType)Idx );
+		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE_%1%" ) % BackendTypeString );
+		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+	}
+
+	// Generate permutations.
+	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
 
 	// Add all input code types, but default to the lowest D3D11 level
 	// if we don't specify. We could autodetect later depending on 
 	// shader entry points specified.
-	InputCodeTypes_.push_back( RsShaderCodeType::D3D11_4_0_level_9_3 );
+	InputCodeTypes_.push_back( RsShaderCodeType::D3D11_4_0_LEVEL_9_3 );
 	const Json::Value& InputCodeTypes = Object[ "codetypes" ];
 	if( InputCodeTypes.type() == Json::arrayValue )
 	{
@@ -384,6 +394,16 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	{
 		--PendingPermutations_;
 		return BcFalse;
+	}
+
+	// Add code type and backend types.
+	{
+		auto Define = boost::str( boost::format( "PSY_CODE_TYPE" ) );
+		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)Params.OutputCodeType_ );
+	}
+	{
+		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE" ) );
+		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) );
 	}
 
 	// Setup initial header.
