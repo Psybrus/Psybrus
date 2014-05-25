@@ -102,6 +102,23 @@ struct ScnShaderBuiltData
 	BcBinaryData					Code_;
 };
 
+struct ScnShaderPermutationJobParams
+{
+	RsShaderCodeType InputCodeType_;
+	RsShaderCodeType OutputCodeType_;
+	ScnShaderPermutation Permutation_;
+	std::vector< ScnShaderLevelEntry > Entries_;
+
+	ScnShaderPermutationJobParams& operator = ( ScnShaderPermutationJobParams& Other )
+	{
+		InputCodeType_ = Other.InputCodeType_;
+		OutputCodeType_ = Other.OutputCodeType_;
+		Permutation_ = Other.Permutation_;
+		Entries_ = Other.Entries_;
+		return *this;
+	}
+};
+
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderImport
 class ScnShaderImport
@@ -130,7 +147,7 @@ private:
 	                           ScnShaderPermutationGroup* PermutationGroups, 
 	                           ScnShaderPermutation Permutation );
 
-	BcBool buildPermutation( class CsPackageImporter& Importer, RsShaderCodeType InputCodeType, RsShaderCodeType OutputCodeType, const ScnShaderPermutation& Permutation );
+	BcBool buildPermutation( ScnShaderPermutationJobParams Params );
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
 	std::string removeComments( std::string Input );
@@ -143,14 +160,16 @@ private:
 	std::vector< RsShaderCodeType > OutputCodeTypes_;
 	std::vector< RsShaderBackendType > BackendTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;
-	std::list< ScnShaderLevelEntry > Entries_;
 	std::vector< std::string > IncludePaths_;
 	std::vector< std::string > ErrorMessages_;
-
+	
 	std::mutex BuildingMutex_;
 	std::map< BcU32, ScnShaderBuiltData > BuiltShaderData_;
 	std::vector< ScnShaderProgramHeader > BuiltProgramData_;
 	std::vector< std::vector< RsProgramVertexAttribute > > BuiltVertexAttributes_;
+
+	std::atomic< BcU32 > GotErrorBuilding_;
+	std::atomic< BcU32 > PendingPermutations_;
 };
 
 #endif // PSY_SERVER

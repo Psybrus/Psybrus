@@ -13,6 +13,8 @@
 
 #include "ScnShaderImport.h"
 
+#include "System/SysKernel.h"
+
 #ifdef PSY_SERVER
 
 #include "Base/BcStream.h"
@@ -145,7 +147,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
 
 	// Grab shader entries to build.
-	const Json::Value& Entries = Object[ "entries" ];
+	const Json::Value& InputEntries = Object[ "entries" ];
 
 	// File name.
 	if( Shader.type() != Json::stringValue )
@@ -156,7 +158,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	Filename_ = Shader.asCString();
 
 	// Entries.
-	if( Entries.type() != Json::objectValue )
+	if( InputEntries.type() != Json::objectValue )
 	{
 		return BcFalse;
 	}
@@ -211,29 +213,29 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	BackendTypes_.push_back( RsShaderBackendType::D3D11 );
 	BackendTypes_.push_back( RsShaderBackendType::GLSL );
 
-	// Iterate over permutations to build.
-	// TODO: Parallelise.
+	// Kick off all permutation building jobs.
 	BcBool RetVal = BcTrue;
 	for( auto& Permutation : Permutations_ )
 	{
 		for( const auto& InputCodeType : InputCodeTypes_ )
 		{
+
 			// Setup entries for input code type.
-			Entries_.clear();
+			std::vector< ScnShaderLevelEntry > Entries;
 			for( auto& ShaderLevelEntry : GShaderLevelEntries )
 			{
-				auto& Entry = Entries[ ShaderLevelEntry.Entry_ ];
+				auto& Entry = InputEntries[ ShaderLevelEntry.Entry_ ];
 				if( Entry.type() == Json::stringValue && 
 					ShaderLevelEntry.CodeType_ == InputCodeType )
 				{
 					ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
 					NewEntry.Entry_ = Entry.asCString();
-					Entries_.push_back( NewEntry );
+					Entries.push_back( NewEntry );
 				}
 			}
 
 			// If we've got valid entries, continue.
-			if( Entries_.size() > 0 )
+			if( Entries.size() > 0 )
 			{
 				for( const auto& BackendType : BackendTypes_ )
 				{
@@ -248,18 +250,37 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 							OutputCodeTypes_.push_back( OutputCodeType );
 						}
 
-						// Build.
-						BcBool RetVal = buildPermutation( Importer, InputCodeType, OutputCodeType, Permutation );
-
-						if( RetVal == BcFalse )
+						// Build on a job.
+						ScnShaderPermutationJobParams JobParams =
 						{
-							RetVal = BcFalse;
-							break;
-						}
+							InputCodeType,
+							OutputCodeType,
+							Permutation,
+							Entries
+						};
+
+						++PendingPermutations_;
+
+						typedef BcDelegate< BcBool(*)( ScnShaderPermutationJobParams ) > BuildPermutationDelegate;
+						BuildPermutationDelegate JobDelegate =
+							BuildPermutationDelegate::bind< ScnShaderImport, &ScnShaderImport::buildPermutation >( this );
+						SysKernel::pImpl()->pushDelegateJob( 0, JobDelegate, JobParams );
 					}
 				}
 			}
 		}
+	}
+
+	// Wait for permutation building jobs.
+	while( PendingPermutations_ > 0 )
+	{
+		std::this_thread::yield();
+	}
+
+	// No errors hit?
+	if( GotErrorBuilding_ == 0 )
+	{
+		RetVal = BcTrue;
 	}
 
 	// Export.
@@ -283,7 +304,6 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		}
 
 		Importer.addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
-
 
 		// Export shaders.
 		for( auto& ShaderData : BuiltShaderData_ )
@@ -354,15 +374,23 @@ void ScnShaderImport::generatePermutations( BcU32 GroupIdx,
 
 //////////////////////////////////////////////////////////////////////////
 // buildPermutation
-BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsShaderCodeType InputCodeType, RsShaderCodeType OutputCodeType, const ScnShaderPermutation& Permutation )
+BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 {
 	BcBool RetVal = BcTrue;
-	BcAssertMsg( RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::D3D11, "Expecting D3D11 code input. Need to implement other input backends." );
+	BcAssertMsg( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::D3D11, "Expecting D3D11 code input. Need to implement other input backends." );
 
+	// Early out in case any jobs failed previously.
+	if( GotErrorBuilding_ != 0 )
+	{
+		--PendingPermutations_;
+		return BcFalse;
+	}
+
+	// Setup initial header.
 	ScnShaderProgramHeader ProgramHeader = {};
-	ProgramHeader.ProgramPermutationFlags_ = Permutation.Flags_;
+	ProgramHeader.ProgramPermutationFlags_ = Params.Permutation_.Flags_;
 	ProgramHeader.ShaderFlags_ = 0;
-	ProgramHeader.ShaderCodeType_ = OutputCodeType;
+	ProgramHeader.ShaderCodeType_ = Params.OutputCodeType_;
 	
 	// Cross dependenies needed for GLSL.
     GLSLCrossDependencyData GLSLDependencies;
@@ -371,42 +399,42 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsS
 	std::vector< RsProgramVertexAttribute > VertexAttributes;
 
 	// Setup HLSLCC to convert HLSL to GLSL.
-	if( InputCodeType != OutputCodeType )
+	if( Params.InputCodeType_ != Params.OutputCodeType_ )
 	{
 		bool HasGeometry = false;
 		bool HasTesselation = false;
 		// Patch in geometry shader flag if we have one in the entries list.
-		if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
+		if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
 			{
 				return Entry.Type_ == RsShaderType::GEOMETRY;
-			} ) != Entries_.end() )
+			} ) != Params.Entries_.end() )
 		{
 			HasGeometry = true;
 		}
 
 		// Patch in tesselation shader flag if we have one in the entries list.
-		if( std::find_if( Entries_.begin(), Entries_.end(), []( ScnShaderLevelEntry Entry )
+		if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
 			{
 				return Entry.Type_ == RsShaderType::TESSELATION_CONTROL || Entry.Type_ == RsShaderType::TESSELATION_EVALUATION;
-			} ) != Entries_.end() )
+			} ) != Params.Entries_.end() )
 		{
 			HasTesselation = true;
 		}
 	}
 
-    for( auto& Entry : Entries_ )
+    for( auto& Entry : Params.Entries_ )
     {
 		BcBinaryData ByteCode;
-		if( compileShader( Filename_, Entry.Entry_, Permutation.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages_ ) )
+		if( compileShader( Filename_, Entry.Entry_, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages_ ) )
 		{
 			// Shader. Setup to be 
 			ScnShaderBuiltData BuiltShader;
 			BuiltShader.ShaderType_ = Entry.Type_;
-			BuiltShader.CodeType_ = InputCodeType;
+			BuiltShader.CodeType_ = Params.InputCodeType_;
 			BuiltShader.Code_ = std::move( ByteCode );
 			BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 
-			if( InputCodeType != OutputCodeType )
+			if( Params.InputCodeType_ != Params.OutputCodeType_ )
 			{
 				bool HasGeometry = false;
 				bool HasTesselation = false;
@@ -436,7 +464,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsS
 				GLSLShader GLSLResult;
 				int GLSLSuccess = TranslateHLSLFromMem( ByteCode.getData< const char >(),
 					Flags,
-					ConvertShaderCodeTypeToGLLang( OutputCodeType ),
+					ConvertShaderCodeTypeToGLLang( Params.OutputCodeType_ ),
 					nullptr,
 					&GLSLDependencies,
 					&GLSLResult
@@ -450,7 +478,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsS
 
 					// Shader.
 					BuiltShader.ShaderType_ = Entry.Type_;
-					BuiltShader.CodeType_ = OutputCodeType;
+					BuiltShader.CodeType_ = Params.OutputCodeType_;
 					BuiltShader.Code_ = std::move( BcBinaryData( (void*)GLSLSource.c_str(), GLSLSource.size() + 1, BcTrue ) );
 					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 
@@ -496,14 +524,18 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsS
 						ShaderType = "cs";
 						break;	
 					}
+
 					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%x" ) % Filename_ % ProgramHeader.ProgramPermutationFlags_ );
 					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
-					boost::filesystem::create_directories( Path );
+					{
+						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+						boost::filesystem::create_directories( Path );
 
-					BcFile FileOut;
-					FileOut.open( Filename.c_str(), bcFM_WRITE );
-					FileOut.write( BuiltShader.Code_.getData< char >(), BuiltShader.Code_.getDataSize() );
-					FileOut.close();
+						BcFile FileOut;
+						FileOut.open( Filename.c_str(), bcFM_WRITE );
+						FileOut.write( BuiltShader.Code_.getData< char >(), BuiltShader.Code_.getDataSize() );
+						FileOut.close();
+					}
 
 					// Free GLSL shader.
 					FreeGLSLShader( &GLSLResult );
@@ -547,17 +579,26 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsS
 		}
 	}
 
+	if( RetVal == BcFalse )
+	{
+		GotErrorBuilding_++;
+	}
+
 	// Write out warning/error messages.
 	if( ErrorMessages_.size() > 0 )
 	{
+		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 		std::string Errors;
 		for( auto& Error : ErrorMessages_ )
 		{
 			Errors += Error;
 		}
 
-		throw CsImportException( Errors, Filename_ );
+		BcPrintf( "Error: %s: %s\n", Filename_.c_str(), Errors.c_str() );
+		//throw CsImportException( Errors, Filename_ );
 	}
+
+	--PendingPermutations_;
 
 	return RetVal;
 }
