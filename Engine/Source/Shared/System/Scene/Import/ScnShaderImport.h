@@ -59,6 +59,7 @@ struct ScnShaderLevelEntry
 	std::string						Level_;
 	std::string						Entry_;
 	RsShaderType					Type_;
+	RsShaderCodeType				CodeType_;
 };
 
 struct ScnShaderBuiltData
@@ -139,6 +140,7 @@ private:
 private:
 	std::string Filename_;
 	std::vector< RsShaderCodeType > InputCodeTypes_;
+	std::vector< RsShaderCodeType > OutputCodeTypes_;
 	std::vector< RsShaderBackendType > BackendTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;
 	std::list< ScnShaderLevelEntry > Entries_;
