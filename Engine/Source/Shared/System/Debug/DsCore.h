@@ -106,6 +106,7 @@ public:
 	static void					cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
 	static void					cmdResource(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	static void					cmdResourceEdit(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
 	static void					cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 	static void					cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::string PostContent);

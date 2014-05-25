@@ -34,6 +34,7 @@ DsCore::DsCore()
 	registerPage("Scene", &cmdScene, "Scene");
 	registerPage("Log", &cmdLog, "Log");
 	registerPage("Resource/(?<Id>.*)", &cmdResource);
+	registerPage("ResourceEdit/(?<Id>.*)", &cmdResourceEdit);
 	registerPageNoHtml("Json/(?<Id>\\d*)", &cmdJson);
 	registerPageNoHtml("JsonSerialise/(?<Id>\\d*)", &cmdJsonSerialiser);
 	registerPageNoHtml("Wadl", &cmdWADL);
@@ -458,6 +459,10 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	link.setAttribute("rel", "stylesheet");
 	link.setAttribute("type", "text/css");
 	link.setAttribute("href", "/files/style.css");
+	BcHtmlNode paramItems = node.createChildNode("script").setAttribute("language", "javascript");
+	node.createChildNode("script").setAttribute("language", "javascript").setAttribute("type", "text/javascript").setAttribute("src", "/files/jquery.min.js");
+	node.createChildNode("script").setAttribute("language", "javascript").setAttribute("type", "text/javascript").setAttribute("src", "/files/debug.js");
+
 	int t = sizeof(BcHtmlNode);
 	BcHtmlNode redirect = node.createChildNode("meta");
 	BcHtmlNode body = node.createChildNode("body").createChildNode("div").setAttribute("id", "mainBody");
@@ -489,13 +494,20 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 			BcU32 res = PageFunctions_[Idx].Regex_.match(&Uri[1], match);
 			if (res > 0)
 			{
+				std::string javaScript = "var params = [";
 				for (BcU32 Idx2 = 1; Idx2 < match.noofMatches(); ++Idx2)
 				{
 					std::string u;
 					match.getMatch(Idx2, u);
 					data.push_back(u);
+					if (Idx2 > 1)
+						javaScript += ",";
+					javaScript += "\n\"";
+					javaScript += u;
+					javaScript += "\"";
 				}
-
+				javaScript += "];";
+				paramItems.setContents(javaScript);
 				PageFunctions_[Idx].Function_(data, innerBody, Content);
 				if (!PageFunctions_[Idx].IsHtml_)
 					return innerBody.getContents();
@@ -718,4 +730,13 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 	}
 	root["classes"] = (classes);
 	Output.setContents(root.toStyledString());
+}
+
+void DsCore::cmdResourceEdit(DsParameters params, BcHtmlNode& Output, std::string PostContent)
+{
+	BcHtmlNode root = Output.createChildNode("div");
+	BcHtmlNode table = root.createChildNode("table").setAttribute("id", "items");
+	BcHtmlNode header = table.createChildNode("th");
+	header.createChildNode("td").setContents("Variable");
+	header.createChildNode("td").setContents("Value");
 }
