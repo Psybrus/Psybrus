@@ -424,7 +424,7 @@ enum class RsShaderCodeType : BcU32
 	GLSL_ES_310,
 
 	// D3D11
-	D3D11_4_0_level_9_3,
+	D3D11_4_0_LEVEL_9_3,
 	D3D11_4_0,
 	D3D11_4_1,
 	D3D11_5_0,
@@ -454,6 +454,11 @@ RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType );
  * Convert shader code type to string.
  */
 std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType );
+
+/**
+ * Convert backend type to string.
+ */
+std::string RsShaderBackendTypeToString( RsShaderBackendType BackendType );
 
 /**
  * Convert string to shader code type.
