@@ -89,9 +89,8 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
-		{ "ps_4_0",							"",					RsShaderType::FRAGMENT },
-		{ "ps_4_0_level_9_1",				"",					RsShaderType::FRAGMENT },
 		{ "ps_4_0_level_9_3",				"",					RsShaderType::FRAGMENT },
+		{ "ps_4_0",							"",					RsShaderType::FRAGMENT },
 		{ "ps_4_1",							"",					RsShaderType::FRAGMENT },
 		{ "ps_5_0",							"",					RsShaderType::FRAGMENT },
 
@@ -102,9 +101,8 @@ namespace
 		{ "gs_4_1",							"",					RsShaderType::GEOMETRY },
 		{ "gs_5_0",							"",					RsShaderType::GEOMETRY },
 
-		{ "vs_4_0",							"",					RsShaderType::VERTEX },
-		{ "vs_4_0_level_9_1",				"",					RsShaderType::VERTEX },
 		{ "vs_4_0_level_9_3",				"",					RsShaderType::VERTEX },
+		{ "vs_4_0",							"",					RsShaderType::VERTEX },
 		{ "vs_4_1",							"",					RsShaderType::VERTEX },
 		{ "vs_5_0",							"",					RsShaderType::VERTEX },
 
@@ -181,7 +179,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	BcBool RetVal = BcTrue;
 	for( auto& Permutation : Permutations_ )
 	{
-		BcBool RetVal = buildPermutation( Importer, Permutation );
+		BcBool RetVal = buildPermutation( Importer, RsShaderCodeType::D3D11_5_1, Permutation );
 
 		if( RetVal == BcFalse )
 		{
@@ -269,7 +267,7 @@ void ScnShaderImport::generatePermutations( BcU32 GroupIdx,
 
 //////////////////////////////////////////////////////////////////////////
 // buildPermutation
-BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, const ScnShaderPermutation& Permutation )
+BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, RsShaderCodeType CodeType, const ScnShaderPermutation& Permutation )
 {
 	BcBool RetVal = BcTrue;
 
@@ -284,6 +282,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	D3D11Header.ProgramPermutationFlags_ = Permutation.Flags_;
 	D3D11Header.ShaderFlags_ = 0;
 	D3D11Header.ShaderCodeType_ = RsShaderCodeType::D3D11_5_1;
+
 	GLSLHeader.ProgramPermutationFlags_ = Permutation.Flags_;
 	GLSLHeader.ShaderFlags_ = 0;
 	GLSLHeader.ShaderCodeType_ = RsShaderCodeType::GLSL_430;
@@ -343,6 +342,8 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 			D3D11Shader.CodeType_ = RsShaderCodeType::D3D11_5_1;
 			D3D11Shader.Code_ = std::move( ByteCode );
 			D3D11Shader.Hash_ = BcHash( D3D11Shader.Code_.getData< const BcU8 >(), D3D11Shader.Code_.getDataSize() );
+
+			// If we need to build a GLSL shader, then do so.
 
 			// Attempt to convert shaders.
 			GLSLShader GLSLResult;
@@ -455,8 +456,9 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 	// Write out all shaders and programs.
 	if( RetVal != BcFalse )
 	{
-		BcAssert( VertexAttributes.size() > 0 );
+		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 
+		BcAssert( VertexAttributes.size() > 0 );
 		BuiltProgramData_.push_back( std::move( D3D11Header ) );
 		BuiltProgramData_.push_back( std::move( GLSLHeader ) );
 		BuiltVertexAttributes_.push_back( VertexAttributes );

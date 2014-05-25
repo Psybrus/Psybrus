@@ -69,7 +69,9 @@ enum class RsBlendingMode : BcU32
 	BLEND,				// (+) ONE, INVSRCALPHA 
 	ADD,				// (+) ONE, ONE
 	SUBTRACT,			// (-) ONE, ONE
-	MAX
+
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +87,10 @@ enum class RsBlendType : BcU32
 	DEST_COLOUR,
 	INV_DEST_COLOUR,
 	DEST_ALPHA,
-	INV_DEST_ALPHA
+	INV_DEST_ALPHA,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -95,8 +100,11 @@ enum class RsBlendOp : BcU32
 	ADD = 0,
 	SUBTRACT,
 	REV_SUBTRACT,
-	MIN,
-	MAX
+	MINIMUM,
+	MAXIMUM,
+
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,8 +119,8 @@ enum class RsCompareMode : BcU32
 	NOTEQUAL,
 	GREATEREQUAL,
 	ALWAYS,
-	MAX,
 	
+	MAX,
 	INVALID = BcErrorCode
 };
 
@@ -129,6 +137,7 @@ enum class RsStencilOp : BcU32
 	DECR_WRAP,
 	INVERT,
 	
+	MAX,
 	INVALID = BcErrorCode
 };
 
@@ -150,8 +159,8 @@ enum class RsColourFormat : BcU32
 	R32F,
 	G32R32F,
 	A32B32G32R32F,
-	MAX,
 	
+	MAX,
 	INVALID = BcErrorCode
 };
 
@@ -168,8 +177,8 @@ enum class RsDepthStencilFormat : BcU32
 	D24X4S4,
 	D32F,
 	D24FS8,
-	MAX,
 	
+	MAX,
 	INVALID = BcErrorCode
 };
 
@@ -194,6 +203,7 @@ enum class RsVertexDataType : BcU32
 	UINT_NORM,
 	
 	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -214,9 +224,9 @@ enum class RsVertexUsage : BcU32
 	FOG,
 	DEPTH,
 	SAMPLE,
-
+	
 	MAX,
-	INVALID
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -227,7 +237,10 @@ enum class RsTextureType : BcU32
 	TEX2D,
 	TEX3D,
 	TEXCUBE,
-	MAX
+	TEXARRAY,
+
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -237,23 +250,17 @@ enum class RsTextureFormat : BcU32
 	RGB8 = 0,
 	RGBA8,
 	I8,
-
-	
 	DXT1,
 	DXT3,
 	DXT5,
-
-	
 	PAL4_RGBA8,
 	PAL8_RGBA8,
-	
-	
 	PVRTC2_RGB,
 	PVRTC2_RGBA,
 	PVRTC4_RGB,
 	PVRTC4_RGBA,
 	
-	
+	MAX,
 	INVALID = BcErrorCode
 };
 
@@ -271,8 +278,8 @@ enum class RsTextureFilteringMode : BcU32
 	LINEAR_MIPMAP_NEAREST,
 	NEAREST_MIPMAP_LINEAR,
 	LINEAR_MIPMAP_LINEAR,
+
 	MAX,
-	
 	INVALID = BcErrorCode
 };
 
@@ -284,8 +291,8 @@ enum class RsTextureSamplingMode : BcU32
 	MIRROR,
 	CLAMP,
 	DECAL,
-	MAX,
-	
+
+	MAX,	
 	INVALID = BcErrorCode
 };
 
@@ -340,8 +347,8 @@ enum class RsRenderStateType : BcU32
 	COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
 	BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
 	
-	
-	MAX
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -355,8 +362,8 @@ enum class RsPrimitiveType : BcU32
 	TRIANGLESTRIP,
 	TRIANGLEFAN,
 	PATCHES,
-	MAX,
-	
+
+	MAX,	
 	INVALID = BcErrorCode
 };
 
@@ -364,40 +371,45 @@ enum class RsPrimitiveType : BcU32
 // Handy defines
 enum class RsShaderType : BcU32
 {
-	INVALID = 0,
 	VERTEX,
 	TESSELATION_CONTROL,
 	TESSELATION_EVALUATION,
 	GEOMETRY,
 	FRAGMENT,
 	COMPUTE,
-	
-	
+		
 	MAX,
-	FORCE_DWORD = 0x7fffffff
+	INVALID = BcErrorCode
 };
 
 enum class RsShaderDataType : BcU32
 {
 	BINARY = 0,
-	SOURCE
+	SOURCE,
+
+	MAX,
+	INVALID = BcErrorCode
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsShaderBackendType
+enum class RsShaderBackendType : BcU32
+{
+	GLSL,
+	GLSL_ES,
+	D3D11,
+	D3D12,
+	MANTLE,
+
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsShaderCodeType
 enum class RsShaderCodeType : BcU32
 {
-	INVALID = 0,
-
-	// GLSL ES
-	GLSL_ES_100,
-	GLSL_ES_300,
-	GLSL_ES_310,
-	
 	// GLSL
-	GLSL_120,
-	GLSL_130,
-	GLSL_140,
 	GLSL_150,
 	GLSL_330,
 	GLSL_400,
@@ -406,8 +418,12 @@ enum class RsShaderCodeType : BcU32
 	GLSL_430,
 	GLSL_440,
 	
+	// GLSL ES
+	GLSL_ES_100,
+	GLSL_ES_300,
+	GLSL_ES_310,
+
 	// D3D11
-	D3D11_4_0_level_9_1,
 	D3D11_4_0_level_9_3,
 	D3D11_4_0,
 	D3D11_4_1,
@@ -418,9 +434,27 @@ enum class RsShaderCodeType : BcU32
 	// Mantle
 
 	//
-	MAX
+	MAX,
+	INVALID = BcErrorCode
 };
 
+/**
+ * Convert shader code type to backend.
+ */
+RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType );
+
+/**
+ * Convert shader code type to string.
+ */
+std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType );
+
+/**
+ * Convert code type to another code type of a specific backend.
+ */
+RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, RsShaderBackendType Backend );
+
+//////////////////////////////////////////////////////////////////////////
+// RsShaderParameterType
 enum class RsShaderParameterType : BcU32
 {
 	FLOAT = 0,
@@ -460,16 +494,6 @@ struct RsProgramVertexAttribute
 
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
-//////////////////////////////////////////////////////////////////////////
-// Lock flags
-enum eRsLockFlags
-{
-	rsLF_READ = 0x00000001,
-	rsLF_WRITE = 0x00000002,
-	
-	//
-	rsLF_FORCE_DWORD = 0x7fffffff
-};
 
 //////////////////////////////////////////////////////////////////////////
 // Handy defines

@@ -65,7 +65,7 @@ struct ScnShaderProgramHeader
 	BcU32							ShaderFlags_;
 	RsShaderCodeType				ShaderCodeType_;
 	BcU32							NoofVertexAttributes_;
-	BcU32							ShaderHashes_[ RsShaderType::MAX ];
+	BcU32							ShaderHashes_[ (BcU32)RsShaderType::MAX ];
 };
 
 //////////////////////////////////////////////////////////////////////////
