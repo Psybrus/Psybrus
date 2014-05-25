@@ -129,19 +129,20 @@ private:
 	                           ScnShaderPermutationGroup* PermutationGroups, 
 	                           ScnShaderPermutation Permutation );
 
-	BcBool buildPermutation( class CsPackageImporter& Importer, const ScnShaderPermutation& Permutation );
+	BcBool buildPermutation( class CsPackageImporter& Importer, RsShaderCodeType CodeType, const ScnShaderPermutation& Permutation );
 
 	std::string removeComments( std::string Input );
 
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
 private:
-	std::string							Filename_;
+	std::string Filename_;
 	std::vector< ScnShaderPermutation > Permutations_;
-	std::list< ScnShaderLevelEntry >	Entries_;
-	std::vector< std::string >			IncludePaths_;
-	std::vector< std::string >			ErrorMessages_;
+	std::list< ScnShaderLevelEntry > Entries_;
+	std::vector< std::string > IncludePaths_;
+	std::vector< std::string > ErrorMessages_;
 
+	std::mutex BuildingMutex_;
 	std::map< BcU32, ScnShaderBuiltData > BuiltShaderData_;
 	std::vector< ScnShaderProgramHeader > BuiltProgramData_;
 	std::vector< std::vector< RsProgramVertexAttribute > > BuiltVertexAttributes_;
