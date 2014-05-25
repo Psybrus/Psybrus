@@ -67,7 +67,7 @@ void RsProgramGL::create()
 	{
 		glAttachShader( Handle, ppShaders_[ Idx ]->getHandle< GLuint >() );
 
-		//ppShaders_[ Idx ]->logShader();
+		ppShaders_[ Idx ]->logShader();
 	}
 	
 	// Bind all slots up.
@@ -77,6 +77,7 @@ void RsProgramGL::create()
 	{
 		const std::string Name = boost::str( boost::format( "dcl_Input%1%" ) % Channel );
 		glBindAttribLocation( Handle, Channel, Name.c_str() );
+		RsGLCatchError;
 	}
 	
 	// Link program.
@@ -162,6 +163,26 @@ void RsProgramGL::create()
 
 	// Catch error.
 	RsGLCatchError;
+
+	// Validate program.
+	glValidateProgram( Handle );
+	GLint ProgramValidated = 0;
+	glGetProgramiv( Handle, GL_VALIDATE_STATUS, &ProgramValidated );
+	if ( !ProgramLinked )
+	{					 
+		// There was an error here, first get the length of the log message.
+		int i32InfoLogLength, i32CharsWritten; 
+		glGetProgramiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+
+		// Allocate enough space for the message, and retrieve it.
+		char* pszInfoLog = new char[i32InfoLogLength];
+		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+		BcPrintf( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		delete [] pszInfoLog;
+
+		destroy();
+		return;
+	}
 
 	// Bind/unbind to ensure it works.
 	glUseProgram( Handle );

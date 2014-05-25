@@ -208,19 +208,10 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		void* pShaderData = pShaderHeader + 1;
 		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( ScnShaderUnitHeader );
 			
-		if( pShaderHeader->PermutationFlags_ != 0 )
+		if( pShaderHeader->ShaderCodeType_ == TargetCodeType_ )
 		{
 			RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
-			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->PermutationFlags_ ] = pShader;
-		}
-		else
-		{
-			// HACK
-			if( pShaderHeader->ShaderCodeType_ == TargetCodeType_ )
-			{
-				RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
-				ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
-			}
+			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
 		}
 	}
 	else if( ChunkID == BcHash( "program" ) )
