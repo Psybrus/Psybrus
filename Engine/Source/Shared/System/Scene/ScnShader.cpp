@@ -182,6 +182,18 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		pHeader_ = (ScnShaderHeader*)pData;
 
+		// Find out what target code type we should load.
+		// Always load in maximum supported.
+		RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
+		RsShaderCodeType* pCodeTypes = (RsShaderCodeType*)( pHeader_ + 1 );
+		for( BcU32 Idx = 0; Idx < pHeader_->NoofShaderCodeTypes_; ++Idx )
+		{
+			if( pContext->isShaderCodeTypeSupported( pCodeTypes[ Idx ] ) )
+			{
+				TargetCodeType_ = pCodeTypes[ Idx ];
+			}
+		}
+
 		// Grab the rest of the chunks.
 		const BcU32 TotalChunks = pHeader_->NoofProgramPermutations_ + pHeader_->NoofShaderPermutations_;
 		for( BcU32 Idx = 0; Idx < TotalChunks; ++Idx )
@@ -203,7 +215,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		else
 		{
 			// HACK
-			if( pShaderHeader->ShaderCodeType_ == RsShaderCodeType::GLSL_430 )
+			if( pShaderHeader->ShaderCodeType_ == TargetCodeType_ )
 			{
 				RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
 				ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
@@ -250,7 +262,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pVertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 
 		// HACK
-		if( pProgramHeader->ShaderCodeType_ == RsShaderCodeType::GLSL_430 )
+		if( pProgramHeader->ShaderCodeType_ == TargetCodeType_ )
 		{
 			// Create program.
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( NoofShaders, &Shaders[ 0 ], pProgramHeader->NoofVertexAttributes_, pVertexAttributes_ );			
@@ -269,7 +281,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	else
 	{
 		// HACK
-		if( ProgramMap_.size() == pHeader_->NoofProgramPermutations_ / 2 )
+		if( ProgramMap_.size() == ( pHeader_->NoofProgramPermutations_ / pHeader_->NoofShaderCodeTypes_ ) )
 		{
 			markCreate();
 		}
