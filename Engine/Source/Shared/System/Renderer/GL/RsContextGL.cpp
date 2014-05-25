@@ -199,6 +199,67 @@ BcU32 RsContextGL::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isShaderCodeTypeSupported
+//virtual
+BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
+{
+	switch( CodeType )
+	{
+	case RsShaderCodeType::GLSL_150:
+		if( Version_.Major_ >= 3 &&
+			Version_.Minor_ >= 2 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+	case RsShaderCodeType::GLSL_330:
+		if( Version_.Major_ >= 3 &&
+			Version_.Minor_ >= 3 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+	case RsShaderCodeType::GLSL_400:
+		if( Version_.Major_ >= 4 &&
+			Version_.Minor_ >= 0 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+	case RsShaderCodeType::GLSL_410:
+		if( Version_.Major_ >= 4 &&
+			Version_.Minor_ >= 1 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+	case RsShaderCodeType::GLSL_420:
+		if( Version_.Major_ >= 4 &&
+			Version_.Minor_ >= 2 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+	case RsShaderCodeType::GLSL_430:
+		if( Version_.Major_ >= 4 &&
+			Version_.Minor_ >= 3 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+	case RsShaderCodeType::GLSL_440:
+		if( Version_.Major_ >= 4 &&
+			Version_.Minor_ >= 4 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
+
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // swapBuffers
 void RsContextGL::swapBuffers()
 {
@@ -317,13 +378,13 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
-		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE ),
-		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE ),
-		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE ),
-		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE ),
-		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE ),
-		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE ),
-		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE ),
+		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
+		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
+		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
+		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
+		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
+		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
+		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
 	};
 
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
