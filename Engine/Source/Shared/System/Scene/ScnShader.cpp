@@ -48,6 +48,8 @@ void ScnShader::StaticRegisterClass()
 		ReField( "pHeader_",			&ScnShader::pHeader_ ),
 		ReField( "ShaderMappings_",		&ScnShader::ShaderMappings_ ),
 		ReField( "ProgramMap_",			&ScnShader::ProgramMap_ ),
+		ReField( "TargetCodeType_",		&ScnShader::TargetCodeType_ ),
+		ReField( "TotalProgramsLoaded_",		&ScnShader::TotalProgramsLoaded_ ),
 	};
 		
 	ReRegisterClass< ScnShader, Super >( Fields );
@@ -58,8 +60,9 @@ void ScnShader::StaticRegisterClass()
 //virtual
 void ScnShader::initialise()
 {
-	pHeader_ = NULL;
-
+	pHeader_ = nullptr;
+	pVertexAttributes_= nullptr;
+	TotalProgramsLoaded_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,7 +95,7 @@ void ScnShader::destroy()
 	}
 
 	ProgramMap_.clear();
-	pHeader_ = NULL;
+	pHeader_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,10 +172,8 @@ void ScnShader::fileReady()
 // fileChunkReady
 void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	BcBool NewPipeline = BcFalse;
-
 	// If we have no render core get chunk 0 so we keep getting entered into.
-	if( RsCore::pImpl() == NULL )
+	if( RsCore::pImpl() == nullptr )
 	{
 		requestChunk( 0 );
 		return;
@@ -226,42 +227,25 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		BcU32 NoofShaders = 0;
 		std::array< RsShader*, (BcU32)RsShaderType::MAX > Shaders;
+		++TotalProgramsLoaded_;
 
 		// Generate program.
 		ScnShaderProgramHeader* pProgramHeader = (ScnShaderProgramHeader*)pData;
 		
-		if( pProgramHeader->ShaderFlags_ != 0 )
+		for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
 		{
-			for( BcU32 Idx = 0; Idx <(BcU32) RsShaderType::MAX; ++Idx )
+			if( pProgramHeader->ShaderHashes_[ Idx ] != 0 )
 			{
-				// If we expect this shader type, try to get it and assert on failure.
-				if( ( ( 1 << Idx ) & pProgramHeader->ShaderFlags_ ) != 0 )
-				{
-					auto& ShaderMapping( ShaderMappings_[ Idx ] );
-					RsShader* pShader = getShader( pProgramHeader->ProgramPermutationFlags_, ShaderMapping.Shaders_ );
-					BcAssertMsg( pShader != NULL, "Shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->ProgramPermutationFlags_, (*getName()).c_str() );
-					Shaders[ NoofShaders++ ] = pShader;
-				}
+				auto& ShaderMapping( ShaderMappings_[ Idx ] );
+				RsShader* pShader = getShader( pProgramHeader->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
+				BcAssertMsg( pShader != NULL, "Shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->ProgramPermutationFlags_, (*getName()).c_str() );
+				Shaders[ NoofShaders++ ] = pShader;
 			}
-		}
-		else
-		{
-			for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-			{
-				if( pProgramHeader->ShaderHashes_[ Idx ] != 0 )
-				{
-					auto& ShaderMapping( ShaderMappings_[ Idx ] );
-					RsShader* pShader = getShader( pProgramHeader->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
-					BcAssertMsg( pShader != NULL, "Shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->ProgramPermutationFlags_, (*getName()).c_str() );
-					Shaders[ NoofShaders++ ] = pShader;
-				}
-			}
-			NewPipeline = BcTrue;
 		}
 
 		pVertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 
-		// HACK
+		// Only create target code type.
 		if( pProgramHeader->ShaderCodeType_ == TargetCodeType_ )
 		{
 			// Create program.
@@ -271,20 +255,8 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 
 	// Mark ready if we've got all the programs we expect.
-	if( NewPipeline == BcFalse )
+	if( TotalProgramsLoaded_ == pHeader_->NoofProgramPermutations_ )
 	{
-		if( ProgramMap_.size() == pHeader_->NoofProgramPermutations_ )
-		{
-			markCreate();
-		}
+		markCreate();
 	}
-	else
-	{
-		// HACK
-		if( ProgramMap_.size() == ( pHeader_->NoofProgramPermutations_ / pHeader_->NoofShaderCodeTypes_ ) )
-		{
-			markCreate();
-		}
-	}
-
 }
