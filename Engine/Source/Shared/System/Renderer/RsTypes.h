@@ -383,6 +383,44 @@ enum class RsShaderDataType : BcU32
 	SOURCE
 };
 
+//////////////////////////////////////////////////////////////////////////
+// RsShaderCodeType
+enum class RsShaderCodeType : BcU32
+{
+	INVALID = 0,
+
+	// GLSL ES
+	GLSL_ES_100,
+	GLSL_ES_300,
+	GLSL_ES_310,
+	
+	// GLSL
+	GLSL_120,
+	GLSL_130,
+	GLSL_140,
+	GLSL_150,
+	GLSL_330,
+	GLSL_400,
+	GLSL_410,
+	GLSL_420,
+	GLSL_430,
+	GLSL_440,
+	
+	// D3D11
+	D3D11_4_0_level_9_1,
+	D3D11_4_0_level_9_3,
+	D3D11_4_0,
+	D3D11_4_1,
+	D3D11_5_1,
+
+	// D3D12
+
+	// Mantle
+
+	//
+	MAX
+};
+
 enum class RsShaderParameterType : BcU32
 {
 	FLOAT = 0,

@@ -66,7 +66,7 @@ struct ScnShaderBuiltData
 	inline ScnShaderBuiltData():
 		Hash_( 0 ),
 		ShaderType_( RsShaderType::INVALID ),
-		CodeType_( scnSCT_INVALID ) 
+		CodeType_( RsShaderCodeType::INVALID ) 
 	{
 	}
 
@@ -97,7 +97,7 @@ struct ScnShaderBuiltData
 
 	BcU32							Hash_;
 	RsShaderType					ShaderType_;
-	ScnShaderCodeType				CodeType_;
+	RsShaderCodeType				CodeType_;
 	BcBinaryData					Code_;
 };
 

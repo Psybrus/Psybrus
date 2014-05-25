@@ -42,6 +42,11 @@ public:
 	 */
 	virtual BcU32 getHeight() const = 0;
 
+	/** 
+	 * Is shader code type supported?
+	 */
+	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const = 0;
+
 	/**
 	 * Requests a screenshot from the context.
 	 */

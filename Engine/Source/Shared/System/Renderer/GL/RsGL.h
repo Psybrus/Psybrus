@@ -16,6 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
+#include "System/Renderer/RsTypes.h"
 
 #include <tuple>
 
@@ -90,21 +91,23 @@ struct RsOpenGLVersion
 	{
 	}
 
-	RsOpenGLVersion( BcU32 Major, BcU32 Minor, RsOpenGLType Type ):
+	RsOpenGLVersion( BcU32 Major, BcU32 Minor, RsOpenGLType Type, RsShaderCodeType MaxCodeType ):
 		Major_( Major ),
 		Minor_( Minor ),
-		Type_( Type )
+		Type_( Type ),
+		MaxCodeType_( MaxCodeType )
 	{
 	}
 
 	bool operator < ( const RsOpenGLVersion& Other ) const 
 	{
-		return std::make_tuple( Major_, Minor_, Type_ ) < std::make_tuple( Other.Major_, Minor_, Type_ );
+		return std::make_tuple( Major_, Minor_, Type_, MaxCodeType_ ) < std::make_tuple( Other.Major_, Minor_, Type_, MaxCodeType_ );
 	}
 
 	BcU32 Major_;
 	BcU32 Minor_;
 	RsOpenGLType Type_;
+	RsShaderCodeType MaxCodeType_;
 };
 
 

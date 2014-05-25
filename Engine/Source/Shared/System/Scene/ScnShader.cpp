@@ -203,7 +203,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		else
 		{
 			// HACK
-			if( pShaderHeader->ShaderCodeType_ == scnSCT_GLSL_430 )
+			if( pShaderHeader->ShaderCodeType_ == RsShaderCodeType::GLSL_430 )
 			{
 				RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
 				ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
@@ -250,7 +250,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pVertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 
 		// HACK
-		if( pProgramHeader->ShaderCodeType_ == scnSCT_GLSL_430 )
+		if( pProgramHeader->ShaderCodeType_ == RsShaderCodeType::GLSL_430 )
 		{
 			// Create program.
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( NoofShaders, &Shaders[ 0 ], pProgramHeader->NoofVertexAttributes_, pVertexAttributes_ );			

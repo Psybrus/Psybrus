@@ -283,10 +283,10 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 
 	D3D11Header.ProgramPermutationFlags_ = Permutation.Flags_;
 	D3D11Header.ShaderFlags_ = 0;
-	D3D11Header.ShaderCodeType_ = scnSCT_D3D11_5_1;
+	D3D11Header.ShaderCodeType_ = RsShaderCodeType::D3D11_5_1;
 	GLSLHeader.ProgramPermutationFlags_ = Permutation.Flags_;
 	GLSLHeader.ShaderFlags_ = 0;
-	GLSLHeader.ShaderCodeType_ = scnSCT_GLSL_430;
+	GLSLHeader.ShaderCodeType_ = RsShaderCodeType::GLSL_430;
 
 	bool HasGeometry = false;
 	bool HasTesselation = false;
@@ -340,7 +340,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 			// Shader.
 			ScnShaderBuiltData D3D11Shader;
 			D3D11Shader.ShaderType_ = Entry.Type_;
-			D3D11Shader.CodeType_ = scnSCT_D3D11_5_1;
+			D3D11Shader.CodeType_ = RsShaderCodeType::D3D11_5_1;
 			D3D11Shader.Code_ = std::move( ByteCode );
 			D3D11Shader.Hash_ = BcHash( D3D11Shader.Code_.getData< const BcU8 >(), D3D11Shader.Code_.getDataSize() );
 
@@ -363,7 +363,7 @@ BcBool ScnShaderImport::buildPermutation( class CsPackageImporter& Importer, con
 				// Shader.
 				ScnShaderBuiltData GLSLShader;
 				GLSLShader.ShaderType_ = Entry.Type_;
-				GLSLShader.CodeType_ = scnSCT_GLSL_430;
+				GLSLShader.CodeType_ = RsShaderCodeType::GLSL_430;
 				GLSLShader.Code_ = std::move( BcBinaryData( (void*)GLSLSource.c_str(), GLSLSource.size() + 1, BcTrue ) );
 				GLSLShader.Hash_ = BcHash( GLSLShader.Code_.getData< const BcU8 >(), GLSLShader.Code_.getDataSize() );
 
