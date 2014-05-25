@@ -67,26 +67,26 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
-		{ "ps_4_0_level_9_3",				"",					RsShaderType::FRAGMENT },
-		{ "ps_4_0",							"",					RsShaderType::FRAGMENT },
-		{ "ps_4_1",							"",					RsShaderType::FRAGMENT },
-		{ "ps_5_0",							"",					RsShaderType::FRAGMENT },
+		{ "ps_4_0_level_9_3",				"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0_level_9_3 },
+		{ "ps_4_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0 },
+		{ "ps_4_1",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_1 },
+		{ "ps_5_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_5_0 },
 
-		{ "hs_5_0",							"",					RsShaderType::TESSELATION_CONTROL },
-		{ "ds_5_0",							"",					RsShaderType::TESSELATION_EVALUATION },
+		{ "hs_5_0",							"hull",			RsShaderType::TESSELATION_CONTROL, RsShaderCodeType::D3D11_5_0 },
+		{ "ds_5_0",							"domain",		RsShaderType::TESSELATION_EVALUATION, RsShaderCodeType::D3D11_5_0 },
 
-		{ "gs_4_0",							"",					RsShaderType::GEOMETRY },
-		{ "gs_4_1",							"",					RsShaderType::GEOMETRY },
-		{ "gs_5_0",							"",					RsShaderType::GEOMETRY },
+		{ "gs_4_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_0 },
+		{ "gs_4_1",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
+		{ "gs_5_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 
-		{ "vs_4_0_level_9_3",				"",					RsShaderType::VERTEX },
-		{ "vs_4_0",							"",					RsShaderType::VERTEX },
-		{ "vs_4_1",							"",					RsShaderType::VERTEX },
-		{ "vs_5_0",							"",					RsShaderType::VERTEX },
+		{ "vs_4_0_level_9_3",				"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_level_9_3 },
+		{ "vs_4_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
+		{ "vs_4_1",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
+		{ "vs_5_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_5_0 },
 
-		{ "cs_4_0",							"",					RsShaderType::COMPUTE },
-		{ "cs_4_1",							"",					RsShaderType::COMPUTE },
-		{ "cs_5_0",							"",					RsShaderType::COMPUTE },
+		{ "cs_4_0",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_0 },
+		{ "cs_4_1",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_1 },
+		{ "cs_5_0",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_5_0 },
 	};
 
 	static BcU32 GNoofShaderLevelEntries = ( sizeof( GShaderLevelEntries ) / sizeof( GShaderLevelEntries[ 0 ] ) ); 
@@ -161,18 +161,6 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		return BcFalse;
 	}
 
-	// TODO: Check if there are any missing.
-	for( auto& ShaderLevelEntry : GShaderLevelEntries )
-	{
-		auto& Entry = Entries[ ShaderLevelEntry.Level_ ];
-		if( Entry.type() == Json::stringValue )
-		{
-			ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
-			NewEntry.Entry_ = Entry.asCString();
-			Entries_.push_back( NewEntry );
-		}
-	}
-
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
@@ -230,18 +218,44 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 	{
 		for( const auto& InputCodeType : InputCodeTypes_ )
 		{
-			for( const auto& BackendType : BackendTypes_ )
+			// Setup entries for input code type.
+			Entries_.clear();
+			for( auto& ShaderLevelEntry : GShaderLevelEntries )
 			{
-				RsShaderCodeType OutputCodeType = RsConvertCodeTypeToBackendCodeType( InputCodeType, BackendType );
-
-				if( OutputCodeType != RsShaderCodeType::INVALID )
+				auto& Entry = Entries[ ShaderLevelEntry.Entry_ ];
+				if( Entry.type() == Json::stringValue && 
+					ShaderLevelEntry.CodeType_ == InputCodeType )
 				{
-					BcBool RetVal = buildPermutation( Importer, InputCodeType, OutputCodeType, Permutation );
+					ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
+					NewEntry.Entry_ = Entry.asCString();
+					Entries_.push_back( NewEntry );
+				}
+			}
 
-					if( RetVal == BcFalse )
+			// If we've got valid entries, continue.
+			if( Entries_.size() > 0 )
+			{
+				for( const auto& BackendType : BackendTypes_ )
+				{
+					RsShaderCodeType OutputCodeType = RsConvertCodeTypeToBackendCodeType( InputCodeType, BackendType );
+
+					// If it isn't invalid, add and build.
+					if( OutputCodeType != RsShaderCodeType::INVALID )
 					{
-						RetVal = BcFalse;
-						break;
+						// Add output code type.
+						if( std::find( OutputCodeTypes_.begin(), OutputCodeTypes_.end(), OutputCodeType ) == OutputCodeTypes_.end() )
+						{
+							OutputCodeTypes_.push_back( OutputCodeType );
+						}
+
+						// Build.
+						BcBool RetVal = buildPermutation( Importer, InputCodeType, OutputCodeType, Permutation );
+
+						if( RetVal == BcFalse )
+						{
+							RetVal = BcFalse;
+							break;
+						}
 					}
 				}
 			}
@@ -260,11 +274,13 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		// Export header.
 		Header.NoofShaderPermutations_ = BuiltShaderData_.size();
 		Header.NoofProgramPermutations_ = BuiltProgramData_.size();
-
+		Header.NoofShaderCodeTypes_ = OutputCodeTypes_.size();
+		
 		Stream << Header;
 		//for( BcU32 Idx =-
 
 		Importer.addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
+
 
 		// Export shaders.
 		for( auto& ShaderData : BuiltShaderData_ )
@@ -283,17 +299,22 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		}
 
 		// Export programs.
-		BcAssert( BuiltProgramData_.size() == BuiltVertexAttributes_.size() );
+		BcU32 VertexAttributeIdx = 0;
 		for( BcU32 Idx = 0; Idx < BuiltProgramData_.size(); ++Idx )
 		{
 			auto& ProgramData = BuiltProgramData_[ Idx ];
-			auto& VertexAttributes = BuiltVertexAttributes_[ Idx ];
 
 			Stream.clear();
 			Stream.push( &ProgramData, sizeof( ProgramData ) );
-			BcAssert( VertexAttributes.size() > 0 );
-			Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
-	
+
+			// Only export vertex attributes if it's a shader backend type that requires it.
+			if( ProgramData.NoofVertexAttributes_ > 0 )
+			{
+				auto& VertexAttributes = BuiltVertexAttributes_[ VertexAttributeIdx++ ];
+				BcAssert( VertexAttributes.size() > 0 );
+				Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
+			}
+
 			Importer.addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
 		}
 	}
