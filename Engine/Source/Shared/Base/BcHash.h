@@ -47,7 +47,7 @@ public:
 	BcBool operator > ( const BcHash& Hash ) const;
 
 public:
-	static BcU32	GenerateCRC32( const void* pInData, BcU32 Size );
+	static BcU32	GenerateCRC32( BcU32 Input, const void* pInData, BcU32 Size );
 	static BcU32	GenerateSDBM( const void* pInData, BcU32 Size );
 	static BcU32	GenerateDJB( const void* pInData, BcU32 Size );
 	static BcU32	GenerateAP( const void* pInData, BcU32 Size );

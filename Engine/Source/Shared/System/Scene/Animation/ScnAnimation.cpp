@@ -80,7 +80,7 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 			
 			// Final size + CRC.
 			Pose.KeyDataSize_ = KeyStream.dataSize() - Pose.KeyDataOffset_;
-			Pose.CRC_ = BcHash::GenerateCRC32( KeyStream.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
+			Pose.CRC_ = BcHash::GenerateCRC32( 0, KeyStream.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
 
 			// Write out pose.
 			PoseStream << Pose;

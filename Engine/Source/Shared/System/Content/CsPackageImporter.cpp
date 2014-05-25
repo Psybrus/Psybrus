@@ -278,7 +278,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 		else
 		{
 			BcPrintf( "CsPackageImporter: Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
-			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
+ 			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
 		
 		BcMemFree( (void*)pData );

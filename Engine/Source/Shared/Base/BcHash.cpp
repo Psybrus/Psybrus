@@ -74,10 +74,10 @@ static const BcU32 gCRC32Table_[256] =
 //////////////////////////////////////////////////////////////////////////
 // GenerateCRC32
 //static
-BcU32 BcHash::GenerateCRC32( const void* pInData, BcU32 Size )
+BcU32 BcHash::GenerateCRC32( BcU32 Input, const void* pInData, BcU32 Size )
 {
 	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
-	BcU32 CRC = 0;
+	BcU32 CRC = Input;
 
 	CRC = ~CRC;
 
@@ -153,7 +153,7 @@ BcU32 BcHash::GenerateAP( const void* pInData, BcU32 Size )
 BcHash BcHash::generateHash( const BcChar* pString )
 {
 #if HASH_TYPE == HASH_CRC32
-	return GenerateCRC32( pString, BcStrLength( pString ) );
+	return GenerateCRC32( 0, pString, BcStrLength( pString ) );
 #elif HASH_TYPE == HASH_SDBM	
 	return GenerateSDBM( pString, BcStrLength( pString ) );
 #elif HASH_TYPE == HASH_DJB	
@@ -169,7 +169,7 @@ BcHash BcHash::generateHash( const BcChar* pString )
 BcHash BcHash::generateHash( const void* pPointer )
 {
 #if HASH_TYPE == HASH_CRC32
-	return GenerateCRC32( pPointer, sizeof( pPointer ) );
+	return GenerateCRC32( 0, pPointer, sizeof( pPointer ) );
 #elif HASH_TYPE == HASH_SDBM	
 	return GenerateSDBM( pPointer, sizeof( pPointer ) );
 #elif HASH_TYPE == HASH_DJB	
@@ -185,7 +185,7 @@ BcHash BcHash::generateHash( const void* pPointer )
 BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
 {
 #if HASH_TYPE == HASH_CRC32
-	return GenerateCRC32( pData, Bytes );
+	return GenerateCRC32( 0, pData, Bytes );
 #elif HASH_TYPE == HASH_SDBM	
 	return GenerateSDBM( pData, Bytes );
 #elif HASH_TYPE == HASH_DJB	
