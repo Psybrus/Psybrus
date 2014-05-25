@@ -31,29 +31,7 @@
 namespace
 {
 	//////////////////////////////////////////////////////////////////////////
-	// Legacy boot strap shader generation.
-	struct ScnShaderPermutationBootstrap
-	{
-		BcU32							PermutationFlags_;
-		const BcChar*					SourceUniformIncludeName_;
-		const BcChar*					SourceVertexShaderName_;
-		const BcChar*					SourceFragmentShaderName_;
-		const BcChar*					SourceGeometryShaderName_;
-	};
-
-	static ScnShaderPermutationBootstrap GShaderPermutationBootstraps[] = 
-	{
-		{ scnSPF_MESH_STATIC_2D | scnSPF_LIGHTING_NONE,									"Content/Engine/uniforms.glsl", "Content/Engine/default2dboot.glslv", "Content/Engine/default2dboot.glslf", "" },
-		{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_NONE,									"Content/Engine/uniforms.glsl", "Content/Engine/default3dboot.glslv", "Content/Engine/default3dboot.glslf", "" },
-		{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_NONE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinnedboot.glslv", "Content/Engine/default3dskinnedboot.glslf", "Content/Engine/default3dskinnedboot.glslg" },
-		{ scnSPF_MESH_PARTICLE_3D | scnSPF_LIGHTING_NONE,								"Content/Engine/uniforms.glsl", "Content/Engine/particle3dboot.glslv", "Content/Engine/particle3dboot.glslf", "" },
-
-		{ scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3ddiffuselitboot.glslv", "Content/Engine/default3ddiffuselitboot.glslf", "" },
-		{ scnSPF_MESH_SKINNED_3D | scnSPF_LIGHTING_DIFFUSE,								"Content/Engine/uniforms.glsl", "Content/Engine/default3dskinneddiffuselitboot.glslv", "Content/Engine/default3dskinneddiffuselitboot.glslf", "" },
-	};
-
-	//////////////////////////////////////////////////////////////////////////
-	// New permutations.
+	// Shader permutations.
 	static ScnShaderPermutationEntry GPermutationsRenderType[] = 
 	{
 		{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD",			"1" },
@@ -283,7 +261,10 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		Header.NoofShaderPermutations_ = BuiltShaderData_.size();
 		Header.NoofProgramPermutations_ = BuiltProgramData_.size();
 
-		Importer.addChunk( BcHash( "header" ), &Header, sizeof( Header ) );
+		Stream << Header;
+		//for( BcU32 Idx =-
+
+		Importer.addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 
 		// Export shaders.
 		for( auto& ShaderData : BuiltShaderData_ )
