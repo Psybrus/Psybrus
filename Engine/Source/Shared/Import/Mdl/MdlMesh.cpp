@@ -47,7 +47,7 @@ BcU32 MdlMesh::addVertex( const MdlVertex& Vertex )
 {
 	aVertices_.push_back( Vertex );
 
-	BcU32 VertexHash = BcHash::GenerateCRC32( &Vertex, sizeof( Vertex ) ) ;
+	BcU32 VertexHash = BcHash::GenerateCRC32( 0, &Vertex, sizeof( Vertex ) ) ;
 	BcU32 VertexIdx = aVertices_.size() - 1;
 	aVertexHashes_[ VertexHash ] = VertexIdx;
 
@@ -88,7 +88,7 @@ BcU32 MdlMesh::addVertexShared( const MdlVertex& Vertex )
 	// the index to it.
 	BcU32 iVertex = BcErrorCode;
 
-	std::map< BcU32, BcU32 >::iterator VertexIt = aVertexHashes_.find( BcHash::GenerateCRC32( &Vertex, sizeof( Vertex ) ) );
+	std::map< BcU32, BcU32 >::iterator VertexIt = aVertexHashes_.find( BcHash::GenerateCRC32( 0, &Vertex, sizeof( Vertex ) ) );
 	if( VertexIt != aVertexHashes_.end() )
 	{
 		iVertex = VertexIt->second;
