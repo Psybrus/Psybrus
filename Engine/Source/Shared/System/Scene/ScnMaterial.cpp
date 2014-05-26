@@ -292,12 +292,11 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 
 	BcAssert( Parent.isValid() && Parent->isReady() );
 	
-	// HACK
-	PermutationFlags |= scnSPF_RENDER_FORWARD;
+	PermutationFlags_ = PermutationFlags | scnSPF_RENDER_FORWARD;
 
 	// Cache parent and program.
 	Parent_ = Parent;
-	pProgram_ = Parent->Shader_->getProgram( PermutationFlags );
+	pProgram_ = Parent->Shader_->getProgram( PermutationFlags_ );
 	
 	// Allocate parameter buffer.
 	ParameterBufferSize_ = pProgram_->getParameterBufferSize();
