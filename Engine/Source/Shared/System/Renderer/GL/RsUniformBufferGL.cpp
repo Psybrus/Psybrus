@@ -82,7 +82,7 @@ void RsUniformBufferGL::update()
 		glBufferData( Type_, DataSize_, pData_, Usage_ );
 
 		// Catch error.
-		RsGLCatchError;
+		RsGLCatchError();
 
 		glBindBuffer( Type_, 0 );
 

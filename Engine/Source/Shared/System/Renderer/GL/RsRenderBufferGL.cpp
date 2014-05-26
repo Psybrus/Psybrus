@@ -100,7 +100,7 @@ void RsRenderBufferGL::create()
 	// Generate buffers.
 	GLuint Handle = 0;
 	glGenRenderbuffers( 1, &Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 
 	setHandle( Handle );
 	
