@@ -1,4 +1,0 @@
-[submodule "External/HLSLCrossCompiler"]
-	path = External/HLSLCrossCompiler
-	url = https://github.com/neilogd/HLSLCrossCompiler.git
-	
