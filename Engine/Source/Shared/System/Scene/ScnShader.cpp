@@ -207,9 +207,22 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		ScnShaderUnitHeader* pShaderHeader = (ScnShaderUnitHeader*)pData;
 		void* pShaderData = pShaderHeader + 1;
 		BcU32 ShaderSize = getChunkSize( ChunkIdx ) - sizeof( ScnShaderUnitHeader );
-			
+
 		if( pShaderHeader->ShaderCodeType_ == TargetCodeType_ )
 		{
+			// Check for file loading.
+			BcU32* pFileLoadTag = (BcU32*)pShaderData;
+			BcBool FreeShaderData = BcFalse;
+			if( *pFileLoadTag == ScnShader::LOAD_FROM_FILE_TAG )
+			{
+				BcFile InputFile;
+				auto Filename = (const char*)( pFileLoadTag + 1 );
+				InputFile.open( Filename );
+				ShaderSize = InputFile.size();
+				pShaderData = InputFile.readAllBytes();
+				FreeShaderData = BcTrue;
+			}
+
 			RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
 			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
 		}

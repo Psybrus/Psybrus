@@ -20,8 +20,11 @@
 #include "Base/BcStream.h"
 
 #define EXCLUDE_PSTDINT
-
 #include <hlslcc.h>
+
+// Write out shader files to intermediate, and signal game to load the raw files.
+// Useful for debugging generated shader files.
+#define DEBUG_FILE_WRITE_OUT_FILES		0
 
 #include <boost/format.hpp>
 #include <boost/wave.hpp>
@@ -155,6 +158,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 		return BcFalse;
 	}
 
+	ResourceName_ = Object[ "name" ].asString();
 	Filename_ = Shader.asCString();
 
 	// Entries.
@@ -481,7 +485,11 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				if( GLSLSuccess )
 				{
 					// Strip comments out of code for more compact GLSL.
+#if DEBUG_FILE_WRITE_OUT_FILES
+					std::string GLSLSource = GLSLResult.sourceCode;
+#else
 					std::string GLSLSource = removeComments( GLSLResult.sourceCode );
+#endif
 
 					// Shader.
 					BuiltShader.ShaderType_ = Entry.Type_;
@@ -532,7 +540,8 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 						break;	
 					}
 
-					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Filename_ % ProgramHeader.ProgramPermutationFlags_ );
+#if DEBUG_FILE_WRITE_OUT_FILES
+					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % ResourceName_ % ProgramHeader.ProgramPermutationFlags_ );
 					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
 					{
 						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
@@ -542,8 +551,19 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 						FileOut.open( Filename.c_str(), bcFM_WRITE );
 						FileOut.write( BuiltShader.Code_.getData< char >(), BuiltShader.Code_.getDataSize() );
 						FileOut.close();
-					}
 
+						// Overwrite data with indicator to read in from file.
+						BcStream FileStream;
+
+						FileStream << ScnShader::LOAD_FROM_FILE_TAG;
+						FileStream.push( Filename.c_str(), Filename.size() + 1 );
+						BuiltShader.Code_ = std::move( BcBinaryData( (void*)FileStream.pData(), FileStream.dataSize(), BcTrue ) );
+						BuiltShader.Hash_ = generateShaderHash( BuiltShader );
+
+						// Headers
+						ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
+					}
+#endif
 					// Free GLSL shader.
 					FreeGLSLShader( &GLSLResult );
 				}
