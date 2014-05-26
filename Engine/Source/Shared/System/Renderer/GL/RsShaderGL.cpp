@@ -160,5 +160,7 @@ void RsShaderGL::destroy()
 // logShader
 void RsShaderGL::logShader()
 {
-	BcPrintf( "%s\n", pData_ );
+	BcPrintf( "======================================================\n" );
+	BcPrintf( "%s\n\n", pData_ );
+	BcPrintf( "======================================================\n" );
 }

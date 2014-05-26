@@ -47,6 +47,7 @@ public:
 	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer );
 	
 	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
+	virtual void logShaders() const;
 
 private:	
 	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size );
