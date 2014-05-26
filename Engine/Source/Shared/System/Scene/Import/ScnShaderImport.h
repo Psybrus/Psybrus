@@ -155,6 +155,7 @@ private:
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
 private:
+	std::string ResourceName_;
 	std::string Filename_;
 	std::vector< RsShaderCodeType > InputCodeTypes_;
 	std::vector< RsShaderCodeType > OutputCodeTypes_;

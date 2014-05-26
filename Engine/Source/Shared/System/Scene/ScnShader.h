@@ -30,6 +30,9 @@ class ScnShader:
 	public CsResource
 {
 public:
+	static const BcU32 LOAD_FROM_FILE_TAG = 0x01020304;
+
+public:
 	DECLARE_RESOURCE( CsResource, ScnShader );
 	
 #ifdef PSY_SERVER
