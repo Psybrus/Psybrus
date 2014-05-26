@@ -156,6 +156,7 @@ private:
 	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
 
 	ScnMaterialRef						Parent_;
+	BcU32								PermutationFlags_;
 	RsProgram*							pProgram_;
 
 	TParameterBindingList				ParameterBindingList_;
