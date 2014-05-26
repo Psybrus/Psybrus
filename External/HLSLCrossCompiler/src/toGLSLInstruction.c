@@ -487,6 +487,198 @@ void CallHelper1(HLSLCrossCompilerContext* psContext, const char* name, Instruct
     bcatcstr(glsl, ";\n");
 }
 
+static void TranslateTexelFetch(HLSLCrossCompilerContext* psContext,
+								Instruction* psInst,
+								ResourceBinding* psBinding,
+								bstring glsl)
+{
+	switch(psBinding->eDimension)
+	{
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE1D:
+		{
+			//texelFetch(samplerBuffer, int coord, level)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetch(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", int((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bcatcstr(glsl, ").x), 0)");
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2DARRAY:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE3D:
+		{
+			//texelFetch(samplerBuffer, ivec3 coord, level)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetch(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", ivec3((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bcatcstr(glsl, ").xyz), 0)");
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2D:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE1DARRAY:
+		{
+			//texelFetch(samplerBuffer, ivec2 coord, level)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetch(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", ivec2((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bcatcstr(glsl, ").xy), 0)");
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_BUFFER:
+		{
+			//texelFetch(samplerBuffer, scalar integer coord)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetch(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", int((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bcatcstr(glsl, ").x))");
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2DMS:
+		{
+			//texelFetch(samplerBuffer, ivec2 coord, sample)
+
+            ASSERT(psInst->eOpcode == OPCODE_LD_MS);
+
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetch(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", ivec2((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bcatcstr(glsl, ").xy), ");
+            TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_INTEGER);
+            bcatcstr(glsl, ")");
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2DMSARRAY:
+		{
+			//texelFetch(samplerBuffer, ivec3 coord, sample)
+
+            ASSERT(psInst->eOpcode == OPCODE_LD_MS);
+
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetch(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", ivec3((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bcatcstr(glsl, ").xyz), ");
+            TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_INTEGER);
+            bcatcstr(glsl, ")");
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURECUBE:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURECUBEARRAY:
+		case REFLECT_RESOURCE_DIMENSION_BUFFEREX:
+		default:
+		{
+			ASSERT(0);
+			break;
+		}
+	}
+}
+
+static void TranslateTexelFetchOffset(HLSLCrossCompilerContext* psContext,
+								Instruction* psInst,
+								ResourceBinding* psBinding,
+								bstring glsl)
+{
+	switch(psBinding->eDimension)
+	{
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE1D:
+		{
+			//texelFetch(samplerBuffer, int coord, level, offset)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetchOffset(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", int((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bformata(glsl, ").x), 0, %d", psInst->iUAddrOffset);
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2DARRAY:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE3D:
+		{
+			//texelFetch(samplerBuffer, ivec3 coord, level)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetchOffset(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", ivec3((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bformata(glsl, ").xyz), 0, ive3(%d, %d, %d))",
+				psInst->iUAddrOffset,
+				psInst->iVAddrOffset,
+				psInst->iWAddrOffset);
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2D:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE1DARRAY:
+		{
+			//texelFetch(samplerBuffer, ivec2 coord, level)
+			AddIndentation(psContext);
+			TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+			bcatcstr(glsl, " = texelFetchOffset(");
+
+			TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
+			bcatcstr(glsl, ", ivec2((");
+			TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+			bformata(glsl, ").xy), 0, ivec2(%d, %d))", psInst->iUAddrOffset, psInst->iVAddrOffset);
+			TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
+			bcatcstr(glsl, ";\n");
+			break;
+		}
+		case REFLECT_RESOURCE_DIMENSION_BUFFER:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2DMS:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURE2DMSARRAY:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURECUBE:
+		case REFLECT_RESOURCE_DIMENSION_TEXTURECUBEARRAY:
+		case REFLECT_RESOURCE_DIMENSION_BUFFEREX:
+		default:
+		{
+			ASSERT(0);
+			break;
+		}
+	}
+}
+
+
 //Makes sure the texture coordinate swizzle is appropriate for the texture type.
 //i.e. vecX for X-dimension texture.
 //Currently supports floating point coord only, so not used for texelFetch.
@@ -1033,7 +1225,7 @@ static void TranslateShaderStorageStore(HLSLCrossCompilerContext* psContext, Ins
 		{
 			SHADER_VARIABLE_TYPE eSrcDataType = GetOperandDataType(psContext, psSrc);
 
-			if(structured)
+			if(structured && psDest->eType != OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
 			{
 				psVarType = LookupStructuredVar(psContext, psDest, psDestByteOff, component);
 			}
@@ -1049,29 +1241,38 @@ static void TranslateShaderStorageStore(HLSLCrossCompilerContext* psContext, Ins
 				TranslateOperand(psContext, psDest, TO_FLAG_DESTINATION|TO_FLAG_NAME_ONLY);
 			}
 			bformata(glsl, "[");
-			TranslateOperand(psContext, psDestAddr ? psDestAddr : psDestByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+			if(structured) //Dest address and dest byte offset
+			{
+				if(psDest->eType == OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
+				{
+					TranslateOperand(psContext, psDestAddr, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+					bformata(glsl, "].value[");
+					TranslateOperand(psContext, psDestByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+					bformata(glsl, "/4 ");//bytes to floats
+				}
+				else
+				{
+					TranslateOperand(psContext, psDestAddr, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+				}
+			}
+			else
+			{
+				TranslateOperand(psContext, psDestByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+			}
 
 			//RAW: change component using index offset
-			if(!structured)
+			if(!structured || (psDest->eType == OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY))
 			{
 				bformata(glsl, " + %d", component);
 			}
 
 			bformata(glsl, "]");
 
-			if(structured)
+			if(structured && psDest->eType != OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
 			{
 				if(strcmp(psVarType->Name, "$Element") != 0)
 				{
 					bformata(glsl, ".%s", psVarType->Name);
-				}
-
-				if(psDest->eType == OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
-				{
-					if(psContext->psShader->sGroupSharedVarType[psDest->ui32RegisterNumber].Columns > 1)
-					{
-						bformata(glsl, swizzleString[component]);
-					}
 				}
 			}
 
@@ -1080,13 +1281,16 @@ static void TranslateShaderStorageStore(HLSLCrossCompilerContext* psContext, Ins
 			if(structured)
 			{
 				uint32_t flags = TO_FLAG_NONE;
-				if(psVarType->Type == SVT_INT)
+				if(psVarType)
 				{
-					flags |= TO_FLAG_INTEGER;
-				}
-				else if(psVarType->Type == SVT_UINT)
-				{
-					flags |= TO_FLAG_UNSIGNED_INTEGER;
+					if(psVarType->Type == SVT_INT)
+					{
+						flags |= TO_FLAG_INTEGER;
+					}
+					else if(psVarType->Type == SVT_UINT)
+					{
+						flags |= TO_FLAG_UNSIGNED_INTEGER;
+					}
 				}
 				TranslateOperand(psContext, psSrc, flags);
 			}
@@ -1110,7 +1314,7 @@ static void TranslateShaderStorageStore(HLSLCrossCompilerContext* psContext, Ins
 				bformata(glsl, swizzleString[srcComponent++]);
 
 			//Double takes an extra slot.
-			if(structured && psVarType->Type == SVT_DOUBLE)
+			if(psVarType && psVarType->Type == SVT_DOUBLE)
 			{
 				component++;
 			}
@@ -1142,7 +1346,6 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 		psSrcByteOff = &psInst->asOperands[2];
 		psSrc = &psInst->asOperands[3];
 		structured = 1;
-		ASSERT(((int*)psSrcByteOff->afImmediates)[0] == 0); //TODO: byte-offset. Fail assert if there is one.
 		break;
 	case OPCODE_LD_RAW:
 		psDest = &psInst->asOperands[0];
@@ -1158,7 +1361,7 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 		ASSERT(psDest->eSelMode == OPERAND_4_COMPONENT_MASK_MODE);
 		if(psDest->ui32CompMask & (1<<component))
 		{
-			if(structured)
+			if(structured && psSrc->eType != OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
 			{
 				psVarType = LookupStructuredVar(psContext, psSrc, psSrcByteOff, psSrc->aui32Swizzle[component]);
 			}
@@ -1184,28 +1387,38 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 				TranslateOperand(psContext, psSrc, TO_FLAG_NAME_ONLY);
 				bformata(glsl, "[");
 			}
-			TranslateOperand(psContext, psSrcAddr ? psSrcAddr : psSrcByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+
+			if(structured) //src address and src byte offset
+			{
+				if(psSrc->eType == OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
+				{
+					TranslateOperand(psContext, psSrcAddr, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+					bformata(glsl, "].value[");
+					TranslateOperand(psContext, psSrcByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+					bformata(glsl, "/4 ");//bytes to floats
+				}
+				else
+				{
+					TranslateOperand(psContext, psSrcAddr, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+				}
+			}
+			else
+			{
+				TranslateOperand(psContext, psSrcByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+			}
 
 			//RAW: change component using index offset
-			if(!structured)
+			if(!structured || (psSrc->eType == OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY))
 			{
 				bformata(glsl, " + %d", psSrc->aui32Swizzle[component]);
 			}
 
 			bformata(glsl, "]");
-			if(structured)
+			if(structured && psSrc->eType != OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
 			{
 				if(strcmp(psVarType->Name, "$Element") != 0)
 				{
 					bformata(glsl, ".%s", psVarType->Name);
-				}
-
-				if(psSrc->eType == OPERAND_TYPE_THREAD_GROUP_SHARED_MEMORY)
-				{
-					if(psContext->psShader->sGroupSharedVarType[psSrc->ui32RegisterNumber].Columns > 1)
-					{
-						bformata(glsl, swizzleString[component]);
-					}
 				}
 
 				if( psVarType->Type == SVT_DOUBLE)
@@ -2561,7 +2774,7 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
             AddIndentation(psContext);
             bcatcstr(glsl, "//LOG\n");
 #endif
-			CallHelper1(psContext, "log", psInst, 0, 1);
+			CallHelper1(psContext, "log2", psInst, 0, 1);
             break;
         }
 		case OPCODE_RSQ:
@@ -2579,7 +2792,7 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
             AddIndentation(psContext);
             bcatcstr(glsl, "//EXP\n");
 #endif
-			CallHelper1(psContext, "exp", psInst, 0, 1);
+			CallHelper1(psContext, "exp2", psInst, 0, 1);
             break;
         }
 		case OPCODE_SQRT:
@@ -3437,117 +3650,13 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
 
             GetResourceFromBindingPoint(RGROUP_TEXTURE, psInst->asOperands[2].ui32RegisterNumber, &psContext->psShader->sInfo, &psBinding);
 
-			switch(psBinding->eDimension)
+			if(psInst->bAddressOffset)
 			{
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE1D:
-				{
-					//texelFetch(samplerBuffer, int coord, level)
-					AddIndentation(psContext);
-					TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-					bcatcstr(glsl, " = texelFetch(");
-
-					TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-					bcatcstr(glsl, ", int((");
-					TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-					bcatcstr(glsl, ").x), 0)");
-					TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
-					bcatcstr(glsl, ";\n");
-					break;
-				}
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE2DARRAY:
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE3D:
-				{
-					//texelFetch(samplerBuffer, ivec3 coord, level)
-					AddIndentation(psContext);
-					TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-					bcatcstr(glsl, " = texelFetch(");
-
-					TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-					bcatcstr(glsl, ", ivec3((");
-					TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-					bcatcstr(glsl, ").xyz), 0)");
-					TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
-					bcatcstr(glsl, ";\n");
-					break;
-				}
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE2D:
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE1DARRAY:
-				{
-					//texelFetch(samplerBuffer, ivec2 coord, level)
-					AddIndentation(psContext);
-					TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-					bcatcstr(glsl, " = texelFetch(");
-
-					TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-					bcatcstr(glsl, ", ivec2((");
-					TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-					bcatcstr(glsl, ").xy), 0)");
-					TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
-					bcatcstr(glsl, ";\n");
-					break;
-				}
-				case REFLECT_RESOURCE_DIMENSION_BUFFER:
-				{
-					//texelFetch(samplerBuffer, scalar integer coord)
-					AddIndentation(psContext);
-					TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-					bcatcstr(glsl, " = texelFetch(");
-
-					TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-					bcatcstr(glsl, ", int((");
-					TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-					bcatcstr(glsl, ").x))");
-					TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
-					bcatcstr(glsl, ";\n");
-					break;
-				}
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE2DMS:
-				{
-					//texelFetch(samplerBuffer, ivec2 coord, sample)
-
-                    ASSERT(psInst->eOpcode == OPCODE_LD_MS);
-
-					AddIndentation(psContext);
-					TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-					bcatcstr(glsl, " = texelFetch(");
-
-					TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-					bcatcstr(glsl, ", ivec2((");
-					TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-					bcatcstr(glsl, ").xy), ");
-                    TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_INTEGER);
-                    bcatcstr(glsl, ")");
-					TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
-					bcatcstr(glsl, ";\n");
-					break;
-				}
-				case REFLECT_RESOURCE_DIMENSION_TEXTURE2DMSARRAY:
-				{
-					//texelFetch(samplerBuffer, ivec3 coord, sample)
-
-                    ASSERT(psInst->eOpcode == OPCODE_LD_MS);
-
-					AddIndentation(psContext);
-					TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-					bcatcstr(glsl, " = texelFetch(");
-
-					TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-					bcatcstr(glsl, ", ivec3((");
-					TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-					bcatcstr(glsl, ").xyz), ");
-                    TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_INTEGER);
-                    bcatcstr(glsl, ")");
-					TranslateOperandSwizzle(psContext, &psInst->asOperands[0]);
-					bcatcstr(glsl, ";\n");
-					break;
-				}
-				case REFLECT_RESOURCE_DIMENSION_TEXTURECUBE:
-				case REFLECT_RESOURCE_DIMENSION_TEXTURECUBEARRAY:
-				case REFLECT_RESOURCE_DIMENSION_BUFFEREX:
-				default:
-				{
-					break;
-				}
+				TranslateTexelFetchOffset(psContext, psInst, psBinding, glsl);
+			}
+			else
+			{
+				TranslateTexelFetch(psContext, psInst, psBinding, glsl);
 			}
 			break;
 		}
