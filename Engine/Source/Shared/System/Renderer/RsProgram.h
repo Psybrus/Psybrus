@@ -67,6 +67,11 @@ public:
 	 */
 	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const = 0;
 
+	/**
+	 * Log out shaders.
+	 */
+	virtual void logShaders() const = 0;
+
 };
 
 #endif

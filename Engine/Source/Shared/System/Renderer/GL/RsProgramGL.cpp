@@ -377,6 +377,17 @@ const RsProgramVertexAttributeList& RsProgramGL::getVertexAttributeList() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// logShaders
+//virtual
+void RsProgramGL::logShaders() const
+{
+	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
+	{
+		ppShaders_[ Idx ]->logShader();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // addParameter
 void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size )
 {
