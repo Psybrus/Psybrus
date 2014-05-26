@@ -66,8 +66,6 @@ void RsProgramGL::create()
 	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
 	{
 		glAttachShader( Handle, ppShaders_[ Idx ]->getHandle< GLuint >() );
-
-		ppShaders_[ Idx ]->logShader();
 	}
 	
 	// Bind all slots up.
