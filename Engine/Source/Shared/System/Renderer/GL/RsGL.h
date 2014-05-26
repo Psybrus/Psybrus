@@ -66,12 +66,9 @@ extern AGLContext GAGLContext;
 #  include "GL/wglew.h"
 #endif
 
-//
-#define RsGLCatchError									\
-	{													\
-		GLuint Error = glGetError();					\
-		BcAssertMsg( Error == 0, "RsGL: Error (%s:%u): 0x%x\n", __FILE__, __LINE__, Error );		\
-	}
+////////////////////////////////////////////////////////////////////////////////
+// RsGLCatchError
+void RsGLCatchError();
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsOpenGLType

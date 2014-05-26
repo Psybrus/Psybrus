@@ -70,7 +70,7 @@ void RsShaderGL::create()
 	// Create handle for shader.
 	GLuint Handle = glCreateShader( Type_ );
 	setHandle( Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 	
 	if( Handle != 0 )
 	{
@@ -90,11 +90,11 @@ void RsShaderGL::create()
 				
 				// Load the source code into it.
 				glShaderSource( Handle, 1, (const GLchar**)&pData_, NULL );
-				RsGLCatchError;
+				RsGLCatchError();
 				
 				// Compile the source code.
 				glCompileShader( Handle );
-				RsGLCatchError;
+				RsGLCatchError();
 				
 				// Test if compilation succeeded.
 				GLint ShaderCompiled;

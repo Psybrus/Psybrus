@@ -214,7 +214,7 @@ void RsTextureGL::update()
 	GLenum TextureType = gTextureTypes[ (BcU32)Type_ ];
 
 	glBindTexture( TextureType, Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 
 	switch( Type_ )
 	{

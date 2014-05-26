@@ -75,12 +75,12 @@ void RsProgramGL::create()
 	{
 		const std::string Name = boost::str( boost::format( "dcl_Input%1%" ) % Channel );
 		glBindAttribLocation( Handle, Channel, Name.c_str() );
-		RsGLCatchError;
+		RsGLCatchError();
 	}
 	
 	// Link program.
 	glLinkProgram( Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 
 	GLint ProgramLinked = 0;
 	glGetProgramiv( Handle, GL_LINK_STATUS, &ProgramLinked );
@@ -160,7 +160,7 @@ void RsProgramGL::create()
 	}
 
 	// Catch error.
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// Validate program.
 	glValidateProgram( Handle );
@@ -184,7 +184,7 @@ void RsProgramGL::create()
 
 	// Bind/unbind to ensure it works.
 	glUseProgram( Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 	glUseProgram( 0 );
 
 	// Set handle.
@@ -244,7 +244,7 @@ void RsProgramGL::bind( void* pParameterBuffer )
 {
 	GLuint Handle = getHandle< GLuint >();
 	glUseProgram( Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 	
 	// Bind parameters from buffer if we have been given one.
 	// TODO: Only set a value if it isn't equal to the last set one.
@@ -331,7 +331,7 @@ void RsProgramGL::bind( void* pParameterBuffer )
 			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDataSize() );
 
 			++BindingPoint;
-			RsGLCatchError;
+			RsGLCatchError();
 		}
 	}
 		

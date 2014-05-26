@@ -145,7 +145,7 @@ void RsVertexBufferGL::update()
 		}
 
 		// Catch error.
-		RsGLCatchError;
+		RsGLCatchError();
 
 		// Decrement fence.
 		UpdateSyncFence_.decrement();
@@ -180,7 +180,7 @@ void RsVertexBufferGL::bind()
 	GLuint Handle = getHandle< GLuint >();
 	glBindBuffer( GL_ARRAY_BUFFER, Handle );
 
-	RsGLCatchError;
+	RsGLCatchError();
 
 #if 0
 	// NOTE: This should be optimised to use a lookup table or similar.
@@ -209,7 +209,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_POSITION );
 	}
 
-	RsGLCatchError;
+	RsGLCatchError();
 
 	
 	// Normal.
@@ -224,7 +224,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_NORMAL );
 	}
 	
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// Tangent.
 	if( VertexDecl & rsVDF_TANGENT_XYZ )
@@ -238,7 +238,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_TANGENT );
 	}
 	
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// TexCoord0.
 	if( VertexDecl & rsVDF_TEXCOORD_UV0 )
@@ -258,7 +258,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_TEXCOORD0 );
 	}
 	
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// TexCoord1.
 	if( VertexDecl & rsVDF_TEXCOORD_UV1 )
@@ -278,7 +278,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_TEXCOORD1 );
 	}
 	
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// TexCoord2.
 	if( VertexDecl & rsVDF_TEXCOORD_UV2 )
@@ -298,7 +298,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_TEXCOORD2 );
 	}
 	
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// TexCoord3.
 	if( VertexDecl & rsVDF_TEXCOORD_UV3 )
@@ -318,7 +318,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_TEXCOORD3 );
 	}
 
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// Skin indices.
 	if( VertexDecl & rsVDF_SKIN_INDICES )
@@ -332,7 +332,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_SKIN_INDICES );
 	}
 
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// Skin weights.
 	if( VertexDecl & rsVDF_SKIN_WEIGHTS )
@@ -346,7 +346,7 @@ void RsVertexBufferGL::bind()
 		glDisableVertexAttribArray( rsVC_SKIN_WEIGHTS );
 	}
 
-	RsGLCatchError;
+	RsGLCatchError();
 
 
 	// Colour.
@@ -362,6 +362,6 @@ void RsVertexBufferGL::bind()
 	}	
 		
 	// Catch error.
-	RsGLCatchError;
+	RsGLCatchError();
 #endif
 }

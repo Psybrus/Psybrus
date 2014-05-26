@@ -80,7 +80,7 @@ void RsIndexBufferGL::update()
 		glBufferData( Type_, DataSize_, pData_, Usage_ );
 
 		// Catch error.
-		RsGLCatchError;
+		RsGLCatchError();
 
 		glBindBuffer( Type_, 0 );
 
@@ -110,5 +110,5 @@ void RsIndexBufferGL::bind()
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, Handle );
 
 	// Catch error.
-	RsGLCatchError;
+	RsGLCatchError();
 }

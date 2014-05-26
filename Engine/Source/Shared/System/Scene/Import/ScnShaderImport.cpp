@@ -76,19 +76,20 @@ namespace
 		{ "ps_4_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0 },
 		{ "ps_4_1",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_1 },
 		{ "ps_5_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_5_0 },
-
+		
 		{ "hs_5_0",							"hull",			RsShaderType::TESSELATION_CONTROL, RsShaderCodeType::D3D11_5_0 },
-		{ "ds_5_0",							"domain",		RsShaderType::TESSELATION_EVALUATION, RsShaderCodeType::D3D11_5_0 },
 
+		{ "ds_5_0",							"domain",		RsShaderType::TESSELATION_EVALUATION, RsShaderCodeType::D3D11_5_0 },
+		
 		{ "gs_4_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_0 },
 		{ "gs_4_1",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
 		{ "gs_5_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
-
+		
 		{ "vs_4_0_level_9_3",				"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "vs_4_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
 		{ "vs_4_1",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
 		{ "vs_5_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_5_0 },
-
+		
 		{ "cs_4_0",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_0 },
 		{ "cs_4_1",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_1 },
 		{ "cs_5_0",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_5_0 },
@@ -621,7 +622,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			Errors += Error;
 		}
 
-		BcPrintf( "Error: %s: %s\n", Filename_.c_str(), Errors.c_str() );
+		BcPrintf( "%s\n%s\n", Filename_.c_str(), Errors.c_str() );
 		//throw CsImportException( Errors, Filename_ );
 	}
 

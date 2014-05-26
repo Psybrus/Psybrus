@@ -434,7 +434,7 @@ void RsContextGL::create()
 	OwningThread_ = BcCurrentThreadId();
 
 	//
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// Set default state.
 	setDefaultState();
@@ -670,6 +670,8 @@ void RsContextGL::setPrimitive( class RsPrimitive* Primitive )
 //virtual
 void RsContextGL::flushState()
 {
+	RsGLCatchError();
+	
 	// Bind render states.
 	for( BcU32 RenderStateIdx = 0; RenderStateIdx < NoofRenderStateBinds_; ++RenderStateIdx )
 	{
@@ -723,7 +725,7 @@ void RsContextGL::flushState()
 			RenderStateValue.Dirty_ = BcFalse;
 
 			// Catch errors.
-	 		RsGLCatchError;
+	 		RsGLCatchError();
 		}
 	}
 	
@@ -748,7 +750,7 @@ void RsContextGL::flushState()
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)Params.VMode_ ] );	
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)Params.WMode_ ] );	
 
-			RsGLCatchError;
+			RsGLCatchError();
 
 			TextureStateValue.Dirty_ = BcFalse;
 		}
@@ -758,7 +760,7 @@ void RsContextGL::flushState()
 	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
 
-	RsGLCatchError;
+	RsGLCatchError();
 
 	// Bind program and primitive.
 	if( ( Program_ != nullptr ||
@@ -829,7 +831,7 @@ void RsContextGL::flushState()
 
 		ProgramDirty_ = BcFalse;
 		PrimitiveDirty_ = BcFalse;
-		RsGLCatchError;
+		RsGLCatchError();
 	}
 
 	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -842,6 +844,7 @@ void RsContextGL::clear( const RsColour& Colour )
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -850,6 +853,7 @@ void RsContextGL::drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, B
 {
 	flushState();
 	glDrawArrays( gPrimitiveType[ (BcU32)PrimitiveType ], Offset, NoofIndices );
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -858,6 +862,7 @@ void RsContextGL::drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Of
 {
 	flushState();
 	glDrawElements( gPrimitiveType[ (BcU32)PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -880,6 +885,8 @@ void RsContextGL::bindStencilFunc()
 	CompareValue.Dirty_ = BcFalse;
 	RefValue.Dirty_ = BcFalse;
 	MaskValue.Dirty_ = BcFalse;
+
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -895,6 +902,8 @@ void RsContextGL::bindStencilOp()
 	SFailValue.Dirty_ = BcFalse;
 	DPFailValue.Dirty_ = BcFalse;
 	DPPassValue.Dirty_ = BcFalse;
+
+	RsGLCatchError();
 }
 
 
@@ -931,4 +940,6 @@ void RsContextGL::bindBlendMode( RsBlendingMode BlendMode )
 			BcBreakpoint;
 			break;
 	}
+
+	RsGLCatchError();
 }
