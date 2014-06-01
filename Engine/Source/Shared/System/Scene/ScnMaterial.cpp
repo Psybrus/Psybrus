@@ -72,7 +72,8 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 		"color_write_mask_1",
 		"color_write_mask_2",
 		"color_write_mask_3",
-		"blend_mode"
+		"blend_mode",
+		"fill_mode",
 	};
 	
 	// This code is bad code. Use the reflection system.
@@ -99,6 +100,9 @@ BcBool ScnMaterial::import( class CsPackageImporter& Importer, const Json::Value
 	ModeNames[ "decr" ] = (BcU32)RsStencilOp::DECR;
 	ModeNames[ "decr_wrap" ] = (BcU32)RsStencilOp::DECR_WRAP;
 	ModeNames[ "invert" ] = (BcU32)RsStencilOp::INVERT;
+
+	ModeNames[ "solid" ] = (BcU32)RsFillMode::SOLID;
+	ModeNames[ "wireframe" ] = (BcU32)RsFillMode::WIREFRAME;
 
 	for( BcU32 Idx = 0; Idx < (BcU32)RsRenderStateType::MAX; ++Idx )
 	{
