@@ -94,6 +94,23 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 	return RenderMask_;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
+{
+	Super::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // isLit
 BcBool ScnRenderableComponent::isLit() const
