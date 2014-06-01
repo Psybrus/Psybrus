@@ -527,6 +527,7 @@ void RsContextGL::setDefaultState()
 	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_2,			0,					BcTrue );
 	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_3,			0,					BcTrue );
 	setRenderState( RsRenderStateType::BLEND_MODE,					0,					BcTrue );
+	setRenderState( RsRenderStateType::FILL_MODE,					0,					BcTrue );
 	
 	// Setup default texture states.
 	RsTextureParams TextureParams = 
@@ -719,6 +720,10 @@ void RsContextGL::flushState()
 				case RsRenderStateType::COLOR_WRITE_MASK_3:
 					glColorMaski( RenderStateID - (BcU32)RsRenderStateType::COLOR_WRITE_MASK_0, ( Value & 0x8 ) >> 3, ( Value & 0x4 ) >> 2,( Value & 0x2 ) >> 1, ( Value & 0x1 ) );
 					break;
+
+				case RsRenderStateType::FILL_MODE:
+					glPolygonMode( GL_FRONT_AND_BACK, (BcU32)RsFillMode::SOLID == Value ? GL_FILL : GL_LINE );
+					break;
 			}
 			
 			// No longer dirty.
@@ -833,8 +838,6 @@ void RsContextGL::flushState()
 		PrimitiveDirty_ = BcFalse;
 		RsGLCatchError();
 	}
-
-	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
 //////////////////////////////////////////////////////////////////////////

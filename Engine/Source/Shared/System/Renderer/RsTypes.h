@@ -74,6 +74,18 @@ enum class RsBlendingMode : BcU32
 	INVALID = BcErrorCode
 };
 
+
+//////////////////////////////////////////////////////////////////////////
+// Fill mode
+enum class RsFillMode : BcU32
+{
+	SOLID = 0,
+	WIREFRAME,
+	
+	MAX,
+	INVALID = BcErrorCode
+};
+
 //////////////////////////////////////////////////////////////////////////
 // Blend type
 enum class RsBlendType : BcU32
@@ -346,6 +358,7 @@ enum class RsRenderStateType : BcU32
 	COLOR_WRITE_MASK_2,			///!< Color write mask, RT 2. Bits 0-3, RGBA
 	COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
 	BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
+	FILL_MODE,					///!< Fill mode. RsFillMode.
 	
 	MAX,
 	INVALID = BcErrorCode
