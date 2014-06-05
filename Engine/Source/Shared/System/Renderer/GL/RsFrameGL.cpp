@@ -76,9 +76,7 @@ public:
 		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, 15 );
 		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, 255 );
 
-		pContext_->flushState();
-
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
+		pContext_->clear( RsColour( 0, 0, 0, 0 ) );
 
 		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, DepthWriteEnable );
 		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, ColourWriteMask0 );
