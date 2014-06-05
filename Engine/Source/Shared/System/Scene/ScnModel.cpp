@@ -601,7 +601,7 @@ public:
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
 		pContext_->setPrimitive( pPrimitive_ );
-		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_ );
+		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
 	}
 
 	RsPrimitiveType Type_;

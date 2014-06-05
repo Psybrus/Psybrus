@@ -852,19 +852,19 @@ void RsContextGL::clear( const RsColour& Colour )
 
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
-void RsContextGL::drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+void RsContextGL::drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	flushState();
-	glDrawArrays( gPrimitiveType[ (BcU32)PrimitiveType ], Offset, NoofIndices );
+	glDrawArrays( gPrimitiveType[ (BcU32)PrimitiveType ], IndexOffset, NoofIndices );
 	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
-void RsContextGL::drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices )
+void RsContextGL::drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	flushState();
-	glDrawElements( gPrimitiveType[ (BcU32)PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( Offset * sizeof( BcU16 ) ) );
+	glDrawElementsBaseVertex( gPrimitiveType[ (BcU32)PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
 	RsGLCatchError();
 }
 

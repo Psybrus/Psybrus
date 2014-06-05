@@ -110,12 +110,12 @@ public:
 	/**
 	 * Draw primitives.
 	 */
-	virtual void drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+	virtual void drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices ) = 0;
 
 	/**
 	 * Draw indexed primitives.
 	 */
-	virtual void drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices ) = 0;
+	virtual void drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) = 0;
 };
 
 
