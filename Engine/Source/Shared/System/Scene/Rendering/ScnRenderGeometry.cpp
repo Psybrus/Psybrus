@@ -24,7 +24,6 @@ void ScnRenderGeometry::StaticRegisterClass()
 		ReField( "IndexBuffer_",			&ScnRenderGeometry::IndexBuffer_ ),
 		ReField( "VertexBuffers_",			&ScnRenderGeometry::VertexBuffers_ ),
 		ReField( "VertexDeclaration_",		&ScnRenderGeometry::VertexDeclaration_ ),
-		ReField( "Primitive_",				&ScnRenderGeometry::Primitive_ ),
 	};
 	
 	ReRegisterClass< ScnRenderGeometry, Super >( Fields );
@@ -42,11 +41,6 @@ void ScnRenderGeometry::initialise(
 	IndexBuffer_ = RsCore::pImpl()->createIndexBuffer( IndexBufferDesc );
 	VertexBuffers_.push_back( RsCore::pImpl()->createVertexBuffer( VertexBufferDesc ) );
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
-
-	RsPrimitiveDesc PrimitiveDesc = RsPrimitiveDesc( VertexDeclaration_ )
-		.setIndexBuffer( IndexBuffer_ )
-		.setVertexBuffer( 0, VertexBuffers_[ 0 ] );
-	Primitive_ = RsCore::pImpl()->createPrimitive( PrimitiveDesc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,7 +50,6 @@ void ScnRenderGeometry::destroy()
 {
 	Super::destroy();
 
-	RsCore::pImpl()->destroyResource( Primitive_ );
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 	for( auto VertexBuffer : VertexBuffers_ )
 	{

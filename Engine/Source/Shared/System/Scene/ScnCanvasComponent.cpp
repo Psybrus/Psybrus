@@ -87,11 +87,6 @@ void ScnCanvasComponent::create()
 
 		// Allocate render side vertex buffer.
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 24 ), RenderResource.pVertices_ );
-	
-		// Allocate render side primitive.
-		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( 
-			RsPrimitiveDesc( VertexDeclaration_ )
-				.setVertexBuffer( 0, RenderResource.pVertexBuffer_ ) );
 	}
 
 	Super::create();
@@ -108,9 +103,6 @@ void ScnCanvasComponent::destroy()
 
 		// Allocate render side vertex buffer.
 		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
-	
-		// Allocate render side primitive.
-		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
 	}
 
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
@@ -841,14 +833,16 @@ public:
 		{
 			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pContext_->setPrimitive( pPrimitive_ );
+			pContext_->setVertexBuffer( 0, VertexBuffer_ );
+			pContext_->setVertexDeclaration( VertexDeclaration_ );
 			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	
 	BcU32 NoofSections_;
 	ScnCanvasComponentPrimitiveSection* pPrimitiveSections_;
-	RsPrimitive* pPrimitive_;
+	RsVertexBuffer* VertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
 };
 
 void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
@@ -877,7 +871,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
-		pRenderNode->pPrimitive_ = pRenderResource_->pPrimitive_;
+		pRenderNode->VertexBuffer_ = pRenderResource_->pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		
 		// Copy primitive sections in.
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );

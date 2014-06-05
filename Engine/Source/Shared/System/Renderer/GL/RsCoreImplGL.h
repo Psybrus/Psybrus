@@ -55,7 +55,6 @@ public:
 	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL );
 	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
-	virtual RsPrimitive*		createPrimitive( const RsPrimitiveDesc& Desc );
 	virtual void				destroyResource( RsResource* pResource );
 	void						updateResource( RsResource* pResource );
 

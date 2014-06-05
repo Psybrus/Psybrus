@@ -27,6 +27,12 @@ class RsContext:
 	public RsResource
 {
 public:
+	enum
+	{
+		MAX_VERTEX_STREAMS = 16
+	};
+
+public:
 	RsContext( RsContext* pParentContext ):
 		RsResource( pParentContext )
 	{}
@@ -93,9 +99,19 @@ public:
 	virtual void setProgram( class RsProgram* Program ) = 0;
 
 	/**
-	 * Set primitive.
+	 * Set index buffer.
 	 */
-	virtual void setPrimitive( class RsPrimitive* Primitive ) = 0;
+	virtual void setIndexBuffer( class RsIndexBuffer* IndexBuffer ) = 0;
+
+	/**
+	 * Set vertex buffer.
+	 */
+	virtual void setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer ) = 0;
+
+	/**
+	 * Set vertex declaration.
+	 */
+	virtual void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) = 0;
 
 	/**
 	 * Flush state.

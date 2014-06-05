@@ -97,10 +97,6 @@ void ScnModel::create()
 		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
 		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->NoofVertices_, pPrimitiveData->VertexStride_ ), pVertexBufferData );
 		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData );
-		RsPrimitive* pPrimitive = RsCore::pImpl()->createPrimitive( 
-			RsPrimitiveDesc( pVertexDeclaration )
-				.setIndexBuffer( pIndexBuffer )
-				.setVertexBuffer( 0, pVertexBuffer ) );
 		
 		// Setup runtime structure.
 		ScnModelPrimitiveRuntime PrimitiveRuntime = 
@@ -109,7 +105,6 @@ void ScnModel::create()
 			pVertexDeclaration,
 			pVertexBuffer,
 			pIndexBuffer,
-			pPrimitive,
 			NULL
 		};
 		
@@ -142,7 +137,6 @@ void ScnModel::destroy()
 
 		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pIndexBuffer_ );
-		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pPrimitive_ );
 		
 		PrimitiveRuntime.MaterialRef_ = NULL;
 	}
@@ -600,14 +594,18 @@ public:
 	void render()
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
-		pContext_->setPrimitive( pPrimitive_ );
+		pContext_->setIndexBuffer( IndexBuffer_ );
+		pContext_->setVertexBuffer( 0, VertexBuffer_ );
+		pContext_->setVertexDeclaration( VertexDeclaration_ );
 		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
 	}
 
 	RsPrimitiveType Type_;
 	BcU32 Offset_;
 	BcU32 NoofIndices_;
-	RsPrimitive* pPrimitive_;
+	RsIndexBuffer* IndexBuffer_;
+	RsVertexBuffer* VertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
 };
 
 void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
@@ -664,7 +662,9 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		pRenderNode->Type_ = pPrimitiveData->Type_;
 		pRenderNode->Offset_ = Offset;
 		pRenderNode->NoofIndices_ = pPrimitiveData->NoofIndices_;
-		pRenderNode->pPrimitive_ = pPrimitiveRuntime->pPrimitive_;
+		pRenderNode->IndexBuffer_ = pPrimitiveRuntime->pIndexBuffer_;
+		pRenderNode->VertexBuffer_ = pPrimitiveRuntime->pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = pPrimitiveRuntime->pVertexDeclaration_;
 		pRenderNode->Sort_ = Sort;
 			
 		pFrame->addRenderNode( pRenderNode );

@@ -24,7 +24,6 @@
 #include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
-#include "System/Renderer/GL/RsPrimitiveGL.h"
 
 #include "System/SysKernel.h"
 
@@ -305,16 +304,6 @@ RsShader* RsCoreImplGL::createShader( RsShaderType ShaderType, RsShaderDataType 
 RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
 {
 	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), NoofShaders, ppShaders, NoofVertexAttributes, pVertexAttributes );
-	createResource( pResource );
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createPrimitive
-//virtual
-RsPrimitive* RsCoreImplGL::createPrimitive( const RsPrimitiveDesc& Desc )
-{
-	RsPrimitiveGL* pResource = new RsPrimitiveGL( getContext( NULL ), Desc );
 	createResource( pResource );
 	return pResource;
 }

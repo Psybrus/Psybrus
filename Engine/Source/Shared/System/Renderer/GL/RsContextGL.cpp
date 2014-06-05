@@ -15,7 +15,6 @@
 #include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
-#include "System/Renderer/GL/RsPrimitiveGL.h"
 #include "System/Renderer/GL/RsVertexBufferGL.h"
 #include "System/Renderer/GL/RsIndexBufferGL.h"
 #include "System/Renderer/GL/RsTextureGL.h"
@@ -161,15 +160,17 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	OwningThread_( BcErrorCode ),
 	GlobalVAO_( 0 ),
 	ProgramDirty_( BcTrue ),
-	PrimitiveDirty_( BcTrue ),
+	BindingsDirty_( BcTrue ),
 	Program_( nullptr ),
-	Primitive_( nullptr )
+	IndexBuffer_( nullptr ),
+	VertexDeclaration_( nullptr )
 {
 	BcMemZero( &RenderStateValues_[ 0 ], sizeof( RenderStateValues_ ) );
 	BcMemZero( &TextureStateValues_[ 0 ], sizeof( TextureStateValues_ ) );
 	BcMemZero( &RenderStateBinds_[ 0 ], sizeof( RenderStateBinds_ ) );
 	BcMemZero( &TextureStateBinds_[ 0 ], sizeof( TextureStateBinds_ ) );
-
+	BcMemZero( &VertexBuffers_[ 0 ], sizeof( VertexBuffers_ ) );
+	
 	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
 }
@@ -657,12 +658,36 @@ void RsContextGL::setProgram( class RsProgram* Program )
 
 //////////////////////////////////////////////////////////////////////////
 // setPrimitive
-void RsContextGL::setPrimitive( class RsPrimitive* Primitive )
+void RsContextGL::setIndexBuffer( class RsIndexBuffer* IndexBuffer )
 {
-	if( Primitive_ != Primitive )
+		if( IndexBuffer_ != IndexBuffer )
 	{
-		Primitive_ = Primitive;
-		PrimitiveDirty_ = BcTrue;
+		IndexBuffer_ = IndexBuffer;
+		BindingsDirty_ = BcTrue;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPrimitive
+void RsContextGL::setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer )
+{
+	if( VertexBuffers_[ StreamIdx ] != VertexBuffer )
+	{
+		VertexBuffers_[ StreamIdx ] = VertexBuffer;
+		BindingsDirty_ = BcTrue;
+		ProgramDirty_ = BcTrue;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setPrimitive
+void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
+{
+	if( VertexDeclaration_ != VertexDeclaration )
+	{
+		VertexDeclaration_ = VertexDeclaration;
+		BindingsDirty_ = BcTrue;
+		ProgramDirty_ = BcTrue;
 	}
 }
 
@@ -769,12 +794,11 @@ void RsContextGL::flushState()
 
 	// Bind program and primitive.
 	if( ( Program_ != nullptr ||
-		  Primitive_ != nullptr ) &&
-		( ProgramDirty_ || PrimitiveDirty_ ) )
+		VertexDeclaration_ != nullptr ) &&
+		( ProgramDirty_ || BindingsDirty_ ) )
 	{
 		const auto& ProgramVertexAttributeList = Program_->getVertexAttributeList();
-		const auto& PrimitiveDesc = Primitive_->getDesc();
-		const auto& VertexDeclarationDesc = PrimitiveDesc.VertexDeclaration_->getDesc();
+		const auto& VertexDeclarationDesc = VertexDeclaration_->getDesc();
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
 		// Bind program.
@@ -798,12 +822,12 @@ void RsContextGL::flushState()
 				if( Attribute.Usage_ == Element.Usage_ &&
 					Attribute.UsageIdx_ == Element.UsageIdx_ )
 				{
-					auto VertexBuffer = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ];
+					auto VertexBuffer = VertexBuffers_[ Element.StreamIdx_ ];
 				
 					// Bind up new vertex buffer if we need to.
-					BcAssertMsg( Element.StreamIdx_ < PrimitiveDesc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+					BcAssertMsg( Element.StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
 					BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-					GLuint VertexHandle = PrimitiveDesc.VertexBuffers_[ Element.StreamIdx_ ]->getHandle< GLuint >();
+					GLuint VertexHandle = VertexBuffers_[ Element.StreamIdx_ ]->getHandle< GLuint >();
 					if( BoundVertexHandle != VertexHandle )
 					{
 						glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
@@ -828,14 +852,14 @@ void RsContextGL::flushState()
 		}
 
 		// Bind indices.
-		GLuint IndicesHandle = PrimitiveDesc.IndexBuffer_ != nullptr ? PrimitiveDesc.IndexBuffer_->getHandle< GLuint >() : 0;
+		GLuint IndicesHandle = IndexBuffer_ != nullptr ? IndexBuffer_->getHandle< GLuint >() : 0;
 		if( IndicesHandle != 0 )
 		{
 			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle );
 		}
 
 		ProgramDirty_ = BcFalse;
-		PrimitiveDirty_ = BcFalse;
+		BindingsDirty_ = BcFalse;
 		RsGLCatchError();
 	}
 }
