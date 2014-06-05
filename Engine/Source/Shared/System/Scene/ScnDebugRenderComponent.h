@@ -155,7 +155,6 @@ protected:
 	{
 		RsUniformBuffer*				UniformBuffer_;
 		RsVertexBuffer*					pVertexBuffer_;
-		RsPrimitive*					pPrimitive_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 		ScnDebugRenderComponentVertex*	pVertices_;
 	};

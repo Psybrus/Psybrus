@@ -75,7 +75,6 @@ struct ScnModelPrimitiveRuntime
 	class RsVertexDeclaration*		pVertexDeclaration_;
 	class RsVertexBuffer*			pVertexBuffer_;
 	class RsIndexBuffer*			pIndexBuffer_;
-	class RsPrimitive*				pPrimitive_;
 	ScnMaterialRef					MaterialRef_; // TODO: Don't use ref, just use pointer.
 };
 

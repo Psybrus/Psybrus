@@ -43,7 +43,9 @@ public:
 	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
-	void setPrimitive( class RsPrimitive* Primitive );
+	void setIndexBuffer( class RsIndexBuffer* IndexBuffer );
+	void setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer );
+	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	
 	void flushState();
 
@@ -120,9 +122,12 @@ private:
 
 	//
 	BcBool ProgramDirty_;
-	BcBool PrimitiveDirty_;
+	BcBool BindingsDirty_; // TODO: Break down to be more fine grained.
 	RsProgram* Program_;
-	RsPrimitive* Primitive_;
+
+	RsIndexBuffer* IndexBuffer_;
+	std::array< RsVertexBuffer*, MAX_VERTEX_STREAMS > VertexBuffers_;
+	RsVertexDeclaration* VertexDeclaration_;
 };
 
 

@@ -104,11 +104,6 @@ void ScnDebugRenderComponent::create()
 	
 		// Allocate uniform buffer object.
 		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( RenderResource.ObjectUniforms_ ) ), &RenderResource.ObjectUniforms_ );
-
-		// Allocate render side primitive.
-		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( 
-			RsPrimitiveDesc( VertexDeclaration_ )
-				.setVertexBuffer( 0, RenderResource.pVertexBuffer_ ) );
 	}
 
 	Super::create();
@@ -125,9 +120,6 @@ void ScnDebugRenderComponent::destroy()
 
 		// Allocate render side vertex buffer.
 		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
-	
-		// Allocate render side primitive.
-		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
 
 		// Allocate render side uniform buffer.
 		RsCore::pImpl()->destroyResource( RenderResource.UniformBuffer_ );
@@ -451,14 +443,16 @@ public:
 		{
 			ScnDebugRenderComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pContext_->setPrimitive( pPrimitive_ );
+			pContext_->setVertexBuffer( 0, VertexBuffer_ );
+			pContext_->setVertexDeclaration( VertexDeclaration_ );
 			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	
 	BcU32 NoofSections_;
 	ScnDebugRenderComponentPrimitiveSection* pPrimitiveSections_;
-	RsPrimitive* pPrimitive_;
+	RsVertexBuffer* VertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
 };
 
 void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
@@ -487,7 +481,8 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 		
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnDebugRenderComponentPrimitiveSection >( 1 );
-		pRenderNode->pPrimitive_ = pRenderResource_->pPrimitive_;
+		pRenderNode->VertexBuffer_ = pRenderResource_->pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		
 		// Copy primitive sections in.
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnDebugRenderComponentPrimitiveSection ) * 1 );

@@ -95,8 +95,6 @@ void ScnParticleSystemComponent::create()
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
 		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices, 36 ), VertexBuffer.pVertexArray_ ); 
-		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( RsPrimitiveDesc( VertexDeclaration_ )
-			.setVertexBuffer( 0, VertexBuffer.pVertexBuffer_ ) );
 		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( VertexBuffer.ObjectUniforms_ ) ), &VertexBuffer.ObjectUniforms_ );
 	}
 
@@ -116,7 +114,6 @@ void ScnParticleSystemComponent::destroy()
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( VertexBuffer.pPrimitive_ );
 		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
 	}
 
@@ -168,11 +165,13 @@ class ScnParticleSystemComponentRenderNode: public RsRenderNode
 public:
 	void render()
 	{
-		pContext_->setPrimitive( pPrimitive_ );
+		pContext_->setVertexBuffer( 0, VertexBuffer_ );
+		pContext_->setVertexDeclaration( VertexDeclaration_ );
 		pContext_->drawPrimitives( RsPrimitiveType::TRIANGLELIST, 0, NoofIndices_ );
 	}
 	
-	RsPrimitive* pPrimitive_;
+	RsVertexBuffer* VertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
 	BcU32 NoofIndices_;
 };
 
@@ -331,7 +330,8 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 
 		// Setup render node.
 		ScnParticleSystemComponentRenderNode* pRenderNode = pFrame->newObject< ScnParticleSystemComponentRenderNode >();
-		pRenderNode->pPrimitive_ = VertexBuffer.pPrimitive_;
+		pRenderNode->VertexBuffer_ = VertexBuffer.pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		pRenderNode->NoofIndices_ = NoofParticlesToRender * 6;
 
 		// Add to frame.

@@ -37,7 +37,6 @@ private:
 	class RsIndexBuffer* IndexBuffer_;
 	std::vector< class RsVertexBuffer* > VertexBuffers_;
 	class RsVertexDeclaration* VertexDeclaration_;
-	class RsPrimitive* Primitive_;
 };
 
 #endif

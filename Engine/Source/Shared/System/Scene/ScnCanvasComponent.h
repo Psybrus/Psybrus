@@ -221,7 +221,6 @@ protected:
 	struct TRenderResource
 	{
 		RsVertexBuffer*					pVertexBuffer_;
-		RsPrimitive*					pPrimitive_;
 		ScnCanvasComponentVertex*		pVertices_;
 	};
 

@@ -34,7 +34,6 @@
 #include "System/Renderer/RsVertexBuffer.h"
 #include "System/Renderer/RsIndexBuffer.h"
 #include "System/Renderer/RsUniformBuffer.h"
-#include "System/Renderer/RsPrimitive.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -155,12 +154,6 @@ public:
 	 * @param pVertexAttributes Vertex attributes.
 	 */
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  ) = 0;
-
-	/**
-	 * Create primitive.
-	 * @param Desc Descriptor object.
-	 */
-	virtual RsPrimitive*		createPrimitive( const RsPrimitiveDesc& Desc ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
