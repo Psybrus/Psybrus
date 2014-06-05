@@ -48,8 +48,8 @@ public:
 	void flushState();
 
 	void clear( const RsColour& Colour );
-	void drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 Offset, BcU32 NoofIndices );
+	void drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
+	void drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
