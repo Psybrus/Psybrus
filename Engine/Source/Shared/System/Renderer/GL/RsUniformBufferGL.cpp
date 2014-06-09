@@ -24,10 +24,12 @@ RsUniformBufferGL::RsUniformBufferGL( RsContext* pContext, const RsUniformBuffer
 	Type_ = GL_UNIFORM_BUFFER;
 	Usage_ = pBufferData != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW; // TODO: Take from a user parameter.
 
+	BcAssert( Desc.ReflectionClass_ != nullptr );
+
 	// Setup stride and descriptor.
 	Desc_ = Desc;
 	pData_ = pBufferData;
-	DataSize_ = Desc_.BufferSize_;
+	DataSize_ = Desc_.ReflectionClass_->getSize();
 
 	// Create data if we need to.
 	if( pData_ == NULL )

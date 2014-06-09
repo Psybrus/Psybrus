@@ -93,7 +93,7 @@ void ScnParticleSystemComponent::create()
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
 		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices, 36 ), VertexBuffer.pVertexArray_ ); 
-		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( VertexBuffer.ObjectUniforms_ ) ), &VertexBuffer.ObjectUniforms_ );
+		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( ScnShaderObjectUniformBlockData::StaticGetClass() ), &VertexBuffer.ObjectUniforms_ );
 	}
 
 	// Allocate particles.

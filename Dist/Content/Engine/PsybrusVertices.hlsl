@@ -42,7 +42,7 @@ struct VertexDefault
  * @param _p Input properties. Unused.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = mul( uWorldTransform, _v );																\
+		_o = mul( WorldTransform_, _v );																\
 
 
 #elif defined( PERM_MESH_SKINNED_3D )
@@ -55,10 +55,10 @@ struct VertexDefault
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 																\
 		_o = float4( 0.0, 0.0, 0.0, 0.0 );																\
-		_o += mul( uBoneTransform[ int(_p.BlendIndices_.x) ], _v ) * _p.BlendWeights_.x;				\
-		_o += mul( uBoneTransform[ int(_p.BlendIndices_.y) ], _v ) * _p.BlendWeights_.y;				\
-		_o += mul( uBoneTransform[ int(_p.BlendIndices_.z) ], _v ) * _p.BlendWeights_.z;				\
-		_o += mul( uBoneTransform[ int(_p.BlendIndices_.w) ], _v ) * _p.BlendWeights_.w;				\
+		_o += mul( BoneTransform_[ int(_p.BlendIndices_.x) ], _v ) * _p.BlendWeights_.x;				\
+		_o += mul( BoneTransform_[ int(_p.BlendIndices_.y) ], _v ) * _p.BlendWeights_.y;				\
+		_o += mul( BoneTransform_[ int(_p.BlendIndices_.z) ], _v ) * _p.BlendWeights_.z;				\
+		_o += mul( BoneTransform_[ int(_p.BlendIndices_.w) ], _v ) * _p.BlendWeights_.w;				\
 
 
 #elif defined( PERM_MESH_PARTICLE_3D )
@@ -74,9 +74,9 @@ struct VertexDefault
 				float4(																					\
 					mul(																				\
 						float3x3(																		\
-							uInverseViewTransform[0].xyz, 												\
-							uInverseViewTransform[1].xyz, 												\
-							uInverseViewTransform[2].xyz ),												\
+							InverseViewTransform_[0].xyz, 												\
+							InverseViewTransform_[1].xyz, 												\
+							InverseViewTransform_[2].xyz ),												\
 			 			_p.VertexOffset_.xyz ),	0.0 );													\
 
 #elif defined( PERM_MESH_INSTANCED_3D )
@@ -116,6 +116,6 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
-		_o = mul( uClipTransform, _v ); 														\
+		_o = mul( ClipTransform_, _v ); 														\
 
 #endif

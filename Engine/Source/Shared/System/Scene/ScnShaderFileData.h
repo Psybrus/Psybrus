@@ -2,7 +2,7 @@
 *
 * File:		ScnShaderFileData.h
 * Author:	Neil Richardson 
-* Ver/Date:	22/12/12
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -15,6 +15,11 @@
 #define __SCNSHADERFILEDATA__
 
 #include "Base/BcTypes.h"
+
+#include "Reflection/ReReflection.h"
+
+#include "System/Renderer/RsTypes.h"
+#include "Math/MaMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderPermutationType
@@ -157,6 +162,9 @@ struct ScnShaderProgramHeader
 // ScnShaderViewUniformBlockData
 struct ScnShaderViewUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderViewUniformBlockData );
+	ScnShaderViewUniformBlockData(){};
+
 	MaMat4d							InverseProjectionTransform_;
 	MaMat4d							ProjectionTransform_;
 	MaMat4d							InverseViewTransform_;
@@ -168,6 +176,9 @@ struct ScnShaderViewUniformBlockData
 // ScnShaderLightUniformBlockData
 struct ScnShaderLightUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderLightUniformBlockData );
+	ScnShaderLightUniformBlockData(){};
+
 	MaVec3d							LightPosition_[4];
 	MaVec3d							LightDirection_[4];
 	MaVec4d							LightAmbientColour_[4];
@@ -179,6 +190,9 @@ struct ScnShaderLightUniformBlockData
 // ScnShaderObjectUniformBlockData
 struct ScnShaderObjectUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderObjectUniformBlockData );
+	ScnShaderObjectUniformBlockData(){};
+
 	MaMat4d							WorldTransform_;
 };
 
@@ -186,6 +200,9 @@ struct ScnShaderObjectUniformBlockData
 // ScnShaderBoneUniformBlockData
 struct ScnShaderBoneUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderBoneUniformBlockData );
+	ScnShaderBoneUniformBlockData(){};
+
 	MaMat4d							BoneTransform_[24];
 };
 
@@ -193,6 +210,9 @@ struct ScnShaderBoneUniformBlockData
 // ScnShaderAlphaTestUniformBlockData
 struct ScnShaderAlphaTestUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderAlphaTestUniformBlockData );
+	ScnShaderAlphaTestUniformBlockData(){};
+
 	MaVec4d							AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 };
 

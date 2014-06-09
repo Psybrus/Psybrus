@@ -103,7 +103,7 @@ void ScnDebugRenderComponent::create()
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 16 ), RenderResource.pVertices_ );
 	
 		// Allocate uniform buffer object.
-		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( RenderResource.ObjectUniforms_ ) ), &RenderResource.ObjectUniforms_ );
+		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( ScnShaderObjectUniformBlockData::StaticGetClass() ), &RenderResource.ObjectUniforms_ );
 	}
 
 	Super::create();

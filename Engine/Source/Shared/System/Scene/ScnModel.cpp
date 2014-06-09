@@ -289,11 +289,11 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 		// Create uniform buffer for object.
 		if( pPrimitiveData->IsSkinned_ )
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderBoneUniformBlockData ) , nullptr ) : nullptr;
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( ScnShaderBoneUniformBlockData::StaticGetClass(), nullptr ) : nullptr;
 		}
 		else
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( sizeof( ScnShaderObjectUniformBlockData ), nullptr ) : nullptr;
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( ScnShaderObjectUniformBlockData::StaticGetClass(), nullptr ) : nullptr;
 		}
 
 		//

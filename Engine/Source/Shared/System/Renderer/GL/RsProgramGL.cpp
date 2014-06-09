@@ -211,12 +211,15 @@ void RsProgramGL::destroy()
 //virtual
 BcU32 RsProgramGL::findSampler( const BcChar* Name )
 {
+	BcU32 Idx = 0;
 	for( auto It( SamplerList_.begin() ); It != SamplerList_.end(); ++It )
 	{
 		if( (*It).Name_ == Name )
 		{
-			return (*It).Handle_;
+			return Idx;
 		}
+
+		++Idx;
 	}
 
 	return BcErrorCode;
@@ -225,11 +228,11 @@ BcU32 RsProgramGL::findSampler( const BcChar* Name )
 ////////////////////////////////////////////////////////////////////////////////
 // setSampler
 //virtual
-void RsProgramGL::setSampler( BcU32 Handle, BcU32 SamplerSlotIdx )
+void RsProgramGL::setSampler( BcU32 Idx, BcU32 SamplerSlotIdx )
 {
-	if( Handle != BcErrorCode && SamplerList_.size() < Handle )
+	if( Idx < SamplerList_.size() )
 	{
-		SamplerList_[ Handle ].SamplerSlotIdx_ = SamplerSlotIdx;
+		SamplerList_[ Idx ].SamplerSlotIdx_ = SamplerSlotIdx;
 	}
 }
 

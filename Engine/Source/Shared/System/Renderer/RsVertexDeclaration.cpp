@@ -30,6 +30,13 @@ RsVertexDeclarationDesc& RsVertexDeclarationDesc::addElement( const RsVertexElem
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getHash
+BcU32 RsVertexDeclarationDesc::getHash() const
+{
+	return BcHash::GenerateCRC32( 0, &Elements_[ 0 ], Elements_.size() * sizeof( Elements_[ 0 ] ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 RsVertexDeclaration::RsVertexDeclaration( class RsContext* pContext, const RsVertexDeclarationDesc& Desc ):
 	RsResource( pContext ),
