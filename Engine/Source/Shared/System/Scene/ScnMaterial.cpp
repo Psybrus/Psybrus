@@ -538,9 +538,6 @@ public:
 	RsTexture** ppTextures_;
 	RsTextureParams* pTextureParams_;
 
-	// Parameter buffer.
-	BcU8* pParameterBuffer_;
-	
 	// State buffer.
 	BcU32* pStateBuffer_;
 
