@@ -19,12 +19,14 @@ DEFINE_RESOURCE( ScnRenderPipeline );
 
 void ScnRenderPipeline::StaticRegisterClass()
 {
+	/*
 	static const ReField Fields[] = 
 	{
 
 	};
+	*/
 	
-	ReRegisterClass< ScnRenderPipeline, Super >( Fields );
+	ReRegisterClass< ScnRenderPipeline, Super >();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -290,13 +290,15 @@ void ScnMaterialComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationFlags )
+void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags )
 {
 	Super::initialise();
 
 	BcAssert( Parent.isValid() && Parent->isReady() );
 	
-	PermutationFlags_ = PermutationFlags | scnSPF_RENDER_FORWARD;
+	PermutationFlags_ = PermutationFlags 
+		| ScnShaderPermutationFlags::RENDER_FORWARD
+		| ScnShaderPermutationFlags::PASS_MAIN;
 
 	// Cache parent and program.
 	Parent_ = Parent;
@@ -358,16 +360,16 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, BcU32 PermutationF
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
 	ScnMaterialRef MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
-	BcU32 PermutationFlags = 0;
+	ScnShaderPermutationFlags PermutationFlags = ScnShaderPermutationFlags::NONE;
 	const BcChar* pPermutation = Object[ "permutation" ].asCString();
 
 	if( BcStrCompare( pPermutation, "2d" ) )
 	{
-		PermutationFlags = scnSPF_MESH_STATIC_2D;
+		PermutationFlags = ScnShaderPermutationFlags::MESH_STATIC_2D;
 	}
 	else if( BcStrCompare( pPermutation, "3d" ) )
 	{
-		PermutationFlags = scnSPF_MESH_STATIC_3D;
+		PermutationFlags = ScnShaderPermutationFlags::MESH_STATIC_3D;
 	}
 
 	initialise( MaterialRef, PermutationFlags );

@@ -24,7 +24,7 @@
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
-#define DEBUG_FILE_WRITE_OUT_FILES		0
+#define DEBUG_FILE_WRITE_OUT_FILES		1
 
 #include <boost/format.hpp>
 #include <boost/wave.hpp>
@@ -32,6 +32,7 @@
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
 #include <boost/filesystem.hpp>
+#include <bitset>
 
 namespace
 {
@@ -39,30 +40,37 @@ namespace
 	// Shader permutations.
 	static ScnShaderPermutationEntry GPermutationsRenderType[] = 
 	{
-		{ scnSPF_RENDER_FORWARD,			"PERM_RENDER_FORWARD",			"1" },
-		{ scnSPF_RENDER_DEFERRED,			"PERM_RENDER_DEFERRED",			"1" },
-		{ scnSPF_RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS",		"1" },
-		{ scnSPF_RENDER_POST_PROCESS,		"PERM_RENDER_POST_PROCESS",		"1" },
+		{ ScnShaderPermutationFlags::RENDER_FORWARD,			"PERM_RENDER_FORWARD",			"1" },
+		{ ScnShaderPermutationFlags::RENDER_DEFERRED,			"PERM_RENDER_DEFERRED",			"1" },
+		{ ScnShaderPermutationFlags::RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS",		"1" },
+		{ ScnShaderPermutationFlags::RENDER_POST_PROCESS,		"PERM_RENDER_POST_PROCESS",		"1" },
+	};
+
+	static ScnShaderPermutationEntry GPermutationsPassType[] = 
+	{
+		{ ScnShaderPermutationFlags::PASS_MAIN,					"PERM_PASS_MAIN",				"1" },
+		{ ScnShaderPermutationFlags::PASS_SHADOW,				"PERM_PASS_SHADOW",				"1" },
 	};
 
 	static ScnShaderPermutationEntry GPermutationsMeshType[] = 
 	{
-		{ scnSPF_MESH_STATIC_2D,			"PERM_MESH_STATIC_2D",			"1" },
-		{ scnSPF_MESH_STATIC_3D,			"PERM_MESH_STATIC_3D",			"1" },
-		{ scnSPF_MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D",			"1" },
-		{ scnSPF_MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D",		"1" },
-		{ scnSPF_MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D",		"1" },
+		{ ScnShaderPermutationFlags::MESH_STATIC_2D,			"PERM_MESH_STATIC_2D",			"1" },
+		{ ScnShaderPermutationFlags::MESH_STATIC_3D,			"PERM_MESH_STATIC_3D",			"1" },
+		{ ScnShaderPermutationFlags::MESH_SKINNED_3D,			"PERM_MESH_SKINNED_3D",			"1" },
+		{ ScnShaderPermutationFlags::MESH_PARTICLE_3D,			"PERM_MESH_PARTICLE_3D",		"1" },
+		{ ScnShaderPermutationFlags::MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D",		"1" },
 	};
 
 	static ScnShaderPermutationEntry GPermutationsLightingType[] = 
 	{
-		{ scnSPF_LIGHTING_NONE,				"PERM_LIGHTING_NONE",			"1" },
-		{ scnSPF_LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE",		"1" },
+		{ ScnShaderPermutationFlags::LIGHTING_NONE,				"PERM_LIGHTING_NONE",			"1" },
+		{ ScnShaderPermutationFlags::LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE",		"1" },
 	};
 
 	static ScnShaderPermutationGroup GPermutationGroups[] =
 	{
 		ScnShaderPermutationGroup( GPermutationsRenderType ),
+		ScnShaderPermutationGroup( GPermutationsPassType ),
 		ScnShaderPermutationGroup( GPermutationsMeshType ),
 		ScnShaderPermutationGroup( GPermutationsLightingType ),
 	};
@@ -327,7 +335,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 			ShaderUnit.ShaderDataType_ = RsShaderDataType::SOURCE;
 			ShaderUnit.ShaderCodeType_ = ShaderData.second.CodeType_;
 			ShaderUnit.ShaderHash_ = ShaderData.second.Hash_;
-			ShaderUnit.PermutationFlags_ = 0;
+			ShaderUnit.PermutationFlags_ = ScnShaderPermutationFlags::NONE;
 
 			Stream.clear();
 			Stream.push( &ShaderUnit, sizeof( ShaderUnit ) );
@@ -362,10 +370,11 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 
 //////////////////////////////////////////////////////////////////////////
 // generatePermutations
-void ScnShaderImport::generatePermutations( BcU32 GroupIdx, 
-										    BcU32 NoofGroups,
-                                            ScnShaderPermutationGroup* PermutationGroups, 
-                                            ScnShaderPermutation Permutation )
+void ScnShaderImport::generatePermutations( 
+	BcU32 GroupIdx, 
+	BcU32 NoofGroups,
+	ScnShaderPermutationGroup* PermutationGroups, 
+	ScnShaderPermutation Permutation )
 {
 	const auto& PermutationGroup = PermutationGroups[ GroupIdx ];
 
@@ -414,7 +423,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	// Setup initial header.
 	ScnShaderProgramHeader ProgramHeader = {};
 	ProgramHeader.ProgramPermutationFlags_ = Params.Permutation_.Flags_;
-	ProgramHeader.ShaderFlags_ = 0;
+	ProgramHeader.ShaderFlags_ = ScnShaderPermutationFlags::NONE;
 	ProgramHeader.ShaderCodeType_ = Params.OutputCodeType_;
 	
 	// Cross dependenies needed for GLSL.
@@ -542,7 +551,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					}
 
 #if DEBUG_FILE_WRITE_OUT_FILES
-					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % ResourceName_ % ProgramHeader.ProgramPermutationFlags_ );
+					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % ResourceName_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
 					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
 					{
 						std::lock_guard< std::mutex > Lock( BuildingMutex_ );

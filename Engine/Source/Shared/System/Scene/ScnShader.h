@@ -42,11 +42,11 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	
-	RsProgram*							getProgram( BcU32 PermutationFlags );
+	RsProgram*							getProgram( ScnShaderPermutationFlags PermutationFlags );
 	
 private:
 	typedef std::map< BcU32, RsShader* > TShaderMap;
-	typedef std::map< BcU32, RsProgram* > TProgramMap;
+	typedef std::map< ScnShaderPermutationFlags, RsProgram* > TProgramMap;
 	typedef TShaderMap::iterator TShaderMapIterator;
 	typedef TProgramMap::iterator TProgramMapIterator;
 

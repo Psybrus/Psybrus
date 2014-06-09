@@ -100,7 +100,7 @@ void ScnShader::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // getProgram
-RsProgram* ScnShader::getProgram( BcU32 PermutationFlags )
+RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 {
 	// Find best matching permutation.
 	TProgramMapIterator BestIter = ProgramMap_.find( PermutationFlags );
@@ -111,7 +111,7 @@ RsProgram* ScnShader::getProgram( BcU32 PermutationFlags )
 		BcU32 BestFlagsSet = 0;
 		for( TProgramMapIterator Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
 		{
-			BcU32 FlagsSet = BcBitsSet( (*Iter).first & PermutationFlags );
+			BcU32 FlagsSet = BcBitsSet( (BcU32)(*Iter).first & (BcU32)PermutationFlags );
 			if( FlagsSet > BestFlagsSet )
 			{
 				BestIter = Iter;

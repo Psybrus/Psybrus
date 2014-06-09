@@ -23,7 +23,7 @@
 // Import structures.
 struct ScnShaderPermutationEntry
 {
-	BcU32							Flag_;
+	ScnShaderPermutationFlags		Flag_;
 	std::string						Define_;
 	std::string						Value_;
 };
@@ -45,12 +45,12 @@ struct ScnShaderPermutationGroup
 struct ScnShaderPermutation
 {
 	inline ScnShaderPermutation():
-		Flags_( 0 )
+		Flags_( ScnShaderPermutationFlags::NONE )
 	{
 
 	}
 
-	BcU32							Flags_;
+	ScnShaderPermutationFlags Flags_;
 	std::map< std::string, std::string > Defines_;
 };
 

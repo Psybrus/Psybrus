@@ -268,16 +268,16 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 		{
 			BcAssert( pPrimitiveRuntime->MaterialRef_.isValid() && pPrimitiveRuntime->MaterialRef_->isReady() );
 
-			BcU32 ShaderPermutation = pPrimitiveData->ShaderPermutation_;
+			ScnShaderPermutationFlags ShaderPermutation = pPrimitiveData->ShaderPermutation_;
 
 			// Setup lighting.
 			if( isLit() )
 			{
-				ShaderPermutation |= scnSPF_LIGHTING_DIFFUSE;
+				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_DIFFUSE;
 			}
 			else
 			{
-				ShaderPermutation |= scnSPF_LIGHTING_NONE;
+				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
 			}
 						
 			// Even on failure add. List must be of same size for quick lookups.

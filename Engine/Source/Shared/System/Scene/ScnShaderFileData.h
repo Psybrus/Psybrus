@@ -17,26 +17,110 @@
 #include "Base/BcTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnShaderPermutationFlags
-enum ScnShaderPermutationFlags
+// ScnShaderPermutationType
+enum class ScnShaderPermutationType : BcU32
 {
+	// Render types.
+	RENDER_FIRST,
+	RENDER_FORWARD = RENDER_FIRST,
+	RENDER_DEFERRED,
+	RENDER_FORWARD_PLUS,
+	RENDER_POST_PROCESS,
+	RENDER_MAX,
+	RENDER_COUNT = RENDER_MAX - RENDER_FIRST,
+	
+	// Pass types.
+	PASS_FIRST = RENDER_MAX,
+	PASS_MAIN = PASS_FIRST,
+	PASS_SHADOW,
+	PASS_MAX,
+	PASS_COUNT = PASS_MAX - PASS_FIRST,
+	
+	// Mesh types.
+	MESH_FIRST = PASS_MAX,
+	MESH_STATIC_2D = MESH_FIRST,
+	MESH_STATIC_3D,
+	MESH_SKINNED_3D	,
+	MESH_PARTICLE_3D,
+	MESH_INSTANCED_3D,
+	MESH_MAX,
+	MESH_COUNT = MESH_MAX - MESH_FIRST,
+	
+	// Lighting types.
+	LIGHTING_FIRST = MESH_MAX,
+	LIGHTING_NONE = LIGHTING_FIRST,
+	LIGHTING_DIFFUSE,
+	LIGHTING_MAX,
+	LIGHTING_COUNT = LIGHTING_MAX - LIGHTING_FIRST,
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPermutationFlags
+enum class ScnShaderPermutationFlags : BcU32
+{
+	NONE = 0,
+
 	// Render type.
-	scnSPF_RENDER_FORWARD				= 0x00000001,		// Forward rendering.
-	scnSPF_RENDER_DEFERRED				= 0x00000002,		// Deferred rendering.
-	scnSPF_RENDER_FORWARD_PLUS			= 0x00000004,		// Forward plus rendering.
-	scnSPF_RENDER_POST_PROCESS			= 0x00000008,		// Post process rendering.
+	RENDER_FORWARD				= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD,			// Forward rendering.
+	RENDER_DEFERRED				= 1 << (BcU32)ScnShaderPermutationType::RENDER_DEFERRED,		// Deferred rendering.
+	RENDER_FORWARD_PLUS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD_PLUS,	// Forward plus rendering.
+	RENDER_POST_PROCESS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_POST_PROCESS,	// Post process rendering.
+	RENDER_ALL = 
+		RENDER_FORWARD | 
+		RENDER_DEFERRED | 
+		RENDER_FORWARD_PLUS | 
+		RENDER_POST_PROCESS,
+	
+	// Pass type.
+	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,				// Main pass. (Typical default)
+	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,			// Shadow pass (Render to shadow buffer)
+	PASS_ALL =
+		PASS_MAIN |
+		PASS_SHADOW,
 
 	// Mesh type.
-	scnSPF_MESH_STATIC_2D				= 0x00000100,		// Static 2D.
-	scnSPF_MESH_STATIC_3D				= 0x00000200,		// Static 3D.
-	scnSPF_MESH_SKINNED_3D				= 0x00000400,		// Skinned 3D.
-	scnSPF_MESH_PARTICLE_3D				= 0x00000800,		// Particle 3D.
-	scnSPF_MESH_INSTANCED_3D			= 0x00001000,		// Instanced 3D.
+	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,			// Static 2D.
+	MESH_STATIC_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_3D,			// Static 3D.
+	MESH_SKINNED_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_SKINNED_3D,		// Skinned 3D.
+	MESH_PARTICLE_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_PARTICLE_3D,		// Particle 3D.
+	MESH_INSTANCED_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_INSTANCED_3D,		// Instanced 3D.
+	MESH_ALL =
+		MESH_STATIC_2D |
+		MESH_STATIC_3D |
+		MESH_SKINNED_3D |
+		MESH_PARTICLE_3D |
+		MESH_INSTANCED_3D,
 
 	// Lighting type.
-	scnSPF_LIGHTING_NONE				= 0x00010000,		// Unlit geometry.
-	scnSPF_LIGHTING_DIFFUSE				= 0x00020000,		// Diffuse lit geometry.
+	LIGHTING_NONE				= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_NONE,			// Unlit geometry.
+	LIGHTING_DIFFUSE			= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_DIFFUSE,		// Diffuse lit geometry.
+	LIGHTING_ALL = 
+		LIGHTING_NONE |
+		LIGHTING_DIFFUSE,
 };
+
+inline ScnShaderPermutationFlags operator |= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
+{
+	In = (ScnShaderPermutationFlags)( (int)In | (int)Other );
+	return In;
+}
+
+inline ScnShaderPermutationFlags operator | ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
+{
+	return (ScnShaderPermutationFlags)( (int)In | (int)Other );
+}
+
+inline ScnShaderPermutationFlags operator &= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
+{
+	In = (ScnShaderPermutationFlags)( (int)In & (int)Other );
+	return In;
+}
+
+inline ScnShaderPermutationFlags operator & ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
+{
+	return (ScnShaderPermutationFlags)( (int)In & (int)Other );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader
@@ -55,15 +139,15 @@ struct ScnShaderUnitHeader
 	RsShaderDataType				ShaderDataType_;
 	RsShaderCodeType				ShaderCodeType_;
 	BcU32							ShaderHash_;
-	BcU32							PermutationFlags_;
+	ScnShaderPermutationFlags		PermutationFlags_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderProgramHeader
 struct ScnShaderProgramHeader
 {
-	BcU32							ProgramPermutationFlags_;
-	BcU32							ShaderFlags_;
+	ScnShaderPermutationFlags		ProgramPermutationFlags_;
+	ScnShaderPermutationFlags		ShaderFlags_;
 	RsShaderCodeType				ShaderCodeType_;
 	BcU32							NoofVertexAttributes_;
 	BcU32							ShaderHashes_[ (BcU32)RsShaderType::MAX ];
