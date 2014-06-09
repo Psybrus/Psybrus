@@ -22,8 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes ):
-	RsProgram( pContext ),
-	ParameterBufferSize_( 0 )
+	RsProgram( pContext )
 {
 	NoofShaders_ = NoofShaders;
 	ppShaders_ = new RsShaderGL*[ NoofShaders ];	
@@ -100,10 +99,6 @@ void RsProgramGL::create()
 		return;
 	}
 	
-	// Clear parameter list and buffer.
-	ParameterList_.clear();
-	ParameterBufferSize_ = 0;
-
 	// Attempt to find uniform names.
 	GLint ActiveUniforms = 0;
 	glGetProgramiv( Handle, GL_ACTIVE_UNIFORMS, &ActiveUniforms );
@@ -131,7 +126,8 @@ void RsProgramGL::create()
 				*pIndexStart = '\0';
 			}
 
-			addParameter( UniformName, UniformLocation, Type, Size );
+			// Add sampler. Will fail if not supported sampler type.
+			addSampler( UniformName, UniformLocation, Type );
 		}
 	}
 	
@@ -211,130 +207,30 @@ void RsProgramGL::destroy()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// findParameter
+// findSampler
 //virtual
-BcU32 RsProgramGL::getParameterBufferSize() const
+BcU32 RsProgramGL::findSampler( const BcChar* Name )
 {
-	return ParameterBufferSize_;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// findParameterOffset
-//virtual
-BcU32 RsProgramGL::findParameterOffset( const BcChar* Name, RsShaderParameterType& Type, BcU32& Offset, BcU32& Bytes ) const
-{
-	for( TParameterListConstIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
+	for( auto It( SamplerList_.begin() ); It != SamplerList_.end(); ++It )
 	{
 		if( (*It).Name_ == Name )
 		{
-			Type = (*It).Type_;
-			Offset = (*It).Offset_;
-			Bytes = (*It).TypeBytes_;
-			return BcTrue;
+			return (*It).Handle_;
 		}
 	}
-	
-	return BcFalse;
+
+	return BcErrorCode;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// bind
+// setSampler
 //virtual
-void RsProgramGL::bind( void* pParameterBuffer )
+void RsProgramGL::setSampler( BcU32 Handle, BcU32 SamplerSlotIdx )
 {
-	GLuint Handle = getHandle< GLuint >();
-	glUseProgram( Handle );
-	RsGLCatchError();
-	
-	// Bind parameters from buffer if we have been given one.
-	// TODO: Only set a value if it isn't equal to the last set one.
-	if( pParameterBuffer != NULL )
+	if( Handle != BcErrorCode && SamplerList_.size() < Handle )
 	{
-		BcF32* pFloatParameter = (BcF32*)pParameterBuffer;
-		BcS32* pIntParameter = (BcS32*)pParameterBuffer;
-		for( TParameterListIterator It( ParameterList_.begin() ); It != ParameterList_.end(); ++It )
-		{
-			TParameter& Parameter = (*It);
-			const GLint ParamHandle = Parameter.Handle_;
-			const BcU32 Offset = Parameter.Offset_;
-			const BcU32 Count = Parameter.Size_;
-#ifdef PSY_DEBUG
-			BcF32* pFloatParameterOffset = &pFloatParameter[ Offset ];
-			BcS32* pIntParameterOffset = &pIntParameter[ Offset ];
-#endif
-			
-			switch( Parameter.Type_ )
-			{
-				case RsShaderParameterType::FLOAT:
-					glUniform1fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::FLOAT_VEC2:
-					glUniform2fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::FLOAT_VEC3:
-					glUniform3fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::FLOAT_VEC4:
-					glUniform4fv( ParamHandle, Count, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::FLOAT_MAT2:
-					glUniformMatrix2fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::FLOAT_MAT3:
-					glUniformMatrix3fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::FLOAT_MAT4:
-					glUniformMatrix4fv( ParamHandle, Count, GL_FALSE, &pFloatParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::INT:
-				case RsShaderParameterType::BOOL:
-				case RsShaderParameterType::SAMPLER_1D:
-				case RsShaderParameterType::SAMPLER_2D:
-				case RsShaderParameterType::SAMPLER_3D:
-				case RsShaderParameterType::SAMPLER_CUBE:
-				case RsShaderParameterType::SAMPLER_1D_SHADOW:
-				case RsShaderParameterType::SAMPLER_2D_SHADOW:
-					glUniform1iv( ParamHandle, Count, &pIntParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::INT_VEC2:
-				case RsShaderParameterType::BOOL_VEC2:
-					glUniform2iv( ParamHandle, Count, &pIntParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::INT_VEC3:
-				case RsShaderParameterType::BOOL_VEC3:
-					glUniform3iv( ParamHandle, Count, &pIntParameter[ Offset ] );
-					break;
-				case RsShaderParameterType::INT_VEC4:
-				case RsShaderParameterType::BOOL_VEC4:
-					glUniform4iv( ParamHandle, Count, &pIntParameter[ Offset ] );
-					break;
-					break;
-			}
-			
-#ifdef PSY_DEBUG
-			int Error = glGetError();
-			if( Error != 0 )
-			{
-				BcPrintf( "Error setting parameter \"%s\". Handle=%u, f=%f, i=%u\n", Parameter.Name_.c_str(), ParamHandle, *pFloatParameterOffset, *pIntParameterOffset );
-			}
-#endif
-		}
+		SamplerList_[ Handle ].SamplerSlotIdx_ = SamplerSlotIdx;
 	}
-
-	// Bind up uniform blocks.
-	BcU32 BindingPoint = 0;
-	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
-	{
-		if( (*It).Buffer_ != nullptr )
-		{
-			glUniformBlockBinding( Handle, (*It).Index_, BindingPoint );
-			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDataSize() );
-
-			++BindingPoint;
-			RsGLCatchError();
-		}
-	}
-		
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -367,6 +263,37 @@ void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// bind
+//virtual
+void RsProgramGL::bind()
+{
+	GLuint Handle = getHandle< GLuint >();
+	glUseProgram( Handle );
+	RsGLCatchError();
+	
+	// Bind up samplers.
+	for( const auto& Sampler : SamplerList_ )
+	{
+		glUniform1i( Sampler.Handle_, Sampler.SamplerSlotIdx_ );
+	}
+
+	// Bind up uniform blocks.
+	// TODO: Bind up as individual uniforms as an alternative
+	//       to uniform buffers where appropriate.
+	BcU32 BindingPoint = 0;
+	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
+	{
+		if( (*It).Buffer_ != nullptr )
+		{
+			glUniformBlockBinding( Handle, (*It).Index_, BindingPoint );
+			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDataSize() );
+			++BindingPoint;
+			RsGLCatchError();
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // addParameter
 //virtual
 const RsProgramVertexAttributeList& RsProgramGL::getVertexAttributeList() const
@@ -387,144 +314,46 @@ void RsProgramGL::logShaders() const
 
 ////////////////////////////////////////////////////////////////////////////////
 // addParameter
-void RsProgramGL::addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size )
+void RsProgramGL::addSampler( const GLchar* pName, GLint Handle, GLenum Type )
 {
 	// Calculate number of bytes it needs and size.
 	RsShaderParameterType InternalType;
 	BcU32 Bytes = 0;
 	switch( Type )
 	{
-		case GL_FLOAT:
-			InternalType = RsShaderParameterType::FLOAT;
-			Bytes = 4;
-			break;
-		case GL_FLOAT_VEC2:
-			InternalType = RsShaderParameterType::FLOAT_VEC2;
-			Bytes = 8;
-			break;
-		case GL_FLOAT_VEC3:
-			InternalType = RsShaderParameterType::FLOAT_VEC3;
-			Bytes = 12;
-			break;
-		case GL_FLOAT_VEC4:
-			InternalType = RsShaderParameterType::FLOAT_VEC4;
-			Bytes = 16;
-			break;
-		case GL_INT:
-			InternalType = RsShaderParameterType::INT;
-			Bytes = 4;
-			break;
-		case GL_INT_VEC2:
-			InternalType = RsShaderParameterType::INT_VEC2;
-			Bytes = 8;
-			break;
-		case GL_INT_VEC3:
-			InternalType = RsShaderParameterType::INT_VEC3;
-			Bytes = 12;
-			break;
-		case GL_INT_VEC4:
-			InternalType = RsShaderParameterType::INT_VEC4;
-			Bytes = 16;
-			break;
-		case GL_BOOL:
-			InternalType = RsShaderParameterType::BOOL;
-			Bytes = 4;
-			break;
-		case GL_BOOL_VEC2:
-			InternalType = RsShaderParameterType::BOOL_VEC2;
-			Bytes = 8;
-			break;
-		case GL_BOOL_VEC3:
-			InternalType = RsShaderParameterType::BOOL_VEC3;
-			Bytes = 12;
-			break;
-		case GL_BOOL_VEC4:
-			InternalType = RsShaderParameterType::BOOL_VEC4;
-			Bytes = 16;
-			break;
-		case GL_FLOAT_MAT2:
-			InternalType = RsShaderParameterType::FLOAT_MAT2;
-			Bytes = 16;
-			break;
-		case GL_FLOAT_MAT3:
-			InternalType = RsShaderParameterType::FLOAT_MAT3;
-			Bytes = 36;
-			break;
-		case GL_FLOAT_MAT4:
-			InternalType = RsShaderParameterType::FLOAT_MAT4;
-			Bytes = 64;
-			break;
-			/* NOTE: GL2.1 or later, ignore for now!
-		case GL_FLOAT_MAT2x3:
-			Bytes = 24;
-			break;
-		case GL_FLOAT_MAT2x4:
-			Bytes = 32;
-			break;
-		case GL_FLOAT_MAT3x2:
-			Bytes = 24;
-			break;
-		case GL_FLOAT_MAT3x4:
-			Bytes = 48;
-			break;
-		case GL_FLOAT_MAT4x2:
-			Bytes = 32;
-			break;
-		case GL_FLOAT_MAT4x3:
-			Bytes = 48;
-			break;
-			*/
 		case GL_SAMPLER_1D:
 			InternalType = RsShaderParameterType::SAMPLER_1D;
-			Bytes = 4;
 			break;
 		case GL_SAMPLER_2D:
 			InternalType = RsShaderParameterType::SAMPLER_2D;
-			Bytes = 4;
 			break;
 		case GL_SAMPLER_3D:
 			InternalType = RsShaderParameterType::SAMPLER_3D;
-			Bytes = 4;
 			break;
 		case GL_SAMPLER_CUBE:
 			InternalType = RsShaderParameterType::SAMPLER_CUBE;
-			Bytes = 4;
 			break;
 		case GL_SAMPLER_1D_SHADOW:
 			InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
-			Bytes = 4;
 			break;
 		case GL_SAMPLER_2D_SHADOW:
 			InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
-			Bytes = 4;
 			break;
 		default:
 			InternalType = RsShaderParameterType::INVALID;
-			Bytes = 0;
 			break;
 	}
 
 	// If parameter is valid, add it.
 	if( InternalType != RsShaderParameterType::INVALID )
 	{
-		TParameter Parameter = 
+		TSampler Sampler = 
 		{
 			pName,
 			Handle,
-			ParameterBufferSize_ >> 2,
-			Size,
-			Bytes,
-			InternalType
+			InternalType,
 		};
-		
-		// Add parameter.
-		ParameterList_.push_back( Parameter );
-	
-		// Increate parameter buffer size.
-		ParameterBufferSize_ += Bytes * Size;
-		
-		// Log.
-		//BcPrintf( "RsProgramGL::Adding parameter \"%s\". Handle=%u, Offset=%u\n", pName, Handle, ParameterBufferSize_ - Bytes );
+		SamplerList_.push_back( Sampler );
 	}
 }
 

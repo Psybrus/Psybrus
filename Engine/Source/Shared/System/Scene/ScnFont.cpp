@@ -459,10 +459,10 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 	Parent_ = Parent; 
 	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, ScnShaderPermutationFlags::MESH_STATIC_2D ) )
 	{	
-		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
-		if( Parameter != BcErrorCode )
+		BcU32 Sampler = MaterialComponent_->findSampler( "aDiffuseTex" );
+		if( Sampler != BcErrorCode )
 		{ 
-			MaterialComponent_->setTexture( Parameter, Parent_->Texture_ );
+			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
 		}
 	}
 

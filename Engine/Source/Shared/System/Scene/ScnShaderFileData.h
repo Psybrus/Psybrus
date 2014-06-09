@@ -22,34 +22,34 @@ enum class ScnShaderPermutationType : BcU32
 {
 	// Render types.
 	RENDER_FIRST,
-	RENDER_FORWARD = RENDER_FIRST,
-	RENDER_DEFERRED,
-	RENDER_FORWARD_PLUS,
-	RENDER_POST_PROCESS,
+	RENDER_FORWARD = RENDER_FIRST,				// Forward rendering.
+	RENDER_DEFERRED,							// Deferred rendering.
+	RENDER_FORWARD_PLUS,						// Forward plus rendering.
+	RENDER_POST_PROCESS,						// Post process rendering.
 	RENDER_MAX,
 	RENDER_COUNT = RENDER_MAX - RENDER_FIRST,
 	
 	// Pass types.
 	PASS_FIRST = RENDER_MAX,
-	PASS_MAIN = PASS_FIRST,
-	PASS_SHADOW,
+	PASS_MAIN = PASS_FIRST,						// Main pass. (Typical default)
+	PASS_SHADOW,								// Shadow pass (Render to shadow buffer)
 	PASS_MAX,
 	PASS_COUNT = PASS_MAX - PASS_FIRST,
 	
 	// Mesh types.
 	MESH_FIRST = PASS_MAX,
-	MESH_STATIC_2D = MESH_FIRST,
-	MESH_STATIC_3D,
-	MESH_SKINNED_3D	,
-	MESH_PARTICLE_3D,
-	MESH_INSTANCED_3D,
+	MESH_STATIC_2D = MESH_FIRST,				// Static 2D.
+	MESH_STATIC_3D,								// Static 3D.
+	MESH_SKINNED_3D	,							// Skinned 3D.
+	MESH_PARTICLE_3D,							// Particle 3D.
+	MESH_INSTANCED_3D,							// Instanced 3D.
 	MESH_MAX,
 	MESH_COUNT = MESH_MAX - MESH_FIRST,
 	
 	// Lighting types.
 	LIGHTING_FIRST = MESH_MAX,
-	LIGHTING_NONE = LIGHTING_FIRST,
-	LIGHTING_DIFFUSE,
+	LIGHTING_NONE = LIGHTING_FIRST,				// Unlit geometry.
+	LIGHTING_DIFFUSE,							// Diffuse lit geometry.
 	LIGHTING_MAX,
 	LIGHTING_COUNT = LIGHTING_MAX - LIGHTING_FIRST,
 };
@@ -62,10 +62,10 @@ enum class ScnShaderPermutationFlags : BcU32
 	NONE = 0,
 
 	// Render type.
-	RENDER_FORWARD				= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD,			// Forward rendering.
-	RENDER_DEFERRED				= 1 << (BcU32)ScnShaderPermutationType::RENDER_DEFERRED,		// Deferred rendering.
-	RENDER_FORWARD_PLUS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD_PLUS,	// Forward plus rendering.
-	RENDER_POST_PROCESS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_POST_PROCESS,	// Post process rendering.
+	RENDER_FORWARD				= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD,
+	RENDER_DEFERRED				= 1 << (BcU32)ScnShaderPermutationType::RENDER_DEFERRED,
+	RENDER_FORWARD_PLUS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD_PLUS,
+	RENDER_POST_PROCESS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_POST_PROCESS,
 	RENDER_ALL = 
 		RENDER_FORWARD | 
 		RENDER_DEFERRED | 
@@ -73,18 +73,18 @@ enum class ScnShaderPermutationFlags : BcU32
 		RENDER_POST_PROCESS,
 	
 	// Pass type.
-	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,				// Main pass. (Typical default)
-	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,			// Shadow pass (Render to shadow buffer)
+	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,
+	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,
 	PASS_ALL =
 		PASS_MAIN |
 		PASS_SHADOW,
 
 	// Mesh type.
-	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,			// Static 2D.
-	MESH_STATIC_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_3D,			// Static 3D.
-	MESH_SKINNED_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_SKINNED_3D,		// Skinned 3D.
-	MESH_PARTICLE_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_PARTICLE_3D,		// Particle 3D.
-	MESH_INSTANCED_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_INSTANCED_3D,		// Instanced 3D.
+	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,
+	MESH_STATIC_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_3D,
+	MESH_SKINNED_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_SKINNED_3D,
+	MESH_PARTICLE_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_PARTICLE_3D,
+	MESH_INSTANCED_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_INSTANCED_3D,
 	MESH_ALL =
 		MESH_STATIC_2D |
 		MESH_STATIC_3D |
@@ -93,8 +93,8 @@ enum class ScnShaderPermutationFlags : BcU32
 		MESH_INSTANCED_3D,
 
 	// Lighting type.
-	LIGHTING_NONE				= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_NONE,			// Unlit geometry.
-	LIGHTING_DIFFUSE			= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_DIFFUSE,		// Diffuse lit geometry.
+	LIGHTING_NONE				= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_NONE,
+	LIGHTING_DIFFUSE			= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_DIFFUSE,
 	LIGHTING_ALL = 
 		LIGHTING_NONE |
 		LIGHTING_DIFFUSE,

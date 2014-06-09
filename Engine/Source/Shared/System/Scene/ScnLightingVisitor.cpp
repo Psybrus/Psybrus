@@ -88,6 +88,7 @@ void ScnLightingVisitor::setMaterialParameters( class ScnMaterialComponent* Mate
 
 	for( BcU32 Idx = Count; Idx < 4; ++Idx )
 	{
+		/*
 		MaterialComponent->setLightParameters( Idx,
 	                                           MaVec3d( 0.0f, 0.0f, 0.0f ),
 	                                           MaVec3d( 0.0f, 0.0f, 0.0f ),
@@ -96,5 +97,6 @@ void ScnLightingVisitor::setMaterialParameters( class ScnMaterialComponent* Mate
 	                                           0.0f,
 	                                           0.0f,
 	                                           0.0f );
+	                                           */
 	}
 }

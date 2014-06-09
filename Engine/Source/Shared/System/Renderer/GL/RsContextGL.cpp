@@ -808,7 +808,7 @@ void RsContextGL::flushState()
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
 		// Bind program.
-		Program_->bind( nullptr );
+		Program_->bind();
 
 		// Cached vertex handle for binding.
 		GLuint BoundVertexHandle = 0;

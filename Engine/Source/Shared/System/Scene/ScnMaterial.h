@@ -88,22 +88,11 @@ public:
 	void								initialise( const Json::Value& Object );
 	void								destroy();
 	
-	BcU32								findParameter( const BcName& ParameterName );	
-	void								setParameter( BcU32 Parameter, BcS32 Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, BcBool Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, BcF32 Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const MaVec2d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const MaVec3d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const MaVec4d& Value, BcU32 Index = 0 );
-	void								setParameter( BcU32 Parameter, const MaMat4d& Value, BcU32 Index = 0 );
-	void								setTexture( BcU32 Parameter, ScnTextureRef Texture );
+	BcU32								findSampler( const BcName& SamplerName );	
+	void								setTexture( BcU32 Sampler, ScnTextureRef Texture );
 
 	BcU32								findUniformBlock( const BcName& UniformBlockName );	
 	void								setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer );
-
-	// Common scene parameters.
-	void								setWorldTransform( const MaMat4d& Transform );
-	void								setLightParameters( BcU32 LightIndex, const MaVec3d& Position, const MaVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ );
 
 	// Common uniform blocks.
 	void								setViewUniformBlock( RsUniformBuffer* UniformBuffer );
@@ -113,7 +102,7 @@ public:
 
 	void								setState( RsRenderStateType State, BcU32 Value );
 	
-	ScnTextureRef						getTexture( BcU32 Parameter );
+	ScnTextureRef						getTexture( BcU32 Idx );
 	ScnMaterialRef						getMaterial();
 	
 	void								bind( RsFrame* pFrame, RsRenderSort& Sort );
@@ -127,24 +116,14 @@ public:
 private:
 	friend class ScnMaterial;
 	
-	struct TParameterBinding
+	struct TSamplerBinding
 	{
-		RsShaderParameterType			Type_;
-		BcU32							Offset_;
-		BcU32							TypeBytes_;
-	};
-	
-	typedef std::vector< TParameterBinding > TParameterBindingList;
-	typedef TParameterBindingList::iterator TParameterBindingListIterator;
-	
-	struct TTextureBinding
-	{
-		BcU32							Parameter_;
+		BcU32							Handle_;
 		ScnTextureRef					Texture_;
 	};
 	
-	typedef std::vector< TTextureBinding > TTextureBindingList;
-	typedef TTextureBindingList::iterator TTextureBindingListIterator;
+	typedef std::vector< TSamplerBinding > TSamplerBindingList;
+	typedef TSamplerBindingList::iterator TSamplerBindingListIterator;
 	
 	struct TUniformBlockBinding
 	{
@@ -160,25 +139,13 @@ private:
 	ScnShaderPermutationFlags			PermutationFlags_;
 	RsProgram*							pProgram_;
 
-	TParameterBindingList				ParameterBindingList_;
-	TTextureBindingList					TextureBindingList_;
+	TSamplerBindingList					SamplerBindingList_;
 	TUniformBlockBindingList			UniformBlockBindingList_;
-
-	BcU32								ParameterBufferSize_;
-	BcU8*								pParameterBuffer_;
 	
 	// TODO: Should be handled by the state block.
 	BcU32*								pStateBuffer_;
 
 	// Common scene parameters.
-	// TODO: Move these into the parent material?
-	BcU32								WorldTransformParameter_;
-	BcU32								LightPositionParameter_;
-	BcU32								LightDirectionParameter_;
-	BcU32								LightAmbientColourParameter_;
-	BcU32								LightDiffuseColourParameter_;
-	BcU32								LightAttnParameter_;
-
 	BcU32								ViewUniformBlockIndex_;
 	BcU32								BoneUniformBlockIndex_;
 	BcU32								ObjectUniformBlockIndex_;
