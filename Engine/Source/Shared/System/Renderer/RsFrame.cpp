@@ -33,7 +33,7 @@ void RsFrame::debugLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsC
 // debugAxis/*
 void RsFrame::debugAxis( const MaVec3d& Point, BcF32 Size, const RsColour& Colour )
 {
-	beginPrimitive( RsPrimitiveType::LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
+	beginPrimitive( RsTopologyType::LINE_LIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 	addLine( Point - MaVec3d( Size, 0.0f, 0.0f ), Point + MaVec3d( Size, 0.0f, 0.0f ), Colour, 0 );
 	addLine( Point - MaVec3d( 0.0f, Size, 0.0f ), Point + MaVec3d( 0.0f, Size, 0.0f ), Colour, 0 );
 	addLine( Point - MaVec3d( 0.0f, 0.0f, Size ), Point + MaVec3d( 0.0f, 0.0f, Size ), Colour, 0 );
@@ -47,7 +47,7 @@ void RsFrame::debugGrid( const MaVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 El
 	BcF32 LBound = -Step * BcF32( Elements >> 1 );
 	BcF32 UBound =  Step * BcF32( Elements >> 1 );
 
-	beginPrimitive( RsPrimitiveType::LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
+	beginPrimitive( RsTopologyType::LINE_LIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 
 	switch( Axis )
 	{
@@ -83,7 +83,7 @@ void RsFrame::debugGrid( const MaVec3d& Centre, BcF32 Step, BcU32 Axis, BcU32 El
 // debugAABB
 void RsFrame::debugAABB( const MaAABB& AABB, const RsColour& Colour )
 {
-	beginPrimitive( RsPrimitiveType::LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
+	beginPrimitive( RsTopologyType::LINE_LIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 
 	addLine( AABB.corner( 0 ), AABB.corner( 1 ), Colour, 0 );
 	addLine( AABB.corner( 1 ), AABB.corner( 3 ), Colour, 0 );
@@ -116,7 +116,7 @@ void RsFrame::debugMatrix( const MaMat4d& Matrix, BcF32 Scale, const RsColour& C
 	Y = Y * Scale;
 	Z = Z * Scale;
 
-	beginPrimitive( RsPrimitiveType::LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
+	beginPrimitive( RsTopologyType::LINE_LIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 
 	addLine( Position, Position + X, RsColour::RED * Colour, 0 );
 	addLine( Position, Position + Y, RsColour::GREEN * Colour, 0 );
@@ -133,7 +133,7 @@ void RsFrame::debugEllipsoid( const MaVec3d& Centre, const MaVec3d& Scale, BcU32
 	BcF32 Angle = 0.0f;
 	BcF32 AngleInc = ( BcPI * 2.0f ) / BcF32( LOD );
 
-	beginPrimitive( RsPrimitiveType::LINELIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
+	beginPrimitive( RsTopologyType::LINE_LIST, rsFPM_3D, Colour.a() < 1.0f ? 1 : 0 );
 
 	// Draw axis lines.
 	for( BcU32 i = 0; i < LOD; ++i )
@@ -238,7 +238,7 @@ void RsFrame::debugCube( const MaMat4d& Transform, const RsColour& Colour )
 	}
 	
 	//
-	addPrimitive( NULL, NULL, RsPrimitiveType::TRIANGLELIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
+	addPrimitive( NULL, NULL, RsTopologyType::TRIANGLE_LIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -284,6 +284,6 @@ void RsFrame::debugCone( const MaMat4d& Transform, const RsColour& Colour )
 		pVertices[i] = CachedVert;
 	}
 
-	addPrimitive( NULL, NULL, RsPrimitiveType::TRIANGLELIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
+	addPrimitive( NULL, NULL, RsTopologyType::TRIANGLE_LIST, NoofIndices / 3, rsVDF_POSITION_XYZ | rsVDF_COLOUR_ABGR8, pVertices, Colour.a() < 1.0f ? 1 : 0 );
 }
 */

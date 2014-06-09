@@ -366,15 +366,19 @@ enum class RsRenderStateType : BcU32
 
 //////////////////////////////////////////////////////////////////////////
 // Primitive Types.
-enum class RsPrimitiveType : BcU32
+enum class RsTopologyType : BcU32
 {
-	POINTLIST = 0,
-	LINELIST,
-	LINESTRIP,
-	TRIANGLELIST,
-	TRIANGLESTRIP,
-	TRIANGLEFAN,
-	PATCHES,
+	POINTS = 0,
+	LINE_LIST,
+	LINE_STRIP,
+	LINE_LIST_ADJACENCY,
+	LINE_STRIP_ADJACENCY,
+	TRIANGLE_LIST,
+	TRIANGLE_STRIP,
+	TRIANGLE_LIST_ADJACENCY,
+	TRIANGLE_STRIP_ADJACENCY,
+	TRIANGLE_FAN,
+	PATCH_LIST,
 
 	MAX,	
 	INVALID = BcErrorCode

@@ -46,7 +46,7 @@ class RsViewportNode: public RsRenderNode
 public:
 	void render()
 	{
-		glViewport( 0, 0, Viewport_.width(), Viewport_.height() );
+		pContext_->setViewport( Viewport_ );
 	}
 	
 	RsViewport Viewport_;
@@ -58,26 +58,14 @@ class RsRenderTargetNode: public RsRenderNode
 public:
 	void render()
 	{
- 		if( pRenderTarget_ != NULL )
-		{
-			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
-			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
-		}
-		else
-		{
-			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		}
-
+		pContext_->setRenderTarget( pRenderTarget_ );
 		const BcS32 DepthWriteEnable = pContext_->getRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE );
 		const BcS32 ColourWriteMask0 = pContext_->getRenderState( RsRenderStateType::COLOR_WRITE_MASK_0 );
 		const BcS32 StencilWriteMask = pContext_->getRenderState( RsRenderStateType::STENCIL_WRITE_MASK );
-
 		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1 );
 		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, 15 );
 		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, 255 );
-
 		pContext_->clear( RsColour( 0, 0, 0, 0 ) );
-
 		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, DepthWriteEnable );
 		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, ColourWriteMask0 );
 		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, StencilWriteMask );
@@ -85,7 +73,6 @@ public:
 	
 	RsRenderTarget* pRenderTarget_;
 };
-
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -258,7 +245,7 @@ void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 
 //////////////////////////////////////////////////////////////////////////
 // beginPrimitive
-void RsFrameGL::beginPrimitive( RsPrimitiveType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer )
+void RsFrameGL::beginPrimitive( RsTopologyType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer )
 {
 	BcAssertMsg( pCurrPrimitive_ == NULL, "RsFrameGL: Primitive already started." );
 	BcBreakpoint;
@@ -361,7 +348,7 @@ void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsC
 	if( pCurrPrimitive_ == NULL )
 	{
 		pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-		pNode->PrimType_= RsPrimitiveType::LINELIST;
+		pNode->PrimType_= RsTopologyType::LINE_LIST;
 		pNode->NoofPrims_ = 1;
 		pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
 		pNode->VertexStride_ = sizeof( TVertex2D );
@@ -381,7 +368,7 @@ void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsC
 	}
 	else
 	{
-		BcAssert( pNode->PrimType_ == RsPrimitiveType::LINELIST );
+		BcAssert( pNode->PrimType_ == RsTopologyType::LINE_LIST );
 		pNode->NoofPrims_ += 1;
 	}
 	*/
@@ -428,7 +415,7 @@ void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsC
 	if( pCurrPrimitive_ == NULL )
 	{	
 		pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_3D );
-		pNode->PrimType_= RsPrimitiveType::LINELIST;
+		pNode->PrimType_= RsTopologyType::LINE_LIST;
 		pNode->NoofPrims_ = 1;
 		pNode->VertexFormat_ = TVertex3D::VERTEX_TYPE;
 		pNode->VertexStride_ = sizeof( TVertex3D );
@@ -449,7 +436,7 @@ void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsC
 	}
 	else
 	{
-		BcAssert( pNode->PrimType_ == RsPrimitiveType::LINELIST );
+		BcAssert( pNode->PrimType_ == RsTopologyType::LINE_LIST );
 		pNode->NoofPrims_ += 1;
 	}
 	*/
@@ -493,7 +480,7 @@ void RsFrameGL::addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const Rs
 
 	// If we've got no prim list, just add the node now.
 	pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-	pNode->PrimType_= RsPrimitiveType::TRIANGLESTRIP;
+	pNode->PrimType_= RsTopologyType::TRIANGLESTRIP;
 	pNode->NoofPrims_ = 2;
 	pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
 	pNode->VertexStride_ = sizeof( TVertex2D );
@@ -559,7 +546,7 @@ void RsFrameGL::addSprite( RsMaterial* pMaterial, const MaVec2d& Position )
 	pVertices[3].Colour_ = Colour;
 
 	pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-	pNode->PrimType_= RsPrimitiveType::TRIANGLESTRIP;
+	pNode->PrimType_= RsTopologyType::TRIANGLESTRIP;
 	pNode->NoofPrims_ = 2;
 	pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
 	pNode->VertexStride_ = sizeof( TVertex2D );
@@ -578,7 +565,7 @@ void RsFrameGL::addSprite( RsMaterial* pMaterial, const MaVec2d& Position )
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void RsFrameGL::addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, RsPrimitiveType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth )
+void RsFrameGL::addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, RsTopologyType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth )
 {
 	BcBreakpoint;
 
