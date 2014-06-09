@@ -161,7 +161,7 @@ ScnDebugRenderComponentVertex* ScnDebugRenderComponent::allocVertices( BcU32 Noo
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnDebugRenderComponent::addPrimitive( RsPrimitiveType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnDebugRenderComponent::addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
 	BcAssertMsg( MaterialComponent_.isValid(), "ScnDebugRenderComponent: Material component has not been set!" );
 
@@ -222,7 +222,7 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == RsPrimitiveType::LINELIST &&
+			if( PrimitiveSection.Type_ == RsTopologyType::LINE_LIST &&
 				PrimitiveSection.Layer_ == Layer &&
 				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -235,7 +235,7 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( RsPrimitiveType::LINELIST, pFirstVertex, 2, Layer, BcTrue );
+			addPrimitive( RsTopologyType::LINE_LIST, pFirstVertex, 2, Layer, BcTrue );
 		}
 	}
 }
@@ -264,7 +264,7 @@ void ScnDebugRenderComponent::drawLines( const MaVec3d* pPoints, BcU32 NoofLines
 		}
 		
 		// Add primitive.		
-		addPrimitive( RsPrimitiveType::LINESTRIP, pFirstVertex, NoofVertices, Layer, BcTrue );
+		addPrimitive( RsTopologyType::LINE_STRIP, pFirstVertex, NoofVertices, Layer, BcTrue );
 	}
 }
 

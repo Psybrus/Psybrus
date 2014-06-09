@@ -600,7 +600,7 @@ public:
 		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
 	}
 
-	RsPrimitiveType Type_;
+	RsTopologyType Type_;
 	BcU32 Offset_;
 	BcU32 NoofIndices_;
 	RsIndexBuffer* IndexBuffer_;

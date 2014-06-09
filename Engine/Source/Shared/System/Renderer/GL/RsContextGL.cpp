@@ -18,8 +18,10 @@
 #include "System/Renderer/GL/RsVertexBufferGL.h"
 #include "System/Renderer/GL/RsIndexBufferGL.h"
 #include "System/Renderer/GL/RsTextureGL.h"
+#include "System/Renderer/GL/RsRenderTargetGL.h"
 
 #include "System/Renderer/RsVertexDeclaration.h"
+#include "System/Renderer/RsViewport.h"
 
 #include "System/Os/OsClient.h"
 
@@ -139,15 +141,19 @@ static GLuint gVertexDataSize[] =
 	4					// RsVertexDataType::UINT_NORM,
 };
 
-static GLenum gPrimitiveType[] =
+static GLenum gTopologyType[] =
 {
-	GL_POINTS,			// RsPrimitiveType::POINTLIST = 0,
-	GL_LINES,			// RsPrimitiveType::LINELIST,
-	GL_LINE_STRIP,		// RsPrimitiveType::LINESTRIP,
-	GL_TRIANGLES,		// RsPrimitiveType::TRIANGLELIST,
-	GL_TRIANGLE_STRIP,	// RsPrimitiveType::TRIANGLESTRIP,
-	GL_TRIANGLE_FAN,	// RsPrimitiveType::TRIANGLEFAN,
-	GL_PATCHES			// RsPrimitiveType::PATCHES,
+	GL_POINTS,						// RsTopologyType::POINTLIST = 0,
+	GL_LINES,						// RsTopologyType::LINE_LIST,
+	GL_LINE_STRIP,					// RsTopologyType::LINE_STRIP,
+	GL_LINES_ADJACENCY,				// RsTopologyType::LINE_LIST_ADJACENCY,
+	GL_LINE_STRIP_ADJACENCY,		// RsTopologyType::LINE_STRIP_ADJACENCY,
+	GL_TRIANGLES,					// RsTopologyType::TRIANGLE_LIST,
+	GL_TRIANGLE_STRIP,				// RsTopologyType::TRIANGLE_STRIP,
+	GL_TRIANGLES_ADJACENCY,			// RsTopologyType::TRIANGLE_LIST_ADJACENCY,
+	GL_TRIANGLE_STRIP_ADJACENCY,	// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
+	GL_TRIANGLE_FAN,				// RsTopologyType::TRIANGLE_FAN,
+	GL_PATCHES						// RsTopologyType::PATCHES,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -876,19 +882,19 @@ void RsContextGL::clear( const RsColour& Colour )
 
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
-void RsContextGL::drawPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
+void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	flushState();
-	glDrawArrays( gPrimitiveType[ (BcU32)PrimitiveType ], IndexOffset, NoofIndices );
+	glDrawArrays( gTopologyType[ (BcU32)TopologyType ], IndexOffset, NoofIndices );
 	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
-void RsContextGL::drawIndexedPrimitives( RsPrimitiveType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	flushState();
-	glDrawElementsBaseVertex( gPrimitiveType[ (BcU32)PrimitiveType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
+	glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
 	RsGLCatchError();
 }
 
@@ -898,6 +904,30 @@ const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
 {
 	return Version_;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderTarget
+void RsContextGL::setRenderTarget( class RsRenderTarget* RenderTarget )
+{
+	if( RenderTarget != nullptr )
+	{
+		GLuint Handle = RenderTarget->getHandle< GLuint >();
+		glBindFramebuffer( GL_FRAMEBUFFER, Handle );
+	}
+	else
+	{
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewport
+void RsContextGL::setViewport( class RsViewport& Viewport )
+{
+	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
+	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // bindStencilFunc

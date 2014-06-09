@@ -167,7 +167,7 @@ public:
 	{
 		pContext_->setVertexBuffer( 0, VertexBuffer_ );
 		pContext_->setVertexDeclaration( VertexDeclaration_ );
-		pContext_->drawPrimitives( RsPrimitiveType::TRIANGLELIST, 0, NoofIndices_ );
+		pContext_->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofIndices_ );
 	}
 	
 	RsVertexBuffer* VertexBuffer_;
