@@ -53,8 +53,8 @@ struct ScnModelPrimitiveData
 {
 	BcU32							NodeIndex_;
 	BcBool							IsSkinned_;
-	RsTopologyType				Type_;
-	BcU32							ShaderPermutation_;
+	RsTopologyType					Type_;
+	ScnShaderPermutationFlags		ShaderPermutation_;
 	BcU32							NoofIndices_;
 	BcU32							MaterialRef_;
 	BcU32							Padding0_;

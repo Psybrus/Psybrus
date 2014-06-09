@@ -47,7 +47,7 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
-	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_PARTICLE_3D ) )
+	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, ScnShaderPermutationFlags::MESH_PARTICLE_3D ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}

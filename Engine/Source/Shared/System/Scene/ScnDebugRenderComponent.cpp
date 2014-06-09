@@ -77,7 +77,7 @@ void ScnDebugRenderComponent::initialise( const Json::Value& Object )
 
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
 
-	CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_STATIC_3D | scnSPF_LIGHTING_NONE );
+	CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, ScnShaderPermutationFlags::MESH_STATIC_3D | ScnShaderPermutationFlags::LIGHTING_NONE );
 }
 
 //////////////////////////////////////////////////////////////////////////

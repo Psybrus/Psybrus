@@ -84,7 +84,7 @@ class ScnMaterialComponent:
 public:
 	DECLARE_RESOURCE( ScnComponent, ScnMaterialComponent );
 	
-	void								initialise( ScnMaterialRef Parent, BcU32 PermutationFlags );
+	void								initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
 	void								initialise( const Json::Value& Object );
 	void								destroy();
 	
@@ -126,7 +126,7 @@ public:
 
 private:
 	friend class ScnMaterial;
-			
+	
 	struct TParameterBinding
 	{
 		RsShaderParameterType			Type_;
@@ -155,8 +155,9 @@ private:
 	typedef std::vector< TUniformBlockBinding > TUniformBlockBindingList;
 	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
 
+
 	ScnMaterialRef						Parent_;
-	BcU32								PermutationFlags_;
+	ScnShaderPermutationFlags			PermutationFlags_;
 	RsProgram*							pProgram_;
 
 	TParameterBindingList				ParameterBindingList_;
