@@ -273,13 +273,6 @@ void ScnMaterialComponent::StaticRegisterClass()
 	{
 		ReField( "Parent_",						&ScnMaterialComponent::Parent_ ),
 		ReField( "pProgram_",					&ScnMaterialComponent::pProgram_ ),
-		ReField( "ParameterBufferSize_",		&ScnMaterialComponent::ParameterBufferSize_ ),
-		ReField( "WorldTransformParameter_",	&ScnMaterialComponent::WorldTransformParameter_ ),
-		ReField( "LightPositionParameter_",		&ScnMaterialComponent::LightPositionParameter_ ),
-		ReField( "LightDirectionParameter_",	&ScnMaterialComponent::LightDirectionParameter_ ),
-		ReField( "LightAmbientColourParameter_",&ScnMaterialComponent::LightAmbientColourParameter_ ),
-		ReField( "LightDiffuseColourParameter_",&ScnMaterialComponent::LightDiffuseColourParameter_ ),
-		ReField( "LightAttnParameter_",			&ScnMaterialComponent::LightAttnParameter_ ),
 		ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
 		ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
 		ReField( "ObjectUniformBlockIndex_",	&ScnMaterialComponent::ObjectUniformBlockIndex_ ),
@@ -304,18 +297,6 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags_ );
 	
-	// Allocate parameter buffer.
-	ParameterBufferSize_ = pProgram_->getParameterBufferSize();
-	if( ParameterBufferSize_ > 0 )
-	{
-		pParameterBuffer_ = new BcU8[ ParameterBufferSize_ ];
-		BcMemSet( pParameterBuffer_, 0, ParameterBufferSize_ );
-	}
-	else
-	{
-		pParameterBuffer_ = NULL;
-	}
-	
 	// Allocate state buffer and copy defaults in.
 	pStateBuffer_ = new BcU32[ (BcU32)RsRenderStateType::MAX ];
 	BcMemCopy( pStateBuffer_, Parent->pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
@@ -326,28 +307,13 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 	{
 		const BcName& SamplerName = (*Iter).first;
 		ScnTextureRef Texture = (*Iter).second;
-		
-		// Find sampler in program.
-		TTextureBinding Binding = 
+
+		BcU32 SamplerIdx = findSampler( SamplerName );
+		if( SamplerIdx != BcErrorCode )
 		{
-			findParameter( SamplerName ),
-			Texture
-		};
-		
-		// Only add if parameter is valid.
-		if( Binding.Parameter_ != BcErrorCode )
-		{
-			TextureBindingList_.push_back( Binding );
+			setTexture( SamplerIdx, Texture );
 		}
 	}
-
-	// Grab common parameters.
-	WorldTransformParameter_ = findParameter( "uWorldTransform" );
-	LightPositionParameter_ = findParameter( "uLightPosition" );
-	LightDirectionParameter_ = findParameter( "uLightDirection" );
-	LightAmbientColourParameter_ = findParameter( "uLightAmbientColour" );
-	LightDiffuseColourParameter_ = findParameter( "uLightDiffuseColour" );
-	LightAttnParameter_ = findParameter( "uLightAttn" );
 
 	// Grab uniform blocks.
 	ViewUniformBlockIndex_ = findUniformBlock( "ViewUniformBlock" );
@@ -382,254 +348,55 @@ void ScnMaterialComponent::destroy()
 	delete pStateBuffer_;
 	pStateBuffer_ = NULL;
 	
-	delete pParameterBuffer_;
-	pParameterBuffer_ = NULL;
-
 	Parent_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// findParameter
-BcU32 ScnMaterialComponent::findParameter( const BcName& ParameterName )
+// findSampler
+BcU32 ScnMaterialComponent::findSampler( const BcName& SamplerName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
-	BcU32 Offset = BcErrorCode;
-	RsShaderParameterType Type;
-	BcU32 TypeBytes = 0;
-	if( pProgram_->findParameterOffset( (*ParameterName).c_str(), Type, Offset, TypeBytes ) )
+	BcU32 Handle = pProgram_->findSampler( (*SamplerName).c_str() );
+	
+	if( Handle != BcErrorCode )
 	{
-		for( BcU32 Idx = 0; Idx < ParameterBindingList_.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < SamplerBindingList_.size(); ++Idx )
 		{
-			TParameterBinding& Binding = ParameterBindingList_[ Idx ];
+			TSamplerBinding& Binding = SamplerBindingList_[ Idx ];
 			
-			if( Binding.Type_ == Type && Binding.Offset_ == Offset )
+			if( Binding.Handle_ == Handle )
 			{
 				return Idx;
 			}
 		}
 		
 		// If it doesn't exist, add it.
-		TParameterBinding Binding = 
+		TSamplerBinding Binding = 
 		{
-			Type, Offset, TypeBytes
+			Handle, nullptr
 		};
 		
-		ParameterBindingList_.push_back( Binding );
-		return (BcU32)ParameterBindingList_.size() - 1;
+		SamplerBindingList_.push_back( Binding );
+		return (BcU32)SamplerBindingList_.size() - 1;
 	}
-	
-	//BcPrintf( "ScnMaterialComponent (%s): Can't find parameter \"%s\"\n", (*getName()).c_str(), (*ParameterName).c_str() );
 	
 	return BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcS32 Value, BcU32 Index )
+void ScnMaterialComponent::setTexture( BcU32 Idx, ScnTextureRef Texture )
 {
-	if( Parameter < ParameterBindingList_.size() )
+	// Find the texture slot to put this in.
+	if( Idx < SamplerBindingList_.size() )
 	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::INT ||
-		    Binding.Type_ == RsShaderParameterType::SAMPLER_1D ||
-			Binding.Type_ == RsShaderParameterType::SAMPLER_2D ||
-			Binding.Type_ == RsShaderParameterType::SAMPLER_3D ||
-			Binding.Type_ == RsShaderParameterType::SAMPLER_CUBE ||
-			Binding.Type_ == RsShaderParameterType::SAMPLER_1D_SHADOW ||
-			Binding.Type_ == RsShaderParameterType::SAMPLER_2D_SHADOW )	   
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer = Value;
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not an int.\n", (*getName()).c_str(), Parameter );
-		}
+		TSamplerBinding& TexBinding( SamplerBindingList_[ Idx ] );
+		TexBinding.Texture_ = Texture;
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcBool Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
+	else
 	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::BOOL )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcS32* pParameterBuffer = ((BcS32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer = (BcU32)Value;
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a bool.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, BcF32 Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::FLOAT )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer = (BcF32)Value;
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a real.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec2d& Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::FLOAT_VEC2 )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer++ = (BcF32)Value.x();
-			*pParameterBuffer = (BcF32)Value.y();
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec2.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec3d& Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::FLOAT_VEC3 )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer++ = (BcF32)Value.x();
-			*pParameterBuffer++ = (BcF32)Value.y();
-			*pParameterBuffer = (BcF32)Value.z();
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec3.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaVec4d& Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::FLOAT_VEC4 )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );			
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer++ = (BcF32)Value.x();
-			*pParameterBuffer++ = (BcF32)Value.y();
-			*pParameterBuffer++ = (BcF32)Value.z();
-			*pParameterBuffer = (BcF32)Value.w();
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a vec4.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setParameter( BcU32 Parameter, const MaMat4d& Value, BcU32 Index )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::FLOAT_MAT4 )
-		{
-			BcAssert( Binding.Offset_ <  ( ParameterBufferSize_ >> 2 ) );
-			BcF32* pParameterBuffer = ((BcF32*)pParameterBuffer_) + Binding.Offset_ + ( Index * Binding.TypeBytes_ >> 2 );
-			BcAssert( (void*)pParameterBuffer < (void*)(pParameterBuffer_ + ParameterBufferSize_) );
-			*pParameterBuffer++ = (BcF32)Value[0][0];
-			*pParameterBuffer++ = (BcF32)Value[0][1];
-			*pParameterBuffer++ = (BcF32)Value[0][2];
-			*pParameterBuffer++ = (BcF32)Value[0][3];
-			*pParameterBuffer++ = (BcF32)Value[1][0];
-			*pParameterBuffer++ = (BcF32)Value[1][1];
-			*pParameterBuffer++ = (BcF32)Value[1][2];
-			*pParameterBuffer++ = (BcF32)Value[1][3];
-			*pParameterBuffer++ = (BcF32)Value[2][0];
-			*pParameterBuffer++ = (BcF32)Value[2][1];
-			*pParameterBuffer++ = (BcF32)Value[2][2];
-			*pParameterBuffer++ = (BcF32)Value[2][3];
-			*pParameterBuffer++ = (BcF32)Value[3][0];
-			*pParameterBuffer++ = (BcF32)Value[3][1];
-			*pParameterBuffer++ = (BcF32)Value[3][2];
-			*pParameterBuffer = (BcF32)Value[3][3];
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a mat4.\n", (*getName()).c_str(), Parameter );
-		}
-	}
-	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void ScnMaterialComponent::setTexture( BcU32 Parameter, ScnTextureRef Texture )
-{
-	if( Parameter < ParameterBindingList_.size() )
-	{
-		TParameterBinding& Binding = ParameterBindingList_[ Parameter ];
-		if( Binding.Type_ == RsShaderParameterType::SAMPLER_1D ||
-		    Binding.Type_ == RsShaderParameterType::SAMPLER_2D ||
-		    Binding.Type_ == RsShaderParameterType::SAMPLER_3D ||
-		    Binding.Type_ == RsShaderParameterType::SAMPLER_CUBE ||
-		    Binding.Type_ == RsShaderParameterType::SAMPLER_1D_SHADOW ||
-		    Binding.Type_ == RsShaderParameterType::SAMPLER_2D_SHADOW )	   
-		{
-			// Find the texture slot to put this in.
-			for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
-			{
-				TTextureBinding& TexBinding( *Iter );
-				
-				if( TexBinding.Parameter_ == Parameter )
-				{
-					TexBinding.Texture_ = Texture;
-					break;
-				}
-			}
-		}
-		else
-		{
-			BcPrintf( "ScnMaterialComponent: \"%s\"'s Parameter %u is not a texture.\n", (*getName()).c_str(), Parameter );
-		}
+		BcPrintf( "ERROR: Unable to set texture for index %x\n", Idx );
 	}
 }
 
@@ -672,25 +439,6 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsUniformBuffer* Unifor
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setWorldTransform
-void ScnMaterialComponent::setWorldTransform( const MaMat4d& Transform )
-{
-	setParameter( WorldTransformParameter_, Transform );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setLightParameters
-void ScnMaterialComponent::setLightParameters( BcU32 LightIndex, const MaVec3d& Position, const MaVec3d& Direction, const RsColour& AmbientColour, const RsColour& DiffuseColour, BcF32 AttnC, BcF32 AttnL, BcF32 AttnQ )
-{
-	// TODO: Perhaps store light values in a matrix to save on setting parameters?
-	setParameter( LightPositionParameter_, Position, LightIndex );
-	setParameter( LightDirectionParameter_, Direction, LightIndex );
-	setParameter( LightAmbientColourParameter_, AmbientColour, LightIndex );
-	setParameter( LightDiffuseColourParameter_, DiffuseColour, LightIndex );
-	setParameter( LightAttnParameter_, MaVec3d( AttnC, AttnL, AttnQ ), LightIndex );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setViewUniformBlock
 void ScnMaterialComponent::setViewUniformBlock( RsUniformBuffer* UniformBuffer )
 {
@@ -723,20 +471,14 @@ void ScnMaterialComponent::setState( RsRenderStateType State, BcU32 Value )
 
 //////////////////////////////////////////////////////////////////////////
 // getTexture
-ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Parameter )
+ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Idx )
 {
-
-	for( TTextureBindingListIterator Iter( TextureBindingList_.begin() ); Iter != TextureBindingList_.end(); ++Iter )
+	if( Idx < SamplerBindingList_.size() )
 	{
-		TTextureBinding& TexBinding( *Iter );
-		
-		if( TexBinding.Parameter_ == Parameter )
-		{
-			return TexBinding.Texture_;
-		}
+		return SamplerBindingList_[ Idx ].Texture_;
 	}
-	
-	return NULL;
+
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -763,6 +505,7 @@ public:
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
+			pProgram_->setSampler( SamplerHandles_[ Idx ], Idx );
 			pContext_->setTextureState( Idx, pTexture, TextureParams );
 		}
 
@@ -791,6 +534,7 @@ public:
 
 	// Texture binding block.
 	BcU32 NoofTextures_;
+	BcU32* SamplerHandles_;
 	RsTexture** ppTextures_;
 	RsTextureParams* pTextureParams_;
 
@@ -832,19 +576,20 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->pProgram_ = pProgram_;
 	
 	// Setup texture binding block.
-	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
+	pRenderNode->NoofTextures_ = (BcU32)SamplerBindingList_.size();
+	pRenderNode->SamplerHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * pRenderNode->NoofTextures_ );
 	pRenderNode->ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * pRenderNode->NoofTextures_ );
 	pRenderNode->pTextureParams_ = (RsTextureParams*)pFrame->allocMem( sizeof( RsTextureParams ) * pRenderNode->NoofTextures_ );
 	
 	for( BcU32 Idx = 0; Idx < pRenderNode->NoofTextures_; ++Idx )
 	{
-		TTextureBinding& Binding = TextureBindingList_[ Idx ];
+		TSamplerBinding& Binding = SamplerBindingList_[ Idx ];
 		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
 		RsTextureParams& TextureParams = pRenderNode->pTextureParams_[ Idx ];
 		
-		// Set sampler parameter.
-		setParameter( Binding.Parameter_, (BcS32)Idx );
-		
+		// Sampler handles.
+		pRenderNode->SamplerHandles_[ Idx ] = Binding.Handle_;
+
 		// Set texture to bind.
 		Texture = Binding.Texture_->getTexture();
 		
@@ -873,10 +618,6 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		pRenderNode->ppUniformBuffers_[ Idx ] = UniformBlockBindingList_[ Idx ].UniformBuffer_;
 	}
 	
-	// Setup parameter buffer.
-	pRenderNode->pParameterBuffer_ = (BcU8*)pFrame->allocMem( ParameterBufferSize_ );
-	BcMemCopy( pRenderNode->pParameterBuffer_, pParameterBuffer_, ParameterBufferSize_ );
-
 	// Setup state buffer.
 	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
 	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );

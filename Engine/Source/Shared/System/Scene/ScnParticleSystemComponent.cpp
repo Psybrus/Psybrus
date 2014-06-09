@@ -62,8 +62,6 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 		UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
 	}
 
-	WorldTransformParam_ = MaterialComponent_->findParameter( "uWorldTransform" );
-
 	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 	pParticleBuffer_ = NULL;
 	CurrentVertexBuffer_ = 0;

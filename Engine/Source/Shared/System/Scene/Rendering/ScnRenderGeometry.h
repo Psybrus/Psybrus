@@ -33,6 +33,8 @@ public:
 
 	virtual void destroy();
 
+
+
 private:
 	class RsIndexBuffer* IndexBuffer_;
 	std::vector< class RsVertexBuffer* > VertexBuffers_;

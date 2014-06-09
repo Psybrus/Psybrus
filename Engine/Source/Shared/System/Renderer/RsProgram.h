@@ -27,25 +27,14 @@ public:
 	virtual ~RsProgram();
 	
 	/**
-	 * Get parameter buffer size.
-	 * @return Size of parameter buffer in bytes.
+	 * Find sampler.
 	 */
-	virtual BcU32						getParameterBufferSize() const = 0;
+	virtual BcU32						findSampler( const BcChar* Name ) = 0;
 
 	/**
-	 * Find offset of parameter in the buffer.
-	 * @param Type Type of parameter (out.)
-	 * @param Offset Offset of parameter (out.)
-	 * @param TypeBytes Size of type in bytes (out.)
-	 * @return Success.
+	 * Set sampler.
 	 */
-	virtual BcU32						findParameterOffset( const BcChar* Name, RsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const = 0;
-	
-	/**
-	 * Bind program.
-	 * @param pParameterBuffer Pointer to parameter buffer for binding.
-	 */
-	virtual void						bind( void* pParameterBuffer ) = 0;
+	virtual void						setSampler( BcU32 Handle, BcU32 SamplerSlotIdx ) = 0;
 	
 	/**
 	 * Find uniform block by name.
@@ -61,6 +50,12 @@ public:
 	 */
 	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer ) = 0;
 
+	/**
+	 * Bind program.
+	 * @param pParameterBuffer Pointer to parameter buffer for binding.
+	 */
+	virtual void						bind() = 0;
+	
 
 	/**
 	 * Get vertex attribute list.

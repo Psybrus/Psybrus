@@ -145,7 +145,7 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 		// Cache and grab diffuse parameter.
 		static BcName NameDiffuseTex( "aDiffuseTex" );
 		MaterialComponent_ = MaterialComponent;
-		BcU32 Parameter = MaterialComponent_->findParameter( NameDiffuseTex );
+		BcU32 Parameter = MaterialComponent_->findSampler( NameDiffuseTex );
 		DiffuseTexture_ = MaterialComponent_->getTexture( Parameter );
 	}
 }
