@@ -29,6 +29,8 @@ struct RsVertexDeclarationDesc
 
 	RsVertexDeclarationDesc& addElement( const RsVertexElement& Element );
 
+	BcU32 getHash() const;
+
 	std::vector< RsVertexElement > Elements_;
 };
 

@@ -34,6 +34,11 @@ public:
 	virtual void destroy();
 
 
+	/**
+	 * Set geometry on context.
+	 */
+	void setOnContext( class RsContext* Context );
+
 
 private:
 	class RsIndexBuffer* IndexBuffer_;

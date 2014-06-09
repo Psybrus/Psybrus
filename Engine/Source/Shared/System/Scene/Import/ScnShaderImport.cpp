@@ -24,7 +24,7 @@
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
-#define DEBUG_FILE_WRITE_OUT_FILES		1
+#define DEBUG_FILE_WRITE_OUT_FILES		0
 
 #include <boost/format.hpp>
 #include <boost/wave.hpp>

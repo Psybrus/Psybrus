@@ -23,9 +23,9 @@
 struct RsUniformBufferDesc
 {
 	RsUniformBufferDesc();
-	RsUniformBufferDesc( BcU32 BufferSize );
+	RsUniformBufferDesc( const ReClass* ReflectionClass );
 
-	BcU32 BufferSize_;
+	const ReClass* ReflectionClass_;
 };
 
 //////////////////////////////////////////////////////////////////////////

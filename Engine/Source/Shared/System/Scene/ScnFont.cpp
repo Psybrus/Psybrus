@@ -719,7 +719,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	// Attach material to our parent.
 	Parent->attach( MaterialComponent_ );
 
-	UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( AlphaTestUniforms_ ) ), &AlphaTestUniforms_ );
+	UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( ScnShaderAlphaTestUniformBlockData::StaticGetClass() ), &AlphaTestUniforms_ );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "AlphaTestUniformBlock" );
 	MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );
 

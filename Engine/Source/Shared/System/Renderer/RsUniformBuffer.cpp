@@ -16,14 +16,14 @@
 //////////////////////////////////////////////////////////////////////////
 // RsUniformBufferDesc
 RsUniformBufferDesc::RsUniformBufferDesc():
-	BufferSize_( 0 )
+	ReflectionClass_( nullptr )
 {
 
 }
 //////////////////////////////////////////////////////////////////////////
 // RsUniformBufferDesc
-RsUniformBufferDesc::RsUniformBufferDesc( BcU32 BufferSize ):
-	BufferSize_( BufferSize )
+RsUniformBufferDesc::RsUniformBufferDesc( const ReClass* ReflectionClass ):
+	ReflectionClass_( ReflectionClass )
 {
 
 }

@@ -70,7 +70,6 @@ public:
 	// Platform specific interface.
 
 protected:
-	std::mutex					ResourceLock_;
 	SysFence				RenderSyncFence_;
 
 	typedef std::map< OsClient*, RsContextGL* > TContextMap;

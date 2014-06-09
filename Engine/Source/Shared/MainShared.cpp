@@ -131,6 +131,13 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	ScnSoundEmitterComponent::StaticRegisterClass();
 	ScnCanvasComponent::StaticRegisterClass();
 
+	// Scene shader stuff.
+	ScnShaderViewUniformBlockData::StaticRegisterClass();
+	ScnShaderLightUniformBlockData::StaticRegisterClass();
+	ScnShaderObjectUniformBlockData::StaticRegisterClass();
+	ScnShaderBoneUniformBlockData::StaticRegisterClass();
+	ScnShaderAlphaTestUniformBlockData::StaticRegisterClass();
+	
 	// Register game resources before the view.
 	PsyGameRegisterResources();
 

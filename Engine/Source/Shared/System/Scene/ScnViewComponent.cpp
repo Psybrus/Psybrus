@@ -153,7 +153,7 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 void ScnViewComponent::create()
 {
 	ScnComponent::create();
-	ViewUniformBuffer_ = RsCore::pImpl()->createUniformBuffer( sizeof( ViewUniformBlock_ ), &ViewUniformBlock_ );
+	ViewUniformBuffer_ = RsCore::pImpl()->createUniformBuffer( ScnShaderViewUniformBlockData::StaticGetClass(), &ViewUniformBlock_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
