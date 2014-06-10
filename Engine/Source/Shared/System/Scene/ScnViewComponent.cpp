@@ -97,7 +97,7 @@ void ScnViewComponent::StaticRegisterClass()
 		ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
 		ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
 		ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
-		ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_ ),
+		ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
 		ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
 		ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
 	};
@@ -114,6 +114,7 @@ void ScnViewComponent::initialise()
 
 	// NULL internals.
 	//pHeader_ = NULL;
+	ViewUniformBuffer_ = nullptr;
 
 	setRenderMask( 1 );
 }

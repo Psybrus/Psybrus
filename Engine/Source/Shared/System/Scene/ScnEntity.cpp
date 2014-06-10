@@ -20,6 +20,8 @@
 #include "System/Renderer/RsCore.h"
 #include "Events/EvtProxyBuffered.h"
 
+#include "Serialisation/SeJsonWriter.h"
+
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
 
@@ -128,6 +130,9 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 		BcAssertMsg( Basis_->getPackage() == getPackage(), "Must reference the same package as the basis entity." );
 		getPackage()->acquire();
 	}
+
+	SeJsonWriter Writer( "temp.json" );
+	Writer << *this;
 
 	// Placeholder!
 	//serialiseProperties();
