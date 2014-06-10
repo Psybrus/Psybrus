@@ -85,15 +85,26 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pT
 		// Check we're a class so we know we can serialise.
 		if( ClassToSerialise.pType_->isTypeOf< ReClass >() )
 		{
+			auto ID = (BcU32)BcHash( ClassToSerialise.pData_ );
 			auto ClassValue = serialiseClass( ClassToSerialise.pData_, static_cast< const ReClass* >( ClassToSerialise.pType_ ), true );
-
-			ObjectsValue_.append( ClassValue );
+			ObjectValueMap_[ ID ] = ClassValue;
 		}
 		else
 		{
 			// We should only be serialising classes here.
 			BcAssert( false );
 		}
+	}
+
+	// Grab root from map and place in first.
+	auto RootID = (BcU32)BcHash( pData );
+	ObjectsValue_.append( ObjectValueMap_[ RootID ] );
+	ObjectValueMap_.erase( ObjectValueMap_.find( RootID ) );
+
+	// Add to value map.
+	for( auto& Value : ObjectValueMap_ )
+	{
+		ObjectsValue_.append( Value.second );
 	}
 
 	// Write out root object.
@@ -189,6 +200,12 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 //virtual
 Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
 {
+	// Check transient flag.
+	if( ( pField->getFlags() & bcRFF_TRANSIENT ) == bcRFF_TRANSIENT )
+	{
+		return Json::nullValue;
+	}
+
 	// Select the appropriate serialise method to use if we
 	// have some data to serialise.
 	if( pData != nullptr )
@@ -311,6 +328,19 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
 	if( ( pField->getKeyFlags() & bcRFF_SIMPLE_DEREF ) != 0 )
 	{
 		BcAssert( false );
+		return Json::nullValue;
+	}
+
+	// Early out if we can't serialise.
+	if( KeySerialiser == nullptr )
+	{
+		BcPrintf( "SeJsonWriter: Unable to serialise for key \"%s\"\n", ( *pFieldKeyType->getName() ).c_str() );
+		return Json::nullValue;
+	}
+
+	if( ValueSerialiser == nullptr )
+	{
+		BcPrintf( "SeJsonWriter: Unable to serialise for value \"%s\"\n", ( *pFieldValueType->getName() ).c_str() );
 		return Json::nullValue;
 	}
 
