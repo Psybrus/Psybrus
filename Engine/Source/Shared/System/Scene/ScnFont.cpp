@@ -360,8 +360,8 @@ void ScnFont::StaticRegisterClass()
 //virtual
 void ScnFont::initialise()
 {
-	pHeader_ = NULL;
-	pGlyphDescs_ = NULL;
+	pHeader_ = nullptr;
+	pGlyphDescs_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -465,6 +465,9 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
 		}
 	}
+	
+	// Null uniform buffer.
+	UniformBuffer_ = nullptr;
 
 	// Disable clipping.
 	setClipping( BcFalse );

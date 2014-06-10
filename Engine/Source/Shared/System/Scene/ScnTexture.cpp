@@ -194,7 +194,7 @@ void ScnTexture::StaticRegisterClass()
 {
 	static const ReField Fields[] = 
 	{
-		ReField( "pTexture_",			&ScnTexture::pTexture_ ),
+		ReField( "pTexture_",			&ScnTexture::pTexture_,			bcRFF_TRANSIENT ),
 		ReField( "Header_",				&ScnTexture::Header_ ),
 	};
 		

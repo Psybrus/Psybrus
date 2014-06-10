@@ -22,7 +22,6 @@
 
 #include <vector>
 #include <map>
-#include <list>
 
 // NOTE: Look at breaking this up a little. It's mostly a hack to forward declare
 //       everything.
@@ -61,7 +60,7 @@ typedef ScnRenderableComponentMap::const_iterator ScnRenderableComponentMapConst
 // ScnEntityRef
 typedef ReObjectRef< class ScnEntity > ScnEntityRef;
 typedef ReObjectRef< class ScnEntity, true > ScnEntityWeakRef;
-typedef std::list< ScnEntityRef > ScnEntityList;
+typedef std::vector< ScnEntityRef > ScnEntityList;
 typedef ScnEntityList::iterator ScnEntityListIterator;
 typedef ScnEntityList::const_iterator ScnEntityListConstIterator;
 typedef std::map< std::string, ScnEntityRef > ScnEntityMap;
