@@ -41,6 +41,7 @@ protected:
 private:
     Json::Value RootValue_;
     Json::Value ObjectsValue_;
+	std::map< BcU32, Json::Value >	ObjectValueMap_;
 
     struct SerialiseClass
     {
@@ -61,7 +62,6 @@ private:
 
 private:
     std::list< SerialiseClass >		SerialiseClasses_;	///!< Classes to serialise.
-    std::vector< Json::Value >		OutputValues_;		///!< Values to write out.
     std::string						OutputFile_;
 };
 
