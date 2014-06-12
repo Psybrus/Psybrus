@@ -139,6 +139,9 @@ void ScnAnimationTreeTrackNode::queueAnimation( ScnAnimation* pAnimation )
 {
 	BcAssert( pAnimation != NULL );
 	AnimationQueue_.push_back( pAnimation );
+
+	// TODO: Create a map to map any animation by node name onto our reference
+	//       pose. Probably want to do this asynchronously on a job.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,6 +166,8 @@ void ScnAnimationTreeTrackNode::decodeFrames()
 		if( CurrPoseIndex_ != NewPoseIndex )
 		{
 			CurrPoseIndex_ = NewPoseIndex;
+
+			// TODO: Pass in a map to decode these correctly into the appropriate transforms.
 			pCurrAnimation->decodePoseAtIndex( CurrPoseIndex_, pPoseA_ );
 			pCurrAnimation->decodePoseAtIndex( CurrPoseIndex_ + 1, pPoseB_ );
 
