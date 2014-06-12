@@ -31,40 +31,59 @@ project "External_assimp"
 		"./assimp/code/**.h",
 		"./assimp/code/**.cpp" 
 	}
-	
+
+	includedirs { 
+		"./assimp",
+		"./assimp/include",
+		"./assimp/code",
+		"./zlib",
+		boostInclude
+	}
+
 	defines { 
 		"ASSIMP_BUILD_NO_OWN_ZLIB=1",
 		"_SCL_SECURE_NO_WARNINGS",
-		"_CRT_SECURE_NO_DEPRECATE"
+		"_CRT_SECURE_NO_DEPRECATE",
+
+		-- Remove importers that we don't want yet to
+		-- keep the build lean.
+		"ASSIMP_BUILD_NO_X_IMPORTER",
+		"ASSIMP_BUILD_NO_3DS_IMPORTER",
+		"ASSIMP_BUILD_NO_MD3_IMPORTER",
+		"ASSIMP_BUILD_NO_MDL_IMPORTER",
+		"ASSIMP_BUILD_NO_MD2_IMPORTER",
+		"ASSIMP_BUILD_NO_PLY_IMPORTER",
+		"ASSIMP_BUILD_NO_ASE_IMPORTER",
+		"ASSIMP_BUILD_NO_HMP_IMPORTER",
+		"ASSIMP_BUILD_NO_SMD_IMPORTER",
+		"ASSIMP_BUILD_NO_MDC_IMPORTER",
+		"ASSIMP_BUILD_NO_LWO_IMPORTER",
+		"ASSIMP_BUILD_NO_DXF_IMPORTER",
+		"ASSIMP_BUILD_NO_NFF_IMPORTER",
+		"ASSIMP_BUILD_NO_RAW_IMPORTER",
+		"ASSIMP_BUILD_NO_OFF_IMPORTER",
+		"ASSIMP_BUILD_NO_AC_IMPORTER",
+		"ASSIMP_BUILD_NO_BVH_IMPORTER",
+		"ASSIMP_BUILD_NO_IRRMESH_IMPORTER",
+		"ASSIMP_BUILD_NO_IRR_IMPORTER",
+		"ASSIMP_BUILD_NO_Q3D_IMPORTER",
+		"ASSIMP_BUILD_NO_B3D_IMPORTER",
+		"ASSIMP_BUILD_NO_COLLADA_IMPORTER",
+		"ASSIMP_BUILD_NO_TERRAGEN_IMPORTER",
+		"ASSIMP_BUILD_NO_CSM_IMPORTER",
+		"ASSIMP_BUILD_NO_3D_IMPORTER",
+		"ASSIMP_BUILD_NO_LWS_IMPORTER",
+		"ASSIMP_BUILD_NO_OGRE_IMPORTER",
+		"ASSIMP_BUILD_NO_MS3D_IMPORTER",
+		"ASSIMP_BUILD_NO_COB_IMPORTER",
+		"ASSIMP_BUILD_NO_Q3BSP_IMPORTER",
+		"ASSIMP_BUILD_NO_NDO_IMPORTER",
+		"ASSIMP_BUILD_NO_IFC_IMPORTER",
+		"ASSIMP_BUILD_NO_XGL_IMPORTER"
 	}
 
 	excludes { 
 		-- Remove boost workaround.
 		"./assimp/code/BoostWorkaround/**.*" ,
-
-		-- Remove importers we don't want.
-		"./assimp/code/3DS*.*", 
-		"./assimp/code/AC*.*", 
-		"./assimp/code/ASE*.*", 
-		"./assimp/code/B3D*.*", 
-		"./assimp/code/IFC*.*", 
-		"./assimp/code/IRR*.*", 
-		"./assimp/code/irr*.*", 
-		"./assimp/code/HMP*.*", 
-		"./assimp/code/LW*.*", 
-		"./assimp/code/Ogre*.*", 
-		"./assimp/code/Ply*.*", 
-		"./assimp/code/NDO*.*",
-		"./assimp/code/OFF*.*",
-		"./assimp/code/STEP*.*",
-		"./assimp/code/XFile*.*",
-		"./assimp/code/XGL*.*",
-	}
-
-	includedirs { 
-		"./assimp",
-		"./assimp/include",
-		"./zlib",
-		boostInclude
 	}
 
