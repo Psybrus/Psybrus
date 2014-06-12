@@ -19,7 +19,6 @@
 #include "System/Scene/ScnModelFileData.h"
 
 #include "Base/BcStream.h"
-#include "Import/Mdl/Mdl.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelImport
@@ -36,6 +35,7 @@ public:
 		const Json::Value& Object );
 
 private:
+	// old Mdl library code.
 	void recursiveSerialiseNodes( 
 		class MdlNode* pNode,
 		BcU32 ParentIndex,
@@ -60,6 +60,26 @@ private:
 		BcU32 NoofVertexElements,
 		MaAABB& AABB );
 
+
+	// new assimp code.
+	void recursiveSerialiseNodes( 
+		struct aiNode* pNode,
+		BcU32 ParentIndex,
+		BcU32& NodeIndex,
+		BcU32& PrimitiveIndex );
+
+	void serialiseMesh( 
+		struct aiMesh* Mesh,
+		BcU32 ParentIndex,
+		BcU32& NodeIndex,
+		BcU32& PrimitiveIndex );
+
+	void serialiseVertices( 
+		struct aiMesh* Mesh,
+		RsVertexElement* pVertexElements,
+		BcU32 NoofVertexElements,
+		MaAABB& AABB );
+
 private:
 	std::string Source_;
 
@@ -70,7 +90,9 @@ private:
 	BcStream VertexDataStream_;
 	BcStream IndexDataStream_;
 	BcStream VertexElementStream_;
-	BcStream PrimitiveDataStream_;
+	BcStream MeshDataStream_;
+
+	const struct aiScene* Scene_;
 };
 
 #endif

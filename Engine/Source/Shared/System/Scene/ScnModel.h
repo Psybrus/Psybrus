@@ -59,9 +59,9 @@ protected:
 	BcU8*								pVertexBufferData_;
 	BcU8*								pIndexBufferData_;
 	RsVertexElement*					pVertexElements_;
-	ScnModelPrimitiveData*				pPrimitiveData_;
+	ScnModelMeshData*				pMeshData_;
 	
-	ScnModelPrimitiveRuntimeList		PrimitiveRuntimes_;
+	ScnModelMeshRuntimeList		MeshRuntimes_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,15 +105,15 @@ protected:
 
 	MaAABB								AABB_;
 
-	struct TPerComponentPrimitiveData
+	struct TPerComponentMeshData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
 		RsUniformBuffer*		UniformBuffer_;
 	};
 	
-	typedef std::vector< TPerComponentPrimitiveData > TPerComponentPrimitiveDataList;
+	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;
 	
-	TPerComponentPrimitiveDataList		PerComponentPrimitiveDataList_;
+	TPerComponentMeshDataList		PerComponentMeshDataList_;
 
 };
 
