@@ -66,7 +66,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 
 #if ENABLE_ASSIMP_IMPORTER
 	auto PropertyStore = aiCreatePropertyStore();
-	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_SBBC_MAX_BONES, 24 );
+	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_SBBC_MAX_BONES, ScnShaderBoneUniformBlockData::MAX_BONES );
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4 );
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_IMPORT_MD5_NO_ANIM_AUTOLOAD, true );
 
