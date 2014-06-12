@@ -48,8 +48,8 @@ struct ScnModelNodePropertyData
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnModelPrimitiveData
-struct ScnModelPrimitiveData
+// ScnModelMeshData
+struct ScnModelMeshData
 {
 	BcU32							NodeIndex_;
 	BcBool							IsSkinned_;
@@ -68,10 +68,10 @@ struct ScnModelPrimitiveData
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnModelPrimitiveRuntime
-struct ScnModelPrimitiveRuntime
+// ScnModelMeshRuntime
+struct ScnModelMeshRuntime
 {
-	BcU32							PrimitiveDataIndex_;
+	BcU32							MeshDataIndex_;
 	class RsVertexDeclaration*		pVertexDeclaration_;
 	class RsVertexBuffer*			pVertexBuffer_;
 	class RsIndexBuffer*			pIndexBuffer_;
@@ -79,8 +79,8 @@ struct ScnModelPrimitiveRuntime
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnModelPrimitiveRuntimeList: TODO: Just change to a static array in code.
-typedef std::vector< ScnModelPrimitiveRuntime > ScnModelPrimitiveRuntimeList;
+// ScnModelMeshRuntimeList: TODO: Just change to a static array in code.
+typedef std::vector< ScnModelMeshRuntime > ScnModelMeshRuntimeList;
 
 
 #endif

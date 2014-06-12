@@ -61,7 +61,7 @@ void ScnModel::initialise()
 	pNodePropertyData_ = NULL;
 	pVertexBufferData_ = NULL;
 	pIndexBufferData_ = NULL;
-	pPrimitiveData_ = NULL;
+	pMeshData_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,30 +76,30 @@ void ScnModel::create()
 	//       possibly even sort it by vertex format.
 	
 	// Setup primitive runtime.
-	PrimitiveRuntimes_.reserve( pHeader_->NoofPrimitives_ );
+	MeshRuntimes_.reserve( pHeader_->NoofPrimitives_ );
 	
 	BcU8* pVertexBufferData = pVertexBufferData_;
 	BcU8* pIndexBufferData = pIndexBufferData_;
 	
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
-		ScnModelPrimitiveData* pPrimitiveData = &pPrimitiveData_[ PrimitiveIdx ];
+		ScnModelMeshData* pMeshData = &pMeshData_[ PrimitiveIdx ];
 		
-		//ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
+		//ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pMeshData->NodeIndex_ ];
 		
 		// Create GPU resources.
-		RsVertexDeclarationDesc VertexDeclarationDesc( pPrimitiveData_->NoofVertexElements_ );
-		for( BcU32 Idx = 0; Idx < pPrimitiveData_->NoofVertexElements_; ++Idx )
+		RsVertexDeclarationDesc VertexDeclarationDesc( pMeshData_->NoofVertexElements_ );
+		for( BcU32 Idx = 0; Idx < pMeshData_->NoofVertexElements_; ++Idx )
 		{
-			VertexDeclarationDesc.addElement( pPrimitiveData_->VertexElements_[ Idx ] );
+			VertexDeclarationDesc.addElement( pMeshData_->VertexElements_[ Idx ] );
 		}
 		
 		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
-		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pPrimitiveData->NoofVertices_, pPrimitiveData->VertexStride_ ), pVertexBufferData );
-		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pPrimitiveData_->NoofIndices_ ), pIndexBufferData );
+		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pMeshData->NoofVertices_, pMeshData->VertexStride_ ), pVertexBufferData );
+		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pMeshData_->NoofIndices_ ), pIndexBufferData );
 		
 		// Setup runtime structure.
-		ScnModelPrimitiveRuntime PrimitiveRuntime = 
+		ScnModelMeshRuntime MeshRuntime = 
 		{
 			PrimitiveIdx,
 			pVertexDeclaration,
@@ -109,16 +109,16 @@ void ScnModel::create()
 		};
 		
 		// Get resource.
-		auto Resource = getPackage()->getPackageCrossRef( pPrimitiveData->MaterialRef_ );
-		PrimitiveRuntime.MaterialRef_ = Resource;
-		BcAssertMsg( PrimitiveRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
+		auto Resource = getPackage()->getPackageCrossRef( pMeshData->MaterialRef_ );
+		MeshRuntime.MaterialRef_ = Resource;
+		BcAssertMsg( MeshRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
 
 		// Push into array.
-		PrimitiveRuntimes_.push_back( PrimitiveRuntime );
+		MeshRuntimes_.push_back( MeshRuntime );
 		
 		// Advance vertex and index buffers.
-		pVertexBufferData += pPrimitiveData->NoofVertices_ * PrimitiveRuntime.pVertexBuffer_->getVertexStride();
-		pIndexBufferData += pPrimitiveData->NoofIndices_ * sizeof( BcU16 );
+		pVertexBufferData += pMeshData->NoofVertices_ * MeshRuntime.pVertexBuffer_->getVertexStride();
+		pIndexBufferData += pMeshData->NoofIndices_ * sizeof( BcU16 );
 	}
 
 	// Mark as ready.
@@ -131,17 +131,17 @@ void ScnModel::create()
 void ScnModel::destroy()
 {
 	// Destroy internal data.
-	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < MeshRuntimes_.size(); ++Idx )
 	{
-		ScnModelPrimitiveRuntime& PrimitiveRuntime( PrimitiveRuntimes_[ Idx ] );
+		ScnModelMeshRuntime& MeshRuntime( MeshRuntimes_[ Idx ] );
 
-		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( PrimitiveRuntime.pIndexBuffer_ );
+		RsCore::pImpl()->destroyResource( MeshRuntime.pVertexBuffer_ );
+		RsCore::pImpl()->destroyResource( MeshRuntime.pIndexBuffer_ );
 		
-		PrimitiveRuntime.MaterialRef_ = NULL;
+		MeshRuntime.MaterialRef_ = NULL;
 	}
 
-	PrimitiveRuntimes_.clear();
+	MeshRuntimes_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -205,13 +205,13 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 	else if( ChunkID == BcHash( "primitivedata" ) )
 	{
-		pPrimitiveData_ = (ScnModelPrimitiveData*)pData;
+		pMeshData_ = (ScnModelMeshData*)pData;
 
 		RsVertexElement* pVertexElements = pVertexElements_;
 		for( BcU32 Idx = 0; Idx < pHeader_->NoofPrimitives_; ++Idx )
 		{
-			pPrimitiveData_->VertexElements_ = pVertexElements;
-			pVertexElements += pPrimitiveData_->NoofVertexElements_;
+			pMeshData_->VertexElements_ = pVertexElements;
+			pVertexElements += pMeshData_->NoofVertexElements_;
 		}
 		
 		markCreate(); // All data loaded, time to create.
@@ -231,7 +231,7 @@ void ScnModelComponent::StaticRegisterClass()
 		ReField( "Layer_",							&ScnModelComponent::Layer_ ),
 		ReField( "Pass_",							&ScnModelComponent::Pass_ ),
 		ReField( "AABB_",							&ScnModelComponent::AABB_ ),
-		ReField( "PerComponentPrimitiveDataList_",	&ScnModelComponent::PerComponentPrimitiveDataList_ ),
+		ReField( "PerComponentMeshDataList_",	&ScnModelComponent::PerComponentMeshDataList_ ),
 	};
 		
 	ReRegisterClass< ScnModelComponent, Super >( Fields )
@@ -255,20 +255,20 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
 
 	// Create material instances to render with.
-	ScnModelPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
+	ScnModelMeshRuntimeList& MeshRuntimes = Parent_->MeshRuntimes_;
 	ScnMaterialComponentRef MaterialComponentRef;
-	PerComponentPrimitiveDataList_.reserve( PrimitiveRuntimes.size() );
-	for( BcU32 Idx = 0; Idx < PrimitiveRuntimes.size(); ++Idx )
+	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
+	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
-		ScnModelPrimitiveData* pPrimitiveData = &Parent_->pPrimitiveData_[ Idx ];
-		ScnModelPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ Idx ];
-		TPerComponentPrimitiveData ComponentData;
+		ScnModelMeshData* pMeshData = &Parent_->pMeshData_[ Idx ];
+		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		TPerComponentMeshData ComponentData;
 
-		if( pPrimitiveRuntime->MaterialRef_.isValid() )
+		if( pMeshRuntime->MaterialRef_.isValid() )
 		{
-			BcAssert( pPrimitiveRuntime->MaterialRef_.isValid() && pPrimitiveRuntime->MaterialRef_->isReady() );
+			BcAssert( pMeshRuntime->MaterialRef_.isValid() && pMeshRuntime->MaterialRef_->isReady() );
 
-			ScnShaderPermutationFlags ShaderPermutation = pPrimitiveData->ShaderPermutation_;
+			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
 
 			// Setup lighting.
 			if( isLit() )
@@ -281,13 +281,13 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 			}
 						
 			// Even on failure add. List must be of same size for quick lookups.
-			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pPrimitiveRuntime->MaterialRef_, ShaderPermutation );
+			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pMeshRuntime->MaterialRef_, ShaderPermutation );
 
 			ComponentData.MaterialComponentRef_ = MaterialComponentRef;
 		}
 
 		// Create uniform buffer for object.
-		if( pPrimitiveData->IsSkinned_ )
+		if( pMeshData->IsSkinned_ )
 		{
 			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( ScnShaderBoneUniformBlockData::StaticGetClass(), nullptr ) : nullptr;
 		}
@@ -297,7 +297,7 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 		}
 
 		//
-		PerComponentPrimitiveDataList_.push_back( ComponentData );
+		PerComponentMeshDataList_.push_back( ComponentData );
 
 	}
 }
@@ -322,9 +322,9 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 //virtual
 void ScnModelComponent::destroy()
 {
-	for( BcU32 Idx = 0; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
 	{
-		RsCore::pImpl()->destroyResource( PerComponentPrimitiveDataList_[ Idx ].UniformBuffer_ );
+		RsCore::pImpl()->destroyResource( PerComponentMeshDataList_[ Idx ].UniformBuffer_ );
 	}
 	
 	// Delete duplicated node data.
@@ -396,9 +396,9 @@ BcU32 ScnModelComponent::getNoofNodes() const
 // getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
 {
-	if( Index < PerComponentPrimitiveDataList_.size() )
+	if( Index < PerComponentMeshDataList_.size() )
 	{
-		return PerComponentPrimitiveDataList_[ Index ].MaterialComponentRef_;
+		return PerComponentMeshDataList_[ Index ].MaterialComponentRef_;
 	}
 	
 	return NULL;
@@ -408,13 +408,13 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
 // getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
 {
-	ScnModelPrimitiveData* pPrimitiveData = Parent_->pPrimitiveData_;
+	ScnModelMeshData* pMeshData = Parent_->pMeshData_;
 
-	for( BcU32 Idx = 0; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
 	{
-		if( MaterialName == PerComponentPrimitiveDataList_[ Idx ].MaterialComponentRef_->getName() )
+		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
 		{
-			return PerComponentPrimitiveDataList_[ Idx ].MaterialComponentRef_;
+			return PerComponentMeshDataList_[ Idx ].MaterialComponentRef_;
 		}
 	}
 
@@ -469,15 +469,15 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	BcU32 NoofPrimitives = Parent_->pHeader_->NoofPrimitives_;
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
-		ScnModelPrimitiveRuntime* pNodePrimitiveRuntime = &Parent_->PrimitiveRuntimes_[ PrimitiveIdx ];
-		ScnModelPrimitiveData* pNodePrimitiveData = &Parent_->pPrimitiveData_[ pNodePrimitiveRuntime->PrimitiveDataIndex_ ];
+		ScnModelMeshRuntime* pNodeMeshRuntime = &Parent_->MeshRuntimes_[ PrimitiveIdx ];
+		ScnModelMeshData* pNodeMeshData = &Parent_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
 
 		// Special case the skinned models for now.
-		if( pNodePrimitiveData->IsSkinned_ == BcFalse )
+		if( pNodeMeshData->IsSkinned_ == BcFalse )
 		{
-			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
+			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
 		
-			MaAABB PrimitiveAABB = pNodePrimitiveData->AABB_;
+			MaAABB PrimitiveAABB = pNodeMeshData->AABB_;
 			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
 		}
 		else
@@ -485,7 +485,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 			MaAABB SkeletalAABB;
 			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 			{
-				BcU32 BoneIndex = pNodePrimitiveData->BonePalette_[ Idx ];
+				BcU32 BoneIndex = pNodeMeshData->BonePalette_[ Idx ];
 				if( BoneIndex != BcErrorCode )
 				{
 					// Get the distance from the parent bone, and make an AABB that size.
@@ -518,32 +518,32 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	// Setup skinning buffers.
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
-		ScnModelPrimitiveRuntime* pNodePrimitiveRuntime = &Parent_->PrimitiveRuntimes_[ PrimitiveIdx ];
-		ScnModelPrimitiveData* pNodePrimitiveData = &Parent_->pPrimitiveData_[ pNodePrimitiveRuntime->PrimitiveDataIndex_ ];
-		TPerComponentPrimitiveData& PerComponentPrimitiveData = PerComponentPrimitiveDataList_[ PrimitiveIdx ];
+		ScnModelMeshRuntime* pNodeMeshRuntime = &Parent_->MeshRuntimes_[ PrimitiveIdx ];
+		ScnModelMeshData* pNodeMeshData = &Parent_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 
-		if( pNodePrimitiveData->IsSkinned_ )
+		if( pNodeMeshData->IsSkinned_ )
 		{
-			BcAssertMsg( PerComponentPrimitiveData.UniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
-			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentPrimitiveData.UniformBuffer_->lock() );
+			BcAssertMsg( PerComponentMeshData.UniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
+			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentMeshData.UniformBuffer_->lock() );
 			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 			{
-				BcU32 NodeIndex = pNodePrimitiveData->BonePalette_[ Idx ];
+				BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
 				if( NodeIndex != BcErrorCode )
 				{
 					BoneUniformBlock->BoneTransform_[ Idx ] = pNodeTransformData_[ NodeIndex ].InverseBindpose_ * pNodeTransformData_[ NodeIndex ].AbsoluteTransform_;
 				}
 			}
 
-			PerComponentPrimitiveData.UniformBuffer_->unlock();		
+			PerComponentMeshData.UniformBuffer_->unlock();		
 		}
 		else
 		{
-			BcAssertMsg( PerComponentPrimitiveData.UniformBuffer_->getDataSize() == sizeof( ScnShaderObjectUniformBlockData ), "ObjectUniformBlock size mismatch." );
-			ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( PerComponentPrimitiveData.UniformBuffer_->lock() );
-			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodePrimitiveData->NodeIndex_ ];
+			BcAssertMsg( PerComponentMeshData.UniformBuffer_->getDataSize() == sizeof( ScnShaderObjectUniformBlockData ), "ObjectUniformBlock size mismatch." );
+			ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( PerComponentMeshData.UniformBuffer_->lock() );
+			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
 			ObjectUniformBlock->WorldTransform_ = pNodeTransformData->AbsoluteTransform_;
-			PerComponentPrimitiveData.UniformBuffer_->unlock();		
+			PerComponentMeshData.UniformBuffer_->unlock();		
 		}
 	}
 
@@ -556,10 +556,10 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Attach material components to parent.
-	for( BcU32 Idx = 0 ; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
+	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
 	{
-		auto& PerComponentPrimitiveData( PerComponentPrimitiveDataList_[ Idx ] );
-		Parent->attach( PerComponentPrimitiveData.MaterialComponentRef_ );
+		auto& PerComponentMeshData( PerComponentMeshDataList_[ Idx ] );
+		Parent->attach( PerComponentMeshData.MaterialComponentRef_ );
 	}
 	
 	//
@@ -575,11 +575,11 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	UpdateFence_.wait();
 
 	// Detach material components from parent.
-	for( BcU32 Idx = 0 ; Idx < PerComponentPrimitiveDataList_.size(); ++Idx )
+	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
 	{
-		auto& PerComponentPrimitiveData( PerComponentPrimitiveDataList_[ Idx ] );
-		Parent->detach( PerComponentPrimitiveData.MaterialComponentRef_ );
-		PerComponentPrimitiveData.MaterialComponentRef_ = NULL;
+		auto& PerComponentMeshData( PerComponentMeshDataList_[ Idx ] );
+		Parent->detach( PerComponentMeshData.MaterialComponentRef_ );
+		PerComponentMeshData.MaterialComponentRef_ = NULL;
 	}
 
 	//
@@ -620,51 +620,51 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 	// Gather lights.
 	ScnLightingVisitor LightingVisitor( this );
 
-	ScnModelPrimitiveRuntimeList& PrimitiveRuntimes = Parent_->PrimitiveRuntimes_;
-	ScnModelPrimitiveData* pPrimitiveDatas = Parent_->pPrimitiveData_;
+	ScnModelMeshRuntimeList& MeshRuntimes = Parent_->MeshRuntimes_;
+	ScnModelMeshData* pMeshDatas = Parent_->pMeshData_;
 
 	// Set layer.
 	Sort.Layer_ = Layer_;
 	Sort.Pass_ = Pass_;
 
-	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < PrimitiveRuntimes.size(); ++PrimitiveIdx )
+	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 	{
-		ScnModelPrimitiveRuntime* pPrimitiveRuntime = &PrimitiveRuntimes[ PrimitiveIdx ];
-		ScnModelPrimitiveData* pPrimitiveData = &pPrimitiveDatas[ pPrimitiveRuntime->PrimitiveDataIndex_ ];
-		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pPrimitiveData->NodeIndex_ ];
-		TPerComponentPrimitiveData& PerComponentPrimitiveData = PerComponentPrimitiveDataList_[ PrimitiveIdx ];
+		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
+		ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
+		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pMeshData->NodeIndex_ ];
+		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
 
-		BcAssertMsg( PerComponentPrimitiveData.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
+		BcAssertMsg( PerComponentMeshData.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
 
 		// Set skinning parameters.
-		if( pPrimitiveData->IsSkinned_ )
+		if( pMeshData->IsSkinned_ )
 		{
-			PerComponentPrimitiveData.MaterialComponentRef_->setBoneUniformBlock( PerComponentPrimitiveData.UniformBuffer_ );
+			PerComponentMeshData.MaterialComponentRef_->setBoneUniformBlock( PerComponentMeshData.UniformBuffer_ );
 		}
 		else
 		{
-			PerComponentPrimitiveData.MaterialComponentRef_->setObjectUniformBlock( PerComponentPrimitiveData.UniformBuffer_ );
+			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_ );
 		}
 
 		// Set lighting parameters.
-		LightingVisitor.setMaterialParameters( PerComponentPrimitiveData.MaterialComponentRef_ );
+		LightingVisitor.setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 			
 		// Set material components for view.
-		pViewComponent->setMaterialParameters( PerComponentPrimitiveData.MaterialComponentRef_ );
+		pViewComponent->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 			
 		// Bind material.
-		PerComponentPrimitiveData.MaterialComponentRef_->bind( pFrame, Sort );
+		PerComponentMeshData.MaterialComponentRef_->bind( pFrame, Sort );
 			
 		// Render primitive.
 		ScnModelComponentRenderNode* pRenderNode = pFrame->newObject< ScnModelComponentRenderNode >();
 			
-		pRenderNode->Type_ = pPrimitiveData->Type_;
+		pRenderNode->Type_ = pMeshData->Type_;
 		pRenderNode->Offset_ = Offset;
-		pRenderNode->NoofIndices_ = pPrimitiveData->NoofIndices_;
-		pRenderNode->IndexBuffer_ = pPrimitiveRuntime->pIndexBuffer_;
-		pRenderNode->VertexBuffer_ = pPrimitiveRuntime->pVertexBuffer_;
-		pRenderNode->VertexDeclaration_ = pPrimitiveRuntime->pVertexDeclaration_;
+		pRenderNode->NoofIndices_ = pMeshData->NoofIndices_;
+		pRenderNode->IndexBuffer_ = pMeshRuntime->pIndexBuffer_;
+		pRenderNode->VertexBuffer_ = pMeshRuntime->pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = pMeshRuntime->pVertexDeclaration_;
 		pRenderNode->Sort_ = Sort;
 			
 		pFrame->addRenderNode( pRenderNode );
