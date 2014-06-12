@@ -14,5 +14,7 @@ dofile ("tremor/premake4.lua")
 dofile ("zlib/premake4.lua")
 
 -- Submodules.
-dofile ("HLSLCrossCompiler_premake4.lua")
+dofile ("assimp_premake4.lua")
 dofile ("enet_premake4.lua")
+dofile ("HLSLCrossCompiler_premake4.lua")
+
