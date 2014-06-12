@@ -29,7 +29,7 @@ project "External_assimp"
 	files { 
 		"./assimp/include/**.h", 
 		"./assimp/code/**.h",
-		"./assimp/code/**.cpp" 
+		"./assimp/code/**.cpp",
 	}
 
 	includedirs { 
@@ -39,6 +39,17 @@ project "External_assimp"
 		"./zlib",
 		boostInclude
 	}
+
+	configuration "vs*"
+		pchheader "AssimpPCH.h"
+		pchsource "./assimp/code/AssimpPCH.cpp"
+
+	configuration "windows"
+   		links {
+   			-- External libs.
+	        "External_assimp_contrib",
+   		}
+
 
 	defines { 
 		"ASSIMP_BUILD_NO_OWN_ZLIB=1",
@@ -52,13 +63,9 @@ project "External_assimp"
 		"ASSIMP_BUILD_NO_MD3_IMPORTER",
 		"ASSIMP_BUILD_NO_MDL_IMPORTER",
 		"ASSIMP_BUILD_NO_MD2_IMPORTER",
-		"ASSIMP_BUILD_NO_PLY_IMPORTER",
-		"ASSIMP_BUILD_NO_ASE_IMPORTER",
 		"ASSIMP_BUILD_NO_HMP_IMPORTER",
-		"ASSIMP_BUILD_NO_SMD_IMPORTER",
 		"ASSIMP_BUILD_NO_MDC_IMPORTER",
 		"ASSIMP_BUILD_NO_LWO_IMPORTER",
-		"ASSIMP_BUILD_NO_DXF_IMPORTER",
 		"ASSIMP_BUILD_NO_NFF_IMPORTER",
 		"ASSIMP_BUILD_NO_RAW_IMPORTER",
 		"ASSIMP_BUILD_NO_OFF_IMPORTER",
@@ -84,6 +91,32 @@ project "External_assimp"
 
 	excludes { 
 		-- Remove boost workaround.
-		"./assimp/code/BoostWorkaround/**.*" ,
+		"./assimp/code/BoostWorkaround/**.*",
+
+		-- Remove ogre, has compile issues.
+		"./assimp/code/Ogre**.*",
 	}
 
+
+project "External_assimp_contrib"
+	kind "StaticLib"
+	language "C++"
+	files { 
+		"./assimp/contrib/clipper/**.cpp",
+		"./assimp/contrib/clipper/**.hpp",
+		"./assimp/contrib/ConvertUTF/**.c",
+		"./assimp/contrib/ConvertUTF/**.h",
+		"./assimp/contrib/poly2tri/**.cc",
+		"./assimp/contrib/poly2tri/**.h"
+	}
+
+	includedirs { 
+		"./zlib",
+		boostInclude
+	}
+
+	defines { 
+		"ASSIMP_BUILD_NO_OWN_ZLIB=1",
+		"_SCL_SECURE_NO_WARNINGS",
+		"_CRT_SECURE_NO_DEPRECATE"
+	}
