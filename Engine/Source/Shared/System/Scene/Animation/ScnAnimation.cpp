@@ -43,6 +43,7 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 
 		// Setup data streams.
 		BcStream HeaderStream;
+		BcStream NodeStream;
 		BcStream PoseStream;
 		BcStream KeyStream;
 
@@ -52,6 +53,15 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 		Header.Flags_ = scnAF_DEFAULT;
 		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
 		HeaderStream << Header;
+
+		// Animation node file data.
+		ScnAnimationNodeFileData NodeFileData;
+		for( BcU32 NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
+		{
+			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
+			NodeFileData.Name_ = Importer.addString( pNode->Name_ );
+			NodeStream << NodeFileData;
+		}
 
 		// Build up frames of poses.
 		ScnAnimationTransformKey_R16S16T16 OutKey;
@@ -88,6 +98,7 @@ BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Valu
 		
 		// Write out chunks.
 		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
+		Importer.addChunk( BcHash( "nodes" ), NodeStream.pData(), NodeStream.dataSize() );
 		Importer.addChunk( BcHash( "poses" ), PoseStream.pData(), PoseStream.dataSize() );
 		Importer.addChunk( BcHash( "keys" ), KeyStream.pData(), KeyStream.dataSize() );
 
@@ -135,6 +146,17 @@ void ScnAnimation::create()
 void ScnAnimation::destroy()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNodeByIndex
+const ScnAnimationNodeFileData* ScnAnimation::getNodeByIndex( BcU32 Idx ) const
+{
+	if( Idx < Header_.NoofNodes_ )
+	{
+		return &pNodeData_[ Idx ];
+	}
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,6 +283,16 @@ void ScnAnimation::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		// Grab pose and key chunks.
 		requestChunk( 1 );
 		requestChunk( 2 );
+		requestChunk( 3 );
+	}
+	else if( ChunkID == BcHash( "nodes" ) )
+	{
+		pNodeData_ = reinterpret_cast< ScnAnimationNodeFileData* >( pData );
+
+		for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
+		{
+			getPackage()->markupName( pNodeData_[ Idx ].Name_ );
+		}
 	}
 	else if( ChunkID == BcHash( "poses" ) )
 	{
