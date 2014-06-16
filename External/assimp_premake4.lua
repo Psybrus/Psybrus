@@ -59,7 +59,6 @@ project "External_assimp"
 		-- Remove importers that we don't want yet to
 		-- keep the build lean.
 		"ASSIMP_BUILD_NO_X_IMPORTER",
-		"ASSIMP_BUILD_NO_3DS_IMPORTER",
 		"ASSIMP_BUILD_NO_MD3_IMPORTER",
 		"ASSIMP_BUILD_NO_MDL_IMPORTER",
 		"ASSIMP_BUILD_NO_MD2_IMPORTER",
