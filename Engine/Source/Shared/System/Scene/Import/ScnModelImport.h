@@ -35,6 +35,12 @@ public:
 		const Json::Value& Object );
 
 private:
+	/**
+	 * Calculate node world transforms.
+	 */
+	void calculateNodeWorldTransforms();
+
+private:
 	// old Mdl library code.
 	void recursiveSerialiseNodes( 
 		class MdlNode* pNode,

@@ -33,8 +33,8 @@ struct ScnModelHeader
 // ScnModelNodeTransformData
 struct ScnModelNodeTransformData
 {
-	MaMat4d							RelativeTransform_;
-	MaMat4d							AbsoluteTransform_;
+	MaMat4d							LocalTransform_;
+	MaMat4d							WorldTransform_;
 	MaMat4d							InverseBindpose_;
 };
 
