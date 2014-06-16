@@ -103,6 +103,7 @@ private:
 	std::vector< ScnModelNodeTransformData > NodeTransformData_;
 	std::vector< ScnModelNodePropertyData > NodePropertyData_;
 	std::vector< ScnModelMeshData > MeshData_;
+	std::vector< RsVertexDeclarationDesc > VertexDeclarations_;
 };
 
 #endif
