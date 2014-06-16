@@ -160,7 +160,22 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 			//
 			NodePropertyDataStream_ << NodePropertyData;
 		}
-		
+
+		// Serialise vertex elements.
+		for( const auto& VertexDecl : VertexDeclarations_ )
+		{
+			for( const auto& VertexElement : VertexDecl.Elements_ )
+			{
+				VertexElementStream_ << VertexElement;
+			}
+		}
+
+		// Serialise mesh data.
+		for( const auto& MeshData : MeshData_ )
+		{
+			MeshDataStream_ << MeshData;
+		}
+
 		// Write to file.
 		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
 		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
@@ -301,15 +316,20 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		};
 
 		// Vertex format.
-		auto CurrentPosition = VertexElementStream_.dataSize();
-		VertexElementStream_ << RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 );
-		VertexElementStream_ << RsVertexElement( 0, 36,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 44,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 );
+		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc( 5 )
+			.addElement( RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 ) )
+			.addElement( RsVertexElement( 0, 24,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 ) )
+			.addElement( RsVertexElement( 0, 36,		2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 44,		4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) );
+		VertexDeclarations_.push_back( VertexDeclarationDesc );
 
 		// Export vertices.
-		serialiseVertices( pMesh, (RsVertexElement*)(&(VertexElementStream_.pData()[ CurrentPosition ])), 5, MeshData.AABB_ );
+		serialiseVertices( 
+			pMesh, 
+			&VertexDeclarationDesc.Elements_[ 0 ], 
+			VertexDeclarationDesc.Elements_.size(), 
+			MeshData.AABB_ );
 		
 		// Grab material name.
 		MdlMaterial Material = pMesh->material( 0 );
@@ -328,8 +348,8 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
 		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
-		MeshDataStream_ << MeshData;
-					
+
+		MeshData_.push_back( MeshData );
 
 		// Export indices.
 		MdlIndex Index;
@@ -386,17 +406,21 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		};
 
 		// Vertex format.
-		auto CurrentPosition = VertexElementStream_.dataSize();
-		VertexElementStream_ << RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 );
-		VertexElementStream_ <<	RsVertexElement( 0, 24,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 );
-		VertexElementStream_ << RsVertexElement( 0, 36,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 44,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDINDICES,	0 );
-		VertexElementStream_ << RsVertexElement( 0, 60,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDWEIGHTS,	0 );
-		VertexElementStream_ << RsVertexElement( 0, 76,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 );
+		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc( 7 )
+			.addElement( RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 ) )
+			.addElement( RsVertexElement( 0, 24,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 ) )
+			.addElement( RsVertexElement( 0, 36,		2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 44,		4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDINDICES,	0 ) )
+			.addElement( RsVertexElement( 0, 60,		4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDWEIGHTS,	0 ) )
+			.addElement( RsVertexElement( 0, 76,		4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) );
+		VertexDeclarations_.push_back( VertexDeclarationDesc );
 
 		// Export vertices.
-		serialiseVertices( pSkin, (RsVertexElement*)(&(VertexElementStream_.pData()[ CurrentPosition ])), 7, MeshData.AABB_ );
+		serialiseVertices( pSkin, 
+			&VertexDeclarationDesc.Elements_[ 0 ], 
+			VertexDeclarationDesc.Elements_.size(), 
+			MeshData.AABB_ );
 
 		// Setup bone palette for primitive.
 		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
@@ -427,8 +451,9 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
 		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
-		MeshDataStream_ << MeshData;
-							
+
+		MeshData_.push_back( MeshData );
+
 		// Export indices.
 		MdlIndex Index;
 		for( BcU32 IndexIdx = 0; IndexIdx < pSkin->nIndices(); ++IndexIdx )
@@ -661,15 +686,19 @@ void ScnModelImport::serialiseMesh( struct aiMesh* Mesh,
 		}
 
 		// Vertex format.
-		auto CurrentPosition = VertexElementStream_.dataSize();
-		VertexElementStream_ << RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 );
-		VertexElementStream_ << RsVertexElement( 0, 24,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 );
-		VertexElementStream_ << RsVertexElement( 0, 36,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 );
-		VertexElementStream_ << RsVertexElement( 0, 44,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 );
+		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc( 5 )
+			.addElement( RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 ) )
+			.addElement( RsVertexElement( 0, 24,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 ) )
+			.addElement( RsVertexElement( 0, 36,		2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 44,		4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) );
+		VertexDeclarations_.push_back( VertexDeclarationDesc );
 
 		// Export vertices.
-		serialiseVertices( Mesh, (RsVertexElement*)(&(VertexElementStream_.pData()[ CurrentPosition ])), 5, MeshData.AABB_ );
+		serialiseVertices( Mesh, 
+			&VertexDeclarationDesc.Elements_[ 0 ], 
+			VertexDeclarationDesc.Elements_.size(), 
+			MeshData.AABB_ );
 		
 		// Grab material name.
 		std::string Material;
@@ -689,7 +718,8 @@ void ScnModelImport::serialiseMesh( struct aiMesh* Mesh,
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
 		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.c_str() );
-		MeshDataStream_ << MeshData;
+		
+		MeshData_.push_back( MeshData );
 
 		// Export indices.
 		BcU32 TotalIndices = 0;
