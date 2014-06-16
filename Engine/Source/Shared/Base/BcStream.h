@@ -20,8 +20,12 @@
 // BcStream
 class BcStream
 {
+private:
+	BcStream( const BcStream& ){};
+
 public:
 	BcStream( BcBool bSwapEndian = BcFalse, BcSize AllocSize = 512, BcSize InitialSize = 0 );
+	BcStream( BcStream&& Other );
 	~BcStream();
 
 	/**
