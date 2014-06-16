@@ -39,16 +39,6 @@ public:
 	void			setViewport( const RsViewport& Viewport );
 	void			addRenderNode( RsRenderNode* pInstance );
 	
-	void			beginPrimitive( RsTopologyType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer );
-	void			endPrimitive();
-	void			addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer );
-	void			addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer );
-	void			addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer );
-
-	void			addSprite( RsMaterial* pMaterial, const MaVec2d& Position );
-
-	void			addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, RsTopologyType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth );
-
 	void*			allocMem( BcSize Bytes );
 
 private:
