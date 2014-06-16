@@ -38,6 +38,12 @@ BcU32 GResolutionHeight = 720;
 #include "System/Scene/Animation/ScnAnimationTreeNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
+nn#include "System/Scene/Animation/ScnAnimationPose.h"
+
+#include "System/Scene/Physics/ScnPhysicsCollisionShape.h"
+#include "System/Scene/Physics/ScnPhysicsBoxCollisionShape.h"
+#include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
+#include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
 
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnEntity.h"
@@ -104,7 +110,6 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	// Register sound
 
 	// Register scene resources.
-	ScnAnimation::StaticRegisterClass();
 	ScnShader::StaticRegisterClass();
 	ScnTexture::StaticRegisterClass();
 	ScnTextureAtlas::StaticRegisterClass();
@@ -124,12 +129,23 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	ScnMaterialComponent::StaticRegisterClass();
 	ScnFontComponent::StaticRegisterClass();
 	ScnParticleSystemComponent::StaticRegisterClass();
-	ScnAnimationComponent::StaticRegisterClass();
 	ScnLightComponent::StaticRegisterClass();
 	ScnModelComponent::StaticRegisterClass();
 	ScnSoundListenerComponent::StaticRegisterClass();
 	ScnSoundEmitterComponent::StaticRegisterClass();
 	ScnCanvasComponent::StaticRegisterClass();
+
+	ScnAnimation::StaticRegisterClass();
+	ScnAnimationComponent::StaticRegisterClass();
+	ScnAnimationTreeNode::StaticRegisterClass();
+	ScnAnimationTreeBlendNode::StaticRegisterClass();
+	ScnAnimationTreeTrackNode::StaticRegisterClass();
+	ScnAnimationPose::StaticRegisterClass();
+
+	ScnPhysicsCollisionShape::StaticRegisterClass();
+	ScnPhysicsBoxCollisionShape::StaticRegisterClass();
+	ScnPhysicsRigidBodyComponent::StaticRegisterClass();
+	ScnPhysicsWorldComponent::StaticRegisterClass();
 
 	// Scene shader stuff.
 	ScnShaderViewUniformBlockData::StaticRegisterClass();

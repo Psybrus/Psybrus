@@ -46,17 +46,6 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
 
-	// HACK: Setup a way to add child types in the defines.
-	static BcBool HasRegisteredReflection = BcFalse;
-	if( HasRegisteredReflection == BcFalse )
-	{
-		HasRegisteredReflection = BcTrue;
-		ScnAnimationTreeNode::StaticRegisterClass();
-		ScnAnimationTreeBlendNode::StaticRegisterClass();
-		ScnAnimationTreeTrackNode::StaticRegisterClass();
-		ScnAnimationPose::StaticRegisterClass();
-	}
-
 	//
 	TargetComponentName_ = Object[ "target" ].asCString();
 
