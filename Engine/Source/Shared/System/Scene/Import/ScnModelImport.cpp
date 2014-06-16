@@ -102,6 +102,40 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		
 		HeaderStream_ << Header;
 		
+				// Calculate world transforms.
+		calculateNodeWorldTransforms();
+
+		// Serialise node data.
+		for( const auto& NodeTransformData : NodeTransformData_ )
+		{
+			//
+			NodeTransformDataStream_ << NodeTransformData;
+		}
+
+		for( auto NodePropertyData : NodePropertyData_ )
+		{
+			// Add name to the importer.
+			NodePropertyData.Name_ = pImporter_->addString( (*NodePropertyData.Name_).c_str() );
+
+			//
+			NodePropertyDataStream_ << NodePropertyData;
+		}
+
+		// Serialise vertex elements.
+		for( const auto& VertexDecl : VertexDeclarations_ )
+		{
+			for( const auto& VertexElement : VertexDecl.Elements_ )
+			{
+				VertexElementStream_ << VertexElement;
+			}
+		}
+
+		// Serialise mesh data.
+		for( const auto& MeshData : MeshData_ )
+		{
+			MeshDataStream_ << MeshData;
+		}
+
 		// Write to file.
 		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
 		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
