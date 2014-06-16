@@ -109,7 +109,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
-		Importer.addChunk( BcHash( "primitivedata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
 		
 		//
 		return BcTrue;
@@ -141,6 +141,25 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		};
 		
 		HeaderStream_ << Header;
+
+		// Calculate world transforms.
+		calculateNodeWorldTransforms();
+
+		// Serialise node data.
+		for( const auto& NodeTransformData : NodeTransformData_ )
+		{
+			//
+			NodeTransformDataStream_ << NodeTransformData;
+		}
+
+		for( auto NodePropertyData : NodePropertyData_ )
+		{
+			// Add name to the importer.
+			NodePropertyData.Name_ = pImporter_->addString( (*NodePropertyData.Name_).c_str() );
+
+			//
+			NodePropertyDataStream_ << NodePropertyData;
+		}
 		
 		// Write to file.
 		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
@@ -149,12 +168,41 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
 		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
-		Importer.addChunk( BcHash( "primitivedata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
 		
 		//
 		return BcTrue;
 	}
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// calculateNodeWorldTransforms
+void ScnModelImport::calculateNodeWorldTransforms()
+{
+	BcAssert( NodeTransformData_.size() == NodePropertyData_.size() );
+
+	for( BcU32 Idx = 0; Idx < NodeTransformData_.size(); ++Idx )
+	{
+		auto& NodeTransformData( NodeTransformData_[ Idx ] );
+		const auto& NodePropertyData( NodePropertyData_[ Idx ] );
+
+		// If we've got a parent, we need to use it's world transform.
+		if( NodePropertyData.ParentIndex_ != BcErrorCode )
+		{
+			BcAssert( NodePropertyData.ParentIndex_ < Idx );
+			const auto& ParentNodeTransformData( NodeTransformData_[ NodePropertyData.ParentIndex_ ] );
+
+			NodeTransformData.WorldTransform_ = 
+				NodeTransformData.LocalTransform_ *
+				ParentNodeTransformData.WorldTransform_;
+		}
+		else
+		{
+			NodeTransformData.WorldTransform_ = 
+				NodeTransformData.LocalTransform_;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,21 +216,21 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 	ScnModelNodeTransformData NodeTransformData =
 	{
 		pNode->relativeTransform(),
-		pNode->absoluteTransform(),
+		MaMat4d(),	// calculated later.
 		pNode->inverseBindpose()
 	};
 	
 	ScnModelNodePropertyData NodePropertyData = 
 	{
 		ParentIndex,
-		pImporter_->addString( BcName::StripInvalidChars( pNode->name() ).c_str() ),
+		BcName::StripInvalidChars( pNode->name() ).c_str(),
 		pNode->type() == eNT_JOINT
 	};
-	
-	// Serialise.
-	NodeTransformDataStream_ << NodeTransformData;
-	NodePropertyDataStream_ << NodePropertyData;
-	
+
+	// Put in lists.
+	NodeTransformData_.push_back( NodeTransformData );
+	NodePropertyData_.push_back( NodePropertyData );
+		
 	// Update parent & node index.
 	ParentIndex = NodeIndex++;
 
@@ -526,13 +574,13 @@ void ScnModelImport::recursiveSerialiseNodes( struct aiNode* Node,
 	ScnModelNodePropertyData NodePropertyData = 
 	{
 		ParentIndex,
-		pImporter_->addString( BcName::StripInvalidChars( Node->mName.C_Str() ).c_str() ),
+		BcName::StripInvalidChars( Node->mName.C_Str() ).c_str(),
 		BcFalse, // todo: is bone
 	};
 	
-	// Serialise.
-	NodeTransformDataStream_ << NodeTransformData;
-	NodePropertyDataStream_ << NodePropertyData;
+	// Put in lists.
+	NodeTransformData_.push_back( NodeTransformData );
+	NodePropertyData_.push_back( NodePropertyData );
 	
 	// Update parent & node index.
 	ParentIndex = NodeIndex++;

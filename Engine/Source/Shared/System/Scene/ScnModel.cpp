@@ -203,7 +203,7 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		pVertexElements_ = (RsVertexElement*)pData;
 	}
-	else if( ChunkID == BcHash( "primitivedata" ) )
+	else if( ChunkID == BcHash( "meshdata" ) )
 	{
 		pMeshData_ = (ScnModelMeshData*)pData;
 
@@ -366,7 +366,7 @@ void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
-		pNodeTransformData_[ NodeIdx ].RelativeTransform_ = LocalTransform;
+		pNodeTransformData_[ NodeIdx ].LocalTransform_ = LocalTransform;
 	}
 }
 
@@ -377,7 +377,7 @@ const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
-		return pNodeTransformData_[ NodeIdx ].RelativeTransform_;
+		return pNodeTransformData_[ NodeIdx ].LocalTransform_;
 	}
 
 	static MaMat4d Default;
@@ -457,11 +457,11 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		{
 			ScnModelNodeTransformData* pParentScnModelNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
 			
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * pParentScnModelNodeTransformData->AbsoluteTransform_;
+			pNodeTransformData->WorldTransform_ = pNodeTransformData->LocalTransform_ * pParentScnModelNodeTransformData->WorldTransform_;
 		}
 		else
 		{
-			pNodeTransformData->AbsoluteTransform_ = pNodeTransformData->RelativeTransform_ * RootMatrix;
+			pNodeTransformData->WorldTransform_ = pNodeTransformData->LocalTransform_ * RootMatrix;
 		}
 	}
 
@@ -478,7 +478,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
 		
 			MaAABB PrimitiveAABB = pNodeMeshData->AABB_;
-			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->AbsoluteTransform_ ) );
+			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->WorldTransform_ ) );
 		}
 		else
 		{
@@ -494,7 +494,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 					{
 						ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ BoneIndex ];
 						ScnModelNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
-						MaAABB NewAABB( pNodeTransformData->AbsoluteTransform_.translation(), pParentNodeTransformData->AbsoluteTransform_.translation() );
+						MaAABB NewAABB( pNodeTransformData->WorldTransform_.translation(), pParentNodeTransformData->WorldTransform_.translation() );
 
 						//
 						SkeletalAABB.expandBy( NewAABB );
@@ -531,7 +531,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
 				if( NodeIndex != BcErrorCode )
 				{
-					BoneUniformBlock->BoneTransform_[ Idx ] = pNodeTransformData_[ NodeIndex ].InverseBindpose_ * pNodeTransformData_[ NodeIndex ].AbsoluteTransform_;
+					BoneUniformBlock->BoneTransform_[ Idx ] = pNodeTransformData_[ NodeIndex ].InverseBindpose_ * pNodeTransformData_[ NodeIndex ].WorldTransform_;
 				}
 			}
 
@@ -542,7 +542,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 			BcAssertMsg( PerComponentMeshData.UniformBuffer_->getDataSize() == sizeof( ScnShaderObjectUniformBlockData ), "ObjectUniformBlock size mismatch." );
 			ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( PerComponentMeshData.UniformBuffer_->lock() );
 			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
-			ObjectUniformBlock->WorldTransform_ = pNodeTransformData->AbsoluteTransform_;
+			ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
 			PerComponentMeshData.UniformBuffer_->unlock();		
 		}
 	}
