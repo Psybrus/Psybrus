@@ -93,6 +93,10 @@ private:
 	BcStream MeshDataStream_;
 
 	const struct aiScene* Scene_;
+
+	std::vector< ScnModelNodeTransformData > NodeTransformData_;
+	std::vector< ScnModelNodePropertyData > NodePropertyData_;
+	std::vector< ScnModelMeshData > MeshData_;
 };
 
 #endif
