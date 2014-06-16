@@ -38,7 +38,7 @@ BcU32 GResolutionHeight = 720;
 #include "System/Scene/Animation/ScnAnimationTreeNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
-nn#include "System/Scene/Animation/ScnAnimationPose.h"
+#include "System/Scene/Animation/ScnAnimationPose.h"
 
 #include "System/Scene/Physics/ScnPhysicsCollisionShape.h"
 #include "System/Scene/Physics/ScnPhysicsBoxCollisionShape.h"
