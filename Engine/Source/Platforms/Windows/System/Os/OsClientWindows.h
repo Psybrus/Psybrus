@@ -82,7 +82,13 @@ private:
 	LRESULT wndProcInternal( HWND, UINT, WPARAM, LPARAM );
 	static LRESULT	CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 
+	static BOOL CALLBACK MonitorEnumProc( HMONITOR, HDC, LPRECT, LPARAM );
+
 private:
+	std::vector< DEVMODEA > DeviceModes_;
+	std::vector< DISPLAY_DEVICEA > DisplayDevices_;
+	std::vector< MONITORINFO > MonitorInfos_;
+
 	HDC				hDC_;
 	HWND			hWnd_;
 	BcHandle		hInstance_;
