@@ -531,7 +531,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
 				if( NodeIndex != BcErrorCode )
 				{
-					BoneUniformBlock->BoneTransform_[ Idx ] = pNodeTransformData_[ NodeIndex ].InverseBindpose_ * pNodeTransformData_[ NodeIndex ].WorldTransform_;
+					BoneUniformBlock->BoneTransform_[ Idx ] = pNodeMeshData->BoneInverseBindpose_[ Idx ] * pNodeTransformData_[ NodeIndex ].WorldTransform_;
 				}
 			}
 

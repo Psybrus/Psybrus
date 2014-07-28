@@ -35,14 +35,19 @@ public:
 		const Json::Value& Object );
 
 private:
-	/**
-	 * Get position key for node anim.
-	 */
-	BcBool getPositionKeyNodeAnim( 
-		struct aiNodeAnim* NodeAnim,
-		BcF32 Time,
-		BcBool Interpolate,
-		struct aiVectorKey& Key );
+	// Animated node, used in calculation
+	// of local space animation stuff.
+	struct AnimatedNode
+	{
+		std::string Name_;
+		MaMat4d LocalTransform_;
+		MaMat4d WorldTransform_;
+		BcU32 ParentIdx_;
+	};
+
+	void recursiveParseAnimatedNodes( struct aiNode* Node, BcU32 ParentNodeIdx );
+	
+	AnimatedNode& findAnimatedNode( std::string Name );
 
 private:
 	std::string Source_;
@@ -55,6 +60,8 @@ private:
 	BcStream KeyStream_;
 
 	const struct aiScene* Scene_;
+
+	std::vector< AnimatedNode > AnimatedNodes_;
 
 };
 

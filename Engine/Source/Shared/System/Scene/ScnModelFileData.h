@@ -35,7 +35,6 @@ struct ScnModelNodeTransformData
 {
 	MaMat4d							LocalTransform_;
 	MaMat4d							WorldTransform_;
-	MaMat4d							InverseBindpose_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,6 +64,7 @@ struct ScnModelMeshData
 	BcU32							VertexStride_;
 	RsVertexElement*				VertexElements_;
 	BcU32							BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
+	MaMat4d							BoneInverseBindpose_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };
 
 //////////////////////////////////////////////////////////////////////////

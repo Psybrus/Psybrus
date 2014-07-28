@@ -30,6 +30,72 @@
 
 #ifdef PSY_SERVER
 
+namespace
+{
+	//////////////////////////////////////////////////////////////////////////
+	// GetKeyNodeAnim
+	template< typename _KEY_TYPE, typename _VALUE_TYPE >
+	BcBool GetKeyNodeAnim( 
+		_KEY_TYPE* NodeKeys,
+		BcU32 NumNodeKeys,
+		BcF32 Time,
+		BcBool Interpolate,
+		_VALUE_TYPE& Key )
+	{
+		// Setup indices.
+		BcU32 MinIdx = 0;
+		BcU32 MidIdx = 0;
+		BcU32 MaxIdx = BcClamp( NumNodeKeys - ( Interpolate ? 2 : 1 ), 0, NumNodeKeys - 1 );
+	
+		// Binary search.
+		BcBool KeepSearching = BcTrue;
+		do
+		{
+			MidIdx = ( MinIdx + MaxIdx ) / 2;
+			const _KEY_TYPE& KeyA = NodeKeys[ MidIdx ];
+			const _KEY_TYPE& KeyB = NodeKeys[ BcMin( MidIdx + 1, NumNodeKeys - 1 ) ];
+
+			if( Time >= KeyA.mTime )
+			{
+				if( Time <= KeyB.mTime )
+				{
+					KeepSearching = BcFalse;
+				}
+				else
+				{
+					KeepSearching = MinIdx != MidIdx;
+					MinIdx = MidIdx;
+				}
+			}
+			else
+			{
+				KeepSearching = MaxIdx != MidIdx;
+				MaxIdx = MidIdx;
+			}
+		}
+		while( KeepSearching );
+
+		// Should have a valid key by this point, we need to calculate the output key now.
+		if( Interpolate && ( MidIdx + 1 ) < NumNodeKeys )
+		{
+			const _KEY_TYPE& KeyA = NodeKeys[ MidIdx ];
+			const _KEY_TYPE& KeyB = NodeKeys[ MidIdx + 1 ];
+			BcAssert( KeyA.mTime <= KeyB.mTime );
+			BcF32 StepSize = static_cast< BcF32 >( KeyB.mTime ) - static_cast< BcF32 >( KeyA.mTime );
+			BcF32 LerpAmount = ( Time - static_cast< BcF32 >( KeyA.mTime ) ) / StepSize;
+			
+			Assimp::Interpolator< _KEY_TYPE >()( Key, KeyA, KeyB, LerpAmount );
+		}
+		else
+		{
+			const _KEY_TYPE& KeyA = NodeKeys[ MidIdx ];
+			Key = KeyA.mValue;
+		}
+	
+		return BcTrue;
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnAnimationImport::ScnAnimationImport()
@@ -55,38 +121,136 @@ BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json
 
 	if( Scene_ != nullptr )
 	{
-		// Calculate stuffs.
-		// Temp code at the moment to test stuff.
-		for( BcU32 AnimationIdx = 0; AnimationIdx < Scene_->mNumAnimations; ++AnimationIdx )
+		// Build animated nodes list. Need this to calculate relative transforms later.
+		recursiveParseAnimatedNodes( Scene_->mRootNode, BcErrorCode );
+
+		// Pack down animation into useful internal format.
+		BcAssert( Scene_->mNumAnimations == 1 );
+		for( BcU32 AnimationIdx = 0; AnimationIdx < 1; ++AnimationIdx )
 		{
 			auto* Animation = Scene_->mAnimations[ AnimationIdx ];
-			for( BcU32 ChannelIdx = 0; ChannelIdx < Animation->mNumChannels; ++ChannelIdx )
-			{
-				auto* Channel = Animation->mChannels[ ChannelIdx ];
 
-				BcF32 Rate = 0.5f;
-				for( BcF32 Time = 0.0f; Time <= Animation->mDuration; Time += Rate )
+			BcF32 Rate = 1.0f;
+			BcU32 Duration = static_cast< BcU32 >( Animation->mDuration / Rate );
+
+			// Setup data streams.
+			ScnAnimationHeader Header;
+			Header.NoofNodes_ = Animation->mNumChannels;
+			Header.NoofPoses_ = Duration;
+			Header.Flags_ = scnAF_DEFAULT;
+			Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
+			HeaderStream_ << Header;
+
+			// Animation node file data.
+			ScnAnimationNodeFileData NodeFileData;
+			for( BcU32 NodeIdx = 0; NodeIdx < Animation->mNumChannels; ++NodeIdx )
+			{
+				auto* Channel = Animation->mChannels[ NodeIdx ];
+				NodeFileData.Name_ = Importer.addString( Channel->mNodeName.C_Str() );
+				NodeStream_ << NodeFileData;
+			}
+
+			// Calculate output pose.
+			for( BcF32 Time = 0.0f; Time <= Animation->mDuration; Time += Rate )
+			{
+				ScnAnimationPoseFileData Pose;
+				Pose.Time_ = Time;
+				Pose.KeyDataOffset_ = KeyStream_.dataSize();
+
+				// Iterate over all node channels to generate keys.
+				for( BcU32 ChannelIdx = 0; ChannelIdx < Animation->mNumChannels; ++ChannelIdx )
 				{
-					aiVectorKey OutKey;
-					if( getPositionKeyNodeAnim( Channel, Time, BcTrue, OutKey ) )
+					auto* Channel = Animation->mChannels[ ChannelIdx ];
+					auto& AnimatedNode = findAnimatedNode( Channel->mNodeName.C_Str() );
+
+					aiVector3D OutPositionKey;
+					aiVector3D OutScaleKey;
+					aiQuaternion OutRotationKey;
+
+					// Extract position.
+					GetKeyNodeAnim( 
+						Channel->mPositionKeys, 
+						Channel->mNumPositionKeys, 
+						Time, 
+						BcTrue, 
+						OutPositionKey );
+	
+					// Extract scale.
+					GetKeyNodeAnim( 
+						Channel->mScalingKeys, 
+						Channel->mNumScalingKeys, 
+						Time, 
+						BcTrue, 
+						OutScaleKey );
+
+					// Extract rotation.
+					GetKeyNodeAnim( 
+						Channel->mRotationKeys, 
+						Channel->mNumRotationKeys, 
+						Time, 
+						BcTrue, 
+						OutRotationKey );
+
+					// Combine key into transform.
+					ScnAnimationTransform Transform;
+					Transform.R_ = MaQuat( OutRotationKey.x, OutRotationKey.y, OutRotationKey.z, OutRotationKey.w );
+					Transform.S_ = MaVec3d( OutScaleKey.x, OutScaleKey.y, OutScaleKey.z );
+					Transform.T_ = MaVec3d( OutPositionKey.x, OutPositionKey.y, OutPositionKey.z );
+				
+					// Store as world matrix.
+					Transform.toMatrix( AnimatedNode.WorldTransform_ );
+					AnimatedNode.LocalTransform_ = AnimatedNode.WorldTransform_;
+				}
+
+				// Calculate local node matrices relative to their parents.
+				for( auto& AnimatedNode : AnimatedNodes_ )
+				{
+					if( AnimatedNode.ParentIdx_ != BcErrorCode )
 					{
-						int a = 0; ++a;
+						auto& ParentAnimatedNode( AnimatedNodes_[ AnimatedNode.ParentIdx_ ] );
+						MaMat4d ParentMatrixInverse = ParentAnimatedNode.WorldTransform_;
+						ParentMatrixInverse.inverse();
+						AnimatedNode.LocalTransform_ = ParentMatrixInverse * AnimatedNode.LocalTransform_;
 					}
 				}
+
+				// Write out pose keys.
+				ScnAnimationTransformKey_R16S16T16 OutKey;
+				for( BcU32 ChannelIdx = 0; ChannelIdx < Animation->mNumChannels; ++ChannelIdx )
+				{
+					auto* Channel = Animation->mChannels[ ChannelIdx ];
+					const auto& AnimatedNode = findAnimatedNode( Channel->mNodeName.C_Str() );
+
+					// Extract individual transform elements.
+					ScnAnimationTransform Transform;
+					Transform.fromMatrix( AnimatedNode.LocalTransform_ );
+
+					// Pack into output key.
+					OutKey.pack( 
+						Transform.R_,
+						Transform.S_,
+						Transform.T_ );
+
+					KeyStream_ << OutKey;
+				}
+			
+				// Final size + CRC.
+				Pose.KeyDataSize_ = KeyStream_.dataSize() - Pose.KeyDataOffset_;
+				Pose.CRC_ = BcHash::GenerateCRC32( 0, KeyStream_.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
+
+				// Write out pose.
+				PoseStream_ << Pose;
 			}
+		
+			// Write out chunks.
+			Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
+			Importer.addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
+			Importer.addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
+			Importer.addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
 		}
 
 		aiReleaseImport( Scene_ );
 		Scene_ = nullptr;
-
-		// Setup data streams.
-		ScnAnimationHeader Header;
-		Header.NoofNodes_ = 1;
-		Header.NoofPoses_ = 1; // means we always have the first frame as the last for smooth looping. TODO: Optional.
-		Header.Flags_ = scnAF_DEFAULT;
-		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
-		HeaderStream_ << Header;
-		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
 
 		//
 		return BcTrue;
@@ -174,64 +338,42 @@ BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getPositionKeyNodeAnim
-BcBool ScnAnimationImport::getPositionKeyNodeAnim( 
-	struct aiNodeAnim* NodeAnim,
-	BcF32 Time,
-	BcBool Interpolate,
-	struct aiVectorKey& Key )
+// recursiveParseAnimatedNodes
+void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, BcU32 ParentNodeIdx )
 {
-	// Setup indices.
-	BcU32 MinIdx = 0;
-	BcU32 MidIdx = 0;
-	BcU32 MaxIdx = NodeAnim->mNumPositionKeys - ( Interpolate ? 2 : 1 );
-	
-	// Binary search.
-	BcBool KeepSearching = BcTrue;
-	do
-	{
-		MidIdx = ( MinIdx + MaxIdx ) / 2;
-		const aiVectorKey* KeyA = &NodeAnim->mPositionKeys[ MidIdx ];
-		const aiVectorKey* KeyB = &NodeAnim->mPositionKeys[ MidIdx + 1 ];
+	AnimatedNode AnimatedNode;
+	aiMatrix4x4 WorldTransform = Node->mParent != nullptr ?
+		Node->mParent->mTransformation * Node->mTransformation : Node->mTransformation;
 
-		if( Time >= KeyA->mTime )
+	AnimatedNode.Name_ = Node->mName.C_Str();
+	AnimatedNode.LocalTransform_ = MaMat4d( Node->mTransformation[ 0 ] );
+	AnimatedNode.WorldTransform_ = MaMat4d( WorldTransform[ 0 ] );
+	AnimatedNode.ParentIdx_ = ParentNodeIdx;
+
+	AnimatedNodes_.push_back( AnimatedNode );
+
+	for( BcU32 ChildIdx = 0; ChildIdx < Node->mNumChildren; ++ChildIdx )
+	{
+		recursiveParseAnimatedNodes( Node->mChildren[ ChildIdx ], AnimatedNodes_.size() - 1 );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findAnimatedNode
+ScnAnimationImport::AnimatedNode& ScnAnimationImport::findAnimatedNode( std::string Name )
+{
+	for( auto& AnimatedNode : AnimatedNodes_ )
+	{
+		if( AnimatedNode.Name_ == Name )
 		{
-			if( Time <= KeyB->mTime )
-			{
-				KeepSearching = BcFalse;
-			}
-			else
-			{
-				KeepSearching = MinIdx != MidIdx;
-				MinIdx = MidIdx;
-			}
-		}
-		else
-		{
-			KeepSearching = MaxIdx != MidIdx;
-			MaxIdx = MidIdx;
+			return AnimatedNode;
 		}
 	}
-	while( KeepSearching );
 
-	// Should have a valid key by this point, we need to calculate the output key now.
-	if( Interpolate )
-	{
-		const aiVectorKey* KeyA = &NodeAnim->mPositionKeys[ MidIdx ];
-		const aiVectorKey* KeyB = &NodeAnim->mPositionKeys[ MidIdx + 1 ];
-		BcAssert( KeyA->mTime < KeyB->mTime );
-		BcF32 StepSize = static_cast< BcF32 >( KeyB->mTime ) - static_cast< BcF32 >( KeyA->mTime );
-		BcF32 LerpAmount = ( Time - static_cast< BcF32 >( KeyA->mTime ) ) / StepSize;
-		Key.mTime = Time;
-		Key.mValue = KeyA->mValue + ( ( KeyB->mValue - KeyA->mValue ) * LerpAmount );
-	}
-	else
-	{
-		const aiVectorKey* KeyA = &NodeAnim->mPositionKeys[ MidIdx ];
-		Key = *KeyA;
-	}
-	
-	return BcTrue;
+	// Should never hit here.
+	BcBreakpoint;
+
+	return *(ScnAnimationImport::AnimatedNode*)( nullptr );
 }
 
 #endif

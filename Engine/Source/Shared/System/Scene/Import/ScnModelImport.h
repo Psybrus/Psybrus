@@ -48,7 +48,13 @@ private:
 		BcU32& NodeIndex,
 		BcU32& PrimitiveIndex );
 
-	void serialiseMesh( 
+	void recursiveSerialiseNodeMeshes( 
+		class MdlNode* pNode,
+		BcU32 ParentIndex,
+		BcU32& NodeIndex,
+		BcU32& PrimitiveIndex );
+
+		void serialiseMesh( 
 		class MdlMesh* pSkin,
 		BcU32 ParentIndex,
 		BcU32& NodeIndex,
@@ -86,6 +92,8 @@ private:
 		BcU32 NoofVertexElements,
 		MaAABB& AABB );
 
+	BcU32 findNodeIndex( std::string Name, aiNode* RootSearchNode, BcU32& BaseIndex ) const;
+
 private:
 	std::string Source_;
 
@@ -104,6 +112,7 @@ private:
 	std::vector< ScnModelNodePropertyData > NodePropertyData_;
 	std::vector< ScnModelMeshData > MeshData_;
 	std::vector< RsVertexDeclarationDesc > VertexDeclarations_;
+	std::vector< MaMat4d > InverseBindposes_;
 };
 
 #endif
