@@ -29,6 +29,41 @@
 
 #ifdef PSY_SERVER
 
+namespace
+{
+	/**
+	 * Fill next element that is less than zero.
+	 * Will check elements until first one less than 0.0 is found and overwrite it.
+	 */
+	BcU32 FillNextElementLessThanZero( BcF32 Value, BcF32* pElements, BcU32 NoofElements )
+	{
+		for( BcU32 Idx = 0; Idx < NoofElements; ++Idx )
+		{
+			if( pElements[ Idx ] < 0.0f )
+			{
+				pElements[ Idx ] = Value;
+				return Idx;
+			}
+		}
+
+		return BcErrorCode;
+	}
+
+	/**
+	 * Fill all elements less than zero with specific value.
+	 */
+	void FillAllElementsLessThanZero( BcF32 Value, BcF32* pElements, BcU32 NoofElements )
+	{
+		for( BcU32 Idx = 0; Idx < NoofElements; ++Idx )
+		{
+			if( pElements[ Idx ] < 0.0f )
+			{
+				pElements[ Idx ] = Value;
+			}
+		}
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 static BcU32 gVertexDataSize[] = 
@@ -102,7 +137,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		
 		HeaderStream_ << Header;
 		
-				// Calculate world transforms.
+		// Calculate world transforms.
 		calculateNodeWorldTransforms();
 
 		// Serialise node data.
@@ -158,10 +193,20 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		BcU32 NodeIndex = 0;
 		BcU32 PrimitiveIndex = 0;
 		
-		recursiveSerialiseNodes( pNode, 
-								 BcErrorCode, 
-								 NodeIndex, 
-								 PrimitiveIndex );
+		recursiveSerialiseNodes(
+			pNode, 
+			BcErrorCode, 
+			NodeIndex, 
+			PrimitiveIndex );
+
+		NodeIndex = 0;
+		PrimitiveIndex = 0;
+
+		recursiveSerialiseNodeMeshes( 
+			pNode, 
+			BcErrorCode, 
+			NodeIndex, 
+			PrimitiveIndex );
 
 		// Delete root node.
 		delete pNode;
@@ -256,18 +301,21 @@ void ScnModelImport::calculateNodeWorldTransforms()
 
 //////////////////////////////////////////////////////////////////////////
 // recursiveSerialiseNodes
-void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
-									          BcU32 ParentIndex,
-									          BcU32& NodeIndex,
-									          BcU32& PrimitiveIndex )
+void ScnModelImport::recursiveSerialiseNodes( 
+	MdlNode* pNode,
+	BcU32 ParentIndex,
+	BcU32& NodeIndex,
+	BcU32& PrimitiveIndex )
 {
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
 	{
 		pNode->relativeTransform(),
 		MaMat4d(),	// calculated later.
-		pNode->inverseBindpose()
 	};
+
+	InverseBindposes_.push_back( pNode->inverseBindpose() );
+	BcAssert( InverseBindposes_.size() == NodeIndex + 1 );
 	
 	ScnModelNodePropertyData NodePropertyData = 
 	{
@@ -280,6 +328,31 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 	NodeTransformData_.push_back( NodeTransformData );
 	NodePropertyData_.push_back( NodePropertyData );
 		
+	// Update parent & node index.
+	ParentIndex = NodeIndex++;
+
+	// Recurse into children.
+	MdlNode* pChild = pNode->pChild();
+	
+	while( pChild != NULL )
+	{
+		recursiveSerialiseNodes( pChild,
+								 ParentIndex,
+								 NodeIndex,
+								 PrimitiveIndex );
+		
+		pChild = pChild->pNext();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// recursiveSerialiseNodeMeshes
+void ScnModelImport::recursiveSerialiseNodeMeshes( 
+	MdlNode* pNode,
+	BcU32 ParentIndex,
+	BcU32& NodeIndex,
+	BcU32& PrimitiveIndex )
+{
 	// Update parent & node index.
 	ParentIndex = NodeIndex++;
 
@@ -311,7 +384,7 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 	
 	while( pChild != NULL )
 	{
-		recursiveSerialiseNodes( pChild,
+		recursiveSerialiseNodeMeshes( pChild,
 								 ParentIndex,
 								 NodeIndex,
 								 PrimitiveIndex );
@@ -322,10 +395,11 @@ void ScnModelImport::recursiveSerialiseNodes( MdlNode* pNode,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseMesh
-void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
-                                    BcU32 ParentIndex,
-                                    BcU32& NodeIndex,
-									BcU32& PrimitiveIndex )
+void ScnModelImport::serialiseMesh( 
+	class MdlMesh* pMesh,
+	BcU32 ParentIndex,
+	BcU32& NodeIndex,
+	BcU32& PrimitiveIndex )
 {
 	if( pMesh->nVertices() > 0 )
 	{
@@ -401,10 +475,11 @@ void ScnModelImport::serialiseMesh( class MdlMesh* pMesh,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseSkin
-void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
-                                    BcU32 ParentIndex,
-                                    BcU32& NodeIndex,
-									BcU32& PrimitiveIndex )
+void ScnModelImport::serialiseSkin( 
+	class MdlMesh* pSkin,
+	BcU32 ParentIndex,
+	BcU32& NodeIndex,
+	BcU32& PrimitiveIndex )
 {
 	BcU32 BonePaletteSize = SCN_MODEL_BONE_PALETTE_SIZE;
 	if( pSkin->findBoneCount() > BonePaletteSize )
@@ -456,7 +531,7 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 			VertexDeclarationDesc.Elements_.size(), 
 			MeshData.AABB_ );
 
-		// Setup bone palette for primitive.
+		// Setup bone palette + bind poses for primitive.
 		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
 		BcMemSet( MeshData.BonePalette_, 0xff, sizeof( MeshData.BonePalette_ ) );
 		BcAssert( BonePalette.BonePalette_.size() <= SCN_MODEL_BONE_PALETTE_SIZE );
@@ -464,7 +539,20 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 		{
 			if( BoneIdx < BonePalette.BonePalette_.size() )
 			{
-				MeshData.BonePalette_[ BoneIdx ] = BonePalette.BonePalette_[ BoneIdx ] + NodeIndex;
+				BcU32 BonePaletteIdx = BonePalette.BonePalette_[ BoneIdx ];
+				
+				// Set a valid index (0 will do), or add on node index.
+				if( BonePaletteIdx == BcErrorCode )
+				{
+					BonePaletteIdx = 0;
+				}
+				else
+				{
+					BonePaletteIdx += NodeIndex;
+				}
+
+				MeshData.BonePalette_[ BoneIdx ] = BonePaletteIdx;
+				MeshData.BoneInverseBindpose_[ BoneIdx ] = InverseBindposes_[ BonePaletteIdx ];
 			}
 		}
 
@@ -504,10 +592,11 @@ void ScnModelImport::serialiseSkin( class MdlMesh* pSkin,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseVertices
-void ScnModelImport::serialiseVertices( class MdlMesh* pMesh,
-                                        RsVertexElement* pVertexElements,
-										BcU32 NoofVertexElements,
-										MaAABB& AABB )
+void ScnModelImport::serialiseVertices( 
+	class MdlMesh* pMesh,
+	RsVertexElement* pVertexElements,
+	BcU32 NoofVertexElements,
+	MaAABB& AABB )
 {
 	AABB.empty();
 
@@ -617,17 +706,17 @@ void ScnModelImport::serialiseVertices( class MdlMesh* pMesh,
 
 //////////////////////////////////////////////////////////////////////////
 // recursiveSerialiseNodes
-void ScnModelImport::recursiveSerialiseNodes( struct aiNode* Node,
-									          BcU32 ParentIndex,
-									          BcU32& NodeIndex,
-									          BcU32& PrimitiveIndex )
+void ScnModelImport::recursiveSerialiseNodes( 
+	struct aiNode* Node,
+	BcU32 ParentIndex,
+	BcU32& NodeIndex,
+	BcU32& PrimitiveIndex )
 {
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
 	{
 		MaMat4d( Node->mTransformation[0] ),
 		MaMat4d(),	// todo: absolute
-		MaMat4d()	// todo: inv bind pose.
 	};
 	
 	ScnModelNodePropertyData NodePropertyData = 
@@ -670,10 +759,11 @@ void ScnModelImport::recursiveSerialiseNodes( struct aiNode* Node,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseMesh
-void ScnModelImport::serialiseMesh( struct aiMesh* Mesh,
-                                    BcU32 ParentIndex,
-                                    BcU32& NodeIndex,
-									BcU32& PrimitiveIndex )
+void ScnModelImport::serialiseMesh( 
+	struct aiMesh* Mesh,
+	BcU32 ParentIndex,
+	BcU32& NodeIndex,
+	BcU32& PrimitiveIndex )
 {
 	if( Mesh->HasPositions() && Mesh->HasFaces() )
 	{
@@ -681,6 +771,8 @@ void ScnModelImport::serialiseMesh( struct aiMesh* Mesh,
 
 		// Calculate number of primitives.
 		BcAssert( BcBitsSet( Mesh->mPrimitiveTypes ) == 1 );
+
+		
 		
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelMeshData MeshData = 
@@ -720,13 +812,50 @@ void ScnModelImport::serialiseMesh( struct aiMesh* Mesh,
 		}
 
 		// Vertex format.
-		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc( 5 )
+		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc( Mesh->HasBones() ? 7 : 5 )
 			.addElement( RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
 			.addElement( RsVertexElement( 0, 12,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 ) )
 			.addElement( RsVertexElement( 0, 24,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 ) )
 			.addElement( RsVertexElement( 0, 36,		2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
 			.addElement( RsVertexElement( 0, 44,		4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) );
+		
+		// Add bones to vertex declaration if they exist.
+		if( Mesh->HasBones() )
+		{
+			VertexDeclarationDesc
+				.addElement( RsVertexElement( 0, 48,		4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDINDICES,	0 ) )
+				.addElement( RsVertexElement( 0, 64,		4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDWEIGHTS,	0 ) );
+		}
+		
 		VertexDeclarations_.push_back( VertexDeclarationDesc );
+
+		MeshData.NoofVertexElements_ = Mesh->HasBones() ? 7 : 5;
+		MeshData.IsSkinned_ = Mesh->HasBones();
+
+		// Calculate stride.
+		BcU32 Stride = 0;
+		for( BcU32 ElementIdx = 0; ElementIdx < VertexDeclarationDesc.Elements_.size(); ++ElementIdx )
+		{
+			const auto VertexElement( VertexDeclarationDesc.Elements_[ ElementIdx ] );
+			BcU32 Size = VertexElement.Components_ * gVertexDataSize[(BcU32)VertexElement.DataType_];
+			Stride = std::max( Stride, VertexElement.Offset_ + Size );
+		}
+		
+		MeshData.VertexStride_ = Stride;
+
+		if( Mesh->HasBones() )
+		{
+			// Setup bone palette + bind poses for primitive.
+			BcMemSet( MeshData.BonePalette_, 0xff, sizeof( MeshData.BonePalette_ ) );
+			BcAssert( Mesh->mNumBones <= SCN_MODEL_BONE_PALETTE_SIZE );
+			for( BcU32 BoneIdx = 0; BoneIdx < Mesh->mNumBones; ++BoneIdx )
+			{
+				const auto* Bone = Mesh->mBones[ BoneIdx ];
+				BcU32 NodeBaseIndex = 0;
+				MeshData.BonePalette_[ BoneIdx ] = findNodeIndex( Bone->mName.C_Str(), Scene_->mRootNode, NodeBaseIndex );
+				MeshData.BoneInverseBindpose_[ BoneIdx ] = MaMat4d( Bone->mOffsetMatrix[ 0 ] );
+			}
+		}	
 
 		// Export vertices.
 		serialiseVertices( Mesh, 
@@ -779,12 +908,54 @@ void ScnModelImport::serialiseMesh( struct aiMesh* Mesh,
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseVertices
-void ScnModelImport::serialiseVertices( struct aiMesh* Mesh,
-                                        RsVertexElement* pVertexElements,
-										BcU32 NoofVertexElements,
-										MaAABB& AABB )
+void ScnModelImport::serialiseVertices( 
+	struct aiMesh* Mesh,
+	RsVertexElement* pVertexElements,
+	BcU32 NoofVertexElements,
+	MaAABB& AABB )
 {
 	AABB.empty();
+
+	// Build blend weights and indices.
+	std::vector< MaVec4d > BlendWeights;
+	std::vector< MaVec4d > BlendIndices;
+
+	if( Mesh->HasBones() )
+	{
+		// Clear off to less than zero to signify empty.
+		BlendWeights.resize( Mesh->mNumVertices, MaVec4d( -1.0f, -1.0f, -1.0f, -1.0f ) );
+		BlendIndices.resize( Mesh->mNumVertices, MaVec4d( -1.0f, -1.0f, -1.0f, -1.0f ) );
+
+		// Populate the weights and indices.
+		for( BcU32 BoneIdx = 0; BoneIdx < Mesh->mNumBones; ++BoneIdx )
+		{
+			auto* Bone = Mesh->mBones[ BoneIdx ];
+
+			for( BcU32 WeightIdx = 0; WeightIdx < Bone->mNumWeights; ++WeightIdx )
+			{
+				const auto& WeightVertex = Bone->mWeights[ WeightIdx ];
+				
+				MaVec4d& BlendWeight = BlendWeights[ WeightVertex.mVertexId ];
+				MaVec4d& BlendIndex = BlendIndices[ WeightVertex.mVertexId ];
+
+				BcU32 BlendWeightElementIdx = FillNextElementLessThanZero( 
+					WeightVertex.mWeight, reinterpret_cast< BcF32* >( &BlendWeight ), 4 );
+				BcU32 BlendIndexElementIdx = FillNextElementLessThanZero( 
+					static_cast< BcF32 >( BoneIdx ), reinterpret_cast< BcF32* >( &BlendIndex ), 4 );
+				BcAssert( BlendWeightElementIdx == BlendIndexElementIdx );
+			}
+		}
+
+		// Fill the rest of the weights and indices with valid, but empty values.
+		for( BcU32 VertIdx = 0; VertIdx < Mesh->mNumVertices; ++VertIdx )
+		{
+			MaVec4d& BlendWeight = BlendWeights[ VertIdx ];
+			MaVec4d& BlendIndex = BlendIndices[ VertIdx ];
+
+			FillAllElementsLessThanZero( 0.0f, reinterpret_cast< BcF32* >( &BlendWeight ), 4 );
+			FillAllElementsLessThanZero( 0.0f, reinterpret_cast< BcF32* >( &BlendIndex ), 4 );
+		}
+	}
 
 	// Calculate output vertex size.
 	// TODO: Stride.
@@ -910,17 +1081,17 @@ void ScnModelImport::serialiseVertices( struct aiMesh* Mesh,
 					}
 				}
 				break;
-				/*
 			case RsVertexUsage::BLENDINDICES:
 				{
 					BcAssert( VertexElement.Components_ == 4 );
 					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
 					{
 						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = (BcF32)Vertex.iJoints_[0];
-						*OutVal++ = (BcF32)Vertex.iJoints_[1];
-						*OutVal++ = (BcF32)Vertex.iJoints_[2];
-						*OutVal++ = (BcF32)Vertex.iJoints_[3];
+						MaVec4d BlendIndicesVec = BlendIndices[ VertexIdx ];
+						*OutVal++ = (BcF32)BlendIndicesVec.x();
+						*OutVal++ = (BcF32)BlendIndicesVec.y();
+						*OutVal++ = (BcF32)BlendIndicesVec.z();
+						*OutVal++ = (BcF32)BlendIndicesVec.w();
 					}
 				}
 				break;
@@ -930,14 +1101,14 @@ void ScnModelImport::serialiseVertices( struct aiMesh* Mesh,
 					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
 					{
 						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = (BcF32)Vertex.Weights_[0];
-						*OutVal++ = (BcF32)Vertex.Weights_[1];
-						*OutVal++ = (BcF32)Vertex.Weights_[2];
-						*OutVal++ = (BcF32)Vertex.Weights_[3];
+						MaVec4d BlendWeightsVec = BlendWeights[ VertexIdx ];
+						*OutVal++ = (BcF32)BlendWeightsVec.x();
+						*OutVal++ = (BcF32)BlendWeightsVec.y();
+						*OutVal++ = (BcF32)BlendWeightsVec.z();
+						*OutVal++ = (BcF32)BlendWeightsVec.w();
 					}
 				}
 				break;
-				*/
 
 			default:
 				break;
@@ -947,5 +1118,33 @@ void ScnModelImport::serialiseVertices( struct aiMesh* Mesh,
 		VertexDataStream_.push( &VertexData[0], VertexData.size() );
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// findNodeIndex
+BcU32 ScnModelImport::findNodeIndex( 
+	std::string Name, 
+	aiNode* RootSearchNode, 
+	BcU32& BaseIndex ) const
+{
+	if( Name == RootSearchNode->mName.C_Str() )
+	{
+		return BaseIndex;
+	}
+
+	BcU32 FoundIndex = BcErrorCode;
+	for( BcU32 Idx = 0; Idx < RootSearchNode->mNumChildren; ++Idx )
+	{
+		++BaseIndex;
+		FoundIndex = findNodeIndex( Name, RootSearchNode, BaseIndex );
+
+		if( FoundIndex != BcErrorCode )
+		{
+			return FoundIndex;
+		}
+	}
+	
+	return FoundIndex;
+}
+
 
 #endif
