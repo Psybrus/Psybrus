@@ -833,7 +833,7 @@ public:
 		{
 			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pContext_->setVertexBuffer( 0, VertexBuffer_ );
+			pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
 			pContext_->setVertexDeclaration( VertexDeclaration_ );
 			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}

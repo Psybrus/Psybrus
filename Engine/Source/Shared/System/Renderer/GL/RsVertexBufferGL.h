@@ -37,8 +37,7 @@ public:
 	
 	virtual void						setNoofUpdateVertices( BcU32 NoofVertices );
 	virtual BcU32						getNoofVertices() const;
-	virtual BcU32						getVertexStride() const;
-
+	
 protected:
 	virtual void						create();
 	virtual void						update();

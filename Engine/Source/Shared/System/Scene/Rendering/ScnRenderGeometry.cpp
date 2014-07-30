@@ -65,5 +65,5 @@ void ScnRenderGeometry::setOnContext( class RsContext* Context )
 	// TODO: Multiple vertex buffers.
 	Context->setVertexDeclaration( VertexDeclaration_ );
 	Context->setIndexBuffer( IndexBuffer_ );
-	Context->setVertexBuffer( 0, VertexBuffers_[ 0 ] );
+	//Context->setVertexBuffer( 0, VertexBuffers_[ 0 ] );
 }
