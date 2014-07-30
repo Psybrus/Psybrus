@@ -166,6 +166,24 @@ public:
 	 * @param pResource Resource to destroy.
 	 */
 	virtual void				destroyResource( RsResource* pResource ) = 0;
+
+	//////////////////////////////////////////////////////////////////////
+	// New interfaces.
+	
+	/**
+	 * Update buffer func.
+	 */
+	typedef std::function< void( class RsBuffer*, const RsBufferLock& ) > UpdateBufferFunc;
+
+	/**
+	 * Update buffer.
+	 */
+	virtual bool updateBuffer( 
+		class RsBuffer* Buffer,
+		BcSize Offset,
+		BcSize Size,
+		RsBufferUpdateFlags Flags,
+		UpdateBufferFunc& UpdateFunc ) = 0;
 	
 public:
 	/**

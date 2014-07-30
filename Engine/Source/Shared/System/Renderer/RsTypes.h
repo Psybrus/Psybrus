@@ -533,6 +533,28 @@ struct RsProgramVertexAttribute
 
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
+//////////////////////////////////////////////////////////////////////////
+// RsBufferUpdateFlags
+enum class RsBufferUpdateFlags : BcU32
+{
+	NONE			= 0x00000000,
+	ASYNC			= 0x00000001,
+};
+
+inline RsBufferUpdateFlags operator & ( RsBufferUpdateFlags A, RsBufferUpdateFlags B )
+{
+	return (RsBufferUpdateFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsBufferUpdateFlags operator | ( RsBufferUpdateFlags A, RsBufferUpdateFlags B )
+{
+	return (RsBufferUpdateFlags)( (BcU32)A | (BcU32)B );
+}
+
+struct RsBufferLock
+{
+	void* Buffer_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Handy defines

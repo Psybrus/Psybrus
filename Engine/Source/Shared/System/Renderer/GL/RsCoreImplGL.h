@@ -58,7 +58,39 @@ public:
 	virtual void				destroyResource( RsResource* pResource );
 	void						updateResource( RsResource* pResource );
 
+	//////////////////////////////////////////////////////////////////////
+	// New interfaces.
+	bool updateBuffer( 
+		class RsBuffer* Buffer,
+		BcSize Offset,
+		BcSize Size,
+		RsBufferUpdateFlags Flags,
+		UpdateBufferFunc& UpdateFunc );
+
 private:
+	struct UpdateBufferSync
+	{
+		class RsBuffer* Buffer_;
+		BcSize Offset_;
+		BcSize Size_;
+		RsBufferUpdateFlags Flags_;
+		void* Data_;
+	};
+
+	struct UpdateBufferAsync
+	{
+		class RsBuffer* Buffer_;
+		BcSize Offset_;
+		BcSize Size_;
+		RsBufferUpdateFlags Flags_;
+		UpdateBufferFunc& UpdateFunc_;
+	};
+
+	std::vector< UpdateBufferSync > UpdateBufferSyncOps_;
+	std::vector< UpdateBufferAsync > UpdateBufferAsyncOps_;
+
+private:
+
 	void						createResource( RsResource* pResource );
 
 public:

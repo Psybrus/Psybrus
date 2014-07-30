@@ -344,6 +344,44 @@ void RsCoreImplGL::updateResource( RsResource* pResource )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// updateBuffer
+bool RsCoreImplGL::updateBuffer( 
+	class RsBuffer* Buffer,
+	BcSize Offset,
+	BcSize Size,
+	RsBufferUpdateFlags Flags,
+	UpdateBufferFunc& UpdateFunc )
+{
+	// Check if flags allow async.
+	if( ( Flags & RsBufferUpdateFlags::ASYNC ) == RsBufferUpdateFlags::NONE )
+	{
+		RsCoreImplGL::UpdateBufferSync Cmd = 
+		{
+			Buffer,
+			Offset,
+			Size,
+			Flags,
+			nullptr // TODO: Allocate from a temporary buffer. False on failure.
+		};
+		UpdateBufferSyncOps_.push_back( Cmd );
+	}
+	else
+	{
+		RsCoreImplGL::UpdateBufferAsync Cmd =
+		{
+			Buffer,
+			Offset,
+			Size,
+			Flags,
+			UpdateFunc
+		};
+		UpdateBufferAsyncOps_.push_back( Cmd );
+	}
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createResource
 void RsCoreImplGL::createResource( RsResource* pResource )
 {
