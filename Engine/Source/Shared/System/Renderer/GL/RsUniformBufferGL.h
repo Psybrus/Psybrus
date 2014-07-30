@@ -18,7 +18,7 @@
 #include "System/Renderer/GL/RsGL.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// RsIndexBufferGL
+// RsBufferGL
 class RsUniformBufferGL:
 	public RsUniformBuffer
 {

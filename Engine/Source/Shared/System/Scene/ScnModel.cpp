@@ -89,14 +89,31 @@ void ScnModel::create()
 		
 		// Create GPU resources.
 		RsVertexDeclarationDesc VertexDeclarationDesc( pMeshData_->NoofVertexElements_ );
-		for( BcU32 Idx = 0; Idx < pMeshData_->NoofVertexElements_; ++Idx )
+		for( BcU32 Idx = 0; Idx < pMeshData->NoofVertexElements_; ++Idx )
 		{
 			VertexDeclarationDesc.addElement( pMeshData_->VertexElements_[ Idx ] );
 		}
 		
 		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
 		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pMeshData->NoofVertices_, pMeshData->VertexStride_ ), pVertexBufferData );
-		RsIndexBuffer* pIndexBuffer = RsCore::pImpl()->createIndexBuffer( RsIndexBufferDesc( pMeshData_->NoofIndices_ ), pIndexBufferData );
+
+		RsBuffer* pIndexBuffer = 
+			RsCore::pImpl()->createIndexBuffer( 
+				RsBufferDesc( 
+					RsBufferType::INDEX, 
+					RsBufferCreationFlags::STATIC, 
+					pMeshData->NoofIndices_ * sizeof( BcU16 ) ) );
+
+		RsCore::pImpl()->updateBuffer( 
+			pIndexBuffer, 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
+			RsBufferUpdateFlags::ASYNC,
+			[ pIndexBufferData, pMeshData ]
+			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+			{
+				BcAssert( Buffer->getDesc().SizeBytes_ == pMeshData->NoofIndices_ * sizeof( BcU16 ) );
+				BcMemCopy( BufferLock.Buffer_, pIndexBufferData, 
+					pMeshData->NoofIndices_ * sizeof( BcU16 ) );
+			} );
 		
 		// Setup runtime structure.
 		ScnModelMeshRuntime MeshRuntime = 
@@ -117,7 +134,7 @@ void ScnModel::create()
 		MeshRuntimes_.push_back( MeshRuntime );
 		
 		// Advance vertex and index buffers.
-		pVertexBufferData += pMeshData->NoofVertices_ * MeshRuntime.pVertexBuffer_->getVertexStride();
+		pVertexBufferData += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
 		pIndexBufferData += pMeshData->NoofIndices_ * sizeof( BcU16 );
 	}
 
@@ -595,7 +612,7 @@ public:
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
 		pContext_->setIndexBuffer( IndexBuffer_ );
-		pContext_->setVertexBuffer( 0, VertexBuffer_ );
+		pContext_->setVertexBuffer( 0, VertexBuffer_, VertexStride_ );
 		pContext_->setVertexDeclaration( VertexDeclaration_ );
 		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
 	}
@@ -603,8 +620,9 @@ public:
 	RsTopologyType Type_;
 	BcU32 Offset_;
 	BcU32 NoofIndices_;
-	RsIndexBuffer* IndexBuffer_;
+	RsBuffer* IndexBuffer_;
 	RsVertexBuffer* VertexBuffer_;
+	BcU32 VertexStride_;
 	RsVertexDeclaration* VertexDeclaration_;
 };
 
@@ -664,6 +682,7 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		pRenderNode->NoofIndices_ = pMeshData->NoofIndices_;
 		pRenderNode->IndexBuffer_ = pMeshRuntime->pIndexBuffer_;
 		pRenderNode->VertexBuffer_ = pMeshRuntime->pVertexBuffer_;
+		pRenderNode->VertexStride_ = pMeshData->VertexStride_;
 		pRenderNode->VertexDeclaration_ = pMeshRuntime->pVertexDeclaration_;
 		pRenderNode->Sort_ = Sort;
 			

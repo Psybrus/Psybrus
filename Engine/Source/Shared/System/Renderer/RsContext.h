@@ -16,6 +16,7 @@
 
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
+#include "System/Renderer/RsResourceInterface.h"
 #include "System/Renderer/RsDrawInterface.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,6 +27,7 @@ class OsClient;
 // RsContext
 class RsContext:
 	public RsResource,
+	public RsResourceInterface,
 	public RsDrawInterface
 {
 public:

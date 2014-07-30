@@ -51,7 +51,7 @@ public:
 	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc );
 	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc );
 	virtual RsVertexBuffer*		createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData = NULL );
-	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL );
+	virtual RsBuffer*			createIndexBuffer( const RsBufferDesc& Desc );
 	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL );
 	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
@@ -65,7 +65,7 @@ public:
 		BcSize Offset,
 		BcSize Size,
 		RsBufferUpdateFlags Flags,
-		UpdateBufferFunc& UpdateFunc );
+		RsUpdateBufferFunc UpdateFunc );
 
 private:
 	struct UpdateBufferSync
@@ -83,11 +83,14 @@ private:
 		BcSize Offset_;
 		BcSize Size_;
 		RsBufferUpdateFlags Flags_;
-		UpdateBufferFunc& UpdateFunc_;
+		RsUpdateBufferFunc UpdateFunc_;
 	};
 
 	std::vector< UpdateBufferSync > UpdateBufferSyncOps_;
 	std::vector< UpdateBufferAsync > UpdateBufferAsyncOps_;
+
+	bool updateBuffer_threaded( 
+		UpdateBufferAsync Cmd );
 
 private:
 

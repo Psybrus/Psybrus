@@ -20,7 +20,6 @@
 #include "System/Renderer/GL/RsRenderBufferGL.h"
 #include "System/Renderer/GL/RsFrameBufferGL.h"
 #include "System/Renderer/GL/RsVertexBufferGL.h"
-#include "System/Renderer/GL/RsIndexBufferGL.h"
 #include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
@@ -271,10 +270,20 @@ RsVertexBuffer* RsCoreImplGL::createVertexBuffer( const RsVertexBufferDesc& Desc
 //////////////////////////////////////////////////////////////////////////
 // createIndexBuffer
 //virtual 
-RsIndexBuffer* RsCoreImplGL::createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData )
+RsBuffer* RsCoreImplGL::createIndexBuffer( const RsBufferDesc& Desc )
 {
-	RsIndexBufferGL* pResource = new RsIndexBufferGL( getContext( NULL ), Desc, pIndexData );
-	createResource( pResource );
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsBuffer* pResource = new RsBuffer( Context, Desc );
+
+	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createBuffer >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	
+	// Return resource.
 	return pResource;
 }
 
@@ -350,7 +359,7 @@ bool RsCoreImplGL::updateBuffer(
 	BcSize Offset,
 	BcSize Size,
 	RsBufferUpdateFlags Flags,
-	UpdateBufferFunc& UpdateFunc )
+	RsUpdateBufferFunc UpdateFunc )
 {
 	// Check if flags allow async.
 	if( ( Flags & RsBufferUpdateFlags::ASYNC ) == RsBufferUpdateFlags::NONE )
@@ -364,6 +373,7 @@ bool RsCoreImplGL::updateBuffer(
 			nullptr // TODO: Allocate from a temporary buffer. False on failure.
 		};
 		UpdateBufferSyncOps_.push_back( Cmd );
+		BcBreakpoint; // TODO: Implement this path.
 	}
 	else
 	{
@@ -375,10 +385,30 @@ bool RsCoreImplGL::updateBuffer(
 			Flags,
 			UpdateFunc
 		};
+
+		// TODO: Push into a queue to sort and batch.
+#if 1
+		typedef BcDelegate< bool(*)( UpdateBufferAsync ) > UpdateDelegate;
+		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImplGL, &RsCoreImplGL::updateBuffer_threaded >( this ) );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
+#else
 		UpdateBufferAsyncOps_.push_back( Cmd );
+#endif
 	}
 
 	return true;
+}
+	
+bool RsCoreImplGL::updateBuffer_threaded( 
+	UpdateBufferAsync Cmd )
+{
+	auto Context = Cmd.Buffer_->getContext();
+	return Context->updateBuffer( 
+		Cmd.Buffer_,
+		Cmd.Offset_,
+		Cmd.Size_,
+		Cmd.Flags_,
+		Cmd.UpdateFunc_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

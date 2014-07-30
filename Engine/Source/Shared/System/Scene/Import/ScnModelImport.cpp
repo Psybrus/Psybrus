@@ -550,9 +550,11 @@ void ScnModelImport::serialiseSkin(
 				{
 					BonePaletteIdx += NodeIndex;
 				}
-
-				MeshData.BonePalette_[ BoneIdx ] = BonePaletteIdx;
-				MeshData.BoneInverseBindpose_[ BoneIdx ] = InverseBindposes_[ BonePaletteIdx ];
+				if( BonePaletteIdx < InverseBindposes_.size() )
+				{
+					MeshData.BonePalette_[ BoneIdx ] = BonePaletteIdx;
+					MeshData.BoneInverseBindpose_[ BoneIdx ] = InverseBindposes_[ BonePaletteIdx ];
+				}
 			}
 		}
 
