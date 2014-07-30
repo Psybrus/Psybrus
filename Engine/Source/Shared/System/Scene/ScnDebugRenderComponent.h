@@ -154,21 +154,21 @@ protected:
 	struct TRenderResource
 	{
 		RsUniformBuffer*				UniformBuffer_;
-		RsVertexBuffer*					pVertexBuffer_;
+		RsBuffer*						pVertexBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
-		ScnDebugRenderComponentVertex*	pVertices_;
 	};
 
 	BcU32								CurrentRenderResource_;
-	BcBool								HaveVertexBufferLock_;
 	TRenderResource						RenderResources_[ 2 ];
 	TRenderResource*					pRenderResource_;
 
 	// Submission data.
+	ScnDebugRenderComponentVertex*		pWorkingVertices_;
 	ScnDebugRenderComponentVertex*		pVertices_;
 	ScnDebugRenderComponentVertex*		pVerticesEnd_;
 	BcU32								NoofVertices_;
 	BcU32								VertexIndex_;
+	SysFence							UploadFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef				MaterialComponent_;

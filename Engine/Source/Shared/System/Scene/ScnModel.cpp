@@ -95,24 +95,42 @@ void ScnModel::create()
 		}
 		
 		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
-		RsVertexBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( pMeshData->NoofVertices_, pMeshData->VertexStride_ ), pVertexBufferData );
+		BcU32 VertexBufferSize = pMeshData->NoofVertices_ * pMeshData->VertexStride_;
+		RsBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX, 
+				RsBufferCreationFlags::STATIC,
+				VertexBufferSize ),
+			pVertexBufferData );
 
+		RsCore::pImpl()->updateBuffer( 
+			pVertexBuffer, 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
+			RsBufferUpdateFlags::ASYNC,
+			[ pVertexBufferData, VertexBufferSize ]
+			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+			{
+				BcAssert( Buffer->getDesc().SizeBytes_ == VertexBufferSize );
+				BcMemCopy( BufferLock.Buffer_, pVertexBufferData, 
+					VertexBufferSize );
+			} );
+	
+		BcU32 IndexBufferSize = pMeshData->NoofIndices_ * sizeof( BcU16 );
 		RsBuffer* pIndexBuffer = 
 			RsCore::pImpl()->createIndexBuffer( 
 				RsBufferDesc( 
 					RsBufferType::INDEX, 
 					RsBufferCreationFlags::STATIC, 
-					pMeshData->NoofIndices_ * sizeof( BcU16 ) ) );
+					IndexBufferSize ) );
 
 		RsCore::pImpl()->updateBuffer( 
 			pIndexBuffer, 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
 			RsBufferUpdateFlags::ASYNC,
-			[ pIndexBufferData, pMeshData ]
+			[ pIndexBufferData, IndexBufferSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
 			{
-				BcAssert( Buffer->getDesc().SizeBytes_ == pMeshData->NoofIndices_ * sizeof( BcU16 ) );
+				BcAssert( Buffer->getDesc().SizeBytes_ == IndexBufferSize );
 				BcMemCopy( BufferLock.Buffer_, pIndexBufferData, 
-					pMeshData->NoofIndices_ * sizeof( BcU16 ) );
+					IndexBufferSize );
 			} );
 		
 		// Setup runtime structure.
@@ -621,7 +639,7 @@ public:
 	BcU32 Offset_;
 	BcU32 NoofIndices_;
 	RsBuffer* IndexBuffer_;
-	RsVertexBuffer* VertexBuffer_;
+	RsBuffer* VertexBuffer_;
 	BcU32 VertexStride_;
 	RsVertexDeclaration* VertexDeclaration_;
 };

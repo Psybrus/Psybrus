@@ -23,7 +23,7 @@ RsBufferDesc::RsBufferDesc():
 }
 
 //////////////////////////////////////////////////////////////////////////
-// RsVertexBufferDesc
+// RsBufferDesc
 RsBufferDesc::RsBufferDesc( RsBufferType Type, RsBufferCreationFlags Flags, BcU32 SizeBytes ):
 	Type_( Type ),
 	Flags_( Flags ),

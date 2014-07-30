@@ -51,7 +51,10 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	IsIdentity_ = BcTrue;
 	
 	// Store number of vertices.
+	pVertices_ = pVerticesEnd_ = nullptr;
+	pWorkingVertices_ = nullptr;
 	NoofVertices_ = NoofVertices;
+	VertexIndex_ = 0;
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
@@ -82,12 +85,16 @@ void ScnCanvasComponent::create()
 	{
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
-		// Allocate vertices.
-		RenderResource.pVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
-
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 24 ), RenderResource.pVertices_ );
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX,
+				RsBufferCreationFlags::STREAM,
+				NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
 	}
+
+	// Allocate working vertices.
+	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
 
 	Super::create();
 }
@@ -97,6 +104,8 @@ void ScnCanvasComponent::create()
 //virtual
 void ScnCanvasComponent::destroy()
 {
+	UploadFence_.wait();
+
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
@@ -108,13 +117,7 @@ void ScnCanvasComponent::destroy()
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Delete vertices.
-		delete [] RenderResource.pVertices_;
-	}
+	delete [] pWorkingVertices_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -185,7 +188,7 @@ MaMat4d ScnCanvasComponent::getMatrix() const
 // allocVertices
 ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices )
 {
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Don't have vertex buffer lock!" );
+	BcAssertMsg( pVertices_ != nullptr, "ScnCanvasComponent: Don't have a working buffer." );
 	ScnCanvasComponentVertex* pCurrVertex = NULL;
 	if( ( VertexIndex_ + NoofVertices ) <= NoofVertices_ )
 	{
@@ -787,7 +790,7 @@ void ScnCanvasComponent::clear()
 	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
 
 	// Set vertices up.
-	pVertices_ = pVerticesEnd_ = pRenderResource_->pVertices_;
+	pVertices_ = pVerticesEnd_ = pWorkingVertices_;
 	pVerticesEnd_ += NoofVertices_;
 	VertexIndex_ = 0;
 	
@@ -798,13 +801,6 @@ void ScnCanvasComponent::clear()
 	MatrixStack_.clear();
 	MatrixStack_.push_back( MaMat4d() );
 	IsIdentity_ = BcTrue;
-
-	// Lock vertex buffer for use.
-	if( HaveVertexBufferLock_ == BcFalse )
-	{
-		pRenderResource_->pVertexBuffer_->lock();
-		HaveVertexBufferLock_ = BcTrue;
-	}
 
 	// Clear last primitive.
 	LastPrimitiveSection_ = BcErrorCode;
@@ -841,17 +837,29 @@ public:
 	
 	BcU32 NoofSections_;
 	ScnCanvasComponentPrimitiveSection* pPrimitiveSections_;
-	RsVertexBuffer* VertexBuffer_;
+	RsBuffer* VertexBuffer_;
 	RsVertexDeclaration* VertexDeclaration_;
 };
 
 void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	if( HaveVertexBufferLock_ == BcFalse )
+	// Upload.
+	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnCanvasComponentVertex );
+	if( VertexDataSize > 0 )
 	{
-		return;
+		UploadFence_.increment();
+		RsCore::pImpl()->updateBuffer( 
+			pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
+			RsBufferUpdateFlags::ASYNC,
+			[ this, VertexDataSize ]
+			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+			{
+				BcAssert( VertexDataSize <= Buffer->getDesc().SizeBytes_ );
+				BcMemCopy( BufferLock.Buffer_, pWorkingVertices_, 
+					VertexDataSize );
+				UploadFence_.decrement();
+			} );
 	}
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
 	// HUD pass.
 	Sort.Layer_ = 0;
@@ -891,11 +899,6 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		pFrame->addRenderNode( pRenderNode );
 	}
 	
-	// Unlock vertex buffer.
-	pRenderResource_->pVertexBuffer_->setNoofUpdateVertices( VertexIndex_ );
-	pRenderResource_->pVertexBuffer_->unlock();
-	HaveVertexBufferLock_ = BcFalse;
-
 	// Flip the render resource.
 	CurrentRenderResource_ = 1 - CurrentRenderResource_;
 

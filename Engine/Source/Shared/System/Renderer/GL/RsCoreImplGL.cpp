@@ -19,7 +19,6 @@
 #include "System/Renderer/GL/RsRenderTargetGL.h"
 #include "System/Renderer/GL/RsRenderBufferGL.h"
 #include "System/Renderer/GL/RsFrameBufferGL.h"
-#include "System/Renderer/GL/RsVertexBufferGL.h"
 #include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
@@ -260,10 +259,22 @@ RsVertexDeclaration* RsCoreImplGL::createVertexDeclaration( const RsVertexDeclar
 //////////////////////////////////////////////////////////////////////////
 // createVertexBuffer
 //virtual 
-RsVertexBuffer* RsCoreImplGL::createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData )
+RsBuffer* RsCoreImplGL::createVertexBuffer( const RsBufferDesc& Desc, void* pVertexData )
 {
-	RsVertexBufferGL* pResource = new RsVertexBufferGL( getContext( NULL ), Desc, pVertexData );
-	createResource( pResource );
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsBuffer* pResource = new RsBuffer( Context, Desc );
+
+	BcAssert( Desc.Type_ == RsBufferType::VERTEX );
+
+	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createBuffer >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	
+	// Return resource.
 	return pResource;
 }
 
@@ -276,6 +287,8 @@ RsBuffer* RsCoreImplGL::createIndexBuffer( const RsBufferDesc& Desc )
 
 	auto Context = getContext( nullptr );
 	RsBuffer* pResource = new RsBuffer( Context, Desc );
+
+	BcAssert( Desc.Type_ == RsBufferType::INDEX );
 
 	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
 

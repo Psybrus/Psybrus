@@ -220,8 +220,8 @@ protected:
 	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
-		RsVertexBuffer*					pVertexBuffer_;
-		ScnCanvasComponentVertex*		pVertices_;
+		RsBuffer*						pVertexBuffer_;
+
 	};
 
 	BcU32								CurrentRenderResource_;
@@ -230,10 +230,12 @@ protected:
 	TRenderResource*					pRenderResource_;
 
 	// Submission data.
+	ScnCanvasComponentVertex*			pWorkingVertices_;
 	ScnCanvasComponentVertex*			pVertices_;
 	ScnCanvasComponentVertex*			pVerticesEnd_;
 	BcSize								NoofVertices_;
 	BcSize								VertexIndex_;
+	SysFence							UploadFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef				MaterialComponent_;

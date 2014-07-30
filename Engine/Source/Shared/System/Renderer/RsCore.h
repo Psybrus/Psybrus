@@ -31,7 +31,7 @@
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
-#include "System/Renderer/RsVertexBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsUniformBuffer.h"
 
@@ -121,7 +121,7 @@ public:
 	 * @param Desc Buffer descriptor
 	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	virtual RsVertexBuffer*		createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData = NULL ) = 0;
+	virtual RsBuffer*		createVertexBuffer( const RsBufferDesc& Desc, void* pVertexData = NULL ) = 0;
 	
 	/**
 	 * Create index buffer.
