@@ -71,9 +71,6 @@ void RsCoreImplGL::open_threaded()
 	RsContextGL* pContext = static_cast< RsContextGL* >( ContextMap_[ NULL ] );
 	if( pContext != NULL )
 	{
-		// Setup default viewport.
-		glViewport( 0, 0, pContext->getWidth(), pContext->getHeight() );
-		
 		//
 		pContext->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1, BcTrue );
 		pContext->flushState();
@@ -315,6 +312,28 @@ void RsCoreImplGL::destroyResource( RsResource* pResource )
 
 	// Now flush to ensure it's finished being destroyed.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImplGL::destroyResource( RsBuffer* Buffer )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	typedef BcDelegate< bool(*)( RsBuffer* ) > DestroyDelegate;
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplGL, &RsCoreImplGL::destroyBuffer_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Buffer );
+
+}
+
+bool RsCoreImplGL::destroyBuffer_threaded( 
+	RsBuffer* Buffer )
+{
+	auto Context = Buffer->getContext();
+	return Context->destroyBuffer( Buffer );
 }
 
 //////////////////////////////////////////////////////////////////////////

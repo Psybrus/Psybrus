@@ -151,6 +151,7 @@ public:
 	 * @param pResource Resource to destroy.
 	 */
 	virtual void				destroyResource( RsResource* pResource ) = 0;
+	virtual void				destroyResource( RsBuffer* Buffer ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.
