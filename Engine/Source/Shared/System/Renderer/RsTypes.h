@@ -534,7 +534,36 @@ struct RsProgramVertexAttribute
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
 //////////////////////////////////////////////////////////////////////////
-// RsBufferUpdateFlags
+// Buffer stuff
+enum class RsBufferType
+{
+	UNKNOWN = 0,
+	VERTEX,
+	INDEX,
+	UNIFORM,
+	UNORDERED_ACCESS,
+	DRAW_INDIRECT,
+	STREAM_OUT,
+};
+
+enum class RsBufferCreationFlags : BcU32
+{
+	NONE			= 0x00000000,
+	STATIC			= 0x00000001,
+	DYNAMIC			= 0x00000002,
+	STREAM			= 0x00000004,
+};
+
+inline RsBufferCreationFlags operator & ( RsBufferCreationFlags A, RsBufferCreationFlags B )
+{
+	return (RsBufferCreationFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsBufferCreationFlags operator | ( RsBufferCreationFlags A, RsBufferCreationFlags B )
+{
+	return (RsBufferCreationFlags)( (BcU32)A | (BcU32)B );
+}
+
 enum class RsBufferUpdateFlags : BcU32
 {
 	NONE			= 0x00000000,
@@ -555,6 +584,8 @@ struct RsBufferLock
 {
 	void* Buffer_;
 };
+
+typedef std::function< void( class RsBuffer*, const RsBufferLock& ) > RsUpdateBufferFunc;
 
 //////////////////////////////////////////////////////////////////////////
 // Handy defines

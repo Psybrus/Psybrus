@@ -32,7 +32,7 @@
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsVertexBuffer.h"
-#include "System/Renderer/RsIndexBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsUniformBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,9 +126,8 @@ public:
 	/**
 	 * Create index buffer.
 	 * @param Desc Buffer descriptor
-	 * @param pIndexData Pointer to index data, NULL to create own.
 	 */
-	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL ) = 0;
+	virtual RsBuffer*			createIndexBuffer( const RsBufferDesc& Desc ) = 0;
 	
 	/**
 	 * Create uniform buffer.
@@ -171,11 +170,6 @@ public:
 	// New interfaces.
 	
 	/**
-	 * Update buffer func.
-	 */
-	typedef std::function< void( class RsBuffer*, const RsBufferLock& ) > UpdateBufferFunc;
-
-	/**
 	 * Update buffer.
 	 */
 	virtual bool updateBuffer( 
@@ -183,7 +177,7 @@ public:
 		BcSize Offset,
 		BcSize Size,
 		RsBufferUpdateFlags Flags,
-		UpdateBufferFunc& UpdateFunc ) = 0;
+		RsUpdateBufferFunc UpdateFunc ) = 0;
 	
 public:
 	/**

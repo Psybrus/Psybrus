@@ -17,6 +17,8 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/GL/RsGL.h"
 
+#include "System/Renderer/RsBuffer.h"
+
 #include "Base/BcMisc.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,6 +38,17 @@ public:
 	void swapBuffers();
 	void takeScreenshot();
 
+	bool createBuffer( 
+		RsBuffer* Buffer );
+	bool destroyBuffer( 
+		RsBuffer* Buffer );
+	bool updateBuffer( 
+		RsBuffer* Buffer,
+		BcSize Offset,
+		BcSize Size,
+		RsBufferUpdateFlags Flags,
+		RsUpdateBufferFunc UpdateFunc );
+
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();
@@ -43,7 +56,7 @@ public:
 	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
-	void setIndexBuffer( class RsIndexBuffer* IndexBuffer );
+	void setIndexBuffer( class RsBuffer* IndexBuffer );
 	void setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	
@@ -128,7 +141,7 @@ private:
 	BcBool BindingsDirty_; // TODO: Break down to be more fine grained.
 	RsProgram* Program_;
 
-	RsIndexBuffer* IndexBuffer_;
+	RsBuffer* IndexBuffer_;
 	std::array< RsVertexBuffer*, MAX_VERTEX_STREAMS > VertexBuffers_;
 	RsVertexDeclaration* VertexDeclaration_;
 };

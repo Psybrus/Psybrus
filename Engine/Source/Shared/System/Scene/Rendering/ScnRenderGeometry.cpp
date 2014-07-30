@@ -33,7 +33,7 @@ void ScnRenderGeometry::StaticRegisterClass()
 // initialise
 void ScnRenderGeometry::initialise(
 	const RsVertexDeclarationDesc& VertexDeclarationDesc,
-	const RsIndexBufferDesc& IndexBufferDesc,
+	const RsBufferDesc& IndexBufferDesc,
 	const RsVertexBufferDesc& VertexBufferDesc )
 {
 	Super::initialise();

@@ -17,7 +17,7 @@
 #include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// RsContext
+// RsDrawInterface
 class RsDrawInterface
 {
 public:
@@ -61,7 +61,7 @@ public:
 	/**
 	 * Set index buffer.
 	 */
-	virtual void setIndexBuffer( class RsIndexBuffer* IndexBuffer ) = 0;
+	virtual void setIndexBuffer( class RsBuffer* IndexBuffer ) = 0;
 
 	/**
 	 * Set vertex buffer.

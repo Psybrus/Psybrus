@@ -16,7 +16,6 @@
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 #include "System/Renderer/GL/RsVertexBufferGL.h"
-#include "System/Renderer/GL/RsIndexBufferGL.h"
 #include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsRenderTargetGL.h"
 
@@ -154,6 +153,17 @@ static GLenum gTopologyType[] =
 	GL_TRIANGLE_STRIP_ADJACENCY,	// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
 	GL_TRIANGLE_FAN,				// RsTopologyType::TRIANGLE_FAN,
 	GL_PATCHES						// RsTopologyType::PATCHES,
+};
+
+static GLenum gBufferType[] =
+{
+	0,								// RsBufferType::UNKNOWN
+	GL_ARRAY_BUFFER,				// RsBufferType::VERTEX
+	GL_ELEMENT_ARRAY_BUFFER,		// RsBufferType::INDEX
+	GL_UNIFORM_BUFFER,				// RsBufferType::UNIFORM
+	GL_IMAGE_BUFFER,				// RsBufferType::UNORDERED_ACCESS
+	GL_DRAW_INDIRECT_BUFFER,		// RsBufferType::DRAW_INDIRECT
+	GL_TRANSFORM_FEEDBACK_BUFFER,	// RsBufferType::STREAM_OUT
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -512,6 +522,115 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createBuffer
+bool RsContextGL::createBuffer( RsBuffer* Buffer )
+{
+	const auto& BufferDesc = Buffer->getDesc();
+
+	// Get buffer type for GL.
+	auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
+
+	// Get usage flags for GL.
+	GLuint UsageFlagsGL = 0;
+	
+	// Data update frequencies.
+	if( ( BufferDesc.Flags_ & RsBufferCreationFlags::STATIC ) != RsBufferCreationFlags::NONE )
+	{
+		UsageFlagsGL |= GL_STATIC_DRAW;
+	}
+	else if( ( BufferDesc.Flags_ & RsBufferCreationFlags::DYNAMIC ) != RsBufferCreationFlags::NONE )
+	{
+		UsageFlagsGL |= GL_DYNAMIC_DRAW;
+	}
+	else if( ( BufferDesc.Flags_ & RsBufferCreationFlags::STREAM ) != RsBufferCreationFlags::NONE )
+	{
+		UsageFlagsGL |= GL_STREAM_DRAW;
+	}
+
+	// Generate buffer.
+	GLuint Handle;
+	glGenBuffers( 1, &Handle );
+	Buffer->setHandle( Handle );
+
+	// Catch gen error.
+	RsGLCatchError();
+
+	// Attempt to update it.
+	if( Handle != 0 )
+	{
+		glBindBuffer( TypeGL, Handle );
+		glBufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL );
+
+		// Catch update error.
+		RsGLCatchError();
+
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyBuffer
+bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
+{
+	GLuint Handle = Buffer->getHandle< GLuint >();
+	
+	if( Handle != 0 )
+	{
+		glDeleteBuffers( 1, &Handle );
+		Buffer->setHandle< GLuint >( 0 );
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateBuffer
+bool RsContextGL::updateBuffer( 
+	RsBuffer* Buffer,
+	BcSize Offset,
+	BcSize Size,
+	RsBufferUpdateFlags Flags,
+	RsUpdateBufferFunc UpdateFunc )
+{
+	GLuint Handle = Buffer->getHandle< GLuint >();
+	
+	if( Handle != 0 )
+	{
+		const auto& BufferDesc = Buffer->getDesc();
+
+		// Get buffer type for GL.
+		auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
+
+		// Get access flags for GL.
+		GLbitfield AccessFlagsGL = 
+			GL_MAP_WRITE_BIT | 
+			GL_MAP_INVALIDATE_RANGE_BIT;
+
+		// Bind buffer.
+		glBindBuffer( TypeGL, Handle );
+
+		// Map and update buffer.
+		auto LockedPointer = glMapBufferRange( TypeGL, Offset, Size, AccessFlagsGL );
+		if( LockedPointer != nullptr )
+		{
+			RsBufferLock Lock = 
+			{
+				LockedPointer
+			};
+			UpdateFunc( Buffer, Lock );
+			glUnmapBuffer( TypeGL );
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setDefaultState
 void RsContextGL::setDefaultState()
 {
@@ -664,7 +783,7 @@ void RsContextGL::setProgram( class RsProgram* Program )
 
 //////////////////////////////////////////////////////////////////////////
 // setPrimitive
-void RsContextGL::setIndexBuffer( class RsIndexBuffer* IndexBuffer )
+void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 		if( IndexBuffer_ != IndexBuffer )
 	{
