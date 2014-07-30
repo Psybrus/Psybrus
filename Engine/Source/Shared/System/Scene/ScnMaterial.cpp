@@ -432,7 +432,7 @@ BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 
 //////////////////////////////////////////////////////////////////////////
 // setUniformBlock
-void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer )
+void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer )
 {
 	auto& UniformBlockBinding = UniformBlockBindingList_[ Index ];
 	UniformBlockBinding.UniformBuffer_ = UniformBuffer;
@@ -440,21 +440,21 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsUniformBuffer* Unifor
 
 //////////////////////////////////////////////////////////////////////////
 // setViewUniformBlock
-void ScnMaterialComponent::setViewUniformBlock( RsUniformBuffer* UniformBuffer )
+void ScnMaterialComponent::setViewUniformBlock( RsBuffer* UniformBuffer )
 {
 	setUniformBlock( ViewUniformBlockIndex_, UniformBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setBoneUniformBlock
-void ScnMaterialComponent::setBoneUniformBlock( RsUniformBuffer* UniformBuffer )
+void ScnMaterialComponent::setBoneUniformBlock( RsBuffer* UniformBuffer )
 {
 	setUniformBlock( BoneUniformBlockIndex_, UniformBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setObjectUniformBlock
-void ScnMaterialComponent::setObjectUniformBlock( RsUniformBuffer* UniformBuffer )
+void ScnMaterialComponent::setObjectUniformBlock( RsBuffer* UniformBuffer )
 {
 	setUniformBlock( ObjectUniformBlockIndex_, UniformBuffer );
 }
@@ -519,7 +519,7 @@ public:
 		for( BcU32 Idx = 0; Idx < NoofUniformBlocks_; ++Idx )
 		{
 			BcU32 Index = pUniformBlockIndices_[ Idx ];
-			RsUniformBuffer* pUniformBuffer = ppUniformBuffers_[ Idx ];
+			RsBuffer* pUniformBuffer = ppUniformBuffers_[ Idx ];
 			pProgram_->setUniformBlock( Index, pUniformBuffer );
 		}
 
@@ -544,7 +544,7 @@ public:
 	// Uniform blocks.
 	BcU32 NoofUniformBlocks_;
 	BcU32* pUniformBlockIndices_;
-	RsUniformBuffer** ppUniformBuffers_;
+	RsBuffer** ppUniformBuffers_;
 	
 	// Update fence (for marking when in use/not)
 	// TODO: Make this a generic feature of the component system?
@@ -607,7 +607,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup uniform blocks.
 	pRenderNode->NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
 	pRenderNode->pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * pRenderNode->NoofUniformBlocks_ );
-	pRenderNode->ppUniformBuffers_ = (RsUniformBuffer**)pFrame->allocMem( sizeof( RsUniformBuffer ) * pRenderNode->NoofUniformBlocks_ );
+	pRenderNode->ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer ) * pRenderNode->NoofUniformBlocks_ );
 
 	for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
 	{

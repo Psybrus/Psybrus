@@ -694,9 +694,16 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 // setAlphaTestStepping
 void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 {
-	UniformBuffer_->lock();
 	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
-	UniformBuffer_->unlock();
+
+	RsCore::pImpl()->updateBuffer( 
+		UniformBuffer_,
+		0, sizeof( AlphaTestUniforms_ ),
+		RsBufferUpdateFlags::ASYNC,
+		[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			BcMemCopy( Lock.Buffer_, &AlphaTestUniforms_, sizeof( AlphaTestUniforms_ ) );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -722,7 +729,11 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	// Attach material to our parent.
 	Parent->attach( MaterialComponent_ );
 
-	UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( ScnShaderAlphaTestUniformBlockData::StaticGetClass() ), &AlphaTestUniforms_ );
+	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc(
+			RsBufferType::UNIFORM,
+			RsBufferCreationFlags::STREAM,
+			sizeof( ScnShaderAlphaTestUniformBlockData ) ) );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "AlphaTestUniformBlock" );
 	MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );
 

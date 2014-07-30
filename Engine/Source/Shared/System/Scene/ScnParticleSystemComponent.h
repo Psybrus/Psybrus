@@ -89,7 +89,7 @@ private:
 	struct TVertexBuffer
 	{
 		RsBuffer*						pVertexBuffer_;
-		RsUniformBuffer*				UniformBuffer_;
+		RsBuffer*				UniformBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};
 

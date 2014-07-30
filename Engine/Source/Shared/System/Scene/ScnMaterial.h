@@ -15,7 +15,7 @@
 #define __SCNMATERIAL_H__
 
 #include "System/Renderer/RsCore.h"
-#include "System/Renderer/RsUniformBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTexture.h"
@@ -92,12 +92,12 @@ public:
 	void								setTexture( BcU32 Sampler, ScnTextureRef Texture );
 
 	BcU32								findUniformBlock( const BcName& UniformBlockName );	
-	void								setUniformBlock( BcU32 Index, RsUniformBuffer* UniformBuffer );
+	void								setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer );
 
 	// Common uniform blocks.
-	void								setViewUniformBlock( RsUniformBuffer* UniformBuffer );
-	void								setBoneUniformBlock( RsUniformBuffer* UniformBuffer );
-	void								setObjectUniformBlock( RsUniformBuffer* UniformBuffer );
+	void								setViewUniformBlock( RsBuffer* UniformBuffer );
+	void								setBoneUniformBlock( RsBuffer* UniformBuffer );
+	void								setObjectUniformBlock( RsBuffer* UniformBuffer );
 
 
 	void								setState( RsRenderStateType State, BcU32 Value );
@@ -128,7 +128,7 @@ private:
 	struct TUniformBlockBinding
 	{
 		BcU32							Index_;
-		RsUniformBuffer*				UniformBuffer_;
+		RsBuffer*				UniformBuffer_;
 	};
 	
 	typedef std::vector< TUniformBlockBinding > TUniformBlockBindingList;

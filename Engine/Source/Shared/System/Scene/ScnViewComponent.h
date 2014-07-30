@@ -15,7 +15,7 @@
 #define __ScnViewComponent_H__
 
 #include "System/Renderer/RsCore.h"
-#include "System/Renderer/RsUniformBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnShaderFileData.h"
 #include "System/Scene/ScnRenderTarget.h"
@@ -81,7 +81,7 @@ protected:
 
 	// Uniform block data.
 	ScnShaderViewUniformBlockData		ViewUniformBlock_;
-	RsUniformBuffer*					ViewUniformBuffer_;
+	RsBuffer*					ViewUniformBuffer_;
 
 	// Used for culling.
 	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?

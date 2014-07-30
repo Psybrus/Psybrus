@@ -38,8 +38,8 @@ void ScnRenderGeometry::initialise(
 {
 	Super::initialise();
 
-	IndexBuffer_ = RsCore::pImpl()->createIndexBuffer( IndexBufferDesc );
-	VertexBuffers_.push_back( RsCore::pImpl()->createVertexBuffer( VertexBufferDesc ) );
+	IndexBuffer_ = RsCore::pImpl()->createBuffer( IndexBufferDesc );
+	VertexBuffers_.push_back( RsCore::pImpl()->createBuffer( VertexBufferDesc ) );
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
 }
 

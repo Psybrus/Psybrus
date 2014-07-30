@@ -86,7 +86,7 @@ void ScnCanvasComponent::create()
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( 
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
 				RsBufferCreationFlags::STREAM,

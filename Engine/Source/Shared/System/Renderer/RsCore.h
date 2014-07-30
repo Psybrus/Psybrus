@@ -33,7 +33,7 @@
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsUniformBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -117,25 +117,11 @@ public:
 	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc ) = 0;
 
 	/*
-	 * Create a vertex buffer.
+	 * Create a buffer.
 	 * @param Desc Buffer descriptor
-	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	virtual RsBuffer*		createVertexBuffer( const RsBufferDesc& Desc, void* pVertexData = NULL ) = 0;
+	virtual RsBuffer*			createBuffer( const RsBufferDesc& Desc ) = 0;
 	
-	/**
-	 * Create index buffer.
-	 * @param Desc Buffer descriptor
-	 */
-	virtual RsBuffer*			createIndexBuffer( const RsBufferDesc& Desc ) = 0;
-	
-	/**
-	 * Create uniform buffer.
-	 * @param Desc Buffer descriptor
-	 * @param pBufferData Pointer to buffer data, NULL to create own.
-	 */
-	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL ) = 0;
-
 	/**
 	 * Create shader.
 	 * @param ShaderType Shader type.

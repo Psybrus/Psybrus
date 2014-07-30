@@ -154,7 +154,11 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 void ScnViewComponent::create()
 {
 	ScnComponent::create();
-	ViewUniformBuffer_ = RsCore::pImpl()->createUniformBuffer( ScnShaderViewUniformBlockData::StaticGetClass(), &ViewUniformBlock_ );
+	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc(
+			RsBufferType::UNIFORM,
+			RsBufferCreationFlags::STREAM,
+			sizeof( ViewUniformBlock_ ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -277,32 +281,36 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Near_,
 	                    Far_ );
 	
-	// Setup matrices in view uniform block.
-	if( ViewUniformBuffer_->lock() )
+	// Create appropriate projection matrix.
+	if( HorizontalFOV_ > 0.0f )
 	{
-		// Create appropriate projection matrix.
-		if( HorizontalFOV_ > 0.0f )
-		{
-			ViewUniformBlock_.ProjectionTransform_.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
-		}
-		else
-		{
-			ViewUniformBlock_.ProjectionTransform_.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
-		}
-
-		ViewUniformBlock_.InverseProjectionTransform_ = ViewUniformBlock_.ProjectionTransform_;
-		ViewUniformBlock_.InverseProjectionTransform_.inverse();
-
-		// Setup view matrix.
-		ViewUniformBlock_.InverseViewTransform_ = getParentEntity()->getWorldMatrix();
-		ViewUniformBlock_.ViewTransform_ = ViewUniformBlock_.InverseViewTransform_;
-		ViewUniformBlock_.ViewTransform_.inverse();
-
-		// Clip transform.
-		ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
-
-		ViewUniformBuffer_->unlock();
+		ViewUniformBlock_.ProjectionTransform_.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
 	}
+	else
+	{
+		ViewUniformBlock_.ProjectionTransform_.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
+	}
+
+	ViewUniformBlock_.InverseProjectionTransform_ = ViewUniformBlock_.ProjectionTransform_;
+	ViewUniformBlock_.InverseProjectionTransform_.inverse();
+
+	// Setup view matrix.
+	ViewUniformBlock_.InverseViewTransform_ = getParentEntity()->getWorldMatrix();
+	ViewUniformBlock_.ViewTransform_ = ViewUniformBlock_.InverseViewTransform_;
+	ViewUniformBlock_.ViewTransform_.inverse();
+
+	// Clip transform.
+	ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
+
+	// Upload uniforms.
+	RsCore::pImpl()->updateBuffer( 
+		ViewUniformBuffer_,
+		0, sizeof( ViewUniformBlock_ ),
+		RsBufferUpdateFlags::ASYNC,
+		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			BcMemCopy( Lock.Buffer_, &ViewUniformBlock_, sizeof( ViewUniformBlock_ ) );
+		} );
 
 	// Build frustum planes.
 	// TODO: revisit this later as we don't need to do it I don't think.
