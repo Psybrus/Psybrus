@@ -68,7 +68,7 @@ public:
 	 */
 	virtual void setVertexBuffer( 
 		BcU32 StreamIdx, 
-		class RsVertexBuffer* VertexBuffer,
+		class RsBuffer* VertexBuffer,
 		BcU32 Stride ) = 0;
 
 	/**

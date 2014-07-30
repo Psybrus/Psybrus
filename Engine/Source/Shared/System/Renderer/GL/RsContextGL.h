@@ -59,7 +59,7 @@ public:
 	void setIndexBuffer( class RsBuffer* IndexBuffer );
 	void setVertexBuffer( 
 		BcU32 StreamIdx, 
-		class RsVertexBuffer* VertexBuffer,
+		class RsBuffer* VertexBuffer,
 		BcU32 Stride );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	
@@ -118,7 +118,7 @@ private:
 
 	struct TVertexBufferSlot
 	{
-		class RsVertexBuffer* VertexBuffer_;
+		class RsBuffer* VertexBuffer_;
 	};
 
 	enum
@@ -149,7 +149,7 @@ private:
 
 	struct VertexBufferBinding
 	{
-		RsVertexBuffer* Buffer_;
+		RsBuffer* Buffer_;
 		BcU32 Stride_;
 	};
 

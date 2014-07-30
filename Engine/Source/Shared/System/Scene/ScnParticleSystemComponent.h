@@ -88,8 +88,7 @@ private:
 private:
 	struct TVertexBuffer
 	{
-		ScnParticleVertex*				pVertexArray_;
-		RsVertexBuffer*					pVertexBuffer_;
+		RsBuffer*						pVertexBuffer_;
 		RsUniformBuffer*				UniformBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};
@@ -114,6 +113,7 @@ private:
 	// UV bounds.
 	std::vector< MaVec4d >				UVBounds_;
 
+	SysFence							UploadFence_;
 	SysFence							UpdateFence_;
 
 	MaAABB								AABB_;

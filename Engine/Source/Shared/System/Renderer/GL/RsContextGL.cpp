@@ -15,7 +15,6 @@
 #include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
-#include "System/Renderer/GL/RsVertexBufferGL.h"
 #include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsRenderTargetGL.h"
 
@@ -580,6 +579,8 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 	{
 		glDeleteBuffers( 1, &Handle );
 		Buffer->setHandle< GLuint >( 0 );
+
+		RsGLCatchError();
 		return true;
 	}
 
@@ -623,6 +624,8 @@ bool RsContextGL::updateBuffer(
 			UpdateFunc( Buffer, Lock );
 			glUnmapBuffer( TypeGL );
 		}
+
+		RsGLCatchError();
 
 		return true;
 	}
@@ -796,7 +799,7 @@ void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 // setPrimitive
 void RsContextGL::setVertexBuffer( 
 	BcU32 StreamIdx, 
-	class RsVertexBuffer* VertexBuffer,
+	class RsBuffer* VertexBuffer,
 	BcU32 Stride )
 {
 	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||

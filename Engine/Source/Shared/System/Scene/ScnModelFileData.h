@@ -73,7 +73,7 @@ struct ScnModelMeshRuntime
 {
 	BcU32							MeshDataIndex_;
 	class RsVertexDeclaration*		pVertexDeclaration_;
-	class RsVertexBuffer*			pVertexBuffer_;
+	class RsBuffer*			pVertexBuffer_;
 	class RsBuffer*			pIndexBuffer_;
 	ScnMaterialRef					MaterialRef_; // TODO: Don't use ref, just use pointer.
 };

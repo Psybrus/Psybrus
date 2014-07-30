@@ -29,7 +29,7 @@ public:
 	void initialise( 
 		const RsVertexDeclarationDesc& VertexDeclarationDesc,
 		const RsBufferDesc& IndexBufferDesc,
-		const RsVertexBufferDesc& VertexBufferDesc );
+		const RsBufferDesc& VertexBufferDesc );
 
 	virtual void destroy();
 
@@ -42,7 +42,7 @@ public:
 
 private:
 	class RsBuffer* IndexBuffer_;
-	std::vector< class RsVertexBuffer* > VertexBuffers_;
+	std::vector< class RsBuffer* > VertexBuffers_;
 	class RsVertexDeclaration* VertexDeclaration_;
 };
 

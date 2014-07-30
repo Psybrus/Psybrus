@@ -59,9 +59,10 @@ void ScnDebugRenderComponent::initialise( BcU32 NoofVertices )
 
 	// NULL internals.
 	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
-	HaveVertexBufferLock_ = BcFalse;
-	
+
 	// Store number of vertices.
+	pVertices_ = pVerticesEnd_ = nullptr;
+	pWorkingVertices_ = nullptr;
 	NoofVertices_ = NoofVertices;
 	
 	// Which render resource to use.
@@ -96,15 +97,19 @@ void ScnDebugRenderComponent::create()
 	{
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
-		// Allocate vertices.
-		RenderResource.pVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
-
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 16 ), RenderResource.pVertices_ );
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX,
+				RsBufferCreationFlags::STREAM,
+				NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
 	
 		// Allocate uniform buffer object.
 		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( ScnShaderObjectUniformBlockData::StaticGetClass() ), &RenderResource.ObjectUniforms_ );
 	}
+
+	// Allocate working vertices.
+	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
 
 	Super::create();
 }
@@ -128,13 +133,7 @@ void ScnDebugRenderComponent::destroy()
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Delete vertices.
-		delete [] RenderResource.pVertices_;
-	}
+	delete [] pWorkingVertices_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +148,7 @@ MaAABB ScnDebugRenderComponent::getAABB() const
 // allocVertices
 ScnDebugRenderComponentVertex* ScnDebugRenderComponent::allocVertices( BcU32 NoofVertices )
 {
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnDebugRenderComponent: Don't have vertex buffer lock!" );
+	BcAssertMsg( pVertices_ != nullptr, "ScnDebugRenderComponent: Don't have a working buffer." );
 	ScnDebugRenderComponentVertex* pCurrVertex = NULL;
 	if( ( VertexIndex_ + NoofVertices ) <= NoofVertices_ )
 	{
@@ -400,21 +399,17 @@ void ScnDebugRenderComponent::clear()
 	// Set current render resource.
 	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
 
+	// Wait for upload to have completed so we can use vertices.
+	UploadFence_.wait();
+
 	// Set vertices up.
-	pVertices_ = pVerticesEnd_ = pRenderResource_->pVertices_;
+	pVertices_ = pVerticesEnd_ = pWorkingVertices_;
 	pVerticesEnd_ += NoofVertices_;
 	VertexIndex_ = 0;
 	
 	// Empty primitive sections.
 	PrimitiveSectionList_.clear();
 	
-	// Lock vertex buffer for use.
-	if( HaveVertexBufferLock_ == BcFalse )
-	{
-		pRenderResource_->pVertexBuffer_->lock();
-		HaveVertexBufferLock_ = BcTrue;
-	}
-
 	// Clear last primitive.
 	LastPrimitiveSection_ = BcErrorCode;
 }
@@ -451,17 +446,27 @@ public:
 	
 	BcU32 NoofSections_;
 	ScnDebugRenderComponentPrimitiveSection* pPrimitiveSections_;
-	RsVertexBuffer* VertexBuffer_;
+	RsBuffer* VertexBuffer_;
 	RsVertexDeclaration* VertexDeclaration_;
 };
 
 void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	if( HaveVertexBufferLock_ == BcFalse )
-	{
-		return;
-	}
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnDebugRenderComponent: Can't render without a vertex buffer lock." );
+	// Upload.
+	UploadFence_.increment();
+
+	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnDebugRenderComponentVertex );
+	RsCore::pImpl()->updateBuffer( 
+		pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
+		RsBufferUpdateFlags::ASYNC,
+		[ this, VertexDataSize ]
+		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+		{
+			BcAssert( VertexDataSize <= Buffer->getDesc().SizeBytes_ );
+			BcMemCopy( BufferLock.Buffer_, pWorkingVertices_, 
+				VertexDataSize );
+			UploadFence_.decrement();
+		} );
 
 	// HUD pass.
 	Sort.Layer_ = RS_SORT_LAYER_MAX;
@@ -510,11 +515,6 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 		pFrame->addRenderNode( pRenderNode );
 	}
 	
-	// Unlock vertex buffer.
-	pRenderResource_->pVertexBuffer_->setNoofUpdateVertices( VertexIndex_ );
-	pRenderResource_->pVertexBuffer_->unlock();
-	HaveVertexBufferLock_ = BcFalse;
-
 	// Flip the render resource.
 	CurrentRenderResource_ = 1 - CurrentRenderResource_;
 
