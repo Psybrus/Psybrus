@@ -794,11 +794,16 @@ void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 
 //////////////////////////////////////////////////////////////////////////
 // setPrimitive
-void RsContextGL::setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer )
+void RsContextGL::setVertexBuffer( 
+	BcU32 StreamIdx, 
+	class RsVertexBuffer* VertexBuffer,
+	BcU32 Stride )
 {
-	if( VertexBuffers_[ StreamIdx ] != VertexBuffer )
+	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||
+		VertexBuffers_[ StreamIdx ].Stride_ != Stride )
 	{
-		VertexBuffers_[ StreamIdx ] = VertexBuffer;
+		VertexBuffers_[ StreamIdx ].Buffer_ = VertexBuffer;
+		VertexBuffers_[ StreamIdx ].Stride_ = Stride;
 		BindingsDirty_ = BcTrue;
 		ProgramDirty_ = BcTrue;
 	}
@@ -947,12 +952,14 @@ void RsContextGL::flushState()
 				if( Attribute.Usage_ == Element.Usage_ &&
 					Attribute.UsageIdx_ == Element.UsageIdx_ )
 				{
-					auto VertexBuffer = VertexBuffers_[ Element.StreamIdx_ ];
+					auto VertexBufferBinding = VertexBuffers_[ Element.StreamIdx_ ];
+					auto VertexBuffer = VertexBufferBinding.Buffer_;
+					auto VertexStride = VertexBufferBinding.Stride_;
 				
 					// Bind up new vertex buffer if we need to.
 					BcAssertMsg( Element.StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
 					BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-					GLuint VertexHandle = VertexBuffers_[ Element.StreamIdx_ ]->getHandle< GLuint >();
+					GLuint VertexHandle = VertexBuffer->getHandle< GLuint >();
 					if( BoundVertexHandle != VertexHandle )
 					{
 						glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
@@ -969,7 +976,7 @@ void RsContextGL::flushState()
 						Element.Components_,
 						gVertexDataTypes[ (BcU32)Element.DataType_ ],
 						gVertexDataNormalised[ (BcU32)Element.DataType_ ],
-						VertexBuffer->getVertexStride(),
+						VertexStride,
 						(GLvoid*)CalcOffset );
 					break;	
 				}

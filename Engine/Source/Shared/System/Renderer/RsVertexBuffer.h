@@ -56,16 +56,6 @@ public:
 	 * Set number of vertices to update.
 	 */
 	virtual void						setNoofUpdateVertices( BcU32 NoofVertices ) = 0;
-	
-	/**
-	 *  Get number of vertices.
-	 */
-	virtual BcU32						getNoofVertices() const = 0;
-	
-	/**
-	 * Get vertex stride.
-	 */
-	virtual BcU32						getVertexStride() const= 0;
 };
 
 #endif

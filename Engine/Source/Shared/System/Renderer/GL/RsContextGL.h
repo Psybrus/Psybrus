@@ -57,7 +57,10 @@ public:
 	void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
 	void setIndexBuffer( class RsBuffer* IndexBuffer );
-	void setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer );
+	void setVertexBuffer( 
+		BcU32 StreamIdx, 
+		class RsVertexBuffer* VertexBuffer,
+		BcU32 Stride );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	
 	void flushState();
@@ -142,7 +145,15 @@ private:
 	RsProgram* Program_;
 
 	RsBuffer* IndexBuffer_;
-	std::array< RsVertexBuffer*, MAX_VERTEX_STREAMS > VertexBuffers_;
+
+
+	struct VertexBufferBinding
+	{
+		RsVertexBuffer* Buffer_;
+		BcU32 Stride_;
+	};
+
+	std::array< VertexBufferBinding, MAX_VERTEX_STREAMS > VertexBuffers_;
 	RsVertexDeclaration* VertexDeclaration_;
 };
 

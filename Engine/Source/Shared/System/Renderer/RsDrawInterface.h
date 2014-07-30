@@ -66,7 +66,10 @@ public:
 	/**
 	 * Set vertex buffer.
 	 */
-	virtual void setVertexBuffer( BcU32 StreamIdx, class RsVertexBuffer* VertexBuffer ) = 0;
+	virtual void setVertexBuffer( 
+		BcU32 StreamIdx, 
+		class RsVertexBuffer* VertexBuffer,
+		BcU32 Stride ) = 0;
 
 	/**
 	 * Set vertex declaration.
