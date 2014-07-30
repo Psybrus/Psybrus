@@ -98,14 +98,18 @@ void ScnDebugRenderComponent::create()
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( 
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
 				RsBufferCreationFlags::STREAM,
 				NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
 	
 		// Allocate uniform buffer object.
-		RenderResource.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( ScnShaderObjectUniformBlockData::StaticGetClass() ), &RenderResource.ObjectUniforms_ );
+		RenderResource.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::UNIFORM,
+				RsBufferCreationFlags::STREAM,
+				sizeof( ScnShaderObjectUniformBlockData ) ) );
 	}
 
 	// Allocate working vertices.
@@ -500,9 +504,15 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
 
 			// Set model parameters on material.
-			pRenderResource_->UniformBuffer_->lock();
 			pRenderResource_->ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
-			pRenderResource_->UniformBuffer_->unlock();
+			RsCore::pImpl()->updateBuffer( 
+				pRenderResource_->UniformBuffer_,
+				0, sizeof( pRenderResource_->ObjectUniforms_ ),
+				RsBufferUpdateFlags::ASYNC,
+				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				{
+					BcMemCopy( Lock.Buffer_, &pRenderResource_->ObjectUniforms_, sizeof( pRenderResource_->ObjectUniforms_ ) );					
+				} );
 			pLastMaterialComponent->setObjectUniformBlock( pRenderResource_->UniformBuffer_ );
 
 			pViewComponent->setMaterialParameters( pLastMaterialComponent );

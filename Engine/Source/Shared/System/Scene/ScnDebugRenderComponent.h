@@ -153,7 +153,7 @@ protected:
 	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
-		RsUniformBuffer*				UniformBuffer_;
+		RsBuffer*				UniformBuffer_;
 		RsBuffer*						pVertexBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};

@@ -50,9 +50,7 @@ public:
 	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pData = NULL );
 	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc );
 	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc );
-	virtual RsBuffer*		createVertexBuffer( const RsBufferDesc& Desc, void* pVertexData = NULL );
-	virtual RsBuffer*			createIndexBuffer( const RsBufferDesc& Desc );
-	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL );
+	virtual RsBuffer*			createBuffer( const RsBufferDesc& Desc );
 	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
 	virtual void				destroyResource( RsResource* pResource );

@@ -15,7 +15,7 @@
 #define __RSPROGRAM_H__
 
 #include "System/Renderer/RsTypes.h"
-#include "System/Renderer/RsUniformBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsProgram
@@ -48,7 +48,7 @@ public:
 	 * @param Index
 	 * @param Uniform buffer to set to.
 	 */
-	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer ) = 0;
+	virtual void						setUniformBlock( BcU32 Index, RsBuffer* Buffer ) = 0;
 
 	/**
 	 * Bind program.

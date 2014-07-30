@@ -255,12 +255,12 @@ BcU32 RsProgramGL::findUniformBlockIndex( const BcChar* Name )
 ////////////////////////////////////////////////////////////////////////////////
 // setUniformBlock
 //virtual
-void RsProgramGL::setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer )
+void RsProgramGL::setUniformBlock( BcU32 Index, RsBuffer* Buffer )
 {
 	auto& UniformBlock( UniformBlockList_[ Index ] );
 	if (Buffer != nullptr)
 	{
-		BcAssert( Buffer->getDataSize() == UniformBlock.Size_ );
+		BcAssert( Buffer->getDesc().SizeBytes_ == UniformBlock.Size_ );
 	}
 	UniformBlock.Buffer_ = Buffer;
 }
@@ -289,7 +289,7 @@ void RsProgramGL::bind()
 		if( (*It).Buffer_ != nullptr )
 		{
 			glUniformBlockBinding( Handle, (*It).Index_, BindingPoint );
-			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDataSize() );
+			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDesc().SizeBytes_ );
 			++BindingPoint;
 			RsGLCatchError();
 		}

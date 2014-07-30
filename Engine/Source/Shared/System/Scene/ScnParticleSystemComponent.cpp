@@ -91,14 +91,17 @@ void ScnParticleSystemComponent::create()
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( 
+		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX, 
 				RsBufferCreationFlags::STREAM, 
 				NoofVertices * sizeof( ScnParticleVertex ) ) );
 
-		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( 
-			RsUniformBufferDesc( ScnShaderObjectUniformBlockData::StaticGetClass() ), &VertexBuffer.ObjectUniforms_ );
+		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::UNIFORM,
+				RsBufferCreationFlags::STREAM,
+				sizeof( VertexBuffer.ObjectUniforms_ ) ) );
 	}
 
 	// Allocate particles.
@@ -314,7 +317,6 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		} );
 
 	// Update uniform buffer.
-	VertexBuffer.UniformBuffer_->lock();
 	if( IsLocalSpace_ )
 	{
 		VertexBuffer.ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
@@ -323,7 +325,16 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	{
 		VertexBuffer.ObjectUniforms_.WorldTransform_ = MaMat4d();
 	}
-	VertexBuffer.UniformBuffer_->unlock();
+
+	// Upload uniforms.
+	RsCore::pImpl()->updateBuffer( 
+		VertexBuffer.UniformBuffer_,
+		0, sizeof( VertexBuffer.ObjectUniforms_ ),
+		RsBufferUpdateFlags::ASYNC,
+		[ this, VertexBuffer ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			BcMemCopy( Lock.Buffer_, &VertexBuffer.ObjectUniforms_, sizeof( VertexBuffer.ObjectUniforms_ ) );
+		} );
 
 	// Draw particles last.
 	if( NoofParticlesToRender > 0 )

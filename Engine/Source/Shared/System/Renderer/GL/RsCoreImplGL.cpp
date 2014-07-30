@@ -19,7 +19,6 @@
 #include "System/Renderer/GL/RsRenderTargetGL.h"
 #include "System/Renderer/GL/RsRenderBufferGL.h"
 #include "System/Renderer/GL/RsFrameBufferGL.h"
-#include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 
@@ -257,16 +256,14 @@ RsVertexDeclaration* RsCoreImplGL::createVertexDeclaration( const RsVertexDeclar
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createVertexBuffer
+// createBuffer
 //virtual 
-RsBuffer* RsCoreImplGL::createVertexBuffer( const RsBufferDesc& Desc, void* pVertexData )
+RsBuffer* RsCoreImplGL::createBuffer( const RsBufferDesc& Desc )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
 	RsBuffer* pResource = new RsBuffer( Context, Desc );
-
-	BcAssert( Desc.Type_ == RsBufferType::VERTEX );
 
 	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
 
@@ -275,38 +272,6 @@ RsBuffer* RsCoreImplGL::createVertexBuffer( const RsBufferDesc& Desc, void* pVer
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
 	
 	// Return resource.
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createIndexBuffer
-//virtual 
-RsBuffer* RsCoreImplGL::createIndexBuffer( const RsBufferDesc& Desc )
-{
-	BcAssert( BcIsGameThread() );
-
-	auto Context = getContext( nullptr );
-	RsBuffer* pResource = new RsBuffer( Context, Desc );
-
-	BcAssert( Desc.Type_ == RsBufferType::INDEX );
-
-	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
-
-	// Call create on render thread.
-	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createBuffer >( Context ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
-	
-	// Return resource.
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createUniformBuffer
-//virtual 
-RsUniformBuffer* RsCoreImplGL::createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData )
-{
-	RsUniformBufferGL* pResource = new RsUniformBufferGL( getContext( NULL ), Desc, pBufferData );
-	createResource( pResource );
 	return pResource;
 }
 

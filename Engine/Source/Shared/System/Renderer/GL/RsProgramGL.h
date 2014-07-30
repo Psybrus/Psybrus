@@ -15,7 +15,6 @@
 #define __RSPROGRAMGL_H__
 
 #include "System/Renderer/GL/RsShaderGL.h"
-#include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/RsProgram.h"
 
 #include <vector>
@@ -41,7 +40,7 @@ public:
 	virtual BcU32						findSampler( const BcChar* Name );
 	virtual void						setSampler( BcU32 Handle, BcU32 SamplerSlotIdx );
 	virtual BcU32						findUniformBlockIndex( const BcChar* Name );
-	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer );
+	virtual void						setUniformBlock( BcU32 Index, RsBuffer* Buffer );
 	virtual void						bind();
 	
 	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
@@ -65,7 +64,7 @@ private:
 		std::string						Name_;
 		GLint							Index_;
 		BcU32							Size_;
-		RsUniformBuffer*				Buffer_;
+		RsBuffer*				Buffer_;
 	};
 
 

@@ -98,6 +98,7 @@ protected:
 	ScnModelRef							Parent_;
 	ScnModelNodeTransformData*			pNodeTransformData_;
 
+	SysFence							UploadFence_;
 	SysFence							UpdateFence_;
 
 	BcU32								Layer_;
@@ -108,13 +109,12 @@ protected:
 	struct TPerComponentMeshData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsUniformBuffer*		UniformBuffer_;
+		RsBuffer*		UniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;
 	
 	TPerComponentMeshDataList		PerComponentMeshDataList_;
-
 };
 
 #endif

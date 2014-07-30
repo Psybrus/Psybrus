@@ -96,12 +96,11 @@ void ScnModel::create()
 		
 		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
 		BcU32 VertexBufferSize = pMeshData->NoofVertices_ * pMeshData->VertexStride_;
-		RsBuffer* pVertexBuffer = RsCore::pImpl()->createVertexBuffer( 
+		RsBuffer* pVertexBuffer = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX, 
 				RsBufferCreationFlags::STATIC,
-				VertexBufferSize ),
-			pVertexBufferData );
+				VertexBufferSize ) );
 
 		RsCore::pImpl()->updateBuffer( 
 			pVertexBuffer, 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
@@ -116,7 +115,7 @@ void ScnModel::create()
 	
 		BcU32 IndexBufferSize = pMeshData->NoofIndices_ * sizeof( BcU16 );
 		RsBuffer* pIndexBuffer = 
-			RsCore::pImpl()->createIndexBuffer( 
+			RsCore::pImpl()->createBuffer( 
 				RsBufferDesc( 
 					RsBufferType::INDEX, 
 					RsBufferCreationFlags::STATIC, 
@@ -324,11 +323,21 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 		// Create uniform buffer for object.
 		if( pMeshData->IsSkinned_ )
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( ScnShaderBoneUniformBlockData::StaticGetClass(), nullptr ) : nullptr;
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
+				RsCore::pImpl()->createBuffer( 
+					RsBufferDesc( 
+						RsBufferType::UNIFORM,
+						RsBufferCreationFlags::STREAM,
+						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
 		}
 		else
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? RsCore::pImpl()->createUniformBuffer( ScnShaderObjectUniformBlockData::StaticGetClass(), nullptr ) : nullptr;
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
+				RsCore::pImpl()->createBuffer( 
+					RsBufferDesc( 
+						RsBufferType::UNIFORM,
+						RsBufferCreationFlags::STREAM,
+						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
 		}
 
 		//
@@ -480,6 +489,9 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 {
 	MaAABB FullAABB;
 
+	// Wait for previous upload to finish.
+	UploadFence_.wait();
+
 	// Update nodes.	
 	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
@@ -557,28 +569,41 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		ScnModelMeshData* pNodeMeshData = &Parent_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 
+		UploadFence_.increment();
+
 		if( pNodeMeshData->IsSkinned_ )
 		{
-			BcAssertMsg( PerComponentMeshData.UniformBuffer_->getDataSize() == sizeof( ScnShaderBoneUniformBlockData ), "BoneUniformBlock size mismatch." );
-			ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( PerComponentMeshData.UniformBuffer_->lock() );
-			for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
-			{
-				BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
-				if( NodeIndex != BcErrorCode )
+			RsCore::pImpl()->updateBuffer( 
+				PerComponentMeshData.UniformBuffer_,
+				0, sizeof( ScnShaderBoneUniformBlockData ),
+				RsBufferUpdateFlags::ASYNC,
+				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
-					BoneUniformBlock->BoneTransform_[ Idx ] = pNodeMeshData->BoneInverseBindpose_[ Idx ] * pNodeTransformData_[ NodeIndex ].WorldTransform_;
-				}
-			}
-
-			PerComponentMeshData.UniformBuffer_->unlock();		
+					ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( Lock.Buffer_ );
+					for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
+					{
+						BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
+						if( NodeIndex != BcErrorCode )
+						{
+							BoneUniformBlock->BoneTransform_[ Idx ] = pNodeMeshData->BoneInverseBindpose_[ Idx ] * pNodeTransformData_[ NodeIndex ].WorldTransform_;
+						}
+					}
+					UploadFence_.decrement();
+				} );
 		}
 		else
 		{
-			BcAssertMsg( PerComponentMeshData.UniformBuffer_->getDataSize() == sizeof( ScnShaderObjectUniformBlockData ), "ObjectUniformBlock size mismatch." );
-			ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( PerComponentMeshData.UniformBuffer_->lock() );
-			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
-			ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
-			PerComponentMeshData.UniformBuffer_->unlock();		
+			RsCore::pImpl()->updateBuffer( 
+				PerComponentMeshData.UniformBuffer_,
+				0, sizeof( ScnShaderBoneUniformBlockData ),
+				RsBufferUpdateFlags::ASYNC,
+				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				{
+					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
+					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
+					ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
+					UploadFence_.decrement();
+				} );
 		}
 	}
 
