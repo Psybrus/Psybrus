@@ -54,6 +54,7 @@ public:
 	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
 	virtual void				destroyResource( RsResource* pResource );
+	virtual void				destroyResource( RsBuffer* Buffer );
 	void						updateResource( RsResource* pResource );
 
 	//////////////////////////////////////////////////////////////////////
@@ -90,6 +91,8 @@ private:
 	bool updateBuffer_threaded( 
 		UpdateBufferAsync Cmd );
 
+	bool destroyBuffer_threaded( 
+		RsBuffer* Buffer );
 private:
 
 	void						createResource( RsResource* pResource );
