@@ -44,6 +44,8 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, RsText
 	Locked_ = BcFalse;
 	pData_ = pTextureData;
 	DataSize_ = RsTextureFormatSize( Format_, Width_, Height_, Depth_, Levels_ );
+
+	RsTextureDesc Desc( RsTextureType::TEX1D, Format, Levels, Width, 0, 0 );
 	
 	// Create data if we need to.
 	if( pData_ == NULL )
@@ -69,6 +71,8 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 
 	pData_ = pTextureData;
 	DataSize_ = RsTextureFormatSize( Format_, Width_, Height_, Depth_, Levels_ );
 	
+	RsTextureDesc Desc( RsTextureType::TEX2D, Format, Levels, Width, Height, 0 );
+
 	// Create data if we need to.
 	if( pData_ == NULL )
 	{		
@@ -93,6 +97,8 @@ RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 
 	pData_ = pTextureData;
 	DataSize_ = RsTextureFormatSize( Format_, Width_, Height_, Depth_, Levels_ );
 	
+	RsTextureDesc Desc( RsTextureType::TEX3D, Format, Levels, Width, Height, Depth );
+
 	// Create data if we need to.
 	if( pData_ == NULL )
 	{		
