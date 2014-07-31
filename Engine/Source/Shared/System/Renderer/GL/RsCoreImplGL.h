@@ -45,7 +45,7 @@ public:
 	virtual RsContext*			getContext( OsClient* pClient );
 	virtual void				destroyContext( OsClient* pClient );
 
-	virtual RsTexture*			createTexture( const RsTextureDesc& Desc, void* pData = NULL );
+	virtual RsTexture*			createTexture( const RsTextureDesc& Desc );
 	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc );
 	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc );
 	virtual RsBuffer*			createBuffer( const RsBufferDesc& Desc );
@@ -53,6 +53,7 @@ public:
 	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
 	virtual void				destroyResource( RsResource* pResource );
 	virtual void				destroyResource( RsBuffer* Buffer );
+	virtual void				destroyResource( RsTexture* Texture );
 	void						updateResource( RsResource* pResource );
 
 	//////////////////////////////////////////////////////////////////////
@@ -64,16 +65,13 @@ public:
 		RsResourceUpdateFlags Flags,
 		RsBufferUpdateFunc UpdateFunc );
 
-private:
-	struct UpdateBufferSync
-	{
-		class RsBuffer* Buffer_;
-		BcSize Offset_;
-		BcSize Size_;
-		RsResourceUpdateFlags Flags_;
-		void* Data_;
-	};
+	bool updateTexture( 
+		class RsTexture* Texture,
+		const struct RsTextureSlice& Slice,
+		RsResourceUpdateFlags Flags,
+		RsTextureUpdateFunc UpdateFunc );
 
+private:
 	struct UpdateBufferAsync
 	{
 		class RsBuffer* Buffer_;
@@ -83,14 +81,25 @@ private:
 		RsBufferUpdateFunc UpdateFunc_;
 	};
 
-	std::vector< UpdateBufferSync > UpdateBufferSyncOps_;
-	std::vector< UpdateBufferAsync > UpdateBufferAsyncOps_;
-
 	bool updateBuffer_threaded( 
 		UpdateBufferAsync Cmd );
 
 	bool destroyBuffer_threaded( 
 		RsBuffer* Buffer );
+
+	struct UpdateTextureAsync
+	{
+		class RsTexture* Texture_;
+		RsTextureSlice Slice_;
+		RsResourceUpdateFlags Flags_;
+		RsTextureUpdateFunc UpdateFunc_;
+	};
+
+	bool updateTexture_threaded( 
+		UpdateTextureAsync Cmd );
+
+	bool destroyTexture_threaded( 
+		RsTexture* Texture );
 private:
 
 	void						createResource( RsResource* pResource );

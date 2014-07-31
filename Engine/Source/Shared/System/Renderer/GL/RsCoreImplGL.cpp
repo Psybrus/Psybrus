@@ -15,7 +15,6 @@
 
 #include "System/Renderer/GL/RsFrameGL.h"
 
-#include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsRenderTargetGL.h"
 #include "System/Renderer/GL/RsRenderBufferGL.h"
 #include "System/Renderer/GL/RsFrameBufferGL.h"
@@ -193,10 +192,20 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 //////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
-RsTexture* RsCoreImplGL::createTexture( const RsTextureDesc& Desc, void* pData )
+RsTexture* RsCoreImplGL::createTexture( const RsTextureDesc& Desc )
 {
-	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Desc, pData );
-	createResource( pResource );
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsTexture* pResource = new RsTexture( Context, Desc );
+
+	typedef BcDelegate< bool(*)( RsTexture* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createTexture >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	
+	// Return resource.
 	return pResource;
 }
 
@@ -205,27 +214,8 @@ RsTexture* RsCoreImplGL::createTexture( const RsTextureDesc& Desc, void* pData )
 //virtual
 RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc )
 {
-	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.ColourFormats_[ 0 ], Desc.Width_, Desc.Height_ );
-	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.DepthStencilFormat_, Desc.Width_, Desc.Height_ );
-	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL( getContext( NULL ) );
-	RsTextureGL* pTexture = new RsTextureGL( 
-		getContext( NULL ), 
-		RsTextureDesc( 
-			RsTextureType::TEX2D, 
-			RsResourceCreationFlags::STREAM,
-			RsTextureFormat::R8G8B8A8, 
-			1, Desc.Width_, Desc.Height_, 0 ), NULL );
-
-	createResource( pColourBuffer );
-	createResource( pDepthStencilBuffer );
-	createResource( pFrameBuffer );
-	createResource( pTexture );
-
-	// Create the render target.
-	RsRenderTargetGL* pRenderTarget = new RsRenderTargetGL( getContext( NULL ), Desc, pColourBuffer, pDepthStencilBuffer, pFrameBuffer, pTexture );	
-	createResource( pRenderTarget );
-	
-	return pRenderTarget;
+	BcBreakpoint;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -323,6 +313,28 @@ bool RsCoreImplGL::destroyBuffer_threaded(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImplGL::destroyResource( RsTexture* Texture )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	typedef BcDelegate< bool(*)( RsTexture* ) > DestroyDelegate;
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplGL, &RsCoreImplGL::destroyTexture_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Texture );
+
+}
+
+bool RsCoreImplGL::destroyTexture_threaded( 
+	RsTexture* Texture )
+{
+	auto Context = Texture->getContext();
+	return Context->destroyTexture( Texture );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // updateResource
 void RsCoreImplGL::updateResource( RsResource* pResource )
 {
@@ -347,15 +359,6 @@ bool RsCoreImplGL::updateBuffer(
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
 	{
-		RsCoreImplGL::UpdateBufferSync Cmd = 
-		{
-			Buffer,
-			Offset,
-			Size,
-			Flags,
-			nullptr // TODO: Allocate from a temporary buffer. False on failure.
-		};
-		UpdateBufferSyncOps_.push_back( Cmd );
 		BcBreakpoint; // TODO: Implement this path.
 	}
 	else
@@ -369,14 +372,9 @@ bool RsCoreImplGL::updateBuffer(
 			UpdateFunc
 		};
 
-		// TODO: Push into a queue to sort and batch.
-#if 1
 		typedef BcDelegate< bool(*)( UpdateBufferAsync ) > UpdateDelegate;
 		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImplGL, &RsCoreImplGL::updateBuffer_threaded >( this ) );
 		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
-#else
-		UpdateBufferAsyncOps_.push_back( Cmd );
-#endif
 	}
 
 	return true;
@@ -390,6 +388,48 @@ bool RsCoreImplGL::updateBuffer_threaded(
 		Cmd.Buffer_,
 		Cmd.Offset_,
 		Cmd.Size_,
+		Cmd.Flags_,
+		Cmd.UpdateFunc_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateTexture
+bool RsCoreImplGL::updateTexture( 
+	class RsTexture* Texture,
+	const RsTextureSlice& Slice,
+	RsResourceUpdateFlags Flags,
+	RsTextureUpdateFunc UpdateFunc )
+{
+	// Check if flags allow async.
+	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
+	{
+		BcBreakpoint; // TODO: Implement this path.
+	}
+	else
+	{
+		RsCoreImplGL::UpdateTextureAsync Cmd =
+		{
+			Texture,
+			Slice,
+			Flags,
+			UpdateFunc
+		};
+
+		typedef BcDelegate< bool(*)( UpdateTextureAsync ) > UpdateDelegate;
+		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImplGL, &RsCoreImplGL::updateTexture_threaded >( this ) );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
+	}
+
+	return true;
+}
+	
+bool RsCoreImplGL::updateTexture_threaded( 
+	UpdateTextureAsync Cmd )
+{
+	auto Context = Cmd.Texture_->getContext();
+	return Context->updateTexture( 
+		Cmd.Texture_,
+		Cmd.Slice_,
 		Cmd.Flags_,
 		Cmd.UpdateFunc_ );
 }
