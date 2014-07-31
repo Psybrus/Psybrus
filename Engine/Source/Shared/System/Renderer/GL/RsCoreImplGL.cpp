@@ -228,7 +228,7 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc
 	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.ColourFormats_[ 0 ], Desc.Width_, Desc.Height_ );
 	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.DepthStencilFormat_, Desc.Width_, Desc.Height_ );
 	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL( getContext( NULL ) );
-	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), Desc.Width_, Desc.Height_, 1, RsTextureFormat::RGBA8, NULL );
+	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), Desc.Width_, Desc.Height_, 1, RsTextureFormat::R8G8B8A8, NULL );
 
 	createResource( pColourBuffer );
 	createResource( pDepthStencilBuffer );

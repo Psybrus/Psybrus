@@ -70,7 +70,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 
 			// TODO: Take from parameters.
 			ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
-			RsTextureFormat TextureFormat = RsTextureFormat::RGBA8;
+			RsTextureFormat TextureFormat = RsTextureFormat::R8G8B8A8;
 			RsTextureType TextureType = pTopLevelImage->height() == 1 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
 		
 			// Use tex compression unless in debug.
@@ -175,7 +175,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 		}
 
 
-		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, RsTextureFormat::RGBA8, BcTrue };
+		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, RsTextureFormat::R8G8B8A8, BcTrue };
 		BcStream HeaderStream;
 		HeaderStream << Header;
 		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );

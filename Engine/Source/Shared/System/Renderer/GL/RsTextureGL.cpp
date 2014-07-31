@@ -272,16 +272,20 @@ void RsTextureGL::loadTexture1D()
 	// Call the appropriate method to load the texture.
 	switch( Format_ )
 	{
-	case RsTextureFormat::RGB8:
+	case RsTextureFormat::R8:
+		glTexImage1D( GL_TEXTURE_1D, 0, GL_R, Width_, 0, GL_R, GL_UNSIGNED_BYTE, pData_ );	
+		break;
+
+	case RsTextureFormat::R8G8:
+		glTexImage1D( GL_TEXTURE_1D, 0, GL_RG, Width_, 0, GL_RG, GL_UNSIGNED_BYTE, pData_ );	
+		break;
+
+	case RsTextureFormat::R8G8B8:
 		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGB, Width_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
-	case RsTextureFormat::RGBA8:
+	case RsTextureFormat::R8G8B8A8:
 		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGBA, Width_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
-		break;
-
-	case RsTextureFormat::I8:
-		glTexImage1D( GL_TEXTURE_1D, 0, GL_INTENSITY8, Width_, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData_ );
 		break;
 
 	default:
@@ -306,16 +310,20 @@ void RsTextureGL::loadTexture2D()
 		// Call the appropriate method to load the texture.
 		switch( Format_ )
 		{
-		case RsTextureFormat::RGB8:
+		case RsTextureFormat::R8:
+			glTexImage2D( GL_TEXTURE_2D, Idx, GL_R, Width, Height, 0, GL_R, GL_UNSIGNED_BYTE, pData );	
+			break;
+
+		case RsTextureFormat::R8G8:
+			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RG, Width, Height, 0, GL_RG, GL_UNSIGNED_BYTE, pData );	
+			break;
+
+		case RsTextureFormat::R8G8B8:
 			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData );	
 			break;
 
-		case RsTextureFormat::RGBA8:
+		case RsTextureFormat::R8G8B8A8:
 			glTexImage2D( GL_TEXTURE_2D, Idx, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData );	
-			break;
-
-		case RsTextureFormat::I8:
-			glTexImage2D( GL_TEXTURE_2D, Idx, GL_INTENSITY8, Width, Height, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData );
 			break;
 
 		case RsTextureFormat::DXT1:
@@ -352,16 +360,20 @@ void RsTextureGL::loadTexture3D()
 	// Call the appropriate method to load the texture.
 	switch( Format_ )
 	{
-	case RsTextureFormat::RGB8:
+	case RsTextureFormat::R8:
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R, Width_, Height_, Depth_, 0, GL_R, GL_UNSIGNED_BYTE, pData_ );	
+		break;
+
+	case RsTextureFormat::R8G8:
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_RG, Width_, Height_, Depth_, 0, GL_RG, GL_UNSIGNED_BYTE, pData_ );	
+		break;
+
+	case RsTextureFormat::R8G8B8:
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGB, Width_, Height_, Depth_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
-	case RsTextureFormat::RGBA8:
+	case RsTextureFormat::R8G8B8A8:
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA, Width_, Height_, Depth_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
-		break;
-
-	case RsTextureFormat::I8:
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_INTENSITY8, Width_, Height_, Depth_, 0, GL_INTENSITY8, GL_UNSIGNED_BYTE, pData_ );
 		break;
 
 	default:

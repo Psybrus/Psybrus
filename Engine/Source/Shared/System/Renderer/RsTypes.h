@@ -249,7 +249,6 @@ enum class RsTextureType : BcU32
 	TEX2D,
 	TEX3D,
 	TEXCUBE,
-	TEXARRAY,
 
 	MAX,
 	INVALID = BcErrorCode
@@ -259,18 +258,21 @@ enum class RsTextureType : BcU32
 // Texture Format
 enum class RsTextureFormat : BcU32
 {
-	RGB8 = 0,
-	RGBA8,
-	I8,
+	R8,
+	R8G8,
+	R8G8B8,
+	R8G8B8A8,
+	R16F,
+	R16FG16F,
+	R16FG16FB16F,
+	R16FG16FB16FA16F,
+	R32F,
+	R32FG32F,
+	R32FG32FB32F,
+	R32FG32FB32FA32F,
 	DXT1,
 	DXT3,
 	DXT5,
-	PAL4_RGBA8,
-	PAL8_RGBA8,
-	PVRTC2_RGB,
-	PVRTC2_RGBA,
-	PVRTC4_RGB,
-	PVRTC4_RGBA,
 	
 	MAX,
 	INVALID = BcErrorCode

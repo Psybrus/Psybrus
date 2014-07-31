@@ -18,6 +18,19 @@
 #include "System/Renderer/RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
+// RsTextureDesc
+struct RsTextureDesc
+{
+	RsTextureDesc();
+
+	RsTextureType Type_;
+	RsTextureFormat Format_;
+	BcU32 Width_;
+	BcU32 Height_;
+	BcU32 Depth_;	
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsTexture
 class RsTexture:
 	public RsResource
