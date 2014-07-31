@@ -296,8 +296,8 @@ enum class RsTextureFace : BcU32
 };
 
 //////////////////////////////////////////////////////////////////////////
-// RsTextureSubResourceDesc
-struct RsTextureSubResourceDesc
+// RsTextureSlice
+struct RsTextureSlice
 {
 	BcU32 Level_;
 	RsTextureFace Face_;

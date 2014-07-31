@@ -56,9 +56,12 @@ public:
 	virtual RsTextureType type() const = 0;
 	virtual RsTextureFormat format() const = 0;
 
-	// Editing.
 	virtual void* lockTexture() = 0;
 	virtual void unlockTexture() = 0;
+
+	// New
+	RsTextureSlice getSlice( BcU32 Level = 0, RsTextureFace Face = RsTextureFace::NONE );
+
 
 protected:
 	RsTextureDesc Desc_;
