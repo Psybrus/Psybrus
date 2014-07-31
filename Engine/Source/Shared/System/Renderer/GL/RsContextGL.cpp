@@ -902,7 +902,7 @@ void RsContextGL::flushState()
 		{
 			RsTexture* pTexture = TextureStateValue.pTexture_;
 			const RsTextureParams& Params = TextureStateValue.Params_;
-			const RsTextureType InternalType = pTexture ? pTexture->type() : RsTextureType::TEX2D;
+			const RsTextureType InternalType = pTexture ? pTexture->getDesc().Type_ : RsTextureType::TEX2D;
 			const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
 
 			glActiveTexture( GL_TEXTURE0 + TextureStateID );
