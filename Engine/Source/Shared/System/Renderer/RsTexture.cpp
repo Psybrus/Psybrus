@@ -15,6 +15,8 @@
 
 #include "Base/BcMath.h"
 
+//////////////////////////////////////////////////////////////////////////
+// RsTextureDesc
 RsTextureDesc::RsTextureDesc():
 	Type_( RsTextureType::INVALID ),
 	Format_( RsTextureFormat::INVALID ),
@@ -25,6 +27,8 @@ RsTextureDesc::RsTextureDesc():
 
 }
 
+//////////////////////////////////////////////////////////////////////////
+// RsTextureDesc
 RsTextureDesc::RsTextureDesc( 
 		RsTextureType Type, 
 		RsTextureFormat Format,
@@ -85,4 +89,13 @@ RsTextureDesc::RsTextureDesc(
 		break;
 	}
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+RsTexture::RsTexture( RsContext* pContext, const RsTextureDesc& Desc ):
+	RsResource( pContext ),
+	Desc_( Desc )
+{
+
 }

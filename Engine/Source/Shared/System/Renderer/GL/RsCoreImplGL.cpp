@@ -193,29 +193,9 @@ void RsCoreImplGL::destroyContext( OsClient* pClient )
 //////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
-RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pData )
+RsTexture* RsCoreImplGL::createTexture( const RsTextureDesc& Desc, void* pData )
 {
-	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Width, Levels, Format, pData );
-	createResource( pResource );
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createTexture
-//virtual 
-RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pData )
-{
-	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Width, Height, Levels, Format, pData );
-	createResource( pResource );
-	return pResource;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createTexture
-//virtual 
-RsTexture* RsCoreImplGL::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pData )
-{
-	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Width, Height, Depth, Levels, Format, pData );
+	RsTextureGL* pResource = new RsTextureGL( getContext( NULL ), Desc, pData );
 	createResource( pResource );
 	return pResource;
 }
@@ -228,7 +208,7 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc
 	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.ColourFormats_[ 0 ], Desc.Width_, Desc.Height_ );
 	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.DepthStencilFormat_, Desc.Width_, Desc.Height_ );
 	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL( getContext( NULL ) );
-	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), Desc.Width_, Desc.Height_, 1, RsTextureFormat::R8G8B8A8, NULL );
+	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), RsTextureDesc( RsTextureType::TEX2D, RsTextureFormat::R8G8B8A8, 1, Desc.Width_, Desc.Height_, 0 ), NULL );
 
 	createResource( pColourBuffer );
 	createResource( pDepthStencilBuffer );

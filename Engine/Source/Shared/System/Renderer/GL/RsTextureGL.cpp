@@ -31,73 +31,13 @@ static GLenum gTextureTypes[] =
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pTextureData ):
-	RsTexture( pContext )
+RsTextureGL::RsTextureGL( RsContext* pContext, const RsTextureDesc& Desc, void* pTextureData ):
+	RsTexture( pContext, Desc )
 {
 	// Setup parameters.
-	Width_ = Width;
-	Height_ = 1;
-	Depth_ = 1;
-	Levels_ = Levels;
-	Type_ = RsTextureType::TEX1D;
-	Format_ = Format;
 	Locked_ = BcFalse;
 	pData_ = pTextureData;
-	DataSize_ = RsTextureFormatSize( Format_, Width_, Height_, Depth_, Levels_ );
-
-	RsTextureDesc Desc( RsTextureType::TEX1D, Format, Levels, Width, 0, 0 );
-	
-	// Create data if we need to.
-	if( pData_ == NULL )
-	{		
-		pData_ = new BcU8[ DataSize_ ];
-		DeleteData_ = BcTrue;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Ctor
-RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pTextureData ):
-	RsTexture( pContext )
-{
-	// Setup parameters.
-	Width_ = Width;
-	Height_ = Height;
-	Depth_ = 1;
-	Levels_ = Levels;
-	Type_ = RsTextureType::TEX2D;
-	Format_ = Format;
-	Locked_ = BcFalse;
-	pData_ = pTextureData;
-	DataSize_ = RsTextureFormatSize( Format_, Width_, Height_, Depth_, Levels_ );
-	
-	RsTextureDesc Desc( RsTextureType::TEX2D, Format, Levels, Width, Height, 0 );
-
-	// Create data if we need to.
-	if( pData_ == NULL )
-	{		
-		pData_ = new BcU8[ DataSize_ ];
-		DeleteData_ = BcTrue;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Ctor
-RsTextureGL::RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pTextureData ):
-	RsTexture( pContext )
-{
-	// Setup parameters.
-	Width_ = Width;
-	Height_ = Height;
-	Depth_ = Depth;
-	Levels_ = Levels;
-	Type_ = RsTextureType::TEX3D;
-	Format_ = Format;
-	Locked_ = BcFalse;
-	pData_ = pTextureData;
-	DataSize_ = RsTextureFormatSize( Format_, Width_, Height_, Depth_, Levels_ );
-	
-	RsTextureDesc Desc( RsTextureType::TEX3D, Format, Levels, Width, Height, Depth );
+	DataSize_ = RsTextureFormatSize( Desc.Format_, Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
 
 	// Create data if we need to.
 	if( pData_ == NULL )
@@ -120,7 +60,7 @@ RsTextureGL::~RsTextureGL()
 //virtual
 BcU32 RsTextureGL::width() const
 {
-	return Width_;
+	return Desc_.Width_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,7 +68,7 @@ BcU32 RsTextureGL::width() const
 //virtual
 BcU32 RsTextureGL::height() const
 {
-	return Height_;
+	return Desc_.Height_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,7 +76,7 @@ BcU32 RsTextureGL::height() const
 //virtual
 BcU32 RsTextureGL::depth() const
 {
-	return Depth_;
+	return Desc_.Depth_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,7 +84,7 @@ BcU32 RsTextureGL::depth() const
 //virtual
 BcU32 RsTextureGL::levels() const
 {
-	return Levels_;
+	return Desc_.Levels_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,7 +92,7 @@ BcU32 RsTextureGL::levels() const
 //virtual
 RsTextureType RsTextureGL::type() const
 {
-	return Type_;	
+	return Desc_.Type_;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,7 +100,7 @@ RsTextureType RsTextureGL::type() const
 //virtual
 RsTextureFormat RsTextureGL::format() const
 {
-	return Format_;
+	return Desc_.Format_;
 }
 
 
@@ -217,12 +157,12 @@ void RsTextureGL::update()
 	// Bind and upload.
 	GLuint Handle = getHandle< GLuint >();
 	
-	GLenum TextureType = gTextureTypes[ (BcU32)Type_ ];
+	GLenum TextureType = gTextureTypes[ (BcU32)Desc_.Type_ ];
 
 	glBindTexture( TextureType, Handle );
 	RsGLCatchError();
 
-	switch( Type_ )
+	switch( Desc_.Type_ )
 	{
 	case RsTextureType::TEX1D:
 		loadTexture1D();
@@ -246,7 +186,7 @@ void RsTextureGL::update()
 	}
 
 	GLenum Error = glGetError();
-	BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%ux%u, format %u, %u bytes).\n", Error, Width_, Height_, Depth_, Format_, DataSize_ );
+	BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%ux%u, format %u, %u bytes).\n", Error, Desc_.Width_, Desc_.Height_, Desc_.Depth_, Desc_.Format_, DataSize_ );
 
 	UpdateSyncFence_.decrement();
 	
@@ -273,25 +213,25 @@ void RsTextureGL::destroy()
 // loadTexture1D
 void RsTextureGL::loadTexture1D()
 {
-	glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MAX_LEVEL, Levels_ - 1 );
+	glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MAX_LEVEL, Desc_.Levels_ - 1 );
 
 	// Call the appropriate method to load the texture.
-	switch( Format_ )
+	switch( Desc_.Format_ )
 	{
 	case RsTextureFormat::R8:
-		glTexImage1D( GL_TEXTURE_1D, 0, GL_R, Width_, 0, GL_R, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage1D( GL_TEXTURE_1D, 0, GL_R, Desc_.Width_, 0, GL_R, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	case RsTextureFormat::R8G8:
-		glTexImage1D( GL_TEXTURE_1D, 0, GL_RG, Width_, 0, GL_RG, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage1D( GL_TEXTURE_1D, 0, GL_RG, Desc_.Width_, 0, GL_RG, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	case RsTextureFormat::R8G8B8:
-		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGB, Width_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGB, Desc_.Width_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	case RsTextureFormat::R8G8B8A8:
-		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGBA, Width_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage1D( GL_TEXTURE_1D, 0, GL_RGBA, Desc_.Width_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	default:
@@ -304,17 +244,17 @@ void RsTextureGL::loadTexture1D()
 void RsTextureGL::loadTexture2D()
 {
 	BcU8* pData = reinterpret_cast< BcU8* >( pData_ );
-	BcU32 Width = Width_;
-	BcU32 Height = Height_;
+	BcU32 Width = Desc_.Width_;
+	BcU32 Height = Desc_.Height_;
 
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Levels_ - 1 );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Desc_.Levels_ - 1 );
 
-	for( BcU32 Idx = 0; Idx < Levels_; ++Idx )
+	for( BcU32 Idx = 0; Idx < Desc_.Levels_; ++Idx )
 	{
-		BcU32 LevelBytes = RsTextureFormatSize( Format_, Width, Height, 1, 1 );
+		BcU32 LevelBytes = RsTextureFormatSize( Desc_.Format_, Width, Height, 1, 1 );
 
 		// Call the appropriate method to load the texture.
-		switch( Format_ )
+		switch( Desc_.Format_ )
 		{
 		case RsTextureFormat::R8:
 			glTexImage2D( GL_TEXTURE_2D, Idx, GL_R, Width, Height, 0, GL_R, GL_UNSIGNED_BYTE, pData );	
@@ -349,7 +289,7 @@ void RsTextureGL::loadTexture2D()
 		}
 
 		GLenum Error = glGetError();
-		BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%ux%u, format %u, %u bytes).\n", Error, Width, Height, 1, Format_, LevelBytes );
+		BcAssertMsg( Error == 0, "RsTextureGL: Error (0x%x) creating texture (%ux%ux%u, format %u, %u bytes).\n", Error, Width, Height, 1, Desc_.Format_, LevelBytes );
 	
 		Height >>= 1;
 		Width >>= 1;
@@ -361,25 +301,25 @@ void RsTextureGL::loadTexture2D()
 // loadTexture3D
 void RsTextureGL::loadTexture3D()
 {
-	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, Levels_ - 1 );
+	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, Desc_.Levels_ - 1 );
 
 	// Call the appropriate method to load the texture.
-	switch( Format_ )
+	switch( Desc_.Format_ )
 	{
 	case RsTextureFormat::R8:
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_R, Width_, Height_, Depth_, 0, GL_R, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_R, Desc_.Width_, Desc_.Height_, Desc_.Depth_, 0, GL_R, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	case RsTextureFormat::R8G8:
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_RG, Width_, Height_, Depth_, 0, GL_RG, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_RG, Desc_.Width_, Desc_.Height_, Desc_.Depth_, 0, GL_RG, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	case RsTextureFormat::R8G8B8:
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGB, Width_, Height_, Depth_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGB, Desc_.Width_, Desc_.Height_, Desc_.Depth_, 0, GL_RGB, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	case RsTextureFormat::R8G8B8A8:
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA, Width_, Height_, Depth_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
+		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGBA, Desc_.Width_, Desc_.Height_, Desc_.Depth_, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData_ );	
 		break;
 
 	default:

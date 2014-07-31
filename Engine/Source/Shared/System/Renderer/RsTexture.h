@@ -44,9 +44,7 @@ class RsTexture:
 	public RsResource
 {
 public:
-	RsTexture( RsContext* pContext ):
-		RsResource( pContext )
-	{};
+	RsTexture( RsContext* pContext, const RsTextureDesc& Desc );
 	virtual ~RsTexture(){};
 
 
