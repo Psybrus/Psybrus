@@ -89,7 +89,7 @@ void ScnCanvasComponent::create()
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
-				RsBufferCreationFlags::STREAM,
+				RsResourceCreationFlags::STREAM,
 				NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
 	}
 
@@ -850,7 +850,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		UploadFence_.increment();
 		RsCore::pImpl()->updateBuffer( 
 			pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
-			RsBufferUpdateFlags::ASYNC,
+			RsResourceUpdateFlags::ASYNC,
 			[ this, VertexDataSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
 			{

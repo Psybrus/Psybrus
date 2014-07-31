@@ -61,8 +61,8 @@ public:
 		class RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
-		RsBufferUpdateFlags Flags,
-		RsUpdateBufferFunc UpdateFunc );
+		RsResourceUpdateFlags Flags,
+		RsBufferUpdateFunc UpdateFunc );
 
 private:
 	struct UpdateBufferSync
@@ -70,7 +70,7 @@ private:
 		class RsBuffer* Buffer_;
 		BcSize Offset_;
 		BcSize Size_;
-		RsBufferUpdateFlags Flags_;
+		RsResourceUpdateFlags Flags_;
 		void* Data_;
 	};
 
@@ -79,8 +79,8 @@ private:
 		class RsBuffer* Buffer_;
 		BcSize Offset_;
 		BcSize Size_;
-		RsBufferUpdateFlags Flags_;
-		RsUpdateBufferFunc UpdateFunc_;
+		RsResourceUpdateFlags Flags_;
+		RsBufferUpdateFunc UpdateFunc_;
 	};
 
 	std::vector< UpdateBufferSync > UpdateBufferSyncOps_;

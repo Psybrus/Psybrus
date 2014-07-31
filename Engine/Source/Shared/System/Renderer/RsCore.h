@@ -140,8 +140,8 @@ public:
 		class RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
-		RsBufferUpdateFlags Flags,
-		RsUpdateBufferFunc UpdateFunc ) = 0;
+		RsResourceUpdateFlags Flags,
+		RsBufferUpdateFunc UpdateFunc ) = 0;
 	
 public:
 	/**

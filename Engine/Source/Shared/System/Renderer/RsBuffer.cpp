@@ -24,7 +24,7 @@ RsBufferDesc::RsBufferDesc():
 
 //////////////////////////////////////////////////////////////////////////
 // RsBufferDesc
-RsBufferDesc::RsBufferDesc( RsBufferType Type, RsBufferCreationFlags Flags, BcU32 SizeBytes ):
+RsBufferDesc::RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, BcU32 SizeBytes ):
 	Type_( Type ),
 	Flags_( Flags ),
 	SizeBytes_( SizeBytes )

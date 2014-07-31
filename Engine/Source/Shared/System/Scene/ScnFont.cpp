@@ -699,7 +699,7 @@ void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 	RsCore::pImpl()->updateBuffer( 
 		UniformBuffer_,
 		0, sizeof( AlphaTestUniforms_ ),
-		RsBufferUpdateFlags::ASYNC,
+		RsResourceUpdateFlags::ASYNC,
 		[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
 			BcMemCopy( Lock.Buffer_, &AlphaTestUniforms_, sizeof( AlphaTestUniforms_ ) );
@@ -732,7 +732,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
-			RsBufferCreationFlags::STREAM,
+			RsResourceCreationFlags::STREAM,
 			sizeof( ScnShaderAlphaTestUniformBlockData ) ) );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "AlphaTestUniformBlock" );
 	MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );

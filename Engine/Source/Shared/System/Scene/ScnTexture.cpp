@@ -307,6 +307,7 @@ void ScnTexture::create()
 	pTexture_ = RsCore::pImpl()->createTexture( 
 		RsTextureDesc( 
 			Header_.Type_, 
+			RsResourceCreationFlags::STATIC,
 			Header_.Format_,
 			Header_.Levels_,
 			Header_.Width_,
@@ -351,54 +352,6 @@ BcU32 ScnTexture::getWidth() const
 BcU32 ScnTexture::getHeight() const
 {
 	return Header_.Height_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getTexel
-RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
-{
-	if( pTextureData_ != NULL && X < Header_.Width_ && Y < Header_.Height_ )
-	{
-		BcU32* pTextureData = (BcU32*)pTextureData_;
-		BcU32 Index = X + Y * Header_.Width_;
-		BcU32 Texel = pTextureData[ Index ] ;
-		return RsColour( Texel ); // invalid. need to fix.
-	}
-	
-	return RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexel
-void ScnTexture::setTexel( BcU32 X, BcU32 Y, const RsColour& Colour )
-{
-	if( pTextureData_ != NULL && X < Header_.Width_ && Y < Header_.Height_ )
-	{
-		BcU32* pTextureData = (BcU32*)pTextureData_;
-		BcU32 Index = X + Y * Header_.Width_;
-		BcAssert( Index < ( Header_.Width_ * Header_.Height_ ) );
-		pTextureData[ Index ] = Colour.asABGR();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// lock
-void ScnTexture::lock()
-{
-	if( pTexture_ != NULL )
-	{
-		pTexture_->lockTexture();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// unlock
-void ScnTexture::unlock()
-{
-	if( pTexture_ != NULL )
-	{
-		pTexture_->unlockTexture();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

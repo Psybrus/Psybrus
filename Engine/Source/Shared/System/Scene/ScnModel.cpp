@@ -99,12 +99,12 @@ void ScnModel::create()
 		RsBuffer* pVertexBuffer = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX, 
-				RsBufferCreationFlags::STATIC,
+				RsResourceCreationFlags::STATIC,
 				VertexBufferSize ) );
 
 		RsCore::pImpl()->updateBuffer( 
 			pVertexBuffer, 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
-			RsBufferUpdateFlags::ASYNC,
+			RsResourceUpdateFlags::ASYNC,
 			[ pVertexBufferData, VertexBufferSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
 			{
@@ -118,12 +118,12 @@ void ScnModel::create()
 			RsCore::pImpl()->createBuffer( 
 				RsBufferDesc( 
 					RsBufferType::INDEX, 
-					RsBufferCreationFlags::STATIC, 
+					RsResourceCreationFlags::STATIC, 
 					IndexBufferSize ) );
 
 		RsCore::pImpl()->updateBuffer( 
 			pIndexBuffer, 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
-			RsBufferUpdateFlags::ASYNC,
+			RsResourceUpdateFlags::ASYNC,
 			[ pIndexBufferData, IndexBufferSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
 			{
@@ -327,7 +327,7 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 				RsCore::pImpl()->createBuffer( 
 					RsBufferDesc( 
 						RsBufferType::UNIFORM,
-						RsBufferCreationFlags::STREAM,
+						RsResourceCreationFlags::STREAM,
 						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
 		}
 		else
@@ -336,7 +336,7 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 				RsCore::pImpl()->createBuffer( 
 					RsBufferDesc( 
 						RsBufferType::UNIFORM,
-						RsBufferCreationFlags::STREAM,
+						RsResourceCreationFlags::STREAM,
 						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
 		}
 
@@ -576,7 +576,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 			RsCore::pImpl()->updateBuffer( 
 				PerComponentMeshData.UniformBuffer_,
 				0, sizeof( ScnShaderBoneUniformBlockData ),
-				RsBufferUpdateFlags::ASYNC,
+				RsResourceUpdateFlags::ASYNC,
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( Lock.Buffer_ );
@@ -596,7 +596,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 			RsCore::pImpl()->updateBuffer( 
 				PerComponentMeshData.UniformBuffer_,
 				0, sizeof( ScnShaderBoneUniformBlockData ),
-				RsBufferUpdateFlags::ASYNC,
+				RsResourceUpdateFlags::ASYNC,
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );

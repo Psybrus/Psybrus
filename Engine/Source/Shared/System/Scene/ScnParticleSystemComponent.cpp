@@ -94,13 +94,13 @@ void ScnParticleSystemComponent::create()
 		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX, 
-				RsBufferCreationFlags::STREAM, 
+				RsResourceCreationFlags::STREAM, 
 				NoofVertices * sizeof( ScnParticleVertex ) ) );
 
 		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::UNIFORM,
-				RsBufferCreationFlags::STREAM,
+				RsResourceCreationFlags::STREAM,
 				sizeof( VertexBuffer.ObjectUniforms_ ) ) );
 	}
 
@@ -201,7 +201,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		VertexBuffer.pVertexBuffer_,
 		0,
 		NoofParticlesToRender * sizeof( ScnParticleVertex ),
-		RsBufferUpdateFlags::ASYNC,
+		RsResourceUpdateFlags::ASYNC,
 		[ & ]
 		( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
@@ -330,7 +330,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	RsCore::pImpl()->updateBuffer( 
 		VertexBuffer.UniformBuffer_,
 		0, sizeof( VertexBuffer.ObjectUniforms_ ),
-		RsBufferUpdateFlags::ASYNC,
+		RsResourceUpdateFlags::ASYNC,
 		[ this, VertexBuffer ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
 			BcMemCopy( Lock.Buffer_, &VertexBuffer.ObjectUniforms_, sizeof( VertexBuffer.ObjectUniforms_ ) );

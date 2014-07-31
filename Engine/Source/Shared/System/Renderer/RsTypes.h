@@ -242,19 +242,6 @@ enum class RsVertexUsage : BcU32
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Texture Type
-enum class RsTextureType : BcU32
-{
-	TEX1D = 0,
-	TEX2D,
-	TEX3D,
-	TEXCUBE,
-
-	MAX,
-	INVALID = BcErrorCode
-};
-
-//////////////////////////////////////////////////////////////////////////
 // Texture Format
 enum class RsTextureFormat : BcU32
 {
@@ -557,6 +544,42 @@ struct RsProgramVertexAttribute
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
 //////////////////////////////////////////////////////////////////////////
+// Resource stuff
+enum class RsResourceCreationFlags : BcU32
+{
+	NONE			= 0x00000000,
+	STATIC			= 0x00000001,
+	DYNAMIC			= 0x00000002,
+	STREAM			= 0x00000004,
+};
+
+inline RsResourceCreationFlags operator & ( RsResourceCreationFlags A, RsResourceCreationFlags B )
+{
+	return (RsResourceCreationFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsResourceCreationFlags operator | ( RsResourceCreationFlags A, RsResourceCreationFlags B )
+{
+	return (RsResourceCreationFlags)( (BcU32)A | (BcU32)B );
+}
+
+enum class RsResourceUpdateFlags : BcU32
+{
+	NONE			= 0x00000000,
+	ASYNC			= 0x00000001,
+};
+
+inline RsResourceUpdateFlags operator & ( RsResourceUpdateFlags A, RsResourceUpdateFlags B )
+{
+	return (RsResourceUpdateFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsResourceUpdateFlags operator | ( RsResourceUpdateFlags A, RsResourceUpdateFlags B )
+{
+	return (RsResourceUpdateFlags)( (BcU32)A | (BcU32)B );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Buffer stuff
 enum class RsBufferType
 {
@@ -569,46 +592,38 @@ enum class RsBufferType
 	STREAM_OUT,
 };
 
-enum class RsBufferCreationFlags : BcU32
-{
-	NONE			= 0x00000000,
-	STATIC			= 0x00000001,
-	DYNAMIC			= 0x00000002,
-	STREAM			= 0x00000004,
-};
-
-inline RsBufferCreationFlags operator & ( RsBufferCreationFlags A, RsBufferCreationFlags B )
-{
-	return (RsBufferCreationFlags)( (BcU32)A & (BcU32)B );
-}
-
-inline RsBufferCreationFlags operator | ( RsBufferCreationFlags A, RsBufferCreationFlags B )
-{
-	return (RsBufferCreationFlags)( (BcU32)A | (BcU32)B );
-}
-
-enum class RsBufferUpdateFlags : BcU32
-{
-	NONE			= 0x00000000,
-	ASYNC			= 0x00000001,
-};
-
-inline RsBufferUpdateFlags operator & ( RsBufferUpdateFlags A, RsBufferUpdateFlags B )
-{
-	return (RsBufferUpdateFlags)( (BcU32)A & (BcU32)B );
-}
-
-inline RsBufferUpdateFlags operator | ( RsBufferUpdateFlags A, RsBufferUpdateFlags B )
-{
-	return (RsBufferUpdateFlags)( (BcU32)A | (BcU32)B );
-}
-
 struct RsBufferLock
 {
 	void* Buffer_;
 };
 
-typedef std::function< void( class RsBuffer*, const RsBufferLock& ) > RsUpdateBufferFunc;
+typedef std::function< void( class RsBuffer*, const RsBufferLock& ) > RsBufferUpdateFunc;
+
+
+//////////////////////////////////////////////////////////////////////////
+// Texture stuff
+
+enum class RsTextureType : BcU32
+{
+	UNKNOWN = 0,
+	TEX1D,
+	TEX2D,
+	TEX3D,
+	TEXCUBE,
+};
+
+// 1D: (const char*)Buffer_ + ( X * BytesPerPixel )
+// 2D: (const char*)Buffer_ + Pitch_ * X + ( X  * BytesPerPixel )
+// 3D: (const char*)Buffer_ + SlicePitch_ * D + Pitch_ * Y + ( X * BytesPerPixel )
+struct RsTextureLock
+{
+	void* Buffer_;
+	BcU32 Pitch_;
+	BcU32 SlicePitch_;
+};
+
+typedef std::function< void( class RsTexture*, const RsTextureLock& ) > RsTextureUpdateFunc;
+
 
 //////////////////////////////////////////////////////////////////////////
 // Handy defines

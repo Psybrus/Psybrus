@@ -19,6 +19,7 @@
 // TODO: Move into a shared location.
 static GLenum gTextureTypes[] = 
 {
+	0,
 	GL_TEXTURE_1D,
 	GL_TEXTURE_2D,
 	GL_TEXTURE_3D,

@@ -23,7 +23,8 @@ struct RsTextureDesc
 {
 	RsTextureDesc();
 	RsTextureDesc( 
-		RsTextureType Type, 
+		RsTextureType Type,
+		RsResourceCreationFlags Flags,
 		RsTextureFormat Format,
 		BcU32 Levels,
 		BcU32 Width, 
@@ -31,6 +32,7 @@ struct RsTextureDesc
 		BcU32 Depth = 0 );
 
 	RsTextureType Type_;
+	RsResourceCreationFlags Flags_;
 	RsTextureFormat Format_;
 	BcU32 Levels_;
 	BcU32 Width_;
@@ -46,9 +48,6 @@ class RsTexture:
 public:
 	RsTexture( RsContext* pContext, const RsTextureDesc& Desc );
 	virtual ~RsTexture(){};
-
-	virtual void* lockTexture() = 0;
-	virtual void unlockTexture() = 0;
 
 	/**
 	 * Get descriptor.

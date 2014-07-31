@@ -23,6 +23,10 @@
 
 #include "System/Os/OsClient.h"
 
+#include "Base/BcMath.h"
+
+#include <memory>
+
 #include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,6 +80,7 @@ static GLenum gTextureSampling[] =
 
 static GLenum gTextureTypes[] = 
 {
+	0,
 	GL_TEXTURE_1D,
 	GL_TEXTURE_2D,
 	GL_TEXTURE_3D,
@@ -163,6 +168,42 @@ static GLenum gBufferType[] =
 	GL_IMAGE_BUFFER,				// RsBufferType::UNORDERED_ACCESS
 	GL_DRAW_INDIRECT_BUFFER,		// RsBufferType::DRAW_INDIRECT
 	GL_TRANSFORM_FEEDBACK_BUFFER,	// RsBufferType::STREAM_OUT
+};
+
+static GLenum gTextureType[] =
+{
+	0,								// RsTextureType::UNKNOWN
+	GL_TEXTURE_1D,					// RsTextureType::TEX1D
+	GL_TEXTURE_2D,					// RsTextureType::TEX2D
+	GL_TEXTURE_3D,					// RsTextureType::TEX3D
+	GL_TEXTURE_CUBE_MAP,			// RsTextureType::TEXCUBE
+};
+
+struct RsTextureFormatGL
+{
+	BcBool Compressed_;
+	GLint InternalFormat_;
+	GLenum Format_;
+	GLenum Type_;
+};
+
+static RsTextureFormatGL gTextureFormats[] =
+{
+	{ BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8,
+	{ BcFalse, GL_RG, GL_RG, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8,
+	{ BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8B8,
+	{ BcFalse, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE },	// RsTextureFormat::R8G8B8A8,
+	{ BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT },		// RsTextureFormat::R16F,
+	{ BcFalse, GL_RG16F, GL_RG, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16F,
+	{ BcFalse, GL_RGB16F, GL_RGB, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16FB16F,
+	{ BcFalse, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT },	// RsTextureFormat::R16FG16FB16FA16F,
+	{ BcFalse, GL_R32F, GL_RED, GL_FLOAT },				// RsTextureFormat::R32F,
+	{ BcFalse, GL_RG32F, GL_RG, GL_FLOAT },				// RsTextureFormat::R32FG32F,
+	{ BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT },			// RsTextureFormat::R32FG32FB32F,
+	{ BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT },			// RsTextureFormat::R32FG32FB32FA32F,
+	{ BcTrue, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, 0, 0 },	// RsTextureFormat::DXT1,
+	{ BcTrue, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
+	{ BcTrue, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -533,15 +574,15 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	GLuint UsageFlagsGL = 0;
 	
 	// Data update frequencies.
-	if( ( BufferDesc.Flags_ & RsBufferCreationFlags::STATIC ) != RsBufferCreationFlags::NONE )
+	if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
 	{
 		UsageFlagsGL |= GL_STATIC_DRAW;
 	}
-	else if( ( BufferDesc.Flags_ & RsBufferCreationFlags::DYNAMIC ) != RsBufferCreationFlags::NONE )
+	else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
 	{
 		UsageFlagsGL |= GL_DYNAMIC_DRAW;
 	}
-	else if( ( BufferDesc.Flags_ & RsBufferCreationFlags::STREAM ) != RsBufferCreationFlags::NONE )
+	else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
 	{
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
@@ -593,8 +634,8 @@ bool RsContextGL::updateBuffer(
 	RsBuffer* Buffer,
 	BcSize Offset,
 	BcSize Size,
-	RsBufferUpdateFlags Flags,
-	RsUpdateBufferFunc UpdateFunc )
+	RsResourceUpdateFlags Flags,
+	RsBufferUpdateFunc UpdateFunc )
 {
 	GLuint Handle = Buffer->getHandle< GLuint >();
 	
@@ -626,6 +667,140 @@ bool RsContextGL::updateBuffer(
 		}
 
 		RsGLCatchError();
+
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setDefaultState
+bool RsContextGL::createTexture( 
+	class RsTexture* Texture )
+{
+	const auto& TextureDesc = Texture->getDesc();
+
+	// Get buffer type for GL.
+	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
+
+	// Get usage flags for GL.
+	GLuint UsageFlagsGL = 0;
+	
+	// Data update frequencies.
+	if( ( TextureDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
+	{
+		UsageFlagsGL |= GL_STATIC_DRAW;
+	}
+	else if( ( TextureDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
+	{
+		UsageFlagsGL |= GL_DYNAMIC_DRAW;
+	}
+	else if( ( TextureDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
+	{
+		UsageFlagsGL |= GL_STREAM_DRAW;
+	}
+
+	// Create GL texture.
+	GLuint Handle;
+	glGenTextures( 1, &Handle );
+	Texture->setHandle( Handle );
+	
+	RsGLCatchError();		
+
+	if( Handle != 0 )
+	{
+		// Bind texture.
+		glBindTexture( TypeGL, Handle );
+
+		// Set max levels.
+		glTexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 );
+
+		// Instanciate levels.
+		BcU32 Width = TextureDesc.Width_;
+		BcU32 Height = TextureDesc.Height_;
+		BcU32 Depth = TextureDesc.Depth_;
+		for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+		{
+			auto TextureSlice = Texture->getSlice( LevelIdx );
+
+			// Load slice.
+			loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
+			// TODO: Error checking on loadTexture.
+
+			// Down a power of two.
+			Width = BcMax( 1, Width >> 1 );
+			Height = BcMax( 1, Height >> 1 );
+			Depth = BcMax( 1, Depth >> 1 );
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyTexture
+bool RsContextGL::destroyTexture( 
+		class RsTexture* Texture )
+{
+	// Check that we haven't already freed it.
+	GLuint Handle = Texture->getHandle< GLuint >();
+	if( Handle != 0 )
+	{
+		// Delete it.
+		glDeleteTextures( 1, &Handle );
+		setHandle< GLuint >( 0 );
+
+		RsGLCatchError();
+
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateTexture
+bool RsContextGL::updateTexture( 
+	class RsTexture* Texture,
+	const struct RsTextureSlice& Slice,
+	RsResourceUpdateFlags Flags,
+	RsTextureUpdateFunc UpdateFunc )
+{
+	GLuint Handle = Texture->getHandle< GLuint >();
+
+	const auto& TextureDesc = Texture->getDesc();
+
+	if( Handle != 0 )
+	{
+		// Allocate a temporary buffer.
+		// TODO: Use PBOs for this part.
+		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+		BcU32 DataSize = RsTextureFormatSize( 
+			TextureDesc.Format_,
+			Width,
+			Height,
+			Depth,
+			1 );
+		std::vector< BcU8 > Data( DataSize );
+
+		RsTextureLock Lock = 
+		{
+			&Data[ 0 ],
+			TextureDesc.Width_,
+			TextureDesc.Width_ * TextureDesc.Height_
+		};
+
+		// Call update func.
+		UpdateFunc( Texture, Lock );
+
+		// Load slice.
+		loadTexture( Texture, Slice, BcTrue, DataSize, &Data[ 0 ] );
+		// TODO: Error checking on loadTexture.
 
 		return true;
 	}
@@ -907,12 +1082,13 @@ void RsContextGL::flushState()
 
 			glActiveTexture( GL_TEXTURE0 + TextureStateID );
 			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
+			RsGLCatchError();
+
 			glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)Params.MinFilter_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)Params.MagFilter_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)Params.UMode_ ] );
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)Params.VMode_ ] );	
 			glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)Params.WMode_ ] );	
-
 			RsGLCatchError();
 
 			TextureStateValue.Dirty_ = BcFalse;
@@ -1128,4 +1304,130 @@ void RsContextGL::bindBlendMode( RsBlendingMode BlendMode )
 	}
 
 	RsGLCatchError();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// loadTexture
+void RsContextGL::loadTexture(
+		RsTexture* Texture, 
+		const RsTextureSlice& Slice,
+		BcBool Bind, 
+		BcU32 DataSize,
+		void* Data )
+{
+	GLuint Handle = Texture->getHandle< GLuint >();
+
+	const auto& TextureDesc = Texture->getDesc();
+
+	// Get buffer type for GL.
+	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
+
+	// Bind.
+	if( Bind )
+	{
+		glBindTexture( TypeGL, Handle );
+	}
+		
+	// Load level.
+	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+
+	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+
+	if( FormatGL.Compressed_ == BcFalse )
+	{
+		switch( TextureDesc.Type_ )
+		{
+		case RsTextureType::TEX1D:
+			glTexImage1D( 
+				TypeGL, 
+				Slice.Level_, 
+				FormatGL.InternalFormat_,
+				TextureDesc.Width_,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data );
+			break;
+
+		case RsTextureType::TEX2D:
+			glTexImage2D( 
+				TypeGL, 
+				Slice.Level_, 
+				FormatGL.InternalFormat_,
+				TextureDesc.Width_,
+				TextureDesc.Height_,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data );
+			break;
+
+		case RsTextureType::TEX3D:
+			glTexImage3D( 
+				TypeGL, 
+				Slice.Level_, 
+				FormatGL.InternalFormat_,
+				TextureDesc.Width_,
+				TextureDesc.Height_,
+				TextureDesc.Depth_,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data );
+			break;
+
+		case RsTextureType::TEXCUBE:
+			BcBreakpoint;
+		}
+
+		RsGLCatchError();
+	}
+	else
+	{
+		switch( TextureDesc.Type_ )
+		{
+		case RsTextureType::TEX1D:
+			glCompressedTexImage1D( 
+				TypeGL, 
+				Slice.Level_,
+				FormatGL.InternalFormat_,
+				TextureDesc.Width_,
+				0,
+				DataSize,
+				Data );
+			break;
+
+		case RsTextureType::TEX2D:
+			glCompressedTexImage2D( 
+				TypeGL, 
+				Slice.Level_, 
+				FormatGL.InternalFormat_,
+				TextureDesc.Width_,
+				TextureDesc.Height_,
+				0,
+				DataSize,
+				Data );
+			break;
+
+		case RsTextureType::TEX3D:
+			glCompressedTexImage3D( 
+				TypeGL, 
+				Slice.Level_, 
+				FormatGL.InternalFormat_,
+				TextureDesc.Width_,
+				TextureDesc.Height_,
+				TextureDesc.Depth_,
+				0,
+				DataSize,
+				Data );
+			break;
+
+		case RsTextureType::TEXCUBE:
+			BcBreakpoint;
+		}
+
+		RsGLCatchError();
+	}
 }

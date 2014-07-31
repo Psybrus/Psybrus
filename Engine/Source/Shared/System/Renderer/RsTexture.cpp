@@ -18,7 +18,8 @@
 //////////////////////////////////////////////////////////////////////////
 // RsTextureDesc
 RsTextureDesc::RsTextureDesc():
-	Type_( RsTextureType::INVALID ),
+	Type_( RsTextureType::UNKNOWN ),
+	Flags_( RsResourceCreationFlags::NONE ),
 	Format_( RsTextureFormat::INVALID ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -31,12 +32,14 @@ RsTextureDesc::RsTextureDesc():
 // RsTextureDesc
 RsTextureDesc::RsTextureDesc( 
 		RsTextureType Type, 
+		RsResourceCreationFlags Flags,
 		RsTextureFormat Format,
 		BcU32 Levels, 
 		BcU32 Width, 
 		BcU32 Height,
 		BcU32 Depth ):
 	Type_( Type ),
+	Flags_( Flags ),
 	Format_( Format ),
 	Levels_( Levels ),
 	Width_( Width ),
