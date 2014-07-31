@@ -46,7 +46,6 @@ public:
 	virtual void				destroyContext( OsClient* pClient );
 
 	virtual RsTexture*			createTexture( const RsTextureDesc& Desc );
-	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc );
 	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc );
 	virtual RsBuffer*			createBuffer( const RsBufferDesc& Desc );
 	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );

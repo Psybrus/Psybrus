@@ -14,7 +14,8 @@
 #include "System/Renderer/GL/RsContextGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
-#include "System/Renderer/GL/RsRenderTargetGL.h"
+#include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsTexture.h"
 
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
@@ -180,6 +181,7 @@ static GLenum gTextureType[] =
 struct RsTextureFormatGL
 {
 	BcBool Compressed_;
+	BcBool DepthStencil_;
 	GLint InternalFormat_;
 	GLenum Format_;
 	GLenum Type_;
@@ -187,21 +189,28 @@ struct RsTextureFormatGL
 
 static RsTextureFormatGL gTextureFormats[] =
 {
-	{ BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8,
-	{ BcFalse, GL_RG, GL_RG, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8,
-	{ BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8B8,
-	{ BcFalse, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE },	// RsTextureFormat::R8G8B8A8,
-	{ BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT },		// RsTextureFormat::R16F,
-	{ BcFalse, GL_RG16F, GL_RG, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16F,
-	{ BcFalse, GL_RGB16F, GL_RGB, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16FB16F,
-	{ BcFalse, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT },	// RsTextureFormat::R16FG16FB16FA16F,
-	{ BcFalse, GL_R32F, GL_RED, GL_FLOAT },				// RsTextureFormat::R32F,
-	{ BcFalse, GL_RG32F, GL_RG, GL_FLOAT },				// RsTextureFormat::R32FG32F,
-	{ BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT },			// RsTextureFormat::R32FG32FB32F,
-	{ BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT },			// RsTextureFormat::R32FG32FB32FA32F,
-	{ BcTrue, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, 0, 0 },	// RsTextureFormat::DXT1,
-	{ BcTrue, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
-	{ BcTrue, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
+	// Colour.
+	{ BcFalse, BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8,
+	{ BcFalse, BcFalse, GL_RG, GL_RG, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8,
+	{ BcFalse, BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8B8,
+	{ BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE },	// RsTextureFormat::R8G8B8A8,
+	{ BcFalse, BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT },		// RsTextureFormat::R16F,
+	{ BcFalse, BcFalse, GL_RG16F, GL_RG, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16F,
+	{ BcFalse, BcFalse, GL_RGB16F, GL_RGB, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16FB16F,
+	{ BcFalse, BcFalse, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT },	// RsTextureFormat::R16FG16FB16FA16F,
+	{ BcFalse, BcFalse, GL_R32F, GL_RED, GL_FLOAT },			// RsTextureFormat::R32F,
+	{ BcFalse, BcFalse, GL_RG32F, GL_RG, GL_FLOAT },			// RsTextureFormat::R32FG32F,
+	{ BcFalse, BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT },			// RsTextureFormat::R32FG32FB32F,
+	{ BcFalse, BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT },		// RsTextureFormat::R32FG32FB32FA32F,
+	{ BcTrue, BcFalse, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, 0, 0 },	// RsTextureFormat::DXT1,
+	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
+	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
+	// Depth stencil.
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, 0, 0 },			// RsTextureFormat::D16,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, 0, 0 },			// RsTextureFormat::D32,
+	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, 0, 0 },				// RsTextureFormat::D24S8,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, 0, 0 },			 // RsTextureFormat::D32F,
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -1206,21 +1215,6 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
 {
 	return Version_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderTarget
-void RsContextGL::setRenderTarget( class RsRenderTarget* RenderTarget )
-{
-	if( RenderTarget != nullptr )
-	{
-		GLuint Handle = RenderTarget->getHandle< GLuint >();
-		glBindFramebuffer( GL_FRAMEBUFFER, Handle );
-	}
-	else
-	{
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

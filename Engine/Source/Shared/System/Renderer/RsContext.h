@@ -68,11 +68,6 @@ public:
 	virtual void takeScreenshot() = 0;
 
 	/**
-	 * Set render target.
-	 */
-	virtual void setRenderTarget( class RsRenderTarget* RenderTarget ) = 0;
-
-	/**
 	 * Set viewport.
 	 */
 	virtual void setViewport( class RsViewport& Viewport ) = 0;

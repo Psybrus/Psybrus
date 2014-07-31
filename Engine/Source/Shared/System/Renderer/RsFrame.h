@@ -18,7 +18,6 @@
 
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsRenderNode.h"
-#include "System/Renderer/RsRenderTarget.h"
 
 #include "System/Renderer/RsViewport.h"
 
@@ -52,12 +51,6 @@ public:
 	*	Get context.
 	*/
 	virtual RsContext* getContext() const = 0;
-	
-	/**
-	*	Set current render target.\n
-	*	NON-JOB FUNCTION: Called by game thread.
-	*/
-	virtual void	setRenderTarget( RsRenderTarget* pRenderTarget ) = 0;
 	
 	/**
 	*	Set current viewport.\n
