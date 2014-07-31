@@ -570,6 +570,29 @@ inline RsResourceCreationFlags operator | ( RsResourceCreationFlags A, RsResourc
 	return (RsResourceCreationFlags)( (BcU32)A | (BcU32)B );
 }
 
+enum class RsResourceBindFlags : BcU32
+{
+	NONE				= 0x00000000,
+	VERTEX_BUFFER		= 0x00000001,
+	INDEX_BUFFER		= 0x00000002,
+	UNIFORM_BUFFER		= 0x00000004,
+	SHADER_RESOURCE		= 0x00000008,
+	STREAM_OUTPUT		= 0x00000010,
+	RENDER_TARGET		= 0x00000020,
+	DEPTH_STENCIL		= 0x00000040,
+	UNORDERED_ACCESS	= 0x00000080,
+};
+
+inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )
+{
+	return (RsResourceBindFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsResourceBindFlags operator | ( RsResourceBindFlags A, RsResourceBindFlags B )
+{
+	return (RsResourceBindFlags)( (BcU32)A | (BcU32)B );
+}
+
 enum class RsResourceUpdateFlags : BcU32
 {
 	NONE			= 0x00000000,
