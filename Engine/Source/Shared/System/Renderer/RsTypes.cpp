@@ -152,6 +152,9 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 {
 	BcU32 Size = 0;
 	BcU32 TotalTexels = 0;
+	Width = BcMax( 1, Width );
+	Height = BcMax( 1, Height );
+	Depth = BcMax( 1, Depth );
 	for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 	{
 		TotalTexels += Width * Height;

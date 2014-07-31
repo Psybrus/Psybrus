@@ -76,33 +76,10 @@ public:
 
 	/**
 	 *	Create a texture.
-	 *	@param Width Width.
-	 *	@param Levels Mipmap Levels.
-	 *	@param Format Texture format.
+	 *	@param Desc descriptor.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pData = NULL ) = 0;
-
-	/**
-	 *	Create a texture.
-	 *	@param Width Width.
-	 *	@param Height Height.
-	 *	@param Levels Mipmap Levels.
-	 *	@param Format Texture format.
-	 *	@param pData Texture data.
-	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pData = NULL ) = 0;
-
-	/**
-	 *	Create a texture.
-	 *	@param Width Width.
-	 *	@param Height Height.
-	 *	@param Depth Depth.
-	 *	@param Levels Mipmap Levels.
-	 *	@param Format Texture format.
-	 *	@param pData Texture data.
-	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( const RsTextureDesc& Desc, void* pData = NULL ) = 0;
 
 	/**
 	 *	Create a render target.

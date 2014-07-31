@@ -27,14 +27,7 @@ class RsTextureGL:
 	public RsTexture
 {
 public:
-	// 1D
-	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Levels, RsTextureFormat Format, void* pTextureData );
-
-	// 2D
-	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, void* pTextureData );
-
-	// 3D
-	RsTextureGL( RsContext* pContext, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, void* pTextureData );
+	RsTextureGL( RsContext* pContext, const RsTextureDesc& Desc, void* pTextureData );
 	virtual ~RsTextureGL();
 	
 	virtual BcU32						width() const;
@@ -60,12 +53,6 @@ protected:
 	void								loadTextureCubeMap();
 
 private:
-	BcU32								Width_;
-	BcU32								Height_;
-	BcU32								Depth_;
-	BcU32								Levels_;
-	RsTextureType						Type_;
-	RsTextureFormat					Format_;
 	BcBool								Locked_;		// BADNESS: Needs to be atomic!
 
 };
