@@ -46,8 +46,18 @@ public:
 		RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
-		RsBufferUpdateFlags Flags,
-		RsUpdateBufferFunc UpdateFunc );
+		RsResourceUpdateFlags Flags,
+		RsBufferUpdateFunc UpdateFunc );
+
+	bool createTexture( 
+		class RsTexture* Texture );
+	bool destroyTexture( 
+		class RsTexture* Texture );
+	bool updateTexture( 
+		class RsTexture* Texture,
+		const struct RsTextureSlice& Slice,
+		RsResourceUpdateFlags Flags,
+		RsTextureUpdateFunc UpdateFunc );
 
 	void setDefaultState();
 	void invalidateRenderState();
@@ -79,6 +89,13 @@ private:
 	void bindStencilOp();
 	void bindBlendMode( RsBlendingMode BlendMode );
 	void bindScissor();
+
+	void loadTexture( 
+		RsTexture* Texture, 
+		const RsTextureSlice& Slice,
+		BcBool Bind, 
+		BcU32 DataSize,
+		void* Data );
 
 protected:
 	virtual void create();

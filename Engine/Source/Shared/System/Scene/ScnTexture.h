@@ -53,10 +53,6 @@ public:
 	
 	BcU32								getWidth() const;
 	BcU32								getHeight() const;
-	RsColour							getTexel( BcU32 X, BcU32 Y ) const;
-	void								setTexel( BcU32 X, BcU32 Y, const RsColour& Colour );
-	void								lock();
-	void								unlock();
 	
 	virtual const ScnRect&				getRect( BcU32 Idx );
 	virtual BcU32						noofRects();

@@ -208,7 +208,13 @@ RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc
 	RsRenderBufferGL* pColourBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.ColourFormats_[ 0 ], Desc.Width_, Desc.Height_ );
 	RsRenderBufferGL* pDepthStencilBuffer = new RsRenderBufferGL( getContext( NULL ), Desc.DepthStencilFormat_, Desc.Width_, Desc.Height_ );
 	RsFrameBufferGL* pFrameBuffer = new RsFrameBufferGL( getContext( NULL ) );
-	RsTextureGL* pTexture = new RsTextureGL( getContext( NULL ), RsTextureDesc( RsTextureType::TEX2D, RsTextureFormat::R8G8B8A8, 1, Desc.Width_, Desc.Height_, 0 ), NULL );
+	RsTextureGL* pTexture = new RsTextureGL( 
+		getContext( NULL ), 
+		RsTextureDesc( 
+			RsTextureType::TEX2D, 
+			RsResourceCreationFlags::STREAM,
+			RsTextureFormat::R8G8B8A8, 
+			1, Desc.Width_, Desc.Height_, 0 ), NULL );
 
 	createResource( pColourBuffer );
 	createResource( pDepthStencilBuffer );
@@ -335,11 +341,11 @@ bool RsCoreImplGL::updateBuffer(
 	class RsBuffer* Buffer,
 	BcSize Offset,
 	BcSize Size,
-	RsBufferUpdateFlags Flags,
-	RsUpdateBufferFunc UpdateFunc )
+	RsResourceUpdateFlags Flags,
+	RsBufferUpdateFunc UpdateFunc )
 {
 	// Check if flags allow async.
-	if( ( Flags & RsBufferUpdateFlags::ASYNC ) == RsBufferUpdateFlags::NONE )
+	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
 	{
 		RsCoreImplGL::UpdateBufferSync Cmd = 
 		{

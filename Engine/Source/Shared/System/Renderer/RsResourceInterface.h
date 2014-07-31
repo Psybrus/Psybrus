@@ -49,8 +49,32 @@ public:
 		class RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
-		RsBufferUpdateFlags Flags,
-		RsUpdateBufferFunc UpdateFunc ) = 0;
+		RsResourceUpdateFlags Flags,
+		RsBufferUpdateFunc UpdateFunc ) = 0;
+
+	/**
+	 * Create texture.
+	 * @param Texture Texture to create from.
+	 */
+	virtual bool createTexture( 
+		class RsTexture* Texture ) = 0;
+
+	/**
+	 * Destroy texture.
+	 * @param Texture Texture to destroy.
+	 */
+	virtual bool destroyTexture( 
+		class RsTexture* Texture ) = 0;
+
+	/**
+	 * Update texture
+	 * @param Texture to update.
+	 */
+	virtual bool updateTexture( 
+		class RsTexture* Texture,
+		const struct RsTextureSlice& Slice,
+		RsResourceUpdateFlags Flags,
+		RsTextureUpdateFunc UpdateFunc ) = 0;
 };
 
 #endif

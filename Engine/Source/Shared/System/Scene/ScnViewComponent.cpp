@@ -157,7 +157,7 @@ void ScnViewComponent::create()
 	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
-			RsBufferCreationFlags::STREAM,
+			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ) );
 }
 
@@ -306,7 +306,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	RsCore::pImpl()->updateBuffer( 
 		ViewUniformBuffer_,
 		0, sizeof( ViewUniformBlock_ ),
-		RsBufferUpdateFlags::ASYNC,
+		RsResourceUpdateFlags::ASYNC,
 		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
 			BcMemCopy( Lock.Buffer_, &ViewUniformBlock_, sizeof( ViewUniformBlock_ ) );

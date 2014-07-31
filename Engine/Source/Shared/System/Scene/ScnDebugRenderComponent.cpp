@@ -101,14 +101,14 @@ void ScnDebugRenderComponent::create()
 		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
-				RsBufferCreationFlags::STREAM,
+				RsResourceCreationFlags::STREAM,
 				NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
 	
 		// Allocate uniform buffer object.
 		RenderResource.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::UNIFORM,
-				RsBufferCreationFlags::STREAM,
+				RsResourceCreationFlags::STREAM,
 				sizeof( ScnShaderObjectUniformBlockData ) ) );
 	}
 
@@ -462,7 +462,7 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnDebugRenderComponentVertex );
 	RsCore::pImpl()->updateBuffer( 
 		pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
-		RsBufferUpdateFlags::ASYNC,
+		RsResourceUpdateFlags::ASYNC,
 		[ this, VertexDataSize ]
 		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
 		{
@@ -508,7 +508,7 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 			RsCore::pImpl()->updateBuffer( 
 				pRenderResource_->UniformBuffer_,
 				0, sizeof( pRenderResource_->ObjectUniforms_ ),
-				RsBufferUpdateFlags::ASYNC,
+				RsResourceUpdateFlags::ASYNC,
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					BcMemCopy( Lock.Buffer_, &pRenderResource_->ObjectUniforms_, sizeof( pRenderResource_->ObjectUniforms_ ) );					
