@@ -594,7 +594,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		// TODO: Pull these from the material.
 		RsTextureParams DefaultTextureParams = 
 		{
-			Texture->levels() > 1 ? RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR : RsTextureFilteringMode::LINEAR,
+			Texture->getDesc().Levels_ > 1 ? RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR : RsTextureFilteringMode::LINEAR,
 			RsTextureFilteringMode::LINEAR,
 			RsTextureSamplingMode::WRAP,
 			RsTextureSamplingMode::WRAP

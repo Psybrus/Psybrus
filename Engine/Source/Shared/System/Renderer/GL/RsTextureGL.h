@@ -30,13 +30,6 @@ public:
 	RsTextureGL( RsContext* pContext, const RsTextureDesc& Desc, void* pTextureData );
 	virtual ~RsTextureGL();
 	
-	virtual BcU32						width() const;
-	virtual BcU32						height() const;
-	virtual BcU32						depth() const;
-	virtual BcU32						levels() const;
-	virtual RsTextureType				type() const;
-	virtual RsTextureFormat			format() const;
-
 	// Editing.
 	virtual void*						lockTexture();
 	virtual void						unlockTexture();

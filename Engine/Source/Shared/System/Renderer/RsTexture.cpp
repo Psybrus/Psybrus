@@ -101,8 +101,15 @@ RsTexture::RsTexture( RsContext* pContext, const RsTextureDesc& Desc ):
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getDesc
+const RsTextureDesc& RsTexture::getDesc() const
+{
+	return Desc_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getSlice
-RsTextureSlice RsTexture::getSlice( BcU32 Level, RsTextureFace Face )
+RsTextureSlice RsTexture::getSlice( BcU32 Level, RsTextureFace Face ) const
 {
 #if PSY_DEBUG
 	// Check level validity.

@@ -47,20 +47,19 @@ public:
 	RsTexture( RsContext* pContext, const RsTextureDesc& Desc );
 	virtual ~RsTexture(){};
 
-
-	// Old.
-	virtual BcU32 width() const = 0;
-	virtual BcU32 height() const = 0;
-	virtual BcU32 depth() const = 0;
-	virtual BcU32 levels() const = 0;
-	virtual RsTextureType type() const = 0;
-	virtual RsTextureFormat format() const = 0;
-
 	virtual void* lockTexture() = 0;
 	virtual void unlockTexture() = 0;
 
-	// New
-	RsTextureSlice getSlice( BcU32 Level = 0, RsTextureFace Face = RsTextureFace::NONE );
+	/**
+	 * Get descriptor.
+	 */
+	const RsTextureDesc& getDesc() const;
+
+	/**
+	 * Get slice.
+	 * Validity checking is performed by this method.
+	 */
+	RsTextureSlice getSlice( BcU32 Level = 0, RsTextureFace Face = RsTextureFace::NONE ) const;
 
 
 protected:
