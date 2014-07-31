@@ -35,7 +35,6 @@ public:
 	RsContext*		getContext() const;
 	void			reset();
 	void			render();
-	void			setRenderTarget( RsRenderTarget* pRenderTarget );
 	void			setViewport( const RsViewport& Viewport );
 	void			addRenderNode( RsRenderNode* pInstance );
 	
@@ -46,9 +45,6 @@ private:
 	void			sortNodeRadix( BcU32 Bits, BcU32 NoofItems, RsRenderNode** pSrc, RsRenderNode** pDst );
 
 private:
-	struct RsFrameRenderTarget;
-	struct RsFrameViewport;
-
 	RsContextGL*			pContext_;
 
 	RsRenderNode**			ppNodeArray_;
@@ -59,10 +55,8 @@ private:
 	RsPrimitiveNode*		pCurrPrimitive_;
 
 	RsViewportNode*			pCurrViewport_;
-	RsRenderTargetNode*		pCurrRenderTarget_;
 
 	BcU32					CurrViewport_;
-	BcU32					CurrRenderTarget_;
 
 private:
 	BcU8*					pFrameMem_;

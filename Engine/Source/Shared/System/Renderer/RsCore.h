@@ -27,7 +27,6 @@
 
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsTexture.h"
-#include "System/Renderer/RsRenderTarget.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
@@ -80,12 +79,6 @@ public:
 	 *	@param pData Texture data.
 	 */
 	virtual RsTexture*			createTexture( const RsTextureDesc& Desc ) = 0;
-
-	/**
-	 *	Create a render target.
-	 *	@param Desc Descriptor object.
-	 */
-	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc ) = 0;
 
 	/**
 	 *	Create a vertex declaration.

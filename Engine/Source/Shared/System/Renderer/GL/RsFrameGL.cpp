@@ -14,7 +14,6 @@
 #include "System/Renderer/GL/RsFrameGL.h"
 
 #include "System/Renderer/GL/RsCoreImplGL.h"
-#include "System/Renderer/GL/RsRenderTargetGL.h"
 
 #include "Base/BcMemory.h"
 
@@ -50,28 +49,6 @@ public:
 	}
 	
 	RsViewport Viewport_;
-};
-
-//
-class RsRenderTargetNode: public RsRenderNode
-{
-public:
-	void render()
-	{
-		pContext_->setRenderTarget( pRenderTarget_ );
-		const BcS32 DepthWriteEnable = pContext_->getRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE );
-		const BcS32 ColourWriteMask0 = pContext_->getRenderState( RsRenderStateType::COLOR_WRITE_MASK_0 );
-		const BcS32 StencilWriteMask = pContext_->getRenderState( RsRenderStateType::STENCIL_WRITE_MASK );
-		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1 );
-		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, 15 );
-		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, 255 );
-		pContext_->clear( RsColour( 0, 0, 0, 0 ) );
-		pContext_->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, DepthWriteEnable );
-		pContext_->setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0, ColourWriteMask0 );
-		pContext_->setRenderState( RsRenderStateType::STENCIL_WRITE_MASK, StencilWriteMask );
-	}
-	
-	RsRenderTarget* pRenderTarget_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,10 +113,8 @@ void RsFrameGL::reset()
 
 	// Reset shared nodes.
 	pCurrViewport_ = NULL;
-	pCurrRenderTarget_ = NULL;
 
 	CurrViewport_ = BcErrorCode;
-	CurrRenderTarget_ = BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -175,38 +150,9 @@ void RsFrameGL::render()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setRenderTarget
-void RsFrameGL::setRenderTarget( RsRenderTarget* pRenderTarget )
-{
-	BcUnusedVar( pRenderTarget );
-
-	// Put render target into array.
-	RsRenderTargetNode* pNode = newObject< RsRenderTargetNode >();
-	ppNodeArray_[ CurrNode_++ ] = pNode;
-	
-	// Set the current viewport, rendertarget, etc.
-	//pCurrViewport_ = NULL; // TODO: FIX.
-	//CurrViewport_ = BcErrorCode;
-	pCurrRenderTarget_ = pNode;
-	CurrRenderTarget_++;
-	
-	// Set rendertarget for node.
-	pNode->pRenderTarget_ = (RsRenderTargetGL*)pRenderTarget;
-
-	// Set node context.
-	pNode->pContext_ = pContext_;
-	
-	// Set the sort value for the node.
-	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( 0, CurrRenderTarget_ );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setViewport
 void RsFrameGL::setViewport( const RsViewport& Viewport )
 {
-	// Assertions.
-	BcAssertMsg( pCurrRenderTarget_ != NULL, "RsFrameGL: Render target not set." );
-	
 	// Put viewport into the list.
 	RsViewportNode* pNode = newObject< RsViewportNode >();
 	ppNodeArray_[ CurrNode_++ ] = pNode;
@@ -224,14 +170,13 @@ void RsFrameGL::setViewport( const RsViewport& Viewport )
 	pNode->pContext_ = pContext_;
 
 	// Set the sort value for the node.
-	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, CurrRenderTarget_ );
+	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addRenderNode
 void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 {
-	BcAssertMsg( pCurrRenderTarget_ != NULL, "RsFrame: No render target set." );
 	BcAssertMsg( pCurrViewport_ != NULL, "RsFrame: No viewport set." );
 	
 	ppNodeArray_[ CurrNode_++ ] = pNode;
@@ -240,7 +185,7 @@ void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 	pNode->pContext_ = pContext_;
 
 	// Set the sort value for the node.
-	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, CurrRenderTarget_ );
+	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////

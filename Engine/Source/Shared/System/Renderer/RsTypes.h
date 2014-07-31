@@ -245,6 +245,7 @@ enum class RsVertexUsage : BcU32
 // Texture Format
 enum class RsTextureFormat : BcU32
 {
+	// Colour.
 	R8,
 	R8G8,
 	R8G8B8,
@@ -260,6 +261,12 @@ enum class RsTextureFormat : BcU32
 	DXT1,
 	DXT3,
 	DXT5,
+
+	// Depth stencil.
+	D16,
+	D32,
+	D24S8,
+	D32F,
 	
 	MAX,
 	INVALID = BcErrorCode

@@ -56,12 +56,14 @@ DEFINE_RESOURCE( ScnRenderTarget );
 
 void ScnRenderTarget::StaticRegisterClass()
 {
+	/*
 	static const ReField Fields[] = 
 	{
 		ReField( "pRenderTarget_",			&ScnRenderTarget::pRenderTarget_ ),
 	};
 		
 	ReRegisterClass< ScnRenderTarget, Super >( Fields );
+	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,9 +80,6 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 	Header_.Type_ = RsTextureType::TEX2D;
 	Header_.Format_ = RsTextureFormat::R8G8B8A8;
 
-	//
-	pRenderTarget_ = NULL;
-
 	markCreate();
 }
 
@@ -89,15 +88,7 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 //virtual
 void ScnRenderTarget::create()
 {
-	// Create render target.
-	pRenderTarget_ = RsCore::pImpl()->createRenderTarget( 
-		RsRenderTargetDesc( Header_.Width_, Header_.Height_ )
-			.renderSurface( 0, RsColourFormat::A8R8G8B8 )
-			.depthStencilSurface( RsDepthStencilFormat::D24S8 )
-		);
-	
-	// Get texture from target.
-	pTexture_ = pRenderTarget_->getTexture( 0 );
+	BcBreakpoint;
 	
 	// Ready to go.
 	markReady();
@@ -108,7 +99,7 @@ void ScnRenderTarget::create()
 //virtual
 void ScnRenderTarget::destroy()
 {
-	RsCore::pImpl()->destroyResource( pRenderTarget_ );
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -134,13 +125,13 @@ void ScnRenderTarget::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData
 // bind
 void ScnRenderTarget::bind( RsFrame* pFrame )
 {
-	pFrame->setRenderTarget( pRenderTarget_ );	
+	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // unbind
 void ScnRenderTarget::unbind( RsFrame* pFrame )
 {
-	pFrame->setRenderTarget( NULL );	
+	BcBreakpoint;
 }
 

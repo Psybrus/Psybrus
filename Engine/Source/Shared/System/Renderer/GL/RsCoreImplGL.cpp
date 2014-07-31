@@ -15,9 +15,6 @@
 
 #include "System/Renderer/GL/RsFrameGL.h"
 
-#include "System/Renderer/GL/RsRenderTargetGL.h"
-#include "System/Renderer/GL/RsRenderBufferGL.h"
-#include "System/Renderer/GL/RsFrameBufferGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 
@@ -210,15 +207,6 @@ RsTexture* RsCoreImplGL::createTexture( const RsTextureDesc& Desc )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createRenderTarget
-//virtual
-RsRenderTarget*	RsCoreImplGL::createRenderTarget( const RsRenderTargetDesc& Desc )
-{
-	BcBreakpoint;
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 //virtual
 RsVertexDeclaration* RsCoreImplGL::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
@@ -302,14 +290,15 @@ void RsCoreImplGL::destroyResource( RsBuffer* Buffer )
 	typedef BcDelegate< bool(*)( RsBuffer* ) > DestroyDelegate;
 	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplGL, &RsCoreImplGL::destroyBuffer_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Buffer );
-
 }
 
 bool RsCoreImplGL::destroyBuffer_threaded( 
 	RsBuffer* Buffer )
 {
 	auto Context = Buffer->getContext();
-	return Context->destroyBuffer( Buffer );
+	auto retVal = Context->destroyBuffer( Buffer );
+	delete Buffer;
+	return retVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -331,7 +320,9 @@ bool RsCoreImplGL::destroyTexture_threaded(
 	RsTexture* Texture )
 {
 	auto Context = Texture->getContext();
-	return Context->destroyTexture( Texture );
+	auto retVal = Context->destroyTexture( Texture );
+	delete Texture;
+	return retVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -359,7 +350,7 @@ bool RsCoreImplGL::updateBuffer(
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
 	{
-		BcBreakpoint; // TODO: Implement this path.
+		BcBreakpoint; // TODO: Implement this path?
 	}
 	else
 	{
@@ -403,7 +394,7 @@ bool RsCoreImplGL::updateTexture(
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
 	{
-		BcBreakpoint; // TODO: Implement this path.
+		BcBreakpoint; // TODO: Implement this path?
 	}
 	else
 	{

@@ -22,6 +22,7 @@
 #include "System/Scene/ScnRenderingVisitor.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -254,6 +255,16 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 
 //////////////////////////////////////////////////////////////////////////
 // bind
+class ScnViewComponentClear: public RsRenderNode
+{
+public:
+	void render()
+	{
+		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentClear::render" );
+		pContext_->clear( RsColour::BLACK );
+	}
+};
+
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 {
 	RsContext* pContext = pFrame->getContext();
@@ -362,11 +373,16 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	}
 	else
 	{
-		pFrame->setRenderTarget( NULL );
+		
 	}
 	
 	// Set viewport.
 	pFrame->setViewport( Viewport_ );
+
+	// Clear viewport.
+	ScnViewComponentClear* pRenderNode = pFrame->newObject< ScnViewComponentClear >();
+	pFrame->addRenderNode( pRenderNode );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
