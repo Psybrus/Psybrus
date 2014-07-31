@@ -40,7 +40,7 @@ BcBool ScnRenderTarget::import( class CsPackageImporter& Importer, const Json::V
 		1,
 		1, 
 		RsTextureType::TEX2D, 
-		RsTextureFormat::RGBA8
+		RsTextureFormat::R8G8B8A8
 	};
 	HeaderStream << Header;
 
@@ -76,7 +76,7 @@ void ScnRenderTarget::initialise( BcU32 Width, BcU32 Height )
 	Header_.Depth_ = 1;
 	Header_.Levels_ = 1;
 	Header_.Type_ = RsTextureType::TEX2D;
-	Header_.Format_ = RsTextureFormat::RGBA8;
+	Header_.Format_ = RsTextureFormat::R8G8B8A8;
 
 	//
 	pRenderTarget_ = NULL;

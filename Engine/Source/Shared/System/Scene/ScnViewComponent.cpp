@@ -46,7 +46,7 @@ BcBool ScnViewComponent::import( class CsPackageImporter& Importer, const Json::
 		BcStream BodyStream( BcFalse, 1024, ( pImage->width() * pImage->height() * 4 ) );
 		
 		// TODO: Use parameters to pick a format.
-		THeader Header = { pImage->width(), pImage->height(), 1, RsTextureFormat::RGBA8 };
+		THeader Header = { pImage->width(), pImage->height(), 1, RsTextureFormat::R8G8B8A8 };
 		HeaderStream << Header;
 		
 		// Write body.				
