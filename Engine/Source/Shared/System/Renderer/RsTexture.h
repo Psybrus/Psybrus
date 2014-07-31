@@ -22,9 +22,17 @@
 struct RsTextureDesc
 {
 	RsTextureDesc();
+	RsTextureDesc( 
+		RsTextureType Type, 
+		RsTextureFormat Format,
+		BcU32 Levels,
+		BcU32 Width, 
+		BcU32 Height = 0,
+		BcU32 Depth = 0 );
 
 	RsTextureType Type_;
 	RsTextureFormat Format_;
+	BcU32 Levels_;
 	BcU32 Width_;
 	BcU32 Height_;
 	BcU32 Depth_;	
@@ -41,6 +49,8 @@ public:
 	{};
 	virtual ~RsTexture(){};
 
+
+	// Old.
 	virtual BcU32 width() const = 0;
 	virtual BcU32 height() const = 0;
 	virtual BcU32 depth() const = 0;
@@ -52,8 +62,8 @@ public:
 	virtual void* lockTexture() = 0;
 	virtual void unlockTexture() = 0;
 
-private:
-	
+protected:
+	RsTextureDesc Desc_;
 };
 
 #endif

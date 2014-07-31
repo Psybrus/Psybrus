@@ -283,6 +283,27 @@ enum class RsTextureFormat : BcU32
 extern BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
 
 //////////////////////////////////////////////////////////////////////////
+// RsTextureFace
+enum class RsTextureFace : BcU32
+{
+	NONE,
+	POSITIVE_X,
+	NEGATIVE_X,
+	POSITIVE_Y,
+	NEGATIVE_Y,
+	POSITIVE_Z,
+	NEGATIVE_Z,
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureSubResourceDesc
+struct RsTextureSubResourceDesc
+{
+	BcU32 Level_;
+	RsTextureFace Face_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Texture filtering mode.
 enum class RsTextureFilteringMode : BcU32
 {
