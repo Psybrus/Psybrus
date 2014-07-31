@@ -12,10 +12,8 @@
 **************************************************************************/
 
 #include "System/Renderer/GL/RsContextGL.h"
-#include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
-#include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsRenderTargetGL.h"
 
 #include "System/Renderer/RsVertexDeclaration.h"
@@ -1344,7 +1342,7 @@ void RsContextGL::loadTexture(
 				TypeGL, 
 				Slice.Level_, 
 				FormatGL.InternalFormat_,
-				TextureDesc.Width_,
+				Width,
 				0,
 				FormatGL.Format_,
 				FormatGL.Type_,
@@ -1356,8 +1354,8 @@ void RsContextGL::loadTexture(
 				TypeGL, 
 				Slice.Level_, 
 				FormatGL.InternalFormat_,
-				TextureDesc.Width_,
-				TextureDesc.Height_,
+				Width,
+				Height,
 				0,
 				FormatGL.Format_,
 				FormatGL.Type_,
@@ -1369,9 +1367,9 @@ void RsContextGL::loadTexture(
 				TypeGL, 
 				Slice.Level_, 
 				FormatGL.InternalFormat_,
-				TextureDesc.Width_,
-				TextureDesc.Height_,
-				TextureDesc.Depth_,
+				Width,
+				Height,
+				Depth,
 				0,
 				FormatGL.Format_,
 				FormatGL.Type_,

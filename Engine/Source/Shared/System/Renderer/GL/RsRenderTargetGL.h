@@ -19,7 +19,6 @@
 
 #include "System/Renderer/GL/RsRenderBufferGL.h"
 #include "System/Renderer/GL/RsFrameBufferGL.h"
-#include "System/Renderer/GL/RsTextureGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetGL
@@ -27,7 +26,7 @@ class RsRenderTargetGL:
 	public RsRenderTarget
 {
 public:
-	RsRenderTargetGL( RsContext* pContext, const RsRenderTargetDesc& Desc, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture );
+	RsRenderTargetGL( RsContext* pContext, const RsRenderTargetDesc& Desc, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTexture* pTexture );
 	virtual ~RsRenderTargetGL();
 	
 	void								bind();
@@ -49,7 +48,7 @@ private:
 	RsRenderBufferGL*					pColourBuffer_;
 	RsRenderBufferGL*					pDepthStencilBuffer_;
 	RsFrameBufferGL*					pFrameBuffer_;
-	RsTextureGL*						pTexture_;
+	RsTexture*						pTexture_;
 };
 
 #endif

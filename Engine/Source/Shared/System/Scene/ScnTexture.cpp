@@ -312,7 +312,44 @@ void ScnTexture::create()
 			Header_.Levels_,
 			Header_.Width_,
 			Header_.Height_,
-			Header_.Depth_ ), pTextureData_ );
+			Header_.Depth_ ) );
+
+	// Upload texture data.
+	BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
+
+	BcU32 Width = Header_.Width_;
+	BcU32 Height = Header_.Height_;
+	BcU32 Depth = Header_.Depth_;
+	for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
+	{
+		auto Slice = pTexture_->getSlice( LevelIdx );
+
+		BcU32 SliceSize = 
+			RsTextureFormatSize( 
+				Header_.Format_, 
+				Width, 
+				Height,
+				Depth, 
+				1 );
+
+		RsCore::pImpl()->updateTexture( 
+			pTexture_,
+			Slice,
+			RsResourceUpdateFlags::ASYNC,
+			[ TextureData, SliceSize ]( RsTexture* Texture, const RsTextureLock& Lock )
+			{
+				BcMemCopy( Lock.Buffer_, TextureData, SliceSize );
+			} );
+
+		// Down a level.
+		Width = BcMax( 1, Width >> 1 );
+		Height = BcMax( 1, Height >> 1 );
+		Depth = BcMax( 1, Depth >> 1 );
+
+		// Advance texture data.
+		TextureData += SliceSize;
+	}
+
 
 	markReady();
 }

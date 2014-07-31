@@ -17,7 +17,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsRenderTargetGL::RsRenderTargetGL( RsContext* pContext, const RsRenderTargetDesc& Desc, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTextureGL* pTexture ):
+RsRenderTargetGL::RsRenderTargetGL( RsContext* pContext, const RsRenderTargetDesc& Desc, RsRenderBufferGL* pColourBuffer, RsRenderBufferGL* pDepthStencilBuffer, RsFrameBufferGL* pFrameBuffer, RsTexture* pTexture ):
 	RsRenderTarget( pContext ),
 	Desc_( Desc ),
 	pColourBuffer_( pColourBuffer ),

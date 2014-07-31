@@ -79,7 +79,7 @@ public:
 	 *	@param Desc descriptor.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( const RsTextureDesc& Desc, void* pData = NULL ) = 0;
+	virtual RsTexture*			createTexture( const RsTextureDesc& Desc ) = 0;
 
 	/**
 	 *	Create a render target.
@@ -129,6 +129,7 @@ public:
 	 */
 	virtual void				destroyResource( RsResource* pResource ) = 0;
 	virtual void				destroyResource( RsBuffer* Buffer ) = 0;
+	virtual void				destroyResource( RsTexture* Texture ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.
@@ -142,7 +143,15 @@ public:
 		BcSize Size,
 		RsResourceUpdateFlags Flags,
 		RsBufferUpdateFunc UpdateFunc ) = 0;
-	
+
+	/**
+	 * Update texture.
+	 */
+	virtual bool updateTexture( 
+		class RsTexture* Texture,
+		const struct RsTextureSlice& Slice,
+		RsResourceUpdateFlags Flags,
+		RsTextureUpdateFunc UpdateFunc ) = 0;	
 public:
 	/**
 	*	Allocate a frame for rendering.
