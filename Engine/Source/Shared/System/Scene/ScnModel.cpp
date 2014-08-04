@@ -577,7 +577,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				PerComponentMeshData.UniformBuffer_,
 				0, sizeof( ScnShaderBoneUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
-				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( Lock.Buffer_ );
 					for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
