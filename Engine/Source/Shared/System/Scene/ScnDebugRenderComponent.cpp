@@ -505,13 +505,14 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 
 			// Set model parameters on material.
 			pRenderResource_->ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+			auto RenderResource = pRenderResource_;
 			RsCore::pImpl()->updateBuffer( 
 				pRenderResource_->UniformBuffer_,
 				0, sizeof( pRenderResource_->ObjectUniforms_ ),
 				RsResourceUpdateFlags::ASYNC,
-				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				[ RenderResource ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
-					BcMemCopy( Lock.Buffer_, &pRenderResource_->ObjectUniforms_, sizeof( pRenderResource_->ObjectUniforms_ ) );					
+					BcMemCopy( Lock.Buffer_, &RenderResource->ObjectUniforms_, sizeof( RenderResource->ObjectUniforms_ ) );					
 				} );
 			pLastMaterialComponent->setObjectUniformBlock( pRenderResource_->UniformBuffer_ );
 
