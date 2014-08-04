@@ -1214,13 +1214,6 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getOpenGLVersion
-const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
-{
-	return Version_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setViewport
 void RsContextGL::setViewport( class RsViewport& Viewport )
 {
@@ -1228,6 +1221,12 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// getOpenGLVersion
+const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
+{
+	return Version_;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // bindStencilFunc
