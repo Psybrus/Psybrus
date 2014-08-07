@@ -39,7 +39,7 @@ typedef ReObjectRef< class ScnMaterialComponent > ScnMaterialComponentRef;
 typedef std::map< std::string, ScnMaterialComponentRef > ScnMaterialComponentMap;
 typedef ScnMaterialComponentMap::iterator ScnMaterialComponentMapIterator;
 typedef ScnMaterialComponentMap::const_iterator ScnMaterialComponentConstIterator;
-typedef std::vector< ScnMaterialRef > ScnMaterialComponentList;
+typedef std::vector< ScnMaterialComponentRef > ScnMaterialComponentList;
 typedef ScnMaterialComponentList::iterator ScnMaterialComponentListIterator;
 typedef ScnMaterialComponentList::const_iterator ScnMaterialComponentListConstIterator;
 
