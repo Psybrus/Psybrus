@@ -466,6 +466,29 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& M
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMaterialComponents
+ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName& MaterialName )
+{
+	ScnMaterialComponentList MaterialComponents;
+
+	// Pessemistic reserve to ensure only 1 allocation.
+	MaterialComponents.reserve( PerComponentMeshDataList_.size() );
+
+	// Find all.
+	ScnModelMeshData* pMeshData = Parent_->pMeshData_;
+
+	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
+	{
+		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
+		{
+			MaterialComponents.push_back( PerComponentMeshDataList_[ Idx ].MaterialComponentRef_ );
+		}
+	}
+
+	return std::move( MaterialComponents );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnModelComponent::postUpdate( BcF32 Tick )

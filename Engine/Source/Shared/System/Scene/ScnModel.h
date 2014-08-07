@@ -85,6 +85,7 @@ public:
 
 	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
+	ScnMaterialComponentList			getMaterialComponents( const BcName& MaterialName );
 	
 public:
 	virtual void						postUpdate( BcF32 Tick );
