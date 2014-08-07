@@ -27,36 +27,43 @@ enum class ScnShaderPermutationType : BcU32
 {
 	// Render types.
 	RENDER_FIRST,
-	RENDER_FORWARD = RENDER_FIRST,				// Forward rendering.
-	RENDER_DEFERRED,							// Deferred rendering.
-	RENDER_FORWARD_PLUS,						// Forward plus rendering.
-	RENDER_POST_PROCESS,						// Post process rendering.
+	RENDER_FORWARD = RENDER_FIRST,						// Forward rendering.
+	RENDER_DEFERRED,									// Deferred rendering.
+	RENDER_FORWARD_PLUS,								// Forward plus rendering.
+	RENDER_POST_PROCESS,								// Post process rendering.
 	RENDER_MAX,
 	RENDER_COUNT = RENDER_MAX - RENDER_FIRST,
 	
 	// Pass types.
 	PASS_FIRST = RENDER_MAX,
-	PASS_MAIN = PASS_FIRST,						// Main pass. (Typical default)
-	PASS_SHADOW,								// Shadow pass (Render to shadow buffer)
+	PASS_MAIN = PASS_FIRST,								// Main pass. (Typical default)
+	PASS_SHADOW,										// Shadow pass (Render to shadow buffer)
 	PASS_MAX,
 	PASS_COUNT = PASS_MAX - PASS_FIRST,
 	
 	// Mesh types.
 	MESH_FIRST = PASS_MAX,
-	MESH_STATIC_2D = MESH_FIRST,				// Static 2D.
-	MESH_STATIC_3D,								// Static 3D.
-	MESH_SKINNED_3D	,							// Skinned 3D.
-	MESH_PARTICLE_3D,							// Particle 3D.
-	MESH_INSTANCED_3D,							// Instanced 3D.
+	MESH_STATIC_2D = MESH_FIRST,						// Static 2D.
+	MESH_STATIC_3D,										// Static 3D.
+	MESH_SKINNED_3D	,									// Skinned 3D.
+	MESH_PARTICLE_3D,									// Particle 3D.
+	MESH_INSTANCED_3D,									// Instanced 3D.
 	MESH_MAX,
 	MESH_COUNT = MESH_MAX - MESH_FIRST,
 	
 	// Lighting types.
 	LIGHTING_FIRST = MESH_MAX,
-	LIGHTING_NONE = LIGHTING_FIRST,				// Unlit geometry.
-	LIGHTING_DIFFUSE,							// Diffuse lit geometry.
+	LIGHTING_NONE = LIGHTING_FIRST,						// Unlit geometry.
+	LIGHTING_DIFFUSE,									// Diffuse lit geometry.
 	LIGHTING_MAX,
 	LIGHTING_COUNT = LIGHTING_MAX - LIGHTING_FIRST,
+
+	// Vertex colour types.
+	VERTEX_COLOUR_FIRST = LIGHTING_MAX,
+	VERTEX_COLOUR_NONE = VERTEX_COLOUR_FIRST,			// No vertex colour.
+	VERTEX_COLOUR_MULTIPLY_0,							// 1 vertex colour.
+	VERTEX_COLOUR_MAX,
+	VERTEX_COLOUR_COUNT = VERTEX_COLOUR_MAX - VERTEX_COLOUR_FIRST,
 };
 
 

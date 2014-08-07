@@ -20,24 +20,16 @@
 // RsVertexElement
 struct RsVertexElement
 {
-	RsVertexElement()
-	{
-	}
+	RsVertexElement();
 
 	RsVertexElement( BcU32 StreamIdx,
 	                 BcU32 Offset,
 	                 BcU32 Components,
 	                 RsVertexDataType DataType,
 	                 RsVertexUsage Usage,
-	                 BcU32 UsageIdx ):
-		StreamIdx_( StreamIdx ),
-		Offset_( Offset ),
-		Components_( Components ),
-		DataType_( DataType ),
-		Usage_( Usage ),
-		UsageIdx_( UsageIdx )
-	{
-	}
+	                 BcU32 UsageIdx );
+
+	BcU32 getElementSize() const;
 
 
 	BcU32				StreamIdx_;

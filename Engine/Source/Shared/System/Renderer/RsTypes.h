@@ -654,13 +654,4 @@ struct RsTextureLock
 
 typedef std::function< void( class RsTexture*, const RsTextureLock& ) > RsTextureUpdateFunc;
 
-
-//////////////////////////////////////////////////////////////////////////
-// Handy defines
-#define RS_MAX_LIGHTINGSTAGES			1024
-#define RS_MAX_PROJECTORSTAGES			1024
-#define RS_MAX_LIGHTS					4
-
-#define RS_RENDEROBJECTMEM				( 1024 * 1024 * 8 )
-
 #endif

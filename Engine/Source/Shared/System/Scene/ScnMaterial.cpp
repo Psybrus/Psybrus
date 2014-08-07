@@ -434,6 +434,14 @@ BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 // setUniformBlock
 void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer )
 {
+#if PSY_DEBUG
+	if( Index == BcErrorCode )
+	{
+		pProgram_->logShaders();
+		BcBreakpoint;
+	}
+#endif
+
 	auto& UniformBlockBinding = UniformBlockBindingList_[ Index ];
 	UniformBlockBinding.UniformBuffer_ = UniformBuffer;
 }

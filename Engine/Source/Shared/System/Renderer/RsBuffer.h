@@ -17,9 +17,8 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
 
-/**
- * RsBufferDesc
- */
+//////////////////////////////////////////////////////////////////////////
+// RsBufferDesc
 struct RsBufferDesc
 {
 	RsBufferDesc();

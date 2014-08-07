@@ -25,7 +25,7 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
-#define ENABLE_ASSIMP_IMPORTER			( 0 )
+#define ENABLE_ASSIMP_IMPORTER			( 1 )
 
 #ifdef PSY_SERVER
 
@@ -99,7 +99,91 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 	Source_ = Object[ "source" ].asString();
 	pImporter_->addDependency( Source_.c_str() );
 
+	// Old importer first for now.
+	MdlNode* pNode = MdlLoader::loadModel( Source_.c_str() );
+	
+	if( pNode != NULL )
+	{
+		BcU32 NodeIndex = 0;
+		BcU32 PrimitiveIndex = 0;
+		
+		recursiveSerialiseNodes(
+			pNode, 
+			BcErrorCode, 
+			NodeIndex, 
+			PrimitiveIndex );
+
+		NodeIndex = 0;
+		PrimitiveIndex = 0;
+
+		recursiveSerialiseNodeMeshes( 
+			pNode, 
+			BcErrorCode, 
+			NodeIndex, 
+			PrimitiveIndex );
+
+		// Delete root node.
+		delete pNode;
+		pNode = NULL;
+		
+		// Setup header.
+		ScnModelHeader Header = 
+		{
+			NodeIndex,
+			PrimitiveIndex
+		};
+		
+		HeaderStream_ << Header;
+
+		// Calculate world transforms.
+		calculateNodeWorldTransforms();
+
+		// Serialise node data.
+		for( const auto& NodeTransformData : NodeTransformData_ )
+		{
+			//
+			NodeTransformDataStream_ << NodeTransformData;
+		}
+
+		for( auto NodePropertyData : NodePropertyData_ )
+		{
+			// Add name to the importer.
+			NodePropertyData.Name_ = pImporter_->addString( (*NodePropertyData.Name_).c_str() );
+
+			//
+			NodePropertyDataStream_ << NodePropertyData;
+		}
+
+		// Serialise vertex elements.
+		for( const auto& VertexDecl : VertexDeclarations_ )
+		{
+			for( const auto& VertexElement : VertexDecl.Elements_ )
+			{
+				VertexElementStream_ << VertexElement;
+			}
+		}
+
+		// Serialise mesh data.
+		for( const auto& MeshData : MeshData_ )
+		{
+			MeshDataStream_ << MeshData;
+		}
+
+		// Write to file.
+		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
+		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
+		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
+		Importer.addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
+		
+		//
+		return BcTrue;
+	}
+
 #if ENABLE_ASSIMP_IMPORTER
+	// Failed? Try to use assimp.
 	auto PropertyStore = aiCreatePropertyStore();
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_SBBC_MAX_BONES, ScnShaderBoneUniformBlockData::MAX_BONES );
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4 );
@@ -185,88 +269,6 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 	}
 #endif // ENABLE_ASSIMP_IMPORTER
 
-	// Fall back to old method.
-	MdlNode* pNode = MdlLoader::loadModel( Source_.c_str() );
-	
-	if( pNode != NULL )
-	{
-		BcU32 NodeIndex = 0;
-		BcU32 PrimitiveIndex = 0;
-		
-		recursiveSerialiseNodes(
-			pNode, 
-			BcErrorCode, 
-			NodeIndex, 
-			PrimitiveIndex );
-
-		NodeIndex = 0;
-		PrimitiveIndex = 0;
-
-		recursiveSerialiseNodeMeshes( 
-			pNode, 
-			BcErrorCode, 
-			NodeIndex, 
-			PrimitiveIndex );
-
-		// Delete root node.
-		delete pNode;
-		pNode = NULL;
-		
-		// Setup header.
-		ScnModelHeader Header = 
-		{
-			NodeIndex,
-			PrimitiveIndex
-		};
-		
-		HeaderStream_ << Header;
-
-		// Calculate world transforms.
-		calculateNodeWorldTransforms();
-
-		// Serialise node data.
-		for( const auto& NodeTransformData : NodeTransformData_ )
-		{
-			//
-			NodeTransformDataStream_ << NodeTransformData;
-		}
-
-		for( auto NodePropertyData : NodePropertyData_ )
-		{
-			// Add name to the importer.
-			NodePropertyData.Name_ = pImporter_->addString( (*NodePropertyData.Name_).c_str() );
-
-			//
-			NodePropertyDataStream_ << NodePropertyData;
-		}
-
-		// Serialise vertex elements.
-		for( const auto& VertexDecl : VertexDeclarations_ )
-		{
-			for( const auto& VertexElement : VertexDecl.Elements_ )
-			{
-				VertexElementStream_ << VertexElement;
-			}
-		}
-
-		// Serialise mesh data.
-		for( const auto& MeshData : MeshData_ )
-		{
-			MeshDataStream_ << MeshData;
-		}
-
-		// Write to file.
-		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
-		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
-		Importer.addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
-		
-		//
-		return BcTrue;
-	}
 	return BcFalse;
 }
 
@@ -774,8 +776,55 @@ void ScnModelImport::serialiseMesh(
 		// Calculate number of primitives.
 		BcAssert( BcBitsSet( Mesh->mPrimitiveTypes ) == 1 );
 
+		// Vertex format.
+		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc();
+		VertexDeclarationDesc.addElement( RsVertexElement( 
+			0, VertexDeclarationDesc.getMinimumStride(), 
+			3, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) );
+
+		if( Mesh->HasNormals() )
+		{
+			VertexDeclarationDesc.addElement( RsVertexElement(
+				0, VertexDeclarationDesc.getMinimumStride(), 
+				3, RsVertexDataType::FLOAT32, RsVertexUsage::NORMAL, 0 ) );
+		}
+
+		if( Mesh->HasTangentsAndBitangents() )
+		{
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(), 
+				3, RsVertexDataType::FLOAT32, RsVertexUsage::TANGENT, 0 ) );
+		}
+
+		if( Mesh->HasTextureCoords( 0 ) )
+		{
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(), 
+				2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) );
+		}
+
+		// Always export channel 0 to save on shader permutations.
+		// Should optimise out later.
+		//if( Mesh->HasVertexColors( 0 ) )
+		{
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) );
+		}
 		
-		
+		// Add bones to vertex declaration if they exist.
+		if( Mesh->HasBones() )
+		{
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(),
+				4, RsVertexDataType::FLOAT32, RsVertexUsage::BLENDINDICES, 0 ) );
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(),
+				4, RsVertexDataType::FLOAT32, RsVertexUsage::BLENDWEIGHTS, 0 ) );
+		}
+
+		VertexDeclarations_.push_back( VertexDeclarationDesc );
+
+
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelMeshData MeshData = 
 		{
@@ -789,8 +838,8 @@ void ScnModelImport::serialiseMesh(
 			0, // padding1
 			MaAABB(),
 			Mesh->mNumVertices,
-			5,
-			48,
+			VertexDeclarationDesc.Elements_.size(),
+			VertexDeclarationDesc.getMinimumStride(),
 			nullptr
 		};
 
@@ -812,38 +861,12 @@ void ScnModelImport::serialiseMesh(
 		default:
 			BcBreakpoint;
 		}
-
-		// Vertex format.
-		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc( Mesh->HasBones() ? 7 : 5 )
-			.addElement( RsVertexElement( 0, 0,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,			0 ) )
-			.addElement( RsVertexElement( 0, 24,		3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,			0 ) )
-			.addElement( RsVertexElement( 0, 36,		2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 44,		4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) );
 		
-		// Add bones to vertex declaration if they exist.
-		if( Mesh->HasBones() )
-		{
-			VertexDeclarationDesc
-				.addElement( RsVertexElement( 0, 48,		4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDINDICES,	0 ) )
-				.addElement( RsVertexElement( 0, 64,		4,		RsVertexDataType::FLOAT32,		RsVertexUsage::BLENDWEIGHTS,	0 ) );
-		}
-		
-		VertexDeclarations_.push_back( VertexDeclarationDesc );
-
-		MeshData.NoofVertexElements_ = Mesh->HasBones() ? 7 : 5;
+		MeshData.NoofVertexElements_ = VertexDeclarationDesc.Elements_.size();
 		MeshData.IsSkinned_ = Mesh->HasBones();
 
 		// Calculate stride.
-		BcU32 Stride = 0;
-		for( BcU32 ElementIdx = 0; ElementIdx < VertexDeclarationDesc.Elements_.size(); ++ElementIdx )
-		{
-			const auto VertexElement( VertexDeclarationDesc.Elements_[ ElementIdx ] );
-			BcU32 Size = VertexElement.Components_ * gVertexDataSize[(BcU32)VertexElement.DataType_];
-			Stride = std::max( Stride, VertexElement.Offset_ + Size );
-		}
-		
-		MeshData.VertexStride_ = Stride;
+		MeshData.VertexStride_ = VertexDeclarationDesc.getMinimumStride();
 
 		if( Mesh->HasBones() )
 		{
@@ -1073,10 +1096,13 @@ void ScnModelImport::serialiseVertices(
 					BcAssert( VertexElement.UsageIdx_ < AI_MAX_NUMBER_OF_COLOR_SETS );
 					BcAssert( VertexElement.Components_ == 4 );
 					BcAssert( VertexElement.DataType_ == RsVertexDataType::UBYTE_NORM );
-					aiColor4D Colour = 
-						Mesh->mColors[ VertexElement.UsageIdx_ ] != nullptr ? 
-						Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ] : 
-						aiColor4D( 1.0f, 1.0f, 1.0f, 1.0f );
+					aiColor4D Colour = aiColor4D( 1.0f, 1.0f, 1.0f, 1.0f );
+				
+					if( Mesh->HasVertexColors( VertexElement.UsageIdx_ ) )
+					{
+						Colour = Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ];
+					}
+
 					{
 						BcU32* OutVal = reinterpret_cast< BcU32* >( &VertexData[ VertexElement.Offset_ ] );
 						*OutVal++ = RsColour( Colour.r, Colour.g, Colour.b, Colour.a ).asABGR();
