@@ -457,7 +457,10 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 	Super::initialise();
 
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, ScnShaderPermutationFlags::MESH_STATIC_2D ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, 
+		ScnShaderPermutationFlags::RENDER_FORWARD |
+		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
 	{	
 		BcU32 Sampler = MaterialComponent_->findSampler( "aDiffuseTex" );
 		if( Sampler != BcErrorCode )

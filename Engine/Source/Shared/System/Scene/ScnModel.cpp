@@ -595,7 +595,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		{
 			RsCore::pImpl()->updateBuffer( 
 				PerComponentMeshData.UniformBuffer_,
-				0, sizeof( ScnShaderBoneUniformBlockData ),
+				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
