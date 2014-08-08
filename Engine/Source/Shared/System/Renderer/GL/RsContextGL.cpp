@@ -233,7 +233,8 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	BcMemZero( &RenderStateBinds_[ 0 ], sizeof( RenderStateBinds_ ) );
 	BcMemZero( &TextureStateBinds_[ 0 ], sizeof( TextureStateBinds_ ) );
 	BcMemZero( &VertexBuffers_[ 0 ], sizeof( VertexBuffers_ ) );
-	
+	BcMemZero( &UniformBuffers_[ 0 ], sizeof( UniformBuffers_ ) );
+
 	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
 }
@@ -978,7 +979,7 @@ void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPrimitive
+// setVertexBuffer
 void RsContextGL::setVertexBuffer( 
 	BcU32 StreamIdx, 
 	class RsBuffer* VertexBuffer,
@@ -989,6 +990,20 @@ void RsContextGL::setVertexBuffer(
 	{
 		VertexBuffers_[ StreamIdx ].Buffer_ = VertexBuffer;
 		VertexBuffers_[ StreamIdx ].Stride_ = Stride;
+		BindingsDirty_ = BcTrue;
+		ProgramDirty_ = BcTrue;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setUniformBuffer
+void RsContextGL::setUniformBuffer( 
+	BcU32 SlotIdx, 
+	class RsBuffer* UniformBuffer )
+{
+	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
+	{
+		UniformBuffers_[ SlotIdx ].Buffer_ = UniformBuffer;
 		BindingsDirty_ = BcTrue;
 		ProgramDirty_ = BcTrue;
 	}
@@ -1122,6 +1137,21 @@ void RsContextGL::flushState()
 
 		// Bind program.
 		Program_->bind();
+
+		// TODO: Bind up as individual uniforms as an alternative
+		//       to uniform buffers where appropriate.
+		BcU32 BindingPoint = 0;
+		for( auto It( UniformBuffers_.begin() ); It != UniformBuffers_.end(); ++It )
+		{
+			auto Buffer = (*It).Buffer_;
+			if( Buffer != nullptr )
+			{
+				glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, Buffer->getHandle< GLuint >(), 0, Buffer->getDesc().SizeBytes_ );
+				++BindingPoint;
+				RsGLCatchError();
+			}
+		}
+
 
 		// Cached vertex handle for binding.
 		GLuint BoundVertexHandle = 0;

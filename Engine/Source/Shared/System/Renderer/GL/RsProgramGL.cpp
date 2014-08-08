@@ -65,6 +65,7 @@ void RsProgramGL::create()
 	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
 	{
 		glAttachShader( Handle, ppShaders_[ Idx ]->getHandle< GLuint >() );
+		RsGLCatchError();
 	}
 	
 	// Bind all slots up.
@@ -147,7 +148,7 @@ void RsProgramGL::create()
 		glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
 		
 		// Add it as a parameter.
-		if( UniformBlockNameLength > 0  )
+		if( UniformBlockNameLength > 0 )
 		{
 			auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
 			BcAssert( TestIdx == Idx );
@@ -178,10 +179,19 @@ void RsProgramGL::create()
 		return;
 	}
 
-	// Bind/unbind to ensure it works.
-	glUseProgram( Handle );
-	RsGLCatchError();
-	glUseProgram( 0 );
+	// Bind up sampler slots.
+	for( BcU32 Idx = 0; Idx < SamplerList_.size(); ++Idx )
+	{
+		glProgramUniform1i( Handle, SamplerList_[ Idx ].Handle_, Idx );
+		RsGLCatchError();
+	}
+
+	// Bind up uniform slots.
+	for( BcU32 Idx = 0; Idx < UniformBlockList_.size(); ++Idx )
+	{
+		glUniformBlockBinding( Handle, UniformBlockList_[ Idx ].Index_, Idx );
+		RsGLCatchError();
+	}
 
 	// Set handle.
 	setHandle( Handle );
@@ -207,9 +217,9 @@ void RsProgramGL::destroy()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// findSampler
+// findSamplerSlot
 //virtual
-BcU32 RsProgramGL::findSampler( const BcChar* Name )
+BcU32 RsProgramGL::findSamplerSlot( const BcChar* Name )
 {
 	BcU32 Idx = 0;
 	for( auto It( SamplerList_.begin() ); It != SamplerList_.end(); ++It )
@@ -226,20 +236,9 @@ BcU32 RsProgramGL::findSampler( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// setSampler
+// findUniformBufferSlot
 //virtual
-void RsProgramGL::setSampler( BcU32 Idx, BcU32 SamplerSlotIdx )
-{
-	if( Idx < SamplerList_.size() )
-	{
-		SamplerList_[ Idx ].SamplerSlotIdx_ = SamplerSlotIdx;
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// findUniformBlockIndex
-//virtual
-BcU32 RsProgramGL::findUniformBlockIndex( const BcChar* Name )
+BcU32 RsProgramGL::findUniformBufferSlot( const BcChar* Name )
 {
 	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
 	{
@@ -253,19 +252,6 @@ BcU32 RsProgramGL::findUniformBlockIndex( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// setUniformBlock
-//virtual
-void RsProgramGL::setUniformBlock( BcU32 Index, RsBuffer* Buffer )
-{
-	auto& UniformBlock( UniformBlockList_[ Index ] );
-	if (Buffer != nullptr)
-	{
-		BcAssert( Buffer->getDesc().SizeBytes_ == UniformBlock.Size_ );
-	}
-	UniformBlock.Buffer_ = Buffer;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // bind
 //virtual
 void RsProgramGL::bind()
@@ -273,27 +259,6 @@ void RsProgramGL::bind()
 	GLuint Handle = getHandle< GLuint >();
 	glUseProgram( Handle );
 	RsGLCatchError();
-	
-	// Bind up samplers.
-	for( const auto& Sampler : SamplerList_ )
-	{
-		glUniform1i( Sampler.Handle_, Sampler.SamplerSlotIdx_ );
-	}
-
-	// Bind up uniform blocks.
-	// TODO: Bind up as individual uniforms as an alternative
-	//       to uniform buffers where appropriate.
-	BcU32 BindingPoint = 0;
-	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
-	{
-		if( (*It).Buffer_ != nullptr )
-		{
-			glUniformBlockBinding( Handle, (*It).Index_, BindingPoint );
-			glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, (*It).Buffer_->getHandle< GLuint >(), 0, (*It).Buffer_->getDesc().SizeBytes_ );
-			++BindingPoint;
-			RsGLCatchError();
-		}
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

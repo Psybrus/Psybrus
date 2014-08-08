@@ -308,7 +308,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 		const BcName& SamplerName = (*Iter).first;
 		ScnTextureRef Texture = (*Iter).second;
 
-		BcU32 SamplerIdx = findSampler( SamplerName );
+		BcU32 SamplerIdx = findSamplerSlot( SamplerName );
 		if( SamplerIdx != BcErrorCode )
 		{
 			setTexture( SamplerIdx, Texture );
@@ -352,12 +352,12 @@ void ScnMaterialComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// findSampler
-BcU32 ScnMaterialComponent::findSampler( const BcName& SamplerName )
+// findSamplerSlot
+BcU32 ScnMaterialComponent::findSamplerSlot( const BcName& SamplerName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
-	BcU32 Handle = pProgram_->findSampler( (*SamplerName).c_str() );
+	BcU32 Handle = pProgram_->findSamplerSlot( (*SamplerName).c_str() );
 	
 	if( Handle != BcErrorCode )
 	{
@@ -404,7 +404,7 @@ void ScnMaterialComponent::setTexture( BcU32 Idx, ScnTextureRef Texture )
 // findUniformBlock
 BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 {
-	BcU32 Index = pProgram_->findUniformBlockIndex( (*UniformBlockName).c_str() );
+	BcU32 Index = pProgram_->findUniformBufferSlot( (*UniformBlockName).c_str() );
 	if( Index != BcErrorCode )
 	{
 		for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
@@ -513,7 +513,6 @@ public:
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
-			pProgram_->setSampler( SamplerHandles_[ Idx ], Idx );
 			pContext_->setTextureState( Idx, pTexture, TextureParams );
 		}
 
@@ -528,7 +527,7 @@ public:
 		{
 			BcU32 Index = pUniformBlockIndices_[ Idx ];
 			RsBuffer* pUniformBuffer = ppUniformBuffers_[ Idx ];
-			pProgram_->setUniformBlock( Index, pUniformBuffer );
+			pContext_->setUniformBuffer( Index, pUniformBuffer );
 		}
 
 		// Set program.
