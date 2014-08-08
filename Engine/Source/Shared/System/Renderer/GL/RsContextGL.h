@@ -71,6 +71,9 @@ public:
 		BcU32 StreamIdx, 
 		class RsBuffer* VertexBuffer,
 		BcU32 Stride );
+	void setUniformBuffer( 
+		BcU32 SlotIdx, 
+		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	
 	void flushState();
@@ -132,11 +135,6 @@ private:
 		BcBool Dirty_;
 	};
 
-	struct TVertexBufferSlot
-	{
-		class RsBuffer* VertexBuffer_;
-	};
-
 	enum
 	{
 		NOOF_RENDERSTATES = RsRenderStateType::MAX,
@@ -169,7 +167,13 @@ private:
 		BcU32 Stride_;
 	};
 
+	struct UniformBufferBinding
+	{
+		RsBuffer* Buffer_;
+	};
+
 	std::array< VertexBufferBinding, MAX_VERTEX_STREAMS > VertexBuffers_;
+	std::array< UniformBufferBinding, MAX_UNIFORM_SLOTS > UniformBuffers_;
 	RsVertexDeclaration* VertexDeclaration_;
 };
 

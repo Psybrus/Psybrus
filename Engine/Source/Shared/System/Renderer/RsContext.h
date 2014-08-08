@@ -33,7 +33,8 @@ class RsContext:
 public:
 	enum
 	{
-		MAX_VERTEX_STREAMS = 16
+		MAX_VERTEX_STREAMS = 16,
+		MAX_UNIFORM_SLOTS = 16,
 	};
 
 public:

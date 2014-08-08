@@ -29,34 +29,21 @@ public:
 	/**
 	 * Find sampler.
 	 */
-	virtual BcU32						findSampler( const BcChar* Name ) = 0;
+	virtual BcU32 findSamplerSlot( const BcChar* Name ) = 0;
 
-	/**
-	 * Set sampler.
-	 */
-	virtual void						setSampler( BcU32 Handle, BcU32 SamplerSlotIdx ) = 0;
-	
 	/**
 	 * Find uniform block by name.
 	 * @param Name
 	 * @return Index.
 	 */
-	virtual BcU32						findUniformBlockIndex( const BcChar* Name ) = 0;
-
-	/**
-	 * Set uniform block.
-	 * @param Index
-	 * @param Uniform buffer to set to.
-	 */
-	virtual void						setUniformBlock( BcU32 Index, RsBuffer* Buffer ) = 0;
+	virtual BcU32 findUniformBufferSlot( const BcChar* Name ) = 0;
 
 	/**
 	 * Bind program.
 	 * @param pParameterBuffer Pointer to parameter buffer for binding.
 	 */
-	virtual void						bind() = 0;
+	virtual void bind() = 0;
 	
-
 	/**
 	 * Get vertex attribute list.
 	 */

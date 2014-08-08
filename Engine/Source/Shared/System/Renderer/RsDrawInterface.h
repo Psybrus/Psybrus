@@ -72,6 +72,13 @@ public:
 		BcU32 Stride ) = 0;
 
 	/**
+	 * Set uniform buffer.
+	 */
+	virtual void setUniformBuffer( 
+		BcU32 SlotIdx, 
+		class RsBuffer* UniformBuffer ) = 0;
+
+	/**
 	 * Set vertex declaration.
 	 */
 	virtual void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) = 0;

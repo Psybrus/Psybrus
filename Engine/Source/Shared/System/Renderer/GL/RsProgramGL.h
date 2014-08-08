@@ -32,55 +32,50 @@ public:
 	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes );
 	virtual ~RsProgramGL();
 	
-	void								create();
-	void								update();
-	void								destroy();	
+	void create();
+	void update();
+	void destroy();	
 	
 	// New, shiny interface!
-	virtual BcU32						findSampler( const BcChar* Name );
-	virtual void						setSampler( BcU32 Handle, BcU32 SamplerSlotIdx );
-	virtual BcU32						findUniformBlockIndex( const BcChar* Name );
-	virtual void						setUniformBlock( BcU32 Index, RsBuffer* Buffer );
-	virtual void						bind();
+	virtual BcU32 findSamplerSlot( const BcChar* Name );
+	virtual BcU32 findUniformBufferSlot( const BcChar* Name );
+	virtual void bind();
 	
 	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
 	virtual void logShaders() const;
 
 private:	
-	void								addSampler( const GLchar* pName, GLint Handle, GLenum Type );
-	void								addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
+	void addSampler( const GLchar* pName, GLint Handle, GLenum Type );
+	void addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
 	
 private:
 	struct TSampler
 	{
-		std::string						Name_;
-		GLint							Handle_;
-		RsShaderParameterType			Type_;
-		BcU32							SamplerSlotIdx_;
+		std::string Name_;
+		GLint Handle_;
+		RsShaderParameterType Type_;
 	};
 
 	struct TUniformBlock
 	{
-		std::string						Name_;
-		GLint							Index_;
-		BcU32							Size_;
-		RsBuffer*				Buffer_;
+		std::string Name_;
+		GLint Index_;
+		BcU32 Size_;
 	};
-
 
 	typedef std::vector< TSampler > TSamplerList;
 	typedef TSamplerList::iterator TSamplerListIterator;
 	typedef TSamplerList::const_iterator TSamplerListConstIterator;
-	TSamplerList						SamplerList_;
+	TSamplerList SamplerList_;
 
 	typedef std::vector< TUniformBlock > TUniformBlockList;
 	typedef TUniformBlockList::iterator TUniformBlockListIterator;
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
-	TUniformBlockList					UniformBlockList_;
+	TUniformBlockList UniformBlockList_;
 
-	BcU32								NoofShaders_;
-	RsShaderGL**						ppShaders_;
-	RsProgramVertexAttributeList		AttributeList_;
+	BcU32 NoofShaders_;
+	RsShaderGL** ppShaders_;
+	RsProgramVertexAttributeList AttributeList_;
 };
 
 #endif

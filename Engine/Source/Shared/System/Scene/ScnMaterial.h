@@ -88,7 +88,7 @@ public:
 	void								initialise( const Json::Value& Object );
 	void								destroy();
 	
-	BcU32								findSampler( const BcName& SamplerName );	
+	BcU32								findSamplerSlot( const BcName& SamplerName );	
 	void								setTexture( BcU32 Sampler, ScnTextureRef Texture );
 
 	BcU32								findUniformBlock( const BcName& UniformBlockName );	
