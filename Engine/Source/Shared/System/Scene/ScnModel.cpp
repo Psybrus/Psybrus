@@ -620,7 +620,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				PerComponentMeshData.UniformBuffer_,
 				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
-				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				[ &, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
 					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
