@@ -88,35 +88,36 @@ private:
 private:
 	struct TVertexBuffer
 	{
-		RsBuffer*						pVertexBuffer_;
-		RsBuffer*				UniformBuffer_;
+		RsBuffer* pVertexBuffer_;
+		RsBuffer* UniformBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};
 
 	// Graphics data.
-	RsVertexDeclaration*				VertexDeclaration_;
-	TVertexBuffer						VertexBuffers_[ 2 ];
-	BcU32								CurrentVertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
+	TVertexBuffer VertexBuffers_[ 2 ];
+	BcU32 CurrentVertexBuffer_;
 
 	// Particle data.
-	ScnParticle*						pParticleBuffer_;
-	BcU32								NoofParticles_;
-	BcU32								PotentialFreeParticle_;
+	ScnParticle* pParticleBuffer_;
+	BcU32 NoofParticles_;
+	BcU32 PotentialFreeParticle_;
 	
 	// 
-	ScnMaterialComponentRef				MaterialComponent_;
-	BcU32								WorldTransformParam_;
+	ScnMaterialComponentRef MaterialComponent_;
+	BcU32 WorldTransformParam_;
 
 	//
-	BcBool								IsLocalSpace_;
+	BcBool IsLocalSpace_;
 
 	// UV bounds.
-	std::vector< MaVec4d >				UVBounds_;
+	std::vector< MaVec4d > UVBounds_;
 
-	SysFence							UploadFence_;
-	SysFence							UpdateFence_;
+	// Fences for uploading + updating.
+	SysFence UploadFence_;
+	SysFence UpdateFence_;
 
-	MaAABB								AABB_;
+	MaAABB AABB_;
 };
 
 #endif
