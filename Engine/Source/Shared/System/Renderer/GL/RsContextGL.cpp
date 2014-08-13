@@ -29,6 +29,13 @@
 #include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Debug output.
+static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
+{
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // State value translation.
 static GLenum gCompareMode[] = 
 {
@@ -348,6 +355,7 @@ void RsContextGL::swapBuffers()
 	if( ScreenshotRequested_ == BcFalse )
 	{
 		glFlush();
+		RsGLCatchError();
 	}
 	else
 	{
@@ -393,6 +401,8 @@ void RsContextGL::swapBuffers()
 #if PLATFORM_WINDOWS
 	::SwapBuffers( WindowDC_ );
 #endif
+
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -498,6 +508,12 @@ void RsContextGL::create()
 	}
 #endif
 
+	// Debug output extension.	
+	if( GLEW_ARB_debug_output )
+	{
+		glDebugMessageCallbackARB( debugOutput, nullptr );
+	}
+
 	// Create + bind global VAO.
 	glGenVertexArrays( 1, &GlobalVAO_ );
 	glBindVertexArray( GlobalVAO_ );
@@ -547,16 +563,27 @@ void RsContextGL::destroy()
 // createProfile
 bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 {
-	BcAssert( Version.Type_ == RsOpenGLType::CORE ||
-	          Version.Type_ == RsOpenGLType::COMPATIBILITY );
-	
 	int ContextAttribs[] = 
 	{
+		WGL_CONTEXT_PROFILE_MASK_ARB, 0,
 		WGL_CONTEXT_MAJOR_VERSION_ARB, Version.Major_,
 		WGL_CONTEXT_MINOR_VERSION_ARB, Version.Minor_,
-		WGL_CONTEXT_PROFILE_MASK_ARB, Version.Type_ == RsOpenGLType::CORE ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 		NULL
 	};
+
+	switch( Version.Type_ )
+	{
+	case RsOpenGLType::CORE:
+		ContextAttribs[ 1 ] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+		break;
+	case RsOpenGLType::COMPATIBILITY:
+		ContextAttribs[ 1 ] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+		break;
+	case RsOpenGLType::ES:
+		ContextAttribs[ 1 ] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+		break;
+	}
+	
 
 	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
 	if( CoreProfile != NULL )
@@ -1085,15 +1112,17 @@ void RsContextGL::flushState()
 					break;
 
 				case RsRenderStateType::FILL_MODE:
-					glPolygonMode( GL_FRONT_AND_BACK, (BcU32)RsFillMode::SOLID == Value ? GL_FILL : GL_LINE );
+					if( Version_.Type_ != RsOpenGLType::ES )
+					{
+						glPolygonMode( GL_FRONT_AND_BACK, (BcU32)RsFillMode::SOLID == Value ? GL_FILL : GL_LINE );
+					}
 					break;
 			}
 			
+			RsGLCatchError();
+
 			// No longer dirty.
 			RenderStateValue.Dirty_ = BcFalse;
-
-			// Catch errors.
-	 		RsGLCatchError();
 		}
 	}
 	
@@ -1257,6 +1286,7 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 {
 	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
 	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
