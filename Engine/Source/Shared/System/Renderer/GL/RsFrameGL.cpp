@@ -138,6 +138,9 @@ void RsFrameGL::render()
 		{
 			RsRenderNode* pRenderNode = ppNodeArray_[ i ];
 			pRenderNode->render();
+
+			RsGLCatchError();
+
 			pRenderNode->~RsRenderNode();
 		}
 
@@ -146,6 +149,9 @@ void RsFrameGL::render()
 
 		// Flip context buffers.
 		pContext_->swapBuffers();
+
+		// Catch error.
+		RsGLCatchError();
 	}
 }
 
