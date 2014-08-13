@@ -230,7 +230,8 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	else if( ChunkID == BcHash( "program" ) )
 	{
 		BcU32 NoofShaders = 0;
-		std::array< RsShader*, (BcU32)RsShaderType::MAX > Shaders;
+		std::vector< RsShader* > Shaders;
+		Shaders.reserve( (size_t)RsShaderType::MAX );
 		++TotalProgramsLoaded_;
 
 		// Generate program.
@@ -243,17 +244,20 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				auto& ShaderMapping( ShaderMappings_[ Idx ] );
 				RsShader* pShader = getShader( pProgramHeader->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
 				BcAssertMsg( pShader != NULL, "Shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->ProgramPermutationFlags_, (*getName()).c_str() );
-				Shaders[ NoofShaders++ ] = pShader;
+				Shaders.push_back( pShader );
 			}
 		}
 
 		pVertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 
+		// Shrink to fit.
+		Shaders.shrink_to_fit();
+
 		// Only create target code type.
 		if( pProgramHeader->ShaderCodeType_ == TargetCodeType_ )
 		{
 			// Create program.
-			RsProgram* pProgram = RsCore::pImpl()->createProgram( NoofShaders, &Shaders[ 0 ], pProgramHeader->NoofVertexAttributes_, pVertexAttributes_ );			
+			RsProgram* pProgram = RsCore::pImpl()->createProgram( std::move( Shaders ), pProgramHeader->NoofVertexAttributes_, pVertexAttributes_ );			
 			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
 		}
 	}

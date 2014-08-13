@@ -29,7 +29,11 @@ class RsProgramGL:
 	public RsProgram
 {
 public:
-	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes );
+	RsProgramGL( 
+		RsContext* pContext, 
+		std::vector< RsShader* >&& Shaders,
+		BcU32 NoofVertexAttributes, 
+		RsProgramVertexAttribute* pVertexAttributes );
 	virtual ~RsProgramGL();
 	
 	void create();
@@ -73,8 +77,7 @@ private:
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
 	TUniformBlockList UniformBlockList_;
 
-	BcU32 NoofShaders_;
-	RsShaderGL** ppShaders_;
+	std::vector< RsShader* > Shaders_;
 	RsProgramVertexAttributeList AttributeList_;
 };
 

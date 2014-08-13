@@ -49,7 +49,7 @@ public:
 	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc );
 	virtual RsBuffer*			createBuffer( const RsBufferDesc& Desc );
 	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize );
-	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
+	virtual RsProgram*			createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  );
 	virtual void				destroyResource( RsResource* pResource );
 	virtual void				destroyResource( RsBuffer* Buffer );
 	virtual void				destroyResource( RsTexture* Texture );
