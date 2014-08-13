@@ -21,17 +21,14 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes ):
-	RsProgram( pContext )
+RsProgramGL::RsProgramGL( 
+	RsContext* pContext, 
+	std::vector< RsShader* >&& Shaders, 
+	BcU32 NoofVertexAttributes, 
+	RsProgramVertexAttribute* pVertexAttributes ):
+	RsProgram( pContext ),
+	Shaders_( std::move( Shaders ) )
 {
-	NoofShaders_ = NoofShaders;
-	ppShaders_ = new RsShaderGL*[ NoofShaders ];	
-
-	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
-	{
-		ppShaders_[ Idx ] = static_cast< RsShaderGL* >( ppShaders[ Idx ] );
-	}
-
 	AttributeList_.reserve( NoofVertexAttributes );
 	for( BcU32 Idx = 0; Idx < NoofVertexAttributes; ++Idx )
 	{
@@ -44,9 +41,7 @@ RsProgramGL::RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppS
 //virtua
 RsProgramGL::~RsProgramGL()
 {
-	delete [] ppShaders_;
-	ppShaders_ = NULL;
-	NoofShaders_ = 0;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,17 +49,16 @@ RsProgramGL::~RsProgramGL()
 void RsProgramGL::create()
 {
 	// Some checks to ensure validity.
-	BcAssert( ppShaders_ != NULL );
-	BcAssert( NoofShaders_ > 0 );	
+	BcAssert( Shaders_.size() > 0 );	
 
 	// Create program.
 	GLuint Handle = glCreateProgram();
 	BcAssert( Handle != 0 );
 
 	// Attach shaders.
-	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
+	for( auto* Shader : Shaders_ )
 	{
-		glAttachShader( Handle, ppShaders_[ Idx ]->getHandle< GLuint >() );
+		glAttachShader( Handle, Shader->getHandle< GLuint >() );
 		RsGLCatchError();
 	}
 	
@@ -274,9 +268,9 @@ const RsProgramVertexAttributeList& RsProgramGL::getVertexAttributeList() const
 //virtual
 void RsProgramGL::logShaders() const
 {
-	for( BcU32 Idx = 0; Idx < NoofShaders_; ++Idx )
+	for( auto* Shader : Shaders_ )
 	{
-		ppShaders_[ Idx ]->logShader();
+		Shader->logShader();
 	}
 }
 

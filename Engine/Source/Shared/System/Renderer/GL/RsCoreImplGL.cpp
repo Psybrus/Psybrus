@@ -249,9 +249,9 @@ RsShader* RsCoreImplGL::createShader( RsShaderType ShaderType, RsShaderDataType 
 //////////////////////////////////////////////////////////////////////////
 // createProgram
 //virtual
-RsProgram* RsCoreImplGL::createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
+RsProgram* RsCoreImplGL::createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
 {
-	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), NoofShaders, ppShaders, NoofVertexAttributes, pVertexAttributes );
+	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), std::move( Shaders ), NoofVertexAttributes, pVertexAttributes );
 	createResource( pResource );
 	return pResource;
 }

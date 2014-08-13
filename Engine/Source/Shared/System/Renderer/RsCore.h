@@ -103,12 +103,11 @@ public:
 
 	/**
 	 * Create program.
-	 * @param NoofShaders Number of shaders.
-	 * @param ppShaders Array of shaders to use for program.
+	 * @param Shaders Array of shaders to use for program.
 	 * @param NoofVertexAttributes Number of vertex attributes.
 	 * @param pVertexAttributes Vertex attributes.
 	 */
-	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  ) = 0;
+	virtual RsProgram*			createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
