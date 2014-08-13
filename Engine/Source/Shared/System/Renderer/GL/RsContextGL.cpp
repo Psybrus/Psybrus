@@ -319,6 +319,13 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+	case RsShaderCodeType::GLSL_450:
+		if( Version_.Major_ >= 4 &&
+			Version_.Minor_ >= 5 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
 
 	}
 	return BcFalse;
@@ -451,6 +458,7 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
+		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
 		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
