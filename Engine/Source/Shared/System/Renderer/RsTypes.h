@@ -451,6 +451,7 @@ enum class RsShaderCodeType : BcU32
 	GLSL_420,
 	GLSL_430,
 	GLSL_440,
+	GLSL_450,
 	
 	// GLSL ES
 	GLSL_ES_100,
