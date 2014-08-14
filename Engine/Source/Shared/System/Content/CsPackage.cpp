@@ -27,9 +27,9 @@ void CsPackage::StaticRegisterClass()
 {
 	static const ReField Fields[] = 
 	{
-		ReField( "RefCount_",			&CsPackage::RefCount_ ),
-		ReField( "pLoader_",			&CsPackage::pLoader_ ),
-		ReField( "Resources_",			&CsPackage::Resources_ ),
+		ReField( "RefCount_",			&CsPackage::RefCount_,			bcRFF_TRANSIENT ),
+		ReField( "pLoader_",			&CsPackage::pLoader_,			bcRFF_TRANSIENT ),
+		ReField( "Resources_",			&CsPackage::Resources_,			bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< CsPackage, Super >( Fields );

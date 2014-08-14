@@ -37,7 +37,7 @@ struct ScnCanvasComponentVertex
 // ScnCanvasComponentPrimitiveSection
 struct ScnCanvasComponentPrimitiveSection
 {
-	eRsPrimitiveType		Type_;
+	RsTopologyType		Type_;
 	BcU32					VertexIndex_;
 	BcU32					NoofVertices_;
 	BcU32					Layer_;
@@ -105,7 +105,7 @@ public:
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void								addPrimitive( eRsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void								addPrimitive( RsTopologyType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
 
 	/**
 	 * Draw line.
@@ -220,9 +220,8 @@ protected:
 	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
-		RsVertexBuffer*					pVertexBuffer_;
-		RsPrimitive*					pPrimitive_;
-		ScnCanvasComponentVertex*		pVertices_;
+		RsBuffer*						pVertexBuffer_;
+
 	};
 
 	BcU32								CurrentRenderResource_;
@@ -231,10 +230,12 @@ protected:
 	TRenderResource*					pRenderResource_;
 
 	// Submission data.
+	ScnCanvasComponentVertex*			pWorkingVertices_;
 	ScnCanvasComponentVertex*			pVertices_;
 	ScnCanvasComponentVertex*			pVerticesEnd_;
 	BcSize								NoofVertices_;
 	BcSize								VertexIndex_;
+	SysFence							UploadFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef				MaterialComponent_;

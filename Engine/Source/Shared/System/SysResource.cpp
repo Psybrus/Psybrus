@@ -16,9 +16,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // SysResource
 SysResource::SysResource():
-	pData_( NULL ),
-	DataSize_( 0 ),
-	DeleteData_( BcFalse ),
 	Handle_( 0 )
 {
 
@@ -29,10 +26,7 @@ SysResource::SysResource():
 //virtual
 SysResource::~SysResource()
 {
-	if( DeleteData_ == BcTrue )
-	{
-		delete [] (BcU8*)pData_;
-	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,19 +50,7 @@ void SysResource::update()
 //virtual
 void SysResource::preDestroy()
 {
-	//
-	wait();
 
-	// Delete our internal resource if we need to.
-	if( DeleteData_ == BcTrue )
-	{
-		delete [] (BcU8*)pData_;
-	}
-
-	// Null internal data (shouldn't need to at this point...but belt and braces!)
-	pData_ = NULL;
-	DataSize_ = 0;
-	DeleteData_ = BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,18 +59,4 @@ void SysResource::preDestroy()
 void SysResource::destroy()
 {
 
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// wait
-void SysResource::wait()
-{
-	UpdateSyncFence_.wait( 0 );
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// getDataSize
-BcU32 SysResource::getDataSize()
-{
-	return DataSize_;
 }

@@ -16,6 +16,9 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
+#include "System/Renderer/RsTypes.h"
+
+#include <tuple>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
@@ -63,12 +66,48 @@ extern AGLContext GAGLContext;
 #  include "GL/wglew.h"
 #endif
 
-//
-#define RsGLCatchError									\
-	{													\
-		GLuint Error = glGetError();					\
-		BcAssertMsg( Error == 0, "RsGL: Error (%s:%u): 0x%x\n", __FILE__, __LINE__, Error );		\
+////////////////////////////////////////////////////////////////////////////////
+// RsGLCatchError
+void RsGLCatchError();
+
+////////////////////////////////////////////////////////////////////////////////
+// RsOpenGLType
+enum class RsOpenGLType
+{
+	CORE = 0,
+	COMPATIBILITY,
+	ES,
+	WEB
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// RsOpenGLVersion
+struct RsOpenGLVersion
+{
+	RsOpenGLVersion()
+	{
 	}
+
+	RsOpenGLVersion( BcU32 Major, BcU32 Minor, RsOpenGLType Type, RsShaderCodeType MaxCodeType ):
+		Major_( Major ),
+		Minor_( Minor ),
+		Type_( Type ),
+		MaxCodeType_( MaxCodeType )
+	{
+	}
+
+	bool operator < ( const RsOpenGLVersion& Other ) const 
+	{
+		return std::make_tuple( Major_, Minor_, Type_, MaxCodeType_ ) < std::make_tuple( Other.Major_, Minor_, Type_, MaxCodeType_ );
+	}
+
+	BcU32 Major_;
+	BcU32 Minor_;
+	RsOpenGLType Type_;
+	RsShaderCodeType MaxCodeType_;
+};
+
+
 
 #endif
 

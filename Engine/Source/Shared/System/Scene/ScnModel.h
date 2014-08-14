@@ -59,9 +59,9 @@ protected:
 	BcU8*								pVertexBufferData_;
 	BcU8*								pIndexBufferData_;
 	RsVertexElement*					pVertexElements_;
-	ScnModelPrimitiveData*				pPrimitiveData_;
+	ScnModelMeshData*				pMeshData_;
 	
-	ScnModelPrimitiveRuntimeList		PrimitiveRuntimes_;
+	ScnModelMeshRuntimeList		MeshRuntimes_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,6 +85,7 @@ public:
 
 	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
+	ScnMaterialComponentList			getMaterialComponents( const BcName& MaterialName );
 	
 public:
 	virtual void						postUpdate( BcF32 Tick );
@@ -98,6 +99,7 @@ protected:
 	ScnModelRef							Parent_;
 	ScnModelNodeTransformData*			pNodeTransformData_;
 
+	SysFence							UploadFence_;
 	SysFence							UpdateFence_;
 
 	BcU32								Layer_;
@@ -105,16 +107,15 @@ protected:
 
 	MaAABB								AABB_;
 
-	struct TPerComponentPrimitiveData
+	struct TPerComponentMeshData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsUniformBuffer*		UniformBuffer_;
+		RsBuffer*		UniformBuffer_;
 	};
 	
-	typedef std::vector< TPerComponentPrimitiveData > TPerComponentPrimitiveDataList;
+	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;
 	
-	TPerComponentPrimitiveDataList		PerComponentPrimitiveDataList_;
-
+	TPerComponentMeshDataList		PerComponentMeshDataList_;
 };
 
 #endif

@@ -14,31 +14,11 @@
 #include "System/Renderer/GL/RsFrameGL.h"
 
 #include "System/Renderer/GL/RsCoreImplGL.h"
-#include "System/Renderer/GL/RsRenderTargetGL.h"
 
 #include "Base/BcMemory.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Vertex structures.
-struct TVertex2D
-{
-	BcF32 X_, Y_;
-	BcF32 U_, V_;
-	BcU32 Colour_;
-
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XY | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-};
-
-struct TVertex3D
-{
-	BcF32 X_, Y_, Z_;
-	BcF32 U_, V_;
-	BcU32 Colour_;
-	
-	static const BcU32 VERTEX_TYPE = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-};
-
-//
 class RsPrimitiveNode: public RsRenderNode
 {
 public:
@@ -65,49 +45,11 @@ class RsViewportNode: public RsRenderNode
 public:
 	void render()
 	{
-		//RsCore::pImpl< RsCoreImplGL >()->setViewport( &Viewport_ );	
-		glViewport( 0, 0, Viewport_.width(), Viewport_.height() );
-	}
-
-	RsViewport Viewport_;
-};
-
-//
-class RsRenderTargetNode: public RsRenderNode
-{
-public:
-	void render()
-	{
- 		if( pRenderTarget_ != NULL )
-		{
-			GLuint Handle = pRenderTarget_->getHandle< GLuint >();
-			glBindFramebuffer( GL_FRAMEBUFFER, Handle );
-		}
-		else
-		{
-			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		}
-
-		const BcS32 DepthWriteEnable = pContext_->getRenderState( rsRS_DEPTH_WRITE_ENABLE );
-		const BcS32 ColourWriteMask0 = pContext_->getRenderState( rsRS_COLOR_WRITE_MASK_0 );
-		const BcS32 StencilWriteMask = pContext_->getRenderState( rsRS_STENCIL_WRITE_MASK );
-
-		pContext_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1 );
-		pContext_->setRenderState( rsRS_COLOR_WRITE_MASK_0, 15 );
-		pContext_->setRenderState( rsRS_STENCIL_WRITE_MASK, 255 );
-
-		pContext_->flushState();
-
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );		
-
-		pContext_->setRenderState( rsRS_DEPTH_WRITE_ENABLE, DepthWriteEnable );
-		pContext_->setRenderState( rsRS_COLOR_WRITE_MASK_0, ColourWriteMask0 );
-		pContext_->setRenderState( rsRS_STENCIL_WRITE_MASK, StencilWriteMask );
+		pContext_->setViewport( Viewport_ );
 	}
 	
-	RsRenderTarget* pRenderTarget_;
+	RsViewport Viewport_;
 };
-
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -171,10 +113,8 @@ void RsFrameGL::reset()
 
 	// Reset shared nodes.
 	pCurrViewport_ = NULL;
-	pCurrRenderTarget_ = NULL;
 
 	CurrViewport_ = BcErrorCode;
-	CurrRenderTarget_ = BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,6 +138,9 @@ void RsFrameGL::render()
 		{
 			RsRenderNode* pRenderNode = ppNodeArray_[ i ];
 			pRenderNode->render();
+
+			RsGLCatchError();
+
 			pRenderNode->~RsRenderNode();
 		}
 
@@ -206,42 +149,16 @@ void RsFrameGL::render()
 
 		// Flip context buffers.
 		pContext_->swapBuffers();
+
+		// Catch error.
+		RsGLCatchError();
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderTarget
-void RsFrameGL::setRenderTarget( RsRenderTarget* pRenderTarget )
-{
-	BcUnusedVar( pRenderTarget );
-
-	// Put render target into array.
-	RsRenderTargetNode* pNode = newObject< RsRenderTargetNode >();
-	ppNodeArray_[ CurrNode_++ ] = pNode;
-	
-	// Set the current viewport, rendertarget, etc.
-	//pCurrViewport_ = NULL; // TODO: FIX.
-	//CurrViewport_ = BcErrorCode;
-	pCurrRenderTarget_ = pNode;
-	CurrRenderTarget_++;
-	
-	// Set rendertarget for node.
-	pNode->pRenderTarget_ = (RsRenderTargetGL*)pRenderTarget;
-
-	// Set node context.
-	pNode->pContext_ = pContext_;
-	
-	// Set the sort value for the node.
-	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( 0, CurrRenderTarget_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
 void RsFrameGL::setViewport( const RsViewport& Viewport )
 {
-	// Assertions.
-	BcAssertMsg( pCurrRenderTarget_ != NULL, "RsFrameGL: Render target not set." );
-	
 	// Put viewport into the list.
 	RsViewportNode* pNode = newObject< RsViewportNode >();
 	ppNodeArray_[ CurrNode_++ ] = pNode;
@@ -259,14 +176,13 @@ void RsFrameGL::setViewport( const RsViewport& Viewport )
 	pNode->pContext_ = pContext_;
 
 	// Set the sort value for the node.
-	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, CurrRenderTarget_ );
+	pNode->Sort_.Value_ = RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addRenderNode
 void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 {
-	BcAssertMsg( pCurrRenderTarget_ != NULL, "RsFrame: No render target set." );
 	BcAssertMsg( pCurrViewport_ != NULL, "RsFrame: No viewport set." );
 	
 	ppNodeArray_[ CurrNode_++ ] = pNode;
@@ -275,395 +191,7 @@ void RsFrameGL::addRenderNode( RsRenderNode* pNode )
 	pNode->pContext_ = pContext_;
 
 	// Set the sort value for the node.
-	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, CurrRenderTarget_ );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// beginPrimitive
-void RsFrameGL::beginPrimitive( eRsPrimitiveType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer )
-{
-	BcAssertMsg( pCurrPrimitive_ == NULL, "RsFrameGL: Primitive already started." );
-	BcBreakpoint;
-	
-	BcUnusedVar( Type );
-	BcUnusedVar( PrimitiveMode );
-	BcUnusedVar( Layer );
-	/*
-	// Create node for rendering.
-	RsPrimitiveNode* pNode = newObject< RsPrimitiveNode >();
-
-	// Setup primitive.
-	switch( PrimitiveMode )
-	{
-	case rsFPM_2D:
-		{
-			pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-			pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
-			pNode->VertexStride_ = sizeof( TVertex2D );
-		}
-		break;
-
-	case rsFPM_3D:
-		{
-			pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_3D );
-			pNode->VertexFormat_ = TVertex3D::VERTEX_TYPE;
-			pNode->VertexStride_ = sizeof( TVertex3D );
-			break;
-		}
-	}
-
-	// Setup sort.
-	RsRenderSort Sort;
-
-	BcAssert( Layer <= RS_SORT_LAYER_MAX );
-	Sort.Value_ = 0;
-	Sort.Depth_ = RS_SORT_DEPTH_MAX;
-	Sort.Blend_ = rsBM_BLEND;
-	Sort.Pass_ = RS_SORT_PASS_FORWARD;
-	Sort.Layer_ = Layer;
-	pNode->Sort_.Value_ |= Sort.Value_;
-
-	// Basic info.
-	pNode->PrimType_= Type;
-	pNode->NoofPrims_ = 0;
-	pNode->pVertices_ = allocMem( 0 );
-
-	pCurrPrimitive_ = pNode;
-	*/
-}
-
-//////////////////////////////////////////////////////////////////////////
-// endPrimitive
-void RsFrameGL::endPrimitive()
-{
-	BcBreakpoint;
-
-	/*
-	addRenderNode( pCurrPrimitive_ );
-	pCurrPrimitive_ = NULL;
-	*/
-}
-
-//////////////////////////////////////////////////////////////////////////
-// addLine
-void RsFrameGL::addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer )
-{
-	BcBreakpoint;
-
-	BcUnusedVar( PointA );
-	BcUnusedVar( PointB );
-	BcUnusedVar( Colour );
-	BcUnusedVar( Layer );
-
-	/*
-
-	// Create instance for rendering.
-	RsPrimitiveNode* pNode = pCurrPrimitive_;
-	
-	// If we're not in the middle of a prim list, alloc a new node.
-	if( pNode == NULL )
-	{
-		pNode = newObject< RsPrimitiveNode >();
-	}
-	
-	// Setup vertices.
-	TVertex2D* pVertices = alloc< TVertex2D >( 2 );
-	
-	BcU32 CachedColour = Colour.asARGB();
-	
-	pVertices[0].X_ = PointA.x();
-	pVertices[0].Y_ = PointA.y();
-	pVertices[0].Colour_ = CachedColour;
-	
-	pVertices[1].X_ = PointB.x();
-	pVertices[1].Y_ = PointB.y();
-	pVertices[1].Colour_ = CachedColour;
-	
-	// If we've got no prim list, just add the node now.
-	if( pCurrPrimitive_ == NULL )
-	{
-		pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-		pNode->PrimType_= rsPT_LINELIST;
-		pNode->NoofPrims_ = 1;
-		pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
-		pNode->VertexStride_ = sizeof( TVertex2D );
-		pNode->pVertices_ = pVertices;
-
-		// Setup sort.
-		BcAssert( Layer <= RS_SORT_LAYER_MAX );
-		RsRenderSort Sort;
-
-		Sort.Value_ = 0;
-		Sort.Blend_ = rsBM_BLEND;
-		Sort.Pass_ = RS_SORT_PASS_FORWARD;
-		Sort.Layer_ = Layer;
-		pNode->Sort_.Value_ |= Sort.Value_;
-
-		addRenderNode( pNode );
-	}
-	else
-	{
-		BcAssert( pNode->PrimType_ == rsPT_LINELIST );
-		pNode->NoofPrims_ += 1;
-	}
-	*/
-}
-
-//////////////////////////////////////////////////////////////////////////
-// addLine
-void RsFrameGL::addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer )
-{
-	BcBreakpoint;
-
-	BcUnusedVar( PointA );
-	BcUnusedVar( PointB );
-	BcUnusedVar( Colour );
-	BcUnusedVar( Layer );
-
-	/*
-
-	// Create instance for rendering.
-	RsPrimitiveNode* pNode = pCurrPrimitive_;
-
-	// If we're not in the middle of a prim list, alloc a new node.
-	if( pNode == NULL )
-	{
-		pNode = newObject< RsPrimitiveNode >();
-	}
-
-	// Setup vertices.
-	TVertex3D* pVertices = alloc< TVertex3D >( 2 );
-
-	BcU32 CachedColour = Colour.asARGB();
-
-	pVertices[0].X_ = PointA.x();
-	pVertices[0].Y_ = PointA.y();
-	pVertices[0].Z_ = PointA.z();
-	pVertices[0].Colour_ = CachedColour;
-
-	pVertices[1].X_ = PointB.x();
-	pVertices[1].Y_ = PointB.y();
-	pVertices[1].Z_ = PointB.z();
-	pVertices[1].Colour_ = CachedColour;
-
-	// If we've got no prim list, just add the node now.
-	if( pCurrPrimitive_ == NULL )
-	{	
-		pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_3D );
-		pNode->PrimType_= rsPT_LINELIST;
-		pNode->NoofPrims_ = 1;
-		pNode->VertexFormat_ = TVertex3D::VERTEX_TYPE;
-		pNode->VertexStride_ = sizeof( TVertex3D );
-		pNode->pVertices_ = pVertices;
-		
-		// Setup sort.
-		BcAssert( Layer <= RS_SORT_LAYER_MAX );
-		RsRenderSort Sort;
-
-		Sort.Value_ = 0;
-		Sort.Depth_ = RS_SORT_DEPTH_MAX;
-		Sort.Blend_ = rsBM_BLEND;
-		Sort.Pass_ = RS_SORT_PASS_FORWARD;
-		Sort.Layer_ = Layer;
-		pNode->Sort_.Value_ |= Sort.Value_;
-
-		addRenderNode( pNode );
-	}
-	else
-	{
-		BcAssert( pNode->PrimType_ == rsPT_LINELIST );
-		pNode->NoofPrims_ += 1;
-	}
-	*/
-}
-
-//////////////////////////////////////////////////////////////////////////
-// addBox
-void RsFrameGL::addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer )
-{
-	BcBreakpoint;
-
-	BcUnusedVar( CornerA );
-	BcUnusedVar( CornerB );
-	BcUnusedVar( Colour );
-	BcUnusedVar( Layer );
-
-	/*
-	// Create instance for rendering.
-	RsPrimitiveNode* pNode = newObject< RsPrimitiveNode >();
-
-	// Setup vertices.
-	TVertex2D* pVertices = alloc< TVertex2D >( 4 );
-
-	BcU32 CachedColour = Colour.asARGB();
-
-	pVertices[0].X_ = CornerA.x();
-	pVertices[0].Y_ = CornerA.y();
-	pVertices[0].Colour_ = CachedColour;
-
-	pVertices[1].X_ = CornerB.x();
-	pVertices[1].Y_ = CornerA.y();
-	pVertices[1].Colour_ = CachedColour;
-
-	pVertices[2].X_ = CornerA.x();
-	pVertices[2].Y_ = CornerB.y();
-	pVertices[2].Colour_ = CachedColour;
-
-	pVertices[3].X_ = CornerB.x();
-	pVertices[3].Y_ = CornerB.y();
-	pVertices[3].Colour_ = CachedColour;
-
-	// If we've got no prim list, just add the node now.
-	pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-	pNode->PrimType_= rsPT_TRIANGLESTRIP;
-	pNode->NoofPrims_ = 2;
-	pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
-	pNode->VertexStride_ = sizeof( TVertex2D );
-	pNode->pVertices_ = pVertices;
-
-	// Setup sort.
-	BcAssert( Layer <= RS_SORT_LAYER_MAX );
-	RsRenderSort Sort;
-
-	Sort.Value_ = 0;
-	Sort.Depth_ = RS_SORT_DEPTH_MAX;
-	Sort.Blend_ = rsBM_BLEND;
-	Sort.Pass_ = RS_SORT_PASS_FORWARD;
-	Sort.Layer_ = Layer;
-	pNode->Sort_.Value_ |= Sort.Value_;
-
-	addRenderNode( pNode );
-	*/
-}
-
-//////////////////////////////////////////////////////////////////////////
-// addSprite
-void RsFrameGL::addSprite( RsMaterial* pMaterial, const MaVec2d& Position )
-{
-	BcBreakpoint;
-
-	BcUnusedVar( pMaterial );
-	BcUnusedVar( Position );
-
-	/*
-	BcAssert( pCurrPrimitive_ == NULL );
-
-	// Create instance for rendering.
-	RsMaterialPrimitiveNode* pNode = newObject< RsMaterialPrimitiveNode >();
-
-	// Setup vertices.
-	TVertex2D* pVertices = alloc< TVertex2D >( 4 );
-	
-	BcU32 Colour = pMaterial->colour().asARGB();
-	
-	pVertices[0].X_ = Position.x();
-	pVertices[0].Y_ = Position.y();
-	pVertices[0].U_ = 0.0f;
-	pVertices[0].V_ = 0.0f;
-	pVertices[0].Colour_ = Colour;
-	
-	pVertices[1].X_ = Position.x() + 1.0f;
-	pVertices[1].Y_ = Position.y();
-	pVertices[1].U_ = 1.0f;
-	pVertices[1].V_ = 0.0f;
-	pVertices[1].Colour_ = Colour;
-	
-	pVertices[2].X_ = Position.x();
-	pVertices[2].Y_ = Position.y() + 1.0f;
-	pVertices[2].U_ = 0.0f;
-	pVertices[2].V_ = 1.0f;
-	pVertices[2].Colour_ = Colour;
-	
-	pVertices[3].X_ = Position.x() + 1.0f;
-	pVertices[3].Y_ = Position.y() + 1.0f;
-	pVertices[3].U_ = 1.0f;
-	pVertices[3].V_ = 1.0f;
-	pVertices[3].Colour_ = Colour;
-
-	pNode->pEffect_ = RsCore::pImpl()->getDefaultEffect( rsFX_GEO_2D );
-	pNode->PrimType_= rsPT_TRIANGLESTRIP;
-	pNode->NoofPrims_ = 2;
-	pNode->VertexFormat_ = TVertex2D::VERTEX_TYPE;
-	pNode->VertexStride_ = sizeof( TVertex2D );
-	pNode->pVertices_ = pVertices;
-
-	// Setup sort.
-	RsRenderSort Sort;
-
-	Sort.Value_ = pMaterial->sort().Value_;
-	Sort.Pass_ = RS_SORT_PASS_OVERLAY;
-	pNode->Sort_.Value_ |= Sort.Value_;
-
-	addRenderNode( pNode );
-	*/
-}
-
-//////////////////////////////////////////////////////////////////////////
-// addPrimitive
-void RsFrameGL::addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, eRsPrimitiveType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth )
-{
-	BcBreakpoint;
-
-	BcUnusedVar( pMaterial );
-	BcUnusedVar( pEffect );
-	BcUnusedVar( Type );
-	BcUnusedVar( NoofPrimitives );
-	BcUnusedVar( VertexFormat );
-	BcUnusedVar( pVertices );
-	BcUnusedVar( Layer );
-	BcUnusedVar( Depth );
-
-	/*
-	BcAssert( pCurrPrimitive_ == NULL );
-
-	if( pMaterial != NULL )
-	{
-		// Create node for rendering.
-		RsMaterialPrimitiveNode* pNode = newObject< RsMaterialPrimitiveNode >();
-
-		pNode->pEffect_ = pEffect != NULL ? pEffect : RsCore::pImpl()->getDefaultEffect( rsFX_GEO_3D );
-		pNode->pMaterial_ = pMaterial;
-		pNode->PrimType_ = Type;
-		pNode->NoofPrims_ = NoofPrimitives;
-		pNode->VertexFormat_ = VertexFormat;
-		pNode->VertexStride_ = RsVertexDeclSize( VertexFormat );
-		pNode->pVertices_ = pVertices;
-
-		// Setup sort.
-		RsRenderSort Sort;
-		Sort = pMaterial->sort();
-		Sort.Depth_ = Depth;
-		pNode->Sort_.Value_ |= Sort.Value_;
-
-		//
-		addRenderNode( pNode );
-	}
-	else
-	{
-		// Create node for rendering.
-		RsPrimitiveNode* pNode = new( alloc< RsPrimitiveNode >() ) RsPrimitiveNode();
-
-		pNode->pEffect_ = pEffect != NULL ? pEffect : RsCore::pImpl()->getDefaultEffect( rsFX_GEO_3D );
-		pNode->PrimType_ = Type;
-		pNode->NoofPrims_ = NoofPrimitives;
-		pNode->VertexFormat_ = VertexFormat;
-		pNode->VertexStride_ = RsVertexDeclSize( VertexFormat );
-		pNode->pVertices_ = pVertices;
-
-		// Setup sort.
-		RsRenderSort Sort;
-
-		BcAssert( Layer <= RS_SORT_LAYER_MAX );
-		Sort.Value_ = 0;
-		pNode->Sort_.Depth_ = Depth;
-		pNode->Sort_.Blend_ = rsBM_BLEND;
-		pNode->Sort_.Pass_ = RS_SORT_PASS_FORWARD;
-		pNode->Sort_.Layer_ = Layer;
-		pNode->Sort_.Value_ |= Sort.Value_;
-
-		addRenderNode( pNode );
-	}
-	*/
+	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( CurrViewport_, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////

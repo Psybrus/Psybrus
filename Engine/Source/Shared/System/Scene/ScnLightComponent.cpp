@@ -197,14 +197,16 @@ void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComp
 {
 	const MaVec4d& Position( getParentEntity()->getWorldMatrix().row3() );
 	const MaVec4d& Direction( getParentEntity()->getWorldMatrix().row2() );
+	/*
 	MaterialComponent->setLightParameters( LightIndex,
 	                                       MaVec3d( Position.x(), Position.y(), Position.z() ),
 	                                       MaVec3d( Direction.x(), Direction.y(), Direction.z() ),
 	                                       AmbientColour_,
-										   DiffuseColour_,
+	                                       DiffuseColour_,
 	                                       AttnC_,
 	                                       AttnL_,
 	                                       AttnQ_ );
+	                                       */
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -30,6 +30,9 @@ class ScnShader:
 	public CsResource
 {
 public:
+	static const BcU32 LOAD_FROM_FILE_TAG = 0x01020304;
+
+public:
 	DECLARE_RESOURCE( CsResource, ScnShader );
 	
 #ifdef PSY_SERVER
@@ -39,11 +42,11 @@ public:
 	virtual void						create();
 	virtual void						destroy();
 	
-	RsProgram*							getProgram( BcU32 PermutationFlags );
+	RsProgram*							getProgram( ScnShaderPermutationFlags PermutationFlags );
 	
 private:
 	typedef std::map< BcU32, RsShader* > TShaderMap;
-	typedef std::map< BcU32, RsProgram* > TProgramMap;
+	typedef std::map< ScnShaderPermutationFlags, RsProgram* > TProgramMap;
 	typedef TShaderMap::iterator TShaderMapIterator;
 	typedef TProgramMap::iterator TProgramMapIterator;
 
@@ -61,8 +64,10 @@ private:
 private:
 	ScnShaderHeader*					pHeader_;
 	RsProgramVertexAttribute*			pVertexAttributes_;
-	std::array< ShaderContainer, rsST_MAX > ShaderMappings_;
+	std::array< ShaderContainer, (BcU32)RsShaderType::MAX > ShaderMappings_;
 	TProgramMap							ProgramMap_;
+	RsShaderCodeType					TargetCodeType_;
+	BcU32								TotalProgramsLoaded_;
 
 };
 

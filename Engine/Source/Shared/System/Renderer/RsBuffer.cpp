@@ -1,8 +1,8 @@
 /**************************************************************************
 *
-* File:		RsVertexBuffer.cpp
+* File:		RsBuffer.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	28/02/11	
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -11,48 +11,47 @@
 * 
 **************************************************************************/
 
-#include "System/Renderer/RsVertexBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
-// RsVertexBufferDesc
-RsVertexBufferDesc::RsVertexBufferDesc():
-	NoofVertices_( 0 ),
-	Stride_( 0 )
+// RsBufferDesc
+RsBufferDesc::RsBufferDesc():
+	Type_( RsBufferType::UNKNOWN ),
+	SizeBytes_( 0 )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
-// RsVertexBufferDesc
-RsVertexBufferDesc::RsVertexBufferDesc( BcU32 NoofVertices ):
-	NoofVertices_( NoofVertices )
+// RsBufferDesc
+RsBufferDesc::RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, BcU32 SizeBytes ):
+	Type_( Type ),
+	Flags_( Flags ),
+	SizeBytes_( SizeBytes )
 {
 
 }
-
-//////////////////////////////////////////////////////////////////////////
-// RsVertexBufferDesc
-RsVertexBufferDesc::RsVertexBufferDesc( BcU32 NoofVertices, BcU32 Stride ):
-	NoofVertices_( NoofVertices ),
-	Stride_( Stride )
-{
-
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsVertexBuffer::RsVertexBuffer( class RsContext* pContext ):
-	RsResource( pContext )
+RsBuffer::RsBuffer( class RsContext* pContext, const RsBufferDesc& BufferDesc ):
+	RsResource( pContext ),
+	BufferDesc_( BufferDesc )
 {
-	
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-//virtual
-RsVertexBuffer::~RsVertexBuffer()
+//virtual 
+RsBuffer::~RsBuffer()
 {
-	
-}
 
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// getDesc
+const RsBufferDesc& RsBuffer::getDesc() const
+{
+	return BufferDesc_;
+}

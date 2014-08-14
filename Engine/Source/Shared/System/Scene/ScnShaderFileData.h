@@ -2,7 +2,7 @@
 *
 * File:		ScnShaderFileData.h
 * Author:	Neil Richardson 
-* Ver/Date:	22/12/12
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -16,60 +16,123 @@
 
 #include "Base/BcTypes.h"
 
+#include "Reflection/ReReflection.h"
+
+#include "System/Renderer/RsTypes.h"
+#include "Math/MaMat4d.h"
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPermutationType
+enum class ScnShaderPermutationType : BcU32
+{
+	// Render types.
+	RENDER_FIRST,
+	RENDER_FORWARD = RENDER_FIRST,						// Forward rendering.
+	RENDER_DEFERRED,									// Deferred rendering.
+	RENDER_FORWARD_PLUS,								// Forward plus rendering.
+	RENDER_POST_PROCESS,								// Post process rendering.
+	RENDER_MAX,
+	RENDER_COUNT = RENDER_MAX - RENDER_FIRST,
+	
+	// Pass types.
+	PASS_FIRST = RENDER_MAX,
+	PASS_MAIN = PASS_FIRST,								// Main pass. (Typical default)
+	PASS_SHADOW,										// Shadow pass (Render to shadow buffer)
+	PASS_MAX,
+	PASS_COUNT = PASS_MAX - PASS_FIRST,
+	
+	// Mesh types.
+	MESH_FIRST = PASS_MAX,
+	MESH_STATIC_2D = MESH_FIRST,						// Static 2D.
+	MESH_STATIC_3D,										// Static 3D.
+	MESH_SKINNED_3D	,									// Skinned 3D.
+	MESH_PARTICLE_3D,									// Particle 3D.
+	MESH_INSTANCED_3D,									// Instanced 3D.
+	MESH_MAX,
+	MESH_COUNT = MESH_MAX - MESH_FIRST,
+	
+	// Lighting types.
+	LIGHTING_FIRST = MESH_MAX,
+	LIGHTING_NONE = LIGHTING_FIRST,						// Unlit geometry.
+	LIGHTING_DIFFUSE,									// Diffuse lit geometry.
+	LIGHTING_MAX,
+	LIGHTING_COUNT = LIGHTING_MAX - LIGHTING_FIRST,
+
+	// Vertex colour types.
+	VERTEX_COLOUR_FIRST = LIGHTING_MAX,
+	VERTEX_COLOUR_NONE = VERTEX_COLOUR_FIRST,			// No vertex colour.
+	VERTEX_COLOUR_MULTIPLY_0,							// 1 vertex colour.
+	VERTEX_COLOUR_MAX,
+	VERTEX_COLOUR_COUNT = VERTEX_COLOUR_MAX - VERTEX_COLOUR_FIRST,
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderPermutationFlags
-enum ScnShaderPermutationFlags
+enum class ScnShaderPermutationFlags : BcU32
 {
+	NONE = 0,
+
 	// Render type.
-	scnSPF_RENDER_FORWARD				= 0x00000001,		// Forward rendering.
-	scnSPF_RENDER_DEFERRED				= 0x00000002,		// Deferred rendering.
-	scnSPF_RENDER_FORWARD_PLUS			= 0x00000004,		// Forward plus rendering.
-	scnSPF_RENDER_POST_PROCESS			= 0x00000008,		// Post process rendering.
+	RENDER_FORWARD				= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD,
+	RENDER_DEFERRED				= 1 << (BcU32)ScnShaderPermutationType::RENDER_DEFERRED,
+	RENDER_FORWARD_PLUS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD_PLUS,
+	RENDER_POST_PROCESS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_POST_PROCESS,
+	RENDER_ALL = 
+		RENDER_FORWARD | 
+		RENDER_DEFERRED | 
+		RENDER_FORWARD_PLUS | 
+		RENDER_POST_PROCESS,
+	
+	// Pass type.
+	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,
+	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,
+	PASS_ALL =
+		PASS_MAIN |
+		PASS_SHADOW,
 
 	// Mesh type.
-	scnSPF_MESH_STATIC_2D				= 0x00000100,		// Static 2D.
-	scnSPF_MESH_STATIC_3D				= 0x00000200,		// Static 3D.
-	scnSPF_MESH_SKINNED_3D				= 0x00000400,		// Skinned 3D.
-	scnSPF_MESH_PARTICLE_3D				= 0x00000800,		// Particle 3D.
-	scnSPF_MESH_INSTANCED_3D			= 0x00001000,		// Instanced 3D.
+	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,
+	MESH_STATIC_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_3D,
+	MESH_SKINNED_3D				= 1 << (BcU32)ScnShaderPermutationType::MESH_SKINNED_3D,
+	MESH_PARTICLE_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_PARTICLE_3D,
+	MESH_INSTANCED_3D			= 1 << (BcU32)ScnShaderPermutationType::MESH_INSTANCED_3D,
+	MESH_ALL =
+		MESH_STATIC_2D |
+		MESH_STATIC_3D |
+		MESH_SKINNED_3D |
+		MESH_PARTICLE_3D |
+		MESH_INSTANCED_3D,
 
 	// Lighting type.
-	scnSPF_LIGHTING_NONE				= 0x00010000,		// Unlit geometry.
-	scnSPF_LIGHTING_DIFFUSE				= 0x00020000,		// Diffuse lit geometry.
+	LIGHTING_NONE				= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_NONE,
+	LIGHTING_DIFFUSE			= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_DIFFUSE,
+	LIGHTING_ALL = 
+		LIGHTING_NONE |
+		LIGHTING_DIFFUSE,
 };
 
-//////////////////////////////////////////////////////////////////////////
-// ScnShaderCodeType
-enum ScnShaderCodeType
+inline ScnShaderPermutationFlags operator |= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
 {
-	scnSCT_INVALID = 0,
+	In = (ScnShaderPermutationFlags)( (int)In | (int)Other );
+	return In;
+}
 
-	// D3D11
-	scnSCT_D3D11_4_0_level_9_1,
-	scnSCT_D3D11_4_0_level_9_3,
-	scnSCT_D3D11_4_0,
-	scnSCT_D3D11_4_1,
-	scnSCT_D3D11_5_1,
+inline ScnShaderPermutationFlags operator | ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
+{
+	return (ScnShaderPermutationFlags)( (int)In | (int)Other );
+}
 
-	// GLSL ES
-	scnSCT_GLSL_ES_100,
-	scnSCT_GLSL_ES_300,
-	scnSCT_GLSL_ES_310,
+inline ScnShaderPermutationFlags operator &= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
+{
+	In = (ScnShaderPermutationFlags)( (int)In & (int)Other );
+	return In;
+}
 
-	// GLSL
-	scnSCT_GLSL_120,
-	scnSCT_GLSL_130,
-	scnSCT_GLSL_140,
-	scnSCT_GLSL_150,
-	scnSCT_GLSL_330,
-	scnSCT_GLSL_400,
-	scnSCT_GLSL_410,
-	scnSCT_GLSL_420,
-	scnSCT_GLSL_430,
-	scnSCT_GLSL_440,
-
-	scnSCT_MAX
-};
+inline ScnShaderPermutationFlags operator & ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
+{
+	return (ScnShaderPermutationFlags)( (int)In & (int)Other );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader
@@ -77,34 +140,38 @@ struct ScnShaderHeader
 {
 	BcU32							NoofShaderPermutations_;
 	BcU32							NoofProgramPermutations_;
+	BcU32							NoofShaderCodeTypes_;
 };
-	
+
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderUnitHeader
 struct ScnShaderUnitHeader
 {
-	eRsShaderType					ShaderType_;
-	eRsShaderDataType				ShaderDataType_;
-	ScnShaderCodeType				ShaderCodeType_;
+	RsShaderType					ShaderType_;
+	RsShaderDataType				ShaderDataType_;
+	RsShaderCodeType				ShaderCodeType_;
 	BcU32							ShaderHash_;
-	BcU32							PermutationFlags_;
+	ScnShaderPermutationFlags		PermutationFlags_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderProgramHeader
 struct ScnShaderProgramHeader
 {
-	BcU32							ProgramPermutationFlags_;
-	BcU32							ShaderFlags_;
-	ScnShaderCodeType				ShaderCodeType_;
+	ScnShaderPermutationFlags		ProgramPermutationFlags_;
+	ScnShaderPermutationFlags		ShaderFlags_;
+	RsShaderCodeType				ShaderCodeType_;
 	BcU32							NoofVertexAttributes_;
-	BcU32							ShaderHashes_[ rsST_MAX ];
+	BcU32							ShaderHashes_[ (BcU32)RsShaderType::MAX ];
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderViewUniformBlockData
 struct ScnShaderViewUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderViewUniformBlockData );
+	ScnShaderViewUniformBlockData(){};
+
 	MaMat4d							InverseProjectionTransform_;
 	MaMat4d							ProjectionTransform_;
 	MaMat4d							InverseViewTransform_;
@@ -116,6 +183,9 @@ struct ScnShaderViewUniformBlockData
 // ScnShaderLightUniformBlockData
 struct ScnShaderLightUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderLightUniformBlockData );
+	ScnShaderLightUniformBlockData(){};
+
 	MaVec3d							LightPosition_[4];
 	MaVec3d							LightDirection_[4];
 	MaVec4d							LightAmbientColour_[4];
@@ -127,6 +197,9 @@ struct ScnShaderLightUniformBlockData
 // ScnShaderObjectUniformBlockData
 struct ScnShaderObjectUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderObjectUniformBlockData );
+	ScnShaderObjectUniformBlockData(){};
+
 	MaMat4d							WorldTransform_;
 };
 
@@ -134,13 +207,21 @@ struct ScnShaderObjectUniformBlockData
 // ScnShaderBoneUniformBlockData
 struct ScnShaderBoneUniformBlockData
 {
-	MaMat4d							BoneTransform_[24];
+	REFLECTION_DECLARE_BASIC( ScnShaderBoneUniformBlockData );
+	ScnShaderBoneUniformBlockData(){};
+
+	static const BcU32 MAX_BONES = 24;
+
+	MaMat4d							BoneTransform_[ MAX_BONES ];
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderAlphaTestUniformBlockData
 struct ScnShaderAlphaTestUniformBlockData
 {
+	REFLECTION_DECLARE_BASIC( ScnShaderAlphaTestUniformBlockData );
+	ScnShaderAlphaTestUniformBlockData(){};
+
 	MaVec4d							AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 };
 

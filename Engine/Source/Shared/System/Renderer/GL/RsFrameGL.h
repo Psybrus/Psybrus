@@ -35,20 +35,9 @@ public:
 	RsContext*		getContext() const;
 	void			reset();
 	void			render();
-	void			setRenderTarget( RsRenderTarget* pRenderTarget );
 	void			setViewport( const RsViewport& Viewport );
 	void			addRenderNode( RsRenderNode* pInstance );
 	
-	void			beginPrimitive( eRsPrimitiveType Type, eRsFramePrimitiveMode PrimitiveMode, BcU32 Layer );
-	void			endPrimitive();
-	void			addLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer );
-	void			addLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer );
-	void			addBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer );
-
-	void			addSprite( RsMaterial* pMaterial, const MaVec2d& Position );
-
-	void			addPrimitive( RsMaterial* pMaterial, RsEffect* pEffect, eRsPrimitiveType Type, BcU32 NoofPrimitives, BcU32 VertexFormat, const void* pVertices, BcU32 Layer, BcU32 Depth );
-
 	void*			allocMem( BcSize Bytes );
 
 private:
@@ -56,9 +45,6 @@ private:
 	void			sortNodeRadix( BcU32 Bits, BcU32 NoofItems, RsRenderNode** pSrc, RsRenderNode** pDst );
 
 private:
-	struct RsFrameRenderTarget;
-	struct RsFrameViewport;
-
 	RsContextGL*			pContext_;
 
 	RsRenderNode**			ppNodeArray_;
@@ -69,10 +55,8 @@ private:
 	RsPrimitiveNode*		pCurrPrimitive_;
 
 	RsViewportNode*			pCurrViewport_;
-	RsRenderTargetNode*		pCurrRenderTarget_;
 
 	BcU32					CurrViewport_;
-	BcU32					CurrRenderTarget_;
 
 private:
 	BcU8*					pFrameMem_;

@@ -36,7 +36,7 @@ struct ScnDebugRenderComponentVertex
 // ScnDebugRenderComponentPrimitiveSection
 struct ScnDebugRenderComponentPrimitiveSection
 {
-	eRsPrimitiveType		Type_;
+	RsTopologyType		Type_;
 	BcU32					VertexIndex_;
 	BcU32					NoofVertices_;
 	BcU32					Layer_;
@@ -79,7 +79,7 @@ public:
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void								addPrimitive( eRsPrimitiveType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void								addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
 
 	/**
 	 * Draw line.
@@ -153,23 +153,22 @@ protected:
 	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
-		RsUniformBuffer*				UniformBuffer_;
-		RsVertexBuffer*					pVertexBuffer_;
-		RsPrimitive*					pPrimitive_;
+		RsBuffer*				UniformBuffer_;
+		RsBuffer*						pVertexBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
-		ScnDebugRenderComponentVertex*	pVertices_;
 	};
 
 	BcU32								CurrentRenderResource_;
-	BcBool								HaveVertexBufferLock_;
 	TRenderResource						RenderResources_[ 2 ];
 	TRenderResource*					pRenderResource_;
 
 	// Submission data.
+	ScnDebugRenderComponentVertex*		pWorkingVertices_;
 	ScnDebugRenderComponentVertex*		pVertices_;
 	ScnDebugRenderComponentVertex*		pVerticesEnd_;
 	BcU32								NoofVertices_;
 	BcU32								VertexIndex_;
+	SysFence							UploadFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef				MaterialComponent_;

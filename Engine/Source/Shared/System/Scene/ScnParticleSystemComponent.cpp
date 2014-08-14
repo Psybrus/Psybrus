@@ -47,7 +47,8 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
 	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
-	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_PARTICLE_3D ) )
+	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, 
+		ScnShaderPermutationFlags::MESH_PARTICLE_3D ) )
 	{
 		BcAssertMsg( BcFalse, "Material invalid blah." );
 	}
@@ -61,8 +62,6 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 		ScnRect Rect = Texture->getRect( Idx );
 		UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
 	}
-
-	WorldTransformParam_ = MaterialComponent_->findParameter( "uWorldTransform" );
 
 	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 	pParticleBuffer_ = NULL;
@@ -80,25 +79,30 @@ void ScnParticleSystemComponent::create()
 	// TODO: Use index buffer.
 	// Calc what we need.
 	BcU32 NoofVertices = NoofParticles_ * 6;	// 2x3 tris.
-	BcU32 VertexDescriptor = rsVDF_POSITION_XYZ | rsVDF_NORMAL_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
 
 	// Create vertex declaration.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 4 )
-			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_NORMAL,		0 ) )
-			.addElement( RsVertexElement( 0, 24,			2,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 32,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,		0 ) )
+			.addElement( RsVertexElement( 0, 24,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 32,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ) );
 
 	// Allocate vertex buffers.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		VertexBuffer.pVertexArray_ =  new ScnParticleVertex[ NoofVertices ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices, 36 ), VertexBuffer.pVertexArray_ ); 
-		VertexBuffer.pPrimitive_ = RsCore::pImpl()->createPrimitive( RsPrimitiveDesc( VertexDeclaration_ )
-			.setVertexBuffer( 0, VertexBuffer.pVertexBuffer_ ) );
-		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( VertexBuffer.ObjectUniforms_ ) ), &VertexBuffer.ObjectUniforms_ );
+		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX, 
+				RsResourceCreationFlags::STREAM, 
+				NoofVertices * sizeof( ScnParticleVertex ) ) );
+
+		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::UNIFORM,
+				RsResourceCreationFlags::STREAM,
+				sizeof( VertexBuffer.ObjectUniforms_ ) ) );
 	}
 
 	// Allocate particles.
@@ -117,20 +121,11 @@ void ScnParticleSystemComponent::destroy()
 	{
 		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
 		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( VertexBuffer.pPrimitive_ );
 		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
 	}
 
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 	
-	// Delete working data.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		delete [] VertexBuffer.pVertexArray_;
-	}
-
-
 	delete [] pParticleBuffer_;
 }
 
@@ -169,11 +164,13 @@ class ScnParticleSystemComponentRenderNode: public RsRenderNode
 public:
 	void render()
 	{
-		pContext_->setPrimitive( pPrimitive_ );
-		pContext_->drawPrimitives( rsPT_TRIANGLELIST, 0, NoofIndices_ );
+		pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnParticleVertex ) );
+		pContext_->setVertexDeclaration( VertexDeclaration_ );
+		pContext_->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofIndices_ );
 	}
 	
-	RsPrimitive* pPrimitive_;
+	RsBuffer* VertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
 	BcU32 NoofIndices_;
 };
 
@@ -187,128 +184,140 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
 	CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
 
-	// Lock vertex buffer.
-	VertexBuffer.pVertexBuffer_->lock();
-
-	// Iterate over alive particles, and setup vertex buffer.
+	// Calculate lock size.
 	BcU32 NoofParticlesToRender = 0;
-	ScnParticleVertex* pVertex = VertexBuffer.pVertexArray_;
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
 	{
 		ScnParticle& Particle = pParticleBuffer_[ Idx ];
 
 		if( Particle.Alive_ )
 		{
-			// Half size.
-			const MaVec2d HalfSize = Particle.Scale_ * 0.5f;
-			const BcF32 MaxHalfSize = BcMax( HalfSize.x(), HalfSize.y() );
-			BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
-			const MaVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
-
-			// Crappy rotation implementation :P
-			const BcF32 Radians = Particle.Rotation_;
-			MaVec2d CornerA = MaVec2d( -1.0f, -1.0f ) * HalfSize;
-			MaVec2d CornerB = MaVec2d(  1.0f, -1.0f ) * HalfSize;
-			MaVec2d CornerC = MaVec2d(  1.0f,  1.0f ) * HalfSize;
-			MaVec2d CornerD = MaVec2d( -1.0f,  1.0f ) * HalfSize;
-			if( Radians != NULL )
-			{
-				MaMat4d Rotation;
-				Rotation.rotation( MaVec3d( 0.0f, 0.0f, Radians ) );
-				CornerA = CornerA * Rotation;
-				CornerB = CornerB * Rotation;
-				CornerC = CornerC * Rotation;
-				CornerD = CornerD * Rotation;
-			}
-
-			const BcU32 Colour = Particle.Colour_.asABGR();
-
-			// Grab vertices.
-			ScnParticleVertex& VertexA = *pVertex++;
-			ScnParticleVertex& VertexB = *pVertex++;
-			ScnParticleVertex& VertexC = *pVertex++;
-
-			ScnParticleVertex& VertexD = *pVertex++;
-			ScnParticleVertex& VertexE = *pVertex++;
-			ScnParticleVertex& VertexF = *pVertex++;
-			
-			// 
-			VertexA.X_ = Particle.Position_.x();
-			VertexA.Y_ = Particle.Position_.y();
-			VertexA.Z_ = Particle.Position_.z();
-			VertexA.NX_ = CornerA.x();
-			VertexA.NY_ = CornerA.y();
-			VertexA.NZ_ = 0.0f;
-			VertexA.U_ = UVBounds.x();
-			VertexA.V_ = UVBounds.y();
-			VertexA.RGBA_ = Colour;
-
-			// 
-			VertexB.X_ = Particle.Position_.x();
-			VertexB.Y_ = Particle.Position_.y();
-			VertexB.Z_ = Particle.Position_.z();
-			VertexB.NX_ = CornerB.x();
-			VertexB.NY_ = CornerB.y();
-			VertexB.NZ_ = 0.0f;
-			VertexB.U_ = UVBounds.z();
-			VertexB.V_ = UVBounds.y();
-			VertexB.RGBA_ = Colour;
-
-			// 
-			VertexC.X_ = Particle.Position_.x();
-			VertexC.Y_ = Particle.Position_.y();
-			VertexC.Z_ = Particle.Position_.z();
-			VertexC.NX_ = CornerC.x();
-			VertexC.NY_ = CornerC.y();
-			VertexC.NZ_ = 0.0f;
-			VertexC.U_ = UVBounds.z();
-			VertexC.V_ = UVBounds.w();
-			VertexC.RGBA_ = Colour;
-
-			// 
-			VertexD.X_ = Particle.Position_.x();
-			VertexD.Y_ = Particle.Position_.y();
-			VertexD.Z_ = Particle.Position_.z();
-			VertexD.NX_ = CornerC.x();
-			VertexD.NY_ = CornerC.y();
-			VertexD.NZ_ = 0.0f;
-			VertexD.U_ = UVBounds.z();
-			VertexD.V_ = UVBounds.w();
-			VertexD.RGBA_ = Colour;
-
-			// 
-			VertexE.X_ = Particle.Position_.x();
-			VertexE.Y_ = Particle.Position_.y();
-			VertexE.Z_ = Particle.Position_.z();
-			VertexE.NX_ = CornerD.x();
-			VertexE.NY_ = CornerD.y();
-			VertexE.NZ_ = 0.0f;
-			VertexE.U_ = UVBounds.x();
-			VertexE.V_ = UVBounds.w();
-			VertexE.RGBA_ = Colour;
-
-			// 
-			VertexF.X_ = Particle.Position_.x();
-			VertexF.Y_ = Particle.Position_.y();
-			VertexF.Z_ = Particle.Position_.z();
-			VertexF.NX_ = CornerA.x();
-			VertexF.NY_ = CornerA.y();
-			VertexF.NZ_ = 0.0f;
-			VertexF.U_ = UVBounds.x();
-			VertexF.V_ = UVBounds.y();
-			VertexF.RGBA_ = Colour;
-			
-			//
 			++NoofParticlesToRender;
 		}
 	}
 
-	// Update and unlock vertex buffer.	
-	VertexBuffer.pVertexBuffer_->setNoofUpdateVertices( NoofParticlesToRender * 6 );
-	VertexBuffer.pVertexBuffer_->unlock();
+	// Lock vertex buffer.
+	UploadFence_.increment();
+	RsCore::pImpl()->updateBuffer( 
+		VertexBuffer.pVertexBuffer_,
+		0,
+		NoofParticlesToRender * sizeof( ScnParticleVertex ),
+		RsResourceUpdateFlags::ASYNC,
+		[ & ]
+		( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			ScnParticleVertex* pVertex = reinterpret_cast< ScnParticleVertex* >( Lock.Buffer_ );
+			for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
+			{
+				ScnParticle& Particle = pParticleBuffer_[ Idx ];
+
+				if( Particle.Alive_ )
+				{
+					// Half size.
+					const MaVec2d HalfSize = Particle.Scale_ * 0.5f;
+					const BcF32 MaxHalfSize = BcMax( HalfSize.x(), HalfSize.y() );
+					BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
+					const MaVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
+
+					// Crappy rotation implementation :P
+					const BcF32 Radians = Particle.Rotation_;
+					MaVec2d CornerA = MaVec2d( -1.0f, -1.0f ) * HalfSize;
+					MaVec2d CornerB = MaVec2d(  1.0f, -1.0f ) * HalfSize;
+					MaVec2d CornerC = MaVec2d(  1.0f,  1.0f ) * HalfSize;
+					MaVec2d CornerD = MaVec2d( -1.0f,  1.0f ) * HalfSize;
+					if( Radians != NULL )
+					{
+						MaMat4d Rotation;
+						Rotation.rotation( MaVec3d( 0.0f, 0.0f, Radians ) );
+						CornerA = CornerA * Rotation;
+						CornerB = CornerB * Rotation;
+						CornerC = CornerC * Rotation;
+						CornerD = CornerD * Rotation;
+					}
+
+					const BcU32 Colour = Particle.Colour_.asABGR();
+
+					// Grab vertices.
+					ScnParticleVertex& VertexA = *pVertex++;
+					ScnParticleVertex& VertexB = *pVertex++;
+					ScnParticleVertex& VertexC = *pVertex++;
+
+					ScnParticleVertex& VertexD = *pVertex++;
+					ScnParticleVertex& VertexE = *pVertex++;
+					ScnParticleVertex& VertexF = *pVertex++;
+			
+					// 
+					VertexA.X_ = Particle.Position_.x();
+					VertexA.Y_ = Particle.Position_.y();
+					VertexA.Z_ = Particle.Position_.z();
+					VertexA.NX_ = CornerA.x();
+					VertexA.NY_ = CornerA.y();
+					VertexA.NZ_ = 0.0f;
+					VertexA.U_ = UVBounds.x();
+					VertexA.V_ = UVBounds.y();
+					VertexA.RGBA_ = Colour;
+
+					// 
+					VertexB.X_ = Particle.Position_.x();
+					VertexB.Y_ = Particle.Position_.y();
+					VertexB.Z_ = Particle.Position_.z();
+					VertexB.NX_ = CornerB.x();
+					VertexB.NY_ = CornerB.y();
+					VertexB.NZ_ = 0.0f;
+					VertexB.U_ = UVBounds.z();
+					VertexB.V_ = UVBounds.y();
+					VertexB.RGBA_ = Colour;
+
+					// 
+					VertexC.X_ = Particle.Position_.x();
+					VertexC.Y_ = Particle.Position_.y();
+					VertexC.Z_ = Particle.Position_.z();
+					VertexC.NX_ = CornerC.x();
+					VertexC.NY_ = CornerC.y();
+					VertexC.NZ_ = 0.0f;
+					VertexC.U_ = UVBounds.z();
+					VertexC.V_ = UVBounds.w();
+					VertexC.RGBA_ = Colour;
+
+					// 
+					VertexD.X_ = Particle.Position_.x();
+					VertexD.Y_ = Particle.Position_.y();
+					VertexD.Z_ = Particle.Position_.z();
+					VertexD.NX_ = CornerC.x();
+					VertexD.NY_ = CornerC.y();
+					VertexD.NZ_ = 0.0f;
+					VertexD.U_ = UVBounds.z();
+					VertexD.V_ = UVBounds.w();
+					VertexD.RGBA_ = Colour;
+
+					// 
+					VertexE.X_ = Particle.Position_.x();
+					VertexE.Y_ = Particle.Position_.y();
+					VertexE.Z_ = Particle.Position_.z();
+					VertexE.NX_ = CornerD.x();
+					VertexE.NY_ = CornerD.y();
+					VertexE.NZ_ = 0.0f;
+					VertexE.U_ = UVBounds.x();
+					VertexE.V_ = UVBounds.w();
+					VertexE.RGBA_ = Colour;
+
+					// 
+					VertexF.X_ = Particle.Position_.x();
+					VertexF.Y_ = Particle.Position_.y();
+					VertexF.Z_ = Particle.Position_.z();
+					VertexF.NX_ = CornerA.x();
+					VertexF.NY_ = CornerA.y();
+					VertexF.NZ_ = 0.0f;
+					VertexF.U_ = UVBounds.x();
+					VertexF.V_ = UVBounds.y();
+					VertexF.RGBA_ = Colour;
+				}
+			}
+
+			UploadFence_.decrement();
+		} );
 
 	// Update uniform buffer.
-	VertexBuffer.UniformBuffer_->lock();
 	if( IsLocalSpace_ )
 	{
 		VertexBuffer.ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
@@ -317,7 +326,16 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	{
 		VertexBuffer.ObjectUniforms_.WorldTransform_ = MaMat4d();
 	}
-	VertexBuffer.UniformBuffer_->unlock();
+
+	// Upload uniforms.
+	RsCore::pImpl()->updateBuffer( 
+		VertexBuffer.UniformBuffer_,
+		0, sizeof( VertexBuffer.ObjectUniforms_ ),
+		RsResourceUpdateFlags::ASYNC,
+		[ this, VertexBuffer ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			BcMemCopy( Lock.Buffer_, &VertexBuffer.ObjectUniforms_, sizeof( VertexBuffer.ObjectUniforms_ ) );
+		} );
 
 	// Draw particles last.
 	if( NoofParticlesToRender > 0 )
@@ -332,7 +350,8 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 
 		// Setup render node.
 		ScnParticleSystemComponentRenderNode* pRenderNode = pFrame->newObject< ScnParticleSystemComponentRenderNode >();
-		pRenderNode->pPrimitive_ = VertexBuffer.pPrimitive_;
+		pRenderNode->VertexBuffer_ = VertexBuffer.pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		pRenderNode->NoofIndices_ = NoofParticlesToRender * 6;
 
 		// Add to frame.
@@ -439,6 +458,9 @@ void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcF32 Ti
 // updateParticles
 void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
 {
+	// Wait for upload to have completed.
+	UploadFence_.wait();
+
 	// TODO: Iterate over every "affector" at a time, rather than by particle.
 	// - See "updateParticle".
 

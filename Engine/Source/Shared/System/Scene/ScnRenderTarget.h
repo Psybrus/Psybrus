@@ -19,8 +19,6 @@
 #include "System/Scene/ScnTexture.h"
 #include "System/Scene/ScnTypes.h"
 
-#include "System/Renderer/RsRenderTarget.h"
-
 //////////////////////////////////////////////////////////////////////////
 // ScnRenderTargetRef
 typedef ReObjectRef< class ScnRenderTarget > ScnRenderTargetRef;
@@ -47,7 +45,7 @@ public:
 	void								unbind( RsFrame* pFrame );
 	
 protected:
-	RsRenderTarget*						pRenderTarget_;
+	
 
 };
 

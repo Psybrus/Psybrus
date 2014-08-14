@@ -70,12 +70,12 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 
 			// TODO: Take from parameters.
 			ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
-			eRsTextureFormat TextureFormat = rsTF_RGBA8;
-			eRsTextureType TextureType = pTopLevelImage->height() == 1 ? rsTT_1D : rsTT_2D;
+			RsTextureFormat TextureFormat = RsTextureFormat::R8G8B8A8;
+			RsTextureType TextureType = pTopLevelImage->height() == 0 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
 		
 			// Use tex compression unless in debug.
 	#if !PSY_DEBUG
-			if( TextureType == rsTT_2D )
+			if( TextureType == RsTextureType::TEX2D )
 			{
 				if( Format.type() == Json::nullValue &&
 					pTopLevelImage->width() % 4 == 0 && 
@@ -84,12 +84,12 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 					if( pImage->hasAlpha( 8 ) == BcFalse )
 					{
 						EncodeFormat = imgEF_DXT1;
-						TextureFormat = rsTF_DXT1;
+						TextureFormat = RsTextureFormat::DXT1;
 					}
 					else
 					{
 						EncodeFormat = imgEF_DXT5;
-						TextureFormat = rsTF_DXT5;
+						TextureFormat = RsTextureFormat::DXT5;
 					}
 				}
 				else
@@ -103,7 +103,16 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
 
 			// Write header.
-			ScnTextureHeader Header = { pTopLevelImage->width(), pTopLevelImage->height(), 1, (BcU32)MipImages.size(), TextureType, TextureFormat, BcFalse };	// TODO: Take type from file.
+			ScnTextureHeader Header = 
+			{ 
+				pTopLevelImage->width(), 
+				pTopLevelImage->height(), 
+				0,
+				(BcU32)MipImages.size(), 
+				TextureType, 
+				TextureFormat, 
+				BcFalse 
+			};	// TODO: Take type from file.
 			HeaderStream << Header;
 
 			// Write all mip images into the same body for now.
@@ -144,11 +153,11 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 	else
 	{
 		// User created texture.
-		BcU32 Width = 1;
-		BcU32 Height = 1;
-		BcU32 Depth = 1;
+		BcU32 Width = 0;
+		BcU32 Height = 0;
+		BcU32 Depth = 0;
 
-		eRsTextureType TextureType;
+		RsTextureType TextureType;
 
 		const Json::Value& Type = Object[ "texturetype" ];
 		const Json::Value& WidthValue = Object[ "width" ];
@@ -157,25 +166,25 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 
 		if( BcStrCompare( Type.asCString(), "1d" ) )
 		{
-			TextureType = rsTT_1D;
+			TextureType = RsTextureType::TEX1D;
 			Width = WidthValue.asUInt();
 		}
 		else if( BcStrCompare( Type.asCString(), "2d" ) )
 		{
-			TextureType = rsTT_2D;
+			TextureType = RsTextureType::TEX2D;
 			Width = WidthValue.asUInt();
 			Height = HeightValue.asUInt();
 		}
 		else if( BcStrCompare( Type.asCString(), "3d" ) )
 		{
-			TextureType = rsTT_3D;
+			TextureType = RsTextureType::TEX3D;
 			Width = WidthValue.asUInt();
 			Height = HeightValue.asUInt();
 			Depth = DepthValue.asUInt();
 		}
 
 
-		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, rsTF_RGBA8, BcTrue };
+		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, RsTextureFormat::R8G8B8A8, BcTrue };
 		BcStream HeaderStream;
 		HeaderStream << Header;
 		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
@@ -194,7 +203,7 @@ void ScnTexture::StaticRegisterClass()
 {
 	static const ReField Fields[] = 
 	{
-		ReField( "pTexture_",			&ScnTexture::pTexture_ ),
+		ReField( "pTexture_",			&ScnTexture::pTexture_,			bcRFF_TRANSIENT ),
 		ReField( "Header_",				&ScnTexture::Header_ ),
 	};
 		
@@ -214,7 +223,7 @@ void ScnTexture::initialise()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnTexture::initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format )
+void ScnTexture::initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
 {
 	Super::initialise();
 
@@ -223,10 +232,10 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format 
 	pTextureData_ = NULL;
 
 	Header_.Width_ = Width;
-	Header_.Height_ = 1;
-	Header_.Depth_ = 1;
+	Header_.Height_ = 0;
+	Header_.Depth_ = 0;
 	Header_.Levels_ = Levels;
-	Header_.Type_ = rsTT_1D;
+	Header_.Type_ = RsTextureType::TEX1D;
 	Header_.Format_ = Format;
 	Header_.Editable_ = BcTrue;
 
@@ -236,7 +245,7 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Levels, eRsTextureFormat Format 
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format )
+void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format )
 {
 	Super::initialise();
 
@@ -246,9 +255,9 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTexture
 
 	Header_.Width_ = Width;
 	Header_.Height_ = Height;
-	Header_.Depth_ = 1;
+	Header_.Depth_ = 0;
 	Header_.Levels_ = Levels;
-	Header_.Type_ = rsTT_2D;
+	Header_.Type_ = RsTextureType::TEX2D;
 	Header_.Format_ = Format;
 	Header_.Editable_ = BcTrue;
 
@@ -258,7 +267,7 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTexture
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format )
+void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format )
 {
 	Super::initialise();
 
@@ -270,7 +279,7 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Level
 	Header_.Height_ = Height;
 	Header_.Depth_ = Depth;
 	Header_.Levels_ = Levels;
-	Header_.Type_ = rsTT_3D;
+	Header_.Type_ = RsTextureType::TEX3D;
 	Header_.Format_ = Format;
 	Header_.Editable_ = BcTrue;
 
@@ -285,41 +294,62 @@ void ScnTexture::create()
 	if( Header_.Editable_ )
 	{
 		// Allocate to a 4k alignment.
-		pTextureData_ = BcMemAlign( Header_.Width_ * Header_.Height_ * Header_.Depth_ * Header_.Levels_ * 4, 4096 );
+		pTextureData_ = BcMemAlign(
+			RsTextureFormatSize( 
+				Header_.Format_, 
+				Header_.Width_, 
+				Header_.Height_,
+				Header_.Depth_, 
+				Header_.Levels_ ), 4096 );
 	}
 
 	// Create new one immediately.
-	switch( Header_.Type_ )
+	pTexture_ = RsCore::pImpl()->createTexture( 
+		RsTextureDesc( 
+			Header_.Type_, 
+			RsResourceCreationFlags::STATIC,
+			Header_.Format_,
+			Header_.Levels_,
+			Header_.Width_,
+			Header_.Height_,
+			Header_.Depth_ ) );
+
+	// Upload texture data.
+	BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
+
+	BcU32 Width = Header_.Width_;
+	BcU32 Height = Header_.Height_;
+	BcU32 Depth = Header_.Depth_;
+	for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 	{
-	case rsTT_1D:
-		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
-													Header_.Levels_,
-													Header_.Format_,
-													pTextureData_ );
-		break;
+		auto Slice = pTexture_->getSlice( LevelIdx );
 
-	case rsTT_2D:
-		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
-													Header_.Height_,
-													Header_.Levels_,
-													Header_.Format_,
-													pTextureData_ );
-		break;
+		BcU32 SliceSize = 
+			RsTextureFormatSize( 
+				Header_.Format_, 
+				Width, 
+				Height,
+				Depth, 
+				1 );
 
-	case rsTT_3D:
-		pTexture_ = RsCore::pImpl()->createTexture( Header_.Width_,
-													Header_.Height_,
-													Header_.Depth_,
-													Header_.Levels_,
-													Header_.Format_,
-													pTextureData_ );
-		break;
+		RsCore::pImpl()->updateTexture( 
+			pTexture_,
+			Slice,
+			RsResourceUpdateFlags::ASYNC,
+			[ TextureData, SliceSize ]( RsTexture* Texture, const RsTextureLock& Lock )
+			{
+				BcMemCopy( Lock.Buffer_, TextureData, SliceSize );
+			} );
 
-	default:
-		BcBreakpoint;
-		break;
+		// Down a level.
+		Width = BcMax( 1, Width >> 1 );
+		Height = BcMax( 1, Height >> 1 );
+		Depth = BcMax( 1, Depth >> 1 );
 
+		// Advance texture data.
+		TextureData += SliceSize;
 	}
+
 
 	markReady();
 }
@@ -359,54 +389,6 @@ BcU32 ScnTexture::getWidth() const
 BcU32 ScnTexture::getHeight() const
 {
 	return Header_.Height_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getTexel
-RsColour ScnTexture::getTexel( BcU32 X, BcU32 Y ) const
-{
-	if( pTextureData_ != NULL && X < Header_.Width_ && Y < Header_.Height_ )
-	{
-		BcU32* pTextureData = (BcU32*)pTextureData_;
-		BcU32 Index = X + Y * Header_.Width_;
-		BcU32 Texel = pTextureData[ Index ] ;
-		return RsColour( Texel ); // invalid. need to fix.
-	}
-	
-	return RsColour( 0.0f, 0.0f, 0.0f, 0.0f );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexel
-void ScnTexture::setTexel( BcU32 X, BcU32 Y, const RsColour& Colour )
-{
-	if( pTextureData_ != NULL && X < Header_.Width_ && Y < Header_.Height_ )
-	{
-		BcU32* pTextureData = (BcU32*)pTextureData_;
-		BcU32 Index = X + Y * Header_.Width_;
-		BcAssert( Index < ( Header_.Width_ * Header_.Height_ ) );
-		pTextureData[ Index ] = Colour.asABGR();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// lock
-void ScnTexture::lock()
-{
-	if( pTexture_ != NULL )
-	{
-		pTexture_->lockTexture();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// unlock
-void ScnTexture::unlock()
-{
-	if( pTexture_ != NULL )
-	{
-		pTexture_->unlockTexture();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

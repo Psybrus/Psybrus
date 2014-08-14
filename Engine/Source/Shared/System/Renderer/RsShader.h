@@ -25,6 +25,11 @@ class RsShader:
 public:
 	RsShader( class RsContext* pContext );
 	virtual ~RsShader();
+
+	/**
+	 * Log shader for debug purposes.
+	 */
+	virtual void logShader() = 0;
 };
 
 #endif
