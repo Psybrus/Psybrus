@@ -52,17 +52,12 @@ void RsCoreImplD3D11::open()
 // open_threaded
 void RsCoreImplD3D11::open_threaded()
 {
-#if PLATFORM_OSX
-	// Do the context switch.
-	OsViewOSX_Interface::MakeContextCurrent();
-#endif
-
 	// Make default context current and setup defaults.
 	RsContextD3D11* pContext = static_cast< RsContextD3D11* >( ContextMap_[ NULL ] );
 	if( pContext != NULL )
 	{
 		//
-		pContext->setRenderState( rsRS_DEPTH_WRITE_ENABLE, 1, BcTrue );
+		pContext->setDefaultState();
 		pContext->flushState();
 	}
 }
@@ -172,55 +167,23 @@ void RsCoreImplD3D11::destroyContext( OsClient* pClient )
 //////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
-RsTexture* RsCoreImplD3D11::createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData )
+RsTexture* RsCoreImplD3D11::createTexture( const RsTextureDesc& Desc )
 {
 	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createTexture
+// createVertexDeclaration
 //virtual 
-RsTexture* RsCoreImplD3D11::createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData )
+RsVertexDeclaration* RsCoreImplD3D11::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
 {
 	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createTexture
+// createBuffer
 //virtual 
-RsTexture* RsCoreImplD3D11::createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData )
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createRenderTarget
-//virtual
-RsRenderTarget*	RsCoreImplD3D11::createRenderTarget( const RsRenderTargetDesc& Desc )
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createVertexBuffer
-//virtual 
-RsVertexBuffer* RsCoreImplD3D11::createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData )
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createIndexBuffer
-//virtual 
-RsIndexBuffer* RsCoreImplD3D11::createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData )
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createUniformBuffer
-//virtual 
-RsUniformBuffer* RsCoreImplD3D11::createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData )
+RsBuffer* RsCoreImplD3D11::createBuffer( const RsBufferDesc& Desc )
 {
 	return nullptr;
 }
@@ -228,15 +191,7 @@ RsUniformBuffer* RsCoreImplD3D11::createUniformBuffer( const RsUniformBufferDesc
 //////////////////////////////////////////////////////////////////////////
 // createShader
 //virtual
-RsShader* RsCoreImplD3D11::createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createProgram @deprecated
-//virtual
-RsProgram* RsCoreImplD3D11::createProgram( RsShader* pVertexShader, RsShader* pFragmentShader )
+RsShader* RsCoreImplD3D11::createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
 {
 	return nullptr;
 }
@@ -244,15 +199,7 @@ RsProgram* RsCoreImplD3D11::createProgram( RsShader* pVertexShader, RsShader* pF
 //////////////////////////////////////////////////////////////////////////
 // createProgram
 //virtual
-RsProgram* RsCoreImplD3D11::createProgram( BcU32 NoofShaders, RsShader** ppShaders )
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// createPrimitive
-//virtual
-RsPrimitive* RsCoreImplD3D11::createPrimitive( RsVertexBuffer* pVertexBuffer, RsIndexBuffer* pIndexBuffer )
+RsProgram* RsCoreImplD3D11::createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
 {
 	return nullptr;
 }
@@ -290,6 +237,29 @@ void RsCoreImplD3D11::updateResource( RsResource* pResource )
 		SysSystem::UpdateDelegate Delegate( SysSystem::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
 		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateBuffer
+bool RsCoreImplD3D11::updateBuffer( 
+		class RsBuffer* Buffer,
+		BcSize Offset,
+		BcSize Size,
+		RsResourceUpdateFlags Flags,
+		RsBufferUpdateFunc UpdateFunc )
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateTexture
+bool RsCoreImplD3D11::updateTexture( 
+		class RsTexture* Texture,
+		const struct RsTextureSlice& Slice,
+		RsResourceUpdateFlags Flags,
+		RsTextureUpdateFunc UpdateFunc )
+{
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////

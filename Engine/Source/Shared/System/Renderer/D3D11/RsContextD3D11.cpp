@@ -13,6 +13,9 @@
 
 #include "System/Renderer/D3D11/RsContextD3D11.h"
 
+#include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsTexture.h"
+
 #include "System/Os/OsClient.h"
 #include "System/Os/OsClientWindows.h"
 
@@ -62,19 +65,36 @@ BcU32 RsContextD3D11::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// swapBuffers
-void RsContextD3D11::swapBuffers()
+// isShaderCodeTypeSupported
+//virtual
+BcBool RsContextD3D11::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return false;
+}
 
-	SwapChain_->Present( 0, 0 );
+//////////////////////////////////////////////////////////////////////////
+// maxShaderCodeType
+//virtual
+RsShaderCodeType RsContextD3D11::maxShaderCodeType( RsShaderCodeType CodeType ) const
+{
+	// TODO: Use feature level.
+	return RsShaderCodeType::D3D11_5_1;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // takeScreenshot
+//virtual
 void RsContextD3D11::takeScreenshot()
 {
-	ScreenshotRequested_ = BcTrue;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewport
+//virtual
+void RsContextD3D11::setViewport( class RsViewport& Viewport )
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -159,7 +179,7 @@ void RsContextD3D11::invalidateTextureState()
 
 //////////////////////////////////////////////////////////////////////////
 // setRenderState
-void RsContextD3D11::setRenderState( eRsRenderState State, BcS32 Value, BcBool Force )
+void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
@@ -168,7 +188,7 @@ void RsContextD3D11::setRenderState( eRsRenderState State, BcS32 Value, BcBool F
 
 //////////////////////////////////////////////////////////////////////////
 // getRenderState
-BcS32 RsContextD3D11::getRenderState( eRsRenderState State ) const
+BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
@@ -187,23 +207,177 @@ void RsContextD3D11::setTextureState( BcU32 Sampler, RsTexture* pTexture, const 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setProgram
+void RsContextD3D11::setProgram( class RsProgram* Program )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setIndexBuffer
+void RsContextD3D11::setIndexBuffer( class RsBuffer* IndexBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setVertexBuffer
+void RsContextD3D11::setVertexBuffer( 
+	BcU32 StreamIdx, 
+	class RsBuffer* VertexBuffer,
+	BcU32 Stride )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setUniformBuffer
+void RsContextD3D11::setUniformBuffer( 
+	BcU32 SlotIdx, 
+	class RsBuffer* UniformBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setVertexDeclaration
+void RsContextD3D11::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// clear
+void RsContextD3D11::clear( const RsColour& Colour )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawPrimitives
+void RsContextD3D11::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawIndexedPrimitives
+void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createBuffer
+bool RsContextD3D11::createBuffer( 
+	class RsBuffer* Buffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	// Buffer desc.
+	D3D11_BUFFER_DESC Desc;
+	Desc.Usage = D3D11_USAGE_DEFAULT;			// TODO.
+	Desc.ByteWidth = Buffer->getDesc().SizeBytes_;
+	Desc.BindFlags = D3D11_BIND_INDEX_BUFFER;	// TODO.
+	Desc.CPUAccessFlags = 0;
+	Desc.MiscFlags = 0;
+	
+	// Generate buffers.
+	ID3D11Buffer* D3DBuffer = nullptr; 
+
+	HRESULT Result = Device_->CreateBuffer( &Desc, nullptr, &D3DBuffer );
+	if( Result == S_OK )
+	{
+		Buffer->setHandle( D3DBuffer );
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyBuffer
+bool RsContextD3D11::destroyBuffer( 
+	class RsBuffer* Buffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	ID3D11Buffer* D3DBuffer = Buffer->getHandle< ID3D11Buffer* >(); 
+	D3DBuffer->Release();
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateBuffer
+bool RsContextD3D11::updateBuffer( 
+	class RsBuffer* Buffer,
+	BcSize Offset,
+	BcSize Size,
+	RsResourceUpdateFlags Flags,
+	RsBufferUpdateFunc UpdateFunc )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createTexture
+bool RsContextD3D11::createTexture( 
+	class RsTexture* Texture )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyTexture
+bool RsContextD3D11::destroyTexture( 
+	class RsTexture* Texture )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateTexture
+bool RsContextD3D11::updateTexture( 
+	class RsTexture* Texture,
+	const struct RsTextureSlice& Slice,
+	RsResourceUpdateFlags Flags,
+	RsTextureUpdateFunc UpdateFunc )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcBreakpoint;
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // flushState
 //virtual
 void RsContextD3D11::flushState()
 {
 	BcBreakpoint;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// device
-ID3D11Device* RsContextD3D11::device()
-{
-	return Device_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// deviceContext
-ID3D11DeviceContext* RsContextD3D11::deviceContext()
-{
-	return Context_;
 }
