@@ -73,12 +73,6 @@ public:
 		return Handle_ != 0;
 	}
 
-protected:
-	void*								pData_;
-	BcU32								DataSize_;
-	BcBool								DeleteData_;	
-	SysFence							UpdateSyncFence_;
-
 private:
 	BcU64								Handle_;
 };

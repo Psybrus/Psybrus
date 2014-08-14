@@ -168,7 +168,14 @@ void SysJobWorker::execute()
 				PSY_PROFILER_SECTION( ExecuteJob_Profiler, "SysJobWorker_ExecuteJob" );
 
 				// Execute.
-				Job->internalExecute();
+				try
+				{
+					Job->internalExecute();
+				}
+				catch( ... )
+				{
+					BcPrintf( "Unhandled exception in job.\n" );
+				}
 				break;
 			}
 		}

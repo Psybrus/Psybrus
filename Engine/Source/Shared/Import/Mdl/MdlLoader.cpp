@@ -23,10 +23,6 @@ MdlNode* MdlLoader::loadModel( const BcChar* Filename )
 	{
 		return loadMD5Mesh( Filename );
 	}
-	else if( BcStrStr( Filename, ".obj" ) )
-	{
-		return loadOBJ( Filename );
-	}
 	
 	return NULL;
 }

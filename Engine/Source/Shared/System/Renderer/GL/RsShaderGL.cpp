@@ -15,33 +15,33 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-RsShaderGL::RsShaderGL( RsContext* pContext, eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ):
+RsShaderGL::RsShaderGL( RsContext* pContext, RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ):
 	RsShader( pContext )
 {
 	// Setup basic parameters.
 	switch( ShaderType )
 	{
-		case rsST_VERTEX:
+		case RsShaderType::VERTEX:
 			Type_ = GL_VERTEX_SHADER;
 			break;
 
-		case rsST_TESSELATION_CONTROL:
+		case RsShaderType::TESSELATION_CONTROL:
 			Type_ = GL_TESS_CONTROL_SHADER;
 			break;
 
-		case rsST_TESSELATION_EVALUATION:
+		case RsShaderType::TESSELATION_EVALUATION:
 			Type_ = GL_TESS_EVALUATION_SHADER;
 			break;
 
-		case rsST_GEOMETRY:
+		case RsShaderType::GEOMETRY:
 			Type_ = GL_GEOMETRY_SHADER;
 			break;
 
-		case rsST_FRAGMENT:
+		case RsShaderType::FRAGMENT:
 			Type_ = GL_FRAGMENT_SHADER;
 			break;
 			
-		case rsST_COMPUTE:
+		case RsShaderType::COMPUTE:
 			Type_ = GL_COMPUTE_SHADER;
 			break;
 
@@ -70,13 +70,13 @@ void RsShaderGL::create()
 	// Create handle for shader.
 	GLuint Handle = glCreateShader( Type_ );
 	setHandle( Handle );
-	RsGLCatchError;
+	RsGLCatchError();
 	
 	if( Handle != 0 )
 	{
 		switch( DataType_ )
 		{
-			case rsSDT_BINARY:
+			case RsShaderDataType::BINARY:
 			{
 				// Shader data can't be updated later, so set it all up now.
 				//glShaderBinary( 1, &Handle_, Format_, pData_, (GLint)DataSize_ );
@@ -84,17 +84,17 @@ void RsShaderGL::create()
 			}
 			break;
 				
-			case rsSDT_SOURCE:
+			case RsShaderDataType::SOURCE:
 			{
 				// NOTE: Oolong stuff.
 				
 				// Load the source code into it.
 				glShaderSource( Handle, 1, (const GLchar**)&pData_, NULL );
-				RsGLCatchError;
+				RsGLCatchError();
 				
 				// Compile the source code.
 				glCompileShader( Handle );
-				RsGLCatchError;
+				RsGLCatchError();
 				
 				// Test if compilation succeeded.
 				GLint ShaderCompiled;
@@ -160,5 +160,7 @@ void RsShaderGL::destroy()
 // logShader
 void RsShaderGL::logShader()
 {
-	BcPrintf( "%s\n", pData_ );
+	BcPrintf( "======================================================\n" );
+	BcPrintf( "%s\n\n", pData_ );
+	BcPrintf( "======================================================\n" );
 }

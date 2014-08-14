@@ -360,8 +360,8 @@ void ScnFont::StaticRegisterClass()
 //virtual
 void ScnFont::initialise()
 {
-	pHeader_ = NULL;
-	pGlyphDescs_ = NULL;
+	pHeader_ = nullptr;
+	pGlyphDescs_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -457,14 +457,20 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 	Super::initialise();
 
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, scnSPF_MESH_STATIC_2D ) )
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, 
+		ScnShaderPermutationFlags::RENDER_FORWARD |
+		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
 	{	
-		BcU32 Parameter = MaterialComponent_->findParameter( "aDiffuseTex" );
-		if( Parameter != BcErrorCode )
+		BcU32 Sampler = MaterialComponent_->findSamplerSlot( "aDiffuseTex" );
+		if( Sampler != BcErrorCode )
 		{ 
-			MaterialComponent_->setTexture( Parameter, Parent_->Texture_ );
+			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
 		}
 	}
+	
+	// Null uniform buffer.
+	UniformBuffer_ = nullptr;
 
 	// Disable clipping.
 	setClipping( BcFalse );
@@ -668,7 +674,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 		if( NoofVertices > 0 )
 		{
 			Canvas->setMaterialComponent( MaterialComponent_ );
-			Canvas->addPrimitive( rsPT_TRIANGLELIST, pFirstVert, NoofVertices, Layer );
+			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, Layer );
 		}
 	}
 	else
@@ -691,9 +697,16 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 // setAlphaTestStepping
 void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 {
-	UniformBuffer_->lock();
 	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
-	UniformBuffer_->unlock();
+
+	RsCore::pImpl()->updateBuffer( 
+		UniformBuffer_,
+		0, sizeof( AlphaTestUniforms_ ),
+		RsResourceUpdateFlags::ASYNC,
+		[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			BcMemCopy( Lock.Buffer_, &AlphaTestUniforms_, sizeof( AlphaTestUniforms_ ) );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -719,7 +732,11 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	// Attach material to our parent.
 	Parent->attach( MaterialComponent_ );
 
-	UniformBuffer_ = RsCore::pImpl()->createUniformBuffer( RsUniformBufferDesc( sizeof( AlphaTestUniforms_ ) ), &AlphaTestUniforms_ );
+	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc(
+			RsBufferType::UNIFORM,
+			RsResourceCreationFlags::STREAM,
+			sizeof( ScnShaderAlphaTestUniformBlockData ) ) );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "AlphaTestUniformBlock" );
 	MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );
 

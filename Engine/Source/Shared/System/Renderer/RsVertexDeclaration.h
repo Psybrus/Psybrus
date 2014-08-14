@@ -25,9 +25,12 @@
  */
 struct RsVertexDeclarationDesc
 {
-	RsVertexDeclarationDesc( BcU32 NoofElements );
+	RsVertexDeclarationDesc( BcU32 NoofElements = 0 );
 
 	RsVertexDeclarationDesc& addElement( const RsVertexElement& Element );
+
+	BcU32 getHash() const;
+	BcU32 getMinimumStride() const;
 
 	std::vector< RsVertexElement > Elements_;
 };

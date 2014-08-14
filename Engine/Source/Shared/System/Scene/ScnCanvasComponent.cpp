@@ -51,7 +51,10 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	IsIdentity_ = BcTrue;
 	
 	// Store number of vertices.
+	pVertices_ = pVerticesEnd_ = nullptr;
+	pWorkingVertices_ = nullptr;
 	NoofVertices_ = NoofVertices;
+	VertexIndex_ = 0;
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;
@@ -71,31 +74,27 @@ void ScnCanvasComponent::initialise( const Json::Value& Object )
 void ScnCanvasComponent::create()
 {
 	// Allocate our own vertex buffer data.
-	BcU32 VertexFormat = rsVDF_POSITION_XYZ | rsVDF_TEXCOORD_UV0 | rsVDF_COLOUR_ABGR8;
-	BcAssert( RsVertexDeclSize( VertexFormat ) == sizeof( ScnCanvasComponentVertex ) );
-
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 3 )
-			.addElement( RsVertexElement( 0, 0,				3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			3,		eRsVertexDataType::rsVDT_FLOAT32,		rsVU_TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 20,			4,		eRsVertexDataType::rsVDT_UBYTE_NORM,	rsVU_COLOUR,		0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 20,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
-		// Allocate vertices.
-		RenderResource.pVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
-
 		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createVertexBuffer( RsVertexBufferDesc( NoofVertices_, 24 ), RenderResource.pVertices_ );
-	
-		// Allocate render side primitive.
-		RenderResource.pPrimitive_ = RsCore::pImpl()->createPrimitive( 
-			RsPrimitiveDesc( VertexDeclaration_ )
-				.setVertexBuffer( 0, RenderResource.pVertexBuffer_ ) );
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX,
+				RsResourceCreationFlags::STREAM,
+				NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
 	}
+
+	// Allocate working vertices.
+	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
 
 	Super::create();
 }
@@ -105,27 +104,20 @@ void ScnCanvasComponent::create()
 //virtual
 void ScnCanvasComponent::destroy()
 {
+	UploadFence_.wait();
+
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
 
 		// Allocate render side vertex buffer.
 		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
-	
-		// Allocate render side primitive.
-		RsCore::pImpl()->destroyResource( RenderResource.pPrimitive_ );
 	}
 
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Delete vertices.
-		delete [] RenderResource.pVertices_;
-	}
+	delete [] pWorkingVertices_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -156,7 +148,7 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 		// Cache and grab diffuse parameter.
 		static BcName NameDiffuseTex( "aDiffuseTex" );
 		MaterialComponent_ = MaterialComponent;
-		BcU32 Parameter = MaterialComponent_->findParameter( NameDiffuseTex );
+		BcU32 Parameter = MaterialComponent_->findSamplerSlot( NameDiffuseTex );
 		DiffuseTexture_ = MaterialComponent_->getTexture( Parameter );
 	}
 }
@@ -196,7 +188,7 @@ MaMat4d ScnCanvasComponent::getMatrix() const
 // allocVertices
 ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices )
 {
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Don't have vertex buffer lock!" );
+	BcAssertMsg( pVertices_ != nullptr, "ScnCanvasComponent: Don't have a working buffer." );
 	ScnCanvasComponentVertex* pCurrVertex = NULL;
 	if( ( VertexIndex_ + NoofVertices ) <= NoofVertices_ )
 	{
@@ -208,7 +200,7 @@ ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnCanvasComponent::addPrimitive( eRsPrimitiveType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnCanvasComponent::addPrimitive( RsTopologyType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
 	BcAssertMsg( MaterialComponent_.isValid(), "ScnCanvasComponent: Material component has not been set!" );
 
@@ -284,7 +276,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_LINELIST &&
+			if( PrimitiveSection.Type_ == RsTopologyType::LINE_LIST &&
 				PrimitiveSection.Layer_ == Layer &&
 				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -313,7 +305,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+			addPrimitive( RsTopologyType::LINE_LIST, pFirstVertex, 2, Layer, BcTrue );
 		}
 	}
 }
@@ -342,7 +334,7 @@ void ScnCanvasComponent::drawLine3d( const MaVec3d& PointA, const MaVec3d& Point
 		pVertices->ABGR_ = ABGR;
 
 		// Add primitive.	
-		addPrimitive( rsPT_LINELIST, pFirstVertex, 2, Layer, BcTrue );
+		addPrimitive( RsTopologyType::LINE_LIST, pFirstVertex, 2, Layer, BcTrue );
 	}
 }
 
@@ -370,7 +362,7 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 		}
 		
 		// Add primitive.		
-		addPrimitive( rsPT_LINELIST, pFirstVertex, NoofVertices, Layer, BcTrue );
+		addPrimitive( RsTopologyType::LINE_LIST, pFirstVertex, NoofVertices, Layer, BcTrue );
 	}
 }
 
@@ -441,7 +433,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->ABGR_ = ABGR;
 		
 		// Add primitive.	
-		addPrimitive( rsPT_TRIANGLESTRIP, pFirstVertex, 4, Layer, BcTrue );
+		addPrimitive( RsTopologyType::TRIANGLE_STRIP, pFirstVertex, 4, Layer, BcTrue );
 	}
 }
 
@@ -518,7 +510,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			if( PrimitiveSection.Type_ == RsTopologyType::TRIANGLE_LIST &&
 				PrimitiveSection.Layer_ == Layer &&
 				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -547,7 +539,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+			addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }
@@ -625,7 +617,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 			
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			if( PrimitiveSection.Type_ == RsTopologyType::TRIANGLE_LIST &&
 			   PrimitiveSection.Layer_ == Layer &&
 			   PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -654,7 +646,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+			addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }
@@ -732,7 +724,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 			
 			// If the last primitive was the same type as ours we can append to it.
 			// NOTE: Need more checks here later.
-			if( PrimitiveSection.Type_ == rsPT_TRIANGLELIST &&
+			if( PrimitiveSection.Type_ == RsTopologyType::TRIANGLE_LIST &&
 			   PrimitiveSection.Layer_ == Layer &&
 			   PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
 			{
@@ -761,7 +753,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( rsPT_TRIANGLELIST, pFirstVertex, 6, Layer, BcTrue );
+			addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVertex, 6, Layer, BcTrue );
 		}
 	}
 }
@@ -798,7 +790,7 @@ void ScnCanvasComponent::clear()
 	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
 
 	// Set vertices up.
-	pVertices_ = pVerticesEnd_ = pRenderResource_->pVertices_;
+	pVertices_ = pVerticesEnd_ = pWorkingVertices_;
 	pVerticesEnd_ += NoofVertices_;
 	VertexIndex_ = 0;
 	
@@ -809,13 +801,6 @@ void ScnCanvasComponent::clear()
 	MatrixStack_.clear();
 	MatrixStack_.push_back( MaMat4d() );
 	IsIdentity_ = BcTrue;
-
-	// Lock vertex buffer for use.
-	if( HaveVertexBufferLock_ == BcFalse )
-	{
-		pRenderResource_->pVertexBuffer_->lock();
-		HaveVertexBufferLock_ = BcTrue;
-	}
 
 	// Clear last primitive.
 	LastPrimitiveSection_ = BcErrorCode;
@@ -844,23 +829,37 @@ public:
 		{
 			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pContext_->setPrimitive( pPrimitive_ );
+			pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
+			pContext_->setVertexDeclaration( VertexDeclaration_ );
 			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	
 	BcU32 NoofSections_;
 	ScnCanvasComponentPrimitiveSection* pPrimitiveSections_;
-	RsPrimitive* pPrimitive_;
+	RsBuffer* VertexBuffer_;
+	RsVertexDeclaration* VertexDeclaration_;
 };
 
 void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	if( HaveVertexBufferLock_ == BcFalse )
+	// Upload.
+	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnCanvasComponentVertex );
+	if( VertexDataSize > 0 )
 	{
-		return;
+		UploadFence_.increment();
+		RsCore::pImpl()->updateBuffer( 
+			pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
+			RsResourceUpdateFlags::ASYNC,
+			[ this, VertexDataSize ]
+			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+			{
+				BcAssert( VertexDataSize <= Buffer->getDesc().SizeBytes_ );
+				BcMemCopy( BufferLock.Buffer_, pWorkingVertices_, 
+					VertexDataSize );
+				UploadFence_.decrement();
+			} );
 	}
-	BcAssertMsg( HaveVertexBufferLock_ == BcTrue, "ScnCanvasComponent: Can't render without a vertex buffer lock." );
 
 	// HUD pass.
 	Sort.Layer_ = 0;
@@ -880,7 +879,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
-		pRenderNode->pPrimitive_ = pRenderResource_->pPrimitive_;
+		pRenderNode->VertexBuffer_ = pRenderResource_->pVertexBuffer_;
+		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		
 		// Copy primitive sections in.
 		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
@@ -899,11 +899,6 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		pFrame->addRenderNode( pRenderNode );
 	}
 	
-	// Unlock vertex buffer.
-	pRenderResource_->pVertexBuffer_->setNoofUpdateVertices( VertexIndex_ );
-	pRenderResource_->pVertexBuffer_->unlock();
-	HaveVertexBufferLock_ = BcFalse;
-
 	// Flip the render resource.
 	CurrentRenderResource_ = 1 - CurrentRenderResource_;
 

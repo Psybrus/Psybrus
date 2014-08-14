@@ -24,11 +24,10 @@
 // Define resource internals.
 DEFINE_RESOURCE( ScnPhysicsWorldComponent );
 
-//BCREFLECTION_EMPTY_REGISTER( ScnPhysicsWorldComponent );
-/*
-REFLECTION_DERIVED_BEGIN( CsResource, ScnPhysicsWorldComponent )
-REFLECTION_DERIVED_END();
-*/
+void ScnPhysicsWorldComponent::StaticRegisterClass()
+{
+	ReRegisterClass< ScnPhysicsWorldComponent, Super >();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

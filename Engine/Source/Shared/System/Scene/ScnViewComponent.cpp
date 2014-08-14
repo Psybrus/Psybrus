@@ -22,6 +22,7 @@
 #include "System/Scene/ScnRenderingVisitor.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -46,7 +47,7 @@ BcBool ScnViewComponent::import( class CsPackageImporter& Importer, const Json::
 		BcStream BodyStream( BcFalse, 1024, ( pImage->width() * pImage->height() * 4 ) );
 		
 		// TODO: Use parameters to pick a format.
-		THeader Header = { pImage->width(), pImage->height(), 1, rsTF_RGBA8 };
+		THeader Header = { pImage->width(), pImage->height(), 1, RsTextureFormat::R8G8B8A8 };
 		HeaderStream << Header;
 		
 		// Write body.				
@@ -97,7 +98,7 @@ void ScnViewComponent::StaticRegisterClass()
 		ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
 		ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
 		ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
-		ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_ ),
+		ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
 		ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
 		ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
 	};
@@ -114,6 +115,7 @@ void ScnViewComponent::initialise()
 
 	// NULL internals.
 	//pHeader_ = NULL;
+	ViewUniformBuffer_ = nullptr;
 
 	setRenderMask( 1 );
 }
@@ -153,7 +155,11 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 void ScnViewComponent::create()
 {
 	ScnComponent::create();
-	ViewUniformBuffer_ = RsCore::pImpl()->createUniformBuffer( sizeof( ViewUniformBlock_ ), &ViewUniformBlock_ );
+	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc(
+			RsBufferType::UNIFORM,
+			RsResourceCreationFlags::STREAM,
+			sizeof( ViewUniformBlock_ ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -249,6 +255,16 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 
 //////////////////////////////////////////////////////////////////////////
 // bind
+class ScnViewComponentClear: public RsRenderNode
+{
+public:
+	void render()
+	{
+		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentClear::render" );
+		pContext_->clear( RsColour::BLACK );
+	}
+};
+
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 {
 	RsContext* pContext = pFrame->getContext();
@@ -276,32 +292,36 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	                    Near_,
 	                    Far_ );
 	
-	// Setup matrices in view uniform block.
-	if( ViewUniformBuffer_->lock() )
+	// Create appropriate projection matrix.
+	if( HorizontalFOV_ > 0.0f )
 	{
-		// Create appropriate projection matrix.
-		if( HorizontalFOV_ > 0.0f )
-		{
-			ViewUniformBlock_.ProjectionTransform_.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
-		}
-		else
-		{
-			ViewUniformBlock_.ProjectionTransform_.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
-		}
-
-		ViewUniformBlock_.InverseProjectionTransform_ = ViewUniformBlock_.ProjectionTransform_;
-		ViewUniformBlock_.InverseProjectionTransform_.inverse();
-
-		// Setup view matrix.
-		ViewUniformBlock_.InverseViewTransform_ = getParentEntity()->getWorldMatrix();
-		ViewUniformBlock_.ViewTransform_ = ViewUniformBlock_.InverseViewTransform_;
-		ViewUniformBlock_.ViewTransform_.inverse();
-
-		// Clip transform.
-		ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
-
-		ViewUniformBuffer_->unlock();
+		ViewUniformBlock_.ProjectionTransform_.perspProjectionHorizontal( HorizontalFOV_, Aspect, Near_, Far_ );
 	}
+	else
+	{
+		ViewUniformBlock_.ProjectionTransform_.perspProjectionVertical( VerticalFOV_, 1.0f / Aspect, Near_, Far_ );
+	}
+
+	ViewUniformBlock_.InverseProjectionTransform_ = ViewUniformBlock_.ProjectionTransform_;
+	ViewUniformBlock_.InverseProjectionTransform_.inverse();
+
+	// Setup view matrix.
+	ViewUniformBlock_.InverseViewTransform_ = getParentEntity()->getWorldMatrix();
+	ViewUniformBlock_.ViewTransform_ = ViewUniformBlock_.InverseViewTransform_;
+	ViewUniformBlock_.ViewTransform_.inverse();
+
+	// Clip transform.
+	ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
+
+	// Upload uniforms.
+	RsCore::pImpl()->updateBuffer( 
+		ViewUniformBuffer_,
+		0, sizeof( ViewUniformBlock_ ),
+		RsResourceUpdateFlags::ASYNC,
+		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			BcMemCopy( Lock.Buffer_, &ViewUniformBlock_, sizeof( ViewUniformBlock_ ) );
+		} );
 
 	// Build frustum planes.
 	// TODO: revisit this later as we don't need to do it I don't think.
@@ -353,11 +373,16 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	}
 	else
 	{
-		pFrame->setRenderTarget( NULL );
+		
 	}
 	
 	// Set viewport.
 	pFrame->setViewport( Viewport_ );
+
+	// Clear viewport.
+	ScnViewComponentClear* pRenderNode = pFrame->newObject< ScnViewComponentClear >();
+	pFrame->addRenderNode( pRenderNode );
+
 }
 
 //////////////////////////////////////////////////////////////////////////

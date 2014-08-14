@@ -63,6 +63,9 @@ private:
 	ov_callbacks		OurFileCallbacks_;
 	ogg_int64_t			StreamPos_;
 	BcBool				HasEnded_;
+
+	void* pData_;
+	BcU32 DataSize_;
 };
 
 

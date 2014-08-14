@@ -15,7 +15,6 @@
 #define __RSPROGRAMGL_H__
 
 #include "System/Renderer/GL/RsShaderGL.h"
-#include "System/Renderer/GL/RsUniformBufferGL.h"
 #include "System/Renderer/RsProgram.h"
 
 #include <vector>
@@ -30,61 +29,56 @@ class RsProgramGL:
 	public RsProgram
 {
 public:
-	RsProgramGL( RsContext* pContext, BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes );
+	RsProgramGL( 
+		RsContext* pContext, 
+		std::vector< RsShader* >&& Shaders,
+		BcU32 NoofVertexAttributes, 
+		RsProgramVertexAttribute* pVertexAttributes );
 	virtual ~RsProgramGL();
 	
-	void								create();
-	void								update();
-	void								destroy();	
+	void create();
+	void update();
+	void destroy();	
 	
-	// Old, dirty interface.
-	virtual BcU32						getParameterBufferSize() const;
-	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const;
-	virtual void						bind( void* pParameterBuffer );
-
 	// New, shiny interface!
-	virtual BcU32						findUniformBlockIndex( const BcChar* Name );
-	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer );
+	virtual BcU32 findSamplerSlot( const BcChar* Name );
+	virtual BcU32 findUniformBufferSlot( const BcChar* Name );
+	virtual void bind();
 	
 	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
+	virtual void logShaders() const;
 
 private:	
-	void								addParameter( const GLchar* pName, GLint Handle, GLenum Type, BcU32 Size );
-	void								addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
+	void addSampler( const GLchar* pName, GLint Handle, GLenum Type );
+	void addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
 	
 private:
-	struct TParameter
+	struct TSampler
 	{
-		std::string						Name_;
-		GLint							Handle_;
-		BcU32							Offset_;
-		BcU32							Size_;
-		BcU32							TypeBytes_;
-		eRsShaderParameterType			Type_;
+		std::string Name_;
+		GLint Handle_;
+		RsShaderParameterType Type_;
 	};
 
 	struct TUniformBlock
 	{
-		std::string						Name_;
-		GLint							Index_;
-		BcU32							Size_;
-		RsUniformBuffer*				Buffer_;
+		std::string Name_;
+		GLint Index_;
+		BcU32 Size_;
 	};
 
-	typedef std::vector< TParameter > TParameterList;
-	typedef TParameterList::iterator TParameterListIterator;
-	typedef TParameterList::const_iterator TParameterListConstIterator;
-	TParameterList						ParameterList_;
-	BcU32								ParameterBufferSize_;
+	typedef std::vector< TSampler > TSamplerList;
+	typedef TSamplerList::iterator TSamplerListIterator;
+	typedef TSamplerList::const_iterator TSamplerListConstIterator;
+	TSamplerList SamplerList_;
 
 	typedef std::vector< TUniformBlock > TUniformBlockList;
 	typedef TUniformBlockList::iterator TUniformBlockListIterator;
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
-	TUniformBlockList					UniformBlockList_;
+	TUniformBlockList UniformBlockList_;
 
-	BcU32								NoofShaders_;
-	RsShaderGL**						ppShaders_;
-	RsProgramVertexAttributeList		AttributeList_;
+	std::vector< RsShader* > Shaders_;
+	RsProgramVertexAttributeList AttributeList_;
 };
 
 #endif

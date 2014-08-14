@@ -21,17 +21,17 @@ solution "Psybrus"
 	configuration "Debug"
 		targetdir ( "Build/" .. action .. "/bin/Debug" )
 		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "DEBUG", "PSY_DEBUG", "PSY_SERVER" }
-		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoPCH", "Symbols" }
+		flags { "StaticRuntime", "FloatFast", "NativeWChar", "Symbols" }
 
 	configuration "Release"
 		targetdir ( "Build/" .. action .. "/bin/Release" )
 		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "NDEBUG", "PSY_RELEASE", "PSY_SERVER" }
-		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoPCH", "Symbols", "Optimize" }
+		flags { "StaticRuntime", "FloatFast", "NativeWChar", "Symbols", "Optimize" }
 
 	configuration "Production"
 		targetdir ( "Build/" .. action .. "/bin/Production" )
 		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "NDEBUG", "PSY_PRODUCTION" }
-		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoPCH", "NoFramePointer", "Optimize" }
+		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoFramePointer", "Optimize" }
 
 	-- Build externals.
 	dofile ("External/premake4.lua")

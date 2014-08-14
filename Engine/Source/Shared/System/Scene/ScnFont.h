@@ -110,7 +110,7 @@ private:
 	MaVec2d								ClipMin_;
 	MaVec2d								ClipMax_;
 
-	RsUniformBuffer*					UniformBuffer_;
+	RsBuffer*					UniformBuffer_;
 	ScnShaderAlphaTestUniformBlockData	AlphaTestUniforms_;
 };
 

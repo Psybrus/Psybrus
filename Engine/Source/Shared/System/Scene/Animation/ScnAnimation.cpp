@@ -16,85 +16,15 @@
 #include "System/Content/CsCore.h"
 
 #ifdef PSY_SERVER
-#include "Base/BcStream.h"
-#include "Import/Mdl/Mdl.h"
+#include "System/Scene/Import/ScnAnimationImport.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual
 BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	const std::string& FileName = Object[ "source" ].asString();
-	MdlAnim* pAnim = MdlLoader::loadAnim( FileName.c_str() );
-
-	if( pAnim != NULL )
-	{
-		// Verify all nodes have the same key count.
-		BcU32 KeyCount = pAnim->pNode( 0 )->KeyList_.size();
-		for( BcU32 NodeIdx = 1; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-		{
-			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-			if( pNode->KeyList_.size() != KeyCount )
-			{
-				BcAssertMsg( BcFalse, "Invalid key frame count in animation node!" );
-				return BcFalse;
-			}
-		}
-
-		// Setup data streams.
-		BcStream HeaderStream;
-		BcStream PoseStream;
-		BcStream KeyStream;
-
-		ScnAnimationHeader Header;
-		Header.NoofNodes_ = pAnim->nNodes();
-		Header.NoofPoses_ = KeyCount + 1; // means we always have the first frame as the last for smooth looping. TODO: Optional.
-		Header.Flags_ = scnAF_DEFAULT;
-		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
-		HeaderStream << Header;
-
-		// Build up frames of poses.
-		ScnAnimationTransformKey_R16S16T16 OutKey;
-		BcF32 FrameTime = 0.0f;
-		BcF32 FrameRate = 1.0f / 24.0f;
-		for( BcU32 KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
-		{
-			BcU32 WrappedKeyIdx = KeyIdx % KeyCount;
-			ScnAnimationPoseFileData Pose;
-			Pose.Time_ = FrameTime;
-			Pose.KeyDataOffset_ = KeyStream.dataSize();
-
-			// Advance framerate.
-			FrameTime += FrameRate;
-
-			// Iterate over nodes, and pack the key stream.
-			ScnAnimationTransform Transform;
-			for( BcU32 NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-			{
-				MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-				MdlAnimKey InKey = pNode->KeyList_[ WrappedKeyIdx ];
-				Transform.fromMatrix( InKey.Matrix_ );
-				OutKey.pack( Transform.R_, Transform.S_, Transform.T_ );
-				KeyStream << OutKey;
-			}
-			
-			// Final size + CRC.
-			Pose.KeyDataSize_ = KeyStream.dataSize() - Pose.KeyDataOffset_;
-			Pose.CRC_ = BcHash::GenerateCRC32( KeyStream.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
-
-			// Write out pose.
-			PoseStream << Pose;
-		}
-		
-		// Write out chunks.
-		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
-		Importer.addChunk( BcHash( "poses" ), PoseStream.pData(), PoseStream.dataSize() );
-		Importer.addChunk( BcHash( "keys" ), KeyStream.pData(), KeyStream.dataSize() );
-
-		return BcTrue;
-	}
-
-	return BcFalse;	
+	ScnAnimationImport AnimationImport;
+	return AnimationImport.import( Importer, Object );
 }
 
 #endif
@@ -135,6 +65,17 @@ void ScnAnimation::create()
 void ScnAnimation::destroy()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNodeByIndex
+const ScnAnimationNodeFileData* ScnAnimation::getNodeByIndex( BcU32 Idx ) const
+{
+	if( Idx < Header_.NoofNodes_ )
+	{
+		return &pNodeData_[ Idx ];
+	}
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,6 +202,16 @@ void ScnAnimation::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		// Grab pose and key chunks.
 		requestChunk( 1 );
 		requestChunk( 2 );
+		requestChunk( 3 );
+	}
+	else if( ChunkID == BcHash( "nodes" ) )
+	{
+		pNodeData_ = reinterpret_cast< ScnAnimationNodeFileData* >( pData );
+
+		for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
+		{
+			getPackage()->markupName( pNodeData_[ Idx ].Name_ );
+		}
 	}
 	else if( ChunkID == BcHash( "poses" ) )
 	{
