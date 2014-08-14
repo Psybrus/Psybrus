@@ -493,7 +493,7 @@ bool RsContextD3D11::createTexture(
 			Desc.Width = TextureDesc.Width_;
 			Desc.Height = TextureDesc.Height_;
 			Desc.MipLevels = TextureDesc.Levels_;
-			Desc.ArraySize = 1;
+			Desc.ArraySize = 6;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.SampleDesc.Count = 0;
 			Desc.SampleDesc.Quality = 0;
