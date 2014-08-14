@@ -101,6 +101,31 @@ private:
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
+
+	// Resource view cache.
+	struct ResourceViewCacheEntry
+	{
+		struct
+		{
+			ID3D11Resource* Resource_;
+			union
+			{
+				ID3D11Buffer* BufferResource_;
+				ID3D11Texture1D* Texture1DResource_;
+				ID3D11Texture2D* Texture2DResource_;
+				ID3D11Texture3D* Texture3DResource_;
+			};
+		};
+
+		ID3D11ShaderResourceView* ShaderResourceView_;
+		ID3D11UnorderedAccessView* UnorderedAccessView_;
+		ID3D11RenderTargetView* RenderTargetView_;
+		ID3D11DepthStencilView* DepthStencilView_;
+	};
+
+	std::vector< ResourceViewCacheEntry > ResourceViewCache_;
+	std::vector< BcU32 > ResourceViewCacheFreeIdx_;
+
 };
 
 
