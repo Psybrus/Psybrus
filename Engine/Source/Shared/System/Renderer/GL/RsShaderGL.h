@@ -43,6 +43,8 @@ private:
 	GLenum								Type_;
 	RsShaderDataType					DataType_;
 	BcU32								Format_;
+	void*								pData_;
+	BcU32								DataSize_;
 };
 
 #endif
