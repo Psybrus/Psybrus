@@ -100,6 +100,7 @@ private:
 	D3D_FEATURE_LEVEL FeatureLevel_;
 
 	BcComRef<ID3D11Texture2D> BackBuffer_;
+	BcU32 BackBufferResourceIdx_;
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
@@ -107,16 +108,13 @@ private:
 	// Resource view cache.
 	struct ResourceViewCacheEntry
 	{
-		struct
+		union
 		{
 			ID3D11Resource* Resource_;
-			union
-			{
-				ID3D11Buffer* BufferResource_;
-				ID3D11Texture1D* Texture1DResource_;
-				ID3D11Texture2D* Texture2DResource_;
-				ID3D11Texture3D* Texture3DResource_;
-			};
+			ID3D11Buffer* BufferResource_;
+			ID3D11Texture1D* Texture1DResource_;
+			ID3D11Texture2D* Texture2DResource_;
+			ID3D11Texture3D* Texture3DResource_;
 		};
 
 		ID3D11ShaderResourceView* ShaderResourceView_;
