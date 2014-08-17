@@ -30,6 +30,7 @@ public:
 	virtual ~RsProgram();
 	
 	BcU32 findSamplerSlot( const BcChar* Name );
+	BcU32 findTextureSlot( const BcChar* Name );
 	BcU32 findUniformBufferSlot( const BcChar* Name );
 
 	const std::vector< class RsShader* >& getShaders() const;
@@ -38,8 +39,9 @@ public:
 public:
 	// Used internally by the renderer to patch reflection information
 	// into the program.
-	void addSampler( std::string Name, BcU32 Handle, RsShaderParameterType Type );
-	void addBlock( std::string Name, BcU32 Handle, BcU32 Size );
+	void addSamplerSlot( std::string Name, BcU32 Handle, RsShaderParameterType Type );
+	void addTextureSlot( std::string Name, BcU32 Handle );
+	void addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size );
 
 private:
 	struct TSampler
@@ -47,6 +49,12 @@ private:
 		std::string Name_;
 		BcU32 Handle_;
 		RsShaderParameterType Type_;
+	};
+
+	struct TTexture
+	{
+		std::string Name_;
+		BcU32 Handle_;
 	};
 
 	struct TUniformBlock
@@ -60,6 +68,11 @@ private:
 	typedef TSamplerList::iterator TSamplerListIterator;
 	typedef TSamplerList::const_iterator TSamplerListConstIterator;
 	TSamplerList SamplerList_;
+
+	typedef std::vector< TTexture > TTextureList;
+	typedef TTextureList::iterator TTextureListIterator;
+	typedef TTextureList::const_iterator TTextureListConstIterator;
+	TTextureList TextureList_;
 
 	typedef std::vector< TUniformBlock > TUniformBlockList;
 	typedef TUniformBlockList::iterator TUniformBlockListIterator;

@@ -764,21 +764,62 @@ bool RsContextD3D11::destroyShader(
 bool RsContextD3D11::createProgram(
 	class RsProgram* Program )
 {
+	// TODO: Look up also by type, size, and flags. Not just name.
+	// TODO: Do this work offline.
+	typedef std::unordered_map< std::string, BcU32 > ResourceHandleMapping;
+	ResourceHandleMapping SamplerBindings;
+	ResourceHandleMapping TextureBindings;
+	ResourceHandleMapping ConstantBufferBindings;
+
+	const BcU32 NoofBindPoints = 32;
+	const BcU32 BitsPerShader = 5; // Up to 32 bindings.
+
+	// Iterate over shaders and setup handles for all constant
+	// buffers and shader resources.
 	for( auto* Shader : Program->getShaders() )
 	{
+		const auto& ShaderDesc = Shader->getDesc();
 		ID3D11ShaderReflection* Reflector = nullptr; 
 		D3D11Reflect( 
 			Shader->getData(), 
 			Shader->getDataSize(), 
 			&Reflector);
 
-		for( BcU32 Idx = 0; Idx < 32; ++Idx )
+		// Just iterate over a big number...we'll assert if we go over.
+		for( BcU32 Idx = 0; Idx < 128; ++Idx )
 		{
-			auto ConstantBuffer = Reflector->GetConstantBufferByIndex( Idx );
-			D3D11_SHADER_BUFFER_DESC Desc;
-			if( SUCCEEDED( ConstantBuffer->GetDesc( &Desc ) ) )
+			D3D11_SHADER_INPUT_BIND_DESC BindDesc;
+			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
 			{
-				int a = 0; ++a;
+				// Validate.
+				BcAssert( 
+					BindDesc.BindPoint < NoofBindPoints && 
+					( BindDesc.BindPoint + BindDesc.BindCount ) <= NoofBindPoints );
+
+				// Check if it's a cbuffer or tbuffer.
+				if( BindDesc.Type == D3D_SIT_CBUFFER ||
+					BindDesc.Type == D3D_SIT_TBUFFER )
+				{
+					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
+					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+					ConstantBufferBindings[ BindDesc.Name ] = Handle;
+				}
+				else if( BindDesc.Type == D3D_SIT_TEXTURE )
+				{
+					BcU32 Handle = TextureBindings[ BindDesc.Name ];
+					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+					TextureBindings[ BindDesc.Name ] = Handle;
+				}
+				else if( BindDesc.Type == D3D_SIT_SAMPLER )
+				{
+					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
+					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+					SamplerBindings[ BindDesc.Name ] = Handle;
+				}
+				else
+				{
+					// TOOD.
+				}
 			}
 		}
 	}
