@@ -25,6 +25,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Direct3D 11 library.
 #pragma comment (lib, "d3d11.lib")
+#pragma comment (lib, "dxgi.lib")
 
 //////////////////////////////////////////////////////////////////////////
 // Type conversion.
@@ -90,7 +91,7 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode )
 {
-	BcBreakpoint;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,17 +162,25 @@ void RsContextD3D11::create()
 	// Setup swap chain desc.
 	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
     SwapChainDesc_.BufferCount = 1;
+	SwapChainDesc_.BufferDesc.Width = pClient->getWidth();
+    SwapChainDesc_.BufferDesc.Height = pClient->getHeight();
     SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    SwapChainDesc_.BufferDesc.RefreshRate.Numerator = 60;
+    SwapChainDesc_.BufferDesc.RefreshRate.Denominator = 1;
     SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	SwapChainDesc_.OutputWindow = pClient->getHWND();
+	SwapChainDesc_.SampleDesc.Count = 1;
+	SwapChainDesc_.SampleDesc.Quality = 0;
     SwapChainDesc_.Windowed = TRUE;
 	SwapChainDesc_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	// Create device and swap chain.
-	D3D11CreateDeviceAndSwapChain( Adapter_,
+	FeatureLevel_ = D3D_FEATURE_LEVEL_11_0;
+	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
+		Adapter_,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
-		D3D11_CREATE_DEVICE_SINGLETHREADED,
+		D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -180,9 +189,15 @@ void RsContextD3D11::create()
 		&Device_,
 		&FeatureLevel_,
 		&Context_ );
+	BcAssert( SUCCEEDED( Result ) ); 
 
 	// Get back buffer from swap chain.
 	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
+	BackBufferResourceIdx_ = addD3DResource( BackBuffer_ );
+
+	ID3D11RenderTargetView* BackBufferRTView = getD3DRenderTargetView( BackBufferResourceIdx_ );
+	Context_->OMSetRenderTargets( 1, &BackBufferRTView, nullptr ); 
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -851,6 +866,7 @@ ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( BcU32 ResourceId
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
 				Desc.Format = TexDesc.Format;
+				Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipSlice = 0;
 			}
 			break;

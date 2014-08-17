@@ -68,6 +68,13 @@ public:
 		RsTextureUpdateFunc UpdateFunc );
 
 private:
+	bool destroyBuffer_threaded( 
+		RsBuffer* Buffer );
+
+	bool destroyTexture_threaded( 
+		RsTexture* Texture );
+
+private:
 	void						createResource( RsResource* pResource );
 
 public:
@@ -85,7 +92,6 @@ protected:
 	typedef TContextMap::iterator TContextMapIterator;
 
 	TContextMap				ContextMap_;
-		
 };
 
 #endif

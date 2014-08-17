@@ -227,6 +227,55 @@ void RsCoreImplD3D11::destroyResource( RsResource* pResource )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImplD3D11::destroyResource( RsBuffer* Buffer )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	typedef BcDelegate< bool(*)( RsBuffer* ) > DestroyDelegate;
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplD3D11, &RsCoreImplD3D11::destroyBuffer_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Buffer );
+
+}
+
+bool RsCoreImplD3D11::destroyBuffer_threaded( 
+		RsBuffer* Buffer )
+{
+	auto Context = Buffer->getContext();
+	auto retVal = Context->destroyBuffer( Buffer );
+	delete Buffer;
+	return retVal;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImplD3D11::destroyResource( RsTexture* Texture )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	typedef BcDelegate< bool(*)( RsTexture* ) > DestroyDelegate;
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplD3D11, &RsCoreImplD3D11::destroyTexture_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Texture );
+}
+
+bool RsCoreImplD3D11::destroyTexture_threaded( 
+		RsTexture* Texture )
+
+{
+	auto Context = Texture->getContext();
+	auto retVal = Context->destroyTexture( Texture );
+	delete Texture;
+	return retVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // updateResource
 void RsCoreImplD3D11::updateResource( RsResource* pResource )
 {
@@ -288,7 +337,7 @@ RsFrame* RsCoreImplD3D11::allocateFrame( RsContext* pContext )
 void RsCoreImplD3D11::queueFrame( RsFrame* pFrame )
 {
 	BcAssert( BcIsGameThread() );
-	BcBreakpoint;
+  	//BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////
