@@ -84,10 +84,24 @@ public:
 		class RsShader* Shader ) = 0;
 
 	/**
+	 * Destroy shader.
+	 * @param Shader Shader to destroy.
+	 */
+	virtual bool destroyShader(
+		class RsShader* Shader ) = 0;
+
+	/**
 	 * Create program.
 	 * @param Program Program to create from.
 	 */
 	virtual bool createProgram(
+		class RsProgram* Program ) = 0;
+
+	/**
+	 * Destroy program.
+	 * @param Program Program to destory.
+	 */
+	virtual bool destroyProgram(
 		class RsProgram* Program ) = 0;
 
 };

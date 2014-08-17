@@ -332,6 +332,55 @@ bool RsCoreImpl::destroyTexture_threaded(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+		RsShader* Shader )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	typedef BcDelegate< bool(*)( RsShader* ) > DestroyDelegate;
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyShader_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Shader );
+
+}
+
+bool RsCoreImpl::destroyShader_threaded( 
+		RsShader* Shader )
+{
+	auto Context = Shader->getContext();
+	auto retVal = Context->destroyShader( Shader );
+	delete Shader;
+	return retVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+		RsProgram* Program )
+{
+	BcAssert( BcIsGameThread() );
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	typedef BcDelegate< bool(*)( RsProgram* ) > DestroyDelegate;
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyProgram_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Program );
+}
+
+bool RsCoreImpl::destroyProgram_threaded( 
+		RsProgram* Program )
+{
+	auto Context = Program->getContext();
+	auto retVal = Context->destroyProgram( Program );
+	delete Program;
+	return retVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // updateResource
 void RsCoreImpl::updateResource( RsResource* pResource )
 {

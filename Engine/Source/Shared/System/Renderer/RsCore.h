@@ -134,6 +134,10 @@ public:
 		RsBuffer* Buffer ) = 0;
 	virtual void destroyResource( 
 		RsTexture* Texture ) = 0;
+	virtual void destroyResource( 
+		RsShader* Shader ) = 0;
+	virtual void destroyResource( 
+		RsProgram* Program ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.
