@@ -65,32 +65,37 @@ public:
 	 *	Get rendering context for client.
 	 *	@param pClient Client to get a context for.
 	 */
-	virtual RsContext*			getContext( OsClient* pClient ) = 0;
+	virtual RsContext* getContext( 
+		OsClient* pClient ) = 0;
 	
 	/**
 	 *	Destroy rendering context for client.
 	 *	@param pClient Client to get a context for.
 	 */
-	virtual void				destroyContext( OsClient* pClient ) = 0;
+	virtual void destroyContext( 
+		OsClient* pClient ) = 0;
 
 	/**
 	 *	Create a texture.
 	 *	@param Desc descriptor.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( const RsTextureDesc& Desc ) = 0;
+	virtual RsTexture* createTexture( 
+		const RsTextureDesc& Desc ) = 0;
 
 	/**
 	 *	Create a vertex declaration.
 	 *	@param Desc Descriptor object.
 	 */
-	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc ) = 0;
+	virtual RsVertexDeclaration* createVertexDeclaration( 
+		const RsVertexDeclarationDesc& Desc ) = 0;
 
 	/*
 	 * Create a buffer.
 	 * @param Desc Buffer descriptor
 	 */
-	virtual RsBuffer*			createBuffer( const RsBufferDesc& Desc ) = 0;
+	virtual RsBuffer* createBuffer( 
+		const RsBufferDesc& Desc ) = 0;
 	
 	/**
 	 * Create shader.
@@ -98,29 +103,37 @@ public:
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
 	 */
-	virtual RsShader*			createShader( const RsShaderDesc& Desc, void* pShaderData, BcU32 ShaderDataSize ) = 0;
+	virtual RsShader* createShader( 
+		const RsShaderDesc& Desc, 
+		void* pShaderData, BcU32 ShaderDataSize ) = 0;
 
 	/**
 	 * Create program.
 	 * @param Shaders Array of shaders to use for program.
-	 * @param NoofVertexAttributes Number of vertex attributes.
+	 * @param VertexAttributes Vertex attributes for program.
 	 * @param pVertexAttributes Vertex attributes.
 	 */
-	virtual RsProgram*			createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  ) = 0;
+	virtual RsProgram* createProgram( 
+		std::vector< RsShader* > Shaders, 
+		RsProgramVertexAttributeList VertexAttributes ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
 	 * @param pResource Resource to update.
 	 */
-	virtual void				updateResource( RsResource* pResource ) = 0;
+	virtual void updateResource( 
+		RsResource* pResource ) = 0;
 
 	/**
 	 * Destroy resource. Work done on render thread.
 	 * @param pResource Resource to destroy.
 	 */
-	virtual void				destroyResource( RsResource* pResource ) = 0;
-	virtual void				destroyResource( RsBuffer* Buffer ) = 0;
-	virtual void				destroyResource( RsTexture* Texture ) = 0;
+	virtual void destroyResource( 
+		RsResource* pResource ) = 0;
+	virtual void destroyResource( 
+		RsBuffer* Buffer ) = 0;
+	virtual void destroyResource( 
+		RsTexture* Texture ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.

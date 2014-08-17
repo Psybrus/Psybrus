@@ -63,7 +63,6 @@ private:
 	
 private:
 	ScnShaderHeader*					pHeader_;
-	RsProgramVertexAttribute*			pVertexAttributes_;
 	std::array< ShaderContainer, (BcU32)RsShaderType::MAX > ShaderMappings_;
 	TProgramMap							ProgramMap_;
 	RsShaderCodeType					TargetCodeType_;

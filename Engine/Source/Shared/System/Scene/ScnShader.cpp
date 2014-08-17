@@ -61,7 +61,6 @@ void ScnShader::StaticRegisterClass()
 void ScnShader::initialise()
 {
 	pHeader_ = nullptr;
-	pVertexAttributes_= nullptr;
 	TotalProgramsLoaded_ = 0;
 }
 
@@ -250,16 +249,24 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 		}
 
-		pVertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
-
 		// Shrink to fit.
 		Shaders.shrink_to_fit();
+
+		RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
+		RsProgramVertexAttributeList VertexAttributes;
+		VertexAttributes.reserve( pProgramHeader->NoofVertexAttributes_ );
+		for( BcU32 Idx = 0; Idx < pProgramHeader->NoofVertexAttributes_; ++Idx )
+		{
+			VertexAttributes.push_back( VertexAttributes_[ Idx ] );
+		}
 
 		// Only create target code type.
 		if( pProgramHeader->ShaderCodeType_ == TargetCodeType_ )
 		{
 			// Create program.
-			RsProgram* pProgram = RsCore::pImpl()->createProgram( std::move( Shaders ), pProgramHeader->NoofVertexAttributes_, pVertexAttributes_ );			
+			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
+				std::move( Shaders ), 
+				std::move( VertexAttributes ) );			
 			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
 		}
 	}

@@ -244,14 +244,20 @@ RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData,
 //////////////////////////////////////////////////////////////////////////
 // createProgram
 //virtual
-RsProgram* RsCoreImpl::createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
+RsProgram* RsCoreImpl::createProgram( 
+	std::vector< RsShader* > Shaders, 
+	RsProgramVertexAttributeList VertexAttributes )
 {
-#if 1
-	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), std::move( Shaders ), NoofVertexAttributes, pVertexAttributes );
+	auto Context = getContext( nullptr );
+
+	RsProgramGL* pResource = new RsProgramGL(
+		Context, 
+		std::move( Shaders ), 
+		std::move( VertexAttributes ) );
+
 	createResource( pResource );
+
 	return pResource;
-#endif
-	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
