@@ -251,7 +251,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	// Show the window
 	if( Visible )
 	{
-		::ShowWindow( hWnd_, SW_SHOWMAXIMIZED );
+		::ShowWindow( hWnd_, SW_SHOWNORMAL );
 		::SetForegroundWindow( hWnd_ );
 		::SetFocus( hWnd_ );
 	}
