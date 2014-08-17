@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		RsCoreImplD3D11.cpp
+* File:		RsCoreImpl.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,20 +11,27 @@
 * 
 **************************************************************************/
 
-#include "System/Renderer/D3D11/RsCoreImplD3D11.h"
+#include "System/Renderer/RsCoreImpl.h"
 
-#include "System/Renderer/D3D11/RsContextD3D11.h"
+#include "System/Renderer/RsFrame.h"
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsProgram.h"
+
+#include "System/Renderer/GL/RsShaderGL.h"
+#include "System/Renderer/GL/RsProgramGL.h"
 
 #include "System/SysKernel.h"
 
+#include "System/Renderer/GL/RsContextGL.h"
+#include "System/Renderer/D3D11/RsContextD3D11.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
-SYS_CREATOR( RsCoreImplD3D11 );
+SYS_CREATOR( RsCoreImpl );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsCoreImplD3D11::RsCoreImplD3D11()
+RsCoreImpl::RsCoreImpl()
 {
 	
 }
@@ -32,7 +39,7 @@ RsCoreImplD3D11::RsCoreImplD3D11()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-RsCoreImplD3D11::~RsCoreImplD3D11()
+RsCoreImpl::~RsCoreImpl()
 {
 
 }
@@ -40,39 +47,43 @@ RsCoreImplD3D11::~RsCoreImplD3D11()
 //////////////////////////////////////////////////////////////////////////
 // open
 //virtual
-void RsCoreImplD3D11::open()
+void RsCoreImpl::open()
 {
 	BcAssert( BcIsGameThread() );
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplD3D11, &RsCoreImplD3D11::open_threaded >( this ) );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::open_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // open_threaded
-void RsCoreImplD3D11::open_threaded()
+void RsCoreImpl::open_threaded()
 {
+#if PLATFORM_OSX
+	// Do the context switch.
+	OsViewOSX_Interface::MakeContextCurrent();
+#endif
+
 	// Make default context current and setup defaults.
-	RsContextD3D11* pContext = static_cast< RsContextD3D11* >( ContextMap_[ NULL ] );
+	RsContext* pContext = ContextMap_[ NULL ];
 	if( pContext != NULL )
 	{
 		//
-		pContext->setDefaultState();
-		pContext->flushState();
+		pContext->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1, BcTrue );
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void RsCoreImplD3D11::update()
+void RsCoreImpl::update()
 {
 	BcAssert( BcIsGameThread() );
 	// Increment fence so we know how far we're getting ahead of ourselves.
 	RenderSyncFence_.increment();
 
 	// Queue update job.
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplD3D11, &RsCoreImplD3D11::update_threaded >( this ) );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::update_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 
 	// Wait for frames if we fall more than 1 update cycle behind.
@@ -81,7 +92,7 @@ void RsCoreImplD3D11::update()
 
 //////////////////////////////////////////////////////////////////////////
 // update_threaded
-void RsCoreImplD3D11::update_threaded()
+void RsCoreImpl::update_threaded()
 {
 	// Decrement when we've done our update.
 	RenderSyncFence_.decrement();
@@ -90,17 +101,17 @@ void RsCoreImplD3D11::update_threaded()
 //////////////////////////////////////////////////////////////////////////
 // close
 //virtual
-void RsCoreImplD3D11::close()
+void RsCoreImpl::close()
 {
 	BcAssert( BcIsGameThread() );
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImplD3D11, &RsCoreImplD3D11::close_threaded >( this ) );
+	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::close_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // close_threaded
-void RsCoreImplD3D11::close_threaded()
+void RsCoreImpl::close_threaded()
 {
 
 }
@@ -108,7 +119,7 @@ void RsCoreImplD3D11::close_threaded()
 //////////////////////////////////////////////////////////////////////////
 // getContext
 //virtual
-RsContext* RsCoreImplD3D11::getContext( OsClient* pClient )
+RsContext* RsCoreImpl::getContext( OsClient* pClient )
 {
 	BcAssert( BcIsGameThread() );
 	TContextMapIterator It = ContextMap_.find( pClient );
@@ -121,7 +132,7 @@ RsContext* RsCoreImplD3D11::getContext( OsClient* pClient )
 	{
 		if( pClient != NULL )
 		{
-			RsContextD3D11* pResource = new RsContextD3D11( pClient, ContextMap_[ NULL ] );
+			RsContext* pResource = new RsContextGL( pClient, nullptr );
 			createResource( pResource );
 
 			// If we have no default context, set it.
@@ -143,7 +154,7 @@ RsContext* RsCoreImplD3D11::getContext( OsClient* pClient )
 //////////////////////////////////////////////////////////////////////////
 // destroyContext
 //virtual
-void RsCoreImplD3D11::destroyContext( OsClient* pClient )
+void RsCoreImpl::destroyContext( OsClient* pClient )
 {
 	BcAssert( BcIsGameThread() );
 	TContextMapIterator It = ContextMap_.find( pClient );
@@ -167,46 +178,82 @@ void RsCoreImplD3D11::destroyContext( OsClient* pClient )
 //////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
-RsTexture* RsCoreImplD3D11::createTexture( const RsTextureDesc& Desc )
+RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 {
-	return nullptr;
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsTexture* pResource = new RsTexture( Context, Desc );
+
+	typedef BcDelegate< bool(*)( RsTexture* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createTexture >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	
+	// Return resource.
+	return pResource;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
-//virtual 
-RsVertexDeclaration* RsCoreImplD3D11::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
+//virtual
+RsVertexDeclaration* RsCoreImpl::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
 {
-	return nullptr;
+	RsVertexDeclaration* pResource = new RsVertexDeclaration( getContext( NULL ), Desc );
+	createResource( pResource );
+	return pResource;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createBuffer
 //virtual 
-RsBuffer* RsCoreImplD3D11::createBuffer( const RsBufferDesc& Desc )
+RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 {
-	return nullptr;
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsBuffer* pResource = new RsBuffer( Context, Desc );
+
+	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createBuffer >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	
+	// Return resource.
+	return pResource;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createShader
 //virtual
-RsShader* RsCoreImplD3D11::createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
+RsShader* RsCoreImpl::createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
 {
+#if 1
+	RsShaderGL* pResource = new RsShaderGL( getContext( NULL ), ShaderType, ShaderDataType, pShaderData, ShaderDataSize );
+	createResource( pResource );
+	return pResource;
+#endif
 	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createProgram
 //virtual
-RsProgram* RsCoreImplD3D11::createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
+RsProgram* RsCoreImpl::createProgram( std::vector< RsShader* > Shaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes )
 {
+#if 1
+	RsProgramGL* pResource = new RsProgramGL( getContext( NULL ), std::move( Shaders ), NoofVertexAttributes, pVertexAttributes );
+	createResource( pResource );
+	return pResource;
+#endif
 	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImplD3D11::destroyResource( RsResource* pResource )
+void RsCoreImpl::destroyResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
 
@@ -228,7 +275,7 @@ void RsCoreImplD3D11::destroyResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImplD3D11::destroyResource( RsBuffer* Buffer )
+void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 {
 	BcAssert( BcIsGameThread() );
 
@@ -236,13 +283,12 @@ void RsCoreImplD3D11::destroyResource( RsBuffer* Buffer )
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 	typedef BcDelegate< bool(*)( RsBuffer* ) > DestroyDelegate;
-	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplD3D11, &RsCoreImplD3D11::destroyBuffer_threaded >( this ) );
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyBuffer_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Buffer );
-
 }
 
-bool RsCoreImplD3D11::destroyBuffer_threaded( 
-		RsBuffer* Buffer )
+bool RsCoreImpl::destroyBuffer_threaded( 
+	RsBuffer* Buffer )
 {
 	auto Context = Buffer->getContext();
 	auto retVal = Context->destroyBuffer( Buffer );
@@ -250,10 +296,9 @@ bool RsCoreImplD3D11::destroyBuffer_threaded(
 	return retVal;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImplD3D11::destroyResource( RsTexture* Texture )
+void RsCoreImpl::destroyResource( RsTexture* Texture )
 {
 	BcAssert( BcIsGameThread() );
 
@@ -261,13 +306,13 @@ void RsCoreImplD3D11::destroyResource( RsTexture* Texture )
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 	typedef BcDelegate< bool(*)( RsTexture* ) > DestroyDelegate;
-	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImplD3D11, &RsCoreImplD3D11::destroyTexture_threaded >( this ) );
+	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyTexture_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Texture );
+
 }
 
-bool RsCoreImplD3D11::destroyTexture_threaded( 
-		RsTexture* Texture )
-
+bool RsCoreImpl::destroyTexture_threaded( 
+	RsTexture* Texture )
 {
 	auto Context = Texture->getContext();
 	auto retVal = Context->destroyTexture( Texture );
@@ -277,7 +322,7 @@ bool RsCoreImplD3D11::destroyTexture_threaded(
 
 //////////////////////////////////////////////////////////////////////////
 // updateResource
-void RsCoreImplD3D11::updateResource( RsResource* pResource )
+void RsCoreImpl::updateResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
 	
@@ -290,30 +335,94 @@ void RsCoreImplD3D11::updateResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // updateBuffer
-bool RsCoreImplD3D11::updateBuffer( 
-		class RsBuffer* Buffer,
-		BcSize Offset,
-		BcSize Size,
-		RsResourceUpdateFlags Flags,
-		RsBufferUpdateFunc UpdateFunc )
+bool RsCoreImpl::updateBuffer( 
+	class RsBuffer* Buffer,
+	BcSize Offset,
+	BcSize Size,
+	RsResourceUpdateFlags Flags,
+	RsBufferUpdateFunc UpdateFunc )
 {
-	return false;
+	// Check if flags allow async.
+	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
+	{
+		BcBreakpoint; // TODO: Implement this path?
+	}
+	else
+	{
+		RsCoreImpl::UpdateBufferAsync Cmd =
+		{
+			Buffer,
+			Offset,
+			Size,
+			Flags,
+			UpdateFunc
+		};
+
+		typedef BcDelegate< bool(*)( UpdateBufferAsync ) > UpdateDelegate;
+		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImpl, &RsCoreImpl::updateBuffer_threaded >( this ) );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
+	}
+
+	return true;
+}
+	
+bool RsCoreImpl::updateBuffer_threaded( 
+	UpdateBufferAsync Cmd )
+{
+	auto Context = Cmd.Buffer_->getContext();
+	return Context->updateBuffer( 
+		Cmd.Buffer_,
+		Cmd.Offset_,
+		Cmd.Size_,
+		Cmd.Flags_,
+		Cmd.UpdateFunc_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // updateTexture
-bool RsCoreImplD3D11::updateTexture( 
-		class RsTexture* Texture,
-		const struct RsTextureSlice& Slice,
-		RsResourceUpdateFlags Flags,
-		RsTextureUpdateFunc UpdateFunc )
+bool RsCoreImpl::updateTexture( 
+	class RsTexture* Texture,
+	const RsTextureSlice& Slice,
+	RsResourceUpdateFlags Flags,
+	RsTextureUpdateFunc UpdateFunc )
 {
-	return false;
+	// Check if flags allow async.
+	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
+	{
+		BcBreakpoint; // TODO: Implement this path?
+	}
+	else
+	{
+		RsCoreImpl::UpdateTextureAsync Cmd =
+		{
+			Texture,
+			Slice,
+			Flags,
+			UpdateFunc
+		};
+
+		typedef BcDelegate< bool(*)( UpdateTextureAsync ) > UpdateDelegate;
+		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImpl, &RsCoreImpl::updateTexture_threaded >( this ) );
+		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
+	}
+
+	return true;
+}
+	
+bool RsCoreImpl::updateTexture_threaded( 
+	UpdateTextureAsync Cmd )
+{
+	auto Context = Cmd.Texture_->getContext();
+	return Context->updateTexture( 
+		Cmd.Texture_,
+		Cmd.Slice_,
+		Cmd.Flags_,
+		Cmd.UpdateFunc_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createResource
-void RsCoreImplD3D11::createResource( RsResource* pResource )
+void RsCoreImpl::createResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
 
@@ -326,28 +435,36 @@ void RsCoreImplD3D11::createResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // allocateFrame
-RsFrame* RsCoreImplD3D11::allocateFrame( RsContext* pContext )
+RsFrame* RsCoreImpl::allocateFrame( RsContext* pContext )
 {
 	BcAssert( BcIsGameThread() );
-	return nullptr;
+	if( pContext != NULL )
+	{
+		return new RsFrame( pContext );
+	}
+	else
+	{
+		return new RsFrame( ContextMap_[ NULL ] );
+	}	
 }
 
 //////////////////////////////////////////////////////////////////////////
 // queueFrame
-void RsCoreImplD3D11::queueFrame( RsFrame* pFrame )
+void RsCoreImpl::queueFrame( RsFrame* pFrame )
 {
 	BcAssert( BcIsGameThread() );
-  	//BcBreakpoint;
+	BcDelegate< void(*)( RsFrame* ) > Delegate( BcDelegate< void(*)( RsFrame* ) >::bind< RsCoreImpl, &RsCoreImpl::queueFrame_threaded >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, (RsFrame*)pFrame );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // queueFrame_threaded
-void RsCoreImplD3D11::queueFrame_threaded( RsFrameD3D11* pFrame )
+void RsCoreImpl::queueFrame_threaded( RsFrame* pFrame )
 {
 	// Render frame.
-	//pFrame->render();
+	pFrame->render();
 
 	// Now free.
-	//delete pFrame;
+	delete pFrame;
 }
 

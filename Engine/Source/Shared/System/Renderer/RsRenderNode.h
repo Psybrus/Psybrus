@@ -24,8 +24,9 @@ class RsContext;
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderSort
-union RsRenderSort
+class RsRenderSort
 {
+public:
 	RsRenderSort()
 	{
 	
@@ -43,33 +44,22 @@ union RsRenderSort
 	
 	}
 	
-	BcU64				Value_;
+	union
+	{
+		BcU64				Value_;
 	
-#if PSY_ENDIAN_LITTLE
-	struct 
-	{
-		BcU64			MaterialID_		: 16;		// 16
-		BcU64			Depth_			: 24;		// 40
-		BcU64			Blend_			: 2;		// 42
-		BcU64			Layer_			: 4;		// 46
-		BcU64			Pass_			: 2;		// 48
-		BcU64			Viewport_		: 8;		// 56
-		BcU64			RenderTarget_	: 4;		// 60
-		BcU64			NodeType_		: 4;		// 64
+		struct 
+		{
+			BcU64			MaterialID_		: 16;		// 16
+			BcU64			Depth_			: 24;		// 40
+			BcU64			Blend_			: 2;		// 42
+			BcU64			Layer_			: 4;		// 46
+			BcU64			Pass_			: 2;		// 48
+			BcU64			Viewport_		: 8;		// 56
+			BcU64			RenderTarget_	: 4;		// 60
+			BcU64			NodeType_		: 4;		// 64
+		};
 	};
-#elif PSY_ENDIAN_BIG
-	struct 
-	{
-		BcU64			NodeType_		: 4;		// 64
-		BcU64			RenderTarget_	: 4;		// 60
-		BcU64			Viewport_		: 8;		// 56
-		BcU64			Pass_			: 2;		// 48
-		BcU64			Layer_			: 4;		// 46
-		BcU64			Blend_			: 2;		// 42
-		BcU64			Depth_			: 24;		// 40
-		BcU64			MaterialID_		: 16;		// 16
-	};
-#endif
 };
 
 #define RS_SORT_MATERIAL_SHIFT			BcU64( 0 )

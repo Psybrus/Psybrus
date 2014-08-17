@@ -36,6 +36,7 @@ public:
 
 	BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
 	RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const;
+	void presentBackBuffer();
 	void takeScreenshot();
 	void setViewport( class RsViewport& Viewport );
 

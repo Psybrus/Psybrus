@@ -35,7 +35,7 @@ public:
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const;
 
-	void swapBuffers();
+	void presentBackBuffer();
 	void takeScreenshot();
 
 	bool createBuffer( 

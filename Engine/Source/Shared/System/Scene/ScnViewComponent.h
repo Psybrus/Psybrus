@@ -16,6 +16,7 @@
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnShaderFileData.h"
 #include "System/Scene/ScnRenderTarget.h"
@@ -54,7 +55,7 @@ public:
 
 	BcBool								intersect( const MaAABB& AABB ) const;
 
-	virtual void						bind( RsFrame* pFrame, RsRenderSort Sort );
+	virtual void						bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void								setRenderMask( BcU32 RenderMask );
 	const BcU32							getRenderMask() const;

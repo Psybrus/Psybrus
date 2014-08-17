@@ -91,7 +91,20 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode )
 {
-
+	IndexBuffer_ = nullptr;
+	D3DIndexBuffer_ = nullptr;
+	BcMemZero( &VertexBuffers_[ 0 ], sizeof( VertexBuffers_ ) );
+	BcMemZero( &D3DVertexBuffers_[ 0 ], sizeof( D3DVertexBuffers_ ) );
+	BcMemZero( &D3DVertexBufferStrides_[ 0 ], sizeof( D3DVertexBufferStrides_ ) );
+	BcMemZero( &D3DVertexBufferOffsets_[ 0 ], sizeof( D3DVertexBufferOffsets_ ) );
+	BcMemZero( &UniformBuffers_[ 0 ], sizeof( UniformBuffers_ ) );
+	BcMemZero( &D3DConstantBuffers_[ 0 ], sizeof( D3DConstantBuffers_ ) );
+	BcMemZero( &TextureResources_[ 0 ], sizeof( TextureResources_ ) );
+	BcMemZero( &D3DShaderResourceViews_[ 0 ], sizeof( D3DShaderResourceViews_ ) );
+	InputLayoutChanged_ = false;
+	Program_ = nullptr;
+	VertexDeclaration_ = nullptr;
+	TopologyType_ = RsTopologyType::INVALID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,6 +136,28 @@ BcU32 RsContextD3D11::getHeight() const
 //virtual
 BcBool RsContextD3D11::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
+	switch( CodeType )
+	{
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_3:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_3 );
+		break;
+		
+	case RsShaderCodeType::D3D11_4_0:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_10_0 );
+		break;
+
+	case RsShaderCodeType::D3D11_4_1:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_10_1 );
+		break;
+
+	case RsShaderCodeType::D3D11_5_0:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_11_0 );
+		break;
+
+	case RsShaderCodeType::D3D11_5_1:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_11_1 );
+		break;
+	}
 	return false;
 }
 
@@ -131,13 +166,41 @@ BcBool RsContextD3D11::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) co
 //virtual
 RsShaderCodeType RsContextD3D11::maxShaderCodeType( RsShaderCodeType CodeType ) const
 {
-	// TODO: Use feature level.
-	return RsShaderCodeType::D3D11_5_1;
+	switch( FeatureLevel_ )
+	{
+	case D3D_FEATURE_LEVEL_9_3:
+		return RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
+		break;
+
+	case D3D_FEATURE_LEVEL_10_0:
+		return RsShaderCodeType::D3D11_4_0;
+		break;
+
+	case D3D_FEATURE_LEVEL_10_1:
+		return RsShaderCodeType::D3D11_4_1;
+		break;
+
+	case D3D_FEATURE_LEVEL_11_0:
+		return RsShaderCodeType::D3D11_5_0;
+		break;
+
+	case D3D_FEATURE_LEVEL_11_1:
+		return RsShaderCodeType::D3D11_5_1;
+		break;
+	}
+	
+	return RsShaderCodeType::INVALID;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// presentBackBuffer
+void RsContextD3D11::presentBackBuffer()
+{
+	SwapChain_->Present( 0, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // takeScreenshot
-//virtual
 void RsContextD3D11::takeScreenshot()
 {
 
@@ -145,7 +208,6 @@ void RsContextD3D11::takeScreenshot()
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-//virtual
 void RsContextD3D11::setViewport( class RsViewport& Viewport )
 {
 
@@ -153,7 +215,6 @@ void RsContextD3D11::setViewport( class RsViewport& Viewport )
 
 //////////////////////////////////////////////////////////////////////////
 // create
-//virtual
 void RsContextD3D11::create()
 {
 	OsClientWindows* pClient = dynamic_cast< OsClientWindows* >( pClient_ );
@@ -191,18 +252,20 @@ void RsContextD3D11::create()
 		&Context_ );
 	BcAssert( SUCCEEDED( Result ) ); 
 
+	// Get owning thread so we can check we are being called
+	// from the appropriate thread later.
+	OwningThread_ = BcCurrentThreadId();
+
 	// Get back buffer from swap chain.
 	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
 	BackBufferResourceIdx_ = addD3DResource( BackBuffer_ );
 
 	ID3D11RenderTargetView* BackBufferRTView = getD3DRenderTargetView( BackBufferResourceIdx_ );
 	Context_->OMSetRenderTargets( 1, &BackBufferRTView, nullptr ); 
-
 }
 
 //////////////////////////////////////////////////////////////////////////
 // update
-//virtual
 void RsContextD3D11::update()
 {
 
@@ -210,7 +273,6 @@ void RsContextD3D11::update()
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
-//virtual
 void RsContextD3D11::destroy()
 {
 	SwapChain_ = nullptr;
@@ -224,7 +286,7 @@ void RsContextD3D11::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::setDefaultState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -233,7 +295,7 @@ void RsContextD3D11::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -242,7 +304,7 @@ void RsContextD3D11::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,7 +313,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::setRenderState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -260,7 +322,7 @@ BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
 
 	return 0;
 }
@@ -276,8 +338,7 @@ void RsContextD3D11::setTextureState( BcU32 SlotIdx, RsTexture* pTexture, const 
 	// Find shader resource view.
 	ID3D11ShaderResourceView* ShaderResourceView = getD3DShaderResourceView( pTexture->getHandle< BcU32 >() );
 
-	// TODO.
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::setTextureState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -342,7 +403,8 @@ void RsContextD3D11::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 void RsContextD3D11::clear( const RsColour& Colour )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+
+	BcPrintf( "WARNING: RsContextD3D11::clear unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -463,7 +525,7 @@ bool RsContextD3D11::createTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
+	HRESULT Result = 0;
 	//
 	const auto& TextureDesc = Texture->getDesc();
 
@@ -483,8 +545,8 @@ bool RsContextD3D11::createTexture(
 			Desc.MiscFlags = 0;
 
 			ID3D11Texture1D* D3DTexture = nullptr;
-			Device_->CreateTexture1D( &Desc, nullptr, &D3DTexture );
-
+			Result = Device_->CreateTexture1D( &Desc, nullptr, &D3DTexture );
+			BcAssert( SUCCEEDED( Result ) );
 			Texture->setHandle( addD3DResource( D3DTexture ) );
 		}
 		break;
@@ -497,7 +559,7 @@ bool RsContextD3D11::createTexture(
 			Desc.MipLevels = TextureDesc.Levels_;
 			Desc.ArraySize = 1;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
-			Desc.SampleDesc.Count = 0;
+			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
 			Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -505,7 +567,8 @@ bool RsContextD3D11::createTexture(
 			Desc.MiscFlags = 0;
 
 			ID3D11Texture2D* D3DTexture = nullptr;
-			Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
+ 			Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
+			BcAssert( SUCCEEDED( Result ) );
 
 			Texture->setHandle( addD3DResource( D3DTexture ) );
 		}
@@ -525,7 +588,8 @@ bool RsContextD3D11::createTexture(
 			Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 			ID3D11Texture3D* D3DTexture = nullptr;
-			Device_->CreateTexture3D( &Desc, nullptr, &D3DTexture );
+			Result = Device_->CreateTexture3D( &Desc, nullptr, &D3DTexture );
+			BcAssert( SUCCEEDED( Result ) );
 
 			Texture->setHandle( addD3DResource( D3DTexture ) );
 		}
@@ -539,7 +603,7 @@ bool RsContextD3D11::createTexture(
 			Desc.MipLevels = TextureDesc.Levels_;
 			Desc.ArraySize = 6;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
-			Desc.SampleDesc.Count = 0;
+			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
 			Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -547,7 +611,8 @@ bool RsContextD3D11::createTexture(
 			Desc.MiscFlags = 0;
 
 			ID3D11Texture2D* D3DTexture = nullptr;
-			Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
+			Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
+			BcAssert( SUCCEEDED( Result ) );
 
 			Texture->setHandle( addD3DResource( D3DTexture ) );
 		}
@@ -579,7 +644,8 @@ bool RsContextD3D11::updateTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcBreakpoint;
+	BcPrintf( "WARNING: RsContextD3D11::updateTexture unimplemented\n" );
+
 	return false;
 }
 
@@ -588,6 +654,8 @@ bool RsContextD3D11::updateTexture(
 //virtual
 void RsContextD3D11::flushState()
 {
+	HRESULT Result = 0;
+
 	if( InputLayoutChanged_ )
 	{
 		// Grab current input layout.
@@ -624,27 +692,28 @@ void RsContextD3D11::flushState()
 
 	// Bind all constant buffers to all stages.
 	// TODO: Hook them up seperately as required.
-	Context_->VSSetConstantBuffers( 
+#if 0
+	Result = Context_->VSSetConstantBuffers( 
 		0,
 		D3DConstantBuffers_.size(),
 		&D3DConstantBuffers_[ 0 ] );
-	Context_->DSSetConstantBuffers( 
+	Result = Context_->DSSetConstantBuffers( 
 		0,
 		D3DConstantBuffers_.size(),
 		&D3DConstantBuffers_[ 0 ] );
-	Context_->HSSetConstantBuffers( 
+	Result = Context_->HSSetConstantBuffers( 
 		0,
 		D3DConstantBuffers_.size(),
 		&D3DConstantBuffers_[ 0 ] );
-	Context_->GSSetConstantBuffers( 
+	Result = Context_->GSSetConstantBuffers( 
 		0,
 		D3DConstantBuffers_.size(),
 		&D3DConstantBuffers_[ 0 ] );
-	Context_->PSSetConstantBuffers( 
+	Result = Context_->PSSetConstantBuffers( 
 		0,
 		D3DConstantBuffers_.size(),
 		&D3DConstantBuffers_[ 0 ] );
-
+#endif 
 	// Bind all shader resources.
 }
 

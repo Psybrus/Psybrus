@@ -16,10 +16,6 @@
 
 #include "Base/BcTypes.h"
 
-#include "System/Renderer/RsContext.h"
-#include "System/Renderer/RsRenderNode.h"
-
-#include "System/Renderer/RsViewport.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -45,45 +41,71 @@ enum eRsFramePrimitiveMode
 class RsFrame
 {
 public:
-	virtual ~RsFrame(){};
+	RsFrame( 
+		class RsContext* pContext, 
+		BcU32 NoofNodes = 32 * 1024, 
+		BcU32 NodeMem = 1024 * 1024 );
+	~RsFrame();
 	
 	/**
-	*	Get context.
-	*/
-	virtual RsContext* getContext() const = 0;
+	 *	Get context.
+	 */
+	class RsContext* getContext() const;
+
+	/**
+	 * Reset frame.
+	 */
+	void reset();
+
+	/**
+	 * Render frame.
+	 */
+	void render();
+		
+	/**
+	 *	Add render node.\n
+	 *	NON-JOB FUNCTION: Placeholder.
+	 */
+	void addRenderNode( class RsRenderNode* pInstance );
 	
 	/**
-	*	Set current viewport.\n
-	*	NON-JOB FUNCTION: Called by game thread.
-	*/
-	virtual void	setViewport( const RsViewport& Viewport ) = 0;
-	
-	/**
-	*	Add render node.\n
-	*	NON-JOB FUNCTION: Placeholder.
-	*/
-	virtual void	addRenderNode( RsRenderNode* pInstance ) = 0;
-	
-	/**
-	*	Allocate from instance memory.
-	*/
-	virtual void*	allocMem( BcSize Bytes ) = 0;
+	 *	Allocate from instance memory.
+	 */
+	void* allocMem( BcSize Bytes );
 
 public:
 	/**
-	*	Allocate from instance memory.\n
-	*	NON-JOB FUNCTION: Called by specific frame implementation.
-	*/
+	 *	Allocate from instance memory.\n
+	 *	NON-JOB FUNCTION: Called by specific frame implementation.
+	 */
 	template< typename _Ty >
-	_Ty*			alloc( BcU32 NoofObjects  = 1 );
+	_Ty* alloc( BcU32 NoofObjects  = 1 );
 	
 	/**
-	*	Create new object from instance memory.
-	*/
+	 *	Create new object from instance memory.
+	 */
 	template< typename _Ty >
-	_Ty*			newObject();
+	_Ty* newObject();
 
-protected:
+private:
+	void			sortNodes();
+	void			sortNodeRadix( 
+		BcU32 Bits, 
+		BcU32 NoofItems, 
+		class RsRenderNode** pSrc, 
+		class RsRenderNode** pDst );
+
+private:
+	class RsContext* pContext_;
+	class RsRenderNode** ppNodeArray_;
+	class RsRenderNode** ppNodeSortArray_;
+	BcU32 NoofNodes_;
+	BcU32 CurrNode_;
+
+private:
+	BcU8* pFrameMem_;
+	BcU8* pCurrFrameMem_;
+	BcU32 FrameBytes_;
 
 };
 
