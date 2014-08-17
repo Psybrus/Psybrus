@@ -17,7 +17,6 @@
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
 
-#include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 
 #include "System/SysKernel.h"
@@ -228,14 +227,18 @@ RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 //////////////////////////////////////////////////////////////////////////
 // createShader
 //virtual
-RsShader* RsCoreImpl::createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize )
+RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData, BcU32 ShaderDataSize )
 {
-#if 1
-	RsShaderGL* pResource = new RsShaderGL( getContext( NULL ), ShaderType, ShaderDataType, pShaderData, ShaderDataSize );
-	createResource( pResource );
+	auto Context = getContext( nullptr );
+	RsShader* pResource = new RsShader( Context, Desc, pShaderData, ShaderDataSize );
+	
+	typedef BcDelegate< bool(*)( RsShader* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createShader >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+
 	return pResource;
-#endif
-	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

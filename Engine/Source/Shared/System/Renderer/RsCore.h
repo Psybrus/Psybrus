@@ -94,12 +94,11 @@ public:
 	
 	/**
 	 * Create shader.
-	 * @param ShaderType Shader type.
-	 * @param ShaderDataType Shader data type.
+	 * @param Desc Shader descriptor.
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
 	 */
-	virtual RsShader*			createShader( RsShaderType ShaderType, RsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ) = 0;
+	virtual RsShader*			createShader( const RsShaderDesc& Desc, void* pShaderData, BcU32 ShaderDataSize ) = 0;
 
 	/**
 	 * Create program.

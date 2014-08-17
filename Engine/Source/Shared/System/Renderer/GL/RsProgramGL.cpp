@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Renderer/GL/RsProgramGL.h"
+#include "System/Renderer/GL/RsGL.h"
 
 #include "Base/BcString.h"
 
@@ -121,8 +122,37 @@ void RsProgramGL::create()
 				*pIndexStart = '\0';
 			}
 
-			// Add sampler. Will fail if not supported sampler type.
-			addSampler( UniformName, UniformLocation, Type );
+			RsShaderParameterType InternalType = RsShaderParameterType::INVALID;
+			switch( Type )
+			{
+			case GL_SAMPLER_1D:
+				InternalType = RsShaderParameterType::SAMPLER_1D;
+				break;
+			case GL_SAMPLER_2D:
+				InternalType = RsShaderParameterType::SAMPLER_2D;
+				break;
+			case GL_SAMPLER_3D:
+				InternalType = RsShaderParameterType::SAMPLER_3D;
+				break;
+			case GL_SAMPLER_CUBE:
+				InternalType = RsShaderParameterType::SAMPLER_CUBE;
+				break;
+			case GL_SAMPLER_1D_SHADOW:
+				InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
+				break;
+			case GL_SAMPLER_2D_SHADOW:
+				InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
+				break;
+			default:
+				InternalType = RsShaderParameterType::INVALID;
+				break;
+			}
+
+			if( InternalType != RsShaderParameterType::INVALID )
+			{
+				// Add sampler. Will fail if not supported sampler type.
+				addSampler( UniformName, UniformLocation, InternalType );
+			}
 		}
 	}
 	
@@ -245,15 +275,6 @@ BcU32 RsProgramGL::findUniformBufferSlot( const BcChar* Name )
 	return BcErrorCode;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// bind
-//virtual
-void RsProgramGL::bind()
-{
-	GLuint Handle = getHandle< GLuint >();
-	glUseProgram( Handle );
-	RsGLCatchError();
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // addParameter
@@ -270,62 +291,32 @@ void RsProgramGL::logShaders() const
 {
 	for( auto* Shader : Shaders_ )
 	{
-		Shader->logShader();
+		// TODO: Implement.
+		//Shader->logShader();
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // addParameter
-void RsProgramGL::addSampler( const GLchar* pName, GLint Handle, GLenum Type )
+void RsProgramGL::addSampler( std::string Name, BcU32 Handle, RsShaderParameterType Type )
 {
-	// Calculate number of bytes it needs and size.
-	RsShaderParameterType InternalType;
-	BcU32 Bytes = 0;
-	switch( Type )
-	{
-		case GL_SAMPLER_1D:
-			InternalType = RsShaderParameterType::SAMPLER_1D;
-			break;
-		case GL_SAMPLER_2D:
-			InternalType = RsShaderParameterType::SAMPLER_2D;
-			break;
-		case GL_SAMPLER_3D:
-			InternalType = RsShaderParameterType::SAMPLER_3D;
-			break;
-		case GL_SAMPLER_CUBE:
-			InternalType = RsShaderParameterType::SAMPLER_CUBE;
-			break;
-		case GL_SAMPLER_1D_SHADOW:
-			InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
-			break;
-		case GL_SAMPLER_2D_SHADOW:
-			InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
-			break;
-		default:
-			InternalType = RsShaderParameterType::INVALID;
-			break;
-	}
-
 	// If parameter is valid, add it.
-	if( InternalType != RsShaderParameterType::INVALID )
+	TSampler Sampler = 
 	{
-		TSampler Sampler = 
-		{
-			pName,
-			Handle,
-			InternalType,
-		};
-		SamplerList_.push_back( Sampler );
-	}
+		Name,
+		Handle,
+		Type,
+	};
+	SamplerList_.push_back( Sampler );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // addBlock
-void RsProgramGL::addBlock( const GLchar* pName, GLint Handle, BcU32 Size )
+void RsProgramGL::addBlock( std::string Name, BcU32 Handle, BcU32 Size )
 {
 	TUniformBlock Block = 
 	{
-		pName,
+		Name,
 		Handle,
 		Size
 	};

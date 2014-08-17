@@ -75,6 +75,14 @@ public:
 		const struct RsTextureSlice& Slice,
 		RsResourceUpdateFlags Flags,
 		RsTextureUpdateFunc UpdateFunc ) = 0;
+
+	/**
+	 * Create shader.
+	 * @param Shader Shader to create from.
+	 */
+	virtual bool createShader(
+		class RsShader* Shader ) = 0;
+
 };
 
 #endif

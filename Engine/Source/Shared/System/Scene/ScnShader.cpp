@@ -223,7 +223,9 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				FreeShaderData = BcTrue;
 			}
 
-			RsShader* pShader = RsCore::pImpl()->createShader( pShaderHeader->ShaderType_, pShaderHeader->ShaderDataType_, pShaderData, ShaderSize );
+			RsShader* pShader = RsCore::pImpl()->createShader(
+				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
+				pShaderData, ShaderSize );
 			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
 		}
 	}

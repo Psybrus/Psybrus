@@ -12,7 +12,6 @@
 **************************************************************************/
 
 #include "System/Renderer/GL/RsContextGL.h"
-#include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsTexture.h"
@@ -241,6 +240,16 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, 0, 0 },				// RsTextureFormat::D24S8,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, 0, 0 },			 // RsTextureFormat::D32F,
 
+};
+
+static GLenum gShaderType[] = 
+{
+	GL_VERTEX_SHADER,											// RsShaderType::VERTEX
+	GL_TESS_CONTROL_SHADER,										// RsShaderType::TESSELATION_CONTROL
+	GL_TESS_EVALUATION_SHADER,									// RsShaderType::TESSELATION_EVALUATION
+	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
+	GL_FRAGMENT_SHADER,											// RsShaderType::FRAGMENT
+	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -875,6 +884,68 @@ bool RsContextGL::updateTexture(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createShader
+bool RsContextGL::createShader(
+	RsShader* Shader )
+{
+	const auto& Desc = Shader->getDesc();
+	GLuint ShaderType = gShaderType[ (BcU32)Desc.ShaderType_ ];
+
+	// Create handle for shader.
+	GLuint Handle = glCreateShader( ShaderType );
+	RsGLCatchError();
+	
+	if( Handle != 0 )
+	{
+		//
+		const GLchar* ShaderData = reinterpret_cast< const GLchar* >( Shader->getData() );
+
+		// Load the source code into it.
+		glShaderSource( Handle, 1, &ShaderData, nullptr );
+		RsGLCatchError();
+				
+		// Compile the source code.
+		glCompileShader( Handle );
+		RsGLCatchError();
+				
+		// Test if compilation succeeded.
+		GLint ShaderCompiled;
+		glGetShaderiv( Handle, GL_COMPILE_STATUS, &ShaderCompiled );
+		if ( !ShaderCompiled )
+		{					 
+			// There was an error here, first get the length of the log message.
+			int i32InfoLogLength, i32CharsWritten; 
+			glGetShaderiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+					
+			// Allocate enough space for the message, and retrieve it.
+			char* pszInfoLog = new char[i32InfoLogLength];
+			glGetShaderInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+
+			BcPrintf( "=======================================================\n" );
+			BcPrintf( "Error Compiling shader:\n" );
+			BcPrintf( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
+			BcPrintf( "=======================================================\n" );
+			delete [] pszInfoLog;
+
+			glDeleteShader( Handle );
+			return false;
+		}
+	}
+	
+	// Destroy if there is a failure.
+	GLenum Error = glGetError();
+	if ( Error != GL_NO_ERROR )
+	{
+		BcPrintf( "RsShaderGL: Error has occured: %u\n", Error );
+		glDeleteShader( Handle );
+		return false;
+	}
+
+	Shader->setHandle( Handle );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setDefaultState
 void RsContextGL::setDefaultState()
 {
@@ -1196,7 +1267,8 @@ void RsContextGL::flushState()
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
 		// Bind program.
-		Program_->bind();
+		glUseProgram( Program_->getHandle< GLuint >() );
+		RsGLCatchError();
 
 		// TODO: Bind up as individual uniforms as an alternative
 		//       to uniform buffers where appropriate.

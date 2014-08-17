@@ -14,8 +14,8 @@
 #ifndef __RSPROGRAMGL_H__
 #define __RSPROGRAMGL_H__
 
-#include "System/Renderer/GL/RsShaderGL.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsShader.h"
 
 #include <vector>
 
@@ -43,27 +43,28 @@ public:
 	// New, shiny interface!
 	virtual BcU32 findSamplerSlot( const BcChar* Name );
 	virtual BcU32 findUniformBufferSlot( const BcChar* Name );
-	virtual void bind();
 	
 	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const;
 	virtual void logShaders() const;
 
-private:	
-	void addSampler( const GLchar* pName, GLint Handle, GLenum Type );
-	void addBlock( const GLchar* pName, GLint Handle, BcU32 Size );
+public:
+	// Used internally by the renderer to patch reflection information
+	// into the program.
+	void addSampler( std::string Name, BcU32 Handle, RsShaderParameterType Type );
+	void addBlock( std::string Name, BcU32 Handle, BcU32 Size );
 	
 private:
 	struct TSampler
 	{
 		std::string Name_;
-		GLint Handle_;
+		BcU32 Handle_;
 		RsShaderParameterType Type_;
 	};
 
 	struct TUniformBlock
 	{
 		std::string Name_;
-		GLint Index_;
+		BcU32 Index_;
 		BcU32 Size_;
 	};
 
