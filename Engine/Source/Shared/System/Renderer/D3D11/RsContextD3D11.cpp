@@ -103,6 +103,30 @@ static LPCSTR gSemanticName[] =
 	"SAMPLE",					// RsVertexUsage::SAMPLE,
 };
 
+static D3D11_COMPARISON_FUNC gCompareFunc[] =
+{
+	D3D11_COMPARISON_NEVER,			// RsCompareMode::NEVER,
+	D3D11_COMPARISON_LESS,			// RsCompareMode::LESS,
+	D3D11_COMPARISON_EQUAL,			// RsCompareMode::EQUAL,
+	D3D11_COMPARISON_LESS_EQUAL,	// RsCompareMode::LESSEQUAL,
+	D3D11_COMPARISON_GREATER,		// RsCompareMode::GREATER,
+	D3D11_COMPARISON_NOT_EQUAL,		// RsCompareMode::NOTEQUAL,
+	D3D11_COMPARISON_GREATER_EQUAL, // RsCompareMode::GREATEREQUAL,
+	D3D11_COMPARISON_ALWAYS,		// RsCompareMode::ALWAYS,
+};
+
+static D3D11_STENCIL_OP gStencilOp[] =
+{
+	D3D11_STENCIL_OP_KEEP,			// RsStencilOp::KEEP,
+	D3D11_STENCIL_OP_ZERO,			// RsStencilOp::ZERO,
+	D3D11_STENCIL_OP_REPLACE,		// RsStencilOp::REPLACE,
+	D3D11_STENCIL_OP_INCR_SAT,		// RsStencilOp::INCR,
+	D3D11_STENCIL_OP_INCR,			// RsStencilOp::INCR_WRAP,
+	D3D11_STENCIL_OP_DECR_SAT,		// RsStencilOp::DECR,
+	D3D11_STENCIL_OP_DECR,			// RsStencilOp::DECR_WRAP,
+	D3D11_STENCIL_OP_INVERT,		// RsStencilOp::INVERT,
+};
+
 namespace
 {
 	DXGI_FORMAT getVertexElementFormat( RsVertexElement Element )
@@ -436,7 +460,98 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::setRenderState unimplemented\n" );
+	switch( State )
+	{
+	case RsRenderStateType::DEPTH_WRITE_ENABLE:
+		DepthStencilState_.DepthWriteMask = Value ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+		break;
+	case RsRenderStateType::DEPTH_TEST_ENABLE:
+		DepthStencilState_.DepthEnable = Value ? 1 : 0;
+		break;
+	case RsRenderStateType::DEPTH_TEST_COMPARE:
+		DepthStencilState_.DepthFunc = gCompareFunc[ Value ];
+		break;
+	case RsRenderStateType::STENCIL_WRITE_MASK:
+		DepthStencilState_.StencilWriteMask = Value;
+		break;
+	case RsRenderStateType::STENCIL_TEST_ENABLE:
+		DepthStencilState_.StencilEnable = Value ? 1 : 0;
+		break;
+	case RsRenderStateType::STENCIL_TEST_FUNC_COMPARE:
+		DepthStencilState_.FrontFace.StencilFunc = gCompareFunc[ Value ];
+		DepthStencilState_.BackFace.StencilFunc = gCompareFunc[ Value ];
+		break;
+	case RsRenderStateType::STENCIL_TEST_FUNC_REF:
+		BcBreakpoint;
+		break;
+	case RsRenderStateType::STENCIL_TEST_FUNC_MASK:
+		DepthStencilState_.StencilReadMask = Value;
+		break;
+	case RsRenderStateType::STENCIL_TEST_OP_SFAIL:
+		DepthStencilState_.FrontFace.StencilFailOp = gStencilOp[ Value ];
+		DepthStencilState_.BackFace.StencilFailOp = gStencilOp[ Value ];
+		break;
+	case RsRenderStateType::STENCIL_TEST_OP_DPFAIL:
+		DepthStencilState_.FrontFace.StencilDepthFailOp = gStencilOp[ Value ];
+		DepthStencilState_.BackFace.StencilDepthFailOp = gStencilOp[ Value ];
+		break;
+	case RsRenderStateType::STENCIL_TEST_OP_DPPASS:
+		DepthStencilState_.FrontFace.StencilPassOp = gStencilOp[ Value ];
+		DepthStencilState_.BackFace.StencilPassOp = gStencilOp[ Value ];
+		break;
+	case RsRenderStateType::COLOR_WRITE_MASK_0:
+		BlendState_.RenderTarget[ 0 ].RenderTargetWriteMask = Value;
+		break;
+	case RsRenderStateType::COLOR_WRITE_MASK_1:
+		BlendState_.RenderTarget[ 1 ].RenderTargetWriteMask = Value;
+		break;
+	case RsRenderStateType::COLOR_WRITE_MASK_2:
+		BlendState_.RenderTarget[ 2 ].RenderTargetWriteMask = Value;
+		break;
+	case RsRenderStateType::COLOR_WRITE_MASK_3:
+		BlendState_.RenderTarget[ 3 ].RenderTargetWriteMask = Value;
+		break;
+	case RsRenderStateType::BLEND_MODE:
+		{
+			for( BcU32 Idx = 0; Idx < 8; ++Idx )
+			{
+				switch( Value )
+				{
+				case RsBlendingMode::NONE:
+					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
+					break;
+				case RsBlendingMode::BLEND:
+					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
+					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
+					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+					break;
+				case RsBlendingMode::ADD:
+					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
+					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
+					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_ONE;
+					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
+					break;
+				case RsBlendingMode::SUBTRACT:
+					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
+					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_SUBTRACT;
+					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_ONE;
+					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
+					break;
+				}
+			}
+		}
+		break;
+	case RsRenderStateType::FILL_MODE:
+		RasterizerState_.FillMode = Value == (BcU32)RsFillMode::SOLID ? D3D11_FILL_SOLID : D3D11_FILL_WIREFRAME;
+		break;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
