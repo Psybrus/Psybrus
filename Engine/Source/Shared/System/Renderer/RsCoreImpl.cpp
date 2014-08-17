@@ -22,6 +22,8 @@
 #include "System/Renderer/GL/RsContextGL.h"
 #include "System/Renderer/D3D11/RsContextD3D11.h"
 
+#include "Psybrus.h" // cyclic.
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( RsCoreImpl );
@@ -129,7 +131,15 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 	{
 		if( pClient != NULL )
 		{
-			RsContext* pResource = new RsContextD3D11( pClient, nullptr );
+			RsContext* pResource = nullptr;
+			if( SysArgs_.find( "-d3d11" ) != std::string::npos)
+			{
+				pResource = new RsContextD3D11( pClient, nullptr );
+			}
+			else
+			{
+				pResource = new RsContextGL( pClient, nullptr );
+			}
 			createResource( pResource );
 
 			// If we have no default context, set it.
