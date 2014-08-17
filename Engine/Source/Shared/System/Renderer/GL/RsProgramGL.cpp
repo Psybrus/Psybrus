@@ -25,16 +25,12 @@
 RsProgramGL::RsProgramGL( 
 	RsContext* pContext, 
 	std::vector< RsShader* >&& Shaders, 
-	BcU32 NoofVertexAttributes, 
-	RsProgramVertexAttribute* pVertexAttributes ):
+	RsProgramVertexAttributeList&& VertexAttributes ):
 	RsProgram( pContext ),
-	Shaders_( std::move( Shaders ) )
+	Shaders_( std::move( Shaders ) ),
+	AttributeList_( std::move( VertexAttributes ) )
 {
-	AttributeList_.reserve( NoofVertexAttributes );
-	for( BcU32 Idx = 0; Idx < NoofVertexAttributes; ++Idx )
-	{
-		AttributeList_.push_back( pVertexAttributes[ Idx ] );
-	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -303,11 +299,11 @@ void RsProgramGL::addSampler( std::string Name, BcU32 Handle, RsShaderParameterT
 	// If parameter is valid, add it.
 	TSampler Sampler = 
 	{
-		Name,
+		std::move( Name ),
 		Handle,
 		Type,
 	};
-	SamplerList_.push_back( Sampler );
+	SamplerList_.push_back( std::move( Sampler ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -316,10 +312,10 @@ void RsProgramGL::addBlock( std::string Name, BcU32 Handle, BcU32 Size )
 {
 	TUniformBlock Block = 
 	{
-		Name,
+		std::move( Name ),
 		Handle,
 		Size
 	};
 
-	UniformBlockList_.push_back( Block );
+	UniformBlockList_.push_back( std::move( Block ) );
 }

@@ -32,8 +32,7 @@ public:
 	RsProgramGL( 
 		RsContext* pContext, 
 		std::vector< RsShader* >&& Shaders,
-		BcU32 NoofVertexAttributes, 
-		RsProgramVertexAttribute* pVertexAttributes );
+		RsProgramVertexAttributeList&& VertexAttributes );
 	virtual ~RsProgramGL();
 	
 	void create();
