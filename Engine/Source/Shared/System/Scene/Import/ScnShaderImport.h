@@ -134,18 +134,23 @@ public:
 private:
 	BcBool legacyImport( class CsPackageImporter& Importer, const Json::Value& Object );
 
-	BcBool compileShader( const std::string& FileName,
-	                      const std::string& EntryPoint,
-	                      const std::map< std::string, std::string >& Defines, 
-						  const std::vector< std::string >& IncludePaths,
-						  const std::string& Target,
-						  BcBinaryData& ShaderByteCode,
-						  std::vector< std::string >& ErrorMessages );
+	BcBool compileShader( 
+		const std::string& FileName,
+		const std::string& EntryPoint,
+		const std::map< std::string, std::string >& Defines, 
+		const std::vector< std::string >& IncludePaths,
+		const std::string& Target,
+		BcBinaryData& ShaderByteCode,
+		std::vector< std::string >& ErrorMessages );
 
-	void generatePermutations( BcU32 GroupIdx, 
-							   BcU32 NoofGroups,
-	                           ScnShaderPermutationGroup* PermutationGroups, 
-	                           ScnShaderPermutation Permutation );
+	RsProgramVertexAttributeList extractShaderVertexAttributes(
+		BcBinaryData& ShaderByteCode );
+		 
+	void generatePermutations( 
+		BcU32 GroupIdx, 
+		BcU32 NoofGroups,
+		ScnShaderPermutationGroup* PermutationGroups, 
+		ScnShaderPermutation Permutation );
 
 	BcBool buildPermutation( ScnShaderPermutationJobParams Params );
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );

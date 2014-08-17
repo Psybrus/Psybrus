@@ -28,7 +28,7 @@ typedef ReObjectRef< class ScnDebugRenderComponent > ScnDebugRenderComponentRef;
 // ScnDebugRenderComponentVertex
 struct ScnDebugRenderComponentVertex
 {
-	BcF32 X_, Y_, Z_;
+	BcF32 X_, Y_, Z_, W_;
 	BcU32 ABGR_;
 };
 

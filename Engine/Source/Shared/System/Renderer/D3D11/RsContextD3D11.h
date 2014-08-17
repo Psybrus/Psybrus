@@ -53,7 +53,7 @@ public:
 		class RsBuffer* VertexBuffer,
 		BcU32 Stride );
 	void setUniformBuffer( 
-		BcU32 SlotIdx, 
+		BcU32 Handle, 
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	void clear( const RsColour& Colour );
@@ -160,8 +160,13 @@ private:
 	std::array< UINT, MAX_VERTEX_STREAMS > D3DVertexBufferOffsets_;
 
 	// Constant buffers.
-	std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBuffers_;
-	std::array< ID3D11Buffer*, MAX_UNIFORM_SLOTS > D3DConstantBuffers_;
+	typedef std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBufferSlots;
+	typedef std::array< ID3D11Buffer*, MAX_UNIFORM_SLOTS > D3DConstantBufferSlots;
+	typedef std::array< UniformBufferSlots, (size_t)RsShaderType::MAX > UniformBuffers;
+	typedef std::array< D3DConstantBufferSlots, (size_t)RsShaderType::MAX > D3DConstantBuffers;
+	
+	UniformBuffers UniformBuffers_;
+	D3DConstantBuffers D3DConstantBuffers_;
 	
 	// Shader resources.
 	std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureResources_;

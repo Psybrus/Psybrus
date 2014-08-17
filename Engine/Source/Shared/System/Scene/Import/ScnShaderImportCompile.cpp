@@ -16,9 +16,13 @@
 #ifdef PSY_SERVER
 
 #include "Base/BcFile.h"
+#include "Base/BcComRef.h"
 
 #include <D3DCompiler.h>
+#include <D3DCompiler.inl>
+
 #pragma comment( lib, "D3DCompiler.lib" )
+#pragma comment (lib, "dxguid.lib")
 
 namespace
 {
@@ -110,6 +114,29 @@ BcBool ScnShaderImport::compileShader( const std::string& FileName,
 
 	return RetVal;
 }
+
+RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
+	BcBinaryData& ShaderByteCode )
+{
+	RsProgramVertexAttributeList VertexAttributeList;
+
+	BcComRef< ID3D11ShaderReflection > ShaderReflection;
+	D3D11Reflect( ShaderByteCode.getData< const BcU8 >( 0 ), ShaderByteCode.getDataSize(), &ShaderReflection );
+
+	BcU32 ChannelIdx = 0;
+	for( BcU32 Idx = 0; Idx < 16; ++Idx )
+	{
+		D3D11_SIGNATURE_PARAMETER_DESC Desc;
+		if( SUCCEEDED( ShaderReflection->GetInputParameterDesc( Idx, &Desc ) ) )
+		{
+			auto VertexAttribute = semanticToVertexAttribute( ChannelIdx++, Desc.SemanticName, Desc.SemanticIndex ); 
+			VertexAttributeList.push_back( VertexAttribute );
+		}
+	}
+
+	return VertexAttributeList;
+}
+
 
 
 #endif

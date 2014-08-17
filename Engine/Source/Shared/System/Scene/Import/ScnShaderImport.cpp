@@ -437,7 +437,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		BcBinaryData ByteCode;
 		if( compileShader( Filename_, Entry.Entry_, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages_ ) )
 		{
-			// Shader. Setup to be 
+			// Shader.
 			ScnShaderBuiltData BuiltShader;
 			BuiltShader.ShaderType_ = Entry.Type_;
 			BuiltShader.CodeType_ = Params.InputCodeType_;
@@ -446,6 +446,15 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	
 			// Headers
 			ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
+
+			// Vertex shader attributes.
+			if( Entry.Type_ == RsShaderType::VERTEX )
+			{
+				// Generate vertex attributes.
+				VertexAttributes = extractShaderVertexAttributes( BuiltShader.Code_ );
+				ProgramHeader.NoofVertexAttributes_ = VertexAttributes.size();
+			}
+
 
 			if( Params.InputCodeType_ != Params.OutputCodeType_ )
 			{
@@ -517,6 +526,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					if( Entry.Type_ == RsShaderType::VERTEX )
 					{
 						// Generate vertex attributes.
+						VertexAttributes.clear();
 						BcAssert( VertexAttributes.size() == 0 );
 						VertexAttributes.reserve( GLSLResult.reflection.ui32NumInputSignatures );
 						for( BcU32 Idx = 0; Idx < GLSLResult.reflection.ui32NumInputSignatures; ++Idx )

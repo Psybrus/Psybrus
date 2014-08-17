@@ -780,20 +780,20 @@ void ScnModelImport::serialiseMesh(
 		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc();
 		VertexDeclarationDesc.addElement( RsVertexElement( 
 			0, VertexDeclarationDesc.getMinimumStride(), 
-			3, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) );
+			4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) );
 
 		if( Mesh->HasNormals() )
 		{
 			VertexDeclarationDesc.addElement( RsVertexElement(
 				0, VertexDeclarationDesc.getMinimumStride(), 
-				3, RsVertexDataType::FLOAT32, RsVertexUsage::NORMAL, 0 ) );
+				4, RsVertexDataType::FLOAT32, RsVertexUsage::NORMAL, 0 ) );
 		}
 
 		if( Mesh->HasTangentsAndBitangents() )
 		{
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(), 
-				3, RsVertexDataType::FLOAT32, RsVertexUsage::TANGENT, 0 ) );
+				4, RsVertexDataType::FLOAT32, RsVertexUsage::TANGENT, 0 ) );
 		}
 
 		if( Mesh->HasTextureCoords( 0 ) )
@@ -1011,19 +1011,20 @@ void ScnModelImport::serialiseVertices(
 			{
 			case RsVertexUsage::POSITION:
 				{
-					BcAssert( VertexElement.Components_ == 3 );
+					BcAssert( VertexElement.Components_ == 4 );
 					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
 					{
 						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
 						*OutVal++ = Position.x;
 						*OutVal++ = Position.y;
 						*OutVal++ = Position.z;
+						*OutVal++ = 1.0f;
 					}
 				}
 				break;
 			case RsVertexUsage::NORMAL:
 				{
-					BcAssert( VertexElement.Components_ == 3 );
+					BcAssert( VertexElement.Components_ == 4 );
 					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
 
 					aiVector3D Normal = 
@@ -1035,12 +1036,13 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Normal.x;
 						*OutVal++ = Normal.y;
 						*OutVal++ = Normal.z;
+						*OutVal++ = 1.0f;
 					}
 				}
 				break;
 			case RsVertexUsage::TANGENT:
 				{
-					BcAssert( VertexElement.Components_ == 3 );
+					BcAssert( VertexElement.Components_ == 4 );
 					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
 
 					aiVector3D Tangent = 
@@ -1052,6 +1054,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Tangent.x;
 						*OutVal++ = Tangent.y;
 						*OutVal++ = Tangent.z;
+						*OutVal++ = 1.0f;
 					}
 				}
 				break;
@@ -1069,6 +1072,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Bitangent.x;
 						*OutVal++ = Bitangent.y;
 						*OutVal++ = Bitangent.z;
+						*OutVal++ = 1.0f;
 					}
 				}
 				break;

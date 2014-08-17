@@ -76,9 +76,9 @@ void ScnCanvasComponent::create()
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 3 )
-			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 20,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 16,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -261,11 +261,13 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
 
 		// Quickly check last primitive.
@@ -295,6 +297,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
+						pVertices->W_ = 1.0f;
 					}
 				}
 				
@@ -326,11 +329,13 @@ void ScnCanvasComponent::drawLine3d( const MaVec3d& PointA, const MaVec3d& Point
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
 		pVertices->Z_ = PointA.z();
+		pVertices->W_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = PointB.z();
+		pVertices->W_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
 
 		// Add primitive.	
@@ -357,6 +362,7 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 			pVertices->X_ = pPoints[ Idx ].x();
 			pVertices->Y_ = pPoints[ Idx ].y();
 			pVertices->Z_ = 0.0f;
+			pVertices->W_ = 1.0f;
 			pVertices->ABGR_ = ABGR;
 			++pVertices;
 		}
@@ -404,6 +410,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = 0.0f;
 		pVertices->V_ = 0.0f;
 		pVertices->ABGR_ = ABGR;
@@ -412,6 +419,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = 1.0f;
 		pVertices->V_ = 0.0f;
 		pVertices->ABGR_ = ABGR;
@@ -420,6 +428,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = 0.0f;
 		pVertices->V_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
@@ -428,6 +437,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = 1.0f;
 		pVertices->V_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
@@ -458,6 +468,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -466,6 +477,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -474,6 +486,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -482,6 +495,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -490,6 +504,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -498,6 +513,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -529,6 +545,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
+						pVertex->W_ = 1.0f;
 					}
 				}
 				
@@ -565,6 +582,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = Position.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -573,6 +591,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = Position.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -581,6 +600,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = Position.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -589,6 +609,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = Position.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -597,6 +618,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = Position.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -605,6 +627,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = Position.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -636,6 +659,7 @@ void ScnCanvasComponent::drawSprite3D( const MaVec3d& Position, const MaVec2d& S
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
+						pVertex->W_ = 1.0f;
 					}
 				}
 				
@@ -672,6 +696,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerA.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -680,6 +705,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerA.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -688,6 +714,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerB.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -696,6 +723,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerB.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -704,6 +732,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerA.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
 		pVertices->ABGR_ = ABGR;
@@ -712,6 +741,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 		pVertices->X_ = CornerB.x();
 		pVertices->Y_ = Position.y();
 		pVertices->Z_ = CornerB.z();
+		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
 		pVertices->ABGR_ = ABGR;
@@ -743,6 +773,7 @@ void ScnCanvasComponent::drawSpriteUp3D( const MaVec3d& Position, const MaVec2d&
 						pVertex->X_ = Vertex.x();
 						pVertex->Y_ = Vertex.y();
 						pVertex->Z_ = Vertex.z();
+						pVertex->W_ = 1.0f;
 					}
 				}
 				

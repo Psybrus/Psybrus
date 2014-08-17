@@ -26,8 +26,8 @@ typedef ReObjectRef< class ScnParticleSystemComponent, false > ScnParticleSystem
 // Typedefs
 struct ScnParticleVertex
 {
-	BcF32 X_, Y_, Z_;
-	BcF32 NX_, NY_, NZ_;			// Offset.
+	BcF32 X_, Y_, Z_, W_;
+	BcF32 NX_, NY_, NZ_, NW_;			// Offset.
 	BcF32 U_, V_;
 	BcU32 RGBA_;
 };

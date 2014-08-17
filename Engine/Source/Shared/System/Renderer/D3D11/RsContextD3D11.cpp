@@ -19,6 +19,8 @@
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 
+#include "Base/BcMath.h"
+
 #include "System/Os/OsClient.h"
 #include "System/Os/OsClientWindows.h"
 
@@ -82,6 +84,116 @@ static D3D11_PRIMITIVE_TOPOLOGY gTopologyType[] =
 	D3D_PRIMITIVE_TOPOLOGY_UNDEFINED,					// RsTopologyType::TRIANGLE_FAN,
 	D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST,	// RsTopologyType::PATCHES,
 };
+
+static LPCSTR gSemanticName[] =
+{
+	"POSITION",					// RsVertexUsage::POSITION,
+	"BLENDWEIGHTS",				// RsVertexUsage::BLENDWEIGHTS,
+	"BLENDINDICES",				// RsVertexUsage::BLENDINDICES,
+	"NORMAL",					// RsVertexUsage::NORMAL,
+	"PSIZE",					// RsVertexUsage::PSIZE,
+	"TEXCOORD",					// RsVertexUsage::TEXCOORD,
+	"TANGENT",					// RsVertexUsage::TANGENT,
+	"BINORMAL",					// RsVertexUsage::BINORMAL,
+	"TESSFACTOR",				// RsVertexUsage::TESSFACTOR,
+	"POSITIONT",				// RsVertexUsage::POSITIONT,
+	"COLOR",					// RsVertexUsage::COLOUR,
+	"FOG",						// RsVertexUsage::FOG,
+	"DEPTH",					// RsVertexUsage::DEPTH,
+	"SAMPLE",					// RsVertexUsage::SAMPLE,
+};
+
+namespace
+{
+	DXGI_FORMAT getVertexElementFormat( RsVertexElement Element )
+	{
+		DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
+		switch( Element.DataType_ )
+		{
+		case RsVertexDataType::FLOAT32:
+			if( Element.Components_ == 1 )
+				Format = DXGI_FORMAT_R32_FLOAT;
+			else if( Element.Components_ == 2 )
+				Format = DXGI_FORMAT_R32G32_FLOAT;
+			else if( Element.Components_ == 3 )
+				Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			else if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			break;
+		case RsVertexDataType::FLOAT16:
+			if( Element.Components_ == 1 )
+				Format = DXGI_FORMAT_R16_FLOAT;
+			else if( Element.Components_ == 2 )
+				Format = DXGI_FORMAT_R16G16_FLOAT;
+			else if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			break;
+		case RsVertexDataType::BYTE:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R8G8B8A8_SINT;
+			break;
+		case RsVertexDataType::BYTE_NORM:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R8G8B8A8_SNORM;
+			break;
+		case RsVertexDataType::UBYTE:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R8G8B8A8_UINT;
+			break;
+		case RsVertexDataType::UBYTE_NORM:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			break;
+		case RsVertexDataType::SHORT:
+			if( Element.Components_ == 2 )
+				Format = DXGI_FORMAT_R16G16_SINT;
+			else if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_SINT;
+			break;
+		case RsVertexDataType::SHORT_NORM:
+			if( Element.Components_ == 2 )
+				Format = DXGI_FORMAT_R16G16_SNORM;
+			else if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_SNORM;
+			break;
+		case RsVertexDataType::USHORT:
+			if( Element.Components_ == 2 )
+				Format = DXGI_FORMAT_R16G16_UINT;
+			else if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_UINT;
+			break;
+		case RsVertexDataType::USHORT_NORM:
+			if( Element.Components_ == 2 )
+				Format = DXGI_FORMAT_R16G16_UNORM;
+			else if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+			break;
+		case RsVertexDataType::INT:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_SINT;
+			break;
+		case RsVertexDataType::INT_NORM:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_SNORM;
+			break;
+		case RsVertexDataType::UINT:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_UINT;
+			break;
+		case RsVertexDataType::UINT_NORM:
+			if( Element.Components_ == 4 )
+				Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+			break;
+		}
+
+		return Format;
+	}
+
+
+	const BcU32 NoofBindPoints = 32;
+	const BcU32 MaxBindPoints = NoofBindPoints - 1;
+	const BcU32 BitsPerShader = 5; // Up to 32 bindings.
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -245,7 +357,7 @@ void RsContextD3D11::create()
 		Adapter_,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
-		D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
+		D3D11_CREATE_DEVICE_SINGLETHREADED,// | D3D11_CREATE_DEVICE_DEBUG,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -255,7 +367,7 @@ void RsContextD3D11::create()
 		&FeatureLevel_,
 		&Context_ );
 	BcAssert( SUCCEEDED( Result ) ); 
-
+	
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
@@ -297,7 +409,7 @@ void RsContextD3D11::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::setDefaultState unimplemented\n" );
+	//BcPrintf( "WARNING: RsContextD3D11::setDefaultState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -306,7 +418,7 @@ void RsContextD3D11::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
+	//BcPrintf( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -315,7 +427,7 @@ void RsContextD3D11::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
+	//BcPrintf( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -324,7 +436,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::setRenderState unimplemented\n" );
+	//BcPrintf( "WARNING: RsContextD3D11::setRenderState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -333,7 +445,7 @@ BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
+	//BcPrintf( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
 
 	return 0;
 }
@@ -349,7 +461,7 @@ void RsContextD3D11::setTextureState( BcU32 SlotIdx, RsTexture* pTexture, const 
 	// Find shader resource view.
 	ID3D11ShaderResourceView* ShaderResourceView = getD3DShaderResourceView( pTexture->getHandle< BcU32 >() );
 
-	BcPrintf( "WARNING: RsContextD3D11::setTextureState unimplemented\n" );
+	//BcPrintf( "WARNING: RsContextD3D11::setTextureState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -390,13 +502,22 @@ void RsContextD3D11::setVertexBuffer(
 //////////////////////////////////////////////////////////////////////////
 // setUniformBuffer
 void RsContextD3D11::setUniformBuffer( 
-	BcU32 SlotIdx, 
+	BcU32 Handle, 
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	UniformBuffers_[ SlotIdx ] = UniformBuffer;
-	D3DConstantBuffers_[ SlotIdx ] = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
+	// Bind for each shader based on specified handle.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	{
+		BcU32 SlotIdx = ( Handle << ( Idx * BitsPerShader ) ) & NoofBindPoints;
+
+		if( SlotIdx != NoofBindPoints )
+		{
+			UniformBuffers_[ Idx ][ SlotIdx ] = UniformBuffer;
+			D3DConstantBuffers_[ Idx ][ SlotIdx ] = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -457,10 +578,11 @@ bool RsContextD3D11::createBuffer(
 	// Buffer desc.
 	D3D11_BUFFER_DESC Desc;
 	Desc.Usage = D3D11_USAGE_DEFAULT;			// TODO.
-	Desc.ByteWidth =BufferDesc.SizeBytes_;
+	Desc.ByteWidth = BcPotRoundUp( BufferDesc.SizeBytes_, 16 );
 	Desc.BindFlags = gBufferType[ (BcU32)BufferDesc.Type_ ];
-	Desc.CPUAccessFlags = 0;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	Desc.MiscFlags = 0;
+	Desc.StructureByteStride = 0;
 	
 	if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
 	{
@@ -470,6 +592,9 @@ bool RsContextD3D11::createBuffer(
 	{
 		Desc.Usage = D3D11_USAGE_DYNAMIC;
 	}
+
+	// TODO: Use default, immutable, or staging.
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
 
 	// Generate buffers.
 	ID3D11Buffer* D3DBuffer = nullptr; 
@@ -481,6 +606,7 @@ bool RsContextD3D11::createBuffer(
 		return true;
 	}
 
+	BcBreakpoint;
 	return false;
 }
 
@@ -512,7 +638,8 @@ bool RsContextD3D11::updateBuffer(
 	if( D3DBuffer != nullptr )
 	{
 		D3D11_MAP MapType = 
-			D3D11_MAP_WRITE;		// TODO: Select more optimal map type.
+			D3D11_MAP_WRITE_DISCARD;		// TODO: Select more optimal map type.
+		BcAssert( Offset == 0 );
 		D3D11_MAPPED_SUBRESOURCE SubRes = { nullptr, 0, 0 };
 		HRESULT RetVal = Context_->Map( D3DBuffer, 0, MapType, 0, &SubRes );
 		if( SUCCEEDED( RetVal ) )
@@ -523,8 +650,10 @@ bool RsContextD3D11::updateBuffer(
 			};
 			UpdateFunc( Buffer, Lock );
 			Context_->Unmap( D3DBuffer, 0 );
+			return true;
 		}
-		return true;
+		BcBreakpoint;
+		
 	}
 
 	return false;
@@ -558,7 +687,9 @@ bool RsContextD3D11::createTexture(
 			ID3D11Texture1D* D3DTexture = nullptr;
 			Result = Device_->CreateTexture1D( &Desc, nullptr, &D3DTexture );
 			BcAssert( SUCCEEDED( Result ) );
+			
 			Texture->setHandle( addD3DResource( D3DTexture ) );
+			return true;
 		}
 		break;
 
@@ -582,6 +713,7 @@ bool RsContextD3D11::createTexture(
 			BcAssert( SUCCEEDED( Result ) );
 
 			Texture->setHandle( addD3DResource( D3DTexture ) );
+			return true;
 		}
 		break;
 
@@ -603,6 +735,7 @@ bool RsContextD3D11::createTexture(
 			BcAssert( SUCCEEDED( Result ) );
 
 			Texture->setHandle( addD3DResource( D3DTexture ) );
+			return true;
 		}
 		break;
 
@@ -626,10 +759,12 @@ bool RsContextD3D11::createTexture(
 			BcAssert( SUCCEEDED( Result ) );
 
 			Texture->setHandle( addD3DResource( D3DTexture ) );
+			return true;
 		}
 		break;
 	}
 	
+	BcBreakpoint;
 	return false;
 }
 
@@ -657,7 +792,13 @@ bool RsContextD3D11::updateTexture(
 
 	BcPrintf( "WARNING: RsContextD3D11::updateTexture unimplemented\n" );
 
-	return false;
+	RsTextureLock Lock;
+	Lock.Buffer_ = nullptr;
+	Lock.Pitch_ = 0;
+	Lock.SlicePitch_ = 0;
+	UpdateFunc( Texture, Lock );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -677,7 +818,7 @@ bool RsContextD3D11::createShader(
 				Shader->getData(),
 				Shader->getDataSize(),
 				nullptr,
-				reinterpret_cast< ID3D11VertexShader** >( D3DShader ) );
+				reinterpret_cast< ID3D11VertexShader** >( &D3DShader ) );
 		}
 		break;
 
@@ -687,7 +828,7 @@ bool RsContextD3D11::createShader(
 				Shader->getData(),
 				Shader->getDataSize(),
 				nullptr,
-				reinterpret_cast< ID3D11HullShader** >( D3DShader ) );
+				reinterpret_cast< ID3D11HullShader** >( &D3DShader ) );
 		}
 		break;
 
@@ -697,7 +838,7 @@ bool RsContextD3D11::createShader(
 				Shader->getData(),
 				Shader->getDataSize(),
 				nullptr,
-				reinterpret_cast< ID3D11DomainShader** >( D3DShader ) );
+				reinterpret_cast< ID3D11DomainShader** >( &D3DShader ) );
 		}
 		break;
 
@@ -707,7 +848,7 @@ bool RsContextD3D11::createShader(
 				Shader->getData(),
 				Shader->getDataSize(),
 				nullptr,
-				reinterpret_cast< ID3D11GeometryShader** >( D3DShader ) );
+				reinterpret_cast< ID3D11GeometryShader** >( &D3DShader ) );
 		}
 		break;
 
@@ -717,7 +858,7 @@ bool RsContextD3D11::createShader(
 				Shader->getData(),
 				Shader->getDataSize(),
 				nullptr,
-				reinterpret_cast< ID3D11PixelShader** >( D3DShader ) );
+				reinterpret_cast< ID3D11PixelShader** >( &D3DShader ) );
 		}
 		break;
 
@@ -727,7 +868,7 @@ bool RsContextD3D11::createShader(
 				Shader->getData(),
 				Shader->getDataSize(),
 				nullptr,
-				reinterpret_cast< ID3D11ComputeShader** >( D3DShader ) );
+				reinterpret_cast< ID3D11ComputeShader** >( &D3DShader ) );
 		}
 		break;
 	}
@@ -772,9 +913,6 @@ bool RsContextD3D11::createProgram(
 	ResourceHandleMapping ConstantBufferBindings;
 	ResourceHandleMapping ConstantBufferSizes;
 
-	const BcU32 NoofBindPoints = 32;
-	const BcU32 BitsPerShader = 5; // Up to 32 bindings.
-
 	// Iterate over shaders and setup handles for all constant
 	// buffers and shader resources.
 	for( auto* Shader : Program->getShaders() )
@@ -786,6 +924,9 @@ bool RsContextD3D11::createProgram(
 			Shader->getDataSize(), 
 			&Reflector);
 
+		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
+		const BcU32 MaskOff = ~( NoofBindPoints << ShiftAmount );
+
 		// Just iterate over a big number...we'll assert if we go over.
 		for( BcU32 Idx = 0; Idx < 128; ++Idx )
 		{
@@ -794,13 +935,18 @@ bool RsContextD3D11::createProgram(
 			{
 				// Validate.
 				BcAssert( 
-					BindDesc.BindPoint < NoofBindPoints && 
-					( BindDesc.BindPoint + BindDesc.BindCount ) <= NoofBindPoints );
+					BindDesc.BindPoint < MaxBindPoints && 
+					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
 
 				// Check if it's a cbuffer or tbuffer.
 				if( BindDesc.Type == D3D_SIT_CBUFFER ||
 					BindDesc.Type == D3D_SIT_TBUFFER )
 				{
+					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
+					{
+						ConstantBufferBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
 					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
 					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
 					
@@ -812,21 +958,32 @@ bool RsContextD3D11::createProgram(
 						BcAssert( BufferDesc.Size == Size );
 					}
 
-					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					Size = BufferDesc.Size;
 					ConstantBufferBindings[ BindDesc.Name ] = Handle;
 					ConstantBufferSizes[ BindDesc.Name ] = Size;
 				}
 				else if( BindDesc.Type == D3D_SIT_TEXTURE )
 				{
+					if( TextureBindings.find( BindDesc.Name ) == TextureBindings.end() )
+					{
+						TextureBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
 					BcU32 Handle = TextureBindings[ BindDesc.Name ];
-					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					TextureBindings[ BindDesc.Name ] = Handle;
 				}
 				else if( BindDesc.Type == D3D_SIT_SAMPLER )
 				{
+					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
+					{
+						SamplerBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
 					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
-					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					SamplerBindings[ BindDesc.Name ] = Handle;
 				}
 				else
@@ -882,6 +1039,163 @@ void RsContextD3D11::flushState()
 {
 	HRESULT Result = 0;
 
+	// Bind shaders.
+	RsShader* VertexShader = nullptr;
+	std::array< bool, (BcU32)RsShaderType::MAX > HasShaders = { false };
+	if( Program_ != nullptr )
+	{
+		const auto& Shaders = Program_->getShaders();
+		for( auto* Shader : Shaders )
+		{
+			const auto& Desc = Shader->getDesc();
+			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
+			HasShaders[ ShaderTypeIdx ] = true;
+			switch( Desc.ShaderType_ )
+			{
+			case RsShaderType::VERTEX:
+				{
+					// Cache for input assembly.
+					VertexShader = Shader;
+
+					// Bind.
+					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->VSSetConstantBuffers( 
+								0,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::TESSELATION_CONTROL:
+				{
+					// Bind.
+					Context_->HSSetShader( Shader->getHandle< ID3D11HullShader* >(), nullptr, 0 );
+					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->HSSetConstantBuffers( 
+								0,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::TESSELATION_EVALUATION:
+				{
+					// Bind.
+					Context_->DSSetShader( Shader->getHandle< ID3D11DomainShader* >(), nullptr, 0 );
+					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->DSSetConstantBuffers( 
+								0,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::GEOMETRY:
+				{
+					// Bind.
+					Context_->GSSetShader( Shader->getHandle< ID3D11GeometryShader* >(), nullptr, 0 );
+					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->GSSetConstantBuffers( 
+								0,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::FRAGMENT:
+				{
+					// Bind.
+					Context_->PSSetShader( Shader->getHandle< ID3D11PixelShader* >(), nullptr, 0 );
+					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->PSSetConstantBuffers( 
+								0,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::COMPUTE:
+				{
+					// Bind.
+					Context_->CSSetShader( Shader->getHandle< ID3D11ComputeShader* >(), nullptr, 0 );
+					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->CSSetConstantBuffers( 
+								0,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+			}
+		}
+
+		// Disable unused pipeline stages.
+		for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+		{
+			if( HasShaders[ Idx ] == false )
+			{
+				switch( Idx )
+				{
+				case RsShaderType::VERTEX:
+					Context_->VSSetShader( nullptr, nullptr, 0 );
+					break;
+				case RsShaderType::TESSELATION_CONTROL:
+					Context_->HSSetShader( nullptr, nullptr, 0 );
+					break;
+				case RsShaderType::TESSELATION_EVALUATION:
+					Context_->DSSetShader( nullptr, nullptr, 0 );
+					break;
+				case RsShaderType::GEOMETRY:
+					Context_->GSSetShader( nullptr, nullptr, 0 );
+					break;
+				case RsShaderType::FRAGMENT:
+					Context_->PSSetShader( nullptr, nullptr, 0 );
+					break;
+				case RsShaderType::COMPUTE:
+					Context_->CSSetShader( nullptr, nullptr, 0 );
+					break;
+
+				}
+			}
+		}
+	}
+
+	// Input layout.
 	if( InputLayoutChanged_ )
 	{
 		// Grab current input layout.
@@ -890,7 +1204,56 @@ void RsContextD3D11::flushState()
 		auto FoundInputLayout = InputLayoutMap_.find( InputLayoutHash );
 		if( FoundInputLayout == InputLayoutMap_.end() )
 		{
+			const auto& Desc = VertexDeclaration_->getDesc();
+			const auto& VertexAttributes = Program_->getVertexAttributeList();
+
 			// Create input layout for current setup.
+			// For missing vertex attributes, we just fudge them to be zero offset.
+			std::vector< D3D11_INPUT_ELEMENT_DESC > ElementDescs;
+			ElementDescs.reserve( Desc.Elements_.size() );
+
+			for( const auto& VertexAttribute : VertexAttributes )
+			{
+				auto FoundElement = std::find_if( Desc.Elements_.begin(), Desc.Elements_.end(),
+					[ & ]( const RsVertexElement& Element )
+					{
+						return ( Element.Usage_ == VertexAttribute.Usage_ &&
+							Element.UsageIdx_ == VertexAttribute.UsageIdx_ );
+					} );
+
+				// Force to an element with zero offset if we can't find a valid one.
+				// TODO: Find a better approach.
+				if( FoundElement == Desc.Elements_.end() )
+				{
+					FoundElement = std::find_if( Desc.Elements_.begin(), Desc.Elements_.end(),
+					[ & ]( const RsVertexElement& Element )
+					{
+						return Element.Offset_ == 0;
+					} );
+				}
+
+				D3D11_INPUT_ELEMENT_DESC ElementDesc;
+				ElementDesc.SemanticName = gSemanticName[ (BcU32)VertexAttribute.Usage_ ];
+				ElementDesc.SemanticIndex = VertexAttribute.UsageIdx_;
+				ElementDesc.Format = getVertexElementFormat( *FoundElement );
+				ElementDesc.InputSlot = FoundElement->StreamIdx_;
+				ElementDesc.AlignedByteOffset = FoundElement->Offset_;
+				ElementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; // TODO: Instancing support.
+				ElementDesc.InstanceDataStepRate = 0;
+				ElementDescs.push_back( ElementDesc );
+			}
+
+			InputLayout InputLayoutEntry = 
+			{
+				nullptr,
+				0
+			};
+			
+			Result = Device_->CreateInputLayout( &ElementDescs[ 0 ], ElementDescs.size(), VertexShader->getData(), VertexShader->getDataSize(), &InputLayoutEntry.InputLayout_ );
+			BcAssert( SUCCEEDED( Result ) );
+			
+			InputLayoutMap_[ InputLayoutHash ] = InputLayoutEntry;
+			FoundInputLayout = InputLayoutMap_.find( InputLayoutHash );
 		}
 
 		// Set input layout.
@@ -916,31 +1279,6 @@ void RsContextD3D11::flushState()
 		&D3DVertexBufferStrides_[ 0 ],
 		&D3DVertexBufferOffsets_[ 0 ] );
 
-	// Bind all constant buffers to all stages.
-	// TODO: Hook them up seperately as required.
-#if 0
-	Result = Context_->VSSetConstantBuffers( 
-		0,
-		D3DConstantBuffers_.size(),
-		&D3DConstantBuffers_[ 0 ] );
-	Result = Context_->DSSetConstantBuffers( 
-		0,
-		D3DConstantBuffers_.size(),
-		&D3DConstantBuffers_[ 0 ] );
-	Result = Context_->HSSetConstantBuffers( 
-		0,
-		D3DConstantBuffers_.size(),
-		&D3DConstantBuffers_[ 0 ] );
-	Result = Context_->GSSetConstantBuffers( 
-		0,
-		D3DConstantBuffers_.size(),
-		&D3DConstantBuffers_[ 0 ] );
-	Result = Context_->PSSetConstantBuffers( 
-		0,
-		D3DConstantBuffers_.size(),
-		&D3DConstantBuffers_[ 0 ] );
-#endif 
-	// Bind all shader resources.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -998,6 +1336,9 @@ void RsContextD3D11::delD3DResource( BcU32 ResourceIdx )
 	}
 
 	BcMemZero( &Entry, sizeof( Entry ) );
+
+	// Put in free list.
+	ResourceViewCacheFreeIdx_.push_back( ResourceIdx );
 }
 
 //////////////////////////////////////////////////////////////////////////
