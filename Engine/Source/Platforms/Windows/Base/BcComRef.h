@@ -2,6 +2,7 @@
 #define __BCCOMREF_H__
 
 #include "Base/BcWindows.h"
+#include "Base/BcDebug.h"
 
 #include <Unknwn.h>
 
@@ -42,5 +43,7 @@ public:
 	inline bool operator != ( _Ty* pObject ) const;
 	inline void reset();
 };
+
+#include "Base/BcComRef.inl"
 
 #endif __BCCOMREF_H__

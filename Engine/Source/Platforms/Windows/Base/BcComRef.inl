@@ -65,14 +65,14 @@ inline BcComRef< _Ty >::BcComRef( IUnknown* pObject )
 }
 
 template< class _Ty >
-inline BcComRef< _Ty, _IsWeak >& BcComRef< _Ty, _IsWeak >::operator = ( const BcComRef& Other )
+inline BcComRef< _Ty >& BcComRef< _Ty >::operator = ( const BcComRef& Other )
 {
 	_acquireAssign( Other.pObject_ );
 	return (*this);
 }
 
 template< class _Ty >
-inline BcComRef< _Ty >& BcComRef< _Ty, _IsWeak >::operator = ( IUnknown* pObject )
+inline BcComRef< _Ty >& BcComRef< _Ty >::operator = ( IUnknown* pObject )
 {
 	_acquireAssign( pObject );
 	return (*this);
@@ -87,7 +87,7 @@ inline BcComRef< _Ty >::~BcComRef()
 template< class _Ty >
 inline bool BcComRef< _Ty >::isValid() const
 {
-	return ( pObject_ != nullptr && ( ( ((BcU32)pObject_->Flags_) & (BcU32)IUnknown::Flags::MarkedForDeletion ) == 0 ) );
+	return ( pObject_ != nullptr );
 }
 		
 template< class _Ty >
