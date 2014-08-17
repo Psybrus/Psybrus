@@ -443,6 +443,9 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			BuiltShader.CodeType_ = Params.InputCodeType_;
 			BuiltShader.Code_ = std::move( ByteCode );
 			BuiltShader.Hash_ = generateShaderHash( BuiltShader );
+	
+			// Headers
+			ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
 
 			if( Params.InputCodeType_ != Params.OutputCodeType_ )
 			{
