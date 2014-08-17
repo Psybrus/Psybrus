@@ -20,6 +20,8 @@
 #include "Base/BcComRef.h"
 #include "Base/BcMisc.h"
 
+#include <unordered_map>
+
 //////////////////////////////////////////////////////////////////////////
 // RsContextD3D11
 class RsContextD3D11:
@@ -42,7 +44,7 @@ public:
 	void invalidateTextureState();
 	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32 getRenderState( RsRenderStateType State ) const;
-	void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void setTextureState( BcU32 SlotIdx, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
 	void setIndexBuffer( class RsBuffer* IndexBuffer );
 	void setVertexBuffer( 
@@ -125,6 +127,54 @@ private:
 
 	std::vector< ResourceViewCacheEntry > ResourceViewCache_;
 	std::vector< BcU32 > ResourceViewCacheFreeIdx_;
+
+	BcU32 addD3DResource( ID3D11Resource* D3DResource );
+	void delD3DResource( BcU32 ResourceIdx );
+	ID3D11Resource* getD3DResource( BcU32 ResourceIdx );
+	ID3D11Buffer* getD3DBuffer( BcU32 ResourceIdx );
+	ID3D11Texture1D* getD3DTexture1D( BcU32 ResourceIdx );
+	ID3D11Texture2D* getD3DTexture2D( BcU32 ResourceIdx );
+	ID3D11Texture3D* getD3DTexture3D( BcU32 ResourceIdx );
+	ID3D11ShaderResourceView* getD3DShaderResourceView( BcU32 ResourceIdx );
+	ID3D11UnorderedAccessView* getD3DUnorderedAccessView( BcU32 ResourceIdx );
+	ID3D11RenderTargetView* getD3DRenderTargetView( BcU32 ResourceIdx );
+	ID3D11DepthStencilView* getD3DDepthStencilView( BcU32 ResourceIdx );
+	
+	// Index buffers.
+	RsBuffer* IndexBuffer_;
+	ID3D11Buffer* D3DIndexBuffer_;
+
+	// Vertex buffers.
+	std::array< RsBuffer*, MAX_VERTEX_STREAMS > VertexBuffers_;
+	std::array< ID3D11Buffer*, MAX_VERTEX_STREAMS > D3DVertexBuffers_;
+	std::array< UINT, MAX_VERTEX_STREAMS > D3DVertexBufferStrides_;
+	std::array< UINT, MAX_VERTEX_STREAMS > D3DVertexBufferOffsets_;
+
+	// Constant buffers.
+	std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBuffers_;
+	std::array< ID3D11Buffer*, MAX_UNIFORM_SLOTS > D3DConstantBuffers_;
+	
+	// Shader resources.
+	std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureResources_;
+	std::array< ID3D11ShaderResourceView*, MAX_TEXTURE_SLOTS > D3DShaderResourceViews_;
+
+	// Input layout, program, topology.
+	BcBool InputLayoutChanged_;
+	RsProgram* Program_;
+	RsVertexDeclaration* VertexDeclaration_;
+	RsTopologyType TopologyType_;
+
+	// Input assembly mapping.
+	struct InputLayout
+	{
+		BcComRef< ID3D11InputLayout > InputLayout_;
+		BcU32 LastUsedFrame_;
+	};
+
+	BcU32 generateInputLayoutHash() const;
+
+	typedef std::unordered_map< BcU32, InputLayout > InputLayoutMap; 
+	InputLayoutMap InputLayoutMap_;
 
 };
 
