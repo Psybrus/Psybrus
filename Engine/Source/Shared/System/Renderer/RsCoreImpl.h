@@ -70,6 +70,12 @@ public:
 	void destroyResource( 
 		RsTexture* Texture );
 	
+	void destroyResource( 
+		RsShader* Shader );
+
+	void destroyResource( 
+		RsProgram* Program );
+
 	void updateResource( 
 		RsResource* pResource );
 
@@ -117,6 +123,14 @@ private:
 
 	bool destroyTexture_threaded( 
 		RsTexture* Texture );
+
+
+	bool destroyShader_threaded( 
+		RsShader* Shader );
+
+	bool destroyProgram_threaded( 
+		RsProgram* Program );
+
 private:
 
 	void createResource( RsResource* pResource );

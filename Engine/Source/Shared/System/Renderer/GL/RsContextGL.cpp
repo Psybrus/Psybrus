@@ -643,6 +643,8 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 // createBuffer
 bool RsContextGL::createBuffer( RsBuffer* Buffer )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	const auto& BufferDesc = Buffer->getDesc();
 
 	// Get buffer type for GL.
@@ -692,6 +694,8 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 // destroyBuffer
 bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	GLuint Handle = Buffer->getHandle< GLuint >();
 	
 	if( Handle != 0 )
@@ -715,6 +719,8 @@ bool RsContextGL::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	GLuint Handle = Buffer->getHandle< GLuint >();
 	
 	if( Handle != 0 )
@@ -757,6 +763,8 @@ bool RsContextGL::updateBuffer(
 bool RsContextGL::createTexture( 
 	class RsTexture* Texture )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	const auto& TextureDesc = Texture->getDesc();
 
 	// Get buffer type for GL.
@@ -823,6 +831,8 @@ bool RsContextGL::createTexture(
 bool RsContextGL::destroyTexture( 
 		class RsTexture* Texture )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	// Check that we haven't already freed it.
 	GLuint Handle = Texture->getHandle< GLuint >();
 	if( Handle != 0 )
@@ -847,6 +857,8 @@ bool RsContextGL::updateTexture(
 	RsResourceUpdateFlags Flags,
 	RsTextureUpdateFunc UpdateFunc )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	GLuint Handle = Texture->getHandle< GLuint >();
 
 	const auto& TextureDesc = Texture->getDesc();
@@ -891,6 +903,8 @@ bool RsContextGL::updateTexture(
 bool RsContextGL::createShader(
 	RsShader* Shader )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	const auto& Desc = Shader->getDesc();
 	GLuint ShaderType = gShaderType[ (BcU32)Desc.ShaderType_ ];
 
@@ -949,10 +963,24 @@ bool RsContextGL::createShader(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// destroyShader
+bool RsContextGL::destroyShader(
+	class RsShader* Shader )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	GLuint Handle = Shader->getHandle< GLuint >();
+	glDeleteShader( Handle );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createProgram
 bool RsContextGL::createProgram(
 	RsProgram* Program )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	const auto& Shader = Program->getShaders();
 
 	// Some checks to ensure validity.
@@ -1126,6 +1154,18 @@ bool RsContextGL::createProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// destroyProgram
+bool RsContextGL::destroyProgram(
+	class RsProgram* Program )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	GLuint Handle = Program->getHandle< GLuint >();
+	glDeleteProgram( Handle );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setDefaultState
 void RsContextGL::setDefaultState()
 {
@@ -1269,6 +1309,8 @@ void RsContextGL::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsT
 // setProgram
 void RsContextGL::setProgram( class RsProgram* Program )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	if( Program_ != Program )
 	{
 		Program_ = Program;
@@ -1280,7 +1322,9 @@ void RsContextGL::setProgram( class RsProgram* Program )
 // setPrimitive
 void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
-		if( IndexBuffer_ != IndexBuffer )
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	if( IndexBuffer_ != IndexBuffer )
 	{
 		IndexBuffer_ = IndexBuffer;
 		BindingsDirty_ = BcTrue;
@@ -1294,6 +1338,8 @@ void RsContextGL::setVertexBuffer(
 	class RsBuffer* VertexBuffer,
 	BcU32 Stride )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||
 		VertexBuffers_[ StreamIdx ].Stride_ != Stride )
 	{
@@ -1310,6 +1356,8 @@ void RsContextGL::setUniformBuffer(
 	BcU32 SlotIdx, 
 	class RsBuffer* UniformBuffer )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
 	{
 		UniformBuffers_[ SlotIdx ].Buffer_ = UniformBuffer;
@@ -1322,6 +1370,8 @@ void RsContextGL::setUniformBuffer(
 // setPrimitive
 void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	if( VertexDeclaration_ != VertexDeclaration )
 	{
 		VertexDeclaration_ = VertexDeclaration;
@@ -1335,6 +1385,8 @@ void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclara
 //virtual
 void RsContextGL::flushState()
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	RsGLCatchError();
 	
 	// Bind render states.
@@ -1559,6 +1611,8 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 // setViewport
 void RsContextGL::setViewport( class RsViewport& Viewport )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
 	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
 	RsGLCatchError();
@@ -1652,6 +1706,8 @@ void RsContextGL::loadTexture(
 		BcU32 DataSize,
 		void* Data )
 {
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	GLuint Handle = Texture->getHandle< GLuint >();
 
 	const auto& TextureDesc = Texture->getDesc();
