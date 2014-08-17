@@ -83,6 +83,13 @@ public:
 	virtual bool createShader(
 		class RsShader* Shader ) = 0;
 
+	/**
+	 * Create program.
+	 * @param Program Program to create from.
+	 */
+	virtual bool createProgram(
+		class RsProgram* Program ) = 0;
+
 };
 
 #endif

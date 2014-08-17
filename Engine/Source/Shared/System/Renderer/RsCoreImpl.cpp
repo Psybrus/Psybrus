@@ -17,8 +17,6 @@
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
 
-#include "System/Renderer/GL/RsProgramGL.h"
-
 #include "System/SysKernel.h"
 
 #include "System/Renderer/GL/RsContextGL.h"
@@ -250,12 +248,16 @@ RsProgram* RsCoreImpl::createProgram(
 {
 	auto Context = getContext( nullptr );
 
-	RsProgramGL* pResource = new RsProgramGL(
+	RsProgram* pResource = new RsProgram(
 		Context, 
 		std::move( Shaders ), 
 		std::move( VertexAttributes ) );
 
-	createResource( pResource );
+	typedef BcDelegate< bool(*)( RsProgram* ) > CreateDelegate;
+
+	// Call create on render thread.
+	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createProgram >( Context ) );
+	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
 
 	return pResource;
 }
