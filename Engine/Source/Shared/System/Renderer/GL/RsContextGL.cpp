@@ -905,7 +905,7 @@ void RsContextGL::setDefaultState()
 		RsTextureFilteringMode::LINEAR, RsTextureFilteringMode::LINEAR, RsTextureSamplingMode::WRAP, RsTextureSamplingMode::WRAP
 	};
 
-	for( BcU32 Sampler = 0; Sampler < NOOF_TEXTURESTATES; ++Sampler )
+	for( BcU32 Sampler = 0; Sampler < MAX_TEXTURE_SLOTS; ++Sampler )
 	{
 		setTextureState( Sampler, NULL, TextureParams, BcTrue );
 	}
@@ -938,13 +938,13 @@ void RsContextGL::invalidateTextureState()
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	NoofTextureStateBinds_ = 0;
-	for( BcU32 Idx = 0; Idx < NOOF_TEXTURESTATES; ++Idx )
+	for( BcU32 Idx = 0; Idx < MAX_TEXTURE_SLOTS; ++Idx )
 	{
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ Idx ];
 		
 		TextureStateValue.Dirty_ = BcTrue;
 		
-		BcAssert( NoofTextureStateBinds_ < NOOF_TEXTURESTATES );
+		BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
 		TextureStateBinds_[ NoofTextureStateBinds_++ ] = Idx;
 	}
 }
@@ -995,7 +995,7 @@ void RsContextGL::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsT
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	if( Sampler < NOOF_TEXTURESTATES )
+	if( Sampler < MAX_TEXTURE_SLOTS )
 	{
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ Sampler ];
 		
@@ -1008,7 +1008,7 @@ void RsContextGL::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsT
 		// If it wasn't dirty, we need to set it.
 		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )
 		{
-			BcAssert( NoofTextureStateBinds_ < NOOF_TEXTURESTATES );
+			BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
 			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Sampler;
 		}
 	}
