@@ -15,6 +15,8 @@
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 
 #include "System/Os/OsClient.h"
@@ -23,9 +25,11 @@
 #include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
-// Direct3D 11 library.
+// Direct3D 11 libraries.
 #pragma comment (lib, "d3d11.lib")
+#pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "dxgi.lib")
+#pragma comment( lib, "D3DCompiler.lib" )
 
 //////////////////////////////////////////////////////////////////////////
 // Type conversion.
@@ -255,6 +259,13 @@ void RsContextD3D11::create()
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
+
+	// Check threading feature.
+	D3D11_FEATURE_DATA_THREADING FeatureThreading;
+	Device_->CheckFeatureSupport(
+		D3D11_FEATURE_THREADING,
+		&FeatureThreading,
+		sizeof( FeatureThreading ) );
 
 	// Get back buffer from swap chain.
 	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
@@ -646,6 +657,141 @@ bool RsContextD3D11::updateTexture(
 
 	BcPrintf( "WARNING: RsContextD3D11::updateTexture unimplemented\n" );
 
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createShader
+bool RsContextD3D11::createShader(
+	class RsShader* Shader )
+{
+	const auto& Desc = Shader->getDesc();
+	ID3D11DeviceChild* D3DShader = nullptr;  
+
+	HRESULT Result = 0;
+	switch( Desc.ShaderType_ )
+	{
+	case RsShaderType::VERTEX:
+		{
+			Result = Device_->CreateVertexShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11VertexShader** >( D3DShader ) );
+		}
+		break;
+
+	case RsShaderType::TESSELATION_CONTROL:
+		{
+			Result = Device_->CreateHullShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11HullShader** >( D3DShader ) );
+		}
+		break;
+
+	case RsShaderType::TESSELATION_EVALUATION:
+		{
+			Result = Device_->CreateDomainShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11DomainShader** >( D3DShader ) );
+		}
+		break;
+
+	case RsShaderType::GEOMETRY:
+		{
+			Result = Device_->CreateGeometryShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11GeometryShader** >( D3DShader ) );
+		}
+		break;
+
+	case RsShaderType::FRAGMENT:
+		{
+			Result = Device_->CreatePixelShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11PixelShader** >( D3DShader ) );
+		}
+		break;
+
+	case RsShaderType::COMPUTE:
+		{
+			Result = Device_->CreateComputeShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11ComputeShader** >( D3DShader ) );
+		}
+		break;
+	}
+
+	BcAssert( SUCCEEDED( Result ) );
+
+	if( SUCCEEDED( Result ) )
+	{
+		Shader->setHandle( D3DShader );
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyShader
+bool RsContextD3D11::destroyShader(
+	class RsShader* Shader )
+{
+	ID3D11DeviceChild* D3DShader = Shader->getHandle< ID3D11DeviceChild* >();
+
+	if( D3DShader != nullptr )
+	{
+		D3DShader->Release();
+		return true;
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgram
+bool RsContextD3D11::createProgram(
+	class RsProgram* Program )
+{
+	for( auto* Shader : Program->getShaders() )
+	{
+		ID3D11ShaderReflection* Reflector = nullptr; 
+		D3D11Reflect( 
+			Shader->getData(), 
+			Shader->getDataSize(), 
+			&Reflector);
+
+		for( BcU32 Idx = 0; Idx < 32; ++Idx )
+		{
+			auto ConstantBuffer = Reflector->GetConstantBufferByIndex( Idx );
+			D3D11_SHADER_BUFFER_DESC Desc;
+			if( SUCCEEDED( ConstantBuffer->GetDesc( &Desc ) ) )
+			{
+				int a = 0; ++a;
+			}
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// destroyProgram
+bool RsContextD3D11::destroyProgram(
+	class RsProgram* Program )
+{
 	return false;
 }
 

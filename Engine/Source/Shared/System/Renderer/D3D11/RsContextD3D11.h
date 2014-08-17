@@ -80,7 +80,17 @@ public:
 		const struct RsTextureSlice& Slice,
 		RsResourceUpdateFlags Flags,
 		RsTextureUpdateFunc UpdateFunc );
-		
+
+	bool createShader(
+		class RsShader* Shader );
+	bool destroyShader(
+		class RsShader* Shader );
+
+	bool createProgram(
+		class RsProgram* Program );
+	bool destroyProgram(
+		class RsProgram* Program );
+	
 	void flushState();
 
 

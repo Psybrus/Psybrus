@@ -129,7 +129,7 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 	{
 		if( pClient != NULL )
 		{
-			RsContext* pResource = new RsContextGL( pClient, nullptr );
+			RsContext* pResource = new RsContextD3D11( pClient, nullptr );
 			createResource( pResource );
 
 			// If we have no default context, set it.

@@ -22,6 +22,8 @@
 #include "Base/BcWindows.h"
 #include <d3d11.h>
 #include <d3d11_1.h>
-
+#include <D3D11Shader.h>
+#include <D3Dcompiler.h>
+#include <d3dcompiler.inl>
 #endif
 
