@@ -138,15 +138,14 @@ private:
 	enum
 	{
 		NOOF_RENDERSTATES = RsRenderStateType::MAX,
-		NOOF_TEXTURESTATES = 8,
 	};
 		
 	std::array< TRenderStateValue, NOOF_RENDERSTATES > RenderStateValues_;
-	std::array< TTextureStateValue, NOOF_TEXTURESTATES > TextureStateValues_;
+	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
 
 	// State setting.
 	std::array< BcU32, NOOF_RENDERSTATES > RenderStateBinds_;
-	std::array< BcU32, NOOF_TEXTURESTATES > TextureStateBinds_;
+	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;
 	BcU32 NoofRenderStateBinds_;
 	BcU32 NoofTextureStateBinds_;	
 
