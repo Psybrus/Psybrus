@@ -101,14 +101,13 @@ const RsProgramVertexAttributeList& RsProgram::getVertexAttributeList() const
 
 ////////////////////////////////////////////////////////////////////////////////
 // addSamplerSlot
-void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle, RsShaderParameterType Type )
+void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle )
 {
 	// If parameter is valid, add it.
 	TSampler Sampler = 
 	{
 		std::move( Name ),
-		Handle,
-		Type,
+		Handle
 	};
 	SamplerList_.push_back( std::move( Sampler ) );
 }

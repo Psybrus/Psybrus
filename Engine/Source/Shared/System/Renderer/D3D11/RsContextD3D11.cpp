@@ -766,10 +766,11 @@ bool RsContextD3D11::createProgram(
 {
 	// TODO: Look up also by type, size, and flags. Not just name.
 	// TODO: Do this work offline.
-	typedef std::unordered_map< std::string, BcU32 > ResourceHandleMapping;
+	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
 	ResourceHandleMapping SamplerBindings;
 	ResourceHandleMapping TextureBindings;
 	ResourceHandleMapping ConstantBufferBindings;
+	ResourceHandleMapping ConstantBufferSizes;
 
 	const BcU32 NoofBindPoints = 32;
 	const BcU32 BitsPerShader = 5; // Up to 32 bindings.
@@ -801,8 +802,20 @@ bool RsContextD3D11::createProgram(
 					BindDesc.Type == D3D_SIT_TBUFFER )
 				{
 					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
+					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
+					
+					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
+					D3D11_SHADER_BUFFER_DESC BufferDesc;
+					ConstantBuffer->GetDesc( &BufferDesc );
+					if( Size != 0 )
+					{
+						BcAssert( BufferDesc.Size == Size );
+					}
+
 					Handle |= ( BindDesc.BindPoint << ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader ) );
+					Size = BufferDesc.Size;
 					ConstantBufferBindings[ BindDesc.Name ] = Handle;
+					ConstantBufferSizes[ BindDesc.Name ] = Size;
 				}
 				else if( BindDesc.Type == D3D_SIT_TEXTURE )
 				{
@@ -824,7 +837,33 @@ bool RsContextD3D11::createProgram(
 		}
 	}
 
-	return false;
+	// Add all constant buffer bindings
+	for( const auto& ConstantBuffer : ConstantBufferBindings )
+	{
+		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
+		Program->addUniformBufferSlot( 
+			ConstantBuffer.first,
+			ConstantBuffer.second,
+			Size );
+	}
+
+	// Add all sampler bindings
+	for( const auto& Sampler : SamplerBindings )
+	{
+		Program->addSamplerSlot( 
+			Sampler.first,
+			Sampler.second );
+	}
+
+	// Add all texture bindings
+	for( const auto& Texture : TextureBindings )
+	{
+		Program->addTextureSlot( 
+			Texture.first,
+			Texture.second );
+	}
+
+	return true;
 }
 
 

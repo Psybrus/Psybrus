@@ -39,7 +39,7 @@ public:
 public:
 	// Used internally by the renderer to patch reflection information
 	// into the program.
-	void addSamplerSlot( std::string Name, BcU32 Handle, RsShaderParameterType Type );
+	void addSamplerSlot( std::string Name, BcU32 Handle );
 	void addTextureSlot( std::string Name, BcU32 Handle );
 	void addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size );
 
@@ -48,7 +48,6 @@ private:
 	{
 		std::string Name_;
 		BcU32 Handle_;
-		RsShaderParameterType Type_;
 	};
 
 	struct TTexture
