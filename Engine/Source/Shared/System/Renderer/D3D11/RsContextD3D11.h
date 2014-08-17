@@ -190,6 +190,13 @@ private:
 	typedef std::unordered_map< BcU32, InputLayout > InputLayoutMap; 
 	InputLayoutMap InputLayoutMap_;
 
+	// General state.
+	D3D11_BLEND_DESC BlendState_;
+	D3D11_RASTERIZER_DESC RasterizerState_;
+	D3D11_DEPTH_STENCIL_DESC DepthStencilState_;
+
+
+
 };
 
 
