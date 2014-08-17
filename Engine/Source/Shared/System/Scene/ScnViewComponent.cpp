@@ -15,6 +15,9 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
+#include "System/Renderer/RsFrame.h"
+#include "System/Renderer/RsRenderNode.h"
+
 #include "System/Scene/ScnViewComponent.h"
 #include "System/Scene/ScnMaterial.h"
 #include "System/Scene/ScnEntity.h"
@@ -255,14 +258,17 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 
 //////////////////////////////////////////////////////////////////////////
 // bind
-class ScnViewComponentClear: public RsRenderNode
+class ScnViewComponentViewport: public RsRenderNode
 {
 public:
 	void render()
 	{
-		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentClear::render" );
+		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
+		pContext_->setViewport( Viewport_ );
 		pContext_->clear( RsColour::BLACK );
 	}
+
+	RsViewport Viewport_;
 };
 
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
@@ -375,12 +381,10 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	{
 		
 	}
-	
-	// Set viewport.
-	pFrame->setViewport( Viewport_ );
 
-	// Clear viewport.
-	ScnViewComponentClear* pRenderNode = pFrame->newObject< ScnViewComponentClear >();
+	// Set + clear viewport.
+	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
+	pRenderNode->Viewport_ = Viewport_;
 	pFrame->addRenderNode( pRenderNode );
 
 }

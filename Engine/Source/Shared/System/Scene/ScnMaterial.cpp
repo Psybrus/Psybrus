@@ -15,6 +15,8 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Content/CsCore.h"
 
+#include "System/Renderer/RsRenderNode.h"
+
 #include "System/Scene/ScnTextureAtlas.h"
 
 #ifdef PSY_SERVER

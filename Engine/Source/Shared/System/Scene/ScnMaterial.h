@@ -16,6 +16,7 @@
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsBuffer.h"
+
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTexture.h"
@@ -105,7 +106,7 @@ public:
 	ScnTextureRef						getTexture( BcU32 Idx );
 	ScnMaterialRef						getMaterial();
 	
-	void								bind( RsFrame* pFrame, RsRenderSort& Sort );
+	void								bind( class RsFrame* pFrame, class RsRenderSort& Sort );
 
 public:
 	virtual void						update( BcF32 Tick );

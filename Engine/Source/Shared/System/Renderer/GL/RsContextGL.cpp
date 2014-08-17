@@ -370,8 +370,8 @@ RsShaderCodeType RsContextGL::maxShaderCodeType( RsShaderCodeType CodeType ) con
 }
 
 //////////////////////////////////////////////////////////////////////////
-// swapBuffers
-void RsContextGL::swapBuffers()
+// presentBackBuffer
+void RsContextGL::presentBackBuffer()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
@@ -554,8 +554,8 @@ void RsContextGL::create()
 	// Clear screen and flip.
 	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
-	// Swap buffers.
-	swapBuffers();
+	// Present back buffer.
+	presentBackBuffer();
 }
 
 //////////////////////////////////////////////////////////////////////////

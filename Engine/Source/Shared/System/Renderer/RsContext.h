@@ -64,6 +64,11 @@ public:
 	 */
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const = 0;
 
+	/** 
+	 * Present back buffer.
+	 */
+	virtual void presentBackBuffer() = 0;
+
 	/**
 	 * Requests a screenshot from the context.
 	 */

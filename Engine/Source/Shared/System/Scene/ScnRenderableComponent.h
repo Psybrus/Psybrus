@@ -15,6 +15,7 @@
 #define __ScnRenderableComponent_H__
 
 #include "System/Renderer/RsCore.h"
+#include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnSpatialComponent.h"
 
@@ -28,15 +29,18 @@ public:
 	DECLARE_VISITABLE( ScnRenderableComponent );
 
 public:
-	void								initialise();
-	virtual void						initialise( const Json::Value& Object );
-	virtual void						update( BcF32 Tick );
-	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
-	void								setRenderMask( BcU32 RenderMask );
-	const BcU32							getRenderMask() const;
+	void initialise();
+	virtual void initialise( const Json::Value& Object );
+	virtual void update( BcF32 Tick );
+	virtual void render( 
+		class ScnViewComponent* pViewComponent, 
+		class RsFrame* pFrame, 
+		RsRenderSort Sort );
+	void setRenderMask( BcU32 RenderMask );
+	const BcU32 getRenderMask() const;
 
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
 	/**
 	 * Is this renderable component lit?
