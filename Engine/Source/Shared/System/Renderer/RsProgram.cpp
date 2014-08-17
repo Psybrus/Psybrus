@@ -53,6 +53,24 @@ BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// findTextureSlot
+BcU32 RsProgram::findTextureSlot( const BcChar* Name )
+{
+	BcU32 Idx = 0;
+	for( auto It( TextureList_.begin() ); It != TextureList_.end(); ++It )
+	{
+		if( (*It).Name_ == Name )
+		{
+			return Idx;
+		}
+
+		++Idx;
+	}
+
+	return BcErrorCode;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // findUniformBufferSlot
 BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 {
@@ -82,8 +100,8 @@ const RsProgramVertexAttributeList& RsProgram::getVertexAttributeList() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addParameter
-void RsProgram::addSampler( std::string Name, BcU32 Handle, RsShaderParameterType Type )
+// addSamplerSlot
+void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle, RsShaderParameterType Type )
 {
 	// If parameter is valid, add it.
 	TSampler Sampler = 
@@ -96,8 +114,21 @@ void RsProgram::addSampler( std::string Name, BcU32 Handle, RsShaderParameterTyp
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addBlock
-void RsProgram::addBlock( std::string Name, BcU32 Handle, BcU32 Size )
+// addTextureSlot
+void RsProgram::addTextureSlot( std::string Name, BcU32 Handle )
+{
+	// If parameter is valid, add it.
+	TTexture Texture = 
+	{
+		std::move( Name ),
+		Handle,
+	};
+	TextureList_.push_back( std::move( Texture ) );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// addUniformBufferSlot
+void RsProgram::addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size )
 {
 	TUniformBlock Block = 
 	{
