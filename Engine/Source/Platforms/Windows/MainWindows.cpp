@@ -193,7 +193,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SYS_REGISTER( "OsCore", OsCoreImplWindows );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 	SYS_REGISTER( "CsCore", CsCore );
-	SYS_REGISTER( "RsCore", RsCoreImplGL );
+	SYS_REGISTER( "RsCore", RsCoreImplD3D11 );
 	SYS_REGISTER( "SsCore", SsCoreImplAL );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
