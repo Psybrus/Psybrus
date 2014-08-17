@@ -129,7 +129,7 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 	{
 		if( pClient != NULL )
 		{
-			RsContext* pResource = new RsContextD3D11( pClient, nullptr );
+			RsContext* pResource = new RsContextGL( pClient, nullptr );
 			createResource( pResource );
 
 			// If we have no default context, set it.
@@ -247,6 +247,8 @@ RsProgram* RsCoreImpl::createProgram(
 	RsProgramVertexAttributeList VertexAttributes )
 {
 	auto Context = getContext( nullptr );
+
+	BcAssert( Shaders.size() > 0 );
 
 	RsProgram* pResource = new RsProgram(
 		Context, 

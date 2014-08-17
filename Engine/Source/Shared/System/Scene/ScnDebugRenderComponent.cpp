@@ -91,8 +91,8 @@ void ScnDebugRenderComponent::create()
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 2 )
-			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 	
 	// Allocate render resources.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -212,11 +212,13 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
 		pVertices->Z_ = PointA.z();
+		pVertices->W_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = PointB.z();
+		pVertices->W_ = 1.0f;
 		pVertices->ABGR_ = ABGR;
 
 		// Quickly check last primitive.
@@ -264,6 +266,7 @@ void ScnDebugRenderComponent::drawLines( const MaVec3d* pPoints, BcU32 NoofLines
 			pVertices->X_ = pPoints[ Idx ].x();
 			pVertices->Y_ = pPoints[ Idx ].y();
 			pVertices->Z_ = pPoints[ Idx ].z();
+			pVertices->W_ = 1.0f;
 			pVertices->ABGR_ = ABGR;
 			++pVertices;
 		}

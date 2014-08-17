@@ -28,7 +28,7 @@ typedef ReObjectRef< class ScnCanvasComponent > ScnCanvasComponentRef;
 // ScnCanvasComponentVertex
 struct ScnCanvasComponentVertex
 {
-	BcF32 X_, Y_, Z_;
+	BcF32 X_, Y_, Z_, W_;
 	BcF32 U_, V_;
 	BcU32 ABGR_;
 };

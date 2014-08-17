@@ -338,7 +338,10 @@ void ScnTexture::create()
 			RsResourceUpdateFlags::ASYNC,
 			[ TextureData, SliceSize ]( RsTexture* Texture, const RsTextureLock& Lock )
 			{
-				BcMemCopy( Lock.Buffer_, TextureData, SliceSize );
+				if( Lock.Buffer_ != nullptr )
+				{
+					BcMemCopy( Lock.Buffer_, TextureData, SliceSize );
+				}
 			} );
 
 		// Down a level.

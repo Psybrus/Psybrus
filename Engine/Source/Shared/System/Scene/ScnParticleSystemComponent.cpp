@@ -83,10 +83,10 @@ void ScnParticleSystemComponent::create()
 	// Create vertex declaration.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 4 )
-			.addElement( RsVertexElement( 0, 0,				3,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 12,			3,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,		0 ) )
-			.addElement( RsVertexElement( 0, 24,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 32,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ) );
+			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,	0 ) )
+			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::NORMAL,		0 ) )
+			.addElement( RsVertexElement( 0, 32,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,	0 ) )
+			.addElement( RsVertexElement( 0, 40,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ) );
 
 	// Allocate vertex buffers.
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
@@ -250,6 +250,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					VertexA.X_ = Particle.Position_.x();
 					VertexA.Y_ = Particle.Position_.y();
 					VertexA.Z_ = Particle.Position_.z();
+					VertexA.W_ = 1.0f;
 					VertexA.NX_ = CornerA.x();
 					VertexA.NY_ = CornerA.y();
 					VertexA.NZ_ = 0.0f;
@@ -261,6 +262,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					VertexB.X_ = Particle.Position_.x();
 					VertexB.Y_ = Particle.Position_.y();
 					VertexB.Z_ = Particle.Position_.z();
+					VertexB.W_ = 1.0f;
 					VertexB.NX_ = CornerB.x();
 					VertexB.NY_ = CornerB.y();
 					VertexB.NZ_ = 0.0f;
@@ -272,6 +274,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					VertexC.X_ = Particle.Position_.x();
 					VertexC.Y_ = Particle.Position_.y();
 					VertexC.Z_ = Particle.Position_.z();
+					VertexC.W_ = 1.0f;
 					VertexC.NX_ = CornerC.x();
 					VertexC.NY_ = CornerC.y();
 					VertexC.NZ_ = 0.0f;
@@ -283,6 +286,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					VertexD.X_ = Particle.Position_.x();
 					VertexD.Y_ = Particle.Position_.y();
 					VertexD.Z_ = Particle.Position_.z();
+					VertexD.W_ = 1.0f;
 					VertexD.NX_ = CornerC.x();
 					VertexD.NY_ = CornerC.y();
 					VertexD.NZ_ = 0.0f;
@@ -294,6 +298,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					VertexE.X_ = Particle.Position_.x();
 					VertexE.Y_ = Particle.Position_.y();
 					VertexE.Z_ = Particle.Position_.z();
+					VertexE.W_ = 1.0f;
 					VertexE.NX_ = CornerD.x();
 					VertexE.NY_ = CornerD.y();
 					VertexE.NZ_ = 0.0f;
@@ -305,6 +310,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					VertexF.X_ = Particle.Position_.x();
 					VertexF.Y_ = Particle.Position_.y();
 					VertexF.Z_ = Particle.Position_.z();
+					VertexF.W_ = 1.0f;
 					VertexF.NX_ = CornerA.x();
 					VertexF.NY_ = CornerA.y();
 					VertexF.NZ_ = 0.0f;
