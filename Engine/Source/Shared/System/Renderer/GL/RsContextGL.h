@@ -62,6 +62,9 @@ public:
 	bool createShader(
 		class RsShader* Shader );
 
+	bool createProgram(
+		class RsProgram* Program );
+
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();

@@ -12,7 +12,9 @@
 **************************************************************************/
 
 #include "System/Renderer/GL/RsContextGL.h"
-#include "System/Renderer/GL/RsProgramGL.h"
+
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsTexture.h"
 
@@ -24,6 +26,7 @@
 #include "Base/BcMath.h"
 
 #include <memory>
+#include <boost/format.hpp>
 
 #include "Import/Img/Img.h"
 
@@ -942,6 +945,183 @@ bool RsContextGL::createShader(
 	}
 
 	Shader->setHandle( Handle );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgram
+bool RsContextGL::createProgram(
+	RsProgram* Program )
+{
+	const auto& Shader = Program->getShaders();
+
+	// Some checks to ensure validity.
+	BcAssert( Shader.size() > 0 );	
+
+	// Create program.
+	GLuint Handle = glCreateProgram();
+	BcAssert( Handle != 0 );
+
+	// Attach shaders.
+	for( auto* Shader : Shader )
+	{
+		glAttachShader( Handle, Shader->getHandle< GLuint >() );
+		RsGLCatchError();
+	}
+	
+	// Bind all slots up.
+	// NOTE: We shouldn't need this in later GL versions with explicit
+	//       binding slots.
+	for( BcU32 Channel = 0; Channel < 16; ++Channel )
+	{
+		const std::string Name = boost::str( boost::format( "dcl_Input%1%" ) % Channel );
+		glBindAttribLocation( Handle, Channel, Name.c_str() );
+		RsGLCatchError();
+	}
+	
+	// Link program.
+	glLinkProgram( Handle );
+	RsGLCatchError();
+
+	GLint ProgramLinked = 0;
+	glGetProgramiv( Handle, GL_LINK_STATUS, &ProgramLinked );
+	if ( !ProgramLinked )
+	{					 
+		// There was an error here, first get the length of the log message.
+		int i32InfoLogLength, i32CharsWritten; 
+		glGetProgramiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+
+		// Allocate enough space for the message, and retrieve it.
+		char* pszInfoLog = new char[i32InfoLogLength];
+		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+		BcPrintf( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		delete [] pszInfoLog;
+
+		glDeleteProgram( Handle );
+		return false;
+	}
+	
+	// Attempt to find uniform names.
+	GLint ActiveUniforms = 0;
+	glGetProgramiv( Handle, GL_ACTIVE_UNIFORMS, &ActiveUniforms );
+	
+	BcU32 ActiveSamplerIdx = 0;
+	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniforms; ++Idx )
+	{
+		// Uniform information.
+		GLchar UniformName[ 256 ];
+		GLsizei UniformNameLength = 0;
+		GLint Size = 0;
+		GLenum Type = GL_INVALID_VALUE;
+
+		// Get the uniform.
+		glGetActiveUniform( Handle, Idx, sizeof( UniformName ), &UniformNameLength, &Size, &Type, UniformName );
+		
+		// Add it as a parameter.
+		if( UniformNameLength > 0 && Type != GL_INVALID_VALUE )
+		{
+			GLint UniformLocation = glGetUniformLocation( Handle, UniformName );
+
+			// Trim index off.
+			BcChar* pIndexStart = BcStrStr( UniformName, "[0]" );
+			if( pIndexStart != NULL )
+			{
+				*pIndexStart = '\0';
+			}
+
+			RsShaderParameterType InternalType = RsShaderParameterType::INVALID;
+			switch( Type )
+			{
+			case GL_SAMPLER_1D:
+				InternalType = RsShaderParameterType::SAMPLER_1D;
+				break;
+			case GL_SAMPLER_2D:
+				InternalType = RsShaderParameterType::SAMPLER_2D;
+				break;
+			case GL_SAMPLER_3D:
+				InternalType = RsShaderParameterType::SAMPLER_3D;
+				break;
+			case GL_SAMPLER_CUBE:
+				InternalType = RsShaderParameterType::SAMPLER_CUBE;
+				break;
+			case GL_SAMPLER_1D_SHADOW:
+				InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
+				break;
+			case GL_SAMPLER_2D_SHADOW:
+				InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
+				break;
+			default:
+				InternalType = RsShaderParameterType::INVALID;
+				break;
+			}
+
+			if( InternalType != RsShaderParameterType::INVALID )
+			{
+				// Add sampler. Will fail if not supported sampler type.
+				Program->addSampler( UniformName, UniformLocation, InternalType );
+
+				// Bind sampler to known index.
+				glProgramUniform1i( Handle, UniformLocation, ActiveSamplerIdx++ );
+				RsGLCatchError();
+			}
+		}
+	}
+	
+	// Attempt to find uniform block names.
+	GLint ActiveUniformBlocks = 0;
+	glGetProgramiv( Handle, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
+	
+	BcU32 ActiveUniformSlotIndex = 0;
+	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
+	{
+		// Uniform information.
+		GLchar UniformBlockName[ 256 ];
+		GLsizei UniformBlockNameLength = 0;
+		GLint Size = 0;
+
+		// Get the uniform block size.
+		glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
+		glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
+		
+		// Add it as a parameter.
+		if( UniformBlockNameLength > 0 )
+		{
+			auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
+			BcAssert( TestIdx == Idx );
+			
+			Program->addBlock( UniformBlockName, Idx, Size );
+
+			glUniformBlockBinding( Handle, Idx, ActiveUniformSlotIndex++ );
+			RsGLCatchError();
+		}
+	}
+
+	// Catch error.
+	RsGLCatchError();
+
+	// Validate program.
+	glValidateProgram( Handle );
+	GLint ProgramValidated = 0;
+	glGetProgramiv( Handle, GL_VALIDATE_STATUS, &ProgramValidated );
+	if ( !ProgramLinked )
+	{					 
+		// There was an error here, first get the length of the log message.
+		int i32InfoLogLength, i32CharsWritten; 
+		glGetProgramiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+
+		// Allocate enough space for the message, and retrieve it.
+		char* pszInfoLog = new char[i32InfoLogLength];
+		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+		BcPrintf( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		delete [] pszInfoLog;
+
+		glDeleteProgram( Handle );
+		return false;
+	}
+
+	// Set handle.
+	Program->setHandle( Handle );
+
 	return true;
 }
 
