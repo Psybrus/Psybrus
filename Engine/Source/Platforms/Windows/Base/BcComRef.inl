@@ -1,7 +1,7 @@
 template< class _Ty >
 inline void BcComRef< _Ty >::_acquireNew( IUnknown* pObject )
 {
-	pObject_ = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject_ = pObject;
 	if( pObject_ != nullptr )
 	{
 		pObject_->AddRef();
@@ -11,7 +11,7 @@ inline void BcComRef< _Ty >::_acquireNew( IUnknown* pObject )
 template< class _Ty >
 inline void BcComRef< _Ty >::_acquireNewReleaseOld( IUnknown* pObject )
 {
-	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject = pObject;
 	if( pObject != nullptr )
 	{
 		pObject->AddRef();
@@ -24,7 +24,6 @@ inline void BcComRef< _Ty >::_acquireNewReleaseOld( IUnknown* pObject )
 template< class _Ty >
 inline void BcComRef< _Ty >::_acquireAssign( IUnknown* pObject )
 {
-	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
 	if( pObject_ == nullptr )
 	{
 		_acquireNew( pObject );
@@ -119,7 +118,7 @@ inline const _Ty* BcComRef< _Ty >::operator -> () const
 template< class _Ty >
 inline _Ty** BcComRef< _Ty >::operator & ()
 {
-	return reinterpret_cast< _Ty*& >( &pObject_ );
+	return reinterpret_cast< _Ty** >( &pObject_ );
 }
 
 template< class _Ty >
