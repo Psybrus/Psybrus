@@ -37,12 +37,6 @@ public:
 	 * @return Index.
 	 */
 	virtual BcU32 findUniformBufferSlot( const BcChar* Name ) = 0;
-
-	/**
-	 * Bind program.
-	 * @param pParameterBuffer Pointer to parameter buffer for binding.
-	 */
-	virtual void bind() = 0;
 	
 	/**
 	 * Get vertex attribute list.

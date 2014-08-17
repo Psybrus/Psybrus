@@ -59,6 +59,9 @@ public:
 		RsResourceUpdateFlags Flags,
 		RsTextureUpdateFunc UpdateFunc );
 
+	bool createShader(
+		class RsShader* Shader );
+
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();
