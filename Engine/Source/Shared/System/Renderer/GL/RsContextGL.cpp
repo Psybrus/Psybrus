@@ -1199,7 +1199,8 @@ void RsContextGL::setDefaultState()
 
 	for( BcU32 Sampler = 0; Sampler < MAX_TEXTURE_SLOTS; ++Sampler )
 	{
-		setTextureState( Sampler, NULL, TextureParams, BcTrue );
+		setSamplerState( Sampler, TextureParams, BcTrue );
+		setTexture( Sampler, nullptr, BcTrue );
 	}
 
 	flushState();
@@ -1282,8 +1283,8 @@ BcS32 RsContextGL::getRenderState( RsRenderStateType State ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setTextureState
-void RsContextGL::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsTextureParams& Params, BcBool Force )
+// setSamplerState
+void RsContextGL::setSamplerState( BcU32 Sampler, const RsTextureParams& Params, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
@@ -1293,9 +1294,32 @@ void RsContextGL::setTextureState( BcU32 Sampler, RsTexture* pTexture, const RsT
 		
 		const BcBool WasDirty = TextureStateValue.Dirty_;
 		
-		TextureStateValue.Dirty_ |= ( TextureStateValue.pTexture_ != pTexture || TextureStateValue.Params_ != Params ) || Force;
-		TextureStateValue.pTexture_ = pTexture;
+		TextureStateValue.Dirty_ |= ( TextureStateValue.Params_ != Params ) || Force;
 		TextureStateValue.Params_ = Params;
+	
+		// If it wasn't dirty, we need to set it.
+		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )
+		{
+			BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
+			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Sampler;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTexture
+void RsContextGL::setTexture( BcU32 Sampler, RsTexture* pTexture, BcBool Force )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	if( Sampler < MAX_TEXTURE_SLOTS )
+	{
+		TTextureStateValue& TextureStateValue = TextureStateValues_[ Sampler ];
+		
+		const BcBool WasDirty = TextureStateValue.Dirty_;
+		
+		TextureStateValue.Dirty_ |= ( TextureStateValue.pTexture_ != pTexture ) || Force;
+		TextureStateValue.pTexture_ = pTexture;
 	
 		// If it wasn't dirty, we need to set it.
 		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )

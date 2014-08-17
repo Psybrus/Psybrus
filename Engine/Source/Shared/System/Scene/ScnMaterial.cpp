@@ -515,7 +515,8 @@ public:
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
-			pContext_->setTextureState( Idx, pTexture, TextureParams );
+			pContext_->setSamplerState( Idx, TextureParams );
+			pContext_->setTexture( Idx, pTexture );
 		}
 
 		// Setup states.

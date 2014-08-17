@@ -626,8 +626,17 @@ BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setTextureState
-void RsContextD3D11::setTextureState( BcU32 SlotIdx, RsTexture* pTexture, const RsTextureParams& Params, BcBool Force )
+// setSamplerState
+void RsContextD3D11::setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	//BcPrintf( "WARNING: RsContextD3D11::setTextureState unimplemented\n" );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTexture
+void RsContextD3D11::setTexture( BcU32 SlotIdx, RsTexture* pTexture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 

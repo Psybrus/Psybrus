@@ -49,9 +49,14 @@ public:
 	virtual BcS32 getRenderState( RsRenderStateType State ) const = 0;
 
 	/**
-	 * Set texture state.
+	 * Set sampler state.
 	 */
-	virtual void setTextureState( BcU32 Sampler, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse ) = 0;
+	virtual void setSamplerState( BcU32 Slot, const RsTextureParams& Params, BcBool Force = BcFalse ) = 0;
+
+	/**
+	 * Set texture.
+	 */
+	virtual void setTexture( BcU32 Slot, class RsTexture* pTexture, BcBool Force = BcFalse ) = 0;
 
 	/**
 	 * Set program.

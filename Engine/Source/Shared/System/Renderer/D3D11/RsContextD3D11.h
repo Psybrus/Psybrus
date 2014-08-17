@@ -45,7 +45,8 @@ public:
 	void invalidateTextureState();
 	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32 getRenderState( RsRenderStateType State ) const;
-	void setTextureState( BcU32 SlotIdx, class RsTexture* pTexture, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
+	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
 	void setIndexBuffer( class RsBuffer* IndexBuffer );
 	void setVertexBuffer( 
