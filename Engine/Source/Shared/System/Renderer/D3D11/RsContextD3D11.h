@@ -111,7 +111,10 @@ private:
 	D3D_FEATURE_LEVEL FeatureLevel_;
 
 	BcComRef<ID3D11Texture2D> BackBuffer_;
-	BcU32 BackBufferResourceIdx_;
+	RsTexture* BackBufferRT_;
+	RsTexture* BackBufferDS_;
+	BcU32 BackBufferRTResourceIdx_;
+	BcU32 BackBufferDSResourceIdx_;
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
@@ -194,9 +197,39 @@ private:
 	D3D11_BLEND_DESC BlendState_;
 	D3D11_RASTERIZER_DESC RasterizerState_;
 	D3D11_DEPTH_STENCIL_DESC DepthStencilState_;
+	BcU32 StencilRef_;
 
+	struct BlendState
+	{
+		BcComRef< ID3D11BlendState > State_;
+		BcU32 LastFrameUsed_;
+	};
 
+	struct RasterizerState
+	{
+		BcComRef< ID3D11RasterizerState > State_;
+		BcU32 LastFrameUsed_;
+	};
 
+	struct DepthStencilState
+	{
+		BcComRef< ID3D11DepthStencilState > State_;
+		BcU32 LastFrameUsed_;
+	};
+
+	typedef std::map< BcU32, BlendState > BlendStateCache;
+	typedef std::map< BcU32, RasterizerState > RasterizerStateCache;
+	typedef std::map< BcU32, DepthStencilState > DepthStencilStateCache;
+
+	BlendStateCache BlendStateCache_;
+	RasterizerStateCache RasterizerStateCache_;
+	DepthStencilStateCache DepthStencilStateCache_;
+
+	// Render targets.
+	typedef std::array< ID3D11RenderTargetView*, 8 > RenderTargetViews;
+	
+	RenderTargetViews RenderTargetViews_;
+	ID3D11DepthStencilView* DepthStencilView_;
 };
 
 

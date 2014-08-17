@@ -13,6 +13,7 @@
 
 #include "System/Renderer/D3D11/RsContextD3D11.h"
 
+#include "System/Renderer/RsViewport.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsShader.h"
@@ -245,6 +246,13 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	Program_ = nullptr;
 	VertexDeclaration_ = nullptr;
 	TopologyType_ = RsTopologyType::INVALID;
+
+	BcMemZero( &BlendState_, sizeof( BlendState_ ) );
+	BcMemZero( &RasterizerState_, sizeof( RasterizerState_ ) );
+	BcMemZero( &DepthStencilState_, sizeof( DepthStencilState_ ) );
+
+	BcMemZero( &RenderTargetViews_, sizeof( RenderTargetViews_ ) );
+	BcMemZero( &DepthStencilView_, sizeof( DepthStencilView_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -343,14 +351,21 @@ void RsContextD3D11::presentBackBuffer()
 // takeScreenshot
 void RsContextD3D11::takeScreenshot()
 {
-
+	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
 void RsContextD3D11::setViewport( class RsViewport& Viewport )
 {
-
+	D3D11_VIEWPORT D3DViewport;
+	D3DViewport.Width = (FLOAT)Viewport.width();
+	D3DViewport.Height = (FLOAT)Viewport.height();
+	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
+	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+	Context_->RSSetViewports( 0, &D3DViewport );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -405,10 +420,55 @@ void RsContextD3D11::create()
 
 	// Get back buffer from swap chain.
 	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
-	BackBufferResourceIdx_ = addD3DResource( BackBuffer_ );
+	BackBufferRTResourceIdx_ = addD3DResource( BackBuffer_ );
 
-	ID3D11RenderTargetView* BackBufferRTView = getD3DRenderTargetView( BackBufferResourceIdx_ );
-	Context_->OMSetRenderTargets( 1, &BackBufferRTView, nullptr ); 
+	// Create back buffer RT.
+	BackBufferRT_ = new RsTexture(
+		RsTexture( 
+			this,
+			RsTextureDesc( 
+				RsTextureType::TEX2D,
+				RsResourceCreationFlags::STATIC, 
+				RsTextureFormat::R8G8B8A8, 1,
+				pClient->getWidth(),
+				pClient->getHeight(),
+				0 ) ) );
+	BackBufferRT_->setHandle< BcU32 >( BackBufferRTResourceIdx_ );
+
+	// Create back buffer DS.
+	BackBufferDS_ = new RsTexture(
+		RsTexture( 
+			this,
+			RsTextureDesc( 
+				RsTextureType::TEX2D,
+				RsResourceCreationFlags::STATIC, 
+				RsTextureFormat::D24S8, 1,
+				pClient->getWidth(),
+				pClient->getHeight(),
+				0 ) ) );
+	const auto& TextureDesc = BackBufferDS_->getDesc();
+	D3D11_TEXTURE2D_DESC Desc;
+	Desc.Width = TextureDesc.Width_;
+	Desc.Height = TextureDesc.Height_;
+	Desc.MipLevels = TextureDesc.Levels_;
+	Desc.ArraySize = 1;
+	Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+	Desc.SampleDesc.Count = 1;
+	Desc.SampleDesc.Quality = 0;
+	Desc.Usage = D3D11_USAGE_DEFAULT;
+	Desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	Desc.CPUAccessFlags = 0;
+	Desc.MiscFlags = 0;
+
+	ID3D11Texture2D* D3DTexture = nullptr;
+ 	Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
+	BcAssert( SUCCEEDED( Result ) );
+	BackBufferDS_->setHandle( addD3DResource( D3DTexture ) );
+
+	BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
+	
+	RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
+	DepthStencilView_ = getD3DDepthStencilView( BackBufferDS_->getHandle< BcU32 >() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -482,7 +542,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 		DepthStencilState_.BackFace.StencilFunc = gCompareFunc[ Value ];
 		break;
 	case RsRenderStateType::STENCIL_TEST_FUNC_REF:
-		BcBreakpoint;
+		StencilRef_ = Value;
 		break;
 	case RsRenderStateType::STENCIL_TEST_FUNC_MASK:
 		DepthStencilState_.StencilReadMask = Value;
@@ -651,7 +711,7 @@ void RsContextD3D11::clear( const RsColour& Colour )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::clear unimplemented\n" );
+	// TODO:
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1394,6 +1454,46 @@ void RsContextD3D11::flushState()
 		&D3DVertexBufferStrides_[ 0 ],
 		&D3DVertexBufferOffsets_[ 0 ] );
 
+	// Set state.
+	BcU32 BlendStateHash = BcHash::GenerateCRC32( 0, &BlendState_, sizeof( BlendState_ ) );
+	BcU32 RasterizerStateHash = BcHash::GenerateCRC32( 0, &RasterizerState_, sizeof( RasterizerState_ ) );
+	BcU32 DepthStencilStateHash = BcHash::GenerateCRC32( 0, &DepthStencilState_, sizeof( DepthStencilState_ ) );
+
+	auto FoundBlendState = BlendStateCache_.find( BlendStateHash );
+	if( FoundBlendState == BlendStateCache_.end() )
+	{
+		BlendState State;
+		State.LastFrameUsed_ = 0;
+		Device_->CreateBlendState( &BlendState_, &State.State_ );
+		BlendStateCache_[ BlendStateHash ] = State;
+		FoundBlendState = BlendStateCache_.find( BlendStateHash );
+	}
+
+	auto FoundRasterizerState = RasterizerStateCache_.find( RasterizerStateHash );
+	if( FoundRasterizerState == RasterizerStateCache_.end() )
+	{
+		RasterizerState State;
+		State.LastFrameUsed_ = 0;
+		Device_->CreateRasterizerState( &RasterizerState_, &State.State_ );
+		RasterizerStateCache_[ RasterizerStateHash ] = State;
+		FoundRasterizerState = RasterizerStateCache_.find( RasterizerStateHash );
+	}
+
+	auto FoundDepthStencil = DepthStencilStateCache_.find( DepthStencilStateHash );
+	if( FoundDepthStencil == DepthStencilStateCache_.end() )
+	{
+		DepthStencilState State;
+		State.LastFrameUsed_ = 0;
+		Device_->CreateDepthStencilState( &DepthStencilState_, &State.State_ );
+		DepthStencilStateCache_[ DepthStencilStateHash ] = State;
+		FoundDepthStencil = DepthStencilStateCache_.find( DepthStencilStateHash );
+	}
+
+	FLOAT Factor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	Context_->OMSetBlendState( FoundBlendState->second.State_, Factor, 0xffffffff );
+	Context_->RSSetState( FoundRasterizerState->second.State_ );
+	Context_->OMSetDepthStencilState( FoundDepthStencil->second.State_, StencilRef_ );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1609,6 +1709,7 @@ ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( BcU32 ResourceId
 
 		// Create render target view.
 		D3D11_RENDER_TARGET_VIEW_DESC Desc;
+		BcMemZero( &Desc, sizeof( Desc ) );
 
 		switch( ResDim )
 		{
@@ -1651,6 +1752,7 @@ ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( BcU32 ResourceId
 
 		// Create depth stencil view.
 		D3D11_DEPTH_STENCIL_VIEW_DESC Desc;
+		BcMemZero( &Desc, sizeof( Desc ) );
 
 		switch( ResDim )
 		{
@@ -1659,6 +1761,7 @@ ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( BcU32 ResourceId
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
 				Desc.Format = TexDesc.Format;
+				Desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipSlice = 0;
 			}
 			break;
