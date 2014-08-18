@@ -86,7 +86,10 @@ SysKernel::~SysKernel()
 	stop();
 
 	// Join.
-	ExecutionThread_.join();
+	if( ExecutionThread_.joinable() )
+	{
+		ExecutionThread_.join();
+	}
 	
 	// Free job workers.
 	for( auto JobWorker : JobWorkers_ )
@@ -211,6 +214,7 @@ void SysKernel::stop()
 		// Next system.
 		++Iter;
 	}
+
 	
 	ShuttingDown_ = BcTrue;
 }
