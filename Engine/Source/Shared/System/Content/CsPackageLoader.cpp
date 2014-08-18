@@ -451,7 +451,7 @@ void CsPackageLoader::markupResources()
 			// Advance package data.
  			pCurrPackageData += BcCalcAlignment( ChunkHeader.UnpackedBytes_, ChunkHeader.RequiredAlignment_ );
 
-#if PSY_DEBUG
+#ifdef PSY_DEBUG
 			// Clear memory.
 			BcMemSet( ChunkData.pUnpackedData_, 0x11, ChunkHeader.UnpackedBytes_ );
 #endif

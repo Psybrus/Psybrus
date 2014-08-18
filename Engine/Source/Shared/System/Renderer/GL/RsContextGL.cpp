@@ -544,10 +544,12 @@ void RsContextGL::create()
 #endif
 
 	// Debug output extension.	
-	if( GLEW_ARB_debug_output && PSY_DEBUG )
+#if !defined( PSY_PRODUCTION )
+	if( GLEW_ARB_debug_output )
 	{
 		glDebugMessageCallbackARB( debugOutput, nullptr );
 	}
+#endif
 
 	// Create + bind global VAO.
 	glGenVertexArrays( 1, &GlobalVAO_ );

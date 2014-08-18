@@ -212,6 +212,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// Check for file loading.
 			BcU32* pFileLoadTag = (BcU32*)pShaderData;
 			BcBool FreeShaderData = BcFalse;
+#if !defined( PSY_PRODUCTION )
 			if( *pFileLoadTag == ScnShader::LOAD_FROM_FILE_TAG )
 			{
 				BcFile InputFile;
@@ -221,7 +222,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				pShaderData = InputFile.readAllBytes();
 				FreeShaderData = BcTrue;
 			}
-
+#endif
 			RsShader* pShader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize );

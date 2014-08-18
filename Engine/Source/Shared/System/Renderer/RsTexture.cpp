@@ -46,7 +46,7 @@ RsTextureDesc::RsTextureDesc(
 	Height_( Height ),
 	Depth_( Depth )
 {
-#if PSY_DEBUG
+#ifdef PSY_DEBUG
 	// Check levels is valid.
 	BcAssert( Levels_ > 0 );
 
@@ -114,7 +114,7 @@ const RsTextureDesc& RsTexture::getDesc() const
 // getSlice
 RsTextureSlice RsTexture::getSlice( BcU32 Level, RsTextureFace Face ) const
 {
-#if PSY_DEBUG
+#ifdef PSY_DEBUG
 	// Check level validity.
 	BcAssert( Level >= 0 && Level < Desc_.Levels_ );
 

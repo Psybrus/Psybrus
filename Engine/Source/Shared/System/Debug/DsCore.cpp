@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Debug/DsCore.h"
+#include "Base/BcFile.h"
 #include "Base/BcHtml.h"
 #include "System/SysKernel.h"
 #include "Serialisation/SeJsonWriter.h"
@@ -20,6 +21,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
+
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
