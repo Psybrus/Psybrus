@@ -1086,11 +1086,12 @@ bool RsContextGL::createProgram(
 			if( InternalType != RsShaderParameterType::INVALID )
 			{
 				// Add sampler. Will fail if not supported sampler type.
-				Program->addSamplerSlot( UniformName, UniformLocation );
-				Program->addTextureSlot( UniformName, UniformLocation );
+				Program->addSamplerSlot( UniformName, ActiveSamplerIdx );
+				Program->addTextureSlot( UniformName, ActiveSamplerIdx );
 
 				// Bind sampler to known index.
-				glProgramUniform1i( Handle, UniformLocation, ActiveSamplerIdx++ );
+				glProgramUniform1i( Handle, UniformLocation, ActiveSamplerIdx );
+				++ActiveSamplerIdx;
 				RsGLCatchError();
 			}
 		}
