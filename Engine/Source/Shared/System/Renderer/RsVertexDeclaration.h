@@ -45,9 +45,11 @@ public:
 	virtual ~RsVertexDeclaration();
 
 	const RsVertexDeclarationDesc& getDesc() const;
+	BcU32 getInputLayoutHash() const;
 
 protected:
 	RsVertexDeclarationDesc Desc_;
+	BcU32 InputLayoutHash_;
 };
 
 #endif

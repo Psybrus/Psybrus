@@ -396,7 +396,7 @@ void RsContextD3D11::create()
 		Adapter_,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
-		D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
+		D3D11_CREATE_DEVICE_SINGLETHREADED,// | D3D11_CREATE_DEVICE_DEBUG,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -522,7 +522,7 @@ void RsContextD3D11::setDefaultState()
 	RasterizerState_.DepthClipEnable = TRUE;
 	RasterizerState_.ScissorEnable = FALSE;
 	RasterizerState_.MultisampleEnable = FALSE;
-	RasterizerState_.AntialiasedLineEnable = FALSE;
+	RasterizerState_.AntialiasedLineEnable = TRUE;
 
 	// Depth stencil state.
 	DepthStencilState_.DepthEnable = TRUE;
@@ -622,7 +622,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
 					break;
 				case RsBlendingMode::BLEND:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
+					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -631,7 +631,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 					break;
 				case RsBlendingMode::ADD:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
+					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -640,7 +640,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
 					break;
 				case RsBlendingMode::SUBTRACT:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
+					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_SUBTRACT;
 					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_SUBTRACT;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -764,7 +764,18 @@ void RsContextD3D11::clear( const RsColour& Colour )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	// TODO:
+	for( auto RenderTargetView : RenderTargetViews_ )
+	{
+		if( RenderTargetView != nullptr )
+		{
+			FLOAT D3DColour[4] = { Colour.r(), Colour.g(), Colour.b(), Colour.a() };
+			Context_->ClearRenderTargetView( RenderTargetView, D3DColour );
+		}
+	}
+	if( DepthStencilView_ != nullptr )
+	{
+		Context_->ClearDepthStencilView( DepthStencilView_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0 );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1835,12 +1846,5 @@ ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( BcU32 ResourceId
 //virtual
 BcU32 RsContextD3D11::generateInputLayoutHash() const
 {
-	BcU32 Hash = 0;
-	BcU64 VertexDeclHandle = VertexDeclaration_->getHandle< BcU64 >();
-	BcU64 VertexShaderHandle = 0;// Shaders_[ VERTEX ]->getHandle< BcU64 >();
-
-	Hash = BcHash::GenerateCRC32( Hash, &VertexDeclHandle, sizeof( VertexDeclHandle ) );
-	Hash = BcHash::GenerateCRC32( Hash, &VertexShaderHandle, sizeof( VertexShaderHandle ) );
-
-	return Hash;
+	return Program_->getInputLayoutHash() ^ VertexDeclaration_->getInputLayoutHash();
 }
