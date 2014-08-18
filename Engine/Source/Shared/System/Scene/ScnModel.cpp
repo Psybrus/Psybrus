@@ -20,10 +20,10 @@
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
 
+#include "Base/BcProfiler.h"
+
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnModelImport.h"
-
-#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // import
