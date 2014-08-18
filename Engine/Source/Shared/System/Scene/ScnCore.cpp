@@ -244,7 +244,7 @@ void ScnCore::removeAllEntities()
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );
 		// Only remove root entities, it will cascade down the hierarchy removing them.
-		if( Entity->getParentEntity() != NULL )
+		if( Entity->getParentEntity() == NULL )
 		{
 			removeEntity( Entity );
 		}
@@ -438,6 +438,8 @@ void ScnCore::processPendingComponents()
 		if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
 		{
 			Component->onDetach( Component->getParentEntity() );
+			BcAssertMsg( Component->getInitStage() == CsResource::INIT_STAGE_DESTROY, 
+				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
 			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 		}
 	}
