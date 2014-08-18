@@ -652,8 +652,8 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_ONE;
-					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_ONE;
 					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
 					break;
 				case RsBlendingMode::SUBTRACT:
@@ -661,8 +661,8 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_SUBTRACT;
 					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_SUBTRACT;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_ONE;
-					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
+					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_ONE;
 					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
 					break;
 				}
