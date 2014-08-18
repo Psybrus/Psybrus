@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsShader.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -23,7 +24,19 @@ RsProgram::RsProgram(
 	Shaders_( std::move( Shaders ) ),
 	AttributeList_( std::move( VertexAttributes ) )
 {
+	// Find vertex shader.
+	BcU64 HashCalc = 0;
+	for( auto* Shader : Shaders_ )
+	{
+		if( Shader->getDesc().ShaderType_ == RsShaderType::VERTEX )
+		{
+			HashCalc = Shader->getHandle< BcU64 >();
+		}
+	}
 
+	// Hash input layout + vertex shader.
+	InputLayoutHash_ = BcHash::GenerateCRC32( 0, &HashCalc, sizeof( HashCalc ) );
+	InputLayoutHash_ = BcHash::GenerateCRC32( InputLayoutHash_, &AttributeList_[ 0 ], sizeof( RsProgramVertexAttribute ) * AttributeList_.size() );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +110,13 @@ const std::vector< class RsShader* >& RsProgram::getShaders() const
 const RsProgramVertexAttributeList& RsProgram::getVertexAttributeList() const
 {
 	return AttributeList_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getInputLayoutHash
+BcU32 RsProgram::getInputLayoutHash() const
+{
+	return InputLayoutHash_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

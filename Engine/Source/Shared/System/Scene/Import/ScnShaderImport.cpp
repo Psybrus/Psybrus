@@ -728,6 +728,10 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::TEXCOORD;
 	}
+	else if( Name == "TANGENT" )
+	{
+		VertexAttribute.Usage_ = RsVertexUsage::TANGENT;
+	}
 	else if( Name == "BINORMAL" )
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::BINORMAL;
@@ -736,7 +740,7 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::TESSFACTOR;
 	}
-	else if( Name == "POISITIONT" )
+	else if( Name == "POSITIONT" )
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::POSITIONT;
 	}
@@ -755,6 +759,10 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 	else if( Name == "SAMPLE" )
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::SAMPLE;
+	}
+	else
+	{
+		BcBreakpoint;
 	}
 
 	return VertexAttribute;

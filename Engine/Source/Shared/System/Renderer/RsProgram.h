@@ -35,6 +35,7 @@ public:
 
 	const std::vector< class RsShader* >& getShaders() const;
 	const RsProgramVertexAttributeList& getVertexAttributeList() const;
+	BcU32 getInputLayoutHash() const;
 
 public:
 	// Used internally by the renderer to patch reflection information
@@ -81,6 +82,7 @@ private:
 	std::vector< class RsShader* > Shaders_;
 	RsProgramVertexAttributeList AttributeList_;
 
+	BcU32 InputLayoutHash_;
 };
 
 #endif

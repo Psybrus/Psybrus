@@ -61,7 +61,7 @@ RsVertexDeclaration::RsVertexDeclaration( class RsContext* pContext, const RsVer
 	RsResource( pContext ),
 	Desc_( Desc )
 {
-
+	InputLayoutHash_ = BcHash::GenerateCRC32( 0, &Desc_.Elements_, sizeof( RsVertexElement ) * Desc_.Elements_.size() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -77,4 +77,11 @@ RsVertexDeclaration::~RsVertexDeclaration()
 const RsVertexDeclarationDesc& RsVertexDeclaration::getDesc() const
 {
 	return Desc_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInputLayoutHash
+BcU32 RsVertexDeclaration::getInputLayoutHash() const
+{
+	return InputLayoutHash_;
 }
