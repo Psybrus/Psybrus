@@ -60,7 +60,7 @@ private:
 	struct TUniformBlock
 	{
 		std::string Name_;
-		BcU32 Index_;
+		BcU32 Handle_;
 		BcU32 Size_;
 	};
 

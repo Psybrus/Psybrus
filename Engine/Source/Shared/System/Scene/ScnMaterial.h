@@ -89,8 +89,8 @@ public:
 	void								initialise( const Json::Value& Object );
 	void								destroy();
 	
-	BcU32								findSamplerSlot( const BcName& SamplerName );	
-	void								setTexture( BcU32 Sampler, ScnTextureRef Texture );
+	BcU32								findTextureSlot( const BcName& TextureName );	
+	void								setTexture( BcU32 Slot, ScnTextureRef Texture );
 
 	BcU32								findUniformBlock( const BcName& UniformBlockName );	
 	void								setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer );
@@ -117,19 +117,19 @@ public:
 private:
 	friend class ScnMaterial;
 	
-	struct TSamplerBinding
+	struct TTextureBinding
 	{
-		BcU32							Handle_;
-		ScnTextureRef					Texture_;
+		BcU32 Handle_;
+		ScnTextureRef Texture_;
 	};
 	
-	typedef std::vector< TSamplerBinding > TSamplerBindingList;
-	typedef TSamplerBindingList::iterator TSamplerBindingListIterator;
+	typedef std::vector< TTextureBinding > TTextureBindingList;
+	typedef TTextureBindingList::iterator TTextureBindingListIterator;
 	
 	struct TUniformBlockBinding
 	{
-		BcU32							Index_;
-		RsBuffer*				UniformBuffer_;
+		BcU32 Index_;
+		RsBuffer* UniformBuffer_;
 	};
 	
 	typedef std::vector< TUniformBlockBinding > TUniformBlockBindingList;
@@ -140,7 +140,7 @@ private:
 	ScnShaderPermutationFlags			PermutationFlags_;
 	RsProgram*							pProgram_;
 
-	TSamplerBindingList					SamplerBindingList_;
+	TTextureBindingList					TextureBindingList_;
 	TUniformBlockBindingList			UniformBlockBindingList_;
 	
 	// TODO: Should be handled by the state block.

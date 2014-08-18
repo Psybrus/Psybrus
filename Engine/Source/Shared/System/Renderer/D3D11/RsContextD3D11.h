@@ -105,10 +105,10 @@ private:
 	OsClient* pClient_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
-	BcComRef<IDXGIAdapter> Adapter_;
-	BcComRef<IDXGISwapChain> SwapChain_;
-	BcComRef<ID3D11Device> Device_;
-	BcComRef<ID3D11DeviceContext> Context_;
+	BcComRef< IDXGIAdapter > Adapter_;
+	BcComRef< IDXGISwapChain > SwapChain_;
+	BcComRef< ID3D11Device > Device_;
+	BcComRef< ID3D11DeviceContext > Context_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
 
 	BcComRef<ID3D11Texture2D> BackBuffer_;
@@ -171,10 +171,19 @@ private:
 	
 	UniformBuffers UniformBuffers_;
 	D3DConstantBuffers D3DConstantBuffers_;
-	
+
 	// Shader resources.
-	std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureResources_;
-	std::array< ID3D11ShaderResourceView*, MAX_TEXTURE_SLOTS > D3DShaderResourceViews_;
+	typedef std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureSlots;
+	typedef std::array< ID3D11ShaderResourceView*, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
+	typedef std::array< TextureSlots, (size_t)RsShaderType::MAX > Textures;
+	typedef std::array< D3DShaderResourceViewSlots, (size_t)RsShaderType::MAX > D3DShaderResourceViews;
+
+	Textures Textures_;
+	D3DShaderResourceViews D3DShaderResourceViews_;
+
+	// Sampler state. Temporary.
+	D3D11_SAMPLER_DESC SamplerStateDesc_;
+	BcComRef< ID3D11SamplerState > SamplerState_;
 
 	// Input layout, program, topology.
 	BcBool InputLayoutChanged_;

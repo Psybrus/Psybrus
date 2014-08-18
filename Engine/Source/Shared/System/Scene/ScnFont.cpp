@@ -462,7 +462,7 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 		ScnShaderPermutationFlags::PASS_MAIN |
 		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
 	{	
-		BcU32 Sampler = MaterialComponent_->findSamplerSlot( "aDiffuseTex" );
+		BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
 		if( Sampler != BcErrorCode )
 		{ 
 			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );

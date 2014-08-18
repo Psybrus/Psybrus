@@ -51,15 +51,12 @@ RsProgram::~RsProgram()
 // findSamplerSlot
 BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 {
-	BcU32 Idx = 0;
-	for( auto It( SamplerList_.begin() ); It != SamplerList_.end(); ++It )
+	for( const auto& It : SamplerList_ )
 	{
-		if( (*It).Name_ == Name )
+		if( It.Name_ == Name )
 		{
-			return Idx;
+			return It.Handle_;
 		}
-
-		++Idx;
 	}
 
 	return BcErrorCode;
@@ -69,15 +66,12 @@ BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 // findTextureSlot
 BcU32 RsProgram::findTextureSlot( const BcChar* Name )
 {
-	BcU32 Idx = 0;
-	for( auto It( TextureList_.begin() ); It != TextureList_.end(); ++It )
+	for( const auto& It : TextureList_ )
 	{
-		if( (*It).Name_ == Name )
+		if( It.Name_ == Name )
 		{
-			return Idx;
+			return It.Handle_;
 		}
-
-		++Idx;
 	}
 
 	return BcErrorCode;
@@ -87,11 +81,11 @@ BcU32 RsProgram::findTextureSlot( const BcChar* Name )
 // findUniformBufferSlot
 BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 {
-	for( auto It( UniformBlockList_.begin() ); It != UniformBlockList_.end(); ++It )
+	for( const auto& It : UniformBlockList_ )
 	{
-		if( (*It).Name_ == Name )
+		if( It.Name_ == Name )
 		{
-			return (*It).Index_;
+			return It.Handle_;
 		}
 	}
 
