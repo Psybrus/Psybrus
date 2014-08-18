@@ -106,13 +106,15 @@ void RsCoreImpl::close()
 	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::close_threaded >( this ) );
 	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	destroyContext( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // close_threaded
 void RsCoreImpl::close_threaded()
 {
-	destroyContext( nullptr );
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
