@@ -167,7 +167,6 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 {
 	SysKernel::pImpl()->stop();
 
-	exit(0);
 	return evtRET_REMOVE;
 }
 
