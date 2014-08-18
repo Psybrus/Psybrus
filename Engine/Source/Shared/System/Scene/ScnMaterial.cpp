@@ -310,7 +310,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 		const BcName& SamplerName = (*Iter).first;
 		ScnTextureRef Texture = (*Iter).second;
 
-		BcU32 SamplerIdx = findSamplerSlot( SamplerName );
+		BcU32 SamplerIdx = findTextureSlot( SamplerName );
 		if( SamplerIdx != BcErrorCode )
 		{
 			setTexture( SamplerIdx, Texture );
@@ -354,18 +354,18 @@ void ScnMaterialComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// findSamplerSlot
-BcU32 ScnMaterialComponent::findSamplerSlot( const BcName& SamplerName )
+// findTextureSlot
+BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
-	BcU32 Handle = pProgram_->findSamplerSlot( (*SamplerName).c_str() );
+	BcU32 Handle = pProgram_->findTextureSlot( (*TextureName).c_str() );
 	
 	if( Handle != BcErrorCode )
 	{
-		for( BcU32 Idx = 0; Idx < SamplerBindingList_.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < TextureBindingList_.size(); ++Idx )
 		{
-			TSamplerBinding& Binding = SamplerBindingList_[ Idx ];
+			auto& Binding = TextureBindingList_[ Idx ];
 			
 			if( Binding.Handle_ == Handle )
 			{
@@ -374,13 +374,13 @@ BcU32 ScnMaterialComponent::findSamplerSlot( const BcName& SamplerName )
 		}
 		
 		// If it doesn't exist, add it.
-		TSamplerBinding Binding = 
+		TTextureBinding Binding = 
 		{
 			Handle, nullptr
 		};
 		
-		SamplerBindingList_.push_back( Binding );
-		return (BcU32)SamplerBindingList_.size() - 1;
+		TextureBindingList_.push_back( Binding );
+		return (BcU32)TextureBindingList_.size() - 1;
 	}
 	
 	return BcErrorCode;
@@ -388,17 +388,17 @@ BcU32 ScnMaterialComponent::findSamplerSlot( const BcName& SamplerName )
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void ScnMaterialComponent::setTexture( BcU32 Idx, ScnTextureRef Texture )
+void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 {
 	// Find the texture slot to put this in.
-	if( Idx < SamplerBindingList_.size() )
+	if( Slot < TextureBindingList_.size() )
 	{
-		TSamplerBinding& TexBinding( SamplerBindingList_[ Idx ] );
+		auto& TexBinding( TextureBindingList_[ Slot ] );
 		TexBinding.Texture_ = Texture;
 	}
 	else
 	{
-		BcPrintf( "ERROR: Unable to set texture for index %x\n", Idx );
+		BcPrintf( "ERROR: Unable to set texture for slot %x\n", Slot );
 	}
 }
 
@@ -483,9 +483,9 @@ void ScnMaterialComponent::setState( RsRenderStateType State, BcU32 Value )
 // getTexture
 ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Idx )
 {
-	if( Idx < SamplerBindingList_.size() )
+	if( Idx < TextureBindingList_.size() )
 	{
-		return SamplerBindingList_[ Idx ].Texture_;
+		return TextureBindingList_[ Idx ].Texture_;
 	}
 
 	return nullptr;
@@ -515,8 +515,8 @@ public:
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
-			pContext_->setSamplerState( Idx, TextureParams );
-			pContext_->setTexture( Idx, pTexture );
+			pContext_->setSamplerState( TextureHandles_[ Idx ], TextureParams );
+			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
 		}
 
 		// Setup states.
@@ -544,7 +544,7 @@ public:
 
 	// Texture binding block.
 	BcU32 NoofTextures_;
-	BcU32* SamplerHandles_;
+	BcU32* TextureHandles_;
 	RsTexture** ppTextures_;
 	RsTextureParams* pTextureParams_;
 
@@ -583,19 +583,19 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->pProgram_ = pProgram_;
 	
 	// Setup texture binding block.
-	pRenderNode->NoofTextures_ = (BcU32)SamplerBindingList_.size();
-	pRenderNode->SamplerHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * pRenderNode->NoofTextures_ );
+	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
+	pRenderNode->TextureHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * pRenderNode->NoofTextures_ );
 	pRenderNode->ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * pRenderNode->NoofTextures_ );
 	pRenderNode->pTextureParams_ = (RsTextureParams*)pFrame->allocMem( sizeof( RsTextureParams ) * pRenderNode->NoofTextures_ );
 	
 	for( BcU32 Idx = 0; Idx < pRenderNode->NoofTextures_; ++Idx )
 	{
-		TSamplerBinding& Binding = SamplerBindingList_[ Idx ];
+		auto& Binding = TextureBindingList_[ Idx ];
 		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
 		RsTextureParams& TextureParams = pRenderNode->pTextureParams_[ Idx ];
 		
 		// Sampler handles.
-		pRenderNode->SamplerHandles_[ Idx ] = Binding.Handle_;
+		pRenderNode->TextureHandles_[ Idx ] = Binding.Handle_;
 
 		// Set texture to bind.
 		Texture = Binding.Texture_->getTexture();
