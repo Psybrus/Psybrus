@@ -82,7 +82,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			BcPrintf( "%s:%s \n", (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
