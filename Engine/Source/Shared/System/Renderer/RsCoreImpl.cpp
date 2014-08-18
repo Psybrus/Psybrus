@@ -112,7 +112,7 @@ void RsCoreImpl::close()
 // close_threaded
 void RsCoreImpl::close_threaded()
 {
-
+	destroyContext( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,14 +168,14 @@ void RsCoreImpl::destroyContext( OsClient* pClient )
 
 	if( It != ContextMap_.end() )
 	{
-		// If we're destroying the default context, NULL it.
-		if( ContextMap_[ NULL ] == It->second )
-		{
-			ContextMap_[ NULL ] = NULL;
-		}
-		
 		// Destory resource.
 		destroyResource( It->second );
+
+		// If we're destroying the default context, NULL it.
+		if( ContextMap_[ nullptr ] == It->second )
+		{
+			ContextMap_[ nullptr ] = nullptr;
+		}
 
 		// Erase from context map.
 		ContextMap_.erase( It );
