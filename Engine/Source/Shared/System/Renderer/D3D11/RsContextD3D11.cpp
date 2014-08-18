@@ -503,6 +503,30 @@ void RsContextD3D11::update()
 // destroy
 void RsContextD3D11::destroy()
 {
+	destroyTexture( BackBufferRT_ );
+	delete BackBufferRT_;
+	BackBufferRT_ = nullptr;
+
+	destroyTexture( BackBufferDS_ );
+	delete BackBufferDS_;
+	BackBufferDS_ = nullptr;
+
+	// Verify all resources have been freed.
+	for( const auto& ResourceView : ResourceViewCache_ )
+	{
+		BcAssert( ResourceView.Resource_ == nullptr );
+	}
+
+	ResourceViewCache_.clear();
+	ResourceViewCacheFreeIdx_.clear();
+
+	InputLayoutMap_.clear();
+	BlendStateCache_.clear();
+	RasterizerStateCache_.clear();
+	DepthStencilStateCache_.clear();
+
+	SamplerState_ = nullptr;
+
 	SwapChain_ = nullptr;
 	Device_ = nullptr;
 	Context_ = nullptr;
