@@ -365,7 +365,7 @@ void RsContextD3D11::setViewport( class RsViewport& Viewport )
 	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
 	D3DViewport.MinDepth = 0.0f;
 	D3DViewport.MaxDepth = 1.0f;
-	Context_->RSSetViewports( 0, &D3DViewport );
+	Context_->RSSetViewports( 1, &D3DViewport );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -396,7 +396,7 @@ void RsContextD3D11::create()
 		Adapter_,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
-		D3D11_CREATE_DEVICE_SINGLETHREADED,// | D3D11_CREATE_DEVICE_DEBUG,
+		D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -469,6 +469,10 @@ void RsContextD3D11::create()
 	
 	RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
 	DepthStencilView_ = getD3DDepthStencilView( BackBufferDS_->getHandle< BcU32 >() );
+
+	Context_->OMSetRenderTargets( 1, &RenderTargetViews_[ 0 ], DepthStencilView_ );
+
+	setDefaultState();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -493,7 +497,44 @@ void RsContextD3D11::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::setDefaultState unimplemented\n" );
+	// Blend state.
+	BlendState_.AlphaToCoverageEnable = FALSE;
+	BlendState_.IndependentBlendEnable = FALSE;
+	const D3D11_RENDER_TARGET_BLEND_DESC DefaultRenderTargetBlendDesc =
+	{
+		FALSE,
+		D3D11_BLEND_ONE, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD,
+		D3D11_BLEND_ONE, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD,
+		D3D11_COLOR_WRITE_ENABLE_ALL,
+	};
+	for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+	{
+		BlendState_.RenderTarget[ i ] = DefaultRenderTargetBlendDesc;
+	}
+
+	// Rasterizer state.
+	RasterizerState_.FillMode = D3D11_FILL_SOLID;
+	RasterizerState_.CullMode = D3D11_CULL_NONE;
+	RasterizerState_.FrontCounterClockwise = FALSE;
+	RasterizerState_.DepthBias = D3D11_DEFAULT_DEPTH_BIAS;
+	RasterizerState_.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
+	RasterizerState_.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+	RasterizerState_.DepthClipEnable = TRUE;
+	RasterizerState_.ScissorEnable = FALSE;
+	RasterizerState_.MultisampleEnable = FALSE;
+	RasterizerState_.AntialiasedLineEnable = FALSE;
+
+	// Depth stencil state.
+	DepthStencilState_.DepthEnable = TRUE;
+	DepthStencilState_.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	DepthStencilState_.DepthFunc = D3D11_COMPARISON_LESS;
+	DepthStencilState_.StencilEnable = FALSE;
+	DepthStencilState_.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+	DepthStencilState_.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	const D3D11_DEPTH_STENCILOP_DESC defaultStencilOp =
+		{ D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS };
+	DepthStencilState_.FrontFace = defaultStencilOp;
+	DepthStencilState_.BackFace = defaultStencilOp;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -581,24 +622,27 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
 					break;
 				case RsBlendingMode::BLEND:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
+					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
+					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
 					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 					break;
 				case RsBlendingMode::ADD:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
+					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
+					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_ONE;
 					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
 					break;
 				case RsBlendingMode::SUBTRACT:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
+					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
 					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_SUBTRACT;
+					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_SUBTRACT;
 					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_ONE;
 					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
@@ -694,9 +738,9 @@ void RsContextD3D11::setUniformBuffer(
 	// Bind for each shader based on specified handle.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
 	{
-		BcU32 SlotIdx = ( Handle << ( Idx * BitsPerShader ) ) & NoofBindPoints;
+		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
 
-		if( SlotIdx != NoofBindPoints )
+		if( SlotIdx != MaxBindPoints )
 		{
 			UniformBuffers_[ Idx ][ SlotIdx ] = UniformBuffer;
 			D3DConstantBuffers_[ Idx ][ SlotIdx ] = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
@@ -1109,7 +1153,7 @@ bool RsContextD3D11::createProgram(
 			&Reflector);
 
 		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
-		const BcU32 MaskOff = ~( NoofBindPoints << ShiftAmount );
+		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
 
 		// Just iterate over a big number...we'll assert if we go over.
 		for( BcU32 Idx = 0; Idx < 128; ++Idx )
@@ -1248,7 +1292,7 @@ void RsContextD3D11::flushState()
 						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
 						{
 							Context_->VSSetConstantBuffers( 
-								0,
+								Idx,
 								1,							
 								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
 						}
@@ -1260,13 +1304,12 @@ void RsContextD3D11::flushState()
 				{
 					// Bind.
 					Context_->HSSetShader( Shader->getHandle< ID3D11HullShader* >(), nullptr, 0 );
-					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
 					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
 					{
 						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
 						{
 							Context_->HSSetConstantBuffers( 
-								0,
+								Idx,
 								1,							
 								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
 						}
@@ -1278,13 +1321,12 @@ void RsContextD3D11::flushState()
 				{
 					// Bind.
 					Context_->DSSetShader( Shader->getHandle< ID3D11DomainShader* >(), nullptr, 0 );
-					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
 					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
 					{
 						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
 						{
 							Context_->DSSetConstantBuffers( 
-								0,
+								Idx,
 								1,							
 								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
 						}
@@ -1296,13 +1338,12 @@ void RsContextD3D11::flushState()
 				{
 					// Bind.
 					Context_->GSSetShader( Shader->getHandle< ID3D11GeometryShader* >(), nullptr, 0 );
-					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
 					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
 					{
 						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
 						{
 							Context_->GSSetConstantBuffers( 
-								0,
+								Idx,
 								1,							
 								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
 						}
@@ -1314,13 +1355,12 @@ void RsContextD3D11::flushState()
 				{
 					// Bind.
 					Context_->PSSetShader( Shader->getHandle< ID3D11PixelShader* >(), nullptr, 0 );
-					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
 					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
 					{
 						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
 						{
 							Context_->PSSetConstantBuffers( 
-								0,
+								Idx,
 								1,							
 								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
 						}
@@ -1332,13 +1372,12 @@ void RsContextD3D11::flushState()
 				{
 					// Bind.
 					Context_->CSSetShader( Shader->getHandle< ID3D11ComputeShader* >(), nullptr, 0 );
-					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
 					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
 					{
 						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
 						{
 							Context_->CSSetConstantBuffers( 
-								0,
+								Idx,
 								1,							
 								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
 						}
