@@ -17,9 +17,13 @@
 
 #include "System/SysKernel.h"
 
+#include "Serialisation/SeJsonReader.h"
+
 #include "Base/BcCompression.h"
 
 #include "Base/BcMath.h"
+
+#include <boost/filesystem.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -222,19 +226,45 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	}
 
 #if PSY_SERVER
-	// Reimport if source file stats changed.
+	// Reimport if source file stats or dependencies have changed.
 	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( pPackage_->getName() ) );
 
+	// Read in dependencies.
 	FsStats Stats;
+	std::string OutputDependencies = *CsCore::pImpl()->getPackagePackedPath( pPackage_->getName() ) + ".deps";
+	BcBool AnythingChanged = BcFalse;
 	if( FsCore::pImpl()->fileStats( (*ImportPackage).c_str(), Stats ) )
 	{
-		if( Header_.SourceFileStatsHash_ != BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) ))
+		AnythingChanged = ( Header_.SourceFileStatsHash_ != BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) ) );
+	}
+
+	if( boost::filesystem::exists( OutputDependencies ) )
+	{
+		CsPackageDependencies Dependencies;
+		SeJsonReader Reader( OutputDependencies.c_str() );
+		Reader << Dependencies;
+
+		// Check other dependencies.
+		if( !AnythingChanged )
 		{
-			BcPrintf( "CsPackageLoader: Source file stats have changed.\n" );
-			HasError_ = BcTrue;
-			--PendingCallbackCount_;
-			return;
+			for( const auto& Dependency : Dependencies.Dependencies_ )
+			{
+				if( Dependency.hasChanged() )
+				{
+					AnythingChanged = BcTrue;
+					break;
+				}
+			}
 		}
+	}
+
+	// Reimport.
+	if( AnythingChanged )
+	{
+		BcPrintf( "CsPackageLoader: Source file stats have changed.\n" );
+		HasError_ = BcTrue;
+		--PendingCallbackCount_;
+		return;
 	}
 #endif
 

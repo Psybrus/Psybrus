@@ -113,6 +113,14 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// internalSerialiseString
+std::string SeJsonReader::internalSerialiseString( void* pData, const ReType* pType )
+{
+	BcBreakpoint;
+	return "";
+}
+
+//////////////////////////////////////////////////////////////////////////
 // serialiseClass
 //virtual
 void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, Json::Value& InputValue )
