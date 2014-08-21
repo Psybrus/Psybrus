@@ -15,7 +15,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsDependency::CsDependency( const BcPath& FileName )
+CsDependency::CsDependency( const std::string& FileName )
 {
 	FileName_ = FileName;
 	updateStats();
@@ -23,7 +23,7 @@ CsDependency::CsDependency( const BcPath& FileName )
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsDependency::CsDependency( const BcPath& FileName, const FsStats& Stats )
+CsDependency::CsDependency( const std::string& FileName, const FsStats& Stats )
 {
 	FileName_ = FileName;
 	Stats_ = Stats;
@@ -46,7 +46,7 @@ CsDependency::~CsDependency()
 
 //////////////////////////////////////////////////////////////////////////
 // getFileName
-const BcPath& CsDependency::getFileName() const
+const std::string& CsDependency::getFileName() const
 {
 	return FileName_;
 }
@@ -60,10 +60,10 @@ const FsStats& CsDependency::getStats() const
 
 //////////////////////////////////////////////////////////////////////////
 // hasChanged
-BcBool CsDependency::hasChanged()
+BcBool CsDependency::hasChanged() const
 {
 	FsStats Stats;
-	if( FsCore::pImpl()->fileStats( (*FileName_).c_str(), Stats ) )
+	if( FsCore::pImpl()->fileStats( FileName_.c_str(), Stats ) )
 	{
 		if( Stats.ModifiedTime_ != Stats_.ModifiedTime_ )
 		{
@@ -78,5 +78,12 @@ BcBool CsDependency::hasChanged()
 // updateStats
 void CsDependency::updateStats()
 {
-	FsCore::pImpl()->fileStats( (*FileName_).c_str(), Stats_ );
+	FsCore::pImpl()->fileStats( FileName_.c_str(), Stats_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// operator < 
+bool CsDependency::operator < ( const CsDependency& Dep ) const
+{
+	return FileName_ < Dep.FileName_;
 }

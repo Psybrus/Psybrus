@@ -40,15 +40,15 @@ typedef CsDependencyList::iterator CsDependencyListIterator;
 class CsDependency
 {
 public:
-	CsDependency( const BcPath& FileName );
-	CsDependency( const BcPath& FileName, const FsStats& Stats );
+	CsDependency( const std::string& FileName );
+	CsDependency( const std::string& FileName, const FsStats& Stats );
 	CsDependency( const CsDependency& Other );
 	~CsDependency();
 
 	/**
 	 * Get file name.
 	 */
-	const BcPath& getFileName() const;
+	const std::string& getFileName() const;
 
 	/**
 	 * Get stats.
@@ -58,16 +58,20 @@ public:
 	/**
 	 * Had dependancy changed?
 	 */
-	BcBool hasChanged();
+	BcBool hasChanged() const;
 
 	/**
 	 * Update stats.
 	 */
 	void updateStats();
 
+	/**
+	 * Comparison.
+	 */
+	bool operator < ( const CsDependency& Dep ) const;
 
 private:
-	BcPath FileName_;
+	std::string FileName_;
 	FsStats Stats_;
 };
 
