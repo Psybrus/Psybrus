@@ -23,6 +23,19 @@
 #include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
+// CsPackageDependencies
+struct CsPackageDependencies
+{
+	REFLECTION_DECLARE_BASIC( CsPackageDependencies );
+
+	CsPackageDependencies(){};
+
+	typedef std::set< CsDependency > TDependencyList;
+	
+	TDependencyList Dependencies_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsPackageImporter
 class CsPackageImporter
 {
@@ -71,9 +84,6 @@ private:
 	typedef std::list< Json::Value > TJsonValueList;
 	typedef TJsonValueList::iterator TJsonValueIterator;
 
-	typedef std::set< CsDependency > TDependencyList;
-	typedef TDependencyList::iterator TDependencyIterator;
-
 	typedef std::vector< BcName > TPackageDependencyList;
 	typedef TPackageDependencyList::iterator TPackageDependencyIterator;
 
@@ -96,7 +106,7 @@ private:
 
 	// Building.
 	std::mutex						DependencyListLock_;
-	TDependencyList					DependencyList_;
+	CsPackageDependencies			Dependencies_;
 };
 
 #endif

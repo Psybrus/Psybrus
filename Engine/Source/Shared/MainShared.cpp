@@ -99,6 +99,8 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	// Register content.
 	CsResource::StaticRegisterClass();
 	CsPackage::StaticRegisterClass();
+	CsDependency::StaticRegisterClass();
+	CsPackageDependencies::StaticRegisterClass();
 
 	// Register file.
 	FsTimestamp::StaticRegisterClass();

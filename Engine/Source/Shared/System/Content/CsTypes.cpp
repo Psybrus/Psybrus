@@ -14,10 +14,32 @@
 #include "System/Content/CsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
+// CsPackageDependencies
+REFLECTION_DEFINE_BASIC( CsDependency );
+
+void CsDependency::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "FileName_",	&CsDependency::FileName_ ),
+		ReField( "Stats_",		&CsDependency::Stats_ ),
+	};
+
+	ReRegisterClass< CsDependency >( Fields );
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsDependency::CsDependency()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 CsDependency::CsDependency( const std::string& FileName )
 {
-	FileName_ = FileName;
+	FileName_ = *BcPath( FileName ); // TODO: Use Boost Filesystem
 	updateStats();
 }
 
@@ -25,7 +47,7 @@ CsDependency::CsDependency( const std::string& FileName )
 // Ctor
 CsDependency::CsDependency( const std::string& FileName, const FsStats& Stats )
 {
-	FileName_ = FileName;
+	FileName_ = *BcPath( FileName ); // TODO: Use Boost Filesystem
 	Stats_ = Stats;
 }
 
@@ -78,6 +100,7 @@ BcBool CsDependency::hasChanged() const
 // updateStats
 void CsDependency::updateStats()
 {
+	// TODO: Use Boost Filesystem
 	FsCore::pImpl()->fileStats( FileName_.c_str(), Stats_ );
 }
 
