@@ -84,6 +84,8 @@ void SysProfilerChromeTracing::endProfiling()
 
 		Stream << "{\"traceEvents\" : [";
 
+		BcAssert( ProfilerSectionIndex_ <= ProfilerSectionPool_.size() );
+
 		// Clear all per thread sections back down to the root nodes.
 		for( BcU32 Idx = 0; Idx < ProfilerSectionIndex_; ++Idx )
 		{
@@ -217,6 +219,7 @@ void SysProfilerChromeTracing::instantEvent( const std::string& Tag )
 // allocEvent
 SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent()
 {
+	BcAssert( ProfilingActive_ == 1 );
 	BcU32 Idx = ProfilerSectionIndex_++;
 	if( Idx < ProfilerSectionPool_.size() )
 	{
@@ -226,6 +229,7 @@ SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent()
 	}
 	else
 	{
+		ProfilerSectionIndex_--;
 		// end and dump.
 	}
 	return nullptr;

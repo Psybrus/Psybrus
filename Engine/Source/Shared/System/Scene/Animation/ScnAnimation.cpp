@@ -14,6 +14,7 @@
 #include "System/Scene/Animation/ScnAnimation.h"
 
 #include "System/Content/CsCore.h"
+#include "Base/BcProfiler.h"
 
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnAnimationImport.h"
@@ -82,6 +83,8 @@ const ScnAnimationNodeFileData* ScnAnimation::getNodeByIndex( BcU32 Idx ) const
 // findPoseIndexAtTime
 BcU32 ScnAnimation::findPoseIndexAtTime( BcF32 Time ) const 
 {
+	PSY_PROFILER_SECTION( TickRoot, "ScnAnimation::findPoseIndexAtTime" );
+
 	// Setup indices.
 	BcU32 MinIdx = 0;
 	BcU32 MidIdx = 0;
@@ -168,6 +171,8 @@ void ScnAnimation::decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputP
 // decodePoseAtIndex
 void ScnAnimation::decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose ) const
 {
+	PSY_PROFILER_SECTION( TickRoot, "ScnAnimation::decodePoseAtIndex" );
+
 	switch( Header_.Packing_ )
 	{
 	case scnAP_R16S32T32:
