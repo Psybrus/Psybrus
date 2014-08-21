@@ -139,14 +139,15 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnShaderImport::ScnShaderImport()
+ScnShaderImport::ScnShaderImport( class CsPackageImporter& Importer ):
+	Importer_( Importer )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::Value& Object )
+BcBool ScnShaderImport::import( const Json::Value& Object )
 {
 	const Json::Value& Shader = Object[ "shader" ];
 	if( Shader.type() == Json::nullValue )
@@ -326,7 +327,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 			Stream << OutputCodeType;
 		}
 
-		Importer.addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
+		Importer_.addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 
 		// Export shaders.
 		for( auto& ShaderData : BuiltShaderData_ )
@@ -341,7 +342,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 			Stream.push( &ShaderUnit, sizeof( ShaderUnit ) );
 			Stream.push( ShaderData.second.Code_.getData< BcU8* >(), ShaderData.second.Code_.getDataSize() );
 
-			Importer.addChunk( BcHash( "shader" ), Stream.pData(), Stream.dataSize() );
+			Importer_.addChunk( BcHash( "shader" ), Stream.pData(), Stream.dataSize() );
 		}
 
 		// Export programs.
@@ -361,7 +362,7 @@ BcBool ScnShaderImport::import( class CsPackageImporter& Importer, const Json::V
 				Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
 			}
 
-			Importer.addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
+			Importer_.addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
 		}
 	}
 

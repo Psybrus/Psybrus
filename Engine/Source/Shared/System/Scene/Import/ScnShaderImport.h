@@ -124,15 +124,15 @@ struct ScnShaderPermutationJobParams
 class ScnShaderImport
 {
 public:
-	ScnShaderImport();
+	ScnShaderImport( class CsPackageImporter& Importer );
 
 	/**
 	 * Import.
 	 */
-	BcBool import( class CsPackageImporter& Importer, const Json::Value& Object );
+	BcBool import( const Json::Value& Object );
 
 private:
-	BcBool legacyImport( class CsPackageImporter& Importer, const Json::Value& Object );
+	BcBool legacyImport( const Json::Value& Object );
 
 	BcBool compileShader( 
 		const std::string& FileName,
@@ -176,6 +176,8 @@ private:
 
 	std::atomic< BcU32 > GotErrorBuilding_;
 	std::atomic< BcU32 > PendingPermutations_;
+
+	class CsPackageImporter& Importer_;
 };
 
 #endif // PSY_SERVER
