@@ -71,7 +71,7 @@ private:
 	typedef std::list< Json::Value > TJsonValueList;
 	typedef TJsonValueList::iterator TJsonValueIterator;
 
-	typedef std::list< CsDependency > TDependencyList;
+	typedef std::set< CsDependency > TDependencyList;
 	typedef TDependencyList::iterator TDependencyIterator;
 
 	typedef std::vector< BcName > TPackageDependencyList;
@@ -92,8 +92,11 @@ private:
 	CsPackageResourceHeaderList		ResourceHeaders_;
 	CsPackageChunkHeaderList		ChunkHeaders_;
 	CsPackageChunkDataList			ChunkDatas_;
-	TDependencyList					DependencyList_;
 	TPackageDependencyList			PackageDependencyList_;
+
+	// Building.
+	std::mutex						DependencyListLock_;
+	TDependencyList					DependencyList_;
 };
 
 #endif
