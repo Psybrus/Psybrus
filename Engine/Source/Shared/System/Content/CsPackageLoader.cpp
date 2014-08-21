@@ -257,6 +257,11 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 			}
 		}
 	}
+	else
+	{
+		// No deps file, assume worst.
+		AnythingChanged = BcTrue;
+	}
 
 	// Reimport.
 	if( AnythingChanged )
