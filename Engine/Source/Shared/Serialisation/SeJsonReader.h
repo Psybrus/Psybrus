@@ -8,8 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 // SeJsonReader
 class SeJsonReader:
-    public SeISerialiser,
-    public SeISerialiserPointerCodec
+    public SeISerialiser
 {
 public:
     static const char* SerialiserVersionEntry;
@@ -30,6 +29,7 @@ public:
 
 protected:
     virtual void* internalSerialise( void* pData, const ReType* pType );
+	virtual std::string internalSerialiseString( void* pData, const ReType* pType );
 
 protected:
     virtual void serialiseClass( void* pData, const ReClass* pClass, Json::Value& InputValue );
