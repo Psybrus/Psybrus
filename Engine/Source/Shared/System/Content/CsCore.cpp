@@ -323,7 +323,14 @@ BcPath CsCore::getPackageImportPath( const BcName& Package )
 BcPath CsCore::getPackagePackedPath( const BcName& Package )
 {
 	BcPath Path;
-	Path.join( "PackedContent", *Package + ".pak" );
+	if( Package != BcName::INVALID )
+	{
+		Path.join( "PackedContent", *Package + ".pak" );
+	}
+	else
+	{
+		Path = "PackedContent";
+	}
 	return Path;
 }
 
