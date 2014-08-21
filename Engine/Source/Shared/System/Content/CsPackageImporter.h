@@ -23,6 +23,10 @@
 #include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
+// Enable threaded importing.
+#define THREADED_IMPORTING ( 0 )
+
+//////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 struct CsPackageDependencies
 {
@@ -52,7 +56,7 @@ public:
 	BcBool							loadJsonFile( const BcChar* pFileName, Json::Value& Root );
 	BcBool							importResource( const Json::Value& Resource );
 	
-	BcU32							addImport( const Json::Value& Resource );
+	BcU32							addImport( const Json::Value& Resource, BcBool IsCrossRef = BcTrue );
 	BcU32							addString( const BcChar* pString );
 	BcU32							addPackageCrossRef( const BcChar* pFullName );
 	BcU32							addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
@@ -61,6 +65,9 @@ public:
 
 private:
 	BcBool							havePackageDependency( const BcName& PackageName );
+
+private:
+	BcBool							importResource_worker( Json::Value ResourceObject );
 
 private:
 	typedef std::vector< std::string > TStringList;
@@ -81,8 +88,13 @@ private:
 	typedef std::vector< CsPackageChunkData > CsPackageChunkDataList;
 	typedef CsPackageChunkDataList::iterator CsPackageChunkDataIterator;
 	
+#if THREADED_IMPORTING 
+	typedef std::vector< Json::Value > TJsonValueList;
+	typedef TJsonValueList::iterator TJsonValueIterator;
+#else
 	typedef std::list< Json::Value > TJsonValueList;
 	typedef TJsonValueList::iterator TJsonValueIterator;
+#endif
 
 	typedef std::vector< BcName > TPackageDependencyList;
 	typedef TPackageDependencyList::iterator TPackageDependencyIterator;
@@ -92,6 +104,9 @@ private:
 
 	CsPackageResourceHeader			CurrResourceHeader_;
 
+	mutable std::recursive_mutex	BuildingLock_;
+	mutable SysFence				BuildingFence_;
+	std::atomic< BcU32 >			ImportErrorCount_;
 	BcName							Name_;
 	BcU32							DataPosition_;
 	BcFile							File_;
@@ -105,7 +120,6 @@ private:
 	TPackageDependencyList			PackageDependencyList_;
 
 	// Building.
-	std::mutex						DependencyListLock_;
 	CsPackageDependencies			Dependencies_;
 };
 

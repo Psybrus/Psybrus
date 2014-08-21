@@ -24,6 +24,8 @@
 #include "Base/BcRegex.h"
 #include "Base/BcMath.h"
 
+#include "System/SysKernel.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
@@ -109,6 +111,28 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		// Add all package cross refs.
 		addAllPackageCrossRefs( Resources );
 
+#if THREADED_IMPORTING
+		// Import resource.
+		BcTimer ResourceTimer;
+		ResourceTimer.mark();
+
+		// Import everything.
+		for( const auto& ResourceObject : Resources )
+		{
+			addImport( ResourceObject, BcFalse );
+		}
+
+		// Wait for fence.
+		BuildingFence_.wait();
+
+		// Check import error count for failures.
+		if( ImportErrorCount_ > 0 )
+		{
+			BcPrintf( "FAILED IMPORTING. Time: %.2f seconds.\n", ResourceTimer.time() );
+			BcBreakpoint;
+			return BcFalse;
+		}
+#else
 		// Add resources to import list.
 		for( BcU32 Idx = 0; Idx < Resources.size(); ++Idx )
 		{
@@ -145,6 +169,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 				return BcFalse;
 			}
 		}
+#endif
 
 		// Save and return.
 		BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
@@ -385,9 +410,42 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addImport
-BcU32 CsPackageImporter::addImport( const Json::Value& Resource )
+// importResource_worker
+BcBool CsPackageImporter::importResource_worker( Json::Value ResourceObject )
 {
+	BcTimer ResourceTimer;
+	ResourceTimer.mark();
+	
+	try
+	{
+		if( importResource( ResourceObject ) )
+		{
+			BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
+		}
+		else
+		{
+			BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
+ 			BcBreakpoint;
+			return BcFalse;
+		}
+	}
+	catch( CsImportException ImportException )
+	{
+		BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
+		BcPrintf( "CsPackageImporter: Import error in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
+		return BcFalse;
+	}
+
+	BuildingFence_.decrement();
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addImport
+BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossRef )
+{
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+
 	// Validate it's an object.
 	BcAssertMsg( Resource.type() == Json::objectValue, "CsPackageImporter: Can't import a value that isn't an object." );
 
@@ -398,25 +456,42 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource )
 	BcAssertMsg( Type.type() == Json::stringValue, "CsPackageImporter: Type not specified for resource.\n" )
 
 	// Put to front of list so it's imported next.
-	JsonResources_.push_front( Resource );
+	JsonResources_.push_back( Resource );
 
-	// Construct and add package cross ref.
-	std::string CrossRef;
-	CrossRef += "$(";
-	CrossRef += Type.asString();
-	CrossRef += ":";
-	CrossRef += *Name_;
-	CrossRef += ".";
-	CrossRef += Name.asString();
-	CrossRef += ")";
+#if THREADED_IMPORTING
+	// Increment fence so we know to wait.
+	BuildingFence_.increment();
 
-	return addPackageCrossRef( CrossRef.c_str() );
+	// Push job.
+	BcDelegate< BcBool(*)( Json::Value ) > Delegate( BcDelegate< BcBool(*)( Json::Value ) >::bind< CsPackageImporter, &CsPackageImporter::importResource_worker >( this ) );
+	SysKernel::pImpl()->pushDelegateJob( 0, Delegate, Resource );
+#endif
+
+	// If it's a cross ref, do that shiz.
+	if( IsCrossRef )
+	{
+		// Construct and add package cross ref.
+		std::string CrossRef;
+		CrossRef += "$(";
+		CrossRef += Type.asString();
+		CrossRef += ":";
+		CrossRef += *Name_;
+		CrossRef += ".";
+		CrossRef += Name.asString();
+		CrossRef += ")";
+	
+		return addPackageCrossRef( CrossRef.c_str() );
+	}
+
+	return BcErrorCode;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addString
 BcU32 CsPackageImporter::addString( const BcChar* pString )
 {
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+
 	BcU32 CurrentOffset = 0;
 
 	for( BcU32 Idx = 0; Idx < StringList_.size(); ++Idx )
@@ -443,6 +518,8 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 // addPackageCrossRef
 BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 {
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+
 	BcBool IsWeak = BcFalse;
 	BcRegexMatch Match;
 	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
@@ -525,6 +602,8 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 // addChunk
 BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment, BcU32 Flags )
 {
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+
 	BcAssert( Size > 0 );
 	BcAssert( BcPot( RequiredAlignment ) );
 	BcAssert( RequiredAlignment <= 4096 );
@@ -577,7 +656,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 // addDependency
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
-	std::lock_guard< std::mutex > Lock( DependencyListLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	Dependencies_.Dependencies_.insert( CsDependency( pFileName ) );
 }
 
@@ -585,6 +664,8 @@ void CsPackageImporter::addDependency( const BcChar* pFileName )
 // addAllPackageCrossRefs
 void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 {
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+
 	// If it's a string value, attempt to match it.
 	if( Root.type() == Json::stringValue )
 	{
@@ -632,6 +713,8 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 // havePackageDependency
 BcBool CsPackageImporter::havePackageDependency( const BcName& PackageName )
 {
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+
 	for( TPackageDependencyIterator It( PackageDependencyList_.begin() ); It != PackageDependencyList_.end(); ++It )
 	{
 		if( PackageName == (*It) )
