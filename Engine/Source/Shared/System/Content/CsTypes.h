@@ -40,6 +40,9 @@ typedef CsDependencyList::iterator CsDependencyListIterator;
 class CsDependency
 {
 public:
+	REFLECTION_DECLARE_BASIC( CsDependency );
+
+	CsDependency();
 	CsDependency( const std::string& FileName );
 	CsDependency( const std::string& FileName, const FsStats& Stats );
 	CsDependency( const CsDependency& Other );

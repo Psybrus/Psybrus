@@ -15,6 +15,9 @@
 
 #include "System/Content/CsCore.h"
 
+#include "Reflection/ReReflection.h"
+#include "Serialisation/SeJsonWriter.h"
+
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
 
@@ -27,6 +30,20 @@ BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches
 BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
 
 #if PSY_SERVER
+
+//////////////////////////////////////////////////////////////////////////
+// CsPackageDependencies
+REFLECTION_DEFINE_BASIC( CsPackageDependencies );
+
+void CsPackageDependencies::StaticRegisterClass()
+{
+	static const ReField Fields[] = 
+	{
+		ReField( "Dependencies_",	&CsPackageDependencies::Dependencies_ ),
+	};
+
+	ReRegisterClass< CsPackageDependencies >( Fields );
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -83,6 +100,9 @@ BcBool CsPackageImporter::import( const BcName& Name )
 	Json::Value Root;
 	if( loadJsonFile( (*Path).c_str(), Root ) )
 	{
+		// Add as dependency.
+		addDependency( (*Path).c_str() );
+
 		// Get resource list.
 		Json::Value Resources( Root.get( "resources", Json::Value( Json::arrayValue ) ) );
 
@@ -133,6 +153,11 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		if( SaveSuccess )
 		{
 			BcPrintf( " SUCCEEDED. Time: %.2f seconds.\n", TotalTimer.time() );
+
+			// Write out dependencies.
+			std::string OutputDependencies = *CsCore::pImpl()->getPackagePackedPath( Name ) + ".deps";
+			SeJsonWriter Writer( OutputDependencies.c_str() );
+			Writer << Dependencies_;
 		}
 		else
 		{
@@ -553,7 +578,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
 	std::lock_guard< std::mutex > Lock( DependencyListLock_ );
-	DependencyList_.insert( CsDependency( pFileName ) );
+	Dependencies_.Dependencies_.insert( CsDependency( pFileName ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
