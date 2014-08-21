@@ -100,7 +100,7 @@ public:
     ReSetContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-        pValueType_ = GetClass< ReTypeTraits< _Ty >::Type >();
+        pValueType_ = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
 		KeyFlags_ = 0;
         ValueFlags_ = ReTypeTraits< _Ty >::Flags;
 	}
@@ -126,7 +126,7 @@ template < typename _Ty, typename _Comp, typename _Alloc >
 ReContainerAccessor* CreateContainerAccessor( std::set< _Ty, _Comp, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType =  nullptr;
-    pValueType = GetClass< ReTypeTraits< _Ty >::Type >();
+    pValueType = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
     ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReSetContainerAccessor< _Ty, _Comp, _Alloc >();
