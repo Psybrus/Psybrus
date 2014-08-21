@@ -137,11 +137,6 @@ public:
 	 */
 	BcU32							getIndex() const;
 
-	/**
-	 * Serialise properties.
-	 */
-	virtual void					serialiseProperties();
-
 protected:
 	/**
 	 * Get string.
