@@ -29,7 +29,10 @@ namespace
 	class ScnShaderIncludeHandler : public ID3DInclude 
 	{
 	public:
-		ScnShaderIncludeHandler( const std::vector< std::string >& IncludePaths ):
+		ScnShaderIncludeHandler( 
+			class CsPackageImporter& Importer,
+			const std::vector< std::string >& IncludePaths ):
+			Importer_( Importer ),
 			IncludePaths_( IncludePaths )
 		{
 
@@ -45,6 +48,7 @@ namespace
 
 				if( IncludeFile.open( IncludeFileName.c_str(), bcFM_READ ) )
 				{
+					Importer_.addDependency( IncludeFileName.c_str() );
 					*ppData = IncludeFile.readAllBytes();
 					*pBytes = IncludeFile.size();
 					return S_OK;
@@ -61,20 +65,25 @@ namespace
 		}
 
 	private:
+		class CsPackageImporter& Importer_;
 		const std::vector< std::string >& IncludePaths_;
 	};
 }
 
 
-BcBool ScnShaderImport::compileShader( const std::string& FileName,
-	                                   const std::string& EntryPoint,
-	                                   const std::map< std::string, std::string >& Defines, 
-	                                   const std::vector< std::string >& IncludePaths,
-	                                   const std::string& Target,
-	                                   BcBinaryData& ShaderByteCode,
-	                                   std::vector< std::string >& ErrorMessages )
+BcBool ScnShaderImport::compileShader( 
+	const std::string& FileName,
+	const std::string& EntryPoint,
+	const std::map< std::string, std::string >& Defines, 
+	const std::vector< std::string >& IncludePaths,
+	const std::string& Target,
+	BcBinaryData& ShaderByteCode,
+	std::vector< std::string >& ErrorMessages )
 {
 	BcBool RetVal = BcFalse;
+
+	Importer_.addDependency( FileName.c_str() );
+
 	std::wstring WFileName( FileName.begin(), FileName.end() );
 	// Create macros.
 	std::vector< D3D_SHADER_MACRO > Macros;
@@ -89,7 +98,7 @@ BcBool ScnShaderImport::compileShader( const std::string& FileName,
 
 	ID3D10Blob* OutByteCode;
 	ID3D10Blob* OutErrorMessages;
-	ScnShaderIncludeHandler IncludeHandler( IncludePaths );
+	ScnShaderIncludeHandler IncludeHandler( Importer_, IncludePaths );
 	D3DCompileFromFile( WFileName.c_str(), &Macros[ 0 ], &IncludeHandler, EntryPoint.c_str(), Target.c_str(), 0, 0, &OutByteCode, &OutErrorMessages );
 
 	// Extract byte code if we have it.

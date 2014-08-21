@@ -32,8 +32,8 @@
 //virtual
 BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {
-	ScnShaderImport ShaderImporter;
-	return ShaderImporter.import( Importer, Object );
+	ScnShaderImport ShaderImporter( Importer );
+	return ShaderImporter.import( Object );
 }
 #endif
 
