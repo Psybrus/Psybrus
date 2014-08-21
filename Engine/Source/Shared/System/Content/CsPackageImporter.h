@@ -50,24 +50,27 @@ public:
 	CsPackageImporter();
 	~CsPackageImporter();
 
-	BcBool							import( const BcName& Name );
-	BcBool							save( const BcPath& Path );
+	BcBool import( const BcName& Name );
+	BcBool save( const BcPath& Path );
 	
-	BcBool							loadJsonFile( const BcChar* pFileName, Json::Value& Root );
-	BcBool							importResource( const Json::Value& Resource );
+	BcBool loadJsonFile( const BcChar* pFileName, Json::Value& Root );
+	BcBool importResource( const Json::Value& Resource );
 	
-	BcU32							addImport( const Json::Value& Resource, BcBool IsCrossRef = BcTrue );
-	BcU32							addString( const BcChar* pString );
-	BcU32							addPackageCrossRef( const BcChar* pFullName );
-	BcU32							addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
-	void							addDependency( const BcChar* pFileName );
-	void							addAllPackageCrossRefs( Json::Value& Root );
+	void beginImport();
+	void endImport();
+
+	BcU32 addImport( const Json::Value& Resource, BcBool IsCrossRef = BcTrue );
+	BcU32 addString( const BcChar* pString );
+	BcU32 addPackageCrossRef( const BcChar* pFullName );
+	BcU32 addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
+	void addDependency( const BcChar* pFileName );
+	void addAllPackageCrossRefs( Json::Value& Root );
 
 private:
-	BcBool							havePackageDependency( const BcName& PackageName );
+	BcBool havePackageDependency( const BcName& PackageName );
 
 private:
-	BcBool							importResource_worker( Json::Value ResourceObject );
+	BcBool importResource_worker( Json::Value ResourceObject );
 
 private:
 	typedef std::vector< std::string > TStringList;
@@ -106,6 +109,7 @@ private:
 
 	mutable std::recursive_mutex	BuildingLock_;
 	mutable SysFence				BuildingFence_;
+	std::atomic< BcU32 >			BuildingBeginCount_;
 	std::atomic< BcU32 >			ImportErrorCount_;
 	BcName							Name_;
 	BcU32							DataPosition_;

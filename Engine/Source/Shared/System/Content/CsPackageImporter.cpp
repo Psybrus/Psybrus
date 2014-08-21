@@ -26,6 +26,8 @@
 
 #include "System/SysKernel.h"
 
+#include <boost/filesystem.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
@@ -97,12 +99,16 @@ BcBool CsPackageImporter::import( const BcName& Name )
 	{
 		Header_.SourceFileStatsHash_ = 0;
 	}
+
+	beginImport();
 	Header_.SourceFile_ = addString( (*Path).c_str() );
+	endImport();
 
 	Json::Value Root;
 	if( loadJsonFile( (*Path).c_str(), Root ) )
 	{
 		// Add as dependency.
+		beginImport();
 		addDependency( (*Path).c_str() );
 
 		// Get resource list.
@@ -110,6 +116,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 		// Add all package cross refs.
 		addAllPackageCrossRefs( Resources );
+		endImport();
 
 #if THREADED_IMPORTING
 		// Import resource.
@@ -151,6 +158,8 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			ResourceTimer.mark();
 			try
 			{
+				beginImport();
+
 				if( importResource( ResourceObject ) )
 				{
 					BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
@@ -159,13 +168,17 @@ BcBool CsPackageImporter::import( const BcName& Name )
 				{
 					BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
  					BcBreakpoint;
+					endImport();
 					return BcFalse;
 				}
+
+				endImport();
 			}
 			catch( CsImportException ImportException )
 			{
 				BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
 				BcPrintf( "CsPackageImporter: Import error in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
+				endImport();
 				return BcFalse;
 			}
 		}
@@ -200,9 +213,16 @@ BcBool CsPackageImporter::import( const BcName& Name )
 // save
 BcBool CsPackageImporter::save( const BcPath& Path )
 {
+	// Create target folder.
+	std::string PackedPath = *CsCore::pImpl()->getPackagePackedPath( "" );
+	if( !boost::filesystem::exists( PackedPath ) )
+	{
+		boost::filesystem::create_directories( PackedPath );
+	}
+
 	// Open package output.
-	// TODO: Write to temp file first, then move.
-	if( File_.open( (*Path).c_str(), bcFM_WRITE ) )
+	BcPath TempFile = *Path + ".tmp";
+	if( File_.open( (*TempFile).c_str(), bcFM_WRITE ) )
 	{
 		// Generate string table.
 		BcStream StringTableStream;
@@ -302,6 +322,13 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 		// Close file.
 		File_.close();
+
+		// Rename.
+		if( boost::filesystem::exists( *Path ) )
+		{
+			boost::filesystem::remove( *Path );
+		}
+		boost::filesystem::rename( *TempFile, *Path );
 
 		//
 		return BcTrue;
@@ -441,10 +468,25 @@ BcBool CsPackageImporter::importResource_worker( Json::Value ResourceObject )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// beginImport
+void CsPackageImporter::beginImport()
+{
+	BuildingBeginCount_++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endImport
+void CsPackageImporter::endImport()
+{
+	BuildingBeginCount_--;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // addImport
 BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossRef )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 
 	// Validate it's an object.
 	BcAssertMsg( Resource.type() == Json::objectValue, "CsPackageImporter: Can't import a value that isn't an object." );
@@ -491,6 +533,7 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 BcU32 CsPackageImporter::addString( const BcChar* pString )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcU32 CurrentOffset = 0;
 
@@ -519,6 +562,7 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcBool IsWeak = BcFalse;
 	BcRegexMatch Match;
@@ -603,6 +647,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment, BcU32 Flags )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcAssert( Size > 0 );
 	BcAssert( BcPot( RequiredAlignment ) );
@@ -657,6 +702,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 	Dependencies_.Dependencies_.insert( CsDependency( pFileName ) );
 }
 
@@ -665,6 +711,7 @@ void CsPackageImporter::addDependency( const BcChar* pFileName )
 void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 
 	// If it's a string value, attempt to match it.
 	if( Root.type() == Json::stringValue )
@@ -714,6 +761,7 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 BcBool CsPackageImporter::havePackageDependency( const BcName& PackageName )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
 
 	for( TPackageDependencyIterator It( PackageDependencyList_.begin() ); It != PackageDependencyList_.end(); ++It )
 	{
