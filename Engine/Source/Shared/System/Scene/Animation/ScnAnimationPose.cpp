@@ -14,6 +14,7 @@
 #include "System/Scene/Animation/ScnAnimationPose.h"
 
 #include "Base/BcMemory.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection.
@@ -66,6 +67,8 @@ ScnAnimationPose::~ScnAnimationPose()
 // Assignment
 ScnAnimationPose& ScnAnimationPose::operator = ( const ScnAnimationPose& Pose )
 {
+	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::operator =" );
+
 	NoofTransforms_ = Pose.NoofTransforms_;
 	pTransforms_ = new ScnAnimationTransform[ NoofTransforms_ ];
 	BcMemCopy( pTransforms_, Pose.pTransforms_, sizeof( ScnAnimationTransform ) * NoofTransforms_ );
@@ -76,6 +79,8 @@ ScnAnimationPose& ScnAnimationPose::operator = ( const ScnAnimationPose& Pose )
 // blend
 void ScnAnimationPose::blend( const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T )
 {
+	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::blend" );
+
 	BcAssert( A.NoofTransforms_ == NoofTransforms_ );
 	BcAssert( B.NoofTransforms_ == NoofTransforms_ );
 
@@ -89,6 +94,8 @@ void ScnAnimationPose::blend( const ScnAnimationPose& A, const ScnAnimationPose&
 // add
 void ScnAnimationPose::add( const ScnAnimationPose& Reference, const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T )
 {
+	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::add" );
+
 	BcAssert( A.NoofTransforms_ == NoofTransforms_ );
 	BcAssert( B.NoofTransforms_ == NoofTransforms_ );
 
@@ -102,6 +109,8 @@ void ScnAnimationPose::add( const ScnAnimationPose& Reference, const ScnAnimatio
 // normalise
 void ScnAnimationPose::normalise()
 {
+	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::normalise" );
+
 	for( BcU32 Idx = 0; Idx < NoofTransforms_; ++Idx )
 	{
 		pTransforms_[ Idx ].R_.normalise();
