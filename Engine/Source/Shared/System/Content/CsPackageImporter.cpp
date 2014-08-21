@@ -552,7 +552,8 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 // addDependency
 void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
-	DependencyList_.push_back( CsDependency( pFileName ) );
+	std::lock_guard< std::mutex > Lock( DependencyListLock_ );
+	DependencyList_.insert( CsDependency( pFileName ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
