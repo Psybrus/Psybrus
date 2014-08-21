@@ -15,24 +15,15 @@
 #define __FsTypes_H__
 
 #include "Base/BcTypes.h"
+#include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // FsTimestamp
 struct FsTimestamp
 {
-	FsTimestamp():
-		Seconds_( 0 ),
-		Minutes_( 0 ),
-		Hours_( 0 ),
-		MonthDay_( 0 ),
-		Month_( 0 ),
-		Year_( 0 ),
-		WeekDay_( 0 ),
-		YearDay_( 0 ),
-		IsDST_( 0 )
-	{
-		
-	}
+	REFLECTION_DECLARE_BASIC( FsTimestamp )
+
+	FsTimestamp();
 	
 	BcU32 Seconds_;
 	BcU32 Minutes_;
@@ -80,6 +71,10 @@ struct FsTimestamp
 // FsStats
 struct FsStats
 {
+	REFLECTION_DECLARE_BASIC( FsStats );
+
+	FsStats();
+
 	FsTimestamp CreatedTime_;
 	FsTimestamp ModifiedTime_;
 };

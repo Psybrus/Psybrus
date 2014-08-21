@@ -100,8 +100,11 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsResource::StaticRegisterClass();
 	CsPackage::StaticRegisterClass();
 
-	// Register debug.
 	// Register file.
+	FsTimestamp::StaticRegisterClass();
+	FsStats::StaticRegisterClass();
+
+	// Register debug.
 	// Register network.
 	// Register os
 	// Register renderer
