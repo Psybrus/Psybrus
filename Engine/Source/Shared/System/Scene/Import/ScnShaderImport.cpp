@@ -24,7 +24,7 @@
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
-#define DEBUG_FILE_WRITE_OUT_FILES		0
+#define DEBUG_FILE_WRITE_OUT_FILES		1
 
 #include <boost/format.hpp>
 #include <boost/wave.hpp>
@@ -236,7 +236,6 @@ BcBool ScnShaderImport::import( const Json::Value& Object )
 	BackendTypes_.clear();
 	BackendTypes_.push_back( RsShaderBackendType::D3D11 );
 	BackendTypes_.push_back( RsShaderBackendType::GLSL );
-	BackendTypes_.push_back( RsShaderBackendType::GLSL_ES );
 
 	// Kick off all permutation building jobs.
 	BcBool RetVal = BcTrue;
@@ -436,7 +435,9 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
     for( auto& Entry : Params.Entries_ )
     {
 		BcBinaryData ByteCode;
-		if( compileShader( Filename_, Entry.Entry_, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages_ ) )
+		std::vector< std::string > ErrorMessages;
+
+		if( compileShader( Filename_, Entry.Entry_, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
 		{
 			// Shader.
 			ScnShaderBuiltData BuiltShader;
@@ -597,11 +598,10 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					throw CsImportException( "Failed to convert to GLSL.", Filename_ );
 				}
 			}
-
+			
 			// Push shader into map.
 			if( RetVal == BcTrue )
 			{
-				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 				auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
 				if( FoundShader != BuiltShaderData_.end() )
 				{
@@ -610,10 +610,22 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 
 				BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
 			}
+			
+			if( ErrorMessages.size() > 0 )
+			{
+				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+				ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
+			}
 		}
 		else
 		{
 			RetVal = BcFalse;
+			
+			if( ErrorMessages.size() > 0 )
+			{
+				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+				ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
+			}
 			break;
 		}
 	}
@@ -659,7 +671,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 BcU32 ScnShaderImport::generateShaderHash( const ScnShaderBuiltData& Data )
 {
 	BcU32 Hash = 0;
-	Hash = BcHash::GenerateCRC32( 0, &Data.ShaderType_, sizeof( Data.ShaderType_ ) );
+	Hash = BcHash::GenerateCRC32( Hash, &Data.ShaderType_, sizeof( Data.ShaderType_ ) );
 	Hash = BcHash::GenerateCRC32( Hash, &Data.CodeType_, sizeof( Data.CodeType_ ) );
 	Hash = BcHash::GenerateCRC32( Hash, Data.Code_.getData< BcU8* >(), Data.Code_.getDataSize() );
 	return Hash;
