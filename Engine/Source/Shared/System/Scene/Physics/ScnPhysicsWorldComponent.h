@@ -46,6 +46,8 @@ private:
 	class btConstraintSolver* Solver_;
 	class btDefaultCollisionConfiguration* CollisionConfiguration_;
 	class btDynamicsWorld* DynamicsWorld_;
+
+	BcBool DebugDrawWorld_;
 };
 
 #endif
