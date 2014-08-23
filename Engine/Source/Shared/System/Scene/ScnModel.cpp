@@ -654,6 +654,10 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 		auto& PerComponentMeshData( PerComponentMeshDataList_[ Idx ] );
 		Parent->attach( PerComponentMeshData.MaterialComponentRef_ );
 	}
+
+	// Update nodes.
+	UpdateFence_.increment();
+	updateNodes( getParentEntity()->getWorldMatrix() );
 	
 	//
 	Super::onAttach( Parent );

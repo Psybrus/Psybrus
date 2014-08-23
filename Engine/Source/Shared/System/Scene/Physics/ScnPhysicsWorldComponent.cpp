@@ -127,7 +127,7 @@ void ScnPhysicsWorldComponent::destroy()
 void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
 {
 	// Step simulation.
-	DynamicsWorld_->stepSimulation( Tick, 0 );
+	DynamicsWorld_->stepSimulation( Tick * 0.01f, 0 );
 
 	// Resolve collisions?
 
@@ -217,4 +217,31 @@ void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
 void ScnPhysicsWorldComponent::removeRigidBody( btRigidBody* RigidBody )
 {
 	DynamicsWorld_->removeRigidBody( RigidBody );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// lineCast
+BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal )
+{
+	btCollisionWorld::ClosestRayResultCallback HitResult( 
+		btVector3( A.x(), A.y(), A.z() ),
+		btVector3( B.x(), B.y(), B.z() ) );
+	DynamicsWorld_->rayTest( 
+		btVector3( A.x(), A.y(), A.z() ),
+		btVector3( B.x(), B.y(), B.z() ),
+		HitResult );
+
+	if( HitResult.hasHit() )
+	{
+		Intersection = MaVec3d( 
+			HitResult.m_hitPointWorld.x(),
+			HitResult.m_hitPointWorld.y(),
+			HitResult.m_hitPointWorld.z() );
+		Normal = MaVec3d( 
+			HitResult.m_hitNormalWorld.x(),
+			HitResult.m_hitNormalWorld.y(),
+			HitResult.m_hitNormalWorld.z() );
+		return BcTrue;
+	}
+	return BcFalse;
 }
