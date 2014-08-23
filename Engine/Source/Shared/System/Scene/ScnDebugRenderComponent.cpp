@@ -462,20 +462,22 @@ public:
 void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Upload.
-	UploadFence_.increment();
-
 	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnDebugRenderComponentVertex );
-	RsCore::pImpl()->updateBuffer( 
-		pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
-		RsResourceUpdateFlags::ASYNC,
-		[ this, VertexDataSize ]
-		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-		{
-			BcAssert( VertexDataSize <= Buffer->getDesc().SizeBytes_ );
-			BcMemCopy( BufferLock.Buffer_, pWorkingVertices_, 
-				VertexDataSize );
-			UploadFence_.decrement();
-		} );
+	if( VertexDataSize > 0 )
+	{
+		UploadFence_.increment();
+		RsCore::pImpl()->updateBuffer( 
+			pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
+			RsResourceUpdateFlags::ASYNC,
+			[ this, VertexDataSize ]
+			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+			{
+				BcAssert( VertexDataSize <= Buffer->getDesc().SizeBytes_ );
+				BcMemCopy( BufferLock.Buffer_, pWorkingVertices_, 
+					VertexDataSize );
+				UploadFence_.decrement();
+			} );
+	}
 
 	// HUD pass.
 	Sort.Layer_ = RS_SORT_LAYER_MAX;
