@@ -12,7 +12,7 @@ struct VertexDefault
 	float4 BlendWeights_	: BLENDWEIGHTS;
 
 #elif defined( PERM_MESH_PARTICLE_3D )
-	float4 VertexOffset_	: NORMAL;
+	float4 VertexOffset_	: TANGENT;
 
 #elif defined( PERM_MESH_INSTANCED_3D )
 	float4 WorldMatrix0_	: TEXCOORD4;
@@ -32,7 +32,10 @@ struct VertexDefault
  * @param _p Input properties. Unused.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = float4( _v.xy, 0.0, 1.0 );																\
+		_o = float4( _v.xy, 0.0, 1.0 );																	\
+
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = float3( 0.0f, 0.0f, 1.0 );																	\
 
 #elif defined( PERM_MESH_STATIC_3D )
 /**
@@ -44,6 +47,9 @@ struct VertexDefault
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = mul( WorldTransform_, _v );																\
 
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = mul( (float3x3)NormalTransform_, _v );														\
+
 
 #elif defined( PERM_MESH_SKINNED_3D )
 
@@ -53,12 +59,19 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  * @param _p Input properties. Should be a structure containing BlendIndices_, and BlendWeights_.
  */
-#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 																\
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = float4( 0.0, 0.0, 0.0, 0.0 );																\
 		_o += mul( BoneTransform_[ int(_p.BlendIndices_.x) ], _v ) * _p.BlendWeights_.x;				\
 		_o += mul( BoneTransform_[ int(_p.BlendIndices_.y) ], _v ) * _p.BlendWeights_.y;				\
 		_o += mul( BoneTransform_[ int(_p.BlendIndices_.z) ], _v ) * _p.BlendWeights_.z;				\
 		_o += mul( BoneTransform_[ int(_p.BlendIndices_.w) ], _v ) * _p.BlendWeights_.w;				\
+
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = float3( 0.0, 0.0, 0.0 );																	\
+		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.x) ], _v.xyz ) * _p.BlendWeights_.x;	\
+		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.y) ], _v.xyz ) * _p.BlendWeights_.y;	\
+		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.z) ], _v.xyz ) * _p.BlendWeights_.z;	\
+		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.w) ], _v.xyz ) * _p.BlendWeights_.w;	\
 
 
 #elif defined( PERM_MESH_PARTICLE_3D )
@@ -69,7 +82,7 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  * @param _p Input properties. Should be a structure containing VertexOffset_.
  */
-#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 																\
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = _v + 																						\
 				float4(																					\
 					mul(																				\
@@ -78,6 +91,10 @@ struct VertexDefault
 							InverseViewTransform_[1].xyz, 												\
 							InverseViewTransform_[2].xyz ),												\
 			 			_p.VertexOffset_.xyz ),	0.0 );													\
+
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = _v;																						\
+
 
 #elif defined( PERM_MESH_INSTANCED_3D )
 
@@ -94,6 +111,13 @@ struct VertexDefault
 					_p.WorldMatrix1_, 																	\
 					_p.WorldMatrix2_, 																	\
 					_p.WorldMatrix3_ ), _v );	 														\
+
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = mul( 																						\
+				float3x3(  																				\
+					_p.WorldMatrix0_.xyz,																\
+					_p.WorldMatrix1_.xyz,																\
+					_p.WorldMatrix2_.xyz ), _v );	 													\
 
 #endif
 
