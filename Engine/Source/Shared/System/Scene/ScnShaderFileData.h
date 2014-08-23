@@ -201,6 +201,7 @@ struct ScnShaderObjectUniformBlockData
 	ScnShaderObjectUniformBlockData(){};
 
 	MaMat4d							WorldTransform_;
+	MaMat4d							NormalTransform_;
 };
 
 //////////////////////////////////////////////////////////////////////////

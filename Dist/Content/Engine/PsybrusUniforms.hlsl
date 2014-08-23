@@ -32,6 +32,7 @@ END_CBUFFER
 // ObjectUniformBlock
 BEGIN_CBUFFER( ObjectUniformBlock )
 	float4x4 WorldTransform_;
+	float4x4 NormalTransform_;
 END_CBUFFER
 
 ////////////////////////////////////////////////////////////////////////
