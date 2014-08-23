@@ -40,6 +40,9 @@ public:
 	void addRigidBody( class btRigidBody* RigidBody );
 	void removeRigidBody( class btRigidBody* RigidBody );
 
+	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal );
+
+
 private:
 	class btBroadphaseInterface* Broadphase_;
 	class btCollisionDispatcher* Dispatcher_;

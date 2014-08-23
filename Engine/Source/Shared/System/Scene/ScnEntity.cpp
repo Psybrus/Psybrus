@@ -384,6 +384,10 @@ void ScnEntity::setLocalPosition( const MaVec3d& Position )
 void ScnEntity::setLocalMatrix( const MaMat4d& Matrix )
 {
 	LocalTransform_ = Matrix;
+	if( ParentEntity_ == nullptr )
+	{
+		WorldTransform_ = Matrix;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
