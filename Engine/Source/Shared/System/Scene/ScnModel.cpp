@@ -624,10 +624,17 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				{
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
 					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
+
+					// World matrix.
 					ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
+
+					// Normal matrix.
 					ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
+					ObjectUniformBlock->NormalTransform_.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
 					ObjectUniformBlock->NormalTransform_.inverse();
 					ObjectUniformBlock->NormalTransform_.transpose();
+					ObjectUniformBlock->NormalTransform_ = ObjectUniformBlock->WorldTransform_ * ObjectUniformBlock->NormalTransform_;
+					ObjectUniformBlock->NormalTransform_.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
 					UploadFence_.decrement();
 				} );
 		}
