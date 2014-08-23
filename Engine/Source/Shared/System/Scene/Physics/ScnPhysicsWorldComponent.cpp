@@ -26,7 +26,8 @@ DEFINE_RESOURCE( ScnPhysicsWorldComponent );
 
 void ScnPhysicsWorldComponent::StaticRegisterClass()
 {
-	ReRegisterClass< ScnPhysicsWorldComponent, Super >();
+	ReRegisterClass< ScnPhysicsWorldComponent, Super >()
+		.addAttribute( new ScnComponentAttribute( -100 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,11 +35,21 @@ void ScnPhysicsWorldComponent::StaticRegisterClass()
 //virtual
 void ScnPhysicsWorldComponent::initialise()
 {
-	CollisionConfiguration_ = NULL;
-	Dispatcher_ = NULL;
-	Broadphase_ = NULL;
-	Solver_ = NULL;
-	DynamicsWorld_ = NULL;
+	Super::initialise();
+
+	CollisionConfiguration_ = nullptr;
+	Dispatcher_ = nullptr;
+	Broadphase_ = nullptr;
+	Solver_ = nullptr;
+	DynamicsWorld_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+void ScnPhysicsWorldComponent::initialise( const Json::Value& Object )
+{
+	ScnPhysicsWorldComponent::initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,13 +57,6 @@ void ScnPhysicsWorldComponent::initialise()
 //virtual
 void ScnPhysicsWorldComponent::create()
 {
-	// Setup dynamics world.
-	CollisionConfiguration_ = new btDefaultCollisionConfiguration();
-	Dispatcher_ = new	btCollisionDispatcher( CollisionConfiguration_ );
-	Broadphase_ = new btDbvtBroadphase();
-	Solver_ = new btSequentialImpulseConstraintSolver();
-	DynamicsWorld_ = new btDiscreteDynamicsWorld( Dispatcher_, Broadphase_, Solver_, CollisionConfiguration_ );
-	DynamicsWorld_->setGravity( btVector3( 0.0f, -10.0f, 0.0f ) );
 
 	markReady();
 }
@@ -66,14 +70,34 @@ void ScnPhysicsWorldComponent::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// preUpdate
 //virtual
-void ScnPhysicsWorldComponent::update( BcF32 Tick )
+void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
 {
 	// Step simulation.
 	DynamicsWorld_->stepSimulation( Tick, 0 );
 
+	// Resolve collisions?
+
+	Super::preUpdate( Tick );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//virtual
+void ScnPhysicsWorldComponent::update( BcF32 Tick )
+{
+
 	Super::update( Tick );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// postUpdate
+//virtual
+void ScnPhysicsWorldComponent::postUpdate( BcF32 Tick )
+{
+
+	Super::postUpdate( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,6 +105,14 @@ void ScnPhysicsWorldComponent::update( BcF32 Tick )
 //virtual
 void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	// Setup dynamics world.
+	CollisionConfiguration_ = new btDefaultCollisionConfiguration();
+	Dispatcher_ = new	btCollisionDispatcher( CollisionConfiguration_ );
+	Broadphase_ = new btDbvtBroadphase();
+	Solver_ = new btSequentialImpulseConstraintSolver();
+	DynamicsWorld_ = new btDiscreteDynamicsWorld( Dispatcher_, Broadphase_, Solver_, CollisionConfiguration_ );
+	DynamicsWorld_->setGravity( btVector3( 0.0f, -10.0f, 0.0f ) );
+
 	Super::onAttach( Parent );
 }
 
@@ -89,6 +121,11 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	delete DynamicsWorld_;
+	delete Solver_;
+	delete Broadphase_;
+	delete Dispatcher_;
+	delete CollisionConfiguration_;
 	Super::onDetach( Parent );
 }
 

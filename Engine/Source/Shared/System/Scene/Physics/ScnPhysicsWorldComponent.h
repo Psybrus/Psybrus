@@ -25,24 +25,27 @@ public:
 	DECLARE_RESOURCE( ScnComponent, ScnPhysicsWorldComponent );
 	
 
-	virtual void							initialise();
-	virtual void							create();
-	virtual void							destroy();
+	virtual void initialise();
+	virtual void initialise( const Json::Value& Object );
+	virtual void create();
+	virtual void destroy();
 
-	virtual void							update( BcF32 Tick );
+	virtual void preUpdate( BcF32 Tick );
+	virtual void update( BcF32 Tick );
+	virtual void postUpdate( BcF32 Tick );
 
-	void									onAttach( ScnEntityWeakRef Parent );
-	void									onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent );
+	void onDetach( ScnEntityWeakRef Parent );
 
-	void									addRigidBody( class btRigidBody* RigidBody );
-	void									removeRigidBody( class btRigidBody* RigidBody );
+	void addRigidBody( class btRigidBody* RigidBody );
+	void removeRigidBody( class btRigidBody* RigidBody );
 
 private:
-	class btBroadphaseInterface*			Broadphase_;
-	class btCollisionDispatcher*			Dispatcher_;
-	class btConstraintSolver*				Solver_;
-	class btDefaultCollisionConfiguration*	CollisionConfiguration_;
-	class btDynamicsWorld*					DynamicsWorld_;
+	class btBroadphaseInterface* Broadphase_;
+	class btCollisionDispatcher* Dispatcher_;
+	class btConstraintSolver* Solver_;
+	class btDefaultCollisionConfiguration* CollisionConfiguration_;
+	class btDynamicsWorld* DynamicsWorld_;
 };
 
 #endif
