@@ -117,7 +117,8 @@ BcBool ScnShaderImport::compileShader(
 		LPVOID BufferData = OutErrorMessages->GetBufferPointer();
 
 		// TODO: Split up into lines.
-		ErrorMessages.push_back( (const char*)BufferData );
+		std::string Error = (const char*)BufferData;
+		ErrorMessages.push_back( Error );
 		OutErrorMessages->Release();
 	}
 
