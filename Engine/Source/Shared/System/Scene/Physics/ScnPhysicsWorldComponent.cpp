@@ -127,7 +127,7 @@ void ScnPhysicsWorldComponent::destroy()
 void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
 {
 	// Step simulation.
-	DynamicsWorld_->stepSimulation( Tick * 0.01f, 0 );
+	DynamicsWorld_->stepSimulation( Tick, 0 );
 
 	// Resolve collisions?
 
