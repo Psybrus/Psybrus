@@ -175,6 +175,19 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 	return evtRET_REMOVE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// OnScreenshot
+eEvtReturn onScreenshot( EvtID ID, const OsEventInputKeyboard& Event )
+{
+	if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F1 )
+	{
+		RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
+	}	
+
+	return evtRET_PASS;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // MainShared
 void MainShared()
@@ -277,4 +290,7 @@ void MainShared()
 	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< onQuit >();
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
 
+	// Subscribe to F11 for screenshot
+	OsEventInputKeyboard::Delegate OnScreenshotDelegate = OsEventInputKeyboard::Delegate::bind< onScreenshot >();
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnScreenshotDelegate );
 }
