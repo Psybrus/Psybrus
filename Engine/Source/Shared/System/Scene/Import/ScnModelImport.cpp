@@ -86,6 +86,20 @@ static BcU32 gVertexDataSize[] =
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_DERIVED( ScnModelImport )
+	
+void ScnModelImport::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Source_", &ScnModelImport::Source_ ),
+	};
+		
+	ReRegisterClass< ScnModelImport, Super >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnModelImport::ScnModelImport()
 {
@@ -93,11 +107,10 @@ ScnModelImport::ScnModelImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Value& Object )
+BcBool ScnModelImport::import( const Json::Value& Object )
 {
-	pImporter_ = &Importer;
 	Source_ = Object[ "source" ].asString();
-	pImporter_->addDependency( Source_.c_str() );
+	CsResourceImporter::addDependency( Source_.c_str() );
 
 	// Old importer first for now.
 	MdlNode* pNode = MdlLoader::loadModel( Source_.c_str() );
@@ -148,7 +161,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		for( auto NodePropertyData : NodePropertyData_ )
 		{
 			// Add name to the importer.
-			NodePropertyData.Name_ = pImporter_->addString( (*NodePropertyData.Name_).c_str() );
+			NodePropertyData.Name_ = CsResourceImporter::addString( (*NodePropertyData.Name_).c_str() );
 
 			//
 			NodePropertyDataStream_ << NodePropertyData;
@@ -170,13 +183,13 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		}
 
 		// Write to file.
-		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
-		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
-		Importer.addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
 		
 		//
 		return BcTrue;
@@ -235,7 +248,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		for( auto NodePropertyData : NodePropertyData_ )
 		{
 			// Add name to the importer.
-			NodePropertyData.Name_ = pImporter_->addString( (*NodePropertyData.Name_).c_str() );
+			NodePropertyData.Name_ = CsResourceImporter::addString( (*NodePropertyData.Name_).c_str() );
 
 			//
 			NodePropertyDataStream_ << NodePropertyData;
@@ -257,13 +270,13 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 		}
 
 		// Write to file.
-		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
-		Importer.addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
-		Importer.addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
-		Importer.addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
 		
 		//
 		return BcTrue;
@@ -458,7 +471,7 @@ void ScnModelImport::serialiseMesh(
 
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
+		MeshData.MaterialRef_ = CsResourceImporter::addPackageCrossRef( Material.Name_.c_str() );
 
 		MeshData_.push_back( MeshData );
 
@@ -577,7 +590,7 @@ void ScnModelImport::serialiseSkin(
 
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.Name_.c_str() );
+		MeshData.MaterialRef_ = CsResourceImporter::addPackageCrossRef( Material.Name_.c_str() );
 
 		MeshData_.push_back( MeshData );
 
@@ -906,7 +919,7 @@ void ScnModelImport::serialiseMesh(
 		
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( MaterialName.c_str() );
+		MeshData.MaterialRef_ = CsResourceImporter::addPackageCrossRef( MaterialName.c_str() );
 		
 		MeshData_.push_back( MeshData );
 

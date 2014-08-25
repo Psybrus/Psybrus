@@ -47,7 +47,7 @@ class ScnFont:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnFont );
+	DECLARE_RESOURCE( ScnFont, CsResource );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -81,7 +81,7 @@ class ScnFontComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnFontComponent );
+	DECLARE_RESOURCE( ScnFontComponent, ScnComponent );
 	
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	void								initialise( const Json::Value& Object );

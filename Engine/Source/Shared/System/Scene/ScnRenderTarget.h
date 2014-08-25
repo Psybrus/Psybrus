@@ -29,7 +29,7 @@ class ScnRenderTarget:
 	public ScnTexture
 {
 public:
-	DECLARE_RESOURCE( ScnTexture, ScnRenderTarget );
+	DECLARE_RESOURCE( ScnRenderTarget, ScnTexture );
 	
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );

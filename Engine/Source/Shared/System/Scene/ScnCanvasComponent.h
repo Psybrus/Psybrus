@@ -60,7 +60,7 @@ class ScnCanvasComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, ScnCanvasComponent );
+	DECLARE_RESOURCE( ScnCanvasComponent, ScnRenderableComponent );
 	
 	virtual void						initialise( BcU32 NoofVertices );
 	virtual void						initialise( const Json::Value& Object );

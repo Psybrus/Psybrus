@@ -33,7 +33,7 @@ public:
 	static const BcU32 LOAD_FROM_FILE_TAG = 0x01020304;
 
 public:
-	DECLARE_RESOURCE( CsResource, ScnShader );
+	DECLARE_RESOURCE( ScnShader, CsResource );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );

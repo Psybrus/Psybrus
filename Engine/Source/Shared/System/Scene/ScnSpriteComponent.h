@@ -27,7 +27,7 @@ class ScnSpriteComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnSpriteComponent );
+	DECLARE_RESOURCE( ScnSpriteComponent, ScnComponent );
 	
 	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object );

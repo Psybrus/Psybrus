@@ -50,7 +50,7 @@ class ScnMaterial:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnMaterial );
+	DECLARE_RESOURCE( ScnMaterial, CsResource );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
@@ -83,7 +83,7 @@ class ScnMaterialComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnMaterialComponent );
+	DECLARE_RESOURCE( ScnMaterialComponent, ScnComponent );
 	
 	void								initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
 	void								initialise( const Json::Value& Object );

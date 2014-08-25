@@ -30,7 +30,7 @@ class ScnSound:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnSound );
+	DECLARE_RESOURCE( ScnSound, CsResource );
 	
 #ifdef PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );

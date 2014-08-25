@@ -29,7 +29,7 @@ class ScnSoundListenerComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnSoundListenerComponent );
+	DECLARE_RESOURCE( ScnSoundListenerComponent, ScnComponent );
 	
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						postUpdate( BcF32 Tick );

@@ -71,6 +71,7 @@ public:
 	template< class _Ty >
 	_Ty*							construct( void* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		Serialiser_->construct( pData );
 		return reinterpret_cast< _Ty* >( pData );
 	}
@@ -82,6 +83,7 @@ public:
 	template< class _Ty >
 	_Ty*							constructNoInit( void* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		BcMemZero( pData, getSize() );
 		Serialiser_->constructNoInit( pData );
 		return reinterpret_cast< _Ty* >( pData );

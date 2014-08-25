@@ -30,7 +30,7 @@ class ScnSoundEmitterComponent:
 	public SsChannelCallback
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnSoundEmitterComponent );
+	DECLARE_RESOURCE( ScnSoundEmitterComponent, ScnComponent );
 	
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();

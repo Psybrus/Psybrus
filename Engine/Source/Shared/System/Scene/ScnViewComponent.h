@@ -37,7 +37,7 @@ class ScnViewComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnViewComponent );
+	DECLARE_RESOURCE( ScnViewComponent, ScnComponent );
 
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
