@@ -346,10 +346,10 @@ DEFINE_RESOURCE( ScnFont );
 
 void ScnFont::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "CharCodeMap_",	&ScnFont::CharCodeMap_ ),
-		ReField( "Texture_",		&ScnFont::Texture_ ),
+		new ReField( "CharCodeMap_",	&ScnFont::CharCodeMap_ ),
+		new ReField( "Texture_",		&ScnFont::Texture_ ),
 	};
 		
 	ReRegisterClass< ScnFont, Super >( Fields );
@@ -438,13 +438,13 @@ DEFINE_RESOURCE( ScnFontComponent );
 
 void ScnFontComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Parent_",					&ScnFontComponent::Parent_ ),
-		ReField( "MaterialComponent_",		&ScnFontComponent::MaterialComponent_ ),
-		ReField( "ClippingEnabled_",		&ScnFontComponent::ClippingEnabled_ ),
-		ReField( "ClipMin_",				&ScnFontComponent::ClipMin_ ),
-		ReField( "ClipMax_",				&ScnFontComponent::ClipMax_ ),
+		new ReField( "Parent_",					&ScnFontComponent::Parent_ ),
+		new ReField( "MaterialComponent_",		&ScnFontComponent::MaterialComponent_ ),
+		new ReField( "ClippingEnabled_",		&ScnFontComponent::ClippingEnabled_ ),
+		new ReField( "ClipMin_",				&ScnFontComponent::ClipMin_ ),
+		new ReField( "ClipMax_",				&ScnFontComponent::ClipMax_ ),
 	};
 		
 	ReRegisterClass< ScnFontComponent, Super >( Fields );

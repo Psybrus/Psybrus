@@ -22,9 +22,9 @@ REFLECTION_DEFINE_BASE( ScnAnimationPose );
 
 void ScnAnimationPose::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "NoofTransforms_",		&ScnAnimationPose::NoofTransforms_ ),
+		new ReField( "NoofTransforms_",		&ScnAnimationPose::NoofTransforms_ ),
 	};
 		
 	ReRegisterClass< ScnAnimationPose >( Fields );

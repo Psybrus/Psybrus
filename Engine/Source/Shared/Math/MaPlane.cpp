@@ -21,10 +21,10 @@ REFLECTION_DEFINE_BASIC( MaPlane );
 
 void MaPlane::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Normal_",		&MaPlane::Normal_ ),
-		ReField( "D_",			&MaPlane::D_ ),
+		new ReField( "Normal_",		&MaPlane::Normal_ ),
+		new ReField( "D_",			&MaPlane::D_ ),
 	};
 		
 	ReRegisterClass< MaPlane >( Fields );

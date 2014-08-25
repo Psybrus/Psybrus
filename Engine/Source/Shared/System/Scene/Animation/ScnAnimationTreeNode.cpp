@@ -19,11 +19,11 @@ REFLECTION_DEFINE_BASE( ScnAnimationTreeNode );
 
 void ScnAnimationTreeNode::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Name_",				&ScnAnimationTreeNode::Name_ ),
-		ReField( "pReferencePose_",		&ScnAnimationTreeNode::pReferencePose_ ),
-		ReField( "pWorkingPose_",		&ScnAnimationTreeNode::pWorkingPose_ ),
+		new ReField( "Name_",				&ScnAnimationTreeNode::Name_ ),
+		new ReField( "pReferencePose_",		&ScnAnimationTreeNode::pReferencePose_ ),
+		new ReField( "pWorkingPose_",		&ScnAnimationTreeNode::pWorkingPose_ ),
 	};
 		
 	ReRegisterAbstractClass< ScnAnimationTreeNode >( Fields );

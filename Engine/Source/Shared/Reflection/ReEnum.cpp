@@ -9,9 +9,9 @@ REFLECTION_DEFINE_DERIVED( ReEnum );
 
 void ReEnum::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "EnumConstants_", &ReEnum::EnumConstants_ ),
+		new ReField( "EnumConstants_", &ReEnum::EnumConstants_ ),
 	};
 		
 	ReRegisterClass< ReEnum, ReClass >( Fields );

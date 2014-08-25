@@ -24,10 +24,10 @@ REFLECTION_DEFINE_DERIVED( CsResource );
 // Reflection
 void CsResource::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Index_",				&CsResource::Index_ ),
-		ReField( "InitStage_",			&CsResource::InitStage_ ),
+		new ReField( "Index_",				&CsResource::Index_ ),
+		new ReField( "InitStage_",			&CsResource::InitStage_ ),
 	};
 		
 	ReRegisterClass< CsResource, Super >( Fields );

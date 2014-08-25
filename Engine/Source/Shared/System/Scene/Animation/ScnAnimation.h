@@ -31,10 +31,6 @@ class ScnAnimation:
 public:
 	DECLARE_RESOURCE( CsResource, ScnAnimation );
 	
-#if PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
-
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();

@@ -29,16 +29,16 @@ REFLECTION_DEFINE_BASE( SysKernel );
 
 void SysKernel::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "SystemList_",			&SysKernel::SystemList_ ),
-		ReField( "ShuttingDown_",		&SysKernel::ShuttingDown_ ),
-		ReField( "IsThreaded_",			&SysKernel::IsThreaded_ ),
-		ReField( "MainTimer_",			&SysKernel::MainTimer_ ),
-		ReField( "SleepAccumulator_",	&SysKernel::SleepAccumulator_ ),
-		ReField( "TickRate_",			&SysKernel::TickRate_ ),
-		ReField( "FrameTime_",			&SysKernel::FrameTime_ ),
-		ReField( "GameThreadTime_",		&SysKernel::GameThreadTime_ ),
+		new ReField( "SystemList_",			&SysKernel::SystemList_ ),
+		new ReField( "ShuttingDown_",		&SysKernel::ShuttingDown_ ),
+		new ReField( "IsThreaded_",			&SysKernel::IsThreaded_ ),
+		new ReField( "MainTimer_",			&SysKernel::MainTimer_ ),
+		new ReField( "SleepAccumulator_",	&SysKernel::SleepAccumulator_ ),
+		new ReField( "TickRate_",			&SysKernel::TickRate_ ),
+		new ReField( "FrameTime_",			&SysKernel::FrameTime_ ),
+		new ReField( "GameThreadTime_",		&SysKernel::GameThreadTime_ ),
 	};
 		
 	ReRegisterClass< SysKernel >( Fields );

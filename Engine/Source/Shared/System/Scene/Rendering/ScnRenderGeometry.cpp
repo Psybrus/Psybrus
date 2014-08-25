@@ -19,11 +19,11 @@ DEFINE_RESOURCE( ScnRenderGeometry );
 
 void ScnRenderGeometry::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "IndexBuffer_",			&ScnRenderGeometry::IndexBuffer_ ),
-		ReField( "VertexBuffers_",			&ScnRenderGeometry::VertexBuffers_ ),
-		ReField( "VertexDeclaration_",		&ScnRenderGeometry::VertexDeclaration_ ),
+		new ReField( "IndexBuffer_",			&ScnRenderGeometry::IndexBuffer_ ),
+		new ReField( "VertexBuffers_",			&ScnRenderGeometry::VertexBuffers_ ),
+		new ReField( "VertexDeclaration_",		&ScnRenderGeometry::VertexDeclaration_ ),
 	};
 	
 	ReRegisterClass< ScnRenderGeometry, Super >( Fields );

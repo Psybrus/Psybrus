@@ -57,9 +57,9 @@ DEFINE_RESOURCE( ScnRenderTarget );
 void ScnRenderTarget::StaticRegisterClass()
 {
 	/*
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pRenderTarget_",			&ScnRenderTarget::pRenderTarget_ ),
+		new ReField( "pRenderTarget_",			&ScnRenderTarget::pRenderTarget_ ),
 	};
 		
 	ReRegisterClass< ScnRenderTarget, Super >( Fields );

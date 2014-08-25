@@ -43,13 +43,13 @@ DEFINE_RESOURCE( ScnShader );
 
 void ScnShader::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pHeader_",				&ScnShader::pHeader_ ),
-		ReField( "ShaderMappings_",			&ScnShader::ShaderMappings_,			bcRFF_TRANSIENT ),
-		ReField( "ProgramMap_",				&ScnShader::ProgramMap_,				bcRFF_TRANSIENT ),
-		ReField( "TargetCodeType_",			&ScnShader::TargetCodeType_ ),
-		ReField( "TotalProgramsLoaded_",	&ScnShader::TotalProgramsLoaded_ ),
+		new ReField( "pHeader_",				&ScnShader::pHeader_ ),
+		new ReField( "ShaderMappings_",			&ScnShader::ShaderMappings_,			bcRFF_TRANSIENT ),
+		new ReField( "ProgramMap_",				&ScnShader::ProgramMap_,				bcRFF_TRANSIENT ),
+		new ReField( "TargetCodeType_",			&ScnShader::TargetCodeType_ ),
+		new ReField( "TotalProgramsLoaded_",	&ScnShader::TotalProgramsLoaded_ ),
 	};
 		
 	ReRegisterClass< ScnShader, Super >( Fields );

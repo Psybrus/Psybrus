@@ -19,10 +19,10 @@ REFLECTION_DEFINE_BASIC( CsDependency );
 
 void CsDependency::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "FileName_",	&CsDependency::FileName_ ),
-		ReField( "Stats_",		&CsDependency::Stats_ ),
+		new ReField( "FileName_",	&CsDependency::FileName_ ),
+		new ReField( "Stats_",		&CsDependency::Stats_ ),
 	};
 
 	ReRegisterClass< CsDependency >( Fields );

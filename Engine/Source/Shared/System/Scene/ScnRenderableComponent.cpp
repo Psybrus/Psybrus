@@ -25,9 +25,9 @@ DEFINE_RESOURCE( ScnRenderableComponent );
 
 void ScnRenderableComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "RenderMask_",		&ScnRenderableComponent::RenderMask_ ),
+		new ReField( "RenderMask_",		&ScnRenderableComponent::RenderMask_ ),
 	};
 		
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )

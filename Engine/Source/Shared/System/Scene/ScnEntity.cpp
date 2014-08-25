@@ -48,13 +48,13 @@ DEFINE_RESOURCE( ScnEntity );
 
 void ScnEntity::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Basis_",			&ScnEntity::Basis_ ),
-		ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
-		ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
-		ReField( "Components_",		&ScnEntity::Components_ ),
-		ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
+		new ReField( "Basis_",			&ScnEntity::Basis_ ),
+		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
+		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
+		new ReField( "Components_",		&ScnEntity::Components_ ),
+		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
 	};
 		
 	ReRegisterClass< ScnEntity, Super >( Fields )

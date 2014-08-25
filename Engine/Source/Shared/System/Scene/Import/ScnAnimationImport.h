@@ -16,22 +16,26 @@
 
 #ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
+#include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Animation/ScnAnimation.h"
 
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationImport
-class ScnAnimationImport
+class ScnAnimationImport:
+	public CsResourceImporter
 {
+public:
+	REFLECTION_DECLARE_DERIVED( ScnAnimationImport, CsResourceImporter );
+
 public:
 	ScnAnimationImport();
 
 	/**
 	 * Import.
 	 */
-	BcBool import( 
-		class CsPackageImporter& Importer, 
+	BcBool import(
 		const Json::Value& Object );
 
 private:
@@ -52,15 +56,11 @@ private:
 private:
 	std::string Source_;
 
-	CsPackageImporter* pImporter_;
-
 	BcStream HeaderStream_;
 	BcStream NodeStream_;
 	BcStream PoseStream_;
 	BcStream KeyStream_;
-
 	const struct aiScene* Scene_;
-
 	std::vector< AnimatedNode > AnimatedNodes_;
 
 };

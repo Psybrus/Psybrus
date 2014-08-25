@@ -31,11 +31,11 @@ DEFINE_RESOURCE( ScnSoundEmitterComponent );
 
 void ScnSoundEmitterComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Position_",			&ScnSoundEmitterComponent::Position_ ),
-		ReField( "Gain_",				&ScnSoundEmitterComponent::Gain_ ),
-		ReField( "Pitch_",				&ScnSoundEmitterComponent::Pitch_ ),
+		new ReField( "Position_",			&ScnSoundEmitterComponent::Position_ ),
+		new ReField( "Gain_",				&ScnSoundEmitterComponent::Gain_ ),
+		new ReField( "Pitch_",				&ScnSoundEmitterComponent::Pitch_ ),
 	};
 		
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )

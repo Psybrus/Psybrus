@@ -25,13 +25,13 @@ public:
 	/**
 	 * Get attribute.
 	 */
-	ReAttribute* getAttribute( const ReClass* Class );
+	ReAttribute* getAttribute( const ReClass* Class ) const;
 
 	/**
 	 * Get attribute.
 	 */
 	template< class _Ty >
-	_Ty* getAttribute()
+	_Ty* getAttribute() const
 	{
 		return static_cast< _Ty* >( getAttribute( _Ty::StaticGetClass() ) );
 	}

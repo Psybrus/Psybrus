@@ -51,6 +51,10 @@ public:
 public:
     REFLECTION_DECLARE_BASE_MANUAL_NOINIT( ReObject );
 
+private:
+	ReObject( const ReObject& ){};
+	ReObject( ReObject&& ){};
+
 public:
     ReObject();
     ReObject( ReNoInit );

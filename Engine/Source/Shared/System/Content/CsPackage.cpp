@@ -25,11 +25,11 @@ REFLECTION_DEFINE_DERIVED( CsPackage );
 // Reflection
 void CsPackage::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "RefCount_",			&CsPackage::RefCount_,			bcRFF_TRANSIENT ),
-		ReField( "pLoader_",			&CsPackage::pLoader_,			bcRFF_TRANSIENT ),
-		ReField( "Resources_",			&CsPackage::Resources_,			bcRFF_TRANSIENT ),
+		new ReField( "RefCount_",			&CsPackage::RefCount_,			bcRFF_TRANSIENT ),
+		new ReField( "pLoader_",			&CsPackage::pLoader_,			bcRFF_TRANSIENT ),
+		new ReField( "Resources_",			&CsPackage::Resources_,			bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< CsPackage, Super >( Fields );

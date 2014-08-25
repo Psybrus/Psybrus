@@ -19,16 +19,16 @@ REFLECTION_DEFINE_DERIVED( ScnAnimationTreeTrackNode );
 
 void ScnAnimationTreeTrackNode::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pPoseA_",				&ScnAnimationTreeTrackNode::pPoseA_ ),
-		ReField( "pPoseB_",				&ScnAnimationTreeTrackNode::pPoseB_ ),
-		ReField( "pPoseFileDataA_",		&ScnAnimationTreeTrackNode::pPoseFileDataA_ ),
-		ReField( "pPoseFileDataB_",		&ScnAnimationTreeTrackNode::pPoseFileDataB_ ),
-		ReField( "CurrPoseIndex_",		&ScnAnimationTreeTrackNode::CurrPoseIndex_ ),
-		ReField( "Speed_",				&ScnAnimationTreeTrackNode::Speed_ ),
-		ReField( "Time_",				&ScnAnimationTreeTrackNode::Time_ ),
-		ReField( "AnimationQueue_",		&ScnAnimationTreeTrackNode::AnimationQueue_ ),
+		new ReField( "pPoseA_",				&ScnAnimationTreeTrackNode::pPoseA_ ),
+		new ReField( "pPoseB_",				&ScnAnimationTreeTrackNode::pPoseB_ ),
+		new ReField( "pPoseFileDataA_",		&ScnAnimationTreeTrackNode::pPoseFileDataA_ ),
+		new ReField( "pPoseFileDataB_",		&ScnAnimationTreeTrackNode::pPoseFileDataB_ ),
+		new ReField( "CurrPoseIndex_",		&ScnAnimationTreeTrackNode::CurrPoseIndex_ ),
+		new ReField( "Speed_",				&ScnAnimationTreeTrackNode::Speed_ ),
+		new ReField( "Time_",				&ScnAnimationTreeTrackNode::Time_ ),
+		new ReField( "AnimationQueue_",		&ScnAnimationTreeTrackNode::AnimationQueue_ ),
 	};
 		
 	ReRegisterClass< ScnAnimationTreeTrackNode, Super >( Fields );

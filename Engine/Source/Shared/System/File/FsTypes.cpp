@@ -19,17 +19,17 @@ REFLECTION_DEFINE_BASIC( FsTimestamp )
 
 void FsTimestamp::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Seconds_",		&FsTimestamp::Seconds_ ),
-		ReField( "Minutes_",		&FsTimestamp::Minutes_ ),
-		ReField( "Hours_",			&FsTimestamp::Hours_ ),
-		ReField( "MonthDay_",		&FsTimestamp::MonthDay_ ),
-		ReField( "Month_",			&FsTimestamp::Month_ ),
-		ReField( "Year_",			&FsTimestamp::Year_ ),
-		ReField( "WeekDay_",		&FsTimestamp::WeekDay_ ),
-		ReField( "YearDay_",		&FsTimestamp::YearDay_ ),
-		ReField( "IsDST_",			&FsTimestamp::IsDST_ ),
+		new ReField( "Seconds_",		&FsTimestamp::Seconds_ ),
+		new ReField( "Minutes_",		&FsTimestamp::Minutes_ ),
+		new ReField( "Hours_",			&FsTimestamp::Hours_ ),
+		new ReField( "MonthDay_",		&FsTimestamp::MonthDay_ ),
+		new ReField( "Month_",			&FsTimestamp::Month_ ),
+		new ReField( "Year_",			&FsTimestamp::Year_ ),
+		new ReField( "WeekDay_",		&FsTimestamp::WeekDay_ ),
+		new ReField( "YearDay_",		&FsTimestamp::YearDay_ ),
+		new ReField( "IsDST_",			&FsTimestamp::IsDST_ ),
 	};
 
 	ReRegisterClass< FsTimestamp >( Fields );
@@ -55,10 +55,10 @@ REFLECTION_DEFINE_BASIC( FsStats )
 
 void FsStats::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "CreatedTime_",	&FsStats::CreatedTime_ ),
-		ReField( "ModifiedTime_",	&FsStats::ModifiedTime_ ),
+		new ReField( "CreatedTime_",	&FsStats::CreatedTime_ ),
+		new ReField( "ModifiedTime_",	&FsStats::ModifiedTime_ ),
 	};
 
 	ReRegisterClass< FsStats >( Fields );
