@@ -58,7 +58,7 @@ class ScnDebugRenderComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, ScnDebugRenderComponent );
+	DECLARE_RESOURCE( ScnDebugRenderComponent, ScnRenderableComponent );
 
 	static ScnDebugRenderComponent*		pImpl();
 	

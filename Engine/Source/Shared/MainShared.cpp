@@ -33,38 +33,6 @@ BcU32 GResolutionHeight = 720;
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
 
-#include "System/Content/CsResourceImporter.h"
-
-#include "System/Scene/Animation/ScnAnimation.h"
-#include "System/Scene/Import/ScnAnimationImport.h"
-#include "System/Scene/Animation/ScnAnimationComponent.h"
-#include "System/Scene/Animation/ScnAnimationTreeNode.h"
-#include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
-#include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
-#include "System/Scene/Animation/ScnAnimationPose.h"
-
-#include "System/Scene/Physics/ScnPhysicsCollisionShape.h"
-#include "System/Scene/Physics/ScnPhysicsBoxCollisionShape.h"
-#include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
-#include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
-
-#include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnEntity.h"
-#include "System/Scene/ScnDebugRenderComponent.h"
-#include "System/Scene/ScnTexture.h"
-#include "System/Scene/ScnTextureAtlas.h"
-#include "System/Scene/ScnRenderTarget.h"
-#include "System/Scene/ScnLightComponent.h"
-#include "System/Scene/ScnMaterial.h"
-#include "System/Scene/ScnModel.h"
-#include "System/Scene/ScnParticleSystemComponent.h"
-#include "System/Scene/ScnCanvasComponent.h"
-#include "System/Scene/ScnShader.h"
-#include "System/Scene/ScnFont.h"
-#include "System/Scene/ScnSound.h"
-#include "System/Scene/ScnSoundEmitter.h"
-#include "System/Scene/ScnSoundListenerComponent.h"
-#include "System/Scene/ScnViewComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
@@ -86,87 +54,9 @@ void MainUnitTests()
 // onCsCoreOpened
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
-	// Register math libraries.
-	MaVec2d::StaticRegisterClass();
-	MaVec3d::StaticRegisterClass();
-	MaVec4d::StaticRegisterClass();
-	MaAABB::StaticRegisterClass();
-	MaMat3d::StaticRegisterClass();
-	MaMat4d::StaticRegisterClass();
-	MaPlane::StaticRegisterClass();
-
-	// Register system.
-	SysKernel::StaticRegisterClass();
-	SysSystem::StaticRegisterClass();
-
-	// Register content.
-	CsResource::StaticRegisterClass();
-	CsPackage::StaticRegisterClass();
-	CsDependency::StaticRegisterClass();
-	CsPackageDependencies::StaticRegisterClass();
-	CsResourceImporter::StaticRegisterClass();
-	CsResourceImporterAttribute::StaticRegisterClass();
-
-	// Register file.
-	FsTimestamp::StaticRegisterClass();
-	FsStats::StaticRegisterClass();
-
-	// Register debug.
-	// Register network.
-	// Register os
-	// Register renderer
-	RsColour::StaticRegisterClass();
-
-	// Register sound
-
-	// Register scene resources.
-	ScnShader::StaticRegisterClass();
-	ScnTexture::StaticRegisterClass();
-	ScnTextureAtlas::StaticRegisterClass();
-	ScnRenderTarget::StaticRegisterClass();
-	ScnMaterial::StaticRegisterClass();
-	ScnFont::StaticRegisterClass();
-	ScnModel::StaticRegisterClass();
-	ScnSound::StaticRegisterClass();
-
-	// Register scene components.
-	ScnViewComponent::StaticRegisterClass();
-	ScnComponent::StaticRegisterClass();
-	ScnRenderableComponent::StaticRegisterClass();
-	ScnSpatialComponent::StaticRegisterClass();
-	ScnEntity::StaticRegisterClass();
-	ScnDebugRenderComponent::StaticRegisterClass();
-	ScnMaterialComponent::StaticRegisterClass();
-	ScnFontComponent::StaticRegisterClass();
-	ScnParticleSystemComponent::StaticRegisterClass();
-	ScnLightComponent::StaticRegisterClass();
-	ScnModelComponent::StaticRegisterClass();
-	ScnSoundListenerComponent::StaticRegisterClass();
-	ScnSoundEmitterComponent::StaticRegisterClass();
-	ScnCanvasComponent::StaticRegisterClass();
-
-	ScnAnimation::StaticRegisterClass();
-	ScnAnimationImport::StaticRegisterClass();
-	ScnAnimationComponent::StaticRegisterClass();
-	ScnAnimationTreeNode::StaticRegisterClass();
-	ScnAnimationTreeBlendNode::StaticRegisterClass();
-	ScnAnimationTreeTrackNode::StaticRegisterClass();
-	ScnAnimationPose::StaticRegisterClass();
-
-	ScnPhysicsCollisionShape::StaticRegisterClass();
-	ScnPhysicsBoxCollisionShape::StaticRegisterClass();
-	ScnPhysicsRigidBodyComponent::StaticRegisterClass();
-	ScnPhysicsWorldComponent::StaticRegisterClass();
-
-	// Scene shader stuff.
-	ScnShaderViewUniformBlockData::StaticRegisterClass();
-	ScnShaderLightUniformBlockData::StaticRegisterClass();
-	ScnShaderObjectUniformBlockData::StaticRegisterClass();
-	ScnShaderBoneUniformBlockData::StaticRegisterClass();
-	ScnShaderAlphaTestUniformBlockData::StaticRegisterClass();
-	
-	// Register game resources before the view.
-	PsyGameRegisterResources();
+	// Register reflection.
+	extern void AutoGenRegisterReflection();
+	AutoGenRegisterReflection();
 
 	return evtRET_REMOVE;
 }

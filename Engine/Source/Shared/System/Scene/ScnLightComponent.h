@@ -32,7 +32,7 @@ class ScnLightComponent:
 	public ScnSpatialComponent
 {
 public:
-	DECLARE_RESOURCE( ScnSpatialComponent, ScnLightComponent );
+	DECLARE_RESOURCE( ScnLightComponent, ScnSpatialComponent );
 	DECLARE_VISITABLE( ScnLightComponent );
 
 public:

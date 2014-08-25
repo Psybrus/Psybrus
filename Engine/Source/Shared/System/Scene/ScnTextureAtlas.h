@@ -30,7 +30,7 @@ class ScnTextureAtlas:
 	public ScnTexture
 {
 public:
-	DECLARE_RESOURCE( ScnTexture, ScnTextureAtlas );
+	DECLARE_RESOURCE( ScnTextureAtlas, ScnTexture );
 	
 #if PSY_SERVER
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );

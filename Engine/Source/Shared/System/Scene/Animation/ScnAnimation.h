@@ -29,7 +29,7 @@ class ScnAnimation:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnAnimation );
+	DECLARE_RESOURCE( ScnAnimation, CsResource );
 	
 	virtual void						initialise();
 	virtual void						create();

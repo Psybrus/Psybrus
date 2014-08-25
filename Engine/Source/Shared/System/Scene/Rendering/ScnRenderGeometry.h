@@ -23,7 +23,7 @@ class ScnRenderGeometry:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnRenderGeometry );
+	DECLARE_RESOURCE( ScnRenderGeometry, CsResource );
 
 public:
 	void initialise( 

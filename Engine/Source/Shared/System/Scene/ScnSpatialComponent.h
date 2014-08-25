@@ -25,7 +25,7 @@ class ScnSpatialComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnSpatialComponent );
+	DECLARE_RESOURCE( ScnSpatialComponent, ScnComponent );
 	DECLARE_VISITABLE( ScnSpatialComponent );
 
 public:

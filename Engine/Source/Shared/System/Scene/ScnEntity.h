@@ -26,7 +26,7 @@ class ScnEntity:
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnEntity );
+	DECLARE_RESOURCE( ScnEntity, ScnComponent );
 	
 #if PSY_SERVER
 	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );

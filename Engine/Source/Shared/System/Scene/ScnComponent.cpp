@@ -20,6 +20,11 @@
 // ScnComponentAttribute
 REFLECTION_DEFINE_DERIVED( ScnComponentAttribute );
 
+void ScnComponentAttribute::StaticRegisterClass()
+{
+	ReRegisterClass< ScnComponentAttribute, Super >();
+}
+
 ScnComponentAttribute::ScnComponentAttribute( BcS32 UpdatePriority ):
 	UpdatePriority_( UpdatePriority )
 {

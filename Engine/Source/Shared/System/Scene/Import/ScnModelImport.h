@@ -16,22 +16,26 @@
 
 #ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
+#include "System/Content/CsResourceImporter.h"
 #include "System/Scene/ScnModelFileData.h"
 
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelImport
-class ScnModelImport
+class ScnModelImport:
+	public CsResourceImporter
 {
+public:
+	REFLECTION_DECLARE_DERIVED( ScnModelImport, CsResourceImporter );
+
 public:
 	ScnModelImport();
 
 	/**
 	 * Import.
 	 */
-	BcBool import( 
-		class CsPackageImporter& Importer, 
+	BcBool import(  
 		const Json::Value& Object );
 
 private:
@@ -97,7 +101,6 @@ private:
 private:
 	std::string Source_;
 
-	CsPackageImporter* pImporter_;
 	BcStream HeaderStream_;
 	BcStream NodeTransformDataStream_;
 	BcStream NodePropertyDataStream_;

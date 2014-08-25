@@ -25,7 +25,7 @@ class ScnRenderableComponent:
 	public ScnSpatialComponent
 {
 public:
-	DECLARE_RESOURCE( ScnSpatialComponent, ScnRenderableComponent );
+	DECLARE_RESOURCE( ScnRenderableComponent, ScnSpatialComponent );
 	DECLARE_VISITABLE( ScnRenderableComponent );
 
 public:

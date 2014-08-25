@@ -22,7 +22,7 @@ class ScnPhysicsWorldComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnPhysicsWorldComponent );
+	DECLARE_RESOURCE( ScnPhysicsWorldComponent, ScnComponent );
 	
 
 	virtual void initialise();

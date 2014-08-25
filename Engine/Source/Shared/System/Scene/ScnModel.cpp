@@ -24,16 +24,6 @@
 
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnModelImport.h"
-
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnModel::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	ScnModelImport ModelImport;
-	return ModelImport.import( Importer, Object );
-}
-
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,7 +37,12 @@ void ScnModel::StaticRegisterClass()
 		new ReField( "pHeader_",				&ScnModel::pHeader_ ),
 	};
 		
-	ReRegisterClass< ScnModel, Super >( Fields );
+	auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
+
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( ScnModelImport::StaticGetClass() ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

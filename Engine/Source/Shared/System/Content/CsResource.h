@@ -27,7 +27,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Helper defines.
-#define DECLARE_RESOURCE( _Base, _Type )										\
+#define DECLARE_RESOURCE( _Type, _Base )										\
 	REFLECTION_DECLARE_DERIVED( _Type, _Base )									\
 	public:																	\
 	_Type();																	\

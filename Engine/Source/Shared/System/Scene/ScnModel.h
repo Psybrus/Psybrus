@@ -35,12 +35,8 @@ class ScnModel:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnModel );
-	
-#if PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
-	
+	DECLARE_RESOURCE( ScnModel, CsResource );
+		
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
@@ -70,7 +66,7 @@ class ScnModelComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, ScnModelComponent );
+	DECLARE_RESOURCE( ScnModelComponent, ScnRenderableComponent );
 
 	virtual void						initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );

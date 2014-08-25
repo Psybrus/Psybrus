@@ -46,7 +46,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnComponentAttribute, ReAttribute );
 
 public:
-	ScnComponentAttribute( BcS32 UpdatePriority );
+	ScnComponentAttribute( BcS32 UpdatePriority = 0 );
 	int getUpdatePriority() const;
 
 private:
@@ -59,7 +59,7 @@ class ScnComponent:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnComponent );
+	DECLARE_RESOURCE( ScnComponent, CsResource );
 
 public:
 	virtual void						initialise();

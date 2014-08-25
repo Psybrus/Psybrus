@@ -23,7 +23,7 @@ class ScnRenderPipeline:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnRenderPipeline );
+	DECLARE_RESOURCE( ScnRenderPipeline, CsResource );
 
 public:
 	void initialise();
