@@ -28,14 +28,14 @@ DEFINE_RESOURCE( ScnLightComponent );
 
 void ScnLightComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Type_",				&ScnLightComponent::Type_ ),
-		ReField( "AmbientColour_",		&ScnLightComponent::AmbientColour_ ),
-		ReField( "DiffuseColour_",		&ScnLightComponent::DiffuseColour_ ),
-		ReField( "AttnC_",				&ScnLightComponent::AttnC_ ),
-		ReField( "AttnL_",				&ScnLightComponent::AttnL_ ),
-		ReField( "AttnQ_",				&ScnLightComponent::AttnQ_ ),
+		new ReField( "Type_",				&ScnLightComponent::Type_ ),
+		new ReField( "AmbientColour_",		&ScnLightComponent::AmbientColour_ ),
+		new ReField( "DiffuseColour_",		&ScnLightComponent::DiffuseColour_ ),
+		new ReField( "AttnC_",				&ScnLightComponent::AttnC_ ),
+		new ReField( "AttnL_",				&ScnLightComponent::AttnL_ ),
+		new ReField( "AttnQ_",				&ScnLightComponent::AttnQ_ ),
 	};
 		
 	ReRegisterClass< ScnLightComponent, Super >( Fields )

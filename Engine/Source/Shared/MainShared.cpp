@@ -33,7 +33,10 @@ BcU32 GResolutionHeight = 720;
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
 
+#include "System/Content/CsResourceImporter.h"
+
 #include "System/Scene/Animation/ScnAnimation.h"
+#include "System/Scene/Import/ScnAnimationImport.h"
 #include "System/Scene/Animation/ScnAnimationComponent.h"
 #include "System/Scene/Animation/ScnAnimationTreeNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
@@ -101,6 +104,8 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	CsPackage::StaticRegisterClass();
 	CsDependency::StaticRegisterClass();
 	CsPackageDependencies::StaticRegisterClass();
+	CsResourceImporter::StaticRegisterClass();
+	CsResourceImporterAttribute::StaticRegisterClass();
 
 	// Register file.
 	FsTimestamp::StaticRegisterClass();
@@ -141,6 +146,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 	ScnCanvasComponent::StaticRegisterClass();
 
 	ScnAnimation::StaticRegisterClass();
+	ScnAnimationImport::StaticRegisterClass();
 	ScnAnimationComponent::StaticRegisterClass();
 	ScnAnimationTreeNode::StaticRegisterClass();
 	ScnAnimationTreeBlendNode::StaticRegisterClass();

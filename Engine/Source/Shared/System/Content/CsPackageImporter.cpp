@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Content/CsPackageImporter.h"
+#include "System/Content/CsResourceImporter.h"
 
 #include "System/Content/CsCore.h"
 
@@ -41,9 +42,9 @@ REFLECTION_DEFINE_BASIC( CsPackageDependencies );
 
 void CsPackageDependencies::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Dependencies_",	&CsPackageDependencies::Dependencies_ ),
+		new ReField( "Dependencies_",	&CsPackageDependencies::Dependencies_ ),
 	};
 
 	ReRegisterClass< CsPackageDependencies >( Fields );
@@ -398,42 +399,70 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 	// Get first chunk used by resource.
 	BcU32 FirstChunk = ChunkHeaders_.size();
 
-	// Allocate a resource (TODO: Use static member for import instead of instance.)
-	CsResource* pResource = CsCore::pImpl()->allocResource( Name.asCString(), ReManager::GetClass( Type.asCString() ), ResourceIndex, NULL );
-	if( pResource == NULL )
+	// Find class and attribute.
+	BcBool SuccessfulImport = BcFalse;
+	const ReClass* ResourceClass = ReManager::GetClass( Type.asCString() );
+	if( ResourceClass != nullptr )
 	{
-		BcPrintf( "CsPackageImporter: Can't allocate resource \"%s\" of type \"%s\".\n", Name.asCString(), Type.asCString() );
-		return BcFalse;
+		CsResourceImporterAttribute* ResourceImporterAttr = 
+			ResourceClass->getAttribute< CsResourceImporterAttribute >();
+
+		if( ResourceImporterAttr != nullptr )
+		{
+			auto ResourceImporter = ResourceImporterAttr->getImporter();
+
+			// TODO: Use serialisation to setup resource importer.
+			try
+			{
+				ResourceImporter->initialise( this );
+				SuccessfulImport = ResourceImporter->import( Resource );
+			}
+			catch( CsImportException ImportException )
+			{
+				throw ImportException;
+			}
+		}
 	}
 	
-	// Call resource import.
-	try
+	// Fallback to old import.
+	if( SuccessfulImport == BcFalse )
 	{
-		BcBool SuccessfulImport = pResource->import( *this, Resource );
-
-		if( SuccessfulImport )
+		// Allocate a resource (TODO: Use static member for import instead of instance.)
+		CsResource* pResource = CsCore::pImpl()->allocResource( Name.asCString(), ReManager::GetClass( Type.asCString() ), ResourceIndex, NULL );
+		if( pResource == NULL )
 		{
-			// Setup current resource header.
-			CurrResourceHeader_.Name_ = addString( Name.asCString() );
-			CurrResourceHeader_.Type_ = addString( Type.asCString() );
-			CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
-			CurrResourceHeader_.FirstChunk_ = FirstChunk;
-			CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
-		
-			// Make sure chunk indices are valid.
-			BcAssert( CurrResourceHeader_.FirstChunk_ <= CurrResourceHeader_.LastChunk_ );
-
-			ResourceHeaders_.push_back( CurrResourceHeader_ );
+			BcPrintf( "CsPackageImporter: Can't allocate resource \"%s\" of type \"%s\".\n", Name.asCString(), Type.asCString() );
+			return BcFalse;
 		}
 	
-		return SuccessfulImport;
-	}
-	catch( CsImportException ImportException )
-	{
-		throw ImportException;
+		// Call resource import.
+		try
+		{
+			SuccessfulImport = pResource->import( *this, Resource );
+		}
+		catch( CsImportException ImportException )
+		{
+			throw ImportException;
+		}
 	}
 
-	return BcFalse;
+	// Handle success.
+	if( SuccessfulImport )
+	{
+		// Setup current resource header.
+		CurrResourceHeader_.Name_ = addString( Name.asCString() );
+		CurrResourceHeader_.Type_ = addString( Type.asCString() );
+		CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
+		CurrResourceHeader_.FirstChunk_ = FirstChunk;
+		CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
+		
+		// Make sure chunk indices are valid.
+		BcAssert( CurrResourceHeader_.FirstChunk_ <= CurrResourceHeader_.LastChunk_ );
+
+		ResourceHeaders_.push_back( CurrResourceHeader_ );
+	}
+	
+	return SuccessfulImport;
 }
 
 //////////////////////////////////////////////////////////////////////////

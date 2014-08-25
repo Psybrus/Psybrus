@@ -187,9 +187,9 @@ DEFINE_RESOURCE( ScnTextureAtlas );
 
 void ScnTextureAtlas::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pAtlasHeader_",		&ScnTextureAtlas::pAtlasHeader_ ),
+		new ReField( "pAtlasHeader_",		&ScnTextureAtlas::pAtlasHeader_ ),
 	};
 		
 	ReRegisterClass< ScnTextureAtlas, Super >( Fields );

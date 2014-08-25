@@ -18,16 +18,6 @@
 
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnAnimationImport.h"
-
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnAnimation::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	ScnAnimationImport AnimationImport;
-	return AnimationImport.import( Importer, Object );
-}
-
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,12 +26,17 @@ DEFINE_RESOURCE( ScnAnimation );
 
 void ScnAnimation::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Header_",			&ScnAnimation::Header_ ),
+		new ReField( "Header_",			&ScnAnimation::Header_ ),
 	};
 		
-	ReRegisterClass< ScnAnimation, Super >( Fields );
+	auto& Class = ReRegisterClass< ScnAnimation, Super >( Fields );
+	
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( ScnAnimationImport::StaticGetClass() ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

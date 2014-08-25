@@ -201,10 +201,10 @@ DEFINE_RESOURCE( ScnTexture );
 
 void ScnTexture::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pTexture_",			&ScnTexture::pTexture_,			bcRFF_TRANSIENT ),
-		ReField( "Header_",				&ScnTexture::Header_ ),
+		new ReField( "pTexture_",			&ScnTexture::pTexture_,			bcRFF_TRANSIENT ),
+		new ReField( "Header_",				&ScnTexture::Header_ ),
 	};
 		
 	ReRegisterClass< ScnTexture, Super >( Fields );

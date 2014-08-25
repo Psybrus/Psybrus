@@ -42,9 +42,9 @@ DEFINE_RESOURCE( ScnModel );
 
 void ScnModel::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pHeader_",				&ScnModel::pHeader_ ),
+		new ReField( "pHeader_",				&ScnModel::pHeader_ ),
 	};
 		
 	ReRegisterClass< ScnModel, Super >( Fields );
@@ -259,13 +259,13 @@ DEFINE_RESOURCE( ScnModelComponent );
 
 void ScnModelComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Parent_",							&ScnModelComponent::Parent_ ),
-		ReField( "Layer_",							&ScnModelComponent::Layer_ ),
-		ReField( "Pass_",							&ScnModelComponent::Pass_ ),
-		ReField( "AABB_",							&ScnModelComponent::AABB_ ),
-		ReField( "PerComponentMeshDataList_",	&ScnModelComponent::PerComponentMeshDataList_ ),
+		new ReField( "Parent_",							&ScnModelComponent::Parent_ ),
+		new ReField( "Layer_",							&ScnModelComponent::Layer_ ),
+		new ReField( "Pass_",							&ScnModelComponent::Pass_ ),
+		new ReField( "AABB_",							&ScnModelComponent::AABB_ ),
+		new ReField( "PerComponentMeshDataList_",	&ScnModelComponent::PerComponentMeshDataList_ ),
 	};
 		
 	ReRegisterClass< ScnModelComponent, Super >( Fields )

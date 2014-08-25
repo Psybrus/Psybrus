@@ -29,15 +29,15 @@ DEFINE_RESOURCE( ScnSpriteComponent );
 
 void ScnSpriteComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Canvas_",				&ScnSpriteComponent::Canvas_ ),
-		ReField( "Material_",			&ScnSpriteComponent::Material_ ),
-		ReField( "Position_",			&ScnSpriteComponent::Position_ ),
-		ReField( "Size_",				&ScnSpriteComponent::Size_ ),
-		ReField( "Colour_",				&ScnSpriteComponent::Colour_ ),
-		ReField( "Index_",				&ScnSpriteComponent::Index_ ),
-		ReField( "Layer_",				&ScnSpriteComponent::Layer_ ),
+		new ReField( "Canvas_",				&ScnSpriteComponent::Canvas_ ),
+		new ReField( "Material_",			&ScnSpriteComponent::Material_ ),
+		new ReField( "Position_",			&ScnSpriteComponent::Position_ ),
+		new ReField( "Size_",				&ScnSpriteComponent::Size_ ),
+		new ReField( "Colour_",				&ScnSpriteComponent::Colour_ ),
+		new ReField( "Index_",				&ScnSpriteComponent::Index_ ),
+		new ReField( "Layer_",				&ScnSpriteComponent::Layer_ ),
 	};
 		
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )

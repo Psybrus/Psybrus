@@ -20,7 +20,7 @@ DEFINE_RESOURCE( ScnRenderPipeline );
 void ScnRenderPipeline::StaticRegisterClass()
 {
 	/*
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
 
 	};

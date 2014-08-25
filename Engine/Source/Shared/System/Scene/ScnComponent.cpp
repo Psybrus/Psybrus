@@ -37,9 +37,9 @@ DEFINE_RESOURCE( ScnComponent );
 
 void ScnComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "ParentEntity_",		&ScnComponent::ParentEntity_ )
+		new ReField( "ParentEntity_",		&ScnComponent::ParentEntity_ )
 	};
 		
 	ReRegisterClass< ScnComponent, Super >( Fields );

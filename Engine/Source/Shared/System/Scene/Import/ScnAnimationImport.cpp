@@ -97,6 +97,21 @@ namespace
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_DERIVED( ScnAnimationImport )
+	
+void ScnAnimationImport::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Source_", &ScnAnimationImport::Source_ ),
+	};
+		
+	ReRegisterClass< ScnAnimationImport, Super >( Fields );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnAnimationImport::ScnAnimationImport()
 {
@@ -104,7 +119,7 @@ ScnAnimationImport::ScnAnimationImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json::Value& Object )
+BcBool ScnAnimationImport::import( const Json::Value& Object )
 {
 	Source_ = Object[ "source" ].asString();
 
@@ -146,7 +161,7 @@ BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json
 			for( BcU32 NodeIdx = 0; NodeIdx < Animation->mNumChannels; ++NodeIdx )
 			{
 				auto* Channel = Animation->mChannels[ NodeIdx ];
-				NodeFileData.Name_ = Importer.addString( Channel->mNodeName.C_Str() );
+				NodeFileData.Name_ = CsResourceImporter::addString( Channel->mNodeName.C_Str() );
 				NodeStream_ << NodeFileData;
 			}
 
@@ -243,10 +258,10 @@ BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json
 			}
 		
 			// Write out chunks.
-			Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
-			Importer.addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
-			Importer.addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
-			Importer.addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
+			CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
+			CsResourceImporter::addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
+			CsResourceImporter::addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
+			CsResourceImporter::addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
 		}
 
 		aiReleaseImport( Scene_ );
@@ -288,7 +303,7 @@ BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json
 		for( BcU32 NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
 		{
 			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-			NodeFileData.Name_ = Importer.addString( pNode->Name_ );
+			NodeFileData.Name_ = CsResourceImporter::addString( pNode->Name_ );
 			NodeStream_ << NodeFileData;
 		}
 
@@ -326,10 +341,10 @@ BcBool ScnAnimationImport::import( class CsPackageImporter& Importer, const Json
 		}
 		
 		// Write out chunks.
-		Importer.addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
-		Importer.addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
-		Importer.addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
-		Importer.addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
+		CsResourceImporter::addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
+		CsResourceImporter::addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
 
 		return BcTrue;
 	}

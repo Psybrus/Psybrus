@@ -171,10 +171,10 @@ DEFINE_RESOURCE( ScnMaterial );
 
 void ScnMaterial::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Shader_",				&ScnMaterial::Shader_ ),
-		ReField( "TextureMap_",			&ScnMaterial::TextureMap_ ),
+		new ReField( "Shader_",				&ScnMaterial::Shader_ ),
+		new ReField( "TextureMap_",			&ScnMaterial::TextureMap_ ),
 	};
 		
 	ReRegisterClass< ScnMaterial, Super >( Fields );
@@ -271,13 +271,13 @@ DEFINE_RESOURCE( ScnMaterialComponent );
 
 void ScnMaterialComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Parent_",						&ScnMaterialComponent::Parent_ ),
-		ReField( "pProgram_",					&ScnMaterialComponent::pProgram_ ),
-		ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
-		ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
-		ReField( "ObjectUniformBlockIndex_",	&ScnMaterialComponent::ObjectUniformBlockIndex_ ),
+		new ReField( "Parent_",						&ScnMaterialComponent::Parent_ ),
+		new ReField( "pProgram_",					&ScnMaterialComponent::pProgram_ ),
+		new ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
+		new ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
+		new ReField( "ObjectUniformBlockIndex_",	&ScnMaterialComponent::ObjectUniformBlockIndex_ ),
 	};
 		
 	ReRegisterClass< ScnMaterialComponent, Super >( Fields );

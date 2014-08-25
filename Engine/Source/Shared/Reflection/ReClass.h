@@ -20,48 +20,54 @@ public:
     virtual ~ReClass(){};
 
 	/**
-		* Set super.
-		*/
+	 * Set super.
+	 */
     void							setSuper( const ReClass* Super );
 
 	/**
-		* Get super.
-		*/
+	 * Get super.
+	 */
     const ReClass*					getSuper() const;
 
 	/**
-		* Have super class?
-		*/
+	 * Have super class?
+	 */
     BcBool							hasBaseClass( const ReClass* pClass ) const;
 
 	/**
-		* Set fields.
-		*/
-    void							setFields( BcU32 NoofFields, const ReField* pFields );
+	 * Set fields.
+	 */
+    void							setFields( ReFieldVector&& Fields );
 
 	/**
-		* Set fields by array.
-		*/
+	 * Set fields by array.
+	 */
 	template< int _Size >
-    void							setFields( const ReField ( & Fields )[ _Size ] )
+    void							setFields( ReField* ( & Fields )[ _Size ] )
 	{
-		setFields( _Size, &Fields[ 0 ] );
+		// Temporary until upgrade to VS2013 or above.
+		ReFieldVector FieldVector( _Size );
+		for( BcU32 Idx = 0; Idx < _Size; ++Idx )
+		{
+			FieldVector[ Idx ] = Fields[ Idx ];
+		}
+		setFields( std::move( FieldVector ) );
 	}
 
-	/**
-		* Get field.
-		*/
+	/*
+	 * Get field.
+	 */
     const ReField*					getField( BcU32 Idx ) const;
 
 	/**
-		* Get noof fields.
-		*/
+	 * Get noof fields.
+	 */
 	BcU32							getNoofFields() const;
 
 	/**
-		* Construct object.
-		* @param pData Data to allocate into.
-		*/
+	 * Construct object.
+	 * @param pData Data to allocate into.
+	 */
 	template< class _Ty >
 	_Ty*							construct( void* pData ) const
 	{
@@ -70,9 +76,9 @@ public:
 	}
 
 	/**
-		* Construct object with no init.
-		* @param pData Data to allocate into.
-		*/
+	 * Construct object with no init.
+	 * @param pData Data to allocate into.
+	 */
 	template< class _Ty >
 	_Ty*							constructNoInit( void* pData ) const
 	{
@@ -82,8 +88,8 @@ public:
 	}
 
 	/**
-		* Construct object.
-		*/
+	 * Construct object.
+	 */
 	template< class _Ty >
 	_Ty*							construct() const
 	{
@@ -91,8 +97,8 @@ public:
 	}
 
 	/**
-		* Construct object with no init.
-		*/
+	 * Construct object with no init.
+	 */
 	template< class _Ty >
 	_Ty*							constructNoInit() const
 	{
@@ -100,8 +106,8 @@ public:
 	}
 
 	/**
-		* Destruct object.
-		*/
+	 * Destruct object.
+	 */
 	template< class _Ty >
 	void							destruct( _Ty* pData ) const
 	{
@@ -109,8 +115,8 @@ public:
 	}
 
 protected:
-    const ReClass*					Super_;
-    std::vector< const ReField* >		Fields_;
+    const ReClass* Super_;
+    ReFieldVector Fields_;
 };
 
 #endif

@@ -24,10 +24,10 @@ DEFINE_RESOURCE( ScnCanvasComponent );
 
 void ScnCanvasComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "MaterialComponent_",	&ScnCanvasComponent::MaterialComponent_ ),
-		ReField( "DiffuseTexture_",		&ScnCanvasComponent::DiffuseTexture_ )
+		new ReField( "MaterialComponent_",	&ScnCanvasComponent::MaterialComponent_ ),
+		new ReField( "DiffuseTexture_",		&ScnCanvasComponent::DiffuseTexture_ )
 	};
 		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )

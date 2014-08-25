@@ -30,9 +30,9 @@ DEFINE_RESOURCE( ScnDebugRenderComponent );
 
 void ScnDebugRenderComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_ )
+		new ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_ )
 	};
 		
 	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields )

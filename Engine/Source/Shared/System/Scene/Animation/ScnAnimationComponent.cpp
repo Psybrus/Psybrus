@@ -27,12 +27,12 @@ DEFINE_RESOURCE( ScnAnimationComponent );
 
 void ScnAnimationComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "TargetComponentName_",		&ScnAnimationComponent::TargetComponentName_ ),
-		ReField( "Model_",						&ScnAnimationComponent::Model_ ),
-		ReField( "pRootTreeNode_",				&ScnAnimationComponent::pRootTreeNode_ ),
-		ReField( "pReferencePose_",				&ScnAnimationComponent::pReferencePose_ ),
+		new ReField( "TargetComponentName_",		&ScnAnimationComponent::TargetComponentName_ ),
+		new ReField( "Model_",						&ScnAnimationComponent::Model_ ),
+		new ReField( "pRootTreeNode_",				&ScnAnimationComponent::pRootTreeNode_ ),
+		new ReField( "pReferencePose_",				&ScnAnimationComponent::pReferencePose_ ),
 	};
 		
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )

@@ -7,9 +7,9 @@ REFLECTION_DEFINE_DERIVED( ReAttributable );
 
 void ReAttributable::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Attributes_",		&ReAttributable::Attributes_ ),
+		new ReField( "Attributes_",		&ReAttributable::Attributes_ ),
 	};
 		
 	ReRegisterClass< ReAttributable, RePrimitive >( Fields );
@@ -33,7 +33,7 @@ ReAttributable& ReAttributable::addAttribute( ReAttribute* Attribute )
 }
 
 
-ReAttribute* ReAttributable::getAttribute( const ReClass* Class )
+ReAttribute* ReAttributable::getAttribute( const ReClass* Class ) const
 {
 	ReAttribute* RetVal = nullptr;
 

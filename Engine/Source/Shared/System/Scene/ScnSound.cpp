@@ -74,11 +74,11 @@ DEFINE_RESOURCE( ScnSound );
 
 void ScnSound::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pSample_",			&ScnSound::pSample_ ),
-		ReField( "pHeader_",			&ScnSound::pHeader_ ),
-		ReField( "SampleDataSize_",		&ScnSound::SampleDataSize_ ),
+		new ReField( "pSample_",			&ScnSound::pSample_ ),
+		new ReField( "pHeader_",			&ScnSound::pHeader_ ),
+		new ReField( "SampleDataSize_",		&ScnSound::SampleDataSize_ ),
 	};
 		
 	ReRegisterClass< ScnSound, Super >( Fields );

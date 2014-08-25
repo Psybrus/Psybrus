@@ -8,10 +8,10 @@ REFLECTION_DEFINE_DERIVED( ReClass );
 
 void ReClass::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Super_",		&ReClass::Super_ ),
-		ReField( "Fields_",		&ReClass::Fields_ ),
+		new ReField( "Super_",		&ReClass::Super_ ),
+		new ReField( "Fields_",		&ReClass::Fields_ ),
 	};
 		
 	ReRegisterClass< ReClass, ReType >( Fields );
@@ -67,14 +67,10 @@ BcBool ReClass::hasBaseClass( const ReClass* pClass ) const
 	
 //////////////////////////////////////////////////////////////////////////
 // setFields
-void ReClass::setFields( BcU32 NoofFields, const ReField* pFields )
+void ReClass::setFields( ReFieldVector&& Fields )
 {
 	BcAssertMsg( Fields_.size() == 0, "Fields already set." );
-	Fields_.reserve( NoofFields );
-	for( BcU32 Idx = 0; Idx < NoofFields; ++Idx )
-	{
-		Fields_.push_back( &pFields[ Idx ] );
-	}
+	Fields_ = std::move( Fields );
 }
 	
 //////////////////////////////////////////////////////////////////////////

@@ -189,6 +189,7 @@ BcBool ScnModelImport::import( class CsPackageImporter& Importer, const Json::Va
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4 );
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_IMPORT_MD5_NO_ANIM_AUTOLOAD, true );
 
+	// TODO: Intercept file io to track dependencies.
 	Scene_ = aiImportFileExWithProperties( 
 		Source_.c_str(), 
 		aiProcessPreset_TargetRealtime_MaxQuality | 
@@ -889,23 +890,23 @@ void ScnModelImport::serialiseMesh(
 			MeshData.AABB_ );
 		
 		// Grab material name.
-		std::string Material;
-		//Mesh->mMaterialIndex
-		
-		// Always setup default material.
-		//if( Material.Name_.length() == 0 )
-		{
-			Material = "$(ScnMaterial:materials.default)";
-		}
-		//else
-		//{
-			// Add the cross package reference.
-			//Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
-		//}
+		std::string MaterialName;
+		aiMaterial* Material = Scene_->mMaterials[ Mesh->mMaterialIndex ];
 
+		aiString AiMaterialName;
+		if( Material->Get( "?mat.name", 0, 0, AiMaterialName ) == aiReturn_SUCCESS &&
+			std::string( AiMaterialName.C_Str() ) != "DefaultMaterial" )
+		{
+			MaterialName = std::string( "$(ScnMaterial:" ) + AiMaterialName.C_Str() + std::string( ")" );
+		}
+		else
+		{
+			MaterialName = "$(ScnMaterial:materials.default)";
+		}
+		
 		// Import material.
 		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( Material.c_str() );
+		MeshData.MaterialRef_ = pImporter_->addPackageCrossRef( MaterialName.c_str() );
 		
 		MeshData_.push_back( MeshData );
 

@@ -88,22 +88,22 @@ DEFINE_RESOURCE( ScnViewComponent );
 
 void ScnViewComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "X_",					&ScnViewComponent::X_ ),
-		ReField( "Y_",					&ScnViewComponent::Y_ ),
-		ReField( "Width_",				&ScnViewComponent::Width_ ),
-		ReField( "Height_",				&ScnViewComponent::Height_ ),
-		ReField( "Near_",				&ScnViewComponent::Near_ ),
-		ReField( "Far_",				&ScnViewComponent::Far_ ),
-		ReField( "HorizontalFOV_",		&ScnViewComponent::HorizontalFOV_ ),
-		ReField( "VerticalFOV_",		&ScnViewComponent::VerticalFOV_ ),
-		ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
-		ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
-		ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
-		ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
-		ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
-		ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
+		new ReField( "X_",					&ScnViewComponent::X_ ),
+		new ReField( "Y_",					&ScnViewComponent::Y_ ),
+		new ReField( "Width_",				&ScnViewComponent::Width_ ),
+		new ReField( "Height_",				&ScnViewComponent::Height_ ),
+		new ReField( "Near_",				&ScnViewComponent::Near_ ),
+		new ReField( "Far_",				&ScnViewComponent::Far_ ),
+		new ReField( "HorizontalFOV_",		&ScnViewComponent::HorizontalFOV_ ),
+		new ReField( "VerticalFOV_",		&ScnViewComponent::VerticalFOV_ ),
+		new ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
+		new ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
+		new ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
+		new ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
+		new ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
+		new ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
 	};
 		
 	ReRegisterClass< ScnViewComponent, Super >( Fields )

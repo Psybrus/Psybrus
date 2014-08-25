@@ -8,17 +8,17 @@ REFLECTION_DEFINE_BASE( ReObject );
 	
 void ReObject::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
 #if REFLECTION_ENABLE_GC
-		ReField( "RefCount_",			&ReObject::RefCount_,		bcRFF_TRANSIENT ),
+		new ReField( "RefCount_",			&ReObject::RefCount_,		bcRFF_TRANSIENT ),
 #endif
-		ReField( "Flags_",				&ReObject::Flags_ ),
-		ReField( "Owner_",				&ReObject::Owner_ ),
-		ReField( "Basis_",				&ReObject::Basis_ ),
-		ReField( "Name_",				&ReObject::Name_ ),
+		new ReField( "Flags_",				&ReObject::Flags_ ),
+		new ReField( "Owner_",				&ReObject::Owner_ ),
+		new ReField( "Basis_",				&ReObject::Basis_ ),
+		new ReField( "Name_",				&ReObject::Name_ ),
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
-		ReField( "UniqueId_",			&ReObject::UniqueId_ ),
+		new ReField( "UniqueId_",			&ReObject::UniqueId_ ),
 #endif
 	};
 		

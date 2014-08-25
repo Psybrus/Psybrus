@@ -19,10 +19,10 @@ REFLECTION_DEFINE_BASIC( MaAABB );
 
 void MaAABB::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Min_",		&MaAABB::Min_ ),
-		ReField( "Max_",		&MaAABB::Max_ ),
+		new ReField( "Min_",		&MaAABB::Min_ ),
+		new ReField( "Max_",		&MaAABB::Max_ ),
 	};
 		
 	ReRegisterClass< MaAABB >( Fields );

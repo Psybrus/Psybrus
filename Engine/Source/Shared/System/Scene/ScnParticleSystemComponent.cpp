@@ -28,9 +28,9 @@ DEFINE_RESOURCE( ScnParticleSystemComponent );
 
 void ScnParticleSystemComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "MaterialComponent_",		&ScnParticleSystemComponent::MaterialComponent_ ),
+		new ReField( "MaterialComponent_",		&ScnParticleSystemComponent::MaterialComponent_ ),
 	};
 		
 	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields )
