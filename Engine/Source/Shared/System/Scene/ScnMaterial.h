@@ -52,9 +52,6 @@ class ScnMaterial:
 public:
 	DECLARE_RESOURCE( ScnMaterial, CsResource );
 	
-#ifdef PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
