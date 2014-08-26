@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////////
 // load
 //static
-ImgImage* Img::load( const BcChar* Filename )
+ImgImageUPtr Img::load( const BcChar* Filename )
 {
 	if( BcStrStr( Filename, ".png" ) )
 	{
@@ -51,7 +51,7 @@ void PngRead( png_structp pPngRead, png_bytep pData, png_size_t Length )
 }
 
 //static
-ImgImage* Img::loadPNG( const BcChar* Filename )
+ImgImageUPtr Img::loadPNG( const BcChar* Filename )
 {
 	// Open file.
 	FILE* pFile = fopen( Filename, "rb" );
@@ -164,7 +164,7 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 		png_read_image( pPngRead, pPngRowPointers );
 		
 		// Copy over.
-		ImgImage* pImage = new ImgImage();
+		ImgImageUPtr pImage = ImgImageUPtr( new ImgImage() );
 		pImage->create( PngWidth, PngHeight );
 		
 		for( BcU32 iRow = 0; iRow < PngHeight; ++iRow )
@@ -214,7 +214,7 @@ ImgImage* Img::loadPNG( const BcChar* Filename )
 		return pImage;
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
