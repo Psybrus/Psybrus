@@ -30,8 +30,10 @@ enum ReFieldFlags
 
 	// Properties.
 	bcRFF_HIDDEN =					0x00000100,		// Hidden from existance, but included in size & offset calculation.
-	bcRFF_TRANSIENT =				0x00000200,		// Don't bother serialising unless specified.
+	bcRFF_TRANSIENT =				0x00000200,		// Don't bother serialising generally.
 	bcRFF_SHALLOW_COPY =			0x00000400,		// Only perform a shallow copy on this field when using as a basis.
+	bcRFF_IMPORTER =				0x00000800,		// Only parsed in when doing importer serialisation.
+	bcRFF_REPLICATED =				0x00001000,		// Field is replicated across the network.
 
 	// Simple deref when traversing.
 	bcRFF_SIMPLE_DEREF = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,
