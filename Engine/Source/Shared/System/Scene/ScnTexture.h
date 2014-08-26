@@ -39,9 +39,6 @@ class ScnTexture:
 public:
 	DECLARE_RESOURCE( ScnTexture, CsResource );
 	
-#if PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif	
 	virtual void						initialise();
 	virtual void						initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
 	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
