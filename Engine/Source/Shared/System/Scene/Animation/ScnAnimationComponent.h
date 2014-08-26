@@ -14,7 +14,7 @@
 #ifndef __SCNANIMATIONCOMPONENT_H__
 #define __SCNANIMATIONCOMPONENT_H__
 
-#include "System/Scene/ScnModel.h"
+#include "System/Scene/Rendering/ScnModel.h"
 #include "System/Scene/Animation/ScnAnimation.h"
 #include "System/Scene/Animation/ScnAnimationTreeNode.h"
 

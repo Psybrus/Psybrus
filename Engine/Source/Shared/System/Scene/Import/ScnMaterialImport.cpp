@@ -12,7 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnMaterialImport.h"
-#include "System/Scene/ScnMaterialFileData.h"
+#include "System/Scene/Rendering/ScnMaterialFileData.h"
 
 #include "System/Renderer/RsTypes.h"
 

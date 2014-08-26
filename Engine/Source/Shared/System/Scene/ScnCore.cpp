@@ -22,10 +22,10 @@
 #include "System/Content/CsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
-#include "System/Scene/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnSpatialComponent.h"
-#include "System/Scene/ScnRenderingVisitor.h"
+#include "System/Scene/Rendering/ScnRenderingVisitor.h"
 
 #include "Base/BcProfiler.h"
 

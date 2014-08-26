@@ -17,7 +17,7 @@
 #ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
-#include "System/Scene/ScnModelFileData.h"
+#include "System/Scene/Rendering/ScnModelFileData.h"
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
