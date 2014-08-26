@@ -351,5 +351,5 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( size_t ID, const R
 // shouldSerialiseField
 BcBool SeJsonReader::shouldSerialiseField( BcU32 Flags )
 {
-	return ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 );
+	return ( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || Flags == 0;
 }

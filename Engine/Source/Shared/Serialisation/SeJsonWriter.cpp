@@ -397,5 +397,5 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
 // shouldSerialiseField
 BcBool SeJsonWriter::shouldSerialiseField( BcU32 Flags )
 {
-	return ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 );
+	return ( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || Flags == 0;
 }
