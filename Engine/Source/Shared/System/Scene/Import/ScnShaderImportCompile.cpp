@@ -30,7 +30,7 @@ namespace
 	{
 	public:
 		ScnShaderIncludeHandler( 
-			class CsPackageImporter& Importer,
+			class ScnShaderImport& Importer,
 			const std::vector< std::string >& IncludePaths ):
 			Importer_( Importer ),
 			IncludePaths_( IncludePaths )
@@ -65,7 +65,7 @@ namespace
 		}
 
 	private:
-		class CsPackageImporter& Importer_;
+		class ScnShaderImport& Importer_;
 		const std::vector< std::string >& IncludePaths_;
 	};
 }
@@ -82,7 +82,7 @@ BcBool ScnShaderImport::compileShader(
 {
 	BcBool RetVal = BcFalse;
 
-	Importer_.addDependency( FileName.c_str() );
+	CsResourceImporter::addDependency( FileName.c_str() );
 
 	std::wstring WFileName( FileName.begin(), FileName.end() );
 	// Create macros.
@@ -98,7 +98,7 @@ BcBool ScnShaderImport::compileShader(
 
 	ID3D10Blob* OutByteCode;
 	ID3D10Blob* OutErrorMessages;
-	ScnShaderIncludeHandler IncludeHandler( Importer_, IncludePaths );
+	ScnShaderIncludeHandler IncludeHandler( *this, IncludePaths );
 	D3DCompileFromFile( WFileName.c_str(), &Macros[ 0 ], &IncludeHandler, EntryPoint.c_str(), Target.c_str(), 0, 0, &OutByteCode, &OutErrorMessages );
 
 	// Extract byte code if we have it.

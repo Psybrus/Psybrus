@@ -34,10 +34,7 @@ public:
 
 public:
 	DECLARE_RESOURCE( ScnShader, CsResource );
-	
-#ifdef PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
+
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();

@@ -16,6 +16,7 @@
 
 #ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
+#include "System/Content/CsResourceImporter.h"
 #include "System/Scene/ScnModelFileData.h"
 #include "Base/BcStream.h"
 
@@ -121,20 +122,25 @@ struct ScnShaderPermutationJobParams
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderImport
-class ScnShaderImport
+class ScnShaderImport:
+	public CsResourceImporter
 {
 public:
-	ScnShaderImport( class CsPackageImporter& Importer );
+	REFLECTION_DECLARE_DERIVED( ScnShaderImport, CsResourceImporter );
+
+public:
+	ScnShaderImport();
 	virtual ~ScnShaderImport();
 
 	/**
 	 * Import.
 	 */
-	BcBool import( const Json::Value& Object );
+	BcBool import( 
+		const Json::Value& Object );
+
+	void addDependency( const BcChar* Dependency );
 
 private:
-	BcBool legacyImport( const Json::Value& Object );
-
 	BcBool compileShader( 
 		const std::string& FileName,
 		const std::string& EntryPoint,
@@ -177,8 +183,6 @@ private:
 
 	std::atomic< BcU32 > GotErrorBuilding_;
 	std::atomic< BcU32 > PendingPermutations_;
-
-	class CsPackageImporter& Importer_;
 };
 
 #endif // PSY_SERVER

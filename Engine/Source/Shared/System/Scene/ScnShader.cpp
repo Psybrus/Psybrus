@@ -23,18 +23,7 @@
 #endif
 
 #ifdef PSY_SERVER
-
 #include "System/Scene/Import/ScnShaderImport.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnShader::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	ScnShaderImport ShaderImporter( Importer );
-	return ShaderImporter.import( Object );
-}
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,7 +41,12 @@ void ScnShader::StaticRegisterClass()
 		new ReField( "TotalProgramsLoaded_",	&ScnShader::TotalProgramsLoaded_ ),
 	};
 		
-	ReRegisterClass< ScnShader, Super >( Fields );
+	auto& Class = ReRegisterClass< ScnShader, Super >( Fields );
+
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( ScnShaderImport::StaticGetClass() ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
