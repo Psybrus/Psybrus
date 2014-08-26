@@ -146,6 +146,14 @@ ScnShaderImport::ScnShaderImport( class CsPackageImporter& Importer ):
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnShaderImport::~ScnShaderImport()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // import
 BcBool ScnShaderImport::import( const Json::Value& Object )
 {

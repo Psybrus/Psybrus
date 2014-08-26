@@ -2,7 +2,7 @@
 *
 * File:		ScnFontImport.h
 * Author:	Neil Richardson 
-* Ver/Date:	22/12/12
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -32,6 +32,7 @@ public:
 
 public:
 	ScnFontImport();
+	virtual ~ScnFontImport();
 
 	/**
 	 * Import.

@@ -125,6 +125,7 @@ class ScnShaderImport
 {
 public:
 	ScnShaderImport( class CsPackageImporter& Importer );
+	virtual ~ScnShaderImport();
 
 	/**
 	 * Import.

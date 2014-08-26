@@ -31,6 +31,7 @@ public:
 
 public:
 	ScnAnimationImport();
+	virtual ~ScnAnimationImport();
 
 	/**
 	 * Import.

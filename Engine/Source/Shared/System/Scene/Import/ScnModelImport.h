@@ -31,6 +31,7 @@ public:
 
 public:
 	ScnModelImport();
+	virtual ~ScnModelImport();
 
 	/**
 	 * Import.
