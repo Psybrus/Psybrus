@@ -281,6 +281,10 @@ RsProgram* RsCoreImpl::createProgram(
 void RsCoreImpl::destroyResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
+	if( pResource == nullptr )
+	{
+		return;
+	}
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
@@ -303,6 +307,10 @@ void RsCoreImpl::destroyResource( RsResource* pResource )
 void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 {
 	BcAssert( BcIsGameThread() );
+	if( Buffer == nullptr )
+	{
+		return;
+	}
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
@@ -326,6 +334,10 @@ bool RsCoreImpl::destroyBuffer_threaded(
 void RsCoreImpl::destroyResource( RsTexture* Texture )
 {
 	BcAssert( BcIsGameThread() );
+	if( Texture == nullptr )
+	{
+		return;
+	}
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
@@ -351,6 +363,10 @@ void RsCoreImpl::destroyResource(
 		RsShader* Shader )
 {
 	BcAssert( BcIsGameThread() );
+	if( Shader == nullptr )
+	{
+		return;
+	}
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
@@ -376,6 +392,11 @@ void RsCoreImpl::destroyResource(
 		RsProgram* Program )
 {
 	BcAssert( BcIsGameThread() );
+	if( Program == nullptr )
+	{
+		return;
+	}
+
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
@@ -399,6 +420,7 @@ bool RsCoreImpl::destroyProgram_threaded(
 void RsCoreImpl::updateResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
+	BcAssert( pResource != nullptr );
 	
 	// Call update.
 	{
@@ -417,6 +439,7 @@ bool RsCoreImpl::updateBuffer(
 	RsBufferUpdateFunc UpdateFunc )
 {
 	BcAssert( Size > 0 );
+	BcAssert( Buffer != nullptr );
 
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
@@ -462,6 +485,8 @@ bool RsCoreImpl::updateTexture(
 	RsResourceUpdateFlags Flags,
 	RsTextureUpdateFunc UpdateFunc )
 {
+	BcAssert( Texture != nullptr );
+
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
 	{
@@ -501,6 +526,7 @@ bool RsCoreImpl::updateTexture_threaded(
 void RsCoreImpl::createResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
+	BcAssert( pResource != nullptr );
 
 	// Call create.
 	{

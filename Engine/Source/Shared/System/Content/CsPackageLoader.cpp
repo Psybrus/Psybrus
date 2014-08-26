@@ -231,7 +231,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 
 	// Read in dependencies.
 	FsStats Stats;
-	std::string OutputDependencies = *CsCore::pImpl()->getPackagePackedPath( pPackage_->getName() ) + ".deps";
+	std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( pPackage_->getName() ) + "/deps.json";
 	BcBool AnythingChanged = BcFalse;
 	if( FsCore::pImpl()->fileStats( (*ImportPackage).c_str(), Stats ) )
 	{

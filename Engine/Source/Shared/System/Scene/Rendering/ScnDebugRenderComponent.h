@@ -153,8 +153,8 @@ protected:
 	RsVertexDeclaration*				VertexDeclaration_;
 	struct TRenderResource
 	{
-		RsBuffer*				UniformBuffer_;
-		RsBuffer*						pVertexBuffer_;
+		RsBuffer* UniformBuffer_;
+		RsBuffer* pVertexBuffer_;
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};
 
@@ -171,7 +171,8 @@ protected:
 	SysFence							UploadFence_;
 	
 	// Materials.
-	ScnMaterialComponentRef				MaterialComponent_;
+	ScnMaterial*						Material_;
+	ScnMaterialComponent*				MaterialComponent_;
 
 	typedef std::vector< ScnDebugRenderComponentPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;

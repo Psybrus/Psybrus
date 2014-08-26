@@ -251,7 +251,7 @@ CsPackage* CsPackage::loadPackageCrossRef( BcU32 ID )
 
 //////////////////////////////////////////////////////////////////////////
 // getPackageCrossRef
-ReObjectRef< CsResource > CsPackage::getPackageCrossRef( BcU32 ID )
+CsResource* CsPackage::getPackageCrossRef( BcU32 ID )
 {
 	ReObjectRef< CsResource > Resource;
 	CsPackage* pPackage = NULL;

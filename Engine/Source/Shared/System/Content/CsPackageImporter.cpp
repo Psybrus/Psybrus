@@ -28,6 +28,7 @@
 #include "System/SysKernel.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
@@ -194,7 +195,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			BcPrintf( " SUCCEEDED. Time: %.2f seconds.\n", TotalTimer.time() );
 
 			// Write out dependencies.
-			std::string OutputDependencies = *CsCore::pImpl()->getPackagePackedPath( Name ) + ".deps";
+			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
 			SeJsonWriter Writer( OutputDependencies.c_str() );
 			Writer << Dependencies_;
 		}
@@ -462,6 +463,13 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getName
+BcName CsPackageImporter::getName() const
+{
+	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // importResource_worker
 BcBool CsPackageImporter::importResource_worker( Json::Value ResourceObject )
 {
@@ -522,8 +530,22 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	BcAssertMsg( Name.type() == Json::stringValue, "CsPackageImporter: Name not specified for resource.\n" );
 	BcAssertMsg( Type.type() == Json::stringValue, "CsPackageImporter: Type not specified for resource.\n" )
 
-	// Put to front of list so it's imported next.
-	JsonResources_.push_back( Resource );
+	// Handle crossrefs slightly differently.
+	if( IsCrossRef )
+	{
+		// Prefix crossrefs so they don't conflict.
+		Name = boost::str( boost::format( "XREF%1%%2%" ) % PackageCrossRefList_.size() % Name.asCString() );
+		Json::Value NewResource = Resource;
+		NewResource[ "name" ] = Name;
+
+		// Put to front of list so it's imported next.
+		JsonResources_.push_back( NewResource );
+	}
+	else
+	{
+		// Put to front of list so it's imported next.
+		JsonResources_.push_back( Resource );
+	}
 
 #if THREADED_IMPORTING
 	// Increment fence so we know to wait.

@@ -21,12 +21,11 @@ void ScnAnimationTreeNode::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Name_",				&ScnAnimationTreeNode::Name_ ),
-		new ReField( "pReferencePose_",		&ScnAnimationTreeNode::pReferencePose_ ),
-		new ReField( "pWorkingPose_",		&ScnAnimationTreeNode::pWorkingPose_ ),
+		new ReField( "pReferencePose_", &ScnAnimationTreeNode::pReferencePose_ ),
+		new ReField( "pWorkingPose_", &ScnAnimationTreeNode::pWorkingPose_ ),
 	};
 		
-	ReRegisterAbstractClass< ScnAnimationTreeNode >( Fields );
+	ReRegisterAbstractClass< ScnAnimationTreeNode, Super >( Fields );
 }
 
 
@@ -47,20 +46,6 @@ ScnAnimationTreeNode::~ScnAnimationTreeNode()
 	delete pWorkingPose_;
 	pWorkingPose_ = NULL;
 	pReferencePose_ = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setName
-void ScnAnimationTreeNode::setName( const BcName& Name )
-{
-	Name_ = Name;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getName
-const BcName& ScnAnimationTreeNode::getName() const
-{
-	return Name_;
 }
 
 //////////////////////////////////////////////////////////////////////////

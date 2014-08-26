@@ -112,36 +112,41 @@ public:
 
 
 private:
-	friend class ScnMaterial;
-	
+	friend class ScnMaterial;	
+
 	struct TTextureBinding
 	{
+		REFLECTION_DECLARE_BASIC_NOAUTOREG( TTextureBinding );
+		TTextureBinding(){};
+
 		BcU32 Handle_;
-		ScnTextureRef Texture_;
+		ScnTexture* Texture_;
 	};
-	
-	typedef std::vector< TTextureBinding > TTextureBindingList;
-	typedef TTextureBindingList::iterator TTextureBindingListIterator;
 	
 	struct TUniformBlockBinding
 	{
+		REFLECTION_DECLARE_BASIC_NOAUTOREG( TUniformBlockBinding );
+		TUniformBlockBinding(){};
+
 		BcU32 Index_;
 		RsBuffer* UniformBuffer_;
 	};
-	
+
+	typedef std::vector< TTextureBinding > TTextureBindingList;
+	typedef TTextureBindingList::iterator TTextureBindingListIterator;
+
 	typedef std::vector< TUniformBlockBinding > TUniformBlockBindingList;
 	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
 
 
-	ScnMaterialRef						Parent_;
+	ScnMaterial*						Parent_;
 	ScnShaderPermutationFlags			PermutationFlags_;
 	RsProgram*							pProgram_;
 
 	TTextureBindingList					TextureBindingList_;
 	TUniformBlockBindingList			UniformBlockBindingList_;
 	
-	// TODO: Should be handled by the state block.
-	BcU32*								pStateBuffer_;
+	std::vector< BcU32 >				StateBuffer_;
 
 	// Common scene parameters.
 	BcU32								ViewUniformBlockIndex_;

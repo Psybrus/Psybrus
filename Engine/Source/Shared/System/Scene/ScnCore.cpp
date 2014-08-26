@@ -214,6 +214,7 @@ void ScnCore::close()
 // addEntity
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
+	BcAssert( Entity->getName().isValid() );
 	Entity->setFlag( scnCF_PENDING_ATTACH );
 	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
 }
@@ -222,6 +223,7 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 // removeEntity
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
+	BcAssert( Entity->getName().isValid() );
 	if(Entity->getParentEntity() == NULL )
 	{
 		Entity->setFlag( scnCF_PENDING_DETACH );
@@ -340,6 +342,7 @@ ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 // queueComponentAsPendingOperation
 void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
 {
+	BcAssert( Component->getName() != BcName::INVALID );
 	PendingComponentList_.push_back( Component );
 }
 

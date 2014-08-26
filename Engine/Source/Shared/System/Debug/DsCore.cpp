@@ -56,6 +56,7 @@ DsCore::~DsCore()
 void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	Output.createChildNode("h1").setContents("Contents");
+	Output.createChildNode("h2").setContents("Total CsResource: " + boost::lexical_cast< std::string >( CsCore::pImpl()->getNoofResources() ) );
 	BcHtmlNode table = Output.createChildNode("table");
 	//table.setAttribute("style", "width:100%;");
 	table.createChildNode("col").setAttribute("width", "100px");

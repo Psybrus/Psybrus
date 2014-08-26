@@ -29,8 +29,10 @@ void ScnMaterial::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Shader_",				&ScnMaterial::Shader_ ),
-		new ReField( "TextureMap_",			&ScnMaterial::TextureMap_ ),
+		new ReField( "pHeader_", &ScnMaterial::pHeader_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Shader_", &ScnMaterial::Shader_ ),
+		new ReField( "TextureMap_", &ScnMaterial::TextureMap_ ),
+		new ReField( "pStateBuffer_", &ScnMaterial::pStateBuffer_, bcRFF_SHALLOW_COPY ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnMaterial, Super >( Fields );
@@ -129,19 +131,44 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnMaterialComponent );
+REFLECTION_DEFINE_BASIC( ScnMaterialComponent::TTextureBinding );
+REFLECTION_DEFINE_BASIC( ScnMaterialComponent::TUniformBlockBinding );
 
 void ScnMaterialComponent::StaticRegisterClass()
 {
-	ReField* Fields[] = 
 	{
-		new ReField( "Parent_",						&ScnMaterialComponent::Parent_ ),
-		new ReField( "pProgram_",					&ScnMaterialComponent::pProgram_ ),
-		new ReField( "ViewUniformBlockIndex_",		&ScnMaterialComponent::ViewUniformBlockIndex_ ),
-		new ReField( "BoneUniformBlockIndex_",		&ScnMaterialComponent::BoneUniformBlockIndex_ ),
-		new ReField( "ObjectUniformBlockIndex_",	&ScnMaterialComponent::ObjectUniformBlockIndex_ ),
-	};
-		
-	ReRegisterClass< ScnMaterialComponent, Super >( Fields );
+		ReField* Fields[] = 
+		{
+			new ReField( "Parent_", &ScnMaterialComponent::Parent_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pProgram_", &ScnMaterialComponent::pProgram_, bcRFF_SHALLOW_COPY ),
+			new ReField( "StateBuffer_", &ScnMaterialComponent::StateBuffer_ ),
+			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_ ),
+			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_ ),
+			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_ ),
+			new ReField( "BoneUniformBlockIndex_", &ScnMaterialComponent::BoneUniformBlockIndex_ ),
+			new ReField( "ObjectUniformBlockIndex_", &ScnMaterialComponent::ObjectUniformBlockIndex_ ),
+		};
+		ReRegisterClass< ScnMaterialComponent, Super >( Fields );
+	}
+
+	{
+		ReField* Fields[] = 
+		{
+			new ReField( "Parent_", &TTextureBinding::Handle_ ),
+			new ReField( "pProgram_", &TTextureBinding::Texture_, bcRFF_SHALLOW_COPY ),
+		};
+		ReRegisterClass< TTextureBinding, Super >( Fields );
+	}
+
+	{
+		ReField* Fields[] = 
+		{
+			new ReField( "Index_", &TUniformBlockBinding::Index_ ),
+			new ReField( "UniformBuffer_", &TUniformBlockBinding::UniformBuffer_, bcRFF_SHALLOW_COPY ),
+
+		};
+		ReRegisterClass< TUniformBlockBinding, Super >( Fields );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,8 +188,8 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags_ );
 	
 	// Allocate state buffer and copy defaults in.
-	pStateBuffer_ = new BcU32[ (BcU32)RsRenderStateType::MAX ];
-	BcMemCopy( pStateBuffer_, Parent->pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
+	StateBuffer_.resize( (BcU32)RsRenderStateType::MAX );
+	BcMemCopy( &StateBuffer_[ 0 ], Parent->pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
 
 	// Build a binding list for textures.
 	ScnTextureMap& TextureMap( Parent->TextureMap_ );
@@ -208,10 +235,7 @@ void ScnMaterialComponent::initialise( const Json::Value& Object )
 // destroy
 void ScnMaterialComponent::destroy()
 {
-	delete pStateBuffer_;
-	pStateBuffer_ = NULL;
-	
-	Parent_ = NULL;
+	Parent_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -235,10 +259,9 @@ BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 		}
 		
 		// If it doesn't exist, add it.
-		TTextureBinding Binding = 
-		{
-			Handle, nullptr
-		};
+		TTextureBinding Binding;
+		Binding.Handle_ = Handle;
+		Binding.Texture_ = nullptr;
 		
 		TextureBindingList_.push_back( Binding );
 		return (BcU32)TextureBindingList_.size() - 1;
@@ -281,10 +304,9 @@ BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 		}
 		
 		// If it doesn't exist, add it.
-		TUniformBlockBinding Binding = 
-		{
-			Index, nullptr
-		};
+		TUniformBlockBinding Binding;
+		Binding.Index_ = Index;
+		Binding.UniformBuffer_ = nullptr;
 		
 		UniformBlockBindingList_.push_back( Binding );
 		return (BcU32)UniformBlockBindingList_.size() - 1;
@@ -336,7 +358,7 @@ void ScnMaterialComponent::setState( RsRenderStateType State, BcU32 Value )
 {
 	if( State < RsRenderStateType::MAX )
 	{
-		pStateBuffer_[ (BcU32)State ] = Value;
+		StateBuffer_[ (BcU32)State ] = Value;
 	}
 }
 
@@ -432,7 +454,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup sort value with material specifics.
 	ScnMaterial* pMaterial_ = Parent_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
-	Sort.Blend_ = pStateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
+	Sort.Blend_ = StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
 	
 	// Allocate a render node.
 	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
@@ -488,7 +510,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	
 	// Setup state buffer.
 	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
-	BcMemCopy( pRenderNode->pStateBuffer_, pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
+	BcMemCopy( pRenderNode->pStateBuffer_, &StateBuffer_[ 0 ], sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
 	
 	// Update fence.
 	pRenderNode->pUpdateFence_ = &UpdateFence_;

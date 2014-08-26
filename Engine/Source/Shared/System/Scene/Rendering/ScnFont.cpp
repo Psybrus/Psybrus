@@ -30,8 +30,10 @@ void ScnFont::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "CharCodeMap_",	&ScnFont::CharCodeMap_ ),
-		new ReField( "Texture_",		&ScnFont::Texture_ ),
+		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY ),
+		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_ ),
+		new ReField( "Texture_", &ScnFont::Texture_, bcRFF_SHALLOW_COPY ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnFont, Super >( Fields );
@@ -57,7 +59,7 @@ void ScnFont::initialise()
 void ScnFont::create()
 {
 	// Request texture.
-	Texture_ = getPackage()->getPackageCrossRef( pHeader_->TextureRef_ );
+	Texture_ = ScnTextureRef( getPackage()->getPackageCrossRef( pHeader_->TextureRef_ ) );
 
 	// Create a char code map.
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
@@ -127,11 +129,13 @@ void ScnFontComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Parent_",					&ScnFontComponent::Parent_ ),
-		new ReField( "MaterialComponent_",		&ScnFontComponent::MaterialComponent_ ),
-		new ReField( "ClippingEnabled_",		&ScnFontComponent::ClippingEnabled_ ),
-		new ReField( "ClipMin_",				&ScnFontComponent::ClipMin_ ),
-		new ReField( "ClipMax_",				&ScnFontComponent::ClipMax_ ),
+		new ReField( "Parent_", &ScnFontComponent::Parent_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Material_", &ScnFontComponent::Material_, bcRFF_SHALLOW_COPY ),
+		new ReField( "MaterialComponent_", &ScnFontComponent::MaterialComponent_, bcRFF_TRANSIENT ),
+		new ReField( "ClippingEnabled_", &ScnFontComponent::ClippingEnabled_ ),
+		new ReField( "ClipMin_", &ScnFontComponent::ClipMin_ ),
+		new ReField( "ClipMax_", &ScnFontComponent::ClipMax_ ),
+		new ReField( "AlphaTestUniforms_", &ScnFontComponent::AlphaTestUniforms_ ),
 	};
 		
 	ReRegisterClass< ScnFontComponent, Super >( Fields );
@@ -144,18 +148,8 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 	Super::initialise();
 
 	Parent_ = Parent; 
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, 
-		ScnShaderPermutationFlags::RENDER_FORWARD |
-		ScnShaderPermutationFlags::PASS_MAIN |
-		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
-	{	
-		BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
-		if( Sampler != BcErrorCode )
-		{ 
-			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
-		}
-	}
-	
+	Material_ = Material;
+
 	// Null uniform buffer.
 	UniformBuffer_ = nullptr;
 
@@ -417,6 +411,20 @@ void ScnFontComponent::update( BcF32 Tick )
 void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Attach material to our parent.
+	ScnMaterialComponentRef MaterialComponent;
+	if( CsCore::pImpl()->createResource( 
+		BcName::INVALID, getPackage(), MaterialComponent, Material_, 
+		ScnShaderPermutationFlags::RENDER_FORWARD |
+		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
+	{	
+		MaterialComponent_ = MaterialComponent;
+		BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
+		if( Sampler != BcErrorCode )
+		{ 
+			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
+		}
+	}
 	Parent->attach( MaterialComponent_ );
 
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 

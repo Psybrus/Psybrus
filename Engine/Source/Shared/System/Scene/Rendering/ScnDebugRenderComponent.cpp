@@ -32,7 +32,11 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_ )
+		new ReField( "Material_",	&ScnDebugRenderComponent::Material_, bcRFF_SHALLOW_COPY ),
+		new ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_, bcRFF_TRANSIENT ),
+		new ReField( "CurrentRenderResource_", &ScnDebugRenderComponent::CurrentRenderResource_, bcRFF_TRANSIENT ),
+		new ReField( "NoofVertices_", &ScnDebugRenderComponent::NoofVertices_ ),
+		new ReField( "VertexIndex_", &ScnDebugRenderComponent::VertexIndex_ ),
 	};
 		
 	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields )
@@ -61,6 +65,7 @@ void ScnDebugRenderComponent::initialise( BcU32 NoofVertices )
 	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
 
 	// Store number of vertices.
+	VertexDeclaration_ = nullptr;
 	pVertices_ = pVerticesEnd_ = nullptr;
 	pWorkingVertices_ = nullptr;
 	NoofVertices_ = NoofVertices;
@@ -76,11 +81,7 @@ void ScnDebugRenderComponent::initialise( const Json::Value& Object )
 {
 	ScnDebugRenderComponent::initialise( Object[ "noofvertices" ].asUInt() );
 
-	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
-
-	CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, 
-		ScnShaderPermutationFlags::MESH_STATIC_3D | 
-		ScnShaderPermutationFlags::LIGHTING_NONE );
+	Material_ = ScnMaterialRef( getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,7 +169,7 @@ ScnDebugRenderComponentVertex* ScnDebugRenderComponent::allocVertices( BcU32 Noo
 // addPrimitive
 void ScnDebugRenderComponent::addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
 {
-	BcAssertMsg( MaterialComponent_.isValid(), "ScnDebugRenderComponent: Material component has not been set!" );
+	BcAssertMsg( MaterialComponent_ != nullptr, "ScnDebugRenderComponent: Material component has not been set!" );
 
 	// Check if the vertices are owned by us, if not copy in.
 	if( pVertices < pVertices_ || pVertices_ >= pVerticesEnd_ )
@@ -547,6 +548,14 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+
+	ScnMaterialComponentRef MaterialComponent;
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent, Material_, 
+		ScnShaderPermutationFlags::MESH_STATIC_3D | 
+		ScnShaderPermutationFlags::LIGHTING_NONE ) )
+	{
+		MaterialComponent_ = MaterialComponent;
+	}
 
 	getParentEntity()->attach( MaterialComponent_ );
 

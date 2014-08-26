@@ -49,15 +49,15 @@ protected:
 	friend class ScnModelComponent;
 	
 	// Cached pointers for internal use.
-	ScnModelHeader*						pHeader_;
-	ScnModelNodeTransformData*			pNodeTransformData_;
-	ScnModelNodePropertyData*			pNodePropertyData_;
-	BcU8*								pVertexBufferData_;
-	BcU8*								pIndexBufferData_;
-	RsVertexElement*					pVertexElements_;
-	ScnModelMeshData*				pMeshData_;
+	ScnModelHeader* pHeader_;
+	ScnModelNodeTransformData* pNodeTransformData_;
+	ScnModelNodePropertyData* pNodePropertyData_;
+	BcU8* pVertexBufferData_;
+	BcU8* pIndexBufferData_;
+	RsVertexElement* pVertexElements_;
+	ScnModelMeshData* pMeshData_;
 	
-	ScnModelMeshRuntimeList		MeshRuntimes_;
+	ScnModelMeshRuntimeList MeshRuntimes_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,6 +70,7 @@ public:
 
 	virtual void						initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );
+	virtual void						create();
 	virtual void						destroy();
 
 	virtual MaAABB						getAABB() const;
@@ -92,14 +93,12 @@ public:
 	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
-	ScnModelRef							Parent_;
+	ScnModel*							Parent_;
 	ScnModelNodeTransformData*			pNodeTransformData_;
-
-	SysFence							UploadFence_;
-	SysFence							UpdateFence_;
-
 	BcU32								Layer_;
 	BcU32								Pass_;
+	SysFence							UploadFence_;
+	SysFence							UpdateFence_;
 
 	MaAABB								AABB_;
 

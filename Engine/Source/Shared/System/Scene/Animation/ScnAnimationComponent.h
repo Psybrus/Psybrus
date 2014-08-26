@@ -56,11 +56,11 @@ private:
 	ScnAnimationTreeNode*				findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class );
 
 private:
-	BcName								TargetComponentName_;
-	ScnModelComponentRef				Model_;
+	BcName TargetComponentName_;
+	ScnModelComponent* Model_;
 
-	ScnAnimationTreeNode*				pRootTreeNode_;
-	ScnAnimationPose*					pReferencePose_;
+	ScnAnimationTreeNode* pRootTreeNode_;
+	ScnAnimationPose* pReferencePose_;
 };
 
 #endif

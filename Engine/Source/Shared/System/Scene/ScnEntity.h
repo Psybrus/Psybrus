@@ -20,6 +20,13 @@
 #include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnEntityHeader
+struct ScnEntityHeader
+{
+	BcU32 NoofComponents_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
 	public ScnComponent,
@@ -142,7 +149,7 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	const BcChar*						pJsonObject_; // TEMP.
+	const ScnEntityHeader*				pHeader_;
 
 	ScnEntityRef						Basis_;
 	MaMat4d								LocalTransform_;

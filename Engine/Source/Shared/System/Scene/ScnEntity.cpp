@@ -34,11 +34,11 @@ void ScnEntity::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Basis_",			&ScnEntity::Basis_ ),
+		new ReField( "Basis_",			&ScnEntity::Basis_, bcRFF_SHALLOW_COPY ),
 		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
 		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
-		new ReField( "Components_",		&ScnEntity::Components_ ),
-		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
+		new ReField( "Components_",		&ScnEntity::Components_, bcRFF_TRANSIENT ),
+		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
@@ -56,10 +56,9 @@ void ScnEntity::initialise()
 {
 	Super::initialise();
 
-	pEventProxy_ = NULL;
-
 	// NULL internals.
-	pJsonObject_ = NULL;
+	pHeader_ = nullptr;
+	pEventProxy_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,72 +69,52 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 
 	// Grab our basis.
 	Basis_ = Basis->getBasisEntity();
+	pHeader_ = Basis->pHeader_;
 
 	BcAssertMsg( Basis_->isReady(), "Basis entity is not ready!" );
 
 	// Copy over internals.
-	pJsonObject_ = Basis_->pJsonObject_;
 	LocalTransform_ = Basis_->LocalTransform_;
 
-	// Create components from Json.
-	// TEMP.
-	Json::Value Root;
-	Json::Reader Reader;
-	if( Reader.parse( pJsonObject_, Root ) )
-	{
-		//
-		const Json::Value& Components = Root[ "components" ];
-
-		for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
-		{
-			const Json::Value& Component( Components[ Idx ] );
-			ReObjectRef< CsResource > ResourceRef;
-			const ReClass* Class = ReManager::GetClass( Component[ "type" ].asCString() );
-			const Json::Value& NameValue = Component[ "name" ];
-
-			BcName Name = NameValue.type() == Json::stringValue ? NameValue.asCString() : BcName::INVALID;
-
-			if( CsCore::pImpl()->internalCreateResource( Name, Class, BcErrorCode, getPackage(), ResourceRef ) )
-			{
-				ScnComponentRef ComponentRef( ResourceRef );
-				BcAssert( ComponentRef.isValid() );
-
-				//BcPrintf( "** - %s:%s\n", (*ComponentRef->getName()).c_str(), (*ComponentRef->getType()).c_str() );
-
-				// Initialise has already been called...need to change this later.
-				ComponentRef->initialise( Component );
-
-				//ComponentRef->serialiseProperties();
-
-				// Attach.
-				attach( ComponentRef );
-			}			
-		}
-	}
-
-	// If we have a basis entity, we need to acquire the package.
-	if( Basis_.isValid() )
-	{
-		BcAssertMsg( Basis_->getPackage() == getPackage(), "Must reference the same package as the basis entity." );
-		getPackage()->acquire();
-	}
-
-	SeJsonWriter Writer( "temp.json" );
-	Writer << *this;
-
-	// Placeholder!
-	//serialiseProperties();
+	// Acquire basis package.
+	Basis_->getPackage()->acquire();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // create
 void ScnEntity::create()
 {
-	// If we have a basis, we're ready.
-	if( Basis_.isValid() )
-	{			
-		markReady();
+	// New stuff.
+	const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis_->pHeader_ : pHeader_;
+	const BcU32* ComponentCrossRefs = reinterpret_cast< const BcU32* >( Header + 1 );
+
+	for( BcU32 Idx = 0; Idx < Header->NoofComponents_; ++Idx )
+	{
+		// We are a basis.
+		if( Basis_ == nullptr )
+		{
+			ScnComponentRef Component = getPackage()->getPackageCrossRef( ComponentCrossRefs[ Idx ] );
+			Components_.push_back( Component );
+		}
+		else
+		{
+			BcAssert( Basis_->Components_.size() == Header->NoofComponents_ );
+			ScnComponentRef Component = Basis_->Components_[ Idx ];
+
+			if( Component->getName() == "XREF13ScnFontComponent_0" )
+			{
+				int a=  0; ++a;
+			}
+
+			// Construct a new entity.
+			ScnComponentRef NewComponent = 
+				ReConstructObject( Component->getClass(), *Component->getName().getUnique(), getPackage(), Component );
+
+			attach( NewComponent );
+		}
 	}
+	
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -178,6 +157,7 @@ void ScnEntity::update( BcF32 Tick )
 // attach
 void ScnEntity::attach( ScnComponent* Component )
 {
+	BcAssert( Component->getName() != BcName::INVALID );
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It == Components_.end() )
 	{
@@ -195,11 +175,13 @@ void ScnEntity::attach( ScnComponent* Component )
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
+	BcAssert( Component->getName() != BcName::INVALID );
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It != Components_.end() )
 	{
 		BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
-		BcAssertMsg( !Component->isFlagSet( scnCF_PENDING_ATTACH ), "Component is currently pending attachment!" )
+		BcAssertMsg( !Component->isFlagSet( scnCF_PENDING_ATTACH ), 
+			"Component is currently pending attachment! Being attached too quickly?" )
 
 		Component->setFlag( scnCF_PENDING_DETACH );
 		Components_.erase( It );
@@ -413,20 +395,16 @@ void ScnEntity::fileReady()
 {
 	// File is ready, get the header chunk.
 	requestChunk( 0 );
-
-	// As we are being loaded by a package, we don't need to reference it.
-	// We acquire in the init of ScnComponent for the general case,
-	// but we can release 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( ChunkID == BcHash( "object" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
-		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
-
-		CsResource::markReady();
+		pJsonObject_ = nullptr;
+		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
+		CsResource::markCreate();
 	}
 }

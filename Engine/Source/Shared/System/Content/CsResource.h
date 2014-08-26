@@ -54,7 +54,7 @@ class CsCore;
 class CsResource:
 	public ReObject
 {
-	REFLECTION_DECLARE_DERIVED( CsResource, ReObject );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( CsResource, ReObject );
 public:
 	enum
 	{
@@ -68,121 +68,123 @@ private:
 	CsResource( const CsResource& ){}
 
 public:
+	CsResource( ReNoInit );
 	CsResource();
 	virtual ~CsResource();
-
-	/**
-	 * Pre-initialise. Setup everything before derived initialisation.
-	 */
-	void							preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPackage );
 
 	/**
 	 * Initialise resource. <br/>
 	 * Called on construction from thread creating it.
 	 */
-	virtual void					initialise();
+	virtual void initialise();
 
 	/**
 	 * Create resource.<br/>
 	 * Called on the content system thread.
 	 */
-	virtual void					create();
+	virtual void create();
 
 	/**
 	 * Destroy resource.<br/>
 	 * Called on the content system thread.
 	 */
-	virtual void					destroy();
+	virtual void destroy();
+
+	/**
+	 * Set resource index.
+	 */
+	void setIndex( BcU32 Index );
 
 	/**
 	 * Are we ready to use?<br/>
 	 */
-	BcBool							isReady() const;
+	BcBool isReady() const;
 
 	/**
 	 * Get the init stage.
 	 */
-	BcU32							getInitStage() const;
+	BcU32 getInitStage() const;
 
 	/**
 	 * File is ready.
 	 */
-	virtual void					fileReady();
+	virtual void fileReady();
 
 	/**
 	 * File chunk is ready.
 	 */
-	virtual void					fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 public:
 	/**
 	 * Get package.
 	 */
-	CsPackage*						getPackage() const;
+	CsPackage* getPackage() const;
 
 	/**
 	 * Get package name.
 	 */
-	const BcName&					getPackageName() const;
+	const BcName& getPackageName() const;
 	
 	/**
 	 * Get index.
 	 */
-	BcU32							getIndex() const;
+	BcU32 getIndex() const;
 
 protected:
 	/**
 	 * Get string.
 	 */
-	const BcChar*					getString( BcU32 Offset ) const;
+	const BcChar* getString( BcU32 Offset ) const;
 
 	/**
 	 * Markup name.
 	 */
-	void							markupName( BcName& Name ) const;
+	void markupName( BcName& Name ) const;
 
 	/**
 	 * Get chunk.
 	 */
-	void							requestChunk( BcU32 Chunk, void* pDataLocation = NULL );
+	void requestChunk( BcU32 Chunk, void* pDataLocation = NULL );
 
 	/**
 	 * Get chunk size.
 	 */
-	BcU32							getChunkSize( BcU32 Chunk );
+	BcU32 getChunkSize( BcU32 Chunk );
 
 	/**
 	 * Get number of chunks. (See CsFile)
 	 */
-	BcU32							getNoofChunks() const;
+	BcU32 getNoofChunks() const;
 
+public:
 	/**
 	 * Mark as ready.
 	 */
-	void							markReady();
+	void markReady();
 
 	/**
 	 * Mark for creation.
 	 */
-	void							markCreate();
+	void markCreate();
 
 	/**
 	 * Mark for destruction.
 	 */
-	void							markDestroy();
+	void markDestroy();
 
 private:
 	friend class CsCore;
 	friend class CsPackage;
 	friend class CsPackageLoader;
 
-	void							onFileReady();
-	void							onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void onFileReady();
+	void onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 private:
 	//
-	BcU32							Index_;
-	std::atomic< BcU32 >			InitStage_;
+	BcU32 Index_;
+	std::atomic< BcU32 > InitStage_;
 };
 
 #endif

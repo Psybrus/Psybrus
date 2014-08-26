@@ -79,7 +79,7 @@ public:
 	/**
 	* Get package cross ref.
 	*/
-	ReObjectRef< CsResource >					getPackageCrossRef( BcU32 ID );
+	CsResource*						getPackageCrossRef( BcU32 ID );
 
 	/**
 	* Acquire.

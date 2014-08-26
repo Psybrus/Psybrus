@@ -76,9 +76,9 @@ void ScnSound::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pSample_",			&ScnSound::pSample_ ),
-		new ReField( "pHeader_",			&ScnSound::pHeader_ ),
-		new ReField( "SampleDataSize_",		&ScnSound::SampleDataSize_ ),
+		new ReField( "pSample_", &ScnSound::pSample_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pHeader_", &ScnSound::pHeader_, bcRFF_SHALLOW_COPY ),
+		new ReField( "SampleDataSize_", &ScnSound::SampleDataSize_ ),
 	};
 		
 	ReRegisterClass< ScnSound, Super >( Fields );
