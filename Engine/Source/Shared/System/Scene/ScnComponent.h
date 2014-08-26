@@ -88,10 +88,19 @@ public:
 	 * Get full name inc. parents.
 	 */
 	std::string							getFullName();
-	
+
+	// temp.
+	const BcChar*						getJsonObject() const{ return pJsonObject_; }
+
+protected:
+	virtual void						fileReady();
+	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+
 protected:
 	BcU32								Flags_;
 	ScnEntityWeakRef					ParentEntity_;
+	const BcChar*						pJsonObject_;
+
 };
 
 #endif

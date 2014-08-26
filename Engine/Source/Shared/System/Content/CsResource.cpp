@@ -35,11 +35,20 @@ void CsResource::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
+CsResource::CsResource( ReNoInit ):
+	Index_( BcErrorCode ),
+	InitStage_( INIT_STAGE_INITIAL )
+{
+	CsCore::pImpl()->internalAddResource( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 CsResource::CsResource():
 	Index_( BcErrorCode ),
 	InitStage_( INIT_STAGE_INITIAL )
 {
-
+	CsCore::pImpl()->internalAddResource( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,18 +57,6 @@ CsResource::CsResource():
 CsResource::~CsResource()
 {
 	
-}
-
-//////////////////////////////////////////////////////////////////////////
-// preInitialise
-void CsResource::preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPackage )
-{
-	BcAssertMsg( Name != BcName::INVALID, "Resource can not have an invalid name." );
-	BcAssertMsg( Name != BcName::NONE, "Resource can not have a none name." );
-
-	setName( Name );
-	setOwner( pPackage );
-	Index_ = Index;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,6 +89,13 @@ void CsResource::destroy()
 void CsResource::fileReady()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setIndex
+void CsResource::setIndex(  BcU32 Index )
+{
+	Index_ = Index;
 }
 
 //////////////////////////////////////////////////////////////////////////

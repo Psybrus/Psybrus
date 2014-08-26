@@ -24,7 +24,7 @@ void ScnAnimationPose::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "NoofTransforms_",		&ScnAnimationPose::NoofTransforms_ ),
+		new ReField( "Transforms_", &ScnAnimationPose::Transforms_ ),
 	};
 		
 	ReRegisterClass< ScnAnimationPose >( Fields );
@@ -34,16 +34,14 @@ void ScnAnimationPose::StaticRegisterClass()
 // Ctor
 ScnAnimationPose::ScnAnimationPose()
 {
-	NoofTransforms_ = 0;
-	pTransforms_ = NULL;
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationPose::ScnAnimationPose( BcU32 NoofTransforms ):
-	NoofTransforms_( NoofTransforms )
+ScnAnimationPose::ScnAnimationPose( BcU32 NoofTransforms )
 {
-	pTransforms_ = new ScnAnimationTransform[ NoofTransforms_ ];
+	Transforms_.resize( NoofTransforms );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,9 +56,7 @@ ScnAnimationPose::ScnAnimationPose( const ScnAnimationPose& Pose )
 //virtual
 ScnAnimationPose::~ScnAnimationPose()
 {
-	delete [] pTransforms_;
-	pTransforms_ = NULL;
-	NoofTransforms_ = 0;
+	Transforms_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,9 +65,7 @@ ScnAnimationPose& ScnAnimationPose::operator = ( const ScnAnimationPose& Pose )
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::operator =" );
 
-	NoofTransforms_ = Pose.NoofTransforms_;
-	pTransforms_ = new ScnAnimationTransform[ NoofTransforms_ ];
-	BcMemCopy( pTransforms_, Pose.pTransforms_, sizeof( ScnAnimationTransform ) * NoofTransforms_ );
+	Transforms_ = Pose.Transforms_;
 	return (*this);
 }
 
@@ -81,12 +75,12 @@ void ScnAnimationPose::blend( const ScnAnimationPose& A, const ScnAnimationPose&
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::blend" );
 
-	BcAssert( A.NoofTransforms_ == NoofTransforms_ );
-	BcAssert( B.NoofTransforms_ == NoofTransforms_ );
+	BcAssert( A.Transforms_.size() == Transforms_.size() );
+	BcAssert( B.Transforms_.size() == Transforms_.size() );
 
-	for( BcU32 Idx = 0; Idx < NoofTransforms_; ++Idx )
+	for( BcU32 Idx = 0; Idx < Transforms_.size(); ++Idx )
 	{
-		pTransforms_[ Idx ].blend( A.pTransforms_[ Idx ], B.pTransforms_[ Idx ], T );
+		Transforms_[ Idx ].blend( A.Transforms_[ Idx ], B.Transforms_[ Idx ], T );
 	}
 }
 
@@ -96,12 +90,12 @@ void ScnAnimationPose::add( const ScnAnimationPose& Reference, const ScnAnimatio
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::add" );
 
-	BcAssert( A.NoofTransforms_ == NoofTransforms_ );
-	BcAssert( B.NoofTransforms_ == NoofTransforms_ );
+	BcAssert( A.Transforms_.size() == Transforms_.size() );
+	BcAssert( B.Transforms_.size() == Transforms_.size() );
 
-	for( BcU32 Idx = 0; Idx < NoofTransforms_; ++Idx )
+	for( BcU32 Idx = 0; Idx < Transforms_.size(); ++Idx )
 	{
-		pTransforms_[ Idx ].add( Reference.pTransforms_[ Idx ], A.pTransforms_[ Idx ], B.pTransforms_[ Idx ], T );
+		Transforms_[ Idx ].add( Reference.Transforms_[ Idx ], A.Transforms_[ Idx ], B.Transforms_[ Idx ], T );
 	}
 }
 
@@ -111,8 +105,8 @@ void ScnAnimationPose::normalise()
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::normalise" );
 
-	for( BcU32 Idx = 0; Idx < NoofTransforms_; ++Idx )
+	for( BcU32 Idx = 0; Idx < Transforms_.size(); ++Idx )
 	{
-		pTransforms_[ Idx ].R_.normalise();
+		Transforms_[ Idx ].R_.normalise();
 	}
 }

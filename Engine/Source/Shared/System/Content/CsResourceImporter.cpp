@@ -13,6 +13,7 @@
 
 #include "System/Content/CsResourceImporter.h"
 #include "System/Content/CsPackageImporter.h"
+#include "System/Content/CsCore.h"
 
 #include <json/json.h>
 
@@ -154,4 +155,11 @@ void CsResourceImporter::addDependency(
 {
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addDependency( pFileName );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addDependency
+std::string CsResourceImporter::getIntermediatePath()
+{
+	return *CsCore::pImpl()->getPackageIntermediatePath( Importer_->getName() );
 }

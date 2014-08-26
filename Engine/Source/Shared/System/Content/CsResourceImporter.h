@@ -111,6 +111,11 @@ protected:
 	void addDependency( 
 		const BcChar* pFileName );
 
+	/**
+	 * Get intermediate path.
+	 */
+	std::string getIntermediatePath();
+
 
 private:
 	class CsPackageImporter* Importer_;

@@ -29,10 +29,10 @@ void ScnAnimationComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "TargetComponentName_",		&ScnAnimationComponent::TargetComponentName_ ),
-		new ReField( "Model_",						&ScnAnimationComponent::Model_ ),
-		new ReField( "pRootTreeNode_",				&ScnAnimationComponent::pRootTreeNode_ ),
-		new ReField( "pReferencePose_",				&ScnAnimationComponent::pReferencePose_ ),
+		new ReField( "TargetComponentName_", &ScnAnimationComponent::TargetComponentName_ ),
+		new ReField( "Model_", &ScnAnimationComponent::Model_, bcRFF_TRANSIENT ),
+		new ReField( "pRootTreeNode_", &ScnAnimationComponent::pRootTreeNode_ ),
+		new ReField( "pReferencePose_", &ScnAnimationComponent::pReferencePose_ ),
 	};
 		
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
@@ -129,11 +129,11 @@ void ScnAnimationComponent::postUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( TargetComponentName_ );
-	BcAssertMsg( Model_.isValid(), "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
+	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( /*TargetComponentName_ TODO*/  ); 
+	BcAssertMsg( Model_ != nullptr, "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
 
 	// Setup the reference pose.
-	if( Model_.isValid() )
+	if( Model_ != nullptr )
 	{
 		buildReferencePose();
 	}

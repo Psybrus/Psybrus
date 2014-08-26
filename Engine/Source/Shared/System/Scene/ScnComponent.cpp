@@ -47,7 +47,9 @@ void ScnComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "ParentEntity_",		&ScnComponent::ParentEntity_ )
+		new ReField( "Flags_", &ScnComponent::Flags_, bcRFF_TRANSIENT ),
+		new ReField( "ParentEntity_", &ScnComponent::ParentEntity_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pJsonObject_", &ScnComponent::pJsonObject_, bcRFF_SHALLOW_COPY )
 	};
 		
 	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
@@ -66,10 +68,8 @@ void ScnComponent::initialise()
 	Super::initialise();
 
 	Flags_ = 0;
-	ParentEntity_ = NULL;
-
-	// Mark for create. Components don't need to load.
-	CsResource::markCreate();
+	ParentEntity_ = nullptr;
+	pJsonObject_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,6 +132,8 @@ void ScnComponent::onAttach( ScnEntityWeakRef Parent )
 	setFlag( scnCF_ATTACHED );
 
 	ParentEntity_ = Parent;
+
+	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,4 +227,40 @@ std::string ScnComponent::getFullName()
 	FullName += (*getName());
 
 	return FullName;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileReady
+void ScnComponent::fileReady()
+{
+	// File is ready, get the header chunk.
+	requestChunk( 0 );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// fileChunkReady
+void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
+{
+	if( ChunkID == BcHash( "object" ) )
+	{
+		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
+
+		// Initialise json object.
+	    Json::Value Root;
+	    Json::Reader Reader;
+	    if( Reader.parse( pJsonObject_, Root ) )
+		{
+			initialise( Root );
+		}
+		else
+		{
+			BcBreakpoint;
+		}
+
+		// Advance to ready stage, we don't need to do anything in the create,
+		// nor do we want to.
+		CsResource::markCreate();
+		CsResource::markReady();
+	}
 }

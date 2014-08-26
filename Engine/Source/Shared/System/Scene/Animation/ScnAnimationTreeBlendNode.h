@@ -53,7 +53,7 @@ public:
 	BcF32 getBlendValue() const;
 
 private:
-	ScnAnimationTreeNode* pNodes_[ 2 ];
+	std::array< ScnAnimationTreeNode*, 2 > pNodes_;
 	ScnAnimationTreeBlendType BlendType_;
 	BcF32 BlendValue_;
 };

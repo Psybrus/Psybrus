@@ -49,16 +49,15 @@ private:
 
 	ScnAnimationPose* pPoseA_;
 	ScnAnimationPose* pPoseB_;
-	
-	const ScnAnimationPoseFileData* pPoseFileDataA_;
-	const ScnAnimationPoseFileData* pPoseFileDataB_;
-	
+		
 	BcU32 CurrPoseIndex_;
 
 	BcF32 Speed_;
 	BcF32 Time_;
 
 	TAnimationQueue AnimationQueue_;
+	const ScnAnimationPoseFileData* pPoseFileDataA_;
+	const ScnAnimationPoseFileData* pPoseFileDataB_;
 };
 
 #endif

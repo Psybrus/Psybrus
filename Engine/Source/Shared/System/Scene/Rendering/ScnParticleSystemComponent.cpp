@@ -30,9 +30,20 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "MaterialComponent_",		&ScnParticleSystemComponent::MaterialComponent_ ),
+		new ReField( "VertexDeclaration_", &ScnParticleSystemComponent::VertexDeclaration_, bcRFF_TRANSIENT ),
+		new ReField( "VertexBuffers_", &ScnParticleSystemComponent::VertexBuffers_, bcRFF_TRANSIENT ),
+		new ReField( "CurrentVertexBuffer_", &ScnParticleSystemComponent::CurrentVertexBuffer_, bcRFF_TRANSIENT ),
+		new ReField( "pParticleBuffer_", &ScnParticleSystemComponent::pParticleBuffer_, bcRFF_TRANSIENT ),
+		new ReField( "NoofVertices_", &ScnParticleSystemComponent::NoofParticles_ ),
+		new ReField( "PotentialFreeParticle_", &ScnParticleSystemComponent::PotentialFreeParticle_, bcRFF_TRANSIENT ),
+		new ReField( "Material_", &ScnParticleSystemComponent::Material_, bcRFF_SHALLOW_COPY ),
+		new ReField( "MaterialComponent_", &ScnParticleSystemComponent::MaterialComponent_, bcRFF_TRANSIENT ),
+		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_ ),
+		new ReField( "IsLocalSpace_", &ScnParticleSystemComponent::IsLocalSpace_ ),
+		new ReField( "UVBounds_", &ScnParticleSystemComponent::UVBounds_ ),
+		new ReField( "AABB_", &ScnParticleSystemComponent::AABB_ ),
 	};
-		
+	
 	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2060 ) );
 }
@@ -46,17 +57,11 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
-	ScnMaterialRef Material = getPackage()->getPackageCrossRef( Object["material"].asUInt() );
-	if( !CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent_, Material, 
-		ScnShaderPermutationFlags::MESH_PARTICLE_3D ) )
-	{
-		BcAssertMsg( BcFalse, "Material invalid blah." );
-	}
-
+	Material_ = ScnMaterialRef( getPackage()->getPackageCrossRef( Object["material"].asUInt() ) );
 	IsLocalSpace_ = Object["localspace"].asBool();
 
 	// Cache texture bounds.
-	ScnTextureRef Texture = Material->getTexture( "aDiffuseTex" );
+	ScnTextureRef Texture = Material_->getTexture( "aDiffuseTex" );
 	for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
 	{
 		ScnRect Rect = Texture->getRect( Idx );
@@ -68,6 +73,8 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 	CurrentVertexBuffer_ = 0;
 
 	PotentialFreeParticle_ = 0;
+
+	VertexDeclaration_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -374,6 +381,14 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 //virtual
 void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	ScnMaterialComponentRef MaterialComponent;
+	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent, Material_, 
+		ScnShaderPermutationFlags::MESH_PARTICLE_3D ) )
+	{
+		MaterialComponent_ = MaterialComponent;
+	}
+
+	BcAssertMsg( MaterialComponent_ != nullptr, "Material invalid blah." );
 	Parent->attach( MaterialComponent_ );
 
 	Super::onAttach( Parent );

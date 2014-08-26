@@ -187,7 +187,7 @@ BcBool ScnTextureImport::import(
 
 			// Create a texture.
 			std::string AtlasName = Object[ "name" ].asString() + "textureatlas";
-			std::string AtlasFileName = std::string( "IntermediateContent/" ) + AtlasName + ".png";
+			std::string AtlasFileName = getIntermediatePath() + std::string( "/" ) + AtlasName + ".png";
 			Img::save( AtlasFileName.c_str(), pAtlasImage.get() );
 			
 			ImageList.clear();

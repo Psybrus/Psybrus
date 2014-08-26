@@ -13,6 +13,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include <boost/filesystem.hpp>
+
 SYS_CREATOR( CsCore );
 
 //////////////////////////////////////////////////////////////////////////
@@ -158,10 +160,8 @@ CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	CsResource* pResource = NULL;
-	void* pResourceBuffer = BcMemAlign( Class->getSize() );
-	pResource = Class->construct< CsResource >( pResourceBuffer );
-	pResource->preInitialise( Name, Index, pPackage );
+	CsResource* pResource = static_cast< CsResource* >( ReConstructObject( Class, *Name, pPackage, nullptr ) );
+	pResource->setIndex( Index );
 	
 	return pResource;
 }
@@ -319,6 +319,25 @@ BcPath CsCore::getPackageImportPath( const BcName& Package )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPackageIntermediatePath
+BcPath CsCore::getPackageIntermediatePath( const BcName& Package )
+{
+	BcPath Path;
+	if( Package != BcName::INVALID )
+	{
+		Path.join( "IntermediateContent", *Package + ".pak" );
+	}
+	else
+	{
+		Path = "IntermediateContent";
+	}
+
+	boost::filesystem::create_directories( *Path );
+
+	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getPackagePackedPath
 BcPath CsCore::getPackagePackedPath( const BcName& Package )
 {
@@ -344,6 +363,7 @@ void CsCore::processCreateResources()
 	TResourceHandleListIterator CreateIt( PrecreateResources_.begin() );
 	while( CreateIt != PrecreateResources_.end() )
 	{
+		BcAssert( (*CreateIt)->getName() != BcName::INVALID );
 		CreateResources_.push_back( *CreateIt );
 		++CreateIt;
 	}
@@ -356,9 +376,13 @@ void CsCore::processCreateResources()
 		ReObjectRef< CsResource > ResourceHandle = (*It);
 			
 		// Create resource.
-		if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+		if( ResourceHandle->getInitStage() >= CsResource::INIT_STAGE_CREATE )
 		{
-			ResourceHandle->create();
+			// Only create if still in the create stage, otherwise skip a stage.
+			if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+			{
+				ResourceHandle->create();
+			}
 	
 			// Remove from list.
 			It = CreateResources_.erase( It );
@@ -492,23 +516,29 @@ void CsCore::processCallbacks()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// internalAddResource
+void CsCore::internalAddResource( CsResource* Resource )
+{
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
+	PrecreateResources_.push_back( Resource );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // internalCreateResource
 BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle )
 {
 	// Generate a unique name for the resource.
 	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getName() ).getUnique();
 
+	if( Name == "XREF13ScnFontComponent_0" )
+	{
+		int a=  0; ++a;
+	}
+
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Class, Index, pPackage );
-	
-	// Put into create list.
-	if( Handle.isValid() )
-	{
-		std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-		PrecreateResources_.push_back( Handle );
-	}
-	
+	//
 	return Handle.isValid();
 }
 

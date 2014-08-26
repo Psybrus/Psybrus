@@ -32,17 +32,25 @@ DEFINE_RESOURCE( ScnModel );
 
 void ScnModel::StaticRegisterClass()
 {
-	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_",				&ScnModel::pHeader_ ),
-	};
+		ReField* Fields[] = 
+		{
+			new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY ),
+			new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY ),
+			new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
+		};
 		
-	auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
-
+		auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( ScnModelImport::StaticGetClass() ) );
 #endif
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,12 +59,12 @@ void ScnModel::StaticRegisterClass()
 void ScnModel::initialise()
 {
 	// NULL internals.
-	pHeader_ = NULL;
-	pNodeTransformData_ = NULL;
-	pNodePropertyData_ = NULL;
-	pVertexBufferData_ = NULL;
-	pIndexBufferData_ = NULL;
-	pMeshData_ = NULL;
+	pHeader_ = nullptr;
+	pNodeTransformData_ = nullptr;
+	pNodePropertyData_ = nullptr;
+	pVertexBufferData_ = nullptr;
+	pIndexBufferData_ = nullptr;
+	pMeshData_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -256,11 +264,12 @@ void ScnModelComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Parent_",							&ScnModelComponent::Parent_ ),
-		new ReField( "Layer_",							&ScnModelComponent::Layer_ ),
-		new ReField( "Pass_",							&ScnModelComponent::Pass_ ),
-		new ReField( "AABB_",							&ScnModelComponent::AABB_ ),
-		new ReField( "PerComponentMeshDataList_",	&ScnModelComponent::PerComponentMeshDataList_ ),
+		new ReField( "Parent_", &ScnModelComponent::Parent_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
+		new ReField( "Layer_", &ScnModelComponent::Layer_ ),
+		new ReField( "Pass_", &ScnModelComponent::Pass_ ),
+		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
+		new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< ScnModelComponent, Super >( Fields )
@@ -278,67 +287,6 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 	Parent_ = Parent;
 	Layer_ = 0;
 	
-	// Duplicate node data for update/rendering.
-	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
-	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
-	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
-
-	// Create material instances to render with.
-	ScnModelMeshRuntimeList& MeshRuntimes = Parent_->MeshRuntimes_;
-	ScnMaterialComponentRef MaterialComponentRef;
-	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
-	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
-	{
-		ScnModelMeshData* pMeshData = &Parent_->pMeshData_[ Idx ];
-		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
-		TPerComponentMeshData ComponentData;
-
-		if( pMeshRuntime->MaterialRef_.isValid() )
-		{
-			BcAssert( pMeshRuntime->MaterialRef_.isValid() && pMeshRuntime->MaterialRef_->isReady() );
-
-			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-
-			// Setup lighting.
-			if( isLit() )
-			{
-				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_DIFFUSE;
-			}
-			else
-			{
-				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
-			}
-						
-			// Even on failure add. List must be of same size for quick lookups.
-			CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pMeshRuntime->MaterialRef_, ShaderPermutation );
-
-			ComponentData.MaterialComponentRef_ = MaterialComponentRef;
-		}
-
-		// Create uniform buffer for object.
-		if( pMeshData->IsSkinned_ )
-		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
-				RsCore::pImpl()->createBuffer( 
-					RsBufferDesc( 
-						RsBufferType::UNIFORM,
-						RsResourceCreationFlags::STREAM,
-						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
-		}
-		else
-		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
-				RsCore::pImpl()->createBuffer( 
-					RsBufferDesc( 
-						RsBufferType::UNIFORM,
-						RsResourceCreationFlags::STREAM,
-						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
-		}
-
-		//
-		PerComponentMeshDataList_.push_back( ComponentData );
-
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -353,22 +301,23 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 	// Setup additional stuff.
 	Layer_ = Object.get( "layer", 0 ).asUInt();
 	Pass_ = Object.get( "pass", 0 ).asUInt();
-
 }
+
+//////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnModelComponent::create()
+{
+	markReady();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
 //virtual
 void ScnModelComponent::destroy()
 {
-	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
-	{
-		RsCore::pImpl()->destroyResource( PerComponentMeshDataList_[ Idx ].UniformBuffer_ );
-	}
-	
-	// Delete duplicated node data.
-	delete [] pNodeTransformData_;
-	pNodeTransformData_ = NULL;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -643,19 +592,76 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 //virtual
 void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	// Attach material components to parent.
-	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
+	Super::onAttach( Parent );
+
+	// Duplicate node data for update/rendering.
+	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
+	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
+
+	// Create material instances to render with.
+	ScnModelMeshRuntimeList& MeshRuntimes = Parent_->MeshRuntimes_;
+	ScnMaterialComponentRef MaterialComponentRef;
+	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
+	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
-		auto& PerComponentMeshData( PerComponentMeshDataList_[ Idx ] );
-		Parent->attach( PerComponentMeshData.MaterialComponentRef_ );
+		ScnModelMeshData* pMeshData = &Parent_->pMeshData_[ Idx ];
+		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		TPerComponentMeshData ComponentData;
+
+		if( pMeshRuntime->MaterialRef_.isValid() )
+		{
+			BcAssert( pMeshRuntime->MaterialRef_.isValid() && pMeshRuntime->MaterialRef_->isReady() );
+
+			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
+
+			// Setup lighting.
+			if( isLit() )
+			{
+				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_DIFFUSE;
+			}
+			else
+			{
+				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
+			}
+						
+			// Even on failure add. List must be of same size for quick lookups.
+			if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pMeshRuntime->MaterialRef_, ShaderPermutation ) )
+			{
+				getParentEntity()->attach( MaterialComponentRef );
+			}
+
+			ComponentData.MaterialComponentRef_ = MaterialComponentRef;
+		}
+
+		// Create uniform buffer for object.
+		if( pMeshData->IsSkinned_ )
+		{
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
+				RsCore::pImpl()->createBuffer( 
+					RsBufferDesc( 
+						RsBufferType::UNIFORM,
+						RsResourceCreationFlags::STREAM,
+						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
+		}
+		else
+		{
+			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
+				RsCore::pImpl()->createBuffer( 
+					RsBufferDesc( 
+						RsBufferType::UNIFORM,
+						RsResourceCreationFlags::STREAM,
+						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
+		}
+
+		//
+		PerComponentMeshDataList_.push_back( ComponentData );
 	}
 
 	// Update nodes.
 	UpdateFence_.increment();
 	updateNodes( getParentEntity()->getWorldMatrix() );
-	
-	//
-	Super::onAttach( Parent );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -673,6 +679,16 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 		Parent->detach( PerComponentMeshData.MaterialComponentRef_ );
 		PerComponentMeshData.MaterialComponentRef_ = NULL;
 	}
+
+	// Destroy resources.
+	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
+	{
+		RsCore::pImpl()->destroyResource( PerComponentMeshDataList_[ Idx ].UniformBuffer_ );
+	}
+	
+	// Delete duplicated node data.
+	delete [] pNodeTransformData_;
+	pNodeTransformData_ = NULL;
 
 	//
 	Super::onDetach( Parent );

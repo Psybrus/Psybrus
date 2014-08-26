@@ -34,11 +34,11 @@ void ScnShader::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_",				&ScnShader::pHeader_ ),
-		new ReField( "ShaderMappings_",			&ScnShader::ShaderMappings_,			bcRFF_TRANSIENT ),
-		new ReField( "ProgramMap_",				&ScnShader::ProgramMap_,				bcRFF_TRANSIENT ),
-		new ReField( "TargetCodeType_",			&ScnShader::TargetCodeType_ ),
-		new ReField( "TotalProgramsLoaded_",	&ScnShader::TotalProgramsLoaded_ ),
+		new ReField( "pHeader_", &ScnShader::pHeader_, bcRFF_SHALLOW_COPY ),
+		new ReField( "ShaderMappings_", &ScnShader::ShaderMappings_, bcRFF_TRANSIENT ),
+		new ReField( "ProgramMap_", &ScnShader::ProgramMap_, bcRFF_TRANSIENT ),
+		new ReField( "TargetCodeType_", &ScnShader::TargetCodeType_ ),
+		new ReField( "TotalProgramsLoaded_", &ScnShader::TotalProgramsLoaded_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnShader, Super >( Fields );

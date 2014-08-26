@@ -55,6 +55,8 @@ public:
 	
 	BcBool loadJsonFile( const BcChar* pFileName, Json::Value& Root );
 	BcBool importResource( const Json::Value& Resource );
+
+	BcName getName() const;
 	
 	void beginImport();
 	void endImport();

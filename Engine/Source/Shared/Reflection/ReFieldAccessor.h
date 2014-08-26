@@ -83,7 +83,8 @@ public:
 		{
 			BcAssert( getData() != nullptr );
 		}
-		return FieldClass->getTypeSerialiser()->copy( getData(), Data );
+		auto TypeSerialiser = FieldClass->getTypeSerialiser();
+		return TypeSerialiser != nullptr ? TypeSerialiser ->copy( getData(), Data ) : BcFalse;
 	}
 
 	/**
@@ -121,6 +122,7 @@ public:
 		*/
 	inline const ReClass* getUpperClass() const
 	{
+		BcAssert( isContainerType() == BcFalse );
 		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getType() );
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
@@ -133,15 +135,16 @@ public:
 	/**
 		* @brief Get key upper class.
 		* @pre Is a container.
+		* @pre Data points to element in container.
 		*/
-	inline const ReClass* getKeyUpperClass() const
+	inline const ReClass* getKeyUpperClass( void* Data ) const
 	{
 		BcAssert( Field_->isContainer() );
 		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getKeyType() );
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			UpcastFieldType = getData() != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
+			UpcastFieldType = Data != nullptr ? reinterpret_cast< ReObject* >( Data )->getClass() : FieldClass;
 		}
 		return UpcastFieldType;
 	}
@@ -149,15 +152,16 @@ public:
 	/**
 		* @brief Get value upper class.
 		* @pre Is a container.
+		* @pre Data points to element in container.
 		*/
-	inline const ReClass* getValueUpperClass() const
+	inline const ReClass* getValueUpperClass( void* Data ) const
 	{
 		BcAssert( Field_->isContainer() );
 		const ReClass* FieldClass = static_cast< const ReClass* >( Field_->getValueType() );
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			UpcastFieldType = getData() != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
+			UpcastFieldType = Data != nullptr ? reinterpret_cast< ReObject* >( Data )->getClass() : FieldClass;
 		}
 		return UpcastFieldType;
 	}

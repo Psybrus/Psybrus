@@ -62,14 +62,14 @@ private:
 private:
 	friend class ScnFontComponent;
 	
-	ScnFontHeader*						pHeader_;
-	ScnFontGlyphDesc*					pGlyphDescs_;
+	ScnFontHeader* pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs_;
 	
 	typedef std::map< BcU32, BcU32 >	TCharCodeMap;
 	typedef TCharCodeMap::iterator		TCharCodeMapIterator;
 	
-	TCharCodeMap						CharCodeMap_;
-	ScnTextureRef						Texture_;
+	TCharCodeMap CharCodeMap_;
+	ScnTexture* Texture_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,15 +100,16 @@ public:
 private:
 	friend class ScnFont;
 
-	ScnFontRef							Parent_;
-	ScnMaterialComponentRef				MaterialComponent_;
+	ScnFont* Parent_;
+	ScnMaterial* Material_;
+	ScnMaterialComponent* MaterialComponent_;
 
-	BcBool								ClippingEnabled_;
-	MaVec2d								ClipMin_;
-	MaVec2d								ClipMax_;
+	BcBool ClippingEnabled_;
+	MaVec2d ClipMin_;
+	MaVec2d ClipMax_;
 
-	RsBuffer*					UniformBuffer_;
-	ScnShaderAlphaTestUniformBlockData	AlphaTestUniforms_;
+	RsBuffer* UniformBuffer_;
+	ScnShaderAlphaTestUniformBlockData AlphaTestUniforms_;
 };
 
 #endif

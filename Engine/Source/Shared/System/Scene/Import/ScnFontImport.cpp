@@ -206,7 +206,7 @@ BcBool ScnFontImport::import(
 					
 					// Create a texture.
 					std::string FontTextureName = Object[ "name" ].asString() + "fonttextureatlas";
-					std::string FontTextureFileName = std::string( "IntermediateContent/" ) + FontTextureName + ".png";
+					std::string FontTextureFileName = getIntermediatePath() + std::string( "/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
 					// Setup texture object for import.

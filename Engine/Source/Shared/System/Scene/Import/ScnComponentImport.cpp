@@ -54,7 +54,13 @@ ScnComponentImport::~ScnComponentImport()
 BcBool ScnComponentImport::import(
 		const Json::Value& Object )
 {
-	return BcFalse;
+	// Write out object to be used later.
+	Json::FastWriter Writer;
+	std::string JsonData = Writer.write( Object );
+
+	//
+	CsResourceImporter::addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
+	return BcTrue;
 }
 
 #endif

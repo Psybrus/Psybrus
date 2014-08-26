@@ -26,8 +26,13 @@ void ScnCanvasComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "MaterialComponent_",	&ScnCanvasComponent::MaterialComponent_ ),
-		new ReField( "DiffuseTexture_",		&ScnCanvasComponent::DiffuseTexture_ )
+		new ReField( "MaterialComponent_", &ScnCanvasComponent::MaterialComponent_ ),
+		new ReField( "CurrentRenderResource_", &ScnCanvasComponent::CurrentRenderResource_, bcRFF_TRANSIENT ),
+		new ReField( "HaveVertexBufferLock_", &ScnCanvasComponent::HaveVertexBufferLock_, bcRFF_TRANSIENT ),
+		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
+		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
+		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_ ),
+		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_ ),
 	};
 		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
@@ -55,6 +60,7 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	pWorkingVertices_ = nullptr;
 	NoofVertices_ = NoofVertices;
 	VertexIndex_ = 0;
+	VertexDeclaration_ = nullptr;
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;

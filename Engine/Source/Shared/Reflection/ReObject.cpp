@@ -14,8 +14,8 @@ void ReObject::StaticRegisterClass()
 		new ReField( "RefCount_", &ReObject::RefCount_, bcRFF_TRANSIENT ),
 #endif
 		new ReField( "Flags_", &ReObject::Flags_ ),
-		new ReField( "Owner_", &ReObject::Owner_ ),
-		new ReField( "Basis_", &ReObject::Basis_ ),
+		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY ),
 		new ReField( "Name_", &ReObject::Name_ ),
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
 		new ReField( "UniqueId_", &ReObject::UniqueId_, bcRFF_TRANSIENT ),

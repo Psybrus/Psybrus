@@ -56,20 +56,19 @@ public:
 	void						normalise();
 
 private:
-	BcU32 NoofTransforms_;
-	ScnAnimationTransform* pTransforms_;
+	std::vector< ScnAnimationTransform > Transforms_;
 };
 
 BcForceInline void ScnAnimationPose::setTransform( BcU32 Idx, const ScnAnimationTransform& Transform )
 {
-	BcAssert( Idx < NoofTransforms_ );
-	pTransforms_[ Idx ] = Transform;
+	BcAssert( Idx < Transforms_.size() );
+	Transforms_[ Idx ] = Transform;
 }
 
 BcForceInline const ScnAnimationTransform& ScnAnimationPose::getTransform( BcU32 Idx ) const
 {
-	BcAssert( Idx < NoofTransforms_ );
-	return pTransforms_[ Idx ];
+	BcAssert( Idx < Transforms_.size() );
+	return Transforms_[ Idx ];
 }
 
 #endif

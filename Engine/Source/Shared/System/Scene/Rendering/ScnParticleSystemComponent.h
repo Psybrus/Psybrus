@@ -104,7 +104,8 @@ private:
 	BcU32 PotentialFreeParticle_;
 	
 	// 
-	ScnMaterialComponentRef MaterialComponent_;
+	ScnMaterial* Material_;
+	ScnMaterialComponent* MaterialComponent_;
 	BcU32 WorldTransformParam_;
 
 	//
@@ -113,11 +114,12 @@ private:
 	// UV bounds.
 	std::vector< MaVec4d > UVBounds_;
 
+	// AABB
+	MaAABB AABB_;
+
 	// Fences for uploading + updating.
 	SysFence UploadFence_;
 	SysFence UpdateFence_;
-
-	MaAABB AABB_;
 };
 
 #endif

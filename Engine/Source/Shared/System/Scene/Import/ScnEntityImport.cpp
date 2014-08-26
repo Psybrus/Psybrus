@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnEntityImport.h"
+#include "System/Scene/ScnEntity.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcFile.h"
@@ -29,7 +30,7 @@ void ScnEntityImport::StaticRegisterClass()
 		new ReField( "Source_", &ScnEntityImport::Source_ ),
 	};
 	*/
-		
+	
 	ReRegisterClass< ScnEntityImport, Super >();
 }
 
@@ -53,12 +54,28 @@ ScnEntityImport::~ScnEntityImport()
 BcBool ScnEntityImport::import(
 		const Json::Value& Object )
 {
-	// Write out object to be used later.
-	Json::FastWriter Writer;
-	std::string JsonData = Writer.write( Object );
-
 	//
-	CsResourceImporter::addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
+	Json::Value Components = Object[ "components" ];
+
+	BcStream Stream;
+	ScnEntityHeader Header;
+	Header.NoofComponents_ = Components.size();
+	Stream << Header;
+	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
+	{
+		Json::Value& Component( Components[ Idx ] );
+		
+		// Create a vaguely unique name.
+		if( Component.get( "name", Json::nullValue ).type() == Json::nullValue )
+		{
+			Component[ "name" ] = (*BcName( Component[ "type" ].asCString() ).getUnique());
+		}
+
+		BcU32 CrossRef = CsResourceImporter::addImport( Component, BcTrue );
+		Stream << CrossRef;
+	}	
+
+	CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 
 	return BcTrue;
 }

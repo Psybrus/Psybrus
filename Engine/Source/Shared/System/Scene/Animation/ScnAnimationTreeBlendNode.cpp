@@ -21,11 +21,11 @@ void ScnAnimationTreeBlendNode::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pNodes_",			&ScnAnimationTreeBlendNode::pNodes_ ),
-		new ReField( "BlendType_",		&ScnAnimationTreeBlendNode::BlendType_ ),
-		new ReField( "BlendValue_",		&ScnAnimationTreeBlendNode::BlendValue_ ),
+		new ReField( "pNodes_", &ScnAnimationTreeBlendNode::pNodes_ ),
+		new ReField( "BlendType_", &ScnAnimationTreeBlendNode::BlendType_ ),
+		new ReField( "BlendValue_", &ScnAnimationTreeBlendNode::BlendValue_ ),
 	};
-		
+	
 	ReRegisterClass< ScnAnimationTreeBlendNode, Super >( Fields );
 }
 
