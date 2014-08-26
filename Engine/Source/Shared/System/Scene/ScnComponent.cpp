@@ -16,6 +16,10 @@
 #include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 
+#ifdef PSY_SERVER
+#include "System/Scene/Import/ScnComponentImport.h"
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentAttribute
 REFLECTION_DEFINE_DERIVED( ScnComponentAttribute );
@@ -35,7 +39,6 @@ int ScnComponentAttribute::getUpdatePriority() const
 	return UpdatePriority_;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnComponent );
@@ -47,7 +50,12 @@ void ScnComponent::StaticRegisterClass()
 		new ReField( "ParentEntity_",		&ScnComponent::ParentEntity_ )
 	};
 		
-	ReRegisterClass< ScnComponent, Super >( Fields );
+	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
+
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( ScnComponentImport::StaticGetClass() ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

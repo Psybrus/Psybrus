@@ -21,7 +21,7 @@ public:
     static const char* ValueEntry;
 
 public:
-    SeJsonWriter( const char* FileName );
+	SeJsonWriter( const char* FileName, BcU32 IncludeFieldFlags = 0xffffffff, BcU32 ExcludeFieldFlags = bcRFF_TRANSIENT );
     virtual ~SeJsonWriter();
 
     virtual BcU32 getVersion() const;
@@ -60,8 +60,12 @@ private:
         }
     };
 
+	BcBool shouldSerialiseField( BcU32 Flags );
+
 private:
-    std::list< SerialiseClass >		SerialiseClasses_;	///!< Classes to serialise.
+	BcU32 IncludeFieldFlags_;
+	BcU32 ExcludeFieldFlags_;
+	std::list< SerialiseClass >		SerialiseClasses_;	///!< Classes to serialise.
     std::string						OutputFile_;
 };
 

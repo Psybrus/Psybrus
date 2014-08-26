@@ -28,9 +28,6 @@ class ScnEntity:
 public:
 	DECLARE_RESOURCE( ScnEntity, ScnComponent );
 	
-#if PSY_SERVER
-	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif	
 	void								initialise();
 	void								initialise( ScnEntityRef Basis );
 	void								create();

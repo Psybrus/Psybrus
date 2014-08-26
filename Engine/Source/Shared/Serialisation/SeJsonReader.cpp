@@ -17,8 +17,10 @@ const char* SeJsonReader::ValueEntry = "Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SeJsonReader::SeJsonReader( const char* FileName ):
-    InputFile_( FileName )
+SeJsonReader::SeJsonReader( const char* FileName, BcU32 IncludeFieldFlags, BcU32 ExcludeFieldFlags ) :
+    InputFile_( FileName ),
+	IncludeFieldFlags_( IncludeFieldFlags ),
+	ExcludeFieldFlags_( ExcludeFieldFlags )
 {
 
 }
@@ -177,7 +179,13 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, Json::Val
 //virtual
 void SeJsonReader::serialiseField( void* pData, const ReField* pField, Json::Value& InputValue )
 {
-    // Select the appropriate serialise method to use if we
+	// Check flags.
+	if( !shouldSerialiseField( pField->getFlags() ) )
+	{
+		return;
+	}
+	
+	// Select the appropriate serialise method to use if we
     // have some data to serialise.
     if( pData != nullptr )
     {
@@ -337,4 +345,11 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( size_t ID, const R
         return *FoundClass;
     }
     return SerialiseClass( 0, nullptr, nullptr );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shouldSerialiseField
+BcBool SeJsonReader::shouldSerialiseField( BcU32 Flags )
+{
+	return ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 );
 }

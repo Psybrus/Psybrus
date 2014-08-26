@@ -404,8 +404,19 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 	const ReClass* ResourceClass = ReManager::GetClass( Type.asCString() );
 	if( ResourceClass != nullptr )
 	{
-		CsResourceImporterAttribute* ResourceImporterAttr = 
-			ResourceClass->getAttribute< CsResourceImporterAttribute >();
+		CsResourceImporterAttribute* ResourceImporterAttr = nullptr;
+		do
+		{
+			ResourceImporterAttr =
+				ResourceClass->getAttribute< CsResourceImporterAttribute >();
+
+			// Check on a parent to see if there is a valid importer attached to it.
+			if( ResourceImporterAttr == nullptr )
+			{
+				ResourceClass = ResourceClass->getSuper();
+			}
+		}
+		while( ResourceImporterAttr == nullptr && ResourceClass != nullptr );
 
 		if( ResourceImporterAttr != nullptr )
 		{
@@ -425,25 +436,10 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 	}
 	
 	// Fallback to old import.
+	// TODO: No more old import pipeline.
 	if( SuccessfulImport == BcFalse )
 	{
-		// Allocate a resource (TODO: Use static member for import instead of instance.)
-		CsResource* pResource = CsCore::pImpl()->allocResource( Name.asCString(), ReManager::GetClass( Type.asCString() ), ResourceIndex, NULL );
-		if( pResource == NULL )
-		{
-			BcPrintf( "CsPackageImporter: Can't allocate resource \"%s\" of type \"%s\".\n", Name.asCString(), Type.asCString() );
-			return BcFalse;
-		}
-	
-		// Call resource import.
-		try
-		{
-			SuccessfulImport = pResource->import( *this, Resource );
-		}
-		catch( CsImportException ImportException )
-		{
-			throw ImportException;
-		}
+		BcBreakpoint;
 	}
 
 	// Handle success.

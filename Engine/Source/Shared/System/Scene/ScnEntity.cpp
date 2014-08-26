@@ -23,23 +23,7 @@
 #include "Serialisation/SeJsonWriter.h"
 
 #ifdef PSY_SERVER
-#include "Base/BcStream.h"
-
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	// Write out object to be used later.
-	Json::FastWriter Writer;
-	std::string JsonData = Writer.write( Object );
-	
-	//
-	Importer.addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
-	
-	//
-	return Super::import( Importer, Object );
-}
+#include "System/Scene/Import/ScnEntityImport.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,8 +41,13 @@ void ScnEntity::StaticRegisterClass()
 		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
 	};
 		
-	ReRegisterClass< ScnEntity, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2100 ) );
+	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
+		
+	Class.addAttribute( new ScnComponentAttribute( -2100 ) );
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( ScnEntityImport::StaticGetClass() ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

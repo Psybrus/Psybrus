@@ -76,13 +76,6 @@ public:
 	 */
 	void							preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPackage );
 
-#ifdef PSY_SERVER
-	/**
-	 * Import resource.
-	 */
-	virtual BcBool					import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
-
 	/**
 	 * Initialise resource. <br/>
 	 * Called on construction from thread creating it.

@@ -618,6 +618,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			// Push shader into map.
 			if( RetVal == BcTrue )
 			{
+				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 				auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
 				if( FoundShader != BuiltShaderData_.end() )
 				{

@@ -21,7 +21,7 @@ public:
     static const char* ValueEntry;
 
 public:
-    SeJsonReader( const char* FileName );
+	SeJsonReader( const char* FileName, BcU32 IncludeFieldFlags = 0xffffffff, BcU32 ExcludeFieldFlags = bcRFF_TRANSIENT );
     virtual ~SeJsonReader();
 
     virtual BcU32 getVersion() const;
@@ -60,13 +60,17 @@ private:
         }
     };
 
-    SerialiseClass					getSerialiseClass( size_t ID, const ReType* pType );
+    SerialiseClass getSerialiseClass( size_t ID, const ReType* pType );
+
+	BcBool shouldSerialiseField( BcU32 Flags );
 
 private:
-    BcU32							FileVersion_;
-    std::list< SerialiseClass >		SerialiseClasses_;	///!< Classes to serialise.
-    std::vector< Json::Value >		InputValues_;		///!< Values to read int.
-    std::string						InputFile_;
+	BcU32 IncludeFieldFlags_;
+	BcU32 ExcludeFieldFlags_;
+	BcU32 FileVersion_;
+    std::list< SerialiseClass > SerialiseClasses_;	///!< Classes to serialise.
+    std::vector< Json::Value > InputValues_;		///!< Values to read int.
+    std::string InputFile_;
 };
 
 #endif
