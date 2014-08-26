@@ -12,8 +12,8 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnTextureImport.h"
-#include "System/Scene/ScnTextureFileData.h"
-#include "System/Scene/ScnTextureAtlasFileData.h"
+#include "System/Scene/Rendering/ScnTextureFileData.h"
+#include "System/Scene/Rendering/ScnTextureAtlasFileData.h"
 
 #include "System/Renderer/RsTypes.h"
 

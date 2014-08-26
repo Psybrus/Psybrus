@@ -16,7 +16,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Debug/DsCore.h"
-#include "System/Scene/ScnDebugRenderComponent.h"
+#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"

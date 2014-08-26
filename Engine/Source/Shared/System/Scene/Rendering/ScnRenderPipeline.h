@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		ScnRenderPipeline.h
+* File:		Rendering/ScnRenderPipeline.h
 * Author:	Neil Richardson 
 * Ver/Date:		
 * Description:

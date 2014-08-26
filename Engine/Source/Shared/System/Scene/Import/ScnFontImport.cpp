@@ -13,7 +13,7 @@
 
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnFontImport.h"
-#include "System/Scene/ScnFontFileData.h"
+#include "System/Scene/Rendering/ScnFontFileData.h"
 #include "Base/BcFile.h"
 #include "Base/BcMath.h"
 #include "Base/BcStream.h"

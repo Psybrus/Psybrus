@@ -15,7 +15,7 @@
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnVisitor.h"
 #include "System/Scene/ScnSpatialComponent.h"
-#include "System/Scene/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsFrame.h"
