@@ -19,171 +19,7 @@
 #include "Base/BcMath.h"
 
 #ifdef PSY_SERVER
-#include "Base/BcStream.h"
-#include "Import/Img/Img.h"
-
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	const Json::Value& Source = Object[ "source" ];
-	const Json::Value& Format = Object[ "format" ];
-
-	if( Source.type() == Json::stringValue )
-	{
-		const std::string& FileName = Object[ "source" ].asString();
-
-		// Add root dependency.
-		Importer.addDependency( FileName.c_str() );
-
-		// Load texture from file and create the data for export.
-		ImgImageList MipImages;
-		MipImages.push_back( Img::load( FileName.c_str() ) );
-		// TODO: Throw exception instead on failure.
-		if( MipImages[ 0 ] != nullptr )
-		{
-			BcU32 W = MipImages[ 0 ]->width();
-			BcU32 H = MipImages[ 0 ]->height();
-					
-			// Downsample texture for mip maps.
-			if( BcPot( W ) && BcPot( H ) )
-			{
-				// Down to a minimum of 4x4.
-				while( W > 4 && H > 4 )
-				{
-					W >>= 1;
-					H >>= 1;
-					MipImages.push_back( MipImages[ MipImages.size() - 1 ]->resize( W, H ) );
-				}
-			}
-
-			// Encode the image as a format.
-			BcU8* pEncodedImageData = NULL;
-			BcU32 EncodedImageDataSize = 0;
-
-			// TODO: Take from parameters.
-			ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
-			RsTextureFormat TextureFormat = RsTextureFormat::R8G8B8A8;
-			RsTextureType TextureType = MipImages[ 0 ]->height() == 0 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
-		
-			// Use tex compression unless in debug.
-	#if !PSY_DEBUG
-			if( TextureType == RsTextureType::TEX2D )
-			{
-				if( Format.type() == Json::nullValue &&
-					pTopLevelImage->width() % 4 == 0 && 
-					pTopLevelImage->height() % 4 == 0 )
-				{
-					if( pImage->hasAlpha( 8 ) == BcFalse )
-					{
-						EncodeFormat = imgEF_DXT1;
-						TextureFormat = RsTextureFormat::DXT1;
-					}
-					else
-					{
-						EncodeFormat = imgEF_DXT5;
-						TextureFormat = RsTextureFormat::DXT5;
-					}
-				}
-				else
-				{
-					// HACK.
-				}
-			}
-	#endif
-			// Streams.
-			BcStream HeaderStream;
-			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
-
-			// Write header.
-			ScnTextureHeader Header = 
-			{ 
-				MipImages[ 0 ]->width(), 
-				MipImages[ 0 ]->height(), 
-				0,
-				(BcU32)MipImages.size(), 
-				TextureType, 
-				TextureFormat, 
-				BcFalse 
-			};	// TODO: Take type from file.
-			HeaderStream << Header;
-
-			// Write all mip images into the same body for now.
-			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
-			{
-				auto* pImage = MipImages[ Idx ].get();
-				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
-				{
-					// Serialize encoded images.
-					BodyStream.push( pEncodedImageData, EncodedImageDataSize );
-					delete [] pEncodedImageData;
-					pEncodedImageData = NULL;
-					EncodedImageDataSize = 0;
-				}
-				else
-				{
-					BcPrintf( "Failed to encode image \"%s\"\n", FileName.c_str() );
-				}
-			}
-
-			// Clear images.
-			MipImages.clear();
-
-			// Add chunks.
-			Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
-			Importer.addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
-
-			return BcTrue;
-		}
-		else
-		{
-			BcPrintf( "Failed to load image \"%s\"\n", FileName.c_str() );
-		}
-	}
-	else
-	{
-		// User created texture.
-		BcU32 Width = 0;
-		BcU32 Height = 0;
-		BcU32 Depth = 0;
-
-		RsTextureType TextureType;
-
-		const Json::Value& Type = Object[ "texturetype" ];
-		const Json::Value& WidthValue = Object[ "width" ];
-		const Json::Value& HeightValue = Object[ "height" ];
-		const Json::Value& DepthValue = Object[ "depth" ];
-
-		if( BcStrCompare( Type.asCString(), "1d" ) )
-		{
-			TextureType = RsTextureType::TEX1D;
-			Width = WidthValue.asUInt();
-		}
-		else if( BcStrCompare( Type.asCString(), "2d" ) )
-		{
-			TextureType = RsTextureType::TEX2D;
-			Width = WidthValue.asUInt();
-			Height = HeightValue.asUInt();
-		}
-		else if( BcStrCompare( Type.asCString(), "3d" ) )
-		{
-			TextureType = RsTextureType::TEX3D;
-			Width = WidthValue.asUInt();
-			Height = HeightValue.asUInt();
-			Depth = DepthValue.asUInt();
-		}
-
-
-		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, RsTextureFormat::R8G8B8A8, BcTrue };
-		BcStream HeaderStream;
-		HeaderStream << Header;
-		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
-		return BcTrue;
-	}
-
-	return BcFalse;
-}
+#include "System/Scene/Import/ScnTextureImport.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,7 +34,12 @@ void ScnTexture::StaticRegisterClass()
 		new ReField( "Header_",				&ScnTexture::Header_ ),
 	};
 		
-	ReRegisterClass< ScnTexture, Super >( Fields );
+	auto& Class = ReRegisterClass< ScnTexture, Super >( Fields );
+
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( ScnTextureImport::StaticGetClass() ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

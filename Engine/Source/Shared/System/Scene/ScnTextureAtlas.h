@@ -31,10 +31,6 @@ class ScnTextureAtlas:
 {
 public:
 	DECLARE_RESOURCE( ScnTextureAtlas, ScnTexture );
-	
-#if PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif	
 
 	virtual const ScnRect&				getRect( BcU32 Idx );
 	virtual BcU32						noofRects();
