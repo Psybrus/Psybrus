@@ -38,18 +38,14 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 		Importer.addDependency( FileName.c_str() );
 
 		// Load texture from file and create the data for export.
-		ImgImage* pImage = Img::load( FileName.c_str() );
-		ImgImage* pTopLevelImage = pImage;
-
-		if( pImage != NULL )
+		ImgImageList MipImages;
+		MipImages.push_back( Img::load( FileName.c_str() ) );
+		// TODO: Throw exception instead on failure.
+		if( MipImages[ 0 ] != nullptr )
 		{
-			std::vector< ImgImage* > MipImages;
-			BcU32 W = pImage->width();
-			BcU32 H = pImage->height();
-
-			// Push main image in first.
-			MipImages.push_back( pImage );
-		
+			BcU32 W = MipImages[ 0 ]->width();
+			BcU32 H = MipImages[ 0 ]->height();
+					
 			// Downsample texture for mip maps.
 			if( BcPot( W ) && BcPot( H ) )
 			{
@@ -58,9 +54,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 				{
 					W >>= 1;
 					H >>= 1;
-
-					pImage = pImage->resize( W, H );
-					MipImages.push_back( pImage );
+					MipImages.push_back( MipImages[ MipImages.size() - 1 ]->resize( W, H ) );
 				}
 			}
 
@@ -71,7 +65,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			// TODO: Take from parameters.
 			ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
 			RsTextureFormat TextureFormat = RsTextureFormat::R8G8B8A8;
-			RsTextureType TextureType = pTopLevelImage->height() == 0 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
+			RsTextureType TextureType = MipImages[ 0 ]->height() == 0 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
 		
 			// Use tex compression unless in debug.
 	#if !PSY_DEBUG
@@ -105,8 +99,8 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			// Write header.
 			ScnTextureHeader Header = 
 			{ 
-				pTopLevelImage->width(), 
-				pTopLevelImage->height(), 
+				MipImages[ 0 ]->width(), 
+				MipImages[ 0 ]->height(), 
 				0,
 				(BcU32)MipImages.size(), 
 				TextureType, 
@@ -118,7 +112,7 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 			// Write all mip images into the same body for now.
 			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
 			{
-				pImage = MipImages[ Idx ];
+				auto* pImage = MipImages[ Idx ].get();
 				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 				{
 					// Serialize encoded images.
@@ -126,9 +120,6 @@ BcBool ScnTexture::import( class CsPackageImporter& Importer, const Json::Value&
 					delete [] pEncodedImageData;
 					pEncodedImageData = NULL;
 					EncodedImageDataSize = 0;
-							
-					// Delete image.
-					delete pImage;
 				}
 				else
 				{

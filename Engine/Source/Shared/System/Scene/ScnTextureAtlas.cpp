@@ -59,7 +59,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			Importer.addDependency( FileName.c_str() );
 
 			// Load image.
-			ImgImage* pImage = Img::load( FileName.c_str() );
+			ImgImageUPtr pImage = Img::load( FileName.c_str() );
 
 			// Generate alpha from intensity.
 			if( pImage != NULL && AlphaFromIntensity )
@@ -78,7 +78,7 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			// Replace with a distance field version.
 			if( pImage != NULL && DistanceField == BcTrue )
 			{
-				ImgImage* pPaddedImage = new ImgImage();
+				ImgImageUPtr pPaddedImage = ImgImageUPtr( new ImgImage() );
 
 				ImgColour FillColour = { 0, 0, 0, 0 };
 				BcU32 NewWidth = BcPotNext( pImage->width() + SpreadDouble );
@@ -88,30 +88,24 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 				ImgRect DstRect = { Spread, Spread, pImage->width(), pImage->height() };
 				
 				pPaddedImage->create( NewWidth, NewHeight, &FillColour );
-				pPaddedImage->blit( pImage, SrcRect, DstRect );
+				pPaddedImage->blit( pImage.get(), SrcRect, DstRect );
 								
 				// Distance field.
-				ImgImage* pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread );
+				ImgImageUPtr pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread );
 								
 				// Scale down 8x.
-				ImgImage* pScale1_2 = pDistanceFieldImage->resize( NewWidth >> 1, NewHeight >> 1 );
-				ImgImage* pScale1_4 = pScale1_2->resize( NewWidth >> 2, NewHeight >> 2 );			
+				ImgImageUPtr pScale1_2 = pDistanceFieldImage->resize( NewWidth >> 1, NewHeight >> 1 );
+				ImgImageUPtr pScale1_4 = pScale1_2->resize( NewWidth >> 2, NewHeight >> 2 );			
 							
 				// Crop to final size.
-				ImgImage* pFinal = pScale1_4->canvasSize( ( ( pImage->width() + SpreadDouble ) / 4 ), ( ( pImage->height() + SpreadDouble ) / 4 ), &FillColour );
+				ImgImageUPtr pFinal = pScale1_4->canvasSize( ( ( pImage->width() + SpreadDouble ) / 4 ), ( ( pImage->height() + SpreadDouble ) / 4 ), &FillColour );
 
-				//
-				delete pPaddedImage;
-				delete pDistanceFieldImage;
-				delete pScale1_2;
-				delete pScale1_4;
-				delete pImage;
-				
-				pImage = pFinal;
+				// Store image.
+				pImage = std::move( pFinal );
 			}
 			
 			// Add to list (even if null).
-			ImageList.push_back( pImage );
+			ImageList.push_back( std::move( pImage ) );
 		}
 
 		// If we have images, generate an atlas and export.
@@ -122,14 +116,14 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 						
 			// Create an atlas of all source textures..
 			ImgRectList RectList;
-			ImgImage* pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256, ClearColour );
-			
+			ImgImageUPtr pAtlasImage = ImgImage::generateAtlas( ImageList, RectList, 256, 256, ClearColour );
+						
 			// Setup header.
 			ScnTextureAtlasHeader Header = 
 			{
 				(BcU32)ImageList.size()
 			};
-			
+
 			HeaderStream << Header;
 						
 			for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
@@ -158,15 +152,10 @@ BcBool ScnTextureAtlas::import( class CsPackageImporter& Importer, const Json::V
 			// Create a texture.
 			std::string AtlasName = Object[ "name" ].asString() + "textureatlas";
 			std::string AtlasFileName = std::string( "IntermediateContent/" ) + AtlasName + ".png";
-			Img::save( AtlasFileName.c_str(), pAtlasImage );
+			Img::save( AtlasFileName.c_str(), pAtlasImage.get() );
 			
-			// Delete all images.
-			for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
-			{
-				delete ImageList[ Idx ];
-			}
 			ImageList.clear();
-			delete pAtlasImage;
+			pAtlasImage = nullptr;
 			
 			// Setup base object, and import.
 			Json::Value BaseObject = Object;

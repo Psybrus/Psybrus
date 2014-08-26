@@ -49,9 +49,6 @@ class ScnFont:
 public:
 	DECLARE_RESOURCE( ScnFont, CsResource );
 	
-#ifdef PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
