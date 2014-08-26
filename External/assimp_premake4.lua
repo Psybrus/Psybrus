@@ -1,5 +1,5 @@
 boostRoot = os.getenv("BOOST_ROOT") or "C:/Boost"
-boostInclude = boostRoot .. "/include/boost-1_55"
+boostInclude = boostRoot .. "/include/boost-1_56"
 
 
 -- Write out revision file.
