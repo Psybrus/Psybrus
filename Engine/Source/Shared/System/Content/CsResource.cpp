@@ -26,8 +26,8 @@ void CsResource::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Index_",				&CsResource::Index_ ),
-		new ReField( "InitStage_",			&CsResource::InitStage_ ),
+		new ReField( "Index_", &CsResource::Index_, bcRFF_TRANSIENT ),
+		new ReField( "InitStage_", &CsResource::InitStage_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< CsResource, Super >( Fields );
@@ -61,21 +61,6 @@ void CsResource::preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPac
 	setOwner( pPackage );
 	Index_ = Index;
 }
-
-#ifdef PSY_SERVER
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool CsResource::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	BcUnusedVar( Importer );
-	BcUnusedVar( Object );
-
-	// TODO: Generic property save out?
-
-	return BcTrue;
-}
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // initialise

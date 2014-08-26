@@ -17,8 +17,10 @@ const char* SeJsonWriter::ValueEntry = "Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SeJsonWriter::SeJsonWriter( const char* FileName ):
-	OutputFile_( FileName )
+SeJsonWriter::SeJsonWriter( const char* FileName, BcU32 IncludeFieldFlags, BcU32 ExcludeFieldFlags ) :
+	OutputFile_( FileName ),
+	IncludeFieldFlags_( IncludeFieldFlags ),
+	ExcludeFieldFlags_( ExcludeFieldFlags )
 {
 
 }
@@ -200,8 +202,8 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 //virtual
 Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
 {
-	// Check transient flag.
-	if( ( pField->getFlags() & bcRFF_TRANSIENT ) == bcRFF_TRANSIENT )
+	// Check flags.
+	if ( !shouldSerialiseField(pField->getFlags() ) )
 	{
 		return Json::nullValue;
 	}
@@ -390,3 +392,10 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
 
 	return DictValue;
 }	
+
+//////////////////////////////////////////////////////////////////////////
+// shouldSerialiseField
+BcBool SeJsonWriter::shouldSerialiseField( BcU32 Flags )
+{
+	return ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 );
+}
