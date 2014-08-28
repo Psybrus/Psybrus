@@ -14,6 +14,7 @@
 #include "System/Content/CsPackageLoader.h"
 
 #include "System/Content/CsCore.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "System/SysKernel.h"
 
@@ -241,7 +242,10 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	if( boost::filesystem::exists( OutputDependencies ) )
 	{
 		CsPackageDependencies Dependencies;
-		SeJsonReader Reader( OutputDependencies.c_str() );
+
+		CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+		SeJsonReader Reader( &ObjectCodec );
+		Reader.load( OutputDependencies.c_str() );
 		Reader << Dependencies;
 
 		// Check other dependencies.

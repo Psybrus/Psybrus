@@ -5,32 +5,25 @@
 
 //////////////////////////////////////////////////////////////////////////
 // SERIALISER_VERSION
-static const int SERIALISER_VERSION = 1;
+static const int SERIALISER_VERSION = 2;
 
 //////////////////////////////////////////////////////////////////////////
-// SeISerialiserPointerCodec
-class SeISerialiserPointerCodec
+// SeISerialiserObjectCodec
+class SeISerialiserObjectCodec
 {
 public:
-    SeISerialiserPointerCodec(){}
-    virtual ~SeISerialiserPointerCodec(){};
+    SeISerialiserObjectCodec(){}
+    virtual ~SeISerialiserObjectCodec(){};
 
-    /**
-     * @brief Encodes a pointer as a string.
-     * @param InData Pointer to data.
-     * @param InClass Class that data represents.
-     * @return String ID.
-     */
-    virtual std::string encodePointer( void* InData, const ReClass* InClass ) = 0;
+	/**
+	 * @brief Does this object need to be serialised?
+	 */
+	virtual BcBool shouldSerialise( void* InData, const ReType* InType ) = 0;
 
-    /**
-     * @brief Encodes a pointer as a string.
-     * @param InID ID to decode.
-     * @param OutData Pointer to data.
-     * @param OutClass Class that data represents.
-     * @return Success.
-     */
-    virtual bool decodePointer( const std::string& InID, void*& OutData, const ReClass*& OutClass ) = 0;
+	/**
+	 * @brief Serialise as string ref.
+	 */
+	virtual std::string serialiseAsStringRef( void* InData, const ReType* InType ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

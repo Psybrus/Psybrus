@@ -15,6 +15,7 @@
 #include "System/Content/CsResourceImporter.h"
 
 #include "System/Content/CsCore.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "Reflection/ReReflection.h"
 #include "Serialisation/SeJsonWriter.h"
@@ -196,8 +197,10 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
-			SeJsonWriter Writer( OutputDependencies.c_str() );
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
+			Writer.save( OutputDependencies.c_str() );
 		}
 		else
 		{

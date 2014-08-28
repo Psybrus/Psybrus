@@ -14,6 +14,7 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Scene/ScnCore.h"
 #include "System/Content/CsCore.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "Base/BcProfiler.h"
 
@@ -37,7 +38,7 @@ void ScnEntity::StaticRegisterClass()
 		new ReField( "Basis_",			&ScnEntity::Basis_, bcRFF_SHALLOW_COPY ),
 		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
 		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
-		new ReField( "Components_",		&ScnEntity::Components_, bcRFF_TRANSIENT ),
+		new ReField( "Components_",		&ScnEntity::Components_ ),
 		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
 	};
 		
@@ -101,11 +102,6 @@ void ScnEntity::create()
 			BcAssert( Basis_->Components_.size() == Header->NoofComponents_ );
 			ScnComponentRef Component = Basis_->Components_[ Idx ];
 
-			if( Component->getName() == "XREF13ScnFontComponent_0" )
-			{
-				int a=  0; ++a;
-			}
-
 			// Construct a new entity.
 			ScnComponentRef NewComponent = 
 				ReConstructObject( Component->getClass(), *Component->getName().getUnique(), getPackage(), Component );
@@ -113,7 +109,7 @@ void ScnEntity::create()
 			attach( NewComponent );
 		}
 	}
-	
+
 	markReady();
 }
 
@@ -122,7 +118,7 @@ void ScnEntity::create()
 void ScnEntity::destroy()
 {
 	// If we have a basis entity, we need to release the package.
-	if( Basis_.isValid() )
+	if( Basis_ != nullptr )
 	{
 		getPackage()->release();
 	}
@@ -231,7 +227,7 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 ScnEntityRef ScnEntity::getBasisEntity()
 {
 	// If we have a basis, ask it for it's basis.
-	if( Basis_.isValid() )
+	if( Basis_ != nullptr )
 	{
 		return Basis_->getBasisEntity();
 	}

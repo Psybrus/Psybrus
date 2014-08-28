@@ -546,9 +546,9 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		Output.createChildNode("br");
 		return;
 	}
-	SeJsonWriter writer("out.json");
+	SeJsonWriter writer( nullptr );
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
-
+	
 	//boost::replace_all(output, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
 	//boost::replace_all(output, "\n", "<br />");
 
