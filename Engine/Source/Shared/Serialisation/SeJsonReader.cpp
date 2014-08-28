@@ -17,8 +17,10 @@ const char* SeJsonReader::ValueEntry = "Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SeJsonReader::SeJsonReader( const char* FileName, BcU32 IncludeFieldFlags, BcU32 ExcludeFieldFlags ) :
-    InputFile_( FileName ),
+SeJsonReader::SeJsonReader( 
+	SeISerialiserObjectCodec* ObjectCodec, 
+	BcU32 IncludeFieldFlags, 
+	BcU32 ExcludeFieldFlags ) :
 	IncludeFieldFlags_( IncludeFieldFlags ),
 	ExcludeFieldFlags_( ExcludeFieldFlags )
 {
@@ -31,6 +33,18 @@ SeJsonReader::SeJsonReader( const char* FileName, BcU32 IncludeFieldFlags, BcU32
 SeJsonReader::~SeJsonReader()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// load
+void SeJsonReader::load( std::string FileName )
+{
+    // Read in the json file.
+    Json::Reader Reader;
+    std::ifstream InStream;
+    InStream.open( FileName );
+    Reader.parse( InStream, RootValue_ );
+    InStream.close();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,13 +68,6 @@ BcU32 SeJsonReader::getFileVersion() const
 //virtual
 void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 {
-    // Read in the json file.
-    Json::Reader Reader;
-    std::ifstream InStream;
-    InStream.open( InputFile_ );
-    Reader.parse( InStream, RootValue_ );
-    InStream.close();
-
     Json::Value& RootIDEntry( RootValue_[ RootIDEntry ] );
     Json::Value& VersionEntry( RootValue_[ SerialiserVersionEntry ] );
     Json::Value& ObjectsValue( RootValue_[ ObjectsEntry ] );
@@ -75,9 +82,9 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
         auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
         if( ClassType->getTypeSerialiser() != nullptr )
         {
-            auto ID( ObjectToSerialise[ IDEntry ].asUInt() );
+            std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
             void* pClassObject = nullptr;
-            if( ID == RootIDEntry.asUInt() )
+            if( ID == RootIDEntry.asCString() )
             {
                 if( pData != nullptr )
                 {
@@ -104,7 +111,7 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
     {
         auto ObjectToSerialise( *It );
         auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
-        auto ID( ObjectToSerialise[ IDEntry ].asUInt() );
+        std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
         auto ClassToSerialise( getSerialiseClass( ID, ClassType ) );
 
         // Add class to list for look up.
@@ -225,7 +232,7 @@ void SeJsonReader::serialiseField( void* pData, const ReField* pField, Json::Val
 //virtual
 void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, Json::Value& InputValue, BcBool IncrementRefCount )
 {
-    auto ClassToSerialise = getSerialiseClass( InputValue.asUInt(), pClass );
+    auto ClassToSerialise = getSerialiseClass( InputValue.asCString(), pClass );
     if( ClassToSerialise.pData_ != nullptr && ClassToSerialise.pData_ != pData )
     {
         if( ( FieldFlags & bcRFF_SIMPLE_DEREF ) != 0 )
@@ -337,7 +344,7 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, Json::Valu
 
 //////////////////////////////////////////////////////////////////////////
 // getSerialiseClass
-SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( size_t ID, const ReType* pType )
+SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, const ReType* pType )
 {
     auto FoundClass = std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), SerialiseClass( ID, nullptr, pType ) );
     if( FoundClass != SerialiseClasses_.end() )

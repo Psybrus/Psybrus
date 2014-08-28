@@ -157,7 +157,7 @@ void ScnMaterialComponent::StaticRegisterClass()
 			new ReField( "Parent_", &TTextureBinding::Handle_ ),
 			new ReField( "pProgram_", &TTextureBinding::Texture_, bcRFF_SHALLOW_COPY ),
 		};
-		ReRegisterClass< TTextureBinding, Super >( Fields );
+		ReRegisterClass< TTextureBinding >( Fields );
 	}
 
 	{
@@ -167,7 +167,7 @@ void ScnMaterialComponent::StaticRegisterClass()
 			new ReField( "UniformBuffer_", &TUniformBlockBinding::UniformBuffer_, bcRFF_SHALLOW_COPY ),
 
 		};
-		ReRegisterClass< TUniformBlockBinding, Super >( Fields );
+		ReRegisterClass< TUniformBlockBinding >( Fields );
 	}
 }
 

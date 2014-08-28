@@ -195,7 +195,7 @@ void ScnComponent::setParentEntity( ScnEntityWeakRef Entity )
 	BcAssertMsg( !isFlagSet( scnCF_ATTACHED ), "ScnComponent: Already attached, can't reassign parent entity."  );
 	BcAssertMsg( !isFlagSet( scnCF_PENDING_ATTACH ), "ScnComponent: Currently attaching, can't reassign parent entity."  );
 	BcAssertMsg( !isFlagSet( scnCF_PENDING_DETACH ), "ScnComponent: Currently detaching, can't reassign parent entity."  );
-	BcAssertMsg( !ParentEntity_.isValid(), "ScnComponent: Already have a parent, can't reassign parent entity."  );
+	BcAssertMsg( ParentEntity_ == nullptr, "ScnComponent: Already have a parent, can't reassign parent entity."  );
 	ParentEntity_ = Entity;
 }
 
