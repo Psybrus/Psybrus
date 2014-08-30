@@ -1225,7 +1225,7 @@ bool RsContextD3D11::createShader(
 		}
 		break;
 
-	case RsShaderType::TESSELATION_CONTROL:
+	case RsShaderType::HULL:
 		{
 			Result = Device_->CreateHullShader(
 				Shader->getData(),
@@ -1235,7 +1235,7 @@ bool RsContextD3D11::createShader(
 		}
 		break;
 
-	case RsShaderType::TESSELATION_EVALUATION:
+	case RsShaderType::DOMAIN:
 		{
 			Result = Device_->CreateDomainShader(
 				Shader->getData(),
@@ -1255,7 +1255,7 @@ bool RsContextD3D11::createShader(
 		}
 		break;
 
-	case RsShaderType::FRAGMENT:
+	case RsShaderType::PIXEL:
 		{
 			Result = Device_->CreatePixelShader(
 				Shader->getData(),
@@ -1490,7 +1490,7 @@ void RsContextD3D11::flushState()
 				}
 				break;
 
-			case RsShaderType::TESSELATION_CONTROL:
+			case RsShaderType::HULL:
 				{
 					// Bind.
 					Context_->HSSetShader( Shader->getHandle< ID3D11HullShader* >(), nullptr, 0 );
@@ -1523,7 +1523,7 @@ void RsContextD3D11::flushState()
 				}
 				break;
 
-			case RsShaderType::TESSELATION_EVALUATION:
+			case RsShaderType::DOMAIN:
 				{
 					// Bind.
 					Context_->DSSetShader( Shader->getHandle< ID3D11DomainShader* >(), nullptr, 0 );
@@ -1587,7 +1587,7 @@ void RsContextD3D11::flushState()
 				}
 				break;
 
-			case RsShaderType::FRAGMENT:
+			case RsShaderType::PIXEL:
 				{
 					// Bind.
 					Context_->PSSetShader( Shader->getHandle< ID3D11PixelShader* >(), nullptr, 0 );
@@ -1663,16 +1663,16 @@ void RsContextD3D11::flushState()
 				case RsShaderType::VERTEX:
 					Context_->VSSetShader( nullptr, nullptr, 0 );
 					break;
-				case RsShaderType::TESSELATION_CONTROL:
+				case RsShaderType::HULL:
 					Context_->HSSetShader( nullptr, nullptr, 0 );
 					break;
-				case RsShaderType::TESSELATION_EVALUATION:
+				case RsShaderType::DOMAIN:
 					Context_->DSSetShader( nullptr, nullptr, 0 );
 					break;
 				case RsShaderType::GEOMETRY:
 					Context_->GSSetShader( nullptr, nullptr, 0 );
 					break;
-				case RsShaderType::FRAGMENT:
+				case RsShaderType::PIXEL:
 					Context_->PSSetShader( nullptr, nullptr, 0 );
 					break;
 				case RsShaderType::COMPUTE:

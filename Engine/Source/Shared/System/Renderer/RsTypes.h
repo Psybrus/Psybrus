@@ -406,10 +406,10 @@ enum class RsTopologyType : BcU32
 enum class RsShaderType : BcU32
 {
 	VERTEX,
-	TESSELATION_CONTROL,
-	TESSELATION_EVALUATION,
+	HULL,
+	DOMAIN,
 	GEOMETRY,
-	FRAGMENT,
+	PIXEL,
 	COMPUTE,
 		
 	MAX,

@@ -56,7 +56,10 @@ class RsCore:
 public:
 	static BcU32 JOB_QUEUE_ID;
 
+	REFLECTION_DECLARE_DERIVED( RsCore, SysSystem );
+
 public:
+	RsCore(){};
 	virtual ~RsCore(){};
 	
 public:

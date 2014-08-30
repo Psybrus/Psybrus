@@ -29,6 +29,9 @@ class RsCoreImpl:
 	public RsCore
 {
 public:
+	REFLECTION_DECLARE_DERIVED( RsCoreImpl, RsCore );
+
+public:
 	RsCoreImpl();
 	virtual ~RsCoreImpl();
 	
