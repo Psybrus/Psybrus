@@ -19,6 +19,7 @@
 
 #include "Reflection/ReReflection.h"
 #include "Serialisation/SeJsonWriter.h"
+#include "Serialisation/SeJsonReader.h"
 
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
@@ -424,9 +425,10 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 
 		if( ResourceImporterAttr != nullptr )
 		{
-			auto ResourceImporter = ResourceImporterAttr->getImporter();
-
-			// TODO: Use serialisation to setup resource importer.
+			CsResourceImporterUPtr ResourceImporter = ResourceImporterAttr->getImporter();
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+			SeJsonReader Reader( &ObjectCodec, bcRFF_IMPORTER );
+			Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource );
 			try
 			{
 				ResourceImporter->initialise( this );

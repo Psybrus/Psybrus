@@ -116,6 +116,9 @@ protected:
 	 */
 	std::string getIntermediatePath();
 
+protected:
+	std::string Name_;
+	std::string Type_;
 
 private:
 	class CsPackageImporter* Importer_;
