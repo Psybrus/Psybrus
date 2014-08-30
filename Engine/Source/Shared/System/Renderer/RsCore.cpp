@@ -140,6 +140,31 @@ void RsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< RsShaderType >( RsRenderStateTypeEnumConstants );
 
+	ReEnumConstant* RsTextureFormatEnumConstants[] = 
+	{
+		new ReEnumConstant( "R8", (BcU32)RsTextureFormat::R8 ),
+		new ReEnumConstant( "R8G8", (BcU32)RsTextureFormat::R8G8 ),
+		new ReEnumConstant( "R8G8B8", (BcU32)RsTextureFormat::R8G8B8 ),
+		new ReEnumConstant( "R8G8B8A8", (BcU32)RsTextureFormat::R8G8B8A8 ),
+		new ReEnumConstant( "R16F", (BcU32)RsTextureFormat::R16F ),
+		new ReEnumConstant( "R16FG16F", (BcU32)RsTextureFormat::R16FG16F ),
+		new ReEnumConstant( "R16FG16FB16F", (BcU32)RsTextureFormat::R16FG16FB16F ),
+		new ReEnumConstant( "R16FG16FB16FA16F", (BcU32)RsTextureFormat::R16FG16FB16FA16F ),
+		new ReEnumConstant( "R32F", (BcU32)RsTextureFormat::R32F ),
+		new ReEnumConstant( "R32FG32F", (BcU32)RsTextureFormat::R32FG32F ),
+		new ReEnumConstant( "R32FG32FB32F", (BcU32)RsTextureFormat::R32FG32FB32F ),
+		new ReEnumConstant( "R32FG32FB32FA32F", (BcU32)RsTextureFormat::R32FG32FB32FA32F ),
+		new ReEnumConstant( "DXT1", (BcU32)RsTextureFormat::DXT1 ),
+		new ReEnumConstant( "DXT3", (BcU32)RsTextureFormat::DXT3 ),
+		new ReEnumConstant( "DXT5", (BcU32)RsTextureFormat::DXT5 ),
+		new ReEnumConstant( "D16", (BcU32)RsTextureFormat::D16 ),
+		new ReEnumConstant( "D32", (BcU32)RsTextureFormat::D32 ),
+		new ReEnumConstant( "D24S8", (BcU32)RsTextureFormat::D24S8 ),
+		new ReEnumConstant( "D32F", (BcU32)RsTextureFormat::D32F ),
+		new ReEnumConstant( "INVALID", (BcU32)RsTextureFormat::INVALID ),
+	};
+	ReRegisterEnum< RsTextureFormat >( RsTextureFormatEnumConstants );
+
 	ReEnumConstant* RsShaderTypeEnumConstants[] = 
 	{
 		new ReEnumConstant( "VERTEX", (BcU32)RsShaderType::VERTEX ),
