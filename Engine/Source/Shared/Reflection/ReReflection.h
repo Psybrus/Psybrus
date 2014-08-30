@@ -146,6 +146,35 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 /**
 	* @brief Register a new abstract class. Will get as usual, but setup what we need.
 	* @param _Class Class type.
+	* @return Registered class.
+	*/
+template< typename _Class >
+ReClass& ReRegisterAbstractClass( ReITypeSerialiser* Serialiser = nullptr )
+{
+    auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
+	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
+	return *Class;
+}
+
+/**
+	* @brief Register a new abstract class. Will get as usual, but setup what we need.
+	* @param _Class Class type.
+	* @param _Super Super type.
+	* @return Registered class.
+	*/
+template< typename _Class, typename _Super >
+ReClass& ReRegisterAbstractClass( ReITypeSerialiser* Serialiser = nullptr )
+{
+    auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
+    auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
+	Class->setSuper( Super );
+	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
+	return *Class;
+}
+
+/**
+	* @brief Register a new abstract class. Will get as usual, but setup what we need.
+	* @param _Class Class type.
 	* @param Fields Array of fields to add to class.
 	* @return Registered class.
 	*/
