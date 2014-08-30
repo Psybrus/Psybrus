@@ -62,7 +62,9 @@ void CsResourceImporter::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Importer_", &CsResourceImporter::Importer_ ),
+		new ReField( "Name_", &CsResourceImporter::Name_, bcRFF_IMPORTER ),
+		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
+		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< CsResourceImporter, Super >( Fields );
