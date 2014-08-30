@@ -93,7 +93,7 @@ void ScnModelImport::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Source_", &ScnModelImport::Source_ ),
+		new ReField( "Source_", &ScnModelImport::Source_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnModelImport, Super >( Fields );
@@ -115,9 +115,14 @@ ScnModelImport::~ScnModelImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnModelImport::import( const Json::Value& Object )
+BcBool ScnModelImport::import( const Json::Value& )
 {
-	Source_ = Object[ "source" ].asString();
+	if( Source_.empty() )
+	{
+		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		return BcFalse;
+	}
+
 	CsResourceImporter::addDependency( Source_.c_str() );
 
 	// Old importer first for now.
