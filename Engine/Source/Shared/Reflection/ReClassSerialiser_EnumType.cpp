@@ -144,9 +144,11 @@ BcBool ReClassSerialiser_EnumType::serialiseFromString( void* pInstance, const s
 			BcAssert( false );
 			return false;
 		}
-	}		
 
-	return true;
+		return true;
+	}
+
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
