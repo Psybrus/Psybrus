@@ -25,6 +25,7 @@ public:
 	CsSerialiserPackageObjectCodec( class CsPackage* Package );
 	virtual BcBool shouldSerialise( void* InData, const ReType* InType );
 	virtual std::string serialiseAsStringRef( void* InData, const ReType* InType );
+	virtual BcBool isMatchingField( const class ReField* Field, const std::string& Name );
 
 
 private:
