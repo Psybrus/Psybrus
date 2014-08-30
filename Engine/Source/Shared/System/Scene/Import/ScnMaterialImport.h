@@ -17,6 +17,7 @@
 #ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
+#include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialImport
@@ -37,7 +38,11 @@ public:
 		const Json::Value& Object );
 
 private:
-	
+	CsCrossRefId Shader_;
+	std::map< std::string, CsCrossRefId > Textures_;
+	std::map< RsRenderStateType, std::string > State_;
+
+	std::array< BcU32, (BcU32)RsRenderStateType::MAX > DefaultState_;
 };
 
 #endif
