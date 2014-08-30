@@ -5,7 +5,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ReClassSerialiser_EnumType::ReClassSerialiser_EnumType( const std::string& Name ):
+ReClassSerialiser_EnumType::ReClassSerialiser_EnumType( BcName Name ):
 	ReClassSerialiser( Name )
 {
 	Class_->setType< std::string >( this );
@@ -138,7 +138,7 @@ BcBool ReClassSerialiser_EnumType::serialiseFromString( void* pInstance, const s
 			*((BcU16*)pInstance) = (BcU16)EnumConstant->getValue();
 			break;
 		case 4:
-				*((BcU32*)pInstance) = (BcU32)EnumConstant->getValue();
+			*((BcU32*)pInstance) = (BcU32)EnumConstant->getValue();
 			break;
 		default:
 			BcAssert( false );
@@ -153,8 +153,32 @@ BcBool ReClassSerialiser_EnumType::serialiseFromString( void* pInstance, const s
 // serialiseFromString
 BcBool ReClassSerialiser_EnumType::copy( void* pDst, void* pSrc ) const
 {
-	BcU32& Dst = *reinterpret_cast< BcU32* >( pDst );
-	BcU32& Src = *reinterpret_cast< BcU32* >( pSrc );
-	Dst = Src;
+	switch( Class_->getSize() )
+	{
+	case 1:
+		{
+			BcU8& Dst = *reinterpret_cast< BcU8* >( pDst );
+			BcU8& Src = *reinterpret_cast< BcU8* >( pSrc );
+			Dst = Src;
+		}
+		break;
+	case 2:
+		{
+			BcU16& Dst = *reinterpret_cast< BcU16* >( pDst );
+			BcU16& Src = *reinterpret_cast< BcU16* >( pSrc );
+			Dst = Src;
+		}
+		break;
+	case 4:
+		{
+			BcU32& Dst = *reinterpret_cast< BcU32* >( pDst );
+			BcU32& Src = *reinterpret_cast< BcU32* >( pSrc );
+			Dst = Src;
+		}
+		break;
+	default:
+		BcAssert( false );
+		return false;
+	}
 	return true;
 }

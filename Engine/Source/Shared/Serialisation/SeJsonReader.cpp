@@ -21,6 +21,7 @@ SeJsonReader::SeJsonReader(
 	SeISerialiserObjectCodec* ObjectCodec, 
 	BcU32 IncludeFieldFlags, 
 	BcU32 ExcludeFieldFlags ) :
+	ObjectCodec_( ObjectCodec ),
 	IncludeFieldFlags_( IncludeFieldFlags ),
 	ExcludeFieldFlags_( ExcludeFieldFlags )
 {
@@ -68,55 +69,55 @@ BcU32 SeJsonReader::getFileVersion() const
 //virtual
 void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 {
-    Json::Value& RootIDEntry( RootValue_[ RootIDEntry ] );
-    Json::Value& VersionEntry( RootValue_[ SerialiserVersionEntry ] );
-    Json::Value& ObjectsValue( RootValue_[ ObjectsEntry ] );
+	const Json::Value& RootIDEntry( RootValue_[ RootIDEntry ] );
+	const Json::Value& VersionEntry( RootValue_[ SerialiserVersionEntry ] );
+	const Json::Value& ObjectsValue( RootValue_[ ObjectsEntry ] );
 
-    // Grab the file version.
-    FileVersion_ = VersionEntry.asUInt();
+	// Grab the file version.
+	FileVersion_ = VersionEntry.asUInt();
 
-    // Create all object types and add to list.
-    for( auto It( ObjectsValue.begin() ); It != ObjectsValue.end(); ++It )
-    {
-        auto ObjectToSerialise( *It );
-        auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
-        if( ClassType->getTypeSerialiser() != nullptr )
-        {
-            std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
-            void* pClassObject = nullptr;
-            if( ID == RootIDEntry.asCString() )
-            {
-                if( pData != nullptr )
-                {
-                    pClassObject = pData;
-                }
-                else
-                {
-                    pClassObject = ClassType->constructNoInit< void >();
-                    pData = pClassObject;
-                }
-            }
-            else
-            {
-                pClassObject = ClassType->constructNoInit< void >();
-            }
+	// Create all object types and add to list.
+	for( auto It( ObjectsValue.begin() ); It != ObjectsValue.end(); ++It )
+	{
+		auto ObjectToSerialise( *It );
+		auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
+		if( ClassType->getTypeSerialiser() != nullptr )
+		{
+			std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
+			void* pClassObject = nullptr;
+			if( ID == RootIDEntry.asCString() )
+			{
+				if( pData != nullptr )
+				{
+					pClassObject = pData;
+				}
+				else
+				{
+					pClassObject = ClassType->constructNoInit< void >();
+					pData = pClassObject;
+				}
+			}
+			else
+			{
+				pClassObject = ClassType->constructNoInit< void >();
+			}
 
-            // Add class to list for look up.
-            SerialiseClasses_.push_back( SerialiseClass( ID, pClassObject, ClassType ) );
-        }
-    }
+			// Add class to list for look up.
+			SerialiseClasses_.push_back( SerialiseClass( ID, pClassObject, ClassType ) );
+		}
+	}
 
-    // Serialise in.
-    for( auto It( ObjectsValue.begin() ); It != ObjectsValue.end(); ++It )
-    {
-        auto ObjectToSerialise( *It );
-        auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
-        std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
-        auto ClassToSerialise( getSerialiseClass( ID, ClassType ) );
+	// Serialise in.
+	for( auto It( ObjectsValue.begin() ); It != ObjectsValue.end(); ++It )
+	{
+		auto ObjectToSerialise( *It );
+		auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
+		std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
+		auto ClassToSerialise( getSerialiseClass( ID, ClassType ) );
 
-        // Add class to list for look up.
-        serialiseClass( ClassToSerialise.pData_, ClassType, ObjectToSerialise );
-    }
+		// Add class to list for look up.
+		serialiseClass( ClassToSerialise.pData_, ClassType, ObjectToSerialise );
+	}
 
     return pData;
 }
@@ -132,7 +133,7 @@ std::string SeJsonReader::internalSerialiseString( void* pData, const ReType* pT
 //////////////////////////////////////////////////////////////////////////
 // serialiseClass
 //virtual
-void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, Json::Value& InputValue )
+void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue )
 {
     // Get type serialiser.
     auto Serialiser = pClass->getTypeSerialiser();
@@ -158,33 +159,46 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, Json::Val
 
     if( Success == false )
     {
-        // Iterate over members to add, all supers too.
-        const ReClass* pProcessingClass = pClass;
-        while( pProcessingClass != nullptr )
-        {
-            // If this class has fields, then iterate over them.
-            if( pProcessingClass->getNoofFields() > 0 )
-            {
-                Json::Value& MembersValue( InputValue[ MembersEntry ] );
-                for( BcU32 Idx = 0; Idx < pProcessingClass->getNoofFields(); ++Idx )
-                {
-                    const ReField* pField = pProcessingClass->getField( Idx );
-                    auto Members = MembersValue.getMemberNames();
-                    if( std::find( Members.begin(), Members.end(), *pField->getName() ) != Members.end() )
-                    {
-                        serialiseField( pData, pField, MembersValue[ *pField->getName() ] );
-                    }
-                }
-            }
-            pProcessingClass = pProcessingClass->getSuper();
-        }
-    }
+		const Json::Value& MembersValue( InputValue[ MembersEntry ] );
+		serialiseClassMembers( pData, pClass, MembersValue );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseClassMembers
+//virtual
+void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues )
+{
+	// Iterate over members to add, all supers too.
+	const ReClass* pProcessingClass = pClass;
+	while( pProcessingClass != nullptr )
+	{
+		// If this class has fields, then iterate over them.
+		if( pProcessingClass->getNoofFields() > 0 )
+		{
+			for( BcU32 Idx = 0; Idx < pProcessingClass->getNoofFields(); ++Idx )
+			{
+				const ReField* pField = pProcessingClass->getField( Idx );
+				auto Members = MemberValues.getMemberNames();
+				auto FoundMember = std::find_if( Members.begin(), Members.end(), 
+					[ this, pField ]( const std::string& Member )
+					{
+						return ObjectCodec_->isMatchingField( pField, Member );
+					} );
+				if( FoundMember != Members.end() )
+				{
+					serialiseField( pData, pField, MemberValues[ *FoundMember ] );
+				}
+			}
+		}
+		pProcessingClass = pProcessingClass->getSuper();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseField
 //virtual
-void SeJsonReader::serialiseField( void* pData, const ReField* pField, Json::Value& InputValue )
+void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue )
 {
 	// Check flags.
 	if( !shouldSerialiseField( pField->getFlags() ) )
@@ -230,7 +244,7 @@ void SeJsonReader::serialiseField( void* pData, const ReField* pField, Json::Val
 //////////////////////////////////////////////////////////////////////////
 // serialisePointer
 //virtual
-void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, Json::Value& InputValue, BcBool IncrementRefCount )
+void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, const Json::Value& InputValue, BcBool IncrementRefCount )
 {
     auto ClassToSerialise = getSerialiseClass( InputValue.asCString(), pClass );
     if( ClassToSerialise.pData_ != nullptr && ClassToSerialise.pData_ != pData )
@@ -257,7 +271,7 @@ void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 
 //////////////////////////////////////////////////////////////////////////
 // serialiseArray
 //virtual
-void SeJsonReader::serialiseArray( void* pData, const ReField* pField, Json::Value& InputValue )
+void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue )
 {
     Json::Value ArrayValue( Json::arrayValue );
     auto pFieldValueType = pField->getValueType();
@@ -295,7 +309,7 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, Json::Val
 //////////////////////////////////////////////////////////////////////////
 // serialiseDict
 //virtual
-void SeJsonReader::serialiseDict( void* pData, const ReField* pField, Json::Value& InputValue )
+void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue )
 {
     Json::Value ArrayValue( Json::arrayValue );
     auto pFieldKeyType = pField->getKeyType();

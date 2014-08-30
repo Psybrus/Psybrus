@@ -30,12 +30,12 @@ ReEnum::ReEnum( BcName Name ):
 			
 }
 
-void ReEnum::setConstants( const ReEnumConstant* EnumConstants, BcU32 Elements )
+void ReEnum::setConstants( ReEnumConstant** EnumConstants, BcU32 Elements )
 {
 	EnumConstants_.reserve( Elements );
 	for( BcU32 Idx = 0; Idx < Elements; ++Idx )
 	{
-		EnumConstants_.push_back( &EnumConstants[ Idx ] );
+		EnumConstants_.push_back( EnumConstants[ Idx ] );
 	}
 }
 

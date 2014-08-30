@@ -9,7 +9,7 @@ class ReClassSerialiser_EnumType:
 		public ReClassSerialiser
 {
 public:
-    ReClassSerialiser_EnumType( const std::string& Name );
+    ReClassSerialiser_EnumType( BcName Name );
     virtual ~ReClassSerialiser_EnumType();
 	void construct( void* pMemory ) const;
 	void constructNoInit( void* pMemory ) const;
