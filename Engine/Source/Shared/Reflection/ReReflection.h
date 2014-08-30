@@ -183,10 +183,10 @@ ReClass& ReRegisterAbstractClass( ReField* ( & Fields )[ _Size ], ReITypeSeriali
 	* @return Registered class.
 	*/
 template< typename _Enum, std::size_t _Size >
-ReEnum& ReRegisterEnum( ReEnumConstant ( & EnumConstants )[ _Size ] )
+ReEnum& ReRegisterEnum( ReEnumConstant* ( & EnumConstants )[ _Size ] )
 {
     auto Enum = ReManager::GetEnum( ReTypeTraits< _Enum >::Name() );
-	Enum->setConstants( EnumConstants, _Size );
+	Enum->setConstants( &EnumConstants[ 0 ], _Size );
 	Enum->setType< _Enum >( new ReClassSerialiser_EnumType( Enum->getName() )  );
 	return *Enum;
 }

@@ -24,6 +24,13 @@ public:
 	 * @brief Serialise as string ref.
 	 */
 	virtual std::string serialiseAsStringRef( void* InData, const ReType* InType ) = 0;
+
+	/**
+	 * @brief Is matching field?
+	 * Essentially a string comparison, can be used
+	 * to allow renaming, case insensitive checking, etc.
+	 */
+	virtual BcBool isMatchingField( const class ReField* Field, const std::string& Name ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

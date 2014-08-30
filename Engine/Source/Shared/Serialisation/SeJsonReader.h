@@ -35,12 +35,13 @@ protected:
     virtual void* internalSerialise( void* pData, const ReType* pType );
 	virtual std::string internalSerialiseString( void* pData, const ReType* pType );
 
-protected:
-    virtual void serialiseClass( void* pData, const ReClass* pClass, Json::Value& InputValue );
-    virtual void serialiseField( void* pData, const ReField* pField, Json::Value& InputValue );
-    virtual void serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, Json::Value& InputValue, BcBool IncrementRefCount );
-    virtual void serialiseArray( void* pData, const ReField* pField, Json::Value& InputValue );
-    virtual void serialiseDict( void* pData, const ReField* pField, Json::Value& InputValue );
+public:
+	virtual void serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue );
+	virtual void serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues );
+    virtual void serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue );
+    virtual void serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, const Json::Value& InputValue, BcBool IncrementRefCount );
+    virtual void serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue );
+    virtual void serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue );
 
 private:
     Json::Value RootValue_;
@@ -69,6 +70,7 @@ private:
 	BcBool shouldSerialiseField( BcU32 Flags );
 
 private:
+	SeISerialiserObjectCodec* ObjectCodec_;
 	BcU32 IncludeFieldFlags_;
 	BcU32 ExcludeFieldFlags_;
 	BcU32 FileVersion_;
