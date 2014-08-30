@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include <boost/lexical_cast.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // Statics
 const char* SeJsonReader::SerialiserVersionEntry = "SerialiserVersion";
@@ -142,20 +144,52 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
     bool Success = false;
 
     // Attempt conversion to string.
-    if( InputValue.type() == Json::stringValue &&
-        Serialiser->serialiseFromString( pData, InputValue.asString() ) )
-    {
-        Success = true;
-    }
-    else if( InputValue.type() == Json::objectValue )
-    {
-        Json::Value ValueValue = InputValue.get( ValueEntry, Json::nullValue );
-        if( ValueValue.type() == Json::stringValue &&
-            Serialiser->serialiseFromString( pData, ValueValue.asString() ) )
-        {
-            Success = true;
-        }
-    }
+	if( Serialiser != nullptr )
+	{
+		if( InputValue.type() == Json::stringValue &&
+			Serialiser->serialiseFromString( pData, InputValue.asString() ) )
+		{
+			Success = true;
+		}
+		// Attempt conversion to float via string.
+		else if( InputValue.type() == Json::realValue &&
+			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asDouble() ) ) )
+		{
+			Success = true;
+		}
+		// Attempt conversion to uint via string.
+		else if( InputValue.type() == Json::uintValue &&
+			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asUInt() ) ) )
+		{
+			Success = true;
+		}
+		// Attempt conversion to int via string.
+		else if( InputValue.type() == Json::intValue &&
+			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asInt() ) ) )
+		{
+			Success = true;
+		}
+		// Attempt conversion to bool via string.
+		else if( InputValue.type() == Json::booleanValue &&
+			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asBool() ) ) )
+		{
+			Success = true;
+		}
+		// Attempt conversion to object.
+		else if( InputValue.type() == Json::objectValue )
+		{
+			Json::Value ValueValue = InputValue.get( ValueEntry, Json::nullValue );
+			if( ValueValue.type() == Json::stringValue &&
+				Serialiser->serialiseFromString( pData, ValueValue.asString() ) )
+			{
+				Success = true;
+			}
+		}
+	}
+	else
+	{
+		BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+	}
 
     if( Success == false )
     {
@@ -285,21 +319,39 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
     void* pTemporaryValue = static_cast< const ReClass* >( pFieldValueType )->construct< void >();
 
     // Iterate over Json values.
-    for( auto ValueIt( InputValue.begin() ); ValueIt != InputValue.end(); ++ValueIt )
-    {
-        if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
-        {
-            serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), (*ValueIt) );
-            pWriteIterator->add( pTemporaryValue );
-        }
-        else
-        {
-            void* pTemporaryPointer = nullptr;
-            serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), (*ValueIt), false );
-            pWriteIterator->add( &pTemporaryPointer );
-        }
-    }
-
+	if( InputValue.type() == Json::arrayValue )
+	{
+		// Handle json array.
+		for( auto ValueIt( InputValue.begin() ); ValueIt != InputValue.end(); ++ValueIt )
+		{
+			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
+			{
+				serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), (*ValueIt) );
+				pWriteIterator->add( pTemporaryValue );
+			}
+			else
+			{
+				void* pTemporaryPointer = nullptr;
+				serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), (*ValueIt), false );
+				pWriteIterator->add( &pTemporaryPointer );
+			}
+		}
+	}
+	else
+	{
+		// Treat as single value.
+		if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
+		{
+			serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), InputValue );
+			pWriteIterator->add( pTemporaryValue );
+		}
+		else
+		{
+			void* pTemporaryPointer = nullptr;
+			serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), InputValue, false );
+			pWriteIterator->add( &pTemporaryPointer );
+		}
+	}
     // Free temporary value.
     BcMemFree( pTemporaryValue );
 
