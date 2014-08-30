@@ -94,6 +94,10 @@ namespace std
 	using std::tr1::array;
 };
 
+// cmath will define this. We say no.
+#undef DOMAIN
+
+
 #endif
 
 #endif
