@@ -207,5 +207,20 @@ void RsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< RsShaderCodeType >( RsShaderCodeTypeEnumConstants );
 
+	ReEnumConstant* RsTextureTypeEnumConstants[] = 
+	{
+		new ReEnumConstant( "UNKNOWN", (BcU32)RsTextureType::UNKNOWN ),
+		new ReEnumConstant( "TEX1D", (BcU32)RsTextureType::TEX1D ),
+		new ReEnumConstant( "TEX2D", (BcU32)RsTextureType::TEX2D ),
+		new ReEnumConstant( "TEX3D", (BcU32)RsTextureType::TEX3D ),
+		new ReEnumConstant( "TEXCUBE", (BcU32)RsTextureType::TEXCUBE ),
+
+		// Additional aliases.
+		new ReEnumConstant( "1D", (BcU32)RsTextureType::TEX1D ),
+		new ReEnumConstant( "2D", (BcU32)RsTextureType::TEX2D ),
+		new ReEnumConstant( "3D", (BcU32)RsTextureType::TEX3D ),
+		new ReEnumConstant( "CUBE", (BcU32)RsTextureType::TEXCUBE ),
+	};
+	ReRegisterEnum< RsTextureType >( RsTextureTypeEnumConstants );
 
 }
