@@ -16,6 +16,7 @@
 #include "System/Content/CsResource.h"
 
 #include <boost/format.hpp>
+#include <boost/algorithm/string.hpp>
 
 CsSerialiserPackageObjectCodec::CsSerialiserPackageObjectCodec( class CsPackage* Package ):
 	Package_( Package )
@@ -86,4 +87,21 @@ std::string CsSerialiserPackageObjectCodec::serialiseAsStringRef( void* InData, 
 	}
 
 	return RetVal;
+}
+
+//virtual
+BcBool CsSerialiserPackageObjectCodec::isMatchingField( const class ReField* Field, const std::string& Name )
+{
+	// Just check against field name first.
+	std::string FieldName = *Field->getName();
+	if( *Field->getName() == Name )
+	{
+		return BcTrue;
+	}
+	
+	// Attempt case insensitive comparison without underscores.
+	boost::erase_all( FieldName, "_" );
+
+	// Not UTF-8 safe. We shouldn't need to worry as input names should be ASCII (should later perform checks for this).
+	return boost::iequals( FieldName, Name );
 }
