@@ -214,7 +214,7 @@ BcBool ScnFontImport::import(
 					TextureObject[ "name" ] = FontTextureName;
 					TextureObject[ "type" ] = "ScnTexture";
 					TextureObject[ "source" ] = FontTextureFileName;		
-					TextureObject[ "format" ] = "rgba8";
+					TextureObject[ "format" ] = "R8G8B8A8";
 					
 					// Build data.
 					BcStream HeaderStream;
