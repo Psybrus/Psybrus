@@ -46,7 +46,10 @@ private:
 
 private:
 	std::string Source_;
-
+	BcU32 NominalSize_;
+	BcBool DistanceField_;
+	BcU32 Spread_;
+	
 };
 
 #endif
