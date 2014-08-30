@@ -31,7 +31,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "SUBTRACT", (BcU32)RsBlendingMode::SUBTRACT ),
 		new ReEnumConstant( "INVALID", (BcU32)RsBlendingMode::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsBlendingModeEnumConstants );
+	ReRegisterEnum< RsBlendingMode >( RsBlendingModeEnumConstants );
 
 	ReEnumConstant* RsFillModeEnumConstants[] = 
 	{
@@ -66,7 +66,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "MAXIMUM", (BcU32)RsBlendOp::MAXIMUM ),
 		new ReEnumConstant( "INVALID", (BcU32)RsBlendOp::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsBlendOpEnumConstants );
+	ReRegisterEnum< RsBlendOp >( RsBlendOpEnumConstants );
 
 	ReEnumConstant* RsCompareModeEnumConstants[] = 
 	{
@@ -80,7 +80,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "ALWAYS", (BcU32)RsCompareMode::ALWAYS ),
 		new ReEnumConstant( "INVALID", (BcU32)RsCompareMode::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsCompareModeEnumConstants );
+	ReRegisterEnum< RsCompareMode >( RsCompareModeEnumConstants );
 
 	ReEnumConstant* RsStencilOpEnumConstants[] = 
 	{
@@ -94,7 +94,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "INVERT", (BcU32)RsStencilOp::INVERT ),
 		new ReEnumConstant( "INVALID", (BcU32)RsStencilOp::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsStencilOpEnumConstants );
+	ReRegisterEnum< RsStencilOp >( RsStencilOpEnumConstants );
 
 	ReEnumConstant* RsTextureFilteringModeEnumConstants[] = 
 	{
@@ -106,7 +106,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "LINEAR_MIPMAP_LINEAR", (BcU32)RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR ),
 		new ReEnumConstant( "INVALID", (BcU32)RsTextureFilteringMode::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsTextureFilteringModeEnumConstants );
+	ReRegisterEnum< RsTextureFilteringMode >( RsTextureFilteringModeEnumConstants );
 
 	ReEnumConstant* RsTextureSamplingModeEnumConstants[] = 
 	{
@@ -116,7 +116,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "DECAL", (BcU32)RsTextureSamplingMode::DECAL ),
 		new ReEnumConstant( "INVALID", (BcU32)RsTextureSamplingMode::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsTextureSamplingModeEnumConstants );
+	ReRegisterEnum< RsTextureSamplingMode >( RsTextureSamplingModeEnumConstants );
 
 	ReEnumConstant* RsRenderStateTypeEnumConstants[] = 
 	{
@@ -138,7 +138,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "BLEND_MODE", (BcU32)RsRenderStateType::BLEND_MODE ),
 		new ReEnumConstant( "FILL_MODE", (BcU32)RsRenderStateType::FILL_MODE ),
 	};
-	ReRegisterEnum< RsShaderType >( RsRenderStateTypeEnumConstants );
+	ReRegisterEnum< RsRenderStateType >( RsRenderStateTypeEnumConstants );
 
 	ReEnumConstant* RsTextureFormatEnumConstants[] = 
 	{
