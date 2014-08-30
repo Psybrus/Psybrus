@@ -10,3 +10,9 @@ No demo games are in this repo anymore, please see my other repos, Psybrus_Devel
 VS2012 Users:
 -------------
 I've setup a natvis file for use with Psybrus, as it helps a lot with debugging (particularly decoding names and resource structures for an at a glance view). Drop this in the "My Documents\Visual Studio 2012\Visualizers" folder and it should start to work. I will soon provide a setup tool to setup this, and possibly more.
+
+Setup instructions
+------------------
+1) Install the DX SDK (June 2010).
+2) Install Boost 1.56 (Requires static linking libs: b2 link=static runtime-link=static install) and set BOOST_ROOT environment var to its path (i.e. C:\Boost)
+3) Run setup.py. This will verify that everything has been setup appropriately, and setup PSYBRUS_SDK environment var.
