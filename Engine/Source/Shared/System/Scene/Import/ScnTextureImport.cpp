@@ -28,19 +28,38 @@ REFLECTION_DEFINE_DERIVED( ScnTextureImport )
 	
 void ScnTextureImport::StaticRegisterClass()
 {
-	/*
 	ReField* Fields[] = 
 	{
-		new ReField( "Source_", &ScnTextureImport::Source_ ),
+		new ReField( "Source_", &ScnTextureImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "Format_", &ScnTextureImport::Format_, bcRFF_IMPORTER ),
+		new ReField( "ClearColour_", &ScnTextureImport::ClearColour_, bcRFF_IMPORTER ),
+		new ReField( "AlphaFromIntensity_", &ScnTextureImport::AlphaFromIntensity_, bcRFF_IMPORTER ),
+		new ReField( "DistanceField_", &ScnTextureImport::DistanceField_, bcRFF_IMPORTER ),
+		new ReField( "Spread_", &ScnTextureImport::Spread_, bcRFF_IMPORTER ),
+		new ReField( "Type_", &ScnTextureImport::Type_, bcRFF_IMPORTER ),
+		new ReField( "Width_", &ScnTextureImport::Width_, bcRFF_IMPORTER ),
+		new ReField( "Height_", &ScnTextureImport::Height_, bcRFF_IMPORTER ),
+		new ReField( "Depth_", &ScnTextureImport::Depth_, bcRFF_IMPORTER ),
+		new ReField( "Levels_", &ScnTextureImport::Levels_, bcRFF_IMPORTER ),
 	};
-	*/
 		
-	ReRegisterClass< ScnTextureImport, Super >();
+	ReRegisterClass< ScnTextureImport, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnTextureImport::ScnTextureImport()
+ScnTextureImport::ScnTextureImport():
+	Source_(),
+	Format_( RsTextureFormat::R8G8B8A8 ),
+	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
+	AlphaFromIntensity_( BcFalse ),
+	DistanceField_( BcFalse ),
+	Spread_( 0 ),
+	Type_( RsTextureType::UNKNOWN ),
+	Width_( 0 ),
+	Height_( 0 ),
+	Depth_( 0 ),
+	Levels_( 1 )
 {
 
 }
@@ -56,40 +75,24 @@ ScnTextureImport::~ScnTextureImport()
 //////////////////////////////////////////////////////////////////////////
 // import
 BcBool ScnTextureImport::import(
-		const Json::Value& Object )
+		const Json::Value& )
 {
-	Json::Value Source = Object[ "source" ];
-	const Json::Value& Format = Object[ "format" ];
-	const Json::Value& ClearColourValue = Object[ "clearcolour" ];
-	const Json::Value& DistanceFieldValue = Object[ "distancefield" ];
-	const Json::Value& SpreadValue = Object[ "spread" ];
-	const Json::Value& AlphaFromIntensityValue = Object[ "alphafromintensity" ];
 	ImgColour ClearColour = { 0, 0, 0, 0 };
-
-	if( ClearColourValue.type() != Json::nullValue )
-	{
-		RsColour Colour = ClearColourValue.asCString();
-		ClearColour.R_ = BcU8( BcClamp( BcU32( Colour.r() * 255.0f ), 0, 255 ) );
-		ClearColour.G_ = BcU8( BcClamp( BcU32( Colour.g() * 255.0f ), 0, 255 ) );
-		ClearColour.B_ = BcU8( BcClamp( BcU32( Colour.b() * 255.0f ), 0, 255 ) );
-		ClearColour.A_ = BcU8( BcClamp( BcU32( Colour.a() * 255.0f ), 0, 255 ) );
-	}
-
-	BcBool DistanceField = ( DistanceFieldValue.type() != Json::nullValue ) ? DistanceFieldValue.asBool() : BcFalse;
-	BcU32 Spread = ( SpreadValue.type() != Json::nullValue ) ? SpreadValue.asUInt() : 0;
-	BcU32 SpreadDouble = Spread * 2;
-	BcBool AlphaFromIntensity = ( AlphaFromIntensityValue.type() != Json::nullValue ) ? AlphaFromIntensityValue.asBool() : BcFalse;
+	ClearColour.R_ = BcU8( BcClamp( BcU32( ClearColour_.r() * 255.0f ), 0, 255 ) );
+	ClearColour.G_ = BcU8( BcClamp( BcU32( ClearColour_.g() * 255.0f ), 0, 255 ) );
+	ClearColour.B_ = BcU8( BcClamp( BcU32( ClearColour_.b() * 255.0f ), 0, 255 ) );
+	ClearColour.A_ = BcU8( BcClamp( BcU32( ClearColour_.a() * 255.0f ), 0, 255 ) );
+	BcU32 SpreadDouble = Spread_ * 2;
 
 	// Texture atlas.
-	if( Source.isArray() )
+	if( Source_.size() > 1 )
 	{
-
 		// Load all source images.
 		ImgImageList ImageList;
 		
-		for( BcU32 Idx = 0; Idx < Source.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < Source_.size(); ++Idx )
 		{
-			std::string FileName = Source[ Idx ].asString();  
+			const std::string& FileName = Source_[ Idx ];  
 
 			// Add as dependancy.
 			CsResourceImporter::addDependency( FileName.c_str() );
@@ -98,7 +101,7 @@ BcBool ScnTextureImport::import(
 			ImgImageUPtr pImage = Img::load( FileName.c_str() );
 
 			// Generate alpha from intensity.
-			if( pImage != NULL && AlphaFromIntensity )
+			if( pImage != NULL && AlphaFromIntensity_ )
 			{
 				for( BcU32 Y = 0; Y < pImage->width(); ++Y )
 				{
@@ -112,7 +115,7 @@ BcBool ScnTextureImport::import(
 			}
 
 			// Replace with a distance field version.
-			if( pImage != NULL && DistanceField == BcTrue )
+			if( pImage != NULL && DistanceField_ == BcTrue )
 			{
 				ImgImageUPtr pPaddedImage = ImgImageUPtr( new ImgImage() );
 
@@ -121,13 +124,13 @@ BcBool ScnTextureImport::import(
 				BcU32 NewHeight = BcPotNext( pImage->height() + SpreadDouble );
 				
 				ImgRect SrcRect = { 0, 0, pImage->width(), pImage->height() };
-				ImgRect DstRect = { Spread, Spread, pImage->width(), pImage->height() };
+				ImgRect DstRect = { Spread_, Spread_, pImage->width(), pImage->height() };
 				
 				pPaddedImage->create( NewWidth, NewHeight, &FillColour );
 				pPaddedImage->blit( pImage.get(), SrcRect, DstRect );
 								
 				// Distance field.
-				ImgImageUPtr pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread );
+				ImgImageUPtr pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread_ );
 								
 				// Scale down 8x.
 				ImgImageUPtr pScale1_2 = pDistanceFieldImage->resize( NewWidth >> 1, NewHeight >> 1 );
@@ -168,8 +171,8 @@ BcBool ScnTextureImport::import(
 				ScnTextureAtlasRect OutRect = 
 				{
 					{
-						BcF32( Rect.X_ + ( Spread / 4 ) ) / BcF32( pAtlasImage->width() ),
-						BcF32( Rect.Y_ + ( Spread / 4 ) ) / BcF32( pAtlasImage->height() ),
+						BcF32( Rect.X_ + ( Spread_ / 4 ) ) / BcF32( pAtlasImage->width() ),
+						BcF32( Rect.Y_ + ( Spread_ / 4 ) ) / BcF32( pAtlasImage->height() ),
 						BcF32( Rect.W_ - ( SpreadDouble / 4 ) ) / BcF32( pAtlasImage->width() ),
 						BcF32( Rect.H_ - ( SpreadDouble / 4 ) ) / BcF32( pAtlasImage->height() )
 					}
@@ -186,7 +189,7 @@ BcBool ScnTextureImport::import(
 			CsDependencyList TextureDependancyList;
 
 			// Create a texture.
-			std::string AtlasName = Object[ "name" ].asString() + "textureatlas";
+			std::string AtlasName = Name_ + "textureatlas";
 			std::string AtlasFileName = getIntermediatePath() + std::string( "/" ) + AtlasName + ".png";
 			Img::save( AtlasFileName.c_str(), pAtlasImage.get() );
 			
@@ -195,16 +198,17 @@ BcBool ScnTextureImport::import(
 
 			// Fall through to the next section.
 			// TODO: Refactor so we don't do it this awful way.
-			Source = AtlasFileName;
+			Source_.clear();
+			Source_.push_back( AtlasFileName );
 
 			// Don't do distance field when falling through.
-			DistanceField = BcFalse;
+			DistanceField_ = BcFalse;
 		}
 	}
 
-	if( Source.type() == Json::stringValue )
+	if( Source_.size() == 1 )
 	{
-		const std::string& FileName = Source.asString();
+		const std::string& FileName = Source_[ 0 ];
 
 		// Add root dependency.
 		CsResourceImporter::addDependency( FileName.c_str() );
@@ -214,7 +218,7 @@ BcBool ScnTextureImport::import(
 		MipImages.push_back( Img::load( FileName.c_str() ) );
 
 		// Replace with a distance field version.
-		if( MipImages[ 0 ] != nullptr && DistanceField == BcTrue )
+		if( MipImages[ 0 ] != nullptr && DistanceField_ == BcTrue )
 		{
 			ImgImageUPtr pPaddedImage = ImgImageUPtr( new ImgImage() );
 
@@ -223,13 +227,13 @@ BcBool ScnTextureImport::import(
 			BcU32 NewHeight = BcPotNext( MipImages[ 0 ]->height() + SpreadDouble );
 				
 			ImgRect SrcRect = { 0, 0, MipImages[ 0 ]->width(), MipImages[ 0 ]->height() };
-			ImgRect DstRect = { Spread, Spread, MipImages[ 0 ]->width(), MipImages[ 0 ]->height() };
+			ImgRect DstRect = { Spread_, Spread_, MipImages[ 0 ]->width(), MipImages[ 0 ]->height() };
 				
 			pPaddedImage->create( NewWidth, NewHeight, &FillColour );
 			pPaddedImage->blit( MipImages[ 0 ].get(), SrcRect, DstRect );
 								
 			// Distance field.
-			ImgImageUPtr pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread );
+			ImgImageUPtr pDistanceFieldImage = pPaddedImage->generateDistanceField( 128, (BcF32)Spread_ );
 								
 			// Scale down 8x.
 			ImgImageUPtr pScale1_2 = pDistanceFieldImage->resize( NewWidth >> 1, NewHeight >> 1 );
@@ -344,38 +348,11 @@ BcBool ScnTextureImport::import(
 	else
 	{
 		// User created texture.
-		BcU32 Width = 0;
-		BcU32 Height = 0;
-		BcU32 Depth = 0;
-
-		RsTextureType TextureType;
-
-		const Json::Value& Type = Object[ "texturetype" ];
-		const Json::Value& WidthValue = Object[ "width" ];
-		const Json::Value& HeightValue = Object[ "height" ];
-		const Json::Value& DepthValue = Object[ "depth" ];
-
-		if( BcStrCompare( Type.asCString(), "1d" ) )
-		{
-			TextureType = RsTextureType::TEX1D;
-			Width = WidthValue.asUInt();
-		}
-		else if( BcStrCompare( Type.asCString(), "2d" ) )
-		{
-			TextureType = RsTextureType::TEX2D;
-			Width = WidthValue.asUInt();
-			Height = HeightValue.asUInt();
-		}
-		else if( BcStrCompare( Type.asCString(), "3d" ) )
-		{
-			TextureType = RsTextureType::TEX3D;
-			Width = WidthValue.asUInt();
-			Height = HeightValue.asUInt();
-			Depth = DepthValue.asUInt();
-		}
-
-
-		ScnTextureHeader Header = { Width, Height, Depth, 1, TextureType, RsTextureFormat::R8G8B8A8, BcTrue };
+		ScnTextureHeader Header = 
+		{ 
+			Width_, Height_, Depth_, Levels_,
+			Type_, RsTextureFormat::R8G8B8A8, BcTrue 
+		};
 		BcStream HeaderStream;
 		HeaderStream << Header;
 		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
