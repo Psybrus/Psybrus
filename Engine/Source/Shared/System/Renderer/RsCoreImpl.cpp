@@ -29,6 +29,15 @@
 SYS_CREATOR( RsCoreImpl );
 
 //////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_DERIVED( RsCoreImpl );
+
+void RsCoreImpl::StaticRegisterClass()
+{
+	ReRegisterClass< RsCoreImpl, Super >();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 RsCoreImpl::RsCoreImpl()
 {

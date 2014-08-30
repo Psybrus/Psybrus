@@ -80,27 +80,27 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
-		{ "ps_4_0_level_9_3",				"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
-		{ "ps_4_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_0 },
-		{ "ps_4_1",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_4_1 },
-		{ "ps_5_0",							"pixel",		RsShaderType::FRAGMENT, RsShaderCodeType::D3D11_5_0 },
+		{ "ps_4_0_level_9_3", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
+		{ "ps_4_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0 },
+		{ "ps_4_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_1 },
+		{ "ps_5_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_5_0 },
 		
-		{ "hs_5_0",							"hull",			RsShaderType::TESSELATION_CONTROL, RsShaderCodeType::D3D11_5_0 },
+		{ "hs_5_0", RsShaderType::HULL, RsShaderCodeType::D3D11_5_0 },
 
-		{ "ds_5_0",							"domain",		RsShaderType::TESSELATION_EVALUATION, RsShaderCodeType::D3D11_5_0 },
+		{ "ds_5_0", RsShaderType::DOMAIN, RsShaderCodeType::D3D11_5_0 },
 		
-		{ "gs_4_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_0 },
-		{ "gs_4_1",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
-		{ "gs_5_0",							"geometry",		RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
+		{ "gs_4_0", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_0 },
+		{ "gs_4_1", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
+		{ "gs_5_0", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 		
-		{ "vs_4_0_level_9_3",				"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
-		{ "vs_4_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
-		{ "vs_4_1",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
-		{ "vs_5_0",							"vertex",		RsShaderType::VERTEX, RsShaderCodeType::D3D11_5_0 },
+		{ "vs_4_0_level_9_3", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
+		{ "vs_4_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
+		{ "vs_4_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
+		{ "vs_5_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_5_0 },
 		
-		{ "cs_4_0",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_0 },
-		{ "cs_4_1",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_1 },
-		{ "cs_5_0",							"compute",		RsShaderType::COMPUTE, RsShaderCodeType::D3D11_5_0 },
+		{ "cs_4_0", RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_0 },
+		{ "cs_4_1", RsShaderType::COMPUTE, RsShaderCodeType::D3D11_4_1 },
+		{ "cs_5_0", RsShaderType::COMPUTE, RsShaderCodeType::D3D11_5_0 },
 	};
 
 	static BcU32 GNoofShaderLevelEntries = ( sizeof( GShaderLevelEntries ) / sizeof( GShaderLevelEntries[ 0 ] ) ); 
@@ -143,7 +143,43 @@ REFLECTION_DEFINE_DERIVED( ScnShaderImport )
 	
 void ScnShaderImport::StaticRegisterClass()
 {
-	ReRegisterClass< ScnShaderImport, Super >();
+	ReField* Fields[] = 
+	{
+		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
+		new ReField( "CodeTypes_", &ScnShaderImport::CodeTypes_, bcRFF_IMPORTER ),
+		new ReField( "BackendTypes_", &ScnShaderImport::BackendTypes_, bcRFF_IMPORTER ),
+	};
+	ReRegisterClass< ScnShaderImport, Super >( Fields );
+
+	{
+		ReEnumConstant* EnumConstants[] = 
+		{
+			new ReEnumConstant( "NONE", (BcU32)ScnShaderPermutationFlags::NONE ),
+
+			new ReEnumConstant( "RENDER_FORWARD", (BcU32)ScnShaderPermutationFlags::RENDER_FORWARD ),
+			new ReEnumConstant( "RENDER_DEFERRED", (BcU32)ScnShaderPermutationFlags::RENDER_DEFERRED ),
+			new ReEnumConstant( "RENDER_FORWARD_PLUS", (BcU32)ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
+			new ReEnumConstant( "RENDER_POST_PROCESS", (BcU32)ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
+			new ReEnumConstant( "RENDER_ALL", (BcU32)ScnShaderPermutationFlags::RENDER_ALL ),
+
+			new ReEnumConstant( "PASS_MAIN", (BcU32)ScnShaderPermutationFlags::PASS_MAIN ),
+			new ReEnumConstant( "PASS_SHADOW", (BcU32)ScnShaderPermutationFlags::PASS_SHADOW ),
+			new ReEnumConstant( "PASS_ALL", (BcU32)ScnShaderPermutationFlags::PASS_ALL ),
+
+			new ReEnumConstant( "MESH_STATIC_2D", (BcU32)ScnShaderPermutationFlags::MESH_STATIC_2D ),
+			new ReEnumConstant( "MESH_STATIC_3D", (BcU32)ScnShaderPermutationFlags::MESH_STATIC_3D ),
+			new ReEnumConstant( "MESH_SKINNED_3D", (BcU32)ScnShaderPermutationFlags::MESH_SKINNED_3D ),
+			new ReEnumConstant( "MESH_PARTICLE_3D", (BcU32)ScnShaderPermutationFlags::MESH_PARTICLE_3D ),
+			new ReEnumConstant( "MESH_INSTANCED_3D", (BcU32)ScnShaderPermutationFlags::MESH_INSTANCED_3D ),
+			new ReEnumConstant( "MESH_ALL", (BcU32)ScnShaderPermutationFlags::MESH_ALL ),
+
+			new ReEnumConstant( "LIGHTING_NONE", (BcU32)ScnShaderPermutationFlags::LIGHTING_NONE ),
+			new ReEnumConstant( "LIGHTING_DIFFUSE", (BcU32)ScnShaderPermutationFlags::LIGHTING_DIFFUSE ),
+			new ReEnumConstant( "LIGHTING_ALL", (BcU32)ScnShaderPermutationFlags::LIGHTING_ALL ),
+		};
+		ReRegisterEnum< ScnShaderPermutationFlags >( EnumConstants );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,33 +199,21 @@ ScnShaderImport::~ScnShaderImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnShaderImport::import( const Json::Value& Object )
+BcBool ScnShaderImport::import( const Json::Value& )
 {
-	const Json::Value& Shader = Object[ "shader" ];
-	if( Shader.type() == Json::nullValue )
+	if( Source_.empty() )
 	{
-		BcPrintf( "WARNING: Shader has not been updated to use latest shader importer.\n" );
+		BcPrintf( "ERROR: Missing 'source' field.\n" );
 		return BcFalse;
 	}
 
 	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
 	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
 
-	// Grab shader entries to build.
-	const Json::Value& InputEntries = Object[ "entries" ];
-
-	// File name.
-	if( Shader.type() != Json::stringValue )
+	// Entry points.
+	if( Entrypoints_.size() == 0 )
 	{
-		return BcFalse;
-	}
-
-	ResourceName_ = Object[ "name" ].asString();
-	Filename_ = Shader.asCString();
-
-	// Entries.
-	if( InputEntries.type() != Json::objectValue )
-	{
+		BcPrintf( "ERROR: Missing entry points.\n" );
 		return BcFalse;
 	}
 
@@ -221,54 +245,35 @@ BcBool ScnShaderImport::import( const Json::Value& Object )
 	// Generate permutations.
 	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
 
-	// Add all input code types, but default to the lowest D3D11 level
-	// if we don't specify. We could autodetect later depending on 
-	// shader entry points specified.
-	InputCodeTypes_.push_back( RsShaderCodeType::D3D11_4_0_LEVEL_9_3 );
-	const Json::Value& InputCodeTypes = Object[ "codetypes" ];
-	if( InputCodeTypes.type() == Json::arrayValue )
-	{
-		if( InputCodeTypes.size() > 0 )
-		{
-			InputCodeTypes_.clear();
-			for( auto InputCodeType : InputCodeTypes )
-			{
-				RsShaderCodeType CodeType = RsStringToShaderCodeType( InputCodeType.asString() );
-
-				// Only support D3D11 cross compilation for now.
-				BcAssert( RsShaderCodeTypeToBackendType( CodeType ) == RsShaderBackendType::D3D11 );
-				InputCodeTypes_.push_back( CodeType );
-			}
-		}
-	}
-
 	// Sort input types from lowest to highest.
-	std::sort( InputCodeTypes_.begin(), InputCodeTypes_.end(), []( RsShaderCodeType A, RsShaderCodeType B )
+	std::sort( CodeTypes_.begin(), CodeTypes_.end(), []( RsShaderCodeType A, RsShaderCodeType B )
 	{
 		return A < B;
 	});
 
-	// Backend types.
-	BackendTypes_.clear();
-	BackendTypes_.push_back( RsShaderBackendType::D3D11 );
-	BackendTypes_.push_back( RsShaderBackendType::GLSL );
+	// Backend types. If it's empty, default to all.
+	if( BackendTypes_.empty() )
+	{
+		BackendTypes_.push_back( RsShaderBackendType::D3D11 );
+		BackendTypes_.push_back( RsShaderBackendType::GLSL );
+		BackendTypes_.push_back( RsShaderBackendType::GLSL_ES );
+	}
 
 	// Kick off all permutation building jobs.
 	BcBool RetVal = BcTrue;
 	for( auto& Permutation : Permutations_ )
 	{
-		for( const auto& InputCodeType : InputCodeTypes_ )
+		for( const auto& InputCodeType : CodeTypes_ )
 		{
 			// Setup entries for input code type.
 			std::vector< ScnShaderLevelEntry > Entries;
 			for( auto& ShaderLevelEntry : GShaderLevelEntries )
 			{
-				auto& Entry = InputEntries[ ShaderLevelEntry.Entry_ ];
-				if( Entry.type() == Json::stringValue && 
-					ShaderLevelEntry.CodeType_ == InputCodeType )
+				const auto& Entry = Entrypoints_[ ShaderLevelEntry.Type_ ];
+				if( ShaderLevelEntry.CodeType_ == InputCodeType &&
+					!Entry.empty() )
 				{
 					ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
-					NewEntry.Entry_ = Entry.asCString();
 					Entries.push_back( NewEntry );
 				}
 			}
@@ -452,8 +457,9 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
     {
 		BcBinaryData ByteCode;
 		std::vector< std::string > ErrorMessages;
-
-		if( compileShader( Filename_, Entry.Entry_, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
+		std::string Entrypoint = Entrypoints_[ Entry.Type_ ];
+		BcAssert( !Entrypoint.empty() );
+		if( compileShader( Source_, Entrypoint, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
 		{
 			// Shader.
 			ScnShaderBuiltData BuiltShader;
@@ -490,7 +496,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				// Patch in tesselation shader flag if we have one in the entries list.
 				if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
 					{
-						return Entry.Type_ == RsShaderType::TESSELATION_CONTROL || Entry.Type_ == RsShaderType::TESSELATION_EVALUATION;
+						return Entry.Type_ == RsShaderType::HULL || Entry.Type_ == RsShaderType::DOMAIN;
 					} ) != Params.Entries_.end() )
 				{
 					HasTesselation = true;
@@ -564,17 +570,17 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					case RsShaderType::VERTEX:
 						ShaderType = "vs";
 						break;
-					case RsShaderType::TESSELATION_CONTROL:
+					case RsShaderType::HULL:
 						ShaderType = "hs";
 						break;
-					case RsShaderType::TESSELATION_EVALUATION:
+					case RsShaderType::DOMAIN:
 						ShaderType = "ds";
 						break;
 					case RsShaderType::GEOMETRY:
 						ShaderType = "gs";
 						break;
-					case RsShaderType::FRAGMENT:
-						ShaderType = "fs";
+					case RsShaderType::PIXEL:
+						ShaderType = "ps";
 						break;
 					case RsShaderType::COMPUTE:
 						ShaderType = "cs";
@@ -611,7 +617,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				else
 				{
 					RetVal = BcFalse;
-					throw CsImportException( "Failed to convert to GLSL.", Filename_ );
+					throw CsImportException( "Failed to convert to GLSL.", Source_ );
 				}
 			}
 			
@@ -674,7 +680,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			Errors += Error;
 		}
 
-		BcPrintf( "%s\n%s\n", Filename_.c_str(), Errors.c_str() );
+		BcPrintf( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
 		//throw CsImportException( Errors, Filename_ );
 	}
 

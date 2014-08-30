@@ -248,10 +248,10 @@ static RsTextureFormatGL gTextureFormats[] =
 static GLenum gShaderType[] = 
 {
 	GL_VERTEX_SHADER,											// RsShaderType::VERTEX
-	GL_TESS_CONTROL_SHADER,										// RsShaderType::TESSELATION_CONTROL
-	GL_TESS_EVALUATION_SHADER,									// RsShaderType::TESSELATION_EVALUATION
+	GL_TESS_CONTROL_SHADER,										// RsShaderType::HULL
+	GL_TESS_EVALUATION_SHADER,									// RsShaderType::DOMAIN
 	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
-	GL_FRAGMENT_SHADER,											// RsShaderType::FRAGMENT
+	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
 	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
 };
 

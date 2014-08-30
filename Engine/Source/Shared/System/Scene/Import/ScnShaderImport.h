@@ -58,7 +58,6 @@ struct ScnShaderPermutation
 struct ScnShaderLevelEntry
 {
 	std::string						Level_;
-	std::string						Entry_;
 	RsShaderType					Type_;
 	RsShaderCodeType				CodeType_;
 };
@@ -167,11 +166,12 @@ private:
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
 private:
-	std::string ResourceName_;
-	std::string Filename_;
-	std::vector< RsShaderCodeType > InputCodeTypes_;
-	std::vector< RsShaderCodeType > OutputCodeTypes_;
+	std::string Source_;
+	std::map< RsShaderType, std::string > Entrypoints_;
+	std::vector< RsShaderCodeType > CodeTypes_;
 	std::vector< RsShaderBackendType > BackendTypes_;
+
+	std::vector< RsShaderCodeType > OutputCodeTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;
 	std::vector< std::string > IncludePaths_;
 	std::vector< std::string > ErrorMessages_;
