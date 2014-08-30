@@ -193,8 +193,12 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 
     if( Success == false )
     {
-		const Json::Value& MembersValue( InputValue[ MembersEntry ] );
-		serialiseClassMembers( pData, pClass, MembersValue );
+		if( InputValue.type() == Json::objectValue &&
+			InputValue.get( MembersEntry, Json::nullValue ).type() != Json::nullValue )
+		{
+			const Json::Value& MembersValue( InputValue[ MembersEntry ] );
+			serialiseClassMembers( pData, pClass, MembersValue );
+		}
 	}
 }
 
