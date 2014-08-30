@@ -30,7 +30,10 @@ void ScnFontImport::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Source_", &ScnFontImport::Source_ ),
+		new ReField( "Source_", &ScnFontImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "NominalSize_", &ScnFontImport::NominalSize_, bcRFF_IMPORTER ),
+		new ReField( "DistanceField_", &ScnFontImport::DistanceField_, bcRFF_IMPORTER ),
+		new ReField( "Spread_", &ScnFontImport::Spread_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnFontImport, Super >( Fields );
@@ -54,20 +57,17 @@ ScnFontImport::~ScnFontImport()
 //////////////////////////////////////////////////////////////////////////
 // import
 BcBool ScnFontImport::import(
-	const Json::Value& Object )
+	const Json::Value& )
 {
-	Source_ = Object[ "source" ].asString();
-	
 	// Add root dependancy.
 	CsResourceImporter::addDependency( Source_.c_str() );
 
 	FT_Library	Library;
 	FT_Face		Face;
 	
-	BcU32 OriginalNominalSize = Object[ "nominalsize" ].asInt();
-	BcBool DistanceField = Object[ "distancefield" ].asBool();
-	BcU32 NominalSize = OriginalNominalSize * ( DistanceField ? 4 : 1 );
-	BcU32 BorderSize = DistanceField ? Object[ "spread" ].asInt(): 1;
+	BcU32 OriginalNominalSize = NominalSize_;
+	NominalSize_ = OriginalNominalSize * ( DistanceField_ ? 4 : 1 );
+	BcU32 BorderSize = DistanceField_ ? Spread_ : 1;
 	
 	int Error;
 	
@@ -86,7 +86,7 @@ BcBool ScnFontImport::import(
 			// Set pixel size for font map.
 			Error = FT_Set_Char_Size( Face,
 									  0,
-									  NominalSize * 64,
+									  NominalSize_ * 64,
 									  72,
 									  72 );
 			
@@ -127,7 +127,7 @@ BcBool ScnFontImport::import(
 							int GlyphError = FT_Load_Glyph( Face, GlyphIndex, 0 ); 
 							if( GlyphError == 0 )
 							{
-								FT_Render_Mode RenderMode = DistanceField ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
+								FT_Render_Mode RenderMode = DistanceField_ ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
 								FT_Glyph Glyph;
 								GlyphError = FT_Get_Glyph( Face->glyph, &Glyph );
 								
@@ -143,10 +143,10 @@ BcBool ScnFontImport::import(
 										makeImageForGlyphMono( Glyph, BorderSize ) :
 										makeImageForGlyphNormal( Glyph, BorderSize );
 							
-									BcF32 GlyphScale = DistanceField ? 0.25f : 1.0f;
+									BcF32 GlyphScale = DistanceField_ ? 0.25f : 1.0f;
 									
 									// Convert to distance field, and scale down 4x.
-									if( DistanceField == BcTrue && pImage != nullptr )
+									if( DistanceField_ == BcTrue && pImage != nullptr )
 									{									
 										BcU32 Width = pImage->width();
 										BcU32 Height = pImage->height();
@@ -205,7 +205,7 @@ BcBool ScnFontImport::import(
 					ImgImageUPtr pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 512, 512, ClearColour );
 					
 					// Create a texture.
-					std::string FontTextureName = Object[ "name" ].asString() + "fonttextureatlas";
+					std::string FontTextureName = Name_ + "fonttextureatlas";
 					std::string FontTextureFileName = getIntermediatePath() + std::string( "/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
