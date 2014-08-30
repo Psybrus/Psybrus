@@ -104,7 +104,7 @@ void ScnAnimationImport::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Source_", &ScnAnimationImport::Source_ ),
+		new ReField( "Source_", &ScnAnimationImport::Source_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnAnimationImport, Super >( Fields );
@@ -127,9 +127,15 @@ ScnAnimationImport::~ScnAnimationImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnAnimationImport::import( const Json::Value& Object )
+BcBool ScnAnimationImport::import( const Json::Value& )
 {
-	Source_ = Object[ "source" ].asString();
+	if( Source_.empty() )
+	{
+		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		return BcFalse;
+	}
+
+	CsResourceImporter::addDependency( Source_.c_str() );
 
 #if ENABLE_ASSIMP_IMPORTER
 	auto PropertyStore = aiCreatePropertyStore();
