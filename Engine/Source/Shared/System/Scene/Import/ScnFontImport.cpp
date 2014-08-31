@@ -13,6 +13,7 @@
 
 #ifdef PSY_SERVER
 #include "System/Scene/Import/ScnFontImport.h"
+#include "System/Scene/Import/ScnTextureImport.h"
 #include "System/Scene/Rendering/ScnFontFileData.h"
 #include "Base/BcFile.h"
 #include "Base/BcMath.h"
@@ -204,17 +205,16 @@ BcBool ScnFontImport::import(
 					ImgColour ClearColour = { 0, 0, 0, 0 };
 					ImgImageUPtr pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 512, 512, ClearColour );
 					
-					// Create a texture.
+					// Create texture.
 					std::string FontTextureName = Name_ + "fonttextureatlas";
 					std::string FontTextureFileName = getIntermediatePath() + std::string( "/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
-					// Setup texture object for import.
-					Json::Value TextureObject;		
-					TextureObject[ "name" ] = FontTextureName;
-					TextureObject[ "type" ] = "ScnTexture";
-					TextureObject[ "source" ] = FontTextureFileName;		
-					TextureObject[ "format" ] = "R8G8B8A8";
+					// Create texture importer..
+					auto TextureImporter = CsResourceImporterUPtr( 
+						new ScnTextureImport( 
+							FontTextureName, "ScnTexture",
+							FontTextureFileName, RsTextureFormat::R8G8B8A8 ) );
 					
 					// Build data.
 					BcStream HeaderStream;
@@ -223,7 +223,7 @@ BcBool ScnFontImport::import(
 					ScnFontHeader Header;
 					
 					Header.NoofGlyphs_ = (BcU32)GlyphDescList.size();
-					Header.TextureRef_ = CsResourceImporter::addImport( TextureObject );
+					Header.TextureRef_ = CsResourceImporter::addImport( std::move( TextureImporter ) );
 					Header.NominalSize_ = (BcF32)OriginalNominalSize;
 					
 					HeaderStream << Header;

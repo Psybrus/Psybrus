@@ -65,6 +65,16 @@ public:
 	BcU32							getNoofFields() const;
 
 	/**
+	 * Get fields
+	 */
+	const ReFieldVector&			getFields() const;
+
+	/**
+	 * Validate.
+	 */
+	BcBool							validate() const;
+
+	/**
 	 * Construct object.
 	 * @param pData Data to allocate into.
 	 */
@@ -115,6 +125,27 @@ public:
 	{
 		Serialiser_->destruct( pData );
 	}
+
+	/**
+	 * Allocate object with no construction.
+	 */
+	template< class _Ty >
+	_Ty*							allocNoConstruct() const
+	{
+		auto Object = reinterpret_cast< _Ty* >( BcMemAlign( getSize() ) );
+		BcMemZero( Object, getSize() );
+		return Object;
+	}
+
+	/**
+	 * Free object with no destruction.
+	 */
+	template< class _Ty >
+	void							freeNoDestruct( _Ty* Object ) const
+	{
+		BcMemFree( Object );
+	}
+
 
 protected:
     const ReClass* Super_;

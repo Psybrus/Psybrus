@@ -177,7 +177,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
 			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
 			Writer.save( OutputDependencies.c_str() );
@@ -359,8 +359,6 @@ BcBool CsPackageImporter::importResource(
 	CsResourceImporterUPtr Importer, 
 	const Json::Value& Resource )
 {
-	BcAssertMsg( Resource.type() == Json::objectValue, "CsPackageImporter: Can't import a value that isn't an object." );
-
 	// Catch name being missing.
 	if( Importer->getResourceName().empty() )
 	{
@@ -492,10 +490,9 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	}
 
 	// Serialise resource onto importer.
-	CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
-	SeJsonReader Reader( &ObjectCodec, bcRFF_IMPORTER );
+	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE );
+	SeJsonReader Reader( &ObjectCodec );
 	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), NewResource );
-	ResourceImporter->initialise( this );
 
 	// Add import with importer.
 	return addImport( std::move( ResourceImporter ), NewResource, IsCrossRef );
@@ -511,10 +508,13 @@ BcU32 CsPackageImporter::addImport(
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	BcAssert( BuildingBeginCount_ > 0 );
 
+	// Initialise importer.
+	Importer->initialise( this );
+
 	// Cache name and type.
 	const auto ResourceName = Importer->getResourceName();
 	const auto ResourceType = Importer->getResourceType();
-
+	
 	// Push into resource list.
 	TResourceImport ResourceImport;
 	ResourceImport.Importer_ = std::move( Importer );

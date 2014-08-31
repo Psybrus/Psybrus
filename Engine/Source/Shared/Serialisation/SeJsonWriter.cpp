@@ -4,24 +4,19 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
-const char* SeJsonWriter::SerialiserVersionEntry = "SerialiserVersion";
-const char* SeJsonWriter::RootIDEntry = "RootID";
-const char* SeJsonWriter::ObjectsEntry = "Objects";
-const char* SeJsonWriter::ClassEntry = "Class";
-const char* SeJsonWriter::IDEntry = "ID";
-const char* SeJsonWriter::MembersEntry = "Members";
-const char* SeJsonWriter::FieldEntry = "Field";
-const char* SeJsonWriter::ValueEntry = "Value";
+const char* SeJsonWriter::SerialiserVersionEntry = "$SerialiserVersion";
+const char* SeJsonWriter::RootIDEntry = "$RootID";
+const char* SeJsonWriter::ObjectsEntry = "$Objects";
+const char* SeJsonWriter::ClassEntry = "$Class";
+const char* SeJsonWriter::IDEntry = "$ID";
+const char* SeJsonWriter::FieldEntry = "$Field";
+const char* SeJsonWriter::ValueEntry = "$Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SeJsonWriter::SeJsonWriter( 
-	SeISerialiserObjectCodec* ObjectCodec,
-	BcU32 IncludeFieldFlags, 
-	BcU32 ExcludeFieldFlags ) :
-	ObjectCodec_( ObjectCodec ),
-	IncludeFieldFlags_( IncludeFieldFlags ),
-	ExcludeFieldFlags_( ExcludeFieldFlags )
+		SeISerialiserObjectCodec* ObjectCodec ) :
+	ObjectCodec_( ObjectCodec )
 {
 
 }
@@ -66,7 +61,7 @@ BcU32 SeJsonWriter::getFileVersion() const
 //virtual
 void* SeJsonWriter::internalSerialise( void* pData, const ReType* pType )
 {
-	Output_ = internalSerialiseString(pData, pType);
+	Output_ = internalSerialiseString( pData, pType );
 
     return pData;
 }
@@ -146,6 +141,13 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 		ClassValue[ IDEntry ] = ObjectCodec_->serialiseAsStringRef( pData, pClass );
 	}
 
+	// If the object codec says we dont want, don't serialise its contents.
+	// Only serialise it as an ID.
+	if( !ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
+	{
+		return ClassValue[ IDEntry ];
+	}
+
 	// Get type serialiser.
 	auto Serialiser = pClass->getTypeSerialiser();
 
@@ -168,9 +170,6 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 		}
 		else
 		{
-			// Members value.
-			Json::Value MembersValue( Json::objectValue );
-
 			// Iterate over members to add, all supers too.
 			const ReClass* pProcessingClass = pClass;
 			while( pProcessingClass != nullptr )
@@ -182,14 +181,15 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 					{
 						const ReField* pField = pProcessingClass->getField( Idx );
 	
-						MembersValue[ *pField->getName() ] = serialiseField( pData, pField );
+						// Check if we should serialise this field.
+						if ( ObjectCodec_->shouldSerialiseField( pData, pField ) )
+						{
+							ClassValue[ *pField->getName() ] = serialiseField( pData, pField );
+						}
 					}
 				}
 				pProcessingClass = pProcessingClass->getSuper();
 			}
-
-			// Setup members.
-			ClassValue[ MembersEntry ] = MembersValue;
 		}
 	}
 
@@ -201,12 +201,6 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 //virtual
 Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
 {
-	// Check flags.
-	if ( !shouldSerialiseField(pField->getFlags() ) )
-	{
-		return Json::nullValue;
-	}
-
 	// Select the appropriate serialise method to use if we
 	// have some data to serialise.
 	if( pData != nullptr )
@@ -258,10 +252,13 @@ Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass )
 		}
 			
 		// Add to list to serialise if it hasn't been added.
-		auto ClassToSerialise = SerialiseClass( pData, pClass );
-		if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+		if( ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
 		{
-			SerialiseClasses_.push_back( ClassToSerialise );
+			auto ClassToSerialise = SerialiseClass( pData, pClass );
+			if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+			{
+				SerialiseClasses_.push_back( ClassToSerialise );
+			}
 		}
 
 		return PointerValue;
@@ -392,10 +389,3 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
 
 	return DictValue;
 }	
-
-//////////////////////////////////////////////////////////////////////////
-// shouldSerialiseField
-BcBool SeJsonWriter::shouldSerialiseField( BcU32 Flags )
-{
-	return ( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || Flags == 0;
-}

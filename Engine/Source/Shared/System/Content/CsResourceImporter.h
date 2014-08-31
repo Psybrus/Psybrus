@@ -58,6 +58,9 @@ public:
 
 public:
 	CsResourceImporter();
+	CsResourceImporter(
+		const std::string& Name,
+		const std::string& Type );
 	virtual ~CsResourceImporter();
 
 	/**
@@ -85,11 +88,19 @@ public:
 
 protected:
 	/**
+	 * DEPRECATED: Add import.
+	 * Used to add a subresource if we define a new one.
+	 */
+	BcU32 addImport_DEPRECATED( 
+		const Json::Value& Resource, 
+		BcBool IsCrossRef = BcTrue );
+	
+	/**
 	 * Add import.
 	 * Used to add a subresource if we define a new one.
 	 */
 	BcU32 addImport( 
-		const Json::Value& Resource, 
+		CsResourceImporterUPtr Importer, 
 		BcBool IsCrossRef = BcTrue );
 
 	/**

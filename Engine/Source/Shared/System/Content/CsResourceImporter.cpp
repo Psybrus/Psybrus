@@ -24,7 +24,7 @@ void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer 
 	if( Importer != nullptr )
 	{
 		Importer->getClass()->destruct( Importer );
-		BcMemFree( Importer );
+		Importer->getClass()->freeNoDestruct( Importer );
 	}
 }
 
@@ -79,6 +79,17 @@ CsResourceImporter::CsResourceImporter():
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+CsResourceImporter::CsResourceImporter(
+		const std::string& Name,
+		const std::string& Type ):
+	Name_( Name ),
+	Type_( Type )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 CsResourceImporter::~CsResourceImporter()
@@ -119,13 +130,22 @@ std::string CsResourceImporter::getResourceType() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addImport
-BcU32 CsResourceImporter::addImport( 
+// addImport_DEPRECATED
+BcU32 CsResourceImporter::addImport_DEPRECATED( 
 	const Json::Value& Resource, 
 	BcBool IsCrossRef )
 {
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addImport( Resource, IsCrossRef );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addImport
+BcU32 CsResourceImporter::addImport( 
+	CsResourceImporterUPtr Importer, 
+	BcBool IsCrossRef )
+{
+	return Importer_->addImport( std::move( Importer ), Json::nullValue, IsCrossRef );
 }
 
 //////////////////////////////////////////////////////////////////////////

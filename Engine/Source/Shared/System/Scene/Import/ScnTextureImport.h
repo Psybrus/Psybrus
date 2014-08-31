@@ -30,6 +30,11 @@ public:
 
 public:
 	ScnTextureImport();
+	ScnTextureImport( 
+		const std::string Name,
+		const std::string Type,
+		const std::string Source,
+		RsTextureFormat Format );
 	virtual ~ScnTextureImport();
 
 	/**
@@ -46,7 +51,7 @@ private:
 	BcBool DistanceField_;
 	BcU32 Spread_;
 	
-	RsTextureType Type_;
+	RsTextureType TextureType_;
 	BcU32 Width_;
 	BcU32 Height_;
 	BcU32 Depth_;

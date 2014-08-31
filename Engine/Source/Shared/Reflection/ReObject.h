@@ -71,6 +71,16 @@ public:
 	const BcName&					getName() const;
 	
 	/**
+	 * @brief Set basis.
+	 */
+	void							setBasis( ReObject* Basis );
+
+	/**
+	 * @brief Get object's name.
+	 */
+	ReObject*						getBasis() const;
+
+	/**
 	 * @brief Get object's full name.
 	 */
 	std::string						getFullName() const;
@@ -102,11 +112,6 @@ public:
 	 * Recurses down to set the root owner.
 	 */
     void							setRootOwner( ReObject* RootOwner );
-
-	/**
-	 * @brief Get basis.
-	 */
-    ReObject*						getBasis() const;
 
 #if REFLECTION_ENABLE_GC
 	/**

@@ -16,21 +16,34 @@ public:
     virtual ~SeISerialiserObjectCodec(){};
 
 	/**
-	 * @brief Does this object need to be serialised?
+	 * @brief Does this object need its contents serialised?
 	 */
-	virtual BcBool shouldSerialise( void* InData, const ReType* InType ) = 0;
+	virtual BcBool shouldSerialiseContents( 
+		void* InData, 
+		const ReType* InType ) = 0;
 
 	/**
 	 * @brief Serialise as string ref.
 	 */
-	virtual std::string serialiseAsStringRef( void* InData, const ReType* InType ) = 0;
+	virtual std::string serialiseAsStringRef( 
+		void* InData, 
+		const ReType* InType ) = 0;
 
 	/**
 	 * @brief Is matching field?
 	 * Essentially a string comparison, can be used
 	 * to allow renaming, case insensitive checking, etc.
 	 */
-	virtual BcBool isMatchingField( const class ReField* Field, const std::string& Name ) = 0;
+	virtual BcBool isMatchingField( 
+		const class ReField* Field, 
+		const std::string& Name ) = 0;
+
+	/**
+	 * @brief Should we serialise field?
+	 */
+	virtual BcBool shouldSerialiseField( 
+		void* InData, 
+		const class ReField* Field ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

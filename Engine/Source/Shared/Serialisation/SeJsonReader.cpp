@@ -8,24 +8,19 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
-const char* SeJsonReader::SerialiserVersionEntry = "SerialiserVersion";
-const char* SeJsonReader::RootIDEntry = "RootID";
-const char* SeJsonReader::ObjectsEntry = "Objects";
-const char* SeJsonReader::ClassEntry = "Class";
-const char* SeJsonReader::IDEntry = "ID";
-const char* SeJsonReader::MembersEntry = "Members";
-const char* SeJsonReader::FieldEntry = "Field";
-const char* SeJsonReader::ValueEntry = "Value";
+const char* SeJsonReader::SerialiserVersionEntry = "$SerialiserVersion";
+const char* SeJsonReader::RootIDEntry = "$RootID";
+const char* SeJsonReader::ObjectsEntry = "$Objects";
+const char* SeJsonReader::ClassEntry = "$Class";
+const char* SeJsonReader::IDEntry = "$ID";
+const char* SeJsonReader::FieldEntry = "$Field";
+const char* SeJsonReader::ValueEntry = "$Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SeJsonReader::SeJsonReader( 
-	SeISerialiserObjectCodec* ObjectCodec, 
-	BcU32 IncludeFieldFlags, 
-	BcU32 ExcludeFieldFlags ) :
-	ObjectCodec_( ObjectCodec ),
-	IncludeFieldFlags_( IncludeFieldFlags ),
-	ExcludeFieldFlags_( ExcludeFieldFlags )
+		SeISerialiserObjectCodec* ObjectCodec ) :
+	ObjectCodec_( ObjectCodec )
 {
 
 }
@@ -185,19 +180,19 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 				Success = true;
 			}
 		}
-	}
-	else
-	{
-		BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+		else
+		{
+			BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+			return;
+		}
 	}
 
     if( Success == false )
     {
-		if( InputValue.type() == Json::objectValue &&
-			InputValue.get( MembersEntry, Json::nullValue ).type() != Json::nullValue )
+		// Attempt to read in as class members.
+		if( InputValue.type() == Json::objectValue )
 		{
-			const Json::Value& MembersValue( InputValue[ MembersEntry ] );
-			serialiseClassMembers( pData, pClass, MembersValue );
+			serialiseClassMembers( pData, pClass, InputValue );
 		}
 	}
 }
@@ -223,9 +218,13 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 					{
 						return ObjectCodec_->isMatchingField( pField, Member );
 					} );
-				if( FoundMember != Members.end() )
+				if( ObjectCodec_->shouldSerialiseField( 
+					pData, pField ) )
 				{
-					serialiseField( pData, pField, MemberValues[ *FoundMember ] );
+					if( FoundMember != Members.end() )
+					{
+						serialiseField( pData, pField, MemberValues[ *FoundMember ] );
+					}
 				}
 			}
 		}
@@ -237,13 +236,7 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 // serialiseField
 //virtual
 void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue )
-{
-	// Check flags.
-	if( !shouldSerialiseField( pField->getFlags() ) )
-	{
-		return;
-	}
-	
+{	
 	// Select the appropriate serialise method to use if we
     // have some data to serialise.
     if( pData != nullptr )
@@ -422,11 +415,4 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
         return *FoundClass;
     }
     return SerialiseClass( 0, nullptr, nullptr );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// shouldSerialiseField
-BcBool SeJsonReader::shouldSerialiseField( BcU32 Flags )
-{
-	return ( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || Flags == 0;
 }

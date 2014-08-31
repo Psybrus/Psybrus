@@ -22,7 +22,7 @@ void ScnSpatialComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pSpatialTreeNode_",			&ScnSpatialComponent::pSpatialTreeNode_ ),
+		new ReField( "pSpatialTreeNode_", &ScnSpatialComponent::pSpatialTreeNode_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< ScnSpatialComponent, Super >( Fields )
