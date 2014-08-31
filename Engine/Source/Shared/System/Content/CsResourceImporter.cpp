@@ -56,7 +56,7 @@ CsResourceImporterUPtr CsResourceImporterAttribute::getImporter() const
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
-REFLECTION_DEFINE_DERIVED( CsResourceImporter );
+REFLECTION_DEFINE_BASE( CsResourceImporter );
 
 void CsResourceImporter::StaticRegisterClass()
 {
@@ -66,8 +66,8 @@ void CsResourceImporter::StaticRegisterClass()
 		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
 		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
 	};
-		
-	ReRegisterClass< CsResourceImporter, Super >( Fields );
+	
+	ReRegisterClass< CsResourceImporter >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,6 +102,20 @@ BcBool CsResourceImporter::import(
 {
 	BcBreakpoint;
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResourceName
+std::string CsResourceImporter::getResourceName() const
+{
+	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResourceType
+std::string CsResourceImporter::getResourceType() const
+{
+	return Type_;
 }
 
 //////////////////////////////////////////////////////////////////////////
