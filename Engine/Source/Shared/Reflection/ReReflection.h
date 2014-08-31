@@ -93,6 +93,7 @@ ReClass& ReRegisterClass( ReField* ( & Fields )[ _Size ], ReITypeSerialiser* Ser
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setFields( Fields );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 
@@ -106,6 +107,7 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 		
@@ -124,6 +126,7 @@ ReClass& ReRegisterClass( ReField* ( & Fields )[ _Size ], ReITypeSerialiser* Ser
 	Class->setFields( Fields );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 
@@ -140,6 +143,7 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 
@@ -153,6 +157,7 @@ ReClass& ReRegisterAbstractClass( ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 

@@ -243,7 +243,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	{
 		CsPackageDependencies Dependencies;
 
-		CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
 		SeJsonReader Reader( &ObjectCodec );
 		Reader.load( OutputDependencies.c_str() );
 		Reader << Dependencies;

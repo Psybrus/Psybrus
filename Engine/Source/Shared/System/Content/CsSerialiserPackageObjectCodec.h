@@ -22,14 +22,31 @@ class CsSerialiserPackageObjectCodec:
 	public SeISerialiserObjectCodec
 {
 public:
-	CsSerialiserPackageObjectCodec( class CsPackage* Package );
-	virtual BcBool shouldSerialise( void* InData, const ReType* InType );
-	virtual std::string serialiseAsStringRef( void* InData, const ReType* InType );
-	virtual BcBool isMatchingField( const class ReField* Field, const std::string& Name );
+	CsSerialiserPackageObjectCodec( 
+		class CsPackage* Package,
+		BcU32 IncludeFieldFlags,
+		BcU32 ExcludeFieldFlags );
 
+	virtual BcBool shouldSerialiseContents( 
+		void* InData, 
+		const ReType* InType ) override;
+
+	virtual std::string serialiseAsStringRef( 
+		void* InData, 
+		const ReType* InType ) override;
+	
+	virtual BcBool isMatchingField( 
+		const class ReField* Field, 
+		const std::string& Name ) override;
+	
+	virtual BcBool shouldSerialiseField( 
+		void* InData, 
+		const class ReField* Field ) override;
 
 private:
 	class CsPackage* Package_;
+	BcU32 IncludeFieldFlags_;
+	BcU32 ExcludeFieldFlags_;
 };
 
 

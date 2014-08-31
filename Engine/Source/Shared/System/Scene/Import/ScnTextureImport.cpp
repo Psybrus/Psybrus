@@ -36,7 +36,7 @@ void ScnTextureImport::StaticRegisterClass()
 		new ReField( "AlphaFromIntensity_", &ScnTextureImport::AlphaFromIntensity_, bcRFF_IMPORTER ),
 		new ReField( "DistanceField_", &ScnTextureImport::DistanceField_, bcRFF_IMPORTER ),
 		new ReField( "Spread_", &ScnTextureImport::Spread_, bcRFF_IMPORTER ),
-		new ReField( "Type_", &ScnTextureImport::Type_, bcRFF_IMPORTER ),
+		new ReField( "TextureType_", &ScnTextureImport::TextureType_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnTextureImport::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnTextureImport::Height_, bcRFF_IMPORTER ),
 		new ReField( "Depth_", &ScnTextureImport::Depth_, bcRFF_IMPORTER ),
@@ -55,13 +55,26 @@ ScnTextureImport::ScnTextureImport():
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
 	Spread_( 0 ),
-	Type_( RsTextureType::UNKNOWN ),
+	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
 	Depth_( 0 ),
 	Levels_( 1 )
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+ScnTextureImport::ScnTextureImport( 
+		const std::string Name,
+		const std::string Type,
+		const std::string Source,
+	RsTextureFormat Format ):
+	CsResourceImporter( Name, Type ),
+	Format_( Format )
+{
+	Source_.push_back( Source );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -351,7 +364,7 @@ BcBool ScnTextureImport::import(
 		ScnTextureHeader Header = 
 		{ 
 			Width_, Height_, Depth_, Levels_,
-			Type_, RsTextureFormat::R8G8B8A8, BcTrue 
+			TextureType_, RsTextureFormat::R8G8B8A8, BcTrue 
 		};
 		BcStream HeaderStream;
 		HeaderStream << Header;

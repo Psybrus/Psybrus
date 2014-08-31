@@ -30,12 +30,12 @@ void ScnFont::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY ),
-		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_ ),
 		new ReField( "Texture_", &ScnFont::Texture_, bcRFF_SHALLOW_COPY ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnFont, Super >( Fields );
 
 #ifdef PSY_SERVER
@@ -149,6 +149,8 @@ void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 
 	Parent_ = Parent; 
 	Material_ = Material;
+	MaterialComponent_ = nullptr;
+	ClippingEnabled_ = BcFalse;
 
 	// Null uniform buffer.
 	UniformBuffer_ = nullptr;

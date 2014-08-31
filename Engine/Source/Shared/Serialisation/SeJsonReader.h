@@ -16,15 +16,12 @@ public:
     static const char* ObjectsEntry;
     static const char* ClassEntry;
     static const char* IDEntry;
-    static const char* MembersEntry;
     static const char* FieldEntry;
     static const char* ValueEntry;
 
 public:
 	SeJsonReader( 
-		SeISerialiserObjectCodec* ObjectCodec, 
-		BcU32 IncludeFieldFlags = 0xffffffff, 
-		BcU32 ExcludeFieldFlags = bcRFF_TRANSIENT );
+		SeISerialiserObjectCodec* ObjectCodec );
 	void load( std::string FileName );
     virtual ~SeJsonReader();
 
@@ -67,12 +64,8 @@ private:
 
     SerialiseClass getSerialiseClass( std::string ID, const ReType* pType );
 
-	BcBool shouldSerialiseField( BcU32 Flags );
-
 private:
 	SeISerialiserObjectCodec* ObjectCodec_;
-	BcU32 IncludeFieldFlags_;
-	BcU32 ExcludeFieldFlags_;
 	BcU32 FileVersion_;
     std::list< SerialiseClass > SerialiseClasses_;	///!< Classes to serialise.
     std::vector< Json::Value > InputValues_;		///!< Values to read int.

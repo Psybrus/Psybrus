@@ -15,7 +15,7 @@ void ReObject::StaticRegisterClass()
 #endif
 		new ReField( "Flags_", &ReObject::Flags_ ),
 		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY ),
-		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY | bcRFF_BASIS ),
 		new ReField( "Name_", &ReObject::Name_ ),
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
 		new ReField( "UniqueId_", &ReObject::UniqueId_, bcRFF_TRANSIENT ),
@@ -85,6 +85,20 @@ void ReObject::setName( BcName Name )
 const BcName& ReObject::getName() const
 {
 	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setBasis
+void ReObject::setBasis( ReObject* Basis )
+{
+	Basis_ = Basis;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBasis
+ReObject* ReObject::getBasis() const
+{
+	return Basis_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -183,13 +197,6 @@ void ReObject::setRootOwner( ReObject* RootOwner )
 			Owner = Owner->Owner_;
 		}
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getBasis
-ReObject* ReObject::getBasis() const
-{
-	return Basis_;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -151,7 +151,6 @@ protected:
 protected:
 	const ScnEntityHeader*				pHeader_;
 
-	ScnEntityRef						Basis_;
 	MaMat4d								LocalTransform_;
 	MaMat4d								WorldTransform_;
 
