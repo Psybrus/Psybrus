@@ -18,6 +18,7 @@
 
 #include "System/Content/CsPackageFileData.h"
 #include "System/Content/CsResource.h"
+#include "System/Content/CsResourceImporter.h"
 
 #ifdef PSY_SERVER
 #include <json/json.h>
@@ -50,29 +51,103 @@ public:
 	CsPackageImporter();
 	~CsPackageImporter();
 
-	BcBool import( const BcName& Name );
-	BcBool save( const BcPath& Path );
+	/**
+	 * Import package by name.
+	 */
+	BcBool import( 
+		const BcName& Name );
 	
-	BcBool loadJsonFile( const BcChar* pFileName, Json::Value& Root );
-	BcBool importResource( const Json::Value& Resource );
+	/**
+	 * Save package out to a path.
+	 */
+	BcBool save( 
+		const BcPath& Path );
+	
+	/**
+	 * Load Json file into value.
+	 */
+	BcBool loadJsonFile( 
+		const BcChar* pFileName, 
+		Json::Value& Root );
+	
+	/**
+	 * Import resource using importer.
+	 * NOTE: Resource passed is is to be deprecated.
+	 */
+	BcBool importResource( 
+		CsResourceImporterUPtr Importer, 
+		const Json::Value& Resource );
 
+	/**
+	 * Get package name.
+	 */
 	BcName getName() const;
 	
+	/**
+	 * Begin importing.
+	 * Called before any addImport, addString, addChunk etc calls.
+	 */
 	void beginImport();
+
+	/**
+	 * End importing.
+	 * Called after all addImport, addString, addChunk etc calls.
+	 */
 	void endImport();
 
-	BcU32 addImport( const Json::Value& Resource, BcBool IsCrossRef = BcTrue );
-	BcU32 addString( const BcChar* pString );
-	BcU32 addPackageCrossRef( const BcChar* pFullName );
-	BcU32 addChunk( BcU32 ID, const void* pData, BcSize Size, BcSize RequiredAlignment = 16, BcU32 Flags = csPCF_DEFAULT );
-	void addDependency( const BcChar* pFileName );
-	void addAllPackageCrossRefs( Json::Value& Root );
+	/**
+	 * DEPRECATED: Add import.
+	 */
+	BcU32 addImport( 
+		const Json::Value& Resource, 
+		BcBool IsCrossRef = BcTrue );
+	
+	/**
+	 * Add import.
+	 */
+	BcU32 addImport( 
+		CsResourceImporterUPtr Importer, 
+		const Json::Value& Resource = Json::nullValue, 
+		BcBool IsCrossRef = BcTrue );
+	
+	/**
+	 * Add string.
+	 */
+	BcU32 addString( 
+		const BcChar* pString );
+	
+	/**
+	 * Add package cross reference.
+	 */
+	BcU32 addPackageCrossRef( 
+		const BcChar* pFullName );
+	
+	/**
+	 * Add chunk.
+	 */
+	BcU32 addChunk( 
+		BcU32 ID, 
+		const void* pData, 
+		BcSize Size, 
+		BcSize RequiredAlignment = 16, 
+		BcU32 Flags = csPCF_DEFAULT );
+	
+	/**
+	 * Add dependency.
+	 */
+	void addDependency( 
+		const BcChar* pFileName );
+	
+	/**
+	 * Search through Json value hierarchy
+	 * and add all package crossrefs.
+	 */
+	void addAllPackageCrossRefs( 
+		Json::Value& Root );
 
 private:
 	BcBool havePackageDependency( const BcName& PackageName );
 
-private:
-	BcBool importResource_worker( Json::Value ResourceObject );
 
 private:
 	typedef std::vector< std::string > TStringList;
@@ -104,8 +179,23 @@ private:
 	typedef std::vector< BcName > TPackageDependencyList;
 	typedef TPackageDependencyList::iterator TPackageDependencyIterator;
 
+	struct TResourceImport
+	{
+		TResourceImport()
+		{
+		}
+
+		TResourceImport( TResourceImport&& Other ):
+			Importer_( std::move( Other.Importer_ ) ),
+			Resource_( std::move( Other.Resource_ ) )
+		{
+		}
+
+		CsResourceImporterUPtr Importer_;
+		Json::Value Resource_; // Temporary until we get rid of all importer Json deps.
+	};
 	
-	TJsonValueList					JsonResources_;
+	std::list< TResourceImport >	Resources_;
 
 	CsPackageResourceHeader			CurrResourceHeader_;
 

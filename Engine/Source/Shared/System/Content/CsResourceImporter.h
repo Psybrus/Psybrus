@@ -51,11 +51,10 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // CsResourceImporter
-class CsResourceImporter :
-	public ReObject
+class CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( CsResourceImporter, ReObject );
+	REFLECTION_DECLARE_BASE( CsResourceImporter );
 
 public:
 	CsResourceImporter();
@@ -72,6 +71,16 @@ public:
 	 */
 	virtual BcBool import( 
 		const Json::Value& Object );
+
+	/**
+	 * Get resource name.
+	 */
+	std::string getResourceName() const;
+
+	/**
+	 * Get resource type.
+	 */
+	std::string getResourceType() const;
 
 
 protected:
