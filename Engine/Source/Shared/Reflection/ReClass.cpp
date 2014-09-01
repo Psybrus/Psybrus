@@ -124,3 +124,11 @@ BcBool ReClass::validate() const
 
 	return RetVal;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ReClass::destroy( void* pData ) const
+{
+	BcAssert( Serialiser_ );
+	Serialiser_->destroy( pData );
+}

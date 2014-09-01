@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
-DEFINE_RESOURCE( ScnParticleSystemComponent );
+REFLECTION_DEFINE_DERIVED( ScnParticleSystemComponent );
 
 void ScnParticleSystemComponent::StaticRegisterClass()
 {
@@ -46,6 +46,30 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 	
 	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2060 ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnParticleSystemComponent::ScnParticleSystemComponent():
+	VertexDeclaration_( nullptr ),
+	CurrentVertexBuffer_( 0 ),
+	pParticleBuffer_( nullptr ),
+	NoofParticles_( 0 ),
+	PotentialFreeParticle_( 0 ),
+	Material_( nullptr ),
+	MaterialComponent_( nullptr ),
+	WorldTransformParam_( 0 ),
+	IsLocalSpace_( BcFalse )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnParticleSystemComponent::~ScnParticleSystemComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////

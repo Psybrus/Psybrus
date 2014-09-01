@@ -48,6 +48,13 @@ ScnFontImport::ScnFontImport()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnFontImport::ScnFontImport( ReNoInit )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 ScnFontImport::~ScnFontImport()
@@ -211,7 +218,13 @@ BcBool ScnFontImport::import(
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
 					// Create texture importer..
-					auto TextureImporter = CsResourceImporterUPtr( 
+					// NOTE: This is pretty horrible. The reason is
+					//       that reflected objects use BcMemAlign, which
+					//       is not used by global new.
+					//       I found a bug with the std::thread and std::mutex
+					//       code in VS2012 that uses its own custom allocator
+					//       for new in debug builds. This annoyed me greatly.
+					auto TextureImporter = CsResourceImporterUPtr(
 						new ScnTextureImport( 
 							FontTextureName, "ScnTexture",
 							FontTextureFileName, RsTextureFormat::R8G8B8A8 ) );

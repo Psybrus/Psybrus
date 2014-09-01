@@ -42,6 +42,14 @@ void ScnCanvasComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
+void ScnCanvasComponent::initialise()
+{
+	initialise( 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
 void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 {
 	Super::initialise();
@@ -61,6 +69,7 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	NoofVertices_ = NoofVertices;
 	VertexIndex_ = 0;
 	VertexDeclaration_ = nullptr;
+	pRenderResource_ = nullptr;
 	
 	// Which render resource to use.
 	CurrentRenderResource_ = 0;

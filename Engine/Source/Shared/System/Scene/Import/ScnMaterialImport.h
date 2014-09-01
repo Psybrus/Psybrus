@@ -25,10 +25,11 @@ class ScnMaterialImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnMaterialImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnMaterialImport, CsResourceImporter );
 
 public:
 	ScnMaterialImport();
+	ScnMaterialImport( ReNoInit );
 	virtual ~ScnMaterialImport();
 
 	/**

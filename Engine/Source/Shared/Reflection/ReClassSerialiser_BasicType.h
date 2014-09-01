@@ -41,6 +41,21 @@ public:
 		reinterpret_cast< BaseType* >( pMemory )->~_Ty();
 	}
 
+	void* create() const
+	{
+		return new BaseType();
+	}
+	
+	void* createNoInit() const
+	{
+		return new BaseType();
+	}
+
+	void destroy( void* Object ) const
+	{
+		delete reinterpret_cast< BaseType* >( Object );
+	}
+
 	BcU32 getBinaryDataSize( void* pMemory ) const
 	{
 		return sizeof( BaseType );

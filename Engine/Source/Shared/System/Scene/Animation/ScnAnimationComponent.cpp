@@ -67,7 +67,7 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 	const Json::Value& NameValue = Object[ "name" ];
 	const Json::Value& ChildrenValue = Object[ "children" ];
 	const ReClass* pClass = ReManager::GetClass( TypeValue.asCString() );
-	ScnAnimationTreeNode* pNode = pClass->construct< ScnAnimationTreeNode >();
+	ScnAnimationTreeNode* pNode = pClass->create< ScnAnimationTreeNode >();
 	pNode->setName( NameValue.asCString() );
 
 	if( pParentNode != NULL )
@@ -87,6 +87,16 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 			initialiseNode( pNode, Idx, ChildValue );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnAnimationComponent::destroy()
+{
+	// TODO: unique_ptr.
+	delete pRootTreeNode_;
+	pRootTreeNode_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

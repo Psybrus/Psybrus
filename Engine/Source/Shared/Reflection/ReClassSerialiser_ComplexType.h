@@ -28,6 +28,21 @@ public:
 		reinterpret_cast< _Ty* >( pMemory )->~_Ty();
 	}
 
+	void* create() const
+	{
+		return new _Ty();
+	}
+
+	void* createNoInit() const
+	{
+		return new _Ty( NOINIT );
+	}
+
+	void destroy( void* Object ) const
+	{
+		delete reinterpret_cast< _Ty* >( Object );
+	}
+
 	virtual BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
 	{
 		return false;

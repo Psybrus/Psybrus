@@ -3,7 +3,6 @@
 
 #include "Reflection/ReType.h"
 #include "Reflection/ReField.h"
-
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,52 +99,39 @@ public:
 	}
 
 	/**
-	 * Construct object.
-	 */
-	template< class _Ty >
-	_Ty*							construct() const
-	{
-		return construct< _Ty >( BcMemAlign( getSize() ) );
-	}
-
-	/**
-	 * Construct object with no init.
-	 */
-	template< class _Ty >
-	_Ty*							constructNoInit() const
-	{
-		return constructNoInit< _Ty >( BcMemAlign( getSize() ) );
-	}
-
-	/**
 	 * Destruct object.
 	 */
 	template< class _Ty >
 	void							destruct( _Ty* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		Serialiser_->destruct( pData );
 	}
 
 	/**
-	 * Allocate object with no construction.
+	 * Create object.
 	 */
 	template< class _Ty >
-	_Ty*							allocNoConstruct() const
+	_Ty*							create() const
 	{
-		auto Object = reinterpret_cast< _Ty* >( BcMemAlign( getSize() ) );
-		BcMemZero( Object, getSize() );
-		return Object;
+		BcAssert( Serialiser_ );
+		return reinterpret_cast< _Ty* >( Serialiser_->create() );
 	}
 
 	/**
-	 * Free object with no destruction.
+	 * Create object with no init.
 	 */
 	template< class _Ty >
-	void							freeNoDestruct( _Ty* Object ) const
+	_Ty*							createNoInit() const
 	{
-		BcMemFree( Object );
+		BcAssert( Serialiser_ );
+		return reinterpret_cast< _Ty* >( Serialiser_->createNoInit() );
 	}
 
+	/**
+	 * Destroy object.
+	 */
+	void							destroy( void* pData ) const;
 
 protected:
     const ReClass* Super_;

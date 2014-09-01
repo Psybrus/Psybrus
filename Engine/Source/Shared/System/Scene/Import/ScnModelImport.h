@@ -27,10 +27,11 @@ class ScnModelImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnModelImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnModelImport, CsResourceImporter );
 
 public:
 	ScnModelImport();
+	ScnModelImport( ReNoInit );
 	virtual ~ScnModelImport();
 
 	/**

@@ -38,6 +38,27 @@ void ReClassSerialiser_StringType::destruct( void* pMemory ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// create
+void* ReClassSerialiser_StringType::create() const
+{
+	return new BaseType();
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// createNoInit
+void* ReClassSerialiser_StringType::createNoInit() const
+{
+	return new BaseType();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ReClassSerialiser_StringType::destroy( void* Object ) const
+{
+	delete reinterpret_cast< BaseType* >( Object );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
 BcU32 ReClassSerialiser_StringType::getBinaryDataSize( void* pMemory ) const
 {

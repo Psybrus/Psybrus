@@ -155,7 +155,12 @@ public:
 #endif
 	}
 private:
-    friend ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
+    friend ReObject* ReConstructObject( 
+		const ReClass* InClass, 
+		const std::string& InName, 
+		ReObject* InOwner, 
+		ReObject* InBasis, 
+		std::function< void( ReObject* ) > );
 
 	template< class _Ty, bool _IsWeak > friend class ReObjectRef;
 

@@ -63,7 +63,10 @@ class ScnParticleSystemComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnParticleSystemComponent, ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnParticleSystemComponent, ScnRenderableComponent );
+
+	ScnParticleSystemComponent();
+	virtual ~ScnParticleSystemComponent();
 
 public:
 	virtual void						initialise( const Json::Value& Object );

@@ -48,7 +48,7 @@ public:
 			{
 				FieldCopyInfoList_.push_back( FieldCopyInfo() );
 				FoundFieldCopyInfo = &FieldCopyInfoList_.back();
-				FoundFieldCopyInfo->DstData_ = DstData == nullptr ? InClass->constructNoInit< void >() : DstData;
+				FoundFieldCopyInfo->DstData_ = DstData == nullptr ? InClass->create< void >() : DstData;
 				FoundFieldCopyInfo->SrcData_ = SrcData;
 				FoundFieldCopyInfo->SrcClass_ = InClass;
 			}
@@ -337,13 +337,25 @@ void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 
 //////////////////////////////////////////////////////////////////////////
 // ConstructObject
-ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis )
+ReObject* ReConstructObject( 
+	const ReClass* InClass, 
+	const std::string& InName, 
+	ReObject* InOwner, 
+	ReObject* InBasis,
+	std::function< void( ReObject* ) > postCreateFunc )
 {
 	auto NewObject = InBasis == nullptr ? 
-		InClass->construct< ReObject >() : InClass->constructNoInit< ReObject >();
+		InClass->create< ReObject >() : InClass->create< ReObject >(); // TODO: Reconsider createNoInit for the latter.
 
+	// If we've succeeded...
 	if( NewObject != nullptr )
 	{
+		// Call post create.
+		if( postCreateFunc != nullptr )
+		{
+			postCreateFunc( NewObject );
+		}
+
 		// If we have a basis, we need to perform a deep copy.
 		if( InBasis != nullptr )
 		{

@@ -479,10 +479,7 @@ void CsCore::processUnloadingResources()
 			
 			// Destroy resource.
 			pResource->destroy();
-			
-			// Free resource.
-			pResource->getClass()->destruct( pResource );
-			BcMemFree( pResource );
+			delete pResource;
 			
 			// Next.
 			++It;

@@ -59,7 +59,11 @@ class ScnComponent:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, CsResource );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnComponent, CsResource );
+
+	ScnComponent();
+	ScnComponent( ReNoInit );
+	virtual ~ScnComponent();
 
 public:
 	virtual void						initialise();

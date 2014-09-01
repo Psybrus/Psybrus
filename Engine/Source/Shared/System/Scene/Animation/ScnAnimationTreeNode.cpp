@@ -31,10 +31,20 @@ void ScnAnimationTreeNode::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationTreeNode::ScnAnimationTreeNode()
+ScnAnimationTreeNode::ScnAnimationTreeNode():
+	pReferencePose_( nullptr ),
+	pWorkingPose_( nullptr )
 {
-	pWorkingPose_ = NULL;
-	pReferencePose_ = NULL;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnAnimationTreeNode::ScnAnimationTreeNode( ReNoInit ):
+	pReferencePose_( nullptr ),
+	pWorkingPose_( nullptr )
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
