@@ -24,10 +24,11 @@ class ScnComponentImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnComponentImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnComponentImport, CsResourceImporter );
 
 public:
 	ScnComponentImport();
+	ScnComponentImport( ReNoInit );
 	virtual ~ScnComponentImport();
 
 	/**

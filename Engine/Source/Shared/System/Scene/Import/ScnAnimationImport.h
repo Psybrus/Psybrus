@@ -27,10 +27,11 @@ class ScnAnimationImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnAnimationImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnAnimationImport, CsResourceImporter );
 
 public:
 	ScnAnimationImport();
+	ScnAnimationImport( ReNoInit );
 	virtual ~ScnAnimationImport();
 
 	/**

@@ -23,8 +23,7 @@ void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer 
 {
 	if( Importer != nullptr )
 	{
-		Importer->getClass()->destruct( Importer );
-		Importer->getClass()->freeNoDestruct( Importer );
+		delete Importer;
 	}
 }
 
@@ -51,7 +50,7 @@ CsResourceImporterAttribute::CsResourceImporterAttribute(
 
 CsResourceImporterUPtr CsResourceImporterAttribute::getImporter() const
 {
-	return CsResourceImporterUPtr( ImporterClass_->construct< CsResourceImporter >() );
+	return CsResourceImporterUPtr( ImporterClass_->create< CsResourceImporter >() );
 }
 
 //////////////////////////////////////////////////////////////////////////

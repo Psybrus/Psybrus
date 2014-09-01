@@ -29,7 +29,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnEntity );
+REFLECTION_DEFINE_DERIVED( ScnEntity );
 
 void ScnEntity::StaticRegisterClass()
 {
@@ -51,14 +51,34 @@ void ScnEntity::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntity::ScnEntity():
+	pHeader_( nullptr ),
+	pEventProxy_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntity::ScnEntity( ReNoInit ):
+	pHeader_( nullptr ),
+	pEventProxy_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnEntity::~ScnEntity()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnEntity::initialise()
 {
 	Super::initialise();
-
-	// NULL internals.
-	pHeader_ = nullptr;
-	pEventProxy_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,12 +125,30 @@ void ScnEntity::create()
 
 			// Construct a new entity.
 			ScnComponentRef NewComponent = 
-				ReConstructObject( Component->getClass(), *Component->getName().getUnique(), getPackage(), Component );
+				ReConstructObject( 
+					Component->getClass(), 
+					*Component->getName().getUnique(), 
+					getPackage(), 
+					Component,
+					[]( ReObject* Object )
+					{
+						ScnComponent* Component = static_cast< ScnComponent* >( Object );
+						Component->initialise();
+					} );
 
 			attach( NewComponent );
 		}
 	}
 
+	static int Export = 0;
+	if( Export )
+	{
+		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_ALL, bcRFF_TRANSIENT | bcRFF_CHUNK_DATA );
+		SeJsonWriter Writer( &ObjectCodec );
+		Writer << *this;
+		Writer.save( "test.json" );
+		Export = 0;
+	}
 	markReady();
 }
 

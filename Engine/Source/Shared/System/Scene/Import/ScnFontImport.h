@@ -28,10 +28,11 @@ class ScnFontImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnFontImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnFontImport, CsResourceImporter );
 
 public:
 	ScnFontImport();
+	ScnFontImport( ReNoInit );
 	virtual ~ScnFontImport();
 
 	/**

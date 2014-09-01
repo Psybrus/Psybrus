@@ -33,8 +33,12 @@ class ScnEntity:
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnEntity, ScnComponent );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnEntity, ScnComponent );
 	
+	ScnEntity();
+	ScnEntity( ReNoInit );
+	virtual ~ScnEntity();
+
 	void								initialise();
 	void								initialise( ScnEntityRef Basis );
 	void								create();

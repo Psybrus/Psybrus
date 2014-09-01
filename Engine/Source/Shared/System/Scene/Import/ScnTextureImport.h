@@ -26,10 +26,11 @@ class ScnTextureImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnTextureImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnTextureImport, CsResourceImporter );
 
 public:
 	ScnTextureImport();
+	ScnTextureImport( ReNoInit );
 	ScnTextureImport( 
 		const std::string Name,
 		const std::string Type,

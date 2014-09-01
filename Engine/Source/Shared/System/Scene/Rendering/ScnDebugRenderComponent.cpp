@@ -57,6 +57,14 @@ ScnDebugRenderComponent* ScnDebugRenderComponent::pImpl()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
+void ScnDebugRenderComponent::initialise()
+{
+	initialise( 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
 void ScnDebugRenderComponent::initialise( BcU32 NoofVertices )
 {
 	Super::initialise();

@@ -90,13 +90,13 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 				}
 				else
 				{
-					pClassObject = ClassType->constructNoInit< void >();
+					pClassObject = ClassType->create< void >();
 					pData = pClassObject;
 				}
 			}
 			else
 			{
-				pClassObject = ClassType->constructNoInit< void >();
+				pClassObject = ClassType->create< void >();
 			}
 
 			// Add class to list for look up.
@@ -313,7 +313,9 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
     pWriteIterator->clear();
 
     // Construct a temporary value.
-    void* pTemporaryValue = static_cast< const ReClass* >( pFieldValueType )->construct< void >();
+ 	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
+	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
+	void* pTemporaryValue = FieldValueClass->create< void >();
 
     // Iterate over Json values.
 	if( InputValue.type() == Json::arrayValue )
@@ -323,13 +325,13 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		{
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), (*ValueIt) );
+				serialiseClass( pTemporaryValue, FieldValueClass, (*ValueIt) );
 				pWriteIterator->add( pTemporaryValue );
 			}
 			else
 			{
 				void* pTemporaryPointer = nullptr;
-				serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), (*ValueIt), false );
+				serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), (*ValueIt), false );
 				pWriteIterator->add( &pTemporaryPointer );
 			}
 		}
@@ -339,18 +341,19 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		// Treat as single value.
 		if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 		{
-			serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), InputValue );
+			serialiseClass( pTemporaryValue, FieldValueClass, InputValue );
 			pWriteIterator->add( pTemporaryValue );
 		}
 		else
 		{
 			void* pTemporaryPointer = nullptr;
-			serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), InputValue, false );
+			serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), InputValue, false );
 			pWriteIterator->add( &pTemporaryPointer );
 		}
 	}
-    // Free temporary value.
-    BcMemFree( pTemporaryValue );
+
+	// Free temporary value.
+    FieldValueClass->destroy( pTemporaryValue );
 
     delete pWriteIterator;
 }
@@ -371,8 +374,12 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
     pWriteIterator->clear();
 
     // Construct a temporary value & key.
-    void* pTemporaryKey = static_cast< const ReClass* >( pFieldKeyType )->construct< void >();
-    void* pTemporaryValue = static_cast< const ReClass* >( pFieldValueType )->construct< void >();
+	BcAssert( pFieldKeyType->isTypeOf< ReClass >() );
+	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
+	const ReClass* FieldKeyClass = static_cast< const ReClass* >( pFieldKeyType );
+	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
+    void* pTemporaryKey = FieldKeyClass->create< void >();
+    void* pTemporaryValue = FieldValueClass->create< void >();
 
     // Iterate over Json member values.
     auto MemberKeys = InputValue.getMemberNames();
@@ -386,21 +393,21 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
             if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
             {
                 // Serialise value.
-                serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), Value );
+                serialiseClass( pTemporaryValue, FieldValueClass, Value );
                 pWriteIterator->add( pTemporaryKey, pTemporaryValue );
             }
             else
             {
                 void* pTemporaryPointer = nullptr;
-                serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), Value, false );
+                serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), Value, false );
                 pWriteIterator->add( pTemporaryKey, &pTemporaryPointer );
             }
         }
     }
 
     // Free temporary value.
-	BcMemFree( pTemporaryKey );
-    BcMemFree( pTemporaryValue );
+	FieldKeyClass->destroy( pTemporaryKey );
+    FieldValueClass->destroy( pTemporaryValue );
 
     delete pWriteIterator;
 }

@@ -41,7 +41,7 @@ int ScnComponentAttribute::getUpdatePriority() const
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnComponent );
+REFLECTION_DEFINE_DERIVED( ScnComponent );
 
 void ScnComponent::StaticRegisterClass()
 {
@@ -61,15 +61,37 @@ void ScnComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnComponent::ScnComponent():
+	ComponentFlags_( 0 ),
+	ParentEntity_( nullptr ),
+	pJsonObject_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnComponent::ScnComponent( ReNoInit ):
+	ComponentFlags_( 0 ),
+	ParentEntity_( nullptr ),
+	pJsonObject_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnComponent::~ScnComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnComponent::initialise()
 {
 	Super::initialise();
-
-	ComponentFlags_ = 0;
-	ParentEntity_ = nullptr;
-	pJsonObject_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
