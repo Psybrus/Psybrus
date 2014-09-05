@@ -60,11 +60,11 @@ void ScnMaterial::create()
 	ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
 		
 	// Get resources.
-	Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
+	Shader_ = getPackage()->getCrossRefResource( pHeader_->ShaderRef_ );
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 	{
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-		TextureMap_[ pTextureHeader->SamplerName_ ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
+		TextureMap_[ pTextureHeader->SamplerName_ ] = getPackage()->getCrossRefResource( pTextureHeader->TextureRef_ );
 	}
 	
 	// Mark as ready.
@@ -215,7 +215,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 // initialise
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
-	ScnMaterialRef MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	ScnMaterialRef MaterialRef = getPackage()->getCrossRefResource( Object[ "material" ].asUInt() );
 	ScnShaderPermutationFlags PermutationFlags = ScnShaderPermutationFlags::NONE;
 	const BcChar* pPermutation = Object[ "permutation" ].asCString();
 

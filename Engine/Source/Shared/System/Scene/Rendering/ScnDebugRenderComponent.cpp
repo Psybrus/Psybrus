@@ -89,7 +89,7 @@ void ScnDebugRenderComponent::initialise( const Json::Value& Object )
 {
 	ScnDebugRenderComponent::initialise( Object[ "noofvertices" ].asUInt() );
 
-	Material_ = ScnMaterialRef( getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() ) );
+	Material_ = ScnMaterialRef( getPackage()->getCrossRefResource( Object[ "material" ].asUInt() ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

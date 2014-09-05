@@ -99,9 +99,11 @@ CsResourceImporter::~CsResourceImporter()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void CsResourceImporter::initialise( 
-	class CsPackageImporter* Importer )
+	class CsPackageImporter* Importer,
+	BcU32 ResourceId )
 {
 	Importer_ = Importer;
+	ResourceId_ = ResourceId;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,6 +128,13 @@ std::string CsResourceImporter::getResourceName() const
 std::string CsResourceImporter::getResourceType() const
 {
 	return Type_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResourceId
+BcU32 CsResourceImporter::getResourceId() const
+{
+	return ResourceId_;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -31,11 +31,13 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
-BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+BcRegex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
 
 #if PSY_SERVER
 
@@ -120,6 +122,9 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 		// Add all package cross refs.
 		addAllPackageCrossRefs( Resources );
+
+		// Set resource id to zero.
+		ResourceIds_.store( 0 );
 
 		// Import everything.
 		for( const auto& ResourceObject : Resources )
@@ -479,23 +484,13 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	// 
 	BcAssertMsg( ResourceImporter != nullptr, "Can't create resource importer." );
 
-	// Handle crossrefs slightly differently.
-	// TODO: Need a better way to reference resources than this.
-	Json::Value NewResource = Resource;
-	if( IsCrossRef )
-	{
-		// Prefix crossrefs so they don't conflict.
-		Name = boost::str( boost::format( "XREF%1%%2%" ) % PackageCrossRefList_.size() % Name.asCString() );
-		NewResource[ "name" ] = Name;
-	}
-
 	// Serialise resource onto importer.
 	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE );
 	SeJsonReader Reader( &ObjectCodec );
-	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), NewResource );
+	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource );
 
 	// Add import with importer.
-	return addImport( std::move( ResourceImporter ), NewResource, IsCrossRef );
+	return addImport( std::move( ResourceImporter ), Resource, IsCrossRef );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -508,8 +503,11 @@ BcU32 CsPackageImporter::addImport(
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	BcAssert( BuildingBeginCount_ > 0 );
 
+	// Get id.
+	BcU32 ResourceId = ResourceIds_.fetch_add( 1 );
+
 	// Initialise importer.
-	Importer->initialise( this );
+	Importer->initialise( this, ResourceId );
 
 	// Cache name and type.
 	const auto ResourceName = Importer->getResourceName();
@@ -520,7 +518,6 @@ BcU32 CsPackageImporter::addImport(
 	ResourceImport.Importer_ = std::move( Importer );
 	ResourceImport.Resource_ = Resource;
 	Resources_.push_back( std::move( ResourceImport ) );
-
 	
 	// If it's a cross ref, do that shiz.
 	if( IsCrossRef )
@@ -528,13 +525,9 @@ BcU32 CsPackageImporter::addImport(
 		// Construct and add package cross ref.
 		std::string CrossRef;
 		CrossRef += "$(";
-		CrossRef += ResourceType;
-		CrossRef += ":";
-		CrossRef += (*Name_);
-		CrossRef += ".";
-		CrossRef += ResourceName;
+		CrossRef += boost::lexical_cast< std::string >( ResourceId );
 		CrossRef += ")";
-	
+		
 		return addPackageCrossRef( CrossRef.c_str() );
 	}
 
@@ -578,6 +571,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcBool IsWeak = BcFalse;
+	BcBool IsThis = BcFalse;
 	BcRegexMatch Match;
 	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
 
@@ -591,6 +585,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 
 	if( Matches == 4 )
 	{	
+		// Match against normal refs.
 		std::string TypeName;
 		std::string PackageName;
 		std::string ResourceName;
@@ -611,7 +606,8 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 			addString( TypeName.c_str() ),
 			addString( PackageName.c_str() ),
 			addString( ResourceName.c_str() ),
-			IsWeak
+			IsWeak,
+			BcFalse
 		};
 
 		// Add if it doesn't exist already.
@@ -647,11 +643,51 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		// Resource index to the package cross ref.
 		return FoundIdx;
 	}
-	else
+	
+	// Try ID match.
+	if( Matches == 0 )
 	{
-		BcAssertMsg( BcFalse, "Cross package ref \"%s\" is not formatted correctly.", pFullName );
+		Matches = GRegex_ResourceIdReference.match( pFullName, Match );
+	}
+	if( Matches == 2 )
+	{
+		// Match against normal refs.
+		std::string ResourceId;
+
+		Match.getMatch( 1, ResourceId );
+	
+		// Add cross ref.
+		CsPackageCrossRefData CrossRef = 
+		{
+			0,
+			0,
+			boost::lexical_cast< BcU32 >( ResourceId ),
+			BcFalse,
+			BcTrue
+		};
+
+		// Add if it doesn't exist already.
+		BcU32 FoundIdx = BcErrorCode;
+		for( BcU32 Idx = 0; Idx < PackageCrossRefList_.size(); ++Idx )
+		{
+			if( PackageCrossRefList_[ Idx ] == CrossRef )
+			{
+				FoundIdx = Idx;
+				break;
+			}
+		}
+
+		if( FoundIdx == BcErrorCode )
+		{
+			PackageCrossRefList_.push_back( CrossRef );
+			FoundIdx = PackageCrossRefList_.size() - 1;
+		}
+
+		// Resource index to the package cross ref.
+		return FoundIdx;
 	}
 
+	BcAssertMsg( BcFalse, "Cross package ref \"%s\" is not formatted correctly.", pFullName );
 	return BcErrorCode;
 }
 

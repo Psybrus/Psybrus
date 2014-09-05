@@ -203,6 +203,7 @@ private:
 	mutable SysFence				BuildingFence_;
 	std::atomic< BcU32 >			BuildingBeginCount_;
 	std::atomic< BcU32 >			ImportErrorCount_;
+	std::atomic< BcU32 >			ResourceIds_;
 	BcName							Name_;
 	BcU32							DataPosition_;
 	BcFile							File_;
