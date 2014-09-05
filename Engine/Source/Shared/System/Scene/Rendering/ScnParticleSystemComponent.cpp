@@ -81,7 +81,7 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 
 	// Grab number of particles.
 	NoofParticles_ = Object["noofparticles"].asUInt();
-	Material_ = ScnMaterialRef( getPackage()->getPackageCrossRef( Object["material"].asUInt() ) );
+	Material_ = ScnMaterialRef( getPackage()->getCrossRefResource( Object["material"].asUInt() ) );
 	IsLocalSpace_ = Object["localspace"].asBool();
 
 	// Cache texture bounds.

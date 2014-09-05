@@ -115,7 +115,7 @@ void ScnEntity::create()
 		// We are a basis.
 		if( getBasis() == nullptr )
 		{
-			ScnComponentRef Component = getPackage()->getPackageCrossRef( ComponentCrossRefs[ Idx ] );
+			ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
 			Components_.push_back( Component );
 		}
 		else

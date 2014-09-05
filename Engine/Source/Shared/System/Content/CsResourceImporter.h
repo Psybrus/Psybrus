@@ -67,7 +67,8 @@ public:
 	 * Initialise.
 	 */
 	virtual void initialise( 
-		class CsPackageImporter* Importer );
+		class CsPackageImporter* Importer,
+		BcU32 ResourceId );
 
 	/**
 	 * Import resource.
@@ -84,6 +85,11 @@ public:
 	 * Get resource type.
 	 */
 	std::string getResourceType() const;
+
+	/**
+	 * Get resource id.
+	 */
+	BcU32 getResourceId() const;
 
 
 protected:
@@ -142,7 +148,7 @@ protected:
 
 private:
 	class CsPackageImporter* Importer_;
-
+	BcU32 ResourceId_;
 };
 
 #endif // __CSRESOURCEIMPORTER_H__

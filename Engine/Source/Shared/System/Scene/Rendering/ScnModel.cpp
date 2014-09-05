@@ -146,7 +146,7 @@ void ScnModel::create()
 		};
 		
 		// Get resource.
-		auto Resource = getPackage()->getPackageCrossRef( pMeshData->MaterialRef_ );
+		auto Resource = getPackage()->getCrossRefResource( pMeshData->MaterialRef_ );
 		MeshRuntime.MaterialRef_ = Resource;
 		BcAssertMsg( MeshRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
 
@@ -295,7 +295,7 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 void ScnModelComponent::initialise( const Json::Value& Object )
 {
 	ScnModelRef ModelRef;
-	ModelRef = getPackage()->getPackageCrossRef( Object[ "model" ].asUInt() );
+	ModelRef = getPackage()->getCrossRefResource( Object[ "model" ].asUInt() );
 	initialise( Object, ModelRef );
 
 	// Setup additional stuff.

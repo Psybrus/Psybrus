@@ -59,7 +59,7 @@ void ScnFont::initialise()
 void ScnFont::create()
 {
 	// Request texture.
-	Texture_ = ScnTextureRef( getPackage()->getPackageCrossRef( pHeader_->TextureRef_ ) );
+	Texture_ = ScnTextureRef( getPackage()->getCrossRefResource( pHeader_->TextureRef_ ) );
 
 	// Create a char code map.
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
@@ -165,8 +165,8 @@ void ScnFontComponent::initialise( const Json::Value& Object )
 {
 	ScnFontRef FontRef;
 	ScnMaterialRef MaterialRef;
-	FontRef = getPackage()->getPackageCrossRef( Object[ "font" ].asUInt() );
-	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	FontRef = getPackage()->getCrossRefResource( Object[ "font" ].asUInt() );
+	MaterialRef = getPackage()->getCrossRefResource( Object[ "material" ].asUInt() );
 	initialise( FontRef, MaterialRef );
 }
 

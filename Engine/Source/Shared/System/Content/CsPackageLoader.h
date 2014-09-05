@@ -38,7 +38,8 @@ public:
 	BcBool							isDataReady() const;
 	const BcChar*					getSourceFile() const;
 	const BcChar*					getString( BcU32 Offset ) const;
-	void							getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName, BcBool& IsWeak ) const;
+	CsPackage*						getCrossRefPackage( BcU32 Index );
+	CsResource*						getCrossRefResource( BcU32 Index );
 	BcU32							getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx );
 	BcU32							getNoofChunks( BcU32 ResourceIdx );
 	BcBool							requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx, void* pDataLocation = NULL );
@@ -80,8 +81,6 @@ private:
 	BcBool							IsDataLoaded_;
 	BcBool							IsDataReady_;
 	std::atomic< BcU32 >			PendingCallbackCount_;
-	
-	std::vector< ReObjectRef< CsResource > >	Resources_;
 	std::vector< CsPackage* >		PackageDependencies_;
 };
 
