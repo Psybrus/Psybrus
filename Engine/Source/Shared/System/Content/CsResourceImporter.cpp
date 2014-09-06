@@ -15,6 +15,8 @@
 #include "System/Content/CsPackageImporter.h"
 #include "System/Content/CsCore.h"
 
+#include <boost/uuid/sha1.hpp>
+
 #include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,9 +43,18 @@ void CsResourceImporterAttribute::StaticRegisterClass()
 	ReRegisterClass< CsResourceImporterAttribute, Super >( Fields );
 }
 
+CsResourceImporterAttribute::CsResourceImporterAttribute():
+	ImporterClass_( nullptr ),
+	VersionId_( 0 )
+{
+
+}
+
 CsResourceImporterAttribute::CsResourceImporterAttribute( 
-	const ReClass* ImporterClass ):
-	ImporterClass_( ImporterClass )
+		const ReClass* ImporterClass,
+		BcU32 VersionId ):
+	ImporterClass_( ImporterClass ),
+	VersionId_( VersionId )
 {
 
 }
@@ -51,6 +62,11 @@ CsResourceImporterAttribute::CsResourceImporterAttribute(
 CsResourceImporterUPtr CsResourceImporterAttribute::getImporter() const
 {
 	return CsResourceImporterUPtr( ImporterClass_->create< CsResourceImporter >() );
+}
+
+BcU32 CsResourceImporterAttribute::getVersionId() const
+{
+	return VersionId_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,6 +200,8 @@ BcU32 CsResourceImporter::addChunk(
 	BcU32 Flags )
 {
 	BcAssert( Importer_ != nullptr );
+
+	// Add to importer.
 	return Importer_->addChunk(
 		ID,
 		pData,

@@ -40,7 +40,8 @@ void ScnFont::StaticRegisterClass()
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnFontImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnFontImport::StaticGetClass(), 0 ) );
 #endif
 }
 
@@ -143,20 +144,34 @@ void ScnFontComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
+void ScnFontComponent::initialise()
 {
 	Super::initialise();
 
-	Parent_ = Parent; 
-	Material_ = Material;
+	Parent_ = nullptr;
+	Material_ = nullptr;
 	MaterialComponent_ = nullptr;
 	ClippingEnabled_ = BcFalse;
 
 	// Null uniform buffer.
 	UniformBuffer_ = nullptr;
 
+	// Setup default alpha test params.
+	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( 0.4f, 0.5f, 0.5f, 0.0f );
+
 	// Disable clipping.
 	setClipping( BcFalse );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
+{
+	initialise();
+
+	Parent_ = Parent; 
+	Material_ = Material;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -452,7 +467,7 @@ void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
 
-	MaterialComponent_ = NULL;
+	MaterialComponent_ = nullptr;
 	
 	RsCore::pImpl()->destroyResource( UniformBuffer_ );
 

@@ -68,6 +68,7 @@ class ScnModelComponent:
 public:
 	DECLARE_RESOURCE( ScnModelComponent, ScnRenderableComponent );
 
+	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
@@ -93,7 +94,7 @@ public:
 	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
-	ScnModel*							Parent_;
+	ScnModelRef							Parent_;
 	ScnModelNodeTransformData*			pNodeTransformData_;
 	BcU32								Layer_;
 	BcU32								Pass_;

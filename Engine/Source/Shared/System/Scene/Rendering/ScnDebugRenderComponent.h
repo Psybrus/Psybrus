@@ -172,8 +172,8 @@ protected:
 	SysFence							UploadFence_;
 	
 	// Materials.
-	ScnMaterial*						Material_;
-	ScnMaterialComponent*				MaterialComponent_;
+	ScnMaterialRef						Material_;
+	ScnMaterialComponentRef				MaterialComponent_;
 
 	typedef std::vector< ScnDebugRenderComponentPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;

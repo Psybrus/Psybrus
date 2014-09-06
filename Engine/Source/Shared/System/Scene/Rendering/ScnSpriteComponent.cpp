@@ -106,5 +106,5 @@ void ScnSpriteComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
 
-	Canvas_ = NULL;
+	Canvas_ = nullptr;
 }

@@ -48,7 +48,8 @@ void ScnModel::StaticRegisterClass()
 		auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnModelImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnModelImport::StaticGetClass(), 0 ) );
 #endif
 	}
 }
@@ -142,7 +143,7 @@ void ScnModel::create()
 			pVertexDeclaration,
 			pVertexBuffer,
 			pIndexBuffer,
-			NULL
+			nullptr
 		};
 		
 		// Get resource.
@@ -175,7 +176,7 @@ void ScnModel::destroy()
 		RsCore::pImpl()->destroyResource( MeshRuntime.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( MeshRuntime.pIndexBuffer_ );
 		
-		MeshRuntime.MaterialRef_ = NULL;
+		MeshRuntime.MaterialRef_ = nullptr;
 	}
 
 	MeshRuntimes_.clear();
@@ -278,6 +279,15 @@ void ScnModelComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
+//virtual 
+void ScnModelComponent::initialise()
+{
+	Layer_ = 0;
+	Pass_ = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
 //virtual
 void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Parent )
 {
@@ -286,7 +296,7 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 	// Cache parent.
 	Parent_ = Parent;
 	Layer_ = 0;
-	
+	Pass_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -389,7 +399,7 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
 		return PerComponentMeshDataList_[ Index ].MaterialComponentRef_;
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -406,7 +416,7 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& M
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -677,7 +687,7 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	{
 		auto& PerComponentMeshData( PerComponentMeshDataList_[ Idx ] );
 		Parent->detach( PerComponentMeshData.MaterialComponentRef_ );
-		PerComponentMeshData.MaterialComponentRef_ = NULL;
+		PerComponentMeshData.MaterialComponentRef_ = nullptr;
 	}
 
 	// Destroy resources.
@@ -688,7 +698,7 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	
 	// Delete duplicated node data.
 	delete [] pNodeTransformData_;
-	pNodeTransformData_ = NULL;
+	pNodeTransformData_ = nullptr;
 
 	//
 	Super::onDetach( Parent );

@@ -568,7 +568,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	// Make the handle null, this method must return a failure correctly.
-	Handle = NULL;
+	Handle = nullptr;
 
 	// Look in create, loading, and loaded lists.
 	// Honestly, I don't like having multiple lists for everything as it makes this method a filthy

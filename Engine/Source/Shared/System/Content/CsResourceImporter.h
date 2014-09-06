@@ -40,13 +40,18 @@ class CsResourceImporterAttribute :
 public:
 	REFLECTION_DECLARE_DERIVED( CsResourceImporterAttribute, ReAttribute );
 
+	CsResourceImporterAttribute();
+
 	CsResourceImporterAttribute( 
-		const ReClass* ImporterClass = nullptr );
+		const ReClass* ImporterClass,
+		BcU32 VersionId );
 
 	CsResourceImporterUPtr getImporter() const;
+	BcU32 getVersionId() const;
 
 private:
 	const ReClass* ImporterClass_;
+	BcU32 VersionId_;
 };
 
 //////////////////////////////////////////////////////////////////////////

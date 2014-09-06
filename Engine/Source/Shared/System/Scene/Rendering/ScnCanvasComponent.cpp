@@ -144,13 +144,6 @@ MaAABB ScnCanvasComponent::getAABB() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getMaterialComponent
-ScnMaterialComponentRef ScnCanvasComponent::getMaterialComponent()
-{
-	return MaterialComponent_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setMaterialComponent
 void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialComponent )
 {
@@ -166,6 +159,13 @@ void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialC
 		BcU32 Parameter = MaterialComponent_->findTextureSlot( NameDiffuseTex );
 		DiffuseTexture_ = MaterialComponent_->getTexture( Parameter );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnCanvasComponent::getMaterialComponent()
+{
+	return MaterialComponent_;
 }
 
 //////////////////////////////////////////////////////////////////////////

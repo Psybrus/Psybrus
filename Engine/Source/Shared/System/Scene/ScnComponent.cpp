@@ -56,7 +56,8 @@ void ScnComponent::StaticRegisterClass()
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnComponentImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnComponentImport::StaticGetClass(), 0 ) );
 #endif
 }
 
@@ -170,7 +171,7 @@ void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 	clearFlag( scnCF_PENDING_DETACH );
 	clearFlag( scnCF_ATTACHED );
 
-	ParentEntity_ = NULL;
+	ParentEntity_ = nullptr;
 
 	markDestroy();
 }
