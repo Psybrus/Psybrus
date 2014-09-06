@@ -42,6 +42,13 @@ ScnEntityImport::ScnEntityImport()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntityImport::ScnEntityImport( ReNoInit )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 ScnEntityImport::~ScnEntityImport()
@@ -71,7 +78,7 @@ BcBool ScnEntityImport::import(
 			Component[ "name" ] = (*BcName( Component[ "type" ].asCString() ).getUnique());
 		}
 
-		BcU32 CrossRef = CsResourceImporter::addImport( Component, BcTrue );
+		BcU32 CrossRef = CsResourceImporter::addImport_DEPRECATED( Component, BcTrue );
 		Stream << CrossRef;
 	}	
 

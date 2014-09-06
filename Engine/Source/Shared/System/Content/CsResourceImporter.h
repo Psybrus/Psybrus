@@ -40,32 +40,40 @@ class CsResourceImporterAttribute :
 public:
 	REFLECTION_DECLARE_DERIVED( CsResourceImporterAttribute, ReAttribute );
 
+	CsResourceImporterAttribute();
+
 	CsResourceImporterAttribute( 
-		const ReClass* ImporterClass = nullptr );
+		const ReClass* ImporterClass,
+		BcU32 VersionId );
 
 	CsResourceImporterUPtr getImporter() const;
+	BcU32 getVersionId() const;
 
 private:
 	const ReClass* ImporterClass_;
+	BcU32 VersionId_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // CsResourceImporter
-class CsResourceImporter :
-	public ReObject
+class CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( CsResourceImporter, ReObject );
+	REFLECTION_DECLARE_BASE( CsResourceImporter );
 
 public:
 	CsResourceImporter();
+	CsResourceImporter(
+		const std::string& Name,
+		const std::string& Type );
 	virtual ~CsResourceImporter();
 
 	/**
 	 * Initialise.
 	 */
 	virtual void initialise( 
-		class CsPackageImporter* Importer );
+		class CsPackageImporter* Importer,
+		BcU32 ResourceId );
 
 	/**
 	 * Import resource.
@@ -73,14 +81,37 @@ public:
 	virtual BcBool import( 
 		const Json::Value& Object );
 
+	/**
+	 * Get resource name.
+	 */
+	std::string getResourceName() const;
+
+	/**
+	 * Get resource type.
+	 */
+	std::string getResourceType() const;
+
+	/**
+	 * Get resource id.
+	 */
+	BcU32 getResourceId() const;
+
 
 protected:
+	/**
+	 * DEPRECATED: Add import.
+	 * Used to add a subresource if we define a new one.
+	 */
+	BcU32 addImport_DEPRECATED( 
+		const Json::Value& Resource, 
+		BcBool IsCrossRef = BcTrue );
+	
 	/**
 	 * Add import.
 	 * Used to add a subresource if we define a new one.
 	 */
 	BcU32 addImport( 
-		const Json::Value& Resource, 
+		CsResourceImporterUPtr Importer, 
 		BcBool IsCrossRef = BcTrue );
 
 	/**
@@ -122,7 +153,7 @@ protected:
 
 private:
 	class CsPackageImporter* Importer_;
-
+	BcU32 ResourceId_;
 };
 
 #endif // __CSRESOURCEIMPORTER_H__

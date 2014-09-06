@@ -62,6 +62,7 @@ public:
 
 	static ScnDebugRenderComponent*		pImpl();
 	
+	virtual void						initialise();
 	virtual void						initialise( BcU32 NoofVertices );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
@@ -171,8 +172,8 @@ protected:
 	SysFence							UploadFence_;
 	
 	// Materials.
-	ScnMaterial*						Material_;
-	ScnMaterialComponent*				MaterialComponent_;
+	ScnMaterialRef						Material_;
+	ScnMaterialComponentRef				MaterialComponent_;
 
 	typedef std::vector< ScnDebugRenderComponentPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;

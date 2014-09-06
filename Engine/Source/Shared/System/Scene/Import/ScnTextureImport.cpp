@@ -36,7 +36,7 @@ void ScnTextureImport::StaticRegisterClass()
 		new ReField( "AlphaFromIntensity_", &ScnTextureImport::AlphaFromIntensity_, bcRFF_IMPORTER ),
 		new ReField( "DistanceField_", &ScnTextureImport::DistanceField_, bcRFF_IMPORTER ),
 		new ReField( "Spread_", &ScnTextureImport::Spread_, bcRFF_IMPORTER ),
-		new ReField( "Type_", &ScnTextureImport::Type_, bcRFF_IMPORTER ),
+		new ReField( "TextureType_", &ScnTextureImport::TextureType_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnTextureImport::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnTextureImport::Height_, bcRFF_IMPORTER ),
 		new ReField( "Depth_", &ScnTextureImport::Depth_, bcRFF_IMPORTER ),
@@ -50,18 +50,58 @@ void ScnTextureImport::StaticRegisterClass()
 // Ctor
 ScnTextureImport::ScnTextureImport():
 	Source_(),
-	Format_( RsTextureFormat::R8G8B8A8 ),
+	Format_( RsTextureFormat::INVALID ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
 	Spread_( 0 ),
-	Type_( RsTextureType::UNKNOWN ),
+	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
 	Depth_( 0 ),
 	Levels_( 1 )
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnTextureImport::ScnTextureImport( ReNoInit ):
+	Source_(),
+	Format_( RsTextureFormat::INVALID ),
+	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
+	AlphaFromIntensity_( BcFalse ),
+	DistanceField_( BcFalse ),
+	Spread_( 0 ),
+	TextureType_( RsTextureType::UNKNOWN ),
+	Width_( 0 ),
+	Height_( 0 ),
+	Depth_( 0 ),
+	Levels_( 1 )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+ScnTextureImport::ScnTextureImport( 
+		const std::string Name,
+		const std::string Type,
+		const std::string Source,
+	RsTextureFormat Format ):
+	CsResourceImporter( Name, Type ),
+	Format_( Format ),
+	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
+	AlphaFromIntensity_( BcFalse ),
+	DistanceField_( BcFalse ),
+	Spread_( 0 ),
+	TextureType_( RsTextureType::UNKNOWN ),
+	Width_( 0 ),
+	Height_( 0 ),
+	Depth_( 0 ),
+	Levels_( 1 )
+{
+	Source_.push_back( Source );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,36 +306,39 @@ BcBool ScnTextureImport::import(
 			BcU8* pEncodedImageData = NULL;
 			BcU32 EncodedImageDataSize = 0;
 
-			// TODO: Take from parameters.
-			ImgEncodeFormat EncodeFormat = imgEF_RGBA8;
-			RsTextureFormat TextureFormat = RsTextureFormat::R8G8B8A8;
-			RsTextureType TextureType = MipImages[ 0 ]->height() == 0 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
-		
-			// Use tex compression unless in debug.
-	#if !PSY_DEBUG
-			if( TextureType == RsTextureType::TEX2D )
+			// Check if type is unknown.
+			if( TextureType_ == RsTextureType::UNKNOWN )
 			{
-				if( Format.type() == Json::nullValue &&
-					pTopLevelImage->width() % 4 == 0 && 
-					pTopLevelImage->height() % 4 == 0 )
-				{
-					if( pImage->hasAlpha( 8 ) == BcFalse )
-					{
-						EncodeFormat = imgEF_DXT1;
-						TextureFormat = RsTextureFormat::DXT1;
-					}
-					else
-					{
-						EncodeFormat = imgEF_DXT5;
-						TextureFormat = RsTextureFormat::DXT5;
-					}
-				}
-				else
-				{
-					// HACK.
-				}
+				TextureType_ = MipImages[ 0 ]->height() == 1 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
 			}
+
+			// Automatically determine the best format if we specify unknown.
+			if( Format_ == RsTextureFormat::INVALID )
+			{
+				// Default to a catch all which is 32 bit RGBA.
+				Format_ = RsTextureFormat::R8G8B8A8;
+
+				// In a non-debug build, check if we should
+				// use texture compression (to speed up build times).
+	#if !PSY_DEBUG
+				if( TextureType_ == RsTextureType::TEX2D )
+				{
+					if( MipImages[ 0 ]->width() % 4 == 0 && 
+						MipImages[ 0 ]->height() % 4 == 0 )
+					{
+						if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
+						{
+							Format_ = RsTextureFormat::DXT1;
+						}
+						else
+						{
+							Format_ = RsTextureFormat::DXT5;
+						}
+					}
+				}
 	#endif
+			}
+			ImgEncodeFormat EncodeFormat = (ImgEncodeFormat)Format_;
 			// Streams.
 			BcStream HeaderStream;
 			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
@@ -307,10 +350,11 @@ BcBool ScnTextureImport::import(
 				MipImages[ 0 ]->height(), 
 				0,
 				(BcU32)MipImages.size(), 
-				TextureType, 
-				TextureFormat, 
+				TextureType_, 
+				Format_, 
 				BcFalse 
-			};	// TODO: Take type from file.
+			};
+
 			HeaderStream << Header;
 
 			// Write all mip images into the same body for now.
@@ -351,7 +395,7 @@ BcBool ScnTextureImport::import(
 		ScnTextureHeader Header = 
 		{ 
 			Width_, Height_, Depth_, Levels_,
-			Type_, RsTextureFormat::R8G8B8A8, BcTrue 
+			TextureType_, Format_, BcTrue 
 		};
 		BcStream HeaderStream;
 		HeaderStream << Header;

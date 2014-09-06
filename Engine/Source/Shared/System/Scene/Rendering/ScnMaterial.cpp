@@ -29,17 +29,18 @@ void ScnMaterial::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_", &ScnMaterial::pHeader_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pHeader_", &ScnMaterial::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "Shader_", &ScnMaterial::Shader_ ),
 		new ReField( "TextureMap_", &ScnMaterial::TextureMap_ ),
-		new ReField( "pStateBuffer_", &ScnMaterial::pStateBuffer_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pStateBuffer_", &ScnMaterial::pStateBuffer_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnMaterial, Super >( Fields );
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnMaterialImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnMaterialImport::StaticGetClass(), 0 ) );
 #endif
 }
 
@@ -60,11 +61,11 @@ void ScnMaterial::create()
 	ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
 		
 	// Get resources.
-	Shader_ = getPackage()->getPackageCrossRef( pHeader_->ShaderRef_ );
+	Shader_ = getPackage()->getCrossRefResource( pHeader_->ShaderRef_ );
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 	{
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-		TextureMap_[ pTextureHeader->SamplerName_ ] = getPackage()->getPackageCrossRef( pTextureHeader->TextureRef_ );
+		TextureMap_[ pTextureHeader->SamplerName_ ] = getPackage()->getCrossRefResource( pTextureHeader->TextureRef_ );
 	}
 	
 	// Mark as ready.
@@ -215,7 +216,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 // initialise
 void ScnMaterialComponent::initialise( const Json::Value& Object )
 {
-	ScnMaterialRef MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	ScnMaterialRef MaterialRef = getPackage()->getCrossRefResource( Object[ "material" ].asUInt() );
 	ScnShaderPermutationFlags PermutationFlags = ScnShaderPermutationFlags::NONE;
 	const BcChar* pPermutation = Object[ "permutation" ].asCString();
 

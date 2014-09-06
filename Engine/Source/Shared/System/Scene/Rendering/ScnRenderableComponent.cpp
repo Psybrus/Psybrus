@@ -27,7 +27,7 @@ void ScnRenderableComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "RenderMask_",		&ScnRenderableComponent::RenderMask_ ),
+		new ReField( "RenderMask_", &ScnRenderableComponent::RenderMask_ ),
 	};
 		
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )

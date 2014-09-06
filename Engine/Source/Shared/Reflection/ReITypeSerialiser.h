@@ -30,6 +30,21 @@ public:
 	virtual void destruct( void* ) const = 0;
 
 	/**
+		* @brief Create.
+		*/
+	virtual void* create() const = 0;
+
+	/**
+		* @brief Create no init
+		*/
+	virtual void* createNoInit() const = 0;
+
+	/**
+		* @brief Destroy.
+		*/
+	virtual void destroy( void* ) const = 0;
+
+	/**
 		* @brief Get binary data size.
 		* @param pInstance Object instance.
 		*/

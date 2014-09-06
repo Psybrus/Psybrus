@@ -23,10 +23,11 @@ class ScnAnimationTreeNode:
 	public ReObject
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnAnimationTreeNode, ReObject );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnAnimationTreeNode, ReObject );
 
 public:
 	ScnAnimationTreeNode();
+	ScnAnimationTreeNode( ReNoInit );
 	virtual ~ScnAnimationTreeNode();
 	
 public:

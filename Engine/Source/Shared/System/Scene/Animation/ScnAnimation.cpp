@@ -35,7 +35,8 @@ void ScnAnimation::StaticRegisterClass()
 	
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnAnimationImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnAnimationImport::StaticGetClass(), 0 ) );
 #endif
 }
 

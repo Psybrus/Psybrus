@@ -125,10 +125,11 @@ class ScnShaderImport:
 	public CsResourceImporter
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnShaderImport, CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnShaderImport, CsResourceImporter );
 
 public:
 	ScnShaderImport();
+	ScnShaderImport( ReNoInit );
 	virtual ~ScnShaderImport();
 
 	/**

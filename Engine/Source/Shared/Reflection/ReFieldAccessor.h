@@ -127,7 +127,8 @@ public:
 		const ReClass* UpcastFieldType = FieldClass;
         if( FieldClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			UpcastFieldType = getData() != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
+			void* Data = getData();
+			UpcastFieldType = Data != nullptr ? reinterpret_cast< ReObject* >( getData() )->getClass() : FieldClass;
 		}
 		return UpcastFieldType;
 	}
