@@ -7,3 +7,6 @@
 [submodule "External/enet"]
 	path = External/enet
 	url = https://github.com/neilogd/enet.git
+[submodule "External/openssl"]
+	path = External/openssl
+	url = https://github.com/openssl/openssl
