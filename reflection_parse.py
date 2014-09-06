@@ -66,7 +66,7 @@ if len( sys.argv ) < 2:
 	print "python reflection_parse.py GameName "
 	exit(1)
 
-gameName = "DevelopmentGame"
+gameName = sys.argv[1]
 gameSourcePath = "../" + gameName + "/Source"
 outputFileName = getPathFromRoot( gameSourcePath ) + "/AutoGenRegisterReflection.cpp"
 searchPaths.append ( "../" + gameName + "/Source" )

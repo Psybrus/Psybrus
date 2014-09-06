@@ -131,20 +131,72 @@ const BcChar* CsPackageLoader::getString( BcU32 Offset ) const
 		return &pStringTable_[ Offset ];
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getPackageCrossRef
-void CsPackageLoader::getPackageCrossRef( BcU32 Index, BcName& PackageName, BcName& ResourceName, BcName& TypeName, BcBool& IsWeak ) const
+// getCrossRefResource
+CsResource* CsPackageLoader::getCrossRefResource( BcU32 Index )
 {
 	BcAssertMsg( Index < Header_.TotalPackageCrossRefs_, "CsPackageLoader: Invalid package cross ref index." );
 	const CsPackageCrossRefData& PackageCrossRef( pPackageCrossRefs_[ Index ] );
+	
+	// If it's an ID, we just need to check the resource name vs resource index.
+	if( PackageCrossRef.IsID_ )
+	{
+		return pPackage_->getResource( PackageCrossRef.ResourceName_ );
+	}
+	else
+	{
+		ReObjectRef< CsResource > Resource;
+		CsPackage* pPackage = nullptr;
+		BcName PackageName = getString( PackageCrossRef.PackageName_ );
+		BcName ResourceName = getString( PackageCrossRef.ResourceName_ );
+		BcName TypeName = getString( PackageCrossRef.TypeName_ );
 
-	PackageName = getString( PackageCrossRef.PackageName_ );
-	ResourceName = getString( PackageCrossRef.ResourceName_ );
-	TypeName = getString( PackageCrossRef.TypeName_ );
-	IsWeak = PackageCrossRef.IsWeak_;
+		if( PackageCrossRef.IsWeak_ )
+		{
+			// Try find package, and check it's ready
+			pPackage = CsCore::pImpl()->findPackage( PackageName );
+
+			// If it's not ready or not loaded, return a nullptr resource. Up to the user to handle.
+			if( pPackage == nullptr ||
+				pPackage->isReady() == BcFalse )
+			{
+				return nullptr;
+			}
+		}
+		else
+		{
+			// Request package, and check it's ready
+			pPackage = CsCore::pImpl()->requestPackage( PackageName );
+			BcAssertMsg( pPackage->isLoaded(), "CsPackageLoader: Package \"%s\" is not loaded, \"%s\" needs it loaded.", 
+				(*PackageName).c_str(), (*pPackage_->getName()).c_str() );
+		}
+
+		// Find the resource.
+		CsCore::pImpl()->internalFindResource( PackageName, ResourceName, ReManager::GetClass( *TypeName ), Resource );
+
+		// If there is no valid resource at this point, then we must fail.
+		BcAssertMsg( Resource.isValid(), "CsPackageLoader: Cross ref isn't valid!" );
+			
+		// Return resource.
+		return Resource;
+	}
+
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCrossRefPackage
+CsPackage* CsPackageLoader::getCrossRefPackage( BcU32 Index )
+{
+	BcAssertMsg( Index < Header_.TotalPackageCrossRefs_, "CsPackageLoader: Invalid package cross ref index." );
+	const CsPackageCrossRefData& PackageCrossRef( pPackageCrossRefs_[ Index ] );
+	BcName PackageName = getString( PackageCrossRef.PackageName_ );
+
+	// Request package, return it.
+	return CsCore::pImpl()->requestPackage( PackageName );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -243,7 +295,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	{
 		CsPackageDependencies Dependencies;
 
-		CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
 		SeJsonReader Reader( &ObjectCodec );
 		Reader.load( OutputDependencies.c_str() );
 		Reader << Dependencies;

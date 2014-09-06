@@ -784,24 +784,18 @@ BcBool ImgImage::encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSi
 
 	switch( Format )
 	{
-	case imgEF_RGB8:
+	case ImgEncodeFormat::R8G8B8:
 		return encodeAsRGB8( pOutData, OutSize );
 
-	case imgEF_RGBA8:
+	case ImgEncodeFormat::R8G8B8A8:
 		return encodeAsRGBA8( pOutData, OutSize );
 
-	case imgEF_BGR8:
-		return encodeAsBGR8( pOutData, OutSize );
-
-	case imgEF_ABGR8:
-		return encodeAsABGR8( pOutData, OutSize );
-
-	case imgEF_I8:
+	case ImgEncodeFormat::R8:
 		return encodeAsI8( pOutData, OutSize );
 
-	case imgEF_DXT1:
-	case imgEF_DXT3:
-	case imgEF_DXT5:
+	case ImgEncodeFormat::DXT1:
+	case ImgEncodeFormat::DXT3:
+	case ImgEncodeFormat::DXT5:
 		return encodeAsDXT( Format, pOutData, OutSize );
 		
 	default:
@@ -1045,9 +1039,9 @@ BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
 // encodeAsDXT
 BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
 {
-	if( Format == imgEF_DXT1 ||
-		Format == imgEF_DXT3 ||
-		Format == imgEF_DXT5 )
+	if( Format == ImgEncodeFormat::DXT1 ||
+		Format == ImgEncodeFormat::DXT3 ||
+		Format == ImgEncodeFormat::DXT5 )
 	{
 		// Check if its a power of two too.
 		if( BcPot( Width_ ) && BcPot( Height_ ) && Width_ >= 4 && Height_ >= 4 )
@@ -1056,13 +1050,13 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 
 			switch( Format )
 			{
-			case imgEF_DXT1:
+			case ImgEncodeFormat::DXT1:
 				SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
 				break;
-			case imgEF_DXT3:
+			case ImgEncodeFormat::DXT3:
 				SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
 				break;
-			case imgEF_DXT5:
+			case ImgEncodeFormat::DXT5:
 				SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
 				break;
 			}

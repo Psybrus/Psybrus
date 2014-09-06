@@ -15,6 +15,8 @@
 #include "System/Content/CsPackageImporter.h"
 #include "System/Content/CsCore.h"
 
+#include <boost/uuid/sha1.hpp>
+
 #include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -23,8 +25,7 @@ void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer 
 {
 	if( Importer != nullptr )
 	{
-		Importer->getClass()->destruct( Importer );
-		BcMemFree( Importer );
+		delete Importer;
 	}
 }
 
@@ -42,21 +43,35 @@ void CsResourceImporterAttribute::StaticRegisterClass()
 	ReRegisterClass< CsResourceImporterAttribute, Super >( Fields );
 }
 
+CsResourceImporterAttribute::CsResourceImporterAttribute():
+	ImporterClass_( nullptr ),
+	VersionId_( 0 )
+{
+
+}
+
 CsResourceImporterAttribute::CsResourceImporterAttribute( 
-	const ReClass* ImporterClass ):
-	ImporterClass_( ImporterClass )
+		const ReClass* ImporterClass,
+		BcU32 VersionId ):
+	ImporterClass_( ImporterClass ),
+	VersionId_( VersionId )
 {
 
 }
 
 CsResourceImporterUPtr CsResourceImporterAttribute::getImporter() const
 {
-	return CsResourceImporterUPtr( ImporterClass_->construct< CsResourceImporter >() );
+	return CsResourceImporterUPtr( ImporterClass_->create< CsResourceImporter >() );
+}
+
+BcU32 CsResourceImporterAttribute::getVersionId() const
+{
+	return VersionId_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
-REFLECTION_DEFINE_DERIVED( CsResourceImporter );
+REFLECTION_DEFINE_BASE( CsResourceImporter );
 
 void CsResourceImporter::StaticRegisterClass()
 {
@@ -66,14 +81,25 @@ void CsResourceImporter::StaticRegisterClass()
 		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
 		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
 	};
-		
-	ReRegisterClass< CsResourceImporter, Super >( Fields );
+	
+	ReRegisterClass< CsResourceImporter >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsResourceImporter::CsResourceImporter():
 	Importer_( nullptr )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsResourceImporter::CsResourceImporter(
+		const std::string& Name,
+		const std::string& Type ):
+	Name_( Name ),
+	Type_( Type )
 {
 
 }
@@ -89,9 +115,11 @@ CsResourceImporter::~CsResourceImporter()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void CsResourceImporter::initialise( 
-	class CsPackageImporter* Importer )
+	class CsPackageImporter* Importer,
+	BcU32 ResourceId )
 {
 	Importer_ = Importer;
+	ResourceId_ = ResourceId;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,13 +133,43 @@ BcBool CsResourceImporter::import(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addImport
-BcU32 CsResourceImporter::addImport( 
+// getResourceName
+std::string CsResourceImporter::getResourceName() const
+{
+	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResourceType
+std::string CsResourceImporter::getResourceType() const
+{
+	return Type_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getResourceId
+BcU32 CsResourceImporter::getResourceId() const
+{
+	return ResourceId_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addImport_DEPRECATED
+BcU32 CsResourceImporter::addImport_DEPRECATED( 
 	const Json::Value& Resource, 
 	BcBool IsCrossRef )
 {
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addImport( Resource, IsCrossRef );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addImport
+BcU32 CsResourceImporter::addImport( 
+	CsResourceImporterUPtr Importer, 
+	BcBool IsCrossRef )
+{
+	return Importer_->addImport( std::move( Importer ), Json::nullValue, IsCrossRef );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -142,6 +200,8 @@ BcU32 CsResourceImporter::addChunk(
 	BcU32 Flags )
 {
 	BcAssert( Importer_ != nullptr );
+
+	// Add to importer.
 	return Importer_->addChunk(
 		ID,
 		pData,

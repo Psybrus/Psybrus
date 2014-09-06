@@ -185,7 +185,7 @@ public:
 protected:
 	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
-	typedef std::vector< ReObjectRef< CsResource > > TResourceHandleList;
+	typedef std::vector< CsResource* > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
 
 	struct TPackageReadyCallback

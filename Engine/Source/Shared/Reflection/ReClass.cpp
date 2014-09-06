@@ -86,3 +86,49 @@ BcU32 ReClass::getNoofFields() const
 {
 	return Fields_.size();
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getFields
+const ReFieldVector& ReClass::getFields() const
+{
+	return Fields_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// validate
+BcBool ReClass::validate() const
+{
+	BcBool RetVal = BcTrue;
+	const ReClass* OtherClass = Super_;
+	while( OtherClass != nullptr )
+	{
+		const auto& FieldsB = OtherClass->getFields();
+
+		for( const auto& FieldA : Fields_ )
+		{
+			for( const auto& FieldB : FieldsB )
+			{
+				if( FieldA->getName() == FieldB->getName() )
+				{
+					BcPrintf( "ERROR: ReClass \"%s\" has field \"%s\" in its super \"%s\"\n",
+						(*getName()).c_str(), 
+						(*FieldA->getName()).c_str(),
+						(*OtherClass->getName()).c_str() );
+					RetVal = BcFalse;
+				}
+			}
+		}
+
+		OtherClass = OtherClass->getSuper();
+	}
+
+	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ReClass::destroy( void* pData ) const
+{
+	BcAssert( Serialiser_ );
+	Serialiser_->destroy( pData );
+}

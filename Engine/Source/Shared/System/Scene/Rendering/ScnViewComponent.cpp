@@ -148,7 +148,7 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 	const Json::Value& RenderTargetValue = Object[ "rendertarget" ];
 	if( RenderTargetValue.type() != Json::nullValue )
 	{
-		RenderTarget_ = getPackage()->getPackageCrossRef( RenderTargetValue.asUInt() );
+		RenderTarget_ = getPackage()->getCrossRefResource( RenderTargetValue.asUInt() );
 	}
 }
 

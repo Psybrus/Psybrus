@@ -30,9 +30,11 @@ class ScnAnimationComponent:
 public:
 	DECLARE_RESOURCE( ScnAnimationComponent, ScnComponent );
 	
+	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object );
 	void								initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object );
 
+	virtual void						destroy();
 	virtual void						preUpdate( BcF32 Tick );
 	virtual void						update( BcF32 Tick );
 	virtual void						postUpdate( BcF32 Tick );
@@ -57,7 +59,7 @@ private:
 
 private:
 	BcName TargetComponentName_;
-	ScnModelComponent* Model_;
+	ScnModelComponentRef Model_;
 
 	ScnAnimationTreeNode* pRootTreeNode_;
 	ScnAnimationPose* pReferencePose_;

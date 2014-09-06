@@ -63,7 +63,10 @@ class ScnParticleSystemComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnParticleSystemComponent, ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnParticleSystemComponent, ScnRenderableComponent );
+
+	ScnParticleSystemComponent();
+	virtual ~ScnParticleSystemComponent();
 
 public:
 	virtual void						initialise( const Json::Value& Object );
@@ -104,8 +107,8 @@ private:
 	BcU32 PotentialFreeParticle_;
 	
 	// 
-	ScnMaterial* Material_;
-	ScnMaterialComponent* MaterialComponent_;
+	ScnMaterialRef Material_;
+	ScnMaterialComponentRef MaterialComponent_;
 	BcU32 WorldTransformParam_;
 
 	//

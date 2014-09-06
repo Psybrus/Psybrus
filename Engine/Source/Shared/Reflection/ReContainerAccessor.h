@@ -3,6 +3,8 @@
 
 #include "Reflection/ReManager.h"
 
+#include <memory>
+
 //////////////////////////////////////////////////////////////////////////
 // ContainerAccessor
 class ReContainerAccessor
@@ -31,6 +33,10 @@ public:
 		virtual void next() = 0;
 		virtual bool isValid() const = 0;
 	};
+
+	typedef std::unique_ptr< WriteIterator > WriteIteratorUPtr;
+	typedef std::unique_ptr< ReadIterator > ReadIteratorUPtr;
+
 public:
     ReContainerAccessor()
 	{

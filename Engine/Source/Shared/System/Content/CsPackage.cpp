@@ -238,58 +238,17 @@ CsResource* CsPackage::getResource( BcU32 ResourceIdx )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// loadPackageCrossRef
-CsPackage* CsPackage::loadPackageCrossRef( BcU32 ID )
+// getCrossRefPackage
+CsPackage* CsPackage::getCrossRefPackage( BcU32 ID )
 {
-	BcName PackageName;
-	BcName ResourceName;
-	BcName TypeName;
-	BcBool IsWeak;
-	pLoader_->getPackageCrossRef( ID, PackageName, ResourceName, TypeName, IsWeak );
-	return CsCore::pImpl()->requestPackage( PackageName );
+	return pLoader_->getCrossRefPackage( ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getPackageCrossRef
-CsResource* CsPackage::getPackageCrossRef( BcU32 ID )
+// getCrossRefResource
+CsResource* CsPackage::getCrossRefResource( BcU32 ID )
 {
-	ReObjectRef< CsResource > Resource;
-	CsPackage* pPackage = NULL;
-	BcName PackageName;
-	BcName ResourceName;
-	BcName TypeName;
-	BcBool IsWeak;
-	pLoader_->getPackageCrossRef( ID, PackageName, ResourceName, TypeName, IsWeak );
-
-	// If it's a weak reference, we only want to find...not request.
-	if( IsWeak )
-	{
-		// Request package, and check it's ready
-		pPackage = CsCore::pImpl()->findPackage( PackageName );
-
-		// If it's not ready or not loaded, return a NULL resource. Up to the user to handle.
-		if( pPackage == NULL ||
-			pPackage->isReady() == BcFalse )
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		// Request package, and check it's ready
-		pPackage = CsCore::pImpl()->requestPackage( PackageName );
-		BcAssertMsg( pPackage->isLoaded(), "CsPackage: Package \"%s\" is not loaded, \"%s\" needs it loaded.", (*PackageName).c_str(), (*getName()).c_str() );
-	}
-
-	// Find resource.
-	// NOTE: Should get from package for faster lookup.
-	CsCore::pImpl()->internalFindResource( PackageName, ResourceName, ReManager::GetClass( *TypeName ), Resource );
-
-	// If there is no valid resource at this point, then we must fail.
-	BcAssertMsg( Resource.isValid(), "CsPackage: Cross ref isn't valid!" );
-
-	//
-	return Resource;
+	return pLoader_->getCrossRefResource( ID );
 }
 
 //////////////////////////////////////////////////////////////////////////

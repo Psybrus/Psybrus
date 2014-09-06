@@ -24,17 +24,31 @@
 #include <memory>
 
 //////////////////////////////////////////////////////////////////////////
-// ImgEncodeFormat
-enum ImgEncodeFormat
+// ImgEncodeFormat - Must match RsTextureFormat 1:1.
+enum class ImgEncodeFormat
 {
-	imgEF_RGB8,
-	imgEF_RGBA8,
-	imgEF_BGR8,
-	imgEF_ABGR8,
-	imgEF_I8,
-	imgEF_DXT1,
-	imgEF_DXT3,
-	imgEF_DXT5
+	// Colour.
+	R8,
+	R8G8,
+	R8G8B8,
+	R8G8B8A8,
+	R16F,
+	R16FG16F,
+	R16FG16FB16F,
+	R16FG16FB16FA16F,
+	R32F,
+	R32FG32F,
+	R32FG32FB32F,
+	R32FG32FB32FA32F,
+	DXT1,
+	DXT3,
+	DXT5,
+
+	// Depth stencil.
+	D16,
+	D32,
+	D24S8,
+	D32F,
 };
 
 //////////////////////////////////////////////////////////////////////////

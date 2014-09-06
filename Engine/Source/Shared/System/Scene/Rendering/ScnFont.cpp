@@ -30,17 +30,18 @@ void ScnFont::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY ),
-		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY ),
+		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_ ),
 		new ReField( "Texture_", &ScnFont::Texture_, bcRFF_SHALLOW_COPY ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnFont, Super >( Fields );
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnFontImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnFontImport::StaticGetClass(), 0 ) );
 #endif
 }
 
@@ -59,7 +60,7 @@ void ScnFont::initialise()
 void ScnFont::create()
 {
 	// Request texture.
-	Texture_ = ScnTextureRef( getPackage()->getPackageCrossRef( pHeader_->TextureRef_ ) );
+	Texture_ = ScnTextureRef( getPackage()->getCrossRefResource( pHeader_->TextureRef_ ) );
 
 	// Create a char code map.
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofGlyphs_; ++Idx )
@@ -143,18 +144,34 @@ void ScnFontComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
+void ScnFontComponent::initialise()
 {
 	Super::initialise();
 
-	Parent_ = Parent; 
-	Material_ = Material;
+	Parent_ = nullptr;
+	Material_ = nullptr;
+	MaterialComponent_ = nullptr;
+	ClippingEnabled_ = BcFalse;
 
 	// Null uniform buffer.
 	UniformBuffer_ = nullptr;
 
+	// Setup default alpha test params.
+	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( 0.4f, 0.5f, 0.5f, 0.0f );
+
 	// Disable clipping.
 	setClipping( BcFalse );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
+{
+	initialise();
+
+	Parent_ = Parent; 
+	Material_ = Material;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,8 +180,8 @@ void ScnFontComponent::initialise( const Json::Value& Object )
 {
 	ScnFontRef FontRef;
 	ScnMaterialRef MaterialRef;
-	FontRef = getPackage()->getPackageCrossRef( Object[ "font" ].asUInt() );
-	MaterialRef = getPackage()->getPackageCrossRef( Object[ "material" ].asUInt() );
+	FontRef = getPackage()->getCrossRefResource( Object[ "font" ].asUInt() );
+	MaterialRef = getPackage()->getCrossRefResource( Object[ "material" ].asUInt() );
 	initialise( FontRef, MaterialRef );
 }
 
@@ -450,7 +467,7 @@ void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
 
-	MaterialComponent_ = NULL;
+	MaterialComponent_ = nullptr;
 	
 	RsCore::pImpl()->destroyResource( UniformBuffer_ );
 

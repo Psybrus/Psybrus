@@ -3,7 +3,6 @@
 
 #include "Reflection/ReType.h"
 #include "Reflection/ReField.h"
-
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,6 +64,16 @@ public:
 	BcU32							getNoofFields() const;
 
 	/**
+	 * Get fields
+	 */
+	const ReFieldVector&			getFields() const;
+
+	/**
+	 * Validate.
+	 */
+	BcBool							validate() const;
+
+	/**
 	 * Construct object.
 	 * @param pData Data to allocate into.
 	 */
@@ -90,31 +99,39 @@ public:
 	}
 
 	/**
-	 * Construct object.
-	 */
-	template< class _Ty >
-	_Ty*							construct() const
-	{
-		return construct< _Ty >( BcMemAlign( getSize() ) );
-	}
-
-	/**
-	 * Construct object with no init.
-	 */
-	template< class _Ty >
-	_Ty*							constructNoInit() const
-	{
-		return constructNoInit< _Ty >( BcMemAlign( getSize() ) );
-	}
-
-	/**
 	 * Destruct object.
 	 */
 	template< class _Ty >
 	void							destruct( _Ty* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		Serialiser_->destruct( pData );
 	}
+
+	/**
+	 * Create object.
+	 */
+	template< class _Ty >
+	_Ty*							create() const
+	{
+		BcAssert( Serialiser_ );
+		return reinterpret_cast< _Ty* >( Serialiser_->create() );
+	}
+
+	/**
+	 * Create object with no init.
+	 */
+	template< class _Ty >
+	_Ty*							createNoInit() const
+	{
+		BcAssert( Serialiser_ );
+		return reinterpret_cast< _Ty* >( Serialiser_->createNoInit() );
+	}
+
+	/**
+	 * Destroy object.
+	 */
+	void							destroy( void* pData ) const;
 
 protected:
     const ReClass* Super_;

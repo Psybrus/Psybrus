@@ -41,23 +41,50 @@ int ScnComponentAttribute::getUpdatePriority() const
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnComponent );
+REFLECTION_DEFINE_DERIVED( ScnComponent );
 
 void ScnComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Flags_", &ScnComponent::Flags_, bcRFF_TRANSIENT ),
+		new ReField( "ComponentFlags_", &ScnComponent::ComponentFlags_, bcRFF_TRANSIENT ),
 		new ReField( "ParentEntity_", &ScnComponent::ParentEntity_, bcRFF_SHALLOW_COPY ),
-		new ReField( "pJsonObject_", &ScnComponent::pJsonObject_, bcRFF_SHALLOW_COPY )
+		new ReField( "pJsonObject_", &ScnComponent::pJsonObject_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA )
 	};
 		
 	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnComponentImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnComponentImport::StaticGetClass(), 0 ) );
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnComponent::ScnComponent():
+	ComponentFlags_( 0 ),
+	ParentEntity_( nullptr ),
+	pJsonObject_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnComponent::ScnComponent( ReNoInit ):
+	ComponentFlags_( 0 ),
+	ParentEntity_( nullptr ),
+	pJsonObject_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnComponent::~ScnComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,10 +93,6 @@ void ScnComponent::StaticRegisterClass()
 void ScnComponent::initialise()
 {
 	Super::initialise();
-
-	Flags_ = 0;
-	ParentEntity_ = nullptr;
-	pJsonObject_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -148,7 +171,7 @@ void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 	clearFlag( scnCF_PENDING_DETACH );
 	clearFlag( scnCF_ATTACHED );
 
-	ParentEntity_ = NULL;
+	ParentEntity_ = nullptr;
 
 	markDestroy();
 }
@@ -157,21 +180,21 @@ void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 // setFlag
 void ScnComponent::setFlag( ScnComponentFlags Flag )
 {
-	Flags_ = Flags_ | Flag;
+	ComponentFlags_ = ComponentFlags_ | Flag;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // clearFlag
 void ScnComponent::clearFlag( ScnComponentFlags Flag )
 {
-	Flags_ = Flags_ & ~Flag;
+	ComponentFlags_ = ComponentFlags_ & ~Flag;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // isFlagSet
 BcBool ScnComponent::isFlagSet( ScnComponentFlags Flag ) const
 {
-	return ( Flags_ & Flag ) != 0;
+	return ( ComponentFlags_ & Flag ) != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

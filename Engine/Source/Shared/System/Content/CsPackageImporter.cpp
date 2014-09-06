@@ -31,11 +31,13 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
-BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+BcRegex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
 
 #if PSY_SERVER
 
@@ -120,42 +122,23 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 		// Add all package cross refs.
 		addAllPackageCrossRefs( Resources );
-		endImport();
 
-#if THREADED_IMPORTING
-		// Import resource.
-		BcTimer ResourceTimer;
-		ResourceTimer.mark();
+		// Set resource id to zero.
+		ResourceIds_.store( 0 );
 
 		// Import everything.
 		for( const auto& ResourceObject : Resources )
 		{
 			addImport( ResourceObject, BcFalse );
 		}
-
-		// Wait for fence.
-		BuildingFence_.wait();
-
-		// Check import error count for failures.
-		if( ImportErrorCount_ > 0 )
-		{
-			BcPrintf( "FAILED IMPORTING. Time: %.2f seconds.\n", ResourceTimer.time() );
-			BcBreakpoint;
-			return BcFalse;
-		}
-#else
-		// Add resources to import list.
-		for( BcU32 Idx = 0; Idx < Resources.size(); ++Idx )
-		{
-			JsonResources_.push_back( Resources[ Idx ] );
-		}
+		endImport();
 
 		// Iterate over all resources and import (import calls can append to the list)
-		while( JsonResources_.size() > 0 )
+		while( Resources_.size() > 0 )
 		{
 			// Grab first resource in the list.
-			Json::Value ResourceObject = *JsonResources_.begin();
-			JsonResources_.pop_front();
+			auto ResourceEntry = std::move( Resources_.front() );
+			Resources_.pop_front();
 			
 			// Import resource.
 			BcTimer ResourceTimer;
@@ -164,7 +147,9 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			{
 				beginImport();
 
-				if( importResource( ResourceObject ) )
+				if( importResource( 
+					std::move( ResourceEntry.Importer_ ), 
+					ResourceEntry.Resource_ ) )
 				{
 					BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
 				}
@@ -186,7 +171,6 @@ BcBool CsPackageImporter::import( const BcName& Name )
 				return BcFalse;
 			}
 		}
-#endif
 
 		// Save and return.
 		BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
@@ -198,7 +182,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
 			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
 			Writer.save( OutputDependencies.c_str() );
@@ -376,27 +360,26 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 
 //////////////////////////////////////////////////////////////////////////
 // importResource
-BcBool CsPackageImporter::importResource( const Json::Value& Resource )
+BcBool CsPackageImporter::importResource( 
+	CsResourceImporterUPtr Importer, 
+	const Json::Value& Resource )
 {
-	BcAssertMsg( Resource.type() == Json::objectValue, "CsPackageImporter: Can't import a value that isn't an object." );
-	Json::Value Name( Resource.get( "name", Json::Value( Json::nullValue ) ) );
-	Json::Value Type( Resource.get( "type", Json::Value( Json::nullValue ) ) );
-
 	// Catch name being missing.
-	if( Name.type() != Json::stringValue )
+	if( Importer->getResourceName().empty() )
 	{
 		BcPrintf( "- importResource: Name not specified for resource.\n" );
 		return BcFalse;
 	}
 
 	// Catch type being missing.
-	if( Name.type() != Json::stringValue )
+	if( Importer->getResourceType().empty() )
 	{
 		BcPrintf( "- importResource: Type not specified for resource.\n" );
 		return BcFalse;
 	}
 	
-	BcPrintf( " - importResource: Processing \"%s\" of type \"%s\"\n", Name.asCString(),  Type.asCString() );
+	BcPrintf( " - importResource: Processing \"%s\" of type \"%s\"\n", 
+		Importer->getResourceName().c_str(), Importer->getResourceType().c_str() );
 	
 	// Get resource index.
 	BcU32 ResourceIndex = ResourceHeaders_.size();
@@ -404,56 +387,25 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 	// Get first chunk used by resource.
 	BcU32 FirstChunk = ChunkHeaders_.size();
 
-	// Find class and attribute.
 	BcBool SuccessfulImport = BcFalse;
-	const ReClass* ResourceClass = ReManager::GetClass( Type.asCString() );
-	if( ResourceClass != nullptr )
+
+	// NOTE: Eventually we will be exception safe throught the import
+	//       pipeline, so shouldn't need these adhoc try/catch blocks.
+	try
 	{
-		CsResourceImporterAttribute* ResourceImporterAttr = nullptr;
-		do
-		{
-			ResourceImporterAttr =
-				ResourceClass->getAttribute< CsResourceImporterAttribute >();
-
-			// Check on a parent to see if there is a valid importer attached to it.
-			if( ResourceImporterAttr == nullptr )
-			{
-				ResourceClass = ResourceClass->getSuper();
-			}
-		}
-		while( ResourceImporterAttr == nullptr && ResourceClass != nullptr );
-
-		if( ResourceImporterAttr != nullptr )
-		{
-			CsResourceImporterUPtr ResourceImporter = ResourceImporterAttr->getImporter();
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr );
-			SeJsonReader Reader( &ObjectCodec, bcRFF_IMPORTER );
-			Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource );
-			try
-			{
-				ResourceImporter->initialise( this );
-				SuccessfulImport = ResourceImporter->import( Resource );
-			}
-			catch( CsImportException ImportException )
-			{
-				throw ImportException;
-			}
-		}
+		SuccessfulImport = Importer->import( Resource );
+	}
+	catch( CsImportException ImportException )
+	{
+		BcPrintf( "EXCEPTION: %s", ImportException.what() );
 	}
 	
-	// Fallback to old import.
-	// TODO: No more old import pipeline.
-	if( SuccessfulImport == BcFalse )
-	{
-		BcBreakpoint;
-	}
-
 	// Handle success.
 	if( SuccessfulImport )
 	{
 		// Setup current resource header.
-		CurrResourceHeader_.Name_ = addString( Name.asCString() );
-		CurrResourceHeader_.Type_ = addString( Type.asCString() );
+		CurrResourceHeader_.Name_ = addString( Importer->getResourceName().c_str() );
+		CurrResourceHeader_.Type_ = addString( Importer->getResourceType().c_str() );
 		CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
 		CurrResourceHeader_.FirstChunk_ = FirstChunk;
 		CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
@@ -472,37 +424,6 @@ BcBool CsPackageImporter::importResource( const Json::Value& Resource )
 BcName CsPackageImporter::getName() const
 {
 	return Name_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// importResource_worker
-BcBool CsPackageImporter::importResource_worker( Json::Value ResourceObject )
-{
-	BcTimer ResourceTimer;
-	ResourceTimer.mark();
-	
-	try
-	{
-		if( importResource( ResourceObject ) )
-		{
-			BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
-		}
-		else
-		{
-			BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
- 			BcBreakpoint;
-			return BcFalse;
-		}
-	}
-	catch( CsImportException ImportException )
-	{
-		BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
-		BcPrintf( "CsPackageImporter: Import error in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
-		return BcFalse;
-	}
-
-	BuildingFence_.decrement();
-	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -535,45 +456,78 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	BcAssertMsg( Name.type() == Json::stringValue, "CsPackageImporter: Name not specified for resource.\n" );
 	BcAssertMsg( Type.type() == Json::stringValue, "CsPackageImporter: Type not specified for resource.\n" )
 
-	// Handle crossrefs slightly differently.
-	if( IsCrossRef )
+	// Grab class, create importer.
+	const ReClass* ResourceClass = ReManager::GetClass( Type.asCString() );
+	CsResourceImporterUPtr ResourceImporter;
+	if( ResourceClass != nullptr )
 	{
-		// Prefix crossrefs so they don't conflict.
-		Name = boost::str( boost::format( "XREF%1%%2%" ) % PackageCrossRefList_.size() % Name.asCString() );
-		Json::Value NewResource = Resource;
-		NewResource[ "name" ] = Name;
+		CsResourceImporterAttribute* ResourceImporterAttr = nullptr;
+		do
+		{
+			ResourceImporterAttr =
+				ResourceClass->getAttribute< CsResourceImporterAttribute >();
 
-		// Put to front of list so it's imported next.
-		JsonResources_.push_back( NewResource );
+			// Check on a parent to see if there is a valid importer attached to it.
+			if( ResourceImporterAttr == nullptr )
+			{
+				ResourceClass = ResourceClass->getSuper();
+			}
+		}
+		while( ResourceImporterAttr == nullptr && ResourceClass != nullptr );
+
+		if( ResourceImporterAttr != nullptr )
+		{
+			ResourceImporter = ResourceImporterAttr->getImporter();
+		}
 	}
-	else
-	{
-		// Put to front of list so it's imported next.
-		JsonResources_.push_back( Resource );
-	}
 
-#if THREADED_IMPORTING
-	// Increment fence so we know to wait.
-	BuildingFence_.increment();
+	// 
+	BcAssertMsg( ResourceImporter != nullptr, "Can't create resource importer." );
 
-	// Push job.
-	BcDelegate< BcBool(*)( Json::Value ) > Delegate( BcDelegate< BcBool(*)( Json::Value ) >::bind< CsPackageImporter, &CsPackageImporter::importResource_worker >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( 0, Delegate, Resource );
-#endif
+	// Serialise resource onto importer.
+	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE );
+	SeJsonReader Reader( &ObjectCodec );
+	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource );
 
+	// Add import with importer.
+	return addImport( std::move( ResourceImporter ), Resource, IsCrossRef );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addImport
+BcU32 CsPackageImporter::addImport( 
+	CsResourceImporterUPtr Importer, 
+	const Json::Value& Resource, 
+	BcBool IsCrossRef )
+{
+	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
+	BcAssert( BuildingBeginCount_ > 0 );
+
+	// Get id.
+	BcU32 ResourceId = ResourceIds_.fetch_add( 1 );
+
+	// Initialise importer.
+	Importer->initialise( this, ResourceId );
+
+	// Cache name and type.
+	const auto ResourceName = Importer->getResourceName();
+	const auto ResourceType = Importer->getResourceType();
+	
+	// Push into resource list.
+	TResourceImport ResourceImport;
+	ResourceImport.Importer_ = std::move( Importer );
+	ResourceImport.Resource_ = Resource;
+	Resources_.push_back( std::move( ResourceImport ) );
+	
 	// If it's a cross ref, do that shiz.
 	if( IsCrossRef )
 	{
 		// Construct and add package cross ref.
 		std::string CrossRef;
 		CrossRef += "$(";
-		CrossRef += Type.asString();
-		CrossRef += ":";
-		CrossRef += *Name_;
-		CrossRef += ".";
-		CrossRef += Name.asString();
+		CrossRef += boost::lexical_cast< std::string >( ResourceId );
 		CrossRef += ")";
-	
+		
 		return addPackageCrossRef( CrossRef.c_str() );
 	}
 
@@ -617,6 +571,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcBool IsWeak = BcFalse;
+	BcBool IsThis = BcFalse;
 	BcRegexMatch Match;
 	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
 
@@ -630,6 +585,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 
 	if( Matches == 4 )
 	{	
+		// Match against normal refs.
 		std::string TypeName;
 		std::string PackageName;
 		std::string ResourceName;
@@ -650,7 +606,8 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 			addString( TypeName.c_str() ),
 			addString( PackageName.c_str() ),
 			addString( ResourceName.c_str() ),
-			IsWeak
+			IsWeak,
+			BcFalse
 		};
 
 		// Add if it doesn't exist already.
@@ -686,11 +643,51 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		// Resource index to the package cross ref.
 		return FoundIdx;
 	}
-	else
+	
+	// Try ID match.
+	if( Matches == 0 )
 	{
-		BcAssertMsg( BcFalse, "Cross package ref \"%s\" is not formatted correctly.", pFullName );
+		Matches = GRegex_ResourceIdReference.match( pFullName, Match );
+	}
+	if( Matches == 2 )
+	{
+		// Match against normal refs.
+		std::string ResourceId;
+
+		Match.getMatch( 1, ResourceId );
+	
+		// Add cross ref.
+		CsPackageCrossRefData CrossRef = 
+		{
+			0,
+			0,
+			boost::lexical_cast< BcU32 >( ResourceId ),
+			BcFalse,
+			BcTrue
+		};
+
+		// Add if it doesn't exist already.
+		BcU32 FoundIdx = BcErrorCode;
+		for( BcU32 Idx = 0; Idx < PackageCrossRefList_.size(); ++Idx )
+		{
+			if( PackageCrossRefList_[ Idx ] == CrossRef )
+			{
+				FoundIdx = Idx;
+				break;
+			}
+		}
+
+		if( FoundIdx == BcErrorCode )
+		{
+			PackageCrossRefList_.push_back( CrossRef );
+			FoundIdx = PackageCrossRefList_.size() - 1;
+		}
+
+		// Resource index to the package cross ref.
+		return FoundIdx;
 	}
 
+	BcAssertMsg( BcFalse, "Cross package ref \"%s\" is not formatted correctly.", pFullName );
 	return BcErrorCode;
 }
 

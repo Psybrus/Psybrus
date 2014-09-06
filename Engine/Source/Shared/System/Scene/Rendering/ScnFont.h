@@ -80,6 +80,7 @@ class ScnFontComponent:
 public:
 	DECLARE_RESOURCE( ScnFontComponent, ScnComponent );
 	
+	void								initialise();
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	void								initialise( const Json::Value& Object );
 
@@ -100,9 +101,9 @@ public:
 private:
 	friend class ScnFont;
 
-	ScnFont* Parent_;
-	ScnMaterial* Material_;
-	ScnMaterialComponent* MaterialComponent_;
+	ScnFontRef Parent_;
+	ScnMaterialRef Material_;
+	ScnMaterialComponentRef MaterialComponent_;
 
 	BcBool ClippingEnabled_;
 	MaVec2d ClipMin_;

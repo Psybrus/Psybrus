@@ -273,7 +273,7 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 	BcAssertMsg( BcFalse, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
 
-	return NULL;	
+	return nullptr;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -320,7 +320,7 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 		}
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -335,7 +335,7 @@ ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 		return ScnEntityRef( ComponentList[ Idx ] );
 	}
 
-	return ScnEntityRef( NULL );
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

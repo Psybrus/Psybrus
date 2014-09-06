@@ -22,14 +22,14 @@ ReClassSerialiser_EnumType::~ReClassSerialiser_EnumType()
 // construct
 void ReClassSerialiser_EnumType::construct( void* pMemory ) const
 {
-	pMemory = BcMemAlign( Class_->getSize() );
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
 // constructNoInit
 void ReClassSerialiser_EnumType::constructNoInit( void* pMemory ) const
 {
-	pMemory = BcMemAlign( Class_->getSize() );
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,52 @@ void ReClassSerialiser_EnumType::constructNoInit( void* pMemory ) const
 void ReClassSerialiser_EnumType::destruct( void* ) const
 {
 			
+}
+
+//////////////////////////////////////////////////////////////////////////
+// create
+void* ReClassSerialiser_EnumType::create() const
+{
+	return createNoInit();
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// createNoInit
+void* ReClassSerialiser_EnumType::createNoInit() const
+{
+	switch( Class_->getSize() )
+	{
+	case 1:
+		return new BcU8();
+	case 2:
+		return new BcU16();
+	case 4:
+		return new BcU32();
+	default:
+		BcAssert( false );
+		return nullptr;
+	}
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ReClassSerialiser_EnumType::destroy( void* Object ) const
+{
+	switch( Class_->getSize() )
+	{
+	case 1:
+		delete reinterpret_cast< BcU8* >( Object );
+		break;
+	case 2:
+		delete reinterpret_cast< BcU16* >( Object );
+		break;
+	case 4:
+		delete reinterpret_cast< BcU32* >( Object );
+		break;
+	default:
+		BcAssert( false );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

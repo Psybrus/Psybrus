@@ -294,7 +294,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 
 	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
-	if (Resource == NULL)
+	if (Resource == nullptr)
 	{
 		Output.createChildNode("").setContents("Invalid resource Id");
 		Output.createChildNode("br");
@@ -540,7 +540,7 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 
 	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
-	if (Resource == NULL)
+	if (Resource == nullptr)
 	{
 		Output.createChildNode("").setContents("Invalid resource Id");
 		Output.createChildNode("br");
@@ -620,7 +620,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 	std::string OutputString = "{\n";
 	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
-	if (Resource == NULL)
+	if (Resource == nullptr)
 	{
 		Output.createChildNode("").setContents("Invalid resource Id");
 		Output.createChildNode("br");

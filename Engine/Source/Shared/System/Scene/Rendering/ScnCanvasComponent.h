@@ -53,7 +53,6 @@ public:
 	}
 };
 
-
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasComponent
 class ScnCanvasComponent:
@@ -62,6 +61,7 @@ class ScnCanvasComponent:
 public:
 	DECLARE_RESOURCE( ScnCanvasComponent, ScnRenderableComponent );
 	
+	virtual void						initialise();
 	virtual void						initialise( BcU32 NoofVertices );
 	virtual void						initialise( const Json::Value& Object );
 	virtual void						create();
@@ -69,15 +69,15 @@ public:
 	virtual MaAABB						getAABB() const;
 
 	/**
-	 * Get material component.
-	 */
-	ScnMaterialComponentRef				getMaterialComponent();
-
-	/**
 	 * Set material component.
 	 */
 	void								setMaterialComponent( ScnMaterialComponentRef MaterialComponent );
 	
+	/**
+	 * Get material component.
+	 */
+	ScnMaterialComponentRef				getMaterialComponent();
+
 	/**
 	 * Push matrix.
 	 * @param Matrix Matrix.

@@ -8,24 +8,19 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
-const char* SeJsonReader::SerialiserVersionEntry = "SerialiserVersion";
-const char* SeJsonReader::RootIDEntry = "RootID";
-const char* SeJsonReader::ObjectsEntry = "Objects";
-const char* SeJsonReader::ClassEntry = "Class";
-const char* SeJsonReader::IDEntry = "ID";
-const char* SeJsonReader::MembersEntry = "Members";
-const char* SeJsonReader::FieldEntry = "Field";
-const char* SeJsonReader::ValueEntry = "Value";
+const char* SeJsonReader::SerialiserVersionEntry = "$SerialiserVersion";
+const char* SeJsonReader::RootIDEntry = "$RootID";
+const char* SeJsonReader::ObjectsEntry = "$Objects";
+const char* SeJsonReader::ClassEntry = "$Class";
+const char* SeJsonReader::IDEntry = "$ID";
+const char* SeJsonReader::FieldEntry = "$Field";
+const char* SeJsonReader::ValueEntry = "$Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SeJsonReader::SeJsonReader( 
-	SeISerialiserObjectCodec* ObjectCodec, 
-	BcU32 IncludeFieldFlags, 
-	BcU32 ExcludeFieldFlags ) :
-	ObjectCodec_( ObjectCodec ),
-	IncludeFieldFlags_( IncludeFieldFlags ),
-	ExcludeFieldFlags_( ExcludeFieldFlags )
+		SeISerialiserObjectCodec* ObjectCodec ) :
+	ObjectCodec_( ObjectCodec )
 {
 
 }
@@ -95,13 +90,13 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 				}
 				else
 				{
-					pClassObject = ClassType->constructNoInit< void >();
+					pClassObject = ClassType->create< void >();
 					pData = pClassObject;
 				}
 			}
 			else
 			{
-				pClassObject = ClassType->constructNoInit< void >();
+				pClassObject = ClassType->create< void >();
 			}
 
 			// Add class to list for look up.
@@ -185,19 +180,19 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 				Success = true;
 			}
 		}
-	}
-	else
-	{
-		BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+		else
+		{
+			BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+			return;
+		}
 	}
 
     if( Success == false )
     {
-		if( InputValue.type() == Json::objectValue &&
-			InputValue.get( MembersEntry, Json::nullValue ).type() != Json::nullValue )
+		// Attempt to read in as class members.
+		if( InputValue.type() == Json::objectValue )
 		{
-			const Json::Value& MembersValue( InputValue[ MembersEntry ] );
-			serialiseClassMembers( pData, pClass, MembersValue );
+			serialiseClassMembers( pData, pClass, InputValue );
 		}
 	}
 }
@@ -223,9 +218,13 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 					{
 						return ObjectCodec_->isMatchingField( pField, Member );
 					} );
-				if( FoundMember != Members.end() )
+				if( ObjectCodec_->shouldSerialiseField( 
+					pData, pField ) )
 				{
-					serialiseField( pData, pField, MemberValues[ *FoundMember ] );
+					if( FoundMember != Members.end() )
+					{
+						serialiseField( pData, pField, MemberValues[ *FoundMember ] );
+					}
 				}
 			}
 		}
@@ -237,13 +236,7 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 // serialiseField
 //virtual
 void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue )
-{
-	// Check flags.
-	if( !shouldSerialiseField( pField->getFlags() ) )
-	{
-		return;
-	}
-	
+{	
 	// Select the appropriate serialise method to use if we
     // have some data to serialise.
     if( pData != nullptr )
@@ -320,7 +313,9 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
     pWriteIterator->clear();
 
     // Construct a temporary value.
-    void* pTemporaryValue = static_cast< const ReClass* >( pFieldValueType )->construct< void >();
+ 	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
+	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
+	void* pTemporaryValue = FieldValueClass->create< void >();
 
     // Iterate over Json values.
 	if( InputValue.type() == Json::arrayValue )
@@ -330,13 +325,13 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		{
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), (*ValueIt) );
+				serialiseClass( pTemporaryValue, FieldValueClass, (*ValueIt) );
 				pWriteIterator->add( pTemporaryValue );
 			}
 			else
 			{
 				void* pTemporaryPointer = nullptr;
-				serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), (*ValueIt), false );
+				serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), (*ValueIt), false );
 				pWriteIterator->add( &pTemporaryPointer );
 			}
 		}
@@ -346,18 +341,19 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		// Treat as single value.
 		if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 		{
-			serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), InputValue );
+			serialiseClass( pTemporaryValue, FieldValueClass, InputValue );
 			pWriteIterator->add( pTemporaryValue );
 		}
 		else
 		{
 			void* pTemporaryPointer = nullptr;
-			serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), InputValue, false );
+			serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), InputValue, false );
 			pWriteIterator->add( &pTemporaryPointer );
 		}
 	}
-    // Free temporary value.
-    BcMemFree( pTemporaryValue );
+
+	// Free temporary value.
+    FieldValueClass->destroy( pTemporaryValue );
 
     delete pWriteIterator;
 }
@@ -378,8 +374,12 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
     pWriteIterator->clear();
 
     // Construct a temporary value & key.
-    void* pTemporaryKey = static_cast< const ReClass* >( pFieldKeyType )->construct< void >();
-    void* pTemporaryValue = static_cast< const ReClass* >( pFieldValueType )->construct< void >();
+	BcAssert( pFieldKeyType->isTypeOf< ReClass >() );
+	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
+	const ReClass* FieldKeyClass = static_cast< const ReClass* >( pFieldKeyType );
+	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
+    void* pTemporaryKey = FieldKeyClass->create< void >();
+    void* pTemporaryValue = FieldValueClass->create< void >();
 
     // Iterate over Json member values.
     auto MemberKeys = InputValue.getMemberNames();
@@ -393,21 +393,21 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
             if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
             {
                 // Serialise value.
-                serialiseClass( pTemporaryValue, static_cast< const ReClass* >( pFieldValueType ), Value );
+                serialiseClass( pTemporaryValue, FieldValueClass, Value );
                 pWriteIterator->add( pTemporaryKey, pTemporaryValue );
             }
             else
             {
                 void* pTemporaryPointer = nullptr;
-                serialisePointer( pTemporaryPointer, static_cast< const ReClass* >( pFieldValueType ), pField->getValueFlags(), Value, false );
+                serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), Value, false );
                 pWriteIterator->add( pTemporaryKey, &pTemporaryPointer );
             }
         }
     }
 
     // Free temporary value.
-	BcMemFree( pTemporaryKey );
-    BcMemFree( pTemporaryValue );
+	FieldKeyClass->destroy( pTemporaryKey );
+    FieldValueClass->destroy( pTemporaryValue );
 
     delete pWriteIterator;
 }
@@ -422,11 +422,4 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
         return *FoundClass;
     }
     return SerialiseClass( 0, nullptr, nullptr );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// shouldSerialiseField
-BcBool SeJsonReader::shouldSerialiseField( BcU32 Flags )
-{
-	return ( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && ( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || Flags == 0;
 }

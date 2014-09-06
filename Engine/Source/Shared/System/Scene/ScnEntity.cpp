@@ -29,26 +29,50 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnEntity );
+REFLECTION_DEFINE_DERIVED( ScnEntity );
 
 void ScnEntity::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Basis_",			&ScnEntity::Basis_, bcRFF_SHALLOW_COPY ),
 		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
 		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
 		new ReField( "Components_",		&ScnEntity::Components_ ),
 		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
 		
 	Class.addAttribute( new ScnComponentAttribute( -2100 ) );
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnEntityImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnEntityImport::StaticGetClass(), 0 ) );
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntity::ScnEntity():
+	pHeader_( nullptr ),
+	pEventProxy_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntity::ScnEntity( ReNoInit ):
+	pHeader_( nullptr ),
+	pEventProxy_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnEntity::~ScnEntity()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,10 +80,6 @@ void ScnEntity::StaticRegisterClass()
 void ScnEntity::initialise()
 {
 	Super::initialise();
-
-	// NULL internals.
-	pHeader_ = nullptr;
-	pEventProxy_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,18 +87,19 @@ void ScnEntity::initialise()
 void ScnEntity::initialise( ScnEntityRef Basis )
 {
 	ScnEntity::initialise();
-
+	
 	// Grab our basis.
-	Basis_ = Basis->getBasisEntity();
+	setBasis( Basis->getBasisEntity() );
 	pHeader_ = Basis->pHeader_;
 
-	BcAssertMsg( Basis_->isReady(), "Basis entity is not ready!" );
+	BcAssertMsg( Basis->isReady(), "Basis entity is not ready!" );
 
 	// Copy over internals.
-	LocalTransform_ = Basis_->LocalTransform_;
+	LocalTransform_ = Basis->LocalTransform_;
 
 	// Acquire basis package.
-	Basis_->getPackage()->acquire();
+	setRootOwner( Basis->getPackage() );
+	getPackage()->acquire();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,30 +107,49 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 void ScnEntity::create()
 {
 	// New stuff.
-	const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis_->pHeader_ : pHeader_;
+	auto Basis = static_cast< ScnEntity* >( getBasis() );
+	const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis->pHeader_ : pHeader_;
 	const BcU32* ComponentCrossRefs = reinterpret_cast< const BcU32* >( Header + 1 );
 
 	for( BcU32 Idx = 0; Idx < Header->NoofComponents_; ++Idx )
 	{
 		// We are a basis.
-		if( Basis_ == nullptr )
+		if( getBasis() == nullptr )
 		{
-			ScnComponentRef Component = getPackage()->getPackageCrossRef( ComponentCrossRefs[ Idx ] );
+			ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
 			Components_.push_back( Component );
 		}
 		else
 		{
-			BcAssert( Basis_->Components_.size() == Header->NoofComponents_ );
-			ScnComponentRef Component = Basis_->Components_[ Idx ];
+			BcAssert( Basis->Components_.size() == Header->NoofComponents_ );
+			ScnComponentRef Component = Basis->Components_[ Idx ];
 
 			// Construct a new entity.
 			ScnComponentRef NewComponent = 
-				ReConstructObject( Component->getClass(), *Component->getName().getUnique(), getPackage(), Component );
+				ReConstructObject( 
+					Component->getClass(), 
+					*Component->getName().getUnique(), 
+					getPackage(), 
+					Component,
+					[]( ReObject* Object )
+					{
+						ScnComponent* Component = static_cast< ScnComponent* >( Object );
+						Component->initialise();
+					} );
 
 			attach( NewComponent );
 		}
 	}
 
+	static int Export = 0;
+	if( Export )
+	{
+		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_ALL, bcRFF_TRANSIENT | bcRFF_CHUNK_DATA );
+		SeJsonWriter Writer( &ObjectCodec );
+		Writer << *this;
+		Writer.save( "test.json" );
+		Export = 0;
+	}
 	markReady();
 }
 
@@ -118,7 +158,7 @@ void ScnEntity::create()
 void ScnEntity::destroy()
 {
 	// If we have a basis entity, we need to release the package.
-	if( Basis_ != nullptr )
+	if( getBasis() != nullptr )
 	{
 		getPackage()->release();
 	}
@@ -227,9 +267,10 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 ScnEntityRef ScnEntity::getBasisEntity()
 {
 	// If we have a basis, ask it for it's basis.
-	if( Basis_ != nullptr )
+	auto Basis = static_cast< ScnEntity* >( getBasis() );
+	if( Basis != nullptr )
 	{
-		return Basis_->getBasisEntity();
+		return Basis->getBasisEntity();
 	}
 
 	// We have no basis, therefore we are it.

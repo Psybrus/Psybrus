@@ -63,6 +63,30 @@ ScnMaterialImport::ScnMaterialImport()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnMaterialImport::ScnMaterialImport( ReNoInit )
+{
+	// Awful default state for now.
+	DefaultState_[ (BcU32)RsRenderStateType::DEPTH_WRITE_ENABLE ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::DEPTH_TEST_ENABLE ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::DEPTH_TEST_COMPARE ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_WRITE_MASK ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_ENABLE ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_COMPARE ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_REF ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_MASK ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_SFAIL ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPFAIL ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPPASS ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::COLOR_WRITE_MASK_0 ] = 0xf;
+	DefaultState_[ (BcU32)RsRenderStateType::COLOR_WRITE_MASK_1 ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::COLOR_WRITE_MASK_2 ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::COLOR_WRITE_MASK_3 ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::BLEND_MODE ] = 0;
+	DefaultState_[ (BcU32)RsRenderStateType::FILL_MODE ] = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 ScnMaterialImport::~ScnMaterialImport()

@@ -59,7 +59,11 @@ class ScnComponent:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, CsResource );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnComponent, CsResource );
+
+	ScnComponent();
+	ScnComponent( ReNoInit );
+	virtual ~ScnComponent();
 
 public:
 	virtual void						initialise();
@@ -97,7 +101,7 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
-	BcU32								Flags_;
+	BcU32								ComponentFlags_;
 	ScnEntityWeakRef					ParentEntity_;
 	const BcChar*						pJsonObject_;
 
