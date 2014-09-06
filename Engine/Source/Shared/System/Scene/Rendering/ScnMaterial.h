@@ -139,7 +139,7 @@ private:
 	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
 
 
-	ScnMaterial*						Parent_;
+	ScnMaterialRef						Parent_;
 	ScnShaderPermutationFlags			PermutationFlags_;
 	RsProgram*							pProgram_;
 

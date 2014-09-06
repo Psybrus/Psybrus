@@ -425,7 +425,7 @@ void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Parent->detach( MaterialComponent_ );
 
-	MaterialComponent_ = NULL;
+	MaterialComponent_ = nullptr;
 
 	Super::onDetach( Parent );
 }

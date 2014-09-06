@@ -42,6 +42,15 @@ void ScnAnimationComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual 
+void ScnAnimationComponent::initialise()
+{
+	pRootTreeNode_ = nullptr;
+	pReferencePose_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual 
 void ScnAnimationComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
@@ -156,9 +165,9 @@ void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnAnimationComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	Model_ = NULL;
+	Model_ = nullptr;
 	delete pReferencePose_;
-	pReferencePose_ = NULL;
+	pReferencePose_ = nullptr;
 
 	Super::onDetach( Parent );
 }

@@ -38,7 +38,8 @@ void ScnTexture::StaticRegisterClass()
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
-	Class.addAttribute( new CsResourceImporterAttribute( ScnTextureImport::StaticGetClass() ) );
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnTextureImport::StaticGetClass(), 0 ) );
 #endif
 }
 

@@ -53,7 +53,6 @@ public:
 	}
 };
 
-
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasComponent
 class ScnCanvasComponent:
@@ -70,15 +69,15 @@ public:
 	virtual MaAABB						getAABB() const;
 
 	/**
-	 * Get material component.
-	 */
-	ScnMaterialComponentRef				getMaterialComponent();
-
-	/**
 	 * Set material component.
 	 */
 	void								setMaterialComponent( ScnMaterialComponentRef MaterialComponent );
 	
+	/**
+	 * Get material component.
+	 */
+	ScnMaterialComponentRef				getMaterialComponent();
+
 	/**
 	 * Push matrix.
 	 * @param Matrix Matrix.
