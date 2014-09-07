@@ -17,4 +17,5 @@ dofile ("zlib/premake4.lua")
 dofile ("assimp_premake4.lua")
 dofile ("enet_premake4.lua")
 dofile ("HLSLCrossCompiler_premake4.lua")
+dofile ("SoLoud_premake4.lua")
 
