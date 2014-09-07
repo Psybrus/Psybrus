@@ -14,9 +14,6 @@ project "Engine_System_Sound"
     "./Platforms/Windows/",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/openal/include/",
-    psybrusSDK .. "/External/ogg/include/",
-    psybrusSDK .. "/External/tremor/",
     boostInclude,
   }
 
@@ -31,9 +28,7 @@ project "Engine_System_Sound"
 
    			-- External libs.
         "External_jsoncpp",
-        "External_libb64",
-        "External_ogg",
-        "External_tremor",
+        "External_libb64"
    		}
 
    	configuration "vs2012"

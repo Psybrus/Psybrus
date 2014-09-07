@@ -33,15 +33,14 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // SsChannelState
-enum SsChannelState
+enum class SsChannelState
 {
-	ssCS_IDLE = 0,
-	ssCS_PREPARED,
-	ssCS_PLAYING,
-	ssCS_PAUSED,
-	ssCS_STOPPED
+	IDLE = 0,
+	PREPARED,
+	PLAYING,
+	PAUSED,
+	STOPPED
 };
-
 
 //////////////////////////////////////////////////////////////////////////
 // SsChannel

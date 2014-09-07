@@ -14,9 +14,9 @@
 #ifndef __SSCOREIMPL_H__
 #define __SSCOREIMPL_H__
 
+#include "System/Sound/SsTypes.h"
 #include "System/Sound/SsChannel.h"
 #include "System/Sound/SsSample.h"
-#include "System/Sound/SsEnvironment.h"
 
 #include "Base/BcGlobal.h"
 #include "System/SysSystem.h"
@@ -35,6 +35,9 @@ public:
 	static BcU32 JOB_QUEUE_ID;
 
 public:
+	REFLECTION_DECLARE_DERIVED( SsCore, SysSystem );
+
+public:
 	SsCore(){};
 	virtual ~SsCore(){};
 	
@@ -48,9 +51,6 @@ public:
 	virtual SsChannel* queue( SsSample* Sample, SsChannelCallback* Callback = NULL ) = 0;
 	virtual void unregister( SsChannelCallback* Callback = NULL ) = 0;
 	virtual void setListener( const MaVec3d& Position, const MaVec3d& LookAt, const MaVec3d& Up ) = 0;
-
-public: //NEILO HACK.
-	virtual void setEnvironment( const SsEnvironment& Environment ) = 0;
 
 };
 
