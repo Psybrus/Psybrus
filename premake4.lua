@@ -5,16 +5,6 @@ local action = _ACTION or ""
 solution "Psybrus"
 	location ( "Build/" .. action )
 	configurations { "Debug", "Release", "Production" }
-
-	configuration { "native" }
-		openal32LibPath = psybrusSDK .. "/External/openal/libs/Win32/"
-
-	configuration { "x32" }
-		openal32LibPath = psybrusSDK .. "/External/openal/libs/Win32/"
-
---	configuration { "x64" }
---		openal32LibPath = psybrusSDK .. "/External/openal/libs/Win64/"
-
 	configuration "vs*"
 		defines { "STATICLIB", "_CRT_SECURE_NO_WARNINGS", "_STATIC_CPPLIB" }	
 

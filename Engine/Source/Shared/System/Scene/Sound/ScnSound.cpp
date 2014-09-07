@@ -20,7 +20,6 @@
 #ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
-#include "Import/Snd/Snd.h"
 #endif
 
 #ifdef PSY_SERVER
@@ -29,6 +28,7 @@
 //virtual
 BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& Object )
 {	
+#if 0
 	const std::string& FileName = Object[ "source" ].asString();
 	BcBool IsLooping = Object[ "looping" ].asInt() ? BcTrue : BcFalse;
 	
@@ -63,7 +63,7 @@ BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& O
 		//
 		return BcTrue;
 	}
-	
+#endif
 	return BcFalse;
 }
 #endif
