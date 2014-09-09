@@ -51,18 +51,35 @@ private:
 	void close();
 
 public:
-	SsBus* createBus( const SsBusParams& Params );
-	SsFilter* createFilter( const SsFilterParams& Params );
-	SsSource* createSource( const SsSourceParams& Params );
+	SsBus* createBus( 
+		const SsBusParams& Params );
+	
+	SsFilter* createFilter( 
+		const SsFilterParams& Params );
 
-	void destroyResource( SsBus* Resource );
-	void destroyResource( SsFilter* Resource );
-	void destroyResource( SsSource* Resource );
+	SsSource* createSource( 
+		const SsSourceParams& Params );
+
+	void destroyResource( 
+		SsBus* Resource );
+	
+	void destroyResource( 
+		SsFilter* Resource );
+
+	void destroyResource( 
+		SsSource* Resource );
 
 	SsChannel* playSource( 
 		SsSource* Source, 
 		const SsChannelParams& Params,
 		SsChannelCallback DoneCallback );
+
+	void stopChannel( 
+		SsChannel* Channel );
+
+	void updateChannel(
+		SsChannel* Channel,
+		const SsChannelParams& Params );
 
 private:
 	SsChannel* allocChannel();
