@@ -58,7 +58,7 @@ void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 		RotationMatrix.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
 		Up = Up * RotationMatrix;
 		Forward = Forward * RotationMatrix;
-		SsCore::pImpl()->setListener( Matrix.translation(), Forward, Up );
+		//SsCore::pImpl()->setListener( Matrix.translation(), Forward, Up );
 	}
 }
 
