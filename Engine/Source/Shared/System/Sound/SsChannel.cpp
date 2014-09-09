@@ -15,23 +15,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // SsChannelParams
-SsChannelParams::SsChannelParams():
-	Position_( 0.0f, 0.0f, 0.0f ),
-	Gain_( 1.0f ),
-	Pitch_( 1.0f )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// SsChannelParams
 SsChannelParams::SsChannelParams( 
-		MaVec3d Position, 
 		BcF32 Gain,
-		BcF32 Pitch ):
-	Position_( Position ),
+		BcF32 Pitch,
+		MaVec3d Position, 
+		MaVec3d Velocity ):
 	Gain_( Gain ),
-	Pitch_( Pitch )
+	Pitch_( Pitch ),
+	Position_( Position ),
+	Velocity_( Velocity )
 {
 	
 }

@@ -32,15 +32,16 @@ enum class SsChannelState
 class SsChannelParams
 {
 public:
-	SsChannelParams();
 	SsChannelParams( 
-		MaVec3d Position, 
 		BcF32 Gain = 1.0f,
-		BcF32 Pitch = 1.0f );
+		BcF32 Pitch = 1.0f,
+		MaVec3d Position = MaVec3d( 0.0f, 0.0f, 0.0f ),
+		MaVec3d Velocity = MaVec3d( 0.0f, 0.0f, 0.0f ) );
 
-	MaVec3d Position_;
 	BcF32 Gain_;
 	BcF32 Pitch_;
+	MaVec3d Position_;
+	MaVec3d Velocity_;
 };
 
 //////////////////////////////////////////////////////////////////////////

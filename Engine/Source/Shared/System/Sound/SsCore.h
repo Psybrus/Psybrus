@@ -44,18 +44,35 @@ public:
 	virtual ~SsCore(){};
 	
 public:
-	virtual class SsBus* createBus( const class SsBusParams& Params ) = 0;
-	virtual class SsFilter* createFilter( const class SsFilterParams& Params ) = 0;
-	virtual class SsSource* createSource( const class SsSourceParams& Params ) = 0;
+	virtual class SsBus* createBus(
+		const class SsBusParams& Params ) = 0;
 
-	virtual void destroyResource( class SsBus* Resource ) = 0;
-	virtual void destroyResource( class SsFilter* Resource ) = 0;
-	virtual void destroyResource( class SsSource* Resource ) = 0;
+	virtual class SsFilter* createFilter( 
+		const class SsFilterParams& Params ) = 0;
+
+	virtual class SsSource* createSource( 
+		const class SsSourceParams& Params ) = 0;
+
+	virtual void destroyResource( 
+		class SsBus* Resource ) = 0;
+	
+	virtual void destroyResource( 
+		class SsFilter* Resource ) = 0;
+
+	virtual void destroyResource( 
+		class SsSource* Resource ) = 0;
 
 	virtual class SsChannel* playSource( 
 		class SsSource* Source, 
 		const class SsChannelParams& Params,
 		SsChannelCallback DoneCallback ) = 0;
+
+	virtual void stopChannel( 
+		class SsChannel* Channel ) = 0;
+
+	virtual void updateChannel(
+		class SsChannel* Channel,
+		const class SsChannelParams& Params ) = 0;
 
 protected:
 	void setChannelParams( class SsChannel* Channel, const class SsChannelParams& Params );

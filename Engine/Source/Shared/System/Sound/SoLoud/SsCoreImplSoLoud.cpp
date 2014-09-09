@@ -54,7 +54,7 @@ void SsCoreImplSoLoud::open()
 	SoLoudCore_ = new SoLoud::Soloud();
 
 	// Create channels.
-	SsChannelParams DefaultChannelParams( MaVec3d( 0.0f, 0.0f, 0.0f ), 1.0f, 1.0f );
+	SsChannelParams DefaultChannelParams;
 	for( BcU32 Idx = 0; Idx < VOICE_COUNT; ++Idx )
 	{
 		FreeChannels_.push_back( new SsChannel( DefaultChannelParams ) );
@@ -62,13 +62,13 @@ void SsCoreImplSoLoud::open()
 
 	// Open func to run on worker.
 	auto openFunc = [ this ]()
-		{
-			SoLoudCore_->init(
-				SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
-				SoLoud::Soloud::AUTO,				// Backend.
-				SoLoud::Soloud::AUTO,				// Sample rate.
-				SoLoud::Soloud::AUTO );				// Buffer size.
-		};
+	{
+		SoLoudCore_->init(
+			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
+			SoLoud::Soloud::AUTO,				// Backend.
+			SoLoud::Soloud::AUTO,				// Sample rate.
+			SoLoud::Soloud::AUTO );				// Buffer size.
+	};
 
 	// TODO: Run on other thread.
 	openFunc();
@@ -79,36 +79,36 @@ void SsCoreImplSoLoud::open()
 void SsCoreImplSoLoud::update()
 {
 	auto updateFunc = [ this ]()
-		{
-			// Update 3D audio.
-			SoLoudCore_->update3dAudio();
+	{
+		// Update 3D audio.
+		SoLoudCore_->update3dAudio();
 
-			// Update channels.
-			std::lock_guard< std::recursive_mutex > Lock( ChannelMutex_ );
-			std::vector< SsChannel* > ChannelsToFree;
-			std::for_each( UsedChannels_.begin(), UsedChannels_.end(), 
-				[ this, &ChannelsToFree ]( SsChannel* Channel )
+		// Update channels.
+		std::lock_guard< std::recursive_mutex > Lock( ChannelMutex_ );
+		std::vector< SsChannel* > ChannelsToFree;
+		std::for_each( UsedChannels_.begin(), UsedChannels_.end(), 
+			[ this, &ChannelsToFree ]( SsChannel* Channel )
+			{
+				SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
+				if( !SoLoudCore_->isValidVoiceHandle( Handle ) )
 				{
-					SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
-					if( !SoLoudCore_->isValidVoiceHandle( Handle ) )
-					{
-						ChannelsToFree.push_back( Channel );
-					}
-				} );
+					ChannelsToFree.push_back( Channel );
+				}
+			} );
 
-			// Free channels.
-			std::for_each( ChannelsToFree.begin(), ChannelsToFree.end(),
-				[ this ]( SsChannel* Channel )
+		// Free channels.
+		std::for_each( ChannelsToFree.begin(), ChannelsToFree.end(),
+			[ this ]( SsChannel* Channel )
+			{
+				auto DoneCallback = ChannelDoneCallbacks_.find( Channel );
+				if( DoneCallback != ChannelDoneCallbacks_.end() )
 				{
-					auto DoneCallback = ChannelDoneCallbacks_.find( Channel );
-					if( DoneCallback != ChannelDoneCallbacks_.end() )
-					{
-						DoneCallback->second( Channel );
-						ChannelDoneCallbacks_.erase( DoneCallback );
-					}
-					freeChannel( Channel );
-				} );
-		};
+					DoneCallback->second( Channel );
+					ChannelDoneCallbacks_.erase( DoneCallback );
+				}
+				freeChannel( Channel );
+			} );
+	};
 
 	// TODO: Run on other thread.
 	updateFunc();
@@ -119,9 +119,9 @@ void SsCoreImplSoLoud::update()
 void SsCoreImplSoLoud::close()
 {
 	auto closeFunc = [ this ]()
-		{
-			SoLoudCore_->deinit();
-		};
+	{
+		SoLoudCore_->deinit();
+	};
 
 	// TODO: Run on other thread.
 	closeFunc();
@@ -154,10 +154,10 @@ SsBus* SsCoreImplSoLoud::createBus( const SsBusParams& Params )
 	auto* Resource = new SsBus( Params );
 
 	auto createFunc = [ this, Resource ]()
-		{
-			auto SoLoudBus = new SoLoud::Bus();
-			Resource->setHandle( SoLoudBus );
-		};
+	{
+		auto SoLoudBus = new SoLoud::Bus();
+		Resource->setHandle( SoLoudBus );
+	};
 
 	// TODO: Run on other thread.
 	createFunc();
@@ -279,7 +279,11 @@ SsChannel* SsCoreImplSoLoud::playSource(
 			SoLoud::AudioSource* AudioSource = Source->getHandle< SoLoud::AudioSource* >();
 			SoLoud::handle Handle = SoLoudCore_->play3d( 
 				*AudioSource,
-				Params.Position_.x(), Params.Position_.y(), Params.Position_.z() );
+				Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
+				Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z(),
+				Params.Gain_, 
+				false, 
+				0 );
 			updateChannel( Channel, Handle ); 
 		};
 
@@ -291,6 +295,46 @@ SsChannel* SsCoreImplSoLoud::playSource(
 
 	BcPrintf( "WARNING: SsCoreImplSoLoud: Out of channels.\n" );
 	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// stopChannel
+void SsCoreImplSoLoud::stopChannel( 
+		SsChannel* Channel )
+{
+	// Stop source func.
+	auto stopChannelFunc = [ this, Channel ]()
+	{
+		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
+		SoLoudCore_->stopVoice( Handle );
+	};
+
+	// TODO: Run on other thread.
+	stopChannelFunc();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateChannel
+void SsCoreImplSoLoud::updateChannel(
+		SsChannel* Channel,
+		const SsChannelParams& Params )
+{
+	// Stop source func.
+	auto updateChannelFunc = [ this, Channel, Params ]()
+	{
+		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
+
+		SoLoudCore_->set3dSourceParameters( 
+			Handle,
+			Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
+			Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z() );
+		SoLoudCore_->setVolume( 
+			Handle,
+			Params.Gain_ );
+	};
+
+	// TODO: Run on other thread.
+	updateChannelFunc();
 }
 
 //////////////////////////////////////////////////////////////////////////
