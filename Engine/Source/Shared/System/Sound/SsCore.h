@@ -15,8 +15,6 @@
 #define __SSCOREIMPL_H__
 
 #include "System/Sound/SsTypes.h"
-#include "System/Sound/SsChannel.h"
-#include "System/Sound/SsSample.h"
 
 #include "Base/BcGlobal.h"
 #include "System/SysSystem.h"
@@ -24,6 +22,10 @@
 //////////////////////////////////////////////////////////////////////////
 // Forward declarations
 class SsCore;
+
+//////////////////////////////////////////////////////////////////////////
+// Callbacks
+typedef std::function< void( class SsChannel* ) > SsChannelCallback;
 
 //////////////////////////////////////////////////////////////////////////
 // SsCore
@@ -42,15 +44,21 @@ public:
 	virtual ~SsCore(){};
 	
 public:
-	virtual SsSample* createSample( BcU32 SampleRate, BcU32 Channels, BcBool Looping, void* pData, BcU32 DataSize ) = 0;
-	virtual void updateResource( SsResource* pResource ) = 0;
-	virtual void destroyResource( SsResource* pResource ) = 0;
-	
-public:
-	virtual SsChannel* play( SsSample* Sample, SsChannelCallback* Callback = NULL ) = 0;
-	virtual SsChannel* queue( SsSample* Sample, SsChannelCallback* Callback = NULL ) = 0;
-	virtual void unregister( SsChannelCallback* Callback = NULL ) = 0;
-	virtual void setListener( const MaVec3d& Position, const MaVec3d& LookAt, const MaVec3d& Up ) = 0;
+	virtual class SsBus* createBus( const class SsBusParams& Params ) = 0;
+	virtual class SsFilter* createFilter( const class SsFilterParams& Params ) = 0;
+	virtual class SsSource* createSource( const class SsSourceParams& Params ) = 0;
+
+	virtual void destroyResource( class SsBus* Resource ) = 0;
+	virtual void destroyResource( class SsFilter* Resource ) = 0;
+	virtual void destroyResource( class SsSource* Resource ) = 0;
+
+	virtual class SsChannel* playSource( 
+		class SsSource* Source, 
+		const class SsChannelParams& Params,
+		SsChannelCallback DoneCallback ) = 0;
+
+protected:
+	void setChannelParams( class SsChannel* Channel, const class SsChannelParams& Params );
 
 };
 

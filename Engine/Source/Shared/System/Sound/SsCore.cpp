@@ -12,6 +12,10 @@
  **************************************************************************/
 
 #include "System/Sound/SsCore.h"
+#include "System/Sound/SsBus.h"
+#include "System/Sound/SsChannel.h"
+#include "System/Sound/SsFilter.h"
+#include "System/Sound/SsSource.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Worker mask.
@@ -36,4 +40,11 @@ void SsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< SsChannelState >( SsChannelStateEnumConstants );
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setChannelParams
+void SsCore::setChannelParams( class SsChannel* Channel, const class SsChannelParams& Params )
+{
+	Channel->setParams( Params );
 }

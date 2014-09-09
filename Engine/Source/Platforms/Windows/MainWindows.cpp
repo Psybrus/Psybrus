@@ -194,6 +194,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
+	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
 	// Main shared.
