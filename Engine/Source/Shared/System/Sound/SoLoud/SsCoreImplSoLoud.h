@@ -58,7 +58,8 @@ public:
 		const SsFilterParams& Params );
 
 	SsSource* createSource( 
-		const SsSourceParams& Params );
+		const SsSourceParams& Params,
+		const SsSourceFileData* FileData );
 
 	void destroyResource( 
 		SsBus* Resource );

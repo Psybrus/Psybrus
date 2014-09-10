@@ -30,17 +30,15 @@ void ScnSound::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_", &ScnSound::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pFileData_", &ScnSound::pFileData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "pSource_", &ScnSound::pSource_, bcRFF_TRANSIENT ),
-		new ReField( "pSampleData_", &ScnSound::pSampleData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "SampleDataSize_", &ScnSound::SampleDataSize_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnSound, Super >( Fields );
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnSoundImport::StaticGetClass(), 0 ) );
+		ScnSoundImport::StaticGetClass(), 1 ) );
 #endif
 }
 
@@ -60,7 +58,7 @@ void ScnSound::create()
 	if( SsCore::pImpl() != nullptr )
 	{
 		// Create a new sample.
-		pSource_ = SsCore::pImpl()->createSource( SsSourceParams() );
+		pSource_ = SsCore::pImpl()->createSource( SsSourceParams(), pFileData_ );
 	}
 
 	markReady();
@@ -100,17 +98,9 @@ void ScnSound::fileReady()
 // fileChunkReady
 void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( ChunkID == BcHash( "header" ) )
+	if( ChunkID == BcHash( "filedata" ) )
 	{
-		pHeader_ = (ScnSoundHeader*)pData;
-		
-		requestChunk( ++ChunkIdx );
-	}
-	else if( ChunkID == BcHash( "sample" ) )
-	{
-		pSampleData_ = pData;
-		SampleDataSize_ = getChunkSize( ChunkIdx );
-		
+		pFileData_ = (SsSourceFileData*)pData;
 		markCreate();
 	}
 }

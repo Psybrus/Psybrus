@@ -15,6 +15,23 @@
 #define __SSSOURCE_H__
 
 #include "System/Sound/SsResource.h"
+#include "System/Content/CsTypes.h"
+
+//////////////////////////////////////////////////////////////////////////
+// SsSourceFileData
+struct SsSourceFileData
+{
+	enum Type
+	{
+		SFXR = 0,
+		WAV,
+		WAVSTREAM,
+		MODPLUG
+	};
+
+	BcU32 Type_;
+	CsFileHash FileHash_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // SsSourceParams

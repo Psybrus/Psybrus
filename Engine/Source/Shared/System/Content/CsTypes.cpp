@@ -13,6 +13,8 @@
 
 #include "System/Content/CsTypes.h"
 
+#include <boost/format.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 REFLECTION_DEFINE_BASIC( CsDependency );
@@ -109,4 +111,18 @@ void CsDependency::updateStats()
 bool CsDependency::operator < ( const CsDependency& Dep ) const
 {
 	return FileName_ < Dep.FileName_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// getName
+std::string CsFileHash::getName() const
+{
+	return boost::str( boost::format( "%08X%08X%08X%08X%08X" ) 
+		% Hash_[ 0 ]
+		% Hash_[ 1 ]
+		% Hash_[ 2 ]
+		% Hash_[ 3 ]
+		% Hash_[ 4 ] );
+
 }
