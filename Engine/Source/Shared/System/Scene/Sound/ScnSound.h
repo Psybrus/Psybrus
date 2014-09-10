@@ -16,6 +16,7 @@
 
 #include "System/Content/CsResource.h"
 
+#include "System/Sound/SsSource.h"
 #include "System/Scene/Sound/ScnSoundFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,10 +42,8 @@ protected:
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	ScnSoundHeader*						pHeader_;
+	SsSourceFileData*					pFileData_;
 	class SsSource*						pSource_;
-	void*								pSampleData_;
-	BcU32								SampleDataSize_;
 };
 
 

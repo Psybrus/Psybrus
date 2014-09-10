@@ -51,7 +51,8 @@ public:
 		const class SsFilterParams& Params ) = 0;
 
 	virtual class SsSource* createSource( 
-		const class SsSourceParams& Params ) = 0;
+		const class SsSourceParams& Params,
+		const struct SsSourceFileData* FileData ) = 0;
 
 	virtual void destroyResource( 
 		class SsBus* Resource ) = 0;

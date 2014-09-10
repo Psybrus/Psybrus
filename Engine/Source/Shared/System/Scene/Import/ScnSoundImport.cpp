@@ -28,14 +28,13 @@ REFLECTION_DEFINE_DERIVED( ScnSoundImport )
 	
 void ScnSoundImport::StaticRegisterClass()
 {
-	/*
 	ReField* Fields[] = 
 	{
-		new ReField( "Source_", &ScnSoundImport::Source_ ),
+		new ReField( "Source_", &ScnSoundImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "IsStream_", &ScnSoundImport::IsStream_, bcRFF_IMPORTER ),
 	};
-	*/
-		
-	ReRegisterClass< ScnSoundImport, Super >();
+
+	ReRegisterClass< ScnSoundImport, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,12 +64,34 @@ ScnSoundImport::~ScnSoundImport()
 BcBool ScnSoundImport::import(
 		const Json::Value& Object )
 {
-	Header_.SampleRate_ = 0;
-	Header_.Channels_ = 1;
-	Header_.Looping_ = BcFalse;
-	Header_.IsOgg_ = BcFalse;
-	CsResourceImporter::addChunk( BcHash( "header" ), &Header_, sizeof( Header_ ) );
-	CsResourceImporter::addChunk( BcHash( "sample" ), &Header_, sizeof( Header_ ) );
+	// Check file type.
+	if( Source_.rfind( ".ogg" ) != std::string::npos ||
+		Source_.rfind( ".wav" ) != std::string::npos )
+	{
+		if( IsStream_ )
+		{
+			FileData_.Type_ = SsSourceFileData::WAVSTREAM;
+		}
+		else
+		{
+			FileData_.Type_ = SsSourceFileData::WAV;
+		}
+	}
+	else if( Source_.rfind( ".sfxr" ) != std::string::npos )
+	{
+		FileData_.Type_ = SsSourceFileData::SFXR;
+	}
+	else if( Source_.rfind( ".mod" ) != std::string::npos ||
+		Source_.rfind( ".s3m" ) != std::string::npos ||
+		Source_.rfind( ".it" ) != std::string::npos ||
+		Source_.rfind( ".xm" ) != std::string::npos )
+	{
+		FileData_.Type_ = SsSourceFileData::MODPLUG;
+	}
+
+	FileData_.FileHash_= addFile( Source_ );
+
+	CsResourceImporter::addChunk( BcHash( "filedata" ), &FileData_, sizeof( FileData_ ) );
 	return BcTrue;
 }
 

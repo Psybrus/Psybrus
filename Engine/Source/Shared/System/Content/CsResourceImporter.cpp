@@ -211,6 +211,43 @@ BcU32 CsResourceImporter::addChunk(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addFile
+CsFileHash CsResourceImporter::addFile(
+	std::string FileName )
+{
+	BcFile InFile;
+	CsFileHash FileHash;
+	if( InFile.open( FileName.c_str() ) )
+	{
+		auto Bytes = InFile.readAllBytes();
+		boost::uuids::detail::sha1 Hasher;
+		Hasher.process_block( Bytes, Bytes + InFile.size() );
+		Hasher.get_digest( FileHash.Hash_ );
+
+		auto OutFileName = 
+			*CsCore::pImpl()->getPackagePackedPath( BcName::INVALID ) + 
+			std::string( "/" ) + 
+			FileHash.getName() + std::string( ".dat" );
+
+		BcFile OutFile;
+		if( OutFile.open( OutFileName.c_str(),  bcFM_WRITE ) )
+		{
+			OutFile.write( Bytes, InFile.size() );
+			OutFile.close();
+		}
+
+		BcMemFree( Bytes );
+		InFile.close();
+	}
+	else
+	{
+		throw new CsImportException( "Unable to open file", FileName );
+	}
+
+	return FileHash;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // addDependency
 void CsResourceImporter::addDependency( 
 	const BcChar* pFileName )

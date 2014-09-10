@@ -12,10 +12,13 @@
  **************************************************************************/
 
 #include "System/Sound/SoLoud/SsCoreImplSoLoud.h"
+#include "System/Content/CsCore.h"
 
 #include <soloud.h>
 #include <soloud_biquadresonantfilter.h>
 #include <soloud_sfxr.h>
+#include <soloud_wav.h>
+#include <soloud_wavstream.h>
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -186,16 +189,48 @@ SsFilter* SsCoreImplSoLoud::createFilter( const SsFilterParams& Params )
 
 //////////////////////////////////////////////////////////////////////////
 // createSource
-class SsSource* SsCoreImplSoLoud::createSource( const SsSourceParams& Params )
+class SsSource* SsCoreImplSoLoud::createSource(
+	const SsSourceParams& Params,
+	const SsSourceFileData* FileData )
 {
 	auto* Resource = new SsSource( Params );
 
-	auto createFunc = [ this, Resource ]()
+	auto createFunc = [ this, Resource, FileData ]()
 	{
-		// TODO: Configure type of audio source.
-		auto SoLoudSfxr = new SoLoud::Sfxr();
-		SoLoudSfxr->loadPreset( SoLoud::Sfxr::POWERUP, (int)Resource );
-		Resource->setHandle( SoLoudSfxr );
+		auto InFileName = 
+			*CsCore::pImpl()->getPackagePackedPath( BcName::INVALID ) + 
+			std::string( "/" ) + 
+			FileData->FileHash_.getName() + std::string( ".dat" );
+		SoLoud::AudioSource* AudioSource = nullptr;
+		switch( FileData->Type_ )
+		{
+		case SsSourceFileData::SFXR:
+			{
+				auto SoLoudSfxr = new SoLoud::Sfxr();
+				SoLoudSfxr->loadParams( InFileName.c_str() );
+				AudioSource = SoLoudSfxr;
+			}
+			break;
+		case SsSourceFileData::WAV:
+			{
+				auto SoLoudWav = new SoLoud::Wav();
+				SoLoudWav->load( InFileName.c_str() );
+				AudioSource = SoLoudWav;
+			}
+			break;
+		case SsSourceFileData::WAVSTREAM:
+			{
+				auto SoLoudWav = new SoLoud::WavStream();
+				SoLoudWav->load( InFileName.c_str() );
+				AudioSource = SoLoudWav;
+			}
+			break;
+		case SsSourceFileData::MODPLUG:
+			BcBreakpoint;
+			break;
+		}
+	
+		Resource->setHandle( AudioSource );
 	};
 
 	// TODO: Run on other thread.
@@ -306,7 +341,7 @@ void SsCoreImplSoLoud::stopChannel(
 	auto stopChannelFunc = [ this, Channel ]()
 	{
 		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
-		SoLoudCore_->stopVoice( Handle );
+		SoLoudCore_->stopVoice( SoLoudCore_->getVoiceFromHandle( Handle ) );
 	};
 
 	// TODO: Run on other thread.

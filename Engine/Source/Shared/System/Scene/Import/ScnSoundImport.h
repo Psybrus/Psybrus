@@ -18,6 +18,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Sound/ScnSoundFileData.h"
+#include "System/Sound/SsSource.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundImport
@@ -39,8 +40,9 @@ public:
 		const Json::Value& Object );
 
 private:
-	ScnSoundHeader Header_;
-
+	std::string Source_;
+	BcBool IsStream_;
+	SsSourceFileData FileData_;
 };
 
 #endif

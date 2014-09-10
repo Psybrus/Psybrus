@@ -115,7 +115,7 @@ void ScnSoundEmitterComponent::stopAll()
 	for( TChannelSoundMapIterator It( ChannelSoundMap_.begin() ); It != ChannelSoundMap_.end(); ++It )
 	{
 		// Stop channel.
-		//SsCore::pImpl()->stopChannel( (*It).first );
+		SsCore::pImpl()->stopChannel( (*It).first );
 	}
 }
 
