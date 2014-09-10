@@ -77,7 +77,7 @@ BcBool ScnSoundImport::import(
 			FileData_.Type_ = SsSourceFileData::WAV;
 		}
 	}
-	else if( Source_.rfind( ".sfxr" ) != std::string::npos )
+	else if( Source_.rfind( ".sfs" ) != std::string::npos )
 	{
 		FileData_.Type_ = SsSourceFileData::SFXR;
 	}
