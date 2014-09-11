@@ -26,8 +26,7 @@ typedef ReObjectRef< class ScnSoundEmitterComponent > ScnSoundEmitterComponentRe
 //////////////////////////////////////////////////////////////////////////
 // ScnSoundEmitterComponent
 class ScnSoundEmitterComponent:
-	public ScnComponent,
-	public SsChannelCallback
+	public ScnComponent
 {
 public:
 	DECLARE_RESOURCE( ScnSoundEmitterComponent, ScnComponent );
@@ -42,21 +41,19 @@ public:
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
-
 	void								play( ScnSoundRef Sound );
+	void								stopAll();	
 
-	void								stopAll();
+	void								onChannelDone( SsChannel* Channel );
 
-protected:
-	virtual void						onStarted( SsChannel* pSound );
-	virtual void						onPlaying( SsChannel* pSound );
-	virtual void						onEnded( SsChannel* pSound );
-	
 private:
 	typedef std::map< SsChannel*, ScnSoundRef >	TChannelSoundMap;
 	typedef TChannelSoundMap::iterator	TChannelSoundMapIterator;
 
 	TChannelSoundMap					ChannelSoundMap_;
+	std::mutex							ChannelSoundMutex_; // TODO: remove later.
+
+	SsChannelParams						Params_;
 
 	MaVec3d								Position_;
 	BcF32								Gain_;

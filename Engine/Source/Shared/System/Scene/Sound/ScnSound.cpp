@@ -16,56 +16,10 @@
 #include "System/Content/CsCore.h"
 
 #include "System/Sound/SsCore.h"
+#include "System/Sound/SsSource.h"
 
 #ifdef PSY_SERVER
-#include "Base/BcFile.h"
-#include "Base/BcStream.h"
-#include "Import/Snd/Snd.h"
-#endif
-
-#ifdef PSY_SERVER
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnSound::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{	
-	const std::string& FileName = Object[ "source" ].asString();
-	BcBool IsLooping = Object[ "looping" ].asInt() ? BcTrue : BcFalse;
-	
-	// Add root dependancy.
-	Importer.addDependency( FileName.c_str() );
-	
-	// Load texture from file and create the data for export.
-	SndSound* pSound = Snd::load( FileName.c_str() );
-		
-	if( pSound != NULL )
-	{
-		BcStream HeaderStream;
-		BcStream SampleStream;
-		
-		// Setup header.
-		ScnSoundHeader Header = 
-		{
-			pSound->getSampleRate(),
-			pSound->getNumChannels(),
-			IsLooping
-		};
-		
-		HeaderStream << Header;
-		
-		// Setup sample stream.
-		SampleStream.push( pSound->getData(), pSound->getDataSize() );
-		
-		// Add chunks.
-		Importer.addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
-		Importer.addChunk( BcHash( "sample" ), SampleStream.pData(), SampleStream.dataSize() );
-		
-		//
-		return BcTrue;
-	}
-	
-	return BcFalse;
-}
+#include "System/Scene/Import/ScnSoundImport.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,12 +30,16 @@ void ScnSound::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pSample_", &ScnSound::pSample_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "pHeader_", &ScnSound::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "SampleDataSize_", &ScnSound::SampleDataSize_ ),
+		new ReField( "pFileData_", &ScnSound::pFileData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pSource_", &ScnSound::pSource_, bcRFF_TRANSIENT ),
 	};
 		
-	ReRegisterClass< ScnSound, Super >( Fields );
+	auto& Class = ReRegisterClass< ScnSound, Super >( Fields );
+#ifdef PSY_SERVER
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnSoundImport::StaticGetClass(), 1 ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,7 +47,7 @@ void ScnSound::StaticRegisterClass()
 //virtual
 void ScnSound::initialise()
 {
-	pSample_ = NULL;
+	pSource_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,10 +55,10 @@ void ScnSound::initialise()
 //virtual
 void ScnSound::create()
 {	
-	// Create a new sample.
-	if( SsCore::pImpl() != NULL )
+	if( SsCore::pImpl() != nullptr )
 	{
-		pSample_ = SsCore::pImpl()->createSample( pHeader_->SampleRate_, pHeader_->Channels_, pHeader_->Looping_, pSampleData_, SampleDataSize_ );
+		// Create a new sample.
+		pSource_ = SsCore::pImpl()->createSource( SsSourceParams(), pFileData_ );
 	}
 
 	markReady();
@@ -111,18 +69,21 @@ void ScnSound::create()
 //virtual
 void ScnSound::destroy()
 {
-	if( pSample_ != NULL )
+	if( SsCore::pImpl() != nullptr )
 	{
-		SsCore::pImpl()->destroyResource( pSample_ );
-		pSample_ = NULL;
+		if( pSource_ != nullptr )
+		{
+			SsCore::pImpl()->destroyResource( pSource_ );
+			pSource_ = nullptr;
+		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
-SsSample* ScnSound::getSample()
+// getSource
+class SsSource* ScnSound::getSource()
 {
-	return pSample_;
+	return pSource_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,17 +98,9 @@ void ScnSound::fileReady()
 // fileChunkReady
 void ScnSound::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( ChunkID == BcHash( "header" ) )
+	if( ChunkID == BcHash( "filedata" ) )
 	{
-		pHeader_ = (ScnSoundHeader*)pData;
-		
-		requestChunk( ++ChunkIdx );
-	}
-	else if( ChunkID == BcHash( "sample" ) )
-	{
-		pSampleData_ = pData;
-		SampleDataSize_ = getChunkSize( ChunkIdx );
-		
+		pFileData_ = (SsSourceFileData*)pData;
 		markCreate();
 	}
 }
