@@ -36,6 +36,9 @@ void ScnTextureImport::StaticRegisterClass()
 		new ReField( "AlphaFromIntensity_", &ScnTextureImport::AlphaFromIntensity_, bcRFF_IMPORTER ),
 		new ReField( "DistanceField_", &ScnTextureImport::DistanceField_, bcRFF_IMPORTER ),
 		new ReField( "Spread_", &ScnTextureImport::Spread_, bcRFF_IMPORTER ),
+		new ReField( "TileAtlas_", &ScnTextureImport::TileAtlas_, bcRFF_IMPORTER ),
+		new ReField( "TileWidth_", &ScnTextureImport::TileWidth_, bcRFF_IMPORTER ),
+		new ReField( "TileHeight_", &ScnTextureImport::TileHeight_, bcRFF_IMPORTER ),
 		new ReField( "TextureType_", &ScnTextureImport::TextureType_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnTextureImport::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnTextureImport::Height_, bcRFF_IMPORTER ),
@@ -55,6 +58,9 @@ ScnTextureImport::ScnTextureImport():
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
 	Spread_( 0 ),
+	TileAtlas_( BcFalse ),
+	TileWidth_( 0 ),
+	TileHeight_( 0 ),
 	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -73,6 +79,9 @@ ScnTextureImport::ScnTextureImport( ReNoInit ):
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
 	Spread_( 0 ),
+	TileAtlas_( BcFalse ),
+	TileWidth_( 0 ),
+	TileHeight_( 0 ),
 	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -95,6 +104,9 @@ ScnTextureImport::ScnTextureImport(
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
 	Spread_( 0 ),
+	TileAtlas_( BcFalse ),
+	TileWidth_( 0 ),
+	TileHeight_( 0 ),
 	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -257,6 +269,44 @@ BcBool ScnTextureImport::import(
 		ImgImageList MipImages;
 		MipImages.push_back( Img::load( FileName.c_str() ) );
 
+		// If we're a tile atlas, generate data for that.
+		if( TileAtlas_ )
+		{
+			BcStream HeaderStream;
+			BcStream RectsStream;
+
+			// Setup header.
+			ScnTextureAtlasHeader Header = 
+			{
+				0
+			};
+
+			auto Image = MipImages[ 0 ].get();
+			for( BcU32 Y = 0; Y < Image->width(); Y += TileWidth_ )
+			{
+				for( BcU32 X = 0; X < Image->width(); X += TileWidth_ )
+				{
+					ScnTextureAtlasRect OutRect = 
+					{
+						{
+							BcF32( X ) / BcF32( Image->width() ),
+							BcF32( Y ) / BcF32( Image->height() ),
+							BcF32( TileWidth_ ) / BcF32( Image->width() ),
+							BcF32( TileHeight_ ) / BcF32( Image->height() )
+						}
+					};
+
+					RectsStream << OutRect;
+					Header.NoofTextures_++;
+				}
+			}
+
+			HeaderStream << Header;
+
+			CsResourceImporter::addChunk( BcHash( "atlasheader" ), HeaderStream.pData(), HeaderStream.dataSize() );
+			CsResourceImporter::addChunk( BcHash( "atlasrects" ), RectsStream.pData(), RectsStream.dataSize() );
+		}
+
 		// Replace with a distance field version.
 		if( MipImages[ 0 ] != nullptr && DistanceField_ == BcTrue )
 		{
@@ -347,7 +397,7 @@ BcBool ScnTextureImport::import(
 			ScnTextureHeader Header = 
 			{ 
 				MipImages[ 0 ]->width(), 
-				MipImages[ 0 ]->height(), 
+				MipImages[ 0 ]->height(),
 				0,
 				(BcU32)MipImages.size(), 
 				TextureType_, 

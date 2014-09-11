@@ -51,6 +51,9 @@ private:
 	BcBool AlphaFromIntensity_;
 	BcBool DistanceField_;
 	BcU32 Spread_;
+	BcBool TileAtlas_;
+	BcU32 TileWidth_;
+	BcU32 TileHeight_;
 	
 	RsTextureType TextureType_;
 	BcU32 Width_;
