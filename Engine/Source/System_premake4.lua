@@ -17,15 +17,12 @@ project "Engine_System"
     psybrusSDK .. "/External/freetype/include",
     psybrusSDK .. "/External/glew/include",
     psybrusSDK .. "/External/pcre/",
-    psybrusSDK .. "/External/zlib/",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/webby/",
-    psybrusSDK .. "/External/openal/include/",
-    psybrusSDK .. "/External/ogg/include/",
     psybrusSDK .. "/External/png/",
     psybrusSDK .. "/External/squish/",
-    psybrusSDK .. "/External/tremor/",
+    psybrusSDK .. "/External/webby/",
+    psybrusSDK .. "/External/zlib/",
     boostInclude,
   }
 

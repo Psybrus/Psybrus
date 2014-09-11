@@ -67,11 +67,6 @@ void ScnSoundEmitterComponent::create()
 //virtual
 void ScnSoundEmitterComponent::destroy()
 {
-	if( SsCore::pImpl() )
-	{
-		SsCore::pImpl()->unregister( this );
-	}
-
 	Super::destroy();
 }
 
@@ -79,23 +74,34 @@ void ScnSoundEmitterComponent::destroy()
 // play
 void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 {
-	// Acquire before playing (callback is threaded)
-	//CsResource::acquire();
-	
-	// Get sample from sound.
-	SsSample* pSample = Sound->getSample();
+	using namespace std::placeholders;
 
-	// Play sample.
-	SsChannel* pChannel = SsCore::pImpl() != NULL ? SsCore::pImpl()->play( pSample, this ) : NULL;
+	if( SsCore::pImpl() )
+	{
+		// Acquire before playing (callback is threaded)
+		getPackage()->acquire();
 
-	// Add to map, or release if not played.
-	if( pChannel != NULL )
-	{
-		ChannelSoundMap_[ pChannel ] = Sound;
-	}
-	else
-	{
-		//CsResource::release();
+		// Get source from sound.
+		SsSource* Source = Sound->getSource();
+
+		// Play sample.
+		SsChannel* Channel = SsCore::pImpl()->playSource( 
+			Source, 
+			Params_,
+			std::bind( &ScnSoundEmitterComponent::onChannelDone, this, _1 ) );
+
+		// Add to map, or release if not played.
+		{
+			std::lock_guard< std::mutex > Lock( ChannelSoundMutex_ );
+			if( Channel != NULL )
+			{
+				ChannelSoundMap_[ Channel ] = Sound;
+			}
+			else
+			{
+				getPackage()->release();
+			}
+		}
 	}
 }
 
@@ -103,12 +109,23 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 // stopAll
 void ScnSoundEmitterComponent::stopAll()
 {
+	std::lock_guard< std::mutex > Lock( ChannelSoundMutex_ );
+
 	// Stop all bound channels.
 	for( TChannelSoundMapIterator It( ChannelSoundMap_.begin() ); It != ChannelSoundMap_.end(); ++It )
 	{
 		// Stop channel.
-		(*It).first->stop();
+		SsCore::pImpl()->stopChannel( (*It).first );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onChannelDone
+void ScnSoundEmitterComponent::onChannelDone( SsChannel* Channel )
+{
+	std::lock_guard< std::mutex > Lock( ChannelSoundMutex_ );
+	ChannelSoundMap_.erase( ChannelSoundMap_.find( Channel ) );
+	getPackage()->release();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,48 +158,4 @@ void ScnSoundEmitterComponent::onDetach( ScnEntityWeakRef Parent )
 	stopAll();
 
 	Super::onDetach( Parent );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onStarted
-//virtual
-void ScnSoundEmitterComponent::onStarted( SsChannel* pSound )
-{
-	if( isAttached() )
-	{
-		onPlaying( pSound );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onPlaying
-//virtual
-void ScnSoundEmitterComponent::onPlaying( SsChannel* pSound )
-{
-	if( isAttached() )
-	{
-		// Update parameters.
-		pSound->gain( Gain_ );
-		//pSound->maxDistance( 1.0f );
-		//pSound->maxDistance( 1.0f );
-		pSound->rolloffFactor( 0.05f );
-		pSound->position( getParentEntity()->getWorldMatrix().translation() );
-		pSound->pitch( Pitch_ );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onEnded
-//virtual
-void ScnSoundEmitterComponent::onEnded( SsChannel* pSound )
-{
-	// Find in map, and erase reference.
-	TChannelSoundMapIterator Iter = ChannelSoundMap_.find( pSound );
-	
-	if( Iter != ChannelSoundMap_.end() )
-	{
-		ChannelSoundMap_.erase( Iter );
-
-		//CsResource::release();
-	}
 }

@@ -16,8 +16,7 @@
 
 #include "System/Content/CsResource.h"
 
-#include "System/Sound/SsSample.h"
-
+#include "System/Sound/SsSource.h"
 #include "System/Scene/Sound/ScnSoundFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,27 +31,19 @@ class ScnSound:
 public:
 	DECLARE_RESOURCE( ScnSound, CsResource );
 	
-#ifdef PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
 	
-	SsSample*							getSample();
-	
+	class SsSource*						getSource();
+
 protected:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	SsSample*							pSample_;
-	
-	ScnSoundHeader*						pHeader_;
-	void*								pSampleData_;
-	BcU32								SampleDataSize_;
-
-	// Ogg stuff.
+	SsSourceFileData*					pFileData_;
+	class SsSource*						pSource_;
 };
 
 

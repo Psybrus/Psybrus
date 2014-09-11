@@ -137,6 +137,12 @@ protected:
 		BcU32 Flags = csPCF_DEFAULT );
 
 	/**
+	 * Add file.
+	 */
+	CsFileHash addFile(
+		std::string FileName );
+	
+	/**
 	 * Add dependency.
 	 */
 	void addDependency( 
