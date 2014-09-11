@@ -13,6 +13,7 @@
 
 #include "System/Sound/SoLoud/SsCoreImplSoLoud.h"
 #include "System/Content/CsCore.h"
+#include "System/SysKernel.h"
 
 #include <soloud.h>
 #include <soloud_biquadresonantfilter.h>
@@ -38,6 +39,9 @@ void SsCoreImplSoLoud::StaticRegisterClass()
 SsCoreImplSoLoud::SsCoreImplSoLoud():
 	SoLoudCore_( nullptr )
 {
+	// Create our job queue.
+	// - 1 thread if we have 4 or more hardware threads.
+	SsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 4 );
 
 }
 
@@ -71,10 +75,12 @@ void SsCoreImplSoLoud::open()
 			SoLoud::Soloud::AUTO,				// Backend.
 			SoLoud::Soloud::AUTO,				// Sample rate.
 			SoLoud::Soloud::AUTO );				// Buffer size.
+		WaitFence_.decrement();
 	};
 
-	// TODO: Run on other thread.
-	openFunc();
+	WaitFence_.increment();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, openFunc );
+	WaitFence_.wait();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,38 +89,10 @@ void SsCoreImplSoLoud::update()
 {
 	auto updateFunc = [ this ]()
 	{
-		// Update 3D audio.
-		SoLoudCore_->update3dAudio();
-
-		// Update channels.
-		std::lock_guard< std::recursive_mutex > Lock( ChannelMutex_ );
-		std::vector< SsChannel* > ChannelsToFree;
-		std::for_each( UsedChannels_.begin(), UsedChannels_.end(), 
-			[ this, &ChannelsToFree ]( SsChannel* Channel )
-			{
-				SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
-				if( !SoLoudCore_->isValidVoiceHandle( Handle ) )
-				{
-					ChannelsToFree.push_back( Channel );
-				}
-			} );
-
-		// Free channels.
-		std::for_each( ChannelsToFree.begin(), ChannelsToFree.end(),
-			[ this ]( SsChannel* Channel )
-			{
-				auto DoneCallback = ChannelDoneCallbacks_.find( Channel );
-				if( DoneCallback != ChannelDoneCallbacks_.end() )
-				{
-					DoneCallback->second( Channel );
-					ChannelDoneCallbacks_.erase( DoneCallback );
-				}
-				freeChannel( Channel );
-			} );
+		internalUpdate();
 	};
 
-	// TODO: Run on other thread.
-	updateFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, updateFunc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,11 +101,22 @@ void SsCoreImplSoLoud::close()
 {
 	auto closeFunc = [ this ]()
 	{
+		// Stop all sounds.
+		SoLoudCore_->stopAll();
+
+		// Loop over until we have stopped all sounds.
+		while( UsedChannels_.size() > 0 && PendingChannels_.size() > 0 )
+		{
+			internalUpdate();
+		}
+
 		SoLoudCore_->deinit();
+		WaitFence_.decrement();
 	};
 
-	// TODO: Run on other thread.
-	closeFunc();
+	WaitFence_.increment();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, closeFunc );
+	WaitFence_.wait();
 
 	// Free channels.
 	std::for_each( FreeChannels_.begin(), FreeChannels_.end(), 
@@ -162,8 +151,7 @@ SsBus* SsCoreImplSoLoud::createBus( const SsBusParams& Params )
 		Resource->setHandle( SoLoudBus );
 	};
 
-	// TODO: Run on other thread.
-	createFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, createFunc );
 
 	return Resource;
 }
@@ -181,8 +169,7 @@ SsFilter* SsCoreImplSoLoud::createFilter( const SsFilterParams& Params )
 		Resource->setHandle( SoLoudFilter );
 	};
 
-	// TODO: Run on other thread.
-	createFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, createFunc );
 
 	return Resource;
 }
@@ -233,8 +220,7 @@ class SsSource* SsCoreImplSoLoud::createSource(
 		Resource->setHandle( AudioSource );
 	};
 
-	// TODO: Run on other thread.
-	createFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, createFunc );
 
 	return Resource;
 }
@@ -251,8 +237,7 @@ void SsCoreImplSoLoud::destroyResource( SsBus* Resource )
 		delete Resource;
 	};
 
-	// TODO: Run on other thread.
-	deleteFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, deleteFunc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,8 +251,7 @@ void SsCoreImplSoLoud::destroyResource( SsFilter* Resource )
 		delete Resource;
 	};
 
-	// TODO: Run on other thread.
-	deleteFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, deleteFunc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -282,8 +266,7 @@ void SsCoreImplSoLoud::destroyResource( SsSource* Resource )
 		delete Resource;
 	};
 
-	// TODO: Run on other thread.
-	deleteFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, deleteFunc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -316,14 +299,22 @@ SsChannel* SsCoreImplSoLoud::playSource(
 				*AudioSource,
 				Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
 				Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z(),
-				Params.Gain_, 
-				false, 
+				Params.Gain_,
+				true, 
 				0 );
+			SoLoudCore_->setRelativePlaySpeed(
+				Handle,
+				Params.Pitch_ );
+			SoLoudCore_->setPause(
+				Handle,
+				false );
 			updateChannel( Channel, Handle ); 
 		};
 
-		// TODO: Run on other thread.
-		playSourceFunc();
+		SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, playSourceFunc );
+
+		// Update params.
+		updateChannel( Channel, Channel->getParams() );
 
 		return Channel;
 	}
@@ -335,17 +326,35 @@ SsChannel* SsCoreImplSoLoud::playSource(
 //////////////////////////////////////////////////////////////////////////
 // stopChannel
 void SsCoreImplSoLoud::stopChannel( 
-		SsChannel* Channel )
+		SsChannel* Channel,
+		BcBool ForceFlush )
 {
+	SysFence FlushFence;
+
 	// Stop source func.
-	auto stopChannelFunc = [ this, Channel ]()
+	auto stopChannelFunc = [ this, Channel, ForceFlush, &FlushFence ]()
 	{
 		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
-		SoLoudCore_->stopVoice( SoLoudCore_->getVoiceFromHandle( Handle ) );
+		SoLoudCore_->stop( Handle );
+
+		// Update until the sound has stopped.
+		if( ForceFlush )
+		{
+			do 
+			{
+				internalUpdate();
+			}
+			while( SoLoudCore_->isValidVoiceHandle( Handle ) );
+			FlushFence.decrement();
+		}
 	};
 
-	// TODO: Run on other thread.
-	stopChannelFunc();
+	FlushFence.increment();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, stopChannelFunc );
+	if( ForceFlush )
+	{
+		FlushFence.wait();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -354,7 +363,7 @@ void SsCoreImplSoLoud::updateChannel(
 		SsChannel* Channel,
 		const SsChannelParams& Params )
 {
-	// Stop source func.
+	// Update source func.
 	auto updateChannelFunc = [ this, Channel, Params ]()
 	{
 		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
@@ -366,10 +375,12 @@ void SsCoreImplSoLoud::updateChannel(
 		SoLoudCore_->setVolume( 
 			Handle,
 			Params.Gain_ );
+		SoLoudCore_->setRelativePlaySpeed(
+			Handle,
+			Params.Pitch_ );
 	};
 
-	// TODO: Run on other thread.
-	updateChannelFunc();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, updateChannelFunc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -410,4 +421,38 @@ void SsCoreImplSoLoud::freeChannel( SsChannel* Channel )
 		UsedChannels_.remove( Channel );
 		FreeChannels_.push_back( Channel );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalUpdate
+void SsCoreImplSoLoud::internalUpdate()
+{
+	// Update 3D audio.
+	SoLoudCore_->update3dAudio();
+
+	// Update channels.
+	std::lock_guard< std::recursive_mutex > Lock( ChannelMutex_ );
+	std::vector< SsChannel* > ChannelsToFree;
+	std::for_each( UsedChannels_.begin(), UsedChannels_.end(),
+		[ this, &ChannelsToFree ]( SsChannel* Channel )
+	{
+		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
+		if( !SoLoudCore_->isValidVoiceHandle( Handle ) )
+		{
+			ChannelsToFree.push_back( Channel );
+		}
+	} );
+
+	// Free channels.
+	std::for_each( ChannelsToFree.begin(), ChannelsToFree.end(),
+		[ this ]( SsChannel* Channel )
+	{
+		auto DoneCallback = ChannelDoneCallbacks_.find( Channel );
+		if( DoneCallback != ChannelDoneCallbacks_.end() )
+		{
+			DoneCallback->second( Channel );
+			ChannelDoneCallbacks_.erase( DoneCallback );
+		}
+		freeChannel( Channel );
+	} );
 }
