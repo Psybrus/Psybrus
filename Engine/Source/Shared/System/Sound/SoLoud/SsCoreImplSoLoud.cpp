@@ -41,7 +41,8 @@ SsCoreImplSoLoud::SsCoreImplSoLoud():
 {
 	// Create our job queue.
 	// - 1 thread if we have 4 or more hardware threads.
-	SsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 4 );
+	// Synchronisation issues. Revisit post-hectic game jam.
+	//SsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 4 );
 
 }
 
@@ -371,6 +372,9 @@ void SsCoreImplSoLoud::stopChannel(
 		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
 		SoLoudCore_->stop( Handle );
 
+		// TODO: Remove from used queue at this point.
+		//       No need to force updated until voice is invalid then.
+
 		// Update until the sound has stopped.
 		if( ForceFlush )
 		{
@@ -382,12 +386,6 @@ void SsCoreImplSoLoud::stopChannel(
 			FlushFence.decrement();
 		}
 	};
-
-	// Flush out job queue to ensure nothing is pending.
-	if( ForceFlush )
-	{
-		SysKernel::pImpl()->flushJobQueue( JOB_QUEUE_ID );
-	}
 
 	// Increment and push stop channel.
 	FlushFence.increment();
