@@ -42,7 +42,7 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 
 	void								play( ScnSoundRef Sound );
-	void								stopAll();	
+	void								stopAll( BcBool ForceFlush = BcFalse );	
 
 	void								onChannelDone( SsChannel* Channel );
 
@@ -51,13 +51,9 @@ private:
 	typedef TChannelSoundMap::iterator	TChannelSoundMapIterator;
 
 	TChannelSoundMap					ChannelSoundMap_;
-	std::mutex							ChannelSoundMutex_; // TODO: remove later.
+	std::recursive_mutex				ChannelSoundMutex_; // TODO: remove later.
 
 	SsChannelParams						Params_;
-
-	MaVec3d								Position_;
-	BcF32								Gain_;
-	BcF32								Pitch_;
 };
 
 
