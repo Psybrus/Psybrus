@@ -161,6 +161,15 @@ public:
 	}
 
 	/**
+	 * Push function job.
+	 */
+	BcForceInline void pushFunctionJob( BcU32 JobQueueId, std::function< void() > Function )
+	{
+		BcBool RetVal = pushJob( JobQueueId, new SysFunctionJob( Function ) );
+		BcAssert( RetVal );
+	}
+
+	/**
 	 * Enqueue callback.
 	 */
 	template< typename _Fn >
