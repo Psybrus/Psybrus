@@ -70,12 +70,46 @@ void SsCoreImplSoLoud::open()
 	// Open func to run on worker.
 	auto openFunc = [ this ]()
 	{
+#if defined( PLATFORM_WINDOWS )
+		SoLoud::result Result = 0;
+
+		// Attempt to init WASAPI first.
+		Result = SoLoudCore_->init(
+			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
+			SoLoud::Soloud::WASAPI,				// Backend.
+			SoLoud::Soloud::AUTO,				// Sample rate.
+			SoLoud::Soloud::AUTO );				// Buffer size.
+		
+		if( Result == 0 )
+		{
+			WaitFence_.decrement();
+			return;
+		}
+
+		// Fall back to WIMM.
+		Result = SoLoudCore_->init(
+			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
+			SoLoud::Soloud::WINMM,				// Backend.
+			SoLoud::Soloud::AUTO,				// Sample rate.
+			SoLoud::Soloud::AUTO );				// Buffer size.
+
+		if( Result == 0 )
+		{
+			WaitFence_.decrement();
+			return;
+		}
+
+#endif
+
+		// Attempt auto backend.
 		SoLoudCore_->init(
 			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
 			SoLoud::Soloud::AUTO,				// Backend.
 			SoLoud::Soloud::AUTO,				// Sample rate.
 			SoLoud::Soloud::AUTO );				// Buffer size.
+
 		WaitFence_.decrement();
+		
 	};
 
 	WaitFence_.increment();
@@ -349,8 +383,17 @@ void SsCoreImplSoLoud::stopChannel(
 		}
 	};
 
+	// Flush out job queue to ensure nothing is pending.
+	if( ForceFlush )
+	{
+		SysKernel::pImpl()->flushJobQueue( JOB_QUEUE_ID );
+	}
+
+	// Increment and push stop channel.
 	FlushFence.increment();
 	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, stopChannelFunc );
+
+	// If we're flushing, wait.
 	if( ForceFlush )
 	{
 		FlushFence.wait();
