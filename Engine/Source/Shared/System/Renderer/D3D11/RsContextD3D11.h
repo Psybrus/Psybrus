@@ -177,13 +177,12 @@ private:
 	typedef std::array< ID3D11ShaderResourceView*, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
 	typedef std::array< TextureSlots, (size_t)RsShaderType::MAX > Textures;
 	typedef std::array< D3DShaderResourceViewSlots, (size_t)RsShaderType::MAX > D3DShaderResourceViews;
+	typedef std::array< ID3D11SamplerState*, MAX_TEXTURE_SLOTS > D3DSamplerStateSlots;
+	typedef std::array< D3DSamplerStateSlots, (size_t)RsShaderType::MAX > D3DSamplerStates;
 
 	Textures Textures_;
 	D3DShaderResourceViews D3DShaderResourceViews_;
-
-	// Sampler state. Temporary.
-	D3D11_SAMPLER_DESC SamplerStateDesc_;
-	BcComRef< ID3D11SamplerState > SamplerState_;
+	D3DSamplerStates D3DSamplerStates_;
 
 	// Input layout, program, topology.
 	BcBool InputLayoutChanged_;
@@ -227,13 +226,21 @@ private:
 		BcU32 LastFrameUsed_;
 	};
 
+	struct SamplerState
+	{
+		BcComRef< ID3D11SamplerState > State_;
+		BcU32 LastFrameUsed_;
+	};
+
 	typedef std::map< BcU32, BlendState > BlendStateCache;
 	typedef std::map< BcU32, RasterizerState > RasterizerStateCache;
 	typedef std::map< BcU32, DepthStencilState > DepthStencilStateCache;
+	typedef std::map< BcU32, SamplerState > SamplerStateCache;
 
 	BlendStateCache BlendStateCache_;
 	RasterizerStateCache RasterizerStateCache_;
 	DepthStencilStateCache DepthStencilStateCache_;
+	SamplerStateCache SamplerStateCache_;
 
 	// Render targets.
 	typedef std::array< ID3D11RenderTargetView*, 8 > RenderTargetViews;
