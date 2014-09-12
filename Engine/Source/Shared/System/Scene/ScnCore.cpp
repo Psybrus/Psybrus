@@ -278,7 +278,8 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 //////////////////////////////////////////////////////////////////////////
 // spawnEntity
-ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
+ScnEntity* ScnCore::spawnEntity( 
+	const ScnEntitySpawnParams& Params)
 {
 	BcAssert( BcIsGameThread() );
 
@@ -295,7 +296,10 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 	
 		// Register for ready callback.
 		EntitySpawnMap_[ EntitySpawnID_ ] = Params;
-		CsCore::pImpl()->requestPackageReadyCallback( Params.Package_, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
+		CsCore::pImpl()->requestPackageReadyCallback( 
+			Params.Package_, 
+			CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), 
+			EntitySpawnID_ );
 
 		// Advance spawn ID.
 		++EntitySpawnID_;
@@ -450,7 +454,8 @@ void ScnCore::processPendingComponents()
 
 //////////////////////////////////////////////////////////////////////////
 // internalSpawnEntity
-ScnEntity* ScnCore::internalSpawnEntity( ScnEntitySpawnParams Params )
+ScnEntity* ScnCore::internalSpawnEntity( 
+	ScnEntitySpawnParams Params )
 {
 	// Create entity.
 	ScnEntityRef Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
@@ -466,6 +471,12 @@ ScnEntity* ScnCore::internalSpawnEntity( ScnEntitySpawnParams Params )
 	else
 	{
 		addEntity( Entity );
+	}
+
+	// Call on spawn callback.
+	if( Params.OnSpawn_ != nullptr )
+	{
+		Params.OnSpawn_( Entity );
 	}
 
 	return Entity;

@@ -100,7 +100,7 @@ void ScnComponent::initialise()
 //virtual
 void ScnComponent::initialise( const Json::Value& Object )
 {
-	BcBreakpoint; // Should never enter here.
+	BcBreakpoint; // Should never enter here. Stop calling to this method.
 }
 
 //////////////////////////////////////////////////////////////////////////
