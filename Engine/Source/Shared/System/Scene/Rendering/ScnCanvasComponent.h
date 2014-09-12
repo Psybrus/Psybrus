@@ -95,6 +95,12 @@ public:
 	MaMat4d								getMatrix() const;
 
 	/**
+	 * Set view matrix.
+	 * Only used when automatically set to clear.
+	 */
+	void								setViewMatrix( const MaMat4d& View );
+
+	/**
 	 * Allocate some vertices to use.<br/>
 	 * Safe to allocate 0 if you don't know how many vertices you need initially,
 	 * and to allocate the total number at the end. Provided you don't overrun the buffer!
@@ -261,7 +267,7 @@ protected:
 	BcF32								Right_;
 	BcF32								Top_;
 	BcF32								Bottom_;
-
+	MaMat4d								ViewMatrix_;
 };
 
 #endif

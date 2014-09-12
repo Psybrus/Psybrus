@@ -34,12 +34,13 @@ void ScnCanvasComponent::StaticRegisterClass()
 		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
 		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
 		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_ ),
-		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_ ),
+		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_, bcRFF_TRANSIENT ),
 		new ReField( "Clear_", &ScnCanvasComponent::Clear_ ),
 		new ReField( "Left_", &ScnCanvasComponent::Left_ ),
 		new ReField( "Right_", &ScnCanvasComponent::Right_ ),
 		new ReField( "Top_", &ScnCanvasComponent::Top_ ),
 		new ReField( "Bottom_", &ScnCanvasComponent::Bottom_ ),
+		new ReField( "ViewMatrix_", &ScnCanvasComponent::ViewMatrix_ ),
 	};
 		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
@@ -222,6 +223,13 @@ void ScnCanvasComponent::popMatrix()
 MaMat4d ScnCanvasComponent::getMatrix() const
 {
 	return MatrixStack_[ MatrixStack_.size() - 1 ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewMatrix
+void ScnCanvasComponent::setViewMatrix( const MaMat4d& View )
+{
+	ViewMatrix_ = View;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -903,6 +911,9 @@ void ScnCanvasComponent::preUpdate( BcF32 Tick )
 
 		// Push projection matrix onto stack.
 		pushMatrix( Projection );
+
+		// Push view matrix onto stack.
+		pushMatrix( ViewMatrix_ );
 	}
 }
 
@@ -911,7 +922,11 @@ void ScnCanvasComponent::preUpdate( BcF32 Tick )
 //virtual 
 void ScnCanvasComponent::postUpdate( BcF32 Tick )
 {
-	popMatrix();
+	if( Clear_ )
+	{
+		popMatrix();
+		popMatrix();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
