@@ -257,6 +257,7 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	VertexDeclaration_ = nullptr;
 	TopologyType_ = RsTopologyType::INVALID;
 
+	FrameCounter_ = 0;
 	BcMemZero( &BlendState_, sizeof( BlendState_ ) );
 	BcMemZero( &RasterizerState_, sizeof( RasterizerState_ ) );
 	BcMemZero( &DepthStencilState_, sizeof( DepthStencilState_ ) );
@@ -355,6 +356,8 @@ RsShaderCodeType RsContextD3D11::maxShaderCodeType( RsShaderCodeType CodeType ) 
 void RsContextD3D11::presentBackBuffer()
 {
 	SwapChain_->Present( 0, 0 );
+
+	++FrameCounter_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -771,6 +774,9 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, const RsTextureParams& Param
 		SamplerStateCache_[ SamplerStateHash ] = State;
 		FoundSamplerState = SamplerStateCache_.find( SamplerStateHash );
 	}
+
+	// Update last frame used.
+	FoundSamplerState->second.LastFrameUsed_ = FrameCounter_;
 
 	// Bind for each shader based on specified handle.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
@@ -1867,6 +1873,12 @@ void RsContextD3D11::flushState()
 		FoundDepthStencil = DepthStencilStateCache_.find( DepthStencilStateHash );
 	}
 
+	// Last frame used update for state caches.
+	FoundBlendState->second.LastFrameUsed_ = FrameCounter_;
+	FoundRasterizerState->second.LastFrameUsed_ = FrameCounter_;
+	FoundDepthStencil->second.LastFrameUsed_ = FrameCounter_;
+
+	// Set states.
 	FLOAT Factor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Context_->OMSetBlendState( FoundBlendState->second.State_, Factor, 0xffffffff );
 	Context_->RSSetState( FoundRasterizerState->second.State_ );
