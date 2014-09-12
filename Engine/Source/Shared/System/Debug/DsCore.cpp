@@ -21,7 +21,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
-
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -546,7 +546,8 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		Output.createChildNode("br");
 		return;
 	}
-	SeJsonWriter writer( nullptr );
+	CsSerialiserPackageObjectCodec ObjectCodec(nullptr, bcRFF_ALL, bcRFF_TRANSIENT);
+	SeJsonWriter writer( &ObjectCodec);
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
 	
 	//boost::replace_all(output, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
