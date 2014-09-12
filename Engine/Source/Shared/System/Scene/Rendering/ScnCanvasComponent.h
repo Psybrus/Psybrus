@@ -202,6 +202,7 @@ public:
 	
 public:
 	virtual void						preUpdate( BcF32 Tick );
+	virtual void						postUpdate( BcF32 Tick );
 	virtual void						onAttach( ScnEntityWeakRef Parent );
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
@@ -253,6 +254,14 @@ protected:
 	
 	TMatrixStack						MatrixStack_;
 	BcBool								IsIdentity_;
+
+	// Automatic clear and setup.
+	BcBool								Clear_;
+	BcF32								Left_;
+	BcF32								Right_;
+	BcF32								Top_;
+	BcF32								Bottom_;
+
 };
 
 #endif

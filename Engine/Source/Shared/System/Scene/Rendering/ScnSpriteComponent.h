@@ -39,12 +39,14 @@ public:
 private:
 	ScnCanvasComponentRef				Canvas_;
 	ScnMaterialComponentRef				Material_;
+	std::string							MaterialName_;
 
 	MaVec2d								Position_;
 	MaVec2d								Size_;
 	RsColour							Colour_;
 	BcU32								Index_;
 	BcU32								Layer_;
+	BcBool								Center_;
 };
 
 

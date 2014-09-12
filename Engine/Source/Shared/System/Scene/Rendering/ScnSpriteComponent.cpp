@@ -31,15 +31,17 @@ void ScnSpriteComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Canvas_",				&ScnSpriteComponent::Canvas_ ),
-		new ReField( "Material_",			&ScnSpriteComponent::Material_ ),
-		new ReField( "Position_",			&ScnSpriteComponent::Position_ ),
-		new ReField( "Size_",				&ScnSpriteComponent::Size_ ),
-		new ReField( "Colour_",				&ScnSpriteComponent::Colour_ ),
-		new ReField( "Index_",				&ScnSpriteComponent::Index_ ),
-		new ReField( "Layer_",				&ScnSpriteComponent::Layer_ ),
+		new ReField( "Canvas_", &ScnSpriteComponent::Canvas_, bcRFF_TRANSIENT ),
+		new ReField( "Material_", &ScnSpriteComponent::Material_, bcRFF_TRANSIENT ),
+		new ReField( "Material_", &ScnSpriteComponent::MaterialName_ ),
+		new ReField( "Position_", &ScnSpriteComponent::Position_ ),
+		new ReField( "Size_", &ScnSpriteComponent::Size_ ),
+		new ReField( "Colour_", &ScnSpriteComponent::Colour_ ),
+		new ReField( "Index_", &ScnSpriteComponent::Index_ ),
+		new ReField( "Layer_", &ScnSpriteComponent::Layer_ ),
+		new ReField( "Center_", &ScnSpriteComponent::Center_ ),
 	};
-		
+	
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2100 ) );
 }
@@ -54,6 +56,7 @@ void ScnSpriteComponent::initialise()
 	Colour_ = RsColour::WHITE;
 	Index_ = 0;
 	Layer_ = 0;
+	Center_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,9 +64,23 @@ void ScnSpriteComponent::initialise()
 //virtual
 void ScnSpriteComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise( Object );
-
 	ScnSpriteComponent::initialise();
+	MaterialName_ = Object[ "materialcomponent" ].asCString();
+
+	if( Object[ "size" ].type() != Json::nullValue )
+	{
+		Size_ = Object[ "size" ].asCString();
+	}
+
+	if( Object[ "colour" ].type() != Json::nullValue )
+	{
+		Colour_ = MaVec4d( Object[ "colour" ].asCString() );
+	}
+
+	if( Object[ "center" ].type() != Json::nullValue )
+	{
+		Center_ = Object[ "center" ].asBool();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,7 +98,14 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 
 	// Draw sprite at the correct transform position.
 	Canvas_->setMaterialComponent( Material_ );
-	Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
+	if( Center_ )
+	{
+		Canvas_->drawSpriteCentered( Position_, Size_, Index_, Colour_, Layer_ );
+	}
+	else
+	{
+		Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
+	}
 
 	// Pop.
 	Canvas_->popMatrix();
@@ -97,6 +121,10 @@ void ScnSpriteComponent::onAttach( ScnEntityWeakRef Parent )
 	// Find a canvas to use for rendering (someone in ours, or our parent's hierarchy).
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
 	BcAssertMsg( Canvas_.isValid(), "Sprite component needs to be attached to an entity with a canvas component in any parent!" );
+
+	// Find a canvas to use for rendering (someone in ours, or our parent's hierarchy).
+	Material_ = Parent->getComponentAnyParentByType< ScnMaterialComponent >( MaterialName_ );
+	BcAssertMsg( Material_.isValid(), "Sprite component needs to be attached to an entity with a material component in any parent!" );
 }
 
 //////////////////////////////////////////////////////////////////////////
