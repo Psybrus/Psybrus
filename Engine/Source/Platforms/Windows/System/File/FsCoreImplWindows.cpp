@@ -33,7 +33,9 @@ SYS_CREATOR( FsCoreImplWindows );
 // Ctor
 FsCoreImplWindows::FsCoreImplWindows()
 {
-
+	// Create our job queue.
+	// 1 thread if we have 1 or more hardware thread.
+	FsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////

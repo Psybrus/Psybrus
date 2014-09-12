@@ -69,7 +69,8 @@ public:
 		SsChannelCallback DoneCallback ) = 0;
 
 	virtual void stopChannel( 
-		class SsChannel* Channel ) = 0;
+		class SsChannel* Channel,
+		BcBool ForceFlush = BcFalse ) = 0;
 
 	virtual void updateChannel(
 		class SsChannel* Channel,
