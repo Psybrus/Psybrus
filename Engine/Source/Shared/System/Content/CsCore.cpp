@@ -63,6 +63,9 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
+	static BcF32 UnloadTimeout = 5.0f;
+	BcTimer UnloadTimer;
+	UnloadTimer.mark();
 	while( PackageList_.size() > 0 )
 	{
 		freeUnreferencedPackages();
@@ -71,6 +74,12 @@ void CsCore::close()
 		if( UnloadingResources_.size() > 0 )
 		{
 			processUnloadingResources();
+		}
+
+		// If we hit the timeout, just break out and shut down cleanly.
+		if( UnloadTimer.time() > UnloadTimeout )
+		{
+			break;
 		}
 	}
 
