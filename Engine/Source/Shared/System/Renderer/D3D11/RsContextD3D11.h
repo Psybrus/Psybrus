@@ -237,6 +237,7 @@ private:
 	typedef std::map< BcU32, DepthStencilState > DepthStencilStateCache;
 	typedef std::map< BcU32, SamplerState > SamplerStateCache;
 
+	BcU32 FrameCounter_;
 	BlendStateCache BlendStateCache_;
 	RasterizerStateCache RasterizerStateCache_;
 	DepthStencilStateCache DepthStencilStateCache_;
