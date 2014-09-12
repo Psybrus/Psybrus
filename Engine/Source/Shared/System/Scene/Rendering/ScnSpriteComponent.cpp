@@ -81,6 +81,11 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 	{
 		Center_ = Object[ "center" ].asBool();
 	}
+
+	if( Object[ "layer" ].type() != Json::nullValue )
+	{
+		Layer_ = Object[ "layer" ].asBool();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
