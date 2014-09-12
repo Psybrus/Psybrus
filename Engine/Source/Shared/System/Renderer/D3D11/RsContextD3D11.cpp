@@ -128,6 +128,14 @@ static D3D11_STENCIL_OP gStencilOp[] =
 	D3D11_STENCIL_OP_INVERT,		// RsStencilOp::INVERT,
 };
 
+static D3D11_TEXTURE_ADDRESS_MODE gTextureAddressMode[] =
+{
+	D3D11_TEXTURE_ADDRESS_WRAP,		// RsTextureSamplingMode::WRAP
+	D3D11_TEXTURE_ADDRESS_MIRROR,	// RsTextureSamplingMode::MIRROR
+	D3D11_TEXTURE_ADDRESS_CLAMP,	// RsTextureSamplingMode::CLAMP
+	D3D11_TEXTURE_ADDRESS_BORDER	// RsTextureSamplingMode::DECAL
+};
+
 namespace
 {
 	DXGI_FORMAT getVertexElementFormat( RsVertexElement Element )
@@ -242,6 +250,7 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	BcMemZero( &D3DConstantBuffers_[ 0 ], sizeof( D3DConstantBuffers_ ) );
 	BcMemZero( &Textures_[ 0 ], sizeof( Textures_ ) );
 	BcMemZero( &D3DShaderResourceViews_[ 0 ], sizeof( D3DShaderResourceViews_ ) );
+	BcMemZero( &D3DSamplerStates_[ 0 ], sizeof( D3DSamplerStates_ ) );
 
 	InputLayoutChanged_ = false;
 	Program_ = nullptr;
@@ -474,22 +483,6 @@ void RsContextD3D11::create()
 	Context_->OMSetRenderTargets( 1, &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	setDefaultState();
-
-	// Create default sampler.
-	SamplerStateDesc_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	SamplerStateDesc_.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	SamplerStateDesc_.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	SamplerStateDesc_.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	SamplerStateDesc_.MipLODBias = 0;
-	SamplerStateDesc_.MaxAnisotropy = 1;
-	SamplerStateDesc_.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SamplerStateDesc_.BorderColor[ 0 ] = 1.0f;
-	SamplerStateDesc_.BorderColor[ 1 ] = 1.0f;
-	SamplerStateDesc_.BorderColor[ 2 ] = 1.0f;
-	SamplerStateDesc_.BorderColor[ 3 ] = 1.0f;
-	SamplerStateDesc_.MinLOD = -3.402823466e+38F; // -FLT_MAX
-	SamplerStateDesc_.MaxLOD = 3.402823466e+38F; // FLT_MAX
-	Device_->CreateSamplerState( &SamplerStateDesc_, &SamplerState_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -524,8 +517,7 @@ void RsContextD3D11::destroy()
 	BlendStateCache_.clear();
 	RasterizerStateCache_.clear();
 	DepthStencilStateCache_.clear();
-
-	SamplerState_ = nullptr;
+	SamplerStateCache_.clear();
 
 	SwapChain_ = nullptr;
 	Device_ = nullptr;
@@ -712,11 +704,84 @@ BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 
 //////////////////////////////////////////////////////////////////////////
 // setSamplerState
-void RsContextD3D11::setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force )
+void RsContextD3D11::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::setTextureState unimplemented\n" );
+	D3D11_SAMPLER_DESC SamplerStateDesc;
+
+	// Err, maybe use the D3D11 stuff for simplicity.
+	if( Params.MinFilter_ == RsTextureFilteringMode::NEAREST &&
+		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+	else if( Params.MinFilter_ == RsTextureFilteringMode::NEAREST_MIPMAP_LINEAR &&
+		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+	}
+	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR &&
+		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	}
+	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
+		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+	}
+	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR &&
+		Params.MagFilter_ == RsTextureFilteringMode::LINEAR )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
+		Params.MagFilter_ == RsTextureFilteringMode::LINEAR )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else
+	{
+		// Fallback to something sensible.
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+
+	SamplerStateDesc.AddressU = gTextureAddressMode[ (BcU32)Params.UMode_ ];
+	SamplerStateDesc.AddressV = gTextureAddressMode[ (BcU32)Params.VMode_ ];
+	SamplerStateDesc.AddressW = gTextureAddressMode[ (BcU32)Params.WMode_ ];
+	SamplerStateDesc.MipLODBias = 0.0f;
+	SamplerStateDesc.MaxAnisotropy = 1;
+	SamplerStateDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	SamplerStateDesc.BorderColor[ 0 ] = 0.0f;
+	SamplerStateDesc.BorderColor[ 1 ] = 0.0f;
+	SamplerStateDesc.BorderColor[ 2 ] = 0.0f;
+	SamplerStateDesc.BorderColor[ 3 ] = 0.0f;
+	SamplerStateDesc.MinLOD = -FLT_MAX;
+	SamplerStateDesc.MaxLOD = FLT_MAX;
+
+	// Hash and look in map for already existing sampler state object.
+	BcU32 SamplerStateHash = BcHash::GenerateCRC32( 0, &SamplerStateDesc, sizeof( SamplerStateDesc ) );
+	auto FoundSamplerState = SamplerStateCache_.find( SamplerStateHash );
+	if( FoundSamplerState == SamplerStateCache_.end() )
+	{
+		SamplerState State;
+		State.LastFrameUsed_ = 0;
+		Device_->CreateSamplerState( &SamplerStateDesc, &State.State_ );
+		SamplerStateCache_[ SamplerStateHash ] = State;
+		FoundSamplerState = SamplerStateCache_.find( SamplerStateHash );
+	}
+
+	// Bind for each shader based on specified handle.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	{
+		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
+
+		if( SlotIdx != MaxBindPoints )
+		{
+			D3DSamplerStates_[ Idx ][ SlotIdx ] = FoundSamplerState->second.State_;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1484,7 +1549,7 @@ void RsContextD3D11::flushState()
 							Context_->VSSetSamplers( 
 								Idx,
 								1,
-								&SamplerState_ );
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
 						}
 					}
 				}
@@ -1516,7 +1581,7 @@ void RsContextD3D11::flushState()
 							Context_->HSSetSamplers( 
 								Idx,
 								1,
-								&SamplerState_ );
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
 						}
 					}
 
@@ -1549,7 +1614,7 @@ void RsContextD3D11::flushState()
 							Context_->DSSetSamplers( 
 								Idx,
 								1,
-								&SamplerState_ );
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
 						}
 					}
 				}
@@ -1581,7 +1646,7 @@ void RsContextD3D11::flushState()
 							Context_->GSSetSamplers( 
 								Idx,
 								1,
-								&SamplerState_ );
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
 						}
 					}
 				}
@@ -1613,7 +1678,7 @@ void RsContextD3D11::flushState()
 							Context_->PSSetSamplers( 
 								Idx,
 								1,
-								&SamplerState_ );
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
 						}
 					}
 				}
@@ -1645,7 +1710,7 @@ void RsContextD3D11::flushState()
 							Context_->CSSetSamplers( 
 								Idx,
 								1,
-								&SamplerState_ );
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
 						}
 					}
 				}
