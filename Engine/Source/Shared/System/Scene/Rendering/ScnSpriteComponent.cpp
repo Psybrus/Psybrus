@@ -84,7 +84,7 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 
 	if( Object[ "layer" ].type() != Json::nullValue )
 	{
-		Layer_ = Object[ "layer" ].asBool();
+		Layer_ = Object[ "layer" ].asUInt();
 	}
 }
 
