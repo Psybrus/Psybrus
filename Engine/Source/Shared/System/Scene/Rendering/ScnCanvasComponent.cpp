@@ -992,6 +992,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		}
 		
 		// Add to frame.
+		Sort.Layer_ = pRenderNode->pPrimitiveSections_->Layer_;
 		pRenderNode->Sort_ = Sort;
 		pFrame->addRenderNode( pRenderNode );
 	}
