@@ -33,9 +33,7 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Position_",			&ScnSoundEmitterComponent::Position_ ),
-		new ReField( "Gain_",				&ScnSoundEmitterComponent::Gain_ ),
-		new ReField( "Pitch_",				&ScnSoundEmitterComponent::Pitch_ ),
+		new ReField( "Params_", &ScnSoundEmitterComponent::Params_ ),
 	};
 		
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
@@ -48,10 +46,6 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 void ScnSoundEmitterComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
-
-	Position_ = MaVec3d( 0.0f, 0.0f, 0.0f );
-	Gain_ = 1.0f;
-	Pitch_ = 1.0f;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,7 +86,7 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 
 		// Add to map, or release if not played.
 		{
-			std::lock_guard< std::mutex > Lock( ChannelSoundMutex_ );
+			std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
 			if( Channel != NULL )
 			{
 				ChannelSoundMap_[ Channel ] = Sound;
@@ -107,15 +101,33 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 
 //////////////////////////////////////////////////////////////////////////
 // stopAll
-void ScnSoundEmitterComponent::stopAll()
+void ScnSoundEmitterComponent::stopAll( BcBool ForceFlush )
 {
-	std::lock_guard< std::mutex > Lock( ChannelSoundMutex_ );
-
-	// Stop all bound channels.
-	for( TChannelSoundMapIterator It( ChannelSoundMap_.begin() ); It != ChannelSoundMap_.end(); ++It )
+	if( ForceFlush )
 	{
-		// Stop channel.
-		SsCore::pImpl()->stopChannel( (*It).first );
+		// Stop all channels. We are forcing a flush
+		// so we know items will all be removed in the callback.
+		ChannelSoundMutex_.lock();
+		while( ChannelSoundMap_.size() > 0 )
+		{
+			auto It = ChannelSoundMap_.begin();
+			ChannelSoundMutex_.unlock();
+	
+			// Stop channel.
+			SsCore::pImpl()->stopChannel( (*It).first, BcTrue );
+			ChannelSoundMutex_.lock();
+		}
+		ChannelSoundMutex_.unlock();
+	}
+	else
+	{
+		std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
+
+		// Stop channels.
+		for( auto Pair : ChannelSoundMap_ )
+		{
+			SsCore::pImpl()->stopChannel( Pair.first );
+		}
 	}
 }
 
@@ -123,7 +135,7 @@ void ScnSoundEmitterComponent::stopAll()
 // onChannelDone
 void ScnSoundEmitterComponent::onChannelDone( SsChannel* Channel )
 {
-	std::lock_guard< std::mutex > Lock( ChannelSoundMutex_ );
+	std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
 	ChannelSoundMap_.erase( ChannelSoundMap_.find( Channel ) );
 	getPackage()->release();
 }
@@ -132,14 +144,14 @@ void ScnSoundEmitterComponent::onChannelDone( SsChannel* Channel )
 // setGain
 void ScnSoundEmitterComponent::setGain( BcF32 Gain )
 {
-	Gain_ = Gain;
+	Params_.Gain_ = Gain;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setPitch
 void ScnSoundEmitterComponent::setPitch( BcF32 Pitch )
 {
-	Pitch_ = Pitch;
+	Params_.Pitch_ = Pitch;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,7 +167,7 @@ void ScnSoundEmitterComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnSoundEmitterComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	stopAll();
+	stopAll( BcTrue );
 
 	Super::onDetach( Parent );
 }

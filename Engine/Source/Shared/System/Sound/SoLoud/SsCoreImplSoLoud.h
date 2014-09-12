@@ -76,7 +76,8 @@ public:
 		SsChannelCallback DoneCallback );
 
 	void stopChannel( 
-		SsChannel* Channel );
+		SsChannel* Channel,
+		BcBool ForceFlush );
 
 	void updateChannel(
 		SsChannel* Channel,
@@ -87,6 +88,8 @@ private:
 	void updateChannel( SsChannel* Channel, SoLoud::handle Handle );
 	void freeChannel( SsChannel* Channel );
 	
+	void internalUpdate();
+	
 public:
 	SoLoud::Soloud* SoLoudCore_;
 	std::list< SsChannel* > FreeChannels_;
@@ -94,6 +97,8 @@ public:
 	std::list< SsChannel* > UsedChannels_;
 	std::map< SsChannel*, SsChannelCallback > ChannelDoneCallbacks_;
 	std::recursive_mutex ChannelMutex_;
+
+	SysFence WaitFence_;
 	
 };
 
