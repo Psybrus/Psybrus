@@ -13,6 +13,8 @@
 
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/ScnEntity.h"
+#include "System/Os/OsCore.h"
+#include "System/Os/OsClient.h"
 
 #ifdef PSY_SERVER
 #include "Base/BcStream.h"
@@ -33,6 +35,11 @@ void ScnCanvasComponent::StaticRegisterClass()
 		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
 		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_ ),
 		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_ ),
+		new ReField( "Clear_", &ScnCanvasComponent::Clear_ ),
+		new ReField( "Left_", &ScnCanvasComponent::Left_ ),
+		new ReField( "Right_", &ScnCanvasComponent::Right_ ),
+		new ReField( "Top_", &ScnCanvasComponent::Top_ ),
+		new ReField( "Bottom_", &ScnCanvasComponent::Bottom_ ),
 	};
 		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
@@ -45,6 +52,12 @@ void ScnCanvasComponent::StaticRegisterClass()
 void ScnCanvasComponent::initialise()
 {
 	initialise( 0 );
+
+	Clear_ = BcFalse;
+	Left_ = 0.0f;
+	Right_ = 0.0f;
+	Top_ = 0.0f;
+	Bottom_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,6 +94,18 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 void ScnCanvasComponent::initialise( const Json::Value& Object )
 {
 	ScnCanvasComponent::initialise( Object[ "noofvertices" ].asUInt() );
+
+	if( Object[ "clear" ].type() != Json::nullValue )
+	{
+		Clear_ = Object[ "clear" ].asBool();
+		if( Clear_ )
+		{
+			Left_ = BcF32( Object[ "left" ].asDouble() );
+			Right_ = BcF32( Object[ "right" ].asDouble() );
+			Top_ = BcF32( Object[ "top" ].asDouble() );
+			Bottom_ = BcF32( Object[ "bottom" ].asDouble() );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -853,14 +878,40 @@ void ScnCanvasComponent::clear()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// preUpdate
 //virtual
 void ScnCanvasComponent::preUpdate( BcF32 Tick )
 {
 	Super::update( Tick );
 
-	// TODO: Clear in the pre-update tick.
-	//clear();
+	if( Clear_ )
+	{
+		clear();
+
+		// Push new ortho matrix.
+		// Just use default client size.
+		auto Client = OsCore::pImpl()->getClient( 0 );
+
+		MaMat4d Projection;
+		Projection.orthoProjection(
+			Left_ * Client->getWidth() * 0.5f,
+			Right_ * Client->getWidth() * 0.5f,
+			Top_ * Client->getHeight() * 0.5f,
+			Bottom_ * Client->getHeight() * 0.5f,
+			-1.0f, 
+			1.0f );
+
+		// Push projection matrix onto stack.
+		pushMatrix( Projection );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// postUpdate
+//virtual 
+void ScnCanvasComponent::postUpdate( BcF32 Tick )
+{
+	popMatrix();
 }
 
 //////////////////////////////////////////////////////////////////////////
