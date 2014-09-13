@@ -17,7 +17,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
-
+#include "System/Debug/DsCore.h"
 #ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
@@ -34,13 +34,13 @@ void ScnSpriteComponent::StaticRegisterClass()
 		new ReField( "Canvas_", &ScnSpriteComponent::Canvas_, bcRFF_TRANSIENT ),
 		new ReField( "Material_", &ScnSpriteComponent::Material_, bcRFF_TRANSIENT ),
 		new ReField( "Material_", &ScnSpriteComponent::MaterialName_ ),
-		new ReField( "Position_", &ScnSpriteComponent::Position_ ),
-		new ReField( "Size_", &ScnSpriteComponent::Size_ ),
-		new ReField( "Colour_", &ScnSpriteComponent::Colour_ ),
+		new ReField( "Position_", &ScnSpriteComponent::Position_ , DsCore::DsCoreSerialised ),
+		new ReField( "Size_", &ScnSpriteComponent::Size_, DsCore::DsCoreSerialised  ),
+		new ReField( "Colour_", &ScnSpriteComponent::Colour_, DsCore::DsCoreSerialised ),
 		new ReField( "Index_", &ScnSpriteComponent::Index_ ),
-		new ReField( "Layer_", &ScnSpriteComponent::Layer_ ),
-		new ReField( "Center_", &ScnSpriteComponent::Center_ ),
-		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_ ),
+		new ReField( "Layer_", &ScnSpriteComponent::Layer_, DsCore::DsCoreSerialised  ),
+		new ReField( "Center_", &ScnSpriteComponent::Center_, DsCore::DsCoreSerialised  ),
+		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, DsCore::DsCoreSerialised  ),
 	};
 	
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
