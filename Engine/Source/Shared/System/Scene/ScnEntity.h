@@ -129,6 +129,11 @@ public:
 	void								setLocalMatrix( const MaMat4d& Matrix );
 
 	/**
+	 * Set matrix rot + scale part.
+	 */
+	void								setLocalMatrixRS( const MaMat4d& Matrix );
+
+	/**
 	 * Get local position.
 	 */
 	MaVec3d								getLocalPosition() const;
@@ -142,6 +147,11 @@ public:
 	 * Set matrix.
 	 */
 	void								setWorldMatrix( const MaMat4d& Matrix );
+
+	/**
+	 * Set matrix rot + scale part.
+	 */
+	void								setWorldMatrixRS( const MaMat4d& Matrix );
 
 	/**
 	 * Get position.

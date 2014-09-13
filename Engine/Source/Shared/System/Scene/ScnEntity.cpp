@@ -399,6 +399,22 @@ void ScnEntity::setLocalMatrix( const MaMat4d& Matrix )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setLocalMatrixRS
+void ScnEntity::setLocalMatrixRS( const MaMat4d& Matrix )
+{
+	LocalTransform_.row0( Matrix.row0() );
+	LocalTransform_.row1( Matrix.row1() );
+	LocalTransform_.row2( Matrix.row2() );
+	if( ParentEntity_ == nullptr )
+	{
+		WorldTransform_ = Matrix;
+		WorldTransform_.row0( Matrix.row0() );
+		WorldTransform_.row1( Matrix.row1() );
+		WorldTransform_.row2( Matrix.row2() );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getLocalPosition
 MaVec3d ScnEntity::getLocalPosition() const
 {
@@ -429,6 +445,19 @@ void ScnEntity::setWorldMatrix( const MaMat4d& Matrix )
 
 	WorldTransform_ = Matrix;
 	setLocalMatrix( InverseParentWorldTransform * Matrix );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWorldMatrixRS
+void ScnEntity::setWorldMatrixRS( const MaMat4d& Matrix )
+{
+	MaMat4d InverseParentWorldTransform =
+		ParentEntity_ != nullptr ?
+		ParentEntity_->WorldTransform_ : MaMat4d();
+	InverseParentWorldTransform.inverse();
+
+	WorldTransform_ = Matrix;
+	setLocalMatrixRS( InverseParentWorldTransform * Matrix );
 }
 
 //////////////////////////////////////////////////////////////////////////
