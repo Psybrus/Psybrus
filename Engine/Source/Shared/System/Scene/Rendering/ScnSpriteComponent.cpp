@@ -141,3 +141,31 @@ void ScnSpriteComponent::onDetach( ScnEntityWeakRef Parent )
 
 	Canvas_ = nullptr;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getSize
+const MaVec2d& ScnSpriteComponent::getSize() const
+{
+	return Size_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSize
+void ScnSpriteComponent::setSize( const MaVec2d& Size )
+{
+	Size_ = Size;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getColour
+const RsColour& ScnSpriteComponent::getColour() const
+{
+	return Colour_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setColour
+void ScnSpriteComponent::setColour( const RsColour& Colour )
+{
+	Colour_ = Colour;
+}
