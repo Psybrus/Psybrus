@@ -94,6 +94,11 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 		Layer_ = Object[ "layer" ].asUInt();
 	}
 
+	if( Object[ "index" ].type() != Json::nullValue ) 
+	{
+		Index_ = Object[ "index" ].asUInt();
+	}
+
 	if( Object[ "isscreenspace" ].type() != Json::nullValue )
 	{
 		IsScreenSpace_ = Object[ "isscreenspace" ].asBool();
