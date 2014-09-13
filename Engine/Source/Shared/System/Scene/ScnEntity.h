@@ -134,6 +134,16 @@ public:
 	MaVec3d								getLocalPosition() const;
 
 	/**
+	 * Set position.
+	 */
+	void								setWorldPosition( const MaVec3d& Position );
+
+	/**
+	 * Set matrix.
+	 */
+	void								setWorldMatrix( const MaMat4d& Matrix );
+
+	/**
 	 * Get position.
 	 */
 	MaVec3d								getWorldPosition() const;
