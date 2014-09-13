@@ -52,9 +52,11 @@ CsResourceImporterAttribute::CsResourceImporterAttribute():
 
 CsResourceImporterAttribute::CsResourceImporterAttribute( 
 		const ReClass* ImporterClass,
-		BcU32 VersionId ):
+		BcU32 VersionId,
+		BcU32 Priority ):
 	ImporterClass_( ImporterClass ),
-	VersionId_( VersionId )
+	VersionId_( VersionId ),
+	Priority_( Priority )
 {
 
 }
@@ -67,6 +69,11 @@ CsResourceImporterUPtr CsResourceImporterAttribute::getImporter() const
 BcU32 CsResourceImporterAttribute::getVersionId() const
 {
 	return VersionId_;
+}
+
+BcU32 CsResourceImporterAttribute::getPriority() const
+{
+	return Priority_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -151,6 +158,16 @@ std::string CsResourceImporter::getResourceType() const
 BcU32 CsResourceImporter::getResourceId() const
 {
 	return ResourceId_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getImporterAttribute
+const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() const
+{
+	auto Attr = static_cast< CsResourceImporterAttribute* >( 
+		ReManager::GetClass( getResourceType() )->getAttribute( CsResourceImporterAttribute::StaticGetClass() ) );
+	BcAssert( Attr );
+	return Attr;
 }
 
 //////////////////////////////////////////////////////////////////////////

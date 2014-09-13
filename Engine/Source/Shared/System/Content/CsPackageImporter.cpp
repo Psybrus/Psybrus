@@ -133,6 +133,9 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		}
 		endImport();
 
+		// Sort importers.
+		std::sort( Resources_.begin(), Resources_.end() );
+
 		// Iterate over all resources and import (import calls can append to the list)
 		while( Resources_.size() > 0 )
 		{
@@ -496,7 +499,7 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 //////////////////////////////////////////////////////////////////////////
 // addImport
 BcU32 CsPackageImporter::addImport( 
-	CsResourceImporterUPtr Importer, 
+	CsResourceImporterUPtr Importer,
 	const Json::Value& Resource, 
 	BcBool IsCrossRef )
 {

@@ -191,11 +191,25 @@ private:
 		{
 		}
 
+		TResourceImport& operator = ( TResourceImport&& Other )
+		{
+			Importer_ = std::move( Other.Importer_ );
+			Resource_ = std::move( Other.Resource_ );
+			return *this;
+		}
+
+		bool operator < ( TResourceImport& Other )
+		{
+			return Importer_->getImporterAttribute()->getPriority() <
+				Other.Importer_->getImporterAttribute()->getPriority();
+		}
+
 		CsResourceImporterUPtr Importer_;
 		Json::Value Resource_; // Temporary until we get rid of all importer Json deps.
 	};
 	
-	std::list< TResourceImport >	Resources_;
+	typedef std::deque< TResourceImport > ResourceImportList;
+	ResourceImportList Resources_;
 
 	CsPackageResourceHeader			CurrResourceHeader_;
 

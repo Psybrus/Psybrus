@@ -51,13 +51,13 @@ void ScnComponent::StaticRegisterClass()
 		new ReField( "ParentEntity_", &ScnComponent::ParentEntity_, bcRFF_SHALLOW_COPY ),
 		new ReField( "pJsonObject_", &ScnComponent::pJsonObject_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA )
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
 
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnComponentImport::StaticGetClass(), 0 ) );
+		ScnComponentImport::StaticGetClass(), 0, 100 ) );
 #endif
 }
 
