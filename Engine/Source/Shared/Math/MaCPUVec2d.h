@@ -72,7 +72,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-BcForceInline MaCPUVec2d::MaCPUVec2d()
+BcForceInline MaCPUVec2d::MaCPUVec2d():
+	MaCPUVecQuad( 0.0f, 0.0f )
 {
 
 }
