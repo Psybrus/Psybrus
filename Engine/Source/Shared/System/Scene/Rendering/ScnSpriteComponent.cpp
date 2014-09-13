@@ -79,6 +79,11 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 		Colour_ = MaVec4d( Object[ "colour" ].asCString() );
 	}
 
+	if( Object[ "position" ].type() != Json::nullValue )
+	{
+		Position_ = MaVec2d( Object[ "position" ].asCString() );
+	}
+
 	if( Object[ "center" ].type() != Json::nullValue )
 	{
 		Center_ = Object[ "center" ].asBool();
