@@ -36,6 +36,9 @@ public:
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
 
+	const MaVec2d& getPosition() const;
+	void getPosition( const MaVec2d& Position );
+
 	const MaVec2d& getSize() const;
 	void setSize( const MaVec2d& Size );
 
@@ -53,6 +56,7 @@ private:
 	BcU32								Index_;
 	BcU32								Layer_;
 	BcBool								Center_;
+	BcBool								IsScreenSpace_;
 };
 
 

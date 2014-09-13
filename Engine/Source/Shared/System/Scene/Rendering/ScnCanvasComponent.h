@@ -87,8 +87,13 @@ public:
 	/*
 	 * Pop matrix.
 	 */
-	void								popMatrix();
+	MaMat4d								popMatrix();
 	
+	/*
+	 * Set current matrix.
+	 */
+	void								setMatrix( const MaMat4d& Matrix );
+
 	/*
 	 * Get current matrix.
 	 */

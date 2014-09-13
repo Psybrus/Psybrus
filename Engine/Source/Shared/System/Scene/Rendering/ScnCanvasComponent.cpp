@@ -206,20 +206,26 @@ void ScnCanvasComponent::pushMatrix( const MaMat4d& Matrix )
 
 //////////////////////////////////////////////////////////////////////////
 // popMatrix
-void ScnCanvasComponent::popMatrix()
+MaMat4d ScnCanvasComponent::popMatrix()
 {
 	BcAssertMsg( MatrixStack_.size(), "ScnCanvasComponent: Can't pop the last matrix off the stack! Mismatching push/pop?" );
-	
+	auto RetVal = getMatrix();
 	if( MatrixStack_.size() > 1 )
 	{
 		MatrixStack_.pop_back();
 		const MaMat4d& CurrMatrix = getMatrix();
 		IsIdentity_ = CurrMatrix.isIdentity();
 	}
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getMatrix
+// setMatrix
+void ScnCanvasComponent::setMatrix( const MaMat4d& Matrix )
+{
+	MatrixStack_[ MatrixStack_.size() - 1 ] = Matrix;
+}
+
 MaMat4d ScnCanvasComponent::getMatrix() const
 {
 	return MatrixStack_[ MatrixStack_.size() - 1 ];
