@@ -174,7 +174,7 @@ const MaVec2d& ScnSpriteComponent::getPosition() const
 
 //////////////////////////////////////////////////////////////////////////
 // getPosition
-void ScnSpriteComponent::getPosition( const MaVec2d& Position )
+void ScnSpriteComponent::setPosition( const MaVec2d& Position )
 {
 	Position_ = Position;
 }
