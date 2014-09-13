@@ -29,12 +29,18 @@ class ScnSpriteComponent:
 public:
 	DECLARE_RESOURCE( ScnSpriteComponent, ScnComponent );
 	
-	virtual void						initialise();
-	virtual void						initialise( const Json::Value& Object );
-	virtual void						postUpdate( BcF32 Tick );
+	virtual void initialise();
+	virtual void initialise( const Json::Value& Object );
+	virtual void postUpdate( BcF32 Tick );
 	
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+
+	const MaVec2d& getSize() const;
+	void setSize( const MaVec2d& Size );
+
+	const RsColour& getColour() const;
+	void setColour( const RsColour& Colour );
 
 private:
 	ScnCanvasComponentRef				Canvas_;
