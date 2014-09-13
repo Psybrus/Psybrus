@@ -993,6 +993,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
+		auto* PrimitiveSection = &PrimitiveSectionList_[ Idx ];
 		ScnCanvasComponentRenderNode* pRenderNode = pFrame->newObject< ScnCanvasComponentRenderNode >();
 		
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
@@ -1001,7 +1002,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		
 		// Copy primitive sections in.
-		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
+		BcMemCopy( pRenderNode->pPrimitiveSections_, PrimitiveSection, sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
 		
 		// Bind material.
 		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
@@ -1013,7 +1014,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		}
 		
 		// Add to frame.
-		Sort.Layer_ = pRenderNode->pPrimitiveSections_->Layer_;
+		//Sort.Layer_ = PrimitiveSection->Layer_;
 		pRenderNode->Sort_ = Sort;
 		pFrame->addRenderNode( pRenderNode );
 	}
