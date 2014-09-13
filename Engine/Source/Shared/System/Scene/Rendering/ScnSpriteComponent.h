@@ -37,7 +37,7 @@ public:
 	virtual void onDetach( ScnEntityWeakRef Parent );
 
 	const MaVec2d& getPosition() const;
-	void getPosition( const MaVec2d& Position );
+	void setPosition( const MaVec2d& Position );
 
 	const MaVec2d& getSize() const;
 	void setSize( const MaVec2d& Size );
