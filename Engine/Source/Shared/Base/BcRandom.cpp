@@ -55,6 +55,14 @@ BcF32 BcRandom::randReal()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// randRealRange
+BcF32 BcRandom::randRealRange( BcF32 Min, BcF32 Max )
+{
+	return ( ( ( randReal() + 1.0f ) * 0.5f ) * ( Max - Min ) ) + Min;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // randRange
 BcS32 BcRandom::randRange( BcS32 Min, BcS32 Max )
 {

@@ -28,6 +28,7 @@ public:
 
 	BcS32 rand();
 	BcF32 randReal();
+	BcF32 randRealRange( BcF32 Min, BcF32 Max );
 	BcS32 randRange( BcS32 Min, BcS32 Max );
 	BcF32 noise( BcU32 X, BcU32 Width );
 	BcF32 smoothedNoise( BcF32 X, BcU32 Width = 512 );
