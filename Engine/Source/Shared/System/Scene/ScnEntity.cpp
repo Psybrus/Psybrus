@@ -406,6 +406,32 @@ MaVec3d ScnEntity::getLocalPosition() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setWorldPosition
+void ScnEntity::setWorldPosition( const MaVec3d& Position )
+{
+	MaMat4d InverseParentWorldTransform = 
+		ParentEntity_ != nullptr ? 
+			ParentEntity_->WorldTransform_ : MaMat4d();
+	InverseParentWorldTransform.inverse();
+
+	WorldTransform_.translation( Position );
+	setLocalMatrix( InverseParentWorldTransform * WorldTransform_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWorldMatrix
+void ScnEntity::setWorldMatrix( const MaMat4d& Matrix )
+{
+	MaMat4d InverseParentWorldTransform =
+		ParentEntity_ != nullptr ?
+			ParentEntity_->WorldTransform_ : MaMat4d();
+	InverseParentWorldTransform.inverse();
+
+	WorldTransform_ = Matrix;
+	setLocalMatrix( InverseParentWorldTransform * Matrix );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getWorldPosition
 MaVec3d ScnEntity::getWorldPosition() const
 {
