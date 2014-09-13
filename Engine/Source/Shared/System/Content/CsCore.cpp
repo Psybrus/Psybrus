@@ -50,6 +50,7 @@ void CsCore::update()
 	processCreateResources();
 	processLoadingResources();
 	processLoadedResource();
+	freeUnreferencedPackages();
 	processUnloadingResources();
 	processCallbacks();
 }
@@ -460,7 +461,7 @@ void CsCore::processLoadedResource()
 		{
 			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
-		
+	
 		++It;
 	}
 
