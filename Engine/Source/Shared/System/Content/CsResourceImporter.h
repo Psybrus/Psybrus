@@ -44,14 +44,17 @@ public:
 
 	CsResourceImporterAttribute( 
 		const ReClass* ImporterClass,
-		BcU32 VersionId );
+		BcU32 VersionId,
+		BcU32 Priority = 0 );
 
 	CsResourceImporterUPtr getImporter() const;
 	BcU32 getVersionId() const;
+	BcU32 getPriority() const;
 
 private:
 	const ReClass* ImporterClass_;
 	BcU32 VersionId_;
+	BcU32 Priority_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,6 +99,10 @@ public:
 	 */
 	BcU32 getResourceId() const;
 
+	/**
+	 * Get importer attribute.
+	 */
+	const CsResourceImporterAttribute* getImporterAttribute() const;
 
 protected:
 	/**

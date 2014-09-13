@@ -47,7 +47,7 @@ void ScnEntity::StaticRegisterClass()
 #ifdef PSY_SERVER
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnEntityImport::StaticGetClass(), 0 ) );
+		ScnEntityImport::StaticGetClass(), 0, 200 ) );
 #endif
 }
 
