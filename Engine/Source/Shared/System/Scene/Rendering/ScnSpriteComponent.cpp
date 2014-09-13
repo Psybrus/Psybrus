@@ -40,6 +40,7 @@ void ScnSpriteComponent::StaticRegisterClass()
 		new ReField( "Index_", &ScnSpriteComponent::Index_ ),
 		new ReField( "Layer_", &ScnSpriteComponent::Layer_ ),
 		new ReField( "Center_", &ScnSpriteComponent::Center_ ),
+		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_ ),
 	};
 	
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
@@ -57,6 +58,7 @@ void ScnSpriteComponent::initialise()
 	Index_ = 0;
 	Layer_ = 0;
 	Center_ = BcFalse;
+	IsScreenSpace_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,6 +88,12 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 	{
 		Layer_ = Object[ "layer" ].asUInt();
 	}
+
+	if( Object[ "isscreenspace" ].type() != Json::nullValue )
+	{
+		IsScreenSpace_ = Object[ "isscreenspace" ].asBool();
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,10 +104,17 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	Super::postUpdate( Tick );
 
 	ScnEntityWeakRef Entity = getParentEntity();
-	const MaMat4d& Matrix = Entity->getWorldMatrix();
+	MaMat4d Matrix = Entity->getWorldMatrix();
 
 	// Push matrix onto canvas.
-	Canvas_->pushMatrix( Matrix );
+	if( !IsScreenSpace_ )
+	{
+		Canvas_->pushMatrix( Matrix );
+	}
+	else
+	{
+		Matrix = Canvas_->popMatrix();
+	}
 
 	// Draw sprite at the correct transform position.
 	Canvas_->setMaterialComponent( Material_ );
@@ -113,7 +128,15 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	}
 
 	// Pop.
-	Canvas_->popMatrix();
+	if( !IsScreenSpace_ )
+	{
+		Canvas_->popMatrix();
+	}
+	else
+	{
+		Canvas_->pushMatrix( Matrix );
+		Canvas_->setMatrix( Matrix );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,6 +163,20 @@ void ScnSpriteComponent::onDetach( ScnEntityWeakRef Parent )
 	Super::onDetach( Parent );
 
 	Canvas_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPosition
+const MaVec2d& ScnSpriteComponent::getPosition() const
+{
+	return Position_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPosition
+void ScnSpriteComponent::getPosition( const MaVec2d& Position )
+{
+	Position_ = Position;
 }
 
 //////////////////////////////////////////////////////////////////////////
