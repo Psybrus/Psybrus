@@ -96,12 +96,14 @@ void MainShared()
 	{
 		RsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
+	RsCore::JOB_QUEUE_ID = BcErrorCode;
 
 	// Disable sound thread for debugging.
 	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
 	{
 		SsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
+	SsCore::JOB_QUEUE_ID = BcErrorCode;
 
 	// Disable file thread for debugging.
 	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
