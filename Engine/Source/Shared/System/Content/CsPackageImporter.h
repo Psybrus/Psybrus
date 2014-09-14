@@ -20,7 +20,6 @@
 #include "System/Content/CsResource.h"
 #include "System/Content/CsResourceImporter.h"
 
-#ifdef PSY_SERVER
 #include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -236,4 +235,3 @@ private:
 
 #endif
 
-#endif

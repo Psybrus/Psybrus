@@ -14,7 +14,6 @@
 #ifndef __SCNMATERIALIMPORT_H__
 #define __SCNMATERIALIMPORT_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Renderer/RsTypes.h"
@@ -46,5 +45,4 @@ private:
 	std::array< BcU32, (BcU32)RsRenderStateType::MAX > DefaultState_;
 };
 
-#endif
 #endif
