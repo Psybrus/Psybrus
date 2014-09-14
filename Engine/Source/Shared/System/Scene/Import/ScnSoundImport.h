@@ -42,6 +42,7 @@ public:
 private:
 	std::string Source_;
 	BcBool IsStream_;
+	BcBool IsLoop_;
 	SsSourceFileData FileData_;
 };
 

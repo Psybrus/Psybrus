@@ -30,6 +30,7 @@ struct SsSourceFileData
 	};
 
 	BcU32 Type_;
+	BcBool Looping_;
 	CsFileHash FileHash_;
 };
 
