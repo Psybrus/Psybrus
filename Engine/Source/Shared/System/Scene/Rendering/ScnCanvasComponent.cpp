@@ -28,11 +28,7 @@ void ScnCanvasComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "MaterialComponent_", &ScnCanvasComponent::MaterialComponent_ ),
-		new ReField( "CurrentRenderResource_", &ScnCanvasComponent::CurrentRenderResource_, bcRFF_TRANSIENT ),
 		new ReField( "HaveVertexBufferLock_", &ScnCanvasComponent::HaveVertexBufferLock_, bcRFF_TRANSIENT ),
-		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
-		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
 		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_ ),
 		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_, bcRFF_TRANSIENT ),
 		new ReField( "Clear_", &ScnCanvasComponent::Clear_ ),
@@ -41,6 +37,11 @@ void ScnCanvasComponent::StaticRegisterClass()
 		new ReField( "Top_", &ScnCanvasComponent::Top_ ),
 		new ReField( "Bottom_", &ScnCanvasComponent::Bottom_ ),
 		new ReField( "ViewMatrix_", &ScnCanvasComponent::ViewMatrix_ ),
+		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_ ),
+		new ReField( "MaterialComponent_", &ScnCanvasComponent::MaterialComponent_ ),
+		new ReField( "DiffuseTexture_", &ScnCanvasComponent::DiffuseTexture_, bcRFF_TRANSIENT ),
+		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
+		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
 	};
 		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
@@ -68,25 +69,21 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 {
 	Super::initialise();
 
-	// NULL internals.
-	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
+	// Clear render resource to null.
+	BcMemZero( &RenderResource_, sizeof( RenderResource_ ) );
 	HaveVertexBufferLock_ = BcFalse;
-	
+
 	// Setup matrix stack with an identity matrix and reserve.
 	MatrixStack_.reserve( 16 );
 	MatrixStack_.push_back( MaMat4d() );
 	IsIdentity_ = BcTrue;
-	
+
 	// Store number of vertices.
 	pVertices_ = pVerticesEnd_ = nullptr;
 	pWorkingVertices_ = nullptr;
-	NoofVertices_ = NoofVertices;
 	VertexIndex_ = 0;
 	VertexDeclaration_ = nullptr;
-	pRenderResource_ = nullptr;
-	
-	// Which render resource to use.
-	CurrentRenderResource_ = 0;
+	NoofVertices_ = NoofVertices;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,17 +119,11 @@ void ScnCanvasComponent::create()
 			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 
 	// Allocate render resources.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::VERTEX,
-				RsResourceCreationFlags::STREAM,
-				NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
-	}
+	RenderResource_.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::VERTEX,
+			RsResourceCreationFlags::STREAM,
+			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
@@ -147,14 +138,10 @@ void ScnCanvasComponent::destroy()
 {
 	UploadFence_.wait();
 
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
+	// Allocate render side vertex buffer.
+	RsCore::pImpl()->destroyResource( RenderResource_.pVertexBuffer_ );
 
-		// Allocate render side vertex buffer.
-		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
-	}
-
+	// Destroy vertex declaration.
 	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
@@ -871,8 +858,8 @@ void ScnCanvasComponent::drawSpriteCenteredUp3D( const MaVec3d& Position, const 
 // render
 void ScnCanvasComponent::clear()
 {
-	// Set current render resource.
-	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
+	// Wait for vertex buffer to finish uploading.
+	UploadFence_.wait();
 
 	// Set vertices up.
 	pVertices_ = pVerticesEnd_ = pWorkingVertices_;
@@ -967,7 +954,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	{
 		UploadFence_.increment();
 		RsCore::pImpl()->updateBuffer( 
-			pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
+			RenderResource_.pVertexBuffer_, 0, VertexDataSize, 
 			RsResourceUpdateFlags::ASYNC,
 			[ this, VertexDataSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -998,7 +985,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		
 		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
 		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
-		pRenderNode->VertexBuffer_ = pRenderResource_->pVertexBuffer_;
+		pRenderNode->VertexBuffer_ = RenderResource_.pVertexBuffer_;
 		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		
 		// Copy primitive sections in.
@@ -1019,12 +1006,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		pFrame->addRenderNode( pRenderNode );
 	}
 	
-	// Flip the render resource.
-	CurrentRenderResource_ = 1 - CurrentRenderResource_;
-
-	// Reset render resource pointers to aid debugging.
-	pRenderResource_ = NULL;
-	pVertices_ = pVerticesEnd_ = NULL;
+	// Reset vertices.
+	pVertices_ = pVerticesEnd_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
