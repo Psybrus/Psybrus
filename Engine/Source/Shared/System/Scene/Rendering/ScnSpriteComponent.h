@@ -56,7 +56,7 @@ public:
 		REFLECTION_DECLARE_BASIC( Animation );
 		Animation(){};
 		std::string Next_;
-		std::vector< BcU32 > Keys_;
+		std::vector< BcS32 > Keys_;
 	};
 
 private:
@@ -67,7 +67,7 @@ private:
 	MaVec2d Position_;
 	MaVec2d Size_;
 	RsColour Colour_;
-	BcU32 Index_;
+	BcS32 Index_;
 	BcU32 Layer_;
 	BcBool Center_;
 	BcBool IsScreenSpace_;
