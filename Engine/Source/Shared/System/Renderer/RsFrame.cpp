@@ -82,6 +82,8 @@ void RsFrame::render()
 		// Set default state.
 		pContext_->setDefaultState();
 
+		pContext_->clear( RsColour::WHITE );
+
 		// Sort all nodes.
 		sortNodes();
 
