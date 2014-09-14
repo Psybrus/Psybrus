@@ -265,7 +265,7 @@ public:
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
 		pContext_->setViewport( Viewport_ );
-		pContext_->clear( RsColour::BLACK );
+		pContext_->clear( RsColour::WHITE );
 	}
 
 	RsViewport Viewport_;
