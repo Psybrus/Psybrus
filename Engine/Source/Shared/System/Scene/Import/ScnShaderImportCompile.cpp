@@ -13,8 +13,6 @@
 
 #include "ScnShaderImport.h"
 
-#ifdef PSY_SERVER
-
 #include "Base/BcFile.h"
 #include "Base/BcComRef.h"
 
@@ -146,8 +144,3 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 
 	return VertexAttributeList;
 }
-
-
-
-#endif
-

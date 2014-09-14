@@ -27,8 +27,6 @@
 
 #define ENABLE_ASSIMP_IMPORTER			( 1 )
 
-#ifdef PSY_SERVER
-
 namespace
 {
 	/**
@@ -1211,5 +1209,3 @@ BcU32 ScnModelImport::findNodeIndex(
 	return FoundIndex;
 }
 
-
-#endif

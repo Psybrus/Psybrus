@@ -17,7 +17,6 @@
 
 #include "System/Renderer/RsTypes.h"
 
-#ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcMath.h"
 #include "Base/BcStream.h"
@@ -455,5 +454,3 @@ BcBool ScnTextureImport::import(
 
 	return BcFalse;
 }
-
-#endif

@@ -18,7 +18,6 @@
 #include "System/Scene/ScnComponent.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
-#ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 
@@ -98,5 +97,3 @@ BcBool ScnSoundImport::import(
 	CsResourceImporter::addChunk( BcHash( "filedata" ), &FileData_, sizeof( FileData_ ) );
 	return BcTrue;
 }
-
-#endif

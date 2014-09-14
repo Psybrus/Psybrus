@@ -14,7 +14,6 @@
 #include "System/Scene/Import/ScnEntityImport.h"
 #include "System/Scene/ScnEntity.h"
 
-#ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 
@@ -86,5 +85,3 @@ BcBool ScnEntityImport::import(
 
 	return BcTrue;
 }
-
-#endif

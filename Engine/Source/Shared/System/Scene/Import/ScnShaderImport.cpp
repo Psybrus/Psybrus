@@ -15,8 +15,6 @@
 
 #include "System/SysKernel.h"
 
-#ifdef PSY_SERVER
-
 #include "Base/BcStream.h"
 
 #define EXCLUDE_PSTDINT
@@ -817,5 +815,3 @@ void ScnShaderImport::addDependency( const BcChar* Dependency )
 {
 	CsResourceImporter::addDependency( Dependency );
 }
-
-#endif

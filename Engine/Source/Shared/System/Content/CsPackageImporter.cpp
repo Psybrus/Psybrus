@@ -39,8 +39,6 @@ BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches
 BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
 BcRegex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
 
-#if PSY_SERVER
-
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 REFLECTION_DEFINE_BASIC( CsPackageDependencies );
@@ -825,6 +823,3 @@ BcBool CsPackageImporter::havePackageDependency( const BcName& PackageName )
 	
 	return BcFalse;
 }
-
-#endif
-

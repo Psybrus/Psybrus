@@ -18,7 +18,6 @@
 #include "System/Scene/ScnComponent.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
-#ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 
@@ -106,5 +105,3 @@ BcBool ScnComponentImport::import(
 	CsResourceImporter::addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
 	return BcTrue;
 }
-
-#endif
