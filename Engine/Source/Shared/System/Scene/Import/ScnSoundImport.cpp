@@ -32,7 +32,8 @@ void ScnSoundImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnSoundImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "IsStream_", &ScnSoundImport::IsStream_, bcRFF_IMPORTER ),
-	};
+		new ReField( "IsLoop_", &ScnSoundImport::IsLoop_, bcRFF_IMPORTER ),
+};
 
 	ReRegisterClass< ScnSoundImport, Super >( Fields );
 }
@@ -41,14 +42,16 @@ void ScnSoundImport::StaticRegisterClass()
 // Ctor
 ScnSoundImport::ScnSoundImport()
 {
-
+	IsStream_ = BcFalse;
+	IsLoop_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnSoundImport::ScnSoundImport( ReNoInit )
 {
-
+	IsStream_ = BcFalse;
+	IsLoop_ = BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,6 +93,7 @@ BcBool ScnSoundImport::import(
 	}
 
 	FileData_.FileHash_= addFile( Source_ );
+	FileData_.Looping_ = IsLoop_;
 
 	CsResourceImporter::addChunk( BcHash( "filedata" ), &FileData_, sizeof( FileData_ ) );
 	return BcTrue;
