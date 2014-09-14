@@ -81,7 +81,7 @@ void ScnSpriteComponent::initialise()
 
 	CurrKey_ = 0;
 	AnimationTimer_ = 0.0f;
-	AnimationRate_ = 24.0f;
+	AnimationRate_ = 12.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 
 	if( Object[ "index" ].type() != Json::nullValue ) 
 	{
-		Index_ = Object[ "index" ].asUInt();
+		Index_ = Object[ "index" ].asInt();
 	}
 
 	if( Object[ "isscreenspace" ].type() != Json::nullValue )
@@ -142,7 +142,7 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 			auto AnimKeys = Anim[ "keys" ];
 			for( BcU32 KeyIdx = 0; KeyIdx < AnimKeys.size(); ++KeyIdx )
 			{
-				NewAnimation.Keys_.push_back( AnimKeys[ KeyIdx ].asUInt() );
+				NewAnimation.Keys_.push_back( AnimKeys[ KeyIdx ].asInt() );
 			}
 
 			Animations_[ MemberName ] = NewAnimation;
@@ -161,7 +161,7 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	ScnEntityWeakRef Entity = getParentEntity();
 	MaMat4d Matrix = Entity->getWorldMatrix();
 
-	if( !Animation_.empty() )
+	if( !Animation_.empty() && Animations_.find( Animation_ ) != Animations_.end() )
 	{
 		const auto& Animation = Animations_[ Animation_ ];
 
@@ -170,7 +170,7 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 			Index_ = Animation.Keys_[ CurrKey_ ];
 		}
 	
-		AnimationTimer_ += AnimationRate_;
+		AnimationTimer_ += Tick;
 		if( AnimationTimer_ > ( 1.0f / AnimationRate_ ) )
 		{
 			AnimationTimer_ -= ( 1.0f / AnimationRate_ );
@@ -181,6 +181,11 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 				setAnimation( Animation.Next_ );
 			}
 		}
+	}
+
+	if( Index_ == BcErrorCode )
+	{
+		return;
 	}
 
 	// Push matrix onto canvas.
@@ -330,4 +335,5 @@ void ScnSpriteComponent::setRotation( BcF32 Rotation )
 void ScnSpriteComponent::setAnimation( std::string Animation )
 {
 	Animation_ = Animation;
+	CurrKey_ = 0;
 }
