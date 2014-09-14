@@ -122,42 +122,57 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	if( !IsScreenSpace_ )
 	{
 		Canvas_->pushMatrix( Matrix );
+
+		if( BcAbs( Rotation_ ) > 0.01f )
+		{
+			MaMat4d Rotation;
+			Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
+			Canvas_->pushMatrix( Rotation );
+		}
+
+		// Draw sprite at the correct transform position.
+		Canvas_->setMaterialComponent( Material_ );
+		if( Center_ )
+		{
+			Canvas_->drawSpriteCentered( Position_, Size_, Index_, Colour_, Layer_ );
+		}
+		else
+		{
+			Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
+		}
+
+		if( BcAbs( Rotation_ ) > 0.01f )
+		{
+			Canvas_->popMatrix();
+		}
+
+		Canvas_->popMatrix();
 	}
 	else
 	{
 		Matrix = Canvas_->popMatrix();
-	}
 
-	if( BcAbs( Rotation_ ) > 0.01f )
-	{
 		MaMat4d Rotation;
 		Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
+		MaMat4d Translation;
+		Translation.translation( MaVec3d( Position_.x(), Position_.y(), 0.0f ) );
+		Canvas_->pushMatrix( Translation );
 		Canvas_->pushMatrix( Rotation );
-	}
 
-	// Draw sprite at the correct transform position.
-	Canvas_->setMaterialComponent( Material_ );
-	if( Center_ )
-	{
-		Canvas_->drawSpriteCentered( Position_, Size_, Index_, Colour_, Layer_ );
-	}
-	else
-	{
-		Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
-	}
+		// Draw sprite at the correct transform position.
+		Canvas_->setMaterialComponent( Material_ );
+		if( Center_ )
+		{
+			Canvas_->drawSpriteCentered( MaVec2d(), Size_, Index_, Colour_, Layer_ );
+		}
+		else
+		{
+			Canvas_->drawSprite( MaVec2d(), Size_, Index_, Colour_, Layer_ );
+		}
 
-	if( BcAbs( Rotation_ ) > 0.01f )
-	{
 		Canvas_->popMatrix();
-	}
-
-	// Pop.
-	if( !IsScreenSpace_ )
-	{
 		Canvas_->popMatrix();
-	}
-	else
-	{
+
 		Canvas_->pushMatrix( Matrix );
 		Canvas_->setMatrix( Matrix );
 	}
