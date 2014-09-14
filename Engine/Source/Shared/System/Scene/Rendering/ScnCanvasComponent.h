@@ -221,13 +221,10 @@ protected:
 	struct TRenderResource
 	{
 		RsBuffer*						pVertexBuffer_;
-
 	};
 
-	BcU32								CurrentRenderResource_;
 	BcBool								HaveVertexBufferLock_;
-	TRenderResource						RenderResources_[ 2 ];
-	TRenderResource*					pRenderResource_;
+	TRenderResource						RenderResource_;
 
 	// Submission data.
 	ScnCanvasComponentVertex*			pWorkingVertices_;
