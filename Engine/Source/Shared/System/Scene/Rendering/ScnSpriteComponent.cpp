@@ -27,6 +27,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnSpriteComponent );
+REFLECTION_DEFINE_BASIC( ScnSpriteComponent::Animation );
 
 void ScnSpriteComponent::StaticRegisterClass()
 {
@@ -42,10 +43,26 @@ void ScnSpriteComponent::StaticRegisterClass()
 		new ReField( "Layer_", &ScnSpriteComponent::Layer_, DsCore::DsCoreSerialised  ),
 		new ReField( "Center_", &ScnSpriteComponent::Center_, DsCore::DsCoreSerialised  ),
 		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, DsCore::DsCoreSerialised  ),
+		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_, DsCore::DsCoreSerialised ),
+		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, DsCore::DsCoreSerialised ),
+		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, DsCore::DsCoreSerialised ),
+		new ReField( "Animation_", &ScnSpriteComponent::Animation_, DsCore::DsCoreSerialised ),
+		new ReField( "Animations_", &ScnSpriteComponent::Animations_, DsCore::DsCoreSerialised ),
 	};
 	
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2100 ) );
+}
+
+void ScnSpriteComponent::Animation::StaticRegisterClass()
+{
+	ReField* Fields[] =
+	{
+		new ReField( "Next_", &ScnSpriteComponent::Animation::Next_ ),
+		new ReField( "Keys_", &ScnSpriteComponent::Animation::Keys_ ),
+	};
+
+	ReRegisterClass< ScnSpriteComponent::Animation >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,6 +78,10 @@ void ScnSpriteComponent::initialise()
 	Center_ = BcFalse;
 	IsScreenSpace_ = BcFalse;
 	Rotation_ = 0.0f;
+
+	CurrKey_ = 0;
+	AnimationTimer_ = 0.0f;
+	AnimationRate_ = 24.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,6 +126,28 @@ void ScnSpriteComponent::initialise( const Json::Value& Object )
 	{
 		IsScreenSpace_ = Object[ "isscreenspace" ].asBool();
 	}
+
+	if( Object[ "animations" ].type() != Json::nullValue )
+	{
+		auto AnimMap = Object[ "animations" ];
+		auto MemberNames = AnimMap.getMemberNames();
+		for( BcU32 Idx = 0; Idx < MemberNames.size(); ++Idx )
+		{
+			auto MemberName = MemberNames[ Idx ].c_str();
+			auto Anim = AnimMap[ MemberName ];
+			Animation NewAnimation;
+			NewAnimation.Next_ = Anim[ "next" ].asCString();
+
+
+			auto AnimKeys = Anim[ "keys" ];
+			for( BcU32 KeyIdx = 0; KeyIdx < AnimKeys.size(); ++KeyIdx )
+			{
+				NewAnimation.Keys_.push_back( AnimKeys[ KeyIdx ].asUInt() );
+			}
+
+			Animations_[ MemberName ] = NewAnimation;
+		}
+	}
 	
 }
 
@@ -117,6 +160,28 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 
 	ScnEntityWeakRef Entity = getParentEntity();
 	MaMat4d Matrix = Entity->getWorldMatrix();
+
+	if( !Animation_.empty() )
+	{
+		const auto& Animation = Animations_[ Animation_ ];
+
+		if( CurrKey_ < Animation.Keys_.size() )
+		{
+			Index_ = Animation.Keys_[ CurrKey_ ];
+		}
+	
+		AnimationTimer_ += AnimationRate_;
+		if( AnimationTimer_ > ( 1.0f / AnimationRate_ ) )
+		{
+			AnimationTimer_ -= ( 1.0f / AnimationRate_ );
+			++CurrKey_;
+
+			if( CurrKey_ >= (BcU32)Animation.Keys_.size() )
+			{
+				setAnimation( Animation.Next_ );
+			}
+		}
+	}
 
 	// Push matrix onto canvas.
 	if( !IsScreenSpace_ )
@@ -260,3 +325,9 @@ void ScnSpriteComponent::setRotation( BcF32 Rotation )
 	Rotation_ = Rotation;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// setAnimation
+void ScnSpriteComponent::setAnimation( std::string Animation )
+{
+	Animation_ = Animation;
+}

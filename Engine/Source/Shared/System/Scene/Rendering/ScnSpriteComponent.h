@@ -48,6 +48,17 @@ public:
 	BcF32 getRotation() const;
 	void setRotation( BcF32 Rotation );
 
+	void setAnimation( std::string Animation );
+
+
+	struct Animation
+	{
+		REFLECTION_DECLARE_BASIC( Animation );
+		Animation(){};
+		std::string Next_;
+		std::vector< BcU32 > Keys_;
+	};
+
 private:
 	ScnCanvasComponentRef Canvas_;
 	ScnMaterialComponentRef Material_;
@@ -61,6 +72,13 @@ private:
 	BcBool Center_;
 	BcBool IsScreenSpace_;
 	BcF32 Rotation_;
+
+	BcU32 CurrKey_;
+	BcF32 AnimationTimer_;
+	BcF32 AnimationRate_;
+
+	std::string Animation_;
+	std::map< std::string, Animation > Animations_;
 };
 
 
