@@ -282,7 +282,7 @@ BcBool ScnTextureImport::import(
 			};
 
 			auto Image = MipImages[ 0 ].get();
-			for( BcU32 Y = 0; Y < Image->width(); Y += TileWidth_ )
+			for( BcU32 Y = 0; Y < Image->width(); Y += TileHeight_ )
 			{
 				for( BcU32 X = 0; X < Image->width(); X += TileWidth_ )
 				{
