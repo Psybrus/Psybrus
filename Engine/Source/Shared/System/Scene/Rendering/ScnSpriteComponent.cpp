@@ -18,6 +18,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
 #include "System/Debug/DsCore.h"
+#include "Base/BcMath.h"
 #ifdef PSY_SERVER
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
@@ -59,6 +60,7 @@ void ScnSpriteComponent::initialise()
 	Layer_ = 0;
 	Center_ = BcFalse;
 	IsScreenSpace_ = BcFalse;
+	Rotation_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,6 +128,13 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 		Matrix = Canvas_->popMatrix();
 	}
 
+	if( BcAbs( Rotation_ ) > 0.01f )
+	{
+		MaMat4d Rotation;
+		Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
+		Canvas_->pushMatrix( Rotation );
+	}
+
 	// Draw sprite at the correct transform position.
 	Canvas_->setMaterialComponent( Material_ );
 	if( Center_ )
@@ -135,6 +144,11 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 	else
 	{
 		Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
+	}
+
+	if( BcAbs( Rotation_ ) > 0.01f )
+	{
+		Canvas_->popMatrix();
 	}
 
 	// Pop.
@@ -216,3 +230,18 @@ void ScnSpriteComponent::setColour( const RsColour& Colour )
 {
 	Colour_ = Colour;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getRotation
+BcF32 ScnSpriteComponent::getRotation() const
+{
+	return Rotation_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRotation
+void ScnSpriteComponent::setRotation( BcF32 Rotation )
+{
+	Rotation_ = Rotation;
+}
+

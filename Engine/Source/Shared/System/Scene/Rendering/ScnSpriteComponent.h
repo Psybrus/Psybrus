@@ -45,18 +45,22 @@ public:
 	const RsColour& getColour() const;
 	void setColour( const RsColour& Colour );
 
-private:
-	ScnCanvasComponentRef				Canvas_;
-	ScnMaterialComponentRef				Material_;
-	std::string							MaterialName_;
+	BcF32 getRotation() const;
+	void setRotation( BcF32 Rotation );
 
-	MaVec2d								Position_;
-	MaVec2d								Size_;
-	RsColour							Colour_;
-	BcU32								Index_;
-	BcU32								Layer_;
-	BcBool								Center_;
-	BcBool								IsScreenSpace_;
+private:
+	ScnCanvasComponentRef Canvas_;
+	ScnMaterialComponentRef Material_;
+	std::string MaterialName_;
+
+	MaVec2d Position_;
+	MaVec2d Size_;
+	RsColour Colour_;
+	BcU32 Index_;
+	BcU32 Layer_;
+	BcBool Center_;
+	BcBool IsScreenSpace_;
+	BcF32 Rotation_;
 };
 
 
