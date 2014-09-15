@@ -370,7 +370,7 @@ BcBool ScnTextureImport::import(
 
 				// In a non-debug build, check if we should
 				// use texture compression (to speed up build times).
-	#if !PSY_DEBUG
+	#if 0 && !PSY_DEBUG
 				if( TextureType_ == RsTextureType::TEX2D )
 				{
 					if( MipImages[ 0 ]->width() % 4 == 0 && 
