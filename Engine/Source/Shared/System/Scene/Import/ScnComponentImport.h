@@ -14,7 +14,6 @@
 #ifndef __ScnComponentImport_H__
 #define __ScnComponentImport_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 
@@ -41,5 +40,4 @@ private:
 	
 };
 
-#endif
 #endif

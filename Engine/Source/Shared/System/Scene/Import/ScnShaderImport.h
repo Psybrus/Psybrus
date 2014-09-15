@@ -14,7 +14,6 @@
 #ifndef __SCNSHADERIMPORT_H__
 #define __SCNSHADERIMPORT_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Rendering/ScnModelFileData.h"
@@ -186,6 +185,5 @@ private:
 	std::atomic< BcU32 > PendingPermutations_;
 };
 
-#endif // PSY_SERVER
-#endif / __SCNSHADERIMPORT_H__
+#endif // __SCNSHADERIMPORT_H__
 

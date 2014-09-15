@@ -14,7 +14,6 @@
 #ifndef __ScnAnimationImport_H__
 #define __ScnAnimationImport_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Animation/ScnAnimation.h"
@@ -66,7 +65,5 @@ private:
 	std::vector< AnimatedNode > AnimatedNodes_;
 
 };
-
-#endif
 
 #endif

@@ -14,7 +14,6 @@
 #ifndef __SCNMODELIMPORT_H__
 #define __SCNMODELIMPORT_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Rendering/ScnModelFileData.h"
@@ -119,7 +118,5 @@ private:
 	std::vector< RsVertexDeclarationDesc > VertexDeclarations_;
 	std::vector< MaMat4d > InverseBindposes_;
 };
-
-#endif
 
 #endif
