@@ -11,7 +11,6 @@
 * 
 **************************************************************************/
 
-#ifdef PSY_SERVER
 #include "System/Scene/Import/ScnFontImport.h"
 #include "System/Scene/Import/ScnTextureImport.h"
 #include "System/Scene/Rendering/ScnFontFileData.h"
@@ -381,5 +380,3 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph,
 	
 	return pImage;
 }
-
-#endif

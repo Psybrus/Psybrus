@@ -1,7 +1,3 @@
-boostRoot = os.getenv("BOOST_ROOT") or "C:/Boost"
-boostInclude = boostRoot .. "/include/boost-1_56"
-
-
 -- Write out revision file.
 os.execute( "cd assimp && git log -1 --format=%h > git.version" )
 os.execute( "cd assimp && git rev-parse --abbrev-ref HEAD > git.branch" )

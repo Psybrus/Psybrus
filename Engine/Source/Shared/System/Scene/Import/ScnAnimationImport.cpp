@@ -28,8 +28,6 @@
 
 #define ENABLE_ASSIMP_IMPORTER			( 0 )
 
-#ifdef PSY_SERVER
-
 namespace
 {
 	//////////////////////////////////////////////////////////////////////////
@@ -109,7 +107,6 @@ void ScnAnimationImport::StaticRegisterClass()
 		
 	ReRegisterClass< ScnAnimationImport, Super >( Fields );
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -411,4 +408,3 @@ ScnAnimationImport::AnimatedNode& ScnAnimationImport::findAnimatedNode( std::str
 	return *(ScnAnimationImport::AnimatedNode*)( nullptr );
 }
 
-#endif

@@ -14,7 +14,6 @@
 #ifndef __ScnSoundImport_H__
 #define __ScnSoundImport_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Sound/ScnSoundFileData.h"
@@ -46,5 +45,4 @@ private:
 	SsSourceFileData FileData_;
 };
 
-#endif
 #endif

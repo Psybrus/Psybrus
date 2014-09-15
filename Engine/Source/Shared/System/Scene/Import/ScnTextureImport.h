@@ -14,7 +14,6 @@
 #ifndef __ScnTextureImport_H__
 #define __ScnTextureImport_H__
 
-#ifdef PSY_SERVER
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Renderer/RsTypes.h"
@@ -62,5 +61,4 @@ private:
 	BcU32 Levels_;
 };
 
-#endif
 #endif
