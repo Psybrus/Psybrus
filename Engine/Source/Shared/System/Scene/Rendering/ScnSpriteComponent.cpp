@@ -346,6 +346,14 @@ void ScnSpriteComponent::setAnimation( std::string Animation )
 //////////////////////////////////////////////////////////////////////////
 // setMaterial
 void ScnSpriteComponent::setMaterial( ScnMaterialComponentRef Material )
+
 {
 	Material_ = Material;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSpriteIndex
+void ScnSpriteComponent::setSpriteIndex( BcU32 Index )
+{
+	Index_ = Index;
 }

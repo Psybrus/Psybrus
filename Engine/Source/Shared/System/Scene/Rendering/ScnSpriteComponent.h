@@ -51,6 +51,8 @@ public:
 	void setAnimation( std::string Animation );
 	void setMaterial( ScnMaterialComponentRef Material );
 
+	void setSpriteIndex( BcU32 Index );
+
 	struct Animation
 	{
 		REFLECTION_DECLARE_BASIC( Animation );

@@ -91,25 +91,25 @@ void MainShared()
 	// Setup default system job queues.
 	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
 
+	/*
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{
 		RsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
-	RsCore::JOB_QUEUE_ID = BcErrorCode;
-
+	
 	// Disable sound thread for debugging.
 	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
 	{
 		SsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
-	SsCore::JOB_QUEUE_ID = BcErrorCode;
-
+	
 	// Disable file thread for debugging.
 	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
 	{
 		FsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
+	*/
 
 	// Create default job queue.
 	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 0, 0 );

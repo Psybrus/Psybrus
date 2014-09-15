@@ -3,3 +3,4 @@ project "External_squish"
 	language "C++"
 	files { "./*.h", "./*.cpp" }
 	includedirs { "." }
+	defines{ "SQUISH_USE_SSE=1" }

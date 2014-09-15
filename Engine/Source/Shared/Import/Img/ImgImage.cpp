@@ -1043,8 +1043,9 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 		Format == ImgEncodeFormat::DXT3 ||
 		Format == ImgEncodeFormat::DXT5 )
 	{
-		// Check if its a power of two too.
-		if( BcPot( Width_ ) && BcPot( Height_ ) && Width_ >= 4 && Height_ >= 4 )
+		// Check if its a multiple of 4.
+		if( Width_ >= 64 && Height_ >= 64 &&
+			( Width_ % 4 == 0 ) && ( Height_ % 4 ) == 0 )
 		{
 			BcU32 SquishFormat = 0;
 
