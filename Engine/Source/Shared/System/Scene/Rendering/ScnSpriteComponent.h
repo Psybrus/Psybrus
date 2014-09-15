@@ -49,7 +49,7 @@ public:
 	void setRotation( BcF32 Rotation );
 
 	void setAnimation( std::string Animation );
-
+	void setMaterial( ScnMaterialComponentRef Material );
 
 	struct Animation
 	{

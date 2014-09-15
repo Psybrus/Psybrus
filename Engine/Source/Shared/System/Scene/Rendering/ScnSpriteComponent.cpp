@@ -158,6 +158,11 @@ void ScnSpriteComponent::postUpdate( BcF32 Tick )
 {
 	Super::postUpdate( Tick );
 
+	if( !Canvas_.isValid() )
+	{
+		return;
+	}
+
 	ScnEntityWeakRef Entity = getParentEntity();
 	MaMat4d Matrix = Entity->getWorldMatrix();
 
@@ -336,4 +341,11 @@ void ScnSpriteComponent::setAnimation( std::string Animation )
 {
 	Animation_ = Animation;
 	CurrKey_ = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setMaterial
+void ScnSpriteComponent::setMaterial( ScnMaterialComponentRef Material )
+{
+	Material_ = Material;
 }
