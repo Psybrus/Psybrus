@@ -342,8 +342,8 @@ BcBool ScnTextureImport::import(
 			// Downsample texture for mip maps.
 			if( BcPot( W ) && BcPot( H ) )
 			{
-				// Down to a minimum of 4x4.
-				while( W > 4 && H > 4 )
+				// Down to a minimum of 64x64.
+				while( W > 64 && H > 64 )
 				{
 					W >>= 1;
 					H >>= 1;
@@ -377,7 +377,7 @@ BcBool ScnTextureImport::import(
 					{
 						if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
 						{
-							Format_ = RsTextureFormat::DXT1;
+							Format_ = RsTextureFormat::DXT3;
 						}
 						else
 						{
@@ -387,47 +387,54 @@ BcBool ScnTextureImport::import(
 				}
 	#endif
 			}
-			ImgEncodeFormat EncodeFormat = (ImgEncodeFormat)Format_;
+
 			// Streams.
 			BcStream HeaderStream;
 			BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
-
-			// Write header.
-			ScnTextureHeader Header = 
-			{ 
-				MipImages[ 0 ]->width(), 
-				MipImages[ 0 ]->height(),
-				0,
-				(BcU32)MipImages.size(), 
-				TextureType_, 
-				Format_, 
-				BcFalse 
-			};
-
-			HeaderStream << Header;
 
 			// Write all mip images into the same body for now.
 			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
 			{
 				auto* pImage = MipImages[ Idx ].get();
-				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
+				for( BcU32 Attempt = 0; Attempt < 2; ++Attempt )
 				{
-					// Serialize encoded images.
-					BodyStream.push( pEncodedImageData, EncodedImageDataSize );
-					delete [] pEncodedImageData;
-					pEncodedImageData = NULL;
-					EncodedImageDataSize = 0;
-				}
-				else
-				{
-					BcPrintf( "Failed to encode image \"%s\"\n", FileName.c_str() );
+					ImgEncodeFormat EncodeFormat = (ImgEncodeFormat)Format_;
+					if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
+					{
+						// Serialize encoded images.
+						BodyStream.push( pEncodedImageData, EncodedImageDataSize );
+						delete [] pEncodedImageData;
+						pEncodedImageData = NULL;
+						EncodedImageDataSize = 0;
+						Attempt = 2;
+					}
+					else
+					{
+						BcPrintf( "Failed to encode image \"%s\", falling back to R8G8B8A8\n", FileName.c_str() );
+						Format_ = RsTextureFormat::R8G8B8A8;
+					}
 				}
 			}
+
+			// Write header.
+			ScnTextureHeader Header =
+			{
+				MipImages[ 0 ]->width(),
+				MipImages[ 0 ]->height(),
+				0,
+				(BcU32)MipImages.size(),
+				TextureType_,
+				Format_,
+				BcFalse
+			};
+
+			HeaderStream << Header;
 
 			// Clear images.
 			MipImages.clear();
 
 			// Add chunks.
+			BcAssert( BodyStream.dataSize() > 0 );
 			CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
 			CsResourceImporter::addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
 

@@ -234,7 +234,7 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcFalse, BcFalse, GL_RG32F, GL_RG, GL_FLOAT },			// RsTextureFormat::R32FG32F,
 	{ BcFalse, BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT },			// RsTextureFormat::R32FG32FB32F,
 	{ BcFalse, BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT },		// RsTextureFormat::R32FG32FB32FA32F,
-	{ BcTrue, BcFalse, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, 0, 0 },	// RsTextureFormat::DXT1,
+	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 },	// RsTextureFormat::DXT1,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
 	// Depth stencil.
@@ -1735,6 +1735,7 @@ void RsContextGL::loadTexture(
 		void* Data )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	RsGLCatchError();
 
 	GLuint Handle = Texture->getHandle< GLuint >();
 
@@ -1770,6 +1771,7 @@ void RsContextGL::loadTexture(
 				FormatGL.Format_,
 				FormatGL.Type_,
 				Data );
+			RsGLCatchError();
 			break;
 
 		case RsTextureType::TEX2D:
@@ -1783,6 +1785,7 @@ void RsContextGL::loadTexture(
 				FormatGL.Format_,
 				FormatGL.Type_,
 				Data );
+			RsGLCatchError();
 			break;
 
 		case RsTextureType::TEX3D:
@@ -1797,16 +1800,21 @@ void RsContextGL::loadTexture(
 				FormatGL.Format_,
 				FormatGL.Type_,
 				Data );
+			RsGLCatchError();
 			break;
 
 		case RsTextureType::TEXCUBE:
 			BcBreakpoint;
 		}
 
-		RsGLCatchError();
 	}
 	else
 	{
+		if( DataSize == 0 || Data == nullptr )
+		{
+			return;
+		}
+
 		switch( TextureDesc.Type_ )
 		{
 		case RsTextureType::TEX1D:
@@ -1818,6 +1826,7 @@ void RsContextGL::loadTexture(
 				0,
 				DataSize,
 				Data );
+			RsGLCatchError();
 			break;
 
 		case RsTextureType::TEX2D:
@@ -1830,6 +1839,7 @@ void RsContextGL::loadTexture(
 				0,
 				DataSize,
 				Data );
+			RsGLCatchError();
 			break;
 
 		case RsTextureType::TEX3D:
@@ -1843,12 +1853,11 @@ void RsContextGL::loadTexture(
 				0,
 				DataSize,
 				Data );
+			RsGLCatchError();
 			break;
 
 		case RsTextureType::TEXCUBE:
 			BcBreakpoint;
 		}
-
-		RsGLCatchError();
 	}
 }
