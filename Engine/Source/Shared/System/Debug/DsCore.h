@@ -86,6 +86,7 @@ class DsCore :
 {
 public:
 	static BcU32 JOB_QUEUE_ID;
+	static BcU32 DsCoreSerialised = 0x00008000;
 public:
 	DsCore();
 	virtual ~DsCore();
