@@ -24,11 +24,11 @@ solution "Psybrus"
 		flags { "StaticRuntime", "FloatFast", "NativeWChar", "NoFramePointer", "Optimize" }
 
 	-- Build externals.
-	dofile ("External/premake4.lua")
+	dofile ("External/genie.lua")
 
 	-- Build engine.
-	dofile ("Engine/premake4.lua")
+	dofile ("Engine/genie.lua")
 
 	-- Build LD23Game.
---	dofile ("7DFPSGame/premake4.lua")
+--	dofile ("7DFPSGame/genie.lua")
 
