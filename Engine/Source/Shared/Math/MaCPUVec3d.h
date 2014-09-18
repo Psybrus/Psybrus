@@ -73,9 +73,15 @@ public:
 	BcBool			operator == (const MaCPUVec3d& Rhs) const;	
 	BcBool			operator != (const MaCPUVec3d& Rhs) const;		
 
+	DECLARE_SWIZZLE2(MaVec2d, x, x);
 	DECLARE_SWIZZLE2(MaVec2d, x, y);
 	DECLARE_SWIZZLE2(MaVec2d, x, z);
+	DECLARE_SWIZZLE2(MaVec2d, y, x);
+	DECLARE_SWIZZLE2(MaVec2d, y, y);
 	DECLARE_SWIZZLE2(MaVec2d, y, z);
+	DECLARE_SWIZZLE2(MaVec2d, z, x);
+	DECLARE_SWIZZLE2(MaVec2d, z, y);
+	DECLARE_SWIZZLE2(MaVec2d, z, z);
 
 };
 
