@@ -63,8 +63,8 @@ static DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
 	DXGI_FORMAT_R32G32B32A32_FLOAT,		// RsTextureFormat::R32FG32FB32FA32F,
 	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
-	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT3,
-	DXGI_FORMAT_BC5_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
 	DXGI_FORMAT_D16_UNORM,				// RsTextureFormat::D16,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
@@ -1159,52 +1159,58 @@ bool RsContextD3D11::updateTexture(
 	std::vector< BcU8 > TextureData( TextureDataSize );
 	ID3D11Resource* D3DResource = getD3DResource( Texture->getHandle< BcU32 >() );
 
-	// Bits per pixel.
-	BcU32 BPP = 8;
+	// Bits per block.
+	BcU32 BitsPerBlock = 8;
+	BcU32 BlockW = 1;
+	BcU32 BlockH = 1;
 	switch( Desc.Format_ )
 	{
 	case RsTextureFormat::R8:
-		BPP = 8;
+		BitsPerBlock = 8;
 		break;
 	case RsTextureFormat::R8G8:
-		BPP = 16;
+		BitsPerBlock = 16;
 		break;
 	case RsTextureFormat::R8G8B8:
-		BPP = 24;
+		BitsPerBlock = 24;
 		break;
 	case RsTextureFormat::R8G8B8A8:
-		BPP = 32;
+		BitsPerBlock = 32;
 		break;
 	case RsTextureFormat::R16F:
-		BPP = 16;
+		BitsPerBlock = 16;
 		break;
 	case RsTextureFormat::R16FG16F:
-		BPP = 32;
+		BitsPerBlock = 32;
 		break;
 	case RsTextureFormat::R16FG16FB16F:
-		BPP = 48;
+		BitsPerBlock = 48;
 		break;
 	case RsTextureFormat::R16FG16FB16FA16F:
-		BPP = 64;
+		BitsPerBlock = 64;
 		break;
 	case RsTextureFormat::R32F:
-		BPP = 32;
+		BitsPerBlock = 32;
 		break;
 	case RsTextureFormat::R32FG32F:
-		BPP = 64;
+		BitsPerBlock = 64;
 		break;
 	case RsTextureFormat::R32FG32FB32F:
-		BPP = 96;
+		BitsPerBlock = 96;
 		break;
 	case RsTextureFormat::R32FG32FB32FA32F:
-		BPP = 128;
+		BitsPerBlock = 128;
 		break;
 	case RsTextureFormat::DXT1:
-		BPP = 4;
+		BitsPerBlock = 64;
+		BlockW = 4;
+		BlockH = 4;
 		break;
 	case RsTextureFormat::DXT3:
 	case RsTextureFormat::DXT5:			
-		BPP = 8;
+		BitsPerBlock = 128;
+		BlockW = 4;
+		BlockH = 4;
 		break;
 			
 	default:
@@ -1214,8 +1220,8 @@ bool RsContextD3D11::updateTexture(
 	// Update texture.
 	RsTextureLock Lock;
 	Lock.Buffer_ = &TextureData[ 0 ];
-	Lock.Pitch_ = ( Width * BPP ) / 8;
-	Lock.SlicePitch_ = ( Width * Height * BPP ) / 8;
+	Lock.Pitch_ = ( ( Width / BlockW ) * BitsPerBlock ) / 8;
+	Lock.SlicePitch_ = ( ( Width / BlockW ) * ( Width / BlockH ) * BitsPerBlock ) / 8;
 
 	// Update.
 	UpdateFunc( Texture, Lock );
