@@ -16,7 +16,7 @@
 #include "System/Os/OsCore.h"
 #include "System/Os/OsClient.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcStream.h"
 #endif
 

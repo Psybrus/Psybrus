@@ -44,7 +44,7 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
 	{
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 		// Load in package header synchronously to catch errors.
 		BcU32 Bytes = sizeof( Header_ );
 		++PendingCallbackCount_;
@@ -278,7 +278,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 		return;
 	}
 
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 	// Reimport if source file stats or dependencies have changed.
 	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( pPackage_->getName() ) );
 

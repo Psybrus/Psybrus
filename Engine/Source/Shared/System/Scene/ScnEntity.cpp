@@ -23,7 +23,7 @@
 
 #include "Serialisation/SeJsonWriter.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnEntityImport.h"
 #endif
 
@@ -44,7 +44,7 @@ void ScnEntity::StaticRegisterClass()
 	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
 		
 	Class.addAttribute( new ScnComponentAttribute( -2100 ) );
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnEntityImport::StaticGetClass(), 0, 200 ) );

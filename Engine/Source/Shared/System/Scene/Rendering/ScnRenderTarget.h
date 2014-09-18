@@ -31,7 +31,7 @@ class ScnRenderTarget:
 public:
 	DECLARE_RESOURCE( ScnRenderTarget, ScnTexture );
 	
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	virtual void						initialise( BcU32 Width, BcU32 Height );

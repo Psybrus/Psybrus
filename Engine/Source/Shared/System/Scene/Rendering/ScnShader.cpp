@@ -17,12 +17,12 @@
 
 #include "Base/BcMath.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 #endif
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnShaderImport.h"
 #endif
 
@@ -43,7 +43,7 @@ void ScnShader::StaticRegisterClass()
 		
 	auto& Class = ReRegisterClass< ScnShader, Super >( Fields );
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnShaderImport::StaticGetClass(), 0 ) );

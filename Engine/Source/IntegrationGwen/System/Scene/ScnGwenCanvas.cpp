@@ -28,7 +28,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 #endif
@@ -49,7 +49,7 @@ void ScnGwenCanvas::StaticPropertyTable( CsPropertyTable& PropertyTable )
 // import
 //virtual
 
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 BcBool ScnGwenCanvas::import( const Json::Value& Object, CsDependancyList& DependancyList )
 {
 	const Json::Value& ImportMaterials( Object[ "materials" ] );
