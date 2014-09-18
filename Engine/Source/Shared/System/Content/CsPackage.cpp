@@ -76,7 +76,7 @@ CsPackage::CsPackage( const BcName& Name ):
 			}
 		}
 
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 		// Attempt to import.
 		if( LoaderValid == BcFalse )
 		{

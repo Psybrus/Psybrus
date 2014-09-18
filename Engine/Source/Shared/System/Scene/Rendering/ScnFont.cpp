@@ -18,7 +18,7 @@
 
 #include "Base/BcMath.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnFontImport.h"
 #endif
 
@@ -38,7 +38,7 @@ void ScnFont::StaticRegisterClass()
 	
 	auto& Class = ReRegisterClass< ScnFont, Super >( Fields );
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnFontImport::StaticGetClass(), 0 ) );

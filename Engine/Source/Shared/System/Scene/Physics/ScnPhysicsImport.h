@@ -14,7 +14,7 @@
 #ifndef __SCNPHYSICSIMPORT_H__
 #define __SCNPHYSICSIMPORT_H__
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Content/CsCore.h"
 
 #include "Base/BcStream.h"

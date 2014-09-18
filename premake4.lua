@@ -10,12 +10,12 @@ solution "Psybrus"
 
 	configuration "Debug"
 		targetdir ( "Build/" .. action .. "/bin/Debug" )
-		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "DEBUG", "PSY_DEBUG", "PSY_SERVER" }
+		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "DEBUG", "PSY_DEBUG", "PSY_IMPORT_PIPELINE" }
 		flags { "StaticRuntime", "FloatFast", "NativeWChar", "Symbols" }
 
 	configuration "Release"
 		targetdir ( "Build/" .. action .. "/bin/Release" )
-		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "NDEBUG", "PSY_RELEASE", "PSY_SERVER" }
+		defines { "STATICLIB", "WINDOWS", "_WIN32", "WIN32", "NDEBUG", "PSY_RELEASE", "PSY_IMPORT_PIPELINE" }
 		flags { "StaticRuntime", "FloatFast", "NativeWChar", "Symbols", "Optimize" }
 
 	configuration "Production"

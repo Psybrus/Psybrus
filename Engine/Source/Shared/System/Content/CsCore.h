@@ -23,7 +23,7 @@
 
 #include "System/Content/CsPackage.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Content/CsPackageImporter.h"
 #include <json/json.h>
 #endif
