@@ -13,7 +13,7 @@ project "Engine_System_Scene"
     "./Shared/",
     "./Platforms/Windows/",
     psybrusSDK .. "/External/assimp/include",
-    psybrusSDK .. "/External/bullet-2.81-rev2613/src",
+    psybrusSDK .. "/External/bullet/src",
     psybrusSDK .. "/External/freetype/include",
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
