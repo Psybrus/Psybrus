@@ -33,29 +33,6 @@ BcU32 GResolutionHeight = 720;
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
 
-#include "System/Scene/Animation/ScnAnimation.h"
-#include "System/Scene/Animation/ScnAnimationComponent.h"
-#include "System/Scene/Animation/ScnAnimationTreeNode.h"
-#include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
-#include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
-
-#include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnEntity.h"
-#include "System/Scene/ScnDebugRenderComponent.h"
-#include "System/Scene/ScnTexture.h"
-#include "System/Scene/ScnTextureAtlas.h"
-#include "System/Scene/ScnRenderTarget.h"
-#include "System/Scene/ScnLightComponent.h"
-#include "System/Scene/ScnMaterial.h"
-#include "System/Scene/ScnModel.h"
-#include "System/Scene/ScnParticleSystemComponent.h"
-#include "System/Scene/ScnCanvasComponent.h"
-#include "System/Scene/ScnShader.h"
-#include "System/Scene/ScnFont.h"
-#include "System/Scene/ScnSound.h"
-#include "System/Scene/ScnSoundEmitter.h"
-#include "System/Scene/ScnSoundListenerComponent.h"
-#include "System/Scene/ScnViewComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
@@ -77,62 +54,9 @@ void MainUnitTests()
 // onCsCoreOpened
 eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 {
-	// Register math libraries.
-	MaVec2d::StaticRegisterClass();
-	MaVec3d::StaticRegisterClass();
-	MaVec4d::StaticRegisterClass();
-	MaAABB::StaticRegisterClass();
-	MaMat3d::StaticRegisterClass();
-	MaMat4d::StaticRegisterClass();
-	MaPlane::StaticRegisterClass();
-
-	// Register system.
-	SysKernel::StaticRegisterClass();
-	SysSystem::StaticRegisterClass();
-
-	// Register content.
-	CsResource::StaticRegisterClass();
-	CsPackage::StaticRegisterClass();
-
-	// Register debug.
-	// Register file.
-	// Register network.
-	// Register os
-	// Register renderer
-	RsColour::StaticRegisterClass();
-
-	// Register sound
-
-	// Register scene resources.
-	ScnAnimation::StaticRegisterClass();
-	ScnShader::StaticRegisterClass();
-	ScnTexture::StaticRegisterClass();
-	ScnTextureAtlas::StaticRegisterClass();
-	ScnRenderTarget::StaticRegisterClass();
-	ScnMaterial::StaticRegisterClass();
-	ScnFont::StaticRegisterClass();
-	ScnModel::StaticRegisterClass();
-	ScnSound::StaticRegisterClass();
-
-	// Register scene components.
-	ScnViewComponent::StaticRegisterClass();
-	ScnComponent::StaticRegisterClass();
-	ScnRenderableComponent::StaticRegisterClass();
-	ScnSpatialComponent::StaticRegisterClass();
-	ScnEntity::StaticRegisterClass();
-	ScnDebugRenderComponent::StaticRegisterClass();
-	ScnMaterialComponent::StaticRegisterClass();
-	ScnFontComponent::StaticRegisterClass();
-	ScnParticleSystemComponent::StaticRegisterClass();
-	ScnAnimationComponent::StaticRegisterClass();
-	ScnLightComponent::StaticRegisterClass();
-	ScnModelComponent::StaticRegisterClass();
-	ScnSoundListenerComponent::StaticRegisterClass();
-	ScnSoundEmitterComponent::StaticRegisterClass();
-	ScnCanvasComponent::StaticRegisterClass();
-
-	// Register game resources before the view.
-	PsyGameRegisterResources();
+	// Register reflection.
+	extern void AutoGenRegisterReflection();
+	AutoGenRegisterReflection();
 
 	return evtRET_REMOVE;
 }
@@ -144,8 +68,20 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 {
 	SysKernel::pImpl()->stop();
 
-	exit(0);
 	return evtRET_REMOVE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// OnScreenshot
+eEvtReturn onScreenshot( EvtID ID, const OsEventInputKeyboard& Event )
+{
+	if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F1 )
+	{
+		RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
+	}	
+
+	return evtRET_PASS;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,27 +90,26 @@ void MainShared()
 {
 	// Setup default system job queues.
 	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
-	FsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 1 );
-	RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
-	SsCore::JOB_QUEUE_ID = BcErrorCode;
 
+	/*
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{
 		RsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
-
+	
 	// Disable sound thread for debugging.
 	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
 	{
 		SsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
-
+	
 	// Disable file thread for debugging.
 	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
 	{
 		FsCore::JOB_QUEUE_ID = BcErrorCode;
 	}
+	*/
 
 	// Create default job queue.
 	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 0, 0 );
@@ -250,4 +185,7 @@ void MainShared()
 	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< onQuit >();
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
 
+	// Subscribe to F11 for screenshot
+	OsEventInputKeyboard::Delegate OnScreenshotDelegate = OsEventInputKeyboard::Delegate::bind< onScreenshot >();
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnScreenshotDelegate );
 }

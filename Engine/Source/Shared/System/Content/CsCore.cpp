@@ -13,6 +13,8 @@
 
 #include "System/Content/CsCore.h"
 
+#include <boost/filesystem.hpp>
+
 SYS_CREATOR( CsCore );
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,6 +50,7 @@ void CsCore::update()
 	processCreateResources();
 	processLoadingResources();
 	processLoadedResource();
+	freeUnreferencedPackages();
 	processUnloadingResources();
 	processCallbacks();
 }
@@ -61,6 +64,9 @@ void CsCore::close()
 	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
 	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
 
+	static BcF32 UnloadTimeout = 5.0f;
+	BcTimer UnloadTimer;
+	UnloadTimer.mark();
 	while( PackageList_.size() > 0 )
 	{
 		freeUnreferencedPackages();
@@ -69,6 +75,12 @@ void CsCore::close()
 		if( UnloadingResources_.size() > 0 )
 		{
 			processUnloadingResources();
+		}
+
+		// If we hit the timeout, just break out and shut down cleanly.
+		if( UnloadTimer.time() > UnloadTimeout )
+		{
+			break;
 		}
 	}
 
@@ -82,7 +94,7 @@ void CsCore::close()
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			BcPrintf( "%s:%s \n", (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -158,10 +170,8 @@ CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	CsResource* pResource = NULL;
-	void* pResourceBuffer = BcMemAlign( Class->getSize() );
-	pResource = Class->construct< CsResource >( pResourceBuffer );
-	pResource->preInitialise( Name, Index, pPackage );
+	CsResource* pResource = static_cast< CsResource* >( ReConstructObject( Class, *Name, pPackage, nullptr ) );
+	pResource->setIndex( Index );
 	
 	return pResource;
 }
@@ -319,11 +329,37 @@ BcPath CsCore::getPackageImportPath( const BcName& Package )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPackageIntermediatePath
+BcPath CsCore::getPackageIntermediatePath( const BcName& Package )
+{
+	BcPath Path;
+	if( Package != BcName::INVALID )
+	{
+		Path.join( "IntermediateContent", *Package + ".pak" );
+	}
+	else
+	{
+		Path = "IntermediateContent";
+	}
+
+	boost::filesystem::create_directories( *Path );
+
+	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getPackagePackedPath
 BcPath CsCore::getPackagePackedPath( const BcName& Package )
 {
 	BcPath Path;
-	Path.join( "PackedContent", *Package + ".pak" );
+	if( Package != BcName::INVALID )
+	{
+		Path.join( "PackedContent", *Package + ".pak" );
+	}
+	else
+	{
+		Path = "PackedContent";
+	}
 	return Path;
 }
 
@@ -337,6 +373,7 @@ void CsCore::processCreateResources()
 	TResourceHandleListIterator CreateIt( PrecreateResources_.begin() );
 	while( CreateIt != PrecreateResources_.end() )
 	{
+		BcAssert( (*CreateIt)->getName() != BcName::INVALID );
 		CreateResources_.push_back( *CreateIt );
 		++CreateIt;
 	}
@@ -349,9 +386,13 @@ void CsCore::processCreateResources()
 		ReObjectRef< CsResource > ResourceHandle = (*It);
 			
 		// Create resource.
-		if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+		if( ResourceHandle->getInitStage() >= CsResource::INIT_STAGE_CREATE )
 		{
-			ResourceHandle->create();
+			// Only create if still in the create stage, otherwise skip a stage.
+			if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+			{
+				ResourceHandle->create();
+			}
 	
 			// Remove from list.
 			It = CreateResources_.erase( It );
@@ -420,7 +461,7 @@ void CsCore::processLoadedResource()
 		{
 			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
-		
+	
 		++It;
 	}
 
@@ -448,10 +489,7 @@ void CsCore::processUnloadingResources()
 			
 			// Destroy resource.
 			pResource->destroy();
-			
-			// Free resource.
-			pResource->getClass()->destruct( pResource );
-			BcMemFree( pResource );
+			delete pResource;
 			
 			// Next.
 			++It;
@@ -485,23 +523,29 @@ void CsCore::processCallbacks()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// internalAddResource
+void CsCore::internalAddResource( CsResource* Resource )
+{
+	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
+	PrecreateResources_.push_back( Resource );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // internalCreateResource
 BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle )
 {
 	// Generate a unique name for the resource.
 	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getName() ).getUnique();
 
+	if( Name == "XREF13ScnFontComponent_0" )
+	{
+		int a=  0; ++a;
+	}
+
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Class, Index, pPackage );
-	
-	// Put into create list.
-	if( Handle.isValid() )
-	{
-		std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-		PrecreateResources_.push_back( Handle );
-	}
-	
+	//
 	return Handle.isValid();
 }
 
@@ -534,7 +578,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	// Make the handle null, this method must return a failure correctly.
-	Handle = NULL;
+	Handle = nullptr;
 
 	// Look in create, loading, and loaded lists.
 	// Honestly, I don't like having multiple lists for everything as it makes this method a filthy

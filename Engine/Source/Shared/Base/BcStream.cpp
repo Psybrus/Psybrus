@@ -26,6 +26,18 @@ BcStream::BcStream( BcBool bSwapEndian, BcSize AllocSize, BcSize InitialSize ):
 	create( bSwapEndian, AllocSize, InitialSize );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// Move ctor
+BcStream::BcStream( BcStream&& Other )
+{
+	bSwapEndian_ = std::move( Other.bSwapEndian_ );
+	AllocSize_ = Other.AllocSize_;
+	BufferSize_ = std::move( Other.BufferSize_ );
+	pDataBuffer_ = std::move( Other.pDataBuffer_ );
+	CurrentPosition_ = std::move( Other.CurrentPosition_ );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 BcStream::~BcStream()

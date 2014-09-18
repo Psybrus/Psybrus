@@ -37,49 +37,12 @@
 	* @param InOwner Owning object.
 	* @param InBasis Basis object to create it from.
 	*/
-ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner = nullptr, ReObject* InBasis = nullptr );
-
-/**
-	* @brief Construct Class
-	* @param InName Name of class to construct.
-	*/
-template< class _Ty >
-inline _Ty* ReConstructClass( const std::string& InName )
-{
-	const ReClass* InClass = ReManager::GetClass( InName );
-	if( InClass != nullptr )
-	{
-		return InClass->construct< _Ty >();
-	}
-	return nullptr;
-}
-
-/**
-	* @brief Construct Class
-	*/
-template< class _Ty >
-inline _Ty* ReConstructClass()
-{
-	const ReClass* InClass = _Ty::StaticGetClass();
-	if( InClass != nullptr )
-	{
-		return InClass->construct< _Ty >();
-	}
-	return nullptr;
-}
-
-/**
-	* @brief Construct Class
-	*/
-template< class _Ty >
-inline _Ty* ReConstructClass( const ReClass* InClass )
-{
-	if( InClass != nullptr )
-	{
-		return InClass->construct< _Ty >();
-	}
-	return nullptr;
-}
+ReObject* ReConstructObject( 
+	const ReClass* InClass, 
+	const std::string& InName, 
+	ReObject* InOwner = nullptr, 
+	ReObject* InBasis = nullptr,
+	std::function< void( ReObject* ) > postCreateFunc = nullptr );
 
 /**
 	* @brief Register a new class. Will get as usual, but setup what we need.
@@ -88,11 +51,12 @@ inline _Ty* ReConstructClass( const ReClass* InClass )
 	* @return Registered class.
 	*/
 template< typename _Class, std::size_t _Size >
-ReClass& ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterClass( ReField* ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setFields( Fields );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 
@@ -106,6 +70,7 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 		
@@ -117,13 +82,14 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 	* @return Registered class.
 	*/
 template< typename _Class, typename _Super, std::size_t _Size >
-ReClass& ReRegisterClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterClass( ReField* ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
 	Class->setFields( Fields );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
 	return *Class;
 }
 
@@ -140,6 +106,37 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
 	Class->setSuper( Super );
 	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_ComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
+	return *Class;
+}
+
+/**
+	* @brief Register a new abstract class. Will get as usual, but setup what we need.
+	* @param _Class Class type.
+	* @return Registered class.
+	*/
+template< typename _Class >
+ReClass& ReRegisterAbstractClass( ReITypeSerialiser* Serialiser = nullptr )
+{
+    auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
+	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
+	BcAssert( Class->validate() );
+	return *Class;
+}
+
+/**
+	* @brief Register a new abstract class. Will get as usual, but setup what we need.
+	* @param _Class Class type.
+	* @param _Super Super type.
+	* @return Registered class.
+	*/
+template< typename _Class, typename _Super >
+ReClass& ReRegisterAbstractClass( ReITypeSerialiser* Serialiser = nullptr )
+{
+    auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
+    auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
+	Class->setSuper( Super );
+	Class->setType< _Class >( Serialiser ? Serialiser : new ReClassSerialiser_AbstractComplexType< _Class >( Class->getName() ) );
 	return *Class;
 }
 
@@ -150,7 +147,7 @@ ReClass& ReRegisterClass( ReITypeSerialiser* Serialiser = nullptr )
 	* @return Registered class.
 	*/
 template< typename _Class, std::size_t _Size >
-ReClass& ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterAbstractClass( ReField* ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
 	Class->setFields( Fields );
@@ -166,7 +163,7 @@ ReClass& ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSe
 	* @return Registered class.
 	*/
 template< typename _Class, typename _Super, std::size_t _Size >
-ReClass& ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
+ReClass& ReRegisterAbstractClass( ReField* ( & Fields )[ _Size ], ReITypeSerialiser* Serialiser = nullptr )
 {
     auto Class = ReManager::GetClass( ReTypeTraits< _Class >::Name() );
     auto Super = ReManager::GetClass( ReTypeTraits< _Super >::Name() );
@@ -183,10 +180,10 @@ ReClass& ReRegisterAbstractClass( const ReField ( & Fields )[ _Size ], ReITypeSe
 	* @return Registered class.
 	*/
 template< typename _Enum, std::size_t _Size >
-ReEnum& ReRegisterEnum( const ReEnumConstant ( & EnumConstants )[ _Size ] )
+ReEnum& ReRegisterEnum( ReEnumConstant* ( & EnumConstants )[ _Size ] )
 {
     auto Enum = ReManager::GetEnum( ReTypeTraits< _Enum >::Name() );
-	Enum->setConstants( EnumConstants, _Size );
+	Enum->setConstants( &EnumConstants[ 0 ], _Size );
 	Enum->setType< _Enum >( new ReClassSerialiser_EnumType( Enum->getName() )  );
 	return *Enum;
 }

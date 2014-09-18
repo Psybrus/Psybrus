@@ -18,7 +18,7 @@
 
 #include "System/Scene/ScnEntity.h"
 
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 #include "System/Content/CsPackageImporter.h"
 #include "Base/BcStream.h"
 

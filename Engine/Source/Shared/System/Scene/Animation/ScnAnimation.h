@@ -29,16 +29,13 @@ class ScnAnimation:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnAnimation );
+	DECLARE_RESOURCE( ScnAnimation, CsResource );
 	
-#if PSY_SERVER
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif
-
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
 
+	const ScnAnimationNodeFileData*		getNodeByIndex( BcU32 Idx ) const;
 	BcU32								findPoseIndexAtTime( BcF32 Time ) const ;
 	const ScnAnimationPoseFileData*		findPoseAtIndex( BcU32 Idx ) const ;
 	const BcU8*							findKeyDataStartForPose( const ScnAnimationPoseFileData* pPose ) const;	
@@ -56,6 +53,7 @@ private:
 
 private:
 	ScnAnimationHeader					Header_;
+	ScnAnimationNodeFileData*			pNodeData_;
 	const ScnAnimationPoseFileData*		pPoseData_;
 	const BcU8*							pKeyData_;
 };

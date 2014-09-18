@@ -14,7 +14,7 @@
 #ifndef __SCNANIMATIONCOMPONENT_H__
 #define __SCNANIMATIONCOMPONENT_H__
 
-#include "System/Scene/ScnModel.h"
+#include "System/Scene/Rendering/ScnModel.h"
 #include "System/Scene/Animation/ScnAnimation.h"
 #include "System/Scene/Animation/ScnAnimationTreeNode.h"
 
@@ -28,11 +28,13 @@ class ScnAnimationComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnAnimationComponent );
+	DECLARE_RESOURCE( ScnAnimationComponent, ScnComponent );
 	
+	virtual void						initialise();
 	virtual void						initialise( const Json::Value& Object );
 	void								initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object );
 
+	virtual void						destroy();
 	virtual void						preUpdate( BcF32 Tick );
 	virtual void						update( BcF32 Tick );
 	virtual void						postUpdate( BcF32 Tick );
@@ -56,11 +58,11 @@ private:
 	ScnAnimationTreeNode*				findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class );
 
 private:
-	BcName								TargetComponentName_;
-	ScnModelComponentRef				Model_;
+	BcName TargetComponentName_;
+	ScnModelComponentRef Model_;
 
-	ScnAnimationTreeNode*				pRootTreeNode_;
-	ScnAnimationPose*					pReferencePose_;
+	ScnAnimationTreeNode* pRootTreeNode_;
+	ScnAnimationPose* pReferencePose_;
 };
 
 #endif

@@ -16,14 +16,14 @@ public:
     static const char* ObjectsEntry;
     static const char* ClassEntry;
     static const char* IDEntry;
-    static const char* MembersEntry;
     static const char* FieldEntry;
     static const char* ValueEntry;
 
 public:
-    SeJsonWriter( const char* FileName );
+	SeJsonWriter( 
+		SeISerialiserObjectCodec* ObjectCodec );
     virtual ~SeJsonWriter();
-
+	void save( std::string FileName );
     virtual BcU32 getVersion() const;
     virtual BcU32 getFileVersion() const;
 
@@ -41,6 +41,7 @@ protected:
 private:
     Json::Value RootValue_;
     Json::Value ObjectsValue_;
+	std::map< std::string, Json::Value > ObjectValueMap_;
 
     struct SerialiseClass
     {
@@ -60,9 +61,9 @@ private:
     };
 
 private:
-    std::list< SerialiseClass >		SerialiseClasses_;	///!< Classes to serialise.
-    std::vector< Json::Value >		OutputValues_;		///!< Values to write out.
-    std::string						OutputFile_;
+	SeISerialiserObjectCodec* ObjectCodec_;
+	std::list< SerialiseClass > SerialiseClasses_;	///!< Classes to serialise.
+	std::string Output_;
 };
 
 #endif

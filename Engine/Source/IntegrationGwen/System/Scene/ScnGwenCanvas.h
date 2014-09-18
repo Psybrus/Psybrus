@@ -62,7 +62,7 @@ public:
 public:
 	DECLARE_RESOURCE( CsResource, ScnGwenCanvas );
 	
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	virtual BcBool						import( const Json::Value& Object, CsDependancyList& DependancyList );
 
 #endif

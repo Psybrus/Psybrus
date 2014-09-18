@@ -18,29 +18,51 @@
 #include "System/Renderer/RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
+// RsTextureDesc
+struct RsTextureDesc
+{
+	RsTextureDesc();
+	RsTextureDesc( 
+		RsTextureType Type,
+		RsResourceCreationFlags Flags,
+		RsTextureFormat Format,
+		BcU32 Levels,
+		BcU32 Width, 
+		BcU32 Height = 0,
+		BcU32 Depth = 0 );
+
+	RsTextureType Type_;
+	RsResourceCreationFlags Flags_;
+	RsTextureFormat Format_;
+	BcU32 Levels_;
+	BcU32 Width_;
+	BcU32 Height_;
+	BcU32 Depth_;	
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsTexture
 class RsTexture:
 	public RsResource
 {
 public:
-	RsTexture( RsContext* pContext ):
-		RsResource( pContext )
-	{};
+	RsTexture( RsContext* pContext, const RsTextureDesc& Desc );
 	virtual ~RsTexture(){};
 
-	virtual BcU32 width() const = 0;
-	virtual BcU32 height() const = 0;
-	virtual BcU32 depth() const = 0;
-	virtual BcU32 levels() const = 0;
-	virtual eRsTextureType type() const = 0;
-	virtual eRsTextureFormat format() const = 0;
+	/**
+	 * Get descriptor.
+	 */
+	const RsTextureDesc& getDesc() const;
 
-	// Editing.
-	virtual void* lockTexture() = 0;
-	virtual void unlockTexture() = 0;
+	/**
+	 * Get slice.
+	 * Validity checking is performed by this method.
+	 */
+	RsTextureSlice getSlice( BcU32 Level = 0, RsTextureFace Face = RsTextureFace::NONE ) const;
 
-private:
-	
+
+protected:
+	RsTextureDesc Desc_;
 };
 
 #endif

@@ -23,7 +23,7 @@ class ScnPhysicsRigidBodyComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnPhysicsRigidBodyComponent );
+	DECLARE_RESOURCE( ScnPhysicsRigidBodyComponent, ScnComponent );
 	
 
 	virtual void							initialise();

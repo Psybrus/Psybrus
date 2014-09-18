@@ -27,14 +27,12 @@
 
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsTexture.h"
-#include "System/Renderer/RsRenderTarget.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
-#include "System/Renderer/RsVertexBuffer.h"
-#include "System/Renderer/RsIndexBuffer.h"
-#include "System/Renderer/RsUniformBuffer.h"
-#include "System/Renderer/RsPrimitive.h"
+#include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsBuffer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -58,7 +56,10 @@ class RsCore:
 public:
 	static BcU32 JOB_QUEUE_ID;
 
+	REFLECTION_DECLARE_DERIVED( RsCore, SysSystem );
+
 public:
+	RsCore(){};
 	virtual ~RsCore(){};
 	
 public:
@@ -67,113 +68,101 @@ public:
 	 *	Get rendering context for client.
 	 *	@param pClient Client to get a context for.
 	 */
-	virtual RsContext*			getContext( OsClient* pClient ) = 0;
+	virtual RsContext* getContext( 
+		OsClient* pClient ) = 0;
 	
 	/**
 	 *	Destroy rendering context for client.
 	 *	@param pClient Client to get a context for.
 	 */
-	virtual void				destroyContext( OsClient* pClient ) = 0;
+	virtual void destroyContext( 
+		OsClient* pClient ) = 0;
 
 	/**
 	 *	Create a texture.
-	 *	@param Width Width.
-	 *	@param Levels Mipmap Levels.
-	 *	@param Format Texture format.
+	 *	@param Desc descriptor.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
-
-	/**
-	 *	Create a texture.
-	 *	@param Width Width.
-	 *	@param Height Height.
-	 *	@param Levels Mipmap Levels.
-	 *	@param Format Texture format.
-	 *	@param pData Texture data.
-	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
-
-	/**
-	 *	Create a texture.
-	 *	@param Width Width.
-	 *	@param Height Height.
-	 *	@param Depth Depth.
-	 *	@param Levels Mipmap Levels.
-	 *	@param Format Texture format.
-	 *	@param pData Texture data.
-	 */
-	virtual RsTexture*			createTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, eRsTextureFormat Format, void* pData = NULL ) = 0;
-
-	/**
-	 *	Create a render target.
-	 *	@param Desc Descriptor object.
-	 */
-	virtual RsRenderTarget*		createRenderTarget( const RsRenderTargetDesc& Desc ) = 0;
+	virtual RsTexture* createTexture( 
+		const RsTextureDesc& Desc ) = 0;
 
 	/**
 	 *	Create a vertex declaration.
 	 *	@param Desc Descriptor object.
 	 */
-	virtual RsVertexDeclaration* createVertexDeclaration( const RsVertexDeclarationDesc& Desc ) = 0;
+	virtual RsVertexDeclaration* createVertexDeclaration( 
+		const RsVertexDeclarationDesc& Desc ) = 0;
 
 	/*
-	 * Create a vertex buffer.
+	 * Create a buffer.
 	 * @param Desc Buffer descriptor
-	 * @param pVertexData Pointer to vertex data, NULL to create own.
 	 */
-	virtual RsVertexBuffer*		createVertexBuffer( const RsVertexBufferDesc& Desc, void* pVertexData = NULL ) = 0;
+	virtual RsBuffer* createBuffer( 
+		const RsBufferDesc& Desc ) = 0;
 	
-	/**
-	 * Create index buffer.
-	 * @param Desc Buffer descriptor
-	 * @param pIndexData Pointer to index data, NULL to create own.
-	 */
-	virtual RsIndexBuffer*		createIndexBuffer( const RsIndexBufferDesc& Desc, void* pIndexData = NULL ) = 0;
-	
-	/**
-	 * Create uniform buffer.
-	 * @param Desc Buffer descriptor
-	 * @param pBufferData Pointer to buffer data, NULL to create own.
-	 */
-	virtual RsUniformBuffer*	createUniformBuffer( const RsUniformBufferDesc& Desc, void* pBufferData = NULL ) = 0;
-
 	/**
 	 * Create shader.
-	 * @param ShaderType Shader type.
-	 * @param ShaderDataType Shader data type.
+	 * @param Desc Shader descriptor.
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
 	 */
-	virtual RsShader*			createShader( eRsShaderType ShaderType, eRsShaderDataType ShaderDataType, void* pShaderData, BcU32 ShaderDataSize ) = 0;
+	virtual RsShader* createShader( 
+		const RsShaderDesc& Desc, 
+		void* pShaderData, BcU32 ShaderDataSize ) = 0;
 
 	/**
 	 * Create program.
-	 * @param NoofShaders Number of shaders.
-	 * @param ppShaders Array of shaders to use for program.
-	 * @param NoofVertexAttributes Number of vertex attributes.
+	 * @param Shaders Array of shaders to use for program.
+	 * @param VertexAttributes Vertex attributes for program.
 	 * @param pVertexAttributes Vertex attributes.
 	 */
-	virtual RsProgram*			createProgram( BcU32 NoofShaders, RsShader** ppShaders, BcU32 NoofVertexAttributes, RsProgramVertexAttribute* pVertexAttributes  ) = 0;
-
-	/**
-	 * Create primitive.
-	 * @param Desc Descriptor object.
-	 */
-	virtual RsPrimitive*		createPrimitive( const RsPrimitiveDesc& Desc ) = 0;
+	virtual RsProgram* createProgram( 
+		std::vector< RsShader* > Shaders, 
+		RsProgramVertexAttributeList VertexAttributes ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
 	 * @param pResource Resource to update.
 	 */
-	virtual void				updateResource( RsResource* pResource ) = 0;
+	virtual void updateResource( 
+		RsResource* pResource ) = 0;
 
 	/**
 	 * Destroy resource. Work done on render thread.
 	 * @param pResource Resource to destroy.
 	 */
-	virtual void				destroyResource( RsResource* pResource ) = 0;
+	virtual void destroyResource( 
+		RsResource* pResource ) = 0;
+	virtual void destroyResource( 
+		RsBuffer* Buffer ) = 0;
+	virtual void destroyResource( 
+		RsTexture* Texture ) = 0;
+	virtual void destroyResource( 
+		RsShader* Shader ) = 0;
+	virtual void destroyResource( 
+		RsProgram* Program ) = 0;
+
+	//////////////////////////////////////////////////////////////////////
+	// New interfaces.
 	
+	/**
+	 * Update buffer.
+	 */
+	virtual bool updateBuffer( 
+		class RsBuffer* Buffer,
+		BcSize Offset,
+		BcSize Size,
+		RsResourceUpdateFlags Flags,
+		RsBufferUpdateFunc UpdateFunc ) = 0;
+
+	/**
+	 * Update texture.
+	 */
+	virtual bool updateTexture( 
+		class RsTexture* Texture,
+		const struct RsTextureSlice& Slice,
+		RsResourceUpdateFlags Flags,
+		RsTextureUpdateFunc UpdateFunc ) = 0;	
 public:
 	/**
 	*	Allocate a frame for rendering.

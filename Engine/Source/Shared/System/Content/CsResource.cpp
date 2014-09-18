@@ -24,13 +24,22 @@ REFLECTION_DEFINE_DERIVED( CsResource );
 // Reflection
 void CsResource::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Index_",				&CsResource::Index_ ),
-		ReField( "InitStage_",			&CsResource::InitStage_ ),
+		new ReField( "Index_", &CsResource::Index_, bcRFF_TRANSIENT ),
+		new ReField( "InitStage_", &CsResource::InitStage_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< CsResource, Super >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsResource::CsResource( ReNoInit ):
+	Index_( BcErrorCode ),
+	InitStage_( INIT_STAGE_INITIAL )
+{
+	CsCore::pImpl()->internalAddResource( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,7 +48,7 @@ CsResource::CsResource():
 	Index_( BcErrorCode ),
 	InitStage_( INIT_STAGE_INITIAL )
 {
-
+	CsCore::pImpl()->internalAddResource( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,33 +58,6 @@ CsResource::~CsResource()
 {
 	
 }
-
-//////////////////////////////////////////////////////////////////////////
-// preInitialise
-void CsResource::preInitialise( const BcName& Name, BcU32 Index, CsPackage* pPackage )
-{
-	BcAssertMsg( Name != BcName::INVALID, "Resource can not have an invalid name." );
-	BcAssertMsg( Name != BcName::NONE, "Resource can not have a none name." );
-
-	setName( Name );
-	setOwner( pPackage );
-	Index_ = Index;
-}
-
-#ifdef PSY_SERVER
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool CsResource::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	BcUnusedVar( Importer );
-	BcUnusedVar( Object );
-
-	// TODO: Generic property save out?
-
-	return BcTrue;
-}
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
@@ -107,6 +89,13 @@ void CsResource::destroy()
 void CsResource::fileReady()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setIndex
+void CsResource::setIndex(  BcU32 Index )
+{
+	Index_ = Index;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -159,100 +148,6 @@ const BcName& CsResource::getPackageName() const
 BcU32 CsResource::getIndex() const
 {
 	return Index_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// serialiseProperties
-//virtual
-void CsResource::serialiseProperties()
-{
-	BcPrintf("=============================================\n");
-
-	// Iterate over all properties and do stuff.
-	const ReClass* pClass = getClass();
-
-	// NOTE: Do not want to hit this. Ever.
-	if( pClass == NULL )
-	{
-		int a = 0 ; ++a;
-	}
-
-	BcU8* pClassData = reinterpret_cast< BcU8* >( this );
-
-#if 0
-	// Iterate over to grab offsets for classes.
-	while( pClass != NULL )
-	{
-		BcPrintf("Class: %s (Size: 0x%x)\n", (*pClass->getName()).c_str(), pClass->getSize());
-		for( BcU32 Idx = 0; Idx < pClass->getNoofFields(); ++Idx )
-		{
-			const BcReflectionField* pField = pClass->getField( Idx );
-			const BcReflectionType* pType = pField->getType();
-			if( pType != NULL )
-			{
-				BcPrintf(" - %s %s; // Offset 0x%x, Size 0x%x, Flags: 0x%x\n", (*pType->getName()).c_str(), (*pField->getName()).c_str(), pField->getOffset(), pType->getSize(), pField->getFlags() );
-				if( pType->getName() == "BcU8" )
-				{
-					const BcU8* pData = reinterpret_cast< const BcU8* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %u\n", *pData );
-				}
-				else if( pType->getName() == "BcU16" )
-				{
-					const BcU16* pData = reinterpret_cast< const BcU16* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %u\n", *pData );
-				}
-				else if( pType->getName() == "BcU32" )
-				{
-					const BcU32* pData = reinterpret_cast< const BcU32* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %u\n", *pData );
-				}
-				else if( pType->getName() == "BcF32" )
-				{
-					const BcF32* pData = reinterpret_cast< const BcF32* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %f\n", *pData );
-				}
-				else if( pType->getName() == "BcName" )
-				{
-					const BcName* pData = reinterpret_cast< const BcName* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %s\n", (**pData).c_str() );
-				}
-				else if( pType->getName() == "BcBool" )
-				{
-					const BcBool* pData = reinterpret_cast< const BcBool* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %u\n", *pData );
-				}
-				else if( pType->getName() == "MaVec2d" )
-				{
-					const MaVec2d* pData = reinterpret_cast< const MaVec2d* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %f, %f\n", pData->x(), pData->y() );
-				}
-				else if( pType->getName() == "MaVec3d" )
-				{
-					const MaVec3d* pData = reinterpret_cast< const MaVec3d* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %f, %f, %f\n", pData->x(), pData->y(), pData->z() );
-				}
-				else if( pType->getName() == "MaVec4d" )
-				{
-					const MaVec4d* pData = reinterpret_cast< const MaVec4d* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %f, %f, %f, %f\n", pData->x(), pData->y(), pData->z(), pData->w() );
-				}
-				else if( pType->getName() == "MaMat4d" )
-				{
-					const MaMat4d* pData = reinterpret_cast< const MaMat4d* >( &pClassData[ pField->getOffset() ] );
-					BcPrintf( " - - %f, %f, %f, %f\n", pData->row0().x(), pData->row0().y(), pData->row0().z(), pData->row0().w() );
-					BcPrintf( " - - %f, %f, %f, %f\n", pData->row1().x(), pData->row1().y(), pData->row1().z(), pData->row1().w() );
-					BcPrintf( " - - %f, %f, %f, %f\n", pData->row2().x(), pData->row2().y(), pData->row2().z(), pData->row2().w() );
-					BcPrintf( " - - %f, %f, %f, %f\n", pData->row3().x(), pData->row3().y(), pData->row3().z(), pData->row3().w() );
-				}
-			}
-		}
-
-		pClass = pClass->getSuper();
-	}
-#else
-	BcBreakpoint;
-#endif 
-	BcPrintf("=============================================\n");
 }
 
 //////////////////////////////////////////////////////////////////////////

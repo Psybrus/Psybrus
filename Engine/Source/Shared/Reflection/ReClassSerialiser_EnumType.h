@@ -9,11 +9,14 @@ class ReClassSerialiser_EnumType:
 		public ReClassSerialiser
 {
 public:
-    ReClassSerialiser_EnumType( const std::string& Name );
+    ReClassSerialiser_EnumType( BcName Name );
     virtual ~ReClassSerialiser_EnumType();
 	void construct( void* pMemory ) const;
 	void constructNoInit( void* pMemory ) const;
 	void destruct( void* pMemory ) const;
+	void* create() const;
+	void* createNoInit() const;
+	void destroy( void* Object ) const;
 	BcU32 getBinaryDataSize( void* pMemory ) const;						
 	BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const;
 	BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const;

@@ -8,17 +8,17 @@ REFLECTION_DEFINE_BASE( ReObject );
 	
 void ReObject::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
 #if REFLECTION_ENABLE_GC
-		ReField( "RefCount_",			&ReObject::RefCount_,		bcRFF_TRANSIENT ),
+		new ReField( "RefCount_", &ReObject::RefCount_, bcRFF_TRANSIENT ),
 #endif
-		ReField( "Flags_",				&ReObject::Flags_ ),
-		ReField( "Owner_",				&ReObject::Owner_ ),
-		ReField( "Basis_",				&ReObject::Basis_ ),
-		ReField( "Name_",				&ReObject::Name_ ),
+		new ReField( "Flags_", &ReObject::Flags_ ),
+		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY | bcRFF_BASIS ),
+		new ReField( "Name_", &ReObject::Name_ ),
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
-		ReField( "UniqueId_",			&ReObject::UniqueId_ ),
+		new ReField( "UniqueId_", &ReObject::UniqueId_, bcRFF_TRANSIENT ),
 #endif
 	};
 		
@@ -85,6 +85,20 @@ void ReObject::setName( BcName Name )
 const BcName& ReObject::getName() const
 {
 	return Name_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setBasis
+void ReObject::setBasis( ReObject* Basis )
+{
+	Basis_ = Basis;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBasis
+ReObject* ReObject::getBasis() const
+{
+	return Basis_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -183,13 +197,6 @@ void ReObject::setRootOwner( ReObject* RootOwner )
 			Owner = Owner->Owner_;
 		}
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getBasis
-ReObject* ReObject::getBasis() const
-{
-	return Basis_;
 }
 
 //////////////////////////////////////////////////////////////////////////

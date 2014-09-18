@@ -31,7 +31,7 @@ class BcGlobal
 public:
 	BcGlobal()
 	{
-#if PSY_DEBUG
+#ifdef PSY_DEBUG
 		// No assert in here, used by logging system.
 		if( pImpl_ != NULL )
 		{
@@ -43,7 +43,7 @@ public:
 
 	virtual ~BcGlobal()
 	{
-#if PSY_DEBUG
+#ifdef PSY_DEBUG
 		// No assert in here, used by logging system.
 		if( pImpl_ != (_Ty*)this )
 		{

@@ -8,10 +8,10 @@ REFLECTION_DEFINE_DERIVED( ReClass );
 
 void ReClass::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Super_",		&ReClass::Super_ ),
-		ReField( "Fields_",		&ReClass::Fields_ ),
+		new ReField( "Super_",		&ReClass::Super_ ),
+		new ReField( "Fields_",		&ReClass::Fields_ ),
 	};
 		
 	ReRegisterClass< ReClass, ReType >( Fields );
@@ -67,14 +67,10 @@ BcBool ReClass::hasBaseClass( const ReClass* pClass ) const
 	
 //////////////////////////////////////////////////////////////////////////
 // setFields
-void ReClass::setFields( BcU32 NoofFields, const ReField* pFields )
+void ReClass::setFields( ReFieldVector&& Fields )
 {
 	BcAssertMsg( Fields_.size() == 0, "Fields already set." );
-	Fields_.reserve( NoofFields );
-	for( BcU32 Idx = 0; Idx < NoofFields; ++Idx )
-	{
-		Fields_.push_back( &pFields[ Idx ] );
-	}
+	Fields_ = std::move( Fields );
 }
 	
 //////////////////////////////////////////////////////////////////////////
@@ -89,4 +85,50 @@ const ReField* ReClass::getField( BcU32 Idx ) const
 BcU32 ReClass::getNoofFields() const
 {
 	return Fields_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFields
+const ReFieldVector& ReClass::getFields() const
+{
+	return Fields_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// validate
+BcBool ReClass::validate() const
+{
+	BcBool RetVal = BcTrue;
+	const ReClass* OtherClass = Super_;
+	while( OtherClass != nullptr )
+	{
+		const auto& FieldsB = OtherClass->getFields();
+
+		for( const auto& FieldA : Fields_ )
+		{
+			for( const auto& FieldB : FieldsB )
+			{
+				if( FieldA->getName() == FieldB->getName() )
+				{
+					BcPrintf( "ERROR: ReClass \"%s\" has field \"%s\" in its super \"%s\"\n",
+						(*getName()).c_str(), 
+						(*FieldA->getName()).c_str(),
+						(*OtherClass->getName()).c_str() );
+					RetVal = BcFalse;
+				}
+			}
+		}
+
+		OtherClass = OtherClass->getSuper();
+	}
+
+	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ReClass::destroy( void* pData ) const
+{
+	BcAssert( Serialiser_ );
+	Serialiser_->destroy( pData );
 }

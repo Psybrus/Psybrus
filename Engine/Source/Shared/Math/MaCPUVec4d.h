@@ -16,7 +16,8 @@
 
 #include "Math/MaCPUVecQuad.h"
 #include "Reflection/ReReflection.h"
-
+#include "MaVec3d.h"
+#define DECLARE_SWIZZLE3( T, X, Y, Z ) inline T X ## Y ## Z() const { return T( X(), Y(), Z() ); }
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec4d
 class MaCPUVec4d: public MaCPUVecQuad
@@ -72,7 +73,89 @@ public:
 
 	// Comparison with epsilons
 	BcBool			operator == (const MaCPUVec4d& Rhs) const;	
-	BcBool			operator != (const MaCPUVec4d& Rhs) const;		      
+	BcBool			operator != (const MaCPUVec4d& Rhs) const;
+
+	DECLARE_SWIZZLE2( MaVec2d, x, x );
+	DECLARE_SWIZZLE2( MaVec2d, x, y );
+	DECLARE_SWIZZLE2( MaVec2d, x, z );
+	DECLARE_SWIZZLE2( MaVec2d, x, w );
+	DECLARE_SWIZZLE2( MaVec2d, y, x );
+	DECLARE_SWIZZLE2( MaVec2d, y, y );
+	DECLARE_SWIZZLE2( MaVec2d, y, z );
+	DECLARE_SWIZZLE2( MaVec2d, y, w );
+	DECLARE_SWIZZLE2( MaVec2d, z, x );
+	DECLARE_SWIZZLE2( MaVec2d, z, y );
+	DECLARE_SWIZZLE2( MaVec2d, z, z );
+	DECLARE_SWIZZLE2( MaVec2d, z, w );
+	DECLARE_SWIZZLE2( MaVec2d, w, x );
+	DECLARE_SWIZZLE2( MaVec2d, w, y );
+	DECLARE_SWIZZLE2( MaVec2d, w, z );
+	DECLARE_SWIZZLE2( MaVec2d, w, w );
+
+	DECLARE_SWIZZLE3( MaVec3d, w, w, w );
+	DECLARE_SWIZZLE3( MaVec3d, w, w, x );
+	DECLARE_SWIZZLE3( MaVec3d, w, w, y );
+	DECLARE_SWIZZLE3( MaVec3d, w, w, z );
+	DECLARE_SWIZZLE3( MaVec3d, w, x, w );
+	DECLARE_SWIZZLE3( MaVec3d, w, x, x );
+	DECLARE_SWIZZLE3( MaVec3d, w, x, y );
+	DECLARE_SWIZZLE3( MaVec3d, w, x, z );
+	DECLARE_SWIZZLE3( MaVec3d, w, y, w );
+	DECLARE_SWIZZLE3( MaVec3d, w, y, x );
+	DECLARE_SWIZZLE3( MaVec3d, w, y, y );
+	DECLARE_SWIZZLE3( MaVec3d, w, y, z );
+	DECLARE_SWIZZLE3( MaVec3d, w, z, w );
+	DECLARE_SWIZZLE3( MaVec3d, w, z, x );
+	DECLARE_SWIZZLE3( MaVec3d, w, z, y );
+	DECLARE_SWIZZLE3( MaVec3d, w, z, z );
+	DECLARE_SWIZZLE3( MaVec3d, x, w, w );
+	DECLARE_SWIZZLE3( MaVec3d, x, w, x );
+	DECLARE_SWIZZLE3( MaVec3d, x, w, y );
+	DECLARE_SWIZZLE3( MaVec3d, x, w, z );
+	DECLARE_SWIZZLE3( MaVec3d, x, x, w );
+	DECLARE_SWIZZLE3( MaVec3d, x, x, x );
+	DECLARE_SWIZZLE3( MaVec3d, x, x, y );
+	DECLARE_SWIZZLE3( MaVec3d, x, x, z );
+	DECLARE_SWIZZLE3( MaVec3d, x, y, w );
+	DECLARE_SWIZZLE3( MaVec3d, x, y, x );
+	DECLARE_SWIZZLE3( MaVec3d, x, y, y );
+	DECLARE_SWIZZLE3( MaVec3d, x, y, z );
+	DECLARE_SWIZZLE3( MaVec3d, x, z, w );
+	DECLARE_SWIZZLE3( MaVec3d, x, z, x );
+	DECLARE_SWIZZLE3( MaVec3d, x, z, y );
+	DECLARE_SWIZZLE3( MaVec3d, x, z, z );
+	DECLARE_SWIZZLE3( MaVec3d, y, w, w );
+	DECLARE_SWIZZLE3( MaVec3d, y, w, x );
+	DECLARE_SWIZZLE3( MaVec3d, y, w, y );
+	DECLARE_SWIZZLE3( MaVec3d, y, w, z );
+	DECLARE_SWIZZLE3( MaVec3d, y, x, w );
+	DECLARE_SWIZZLE3( MaVec3d, y, x, x );
+	DECLARE_SWIZZLE3( MaVec3d, y, x, y );
+	DECLARE_SWIZZLE3( MaVec3d, y, x, z );
+	DECLARE_SWIZZLE3( MaVec3d, y, y, w );
+	DECLARE_SWIZZLE3( MaVec3d, y, y, x );
+	DECLARE_SWIZZLE3( MaVec3d, y, y, y );
+	DECLARE_SWIZZLE3( MaVec3d, y, y, z );
+	DECLARE_SWIZZLE3( MaVec3d, y, z, w );
+	DECLARE_SWIZZLE3( MaVec3d, y, z, x );
+	DECLARE_SWIZZLE3( MaVec3d, y, z, y );
+	DECLARE_SWIZZLE3( MaVec3d, y, z, z );
+	DECLARE_SWIZZLE3( MaVec3d, z, w, w );
+	DECLARE_SWIZZLE3( MaVec3d, z, w, x );
+	DECLARE_SWIZZLE3( MaVec3d, z, w, y );
+	DECLARE_SWIZZLE3( MaVec3d, z, w, z );
+	DECLARE_SWIZZLE3( MaVec3d, z, x, w );
+	DECLARE_SWIZZLE3( MaVec3d, z, x, x );
+	DECLARE_SWIZZLE3( MaVec3d, z, x, y );
+	DECLARE_SWIZZLE3( MaVec3d, z, x, z );
+	DECLARE_SWIZZLE3( MaVec3d, z, y, w );
+	DECLARE_SWIZZLE3( MaVec3d, z, y, x );
+	DECLARE_SWIZZLE3( MaVec3d, z, y, y );
+	DECLARE_SWIZZLE3( MaVec3d, z, y, z );
+	DECLARE_SWIZZLE3( MaVec3d, z, z, w );
+	DECLARE_SWIZZLE3( MaVec3d, z, z, x );
+	DECLARE_SWIZZLE3( MaVec3d, z, z, y );
+	DECLARE_SWIZZLE3( MaVec3d, z, z, z );
 };
 
 //////////////////////////////////////////////////////////////////////////

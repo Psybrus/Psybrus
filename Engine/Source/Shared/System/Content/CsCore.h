@@ -23,7 +23,7 @@
 
 #include "System/Content/CsPackage.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Content/CsPackageImporter.h"
 #include <json/json.h>
 #endif
@@ -63,7 +63,7 @@ public:
 	 * Get noof resource types.
 	 */
 	BcU32								getNoofResourceTypes() const;
-	
+		
 	/**
 	 * Allocate resource.
 	 */
@@ -157,6 +157,11 @@ public:
 	BcPath								getPackageImportPath( const BcName& Package );
 
 	/**
+	 * Get package intermediate path.
+	 */
+	BcPath								getPackageIntermediatePath( const BcName& Package );
+
+	/**
 	 * Get package packed path.
 	 */
 	BcPath								getPackagePackedPath( const BcName& Package );
@@ -171,6 +176,8 @@ protected:
 	void								processCallbacks();
 	
 public:
+	friend class CsResource;
+	void								internalAddResource( CsResource* Resource );
 	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle );
 	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
 	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
@@ -178,7 +185,7 @@ public:
 protected:
 	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
-	typedef std::vector< ReObjectRef< CsResource > > TResourceHandleList;
+	typedef std::vector< CsResource* > TResourceHandleList;
 	typedef TResourceHandleList::iterator TResourceHandleListIterator;
 
 	struct TPackageReadyCallback

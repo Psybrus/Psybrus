@@ -8,15 +8,15 @@ REFLECTION_DEFINE_DERIVED( ReField );
 
 void ReField::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Offset_", &ReField::Offset_ ),
-		ReField( "Type_", &ReField::Type_ ),
-		ReField( "Flags_", &ReField::Flags_ ),
-		ReField( "KeyType_", &ReField::KeyType_ ),
-		ReField( "ValueType_", &ReField::ValueType_ ),
-		ReField( "KeyFlags_", &ReField::KeyFlags_ ),
-		ReField( "ValueFlags_", &ReField::ValueFlags_ ),
+		new ReField( "Offset_", &ReField::Offset_ ),
+		new ReField( "Type_", &ReField::Type_ ),
+		new ReField( "Flags_", &ReField::Flags_ ),
+		new ReField( "KeyType_", &ReField::KeyType_ ),
+		new ReField( "ValueType_", &ReField::ValueType_ ),
+		new ReField( "KeyFlags_", &ReField::KeyFlags_ ),
+		new ReField( "ValueFlags_", &ReField::ValueFlags_ ),
 	};
 		
 	ReRegisterClass< ReField, RePrimitive >( Fields );

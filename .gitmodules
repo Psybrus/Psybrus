@@ -1,0 +1,6 @@
+[submodule "External/assimp"]
+	path = External/assimp
+	url = https://github.com/neilogd/assimp.git
+[submodule "External/SoLoud"]
+	path = External/SoLoud
+	url = https://github.com/neilogd/SoLoud

@@ -51,6 +51,10 @@ public:
 public:
     REFLECTION_DECLARE_BASE_MANUAL_NOINIT( ReObject );
 
+private:
+	ReObject( const ReObject& ){};
+	ReObject( ReObject&& ){};
+
 public:
     ReObject();
     ReObject( ReNoInit );
@@ -66,6 +70,16 @@ public:
 	 */
 	const BcName&					getName() const;
 	
+	/**
+	 * @brief Set basis.
+	 */
+	void							setBasis( ReObject* Basis );
+
+	/**
+	 * @brief Get object's name.
+	 */
+	ReObject*						getBasis() const;
+
 	/**
 	 * @brief Get object's full name.
 	 */
@@ -98,11 +112,6 @@ public:
 	 * Recurses down to set the root owner.
 	 */
     void							setRootOwner( ReObject* RootOwner );
-
-	/**
-	 * @brief Get basis.
-	 */
-    ReObject*						getBasis() const;
 
 #if REFLECTION_ENABLE_GC
 	/**
@@ -146,7 +155,12 @@ public:
 #endif
 	}
 private:
-    friend ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis );
+    friend ReObject* ReConstructObject( 
+		const ReClass* InClass, 
+		const std::string& InName, 
+		ReObject* InOwner, 
+		ReObject* InBasis, 
+		std::function< void( ReObject* ) > );
 
 	template< class _Ty, bool _IsWeak > friend class ReObjectRef;
 

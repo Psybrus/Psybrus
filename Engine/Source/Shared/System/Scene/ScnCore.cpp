@@ -22,10 +22,10 @@
 #include "System/Content/CsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
-#include "System/Scene/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnSpatialComponent.h"
-#include "System/Scene/ScnRenderingVisitor.h"
+#include "System/Scene/Rendering/ScnRenderingVisitor.h"
 
 #include "Base/BcProfiler.h"
 
@@ -214,6 +214,7 @@ void ScnCore::close()
 // addEntity
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
+	BcAssert( Entity->getName().isValid() );
 	Entity->setFlag( scnCF_PENDING_ATTACH );
 	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
 }
@@ -222,6 +223,7 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 // removeEntity
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
+	BcAssert( Entity->getName().isValid() );
 	if(Entity->getParentEntity() == NULL )
 	{
 		Entity->setFlag( scnCF_PENDING_DETACH );
@@ -244,7 +246,7 @@ void ScnCore::removeAllEntities()
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );
 		// Only remove root entities, it will cascade down the hierarchy removing them.
-		if( Entity->getParentEntity() != NULL )
+		if( Entity->getParentEntity() == NULL )
 		{
 			removeEntity( Entity );
 		}
@@ -271,12 +273,13 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 	BcAssertMsg( BcFalse, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
 
-	return NULL;	
+	return nullptr;	
 }
 
 //////////////////////////////////////////////////////////////////////////
 // spawnEntity
-ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
+ScnEntity* ScnCore::spawnEntity( 
+	const ScnEntitySpawnParams& Params)
 {
 	BcAssert( BcIsGameThread() );
 
@@ -293,7 +296,10 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 	
 		// Register for ready callback.
 		EntitySpawnMap_[ EntitySpawnID_ ] = Params;
-		CsCore::pImpl()->requestPackageReadyCallback( Params.Package_, CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), EntitySpawnID_ );
+		CsCore::pImpl()->requestPackageReadyCallback( 
+			Params.Package_, 
+			CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), 
+			EntitySpawnID_ );
 
 		// Advance spawn ID.
 		++EntitySpawnID_;
@@ -318,7 +324,7 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 		}
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -333,13 +339,14 @@ ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 		return ScnEntityRef( ComponentList[ Idx ] );
 	}
 
-	return ScnEntityRef( NULL );
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // queueComponentAsPendingOperation
 void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
 {
+	BcAssert( Component->getName() != BcName::INVALID );
 	PendingComponentList_.push_back( Component );
 }
 
@@ -438,6 +445,8 @@ void ScnCore::processPendingComponents()
 		if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
 		{
 			Component->onDetach( Component->getParentEntity() );
+			BcAssertMsg( Component->getInitStage() == CsResource::INIT_STAGE_DESTROY, 
+				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
 			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 		}
 	}
@@ -445,7 +454,8 @@ void ScnCore::processPendingComponents()
 
 //////////////////////////////////////////////////////////////////////////
 // internalSpawnEntity
-ScnEntity* ScnCore::internalSpawnEntity( ScnEntitySpawnParams Params )
+ScnEntity* ScnCore::internalSpawnEntity( 
+	ScnEntitySpawnParams Params )
 {
 	// Create entity.
 	ScnEntityRef Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
@@ -461,6 +471,12 @@ ScnEntity* ScnCore::internalSpawnEntity( ScnEntitySpawnParams Params )
 	else
 	{
 		addEntity( Entity );
+	}
+
+	// Call on spawn callback.
+	if( Params.OnSpawn_ != nullptr )
+	{
+		Params.OnSpawn_( Entity );
 	}
 
 	return Entity;

@@ -17,11 +17,11 @@ REFLECTION_DEFINE_BASIC( MaMat3d );
 
 void MaMat3d::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Row0_",		&MaMat3d::Row0_ ),
-		ReField( "Row1_",		&MaMat3d::Row1_ ),
-		ReField( "Row2_",		&MaMat3d::Row2_ ),
+		new ReField( "Row0_",		&MaMat3d::Row0_ ),
+		new ReField( "Row1_",		&MaMat3d::Row1_ ),
+		new ReField( "Row2_",		&MaMat3d::Row2_ ),
 	};
 		
 	ReRegisterClass< MaMat3d >( Fields );

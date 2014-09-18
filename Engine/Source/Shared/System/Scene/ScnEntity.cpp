@@ -14,49 +14,65 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Scene/ScnCore.h"
 #include "System/Content/CsCore.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "Base/BcProfiler.h"
 
 #include "System/Renderer/RsCore.h"
 #include "Events/EvtProxyBuffered.h"
 
-#ifdef PSY_SERVER
-#include "Base/BcStream.h"
+#include "Serialisation/SeJsonWriter.h"
 
-//////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool ScnEntity::import( class CsPackageImporter& Importer, const Json::Value& Object )
-{
-	// Write out object to be used later.
-	Json::FastWriter Writer;
-	std::string JsonData = Writer.write( Object );
-	
-	//
-	Importer.addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
-	
-	//
-	return Super::import( Importer, Object );
-}
+#ifdef PSY_IMPORT_PIPELINE
+#include "System/Scene/Import/ScnEntityImport.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnEntity );
+REFLECTION_DEFINE_DERIVED( ScnEntity );
 
 void ScnEntity::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Basis_",			&ScnEntity::Basis_ ),
-		ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
-		ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
-		ReField( "Components_",		&ScnEntity::Components_ ),
-		ReField( "pEventProxy_",	&ScnEntity::pEventProxy_ ),
+		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
+		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
+		new ReField( "Components_",		&ScnEntity::Components_ ),
+		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
 	};
+	
+	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
 		
-	ReRegisterClass< ScnEntity, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2100 ) );
+	Class.addAttribute( new ScnComponentAttribute( -2100 ) );
+#ifdef PSY_IMPORT_PIPELINE
+	// Add importer attribute to class for resource system to use.
+	Class.addAttribute( new CsResourceImporterAttribute( 
+		ScnEntityImport::StaticGetClass(), 0, 200 ) );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntity::ScnEntity():
+	pHeader_( nullptr ),
+	pEventProxy_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnEntity::ScnEntity( ReNoInit ):
+	pHeader_( nullptr ),
+	pEventProxy_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnEntity::~ScnEntity()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,11 +80,6 @@ void ScnEntity::StaticRegisterClass()
 void ScnEntity::initialise()
 {
 	Super::initialise();
-
-	pEventProxy_ = NULL;
-
-	// NULL internals.
-	pJsonObject_ = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,72 +87,70 @@ void ScnEntity::initialise()
 void ScnEntity::initialise( ScnEntityRef Basis )
 {
 	ScnEntity::initialise();
-
+	
 	// Grab our basis.
-	Basis_ = Basis->getBasisEntity();
+	setBasis( Basis->getBasisEntity() );
+	pHeader_ = Basis->pHeader_;
 
-	BcAssertMsg( Basis_->isReady(), "Basis entity is not ready!" );
+	BcAssertMsg( Basis->isReady(), "Basis entity is not ready!" );
 
 	// Copy over internals.
-	pJsonObject_ = Basis_->pJsonObject_;
-	LocalTransform_ = Basis_->LocalTransform_;
+	LocalTransform_ = Basis->LocalTransform_;
 
-	// Create components from Json.
-	// TEMP.
-	Json::Value Root;
-	Json::Reader Reader;
-	if( Reader.parse( pJsonObject_, Root ) )
-	{
-		//
-		const Json::Value& Components = Root[ "components" ];
-
-		for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
-		{
-			const Json::Value& Component( Components[ Idx ] );
-			ReObjectRef< CsResource > ResourceRef;
-			const ReClass* Class = ReManager::GetClass( Component[ "type" ].asCString() );
-			const Json::Value& NameValue = Component[ "name" ];
-
-			BcName Name = NameValue.type() == Json::stringValue ? NameValue.asCString() : BcName::INVALID;
-
-			if( CsCore::pImpl()->internalCreateResource( Name, Class, BcErrorCode, getPackage(), ResourceRef ) )
-			{
-				ScnComponentRef ComponentRef( ResourceRef );
-				BcAssert( ComponentRef.isValid() );
-
-				//BcPrintf( "** - %s:%s\n", (*ComponentRef->getName()).c_str(), (*ComponentRef->getType()).c_str() );
-
-				// Initialise has already been called...need to change this later.
-				ComponentRef->initialise( Component );
-
-				//ComponentRef->serialiseProperties();
-
-				// Attach.
-				attach( ComponentRef );
-			}			
-		}
-	}
-
-	// If we have a basis entity, we need to acquire the package.
-	if( Basis_.isValid() )
-	{
-		BcAssertMsg( Basis_->getPackage() == getPackage(), "Must reference the same package as the basis entity." );
-		getPackage()->acquire();
-	}
-
-	// Placeholder!
-	//serialiseProperties();
+	// Acquire basis package.
+	setRootOwner( Basis->getPackage() );
+	getPackage()->acquire();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // create
 void ScnEntity::create()
 {
-	// If we have a basis, we're ready.
-	if( Basis_.isValid() )
-	{			
-		markReady();
+	// New stuff.
+	auto Basis = static_cast< ScnEntity* >( getBasis() );
+	const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis->pHeader_ : pHeader_;
+	const BcU32* ComponentCrossRefs = reinterpret_cast< const BcU32* >( Header + 1 );
+
+	for( BcU32 Idx = 0; Idx < Header->NoofComponents_; ++Idx )
+	{
+		// We are a basis.
+		if( getBasis() == nullptr )
+		{
+			ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
+			Components_.push_back( Component );
+		}
+		else
+		{
+			BcAssert( Basis->Components_.size() == Header->NoofComponents_ );
+			ScnComponentRef Component = Basis->Components_[ Idx ];
+
+			// Construct a new entity.
+			ScnComponentRef NewComponent = 
+				ReConstructObject( 
+					Component->getClass(), 
+					*Component->getName().getUnique(), 
+					getPackage(), 
+					Component,
+					[]( ReObject* Object )
+					{
+						ScnComponent* Component = static_cast< ScnComponent* >( Object );
+						Component->initialise();
+					} );
+
+			attach( NewComponent );
+		}
 	}
+
+	static int Export = 0;
+	if( Export )
+	{
+		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_ALL, bcRFF_TRANSIENT | bcRFF_CHUNK_DATA );
+		SeJsonWriter Writer( &ObjectCodec );
+		Writer << *this;
+		Writer.save( "test.json" );
+		Export = 0;
+	}
+	markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +158,7 @@ void ScnEntity::create()
 void ScnEntity::destroy()
 {
 	// If we have a basis entity, we need to release the package.
-	if( Basis_.isValid() )
+	if( getBasis() != nullptr )
 	{
 		getPackage()->release();
 	}
@@ -184,6 +193,7 @@ void ScnEntity::update( BcF32 Tick )
 // attach
 void ScnEntity::attach( ScnComponent* Component )
 {
+	BcAssert( Component->getName() != BcName::INVALID );
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It == Components_.end() )
 	{
@@ -201,11 +211,13 @@ void ScnEntity::attach( ScnComponent* Component )
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
+	BcAssert( Component->getName() != BcName::INVALID );
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It != Components_.end() )
 	{
 		BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
-		BcAssertMsg( !Component->isFlagSet( scnCF_PENDING_ATTACH ), "Component is currently pending attachment!" )
+		BcAssertMsg( !Component->isFlagSet( scnCF_PENDING_ATTACH ), 
+			"Component is currently pending attachment! Being attached too quickly?" )
 
 		Component->setFlag( scnCF_PENDING_DETACH );
 		Components_.erase( It );
@@ -255,9 +267,10 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 ScnEntityRef ScnEntity::getBasisEntity()
 {
 	// If we have a basis, ask it for it's basis.
-	if( Basis_.isValid() )
+	auto Basis = static_cast< ScnEntity* >( getBasis() );
+	if( Basis != nullptr )
 	{
-		return Basis_->getBasisEntity();
+		return Basis->getBasisEntity();
 	}
 
 	// We have no basis, therefore we are it.
@@ -379,6 +392,26 @@ void ScnEntity::setLocalPosition( const MaVec3d& Position )
 void ScnEntity::setLocalMatrix( const MaMat4d& Matrix )
 {
 	LocalTransform_ = Matrix;
+	if( ParentEntity_ == nullptr )
+	{
+		WorldTransform_ = Matrix;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setLocalMatrixRS
+void ScnEntity::setLocalMatrixRS( const MaMat4d& Matrix )
+{
+	LocalTransform_.row0( Matrix.row0() );
+	LocalTransform_.row1( Matrix.row1() );
+	LocalTransform_.row2( Matrix.row2() );
+	if( ParentEntity_ == nullptr )
+	{
+		WorldTransform_ = Matrix;
+		WorldTransform_.row0( Matrix.row0() );
+		WorldTransform_.row1( Matrix.row1() );
+		WorldTransform_.row2( Matrix.row2() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -386,6 +419,45 @@ void ScnEntity::setLocalMatrix( const MaMat4d& Matrix )
 MaVec3d ScnEntity::getLocalPosition() const
 {
 	return LocalTransform_.translation();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWorldPosition
+void ScnEntity::setWorldPosition( const MaVec3d& Position )
+{
+	MaMat4d InverseParentWorldTransform = 
+		ParentEntity_ != nullptr ? 
+			ParentEntity_->WorldTransform_ : MaMat4d();
+	InverseParentWorldTransform.inverse();
+
+	WorldTransform_.translation( Position );
+	setLocalMatrix( InverseParentWorldTransform * WorldTransform_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWorldMatrix
+void ScnEntity::setWorldMatrix( const MaMat4d& Matrix )
+{
+	MaMat4d InverseParentWorldTransform =
+		ParentEntity_ != nullptr ?
+			ParentEntity_->WorldTransform_ : MaMat4d();
+	InverseParentWorldTransform.inverse();
+
+	WorldTransform_ = Matrix;
+	setLocalMatrix( InverseParentWorldTransform * Matrix );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWorldMatrixRS
+void ScnEntity::setWorldMatrixRS( const MaMat4d& Matrix )
+{
+	MaMat4d InverseParentWorldTransform =
+		ParentEntity_ != nullptr ?
+		ParentEntity_->WorldTransform_ : MaMat4d();
+	InverseParentWorldTransform.inverse();
+
+	WorldTransform_ = Matrix;
+	setLocalMatrixRS( InverseParentWorldTransform * Matrix );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -415,20 +487,16 @@ void ScnEntity::fileReady()
 {
 	// File is ready, get the header chunk.
 	requestChunk( 0 );
-
-	// As we are being loaded by a package, we don't need to reference it.
-	// We acquire in the init of ScnComponent for the general case,
-	// but we can release 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fileChunkReady
 void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
-	if( ChunkID == BcHash( "object" ) )
+	if( ChunkID == BcHash( "header" ) )
 	{
-		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
-
-		CsResource::markReady();
+		pJsonObject_ = nullptr;
+		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
+		CsResource::markCreate();
 	}
 }

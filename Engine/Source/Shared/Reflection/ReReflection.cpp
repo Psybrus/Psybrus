@@ -31,7 +31,7 @@ public:
 		* @brief Get field copy info for source data pointer.
 		* Will create new info if there is no info.
 		*/
-	FieldCopyInfo& getFieldCopyInfo( void* SrcData, const ReClass* InClass )
+	FieldCopyInfo* getFieldCopyInfo( void* SrcData, void* DstData, const ReClass* InClass )
 	{
 		// Search for matching source data.
 		auto Iter = std::find_if( FieldCopyInfoList_.begin(), FieldCopyInfoList_.end(), [ &SrcData ]( FieldCopyInfo& FieldCopyInfo )
@@ -44,11 +44,14 @@ public:
 		// If we don't find one, create a new copy + the destination object.
 		if( Iter == FieldCopyInfoList_.end() )
 		{
-			FieldCopyInfoList_.push_back( FieldCopyInfo() );
-			FoundFieldCopyInfo = &FieldCopyInfoList_.back();
-			FoundFieldCopyInfo->DstData_ = InClass->constructNoInit< void >();
-			FoundFieldCopyInfo->SrcData_ = SrcData;
-			FoundFieldCopyInfo->SrcClass_ = InClass;
+			if( InClass->getTypeSerialiser() )
+			{
+				FieldCopyInfoList_.push_back( FieldCopyInfo() );
+				FoundFieldCopyInfo = &FieldCopyInfoList_.back();
+				FoundFieldCopyInfo->DstData_ = DstData == nullptr ? InClass->create< void >() : DstData;
+				FoundFieldCopyInfo->SrcData_ = SrcData;
+				FoundFieldCopyInfo->SrcClass_ = InClass;
+			}
 		}
 		else
 		{
@@ -57,7 +60,7 @@ public:
 		}
 
 			
-		return *FoundFieldCopyInfo;
+		return FoundFieldCopyInfo;
 	}
 
 	/**
@@ -68,10 +71,13 @@ public:
 		BcAssert( SrcFieldAccessor.isPointerType() );
 
 		void* Data = SrcFieldAccessor.getData();
-		FieldCopyInfo& FoundFieldCopyInfo = getFieldCopyInfo( Data, SrcFieldAccessor.getUpperClass() );
+		FieldCopyInfo* FoundFieldCopyInfo = getFieldCopyInfo( Data, nullptr, SrcFieldAccessor.getUpperClass() );
 
 		// Recurse into object and gather fields.
-		gatherFields( SrcFieldAccessor.getData(), FoundFieldCopyInfo.SrcClass_ );
+		if( FoundFieldCopyInfo != nullptr )
+		{
+			gatherFields( SrcFieldAccessor.getData(), FoundFieldCopyInfo->SrcClass_ );
+		}
 	}
 
 	/**
@@ -89,20 +95,26 @@ public:
 			{
 				void* Data = SrcIter->getKey();
 				Data = *reinterpret_cast< void** >( Data );
-				FieldCopyInfo& FoundFieldCopyInfo = getFieldCopyInfo( Data, SrcFieldAccessor.getKeyUpperClass() );
+				FieldCopyInfo* FoundFieldCopyInfo = getFieldCopyInfo( Data, nullptr, SrcFieldAccessor.getKeyUpperClass( Data ) );
 
 				// Recurse into object and gather fields.
-				gatherFields( Data, FoundFieldCopyInfo.SrcClass_ );
+				if( FoundFieldCopyInfo != nullptr )
+				{
+					gatherFields( Data, FoundFieldCopyInfo->SrcClass_ );
+				}
 			}
 
 			if( SrcFieldAccessor.isContainerOfPointerValues() )
 			{
 				void* Data = SrcIter->getValue();
 				Data = *reinterpret_cast< void** >( Data );
-				FieldCopyInfo& FoundFieldCopyInfo = getFieldCopyInfo( Data, SrcFieldAccessor.getValueUpperClass() );
+				FieldCopyInfo* FoundFieldCopyInfo = getFieldCopyInfo( Data, nullptr, SrcFieldAccessor.getValueUpperClass( Data ) );
 
 				// Recurse into object and gather fields.
-				gatherFields( Data, FoundFieldCopyInfo.SrcClass_ );
+				if( FoundFieldCopyInfo != nullptr )
+				{
+					gatherFields( Data, FoundFieldCopyInfo->SrcClass_ );
+				}
 			}
 
 			SrcIter->next();
@@ -176,19 +188,24 @@ public:
 				if( !SrcFieldAccessor.isTransient() && ! SrcFieldAccessor.isNullptr() )
 				{
 					ReFieldAccessor DstFieldAccessor( DstObject, Field );
-					const ReClass* FieldClass = SrcFieldAccessor.getUpperClass();
 
 					// Is it a container?
 					if( !Field->isContainer() )
 					{
+						const ReClass* FieldClass = SrcFieldAccessor.getUpperClass();
+
 						// Check in the field info if it's a pointer type, and set in the destination.
 						if( Field->isPointerType() )
 						{
 							// Only copy data if it's not a shallow copy.
 							if( !SrcFieldAccessor.isShallowCopy() )
 							{
-								FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( SrcFieldAccessor.getData(), SrcFieldAccessor.getUpperClass() );
-								DstFieldAccessor.setData( FieldCopyInfo.DstData_ );
+								FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( SrcFieldAccessor.getData(), nullptr, SrcFieldAccessor.getUpperClass() );
+								BcAssertMsg( FieldCopyInfo != nullptr, "No field info for %s %s::%s. Is the type registered?", 
+									(*FieldClass->getName()).c_str(), 
+									(*InClass->getName()).c_str(),
+									(*Field->getName()).c_str() );
+								DstFieldAccessor.setData( FieldCopyInfo->DstData_ );
 							}
 							else
 							{
@@ -226,12 +243,12 @@ public:
 									!SrcFieldAccessor.isShallowCopy() )
 								{
 									Value = *reinterpret_cast< void** >( Value );
-									FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( Value, SrcFieldAccessor.getUpperClass() );
-									if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo.DstData_, Value ) )
+									FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, SrcFieldAccessor.getValueUpperClass( Value ) );
+									if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 									{
-										copyClassData( FieldCopyInfo.DstData_, Value, static_cast< const ReClass* >( ValueType ) );
+										copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ) );
 									}
-									Value = &FieldCopyInfo.DstData_;
+									Value = &FieldCopyInfo->DstData_;
 								}
 
 								DstIter->add( Value );
@@ -251,22 +268,24 @@ public:
 									if( SrcFieldAccessor.isContainerOfPointerKeys() )
 									{
 										Key = *reinterpret_cast< void** >( Key );
-										FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( Key, SrcFieldAccessor.getUpperClass() );
-										if( !KeyType->getTypeSerialiser()->copy( FieldCopyInfo.DstData_, Value ) )
+										FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Key, nullptr, SrcFieldAccessor.getKeyUpperClass( Key ) );
+										BcAssert( FieldCopyInfo );
+										if( !KeyType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 										{
-											copyClassData( FieldCopyInfo.DstData_, Key, static_cast< const ReClass* >( KeyType ) );
+											copyClassData( FieldCopyInfo->DstData_, Key, static_cast< const ReClass* >( KeyType ) );
 										}
-										Key = &FieldCopyInfo.DstData_;
+										Key = &FieldCopyInfo->DstData_;
 									}
 									if( SrcFieldAccessor.isContainerOfPointerValues() )
 									{
 										Value = *reinterpret_cast< void** >( Value );
-										FieldCopyInfo& FieldCopyInfo = getFieldCopyInfo( Value, SrcFieldAccessor.getUpperClass() );
-										if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo.DstData_, Value ) )
+										FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, SrcFieldAccessor.getValueUpperClass( Value ) );
+										BcAssert( FieldCopyInfo );
+										if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 										{
-											copyClassData( FieldCopyInfo.DstData_, Value, static_cast< const ReClass* >( ValueType ) );
+											copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ) );
 										}
-										Value = &FieldCopyInfo.DstData_;
+										Value = &FieldCopyInfo->DstData_;
 									}
 								}
 
@@ -307,31 +326,46 @@ void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
 	// Now create all objects that exist as pointers in fields, and mark up.
 	ObjectCopyContext ObjectCopyContext;
-	auto& RootFieldCopyInfo = ObjectCopyContext.getFieldCopyInfo( SrcObject, InClass );
-	RootFieldCopyInfo.DstData_ = DstObject;
-	ObjectCopyContext.gatherFields( SrcObject, InClass );
-	ObjectCopyContext.copyClassData( DstObject, SrcObject, InClass );
-			
-			
+	auto* RootFieldCopyInfo = ObjectCopyContext.getFieldCopyInfo( SrcObject, DstObject, InClass );
+	if( RootFieldCopyInfo != nullptr )
+	{
+		RootFieldCopyInfo->DstData_ = DstObject;
+		ObjectCopyContext.gatherFields( SrcObject, InClass );
+		ObjectCopyContext.copyClassData( DstObject, SrcObject, InClass );
+	}				
 }
 
 //////////////////////////////////////////////////////////////////////////
 // ConstructObject
-ReObject* ReConstructObject( const ReClass* InClass, const std::string& InName, ReObject* InOwner, ReObject* InBasis )
+ReObject* ReConstructObject( 
+	const ReClass* InClass, 
+	const std::string& InName, 
+	ReObject* InOwner, 
+	ReObject* InBasis,
+	std::function< void( ReObject* ) > postCreateFunc )
 {
-	auto NewObject = InClass->constructNoInit< ReObject >();
+	auto NewObject = InBasis == nullptr ? 
+		InClass->create< ReObject >() : InClass->create< ReObject >(); // TODO: Reconsider createNoInit for the latter.
 
+	// If we've succeeded...
 	if( NewObject != nullptr )
 	{
-		// Setup owner and basis.
-		NewObject->Owner_ = InOwner;
-		NewObject->Basis_ = InBasis;
-				
+		// Call post create.
+		if( postCreateFunc != nullptr )
+		{
+			postCreateFunc( NewObject );
+		}
+
 		// If we have a basis, we need to perform a deep copy.
 		if( InBasis != nullptr )
 		{
 			ReCopyClass( NewObject, InBasis, NewObject->getClass() );
 		}
+
+		// Setup owner and basis.
+		NewObject->Name_ = InName;
+		NewObject->Owner_ = InOwner;
+		NewObject->Basis_ = InBasis;
 	}
 			
 	return NewObject;

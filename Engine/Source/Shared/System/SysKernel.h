@@ -116,11 +116,11 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn >
-	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate )
+	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall();
-		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
 	}
 
@@ -128,11 +128,11 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0 >
-	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0 )
+	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0 );
-		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
 	}
 
@@ -140,11 +140,11 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1 >
-	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
+	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1 );
-		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
 	}	
 	
@@ -152,11 +152,20 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
-	BcForceInline void			pushDelegateJob( BcU32 WorkerMask, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
+	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1, P2 );
-		BcBool RetVal = pushJob( WorkerMask, new SysDelegateJob( pDelegateCall ) );		
+		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
+		BcAssert( RetVal );
+	}
+
+	/**
+	 * Push function job.
+	 */
+	BcForceInline void pushFunctionJob( BcU32 JobQueueId, std::function< void() > Function )
+	{
+		BcBool RetVal = pushJob( JobQueueId, new SysFunctionJob( Function ) );
 		BcAssert( RetVal );
 	}
 

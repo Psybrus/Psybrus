@@ -19,16 +19,16 @@ REFLECTION_DEFINE_DERIVED( ScnAnimationTreeTrackNode );
 
 void ScnAnimationTreeTrackNode::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pPoseA_",				&ScnAnimationTreeTrackNode::pPoseA_ ),
-		ReField( "pPoseB_",				&ScnAnimationTreeTrackNode::pPoseB_ ),
-		ReField( "pPoseFileDataA_",		&ScnAnimationTreeTrackNode::pPoseFileDataA_ ),
-		ReField( "pPoseFileDataB_",		&ScnAnimationTreeTrackNode::pPoseFileDataB_ ),
-		ReField( "CurrPoseIndex_",		&ScnAnimationTreeTrackNode::CurrPoseIndex_ ),
-		ReField( "Speed_",				&ScnAnimationTreeTrackNode::Speed_ ),
-		ReField( "Time_",				&ScnAnimationTreeTrackNode::Time_ ),
-		ReField( "AnimationQueue_",		&ScnAnimationTreeTrackNode::AnimationQueue_ ),
+		new ReField( "pPoseA_", &ScnAnimationTreeTrackNode::pPoseA_ ),
+		new ReField( "pPoseB_", &ScnAnimationTreeTrackNode::pPoseB_ ),
+		new ReField( "CurrPoseIndex_", &ScnAnimationTreeTrackNode::CurrPoseIndex_, bcRFF_TRANSIENT ),
+		new ReField( "Speed_", &ScnAnimationTreeTrackNode::Speed_ ),
+		new ReField( "Time_", &ScnAnimationTreeTrackNode::Time_ ),
+		new ReField( "AnimationQueue_", &ScnAnimationTreeTrackNode::AnimationQueue_, bcRFF_TRANSIENT ),
+		new ReField( "pPoseFileDataA_", &ScnAnimationTreeTrackNode::pPoseFileDataA_, bcRFF_TRANSIENT ),
+		new ReField( "pPoseFileDataB_", &ScnAnimationTreeTrackNode::pPoseFileDataB_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< ScnAnimationTreeTrackNode, Super >( Fields );
@@ -38,12 +38,12 @@ void ScnAnimationTreeTrackNode::StaticRegisterClass()
 // Ctor
 ScnAnimationTreeTrackNode::ScnAnimationTreeTrackNode()
 {
-	pPoseA_ = NULL;
-	pPoseB_ = NULL;
-	pPoseFileDataA_ = NULL;
-	pPoseFileDataB_ = NULL;
-	CurrPoseIndex_ = BcErrorCode;
+	pPoseA_ = nullptr;
+	pPoseB_ = nullptr;
+	CurrPoseIndex_ = 0;
 	Time_ = 0.0f;
+	pPoseFileDataA_ = nullptr;
+	pPoseFileDataB_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,8 +53,8 @@ ScnAnimationTreeTrackNode::~ScnAnimationTreeTrackNode()
 {
 	delete pPoseA_;
 	delete pPoseB_;
-	pPoseA_ = NULL;
-	pPoseB_ = NULL;
+	pPoseA_ = nullptr;
+	pPoseB_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,6 +64,7 @@ void ScnAnimationTreeTrackNode::initialise( ScnAnimationPose* pReferencePose )
 {
 	ScnAnimationTreeNode::initialise( pReferencePose );
 
+	CurrPoseIndex_ = 0;
 	pPoseA_ = new ScnAnimationPose( *pReferencePose );
 	pPoseB_ = new ScnAnimationPose( *pReferencePose );
 }
@@ -139,6 +140,9 @@ void ScnAnimationTreeTrackNode::queueAnimation( ScnAnimation* pAnimation )
 {
 	BcAssert( pAnimation != NULL );
 	AnimationQueue_.push_back( pAnimation );
+
+	// TODO: Create a map to map any animation by node name onto our reference
+	//       pose. Probably want to do this asynchronously on a job.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,9 +164,13 @@ void ScnAnimationTreeTrackNode::decodeFrames()
 		BcU32 NewPoseIndex = pCurrAnimation->findPoseIndexAtTime( Time_ );
 
 		// If it doesn't match, we need to decode frames.
-		if( CurrPoseIndex_ != NewPoseIndex )
+		if( CurrPoseIndex_ != NewPoseIndex ||
+			pPoseFileDataA_ == nullptr ||
+			pPoseFileDataB_ == nullptr )
 		{
 			CurrPoseIndex_ = NewPoseIndex;
+
+			// TODO: Pass in a map to decode these correctly into the appropriate transforms.
 			pCurrAnimation->decodePoseAtIndex( CurrPoseIndex_, pPoseA_ );
 			pCurrAnimation->decodePoseAtIndex( CurrPoseIndex_ + 1, pPoseB_ );
 
@@ -178,8 +186,8 @@ void ScnAnimationTreeTrackNode::interpolatePose()
 {
 	if( AnimationQueue_.size() > 0 )
 	{
-		BcAssert( pPoseFileDataA_ != NULL );
-		BcAssert( pPoseFileDataB_ != NULL );
+		BcAssert( pPoseFileDataA_ != nullptr );
+		BcAssert( pPoseFileDataB_ != nullptr );
 		const BcF32 TimeLength = pPoseFileDataB_->Time_ - pPoseFileDataA_->Time_;
 		const BcF32 TimeRelative = Time_ - pPoseFileDataA_->Time_;
 		const BcF32 LerpAmount = TimeRelative / TimeLength;

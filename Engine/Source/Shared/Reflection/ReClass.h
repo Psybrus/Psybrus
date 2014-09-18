@@ -3,7 +3,6 @@
 
 #include "Reflection/ReType.h"
 #include "Reflection/ReField.h"
-
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
@@ -20,97 +19,123 @@ public:
     virtual ~ReClass(){};
 
 	/**
-		* Set super.
-		*/
+	 * Set super.
+	 */
     void							setSuper( const ReClass* Super );
 
 	/**
-		* Get super.
-		*/
+	 * Get super.
+	 */
     const ReClass*					getSuper() const;
 
 	/**
-		* Have super class?
-		*/
+	 * Have super class?
+	 */
     BcBool							hasBaseClass( const ReClass* pClass ) const;
 
 	/**
-		* Set fields.
-		*/
-    void							setFields( BcU32 NoofFields, const ReField* pFields );
+	 * Set fields.
+	 */
+    void							setFields( ReFieldVector&& Fields );
 
 	/**
-		* Set fields by array.
-		*/
+	 * Set fields by array.
+	 */
 	template< int _Size >
-    void							setFields( const ReField ( & Fields )[ _Size ] )
+    void							setFields( ReField* ( & Fields )[ _Size ] )
 	{
-		setFields( _Size, &Fields[ 0 ] );
+		// Temporary until upgrade to VS2013 or above.
+		ReFieldVector FieldVector( _Size );
+		for( BcU32 Idx = 0; Idx < _Size; ++Idx )
+		{
+			FieldVector[ Idx ] = Fields[ Idx ];
+		}
+		setFields( std::move( FieldVector ) );
 	}
 
-	/**
-		* Get field.
-		*/
+	/*
+	 * Get field.
+	 */
     const ReField*					getField( BcU32 Idx ) const;
 
 	/**
-		* Get noof fields.
-		*/
+	 * Get noof fields.
+	 */
 	BcU32							getNoofFields() const;
 
 	/**
-		* Construct object.
-		* @param pData Data to allocate into.
-		*/
+	 * Get fields
+	 */
+	const ReFieldVector&			getFields() const;
+
+	/**
+	 * Validate.
+	 */
+	BcBool							validate() const;
+
+	/**
+	 * Construct object.
+	 * @param pData Data to allocate into.
+	 */
 	template< class _Ty >
 	_Ty*							construct( void* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		Serialiser_->construct( pData );
 		return reinterpret_cast< _Ty* >( pData );
 	}
 
 	/**
-		* Construct object with no init.
-		* @param pData Data to allocate into.
-		*/
+	 * Construct object with no init.
+	 * @param pData Data to allocate into.
+	 */
 	template< class _Ty >
 	_Ty*							constructNoInit( void* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		BcMemZero( pData, getSize() );
 		Serialiser_->constructNoInit( pData );
 		return reinterpret_cast< _Ty* >( pData );
 	}
 
 	/**
-		* Construct object.
-		*/
-	template< class _Ty >
-	_Ty*							construct() const
-	{
-		return construct< _Ty >( BcMemAlign( getSize() ) );
-	}
-
-	/**
-		* Construct object with no init.
-		*/
-	template< class _Ty >
-	_Ty*							constructNoInit() const
-	{
-		return constructNoInit< _Ty >( BcMemAlign( getSize() ) );
-	}
-
-	/**
-		* Destruct object.
-		*/
+	 * Destruct object.
+	 */
 	template< class _Ty >
 	void							destruct( _Ty* pData ) const
 	{
+		BcAssert( Serialiser_ );
 		Serialiser_->destruct( pData );
 	}
 
+	/**
+	 * Create object.
+	 */
+	template< class _Ty >
+	_Ty*							create() const
+	{
+		BcAssert( Serialiser_ );
+		return reinterpret_cast< _Ty* >( Serialiser_->create() );
+	}
+
+	/**
+	 * Create object with no init.
+	 */
+	template< class _Ty >
+	_Ty*							createNoInit() const
+	{
+		BcAssert( Serialiser_ );
+		return reinterpret_cast< _Ty* >( Serialiser_->createNoInit() );
+	}
+
+	/**
+	 * Destroy object.
+	 */
+	void							destroy( void* pData ) const;
+
 protected:
-    const ReClass*					Super_;
-    std::vector< const ReField* >		Fields_;
+    const ReClass* Super_;
+    ReFieldVector Fields_;
 };
 
 #endif

@@ -19,23 +19,32 @@ REFLECTION_DEFINE_BASE( ScnAnimationTreeNode );
 
 void ScnAnimationTreeNode::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Name_",				&ScnAnimationTreeNode::Name_ ),
-		ReField( "pReferencePose_",		&ScnAnimationTreeNode::pReferencePose_ ),
-		ReField( "pWorkingPose_",		&ScnAnimationTreeNode::pWorkingPose_ ),
+		new ReField( "pReferencePose_", &ScnAnimationTreeNode::pReferencePose_ ),
+		new ReField( "pWorkingPose_", &ScnAnimationTreeNode::pWorkingPose_ ),
 	};
 		
-	ReRegisterAbstractClass< ScnAnimationTreeNode >( Fields );
+	ReRegisterAbstractClass< ScnAnimationTreeNode, Super >( Fields );
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationTreeNode::ScnAnimationTreeNode()
+ScnAnimationTreeNode::ScnAnimationTreeNode():
+	pReferencePose_( nullptr ),
+	pWorkingPose_( nullptr )
 {
-	pWorkingPose_ = NULL;
-	pReferencePose_ = NULL;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnAnimationTreeNode::ScnAnimationTreeNode( ReNoInit ):
+	pReferencePose_( nullptr ),
+	pWorkingPose_( nullptr )
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,20 +56,6 @@ ScnAnimationTreeNode::~ScnAnimationTreeNode()
 	delete pWorkingPose_;
 	pWorkingPose_ = NULL;
 	pReferencePose_ = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setName
-void ScnAnimationTreeNode::setName( const BcName& Name )
-{
-	Name_ = Name;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getName
-const BcName& ScnAnimationTreeNode::getName() const
-{
-	return Name_;
 }
 
 //////////////////////////////////////////////////////////////////////////

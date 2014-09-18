@@ -23,14 +23,14 @@ REFLECTION_DEFINE_BASE( SysSystem );
 
 void SysSystem::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Name_",				&SysSystem::Name_ ),
-		ReField( "pKernel_",			&SysSystem::pKernel_ ),
-		ReField( "ProcessState_",		&SysSystem::ProcessState_ ),
-		ReField( "StopTriggered_",		&SysSystem::StopTriggered_ ),
-		ReField( "PerfTimer_",			&SysSystem::PerfTimer_ ),
-		ReField( "LastTickTime_",		&SysSystem::LastTickTime_ ),
+		new ReField( "Name_",				&SysSystem::Name_ ),
+		new ReField( "pKernel_",			&SysSystem::pKernel_ ),
+		new ReField( "ProcessState_",		&SysSystem::ProcessState_ ),
+		new ReField( "StopTriggered_",		&SysSystem::StopTriggered_ ),
+		new ReField( "PerfTimer_",			&SysSystem::PerfTimer_ ),
+		new ReField( "LastTickTime_",		&SysSystem::LastTickTime_ ),
 	};
 		
 	ReRegisterAbstractClass< SysSystem >( Fields );

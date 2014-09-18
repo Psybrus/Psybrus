@@ -19,26 +19,18 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationTreeNode
-class ScnAnimationTreeNode
+class ScnAnimationTreeNode:
+	public ReObject
 {
 public:
-	REFLECTION_DECLARE_BASE( ScnAnimationTreeNode );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnAnimationTreeNode, ReObject );
 
 public:
 	ScnAnimationTreeNode();
+	ScnAnimationTreeNode( ReNoInit );
 	virtual ~ScnAnimationTreeNode();
 	
 public:
-	/**
-	* Set name of the node.
-	*/
-	void setName( const BcName& Name );
-
-	/**
-	 * Get name of the node.
-	 */
-	const BcName& getName() const;
-
 	/**
 	 * Initialise.
 	 */
@@ -80,7 +72,6 @@ public:
 	virtual const ScnAnimationPose& getWorkingPose() const;
 
 protected:
-	BcName					Name_;
 	ScnAnimationPose*		pReferencePose_;
 	ScnAnimationPose*		pWorkingPose_;
 };

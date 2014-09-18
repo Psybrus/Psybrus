@@ -21,7 +21,7 @@ public:
 		* @param EnumConstants Constant array to add.
 		* @param Elements Number of constants in array.
 		*/
-    void setConstants( const ReEnumConstant* EnumConstants, BcU32 Elements );
+    void setConstants( ReEnumConstant** EnumConstants, BcU32 Elements );
 
 	/**
 		* @brief Get enum constant

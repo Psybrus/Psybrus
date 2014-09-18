@@ -17,6 +17,8 @@
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
 
+#include <functional>
+
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
 class SysJobQueue;
@@ -57,6 +59,22 @@ public:
 private:
 	class BcDelegateCallBase* pDelegateCall_;
 	
+};
+
+//////////////////////////////////////////////////////////////////////////
+// SysFunctionJob
+class SysFunctionJob :
+	public SysJob
+{
+public:
+	SysFunctionJob( std::function< void() > Function );
+	virtual ~SysFunctionJob();
+
+	virtual void execute();
+
+private:
+	std::function< void() > Function_;
+
 };
 
 

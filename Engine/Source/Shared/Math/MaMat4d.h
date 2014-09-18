@@ -38,6 +38,13 @@ public:
 	{
 		identity();
 	}
+	MaMat4d( const BcF32* pData )
+	{
+		Row0_ = MaVec4d( pData[ 0 ], pData[ 1 ], pData[ 2 ], pData[ 3 ] );
+		Row1_ = MaVec4d( pData[ 4 ], pData[ 5 ], pData[ 6 ], pData[ 7 ] );
+		Row2_ = MaVec4d( pData[ 8 ], pData[ 9 ], pData[ 10 ], pData[ 11 ] );
+		Row3_ = MaVec4d( pData[ 12 ], pData[ 13 ], pData[ 14 ], pData[ 15 ] );
+	}
 	MaMat4d( const MaVec4d&,
 			 const MaVec4d&,
 			 const MaVec4d&,

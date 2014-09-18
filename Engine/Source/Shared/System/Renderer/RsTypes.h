@@ -63,247 +63,266 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 // Blending Modes
-enum eRsBlendingMode
+enum class RsBlendingMode : BcU32
 {
-	rsBM_NONE = 0,			// (+) ONE, ZERO
-	rsBM_BLEND,				// (+) ONE, INVSRCALPHA 
-	rsBM_ADD,				// (+) ONE, ONE
-	rsBM_SUBTRACT,			// (-) ONE, ONE
-	rsBM_MAX,
+	NONE = 0,			// (+) ONE, ZERO
+	BLEND,				// (+) ONE, INVSRCALPHA 
+	ADD,				// (+) ONE, ONE
+	SUBTRACT,			// (-) ONE, ONE
+
+	MAX,
+	INVALID = BcErrorCode
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+// Fill mode
+enum class RsFillMode : BcU32
+{
+	SOLID = 0,
+	WIREFRAME,
 	
-	rsBM_FORCE_DWORD = 0x7fffffff
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Blend type
-enum eRsBlendType
+enum class RsBlendType : BcU32
 {
-	rsBT_ZERO = 0,
-	rsBT_ONE,
-	rsBT_SRC_COLOUR,
-	rsBT_INV_SRC_COLOUR,
-	rsBT_SRC_ALPHA,
-	rsBT_INV_SRC_ALPHA,
-	rsBT_DEST_COLOUR,
-	rsBT_INV_DEST_COLOUR,
-	rsBT_DEST_ALPHA,
-	rsBT_INV_DEST_ALPHA,
-
-	rsBT_FORCE_DWORD = 0x7fffffff
+	ZERO = 0,
+	ONE,
+	SRC_COLOUR,
+	INV_SRC_COLOUR,
+	SRC_ALPHA,
+	INV_SRC_ALPHA,
+	DEST_COLOUR,
+	INV_DEST_COLOUR,
+	DEST_ALPHA,
+	INV_DEST_ALPHA,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Blend op
-enum eRsBlendOp
+enum class RsBlendOp : BcU32
 {
-	rsBO_ADD = 0,
-	rsBO_SUBTRACT,
-	rsBO_REV_SUBTRACT,
-	rsBO_MIN,
-	rsBO_MAX,
+	ADD = 0,
+	SUBTRACT,
+	REV_SUBTRACT,
+	MINIMUM,
+	MAXIMUM,
 
-	rsBO_FORCE_DWORD = 0x7fffffff
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Compare modes
-enum eRsCompareMode
+enum class RsCompareMode : BcU32
 {
-	rsCM_NEVER = 0,
-	rsCM_LESS,
-	rsCM_EQUAL,
-	rsCM_LESSEQUAL,
-	rsCM_GREATER,
-	rsCM_NOTEQUAL,
-	rsCM_GREATEREQUAL,
-	rsCM_ALWAYS,
-	rsCM_MAX,
-	//
-	rsCM_INVALID = BcErrorCode,
-	rsCM_FORCE_DWORD = 0x7fffffff
+	NEVER = 0,
+	LESS,
+	EQUAL,
+	LESSEQUAL,
+	GREATER,
+	NOTEQUAL,
+	GREATEREQUAL,
+	ALWAYS,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Stencil operations
-enum eRsStencilOp
+enum class RsStencilOp : BcU32
 {
-	rsSO_KEEP = 0,
-	rsSO_ZERO,
-	rsSO_REPLACE,
-	rsSO_INCR,
-	rsSO_INCR_WRAP,
-	rsSO_DECR,
-	rsSO_DECR_WRAP,
-	rsSO_INVERT,
-	//
-	rsSO_INVALID = BcErrorCode,
-	rsSO_FORCE_DWORD = 0x7fffffff
+	KEEP = 0,
+	ZERO,
+	REPLACE,
+	INCR,
+	INCR_WRAP,
+	DECR,
+	DECR_WRAP,
+	INVERT,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 // Colour Format (RT)
-enum eRsColourFormat
+enum class RsColourFormat : BcU32
 {
-	rsCF_NONE = 0,
-	rsCF_A2R10G10B10,
-	rsCF_A8R8G8B8,
-	rsCF_X8R8G8B8,
-	rsCF_A1R5G5B5,
-	rsCF_X1R5G5B5,
-	rsCF_R5G6B5,
-	rsCF_R16F,
-	rsCF_G16R16F,
-	rsCF_A16B16G16R16F,
-	rsCF_R32F,
-	rsCF_G32R32F,
-	rsCF_A32B32G32R32F,
-	rsCF_MAX,
-	//
-	rsCF_INVALID = BcErrorCode,
-	rsCF_FORCE_DWORD = 0x7fffffff
+	NONE = 0,
+	A2R10G10B10,
+	A8R8G8B8,
+	X8R8G8B8,
+	A1R5G5B5,
+	X1R5G5B5,
+	R5G6B5,
+	R16F,
+	G16R16F,
+	A16B16G16R16F,
+	R32F,
+	G32R32F,
+	A32B32G32R32F,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Depth Stencil Format (RT)
-enum eRsDepthStencilFormat
+enum class RsDepthStencilFormat : BcU32
 {
-	rsDSF_NONE = 0,
-	rsDSF_D16,
-	rsDSF_D32,
-	rsDSF_D15S1,
-	rsDSF_D24S8,
-	rsDSF_D24X8,
-	rsDSF_D24X4S4,
-	rsDSF_D32F,
-	rsDSF_D24FS8,
-	rsDSF_MAX,
-	//
-	rsDSF_INVALID = BcErrorCode,
-	rsDSF_FORCE_DWORD = 0x7fffffff
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Vertex data type.
-enum eRsVertexDataType
-{
-	rsVDT_FLOAT32 = 0,
-	rsVDT_FLOAT16,
-	rsVDT_FIXED,
-	rsVDT_BYTE,
-	rsVDT_BYTE_NORM,
-	rsVDT_UBYTE,
-	rsVDT_UBYTE_NORM,
-	rsVDT_SHORT,
-	rsVDT_SHORT_NORM,
-	rsVDT_USHORT,
-	rsVDT_USHORT_NORM,
-	rsVDT_INT,
-	rsVDT_INT_NORM,
-	rsVDT_UINT,
-	rsVDT_UINT_NORM,
+	NONE = 0,
+	D16,
+	D32,
+	D15S1,
+	D24S8,
+	D24X8,
+	D24X4S4,
+	D32F,
+	D24FS8,
 	
-	rsVDF_MAX,
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Vertex data type.
-enum eRsVertexUsage
+enum class RsVertexDataType : BcU32
 {
-	rsVU_POSITION = 0,
-	rsVU_BLENDWEIGHTS,
-	rsVU_BLENDINDICES,
-	rsVU_NORMAL,
-	rsVU_PSIZE,
-	rsVU_TEXCOORD,
-	rsVU_TANGENT,
-	rsVU_BINORMAL,
-	rsVU_TESSFACTOR,
-	rsVU_POSITIONT,
-	rsVU_COLOUR,
-	rsVU_FOG,
-	rsVU_DEPTH,
-	rsVU_SAMPLE,
-
-	rsVU_MAX,
-	rsVU_INVALID
+	FLOAT32 = 0,
+	FLOAT16,
+	FIXED,
+	BYTE,
+	BYTE_NORM,
+	UBYTE,
+	UBYTE_NORM,
+	SHORT,
+	SHORT_NORM,
+	USHORT,
+	USHORT_NORM,
+	INT,
+	INT_NORM,
+	UINT,
+	UINT_NORM,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Texture Type
-enum eRsTextureType
+// Vertex data type.
+enum class RsVertexUsage : BcU32
 {
-	rsTT_1D = 0,
-	rsTT_2D,
-	rsTT_3D,
-	rsTT_CUBEMAP,
-	rsTT_MAX
+	POSITION = 0,
+	BLENDWEIGHTS,
+	BLENDINDICES,
+	NORMAL,
+	PSIZE,
+	TEXCOORD,
+	TANGENT,
+	BINORMAL,
+	TESSFACTOR,
+	POSITIONT,
+	COLOUR,
+	FOG,
+	DEPTH,
+	SAMPLE,
+	
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Texture Format
-enum eRsTextureFormat
+enum class RsTextureFormat : BcU32
 {
-	//
-	rsTF_RGB8 = 0,
-	rsTF_RGBA8,
-	rsTF_I8,
+	// Colour.
+	R8,
+	R8G8,
+	R8G8B8,
+	R8G8B8A8,
+	R16F,
+	R16FG16F,
+	R16FG16FB16F,
+	R16FG16FB16FA16F,
+	R32F,
+	R32FG32F,
+	R32FG32FB32F,
+	R32FG32FB32FA32F,
+	DXT1,
+	DXT3,
+	DXT5,
 
-	// DXT
-	rsTF_DXT1,
-	rsTF_DXT3,
-	rsTF_DXT5,
-
-	// Palettised
-	rsTF_PAL4_RGBA8,
-	rsTF_PAL8_RGBA8,
+	// Depth stencil.
+	D16,
+	D32,
+	D24S8,
+	D32F,
 	
-	// PVRTC
-	rsTF_PVRTC2_RGB,
-	rsTF_PVRTC2_RGBA,
-	rsTF_PVRTC4_RGB,
-	rsTF_PVRTC4_RGBA,
-	
-	//
-	rsTF_INVALID = BcErrorCode,
-	rsTF_FORCE_DWORD = 0x7fffffff
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
-extern BcU32 RsTextureFormatSize( eRsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
+extern BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureFace
+enum class RsTextureFace : BcU32
+{
+	NONE,
+	POSITIVE_X,
+	NEGATIVE_X,
+	POSITIVE_Y,
+	NEGATIVE_Y,
+	POSITIVE_Z,
+	NEGATIVE_Z,
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureSlice
+struct RsTextureSlice
+{
+	BcU32 Level_;
+	RsTextureFace Face_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Texture filtering mode.
-enum eRsTextureFilteringMode
+enum class RsTextureFilteringMode : BcU32
 {
-	rsTFM_NEAREST = 0,
-	rsTFM_LINEAR,
-	rsTFM_NEAREST_MIPMAP_NEAREST,
-	rsTFM_LINEAR_MIPMAP_NEAREST,
-	rsTFM_NEAREST_MIPMAP_LINEAR,
-	rsTFM_LINEAR_MIPMAP_LINEAR,
-	
-	//
-	rsTFM_MAX,
-	
-	//
-	rsTFM_INVALID = BcErrorCode,
-	rsTFM_FORCE_DWORD = 0x7fffffff
+	NEAREST = 0,
+	LINEAR,
+	NEAREST_MIPMAP_NEAREST,
+	LINEAR_MIPMAP_NEAREST,
+	NEAREST_MIPMAP_LINEAR,
+	LINEAR_MIPMAP_LINEAR,
+
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Texture sampling mode.
-enum eRsTextureSamplingMode
+enum class RsTextureSamplingMode : BcU32
 {
-	rsTSM_WRAP = 0,
-	rsTSM_MIRROR,
-	rsTSM_CLAMP,
-	rsTSM_DECAL,
-	rsTSM_MAX,
-	//
-	rsTSM_INVALID = BcErrorCode,
-	rsTSM_FORCE_DWORD = 0x7fffffff
+	WRAP = 0,
+	MIRROR,
+	CLAMP,
+	DECAL,
+
+	MAX,	
+	INVALID = BcErrorCode
 };
 
 
@@ -311,11 +330,11 @@ enum eRsTextureSamplingMode
 // Texture params.
 struct RsTextureParams
 {
-	eRsTextureFilteringMode		MinFilter_;
-	eRsTextureFilteringMode		MagFilter_;
-	eRsTextureSamplingMode		UMode_;
-	eRsTextureSamplingMode		VMode_;
-	eRsTextureSamplingMode		WMode_;
+	RsTextureFilteringMode		MinFilter_;
+	RsTextureFilteringMode		MagFilter_;
+	RsTextureSamplingMode		UMode_;
+	RsTextureSamplingMode		VMode_;
+	RsTextureSamplingMode		WMode_;
 	
 	bool operator == ( const RsTextureParams& Other )
 	{
@@ -338,175 +357,187 @@ struct RsTextureParams
 
 //////////////////////////////////////////////////////////////////////////
 // Render state
-enum eRsRenderState
+enum class RsRenderStateType : BcU32
 {
-	rsRS_DEPTH_WRITE_ENABLE = 0,		///!< Depth write enable/disable. true or false.
-	rsRS_DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
-	rsRS_DEPTH_TEST_COMPARE,			///!< Depth test compare. eRsCompareMode
-	rsRS_STENCIL_WRITE_MASK,			///!< Stencil write mask.
-	rsRS_STENCIL_TEST_ENABLE,			///!< Stencil test enable.
-	rsRS_STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.
-	rsRS_STENCIL_TEST_FUNC_REF,			///!< Stencil test reference value.
-	rsRS_STENCIL_TEST_FUNC_MASK,		///!< Stencil test mask.
-	rsRS_STENCIL_TEST_OP_SFAIL,			///!< Stencil test fail operation.
-	rsRS_STENCIL_TEST_OP_DPFAIL,		///!< Stencil test passes, but depth fails operation.
-	rsRS_STENCIL_TEST_OP_DPPASS,		///!< Stencil test and depth pass operation.
-	rsRS_COLOR_WRITE_MASK_0,			///!< Color write mask, RT 0. Bits 0-3, RGBA
-	rsRS_COLOR_WRITE_MASK_1,			///!< Color write mask, RT 1. Bits 0-3, RGBA
-	rsRS_COLOR_WRITE_MASK_2,			///!< Color write mask, RT 2. Bits 0-3, RGBA
-	rsRS_COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
-	rsRS_BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
+	DEPTH_WRITE_ENABLE = 0,		///!< Depth write enable/disable. true or false.
+	DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
+	DEPTH_TEST_COMPARE,			///!< Depth test compare. RsCompareMode
+	STENCIL_WRITE_MASK,			///!< Stencil write mask.
+	STENCIL_TEST_ENABLE,			///!< Stencil test enable.
+	STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.
+	STENCIL_TEST_FUNC_REF,			///!< Stencil test reference value.
+	STENCIL_TEST_FUNC_MASK,		///!< Stencil test mask.
+	STENCIL_TEST_OP_SFAIL,			///!< Stencil test fail operation.
+	STENCIL_TEST_OP_DPFAIL,		///!< Stencil test passes, but depth fails operation.
+	STENCIL_TEST_OP_DPPASS,		///!< Stencil test and depth pass operation.
+	COLOR_WRITE_MASK_0,			///!< Color write mask, RT 0. Bits 0-3, RGBA
+	COLOR_WRITE_MASK_1,			///!< Color write mask, RT 1. Bits 0-3, RGBA
+	COLOR_WRITE_MASK_2,			///!< Color write mask, RT 2. Bits 0-3, RGBA
+	COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
+	BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
+	FILL_MODE,					///!< Fill mode. RsFillMode.
 	
-	//
-	rsRS_MAX,
-	rsRS_FORCE_DWORD = 0x7fffffff
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Primitive Types.
-enum eRsPrimitiveType
+enum class RsTopologyType : BcU32
 {
-	rsPT_POINTLIST = 0,
-	rsPT_LINELIST,
-	rsPT_LINESTRIP,
-	rsPT_TRIANGLELIST,
-	rsPT_TRIANGLESTRIP,
-	rsPT_TRIANGLEFAN,
-	rsPT_PATCHES,
-	rsPT_MAX,
-	//
-	rsPT_INVALID = BcErrorCode,
-	rsPT_FORCE_DWORD = 0x7fffffff
+	POINTS = 0,
+	LINE_LIST,
+	LINE_STRIP,
+	LINE_LIST_ADJACENCY,
+	LINE_STRIP_ADJACENCY,
+	TRIANGLE_LIST,
+	TRIANGLE_STRIP,
+	TRIANGLE_LIST_ADJACENCY,
+	TRIANGLE_STRIP_ADJACENCY,
+	TRIANGLE_FAN,
+	PATCH_LIST,
+
+	MAX,	
+	INVALID = BcErrorCode
 };
-
-//////////////////////////////////////////////////////////////////////////
-// Vertex enums
-enum eRsVertexDeclFlags
-{
-	// Position: 0x1
-	rsVDF_POSITION_XY		= 0x00000001,
-	rsVDF_POSITION_XYZ		= 0x00000002,
-	rsVDF_POSITION_XYZW		= 0x00000004,
-
-	// Normal: 0x10
-	rsVDF_NORMAL_XYZ		= 0x00000010,
-
-	// Tangent: 0x100
-	rsVDF_TANGENT_XYZ		= 0x00000100,
-
-	// Texcoord UV: 0x1000
-	rsVDF_TEXCOORD_UV0		= 0x00001000,
-	rsVDF_TEXCOORD_UV1		= 0x00002000,
-	rsVDF_TEXCOORD_UV2		= 0x00004000,
-	rsVDF_TEXCOORD_UV3		= 0x00008000,
-
-	// Texcoord UVW: 0x10000
-	rsVDF_TEXCOORD_UVW0		= 0x00010000,
-	rsVDF_TEXCOORD_UVW1		= 0x00020000,
-	rsVDF_TEXCOORD_UVW2		= 0x00040000,
-	rsVDF_TEXCOORD_UVW3		= 0x00080000,
-
-	// Skinning: 0x100000
-	rsVDF_SKIN_INDICES		= 0x00100000,
-	rsVDF_SKIN_WEIGHTS		= 0x00200000,
-
-	// Colour: 0x1000000
-	rsVDF_COLOUR_ABGR8		= 0x01000000,
-
-	//
-	rsVDF_FORCE_DWORD		= 0x7fffffff
-};
-
-enum eRsVertexChannel
-{
-	rsVC_POSITION = 0,
-	rsVC_NORMAL,
-	rsVC_TANGENT,
-	rsVC_TEXCOORD0,
-	rsVC_TEXCOORD1,
-	rsVC_TEXCOORD2,
-	rsVC_TEXCOORD3,
-	rsVC_TEXCOORD4,
-	rsVC_TEXCOORD5,
-	rsVC_TEXCOORD6,
-	rsVC_TEXCOORD7,
-	rsVC_SKIN_INDICES,
-	rsVC_SKIN_WEIGHTS,
-	rsVC_COLOUR,
-
-	//
-	rsVC_MAX,
-	rcVC_INVALID,
-	rsVC_FORCE_DWORD = 0x7fffffff
-};
-
-enum eRsVertexChannelMask
-{
-	rsVCM_POSITION = rsVDF_POSITION_XY | rsVDF_POSITION_XYZ | rsVDF_POSITION_XYZW,
-	rsVCM_NORMAL = rsVDF_NORMAL_XYZ,
-	rsVCM_TANGENT = rsVDF_TANGENT_XYZ,
-	rsVCM_TEXCOORD0 = rsVDF_TEXCOORD_UV0,
-	rsVCM_TEXCOORD1 = rsVDF_TEXCOORD_UV1,
-	rsVCM_TEXCOORD2 = rsVDF_TEXCOORD_UV2,
-	rsVCM_TEXCOORD3 = rsVDF_TEXCOORD_UV3,
-	rsVCM_COLOUR = rsVDF_COLOUR_ABGR8,
-
-	//
-	rsVCM_FORCE_DWORD = 0x7fffffff
-};
-
-extern BcU32 RsVertexDeclSize( BcU32 VertexFormat );
 
 //////////////////////////////////////////////////////////////////////////
 // Handy defines
-enum eRsShaderType
+enum class RsShaderType : BcU32
 {
-	rsST_INVALID = 0,
-	rsST_VERTEX,
-	rsST_TESSELATION_CONTROL,
-	rsST_TESSELATION_EVALUATION,
-	rsST_GEOMETRY,
-	rsST_FRAGMENT,
-	rsST_COMPUTE,
+	VERTEX,
+	HULL,
+	DOMAIN,
+	GEOMETRY,
+	PIXEL,
+	COMPUTE,
+		
+	MAX,
+	INVALID = BcErrorCode
+};
+
+enum class RsShaderDataType : BcU32
+{
+	BINARY = 0,
+	SOURCE,
+
+	MAX,
+	INVALID = BcErrorCode
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsShaderBackendType
+enum class RsShaderBackendType : BcU32
+{
+	GLSL,
+	GLSL_ES,
+	D3D11,
+	D3D12,
+	MANTLE,
+
+	MAX,
+	INVALID = BcErrorCode
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsShaderCodeType
+enum class RsShaderCodeType : BcU32
+{
+	// GLSL
+	GLSL_150 = 0,
+	GLSL_330,
+	GLSL_400,
+	GLSL_410,
+	GLSL_420,
+	GLSL_430,
+	GLSL_440,
+	GLSL_450,
 	
+	// GLSL ES
+	GLSL_ES_100,
+	GLSL_ES_300,
+	GLSL_ES_310,
+
+	// D3D11
+	D3D11_4_0_LEVEL_9_3,
+	D3D11_4_0,
+	D3D11_4_1,
+	D3D11_5_0,
+	D3D11_5_1,
+
+	// D3D12
+
+	// Mantle
+
 	//
-	rsST_MAX,
-	rsST_FORCE_DWORD = 0x7fffffff
+	MAX,
+	INVALID = BcErrorCode
 };
 
-enum eRsShaderDataType
+inline RsShaderCodeType& operator ++ ( RsShaderCodeType& A )
 {
-	rsSDT_BINARY = 0,
-	rsSDT_SOURCE
-};
+	((int&)A)++;
+	return A;
+}
 
-enum eRsShaderParameterType
+/**
+ * Convert shader code type to backend.
+ */
+RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType );
+
+/**
+ * Convert shader code type to string.
+ */
+std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType );
+
+/**
+ * Convert backend type to string.
+ */
+std::string RsShaderBackendTypeToString( RsShaderBackendType BackendType );
+
+/**
+ * Convert string to shader code type.
+ */
+RsShaderCodeType RsStringToShaderCodeType( std::string String );
+
+/**
+ * Convert code type to another code type of a specific backend.
+ */
+RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, RsShaderBackendType Backend );
+
+/**
+ * Is code type compatible with a higher code type?
+ */
+BcBool RsIsLowerCodeTypeCompatibleWithHigher( RsShaderCodeType LowerCodeType, RsShaderCodeType HigherCodeType );
+
+//////////////////////////////////////////////////////////////////////////
+// RsShaderParameterType
+enum class RsShaderParameterType : BcU32
 {
-	rsSPT_FLOAT = 0,
-	rsSPT_FLOAT_VEC2,
-	rsSPT_FLOAT_VEC3,
-	rsSPT_FLOAT_VEC4,
-	rsSPT_FLOAT_MAT2,
-	rsSPT_FLOAT_MAT3,
-	rsSPT_FLOAT_MAT4,
-	rsSPT_INT,
-	rsSPT_INT_VEC2,
-	rsSPT_INT_VEC3,
-	rsSPT_INT_VEC4,
-	rsSPT_BOOL,
-	rsSPT_BOOL_VEC2,
-	rsSPT_BOOL_VEC3,
-	rsSPT_BOOL_VEC4,
-	rsSPT_SAMPLER_1D,
-	rsSPT_SAMPLER_2D,
-	rsSPT_SAMPLER_3D,
-	rsSPT_SAMPLER_CUBE,
-	rsSPT_SAMPLER_1D_SHADOW,
-	rsSPT_SAMPLER_2D_SHADOW,
+	FLOAT = 0,
+	FLOAT_VEC2,
+	FLOAT_VEC3,
+	FLOAT_VEC4,
+	FLOAT_MAT2,
+	FLOAT_MAT3,
+	FLOAT_MAT4,
+	INT,
+	INT_VEC2,
+	INT_VEC3,
+	INT_VEC4,
+	BOOL,
+	BOOL_VEC2,
+	BOOL_VEC3,
+	BOOL_VEC4,
+	SAMPLER_1D,
+	SAMPLER_2D,
+	SAMPLER_3D,
+	SAMPLER_CUBE,
+	SAMPLER_1D_SHADOW,
+	SAMPLER_2D_SHADOW,
 	
-	rsSPT_MAX,
-	rsSPT_INVALID = BcErrorCode,
-	rsSPT_FORCE_DWORD = 0x7fffffff
+	MAX,
+	INVALID = BcErrorCode,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -514,29 +545,114 @@ enum eRsShaderParameterType
 struct RsProgramVertexAttribute
 {
 	BcU32							Channel_;
-	eRsVertexUsage					Usage_;
+	RsVertexUsage					Usage_;
 	BcU32							UsageIdx_;
 };
 
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
 //////////////////////////////////////////////////////////////////////////
-// Lock flags
-enum eRsLockFlags
+// Resource stuff
+enum class RsResourceCreationFlags : BcU32
 {
-	rsLF_READ = 0x00000001,
-	rsLF_WRITE = 0x00000002,
-	
-	//
-	rsLF_FORCE_DWORD = 0x7fffffff
+	NONE			= 0x00000000,
+	STATIC			= 0x00000001,
+	DYNAMIC			= 0x00000002,
+	STREAM			= 0x00000004,
 };
 
-//////////////////////////////////////////////////////////////////////////
-// Handy defines
-#define RS_MAX_LIGHTINGSTAGES			1024
-#define RS_MAX_PROJECTORSTAGES			1024
-#define RS_MAX_LIGHTS					4
+inline RsResourceCreationFlags operator & ( RsResourceCreationFlags A, RsResourceCreationFlags B )
+{
+	return (RsResourceCreationFlags)( (BcU32)A & (BcU32)B );
+}
 
-#define RS_RENDEROBJECTMEM				( 1024 * 1024 * 8 )
+inline RsResourceCreationFlags operator | ( RsResourceCreationFlags A, RsResourceCreationFlags B )
+{
+	return (RsResourceCreationFlags)( (BcU32)A | (BcU32)B );
+}
+
+enum class RsResourceBindFlags : BcU32
+{
+	NONE				= 0x00000000,
+	VERTEX_BUFFER		= 0x00000001,
+	INDEX_BUFFER		= 0x00000002,
+	UNIFORM_BUFFER		= 0x00000004,
+	SHADER_RESOURCE		= 0x00000008,
+	STREAM_OUTPUT		= 0x00000010,
+	RENDER_TARGET		= 0x00000020,
+	DEPTH_STENCIL		= 0x00000040,
+	UNORDERED_ACCESS	= 0x00000080,
+};
+
+inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )
+{
+	return (RsResourceBindFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsResourceBindFlags operator | ( RsResourceBindFlags A, RsResourceBindFlags B )
+{
+	return (RsResourceBindFlags)( (BcU32)A | (BcU32)B );
+}
+
+enum class RsResourceUpdateFlags : BcU32
+{
+	NONE			= 0x00000000,
+	ASYNC			= 0x00000001,
+};
+
+inline RsResourceUpdateFlags operator & ( RsResourceUpdateFlags A, RsResourceUpdateFlags B )
+{
+	return (RsResourceUpdateFlags)( (BcU32)A & (BcU32)B );
+}
+
+inline RsResourceUpdateFlags operator | ( RsResourceUpdateFlags A, RsResourceUpdateFlags B )
+{
+	return (RsResourceUpdateFlags)( (BcU32)A | (BcU32)B );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Buffer stuff
+enum class RsBufferType
+{
+	UNKNOWN = 0,
+	VERTEX,
+	INDEX,
+	UNIFORM,
+	UNORDERED_ACCESS,
+	DRAW_INDIRECT,
+	STREAM_OUT,
+};
+
+struct RsBufferLock
+{
+	void* Buffer_;
+};
+
+typedef std::function< void( class RsBuffer*, const RsBufferLock& ) > RsBufferUpdateFunc;
+
+
+//////////////////////////////////////////////////////////////////////////
+// Texture stuff
+
+enum class RsTextureType : BcU32
+{
+	UNKNOWN = 0,
+	TEX1D,
+	TEX2D,
+	TEX3D,
+	TEXCUBE,
+};
+
+// 1D: (const char*)Buffer_ + ( X * BytesPerPixel )
+// 2D: (const char*)Buffer_ + Pitch_ * X + ( X  * BytesPerPixel )
+// 3D: (const char*)Buffer_ + SlicePitch_ * D + Pitch_ * Y + ( X * BytesPerPixel )
+struct RsTextureLock
+{
+	void* Buffer_;
+	BcU32 Pitch_;
+	BcU32 SlicePitch_;
+};
+
+typedef std::function< void( class RsTexture*, const RsTextureLock& ) > RsTextureUpdateFunc;
 
 #endif

@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Debug/DsCore.h"
+#include "Base/BcFile.h"
 #include "Base/BcHtml.h"
 #include "System/SysKernel.h"
 #include "Serialisation/SeJsonWriter.h"
@@ -20,6 +21,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -54,6 +56,7 @@ DsCore::~DsCore()
 void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	Output.createChildNode("h1").setContents("Contents");
+	Output.createChildNode("h2").setContents("Total CsResource: " + boost::lexical_cast< std::string >( CsCore::pImpl()->getNoofResources() ) );
 	BcHtmlNode table = Output.createChildNode("table");
 	//table.setAttribute("style", "width:100%;");
 	table.createChildNode("col").setAttribute("width", "100px");
@@ -291,7 +294,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 
 	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
-	if (Resource == NULL)
+	if (Resource == nullptr)
 	{
 		Output.createChildNode("").setContents("Invalid resource Id");
 		Output.createChildNode("br");
@@ -537,15 +540,16 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 
 	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
-	if (Resource == NULL)
+	if (Resource == nullptr)
 	{
 		Output.createChildNode("").setContents("Invalid resource Id");
 		Output.createChildNode("br");
 		return;
 	}
-	SeJsonWriter writer("out.json");
+	CsSerialiserPackageObjectCodec ObjectCodec(nullptr, bcRFF_ALL, bcRFF_TRANSIENT);
+	SeJsonWriter writer( &ObjectCodec);
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
-
+	
 	//boost::replace_all(output, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
 	//boost::replace_all(output, "\n", "<br />");
 
@@ -617,7 +621,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 	std::string OutputString = "{\n";
 	ReObjectRef< CsResource > Resource(CsCore::pImpl()->getResourceByUniqueId(id));
 
-	if (Resource == NULL)
+	if (Resource == nullptr)
 	{
 		Output.createChildNode("").setContents("Invalid resource Id");
 		Output.createChildNode("br");
