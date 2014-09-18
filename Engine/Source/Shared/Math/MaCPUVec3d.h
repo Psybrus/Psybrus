@@ -16,7 +16,8 @@
 
 #include "Math/MaCPUVecQuad.h"
 #include "Reflection/ReReflection.h"
-
+#include "MaVec2d.h"
+#define DECLARE_SWIZZLE2( T, X, Y ) inline T X ## Y() const { return T( X(), Y() ); }
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec3d
 class MaCPUVec3d: public MaCPUVecQuad
@@ -71,6 +72,17 @@ public:
 	// Comparison with epsilons
 	BcBool			operator == (const MaCPUVec3d& Rhs) const;	
 	BcBool			operator != (const MaCPUVec3d& Rhs) const;		
+
+	DECLARE_SWIZZLE2(MaVec2d, x, x);
+	DECLARE_SWIZZLE2(MaVec2d, x, y);
+	DECLARE_SWIZZLE2(MaVec2d, x, z);
+	DECLARE_SWIZZLE2(MaVec2d, y, x);
+	DECLARE_SWIZZLE2(MaVec2d, y, y);
+	DECLARE_SWIZZLE2(MaVec2d, y, z);
+	DECLARE_SWIZZLE2(MaVec2d, z, x);
+	DECLARE_SWIZZLE2(MaVec2d, z, y);
+	DECLARE_SWIZZLE2(MaVec2d, z, z);
+
 };
 
 //////////////////////////////////////////////////////////////////////////
