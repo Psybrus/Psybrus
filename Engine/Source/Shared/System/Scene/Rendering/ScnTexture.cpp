@@ -18,7 +18,7 @@
 
 #include "Base/BcMath.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnTextureImport.h"
 #endif
 
@@ -36,7 +36,7 @@ void ScnTexture::StaticRegisterClass()
 		
 	auto& Class = ReRegisterClass< ScnTexture, Super >( Fields );
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnTextureImport::StaticGetClass(), 0 ) );

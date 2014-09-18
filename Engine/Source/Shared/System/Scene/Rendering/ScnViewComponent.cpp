@@ -27,7 +27,7 @@
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////

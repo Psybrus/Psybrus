@@ -16,7 +16,7 @@
 #include "System/Content/CsCore.h"
 #include "Base/BcProfiler.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnAnimationImport.h"
 #endif
 
@@ -33,7 +33,7 @@ void ScnAnimation::StaticRegisterClass()
 		
 	auto& Class = ReRegisterClass< ScnAnimation, Super >( Fields );
 	
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnAnimationImport::StaticGetClass(), 0 ) );
