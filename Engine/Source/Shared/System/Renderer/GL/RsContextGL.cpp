@@ -566,7 +566,7 @@ void RsContextGL::create()
 	setDefaultState();
 
 	// Clear screen and flip.
-	clear( RsColour( 1.0f, 1.0f, 1.0f, 0.0f ) );
+	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
 	// Present back buffer.
 	presentBackBuffer();
