@@ -3,7 +3,7 @@
 	kind "StaticLib"
 	language "C++"
 	includedirs {
-		"src",
+		"bullet/src",
 	}
 	files {
 		"bullet/src/BulletCollision/**.cpp",

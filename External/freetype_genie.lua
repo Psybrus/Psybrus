@@ -60,4 +60,4 @@ project "External_freetype"
 		"./freetype/src/type42/type42.c",
 		"./freetype/src/winfonts/winfnt.c"
 	}
-	includedirs { "./include" }
+	includedirs { "./freetype/include" }

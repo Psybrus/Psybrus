@@ -12,7 +12,7 @@ project "Engine_System"
 	includedirs {
     "./Shared/",
     "./Platforms/Windows/",
-    psybrusSDK .. "/External/bullet-2.81-rev2613/src",
+    psybrusSDK .. "/External/bullet/src",
     psybrusSDK .. "/External/enet/include",
     psybrusSDK .. "/External/freetype/include",
     psybrusSDK .. "/External/glew/include",
