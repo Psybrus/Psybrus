@@ -20,7 +20,7 @@
 
 #include "Base/BcMath.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcStream.h"
 #endif
 

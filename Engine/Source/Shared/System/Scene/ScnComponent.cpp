@@ -16,7 +16,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnComponentImport.h"
 #endif
 
@@ -54,7 +54,7 @@ void ScnComponent::StaticRegisterClass()
 	
 	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnComponentImport::StaticGetClass(), 0, 100 ) );

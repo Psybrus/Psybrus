@@ -30,7 +30,7 @@ class AkBank:
 public:
 	DECLARE_RESOURCE( CsResource, AkBank );
 
-#if PSY_SERVER
+#if PSY_IMPORT_PIPELINE
 	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
 #endif	
 	virtual void						initialise();

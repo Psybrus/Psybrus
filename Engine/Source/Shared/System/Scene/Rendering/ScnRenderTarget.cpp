@@ -15,12 +15,12 @@
 
 #include "System/Content/CsCore.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 #endif
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 //////////////////////////////////////////////////////////////////////////
 // import
 //virtual

@@ -19,7 +19,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 #endif

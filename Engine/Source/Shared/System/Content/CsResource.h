@@ -21,7 +21,7 @@
 #include "Base/BcName.h"
 #include "Reflection/ReReflection.h"
 
-#ifdef PSY_SERVER
+#ifdef PSY_IMPORT_PIPELINE
 #include <json/json.h>
 #endif
 
