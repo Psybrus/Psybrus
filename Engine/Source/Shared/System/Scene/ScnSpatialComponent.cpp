@@ -20,9 +20,9 @@ DEFINE_RESOURCE( ScnSpatialComponent );
 
 void ScnSpatialComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pSpatialTreeNode_",			&ScnSpatialComponent::pSpatialTreeNode_ ),
+		new ReField( "pSpatialTreeNode_", &ScnSpatialComponent::pSpatialTreeNode_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< ScnSpatialComponent, Super >( Fields )

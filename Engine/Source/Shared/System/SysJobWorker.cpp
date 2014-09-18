@@ -39,7 +39,10 @@ SysJobWorker::~SysJobWorker()
 	stop();
 
 	//
-	ExecutionThread_.join();
+	if( ExecutionThread_.joinable() )
+	{
+		ExecutionThread_.join();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,7 +135,7 @@ void SysJobWorker::execute()
 		// Wait to be scheduled.
 		Parent_->waitForSchedule( JobQueuesLock_, [ this ]()
 			{
-				return anyJobsWaiting() || PendingJobQueue_.load() > 0;
+				return anyJobsWaiting() || PendingJobQueue_.load() > 0 || !Active_;
 			});
 
 		PSY_PROFILER_SECTION( DoneSchedule_Profiler, "SysJobWorker_DoneSchedule" );
@@ -168,7 +171,14 @@ void SysJobWorker::execute()
 				PSY_PROFILER_SECTION( ExecuteJob_Profiler, "SysJobWorker_ExecuteJob" );
 
 				// Execute.
-				Job->internalExecute();
+				try
+				{
+					Job->internalExecute();
+				}
+				catch( ... )
+				{
+					BcPrintf( "Unhandled exception in job.\n" );
+				}
 				break;
 			}
 		}

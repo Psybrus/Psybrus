@@ -72,14 +72,5 @@ extern PsySetupParams GPsySetupParams;
  */
 extern void PsyGameInit();
 
-/**
- * Called when user resources need to be registered.
- */
-extern void PsyGameRegisterResources();
-
-/**
- * Called when user resources need to be unregistered.
- */
-extern void PsyGameUnRegisterResources();
 
 #endif

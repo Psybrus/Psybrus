@@ -45,6 +45,27 @@ void ReClassSerialiser_BinaryDataType::destruct( void* pMemory ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// create
+void* ReClassSerialiser_BinaryDataType::create() const
+{
+	return new BcBinaryData();
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// createNoInit
+void* ReClassSerialiser_BinaryDataType::createNoInit() const
+{
+	return new BcBinaryData();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ReClassSerialiser_BinaryDataType::destroy( void* Object ) const
+{
+	delete reinterpret_cast< BcBinaryData* >( Object );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
 BcU32 ReClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
 {

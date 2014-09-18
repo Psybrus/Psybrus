@@ -46,7 +46,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnComponentAttribute, ReAttribute );
 
 public:
-	ScnComponentAttribute( BcS32 UpdatePriority );
+	ScnComponentAttribute( BcS32 UpdatePriority = 0 );
 	int getUpdatePriority() const;
 
 private:
@@ -59,7 +59,11 @@ class ScnComponent:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnComponent );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnComponent, CsResource );
+
+	ScnComponent();
+	ScnComponent( ReNoInit );
+	virtual ~ScnComponent();
 
 public:
 	virtual void						initialise();
@@ -88,10 +92,19 @@ public:
 	 * Get full name inc. parents.
 	 */
 	std::string							getFullName();
-	
+
+	// temp.
+	const BcChar*						getJsonObject() const{ return pJsonObject_; }
+
 protected:
-	BcU32								Flags_;
+	virtual void						fileReady();
+	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+
+protected:
+	BcU32								ComponentFlags_;
 	ScnEntityWeakRef					ParentEntity_;
+	const BcChar*						pJsonObject_;
+
 };
 
 #endif

@@ -15,7 +15,7 @@
 #define __RSPROGRAM_H__
 
 #include "System/Renderer/RsTypes.h"
-#include "System/Renderer/RsUniformBuffer.h"
+#include "System/Renderer/RsResource.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsProgram
@@ -23,50 +23,66 @@ class RsProgram:
 	public RsResource
 {
 public:
-	RsProgram( class RsContext* pContext );
+	RsProgram( 
+		class RsContext* pContext, 
+		std::vector< class RsShader* >&& Shaders,
+		RsProgramVertexAttributeList&& VertexAttributes );
 	virtual ~RsProgram();
 	
-	/**
-	 * Get parameter buffer size.
-	 * @return Size of parameter buffer in bytes.
-	 */
-	virtual BcU32						getParameterBufferSize() const = 0;
+	BcU32 findSamplerSlot( const BcChar* Name );
+	BcU32 findTextureSlot( const BcChar* Name );
+	BcU32 findUniformBufferSlot( const BcChar* Name );
 
-	/**
-	 * Find offset of parameter in the buffer.
-	 * @param Type Type of parameter (out.)
-	 * @param Offset Offset of parameter (out.)
-	 * @param TypeBytes Size of type in bytes (out.)
-	 * @return Success.
-	 */
-	virtual BcU32						findParameterOffset( const BcChar* Name, eRsShaderParameterType& Type, BcU32& Offset, BcU32& TypeBytes ) const = 0;
-	
-	/**
-	 * Bind program.
-	 * @param pParameterBuffer Pointer to parameter buffer for binding.
-	 */
-	virtual void						bind( void* pParameterBuffer ) = 0;
-	
-	/**
-	 * Find uniform block by name.
-	 * @param Name
-	 * @return Index.
-	 */
-	virtual BcU32						findUniformBlockIndex( const BcChar* Name ) = 0;
+	const std::vector< class RsShader* >& getShaders() const;
+	const RsProgramVertexAttributeList& getVertexAttributeList() const;
+	BcU32 getInputLayoutHash() const;
 
-	/**
-	 * Set uniform block.
-	 * @param Index
-	 * @param Uniform buffer to set to.
-	 */
-	virtual void						setUniformBlock( BcU32 Index, RsUniformBuffer* Buffer ) = 0;
+public:
+	// Used internally by the renderer to patch reflection information
+	// into the program.
+	void addSamplerSlot( std::string Name, BcU32 Handle );
+	void addTextureSlot( std::string Name, BcU32 Handle );
+	void addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size );
 
+private:
+	struct TSampler
+	{
+		std::string Name_;
+		BcU32 Handle_;
+	};
 
-	/**
-	 * Get vertex attribute list.
-	 */
-	virtual const RsProgramVertexAttributeList& getVertexAttributeList() const = 0;
+	struct TTexture
+	{
+		std::string Name_;
+		BcU32 Handle_;
+	};
 
+	struct TUniformBlock
+	{
+		std::string Name_;
+		BcU32 Handle_;
+		BcU32 Size_;
+	};
+
+	typedef std::vector< TSampler > TSamplerList;
+	typedef TSamplerList::iterator TSamplerListIterator;
+	typedef TSamplerList::const_iterator TSamplerListConstIterator;
+	TSamplerList SamplerList_;
+
+	typedef std::vector< TTexture > TTextureList;
+	typedef TTextureList::iterator TTextureListIterator;
+	typedef TTextureList::const_iterator TTextureListConstIterator;
+	TTextureList TextureList_;
+
+	typedef std::vector< TUniformBlock > TUniformBlockList;
+	typedef TUniformBlockList::iterator TUniformBlockListIterator;
+	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
+	TUniformBlockList UniformBlockList_;
+
+	std::vector< class RsShader* > Shaders_;
+	RsProgramVertexAttributeList AttributeList_;
+
+	BcU32 InputLayoutHash_;
 };
 
 #endif

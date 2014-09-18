@@ -24,8 +24,9 @@ class RsContext;
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderSort
-union RsRenderSort
+class RsRenderSort
 {
+public:
 	RsRenderSort()
 	{
 	
@@ -43,33 +44,22 @@ union RsRenderSort
 	
 	}
 	
-	BcU64				Value_;
+	union
+	{
+		BcU64				Value_;
 	
-#if PSY_ENDIAN_LITTLE
-	struct 
-	{
-		BcU64			MaterialID_		: 16;		// 16
-		BcU64			Depth_			: 24;		// 40
-		BcU64			Blend_			: 2;		// 42
-		BcU64			Layer_			: 4;		// 46
-		BcU64			Pass_			: 2;		// 48
-		BcU64			Viewport_		: 8;		// 56
-		BcU64			RenderTarget_	: 4;		// 60
-		BcU64			NodeType_		: 4;		// 64
+		struct 
+		{
+			BcU64			MaterialID_		: 16;		// 16
+			BcU64			Depth_			: 24;		// 40
+			BcU64			Blend_			: 2;		// 42
+			BcU64			Layer_			: 4;		// 46
+			BcU64			Pass_			: 2;		// 48
+			BcU64			Viewport_		: 8;		// 56
+			BcU64			RenderTarget_	: 4;		// 60
+			BcU64			NodeType_		: 4;		// 64
+		};
 	};
-#elif PSY_ENDIAN_BIG
-	struct 
-	{
-		BcU64			NodeType_		: 4;		// 64
-		BcU64			RenderTarget_	: 4;		// 60
-		BcU64			Viewport_		: 8;		// 56
-		BcU64			Pass_			: 2;		// 48
-		BcU64			Layer_			: 4;		// 46
-		BcU64			Blend_			: 2;		// 42
-		BcU64			Depth_			: 24;		// 40
-		BcU64			MaterialID_		: 16;		// 16
-	};
-#endif
 };
 
 #define RS_SORT_MATERIAL_SHIFT			BcU64( 0 )
@@ -95,7 +85,6 @@ union RsRenderSort
 #define RS_SORT_PASS_POSTPROCESS		BcU64( 0x0000000000000002 )
 #define RS_SORT_PASS_OVERLAY			BcU64( 0x0000000000000003 )
 
-#define RS_SORT_NODETYPE_ z		RS_SORT_NODETYPE_MAX
 #define RS_SORT_NODETYPE_RESOURCE		BcU64( 0 )
 
 #define RS_SORT_MACRO_VIEWPORT_RENDERTARGET( _V, _T ) \

@@ -19,13 +19,13 @@ REFLECTION_DEFINE_DERIVED( ScnAnimationTreeBlendNode );
 
 void ScnAnimationTreeBlendNode::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "pNodes_",			&ScnAnimationTreeBlendNode::pNodes_ ),
-		ReField( "BlendType_",		&ScnAnimationTreeBlendNode::BlendType_ ),
-		ReField( "BlendValue_",		&ScnAnimationTreeBlendNode::BlendValue_ ),
+		new ReField( "pNodes_", &ScnAnimationTreeBlendNode::pNodes_ ),
+		new ReField( "BlendType_", &ScnAnimationTreeBlendNode::BlendType_ ),
+		new ReField( "BlendValue_", &ScnAnimationTreeBlendNode::BlendValue_ ),
 	};
-		
+	
 	ReRegisterClass< ScnAnimationTreeBlendNode, Super >( Fields );
 }
 

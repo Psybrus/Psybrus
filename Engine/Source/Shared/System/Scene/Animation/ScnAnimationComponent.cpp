@@ -27,12 +27,12 @@ DEFINE_RESOURCE( ScnAnimationComponent );
 
 void ScnAnimationComponent::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "TargetComponentName_",		&ScnAnimationComponent::TargetComponentName_ ),
-		ReField( "Model_",						&ScnAnimationComponent::Model_ ),
-		ReField( "pRootTreeNode_",				&ScnAnimationComponent::pRootTreeNode_ ),
-		ReField( "pReferencePose_",				&ScnAnimationComponent::pReferencePose_ ),
+		new ReField( "TargetComponentName_", &ScnAnimationComponent::TargetComponentName_ ),
+		new ReField( "Model_", &ScnAnimationComponent::Model_, bcRFF_TRANSIENT ),
+		new ReField( "pRootTreeNode_", &ScnAnimationComponent::pRootTreeNode_ ),
+		new ReField( "pReferencePose_", &ScnAnimationComponent::pReferencePose_ ),
 	};
 		
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
@@ -42,20 +42,18 @@ void ScnAnimationComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual 
+void ScnAnimationComponent::initialise()
+{
+	pRootTreeNode_ = nullptr;
+	pReferencePose_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual 
 void ScnAnimationComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
-
-	// HACK: Setup a way to add child types in the defines.
-	static BcBool HasRegisteredReflection = BcFalse;
-	if( HasRegisteredReflection == BcFalse )
-	{
-		HasRegisteredReflection = BcTrue;
-		ScnAnimationTreeNode::StaticRegisterClass();
-		ScnAnimationTreeBlendNode::StaticRegisterClass();
-		ScnAnimationTreeTrackNode::StaticRegisterClass();
-		ScnAnimationPose::StaticRegisterClass();
-	}
 
 	//
 	TargetComponentName_ = Object[ "target" ].asCString();
@@ -78,7 +76,7 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 	const Json::Value& NameValue = Object[ "name" ];
 	const Json::Value& ChildrenValue = Object[ "children" ];
 	const ReClass* pClass = ReManager::GetClass( TypeValue.asCString() );
-	ScnAnimationTreeNode* pNode = pClass->construct< ScnAnimationTreeNode >();
+	ScnAnimationTreeNode* pNode = pClass->create< ScnAnimationTreeNode >();
 	pNode->setName( NameValue.asCString() );
 
 	if( pParentNode != NULL )
@@ -98,6 +96,16 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 			initialiseNode( pNode, Idx, ChildValue );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnAnimationComponent::destroy()
+{
+	// TODO: unique_ptr.
+	delete pRootTreeNode_;
+	pRootTreeNode_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,11 +148,11 @@ void ScnAnimationComponent::postUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( TargetComponentName_ );
-	BcAssertMsg( Model_.isValid(), "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
+	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( /*TargetComponentName_ TODO*/  ); 
+	BcAssertMsg( Model_ != nullptr, "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
 
 	// Setup the reference pose.
-	if( Model_.isValid() )
+	if( Model_ != nullptr )
 	{
 		buildReferencePose();
 	}
@@ -157,9 +165,9 @@ void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnAnimationComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	Model_ = NULL;
+	Model_ = nullptr;
 	delete pReferencePose_;
-	pReferencePose_ = NULL;
+	pReferencePose_ = nullptr;
 
 	Super::onDetach( Parent );
 }

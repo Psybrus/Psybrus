@@ -136,6 +136,60 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 
 	hInstance_ = Instance;
 
+
+	// Enumerate device guff.
+	BOOL EnumSuccess = FALSE;
+	BcU32 ModeIdx = 0;
+	do
+	{
+		DEVMODEA DevMode;
+		ZeroMemory( &DevMode, sizeof( DevMode ) );
+		EnumSuccess = ::EnumDisplaySettingsA( 
+			nullptr, 
+			ModeIdx++,
+			&DevMode );
+
+		if( EnumSuccess )
+		{
+			DeviceModes_.push_back( DevMode );
+		}
+	}
+	while( EnumSuccess );
+
+	BcU32 DeviceIdx = 0;
+	do
+	{
+		DISPLAY_DEVICEA DisplayDevice;
+		ZeroMemory( &DisplayDevice, sizeof( DisplayDevice ) );
+		EnumSuccess = ::EnumDisplayDevicesA( 
+			nullptr, 
+			DeviceIdx++,
+			&DisplayDevice,
+			EDD_GET_DEVICE_INTERFACE_NAME );
+
+		if( EnumSuccess )
+		{
+			DisplayDevices_.push_back( DisplayDevice );
+		}
+	}
+	while( EnumSuccess );
+
+	BcU32 MonitorIdx = 0;
+	do
+	{
+		MONITORINFO MonitorInfo;
+		ZeroMemory( &MonitorInfo, sizeof( MonitorInfo ) );
+		EnumSuccess = ::GetMonitorInfoA(
+			(HMONITOR)MonitorIdx,
+			&MonitorInfo );
+
+		if( EnumSuccess )
+		{
+			MonitorInfos_.push_back( MonitorInfo );
+		}
+	}
+	while( EnumSuccess );
+
 	// Generate class name.
 	BcSPrintf( ClassName_, "PsybrusWindow_0x%x", gClassID_++ );
 	
@@ -197,7 +251,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	// Show the window
 	if( Visible )
 	{
-		::ShowWindow( hWnd_, SW_SHOWMAXIMIZED );
+		::ShowWindow( hWnd_, SW_SHOWNORMAL );
 		::SetForegroundWindow( hWnd_ );
 		::SetFocus( hWnd_ );
 	}
@@ -399,6 +453,20 @@ void OsClientWindows::setMouseLock( BcBool Enabled )
 	}
 
 	MouseLocked_ = Enabled;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHDC
+HDC	OsClientWindows::getHDC()
+{
+	return hDC_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHWND
+HWND OsClientWindows::getHWND()
+{
+	return hWnd_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -734,13 +802,26 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 //////////////////////////////////////////////////////////////////////////
 // WndProc
 //static
-LRESULT CALLBACK OsClientWindows::WndProc( HWND hWnd,
-                                    UINT uMsg,
-                                    WPARAM wParam,
-                                    LPARAM lParam )
+LRESULT CALLBACK OsClientWindows::WndProc( 
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam )
 {
 	LONG_PTR ptr = ::GetWindowLongPtr( hWnd, GWLP_USERDATA );
 	OsClientWindows* pWindow = reinterpret_cast< OsClientWindows* >( ptr );
 
 	return pWindow->wndProcInternal( hWnd, uMsg, wParam, lParam );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// WndProc
+//static
+BOOL CALLBACK OsClientWindows::MonitorEnumProc(
+	HMONITOR hMonitor, 
+	HDC hDC, 
+	LPRECT Rect, 
+	LPARAM lParam )
+{
+	return TRUE;
 }

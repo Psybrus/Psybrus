@@ -1,24 +1,22 @@
 #include "Serialisation/SeJsonWriter.h"
 
-#include "Base/BcHash.h"
-
 #include <fstream>
 
 //////////////////////////////////////////////////////////////////////////
 // Statics
-const char* SeJsonWriter::SerialiserVersionEntry = "SerialiserVersion";
-const char* SeJsonWriter::RootIDEntry = "RootID";
-const char* SeJsonWriter::ObjectsEntry = "Objects";
-const char* SeJsonWriter::ClassEntry = "Class";
-const char* SeJsonWriter::IDEntry = "ID";
-const char* SeJsonWriter::MembersEntry = "Members";
-const char* SeJsonWriter::FieldEntry = "Field";
-const char* SeJsonWriter::ValueEntry = "Value";
+const char* SeJsonWriter::SerialiserVersionEntry = "$SerialiserVersion";
+const char* SeJsonWriter::RootIDEntry = "$RootID";
+const char* SeJsonWriter::ObjectsEntry = "$Objects";
+const char* SeJsonWriter::ClassEntry = "$Class";
+const char* SeJsonWriter::IDEntry = "$ID";
+const char* SeJsonWriter::FieldEntry = "$Field";
+const char* SeJsonWriter::ValueEntry = "$Value";
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SeJsonWriter::SeJsonWriter( const char* FileName ):
-	OutputFile_( FileName )
+SeJsonWriter::SeJsonWriter( 
+		SeISerialiserObjectCodec* ObjectCodec ) :
+	ObjectCodec_( ObjectCodec )
 {
 
 }
@@ -29,6 +27,17 @@ SeJsonWriter::SeJsonWriter( const char* FileName ):
 SeJsonWriter::~SeJsonWriter()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// save
+void SeJsonWriter::save( std::string FileName )
+{
+	Json::StyledWriter Writer;
+	std::ofstream OutStream;
+	OutStream.open( FileName );
+	OutStream << Output_;
+	OutStream.close();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,15 +61,7 @@ BcU32 SeJsonWriter::getFileVersion() const
 //virtual
 void* SeJsonWriter::internalSerialise( void* pData, const ReType* pType )
 {
-	std::string output = internalSerialiseString(pData, pType);
-
-	//* test code.
-	Json::StyledWriter Writer;
-	std::ofstream OutStream;
-	OutStream.open( OutputFile_ );
-	OutStream << output;
-	OutStream.close();
-	//*/
+	Output_ = internalSerialiseString( pData, pType );
 
     return pData;
 }
@@ -85,9 +86,9 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pT
 		// Check we're a class so we know we can serialise.
 		if( ClassToSerialise.pType_->isTypeOf< ReClass >() )
 		{
+			auto ID = ObjectCodec_->serialiseAsStringRef( ClassToSerialise.pData_, ClassToSerialise.pType_ );
 			auto ClassValue = serialiseClass( ClassToSerialise.pData_, static_cast< const ReClass* >( ClassToSerialise.pType_ ), true );
-
-			ObjectsValue_.append( ClassValue );
+			ObjectValueMap_[ ID ] = ClassValue;
 		}
 		else
 		{
@@ -96,21 +97,27 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pT
 		}
 	}
 
+	// Grab root from map and place in first.
+	auto RootID = ObjectCodec_->serialiseAsStringRef( pData, pType );
+	ObjectsValue_.append( ObjectValueMap_[ RootID ] );
+	ObjectValueMap_.erase( ObjectValueMap_.find( RootID ) );
+
+	// Add to value map.
+	for( auto& Value : ObjectValueMap_ )
+	{
+		ObjectsValue_.append( Value.second );
+	}
+
 	// Write out root object.
 	RootValue_ = Json::Value( Json::objectValue );
 	RootValue_[ SerialiserVersionEntry ] = SERIALISER_VERSION;
-	RootValue_[ RootIDEntry ] = ObjectsValue_[ Json::Value::UInt( 0 ) ][ IDEntry ];
+    RootValue_[ RootIDEntry ] = ObjectsValue_[ Json::Value::UInt( 0 ) ][ IDEntry ];
 	RootValue_[ ObjectsEntry ] = ObjectsValue_;
 
 	//* test code.
 	Json::StyledWriter Writer;
 	std::string Output;
 	Output = Writer.write( RootValue_ );
-	/*std::ofstream OutStream;
-	OutStream.open( OutputFile_ );
-	OutStream << Writer.write( RootValue_ );
-	OutStream.close();
-	//*/
 
     return Output;
 }
@@ -131,7 +138,14 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 	ClassValue[ ClassEntry ] = *pClass->getName();
 	if( StoreID )
 	{
-		ClassValue[ IDEntry ] = (BcU32)BcHash( pData );
+		ClassValue[ IDEntry ] = ObjectCodec_->serialiseAsStringRef( pData, pClass );
+	}
+
+	// If the object codec says we dont want, don't serialise its contents.
+	// Only serialise it as an ID.
+	if( !ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
+	{
+		return ClassValue[ IDEntry ];
 	}
 
 	// Get type serialiser.
@@ -156,9 +170,6 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 		}
 		else
 		{
-			// Members value.
-			Json::Value MembersValue( Json::objectValue );
-
 			// Iterate over members to add, all supers too.
 			const ReClass* pProcessingClass = pClass;
 			while( pProcessingClass != nullptr )
@@ -170,14 +181,15 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 					{
 						const ReField* pField = pProcessingClass->getField( Idx );
 	
-						MembersValue[ *pField->getName() ] = serialiseField( pData, pField );
+						// Check if we should serialise this field.
+						if ( ObjectCodec_->shouldSerialiseField( pData, pField ) )
+						{
+							ClassValue[ *pField->getName() ] = serialiseField( pData, pField );
+						}
 					}
 				}
 				pProcessingClass = pProcessingClass->getSuper();
 			}
-
-			// Setup members.
-			ClassValue[ MembersEntry ] = MembersValue;
 		}
 	}
 
@@ -230,19 +242,23 @@ Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass )
 	if( pData != nullptr )
 	{
 		// Setup Json::Value for this class.
-		Json::Value PointerValue = BcHash( pData );
+		Json::Value PointerValue = ObjectCodec_->serialiseAsStringRef( pData, pClass );
 	
 		// Check if we can up cast.
 		if( pClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			pClass = reinterpret_cast< ReObject* >( pData )->getClass();
+			ReObject* Object = reinterpret_cast< ReObject* >( pData );
+			pClass = Object->getClass();
 		}
 			
 		// Add to list to serialise if it hasn't been added.
-		auto ClassToSerialise = SerialiseClass( pData, pClass );
-		if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+		if( ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
 		{
-			SerialiseClasses_.push_back( ClassToSerialise );
+			auto ClassToSerialise = SerialiseClass( pData, pClass );
+			if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+			{
+				SerialiseClasses_.push_back( ClassToSerialise );
+			}
 		}
 
 		return PointerValue;
@@ -311,6 +327,19 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
 	if( ( pField->getKeyFlags() & bcRFF_SIMPLE_DEREF ) != 0 )
 	{
 		BcAssert( false );
+		return Json::nullValue;
+	}
+
+	// Early out if we can't serialise.
+	if( KeySerialiser == nullptr )
+	{
+		BcPrintf( "SeJsonWriter: Unable to serialise for key \"%s\"\n", ( *pFieldKeyType->getName() ).c_str() );
+		return Json::nullValue;
+	}
+
+	if( ValueSerialiser == nullptr )
+	{
+		BcPrintf( "SeJsonWriter: Unable to serialise for value \"%s\"\n", ( *pFieldValueType->getName() ).c_str() );
 		return Json::nullValue;
 	}
 

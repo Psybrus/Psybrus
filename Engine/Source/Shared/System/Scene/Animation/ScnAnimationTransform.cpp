@@ -576,7 +576,7 @@ void ScnAnimationTransform::fromMatrix( const MaMat4d& Matrix )
 	S_ = MaVec3d( Affine.k.x, Affine.k.y, Affine.k.z );
 	T_ = MaVec3d( Affine.t.x, Affine.t.y, Affine.t.z );
 
-#if PSY_DEBUG & 0 // NOTE: This can reproduce a different, but valid transform. It's just a rough check.
+#if defined( PSY_DEBUG ) & 0 // NOTE: This can reproduce a different, but valid transform. It's just a rough check.
 	MaMat4d T2;
 	toMatrix( T2 );
 	BcAssert( T2.row0() == T.col0() );

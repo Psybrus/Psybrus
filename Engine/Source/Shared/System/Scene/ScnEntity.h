@@ -20,17 +20,25 @@
 #include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnEntityHeader
+struct ScnEntityHeader
+{
+	BcU32 NoofComponents_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
 	public ScnComponent,
 	public EvtPublisher
 {
 public:
-	DECLARE_RESOURCE( ScnComponent, ScnEntity );
+	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnEntity, ScnComponent );
 	
-#if PSY_SERVER
-	BcBool								import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif	
+	ScnEntity();
+	ScnEntity( ReNoInit );
+	virtual ~ScnEntity();
+
 	void								initialise();
 	void								initialise( ScnEntityRef Basis );
 	void								create();
@@ -121,9 +129,29 @@ public:
 	void								setLocalMatrix( const MaMat4d& Matrix );
 
 	/**
+	 * Set matrix rot + scale part.
+	 */
+	void								setLocalMatrixRS( const MaMat4d& Matrix );
+
+	/**
 	 * Get local position.
 	 */
 	MaVec3d								getLocalPosition() const;
+
+	/**
+	 * Set position.
+	 */
+	void								setWorldPosition( const MaVec3d& Position );
+
+	/**
+	 * Set matrix.
+	 */
+	void								setWorldMatrix( const MaMat4d& Matrix );
+
+	/**
+	 * Set matrix rot + scale part.
+	 */
+	void								setWorldMatrixRS( const MaMat4d& Matrix );
 
 	/**
 	 * Get position.
@@ -145,9 +173,8 @@ protected:
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	const BcChar*						pJsonObject_; // TEMP.
+	const ScnEntityHeader*				pHeader_;
 
-	ScnEntityRef						Basis_;
 	MaMat4d								LocalTransform_;
 	MaMat4d								WorldTransform_;
 

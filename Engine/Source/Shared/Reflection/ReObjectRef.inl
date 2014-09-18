@@ -70,7 +70,7 @@ inline void ReObjectRef< _Ty, _IsWeak >::_releaseThis()
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::assertPendingDeletion( const ReObject* pObject )
 {
-#if PSY_DEBUG && REFLECTION_ENABLE_GC
+#if defined( PSY_DEBUG ) && REFLECTION_ENABLE_GC
 	if( pObject != nullptr )
 	{
 		BcAssert( ( pObject->Flags_ & (BcU32)Object::Flags::MarkedForDeletion ) == 0 );

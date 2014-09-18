@@ -28,6 +28,21 @@ public:
 		//BcAssertMsg( false, "Type is abstract." );
 	}
 
+	virtual void* create() const
+	{
+		return nullptr;
+	}
+
+	virtual void* createNoInit() const
+	{
+		return nullptr;
+	}
+
+	virtual void destroy( void* ) const
+	{
+
+	}
+
 	virtual BcBool copy( void* pDst, void* pSrc ) const
 	{
 		return false;

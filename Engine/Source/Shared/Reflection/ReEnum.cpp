@@ -3,15 +3,17 @@
 #include "Reflection/ReField.h"
 #include "Reflection/ReReflection.h"
 
+#include <boost/algorithm/string.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 // Definitions
 REFLECTION_DEFINE_DERIVED( ReEnum );
 
 void ReEnum::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "EnumConstants_", &ReEnum::EnumConstants_ ),
+		new ReField( "EnumConstants_", &ReEnum::EnumConstants_ ),
 	};
 		
 	ReRegisterClass< ReEnum, ReClass >( Fields );
@@ -30,12 +32,12 @@ ReEnum::ReEnum( BcName Name ):
 			
 }
 
-void ReEnum::setConstants( const ReEnumConstant* EnumConstants, BcU32 Elements )
+void ReEnum::setConstants( ReEnumConstant** EnumConstants, BcU32 Elements )
 {
 	EnumConstants_.reserve( Elements );
 	for( BcU32 Idx = 0; Idx < Elements; ++Idx )
 	{
-		EnumConstants_.push_back( &EnumConstants[ Idx ] );
+		EnumConstants_.push_back( EnumConstants[ Idx ] );
 	}
 }
 
@@ -56,7 +58,7 @@ const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name )
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{
-		if( EnumConstants_[ Idx ]->getName() == Name )
+		if( boost::iequals( *EnumConstants_[ Idx ]->getName(), Name ) )
 		{
 			return EnumConstants_[ Idx ];
 		}

@@ -118,10 +118,10 @@ void ImgImage::blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& Ds
 
 //////////////////////////////////////////////////////////////////////////
 // resize
-ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
+ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 {
 	// Create image.
-	ImgImage* pImage = new ImgImage();
+	ImgImageUPtr pImage = ImgImageUPtr( new ImgImage() );
 	pImage->create( Width, Height );
 
 	if( Width != ( Width_ >> 1 ) || Height != ( Height_ >> 1 ) )
@@ -217,12 +217,12 @@ ImgImage* ImgImage::resize( BcU32 Width, BcU32 Height )
 
 //////////////////////////////////////////////////////////////////////////
 // canvasSize
-ImgImage* ImgImage::canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFillColour )
+ImgImageUPtr ImgImage::canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFillColour )
 {
 	BcU32 CopyW = BcMin( width(), Width );
 	BcU32 CopyH = BcMin( height(), Height );
 
-	ImgImage* pImage = new ImgImage();
+	ImgImageUPtr pImage = ImgImageUPtr( new ImgImage() );
 
 	pImage->create( Width, Height, pFillColour );
 
@@ -239,7 +239,7 @@ ImgImage* ImgImage::canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFil
 
 //////////////////////////////////////////////////////////////////////////
 // generateMipMaps
-ImgImage* ImgImage::cropByColour( const ImgColour& Colour, BcBool PowerOfTwo )
+ImgImageUPtr ImgImage::cropByColour( const ImgColour& Colour, BcBool PowerOfTwo )
 {
 	// Find bounds.
 	BcU32 EndX = 0;
@@ -272,15 +272,13 @@ ImgImage* ImgImage::cropByColour( const ImgColour& Colour, BcBool PowerOfTwo )
 
 //////////////////////////////////////////////////////////////////////////
 // generateMipMaps
-BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages )
+BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& OutImages )
 {
 	BcU32 LevelsCreated = 1;
 
-	// Assign first as ourself.
-	*ppOutImages = this;
+	BcAssert( OutImages.size() == 1 );
 
-	ImgImage* pPrevImage = *ppOutImages;
-	++ppOutImages;
+	ImgImage* pPrevImage = OutImages[0].get();
 
 	// Generate smaller images.
 	for( BcU32 i = 0; i < ( NoofLevels - 1 ); ++i )
@@ -295,9 +293,8 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages )
 		}
 
 		// Perform resize.
-		*ppOutImages = pPrevImage->resize( W, H );
-		pPrevImage = *ppOutImages;
-		++ppOutImages;
+		OutImages.push_back( pPrevImage->resize( W, H ) );
+		pPrevImage = OutImages.back().get();
 		++LevelsCreated;
 	}
 
@@ -309,7 +306,7 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages )
 static const MaVec2d DistanceFieldInside = MaVec2d( 0.0f, 0.0f );
 static const MaVec2d DistanceFieldOutside = MaVec2d( 1e6f, 1e6f );
 
-ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread )
+ImgImageUPtr ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread )
 {
 	// Utility funcs.
 	class DistanceField
@@ -470,7 +467,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 	};
 	
 	// Create image.
-	ImgImage* pImage = new ImgImage();
+	ImgImageUPtr pImage = ImgImageUPtr( new ImgImage() );
 	pImage->create( width(), height() );
 
 	// Allocate grids.
@@ -489,7 +486,7 @@ ImgImage* ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sprea
 	DistanceField::Subtract( SignedDistanceGrid, GridA, GridB );
 	
 	// Normalise.
-	DistanceField::Normalise( pImage, SignedDistanceGrid, Spread );	
+	DistanceField::Normalise( pImage.get(), SignedDistanceGrid, Spread );	
 	
 	// Return image.
 	return pImage;
@@ -528,7 +525,7 @@ public:
 	}
 };
 
-ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height, ImgColour& ClearColour )
+ImgImageUPtr ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height, ImgColour& ClearColour )
 {
 	// Utility funcs.
 	class Atlas
@@ -543,7 +540,7 @@ ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRect
 				ImgIndexedImage IndexedImage =
 				{
 					Idx,
-					ImageList[ Idx ]
+					ImageList[ Idx ].get()
 				};
 				
 				IndexedImageList.push_back( IndexedImage );
@@ -560,9 +557,9 @@ ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRect
 			ImgRect Bounds = { 0, 0, 65536, 65536 };
 			for( ImgImageListConstIterator Iter( ImageList.begin() ); Iter != ImageList.end(); ++Iter )
 			{
-				ImgImage* pImage = (*Iter);
+				ImgImage* pImage = (*Iter).get();
 				
-				if( pImage != NULL )
+				if( pImage != nullptr )
 				{
 					Bounds.W_ = BcMin( Bounds.W_, pImage->width() );
 					Bounds.H_ = BcMin( Bounds.H_, pImage->height() );
@@ -583,9 +580,9 @@ ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRect
 			ImgRect Bounds = { 0, 0, 0, 0 };
 			for( ImgImageListConstIterator Iter( ImageList.begin() ); Iter != ImageList.end(); ++Iter )
 			{
-				ImgImage* pImage = (*Iter);
+				ImgImage* pImage = (*Iter).get();
 				
-				if( pImage != NULL )
+				if( pImage != nullptr )
 				{			
 					Bounds.W_ = BcMax( Bounds.W_, pImage->width() );
 					Bounds.H_ = BcMax( Bounds.H_, pImage->height() );
@@ -718,13 +715,13 @@ ImgImage* ImgImage::generateAtlas( ImgImageList& ImageList, ImgRectList& OutRect
 	}
 	
 	// Create image.
-	ImgImage* pAtlasImage = new ImgImage();
+	ImgImageUPtr pAtlasImage = ImgImageUPtr( new ImgImage() );
 	pAtlasImage->create( ImageBounds.W_, ImageBounds.H_, &ClearColour );
 
 	// Blit all images into it using output rects.
 	for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
 	{
-		ImgImage* pImage = ImageList[ Idx ];
+		ImgImage* pImage = ImageList[ Idx ].get();
 		if( pImage != NULL )
 		{
 			const ImgRect& DstRect = OutRectList[ Idx ];
@@ -787,24 +784,18 @@ BcBool ImgImage::encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSi
 
 	switch( Format )
 	{
-	case imgEF_RGB8:
+	case ImgEncodeFormat::R8G8B8:
 		return encodeAsRGB8( pOutData, OutSize );
 
-	case imgEF_RGBA8:
+	case ImgEncodeFormat::R8G8B8A8:
 		return encodeAsRGBA8( pOutData, OutSize );
 
-	case imgEF_BGR8:
-		return encodeAsBGR8( pOutData, OutSize );
-
-	case imgEF_ABGR8:
-		return encodeAsABGR8( pOutData, OutSize );
-
-	case imgEF_I8:
+	case ImgEncodeFormat::R8:
 		return encodeAsI8( pOutData, OutSize );
 
-	case imgEF_DXT1:
-	case imgEF_DXT3:
-	case imgEF_DXT5:
+	case ImgEncodeFormat::DXT1:
+	case ImgEncodeFormat::DXT3:
+	case ImgEncodeFormat::DXT5:
 		return encodeAsDXT( Format, pOutData, OutSize );
 		
 	default:
@@ -1048,24 +1039,25 @@ BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
 // encodeAsDXT
 BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
 {
-	if( Format == imgEF_DXT1 ||
-		Format == imgEF_DXT3 ||
-		Format == imgEF_DXT5 )
+	if( Format == ImgEncodeFormat::DXT1 ||
+		Format == ImgEncodeFormat::DXT3 ||
+		Format == ImgEncodeFormat::DXT5 )
 	{
-		// Check if its a power of two too.
-		if( BcPot( Width_ ) && BcPot( Height_ ) && Width_ >= 4 && Height_ >= 4 )
+		// Check if its a multiple of 4.
+		if( Width_ >= 64 && Height_ >= 64 &&
+			( Width_ % 4 == 0 ) && ( Height_ % 4 ) == 0 )
 		{
 			BcU32 SquishFormat = 0;
 
 			switch( Format )
 			{
-			case imgEF_DXT1:
+			case ImgEncodeFormat::DXT1:
 				SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
 				break;
-			case imgEF_DXT3:
+			case ImgEncodeFormat::DXT3:
 				SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
 				break;
-			case imgEF_DXT5:
+			case ImgEncodeFormat::DXT5:
 				SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
 				break;
 			}

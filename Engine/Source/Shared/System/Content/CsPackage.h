@@ -74,12 +74,12 @@ public:
 	/**
 	* Load a package cross ref.
 	*/
-	CsPackage*						loadPackageCrossRef( BcU32 ID );
+	CsPackage*						getCrossRefPackage( BcU32 ID );
 
 	/**
 	* Get package cross ref.
 	*/
-	ReObjectRef< CsResource >					getPackageCrossRef( BcU32 ID );
+	CsResource*						getCrossRefResource( BcU32 ID );
 
 	/**
 	* Acquire.

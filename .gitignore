@@ -1,3 +1,5 @@
 /*.zip
 /Build/
 /.svn/
+External/git.branch
+External/git.version

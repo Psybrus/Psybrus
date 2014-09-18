@@ -41,7 +41,7 @@ enum CsPackageFlags
 struct CsPackageHeader
 {
 	static const BcU32 MAGIC = 0x89273491;							// Basic check to make sure it's a valid package file.
-	static const BcU32 VERSION = 15;								// If the package format changes, increment this value to force reimport of packages.
+	static const BcU32 VERSION = 19;								// If the package format changes, increment this value to force reimport of packages.
 
 	BcU32								Magic_;						// Magic number.
 	BcU32								Version_;					// Version.
@@ -60,20 +60,36 @@ struct CsPackageHeader
 };
 
 //////////////////////////////////////////////////////////////////////////
+// CsPackageCrossRefFlags
+enum class CsPackageCrossRefFlags
+{
+	/// Is reference a weak reference? I.e. does it require manual loading?
+	WEAK_REFERENCE = 0x00000001,
+	/// Is reference an ID reference? I.e. by index into this package, rather than name?
+	ID_REFERENCE = 0x00000002,
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsPackageCrossRefData
 struct CsPackageCrossRefData
 {
+	/// Name table idx for type name.
 	BcU32								TypeName_;
+	/// Name table idx for package name.
 	BcU32								PackageName_;
+	/// Name table idx, or ID, for resource.
 	BcU32								ResourceName_;
+	/// Is reference weak? (Not automatically loaded for us)
 	BcBool								IsWeak_;					// TODO: Change to flags.
-
+	/// Is reference an ID?
+	BcBool								IsID_;						// TODO: Change to flags.
 	inline bool operator == ( const CsPackageCrossRefData& Other )
 	{
 		return TypeName_ == Other.TypeName_ &&
 		       PackageName_ == Other.PackageName_ &&
 		       ResourceName_ == Other.ResourceName_ &&
-			   IsWeak_ == Other.IsWeak_;
+			   IsWeak_ == Other.IsWeak_ &&
+			   IsID_ == Other.IsID_;
 	}
 };
 

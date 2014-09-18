@@ -81,6 +81,16 @@
 	_Type( ReNoInit ){};
 
 /**
+ * @brief Declare basic type, no autoreg.
+ * 
+ * Used for POD types that don't want a v-table.
+ * Should be put in the header inside the class definition.
+ */
+#define REFLECTION_DECLARE_BASIC_NOAUTOREG( _Type )								\
+	REFLECTION_DECLARE_BASIC( _Type )											\
+
+
+/**
  * @brief Define basic type.
  * 
  * Used for POD types that don't want a v-table.
@@ -98,6 +108,14 @@
 #define REFLECTION_DECLARE_BASE( _Type )										\
 	__REFLECTION_DECLARE_BASE( _Type )											\
 	_Type( ReNoInit ){};
+
+/**
+ * @brief Declare base type, no autoreg.
+ * 
+ * Used for base types that want RTTI support.
+ */
+#define REFLECTION_DECLARE_BASE_NOAUTOREG( _Type )								\
+	REFLECTION_DECLARE_BASE( _Type )											\
 
 /**
  * @brief Declare base type with manual NoInit.
@@ -144,6 +162,15 @@
 		typedef _Base Super;													\
 		__REFLECTION_DECLARE_BASE( _Type )										\
 	_Type( ReNoInit ): _Base( NOINIT ) {};
+
+/**
+ * @brief Declare derived type, no autored
+ * 
+ * Used for derived types that want RTTI support.
+ * Should be put in the header in the class definition.
+ */
+#define REFLECTION_DECLARE_DERIVED_NOAUTOREG( _Type, _Base )					\
+		REFLECTION_DECLARE_DERIVED( _Type, _Base )								\
 
 /**
  * @brief Declare derived type.

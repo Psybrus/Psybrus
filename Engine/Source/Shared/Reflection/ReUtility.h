@@ -30,15 +30,23 @@ enum ReFieldFlags
 
 	// Properties.
 	bcRFF_HIDDEN =					0x00000100,		// Hidden from existance, but included in size & offset calculation.
-	bcRFF_TRANSIENT =				0x00000200,		// Don't bother serialising unless specified.
+	bcRFF_TRANSIENT =				0x00000200,		// Don't bother serialising generally.
 	bcRFF_SHALLOW_COPY =			0x00000400,		// Only perform a shallow copy on this field when using as a basis.
-	bcRFF_DEBUG_EDIT =				0x00000800,		// Allows for the flag to be read and written to by the DsCore post commands
+	bcRFF_IMPORTER =				0x00000800,		// Only parsed in when doing importer serialisation.
+	bcRFF_REPLICATED =				0x00001000,		// Field is replicated across the network.
+	bcRFF_CHUNK_DATA =				0x00002000,		// Data comes from a chunk.
+	bcRFF_BASIS =					0x00004000,		// Field is of a basis object.
+	bcRFF_DEBUG_EDIT =				0x00008000,		// Allows for the flag to be read and written to by the DsCore post commands
 
 	// Simple deref when traversing.
 	bcRFF_SIMPLE_DEREF = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,
 
 	// Any pointer type.
-	bcRFF_ANY_POINTER_TYPE = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE
+	bcRFF_ANY_POINTER_TYPE = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,
+
+	// None + all flags. Short hand.
+	bcRFF_NONE =					0x00000000,
+	bcRFF_ALL =						0xffffffff,
 };
 
 //////////////////////////////////////////////////////////////////////////

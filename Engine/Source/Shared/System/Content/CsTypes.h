@@ -25,6 +25,9 @@
 #include "Base/BcHash.h"
 #include <mutex>
 
+//////////////////////////////////////////////////////////////////////////
+// CsCrossRefId
+typedef BcU32 CsCrossRefId;
 
 //////////////////////////////////////////////////////////////////////////
 // Callbacks
@@ -40,15 +43,18 @@ typedef CsDependencyList::iterator CsDependencyListIterator;
 class CsDependency
 {
 public:
-	CsDependency( const BcPath& FileName );
-	CsDependency( const BcPath& FileName, const FsStats& Stats );
+	REFLECTION_DECLARE_BASIC( CsDependency );
+
+	CsDependency();
+	CsDependency( const std::string& FileName );
+	CsDependency( const std::string& FileName, const FsStats& Stats );
 	CsDependency( const CsDependency& Other );
 	~CsDependency();
 
 	/**
 	 * Get file name.
 	 */
-	const BcPath& getFileName() const;
+	const std::string& getFileName() const;
 
 	/**
 	 * Get stats.
@@ -58,17 +64,30 @@ public:
 	/**
 	 * Had dependancy changed?
 	 */
-	BcBool hasChanged();
+	BcBool hasChanged() const;
 
 	/**
 	 * Update stats.
 	 */
 	void updateStats();
 
+	/**
+	 * Comparison.
+	 */
+	bool operator < ( const CsDependency& Dep ) const;
 
 private:
-	BcPath FileName_;
+	std::string FileName_;
 	FsStats Stats_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// CsFileHash
+struct CsFileHash
+{
+	std::string getName() const;
+
+	BcU32 Hash_[ 5 ];
 };
 
 //////////////////////////////////////////////////////////////////////////

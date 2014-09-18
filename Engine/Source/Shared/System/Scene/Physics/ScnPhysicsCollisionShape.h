@@ -22,7 +22,7 @@ class ScnPhysicsCollisionShape:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsResource, ScnPhysicsCollisionShape );
+	DECLARE_RESOURCE( ScnPhysicsCollisionShape, CsResource );
 	
 
 	virtual void							initialise();

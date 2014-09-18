@@ -24,7 +24,8 @@ class ImgImage;
 
 //////////////////////////////////////////////////////////////////////////
 // ImgImageList
-typedef std::vector< ImgImage* > ImgImageList;
+typedef std::unique_ptr< ImgImage > ImgImageUPtr;
+typedef std::vector< ImgImageUPtr > ImgImageList;
 typedef ImgImageList::iterator ImgImageListIterator;
 typedef ImgImageList::const_iterator ImgImageListConstIterator;
 
@@ -70,23 +71,23 @@ public:
 	/**
 	*	Resize image.
 	*/
-	ImgImage*				resize( BcU32 Width, BcU32 Height );
+	ImgImageUPtr			resize( BcU32 Width, BcU32 Height );
 
 	/**
 	 * Canvas size. Original is aligned to left.
 	 */
-	ImgImage*				canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFillColour );
+	ImgImageUPtr			canvasSize( BcU32 Width, BcU32 Height, const ImgColour* pFillColour );
 	
 	/**
 	 *	Crop by colour. Only crops from right and bottom!
 	 */
-	ImgImage*				cropByColour( const ImgColour& Colour, BcBool PowerOfTwo );
+	ImgImageUPtr			cropByColour( const ImgColour& Colour, BcBool PowerOfTwo );
 
 	/**
 	*	Generate mipmaps.
 	*	@return Number of levels generated.
 	*/
-	BcU32					generateMipMaps( BcU32 NoofLevels, ImgImage** ppOutImages );
+	static BcU32			generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& OutImages );
 	
 	/**
 	 *	Generate distance field.
@@ -94,7 +95,7 @@ public:
 	 *	@param Spread Spread.
 	 *
 	 */
-	ImgImage*				generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread );
+	ImgImageUPtr			generateDistanceField( BcU32 IntensityThreshold, BcF32 Spread );
 	
 	/**
 	 *	Generate atlas.
@@ -104,7 +105,7 @@ public:
 	 *	@param Height Max Height.
 	 *	@return Atlased image.
 	 */	
-	static ImgImage*		generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height, ImgColour& ClearColour );
+	static ImgImageUPtr		generateAtlas( ImgImageList& ImageList, ImgRectList& OutRectList, BcU32 Width, BcU32 Height, ImgColour& ClearColour );
 	
 	/**
 	*	Get width.

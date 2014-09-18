@@ -8,9 +8,9 @@ REFLECTION_DEFINE_DERIVED( ReType );
 
 void ReType::StaticRegisterClass()
 {
-	static const ReField Fields[] = 
+	ReField* Fields[] = 
 	{
-		ReField( "Size_", &ReType::Size_ ),
+		new ReField( "Size_", &ReType::Size_ ),
 	};
 		
 	ReRegisterClass< ReType, RePrimitive >( Fields );
