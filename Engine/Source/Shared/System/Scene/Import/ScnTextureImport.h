@@ -53,6 +53,7 @@ private:
 	BcBool TileAtlas_;
 	BcU32 TileWidth_;
 	BcU32 TileHeight_;
+	BcBool TrimMipTails_;
 	
 	RsTextureType TextureType_;
 	BcU32 Width_;
