@@ -43,4 +43,4 @@ addEnvironmentVar("PSYBRUS_SDK", os.getcwd())
 
 
 # Create project files.
-os.system("premake4.exe --os=windows --platform=x64 vs2012")
+os.system("genie.exe --os=windows --platform=x64 vs2012")
