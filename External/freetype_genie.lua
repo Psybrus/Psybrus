@@ -1,5 +1,5 @@
-project "External_freetype"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "freetype" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	files {
 		"./freetype/src/autofit/autofit.c",
@@ -61,3 +61,7 @@ project "External_freetype"
 		"./freetype/src/winfonts/winfnt.c"
 	}
 	includedirs { "./freetype/include" }
+
+	links {
+		EXTERNAL_PROJECT_PREFIX .. "zlib"
+	}

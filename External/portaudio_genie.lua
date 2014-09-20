@@ -1,5 +1,5 @@
-project "External_portaudio"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "portaudio" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	defines { "PA_USE_DS=1", "PA_USE_WASAPI=1", "PA_USE_WDMKS=1" }
 	files { 

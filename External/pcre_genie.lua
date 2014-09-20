@@ -1,5 +1,5 @@
-project "External_pcre"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "pcre" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	files { 
 		"pcre/pcre_byte_order.c",

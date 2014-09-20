@@ -1,5 +1,5 @@
-project "External_HLSLCrossCompiler"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "HLSLCrossCompiler" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	files { 
 		"./HLSLCrossCompiler/include/**.h", 

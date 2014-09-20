@@ -1,6 +1,5 @@
-	project "External_BulletPhysics"
-		
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "BulletPhysics" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 	includedirs {
 		"bullet/src",

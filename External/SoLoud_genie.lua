@@ -38,8 +38,8 @@ local openal_include    = openal_root .. "/include"
 
 local buildroot = ""
 
-project "External_SoLoud"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "SoLoud" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 
 	defines { "MODPLUG_STATIC" }

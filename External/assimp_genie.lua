@@ -10,7 +10,6 @@ local inBranch = assert( io.open( "assimp/git.branch", "r" ) )
 local branch = ( inBranch:read() )
 inBranch:close()
 
-
 local revisionFile = assert( io.open( "./assimp/revision.h", "w+" ) )
 revisionFile:write( "#ifndef ASSIMP_REVISION_H_INC\n" )
 revisionFile:write( "#define ASSIMP_REVISION_H_INC\n" )
@@ -19,8 +18,8 @@ revisionFile:write( string.format( "#define GitBranch \"%s\"\n", branch ) )
 revisionFile:write( "#endif // ASSIMP_REVISION_H_INC\n" )
 revisionFile:close()
 
-project "External_assimp"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "assimp" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 	files { 
 		"./assimp/include/**.h", 
@@ -93,8 +92,8 @@ project "External_assimp"
 	}
 
 
-project "External_assimp_contrib"
-	kind "StaticLib"
+project ( EXTERNAL_PROJECT_PREFIX .. "assimp_contrib" )
+	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 	files { 
 		"./assimp/contrib/clipper/**.cpp",
