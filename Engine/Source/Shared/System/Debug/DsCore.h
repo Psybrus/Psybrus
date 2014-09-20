@@ -64,13 +64,14 @@ struct DsPageDefinition
 
 struct DsFunctionDefinition
 {
-	DsFunctionDefinition(std::string text, std::function<void()> fn)
+	DsFunctionDefinition(std::string text, std::function<void()> fn, BcU32 handle)
 	:
-	DisplayText_(text), Function_(fn)
+	DisplayText_( text ), Function_( fn ), Handle_( handle )
 	{}
 
 	std::string DisplayText_;
 	std::function<void()> Function_;
+	BcU32 Handle_;
 };
 
 
@@ -86,7 +87,7 @@ class DsCore :
 {
 public:
 	static BcU32 JOB_QUEUE_ID;
-	static BcU32 DsCoreSerialised = 0x00008000;
+	const BcU32 DsCoreSerialised = 0x00008000;
 public:
 	DsCore();
 	virtual ~DsCore();
@@ -119,8 +120,8 @@ public:
 	void						registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
 	void						deregisterPage(std::string regex);
 
-	void						registerFunction(std::string Display, std::function<void()> Function);
-	void						deregisterFunction(std::string Display);
+	BcU32						registerFunction(std::string Display, std::function<void()> Function);
+	void						deregisterFunction(BcU32 Handle);
 	char*						handleFile(std::string Uri, int& FileSize, std::string Content);
 	std::string					loadHtmlFile(std::string Uri, std::string Content);
 
@@ -131,6 +132,7 @@ private:
 protected:
 	std::vector<DsPageDefinition>	PageFunctions_;
 	std::vector<DsFunctionDefinition>	ButtonFunctions_;
+	BcU32 NextHandle_;
 };
 
 

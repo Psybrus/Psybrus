@@ -31,6 +31,7 @@
 // Ctor
 DsCore::DsCore()
 {
+	NextHandle_ = 0;
 	registerPage("", &cmdMenu);
 	registerPage("Content", &cmdContent, "Content");
 	registerPage("Scene", &cmdScene, "Scene");
@@ -80,19 +81,22 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string Pos
 }
 
 //////////////////////////////////////////////////////////////////////////
-// registerPage
-void DsCore::registerFunction(std::string Display, std::function<void()> Function)
+// registerFunction
+BcU32 DsCore::registerFunction(std::string Display, std::function<void()> Function)
 {
-	ButtonFunctions_.push_back(DsFunctionDefinition(Display, Function));
+	++NextHandle_;
+	BcU32 Handle = NextHandle_;
+	ButtonFunctions_.push_back( DsFunctionDefinition( Display, Function, Handle ) );
+	return Handle;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::deregisterFunction(std::string Display)
+void DsCore::deregisterFunction(BcU32 Handle)
 {
 	for (auto iter = ButtonFunctions_.begin(); iter != ButtonFunctions_.end(); ++iter)
 	{
-		if ((*iter).DisplayText_.compare(Display))
+		if ((*iter).Handle_ == Handle)
 		{
 			ButtonFunctions_.erase(iter);
 			break;
@@ -179,14 +183,16 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 	}
 	BcHtmlNode functions = mainNode.createChildNode("div");
 	functions.setAttribute("id", "pages");
+	char buffer[256];
 	for (auto Item : core->ButtonFunctions_)
 	{
 		BcHtmlNode ahref = functions.createChildNode("a");
-		ahref.setAttribute("href", "Functions/" + Item.DisplayText_);
+		std::string v = boost::lexical_cast< std::string >( Item.Handle_ );
+		ahref.setAttribute( "href", "Functions/" + v );
 
-		BcHtmlNode button = ahref.createChildNode("button");
-		button.setAttribute("type", "button");
-		button.setContents(Item.DisplayText_);
+		BcHtmlNode button = ahref.createChildNode( "button" );
+		button.setAttribute( "type", "button" );
+		button.setContents( Item.DisplayText_ );
 	}
 
 }
@@ -479,7 +485,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 		
 	for (auto Item : ButtonFunctions_)
 	{
-		if (uri == ("Functions/" + Item.DisplayText_))
+		if ( uri == ("Functions/" + boost::lexical_cast< std::string >( Item.Handle_ ) ) )
 		{
 				
 			redirect.setAttribute("http-equiv", "refresh");

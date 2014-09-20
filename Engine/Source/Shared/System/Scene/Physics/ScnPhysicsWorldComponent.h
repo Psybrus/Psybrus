@@ -51,6 +51,7 @@ private:
 	class btDynamicsWorld* DynamicsWorld_;
 
 	BcBool DebugDrawWorld_;
+	BcU32 DebugRenderingHandle_;
 };
 
 #endif

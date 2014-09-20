@@ -177,7 +177,7 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 	if( DsCore::pImpl() )
 	{
-		DsCore::pImpl()->registerFunction("Toggle Debug Physics Rendering",
+		DebugRenderingHandle_ = DsCore::pImpl()->registerFunction("Toggle Debug Physics Rendering",
 			[ this ]
 			{
 				DebugDrawWorld_ = !DebugDrawWorld_;
@@ -194,7 +194,7 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	if( DsCore::pImpl() )
 	{
-		DsCore::pImpl()->deregisterFunction("Toggle Debug Physics Rendering");
+		DsCore::pImpl()->deregisterFunction( DebugRenderingHandle_ );
 	}
 
 	delete DynamicsWorld_;
