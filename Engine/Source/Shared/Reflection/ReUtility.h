@@ -36,6 +36,7 @@ enum ReFieldFlags
 	bcRFF_REPLICATED =				0x00001000,		// Field is replicated across the network.
 	bcRFF_CHUNK_DATA =				0x00002000,		// Data comes from a chunk.
 	bcRFF_BASIS =					0x00004000,		// Field is of a basis object.
+	bcRFF_DEBUG_EDIT =				0x00008000,		// Allows for the flag to be read and written to by the DsCore post commands
 
 	// Simple deref when traversing.
 	bcRFF_SIMPLE_DEREF = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,
