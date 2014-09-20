@@ -95,19 +95,19 @@ void MainShared()
 	// Disable render thread for debugging.
 	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
 	{
-		RsCore::JOB_QUEUE_ID = BcErrorCode;
+		RsCore::JOB_QUEUE_ID = -1;
 	}
 	
 	// Disable sound thread for debugging.
 	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
 	{
-		SsCore::JOB_QUEUE_ID = BcErrorCode;
+		SsCore::JOB_QUEUE_ID = -1;
 	}
 	
 	// Disable file thread for debugging.
 	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
 	{
-		FsCore::JOB_QUEUE_ID = BcErrorCode;
+		FsCore::JOB_QUEUE_ID = -1;
 	}
 	*/
 

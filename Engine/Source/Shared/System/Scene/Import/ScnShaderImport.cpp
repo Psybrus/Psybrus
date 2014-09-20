@@ -342,9 +342,9 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		BcMemZero( &ShaderUnit, sizeof( ShaderUnit ) );
 
 		// Export header.
-		Header.NoofShaderPermutations_ = BuiltShaderData_.size();
-		Header.NoofProgramPermutations_ = BuiltProgramData_.size();
-		Header.NoofShaderCodeTypes_ = OutputCodeTypes_.size();
+		Header.NoofShaderPermutations_ = static_cast< BcU32 >( BuiltShaderData_.size() );
+		Header.NoofProgramPermutations_ = static_cast< BcU32 >( BuiltProgramData_.size() );
+		Header.NoofShaderCodeTypes_ = static_cast< BcU32 >( OutputCodeTypes_.size() );
 		
 		Stream << Header;
 		for( auto OutputCodeType : OutputCodeTypes_ )
@@ -481,7 +481,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			{
 				// Generate vertex attributes.
 				VertexAttributes = extractShaderVertexAttributes( BuiltShader.Code_ );
-				ProgramHeader.NoofVertexAttributes_ = VertexAttributes.size();
+				ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
 			}
 
 
@@ -565,7 +565,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 							VertexAttributes.push_back( VertexAttribute );
 						}
 
-						ProgramHeader.NoofVertexAttributes_ = VertexAttributes.size();
+						ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
 					}
 
 					// Write out intermediate shader for reference.

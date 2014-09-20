@@ -251,7 +251,7 @@ class SsSource* SsCoreImplSoLoud::createSource(
 			BcBreakpoint;
 			break;
 		}
-		AudioSource->setLooping( FileData->Looping_ );
+		AudioSource->setLooping( FileData->Looping_ ? true : false );
 		Resource->setHandle( AudioSource );
 	};
 

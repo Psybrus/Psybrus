@@ -26,8 +26,8 @@ public:
 
 	void addNode( const MdlAnimNode& Node );
 
-	BcU32 nNodes() const;
-	MdlAnimNode* pNode( BcU32 iNode );
+	size_t nNodes() const;
+	MdlAnimNode* pNode( size_t iNode );
 
 private:
 	std::vector< MdlAnimNode >		NodeList_;
@@ -40,12 +40,12 @@ inline void MdlAnim::addNode( const MdlAnimNode& Node )
 	NodeList_.push_back( Node );
 }
 
-inline BcU32 MdlAnim::nNodes() const
+inline size_t MdlAnim::nNodes() const
 {
-	return (BcU32)NodeList_.size();
+	return NodeList_.size();
 }
 
-inline MdlAnimNode* MdlAnim::pNode( BcU32 iNode )
+inline MdlAnimNode* MdlAnim::pNode( size_t iNode )
 {
 	return &NodeList_[ iNode ];
 }

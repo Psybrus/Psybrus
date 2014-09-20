@@ -37,7 +37,7 @@ ReType::~ReType()
 	
 //////////////////////////////////////////////////////////////////////////
 // getSize
-BcU32 ReType::getSize() const
+size_t ReType::getSize() const
 {
 	return Size_;
 }

@@ -228,7 +228,7 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		Header_.Magic_ = CsPackageHeader::MAGIC;
 		Header_.Version_ = CsPackageHeader::VERSION;
 		Header_.Flags_ = csPF_DEFAULT; // TODO: Flags.
-		Header_.StringTableBytes_ = StringTableStream.dataSize();
+		Header_.StringTableBytes_ = (BcU32)StringTableStream.dataSize();
 		Header_.TotalPackageCrossRefs_ = (BcU32)PackageCrossRefList_.size();
 		Header_.TotalPackageDependencies_ = (BcU32)PackageDependencyList_.size();
 		Header_.TotalResources_ = (BcU32)ResourceHeaders_.size();
@@ -238,15 +238,15 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		Header_.MaxAlignment_ = 4096;	// TODO: Platform specific.
 
 		// Calculate package alloc size.
-		Header_.TotalAllocSize_ += StringTableStream.dataSize();
-		Header_.TotalAllocSize_ += BcCalcAlignment( PackageCrossRefList_.size() * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += BcCalcAlignment( PackageDependencyList_.size() * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += BcCalcAlignment( ResourceHeaders_.size() * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)StringTableStream.dataSize();
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( PackageCrossRefList_.size() * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( PackageDependencyList_.size() * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ResourceHeaders_.size() * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 		
 		// Align total size to 1 page for the start of resource data.
-		Header_.TotalAllocSize_ = BcCalcAlignment( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
+		Header_.TotalAllocSize_ = (BcU32)BcCalcAlignment( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
 
 		// Set start of resource data.
 		Header_.ResourceDataStart_ = Header_.TotalAllocSize_;

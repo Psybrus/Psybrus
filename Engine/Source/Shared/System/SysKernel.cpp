@@ -46,7 +46,7 @@ void SysKernel::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Worker masks.
-BcU32 SysKernel::DEFAULT_JOB_QUEUE_ID = BcErrorCode;
+size_t SysKernel::DEFAULT_JOB_QUEUE_ID = -1;
 
 //////////////////////////////////////////////////////////////////////////
 // Command line
@@ -108,7 +108,7 @@ SysKernel::~SysKernel()
 
 //////////////////////////////////////////////////////////////////////////
 // createJobQueue
-BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads )
+size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThreads )
 {
 	BcAssertMsg( BcIsGameThread(), "Should only create job queues on the game thread." );
 
@@ -136,9 +136,9 @@ BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads
 	JobQueues_.push_back( JobQueue );
 
 	// Add new job queue to the workers.
-	for( BcU32 Idx = 0; Idx < NoofWorkers; ++Idx )
+	for( size_t Idx = 0; Idx < NoofWorkers; ++Idx )
 	{
-		BcU32 RealIdx = ( CurrWorkerAllocIdx_ + Idx ) % JobWorkers_.size();
+		size_t RealIdx = ( CurrWorkerAllocIdx_ + Idx ) % JobWorkers_.size();
 		auto JobWorker( JobWorkers_[ RealIdx ] );
 		auto JobQueueList = JobWorker->getJobQueueList();
 		JobQueueList.push_back( JobQueue );
@@ -150,7 +150,7 @@ BcU32 SysKernel::createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads
 	// Kick off workers so they pick up new job queue.
 	notifySchedule();
 
-	return (BcU32)JobQueues_.size() - 1;
+	return JobQueues_.size() - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,14 +332,14 @@ void SysKernel::tick()
 
 //////////////////////////////////////////////////////////////////////////
 // workerCount
-BcU32 SysKernel::workerCount() const
+size_t SysKernel::workerCount() const
 {
-	return (BcU32)JobWorkers_.size();
+	return JobWorkers_.size();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addSystems
-BcBool SysKernel::pushJob( BcU32 JobQueueId, SysJob* pJob )
+BcBool SysKernel::pushJob( size_t JobQueueId, SysJob* pJob )
 {
 	// Check if we're out of range.
 	if( JobQueueId < JobQueues_.size() )
@@ -354,7 +354,7 @@ BcBool SysKernel::pushJob( BcU32 JobQueueId, SysJob* pJob )
 
 //////////////////////////////////////////////////////////////////////////
 // flushJobQueue
-void SysKernel::flushJobQueue( BcU32 JobQueueId )
+void SysKernel::flushJobQueue( size_t JobQueueId )
 {
 	// Check if we're out of range.
 	if( JobQueueId < JobQueues_.size() )

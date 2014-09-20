@@ -134,12 +134,12 @@ BcBool ScnModelImport::import( const Json::Value& )
 	
 	if( pNode != NULL )
 	{
-		BcU32 NodeIndex = 0;
-		BcU32 PrimitiveIndex = 0;
+		size_t NodeIndex = 0;
+		size_t PrimitiveIndex = 0;
 		
 		recursiveSerialiseNodes(
 			pNode, 
-			BcErrorCode, 
+			-1, 
 			NodeIndex, 
 			PrimitiveIndex );
 
@@ -148,7 +148,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 		recursiveSerialiseNodeMeshes( 
 			pNode, 
-			BcErrorCode, 
+			-1, 
 			NodeIndex, 
 			PrimitiveIndex );
 
@@ -159,8 +159,8 @@ BcBool ScnModelImport::import( const Json::Value& )
 		// Setup header.
 		ScnModelHeader Header = 
 		{
-			NodeIndex,
-			PrimitiveIndex
+			static_cast< BcU32 >( NodeIndex ),
+			static_cast< BcU32 >( PrimitiveIndex )
 		};
 		
 		HeaderStream_ << Header;
@@ -232,11 +232,11 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 	if( Scene_ != nullptr )
 	{
-		BcU32 NodeIndex = 0;
-		BcU32 PrimitiveIndex = 0;
+		size_t NodeIndex = 0;
+		size_t PrimitiveIndex = 0;
 		
 		recursiveSerialiseNodes( Scene_->mRootNode, 
-								 BcErrorCode, 
+								 -1, 
 								 NodeIndex, 
 								 PrimitiveIndex );
 
@@ -246,8 +246,8 @@ BcBool ScnModelImport::import( const Json::Value& )
 		// Setup header.
 		ScnModelHeader Header = 
 		{
-			NodeIndex,
-			PrimitiveIndex
+			static_cast< BcU32 >( NodeIndex ),
+			static_cast< BcU32 >( PrimitiveIndex )
 		};
 		
 		HeaderStream_ << Header;
@@ -336,9 +336,9 @@ void ScnModelImport::calculateNodeWorldTransforms()
 // recursiveSerialiseNodes
 void ScnModelImport::recursiveSerialiseNodes( 
 	MdlNode* pNode,
-	BcU32 ParentIndex,
-	BcU32& NodeIndex,
-	BcU32& PrimitiveIndex )
+	size_t ParentIndex,
+	size_t& NodeIndex,
+	size_t& PrimitiveIndex )
 {
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
@@ -352,7 +352,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	
 	ScnModelNodePropertyData NodePropertyData = 
 	{
-		ParentIndex,
+		static_cast< BcU32 >( ParentIndex ),
 		BcName::StripInvalidChars( pNode->name() ).c_str(),
 		pNode->type() == eNT_JOINT
 	};
@@ -382,9 +382,9 @@ void ScnModelImport::recursiveSerialiseNodes(
 // recursiveSerialiseNodeMeshes
 void ScnModelImport::recursiveSerialiseNodeMeshes( 
 	MdlNode* pNode,
-	BcU32 ParentIndex,
-	BcU32& NodeIndex,
-	BcU32& PrimitiveIndex )
+	size_t ParentIndex,
+	size_t& NodeIndex,
+	size_t& PrimitiveIndex )
 {
 	// Update parent & node index.
 	ParentIndex = NodeIndex++;
@@ -399,7 +399,7 @@ void ScnModelImport::recursiveSerialiseNodeMeshes(
 		std::vector< MdlMesh >& SubMeshes = pMesh->splitByMaterial();
 
 		// Export a primitive for each submesh.
-		for( BcU32 SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
+		for( size_t SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
 		{
 			if( IsSkin )
 			{
@@ -430,9 +430,9 @@ void ScnModelImport::recursiveSerialiseNodeMeshes(
 // serialiseMesh
 void ScnModelImport::serialiseMesh( 
 	class MdlMesh* pMesh,
-	BcU32 ParentIndex,
-	BcU32& NodeIndex,
-	BcU32& PrimitiveIndex )
+	size_t ParentIndex,
+	size_t& NodeIndex,
+	size_t& PrimitiveIndex )
 {
 	if( pMesh->nVertices() > 0 )
 	{
@@ -441,16 +441,16 @@ void ScnModelImport::serialiseMesh(
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelMeshData MeshData = 
 		{
-			ParentIndex,
+			static_cast< BcU32 >( ParentIndex ),
 			BcFalse,
 			RsTopologyType::TRIANGLE_LIST,	
 			ShaderPermutation,
-			pMesh->nIndices(),
+			static_cast< BcU32 >( pMesh->nIndices() ),
 			BcErrorCode,
 			0, // padding0
 			0, // padding1
 			MaAABB(),
-			pMesh->nVertices(),
+			static_cast< BcU32 >( pMesh->nVertices() ),
 			5,
 			48,
 			nullptr
@@ -510,9 +510,9 @@ void ScnModelImport::serialiseMesh(
 // serialiseSkin
 void ScnModelImport::serialiseSkin( 
 	class MdlMesh* pSkin,
-	BcU32 ParentIndex,
-	BcU32& NodeIndex,
-	BcU32& PrimitiveIndex )
+	size_t ParentIndex,
+	size_t& NodeIndex,
+	size_t& PrimitiveIndex )
 {
 	BcU32 BonePaletteSize = SCN_MODEL_BONE_PALETTE_SIZE;
 	if( pSkin->findBoneCount() > BonePaletteSize )
@@ -520,7 +520,7 @@ void ScnModelImport::serialiseSkin(
 		std::vector< MdlMesh >& SubMeshes = pSkin->splitIntoBonePalettes( BonePaletteSize );
 		
 		// Export a primitive for each submesh.
-		for( BcU32 SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
+		for( size_t SubMeshIdx = 0; SubMeshIdx < SubMeshes.size(); ++SubMeshIdx )
 		{
 			serialiseSkin( &SubMeshes[ SubMeshIdx ], ParentIndex, NodeIndex, PrimitiveIndex );
 		}
@@ -532,16 +532,16 @@ void ScnModelImport::serialiseSkin(
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelMeshData MeshData = 
 		{
-			ParentIndex,
+			static_cast< BcU32 >( ParentIndex ),
 			BcTrue,
 			RsTopologyType::TRIANGLE_LIST,	
 			ShaderPermutation,
-			pSkin->nIndices(),
+			static_cast< BcU32 >( pSkin->nIndices() ),
 			BcErrorCode,
 			0, // padding0
 			0, // padding1
 			MaAABB(),
-			pSkin->nVertices(),
+			static_cast< BcU32 >( pSkin->nVertices() ),
 			7,
 			80,
 			nullptr
@@ -568,11 +568,11 @@ void ScnModelImport::serialiseSkin(
 		const MdlBonePalette& BonePalette( pSkin->bonePalette() );
 		BcMemSet( MeshData.BonePalette_, 0xff, sizeof( MeshData.BonePalette_ ) );
 		BcAssert( BonePalette.BonePalette_.size() <= SCN_MODEL_BONE_PALETTE_SIZE );
-		for( BcU32 BoneIdx = 0; BoneIdx < BonePalette.BonePalette_.size(); ++BoneIdx )
+		for( size_t BoneIdx = 0; BoneIdx < BonePalette.BonePalette_.size(); ++BoneIdx )
 		{
 			if( BoneIdx < BonePalette.BonePalette_.size() )
 			{
-				BcU32 BonePaletteIdx = BonePalette.BonePalette_[ BoneIdx ];
+				size_t BonePaletteIdx = BonePalette.BonePalette_[ BoneIdx ];
 				
 				// Set a valid index (0 will do), or add on node index.
 				if( BonePaletteIdx == BcErrorCode )
@@ -585,7 +585,7 @@ void ScnModelImport::serialiseSkin(
 				}
 				if( BonePaletteIdx < InverseBindposes_.size() )
 				{
-					MeshData.BonePalette_[ BoneIdx ] = BonePaletteIdx;
+					MeshData.BonePalette_[ BoneIdx ] = static_cast< BcU32 >( BonePaletteIdx );
 					MeshData.BoneInverseBindpose_[ BoneIdx ] = InverseBindposes_[ BonePaletteIdx ];
 				}
 			}
@@ -613,7 +613,7 @@ void ScnModelImport::serialiseSkin(
 
 		// Export indices.
 		MdlIndex Index;
-		for( BcU32 IndexIdx = 0; IndexIdx < pSkin->nIndices(); ++IndexIdx )
+		for( size_t IndexIdx = 0; IndexIdx < pSkin->nIndices(); ++IndexIdx )
 		{
 			Index = pSkin->index( IndexIdx );
 			BcAssert( Index.iVertex_ < 0x10000 );
@@ -630,31 +630,31 @@ void ScnModelImport::serialiseSkin(
 void ScnModelImport::serialiseVertices( 
 	class MdlMesh* pMesh,
 	RsVertexElement* pVertexElements,
-	BcU32 NoofVertexElements,
+	size_t NoofVertexElements,
 	MaAABB& AABB )
 {
 	AABB.empty();
 
 	// Calculate output vertex size.
 	// TODO: Stride.
-	BcU32 Stride = 0;
-	for( BcU32 ElementIdx = 0; ElementIdx < NoofVertexElements; ++ElementIdx )
+	size_t Stride = 0;
+	for( size_t ElementIdx = 0; ElementIdx < NoofVertexElements; ++ElementIdx )
 	{
 		const auto VertexElement( pVertexElements[ ElementIdx ] );
-		BcU32 Size = VertexElement.Components_ * gVertexDataSize[(BcU32)VertexElement.DataType_];
+		size_t Size = VertexElement.Components_ * gVertexDataSize[(BcU32)VertexElement.DataType_];
 		Stride = std::max( Stride, VertexElement.Offset_ + Size );
 	}
 
 	std::vector< BcU8 > VertexData( Stride, 0 );
 
-	for( BcU32 VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )
+	for( size_t VertexIdx = 0; VertexIdx < pMesh->nVertices(); ++VertexIdx )
 	{
 		const MdlVertex& Vertex = pMesh->vertex( VertexIdx );
 
 		// Expand AABB.
 		AABB.expandBy( Vertex.Position_ );
 
-		for( BcU32 ElementIdx = 0; ElementIdx < NoofVertexElements; ++ElementIdx )
+		for( size_t ElementIdx = 0; ElementIdx < NoofVertexElements; ++ElementIdx )
 		{
 			const auto VertexElement( pVertexElements[ ElementIdx ] );
 
@@ -743,9 +743,9 @@ void ScnModelImport::serialiseVertices(
 // recursiveSerialiseNodes
 void ScnModelImport::recursiveSerialiseNodes( 
 	struct aiNode* Node,
-	BcU32 ParentIndex,
-	BcU32& NodeIndex,
-	BcU32& PrimitiveIndex )
+	size_t ParentIndex,
+	size_t& NodeIndex,
+	size_t& PrimitiveIndex )
 {
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
@@ -756,7 +756,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	
 	ScnModelNodePropertyData NodePropertyData = 
 	{
-		ParentIndex,
+		static_cast< BcU32 >( ParentIndex ),
 		BcName::StripInvalidChars( Node->mName.C_Str() ).c_str(),
 		BcFalse, // todo: is bone
 	};
@@ -771,7 +771,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	// Setup primitive data.
 	if( Node->mNumMeshes > 0 )
 	{
-		for( BcU32 Idx = 0; Idx < Node->mNumMeshes; ++Idx )
+		for( size_t Idx = 0; Idx < Node->mNumMeshes; ++Idx )
 		{
 			serialiseMesh( 
 				Scene_->mMeshes[ Node->mMeshes[ Idx ] ],
@@ -782,7 +782,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	}
 		
 	// Recurse into children.
-	for( BcU32 Idx = 0; Idx < Node->mNumChildren; ++Idx )
+	for( size_t Idx = 0; Idx < Node->mNumChildren; ++Idx )
 	{
 		recursiveSerialiseNodes( 
 			Node->mChildren[ Idx ],
@@ -796,9 +796,9 @@ void ScnModelImport::recursiveSerialiseNodes(
 // serialiseMesh
 void ScnModelImport::serialiseMesh( 
 	struct aiMesh* Mesh,
-	BcU32 ParentIndex,
-	BcU32& NodeIndex,
-	BcU32& PrimitiveIndex )
+	size_t ParentIndex,
+	size_t& NodeIndex,
+	size_t& PrimitiveIndex )
 {
 	if( Mesh->HasPositions() && Mesh->HasFaces() )
 	{
@@ -859,7 +859,7 @@ void ScnModelImport::serialiseMesh(
 		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
 		ScnModelMeshData MeshData = 
 		{
-			ParentIndex,
+			static_cast< BcU32 >( ParentIndex ),
 			BcFalse,
 			RsTopologyType::TRIANGLE_LIST,	
 			ShaderPermutation,
@@ -869,8 +869,8 @@ void ScnModelImport::serialiseMesh(
 			0, // padding1
 			MaAABB(),
 			Mesh->mNumVertices,
-			VertexDeclarationDesc.Elements_.size(),
-			VertexDeclarationDesc.getMinimumStride(),
+			static_cast< BcU32 >( VertexDeclarationDesc.Elements_.size() ),
+			static_cast< BcU32 >( VertexDeclarationDesc.getMinimumStride() ),
 			nullptr
 		};
 
@@ -893,7 +893,7 @@ void ScnModelImport::serialiseMesh(
 			BcBreakpoint;
 		}
 		
-		MeshData.NoofVertexElements_ = VertexDeclarationDesc.Elements_.size();
+		MeshData.NoofVertexElements_ = static_cast< BcU32 >( VertexDeclarationDesc.Elements_.size() );
 		MeshData.IsSkinned_ = Mesh->HasBones();
 
 		// Calculate stride.
@@ -907,8 +907,8 @@ void ScnModelImport::serialiseMesh(
 			for( BcU32 BoneIdx = 0; BoneIdx < Mesh->mNumBones; ++BoneIdx )
 			{
 				const auto* Bone = Mesh->mBones[ BoneIdx ];
-				BcU32 NodeBaseIndex = 0;
-				MeshData.BonePalette_[ BoneIdx ] = findNodeIndex( Bone->mName.C_Str(), Scene_->mRootNode, NodeBaseIndex );
+				size_t NodeBaseIndex = 0;
+				MeshData.BonePalette_[ BoneIdx ] = static_cast< BcU32 >( findNodeIndex( Bone->mName.C_Str(), Scene_->mRootNode, NodeBaseIndex ) );
 				MeshData.BoneInverseBindpose_[ BoneIdx ] = MaMat4d( Bone->mOffsetMatrix[ 0 ] );
 			}
 		}	
@@ -967,7 +967,7 @@ void ScnModelImport::serialiseMesh(
 void ScnModelImport::serialiseVertices( 
 	struct aiMesh* Mesh,
 	RsVertexElement* pVertexElements,
-	BcU32 NoofVertexElements,
+	size_t NoofVertexElements,
 	MaAABB& AABB )
 {
 	AABB.empty();
@@ -1184,23 +1184,23 @@ void ScnModelImport::serialiseVertices(
 
 //////////////////////////////////////////////////////////////////////////
 // findNodeIndex
-BcU32 ScnModelImport::findNodeIndex( 
+size_t ScnModelImport::findNodeIndex( 
 	std::string Name, 
 	aiNode* RootSearchNode, 
-	BcU32& BaseIndex ) const
+	size_t& BaseIndex ) const
 {
 	if( Name == RootSearchNode->mName.C_Str() )
 	{
 		return BaseIndex;
 	}
 
-	BcU32 FoundIndex = BcErrorCode;
-	for( BcU32 Idx = 0; Idx < RootSearchNode->mNumChildren; ++Idx )
+	size_t FoundIndex = -1;
+	for( size_t Idx = 0; Idx < RootSearchNode->mNumChildren; ++Idx )
 	{
 		++BaseIndex;
 		FoundIndex = findNodeIndex( Name, RootSearchNode, BaseIndex );
 
-		if( FoundIndex != BcErrorCode )
+		if( FoundIndex != -1 )
 		{
 			return FoundIndex;
 		}

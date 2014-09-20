@@ -35,23 +35,23 @@ public:
 	BcBool open( const BcChar*, eBcFileMode = bcFM_READ );
 	void close();
 		
-	BcU32 size() const;
+	size_t size() const;
 	BcBool isOpen() const;
 	BcBool eof();
 
 	void flush();
 	
 	// Sync
-	BcU32 tell();
-	void seek( BcU32 Position );
-	void read( void* pDest, BcU32 nBytes );
-	void readLine( BcChar* pBuffer, BcU32 Size );
+	size_t tell();
+	void seek( size_t Position );
+	void read( void* pDest, size_t nBytes );
+	void readLine( BcChar* pBuffer, size_t Size );
 	
 	/**
 	 * Allocate buffer and read all bytes. Use BcMemFree to free when done.
 	 */
 	BcU8* readAllBytes();
-	void write( const void* pSrc, BcU32 nBytes );
+	void write( const void* pSrc, size_t nBytes );
 	void writeLine( const BcChar* pText );
 
 private:
@@ -62,10 +62,10 @@ private:
 	FILE*			FileHandle_;
 	int				FileDescriptor_;
 	eBcFileMode		AccessMode_;
-	BcU32			FileSize_;
+	size_t			FileSize_;
 };
 
-inline BcU32 BcFile::size() const
+inline size_t BcFile::size() const
 {
 	return FileSize_;
 }

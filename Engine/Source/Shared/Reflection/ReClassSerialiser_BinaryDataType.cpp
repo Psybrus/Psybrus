@@ -67,7 +67,7 @@ void ReClassSerialiser_BinaryDataType::destroy( void* Object ) const
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ReClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
+size_t ReClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
 {
 	const BcBinaryData* pBinaryData( reinterpret_cast< const BcBinaryData* >( pMemory ) );
 	return sizeof( BcU64 ) + pBinaryData->getDataSize();
@@ -106,7 +106,7 @@ BcBool ReClassSerialiser_BinaryDataType::serialiseToString( const void* pInstanc
 	OutString.resize( (size_t)BytesRequired + 1 );
 	base64_encodestate EncodeState;
 	base64_init_encodestate( &EncodeState );
-	auto OutBytes = base64_encode_block( pBinaryData->getData< char >(), pBinaryData->getDataSize(), &OutString[ 0 ], 0, &EncodeState );
+	auto OutBytes = base64_encode_block( pBinaryData->getData< char >(), (int)pBinaryData->getDataSize(), &OutString[ 0 ], 0, &EncodeState );
 	base64_encode_blockend( &OutString[ OutBytes ], 0, &EncodeState );
 	return true;
 }
@@ -122,7 +122,7 @@ BcBool ReClassSerialiser_BinaryDataType::serialiseFromString( void* pInstance, c
 	BcMemZero( pBinaryData->getData< BcU8 >(), pBinaryData->getDataSize() );
 	base64_decodestate DecodeState;
 	base64_init_decodestate( &DecodeState );
-	auto InBytes = base64_decode_block( &InString[ 0 ], InString.length(), pBinaryData->getData< char >(), &DecodeState );
+	auto InBytes = base64_decode_block( &InString[ 0 ], (const int)InString.length(), pBinaryData->getData< char >(), &DecodeState );
 	return true;
 }
 

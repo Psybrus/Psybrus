@@ -74,7 +74,7 @@ static const BcU32 gCRC32Table_[256] =
 //////////////////////////////////////////////////////////////////////////
 // GenerateCRC32
 //static
-BcU32 BcHash::GenerateCRC32( BcU32 Input, const void* pInData, BcU32 Size )
+BcU32 BcHash::GenerateCRC32( BcU32 Input, const void* pInData, size_t Size )
 {
 	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 CRC = Input;
@@ -92,7 +92,7 @@ BcU32 BcHash::GenerateCRC32( BcU32 Input, const void* pInData, BcU32 Size )
 //////////////////////////////////////////////////////////////////////////
 // GenerateSDBM
 //static
-BcU32 BcHash::GenerateSDBM( const void* pInData, BcU32 Size )
+BcU32 BcHash::GenerateSDBM( const void* pInData, size_t Size )
 {
 	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 Hash = 0;
@@ -108,7 +108,7 @@ BcU32 BcHash::GenerateSDBM( const void* pInData, BcU32 Size )
 //////////////////////////////////////////////////////////////////////////
 // GenerateDJB
 //static
-BcU32 BcHash::GenerateDJB( const void* pInData, BcU32 Size )
+BcU32 BcHash::GenerateDJB( const void* pInData, size_t Size )
 {
 	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 Hash = 5381;
@@ -124,7 +124,7 @@ BcU32 BcHash::GenerateDJB( const void* pInData, BcU32 Size )
 //////////////////////////////////////////////////////////////////////////
 // generateHash - data
 //static
-BcU32 BcHash::GenerateAP( const void* pInData, BcU32 Size )
+BcU32 BcHash::GenerateAP( const void* pInData, size_t Size )
 {
 	const BcU8* pData = reinterpret_cast< const BcU8* >( pInData );
 	BcU32 Hash = 0;
@@ -182,7 +182,7 @@ BcHash BcHash::generateHash( const void* pPointer )
 //////////////////////////////////////////////////////////////////////////
 // generateHash - data
 //static
-BcHash BcHash::generateHash( const BcU8* pData, BcU32 Bytes )
+BcHash BcHash::generateHash( const BcU8* pData, size_t Bytes )
 {
 #if HASH_TYPE == HASH_CRC32
 	return GenerateCRC32( 0, pData, Bytes );

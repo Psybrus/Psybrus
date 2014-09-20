@@ -175,30 +175,30 @@ void BcFile::flush()
 
 //////////////////////////////////////////////////////////////////////////
 // tell
-BcU32 BcFile::tell()
+size_t BcFile::tell()
 {
 	return ftell( FileHandle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // seek
-void BcFile::seek( BcU32 Position )
+void BcFile::seek( size_t Position )
 {
-	fseek( FileHandle_, Position, 0 );
+	fseek( FileHandle_, (long)Position, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // read
-void BcFile::read( void* pDest, BcU32 nBytes )
+void BcFile::read( void* pDest, size_t nBytes )
 {
 	BcAssert( FileHandle_ != NULL );
 	
-	fread( pDest, nBytes, 1, FileHandle_ );
+	fread( pDest, (long)nBytes, 1, FileHandle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // readLine
-void BcFile::readLine( BcChar* pBuffer, BcU32 Size )
+void BcFile::readLine( BcChar* pBuffer, size_t Size )
 {
 	BcU32 BytesRead = 0;
 	BcMemZero( pBuffer, Size );
@@ -223,11 +223,11 @@ BcU8* BcFile::readAllBytes()
 
 //////////////////////////////////////////////////////////////////////////
 // write
-void BcFile::write( const void* pSrc, BcU32 nBytes )
+void BcFile::write( const void* pSrc, size_t nBytes )
 {
 	BcAssert( FileHandle_ != NULL );
 
-	fwrite( pSrc, nBytes, 1, FileHandle_ );
+	fwrite( pSrc, (long)nBytes, 1, FileHandle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

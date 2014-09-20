@@ -60,7 +60,7 @@ void ReClassSerialiser_NameType::destroy( void* Object ) const
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ReClassSerialiser_NameType::getBinaryDataSize( void* pMemory ) const
+size_t ReClassSerialiser_NameType::getBinaryDataSize( void* pMemory ) const
 {
 	return sizeof( char ) * ( ( **reinterpret_cast< BaseType* >( pMemory ) ).length() ) + sizeof( BcU32 );
 }

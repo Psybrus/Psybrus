@@ -48,7 +48,7 @@ public:
 		* @brief Get binary data size.
 		* @param pInstance Object instance.
 		*/
-	virtual BcU32 getBinaryDataSize( const void* pInstance ) const = 0;
+	virtual size_t getBinaryDataSize( const void* pInstance ) const = 0;
 
 	/**
 		* @brief Serialise to binary data.

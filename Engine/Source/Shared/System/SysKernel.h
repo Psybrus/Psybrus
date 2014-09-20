@@ -42,7 +42,7 @@ public:
 	REFLECTION_DECLARE_BASE_MANUAL_NOINIT( SysKernel );
 
 public:
-	static BcU32 DEFAULT_JOB_QUEUE_ID;
+	static size_t DEFAULT_JOB_QUEUE_ID;
 
 public:
 	SysKernel( ReNoInit );
@@ -57,66 +57,66 @@ public:
 	 * @param MinimumHardwareThreads Minimum number of hardware threads required to create a worker.
 	 * @return ID of job queue.
 	 */
-	BcU32						createJobQueue( BcU32 NoofWorkers, BcU32 MinimumHardwareThreads );
+	size_t createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThreads );
 	
 	/**
 	 * Register system.
 	 */
-	void						registerSystem( const BcName& Name, SysSystemCreator creator );
+	void registerSystem( const BcName& Name, SysSystemCreator creator );
 	
 	/**
 	 * Start system.
 	 */
-	SysSystem*					startSystem( const BcName& Name );
+	SysSystem* startSystem( const BcName& Name );
 	
 	/**
 	 * Stop kernel.
 	 */
-	void						stop();
+	void stop();
 	
 	/**
 	 * Run kernel.
 	 * @param Threaded Do we want to run the kernel threaded?
 	 */
-	void						run( BcBool Threaded );
+	void run( BcBool Threaded );
 	
 	/**
 	 * Tick kernel.
 	 */
-	void						tick();
+	void tick();
 
 	/**
 	 * Get worker count.
 	 */
-	BcU32						workerCount() const;
+	size_t workerCount() const;
 	
 	/**
 	 * Push job.
 	 * @param JobQueueId ID of job queue to use.
 	 */
-	BcBool						pushJob( BcU32 JobQueueId, class SysJob* pJob );
+	BcBool pushJob( size_t JobQueueId, class SysJob* pJob );
 
 	/**
 	 * Flush all jobs in the queue.
 	 * @param JobQueueId Job queue ID.
 	 */
-	void						flushJobQueue( BcU32 JobQueueId );
+	void flushJobQueue( size_t JobQueueId );
 
 	/**
 	 * Flush all job queues.
 	 */
-	void						flushAllJobQueues();
+	void flushAllJobQueues();
 
 	/**
 	 * Get frame time.
 	 */
-	BcF32						getFrameTime() const;
+	BcF32 getFrameTime() const;
 
 	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn >
-	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate )
+	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall();
@@ -128,7 +128,7 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0 >
-	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0 )
+	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0 );
@@ -140,7 +140,7 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1 >
-	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
+	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1 );
@@ -152,7 +152,7 @@ public:
 	 * Enqueue job.
 	 */
 	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
-	BcForceInline void			pushDelegateJob( BcU32 JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
+	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
 	{
 		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
 		pDelegateCall->deferCall( P0, P1, P2 );
@@ -163,7 +163,7 @@ public:
 	/**
 	 * Push function job.
 	 */
-	BcForceInline void pushFunctionJob( BcU32 JobQueueId, std::function< void() > Function )
+	BcForceInline void pushFunctionJob( size_t JobQueueId, std::function< void() > Function )
 	{
 		BcBool RetVal = pushJob( JobQueueId, new SysFunctionJob( Function ) );
 		BcAssert( RetVal );
@@ -236,17 +236,17 @@ private:
 	/**
 	 * Execute.
 	 */ 
-	virtual void				execute();
+	virtual void execute();
 	
 	/**
 	* Add systems.
 	*/
-	void						addSystems();
+	void addSystems();
 	
 	/**
 	* Remove systems.
 	*/
-	void						removeSystems();
+	void removeSystems();
 	
 private:
 	typedef std::list< SysSystem* > TSystemList;
@@ -255,30 +255,30 @@ private:
 	typedef std::map< BcName, SysSystemCreator > TSystemCreatorMap;
 	typedef TSystemCreatorMap::iterator TSystemCreatorMapIterator;
 
-	std::thread					ExecutionThread_;
+	std::thread ExecutionThread_;
 	
-	TSystemCreatorMap			SystemCreatorMap_;
-	TSystemList					PendingAddSystemList_;
-	TSystemList					PendingRemoveSystemList_;
-	TSystemList					SystemList_;
-	BcBool						ShuttingDown_;
+	TSystemCreatorMap SystemCreatorMap_;
+	TSystemList PendingAddSystemList_;
+	TSystemList PendingRemoveSystemList_;
+	TSystemList SystemList_;
+	BcBool ShuttingDown_;
 	
-	std::recursive_mutex		SystemLock_;
-	BcBool						IsThreaded_;
+	std::recursive_mutex SystemLock_;
+	BcBool IsThreaded_;
 	
-	BcTimer						MainTimer_;
-	
-	BcF32						SleepAccumulator_;
-	BcF32						TickRate_;
-	BcF32						FrameTime_;
-	BcF32						GameThreadTime_;
-	
-	std::vector< class SysJobQueue* >	JobQueues_;
-	std::vector< class SysJobWorker* >	JobWorkers_;
-	BcU32						CurrWorkerAllocIdx_;
+	BcTimer MainTimer_;
 
-	std::condition_variable		JobQueued_;
-	SysDelegateDispatcher		DelegateDispatcher_;
+	BcF32 SleepAccumulator_;
+	BcF32 TickRate_;
+	BcF32 FrameTime_;
+	BcF32 GameThreadTime_;
+	
+	std::vector< class SysJobQueue* > JobQueues_;
+	std::vector< class SysJobWorker* > JobWorkers_;
+	size_t CurrWorkerAllocIdx_;
+
+	std::condition_variable JobQueued_;
+	SysDelegateDispatcher DelegateDispatcher_;
 };
 
 #endif

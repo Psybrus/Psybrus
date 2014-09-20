@@ -98,7 +98,7 @@ MdlNode* OBJLoader::load( const BcChar* FileName, const BcChar* NodeName )
 				BcMemSet( NameBuffer, 0, sizeof( NameBuffer ) );
 				BcSScanf( LineBuffer, "%s %s", CommandBuffer, NameBuffer );
 				Material.Name_ = NameBuffer;
-				MaterialIdx = pMesh->addMaterial( Material );
+				MaterialIdx = (BcU32)pMesh->addMaterial( Material );
 			}
 			else if( BcStrCompare( CommandBuffer, "f" ) )
 			{

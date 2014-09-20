@@ -49,55 +49,55 @@ private:
 	// old Mdl library code.
 	void recursiveSerialiseNodes( 
 		class MdlNode* pNode,
-		BcU32 ParentIndex,
-		BcU32& NodeIndex,
-		BcU32& PrimitiveIndex );
+		size_t ParentIndex,
+		size_t& NodeIndex,
+		size_t& PrimitiveIndex );
 
 	void recursiveSerialiseNodeMeshes( 
 		class MdlNode* pNode,
-		BcU32 ParentIndex,
-		BcU32& NodeIndex,
-		BcU32& PrimitiveIndex );
+		size_t ParentIndex,
+		size_t& NodeIndex,
+		size_t& PrimitiveIndex );
 
 		void serialiseMesh( 
 		class MdlMesh* pSkin,
-		BcU32 ParentIndex,
-		BcU32& NodeIndex,
-		BcU32& PrimitiveIndex );
+		size_t ParentIndex,
+		size_t& NodeIndex,
+		size_t& PrimitiveIndex );
 
 	void serialiseSkin( 
 		class MdlMesh* pSkin,
-		BcU32 ParentIndex,
-		BcU32& NodeIndex,
-		BcU32& PrimitiveIndex );
+		size_t ParentIndex,
+		size_t& NodeIndex,
+		size_t& PrimitiveIndex );
 
 	void serialiseVertices( 
 		class MdlMesh* pMesh,
 		RsVertexElement* pVertexElements,
-		BcU32 NoofVertexElements,
+		size_t NoofVertexElements,
 		MaAABB& AABB );
 
 
 	// new assimp code.
 	void recursiveSerialiseNodes( 
 		struct aiNode* pNode,
-		BcU32 ParentIndex,
-		BcU32& NodeIndex,
-		BcU32& PrimitiveIndex );
+		size_t ParentIndex,
+		size_t& NodeIndex,
+		size_t& PrimitiveIndex );
 
 	void serialiseMesh( 
 		struct aiMesh* Mesh,
-		BcU32 ParentIndex,
-		BcU32& NodeIndex,
-		BcU32& PrimitiveIndex );
+		size_t ParentIndex,
+		size_t& NodeIndex,
+		size_t& PrimitiveIndex );
 
 	void serialiseVertices( 
 		struct aiMesh* Mesh,
 		RsVertexElement* pVertexElements,
-		BcU32 NoofVertexElements,
+		size_t NoofVertexElements,
 		MaAABB& AABB );
 
-	BcU32 findNodeIndex( std::string Name, aiNode* RootSearchNode, BcU32& BaseIndex ) const;
+	size_t findNodeIndex( std::string Name, aiNode* RootSearchNode, size_t& BaseIndex ) const;
 
 private:
 	std::string Source_;

@@ -87,7 +87,7 @@ void ReClassSerialiser_EnumType::destroy( void* Object ) const
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ReClassSerialiser_EnumType::getBinaryDataSize( void* pMemory ) const
+size_t ReClassSerialiser_EnumType::getBinaryDataSize( void* pMemory ) const
 {
 	return Class_->getSize();
 }

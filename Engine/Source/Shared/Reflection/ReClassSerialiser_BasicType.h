@@ -56,7 +56,7 @@ public:
 		delete reinterpret_cast< BaseType* >( Object );
 	}
 
-	BcU32 getBinaryDataSize( void* pMemory ) const
+	size_t getBinaryDataSize( void* pMemory ) const
 	{
 		return sizeof( BaseType );
 	}

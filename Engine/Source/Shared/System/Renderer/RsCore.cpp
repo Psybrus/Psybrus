@@ -13,7 +13,7 @@
 
 #include "System/Renderer/RsCore.h"
 
-BcU32 RsCore::JOB_QUEUE_ID = BcErrorCode;
+size_t RsCore::JOB_QUEUE_ID = -1;
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection

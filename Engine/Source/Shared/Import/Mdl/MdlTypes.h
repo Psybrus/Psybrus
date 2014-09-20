@@ -124,8 +124,8 @@ public:
 
 struct MdlIndex
 {
-	BcU32 iVertex_;
-	BcU32 iMaterial_;
+	size_t iVertex_;
+	size_t iMaterial_;
 };
 
 //////////////////////////////////////////////////////////////////////////

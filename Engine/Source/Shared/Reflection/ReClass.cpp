@@ -75,14 +75,14 @@ void ReClass::setFields( ReFieldVector&& Fields )
 	
 //////////////////////////////////////////////////////////////////////////
 // getField
-const ReField* ReClass::getField( BcU32 Idx ) const
+const ReField* ReClass::getField( size_t Idx ) const
 {
 	return Fields_[ Idx ];
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getNoofFields
-BcU32 ReClass::getNoofFields() const
+size_t ReClass::getNoofFields() const
 {
 	return Fields_.size();
 }

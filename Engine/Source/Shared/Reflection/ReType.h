@@ -45,13 +45,13 @@ public:
 	}
 
 	/**
-		* Get size.
-		*/
-	BcU32								getSize() const;
+	 * Get size.
+	 */
+	size_t								getSize() const;
 
 protected:
-	BcSize								Size_;
-	ReITypeSerialiser*					Serialiser_;
+	size_t Size_;
+	ReITypeSerialiser* Serialiser_;
 
 };
 

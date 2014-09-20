@@ -118,7 +118,7 @@ BcSize FsFileImplWindows::tell() const
 //virtual
 void FsFileImplWindows::seek( BcSize Position )
 {
-	fseek( pFileHandle_, Position, SEEK_SET );
+	fseek( pFileHandle_, (long)Position, SEEK_SET );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,14 +133,14 @@ BcBool FsFileImplWindows::eof() const
 // read
 void FsFileImplWindows::read( void* pDest, BcSize Bytes )
 {
-	fread( pDest, Bytes, 1, pFileHandle_ );
+	fread( pDest, (long)Bytes, 1, pFileHandle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // write
 void FsFileImplWindows::write( void* pSrc, BcSize Bytes )
 {
-	fwrite( pSrc, Bytes, 1, pFileHandle_ );
+	fwrite( pSrc, (long)Bytes, 1, pFileHandle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

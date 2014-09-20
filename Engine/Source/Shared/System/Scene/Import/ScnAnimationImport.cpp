@@ -296,8 +296,8 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 	if( pAnim != NULL )
 	{
 		// Verify all nodes have the same key count.
-		BcU32 KeyCount = pAnim->pNode( 0 )->KeyList_.size();
-		for( BcU32 NodeIdx = 1; NodeIdx < pAnim->nNodes(); ++NodeIdx )
+		size_t KeyCount = pAnim->pNode( 0 )->KeyList_.size();
+		for( size_t NodeIdx = 1; NodeIdx < pAnim->nNodes(); ++NodeIdx )
 		{
 			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
 			if( pNode->KeyList_.size() != KeyCount )
@@ -309,15 +309,15 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 		// Setup data streams.
 		ScnAnimationHeader Header;
-		Header.NoofNodes_ = pAnim->nNodes();
-		Header.NoofPoses_ = KeyCount + 1; // means we always have the first frame as the last for smooth looping. TODO: Optional.
+		Header.NoofNodes_ = static_cast< BcU32 >( pAnim->nNodes() );
+		Header.NoofPoses_ = static_cast< BcU32 >( KeyCount + 1 ); // means we always have the first frame as the last for smooth looping. TODO: Optional.
 		Header.Flags_ = scnAF_DEFAULT;
 		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
 		HeaderStream_ << Header;
 
 		// Animation node file data.
 		ScnAnimationNodeFileData NodeFileData;
-		for( BcU32 NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
+		for( size_t NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
 		{
 			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
 			NodeFileData.Name_ = CsResourceImporter::addString( pNode->Name_ );
@@ -328,19 +328,19 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 		ScnAnimationTransformKey_R16S16T16 OutKey;
 		BcF32 FrameTime = 0.0f;
 		BcF32 FrameRate = 1.0f / 24.0f;
-		for( BcU32 KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
+		for( size_t KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
 		{
-			BcU32 WrappedKeyIdx = KeyIdx % KeyCount;
+			size_t WrappedKeyIdx = KeyIdx % KeyCount;
 			ScnAnimationPoseFileData Pose;
 			Pose.Time_ = FrameTime;
-			Pose.KeyDataOffset_ = KeyStream_.dataSize();
+			Pose.KeyDataOffset_ = static_cast< BcU32 >( KeyStream_.dataSize() );
 
 			// Advance framerate.
 			FrameTime += FrameRate;
 
 			// Iterate over nodes, and pack the key stream.
 			ScnAnimationTransform Transform;
-			for( BcU32 NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
+			for( size_t NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
 			{
 				MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
 				MdlAnimKey InKey = pNode->KeyList_[ WrappedKeyIdx ];
@@ -350,7 +350,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 			}
 			
 			// Final size + CRC.
-			Pose.KeyDataSize_ = KeyStream_.dataSize() - Pose.KeyDataOffset_;
+			Pose.KeyDataSize_ = static_cast< BcU32 >( KeyStream_.dataSize() - Pose.KeyDataOffset_ );
 			Pose.CRC_ = BcHash::GenerateCRC32( 0, KeyStream_.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
 
 			// Write out pose.
@@ -371,7 +371,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 //////////////////////////////////////////////////////////////////////////
 // recursiveParseAnimatedNodes
-void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, BcU32 ParentNodeIdx )
+void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, size_t ParentNodeIdx )
 {
 	AnimatedNode AnimatedNode;
 	aiMatrix4x4 WorldTransform = Node->mParent != nullptr ?
@@ -380,7 +380,7 @@ void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, BcU32
 	AnimatedNode.Name_ = Node->mName.C_Str();
 	AnimatedNode.LocalTransform_ = MaMat4d( Node->mTransformation[ 0 ] );
 	AnimatedNode.WorldTransform_ = MaMat4d( WorldTransform[ 0 ] );
-	AnimatedNode.ParentIdx_ = ParentNodeIdx;
+	AnimatedNode.ParentIdx_ = static_cast< BcU32 >( ParentNodeIdx );
 
 	AnimatedNodes_.push_back( AnimatedNode );
 

@@ -21,7 +21,7 @@ ReClassSerialiser::~ReClassSerialiser()
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-BcU32 ReClassSerialiser::getBinaryDataSize( const void* ) const
+size_t ReClassSerialiser::getBinaryDataSize( const void* ) const
 {
 	return Class_->getSize();
 }

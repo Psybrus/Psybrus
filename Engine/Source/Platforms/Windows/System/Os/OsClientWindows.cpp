@@ -471,7 +471,7 @@ HWND OsClientWindows::getHWND()
 
 //////////////////////////////////////////////////////////////////////////
 // mapKeyEvent
-void OsClientWindows::mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam )
+void OsClientWindows::mapKeyEvent( OsEventInputKeyboard& Event, WPARAM wParam )
 {
 	Event.KeyCode_ = static_cast< BcU16 >( wParam ) & 0xff;
 	Event.ScanCode_ = ::MapVirtualKey( Event.KeyCode_, 0 );

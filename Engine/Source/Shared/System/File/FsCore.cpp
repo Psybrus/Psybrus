@@ -15,4 +15,4 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Worker mask.
-BcU32 FsCore::JOB_QUEUE_ID = BcErrorCode;
+size_t FsCore::JOB_QUEUE_ID = -1;

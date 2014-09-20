@@ -50,7 +50,7 @@ private:
 		BcU32 ParentIdx_;
 	};
 
-	void recursiveParseAnimatedNodes( struct aiNode* Node, BcU32 ParentNodeIdx );
+	void recursiveParseAnimatedNodes( struct aiNode* Node, size_t ParentNodeIdx );
 	
 	AnimatedNode& findAnimatedNode( std::string Name );
 

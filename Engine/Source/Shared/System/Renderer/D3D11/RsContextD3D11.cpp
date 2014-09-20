@@ -446,7 +446,7 @@ void RsContextD3D11::create()
 				pClient->getWidth(),
 				pClient->getHeight(),
 				0 ) ) );
-	BackBufferRT_->setHandle< BcU32 >( BackBufferRTResourceIdx_ );
+	BackBufferRT_->setHandle< size_t >( BackBufferRTResourceIdx_ );
 
 	// Create back buffer DS.
 	BackBufferDS_ = new RsTexture(
@@ -1814,7 +1814,12 @@ void RsContextD3D11::flushState()
 				0
 			};
 			
-			Result = Device_->CreateInputLayout( &ElementDescs[ 0 ], ElementDescs.size(), VertexShader->getData(), VertexShader->getDataSize(), &InputLayoutEntry.InputLayout_ );
+			Result = Device_->CreateInputLayout( 
+				&ElementDescs[ 0 ], 
+				static_cast< UINT >( ElementDescs.size() ), 
+				VertexShader->getData(), 
+				VertexShader->getDataSize(), 
+				&InputLayoutEntry.InputLayout_ );
 			BcAssert( SUCCEEDED( Result ) );
 			
 			InputLayoutMap_[ InputLayoutHash ] = InputLayoutEntry;
@@ -1839,7 +1844,7 @@ void RsContextD3D11::flushState()
 
 	Context_->IASetVertexBuffers( 
 		0, 
-		D3DVertexBuffers_.size(), 
+		static_cast< UINT >( D3DVertexBuffers_.size() ),
 		&D3DVertexBuffers_[ 0 ],
 		&D3DVertexBufferStrides_[ 0 ],
 		&D3DVertexBufferOffsets_[ 0 ] );
@@ -1894,7 +1899,7 @@ void RsContextD3D11::flushState()
 
 //////////////////////////////////////////////////////////////////////////
 // addD3DResource
-BcU32 RsContextD3D11::addD3DResource( ID3D11Resource* D3DResource )
+size_t RsContextD3D11::addD3DResource( ID3D11Resource* D3DResource )
 {
 	ResourceViewCacheEntry Entry = {};
 
@@ -1906,7 +1911,7 @@ BcU32 RsContextD3D11::addD3DResource( ID3D11Resource* D3DResource )
 	}
 
 	// Get entry from back of the cache, and pop it off.
-	BcU32 EntryIdx = ResourceViewCacheFreeIdx_.back();
+	size_t EntryIdx = ResourceViewCacheFreeIdx_.back();
 	ResourceViewCacheFreeIdx_.pop_back();
 
 	// Setup entry.
@@ -1920,7 +1925,7 @@ BcU32 RsContextD3D11::addD3DResource( ID3D11Resource* D3DResource )
 
 //////////////////////////////////////////////////////////////////////////
 // delD3DResource
-void RsContextD3D11::delD3DResource( BcU32 ResourceIdx )
+void RsContextD3D11::delD3DResource( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	
@@ -1954,7 +1959,7 @@ void RsContextD3D11::delD3DResource( BcU32 ResourceIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DResource
-ID3D11Resource* RsContextD3D11::getD3DResource( BcU32 ResourceIdx )
+ID3D11Resource* RsContextD3D11::getD3DResource( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	return Entry.Resource_;
@@ -1962,7 +1967,7 @@ ID3D11Resource* RsContextD3D11::getD3DResource( BcU32 ResourceIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DBuffer
-ID3D11Buffer* RsContextD3D11::getD3DBuffer( BcU32 ResourceIdx )
+ID3D11Buffer* RsContextD3D11::getD3DBuffer( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 #if !PSY_PRODUCTION
@@ -1975,7 +1980,7 @@ ID3D11Buffer* RsContextD3D11::getD3DBuffer( BcU32 ResourceIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DTexture1D
-ID3D11Texture1D* RsContextD3D11::getD3DTexture1D( BcU32 ResourceIdx )
+ID3D11Texture1D* RsContextD3D11::getD3DTexture1D( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 #if !PSY_PRODUCTION
@@ -1988,7 +1993,7 @@ ID3D11Texture1D* RsContextD3D11::getD3DTexture1D( BcU32 ResourceIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DTexture2D
-ID3D11Texture2D* RsContextD3D11::getD3DTexture2D( BcU32 ResourceIdx )
+ID3D11Texture2D* RsContextD3D11::getD3DTexture2D( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 #if !PSY_PRODUCTION
@@ -2001,7 +2006,7 @@ ID3D11Texture2D* RsContextD3D11::getD3DTexture2D( BcU32 ResourceIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DTexture3D
-ID3D11Texture3D* RsContextD3D11::getD3DTexture3D( BcU32 ResourceIdx )
+ID3D11Texture3D* RsContextD3D11::getD3DTexture3D( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 #if !PSY_PRODUCTION
@@ -2014,7 +2019,7 @@ ID3D11Texture3D* RsContextD3D11::getD3DTexture3D( BcU32 ResourceIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DShaderResourceView
-ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( BcU32 ResourceIdx )
+ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	if( Entry.ShaderResourceView_ == nullptr )
@@ -2080,7 +2085,7 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( BcU32 Resour
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DUnorderedAccessView
-ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( BcU32 ResourceIdx )
+ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	if( Entry.UnorderedAccessView_ == nullptr )
@@ -2094,7 +2099,7 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( BcU32 Reso
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DRenderTargetView
-ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( BcU32 ResourceIdx )
+ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	if( Entry.RenderTargetView_ == nullptr )
@@ -2137,7 +2142,7 @@ ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( BcU32 ResourceId
 
 //////////////////////////////////////////////////////////////////////////
 // getD3DDepthStencilView
-ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( BcU32 ResourceIdx )
+ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( size_t ResourceIdx )
 {
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	if( Entry.DepthStencilView_ == nullptr )

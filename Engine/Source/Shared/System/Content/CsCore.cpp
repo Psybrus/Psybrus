@@ -213,14 +213,14 @@ void CsCore::destroyResource( CsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofResources
-BcU32 CsCore::getNoofResources()
+size_t CsCore::getNoofResources()
 {
 	return LoadedResources_.size();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getResource
-ReObjectRef< CsResource > CsCore::getResource( BcU32 Idx )
+ReObjectRef< CsResource > CsCore::getResource( size_t Idx )
 {
 	return LoadedResources_[ Idx ];
 }

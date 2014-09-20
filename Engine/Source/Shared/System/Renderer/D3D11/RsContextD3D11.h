@@ -114,8 +114,8 @@ private:
 	BcComRef<ID3D11Texture2D> BackBuffer_;
 	RsTexture* BackBufferRT_;
 	RsTexture* BackBufferDS_;
-	BcU32 BackBufferRTResourceIdx_;
-	BcU32 BackBufferDSResourceIdx_;
+	size_t BackBufferRTResourceIdx_;
+	size_t BackBufferDSResourceIdx_;
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
@@ -139,19 +139,19 @@ private:
 	};
 
 	std::vector< ResourceViewCacheEntry > ResourceViewCache_;
-	std::vector< BcU32 > ResourceViewCacheFreeIdx_;
+	std::vector< size_t > ResourceViewCacheFreeIdx_;
 
-	BcU32 addD3DResource( ID3D11Resource* D3DResource );
-	void delD3DResource( BcU32 ResourceIdx );
-	ID3D11Resource* getD3DResource( BcU32 ResourceIdx );
-	ID3D11Buffer* getD3DBuffer( BcU32 ResourceIdx );
-	ID3D11Texture1D* getD3DTexture1D( BcU32 ResourceIdx );
-	ID3D11Texture2D* getD3DTexture2D( BcU32 ResourceIdx );
-	ID3D11Texture3D* getD3DTexture3D( BcU32 ResourceIdx );
-	ID3D11ShaderResourceView* getD3DShaderResourceView( BcU32 ResourceIdx );
-	ID3D11UnorderedAccessView* getD3DUnorderedAccessView( BcU32 ResourceIdx );
-	ID3D11RenderTargetView* getD3DRenderTargetView( BcU32 ResourceIdx );
-	ID3D11DepthStencilView* getD3DDepthStencilView( BcU32 ResourceIdx );
+	size_t addD3DResource( ID3D11Resource* D3DResource );
+	void delD3DResource( size_t ResourceIdx );
+	ID3D11Resource* getD3DResource( size_t ResourceIdx );
+	ID3D11Buffer* getD3DBuffer( size_t ResourceIdx );
+	ID3D11Texture1D* getD3DTexture1D( size_t ResourceIdx );
+	ID3D11Texture2D* getD3DTexture2D( size_t ResourceIdx );
+	ID3D11Texture3D* getD3DTexture3D( size_t ResourceIdx );
+	ID3D11ShaderResourceView* getD3DShaderResourceView( size_t ResourceIdx );
+	ID3D11UnorderedAccessView* getD3DUnorderedAccessView( size_t ResourceIdx );
+	ID3D11RenderTargetView* getD3DRenderTargetView( size_t ResourceIdx );
+	ID3D11DepthStencilView* getD3DDepthStencilView( size_t ResourceIdx );
 	
 	// Index buffers.
 	RsBuffer* IndexBuffer_;
@@ -211,25 +211,25 @@ private:
 	struct BlendState
 	{
 		BcComRef< ID3D11BlendState > State_;
-		BcU32 LastFrameUsed_;
+		size_t LastFrameUsed_;
 	};
 
 	struct RasterizerState
 	{
 		BcComRef< ID3D11RasterizerState > State_;
-		BcU32 LastFrameUsed_;
+		size_t LastFrameUsed_;
 	};
 
 	struct DepthStencilState
 	{
 		BcComRef< ID3D11DepthStencilState > State_;
-		BcU32 LastFrameUsed_;
+		size_t LastFrameUsed_;
 	};
 
 	struct SamplerState
 	{
 		BcComRef< ID3D11SamplerState > State_;
-		BcU32 LastFrameUsed_;
+		size_t LastFrameUsed_;
 	};
 
 	typedef std::map< BcU32, BlendState > BlendStateCache;

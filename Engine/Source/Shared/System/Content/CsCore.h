@@ -116,12 +116,12 @@ public:
 	/**
 	 * Get number of resources.
 	 */
-	BcU32								getNoofResources();
+	size_t								getNoofResources();
 
 	/**
 	 * Get resource by index.
 	 */
-	ReObjectRef< CsResource >			getResource( BcU32 Idx );
+	ReObjectRef< CsResource >			getResource( size_t Idx );
 
 	/**
 	 * Get resource. PLACEHOLDER UNTIL COMPONENTS ARE PACKED PROPERLY.

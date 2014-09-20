@@ -85,7 +85,7 @@ public:
 	HWND getHWND();
 
 private:
-	void mapKeyEvent( OsEventInputKeyboard& Event, WORD wParam );
+	void mapKeyEvent( OsEventInputKeyboard& Event, WPARAM wParam );
 
 	void centreMouse();
 

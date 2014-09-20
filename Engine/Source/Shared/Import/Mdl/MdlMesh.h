@@ -30,26 +30,26 @@ public:
 
 	//
 	void addIndex( const MdlIndex& Index );
-	BcU32 addVertex( const MdlVertex& Vertex );
-	BcU32 addMaterial( const MdlMaterial& Material );
+	size_t addVertex( const MdlVertex& Vertex );
+	size_t addMaterial( const MdlMaterial& Material );
 	void bonePalette( const MdlBonePalette& BonePalette );
 
 	// Accessors
-	const MdlIndex& index( BcU32 iIndex ) const;
-	const MdlVertex& vertex( BcU32 iVertex ) const;
-	const MdlMaterial& material( BcU32 iMaterial ) const;
+	const MdlIndex& index( size_t iIndex ) const;
+	const MdlVertex& vertex( size_t iVertex ) const;
+	const MdlMaterial& material( size_t iMaterial ) const;
 	const MdlBonePalette& bonePalette() const;
 
-	void index( BcU32 iIndex, const MdlIndex& Index );
-	void vertex( BcU32 iVertex, const MdlVertex& Vertex );
-	void material( BcU32 iMaterial, const MdlMaterial& Material );
+	void index( size_t iIndex, const MdlIndex& Index );
+	void vertex( size_t iVertex, const MdlVertex& Vertex );
+	void material( size_t iMaterial, const MdlMaterial& Material );
 
-	BcU32 nIndices() const;
-	BcU32 nVertices() const;
-	BcU32 nMaterials() const;
+	size_t nIndices() const;
+	size_t nVertices() const;
+	size_t nMaterials() const;
 
 	// Add a vertex that can be shared.
-	BcU32 addVertexShared( const MdlVertex& Vertex );
+	size_t addVertexShared( const MdlVertex& Vertex );
 
 	// Compare 2 vertices numerically.
 	BcBool compareVertices( const MdlVertex& VertexA, const MdlVertex& VertexB );
@@ -58,7 +58,7 @@ public:
 	void sortIndicesByMaterial();
 
 	// Will return first index, and number of indices for a material.
-	BcBool materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndices );
+	BcBool materialIndexCount( size_t iMaterial, size_t& iFirst, size_t& nIndices );
 
 	// Transform.
 	void bakeTransform( const MaMat4d& Transform );
@@ -73,7 +73,7 @@ public:
 	//
 	MaAABB findAABB() const;
 
-	BcU32 findBoneCount() const;
+	size_t findBoneCount() const;
 
 	// Split up mesh by material.
 	std::vector< MdlMesh >& splitByMaterial();
@@ -93,7 +93,7 @@ private:
 	MdlVertexArray		aVertices_;
 	MdlMaterialArray	aMaterials_;
 
-	std::map< BcU32, BcU32 > aVertexHashes_;
+	std::map< BcU32, size_t > aVertexHashes_;
 
 	MdlBonePalette		BonePalette_;
 	std::vector< MdlMesh > SubMeshes_;
@@ -102,21 +102,21 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // Inlines
 
-inline const MdlIndex& MdlMesh::index( BcU32 iIndex ) const
+inline const MdlIndex& MdlMesh::index( size_t iIndex ) const
 {
 	BcAssert( iIndex < aIndices_.size() );
 
 	return aIndices_[ iIndex ];
 }
 
-inline const MdlVertex& MdlMesh::vertex( BcU32 iVertex ) const
+inline const MdlVertex& MdlMesh::vertex( size_t iVertex ) const
 {
 	BcAssert( iVertex < aVertices_.size() );
 
 	return aVertices_[ iVertex ];
 }
 
-inline const MdlMaterial& MdlMesh::material( BcU32 iMaterial ) const
+inline const MdlMaterial& MdlMesh::material( size_t iMaterial ) const
 {
 	BcAssert( iMaterial < aMaterials_.size() );
 
@@ -129,21 +129,21 @@ inline const MdlBonePalette& MdlMesh::bonePalette() const
 }
 
 
-inline void MdlMesh::index( BcU32 iIndex, const MdlIndex& Index )
+inline void MdlMesh::index( size_t iIndex, const MdlIndex& Index )
 {
 	BcAssert( iIndex < aIndices_.size() );
 
 	aIndices_[ iIndex ] = Index;
 }
 
-inline void MdlMesh::vertex( BcU32 iVertex, const MdlVertex& Vertex )
+inline void MdlMesh::vertex( size_t iVertex, const MdlVertex& Vertex )
 {
 	BcAssert( iVertex < aVertices_.size() );
 
 	aVertices_[ iVertex ] = Vertex;
 }
 
-inline void MdlMesh::material( BcU32 iMaterial, const MdlMaterial& Material )
+inline void MdlMesh::material( size_t iMaterial, const MdlMaterial& Material )
 {
 	BcAssert( iMaterial < aMaterials_.size() );
 
@@ -155,19 +155,19 @@ inline void MdlMesh::bonePalette( const MdlBonePalette& BonePalette )
 	BonePalette_ = BonePalette;
 }
 
-inline BcU32 MdlMesh::nIndices() const
+inline size_t MdlMesh::nIndices() const
 {
-	return (BcU32)aIndices_.size();
+	return aIndices_.size();
 }
 
-inline BcU32 MdlMesh::nVertices() const
+inline size_t MdlMesh::nVertices() const
 {
-	return (BcU32)aVertices_.size();
+	return aVertices_.size();
 }
 
-inline BcU32 MdlMesh::nMaterials() const
+inline size_t MdlMesh::nMaterials() const
 {
-	return (BcU32)aMaterials_.size();
+	return aMaterials_.size();
 }
 
 #endif

@@ -48,12 +48,12 @@ public:
 	/**
  	 * Get number of clients.
 	 */
-	BcU32 getNoofClients() const;
+	size_t getNoofClients() const;
 
 	/**
 	 * Get client.
 	 */
-	OsClient* getClient( BcU32 Index );
+	OsClient* getClient( size_t Index );
 
 private:
 	typedef std::vector< OsClient* > TClientList;

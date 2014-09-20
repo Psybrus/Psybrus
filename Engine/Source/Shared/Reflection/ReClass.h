@@ -56,12 +56,12 @@ public:
 	/*
 	 * Get field.
 	 */
-    const ReField*					getField( BcU32 Idx ) const;
+    const ReField*					getField( size_t Idx ) const;
 
 	/**
 	 * Get noof fields.
 	 */
-	BcU32							getNoofFields() const;
+	size_t							getNoofFields() const;
 
 	/**
 	 * Get fields

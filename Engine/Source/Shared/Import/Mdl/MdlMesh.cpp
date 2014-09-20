@@ -43,20 +43,20 @@ void MdlMesh::addIndex( const MdlIndex& Index )
 
 //////////////////////////////////////////////////////////////////////////
 // addVertex
-BcU32 MdlMesh::addVertex( const MdlVertex& Vertex )
+size_t MdlMesh::addVertex( const MdlVertex& Vertex )
 {
 	aVertices_.push_back( Vertex );
 
 	BcU32 VertexHash = BcHash::GenerateCRC32( 0, &Vertex, sizeof( Vertex ) ) ;
-	BcU32 VertexIdx = aVertices_.size() - 1;
+	size_t VertexIdx = aVertices_.size() - 1;
 	aVertexHashes_[ VertexHash ] = VertexIdx;
 
-	return (BcU32)( VertexIdx );
+	return VertexIdx;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addMaterial
-BcU32 MdlMesh::addMaterial( const MdlMaterial& Material )
+size_t MdlMesh::addMaterial( const MdlMaterial& Material )
 {
 	BcU32 iMaterial = 0;
 	BcBool bFoundMaterial = BcFalse;
@@ -81,14 +81,14 @@ BcU32 MdlMesh::addMaterial( const MdlMaterial& Material )
 
 //////////////////////////////////////////////////////////////////////////
 // addVertexShared
-BcU32 MdlMesh::addVertexShared( const MdlVertex& Vertex )
+size_t MdlMesh::addVertexShared( const MdlVertex& Vertex )
 {
 	// Go through all our vertices, and if we find a matching one,
 	// return the index to it, else just add this vert and return
 	// the index to it.
-	BcU32 iVertex = BcErrorCode;
+	size_t iVertex = -1;
 
-	std::map< BcU32, BcU32 >::iterator VertexIt = aVertexHashes_.find( BcHash::GenerateCRC32( 0, &Vertex, sizeof( Vertex ) ) );
+	std::map< BcU32, size_t >::iterator VertexIt = aVertexHashes_.find( BcHash::GenerateCRC32( 0, &Vertex, sizeof( Vertex ) ) );
 	if( VertexIt != aVertexHashes_.end() )
 	{
 		iVertex = VertexIt->second;
@@ -96,7 +96,7 @@ BcU32 MdlMesh::addVertexShared( const MdlVertex& Vertex )
 	}
 
 	// If we didn't find a vertex then add it.
-	if( iVertex == BcErrorCode )
+	if( iVertex == -1 )
 	{
 		iVertex = addVertex( Vertex );
 	}
@@ -171,7 +171,7 @@ void MdlMesh::sortIndicesByMaterial()
 
 //////////////////////////////////////////////////////////////////////////
 // materialIndexCount
-BcBool MdlMesh::materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndices )
+BcBool MdlMesh::materialIndexCount( size_t iMaterial, size_t& iFirst, size_t& nIndices )
 {
 	BcBool bFound = BcFalse;
 
@@ -193,7 +193,7 @@ BcBool MdlMesh::materialIndexCount( BcU32 iMaterial, BcU32& iFirst, BcU32& nIndi
 
 	// Now count how many we have.
 	nIndices = 0;
-	for( BcU32 i = iFirst; i < aIndices_.size(); ++i )
+	for( size_t i = iFirst; i < aIndices_.size(); ++i )
 	{
 		if( aIndices_[ i ].iMaterial_ == iMaterial )
 		{
@@ -214,7 +214,7 @@ void MdlMesh::bakeTransform( const MaMat4d& Transform )
 {
 	MaMat4d NrmTransform = Transform;
 	NrmTransform.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
-	for( BcU32 i = 0; i < aVertices_.size(); ++i )
+	for( size_t i = 0; i < aVertices_.size(); ++i )
 	{
 		aVertices_[ i ].Position_ = aVertices_[ i ].Position_ * Transform;
 		aVertices_[ i ].Normal_ = aVertices_[ i ].Normal_ * NrmTransform;
@@ -228,11 +228,11 @@ void MdlMesh::bakeTransform( const MaMat4d& Transform )
 // buildNormals
 void MdlMesh::buildNormals()
 {
-	for ( BcU32 i = 0; i < ( aIndices_.size() / 3 ); ++i )
+	for ( size_t i = 0; i < ( aIndices_.size() / 3 ); ++i )
 	{
-		BcU32 TA = aIndices_[ ( i * 3 ) + 0 ].iVertex_;
-		BcU32 TB = aIndices_[ ( i * 3 ) + 1 ].iVertex_;
-		BcU32 TC = aIndices_[ ( i * 3 ) + 2 ].iVertex_;
+		size_t TA = aIndices_[ ( i * 3 ) + 0 ].iVertex_;
+		size_t TB = aIndices_[ ( i * 3 ) + 1 ].iVertex_;
+		size_t TC = aIndices_[ ( i * 3 ) + 2 ].iVertex_;
 
 		MdlVertex& VertA = aVertices_[ TA ];
 		MdlVertex& VertB = aVertices_[ TB ];
@@ -269,11 +269,11 @@ void MdlMesh::buildTangents()
 
 	memset( pTan1, 0, sizeof( MaVec3d ) * aVertices_.size() * 2 );
 
-	for ( BcU32 i = 0; i < ( aIndices_.size() / 3 ); ++i )
+	for ( size_t i = 0; i < ( aIndices_.size() / 3 ); ++i )
 	{
-		BcU32 TA = aIndices_[ ( i * 3 ) + 0 ].iVertex_;
-		BcU32 TB = aIndices_[ ( i * 3 ) + 1 ].iVertex_;
-		BcU32 TC = aIndices_[ ( i * 3 ) + 2 ].iVertex_;
+		size_t TA = aIndices_[ ( i * 3 ) + 0 ].iVertex_;
+		size_t TB = aIndices_[ ( i * 3 ) + 1 ].iVertex_;
+		size_t TC = aIndices_[ ( i * 3 ) + 2 ].iVertex_;
 
 		MdlVertex& VertA = aVertices_[ TA ];
 		MdlVertex& VertB = aVertices_[ TB ];
@@ -320,7 +320,7 @@ void MdlMesh::buildTangents()
 		pTan2[ TC ] += TDir;
 	}
 
-	for ( BcU32 i = 0; i < aVertices_.size(); ++i )
+	for ( size_t i = 0; i < aVertices_.size(); ++i )
 	{
 		MdlVertex& Vert = aVertices_[ i ];
 		MaVec3d Tangent;
@@ -357,7 +357,7 @@ void MdlMesh::buildTangents()
 // flipIndices
 void MdlMesh::flipIndices()
 {
-	for( BcU32 i = 0; i < aIndices_.size(); i += 3 )
+	for( size_t i = 0; i < aIndices_.size(); i += 3 )
 	{
 		MdlIndex Temp = aIndices_[ i ];
 		aIndices_[ i ] = aIndices_[ i + 2 ];
@@ -371,7 +371,7 @@ MaAABB MdlMesh::findAABB() const
 {
 	MaAABB MeshBounds;
 
-	for( BcU32 VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
+	for( size_t VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
 	{
 		MeshBounds.expandBy( aVertices_[ VertIdx ].Position_ );
 	}
@@ -381,17 +381,17 @@ MaAABB MdlMesh::findAABB() const
 
 //////////////////////////////////////////////////////////////////////////
 // findBoneCount
-BcU32 MdlMesh::findBoneCount() const
+size_t MdlMesh::findBoneCount() const
 {
-	std::map< BcU32, BcBool > BoneMap;
+	std::map< size_t, BcBool > BoneMap;
 
-	for( BcU32 VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
+	for( size_t VertIdx = 0; VertIdx < aVertices_.size(); ++VertIdx )
 	{
 		const MdlVertex& Vertex = aVertices_[ VertIdx ];
-		for( BcU32 BoneIdx = 0; BoneIdx < 4; ++BoneIdx )
+		for( size_t BoneIdx = 0; BoneIdx < 4; ++BoneIdx )
 		{
 			BcF32 Weight = Vertex.Weights_[ BoneIdx ];
-			BcU32 Joint = Vertex.iJoints_[ BoneIdx ];
+			size_t Joint = Vertex.iJoints_[ BoneIdx ];
 			if( Weight > 0.0f && Joint != BcErrorCode )
 			{
 				BoneMap[ Joint ] = BcTrue;
@@ -399,7 +399,7 @@ BcU32 MdlMesh::findBoneCount() const
 		}
 	}
 
-	return BoneMap.size();
+	return static_cast< size_t >( BoneMap.size() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -413,7 +413,7 @@ std::vector< MdlMesh >& MdlMesh::splitByMaterial()
 	SubMeshes_.resize( nMaterials() );
 
 	// Re-add all vertices for each material to the mesh.
-	for( BcU32 iMaterial = 0; iMaterial < aMaterials_.size(); ++iMaterial )
+	for( size_t iMaterial = 0; iMaterial < aMaterials_.size(); ++iMaterial )
 	{
 		// Cache submesh.
 		MdlMesh& SubMesh = SubMeshes_[ iMaterial ];
@@ -422,7 +422,7 @@ std::vector< MdlMesh >& MdlMesh::splitByMaterial()
 		SubMesh.addMaterial( material( iMaterial ) );
 
 		// Add each index thats bound to this material to the new list.
-		for( BcU32 iIndex = 0; iIndex < aIndices_.size(); ++iIndex )
+		for( size_t iIndex = 0; iIndex < aIndices_.size(); ++iIndex )
 		{
 			if( aIndices_[ iIndex ].iMaterial_ == iMaterial )
 			{
@@ -451,11 +451,11 @@ std::vector< MdlMesh >& MdlMesh::splitIntoBonePalettes( BcU32 PaletteSize )
 
 	// Build a triangle array.
 	MdlTriangleArray Triangles;
-	BcU32 NoofTriangles = aIndices_.size() / 3;
+	size_t NoofTriangles = aIndices_.size() / 3;
 	Triangles.reserve( NoofTriangles );
-	for( BcU32 Idx = 0; Idx < NoofTriangles; ++Idx )
+	for( size_t Idx = 0; Idx < NoofTriangles; ++Idx )
 	{
-		BcU32 StartIndex = Idx * 3;
+		size_t StartIndex = Idx * 3;
 		MdlTriangle Triangle = 
 		{
 			aVertices_[ aIndices_[ StartIndex + 0 ].iVertex_ ],
@@ -500,11 +500,11 @@ std::vector< MdlMesh >& MdlMesh::splitIntoBonePalettes( BcU32 PaletteSize )
 		}
 
 		// Add triangles.
-		for( BcU32 Idx = 0; Idx < NewTriangles.size(); ++Idx )
+		for( size_t Idx = 0; Idx < NewTriangles.size(); ++Idx )
 		{
 			const MdlTriangle& Triangle( NewTriangles[ Idx ] );
 			
-			for( BcU32 VertIdx = 0; VertIdx < 3; ++VertIdx )
+			for( size_t VertIdx = 0; VertIdx < 3; ++VertIdx )
 			{
 				MdlIndex Index;
 				Index.iVertex_ = NewMesh.addVertexShared( Triangle.Vertex_[ VertIdx ] );

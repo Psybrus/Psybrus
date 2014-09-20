@@ -110,7 +110,7 @@ class FsCore:
 	public SysSystem
 {
 public:
-	static BcU32 JOB_QUEUE_ID;
+	static size_t JOB_QUEUE_ID;
 
 public:
 	/**

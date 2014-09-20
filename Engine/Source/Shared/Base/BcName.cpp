@@ -312,7 +312,7 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 	BcVerifyMsg( StringEntries.size() < ENTRY_RESERVE_COUNT, "BcName: Reached end of reserve size." );
 
 	// Return new entry index.
-	return StringEntries.size() - 1;	
+	return static_cast< BcU32 >( StringEntries.size() - 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////

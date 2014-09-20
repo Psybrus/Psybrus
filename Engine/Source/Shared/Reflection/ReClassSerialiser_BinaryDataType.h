@@ -20,7 +20,7 @@ public:
 	void* create() const;
 	void* createNoInit() const;
 	void destroy( void* Object ) const;
-	BcU32 getBinaryDataSize( void* pMemory ) const;						
+	size_t getBinaryDataSize( void* pMemory ) const;						
 	BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const;
 	BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const;
 	BcBool serialiseToString( const void* pInstance, std::string& OutString ) const;
