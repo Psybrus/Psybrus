@@ -27,21 +27,21 @@ class BcHtmlNode
 {
 	friend BcHtml;
 public:
-	BcHtmlNode( BcHtmlNode& cpy );
-	BcHtmlNode createChildNode( std::string tag );
+	BcHtmlNode( BcHtmlNode& Cpy );
+	BcHtmlNode createChildNode( std::string Tag );
 	std::string getTag();
 	std::string getContents();
 
-	BcHtmlNode& setTag( std::string tag );
-	BcHtmlNode& setContents( std::string contents );
-	BcHtmlNode& setAttribute( std::string attr, std::string value );
-	BcHtmlNode operator[]( BcU32 idx );
-	BcHtmlNode operator[]( std::string tag );
+	BcHtmlNode& setTag( std::string Tag );
+	BcHtmlNode& setContents( std::string Contents );
+	BcHtmlNode& setAttribute( std::string Attr, std::string Value );
+	BcHtmlNode operator[]( BcU32 Idx );
+	BcHtmlNode operator[]( std::string Tag );
 	std::string getOuterXml();
-	bool operator==( const BcHtmlNode& v );
+	bool operator==( const BcHtmlNode& V );
 	BcHtmlNode NextSiblingNode();
 private:
-	BcHtmlNode( BcHtmlNodeInternal* node );
+	BcHtmlNode( BcHtmlNodeInternal* Node );
 	BcHtmlNodeInternal* InternalNode_;
 	std::string NextTag_;
 };
@@ -53,20 +53,20 @@ class BcHtmlNodeInternal
 	friend BcHtmlNode;
 	friend BcHtml;
 public:
-	BcHtmlNodeInternal* createChildNode( std::string tag );
+	BcHtmlNodeInternal* createChildNode( std::string Tag );
 	std::string getTag();
 	std::string getContents();
 
-	void setTag( std::string tag );
-	void setContents( std::string contents );
-	void setAttribute( std::string attr, std::string value );
-	BcHtmlNodeInternal* operator[]( BcU32 idx );
-	BcHtmlNodeInternal* operator[]( std::string tag );
+	void setTag( std::string Tag );
+	void setContents( std::string Contents );
+	void setAttribute( std::string Attr, std::string Value );
+	BcHtmlNodeInternal* operator[]( BcU32 Idx );
+	BcHtmlNodeInternal* operator[]( std::string Tag );
 	std::string getOuterXml();
 
 	~BcHtmlNodeInternal();
 private:
-	BcHtmlNodeInternal( std::string tag, BcHtmlNodeInternal* parent );
+	BcHtmlNodeInternal( std::string Tag, BcHtmlNodeInternal* Parent );
 	std::map< std::string, std::string > Attributes_;
 	std::string Tag_;
 	std::vector< BcHtmlNodeInternal* > Children;
