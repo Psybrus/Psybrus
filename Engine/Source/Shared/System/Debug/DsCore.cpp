@@ -183,7 +183,6 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 	}
 	BcHtmlNode functions = mainNode.createChildNode("div");
 	functions.setAttribute("id", "pages");
-	char buffer[256];
 	for (auto Item : core->ButtonFunctions_)
 	{
 		BcHtmlNode ahref = functions.createChildNode("a");
