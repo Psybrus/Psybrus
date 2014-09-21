@@ -38,7 +38,7 @@ public:
 	BcHtmlNode operator[](BcU32 idx);
 	BcHtmlNode operator[](std::string tag);
 	std::string getOuterXml();
-	bool operator=(const int&v);
+	bool operator==( const BcHtmlNode& v );
 	BcHtmlNode NextSiblingNode();
 private:
 	BcHtmlNode(BcHtmlNodeInternal* node);
