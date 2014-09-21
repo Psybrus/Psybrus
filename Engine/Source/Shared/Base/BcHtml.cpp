@@ -33,31 +33,31 @@ std::string BcHtml::getHtml()
 * BcHtmlNode implementation
 *
 */
-BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* node )
-: InternalNode_( node )
+BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* Node )
+: InternalNode_( Node )
 {
 
 }
 
-BcHtmlNode::BcHtmlNode( BcHtmlNode& cpy )
+BcHtmlNode::BcHtmlNode( BcHtmlNode& Cpy )
 {
-	InternalNode_ = cpy.InternalNode_;
-	NextTag_ = cpy.NextTag_;
+	InternalNode_ = Cpy.InternalNode_;
+	NextTag_ = Cpy.NextTag_;
 }
 
 
-BcHtmlNode BcHtmlNode::operator[]( BcU32 idx )
+BcHtmlNode BcHtmlNode::operator[]( BcU32 Idx )
 {
-	if ( idx < InternalNode_->Children.size() )
-		return BcHtmlNode( InternalNode_->Children[ idx ] );
+	if ( Idx < InternalNode_->Children.size() )
+		return BcHtmlNode( InternalNode_->Children[ Idx ] );
 	return 0;
 }
 
-BcHtmlNode BcHtmlNode::operator[]( std::string tag )
+BcHtmlNode BcHtmlNode::operator[]( std::string Tag )
 {
 	for ( BcU32 Idx = 0; Idx < InternalNode_->Children.size(); ++Idx )
 	{
-		if ( InternalNode_->Children[ Idx ]->Tag_ == tag )
+		if ( InternalNode_->Children[ Idx ]->Tag_ == Tag )
 		{
 			return BcHtmlNode( InternalNode_->Children[ Idx ] );
 		}
@@ -66,9 +66,9 @@ BcHtmlNode BcHtmlNode::operator[]( std::string tag )
 }
 
 
-BcHtmlNode BcHtmlNode::createChildNode( std::string tag )
+BcHtmlNode BcHtmlNode::createChildNode( std::string Tag )
 {
-	BcHtmlNodeInternal* ret = InternalNode_->createChildNode( tag );
+	BcHtmlNodeInternal* ret = InternalNode_->createChildNode( Tag );
 	return BcHtmlNode( ret );
 }
 
@@ -82,21 +82,21 @@ std::string BcHtmlNode::getContents()
 	return InternalNode_->getContents();
 }
 
-BcHtmlNode& BcHtmlNode::setAttribute( std::string attr, std::string value )
+BcHtmlNode& BcHtmlNode::setAttribute( std::string Attr, std::string Value )
 {
-	InternalNode_->setAttribute( attr, value );
+	InternalNode_->setAttribute( Attr, Value );
 	return *this;
 }
 
-BcHtmlNode& BcHtmlNode::setTag( std::string tag )
+BcHtmlNode& BcHtmlNode::setTag( std::string Tag )
 {
-	InternalNode_->setTag( tag );
+	InternalNode_->setTag( Tag );
 	return *this;
 }
 
-BcHtmlNode& BcHtmlNode::setContents( std::string contents )
+BcHtmlNode& BcHtmlNode::setContents( std::string Contents )
 {
-	InternalNode_->setContents( contents );
+	InternalNode_->setContents( Contents );
 	return *this;
 }
 
@@ -105,9 +105,9 @@ std::string BcHtmlNode::getOuterXml()
 	return InternalNode_->getOuterXml();
 }
 
-bool BcHtmlNode::operator == ( const BcHtmlNode& v )
+bool BcHtmlNode::operator == ( const BcHtmlNode& V )
 {
-	return ( v.InternalNode_ == InternalNode_ );
+	return ( V.InternalNode_ == InternalNode_ );
 }
 
 BcHtmlNode BcHtmlNode::NextSiblingNode()
@@ -148,15 +148,15 @@ BcHtmlNodeInternal::~BcHtmlNodeInternal()
 		delete Children[ Idx ];
 }
 
-BcHtmlNodeInternal::BcHtmlNodeInternal( std::string tag, BcHtmlNodeInternal* parent )
-: Tag_( tag ), Parent_( parent )
+BcHtmlNodeInternal::BcHtmlNodeInternal( std::string Tag, BcHtmlNodeInternal* Parent )
+: Tag_( Tag ), Parent_( Parent )
 {
 
 }
 
-BcHtmlNodeInternal* BcHtmlNodeInternal::createChildNode( std::string tag )
+BcHtmlNodeInternal* BcHtmlNodeInternal::createChildNode( std::string Tag )
 {
-	Children.push_back( new BcHtmlNodeInternal( tag, this ) );
+	Children.push_back( new BcHtmlNodeInternal( Tag, this ) );
 	return Children[ Children.size() - 1 ];
 }
 
@@ -170,19 +170,19 @@ std::string BcHtmlNodeInternal::getContents()
 	return Contents_;
 }
 
-void BcHtmlNodeInternal::setAttribute( std::string attr, std::string value )
+void BcHtmlNodeInternal::setAttribute( std::string Attr, std::string Value )
 {
-	Attributes_[ attr ] = value;
+	Attributes_[ Attr ] = Value;
 }
 
-void BcHtmlNodeInternal::setTag( std::string tag )
+void BcHtmlNodeInternal::setTag( std::string Tag )
 {
-	Tag_ = tag;
+	Tag_ = Tag;
 }
 
-void BcHtmlNodeInternal::setContents( std::string contents )
+void BcHtmlNodeInternal::setContents( std::string Contents )
 {
-	Contents_ = contents;
+	Contents_ = Contents;
 }
 
 std::string BcHtmlNodeInternal::getOuterXml()
