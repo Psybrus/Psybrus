@@ -105,9 +105,9 @@ std::string BcHtmlNode::getOuterXml()
 	return InternalNode_->getOuterXml();
 }
 
-bool BcHtmlNode::operator = (const int&v)
+bool BcHtmlNode::operator == ( const BcHtmlNode& v )
 {
-	return (v == (int)InternalNode_);
+	return (v.InternalNode_ == InternalNode_);
 }
 
 BcHtmlNode BcHtmlNode::NextSiblingNode()
