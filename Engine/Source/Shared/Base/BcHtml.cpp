@@ -14,13 +14,13 @@
 #include "BcHtml.h"
 
 BcHtml::BcHtml() :
-RootNode_("html", 0)
+RootNode_( "html", 0 )
 {
 }
 
 BcHtmlNode BcHtml::getRootNode()
 {
-	return BcHtmlNode(&RootNode_);
+	return BcHtmlNode( &RootNode_ );
 }
 
 std::string BcHtml::getHtml()
@@ -33,43 +33,43 @@ std::string BcHtml::getHtml()
 * BcHtmlNode implementation
 *
 */
-BcHtmlNode::BcHtmlNode(BcHtmlNodeInternal* node)
-: InternalNode_(node)
+BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* node )
+: InternalNode_( node )
 {
 
 }
 
-BcHtmlNode::BcHtmlNode(BcHtmlNode& cpy)
+BcHtmlNode::BcHtmlNode( BcHtmlNode& cpy )
 {
 	InternalNode_ = cpy.InternalNode_;
 	NextTag_ = cpy.NextTag_;
 }
 
 
-BcHtmlNode BcHtmlNode::operator[](BcU32 idx)
+BcHtmlNode BcHtmlNode::operator[]( BcU32 idx )
 {
-	if (idx < InternalNode_->Children.size())
-		return BcHtmlNode(InternalNode_->Children[idx]);
+	if ( idx < InternalNode_->Children.size() )
+		return BcHtmlNode( InternalNode_->Children[ idx ] );
 	return 0;
 }
 
-BcHtmlNode BcHtmlNode::operator[](std::string tag)
+BcHtmlNode BcHtmlNode::operator[]( std::string tag )
 {
-	for (BcU32 Idx = 0; Idx < InternalNode_->Children.size(); ++Idx)
+	for ( BcU32 Idx = 0; Idx < InternalNode_->Children.size(); ++Idx )
 	{
-		if (InternalNode_->Children[Idx]->Tag_ == tag)
+		if ( InternalNode_->Children[ Idx ]->Tag_ == tag )
 		{
-			return BcHtmlNode(InternalNode_->Children[Idx]);
+			return BcHtmlNode( InternalNode_->Children[ Idx ] );
 		}
 	}
 	return 0;/**/
 }
 
 
-BcHtmlNode BcHtmlNode::createChildNode(std::string tag)
+BcHtmlNode BcHtmlNode::createChildNode( std::string tag )
 {
-	BcHtmlNodeInternal* ret = InternalNode_->createChildNode(tag);
-	return BcHtmlNode(ret);
+	BcHtmlNodeInternal* ret = InternalNode_->createChildNode( tag );
+	return BcHtmlNode( ret );
 }
 
 std::string BcHtmlNode::getTag()
@@ -82,21 +82,21 @@ std::string BcHtmlNode::getContents()
 	return InternalNode_->getContents();
 }
 
-BcHtmlNode& BcHtmlNode::setAttribute(std::string attr, std::string value)
+BcHtmlNode& BcHtmlNode::setAttribute( std::string attr, std::string value )
 {
-	InternalNode_->setAttribute(attr, value);
+	InternalNode_->setAttribute( attr, value );
 	return *this;
 }
 
-BcHtmlNode& BcHtmlNode::setTag(std::string tag)
+BcHtmlNode& BcHtmlNode::setTag( std::string tag )
 {
-	InternalNode_->setTag(tag);
+	InternalNode_->setTag( tag );
 	return *this;
 }
 
-BcHtmlNode& BcHtmlNode::setContents(std::string contents)
+BcHtmlNode& BcHtmlNode::setContents( std::string contents )
 {
-	InternalNode_->setContents(contents);
+	InternalNode_->setContents( contents );
 	return *this;
 }
 
@@ -107,32 +107,32 @@ std::string BcHtmlNode::getOuterXml()
 
 bool BcHtmlNode::operator == ( const BcHtmlNode& v )
 {
-	return (v.InternalNode_ == InternalNode_);
+	return ( v.InternalNode_ == InternalNode_ );
 }
 
 BcHtmlNode BcHtmlNode::NextSiblingNode()
 {
-	if (InternalNode_->Parent_ == 0)
-		return BcHtmlNode(0);
+	if ( InternalNode_->Parent_ == 0 )
+		return BcHtmlNode( 0 );
 	BcU32 Idx;
-	for (Idx = 0; Idx < InternalNode_->Parent_->Children.size(); ++Idx)
+	for ( Idx = 0; Idx < InternalNode_->Parent_->Children.size(); ++Idx )
 	{
-		if (InternalNode_->Parent_->Children[Idx] == InternalNode_)
+		if ( InternalNode_->Parent_->Children[ Idx ] == InternalNode_ )
 		{
 			break;
 		}
 	}
 	Idx = Idx + 1;
-	for (; Idx < InternalNode_->Parent_->Children.size(); ++Idx)
+	for ( ; Idx < InternalNode_->Parent_->Children.size(); ++Idx )
 	{
-		if ((InternalNode_->Parent_->Children[Idx]->Tag_ == NextTag_) || (NextTag_ == ""))
+		if ( ( InternalNode_->Parent_->Children[ Idx ]->Tag_ == NextTag_ ) || ( NextTag_ == "" ) )
 		{
-			BcHtmlNode ret(InternalNode_->Parent_->Children[Idx]);
+			BcHtmlNode ret( InternalNode_->Parent_->Children[ Idx ] );
 			ret.NextTag_ = NextTag_;
 			return ret;
 		}
 	}
-	return BcHtmlNode(0);
+	return BcHtmlNode( 0 );
 }
 
 
@@ -144,20 +144,20 @@ BcHtmlNode BcHtmlNode::NextSiblingNode()
 
 BcHtmlNodeInternal::~BcHtmlNodeInternal()
 {
-	for (BcU32 Idx = 0; Idx < Children.size(); ++Idx)
-		delete Children[Idx];
+	for ( BcU32 Idx = 0; Idx < Children.size(); ++Idx )
+		delete Children[ Idx ];
 }
 
-BcHtmlNodeInternal::BcHtmlNodeInternal(std::string tag, BcHtmlNodeInternal* parent)
-: Tag_(tag), Parent_(parent)
+BcHtmlNodeInternal::BcHtmlNodeInternal( std::string tag, BcHtmlNodeInternal* parent )
+: Tag_( tag ), Parent_( parent )
 {
 
 }
 
-BcHtmlNodeInternal* BcHtmlNodeInternal::createChildNode(std::string tag)
+BcHtmlNodeInternal* BcHtmlNodeInternal::createChildNode( std::string tag )
 {
-	Children.push_back(new BcHtmlNodeInternal(tag, this));
-	return Children[Children.size() - 1];
+	Children.push_back( new BcHtmlNodeInternal( tag, this ) );
+	return Children[ Children.size() - 1 ];
 }
 
 std::string BcHtmlNodeInternal::getTag()
@@ -170,46 +170,44 @@ std::string BcHtmlNodeInternal::getContents()
 	return Contents_;
 }
 
-void BcHtmlNodeInternal::setAttribute(std::string attr, std::string value)
+void BcHtmlNodeInternal::setAttribute( std::string attr, std::string value )
 {
-	Attributes_[attr] = value;
+	Attributes_[ attr ] = value;
 }
 
-void BcHtmlNodeInternal::setTag(std::string tag)
+void BcHtmlNodeInternal::setTag( std::string tag )
 {
 	Tag_ = tag;
 }
 
-void BcHtmlNodeInternal::setContents(std::string contents)
+void BcHtmlNodeInternal::setContents( std::string contents )
 {
 	Contents_ = contents;
 }
 
 std::string BcHtmlNodeInternal::getOuterXml()
 {
-	if (Tag_ == "")
+	if ( Tag_ == "" )
 		return Contents_;
 	std::string output = "<" + Tag_ + " ";
-	for each (auto attr in Attributes_)
+	for each ( auto attr in Attributes_ )
 	{
 		output += attr.first;
 		output += "=\"";
 		output += attr.second;
 		output += "\" ";
 	}
-	if ((Contents_ == "") && (Children.size() == 0) &&
-		((Tag_ == "p") || (Tag_ == "br")))
+	if ( ( Contents_ == "" ) && ( Children.size() == 0 ) &&
+		( ( Tag_ == "p" ) || ( Tag_ == "br" ) ) )
 	{
 		output += ">";
 		return output;
 	}
 	else
 	{
-
-
 		output += ">";
 		output += Contents_;
-		for each (BcHtmlNodeInternal* var in Children)
+		for each ( BcHtmlNodeInternal* var in Children )
 		{
 			output += var->getOuterXml();
 		}
