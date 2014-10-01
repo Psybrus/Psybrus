@@ -19,6 +19,7 @@
 #include "Base/BcMath.h"
 
 #include "squish.h"
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -459,7 +460,7 @@ ImgImageUPtr ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sp
 					
 					BcU32 DistanceInt = (BcU32)BcClamp( Distance, 0.0f, 255.0f );
 					
-					ImgColour Colour = { 255, 255, 255, DistanceInt };
+					ImgColour Colour = { 255, 255, 255, (BcU8)DistanceInt };
 					pOutputImage->setPixel( X, Y, Colour );
 				}
 			}

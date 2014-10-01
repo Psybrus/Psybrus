@@ -6,6 +6,7 @@ project "Engine_Import"
     "./Shared/Import/**.inl", 
     "./Shared/Import/**.cpp", 
   }
+  
 	includedirs {
     "./Shared/",
     "./Platforms/Windows/",
@@ -20,25 +21,21 @@ project "Engine_Import"
     boostInclude,
   }
 
-	configuration "windows"
-	    libdirs {
-           boostLib
-        }
+  libdirs {
+     boostLib
+  }
 
-   		links {
-        -- Engine libs.
-        "Engine_Base",
-        "Engine_Math",
-        "Engine_Reflection",
+	links {
+  -- Engine libs.
+    "Engine_Base",
+    "Engine_Math",
+    "Engine_Reflection",
 
-   			-- External libs.
-   			"External_zlib",
-        "External_ogg",
-        "External_png",
-        "External_squish",
-        "External_tremor",
-   		}
+		-- External libs.
+		"External_zlib",
+    "External_ogg",
+    "External_png",
+    "External_squish",
+    "External_tremor",
+	}
 
-   	configuration "vs2012"
-   		links {
-   		}
