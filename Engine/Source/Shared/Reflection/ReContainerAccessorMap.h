@@ -12,8 +12,8 @@ class ReMapContainerAccessor:
 	public ReContainerAccessor
 {
 public:
-    typedef typename ReTypeTraits< _Key > KeyTraits;
-    typedef typename ReTypeTraits< _Ty > ValueTraits;
+    typedef ReTypeTraits< _Key > KeyTraits;
+    typedef ReTypeTraits< _Ty > ValueTraits;
 	typedef std::map< _Key, _Ty, _Pr, _Alloc > Container;
 	typedef typename Container::iterator ContainerIterator;
 public:
@@ -100,10 +100,10 @@ public:
 public:
     ReMapContainerAccessor()
 	{
-		pKeyType_ = ReManager::GetClass< typename KeyTraits::Type >();
-		pValueType_ = ReManager::GetClass< typename ValueTraits::Type >();
-		KeyFlags_ = typename KeyTraits::Flags;
-		ValueFlags_ = typename ValueTraits::Flags;
+		pKeyType_ = ReManager::GetClass< KeyTraits::Type >();
+		pValueType_ = ReManager::GetClass< ValueTraits::Type >();
+		KeyFlags_ = KeyTraits::Flags;
+		ValueFlags_ = ValueTraits::Flags;
 
 		// We only support things serialisable to a string for now. This will possibly be improved later.
 		BcAssertMsg( ( KeyFlags_ & bcRFF_ANY_POINTER_TYPE ) == 0, "MapContainerAccessor: Pointer type for key is unsupported yet." );
@@ -129,8 +129,10 @@ public:
 template < typename _Key, typename _Ty, typename _Pr, typename _Alloc >
 ReContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-    pKeyType =  ReManager::GetClass< ReTypeTraits< _Key >::Type >();
-    pValueType = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
+    pKeyType =  ReManager::GetClass< 
+    	typename ReTypeTraits< _Key >::Type >();
+    pValueType = ReManager::GetClass< 
+    	typename ReTypeTraits< _Ty >::Type >();
     KeyFlags = ReTypeTraits< _Key >::Flags;
     ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReMapContainerAccessor< _Key, _Ty, _Pr, _Alloc >();

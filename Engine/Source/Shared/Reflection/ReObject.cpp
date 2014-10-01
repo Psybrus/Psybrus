@@ -1,6 +1,7 @@
 #include "Reflection/ReObject.h"
 #include "Reflection/ReField.h"
 #include "Reflection/ReReflection.h"
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 // Object class definition
@@ -25,7 +26,7 @@ void ReObject::StaticRegisterClass()
 	ReRegisterClass< ReObject >( Fields );
 }
 
-std::atomic< BcU32 > ReObject::UniqueIdCounter_ = 0;
+std::atomic< BcU32 > ReObject::UniqueIdCounter_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

@@ -52,4 +52,4 @@ public:
 	inline void reset();
 };
 
-#endif __OBJECTREF_H__
+#endif // __OBJECTREF_H__

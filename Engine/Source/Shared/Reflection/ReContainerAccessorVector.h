@@ -100,7 +100,8 @@ public:
     ReVectorContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-        pValueType_ = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
+        pValueType_ = ReManager::GetClass< 
+        	typename ReTypeTraits< _Ty >::Type >();
 		KeyFlags_ = 0;
         ValueFlags_ = ReTypeTraits< _Ty >::Flags;
 	}
@@ -126,7 +127,8 @@ template < typename _Ty, typename _Alloc >
 ReContainerAccessor* CreateContainerAccessor( std::vector< _Ty, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
-    pValueType = ReManager::GetClass< ReTypeTraits< _Ty >::Type >();
+    pValueType = ReManager::GetClass< 
+    	typename ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
     ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReVectorContainerAccessor< _Ty, _Alloc >();

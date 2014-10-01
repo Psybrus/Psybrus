@@ -3,6 +3,13 @@
 
 #include "Reflection/ReAttributable.h"
 #include "Reflection/ReContainerAccessor.h"
+#include "Reflection/ReContainerAccessorArray.h"
+#include "Reflection/ReContainerAccessorList.h"
+#include "Reflection/ReContainerAccessorMap.h"
+#include "Reflection/ReContainerAccessorSet.h"
+#include "Reflection/ReContainerAccessorVector.h"
+
+#include <cstddef>
 
 //////////////////////////////////////////////////////////////////////////
 // Typedef
@@ -41,7 +48,7 @@ public:
         typedef ReTypeTraits< _Ty > LocalTypeTraits;
 		setName( Name );
 		setFlags( Flags | LocalTypeTraits::Flags );
-		setOffset( offsetof( _Class, *field ) );
+		//setOffset( offsetof( _Class, *field ) ); // TODO GCC
 		ContainerAccessor_ = CreateContainerAccessor( ( ( _Class* ) 0 )->*field, KeyType_, ValueType_, KeyFlags_, ValueFlags_ );
 
 		// If we get a container accessor, use the value type.

@@ -10,7 +10,7 @@ class ReArrayContainerAccessor:
 	public ReContainerAccessor
 {
 public:
-    typedef typename ReTypeTraits< _Ty > ValueTraits;
+    typedef ReTypeTraits< _Ty > ValueTraits;
 
 public:
 	class ArrayWriteIterator:

@@ -3,6 +3,7 @@
 
 #include "Reflection/ReType.h"
 #include "Reflection/ReField.h"
+#include "Reflection/ReITypeSerialiser.h"
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
