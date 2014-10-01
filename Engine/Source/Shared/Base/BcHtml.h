@@ -27,7 +27,7 @@ class BcHtmlNode
 {
 	friend BcHtml;
 public:
-	BcHtmlNode( BcHtmlNode& Cpy );
+	BcHtmlNode( const BcHtmlNode& Cpy );
 	BcHtmlNode createChildNode( std::string Tag );
 	std::string getTag();
 	std::string getContents();

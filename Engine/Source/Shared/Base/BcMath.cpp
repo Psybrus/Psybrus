@@ -23,15 +23,6 @@ BcF32 BcSqrt( BcF32 v )
 	__asm fsqrt
 	__asm fstp [v]
 	return v;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fsqrt\n"
-		"fstp %0\n"
-	: "=g"( v )
-	: "g"( v )
-	);
-	return v;
 #else
 	return sqrtf( v );
 #endif
@@ -71,15 +62,6 @@ BcF32 BcSin( BcF32 r )
 	__asm fsin
 	__asm fstp [r]
 	return r;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fsin\n"
-		"fstp %0\n"
-	: "=g"( r )
-	: "g"( r )
-	);
-	return r;
 #else
 	return sinf( r );
 #endif
@@ -93,15 +75,6 @@ BcF32 BcCos( BcF32 r )
 	__asm fld [r]
 	__asm fcos
 	__asm fstp [r]
-	return r;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fcos\n"
-		"fstp %0\n"
-	: "=g"( r )
-	: "g"( r )
-	);
 	return r;
 #else
 	return cosf( r );
@@ -153,16 +126,6 @@ BcF32 BcAtan2( BcF32 Y, BcF32 X )
 	__asm fld [X]
 	__asm fpatan
 	__asm fstp [Y]
-	return Y;
-#elif PLATFORM_LINUX
-	asm(
-		"fld %1\n"
-		"fld %2\n"
-		"fpatan\n"
-		"fstp %0\n"
-	: "=g"( Y )
-	: "g"( Y ), "g"( X )
-	);
 	return Y;
 #else
 	return atan2( Y, X );

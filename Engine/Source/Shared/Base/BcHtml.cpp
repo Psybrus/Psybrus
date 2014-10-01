@@ -14,7 +14,7 @@
 #include "BcHtml.h"
 
 BcHtml::BcHtml() :
-RootNode_( "html", 0 )
+	RootNode_( "html", 0 )
 {
 }
 
@@ -33,13 +33,13 @@ std::string BcHtml::getHtml()
 * BcHtmlNode implementation
 *
 */
-BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* Node )
-: InternalNode_( Node )
+BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* Node ) :
+	InternalNode_( Node )
 {
 
 }
 
-BcHtmlNode::BcHtmlNode( BcHtmlNode& Cpy )
+BcHtmlNode::BcHtmlNode( const BcHtmlNode& Cpy )
 {
 	InternalNode_ = Cpy.InternalNode_;
 	NextTag_ = Cpy.NextTag_;
@@ -190,7 +190,7 @@ std::string BcHtmlNodeInternal::getOuterXml()
 	if ( Tag_ == "" )
 		return Contents_;
 	std::string output = "<" + Tag_ + " ";
-	for each ( auto attr in Attributes_ )
+	for ( auto attr : Attributes_ )
 	{
 		output += attr.first;
 		output += "=\"";
@@ -207,7 +207,7 @@ std::string BcHtmlNodeInternal::getOuterXml()
 	{
 		output += ">";
 		output += Contents_;
-		for each ( BcHtmlNodeInternal* var in Children )
+		for ( BcHtmlNodeInternal* var : Children )
 		{
 			output += var->getOuterXml();
 		}

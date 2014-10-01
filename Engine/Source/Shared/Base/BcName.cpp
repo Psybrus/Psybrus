@@ -19,7 +19,7 @@
 BcName BcName::INVALID;
 BcName BcName::NONE( "None" );
 
-BcNameEntryList* BcName::pStringEntries_ = NULL;
+BcNameEntryList* BcName::pStringEntries_ = nullptr;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -345,7 +345,7 @@ BcBool BcName::isCharValid( const BcChar Value )
 BcBool BcName::validate( const BcChar* pString )
 {
 	BcChar Char = 0;
-	while( ( Char = *pString++ ) != NULL )
+	while( ( Char = *pString++ ) != 0 )
 	{
 		if( !isCharValid( Char ) )
 		{
@@ -364,7 +364,7 @@ std::string BcName::StripInvalidChars( const BcChar* pString )
 	std::string Value;
 
 	BcChar Char = 0;
-	while( ( Char = *pString++ ) != NULL )
+	while( ( Char = *pString++ ) != 0 )
 	{
 		if( isCharValid( Char ) )
 		{

@@ -20,6 +20,10 @@
 #include <windows.h>
 #endif
 
+#if PLATFORM_LINUX
+#include <malloc.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 BcMemoryAllocator::BcMemoryAllocator()

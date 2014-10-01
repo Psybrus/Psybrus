@@ -17,6 +17,8 @@
 #include "Base/BcDebug.h"
 #include "Base/BcGlobal.h"
 
+#include <memory.h>
+
 //#define MEM_DEBUG
 
 //////////////////////////////////////////////////////////////////////////

@@ -13,6 +13,8 @@
 
 #include "Base/BcString.h"
 
+#include <cstring>
+
 #if PLATFORM_WINDOWS
 #define caseInsensitiveComparison stricmp
 #define safeCaseInsensitiveComparison strnicmp

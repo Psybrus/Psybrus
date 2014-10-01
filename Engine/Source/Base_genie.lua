@@ -1,34 +1,48 @@
 project "Engine_Base"
 	kind "StaticLib"
 	language "C++"
+
 	files {
     "./Shared/Base/**.h", 
     "./Shared/Base/**.inl", 
     "./Shared/Base/**.cpp",
-    "./Platforms/Windows/Base/**.h",
-    "./Platforms/Windows/Base/**.inl",
-    "./Platforms/Windows/Base/**.cpp",
   }
 
-	includedirs {
+  includedirs {
     "./Shared/",
-    "./Platforms/Windows/",
     psybrusSDK .. "/External/pcre/",
     psybrusSDK .. "/External/zlib/",
     boostInclude,
   }
 
-	configuration "windows"
-	    libdirs {
-           boostLib
-        }
+  libdirs {
+    boostLib
+  }
 
-   		links {
-   			-- External libs.
-   			"External_pcre",
-   			"External_zlib",
-   		}
+  links {
+    -- External libs.
+    "External_pcre",
+    "External_zlib",
+  }
 
-   	configuration "vs2012"
-   		links {
-   		}
+  -- Windows
+  configuration( "windows" )
+    files {
+      "./Platforms/Windows/Base/**.h",
+      "./Platforms/Windows/Base/**.inl",
+      "./Platforms/Windows/Base/**.cpp",
+    }
+    includedirs {
+      "./Platforms/Windows/",
+    }
+
+  -- Linux
+  configuration( "linux" )
+    files {
+      "./Platforms/Linux/Base/**.h",
+      "./Platforms/Linux/Base/**.inl",
+      "./Platforms/Linux/Base/**.cpp",
+    }
+    includedirs {
+      "./Platforms/Linux/",
+    }
