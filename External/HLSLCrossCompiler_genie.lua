@@ -4,7 +4,11 @@ project ( EXTERNAL_PROJECT_PREFIX .. "HLSLCrossCompiler" )
 	files { 
 		"./HLSLCrossCompiler/include/**.h", 
 		"./HLSLCrossCompiler/src/**.h", 
-		"./HLSLCrossCompiler/src/**.c" }
+		"./HLSLCrossCompiler/src/**.c",
+	}
+
 	includedirs { 
 		"./HLSLCrossCompiler/include", 
-		"./HLSLCrossCompiler/src/cbstring" }
+		"./HLSLCrossCompiler/src", 
+		"./HLSLCrossCompiler/src/cbstring" ,
+	}
