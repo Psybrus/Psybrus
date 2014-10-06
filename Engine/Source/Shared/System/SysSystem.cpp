@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/SysSystem.h"
+#include "System/SysKernel.h"
 
 #include "Base/BcMemory.h"
 #include "Base/BcString.h"

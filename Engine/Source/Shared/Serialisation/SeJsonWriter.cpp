@@ -1,16 +1,7 @@
 #include "Serialisation/SeJsonWriter.h"
 
 #include <fstream>
-
-//////////////////////////////////////////////////////////////////////////
-// Statics
-const char* SeJsonWriter::SerialiserVersionEntry = "$SerialiserVersion";
-const char* SeJsonWriter::RootIDEntry = "$RootID";
-const char* SeJsonWriter::ObjectsEntry = "$Objects";
-const char* SeJsonWriter::ClassEntry = "$Class";
-const char* SeJsonWriter::IDEntry = "$ID";
-const char* SeJsonWriter::FieldEntry = "$Field";
-const char* SeJsonWriter::ValueEntry = "$Value";
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -110,9 +101,9 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pT
 
 	// Write out root object.
 	RootValue_ = Json::Value( Json::objectValue );
-	RootValue_[ SerialiserVersionEntry ] = SERIALISER_VERSION;
-    RootValue_[ RootIDEntry ] = ObjectsValue_[ Json::Value::UInt( 0 ) ][ IDEntry ];
-	RootValue_[ ObjectsEntry ] = ObjectsValue_;
+	RootValue_[ SerialiserVersionString ] = SERIALISER_VERSION;
+    RootValue_[ RootIDString ] = ObjectsValue_[ Json::Value::UInt( 0 ) ][ IDString ];
+	RootValue_[ ObjectsString ] = ObjectsValue_;
 
 	//* test code.
 	Json::StyledWriter Writer;
@@ -135,17 +126,17 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 
 	// Setup Json::Value for this class.
 	Json::Value ClassValue( Json::objectValue );
-	ClassValue[ ClassEntry ] = *pClass->getName();
+	ClassValue[ ClassString ] = *pClass->getName();
 	if( StoreID )
 	{
-		ClassValue[ IDEntry ] = ObjectCodec_->serialiseAsStringRef( pData, pClass );
+		ClassValue[ IDString ] = ObjectCodec_->serialiseAsStringRef( pData, pClass );
 	}
 
 	// If the object codec says we dont want, don't serialise its contents.
 	// Only serialise it as an ID.
 	if( !ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
 	{
-		return ClassValue[ IDEntry ];
+		return ClassValue[ IDString ];
 	}
 
 	// Get type serialiser.
@@ -161,7 +152,7 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 			// Setup value.
 			if( StoreID )
 			{
-				ClassValue[ ValueEntry ] = OutString;
+				ClassValue[ ValueString ] = OutString;
 			}
 			else
 			{

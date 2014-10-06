@@ -20,10 +20,12 @@
 #include "Base/BcPath.h"
 
 #include "System/File/FsFile.h"
-#include <atomic>
 #include "Base/BcEndian.h"
 #include "Base/BcHash.h"
+
+#include <atomic>
 #include <mutex>
+#include <exception>
 
 //////////////////////////////////////////////////////////////////////////
 // CsCrossRefId
@@ -96,9 +98,10 @@ class CsImportException:
 	public std::exception
 {
 public:
-	CsImportException( const std::string& Error,
-		const std::string& File ):
-		std::exception( Error.c_str() ),
+	CsImportException( 
+			const std::string& Error,
+			const std::string& File ):
+		//std::exception( Error.c_str() ), // TODO LINUX
 		File_( File )
 	{}
 	virtual ~CsImportException(){}

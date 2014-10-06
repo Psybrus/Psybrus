@@ -200,14 +200,14 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 // cmdScene_Entity
 void DsCore::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth)
 {
-	BcHtmlNode& ul = Output.createChildNode("ul");
+	BcHtmlNode ul = Output.createChildNode("ul");
 	BcChar Id[32];
 	BcSPrintf(Id, "%d", Entity->getUniqueId());
 	
 	// Entity name.
-	BcHtmlNode& li = ul.createChildNode("li");
+	BcHtmlNode li = ul.createChildNode("li");
 	li.setContents("Entity; ");
-	BcHtmlNode& a = li.createChildNode("a");
+	BcHtmlNode a = li.createChildNode("a");
 	a.setAttribute("href", "/Resource/" + std::string(Id));
 	a.setContents(*Entity->getName());
 	
@@ -233,11 +233,11 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, 
 {
 	BcChar Id[32];
 	BcSPrintf(Id, "%d", Component->getUniqueId());
-	BcHtmlNode& ul = Output.createChildNode("ul");
+	BcHtmlNode ul = Output.createChildNode("ul");
 	// Component name.
-	BcHtmlNode& li = ul.createChildNode("li");
+	BcHtmlNode li = ul.createChildNode("li");
 	li.setContents("Component: ");
-	BcHtmlNode& a = li.createChildNode("a");
+	BcHtmlNode a = li.createChildNode("a");
 	a.setAttribute("href", "/Resource/" + std::string(Id));
 	a.setContents(*Component->getName());
 	li.createChildNode("").setContents(" (" + *Component->getClass()->getName() + ")");

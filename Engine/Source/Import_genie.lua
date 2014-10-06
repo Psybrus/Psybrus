@@ -10,14 +10,14 @@ project "Engine_Import"
 	includedirs {
     "./Shared/",
     "./Platforms/Windows/",
-    psybrusSDK .. "/External/pcre/",
-    psybrusSDK .. "/External/zlib/",
-    psybrusSDK .. "/External/jsoncpp/include/",
-    psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/ogg/include/",
-    psybrusSDK .. "/External/png/",
-    psybrusSDK .. "/External/squish/",
-    psybrusSDK .. "/External/tremor/",
+    "../../External/pcre/",
+    "../../External/zlib/",
+    "../../External/jsoncpp/include/",
+    "../../External/libb64/include/",
+    "../../External/ogg/include/",
+    "../../External/png/",
+    "../../External/squish/",
+    "../../External/tremor/",
     boostInclude,
   }
 

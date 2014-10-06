@@ -9,17 +9,17 @@ project "Engine"
  
     includedirs {
         "./Shared/",
-        psybrusSDK .. "/External/bullet/src",
-        psybrusSDK .. "/External/enet/include",
-        psybrusSDK .. "/External/freetype/include",
-        psybrusSDK .. "/External/glew/include",
-        psybrusSDK .. "/External/pcre/",
-        psybrusSDK .. "/External/jsoncpp/include/",
-        psybrusSDK .. "/External/libb64/include/",
-        psybrusSDK .. "/External/png/",
-        psybrusSDK .. "/External/squish/",
-        psybrusSDK .. "/External/webby/",
-        psybrusSDK .. "/External/zlib/",
+        "../../External/bullet/src",
+        "../../External/enet/include",
+        "../../External/freetype/include",
+        "../../External/glew/include",
+        "../../External/pcre/",
+        "../../External/jsoncpp/include/",
+        "../../External/libb64/include/",
+        "../../External/png/",
+        "../../External/squish/",
+        "../../External/webby/",
+        "../../External/zlib/",
         boostInclude,  
     }
 

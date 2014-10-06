@@ -5,29 +5,43 @@ project "Engine_System_Content"
     "./Shared/System/Content/**.h", 
     "./Shared/System/Content/**.inl", 
     "./Shared/System/Content/**.cpp", 
-    "./Platforms/Windows/System/Content/**.h", 
-    "./Platforms/Windows/System/Content/**.inl", 
-    "./Platforms/Windows/System/Content/**.cpp", 
   }
+
 	includedirs {
     "./Shared/",
-    "./Platforms/Windows/",
-    psybrusSDK .. "/External/jsoncpp/include/",
-    psybrusSDK .. "/External/libb64/include/",
+    "../../External/jsoncpp/include/",
+    "../../External/libb64/include/",
     boostInclude,
   }
 
-	configuration "windows"
-	    libdirs {
-           boostLib
+  print( "System/Content" .. psybrusSDK )
+
+	links {
+    -- Engine libs.
+    "Engine_System",
+    "Engine_System_File",
+		}
+
+  configuration "linux"
+      files {
+          "./Platforms/Linux/System/Content/*.h", 
+          "./Platforms/Linux/System/Content/*.inl", 
+          "./Platforms/Linux/System/Content/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/Linux/",
+      }
+
+  configuration "windows"
+        files {
+            "./Platforms/Windows/System/Content/*.h", 
+            "./Platforms/Windows/System/Content/*.inl", 
+            "./Platforms/Windows/System/Content/*.cpp", 
+        }
+        includedirs {
+            "./Platforms/Windows/",
         }
 
-   		links {
-        -- Engine libs.
-        "Engine_System",
-        "Engine_System_File",
-   		}
-
-   	configuration "vs2012"
-   		links {
-   		}
+      libdirs {
+           boostLib
+        }

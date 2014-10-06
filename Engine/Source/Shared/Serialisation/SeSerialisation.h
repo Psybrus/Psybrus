@@ -51,6 +51,15 @@ public:
 class SeISerialiser
 {
 public:
+    static const char* SerialiserVersionString;
+    static const char* RootIDString;
+    static const char* ObjectsString;
+    static const char* ClassString;
+    static const char* IDString;
+    static const char* FieldString;
+    static const char* ValueString;
+ 
+public:
     SeISerialiser(){}
     virtual ~SeISerialiser(){};
 

@@ -11,15 +11,6 @@ class SeJsonWriter:
     public SeISerialiser
 {
 public:
-    static const char* SerialiserVersionEntry;
-    static const char* RootIDEntry;
-    static const char* ObjectsEntry;
-    static const char* ClassEntry;
-    static const char* IDEntry;
-    static const char* FieldEntry;
-    static const char* ValueEntry;
-
-public:
 	SeJsonWriter( 
 		SeISerialiserObjectCodec* ObjectCodec );
     virtual ~SeJsonWriter();

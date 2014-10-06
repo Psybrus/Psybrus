@@ -176,7 +176,6 @@ protected:
 	void								processCallbacks();
 	
 public:
-	friend class CsResource;
 	void								internalAddResource( CsResource* Resource );
 	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle );
 	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );

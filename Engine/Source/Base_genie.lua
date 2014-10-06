@@ -10,8 +10,8 @@ project "Engine_Base"
 
   includedirs {
     "./Shared/",
-    psybrusSDK .. "/External/pcre/",
-    psybrusSDK .. "/External/zlib/",
+    "../../External/pcre/",
+    "../../External/zlib/",
     boostInclude,
   }
 

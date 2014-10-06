@@ -7,16 +7,6 @@
 #include <boost/lexical_cast.hpp>
 
 //////////////////////////////////////////////////////////////////////////
-// Statics
-const char* SeJsonReader::SerialiserVersionEntry = "$SerialiserVersion";
-const char* SeJsonReader::RootIDEntry = "$RootID";
-const char* SeJsonReader::ObjectsEntry = "$Objects";
-const char* SeJsonReader::ClassEntry = "$Class";
-const char* SeJsonReader::IDEntry = "$ID";
-const char* SeJsonReader::FieldEntry = "$Field";
-const char* SeJsonReader::ValueEntry = "$Value";
-
-//////////////////////////////////////////////////////////////////////////
 // Ctor
 SeJsonReader::SeJsonReader( 
 		SeISerialiserObjectCodec* ObjectCodec ) :
@@ -66,9 +56,9 @@ BcU32 SeJsonReader::getFileVersion() const
 //virtual
 void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 {
-	const Json::Value& RootIDEntry( RootValue_[ RootIDEntry ] );
-	const Json::Value& VersionEntry( RootValue_[ SerialiserVersionEntry ] );
-	const Json::Value& ObjectsValue( RootValue_[ ObjectsEntry ] );
+	const Json::Value& RootIDEntry( RootValue_[ RootIDString ] );
+	const Json::Value& VersionEntry( RootValue_[ SerialiserVersionString ] );
+	const Json::Value& ObjectsValue( RootValue_[ ObjectsString ] );
 
 	// Grab the file version.
 	FileVersion_ = VersionEntry.asUInt();
@@ -77,10 +67,10 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 	for( auto It( ObjectsValue.begin() ); It != ObjectsValue.end(); ++It )
 	{
 		auto ObjectToSerialise( *It );
-		auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
+		auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassString ].asString() ) );
 		if( ClassType->getTypeSerialiser() != nullptr )
 		{
-			std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
+			std::string ID( ObjectToSerialise[ IDString ].asCString() );
 			void* pClassObject = nullptr;
 			if( ID == RootIDEntry.asCString() )
 			{
@@ -108,8 +98,8 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 	for( auto It( ObjectsValue.begin() ); It != ObjectsValue.end(); ++It )
 	{
 		auto ObjectToSerialise( *It );
-		auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassEntry ].asString() ) );
-		std::string ID( ObjectToSerialise[ IDEntry ].asCString() );
+		auto ClassType( ReManager::GetClass( ObjectToSerialise[ ClassString ].asString() ) );
+		std::string ID( ObjectToSerialise[ IDString ].asCString() );
 		auto ClassToSerialise( getSerialiseClass( ID, ClassType ) );
 
 		// Add class to list for look up.
@@ -173,7 +163,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		// Attempt conversion to object.
 		else if( InputValue.type() == Json::objectValue )
 		{
-			Json::Value ValueValue = InputValue.get( ValueEntry, Json::nullValue );
+			Json::Value ValueValue = InputValue.get( ValueString, Json::nullValue );
 			if( ValueValue.type() == Json::stringValue &&
 				Serialiser->serialiseFromString( pData, ValueValue.asString() ) )
 			{

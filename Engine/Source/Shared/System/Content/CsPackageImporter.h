@@ -197,7 +197,7 @@ private:
 			return *this;
 		}
 
-		bool operator < ( TResourceImport& Other )
+		bool operator < ( const TResourceImport& Other ) const
 		{
 			return Importer_->getImporterAttribute()->getPriority() <
 				Other.Importer_->getImporterAttribute()->getPriority();

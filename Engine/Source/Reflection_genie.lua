@@ -9,10 +9,10 @@ project "Engine_Reflection"
 	includedirs {
     "./Shared/",
     "./Platforms/Windows/",
-    psybrusSDK .. "/External/pcre/",
-    psybrusSDK .. "/External/zlib/",
-    psybrusSDK .. "/External/jsoncpp/include/",
-    psybrusSDK .. "/External/libb64/include/",
+    "../../External/pcre/",
+    "../../External/zlib/",
+    "../../External/jsoncpp/include/",
+    "../../External/libb64/include/",
     boostInclude,
   }
 

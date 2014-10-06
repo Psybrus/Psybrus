@@ -12,10 +12,10 @@ project "Engine_System_Network"
 	includedirs {
     "./Shared/",
     "./Platforms/Windows/",
-    psybrusSDK .. "/External/enet/include",
-    psybrusSDK .. "/External/jsoncpp/include/",
-    psybrusSDK .. "/External/libb64/include/",
-    psybrusSDK .. "/External/webby/",
+    "../../External/enet/include",
+    "../../External/jsoncpp/include/",
+    "../../External/libb64/include/",
+    "../../External/webby/",
     boostInclude,
   }
 

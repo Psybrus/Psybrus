@@ -13,8 +13,8 @@ project "Engine_Math"
 	includedirs {
     "./Shared/",
     "./Platforms/Windows/",
-    psybrusSDK .. "/External/pcre/",
-    psybrusSDK .. "/External/zlib/",
+    "../../External/pcre/",
+    "../../External/zlib/",
     boostInclude,
   }
 
