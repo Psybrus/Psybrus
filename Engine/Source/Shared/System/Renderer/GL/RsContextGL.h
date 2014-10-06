@@ -123,9 +123,9 @@ private:
 #if PLATFORM_WINDOWS
 	HDC WindowDC_;
 	HGLRC WindowRC_;
+#endif
 
 	RsContextGL* pParent_;
-#endif
 	OsClient* pClient_;
 
 	RsOpenGLVersion Version_;
@@ -148,7 +148,7 @@ private:
 
 	enum
 	{
-		NOOF_RENDERSTATES = RsRenderStateType::MAX,
+		NOOF_RENDERSTATES = (BcU32)RsRenderStateType::MAX,
 	};
 		
 	std::array< TRenderStateValue, NOOF_RENDERSTATES > RenderStateValues_;

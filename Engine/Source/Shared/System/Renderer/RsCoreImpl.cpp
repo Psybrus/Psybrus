@@ -20,7 +20,10 @@
 #include "System/SysKernel.h"
 
 #include "System/Renderer/GL/RsContextGL.h"
+
+#if PLATFORM_WINDOWS
 #include "System/Renderer/D3D11/RsContextD3D11.h"
+#endif
 
 #include "Psybrus.h" // cyclic.
 
@@ -145,11 +148,13 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 		if( pClient != NULL )
 		{
 			RsContext* pResource = nullptr;
+#if PLATFORM_WINDOWS
 			if( SysArgs_.find( "-d3d11" ) != std::string::npos)
 			{
 				pResource = new RsContextD3D11( pClient, nullptr );
 			}
 			else
+#endif
 			{
 				pResource = new RsContextGL( pClient, nullptr );
 			}

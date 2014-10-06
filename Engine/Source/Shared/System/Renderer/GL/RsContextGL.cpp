@@ -32,7 +32,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
-static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
+static void debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 {
 	const char* SeverityStr = "";
 	switch( severity )
@@ -598,6 +598,7 @@ void RsContextGL::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // createProfile
+#if PLATFORM_WINDOWS
 bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 {
 	int ContextAttribs[] = 
@@ -637,9 +638,9 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 
 		return true;
 	}
-
 	return false;
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // createBuffer
@@ -983,17 +984,17 @@ bool RsContextGL::createProgram(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	const auto& Shader = Program->getShaders();
+	const auto& Shaders = Program->getShaders();
 
 	// Some checks to ensure validity.
-	BcAssert( Shader.size() > 0 );	
+	BcAssert( Shaders.size() > 0 );	
 
 	// Create program.
 	GLuint Handle = glCreateProgram();
 	BcAssert( Handle != 0 );
 
 	// Attach shaders.
-	for( auto* Shader : Shader )
+	for( auto* Shader : Shaders )
 	{
 		glAttachShader( Handle, Shader->getHandle< GLuint >() );
 		RsGLCatchError();
@@ -1428,7 +1429,7 @@ void RsContextGL::flushState()
 		{
 			const BcS32 Value = RenderStateValue.Value_;
 		
-			switch( RenderStateID )
+			switch( (RsRenderStateType)RenderStateID )
 			{
 				case RsRenderStateType::DEPTH_WRITE_ENABLE:
 					glDepthMask( Value );
@@ -1581,7 +1582,7 @@ void RsContextGL::flushState()
 					glEnableVertexAttribArray( Attribute.Channel_ );
 
 					// Bind.
-					BcU32 CalcOffset = Element.Offset_;
+					BcU64 CalcOffset = Element.Offset_;
 
 					glVertexAttribPointer( Attribute.Channel_, 
 						Element.Components_,
