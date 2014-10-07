@@ -24,6 +24,8 @@
 #include "Base/BcStream.h"
 #endif
 
+#include <algorithm>
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnDebugRenderComponent );

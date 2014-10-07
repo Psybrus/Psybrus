@@ -32,6 +32,8 @@
 #include <boost/filesystem.hpp>
 #include <bitset>
 
+#undef DOMAIN // This is defined somewhere in a core header.
+
 namespace
 {
 	//////////////////////////////////////////////////////////////////////////

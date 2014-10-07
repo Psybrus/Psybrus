@@ -78,6 +78,15 @@ struct ScnShaderBuiltData
 		Code_ = std::move( Other.Code_ );
 	}
 
+	inline ScnShaderBuiltData& operator = ( ScnShaderBuiltData&& Other )
+	{
+		Hash_ = std::move( Other.Hash_ );
+		ShaderType_ = std::move( Other.ShaderType_ );
+		CodeType_ = std::move( Other.CodeType_ );
+		Code_ = std::move( Other.Code_ );
+		return *this;
+	}
+
 	inline BcBool operator == ( const ScnShaderBuiltData& Other ) const
 	{
 		return Hash_ == Other.Hash_ &&

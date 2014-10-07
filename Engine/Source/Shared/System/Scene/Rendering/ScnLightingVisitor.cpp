@@ -21,6 +21,8 @@
 
 #include "Base/BcMath.h"
 
+#include <algorithm>
+
 //////////////////////////////////////////////////////////////////////////
 // ScnLightingVisitorLightSort
 class ScnLightingVisitorLightSort
@@ -31,7 +33,7 @@ public:
 	{
 	}
 
-	bool operator()( class ScnLightComponent*& A, class ScnLightComponent*& B )
+	bool operator()( const class ScnLightComponent* A, const class ScnLightComponent* B ) const
 	{
 		BcF32 DistanceA = ( Position_ - A->getParentEntity()->getWorldPosition() ).magnitude();
 		BcF32 DistanceB = ( Position_ - B->getParentEntity()->getWorldPosition() ).magnitude();

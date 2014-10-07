@@ -27,6 +27,8 @@
 #include "System/Scene/Import/ScnEntityImport.h"
 #endif
 
+#include <algorithm>
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnEntity );

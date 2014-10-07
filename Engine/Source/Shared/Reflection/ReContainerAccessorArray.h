@@ -99,7 +99,7 @@ public:
     ReArrayContainerAccessor()
 	{
 		pKeyType_ = nullptr;
-		pValueType_ = ReManager::GetClass< ValueTraits::Type >();
+		pValueType_ = ReManager::GetClass< typename ValueTraits::Type >();
 		KeyFlags_ = 0;
 		ValueFlags_ = ValueTraits::Flags;
 	}
@@ -123,22 +123,22 @@ public:
 template < typename _Ty, size_t _Size >
 ReContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-    typedef ReTypeTraits< _Ty > ValueTraits;
 	pKeyType = nullptr;
-	pValueType = ReManager::GetClass< ValueTraits::Type >();
+	pValueType = ReManager::GetClass<
+		typename ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
-	ValueFlags = ValueTraits::Flags;
+	ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReArrayContainerAccessor< _Ty, _Size >();
 }
 		
 template < typename _Ty, size_t _Size >
 ReContainerAccessor* CreateContainerAccessor( std::array< _Ty, _Size >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
-    typedef ReTypeTraits< _Ty > ValueTraits;
 	pKeyType = nullptr;
-	pValueType = ReManager::GetClass< ValueTraits::Type >();
+	pValueType = ReManager::GetClass< 
+		typename ReTypeTraits< _Ty >::Type >();
 	KeyFlags = 0;
-	ValueFlags = ValueTraits::Flags;
+	ValueFlags = ReTypeTraits< _Ty >::Flags;
     return new ReArrayContainerAccessor< _Ty, _Size >();
 }
 

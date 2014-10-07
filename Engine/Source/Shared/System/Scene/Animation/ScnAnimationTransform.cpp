@@ -13,6 +13,8 @@
 
 #include "System/Scene/Animation/ScnAnimationTransform.h"
 
+#include <cmath>
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnAnimationTransform::ScnAnimationTransform()

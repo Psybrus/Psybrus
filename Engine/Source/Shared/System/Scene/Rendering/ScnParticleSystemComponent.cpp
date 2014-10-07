@@ -258,7 +258,8 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 						MaVec2d CornerB = MaVec2d(  1.0f, -1.0f ) * HalfSize;
 						MaVec2d CornerC = MaVec2d(  1.0f,  1.0f ) * HalfSize;
 						MaVec2d CornerD = MaVec2d( -1.0f,  1.0f ) * HalfSize;
-						if( Radians != NULL )
+						
+						if( Radians != 0.0f )
 						{
 							MaMat4d Rotation;
 							Rotation.rotation( MaVec3d( 0.0f, 0.0f, Radians ) );

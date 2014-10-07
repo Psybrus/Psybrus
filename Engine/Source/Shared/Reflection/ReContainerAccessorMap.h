@@ -1,5 +1,5 @@
-#ifndef __REFLECTION_CONTAINERACCESSORMAP_H__
 #define __REFLECTION_CONTAINERACCESSORMAP_H__
+#ifndef __REFLECTION_CONTAINERACCESSORMAP_H__
 
 #include "Reflection/ReContainerAccessor.h"
 
@@ -100,8 +100,10 @@ public:
 public:
     ReMapContainerAccessor()
 	{
-		pKeyType_ = ReManager::GetClass< KeyTraits::Type >();
-		pValueType_ = ReManager::GetClass< ValueTraits::Type >();
+		pKeyType_ = ReManager::GetClass< 
+			typename KeyTraits::Type >();
+		pValueType_ = ReManager::GetClass< 
+			typename ValueTraits::Type >();
 		KeyFlags_ = KeyTraits::Flags;
 		ValueFlags_ = ValueTraits::Flags;
 

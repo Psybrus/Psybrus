@@ -21,6 +21,8 @@
 #include <soloud_wav.h>
 #include <soloud_wavstream.h>
 
+#include <algorithm>
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( SsCoreImplSoLoud );

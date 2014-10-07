@@ -41,8 +41,8 @@ public:
 		const Json::Value& Object );
 
 private:
-	ImgImageUPtr ScnFontImport::makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, BcU32 BorderSize );
-	ImgImageUPtr ScnFontImport::makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph, BcU32 BorderSize );
+	ImgImageUPtr makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, BcU32 BorderSize );
+	ImgImageUPtr makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph, BcU32 BorderSize );
 
 private:
 	std::string Source_;

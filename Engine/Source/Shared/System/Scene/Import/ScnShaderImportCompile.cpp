@@ -14,6 +14,8 @@
 #include "ScnShaderImport.h"
 
 #include "Base/BcFile.h"
+
+#if PLATFORM_WINDOWS
 #include "Base/BcComRef.h"
 
 #include <D3DCompiler.h>
@@ -67,7 +69,7 @@ namespace
 		const std::vector< std::string >& IncludePaths_;
 	};
 }
-
+#endif // PLATFORM_WINDOWS
 
 BcBool ScnShaderImport::compileShader( 
 	const std::string& FileName,
@@ -79,7 +81,7 @@ BcBool ScnShaderImport::compileShader(
 	std::vector< std::string >& ErrorMessages )
 {
 	BcBool RetVal = BcFalse;
-
+#if PLATFORM_WINDOWS
 	CsResourceImporter::addDependency( FileName.c_str() );
 
 	std::wstring WFileName( FileName.begin(), FileName.end() );
@@ -119,7 +121,7 @@ BcBool ScnShaderImport::compileShader(
 		ErrorMessages.push_back( Error );
 		OutErrorMessages->Release();
 	}
-
+#endif // PLATFORM_WINDOWS
 	return RetVal;
 }
 
@@ -127,7 +129,7 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 	BcBinaryData& ShaderByteCode )
 {
 	RsProgramVertexAttributeList VertexAttributeList;
-
+#if PLATFORM_WINDOWS
 	BcComRef< ID3D11ShaderReflection > ShaderReflection;
 	D3D11Reflect( ShaderByteCode.getData< const BcU8 >( 0 ), ShaderByteCode.getDataSize(), &ShaderReflection );
 
@@ -141,6 +143,6 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 			VertexAttributeList.push_back( VertexAttribute );
 		}
 	}
-
+#endif // PLATFORM_WINDOWS
 	return VertexAttributeList;
 }

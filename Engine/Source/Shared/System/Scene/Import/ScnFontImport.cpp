@@ -320,8 +320,9 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, B
 						
 					ImgColour Colour = 
 					{
-						255, 255, 255, BitSet ? 255 : 0
+						255, 255, 255, 0
 					};
+					Colour.A_ = BitSet ? 255 : 0;
 						
 					pImage->setPixel( iX + BorderSize, iY + BorderSize, Colour );
 						
@@ -367,7 +368,7 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph,
 						
 					ImgColour Colour = 
 					{
-						255, 255, 255, Pixel
+						255, 255, 255, (BcU8)Pixel
 					};
 						
 					pImage->setPixel( iX + BorderSize, iY + BorderSize, Colour );
