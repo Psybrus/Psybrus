@@ -61,13 +61,13 @@ struct Factory
 	{
 		auto NameString = (*Name);
 
-		// If it doesn't begin with Class, prepend it.
-		// HACK HACK
-		if( NameString.substr( 0, 5 ) != "class" &&
-			NameString.substr( 0, 6 ) != "struct" &&
-			NameString.substr( 0, 4 ) != "enum" )
+		// If it begins with "class", "struct", or "enum", strip it.
+		// NOTE: We should move this work into the demangling stuff.
+		if( NameString.substr( 0, 6 ) == "class " ||
+			NameString.substr( 0, 7 ) == "struct " ||
+			NameString.substr( 0, 5 ) == "enum " )
 		{
-			Name = BcName( std::string( "class " + *Name ) );
+			Name = BcName( NameString.substr( NameString.find( " " ) + 1, NameString.length() - 1 ) );
 		}
 
 		// Try find class.
@@ -79,14 +79,9 @@ struct Factory
 			Types_[ Name ] = FoundType;
 		}
 
-		if( FoundType->getTypeHash() == BcHash( "ReClass" ) )
-		{
-			return static_cast< ReClass* >( FoundType );
-		}
-		else
-		{
-			return nullptr;
-		}
+		// Use dynamic cast here instead of our internal RTTI.
+		// It may still be under construction so not yet valid.
+		return dynamic_cast< ReClass* >( FoundType );
 	}
 
 	void GetClassesOfBase( std::vector< const ReClass* >& OutClasses, const ReClass* Base )
@@ -167,7 +162,6 @@ void ReManager::Init()
 	ReEnumConstant::StaticRegisterClass();
 	ReField::StaticRegisterClass();
     ReObject::StaticRegisterClass();
-			
 
 	IsInitialised_ = true;
 }
