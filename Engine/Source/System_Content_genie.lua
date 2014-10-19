@@ -14,8 +14,6 @@ project "Engine_System_Content"
     boostInclude,
   }
 
-  print( "System/Content" .. psybrusSDK )
-
 	links {
     -- Engine libs.
     "Engine_System",

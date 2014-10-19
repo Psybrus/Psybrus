@@ -32,11 +32,12 @@ public:
 	}
 
 	/**
-		* Initialisation.
-		*/
+	 * Initialisation.
+	 */
 	template< typename _Class, typename _Ty >
-	ReField( const std::string& Name,
-			_Ty( _Class::*field ),
+	ReField(
+			const std::string& Name,
+			_Ty _Class::*field,
 			BcU32 Flags = 0 ):
 		Type_( nullptr ),
 		Offset_( 0 ),
@@ -48,7 +49,13 @@ public:
         typedef ReTypeTraits< _Ty > LocalTypeTraits;
 		setName( Name );
 		setFlags( Flags | LocalTypeTraits::Flags );
-		//setOffset( offsetof( _Class, *field ) ); // TODO GCC
+
+#if COMPILER_MSVC
+		setOffset( offsetof( _Class, *field ) );
+#else
+		setOffset( (size_t)( &( ( (_Class*)( 0 ) )->*field ) ) );
+#endif // COMPILER_MSVC
+ 
 		ContainerAccessor_ = CreateContainerAccessor( ( ( _Class* ) 0 )->*field, KeyType_, ValueType_, KeyFlags_, ValueFlags_ );
 
 		// If we get a container accessor, use the value type.

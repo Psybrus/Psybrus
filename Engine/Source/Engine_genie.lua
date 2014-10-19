@@ -28,22 +28,6 @@ project "Engine"
     }
 
     links {
-    -- Engine libs.
-    "Engine_Base",
-    "Engine_Events",
-    "Engine_Import",
-    "Engine_Math",
-    "Engine_Reflection",
-    "Engine_Serialisation",
-    "Engine_System",
-    "Engine_System_Content",
-    "Engine_System_Debug",
-    "Engine_System_File",
-    "Engine_System_Network",
-    "Engine_System_Os",
-    "Engine_System_Renderer",
-    "Engine_System_Scene",
-    "Engine_System_Sound",
     }
 
     configuration "linux"

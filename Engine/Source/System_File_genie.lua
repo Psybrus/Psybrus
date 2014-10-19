@@ -13,16 +13,16 @@ project "Engine_System_File"
     boostInclude,
   }
 
-	links {
+  links {
     -- Engine libs.
     "Engine_System",
-	}
+  }
 
   configuration "linux"
       files {
-          "./Platforms/Linux/System/Content/*.h", 
-          "./Platforms/Linux/System/Content/*.inl", 
-          "./Platforms/Linux/System/Content/*.cpp", 
+          "./Platforms/Linux/System/File/*.h", 
+          "./Platforms/Linux/System/File/*.inl", 
+          "./Platforms/Linux/System/File/*.cpp", 
       }
       includedirs {
           "./Platforms/Linux/",
@@ -30,9 +30,9 @@ project "Engine_System_File"
 
   configuration "windows"
         files {
-            "./Platforms/Windows/System/Content/*.h", 
-            "./Platforms/Windows/System/Content/*.inl", 
-            "./Platforms/Windows/System/Content/*.cpp", 
+            "./Platforms/Windows/System/File/*.h", 
+            "./Platforms/Windows/System/File/*.inl", 
+            "./Platforms/Windows/System/File/*.cpp", 
         }
         includedirs {
             "./Platforms/Windows/",

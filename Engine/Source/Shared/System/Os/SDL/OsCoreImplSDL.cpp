@@ -1,0 +1,59 @@
+/**************************************************************************
+*
+* File:		OsCoreImplSDL.cpp
+* Author: 	Neil Richardson 
+* Ver/Date:	
+* Description:
+*		
+*		
+*
+*
+* 
+**************************************************************************/
+
+#include "System/Os/SDL/OsCoreImplSDL.h"
+
+#include "System/SysKernel.h"
+
+//////////////////////////////////////////////////////////////////////////
+// System Creator
+SYS_CREATOR( OsCoreImplSDL );
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+OsCoreImplSDL::OsCoreImplSDL()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+OsCoreImplSDL::~OsCoreImplSDL()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// open
+//virtual
+void OsCoreImplSDL::open()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//virtual
+void OsCoreImplSDL::update()
+{
+	OsCore::update();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// close
+//virtual
+void OsCoreImplSDL::close()
+{
+
+}
