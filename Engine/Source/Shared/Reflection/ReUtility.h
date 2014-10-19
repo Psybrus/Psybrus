@@ -16,6 +16,36 @@
 #include <list>
 #include <atomic>
 
+// Mega super awesome hack.
+// Temporary until better demangling is setup.
+#if COMPILER_GCC
+
+#include <cstdlib>
+#include <memory>
+#include <cxxabi.h>
+
+inline std::string internal_demangle( const char* Name ) 
+{
+	int Status = 1;
+
+	std::unique_ptr< char, void(*)(void*) > Res
+	{
+		abi::__cxa_demangle( Name, nullptr, nullptr, &Status ),
+		std::free
+	};
+
+	return ( Status == 0 ) ? Res.get() : Name;
+}
+
+#else
+
+inline std::string internal_demangle( const char* Name )
+{
+    return Name;
+}
+
+#endif // COMPILER_GCC
+
 //////////////////////////////////////////////////////////////////////////
 // FieldFlags
 enum ReFieldFlags
@@ -51,6 +81,7 @@ enum ReFieldFlags
 	bcRFF_ALL =						0xffffffff,
 };
 
+
 //////////////////////////////////////////////////////////////////////////
 // TypeTraits
 template< typename _Ty >
@@ -61,7 +92,8 @@ struct ReTypeTraits
 	static const bool IsEnum = std::is_enum< Type >::value;
 	static const char* Name()
 	{
-		return typeid( Type ).name();
+		static auto Name = internal_demangle( typeid( Type ).name() );
+		return Name.c_str();
 	}
 };
 		

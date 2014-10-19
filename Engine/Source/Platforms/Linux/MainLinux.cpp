@@ -51,7 +51,6 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 
 int main(int argc, char** argv)
 {
-	printf( "Shitcunt1\n" );
 	// Start.
 	std::string CommandLine;
 
@@ -76,7 +75,6 @@ int main(int argc, char** argv)
 		new BcLogFile( "log.txt" );
 	}
 
-	printf( "Shitcunt2\n" );
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
 	if( BcLog::pImpl() == NULL )
@@ -90,11 +88,8 @@ int main(int argc, char** argv)
 	BcRandom::Global = BcRandom( (BcU32)0 ); // TODO LINUX
 #endif
 
-	printf( "Shitcunt3\n" );
-
 	// Create reflection database
 	ReManager::Init();
-	printf( "Shitcunt4\n" );
 
 #if PSY_USE_PROFILER
 	// new profiler.
@@ -103,7 +98,6 @@ int main(int argc, char** argv)
 
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
-	printf( "Shitcunt5\n" );
 
 	// Register systems for creation.
 	SYS_REGISTER( "DsCore", DsCoreImpl );
@@ -114,7 +108,7 @@ int main(int argc, char** argv)
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
-	printf( "Test!\n" );
+	printf( "Test1\n" );
 
 	// Main shared.
 	MainShared();
@@ -135,7 +129,7 @@ int main(int argc, char** argv)
 	SysSystemEvent::Delegate OnPostOpenDelegateLaunchGame = SysSystemEvent::Delegate::bind< OnPostOpenScnCore_LaunchGame >();
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
 
-	printf( "Test!\n" );
+	printf( "Test2\n" );
 
 	// Init game.
 	PsyGameInit();

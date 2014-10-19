@@ -99,7 +99,7 @@
 // Compiler Identification
 
 // GCC
-#if defined( __GNU__ )
+#if defined( __GNU__ ) || defined( __GNUG__ )
 #  define COMPILER_GCC			1
 #else
 #  define COMPILER_GCC			0

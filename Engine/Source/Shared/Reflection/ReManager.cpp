@@ -47,6 +47,7 @@ struct Factory
 	{
 		// Try find class.
 		TypeMap::iterator FoundTypeIt = Types_.find( Name );
+
         ReType* FoundType = nullptr;
 		if( FoundTypeIt != Types_.end() )
 		{
@@ -58,11 +59,13 @@ struct Factory
 
 	ReClass* GetClass( BcName Name )
 	{
+		auto NameString = (*Name);
+
 		// If it doesn't begin with Class, prepend it.
 		// HACK HACK
-		if( (*Name).substr( 0, 5 ) != "class" &&
-			(*Name).substr( 0, 6 ) != "struct" &&
-			(*Name).substr( 0, 4 ) != "enum" )
+		if( NameString.substr( 0, 5 ) != "class" &&
+			NameString.substr( 0, 6 ) != "struct" &&
+			NameString.substr( 0, 4 ) != "enum" )
 		{
 			Name = BcName( std::string( "class " + *Name ) );
 		}
@@ -76,7 +79,7 @@ struct Factory
 			Types_[ Name ] = FoundType;
 		}
 
-		if( FoundType->isTypeOf< ReClass >() )
+		if( FoundType->getTypeHash() == BcHash( "ReClass" ) )
 		{
 			return static_cast< ReClass* >( FoundType );
 		}
