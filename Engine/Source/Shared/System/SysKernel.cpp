@@ -70,7 +70,7 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	CurrWorkerAllocIdx_ = 0;
 
 	// Create job workers for the number of threads we have.
-	BcU32 NoofThreads = BcMax( std::thread::hardware_concurrency(), 1 );
+	BcU32 NoofThreads = 1; // LINUX TODO: Investigate race conditions in kernel. //BcMax( std::thread::hardware_concurrency(), 1 );
 	JobWorkers_.reserve( NoofThreads );
 	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
 	{
