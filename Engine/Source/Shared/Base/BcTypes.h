@@ -106,6 +106,9 @@ namespace std
 // Linux defines
 #if PLATFORM_LINUX
 
+#include <unistd.h>
+#include <signal.h>
+
 typedef std::uint64_t				BcU64;
 typedef std::uint32_t				BcU32;
 typedef	std::uint16_t				BcU16;
@@ -126,7 +129,7 @@ typedef std::size_t					BcSize;
 #define BcTrue						BcBool( 1 )
 #define BcFalse						BcBool( 0 )
 
-#define BcBreakpoint				
+#define BcBreakpoint				raise( SIGTRAP )
 
 #define BcErrorCode					0xffffffff
 #define BcLogWrite( t )
