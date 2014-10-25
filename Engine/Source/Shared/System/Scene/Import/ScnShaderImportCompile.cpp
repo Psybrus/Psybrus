@@ -71,6 +71,10 @@ namespace
 }
 #endif // PLATFORM_WINDOWS
 
+#if PLATFORM_LINUX
+#include <cstdlib>
+#endif // PLATFORM_LINUX
+
 BcBool ScnShaderImport::compileShader( 
 	const std::string& FileName,
 	const std::string& EntryPoint,
@@ -122,6 +126,45 @@ BcBool ScnShaderImport::compileShader(
 		OutErrorMessages->Release();
 	}
 #endif // PLATFORM_WINDOWS
+
+#if PLATFORM_LINUX
+	std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+
+	// LINUX TODO: Use env path or config file.
+	auto PsybrusSDKRoot = "../../Psybrus";
+
+	std::string CommandLine = std::string( "wine " ) + PsybrusSDKRoot + "/Tools/ShaderCompiler/ShaderCompiler.exe";
+	CommandLine += std::string( " -i" ) + FileName;
+	CommandLine += std::string( " -e" ) + FileName + ".log";
+	CommandLine += std::string( " -o" ) + FileName + ".o";
+	CommandLine += std::string( " -v" ) + FileName + ".v";
+	CommandLine += std::string( " -T" ) + Target;
+	CommandLine += std::string( " -E" ) + EntryPoint;
+	for( auto Define : Defines )
+	{
+		CommandLine += " -D" + Define.first + "=" + Define.second;
+	}
+	for( auto IncludePath : IncludePaths )
+	{
+		CommandLine += " -I" + IncludePath;
+	}
+	int RetCode = std::system( CommandLine.c_str() );
+
+	// If successful, load in output file.
+	if( RetCode == 0 )
+	{
+		BcFile ByteCodeFile;
+		if( ByteCodeFile.open( ( FileName + ".o" ).c_str(), bcFM_READ ) )
+		{
+			auto ByteCode = ByteCodeFile.readAllBytes();
+			ShaderByteCode = std::move( BcBinaryData( ByteCode, ByteCodeFile.size(), BcTrue ) );
+			BcMemFree( ByteCode );
+			RetVal = BcTrue;
+		}
+	}
+
+#endif // PLATFORM_LINUX
+
 	return RetVal;
 }
 
@@ -144,5 +187,26 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 		}
 	}
 #endif // PLATFORM_WINDOWS
+
+
+#if PLATFORM_LINUX
+	struct VertexAttribute
+	{
+		char SemanticName_[ 32 ];
+		unsigned int SemanticIndex_;
+		unsigned int ChannelIdx_;
+	};
+
+	BcU32 SizeOfVertexAttrs = *ShaderByteCode.getData< BcU32 >( ShaderByteCode.getDataSize() - sizeof( BcU32 ) );
+	BcU32 NoofVertexAttrs = SizeOfVertexAttrs / sizeof( VertexAttribute );
+	VertexAttribute* VertexAttrs = ShaderByteCode.getData< VertexAttribute >( ShaderByteCode.getDataSize() - ( SizeOfVertexAttrs + sizeof( BcU32 ) ) );
+	for( BcU32 Idx = 0; Idx < NoofVertexAttrs; ++Idx )
+	{
+		auto VertexAttribute = semanticToVertexAttribute( VertexAttrs[ Idx ].ChannelIdx_, VertexAttrs[ Idx ].SemanticName_, VertexAttrs[ Idx ].SemanticIndex_ ); 
+		VertexAttributeList.push_back( VertexAttribute );
+	}
+
+#endif // PLATFORM_LINUX
+
 	return VertexAttributeList;
 }
