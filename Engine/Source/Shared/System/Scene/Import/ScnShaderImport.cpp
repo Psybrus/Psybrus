@@ -221,6 +221,9 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		return BcFalse;
 	}
 
+	// Reset errors building.
+	GotErrorBuilding_.store( 0 );
+
 #if PLATFORM_WINDOWS
 	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
 	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
@@ -229,7 +232,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
 	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
-#else
+#elif PLATFORM_LINUX
 	// LINUX TODO: Use env path or config file.
 	auto PsybrusSDKRoot = "../../Psybrus";
 
