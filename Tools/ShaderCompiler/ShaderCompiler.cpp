@@ -64,6 +64,7 @@ void writeDocumentation()
 	std::cout << "-i<filename> = Input file. I.e. -idefault.hlsl" << std::endl;
 	std::cout << "-e<filename> = Error file. I.e. -edefault.log" << std::endl;
 	std::cout << "-o<filename> = Output file. I.e. -odefault.o" << std::endl;
+	std::cout << "-v<filename> = Vertex info file. I.e. -vdefault.v" << std::endl;
 	std::cout << "-T<entry> = Target shader. I.e. -Tvs_4_0, -Tps_5_0, etc.. See D3D10+11/FXC documentation." << std::endl;
 	std::cout << "-E<target> = Shader entrypoint. I.e. -EvertexMain, -EhullMain, etc.." << std::endl;
 	std::cout << "-I<includepath> = Include path. I.e. -IZ:\\home\\builder\\includes\\" << std::endl;
@@ -78,6 +79,7 @@ int main( int argc, char* argv[] )
 	std::string InputFileName;
 	std::string ErrorFileName;
 	std::string OutputFileName;
+	std::string VertexFileName;
 	std::string EntryPoint;
 	std::string Target;
 	std::vector< std::string > IncludePaths;
@@ -102,6 +104,10 @@ int main( int argc, char* argv[] )
 		{
 			OutputFileName = Arg.substr( 2, Arg.size() - Cmd.size() );
 		}
+		else if( Cmd == "-v" )
+		{
+			VertexFileName = Arg.substr( 2, Arg.size() - Cmd.size() );
+		}
 		else if( Cmd == "-E" )
 		{
 			EntryPoint = Arg.substr( 2, Arg.size() - Cmd.size() );
@@ -121,7 +127,6 @@ int main( int argc, char* argv[] )
 			auto DefineAssign = FullDefine.find( "=" );
 			if( DefineAssign == std::string::npos )
 			{
-				std::cout << "-D" << FullDefine << std::endl;
 				Defines[ FullDefine ] = "1";
 			}
 			else
@@ -129,7 +134,6 @@ int main( int argc, char* argv[] )
 				auto Define = FullDefine.substr( 0, DefineAssign );
 				auto Value = FullDefine.substr( DefineAssign + 1, FullDefine.size() - DefineAssign + 1 );
 				Defines[ Define ] = Value;
-				std::cout << "-D" << Define << "=" << Value << std::endl;
 			}
 			auto IncludePath = Arg.substr( 2, Arg.size() - Cmd.size() );
 			IncludePaths.push_back( IncludePath );
@@ -191,9 +195,8 @@ int main( int argc, char* argv[] )
 		size_t BufferSize = OutByteCode->GetBufferSize();
 		LPVOID BufferData = OutByteCode->GetBufferPointer();
 
-		// Write out the size of the byte code and the byte code.
+		// Write out the byte code.
 		BlockSize = BufferSize;
-		OutFile.write( (const char*)&BlockSize, sizeof( BlockSize ) );
 		OutFile.write( (const char*)BufferData, BufferSize );
 
 		// Parse out reflection data.
@@ -228,8 +231,8 @@ int main( int argc, char* argv[] )
 			}
 
 			BlockSize = VertexAttributes.size() * sizeof( VertexAttribute );
-			OutFile.write( (const char*)&BlockSize, sizeof( BlockSize ) );
 			OutFile.write( (const char*)&VertexAttributes[ 0 ], BlockSize );
+			OutFile.write( (const char*)&BlockSize, sizeof( BlockSize ) );
 
 			RetVal = true;
 		}
