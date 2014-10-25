@@ -54,6 +54,18 @@ void OsCoreImplSDL::open()
 void OsCoreImplSDL::update()
 {
 	OsCore::update();
+
+	SDL_Event Event;
+	{
+		while( SDL_PollEvent( &Event ) )
+		{
+			switch( Event.type )
+			{
+				case SDL_QUIT:
+				break;
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
