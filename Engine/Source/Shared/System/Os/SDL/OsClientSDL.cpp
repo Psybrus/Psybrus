@@ -127,7 +127,13 @@ OsClientSDL::~OsClientSDL()
 // create
 BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible )
 {
-	return BcFalse;
+	SDLWindow_ = SDL_CreateWindow( pTitle, 100, 100, Width, Height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+	if ( SDLWindow_ == nullptr )
+	{
+		return BcFalse;
+	}
+	
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,7 +147,8 @@ void OsClientSDL::update()
 // destroy
 void OsClientSDL::destroy()
 {	
-
+	SDL_DestroyWindow( SDLWindow_ );
+	SDLWindow_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +156,7 @@ void OsClientSDL::destroy()
 //virtual
 BcHandle OsClientSDL::getDeviceHandle()
 {
-	return (BcHandle)0;
+	return (BcHandle)SDLWindow_;
 }
 
 //////////////////////////////////////////////////////////////////////////

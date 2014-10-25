@@ -7,6 +7,7 @@
 #include "System/SysKernel.h"
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
+#include "System/Os/SDL/OsClientSDL.h"
 
 #include "System/SysProfilerChromeTracing.h"
 
@@ -31,8 +32,7 @@ extern BcU32 GResolutionHeight;
 
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 {
-#if 0
-	OsClientWindows* pMainWindow = new OsClientWindows();
+	OsClientSDL* pMainWindow = new OsClientSDL();
 	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
@@ -45,7 +45,7 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 		RsContext* pContext = RsCore::pImpl()->getContext( pMainWindow );
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
 	}
-#endif
+
 	return evtRET_REMOVE;
 }
 

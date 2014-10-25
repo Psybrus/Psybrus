@@ -31,18 +31,18 @@ public:
 	/**
 	*	Create window.
 	*/
-	BcBool			create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
+	BcBool create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
 
 	/**
 	 *	Update.
 	 */
-	virtual void	update();
+	virtual void update();
 
 
 	/**
 	*	Destroy window.
 	*/
-	void			destroy();
+	void destroy();
 
 	/**
 	 * Get device handle.
@@ -77,16 +77,18 @@ public:
 private:
 	typedef std::map< BcU16, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
-	TKeyCodeMap		KeyCodeMap_;
+	TKeyCodeMap KeyCodeMap_;
 
-	BcBool			MouseLocked_;
+	BcBool MouseLocked_;
 	
-	BcS16			PrevMouseX_;
-	BcS16			PrevMouseY_;
+	BcS16 PrevMouseX_;
+	BcS16 PrevMouseY_;
 
-	MaVec2d			MousePrevDelta_;
-	MaVec2d			MouseDelta_;
-	MaVec2d			MousePos_;
+	MaVec2d MousePrevDelta_;
+	MaVec2d MouseDelta_;
+	MaVec2d MousePos_;
+
+	SDL_Window* SDLWindow_;
 };
 
 #endif

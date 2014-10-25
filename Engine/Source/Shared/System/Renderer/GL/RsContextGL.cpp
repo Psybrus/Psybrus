@@ -437,6 +437,10 @@ void RsContextGL::presentBackBuffer()
 	::SwapBuffers( WindowDC_ );
 #endif
 
+#if PLATFORM_LINUX
+	SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
+#endif
+
 	RsGLCatchError();
 }
 
@@ -543,6 +547,50 @@ void RsContextGL::create()
 	}
 #endif
 
+#if PLATFORM_LINUX	
+	// Attempt to create core profile.
+	RsOpenGLVersion Versions[] = 
+	{
+		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
+		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
+		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
+		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
+		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
+		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
+		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
+		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+	};
+
+	BcAssert( pParent_ == nullptr );
+	SDL_Window* Window = reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() );
+	bool Success = false;
+	for( auto Version : Versions )
+	{
+		if( createProfile( Version, Window ) )
+		{
+			Version_ = Version;
+			BcPrintf( "RsContextGL: Created OpenGL %u.%u %s Profile.\n", 
+				Version.Major_, 
+				Version.Minor_,
+				Version.Type_ == RsOpenGLType::CORE ? "Core" : "Compatibility" );
+			break;
+		}
+		else
+		{
+			BcPrintf( "RsContextGL: Failed to create OpenGL %u.%u %s Profile.\n", 
+				Version.Major_, 
+				Version.Minor_,
+				Version.Type_ == RsOpenGLType::CORE ? "Core" : "Compatibility" );
+
+		}
+	}
+
+	// Init GLEW.
+	glewExperimental = 1;
+	glewInit();
+	glGetError();
+#endif
+
 	// Debug output extension.	
 #if !defined( PSY_PRODUCTION )
 	if( GLEW_ARB_debug_output )
@@ -550,14 +598,16 @@ void RsContextGL::create()
 		glDebugMessageCallbackARB( debugOutput, nullptr );
 	}
 #endif
-
-	// Create + bind global VAO.
-	glGenVertexArrays( 1, &GlobalVAO_ );
-	glBindVertexArray( GlobalVAO_ );
-
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
+
+	// Create + bind global VAO.
+	BcAssert( glGenVertexArrays != nullptr );
+	BcAssert( glBindVertexArray != nullptr );
+
+	glGenVertexArrays( 1, &GlobalVAO_ );
+	glBindVertexArray( GlobalVAO_ );
 
 	//
 	RsGLCatchError();
@@ -593,6 +643,10 @@ void RsContextGL::destroy()
 	// Destroy rendering context.
 	wglMakeCurrent( WindowDC_, NULL );
 	wglDeleteContext( WindowRC_ );
+#endif
+
+#if PLATFORM_LINUX
+	SDL_GL_DeleteContext( SDLGLContext_ );
 #endif
 }
 
@@ -639,6 +693,33 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 		return true;
 	}
 	return false;
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// createProfile
+#if PLATFORM_LINUX
+bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
+{
+	switch( Version.Type_ )
+	{
+	case RsOpenGLType::CORE:
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+		break;
+	case RsOpenGLType::COMPATIBILITY:
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY );
+		break;
+	case RsOpenGLType::ES:
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES );
+		break;
+	}
+
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, Version.Major_ );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, Version.Minor_ );
+
+	SDLGLContext_ = SDL_GL_CreateContext( Window );
+
+	return SDLGLContext_ != nullptr;
 }
 #endif
 

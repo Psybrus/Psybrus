@@ -15,6 +15,7 @@
 #define __OsCoreImplSDL_H__
 
 #include "System/Os/OsCore.h"
+#include "System/Os/SDL/OsSDL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsCoreImplSDL

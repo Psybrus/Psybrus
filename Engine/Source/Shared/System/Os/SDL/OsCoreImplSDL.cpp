@@ -39,6 +39,12 @@ OsCoreImplSDL::~OsCoreImplSDL()
 //virtual
 void OsCoreImplSDL::open()
 {
+	if ( SDL_Init( SDL_INIT_EVERYTHING ) != 0 )
+	{
+		BcPrintf( "SDL_Init Error: %u\n", SDL_GetError() );
+		BcBreakpoint;
+	}
+
 
 }
 
@@ -55,5 +61,5 @@ void OsCoreImplSDL::update()
 //virtual
 void OsCoreImplSDL::close()
 {
-
+	SDL_Quit();
 }

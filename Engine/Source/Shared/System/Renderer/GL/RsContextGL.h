@@ -21,6 +21,10 @@
 
 #include "Base/BcMisc.h"
 
+#if PLATFORM_LINUX
+#include <SDL2/SDL.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // RsContextGL
 class RsContextGL:
@@ -119,10 +123,18 @@ protected:
 	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext );
 #endif
 
+#if PLATFORM_LINUX
+	bool createProfile( RsOpenGLVersion Version, SDL_Window* Window );
+#endif
+
 private:
 #if PLATFORM_WINDOWS
 	HDC WindowDC_;
 	HGLRC WindowRC_;
+#endif
+
+#if PLATFORM_LINUX
+	SDL_GLContext SDLGLContext_;
 #endif
 
 	RsContextGL* pParent_;

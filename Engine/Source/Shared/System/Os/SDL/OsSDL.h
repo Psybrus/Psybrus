@@ -14,7 +14,7 @@
 #ifndef __OSSDL_H__
 #define __OSSDL_H__
 
-#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL.h>
 
 #endif
 
