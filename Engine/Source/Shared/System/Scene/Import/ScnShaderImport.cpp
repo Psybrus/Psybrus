@@ -214,9 +214,6 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		return BcFalse;
 	}
 
-	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
-	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
-
 	// Entry points.
 	if( Entrypoints_.size() == 0 )
 	{
@@ -224,10 +221,23 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		return BcFalse;
 	}
 
+#if PLATFORM_WINDOWS
+	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
+	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
+
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
 	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
+#else
+	// LINUX TODO: Use env path or config file.
+	auto PsybrusSDKRoot = "../../Psybrus";
+
+	// Setup include paths.
+	IncludePaths_.clear();
+	IncludePaths_.push_back( "./" );
+	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "/Dist/Content/Engine/" );
+#endif
 	
 	// Setup permutations.
 	ScnShaderPermutation Permutation;
