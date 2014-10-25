@@ -54,10 +54,9 @@ void BcLogImpl::write( const BcChar* pText, ... )
 // write
 void BcLogImpl::write( BcU32 Catagory, const BcChar* pText, ... )
 {
-	std::lock_guard< std::mutex > Lock( Lock_ );
-
 	if( getCatagorySuppression( Catagory ) == BcFalse )
 	{
+		std::lock_guard< std::mutex > Lock( Lock_ );
 		va_list ArgList;
 		va_start( ArgList, pText );
 		privateWrite( pText, ArgList );
