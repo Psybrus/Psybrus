@@ -48,7 +48,7 @@ depending on the PRIV macro. */
 
 /* Define PCRE_DEBUG to get debugging output on stdout. */
 
-#if 1
+#if 0
 #define PCRE_DEBUG
 #endif
 
