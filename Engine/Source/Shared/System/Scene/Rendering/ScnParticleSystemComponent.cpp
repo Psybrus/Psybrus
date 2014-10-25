@@ -86,12 +86,18 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 
 	// Cache texture bounds.
 	ScnTextureRef Texture = Material_->getTexture( "aDiffuseTex" );
-	for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
+	if( Texture.isValid() )
 	{
-		ScnRect Rect = Texture->getRect( Idx );
-		UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
+		for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
+		{
+			ScnRect Rect = Texture->getRect( Idx );
+			UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
+		}
 	}
-
+	else
+	{
+		UVBounds_.push_back( MaVec4d( 0.0f, 0.0f, 1.0f, 1.0f ) );
+	}
 	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 	pParticleBuffer_ = NULL;
 	CurrentVertexBuffer_ = 0;
