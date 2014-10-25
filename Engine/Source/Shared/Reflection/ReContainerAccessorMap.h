@@ -1,5 +1,5 @@
-#define __REFLECTION_CONTAINERACCESSORMAP_H__
 #ifndef __REFLECTION_CONTAINERACCESSORMAP_H__
+#define __REFLECTION_CONTAINERACCESSORMAP_H__
 
 #include "Reflection/ReContainerAccessor.h"
 
@@ -126,7 +126,6 @@ public:
 		return new MapReadIterator( *reinterpret_cast< Container* >( pContainerData ) );
 	}
 };
-
 	
 template < typename _Key, typename _Ty, typename _Pr, typename _Alloc >
 ReContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
