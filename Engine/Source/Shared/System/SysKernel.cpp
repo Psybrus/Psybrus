@@ -342,7 +342,7 @@ size_t SysKernel::workerCount() const
 BcBool SysKernel::pushJob( size_t JobQueueId, SysJob* pJob )
 {
 	// Check if we're out of range.
-	if( JobQueueId < JobQueues_.size() )
+	if( 0 && JobQueueId < JobQueues_.size() )
 	{
 		return JobQueues_[ JobQueueId ]->pushJob( pJob );
 	}
