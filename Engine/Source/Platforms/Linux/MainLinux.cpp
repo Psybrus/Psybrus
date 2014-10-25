@@ -108,8 +108,6 @@ int main(int argc, char** argv)
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
-	printf( "Test1\n" );
-
 	// Main shared.
 	MainShared();
 
@@ -128,8 +126,6 @@ int main(int argc, char** argv)
 
 	SysSystemEvent::Delegate OnPostOpenDelegateLaunchGame = SysSystemEvent::Delegate::bind< OnPostOpenScnCore_LaunchGame >();
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
-
-	printf( "Test2\n" );
 
 	// Init game.
 	PsyGameInit();
