@@ -46,7 +46,8 @@ CsPackage::CsPackage()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPackage::CsPackage( const BcName& Name ):
-	pLoader_( NULL )
+	RefCount_( 0 ),
+	pLoader_( nullptr )
 {
 	setName( Name );
 

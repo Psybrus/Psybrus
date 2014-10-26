@@ -221,7 +221,8 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		for( BcU32 Idx = 0; Idx < StringList_.size(); ++Idx )
 		{
 			const std::string& StringEntry( StringList_[ Idx ] );
-			StringTableStream.push( StringEntry.c_str(), StringEntry.size() + 1 );
+			StringTableStream.push( StringEntry.c_str(), StringEntry.size() );
+			StringTableStream << '\0';
 		}	
 
 		// Setup header.

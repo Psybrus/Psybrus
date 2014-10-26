@@ -62,6 +62,7 @@ void OsCoreImplSDL::update()
 			switch( Event.type )
 			{
 				case SDL_QUIT:
+				exit(1);
 				break;
 			}
 		}

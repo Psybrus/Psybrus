@@ -31,6 +31,10 @@ std::atomic< BcU32 > ReObject::UniqueIdCounter_;
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ReObject::ReObject():
+#if REFLECTION_ENABLE_GC
+	RefCount_( 0 ),
+#endif
+	Flags_( 0 ),
 	Owner_( nullptr ),
 	Basis_( nullptr )
 {
@@ -40,6 +44,10 @@ ReObject::ReObject():
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ReObject::ReObject( ReNoInit ):
+#if REFLECTION_ENABLE_GC
+	RefCount_( 0 ),
+#endif
+	Flags_( 0 ),
 	Owner_( nullptr ),
 	Basis_( nullptr )
 {

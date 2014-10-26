@@ -569,7 +569,10 @@ void CsPackageLoader::initialiseResources()
 
 		// Allocate resource, and signal ready.
 		ReObjectRef< CsResource > Handle;
-		if( CsCore::pImpl()->internalCreateResource( Name, ReManager::GetClass( *Type ), ResourceIdx, pPackage_, Handle ) )
+		auto Class = ReManager::GetClass( *Type );
+		BcAssertMsg( Class, "CsPackageLoader: Unable to find class %s for resource", (*Type).c_str(), (*Name).c_str() );
+
+		if( CsCore::pImpl()->internalCreateResource( Name, Class, ResourceIdx, pPackage_, Handle ) )
 		{
 			// Initialise.
 			Handle->initialise();
@@ -584,7 +587,7 @@ void CsPackageLoader::initialiseResources()
 		else
 		{
 			// We can't create the resource.
-			BcAssertMsg( BcFalse, "CsPackageLoader: Unable to create resource \"%s\" of type \"%s\"", (*Name).c_str(), (*Type).c_str() );
+			BcAssertMsg( BcFalse, "CsPackageLoader: Unable to create resource \"%s\" of type \"%s\".", (*Name).c_str(), (*Type).c_str() );
 		}
 	}
 }

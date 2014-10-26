@@ -20,7 +20,8 @@
 // Ctor
 SysJobQueue::SysJobQueue( class SysKernel* Parent ):
 	Parent_( Parent ),
-	JobQueue_( 32 )
+	JobQueue_( 32 ),
+	NoofJobs_( 0 )
 {
 
 }
