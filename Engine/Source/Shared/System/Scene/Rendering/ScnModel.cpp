@@ -282,6 +282,7 @@ void ScnModelComponent::StaticRegisterClass()
 //virtual 
 void ScnModelComponent::initialise()
 {
+	Super::initialise();
 	Layer_ = 0;
 	Pass_ = 0;
 }
