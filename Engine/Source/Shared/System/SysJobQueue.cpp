@@ -55,7 +55,9 @@ BcBool SysJobQueue::pushJob( SysJob* Job )
 	{
 		BcBreakpoint;
 	}
+
 	Parent_->notifySchedule();
+
 	return RetVal;
 }
 

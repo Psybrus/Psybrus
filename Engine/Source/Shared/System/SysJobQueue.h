@@ -27,7 +27,7 @@
 #include <condition_variable>
 
 // Set to 1 to enable use of boost lockfree queue.
-#define USE_BOOST_LOCKFREE_QUEUE 0 
+#define USE_BOOST_LOCKFREE_QUEUE 1
 
 #if USE_BOOST_LOCKFREE_QUEUE
 #include <boost/lockfree/policies.hpp>

@@ -72,37 +72,14 @@ void SysJobWorker::stop()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// updateJobQueues
-void SysJobWorker::updateJobQueues( SysJobQueueList JobQueues )
+// addJobQueue
+void SysJobWorker::addJobQueue( SysJobQueue* JobQueue )
 {
 	BcAssert( BcIsGameThread() );
 
 	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
-	NextJobQueues_ = std::move( JobQueues );
+	NextJobQueues_.push_back( JobQueue );
 	++PendingJobQueue_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getJobQueueList
-SysJobQueueList SysJobWorker::getJobQueueList() const
-{
-	BcAssert( BcIsGameThread() );
-
-	// Wait until pending job queue is being copied in.
-	waitForPendingJobQueueList();
-
-	// Return current.
-	return CurrJobQueues_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// anyJobsWaiting
-void SysJobWorker::waitForPendingJobQueueList() const
-{
-	while( PendingJobQueue_.load( std::memory_order_relaxed ) > 0 )
-	{
-		std::this_thread::yield();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,7 +122,7 @@ void SysJobWorker::execute()
 		if( PendingJobQueue_.load() > 0 )
 		{
 			std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
-			CurrJobQueues_ = std::move( NextJobQueues_ );
+			CurrJobQueues_.insert( CurrJobQueues_.end(), NextJobQueues_.begin(), NextJobQueues_.end() );
 
 			// Wrap job queue index round to fit into new size.
 			JobQueueIndex_ = JobQueueIndex_ % CurrJobQueues_.size();

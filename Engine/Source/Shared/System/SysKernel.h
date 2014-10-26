@@ -223,8 +223,22 @@ private:
 	template < class _Predicate >
 	inline void waitForSchedule( std::mutex& Mutex, _Predicate Pred )
 	{
+		// NOTE: condition variable used here seems to be a problem.
+		//       Need to read up on correct usage, as it seems
+		//       to work perfectly in Windows, and not in Linux.
+#if PLATFORM_LINUX
+		bool WaitPred = !Pred();
+		while( WaitPred )
+		{
+			BcSleep( 0.001f );
+			Mutex.lock();
+			WaitPred = !Pred();
+			Mutex.unlock();
+		}
+#else
 		std::unique_lock< std::mutex > Lock( Mutex );
 		JobQueued_.wait( Lock, Pred );
+#endif
 	}
 
 	/**

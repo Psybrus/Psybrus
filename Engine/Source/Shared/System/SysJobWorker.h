@@ -47,19 +47,9 @@ public:
 	void					stop();
 
 	/**
-	 * Update job queues.
+	 * Add job queue.
 	 */
-	void					updateJobQueues( SysJobQueueList JobQueues );
-
-	/**
-	 * Get current job queue list.
-	 */
-	SysJobQueueList			getJobQueueList() const;
-
-	/**
-	 * Wait for pending job queue list.
-	 */
-	void					waitForPendingJobQueueList() const;
+	void					addJobQueue( SysJobQueue* JobQueue );
 
 	/**
 	 * Do we have any jobs waiting?
@@ -77,6 +67,7 @@ private:
 	std::mutex				JobQueuesLock_;
 
 	SysJobQueueList			NextJobQueues_;
+
 	SysJobQueueList			CurrJobQueues_;
 	size_t					JobQueueIndex_;
 };
