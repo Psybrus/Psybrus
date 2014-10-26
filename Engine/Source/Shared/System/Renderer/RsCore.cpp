@@ -188,6 +188,7 @@ void RsCore::StaticRegisterClass()
 
 	ReEnumConstant* RsShaderCodeTypeEnumConstants[] = 
 	{
+		new ReEnumConstant( "GLSL_140", (BcU32)RsShaderCodeType::GLSL_140 ),
 		new ReEnumConstant( "GLSL_150", (BcU32)RsShaderCodeType::GLSL_150 ),
 		new ReEnumConstant( "GLSL_330", (BcU32)RsShaderCodeType::GLSL_330 ),
 		new ReEnumConstant( "GLSL_400", (BcU32)RsShaderCodeType::GLSL_400 ),

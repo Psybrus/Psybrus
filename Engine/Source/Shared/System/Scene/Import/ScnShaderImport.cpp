@@ -112,6 +112,8 @@ namespace
 		          BackendType == RsShaderBackendType::GLSL_ES );
 		switch( CodeType )
 		{
+		case RsShaderCodeType::GLSL_140:
+			return LANG_140;
 		case RsShaderCodeType::GLSL_150:
 			return LANG_150;
 		case RsShaderCodeType::GLSL_330:
@@ -223,6 +225,9 @@ BcBool ScnShaderImport::import( const Json::Value& )
 
 	// Reset errors building.
 	GotErrorBuilding_.store( 0 );
+
+	// Reset pending permutations.
+	PendingPermutations_.store( 0 );
 
 #if PLATFORM_WINDOWS
 	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );

@@ -444,7 +444,8 @@ enum class RsShaderBackendType : BcU32
 enum class RsShaderCodeType : BcU32
 {
 	// GLSL
-	GLSL_150 = 0,
+	GLSL_140,
+	GLSL_150,
 	GLSL_330,
 	GLSL_400,
 	GLSL_410,

@@ -53,7 +53,7 @@ static void debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, 
 
 	static bool ShowNotifications = false;
 
-	if( severity != GL_DEBUG_SEVERITY_NOTIFICATION || ShowNotifications )
+	//if( severity != GL_DEBUG_SEVERITY_NOTIFICATION || ShowNotifications )
 	{
 		BcPrintf( "Source: %x, Type: %x, Id: %x, Severity: %s\n - %s\n",
 			source, type, id, SeverityStr, message );
@@ -312,6 +312,13 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
 	switch( CodeType )
 	{
+	case RsShaderCodeType::GLSL_140:
+		if( Version_.Major_ >= 3 &&
+			Version_.Minor_ >= 1 &&
+			Version_.Type_ == RsOpenGLType::CORE )
+		{
+			return BcTrue;
+		}
 	case RsShaderCodeType::GLSL_150:
 		if( Version_.Major_ >= 3 &&
 			Version_.Minor_ >= 2 &&
@@ -558,12 +565,12 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
-		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
-		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
-		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
-		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
-		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
-		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
+		//RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
+		//RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
+		//RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
+		//RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
+		//RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
+		//RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
 	};
@@ -612,7 +619,6 @@ void RsContextGL::create()
 	// Create + bind global VAO.
 	BcAssert( glGenVertexArrays != nullptr );
 	BcAssert( glBindVertexArray != nullptr );
-
 	glGenVertexArrays( 1, &GlobalVAO_ );
 	glBindVertexArray( GlobalVAO_ );
 
@@ -725,6 +731,12 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, Version.Minor_ );
 
 	SDLGLContext_ = SDL_GL_CreateContext( Window );
+
+	if( SDLGLContext_ != nullptr )
+	{
+		SDL_GL_MakeCurrent( Window, SDLGLContext_ );
+		SDL_GL_SetSwapInterval( 1 );
+	}
 
 	return SDLGLContext_ != nullptr;
 }
@@ -1704,6 +1716,8 @@ void RsContextGL::clear( const RsColour& Colour )
 {
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
+	glClearDepth( 1.0f );
+	glClearStencil( 0 );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
 	RsGLCatchError();
 }
