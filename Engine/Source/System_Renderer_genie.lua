@@ -12,6 +12,7 @@ project "Engine_System_Renderer"
     "../../External/glew/include",
     "../../External/jsoncpp/include/",
     "../../External/libb64/include/",
+    "../../External/SDL2/include/",
     boostInclude,
   }
 

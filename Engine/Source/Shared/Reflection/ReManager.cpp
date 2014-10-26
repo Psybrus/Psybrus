@@ -102,6 +102,15 @@ struct Factory
 
 	ReEnum* GetEnum( BcName Name )
 	{
+		auto NameString = ( *Name );
+
+		// If it begins with "class", "struct", or "enum", strip it.
+		// NOTE: We should move this work into the demangling stuff.
+		if( NameString.substr( 0, 5 ) == "enum " )
+		{
+			Name = BcName( NameString.substr( NameString.find( " " ) + 1, NameString.length() - 1 ) );
+		}
+
 		// Try find class.
         ReType* FoundType = GetType( Name );
 		if( FoundType == nullptr )

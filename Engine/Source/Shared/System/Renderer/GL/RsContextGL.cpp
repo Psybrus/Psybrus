@@ -32,7 +32,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
-static void debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
+#if PLATFORM_WINDOWS
+static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
+#else
+static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam )
+#endif
 {
 	const char* SeverityStr = "";
 	switch( severity )

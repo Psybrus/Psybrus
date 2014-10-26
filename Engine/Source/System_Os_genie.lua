@@ -10,6 +10,7 @@ project "Engine_System_Os"
     "./Shared/",
     "../../External/jsoncpp/include/",
     "../../External/libb64/include/",
+    "../../External/SDL2/include/",
     boostInclude,
   }
 

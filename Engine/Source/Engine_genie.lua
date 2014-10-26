@@ -17,6 +17,7 @@ project "Engine"
         "../../External/jsoncpp/include/",
         "../../External/libb64/include/",
         "../../External/png/",
+        "../../External/SDL2/include/",
         "../../External/squish/",
         "../../External/webby/",
         "../../External/zlib/",
