@@ -89,6 +89,8 @@ private:
 	MaVec2d MousePos_;
 
 	SDL_Window* SDLWindow_;
+	BcU32 Width_;
+	BcU32 Height_;
 };
 
 #endif

@@ -132,6 +132,9 @@ BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width
 	{
 		return BcFalse;
 	}
+
+	Width_ = Width;
+	Height_ = Height;
 	
 	return BcTrue;
 }
@@ -164,7 +167,7 @@ BcHandle OsClientSDL::getDeviceHandle()
 //virtual
 BcU32 OsClientSDL::getWidth() const
 {
-	return 0;
+	return Width_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -172,7 +175,7 @@ BcU32 OsClientSDL::getWidth() const
 //virtual
 BcU32 OsClientSDL::getHeight() const
 {
-	return 0;
+	return Height_;
 }
 
 //////////////////////////////////////////////////////////////////////////
