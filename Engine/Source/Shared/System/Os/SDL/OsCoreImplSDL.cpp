@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Os/SDL/OsCoreImplSDL.h"
+#include "System/Os/SDL/OsClientSDL.h"
 
 #include "System/SysKernel.h"
 
@@ -61,8 +62,21 @@ void OsCoreImplSDL::update()
 		{
 			switch( Event.type )
 			{
-				case SDL_QUIT:
+			case SDL_QUIT:
 				exit(1);
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEMOTION:
+				for( auto Client : ClientList_ )
+				{
+					OsClientSDL* SDLClient = dynamic_cast< OsClientSDL* >( Client );
+					if( SDLClient->getWindowId() == Event.window.windowID )
+					{
+						SDLClient->handleEvent( Event );
+					}
+				}
 				break;
 			}
 		}

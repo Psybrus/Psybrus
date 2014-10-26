@@ -169,9 +169,9 @@ struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 		KEYCODE_ZOOM
 	};
 
-	BcU16			KeyCode_;			///!< Key code.
-	BcU16			ScanCode_;			///!< Scan code.
-	BcU16			AsciiCode_;			///!< ASCII code.
+	BcU32			KeyCode_;			///!< Key code.
+	BcU32			ScanCode_;			///!< Scan code.
+	BcU32			AsciiCode_;			///!< ASCII code.
 };
 
 ////////////////////////////////////////////////////////////////////////////////

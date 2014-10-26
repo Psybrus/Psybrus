@@ -32,9 +32,9 @@ public:
 
 private:
 	// Events.
-	OsEventCore				EventCore_;
-	OsEventInputKeyboard	EventInputKeyboard_;
-	OsEventInputMouse		EventInputMouse_;
+	OsEventCore EventCore_;
+	OsEventInputKeyboard EventInputKeyboard_;
+	OsEventInputMouse EventInputMouse_;
 };
 
 #endif

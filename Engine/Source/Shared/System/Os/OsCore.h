@@ -55,7 +55,7 @@ public:
 	 */
 	OsClient* getClient( size_t Index );
 
-private:
+protected:
 	typedef std::vector< OsClient* > TClientList;
 	typedef TClientList::iterator TClientListIterator;
 

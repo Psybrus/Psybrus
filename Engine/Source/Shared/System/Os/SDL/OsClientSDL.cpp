@@ -26,25 +26,16 @@ static BcU32 gClassID_ = 0;
 // Ctor
 OsClientSDL::OsClientSDL()
 {
-#if 0
 	// Setup keycode map.
-	KeyCodeMap_[ SDLK_LBUTTON ] = OsEventInputKeyboard::KEYCODE_LBUTTON;
-	KeyCodeMap_[ SDLK_RBUTTON ] = OsEventInputKeyboard::KEYCODE_RBUTTON;
 	KeyCodeMap_[ SDLK_CANCEL ] = OsEventInputKeyboard::KEYCODE_CANCEL;
-	KeyCodeMap_[ SDLK_MBUTTON ] = OsEventInputKeyboard::KEYCODE_MBUTTON;
-	KeyCodeMap_[ SDLK_BACK ] = OsEventInputKeyboard::KEYCODE_BACKSPACE;
 	KeyCodeMap_[ SDLK_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
 	KeyCodeMap_[ SDLK_CLEAR ] = OsEventInputKeyboard::KEYCODE_CLEAR;
 	KeyCodeMap_[ SDLK_RETURN ] = OsEventInputKeyboard::KEYCODE_RETURN;
-	KeyCodeMap_[ SDLK_SHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;
-	KeyCodeMap_[ SDLK_CONTROL ] = OsEventInputKeyboard::KEYCODE_CONTROL;
 	KeyCodeMap_[ SDLK_MENU ] = OsEventInputKeyboard::KEYCODE_ALT;
 	KeyCodeMap_[ SDLK_PAUSE ] = OsEventInputKeyboard::KEYCODE_PAUSE;
-	KeyCodeMap_[ SDLK_CAPITAL ] = OsEventInputKeyboard::KEYCODE_CAPSLOCK;
 	KeyCodeMap_[ SDLK_ESCAPE ] = OsEventInputKeyboard::KEYCODE_ESCAPE;
 	KeyCodeMap_[ SDLK_SPACE ] = OsEventInputKeyboard::KEYCODE_SPACE;
 	KeyCodeMap_[ SDLK_PRIOR ] = OsEventInputKeyboard::KEYCODE_PGUP;
-	KeyCodeMap_[ SDLK_NEXT ] = OsEventInputKeyboard::KEYCODE_PGDN;
 	KeyCodeMap_[ SDLK_END ] = OsEventInputKeyboard::KEYCODE_END;
 	KeyCodeMap_[ SDLK_HOME ] = OsEventInputKeyboard::KEYCODE_HOME;
 	KeyCodeMap_[ SDLK_LEFT ] = OsEventInputKeyboard::KEYCODE_LEFT;
@@ -52,26 +43,24 @@ OsClientSDL::OsClientSDL()
 	KeyCodeMap_[ SDLK_RIGHT ] = OsEventInputKeyboard::KEYCODE_RIGHT;
 	KeyCodeMap_[ SDLK_DOWN ] = OsEventInputKeyboard::KEYCODE_DOWN;
 	KeyCodeMap_[ SDLK_SELECT ] = OsEventInputKeyboard::KEYCODE_SELECT;
-	KeyCodeMap_[ SDLK_PRINT ] = OsEventInputKeyboard::KEYCODE_PRINT;
 	KeyCodeMap_[ SDLK_EXECUTE ] = OsEventInputKeyboard::KEYCODE_EXECUTE;
-	KeyCodeMap_[ SDLK_SNAPSHOT ] = OsEventInputKeyboard::KEYCODE_PRINT_SCREEN;
 	KeyCodeMap_[ SDLK_INSERT ] = OsEventInputKeyboard::KEYCODE_INSERT;
 	KeyCodeMap_[ SDLK_DELETE ] = OsEventInputKeyboard::KEYCODE_DELETE;
 	KeyCodeMap_[ SDLK_HELP ] = OsEventInputKeyboard::KEYCODE_HELP;
-	KeyCodeMap_[ SDLK_NUMPAD0 ] = OsEventInputKeyboard::KEYCODE_NUMPAD0;
-	KeyCodeMap_[ SDLK_NUMPAD1 ] = OsEventInputKeyboard::KEYCODE_NUMPAD1;
-	KeyCodeMap_[ SDLK_NUMPAD2 ] = OsEventInputKeyboard::KEYCODE_NUMPAD2;
-	KeyCodeMap_[ SDLK_NUMPAD3 ] = OsEventInputKeyboard::KEYCODE_NUMPAD3;
-	KeyCodeMap_[ SDLK_NUMPAD4 ] = OsEventInputKeyboard::KEYCODE_NUMPAD4;
-	KeyCodeMap_[ SDLK_NUMPAD5 ] = OsEventInputKeyboard::KEYCODE_NUMPAD5;
-	KeyCodeMap_[ SDLK_NUMPAD6 ] = OsEventInputKeyboard::KEYCODE_NUMPAD6;
-	KeyCodeMap_[ SDLK_NUMPAD7 ] = OsEventInputKeyboard::KEYCODE_NUMPAD7;
-	KeyCodeMap_[ SDLK_NUMPAD8 ] = OsEventInputKeyboard::KEYCODE_NUMPAD8;
-	KeyCodeMap_[ SDLK_NUMPAD9 ] = OsEventInputKeyboard::KEYCODE_NUMPAD9;
+	KeyCodeMap_[ SDLK_KP_0 ] = OsEventInputKeyboard::KEYCODE_NUMPAD0;
+	KeyCodeMap_[ SDLK_KP_1 ] = OsEventInputKeyboard::KEYCODE_NUMPAD1;
+	KeyCodeMap_[ SDLK_KP_2 ] = OsEventInputKeyboard::KEYCODE_NUMPAD2;
+	KeyCodeMap_[ SDLK_KP_3 ] = OsEventInputKeyboard::KEYCODE_NUMPAD3;
+	KeyCodeMap_[ SDLK_KP_4 ] = OsEventInputKeyboard::KEYCODE_NUMPAD4;
+	KeyCodeMap_[ SDLK_KP_5 ] = OsEventInputKeyboard::KEYCODE_NUMPAD5;
+	KeyCodeMap_[ SDLK_KP_6 ] = OsEventInputKeyboard::KEYCODE_NUMPAD6;
+	KeyCodeMap_[ SDLK_KP_7 ] = OsEventInputKeyboard::KEYCODE_NUMPAD7;
+	KeyCodeMap_[ SDLK_KP_8 ] = OsEventInputKeyboard::KEYCODE_NUMPAD8;
+	KeyCodeMap_[ SDLK_KP_9 ] = OsEventInputKeyboard::KEYCODE_NUMPAD9;
 	KeyCodeMap_[ SDLK_SEPARATOR ] = OsEventInputKeyboard::KEYCODE_SEPARATOR;
-	KeyCodeMap_[ SDLK_SUBTRACT ] = OsEventInputKeyboard::KEYCODE_SUBTRACT;
-	KeyCodeMap_[ SDLK_DECIMAL ] = OsEventInputKeyboard::KEYCODE_DECIMAL;
-	KeyCodeMap_[ SDLK_DIVIDE ] = OsEventInputKeyboard::KEYCODE_DIVIDE;
+	KeyCodeMap_[ SDLK_KP_MINUS ] = OsEventInputKeyboard::KEYCODE_SUBTRACT;
+	KeyCodeMap_[ SDLK_KP_PERIOD ] = OsEventInputKeyboard::KEYCODE_DECIMAL;
+	KeyCodeMap_[ SDLK_KP_DIVIDE ] = OsEventInputKeyboard::KEYCODE_DIVIDE;
 	KeyCodeMap_[ SDLK_F1 ] = OsEventInputKeyboard::KEYCODE_F1;
 	KeyCodeMap_[ SDLK_F2 ] = OsEventInputKeyboard::KEYCODE_F2;
 	KeyCodeMap_[ SDLK_F3 ] = OsEventInputKeyboard::KEYCODE_F3;
@@ -96,20 +85,12 @@ OsClientSDL::OsClientSDL()
 	KeyCodeMap_[ SDLK_F22 ] = OsEventInputKeyboard::KEYCODE_F22;
 	KeyCodeMap_[ SDLK_F23 ] = OsEventInputKeyboard::KEYCODE_F23;
 	KeyCodeMap_[ SDLK_F24 ] = OsEventInputKeyboard::KEYCODE_F24;
-	KeyCodeMap_[ SDLK_NUMLOCK ] = OsEventInputKeyboard::KEYCODE_NUMLOCK;
-	KeyCodeMap_[ SDLK_SCROLL ] = OsEventInputKeyboard::KEYCODE_SCROLL;
-	KeyCodeMap_[ SDLK_LSHIFT ] = OsEventInputKeyboard::KEYCODE_LSHIFT;
-	KeyCodeMap_[ SDLK_RSHIFT ] = OsEventInputKeyboard::KEYCODE_RSHIFT;
-	KeyCodeMap_[ SDLK_LCONTROL ] = OsEventInputKeyboard::KEYCODE_LCONTROL;
-	KeyCodeMap_[ SDLK_RCONTROL ] = OsEventInputKeyboard::KEYCODE_RCONTROL;
-	KeyCodeMap_[ SDLK_LMENU ] = OsEventInputKeyboard::KEYCODE_LMENU;
-	KeyCodeMap_[ SDLK_RMENU ] = OsEventInputKeyboard::KEYCODE_RMENU;
-	KeyCodeMap_[ SDLK_PLAY ] = OsEventInputKeyboard::KEYCODE_PLAY;
-	KeyCodeMap_[ SDLK_ZOOM ] = OsEventInputKeyboard::KEYCODE_ZOOM;
-#endif
+
 	PrevMouseX_ = 0;
 	PrevMouseY_ = 0;
 	MouseLocked_ = BcFalse;
+	Width_ = 0;
+	Height_ = 0;
 
 	MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
 	MouseDelta_ = MaVec2d( 0.0f, 0.0f );
@@ -183,4 +164,111 @@ BcU32 OsClientSDL::getHeight() const
 void OsClientSDL::setMouseLock( BcBool Enabled )
 {
 	MouseLocked_ = Enabled;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleEvent
+BcU32 OsClientSDL::getWindowId() const
+{
+	return SDL_GetWindowID( SDLWindow_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleEvent
+void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
+{
+	switch( SDLEvent.type )
+	{
+	case SDL_KEYDOWN:
+	case SDL_KEYUP:
+		{
+			OsEventInputKeyboard Event;
+			Event.DeviceID_ = 0;
+			Event.KeyCode_ = SDLEvent.key.keysym.sym;
+			Event.ScanCode_ = SDLEvent.key.keysym.scancode;
+			Event.AsciiCode_ = SDLEvent.key.keysym.sym; // TODO.
+
+			// Get key code, or pass through virtual.
+			TKeyCodeMapIterator It( KeyCodeMap_.find( Event.KeyCode_ ) );
+			if( It != KeyCodeMap_.end() )
+			{
+				Event.KeyCode_ = (*It).second;
+			}
+
+			if( SDLEvent.key.state == SDL_PRESSED )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_KEYDOWN, Event );
+			}
+			else if( SDLEvent.key.state == SDL_RELEASED )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
+			}
+		}
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_MOUSEBUTTONUP:
+		{
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = SDLEvent.button.x;
+			Event.MouseY_ = SDLEvent.button.y;
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
+
+			switch( SDLEvent.button.button )
+			{
+			case SDL_BUTTON_LEFT:
+				Event.ButtonCode_ = 0;
+				break;
+			case SDL_BUTTON_RIGHT:
+				Event.ButtonCode_ = 1;
+				break;
+			case SDL_BUTTON_MIDDLE:
+				Event.ButtonCode_ = 2;
+				break;
+			case SDL_BUTTON_X1:
+				Event.ButtonCode_ = 3;
+				break;
+			case SDL_BUTTON_X2:
+				Event.ButtonCode_ = 4;
+				break;
+			}
+
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+			if( SDLEvent.type == SDL_MOUSEBUTTONDOWN )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, Event ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, Event );
+			}
+			else if( SDLEvent.type == SDL_MOUSEBUTTONUP )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, Event ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_MOUSEUP, Event );
+			}
+		}
+		break;
+	case SDL_MOUSEMOTION:
+		{
+			OsEventInputMouse Event;
+			Event.DeviceID_ = 0;
+			Event.MouseX_ = SDLEvent.motion.x;
+			Event.MouseY_ = SDLEvent.motion.y;
+			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
+			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
+			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
+			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
+			Event.ButtonCode_ = 0;
+
+			PrevMouseX_ = Event.MouseX_;
+			PrevMouseY_ = Event.MouseY_;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
+		}
+		break;
+	}
 }

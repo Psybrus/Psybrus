@@ -74,8 +74,18 @@ public:
 	 */
 	void setMouseLock( BcBool Enabled );
 
+	/**
+	 * Get Window ID.
+	 */
+	BcU32 getWindowId() const;
+
+	/**
+	 * Handle event. Called from OsCoreImplSDL.
+	 */
+	void handleEvent( const SDL_Event& SDLEvent );
+
 private:
-	typedef std::map< BcU16, BcU16 > TKeyCodeMap;
+	typedef std::map< BcU64, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap KeyCodeMap_;
 
