@@ -146,9 +146,13 @@ public:
 					ReFieldAccessor SrcFieldAccessor( SrcObject, Class->getField( Idx ) );
 
 					// Ignore null pointers, transients, and shallow copies.
-					if( !SrcFieldAccessor.isNullptr() && 
-						!SrcFieldAccessor.isTransient() &&
-						!SrcFieldAccessor.isShallowCopy() )
+					BcBool IsNullPtr = SrcFieldAccessor.isNullptr();
+					BcBool IsTransient = SrcFieldAccessor.isTransient();
+					BcBool IsShallowCopy = SrcFieldAccessor.isShallowCopy();
+
+					if( !IsNullPtr && 
+						!IsTransient &&
+						!IsShallowCopy )
 					{
 						if( SrcFieldAccessor.isPointerType() )
 						{

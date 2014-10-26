@@ -92,6 +92,10 @@ ScnComponent::~ScnComponent()
 //virtual
 void ScnComponent::initialise()
 {
+	ComponentFlags_ = 0;
+	ParentEntity_ = nullptr;
+	pJsonObject_ = nullptr;
+
 	Super::initialise();
 }
 

@@ -24,7 +24,8 @@
 SysJobWorker::SysJobWorker( class SysKernel* Parent ):
 	Parent_( Parent ),
 	Active_( BcTrue ),
-	PendingJobQueue_( 0 )
+	PendingJobQueue_( 0 ),
+	JobQueueIndex_( 0 )
 {
 	// Start immediately.
 	start();
@@ -78,7 +79,7 @@ void SysJobWorker::updateJobQueues( SysJobQueueList JobQueues )
 
 	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
 	NextJobQueues_ = std::move( JobQueues );
-	PendingJobQueue_++;
+	++PendingJobQueue_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -98,7 +99,7 @@ SysJobQueueList SysJobWorker::getJobQueueList() const
 // anyJobsWaiting
 void SysJobWorker::waitForPendingJobQueueList() const
 {
-	while( PendingJobQueue_.load() > 0 )
+	while( PendingJobQueue_.load( std::memory_order_relaxed ) > 0 )
 	{
 		std::this_thread::yield();
 	}

@@ -12,7 +12,7 @@ void ReField::StaticRegisterClass()
 	{
 		new ReField( "Offset_", &ReField::Offset_ ),
 		new ReField( "Type_", &ReField::Type_ ),
-		new ReField( "Flags_", &ReField::Flags_ ),
+		new ReField( "FieldFlags_", &ReField::FieldFlags_ ),
 		new ReField( "KeyType_", &ReField::KeyType_ ),
 		new ReField( "ValueType_", &ReField::ValueType_ ),
 		new ReField( "KeyFlags_", &ReField::KeyFlags_ ),
@@ -27,7 +27,7 @@ void ReField::StaticRegisterClass()
 ReField::ReField():
 	Offset_( 0 ),
 	Type_( nullptr ),
-	Flags_( 0 ),
+	FieldFlags_( 0 ),
 	KeyType_( nullptr ),
 	ValueType_( nullptr ),
 	KeyFlags_( 0 ),
@@ -68,14 +68,14 @@ BcSize ReField::getOffset() const
 // setFlags
 void ReField::setFlags( BcU32 Flags )
 {
-	Flags_ = Flags;
+	FieldFlags_ = Flags;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getFlags
 BcU32 ReField::getFlags() const
 {
-	return Flags_;
+	return FieldFlags_;
 }
 
 //////////////////////////////////////////////////////////////////////////

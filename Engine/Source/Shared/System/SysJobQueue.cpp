@@ -20,7 +20,9 @@
 // Ctor
 SysJobQueue::SysJobQueue( class SysKernel* Parent ):
 	Parent_( Parent ),
+#if USE_BOOST_LOCKFREE_QUEUE
 	JobQueue_( 32 ),
+#endif
 	NoofJobs_( 0 )
 {
 
@@ -37,7 +39,14 @@ SysJobQueue::~SysJobQueue()
 // pushJob
 BcBool SysJobQueue::pushJob( SysJob* Job )
 {
+#if USE_BOOST_LOCKFREE_QUEUE
 	BcBool RetVal = JobQueue_.push( Job );
+#else
+	std::lock_guard< std::mutex > Lock( JobQueueMutex_ );
+
+	BcBool RetVal = BcTrue;
+	JobQueue_.push_back( Job );
+#endif
 	if( RetVal )
 	{
 		++NoofJobs_;
@@ -54,7 +63,21 @@ BcBool SysJobQueue::pushJob( SysJob* Job )
 // popJob
 BcBool SysJobQueue::popJob( SysJob*& Job )
 {
+#if USE_BOOST_LOCKFREE_QUEUE
 	BcBool RetVal = JobQueue_.pop( Job );
+#else
+	std::lock_guard< std::mutex > Lock( JobQueueMutex_ );
+
+	BcBool RetVal = BcFalse;
+	if( JobQueue_.size() > 0 )
+	{
+		Job = JobQueue_.front();
+		BcAssert( Job != nullptr );
+		JobQueue_.pop_front();
+		RetVal = BcTrue;
+	}
+#endif
+
 	if( RetVal )
 	{
 		--NoofJobs_;
@@ -86,6 +109,13 @@ void SysJobQueue::flushJobs( BcBool ForceExecute )
 // anyJobsPending
 BcBool SysJobQueue::anyJobsPending()
 {
+#if USE_BOOST_LOCKFREE_QUEUE
 	BcBool Empty = JobQueue_.empty();
 	return !Empty;
+#else
+	std::lock_guard< std::mutex > Lock( JobQueueMutex_ );
+
+	BcBool Empty = JobQueue_.empty();
+	return !Empty;
+#endif
 }

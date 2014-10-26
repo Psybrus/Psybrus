@@ -26,8 +26,15 @@
 #include <mutex>
 #include <condition_variable>
 
+// Set to 1 to enable use of boost lockfree queue.
+#define USE_BOOST_LOCKFREE_QUEUE 0 
+
+#if USE_BOOST_LOCKFREE_QUEUE
 #include <boost/lockfree/policies.hpp>
 #include <boost/lockfree/queue.hpp>
+#else
+#include <deque>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Forward declarations
@@ -73,10 +80,19 @@ public:
 	BcBool				anyJobsPending();
 	
 private:
+#if USE_BOOST_LOCKFREE_QUEUE
 	typedef boost::lockfree::queue< class SysJob* > TJobQueue;
-	
+#else
+	typedef std::deque< class SysJob* > TJobQueue;
+#endif
+
 	class SysKernel*		Parent_;
+#if USE_BOOST_LOCKFREE_QUEUE
 	TJobQueue				JobQueue_;
+#else
+	TJobQueue				JobQueue_;
+	std::mutex				JobQueueMutex_;
+#endif
 	std::atomic< BcU32 >	NoofJobs_;
 };
 

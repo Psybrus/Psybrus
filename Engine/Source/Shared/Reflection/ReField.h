@@ -41,7 +41,7 @@ public:
 			BcU32 Flags = 0 ):
 		Type_( nullptr ),
 		Offset_( 0 ),
-		Flags_( 0 ),
+		FieldFlags_( 0 ),
 		ContainerAccessor_( nullptr ),
 		KeyType_( nullptr ),
 		ValueType_( nullptr )
@@ -113,7 +113,7 @@ public:
 	_Ty*							getData( void* pObjectData ) const
 	{
 		// Handle if type is a simple deref pointer (* and &)
-		if( ( Flags_ & bcRFF_SIMPLE_DEREF ) != 0 )
+		if( ( FieldFlags_ & bcRFF_SIMPLE_DEREF ) != 0 )
 		{
 			return *reinterpret_cast< _Ty** >( reinterpret_cast< BcU8* >( pObjectData ) + getOffset() );
 		}
@@ -166,7 +166,7 @@ public:
 protected:
 	BcSize								Offset_;
     const ReType*						Type_;
-	BcU32								Flags_;
+	BcU32								FieldFlags_;
 
 	ReContainerAccessor*				ContainerAccessor_;
     const ReType*						KeyType_;
