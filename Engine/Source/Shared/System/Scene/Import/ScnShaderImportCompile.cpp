@@ -15,6 +15,8 @@
 
 #include "Base/BcFile.h"
 
+#include <boost/format.hpp>
+
 #if PLATFORM_WINDOWS
 #include "Base/BcComRef.h"
 
@@ -128,16 +130,20 @@ BcBool ScnShaderImport::compileShader(
 #endif // PLATFORM_WINDOWS
 
 #if PLATFORM_LINUX
-	std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-
 	// LINUX TODO: Use env path or config file.
 	auto PsybrusSDKRoot = "../../Psybrus";
 
+	// Generate some unique ids.
+	BcU32 ShaderCompileId = ++ShaderCompileId_;
+	std::string BytecodeFilename = getIntermediatePath() + 
+		boost::str( boost::format( "/built_shader_%1%.bytecode" ) % ShaderCompileId );
+	std::string LogFilename = getIntermediatePath() + 
+		boost::str( boost::format( "/built_shader_%1%.bytecode" ) % ShaderCompileId );
+
 	std::string CommandLine = std::string( "wine " ) + PsybrusSDKRoot + "/Tools/ShaderCompiler/ShaderCompiler.exe";
 	CommandLine += std::string( " -i" ) + FileName;
-	CommandLine += std::string( " -e" ) + FileName + ".log";
-	CommandLine += std::string( " -o" ) + FileName + ".o";
-	CommandLine += std::string( " -v" ) + FileName + ".v";
+	CommandLine += std::string( " -e" ) + LogFilename;
+	CommandLine += std::string( " -o" ) + BytecodeFilename;
 	CommandLine += std::string( " -T" ) + Target;
 	CommandLine += std::string( " -E" ) + EntryPoint;
 	for( auto Define : Defines )
@@ -154,7 +160,7 @@ BcBool ScnShaderImport::compileShader(
 	if( RetCode == 0 )
 	{
 		BcFile ByteCodeFile;
-		if( ByteCodeFile.open( ( FileName + ".o" ).c_str(), bcFM_READ ) )
+		if( ByteCodeFile.open( ( BytecodeFilename ).c_str(), bcFM_READ ) )
 		{
 			auto ByteCode = ByteCodeFile.readAllBytes();
 			ShaderByteCode = std::move( BcBinaryData( ByteCode, ByteCodeFile.size(), BcTrue ) );

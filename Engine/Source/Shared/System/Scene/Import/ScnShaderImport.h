@@ -185,6 +185,7 @@ private:
 	std::vector< std::string > IncludePaths_;
 	std::vector< std::string > ErrorMessages_;
 	
+	std::atomic< BcU32 > ShaderCompileId_;
 	std::mutex BuildingMutex_;
 	std::map< BcU32, ScnShaderBuiltData > BuiltShaderData_;
 	std::vector< ScnShaderProgramHeader > BuiltProgramData_;

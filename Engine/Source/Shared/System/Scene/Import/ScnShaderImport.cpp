@@ -186,14 +186,16 @@ void ScnShaderImport::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnShaderImport::ScnShaderImport()
+ScnShaderImport::ScnShaderImport() :
+	ShaderCompileId_( 0 )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnShaderImport::ScnShaderImport( ReNoInit )
+ScnShaderImport::ScnShaderImport( ReNoInit ) :
+	ShaderCompileId_( 0 )
 {
 
 }
