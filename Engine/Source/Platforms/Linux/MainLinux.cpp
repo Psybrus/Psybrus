@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 
 	// Initialise RNG.
 #if !PSY_DEBUG
-	BcRandom::Global = BcRandom( (BcU32)0 ); // TODO LINUX
+	BcRandom::Global = BcRandom( 1337 ); // TODO LINUX
 #endif
 
 	// Create reflection database
