@@ -27,7 +27,7 @@
 #include <condition_variable>
 
 // Set to 1 to enable use of boost lockfree queue.
-#define USE_BOOST_LOCKFREE_QUEUE 1
+#define USE_BOOST_LOCKFREE_QUEUE 0
 
 #if USE_BOOST_LOCKFREE_QUEUE
 #include <boost/lockfree/policies.hpp>
@@ -69,16 +69,28 @@ public:
 	BcBool				popJob( SysJob*& Job );
 
 	/**
+	 * Completed a job.
+	 * Thread safe.
+	 * @return Total number of jobs remaining.
+	 */
+	BcU32				completedJob();
+
+	/**
 	 * Flush jobs.
 	 * @param ForceExecute Force execute on this call.
 	 */
 	void				flushJobs( BcBool ForceExecute );
 
 	/**
-	 * Do we have jobs?
+	 * Do we have jobs pending execution?
 	 */
 	BcBool				anyJobsPending();
 	
+	/**
+	 * Do we have jobs waiting to be executed?
+	 */
+	BcBool				anyJobsWaiting();
+
 private:
 #if USE_BOOST_LOCKFREE_QUEUE
 	typedef boost::lockfree::queue< class SysJob* > TJobQueue;

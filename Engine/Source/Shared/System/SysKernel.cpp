@@ -14,6 +14,7 @@
 #include "System/SysKernel.h"
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
+#include "Base/BcRandom.h"
 
 #include "System/SysProfilerChromeTracing.h"
 #include "System/SysJobQueue.h"
@@ -45,6 +46,91 @@ void SysKernel::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// SysKernel_UnitTest
+void SysKernel_UnitTest()
+{
+	SysKernel Kernel;
+
+	// Setup job queues.
+	size_t JobQueues[] = 
+	{
+		Kernel.createJobQueue( 1, 1 ),
+		Kernel.createJobQueue( 2, 1 ),
+		Kernel.createJobQueue( 3, 1 ),
+		Kernel.createJobQueue( 4, 1 )
+	};
+
+	std::atomic< BcU32 > IncDecAtomic( 0 );
+
+	auto TestIncJob = [ &IncDecAtomic ]()
+	{
+		BcSleep( 0.005f );
+		++IncDecAtomic;
+	};
+
+	auto TestDecJob = [ &IncDecAtomic ]()
+	{
+		BcSleep( 0.006f );
+		--IncDecAtomic;
+	};
+
+	BcU32 NoofJobs = 100;
+	BcF32 TotalTime = 0.0f;
+	BcF32 ThisTime = 0.0f;
+	BcTimer Timer;
+
+	// Test no queues.
+	BcPrintf( "Begin: Main thread\n" );
+	Timer.mark();
+	for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
+	{
+		Kernel.pushFunctionJob( -1, TestIncJob );
+		Kernel.pushFunctionJob( -1, TestDecJob );
+	}
+	Kernel.flushAllJobQueues();
+	ThisTime = Timer.time() * 1000.0f;
+	TotalTime += ThisTime;
+	BcPrintf( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
+	BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "Main thread test." );
+
+
+	// Test each queue individually.
+	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
+	{
+		BcPrintf( "Begin: Workers %u\n", QueueIdx + 1 );
+		Timer.mark();
+		for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
+		{
+			Kernel.pushFunctionJob( JobQueues[ QueueIdx ], TestIncJob );
+			Kernel.pushFunctionJob( JobQueues[ QueueIdx ], TestDecJob );
+		}
+		Kernel.flushAllJobQueues();
+		ThisTime = Timer.time() * 1000.0f;
+		TotalTime += ThisTime;
+		BcPrintf( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
+		BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "Job queue w/ workers test." );
+	}
+
+	// Test all queues simultaneously.
+	BcPrintf( "Begin: queues all\n" );
+	Timer.mark();
+	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
+	{
+		for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
+		{
+			Kernel.pushFunctionJob( JobQueues[ QueueIdx ], TestIncJob );
+			Kernel.pushFunctionJob( JobQueues[ QueueIdx ], TestDecJob );
+		}
+	}
+	Kernel.flushAllJobQueues();
+	ThisTime = Timer.time() * 1000.0f;
+	TotalTime += ThisTime;
+	BcPrintf( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
+	BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "All job queues." );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // Worker masks.
 size_t SysKernel::DEFAULT_JOB_QUEUE_ID = -1;
 
@@ -72,11 +158,17 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	// Create job workers for the number of threads we have.
 	BcU32 NoofThreads = BcMax( std::thread::hardware_concurrency(), 1 );
 
+	// Increment fence by number of threads.
+	JobWorkerStartFence_.increment( NoofThreads );
+	
 	JobWorkers_.reserve( NoofThreads );
 	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
 	{
-		JobWorkers_.push_back( new SysJobWorker( this ) );
+		JobWorkers_.push_back( new SysJobWorker( this, JobWorkerStartFence_ ) );
 	}
+
+	// Wait for workers to start.
+	JobWorkerStartFence_.wait( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,8 +225,11 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 	// Clamp number of workers.
 	NoofWorkers = BcMin( NoofWorkers, MinimumHardwareThreads );
 
+	size_t JobQueueId = JobQueues_.size();
 	auto JobQueue = new SysJobQueue( this );
 	JobQueues_.push_back( JobQueue );
+
+	SysFence Fence( NoofWorkers );
 
 	// Add new job queue to the workers.
 	for( size_t Idx = 0; Idx < NoofWorkers; ++Idx )
@@ -142,14 +237,25 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 		size_t RealIdx = ( CurrWorkerAllocIdx_ + Idx ) % JobWorkers_.size();
 		auto JobWorker( JobWorkers_[ RealIdx ] );
 		JobWorker->addJobQueue( JobQueue );
+
+		// Push a job for synchronisation.
+		pushFunctionJob( JobQueueId, [ &Fence ]()
+		{
+			// Decrement, and then wait until every job has been executed.
+			// This will ensure that each worker will be blocked until the next
+			// takes the next job.
+			Fence.decrement();
+			Fence.wait( 0 );
+		} );
 	}
 
+	// Flush so that we exit this function with the job queue ready to go.
+	JobQueue->flushJobs( BcFalse );
+
+	// Reassign worker allocation index.
 	CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
 
-	// Kick off workers so they pick up new job queue.
-	notifySchedule();
-
-	return JobQueues_.size() - 1;
+	return JobQueueId;
 }
 
 //////////////////////////////////////////////////////////////////////////

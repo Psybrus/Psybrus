@@ -33,7 +33,6 @@ BcU32 GResolutionHeight = 720;
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
 
-
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
 void MainUnitTests()
@@ -48,6 +47,10 @@ void MainUnitTests()
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
+
+	// SysKernel unit test.
+	extern void SysKernel_UnitTest();
+	SysKernel_UnitTest();
 }
 
 //////////////////////////////////////////////////////////////////////////

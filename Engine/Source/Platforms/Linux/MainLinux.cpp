@@ -96,6 +96,14 @@ int main(int argc, char** argv)
 	new SysProfilerChromeTracing();
 #endif
 
+	// Unit tests prior to full kernel initialisation.
+	if( SysArgs_.find( "-unittest " ) != std::string::npos )
+	{
+		extern void MainUnitTests();
+		MainUnitTests();
+		return 0;
+	}
+
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
 
@@ -110,11 +118,6 @@ int main(int argc, char** argv)
 
 	// Main shared.
 	MainShared();
-
-#if !PSY_PRODUCTION
-	// Perform unit tests.
-	MainUnitTests();
-#endif
 
 	// Hook up create client delegate
 	SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();

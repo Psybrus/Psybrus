@@ -185,6 +185,14 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	new SysProfilerChromeTracing();
 #endif
 
+	// Unit tests prior to full kernel initialisation.
+	if( SysArgs_.find( "-unittest " ) != std::string::npos )
+	{
+		extern void MainUnitTests();
+		MainUnitTests();
+		return 0;
+	}
+
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
 
@@ -199,11 +207,6 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Main shared.
 	MainShared();
-
-#if !PSY_PRODUCTION
-	// Perform unit tests.
-	MainUnitTests();
-#endif
 
 	// HACK HACK HACK: Offline package importing is a major hack for now.
 	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )

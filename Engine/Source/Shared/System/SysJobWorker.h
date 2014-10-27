@@ -33,7 +33,7 @@ class SysJobQueue;
 class SysJobWorker
 {
 public:
-	SysJobWorker( class SysKernel* Parent );
+	SysJobWorker( class SysKernel* Parent, SysFence& StartFence );
 	virtual ~SysJobWorker();
 	
 	/**
@@ -52,7 +52,7 @@ public:
 	void					addJobQueue( SysJobQueue* JobQueue );
 
 	/**
-	 * Do we have any jobs waiting?
+	 * Do we have any jobs waiting on our queues?
 	 */
 	BcBool					anyJobsWaiting();
 
@@ -60,16 +60,15 @@ private:
 	virtual void			execute();
 	
 private:
-	class SysKernel*		Parent_;
-	BcBool					Active_;
-	std::atomic< BcU32 >	PendingJobQueue_;
-	std::thread				ExecutionThread_;
-	std::mutex				JobQueuesLock_;
-
-	SysJobQueueList			NextJobQueues_;
-
-	SysJobQueueList			CurrJobQueues_;
-	size_t					JobQueueIndex_;
+	class SysKernel* Parent_;
+	SysFence& StartFence_;
+	BcBool Active_;
+	std::atomic< BcU32 > PendingJobQueue_;
+	std::thread ExecutionThread_;
+	std::mutex JobQueuesLock_;
+	SysJobQueueList NextJobQueues_;
+	SysJobQueueList CurrJobQueues_;
+	size_t JobQueueIndex_;
 };
 
 #endif

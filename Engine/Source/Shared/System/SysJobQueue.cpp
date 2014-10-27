@@ -16,6 +16,7 @@
 
 #include "Base/BcProfiler.h"
 
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysJobQueue::SysJobQueue( class SysKernel* Parent ):
@@ -80,18 +81,21 @@ BcBool SysJobQueue::popJob( SysJob*& Job )
 	}
 #endif
 
-	if( RetVal )
-	{
-		--NoofJobs_;
-	}
 	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// completedJob
+BcU32 SysJobQueue::completedJob()
+{
+	return --NoofJobs_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // flushJobs
 void SysJobQueue::flushJobs( BcBool ForceExecute )
 {
-	while( anyJobsPending() )
+	while( anyJobsWaiting() )
 	{
 		if( ForceExecute )
 		{
@@ -121,3 +125,11 @@ BcBool SysJobQueue::anyJobsPending()
 	return !Empty;
 #endif
 }
+
+//////////////////////////////////////////////////////////////////////////
+// anyJobsWaiting
+BcBool SysJobQueue::anyJobsWaiting()
+{
+	return NoofJobs_.load() > 0;
+}
+

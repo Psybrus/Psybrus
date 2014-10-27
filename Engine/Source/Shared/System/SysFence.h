@@ -23,18 +23,18 @@
 class SysFence
 {
 public:
-	SysFence();
+	SysFence( BcU32 InitialValue = 0 );
 	~SysFence();
 
 	/**
 	 * Increment fence.
 	 */
-	void increment();
+	void increment( BcU32 Value = 1 );
 
 	/**
 	 * Decrement fence.
 	 */
-	void decrement();
+	void decrement( BcU32 Value = 1 );
 
 	/*
 	 * Get the count.

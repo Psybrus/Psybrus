@@ -221,24 +221,10 @@ private:
 	 * Wait for schedule.
 	 */
 	template < class _Predicate >
-	inline void waitForSchedule( std::mutex& Mutex, _Predicate Pred )
+	inline void waitForSchedule( _Predicate Pred )
 	{
-		// NOTE: condition variable used here seems to be a problem.
-		//       Need to read up on correct usage, as it seems
-		//       to work perfectly in Windows, and not in Linux.
-#if PLATFORM_LINUX
-		bool WaitPred = !Pred();
-		while( WaitPred )
-		{
-			BcSleep( 0.001f );
-			Mutex.lock();
-			WaitPred = !Pred();
-			Mutex.unlock();
-		}
-#else
-		std::unique_lock< std::mutex > Lock( Mutex );
+		std::unique_lock< std::mutex > Lock( JobQueuedMutex_ );
 		JobQueued_.wait( Lock, Pred );
-#endif
 	}
 
 	/**
@@ -287,11 +273,13 @@ private:
 	BcF32 FrameTime_;
 	BcF32 GameThreadTime_;
 	
+	SysFence JobWorkerStartFence_;
 	std::vector< class SysJobQueue* > JobQueues_;
 	std::vector< class SysJobWorker* > JobWorkers_;
 	size_t CurrWorkerAllocIdx_;
 
 	std::condition_variable JobQueued_;
+	std::mutex JobQueuedMutex_;
 	SysDelegateDispatcher DelegateDispatcher_;
 };
 

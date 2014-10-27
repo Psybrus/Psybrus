@@ -21,8 +21,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysJobWorker::SysJobWorker( class SysKernel* Parent ):
+SysJobWorker::SysJobWorker( class SysKernel* Parent, SysFence& StartFence ):
 	Parent_( Parent ),
+	StartFence_( StartFence ),
 	Active_( BcTrue ),
 	PendingJobQueue_( 0 ),
 	JobQueueIndex_( 0 )
@@ -79,7 +80,7 @@ void SysJobWorker::addJobQueue( SysJobQueue* JobQueue )
 
 	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
 	NextJobQueues_.push_back( JobQueue );
-	++PendingJobQueue_;
+	PendingJobQueue_++;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,8 +90,8 @@ BcBool SysJobWorker::anyJobsWaiting()
 	BcBool RetVal = BcFalse;
 	for( auto JobQueue : CurrJobQueues_ )
 	{
-		// Check if job queue has any jobs pending.
-		if( JobQueue->anyJobsPending() )
+		// Check if job queue has any jobs waiting.
+		if( JobQueue->anyJobsWaiting() )
 		{
 			RetVal = BcTrue;
 			break;
@@ -105,16 +106,21 @@ BcBool SysJobWorker::anyJobsWaiting()
 //virtual
 void SysJobWorker::execute()
 {
+	// Mark as started.
+	StartFence_.decrement();
+
 	// Enter loop.
 	while( Active_ )
 	{
 		PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker_WaitSchedule" );
 
 		// Wait to be scheduled.
-		Parent_->waitForSchedule( JobQueuesLock_, [ this ]()
-			{
-				return anyJobsWaiting() || PendingJobQueue_.load() > 0 || !Active_;
-			});
+		Parent_->waitForSchedule( [ this ]()
+		{
+			const BcBool AnyJobsWaiting = anyJobsWaiting();
+			const BcBool PendingJobQueue = PendingJobQueue_.load() > 0;
+			return AnyJobsWaiting || PendingJobQueue || !Active_;
+		});
 
 		PSY_PROFILER_SECTION( DoneSchedule_Profiler, "SysJobWorker_DoneSchedule" );
 
@@ -127,10 +133,9 @@ void SysJobWorker::execute()
 			// Wrap job queue index round to fit into new size.
 			JobQueueIndex_ = JobQueueIndex_ % CurrJobQueues_.size();
 
-			// No more pending job queue.
-			// NOTE: Safe to reset as we have a lock
-			//       on the job queues as it is.
-			PendingJobQueue_.store( 0 );
+			// Decrement by size of queue.
+			PendingJobQueue_.fetch_sub( NextJobQueues_.size() );
+			NextJobQueues_.clear();
 		}
 
 		// Grab job from current job queue.
@@ -157,6 +162,13 @@ void SysJobWorker::execute()
 				{
 					BcPrintf( "Unhandled exception in job.\n" );
 				}
+
+				// Delete job.
+				delete Job;
+
+				// Tell job queue we've completed the job.
+				JobQueue->completedJob();
+
 				break;
 			}
 		}
