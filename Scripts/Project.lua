@@ -33,8 +33,9 @@ function PsyProjectCommon( _name )
 	configuration "Production"
 		defines { "NDEBUG" }
 
+	-- Terminate project.
+	configuration "*"
 end
-
 
 -- Common engine project.
 function PsyProjectCommonEngine( _name )
@@ -68,6 +69,9 @@ function PsyProjectCommonEngine( _name )
 		defines { "PSY_USE_PROFILER=0" }
 		defines { "PSY_PRODUCTION" }
 		flags { "NoFramePointer", "Optimize" }
+
+	-- Terminate project.
+	configuration "*"
 end
 
 -- Setup a game lib project.
@@ -83,6 +87,8 @@ function PsyProjectGameLib( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
+	-- Terminate project.
+	configuration "*"
 end
 
 
@@ -101,7 +107,7 @@ function PsyProjectGameExe( _name )
 
 	-- Target directories and names.
 	configuration "*"
-		targetdir ( "Dist" )
+		targetdir ( "../Dist" ) -- relative to source genie.lua dir for project...?
 
 	configuration "Debug"
 		targetname( _name .. "Debug" )
@@ -115,6 +121,8 @@ function PsyProjectGameExe( _name )
 	configuration "Production"
 		targetname( _name .. "Production" )
 
+	-- Terminate project.
+	configuration "*"
 end
 
 
@@ -131,6 +139,8 @@ function PsyProjectEngineLib( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
+	-- Terminate project.
+	configuration "*"
 end
 
 
@@ -146,4 +156,6 @@ function PsyProjectExternalLib( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
+	-- Terminate project.
+	configuration "*"
 end

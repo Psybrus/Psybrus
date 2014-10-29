@@ -1,22 +1,21 @@
-project "Engine_System_File"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/System/File/**.h", 
-    "./Shared/System/File/**.inl", 
-    "./Shared/System/File/**.cpp", 
-  }
-	includedirs {
-    "./Shared/",
-    "../../External/jsoncpp/include/",
-    "../../External/libb64/include/",
-    boostInclude,
-  }
+PsyProjectEngineLib( "Engine_System_File" )
+  configuration "*"
+  	files {
+      "./Shared/System/File/**.h", 
+      "./Shared/System/File/**.inl", 
+      "./Shared/System/File/**.cpp", 
+    }
+  	includedirs {
+      "./Shared/",
+      "../../External/jsoncpp/include/",
+      "../../External/libb64/include/",
+      boostInclude,
+    }
 
-  links {
-    -- Engine libs.
-    "Engine_System",
-  }
+    links {
+      -- Engine libs.
+      "Engine_System",
+    }
 
   configuration "linux"
       files {

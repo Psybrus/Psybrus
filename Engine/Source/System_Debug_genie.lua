@@ -1,18 +1,17 @@
-project "Engine_System_Debug"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/System/Debug/**.h", 
-    "./Shared/System/Debug/**.inl", 
-    "./Shared/System/Debug/**.cpp", 
-  }
-	includedirs {
-    "./Shared/",
-    "../../External/jsoncpp/include/",
-    "../../External/libb64/include/",
-    "../../External/webby/",
-    boostInclude,
-  }
+PsyProjectEngineLib( "Engine_System_Debug" )
+  configuration "*"
+  	files {
+      "./Shared/System/Debug/**.h", 
+      "./Shared/System/Debug/**.inl", 
+      "./Shared/System/Debug/**.cpp", 
+    }
+  	includedirs {
+      "./Shared/",
+      "../../External/jsoncpp/include/",
+      "../../External/libb64/include/",
+      "../../External/webby/",
+      boostInclude,
+    }
 
  		links {
       -- Engine libs.

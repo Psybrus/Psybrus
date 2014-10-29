@@ -1,39 +1,39 @@
-project "Engine_System"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/System/*.h", 
-    "./Shared/System/*.inl", 
-    "./Shared/System/*.cpp", 
-  }
-	includedirs {
-    "./Shared/",
-    "../../External/bullet/src",
-    "../../External/enet/include",
-    "../../External/freetype/include",
-    "../../External/glew/include",
-    "../../External/pcre/",
-    "../../External/jsoncpp/include/",
-    "../../External/libb64/include/",
-    "../../External/png/",
-    "../../External/squish/",
-    "../../External/webby/",
-    "../../External/zlib/",
-    boostInclude,
-  }
+PsyProjectEngineLib( "Engine_System" )
+  configuration "*"
 
-  -- GLEW config.
-  defines { "GLEW_STATIC" }
+  	files {
+      "./Shared/System/*.h", 
+      "./Shared/System/*.inl", 
+      "./Shared/System/*.cpp", 
+    }
+  	includedirs {
+      "./Shared/",
+      "../../External/bullet/src",
+      "../../External/enet/include",
+      "../../External/freetype/include",
+      "../../External/glew/include",
+      "../../External/pcre/",
+      "../../External/jsoncpp/include/",
+      "../../External/libb64/include/",
+      "../../External/png/",
+      "../../External/squish/",
+      "../../External/webby/",
+      "../../External/zlib/",
+      boostInclude,
+    }
 
-  links {
-    -- Engine libs.
-    "Engine_Base",
-    "Engine_Events",
-    "Engine_Import",
-    "Engine_Reflection",
-    "Engine_Math",
-    "Engine_Serialisation",
-  }
+    -- GLEW config.
+    defines { "GLEW_STATIC" }
+
+    links {
+      -- Engine libs.
+      "Engine_Base",
+      "Engine_Events",
+      "Engine_Import",
+      "Engine_Reflection",
+      "Engine_Math",
+      "Engine_Serialisation",
+    }
 
   configuration "linux"
       files {

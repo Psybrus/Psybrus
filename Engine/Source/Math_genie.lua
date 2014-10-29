@@ -1,22 +1,21 @@
-project "Engine_Math"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/Math/**.h", 
-    "./Shared/Math/**.inl", 
-    "./Shared/Math/**.cpp",
-    "./Platforms/Windows/Math/**.h",
-    "./Platforms/Windows/Math/**.inl",
-    "./Platforms/Windows/Math/**.cpp",
-  }
+PsyProjectEngineLib( "Engine_Math" )
+  configuration "*"
+  	files {
+      "./Shared/Math/**.h", 
+      "./Shared/Math/**.inl", 
+      "./Shared/Math/**.cpp",
+      "./Platforms/Windows/Math/**.h",
+      "./Platforms/Windows/Math/**.inl",
+      "./Platforms/Windows/Math/**.cpp",
+    }
 
-	includedirs {
-    "./Shared/",
-    "./Platforms/Windows/",
-    "../../External/pcre/",
-    "../../External/zlib/",
-    boostInclude,
-  }
+  	includedirs {
+      "./Shared/",
+      "./Platforms/Windows/",
+      "../../External/pcre/",
+      "../../External/zlib/",
+      boostInclude,
+    }
 
 	configuration "windows"
 	    libdirs {

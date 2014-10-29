@@ -1,23 +1,22 @@
-project "Engine_System_Renderer"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/System/Renderer/*.h", 
-    "./Shared/System/Renderer/*.inl", 
-    "./Shared/System/Renderer/*.cpp", 
-  }
+PsyProjectEngineLib( "Engine_System_Renderer" )
+  configuration "*"
+  	files {
+      "./Shared/System/Renderer/*.h", 
+      "./Shared/System/Renderer/*.inl", 
+      "./Shared/System/Renderer/*.cpp", 
+    }
 
-	includedirs {
-    "./Shared/",
-    "../../External/glew/include",
-    "../../External/jsoncpp/include/",
-    "../../External/libb64/include/",
-    "../../External/SDL2/include/",
-    boostInclude,
-  }
+  	includedirs {
+      "./Shared/",
+      "../../External/glew/include",
+      "../../External/jsoncpp/include/",
+      "../../External/libb64/include/",
+      "../../External/SDL2/include/",
+      boostInclude,
+    }
 
-  -- GLEW config.
-  defines { "GLEW_STATIC" }
+    -- GLEW config.
+    defines { "GLEW_STATIC" }
 
  		links {
       -- Engine libs.

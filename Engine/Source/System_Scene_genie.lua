@@ -1,27 +1,26 @@
-project "Engine_System_Scene"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/System/Scene/**.h", 
-    "./Shared/System/Scene/**.inl", 
-    "./Shared/System/Scene/**.cpp", 
-  }
-	includedirs {
-    "./Shared/",
-    "../../External/assimp/include",
-    "../../External/bullet/src",
-    "../../External/freetype/include",
-    "../../External/jsoncpp/include/",
-    "../../External/libb64/include/",
-    "../../External/HLSLCrossCompiler/include/",
-    boostInclude,
-  }
+PsyProjectEngineLib( "Engine_System_Scene" )
+  configuration "*"
+  	files {
+      "./Shared/System/Scene/**.h", 
+      "./Shared/System/Scene/**.inl", 
+      "./Shared/System/Scene/**.cpp", 
+    }
+  	includedirs {
+      "./Shared/",
+      "../../External/assimp/include",
+      "../../External/bullet/src",
+      "../../External/freetype/include",
+      "../../External/jsoncpp/include/",
+      "../../External/libb64/include/",
+      "../../External/HLSLCrossCompiler/include/",
+      boostInclude,
+    }
 
-  -- GLEW config.
-  defines { "GLEW_STATIC" }
+    -- GLEW config.
+    defines { "GLEW_STATIC" }
 
-  libdirs {
-       boostLib
+    libdirs {
+         boostLib
     }
 
 		links {

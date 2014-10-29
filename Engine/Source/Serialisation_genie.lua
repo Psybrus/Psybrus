@@ -1,22 +1,19 @@
-project "Engine_Serialisation"
-	kind "StaticLib"
-	language "C++"
-	files {
-    "./Shared/Serialisation/**.h", 
-    "./Shared/Serialisation/**.inl",
-    "./Shared/Serialisation/**.cpp",
-  }
-	includedirs {
-    "./Shared/",
-    "./Platforms/Windows/",
-    "../../External/pcre/",
-    "../../External/zlib/",
-    "../../External/jsoncpp/include/",
-    "../../External/libb64/include/",
-    boostInclude,
-  }
-
-  print( "Serialisation" .. psybrusSDK )
+PsyProjectEngineLib( "Engine_Serialisation" )
+  configuration "*"
+  	files {
+      "./Shared/Serialisation/**.h", 
+      "./Shared/Serialisation/**.inl",
+      "./Shared/Serialisation/**.cpp",
+    }
+  	includedirs {
+      "./Shared/",
+      "./Platforms/Windows/",
+      "../../External/pcre/",
+      "../../External/zlib/",
+      "../../External/jsoncpp/include/",
+      "../../External/libb64/include/",
+      boostInclude,
+    }
 
 	configuration "windows"
 	    libdirs {

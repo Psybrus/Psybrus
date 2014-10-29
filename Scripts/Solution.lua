@@ -2,6 +2,8 @@
 function PsySolutionCommon( _name )
 	solution( _name )
 
+	print( "Adding Solution for " .. _ACTION .. " : " .. _name )
+
 	-- Solution location.
 	location ( "Build/" .. _ACTION )
 
@@ -10,22 +12,25 @@ function PsySolutionCommon( _name )
 
 	-- Target dirs.
 	configuration "Debug"
-		targetdir ( "Build/" .. _ACTION .. "bin/Debug" )
+		targetdir ( "Build/" .. _ACTION .. "/bin/Debug" )
 
 	configuration "Release"
-		targetdir ( "Build/" .. _ACTION .. "bin/Release" )
+		targetdir ( "Build/" .. _ACTION .. "/bin/Release" )
 
 	configuration "Profile"
-		targetdir ( "Build/" .. _ACTION .. "bin/Profile" )
+		targetdir ( "Build/" .. _ACTION .. "/bin/Profile" )
 
 	configuration "Production"
-		targetdir ( "Build/" .. _ACTION .. "bin/Production" )
+		targetdir ( "Build/" .. _ACTION .. "/bin/Production" )
 
+	-- Terminate terminate solution.
+	configuration "*"
 end
 
 -- Setup a game solution.
 function PsySolutionGame( _name )
 	PsySolutionCommon( _name )
 
-
+	-- Terminate terminate solution.
+	configuration "*"
 end

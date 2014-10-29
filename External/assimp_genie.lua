@@ -18,24 +18,24 @@ revisionFile:write( string.format( "#define GitBranch \"%s\"\n", branch ) )
 revisionFile:write( "#endif // ASSIMP_REVISION_H_INC\n" )
 revisionFile:close()
 
-project ( EXTERNAL_PROJECT_PREFIX .. "assimp" )
-	kind ( EXTERNAL_PROJECT_KIND )
-	language "C++"
-	files { 
-		"./assimp/include/**.h", 
-		"./assimp/code/**.h",
-		"./assimp/code/**.cpp",
-	}
-
-	includedirs { 
-		"./assimp",
-		"./assimp/include",
-		"./assimp/code",
-		"./zlib",
-		boostInclude
-	}
-
+PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 	configuration "*"
+		kind ( EXTERNAL_PROJECT_KIND )
+		language "C++"
+		files { 
+			"./assimp/include/**.h", 
+			"./assimp/code/**.h",
+			"./assimp/code/**.cpp",
+		}
+
+		includedirs { 
+			"./assimp",
+			"./assimp/include",
+			"./assimp/code",
+			"./zlib",
+			boostInclude
+		}
+
 		defines { 
 			"ASSIMP_BUILD_NO_OWN_ZLIB=1",
 			"_SCL_SECURE_NO_WARNINGS",
@@ -94,7 +94,7 @@ project ( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 
 
 
-project ( EXTERNAL_PROJECT_PREFIX .. "assimp_contrib" )
+PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp_contrib" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 	files { 

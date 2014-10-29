@@ -1,35 +1,34 @@
-project "Engine"
-    kind "StaticLib"
-    language "C++"   
-    files {
-        "./Shared/*.h", 
-        "./Shared/*.inl", 
-        "./Shared/*.cpp", 
-    }
- 
-    includedirs {
-        "./Shared/",
-        "../../External/bullet/src",
-        "../../External/enet/include",
-        "../../External/freetype/include",
-        "../../External/glew/include",
-        "../../External/pcre/",
-        "../../External/jsoncpp/include/",
-        "../../External/libb64/include/",
-        "../../External/png/",
-        "../../External/SDL2/include/",
-        "../../External/squish/",
-        "../../External/webby/",
-        "../../External/zlib/",
-        boostInclude,  
-    }
+PsyProjectEngineLib( "Engine" )
+    configuration "*"
+        files {
+            "./Shared/*.h", 
+            "./Shared/*.inl", 
+            "./Shared/*.cpp", 
+        }
+     
+        includedirs {
+            "./Shared/",
+            "../../External/bullet/src",
+            "../../External/enet/include",
+            "../../External/freetype/include",
+            "../../External/glew/include",
+            "../../External/pcre/",
+            "../../External/jsoncpp/include/",
+            "../../External/libb64/include/",
+            "../../External/png/",
+            "../../External/SDL2/include/",
+            "../../External/squish/",
+            "../../External/webby/",
+            "../../External/zlib/",
+            boostInclude,  
+        }
 
-    libdirs {
-       boostLib
-    }
+        libdirs {
+           boostLib
+        }
 
-    links {
-    }
+        links {
+        }
 
     configuration "linux"
         files {

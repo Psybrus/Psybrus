@@ -1,29 +1,27 @@
-project "Engine_Base"
-	kind "StaticLib"
-	language "C++"
+PsyProjectEngineLib( "Engine_Base" )
+  configuration "*"
+  	files {
+      "./Shared/Base/**.h", 
+      "./Shared/Base/**.inl", 
+      "./Shared/Base/**.cpp",
+    }
 
-	files {
-    "./Shared/Base/**.h", 
-    "./Shared/Base/**.inl", 
-    "./Shared/Base/**.cpp",
-  }
+    includedirs {
+      "./Shared/",
+      "../../External/pcre/",
+      "../../External/zlib/",
+      boostInclude,
+    }
 
-  includedirs {
-    "./Shared/",
-    "../../External/pcre/",
-    "../../External/zlib/",
-    boostInclude,
-  }
+    libdirs {
+      boostLib
+    }
 
-  libdirs {
-    boostLib
-  }
-
-  links {
-    -- External libs.
-    "External_pcre",
-    "External_zlib",
-  }
+    links {
+      -- External libs.
+      "External_pcre",
+      "External_zlib",
+    }
 
   -- Windows
   configuration( "windows" )
