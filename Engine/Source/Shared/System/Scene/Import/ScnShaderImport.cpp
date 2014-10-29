@@ -231,18 +231,15 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	// Reset pending permutations.
 	PendingPermutations_.store( 0 );
 
+	// Always search for Psybrus from project root.
+	auto PsybrusSDKRoot = "../Psybrus";
+	
 #if PLATFORM_WINDOWS
-	auto PsybrusSDKRoot = std::getenv( "PSYBRUS_SDK" );
-	BcAssertMsg( PsybrusSDKRoot != nullptr, "Environment variable PSYBRUS_SDK is not set. Have you ran setup.py to configure this?" );
-
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
 	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
 #elif PLATFORM_LINUX
-	// LINUX TODO: Use env path or config file.
-	auto PsybrusSDKRoot = "../../Psybrus";
-
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( "./" );
