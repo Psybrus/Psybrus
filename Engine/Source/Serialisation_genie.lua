@@ -12,12 +12,12 @@ PsyProjectEngineLib( "Engine_Serialisation" )
       "../../External/zlib/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
 	configuration "windows"
 	    libdirs {
-           boostLib
+           BOOST_LIB_PATH
         }
 
    		links {

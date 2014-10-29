@@ -13,14 +13,14 @@ PsyProjectEngineLib( "Engine_System_Scene" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/HLSLCrossCompiler/include/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
     -- GLEW config.
     defines { "GLEW_STATIC" }
 
     libdirs {
-         boostLib
+         BOOST_LIB_PATH
     }
 
 		links {
@@ -59,5 +59,5 @@ PsyProjectEngineLib( "Engine_System_Scene" )
       }
 
       libdirs {
-           boostLib
+           BOOST_LIB_PATH
       }

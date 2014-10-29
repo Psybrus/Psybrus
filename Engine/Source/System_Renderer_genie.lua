@@ -12,7 +12,7 @@ PsyProjectEngineLib( "Engine_System_Renderer" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/SDL2/include/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
     -- GLEW config.
@@ -52,5 +52,5 @@ PsyProjectEngineLib( "Engine_System_Renderer" )
       }
 
       libdirs {
-           boostLib
+           BOOST_LIB_PATH
       }

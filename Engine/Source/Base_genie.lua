@@ -10,11 +10,11 @@ PsyProjectEngineLib( "Engine_Base" )
       "./Shared/",
       "../../External/pcre/",
       "../../External/zlib/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
     libdirs {
-      boostLib
+      BOOST_LIB_PATH
     }
 
     links {

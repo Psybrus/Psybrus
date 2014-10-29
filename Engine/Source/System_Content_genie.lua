@@ -10,7 +10,7 @@ PsyProjectEngineLib( "Engine_System_Content" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
   	links {
@@ -40,5 +40,5 @@ PsyProjectEngineLib( "Engine_System_Content" )
         }
 
       libdirs {
-           boostLib
+           BOOST_LIB_PATH
         }

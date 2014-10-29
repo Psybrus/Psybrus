@@ -14,12 +14,12 @@ PsyProjectEngineLib( "Engine_Math" )
       "./Platforms/Windows/",
       "../../External/pcre/",
       "../../External/zlib/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
 	configuration "windows"
 	    libdirs {
-           boostLib
+           BOOST_LIB_PATH
         }
 
    		links {

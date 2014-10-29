@@ -1,3 +1,6 @@
+-- Solution.lua
+-- Common solution creation functions.
+
 -- Setup a common solution.
 function PsySolutionCommon( _name )
 	solution( _name )

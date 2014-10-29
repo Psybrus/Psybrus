@@ -10,7 +10,7 @@ PsyProjectEngineLib( "Engine_System_Sound" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/SoLoud/include/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
   	links {
@@ -40,5 +40,5 @@ PsyProjectEngineLib( "Engine_System_Sound" )
       }
 
       libdirs {
-           boostLib
+           BOOST_LIB_PATH
       }

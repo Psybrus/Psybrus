@@ -33,7 +33,7 @@ PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 			"./assimp/include",
 			"./assimp/code",
 			"./zlib",
-			boostInclude
+			BOOST_INCLUDE_PATH
 		}
 
 		defines { 
@@ -108,7 +108,7 @@ PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp_contrib" )
 
 	includedirs { 
 		"./zlib",
-		boostInclude
+		BOOST_INCLUDE_PATH
 	}
 
 	defines { 

@@ -15,12 +15,12 @@ PsyProjectEngineLib( "Engine_System_Network" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/webby/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
 	configuration "windows"
 	    libdirs {
-           boostLib
+           BOOST_LIB_PATH
         }
 
    		links {

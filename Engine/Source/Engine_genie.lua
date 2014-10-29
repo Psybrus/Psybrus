@@ -20,11 +20,11 @@ PsyProjectEngineLib( "Engine" )
             "../../External/squish/",
             "../../External/webby/",
             "../../External/zlib/",
-            boostInclude,  
+            BOOST_INCLUDE_PATH,  
         }
 
         libdirs {
-           boostLib
+           BOOST_LIB_PATH
         }
 
         links {

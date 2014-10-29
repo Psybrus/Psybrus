@@ -17,11 +17,11 @@ PsyProjectEngineLib( "Engine_Import" )
       "../../External/png/",
       "../../External/squish/",
       "../../External/tremor/",
-      boostInclude,
+      BOOST_INCLUDE_PATH,
     }
 
     libdirs {
-       boostLib
+       BOOST_LIB_PATH
     }
 
   	links {

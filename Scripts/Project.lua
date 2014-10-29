@@ -1,3 +1,8 @@
+-- Project.lua
+-- Common project creation functions.
+
+-- Locals
+local EXTERNAL_PREFIX = "External_"
 
 -- Common project setup.
 function PsyProjectCommon( _name )
@@ -121,6 +126,8 @@ function PsyProjectGameExe( _name )
 	configuration "Production"
 		targetname( _name .. "Production" )
 
+	PsyAddSystemLibs()
+
 	-- Terminate project.
 	configuration "*"
 end
@@ -159,3 +166,16 @@ function PsyProjectExternalLib( _name )
 	-- Terminate project.
 	configuration "*"
 end
+
+
+-- Add engine link.
+function PsyAddEngineLinks( _name )
+	links( _name )
+end
+
+
+-- Add external link.
+function PsyAddExternalLinks( _name )
+	links( _name )
+end
+
