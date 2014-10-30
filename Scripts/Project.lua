@@ -8,6 +8,10 @@ local EXTERNAL_PREFIX = "External_"
 function PsyProjectCommon( _name )
 	project( _name )
 
+	-- Common flags for all configurations.
+	configuration "*"
+		flags { "StaticRuntime", "EnableSSE", "EnableSSE2", "FloatFast", "NativeWChar" }
+
 	-- Windows config defines.
 	configuration "windows"
 		defines { "WINDOWS", "_WIN32", "WIN32" }
@@ -18,7 +22,6 @@ function PsyProjectCommon( _name )
 
 	-- Common visual studio crap.
 	configuration "vs*"
-		defines { "_CRT_SECURE_NO_WARNINGS", "_STATIC_CPPLIB" }	
 
 	-- Thread sanitiser support for later
 	configuration "gmake"
@@ -27,16 +30,20 @@ function PsyProjectCommon( _name )
 
 	-- Common defines for build targets across all types of project.
 	configuration "Debug"
-		defines { "DEBUG" }
+		defines { "_DEBUG", "DEBUG" }
+		flags { "Symbols" }
 
 	configuration "Release"
 		defines { "NDEBUG" }
+		flags { "Symbols", "Optimize" }
 
 	configuration "Profile"
 		defines { "NDEBUG" }
+		flags { "Symbols", "Optimize" }
 
 	configuration "Production"
 		defines { "NDEBUG" }
+		flags { "Symbols", "Optimize" }
 
 	-- Terminate project.
 	configuration "*"
@@ -50,30 +57,26 @@ function PsyProjectCommonEngine( _name )
 	configuration "gmake"
 		buildoptions { "-std=c++11" }
 
-	-- Common flags for all configurations.
-	configuration "*"
-		flags { "StaticRuntime", "EnableSSE", "EnableSSE2", "FloatFast", "NativeWChar" }
+	-- Extra warnings + fatal warnings.
+	configuration "vs*"
+		flags { "ExtraWarnings", "FatalWarnings" }
 
-	-- Debug configuration.
+	-- Defines for all configurations
 	configuration "Debug"
 		defines { "PSY_USE_PROFILER=0" }
 		defines { "PSY_DEBUG", "PSY_IMPORT_PIPELINE" }
-		flags { "Symbols", "Optimize" }
 
 	configuration "Release"
 		defines { "PSY_USE_PROFILER=0" }
 		defines { "PSY_RELEASE", "PSY_IMPORT_PIPELINE" }
-		flags { "Symbols", "Optimize" }
 
 	configuration "Profile"
 		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_RELEASE", "PSY_IMPORT_PIPELINE" }
-		flags { "Symbols", "Optimize" }
 
 	configuration "Production"
 		defines { "PSY_USE_PROFILER=0" }
 		defines { "PSY_PRODUCTION" }
-		flags { "NoFramePointer", "Optimize" }
 
 	-- Terminate project.
 	configuration "*"

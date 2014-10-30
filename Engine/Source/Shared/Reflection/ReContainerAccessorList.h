@@ -32,6 +32,12 @@ public:
 
 		}
 
+		ListWriteIterator& operator = ( ListWriteIterator& Other )
+		{
+			ListData_ = Other.ListData_;
+			return *this;
+		}
+
 		virtual void clear()
 		{
 			ListData_.clear();
@@ -70,6 +76,13 @@ public:
 		virtual ~ListReadIterator()
 		{
 
+		}
+
+		ListReadIterator& operator = ( ListReadIterator& Other )
+		{
+			ListData_ = Other.ListData_;
+			It_ = Other.It_;
+			return *this;
 		}
 
 		virtual void* getKey() const

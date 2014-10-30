@@ -15,4 +15,4 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Worker mask.
-size_t FsCore::JOB_QUEUE_ID = -1;
+size_t FsCore::JOB_QUEUE_ID = (size_t)-1;

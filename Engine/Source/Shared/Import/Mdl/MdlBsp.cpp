@@ -63,7 +63,6 @@ void MdlBsp::build()
 	pRoot_ = bestFirstNode( NodeList_ );
 
     // Now split the node recursively.
-	const BcU32 Size = (BcU32)NodeList_.size();
 	split( pRoot_, NodeList_ );
 
 	// Build indices
@@ -93,7 +92,6 @@ void MdlBsp::split( MdlBspNode* pNode, MdlBspNodeList& NodeList )
 
 	while( Iter != NodeList.end() )
 	{
-		const BcU32 ListSize = (BcU32)NodeList.size();
 		MdlBspNode* pCurrNode = (*Iter);
 
         if( pCurrNode != pNode )

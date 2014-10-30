@@ -186,7 +186,6 @@ public:
 			for( BcU32 Idx = 0; Idx < CopyingClass->getNoofFields(); ++Idx )
 			{
 				auto Field = CopyingClass->getField( Idx );
-				auto FieldType = Field->getType();
 				ReFieldAccessor SrcFieldAccessor( SrcObject, Field );
 					
 				// Only copy non-transient fields.

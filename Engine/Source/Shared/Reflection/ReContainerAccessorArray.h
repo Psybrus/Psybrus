@@ -28,7 +28,14 @@ public:
 		{
 
 		}
-
+		
+		ArrayWriteIterator& operator = ( ArrayWriteIterator& Other )
+		{
+			pArrayData_ = Other.pArrayData_;
+			Index_ = Other.Index_;
+			return *this;
+		}
+		
 		virtual void clear()
 		{
 
@@ -68,6 +75,13 @@ public:
 		virtual ~ArrayReadIterator()
 		{
 
+		}
+
+		ArrayReadIterator& operator = ( ArrayReadIterator& Other )
+		{
+			pArrayData_ = Other.pArrayData_;
+			Index_ = Other.Index_;
+			return *this;
 		}
 
 		virtual void* getKey() const

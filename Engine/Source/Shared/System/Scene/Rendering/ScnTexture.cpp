@@ -35,6 +35,7 @@ void ScnTexture::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnTexture, Super >( Fields );
+	BcUnusedVar( Class );
 
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.

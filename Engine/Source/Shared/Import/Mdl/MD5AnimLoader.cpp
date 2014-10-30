@@ -330,7 +330,6 @@ MdlAnim* MD5AnimLoader::load( const BcChar* FileName, const BcChar* NodeName )
 		for( BcU32 j = 0; j < nFrames_; ++j )
 		{
 			MD5_Joint* pJoint = &pFrames_[ j ].pKeys_[ i ];
-			MD5_Joint* pParentJoint = pJoints_[ i ].ParentID_ != -1 ? &pFrames_[ j ].pKeys_[ pJoint->ParentID_ ] : NULL;
 
 			MdlAnimKey Key;
 

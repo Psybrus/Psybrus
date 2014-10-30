@@ -139,7 +139,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 		
 		recursiveSerialiseNodes(
 			pNode, 
-			-1, 
+			(size_t)-1, 
 			NodeIndex, 
 			PrimitiveIndex );
 
@@ -148,7 +148,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 		recursiveSerialiseNodeMeshes( 
 			pNode, 
-			-1, 
+			(size_t)-1, 
 			NodeIndex, 
 			PrimitiveIndex );
 
@@ -236,7 +236,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 		size_t PrimitiveIndex = 0;
 		
 		recursiveSerialiseNodes( Scene_->mRootNode, 
-								 -1, 
+								 (size_t)-1, 
 								 NodeIndex, 
 								 PrimitiveIndex );
 
@@ -999,6 +999,8 @@ void ScnModelImport::serialiseVertices(
 				BcU32 BlendIndexElementIdx = FillNextElementLessThanZero( 
 					static_cast< BcF32 >( BoneIdx ), reinterpret_cast< BcF32* >( &BlendIndex ), 4 );
 				BcAssert( BlendWeightElementIdx == BlendIndexElementIdx );
+				BcUnusedVar( BlendWeightElementIdx );
+				BcUnusedVar( BlendIndexElementIdx );
 			}
 		}
 
@@ -1194,7 +1196,7 @@ size_t ScnModelImport::findNodeIndex(
 		return BaseIndex;
 	}
 
-	size_t FoundIndex = -1;
+	size_t FoundIndex = (size_t)-1;
 	for( size_t Idx = 0; Idx < RootSearchNode->mNumChildren; ++Idx )
 	{
 		++BaseIndex;

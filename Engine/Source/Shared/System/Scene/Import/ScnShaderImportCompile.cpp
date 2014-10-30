@@ -40,6 +40,13 @@ namespace
 
 		}
 
+	private:
+		ScnShaderIncludeHandler& operator = ( const ScnShaderIncludeHandler& Other )
+		{
+			return *this;
+		}
+
+	public:
 		HRESULT __stdcall Open( D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes)
 		{
 			BcFile IncludeFile;
@@ -119,7 +126,6 @@ BcBool ScnShaderImport::compileShader(
 	// Extract error messages if we have any.
 	if( OutErrorMessages != nullptr )
 	{
-		size_t BufferSize = OutErrorMessages->GetBufferSize();
 		LPVOID BufferData = OutErrorMessages->GetBufferPointer();
 
 		// TODO: Split up into lines.

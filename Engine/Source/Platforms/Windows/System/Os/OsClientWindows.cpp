@@ -227,7 +227,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	centreWindow( Width, Height );
 
 	// Create The Window
-	if ( !( hWnd_=::CreateWindowEx(	WindowStyleEx_,
+	if ( !( hWnd_= ::CreateWindowEx(	WindowStyleEx_,
 		ClassName_,
 		pTitle,
 		WindowStyle_,

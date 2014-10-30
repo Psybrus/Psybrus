@@ -215,6 +215,7 @@ void CsResource::markCreate()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_CREATE );
 	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*getName()).c_str() );
+	BcUnusedVar( OldStage );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -223,6 +224,7 @@ void CsResource::markReady()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_READY );
 	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*getName()).c_str() );
+	BcUnusedVar( OldStage );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,6 +233,7 @@ void CsResource::markDestroy()
 {
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_DESTROY );
 	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*getName()).c_str() );
+	BcUnusedVar( OldStage );
 
 	CsCore::pImpl()->destroyResource( this );
 }

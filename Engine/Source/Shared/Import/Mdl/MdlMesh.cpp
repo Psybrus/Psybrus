@@ -86,7 +86,7 @@ size_t MdlMesh::addVertexShared( const MdlVertex& Vertex )
 	// Go through all our vertices, and if we find a matching one,
 	// return the index to it, else just add this vert and return
 	// the index to it.
-	size_t iVertex = -1;
+	size_t iVertex = (size_t)-1;
 
 	std::map< BcU32, size_t >::iterator VertexIt = aVertexHashes_.find( BcHash::GenerateCRC32( 0, &Vertex, sizeof( Vertex ) ) );
 	if( VertexIt != aVertexHashes_.end() )

@@ -16,6 +16,10 @@
 
 #include "png.h"
 
+#if PLATFORM_WINDOWS
+#pragma  warning( disable : 4611 )
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // load
 //static

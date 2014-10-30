@@ -122,7 +122,7 @@ BcBool ReClassSerialiser_BinaryDataType::serialiseFromString( void* pInstance, c
 	BcMemZero( pBinaryData->getData< BcU8 >(), pBinaryData->getDataSize() );
 	base64_decodestate DecodeState;
 	base64_init_decodestate( &DecodeState );
-	auto InBytes = base64_decode_block( &InString[ 0 ], (const int)InString.length(), pBinaryData->getData< char >(), &DecodeState );
+	base64_decode_block( &InString[ 0 ], (const int)InString.length(), pBinaryData->getData< char >(), &DecodeState );
 	return true;
 }
 

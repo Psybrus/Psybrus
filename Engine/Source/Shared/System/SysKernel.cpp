@@ -75,8 +75,8 @@ void SysKernel_UnitTest()
 	};
 
 	BcU32 NoofJobs = 100;
-	BcF32 TotalTime = 0.0f;
-	BcF32 ThisTime = 0.0f;
+	BcF64 TotalTime = 0.0f;
+	BcF64 ThisTime = 0.0f;
 	BcTimer Timer;
 
 	// Test no queues.
@@ -84,8 +84,8 @@ void SysKernel_UnitTest()
 	Timer.mark();
 	for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
 	{
-		Kernel.pushFunctionJob( -1, TestIncJob );
-		Kernel.pushFunctionJob( -1, TestDecJob );
+		Kernel.pushFunctionJob( (size_t)-1, TestIncJob );
+		Kernel.pushFunctionJob( (size_t)-1, TestDecJob );
 	}
 	Kernel.flushAllJobQueues();
 	ThisTime = Timer.time() * 1000.0f;
@@ -132,7 +132,7 @@ void SysKernel_UnitTest()
 
 //////////////////////////////////////////////////////////////////////////
 // Worker masks.
-size_t SysKernel::DEFAULT_JOB_QUEUE_ID = -1;
+size_t SysKernel::DEFAULT_JOB_QUEUE_ID = (size_t)-1;
 
 //////////////////////////////////////////////////////////////////////////
 // Command line

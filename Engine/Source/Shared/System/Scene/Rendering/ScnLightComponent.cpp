@@ -195,9 +195,9 @@ void ScnLightComponent::createAttenuationValues( BcF32 MinDistance, BcF32 MidDis
 // setMaterialParameters
 void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComponent* MaterialComponent )
 {
+	/*
 	const MaVec4d& Position( getParentEntity()->getWorldMatrix().row3() );
 	const MaVec4d& Direction( getParentEntity()->getWorldMatrix().row2() );
-	/*
 	MaterialComponent->setLightParameters( LightIndex,
 	                                       MaVec3d( Position.x(), Position.y(), Position.z() ),
 	                                       MaVec3d( Direction.x(), Direction.y(), Direction.z() ),

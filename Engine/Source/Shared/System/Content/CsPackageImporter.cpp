@@ -183,7 +183,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT );
 			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
 			Writer.save( OutputDependencies.c_str() );
@@ -383,9 +383,6 @@ BcBool CsPackageImporter::importResource(
 	BcPrintf( " - importResource: Processing \"%s\" of type \"%s\"\n", 
 		Importer->getResourceName().c_str(), Importer->getResourceType().c_str() );
 	
-	// Get resource index.
-	BcU32 ResourceIndex = ResourceHeaders_.size();
-
 	// Get first chunk used by resource.
 	BcU32 FirstChunk = ChunkHeaders_.size();
 
@@ -573,7 +570,6 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcBool IsWeak = BcFalse;
-	BcBool IsThis = BcFalse;
 	BcRegexMatch Match;
 	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
 

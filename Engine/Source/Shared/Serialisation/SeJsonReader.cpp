@@ -296,7 +296,6 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 {
     Json::Value ArrayValue( Json::arrayValue );
     auto pFieldValueType = pField->getValueType();
-    auto ValueSerialiser = pFieldValueType->getTypeSerialiser();
     auto pWriteIterator = pField->newWriteIterator( pField->getData< void >( pData ) );
 
     // Clear container out.
@@ -357,7 +356,6 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
     auto pFieldKeyType = pField->getKeyType();
     auto pFieldValueType = pField->getValueType();
     auto KeySerialiser = pFieldKeyType->getTypeSerialiser();
-    auto ValueSerialiser = pFieldValueType->getTypeSerialiser();
     auto pWriteIterator = pField->newWriteIterator( pField->getData< void >( pData ) );
 
     // Clear container out.

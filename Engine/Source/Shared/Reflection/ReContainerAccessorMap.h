@@ -32,6 +32,12 @@ public:
 
 		}
 
+		MapWriteIterator& operator = ( MapWriteIterator& Other )
+		{
+			MapData_ = Other.MapData_;
+			return *this;
+		}
+
 		virtual void clear()
 		{
 			MapData_.clear();
@@ -70,6 +76,13 @@ public:
 		virtual ~MapReadIterator()
 		{
 
+		}
+
+		MapReadIterator& operator = ( MapReadIterator& Other )
+		{
+			MapData_ = Other.MapData_;
+			It_ = Other.It_;
+			return *this;
 		}
 
 		virtual void* getKey() const

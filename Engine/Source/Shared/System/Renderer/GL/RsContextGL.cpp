@@ -32,6 +32,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
+#if !defined( PSY_PRODUCTION )
 #if PLATFORM_WINDOWS
 static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 #else
@@ -57,12 +58,13 @@ static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity,
 
 	static bool ShowNotifications = false;
 
-	//if( severity != GL_DEBUG_SEVERITY_NOTIFICATION || ShowNotifications )
+	if( severity != GL_DEBUG_SEVERITY_NOTIFICATION || ShowNotifications )
 	{
 		BcPrintf( "Source: %x, Type: %x, Id: %x, Severity: %s\n - %s\n",
 			source, type, id, SeverityStr, message );
 	}
 }
+#endif // !defined( PSY_PRODUCTION )
 
 //////////////////////////////////////////////////////////////////////////
 // State value translation.
@@ -526,10 +528,10 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+		RsOpenGLVersion( 3, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_140 ),
 	};
 
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
-	bool Success = false;
 	for( auto Version : Versions )
 	{
 		if( createProfile( Version, ParentContext ) )
@@ -552,6 +554,7 @@ void RsContextGL::create()
 		// Share parent's lists with this context.
 		BOOL Result = wglShareLists( pParent_->WindowRC_, WindowRC_ );
 		BcAssertMsg( Result != BcFalse, "Unable to share lists." );
+		BcUnusedVar( Result );
 
 		// Make current.
 		wglMakeCurrent( WindowDC_, WindowRC_ );
@@ -1227,7 +1230,8 @@ bool RsContextGL::createProgram(
 		{
 			auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
 			BcAssert( TestIdx == Idx );
-			
+			BcUnusedVar( TestIdx );
+
 			Program->addUniformBufferSlot( UniformBlockName, Idx, Size );
 
 			glUniformBlockBinding( Handle, Idx, ActiveUniformSlotIndex++ );
@@ -1538,7 +1542,7 @@ void RsContextGL::flushState()
 			switch( (RsRenderStateType)RenderStateID )
 			{
 				case RsRenderStateType::DEPTH_WRITE_ENABLE:
-					glDepthMask( Value );
+					glDepthMask( (GLboolean)Value );
 					break;
 				case RsRenderStateType::DEPTH_TEST_ENABLE:
 					Value ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );

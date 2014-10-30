@@ -146,7 +146,7 @@ void ScnEntity::create()
 	static int Export = 0;
 	if( Export )
 	{
-		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_ALL, bcRFF_TRANSIENT | bcRFF_CHUNK_DATA );
+		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), (BcU32)bcRFF_ALL, (BcU32)( bcRFF_TRANSIENT | bcRFF_CHUNK_DATA ) );
 		SeJsonWriter Writer( &ObjectCodec );
 		Writer << *this;
 		Writer.save( "test.json" );
@@ -340,7 +340,6 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 	else
 	{
 		BcU32 NoofComponents = getNoofComponents();
-		BcU32 SearchIdx = 0;
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
