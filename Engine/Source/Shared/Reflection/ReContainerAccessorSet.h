@@ -31,6 +31,12 @@ public:
 
 		}
 
+		SetWriteIterator& operator = ( SetWriteIterator& Other )
+		{
+			SetData_ = Other.SetData_;
+			return *this;
+		}
+
 		virtual void clear()
 		{
 			SetData_.clear();
@@ -69,6 +75,13 @@ public:
 		virtual ~SetReadIterator()
 		{
 
+		}
+
+		SetReadIterator& operator = ( SetReadIterator& Other )
+		{
+			SetData_ = Other.SetData_;
+			It_ = Other.It_;
+			return *this;
 		}
 
 		virtual void* getKey() const

@@ -18,14 +18,7 @@
 // BcSqrt
 BcF32 BcSqrt( BcF32 v )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
-	__asm fld [v]
-	__asm fsqrt
-	__asm fstp [v]
-	return v;
-#else
 	return sqrtf( v );
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,14 +50,7 @@ BcU64 BcSqrtFixed( BcU64 FixedValue, BcU64 Precision )
 // BcSin
 BcF32 BcSin( BcF32 r )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
-	__asm fld [r]
-	__asm fsin
-	__asm fstp [r]
-	return r;
-#else
 	return sinf( r );
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,15 +107,7 @@ BcF32 BcCeil( BcF32 T )
 // BcAtan2
 BcF32 BcAtan2( BcF32 Y, BcF32 X )
 {
-#if PLATFORM_WINDOWS && COMPILER_MSVC && ARCH_X86
-	__asm fld [Y]
-	__asm fld [X]
-	__asm fpatan
-	__asm fstp [Y]
-	return Y;
-#else
 	return atan2( Y, X );
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

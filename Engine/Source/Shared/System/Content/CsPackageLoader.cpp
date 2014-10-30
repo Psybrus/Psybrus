@@ -183,8 +183,6 @@ CsResource* CsPackageLoader::getCrossRefResource( BcU32 Index )
 		// Return resource.
 		return Resource;
 	}
-
-	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -208,7 +206,6 @@ BcU32 CsPackageLoader::getChunkSize( BcU32 ResourceIdx, BcU32 ResourceChunkIdx )
 	CsPackageResourceHeader& ResourceHeader = pResourceHeaders_[ ResourceIdx ];
 	BcU32 ChunkIdx = ResourceHeader.FirstChunk_ + ResourceChunkIdx;
 	CsPackageChunkHeader& ChunkHeader = pChunkHeaders_[ ChunkIdx ];
-	CsPackageChunkData& ChunkData = pChunkData_[ ChunkIdx ];
 
 	return ChunkHeader.UnpackedBytes_;
 }
@@ -295,7 +292,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	{
 		CsPackageDependencies Dependencies;
 
-		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
+		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT );
 		SeJsonReader Reader( &ObjectCodec );
 		Reader.load( OutputDependencies.c_str() );
 		Reader << Dependencies;
@@ -672,6 +669,7 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 				// Check the data is valid.
 				BcU32 Hash = BcHash( ChunkData.pUnpackedData_, ChunkHeader.UnpackedBytes_ );
 				BcAssertMsg( Hash == ChunkHeader.UnpackedHash_, "Corrupted data." );
+				BcUnusedVar( Hash );
 
 				// Set status to ready.
 				ChunkData.Status_ = csPCS_READY;
@@ -684,6 +682,7 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 				// Check the data is valid.
 				BcU32 Hash = BcHash( ChunkData.pPackedData_, ChunkHeader.PackedBytes_ );
 				BcAssertMsg( Hash == ChunkHeader.PackedHash_, "Corrupted data." );
+				BcUnusedVar( Hash );
 
 				decompressChunk( ResourceIdx, ChunkIdx );
 				return;

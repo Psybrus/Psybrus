@@ -24,6 +24,10 @@
 // Useful for debugging generated shader files.
 #define DEBUG_FILE_WRITE_OUT_FILES		0
 
+#if PLATFORM_WINDOWS
+#pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
+#endif
+
 #include <boost/format.hpp>
 #include <boost/wave.hpp>
 #include <boost/wave/cpplexer/cpp_lex_interface.hpp>
@@ -110,6 +114,7 @@ namespace
 		auto BackendType = RsShaderCodeTypeToBackendType( CodeType );
 		BcAssert( BackendType == RsShaderBackendType::GLSL ||
 		          BackendType == RsShaderBackendType::GLSL_ES );
+		BcUnusedVar( BackendType );
 		switch( CodeType )
 		{
 		case RsShaderCodeType::GLSL_140:

@@ -122,6 +122,7 @@ public:
 		pDelegateCall->deferCall();
 		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
+		BcUnusedVar( RetVal );
 	}
 
 	/**
@@ -134,6 +135,7 @@ public:
 		pDelegateCall->deferCall( P0 );
 		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
+		BcUnusedVar( RetVal );
 	}
 
 	/**
@@ -146,6 +148,7 @@ public:
 		pDelegateCall->deferCall( P0, P1 );
 		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
+		BcUnusedVar( RetVal );
 	}	
 	
 	/**
@@ -158,6 +161,7 @@ public:
 		pDelegateCall->deferCall( P0, P1, P2 );
 		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
 		BcAssert( RetVal );
+		BcUnusedVar( RetVal );
 	}
 
 	/**
@@ -167,6 +171,7 @@ public:
 	{
 		BcBool RetVal = pushJob( JobQueueId, new SysFunctionJob( Function ) );
 		BcAssert( RetVal );
+		BcUnusedVar( RetVal );
 	}
 
 	/**

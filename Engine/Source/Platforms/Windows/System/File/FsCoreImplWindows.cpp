@@ -51,8 +51,6 @@ FsCoreImplWindows::~FsCoreImplWindows()
 //virtual
 void FsCoreImplWindows::open()
 {
-	int RetVal = 0;
-	
 	// Set the resource path.
 	// NOTE: May need this again sometime, going to keep code here for ref.
 	//[[NSFileManager defaultManager] changeCurrentDirectoryPath:@"/Users/neilo/Documents/Dev/Psybrus/Examples/TestBed"];

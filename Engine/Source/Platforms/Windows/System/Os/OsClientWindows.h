@@ -109,7 +109,7 @@ private:
 	DWORD			WindowStyleEx_;
 	DWORD			WindowStyle_;
 
-	typedef std::map< WORD, BcU16 > TKeyCodeMap;
+	typedef std::map< BcU32, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap		KeyCodeMap_;
 

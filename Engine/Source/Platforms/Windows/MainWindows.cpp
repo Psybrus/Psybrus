@@ -62,6 +62,7 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 	{
 		RsContext* pContext = RsCore::pImpl()->getContext( pMainWindow );
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
+		BcUnusedVar( pContext );
 	}
 
 	return evtRET_REMOVE;
@@ -79,6 +80,7 @@ eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const SysSystemEvent& )
 		{
 			BcPath PackagePath( FindFileData.cFileName );
 			CsPackage* pPackage = new CsPackage( PackagePath.getFileNameNoExtension() );
+			BcUnusedVar( pPackage );
 
 			// HACK: Package importing is a major hack currently so we can automate offline building and packaging for LD25.
 			//       The system is due a change soon, this is a purely temporary measure until we break out importing into
@@ -92,8 +94,7 @@ eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const SysSystemEvent& )
 
 	// HACK: We just wanna bail here. No clean shutdown yet.
 	exit(0);
-	
-	return evtRET_REMOVE;
+	//return evtRET_REMOVE;
 }
 
 int main(int argc, char** argv)

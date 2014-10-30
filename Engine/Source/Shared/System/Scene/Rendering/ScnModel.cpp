@@ -46,6 +46,8 @@ void ScnModel::StaticRegisterClass()
 		};
 		
 		auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
+		BcUnusedVar( Class );
+
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
@@ -407,8 +409,6 @@ ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
 // getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
 {
-	ScnModelMeshData* pMeshData = Parent_->pMeshData_;
-
 	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
 	{
 		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
@@ -430,8 +430,6 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 	MaterialComponents.reserve( PerComponentMeshDataList_.size() );
 
 	// Find all.
-	ScnModelMeshData* pMeshData = Parent_->pMeshData_;
-
 	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
 	{
 		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
@@ -751,7 +749,6 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 	{
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
 		ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
-		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pMeshData->NodeIndex_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
 

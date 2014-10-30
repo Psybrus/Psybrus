@@ -32,6 +32,7 @@ void ScnAnimation::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnAnimation, Super >( Fields );
+	BcUnusedVar( Class );
 	
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.

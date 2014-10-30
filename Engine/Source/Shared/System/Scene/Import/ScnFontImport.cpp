@@ -140,10 +140,7 @@ BcBool ScnFontImport::import(
 								
 								if( GlyphError == 0 )
 								{
-									int ConvertError = FT_Glyph_To_Bitmap( &Glyph,
-																		  RenderMode,
-																		  0,
-																		  0 );
+									FT_Glyph_To_Bitmap( &Glyph, RenderMode, 0, 0 );
 									FT_BitmapGlyph BitmapGlyph = (FT_BitmapGlyph)(Glyph);
 									
 									ImgImageUPtr pImage = RenderMode == FT_RENDER_MODE_MONO ? 

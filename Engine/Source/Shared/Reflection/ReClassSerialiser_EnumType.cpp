@@ -60,7 +60,6 @@ void* ReClassSerialiser_EnumType::createNoInit() const
 		return new BcU32();
 	default:
 		BcAssert( false );
-		return nullptr;
 	}
 	return nullptr;
 }

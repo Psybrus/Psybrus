@@ -42,6 +42,7 @@ void ScnShader::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShader, Super >( Fields );
+	BcUnusedVar( Class );
 
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
@@ -207,6 +208,8 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// Check for file loading.
 			BcU32* pFileLoadTag = (BcU32*)pShaderData;
 			BcBool FreeShaderData = BcFalse;
+			BcUnusedVar( pFileLoadTag );
+			BcUnusedVar( FreeShaderData );
 #if !defined( PSY_PRODUCTION )
 			if( *pFileLoadTag == ScnShader::LOAD_FROM_FILE_TAG )
 			{
@@ -226,7 +229,6 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 	else if( ChunkID == BcHash( "program" ) )
 	{
-		BcU32 NoofShaders = 0;
 		std::vector< RsShader* > Shaders;
 		Shaders.reserve( (size_t)RsShaderType::MAX );
 		++TotalProgramsLoaded_;

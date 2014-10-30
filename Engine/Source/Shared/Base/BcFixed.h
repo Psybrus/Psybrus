@@ -44,7 +44,7 @@ public:
 
 	// for private construction via guts
 	enum FixedRaw { RAW };
-	BcFixed(FixedRaw, int guts) : g(guts) {}
+	BcFixed(FixedRaw, _Ty guts) : g(guts) {}
 
 private:
 	_Ty	g; // the guts
@@ -52,7 +52,7 @@ private:
 public:
 	BcFixed() : g(0) {}
 	BcFixed(const BcFixed& a) : g( a.g ) {}
-	BcFixed(BcF32 a) : g( int(a / (BcF32)STEP()) ) {}
+	BcFixed(BcF32 a) : g( _Ty(a / (BcF32)STEP()) ) {}
 	BcFixed(int a) : g( a << BP ) {}
 	BcFixed(long a) : g( a << BP ) {}
 	BcFixed& operator =(const BcFixed& a) { g= a.g; return *this; }

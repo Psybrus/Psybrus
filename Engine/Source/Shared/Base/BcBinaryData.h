@@ -28,6 +28,13 @@ public:
 		{
 		}
 
+		Stream& operator = ( const Stream& Other )
+		{
+			BinaryData_ = Other.BinaryData_;
+			CurrOffset_ = Other.CurrOffset_;
+			return *this;
+		}
+
 		inline void setOffset( size_t Offset )
 		{
 			BcAssertMsg( Offset < BinaryData_.getDataSize(), "Offset too large." );

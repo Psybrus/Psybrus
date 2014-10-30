@@ -13,7 +13,7 @@
 
 #include "System/Renderer/RsCore.h"
 
-size_t RsCore::JOB_QUEUE_ID = -1;
+size_t RsCore::JOB_QUEUE_ID = (size_t)-1;
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection

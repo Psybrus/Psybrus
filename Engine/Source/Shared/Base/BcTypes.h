@@ -29,6 +29,7 @@
 #pragma warning ( disable : 4127 )
 #pragma warning ( disable : 4100 )
 #pragma warning ( disable : 4201 )
+#pragma warning ( disable : 4706 ) // Assignment within conditional expression.
 
 typedef std::uint64_t				BcU64;
 typedef std::uint32_t				BcU32;

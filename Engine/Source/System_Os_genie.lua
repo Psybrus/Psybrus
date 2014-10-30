@@ -1,9 +1,9 @@
 PsyProjectEngineLib( "Engine_System_Os" )
   configuration "*"
     files {
-      "./Shared/System/Os/**.h", 
-      "./Shared/System/Os/**.inl", 
-      "./Shared/System/Os/**.cpp", 
+      "./Shared/System/Os/*.h", 
+      "./Shared/System/Os/*.inl", 
+      "./Shared/System/Os/*.cpp", 
     }
     includedirs {
       "./Shared/",
@@ -20,6 +20,9 @@ PsyProjectEngineLib( "Engine_System_Os" )
 
   configuration "linux"
     files {
+      "./Shared/System/Os/SDL/*.h", 
+      "./Shared/System/Os/SDL/*.inl", 
+      "./Shared/System/Os/SDL/*.cpp", 
       "./Platforms/Linux/System/Os/*.h", 
       "./Platforms/Linux/System/Os/*.inl", 
       "./Platforms/Linux/System/Os/*.cpp", 

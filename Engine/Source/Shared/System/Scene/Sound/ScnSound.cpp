@@ -35,6 +35,8 @@ void ScnSound::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnSound, Super >( Fields );
+	BcUnusedVar( Class );
+
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 

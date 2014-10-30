@@ -29,6 +29,7 @@ ScnAnimationTransform::ScnAnimationTransform()
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4244 )
+#pragma warning ( disable : 4701 ) // Potentially uninitialized local variable used...
 #endif
 
 typedef struct {float x, y, z, w;} Quat; /* Quaternion */

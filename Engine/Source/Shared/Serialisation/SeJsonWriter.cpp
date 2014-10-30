@@ -265,7 +265,6 @@ Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField )
 {
 	Json::Value ArrayValue( Json::arrayValue );
 	auto pFieldValueType = pField->getValueType();
-	auto ValueSerialiser = pFieldValueType->getTypeSerialiser();
 	auto pReadIterator = pField->newReadIterator( pField->getData< void >( pData ) );
 
 	// Iterate over values and serialise individually.

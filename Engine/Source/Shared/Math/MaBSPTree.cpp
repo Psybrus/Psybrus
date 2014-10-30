@@ -456,8 +456,6 @@ BcBool MaBSPTree::pointOnNode( const MaVec3d& Point, MaBSPNode* pNode )
 
 		return BcTrue;
 	}
-
-	return BcFalse;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

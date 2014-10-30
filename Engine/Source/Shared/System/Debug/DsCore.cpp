@@ -339,7 +339,6 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 		{
 			int a = 0; ++a;
 		}
-		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
@@ -391,9 +390,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 				else
 				{
 					fValue.setContents("CONTAINER");
-					auto SrcIter = SrcFieldAccessor.newReadIterator();
 					auto KeyType = Field->getKeyType();
-					auto ValueType = Field->getValueType();
 
 					if (KeyType == nullptr)
 					{
@@ -471,7 +468,6 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	node.createChildNode("script").setAttribute("language", "javascript").setAttribute("type", "text/javascript").setAttribute("src", "/files/jquery.min.js");
 	node.createChildNode("script").setAttribute("language", "javascript").setAttribute("type", "text/javascript").setAttribute("src", "/files/debug.js");
 
-	int t = sizeof(BcHtmlNode);
 	BcHtmlNode redirect = node.createChildNode("meta");
 	BcHtmlNode body = node.createChildNode("body").createChildNode("div").setAttribute("id", "mainBody");
 	//redirect = node["meta"];
@@ -551,7 +547,7 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		Output.createChildNode("br");
 		return;
 	}
-	CsSerialiserPackageObjectCodec ObjectCodec(nullptr, bcRFF_ALL, bcRFF_TRANSIENT);
+	CsSerialiserPackageObjectCodec ObjectCodec(nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT);
 	SeJsonWriter writer( &ObjectCodec);
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
 	
@@ -637,7 +633,6 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 	Json::Value readRoot;
 	Json::Reader reader;
 	bool PostContentAvailable = PostContent.size() > 0;
-	bool success = reader.parse(PostContent, readRoot);
 	Json::Value root;
 
 	Json::Value classes = Json::Value(Json::arrayValue);
@@ -655,7 +650,6 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 		{
 			int a = 0; ++a;
 		}
-		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
@@ -706,9 +700,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 				}
 				else
 				{
-					auto SrcIter = SrcFieldAccessor.newReadIterator();
 					auto KeyType = Field->getKeyType();
-					auto ValueType = Field->getValueType();
 
 					if (KeyType == nullptr)
 					{

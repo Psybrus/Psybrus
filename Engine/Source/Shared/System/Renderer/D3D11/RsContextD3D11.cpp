@@ -508,10 +508,12 @@ void RsContextD3D11::destroy()
 	BackBufferDS_ = nullptr;
 
 	// Verify all resources have been freed.
+#if !defined( PSY_PRODUCTION )
 	for( const auto& ResourceView : ResourceViewCache_ )
 	{
 		BcAssert( ResourceView.Resource_ == nullptr );
 	}
+#endif
 
 	ResourceViewCache_.clear();
 	ResourceViewCacheFreeIdx_.clear();
@@ -609,7 +611,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 		DepthStencilState_.DepthFunc = gCompareFunc[ Value ];
 		break;
 	case RsRenderStateType::STENCIL_WRITE_MASK:
-		DepthStencilState_.StencilWriteMask = Value;
+		DepthStencilState_.StencilWriteMask = (UINT8)Value;
 		break;
 	case RsRenderStateType::STENCIL_TEST_ENABLE:
 		DepthStencilState_.StencilEnable = Value ? 1 : 0;
@@ -622,7 +624,7 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 		StencilRef_ = Value;
 		break;
 	case RsRenderStateType::STENCIL_TEST_FUNC_MASK:
-		DepthStencilState_.StencilReadMask = Value;
+		DepthStencilState_.StencilReadMask = (UINT8)Value;
 		break;
 	case RsRenderStateType::STENCIL_TEST_OP_SFAIL:
 		DepthStencilState_.FrontFace.StencilFailOp = gStencilOp[ Value ];
@@ -637,16 +639,16 @@ void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 		DepthStencilState_.BackFace.StencilPassOp = gStencilOp[ Value ];
 		break;
 	case RsRenderStateType::COLOR_WRITE_MASK_0:
-		BlendState_.RenderTarget[ 0 ].RenderTargetWriteMask = Value;
+		BlendState_.RenderTarget[ 0 ].RenderTargetWriteMask = (UINT8)Value;
 		break;
 	case RsRenderStateType::COLOR_WRITE_MASK_1:
-		BlendState_.RenderTarget[ 1 ].RenderTargetWriteMask = Value;
+		BlendState_.RenderTarget[ 1 ].RenderTargetWriteMask = (UINT8)Value;
 		break;
 	case RsRenderStateType::COLOR_WRITE_MASK_2:
-		BlendState_.RenderTarget[ 2 ].RenderTargetWriteMask = Value;
+		BlendState_.RenderTarget[ 2 ].RenderTargetWriteMask = (UINT8)Value;
 		break;
 	case RsRenderStateType::COLOR_WRITE_MASK_3:
-		BlendState_.RenderTarget[ 3 ].RenderTargetWriteMask = Value;
+		BlendState_.RenderTarget[ 3 ].RenderTargetWriteMask = (UINT8)Value;
 		break;
 	case RsRenderStateType::BLEND_MODE:
 		{
@@ -2078,6 +2080,7 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 			&Desc,
 			&Entry.ShaderResourceView_ );
 		BcAssert( SUCCEEDED( Result ) );
+		BcUnusedVar( Result );
 	}
 
 	return Entry.ShaderResourceView_;
@@ -2135,6 +2138,7 @@ ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( size_t ResourceI
 			&Desc,
 			&Entry.RenderTargetView_ );
 		BcAssert( SUCCEEDED( Result ) ); 
+		BcUnusedVar( Result );
 	}
 
 	return Entry.RenderTargetView_;
@@ -2178,6 +2182,7 @@ ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( size_t ResourceI
 			&Desc,
 			&Entry.DepthStencilView_ );
 		BcAssert( SUCCEEDED( Result ) ); 
+		BcUnusedVar( Result );
 	}
 
 	return Entry.DepthStencilView_;

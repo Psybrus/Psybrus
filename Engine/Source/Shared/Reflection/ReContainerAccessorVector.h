@@ -31,6 +31,11 @@ public:
 
 		}
 
+		VectorWriteIterator& operator = ( VectorWriteIterator& Other )
+		{
+			VectorData_ = Other.VectorData_;
+			return *this;
+		}
 		virtual void clear()
 		{
 			VectorData_.clear();
@@ -69,6 +74,13 @@ public:
 		virtual ~VectorReadIterator()
 		{
 
+		}
+
+		VectorReadIterator& operator = ( VectorReadIterator& Other )
+		{
+			VectorData_ = Other.VectorData_;
+			Index_ = Other.Index_;
+			return *this;
 		}
 
 		virtual void* getKey() const

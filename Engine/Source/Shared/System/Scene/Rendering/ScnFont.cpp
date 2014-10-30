@@ -37,6 +37,7 @@ void ScnFont::StaticRegisterClass()
 	};
 	
 	auto& Class = ReRegisterClass< ScnFont, Super >( Fields );
+	BcUnusedVar( Class );
 
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.

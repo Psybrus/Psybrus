@@ -38,7 +38,7 @@ local openal_include    = openal_root .. "/include"
 
 local buildroot = ""
 
-project ( EXTERNAL_PROJECT_PREFIX .. "SoLoud" )
+PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "SoLoud" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 

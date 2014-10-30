@@ -254,7 +254,6 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					{
 						// Half size.
 						const MaVec2d HalfSize = Particle.Scale_ * 0.5f;
-						const BcF32 MaxHalfSize = BcMax( HalfSize.x(), HalfSize.y() );
 						BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
 						const MaVec4d& UVBounds( UVBounds_[ Particle.TextureIndex_ ] );
 

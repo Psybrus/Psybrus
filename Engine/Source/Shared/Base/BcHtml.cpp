@@ -214,5 +214,5 @@ std::string BcHtmlNodeInternal::getOuterXml()
 		output += "</" + Tag_ + ">";
 		return output;
 	}
-	return "";
 }
+

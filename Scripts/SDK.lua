@@ -8,10 +8,11 @@ BOOST_LIB_PATH = ""
 if os.is("windows") then
 	boostRoot = os.getenv("BOOST_ROOT") or "C:/Boost"
 	BOOST_INCLUDE_PATH = boostRoot .. "/include/boost-1_56"
-	BOOT_LIB_PATHBOOT_LIB_PATHBOOT_LIB_PATH = boostRoot .. "/lib"
+	BOOST_LIB_PATH = boostRoot .. "/lib"
+
 else
 	BOOST_INCLUDE_PATH = "/usr/include"
-	BOOT_LIB_PATH = "/usr/lib"
+	BOOST_LIB_PATH = "/usr/lib"
 end
 
 -- Add boost libs to current project (all configurations)

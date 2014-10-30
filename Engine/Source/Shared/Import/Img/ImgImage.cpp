@@ -128,7 +128,6 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 	if( Width != ( Width_ >> 1 ) || Height != ( Height_ >> 1 ) )
 	{
 		BcF32 SrcW = BcF32( Width_ - 1 );
-		BcF32 SrcH = BcF32( Height_ - 1 );
 
 		BcBreakpoint; // This is broken!
 
