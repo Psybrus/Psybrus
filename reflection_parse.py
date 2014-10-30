@@ -63,18 +63,18 @@ searchPaths = [
 
 if len( sys.argv ) < 2:
 	print "Missing command line args:\n"
-	print "python reflection_parse.py GameName "
+	print "python reflection_parse.py GameFolder "
 	exit(1)
 
-gameName = sys.argv[1]
-gameSourcePath = "../" + gameName + "/Source"
-outputFileName = getPathFromRoot( gameSourcePath ) + "/AutoGenRegisterReflection.cpp"
-searchPaths.append ( "../" + gameName + "/Source" )
+gameFolder = sys.argv[1]
+gameSourcePath = gameFolder + "../../" + "/Source"
+outputFileName = gameSourcePath + "AutoGenRegisterReflection.cpp"
+searchPaths.append ( gameSourcePath )
 
 outputFile = []
 
 for searchPath in searchPaths:
-	fullPath = getPathFromRoot( searchPath )
+	fullPath =  searchPath 
 	recurse( fullPath, parseReflection )
 
 for include in includes:
