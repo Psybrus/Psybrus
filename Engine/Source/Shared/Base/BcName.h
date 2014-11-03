@@ -19,6 +19,7 @@
 #include "Base/BcString.h"
 
 #include <vector>
+#include <mutex>
 
 //////////////////////////////////////////////////////////////////////////
 // BcNameEntry
@@ -111,6 +112,7 @@ private:
 
 private:
 	static BcNameEntryList* pStringEntries_;
+	static std::mutex EntryLock_;
 
 	/**
 	 * Get string entries.

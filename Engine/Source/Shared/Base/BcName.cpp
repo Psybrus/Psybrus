@@ -20,6 +20,7 @@ BcName BcName::INVALID;
 BcName BcName::NONE( "None" );
 
 BcNameEntryList* BcName::pStringEntries_ = nullptr;
+std::mutex BcName::EntryLock_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -43,7 +44,6 @@ BcName::BcName( BcU32 ID ):
 // Ctor
 BcName::BcName( const std::string& String )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( String, BcErrorCode );
 }
 
@@ -51,7 +51,6 @@ BcName::BcName( const std::string& String )
 // Ctor
 BcName::BcName( const std::string& String, BcU32 ID )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( String, ID );
 }
 
@@ -59,7 +58,6 @@ BcName::BcName( const std::string& String, BcU32 ID )
 // Ctor
 BcName::BcName( const BcChar* pString )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( pString, BcErrorCode );
 }
 
@@ -67,7 +65,6 @@ BcName::BcName( const BcChar* pString )
 // Ctor
 BcName::BcName( const BcChar* pString, BcU32 ID )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	setInternal( pString, ID );
 }
 
@@ -93,12 +90,15 @@ BcName& BcName::operator = ( const BcName& Other )
 // Convert into string
 std::string BcName::operator * () const
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	const BcNameEntryList& StringEntries( getStringEntries() );
 
 	if( EntryIndex_ < StringEntries.size() )
 	{
-		const BcNameEntry& Entry = StringEntries[ EntryIndex_ ];
+		BcNameEntry Entry;
+		{
+			std::lock_guard< std::mutex > Lock( EntryLock_ );
+			Entry = StringEntries[ EntryIndex_ ];
+		}
 
 		if( ID_ != BcErrorCode )
 		{
@@ -122,12 +122,12 @@ std::string BcName::operator * () const
 // getValue.
 std::string BcName::getValue() const
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	BcVerifyMsg( EntryIndex_ != BcErrorCode, "BcName: Converting an invalid name to a string!" );
 	const BcNameEntryList& StringEntries( getStringEntries() );
 
 	if( EntryIndex_ < StringEntries.size() )
 	{
+		std::lock_guard< std::mutex > Lock( EntryLock_ );
 		return StringEntries[ EntryIndex_ ].Value_;	
 	}
 
@@ -145,25 +145,28 @@ BcU32 BcName::getID() const
 // getUnique
 BcName BcName::getUnique() const
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
 	BcAssert( isValid() );
 	BcNameEntryList& StringEntries( getStringEntries() );
-	BcNameEntry& StringEntry( StringEntries[ EntryIndex_ ] );
+	BcNameEntry SrcStringEntry;
+	{
+		std::lock_guard< std::mutex > Lock( EntryLock_ );
+		BcNameEntry SrcStringEntry( StringEntries[ EntryIndex_ ] );
+	}
 
-	// Create a new name with passed in ID.
-	BcName UniqueName( StringEntry.Value_, ID_ );
+	// Grab current id.
+	BcU32 NewID = ID_;
 
 	// If we haven't got an ID assigned already, then create one.
 	if( ID_ == BcErrorCode )
 	{
-		UniqueName.ID_ = StringEntry.ID_;
-	
 		// Advance ID for name.
-		StringEntry.ID_++;
+		std::lock_guard< std::mutex > Lock( EntryLock_ );
+		BcNameEntry& DstStringEntry( StringEntries[ EntryIndex_ ] );
+		NewID = DstStringEntry.ID_++;
 	}
 
 	// Return new unique name.
-	return UniqueName;
+	return BcName( SrcStringEntry.Value_, NewID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,8 +201,6 @@ bool BcName::operator < ( const BcName& Other ) const
 // setInternal.
 void BcName::setInternal( const std::string& Value, BcU32 ID )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
-
 	// Check validity.
 	BcVerifyMsg( isNameValid( Value ), "BcName: String (%s) contains invalid characters.", Value.c_str() );
 	if( isNameValid( Value ) == BcFalse )
@@ -273,8 +274,6 @@ BcNameEntryList& BcName::getStringEntries()
 //static
 BcU32 BcName::getEntryIndex( const std::string& Value )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
-
 	// If string is too long, return invalid index.
 	BcVerifyMsg( Value.length() < BcNameEntry::MAX_STRING_LENGTH, "BcName: String(%s) too long to store in name table.", Value.c_str() );
 	if( Value.length() >= BcNameEntry::MAX_STRING_LENGTH )
@@ -288,8 +287,9 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 		return BcErrorCode;
 	}
 
-	// TODO: Store in a hash map.
+	// TODO: Store in a hash map?
 	// Iterate over array to find if string exists.
+	std::lock_guard< std::mutex > Lock( EntryLock_ );
 	BcNameEntryList& StringEntries( getStringEntries() );
 	for( BcU32 Idx = 0; Idx < StringEntries.size(); ++Idx )
 	{
@@ -320,8 +320,6 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 //static
 BcBool BcName::isNameValid( const std::string& Value )
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
-
 	if( !validate( Value.c_str() ) )
 	{
 		return BcFalse;
