@@ -16,9 +16,10 @@
 #include <list>
 #include <atomic>
 
+
 // Mega super awesome hack.
 // Temporary until better demangling is setup.
-#if COMPILER_GCC
+#if COMPILER_GCC && !PLATFORM_HTML5
 
 #include <cstdlib>
 #include <memory>
@@ -44,7 +45,7 @@ inline std::string internal_demangle( const char* Name )
     return Name;
 }
 
-#endif // COMPILER_GCC
+#endif // COMPILER_GCC && !PLATFORM_HTML5
 
 //////////////////////////////////////////////////////////////////////////
 // FieldFlags

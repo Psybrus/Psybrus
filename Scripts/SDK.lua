@@ -11,8 +11,8 @@ if os.is("windows") then
 	BOOST_LIB_PATH = boostRoot .. "/lib"
 
 else
-	BOOST_INCLUDE_PATH = "/usr/include"
-	BOOST_LIB_PATH = "/usr/lib"
+	BOOST_INCLUDE_PATH = ""
+	BOOST_LIB_PATH = ""
 end
 
 -- Add boost libs to current project (all configurations)

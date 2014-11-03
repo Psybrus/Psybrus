@@ -22,8 +22,13 @@
 #define PLATFORM_IOS			0
 #define PLATFORM_OSX			0
 
+// Emscripten (HTML5)
+#if defined( EMSCRIPTEN ) || defined( __EMSCRIPTEN__ )
+#  undef PLATFORM_HTML5
+#  define PLATFORM_HTML5		1
+
 // Linux
-#if defined( linux ) || defined( __linux )
+#elif defined( linux ) || defined( __linux )
 #  undef PLATFORM_LINUX
 #  define PLATFORM_LINUX		1
 	
@@ -87,6 +92,12 @@
 #  define ARCH_THUMB			1
 #  define PSY_ENDIAN_LITTLE		1
 #  define PSY_ENDIAN_LITTLE		0
+
+ // Emscripten (asm.js)
+#elif defined( EMSCRIPTEN )
+#  define ARCH_ASMJS			1
+#  define PSY_ENDIAN_LITTLE		1
+#  define PSY_ENDIAN_BIG		0
 
 // END.
 #endif
