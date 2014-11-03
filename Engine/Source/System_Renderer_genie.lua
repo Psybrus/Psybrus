@@ -8,25 +8,32 @@ PsyProjectEngineLib( "Engine_System_Renderer" )
 
   	includedirs {
       "./Shared/",
-      "../../External/glew/include",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/SDL2/include/",
       BOOST_INCLUDE_PATH,
     }
 
-    -- GLEW config.
-    defines { "GLEW_STATIC" }
-
  		links {
       -- Engine libs.
       "Engine_System",
 
  			-- External libs.
-      "External_glew",
       "External_jsoncpp",
       "External_libb64",
  		}
+
+  -- Windows and linux get glew.
+  configuration { "windows or linux-gcc or linux-clang" }
+    defines { "GLEW_STATIC" }
+    includedirs {
+      "../../External/glew/include",
+    }
+
+    links {
+      "External_glew",
+    }
+
 
   configuration "linux"
       files {

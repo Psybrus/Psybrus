@@ -19,9 +19,9 @@ revisionFile:write( "#endif // ASSIMP_REVISION_H_INC\n" )
 revisionFile:close()
 
 PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
-	configuration "*"
-		kind ( EXTERNAL_PROJECT_KIND )
-		language "C++"
+	kind ( EXTERNAL_PROJECT_KIND )
+	language "C++"
+	configuration "windows or linux-gcc or linux-clang"
 		files { 
 			"./assimp/include/**.h", 
 			"./assimp/code/**.h",
@@ -97,22 +97,23 @@ PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp_contrib" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
-	files { 
-		"./assimp/contrib/clipper/**.cpp",
-		"./assimp/contrib/clipper/**.hpp",
-		"./assimp/contrib/ConvertUTF/**.c",
-		"./assimp/contrib/ConvertUTF/**.h",
-		"./assimp/contrib/poly2tri/**.cc",
-		"./assimp/contrib/poly2tri/**.h"
-	}
+	configuration "windows or linux-gcc or linux-clang"
+		files { 
+			"./assimp/contrib/clipper/**.cpp",
+			"./assimp/contrib/clipper/**.hpp",
+			"./assimp/contrib/ConvertUTF/**.c",
+			"./assimp/contrib/ConvertUTF/**.h",
+			"./assimp/contrib/poly2tri/**.cc",
+			"./assimp/contrib/poly2tri/**.h"
+		}
 
-	includedirs { 
-		"./zlib",
-		BOOST_INCLUDE_PATH
-	}
+		includedirs { 
+			"./zlib",
+			BOOST_INCLUDE_PATH
+		}
 
-	defines { 
-		"ASSIMP_BUILD_NO_OWN_ZLIB=1",
-		"_SCL_SECURE_NO_WARNINGS",
-		"_CRT_SECURE_NO_DEPRECATE"
-	}
+		defines { 
+			"ASSIMP_BUILD_NO_OWN_ZLIB=1",
+			"_SCL_SECURE_NO_WARNINGS",
+			"_CRT_SECURE_NO_DEPRECATE"
+		}

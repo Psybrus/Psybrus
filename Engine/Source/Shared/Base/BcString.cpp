@@ -18,7 +18,7 @@
 #if PLATFORM_WINDOWS
 #define caseInsensitiveComparison stricmp
 #define safeCaseInsensitiveComparison strnicmp
-#elif PLATFORM_LINUX || PLATFORM_OSX
+#elif PLATFORM_LINUX || PLATFORM_OSX || PLATFORM_HTML5
 #define caseInsensitiveComparison strcasecmp
 #define safeCaseInsensitiveComparison strncasecmp
 #else

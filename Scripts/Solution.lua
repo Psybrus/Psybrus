@@ -7,8 +7,10 @@ function PsySolutionCommon( _name )
 
 	print( "Adding Solution for " .. _ACTION .. " : " .. _name )
 
+	PsySetupToolchain()
+
 	-- Solution location.
-	location ( "Build/" .. _ACTION )
+	location ( "Build/" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ] )
 
 	-- All appropriate configurations we want.
 	configurations { "Debug", "Release", "Profile", "Production" }

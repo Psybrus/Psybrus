@@ -14,7 +14,11 @@
 #ifndef __OSSDL_H__
 #define __OSSDL_H__
 
-#include <SDL2/SDL.h>
+#if PLATFORM_HTML5
+#  include <SDL/SDL.h>
+#else
+#  include <SDL2/SDL.h>
+#endif
 
 #endif
 

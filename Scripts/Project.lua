@@ -67,19 +67,23 @@ function PsyProjectCommonEngine( _name )
 	-- Defines for all configurations
 	configuration "Debug"
 		defines { "PSY_USE_PROFILER=0" }
-		defines { "PSY_DEBUG", "PSY_IMPORT_PIPELINE" }
+		defines { "PSY_DEBUG" }
 
 	configuration "Release"
 		defines { "PSY_USE_PROFILER=0" }
-		defines { "PSY_RELEASE", "PSY_IMPORT_PIPELINE" }
+		defines { "PSY_RELEASE" }
 
 	configuration "Profile"
 		defines { "PSY_USE_PROFILER=1" }
-		defines { "PSY_RELEASE", "PSY_IMPORT_PIPELINE" }
+		defines { "PSY_RELEASE" }
 
 	configuration "Production"
 		defines { "PSY_USE_PROFILER=0" }
 		defines { "PSY_PRODUCTION" }
+
+	-- Import pipeline.
+	configuration "windows or linux-gcc or linux-clang"
+		defines { "PSY_IMPORT_PIPELINE" }
 
 	-- Terminate project.
 	configuration "*"
@@ -121,16 +125,16 @@ function PsyProjectGameExe( _name )
 		targetdir ( "../Dist" ) -- relative to source genie.lua dir for project...?
 
 	configuration "Debug"
-		targetname( _name .. "Debug" )
+		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Debug" )
 
 	configuration "Release"
-		targetname( _name .. "Release" )
+		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Release" )
 
 	configuration "Profile"
-		targetname( _name .. "Profile" )
+		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Profile" )
 
 	configuration "Production"
-		targetname( _name .. "Production" )
+		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Production" )
 
 	PsyAddSystemLibs()
 

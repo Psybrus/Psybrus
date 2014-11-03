@@ -258,7 +258,9 @@ static GLenum gShaderType[] =
 	GL_TESS_EVALUATION_SHADER,									// RsShaderType::DOMAIN
 	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
 	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
+#if !PLATFORM_HTML5
 	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
+#endif
 };
 
 //////////////////////////////////////////////////////////////////////////

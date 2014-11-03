@@ -13,9 +13,19 @@ local WITH_TOOLS = 0
 if (os.is("Windows")) then
 	WITH_WINMM = 1
 	WITH_WASAPI = 1
-else
+else 
 	WITH_OSS = 1
 end
+
+-- Hack in asmjs.
+if _OPTIONS[ "toolchain" ] == "asmjs" then
+	WITH_OSS = 0
+	WITH_WINMM = 0
+	WITH_WASAPI = 0
+	WITH_SDL = 1
+end
+
+
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --
 

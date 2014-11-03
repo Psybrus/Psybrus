@@ -15,8 +15,9 @@
 #define __BcLogImpl_H__
 
 #include "Base/BcLog.h"
-#include <mutex>
 #include "Base/BcGlobal.h"
+#include <mutex>
+#include <string>
 #include <list>
 #include <vector>
 #include <map>

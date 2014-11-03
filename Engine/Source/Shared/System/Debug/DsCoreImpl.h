@@ -26,7 +26,9 @@
 #include <functional>
 #include <map>
 
+#if USE_WEBBY
 #include "webby.h"
+#endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class DsCore
@@ -53,6 +55,7 @@ private:
 	SysFence					GameThreadWaitFence_;
 
 
+#if USE_WEBBY
 	// Variables for Webby
 	int							ConnectionCount_;
 	WebbyServer *				Server_;
@@ -74,7 +77,7 @@ private:
 	void						webbyConnected(WebbyConnection *connection);
 	void						webbyClosed(WebbyConnection *connection);
 	int							webbyFrame(WebbyConnection *connection, const WebbyWsFrame *frame);
-
+#endif // USE_WEBBY
 
 };
 

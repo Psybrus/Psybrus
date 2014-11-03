@@ -23,8 +23,7 @@ SYS_CREATOR(DsCoreImpl);
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-DsCoreImpl::DsCoreImpl() /*:
-pContext_(NULL)/**/
+DsCoreImpl::DsCoreImpl()
 {
 
 }
@@ -42,7 +41,7 @@ DsCoreImpl::~DsCoreImpl()
 //virtual
 void DsCoreImpl::open()
 {
-
+#if USE_WEBBY
 	int memory_size;
 	WebbyServerConfig config;
 
@@ -86,6 +85,7 @@ void DsCoreImpl::open()
 	}
 
 
+#endif
 	//pContext_ = mg_start(&DsCoreImpl::MongooseCallback, NULL, Options);
 }
 
@@ -94,8 +94,9 @@ void DsCoreImpl::open()
 //virtual
 void DsCoreImpl::update()
 {
-    WebbyServerUpdate(Server_);
-
+#if USE_WEBBY
+     WebbyServerUpdate(Server_);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -107,6 +108,8 @@ void DsCoreImpl::close()
 	//pContext_ = NULL;
 }
 
+
+#if USE_WEBBY
 
 int DsCoreImpl::webbyDispatch(WebbyConnection *connection)
 {
@@ -220,3 +223,4 @@ int DsCoreImpl::externalWebbyFrame(WebbyConnection *connection, const WebbyWsFra
 	return static_cast<DsCoreImpl*>(DsCore::pImpl())->webbyFrame(connection, frame);
 }
 
+#endif // USE_WEBBY

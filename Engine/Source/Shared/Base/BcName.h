@@ -18,6 +18,7 @@
 #include "Base/BcDebug.h"
 #include "Base/BcString.h"
 
+#include <string>
 #include <vector>
 #include <mutex>
 

@@ -1,7 +1,7 @@
 PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "glew" )
-	configuration "*"
-		kind ( EXTERNAL_PROJECT_KIND ) 
-		language "C++"
+	kind ( EXTERNAL_PROJECT_KIND ) 
+	language "C++"
+	configuration "windows or linux-gcc or linux-clang"
 		files { "./glew/include/**.h", "./glew/src/glew.c" }
 		includedirs { "./glew/include" }
 		defines { "GLEW_BUILD=1" }

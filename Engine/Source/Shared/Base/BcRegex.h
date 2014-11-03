@@ -18,6 +18,8 @@
 #include "Base/BcDebug.h"
 #include "Base/BcString.h"
 
+#include <string>
+
 //////////////////////////////////////////////////////////////////////////
 // BcRegexMatch
 class BcRegexMatch

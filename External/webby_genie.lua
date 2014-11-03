@@ -1,7 +1,7 @@
 PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "webby" )
-	configuration "*"
-		kind ( EXTERNAL_PROJECT_KIND )
-		language "C"
+	kind ( EXTERNAL_PROJECT_KIND )
+	language "C"
+	configuration "windows or linux-gcc or linux-clang"
 		files { "./webby/**.h", "./webby/**.c" }
 		includedirs { "./webby/" }
 		links {

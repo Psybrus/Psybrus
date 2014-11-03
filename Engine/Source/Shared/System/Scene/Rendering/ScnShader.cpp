@@ -16,9 +16,9 @@
 #include "System/Content/CsCore.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcFile.h"
 
 #ifdef PSY_IMPORT_PIPELINE
-#include "Base/BcFile.h"
 #include "Base/BcStream.h"
 #endif
 

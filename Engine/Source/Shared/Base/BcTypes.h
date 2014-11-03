@@ -168,6 +168,7 @@ typedef std::size_t					BcSize;
 #include <emscripten.h>
 #include <new>
 #include <cstdint>
+#include <cstdlib>
 
 typedef std::uint64_t				BcU64;
 typedef std::uint32_t				BcU32;
