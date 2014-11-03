@@ -137,7 +137,7 @@ BcBool ScnShaderImport::compileShader(
 
 #if PLATFORM_LINUX
 	// LINUX TODO: Use env path or config file.
-	auto PsybrusSDKRoot = "../../Psybrus";
+	auto PsybrusSDKRoot = "../Psybrus";
 
 	// Generate some unique ids.
 	BcU32 ShaderCompileId = ++ShaderCompileId_;

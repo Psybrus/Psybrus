@@ -534,6 +534,14 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
 				            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
 
+				// GLSL ES needs to not bother with uniform objects.
+				if( Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_100 ||
+				    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
+				    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 )
+				{
+					Flags = 0;
+				}
+
 				// Geometry shader in entries?
 				if( HasGeometry )
 				{
@@ -617,8 +625,11 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					}
 
 #if DEBUG_FILE_WRITE_OUT_FILES
-					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % ResourceName_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
+					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Name_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
 					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
+
+					printf( "ScnShaderImporter: Writing out to %s\n", Path.c_str() );
+
 					{
 						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 						boost::filesystem::create_directories( Path );

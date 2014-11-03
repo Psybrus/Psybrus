@@ -450,7 +450,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
 			sizeof( ScnShaderAlphaTestUniformBlockData ) ) );
-	auto UniformBlock = MaterialComponent_->findUniformBlock( "AlphaTestUniformBlock" );
+	auto UniformBlock = MaterialComponent_->findUniformBlock( "ScnShaderAlphaTestUniformBlockData" );
 	if( UniformBlock != BcErrorCode )
 	{
 		MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );

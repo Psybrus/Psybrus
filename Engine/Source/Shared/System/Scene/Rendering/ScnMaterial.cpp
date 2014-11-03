@@ -208,9 +208,9 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 	}
 
 	// Grab uniform blocks.
-	ViewUniformBlockIndex_ = findUniformBlock( "ViewUniformBlock" );
-	BoneUniformBlockIndex_ = findUniformBlock( "BoneUniformBlock" );
-	ObjectUniformBlockIndex_ = findUniformBlock( "ObjectUniformBlock" );
+	ViewUniformBlockIndex_ = findUniformBlock( "ScnShaderViewUniformBlockData" );
+	BoneUniformBlockIndex_ = findUniformBlock( "ScnShaderBoneUniformBlockData" );
+	ObjectUniformBlockIndex_ = findUniformBlock( "ScnShaderObjectUniformBlockData" );
 }
 
 //////////////////////////////////////////////////////////////////////////

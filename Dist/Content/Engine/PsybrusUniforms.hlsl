@@ -9,8 +9,8 @@
 #endif
 
 ////////////////////////////////////////////////////////////////////////
-// ViewUniformBlock
-BEGIN_CBUFFER( ViewUniformBlock )
+// ScnShaderViewUniformBlockData
+BEGIN_CBUFFER( ScnShaderViewUniformBlockData )
 	float4x4 InverseProjectionTransform_;
 	float4x4 ProjectionTransform_;
 	float4x4 InverseViewTransform_;
@@ -19,8 +19,8 @@ BEGIN_CBUFFER( ViewUniformBlock )
 END_CBUFFER
 
 ////////////////////////////////////////////////////////////////////////
-// LightUniformBlock
-BEGIN_CBUFFER( LightUniformBlock )
+// ScnShaderLightUniformBlockData
+BEGIN_CBUFFER( ScnShaderLightUniformBlockData )
 	float3 LightPosition_[4];
 	float3 LightDirection_[4];
 	float4 LightAmbientColour_[4];
@@ -29,20 +29,20 @@ BEGIN_CBUFFER( LightUniformBlock )
 END_CBUFFER
 
 ////////////////////////////////////////////////////////////////////////
-// ObjectUniformBlock
-BEGIN_CBUFFER( ObjectUniformBlock )
+// ScnShaderObjectUniformBlockData
+BEGIN_CBUFFER( ScnShaderObjectUniformBlockData )
 	float4x4 WorldTransform_;
 	float4x4 NormalTransform_;
 END_CBUFFER
 
 ////////////////////////////////////////////////////////////////////////
-// BoneUniformBlock
-BEGIN_CBUFFER( BoneUniformBlock )
+// ScnShaderBoneUniformBlockData
+BEGIN_CBUFFER( ScnShaderBoneUniformBlockData )
 	float4x4 BoneTransform_[24];
 END_CBUFFER
 
 ////////////////////////////////////////////////////////////////////////
-// AlphaTestUniformBlock
-BEGIN_CBUFFER( AlphaTestUniformBlock )
+// ScnShaderAlphaTestUniformBlockData
+BEGIN_CBUFFER( ScnShaderAlphaTestUniformBlockData )
 	float3 AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 END_CBUFFER

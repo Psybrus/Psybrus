@@ -444,20 +444,20 @@ enum class RsShaderBackendType : BcU32
 enum class RsShaderCodeType : BcU32
 {
 	// GLSL
-	GLSL_140,
-	GLSL_150,
-	GLSL_330,
-	GLSL_400,
-	GLSL_410,
-	GLSL_420,
-	GLSL_430,
-	GLSL_440,
-	GLSL_450,
+	GLSL_140,		// GL 3.1+
+	GLSL_150,		// GL 3.2+
+	GLSL_330,		// GL 3.3+
+	GLSL_400,		// GL 4.0+
+	GLSL_410,		// GL 4.1+
+	GLSL_420,		// GL 4.2+
+	GLSL_430,		// GL 4.3+
+	GLSL_440,		// GL 4.4+
+	GLSL_450,		// GL 4.5+
 	
 	// GLSL ES
-	GLSL_ES_100,
-	GLSL_ES_300,
-	GLSL_ES_310,
+	GLSL_ES_100,	// GL ES 2.0+
+	GLSL_ES_300,	// GL ES 3.0+
+	GLSL_ES_310,	// GL ES 3.0+
 
 	// D3D11
 	D3D11_4_0_LEVEL_9_3,
