@@ -86,7 +86,7 @@ PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 		pchheader "AssimpPCH.h"
 		pchsource "./assimp/code/AssimpPCH.cpp"
 
-	configuration "windows"
+	configuration "windows*"
    		links {
    			-- External libs.
 	        "External_assimp_contrib",

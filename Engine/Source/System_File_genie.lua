@@ -17,7 +17,7 @@ PsyProjectEngineLib( "Engine_System_File" )
       "Engine_System",
     }
 
-  configuration "linux"
+  configuration "linux-*"
       files {
           "./Platforms/Linux/System/File/*.h", 
           "./Platforms/Linux/System/File/*.inl", 
@@ -27,7 +27,7 @@ PsyProjectEngineLib( "Engine_System_File" )
           "./Platforms/Linux/",
       }
 
-  configuration "windows"
+  configuration "windows-*"
         files {
             "./Platforms/Windows/System/File/*.h", 
             "./Platforms/Windows/System/File/*.inl", 

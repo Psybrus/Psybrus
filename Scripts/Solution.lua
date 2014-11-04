@@ -7,26 +7,12 @@ function PsySolutionCommon( _name )
 
 	print( "Adding Solution for " .. _ACTION .. " : " .. _name )
 
-	PsySetupToolchain()
-
-	-- Solution location.
-	location ( "Build/" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ] )
-
 	-- All appropriate configurations we want.
 	configurations { "Debug", "Release", "Profile", "Production" }
+	configurations { "x32", "x64" }
 
-	-- Target dirs.
-	configuration "Debug"
-		targetdir ( "Build/" .. _ACTION .. "/bin/Debug" )
-
-	configuration "Release"
-		targetdir ( "Build/" .. _ACTION .. "/bin/Release" )
-
-	configuration "Profile"
-		targetdir ( "Build/" .. _ACTION .. "/bin/Profile" )
-
-	configuration "Production"
-		targetdir ( "Build/" .. _ACTION .. "/bin/Production" )
+	-- Setup toolchain.
+	PsySetupToolchain()
 
 	-- Terminate terminate solution.
 	configuration "*"

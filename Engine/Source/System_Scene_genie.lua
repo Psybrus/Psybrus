@@ -42,7 +42,7 @@ PsyProjectEngineLib( "Engine_System_Scene" )
     "External_HLSLCrossCompiler"
 		}
 
-  configuration "linux"
+  configuration "linux-*"
       files {
       }
 
@@ -50,7 +50,7 @@ PsyProjectEngineLib( "Engine_System_Scene" )
           "./Platforms/Linux/",
       }
 
-  configuration "windows"
+  configuration "windows-*"
       files {
       }
       

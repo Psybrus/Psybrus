@@ -82,8 +82,25 @@ function PsyProjectCommonEngine( _name )
 		defines { "PSY_PRODUCTION" }
 
 	-- Import pipeline.
-	configuration "windows or linux-gcc or linux-clang"
+	configuration "windows* or linux*"
 		defines { "PSY_IMPORT_PIPELINE" }
+
+
+	-- Include paths.
+	configuration( "windows-*" )
+		includedirs {
+			"./Platforms/Windows/",
+		}
+
+	configuration( "linux-*" )
+		includedirs {
+			"./Platforms/Linux/",
+		}
+
+	configuration( "asmjs" )
+		includedirs {
+			"./Platforms/Linux/",
+		}
 
 	-- Terminate project.
 	configuration "*"
@@ -120,23 +137,22 @@ function PsyProjectGameExe( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
-	-- Target directories and names.
 	configuration "*"
-		targetdir ( "../Dist" ) -- relative to source genie.lua dir for project...?
-
-	configuration "Debug"
-		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Debug" )
-
-	configuration "Release"
-		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Release" )
-
-	configuration "Profile"
-		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Profile" )
-
-	configuration "Production"
-		targetname( _name .. "-" .. _OPTIONS[ "toolchain" ] .. "-Production" )
+		local targetNamePrefix = _name .. "-" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ]
+		targetname( targetNamePrefix .. "-" )
+	
+	--
+	configuration "windows-* or linux-*"
+		targetdir ( "../Dist" )
 
 	PsyAddSystemLibs()
+
+	-- asmjs post build.
+	configuration { "asmjs" }
+		postbuildcommands {
+			"$(SILENT) echo Running asmjs finalise." .. 			"$(SILENT) emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html",
+			"$(SILENT) emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html"
+		}
 
 	-- Terminate project.
 	configuration "*"

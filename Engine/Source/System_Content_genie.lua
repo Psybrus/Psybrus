@@ -19,7 +19,7 @@ PsyProjectEngineLib( "Engine_System_Content" )
       "Engine_System_File",
   		}
 
-  configuration "linux"
+  configuration "linux-*"
       files {
           "./Platforms/Linux/System/Content/*.h", 
           "./Platforms/Linux/System/Content/*.inl", 
@@ -29,7 +29,7 @@ PsyProjectEngineLib( "Engine_System_Content" )
           "./Platforms/Linux/",
       }
 
-  configuration "windows"
+  configuration "windows-*"
         files {
             "./Platforms/Windows/System/Content/*.h", 
             "./Platforms/Windows/System/Content/*.inl", 
@@ -42,3 +42,4 @@ PsyProjectEngineLib( "Engine_System_Content" )
       libdirs {
            BOOST_LIB_PATH
         }
+

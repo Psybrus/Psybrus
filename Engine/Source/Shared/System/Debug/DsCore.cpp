@@ -492,7 +492,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 
 	if (!success)
 	{
-		for (BcU32 Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
+		for (BcS32 Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
 		{
 			BcRegexMatch match;
 			BcU32 res = PageFunctions_[Idx].Regex_.match(&Uri[1], match);

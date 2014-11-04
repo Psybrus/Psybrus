@@ -15,7 +15,7 @@ PsyProjectEngineLib( "Engine_Serialisation" )
       BOOST_INCLUDE_PATH,
     }
 
-	configuration "windows"
+	configuration "windows-*"
 	    libdirs {
            BOOST_LIB_PATH
         }
@@ -30,8 +30,4 @@ PsyProjectEngineLib( "Engine_Serialisation" )
    			"External_zlib",
         "External_jsoncpp",
         "External_libb64",
-   		}
-
-   	configuration "vs2012"
-   		links {
    		}

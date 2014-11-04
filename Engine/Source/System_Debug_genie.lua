@@ -27,7 +27,7 @@ PsyProjectEngineLib( "Engine_System_Debug" )
     links { "External_webby" }    
     includedirs { "../../External/webby/" }
 
-  configuration "linux"
+  configuration "linux-*"
       files {
           "./Platforms/Linux/System/Debug/*.h", 
           "./Platforms/Linux/System/Debug/*.inl", 
@@ -37,7 +37,7 @@ PsyProjectEngineLib( "Engine_System_Debug" )
           "./Platforms/Linux/",
       }
 
-  configuration "windows"
+  configuration "windows-*"
         files {
             "./Platforms/Windows/System/Debug/*.h", 
             "./Platforms/Windows/System/Debug/*.inl", 
@@ -50,3 +50,4 @@ PsyProjectEngineLib( "Engine_System_Debug" )
       libdirs {
            BOOST_LIB_PATH
         }
+

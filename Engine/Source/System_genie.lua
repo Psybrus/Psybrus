@@ -35,7 +35,7 @@ PsyProjectEngineLib( "Engine_System" )
       "Engine_Serialisation",
     }
 
-  configuration "linux"
+  configuration "linux-*"
       files {
           "./Platforms/Linux/System/*.h", 
           "./Platforms/Linux/System/*.inl", 
@@ -45,7 +45,7 @@ PsyProjectEngineLib( "Engine_System" )
           "./Platforms/Linux/",
       }
 
-  configuration "windows"
+  configuration "windows-*"
         files {
             "./Platforms/Windows/System/*.h", 
             "./Platforms/Windows/System/*.inl", 

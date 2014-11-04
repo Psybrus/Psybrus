@@ -30,7 +30,7 @@ PsyProjectEngineLib( "Engine" )
         links {
         }
 
-    configuration "linux"
+    configuration "linux-*"
         files {
             "./Platforms/Linux/*.h", 
             "./Platforms/Linux/*.inl", 
@@ -40,7 +40,7 @@ PsyProjectEngineLib( "Engine" )
             "./Platforms/Linux/",
         }
 
-	configuration "windows"
+	configuration "windows-*"
         files {
             "./Platforms/Windows/*.h", 
             "./Platforms/Windows/*.inl", 
@@ -49,7 +49,3 @@ PsyProjectEngineLib( "Engine" )
         includedirs {
             "./Platforms/Windows/",
         }
-
-   	configuration "vs2012"
-   		links {
-   		}

@@ -24,7 +24,7 @@ PsyProjectEngineLib( "Engine_Base" )
     }
 
   -- Windows
-  configuration( "windows" )
+  configuration( "windows-*" )
     files {
       "./Platforms/Windows/Base/**.h",
       "./Platforms/Windows/Base/**.inl",
@@ -35,7 +35,7 @@ PsyProjectEngineLib( "Engine_Base" )
     }
 
   -- Linux
-  configuration( "linux" )
+  configuration( "linux-*" )
     files {
       "./Platforms/Linux/Base/**.h",
       "./Platforms/Linux/Base/**.inl",
@@ -43,4 +43,12 @@ PsyProjectEngineLib( "Engine_Base" )
     }
     includedirs {
       "./Platforms/Linux/",
+    }
+
+  -- asmjs
+  configuration( "asmjs" )
+    files {
+      "./Platforms/Linux/Base/**.h",
+      "./Platforms/Linux/Base/**.inl",
+      "./Platforms/Linux/Base/**.cpp",
     }

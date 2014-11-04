@@ -18,7 +18,7 @@ PsyProjectEngineLib( "Engine_System_Os" )
       "Engine_System",
     }
 
-  configuration "linux"
+  configuration "linux-*"
     files {
       "./Shared/System/Os/SDL/*.h", 
       "./Shared/System/Os/SDL/*.inl", 
@@ -31,7 +31,7 @@ PsyProjectEngineLib( "Engine_System_Os" )
       "./Platforms/Linux/",
     }
 
-  configuration "windows"
+  configuration "windows-*"
     files {
       "./Platforms/Windows/System/Os/*.h", 
       "./Platforms/Windows/System/Os/*.inl", 

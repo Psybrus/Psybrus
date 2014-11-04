@@ -21,7 +21,7 @@ function PsyAddBoostLibs( _links )
 		includedirs{ BOOST_INCLUDE_PATH }
 		libdirs{ BOOST_LIB_PATH }
 
-	configuration "linux"
+	configuration "linux-*"
 		links { _links }
 
 end
@@ -30,7 +30,7 @@ end
 
 -- Add system libraries
 function PsyAddSystemLibs()
-	configuration "windows"
+	configuration "windows-*"
       links {
          -- Windows libs.
          "user32",
@@ -41,7 +41,7 @@ function PsyAddSystemLibs()
          "IPHlpApi",
       }
 
-    configuration "linux"
+    configuration "linux-*"
       links {
          -- Linux libs.
          "X11",

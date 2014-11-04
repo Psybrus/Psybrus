@@ -23,7 +23,7 @@ PsyProjectEngineLib( "Engine_System_Sound" )
       "External_SoLoud"
   	}
 
-  configuration "linux"
+  configuration "linux-*"
       files {
       }
 
@@ -31,7 +31,7 @@ PsyProjectEngineLib( "Engine_System_Sound" )
           "./Platforms/Linux/",
       }
 
-  configuration "windows"
+  configuration "windows-*"
       files {
       }
       
@@ -42,3 +42,4 @@ PsyProjectEngineLib( "Engine_System_Sound" )
       libdirs {
            BOOST_LIB_PATH
       }
+

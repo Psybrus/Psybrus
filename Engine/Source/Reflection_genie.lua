@@ -15,7 +15,7 @@ PsyProjectEngineLib( "Engine_Reflection" )
       BOOST_INCLUDE_PATH,
     }
 
-	configuration "windows"
+	configuration "windows-*"
 	    libdirs {
            BOOST_LIB_PATH
         }
@@ -26,8 +26,4 @@ PsyProjectEngineLib( "Engine_Reflection" )
 
    			-- External libs.
         "External_libb64",
-   		}
-
-   	configuration "vs2012"
-   		links {
    		}

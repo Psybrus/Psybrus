@@ -18,7 +18,7 @@ PsyProjectEngineLib( "Engine_System_Network" )
       BOOST_INCLUDE_PATH,
     }
 
-	configuration "windows"
+	configuration "windows-*"
 	    libdirs {
            BOOST_LIB_PATH
         }

@@ -15,7 +15,7 @@ PsyProjectEngineLib( "Engine_Events" )
       BOOST_INCLUDE_PATH,
     }
 
-	configuration "windows"
+	configuration "windows-*"
 	    libdirs {
            BOOST_LIB_PATH
         }
@@ -23,8 +23,4 @@ PsyProjectEngineLib( "Engine_Events" )
    		links {
         -- Engine libs.
         "Engine_Base",
-   		}
-
-   	configuration "vs2012"
-   		links {
    		}
