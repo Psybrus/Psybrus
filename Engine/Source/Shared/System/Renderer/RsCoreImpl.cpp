@@ -46,8 +46,9 @@ RsCoreImpl::RsCoreImpl()
 {
 	// Create our job queue.
 	// - 1 thread if we have 2 or more hardware threads.
-	//RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
+	RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor

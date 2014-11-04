@@ -139,18 +139,6 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
 	}
 
-	// Log kernel information.
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "MainShared:\n" );
-	BcPrintf( " - Command line: %s\n", SysArgs_.c_str() );
-	BcPrintf( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
-	BcPrintf( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
-	BcPrintf( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );
-	BcPrintf( " - SysKernel::DEFAULT_JOB_QUEUE_ID: 0x%x\n", SysKernel::DEFAULT_JOB_QUEUE_ID );
-	BcPrintf( " - FsCore::JOB_QUEUE_ID: 0x%x\n", FsCore::JOB_QUEUE_ID );
-	BcPrintf( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
-	BcPrintf( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
-
 	// Start debug system if not a production build.
 #if !defined( PSY_PRODUCTION )
 	SysKernel::pImpl()->startSystem( "DsCore" );
@@ -179,6 +167,18 @@ void MainShared()
 
 	// Start scene system.
 	SysKernel::pImpl()->startSystem( "ScnCore" );
+
+	// Log kernel information.
+	BcPrintf( "============================================================================\n" );
+	BcPrintf( "MainShared:\n" );
+	BcPrintf( " - Command line: %s\n", SysArgs_.c_str() );
+	BcPrintf( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
+	BcPrintf( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
+	BcPrintf( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );
+	BcPrintf( " - SysKernel::DEFAULT_JOB_QUEUE_ID: 0x%x\n", SysKernel::DEFAULT_JOB_QUEUE_ID );
+	BcPrintf( " - FsCore::JOB_QUEUE_ID: 0x%x\n", FsCore::JOB_QUEUE_ID );
+	BcPrintf( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
+	BcPrintf( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
