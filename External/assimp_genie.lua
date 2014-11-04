@@ -21,7 +21,7 @@ revisionFile:close()
 PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
-	configuration "windows or linux-gcc or linux-clang"
+	configuration "windows-* or linux-*"
 		files { 
 			"./assimp/include/**.h", 
 			"./assimp/code/**.h",
@@ -86,7 +86,7 @@ PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 		pchheader "AssimpPCH.h"
 		pchsource "./assimp/code/AssimpPCH.cpp"
 
-	configuration "windows*"
+	configuration "windows-*"
    		links {
    			-- External libs.
 	        "External_assimp_contrib",
