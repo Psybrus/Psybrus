@@ -11,9 +11,15 @@ function PsySetupToolchain()
 			value = "toolchain",
 			description = "Choose toolchain",
 			allowed = {
-				{ "linux-gcc",			"Linux (GCC compiler)"		},
-				{ "linux-clang",		"Linux (Clang compiler)"	},
-				{ "asmjs",				"Emscripten/asm.js"			},
+				-- Linux targets
+				{ "linux-gcc",			"Linux (GCC compiler)"			},
+				{ "linux-clang",		"Linux (Clang compiler)"		},
+
+				-- Windows targets: Experimental cross compilation.
+				{ "windows-mingw-gcc",	"Windows (mingw GCC compiler)"	},
+				
+				-- asm.js targets: Experimental JS compilation.
+				{ "asmjs",				"Emscripten/asm.js"				},
 			},
 		}
 	
@@ -33,15 +39,23 @@ function PsySetupToolchain()
 			location ( "Projects/" .. _ACTION .. "-linux-clang" )
 		end
 
-		-- Linux asmjs.
+		-- Windows mingw gcc.
+		if _OPTIONS[ "toolchain" ] == "windows-mingw-gcc" then
+			premake.gcc.cc = "x86_64-w64-mingw32-gcc"
+			premake.gcc.cxx = "x86_64-w64-mingw32-g++"
+			premake.gcc.ar = "x86_64-w64-mingw32-ar"
+			location ( "Projects/" .. _ACTION .. "-windows-mingw-gcc" )
+		end
+
+		-- asmjs.
 		if _OPTIONS[ "toolchain" ] == "asmjs" then
-			premake.gcc.cc = "emcc"
-			premake.gcc.cxx = "em++"
+			premake.gcc.cc = "emcc -v"
+			premake.gcc.cxx = "em++ -v"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-asmjs" )
 			configuration "asmjs"
 				includedirs {
-					"/home/neilo/Dev/boost_emscripten"
+					"/home/neilo/Dev/boost_emscripten" -- TODO: Remove.
 				}
 		end
 
@@ -67,6 +81,16 @@ function PsySetupToolchain()
 		configuration { "linux-clang", "x64" }
 			targetdir ( "Build/" .. _ACTION .. "-linux64-clang/bin" )
 			objdir ( "Build/" .. _ACTION .. "-linux64-clang/obj" )
+			buildoptions { "-m64" }
+
+		configuration { "windows-mingw-gcc", "x32" }
+			targetdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/bin" )
+			objdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/obj" )
+			buildoptions { "-m32" }
+
+		configuration { "windows-mingw-gcc", "x64" }
+			targetdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/bin" )
+			objdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/obj" )
 			buildoptions { "-m64" }
 
 		configuration { "asmjs" }

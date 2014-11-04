@@ -13,14 +13,14 @@ function PsyProjectCommon( _name )
 		flags { "StaticRuntime", "FloatFast", "NativeWChar" }
 
 	-- Windows config defines + flags.
-	configuration "windows"
+	configuration "windows-*"
 		defines { "WINDOWS", "_WIN32", "WIN32" }
 
 	configuration "vs*"
 		flags { "EnableSSE", "EnableSSE2" }
 
 	-- Linux config defines.
-	configuration "linux"
+	configuration "linux-*"
 		defines { "linux", "__linux" }
 
 	-- Common visual studio crap.
