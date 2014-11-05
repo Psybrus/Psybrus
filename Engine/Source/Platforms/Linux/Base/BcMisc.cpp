@@ -14,8 +14,10 @@
 #include "Base/BcMisc.h"
 #include "Base/BcDebug.h"
 
-#include <unistd.h>
 #include <thread>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
 
 //////////////////////////////////////////////////////////////////////////
 // BcSleep
@@ -42,7 +44,8 @@ BcU32 BcGetHardwareThreadCount()
 // BcCurrentThreadId
 BcThreadId BcCurrentThreadId()
 {
-	return 0; // TODO/remove?
+
+	return (BcThreadId)syscall(SYS_gettid);
 }
 
 //////////////////////////////////////////////////////////////////////////
