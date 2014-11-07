@@ -150,8 +150,9 @@ function PsyProjectGameExe( _name )
 	-- asmjs post build.
 	configuration { "asmjs" }
 		postbuildcommands {
-			"$(SILENT) echo Running asmjs finalise." .. 			"$(SILENT) emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html",
-			"$(SILENT) emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html"
+			"$(SILENT) echo Running asmjs finalise.",
+			"$(SILENT) mv $(TARGET) $(TARGET).o",
+			"$(SILENT) emcc -v -O2 -s EMCC_FAST_COMPILER=1 -s TOTAL_MEMORY=268435456 --llvm-opts \"['-O2', '-disable-slp-vectorization', '-disable-loop-vectorization', '-disable-loop-unrolling']\" \"$(TARGET).o\" -o \"$(TARGET)\".html"
 		}
 
 	-- Terminate project.

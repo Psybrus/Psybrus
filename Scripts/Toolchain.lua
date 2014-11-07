@@ -49,8 +49,8 @@ function PsySetupToolchain()
 
 		-- asmjs.
 		if _OPTIONS[ "toolchain" ] == "asmjs" then
-			premake.gcc.cc = "emcc -v"
-			premake.gcc.cxx = "em++ -v"
+			premake.gcc.cc = "emcc"
+			premake.gcc.cxx = "em++" 
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-asmjs" )
 			configuration "asmjs"
@@ -96,6 +96,7 @@ function PsySetupToolchain()
 		configuration { "asmjs" }
 			targetdir ( "Build/" .. _ACTION .. "-asmjs/bin" )
 			objdir ( "Build/" .. _ACTION .. "-asmjs/obj" )
+
 	end
 
 	if _ACTION == "vs2012" or _ACTION == "vs2013" then
