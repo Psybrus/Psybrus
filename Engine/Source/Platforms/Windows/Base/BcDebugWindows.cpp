@@ -17,6 +17,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
+BcBacktraceResult BcBacktrace()
+{
+	BcBacktraceResult Result;
+
+	return Result;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcMessageBox
 BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
 	UINT MBType = MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST;

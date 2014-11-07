@@ -54,6 +54,21 @@ enum BcMessageBoxReturn
 extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type = bcMBT_OK, BcMessageBoxIcon Icon = bcMBI_WARNING );
 
 //////////////////////////////////////////////////////////////////////////
+// BcBacktrace
+struct BcBacktraceEntry
+{
+	std::string Symbol_;
+	void* Address_;
+};
+
+struct BcBacktraceResult
+{
+	std::vector< BcBacktraceEntry > Backtrace_;
+};
+
+extern BcBacktraceResult BcBacktrace();
+
+//////////////////////////////////////////////////////////////////////////
 // BcAssert
 extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... );
 
