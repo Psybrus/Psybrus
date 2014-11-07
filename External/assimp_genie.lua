@@ -18,7 +18,7 @@ revisionFile:write( string.format( "#define GitBranch \"%s\"\n", branch ) )
 revisionFile:write( "#endif // ASSIMP_REVISION_H_INC\n" )
 revisionFile:close()
 
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
+PsyProjectExternalLib( "assimp" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 	configuration "windows-* or linux-*"
@@ -94,7 +94,7 @@ PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp" )
 
 
 
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "assimp_contrib" )
+PsyProjectExternalLib( "assimp_contrib" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 	configuration "windows or linux-gcc or linux-clang"

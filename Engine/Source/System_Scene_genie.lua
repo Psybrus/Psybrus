@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System_Scene" )
+PsyProjectEngineLib( "System_Scene" )
   configuration "*"
   	files {
       "./Shared/System/Scene/**.h", 
@@ -23,23 +23,23 @@ PsyProjectEngineLib( "Engine_System_Scene" )
          BOOST_LIB_PATH
     }
 
-		links {
-    -- Engine libs.
-    "Engine_System",
-    "Engine_System_Content",
-    "Engine_System_Debug",
-    "Engine_System_File",
-    "Engine_System_Network",
-    "Engine_System_Os",
-    "Engine_System_Renderer",
-    "Engine_System_Sound",
+		PsyAddEngineLinks {
+      "System",
+      "System_Content",
+      "System_Debug",
+      "System_File",
+      "System_Network",
+      "System_Os",
+      "System_Renderer",
+      "System_Sound",
+    }
 
-			-- External libs.
-    "External_assimp",
-    "External_BulletPhysics",
-    "External_freetype",
-    "External_jsoncpp",
-    "External_HLSLCrossCompiler"
+    PsyAddExternalLinks {
+      "assimp",
+      "BulletPhysics",
+      "freetype",
+      "jsoncpp",
+      "HLSLCrossCompiler"
 		}
 
   configuration "linux-*"

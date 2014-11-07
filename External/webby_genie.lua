@@ -1,4 +1,4 @@
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "webby" )
+PsyProjectExternalLib( "webby" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	configuration "windows-* or linux-*"

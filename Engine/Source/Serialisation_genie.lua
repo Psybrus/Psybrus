@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_Serialisation" )
+PsyProjectEngineLib( "Serialisation" )
   configuration "*"
   	files {
       "./Shared/Serialisation/**.h", 
@@ -20,14 +20,14 @@ PsyProjectEngineLib( "Engine_Serialisation" )
            BOOST_LIB_PATH
         }
 
-   		links {
-        -- Engine libs.
-        "Engine_Base",
-        "Engine_Reflection",
-        
-   			-- External libs.
-   			"External_pcre",
-   			"External_zlib",
-        "External_jsoncpp",
-        "External_libb64",
-   		}
+  PsyAddEngineLinks {
+    "Base",
+    "Reflection",
+  }
+
+  PsyAddEngineLinks {
+  	"pcre",
+  	"zlib",
+    "jsoncpp",
+    "libb64",
+  }

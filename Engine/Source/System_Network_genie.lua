@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System_Network" )
+PsyProjectEngineLib( "System_Network" )
   configuration "*"
   	files {
       "./Shared/System/Network/**.h", 
@@ -19,19 +19,15 @@ PsyProjectEngineLib( "Engine_System_Network" )
     }
 
 	configuration "windows-*"
-	    libdirs {
-           BOOST_LIB_PATH
-        }
+    libdirs {
+         BOOST_LIB_PATH
+    }
 
-   		links {
-        -- Engine libs.
-        "Engine_System",
+		PsyAddEngineLinks {
+      "System",
+    }
 
-   			-- External libs.
-        "External_enet",
-        "External_webby",
-   		}
-
-   	configuration "vs2012"
-   		links {
-   		}
+    PsyAddExternalLinks {
+      "enet",
+      "webby",
+		}

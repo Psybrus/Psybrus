@@ -1,4 +1,4 @@
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "pcre" )
+PsyProjectExternalLib( "pcre" )
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"

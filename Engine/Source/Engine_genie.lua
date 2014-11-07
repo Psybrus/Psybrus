@@ -27,9 +27,6 @@ PsyProjectEngineLib( "Engine" )
            BOOST_LIB_PATH
         }
 
-        links {
-        }
-
     configuration "linux-*"
         files {
             "./Platforms/Linux/*.h", 

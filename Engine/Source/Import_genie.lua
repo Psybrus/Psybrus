@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_Import" )
+PsyProjectEngineLib( "Import" )
   configuration "*"
   	files {
       "./Shared/Import/**.h", 
@@ -24,16 +24,14 @@ PsyProjectEngineLib( "Engine_Import" )
        BOOST_LIB_PATH
     }
 
-  	links {
-    -- Engine libs.
-      "Engine_Base",
-      "Engine_Math",
-      "Engine_Reflection",
+  	PsyAddEngineLinks {
+      "Base",
+      "Math",
+      "Reflection",
+    }
 
-  		-- External libs.
-  		"External_zlib",
-      "External_ogg",
-      "External_png",
-      "External_squish",
-      "External_tremor",
+    PsyAddExternalLinks {
+  		"zlib",
+      "png",
+      "squish",
   	}

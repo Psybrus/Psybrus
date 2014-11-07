@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System_Debug" )
+PsyProjectEngineLib( "System_Debug" )
   configuration "*"
   	files {
       "./Shared/System/Debug/**.h", 
@@ -12,19 +12,19 @@ PsyProjectEngineLib( "Engine_System_Debug" )
       BOOST_INCLUDE_PATH,
     }
 
- 		links {
-      -- Engine libs.
-      "Engine_System",
-      "Engine_System_Content",
+    PsyAddEngineLinks {
+      "System",
+      "System_Content",
+    }
 
- 			-- External libs.
-      "External_jsoncpp",
-      "External_libb64",
+    PsyAddExternalLinks {
+      "jsoncpp",
+      "libb64",
  		}
 
   configuration { "windows or linux-gcc or linux-clang" }
     defines { "USE_WEBBY=1" }
-    links { "External_webby" }    
+    PsyAddExternalLinks { "webby" }    
     includedirs { "../../External/webby/" }
 
   configuration "linux-*"

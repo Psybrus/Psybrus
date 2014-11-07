@@ -1,4 +1,4 @@
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "libb64" )
+PsyProjectExternalLib( "libb64" )
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"

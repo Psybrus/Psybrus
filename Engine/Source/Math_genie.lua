@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_Math" )
+PsyProjectEngineLib( "Math" )
   configuration "*"
   	files {
       "./Shared/Math/**.h", 
@@ -22,8 +22,7 @@ PsyProjectEngineLib( "Engine_Math" )
            BOOST_LIB_PATH
         }
 
-   		links {
-   			-- External libs.
-   			"Engine_Base",
-        "Engine_Reflection",
+   		PsyAddEngineLinks {
+   			"Base",
+        "Reflection",
    		}

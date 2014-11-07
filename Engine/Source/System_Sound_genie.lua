@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System_Sound" )
+PsyProjectEngineLib( "System_Sound" )
   configuration "*"
   	files {
       "./Shared/System/Sound/**.h", 
@@ -13,14 +13,14 @@ PsyProjectEngineLib( "Engine_System_Sound" )
       BOOST_INCLUDE_PATH,
     }
 
-  	links {
-      -- Engine libs.
-      "Engine_System",
+  	PsyAddEngineLinks {
+      "System"
+    }
 
-    		-- External libs.
-      "External_jsoncpp",
-      "External_libb64",
-      "External_SoLoud"
+    PsyAddExternalLinks {
+      "jsoncpp",
+      "libb64",
+      "SoLoud"
   	}
 
   configuration "linux-*"

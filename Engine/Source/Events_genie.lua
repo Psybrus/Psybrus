@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_Events" )
+PsyProjectEngineLib( "Events" )
   configuration "*"
   	files {
       "./Shared/Events/**.h", 
@@ -20,7 +20,6 @@ PsyProjectEngineLib( "Engine_Events" )
            BOOST_LIB_PATH
         }
 
-   		links {
-        -- Engine libs.
-        "Engine_Base",
+   		PsyAddEngineLinks {
+        "Base",
    		}

@@ -1,4 +1,4 @@
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "HLSLCrossCompiler" )
+PsyProjectExternalLib( "HLSLCrossCompiler" )
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	configuration "windows or linux-gcc or linux-clang"

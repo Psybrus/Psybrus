@@ -1,4 +1,4 @@
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "jsoncpp" )
+PsyProjectExternalLib( "jsoncpp" )
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C++"

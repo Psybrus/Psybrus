@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System_Renderer" )
+PsyProjectEngineLib( "System_Renderer" )
   configuration "*"
   	files {
       "./Shared/System/Renderer/*.h", 
@@ -14,13 +14,13 @@ PsyProjectEngineLib( "Engine_System_Renderer" )
       BOOST_INCLUDE_PATH,
     }
 
- 		links {
-      -- Engine libs.
-      "Engine_System",
+ 		PsyAddEngineLinks {
+      "System",
+    }
 
- 			-- External libs.
-      "External_jsoncpp",
-      "External_libb64",
+    PsyAddExternalLinks {
+      "jsoncpp",
+      "libb64",
  		}
 
   -- Windows and linux get glew.
@@ -30,8 +30,8 @@ PsyProjectEngineLib( "Engine_System_Renderer" )
       "../../External/glew/include",
     }
 
-    links {
-      "External_glew",
+    PsyAddExternalLinks {
+      "glew",
     }
 
 

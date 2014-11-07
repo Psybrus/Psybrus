@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System" )
+PsyProjectEngineLib( "System" )
   configuration "*"
 
   	files {
@@ -25,14 +25,13 @@ PsyProjectEngineLib( "Engine_System" )
     -- GLEW config.
     defines { "GLEW_STATIC" }
 
-    links {
-      -- Engine libs.
-      "Engine_Base",
-      "Engine_Events",
-      "Engine_Import",
-      "Engine_Reflection",
-      "Engine_Math",
-      "Engine_Serialisation",
+    PsyAddEngineLinks {
+      "Base",
+      "Events",
+      "Import",
+      "Reflection",
+      "Math",
+      "Serialisation",
     }
 
   configuration "linux-*"

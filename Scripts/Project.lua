@@ -162,6 +162,9 @@ end
 
 -- Setup engine lib project.
 function PsyProjectEngineLib( _name )
+	-- Prepend "Engine_"
+	_name = "Engine_" .. _name
+
 	PsyProjectCommonEngine( _name )
 	print( "Adding Engine Library: " .. _name )
 
@@ -180,6 +183,10 @@ end
 
 -- Setup external lib project.
 function PsyProjectExternalLib( _name )
+	-- Prepend "External_"
+	_name = "External_" .. _name
+
+	-- Setup common project stuff.
 	PsyProjectCommon( _name )
 	print( "Adding External Library: " .. _name )
 
@@ -196,13 +203,16 @@ end
 
 
 -- Add engine link.
-function PsyAddEngineLinks( _name )
-	links( _name )
+function PsyAddEngineLinks( _names )
+	for i, name in ipairs( _names ) do
+		links { "Engine_" .. name }
+	end
 end
 
-
 -- Add external link.
-function PsyAddExternalLinks( _name )
-	links( _name )
+function PsyAddExternalLinks( _names )
+	for i, name in ipairs( _names ) do
+		links { "External_" .. name }
+	end
 end
 

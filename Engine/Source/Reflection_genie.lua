@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_Reflection" )
+PsyProjectEngineLib( "Reflection" )
   configuration "*"
   	files {
       "./Shared/Reflection/**.h", 
@@ -20,10 +20,10 @@ PsyProjectEngineLib( "Engine_Reflection" )
            BOOST_LIB_PATH
         }
 
-   		links {
-        -- Engine libs.
-        "Engine_Base",
+  PsyAddEngineLinks {
+    "Engine_Base",
+  }
 
-   			-- External libs.
-        "External_libb64",
-   		}
+  PsyAddExternalLinks {
+    "libb64",
+  }

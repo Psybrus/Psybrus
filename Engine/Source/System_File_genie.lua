@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_System_File" )
+PsyProjectEngineLib( "System_File" )
   configuration "*"
   	files {
       "./Shared/System/File/**.h", 
@@ -12,9 +12,9 @@ PsyProjectEngineLib( "Engine_System_File" )
       BOOST_INCLUDE_PATH,
     }
 
-    links {
+    PsyAddEngineLinks {
       -- Engine libs.
-      "Engine_System",
+      "System",
     }
 
   configuration "linux-*"

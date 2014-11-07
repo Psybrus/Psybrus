@@ -22,7 +22,9 @@ function PsyAddBoostLibs( _links )
 		libdirs{ BOOST_LIB_PATH }
 
 	configuration "linux-*"
-		links { _links }
+      for i, link in ipairs( _links ) do
+         links { "boost_" .. link }
+      end
 
 end
 

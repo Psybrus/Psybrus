@@ -1,4 +1,4 @@
-PsyProjectExternalLib( EXTERNAL_PROJECT_PREFIX .. "zlib" )
+PsyProjectExternalLib( "zlib" )
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"

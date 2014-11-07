@@ -1,4 +1,4 @@
-PsyProjectEngineLib( "Engine_Base" )
+PsyProjectEngineLib( "Base" )
   configuration "*"
   	files {
       "./Shared/Base/**.h", 
@@ -17,10 +17,9 @@ PsyProjectEngineLib( "Engine_Base" )
       BOOST_LIB_PATH
     }
 
-    links {
-      -- External libs.
-      "External_pcre",
-      "External_zlib",
+    PsyAddExternalLinks {
+      "pcre",
+      "zlib",
     }
 
   -- Windows
