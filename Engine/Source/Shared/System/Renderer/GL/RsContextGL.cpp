@@ -384,7 +384,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 			return BcTrue;
 		}
 	default:
-		BcBreakpoint;
+		break;
 	}
 	return BcFalse;
 }
