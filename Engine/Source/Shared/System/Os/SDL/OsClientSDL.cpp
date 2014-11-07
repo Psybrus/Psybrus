@@ -108,14 +108,22 @@ OsClientSDL::~OsClientSDL()
 // create
 BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible )
 {
-	SDLWindow_ = SDL_CreateWindow( pTitle, 100, 100, Width, Height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+	SDLWindow_ = SDL_CreateWindow( 
+		pTitle,
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+		Width, Height, 
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
 	if ( SDLWindow_ == nullptr )
 	{
 		return BcFalse;
 	}
 
-	Width_ = Width;
-	Height_ = Height;
+	// Get window size.
+	int W = 0;
+	int H = 0;
+	SDL_GetWindowSize( SDLWindow_, &W, &H );
+	Width_ = W;
+	Height_ = H;
 	
 	return BcTrue;
 }
@@ -181,37 +189,62 @@ void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
 	{
 	case SDL_KEYDOWN:
 	case SDL_KEYUP:
-		{
-			OsEventInputKeyboard Event;
-			Event.DeviceID_ = 0;
-			Event.KeyCode_ = SDLEvent.key.keysym.sym;
-			Event.ScanCode_ = SDLEvent.key.keysym.scancode;
-			Event.AsciiCode_ = SDLEvent.key.keysym.sym; // TODO.
-
-			// Get key code, or pass through virtual.
-			TKeyCodeMapIterator It( KeyCodeMap_.find( Event.KeyCode_ ) );
-			if( It != KeyCodeMap_.end() )
-			{
-				Event.KeyCode_ = (*It).second;
-			}
-
-			if( SDLEvent.key.state == SDL_PRESSED )
-			{
-				OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event ); // TODO: REMOVE OLD!
-				EvtPublisher::publish( osEVT_INPUT_KEYDOWN, Event );
-			}
-			else if( SDLEvent.key.state == SDL_RELEASED )
-			{
-				OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
-				EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
-			}
-		}
+		handleKeyEvent( SDLEvent );
 		break;
+
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_MOUSEBUTTONUP:
+	case SDL_MOUSEMOTION:
+		handleMouseEvent( SDLEvent );
+		break;
+	
+	case SDL_WINDOWEVENT:
+		handleWindowEvent( SDLEvent );
+		break;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleMouseEvent
+void OsClientSDL::handleKeyEvent( const SDL_Event& SDLEvent )
+{
+	OsEventInputKeyboard Event;
+	Event.DeviceID_ = 0;
+	Event.KeyCode_ = SDLEvent.key.keysym.sym;
+	Event.ScanCode_ = SDLEvent.key.keysym.scancode;
+	Event.AsciiCode_ = SDLEvent.key.keysym.sym; // TODO.
+
+	// Get key code, or pass through virtual.
+	TKeyCodeMapIterator It( KeyCodeMap_.find( Event.KeyCode_ ) );
+	if( It != KeyCodeMap_.end() )
+	{
+		Event.KeyCode_ = (*It).second;
+	}
+
+	if( SDLEvent.key.state == SDL_PRESSED )
+	{
+		OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, Event ); // TODO: REMOVE OLD!
+		EvtPublisher::publish( osEVT_INPUT_KEYDOWN, Event );
+	}
+	else if( SDLEvent.key.state == SDL_RELEASED )
+	{
+		OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
+		EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleMouseEvent
+void OsClientSDL::handleMouseEvent( const SDL_Event& SDLEvent )
+{
+	OsEventInputMouse Event;
+	Event.DeviceID_ = 0;
+	
+	switch( SDLEvent.type )
+	{
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
 		{
-			OsEventInputMouse Event;
-			Event.DeviceID_ = 0;
 			Event.MouseX_ = SDLEvent.button.x;
 			Event.MouseY_ = SDLEvent.button.y;
 			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
@@ -252,10 +285,9 @@ void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
 			}
 		}
 		break;
+
 	case SDL_MOUSEMOTION:
 		{
-			OsEventInputMouse Event;
-			Event.DeviceID_ = 0;
 			Event.MouseX_ = SDLEvent.motion.x;
 			Event.MouseY_ = SDLEvent.motion.y;
 			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
@@ -271,4 +303,32 @@ void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
 		}
 		break;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleWindowEvent
+void OsClientSDL::handleWindowEvent( const SDL_Event& SDLEvent )
+{
+	switch( SDLEvent.window.event )
+	{
+	case SDL_WINDOWEVENT_SHOWN:
+	case SDL_WINDOWEVENT_RESIZED:
+	case SDL_WINDOWEVENT_MINIMIZED:
+	case SDL_WINDOWEVENT_MAXIMIZED:
+	case SDL_WINDOWEVENT_MOVED:
+		{
+			setWindowSize();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWindowSize
+void OsClientSDL::setWindowSize()
+{
+	int W = 0;
+	int H = 0;
+	SDL_GetWindowSize( SDLWindow_, &W, &H );
+	Width_ = W;
+	Height_ = H;
 }

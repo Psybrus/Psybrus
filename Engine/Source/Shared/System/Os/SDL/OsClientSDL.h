@@ -85,6 +85,11 @@ public:
 	void handleEvent( const SDL_Event& SDLEvent );
 
 private:
+	void handleKeyEvent( const SDL_Event& SDLEvent );
+	void handleMouseEvent( const SDL_Event& SDLEvent );
+	void handleWindowEvent( const SDL_Event& SDLEvent );
+	void setWindowSize();
+
 	typedef std::map< BcU64, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap KeyCodeMap_;

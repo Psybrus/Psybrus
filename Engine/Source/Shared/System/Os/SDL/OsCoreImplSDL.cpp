@@ -69,6 +69,7 @@ void OsCoreImplSDL::update()
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 			case SDL_MOUSEMOTION:
+			case SDL_WINDOWEVENT:
 				for( auto Client : ClientList_ )
 				{
 					OsClientSDL* SDLClient = dynamic_cast< OsClientSDL* >( Client );
