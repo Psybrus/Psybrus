@@ -170,7 +170,7 @@ void ScnEntity::destroy()
 // update
 void ScnEntity::update( BcF32 Tick )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnEntity::update (" ) + *getName() + std::string( ")" ) );
+	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnEntity::update" ) );
 
 	BcAssert( getPackage() != NULL );
 	

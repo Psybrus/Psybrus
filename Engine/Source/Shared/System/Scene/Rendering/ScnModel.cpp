@@ -728,7 +728,7 @@ public:
 
 void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnModelComponent::render (" ) + *getName() + std::string( ")" ) );
+	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnModelComponent::render" ) );
 
 	Super::render( pViewComponent, pFrame, Sort );
 
