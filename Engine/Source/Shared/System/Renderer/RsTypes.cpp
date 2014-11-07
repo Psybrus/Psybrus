@@ -273,6 +273,8 @@ RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType )
 		return RsShaderBackendType::D3D11;
 	case RsShaderCodeType::D3D11_5_1:
 		return RsShaderBackendType::D3D11;
+	default:
+		BcBreakpoint;
 	}
 
 	return RsShaderBackendType::INVALID;
@@ -333,6 +335,8 @@ std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType )
 	case RsShaderCodeType::D3D11_5_1:
 		RetVal = "D3D11_5_1";
 		break;
+	default:
+		BcBreakpoint;
 	}
 
 	return std::move( RetVal );
@@ -360,6 +364,8 @@ std::string RsShaderBackendTypeToString( RsShaderBackendType BackendType )
 	case RsShaderBackendType::MANTLE:
 		RetVal = "MANTLE";
 		break;
+	default:
+		BcBreakpoint;
 	}
 	return std::move( RetVal );
 }
@@ -433,6 +439,10 @@ RsShaderCodeType RsStringToShaderCodeType( std::string String )
 	else if( String == "D3D11_5_1" )
 	{
 		CodeType = RsShaderCodeType::D3D11_5_1;
+	}
+	else
+	{
+		BcBreakpoint;
 	}
 
 	return CodeType;

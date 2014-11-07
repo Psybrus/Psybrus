@@ -32,6 +32,12 @@ ScnAnimationTransform::ScnAnimationTransform()
 #pragma warning ( disable : 4701 ) // Potentially uninitialized local variable used...
 #endif
 
+#if COMPILER_CLANG
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wparentheses"
+#endif
+
+
 typedef struct {float x, y, z, w;} Quat; /* Quaternion */
 
 enum QuatPart {X, Y, Z, W};

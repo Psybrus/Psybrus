@@ -116,11 +116,11 @@
 #  define COMPILER_GCC			0
 #endif
 
-// LLVM
+// Clang
 #if defined( __llvm__ )
-#  define COMPILER_LLVM			1
+#  define COMPILER_CLANG		1
 #else
-#  define COMPILER_LLVM			0
+#  define COMPILER_CLANG		0
 #endif
 
 // Codewarrior

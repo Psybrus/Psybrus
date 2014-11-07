@@ -57,8 +57,8 @@ extern BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMes
 // BcBacktrace
 struct BcBacktraceEntry
 {
-	std::string Symbol_;
 	void* Address_;
+	std::string Symbol_;
 };
 
 struct BcBacktraceResult

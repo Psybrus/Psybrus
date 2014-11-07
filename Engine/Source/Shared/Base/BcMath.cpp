@@ -27,9 +27,9 @@ BcU64 BcSqrtFixed( BcU64 FixedValue, BcU64 Precision )
 {
 	const BcU64 DoublePrecision = Precision << 1;
 	const BcU64 Half = 2 << Precision;
-	register BcU64 V = FixedValue;
-	register BcU64 X =  V >> 1;
-	register BcU64 A = 0;
+	BcU64 V = FixedValue;
+	BcU64 X =  V >> 1;
+	BcU64 A = 0;
 	
 	if( V > 0 && X != 0 )
 	{

@@ -826,9 +826,9 @@ BcBool ImgImage::encodeAsRGB8( BcU8*& pOutData, BcU32& OutSize )
 		WRITE_PIXEL;
 	}
 #else
-	register BcS32 Count = (BcS32)NoofPixels;
+	BcS32 Count = (BcS32)NoofPixels;
 	{
-		register BcS32 N = ( Count + 7 ) / 8;
+		BcS32 N = ( Count + 7 ) / 8;
 
 		switch( Count % 8 )
 		{
@@ -875,9 +875,9 @@ BcBool ImgImage::encodeAsRGBA8( BcU8*& pOutData, BcU32& OutSize )
 		WRITE_PIXEL;
 	}
 #else
-	register BcS32 Count = (BcS32)NoofPixels;
+	BcS32 Count = (BcS32)NoofPixels;
 	{
-		register BcS32 N = ( Count + 7 ) / 8;
+		BcS32 N = ( Count + 7 ) / 8;
 
 		switch( Count % 8 )
 		{
@@ -921,9 +921,9 @@ BcBool ImgImage::encodeAsBGR8( BcU8*& pOutData, BcU32& OutSize )
 		WRITE_PIXEL;
 	}
 #else
-	register BcS32 Count = (BcS32)NoofPixels;
+	BcS32 Count = (BcS32)NoofPixels;
 	{
-		register BcS32 N = ( Count + 7 ) / 8;
+		BcS32 N = ( Count + 7 ) / 8;
 
 		switch( Count % 8 )
 		{
@@ -968,9 +968,9 @@ BcBool ImgImage::encodeAsABGR8( BcU8*& pOutData, BcU32& OutSize )
 		WRITE_PIXEL;
 	}
 #else
-	register BcS32 Count = (BcS32)NoofPixels;
+	BcS32 Count = (BcS32)NoofPixels;
 	{
-		register BcS32 N = ( Count + 7 ) / 8;
+		BcS32 N = ( Count + 7 ) / 8;
 
 		switch( Count % 8 )
 		{
@@ -1012,9 +1012,9 @@ BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
 		WRITE_PIXEL;
 	}
 #else
-	register BcS32 Count = (BcS32)NoofPixels;
+	BcS32 Count = (BcS32)NoofPixels;
 	{
-		register BcS32 N = ( Count + 7 ) / 8;
+		BcS32 N = ( Count + 7 ) / 8;
 
 		switch( Count % 8 )
 		{
@@ -1060,6 +1060,8 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 			case ImgEncodeFormat::DXT5:
 				SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
 				break;
+			default:
+				BcBreakpoint;
 			}
 			
 			// Find out what space squish needs.

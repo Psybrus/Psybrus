@@ -139,6 +139,8 @@ namespace
 			return LANG_ES_300;
 		case RsShaderCodeType::GLSL_ES_310:
 			return LANG_ES_310;
+		default:
+			BcBreakpoint;
 		}
 		return LANG_DEFAULT;
 	}
@@ -622,6 +624,8 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					case RsShaderType::COMPUTE:
 						ShaderType = "cs";
 						break;	
+					default:
+						BcBreakpoint;
 					}
 
 #if DEBUG_FILE_WRITE_OUT_FILES

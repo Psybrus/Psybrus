@@ -73,6 +73,8 @@ RsTextureDesc::RsTextureDesc(
 	case RsTextureFormat::DXT5:
 		MinimumDimension = 4;
 		break;
+	default:
+		break;
 	}
 
 	// Check vs texture type.
@@ -90,6 +92,8 @@ RsTextureDesc::RsTextureDesc(
 	case RsTextureType::TEXCUBE:
 		BcAssert( Width_ >= MinimumDimension && Height_ >= MinimumDimension && Depth_ == 0 );
 		break;
+	default:
+		BcBreakpoint;
 	}
 #endif
 }

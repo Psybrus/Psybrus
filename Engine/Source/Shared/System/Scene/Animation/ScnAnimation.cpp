@@ -184,6 +184,8 @@ void ScnAnimation::decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose )
 	case scnAP_R16T16:
 		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T16 >( Idx, pOutputPose );
 		break;
+	default:
+		BcBreakpoint;
 	}
 }
 

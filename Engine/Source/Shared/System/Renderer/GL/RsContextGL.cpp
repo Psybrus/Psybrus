@@ -343,7 +343,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		}
 	case RsShaderCodeType::GLSL_400:
 		if( Version_.Major_ >= 4 &&
-			Version_.Minor_ >= 0 &&
+			//Version_.Minor_ >= 0 &&
 			Version_.Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
@@ -383,7 +383,8 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
-
+	default:
+		BcBreakpoint;
 	}
 	return BcFalse;
 }
@@ -734,6 +735,8 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
 	case RsOpenGLType::ES:
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES );
 		break;
+	default:
+		BcBreakpoint;
 	}
 
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, Version.Major_ );
@@ -1584,6 +1587,9 @@ void RsContextGL::flushState()
 						glPolygonMode( GL_FRONT_AND_BACK, (BcU32)RsFillMode::SOLID == Value ? GL_FILL : GL_LINE );
 					}
 					break;
+				
+				default:
+					BcBreakpoint;
 			}
 			
 			RsGLCatchError();
@@ -1920,6 +1926,9 @@ void RsContextGL::loadTexture(
 
 		case RsTextureType::TEXCUBE:
 			BcBreakpoint;
+
+		default:
+			BcBreakpoint;
 		}
 
 	}
@@ -1972,6 +1981,9 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
+			BcBreakpoint;
+
+		default:
 			BcBreakpoint;
 		}
 	}
