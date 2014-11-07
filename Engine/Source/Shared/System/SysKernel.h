@@ -113,6 +113,11 @@ public:
 	BcF32 getFrameTime() const;
 
 	/**
+	 * Get game thread frame time.
+	 */
+	BcF32 getGameThreadTime() const;
+
+	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn >
