@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "portaudio" )
+if PsyProjectExternalLib( "portaudio" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"
@@ -19,3 +19,4 @@ PsyProjectExternalLib( "portaudio" )
 			"./portaudio/src/common/", 
 			"./portaudio/src/os/win/" 
 		}
+end

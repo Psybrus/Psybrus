@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "zlib" )
+if PsyProjectExternalLib( "zlib" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"
@@ -8,3 +8,4 @@ PsyProjectExternalLib( "zlib" )
 		if ( EXTERNAL_PROJECT_KIND == "SharedLib" ) then
 			defines { "ZLIB_DLL=1" }
 		end
+end

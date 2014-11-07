@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "enet" )
+if PsyProjectExternalLib( "enet" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"
@@ -10,3 +10,4 @@ PsyProjectExternalLib( "enet" )
 			"IPHlpApi",
 			"winmm"
 		}
+end

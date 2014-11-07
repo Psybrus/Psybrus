@@ -48,7 +48,7 @@ local openal_include    = openal_root .. "/include"
 
 local buildroot = ""
 
-PsyProjectExternalLib( "SoLoud" )
+if PsyProjectExternalLib( "SoLoud" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C++"
 
@@ -171,3 +171,4 @@ if (WITH_WINMM == 1) then
 		"./SoLoud/include"
 	}        
 end
+end 

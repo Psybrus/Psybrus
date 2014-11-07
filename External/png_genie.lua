@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "png" )
+if PsyProjectExternalLib( "png" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"
@@ -7,3 +7,4 @@ PsyProjectExternalLib( "png" )
 		links {
 			"zlib"
 		}
+end

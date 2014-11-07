@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "BulletPhysics" )
+if PsyProjectExternalLib( "BulletPhysics" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C++"
@@ -18,3 +18,4 @@ PsyProjectExternalLib( "BulletPhysics" )
 			"bullet/src/vectormath/**.h",
 			"bullet/src/*.h",
 		}
+end

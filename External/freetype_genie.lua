@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "freetype" )
+if PsyProjectExternalLib( "freetype" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"
@@ -66,3 +66,4 @@ PsyProjectExternalLib( "freetype" )
 		links {
 			EXTERNAL_PROJECT_PREFIX .. "zlib"
 		}
+end

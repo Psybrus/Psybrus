@@ -28,8 +28,8 @@ function PsyProjectCommon( _name )
 
 	-- Thread sanitiser support for later
 	configuration "gmake"
-		--buildoptions { "-fsanitize=thread", "-fPIE", "-pie" }
-		--linkoptions { "-fsanitize=thread", "-fPIE", "-pie", "-ltsan" }
+		-- buildoptions { "-fsanitize=thread", "-fPIE", "-pie" }
+		-- linkoptions { "-fsanitize=thread", "-fPIE", "-pie", "-ltsan" }
 
 	-- Setup dynamic linking for backtrace support.
 	configuration { "Debug", "gmake" }
@@ -209,6 +209,8 @@ function PsyProjectExternalLib( _name )
 
 	-- Terminate project.
 	configuration "*"
+
+	return true;
 end
 
 

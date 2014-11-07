@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "pcre" )
+if PsyProjectExternalLib( "pcre" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		language "C"
@@ -30,3 +30,4 @@ PsyProjectExternalLib( "pcre" )
 		}
 		includedirs { "./pcre/" }
 		defines { "HAVE_CONFIG_H" }
+end

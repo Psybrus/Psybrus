@@ -1,4 +1,4 @@
-PsyProjectExternalLib( "HLSLCrossCompiler" )
+if PsyProjectExternalLib( "HLSLCrossCompiler" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
 	language "C"
 	configuration "windows or linux-gcc or linux-clang"
@@ -13,3 +13,4 @@ PsyProjectExternalLib( "HLSLCrossCompiler" )
 			"./HLSLCrossCompiler/src", 
 			"./HLSLCrossCompiler/src/cbstring" ,
 		}
+end
