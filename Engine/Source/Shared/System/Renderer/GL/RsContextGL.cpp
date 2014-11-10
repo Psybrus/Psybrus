@@ -774,6 +774,24 @@ bool RsContextGL::destroyRenderState(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createSamplerState
+bool RsContextGL::createSamplerState(
+	RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroySamplerState
+bool RsContextGL::destroySamplerState(
+	RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createBuffer
 bool RsContextGL::createBuffer( RsBuffer* Buffer )
 {

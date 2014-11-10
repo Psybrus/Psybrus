@@ -38,6 +38,20 @@ public:
 		class RsRenderState* RenderState ) = 0;
 
 	/**
+	 * Create sampler state.
+	 * @param SamplerState Sampler state to create from.
+	 */
+	virtual bool createSamplerState(
+		class RsSamplerState* SamplerState ) = 0;
+
+	/**
+	 * Destroy sampler state.
+	 * @param SamplerState Render state to destroy.
+	 */
+	virtual bool destroySamplerState( 
+		class RsSamplerState* SamplerState ) = 0;
+
+	/**
 	 * Create buffer.
 	 * @param Buffer Buffer to create from.
 	 */

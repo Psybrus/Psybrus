@@ -203,6 +203,46 @@ void RsCoreImpl::destroyContext( OsClient* pClient )
 
 //////////////////////////////////////////////////////////////////////////
 // createTexture
+RsRenderState* RsCoreImpl::createRenderState( 
+	const RsRenderStateDesc& Desc )
+{
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsRenderState* pResource = new RsRenderState( Context, Desc );
+
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createRenderState( pResource );
+		} );
+
+	// Return resource.
+	return pResource;
+}
+
+RsSamplerState* RsCoreImpl::createSamplerState( 
+	const RsSamplerStateDesc& Desc )
+{
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsSamplerState* pResource = new RsSamplerState( Context, Desc );
+
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createSamplerState( pResource );
+		} );
+	
+	// Return resource.
+	return pResource;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createTexture
 //virtual 
 RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 {

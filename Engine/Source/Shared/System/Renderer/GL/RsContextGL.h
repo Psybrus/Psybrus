@@ -47,6 +47,11 @@ public:
 	bool destroyRenderState(
 		RsRenderState* RenderState );
 
+	bool createSamplerState(
+		RsSamplerState* SamplerState );
+	bool destroySamplerState(
+		RsSamplerState* SamplerState );
+
 	bool createBuffer( 
 		RsBuffer* Buffer );
 	bool destroyBuffer( 

@@ -47,6 +47,12 @@ public:
 	RsContext* getContext( OsClient* pClient );
 	void destroyContext( OsClient* pClient );
 
+	RsRenderState* createRenderState( 
+		const RsRenderStateDesc& Desc );
+
+	RsSamplerState* createSamplerState( 
+		const RsSamplerStateDesc& Desc );
+
 	RsTexture* createTexture( 
 		const RsTextureDesc& Desc );
 

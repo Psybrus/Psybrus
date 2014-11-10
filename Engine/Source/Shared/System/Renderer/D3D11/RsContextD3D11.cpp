@@ -954,6 +954,24 @@ bool RsContextD3D11::destroyRenderState(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createSamplerState
+bool RsContextD3D11::createSamplerState(
+	RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroySamplerState
+bool RsContextD3D11::destroySamplerState(
+	RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createBuffer
 bool RsContextD3D11::createBuffer( 
 	class RsBuffer* Buffer )

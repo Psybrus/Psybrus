@@ -112,6 +112,7 @@ struct RsRenderStateDesc
 class RsRenderState:
 	public RsResource
 {
+public:
 	RsRenderState( class RsContext* pContext, const RsRenderStateDesc& Desc );
 	virtual ~RsRenderState();
 

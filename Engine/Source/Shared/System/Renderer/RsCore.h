@@ -31,8 +31,8 @@
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsRenderState.h"
+#include "System/Renderer/RsSamplerState.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -77,6 +77,20 @@ public:
 	 */
 	virtual void destroyContext( 
 		OsClient* pClient ) = 0;
+
+	/**
+	 *	Create a render state.
+	 *	@param Desc descriptor.
+	 */
+	virtual RsRenderState* createRenderState( 
+		const RsRenderStateDesc& Desc ) = 0;
+
+	/**
+	 *	Create a sampler state.
+	 *	@param Desc descriptor.
+	 */
+	virtual RsSamplerState* createSamplerState( 
+		const RsSamplerStateDesc& Desc ) = 0;
 
 	/**
 	 *	Create a texture.
