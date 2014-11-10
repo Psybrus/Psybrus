@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		RsRenderStateType.cpp
+* File:		RsRenderState.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -15,48 +15,61 @@
 #define __RENDERSTATE_H__
 
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetBlendState
 struct RsRenderTargetBlendState
 {
-	BcBool			Enable_;
-	RsBlendType	SrcBlend_;
-	RsBlendType	DestBlend_;
-	RsBlendOp		BlendOp_;
-	RsBlendType	SrcBlendAlpha_;
-	RsBlendType	DestBlendAlpha_;
-	RsBlendOp		BlendOpAlpha_;
-	BcU8			WriteMask_;
+	REFLECTION_DECLARE_BASIC( RsRenderTargetBlendState );
+	RsRenderTargetBlendState();
+
+	BcBool Enable_;
+	RsBlendType SrcBlend_;
+	RsBlendType DestBlend_;
+	RsBlendOp BlendOp_;
+	RsBlendType SrcBlendAlpha_;
+	RsBlendType DestBlendAlpha_;
+	RsBlendOp BlendOpAlpha_;
+	BcU8 WriteMask_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsBlendState
 struct RsBlendState
 {
-	RsRenderTargetBlendState	RenderTarget_[ 8 ];
+	REFLECTION_DECLARE_BASIC( RsBlendState );
+	RsBlendState();
+
+	RsRenderTargetBlendState RenderTarget_[ 8 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsStencilFaceState
 struct RsStencilFaceState
 {
-	RsStencilOp	Fail_;
-	RsStencilOp	DepthFail_;
-	RsStencilOp	PassFail_;
-	RsCompareMode	Func_;
+	REFLECTION_DECLARE_BASIC( RsStencilFaceState );
+	RsStencilFaceState();
+
+	RsStencilOp Fail_;
+	RsStencilOp DepthFail_;
+	RsStencilOp PassFail_;
+	RsCompareMode Func_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsDepthStencilState
 struct RsDepthStencilState
 {
-	BcBool			DepthTestEnable_;
-	BcBool			DepthWriteEnable_;
-	RsCompareMode	DepthFunc_;
-	BcBool			StencilEnable_;
-	BcU8			StencilRead_;
-	BcU8			StencilWrite_;
+	REFLECTION_DECLARE_BASIC( RsDepthStencilState );
+	RsDepthStencilState();
+
+	BcBool DepthTestEnable_;
+	BcBool DepthWriteEnable_;
+	RsCompareMode DepthFunc_;
+	BcBool StencilEnable_;
+	BcU8 StencilRead_;
+	BcU8 StencilWrite_;
 	RsStencilFaceState StencilFront_;
 	RsStencilFaceState StencilBack_;
 };
@@ -65,45 +78,50 @@ struct RsDepthStencilState
 // RsRasteriserState
 struct RsRasteriserState
 {
-	BcU32			FillMode_;
-	BcU32			CullMode_;
-	BcF32			DepthBias_;
-	BcF32			SlopeScaledDepthBias_;
-	BcBool			DepthClipEnable_;
-	BcBool			ScissorEnable_;
-	BcBool			AntialiasedLineEnable_;
+	REFLECTION_DECLARE_BASIC( RsRasteriserState );
+	RsRasteriserState();
+
+	RsFillMode FillMode_;
+	RsCullMode CullMode_;
+	BcF32 DepthBias_;
+	BcF32 SlopeScaledDepthBias_;
+	BcBool DepthClipEnable_;
+	BcBool ScissorEnable_;
+	BcBool AntialiasedLineEnable_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsRenderStateDesc
+struct RsRenderStateDesc
+{
+	REFLECTION_DECLARE_BASIC( RsRenderStateDesc );
+	
+	RsRenderStateDesc();
+	RsRenderStateDesc( 
+		const RsBlendState& BlendState, 
+		const RsDepthStencilState& DepthStencilState, 
+		const RsRasteriserState& RasteriserState );
+
+	RsBlendState BlendState_;
+	RsDepthStencilState DepthStencilState_;
+	RsRasteriserState RasteriserState_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderState
-union RsRenderState
+class RsRenderState:
+	public RsResource
 {
-	RsRenderState()
-	{
-	
-	}
-	
-	RsRenderState( BcU16 Value ):
-		Value_( Value )
-	{
-	
-	}
-	
-	RsRenderState( const RsRenderState& State ):
-		Value_( State.Value_ )
-	{
-	
-	}
+	RsRenderState( class RsContext* pContext, const RsRenderStateDesc& Desc );
+	virtual ~RsRenderState();
 
-	struct
-	{
-		BcU16		BlendStateIdx_			: 5;		// Max of 32 blend states.
-		BcU16		DepthStencilStateIdx_	: 5;		// Max of 32 depth stencil states.
-		BcU16		RasteriserStateIdx_		: 5;		// Max of 32 rasteriser states.
-		BcU16		Spare_					: 1;		// Spare bit for something?
-	};
+	/**
+	 * Get desc.
+	 */
+	 const RsRenderStateDesc& getDesc() const;
 
-	BcU16			Value_;
+private:
+	RsRenderStateDesc Desc_;
 };
 
 

@@ -754,6 +754,25 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
 }
 #endif
 
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderState
+bool RsContextGL::createRenderState(
+	RsRenderState* RenderState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyRenderState
+bool RsContextGL::destroyRenderState(
+	RsRenderState* RenderState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // createBuffer
 bool RsContextGL::createBuffer( RsBuffer* Buffer )
@@ -1359,6 +1378,15 @@ void RsContextGL::invalidateTextureState()
 		BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
 		TextureStateBinds_[ NoofTextureStateBinds_++ ] = Idx;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderState
+void RsContextGL::setRenderState( RsRenderState* RenderState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	// Do nothing. Yet.
+	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////

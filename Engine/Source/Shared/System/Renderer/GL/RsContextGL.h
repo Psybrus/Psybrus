@@ -42,6 +42,11 @@ public:
 	void presentBackBuffer();
 	void takeScreenshot();
 
+	bool createRenderState(
+		RsRenderState* RenderState );
+	bool destroyRenderState(
+		RsRenderState* RenderState );
+
 	bool createBuffer( 
 		RsBuffer* Buffer );
 	bool destroyBuffer( 
@@ -76,6 +81,7 @@ public:
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();
+	void setRenderState( class RsRenderState* RenderState );
 	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setSamplerState( BcU32 Slot, const RsTextureParams& Params, BcBool Force = BcFalse );

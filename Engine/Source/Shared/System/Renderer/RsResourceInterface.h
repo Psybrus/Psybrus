@@ -24,6 +24,20 @@ public:
 	virtual ~RsResourceInterface(){};
 
 	/**
+	 * Create render state.
+	 * @param RenderState Render state to create from.
+	 */
+	virtual bool createRenderState(
+		class RsRenderState* RenderState ) = 0;
+
+	/**
+	 * Destroy render state.
+	 * @param RenderState Render state to destroy.
+	 */
+	virtual bool destroyRenderState( 
+		class RsRenderState* RenderState ) = 0;
+
+	/**
 	 * Create buffer.
 	 * @param Buffer Buffer to create from.
 	 */
@@ -32,7 +46,7 @@ public:
 
 	/**
 	 * Destroy buffer.
-	 * @param Buffer Buffer to destroy from.
+	 * @param Buffer Buffer to destroy.
 	 */
 	virtual bool destroyBuffer( 
 		class RsBuffer* Buffer ) = 0;

@@ -37,6 +37,11 @@ public:
 	 * Invalidate texture state.
 	 */
 	virtual void invalidateTextureState() = 0;
+
+	/**
+	 * Set render state.
+	 */
+	virtual void setRenderState( RsRenderState* RenderState ) = 0;
 	
 	/**
 	 * Set render state.

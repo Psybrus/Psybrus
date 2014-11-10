@@ -595,6 +595,15 @@ void RsContextD3D11::invalidateTextureState()
 
 //////////////////////////////////////////////////////////////////////////
 // setRenderState
+void RsContextD3D11::setRenderState( RsRenderState* RenderState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	// Do nothing. Yet.
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderState
 void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -924,6 +933,24 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 
 	flushState();
 	Context_->DrawIndexed( NoofIndices, IndexOffset, VertexOffset );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderState
+bool RsContextD3D11::createRenderState(
+	RsRenderState* RenderState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyRenderState
+bool RsContextD3D11::destroyRenderState(
+	RsRenderState* RenderState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

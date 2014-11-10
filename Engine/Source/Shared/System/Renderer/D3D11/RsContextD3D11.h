@@ -43,6 +43,7 @@ public:
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();
+	void setRenderState( class RsRenderState* RenderState );
 	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
@@ -60,6 +61,11 @@ public:
 	void clear( const RsColour& Colour );
 	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
 	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+
+	bool createRenderState(
+		RsRenderState* RenderState );
+	bool destroyRenderState(
+		RsRenderState* RenderState );
 
 	bool createBuffer( 
 		RsBuffer* Buffer );
