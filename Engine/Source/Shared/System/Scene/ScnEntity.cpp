@@ -146,7 +146,7 @@ void ScnEntity::create()
 	static int Export = 0;
 	if( Export )
 	{
-		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), (BcU32)bcRFF_ALL, (BcU32)( bcRFF_TRANSIENT | bcRFF_CHUNK_DATA ) );
+		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), (BcU32)bcRFF_ALL, (BcU32)( bcRFF_TRANSIENT | bcRFF_CHUNK_DATA ), 0 );
 		SeJsonWriter Writer( &ObjectCodec );
 		Writer << *this;
 		Writer.save( "test.json" );
