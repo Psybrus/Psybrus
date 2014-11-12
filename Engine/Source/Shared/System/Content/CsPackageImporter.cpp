@@ -183,7 +183,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT );
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
 			Writer.save( OutputDependencies.c_str() );
@@ -484,9 +484,9 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	BcAssertMsg( ResourceImporter != nullptr, "Can't create resource importer." );
 
 	// Serialise resource onto importer.
-	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE );
+	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 	SeJsonReader Reader( &ObjectCodec );
-	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource );
+	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource, 0 );
 
 	// Add import with importer.
 	return addImport( std::move( ResourceImporter ), Resource, IsCrossRef );

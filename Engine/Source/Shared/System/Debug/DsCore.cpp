@@ -547,7 +547,7 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		Output.createChildNode("br");
 		return;
 	}
-	CsSerialiserPackageObjectCodec ObjectCodec(nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT);
+	CsSerialiserPackageObjectCodec ObjectCodec(nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0);
 	SeJsonWriter writer( &ObjectCodec);
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
 	

@@ -24,12 +24,12 @@ protected:
 	virtual std::string internalSerialiseString( void* pData, const ReType* pType );
 
 public:
-	virtual void serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue );
-	virtual void serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues );
-    virtual void serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue );
-    virtual void serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, const Json::Value& InputValue, BcBool IncrementRefCount );
-    virtual void serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue );
-    virtual void serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue );
+	virtual void serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue, BcU32 ParentFlags );
+	virtual void serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues, BcU32 ParentFlags );
+    virtual void serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags );
+    virtual void serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, const Json::Value& InputValue, BcU32 ParentFlags, BcBool IncrementRefCount );
+    virtual void serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags );
+    virtual void serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags );
 
 private:
     Json::Value RootValue_;

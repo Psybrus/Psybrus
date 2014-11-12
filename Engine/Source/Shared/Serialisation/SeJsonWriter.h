@@ -23,11 +23,11 @@ protected:
     virtual std::string internalSerialiseString( void* pData, const ReType* pType );
 
 protected:
-    virtual Json::Value serialiseClass( void* pData, const ReClass* pClass, bool StoreID );
-    virtual Json::Value serialiseField( void* pData, const ReField* pField );
-    virtual Json::Value serialisePointer( void* pData, const ReClass* pClass );
-    virtual Json::Value serialiseArray( void* pData, const ReField* pField );
-    virtual Json::Value serialiseDict( void* pData, const ReField* pField );
+    virtual Json::Value serialiseClass( void* pData, const ReClass* pClass, BcU32 ParentFlags, bool StoreID );
+    virtual Json::Value serialiseField( void* pData, const ReField* pField, BcU32 ParentFlags );
+    virtual Json::Value serialisePointer( void* pData, const ReClass* pClass, BcU32 ParentFlags );
+    virtual Json::Value serialiseArray( void* pData, const ReField* pField, BcU32 ParentFlags );
+    virtual Json::Value serialiseDict( void* pData, const ReField* pField, BcU32 ParentFlags );
 
 private:
     Json::Value RootValue_;

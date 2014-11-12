@@ -21,10 +21,12 @@
 CsSerialiserPackageObjectCodec::CsSerialiserPackageObjectCodec( 
 		class CsPackage* Package,
 		BcU32 IncludeFieldFlags,
-		BcU32 ExcludeFieldFlags ):
+		BcU32 ExcludeFieldFlags,
+		BcU32 PropagateFieldFlags ):
 	Package_( Package ),
 	IncludeFieldFlags_( IncludeFieldFlags ),
-	ExcludeFieldFlags_( ExcludeFieldFlags )
+	ExcludeFieldFlags_( ExcludeFieldFlags ),
+	PropagateFieldFlags_( PropagateFieldFlags )
 {
 
 }
@@ -121,11 +123,13 @@ BcBool CsSerialiserPackageObjectCodec::isMatchingField(
 //virtual
 BcBool CsSerialiserPackageObjectCodec::shouldSerialiseField( 
 	void* InData, 
+	BcU32 ParentFlags,
 	const class ReField* Field )
 {
+	BcU32 Flags = Field->getFlags() | ( ParentFlags & PropagateFieldFlags_ );
 	BcBool ShouldSerialise = 
-		( ( ( Field->getFlags() & ExcludeFieldFlags_ ) == 0 ) && 
-		( ( Field->getFlags() & IncludeFieldFlags_ ) != 0 ) ) || 
+		( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && 
+		( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || 
 		Field->getFlags() == 0;
 
 	// If the field is an ReObject, we should check if it's a CsPackage.

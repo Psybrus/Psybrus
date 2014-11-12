@@ -103,7 +103,7 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 		auto ClassToSerialise( getSerialiseClass( ID, ClassType ) );
 
 		// Add class to list for look up.
-		serialiseClass( ClassToSerialise.pData_, ClassType, ObjectToSerialise );
+		serialiseClass( ClassToSerialise.pData_, ClassType, ObjectToSerialise, 0 );
 	}
 
     return pData;
@@ -120,7 +120,7 @@ std::string SeJsonReader::internalSerialiseString( void* pData, const ReType* pT
 //////////////////////////////////////////////////////////////////////////
 // serialiseClass
 //virtual
-void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue )
+void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue, BcU32 ParentFlags )
 {
     // Get type serialiser.
     auto Serialiser = pClass->getTypeSerialiser();
@@ -182,7 +182,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		// Attempt to read in as class members.
 		if( InputValue.type() == Json::objectValue )
 		{
-			serialiseClassMembers( pData, pClass, InputValue );
+			serialiseClassMembers( pData, pClass, InputValue, ParentFlags );
 		}
 	}
 }
@@ -190,7 +190,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 //////////////////////////////////////////////////////////////////////////
 // serialiseClassMembers
 //virtual
-void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues )
+void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues, BcU32 ParentFlags )
 {
 	// Iterate over members to add, all supers too.
 	const ReClass* pProcessingClass = pClass;
@@ -208,12 +208,13 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 					{
 						return ObjectCodec_->isMatchingField( pField, Member );
 					} );
+
 				if( ObjectCodec_->shouldSerialiseField( 
-					pData, pField ) )
+					pData, ParentFlags, pField ) )
 				{
 					if( FoundMember != Members.end() )
 					{
-						serialiseField( pData, pField, MemberValues[ *FoundMember ] );
+						serialiseField( pData, pField, MemberValues[ *FoundMember ], ParentFlags );
 					}
 				}
 			}
@@ -225,8 +226,11 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 //////////////////////////////////////////////////////////////////////////
 // serialiseField
 //virtual
-void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue )
-{	
+void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags )
+{
+	// Add our flags to the parent flags. These should propagate down the hierarchy.
+	ParentFlags |= pField->getFlags();
+
 	// Select the appropriate serialise method to use if we
     // have some data to serialise.
     if( pData != nullptr )
@@ -235,11 +239,11 @@ void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Jso
         {
             if( pField->getKeyType() == nullptr )
             {
-                serialiseArray( pData, pField, InputValue );
+                serialiseArray( pData, pField, InputValue, ParentFlags );
             }
             else
             {
-                serialiseDict( pData, pField, InputValue );
+                serialiseDict( pData, pField, InputValue, ParentFlags );
             }
         }
         else
@@ -248,12 +252,12 @@ void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Jso
             {
                 if( pField->isPointerType() == false )
                 {
-                    serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), InputValue );
+                    serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), InputValue, ParentFlags );
                 }
                 else
                 {
                     void* pFieldData = nullptr;
-                    serialisePointer( pFieldData, static_cast< const ReClass* >( pField->getType() ), pField->getFlags(), InputValue, true );
+                    serialisePointer( pFieldData, static_cast< const ReClass* >( pField->getType() ), pField->getFlags(), InputValue, ParentFlags, true );
                     void** pOutputFieldData = reinterpret_cast< void** >( reinterpret_cast< BcU8* >( pData ) + pField->getOffset() );
                     *pOutputFieldData = pFieldData;
                 }
@@ -265,7 +269,7 @@ void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Jso
 //////////////////////////////////////////////////////////////////////////
 // serialisePointer
 //virtual
-void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, const Json::Value& InputValue, BcBool IncrementRefCount )
+void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 FieldFlags, const Json::Value& InputValue, BcU32 ParentFlags, BcBool IncrementRefCount )
 {
     auto ClassToSerialise = getSerialiseClass( InputValue.asCString(), pClass );
     if( ClassToSerialise.pData_ != nullptr && ClassToSerialise.pData_ != pData )
@@ -292,7 +296,7 @@ void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 
 //////////////////////////////////////////////////////////////////////////
 // serialiseArray
 //virtual
-void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue )
+void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags )
 {
     Json::Value ArrayValue( Json::arrayValue );
     auto pFieldValueType = pField->getValueType();
@@ -314,13 +318,13 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		{
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				serialiseClass( pTemporaryValue, FieldValueClass, (*ValueIt) );
+				serialiseClass( pTemporaryValue, FieldValueClass, (*ValueIt), ParentFlags );
 				pWriteIterator->add( pTemporaryValue );
 			}
 			else
 			{
 				void* pTemporaryPointer = nullptr;
-				serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), (*ValueIt), false );
+				serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), (*ValueIt), ParentFlags, false );
 				pWriteIterator->add( &pTemporaryPointer );
 			}
 		}
@@ -330,13 +334,13 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		// Treat as single value.
 		if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 		{
-			serialiseClass( pTemporaryValue, FieldValueClass, InputValue );
+			serialiseClass( pTemporaryValue, FieldValueClass, InputValue, ParentFlags );
 			pWriteIterator->add( pTemporaryValue );
 		}
 		else
 		{
 			void* pTemporaryPointer = nullptr;
-			serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), InputValue, false );
+			serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), InputValue, ParentFlags, false );
 			pWriteIterator->add( &pTemporaryPointer );
 		}
 	}
@@ -350,7 +354,7 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 //////////////////////////////////////////////////////////////////////////
 // serialiseDict
 //virtual
-void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue )
+void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags )
 {
     Json::Value ArrayValue( Json::arrayValue );
     auto pFieldKeyType = pField->getKeyType();
@@ -381,13 +385,13 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
             if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
             {
                 // Serialise value.
-                serialiseClass( pTemporaryValue, FieldValueClass, Value );
+                serialiseClass( pTemporaryValue, FieldValueClass, Value, ParentFlags );
                 pWriteIterator->add( pTemporaryKey, pTemporaryValue );
             }
             else
             {
                 void* pTemporaryPointer = nullptr;
-                serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), Value, false );
+                serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), Value, ParentFlags, false );
                 pWriteIterator->add( pTemporaryKey, &pTemporaryPointer );
             }
         }

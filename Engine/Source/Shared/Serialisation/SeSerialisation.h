@@ -43,6 +43,7 @@ public:
 	 */
 	virtual BcBool shouldSerialiseField( 
 		void* InData, 
+        BcU32 ParentFlags,
 		const class ReField* Field ) = 0;
 };
 

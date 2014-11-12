@@ -78,7 +78,7 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pT
 		if( ClassToSerialise.pType_->isTypeOf< ReClass >() )
 		{
 			auto ID = ObjectCodec_->serialiseAsStringRef( ClassToSerialise.pData_, ClassToSerialise.pType_ );
-			auto ClassValue = serialiseClass( ClassToSerialise.pData_, static_cast< const ReClass* >( ClassToSerialise.pType_ ), true );
+			auto ClassValue = serialiseClass( ClassToSerialise.pData_, static_cast< const ReClass* >( ClassToSerialise.pType_ ), 0, true );
 			ObjectValueMap_[ ID ] = ClassValue;
 		}
 		else
@@ -116,7 +116,7 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pT
 //////////////////////////////////////////////////////////////////////////
 // serialiseClass
 //virtual
-Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bool StoreID )
+Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, BcU32 ParentFlags, bool StoreID )
 {
 	// Don't bother will null classes.
 	if( pData == nullptr )
@@ -173,9 +173,9 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 						const ReField* pField = pProcessingClass->getField( Idx );
 	
 						// Check if we should serialise this field.
-						if ( ObjectCodec_->shouldSerialiseField( pData, pField ) )
+						if ( ObjectCodec_->shouldSerialiseField( pData, ParentFlags, pField ) )
 						{
-							ClassValue[ *pField->getName() ] = serialiseField( pData, pField );
+							ClassValue[ *pField->getName() ] = serialiseField( pData, pField, ParentFlags );
 						}
 					}
 				}
@@ -190,8 +190,11 @@ Json::Value SeJsonWriter::serialiseClass( void* pData, const ReClass* pClass, bo
 //////////////////////////////////////////////////////////////////////////
 // serialiseField
 //virtual
-Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
+Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField, BcU32 ParentFlags )
 {
+	// Add our flags to the parent flags. These should propagate down the hierarchy.
+	ParentFlags |= pField->getFlags();
+
 	// Select the appropriate serialise method to use if we
 	// have some data to serialise.
 	if( pData != nullptr )
@@ -200,11 +203,11 @@ Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
 		{
 			if( pField->getKeyType() == nullptr )
 			{
-				return serialiseArray( pData, pField );
+				return serialiseArray( pData, pField, ParentFlags );
 			}
 			else
 			{
-				return serialiseDict( pData, pField );
+				return serialiseDict( pData, pField, ParentFlags );
 			}
 		}
 		else
@@ -213,11 +216,11 @@ Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
 			{
 				if( pField->isPointerType() == false )
 				{
-					return serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), false );
+					return serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), ParentFlags, false );
 				}
 				else
 				{
-					return serialisePointer( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ) );
+					return serialisePointer( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), ParentFlags );
 				}
 			}
 		}
@@ -228,7 +231,7 @@ Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField )
 //////////////////////////////////////////////////////////////////////////
 // serialisePointer
 //virtual
-Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass )
+Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass, BcU32 ParentFlags )
 {
 	if( pData != nullptr )
 	{
@@ -261,7 +264,7 @@ Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass )
 //////////////////////////////////////////////////////////////////////////
 // serialiseArray
 //virtual
-Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField )
+Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField, BcU32 ParentFlags )
 {
 	Json::Value ArrayValue( Json::arrayValue );
 	auto pFieldValueType = pField->getValueType();
@@ -278,12 +281,12 @@ Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField )
 			Json::Value ClassValue;
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), false ); 
+				ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, false ); 
 			}
 			else
 			{
 				void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
-				ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ) );
+				ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
 			}
 
 			ArrayValue.append( ClassValue );
@@ -304,7 +307,7 @@ Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField )
 //////////////////////////////////////////////////////////////////////////
 // serialiseDict
 //virtual
-Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
+Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField, BcU32 ParentFlags )
 {
 	Json::Value DictValue( Json::objectValue );
 	auto pFieldValueType = pField->getValueType();
@@ -353,12 +356,12 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField )
 				Json::Value ClassValue;
 				if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 				{
-					ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), true ); // TODO: Only if pointer type.
+					ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, true ); // TODO: Only if pointer type.
 				}
 				else
 				{
 					void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
-					ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ) );
+					ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
 				}
 				DictValue[ OutKeyString ] = ClassValue;
 			}
