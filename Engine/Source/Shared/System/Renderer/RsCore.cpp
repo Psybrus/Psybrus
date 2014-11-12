@@ -39,7 +39,16 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "WIREFRAME", (BcU32)RsFillMode::WIREFRAME ),
 		new ReEnumConstant( "INVALID", (BcU32)RsFillMode::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsFillModeEnumConstants );
+	ReRegisterEnum< RsFillMode >( RsFillModeEnumConstants );
+
+	ReEnumConstant* RsCullModeEnumConstants[] = 
+	{
+		new ReEnumConstant( "NONE", (BcU32)RsCullMode::NONE ),
+		new ReEnumConstant( "CW", (BcU32)RsCullMode::CW ),
+		new ReEnumConstant( "CCW", (BcU32)RsCullMode::CCW ),
+		new ReEnumConstant( "INVALID", (BcU32)RsCullMode::INVALID ),
+	};
+	ReRegisterEnum< RsCullMode >( RsCullModeEnumConstants );
 
 	ReEnumConstant* RsBlendTypeEnumConstants[] = 
 	{
@@ -55,7 +64,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "INV_DEST_ALPHA", (BcU32)RsBlendType::INV_DEST_ALPHA ),
 		new ReEnumConstant( "INVALID", (BcU32)RsBlendType::INVALID ),
 	};
-	ReRegisterEnum< RsShaderType >( RsBlendTypeEnumConstants );
+	ReRegisterEnum< RsBlendType >( RsBlendTypeEnumConstants );
 
 	ReEnumConstant* RsBlendOpEnumConstants[] = 
 	{

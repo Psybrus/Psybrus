@@ -74,6 +74,12 @@ public:
 		RsResource* pResource );
 	
 	void destroyResource( 
+		RsRenderState* RenderState );
+
+	void destroyResource( 
+		RsSamplerState* SamplerState );
+
+	void destroyResource( 
 		RsBuffer* Buffer );
 	
 	void destroyResource( 

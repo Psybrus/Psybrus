@@ -92,7 +92,10 @@ enum class RsCullMode : BcU32
 {
 	NONE = 0,
 	CW, 
-	CCW
+	CCW,
+
+	MAX,
+	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////

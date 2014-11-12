@@ -361,6 +361,48 @@ void RsCoreImpl::destroyResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
+void RsCoreImpl::destroyResource( 
+	RsRenderState* RenderState )
+{
+	BcAssert( BcIsGameThread() );
+	if( RenderState == nullptr )
+	{
+		return;
+	}
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID,
+		[ RenderState ]()
+		{
+			RenderState->getContext()->destroyRenderState( RenderState );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+	RsSamplerState* SamplerState )
+{
+	BcAssert( BcIsGameThread() );
+	if( SamplerState == nullptr )
+	{
+		return;
+	}
+
+	// Flush render thread before destroy.
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID,
+		[ SamplerState ]()
+		{
+			SamplerState->getContext()->destroySamplerState( SamplerState );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
 void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 {
 	BcAssert( BcIsGameThread() );

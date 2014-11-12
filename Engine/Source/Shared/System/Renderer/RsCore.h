@@ -148,6 +148,10 @@ public:
 	virtual void destroyResource( 
 		RsResource* pResource ) = 0;
 	virtual void destroyResource( 
+		RsRenderState* RenderState ) = 0;
+	virtual void destroyResource( 
+		RsSamplerState* SamplerState ) = 0;
+	virtual void destroyResource( 
 		RsBuffer* Buffer ) = 0;
 	virtual void destroyResource( 
 		RsTexture* Texture ) = 0;

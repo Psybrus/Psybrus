@@ -53,7 +53,7 @@ struct RsStencilFaceState
 
 	RsStencilOp Fail_;
 	RsStencilOp DepthFail_;
-	RsStencilOp PassFail_;
+	RsStencilOp Pass_;
 	RsCompareMode Func_;
 };
 
