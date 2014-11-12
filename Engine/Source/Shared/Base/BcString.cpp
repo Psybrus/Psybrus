@@ -14,6 +14,7 @@
 #include "Base/BcString.h"
 
 #include <cstring>
+#include <cstdlib>
 
 #if PLATFORM_WINDOWS
 #define caseInsensitiveComparison stricmp

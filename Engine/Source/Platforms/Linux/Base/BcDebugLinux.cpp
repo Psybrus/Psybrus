@@ -13,6 +13,8 @@
 
 #include "Base/BcDebug.h"
 
+#include <malloc.h>
+
 #if !PSY_PRODUCTION
 #include <execinfo.h>
 #endif // !PSY_PRODUCTION
