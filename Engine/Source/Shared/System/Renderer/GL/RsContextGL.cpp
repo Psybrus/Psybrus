@@ -1552,8 +1552,8 @@ void RsContextGL::flushState()
 	if( RenderState_ != nullptr )
 	{
 		const auto& Desc = RenderState_->getDesc();
-
-#if 0
+#if 0 
+		// GL4+
 		for( BcU32 Idx = 0; Idx < 8; ++Idx )
 		{
 			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
@@ -1609,10 +1609,10 @@ void RsContextGL::flushState()
 				RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 			RsGLCatchError();
 		}
+#endif
 
 		const auto& DepthStencilState = Desc.DepthStencilState_;
-
-
+		
 		DepthStencilState.DepthTestEnable_ ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
 		glDepthMask( (GLboolean)DepthStencilState.DepthWriteEnable_ );
 		glDepthFunc( gCompareMode[ (BcU32)DepthStencilState.DepthFunc_ ] );
@@ -1644,7 +1644,30 @@ void RsContextGL::flushState()
 		const auto& RasteriserState = Desc.RasteriserState_;
 
 		glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
-#endif
+
+		switch( RasteriserState.CullMode_ )
+		{
+		case RsCullMode::NONE:
+			glDisable( GL_CULL_FACE );
+			break;
+		case RsCullMode::CW:
+			glEnable( GL_CULL_FACE );
+			glCullFace( GL_FRONT );
+			break;
+		case RsCullMode::CCW:
+			glEnable( GL_CULL_FACE );
+			glCullFace( GL_BACK );
+			break;
+		default:
+			BcBreakpoint;
+		}
+
+		// TODO DepthBias_
+		// TODO SlopeScaledDepthBias_
+		// TODO DepthClipEnable_
+		// TODO ScissorEnable_
+
+		RasteriserState.AntialiasedLineEnable_ ? glEnable( GL_LINE_SMOOTH) : glDisable( GL_LINE_SMOOTH );
 	}
 
 	// Bind texture states.
