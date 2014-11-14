@@ -21,7 +21,8 @@
 // RsRenderTargetBlendState
 struct RsRenderTargetBlendState
 {
-	REFLECTION_DECLARE_BASIC( RsRenderTargetBlendState );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsRenderTargetBlendState );
+	RsRenderTargetBlendState( ReNoInit );
 	RsRenderTargetBlendState();
 
 	BcBool Enable_;
@@ -38,7 +39,8 @@ struct RsRenderTargetBlendState
 // RsBlendState
 struct RsBlendState
 {
-	REFLECTION_DECLARE_BASIC( RsBlendState );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsBlendState );
+	RsBlendState( ReNoInit );
 	RsBlendState();
 
 	RsRenderTargetBlendState RenderTarget_[ 8 ];
@@ -48,20 +50,24 @@ struct RsBlendState
 // RsStencilFaceState
 struct RsStencilFaceState
 {
-	REFLECTION_DECLARE_BASIC( RsStencilFaceState );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsStencilFaceState );
+	RsStencilFaceState( ReNoInit );
 	RsStencilFaceState();
 
 	RsStencilOp Fail_;
 	RsStencilOp DepthFail_;
 	RsStencilOp Pass_;
 	RsCompareMode Func_;
+	BcU32 Ref_;
+	BcU8 Mask_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsDepthStencilState
 struct RsDepthStencilState
 {
-	REFLECTION_DECLARE_BASIC( RsDepthStencilState );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsDepthStencilState );
+	RsDepthStencilState( ReNoInit );
 	RsDepthStencilState();
 
 	BcBool DepthTestEnable_;
@@ -78,7 +84,8 @@ struct RsDepthStencilState
 // RsRasteriserState
 struct RsRasteriserState
 {
-	REFLECTION_DECLARE_BASIC( RsRasteriserState );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsRasteriserState );
+	RsRasteriserState( ReNoInit );
 	RsRasteriserState();
 
 	RsFillMode FillMode_;
@@ -94,8 +101,9 @@ struct RsRasteriserState
 // RsRenderStateDesc
 struct RsRenderStateDesc
 {
-	REFLECTION_DECLARE_BASIC( RsRenderStateDesc );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsRenderStateDesc );
 	
+	RsRenderStateDesc( ReNoInit );
 	RsRenderStateDesc();
 	RsRenderStateDesc( 
 		const RsBlendState& BlendState, 

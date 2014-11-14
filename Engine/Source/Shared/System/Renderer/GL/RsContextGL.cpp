@@ -17,6 +17,8 @@
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsRenderState.h"
+#include "System/Renderer/RsSamplerState.h"
 
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
@@ -78,6 +80,29 @@ static GLenum gCompareMode[] =
 	GL_NOTEQUAL,
 	GL_GEQUAL,
 	GL_ALWAYS
+};
+
+static GLenum gBlendOp[] = 
+{
+	GL_FUNC_ADD,
+	GL_FUNC_SUBTRACT,
+	GL_FUNC_REVERSE_SUBTRACT,
+	GL_MIN,
+	GL_MAX,
+};
+
+static GLenum gBlendType[] = 
+{
+	GL_ZERO,
+	GL_ONE,
+	GL_SRC_COLOR,
+	GL_ONE_MINUS_SRC_COLOR,
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA,
+	GL_DST_COLOR,
+	GL_ONE_MINUS_DST_COLOR,
+	GL_DST_ALPHA,
+	GL_ONE_MINUS_DST_ALPHA,
 };
 
 static GLenum gStencilOp[] =
@@ -278,14 +303,11 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	IndexBuffer_( nullptr ),
 	VertexDeclaration_( nullptr )
 {
-	BcMemZero( &RenderStateValues_[ 0 ], sizeof( RenderStateValues_ ) );
 	BcMemZero( &TextureStateValues_[ 0 ], sizeof( TextureStateValues_ ) );
-	BcMemZero( &RenderStateBinds_[ 0 ], sizeof( RenderStateBinds_ ) );
 	BcMemZero( &TextureStateBinds_[ 0 ], sizeof( TextureStateBinds_ ) );
 	BcMemZero( &VertexBuffers_[ 0 ], sizeof( VertexBuffers_ ) );
 	BcMemZero( &UniformBuffers_[ 0 ], sizeof( UniformBuffers_ ) );
-
-	NoofRenderStateBinds_ = 0;
+	RenderState_ = nullptr;
 	NoofTextureStateBinds_ = 0;
 }
 
@@ -1328,25 +1350,6 @@ void RsContextGL::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	// Setup default render states.
-	setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE,			1,					BcTrue );
-	setRenderState( RsRenderStateType::DEPTH_TEST_ENABLE,			0,					BcTrue );
-	setRenderState( RsRenderStateType::DEPTH_TEST_COMPARE,			0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_WRITE_MASK,			0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_ENABLE,			0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_FUNC_COMPARE,	0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_FUNC_REF,		0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_FUNC_MASK,		0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_OP_SFAIL,		0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_OP_DPFAIL,		0,					BcTrue );
-	setRenderState( RsRenderStateType::STENCIL_TEST_OP_DPPASS,		0,					BcTrue );
-	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_0,			15,					BcTrue );
-	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_1,			0,					BcTrue );
-	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_2,			0,					BcTrue );
-	setRenderState( RsRenderStateType::COLOR_WRITE_MASK_3,			0,					BcTrue );
-	setRenderState( RsRenderStateType::BLEND_MODE,					0,					BcTrue );
-	setRenderState( RsRenderStateType::FILL_MODE,					0,					BcTrue );
-	
 	// Setup default texture states.
 	RsTextureParams TextureParams = 
 	{
@@ -1367,17 +1370,6 @@ void RsContextGL::setDefaultState()
 void RsContextGL::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	NoofRenderStateBinds_ = 0;
-	for( BcU32 Idx = 0; Idx < NOOF_RENDERSTATES; ++Idx )
-	{
-		TRenderStateValue& RenderStateValue = RenderStateValues_[ Idx ];
-
-		RenderStateValue.Dirty_ = BcTrue;
-		
-		BcAssert( NoofRenderStateBinds_ < NOOF_RENDERSTATES );
-		RenderStateBinds_[ NoofRenderStateBinds_++ ] = Idx;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1403,8 +1395,8 @@ void RsContextGL::invalidateTextureState()
 void RsContextGL::setRenderState( RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	// Do nothing. Yet.
-	BcBreakpoint;
+
+	RenderState_ = RenderState;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1412,23 +1404,6 @@ void RsContextGL::setRenderState( RsRenderState* RenderState )
 void RsContextGL::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	if( (BcU32)State < NOOF_RENDERSTATES )
-	{
-		TRenderStateValue& RenderStateValue = RenderStateValues_[ (BcU32)State ];
-		
-		const BcBool WasDirty = RenderStateValue.Dirty_;
-		
-		RenderStateValue.Dirty_ |= ( RenderStateValue.Value_ != Value ) || Force;
-		RenderStateValue.Value_ = Value;
-		
-		// If it wasn't dirty, we need to set it.
-		if( WasDirty == BcFalse && RenderStateValue.Dirty_ == BcTrue )
-		{
-			BcAssert( NoofRenderStateBinds_ < NOOF_RENDERSTATES );
-			RenderStateBinds_[ NoofRenderStateBinds_++ ] = (BcU32)State;
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1436,13 +1411,6 @@ void RsContextGL::setRenderState( RsRenderStateType State, BcS32 Value, BcBool F
 BcS32 RsContextGL::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	if( (BcU32)State < NOOF_RENDERSTATES )
-	{
-		const TRenderStateValue& RenderStateValue = RenderStateValues_[ (BcU32)State ];
-
-		return RenderStateValue.Value_;
-	}
 
 	return 0;
 }
@@ -1580,71 +1548,105 @@ void RsContextGL::flushState()
 	RsGLCatchError();
 	
 	// Bind render states.
-	for( BcU32 RenderStateIdx = 0; RenderStateIdx < NoofRenderStateBinds_; ++RenderStateIdx )
+	// TODO: Check for redundant state.
+	if( RenderState_ != nullptr )
 	{
-		BcU32 RenderStateID = RenderStateBinds_[ RenderStateIdx ];
-		TRenderStateValue& RenderStateValue = RenderStateValues_[ RenderStateID ];
-		
-		// Some states are dependant, and set in batches.
-		if( RenderStateValue.Dirty_ )
-		{
-			const BcS32 Value = RenderStateValue.Value_;
-		
-			switch( (RsRenderStateType)RenderStateID )
-			{
-				case RsRenderStateType::DEPTH_WRITE_ENABLE:
-					glDepthMask( (GLboolean)Value );
-					break;
-				case RsRenderStateType::DEPTH_TEST_ENABLE:
-					Value ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
-					break;
-				case RsRenderStateType::DEPTH_TEST_COMPARE:
-					glDepthFunc( gCompareMode[ Value ] );
-					break;
-				case RsRenderStateType::STENCIL_WRITE_MASK:
-					glStencilMask( Value );
-					break;
-				case RsRenderStateType::STENCIL_TEST_ENABLE:
-					Value ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
-					break;
-				case RsRenderStateType::STENCIL_TEST_FUNC_COMPARE:
-				case RsRenderStateType::STENCIL_TEST_FUNC_REF:
-				case RsRenderStateType::STENCIL_TEST_FUNC_MASK:
-					bindStencilFunc();
-					break;
-				case RsRenderStateType::STENCIL_TEST_OP_SFAIL:
-				case RsRenderStateType::STENCIL_TEST_OP_DPFAIL:
-				case RsRenderStateType::STENCIL_TEST_OP_DPPASS:
-					bindStencilOp();
-					break;
-				case RsRenderStateType::BLEND_MODE:
-					bindBlendMode( (RsBlendingMode)Value );
-					break;
-				case RsRenderStateType::COLOR_WRITE_MASK_0:
-				case RsRenderStateType::COLOR_WRITE_MASK_1:
-				case RsRenderStateType::COLOR_WRITE_MASK_2:
-				case RsRenderStateType::COLOR_WRITE_MASK_3:
-					glColorMaski( RenderStateID - (BcU32)RsRenderStateType::COLOR_WRITE_MASK_0, ( Value & 0x8 ) >> 3, ( Value & 0x4 ) >> 2,( Value & 0x2 ) >> 1, ( Value & 0x1 ) );
-					break;
+		const auto& Desc = RenderState_->getDesc();
 
-				case RsRenderStateType::FILL_MODE:
-					if( Version_.Type_ != RsOpenGLType::ES )
-					{
-						glPolygonMode( GL_FRONT_AND_BACK, (BcU32)RsFillMode::SOLID == Value ? GL_FILL : GL_LINE );
-					}
-					break;
-				
-				default:
-					BcBreakpoint;
+#if 0
+		for( BcU32 Idx = 0; Idx < 8; ++Idx )
+		{
+			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
+
+			if( MainRenderTarget.Enable_ )
+			{
+				glEnablei( GL_BLEND, Idx );
 			}
-			
+			else
+			{
+				glDisablei( GL_BLEND, Idx );		
+			}
+
+			glBlendEquationSeparatei( 
+				Idx, 
+				gBlendOp[ (BcU32)RenderTarget.BlendOp_ ], gBlendOp[ (BcU32)RenderTarget.BlendOpAlpha_ ] );
 			RsGLCatchError();
 
-			// No longer dirty.
-			RenderStateValue.Dirty_ = BcFalse;
+			glBlendFuncSeparatei( 
+				Idx, 
+				gBlendType[ (BcU32)RenderTarget.SrcBlend_ ], gBlendType[ (BcU32)RenderTarget.DestBlend_ ],
+				gBlendType[ (BcU32)RenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)RenderTarget.DestBlendAlpha_ ] );
+			RsGLCatchError();
+
+			glColorMaski(
+				Idx,
+				RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+				RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+				RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+				RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+			RsGLCatchError();
 		}
+#else
+		const auto& MainRenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
+
+		MainRenderTarget.Enable_ ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
+
+		glBlendEquationSeparate( 
+			gBlendOp[ (BcU32)MainRenderTarget.BlendOp_ ], gBlendOp[ (BcU32)MainRenderTarget.BlendOpAlpha_ ] );
+
+		glBlendFuncSeparate( 
+			gBlendType[ (BcU32)MainRenderTarget.SrcBlend_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlend_ ],
+			gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] );
+
+		for( BcU32 Idx = 0; Idx < 8; ++Idx )
+		{
+			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
+			glColorMaski(
+				Idx,
+				RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+				RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+				RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+				RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+			RsGLCatchError();
+		}
+
+		const auto& DepthStencilState = Desc.DepthStencilState_;
+
+
+		DepthStencilState.DepthTestEnable_ ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
+		glDepthMask( (GLboolean)DepthStencilState.DepthWriteEnable_ );
+		glDepthFunc( gCompareMode[ (BcU32)DepthStencilState.DepthFunc_ ] );
+
+		DepthStencilState.StencilEnable_ ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
+
+		glStencilFuncSeparate( 
+			GL_FRONT,
+			gCompareMode[ (BcU32)DepthStencilState.StencilFront_.Func_ ], 
+			DepthStencilState.StencilFront_.Ref_, DepthStencilState.StencilFront_.Mask_ );
+
+		glStencilFuncSeparate( 
+			GL_BACK,
+			gCompareMode[ (BcU32)DepthStencilState.StencilBack_.Func_ ], 
+			DepthStencilState.StencilBack_.Ref_, DepthStencilState.StencilBack_.Mask_ );
+
+		glStencilOpSeparate( 
+			GL_FRONT,
+			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Fail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.DepthFail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Pass_ ] );
+
+		glStencilOpSeparate( 
+			GL_BACK,
+			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Fail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.DepthFail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Pass_ ] );
+
+		const auto& RasteriserState = Desc.RasteriserState_;
+
+		glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
+#endif
 	}
-	
+
 	// Bind texture states.
 	for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )
 	{
@@ -1677,7 +1679,6 @@ void RsContextGL::flushState()
 	}
 	
 	// Reset binds.
-	NoofRenderStateBinds_ = 0;
 	NoofTextureStateBinds_ = 0;
 
 	RsGLCatchError();
@@ -1780,6 +1781,7 @@ void RsContextGL::clear( const RsColour& Colour )
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	glClearDepth( 1.0f );
 	glClearStencil( 0 );
+	glDepthMask( GL_TRUE );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
 	RsGLCatchError();
 }
@@ -1824,6 +1826,7 @@ const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
 // bindStencilFunc
 void RsContextGL::bindStencilFunc()
 {
+	/*
 	TRenderStateValue& CompareValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_COMPARE ];
 	TRenderStateValue& RefValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_REF ];
 	TRenderStateValue& MaskValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_MASK ];
@@ -1835,16 +1838,19 @@ void RsContextGL::bindStencilFunc()
 	MaskValue.Dirty_ = BcFalse;
 
 	RsGLCatchError();
+	*/
 }
 
 //////////////////////////////////////////////////////////////////////////
 // bindStencilOp
 void RsContextGL::bindStencilOp()
 {
+	/*
 	TRenderStateValue& SFailValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_SFAIL ];
 	TRenderStateValue& DPFailValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPFAIL ];
 	TRenderStateValue& DPPassValue = RenderStateValues_[ (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPPASS ];
 
+	glStencilFunc( gCompareMode[ CompareValue.Value_ ], RefValue.Value_, MaskValue.Value_ );
 	glStencilOp( gStencilOp[ SFailValue.Value_ ], gStencilOp[ DPFailValue.Value_ ], gStencilOp[ DPPassValue.Value_ ] );
 
 	SFailValue.Dirty_ = BcFalse;
@@ -1852,13 +1858,14 @@ void RsContextGL::bindStencilOp()
 	DPPassValue.Dirty_ = BcFalse;
 
 	RsGLCatchError();
+	*/
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // bindBlendMode
 void RsContextGL::bindBlendMode( RsBlendingMode BlendMode )
 {
+	/*
 	switch( BlendMode )
 	{
 		case RsBlendingMode::NONE:
@@ -1890,6 +1897,7 @@ void RsContextGL::bindBlendMode( RsBlendingMode BlendMode )
 	}
 
 	RsGLCatchError();
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////

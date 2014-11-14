@@ -193,6 +193,7 @@ private:
 
 	std::atomic< BcU32 > GotErrorBuilding_;
 	std::atomic< BcU32 > PendingPermutations_;
+	std::string IntermediatePath_;
 };
 
 #endif // __SCNSHADERIMPORT_H__

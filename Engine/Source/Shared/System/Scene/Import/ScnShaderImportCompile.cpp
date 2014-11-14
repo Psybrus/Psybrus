@@ -141,9 +141,9 @@ BcBool ScnShaderImport::compileShader(
 
 	// Generate some unique ids.
 	BcU32 ShaderCompileId = ++ShaderCompileId_;
-	std::string BytecodeFilename = getIntermediatePath() + 
+	std::string BytecodeFilename = IntermediatePath_ + 
 		boost::str( boost::format( "/built_shader_%1%.bytecode" ) % ShaderCompileId );
-	std::string LogFilename = getIntermediatePath() + 
+	std::string LogFilename = IntermediatePath_ + 
 		boost::str( boost::format( "/built_shader_%1%.bytecode" ) % ShaderCompileId );
 
 	std::string CommandLine = std::string( "wine " ) + PsybrusSDKRoot + "/Tools/ShaderCompiler/ShaderCompiler.exe";

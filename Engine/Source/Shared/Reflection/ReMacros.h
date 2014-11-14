@@ -81,6 +81,15 @@
 	_Type( ReNoInit ){};
 
 /**
+ * @brief Declare basic type.
+ * 
+ * Used for POD types that don't want a v-table.
+ * Should be put in the header inside the class definition.
+ */
+#define REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( _Type )							\
+	__REFLECTION_DECLARE_BASIC( _Type )	
+
+/**
  * @brief Declare basic type, no autoreg.
  * 
  * Used for POD types that don't want a v-table.

@@ -17,6 +17,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsRenderState.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialImport
@@ -40,9 +41,7 @@ public:
 private:
 	CsCrossRefId Shader_;
 	std::map< std::string, CsCrossRefId > Textures_;
-	std::map< RsRenderStateType, std::string > State_;
-
-	std::array< BcU32, (BcU32)RsRenderStateType::MAX > DefaultState_;
+	RsRenderStateDesc RenderState_;
 };
 
 #endif

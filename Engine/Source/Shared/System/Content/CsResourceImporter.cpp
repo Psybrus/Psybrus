@@ -277,5 +277,5 @@ void CsResourceImporter::addDependency(
 // addDependency
 std::string CsResourceImporter::getIntermediatePath()
 {
-	return *CsCore::pImpl()->getPackageIntermediatePath( Importer_->getName() );
+	return *CsCore::pImpl()->getIntermediatePath( *Importer_->getName() );
 }

@@ -257,6 +257,9 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	ScnShaderPermutation Permutation;
 	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
 
+	// Cache intermediate path.
+	IntermediatePath_ = getIntermediatePath();
+
 	// Add code type defines.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderCodeType::MAX; ++Idx )
 	{

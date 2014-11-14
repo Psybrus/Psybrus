@@ -54,14 +54,14 @@ void RsCore::StaticRegisterClass()
 	{
 		new ReEnumConstant( "ZERO", (BcU32)RsBlendType::ZERO ),
 		new ReEnumConstant( "ONE", (BcU32)RsBlendType::ONE ),
-		new ReEnumConstant( "SRC_COLOUR", (BcU32)RsBlendType::SRC_COLOUR ),
-		new ReEnumConstant( "INV_SRC_COLOUR", (BcU32)RsBlendType::INV_SRC_COLOUR ),
-		new ReEnumConstant( "SRC_ALPHA", (BcU32)RsBlendType::SRC_ALPHA ),
-		new ReEnumConstant( "INV_SRC_ALPHA", (BcU32)RsBlendType::INV_SRC_ALPHA ),
-		new ReEnumConstant( "DEST_COLOUR", (BcU32)RsBlendType::DEST_COLOUR ),
-		new ReEnumConstant( "INV_DEST_COLOUR", (BcU32)RsBlendType::INV_DEST_COLOUR ),
-		new ReEnumConstant( "DEST_ALPHA", (BcU32)RsBlendType::DEST_ALPHA ),
-		new ReEnumConstant( "INV_DEST_ALPHA", (BcU32)RsBlendType::INV_DEST_ALPHA ),
+		new ReEnumConstant( "SRCCOLOUR", (BcU32)RsBlendType::SRC_COLOUR ),
+		new ReEnumConstant( "INVSRCCOLOUR", (BcU32)RsBlendType::INV_SRC_COLOUR ),
+		new ReEnumConstant( "SRCALPHA", (BcU32)RsBlendType::SRC_ALPHA ),
+		new ReEnumConstant( "INVSRCALPHA", (BcU32)RsBlendType::INV_SRC_ALPHA ),
+		new ReEnumConstant( "DESTCOLOUR", (BcU32)RsBlendType::DEST_COLOUR ),
+		new ReEnumConstant( "INVDESTCOLOUR", (BcU32)RsBlendType::INV_DEST_COLOUR ),
+		new ReEnumConstant( "DESTALPHA", (BcU32)RsBlendType::DEST_ALPHA ),
+		new ReEnumConstant( "INVDESTALPHA", (BcU32)RsBlendType::INV_DEST_ALPHA ),
 		new ReEnumConstant( "INVALID", (BcU32)RsBlendType::INVALID ),
 	};
 	ReRegisterEnum< RsBlendType >( RsBlendTypeEnumConstants );
@@ -70,7 +70,7 @@ void RsCore::StaticRegisterClass()
 	{
 		new ReEnumConstant( "ADD", (BcU32)RsBlendOp::ADD ),
 		new ReEnumConstant( "SUBTRACT", (BcU32)RsBlendOp::SUBTRACT ),
-		new ReEnumConstant( "REV_SUBTRACT", (BcU32)RsBlendOp::REV_SUBTRACT ),
+		new ReEnumConstant( "REVSUBTRACT", (BcU32)RsBlendOp::REV_SUBTRACT ),
 		new ReEnumConstant( "MINIMUM", (BcU32)RsBlendOp::MINIMUM ),
 		new ReEnumConstant( "MAXIMUM", (BcU32)RsBlendOp::MAXIMUM ),
 		new ReEnumConstant( "INVALID", (BcU32)RsBlendOp::INVALID ),

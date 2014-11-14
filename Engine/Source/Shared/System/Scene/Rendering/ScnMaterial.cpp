@@ -32,7 +32,8 @@ void ScnMaterial::StaticRegisterClass()
 		new ReField( "pHeader_", &ScnMaterial::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "Shader_", &ScnMaterial::Shader_ ),
 		new ReField( "TextureMap_", &ScnMaterial::TextureMap_ ),
-		new ReField( "pStateBuffer_", &ScnMaterial::pStateBuffer_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "RenderStateDesc_", &ScnMaterial::RenderStateDesc_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "RenderState_", &ScnMaterial::RenderState_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnMaterial, Super >( Fields );
@@ -50,8 +51,8 @@ void ScnMaterial::StaticRegisterClass()
 //virtual
 void ScnMaterial::initialise()
 {
-	pHeader_ = NULL;
-	pStateBuffer_ = NULL;
+	pHeader_ = nullptr;
+	RenderState_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,6 +70,9 @@ void ScnMaterial::create()
 		TextureMap_[ pTextureHeader->SamplerName_ ] = getPackage()->getCrossRefResource( pTextureHeader->TextureRef_ );
 	}
 	
+	// Create render state.
+	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_ );
+
 	// Mark as ready.
 	markReady();
 }
@@ -78,7 +82,8 @@ void ScnMaterial::create()
 //virtual
 void ScnMaterial::destroy()
 {
-	
+	RsCore::pImpl()->destroyResource( RenderState_ );
+	RenderState_ = nullptr;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,9 +127,9 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 		requestChunk( ++ChunkIdx );
 	}
-	else if( ChunkID == BcHash( "stateblock" ) )
+	else if( ChunkID == BcHash( "renderstate" ) )
 	{
-		pStateBuffer_ = (BcU32*)pData;
+		RenderStateDesc_ = (const RsRenderStateDesc*)pData;
 
 		markCreate(); // All data loaded, time to create.
 	}
@@ -143,7 +148,6 @@ void ScnMaterialComponent::StaticRegisterClass()
 		{
 			new ReField( "Parent_", &ScnMaterialComponent::Parent_, bcRFF_SHALLOW_COPY ),
 			new ReField( "pProgram_", &ScnMaterialComponent::pProgram_, bcRFF_SHALLOW_COPY ),
-			new ReField( "StateBuffer_", &ScnMaterialComponent::StateBuffer_ ),
 			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_ ),
 			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_ ),
 			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_ ),
@@ -189,10 +193,6 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags_ );
 	
-	// Allocate state buffer and copy defaults in.
-	StateBuffer_.resize( (BcU32)RsRenderStateType::MAX );
-	BcMemCopy( &StateBuffer_[ 0 ], Parent->pStateBuffer_, sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
-
 	// Build a binding list for textures.
 	ScnTextureMap& TextureMap( Parent->TextureMap_ );
 	for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
@@ -355,16 +355,6 @@ void ScnMaterialComponent::setObjectUniformBlock( RsBuffer* UniformBuffer )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setState
-void ScnMaterialComponent::setState( RsRenderStateType State, BcU32 Value )
-{
-	if( State < RsRenderStateType::MAX )
-	{
-		StateBuffer_[ (BcU32)State ] = Value;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getTexture
 ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Idx )
 {
@@ -403,13 +393,7 @@ public:
 			pContext_->setSamplerState( TextureHandles_[ Idx ], TextureParams );
 			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
 		}
-
-		// Setup states.
-		for( BcU32 Idx = 0; Idx < (BcU32)RsRenderStateType::MAX; ++Idx )
-		{
-			pContext_->setRenderState( (RsRenderStateType)Idx, pStateBuffer_[ Idx ], BcFalse );
-		}
-	
+		
 		// Set uniform blocks.
 		for( BcU32 Idx = 0; Idx < NoofUniformBlocks_; ++Idx )
 		{
@@ -418,6 +402,9 @@ public:
 			pContext_->setUniformBuffer( Index, pUniformBuffer );
 		}
 
+		// Setup state.
+		pContext_->setRenderState( RenderState_ );
+
 		// Set program.
 		pContext_->setProgram( pProgram_ );
 
@@ -425,21 +412,22 @@ public:
 		pUpdateFence_->decrement();
 	}
 	
-	RsProgram* pProgram_;
-
 	// Texture binding block.
 	BcU32 NoofTextures_;
 	BcU32* TextureHandles_;
 	RsTexture** ppTextures_;
 	RsTextureParams* pTextureParams_;
 
-	// State buffer.
-	BcU32* pStateBuffer_;
-
 	// Uniform blocks.
 	BcU32 NoofUniformBlocks_;
 	BcU32* pUniformBlockIndices_;
 	RsBuffer** ppUniformBuffers_;
+
+	// State.
+	RsRenderState* RenderState_;
+
+	// Program.
+	RsProgram* pProgram_;
 	
 	// Update fence (for marking when in use/not)
 	// TODO: Make this a generic feature of the component system?
@@ -456,17 +444,14 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup sort value with material specifics.
 	//ScnMaterial* pMaterial_ = Parent_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
-	Sort.Blend_ = StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
+	Sort.Blend_ = 0; //StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
 	
 	// Allocate a render node.
 	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
 	
 	// Debugging.
 	pRenderNode->pParent_ = this;
-	
-	// Setup program and state.
-	pRenderNode->pProgram_ = pProgram_;
-	
+		
 	// Setup texture binding block.
 	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
 	pRenderNode->TextureHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * pRenderNode->NoofTextures_ );
@@ -511,9 +496,11 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	}
 	
 	// Setup state buffer.
-	pRenderNode->pStateBuffer_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
-	BcMemCopy( pRenderNode->pStateBuffer_, &StateBuffer_[ 0 ], sizeof( BcU32 ) * (BcU32)RsRenderStateType::MAX );
+	pRenderNode->RenderState_ = Parent_->RenderState_;
 	
+	// Setup program.
+	pRenderNode->pProgram_ = pProgram_;
+
 	// Update fence.
 	pRenderNode->pUpdateFence_ = &UpdateFence_;
 	UpdateFence_.increment();

@@ -257,6 +257,8 @@ RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType )
 		return RsShaderBackendType::GLSL;
 	case RsShaderCodeType::GLSL_440:
 		return RsShaderBackendType::GLSL;
+	case RsShaderCodeType::GLSL_450:
+		return RsShaderBackendType::GLSL;
 	case RsShaderCodeType::GLSL_ES_100:
 		return RsShaderBackendType::GLSL_ES;
 	case RsShaderCodeType::GLSL_ES_300:
@@ -310,6 +312,9 @@ std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType )
 		break;
 	case RsShaderCodeType::GLSL_440:
 		RetVal = "GLSL_440";
+		break;
+	case RsShaderCodeType::GLSL_450:
+		RetVal = "GLSL_450";
 		break;
 	case RsShaderCodeType::GLSL_ES_100:
 		RetVal = "GLSL_ES_100";

@@ -70,8 +70,9 @@ private:
 	ScnShaderRef						Shader_;
 	ScnTextureMap						TextureMap_;
 
-	// TODO: Should be handled by the state block.
-	BcU32*								pStateBuffer_;
+	const RsRenderStateDesc*			RenderStateDesc_;
+	RsRenderState*						RenderState_;
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,9 +97,6 @@ public:
 	void								setViewUniformBlock( RsBuffer* UniformBuffer );
 	void								setBoneUniformBlock( RsBuffer* UniformBuffer );
 	void								setObjectUniformBlock( RsBuffer* UniformBuffer );
-
-
-	void								setState( RsRenderStateType State, BcU32 Value );
 	
 	ScnTextureRef						getTexture( BcU32 Idx );
 	ScnMaterialRef						getMaterial();
@@ -146,7 +144,7 @@ private:
 	TTextureBindingList					TextureBindingList_;
 	TUniformBlockBindingList			UniformBlockBindingList_;
 	
-	std::vector< BcU32 >				StateBuffer_;
+	RsRenderState*						RenderState_;
 
 	// Common scene parameters.
 	BcU32								ViewUniformBlockIndex_;

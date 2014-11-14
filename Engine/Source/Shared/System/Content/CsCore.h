@@ -166,6 +166,11 @@ public:
 	 */
 	BcPath								getPackagePackedPath( const BcName& Package );
 
+	/**
+	 * Get intermediate path.
+	 */
+	BcPath								getIntermediatePath( const std::string& SubFolder );
+
 protected:
 	friend class CsResource;
 

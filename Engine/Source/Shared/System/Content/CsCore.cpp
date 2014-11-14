@@ -364,6 +364,16 @@ BcPath CsCore::getPackagePackedPath( const BcName& Package )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getIntermediatePath
+BcPath CsCore::getIntermediatePath( const std::string& SubFolder )
+{
+	BcPath Path;
+	Path.join( "IntermediateContent", SubFolder + ".pak" );
+	boost::filesystem::create_directories( *Path );
+	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // processCreateResources
 void CsCore::processCreateResources()
 {
