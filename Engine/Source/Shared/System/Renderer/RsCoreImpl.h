@@ -37,20 +37,17 @@ public:
 	
 public:
 	void open();
-	void open_threaded();
 	void update();
-	void update_threaded();
 	void close();
-	void close_threaded();
 	
 public:
 	RsContext* getContext( OsClient* pClient );
 	void destroyContext( OsClient* pClient );
 
-	RsRenderState* createRenderState( 
+	RsRenderStateUPtr createRenderState( 
 		const RsRenderStateDesc& Desc );
 
-	RsSamplerState* createSamplerState( 
+	RsSamplerStateUPtr createSamplerState( 
 		const RsSamplerStateDesc& Desc );
 
 	RsTexture* createTexture( 
@@ -147,7 +144,6 @@ private:
 		RsProgram* Program );
 
 private:
-
 	void createResource( RsResource* pResource );
 
 public:

@@ -21,8 +21,9 @@
 // RsSamplerStateDesc
 struct RsSamplerStateDesc
 {
-	REFLECTION_DECLARE_BASIC( RsSamplerStateDesc );
+	REFLECTION_DECLARE_BASIC_MANUAL_NOINIT( RsSamplerStateDesc );
 
+	RsSamplerStateDesc( ReNoInit );
 	RsSamplerStateDesc();
 
 	RsTextureSamplingMode AddressU_;

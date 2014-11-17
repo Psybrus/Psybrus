@@ -41,6 +41,30 @@ class RsFrame;
 class RsRenderTarget;
 
 //////////////////////////////////////////////////////////////////////////
+// Resource deletion.
+class RsResourceDeleters
+{
+public:
+	void operator()( class RsContext* Resource );
+	void operator()( class RsRenderState* Resource );
+	void operator()( class RsSamplerState* Resource );
+	void operator()( class RsBuffer* Resource );
+	void operator()( class RsTexture* Resource );
+	void operator()( class RsVertexDeclaration* Resource );
+	void operator()( class RsShader* Resource );
+	void operator()( class RsProgram* Resource );
+};
+
+typedef std::unique_ptr< class RsContext, RsResourceDeleters > RsContextUPtr;
+typedef std::unique_ptr< class RsRenderState, RsResourceDeleters > RsRenderStateUPtr;
+typedef std::unique_ptr< class RsSamplerState, RsResourceDeleters > RsSamplerStateUPtr;
+typedef std::unique_ptr< class RsBuffer, RsResourceDeleters > RsBufferUPtr;
+typedef std::unique_ptr< class RsTexture, RsResourceDeleters > RsTextureUPtr;
+typedef std::unique_ptr< class RsVertexDeclaration, RsResourceDeleters > RsVertexDeclarationUPtr;
+typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;
+typedef std::unique_ptr< class RsProgram, RsResourceDeleters > RsProgramUPtr;
+
+//////////////////////////////////////////////////////////////////////////
 /**	\class RsCore
 *	\brief Render System Core 
 *
@@ -82,14 +106,14 @@ public:
 	 *	Create a render state.
 	 *	@param Desc descriptor.
 	 */
-	virtual RsRenderState* createRenderState( 
+	virtual RsRenderStateUPtr createRenderState( 
 		const RsRenderStateDesc& Desc ) = 0;
 
 	/**
 	 *	Create a sampler state.
 	 *	@param Desc descriptor.
 	 */
-	virtual RsSamplerState* createSamplerState( 
+	virtual RsSamplerStateUPtr createSamplerState( 
 		const RsSamplerStateDesc& Desc ) = 0;
 
 	/**

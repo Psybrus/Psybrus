@@ -82,8 +82,7 @@ void ScnMaterial::create()
 //virtual
 void ScnMaterial::destroy()
 {
-	RsCore::pImpl()->destroyResource( RenderState_ );
-	RenderState_ = nullptr;	
+	RenderState_.reset();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -496,7 +495,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	}
 	
 	// Setup state buffer.
-	pRenderNode->RenderState_ = Parent_->RenderState_;
+	pRenderNode->RenderState_ = Parent_->RenderState_.get();
 	
 	// Setup program.
 	pRenderNode->pProgram_ = pProgram_;

@@ -71,7 +71,7 @@ private:
 	ScnTextureMap						TextureMap_;
 
 	const RsRenderStateDesc*			RenderStateDesc_;
-	RsRenderState*						RenderState_;
+	RsRenderStateUPtr					RenderState_;
 
 };
 

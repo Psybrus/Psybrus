@@ -64,27 +64,26 @@ RsCoreImpl::~RsCoreImpl()
 void RsCoreImpl::open()
 {
 	BcAssert( BcIsGameThread() );
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::open_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-}
 
-//////////////////////////////////////////////////////////////////////////
-// open_threaded
-void RsCoreImpl::open_threaded()
-{
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ this ]
+		{
 #if PLATFORM_OSX
-	// Do the context switch.
-	OsViewOSX_Interface::MakeContextCurrent();
+			// Do the context switch.
+			OsViewOSX_Interface::MakeContextCurrent();
 #endif
 
-	// Make default context current and setup defaults.
-	RsContext* pContext = ContextMap_[ NULL ];
-	if( pContext != NULL )
-	{
-		//
-		pContext->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1, BcTrue );
-	}
+			// Make default context current and setup defaults.
+			RsContext* pContext = ContextMap_[ NULL ];
+			if( pContext != NULL )
+			{
+				//
+				pContext->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1, BcTrue );
+			}
+		} );
+
+	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,23 +92,20 @@ void RsCoreImpl::open_threaded()
 void RsCoreImpl::update()
 {
 	BcAssert( BcIsGameThread() );
+
 	// Increment fence so we know how far we're getting ahead of ourselves.
 	RenderSyncFence_.increment();
 
-	// Queue update job.
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::update_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ this ]
+		{
+			// Decrement when we've done our update.
+			RenderSyncFence_.decrement();
+		} );
 
 	// Wait for frames if we fall more than 1 update cycle behind.
 	RenderSyncFence_.wait( 1 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update_threaded
-void RsCoreImpl::update_threaded()
-{
-	// Decrement when we've done our update.
-	RenderSyncFence_.decrement();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,18 +114,17 @@ void RsCoreImpl::update_threaded()
 void RsCoreImpl::close()
 {
 	BcAssert( BcIsGameThread() );
-	BcDelegate< void(*)() > Delegate( BcDelegate< void(*)() >::bind< RsCoreImpl, &RsCoreImpl::close_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
+
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ this ]
+		{
+
+		} );
+
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 	destroyContext( nullptr );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// close_threaded
-void RsCoreImpl::close_threaded()
-{
-	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -202,8 +197,8 @@ void RsCoreImpl::destroyContext( OsClient* pClient )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createTexture
-RsRenderState* RsCoreImpl::createRenderState( 
+// createRenderState
+RsRenderStateUPtr RsCoreImpl::createRenderState( 
 	const RsRenderStateDesc& Desc )
 {
 	BcAssert( BcIsGameThread() );
@@ -219,10 +214,12 @@ RsRenderState* RsCoreImpl::createRenderState(
 		} );
 
 	// Return resource.
-	return pResource;
+	return RsRenderStateUPtr( pResource );
 }
 
-RsSamplerState* RsCoreImpl::createSamplerState( 
+//////////////////////////////////////////////////////////////////////////
+// createSamplerState
+RsSamplerStateUPtr RsCoreImpl::createSamplerState( 
 	const RsSamplerStateDesc& Desc )
 {
 	BcAssert( BcIsGameThread() );
@@ -238,7 +235,7 @@ RsSamplerState* RsCoreImpl::createSamplerState(
 		} );
 	
 	// Return resource.
-	return pResource;
+	return RsSamplerStateUPtr( pResource );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -254,9 +251,13 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 	typedef BcDelegate< bool(*)( RsTexture* ) > CreateDelegate;
 
 	// Call create on render thread.
-	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createTexture >( Context ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
-	
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createTexture( pResource );
+		} );
+
 	// Return resource.
 	return pResource;
 }
@@ -284,8 +285,12 @@ RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
 
 	// Call create on render thread.
-	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createBuffer >( Context ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createBuffer( pResource );
+		} );
 	
 	// Return resource.
 	return pResource;
@@ -302,8 +307,12 @@ RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData,
 	typedef BcDelegate< bool(*)( RsShader* ) > CreateDelegate;
 
 	// Call create on render thread.
-	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createShader >( Context ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createShader( pResource );
+		} );
 
 	return pResource;
 }
@@ -327,14 +336,18 @@ RsProgram* RsCoreImpl::createProgram(
 	typedef BcDelegate< bool(*)( RsProgram* ) > CreateDelegate;
 
 	// Call create on render thread.
-	CreateDelegate Delegate( CreateDelegate::bind< RsResourceInterface, &RsResourceInterface::createProgram >( Context ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, pResource );
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createProgram( pResource );
+		} );
 
 	return pResource;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroyResource
+// destroyResource21
 void RsCoreImpl::destroyResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
@@ -350,10 +363,12 @@ void RsCoreImpl::destroyResource( RsResource* pResource )
 	pResource->preDestroy();
 
 	// Call destroy and wait.
-	{
-		SysSystem::DestroyDelegate Delegate( SysSystem::DestroyDelegate::bind< SysResource, &SysResource::destroy >( pResource ) );
-		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
-	}
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID,
+		[ pResource ]()
+		{
+			pResource->destroy();
+		} );
 
 	// Now flush to ensure it's finished being destroyed.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );

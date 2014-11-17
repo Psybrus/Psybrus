@@ -34,6 +34,19 @@ void RsSamplerStateDesc::StaticRegisterClass()
 	ReRegisterClass< RsSamplerStateDesc >( Fields );
 }
 
+RsSamplerStateDesc::RsSamplerStateDesc( ReNoInit ):
+	AddressU_( RsTextureSamplingMode::WRAP ),
+	AddressV_( RsTextureSamplingMode::WRAP ),
+	AddressW_( RsTextureSamplingMode::WRAP ),
+	MipLODBias_( 0.0f ),
+	MaxAnisotropy_( 1 ),
+	BorderColour_( RsColour::BLACK ),
+	MinLOD_( -std::numeric_limits< BcF32 >::max() ),
+	MaxLOD_( std::numeric_limits< BcF32 >::max() )
+{
+
+}
+
 RsSamplerStateDesc::RsSamplerStateDesc():
 	AddressU_( RsTextureSamplingMode::WRAP ),
 	AddressV_( RsTextureSamplingMode::WRAP ),
