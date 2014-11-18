@@ -52,7 +52,6 @@ void ScnMaterial::StaticRegisterClass()
 void ScnMaterial::initialise()
 {
 	pHeader_ = nullptr;
-	RenderState_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,6 +72,15 @@ void ScnMaterial::create()
 	// Create render state.
 	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_ );
 
+	// Create sampler states.
+	SamplerStates_.reserve( pHeader_->NoofTextures_ );
+	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
+	{
+		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
+		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_ );
+		SamplerStates_.emplace_back( std::move( SamplerState ) );
+	}
+
 	// Mark as ready.
 	markReady();
 }
@@ -83,6 +91,7 @@ void ScnMaterial::create()
 void ScnMaterial::destroy()
 {
 	RenderState_.reset();
+	SamplerStates_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -388,9 +397,17 @@ public:
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
-			RsTextureParams& TextureParams = pTextureParams_[ Idx ];
-			pContext_->setSamplerState( TextureHandles_[ Idx ], TextureParams );
 			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
+
+			// Temporary.
+			RsTextureParams DefaultTextureParams = 
+			{
+				pTexture->getDesc().Levels_ > 1 ? RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR : RsTextureFilteringMode::LINEAR,
+				RsTextureFilteringMode::LINEAR,
+				RsTextureSamplingMode::WRAP,
+				RsTextureSamplingMode::WRAP
+			};
+			pContext_->setSamplerState( TextureHandles_[ Idx ], DefaultTextureParams );
 		}
 		
 		// Set uniform blocks.
@@ -415,7 +432,7 @@ public:
 	BcU32 NoofTextures_;
 	BcU32* TextureHandles_;
 	RsTexture** ppTextures_;
-	RsTextureParams* pTextureParams_;
+	RsSamplerState** ppSamplerStates_;
 
 	// Uniform blocks.
 	BcU32 NoofUniformBlocks_;
@@ -455,32 +472,22 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
 	pRenderNode->TextureHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * pRenderNode->NoofTextures_ );
 	pRenderNode->ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * pRenderNode->NoofTextures_ );
-	pRenderNode->pTextureParams_ = (RsTextureParams*)pFrame->allocMem( sizeof( RsTextureParams ) * pRenderNode->NoofTextures_ );
+	pRenderNode->ppSamplerStates_ = (RsSamplerState**)pFrame->allocMem( sizeof( RsSamplerState* ) * pRenderNode->NoofTextures_ );
 	
 	for( BcU32 Idx = 0; Idx < pRenderNode->NoofTextures_; ++Idx )
 	{
 		auto& Binding = TextureBindingList_[ Idx ];
 		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
-		RsTextureParams& TextureParams = pRenderNode->pTextureParams_[ Idx ];
+		RsSamplerState*& SamplerState = pRenderNode->ppSamplerStates_[ Idx ];
 		
 		// Sampler handles.
 		pRenderNode->TextureHandles_[ Idx ] = Binding.Handle_;
 
 		// Set texture to bind.
 		Texture = Binding.Texture_->getTexture();
-		
-		// Default texture parameters.
-		// TODO: Pull these from the material.
-		RsTextureParams DefaultTextureParams = 
-		{
-			Texture->getDesc().Levels_ > 1 ? RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR : RsTextureFilteringMode::LINEAR,
-			RsTextureFilteringMode::LINEAR,
-			RsTextureSamplingMode::WRAP,
-			RsTextureSamplingMode::WRAP
-		};
 
-		// Set texture params.
-		TextureParams = DefaultTextureParams;
+		// Set sampler state.
+		SamplerState = Parent_->SamplerStates_[ Idx ].get();
 	}
 
 	// Setup uniform blocks.

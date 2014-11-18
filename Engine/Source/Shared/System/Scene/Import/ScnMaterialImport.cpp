@@ -31,6 +31,7 @@ void ScnMaterialImport::StaticRegisterClass()
 	{
 		new ReField( "Shader_", &ScnMaterialImport::Shader_, bcRFF_IMPORTER ),
 		new ReField( "Textures_", &ScnMaterialImport::Textures_, bcRFF_IMPORTER ),
+		new ReField( "Samplers_", &ScnMaterialImport::Samplers_, bcRFF_IMPORTER ),
 		new ReField( "RenderState_", &ScnMaterialImport::RenderState_, bcRFF_IMPORTER ),
 	};
 		
@@ -72,18 +73,30 @@ BcBool ScnMaterialImport::import(
 	
 	// Make header.
 	Header.ShaderRef_ = Shader_;
-	Header.NoofTextures_ = (BcU32)Textures_.size();	
+	Header.NoofTextures_ = (BcU32)Samplers_.size();	
 	HeaderStream << Header;
 
 	// Make texture headers.
-	for( const auto& Texture : Textures_ )
+	for( const auto& Sampler : Samplers_ )
 	{
 		TextureHeader.SamplerName_ = 
-			CsResourceImporter::addString( BcName::StripInvalidChars( Texture.first.c_str() ).c_str() );
-		TextureHeader.TextureRef_ = Texture.second;
+			CsResourceImporter::addString( BcName::StripInvalidChars( Sampler.first.c_str() ).c_str() );
+		TextureHeader.SamplerStateDesc_ = Sampler.second;
+
+		// See if we have a texture we can use.
+		auto FoundIt = Textures_.find( Sampler.first );
+		if( FoundIt != Textures_.end() )
+		{
+			TextureHeader.TextureRef_ = FoundIt->second;
+		}
+		else
+		{
+			TextureHeader.TextureRef_ = 0;
+		}
+
 		HeaderStream << TextureHeader;
 	}
-		
+	
 	// Add chunks.
 	CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 	CsResourceImporter::addChunk( BcHash( "renderstate" ), &RenderState_, sizeof( RenderState_ ) );

@@ -73,6 +73,8 @@ private:
 	const RsRenderStateDesc*			RenderStateDesc_;
 	RsRenderStateUPtr					RenderState_;
 
+	std::vector< RsSamplerStateUPtr >	SamplerStates_;
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,8 +146,6 @@ private:
 	TTextureBindingList					TextureBindingList_;
 	TUniformBlockBindingList			UniformBlockBindingList_;
 	
-	RsRenderState*						RenderState_;
-
 	// Common scene parameters.
 	BcU32								ViewUniformBlockIndex_;
 	BcU32								BoneUniformBlockIndex_;

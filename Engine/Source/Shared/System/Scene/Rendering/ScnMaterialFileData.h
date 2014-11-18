@@ -15,6 +15,7 @@
 #define __SCNMATERIALFILEDATA__
 
 #include "Base/BcTypes.h"
+#include "System/Renderer/RsSamplerState.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialHeader
@@ -29,6 +30,7 @@ struct ScnMaterialHeader
 struct ScnMaterialTextureHeader
 {
 	BcName							SamplerName_;
+	RsSamplerStateDesc				SamplerStateDesc_;
 	BcU32							TextureRef_;
 };
 
