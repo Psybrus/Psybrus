@@ -87,6 +87,7 @@ public:
 	void invalidateRenderState();
 	void invalidateTextureState();
 	void setRenderState( class RsRenderState* RenderState );
+	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
 	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
 	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setSamplerState( BcU32 Slot, const RsTextureParams& Params, BcBool Force = BcFalse );

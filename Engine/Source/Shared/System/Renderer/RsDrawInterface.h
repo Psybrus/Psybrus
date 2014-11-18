@@ -44,6 +44,11 @@ public:
 	virtual void setRenderState( RsRenderState* RenderState ) = 0;
 	
 	/**
+	 * Set sampler state.
+	 */
+	virtual void setSamplerState( BcU32 Slot, RsSamplerState* SamplerState ) = 0;
+
+	/**
 	 * Set render state.
 	 */
 	virtual void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse ) = 0;

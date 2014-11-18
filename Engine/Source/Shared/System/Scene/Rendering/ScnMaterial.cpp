@@ -397,7 +397,9 @@ public:
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
+			RsSamplerState* pSamplerState = ppSamplerStates_[ Idx ];
 			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
+			pContext_->setSamplerState( TextureHandles_[ Idx ], pSamplerState );
 
 			// Temporary.
 			RsTextureParams DefaultTextureParams = 

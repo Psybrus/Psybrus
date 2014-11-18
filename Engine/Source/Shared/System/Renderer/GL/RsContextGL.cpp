@@ -405,6 +405,13 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+	case RsShaderCodeType::GLSL_ES_100:
+		if( Version_.Major_ >= 2 &&
+			//Version_.Minor_ >= 0 &&
+			Version_.Type_ == RsOpenGLType::ES )
+		{
+			return BcTrue;
+		}
 	default:
 		break;
 	}
@@ -642,20 +649,25 @@ void RsContextGL::create()
 	if( GLEW_ARB_debug_output )
 	{
 		glDebugMessageCallbackARB( debugOutput, nullptr );
+		glGetError();
 	}
 #endif
+
+	glGetError();
+	RsGLCatchError();
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
 
 	// Create + bind global VAO.
-	BcAssert( glGenVertexArrays != nullptr );
-	BcAssert( glBindVertexArray != nullptr );
-	glGenVertexArrays( 1, &GlobalVAO_ );
-	glBindVertexArray( GlobalVAO_ );
-
-	//
-	RsGLCatchError();
+	if( Version_.Major_ >= 3 )
+	{
+		BcAssert( glGenVertexArrays != nullptr );
+		BcAssert( glBindVertexArray != nullptr );
+		glGenVertexArrays( 1, &GlobalVAO_ );
+		glBindVertexArray( GlobalVAO_ );
+		RsGLCatchError();
+	}
 
 	// Set default state.
 	setDefaultState();
@@ -1400,6 +1412,14 @@ void RsContextGL::setRenderState( RsRenderState* RenderState )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setSamplerState
+void RsContextGL::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setRenderState
 void RsContextGL::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
@@ -1806,7 +1826,6 @@ void RsContextGL::clear( const RsColour& Colour )
 	glClearStencil( 0 );
 	glDepthMask( GL_TRUE );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
-	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////

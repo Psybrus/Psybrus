@@ -603,6 +603,15 @@ void RsContextD3D11::setRenderState( RsRenderState* RenderState )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setSamplerState
+void RsContextD3D11::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	// Do nothing. Yet.
+	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setRenderState
 void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
