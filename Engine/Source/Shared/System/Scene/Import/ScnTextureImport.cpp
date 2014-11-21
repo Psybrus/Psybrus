@@ -351,6 +351,31 @@ BcBool ScnTextureImport::import(
 				}
 			}
 
+#if 0
+			static ImgColour MipLevelColours[] =
+			{
+				{ 0,     0, 255, 255 },
+				{ 0,   255,   0, 255 },
+				{ 255, 255,   0, 255 },
+				{ 255, 128,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+				{ 255,   0,   0, 255 },
+			};
+
+			// Mip map debugging.
+			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
+			{
+				MipImages[ Idx ]->clear( MipLevelColours[ Idx ] );
+			}
+#endif
+			
 			// Encode the image as a format.
 			BcU8* pEncodedImageData = NULL;
 			BcU32 EncodedImageDataSize = 0;
