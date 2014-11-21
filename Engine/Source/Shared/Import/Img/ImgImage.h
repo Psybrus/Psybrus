@@ -64,6 +64,11 @@ public:
 	const ImgColour&		getPixel( BcU32 X, BcU32 Y ) const;
 
 	/**
+	 * Clear.
+	 */
+	void					clear( const ImgColour& Colour );
+
+	/**
 	 * Blit.
 	 */
 	void					blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& DstRect );

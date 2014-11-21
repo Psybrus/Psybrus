@@ -105,6 +105,19 @@ const ImgColour& ImgImage::getPixel( BcU32 X, BcU32 Y ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// clear
+void ImgImage::clear( const ImgColour& Colour )
+{
+	for( BcU32 i = 0; i < Width_; ++i )
+	{
+		for( BcU32 j = 0; j < Height_; ++j )
+		{
+			setPixel( i, j, Colour );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // blit
 void ImgImage::blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& DstRect )
 {
