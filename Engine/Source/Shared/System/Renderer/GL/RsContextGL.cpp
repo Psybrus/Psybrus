@@ -1718,19 +1718,28 @@ void RsContextGL::flushState()
 
 			if( pTexture != nullptr && SamplerState != nullptr )
 			{
-				const auto& SamplerStateDesc = SamplerState->getDesc();
-
-				// TODO MipLODBias_
-				// TODO MaxAnisotropy_
-				// TODO BorderColour_
-				// TODO MinLOD_
-				// TODO MaxLOD_
-				glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] );
-				glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] );
-				glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
-				glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
-				glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
-				RsGLCatchError();
+				// GL3.3+ sampler state.
+				if( Version_.Type_ == RsOpenGLType::CORE &&
+					Version_ .getCombinedVersion() >= 0x00030003 )
+				{
+					GLuint SamplerObject = SamplerState->getHandle< GLuint >();
+					glBindSampler( TextureStateIdx, SamplerObject );
+				}
+				else
+				{
+					// TODO MipLODBias_
+					// TODO MaxAnisotropy_
+					// TODO BorderColour_
+					// TODO MinLOD_
+					// TODO MaxLOD_
+					const auto& SamplerStateDesc = SamplerState->getDesc();
+					glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] );
+					glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] );
+					glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
+					glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
+					glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
+					RsGLCatchError();
+				}
 			}
 
 			TextureStateValue.Dirty_ = BcFalse;
