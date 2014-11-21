@@ -78,8 +78,7 @@ void RsCoreImpl::open()
 			RsContext* pContext = ContextMap_[ NULL ];
 			if( pContext != NULL )
 			{
-				//
-				pContext->setRenderState( RsRenderStateType::DEPTH_WRITE_ENABLE, 1, BcTrue );
+
 			}
 		} );
 

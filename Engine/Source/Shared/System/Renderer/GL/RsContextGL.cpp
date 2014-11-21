@@ -813,6 +813,30 @@ bool RsContextGL::createSamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	// GL3.3 minimum
+	if( Version_.Type_ == RsOpenGLType::CORE &&
+		Version_ .getCombinedVersion() >= 0x00030003 )
+	{
+		GLuint SamplerObject = -1;
+		glGenSamplers( 1, &SamplerObject );
+		RsGLCatchError();
+
+		// Setup sampler parmeters.
+		const auto& SamplerStateDesc = SamplerState->getDesc();
+
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] );
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] );
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
+		RsGLCatchError();
+
+		// Set handle.
+		SamplerState->setHandle< GLuint >( SamplerObject );
+		return SamplerObject != -1;
+	}
+
 	return true;
 }
 
@@ -822,6 +846,15 @@ bool RsContextGL::destroySamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	// GL3.3 minimum
+	if( Version_.Type_ == RsOpenGLType::CORE &&
+		Version_ .getCombinedVersion() >= 0x00030003 )
+	{
+		GLuint SamplerObject = SamplerState->getHandle< GLuint >();
+		glDeleteSamplers( 1, &SamplerObject );
+	}
+
 	return true;
 }
 
@@ -1370,7 +1403,7 @@ void RsContextGL::setDefaultState()
 
 	for( BcU32 Sampler = 0; Sampler < MAX_TEXTURE_SLOTS; ++Sampler )
 	{
-		setSamplerState( Sampler, TextureParams, BcTrue );
+		//setSamplerState( Sampler, TextureParams, BcTrue );
 		setTexture( Sampler, nullptr, BcTrue );
 	}
 
@@ -1417,44 +1450,20 @@ void RsContextGL::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerStat
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextGL::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderState
-BcS32 RsContextGL::getRenderState( RsRenderStateType State ) const
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSamplerState
-void RsContextGL::setSamplerState( BcU32 Sampler, const RsTextureParams& Params, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	if( Sampler < MAX_TEXTURE_SLOTS )
+	if( Slot < MAX_TEXTURE_SLOTS )
 	{
-		TTextureStateValue& TextureStateValue = TextureStateValues_[ Sampler ];
+		TTextureStateValue& TextureStateValue = TextureStateValues_[ Slot ];
 		
 		const BcBool WasDirty = TextureStateValue.Dirty_;
 		
-		TextureStateValue.Dirty_ |= ( TextureStateValue.Params_ != Params ) || Force;
-		TextureStateValue.Params_ = Params;
+		TextureStateValue.Dirty_ |= ( TextureStateValue.pSamplerState_ != SamplerState );
+		TextureStateValue.pSamplerState_ = SamplerState;
 	
 		// If it wasn't dirty, we need to set it.
 		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )
 		{
 			BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
-			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Sampler;
+			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Slot;
 		}
 	}
 }
@@ -1698,8 +1707,8 @@ void RsContextGL::flushState()
 
 		if( TextureStateValue.Dirty_ )
 		{
-			RsTexture* pTexture = TextureStateValue.pTexture_;
-			const RsTextureParams& Params = TextureStateValue.Params_;
+			RsTexture* pTexture = TextureStateValue.pTexture_;			
+			const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
 			const RsTextureType InternalType = pTexture ? pTexture->getDesc().Type_ : RsTextureType::TEX2D;
 			const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
 
@@ -1707,13 +1716,20 @@ void RsContextGL::flushState()
 			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
 			RsGLCatchError();
 
-			if( pTexture )
+			if( pTexture != nullptr && SamplerState != nullptr )
 			{
-				glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)Params.MinFilter_ ] );
-				glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)Params.MagFilter_ ] );
-				glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)Params.UMode_ ] );
-				glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)Params.VMode_ ] );	
-				glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)Params.WMode_ ] );	
+				const auto& SamplerStateDesc = SamplerState->getDesc();
+
+				// TODO MipLODBias_
+				// TODO MaxAnisotropy_
+				// TODO BorderColour_
+				// TODO MinLOD_
+				// TODO MaxLOD_
+				glTexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] );
+				glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] );
+				glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
+				glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
+				glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
 				RsGLCatchError();
 			}
 

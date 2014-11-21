@@ -29,6 +29,8 @@ struct RsSamplerStateDesc
 	RsTextureSamplingMode AddressU_;
 	RsTextureSamplingMode AddressV_;
 	RsTextureSamplingMode AddressW_;
+	RsTextureFilteringMode MinFilter_;
+	RsTextureFilteringMode MagFilter_;
 	BcF32 MipLODBias_;
 	BcU32 MaxAnisotropy_;
 	RsColour BorderColour_;

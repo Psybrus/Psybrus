@@ -400,16 +400,6 @@ public:
 			RsSamplerState* pSamplerState = ppSamplerStates_[ Idx ];
 			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
 			pContext_->setSamplerState( TextureHandles_[ Idx ], pSamplerState );
-
-			// Temporary.
-			RsTextureParams DefaultTextureParams = 
-			{
-				pTexture->getDesc().Levels_ > 1 ? RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR : RsTextureFilteringMode::LINEAR,
-				RsTextureFilteringMode::LINEAR,
-				RsTextureSamplingMode::WRAP,
-				RsTextureSamplingMode::WRAP
-			};
-			pContext_->setSamplerState( TextureHandles_[ Idx ], DefaultTextureParams );
 		}
 		
 		// Set uniform blocks.

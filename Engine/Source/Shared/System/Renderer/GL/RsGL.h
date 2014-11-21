@@ -103,6 +103,11 @@ struct RsOpenGLVersion
 		return std::make_tuple( Major_, Minor_, Type_, MaxCodeType_ ) < std::make_tuple( Other.Major_, Minor_, Type_, MaxCodeType_ );
 	}
 
+	BcU32 getCombinedVersion() const
+	{
+		return ( Major_ << 16 ) | Minor_;
+	}
+
 	BcU32 Major_;
 	BcU32 Minor_;
 	RsOpenGLType Type_;

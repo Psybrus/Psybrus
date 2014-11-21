@@ -47,22 +47,7 @@ public:
 	 * Set sampler state.
 	 */
 	virtual void setSamplerState( BcU32 Slot, RsSamplerState* SamplerState ) = 0;
-
-	/**
-	 * Set render state.
-	 */
-	virtual void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse ) = 0;
 	
-	/**
-	 * Get render state.
-	 */
-	virtual BcS32 getRenderState( RsRenderStateType State ) const = 0;
-
-	/**
-	 * Set sampler state.
-	 */
-	virtual void setSamplerState( BcU32 Slot, const RsTextureParams& Params, BcBool Force = BcFalse ) = 0;
-
 	/**
 	 * Set texture.
 	 */
