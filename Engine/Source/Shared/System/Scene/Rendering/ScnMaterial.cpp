@@ -200,6 +200,7 @@ void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutati
 	// Cache parent and program.
 	Parent_ = Parent;
 	pProgram_ = Parent->Shader_->getProgram( PermutationFlags_ );
+	BcAssert( pProgram_ != nullptr );
 	
 	// Build a binding list for textures.
 	ScnTextureMap& TextureMap( Parent->TextureMap_ );

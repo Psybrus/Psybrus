@@ -169,6 +169,7 @@ typedef std::size_t					BcSize;
 #include <new>
 #include <cstdint>
 #include <cstdlib>
+#include <cassert>
 
 typedef std::uint64_t				BcU64;
 typedef std::uint32_t				BcU32;
@@ -190,7 +191,7 @@ typedef std::size_t					BcSize;
 #define BcTrue						BcBool( 1 )
 #define BcFalse						BcBool( 0 )
 
-#define BcBreakpoint				
+#define BcBreakpoint				assert(0)
 
 #define BcErrorCode					0xffffffff
 #define BcLogWrite( t )

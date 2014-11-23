@@ -320,9 +320,10 @@ void OsClientHTML5::handleWindowEvent( const SDL_Event& SDLEvent )
 // setWindowSize
 void OsClientHTML5::setWindowSize()
 {
-	int W = SDLSurface_->w;
-	int H = SDLSurface_->h;
-	//SDL_GetWindowSize( SDLWindow_, &W, &H );
+	int W = 0;
+	int H = 0;
+	int IsFullScreen = 0;
+	emscripten_get_canvas_size( &W, &H , &IsFullScreen);
 	Width_ = W;
 	Height_ = H;
 }

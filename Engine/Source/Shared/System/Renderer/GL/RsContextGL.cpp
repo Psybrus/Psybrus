@@ -653,6 +653,15 @@ void RsContextGL::create()
 	glGetError();
 #endif
 
+#if PLATFORM_HTML5
+	Version_ = RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 );
+
+	// Init GLEW.
+	glewExperimental = 1;
+	glewInit();
+	glGetError();
+#endif
+
 	// Debug output extension.	
 #if !defined( PSY_PRODUCTION )
 	if( GLEW_ARB_debug_output )
@@ -687,7 +696,7 @@ void RsContextGL::create()
 	setDefaultState();
 
 	// Clear screen and flip.
-	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) );
+	clear( RsColour( 1.0f, 0.0f, 1.0f, 0.0f ) );
 
 	// Present back buffer.
 	presentBackBuffer();

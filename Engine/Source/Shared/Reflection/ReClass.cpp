@@ -129,6 +129,6 @@ BcBool ReClass::validate() const
 // destroy
 void ReClass::destroy( void* pData ) const
 {
-	BcAssert( Serialiser_ );
+	BcAssertMsg( Serialiser_, "No serialiser for class \"%s\"", (*getName()).c_str() );
 	Serialiser_->destroy( pData );
 }

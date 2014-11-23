@@ -41,6 +41,11 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 	return evtRET_REMOVE;
 }
 
+void emscriptenMain()
+{
+	SysKernel::pImpl()->runOnce();
+}
+
 int main(int argc, char** argv)
 {
 	// If we have no log, setup a default one.
@@ -65,7 +70,7 @@ int main(int argc, char** argv)
 	// Register systems for creation.
 //	SYS_REGISTER( "DsCore", DsCoreImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplHTML5 );
-//	SYS_REGISTER( "FsCore", FsCoreImplLinux );
+	SYS_REGISTER( "FsCore", FsCoreImplHTML5 );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
@@ -82,10 +87,14 @@ int main(int argc, char** argv)
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
 
 	// Init game.
-	//PsyGameInit();
+	PsyGameInit();
 
-	// Run kernel once.
-	SysKernel::pImpl()->runOnce();
+	// Setup main loop.
+	emscripten_set_main_loop( 
+		emscriptenMain, static_cast< int >( 1.0f / GPsySetupParams.TickRate_ ), 0 );
+
+	// Debug end.
+	BcPrintf( "Done main initialisation.\n" );
 
 	return 0;
 }

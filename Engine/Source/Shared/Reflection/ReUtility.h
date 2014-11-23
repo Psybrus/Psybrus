@@ -19,7 +19,7 @@
 
 // Mega super awesome hack.
 // Temporary until better demangling is setup.
-#if COMPILER_GCC && !PLATFORM_HTML5
+#if COMPILER_GCC || COMPILER_CLANG
 
 #include <cstdlib>
 #include <memory>

@@ -109,7 +109,8 @@ function PsyProjectCommonEngine( _name )
 
 	configuration( "asmjs" )
 		includedirs {
-			"./Platforms/Linux/",
+			"./Platforms/HTML5/",
+			"$(EMSCRIPTEN)/system/lib/libcxxabi/include",
 		}
 
 	-- Terminate project.
@@ -160,9 +161,12 @@ function PsyProjectGameExe( _name )
 	-- asmjs post build.
 	configuration { "asmjs" }
 		postbuildcommands {
+			"$(SILENT) echo Copying packed content.",
+			"$(SILENT) cp -r ../../Dist/PackedContent ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise.",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --js-opts 0 -g4 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html"
+			--"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --js-opts 0 -g4 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --js-opts 0 -g4 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	-- Terminate project.

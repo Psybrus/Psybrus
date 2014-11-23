@@ -14,6 +14,7 @@
 #include "System/Renderer/RsTypes.h"
 
 #include "Base/BcMath.h"
+#include <algorithm>
 
 void RsColour::StaticRegisterClass()
 {
@@ -413,6 +414,10 @@ RsShaderCodeType RsStringToShaderCodeType( std::string String )
 	{
 		CodeType = RsShaderCodeType::GLSL_440;
 	}
+	else if( String == "GLSL_450" )
+	{
+		CodeType = RsShaderCodeType::GLSL_450;
+	}
 	else if( String == "GLSL_ES_100" )
 	{
 		CodeType = RsShaderCodeType::GLSL_ES_100;
@@ -479,6 +484,7 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_420 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_420;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_430 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_430;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_440 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_440;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_450 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_450;
 
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_100 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_300 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_300;
@@ -516,6 +522,7 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_420 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_430 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_440 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_450 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
 		
 		// GLSL ES to D3D11
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.

@@ -27,6 +27,16 @@ PsyProjectEngineLib( "System_File" )
           "./Platforms/Linux/",
       }
 
+  configuration "asmjs"
+      files {
+          "./Platforms/HTML5/System/File/*.h", 
+          "./Platforms/HTML5/System/File/*.inl", 
+          "./Platforms/HTML5/System/File/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/HTML5/",
+      }
+
   configuration "windows-*"
         files {
             "./Platforms/Windows/System/File/*.h", 
