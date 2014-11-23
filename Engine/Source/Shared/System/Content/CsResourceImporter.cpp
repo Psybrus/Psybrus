@@ -15,6 +15,8 @@
 #include "System/Content/CsPackageImporter.h"
 #include "System/Content/CsCore.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include <boost/uuid/sha1.hpp>
 
 #include <json/json.h>
@@ -279,3 +281,5 @@ std::string CsResourceImporter::getIntermediatePath()
 {
 	return *CsCore::pImpl()->getIntermediatePath( *Importer_->getName() );
 }
+
+#endif PSY_IMPORT_PIPELINE

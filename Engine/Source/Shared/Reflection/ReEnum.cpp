@@ -3,8 +3,6 @@
 #include "Reflection/ReField.h"
 #include "Reflection/ReReflection.h"
 
-#include <boost/algorithm/string.hpp>
-
 //////////////////////////////////////////////////////////////////////////
 // Definitions
 REFLECTION_DEFINE_DERIVED( ReEnum );
@@ -58,7 +56,7 @@ const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name )
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{
-		if( boost::iequals( *EnumConstants_[ Idx ]->getName(), Name ) )
+		if( BcStrCompare(  (*EnumConstants_[ Idx ]->getName()).c_str(), Name.c_str() ) )
 		{
 			return EnumConstants_[ Idx ];
 		}

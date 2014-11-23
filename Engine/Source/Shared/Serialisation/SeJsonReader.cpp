@@ -4,8 +4,6 @@
 
 #include <fstream>
 
-#include <boost/lexical_cast.hpp>
-
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SeJsonReader::SeJsonReader( 
@@ -127,7 +125,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
     std::string OutString;
 
     bool Success = false;
-
+    BcChar TempChars[ 128 ];
     // Attempt conversion to string.
 	if( Serialiser != nullptr )
 	{
@@ -137,28 +135,28 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 			Success = true;
 		}
 		// Attempt conversion to float via string.
-		else if( InputValue.type() == Json::realValue &&
-			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asDouble() ) ) )
+		else if( InputValue.type() == Json::realValue )
 		{
-			Success = true;
+			BcSPrintf( TempChars, "%f", InputValue.asDouble() );
+			Success = Serialiser->serialiseFromString( pData, TempChars );
 		}
 		// Attempt conversion to uint via string.
-		else if( InputValue.type() == Json::uintValue &&
-			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asUInt() ) ) )
+		else if( InputValue.type() == Json::uintValue )
 		{
-			Success = true;
+			BcSPrintf( TempChars, "%u", InputValue.asUInt() );
+			Success = Serialiser->serialiseFromString( pData, TempChars );
 		}
 		// Attempt conversion to int via string.
-		else if( InputValue.type() == Json::intValue &&
-			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asInt() ) ) )
+		else if( InputValue.type() == Json::intValue )
 		{
-			Success = true;
+			BcSPrintf( TempChars, "%i", InputValue.asInt() );
+			Success = Serialiser->serialiseFromString( pData, TempChars );
 		}
 		// Attempt conversion to bool via string.
-		else if( InputValue.type() == Json::booleanValue &&
-			Serialiser->serialiseFromString( pData, boost::lexical_cast< std::string >( InputValue.asBool() ) ) )
+		else if( InputValue.type() == Json::booleanValue )
 		{
-			Success = true;
+			BcSPrintf( TempChars, "%u", InputValue.asBool() ? 1 : 0 );
+			Success = Serialiser->serialiseFromString( pData, TempChars );
 		}
 		// Attempt conversion to object.
 		else if( InputValue.type() == Json::objectValue )

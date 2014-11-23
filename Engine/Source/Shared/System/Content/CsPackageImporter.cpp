@@ -14,6 +14,8 @@
 #include "System/Content/CsPackageImporter.h"
 #include "System/Content/CsResourceImporter.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
@@ -204,7 +206,6 @@ BcBool CsPackageImporter::import( const BcName& Name )
 // save
 BcBool CsPackageImporter::save( const BcPath& Path )
 {
-#if !PLATFORM_HTML5
 	// Create target folder.
 	std::string PackedPath = *CsCore::pImpl()->getPackagePackedPath( "" );
 
@@ -327,7 +328,6 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		//
 		return BcTrue;
 	}
-#endif // !PLATFORM_HTML5
 	return BcFalse;
 }
 
@@ -822,3 +822,5 @@ BcBool CsPackageImporter::havePackageDependency( const BcName& PackageName )
 	
 	return BcFalse;
 }
+
+#endif // PSY_IMPORT_PIPELINE

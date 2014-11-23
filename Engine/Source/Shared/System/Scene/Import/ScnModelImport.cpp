@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#if PSY_IMPORT_PIPELINE
+
 #include "Import/Mdl/Mdl.h"
 
 #include "assimp/config.h"
@@ -1211,3 +1213,4 @@ size_t ScnModelImport::findNodeIndex(
 	return FoundIndex;
 }
 
+#endif // PSY_IMPORT_PIPELINE

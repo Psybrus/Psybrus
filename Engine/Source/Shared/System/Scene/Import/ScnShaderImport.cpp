@@ -13,6 +13,8 @@
 
 #include "ScnShaderImport.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "System/SysKernel.h"
 
 #include "Base/BcStream.h"
@@ -857,3 +859,5 @@ void ScnShaderImport::addDependency( const BcChar* Dependency )
 {
 	CsResourceImporter::addDependency( Dependency );
 }
+
+#endif // PSY_IMPORT_PIPELINE

@@ -13,9 +13,9 @@
 
 #include "ScnPhysicsImport.h"
 
-#include "ScnPhysicsFileData.h"
+#if PSY_IMPORT_PIPELINE
 
-#ifdef PSY_IMPORT_PIPELINE
+#include "ScnPhysicsFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -59,4 +59,4 @@ BcBool ScnPhysicsImport::import( class CsPackageImporter& Importer, const Json::
 	return BcTrue;
 }
 
-#endif
+#endif // PSY_IMPORT_PIPELINE

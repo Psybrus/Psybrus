@@ -13,6 +13,8 @@
 
 #include "System/Scene/Import/ScnComponentImport.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "Serialisation/SeJsonReader.h"
 #include "Serialisation/SeJsonWriter.h"
 #include "System/Scene/ScnComponent.h"
@@ -105,3 +107,5 @@ BcBool ScnComponentImport::import(
 	CsResourceImporter::addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
 	return BcTrue;
 }
+
+#endif // PSY_IMPORT_PIPELINE

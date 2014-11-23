@@ -12,6 +12,9 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnEntityImport.h"
+
+#if PSY_IMPORT_PIPELINE
+
 #include "System/Scene/ScnEntity.h"
 
 #include "Base/BcFile.h"
@@ -85,3 +88,5 @@ BcBool ScnEntityImport::import(
 
 	return BcTrue;
 }
+
+#endif // PSY_IMPORT_PIPELINE

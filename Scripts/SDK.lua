@@ -25,7 +25,6 @@ function PsyAddBoostLibs( _links )
       for i, link in ipairs( _links ) do
          links { "boost_" .. link }
       end
-
 end
 
 

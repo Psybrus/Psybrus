@@ -12,6 +12,9 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnMaterialImport.h"
+
+#if PSY_IMPORT_PIPELINE
+
 #include "System/Scene/Rendering/ScnMaterialFileData.h"
 
 #include "System/Renderer/RsTypes.h"
@@ -103,3 +106,5 @@ BcBool ScnMaterialImport::import(
 	
 	return BcTrue;
 }
+
+#endif // PSY_IMPORT_PIPELINE

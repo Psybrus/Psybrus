@@ -54,8 +54,12 @@ void SysJobWorker::start()
 	// Mark active.
 	Active_ = BcTrue;
 
+#if !PLATFORM_HTML5
 	// Just start the thread.
 	ExecutionThread_ = std::thread( &SysJobWorker::execute, this );
+#else
+	BcBreakpoint;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

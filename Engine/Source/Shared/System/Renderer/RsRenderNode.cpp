@@ -15,15 +15,13 @@
 
 #include "Base/BcProfiler.h"
 
-#include <boost/format.hpp>
-
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsRenderNode::RsRenderNode()
 {
 	Sort_.Value_ = 0;
 
-	PSY_PROFILER_START_ASYNC( boost::str( boost::format( "RsRenderNode: 0x%1%" ) % this ) );
+	PSY_PROFILER_START_ASYNC( "RsRenderNode" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,5 +29,5 @@ RsRenderNode::RsRenderNode()
 //virtual
 RsRenderNode::~RsRenderNode()
 {
-	PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "RsRenderNode: 0x%1%" ) % this ) );
+	PSY_PROFILER_FINISH_ASYNC( "RsRenderNode" );
 }

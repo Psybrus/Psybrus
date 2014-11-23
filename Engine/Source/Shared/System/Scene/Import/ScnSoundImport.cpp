@@ -13,6 +13,8 @@
 
 #include "System/Scene/Import/ScnSoundImport.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "Serialisation/SeJsonReader.h"
 #include "Serialisation/SeJsonWriter.h"
 #include "System/Scene/ScnComponent.h"
@@ -97,3 +99,5 @@ BcBool ScnSoundImport::import(
 	CsResourceImporter::addChunk( BcHash( "filedata" ), &FileData_, sizeof( FileData_ ) );
 	return BcTrue;
 }
+
+#endif // PSY_IMPORT_PIPELINE

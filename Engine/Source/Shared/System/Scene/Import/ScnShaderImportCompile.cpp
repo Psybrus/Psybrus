@@ -13,6 +13,8 @@
 
 #include "ScnShaderImport.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "Base/BcFile.h"
 
 #include <boost/format.hpp>
@@ -222,3 +224,5 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 
 	return VertexAttributeList;
 }
+
+#endif // PSY_IMPORT_PIPELINE

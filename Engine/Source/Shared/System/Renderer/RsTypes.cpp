@@ -15,9 +15,6 @@
 
 #include "Base/BcMath.h"
 
-#include <boost/format.hpp>
-#include <boost/algorithm/string.hpp>
-
 void RsColour::StaticRegisterClass()
 {
 	class RsColourSerialiser:
@@ -31,7 +28,9 @@ void RsColour::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const RsColour& Vec = *reinterpret_cast< const RsColour* >( pInstance );
-			OutString = boost::str( boost::format( "%1%, %2%, %3%, %4%" ) % Vec.x() % Vec.y() % Vec.z() % Vec.w() );
+			BcChar OutChars[ 128 ];
+			BcSPrintf( OutChars, "%f, %f, %f, %f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
+			OutString = OutChars;
 			return true;
 		}
 
@@ -379,7 +378,8 @@ std::string RsShaderBackendTypeToString( RsShaderBackendType BackendType )
 // RsConvertCodeTypeToBackendCodeType
 RsShaderCodeType RsStringToShaderCodeType( std::string String )
 {
-	boost::to_upper( String );
+	std::transform( String.begin(), String.end(), String.begin(), ::toupper );
+	
 	RsShaderCodeType CodeType = RsShaderCodeType::INVALID;
 	if( String == "GLSL_140" )
 	{

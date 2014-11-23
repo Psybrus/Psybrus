@@ -12,6 +12,9 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnTextureImport.h"
+
+#if PSY_IMPORT_PIPELINE
+
 #include "System/Scene/Rendering/ScnTextureFileData.h"
 #include "System/Scene/Rendering/ScnTextureAtlasFileData.h"
 
@@ -486,3 +489,5 @@ BcBool ScnTextureImport::import(
 
 	return BcFalse;
 }
+
+#endif // PSY_IMPORT_PIPELINE

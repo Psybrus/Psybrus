@@ -13,6 +13,8 @@
 
 #include "ScnAnimationImport.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "Base/BcMath.h"
 
 #include <memory>
@@ -408,3 +410,4 @@ ScnAnimationImport::AnimatedNode& ScnAnimationImport::findAnimatedNode( std::str
 	return *(ScnAnimationImport::AnimatedNode*)( nullptr );
 }
 
+#endif // PSY_IMPORT_PIPELINE
