@@ -352,6 +352,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_150:
 		if( Version_.Major_ >= 3 &&
 			Version_.Minor_ >= 2 &&
@@ -359,6 +360,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_330:
 		if( Version_.Major_ >= 3 &&
 			Version_.Minor_ >= 3 &&
@@ -366,6 +368,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_400:
 		if( Version_.Major_ >= 4 &&
 			//Version_.Minor_ >= 0 &&
@@ -373,6 +376,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_410:
 		if( Version_.Major_ >= 4 &&
 			Version_.Minor_ >= 1 &&
@@ -380,6 +384,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_420:
 		if( Version_.Major_ >= 4 &&
 			Version_.Minor_ >= 2 &&
@@ -387,6 +392,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_430:
 		if( Version_.Major_ >= 4 &&
 			Version_.Minor_ >= 3 &&
@@ -394,6 +400,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_440:
 		if( Version_.Major_ >= 4 &&
 			Version_.Minor_ >= 4 &&
@@ -401,6 +408,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_450:
 		if( Version_.Major_ >= 4 &&
 			Version_.Minor_ >= 5 &&
@@ -408,6 +416,7 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	case RsShaderCodeType::GLSL_ES_100:
 		if( Version_.Major_ >= 2 &&
 			//Version_.Minor_ >= 0 &&
@@ -415,9 +424,11 @@ BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 		{
 			return BcTrue;
 		}
+		break;
 	default:
 		break;
 	}
+
 	return BcFalse;
 }
 
@@ -621,6 +632,8 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
+
 	};
 
 	BcAssert( pParent_ == nullptr );
@@ -1048,9 +1061,13 @@ bool RsContextGL::createTexture(
 	{
 		// Bind texture.
 		glBindTexture( TypeGL, Handle );
+		RsGLCatchError();
 
 		// Set max levels.
+#if !PLATFORM_HTML5
 		glTexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 );
+		RsGLCatchError();
+#endif
 
 		// Instanciate levels.
 		BcU32 Width = TextureDesc.Width_;
@@ -1191,6 +1208,8 @@ bool RsContextGL::createShader(
 			BcPrintf( "=======================================================\n" );
 			BcPrintf( "Error Compiling shader:\n" );
 			BcPrintf( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
+			BcPrintf( "=======================================================\n" );
+			BcPrintf( "%s\n", ShaderData );
 			BcPrintf( "=======================================================\n" );
 			delete [] pszInfoLog;
 
@@ -1904,10 +1923,17 @@ void RsContextGL::clear( const RsColour& Colour )
 {
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
-	glClearDepth( 1.0f );
+	
+	// TODO: Look into this?
+	if( Version_.Type_ != RsOpenGLType::ES )
+	{
+		glClearDepth( 1.0f );
+	}
+
 	glClearStencil( 0 );
 	glDepthMask( GL_TRUE );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2039,7 +2065,6 @@ void RsContextGL::loadTexture(
 		void* Data )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	RsGLCatchError();
 
 	GLuint Handle = Texture->getHandle< GLuint >();
 
