@@ -33,6 +33,17 @@ PsyProjectEngineLib( "Base" )
       "./Platforms/Windows/",
     }
 
+  -- asmjs
+  configuration( "asmjs" )
+    files {
+      "./Platforms/HTML5/Base/**.h",
+      "./Platforms/HTML5/Base/**.inl",
+      "./Platforms/HTML5/Base/**.cpp",
+    }
+    includedirs {
+      "./Platforms/HTML5/",
+    }
+
   -- Linux
   configuration( "linux-*" )
     files {
@@ -42,12 +53,4 @@ PsyProjectEngineLib( "Base" )
     }
     includedirs {
       "./Platforms/Linux/",
-    }
-
-  -- asmjs
-  configuration( "asmjs" )
-    files {
-      "./Platforms/Linux/Base/**.h",
-      "./Platforms/Linux/Base/**.inl",
-      "./Platforms/Linux/Base/**.cpp",
     }
