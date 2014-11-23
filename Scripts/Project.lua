@@ -162,7 +162,7 @@ function PsyProjectGameExe( _name )
 	configuration { "asmjs" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) cp -r ../../Dist/PackedContent ./PackedContent",
+			"$(SILENT) cp -r ../../Dist/PackedContent ./",
 			"$(SILENT) echo Running asmjs finalise.",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
 			--"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --js-opts 0 -g4 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
