@@ -282,4 +282,4 @@ std::string CsResourceImporter::getIntermediatePath()
 	return *CsCore::pImpl()->getIntermediatePath( *Importer_->getName() );
 }
 
-#endif PSY_IMPORT_PIPELINE
+#endif // PSY_IMPORT_PIPELINE
