@@ -13,8 +13,6 @@
 
 #include "System/Scene/Import/ScnEntityImport.h"
 
-#if PSY_IMPORT_PIPELINE
-
 #include "System/Scene/ScnEntity.h"
 
 #include "Base/BcFile.h"
@@ -63,6 +61,7 @@ ScnEntityImport::~ScnEntityImport()
 BcBool ScnEntityImport::import(
 		const Json::Value& Object )
 {
+#if PSY_IMPORT_PIPELINE
 	//
 	Json::Value Components = Object[ "components" ];
 
@@ -87,6 +86,8 @@ BcBool ScnEntityImport::import(
 	CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 
 	return BcTrue;
+#else
+	return BcFalse;
+#endif // PSY_IMPORT_PIPELINE
 }
 
-#endif // PSY_IMPORT_PIPELINE

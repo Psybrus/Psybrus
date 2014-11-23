@@ -14,7 +14,6 @@
 #include "System/Content/CsPackageImporter.h"
 #include "System/Content/CsResourceImporter.h"
 
-#if PSY_IMPORT_PIPELINE
 
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
@@ -31,9 +30,11 @@
 
 #include "System/SysKernel.h"
 
+#if PSY_IMPORT_PIPELINE
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
@@ -54,6 +55,8 @@ void CsPackageDependencies::StaticRegisterClass()
 
 	ReRegisterClass< CsPackageDependencies >( Fields );
 };
+
+#if PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

@@ -85,6 +85,8 @@ static BcU32 gVertexDataSize[] =
 	4					// RsVertexDataType::UINT_NORM,
 };
 
+#endif // PSY_IMPORT_PIPELINE
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_DERIVED( ScnModelImport )
@@ -123,6 +125,7 @@ ScnModelImport::~ScnModelImport()
 // import
 BcBool ScnModelImport::import( const Json::Value& )
 {
+#if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
 		BcPrintf( "ERROR: Missing 'source' field.\n" );
@@ -301,7 +304,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 		return BcTrue;
 	}
 #endif // ENABLE_ASSIMP_IMPORTER
-
+#endif // PSY_IMPORT_PIPELINE
 	return BcFalse;
 }
 
@@ -309,6 +312,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 // calculateNodeWorldTransforms
 void ScnModelImport::calculateNodeWorldTransforms()
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssert( NodeTransformData_.size() == NodePropertyData_.size() );
 
 	for( BcU32 Idx = 0; Idx < NodeTransformData_.size(); ++Idx )
@@ -332,6 +336,7 @@ void ScnModelImport::calculateNodeWorldTransforms()
 				NodeTransformData.LocalTransform_;
 		}
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -342,6 +347,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	size_t& NodeIndex,
 	size_t& PrimitiveIndex )
 {
+#if PSY_IMPORT_PIPELINE
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
 	{
@@ -378,6 +384,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 		
 		pChild = pChild->pNext();
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -388,6 +395,7 @@ void ScnModelImport::recursiveSerialiseNodeMeshes(
 	size_t& NodeIndex,
 	size_t& PrimitiveIndex )
 {
+#if PSY_IMPORT_PIPELINE
 	// Update parent & node index.
 	ParentIndex = NodeIndex++;
 
@@ -426,6 +434,7 @@ void ScnModelImport::recursiveSerialiseNodeMeshes(
 		
 		pChild = pChild->pNext();
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -436,6 +445,7 @@ void ScnModelImport::serialiseMesh(
 	size_t& NodeIndex,
 	size_t& PrimitiveIndex )
 {
+#if PSY_IMPORT_PIPELINE
 	if( pMesh->nVertices() > 0 )
 	{
 		ScnShaderPermutationFlags ShaderPermutation = ScnShaderPermutationFlags::MESH_STATIC_3D;
@@ -506,6 +516,7 @@ void ScnModelImport::serialiseMesh(
 		// Update primitive index.
 		++PrimitiveIndex;
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -516,6 +527,7 @@ void ScnModelImport::serialiseSkin(
 	size_t& NodeIndex,
 	size_t& PrimitiveIndex )
 {
+#if PSY_IMPORT_PIPELINE
 	BcU32 BonePaletteSize = SCN_MODEL_BONE_PALETTE_SIZE;
 	if( pSkin->findBoneCount() > BonePaletteSize )
 	{
@@ -625,6 +637,7 @@ void ScnModelImport::serialiseSkin(
 		// Update primitive index.
 		++PrimitiveIndex;
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -635,6 +648,7 @@ void ScnModelImport::serialiseVertices(
 	size_t NoofVertexElements,
 	MaAABB& AABB )
 {
+#if PSY_IMPORT_PIPELINE
 	AABB.empty();
 
 	// Calculate output vertex size.
@@ -739,6 +753,7 @@ void ScnModelImport::serialiseVertices(
 
 		VertexDataStream_.push( &VertexData[0], VertexData.size() );
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -749,6 +764,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	size_t& NodeIndex,
 	size_t& PrimitiveIndex )
 {
+#if PSY_IMPORT_PIPELINE
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
 	{
@@ -792,6 +808,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 			NodeIndex,
 			PrimitiveIndex );
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -802,6 +819,7 @@ void ScnModelImport::serialiseMesh(
 	size_t& NodeIndex,
 	size_t& PrimitiveIndex )
 {
+#if PSY_IMPORT_PIPELINE
 	if( Mesh->HasPositions() && Mesh->HasFaces() )
 	{
 		ScnShaderPermutationFlags ShaderPermutation = ScnShaderPermutationFlags::MESH_STATIC_3D;
@@ -962,6 +980,7 @@ void ScnModelImport::serialiseMesh(
 		// Update primitive index.
 		++PrimitiveIndex;
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -972,6 +991,7 @@ void ScnModelImport::serialiseVertices(
 	size_t NoofVertexElements,
 	MaAABB& AABB )
 {
+#if PSY_IMPORT_PIPELINE
 	AABB.empty();
 
 	// Build blend weights and indices.
@@ -1184,6 +1204,7 @@ void ScnModelImport::serialiseVertices(
 
 		VertexDataStream_.push( &VertexData[0], VertexData.size() );
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1193,6 +1214,7 @@ size_t ScnModelImport::findNodeIndex(
 	aiNode* RootSearchNode, 
 	size_t& BaseIndex ) const
 {
+#if PSY_IMPORT_PIPELINE
 	if( Name == RootSearchNode->mName.C_Str() )
 	{
 		return BaseIndex;
@@ -1211,6 +1233,7 @@ size_t ScnModelImport::findNodeIndex(
 	}
 	
 	return FoundIndex;
+#else
+	return (size_t)-1;
+#endif
 }
-
-#endif // PSY_IMPORT_PIPELINE

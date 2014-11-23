@@ -17,14 +17,14 @@ else
 	WITH_OSS = 1
 end
 
--- Hack in asmjs.
+-- Hack io asmjs.
 if _OPTIONS[ "toolchain" ] == "asmjs" then
 	WITH_OSS = 0
 	WITH_WINMM = 0
 	WITH_WASAPI = 0
-	WITH_SDL = 1
+	WITH_SDL = 0
+	WITH_SDL_NONDYN = 1
 end
-
 
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --

@@ -31,6 +31,10 @@
 
 #include "Import/Img/Img.h"
 
+#if PLATFORM_HTML5
+#include "System/Os/OsHTML5.h"
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
 #if !defined( PSY_PRODUCTION )
@@ -441,6 +445,7 @@ void RsContextGL::presentBackBuffer()
 		// Finish all rendering.
 		glFinish();
 		
+#if !PLATFORM_HTML5
 		// Read the back buffer.
 		glReadBuffer( GL_BACK );
 		BcU32* pImageData = new BcU32[ getWidth() * getHeight() ];
@@ -472,6 +477,7 @@ void RsContextGL::presentBackBuffer()
 
 		// Free image data.
 		delete [] pImageData;
+#endif // !PLATFORM_HTML5
 
 		// No more screenshot requested.
 		ScreenshotRequested_ = BcFalse;
@@ -483,6 +489,10 @@ void RsContextGL::presentBackBuffer()
 
 #if PLATFORM_LINUX
 	SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
+#endif
+
+#if PLATFORM_HTML5
+	SDL_GL_SwapBuffers();
 #endif
 
 	RsGLCatchError();
@@ -647,7 +657,12 @@ void RsContextGL::create()
 #if !defined( PSY_PRODUCTION )
 	if( GLEW_ARB_debug_output )
 	{
+#if !PLATFORM_HTML5
 		glDebugMessageCallbackARB( debugOutput, nullptr );
+#else
+		// TODO ES2
+		BcBreakpoint;
+#endif
 		glGetError();
 	}
 #endif
@@ -813,6 +828,7 @@ bool RsContextGL::createSamplerState(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+#if !PLATFORM_HTML5
 	// GL3.3 minimum
 	if( Version_.Type_ == RsOpenGLType::CORE &&
 		Version_ .getCombinedVersion() >= 0x00030003 )
@@ -835,6 +851,7 @@ bool RsContextGL::createSamplerState(
 		SamplerState->setHandle< GLuint >( SamplerObject );
 		return SamplerObject != -1;
 	}
+#endif
 
 	return true;
 }
@@ -846,6 +863,7 @@ bool RsContextGL::destroySamplerState(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+#if !PLATFORM_HTML5
 	// GL3.3 minimum
 	if( Version_.Type_ == RsOpenGLType::CORE &&
 		Version_ .getCombinedVersion() >= 0x00030003 )
@@ -853,6 +871,7 @@ bool RsContextGL::destroySamplerState(
 		GLuint SamplerObject = SamplerState->getHandle< GLuint >();
 		glDeleteSamplers( 1, &SamplerObject );
 	}
+#endif
 
 	return true;
 }
@@ -956,6 +975,7 @@ bool RsContextGL::updateBuffer(
 		// Bind buffer.
 		glBindBuffer( TypeGL, Handle );
 
+#if !PLATFORM_HTML5
 		// Map and update buffer.
 		auto LockedPointer = glMapBufferRange( TypeGL, Offset, Size, AccessFlagsGL );
 		if( LockedPointer != nullptr )
@@ -969,7 +989,10 @@ bool RsContextGL::updateBuffer(
 		}
 
 		RsGLCatchError();
-
+#else
+		// TODO ES2 glBufferSubData?
+		BcBreakpoint;
+#endif
 		return true;
 	}
 
@@ -1322,6 +1345,7 @@ bool RsContextGL::createProgram(
 	GLint ActiveUniformBlocks = 0;
 	glGetProgramiv( Handle, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
 	
+#if !PLATFORM_HTML5
 	BcU32 ActiveUniformSlotIndex = 0;
 	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
 	{
@@ -1333,7 +1357,6 @@ bool RsContextGL::createProgram(
 		// Get the uniform block size.
 		glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
 		glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
-		
 		// Add it as a parameter.
 		if( UniformBlockNameLength > 0 )
 		{
@@ -1347,6 +1370,10 @@ bool RsContextGL::createProgram(
 			RsGLCatchError();
 		}
 	}
+#else
+	// TODO ES2
+	BcBreakpoint;
+#endif
 
 	// Catch error.
 	RsGLCatchError();
@@ -1627,6 +1654,7 @@ void RsContextGL::flushState()
 			gBlendType[ (BcU32)MainRenderTarget.SrcBlend_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlend_ ],
 			gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] );
 
+#if !PLATFORM_HTML5
 		for( BcU32 Idx = 0; Idx < 8; ++Idx )
 		{
 			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
@@ -1638,6 +1666,15 @@ void RsContextGL::flushState()
 				RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 			RsGLCatchError();
 		}
+#else
+		const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
+		glColorMask(
+			RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+			RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+			RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+			RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+#endif // !PLATFORM_HTML5
+
 #endif
 
 		const auto& DepthStencilState = Desc.DepthStencilState_;
@@ -1672,8 +1709,12 @@ void RsContextGL::flushState()
 
 		const auto& RasteriserState = Desc.RasteriserState_;
 
+#if !PLATFORM_HTML5
 		glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
-
+#else
+		// TODO ES2
+		BcBreakpoint;
+#endif
 		switch( RasteriserState.CullMode_ )
 		{
 		case RsCullMode::NONE:
@@ -1718,6 +1759,7 @@ void RsContextGL::flushState()
 
 			if( pTexture != nullptr && SamplerState != nullptr )
 			{
+#if !PLATFORM_HTML5
 				// GL3.3+ sampler state.
 				if( Version_.Type_ == RsOpenGLType::CORE &&
 					Version_ .getCombinedVersion() >= 0x00030003 )
@@ -1726,6 +1768,7 @@ void RsContextGL::flushState()
 					glBindSampler( TextureStateIdx, SamplerObject );
 				}
 				else
+#endif
 				{
 					// TODO MipLODBias_
 					// TODO MaxAnisotropy_
@@ -1772,7 +1815,12 @@ void RsContextGL::flushState()
 			auto Buffer = (*It).Buffer_;
 			if( Buffer != nullptr )
 			{
+#if !PLATFORM_HTML5
 				glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, Buffer->getHandle< GLuint >(), 0, Buffer->getDesc().SizeBytes_ );
+#else
+				// TODO ES2
+				BcBreakpoint;
+#endif
 				++BindingPoint;
 				RsGLCatchError();
 			}
@@ -1867,7 +1915,12 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	flushState();
+#if !PLATFORM_HTML5
 	glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
+#else
+	BcAssert( VertexOffset == 0 );
+	glDrawElements( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) );
+#endif
 	RsGLCatchError();
 }
 
@@ -2004,6 +2057,7 @@ void RsContextGL::loadTexture(
 		switch( TextureDesc.Type_ )
 		{
 		case RsTextureType::TEX1D:
+#if !PLATFORM_HTML5
 			glTexImage1D( 
 				TypeGL, 
 				Slice.Level_, 
@@ -2014,6 +2068,10 @@ void RsContextGL::loadTexture(
 				FormatGL.Type_,
 				Data );
 			RsGLCatchError();
+#else
+			// TODO ES2.
+			BcBreakpoint;
+#endif
 			break;
 
 		case RsTextureType::TEX2D:
@@ -2031,6 +2089,7 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEX3D:
+#if !PLATFORM_HTML5
 			glTexImage3D( 
 				TypeGL, 
 				Slice.Level_, 
@@ -2043,6 +2102,10 @@ void RsContextGL::loadTexture(
 				FormatGL.Type_,
 				Data );
 			RsGLCatchError();
+#else
+			// TODO ES2.
+			BcBreakpoint;
+#endif
 			break;
 
 		case RsTextureType::TEXCUBE:
@@ -2060,6 +2123,7 @@ void RsContextGL::loadTexture(
 			return;
 		}
 
+#if !PLATFORM_HTML5
 		switch( TextureDesc.Type_ )
 		{
 		case RsTextureType::TEX1D:
@@ -2107,5 +2171,9 @@ void RsContextGL::loadTexture(
 		default:
 			BcBreakpoint;
 		}
+#else
+		// TODO ES2
+		BcBreakpoint;
+#endif // !PLATFORM_HTML5
 	}
 }

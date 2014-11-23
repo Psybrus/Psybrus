@@ -34,7 +34,6 @@ PsyProjectEngineLib( "System_Renderer" )
       "glew",
     }
 
-
   configuration "linux-*"
       files {
           "./Shared/System/Renderer/GL/*.h", 
@@ -43,6 +42,16 @@ PsyProjectEngineLib( "System_Renderer" )
       }
       includedirs {
           "./Platforms/Linux/",
+      }
+
+  configuration "asmjs"
+      files {
+          "./Shared/System/Renderer/GL/*.h", 
+          "./Shared/System/Renderer/GL/*.inl", 
+          "./Shared/System/Renderer/GL/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/HTML5/",
       }
 
   configuration "windows-*"

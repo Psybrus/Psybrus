@@ -24,6 +24,8 @@
 #include "Base/BcMath.h"
 #include "Base/BcStream.h"
 
+#endif // PSY_IMPORT_PIPELINE
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_DERIVED( ScnTextureImport )
@@ -131,6 +133,7 @@ ScnTextureImport::~ScnTextureImport()
 BcBool ScnTextureImport::import(
 		const Json::Value& )
 {
+#if PSY_IMPORT_PIPELINE
 	ImgColour ClearColour = { 0, 0, 0, 0 };
 	ClearColour.R_ = BcU8( BcClamp( BcU32( ClearColour_.r() * 255.0f ), 0, 255 ) );
 	ClearColour.G_ = BcU8( BcClamp( BcU32( ClearColour_.g() * 255.0f ), 0, 255 ) );
@@ -487,7 +490,6 @@ BcBool ScnTextureImport::import(
 		return BcTrue;
 	}
 
+#endif // PSY_IMPORT_PIPELINE
 	return BcFalse;
 }
-
-#endif // PSY_IMPORT_PIPELINE

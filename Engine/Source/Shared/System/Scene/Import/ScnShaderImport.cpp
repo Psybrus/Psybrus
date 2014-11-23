@@ -148,6 +148,8 @@ namespace
 	}
 }
 
+#endif // PSY_IMPORT_PIPELINE
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_DERIVED( ScnShaderImport )
@@ -221,6 +223,7 @@ ScnShaderImport::~ScnShaderImport()
 // import
 BcBool ScnShaderImport::import( const Json::Value& )
 {
+#if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
 		BcPrintf( "ERROR: Missing 'source' field.\n" );
@@ -423,6 +426,9 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	}
 
 	return RetVal;
+#else
+	return BcFalse;
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -433,6 +439,7 @@ void ScnShaderImport::generatePermutations(
 	ScnShaderPermutationGroup* PermutationGroups, 
 	ScnShaderPermutation Permutation )
 {
+#if PSY_IMPORT_PIPELINE
 	const auto& PermutationGroup = PermutationGroups[ GroupIdx ];
 
 	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
@@ -451,12 +458,14 @@ void ScnShaderImport::generatePermutations(
 			Permutations_.push_back( NewPermutation );
 		}
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // buildPermutation
 BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 {
+#if PSY_IMPORT_PIPELINE
 	BcBool RetVal = BcTrue;
 	BcAssertMsg( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::D3D11, "Expecting D3D11 code input. Need to implement other input backends." );
 
@@ -736,6 +745,9 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	--PendingPermutations_;
 
 	return RetVal;
+#else
+	return BcFalse;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -753,6 +765,7 @@ BcU32 ScnShaderImport::generateShaderHash( const ScnShaderBuiltData& Data )
 // removeComments
 std::string ScnShaderImport::removeComments( std::string Input )
 {
+#if PSY_IMPORT_PIPELINE
 	std::string Output;
 	typedef boost::wave::cpplexer::lex_token<> token_type;
 	typedef boost::wave::cpplexer::lex_iterator<token_type> lexer_type;
@@ -773,6 +786,9 @@ std::string ScnShaderImport::removeComments( std::string Input )
 		}
 	}
 	return std::move( Output );
+#else
+	return "";
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -859,5 +875,3 @@ void ScnShaderImport::addDependency( const BcChar* Dependency )
 {
 	CsResourceImporter::addDependency( Dependency );
 }
-
-#endif // PSY_IMPORT_PIPELINE

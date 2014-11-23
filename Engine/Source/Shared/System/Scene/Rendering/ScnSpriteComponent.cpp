@@ -17,7 +17,6 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
-#include "System/Debug/DsCore.h"
 #include "Base/BcMath.h"
 #ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"

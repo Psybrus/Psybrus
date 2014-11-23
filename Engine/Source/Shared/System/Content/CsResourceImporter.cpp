@@ -16,20 +16,9 @@
 #include "System/Content/CsCore.h"
 
 #if PSY_IMPORT_PIPELINE
-
 #include <boost/uuid/sha1.hpp>
-
 #include <json/json.h>
-
-//////////////////////////////////////////////////////////////////////////
-// Custom deleter.
-void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer )
-{
-	if( Importer != nullptr )
-	{
-		delete Importer;
-	}
-}
+#endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
 // Attribute
@@ -43,6 +32,23 @@ void CsResourceImporterAttribute::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< CsResourceImporterAttribute, Super >( Fields );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_BASE( CsResourceImporter );
+
+void CsResourceImporter::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Name_", &CsResourceImporter::Name_, bcRFF_IMPORTER ),
+		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
+		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
+	};
+	
+	ReRegisterClass< CsResourceImporter >( Fields );
 }
 
 CsResourceImporterAttribute::CsResourceImporterAttribute():
@@ -79,19 +85,13 @@ BcU32 CsResourceImporterAttribute::getPriority() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Reflection
-REFLECTION_DEFINE_BASE( CsResourceImporter );
-
-void CsResourceImporter::StaticRegisterClass()
+// Custom deleter.
+void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer )
 {
-	ReField* Fields[] = 
+	if( Importer != nullptr )
 	{
-		new ReField( "Name_", &CsResourceImporter::Name_, bcRFF_IMPORTER ),
-		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
-		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
-	};
-	
-	ReRegisterClass< CsResourceImporter >( Fields );
+		delete Importer;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -178,8 +178,12 @@ BcU32 CsResourceImporter::addImport_DEPRECATED(
 	const Json::Value& Resource, 
 	BcBool IsCrossRef )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addImport( Resource, IsCrossRef );
+#else
+	return BcErrorCode;
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,7 +192,11 @@ BcU32 CsResourceImporter::addImport(
 	CsResourceImporterUPtr Importer, 
 	BcBool IsCrossRef )
 {
+#if PSY_IMPORT_PIPELINE
 	return Importer_->addImport( std::move( Importer ), Json::nullValue, IsCrossRef );
+#else
+	return BcErrorCode;
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,8 +204,12 @@ BcU32 CsResourceImporter::addImport(
 BcU32 CsResourceImporter::addString( 
 	const BcChar* pString )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addString( pString );
+#else
+	return BcErrorCode;
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -205,8 +217,12 @@ BcU32 CsResourceImporter::addString(
 BcU32 CsResourceImporter::addPackageCrossRef( 
 	const BcChar* pFullName )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addPackageCrossRef( pFullName );
+#else
+	return BcErrorCode;
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -218,6 +234,7 @@ BcU32 CsResourceImporter::addChunk(
 	BcSize RequiredAlignment, 
 	BcU32 Flags )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssert( Importer_ != nullptr );
 
 	// Add to importer.
@@ -227,6 +244,9 @@ BcU32 CsResourceImporter::addChunk(
 		Size,
 		RequiredAlignment,
 		Flags );
+#else
+	return BcErrorCode;
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -234,6 +254,7 @@ BcU32 CsResourceImporter::addChunk(
 CsFileHash CsResourceImporter::addFile(
 	std::string FileName )
 {
+#if PSY_IMPORT_PIPELINE
 	BcFile InFile;
 	CsFileHash FileHash;
 	if( InFile.open( FileName.c_str() ) )
@@ -264,6 +285,9 @@ CsFileHash CsResourceImporter::addFile(
 	}
 
 	return FileHash;
+#else
+	return CsFileHash();
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -271,15 +295,19 @@ CsFileHash CsResourceImporter::addFile(
 void CsResourceImporter::addDependency( 
 	const BcChar* pFileName )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssert( Importer_ != nullptr );
 	return Importer_->addDependency( pFileName );
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addDependency
 std::string CsResourceImporter::getIntermediatePath()
 {
+#if PSY_IMPORT_PIPELINE
 	return *CsCore::pImpl()->getIntermediatePath( *Importer_->getName() );
-}
-
+#else
+	return "";
 #endif // PSY_IMPORT_PIPELINE
+}

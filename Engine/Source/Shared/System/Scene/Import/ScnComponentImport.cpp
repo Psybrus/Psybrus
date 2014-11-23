@@ -13,8 +13,6 @@
 
 #include "System/Scene/Import/ScnComponentImport.h"
 
-#if PSY_IMPORT_PIPELINE
-
 #include "Serialisation/SeJsonReader.h"
 #include "Serialisation/SeJsonWriter.h"
 #include "System/Scene/ScnComponent.h"
@@ -66,6 +64,7 @@ ScnComponentImport::~ScnComponentImport()
 BcBool ScnComponentImport::import(
 		const Json::Value& Object )
 {
+#if PSY_IMPORT_PIPELINE
 	// Check we have a valid type to serialise in.
 	if( Object[ "type" ].type() != Json::stringValue )
 	{
@@ -106,6 +105,8 @@ BcBool ScnComponentImport::import(
 	//
 	CsResourceImporter::addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
 	return BcTrue;
+#else
+	return BcFalse;
+#endif // PSY_IMPORT_PIPELINE
 }
 
-#endif // PSY_IMPORT_PIPELINE

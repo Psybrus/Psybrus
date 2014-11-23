@@ -18,8 +18,6 @@
 #include "Base/BcMath.h"
 #include "Base/BcStream.h"
 
-#if PSY_IMPORT_PIPELINE
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
@@ -68,6 +66,7 @@ ScnFontImport::~ScnFontImport()
 BcBool ScnFontImport::import(
 	const Json::Value& )
 {
+#if PSY_IMPORT_PIPELINE
 	// Add root dependancy.
 	CsResourceImporter::addDependency( Source_.c_str() );
 
@@ -285,7 +284,7 @@ BcBool ScnFontImport::import(
 	{
 		BcPrintf( "ScnFont: Error initialising freetype2.\n" );
 	}
-	
+#endif // PSY_IMPORT_PIPELINE
 	return BcFalse;
 }
 
@@ -381,4 +380,3 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph,
 	return pImage;
 }
 
-#endif // PSY_IMPORT_PIPELINE

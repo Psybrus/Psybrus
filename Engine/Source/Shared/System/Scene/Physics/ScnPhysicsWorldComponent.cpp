@@ -175,6 +175,7 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	DebugDrawWorld_ = BcTrue;
 #endif
 
+#if !PLATFORM_HTML5
 	if( DsCore::pImpl() )
 	{
 		DebugRenderingHandle_ = DsCore::pImpl()->registerFunction("Toggle Debug Physics Rendering",
@@ -183,6 +184,7 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 				DebugDrawWorld_ = !DebugDrawWorld_;
 			});
 	}
+#endif
 
 	Super::onAttach( Parent );
 }
@@ -192,11 +194,13 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
+#if !PLATFORM_HTML5
 	if( DsCore::pImpl() )
 	{
 		DsCore::pImpl()->deregisterFunction( DebugRenderingHandle_ );
 	}
-
+#endif
+	
 	delete DynamicsWorld_;
 	delete Solver_;
 	delete Broadphase_;

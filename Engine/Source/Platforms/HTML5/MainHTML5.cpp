@@ -7,7 +7,7 @@
 #include "System/SysKernel.h"
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
-#include "System/Os/SDL/OsClientSDL.h"
+#include "System/Os/OsClientHTML5.h"
 
 #include <emscripten.h>
 
@@ -24,7 +24,7 @@ extern BcU32 GResolutionHeight;
 
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 {
-	OsClientSDL* pMainWindow = new OsClientSDL();
+	OsClientHTML5* pMainWindow = new OsClientHTML5();
 	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), 0, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 
 	// Register systems for creation.
 //	SYS_REGISTER( "DsCore", DsCoreImpl );
-	SYS_REGISTER( "OsCore", OsCoreImplSDL );
+	SYS_REGISTER( "OsCore", OsCoreImplHTML5 );
 //	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
 
 	// Init game.
-	PsyGameInit();
+	//PsyGameInit();
 
 	// Run kernel once.
 	SysKernel::pImpl()->runOnce();

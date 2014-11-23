@@ -13,16 +13,18 @@
 
 #include "System/Scene/Import/ScnMaterialImport.h"
 
-#if PSY_IMPORT_PIPELINE
-
 #include "System/Scene/Rendering/ScnMaterialFileData.h"
 
 #include "System/Renderer/RsTypes.h"
+
+#if PSY_IMPORT_PIPELINE
 
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 
 #include <boost/lexical_cast.hpp>
+
+#endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -67,6 +69,7 @@ ScnMaterialImport::~ScnMaterialImport()
 BcBool ScnMaterialImport::import(
 		const Json::Value& )
 {	
+#if PSY_IMPORT_PIPELINE
 	// Export material.
 	BcStream HeaderStream;
 	BcStream StateBlockStream;
@@ -105,6 +108,7 @@ BcBool ScnMaterialImport::import(
 	CsResourceImporter::addChunk( BcHash( "renderstate" ), &RenderState_, sizeof( RenderState_ ) );
 	
 	return BcTrue;
-}
-
+#else
+	return BcFalse;
 #endif // PSY_IMPORT_PIPELINE
+}

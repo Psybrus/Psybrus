@@ -13,11 +13,11 @@
 
 #include "ScnAnimationImport.h"
 
-#if PSY_IMPORT_PIPELINE
-
 #include "Base/BcMath.h"
 
 #include <memory>
+
+#if PSY_IMPORT_PIPELINE
 
 #include "Import/Mdl/Mdl.h"
 
@@ -96,6 +96,8 @@ namespace
 	}
 }
 
+#endif // PSY_IMPORT_PIPELINE
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_DERIVED( ScnAnimationImport )
@@ -134,6 +136,7 @@ ScnAnimationImport::~ScnAnimationImport()
 // import
 BcBool ScnAnimationImport::import( const Json::Value& )
 {
+#if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
 		BcPrintf( "ERROR: Missing 'source' field.\n" );
@@ -367,7 +370,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 		return BcTrue;
 	}
-
+#endif // PSY_IMPORT_PIPELINE
 	return BcFalse;	
 }
 
@@ -375,6 +378,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 // recursiveParseAnimatedNodes
 void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, size_t ParentNodeIdx )
 {
+#if PSY_IMPORT_PIPELINE
 	AnimatedNode AnimatedNode;
 	aiMatrix4x4 WorldTransform = Node->mParent != nullptr ?
 		Node->mParent->mTransformation * Node->mTransformation : Node->mTransformation;
@@ -390,12 +394,14 @@ void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, size_
 	{
 		recursiveParseAnimatedNodes( Node->mChildren[ ChildIdx ], AnimatedNodes_.size() - 1 );
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // findAnimatedNode
 ScnAnimationImport::AnimatedNode& ScnAnimationImport::findAnimatedNode( std::string Name )
 {
+#if PSY_IMPORT_PIPELINE
 	for( auto& AnimatedNode : AnimatedNodes_ )
 	{
 		if( AnimatedNode.Name_ == Name )
@@ -408,6 +414,5 @@ ScnAnimationImport::AnimatedNode& ScnAnimationImport::findAnimatedNode( std::str
 	BcBreakpoint;
 
 	return *(ScnAnimationImport::AnimatedNode*)( nullptr );
+#endif
 }
-
-#endif // PSY_IMPORT_PIPELINE

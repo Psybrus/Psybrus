@@ -23,6 +23,8 @@
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 
+#endif // PSY_IMPORT_PIPELINE
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_DERIVED( ScnSoundImport )
@@ -68,6 +70,7 @@ ScnSoundImport::~ScnSoundImport()
 BcBool ScnSoundImport::import(
 		const Json::Value& Object )
 {
+#if PSY_IMPORT_PIPELINE
 	// Check file type.
 	if( Source_.rfind( ".ogg" ) != std::string::npos ||
 		Source_.rfind( ".wav" ) != std::string::npos )
@@ -98,6 +101,8 @@ BcBool ScnSoundImport::import(
 
 	CsResourceImporter::addChunk( BcHash( "filedata" ), &FileData_, sizeof( FileData_ ) );
 	return BcTrue;
+#else
+	return BcFalse;
+#endif // PSY_IMPORT_PIPELINE
 }
 
-#endif // PSY_IMPORT_PIPELINE
