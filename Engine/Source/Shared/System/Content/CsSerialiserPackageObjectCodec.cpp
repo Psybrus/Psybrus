@@ -15,8 +15,7 @@
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsResource.h"
 
-#include <boost/format.hpp>
-#include <boost/algorithm/string.hpp>
+#include <algorithm>
 
 CsSerialiserPackageObjectCodec::CsSerialiserPackageObjectCodec( 
 		class CsPackage* Package,
@@ -81,10 +80,12 @@ std::string CsSerialiserPackageObjectCodec::serialiseAsStringRef(
 			ReObject* ResourceRootOwner = Resource->getRootOwner();
 			if( ResourceRootOwner != nullptr )
 			{
-				RetVal = boost::str( boost::format( "$(%1%:%2%.%3%)" ) % 
-					(*Resource->getClass()->getName()) % 
-					(*ResourceRootOwner->getName()) %
-					(*Resource->getName()) );
+				BcChar OutChars[ 128 ];
+				BcSPrintf( OutChars, "$(%s:%s.%s)",  
+					(*Resource->getClass()->getName()).c_str(), 
+					(*ResourceRootOwner->getName()).c_str(),
+					(*Resource->getName()).c_str() );
+				RetVal = OutChars;
 			}
 		}
 	}
@@ -92,10 +93,11 @@ std::string CsSerialiserPackageObjectCodec::serialiseAsStringRef(
 	if( RetVal.empty() )
 	{
 		// Default formatting.
-		RetVal = boost::str( boost::format( "$(%1%:%2%.%3%)" ) % 
-			(*InType->getName()) % 
-			( "this" ) %
-			( (BcU64)InData ) );
+		BcChar OutChars[ 128 ];
+		BcSPrintf( OutChars, "$(%s:%s.%llu)",   
+			(*InType->getName()).c_str(),
+			( "this" ),
+			( (unsigned long long)InData ) );
 	}
 
 	return RetVal;
@@ -113,11 +115,17 @@ BcBool CsSerialiserPackageObjectCodec::isMatchingField(
 		return BcTrue;
 	}
 	
-	// Attempt case insensitive comparison without underscores.
-	boost::erase_all( FieldName, "_" );
+	// Remove underscores.
+	auto EndIt = std::remove_if( FieldName.begin(), FieldName.end(),
+		[]( char InChar )
+		{
+			return InChar == '_';
+		} );
+	FieldName.erase( EndIt, FieldName.end() );
 
+	// Case insensitive compare.
 	// Not UTF-8 safe. We shouldn't need to worry as input names should be ASCII (should later perform checks for this).
-	return boost::iequals( FieldName, Name );
+	return BcStrCompare( FieldName.c_str(), Name.c_str() );
 }
 
 //virtual

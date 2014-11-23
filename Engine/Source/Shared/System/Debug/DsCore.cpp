@@ -18,6 +18,8 @@
 #include "Serialisation/SeJsonWriter.h"
 #include "Psybrus.h"
 
+#if !PLATFORM_HTML5 // TODO, revisit this.
+
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
@@ -741,3 +743,5 @@ void DsCore::cmdResourceEdit(DsParameters params, BcHtmlNode& Output, std::strin
 	header.createChildNode("td").setContents("Variable");
 	header.createChildNode("td").setContents("Value");
 }
+
+#endif // !PLATFORM_HTML5 // TODO, revisit this.

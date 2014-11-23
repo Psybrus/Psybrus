@@ -17,8 +17,6 @@
 
 #include "Base/BcString.h"
 
-#include <boost/format.hpp>
-
 void MaQuat::StaticRegisterClass()
 {
 	class MaQuatSerialiser:
@@ -32,7 +30,9 @@ void MaQuat::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const MaQuat& Vec = *reinterpret_cast< const MaQuat* >( pInstance );
-			OutString = boost::str( boost::format( "%1%, %2%, %3%, %4%" ) % Vec.x() % Vec.y() % Vec.z() % Vec.w() );
+			BcChar OutChars[ 128 ];
+			BcSPrintf( OutChars, "%f, %f, %f, %f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
+			OutString = OutChars;
 			return true;
 		}
 

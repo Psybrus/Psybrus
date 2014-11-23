@@ -15,9 +15,9 @@
 
 #include <malloc.h>
 
-#if !PSY_PRODUCTION
+#if !PSY_PRODUCTION && !PLATFORM_HTML5
 #include <execinfo.h>
-#endif // !PSY_PRODUCTION
+#endif // !PSY_PRODUCTION && !PLATFORM_HTML5
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
@@ -25,7 +25,7 @@ BcBacktraceResult BcBacktrace()
 {
 	BcBacktraceResult Result;
 
-#if !PSY_PRODUCTION
+#if !PSY_PRODUCTION && !PLATFORM_HTML5
 	static const int BacktraceBufferSize = 1024;
 	void* BacktraceBuffer[ BacktraceBufferSize ];
 
@@ -42,7 +42,7 @@ BcBacktraceResult BcBacktrace()
 
 	// We must fre symbols ourselves.
 	free( Symbols );
-#endif // !PSY_PRODUCTION
+#endif // !PSY_PRODUCTION && !PLATFORM_HTML5
 
 	return Result;
 }

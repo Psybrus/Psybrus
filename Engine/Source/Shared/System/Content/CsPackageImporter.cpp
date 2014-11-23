@@ -204,8 +204,10 @@ BcBool CsPackageImporter::import( const BcName& Name )
 // save
 BcBool CsPackageImporter::save( const BcPath& Path )
 {
+#if !PLATFORM_HTML5
 	// Create target folder.
 	std::string PackedPath = *CsCore::pImpl()->getPackagePackedPath( "" );
+
 	if( !boost::filesystem::exists( PackedPath ) )
 	{
 		boost::filesystem::create_directories( PackedPath );
@@ -325,7 +327,7 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		//
 		return BcTrue;
 	}
-
+#endif // !PLATFORM_HTML5
 	return BcFalse;
 }
 

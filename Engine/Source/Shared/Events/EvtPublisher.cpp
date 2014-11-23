@@ -16,8 +16,6 @@
 #include "Base/BcProfiler.h"
 #include "Base/BcString.h"
 
-	#include <boost/format.hpp>
-
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 EvtPublisher::EvtPublisher()
@@ -97,9 +95,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	BcAssert( BcIsGameThread() );
 	BcUnusedVar( EventSize );
 
-#if PSY_USE_PROFILER
-	PSY_PROFILER_INSTANT_EVENT( boost::str( boost::format( "EvtPublisher::publishInternal( ID: %1%, Size: %2% )" ) % ID % EventSize ) );
-#endif
+	PSY_PROFILER_INSTANT_EVENT( "EvtPublisher::publishInternal" );
 
 	// Proxy event through all attached proxies if this event allows it.
 	if( AllowProxy == BcTrue )

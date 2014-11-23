@@ -13,7 +13,9 @@
 
 #include "System/Content/CsCore.h"
 
+#if !PLATFORM_HTML5
 #include <boost/filesystem.hpp>
+#endif // !PLATFORM_HTML5
 
 SYS_CREATOR( CsCore );
 
@@ -342,7 +344,9 @@ BcPath CsCore::getPackageIntermediatePath( const BcName& Package )
 		Path = "IntermediateContent";
 	}
 
+#if !PLATFORM_HTML5
 	boost::filesystem::create_directories( *Path );
+#endif // !PLATFORM_HTML5
 
 	return Path;
 }
@@ -369,7 +373,10 @@ BcPath CsCore::getIntermediatePath( const std::string& SubFolder )
 {
 	BcPath Path;
 	Path.join( "IntermediateContent", SubFolder + ".pak" );
+
+#if !PLATFORM_HTML5
 	boost::filesystem::create_directories( *Path );
+#endif // !PLATFORM_HTML5
 	return Path;
 }
 

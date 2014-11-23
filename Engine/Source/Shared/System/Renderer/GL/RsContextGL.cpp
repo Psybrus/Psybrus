@@ -28,7 +28,6 @@
 #include "Base/BcMath.h"
 
 #include <memory>
-#include <boost/format.hpp>
 
 #include "Import/Img/Img.h"
 
@@ -1219,10 +1218,11 @@ bool RsContextGL::createProgram(
 	// Bind all slots up.
 	// NOTE: We shouldn't need this in later GL versions with explicit
 	//       binding slots.
+	BcChar ChannelNameChars[ 128 ];
 	for( BcU32 Channel = 0; Channel < 16; ++Channel )
 	{
-		const std::string Name = boost::str( boost::format( "dcl_Input%1%" ) % Channel );
-		glBindAttribLocation( Handle, Channel, Name.c_str() );
+		BcSPrintf( ChannelNameChars, "dcl_Input%u", Channel );
+		glBindAttribLocation( Handle, Channel, ChannelNameChars );
 		RsGLCatchError();
 	}
 	

@@ -24,7 +24,9 @@
 
 #include "Base/BcMath.h"
 
+#if PSY_IMPORT_PIPELINE
 #include <boost/filesystem.hpp>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

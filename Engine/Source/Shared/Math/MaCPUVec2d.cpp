@@ -17,8 +17,6 @@
 
 #include "Base/BcString.h"
 
-#include <boost/format.hpp>
-
 void MaCPUVec2d::StaticRegisterClass()
 {
 	class MaCPUVec2dSerialiser:
@@ -32,7 +30,9 @@ void MaCPUVec2d::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const MaCPUVec2d& Vec = *reinterpret_cast< const MaCPUVec2d* >( pInstance );
-			OutString = boost::str( boost::format( "%1%, %2%" ) % Vec.x() % Vec.y() );
+			BcChar OutChars[ 128 ];
+			BcSPrintf( OutChars, "%f, %f", Vec.x(), Vec.y() );
+			OutString = OutChars;
 			return true;
 		}
 

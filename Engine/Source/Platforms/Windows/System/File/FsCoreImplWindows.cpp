@@ -23,8 +23,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include <boost/format.hpp>
-
 //////////////////////////////////////////////////////////////////////////
 // System Creator
 SYS_CREATOR( FsCoreImplWindows );
@@ -253,14 +251,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addReadOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplWindows::addReadOp" );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addReadOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplWindows::addReadOp" );	
 		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
 	}
 	
