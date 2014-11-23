@@ -92,7 +92,7 @@ function PsyProjectCommonEngine( _name )
 		defines { "PSY_PRODUCTION" }
 
 	-- Import pipeline.
-	configuration "windows* or linux*"
+	configuration "windows-* or linux-*"
 		defines { "PSY_IMPORT_PIPELINE" }
 
 
@@ -162,7 +162,7 @@ function PsyProjectGameExe( _name )
 		postbuildcommands {
 			"$(SILENT) echo Running asmjs finalise.",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) emcc -v -O2 -s EMCC_FAST_COMPILER=1 -s TOTAL_MEMORY=268435456 --llvm-opts \"['-O2', '-disable-slp-vectorization', '-disable-loop-vectorization', '-disable-loop-unrolling']\" \"$(TARGET).o\" -o \"$(TARGET)\".html"
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 -s EMCC_FAST_COMPILER=1 -s TOTAL_MEMORY=268435456 --llvm-opts \"['-O2', '-disable-slp-vectorization', '-disable-loop-vectorization', '-disable-loop-unrolling']\" \"$(TARGET).o\" -o \"$(TARGET)\".html"
 		}
 
 	-- Terminate project.

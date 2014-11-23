@@ -37,6 +37,16 @@ PsyProjectEngineLib( "Engine" )
             "./Platforms/Linux/",
         }
 
+    configuration "asmjs"
+        files {
+            "./Platforms/HTML5/*.h", 
+            "./Platforms/HTML5/*.inl", 
+            "./Platforms/HTML5/*.cpp", 
+        }
+        includedirs {
+            "./Platforms/HTML5/",
+        }
+
 	configuration "windows-*"
         files {
             "./Platforms/Windows/*.h", 

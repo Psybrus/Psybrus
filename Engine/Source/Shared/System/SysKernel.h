@@ -118,6 +118,11 @@ public:
 	BcF32 getGameThreadTime() const;
 
 	/**
+	 * Run once.
+	 */
+	void runOnce();
+
+	/**
 	 * Enqueue job.
 	 */
 	template< typename _Fn >
@@ -241,7 +246,7 @@ private:
 	 * Notify for scheduling.
 	 */
 	void notifySchedule();
-	
+
 private:
 	/**
 	 * Execute.

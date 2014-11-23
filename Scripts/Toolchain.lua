@@ -49,14 +49,10 @@ function PsySetupToolchain()
 
 		-- asmjs.
 		if _OPTIONS[ "toolchain" ] == "asmjs" then
-			premake.gcc.cc = "emcc"
-			premake.gcc.cxx = "em++" 
+			premake.gcc.cc = "$(EMSCRIPTEN)/emcc"
+			premake.gcc.cxx = "$(EMSCRIPTEN)/em++"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-asmjs" )
-			configuration "asmjs"
-				includedirs {
-					"/home/neilo/Dev/boost_emscripten" -- TODO: Remove.
-				}
 		end
 
 		-- Configurations

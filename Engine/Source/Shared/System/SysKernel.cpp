@@ -155,6 +155,7 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	FrameTime_ = 0.0f;
 	CurrWorkerAllocIdx_ = 0;
 
+#if !PLATFORM_HTML5
 	// Create job workers for the number of threads we have.
 	BcU32 NoofThreads = BcMax( std::thread::hardware_concurrency(), 1 );
 
@@ -169,6 +170,7 @@ SysKernel::SysKernel( BcF32 TickRate ):
 
 	// Wait for workers to start.
 	JobWorkerStartFence_.wait( 0 );
+#endif // !PLATFORM_HTML5
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -183,13 +185,15 @@ SysKernel::~SysKernel()
 	{
 		ExecutionThread_.join();
 	}
-	
+
+#if !PLATFORM_HTML5	
 	// Free job workers.
 	for( auto JobWorker : JobWorkers_ )
 	{
 		delete JobWorker;
 	}
 	JobWorkers_.clear();
+#endif // !PLATFORM_HTML5
 
 	// Free job queues.
 	for( auto JobQueue : JobQueues_ )
@@ -205,6 +209,7 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 {
 	BcAssertMsg( BcIsGameThread(), "Should only create job queues on the game thread." );
 
+#if !PLATFORM_HTML5
 	// Number of workers 0? Then create as many as there are workers.
 	if( NoofWorkers == 0 )
 	{
@@ -256,6 +261,9 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 	CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
 
 	return JobQueueId;
+#else
+	return (size_t)-1;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -446,11 +454,13 @@ size_t SysKernel::workerCount() const
 // addSystems
 BcBool SysKernel::pushJob( size_t JobQueueId, SysJob* pJob )
 {
+#if !PLATFORM_HTML5
 	// Check if we're out of range.
 	if( JobQueueId < JobQueues_.size() )
 	{
 		return JobQueues_[ JobQueueId ]->pushJob( pJob );
 	}
+#endif
 
 	// No queue we can use, execute on this thread.
 	pJob->internalExecute();
@@ -493,70 +503,77 @@ BcF32 SysKernel::getGameThreadTime() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// runOnce
+void SysKernel::runOnce()
+{
+#if PSY_USE_PROFILER
+	static BcU32 FrameCount = 0;
+#endif
+
+#if PSY_USE_PROFILER
+	if( FrameCount == 0 )
+	{
+		BcProfiler::pImpl()->beginProfiling();
+	}
+#endif
+
+	// Mark main timer.
+	MainTimer_.mark();
+	
+	// Tick systems.
+	tick();
+
+	// Store game thread time.
+	GameThreadTime_ = (BcF32)MainTimer_.time();
+	
+	// Sleep if we have a fixed rate specified, otherwise just yield.
+	if( TickRate_ > 0.0f )
+	{
+		PSY_PROFILER_SECTION( TickSleep, "Sleep" );
+
+		BcF32 TimeSpent = (BcF32)MainTimer_.time();
+		SleepAccumulator_ += BcMax( ( TickRate_ ) - TimeSpent, 0.0f );
+	
+		if( SleepAccumulator_ > 0.0f )
+		{
+			BcF32 SleepTime = SleepAccumulator_;
+			SleepAccumulator_ -= SleepTime;
+			BcSleep( BcMin( SleepTime, TickRate_ ) );
+		}
+	}
+	else
+	{
+		BcYield();
+	}
+
+	// Store frame time.
+	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
+
+	BcAssert( FrameTime_ >= 0.0f );
+
+#if PSY_USE_PROFILER
+	++FrameCount;
+
+	if( FrameCount == 60 )
+	{
+		BcProfiler::pImpl()->endProfiling();
+		FrameCount = 0;
+	}
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
 // execute
 //virtual
 void SysKernel::execute()
 {
 	// Set main thread.
 	BcSetGameThread();
-
-#if PSY_USE_PROFILER
-	BcU32 FrameCount = 0;
-#endif
 	
 	// Run until there are no more systems to run.
 	do
 	{
-#if PSY_USE_PROFILER
-		if( FrameCount == 0 )
-		{
-			BcProfiler::pImpl()->beginProfiling();
-		}
-#endif
-
-		// Mark main timer.
-		MainTimer_.mark();
-		
-		// Tick systems.
-		tick();
-
-		// Store game thread time.
-		GameThreadTime_ = (BcF32)MainTimer_.time();
-		
-		// Sleep if we have a fixed rate specified, otherwise just yield.
-		if( TickRate_ > 0.0f )
-		{
-			PSY_PROFILER_SECTION( TickSleep, "Sleep" );
-
-			BcF32 TimeSpent = (BcF32)MainTimer_.time();
-			SleepAccumulator_ += BcMax( ( TickRate_ ) - TimeSpent, 0.0f );
-		
-			if( SleepAccumulator_ > 0.0f )
-			{
-				BcF32 SleepTime = SleepAccumulator_;
-				SleepAccumulator_ -= SleepTime;
-				BcSleep( BcMin( SleepTime, TickRate_ ) );
-			}
-		}
-		else
-		{
-			BcYield();
-		}
-
-		// Store frame time.
-		FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
-
-		BcAssert( FrameTime_ >= 0.0f );
-
-#if PSY_USE_PROFILER
-		++FrameCount;
-
-		if( FrameCount == 60 )
-		{
-			BcProfiler::pImpl()->endProfiling();
-			FrameCount = 0;
-		}
-#endif
+		runOnce();
 	}
 	while( SystemList_.size() > 0 );
 }
