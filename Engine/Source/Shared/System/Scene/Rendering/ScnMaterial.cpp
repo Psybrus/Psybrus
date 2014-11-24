@@ -334,7 +334,7 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer
 	if( Index == BcErrorCode )
 	{
 		//pProgram_->logShaders();
-		BcBreakpoint;
+		return;
 	}
 #endif
 
