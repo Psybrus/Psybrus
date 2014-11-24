@@ -1669,35 +1669,44 @@ void RsContextGL::flushState()
 			gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] );
 
 #if !PLATFORM_HTML5
-		for( BcU32 Idx = 0; Idx < 8; ++Idx )
+		if( Version_.Type_ != RsOpenGLType::ES )
 		{
-			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
-			glColorMaski(
-				Idx,
+			for( BcU32 Idx = 0; Idx < 8; ++Idx )
+			{
+				const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
+				glColorMaski(
+					Idx,
+					RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+					RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+					RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+					RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+				RsGLCatchError();
+			}
+		}
+#else // GL4+
+		else
+		{
+			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
+			glColorMask(
 				RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
 				RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
 				RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
 				RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 			RsGLCatchError();
 		}
-#else
-		const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
-		glColorMask(
-			RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
-			RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
-			RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
-			RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 #endif // !PLATFORM_HTML5
 
-#endif
+#endif // GL4+
 
 		const auto& DepthStencilState = Desc.DepthStencilState_;
 		
 		DepthStencilState.DepthTestEnable_ ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
 		glDepthMask( (GLboolean)DepthStencilState.DepthWriteEnable_ );
 		glDepthFunc( gCompareMode[ (BcU32)DepthStencilState.DepthFunc_ ] );
+		RsGLCatchError();
 
 		DepthStencilState.StencilEnable_ ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
+		RsGLCatchError();
 
 		glStencilFuncSeparate( 
 			GL_FRONT,
@@ -1720,11 +1729,16 @@ void RsContextGL::flushState()
 			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Fail_ ], 
 			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.DepthFail_ ], 
 			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Pass_ ] );
+		RsGLCatchError();
 
 		const auto& RasteriserState = Desc.RasteriserState_;
 
 #if !PLATFORM_HTML5
-		glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
+		if( Version_.Type_ != RsOpenGLType::ES )
+		{
+			glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
+			RsGLCatchError();
+		}
 #else
 		// TODO ES2
 		BcBreakpoint;
@@ -1733,14 +1747,17 @@ void RsContextGL::flushState()
 		{
 		case RsCullMode::NONE:
 			glDisable( GL_CULL_FACE );
+			RsGLCatchError();
 			break;
 		case RsCullMode::CW:
 			glEnable( GL_CULL_FACE );
 			glCullFace( GL_FRONT );
+			RsGLCatchError();
 			break;
 		case RsCullMode::CCW:
 			glEnable( GL_CULL_FACE );
 			glCullFace( GL_BACK );
+			RsGLCatchError();
 			break;
 		default:
 			BcBreakpoint;
@@ -1751,7 +1768,11 @@ void RsContextGL::flushState()
 		// TODO DepthClipEnable_
 		// TODO ScissorEnable_
 
-		RasteriserState.AntialiasedLineEnable_ ? glEnable( GL_LINE_SMOOTH) : glDisable( GL_LINE_SMOOTH );
+		if( Version_.Type_ != RsOpenGLType::ES )
+		{
+			RasteriserState.AntialiasedLineEnable_ ? glEnable( GL_LINE_SMOOTH ) : glDisable( GL_LINE_SMOOTH );
+			RsGLCatchError();
+		}
 	}
 
 	// Bind texture states.
