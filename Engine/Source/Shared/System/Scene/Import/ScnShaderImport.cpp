@@ -86,6 +86,9 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
+		{ "ps_3_0", RsShaderType::PIXEL, RsShaderCodeType::D3D9_3_0 },
+		{ "ps_4_0_level_9_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_0 },
+		{ "ps_4_0_level_9_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
 		{ "ps_4_0_level_9_3", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "ps_4_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0 },
 		{ "ps_4_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_1 },
@@ -99,6 +102,9 @@ namespace
 		{ "gs_4_1", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
 		{ "gs_5_0", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 		
+		{ "vs_3_0", RsShaderType::VERTEX, RsShaderCodeType::D3D9_3_0 },
+		{ "vs_4_0_level_9_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_0 },
+		{ "vs_4_0_level_9_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
 		{ "vs_4_0_level_9_3", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "vs_4_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
 		{ "vs_4_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
