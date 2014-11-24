@@ -848,7 +848,7 @@ bool RsContextGL::createSamplerState(
 	if( Version_.Type_ == RsOpenGLType::CORE &&
 		Version_ .getCombinedVersion() >= 0x00030003 )
 	{
-		GLuint SamplerObject = -1;
+		GLuint SamplerObject = (GLuint)-1;
 		glGenSamplers( 1, &SamplerObject );
 		RsGLCatchError();
 
@@ -1443,15 +1443,8 @@ void RsContextGL::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	// Setup default texture states.
-	RsTextureParams TextureParams = 
-	{
-		RsTextureFilteringMode::LINEAR, RsTextureFilteringMode::LINEAR, RsTextureSamplingMode::WRAP, RsTextureSamplingMode::WRAP
-	};
-
 	for( BcU32 Sampler = 0; Sampler < MAX_TEXTURE_SLOTS; ++Sampler )
 	{
-		//setSamplerState( Sampler, TextureParams, BcTrue );
 		setTexture( Sampler, nullptr, BcTrue );
 	}
 

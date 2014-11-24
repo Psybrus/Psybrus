@@ -125,8 +125,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
     auto Serialiser = pClass->getTypeSerialiser();
     std::string OutString;
 
-    bool Success = false;
-    BcChar TempChars[ 128 ];
+    BcBool Success = false;
     // Attempt conversion to string.
 	if( Serialiser != nullptr )
 	{
@@ -138,26 +137,22 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		// Attempt conversion to float via string.
 		else if( InputValue.type() == Json::realValue )
 		{
-			BcSPrintf( TempChars, "%f", InputValue.asDouble() );
-			Success = Serialiser->serialiseFromString( pData, TempChars );
+			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asDouble() ) );
 		}
 		// Attempt conversion to uint via string.
 		else if( InputValue.type() == Json::uintValue )
 		{
-			BcSPrintf( TempChars, "%u", InputValue.asUInt() );
-			Success = Serialiser->serialiseFromString( pData, TempChars );
+			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asUInt() ) );
 		}
 		// Attempt conversion to int via string.
 		else if( InputValue.type() == Json::intValue )
 		{
-			BcSPrintf( TempChars, "%i", InputValue.asInt() );
-			Success = Serialiser->serialiseFromString( pData, TempChars );
+			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asInt() ) );
 		}
 		// Attempt conversion to bool via string.
 		else if( InputValue.type() == Json::booleanValue )
 		{
-			BcSPrintf( TempChars, "%u", InputValue.asBool() ? 1 : 0 );
-			Success = Serialiser->serialiseFromString( pData, TempChars );
+			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asBool() ) );
 		}
 		// Attempt conversion to object.
 		else if( InputValue.type() == Json::objectValue )
