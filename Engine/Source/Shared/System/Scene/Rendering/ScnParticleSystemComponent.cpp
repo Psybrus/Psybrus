@@ -240,11 +240,12 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		RsCore::pImpl()->updateBuffer( 
 			VertexBuffer.pVertexBuffer_,
 			0,
-			NoofParticlesToRender * sizeof( ScnParticleVertex ),
+			NoofParticlesToRender * sizeof( ScnParticleVertex ) * 6,
 			RsResourceUpdateFlags::ASYNC,
-			[ & ]
+			[ this, NoofParticlesToRender ]
 			( RsBuffer* Buffer, const RsBufferLock& Lock )
 			{
+				BcU32 NoofParticlesRendered = 0;
 				ScnParticleVertex* pVertex = reinterpret_cast< ScnParticleVertex* >( Lock.Buffer_ );
 				for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
 				{
@@ -252,6 +253,8 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 
 					if( Particle.Alive_ )
 					{
+						++NoofParticlesRendered;
+
 						// Half size.
 						const MaVec2d HalfSize = Particle.Scale_ * 0.5f;
 						BcAssert( Particle.TextureIndex_ < UVBounds_.size() );
@@ -359,6 +362,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 					}
 				}
 
+				BcAssert( NoofParticlesRendered == NoofParticlesToRender );
 				UploadFence_.decrement();
 			} );
 	}
