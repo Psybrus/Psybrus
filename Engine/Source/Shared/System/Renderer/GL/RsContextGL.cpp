@@ -1683,8 +1683,8 @@ void RsContextGL::flushState()
 				RsGLCatchError();
 			}
 		}
-#else // GL4+
 		else
+#else // GL4+
 		{
 			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
 			glColorMask(
