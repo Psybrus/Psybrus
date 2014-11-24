@@ -982,15 +982,15 @@ bool RsContextGL::updateBuffer(
 		// Get buffer type for GL.
 		auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
 
-		// Get access flags for GL.
-		GLbitfield AccessFlagsGL = 
-			GL_MAP_WRITE_BIT | 
-			GL_MAP_INVALIDATE_RANGE_BIT;
-
 		// Bind buffer.
 		glBindBuffer( TypeGL, Handle );
 
 #if !PLATFORM_HTML5
+		// Get access flags for GL.
+		GLbitfield AccessFlagsGL =
+			GL_MAP_WRITE_BIT |
+			GL_MAP_INVALIDATE_RANGE_BIT;
+
 		// Map and update buffer.
 		auto LockedPointer = glMapBufferRange( TypeGL, Offset, Size, AccessFlagsGL );
 		if( LockedPointer != nullptr )
@@ -1005,10 +1005,17 @@ bool RsContextGL::updateBuffer(
 
 		RsGLCatchError();
 #else
-		// TODO ES2 glBufferSubData?
-		BcBreakpoint;
+		// Use glBufferSubData to upload.
+		// TODO: Allocate of a temporary per-frame buffer.
+		std::unique_ptr< BcChar[] > Data( new BcChar[ Size ] );
+			RsBufferLock Lock =
+		{
+			Data.get()
+		};
+		UpdateFunc( Buffer, Lock );
+		glBufferSubData( TypeGL, Offset, Size, Data.get() );
 #endif
-		return true;
+ 		return true;
 	}
 
 	return false;
