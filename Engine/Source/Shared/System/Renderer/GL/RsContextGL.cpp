@@ -1668,9 +1668,9 @@ void RsContextGL::flushState()
 			gBlendType[ (BcU32)MainRenderTarget.SrcBlend_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlend_ ],
 			gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] );
 
-#if !PLATFORM_HTML5
 		if( Version_.Type_ != RsOpenGLType::ES )
 		{
+#if !PLATFORM_HTML5
 			for( BcU32 Idx = 0; Idx < 8; ++Idx )
 			{
 				const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
@@ -1682,9 +1682,9 @@ void RsContextGL::flushState()
 					RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 				RsGLCatchError();
 			}
+#endif // !PLATFORM_HTML5
 		}
 		else
-#else // GL4+
 		{
 			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
 			glColorMask(
@@ -1694,7 +1694,6 @@ void RsContextGL::flushState()
 				RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 			RsGLCatchError();
 		}
-#endif // !PLATFORM_HTML5
 
 #endif // GL4+
 
