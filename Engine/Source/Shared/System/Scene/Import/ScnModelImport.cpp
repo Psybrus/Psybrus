@@ -720,10 +720,13 @@ void ScnModelImport::serialiseVertices(
 				BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
 				{
 					BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-					*OutVal++ = (BcF32)Vertex.iJoints_[0];
-					*OutVal++ = (BcF32)Vertex.iJoints_[1];
-					*OutVal++ = (BcF32)Vertex.iJoints_[2];
-					*OutVal++ = (BcF32)Vertex.iJoints_[3];
+
+					// Multiply out by 4 to remove the need in the shader later.
+					// Indices will refer to vector, not matrix.
+					*OutVal++ = (BcF32)( Vertex.iJoints_[0] * 4 );
+					*OutVal++ = (BcF32)( Vertex.iJoints_[1] * 4 );
+					*OutVal++ = (BcF32)( Vertex.iJoints_[2] * 4 );
+					*OutVal++ = (BcF32)( Vertex.iJoints_[3] * 4 );
 				}
 				break;
 			case RsVertexUsage::BLENDWEIGHTS:
@@ -1175,10 +1178,13 @@ void ScnModelImport::serialiseVertices(
 					{
 						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
 						MaVec4d BlendIndicesVec = BlendIndices[ VertexIdx ];
-						*OutVal++ = (BcF32)BlendIndicesVec.x();
-						*OutVal++ = (BcF32)BlendIndicesVec.y();
-						*OutVal++ = (BcF32)BlendIndicesVec.z();
-						*OutVal++ = (BcF32)BlendIndicesVec.w();
+
+						// Multiply out by 4 to remove the need in the shader later.
+						// Indices will refer to vector, not matrix.
+						*OutVal++ = (BcF32)BlendIndicesVec.x() * 4.0f;
+						*OutVal++ = (BcF32)BlendIndicesVec.y() * 4.0f;
+						*OutVal++ = (BcF32)BlendIndicesVec.z() * 4.0f;
+						*OutVal++ = (BcF32)BlendIndicesVec.w() * 4.0f;
 					}
 				}
 				break;

@@ -45,10 +45,10 @@ struct VertexDefault
  * @param _p Input properties. Unused.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = mul( WorldTransform_, _v );																\
+		_o = PsyMatMul( WorldTransform_[0], WorldTransform_[1], WorldTransform_[2], WorldTransform_[3], _v ); \
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = mul( (float3x3)NormalTransform_, _v );														\
+		_o = PsyMatMul( NormalTransform_[0].xyz, NormalTransform_[1].xyz, NormalTransform_[2].xyz, _v );														\
 
 
 #elif defined( PERM_MESH_SKINNED_3D )
@@ -60,18 +60,41 @@ struct VertexDefault
  * @param _p Input properties. Should be a structure containing BlendIndices_, and BlendWeights_.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = float4( 0.0, 0.0, 0.0, 0.0 );																\
-		_o += mul( BoneTransform_[ int(_p.BlendIndices_.x) ], _v ) * _p.BlendWeights_.x;				\
-		_o += mul( BoneTransform_[ int(_p.BlendIndices_.y) ], _v ) * _p.BlendWeights_.y;				\
-		_o += mul( BoneTransform_[ int(_p.BlendIndices_.z) ], _v ) * _p.BlendWeights_.z;				\
-		_o += mul( BoneTransform_[ int(_p.BlendIndices_.w) ], _v ) * _p.BlendWeights_.w;				\
+		_o = PsyMatMulTranspose( 																		\
+			BoneTransform_[ int(_p.BlendIndices_.x ) ],													\
+			BoneTransform_[ int(_p.BlendIndices_.x + 1.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.x + 2.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.x + 3.0f ) ], _v ) * _p.BlendWeights_.x;				\
+		_o += PsyMatMulTranspose( 																		\
+			BoneTransform_[ int(_p.BlendIndices_.y ) ],													\
+			BoneTransform_[ int(_p.BlendIndices_.y + 1.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.y + 2.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.y + 3.0f ) ], _v ) * _p.BlendWeights_.y;				\
+		_o += PsyMatMulTranspose( 																		\
+			BoneTransform_[ int(_p.BlendIndices_.z ) ],													\
+			BoneTransform_[ int(_p.BlendIndices_.z + 1.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.z + 2.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.z + 3.0f ) ], _v ) * _p.BlendWeights_.z;				\
+		_o += PsyMatMulTranspose(																		\
+			BoneTransform_[ int(_p.BlendIndices_.w ) ],													\
+			BoneTransform_[ int(_p.BlendIndices_.w + 1.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.w + 2.0f ) ],											\
+			BoneTransform_[ int(_p.BlendIndices_.w + 3.0f ) ], _v ) * _p.BlendWeights_.w;				\
+			
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = float3( 0.0, 0.0, 0.0 );																	\
-		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.x) ], _v.xyz ) * _p.BlendWeights_.x;	\
-		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.y) ], _v.xyz ) * _p.BlendWeights_.y;	\
-		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.z) ], _v.xyz ) * _p.BlendWeights_.z;	\
-		_o += mul( (float3x3)BoneTransform_[ int(_p.BlendIndices_.w) ], _v.xyz ) * _p.BlendWeights_.w;	\
+		_o = PsyMatMulTranspose( 																		\
+			BoneTransform_[ int(_p.BlendIndices_.x + 0.0f ) ].xyz,										\
+			BoneTransform_[ int(_p.BlendIndices_.x + 1.0f ) ].xyz,										\
+			BoneTransform_[ int(_p.BlendIndices_.x + 2.0f ) ].xyz, _v ) * _p.BlendWeights_.x;			\
+		_o += PsyMatMulTranspose( 																		\
+			BoneTransform_[ int(_p.BlendIndices_.y + 0.0f ) ].xyz,										\
+			BoneTransform_[ int(_p.BlendIndices_.y + 1.0f ) ].xyz,										\
+			BoneTransform_[ int(_p.BlendIndices_.y + 2.0f ) ].xyz, _v ) * _p.BlendWeights_.y;			\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ int(_p.BlendIndices_.z + 0.0f ) ].xyz,										\
+			BoneTransform_[ int(_p.BlendIndices_.z + 1.0f ) ].xyz,										\
+			BoneTransform_[ int(_p.BlendIndices_.z + 2.0f ) ].xyz, _v ) * _p.BlendWeights_.z;			\
 
 
 #elif defined( PERM_MESH_PARTICLE_3D )
@@ -85,11 +108,10 @@ struct VertexDefault
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = _v + 																						\
 				float4(																					\
-					mul(																				\
-						float3x3(																		\
-							InverseViewTransform_[0].xyz, 												\
-							InverseViewTransform_[1].xyz, 												\
-							InverseViewTransform_[2].xyz ),												\
+					PsyMatMul(																			\
+						InverseViewTransform_[0].xyz, 													\
+						InverseViewTransform_[1].xyz, 													\
+						InverseViewTransform_[2].xyz,													\
 			 			_p.VertexOffset_.xyz ),	0.0 );													\
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
@@ -105,19 +127,17 @@ struct VertexDefault
  * @param _p Input properties. Should be a structure containing WorldMatrix[0-3].
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = mul( 																						\
-				float4x4(  																				\
-					_p.WorldMatrix0_, 																	\
-					_p.WorldMatrix1_, 																	\
-					_p.WorldMatrix2_, 																	\
-					_p.WorldMatrix3_ ), _v );	 														\
+		_o = PsyMatMul( 																				\
+				_p.WorldMatrix0_, 																		\
+				_p.WorldMatrix1_, 																		\
+				_p.WorldMatrix2_, 																		\
+				_p.WorldMatrix3_, _v );	 																\
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = mul( 																						\
-				float3x3(  																				\
-					_p.WorldMatrix0_.xyz,																\
-					_p.WorldMatrix1_.xyz,																\
-					_p.WorldMatrix2_.xyz ), _v );	 													\
+		_o = PsyMatMul( 																				\
+				_p.WorldMatrix0_.xyz,																	\
+				_p.WorldMatrix1_.xyz,																	\
+					_p.WorldMatrix2_.xyz, _v );	 														\
 
 #endif
 
@@ -129,8 +149,8 @@ struct VertexDefault
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
-#  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
-		_o = _v; 																				\
+#  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 															\
+		_o = _v; 																						\
 
 #else
 
@@ -139,7 +159,7 @@ struct VertexDefault
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
-#  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 													\
-		_o = mul( ClipTransform_, _v ); 														\
+#  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) 															\
+		_o = PsyMatMul( ClipTransform_, _v ); 															\
 
 #endif
