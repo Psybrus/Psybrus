@@ -14,12 +14,27 @@
 #include "Base/BcDebug.h"
 
 #include <windows.h>
+#include <string>
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
 BcBacktraceResult BcBacktrace()
 {
 	BcBacktraceResult Result;
+
+	void* Addresses[ 1024 ];
+
+	auto NoofFrames = ::CaptureStackBackTrace( 1, ARRAYSIZE( Addresses ), Addresses, nullptr );
+	for( decltype( NoofFrames ) Idx = 0; Idx < NoofFrames; ++Idx )
+	{
+		BcBacktraceEntry Entry = 
+		{
+			Addresses[ Idx ],
+			std::to_string( (_Longlong)Addresses[ Idx ] ) // TODO: Symbols.
+		};
+
+		Result.Backtrace_.push_back( Entry );
+	}
 
 	return Result;
 }
