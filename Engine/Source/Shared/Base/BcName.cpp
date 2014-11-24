@@ -20,7 +20,6 @@ BcName BcName::INVALID;
 BcName BcName::NONE( "None" );
 
 BcNameEntryList* BcName::pStringEntries_ = nullptr;
-std::mutex BcName::EntryLock_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -96,7 +95,7 @@ std::string BcName::operator * () const
 	{
 		BcNameEntry Entry;
 		{
-			std::lock_guard< std::mutex > Lock( EntryLock_ );
+			std::lock_guard< std::mutex > Lock( GetLock() );
 			Entry = StringEntries[ EntryIndex_ ];
 		}
 
@@ -127,7 +126,7 @@ std::string BcName::getValue() const
 
 	if( EntryIndex_ < StringEntries.size() )
 	{
-		std::lock_guard< std::mutex > Lock( EntryLock_ );
+		std::lock_guard< std::mutex > Lock( GetLock() );
 		return StringEntries[ EntryIndex_ ].Value_;	
 	}
 
@@ -149,8 +148,8 @@ BcName BcName::getUnique() const
 	BcNameEntryList& StringEntries( getStringEntries() );
 	BcNameEntry SrcStringEntry;
 	{
-		std::lock_guard< std::mutex > Lock( EntryLock_ );
-		BcNameEntry SrcStringEntry( StringEntries[ EntryIndex_ ] );
+		std::lock_guard< std::mutex > Lock( GetLock() );
+		SrcStringEntry = StringEntries[ EntryIndex_ ];
 	}
 
 	// Grab current id.
@@ -160,7 +159,7 @@ BcName BcName::getUnique() const
 	if( ID_ == BcErrorCode )
 	{
 		// Advance ID for name.
-		std::lock_guard< std::mutex > Lock( EntryLock_ );
+		std::lock_guard< std::mutex > Lock( GetLock() );
 		BcNameEntry& DstStringEntry( StringEntries[ EntryIndex_ ] );
 		NewID = DstStringEntry.ID_++;
 	}
@@ -289,7 +288,7 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 
 	// TODO: Store in a hash map?
 	// Iterate over array to find if string exists.
-	std::lock_guard< std::mutex > Lock( EntryLock_ );
+	std::lock_guard< std::mutex > Lock( GetLock() );
 	BcNameEntryList& StringEntries( getStringEntries() );
 	for( BcU32 Idx = 0; Idx < StringEntries.size(); ++Idx )
 	{
@@ -371,4 +370,12 @@ std::string BcName::StripInvalidChars( const BcChar* pString )
 	}
 
 	return Value;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetLock
+std::mutex& BcName::GetLock()
+{
+	static std::mutex Lock;
+	return Lock;
 }

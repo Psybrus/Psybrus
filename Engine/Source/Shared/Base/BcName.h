@@ -113,7 +113,7 @@ private:
 
 private:
 	static BcNameEntryList* pStringEntries_;
-	static std::mutex EntryLock_;
+	static std::mutex& GetLock();
 
 	/**
 	 * Get string entries.
