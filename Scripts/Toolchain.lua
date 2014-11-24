@@ -110,33 +110,33 @@ function PsySetupToolchain()
 		-- win-vs-v110
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v110" then
 			premake.vstudio.toolset = "v110"
-			location ( "Build/" .. _ACTION .. "windows-vs-v110" )
+			location ( "Build/" .. _ACTION .. "-windows-vs-v110" )
 		end
 
 		-- win-vs-v120
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v120" then
 			premake.vstudio.toolset = "v120"
-			location ( "Build/" .. _ACTION .. "windows-vs-v120" )
+			location ( "Build/" .. _ACTION .. "-windows-vs-v120" )
 		end
 
 		-- win-vs-clang
 		if _OPTIONS[ "toolchain" ] == "windows-vs-clang" then
 			premake.vstudio.toolset = "LLVM-" .. _ACTION
-			location ( "Build/" .. _ACTION .. "windows-vs-clang" )
+			location ( "Build/" .. _ACTION .. "-windows-vs-clang" )
 		end
 
 		-- Configurations
 		configuration { "windows-vs-v110" }
-			targetdir ( "Build/" .. _ACTION .. "windows-vs-v110/bin" )
-			objdir ( "Build/" .. _ACTION .. "windows-vs-v110/obj" )
+			targetdir ( "Build/" .. _ACTION .. "-windows-vs-v110/bin" )
+			objdir ( "Build/" .. _ACTION .. "-windows-vs-v110/obj" )
 
 		configuration { "windows-vs-v120" }
 			targetdir ( "Build/" .. _ACTION .. "windows-vs-v120/bin" )
 			objdir ( "Build/" .. _ACTION .. "windows-vs-v120/obj" )
 
 		configuration { "windows-vs-clang" }
-			targetdir ( "Build/" .. _ACTION .. "windows-vs-clang/bin" )
-			objdir ( "Build/" .. _ACTION .. "windows-vs-clang/obj" )
+			targetdir ( "Build/" .. _ACTION .. "-windows-vs-clang/bin" )
+			objdir ( "Build/" .. _ACTION .. "-windows-vs-clang/obj" )
 	end
 
 	-- Check we got a valid toolchain
