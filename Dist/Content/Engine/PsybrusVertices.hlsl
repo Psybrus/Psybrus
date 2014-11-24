@@ -48,7 +48,7 @@ struct VertexDefault
 		_o = PsyMatMul( WorldTransform_[0], WorldTransform_[1], WorldTransform_[2], WorldTransform_[3], _v ); \
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = PsyMatMul( NormalTransform_[0].xyz, NormalTransform_[1].xyz, NormalTransform_[2].xyz, _v );														\
+		_o = PsyMatMul( NormalTransform_[0].xyz, NormalTransform_[1].xyz, NormalTransform_[2].xyz, _v ); \
 
 
 #elif defined( PERM_MESH_SKINNED_3D )
@@ -61,40 +61,40 @@ struct VertexDefault
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = PsyMatMulTranspose( 																		\
-			BoneTransform_[ int(_p.BlendIndices_.x ) ],													\
-			BoneTransform_[ int(_p.BlendIndices_.x + 1.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.x + 2.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.x + 3.0f ) ], _v ) * _p.BlendWeights_.x;				\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 0 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 1 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 2 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 3 ), _v ) * _p.BlendWeights_.x;				\
 		_o += PsyMatMulTranspose( 																		\
-			BoneTransform_[ int(_p.BlendIndices_.y ) ],													\
-			BoneTransform_[ int(_p.BlendIndices_.y + 1.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.y + 2.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.y + 3.0f ) ], _v ) * _p.BlendWeights_.y;				\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 0 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 1 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 2 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 3 ), _v ) * _p.BlendWeights_.y;				\
 		_o += PsyMatMulTranspose( 																		\
-			BoneTransform_[ int(_p.BlendIndices_.z ) ],													\
-			BoneTransform_[ int(_p.BlendIndices_.z + 1.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.z + 2.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.z + 3.0f ) ], _v ) * _p.BlendWeights_.z;				\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 0 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 1 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 2 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 3 ), _v ) * _p.BlendWeights_.z;				\
 		_o += PsyMatMulTranspose(																		\
-			BoneTransform_[ int(_p.BlendIndices_.w ) ],													\
-			BoneTransform_[ int(_p.BlendIndices_.w + 1.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.w + 2.0f ) ],											\
-			BoneTransform_[ int(_p.BlendIndices_.w + 3.0f ) ], _v ) * _p.BlendWeights_.w;				\
+			PsyGetBoneTransformVector( _p.BlendIndices_.w, 0 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.w, 1 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.w, 2 ),											\
+			PsyGetBoneTransformVector( _p.BlendIndices_.w, 3 ), _v ) * _p.BlendWeights_.w;				\
 			
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
 		_o = PsyMatMulTranspose( 																		\
-			BoneTransform_[ int(_p.BlendIndices_.x + 0.0f ) ].xyz,										\
-			BoneTransform_[ int(_p.BlendIndices_.x + 1.0f ) ].xyz,										\
-			BoneTransform_[ int(_p.BlendIndices_.x + 2.0f ) ].xyz, _v ) * _p.BlendWeights_.x;			\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 0 ).xyz,										\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 1 ).xyz,										\
+			PsyGetBoneTransformVector( _p.BlendIndices_.x, 2 ).xyz, _v ) * _p.BlendWeights_.x;			\
 		_o += PsyMatMulTranspose( 																		\
-			BoneTransform_[ int(_p.BlendIndices_.y + 0.0f ) ].xyz,										\
-			BoneTransform_[ int(_p.BlendIndices_.y + 1.0f ) ].xyz,										\
-			BoneTransform_[ int(_p.BlendIndices_.y + 2.0f ) ].xyz, _v ) * _p.BlendWeights_.y;			\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 0 ).xyz,										\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 1 ).xyz,										\
+			PsyGetBoneTransformVector( _p.BlendIndices_.y, 2 ).xyz, _v ) * _p.BlendWeights_.y;			\
 		_o += PsyMatMul( 																				\
-			BoneTransform_[ int(_p.BlendIndices_.z + 0.0f ) ].xyz,										\
-			BoneTransform_[ int(_p.BlendIndices_.z + 1.0f ) ].xyz,										\
-			BoneTransform_[ int(_p.BlendIndices_.z + 2.0f ) ].xyz, _v ) * _p.BlendWeights_.z;			\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 0 ).xyz,										\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 1 ).xyz,										\
+			PsyGetBoneTransformVector( _p.BlendIndices_.z, 2 ).xyz, _v ) * _p.BlendWeights_.z;			\
 
 
 #elif defined( PERM_MESH_PARTICLE_3D )
@@ -114,6 +114,7 @@ struct VertexDefault
 						InverseViewTransform_[2].xyz,													\
 			 			_p.VertexOffset_.xyz ),	0.0 );													\
 
+
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
 		_o = _v;																						\
 
@@ -132,6 +133,7 @@ struct VertexDefault
 				_p.WorldMatrix1_, 																		\
 				_p.WorldMatrix2_, 																		\
 				_p.WorldMatrix3_, _v );	 																\
+
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
 		_o = PsyMatMul( 																				\
