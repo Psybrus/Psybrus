@@ -580,7 +580,7 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		RsOpenGLVersion( 3, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_140 ),
+		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
@@ -589,10 +589,10 @@ void RsContextGL::create()
 		if( createProfile( Version, ParentContext ) )
 		{
 			Version_ = Version;
-			BcPrintf( "RsContextGL: Created OpenGL %u.%u %s Profile.\n", 
+			BcPrintf( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
+				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
-				Version.Minor_,
-				Version.Type_ == RsOpenGLType::CORE ? "Core" : "Compatibility" );
+				Version.Minor_ );
 			break;
 		}
 	}
@@ -633,7 +633,6 @@ void RsContextGL::create()
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
-
 	};
 
 	BcAssert( pParent_ == nullptr );
@@ -644,21 +643,15 @@ void RsContextGL::create()
 		if( createProfile( Version, Window ) )
 		{
 			Version_ = Version;
-			BcPrintf( "RsContextGL: Created OpenGL %u.%u %s Profile.\n", 
+			BcPrintf( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
+				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
-				Version.Minor_,
-				Version.Type_ == RsOpenGLType::CORE ? "Core" : "Compatibility" );
+				Version.Minor_ );
 			break;
 		}
-		else
-		{
-			BcPrintf( "RsContextGL: Failed to create OpenGL %u.%u %s Profile.\n", 
-				Version.Major_, 
-				Version.Minor_,
-				Version.Type_ == RsOpenGLType::CORE ? "Core" : "Compatibility" );
-
-		}
 	}
+
+	BcAssert( SDLGLContext_ != nullptr );
 
 	// Init GLEW.
 	glewExperimental = 1;
