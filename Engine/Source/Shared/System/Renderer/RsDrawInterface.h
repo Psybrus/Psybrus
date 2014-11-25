@@ -73,6 +73,8 @@ public:
 
 	/**
 	 * Set uniform buffer.
+	 * @param SlotIdx Slot for uniform buffer to be bound.
+	 * @param UniformBuffer Uniform buffer to be bound.
 	 */
 	virtual void setUniformBuffer( 
 		BcU32 SlotIdx, 

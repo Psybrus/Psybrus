@@ -93,6 +93,21 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// getUniformBufferClass
+const ReClass* RsProgram::getUniformBufferClass( BcU32 Handle )
+{
+	for( const auto& It : UniformBlockList_ )
+	{
+		if( It.Handle_ == Handle )
+		{
+			return It.Class_;
+		}
+	}
+
+	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // getShaders
 const std::vector< class RsShader* >& RsProgram::getShaders() const
 {
@@ -141,15 +156,17 @@ void RsProgram::addTextureSlot( std::string Name, BcU32 Handle )
 
 ////////////////////////////////////////////////////////////////////////////////
 // addUniformBufferSlot
-void RsProgram::addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size )
+void RsProgram::addUniformBufferSlot( std::string Name, BcU32 Handle, const ReClass* Class )
 {
+	// Must have a valid class.
+	BcAssert( Class != nullptr );
+
 	TUniformBlock Block = 
 	{
 		std::move( Name ),
 		Handle,
-		Size
+		Class
 	};
 
 	UniformBlockList_.push_back( std::move( Block ) );
 }
-

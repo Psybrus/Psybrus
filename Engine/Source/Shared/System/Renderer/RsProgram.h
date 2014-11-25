@@ -33,6 +33,8 @@ public:
 	BcU32 findTextureSlot( const BcChar* Name );
 	BcU32 findUniformBufferSlot( const BcChar* Name );
 
+	const ReClass* getUniformBufferClass( BcU32 Handle );
+
 	const std::vector< class RsShader* >& getShaders() const;
 	const RsProgramVertexAttributeList& getVertexAttributeList() const;
 	BcU32 getInputLayoutHash() const;
@@ -42,7 +44,7 @@ public:
 	// into the program.
 	void addSamplerSlot( std::string Name, BcU32 Handle );
 	void addTextureSlot( std::string Name, BcU32 Handle );
-	void addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size );
+	void addUniformBufferSlot( std::string Name, BcU32 Handle, const ReClass* Class );
 
 private:
 	struct TSampler
@@ -61,7 +63,7 @@ private:
 	{
 		std::string Name_;
 		BcU32 Handle_;
-		BcU32 Size_;
+		const ReClass* Class_;
 	};
 
 	typedef std::vector< TSampler > TSamplerList;
@@ -78,7 +80,7 @@ private:
 	typedef TUniformBlockList::iterator TUniformBlockListIterator;
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
 	TUniformBlockList UniformBlockList_;
-
+	
 	std::vector< class RsShader* > Shaders_;
 	RsProgramVertexAttributeList AttributeList_;
 

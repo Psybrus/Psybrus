@@ -44,7 +44,7 @@ END_CBUFFER
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderAlphaTestUniformBlockData
 BEGIN_CBUFFER( ScnShaderAlphaTestUniformBlockData )
-	float3 AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
+	float4 AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 END_CBUFFER
 
 
@@ -54,3 +54,4 @@ float4 PsyGetBoneTransformVector( const float i, const int e )
 {
 	return BoneTransform_[ int( i ) + e ];
 }
+

@@ -1534,10 +1534,12 @@ bool RsContextD3D11::createProgram(
 	for( const auto& ConstantBuffer : ConstantBufferBindings )
 	{
 		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
+		auto Class = ReManager::GetClass( ConstantBuffer.first );
+		BcAssert( Class->getSize() == Size );
 		Program->addUniformBufferSlot( 
 			ConstantBuffer.first,
 			ConstantBuffer.second,
-			Size );
+			Class );
 	}
 
 	// Add all sampler bindings

@@ -572,6 +572,7 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
+		/*
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
@@ -580,6 +581,7 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+		*/
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
@@ -919,23 +921,38 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
 
-	// Generate buffer.
-	GLuint Handle;
-	glGenBuffers( 1, &Handle );
-	Buffer->setHandle( Handle );
-
-	// Catch gen error.
-	RsGLCatchError();
-
-	// Attempt to update it.
-	if( Handle != 0 )
+	// Should buffer be in main memory?
+	BcBool BufferInMainMemory = 
+		Version_.Type_ == RsOpenGLType::ES &&
+		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
+		
+	if( !BufferInMainMemory )
 	{
-		glBindBuffer( TypeGL, Handle );
-		glBufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL );
+		// Generate buffer.
+		GLuint Handle;
+		glGenBuffers( 1, &Handle );
+		Buffer->setHandle( Handle );
 
-		// Catch update error.
+		// Catch gen error.
 		RsGLCatchError();
 
+		// Attempt to update it.
+		if( Handle != 0 )
+		{
+			glBindBuffer( TypeGL, Handle );
+			glBufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL );
+
+			// Catch update error.
+			RsGLCatchError();
+
+			return true;
+		}
+	}
+	else
+	{
+		// Buffer is in main memory.
+		auto BufferData = new BcU8[ BufferDesc.SizeBytes_ ];
+		Buffer->setHandle< BcU8* >( BufferData );
 		return true;
 	}
 
@@ -948,17 +965,32 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	GLuint Handle = Buffer->getHandle< GLuint >();
-	
-	if( Handle != 0 )
-	{
-		glDeleteBuffers( 1, &Handle );
-		Buffer->setHandle< GLuint >( 0 );
+	// Is buffer be in main memory?
+	BcBool BufferInMainMemory =
+		Version_.Type_ == RsOpenGLType::ES &&
+		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
 
-		RsGLCatchError();
+	if( !BufferInMainMemory )
+	{
+		GLuint Handle = Buffer->getHandle< GLuint >();
+	
+		if( Handle != 0 )
+		{
+			glDeleteBuffers( 1, &Handle );
+			Buffer->setHandle< GLuint >( 0 );
+
+			RsGLCatchError();
+			return true;
+		}
+	}
+	else
+	{
+		// Buffer is in main memory.
+		auto BufferData = Buffer->getHandle< BcU8* >();
+		delete [] BufferData;
+		Buffer->setHandle< GLuint >( 0 );
 		return true;
 	}
-
 	return false;
 }
 
@@ -973,49 +1005,68 @@ bool RsContextGL::updateBuffer(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	GLuint Handle = Buffer->getHandle< GLuint >();
-	
-	if( Handle != 0 )
+	// Validate size.
+	const auto& BufferDesc = Buffer->getDesc();
+	BcAssertMsg( ( Offset + Size ) <= BufferDesc.SizeBytes_, "Typing to update buffer outside of range." );
+
+	// Is buffer be in main memory?
+	BcBool BufferInMainMemory =
+		Version_.Type_ == RsOpenGLType::ES &&
+		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
+
+	if( !BufferInMainMemory )
 	{
-		const auto& BufferDesc = Buffer->getDesc();
+		GLuint Handle = Buffer->getHandle< GLuint >();
+	
+		if( Handle != 0 )
+		{
+			// Get buffer type for GL.
+			auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
 
-		// Get buffer type for GL.
-		auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
-
-		// Bind buffer.
-		glBindBuffer( TypeGL, Handle );
+			// Bind buffer.
+			glBindBuffer( TypeGL, Handle );
 
 #if !PLATFORM_HTML5
-		// Get access flags for GL.
-		GLbitfield AccessFlagsGL =
-			GL_MAP_WRITE_BIT |
-			GL_MAP_INVALIDATE_RANGE_BIT;
+			// Get access flags for GL.
+			GLbitfield AccessFlagsGL =
+				GL_MAP_WRITE_BIT |
+				GL_MAP_INVALIDATE_RANGE_BIT;
 
-		// Map and update buffer.
-		auto LockedPointer = glMapBufferRange( TypeGL, Offset, Size, AccessFlagsGL );
-		if( LockedPointer != nullptr )
-		{
-			RsBufferLock Lock = 
+			// Map and update buffer.
+			auto LockedPointer = glMapBufferRange( TypeGL, Offset, Size, AccessFlagsGL );
+			if( LockedPointer != nullptr )
 			{
-				LockedPointer
+				RsBufferLock Lock = 
+				{
+					LockedPointer
+				};
+				UpdateFunc( Buffer, Lock );
+				glUnmapBuffer( TypeGL );
+			}
+
+			RsGLCatchError();
+#else
+			// Use glBufferSubData to upload.
+			// TODO: Allocate of a temporary per-frame buffer.
+			std::unique_ptr< BcChar[] > Data( new BcChar[ Size ] );
+				RsBufferLock Lock =
+			{
+				Data.get()
 			};
 			UpdateFunc( Buffer, Lock );
-			glUnmapBuffer( TypeGL );
+			glBufferSubData( TypeGL, Offset, Size, Data.get() );
+#endif
+ 			return true;
 		}
-
-		RsGLCatchError();
-#else
-		// Use glBufferSubData to upload.
-		// TODO: Allocate of a temporary per-frame buffer.
-		std::unique_ptr< BcChar[] > Data( new BcChar[ Size ] );
-			RsBufferLock Lock =
+	}
+	else
+	{
+		// Buffer is in main memory.
+		RsBufferLock Lock =
 		{
-			Data.get()
+			Buffer->getHandle< BcU8* >() + Offset
 		};
 		UpdateFunc( Buffer, Lock );
-		glBufferSubData( TypeGL, Offset, Size, Data.get() );
-#endif
- 		return true;
 	}
 
 	return false;
@@ -1069,7 +1120,7 @@ bool RsContextGL::createTexture(
 		RsGLCatchError();
 #endif
 
-		// Instanciate levels.
+		// Instantiate levels.
 		BcU32 Width = TextureDesc.Width_;
 		BcU32 Height = TextureDesc.Height_;
 		BcU32 Depth = TextureDesc.Depth_;
@@ -1299,10 +1350,10 @@ bool RsContextGL::createProgram(
 		return false;
 	}
 	
-	// Attempt to find uniform names.
+	// Attempt to find uniform names, and uniform buffers for ES2.
 	GLint ActiveUniforms = 0;
 	glGetProgramiv( Handle, GL_ACTIVE_UNIFORMS, &ActiveUniforms );
-	
+	std::set< std::string > UniformBlockSet;
 	BcU32 ActiveSamplerIdx = 0;
 	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniforms; ++Idx )
 	{
@@ -1366,42 +1417,84 @@ bool RsContextGL::createProgram(
 				++ActiveSamplerIdx;
 				RsGLCatchError();
 			}
+			else
+			{
+				if( Version_.Type_ == RsOpenGLType::ES )
+				{
+					// Could be a member of a struct where we don't have uniform buffers.
+					// Check the name and work out if it is. If so, add to a map so we can add all afterwards.
+					auto VSTypePtr = BcStrStr( UniformName, "VS." ); 
+					auto PSTypePtr = BcStrStr( UniformName, "PS." );
+					if( VSTypePtr != nullptr ||
+						PSTypePtr != nullptr )
+					{
+						// Terminate.
+						if( VSTypePtr != nullptr )
+						{
+							VSTypePtr[ 0 ] = '\0';
+						}
+						else if( PSTypePtr != nullptr )
+						{
+							PSTypePtr[ 0 ] = '\0';
+						}
+
+						// Add to set.
+						UniformBlockSet.insert( UniformName );
+					}
+				}
+			}
 		}
 	}
 	
 	// Attempt to find uniform block names.
-	GLint ActiveUniformBlocks = 0;
-	glGetProgramiv( Handle, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
+	if( Version_.Type_ != RsOpenGLType::ES )
+	{
+		GLint ActiveUniformBlocks = 0;
+		glGetProgramiv( Handle, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
 	
 #if !PLATFORM_HTML5
-	BcU32 ActiveUniformSlotIndex = 0;
-	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
-	{
-		// Uniform information.
-		GLchar UniformBlockName[ 256 ];
-		GLsizei UniformBlockNameLength = 0;
-		GLint Size = 0;
-
-		// Get the uniform block size.
-		glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
-		glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
-		// Add it as a parameter.
-		if( UniformBlockNameLength > 0 )
+		BcU32 ActiveUniformSlotIndex = 0;
+		for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
 		{
-			auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
-			BcAssert( TestIdx == Idx );
-			BcUnusedVar( TestIdx );
+			// Uniform information.
+			GLchar UniformBlockName[ 256 ];
+			GLsizei UniformBlockNameLength = 0;
+			GLint Size = 0;
 
-			Program->addUniformBufferSlot( UniformBlockName, Idx, Size );
+			// Get the uniform block size.
+			glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
+			glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
+			// Add it as a parameter.
+			if( UniformBlockNameLength > 0 )
+			{
+				auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
+				BcAssert( TestIdx == Idx );
+				BcUnusedVar( TestIdx );
 
-			glUniformBlockBinding( Handle, Idx, ActiveUniformSlotIndex++ );
-			RsGLCatchError();
+				auto Class = ReManager::GetClass( UniformBlockName );
+				BcAssert( Class->getSize() == (size_t)Size );
+				Program->addUniformBufferSlot( 
+					UniformBlockName, 
+					Idx, 
+					Class );
+
+				glUniformBlockBinding( Handle, Idx, ActiveUniformSlotIndex++ );
+				RsGLCatchError();
+			}
+		}
+#endif // !PLATFORM_HTML5
+	}
+	else
+	{
+		BcU32 Handle = 0;
+		for( auto UniformBlockName : UniformBlockSet )
+		{
+			Program->addUniformBufferSlot( 
+				UniformBlockName, 
+				Handle++, 
+				ReManager::GetClass( UniformBlockName ) );
 		}
 	}
-#else
-	// TODO ES2
-	BcBreakpoint;
-#endif
 
 	// Catch error.
 	RsGLCatchError();
@@ -1856,12 +1949,88 @@ void RsContextGL::flushState()
 			auto Buffer = (*It).Buffer_;
 			if( Buffer != nullptr )
 			{
+				if( Version_.Type_ != RsOpenGLType::ES )
+				{
 #if !PLATFORM_HTML5
-				glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, Buffer->getHandle< GLuint >(), 0, Buffer->getDesc().SizeBytes_ );
-#else
-				// TODO ES2
-				BcBreakpoint;
+					glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, Buffer->getHandle< GLuint >(), 0, Buffer->getDesc().SizeBytes_ );
 #endif
+				}
+				else
+				{
+					// TODO: Optimise this. We may need to look at packing uniforms
+					//       in such a way we can upload them without so much work.
+					// This is not intended to be final, simply functional until
+					// more thought can be put into the system.
+					const ReClass* Class = Program_->getUniformBufferClass( BindingPoint );
+					if( Class != nullptr )
+					{
+						BcAssert( Class->getSize() == Buffer->getDesc().SizeBytes_ );
+
+						// Statically cache the types.
+						static auto TypeU32 = ReManager::GetClass( "BcU32" );
+						static auto TypeS32 = ReManager::GetClass( "BcS32" );
+						static auto TypeF32 = ReManager::GetClass( "BcF32" );
+						static auto TypeVec2 = ReManager::GetClass( "MaVec2d" );
+						static auto TypeVec3 = ReManager::GetClass( "MaVec3d" );
+						static auto TypeVec4 = ReManager::GetClass( "MaVec4d" );
+						static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
+
+						// Grab raw data.
+						auto BufferData = Buffer->getHandle< const BcU8* >();
+						BcUnusedVar( BufferData );
+
+						// Iterate over all elements and set the uniforms.
+						auto ClassName = *Class->getName();
+						auto ClassNameVS = ClassName + "VS";
+						auto ClassNamePS = ClassName + "PS";
+						for( auto Field : Class->getFields() )
+						{
+							auto FieldName = *Field->getName();
+							auto FieldData = BufferData + Field->getOffset();
+							auto ValueType = Field->getType();
+							auto UniformNameVS = ClassNameVS + "." + FieldName;
+							auto UniformNamePS = ClassNamePS + "." + FieldName;
+
+							BcU32 Count = Field->getSize() / ValueType->getSize();
+
+							auto UniformLocationVS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNameVS.c_str() );
+							auto UniformLocationPS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNamePS.c_str() );
+								
+							if( ValueType == TypeU32 || ValueType == TypeS32 )
+							{
+								if( UniformLocationVS != -1 ) glUniform1iv( UniformLocationVS, Count, reinterpret_cast< const BcS32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform1iv( UniformLocationPS, Count, reinterpret_cast< const BcS32* >( FieldData ) );
+							}
+							else if( ValueType == TypeF32 )
+							{
+								if( UniformLocationVS != -1 ) glUniform1fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform1fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+							}
+							else if( ValueType == TypeVec2 )
+							{
+								if( UniformLocationVS != -1 ) glUniform2fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform2fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+							}
+							else if( ValueType == TypeVec3 )
+							{
+								if( UniformLocationVS != -1 ) glUniform3fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform3fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+							}
+							else if( ValueType == TypeVec4 )
+							{
+								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+							}
+							else if( ValueType == TypeMat4 )
+							{
+								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
+							}
+
+							RsGLCatchError();
+						}
+					}
+				}
 				++BindingPoint;
 				RsGLCatchError();
 			}

@@ -27,6 +27,7 @@ void ReField::StaticRegisterClass()
 ReField::ReField():
 	Offset_( 0 ),
 	Type_( nullptr ),
+	Size_( 0 ),
 	FieldFlags_( 0 ),
 	KeyType_( nullptr ),
 	ValueType_( nullptr ),
@@ -50,6 +51,20 @@ const ReType* ReField::getType() const
 	return Type_;
 }
 	
+//////////////////////////////////////////////////////////////////////////
+// setSize
+void ReField::setSize( BcSize Size )
+{
+	Size_ = Size;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSize
+BcSize ReField::getSize() const
+{
+	return Size_;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // setOffset
 void ReField::setOffset( BcSize Offset )

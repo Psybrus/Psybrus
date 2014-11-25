@@ -40,6 +40,7 @@ public:
 			_Ty _Class::*field,
 			BcU32 Flags = 0 ):
 		Type_( nullptr ),
+		Size_( sizeof( _Ty ) ),
 		Offset_( 0 ),
 		FieldFlags_( 0 ),
 		ContainerAccessor_( nullptr ),
@@ -85,6 +86,16 @@ public:
 		* Get type.
 		*/
     const ReType*					getType() const;
+
+	/**
+		* Set size.
+		*/
+    void							setSize( BcSize Size );
+
+	/**
+		* Get size.
+		*/
+    BcSize							getSize() const;
 
 	/**
 		* Set offset.
@@ -166,6 +177,7 @@ public:
 protected:
 	BcSize								Offset_;
     const ReType*						Type_;
+	BcSize								Size_;
 	BcU32								FieldFlags_;
 
 	ReContainerAccessor*				ContainerAccessor_;
