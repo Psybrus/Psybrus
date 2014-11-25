@@ -14,12 +14,12 @@
 #include "Base/BcName.h"
 #include "Base/BcMisc.h"
 
+#include "Base/BcProfiler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Statics
 BcName BcName::INVALID;
 BcName BcName::NONE( "None" );
-
-BcNameEntryList* BcName::pStringEntries_ = nullptr;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -255,17 +255,8 @@ void BcName::setInternal( const std::string& Value, BcU32 ID )
 //static
 BcNameEntryList& BcName::getStringEntries()
 {
-	BcAssertMsg( BcIsGameThread(), "Only safe for use on game thread!" );
-
-	// Check if we've been initialised.
-	if( pStringEntries_ == NULL )
-	{
-		pStringEntries_ = new BcNameEntryList();
-		pStringEntries_->reserve( ENTRY_RESERVE_COUNT );
-	}
-
-	// Dereference and return.
-	return *pStringEntries_;
+	static BcNameEntryList NameEntryList;
+	return NameEntryList;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -376,6 +367,7 @@ std::string BcName::StripInvalidChars( const BcChar* pString )
 // GetLock
 std::mutex& BcName::GetLock()
 {
+	PSY_PROFILER_SECTION( Profile, "BcName::GetLock()" );
 	static std::mutex Lock;
 	return Lock;
 }

@@ -112,7 +112,6 @@ private:
 	BcU32 ID_;
 
 private:
-	static BcNameEntryList* pStringEntries_;
 	static std::mutex& GetLock();
 
 	/**
