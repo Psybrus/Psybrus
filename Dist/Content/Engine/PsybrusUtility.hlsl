@@ -45,3 +45,44 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 	RetVal += Vector.wwww * Row3;
 	return RetVal;
 }
+
+////////////////////////////////////////////////////////////////////////
+// Texture, samplers, and sampling.
+#if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  define PSY_SAMPLER_1D( _n, _c )								\
+		sampler a##_n											\
+
+#  define PSY_SAMPLER_2D( _n, _c )								\
+		sampler a##_n											\
+
+#  define PSY_SAMPLER_3D( _n, _c )								\
+		sampler a##_n											\
+
+#else
+
+#  define PSY_SAMPLER_1D( _n, _c )								\
+		texture1D a##_n;										\
+		SamplerState s##_n										\
+
+#  define PSY_SAMPLER_2D( _n, _c )								\
+		texture2D a##_n;										\
+		SamplerState s##_n										\
+
+#  define PSY_SAMPLER_3D( _n, _c )								\
+		texture3D a##_n;										\
+		SamplerState s##_n										\
+
+#endif
+
+#if PSY_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
+#  define PSY_SAMPLE_1D( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_2D( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_3D( _n, _c ) a##_n.Sample( s##_n, _c )
+
+#else
+#  define PSY_SAMPLE_1D( _n, _c ) tex1D( a##_n, _c )
+#  define PSY_SAMPLE_2D( _n, _c ) tex2D( a##_n, _c )
+#  define PSY_SAMPLE_3D( _n, _c ) tex3D( a##_n, _c )
+
+#endif
+

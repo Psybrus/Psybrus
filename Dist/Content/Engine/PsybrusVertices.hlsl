@@ -125,7 +125,7 @@ struct VertexDefault
  * Make a world space vertex.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
- * @param _p Input properties. Should be a structure containing WorldMatrix[0-3].
+ * @param _p Input properties. Should be a structure containing WorldMatrix[0-3]_.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = PsyMatMul( 																				\

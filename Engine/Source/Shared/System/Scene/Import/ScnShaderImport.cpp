@@ -21,6 +21,7 @@
 
 #define EXCLUDE_PSTDINT
 #include <hlslcc.h>
+#include <hlsl2glsl.h>
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
@@ -152,6 +153,40 @@ namespace
 		}
 		return LANG_DEFAULT;
 	}
+
+	bool hlsl2glsl_includeFunc( bool isSystem, const char* fname, std::string& output, void* data )
+	{
+		std::list< std::string > IncludePaths;
+
+#if PLATFORM_WINDOWS
+		// Setup include paths.
+		IncludePaths.clear();
+		IncludePaths.push_back( ".\\" );
+		IncludePaths.push_back( "..\\Psybrus\\Dist\\Content\\Engine\\" );
+#elif PLATFORM_LINUX
+		// Setup include paths.
+		IncludePaths.clear();
+		IncludePaths.push_back( "./" );
+		IncludePaths.push_back( "../Psybrus/Dist/Content/Engine/" );
+#endif
+		BcFile IncludeFile;
+		for( auto& IncludePath : IncludePaths)
+		{
+			std::string IncludeFileName = IncludePath + fname;
+
+			if( IncludeFile.open( IncludeFileName.c_str(), bcFM_READ ) )
+			{
+				// TODO Importer_.addDependency( IncludeFileName.c_str() );
+				std::vector< char > FileData( IncludeFile.size() + 1 );
+				BcMemZero( FileData.data(), FileData.size() );
+				IncludeFile.read( FileData.data(), FileData.size() );
+				output = FileData.data();
+				return true;
+			}
+		}
+		return false;
+	};
+
 }
 
 #endif // PSY_IMPORT_PIPELINE
@@ -249,27 +284,39 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	// Reset pending permutations.
 	PendingPermutations_.store( 0 );
 
-	// Always search for Psybrus from project root.
-	auto PsybrusSDKRoot = "../Psybrus";
+	// Initialise Hlsl2Glsl.
+	Hlsl2Glsl_Initialize();
 	
 #if PLATFORM_WINDOWS
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
-	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "\\Dist\\Content\\Engine\\" );
+	IncludePaths_.push_back( "..\\Psybrus\\Dist\\Content\\Engine\\" );
 #elif PLATFORM_LINUX
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( "./" );
-	IncludePaths_.push_back( std::string( PsybrusSDKRoot ) + "/Dist/Content/Engine/" );
+	IncludePaths_.push_back( "../Psybrus/Dist/Content/Engine/" );
 #endif
 	
 	// Setup permutations.
 	ScnShaderPermutation Permutation;
+
+	// Default to alway use cbuffers.
 	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
 
 	// Cache intermediate path.
 	IntermediatePath_ = getIntermediatePath();
+
+	// Read in file.
+	BcFile SourceFile;
+	if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
+	{
+		std::vector< char > FileData( SourceFile.size() + 1 );
+		BcMemZero( FileData.data(), FileData.size() );
+		SourceFile.read( FileData.data(), FileData.size() );
+		SourceFileData_ = FileData.data();
+	}
 
 	// Add code type defines.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderCodeType::MAX; ++Idx )
@@ -431,6 +478,10 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		}
 	}
 
+	// Shutdown Hlsl2Glsl.
+	Hlsl2Glsl_Shutdown();
+
+
 	return RetVal;
 #else
 	return BcFalse;
@@ -510,7 +561,87 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		std::vector< std::string > ErrorMessages;
 		std::string Entrypoint = Entrypoints_[ Entry.Type_ ];
 		BcAssert( !Entrypoint.empty() );
-		if( compileShader( Source_, Entrypoint, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
+
+		// TODO: Setup shaders to use some kind of pipeline system.
+		// HLSL2GLSL path.
+		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
+		{
+			// Vertex shader attributes.
+			EShLanguage Language;
+
+			if( Entry.Type_ == RsShaderType::VERTEX )
+			{
+				Language = EShLangVertex;
+			}
+			else if( Entry.Type_ == RsShaderType::PIXEL )
+			{
+				Language = EShLangFragment;
+			}
+			else
+			{
+				BcBreakpoint;
+				return BcFalse;
+			}
+
+			// Hacky lock to assist debugging.
+			static std::mutex Mutex;
+			std::lock_guard< std::mutex > Lock( Mutex );
+
+			auto CompilerHandle = Hlsl2Glsl_ConstructCompiler( Language );
+
+			Hlsl2Glsl_ParseCallbacks ParseCallbacks = 
+			{
+				hlsl2glsl_includeFunc,
+				this
+			};
+
+			// Patch in defines.
+			std::string FinalSource;
+
+			// Override cbuffer usage.
+			Params.Permutation_.Defines_[ "PSY_USE_CBUFFER" ] = "0";
+			for( const auto& Define : Params.Permutation_.Defines_ )
+			{
+				FinalSource += 
+					std::string( "#define " ) +
+					Define.first + std::string( " " ) +
+					Define.second + std::string( "\n" );
+			}
+			
+			FinalSource += SourceFileData_;
+
+			// Parse HLSL.		
+			auto ParseRetVal = Hlsl2Glsl_Parse( CompilerHandle, FinalSource.c_str(), ETargetGLSL_ES_100, &ParseCallbacks, 0 );
+			BcUnusedVar( ParseRetVal );
+
+			if( ParseRetVal == 0 )
+			{
+				auto InfoLog = Hlsl2Glsl_GetInfoLog( CompilerHandle );
+				BcPrintf( "ScnShaderImporter: Hlsl2Glsl: %s\n", InfoLog );
+				BcBreakpoint;
+				return BcFalse;
+			}
+
+			// Translate to GLSL.
+			auto TranslateRetVal = Hlsl2Glsl_Translate( CompilerHandle, Entrypoint.c_str(), ETargetGLSL_ES_100, 0 );
+			BcUnusedVar( TranslateRetVal );
+
+			if( TranslateRetVal == 0 )
+			{
+				auto InfoLog = Hlsl2Glsl_GetInfoLog( CompilerHandle );
+				BcPrintf( "ScnShaderImporter: Hlsl2Glsl: %s\n", InfoLog );
+				BcBreakpoint;
+				return BcFalse;
+			}
+
+			auto OutputShaderCode = Hlsl2Glsl_GetShader( CompilerHandle );
+			BcPrintf( OutputShaderCode );
+
+			Hlsl2Glsl_DestructCompiler( CompilerHandle );
+
+		}
+		// HLSLCrossCompiler path.
+		else if( compileShader( Source_, Entrypoint, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
 		{
 			// Shader.
 			ScnShaderBuiltData BuiltShader;

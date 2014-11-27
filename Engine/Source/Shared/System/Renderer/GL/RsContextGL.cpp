@@ -572,7 +572,6 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
-		/*
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
@@ -581,7 +580,6 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		*/
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
@@ -704,7 +702,7 @@ void RsContextGL::create()
 	setDefaultState();
 
 	// Clear screen and flip.
-	clear( RsColour( 1.0f, 0.0f, 1.0f, 0.0f ) );
+	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
 	// Present back buffer.
 	presentBackBuffer();
@@ -2132,6 +2130,7 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	flushState();
+	RsGLCatchError();
 #if !PLATFORM_HTML5
 	glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
 #else

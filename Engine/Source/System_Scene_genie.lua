@@ -13,6 +13,7 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/HLSLCrossCompiler/include/",
+      "../../External/hlsl2glslfork/include/",
       BOOST_INCLUDE_PATH,
     }
 

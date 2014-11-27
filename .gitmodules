@@ -10,3 +10,6 @@
 [submodule "External/enet"]
 	path = External/enet
 	url = https://github.com/neilogd/enet.git
+[submodule "External/hlsl2glslfork"]
+	path = External/hlsl2glslfork
+	url = https://github.com/neilogd/hlsl2glslfork
