@@ -159,14 +159,22 @@ function PsyProjectGameExe( _name )
 	PsyAddSystemLibs()
 
 	-- asmjs post build.
-	configuration { "asmjs" }
+	configuration { "asmjs", "Debug" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
 			"$(SILENT) cp -r ../../Dist/PackedContent ./",
-			"$(SILENT) echo Running asmjs finalise.",
+			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			--"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --js-opts 0 -g4 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --js-opts 0 -g4 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g4 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+		}
+
+	configuration { "asmjs", "Release or Production" }
+		postbuildcommands {
+			"$(SILENT) echo Copying packed content.",
+			"$(SILENT) cp -r ../../Dist/PackedContent ./",
+			"$(SILENT) echo Running asmjs finalise \\(Optimised\\)",
+			"$(SILENT) mv $(TARGET) $(TARGET).o",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1  --js-opts 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	-- Terminate project.
