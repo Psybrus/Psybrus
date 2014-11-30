@@ -49,26 +49,26 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 ////////////////////////////////////////////////////////////////////////
 // Texture, samplers, and sampling.
 #if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
-#  define PSY_SAMPLER_1D( _n, _c )								\
+#  define PSY_SAMPLER_1D( _n )									\
 		sampler a##_n											\
 
-#  define PSY_SAMPLER_2D( _n, _c )								\
+#  define PSY_SAMPLER_2D( _n )									\
 		sampler a##_n											\
 
-#  define PSY_SAMPLER_3D( _n, _c )								\
+#  define PSY_SAMPLER_3D( _n )									\
 		sampler a##_n											\
 
 #else
 
-#  define PSY_SAMPLER_1D( _n, _c )								\
+#  define PSY_SAMPLER_1D( _n )									\
 		texture1D a##_n;										\
 		SamplerState s##_n										\
 
-#  define PSY_SAMPLER_2D( _n, _c )								\
+#  define PSY_SAMPLER_2D( _n )									\
 		texture2D a##_n;										\
 		SamplerState s##_n										\
 
-#  define PSY_SAMPLER_3D( _n, _c )								\
+#  define PSY_SAMPLER_3D( _n )									\
 		texture3D a##_n;										\
 		SamplerState s##_n										\
 
