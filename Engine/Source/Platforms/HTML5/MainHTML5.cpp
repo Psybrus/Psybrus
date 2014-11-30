@@ -90,8 +90,9 @@ int main(int argc, char** argv)
 	PsyGameInit();
 
 	// Setup main loop.
-	emscripten_set_main_loop( 
-		emscriptenMain, static_cast< int >( 1.0f / GPsySetupParams.TickRate_ ), 0 );
+	//emscripten_set_main_loop( 
+	//	emscriptenMain, static_cast< int >( 1.0f / GPsySetupParams.TickRate_ ), 0 );
+	emscripten_set_main_loop( emscriptenMain, 0, 0 );
 
 	// Debug end.
 	BcPrintf( "Done main initialisation.\n" );
