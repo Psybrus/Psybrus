@@ -75,7 +75,7 @@ ScnShaderObjectUniformBlockData ScnShaderObjectUniformBlockDataVS;
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderBoneUniformBlockData
 BEGIN_CBUFFER( ScnShaderBoneUniformBlockData )
-	ENTRY( float4, BoneTransform_[24*4] )
+	ENTRY( float4x4, BoneTransform_[24] )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
@@ -99,16 +99,4 @@ ScnShaderAlphaTestUniformBlockData ScnShaderAlphaTestUniformBlockDataVS;
 #  define AlphaTestParams_ ScnShaderAlphaTestUniformBlockDataVS.XAlphaTestParams_
 
 #endif
-
-
-////////////////////////////////////////////////////////////////////////
-// Get bone transform vector
-float4 PsyGetBoneTransformVector( const float i, const int e )
-{
-#if PSY_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
-	return BoneTransform_[ int( i ) + e ];
-#else
-	return float4( 0.0f, 0.0f, 0.0f, 0.0f );
-#endif
-}
 

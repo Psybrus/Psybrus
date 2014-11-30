@@ -35,6 +35,8 @@
 #include "System/Os/OsHTML5.h"
 #endif
 
+#include <algorithm>
+
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
 #if !defined( PSY_PRODUCTION )
@@ -2074,44 +2076,62 @@ void RsContextGL::flushState()
 		}
 
 		// Bind up all elements to attributes.
+		BcU32 BoundElements = 0;
 		for( const auto& Attribute : ProgramVertexAttributeList )
 		{
-			for( const auto& Element : PrimitiveVertexElementList )
-			{
-				// Found an element we can bind to.
-				if( Attribute.Usage_ == Element.Usage_ &&
-					Attribute.UsageIdx_ == Element.UsageIdx_ )
+			auto FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+				[ & ]( const RsVertexElement& Element )
 				{
-					auto VertexBufferBinding = VertexBuffers_[ Element.StreamIdx_ ];
-					auto VertexBuffer = VertexBufferBinding.Buffer_;
-					auto VertexStride = VertexBufferBinding.Stride_;
-				
-					// Bind up new vertex buffer if we need to.
-					BcAssertMsg( Element.StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
-					BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-					GLuint VertexHandle = VertexBuffer->getHandle< GLuint >();
-					if( BoundVertexHandle != VertexHandle )
+					return ( Element.Usage_ == Attribute.Usage_ &&
+						Element.UsageIdx_ == Attribute.UsageIdx_ );
+				} );
+
+			// Force to an element with zero offset if we can't find a valid one.
+			// TODO: Find a better approach.
+			if( FoundElement == PrimitiveVertexElementList.end() )
+			{
+				FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+					[ & ]( const RsVertexElement& Element )
 					{
-						glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
-						BoundVertexHandle = VertexHandle;
-					}
+						return Element.Offset_ == 0;
+					} );
+			}
 
-					// Enable array.
-					glEnableVertexAttribArray( Attribute.Channel_ );
-
-					// Bind.
-					BcU64 CalcOffset = Element.Offset_;
-
-					glVertexAttribPointer( Attribute.Channel_, 
-						Element.Components_,
-						gVertexDataTypes[ (BcU32)Element.DataType_ ],
-						gVertexDataNormalised[ (BcU32)Element.DataType_ ],
-						VertexStride,
-						(GLvoid*)CalcOffset );
-					break;	
+			// Found an element we can bind to.
+			if( FoundElement != PrimitiveVertexElementList.end() )
+			{
+				auto VertexBufferBinding = VertexBuffers_[ FoundElement->StreamIdx_ ];
+				auto VertexBuffer = VertexBufferBinding.Buffer_;
+				auto VertexStride = VertexBufferBinding.Stride_;
+			
+				// Bind up new vertex buffer if we need to.
+				BcAssertMsg( FoundElement->StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
+				GLuint VertexHandle = VertexBuffer->getHandle< GLuint >();
+				if( BoundVertexHandle != VertexHandle )
+				{
+					glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
+					BoundVertexHandle = VertexHandle;
 				}
+
+				// Enable array.
+				glEnableVertexAttribArray( Attribute.Channel_ );
+
+				// Bind.
+				BcU64 CalcOffset = FoundElement->Offset_;
+
+				glVertexAttribPointer( Attribute.Channel_, 
+					FoundElement->Components_,
+					gVertexDataTypes[ (BcU32)FoundElement->DataType_ ],
+					gVertexDataNormalised[ (BcU32)FoundElement->DataType_ ],
+					VertexStride,
+					(GLvoid*)CalcOffset );
+
+				++BoundElements;
 			}
 		}
+
+		BcAssert( ProgramVertexAttributeList.size() == BoundElements );
 
 		// Bind indices.
 		GLuint IndicesHandle = IndexBuffer_ != nullptr ? IndexBuffer_->getHandle< GLuint >() : 0;
@@ -2162,13 +2182,20 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	flushState();
+	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= IndexBuffer_->getDesc().SizeBytes_ );
 
+	if( VertexOffset == 0 )
+	{
+		glDrawElements( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) );
+	}
+	else
+	{
 #if !PLATFORM_HTML5
-	glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
+		glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
 #else
-	BcAssert( VertexOffset == 0 );
-	glDrawElements( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) );
+		BcBreakpoint;	
 #endif
+	}
 
 	RsGLCatchError();
 }

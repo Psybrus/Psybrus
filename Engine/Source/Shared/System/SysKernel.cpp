@@ -526,6 +526,8 @@ void SysKernel::runOnce()
 	// Store game thread time.
 	GameThreadTime_ = (BcF32)MainTimer_.time();
 	
+
+#if !PLATFORM_HTML5
 	// Sleep if we have a fixed rate specified, otherwise just yield.
 	if( TickRate_ > 0.0f )
 	{
@@ -545,7 +547,8 @@ void SysKernel::runOnce()
 	{
 		BcYield();
 	}
-
+#endif
+	
 	// Store frame time.
 	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
 
