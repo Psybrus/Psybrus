@@ -50,13 +50,13 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 // Texture, samplers, and sampling.
 #if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 #  define PSY_SAMPLER_1D( _n )									\
-		sampler a##_n											\
+		sampler1D a##_n											\
 
 #  define PSY_SAMPLER_2D( _n )									\
-		sampler a##_n											\
+		sampler2D a##_n											\
 
 #  define PSY_SAMPLER_3D( _n )									\
-		sampler a##_n											\
+		sampler3D a##_n											\
 
 #else
 
@@ -86,3 +86,19 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 
 #endif
 
+
+////////////////////////////////////////////////////////////////////////
+// Target defines.
+#if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  define SV_POSITION POSITION
+#  define SV_POSITION0 POSITION0
+#  define SV_POSITION1 POSITION1
+#  define SV_POSITION2 POSITION2
+#  define SV_POSITION3 POSITION3
+
+#  define SV_TARGET COLOR0
+#  define SV_TARGET0 COLOR0
+#  define SV_TARGET1 COLOR1
+#  define SV_TARGET2 COLOR2
+#  define SV_TARGET3 COLOR3
+#endif

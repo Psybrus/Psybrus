@@ -22,6 +22,7 @@ void RsGLCatchError()
 	do
 	{
 		Error = glGetError();
+#if PSY_DEBUG
 		std::string ErrorString = "UNKNOWN";
 		switch( Error )
 		{
@@ -56,6 +57,7 @@ void RsGLCatchError()
 			BcPrintf( "RsGL: Error: %s\n", ErrorString.c_str() );
 			++TotalErrors;
 		}
+#endif
 	}
 	while( Error != 0 );
 

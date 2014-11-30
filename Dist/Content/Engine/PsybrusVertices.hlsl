@@ -45,10 +45,10 @@ struct VertexDefault
  * @param _p Input properties. Unused.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = PsyMatMul( WorldTransform_[0], WorldTransform_[1], WorldTransform_[2], WorldTransform_[3], _v ); \
+		_o = PsyMatMul( WorldTransform_, _v ); \
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = PsyMatMul( NormalTransform_[0].xyz, NormalTransform_[1].xyz, NormalTransform_[2].xyz, _v ); \
+		_o = PsyMatMul( (float3x3)NormalTransform_.xyz, _v ); \
 
 
 #elif defined( PERM_MESH_SKINNED_3D )
@@ -109,9 +109,7 @@ struct VertexDefault
 		_o = _v + 																						\
 				float4(																					\
 					PsyMatMul(																			\
-						InverseViewTransform_[0].xyz, 													\
-						InverseViewTransform_[1].xyz, 													\
-						InverseViewTransform_[2].xyz,													\
+						(float3x3)InverseViewTransform_, 												\
 			 			_p.VertexOffset_.xyz ),	0.0 );													\
 
 

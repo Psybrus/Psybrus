@@ -126,6 +126,16 @@ static GLenum gTextureFiltering[] =
 	GL_NEAREST,
 	GL_LINEAR,
 	
+#if PLATFORM_HTML5
+	// TODO: Figure out why mipmapping was a problem.
+	// Mipmapping nearest
+	GL_LINEAR, // GL_NEAREST_MIPMAP_NEAREST,
+	GL_LINEAR, // GL_LINEAR_MIPMAP_NEAREST,
+	
+	// Mipmapping linear
+	GL_LINEAR, // GL_NEAREST_MIPMAP_LINEAR,
+	GL_LINEAR, // GL_LINEAR_MIPMAP_LINEAR
+#else
 	// Mipmapping nearest
 	GL_NEAREST_MIPMAP_NEAREST,
 	GL_LINEAR_MIPMAP_NEAREST,
@@ -133,6 +143,7 @@ static GLenum gTextureFiltering[] =
 	// Mipmapping linear
 	GL_NEAREST_MIPMAP_LINEAR,
 	GL_LINEAR_MIPMAP_LINEAR
+#endif
 };
 
 static GLenum gTextureSampling[] = 
@@ -1466,6 +1477,7 @@ bool RsContextGL::createProgram(
 			// Get the uniform block size.
 			glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
 			glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
+
 			// Add it as a parameter.
 			if( UniformBlockNameLength > 0 )
 			{
@@ -2110,8 +2122,9 @@ void RsContextGL::flushState()
 
 		ProgramDirty_ = BcFalse;
 		BindingsDirty_ = BcFalse;
-		RsGLCatchError();
 	}
+
+	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2138,7 +2151,9 @@ void RsContextGL::clear( const RsColour& Colour )
 void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	flushState();
+
 	glDrawArrays( gTopologyType[ (BcU32)TopologyType ], IndexOffset, NoofIndices );
+
 	RsGLCatchError();
 }
 
@@ -2147,13 +2162,14 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	flushState();
-	RsGLCatchError();
+
 #if !PLATFORM_HTML5
 	glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
 #else
 	BcAssert( VertexOffset == 0 );
 	glDrawElements( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) );
 #endif
+
 	RsGLCatchError();
 }
 
