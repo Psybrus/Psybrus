@@ -3,12 +3,7 @@ import os
 import re
 import sys
 
-psybrusSdkRoot = os.getenv("PSYBRUS_SDK", None);
-
-if psybrusSdkRoot == None:
-	print "Must run setup.py to setup the Psybrus SDK!"
-	exit(1)
-
+psybrusSdkRoot = "../Psybrus" #vos.getenv("PSYBRUS_SDK", None);
 
 def getPathFromRoot( targetPath ):
 	return ( psybrusSdkRoot + "/" + targetPath).replace( "\\", "/" )
@@ -21,6 +16,7 @@ incStripProg = re.compile( incStripPattern )
 declPattern = "\s(REFLECTION_DECLARE_BASIC_MANUAL_NOINIT\(|REFLECTION_DECLARE_BASE_MANUAL_NOINIT\(|REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT\(|DECLARE_RESOURCE\(|REFLECTION_DECLARE_BASIC\(|REFLECTION_DECLARE_BASE\(|REFLECTION_DECLARE_DERIVED\()\s(.*?)(,|\s\))"
 declProg = re.compile( declPattern )
 def recurse( startPath, call ):
+	print "Searching: ", startPath
 	paths = glob.glob( startPath + "/*" )
 	for path in paths:
 		path = path.replace( '\\', '/' )
@@ -58,7 +54,7 @@ def parseReflection( path ):
 							raise Exception( "Failed to match path - " + path )
 
 searchPaths = [
-	"Engine/Source/Shared",
+	"../../Psybrus/Engine/Source/Shared",
 ]
 
 if len( sys.argv ) < 2:
@@ -67,7 +63,7 @@ if len( sys.argv ) < 2:
 	exit(1)
 
 gameFolder = sys.argv[1]
-gameSourcePath = gameFolder + "../../" + "/Source"
+gameSourcePath = "../../Source/"
 outputFileName = gameSourcePath + "AutoGenRegisterReflection.cpp"
 searchPaths.append ( gameSourcePath )
 
