@@ -584,6 +584,10 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				return BcFalse;
 			}
 
+			// Lock as HLSL2GLSL isn't thread safe.
+			static std::mutex Mutex;
+			std::lock_guard< std::mutex > Lock( Mutex );
+
 			auto CompilerHandle = Hlsl2Glsl_ConstructCompiler( Language );
 
 			Hlsl2Glsl_ParseCallbacks ParseCallbacks = 
@@ -607,7 +611,10 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			
 			FinalSource += SourceFileData_;
 
-			// Parse HLSL.		
+			//BcPrintf( "%s\n", FinalSource.c_str() );
+
+
+			// Parse HLSL.		resultString
 			auto ParseRetVal = Hlsl2Glsl_Parse( CompilerHandle, FinalSource.c_str(), ETargetGLSL_ES_100, &ParseCallbacks, 0 );
 			BcUnusedVar( ParseRetVal );
 
@@ -685,7 +692,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 									boost::replace_all( OutputShaderCode, Semantic, NewSemantic );	
 
 									Attribute.Usage_ = (RsVertexUsage)Usage;
-									Attribute.UsageIdx_ = (BcU32)Idx;
+									Attribute.UsageIdx_ = Idx == 0 -1 ? 0 : (BcU32)Idx;
 									VertexAttributes.push_back( Attribute );
 
 									// Advance channel.
@@ -700,15 +707,61 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					// Destruct compiler
 					Hlsl2Glsl_DestructCompiler( CompilerHandle );
 
-					// Finalise shadrr.
+					// Finalise shader.
+					OutputShaderCode = removeComments( OutputShaderCode );
+
 					ScnShaderBuiltData BuiltShader;
 					BuiltShader.ShaderType_ = Entry.Type_;
 					BuiltShader.CodeType_ = Params.OutputCodeType_;
 					BuiltShader.Code_ = std::move( BcBinaryData( (void*)OutputShaderCode.c_str(), OutputShaderCode.size() + 1, BcTrue ) );
 					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 
-					// Headers
 					ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
+#if 0
+					// Write out intermediate shader for reference.
+					std::string ShaderType;
+					switch( Entry.Type_ )
+					{
+					case RsShaderType::VERTEX:
+						ShaderType = "vs";
+						break;
+					case RsShaderType::HULL:
+						ShaderType = "hs";
+						break;
+					case RsShaderType::DOMAIN:
+						ShaderType = "ds";
+						break;
+					case RsShaderType::GEOMETRY:
+						ShaderType = "gs";
+						break;
+					case RsShaderType::PIXEL:
+						ShaderType = "ps";
+						break;
+					case RsShaderType::COMPUTE:
+						ShaderType = "cs";
+						break;	
+					default:
+						BcBreakpoint;
+					}
+
+					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Name_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
+					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
+
+					printf( "ScnShaderImporter: Writing out to %s\n", Path.c_str() );
+
+					{
+						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+						boost::filesystem::create_directories( Path );
+
+						BcFile FileOut;
+						FileOut.open( Filename.c_str(), bcFM_WRITE );
+						FileOut.write( BuiltShader.Code_.getData< char >(), BuiltShader.Code_.getDataSize() );
+						FileOut.close();
+					}
+
+	
+					//BcPrintf( "%s\n", OutputShaderCode.c_str() );
+#endif
 
 					std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 					auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
@@ -999,7 +1052,8 @@ std::string ScnShaderImport::removeComments( std::string Input )
 
 	for ( ; Iter != End; ++Iter )
 	{
-		if ( *Iter != boost::wave::T_CCOMMENT && *Iter != boost::wave::T_CPPCOMMENT )
+		if ( *Iter != boost::wave::T_CCOMMENT && 
+			 *Iter != boost::wave::T_CPPCOMMENT )
 		{
 			Output += std::string( Iter->get_value().begin(), Iter->get_value().end() );
 		}

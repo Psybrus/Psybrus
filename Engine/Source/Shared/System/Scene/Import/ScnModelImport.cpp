@@ -465,7 +465,7 @@ void ScnModelImport::serialiseMesh(
 			static_cast< BcU32 >( pMesh->nVertices() ),
 			5,
 			48,
-			nullptr
+			0
 		};
 
 		// Vertex format.
@@ -558,7 +558,7 @@ void ScnModelImport::serialiseSkin(
 			static_cast< BcU32 >( pSkin->nVertices() ),
 			7,
 			80,
-			nullptr
+			0
 		};
 
 		// Vertex format.
@@ -894,7 +894,7 @@ void ScnModelImport::serialiseMesh(
 			Mesh->mNumVertices,
 			static_cast< BcU32 >( VertexDeclarationDesc.Elements_.size() ),
 			static_cast< BcU32 >( VertexDeclarationDesc.getMinimumStride() ),
-			nullptr
+			0
 		};
 
 		// Grab primitive type.

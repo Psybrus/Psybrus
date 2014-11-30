@@ -62,7 +62,11 @@ struct ScnModelMeshData
 	BcU32 NoofVertices_;
 	BcU32 NoofVertexElements_;
 	BcU32 VertexStride_;
-	RsVertexElement* VertexElements_;
+	union
+	{
+		BcU64 VertexElementsId_;
+		RsVertexElement* VertexElements_;
+	};
 	BcU32 BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 	MaMat4d BoneInverseBindpose_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };

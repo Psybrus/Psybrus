@@ -624,6 +624,7 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
+		/*
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
@@ -632,6 +633,7 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+		*/
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
@@ -898,6 +900,8 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	const auto& BufferDesc = Buffer->getDesc();
+
+	BcAssert( BufferDesc.SizeBytes_ > 0 );
 
 	// Get buffer type for GL.
 	auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
@@ -1836,9 +1840,6 @@ void RsContextGL::flushState()
 			glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
 			RsGLCatchError();
 		}
-#else
-		// TODO ES2
-		BcBreakpoint;
 #endif
 		switch( RasteriserState.CullMode_ )
 		{
@@ -1912,7 +1913,9 @@ void RsContextGL::flushState()
 					glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] );
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
+#if !PLATFORM_HTML5
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
+#endif
 					RsGLCatchError();
 				}
 			}
@@ -1986,8 +1989,8 @@ void RsContextGL::flushState()
 							auto FieldName = *Field->getName();
 							auto FieldData = BufferData + Field->getOffset();
 							auto ValueType = Field->getType();
-							auto UniformNameVS = ClassNameVS + "." + FieldName;
-							auto UniformNamePS = ClassNamePS + "." + FieldName;
+							auto UniformNameVS = ClassNameVS + ".X" + FieldName;
+							auto UniformNamePS = ClassNamePS + ".X" + FieldName;
 
 							BcU32 Count = Field->getSize() / ValueType->getSize();
 
@@ -2021,10 +2024,24 @@ void RsContextGL::flushState()
 							}
 							else if( ValueType == TypeMat4 )
 							{
-								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
-							}
+								if( UniformLocationVS != -1 )
+								{
+									glUniformMatrix4fv( UniformLocationVS, Count, GL_FALSE, reinterpret_cast< const BcF32* >( FieldData ) );
+									if( glGetError() != 0 )
+									{
+										glUniform4fv( UniformLocationVS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
+									}
+								}
 
+								if( UniformLocationPS != -1 )
+								{
+									glUniformMatrix4fv( UniformLocationPS, Count, GL_FALSE, reinterpret_cast< const BcF32* >( FieldData ) );
+									if( glGetError() != 0 )
+									{
+										glUniform4fv( UniformLocationPS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
+									}
+								}
+							}
 							RsGLCatchError();
 						}
 					}
