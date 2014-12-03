@@ -141,8 +141,7 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 	if( Width != ( Width_ >> 1 ) || Height != ( Height_ >> 1 ) )
 	{
 		BcF32 SrcW = BcF32( Width_ - 1 );
-
-		BcBreakpoint; // This is broken!
+		BcF32 SrcH = BcF32( Height_ - 1 );
 
 		// Bilinear filtering implementation.
 		for( BcU32 iX = 0; iX < Width; ++iX )
@@ -155,7 +154,7 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 			for( BcU32 iY = 0; iY < Height; ++iY )
 			{
 				BcF32 iYF = BcF32( iY ) / BcF32( Height );
-				BcF32 iSrcYF = SrcW * iYF;
+				BcF32 iSrcYF = SrcH * iYF;
 				BcU32 iSrcY = BcU32( iSrcYF );
 				BcF32 iLerpY = iSrcYF - BcF32( iSrcY );
 

@@ -48,15 +48,27 @@ function PsyProjectCommon( _name )
 
 	configuration "Release"
 		defines { "NDEBUG" }
-		flags { "Symbols", "Optimize" }
+		flags { "Symbols" }
 
 	configuration "Profile"
 		defines { "NDEBUG" }
-		flags { "Symbols", "Optimize" }
+		flags { "Symbols" }
 
 	configuration "Production"
 		defines { "NDEBUG" }
-		flags { "Symbols", "Optimize" }
+		flags { "Symbols" }
+
+
+	-- Optimised builds.
+	configuration { "windows-* or linux-*", "Release" }
+		flags { "Optimize" }
+
+	configuration { "windows-* or linux-*", "Profile" }
+		flags { "Optimize" }
+
+	configuration { "windows-* or linux-*", "Production" }
+		flags { "Optimize" }
+
 
 	-- Terminate project.
 	configuration "*"
@@ -168,13 +180,22 @@ function PsyProjectGameExe( _name )
 			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g4 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
-	configuration { "asmjs", "Release or Production" }
+	configuration { "asmjs", "Release" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
 			"$(SILENT) cp -r ../../Dist/PackedContent ./",
-			"$(SILENT) echo Running asmjs finalise \\(Optimised\\)",
+			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1  --js-opts 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --memory-init-file 1  --js-opts 1 --g4 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+		}
+
+	configuration { "asmjs", "Production" }
+		postbuildcommands {
+			"$(SILENT) echo Copying packed content.",
+			"$(SILENT) cp -r ../../Dist/PackedContent ./",
+			"$(SILENT) echo Running asmjs finalise \\(Production\\)",
+			"$(SILENT) mv $(TARGET) $(TARGET).o",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --memory-init-file 1  --js-opts 1 -s CLOSURE_COMPILER=1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	-- Terminate project.
