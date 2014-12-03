@@ -43,6 +43,8 @@ void ScnTextureImport::StaticRegisterClass()
 		new ReField( "TileAtlas_", &ScnTextureImport::TileAtlas_, bcRFF_IMPORTER ),
 		new ReField( "TileWidth_", &ScnTextureImport::TileWidth_, bcRFF_IMPORTER ),
 		new ReField( "TileHeight_", &ScnTextureImport::TileHeight_, bcRFF_IMPORTER ),
+		new ReField( "RoundUpPowerOfTwo_", &ScnTextureImport::RoundUpPowerOfTwo_, bcRFF_IMPORTER ),
+		new ReField( "RoundDownPowerOfTwo_", &ScnTextureImport::RoundDownPowerOfTwo_, bcRFF_IMPORTER ),
 		new ReField( "TextureType_", &ScnTextureImport::TextureType_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnTextureImport::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnTextureImport::Height_, bcRFF_IMPORTER ),
@@ -65,6 +67,8 @@ ScnTextureImport::ScnTextureImport():
 	TileAtlas_( BcFalse ),
 	TileWidth_( 0 ),
 	TileHeight_( 0 ),
+	RoundUpPowerOfTwo_( BcFalse ),
+	RoundDownPowerOfTwo_( BcFalse ),
 	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -86,6 +90,8 @@ ScnTextureImport::ScnTextureImport( ReNoInit ):
 	TileAtlas_( BcFalse ),
 	TileWidth_( 0 ),
 	TileHeight_( 0 ),
+	RoundUpPowerOfTwo_( BcFalse ),
+	RoundDownPowerOfTwo_( BcFalse ),
 	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -111,6 +117,8 @@ ScnTextureImport::ScnTextureImport(
 	TileAtlas_( BcFalse ),
 	TileWidth_( 0 ),
 	TileHeight_( 0 ),
+	RoundUpPowerOfTwo_( BcFalse ),
+	RoundDownPowerOfTwo_( BcFalse ),
 	TextureType_( RsTextureType::UNKNOWN ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -338,6 +346,25 @@ BcBool ScnTextureImport::import(
 			MipImages[ 0 ] = std::move( pScale1_4 );
 		}
 
+		// TODO: Move these as a post process.
+		{
+			// Do to power of two or something.
+			if( RoundUpPowerOfTwo_ || RoundDownPowerOfTwo_ )
+			{
+				// Awful resize. Bleh.
+				ImgColour FillColour = { 0, 0, 0, 0 };
+				MipImages[ 0 ] = MipImages[ 0 ]->resize( 
+					BcPotNext( MipImages[ 0 ]->width() ), 
+					BcPotNext( MipImages[ 0 ]->height() ) );
+			}
+
+			if( RoundDownPowerOfTwo_ )
+			{
+				MipImages[ 0 ] = MipImages[ 0 ]->resize(
+					MipImages[ 0 ]->width() / 2, 
+					MipImages[ 0 ]->height() / 2 );
+			}
+		}
 
 		// TODO: Throw exception instead on failure.
 		if( MipImages[ 0 ] != nullptr )

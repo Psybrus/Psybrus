@@ -54,6 +54,8 @@ private:
 	BcU32 TileWidth_;
 	BcU32 TileHeight_;
 	BcBool TrimMipTails_;
+	BcBool RoundUpPowerOfTwo_;
+	BcBool RoundDownPowerOfTwo_;
 	
 	RsTextureType TextureType_;
 	BcU32 Width_;
