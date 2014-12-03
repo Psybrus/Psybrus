@@ -70,7 +70,11 @@ extern AGLContext GAGLContext;
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
+#if 1
+inline void RsGLCatchError(){};
+#else
 void RsGLCatchError();
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsOpenGLType
@@ -85,35 +89,47 @@ enum class RsOpenGLType
 // RsOpenGLVersion
 struct RsOpenGLVersion
 {
-	RsOpenGLVersion()
-	{
-	}
+	RsOpenGLVersion();
+	RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, RsShaderCodeType MaxCodeType );
 
-	RsOpenGLVersion( BcU32 Major, BcU32 Minor, RsOpenGLType Type, RsShaderCodeType MaxCodeType ):
-		Major_( Major ),
-		Minor_( Minor ),
-		Type_( Type ),
-		MaxCodeType_( MaxCodeType )
-	{
-	}
+	/**
+	 * Will setuo feature support + query extensions for active context and setup all the features supported.
+	 */
+	void setupFeatureSupport();
+
+	/**
+	 * Is shader code type supported?
+	 */
+	BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
 
 	bool operator < ( const RsOpenGLVersion& Other ) const 
 	{
 		return std::make_tuple( Major_, Minor_, Type_, MaxCodeType_ ) < std::make_tuple( Other.Major_, Minor_, Type_, MaxCodeType_ );
 	}
 
-	BcU32 getCombinedVersion() const
-	{
-		return ( Major_ << 16 ) | Minor_;
-	}
-
-	BcU32 Major_;
-	BcU32 Minor_;
+	// Overall information.
+	BcS32 Major_;
+	BcS32 Minor_;
 	RsOpenGLType Type_;
 	RsShaderCodeType MaxCodeType_;
+
+	// Features.
+	BcBool SupportMRT_;
+	BcBool SupportSeparateBlendState_;
+	BcBool SupportDXTTextures_;
+	BcBool SupportNpotTextures_;
+	BcBool SupportFloatTextures_;
+	BcBool SupportHalfFloatTextures_;
+	BcBool SupportAnisotropicFiltering_;
+	BcBool SupportPolygonMode_;
+	BcBool SupportVAOs_;
+	BcBool SupportSamplerStates_;
+	BcBool SupportUniformBuffers_;
+	BcBool SupportGeometryShaders_;
+	BcBool SupportTesselationShaders_;
+	BcBool SupportComputeShaders_;
+	BcBool SupportAntialiasedLines_;
+	BcBool SupportDrawElementsBaseVertex_;
 };
 
-
-
 #endif
-

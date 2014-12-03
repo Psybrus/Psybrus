@@ -169,7 +169,14 @@ private:
 	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
 
 	// State setting.
+	// TODO: Move into a seperate class.
 	class RsRenderState* RenderState_;
+	BcU64 LastRenderStateHandle_;
+
+	
+
+
+	// Texture binding.
 	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;
 	BcU32 NoofTextureStateBinds_;	
 
@@ -198,6 +205,10 @@ private:
 	std::array< VertexBufferBinding, MAX_VERTEX_STREAMS > VertexBuffers_;
 	std::array< UniformBufferBinding, MAX_UNIFORM_SLOTS > UniformBuffers_;
 	RsVertexDeclaration* VertexDeclaration_;
+
+	BcU32 NoofDrawCalls_;
+	BcU32 NoofRenderStateFlushes_;
+
 };
 
 
