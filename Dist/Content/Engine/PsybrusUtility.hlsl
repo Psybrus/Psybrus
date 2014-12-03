@@ -88,7 +88,7 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 
 
 ////////////////////////////////////////////////////////////////////////
-// Target defines.
+// Position + target defines for GLSL ES translation.
 #if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 #  define SV_POSITION POSITION
 #  define SV_POSITION0 POSITION0

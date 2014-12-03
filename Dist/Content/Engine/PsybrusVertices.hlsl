@@ -59,6 +59,16 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  * @param _p Input properties. Should be a structure containing BlendIndices_, and BlendWeights_.
  */
+#if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
+		_o = _v; // TODO: Implement skinning :<
+
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = _v; // TODO: Implement skinning :<
+
+#else
+
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 		_o = PsyMatMul( 																				\
 			BoneTransform_[ (int)_p.BlendIndices_.x ], _v ) * _p.BlendWeights_.x;						\
@@ -77,6 +87,8 @@ struct VertexDefault
 			(float3x3)BoneTransform_[ (int)_p.BlendIndices_.y ], _v ) * _p.BlendWeights_.y;				\
 		_o += PsyMatMul( 																				\
 			(float3x3)BoneTransform_[ (int)_p.BlendIndices_.z ], _v ) * _p.BlendWeights_.z;				\
+
+#endif // PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
 
 #elif defined( PERM_MESH_PARTICLE_3D )
