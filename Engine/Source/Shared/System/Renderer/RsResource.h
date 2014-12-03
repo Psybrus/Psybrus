@@ -45,8 +45,10 @@ public:
 	class RsContext*				getContext();
 
 private:
-	class RsContext*				pContext_;
+	friend class RsCoreImpl;
 
+	class RsContext*				pContext_;		///!< Owning/parent context.
+	std::atomic< int >				Refs_;			///!< Refs.
 };
 
 #endif

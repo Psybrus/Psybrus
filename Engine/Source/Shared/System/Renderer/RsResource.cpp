@@ -36,7 +36,8 @@ RsResourceDataInputDesc::RsResourceDataInputDesc( void* pData, BcU32 DataSize, B
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource
 RsResource::RsResource( class RsContext* pContext ):
-	pContext_( pContext )
+	pContext_( pContext ),
+	Refs_( 0 )
 {
 	
 }
