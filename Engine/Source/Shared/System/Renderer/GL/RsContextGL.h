@@ -19,6 +19,8 @@
 
 #include "System/Renderer/RsBuffer.h"
 
+#include "System/Renderer/RsRenderState.h"
+
 #include "Base/BcMisc.h"
 
 #if PLATFORM_LINUX
@@ -123,6 +125,8 @@ private:
 		BcU32 DataSize,
 		void* Data );
 
+	void setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force );
+
 protected:
 	virtual void create();
 	virtual void update();
@@ -172,8 +176,7 @@ private:
 	// TODO: Move into a seperate class.
 	class RsRenderState* RenderState_;
 	BcU64 LastRenderStateHandle_;
-
-	
+	RsRenderStateDesc BoundRenderStateDesc_;
 
 
 	// Texture binding.

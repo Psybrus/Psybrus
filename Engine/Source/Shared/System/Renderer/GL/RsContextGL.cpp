@@ -325,6 +325,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	BcMemZero( &UniformBuffers_[ 0 ], sizeof( UniformBuffers_ ) );
 	RenderState_ = nullptr;
 	LastRenderStateHandle_ = 0;
+
 	NoofTextureStateBinds_ = 0;
 
 	// Stats.
@@ -643,6 +644,10 @@ void RsContextGL::create()
 		glBindVertexArray( GlobalVAO_ );
 		RsGLCatchError();
 	}
+
+	// Force set render state to the default.
+	// Initialises redundant state caching.
+	setRenderStateDesc( BoundRenderStateDesc_, BcTrue );
 
 	// Set default state.
 	setDefaultState();
@@ -1036,7 +1041,7 @@ bool RsContextGL::updateBuffer(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setDefaultState
+// createTexture
 bool RsContextGL::createTexture( 
 	class RsTexture* Texture )
 {
@@ -1690,156 +1695,7 @@ void RsContextGL::flushState()
 		LastRenderStateHandle_ = RenderState_->getHandle< BcU64 >();
 		++NoofRenderStateFlushes_;
 
-		if( Version_.SupportSeparateBlendState_ )
-		{
-#if !PLATFORM_HTML5
-			for( BcU32 Idx = 0; Idx < 8; ++Idx )
-			{
-				const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
-
-				if( RenderTarget.Enable_ )
-				{
-					glEnablei( GL_BLEND, Idx );
-				}
-				else
-				{
-					glDisablei( GL_BLEND, Idx );		
-				}
-
-				glBlendEquationSeparatei( 
-					Idx, 
-					gBlendOp[ (BcU32)RenderTarget.BlendOp_ ], gBlendOp[ (BcU32)RenderTarget.BlendOpAlpha_ ] );
-				RsGLCatchError();
-
-				glBlendFuncSeparatei( 
-					Idx, 
-					gBlendType[ (BcU32)RenderTarget.SrcBlend_ ], gBlendType[ (BcU32)RenderTarget.DestBlend_ ],
-					gBlendType[ (BcU32)RenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)RenderTarget.DestBlendAlpha_ ] );
-				RsGLCatchError();
-
-				glColorMaski(
-					Idx,
-					RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
-					RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
-					RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
-					RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
-				RsGLCatchError();
-			}
-#endif
-		}
-		else
-		{
-			const auto& MainRenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
-
-			MainRenderTarget.Enable_ ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
-
-			glBlendEquationSeparate( 
-				gBlendOp[ (BcU32)MainRenderTarget.BlendOp_ ], gBlendOp[ (BcU32)MainRenderTarget.BlendOpAlpha_ ] );
-
-			glBlendFuncSeparate( 
-				gBlendType[ (BcU32)MainRenderTarget.SrcBlend_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlend_ ],
-				gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] );
-
-			if( Version_.SupportMRT_ )
-			{
-	#if !PLATFORM_HTML5
-				for( BcU32 Idx = 0; Idx < 8; ++Idx )
-				{
-					const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
-					glColorMaski(
-						Idx,
-						RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
-						RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
-						RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
-						RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
-					RsGLCatchError();
-				}
-	#endif // !PLATFORM_HTML5
-			}
-			else
-			{
-				const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
-				glColorMask(
-					RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
-					RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
-					RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
-					RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
-				RsGLCatchError();
-			}
-		}
-
-		const auto& DepthStencilState = Desc.DepthStencilState_;
-		
-		DepthStencilState.DepthTestEnable_ ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
-		glDepthMask( (GLboolean)DepthStencilState.DepthWriteEnable_ );
-		glDepthFunc( gCompareMode[ (BcU32)DepthStencilState.DepthFunc_ ] );
-		RsGLCatchError();
-
-		DepthStencilState.StencilEnable_ ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
-		RsGLCatchError();
-
-		glStencilFuncSeparate( 
-			GL_FRONT,
-			gCompareMode[ (BcU32)DepthStencilState.StencilFront_.Func_ ], 
-			DepthStencilState.StencilFront_.Ref_, DepthStencilState.StencilFront_.Mask_ );
-
-		glStencilFuncSeparate( 
-			GL_BACK,
-			gCompareMode[ (BcU32)DepthStencilState.StencilBack_.Func_ ], 
-			DepthStencilState.StencilBack_.Ref_, DepthStencilState.StencilBack_.Mask_ );
-
-		glStencilOpSeparate( 
-			GL_FRONT,
-			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Fail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.DepthFail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Pass_ ] );
-
-		glStencilOpSeparate( 
-			GL_BACK,
-			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Fail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.DepthFail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Pass_ ] );
-		RsGLCatchError();
-
-		const auto& RasteriserState = Desc.RasteriserState_;
-
-#if !PLATFORM_HTML5
-		if( Version_.Type_ != RsOpenGLType::ES )
-		{
-			glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
-			RsGLCatchError();
-		}
-#endif
-		switch( RasteriserState.CullMode_ )
-		{
-		case RsCullMode::NONE:
-			glDisable( GL_CULL_FACE );
-			RsGLCatchError();
-			break;
-		case RsCullMode::CW:
-			glEnable( GL_CULL_FACE );
-			glCullFace( GL_FRONT );
-			RsGLCatchError();
-			break;
-		case RsCullMode::CCW:
-			glEnable( GL_CULL_FACE );
-			glCullFace( GL_BACK );
-			RsGLCatchError();
-			break;
-		default:
-			BcBreakpoint;
-		}
-
-		// TODO DepthBias_
-		// TODO SlopeScaledDepthBias_
-		// TODO DepthClipEnable_
-		// TODO ScissorEnable_
-
-		if( Version_.SupportAntialiasedLines_ )
-		{
-			RasteriserState.AntialiasedLineEnable_ ? glEnable( GL_LINE_SMOOTH ) : glDisable( GL_LINE_SMOOTH );
-			RsGLCatchError();
-		}
+		setRenderStateDesc( Desc, BcFalse );
 	}
 
 	// Bind texture states.
@@ -2416,4 +2272,249 @@ void RsContextGL::loadTexture(
 	{
 		BcBreakpoint;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setRenderStateDesc
+void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
+{
+#if !PLATFORM_HTML5
+	if( Version_.SupportSeparateBlendState_ )
+	{
+		for( BcU32 Idx = 0; Idx < 8; ++Idx )
+		{
+			const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
+			const auto& BoundRenderTarget = BoundRenderStateDesc_.BlendState_.RenderTarget_[ Idx ];
+			
+			if( Force || 
+				RenderTarget.Enable_ != BoundRenderTarget.Enable_ )
+			{
+				RenderTarget.Enable_ ? glEnablei( GL_BLEND, Idx ) : glDisablei( GL_BLEND, Idx );
+			}
+
+			if( Force ||
+				RenderTarget.BlendOp_ != BoundRenderTarget.BlendOp_ ||
+				RenderTarget.BlendOpAlpha_ != BoundRenderTarget.BlendOpAlpha_ )
+			{
+				glBlendEquationSeparatei( 
+					Idx, 
+					gBlendOp[ (BcU32)RenderTarget.BlendOp_ ], gBlendOp[ (BcU32)RenderTarget.BlendOpAlpha_ ] );
+			}
+
+			if( Force ||
+				RenderTarget.SrcBlend_ != BoundRenderTarget.SrcBlend_ ||
+				RenderTarget.DestBlend_ != BoundRenderTarget.DestBlend_ ||
+				RenderTarget.SrcBlendAlpha_ != BoundRenderTarget.SrcBlendAlpha_ ||
+				RenderTarget.DestBlendAlpha_ != BoundRenderTarget.DestBlendAlpha_ )
+			{
+				glBlendFuncSeparatei( 
+					Idx, 
+					gBlendType[ (BcU32)RenderTarget.SrcBlend_ ], gBlendType[ (BcU32)RenderTarget.DestBlend_ ],
+					gBlendType[ (BcU32)RenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)RenderTarget.DestBlendAlpha_ ] );
+			}
+
+			if( Force ||
+				RenderTarget.WriteMask_ != BoundRenderTarget.WriteMask_ )
+			{
+				glColorMaski(
+					Idx,
+					RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+					RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+					RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+					RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+			}
+		}
+	}
+	else
+#endif
+	{
+		const auto& MainRenderTarget = Desc.BlendState_.RenderTarget_[ 0 ];
+		const auto& BoundMainRenderTarget = BoundRenderStateDesc_.BlendState_.RenderTarget_[ 0 ];
+
+		if( Force ||
+			MainRenderTarget.Enable_ != BoundMainRenderTarget.Enable_ )
+		{
+			MainRenderTarget.Enable_ ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
+		}
+
+		if( Force ||
+			MainRenderTarget.BlendOp_ != BoundMainRenderTarget.BlendOp_ ||
+			MainRenderTarget.BlendOpAlpha_ != BoundMainRenderTarget.BlendOpAlpha_ )
+		{
+			glBlendEquationSeparate( 
+				gBlendOp[ (BcU32)MainRenderTarget.BlendOp_ ], gBlendOp[ (BcU32)MainRenderTarget.BlendOpAlpha_ ] );
+		}
+
+		if( Force ||
+			MainRenderTarget.SrcBlend_ != BoundMainRenderTarget.SrcBlend_ ||
+			MainRenderTarget.DestBlend_ != BoundMainRenderTarget.DestBlend_ ||
+			MainRenderTarget.SrcBlendAlpha_ != BoundMainRenderTarget.SrcBlendAlpha_ ||
+			MainRenderTarget.DestBlendAlpha_ != BoundMainRenderTarget.DestBlendAlpha_ )
+		{
+			glBlendFuncSeparate( 
+				gBlendType[ (BcU32)MainRenderTarget.SrcBlend_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlend_ ],
+				gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] );
+		}
+
+		if( Version_.SupportMRT_ )
+		{
+#if !PLATFORM_HTML5
+			for( BcU32 Idx = 0; Idx < 8; ++Idx )
+			{
+				const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
+				const auto& BoundRenderTarget = BoundRenderStateDesc_.BlendState_.RenderTarget_[ Idx ];
+
+				if( Force ||
+					RenderTarget.WriteMask_ != BoundRenderTarget.WriteMask_ )
+				{
+					glColorMaski(
+						Idx,
+						RenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+						RenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+						RenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+						RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+				}
+			}
+#endif // !PLATFORM_HTML5
+		}
+		else
+		{
+			if( Force ||
+				MainRenderTarget.WriteMask_ != BoundMainRenderTarget.WriteMask_ )
+			{
+				glColorMask(
+					MainRenderTarget.WriteMask_ & 1 ? GL_TRUE : GL_FALSE,
+					MainRenderTarget.WriteMask_ & 2 ? GL_TRUE : GL_FALSE,
+					MainRenderTarget.WriteMask_ & 4 ? GL_TRUE : GL_FALSE,
+					MainRenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
+			}
+		}
+	}
+
+	const auto& DepthStencilState = Desc.DepthStencilState_;
+	const auto& BoundDepthStencilState = BoundRenderStateDesc_.DepthStencilState_;
+	
+	if( Force ||
+		DepthStencilState.DepthTestEnable_ != BoundDepthStencilState.DepthTestEnable_ )
+	{
+		DepthStencilState.DepthTestEnable_ ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
+	}	
+
+	if( Force ||
+		DepthStencilState.DepthWriteEnable_ != BoundDepthStencilState.DepthWriteEnable_ )
+	{
+		glDepthMask( (GLboolean)DepthStencilState.DepthWriteEnable_ );
+	}
+
+	if( Force ||
+		DepthStencilState.DepthFunc_ != BoundDepthStencilState.DepthFunc_ )
+	{
+		glDepthFunc( gCompareMode[ (BcU32)DepthStencilState.DepthFunc_ ] );
+	}
+
+	if( Force ||
+		DepthStencilState.StencilEnable_ != BoundDepthStencilState.StencilEnable_ )
+	{
+		DepthStencilState.StencilEnable_ ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
+	}
+
+	if( Force ||
+		DepthStencilState.StencilFront_.Func_ != BoundDepthStencilState.StencilFront_.Func_ ||
+		DepthStencilState.StencilFront_.Ref_ != BoundDepthStencilState.StencilFront_.Ref_ ||
+		DepthStencilState.StencilFront_.Mask_ != BoundDepthStencilState.StencilFront_.Mask_ )
+	{
+		glStencilFuncSeparate( 
+			GL_FRONT,
+			gCompareMode[ (BcU32)DepthStencilState.StencilFront_.Func_ ], 
+			DepthStencilState.StencilFront_.Ref_, DepthStencilState.StencilFront_.Mask_ );
+	}
+
+	if( Force ||
+		DepthStencilState.StencilBack_.Func_ != BoundDepthStencilState.StencilBack_.Func_ ||
+		DepthStencilState.StencilBack_.Ref_ != BoundDepthStencilState.StencilBack_.Ref_ ||
+		DepthStencilState.StencilBack_.Mask_ != BoundDepthStencilState.StencilBack_.Mask_ )
+	{
+		glStencilFuncSeparate( 
+			GL_BACK,
+			gCompareMode[ (BcU32)DepthStencilState.StencilBack_.Func_ ], 
+			DepthStencilState.StencilBack_.Ref_, DepthStencilState.StencilBack_.Mask_ );
+	}
+
+	if( Force ||
+		DepthStencilState.StencilFront_.Fail_ != BoundDepthStencilState.StencilFront_.Fail_ ||
+		DepthStencilState.StencilFront_.DepthFail_ != BoundDepthStencilState.StencilFront_.DepthFail_ ||
+		DepthStencilState.StencilFront_.Pass_ != BoundDepthStencilState.StencilFront_.Pass_ )
+	{
+		glStencilOpSeparate( 
+			GL_FRONT,
+			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Fail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.DepthFail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Pass_ ] );
+	}
+
+	if( Force ||
+		DepthStencilState.StencilBack_.Fail_ != BoundDepthStencilState.StencilBack_.Fail_ ||
+		DepthStencilState.StencilBack_.DepthFail_ != BoundDepthStencilState.StencilBack_.DepthFail_ ||
+		DepthStencilState.StencilBack_.Pass_ != BoundDepthStencilState.StencilBack_.Pass_ )
+	{
+		glStencilOpSeparate( 
+			GL_BACK,
+			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Fail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.DepthFail_ ], 
+			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Pass_ ] );
+	}
+
+	const auto& RasteriserState = Desc.RasteriserState_;
+	const auto& BoundRasteriserState = BoundRenderStateDesc_.RasteriserState_;
+
+#if !PLATFORM_HTML5
+	if( Version_.SupportPolygonMode_ )
+	{
+		if( Force ||
+			RasteriserState.FillMode_ != BoundRasteriserState.FillMode_ )
+		{
+			glPolygonMode( GL_FRONT_AND_BACK, RsFillMode::SOLID == RasteriserState.FillMode_ ? GL_FILL : GL_LINE );
+		}
+	}
+#endif
+
+	if( Force ||
+		RasteriserState.CullMode_ != BoundRasteriserState.CullMode_ )
+	{
+		switch( RasteriserState.CullMode_ )
+		{
+		case RsCullMode::NONE:
+			glDisable( GL_CULL_FACE );
+			break;
+		case RsCullMode::CW:
+			glEnable( GL_CULL_FACE );
+			glCullFace( GL_FRONT );
+			break;
+		case RsCullMode::CCW:
+			glEnable( GL_CULL_FACE );
+			glCullFace( GL_BACK );
+			break;
+		default:
+			BcBreakpoint;
+		}
+	}
+
+	// TODO DepthBias_
+	// TODO SlopeScaledDepthBias_
+	// TODO DepthClipEnable_
+	// TODO ScissorEnable_
+
+	if( Version_.SupportAntialiasedLines_ )
+	{
+		if( Force ||
+			RasteriserState.AntialiasedLineEnable_ != BoundRasteriserState.AntialiasedLineEnable_ )
+		{
+			RasteriserState.AntialiasedLineEnable_ ? glEnable( GL_LINE_SMOOTH ) : glDisable( GL_LINE_SMOOTH );
+		}
+	}
+
+	RsGLCatchError();
+
+	// Copy over. Could do less work. Look into this later.
+	BoundRenderStateDesc_ = Desc;
 }
