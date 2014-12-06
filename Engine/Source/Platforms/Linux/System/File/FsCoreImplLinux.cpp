@@ -122,13 +122,12 @@ BcBool FsCoreImplLinux::fileExists( const BcChar* pFilename )
 //virtual
 BcBool FsCoreImplLinux::fileStats( const BcChar* pFilename, FsStats& Stats )
 {
-#if COMPILER_MSVC
-	struct _stat Attrib;
+	struct stat Attrib;
 
-	int Descriptor = ::open(pFilename, _O_RDONLY | _O_BINARY);
+	int Descriptor = ::open(pFilename, O_RDONLY);
 	if( Descriptor != -1 )
 	{
-		if( _fstat( Descriptor, &Attrib ) == 0 )
+		if( fstat( Descriptor, &Attrib ) == 0 )
 		{
 			struct tm* pCreatedTime;
 			struct tm* pModifiedTime;
@@ -158,7 +157,6 @@ BcBool FsCoreImplLinux::fileStats( const BcChar* pFilename, FsStats& Stats )
 		::close( Descriptor );
 		return BcTrue;
 	}
-#endif
 	return BcFalse;
 }
 
