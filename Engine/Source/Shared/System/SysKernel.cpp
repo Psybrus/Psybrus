@@ -170,6 +170,9 @@ SysKernel::SysKernel( BcF32 TickRate ):
 
 	// Wait for workers to start.
 	JobWorkerStartFence_.wait( 0 );
+
+	// Mark main timer.
+	MainTimer_.mark();
 #endif // !PLATFORM_HTML5
 }
 
@@ -517,6 +520,11 @@ void SysKernel::runOnce()
 	}
 #endif
 
+	// Store frame time.
+	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
+
+	BcAssert( FrameTime_ >= 0.0f );
+
 	// Mark main timer.
 	MainTimer_.mark();
 	
@@ -549,10 +557,6 @@ void SysKernel::runOnce()
 	}
 #endif
 	
-	// Store frame time.
-	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
-
-	BcAssert( FrameTime_ >= 0.0f );
 
 #if PSY_USE_PROFILER
 	++FrameCount;
