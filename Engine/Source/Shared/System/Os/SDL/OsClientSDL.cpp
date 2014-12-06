@@ -249,8 +249,8 @@ void OsClientSDL::handleMouseEvent( const SDL_Event& SDLEvent )
 			Event.MouseY_ = SDLEvent.button.y;
 			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
-			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
+			Event.NormalisedX_ = ( BcF32( Event.MouseX_ ) - BcF32( getWidth() ) * 0.5f ) / BcF32( getWidth() * 0.5f );
+			Event.NormalisedY_ = ( BcF32( Event.MouseY_ ) - BcF32( getHeight() ) * 0.5f ) / BcF32( getHeight() * 0.5f );
 
 			switch( SDLEvent.button.button )
 			{
@@ -292,8 +292,8 @@ void OsClientSDL::handleMouseEvent( const SDL_Event& SDLEvent )
 			Event.MouseY_ = SDLEvent.motion.y;
 			Event.MouseDX_ = (BcF32)(Event.MouseX_ - PrevMouseX_);
 			Event.MouseDY_ = (BcF32)(Event.MouseY_ - PrevMouseY_);
-			Event.NormalisedX_ = BcF32( Event.MouseX_ - getWidth() / 2 ) / BcF32( getWidth() );
-			Event.NormalisedY_ = BcF32( Event.MouseY_ - getHeight() / 2 ) / BcF32( getHeight() );
+			Event.NormalisedX_ = ( BcF32( Event.MouseX_ ) - BcF32( getWidth() ) * 0.5f ) / BcF32( getWidth() * 0.5f );
+			Event.NormalisedY_ = ( BcF32( Event.MouseY_ ) - BcF32( getHeight() ) * 0.5f ) / BcF32( getHeight() * 0.5f );
 			Event.ButtonCode_ = 0;
 
 			PrevMouseX_ = Event.MouseX_;
