@@ -196,14 +196,31 @@ void ScnFontComponent::setClipping( BcBool Enabled, MaVec2d Min, MaVec2d Max )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// draw
 MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
+{
+	return draw( Canvas, Position, Parent_->pHeader_->NominalSize_, String, Colour, SizeRun, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawCentered
+MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
+{
+	MaVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
+	return draw( Canvas, Position - Size * 0.5f, String, Colour, BcFalse, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// draw
+MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
 	ScnFontHeader* pHeader = Parent_->pHeader_;
 	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
 	
+	BcF32 SizeMultiplier = Size / pHeader->NominalSize_;
+
 	// Allocate enough vertices for each character.
 	ScnCanvasComponentVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
 	ScnCanvasComponentVertex* pVert = pFirstVert;
@@ -237,7 +254,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 			if( CharCode == '\n' )
 			{
 				AdvanceX = 0.0f;
-				AdvanceY += pHeader->NominalSize_;
+				AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
 				FirstCharacterOnLine = BcTrue;
 			}
 			
@@ -257,7 +274,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 				}
 				
 				// Calculate size and UVs.
-				MaVec2d Size( MaVec2d( pGlyph->Width_, pGlyph->Height_ ) );
+				MaVec2d Size( MaVec2d( pGlyph->Width_, pGlyph->Height_ ) * SizeMultiplier );
 				MaVec2d CornerMin( Position + MaVec2d( AdvanceX + pGlyph->OffsetX_, AdvanceY - pGlyph->OffsetY_ + pHeader->NominalSize_ ) );
 				MaVec2d CornerMax( CornerMin + Size );
 				BcF32 U0 = pGlyph->UA_;
@@ -365,7 +382,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 				}
 								
 				// Advance.
-				AdvanceX += pGlyph->AdvanceX_;
+				AdvanceX += pGlyph->AdvanceX_ * SizeMultiplier;
 			}
 		}
 		
@@ -382,14 +399,6 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	}
 
 	return MaxSize - MinSize;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// drawCentered
-MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
-{
-	MaVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
-	return draw( Canvas, Position - Size * 0.5f, String, Colour, BcFalse, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
