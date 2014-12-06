@@ -102,56 +102,15 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	// Acquire basis package.
 	setRootOwner( Basis->getPackage() );
 	getPackage()->acquire();
+
+	setupComponents();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // create
 void ScnEntity::create()
 {
-	// New stuff.
-	auto Basis = static_cast< ScnEntity* >( getBasis() );
-	const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis->pHeader_ : pHeader_;
-	const BcU32* ComponentCrossRefs = reinterpret_cast< const BcU32* >( Header + 1 );
-
-	for( BcU32 Idx = 0; Idx < Header->NoofComponents_; ++Idx )
-	{
-		// We are a basis.
-		if( getBasis() == nullptr )
-		{
-			ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
-			Components_.push_back( Component );
-		}
-		else
-		{
-			BcAssert( Basis->Components_.size() == Header->NoofComponents_ );
-			ScnComponentRef Component = Basis->Components_[ Idx ];
-
-			// Construct a new entity.
-			ScnComponentRef NewComponent = 
-				ReConstructObject( 
-					Component->getClass(), 
-					*Component->getName().getUnique(), 
-					getPackage(), 
-					Component,
-					[]( ReObject* Object )
-					{
-						ScnComponent* Component = static_cast< ScnComponent* >( Object );
-						Component->initialise();
-					} );
-
-			attach( NewComponent );
-		}
-	}
-
-	static int Export = 0;
-	if( Export )
-	{
-		CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), (BcU32)bcRFF_ALL, (BcU32)( bcRFF_TRANSIENT | bcRFF_CHUNK_DATA ), 0 );
-		SeJsonWriter Writer( &ObjectCodec );
-		Writer << *this;
-		Writer.save( "test.json" );
-		Export = 0;
-	}
+	setupComponents();
 	markReady();
 }
 
@@ -499,5 +458,48 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pJsonObject_ = nullptr;
 		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
 		CsResource::markCreate();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setupComponents
+void ScnEntity::setupComponents()
+{
+	// New stuff.
+	if( pHeader_ != nullptr && Components_.size() == 0 )
+	{
+		auto Basis = static_cast< ScnEntity* >( getBasis() );
+		const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis->pHeader_ : pHeader_;
+		const BcU32* ComponentCrossRefs = reinterpret_cast< const BcU32* >( Header + 1 );
+
+		for( BcU32 Idx = 0; Idx < Header->NoofComponents_; ++Idx )
+		{
+			// We are a basis.
+			if( getBasis() == nullptr )
+			{
+				ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
+				Components_.push_back( Component );
+			}
+			else
+			{
+				BcAssert( Basis->Components_.size() == Header->NoofComponents_ );
+				ScnComponentRef Component = Basis->Components_[ Idx ];
+
+				// Construct a new entity.
+				ScnComponentRef NewComponent = 
+					ReConstructObject( 
+						Component->getClass(), 
+						*Component->getName().getUnique(), 
+						getPackage(), 
+						Component,
+						[]( ReObject* Object )
+						{
+							ScnComponent* Component = static_cast< ScnComponent* >( Object );
+							Component->initialise();
+						} );
+
+				attach( NewComponent );
+			}
+		}
 	}
 }

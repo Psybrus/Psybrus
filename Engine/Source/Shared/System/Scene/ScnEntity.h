@@ -171,6 +171,8 @@ public:
 protected:
 	virtual void						fileReady();
 	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+
+	void setupComponents();
 	
 protected:
 	const ScnEntityHeader*				pHeader_;
