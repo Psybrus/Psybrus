@@ -1146,7 +1146,14 @@ void ScnModelImport::serialiseVertices(
 						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
 						for( BcU32 ComponentIdx = 0; ComponentIdx < VertexElement.Components_; ++ComponentIdx )
 						{
-							*OutVal++ = Texcoord[ ComponentIdx ];
+							if( ComponentIdx == 1 )
+							{
+								*OutVal++ = 1.0f - Texcoord[ ComponentIdx ];
+							}
+							else
+							{
+								*OutVal++ = Texcoord[ ComponentIdx ];
+							}
 						}
 					}
 				}
