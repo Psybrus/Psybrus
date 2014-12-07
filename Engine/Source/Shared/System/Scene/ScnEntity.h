@@ -19,6 +19,8 @@
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnComponent.h"
 
+#define SCNENTITY_USES_EVTPUBLISHER ( 0 )
+
 //////////////////////////////////////////////////////////////////////////
 // ScnEntityHeader
 struct ScnEntityHeader
@@ -29,9 +31,11 @@ struct ScnEntityHeader
 //////////////////////////////////////////////////////////////////////////
 // ScnEntity
 class ScnEntity:
-	public ScnComponent,
-	public EvtPublisher
-{
+	public ScnComponent
+#if SCNENTITY_USES_EVTPUBLISHER
+	, public EvtPublisher
+#endif
+	{
 public:
 	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnEntity, ScnComponent );
 	
@@ -182,7 +186,9 @@ protected:
 
 	ScnComponentList					Components_;
 	
+#if SCNENTITY_USES_EVTPUBLISHER
 	class EvtProxyBuffered*				pEventProxy_;
+#endif
 };
 
 #endif

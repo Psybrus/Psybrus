@@ -40,7 +40,9 @@ void ScnEntity::StaticRegisterClass()
 		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
 		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
 		new ReField( "Components_",		&ScnEntity::Components_ ),
+#if SCNENTITY_USES_EVTPUBLISHER
 		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
+#endif
 	};
 	
 	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
@@ -56,16 +58,20 @@ void ScnEntity::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnEntity::ScnEntity():
-	pHeader_( nullptr ),
-	pEventProxy_( nullptr )
+	pHeader_( nullptr )
+#if SCNENTITY_USES_EVTPUBLISHER
+	, pEventProxy_( nullptr )
+#endif
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnEntity::ScnEntity( ReNoInit ):
-	pHeader_( nullptr ),
-	pEventProxy_( nullptr )
+	pHeader_( nullptr )
+#if SCNENTITY_USES_EVTPUBLISHER
+	, pEventProxy_( nullptr )
+#endif
 {
 }
 
@@ -146,8 +152,10 @@ void ScnEntity::update( BcF32 Tick )
 	// Update as component first.
 	Super::update( Tick );
 
+#if SCNENTITY_USES_EVTPUBLISHER
 	// Dispatch all events.
 	pEventProxy_->dispatch();
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,8 +207,10 @@ void ScnEntity::detachFromParent()
 // onAttachScene
 void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
+#if SCNENTITY_USES_EVTPUBLISHER
 	// Setup buffered event proxy.
 	pEventProxy_ = new EvtProxyBuffered( this );	
+#endif
 
 	Super::onAttach( Parent );
 }
@@ -209,9 +219,11 @@ void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 // onAttachScene
 void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
+#if SCNENTITY_USES_EVTPUBLISHER
 	// Free event proxy.
 	delete pEventProxy_;
 	pEventProxy_ = NULL;
+#endif
 
 	// All our child components want to detach.
 	while( Components_.size() > 0 )
