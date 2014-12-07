@@ -34,7 +34,7 @@ public:
 	BcF64						time();
 
 private:
-	BcF64						MarkedTime_;
+	timeval						MarkedTime_;
 };
 
 #endif
