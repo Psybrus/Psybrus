@@ -647,7 +647,8 @@ void RsContextGL::create()
 
 	// Force set render state to the default.
 	// Initialises redundant state caching.
-	setRenderStateDesc( BoundRenderStateDesc_, BcTrue );
+	RsRenderStateDesc RenderStateDesc = BoundRenderStateDesc_;
+	setRenderStateDesc( RenderStateDesc, BcTrue );
 
 	// Set default state.
 	setDefaultState();
