@@ -23,6 +23,243 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// Internal utility.
+namespace 
+{
+	/**
+	 * Get glyph size.
+	 */
+	inline MaVec2d GetGlyphSize( 
+		ScnFontHeader & Header, 
+		ScnFontGlyphDesc & Glyph, 
+		BcF32 SizeMultiplier )
+	{
+		return MaVec2d( Glyph.Width_, Glyph.Height_ ) * SizeMultiplier;
+	}
+
+	/**
+	 * Get glyph offset.
+	 */
+	 inline MaVec2d GetGlyphOffset( 
+	 	ScnFontHeader & Header, 
+	 	ScnFontGlyphDesc & Glyph, 
+	 	BcF32 SizeMultiplier )
+	{
+	 	return MaVec2d( 
+	 		+ ( Glyph.OffsetX_ * SizeMultiplier ), 
+			- ( Glyph.OffsetY_ * SizeMultiplier ) + ( Header.NominalSize_ * SizeMultiplier ) );
+	}
+
+	/**
+	 * Add glyph vertices.
+	 */
+	inline BcU32 AddGlyphVertices( 
+		ScnCanvasComponentVertex*& pVert,
+		const MaVec2d& CornerMin,
+		const MaVec2d& CornerMax,
+		const MaVec2d& UV0,
+		const MaVec2d& UV1,
+		BcU32 Colour )
+	{
+		// Add triangle for character.
+		pVert->X_ = CornerMin.x();
+		pVert->Y_ = CornerMin.y();
+		pVert->U_ = UV0.x();
+		pVert->V_ = UV0.y();
+		pVert->ABGR_ = Colour;
+		++pVert;
+		
+		pVert->X_ = CornerMax.x();
+		pVert->Y_ = CornerMin.y();
+		pVert->U_ = UV1.x();
+		pVert->V_ = UV0.y();
+		pVert->ABGR_ = Colour;
+		++pVert;
+		
+		pVert->X_ = CornerMin.x();
+		pVert->Y_ = CornerMax.y();
+		pVert->U_ = UV0.x();
+		pVert->V_ = UV1.y();
+		pVert->ABGR_ = Colour;
+		++pVert;
+		
+		pVert->X_ = CornerMax.x();
+		pVert->Y_ = CornerMin.y();
+		pVert->U_ = UV1.x();
+		pVert->V_ = UV0.y();
+		pVert->ABGR_ = Colour;
+		++pVert;
+		
+		pVert->X_ = CornerMax.x();
+		pVert->Y_ = CornerMax.y();
+		pVert->U_ = UV1.x();
+		pVert->V_ = UV1.y();
+		pVert->ABGR_ = Colour;
+		++pVert;
+		
+		pVert->X_ = CornerMin.x();
+		pVert->Y_ = CornerMax.y();
+		pVert->U_ = UV0.x();
+		pVert->V_ = UV1.y();
+		pVert->ABGR_ = Colour;
+		++pVert;
+
+		return 6;
+	}
+
+	/**
+	 * Clip corners and UVs.
+	 * @return true if should draw, false if not.
+	 */
+	inline BcBool ClipGlyph(
+		const MaVec4d& ClippingBounds,
+		const MaVec2d& Size,
+		MaVec2d& CornerMin,
+		MaVec2d& CornerMax,
+		MaVec2d& UV0,
+		MaVec2d& UV1 )
+	{
+		if ( ( CornerMax.x() < ClippingBounds.x() ) || 
+			 ( CornerMin.x() > ClippingBounds.z() ) || 
+			 ( CornerMax.y() < ClippingBounds.y() ) || 
+			 ( CornerMin.y() > ClippingBounds.w() ) )
+		{
+			return BcFalse;
+		}
+
+		MaVec2d TexSize = UV1 - UV0;
+
+		if ( CornerMin.x() < ClippingBounds.x() )
+		{
+			UV0.x( UV0.x() - ( ( CornerMin.x() - ClippingBounds.x() ) / Size.x() ) * TexSize.x() );
+			CornerMin.x( ClippingBounds.x() );
+		}
+
+		if ( CornerMax.x() > ClippingBounds.z() )
+		{
+			UV1.x( UV1.x() - ( ( CornerMax.x() - ClippingBounds.z() ) / Size.x() ) * TexSize.x() );
+			CornerMax.x( ClippingBounds.z() );
+		}
+
+		if ( CornerMin.y() < ClippingBounds.y() )
+		{
+			UV0.y( UV0.y() - ( ( CornerMin.y() - ClippingBounds.y() ) / Size.y() ) * TexSize.y() );
+			CornerMin.y( ClippingBounds.y() );
+		}
+
+		if ( CornerMax.y() > ClippingBounds.w() )
+		{
+			UV1.y( UV1.y() - ( ( CornerMax.y() - ClippingBounds.w() ) / Size.y() ) * TexSize.y() );
+			CornerMax.y( ClippingBounds.w() );
+		}
+
+		return BcTrue;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Font draw params.
+REFLECTION_DEFINE_BASIC( ScnFontDrawParams );
+
+void ScnFontDrawParams::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Alignment_", &ScnFontDrawParams::Alignment_ ),
+		new ReField( "Layer_", &ScnFontDrawParams::Layer_ ),
+		new ReField( "Size_", &ScnFontDrawParams::Size_ ),
+		new ReField( "ClippingEnabled_", &ScnFontDrawParams::ClippingEnabled_ ),
+		new ReField( "ClippingBounds_", &ScnFontDrawParams::ClippingBounds_ ),
+		new ReField( "Colour_", &ScnFontDrawParams::Colour_ ),
+		new ReField( "AlphaTestSettings_", &ScnFontDrawParams::AlphaTestSettings_ ),
+	};
+	
+	ReRegisterClass< ScnFontDrawParams >( Fields );
+
+
+	ReEnumConstant* ScnFontAlignmentEnumConstants[] = 
+	{
+		new ReEnumConstant( "LEFT", ScnFontAlignment::LEFT ),
+		new ReEnumConstant( "RIGHT", ScnFontAlignment::LEFT ),
+		new ReEnumConstant( "VCENTRE", ScnFontAlignment::VCENTRE ),
+		new ReEnumConstant( "TOP", ScnFontAlignment::TOP ),
+		new ReEnumConstant( "BOTTOM", ScnFontAlignment::BOTTOM ),
+		new ReEnumConstant( "HCENTRE", ScnFontAlignment::HCENTRE ),
+	};
+	ReRegisterEnum< ScnFontAlignment >( ScnFontAlignmentEnumConstants );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnFontDrawParams::ScnFontDrawParams():
+	Alignment_( ScnFontAlignment::LEFT | ScnFontAlignment::TOP ),
+	Layer_( 0 ),
+	Size_( 1.0f ),
+	ClippingEnabled_( BcFalse ),
+	ClippingBounds_( 0.0f, 0.0f, 0.0f, 0.0f ),
+	Colour_( RsColour::BLACK ),
+	AlphaTestSettings_( 0.4f, 0.5f, 0.0f, 0.0f )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setAlignment
+ScnFontDrawParams& ScnFontDrawParams::setAlignment( ScnFontAlignment Alignment )
+{
+	Alignment_ = Alignment;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setLayer
+ScnFontDrawParams& ScnFontDrawParams::setLayer( BcU32 Layer )
+{
+	Layer_ = Layer;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSize
+ScnFontDrawParams& ScnFontDrawParams::setSize( BcF32 Size )
+{
+	Size_ = Size;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setClippingEnabled
+ScnFontDrawParams& ScnFontDrawParams::setClippingEnabled( BcBool Enabled )
+{
+	ClippingEnabled_ = Enabled;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setClippingBounds
+ScnFontDrawParams& ScnFontDrawParams::setClippingBounds( const MaVec4d& Bounds )
+{
+	ClippingBounds_ = Bounds;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setColour
+ScnFontDrawParams& ScnFontDrawParams::setColour( const RsColour& Colour )
+{
+	Colour_ = Colour;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setAlphaTestSettings
+ScnFontDrawParams& ScnFontDrawParams::setAlphaTestSettings( const MaVec4d& Settings )
+{
+	AlphaTestSettings_ = Settings;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnFont );
 
@@ -235,7 +472,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	
 	BcF32 AdvanceX = 0.0f;
 	BcF32 AdvanceY = 0.0f;
-		
+	
 	BcU32 ABGR = Colour.asABGR();
 
 	MaVec2d MinSize( Position );
@@ -263,26 +500,22 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 			
 			if( Iter != CharCodeMap.end() )
 			{
-				ScnFontGlyphDesc* pGlyph = &pGlyphDescs[ (*Iter).second ];
+				ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
 
 				// Bring first character back to the left so it sits on the cursor.
 				if( FirstCharacterOnLine )
 				{
-					AdvanceX -= pGlyph->OffsetX_;
+					AdvanceX -= Glyph.OffsetX_;
 					//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
 					FirstCharacterOnLine = BcFalse;
 				}
 				
 				// Calculate size and UVs.
-				MaVec2d Size( MaVec2d( pGlyph->Width_, pGlyph->Height_ ) * SizeMultiplier );
-				MaVec2d CornerMin( Position + MaVec2d( 
-					AdvanceX + ( pGlyph->OffsetX_ * SizeMultiplier ), 
-					AdvanceY - ( pGlyph->OffsetY_ * SizeMultiplier ) + ( pHeader->NominalSize_ * SizeMultiplier ) ) );
+				MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
+				MaVec2d CornerMin( Position + MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
 				MaVec2d CornerMax( CornerMin + Size );
-				BcF32 U0 = pGlyph->UA_;
-				BcF32 V0 = pGlyph->VA_;
-				BcF32 U1 = pGlyph->UB_;
-				BcF32 V1 = pGlyph->VB_;
+				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
+				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
 				
 				// Pre-clipping size.
 				MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
@@ -299,92 +532,28 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 				{
 					if ( ClippingEnabled_ )
 					{
-						if ( ( CornerMax.x() < ClipMin_.x() ) || ( CornerMin.x() > ClipMax_.x() ) || ( CornerMax.y() < ClipMin_.y() ) || ( CornerMin.y() > ClipMax_.y() ) )
+						if( !ClipGlyph(
+							MaVec4d( ClipMin_.x(), ClipMin_.y(), ClipMax_.x(), ClipMax_.y() ),
+							Size,
+							CornerMin,
+							CornerMax,
+							UV0,
+							UV1 ) )
 						{
 							// Advance.
-							AdvanceX += pGlyph->AdvanceX_ * SizeMultiplier;
+							AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
 
 							// Next character.
 							continue;
 						}
-
-						BcF32 TexWidth = U1 - U0;
-						BcF32 TexHeight = V1 - V0;
-
-						if ( CornerMin.x() < ClipMin_.x() )
-						{
-							U0 -= ( ( CornerMin.x() - ClipMin_.x() ) / Size.x() ) * TexWidth;
-							CornerMin.x( ClipMin_.x() );
-						}
-
-						if ( CornerMax.x() > ClipMax_.x() )
-						{
-							U1 -= ( ( CornerMax.x() - ClipMax_.x() ) / Size.x() ) * TexWidth;
-							CornerMax.x( ClipMax_.x() );
-						}
-
-						if ( CornerMin.y() < ClipMin_.y() )
-						{
-							V0 -= ( ( CornerMin.y() - ClipMin_.y() ) / Size.y() ) * TexHeight;
-							CornerMin.y( ClipMin_.y() );
-						}
-
-						if ( CornerMax.y() > ClipMax_.y() )
-						{
-							V1 -= ( ( CornerMax.y() - ClipMax_.y() ) / Size.y() ) * TexHeight;
-							CornerMax.y( ClipMax_.y() );
-						}
 					}
 
-					// Add triangle for character.
-					pVert->X_ = CornerMin.x();
-					pVert->Y_ = CornerMin.y();
-					pVert->U_ = U0;
-					pVert->V_ = V0;
-					pVert->ABGR_ = ABGR;
-					++pVert;
-					
-					pVert->X_ = CornerMax.x();
-					pVert->Y_ = CornerMin.y();
-					pVert->U_ = U1;
-					pVert->V_ = V0;
-					pVert->ABGR_ = ABGR;
-					++pVert;
-					
-					pVert->X_ = CornerMin.x();
-					pVert->Y_ = CornerMax.y();
-					pVert->U_ = U0;
-					pVert->V_ = V1;
-					pVert->ABGR_ = ABGR;
-					++pVert;
-					
-					pVert->X_ = CornerMax.x();
-					pVert->Y_ = CornerMin.y();
-					pVert->U_ = U1;
-					pVert->V_ = V0;
-					pVert->ABGR_ = ABGR;
-					++pVert;
-					
-					pVert->X_ = CornerMax.x();
-					pVert->Y_ = CornerMax.y();
-					pVert->U_ = U1;
-					pVert->V_ = V1;
-					pVert->ABGR_ = ABGR;
-					++pVert;
-					
-					pVert->X_ = CornerMin.x();
-					pVert->Y_ = CornerMax.y();
-					pVert->U_ = U0;
-					pVert->V_ = V1;
-					pVert->ABGR_ = ABGR;
-					++pVert;
-
-					// Add 2 triangles worth of vertices.
-					NoofVertices += 6;
+					NoofVertices += AddGlyphVertices( 
+						pVert, CornerMin, CornerMax, UV0, UV1, ABGR );
 				}
 								
 				// Advance.
-				AdvanceX += pGlyph->AdvanceX_ * SizeMultiplier;
+				AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
 			}
 		}
 		
@@ -411,7 +580,6 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 	return draw( Canvas, Position - FontSize * 0.5f, Size, String, Colour, BcFalse, Layer );
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // setAlphaTestStepping
 void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
@@ -436,7 +604,19 @@ ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// drawText
+MaVec2d ScnFontComponent::drawText( 
+	ScnCanvasComponentRef Canvas, 
+	const ScnFontDrawParams& DrawParams,
+	const MaVec2d& Position,
+	const MaVec2d& Bounds,
+	const std::string& Text )
+{
+	return MaVec2d();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
 //virtual
 void ScnFontComponent::update( BcF32 Tick )
 {
@@ -444,7 +624,7 @@ void ScnFontComponent::update( BcF32 Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isReady
+// onAttach
 //virtual
 void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 {

@@ -73,6 +73,59 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnFontAlignment
+enum class ScnFontAlignment : BcU32 
+{
+	LEFT				= 0x01,
+	RIGHT				= 0x02,
+	VCENTRE				= 0x04,
+	TOP					= 0x10,
+	BOTTOM				= 0x20,
+	HCENTRE				= 0x40,
+
+	//
+	HORIZONTAL			= 0x0f,
+	VERTICAL			= 0xf0,
+};
+
+inline ScnFontAlignment operator | ( ScnFontAlignment A, ScnFontAlignment B )
+{
+	return ScnFontAlignment( BcU32( A ) | BcU32( B ) );
+}
+
+inline ScnFontAlignment operator & ( ScnFontAlignment A, ScnFontAlignment B )
+{
+	return ScnFontAlignment( BcU32( A ) & BcU32( B ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ScnFontDrawParams
+class ScnFontDrawParams
+{
+public:
+	REFLECTION_DECLARE_BASIC( ScnFontDrawParams );
+public:
+	ScnFontDrawParams();
+
+	ScnFontDrawParams& setAlignment( ScnFontAlignment Alignment );
+	ScnFontDrawParams& setLayer( BcU32 Layer );
+	ScnFontDrawParams& setSize( BcF32 Size );
+	ScnFontDrawParams& setClippingEnabled( BcBool Enabled );
+	ScnFontDrawParams& setClippingBounds( const MaVec4d& Bounds );
+	ScnFontDrawParams& setColour( const RsColour& Colour );
+	ScnFontDrawParams& setAlphaTestSettings( const MaVec4d& Settings );
+
+private:
+	ScnFontAlignment Alignment_;
+	BcU32 Layer_;
+	BcF32 Size_;
+	BcBool ClippingEnabled_;
+	MaVec4d ClippingBounds_;
+	RsColour Colour_;
+	MaVec4d AlphaTestSettings_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnFontComponent
 class ScnFontComponent:
 	public ScnComponent
@@ -84,17 +137,34 @@ public:
 	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	void								initialise( const Json::Value& Object );
 
-	void								setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
 	
+	// Old interface.
+	void								setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
 	MaVec2d								draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
 	MaVec2d								drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
-
 	MaVec2d								draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
 	MaVec2d								drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
-
 	void								setAlphaTestStepping( const MaVec2d& Stepping );
-
 	ScnMaterialComponentRef				getMaterialComponent();
+
+	// New interfaces.
+
+	/**
+	 * Draw text to canvas.
+	 * @param Canvas Canvas to render in to. Can be null.
+	 * @param DrawParam Draw parameters.
+	 * @param Position Position to render to.
+	 * @param Bounds Text target bounds.
+	 * @param Text Text to draw.
+	 * @return Size of text.
+	 */
+	MaVec2d drawText( 
+		ScnCanvasComponentRef Canvas, 
+		const ScnFontDrawParams& DrawParams,
+		const MaVec2d& Position,
+		const MaVec2d& Bounds,
+		const std::string& Text );
+
 
 public:
 	virtual void						update( BcF32 Tick );
