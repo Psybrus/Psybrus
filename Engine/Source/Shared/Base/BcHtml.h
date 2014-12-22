@@ -40,6 +40,7 @@ public:
 	std::string getOuterXml();
 	bool operator==( const BcHtmlNode& V );
 	BcHtmlNode NextSiblingNode();
+	BcHtmlNode FindNodeById( std::string Id );
 private:
 	BcHtmlNode( BcHtmlNodeInternal* Node );
 	BcHtmlNodeInternal* InternalNode_;
@@ -63,6 +64,7 @@ public:
 	BcHtmlNodeInternal* operator[]( BcU32 Idx );
 	BcHtmlNodeInternal* operator[]( std::string Tag );
 	std::string getOuterXml();
+	BcHtmlNodeInternal* FindNodeById( std::string Id );
 
 	~BcHtmlNodeInternal();
 private:
@@ -83,6 +85,7 @@ public:
 	BcHtml();
 	BcHtmlNode getRootNode();
 	std::string getHtml();
+	BcHtml( std::string Template );
 private:
 	/**
 	* Private write using va_list.

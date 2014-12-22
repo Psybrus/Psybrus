@@ -17,6 +17,7 @@
 #include "System/SysKernel.h"
 #include "Serialisation/SeJsonWriter.h"
 #include "Psybrus.h"
+#include "DsTemplate.h"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -36,6 +37,7 @@ DsCore::DsCore()
 	registerPage("Content", &cmdContent, "Content");
 	registerPage("Scene", &cmdScene, "Scene");
 	registerPage("Log", &cmdLog, "Log");
+	registerPage("Functions", &cmdViewFunctions);
 	registerPage("Resource/(?<Id>.*)", &cmdResource);
 	registerPage("ResourceEdit/(?<Id>.*)", &cmdResourceEdit);
 	registerPageNoHtml("Json/(?<Id>\\d*)", &cmdJson);
@@ -166,11 +168,9 @@ void DsCore::cmdScene(DsParameters params, BcHtmlNode& Output, std::string PostC
 // cmdMenu
 void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
-	BcHtmlNode mainNode = Output.createChildNode("div");
-	mainNode.setAttribute("id", "menuWrapper");
-	BcHtmlNode pages = mainNode.createChildNode("div");
-	pages.setAttribute("id", "pages");
-	BcHtmlNode ul = pages.createChildNode("ul");
+	DsTemplate::loadTemplate(Output, "Content/Debug/main_items.html" );
+
+	BcHtmlNode ul = Output.FindNodeById( "page_listing" );
 	DsCore* core = pImpl();
 	for (BcU32 Idx = 0; Idx < core->PageFunctions_.size(); ++Idx)
 	{
@@ -181,8 +181,7 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 			a.setContents(core->PageFunctions_[Idx].Display_);
 		}
 	}
-	BcHtmlNode functions = mainNode.createChildNode("div");
-	functions.setAttribute("id", "pages");
+	BcHtmlNode functions = Output.FindNodeById( "function_listing" );
 	for (auto Item : core->ButtonFunctions_)
 	{
 		BcHtmlNode ahref = functions.createChildNode("a");
@@ -192,8 +191,9 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		BcHtmlNode button = ahref.createChildNode( "button" );
 		button.setAttribute( "type", "button" );
 		button.setContents( Item.DisplayText_ );
+		functions.createChildNode( "br" );
 	}
-
+	/**/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -233,14 +233,11 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, 
 {
 	BcChar Id[32];
 	BcSPrintf(Id, "%d", Component->getUniqueId());
-	BcHtmlNode& ul = Output.createChildNode("ul");
-	// Component name.
-	BcHtmlNode& li = ul.createChildNode("li");
-	li.setContents("Component: ");
-	BcHtmlNode& a = li.createChildNode("a");
-	a.setAttribute("href", "/Resource/" + std::string(Id));
-	a.setContents(*Component->getName());
-	li.createChildNode("").setContents(" (" + *Component->getClass()->getName() + ")");
+	BcHtmlNode tmp = DsTemplate::loadTemplate( Output, "Content/Debug/scene_component_template.html" );
+
+	tmp.FindNodeById( "component-link" ).setAttribute( "href", "/Resource/" + std::string( Id ) );
+	tmp.FindNodeById( "component-link" ).setContents( *Component->getName() );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,20 +263,37 @@ void DsCore::writeFooter(BcHtmlNode& Output)
 
 //////////////////////////////////////////////////////////////////////////
 // Gets a file for the output stream
-char* DsCore::writeFile(std::string filename, int& OutLength, std::string& type)
+char* DsCore::writeFile( std::string filename, int& OutLength, std::string& type )
 {
 	BcFile file;
 	std::string f = "Content/Debug/";
 	f += filename;
-	file.open(f.c_str());
-	if (!file.isOpen())
+	file.open( f.c_str() );
+	if ( !file.isOpen() )
 		return 0;
 	char* data;// = new BcU8[file.size()];
-	data = (char*)file.readAllBytes();
+	data = ( char* ) file.readAllBytes();
 	OutLength = file.size();
 	type = "css";
 	// TODO: Actually load files
 	return data;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Gets a plain text file
+std::string DsCore::loadTemplateFile( std::string filename )
+{
+	BcFile file;
+	std::string f = filename;
+	file.open( f.c_str() );
+	if ( !file.isOpen() )
+		return 0;
+	char* data;// = new BcU8[file.size()];
+	data = ( char* ) file.readAllBytes();
+	std::string output = data;
+	delete data;
+	// TODO: Actually load files
+	return output;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -461,23 +475,10 @@ char* DsCore::handleFile(std::string Uri, int& FileSize, std::string PostContent
 std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 {
 	BcHtml HtmlContent;
-	HtmlContent.getRootNode().createChildNode("title").setContents(GPsySetupParams.Name_);
-	BcHtmlNode node = HtmlContent.getRootNode();
-	BcHtmlNode link = node.createChildNode("link");
-	link.setAttribute("rel", "stylesheet");
-	link.setAttribute("type", "text/css");
-	link.setAttribute("href", "/files/style.css");
-	BcHtmlNode paramItems = node.createChildNode("script").setAttribute("language", "javascript");
-	node.createChildNode("script").setAttribute("language", "javascript").setAttribute("type", "text/javascript").setAttribute("src", "/files/jquery.min.js");
-	node.createChildNode("script").setAttribute("language", "javascript").setAttribute("type", "text/javascript").setAttribute("src", "/files/debug.js");
 
-	int t = sizeof(BcHtmlNode);
-	BcHtmlNode redirect = node.createChildNode("meta");
-	BcHtmlNode body = node.createChildNode("body").createChildNode("div").setAttribute("id", "mainBody");
-	//redirect = node["meta"];
-	writeHeader(body);
-	BcHtmlNode innerBody = body.createChildNode("div").setAttribute("id", "innerBody");
-	//std::map<std::string, std::string> data;
+	DsTemplate::loadTemplate( HtmlContent.getRootNode(), "Content/Debug/fullpage_template.html" );
+	HtmlContent.getRootNode().FindNodeById( "id-title" ).setContents( GPsySetupParams.Name_ );
+
 	std::vector<std::string> data;
 	bool success = false;
 	std::string uri = &Uri[1];
@@ -486,7 +487,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	{
 		if ( uri == ("Functions/" + boost::lexical_cast< std::string >( Item.Handle_ ) ) )
 		{
-				
+			BcHtmlNode redirect = HtmlContent.getRootNode().FindNodeById( "meta" );
 			redirect.setAttribute("http-equiv", "refresh");
 			redirect.setAttribute("content", "0; url=/Menu");
 			Item.Function_();
@@ -515,16 +516,14 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 					javaScript += "\"";
 				}
 				javaScript += "];";
-				paramItems.setContents(javaScript);
-				PageFunctions_[Idx].Function_(data, innerBody, Content);
+				HtmlContent.getRootNode().FindNodeById( "js-params" ).setContents(javaScript);
+				PageFunctions_[Idx].Function_(data, HtmlContent.getRootNode().FindNodeById( "innerBody"), Content );
 				if (!PageFunctions_[Idx].IsHtml_)
-					return innerBody.getContents();
+					return HtmlContent.getRootNode().FindNodeById( "innerBody" ).getContents();
 				break;
 			}
 		}
 	}
-
-	writeFooter(body);
 
 	std::string Output = HtmlContent.getHtml();
 	return Output;
@@ -555,15 +554,7 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 	SeJsonWriter writer( &ObjectCodec);
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
 	
-	//boost::replace_all(output, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-	//boost::replace_all(output, "\n", "<br />");
-
-	//output = output.replace(output.begin(), output.end(), "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-	//output = output.replace(output.begin(), output.end(), "\n", "\n<br/>");
-	//Output.createChildNode("Pre").setContents(output);
 	Output.setContents(output);
-	// delete data;
-	//SeJsonWriter::serialise<CsResource>(Resource, Resource->getClass());
 }
 
 void DsCore::cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostContent)
@@ -748,4 +739,9 @@ void DsCore::cmdResourceEdit(DsParameters params, BcHtmlNode& Output, std::strin
 	BcHtmlNode header = table.createChildNode("th");
 	header.createChildNode("td").setContents("Variable");
 	header.createChildNode("td").setContents("Value");
+}
+
+void DsCore::cmdViewFunctions(DsParameters params, BcHtmlNode& Output, std::string PostContent)
+{
+
 }

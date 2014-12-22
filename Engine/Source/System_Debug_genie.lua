@@ -15,6 +15,7 @@ project "Engine_System_Debug"
     psybrusSDK .. "/External/jsoncpp/include/",
     psybrusSDK .. "/External/libb64/include/",
     psybrusSDK .. "/External/webby/",
+    psybrusSDK .. "/External/rapidxml/",
     boostInclude,
   }
 
