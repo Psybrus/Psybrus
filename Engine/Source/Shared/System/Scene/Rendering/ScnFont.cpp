@@ -475,8 +475,8 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	
 	BcU32 ABGR = Colour.asABGR();
 
-	MaVec2d MinSize( Position );
-	MaVec2d MaxSize( Position );
+	MaVec2d MinSize( 0.0f, 0.0f );
+	MaVec2d MaxSize( 0.0f, 0.0f );
 	
 	BcBool FirstCharacterOnLine = BcTrue;
 
@@ -512,7 +512,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 				
 				// Calculate size and UVs.
 				MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
-				MaVec2d CornerMin( Position + MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
+				MaVec2d CornerMin( MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
 				MaVec2d CornerMax( CornerMin + Size );
 				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
 				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
@@ -557,9 +557,21 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 			}
 		}
 		
+		// Update min + max sizes.
+		MinSize += Position;
+		MaxSize += Position;
+
 		// Add primitive to canvas.
 		if( NoofVertices > 0 )
 		{
+			// Update position of all vertices.
+			for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
+			{
+				auto& Vertex = pFirstVert[ Idx ];
+				Vertex.X_ += Position.x();
+				Vertex.Y_ += Position.y();
+			}
+
 			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, Layer );
 		}
