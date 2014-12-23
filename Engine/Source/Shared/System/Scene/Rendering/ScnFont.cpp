@@ -157,8 +157,18 @@ namespace
 	}
 
 	/**
+	 * Length UTF-8. TODO, actually implement later. Pass through for now.
+	 * @param Char Char array pointer.
+	 * @return Number of UTF-8 chars total.
+	 */
+	inline BcU32 LengthUTF8( const char* Char )
+	{
+		return strlen( Char );
+	}
+
+	/**
 	 * Decode UTF-8. TODO, actually implement later. Pass through for now.
-	 * @param Char Char array pointer reference.
+	 * @param Char Char array pointer reference. Will return on next char.
 	 * @param RemainingChars Number of chars remaining.
 	 * @return Decoded chracter.
 	 */
@@ -229,11 +239,25 @@ ScnFontDrawParams& ScnFontDrawParams::setAlignment( ScnFontAlignment Alignment )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getAlignment
+ScnFontAlignment ScnFontDrawParams::getAlignment() const
+{
+	return Alignment_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setLayer
 ScnFontDrawParams& ScnFontDrawParams::setLayer( BcU32 Layer )
 {
 	Layer_ = Layer;
 	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getLayer
+BcU32 ScnFontDrawParams::getLayer() const
+{
+	return Layer_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -245,11 +269,25 @@ ScnFontDrawParams& ScnFontDrawParams::setSize( BcF32 Size )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getSize
+BcF32 ScnFontDrawParams::getSize() const
+{
+	return Size_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setClippingEnabled
 ScnFontDrawParams& ScnFontDrawParams::setClippingEnabled( BcBool Enabled )
 {
 	ClippingEnabled_ = Enabled;
 	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getClippingEnabled
+BcBool ScnFontDrawParams::getClippingEnabled() const
+{
+	return ClippingEnabled_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,6 +299,13 @@ ScnFontDrawParams& ScnFontDrawParams::setClippingBounds( const MaVec4d& Bounds )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getClippingBounds
+const MaVec4d& ScnFontDrawParams::getClippingBounds() const
+{
+	return ClippingBounds_;	
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setColour
 ScnFontDrawParams& ScnFontDrawParams::setColour( const RsColour& Colour )
 {
@@ -269,11 +314,25 @@ ScnFontDrawParams& ScnFontDrawParams::setColour( const RsColour& Colour )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getColour
+const RsColour& ScnFontDrawParams::getColour() const
+{
+	return Colour_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setAlphaTestSettings
 ScnFontDrawParams& ScnFontDrawParams::setAlphaTestSettings( const MaVec4d& Settings )
 {
 	AlphaTestSettings_ = Settings;
 	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAlphaTestSettings
+const MaVec4d& ScnFontDrawParams::getAlphaTestSettings() const
+{
+	return AlphaTestSettings_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -492,15 +551,13 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	
 	BcU32 ABGR = Colour.asABGR();
 
-	MaVec2d MinSize( 0.0f, 0.0f );
-	MaVec2d MaxSize( 0.0f, 0.0f );
+	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
+	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
 	
 	BcBool FirstCharacterOnLine = BcTrue;
 
-	// TODO: UTF-8 support.
 	if( pFirstVert != nullptr || SizeRun == BcTrue )
 	{
-		BcU32 OutChar = 0;
 		int RemainingChars = String.length();
 		const char* StringChar = String.c_str();
 
@@ -643,9 +700,212 @@ MaVec2d ScnFontComponent::drawText(
 	const ScnFontDrawParams& DrawParams,
 	const MaVec2d& Position,
 	const MaVec2d& Bounds,
-	const std::string& Text )
+	const std::wstring& Text )
 {
-	return MaVec2d();
+	// Cached elements from parent.
+	ScnFontHeader* pHeader = Parent_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
+	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
+	
+	BcU32 TextLength = Text.length();
+	BcBool SizeRun = Canvas.isValid() == BcFalse;
+	BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
+
+	// Allocate enough vertices for each character.
+	ScnCanvasComponentVertex* pFirstVert = SizeRun ? nullptr : Canvas->allocVertices( TextLength * 6 );
+	ScnCanvasComponentVertex* pVert = pFirstVert;
+
+	// Zero the buffer.
+	if( pFirstVert != nullptr )
+	{
+		BcMemZero( pFirstVert, TextLength * 6 * sizeof( ScnCanvasComponentVertex ) );
+	}
+	
+	BcU32 NoofVertices = 0;
+	
+	BcF32 AdvanceX = 0.0f;
+	BcF32 AdvanceY = 0.0f;
+	
+	BcU32 ABGR = DrawParams.getColour().asABGR();
+
+	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
+	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+	
+	BcBool FirstCharacterOnLine = BcTrue;
+
+	if( pFirstVert != nullptr || SizeRun == BcTrue )
+	{
+		for( BcU32 Idx = 0; Idx < TextLength; ++Idx )
+		{
+			BcU32 CharCode = Text[ Idx ];
+			
+			// Handle special characters.
+			if( CharCode == '\n' )
+			{
+				AdvanceX = 0.0f;
+				AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
+				FirstCharacterOnLine = BcTrue;
+			}
+			
+			// Find glyph.
+			ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
+			
+			if( Iter != CharCodeMap.end() )
+			{
+				ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
+
+				// Bring first character back to the left so it sits on the cursor.
+				if( FirstCharacterOnLine )
+				{
+					AdvanceX -= Glyph.OffsetX_;
+					//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
+					FirstCharacterOnLine = BcFalse;
+				}
+				
+				// Calculate size and UVs.
+				MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
+				MaVec2d CornerMin( MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
+				MaVec2d CornerMax( CornerMin + Size );
+				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
+				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
+				
+				// Pre-clipping size.
+				MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
+				MinSize.y( BcMin( MinSize.y(), CornerMin.y() ) );
+				MaxSize.x( BcMax( MaxSize.x(), CornerMin.x() ) );
+				MaxSize.y( BcMax( MaxSize.y(), CornerMin.y() ) );
+				MinSize.x( BcMin( MinSize.x(), CornerMax.x() ) );
+				MinSize.y( BcMin( MinSize.y(), CornerMax.y() ) );
+				MaxSize.x( BcMax( MaxSize.x(), CornerMax.x() ) );
+				MaxSize.y( BcMax( MaxSize.y(), CornerMax.y() ) );
+
+				// Draw if not a size run.
+				if( SizeRun == BcFalse )
+				{
+					if ( ClippingEnabled_ )
+					{
+						if( !ClipGlyph(
+							MaVec4d( ClipMin_.x(), ClipMin_.y(), ClipMax_.x(), ClipMax_.y() ),
+							Size,
+							CornerMin,
+							CornerMax,
+							UV0,
+							UV1 ) )
+						{
+							// Advance.
+							AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
+
+							// Next character.
+							continue;
+						}
+					}
+
+					NoofVertices += AddGlyphVertices( 
+						pVert, CornerMin, CornerMax, UV0, UV1, ABGR );
+				}
+								
+				// Advance.
+				AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
+			}
+		}
+		
+		// Update min + max sizes.
+		MinSize += Position;
+		MaxSize += Position;
+
+		// Add primitive to canvas.
+		if( NoofVertices > 0 )
+		{
+			// Update position of all vertices.
+			for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
+			{
+				auto& Vertex = pFirstVert[ Idx ];
+				Vertex.X_ += Position.x();
+				Vertex.Y_ += Position.y();
+			}
+
+			Canvas->setMaterialComponent( MaterialComponent_ );
+			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, DrawParams.getLayer() );
+		}
+	}
+	else
+	{
+		BcPrintf( "ScnFontComponent: Out of vertices!\n" );
+	}
+
+	return MaxSize - MinSize;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// measureText
+MaVec2d ScnFontComponent::measureText( 
+	const ScnFontDrawParams& DrawParams,
+	const std::wstring& Text )
+{
+	// Cached elements from parent.
+	ScnFontHeader* pHeader = Parent_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
+	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
+
+	const BcU32 TextLength = Text.length();
+	const BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
+
+	BcF32 AdvanceX = 0.0f;
+	BcF32 AdvanceY = 0.0f;
+
+	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
+	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+	
+	BcBool FirstCharacterOnLine = BcTrue;
+
+	for( BcU32 Idx = 0; Idx < TextLength; ++Idx )
+	{
+		BcU32 CharCode = Text[ Idx ];
+		
+		// Handle special characters.
+		if( CharCode == '\n' )
+		{
+			AdvanceX = 0.0f;
+			AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
+			FirstCharacterOnLine = BcTrue;
+		}
+		
+		// Find glyph.
+		ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
+		
+		if( Iter != CharCodeMap.end() )
+		{
+			ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
+
+			// Bring first character back to the left so it sits on the cursor.
+			if( FirstCharacterOnLine )
+			{
+				AdvanceX -= Glyph.OffsetX_;
+				//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
+				FirstCharacterOnLine = BcFalse;
+			}
+			
+			// Calculate size and UVs.
+			MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
+			MaVec2d CornerMin( MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
+			MaVec2d CornerMax( CornerMin + Size );
+			
+			// Pre-clipping size.
+			MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
+			MinSize.y( BcMin( MinSize.y(), CornerMin.y() ) );
+			MaxSize.x( BcMax( MaxSize.x(), CornerMin.x() ) );
+			MaxSize.y( BcMax( MaxSize.y(), CornerMin.y() ) );
+			MinSize.x( BcMin( MinSize.x(), CornerMax.x() ) );
+			MinSize.y( BcMin( MinSize.y(), CornerMax.y() ) );
+			MaxSize.x( BcMax( MaxSize.x(), CornerMax.x() ) );
+			MaxSize.y( BcMax( MaxSize.y(), CornerMax.y() ) );
+							
+			// Advance.
+			AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
+		}
+	}
+
+	return MaxSize - MinSize;
 }
 
 //////////////////////////////////////////////////////////////////////////

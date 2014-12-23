@@ -21,6 +21,8 @@
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/Rendering/ScnFontFileData.h"
 
+#include <string>
+
 //////////////////////////////////////////////////////////////////////////
 // ScnFontRef
 typedef ReObjectRef< class ScnFont > ScnFontRef;
@@ -108,12 +110,25 @@ public:
 	ScnFontDrawParams();
 
 	ScnFontDrawParams& setAlignment( ScnFontAlignment Alignment );
+	ScnFontAlignment getAlignment() const;
+
 	ScnFontDrawParams& setLayer( BcU32 Layer );
+	BcU32 getLayer() const;
+
 	ScnFontDrawParams& setSize( BcF32 Size );
+	BcF32 getSize() const;
+
 	ScnFontDrawParams& setClippingEnabled( BcBool Enabled );
+	BcBool getClippingEnabled() const;
+
 	ScnFontDrawParams& setClippingBounds( const MaVec4d& Bounds );
+	const MaVec4d& getClippingBounds() const;
+
 	ScnFontDrawParams& setColour( const RsColour& Colour );
+	const RsColour& getColour() const;
+
 	ScnFontDrawParams& setAlphaTestSettings( const MaVec4d& Settings );
+	const MaVec4d& getAlphaTestSettings() const;
 
 private:
 	ScnFontAlignment Alignment_;
@@ -163,7 +178,14 @@ public:
 		const ScnFontDrawParams& DrawParams,
 		const MaVec2d& Position,
 		const MaVec2d& Bounds,
-		const std::string& Text );
+		const std::wstring& Text );
+
+	/**
+	 * Measure text.
+	 */
+	MaVec2d measureText( 
+		const ScnFontDrawParams& DrawParams,
+		const std::wstring& Text );
 
 
 public:
