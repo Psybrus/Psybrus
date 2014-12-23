@@ -459,11 +459,11 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	BcF32 SizeMultiplier = Size / pHeader->NominalSize_;
 
 	// Allocate enough vertices for each character.
-	ScnCanvasComponentVertex* pFirstVert = SizeRun ? NULL : Canvas->allocVertices( String.length() * 6 );
+	ScnCanvasComponentVertex* pFirstVert = SizeRun ? nullptr : Canvas->allocVertices( String.length() * 6 );
 	ScnCanvasComponentVertex* pVert = pFirstVert;
 
 	// Zero the buffer.
-	if( pFirstVert != NULL )
+	if( pFirstVert != nullptr )
 	{
 		BcMemZero( pFirstVert, String.length() * 6 * sizeof( ScnCanvasComponentVertex ) );
 	}
@@ -481,7 +481,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	BcBool FirstCharacterOnLine = BcTrue;
 
 	// TODO: UTF-8 support.
-	if( pFirstVert != NULL || SizeRun == BcTrue )
+	if( pFirstVert != nullptr || SizeRun == BcTrue )
 	{
 		for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
 		{
