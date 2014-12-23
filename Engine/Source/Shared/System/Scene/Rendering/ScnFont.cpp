@@ -736,6 +736,8 @@ MaVec2d ScnFontComponent::drawText(
 	// Grab values from draw params and check validity.
 	const BcU32 ABGR = DrawParams.getColour().asABGR();
 	const ScnFontAlignment Alignment = DrawParams.getAlignment();
+	const BcBool WrappingEnabled = DrawParams.getWrappingEnabled();
+
 	BcAssertMsg( ( Alignment & ScnFontAlignment::HORIZONTAL ) != ScnFontAlignment::NONE, 
 		"Missing horizontal alignment flags." );
 	BcAssertMsg( ( Alignment & ScnFontAlignment::VERTICAL ) != ScnFontAlignment::NONE, 
@@ -773,6 +775,47 @@ MaVec2d ScnFontComponent::drawText(
 
 	MaVec2d MinLineSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
 	MaVec2d MaxLineSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+
+	auto TerminateLineFunc = [ & ]()
+	{
+		// Update text min/max sizes.
+		MinSize.y( BcMin( MinSize.y(), MinLineSize.y() ) );
+		MinSize.x( BcMin( MinSize.x(), MinLineSize.x() ) );
+		MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
+		MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
+		MinSize.x( BcMin( MinSize.x(), MinLineSize.x() ) );
+		MinSize.y( BcMin( MinSize.y(), MinLineSize.y() ) );
+		MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
+		MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
+
+		// Position along the x axis using appropriate alignment.
+		if( ( Alignment & ScnFontAlignment::LEFT ) != ScnFontAlignment::NONE )
+		{
+			PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
+				MaVec2d( Position.x(), 0.0f ) );
+		}
+		else if( ( Alignment & ScnFontAlignment::RIGHT ) != ScnFontAlignment::NONE )
+		{
+			MaVec2d LineSize =  ( MaxLineSize - MinLineSize );
+			PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
+				MaVec2d( TargetSize.x() + Position.x() - LineSize.x(), 0.0f ) );					
+		}
+		else if( ( Alignment & ScnFontAlignment::HCENTRE ) != ScnFontAlignment::NONE )
+		{
+			MaVec2d LineSize = ( MaxLineSize - MinLineSize );
+			PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
+				MaVec2d( ( TargetSize.x() * 0.5f ) + Position.x() - LineSize.x() * 0.5f, 0.0f ) );					
+		}
+
+		// Reset line.
+		AdvanceX = 0.0f;
+		AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
+		pFirstVertOnLine = pVert;
+		NoofVerticesOnLine = 0;
+
+		MinLineSize = MaVec2d( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
+		MaxLineSize = MaVec2d( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+	};
 	
 	if( pFirstVert != nullptr )
 	{
@@ -785,43 +828,7 @@ MaVec2d ScnFontComponent::drawText(
 			if( CharCode == '\n' ||
 				CharCode == '\0' )
 			{
-				// Update text min/max sizes.
-				MinSize.y( BcMin( MinSize.y(), MinLineSize.y() ) );
-				MinSize.x( BcMin( MinSize.x(), MinLineSize.x() ) );
-				MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
-				MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
-				MinSize.x( BcMin( MinSize.x(), MinLineSize.x() ) );
-				MinSize.y( BcMin( MinSize.y(), MinLineSize.y() ) );
-				MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
-				MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
-
-				// Position along the x axis using appropriate alignment.
-				if( ( Alignment & ScnFontAlignment::LEFT ) != ScnFontAlignment::NONE )
-				{
-					PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
-						MaVec2d( Position.x(), 0.0f ) );
-				}
-				else if( ( Alignment & ScnFontAlignment::RIGHT ) != ScnFontAlignment::NONE )
-				{
-					MaVec2d LineSize =  ( MaxLineSize - MinLineSize );
-					PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
-						MaVec2d( TargetSize.x() + Position.x() - LineSize.x(), 0.0f ) );					
-				}
-				else if( ( Alignment & ScnFontAlignment::HCENTRE ) != ScnFontAlignment::NONE )
-				{
-					MaVec2d LineSize = ( MaxLineSize - MinLineSize );
-					PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
-						MaVec2d( ( TargetSize.x() * 0.5f ) + Position.x() - LineSize.x() * 0.5f, 0.0f ) );					
-				}
-
-				// Reset line.
-				AdvanceX = 0.0f;
-				AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
-				pFirstVertOnLine = pVert;
-				NoofVerticesOnLine = 0;
-
-				MinLineSize = MaVec2d( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
-				MaxLineSize = MaVec2d( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+				TerminateLineFunc();
 
 				// Null term? Bail.
 				if( CharCode == '\0' )
@@ -850,7 +857,21 @@ MaVec2d ScnFontComponent::drawText(
 				MaVec2d CornerMax( CornerMin + Size );
 				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
 				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
-				
+
+				// Handle wrapping.
+				if( WrappingEnabled )
+				{
+					if( CharCode == ' ' )
+					{
+						// If the character spills over, terminate this line.
+						if( TargetSize.x() > 0.0f && CornerMax.x() > TargetSize.x() )
+						{
+							TerminateLineFunc();
+							continue;
+						}
+					}
+				}
+
 				// Pre-clipping size.
 				MinLineSize.x( BcMin( MinLineSize.x(), CornerMin.x() ) );
 				MinLineSize.y( BcMin( MinLineSize.y(), CornerMin.y() ) );
