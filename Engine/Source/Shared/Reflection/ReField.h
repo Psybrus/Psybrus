@@ -25,6 +25,7 @@ public:
 
 public:
     ReField();
+	ReField( const ReField& ) = delete;
     virtual ~ReField()
 	{
 		delete ContainerAccessor_;

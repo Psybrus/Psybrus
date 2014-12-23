@@ -15,9 +15,10 @@ public:
     REFLECTION_DECLARE_DERIVED( ReClass, ReType );
 
 public:
-    ReClass();
-    ReClass( BcName Name );
-    virtual ~ReClass(){};
+	ReClass();
+	ReClass( BcName Name );
+	ReClass( const ReClass& ) = delete;
+	virtual ~ReClass();
 
 	/**
 	 * Set super.
