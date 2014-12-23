@@ -894,7 +894,23 @@ MaVec2d ScnFontComponent::drawText(
 		if( NoofVertices > 0 )
 		{
 			// Position along the y axis using appropriate alignment.
-			PositionVertices( pFirstVert, NoofVertices, MaVec2d( 0.0f, Position.y() ) );
+			if( ( Alignment & ScnFontAlignment::TOP ) != ScnFontAlignment::NONE )
+			{
+				PositionVertices( pFirstVert, NoofVertices, 
+					MaVec2d( 0.0f, Position.y() ) );
+			}
+			else if( ( Alignment & ScnFontAlignment::BOTTOM ) != ScnFontAlignment::NONE )
+			{
+				MaVec2d FinalSize = ( MaxSize - MinSize );
+				PositionVertices( pFirstVert, NoofVertices, 
+					MaVec2d( 0.0f, TargetSize.y() + Position.y() - FinalSize.y() ) );
+			}
+			else if( ( Alignment & ScnFontAlignment::VCENTRE ) != ScnFontAlignment::NONE )
+			{
+				MaVec2d FinalSize = ( MaxSize - MinSize );
+				PositionVertices( pFirstVert, NoofVertices, 
+					MaVec2d( 0.0f, ( TargetSize.y() * 0.5f ) + Position.y() - ( FinalSize.y() * 0.5f ) ) );
+			}
 
 			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, DrawParams.getLayer() );
