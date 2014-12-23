@@ -155,6 +155,23 @@ namespace
 
 		return BcTrue;
 	}
+
+	/**
+	 * Decode UTF-8. TODO, actually implement later. Pass through for now.
+	 * @param Char Char array pointer reference.
+	 * @param RemainingChars Number of chars remaining.
+	 * @return Decoded chracter.
+	 */
+	inline BcU32 DecodeUTF8( const char*& Char, int& RemainingChars )
+	{
+		BcU32 OutChar = 0;
+	 	if( RemainingChars > 0 )
+	 	{
+		 	--RemainingChars;
+		 	OutChar = static_cast< BcU32 >( *Char++ );
+		}
+		return OutChar;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -483,9 +500,13 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	// TODO: UTF-8 support.
 	if( pFirstVert != nullptr || SizeRun == BcTrue )
 	{
-		for( BcU32 CharIdx = 0; CharIdx < String.length(); ++CharIdx )
+		BcU32 OutChar = 0;
+		int RemainingChars = String.length();
+		const char* StringChar = String.c_str();
+
+		while( RemainingChars > 0 )
 		{
-			BcU32 CharCode = String[ CharIdx ];
+			BcU32 CharCode = DecodeUTF8( StringChar, RemainingChars );
 			
 			// Handle special characters.
 			if( CharCode == '\n' )
