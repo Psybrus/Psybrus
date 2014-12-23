@@ -78,16 +78,17 @@ private:
 // ScnFontAlignment
 enum class ScnFontAlignment : BcU32 
 {
+	NONE				= 0x00,
 	LEFT				= 0x01,
 	RIGHT				= 0x02,
-	VCENTRE				= 0x04,
+	HCENTRE				= 0x04,
 	TOP					= 0x10,
 	BOTTOM				= 0x20,
-	HCENTRE				= 0x40,
+	VCENTRE				= 0x40,
 
 	//
-	HORIZONTAL			= 0x0f,
-	VERTICAL			= 0xf0,
+	HORIZONTAL			= LEFT | RIGHT | HCENTRE,
+	VERTICAL			= TOP | BOTTOM | VCENTRE,
 };
 
 inline ScnFontAlignment operator | ( ScnFontAlignment A, ScnFontAlignment B )
@@ -112,6 +113,9 @@ public:
 	ScnFontDrawParams& setAlignment( ScnFontAlignment Alignment );
 	ScnFontAlignment getAlignment() const;
 
+	ScnFontDrawParams& setWrappingEnabled( BcBool Enabled );
+	BcBool getWrappingEnabled() const;
+
 	ScnFontDrawParams& setLayer( BcU32 Layer );
 	BcU32 getLayer() const;
 
@@ -130,8 +134,11 @@ public:
 	ScnFontDrawParams& setAlphaTestSettings( const MaVec4d& Settings );
 	const MaVec4d& getAlphaTestSettings() const;
 
+
+
 private:
 	ScnFontAlignment Alignment_;
+	BcBool WrappingEnabled_;
 	BcU32 Layer_;
 	BcF32 Size_;
 	BcBool ClippingEnabled_;
@@ -169,15 +176,15 @@ public:
 	 * @param Canvas Canvas to render in to. Can be null.
 	 * @param DrawParam Draw parameters.
 	 * @param Position Position to render to.
-	 * @param Bounds Text target bounds.
+	 * @param TargetSize Target text size.
 	 * @param Text Text to draw.
-	 * @return Size of text.
+	 * @return Final size of text.
 	 */
 	MaVec2d drawText( 
 		ScnCanvasComponentRef Canvas, 
 		const ScnFontDrawParams& DrawParams,
 		const MaVec2d& Position,
-		const MaVec2d& Bounds,
+		const MaVec2d& TargetSize,
 		const std::wstring& Text );
 
 	/**

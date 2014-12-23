@@ -157,6 +157,26 @@ namespace
 	}
 
 	/**
+	 * Position vertices.
+	 * @param Vertices Pointer to vertices.
+	 * @param NoofVertices Number of vertices to position.
+	 * @param Position Position to add to vertices.
+	 */
+	inline void PositionVertices( 
+		ScnCanvasComponentVertex* Vertices,
+		BcU32 NoofVertices,
+		const MaVec2d& Position )
+	{
+		// Update position of all vertices.
+		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
+		{
+			Vertices->X_ += Position.x();
+			Vertices->Y_ += Position.y();
+			++Vertices;
+		}
+	}
+
+	/**
 	 * Length UTF-8. TODO, actually implement later. Pass through for now.
 	 * @param Char Char array pointer.
 	 * @return Number of UTF-8 chars total.
@@ -193,6 +213,7 @@ void ScnFontDrawParams::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Alignment_", &ScnFontDrawParams::Alignment_ ),
+		new ReField( "WrappingEnabled_", &ScnFontDrawParams::WrappingEnabled_ ),
 		new ReField( "Layer_", &ScnFontDrawParams::Layer_ ),
 		new ReField( "Size_", &ScnFontDrawParams::Size_ ),
 		new ReField( "ClippingEnabled_", &ScnFontDrawParams::ClippingEnabled_ ),
@@ -220,6 +241,7 @@ void ScnFontDrawParams::StaticRegisterClass()
 // Ctor
 ScnFontDrawParams::ScnFontDrawParams():
 	Alignment_( ScnFontAlignment::LEFT | ScnFontAlignment::TOP ),
+	WrappingEnabled_( BcFalse ),
 	Layer_( 0 ),
 	Size_( 1.0f ),
 	ClippingEnabled_( BcFalse ),
@@ -228,6 +250,21 @@ ScnFontDrawParams::ScnFontDrawParams():
 	AlphaTestSettings_( 0.4f, 0.5f, 0.0f, 0.0f )
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setWrappingEnabled
+ScnFontDrawParams& ScnFontDrawParams::setWrappingEnabled( BcBool Enabled )
+{
+	WrappingEnabled_ = Enabled;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getWrappingEnabled
+BcBool ScnFontDrawParams::getWrappingEnabled() const
+{
+	return WrappingEnabled_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -642,13 +679,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 		// Add primitive to canvas.
 		if( NoofVertices > 0 )
 		{
-			// Update position of all vertices.
-			for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
-			{
-				auto& Vertex = pFirstVert[ Idx ];
-				Vertex.X_ += Position.x();
-				Vertex.Y_ += Position.y();
-			}
+			PositionVertices( pFirstVert, NoofVertices, Position );
 
 			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, Layer );
@@ -699,21 +730,32 @@ MaVec2d ScnFontComponent::drawText(
 	ScnCanvasComponentRef Canvas, 
 	const ScnFontDrawParams& DrawParams,
 	const MaVec2d& Position,
-	const MaVec2d& Bounds,
+	const MaVec2d& TargetSize,
 	const std::wstring& Text )
 {
+	// Grab values from draw params and check validity.
+	const BcU32 ABGR = DrawParams.getColour().asABGR();
+	const ScnFontAlignment Alignment = DrawParams.getAlignment();
+	BcAssertMsg( ( Alignment & ScnFontAlignment::HORIZONTAL ) != ScnFontAlignment::NONE, 
+		"Missing horizontal alignment flags." );
+	BcAssertMsg( ( Alignment & ScnFontAlignment::VERTICAL ) != ScnFontAlignment::NONE, 
+		"Missing vertical alignment flags." );
+	BcAssertMsg( DrawParams.getSize() > 0.0f,
+		"Font size must be greater than 0.0" );
+
 	// Cached elements from parent.
 	ScnFontHeader* pHeader = Parent_->pHeader_;
 	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
 	
 	BcU32 TextLength = Text.length();
-	BcBool SizeRun = Canvas.isValid() == BcFalse;
 	BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
 
 	// Allocate enough vertices for each character.
-	ScnCanvasComponentVertex* pFirstVert = SizeRun ? nullptr : Canvas->allocVertices( TextLength * 6 );
+	ScnCanvasComponentVertex* pFirstVert = Canvas->allocVertices( TextLength * 6 );
+	ScnCanvasComponentVertex* pFirstVertOnLine = pFirstVert;
 	ScnCanvasComponentVertex* pVert = pFirstVert;
+	BcU32 NoofVerticesOnLine = 0;
 
 	// Zero the buffer.
 	if( pFirstVert != nullptr )
@@ -726,27 +768,68 @@ MaVec2d ScnFontComponent::drawText(
 	BcF32 AdvanceX = 0.0f;
 	BcF32 AdvanceY = 0.0f;
 	
-	BcU32 ABGR = DrawParams.getColour().asABGR();
-
 	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
 	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
-	
-	BcBool FirstCharacterOnLine = BcTrue;
 
-	if( pFirstVert != nullptr || SizeRun == BcTrue )
+	MaVec2d MinLineSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
+	MaVec2d MaxLineSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+	
+	if( pFirstVert != nullptr )
 	{
-		for( BcU32 Idx = 0; Idx < TextLength; ++Idx )
+		// Iterate and include null terminator.
+		for( BcU32 Idx = 0; Idx < TextLength + 1; ++Idx )
 		{
 			BcU32 CharCode = Text[ Idx ];
 			
 			// Handle special characters.
-			if( CharCode == '\n' )
+			if( CharCode == '\n' ||
+				CharCode == '\0' )
 			{
+				// Update text min/max sizes.
+				MinSize.y( BcMin( MinSize.y(), MinLineSize.y() ) );
+				MinSize.x( BcMin( MinSize.x(), MinLineSize.x() ) );
+				MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
+				MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
+				MinSize.x( BcMin( MinSize.x(), MinLineSize.x() ) );
+				MinSize.y( BcMin( MinSize.y(), MinLineSize.y() ) );
+				MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
+				MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
+
+				// Position along the x axis using appropriate alignment.
+				if( ( Alignment & ScnFontAlignment::LEFT ) != ScnFontAlignment::NONE )
+				{
+					PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
+						MaVec2d( Position.x(), 0.0f ) );
+				}
+				else if( ( Alignment & ScnFontAlignment::RIGHT ) != ScnFontAlignment::NONE )
+				{
+					MaVec2d LineSize =  ( MaxLineSize - MinLineSize );
+					PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
+						MaVec2d( TargetSize.x() + Position.x() - LineSize.x(), 0.0f ) );					
+				}
+				else if( ( Alignment & ScnFontAlignment::HCENTRE ) != ScnFontAlignment::NONE )
+				{
+					MaVec2d LineSize = ( MaxLineSize - MinLineSize );
+					PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
+						MaVec2d( ( TargetSize.x() * 0.5f ) + Position.x() - LineSize.x() * 0.5f, 0.0f ) );					
+				}
+
+				// Reset line.
 				AdvanceX = 0.0f;
 				AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
-				FirstCharacterOnLine = BcTrue;
+				pFirstVertOnLine = pVert;
+				NoofVerticesOnLine = 0;
+
+				MinLineSize = MaVec2d( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
+				MaxLineSize = MaVec2d( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
+
+				// Null term? Bail.
+				if( CharCode == '\0' )
+				{
+					break;
+				}
 			}
-			
+
 			// Find glyph.
 			ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
 			
@@ -755,11 +838,10 @@ MaVec2d ScnFontComponent::drawText(
 				ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
 
 				// Bring first character back to the left so it sits on the cursor.
-				if( FirstCharacterOnLine )
+				if( pFirstVertOnLine == pVert )
 				{
 					AdvanceX -= Glyph.OffsetX_;
 					//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
-					FirstCharacterOnLine = BcFalse;
 				}
 				
 				// Calculate size and UVs.
@@ -770,59 +852,49 @@ MaVec2d ScnFontComponent::drawText(
 				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
 				
 				// Pre-clipping size.
-				MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
-				MinSize.y( BcMin( MinSize.y(), CornerMin.y() ) );
-				MaxSize.x( BcMax( MaxSize.x(), CornerMin.x() ) );
-				MaxSize.y( BcMax( MaxSize.y(), CornerMin.y() ) );
-				MinSize.x( BcMin( MinSize.x(), CornerMax.x() ) );
-				MinSize.y( BcMin( MinSize.y(), CornerMax.y() ) );
-				MaxSize.x( BcMax( MaxSize.x(), CornerMax.x() ) );
-				MaxSize.y( BcMax( MaxSize.y(), CornerMax.y() ) );
+				MinLineSize.x( BcMin( MinLineSize.x(), CornerMin.x() ) );
+				MinLineSize.y( BcMin( MinLineSize.y(), CornerMin.y() ) );
+				MaxLineSize.x( BcMax( MaxLineSize.x(), CornerMin.x() ) );
+				MaxLineSize.y( BcMax( MaxLineSize.y(), CornerMin.y() ) );
+				MinLineSize.x( BcMin( MinLineSize.x(), CornerMax.x() ) );
+				MinLineSize.y( BcMin( MinLineSize.y(), CornerMax.y() ) );
+				MaxLineSize.x( BcMax( MaxLineSize.x(), CornerMax.x() ) );
+				MaxLineSize.y( BcMax( MaxLineSize.y(), CornerMax.y() ) );
 
-				// Draw if not a size run.
-				if( SizeRun == BcFalse )
+				if ( ClippingEnabled_ )
 				{
-					if ( ClippingEnabled_ )
+					if( !ClipGlyph(
+						MaVec4d( ClipMin_.x(), ClipMin_.y(), ClipMax_.x(), ClipMax_.y() ),
+						Size,
+						CornerMin,
+						CornerMax,
+						UV0,
+						UV1 ) )
 					{
-						if( !ClipGlyph(
-							MaVec4d( ClipMin_.x(), ClipMin_.y(), ClipMax_.x(), ClipMax_.y() ),
-							Size,
-							CornerMin,
-							CornerMax,
-							UV0,
-							UV1 ) )
-						{
-							// Advance.
-							AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
+						// Advance.
+						AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
 
-							// Next character.
-							continue;
-						}
+						// Next character.
+						continue;
 					}
-
-					NoofVertices += AddGlyphVertices( 
-						pVert, CornerMin, CornerMax, UV0, UV1, ABGR );
 				}
-								
+
+				BcU32 NoofVerticesForGlyph = AddGlyphVertices( 
+					pVert, CornerMin, CornerMax, UV0, UV1, ABGR );
+				
+				NoofVertices += NoofVerticesForGlyph;
+				NoofVerticesOnLine += NoofVerticesForGlyph;
+
 				// Advance.
 				AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
 			}
 		}
 		
-		// Update min + max sizes.
-		MinSize += Position;
-		MaxSize += Position;
-
 		// Add primitive to canvas.
 		if( NoofVertices > 0 )
 		{
-			// Update position of all vertices.
-			for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
-			{
-				auto& Vertex = pFirstVert[ Idx ];
-				Vertex.X_ += Position.x();
-				Vertex.Y_ += Position.y();
-			}
+			// Position along the y axis using appropriate alignment.
+			PositionVertices( pFirstVert, NoofVertices, MaVec2d( 0.0f, Position.y() ) );
 
 			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, DrawParams.getLayer() );
