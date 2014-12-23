@@ -126,7 +126,6 @@ public:
 	 * @param Layer Layer
 	 */
 	void								drawLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
-	void								drawLine3d( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw lines.
@@ -175,17 +174,6 @@ public:
 	void								drawSprite( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
-	 * Draw sprite in 3D
-	 * @param Position Position.
-	 * @param Size Size.
-	 * @param TextureIdx Texture Index.
-	 * @param Colour Colour.
-	 * @param Layer Layer.
-	 */
-	void								drawSprite3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
-	void								drawSpriteUp3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
-
-	/**
 	 * Draw sprite centered.
 	 * @param Position Position.
 	 * @param Size Size.
@@ -194,17 +182,6 @@ public:
 	 * @param Layer Layer.
 	 */
 	void								drawSpriteCentered( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
-
-	/**
-	 * Draw sprite centered in 3D.
-	 * @param Position Position.
-	 * @param Size Size.
-	 * @param TextureIdx Texture Index.
-	 * @param Colour Colour.
-	 * @param Layer Layer.
-	 */
-	void								drawSpriteCentered3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
-	void								drawSpriteCenteredUp3D( const MaVec3d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear canvas.
