@@ -23,7 +23,10 @@ ReAttributable::ReAttributable()
 //virtual
 ReAttributable::~ReAttributable()
 {
-
+	for( auto* Attribute : Attributes_ )
+	{
+		delete Attribute;
+	}
 }
 
 ReAttributable& ReAttributable::addAttribute( ReAttribute* Attribute )

@@ -14,7 +14,7 @@ public:
 public:
     ReEnum();
     ReEnum( BcName Name );
-    virtual ~ReEnum(){};
+    virtual ~ReEnum();
 
 	/**
 		* @brief Set constants.

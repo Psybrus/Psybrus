@@ -63,7 +63,8 @@ void OsCoreImplSDL::update()
 			switch( Event.type )
 			{
 			case SDL_QUIT:
-				exit(1);
+				pKernel()->stop();
+				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 			case SDL_MOUSEBUTTONDOWN:

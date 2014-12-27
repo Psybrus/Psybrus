@@ -30,6 +30,14 @@ ReEnum::ReEnum( BcName Name ):
 			
 }
 
+ReEnum::~ReEnum()
+{
+	for( auto* EnumConstant : EnumConstants_ )
+	{
+		delete EnumConstant;
+	}
+}
+
 void ReEnum::setConstants( ReEnumConstant** EnumConstants, BcU32 Elements )
 {
 	EnumConstants_.reserve( Elements );
