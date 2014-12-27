@@ -331,6 +331,12 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	// Stats.
 	NoofDrawCalls_ = 0;
 	NoofRenderStateFlushes_ = 0;
+	NoofRenderStates_ = 0;
+	NoofSamplerStates_ = 0;
+	NoofBuffers_ = 0;
+	NoofTextures_ = 0;
+	NoofShaders_ = 0;
+	NoofPrograms_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -686,6 +692,14 @@ void RsContextGL::destroy()
 #if PLATFORM_LINUX
 	SDL_GL_DeleteContext( SDLGLContext_ );
 #endif
+
+	// Dump stats.
+	BcPrintf( "Number of render states left: %u\n", NoofRenderStates_ );
+	BcPrintf( "Number of sampler states left: %u\n", NoofSamplerStates_ );
+	BcPrintf( "Number of buffers left: %u\n", NoofBuffers_ );
+	BcPrintf( "Number of textures left: %u\n", NoofTextures_ );
+	BcPrintf( "Number of shaders left: %u\n", NoofShaders_ );
+	BcPrintf( "Number of programs left: %u\n", NoofPrograms_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -796,6 +810,8 @@ bool RsContextGL::createRenderState(
 	const auto& Desc = RenderState->getDesc();
 	RenderState->setHandle( BcHash::GenerateCRC32( 0, &Desc, sizeof( Desc ) ) );
 
+	++NoofRenderStates_;
+
 	return true;
 }
 
@@ -805,6 +821,9 @@ bool RsContextGL::destroyRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	--NoofRenderStates_;
+
 	return true;
 }
 
@@ -832,6 +851,8 @@ bool RsContextGL::createSamplerState(
 		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
 		RsGLCatchError();
 
+		++NoofSamplerStates_;
+
 		// Set handle.
 		SamplerState->setHandle< GLuint >( SamplerObject );
 		return SamplerObject != -1;
@@ -854,6 +875,8 @@ bool RsContextGL::destroySamplerState(
 	{
 		GLuint SamplerObject = SamplerState->getHandle< GLuint >();
 		glDeleteSamplers( 1, &SamplerObject );
+
+		--NoofSamplerStates_;		
 	}
 #endif
 
@@ -894,6 +917,8 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	BcBool BufferInMainMemory = 
 		Version_.SupportUniformBuffers_ == BcFalse &&
 		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
+
+	++NoofBuffers_;
 		
 	if( !BufferInMainMemory )
 	{
@@ -938,6 +963,8 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 	BcBool BufferInMainMemory =
 		Version_.SupportUniformBuffers_ == BcFalse &&
 		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
+
+	--NoofBuffers_;
 
 	if( !BufferInMainMemory )
 	{
@@ -1107,6 +1134,8 @@ bool RsContextGL::createTexture(
 			Depth = BcMax( 1, Depth >> 1 );
 		}
 
+		++NoofTextures_;
+
 		return true;
 	}
 
@@ -1129,6 +1158,8 @@ bool RsContextGL::destroyTexture(
 		setHandle< GLuint >( 0 );
 
 		RsGLCatchError();
+
+		--NoofTextures_;
 
 		return true;
 	}
@@ -1237,6 +1268,8 @@ bool RsContextGL::createShader(
 			return false;
 		}
 	}
+
+	++NoofShaders_;
 	
 	// Destroy if there is a failure.
 	GLenum Error = glGetError();
@@ -1260,6 +1293,9 @@ bool RsContextGL::destroyShader(
 
 	GLuint Handle = Shader->getHandle< GLuint >();
 	glDeleteShader( Handle );
+
+	--NoofShaders_;
+
 	return true;
 }
 
@@ -1489,6 +1525,8 @@ bool RsContextGL::createProgram(
 		return false;
 	}
 
+	++NoofPrograms_;
+
 	// Set handle.
 	Program->setHandle( Handle );
 
@@ -1504,6 +1542,9 @@ bool RsContextGL::destroyProgram(
 
 	GLuint Handle = Program->getHandle< GLuint >();
 	glDeleteProgram( Handle );
+
+	--NoofPrograms_;
+
 	return true;
 }
 

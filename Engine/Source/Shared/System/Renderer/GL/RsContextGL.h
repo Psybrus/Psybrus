@@ -211,6 +211,12 @@ private:
 
 	BcU32 NoofDrawCalls_;
 	BcU32 NoofRenderStateFlushes_;
+	BcU32 NoofRenderStates_;
+	BcU32 NoofSamplerStates_;
+	BcU32 NoofBuffers_;
+	BcU32 NoofTextures_;
+	BcU32 NoofShaders_;
+	BcU32 NoofPrograms_;
 
 };
 
