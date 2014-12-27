@@ -177,6 +177,7 @@ void ScnModel::destroy()
 
 		RsCore::pImpl()->destroyResource( MeshRuntime.pVertexBuffer_ );
 		RsCore::pImpl()->destroyResource( MeshRuntime.pIndexBuffer_ );
+		RsCore::pImpl()->destroyResource( MeshRuntime.pVertexDeclaration_ );
 		
 		MeshRuntime.MaterialRef_ = nullptr;
 	}

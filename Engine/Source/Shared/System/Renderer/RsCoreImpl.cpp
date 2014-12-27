@@ -346,7 +346,7 @@ RsProgram* RsCoreImpl::createProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroyResource21
+// destroyResource
 void RsCoreImpl::destroyResource( RsResource* pResource )
 {
 	BcAssert( BcIsGameThread() );
@@ -367,6 +367,7 @@ void RsCoreImpl::destroyResource( RsResource* pResource )
 		[ pResource ]()
 		{
 			pResource->destroy();
+			delete pResource;
 		} );
 
 	// Now flush to ensure it's finished being destroyed.
@@ -391,6 +392,7 @@ void RsCoreImpl::destroyResource(
 		[ RenderState ]()
 		{
 			RenderState->getContext()->destroyRenderState( RenderState );
+			delete RenderState;
 		} );
 }
 
@@ -412,6 +414,7 @@ void RsCoreImpl::destroyResource(
 		[ SamplerState ]()
 		{
 			SamplerState->getContext()->destroySamplerState( SamplerState );
+			delete SamplerState;
 		} );
 }
 
@@ -509,7 +512,6 @@ void RsCoreImpl::destroyResource(
 	{
 		return;
 	}
-
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
