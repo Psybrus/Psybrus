@@ -14,8 +14,14 @@
 #include "BcHtml.h"
 
 BcHtml::BcHtml() :
-	RootNode_( "html", 0 )
+RootNode_( "html", 0 )
 {
+}
+
+BcHtml::BcHtml( std::string Template ) :
+RootNode_( "html", 0 )
+{
+
 }
 
 BcHtmlNode BcHtml::getRootNode()
@@ -28,23 +34,17 @@ std::string BcHtml::getHtml()
 	return RootNode_.getOuterXml();
 }
 
+
 /**************************************************************************
 *
 * BcHtmlNode implementation
 *
 */
-BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* Node ) :
-	InternalNode_( Node )
+BcHtmlNode::BcHtmlNode( BcHtmlNodeInternal* Node )
+: InternalNode_( Node )
 {
 
 }
-
-BcHtmlNode::BcHtmlNode( const BcHtmlNode& Cpy )
-{
-	InternalNode_ = Cpy.InternalNode_;
-	NextTag_ = Cpy.NextTag_;
-}
-
 
 BcHtmlNode BcHtmlNode::operator[]( BcU32 Idx )
 {
@@ -136,6 +136,11 @@ BcHtmlNode BcHtmlNode::NextSiblingNode()
 }
 
 
+BcHtmlNode BcHtmlNode::findNodeById( std::string Id )
+{
+	return this->InternalNode_->findNodeById( Id );
+}
+
 /**************************************************************************
 *
 * BcHtmlNodeInternal implementation
@@ -214,5 +219,28 @@ std::string BcHtmlNodeInternal::getOuterXml()
 		output += "</" + Tag_ + ">";
 		return output;
 	}
+	return "";
 }
 
+BcHtmlNodeInternal* BcHtmlNodeInternal::findNodeById( std::string Id )
+{
+	for ( BcU32 Idx = 0; Idx < Children.size(); ++Idx )
+	{
+		if ( Children[ Idx ]->Attributes_.find( "id" ) != Children[ Idx ]->Attributes_.end() )
+		{
+			if ( Id.compare( Children[ Idx ]->Attributes_[ "id" ] ) == 0 )
+			{
+				return Children[ Idx ];
+			}
+		}
+	}
+	for ( BcU32 Idx = 0; Idx < Children.size(); ++Idx )
+	{
+		BcHtmlNodeInternal* ret = Children[ Idx ]->findNodeById( Id );
+		if ( ret != nullptr )
+		{
+			return ret;
+		}
+	}
+	return nullptr;
+}

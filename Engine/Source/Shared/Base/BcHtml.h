@@ -27,7 +27,6 @@ class BcHtmlNode
 {
 	friend BcHtml;
 public:
-	BcHtmlNode( const BcHtmlNode& Cpy );
 	BcHtmlNode createChildNode( std::string Tag );
 	std::string getTag();
 	std::string getContents();
@@ -40,6 +39,7 @@ public:
 	std::string getOuterXml();
 	bool operator==( const BcHtmlNode& V );
 	BcHtmlNode NextSiblingNode();
+	BcHtmlNode findNodeById( std::string Id );
 private:
 	BcHtmlNode( BcHtmlNodeInternal* Node );
 	BcHtmlNodeInternal* InternalNode_;
@@ -63,6 +63,7 @@ public:
 	BcHtmlNodeInternal* operator[]( BcU32 Idx );
 	BcHtmlNodeInternal* operator[]( std::string Tag );
 	std::string getOuterXml();
+	BcHtmlNodeInternal* findNodeById( std::string Id );
 
 	~BcHtmlNodeInternal();
 private:
@@ -83,6 +84,7 @@ public:
 	BcHtml();
 	BcHtmlNode getRootNode();
 	std::string getHtml();
+	BcHtml( std::string Template );
 private:
 	/**
 	* Private write using va_list.

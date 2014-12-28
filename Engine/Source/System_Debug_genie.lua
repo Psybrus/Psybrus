@@ -9,6 +9,7 @@ PsyProjectEngineLib( "System_Debug" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
+      "../../External/rapidxml/",
       BOOST_INCLUDE_PATH,
     }
 

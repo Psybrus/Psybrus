@@ -111,6 +111,7 @@ public:
 
 	static void					cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 	static void					cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	static void					cmdViewFunctions(DsParameters params, BcHtmlNode& Output, std::string PostContent);
 
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
@@ -124,7 +125,7 @@ public:
 	void						deregisterFunction(BcU32 Handle);
 	char*						handleFile(std::string Uri, int& FileSize, std::string Content);
 	std::string					loadHtmlFile(std::string Uri, std::string Content);
-
+	std::string					loadTemplateFile( std::string TemplateName );
 	static void					cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostContent);					
 private:
 //	BcMutex						Lock_;

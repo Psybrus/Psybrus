@@ -21,6 +21,7 @@ dofile ("SoLoud_genie.lua")
 
 -- Stuff we don't want to build for asmjs (import pipeline or other stuff only)
 if _OPTIONS[ "toolchain" ] ~= "asmjs" then
+	dofile ("rapidxml_genie.lua")
 	dofile ("glew_genie.lua")
 	dofile ("webby_genie.lua")
 	dofile ("squish_genie.lua")
