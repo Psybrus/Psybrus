@@ -143,9 +143,9 @@ BcHtmlNode BcHtmlNode::NextSiblingNode()
 }
 
 
-BcHtmlNode BcHtmlNode::FindNodeById( std::string Id )
+BcHtmlNode BcHtmlNode::findNodeById( std::string Id )
 {
-	return this->InternalNode_->FindNodeById( Id );
+	return this->InternalNode_->findNodeById( Id );
 }
 
 /**************************************************************************
@@ -229,7 +229,7 @@ std::string BcHtmlNodeInternal::getOuterXml()
 	return "";
 }
 
-BcHtmlNodeInternal* BcHtmlNodeInternal::FindNodeById( std::string Id )
+BcHtmlNodeInternal* BcHtmlNodeInternal::findNodeById( std::string Id )
 {
 	for ( BcU32 Idx = 0; Idx < Children.size(); ++Idx )
 	{
@@ -243,7 +243,7 @@ BcHtmlNodeInternal* BcHtmlNodeInternal::FindNodeById( std::string Id )
 	}
 	for ( BcU32 Idx = 0; Idx < Children.size(); ++Idx )
 	{
-		BcHtmlNodeInternal* ret = Children[ Idx ]->FindNodeById( Id );
+		BcHtmlNodeInternal* ret = Children[ Idx ]->findNodeById( Id );
 		if ( ret != nullptr )
 		{
 			return ret;

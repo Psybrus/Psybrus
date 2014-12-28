@@ -58,25 +58,20 @@ DsCore::~DsCore()
 // cmdContent
 void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
-	Output.createChildNode("h1").setContents("Contents");
-	Output.createChildNode("h2").setContents("Total CsResource: " + boost::lexical_cast< std::string >( CsCore::pImpl()->getNoofResources() ) );
-	BcHtmlNode table = Output.createChildNode("table");
-	//table.setAttribute("style", "width:100%;");
-	table.createChildNode("col").setAttribute("width", "100px");
-	table.createChildNode("col").setAttribute("width", "100px");
-	BcHtmlNode row = table.createChildNode("tr");
-	row.createChildNode("th").setContents("Name");
-	row.createChildNode("th").setContents("Type");
-	row.createChildNode("th").setContents("Package");
+	BcHtmlNode node = DsTemplate::loadTemplate( Output, "Content/debug/contents_template.html" );
+	node.findNodeById( "id-resources" ).setContents( boost::lexical_cast< std::string >( CsCore::pImpl()->getNoofResources() ) );
+
+	BcHtmlNode table = node.findNodeById( "id-table" );
 
 	for( BcU32 Idx = 0; Idx < CsCore::pImpl()->getNoofResources(); ++Idx )
 	{
 		ReObjectRef< CsResource > Resource( CsCore::pImpl()->getResource( Idx ) );
-		BcHtmlNode row = table.createChildNode("tr");
+		BcHtmlNode row = DsTemplate::loadTemplate( table, "Content/debug/content_row_template.html" );
+
 		std::string id = boost::lexical_cast<std::string>(Resource->getUniqueId());
-		row.createChildNode("td").createChildNode("a").setAttribute("href", "Resource/" + id).setContents(*Resource->getName());
-		row.createChildNode("td").setContents(*Resource->getClass()->getName());
-		row.createChildNode("td").setContents(*Resource->getPackageName());
+		row.findNodeById( "id-link" ).setAttribute("href", "Resource/" + id).setContents(*Resource->getName());
+		row.findNodeById( "id-name" ).setContents( *Resource->getClass()->getName() );
+		row.findNodeById( "id-package-name" ).setContents( *Resource->getPackageName() );
 
 	}
 
@@ -170,7 +165,7 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 {
 	DsTemplate::loadTemplate(Output, "Content/Debug/main_items.html" );
 
-	BcHtmlNode ul = Output.FindNodeById( "page_listing" );
+	BcHtmlNode ul = Output.findNodeById( "page_listing" );
 	DsCore* core = pImpl();
 	for (BcU32 Idx = 0; Idx < core->PageFunctions_.size(); ++Idx)
 	{
@@ -181,7 +176,7 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 			a.setContents(core->PageFunctions_[Idx].Display_);
 		}
 	}
-	BcHtmlNode functions = Output.FindNodeById( "function_listing" );
+	BcHtmlNode functions = Output.findNodeById( "function_listing" );
 	for (auto Item : core->ButtonFunctions_)
 	{
 		BcHtmlNode ahref = functions.createChildNode("a");
@@ -235,8 +230,8 @@ void DsCore::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, 
 	BcSPrintf(Id, "%d", Component->getUniqueId());
 	BcHtmlNode tmp = DsTemplate::loadTemplate( Output, "Content/Debug/scene_component_template.html" );
 
-	tmp.FindNodeById( "component-link" ).setAttribute( "href", "/Resource/" + std::string( Id ) );
-	tmp.FindNodeById( "component-link" ).setContents( *Component->getName() );
+	tmp.findNodeById( "component-link" ).setAttribute( "href", "/Resource/" + std::string( Id ) );
+	tmp.findNodeById( "component-link" ).setContents( *Component->getName() );
 
 }
 
@@ -477,7 +472,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	BcHtml HtmlContent;
 
 	DsTemplate::loadTemplate( HtmlContent.getRootNode(), "Content/Debug/fullpage_template.html" );
-	HtmlContent.getRootNode().FindNodeById( "id-title" ).setContents( GPsySetupParams.Name_ );
+	HtmlContent.getRootNode().findNodeById( "id-title" ).setContents( GPsySetupParams.Name_ );
 
 	std::vector<std::string> data;
 	bool success = false;
@@ -487,7 +482,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	{
 		if ( uri == ("Functions/" + boost::lexical_cast< std::string >( Item.Handle_ ) ) )
 		{
-			BcHtmlNode redirect = HtmlContent.getRootNode().FindNodeById( "meta" );
+			BcHtmlNode redirect = HtmlContent.getRootNode().findNodeById( "meta" );
 			redirect.setAttribute("http-equiv", "refresh");
 			redirect.setAttribute("content", "0; url=/Menu");
 			Item.Function_();
@@ -516,10 +511,10 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 					javaScript += "\"";
 				}
 				javaScript += "];";
-				HtmlContent.getRootNode().FindNodeById( "js-params" ).setContents(javaScript);
-				PageFunctions_[Idx].Function_(data, HtmlContent.getRootNode().FindNodeById( "innerBody"), Content );
+				HtmlContent.getRootNode().findNodeById( "js-params" ).setContents(javaScript);
+				PageFunctions_[Idx].Function_(data, HtmlContent.getRootNode().findNodeById( "innerBody"), Content );
 				if (!PageFunctions_[Idx].IsHtml_)
-					return HtmlContent.getRootNode().FindNodeById( "innerBody" ).getContents();
+					return HtmlContent.getRootNode().findNodeById( "innerBody" ).getContents();
 				break;
 			}
 		}
