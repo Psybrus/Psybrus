@@ -470,6 +470,10 @@ BcBool SysKernel::pushJob( size_t JobQueueId, SysJob* pJob )
 
 	// No queue we can use, execute on this thread.
 	pJob->internalExecute();
+
+	// Delete job.
+	delete pJob;
+	
 	return BcTrue;
 }
 

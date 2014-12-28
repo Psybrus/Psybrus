@@ -106,6 +106,7 @@ void DsCoreImpl::close()
 {
 	//mg_stop( pContext_ );
 	//pContext_ = NULL;
+	free(ServerMemory_);
 }
 
 

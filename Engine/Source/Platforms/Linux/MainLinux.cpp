@@ -30,10 +30,12 @@ eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
 extern BcU32 GResolutionWidth;
 extern BcU32 GResolutionHeight;
 
+static OsClientSDL* GMainWindow = nullptr;
+
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 {
-	OsClientSDL* pMainWindow = new OsClientSDL();
-	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
+	GMainWindow = new OsClientSDL();
+	if( GMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
 		return evtRET_REMOVE;
@@ -42,12 +44,22 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 	// Get rendering context.
 	if( RsCore::pImpl() != NULL )
 	{
-		RsContext* pContext = RsCore::pImpl()->getContext( pMainWindow );
+		RsContext* pContext = RsCore::pImpl()->getContext( GMainWindow );
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
 	}
 
 	return evtRET_REMOVE;
 }
+
+eEvtReturn OnPostOsClose_DestroyClient( EvtID, const SysSystemEvent& )
+{
+	GMainWindow->destroy();
+	delete GMainWindow;
+	GMainWindow = nullptr;
+	return evtRET_REMOVE;
+}
+
+
 
 int main(int argc, char** argv)
 {
@@ -122,6 +134,9 @@ int main(int argc, char** argv)
 	// Hook up create client delegate
 	SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
 	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
+
+	SysSystemEvent::Delegate OsPostCloseDelegateDestroyClient = SysSystemEvent::Delegate::bind< OnPostOsClose_DestroyClient >();
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OsPostCloseDelegateDestroyClient );
 
 	// Hook up event pump delegate.
 	SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
