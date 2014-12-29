@@ -1,7 +1,6 @@
-if PsyProjectExternalLib( "freetype" ) then
+if PsyProjectExternalLib( "freetype", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
-		language "C"
 		files {
 			"./freetype/src/autofit/autofit.c",
 			"./freetype/src/base/basepic.c",

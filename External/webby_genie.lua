@@ -1,6 +1,5 @@
-if PsyProjectExternalLib( "webby" ) then
+if PsyProjectExternalLib( "webby", "C" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	language "C"
 	configuration "windows-* or linux-*"
 		files { "./webby/**.h", "./webby/**.c" }
 		includedirs { "./webby/" }

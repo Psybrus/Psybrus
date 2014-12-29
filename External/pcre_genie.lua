@@ -1,7 +1,6 @@
-if PsyProjectExternalLib( "pcre" ) then
+if PsyProjectExternalLib( "pcre", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
-		language "C"
 		files { 
 			"pcre/pcre_byte_order.c",
 			"pcre/pcre_chartables.c",

@@ -1,7 +1,6 @@
-if PsyProjectExternalLib( "portaudio" ) then
+if PsyProjectExternalLib( "portaudio", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
-		language "C"
 		defines { "PA_USE_DS=1", "PA_USE_WASAPI=1", "PA_USE_WDMKS=1" }
 		files { 
 			"./portaudio/include/**.h",

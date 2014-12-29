@@ -1,7 +1,6 @@
-if PsyProjectExternalLib( "BulletPhysics" ) then
+if PsyProjectExternalLib( "BulletPhysics", "C++" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
-		language "C++"
 		includedirs {
 			"bullet/src",
 		}

@@ -1,6 +1,5 @@
-if PsyProjectExternalLib( "glew" ) then
+if PsyProjectExternalLib( "glew", "C" ) then
 	kind ( EXTERNAL_PROJECT_KIND ) 
-	language "C++"
 	configuration "windows-* or linux-*"
 		files { "./glew/include/**.h", "./glew/src/glew.c" }
 		includedirs { "./glew/include" }

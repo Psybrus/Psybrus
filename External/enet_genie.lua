@@ -1,7 +1,6 @@
-if PsyProjectExternalLib( "enet" ) then
+if PsyProjectExternalLib( "enet", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
-		language "C"
 		files { "./enet/**.h", "./enet/**.c" }
 		excludes { "./enet/unix.c" }
 		includedirs { "./enet/include" }

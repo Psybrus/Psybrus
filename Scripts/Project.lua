@@ -5,7 +5,7 @@
 local EXTERNAL_PREFIX = "External_"
 
 -- Common project setup.
-function PsyProjectCommon( _name )
+function PsyProjectCommon( _name, _lang )
 	project( _name )
 
 	-- Common flags for all configurations.
@@ -58,7 +58,6 @@ function PsyProjectCommon( _name )
 		defines { "NDEBUG" }
 		flags { "Symbols" }
 
-
 	-- Optimised builds.
 	configuration { "windows-* or linux-*", "Release" }
 		flags { "Optimize" }
@@ -69,6 +68,42 @@ function PsyProjectCommon( _name )
 	configuration { "windows-* or linux-*", "Production" }
 		flags { "Optimize" }
 
+	-- Setup language specific support.
+	languageOptions = {
+		[ "C" ] = "C",
+		[ "C++" ] = "C++",
+		[ "C++11" ] = "C++",
+		[ "C++14" ] = "C++",
+		[ "C++1z" ] = "C++",
+		[ "C++17" ] = "C++"
+	}
+
+	gccLanguageOptions = {
+		[ "C" ] = {},
+		[ "C++" ] = {},
+		[ "C++11" ] = { "-std=c++11" },
+		[ "C++14" ] = { "-std=c++14" },
+		[ "C++1z" ] = { "-std=c++1z" },
+		[ "C++17" ] = { "-std=c++17" }
+	}
+
+	clangLanguageOptions = {
+		[ "C" ] = {},
+		[ "C++" ] = { "-stdlib=libc++" },
+		[ "C++11" ] = { "-stdlib=libc++", "-std=c++11" },
+		[ "C++14" ] = { "-stdlib=libc++", "-std=c++14" },
+		[ "C++1z" ] = { "-stdlib=libc++", "-std=c++1z" },
+		[ "C++17" ] = { "-stdlib=libc++", "-std=c++17" }
+	}
+
+	configuration "*"
+		language( languageOptions[ _lang ] )
+
+	configuration "*-gcc"
+		buildoptions( gccLanguageOptions[ _lang ] )
+
+	configuration "*-clang or asmjs"
+		buildoptions( clangLanguageOptions[ _lang ] )
 
 	-- Terminate project.
 	configuration "*"
@@ -76,11 +111,15 @@ end
 
 -- Common engine project.
 function PsyProjectCommonEngine( _name )
-	PsyProjectCommon( _name )
+	PsyProjectCommon( _name, "C++11" )
 
 	-- Enable C++11.
 	configuration "gmake"
 		buildoptions { "-std=c++11" }
+		buildoptions { "-stdlib=libc++" }
+		links {
+			"c++"
+		}
 
 	-- Extra warnings + fatal warnings.
 	configuration "vs*"
@@ -225,12 +264,12 @@ end
 
 
 -- Setup external lib project.
-function PsyProjectExternalLib( _name )
+function PsyProjectExternalLib( _name, _lang )
 	-- Prepend "External_"
 	_name = "External_" .. _name
 
 	-- Setup common project stuff.
-	PsyProjectCommon( _name )
+	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
 	configuration "*"

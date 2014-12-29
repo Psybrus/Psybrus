@@ -1,7 +1,6 @@
-if PsyProjectExternalLib( "zlib" ) then
+if PsyProjectExternalLib( "zlib", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
-		language "C"
 		files { "./zlib/**.h", "./zlib/**.c" }
 		includedirs { "./zlib/" }
 		defines { "verbose=-1" }

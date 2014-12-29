@@ -1,6 +1,5 @@
-if PsyProjectExternalLib( "hlsl2glslfork" ) then
+if PsyProjectExternalLib( "hlsl2glslfork", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	language "C++"
 
 	configuration "windows-* or linux-gcc or linux-clang"
 		files { 

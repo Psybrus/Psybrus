@@ -48,9 +48,8 @@ local openal_include    = openal_root .. "/include"
 
 local buildroot = ""
 
-if PsyProjectExternalLib( "SoLoud" ) then
+if PsyProjectExternalLib( "SoLoud", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	language "C++"
 
 	defines { "MODPLUG_STATIC" }
 if (WITH_LIBMODPLUG == 1) then
