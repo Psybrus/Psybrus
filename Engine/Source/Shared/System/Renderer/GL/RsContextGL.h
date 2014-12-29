@@ -104,7 +104,11 @@ public:
 	
 	void flushState();
 
-	void clear( const RsColour& Colour );
+	void clear( 
+		const RsColour& Colour,
+		BcBool EnableClearColour,
+		BcBool EnableClearDepth,
+		BcBool EnableClearStencil );
 	void drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices );
 	void drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
 

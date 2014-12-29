@@ -98,6 +98,10 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "Far_",				&ScnViewComponent::Far_ ),
 		new ReField( "HorizontalFOV_",		&ScnViewComponent::HorizontalFOV_ ),
 		new ReField( "VerticalFOV_",		&ScnViewComponent::VerticalFOV_ ),
+		new ReField( "ClearColour_",		&ScnViewComponent::ClearColour_ ),
+		new ReField( "EnableClearColour_",	&ScnViewComponent::EnableClearColour_ ),
+		new ReField( "EnableClearDepth_",	&ScnViewComponent::EnableClearDepth_ ),
+		new ReField( "EnableClearStencil_",	&ScnViewComponent::EnableClearStencil_ ),
 		new ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
 		new ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
 		new ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
@@ -105,7 +109,7 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
 		new ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
 	};
-		
+	
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( 2000 ) );
 }
@@ -138,6 +142,42 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 	Far_ = (BcF32)Object[ "far" ].asDouble();
 	HorizontalFOV_ = (BcF32)Object[ "hfov" ].asDouble();
 	VerticalFOV_ = (BcF32)Object[ "vfov" ].asDouble();
+
+	if( Object[ "clearcolour" ] != Json::nullValue )
+	{
+		ClearColour_ = MaVec4d( Object[ "clearcolour" ].asCString() );
+	}
+	else
+	{
+		ClearColour_ = RsColour::BLACK;
+	}
+
+	if( Object[ "enableclearcolour" ] != Json::nullValue )
+	{
+		EnableClearColour_ = Object[ "enableclearcolour" ].asBool();
+	}
+	else
+	{
+		EnableClearColour_ = BcTrue;
+	}
+
+	if( Object[ "enablecleardepth" ] != Json::nullValue )
+	{
+		EnableClearDepth_ = Object[ "enablecleardepth" ].asBool();
+	}
+	else
+	{
+		EnableClearDepth_ = BcTrue;
+	}
+
+	if( Object[ "enableclearstencil" ] != Json::nullValue )
+	{
+		EnableClearStencil_ = Object[ "enableclearstencil" ].asBool();
+	}
+	else
+	{
+		EnableClearStencil_ = BcTrue;
+	}
 
 	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
 	if( RenderMaskValue.type() != Json::nullValue )
@@ -265,10 +305,14 @@ public:
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
 		pContext_->setViewport( Viewport_ );
-		pContext_->clear( RsColour::BLACK );
+		pContext_->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
 	}
 
 	RsViewport Viewport_;
+	RsColour ClearColour_;
+	BcBool EnableClearColour_;
+	BcBool EnableClearDepth_;
+	BcBool EnableClearStencil_;	
 };
 
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
@@ -385,6 +429,10 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	// Set + clear viewport.
 	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
 	pRenderNode->Viewport_ = Viewport_;
+	pRenderNode->ClearColour_ = ClearColour_;
+	pRenderNode->EnableClearColour_ = EnableClearColour_;
+	pRenderNode->EnableClearDepth_ = EnableClearDepth_;
+	pRenderNode->EnableClearStencil_ = EnableClearStencil_;
 	pFrame->addRenderNode( pRenderNode );
 
 }

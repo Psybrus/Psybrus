@@ -88,7 +88,11 @@ public:
 	/**
 	 * Clear.
 	 */
-	virtual void clear( const RsColour& Colour ) = 0;
+	virtual void clear( 
+		const RsColour& Colour,
+		BcBool EnableClearColour,
+		BcBool EnableClearDepth,
+		BcBool EnableClearStencil ) = 0;
 	
 	/**
 	 * Draw primitives.

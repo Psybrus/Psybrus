@@ -73,7 +73,12 @@ protected:
 	BcF32								Far_;
 	BcF32								HorizontalFOV_;		// Used by default.
 	BcF32								VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
-		
+
+	RsColour							ClearColour_;
+	BcBool								EnableClearColour_;
+	BcBool								EnableClearDepth_;
+	BcBool								EnableClearStencil_;	
+	
 	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
 
 

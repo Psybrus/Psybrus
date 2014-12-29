@@ -660,7 +660,7 @@ void RsContextGL::create()
 	setDefaultState();
 
 	// Clear screen and flip.
-	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) );
+	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
 
 	// Present back buffer.
 	presentBackBuffer();
@@ -2004,12 +2004,16 @@ void RsContextGL::flushState()
 
 //////////////////////////////////////////////////////////////////////////
 // clear
-void RsContextGL::clear( const RsColour& Colour )
+void RsContextGL::clear( 
+	const RsColour& Colour,
+	BcBool EnableClearColour,
+	BcBool EnableClearDepth,
+	BcBool EnableClearStencil )
 {
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	
-	// TODO: Look into this?
+	// TODO: Look into this? It causes an invalid operation.
 	if( Version_.Type_ != RsOpenGLType::ES )
 	{
 		glClearDepth( 1.0f );
@@ -2017,7 +2021,10 @@ void RsContextGL::clear( const RsColour& Colour )
 
 	glClearStencil( 0 );
 	glDepthMask( GL_TRUE );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );	
+	glClear( 
+		( EnableClearColour ? GL_COLOR_BUFFER_BIT : 0 ) | 
+		( EnableClearDepth ? GL_DEPTH_BUFFER_BIT : 0 ) | 
+		( EnableClearStencil ? GL_STENCIL_BUFFER_BIT : 0 ) );	
 	RsGLCatchError();
 }
 

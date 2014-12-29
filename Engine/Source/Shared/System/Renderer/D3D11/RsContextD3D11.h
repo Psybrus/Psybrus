@@ -59,7 +59,12 @@ public:
 		BcU32 Handle, 
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
-	void clear( const RsColour& Colour );
+	void clear(
+		const RsColour& Colour,
+		BcBool EnableClearColour,
+		BcBool EnableClearDepth,
+		BcBool EnableClearStencil );
+
 	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
 	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
 

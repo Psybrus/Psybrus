@@ -900,21 +900,34 @@ void RsContextD3D11::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 
 //////////////////////////////////////////////////////////////////////////
 // clear
-void RsContextD3D11::clear( const RsColour& Colour )
+void RsContextD3D11::clear( 
+	const RsColour& Colour,
+	BcBool EnableClearColour,
+	BcBool EnableClearDepth,
+	BcBool EnableClearStencil )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	for( auto RenderTargetView : RenderTargetViews_ )
+	if( EnableClearColour )
 	{
-		if( RenderTargetView != nullptr )
+		for( auto RenderTargetView : RenderTargetViews_ )
 		{
-			FLOAT D3DColour[4] = { Colour.r(), Colour.g(), Colour.b(), Colour.a() };
-			Context_->ClearRenderTargetView( RenderTargetView, D3DColour );
+			if( RenderTargetView != nullptr )
+			{
+				FLOAT D3DColour[4] = { Colour.r(), Colour.g(), Colour.b(), Colour.a() };
+				Context_->ClearRenderTargetView( RenderTargetView, D3DColour );
+			}
 		}
 	}
-	if( DepthStencilView_ != nullptr )
+	
+	if( DepthStencilView_ != nullptr &&
+		( EnableClearDepth || EnableClearStencil ) )
 	{
-		Context_->ClearDepthStencilView( DepthStencilView_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0 );
+		Context_->ClearDepthStencilView( 
+			DepthStencilView_,
+			( EnableClearDepth ? D3D11_CLEAR_DEPTH : 0 ) | 
+			( EnableClearStencil ? D3D11_CLEAR_STENCIL : 0 ), 
+			1.0f, 0 );
 	}
 }
 
