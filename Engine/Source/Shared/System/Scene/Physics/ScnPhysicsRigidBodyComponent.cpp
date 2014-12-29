@@ -84,7 +84,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 
 	// Get parent world.
-	World_ = getParentEntity()->getComponentAnyParentByType< ScnPhysicsWorldComponent >();
+	World_ = getComponentAnyParentByType< ScnPhysicsWorldComponent >();
 
 	// Calculate local inertia.
 	btCollisionShape* CollisionShape = CollisionShape_->getCollisionShape();

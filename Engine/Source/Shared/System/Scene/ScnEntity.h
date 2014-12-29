@@ -43,151 +43,115 @@ public:
 	ScnEntity( ReNoInit );
 	virtual ~ScnEntity();
 
-	void								initialise();
-	void								initialise( ScnEntityRef Basis );
-	void								create();
-	void								destroy();
+	void initialise();
+	void initialise( ScnEntityRef Basis );
+	void create();
+	void destroy();
 
 public:
-	void								update( BcF32 Tick );
-	void								attach( ScnComponent* Component );
-	void								detach( ScnComponent* Component );
-	void								onAttach( ScnEntityWeakRef Parent );
-	void								onDetach( ScnEntityWeakRef Parent );
-	void								detachFromParent();
+	void update( BcF32 Tick );
+	void attach( ScnComponent* Component );
+	void detach( ScnComponent* Component );
+	void onAttach( ScnEntityWeakRef Parent );
+	void onDetach( ScnEntityWeakRef Parent );
+	void detachFromParent();
 	
 	/**
 	 * Get basis entity.
 	 */
-	ScnEntityRef						getBasisEntity();
+	ScnEntityRef getBasisEntity();
 
 	/**
 	 * Get number of components.
 	 */
-	BcU32								getNoofComponents() const;
+	BcU32 getNoofComponents() const;
 	
 	/**
 	 * Get component.
 	 */
-	ScnComponent*						getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr );
+	ScnComponent* getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component.
 	 */
-	ScnComponent*						getComponent( BcName Name, const ReClass* Class = nullptr );
-
-	/**
-	 * Get component by type.
-	 */
-	template< typename _Ty >
-	_Ty*								getComponentByType( BcU32 Idx = 0 )
-	{
-		return static_cast< _Ty* >( getComponent( Idx, _Ty::StaticGetClass() ) );
-	}
-
-	/**
-	 * Get component by type.
-	 */
-	template< typename _Ty >
-	_Ty*								getComponentByType( BcName Name )
-	{
-		return static_cast< _Ty* >( getComponent( Name, _Ty::StaticGetClass() ) );
-	}
+	ScnComponent* getComponent( BcName Name, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponent*						getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr );
+	ScnComponent* getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponent*						getComponentAnyParent( BcName Name, const ReClass* Class = nullptr );
-
-	/**
-	 * Get component on any parent or self by type.
-	 */
-	template< typename _Ty >
-	_Ty*								getComponentAnyParentByType( BcU32 Idx = 0 )
-	{
-		return static_cast< _Ty* >( getComponentAnyParent( Idx, _Ty::StaticGetClass() ) );
-	}
-
-	/**
-	 * Get component on any parent or self by type.
-	 */
-	template< typename _Ty >
-	_Ty*								getComponentAnyParentByType( BcName Name )
-	{
-		return static_cast< _Ty* >( getComponentAnyParent( Name, _Ty::StaticGetClass() ) );
-	}
+	ScnComponent* getComponentAnyParent( BcName Name, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Set position.
 	 */
-	void								setLocalPosition( const MaVec3d& Position );
+	void setLocalPosition( const MaVec3d& Position );
 
 	/**
 	 * Set matrix.
 	 */
-	void								setLocalMatrix( const MaMat4d& Matrix );
+	void setLocalMatrix( const MaMat4d& Matrix );
 
 	/**
 	 * Set matrix rot + scale part.
 	 */
-	void								setLocalMatrixRS( const MaMat4d& Matrix );
+	void setLocalMatrixRS( const MaMat4d& Matrix );
 
 	/**
 	 * Get local position.
 	 */
-	MaVec3d								getLocalPosition() const;
+	MaVec3d getLocalPosition() const;
 
 	/**
 	 * Set position.
 	 */
-	void								setWorldPosition( const MaVec3d& Position );
+	void setWorldPosition( const MaVec3d& Position );
 
 	/**
 	 * Set matrix.
 	 */
-	void								setWorldMatrix( const MaMat4d& Matrix );
+	void setWorldMatrix( const MaMat4d& Matrix );
 
 	/**
 	 * Set matrix rot + scale part.
 	 */
-	void								setWorldMatrixRS( const MaMat4d& Matrix );
+	void setWorldMatrixRS( const MaMat4d& Matrix );
 
 	/**
 	 * Get position.
 	 */
-	MaVec3d								getWorldPosition() const;
+	MaVec3d getWorldPosition() const;
 
 	/**
 	 * Get matrix.
 	 */
-	const MaMat4d&						getLocalMatrix() const;
+	const MaMat4d& getLocalMatrix() const;
 
 	/**
 	 * Get matrix.
 	 */
-	const MaMat4d&						getWorldMatrix() const;
+	const MaMat4d& getWorldMatrix() const;
 
 protected:
-	virtual void						fileReady();
-	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	virtual void fileReady();
+	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 	void setupComponents();
 	
 protected:
-	const ScnEntityHeader*				pHeader_;
+	const ScnEntityHeader* pHeader_;
 
-	MaMat4d								LocalTransform_;
-	MaMat4d								WorldTransform_;
+	MaMat4d LocalTransform_;
+	MaMat4d WorldTransform_;
 
-	ScnComponentList					Components_;
+	ScnComponentList Components_;
 	
 #if SCNENTITY_USES_EVTPUBLISHER
-	class EvtProxyBuffered*				pEventProxy_;
+	class EvtProxyBuffered* pEventProxy_;
 #endif
 };
 

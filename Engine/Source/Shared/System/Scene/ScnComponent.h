@@ -66,44 +66,105 @@ public:
 	virtual ~ScnComponent();
 
 public:
-	virtual void						initialise();
-	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void initialise( const Json::Value& Object );
+	virtual void create();
+	virtual void destroy();
 
-	virtual void						preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.
-	virtual void						update( BcF32 Tick );			// Most will want this tick.
-	virtual void						postUpdate( BcF32 Tick );		// Anything that needs a tick after the game wants this.
+	virtual void preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.
+	virtual void update( BcF32 Tick );			// Most will want this tick.
+	virtual void postUpdate( BcF32 Tick );		// Anything that needs a tick after the game wants this.
 
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
-	void								setFlag( ScnComponentFlags Flag );
-	void								clearFlag( ScnComponentFlags Flag );
-	BcBool								isFlagSet( ScnComponentFlags Flag ) const;
+	void setFlag( ScnComponentFlags Flag );
+	void clearFlag( ScnComponentFlags Flag );
+	BcBool isFlagSet( ScnComponentFlags Flag ) const;
 
-	BcBool								isAttached() const;
-	BcBool								isAttached( ScnEntityWeakRef Parent ) const;
-	void								setParentEntity( ScnEntityWeakRef Entity );
-	ScnEntity*							getParentEntity();
-	const ScnEntity*					getParentEntity() const;
+	BcBool isAttached() const;
+	BcBool isAttached( ScnEntityWeakRef Parent ) const;
+	void setParentEntity( ScnEntityWeakRef Entity );
+	ScnEntity* getParentEntity();
+	const ScnEntity* getParentEntity() const;
 
 	/**
 	 * Get full name inc. parents.
 	 */
-	std::string							getFullName();
+	std::string getFullName();
 
 	// temp.
-	const BcChar*						getJsonObject() const{ return pJsonObject_; }
+	const BcChar* getJsonObject() const{ return pJsonObject_; }
+
+public:
+	// ScnEntity utilities.
+
+	/**
+	 * Get component.
+	 */
+	virtual ScnComponent* getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr );
+
+	/**
+	 * Get component.
+	 */
+	virtual ScnComponent* getComponent( BcName Name, const ReClass* Class = nullptr );
+
+	/**
+	 * Get component by type.
+	 */
+	template< typename _Ty >
+	_Ty* getComponentByType( BcU32 Idx = 0 )
+	{
+		return static_cast< _Ty* >( getComponent( Idx, _Ty::StaticGetClass() ) );
+	}
+
+	/**
+	 * Get component by type.
+	 */
+	template< typename _Ty >
+	_Ty* getComponentByType( BcName Name )
+	{
+		return static_cast< _Ty* >( getComponent( Name, _Ty::StaticGetClass() ) );
+	}
+
+	/**
+	 * Get component on any parent or self.
+	 */
+	virtual ScnComponent* getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr );
+
+	/**
+	 * Get component on any parent or self.
+	 */
+	virtual ScnComponent* getComponentAnyParent( BcName Name, const ReClass* Class = nullptr );
+
+	/**
+	 * Get component on any parent or self by type.
+	 */
+	template< typename _Ty >
+	_Ty* getComponentAnyParentByType( BcU32 Idx = 0 )
+	{
+		return static_cast< _Ty* >( getComponentAnyParent( Idx, _Ty::StaticGetClass() ) );
+	}
+
+	/**
+	 * Get component on any parent or self by type.
+	 */
+	template< typename _Ty >
+	_Ty* getComponentAnyParentByType( BcName Name )
+	{
+		return static_cast< _Ty* >( getComponentAnyParent( Name, _Ty::StaticGetClass() ) );
+	}
+
+
 
 protected:
-	virtual void						fileReady();
-	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	virtual void fileReady();
+	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
-	BcU32								ComponentFlags_;
-	ScnEntityWeakRef					ParentEntity_;
-	const BcChar*						pJsonObject_;
+	BcU32 ComponentFlags_;
+	ScnEntityWeakRef ParentEntity_;
+	const BcChar* pJsonObject_;
 
 };
 

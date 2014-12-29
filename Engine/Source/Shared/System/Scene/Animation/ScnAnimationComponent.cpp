@@ -148,7 +148,7 @@ void ScnAnimationComponent::postUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Model_ = getParentEntity()->getComponentByType< ScnModelComponent >( /*TargetComponentName_ TODO*/  ); 
+	Model_ = getComponentByType< ScnModelComponent >( /*TargetComponentName_ TODO*/  ); 
 	BcAssertMsg( Model_ != nullptr, "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
 
 	// Setup the reference pose.

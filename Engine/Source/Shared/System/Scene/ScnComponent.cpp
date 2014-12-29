@@ -292,3 +292,36 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		CsResource::markReady();
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// getComponent
+ScnComponent* ScnComponent::getComponent( BcU32 Idx, const ReClass* Class )
+{
+	BcAssert( ParentEntity_ != nullptr );
+	return ParentEntity_->getComponent( Idx, Class );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponent
+ScnComponent* ScnComponent::getComponent( BcName Name, const ReClass* Class )
+{
+	BcAssert( ParentEntity_ != nullptr );
+	return ParentEntity_->getComponent( Name, Class );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponentAnyParent
+ScnComponent* ScnComponent::getComponentAnyParent( BcU32 Idx, const ReClass* Class )
+{
+	BcAssert( ParentEntity_ != nullptr );
+	return ParentEntity_->getComponentAnyParent( Idx, Class );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponentAnyParent
+ScnComponent* ScnComponent::getComponentAnyParent( BcName Name, const ReClass* Class )
+{
+	BcAssert( ParentEntity_ != nullptr );
+	return ParentEntity_->getComponentAnyParent( Name, Class );
+}
