@@ -53,6 +53,10 @@ function SetupBoost()
 	end
 
 	print( "Using Boost version " .. boostVersion )
+
+	if BOOST_USE_SYSTEM then
+		BOOST_INCLUDE_PATH = ""
+	end
 end
 
 -- Add boost libs to current project (all configurations)
