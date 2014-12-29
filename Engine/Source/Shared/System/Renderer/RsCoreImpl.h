@@ -116,12 +116,6 @@ private:
 		RsBufferUpdateFunc UpdateFunc_;
 	};
 
-	bool updateBuffer_threaded( 
-		UpdateBufferAsync Cmd );
-
-	bool destroyBuffer_threaded( 
-		RsBuffer* Buffer );
-
 	struct UpdateTextureAsync
 	{
 		class RsTexture* Texture_;
@@ -130,26 +124,12 @@ private:
 		RsTextureUpdateFunc UpdateFunc_;
 	};
 
-	bool updateTexture_threaded( 
-		UpdateTextureAsync Cmd );
-
-	bool destroyTexture_threaded( 
-		RsTexture* Texture );
-
-
-	bool destroyShader_threaded( 
-		RsShader* Shader );
-
-	bool destroyProgram_threaded( 
-		RsProgram* Program );
-
 private:
 	void createResource( RsResource* pResource );
 
 public:
 	RsFrame* allocateFrame( RsContext* pContext );
 	void queueFrame( RsFrame* pFrame );
-	void queueFrame_threaded( RsFrame* pFrame );
 
 public:
 	// Platform specific interface.

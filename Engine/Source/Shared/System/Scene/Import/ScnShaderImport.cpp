@@ -398,10 +398,12 @@ BcBool ScnShaderImport::import( const Json::Value& )
 
 						++PendingPermutations_;
 
-						typedef BcDelegate< BcBool(*)( ScnShaderPermutationJobParams ) > BuildPermutationDelegate;
-						BuildPermutationDelegate JobDelegate =
-							BuildPermutationDelegate::bind< ScnShaderImport, &ScnShaderImport::buildPermutation >( this );
-						SysKernel::pImpl()->pushDelegateJob( 0, JobDelegate, JobParams );
+						SysKernel::pImpl()->pushFunctionJob( 
+							0, 
+							[ this, JobParams ]()
+							{
+								buildPermutation( JobParams );
+							} );
 					}
 				}
 			}

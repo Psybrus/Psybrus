@@ -185,13 +185,12 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 
 	UpdateFence_.increment();
 
-#if 1
-	typedef BcDelegate< void(*)( BcF32 ) > UpdateNodeDelegate;
-	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnParticleSystemComponent, &ScnParticleSystemComponent::updateParticles >( this );
-	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, Tick );
-#else
-	updateParticles( Tick );
-#endif
+	SysKernel::pImpl()->pushFunctionJob( 
+		SysKernel::DEFAULT_JOB_QUEUE_ID, 
+		[ this, Tick ]()
+		{
+			updateParticles( Tick );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////

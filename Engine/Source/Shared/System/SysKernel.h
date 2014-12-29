@@ -123,58 +123,6 @@ public:
 	void runOnce();
 
 	/**
-	 * Enqueue job.
-	 */
-	template< typename _Fn >
-	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall();
-		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
-		BcAssert( RetVal );
-		BcUnusedVar( RetVal );
-	}
-
-	/**
-	 * Enqueue job.
-	 */
-	template< typename _Fn, typename _P0 >
-	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0 );
-		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
-		BcAssert( RetVal );
-		BcUnusedVar( RetVal );
-	}
-
-	/**
-	 * Enqueue job.
-	 */
-	template< typename _Fn, typename _P0, typename _P1 >
-	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1 );
-		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
-		BcAssert( RetVal );
-		BcUnusedVar( RetVal );
-	}	
-	
-	/**
-	 * Enqueue job.
-	 */
-	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
-	BcForceInline void			pushDelegateJob( size_t JobQueueId, const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1, P2 );
-		BcBool RetVal = pushJob( JobQueueId, new SysDelegateJob( pDelegateCall ) );		
-		BcAssert( RetVal );
-		BcUnusedVar( RetVal );
-	}
-
-	/**
 	 * Push function job.
 	 */
 	BcForceInline void pushFunctionJob( size_t JobQueueId, std::function< void() > Function )

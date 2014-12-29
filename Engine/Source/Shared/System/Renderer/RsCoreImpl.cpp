@@ -247,8 +247,6 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 	auto Context = getContext( nullptr );
 	RsTexture* pResource = new RsTexture( Context, Desc );
 
-	typedef BcDelegate< bool(*)( RsTexture* ) > CreateDelegate;
-
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
@@ -331,8 +329,6 @@ RsProgram* RsCoreImpl::createProgram(
 		Context, 
 		std::move( Shaders ), 
 		std::move( VertexAttributes ) );
-
-	typedef BcDelegate< bool(*)( RsProgram* ) > CreateDelegate;
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
@@ -430,19 +426,15 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-
-	typedef BcDelegate< bool(*)( RsBuffer* ) > DestroyDelegate;
-	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyBuffer_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Buffer );
-}
-
-bool RsCoreImpl::destroyBuffer_threaded( 
-	RsBuffer* Buffer )
-{
-	auto Context = Buffer->getContext();
-	auto retVal = Context->destroyBuffer( Buffer );
-	delete Buffer;
-	return retVal;
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ Buffer ]()
+		{
+			auto Context = Buffer->getContext();
+			auto RetVal = Context->destroyBuffer( Buffer );
+			delete Buffer;
+			BcUnusedVar( RetVal );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -457,20 +449,15 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-
-	typedef BcDelegate< bool(*)( RsTexture* ) > DestroyDelegate;
-	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyTexture_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Texture );
-
-}
-
-bool RsCoreImpl::destroyTexture_threaded( 
-	RsTexture* Texture )
-{
-	auto Context = Texture->getContext();
-	auto retVal = Context->destroyTexture( Texture );
-	delete Texture;
-	return retVal;
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ Texture ]()
+		{
+			auto Context = Texture->getContext();
+			auto RetVal = Context->destroyTexture( Texture );
+			delete Texture;
+			BcUnusedVar( RetVal );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -486,20 +473,15 @@ void RsCoreImpl::destroyResource(
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-
-	typedef BcDelegate< bool(*)( RsShader* ) > DestroyDelegate;
-	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyShader_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Shader );
-
-}
-
-bool RsCoreImpl::destroyShader_threaded( 
-		RsShader* Shader )
-{
-	auto Context = Shader->getContext();
-	auto retVal = Context->destroyShader( Shader );
-	delete Shader;
-	return retVal;
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ Shader ]()
+		{
+			auto Context = Shader->getContext();
+			auto RetVal = Context->destroyShader( Shader );
+			delete Shader;
+			BcUnusedVar( RetVal );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -515,19 +497,15 @@ void RsCoreImpl::destroyResource(
 
 	// Flush render thread before destroy.
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-
-	typedef BcDelegate< bool(*)( RsProgram* ) > DestroyDelegate;
-	DestroyDelegate Delegate( DestroyDelegate::bind< RsCoreImpl, &RsCoreImpl::destroyProgram_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Program );
-}
-
-bool RsCoreImpl::destroyProgram_threaded( 
-		RsProgram* Program )
-{
-	auto Context = Program->getContext();
-	auto retVal = Context->destroyProgram( Program );
-	delete Program;
-	return retVal;
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ Program ]()
+		{
+			auto Context = Program->getContext();
+			auto RetVal = Context->destroyProgram( Program );
+			delete Program;
+			BcUnusedVar( RetVal );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -538,10 +516,12 @@ void RsCoreImpl::updateResource( RsResource* pResource )
 	BcAssert( pResource != nullptr );
 	
 	// Call update.
-	{
-		SysSystem::UpdateDelegate Delegate( SysSystem::UpdateDelegate::bind< SysResource, &SysResource::update >( pResource ) );
-		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
-	}
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ pResource ]()
+		{
+			pResource->update();
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -572,24 +552,21 @@ bool RsCoreImpl::updateBuffer(
 			UpdateFunc
 		};
 
-		typedef BcDelegate< bool(*)( UpdateBufferAsync ) > UpdateDelegate;
-		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImpl, &RsCoreImpl::updateBuffer_threaded >( this ) );
-		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
+		SysKernel::pImpl()->pushFunctionJob( 
+			RsCore::JOB_QUEUE_ID,
+			[ Cmd ]()
+			{
+				auto Context = Cmd.Buffer_->getContext();
+				Context->updateBuffer( 
+					Cmd.Buffer_,
+					Cmd.Offset_,
+					Cmd.Size_,
+					Cmd.Flags_,
+					Cmd.UpdateFunc_ );
+			} );
 	}
 
 	return true;
-}
-	
-bool RsCoreImpl::updateBuffer_threaded( 
-	UpdateBufferAsync Cmd )
-{
-	auto Context = Cmd.Buffer_->getContext();
-	return Context->updateBuffer( 
-		Cmd.Buffer_,
-		Cmd.Offset_,
-		Cmd.Size_,
-		Cmd.Flags_,
-		Cmd.UpdateFunc_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -617,25 +594,23 @@ bool RsCoreImpl::updateTexture(
 			UpdateFunc
 		};
 
-		typedef BcDelegate< bool(*)( UpdateTextureAsync ) > UpdateDelegate;
-		UpdateDelegate Delegate( UpdateDelegate::bind< RsCoreImpl, &RsCoreImpl::updateTexture_threaded >( this ) );
-		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, Cmd );
+		SysKernel::pImpl()->pushFunctionJob( 
+			RsCore::JOB_QUEUE_ID,
+			[ Cmd ]()
+			{
+				auto Context = Cmd.Texture_->getContext();
+				Context->updateTexture( 
+					Cmd.Texture_,
+					Cmd.Slice_,
+					Cmd.Flags_,
+					Cmd.UpdateFunc_ );
+			} );
+
 	}
 
 	return true;
 }
 	
-bool RsCoreImpl::updateTexture_threaded( 
-	UpdateTextureAsync Cmd )
-{
-	auto Context = Cmd.Texture_->getContext();
-	return Context->updateTexture( 
-		Cmd.Texture_,
-		Cmd.Slice_,
-		Cmd.Flags_,
-		Cmd.UpdateFunc_ );
-}
-
 //////////////////////////////////////////////////////////////////////////
 // createResource
 void RsCoreImpl::createResource( RsResource* pResource )
@@ -644,10 +619,12 @@ void RsCoreImpl::createResource( RsResource* pResource )
 	BcAssert( pResource != nullptr );
 
 	// Call create.
-	{
-		SysSystem::CreateDelegate Delegate( SysSystem::CreateDelegate::bind< SysResource, &SysResource::create >( pResource ) );
-		SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate );
-	}
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ pResource ]()
+		{
+			pResource->create();
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -670,18 +647,15 @@ RsFrame* RsCoreImpl::allocateFrame( RsContext* pContext )
 void RsCoreImpl::queueFrame( RsFrame* pFrame )
 {
 	BcAssert( BcIsGameThread() );
-	BcDelegate< void(*)( RsFrame* ) > Delegate( BcDelegate< void(*)( RsFrame* ) >::bind< RsCoreImpl, &RsCoreImpl::queueFrame_threaded >( this ) );
-	SysKernel::pImpl()->pushDelegateJob( RsCore::JOB_QUEUE_ID, Delegate, (RsFrame*)pFrame );
-}
+	SysKernel::pImpl()->pushFunctionJob( 
+		RsCore::JOB_QUEUE_ID, 
+		[ pFrame ]()
+		{
+			// Render frame.
+			pFrame->render();
 
-//////////////////////////////////////////////////////////////////////////
-// queueFrame_threaded
-void RsCoreImpl::queueFrame_threaded( RsFrame* pFrame )
-{
-	// Render frame.
-	pFrame->render();
-
-	// Now free.
-	delete pFrame;
+			// Now free.
+			delete pFrame;
+		} );
 }
 
