@@ -106,7 +106,9 @@ void DsCoreImpl::close()
 {
 	//mg_stop( pContext_ );
 	//pContext_ = NULL;
+#if USE_WEBBY
 	free(ServerMemory_);
+#endif
 }
 
 
