@@ -22,6 +22,7 @@
 #define EXCLUDE_PSTDINT
 #include <hlslcc.h>
 #include <hlsl2glsl.h>
+#include <glsl/glsl_optimizer.h>
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
@@ -643,8 +644,48 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				if( RetVal )
 				{
 					std::string OutputShaderCode = Hlsl2Glsl_GetShader( CompilerHandle );
+					std::string OriginalOutputShaderCode = OutputShaderCode;
 
 					// TODO: Run through glsl-optimzser.
+					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
+					glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
+
+					// Vertex shader attributes.
+					glslopt_shader_type GlslOptLanguage;
+
+					if( Entry.Type_ == RsShaderType::VERTEX )
+					{
+						GlslOptLanguage = kGlslOptShaderVertex;
+					}
+					else if( Entry.Type_ == RsShaderType::PIXEL )
+					{
+						GlslOptLanguage = kGlslOptShaderFragment;
+					}
+					else
+					{
+						BcBreakpoint;
+						return BcFalse;
+					}
+
+					auto GlslOptShader = glslopt_optimize( 
+						GlslOptContext, 
+						GlslOptLanguage,
+						OutputShaderCode.c_str(),
+						0 );
+
+					if( glslopt_get_status( GlslOptShader ) )
+					{
+						// Extract shader code.
+						OutputShaderCode = glslopt_get_output( GlslOptShader );
+					}
+					else
+					{
+						BcPrintf( "Failed to optimiser GLSL shader:\n%s\n", 
+							glslopt_get_log( GlslOptShader ) );
+						BcBreakpoint; // TODO: Failed. Why?
+					}
+
+					glslopt_cleanup( GlslOptContext );
 
 					// Extract & translate vertex information.
 					// Convert from "xlat_attrib__SEMANTIC" into "dcl_Input<x>"
@@ -709,6 +750,9 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					// Destruct compiler
 					Hlsl2Glsl_DestructCompiler( CompilerHandle );
 
+					// Run glsl-optimizer to keep the code as simple as possible for the ES/WebGL compiler.
+
+
 					// Finalise shader.
 					OutputShaderCode = removeComments( OutputShaderCode );
 
@@ -719,7 +763,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 
 					ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-#if 0
+#if 1
 					// Write out intermediate shader for reference.
 					std::string ShaderType;
 					switch( Entry.Type_ )
@@ -757,7 +801,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 
 						BcFile FileOut;
 						FileOut.open( Filename.c_str(), bcFM_WRITE );
-						FileOut.write( BuiltShader.Code_.getData< char >(), BuiltShader.Code_.getDataSize() );
+						FileOut.write( OriginalOutputShaderCode.c_str(), OriginalOutputShaderCode.size() );
 						FileOut.close();
 					}
 

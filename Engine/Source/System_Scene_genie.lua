@@ -14,6 +14,7 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/libb64/include/",
       "../../External/HLSLCrossCompiler/include/",
       "../../External/hlsl2glslfork/include/",
+      "../../External/glsl-optimizer/src",
       BOOST_INCLUDE_PATH,
     }
 
@@ -40,6 +41,8 @@ PsyProjectEngineLib( "System_Scene" )
       "BulletPhysics",
       "freetype",
       "jsoncpp",
+      "glsl-optimizer",
+      "hlsl2glslfork",
       "HLSLCrossCompiler"
 		}
 
