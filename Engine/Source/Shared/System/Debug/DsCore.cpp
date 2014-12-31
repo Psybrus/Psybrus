@@ -18,11 +18,12 @@
 #include "Serialisation/SeJsonWriter.h"
 #include "Psybrus.h"
 #include "DsTemplate.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
-#include <boost/lexical_cast.hpp>
+#if !PLATFORM_HTML5
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
-#include "System/Content/CsSerialiserPackageObjectCodec.h"
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -59,7 +60,7 @@ DsCore::~DsCore()
 void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
 	BcHtmlNode node = DsTemplate::loadTemplate( Output, "Content/debug/contents_template.html" );
-	node.findNodeById( "id-resources" ).setContents( boost::lexical_cast< std::string >( CsCore::pImpl()->getNoofResources() ) );
+	node.findNodeById( "id-resources" ).setContents( std::to_string( CsCore::pImpl()->getNoofResources() ) );
 
 	BcHtmlNode table = node.findNodeById( "id-table" );
 
@@ -68,13 +69,12 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string Pos
 		ReObjectRef< CsResource > Resource( CsCore::pImpl()->getResource( Idx ) );
 		BcHtmlNode row = DsTemplate::loadTemplate( table, "Content/debug/content_row_template.html" );
 
-		std::string id = boost::lexical_cast<std::string>(Resource->getUniqueId());
+		std::string id = std::to_string(Resource->getUniqueId());
 		row.findNodeById( "id-link" ).setAttribute("href", "Resource/" + id).setContents(*Resource->getName());
 		row.findNodeById( "id-name" ).setContents( *Resource->getClass()->getName() );
 		row.findNodeById( "id-package-name" ).setContents( *Resource->getPackageName() );
 
 	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -180,7 +180,7 @@ void DsCore::cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostCo
 	for (auto Item : core->ButtonFunctions_)
 	{
 		BcHtmlNode ahref = functions.createChildNode("a");
-		std::string v = boost::lexical_cast< std::string >( Item.Handle_ );
+		std::string v = std::to_string( Item.Handle_ );
 		ahref.setAttribute( "href", "Functions/" + v );
 
 		BcHtmlNode button = ahref.createChildNode( "button" );
@@ -383,7 +383,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 						CsResource* resource = static_cast<CsResource*>(SrcFieldAccessor.getData());
 						if( resource != nullptr )
 						{
-							fValue.createChildNode("a").setAttribute("href", "/Resource/" + boost::lexical_cast<std::string>(resource->getUniqueId())).setContents("Resource");
+							fValue.createChildNode("a").setAttribute("href", "/Resource/" + std::to_string(resource->getUniqueId())).setContents("Resource");
 							str = "";
 						}
 						else
@@ -480,7 +480,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 		
 	for (auto Item : ButtonFunctions_)
 	{
-		if ( uri == ("Functions/" + boost::lexical_cast< std::string >( Item.Handle_ ) ) )
+		if ( uri == ("Functions/" + std::to_string( Item.Handle_ ) ) )
 		{
 			BcHtmlNode redirect = HtmlContent.getRootNode().findNodeById( "meta" );
 			redirect.setAttribute("http-equiv", "refresh");
@@ -571,6 +571,7 @@ void DsCore::cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostCo
 	// THAT REGEX
 	// \(\?\<(?<name>\w*)\>\.\*\)
 	// THIS WILL LOOK HORRIBLE
+#if !PLATFORM_HTML5
 	boost::regex re("\\(\\?\\<(?<name>\\w*)\\>\\.\\*\\)");
 	
 	for (BcU32 Idx = 0; Idx < core->PageFunctions_.size(); ++Idx)
@@ -595,6 +596,10 @@ void DsCore::cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostCo
 
 
 	}
+#else
+	BcBreakpoint; // TODO: Switch to std::regex.
+#endif
+
 	Output.setContents(html.getHtml());
 }
 
