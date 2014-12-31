@@ -486,7 +486,8 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	}
 
 	// 
-	BcAssertMsg( ResourceImporter != nullptr, "Can't create resource importer." );
+	BcAssertMsg( ResourceImporter != nullptr, 
+		"Can't create resource importer for \"%s\"", Type.asCString() );
 
 	// Serialise resource onto importer.
 	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
