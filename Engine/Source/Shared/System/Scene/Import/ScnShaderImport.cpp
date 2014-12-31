@@ -763,7 +763,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 
 					ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-#if 1
+#if 0
 					// Write out intermediate shader for reference.
 					std::string ShaderType;
 					switch( Entry.Type_ )
