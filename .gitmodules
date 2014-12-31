@@ -13,3 +13,6 @@
 [submodule "External/hlsl2glslfork"]
 	path = External/hlsl2glslfork
 	url = https://github.com/neilogd/hlsl2glslfork
+[submodule "External/glsl-optimizer"]
+	path = External/glsl-optimizer
+	url = https://github.com/neilogd/glsl-optimizer
