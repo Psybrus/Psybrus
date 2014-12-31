@@ -26,6 +26,7 @@ if _OPTIONS[ "toolchain" ] ~= "asmjs" then
 	dofile ("webby_genie.lua")
 	dofile ("squish_genie.lua")
 	dofile ("assimp_genie.lua")
+	dofile ("glsl-optimizer_genie.lua")
 	dofile ("HLSLCrossCompiler_genie.lua")
 	dofile ("hlsl2glslfork_genie.lua")
 end
