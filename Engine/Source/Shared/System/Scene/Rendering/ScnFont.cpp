@@ -46,8 +46,8 @@ namespace
 	 	BcF32 SizeMultiplier )
 	{
 	 	return MaVec2d( 
-	 		- ( Glyph.OffsetX_ * SizeMultiplier ), 
-			- ( Glyph.OffsetY_ * SizeMultiplier ) );// + ( Header.NominalSize_ * SizeMultiplier ) );
+	 		+ ( Glyph.OffsetX_ * SizeMultiplier ), 
+			- ( Glyph.OffsetY_ * SizeMultiplier ) );
 	}
 
 	/**
@@ -396,6 +396,25 @@ const MaVec4d& ScnFontDrawParams::getAlphaTestSettings() const
 	return AlphaTestSettings_;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// ScnFontUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnFontUniformBlockData );
+
+void ScnFontUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "FontParams_", &ScnFontUniformBlockData::FontParams_ ),
+		new ReField( "TextColour_", &ScnFontUniformBlockData::TextColour_ ),
+		new ReField( "BorderColour_", &ScnFontUniformBlockData::BorderColour_ ),
+		new ReField( "ShadowColour_", &ScnFontUniformBlockData::ShadowColour_ ),
+	};
+	
+	ReRegisterClass< ScnFontUniformBlockData >( Fields );
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnFont );
@@ -511,7 +530,7 @@ void ScnFontComponent::StaticRegisterClass()
 		new ReField( "ClippingEnabled_", &ScnFontComponent::ClippingEnabled_ ),
 		new ReField( "ClipMin_", &ScnFontComponent::ClipMin_ ),
 		new ReField( "ClipMax_", &ScnFontComponent::ClipMax_ ),
-		new ReField( "AlphaTestUniforms_", &ScnFontComponent::AlphaTestUniforms_ ),
+		new ReField( "FontUniformData_", &ScnFontComponent::FontUniformData_ ),
 	};
 		
 	ReRegisterClass< ScnFontComponent, Super >( Fields );
@@ -532,7 +551,10 @@ void ScnFontComponent::initialise()
 	UniformBuffer_ = nullptr;
 
 	// Setup default alpha test params.
-	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( 0.4f, 0.5f, 0.5f, 0.0f );
+	FontUniformData_.FontParams_ = MaVec4d( 0.4f, 0.5f, 0.5f, 0.0f );
+	FontUniformData_.TextColour_ = RsColour::BLACK;
+	FontUniformData_.BorderColour_ = RsColour::BLACK;
+	FontUniformData_.ShadowColour_ = RsColour::BLACK;
 
 	// Disable clipping.
 	setClipping( BcFalse );
@@ -616,6 +638,24 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
 	
 	BcBool FirstCharacterOnLine = BcTrue;
+
+	ScnFontUniformBlockData FontUniformData = FontUniformData_;
+
+	// Add custom render command to canvas to update the uniform buffer correctly.
+	Canvas->setMaterialComponent( MaterialComponent_ );
+	Canvas->addCustomRender(
+		[ this, FontUniformData ]( RsContext* Context )
+		{
+			Context->updateBuffer( 
+				UniformBuffer_,
+				0, sizeof( FontUniformData ),
+				RsResourceUpdateFlags::NONE,
+				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				{
+					BcMemCopy( Lock.Buffer_, &FontUniformData, sizeof( FontUniformData ) );
+				} );
+		},
+		Layer );
 
 	if( pFirstVert != nullptr || SizeRun == BcTrue )
 	{
@@ -705,7 +745,6 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 		{
 			PositionVertices( pFirstVert, NoofVertices, Position );
 
-			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, Layer );
 		}
 	}
@@ -729,16 +768,7 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 // setAlphaTestStepping
 void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 {
-	AlphaTestUniforms_.AlphaTestParams_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
-
-	RsCore::pImpl()->updateBuffer( 
-		UniformBuffer_,
-		0, sizeof( AlphaTestUniforms_ ),
-		RsResourceUpdateFlags::ASYNC,
-		[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-		{
-			BcMemCopy( Lock.Buffer_, &AlphaTestUniforms_, sizeof( AlphaTestUniforms_ ) );
-		} );
+	FontUniformData_.FontParams_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -773,6 +803,24 @@ MaVec2d ScnFontComponent::drawText(
 	// TODO: Set in render thread.
 	setAlphaTestStepping( 
 		MaVec2d( DrawParams.getAlphaTestSettings().x(), DrawParams.getAlphaTestSettings().y() ) );
+
+	ScnFontUniformBlockData FontUniformData = FontUniformData_;
+
+	// Add custom render command to canvas to update the uniform buffer correctly.
+	Canvas->setMaterialComponent( MaterialComponent_ );
+	Canvas->addCustomRender(
+		[ this, FontUniformData ]( RsContext* Context)
+		{
+			Context->updateBuffer( 
+				UniformBuffer_,
+				0, sizeof( FontUniformData ),
+				RsResourceUpdateFlags::NONE,
+				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				{
+					BcMemCopy( Lock.Buffer_, &FontUniformData, sizeof( FontUniformData ) );
+				} );
+		},
+		DrawParams.getLayer() );
 
 	// Cached elements from parent.
 	ScnFontHeader* pHeader = Parent_->pHeader_;
@@ -985,7 +1033,6 @@ MaVec2d ScnFontComponent::drawText(
 					Offset );
 			}
 
-			Canvas->setMaterialComponent( MaterialComponent_ );
 			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, DrawParams.getLayer() );
 		}
 	}
@@ -1095,8 +1142,8 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( ScnShaderAlphaTestUniformBlockData ) ) );
-	auto UniformBlock = MaterialComponent_->findUniformBlock( "ScnShaderAlphaTestUniformBlockData" );
+			sizeof( FontUniformData_ ) ) );
+	auto UniformBlock = MaterialComponent_->findUniformBlock( "ScnFontUniformBlockData" );
 	if( UniformBlock != BcErrorCode )
 	{
 		MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );

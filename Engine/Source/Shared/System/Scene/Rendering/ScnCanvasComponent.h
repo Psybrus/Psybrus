@@ -33,15 +33,18 @@ struct ScnCanvasComponentVertex
 	BcU32 ABGR_;
 };
 
+typedef std::function< void( class RsContext* ) > ScnCanvasRenderFunc;
+
 //////////////////////////////////////////////////////////////////////////
 // ScnCanvasComponentPrimitiveSection
 struct ScnCanvasComponentPrimitiveSection
 {
-	RsTopologyType		Type_;
-	BcU32					VertexIndex_;
-	BcU32					NoofVertices_;
-	BcU32					Layer_;
+	RsTopologyType Type_;
+	BcU32 VertexIndex_;
+	BcU32 NoofVertices_;
+	BcU32 Layer_;
 	ScnMaterialComponentRef	MaterialComponent_;
+	ScnCanvasRenderFunc RenderFunc_;
 };
 
 class ScnCanvasComponentPrimitiveSectionCompare
@@ -61,49 +64,49 @@ class ScnCanvasComponent:
 public:
 	DECLARE_RESOURCE( ScnCanvasComponent, ScnRenderableComponent );
 	
-	virtual void						initialise();
-	virtual void						initialise( BcU32 NoofVertices );
-	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
-	virtual MaAABB						getAABB() const;
+	virtual void initialise();
+	virtual void initialise( BcU32 NoofVertices );
+	virtual void initialise( const Json::Value& Object );
+	virtual void create();
+	virtual void destroy();
+	virtual MaAABB getAABB() const;
 
 	/**
 	 * Set material component.
 	 */
-	void								setMaterialComponent( ScnMaterialComponentRef MaterialComponent );
+	void setMaterialComponent( ScnMaterialComponentRef MaterialComponent );
 	
 	/**
 	 * Get material component.
 	 */
-	ScnMaterialComponentRef				getMaterialComponent();
+	ScnMaterialComponentRef getMaterialComponent();
 
 	/**
 	 * Push matrix.
 	 * @param Matrix Matrix.
 	 */
-	void								pushMatrix( const MaMat4d& Matrix );
+	void pushMatrix( const MaMat4d& Matrix );
 	
 	/*
 	 * Pop matrix.
 	 */
-	MaMat4d								popMatrix();
+	MaMat4d popMatrix();
 	
 	/*
 	 * Set current matrix.
 	 */
-	void								setMatrix( const MaMat4d& Matrix );
+	void setMatrix( const MaMat4d& Matrix );
 
 	/*
 	 * Get current matrix.
 	 */
-	MaMat4d								getMatrix() const;
+	MaMat4d getMatrix() const;
 
 	/**
 	 * Set view matrix.
 	 * Only used when automatically set to clear.
 	 */
-	void								setViewMatrix( const MaMat4d& View );
+	void setViewMatrix( const MaMat4d& View );
 
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -111,12 +114,24 @@ public:
 	 * and to allocate the total number at the end. Provided you don't overrun the buffer!
 	 * @param NoofVertices Number of vertices to allocate.
 	 */
-	ScnCanvasComponentVertex*			allocVertices( BcSize NoofVertices );
+	ScnCanvasComponentVertex* allocVertices( BcSize NoofVertices );
+
+	/**
+	 * Add custom render.<br/>
+	 */
+	void addCustomRender( 
+		ScnCanvasRenderFunc CustomRenderFunc,
+		BcU32 Layer = 0 );
 	
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void								addPrimitive( RsTopologyType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void addPrimitive( 
+		RsTopologyType Type, 
+		ScnCanvasComponentVertex* pVertices, 
+		BcU32 NoofVertices, 
+		BcU32 Layer = 0,
+		BcBool UseMatrixStack = BcTrue );
 
 	/**
 	 * Draw line.
@@ -125,7 +140,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLine( const MaVec2d& PointA, const MaVec2d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw lines.
@@ -134,7 +149,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLines( const MaVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLines( const MaVec2d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw line box.
@@ -143,7 +158,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLineBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLineBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw line box centered.
@@ -152,7 +167,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLineBoxCentered( const MaVec2d& Position, const MaVec2d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLineBoxCentered( const MaVec2d& Position, const MaVec2d& Size, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw box.
@@ -161,7 +176,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite.
@@ -171,7 +186,7 @@ public:
 	 * @param Colour Colour.
 	 * @param Layer Layer.
 	 */
-	void								drawSprite( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawSprite( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw sprite centered.
@@ -181,12 +196,12 @@ public:
 	 * @param Colour Colour.
 	 * @param Layer Layer.
 	 */
-	void								drawSpriteCentered( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawSpriteCentered( const MaVec2d& Position, const MaVec2d& Size, BcU32 TextureIdx, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear canvas.
 	 */
-	void								clear();
+	void clear();
 	
 public:
 	virtual void						preUpdate( BcF32 Tick );

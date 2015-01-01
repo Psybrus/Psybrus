@@ -180,6 +180,20 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnFontUniformBlockData
+struct ScnFontUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnFontUniformBlockData );
+	ScnFontUniformBlockData(){};
+
+	MaVec4d FontParams_; /// x = smoothstep min, y = smoothstep max, z = ref (<)
+	RsColour TextColour_;
+	RsColour BorderColour_;
+	RsColour ShadowColour_;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
 // ScnFontComponent
 class ScnFontComponent:
 	public ScnComponent
@@ -244,7 +258,7 @@ private:
 	MaVec2d ClipMax_;
 
 	RsBuffer* UniformBuffer_;
-	ScnShaderAlphaTestUniformBlockData AlphaTestUniforms_;
+	ScnFontUniformBlockData FontUniformData_;
 };
 
 #endif

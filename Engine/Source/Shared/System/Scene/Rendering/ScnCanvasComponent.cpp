@@ -242,8 +242,32 @@ ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addCustomRender
+void ScnCanvasComponent::addCustomRender( 
+	std::function< void( class RsContext* ) > CustomRenderFunc,
+	BcU32 Layer )
+{
+	ScnCanvasComponentPrimitiveSection PrimitiveSection = 
+	{
+		RsTopologyType::INVALID,
+		0,
+		0,
+		Layer,
+		MaterialComponent_,
+		CustomRenderFunc
+	};
+	
+	PrimitiveSectionList_.push_back( PrimitiveSection );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnCanvasComponent::addPrimitive( RsTopologyType Type, ScnCanvasComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnCanvasComponent::addPrimitive( 
+		RsTopologyType Type, 
+		ScnCanvasComponentVertex* pVertices, 
+		BcU32 NoofVertices, 
+		BcU32 Layer, 
+		BcBool UseMatrixStack )
 {
 	BcAssertMsg( MaterialComponent_.isValid(), "ScnCanvasComponent: Material component has not been set!" );
 
@@ -662,9 +686,17 @@ public:
 		{
 			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
-			pContext_->setVertexDeclaration( VertexDeclaration_ );
-			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
+			if( pPrimitiveSection->RenderFunc_ != nullptr )
+			{
+				pPrimitiveSection->RenderFunc_( pContext_ );
+			}
+			
+			if( pPrimitiveSection->Type_ != RsTopologyType::INVALID )
+			{
+				pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
+				pContext_->setVertexDeclaration( VertexDeclaration_ );
+				pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
+			}
 		}
 	}
 	
@@ -717,7 +749,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
 		
 		// Copy primitive sections in.
-		BcMemCopy( pRenderNode->pPrimitiveSections_, PrimitiveSection, sizeof( ScnCanvasComponentPrimitiveSection ) * 1 );
+		BcMemZero( pRenderNode->pPrimitiveSections_, sizeof( ScnCanvasComponentPrimitiveSection ) );
+		*pRenderNode->pPrimitiveSections_ = *PrimitiveSection;
 		
 		// Bind material.
 		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
