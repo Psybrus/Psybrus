@@ -27,6 +27,12 @@ class BcHtmlNode
 {
 	friend BcHtml;
 public:
+	enum class BcHtmlState
+	{
+		VALID,
+		INVALID
+	};
+
 	BcHtmlNode( BcHtmlNode& Cpy );
 	BcHtmlNode createChildNode( std::string Tag );
 	std::string getTag();
@@ -41,6 +47,8 @@ public:
 	bool operator==( const BcHtmlNode& V );
 	BcHtmlNode NextSiblingNode();
 	BcHtmlNode findNodeById( std::string Id );
+	BcHtmlState getState();
+
 private:
 	BcHtmlNode( BcHtmlNodeInternal* Node );
 	BcHtmlNodeInternal* InternalNode_;

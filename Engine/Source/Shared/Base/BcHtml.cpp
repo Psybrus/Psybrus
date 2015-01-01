@@ -18,12 +18,6 @@ RootNode_( "html", 0 )
 {
 }
 
-BcHtml::BcHtml( std::string Template ) :
-RootNode_( "html", 0 )
-{
-
-}
-
 BcHtmlNode BcHtml::getRootNode()
 {
 	return BcHtmlNode( &RootNode_ );
@@ -55,13 +49,17 @@ BcHtmlNode::BcHtmlNode( BcHtmlNode& Cpy )
 
 BcHtmlNode BcHtmlNode::operator[]( BcU32 Idx )
 {
+	if ( InternalNode_ == nullptr )
+		return nullptr;
 	if ( Idx < InternalNode_->Children.size() )
 		return BcHtmlNode( InternalNode_->Children[ Idx ] );
-	return 0;
+	return nullptr;
 }
 
 BcHtmlNode BcHtmlNode::operator[]( std::string Tag )
 {
+	if ( InternalNode_ == nullptr )
+		return nullptr;
 	for ( BcU32 Idx = 0; Idx < InternalNode_->Children.size(); ++Idx )
 	{
 		if ( InternalNode_->Children[ Idx ]->Tag_ == Tag )
@@ -69,47 +67,58 @@ BcHtmlNode BcHtmlNode::operator[]( std::string Tag )
 			return BcHtmlNode( InternalNode_->Children[ Idx ] );
 		}
 	}
-	return 0;/**/
+	return nullptr;/**/
 }
 
 
 BcHtmlNode BcHtmlNode::createChildNode( std::string Tag )
 {
+	if ( InternalNode_ == nullptr )
+		return nullptr;
 	BcHtmlNodeInternal* ret = InternalNode_->createChildNode( Tag );
 	return BcHtmlNode( ret );
 }
 
 std::string BcHtmlNode::getTag()
 {
+	if ( InternalNode_ == nullptr )
+		return "";
 	return InternalNode_->getTag();
 }
 
 std::string BcHtmlNode::getContents()
 {
+	if ( InternalNode_ == nullptr )
+		return nullptr;
 	return InternalNode_->getContents();
 }
 
 BcHtmlNode& BcHtmlNode::setAttribute( std::string Attr, std::string Value )
 {
-	InternalNode_->setAttribute( Attr, Value );
+	if ( InternalNode_ != nullptr )
+		InternalNode_->setAttribute( Attr, Value );
 	return *this;
 }
 
 BcHtmlNode& BcHtmlNode::setTag( std::string Tag )
 {
-	InternalNode_->setTag( Tag );
+	if ( InternalNode_ != nullptr )
+		InternalNode_->setTag( Tag );
 	return *this;
 }
 
 BcHtmlNode& BcHtmlNode::setContents( std::string Contents )
 {
-	InternalNode_->setContents( Contents );
+	if ( InternalNode_ != nullptr )
+		InternalNode_->setContents( Contents );
 	return *this;
 }
 
 std::string BcHtmlNode::getOuterXml()
 {
-	return InternalNode_->getOuterXml();
+	if ( InternalNode_ != nullptr )
+		return InternalNode_->getOuterXml();
+	return "";
 }
 
 bool BcHtmlNode::operator == ( const BcHtmlNode& V )
@@ -119,6 +128,8 @@ bool BcHtmlNode::operator == ( const BcHtmlNode& V )
 
 BcHtmlNode BcHtmlNode::NextSiblingNode()
 {
+	if ( InternalNode_ == nullptr )
+		return nullptr;
 	if ( InternalNode_->Parent_ == 0 )
 		return BcHtmlNode( 0 );
 	BcU32 Idx;
@@ -142,10 +153,18 @@ BcHtmlNode BcHtmlNode::NextSiblingNode()
 	return BcHtmlNode( 0 );
 }
 
+BcHtmlNode::BcHtmlState BcHtmlNode::getState()
+{
+	if ( InternalNode_ == nullptr )
+		return BcHtmlNode::BcHtmlState::INVALID;
+	return BcHtmlNode::BcHtmlState::VALID;
+}
 
 BcHtmlNode BcHtmlNode::findNodeById( std::string Id )
 {
-	return this->InternalNode_->findNodeById( Id );
+	if ( InternalNode_ != nullptr )
+		return this->InternalNode_->findNodeById( Id );
+	return nullptr;
 }
 
 /**************************************************************************

@@ -7,7 +7,14 @@ BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 {
 	char* out = loadTemplateFile( filename );
 
+	if ( out == nullptr )
+	{
+		BcHtmlNode out = node.createChildNode( "div" );
+		out.setAttribute( "id", "error" );
+		out.setContents( "Could not load template file: " + filename );
 
+		return out;
+	}
 	xml_document<> doc;
 	try
 	{
@@ -16,11 +23,6 @@ BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 	catch ( rapidxml::parse_error &e )
 	{
 		char buffer[ 64 ];
-		
-		/*sprintf_s( buffer, 200, "%s", e.what() );
-		sprintf_s( buffer, 200, "%s", e.where<char>() );
-
-		BcLog::pImpl()->write(buffer);/**/
 	}
 
 	xml_node<> *pRoot = doc.first_node();
@@ -63,7 +65,7 @@ char* DsTemplate::loadTemplateFile( std::string filename )
 	std::string f = filename;
 	file.open( f.c_str() );
 	if ( !file.isOpen() )
-		return 0;
+		return nullptr;
 	char* data;// = new BcU8[file.size()];
 	data = ( char* ) file.readAllBytes();
 	std::string output = data;
