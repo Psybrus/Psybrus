@@ -1019,7 +1019,7 @@ bool RsContextGL::updateBuffer(
 	// Is buffer be in main memory?
 	BcBool BufferInMainMemory =
 		Version_.SupportUniformBuffers_ == BcFalse &&
-		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
+		BufferDesc.Type_ == RsBufferType::UNIFORM;
 
 	if( !BufferInMainMemory )
 	{
@@ -1033,7 +1033,11 @@ bool RsContextGL::updateBuffer(
 			// Bind buffer.
 			glBindBuffer( TypeGL, Handle );
 
-#if !PLATFORM_HTML5
+			// NOTE: The map range path should work correctly.
+			//       The else is  very heavy handed way to force orphaning
+			//       so we don't need to mess around with too much
+			//       synchronisation. 
+#if 0 && !PLATFORM_HTML5
 			// Get access flags for GL.
 			GLbitfield AccessFlagsGL =
 				GL_MAP_WRITE_BIT |
@@ -1053,6 +1057,29 @@ bool RsContextGL::updateBuffer(
 
 			RsGLCatchError();
 #else
+			// Get usage flags for GL.
+			GLuint UsageFlagsGL = 0;
+
+			// Data update frequencies.
+			if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
+			{
+				UsageFlagsGL |= GL_STATIC_DRAW;
+			}
+			else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
+			{
+				UsageFlagsGL |= GL_DYNAMIC_DRAW;
+			}
+			else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
+			{
+				UsageFlagsGL |= GL_STREAM_DRAW;
+			}
+
+			// Perform orphaning.
+			if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
+			{
+				glBufferData( TypeGL, 0, nullptr, UsageFlagsGL );
+			}
+
 			// Use glBufferSubData to upload.
 			// TODO: Allocate of a temporary per-frame buffer.
 			std::unique_ptr< BcChar[] > Data( new BcChar[ Size ] );
@@ -1061,9 +1088,17 @@ bool RsContextGL::updateBuffer(
 				Data.get()
 			};
 			UpdateFunc( Buffer, Lock );
-			glBufferSubData( TypeGL, Offset, Size, Data.get() );
+
+			if( Size == BufferDesc.SizeBytes_ )
+			{
+				glBufferData( TypeGL, Size, Data.get(), UsageFlagsGL );
+			}
+			else
+			{
+				glBufferSubData( TypeGL, Offset, Size, Data.get() );
+			}
 #endif
- 			return true;
+			return true;
 		}
 	}
 	else
