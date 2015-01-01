@@ -202,6 +202,14 @@ namespace
 		}
 		return OutChar;
 	}
+
+	/**
+	 * Is whitespace?
+	 */
+	inline BcBool IsWhitespace( BcU32 CharCode )
+	{
+		return CharCode == ' ' || CharCode == '\t' || CharCode == '\n';
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -844,6 +852,8 @@ MaVec2d ScnFontComponent::drawText(
 	
 	if( pFirstVert != nullptr )
 	{
+		BcU32 LastWhitespaceIdx = -1;
+
 		// Iterate and include null terminator.
 		for( BcU32 Idx = 0; Idx < TextLength + 1; ++Idx )
 		{
@@ -862,6 +872,12 @@ MaVec2d ScnFontComponent::drawText(
 				}
 			}
 
+			// Grab index of last whitespace character.
+			if( IsWhitespace( CharCode ) )
+			{
+				LastWhitespaceIdx = Idx;
+			}
+
 			// Find glyph.
 			ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
 			
@@ -877,20 +893,6 @@ MaVec2d ScnFontComponent::drawText(
 				MaVec2d GlyphMax( CornerMax - MaVec2d( pHeader->BorderSize_, pHeader->BorderSize_ ) * SizeMultiplier );
 				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
 				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
-
-				// Handle wrapping.
-				if( WrappingEnabled )
-				{
-					if( CharCode == ' ' )
-					{
-						// If the character spills over, terminate this line.
-						if( TargetSize.x() > 0.0f && CornerMax.x() > TargetSize.x() )
-						{
-							TerminateLineFunc();
-							continue;
-						}
-					}
-				}
 
 				// Pre-clipping size.
 				MinLineSize.x( BcMin( MinLineSize.x(), GlyphMin.x() ) );
@@ -925,6 +927,32 @@ MaVec2d ScnFontComponent::drawText(
 				
 				NoofVertices += NoofVerticesForGlyph;
 				NoofVerticesOnLine += NoofVerticesForGlyph;
+
+				// Handle wrapping.
+				if( WrappingEnabled )
+				{
+					// If the character spills over, terminate this line.
+					if( TargetSize.x() > 0.0f && CornerMax.x() > TargetSize.x() )
+					{
+						// Back track the vertices.
+						BcU32 NoofCharsSkipped = Idx - LastWhitespaceIdx;
+						BcU32 NoofVertsSkipped = NoofCharsSkipped * NoofVerticesForGlyph;
+						pVert -= NoofVertsSkipped;
+						NoofVertices -= NoofVertsSkipped;
+						NoofVerticesOnLine -= NoofVertsSkipped;
+
+						// Skip all leading whitespace.
+						Idx = LastWhitespaceIdx;
+						while( Idx < Text.length() && IsWhitespace( Text[ Idx ] ) )
+						{
+							LastWhitespaceIdx = Idx++;
+						}
+						Idx = LastWhitespaceIdx;
+
+						TerminateLineFunc();
+						continue;
+					}
+				}
 
 				// Advance.
 				AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
