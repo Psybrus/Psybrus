@@ -569,7 +569,6 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
-		/*
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
@@ -578,7 +577,6 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		*/
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
@@ -808,9 +806,22 @@ bool RsContextGL::createRenderState(
 	// Create hash for desc for quick checking of redundant state checking.
 	// Super dirty and temporary.
 	const auto& Desc = RenderState->getDesc();
-	RenderState->setHandle( BcHash::GenerateCRC32( 0, &Desc, sizeof( Desc ) ) );
+	BcU64 HashA = BcHash::GenerateCRC32( 0, &Desc, sizeof( Desc ) );
+	BcU64 HashB = BcHash::GenerateAP( &Desc, sizeof( Desc ) );
+	BcU64 Hash = HashA | ( HashB << 32 );
+
+	auto FoundIt = RenderStateMap_.find( Hash );
+	if( FoundIt != RenderStateMap_.end() )
+	{
+		BcAssert( BcMemCompare( &Desc, &FoundIt->second, sizeof( Desc ) ) );
+	}
+	else
+	{
+		RenderStateMap_[ Hash ] = Desc;
+	}
 
 	++NoofRenderStates_;
+	RenderState->setHandle( Hash );
 
 	return true;
 }
@@ -1733,13 +1744,19 @@ void RsContextGL::flushState()
 	if( RenderState_ != nullptr )
 	{
 		const auto& Desc = RenderState_->getDesc();
+#if 1
+		// TODO: State setting is a bit broken for some reason,
+		//       investigate this later.
+		setRenderStateDesc( Desc, BcTrue );
+#else
 		if( RenderState_->getHandle< BcU64 >() != LastRenderStateHandle_ )
 		{
 			LastRenderStateHandle_ = RenderState_->getHandle< BcU64 >();
 			++NoofRenderStateFlushes_;
 
-			setRenderStateDesc( Desc, BcFalse );
+			setRenderStateDesc( Desc, BcTrue );
 		}
+#endif
 #if 0
 		else
 		{

@@ -181,6 +181,7 @@ private:
 	class RsRenderState* RenderState_;
 	BcU64 LastRenderStateHandle_;
 	RsRenderStateDesc BoundRenderStateDesc_;
+	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
 
 
 	// Texture binding.
