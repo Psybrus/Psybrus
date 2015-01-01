@@ -110,27 +110,58 @@ public:
 public:
 	ScnFontDrawParams();
 
+	/**
+	 * How the text should be aligned.
+	 */
 	ScnFontDrawParams& setAlignment( ScnFontAlignment Alignment );
 	ScnFontAlignment getAlignment() const;
 
+	/**
+	 * Size of border to put around text whilst aligning.
+	 */
+	ScnFontDrawParams& setAlignmentBorder( BcF32 AlignmentBorder );
+	BcF32 getAlignmentBorder() const;
+
+	/**
+	 * Do we wrap words when aligning?
+	 */
 	ScnFontDrawParams& setWrappingEnabled( BcBool Enabled );
 	BcBool getWrappingEnabled() const;
 
+	/**
+	 * Layer to draw on.
+	 */
 	ScnFontDrawParams& setLayer( BcU32 Layer );
 	BcU32 getLayer() const;
 
+	/**
+	 * Size of text.
+	 */
 	ScnFontDrawParams& setSize( BcF32 Size );
 	BcF32 getSize() const;
 
+	/**
+	 * Do we wish to allow clipping?
+	 */
 	ScnFontDrawParams& setClippingEnabled( BcBool Enabled );
 	BcBool getClippingEnabled() const;
 
+	/**
+	 * Clipping bounds.
+	 * @param Bounds minx, miny, maxx, maxy
+	 */
 	ScnFontDrawParams& setClippingBounds( const MaVec4d& Bounds );
 	const MaVec4d& getClippingBounds() const;
 
-	ScnFontDrawParams& setColour( const RsColour& Colour );
-	const RsColour& getColour() const;
+	/**
+	 * Text colour.
+	 */
+	ScnFontDrawParams& setTextColour( const RsColour& TextColour );
+	const RsColour& getTextColour() const;
 
+	/**
+	 * Alpha test settings.
+	 */
 	ScnFontDrawParams& setAlphaTestSettings( const MaVec4d& Settings );
 	const MaVec4d& getAlphaTestSettings() const;
 
@@ -138,12 +169,13 @@ public:
 
 private:
 	ScnFontAlignment Alignment_;
+	BcF32 AlignmentBorder_;
 	BcBool WrappingEnabled_;
 	BcU32 Layer_;
 	BcF32 Size_;
 	BcBool ClippingEnabled_;
 	MaVec4d ClippingBounds_;
-	RsColour Colour_;
+	RsColour TextColour_;
 	MaVec4d AlphaTestSettings_;
 };
 

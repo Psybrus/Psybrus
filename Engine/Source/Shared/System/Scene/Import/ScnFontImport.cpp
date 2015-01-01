@@ -235,6 +235,7 @@ BcBool ScnFontImport::import(
 					Header.NoofGlyphs_ = (BcU32)GlyphDescList.size();
 					Header.TextureRef_ = CsResourceImporter::addImport( std::move( TextureImporter ) );
 					Header.NominalSize_ = (BcF32)OriginalNominalSize;
+					Header.BorderSize_ = BorderSize;
 					
 					HeaderStream << Header;
 					

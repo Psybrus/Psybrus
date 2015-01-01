@@ -46,8 +46,8 @@ namespace
 	 	BcF32 SizeMultiplier )
 	{
 	 	return MaVec2d( 
-	 		+ ( Glyph.OffsetX_ * SizeMultiplier ), 
-			- ( Glyph.OffsetY_ * SizeMultiplier ) + ( Header.NominalSize_ * SizeMultiplier ) );
+	 		- ( Glyph.OffsetX_ * SizeMultiplier ), 
+			- ( Glyph.OffsetY_ * SizeMultiplier ) );// + ( Header.NominalSize_ * SizeMultiplier ) );
 	}
 
 	/**
@@ -218,7 +218,7 @@ void ScnFontDrawParams::StaticRegisterClass()
 		new ReField( "Size_", &ScnFontDrawParams::Size_ ),
 		new ReField( "ClippingEnabled_", &ScnFontDrawParams::ClippingEnabled_ ),
 		new ReField( "ClippingBounds_", &ScnFontDrawParams::ClippingBounds_ ),
-		new ReField( "Colour_", &ScnFontDrawParams::Colour_ ),
+		new ReField( "TextColour_", &ScnFontDrawParams::TextColour_ ),
 		new ReField( "AlphaTestSettings_", &ScnFontDrawParams::AlphaTestSettings_ ),
 	};
 	
@@ -241,12 +241,13 @@ void ScnFontDrawParams::StaticRegisterClass()
 // Ctor
 ScnFontDrawParams::ScnFontDrawParams():
 	Alignment_( ScnFontAlignment::LEFT | ScnFontAlignment::TOP ),
+	AlignmentBorder_( 0.0f ),
 	WrappingEnabled_( BcFalse ),
 	Layer_( 0 ),
 	Size_( 1.0f ),
 	ClippingEnabled_( BcFalse ),
 	ClippingBounds_( 0.0f, 0.0f, 0.0f, 0.0f ),
-	Colour_( RsColour::BLACK ),
+	TextColour_( RsColour::BLACK ),
 	AlphaTestSettings_( 0.4f, 0.5f, 0.0f, 0.0f )
 {
 
@@ -280,6 +281,21 @@ ScnFontDrawParams& ScnFontDrawParams::setAlignment( ScnFontAlignment Alignment )
 ScnFontAlignment ScnFontDrawParams::getAlignment() const
 {
 	return Alignment_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setAlignmentBorder
+ScnFontDrawParams& ScnFontDrawParams::setAlignmentBorder( BcF32 AlignmentBorder )
+{
+	AlignmentBorder_ = AlignmentBorder;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAlignmentBorder
+BcF32 ScnFontDrawParams::getAlignmentBorder() const
+{
+	return AlignmentBorder_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -343,18 +359,18 @@ const MaVec4d& ScnFontDrawParams::getClippingBounds() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setColour
-ScnFontDrawParams& ScnFontDrawParams::setColour( const RsColour& Colour )
+// setTextColour
+ScnFontDrawParams& ScnFontDrawParams::setTextColour( const RsColour& TextColour )
 {
-	Colour_ = Colour;
+	TextColour_ = TextColour;
 	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getColour
-const RsColour& ScnFontDrawParams::getColour() const
+// getTextColour
+const RsColour& ScnFontDrawParams::getTextColour() const
 {
-	return Colour_;
+	return TextColour_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -734,9 +750,10 @@ MaVec2d ScnFontComponent::drawText(
 	const std::wstring& Text )
 {
 	// Grab values from draw params and check validity.
-	const BcU32 ABGR = DrawParams.getColour().asABGR();
+	const BcU32 ABGR = DrawParams.getTextColour().asABGR();
 	const ScnFontAlignment Alignment = DrawParams.getAlignment();
 	const BcBool WrappingEnabled = DrawParams.getWrappingEnabled();
+	const BcF32 AlignmentBorder = DrawParams.getAlignmentBorder();
 
 	BcAssertMsg( ( Alignment & ScnFontAlignment::HORIZONTAL ) != ScnFontAlignment::NONE, 
 		"Missing horizontal alignment flags." );
@@ -792,23 +809,27 @@ MaVec2d ScnFontComponent::drawText(
 		MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
 		MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
 
+		MaVec2d Offset = MaVec2d( AlignmentBorder - MinSize.x(), 0.0f );
+		MaVec2d LineSize = ( MaxLineSize - MinLineSize ) + MaVec2d( AlignmentBorder * 2.0f, 0.0f );
+
 		// Position along the x axis using appropriate alignment.
 		if( ( Alignment & ScnFontAlignment::LEFT ) != ScnFontAlignment::NONE )
 		{
 			PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
-				MaVec2d( Position.x(), 0.0f ) );
+				MaVec2d( Position.x(), 0.0f ) +
+				Offset );
 		}
 		else if( ( Alignment & ScnFontAlignment::RIGHT ) != ScnFontAlignment::NONE )
 		{
-			MaVec2d LineSize =  ( MaxLineSize - MinLineSize );
 			PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
-				MaVec2d( TargetSize.x() + Position.x() - LineSize.x(), 0.0f ) );					
+				MaVec2d( ( TargetSize.x() + Position.x() - LineSize.x() ), 0.0f ) + 
+				Offset );
 		}
 		else if( ( Alignment & ScnFontAlignment::HCENTRE ) != ScnFontAlignment::NONE )
 		{
-			MaVec2d LineSize = ( MaxLineSize - MinLineSize );
 			PositionVertices( pFirstVertOnLine, NoofVerticesOnLine, 
-				MaVec2d( ( TargetSize.x() * 0.5f ) + Position.x() - LineSize.x() * 0.5f, 0.0f ) );					
+				MaVec2d( ( ( TargetSize.x() * 0.5f ) + Position.x() - LineSize.x() * 0.5f ), 0.0f ) +
+				Offset );
 		}
 
 		// Reset line.
@@ -851,14 +872,16 @@ MaVec2d ScnFontComponent::drawText(
 				// Bring first character back to the left so it sits on the cursor.
 				if( pFirstVertOnLine == pVert )
 				{
-					AdvanceX -= Glyph.OffsetX_;
-					//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
+					//AdvanceX -= Glyph.OffsetX_;
+					//AdvanceY -= Glyph.OffsetY_ + pHeader->NominalSize_;
 				}
 				
 				// Calculate size and UVs.
 				MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
 				MaVec2d CornerMin( MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
 				MaVec2d CornerMax( CornerMin + Size );
+				MaVec2d GlyphMin( CornerMin + MaVec2d( pHeader->BorderSize_, pHeader->BorderSize_ ) * SizeMultiplier );
+				MaVec2d GlyphMax( CornerMax - MaVec2d( pHeader->BorderSize_, pHeader->BorderSize_ ) * SizeMultiplier );
 				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
 				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
 
@@ -877,14 +900,14 @@ MaVec2d ScnFontComponent::drawText(
 				}
 
 				// Pre-clipping size.
-				MinLineSize.x( BcMin( MinLineSize.x(), CornerMin.x() ) );
-				MinLineSize.y( BcMin( MinLineSize.y(), CornerMin.y() ) );
-				MaxLineSize.x( BcMax( MaxLineSize.x(), CornerMin.x() ) );
-				MaxLineSize.y( BcMax( MaxLineSize.y(), CornerMin.y() ) );
-				MinLineSize.x( BcMin( MinLineSize.x(), CornerMax.x() ) );
-				MinLineSize.y( BcMin( MinLineSize.y(), CornerMax.y() ) );
-				MaxLineSize.x( BcMax( MaxLineSize.x(), CornerMax.x() ) );
-				MaxLineSize.y( BcMax( MaxLineSize.y(), CornerMax.y() ) );
+				MinLineSize.x( BcMin( MinLineSize.x(), GlyphMin.x() ) );
+				MinLineSize.y( BcMin( MinLineSize.y(), GlyphMin.y() ) );
+				MaxLineSize.x( BcMax( MaxLineSize.x(), GlyphMin.x() ) );
+				MaxLineSize.y( BcMax( MaxLineSize.y(), GlyphMin.y() ) );
+				MinLineSize.x( BcMin( MinLineSize.x(), GlyphMax.x() ) );
+				MinLineSize.y( BcMin( MinLineSize.y(), GlyphMax.y() ) );
+				MaxLineSize.x( BcMax( MaxLineSize.x(), GlyphMax.x() ) );
+				MaxLineSize.y( BcMax( MaxLineSize.y(), GlyphMax.y() ) );
 
 				if ( ClippingEnabled_ )
 				{
@@ -918,23 +941,27 @@ MaVec2d ScnFontComponent::drawText(
 		// Add primitive to canvas.
 		if( NoofVertices > 0 )
 		{
+			MaVec2d FinalSize = ( MaxSize - MinSize ) + MaVec2d( 0.0f, AlignmentBorder * 2.0f );
+			MaVec2d Offset = MaVec2d( 0.0f, AlignmentBorder - MinSize.y() );
+
 			// Position along the y axis using appropriate alignment.
 			if( ( Alignment & ScnFontAlignment::TOP ) != ScnFontAlignment::NONE )
 			{
 				PositionVertices( pFirstVert, NoofVertices, 
-					MaVec2d( 0.0f, Position.y() ) );
+					MaVec2d( 0.0f, Position.y() ) +
+					Offset );
 			}
 			else if( ( Alignment & ScnFontAlignment::BOTTOM ) != ScnFontAlignment::NONE )
 			{
-				MaVec2d FinalSize = ( MaxSize - MinSize );
 				PositionVertices( pFirstVert, NoofVertices, 
-					MaVec2d( 0.0f, TargetSize.y() + Position.y() - FinalSize.y() ) );
+					MaVec2d( 0.0f, ( TargetSize.y() + Position.y() - FinalSize.y() ) ) +
+					Offset );
 			}
 			else if( ( Alignment & ScnFontAlignment::VCENTRE ) != ScnFontAlignment::NONE )
 			{
-				MaVec2d FinalSize = ( MaxSize - MinSize );
 				PositionVertices( pFirstVert, NoofVertices, 
-					MaVec2d( 0.0f, ( TargetSize.y() * 0.5f ) + Position.y() - ( FinalSize.y() * 0.5f ) ) );
+					MaVec2d( 0.0f, ( TargetSize.y() * 0.5f ) + Position.y() - ( FinalSize.y() * 0.5f ) ) +
+					Offset );
 			}
 
 			Canvas->setMaterialComponent( MaterialComponent_ );

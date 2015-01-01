@@ -23,6 +23,7 @@ struct ScnFontHeader
 	BcU32							NoofGlyphs_;
 	BcU32							TextureRef_;
 	BcF32							NominalSize_;
+	BcF32							BorderSize_;
 };
 
 //////////////////////////////////////////////////////////////////////////
