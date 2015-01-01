@@ -868,13 +868,6 @@ MaVec2d ScnFontComponent::drawText(
 			if( Iter != CharCodeMap.end() )
 			{
 				ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
-
-				// Bring first character back to the left so it sits on the cursor.
-				if( pFirstVertOnLine == pVert )
-				{
-					//AdvanceX -= Glyph.OffsetX_;
-					//AdvanceY -= Glyph.OffsetY_ + pHeader->NominalSize_;
-				}
 				
 				// Calculate size and UVs.
 				MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
@@ -996,8 +989,6 @@ MaVec2d ScnFontComponent::measureText(
 	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
 	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
 	
-	BcBool FirstCharacterOnLine = BcTrue;
-
 	for( BcU32 Idx = 0; Idx < TextLength; ++Idx )
 	{
 		BcU32 CharCode = Text[ Idx ];
@@ -1007,7 +998,6 @@ MaVec2d ScnFontComponent::measureText(
 		{
 			AdvanceX = 0.0f;
 			AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
-			FirstCharacterOnLine = BcTrue;
 		}
 		
 		// Find glyph.
@@ -1016,36 +1006,31 @@ MaVec2d ScnFontComponent::measureText(
 		if( Iter != CharCodeMap.end() )
 		{
 			ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
-
-			// Bring first character back to the left so it sits on the cursor.
-			if( FirstCharacterOnLine )
-			{
-				AdvanceX -= Glyph.OffsetX_;
-				//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
-				FirstCharacterOnLine = BcFalse;
-			}
 			
 			// Calculate size and UVs.
 			MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
 			MaVec2d CornerMin( MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
 			MaVec2d CornerMax( CornerMin + Size );
-			
+			MaVec2d GlyphMin( CornerMin + MaVec2d( pHeader->BorderSize_, pHeader->BorderSize_ ) * SizeMultiplier );
+			MaVec2d GlyphMax( CornerMax - MaVec2d( pHeader->BorderSize_, pHeader->BorderSize_ ) * SizeMultiplier );
+
 			// Pre-clipping size.
-			MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
-			MinSize.y( BcMin( MinSize.y(), CornerMin.y() ) );
-			MaxSize.x( BcMax( MaxSize.x(), CornerMin.x() ) );
-			MaxSize.y( BcMax( MaxSize.y(), CornerMin.y() ) );
-			MinSize.x( BcMin( MinSize.x(), CornerMax.x() ) );
-			MinSize.y( BcMin( MinSize.y(), CornerMax.y() ) );
-			MaxSize.x( BcMax( MaxSize.x(), CornerMax.x() ) );
-			MaxSize.y( BcMax( MaxSize.y(), CornerMax.y() ) );
-							
+			MinSize.x( BcMin( MinSize.x(), GlyphMin.x() ) );
+			MinSize.y( BcMin( MinSize.y(), GlyphMin.y() ) );
+			MaxSize.x( BcMax( MaxSize.x(), GlyphMin.x() ) );
+			MaxSize.y( BcMax( MaxSize.y(), GlyphMin.y() ) );
+			MinSize.x( BcMin( MinSize.x(), GlyphMax.x() ) );
+			MinSize.y( BcMin( MinSize.y(), GlyphMax.y() ) );
+			MaxSize.x( BcMax( MaxSize.x(), GlyphMax.x() ) );
+			MaxSize.y( BcMax( MaxSize.y(), GlyphMax.y() ) );
+
 			// Advance.
 			AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
 		}
 	}
 
-	return MaxSize - MinSize;
+	return ( MaxSize - MinSize ) + 
+		MaVec2d( DrawParams.getAlignmentBorder(), DrawParams.getAlignmentBorder() ) * 2.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
