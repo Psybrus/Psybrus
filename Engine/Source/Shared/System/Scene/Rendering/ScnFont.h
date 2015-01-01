@@ -102,6 +102,21 @@ inline ScnFontAlignment operator & ( ScnFontAlignment A, ScnFontAlignment B )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// ScnFontUniformBlockData
+struct ScnFontUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnFontUniformBlockData );
+	ScnFontUniformBlockData(){};
+
+	MaVec4d TextSettings_; /// x = smoothstep min, y = smoothstep max, z = ref (<)
+	MaVec4d BorderSettings_; ///
+	MaVec4d ShadowSettings_; ///
+	RsColour TextColour_;
+	RsColour BorderColour_;
+	RsColour ShadowColour_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnFontDrawParams
 class ScnFontDrawParams
 {
@@ -160,12 +175,37 @@ public:
 	const RsColour& getTextColour() const;
 
 	/**
-	 * Alpha test settings.
+	 * Border colour.
 	 */
-	ScnFontDrawParams& setAlphaTestSettings( const MaVec4d& Settings );
-	const MaVec4d& getAlphaTestSettings() const;
+	ScnFontDrawParams& setBorderColour( const RsColour& BorderColour );
+	const RsColour& getBorderColour() const;
 
+	/**
+	 * Shadow colour.
+	 */
+	ScnFontDrawParams& setShadowColour( const RsColour& ShadowColour );
+	const RsColour& getShadowColour() const;
 
+	/**
+	 * Text settings.
+	 * @param Settings (Min, Max, <>, <>)
+	 */
+	ScnFontDrawParams& setTextSettings( const MaVec4d& Settings );
+	const MaVec4d& getTextSettings() const;
+
+	/**
+	 * Border settings.
+	 * @param Settings (Min, Max, <>, <>)
+	 */
+	ScnFontDrawParams& setBorderSettings( const MaVec4d& Settings );
+	const MaVec4d& getBorderSettings() const;
+
+	/**
+	 * Shadow settings.
+	 * @param Settings (Xoff, Yoff, <>, <>)
+	 */
+	ScnFontDrawParams& setShadowSettings( const MaVec4d& Settings );
+	const MaVec4d& getShadowSettings() const;
 
 private:
 	ScnFontAlignment Alignment_;
@@ -176,22 +216,12 @@ private:
 	BcBool ClippingEnabled_;
 	MaVec4d ClippingBounds_;
 	RsColour TextColour_;
-	MaVec4d AlphaTestSettings_;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// ScnFontUniformBlockData
-struct ScnFontUniformBlockData
-{
-	REFLECTION_DECLARE_BASIC( ScnFontUniformBlockData );
-	ScnFontUniformBlockData(){};
-
-	MaVec4d FontParams_; /// x = smoothstep min, y = smoothstep max, z = ref (<)
-	RsColour TextColour_;
 	RsColour BorderColour_;
 	RsColour ShadowColour_;
+	MaVec4d TextSettings_;
+	MaVec4d BorderSettings_;
+	MaVec4d ShadowSettings_;
 };
-
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontComponent
@@ -216,6 +246,22 @@ public:
 	ScnMaterialComponentRef				getMaterialComponent();
 
 	// New interfaces.
+
+	/**
+	 * Draw text to canvas.
+	 * @param Canvas Canvas to render in to. Can be null.
+	 * @param DrawParam Draw parameters.
+	 * @param Position Position to render to.
+	 * @param TargetSize Target text size.
+	 * @param Text Text to draw.
+	 * @return Final size of text.
+	 */
+	MaVec2d drawText( 
+		ScnCanvasComponentRef Canvas, 
+		const ScnFontDrawParams& DrawParams,
+		const MaVec2d& Position,
+		const MaVec2d& TargetSize,
+		const std::string& Text );
 
 	/**
 	 * Draw text to canvas.

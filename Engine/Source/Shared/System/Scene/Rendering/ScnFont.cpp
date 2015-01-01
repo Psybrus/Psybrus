@@ -212,6 +212,27 @@ namespace
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// ScnFontUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnFontUniformBlockData );
+
+void ScnFontUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "TextSettings_", &ScnFontUniformBlockData::TextSettings_ ),
+		new ReField( "BorderSettings_", &ScnFontUniformBlockData::BorderSettings_ ),
+		new ReField( "ShadowSettings_", &ScnFontUniformBlockData::ShadowSettings_ ),
+		new ReField( "TextColour_", &ScnFontUniformBlockData::TextColour_ ),
+		new ReField( "BorderColour_", &ScnFontUniformBlockData::BorderColour_ ),
+		new ReField( "ShadowColour_", &ScnFontUniformBlockData::ShadowColour_ ),
+	};
+	
+	ReRegisterClass< ScnFontUniformBlockData >( Fields );
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 // Font draw params.
 REFLECTION_DEFINE_BASIC( ScnFontDrawParams );
@@ -227,7 +248,11 @@ void ScnFontDrawParams::StaticRegisterClass()
 		new ReField( "ClippingEnabled_", &ScnFontDrawParams::ClippingEnabled_ ),
 		new ReField( "ClippingBounds_", &ScnFontDrawParams::ClippingBounds_ ),
 		new ReField( "TextColour_", &ScnFontDrawParams::TextColour_ ),
-		new ReField( "AlphaTestSettings_", &ScnFontDrawParams::AlphaTestSettings_ ),
+		new ReField( "BorderColour_", &ScnFontDrawParams::BorderColour_ ),
+		new ReField( "ShadowColour_", &ScnFontDrawParams::ShadowColour_ ),
+		new ReField( "TextSettings_", &ScnFontDrawParams::TextSettings_ ),
+		new ReField( "BorderSettings_", &ScnFontDrawParams::BorderSettings_ ),
+		new ReField( "ShadowSettings_", &ScnFontDrawParams::ShadowSettings_ ),
 	};
 	
 	ReRegisterClass< ScnFontDrawParams >( Fields );
@@ -256,7 +281,11 @@ ScnFontDrawParams::ScnFontDrawParams():
 	ClippingEnabled_( BcFalse ),
 	ClippingBounds_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	TextColour_( RsColour::BLACK ),
-	AlphaTestSettings_( 0.4f, 0.5f, 0.0f, 0.0f )
+	BorderColour_( RsColour::BLACK ),
+	ShadowColour_( RsColour::BLACK ),
+	TextSettings_( 0.45f, 0.5f, -1.0f, -1.0f ),
+	BorderSettings_( -1.0f, -1.0, -1.0f, -1.0f ),
+	ShadowSettings_( 0.0f, 0.0f, 0.0f, 0.0f )
 {
 
 }
@@ -382,38 +411,79 @@ const RsColour& ScnFontDrawParams::getTextColour() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setAlphaTestSettings
-ScnFontDrawParams& ScnFontDrawParams::setAlphaTestSettings( const MaVec4d& Settings )
+// setBorderColour
+ScnFontDrawParams& ScnFontDrawParams::setBorderColour( const RsColour& BorderColour )
 {
-	AlphaTestSettings_ = Settings;
+	BorderColour_ = BorderColour;
 	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getAlphaTestSettings
-const MaVec4d& ScnFontDrawParams::getAlphaTestSettings() const
+// getBorderColour
+const RsColour& ScnFontDrawParams::getBorderColour() const
 {
-	return AlphaTestSettings_;
+	return BorderColour_;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
-// ScnFontUniformBlockData
-REFLECTION_DEFINE_BASIC( ScnFontUniformBlockData );
-
-void ScnFontUniformBlockData::StaticRegisterClass()
+// setShadowColour
+ScnFontDrawParams& ScnFontDrawParams::setShadowColour( const RsColour& ShadowColour )
 {
-	ReField* Fields[] = 
-	{
-		new ReField( "FontParams_", &ScnFontUniformBlockData::FontParams_ ),
-		new ReField( "TextColour_", &ScnFontUniformBlockData::TextColour_ ),
-		new ReField( "BorderColour_", &ScnFontUniformBlockData::BorderColour_ ),
-		new ReField( "ShadowColour_", &ScnFontUniformBlockData::ShadowColour_ ),
-	};
-	
-	ReRegisterClass< ScnFontUniformBlockData >( Fields );
+	TextColour_ = ShadowColour;
+	return *this;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// getShadowColour
+const RsColour& ScnFontDrawParams::getShadowColour() const
+{
+	return ShadowColour_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTextSettings
+ScnFontDrawParams& ScnFontDrawParams::setTextSettings( const MaVec4d& Settings )
+{
+	TextSettings_ = Settings;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTextSettings
+const MaVec4d& ScnFontDrawParams::getTextSettings() const
+{
+	return TextSettings_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setBorderSettings
+ScnFontDrawParams& ScnFontDrawParams::setBorderSettings( const MaVec4d& Settings )
+{
+	BorderSettings_ = Settings;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBorderSettings
+const MaVec4d& ScnFontDrawParams::getBorderSettings() const
+{
+	return BorderSettings_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setShadowSettings
+ScnFontDrawParams& ScnFontDrawParams::setShadowSettings( const MaVec4d& Settings )
+{
+	ShadowSettings_ = Settings;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getShadowSettings
+const MaVec4d& ScnFontDrawParams::getShadowSettings() const
+{
+	return ShadowSettings_;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -549,12 +619,6 @@ void ScnFontComponent::initialise()
 
 	// Null uniform buffer.
 	UniformBuffer_ = nullptr;
-
-	// Setup default alpha test params.
-	FontUniformData_.FontParams_ = MaVec4d( 0.4f, 0.5f, 0.5f, 0.0f );
-	FontUniformData_.TextColour_ = RsColour::BLACK;
-	FontUniformData_.BorderColour_ = RsColour::BLACK;
-	FontUniformData_.ShadowColour_ = RsColour::BLACK;
 
 	// Disable clipping.
 	setClipping( BcFalse );
@@ -768,7 +832,7 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 // setAlphaTestStepping
 void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
 {
-	FontUniformData_.FontParams_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
+	FontUniformData_.TextSettings_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -785,10 +849,23 @@ MaVec2d ScnFontComponent::drawText(
 	const ScnFontDrawParams& DrawParams,
 	const MaVec2d& Position,
 	const MaVec2d& TargetSize,
+	const std::string& Text )
+{
+	std::wstring WideText( Text.begin(), Text.end() );
+	return drawText( Canvas, DrawParams, Position, TargetSize, WideText );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawText
+MaVec2d ScnFontComponent::drawText( 
+	ScnCanvasComponentRef Canvas, 
+	const ScnFontDrawParams& DrawParams,
+	const MaVec2d& Position,
+	const MaVec2d& TargetSize,
 	const std::wstring& Text )
 {
 	// Grab values from draw params and check validity.
-	const BcU32 ABGR = DrawParams.getTextColour().asABGR();
+	const BcU32 ABGR = 0xffffffff;
 	const ScnFontAlignment Alignment = DrawParams.getAlignment();
 	const BcBool WrappingEnabled = DrawParams.getWrappingEnabled();
 	const BcF32 AlignmentBorder = DrawParams.getAlignmentBorder();
@@ -800,16 +877,19 @@ MaVec2d ScnFontComponent::drawText(
 	BcAssertMsg( DrawParams.getSize() > 0.0f,
 		"Font size must be greater than 0.0" );
 
-	// TODO: Set in render thread.
-	setAlphaTestStepping( 
-		MaVec2d( DrawParams.getAlphaTestSettings().x(), DrawParams.getAlphaTestSettings().y() ) );
-
+	// Setup uniform data.
+	FontUniformData_.TextSettings_ = DrawParams.getTextSettings();
+	FontUniformData_.BorderSettings_ = DrawParams.getBorderSettings();
+	FontUniformData_.ShadowSettings_ = DrawParams.getShadowSettings();
+	FontUniformData_.TextColour_ = DrawParams.getTextColour();
+	FontUniformData_.BorderColour_ = DrawParams.getBorderColour();
+	FontUniformData_.ShadowColour_ = DrawParams.getShadowColour();
 	ScnFontUniformBlockData FontUniformData = FontUniformData_;
 
 	// Add custom render command to canvas to update the uniform buffer correctly.
 	Canvas->setMaterialComponent( MaterialComponent_ );
 	Canvas->addCustomRender(
-		[ this, FontUniformData ]( RsContext* Context)
+		[ this, FontUniformData ]( RsContext* Context )
 		{
 			Context->updateBuffer( 
 				UniformBuffer_,

@@ -105,7 +105,9 @@ ScnShaderAlphaTestUniformBlockData ScnShaderAlphaTestUniformBlockDataVS;
 // ScnFontUniformBlockData
 BEGIN_CBUFFER( ScnFontUniformBlockData )
 	/// x = smoothstep min, y = smoothstep max, z = ref (<)
-	ENTRY( float4, FontParams_ ) 
+	ENTRY( float4, TextSettings_ ) 
+	ENTRY( float4, BorderSettings_ ) 
+	ENTRY( float4, ShadowSettings_ ) 
 	ENTRY( float4, TextColour_ ) 
 	ENTRY( float4, BorderColour_ ) 
 	ENTRY( float4, ShadowColour_ ) 
@@ -114,7 +116,9 @@ END_CBUFFER
 #if !PSY_USE_CBUFFER
 ScnFontUniformBlockData ScnFontUniformBlockDataVS;
 
-#  define FontParams_ ScnFontUniformBlockDataVS.XFontParams_
+#  define TextSettings_ ScnFontUniformBlockDataVS.XTextSettings_
+#  define BorderSettings_ ScnFontUniformBlockDataVS.XBorderSettings_
+#  define ShadowSettings_ ScnFontUniformBlockDataVS.XShadowSettings_
 #  define TextColour_ ScnFontUniformBlockDataVS.XTextColour_
 #  define BorderColour_ ScnFontUniformBlockDataVS.XBorderColour_
 #  define ShadowColour_ ScnFontUniformBlockDataVS.XShadowColour_
