@@ -1730,15 +1730,23 @@ void RsContextGL::flushState()
 	
 	// Bind render states.
 	// TODO: Check for redundant state.
-	if( RenderState_ != nullptr && 
-		RenderState_->getHandle< BcU64 >() != LastRenderStateHandle_ )
+	if( RenderState_ != nullptr )
 	{
 		const auto& Desc = RenderState_->getDesc();
-		LastRenderStateHandle_ = RenderState_->getHandle< BcU64 >();
-		++NoofRenderStateFlushes_;
+		if( RenderState_->getHandle< BcU64 >() != LastRenderStateHandle_ )
+		{
+			LastRenderStateHandle_ = RenderState_->getHandle< BcU64 >();
+			++NoofRenderStateFlushes_;
 
-		setRenderStateDesc( Desc, BcFalse );
-	}
+			setRenderStateDesc( Desc, BcFalse );
+		}
+#if 0
+		else
+		{
+			BcAssertMsg( BoundRenderStateDesc_ == Desc, "Hash key collision for RsRenderState" );
+		}
+#endif
+	}	
 
 	// Bind texture states.
 	for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )

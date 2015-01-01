@@ -745,6 +745,10 @@ MaVec2d ScnFontComponent::drawText(
 	BcAssertMsg( DrawParams.getSize() > 0.0f,
 		"Font size must be greater than 0.0" );
 
+	// TODO: Set in render thread.
+	setAlphaTestStepping( 
+		MaVec2d( DrawParams.getAlphaTestSettings().x(), DrawParams.getAlphaTestSettings().y() ) );
+
 	// Cached elements from parent.
 	ScnFontHeader* pHeader = Parent_->pHeader_;
 	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
