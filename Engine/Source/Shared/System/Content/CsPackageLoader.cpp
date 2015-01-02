@@ -14,6 +14,7 @@
 #include "System/Content/CsPackageLoader.h"
 
 #include "System/Content/CsCore.h"
+#include "System/Content/CsRedirector.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "System/SysKernel.h"
@@ -181,7 +182,7 @@ CsResource* CsPackageLoader::getCrossRefResource( BcU32 Index )
 
 		// If there is no valid resource at this point, then we must fail.
 		BcAssertMsg( Resource.isValid(), "CsPackageLoader: Cross ref isn't valid!" );
-			
+
 		// Return resource.
 		return Resource;
 	}

@@ -189,8 +189,6 @@ public:
 protected:
 	typedef std::vector< CsResource* > TResourceList;
 	typedef TResourceList::iterator TResourceListIterator;
-	typedef std::vector< CsResource* > TResourceHandleList;
-	typedef TResourceHandleList::iterator TResourceHandleListIterator;
 
 	struct TPackageReadyCallback
 	{
@@ -206,9 +204,9 @@ protected:
 	typedef TPackageList::iterator TPackageListIterator;
 
 	std::recursive_mutex				ContainerLock_;
-	TResourceHandleList					PrecreateResources_;
-	TResourceHandleList					CreateResources_;
-	TResourceHandleList					LoadingResources_;
+	TResourceList						PrecreateResources_;
+	TResourceList						CreateResources_;
+	TResourceList						LoadingResources_;
 	TResourceList						LoadedResources_;
 	TResourceList						UnloadingResources_;
 	

@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Content/CsCore.h"
+#include "System/Content/CsRedirector.h"
 
 #if !PLATFORM_HTML5
 #include <boost/filesystem.hpp>
@@ -387,7 +388,7 @@ void CsCore::processCreateResources()
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
 	// Copy precreate in.
-	TResourceHandleListIterator CreateIt( PrecreateResources_.begin() );
+	auto CreateIt( PrecreateResources_.begin() );
 	while( CreateIt != PrecreateResources_.end() )
 	{
 		BcAssert( (*CreateIt)->getName() != BcName::INVALID );
@@ -397,7 +398,7 @@ void CsCore::processCreateResources()
 	PrecreateResources_.clear();
 	
 	// Iterate create resources.
-	TResourceHandleListIterator It( CreateResources_.begin() );
+	auto It( CreateResources_.begin() );
 	while( It != CreateResources_.end() )
 	{
 		ReObjectRef< CsResource > ResourceHandle = (*It);
@@ -431,7 +432,7 @@ void CsCore::processLoadingResources()
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	TResourceHandleListIterator It( LoadingResources_.begin() );
+	auto It( LoadingResources_.begin() );
 	while( It != LoadingResources_.end() )
 	{
 		ReObjectRef< CsResource > ResourceHandle = (*It);
@@ -554,11 +555,6 @@ BcBool CsCore::internalCreateResource( const BcName& Name, const ReClass* Class,
 	// Generate a unique name for the resource.
 	BcName UniqueName = Name.isValid() ? Name : BcName( Class->getName() ).getUnique();
 
-	if( Name == "XREF13ScnFontComponent_0" )
-	{
-		int a=  0; ++a;
-	}
-
 	// Allocate resource with a unique name.
 	Handle = allocResource( UniqueName, Class, Index, pPackage );
 
@@ -602,67 +598,64 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	// mess. BUT, it does mean I will have a much easier time debugging, and also process the minimum
 	// amount of resources.
 	// THIS IS A MESS. FIX THIS FUCKING SHIT.
-	for( TResourceHandleListIterator It( CreateResources_.begin() ); It != CreateResources_.end(); ++It )
+	// This is now slightly less of a fucking mess, but I still don't like it.
+	auto FindResourceInList = [ this, Package, Name, Class ]( TResourceList& List ) -> CsResource*
 	{
-		if( Package != BcName::NONE )
+		for( auto Resource : List )
 		{
-			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
+			if( Package != BcName::NONE )
 			{
-				Handle = (*It);
-				return BcTrue;
+				if( Resource->getPackageName() == Package && 
+					Resource->getName() == Name )
+				{
+					// Go into redirector targets.
+					while( Resource->isTypeOf< CsRedirector >() )
+					{
+						ReObjectRef< CsRedirector > Redirector( Resource );
+						Resource = Redirector->getResource();
+					}
+	
+					if( Resource->isTypeOf( Class ) )
+					{
+						return Resource;
+					}
+				}
+			}
+			else
+			{
+				if( Resource->getName() == Name )
+				{
+					// Go into redirector targets.
+					while( Resource->isTypeOf< CsRedirector >() )
+					{
+						ReObjectRef< CsRedirector > Redirector( Resource );
+						Resource = Redirector->getResource();
+					}
+	
+					if( Resource->isTypeOf( Class ) )
+					{
+						return Resource;
+					}
+				}
 			}
 		}
-		else
-		{
-			if( (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
-			{
-				Handle = (*It);
-				return BcTrue;
-			}
-		}
+
+		return nullptr;
+	};
+
+	CsResource* Resource = FindResourceInList( CreateResources_ );
+	if( Resource == nullptr )
+	{
+		Resource = FindResourceInList( LoadingResources_ );
+	}
+	if( Resource == nullptr )
+	{
+		Resource = FindResourceInList( LoadedResources_ );
 	}
 
-	for( TResourceHandleListIterator It( LoadingResources_.begin() ); It != LoadingResources_.end(); ++It )
-	{
-		if( Package != BcName::NONE )
-		{
-			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
-			{
-				Handle = (*It);
-				return BcTrue;
-			}
-		}
-		else
-		{
-			if( (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
-			{
-				Handle = (*It);
-				return BcTrue;
-			}
-		}
-	}
-
-	for( TResourceListIterator It( LoadedResources_.begin() ); It != LoadedResources_.end(); ++It )
-	{
-		if( Package != BcName::NONE )
-		{
-			if( (*It)->getPackageName() == Package && (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
-			{
-				Handle = (*It);
-				return BcTrue;
-			}
-		}
-		else
-		{
-			if( (*It)->getName() == Name && (*It)->isTypeOf( Class ) )
-			{
-				Handle = (*It);
-				return BcTrue;
-			}
-		}
-	}
-
-	return BcFalse;
+	// Assign to handle and return.
+	Handle = Resource;
+	return Handle.isValid();
 }
 
 //////////////////////////////////////////////////////////////////////////
