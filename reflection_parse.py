@@ -18,6 +18,7 @@ declProg = re.compile( declPattern )
 def recurse( startPath, call ):
 	print "Searching: ", startPath
 	paths = glob.glob( startPath + "/*" )
+	paths.sort()
 	for path in paths:
 		path = path.replace( '\\', '/' )
 		if os.path.isfile( path ):
