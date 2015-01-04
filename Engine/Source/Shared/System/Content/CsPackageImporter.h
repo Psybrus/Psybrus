@@ -207,7 +207,7 @@ private:
 		Json::Value Resource_; // Temporary until we get rid of all importer Json deps.
 	};
 	
-	typedef std::deque< TResourceImport > ResourceImportList;
+	typedef std::vector< TResourceImport > ResourceImportList;
 	ResourceImportList Resources_;
 
 	CsPackageResourceHeader			CurrResourceHeader_;

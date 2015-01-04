@@ -140,11 +140,11 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		std::sort( Resources_.begin(), Resources_.end() );
 
 		// Iterate over all resources and import (import calls can append to the list)
-		while( Resources_.size() > 0 )
+		size_t CurrResourceIdx = 0;
+		while( CurrResourceIdx < Resources_.size() )
 		{
 			// Grab first resource in the list.
-			auto ResourceEntry = std::move( Resources_.front() );
-			Resources_.pop_front();
+			auto ResourceEntry = std::move( Resources_[ CurrResourceIdx++ ] );
 			
 			// Import resource.
 			BcTimer ResourceTimer;
@@ -459,6 +459,21 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	Json::Value Type( Resource.get( "type", Json::Value( Json::nullValue ) ) );
 	BcAssertMsg( Name.type() == Json::stringValue, "CsPackageImporter: Name not specified for resource.\n" );
 	BcAssertMsg( Type.type() == Json::stringValue, "CsPackageImporter: Type not specified for resource.\n" )
+
+	// Check if there is a resource with matching name already, as long as it isn't a cross ref.
+	if( !IsCrossRef )
+	{
+		auto AlreadyExisting = std::find_if( Resources_.begin(), Resources_.end(),
+			[ this, &Name ]( const TResourceImport& ResourceImport )
+			{
+				return ResourceImport.Importer_->getResourceName() == Name.asCString();
+			} );
+
+		BcAssertMsg( AlreadyExisting == Resources_.end(),
+			"Resource \"%s\" already exists in package \"%s\"",
+			Name.asCString(),
+			(*Name_).c_str() );
+	}
 
 	// Grab class, create importer.
 	const ReClass* ResourceClass = ReManager::GetClass( Type.asCString() );
