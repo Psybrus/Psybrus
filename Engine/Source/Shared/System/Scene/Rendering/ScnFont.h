@@ -132,10 +132,10 @@ public:
 	ScnFontAlignment getAlignment() const;
 
 	/**
-	 * Size of border to put around text whilst aligning.
+	 * Size of margin to put around text whilst aligning.
 	 */
-	ScnFontDrawParams& setAlignmentBorder( BcF32 AlignmentBorder );
-	BcF32 getAlignmentBorder() const;
+	ScnFontDrawParams& setMargin( BcF32 Margin );
+	BcF32 getMargin() const;
 
 	/**
 	 * Do we wrap words when aligning?
@@ -209,7 +209,7 @@ public:
 
 private:
 	ScnFontAlignment Alignment_;
-	BcF32 AlignmentBorder_;
+	BcF32 Margin_;
 	BcBool WrappingEnabled_;
 	BcU32 Layer_;
 	BcF32 Size_;

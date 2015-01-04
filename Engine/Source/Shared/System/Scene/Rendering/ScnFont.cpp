@@ -274,7 +274,7 @@ void ScnFontDrawParams::StaticRegisterClass()
 // Ctor
 ScnFontDrawParams::ScnFontDrawParams():
 	Alignment_( ScnFontAlignment::LEFT | ScnFontAlignment::TOP ),
-	AlignmentBorder_( 0.0f ),
+	Margin_( 0.0f ),
 	WrappingEnabled_( BcFalse ),
 	Layer_( 0 ),
 	Size_( 1.0f ),
@@ -321,18 +321,18 @@ ScnFontAlignment ScnFontDrawParams::getAlignment() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setAlignmentBorder
-ScnFontDrawParams& ScnFontDrawParams::setAlignmentBorder( BcF32 AlignmentBorder )
+// setMargin
+ScnFontDrawParams& ScnFontDrawParams::setMargin( BcF32 Margin )
 {
-	AlignmentBorder_ = AlignmentBorder;
+	Margin_ = Margin;
 	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getAlignmentBorder
-BcF32 ScnFontDrawParams::getAlignmentBorder() const
+// getMargin
+BcF32 ScnFontDrawParams::getMargin() const
 {
-	return AlignmentBorder_;
+	return Margin_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -868,7 +868,7 @@ MaVec2d ScnFontComponent::drawText(
 	const BcU32 ABGR = 0xffffffff;
 	const ScnFontAlignment Alignment = DrawParams.getAlignment();
 	const BcBool WrappingEnabled = DrawParams.getWrappingEnabled();
-	const BcF32 AlignmentBorder = DrawParams.getAlignmentBorder();
+	const BcF32 Margin = DrawParams.getMargin();
 
 	BcAssertMsg( ( Alignment & ScnFontAlignment::HORIZONTAL ) != ScnFontAlignment::NONE, 
 		"Missing horizontal alignment flags." );
@@ -945,8 +945,8 @@ MaVec2d ScnFontComponent::drawText(
 		MaxSize.x( BcMax( MaxSize.x(), MaxLineSize.x() ) );
 		MaxSize.y( BcMax( MaxSize.y(), MaxLineSize.y() ) );
 
-		MaVec2d Offset = MaVec2d( AlignmentBorder - MinSize.x(), 0.0f );
-		MaVec2d LineSize = ( MaxLineSize - MinLineSize ) + MaVec2d( AlignmentBorder * 2.0f, 0.0f );
+		MaVec2d Offset = MaVec2d( Margin - MinSize.x(), 0.0f );
+		MaVec2d LineSize = ( MaxLineSize - MinLineSize ) + MaVec2d( Margin * 2.0f, 0.0f );
 
 		// Position along the x axis using appropriate alignment.
 		if( ( Alignment & ScnFontAlignment::LEFT ) != ScnFontAlignment::NONE )
@@ -1090,8 +1090,8 @@ MaVec2d ScnFontComponent::drawText(
 		// Add primitive to canvas.
 		if( NoofVertices > 0 )
 		{
-			MaVec2d FinalSize = ( MaxSize - MinSize ) + MaVec2d( 0.0f, AlignmentBorder * 2.0f );
-			MaVec2d Offset = MaVec2d( 0.0f, AlignmentBorder - MinSize.y() );
+			MaVec2d FinalSize = ( MaxSize - MinSize ) + MaVec2d( 0.0f, Margin * 2.0f );
+			MaVec2d Offset = MaVec2d( 0.0f, Margin - MinSize.y() );
 
 			// Position along the y axis using appropriate alignment.
 			if( ( Alignment & ScnFontAlignment::TOP ) != ScnFontAlignment::NONE )
@@ -1185,7 +1185,7 @@ MaVec2d ScnFontComponent::measureText(
 	}
 
 	return ( MaxSize - MinSize ) + 
-		MaVec2d( DrawParams.getAlignmentBorder(), DrawParams.getAlignmentBorder() ) * 2.0f;
+		MaVec2d( DrawParams.getMargin(), DrawParams.getMargin() ) * 2.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
