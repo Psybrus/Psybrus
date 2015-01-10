@@ -104,6 +104,16 @@ public:
 	 */
 	const CsResourceImporterAttribute* getImporterAttribute() const;
 
+	/**
+	 * Add message.
+	 */
+	void addMessage( CsMessageCatagory Catagory, const std::string& Message );
+
+	/**
+	 * Get message count.
+	 */
+	size_t getMessageCount( CsMessageCatagory Catagory ) const;
+
 protected:
 	/**
 	 * DEPRECATED: Add import.
@@ -163,6 +173,7 @@ protected:
 protected:
 	std::string Name_;
 	std::string Type_;
+	std::array< size_t, (size_t)CsMessageCatagory::MAX > MessageCount_;
 
 private:
 	class CsPackageImporter* Importer_;

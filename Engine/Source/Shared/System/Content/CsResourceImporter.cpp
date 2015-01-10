@@ -45,6 +45,7 @@ void CsResourceImporter::StaticRegisterClass()
 	{
 		new ReField( "Name_", &CsResourceImporter::Name_, bcRFF_IMPORTER ),
 		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
+		new ReField( "MessageCount_", &CsResourceImporter::MessageCount_ ),
 		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
 	};
 	
@@ -97,6 +98,7 @@ void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsResourceImporter::CsResourceImporter():
+	MessageCount_( { 0, 0, 0, 0 } ),
 	Importer_( nullptr )
 {
 
@@ -108,7 +110,9 @@ CsResourceImporter::CsResourceImporter(
 		const std::string& Name,
 		const std::string& Type ):
 	Name_( Name ),
-	Type_( Type )
+	Type_( Type ),
+	MessageCount_( { 0, 0, 0, 0 } ),
+	Importer_( nullptr )
 {
 
 }
@@ -172,6 +176,36 @@ const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() co
 	return Attr;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// addMessage
+void CsResourceImporter::addMessage( CsMessageCatagory Catagory, const std::string& Message )
+{
+	static std::array< const char*, (size_t)CsMessageCatagory::MAX > Catagories =
+	{
+		"INFO",
+		"WARNING",
+		"ERROR",
+		"CRITICAL"
+	};
+
+	size_t CatagoryIdx = (size_t)Catagory;
+	const char* CatagoryMsg = Catagories[ CatagoryIdx ];
+
+	// Increment number of types of messages.
+	MessageCount_[ CatagoryIdx ]++;
+
+	BcPrintf( "%s: %s\n", CatagoryMsg, Message.c_str() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMessageCount
+size_t CsResourceImporter::getMessageCount( CsMessageCatagory Catagory ) const
+{
+	size_t CatagoryIdx = (size_t)Catagory;
+
+	return MessageCount_[ CatagoryIdx ];
+}
+	
 //////////////////////////////////////////////////////////////////////////
 // addImport_DEPRECATED
 BcU32 CsResourceImporter::addImport_DEPRECATED( 

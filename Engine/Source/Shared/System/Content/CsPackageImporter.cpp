@@ -398,6 +398,10 @@ BcBool CsPackageImporter::importResource(
 	try
 	{
 		SuccessfulImport = Importer->import( Resource );
+
+		// Check for error + critical messages.
+		SuccessfulImport &= Importer->getMessageCount( CsMessageCatagory::ERROR ) == 0;
+		SuccessfulImport &= Importer->getMessageCount( CsMessageCatagory::CRITICAL ) == 0;
 	}
 	catch( CsImportException ImportException )
 	{

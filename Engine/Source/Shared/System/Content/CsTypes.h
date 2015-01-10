@@ -42,6 +42,18 @@ typedef std::list< class CsDependency > CsDependencyList;
 typedef CsDependencyList::iterator CsDependencyListIterator;
 
 //////////////////////////////////////////////////////////////////////////
+// CsMessageCatagory
+enum class CsMessageCatagory
+{
+	INFO = 0,	///!< Information. No action required.
+	WARNING,	///!< Warning. Could continue, but something is still wrong.
+	ERROR,		///!< Error. Can't import resource, may continue trying to accumulate errors & warnings.
+	CRITICAL,	///!< Critical. Can't import resource, unable to continue on.
+
+	MAX
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsDependency
 class CsDependency
 {
