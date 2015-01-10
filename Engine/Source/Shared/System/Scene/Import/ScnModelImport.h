@@ -100,7 +100,11 @@ private:
 	size_t findNodeIndex( std::string Name, aiNode* RootSearchNode, size_t& BaseIndex ) const;
 
 private:
+	CsCrossRefId findMaterialMatch( const std::string& MaterialName );
+
+private:
 	std::string Source_;
+	std::map< std::string, CsCrossRefId > Materials_;
 
 	BcStream HeaderStream_;
 	BcStream NodeTransformDataStream_;

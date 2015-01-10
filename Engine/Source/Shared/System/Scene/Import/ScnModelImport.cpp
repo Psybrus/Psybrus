@@ -16,6 +16,7 @@
 #include "Base/BcMath.h"
 
 #include <memory>
+#include <regex>
 
 #if PSY_IMPORT_PIPELINE
 
@@ -96,6 +97,7 @@ void ScnModelImport::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Source_", &ScnModelImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "Materials_", &ScnModelImport::Materials_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnModelImport, Super >( Fields );
@@ -129,6 +131,12 @@ BcBool ScnModelImport::import( const Json::Value& )
 	if( Source_.empty() )
 	{
 		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		return BcFalse;
+	}
+
+	if( Materials_.empty() )
+	{
+		BcPrintf( "ERROR: Missing 'materials' list.\n" );
 		return BcFalse;
 	}
 
@@ -486,21 +494,9 @@ void ScnModelImport::serialiseMesh(
 		
 		// Grab material name.
 		MdlMaterial Material = pMesh->material( 0 );
-			
-		// Always setup default material.
-		if( Material.Name_.length() == 0 )
-		{
-			Material.Name_ = "$(ScnMaterial:materials.default)";
-		}
-		else
-		{
-			// Add the cross package reference.
-			Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
-		}
-
-		// Import material.
-		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = CsResourceImporter::addPackageCrossRef( Material.Name_.c_str() );
+		
+		// Find match for material.
+		MeshData.MaterialRef_ = findMaterialMatch( Material.Name_ );
 
 		MeshData_.push_back( MeshData );
 
@@ -608,20 +604,8 @@ void ScnModelImport::serialiseSkin(
 		// Grab material name.
 		MdlMaterial Material = pSkin->material( 0 );
 			
-		// Always setup default material.
-		if( Material.Name_.length() == 0 )
-		{
-			Material.Name_ = "$(ScnMaterial:materials.default)";
-		}
-		else
-		{
-			// Add the cross package reference.
-			Material.Name_ = std::string("$(ScnMaterial:") + Material.Name_ + std::string(")");
-		}
-
-		// Import material.
-		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = CsResourceImporter::addPackageCrossRef( Material.Name_.c_str() );
+		// Find match for material.
+		MeshData.MaterialRef_ = findMaterialMatch( Material.Name_ );
 
 		MeshData_.push_back( MeshData );
 
@@ -1245,4 +1229,31 @@ size_t ScnModelImport::findNodeIndex(
 #else
 	return (size_t)-1;
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findMaterialMatch
+CsCrossRefId ScnModelImport::findMaterialMatch( const std::string& MaterialName )
+{
+	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
+
+	for( const auto& MaterialEntry : Materials_ )
+	{
+		if( std::regex_match( MaterialName, std::regex( MaterialEntry.first ) ) )
+		{
+			RetVal = MaterialEntry.second;
+		}
+	}
+
+	// Can't find match? Throw exception.
+	if( RetVal == CSCROSSREFID_INVALID )
+	{
+		auto ErrorString = std::string( "Unable to find match for \"" ) + MaterialName + std::string( "\"" );
+		BcPrintf( "ERROR: %s\n", ErrorString.c_str() );
+		throw CsImportException( 
+			ErrorString, 
+			Source_ );
+	}
+
+	return RetVal;
 }
