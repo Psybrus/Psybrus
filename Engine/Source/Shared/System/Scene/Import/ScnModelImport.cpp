@@ -128,15 +128,23 @@ ScnModelImport::~ScnModelImport()
 BcBool ScnModelImport::import( const Json::Value& )
 {
 #if PSY_IMPORT_PIPELINE
+	BcBool CanImport = BcTrue;
+
 	if( Source_.empty() )
 	{
-		BcPrintf( "ERROR: Missing 'source' field.\n" );
-		return BcFalse;
+		CsResourceImporter::addMessage( CsMessageCatagory::CRITICAL, "Missing 'source' field." );
+		CanImport = BcFalse;
 	}
 
 	if( Materials_.empty() )
 	{
-		BcPrintf( "ERROR: Missing 'materials' list.\n" );
+		CsResourceImporter::addMessage( CsMessageCatagory::CRITICAL, "Missing 'materials' list." );
+		CanImport = BcFalse;
+	}
+
+	// If we hit any problems, bail out.
+	if( CanImport == BcFalse )
+	{
 		return BcFalse;
 	}
 
@@ -1249,10 +1257,8 @@ CsCrossRefId ScnModelImport::findMaterialMatch( const std::string& MaterialName 
 	if( RetVal == CSCROSSREFID_INVALID )
 	{
 		auto ErrorString = std::string( "Unable to find match for \"" ) + MaterialName + std::string( "\"" );
-		BcPrintf( "ERROR: %s\n", ErrorString.c_str() );
-		throw CsImportException( 
-			ErrorString, 
-			Source_ );
+		
+		CsResourceImporter::addMessage( CsMessageCatagory::ERROR, ErrorString );
 	}
 
 	return RetVal;
