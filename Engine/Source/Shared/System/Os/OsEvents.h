@@ -358,6 +358,30 @@ struct OsEventInputMIDI_PitchWheelChange: OsEventInputMIDI< OsEventInputMIDI_Pit
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMindwave
+struct OsEventInputMindwave : OsEventInput< OsEventInputMindwave >
+{
+	enum class EEGBand : size_t
+	{
+		DELTA = 0,
+		THETA,
+		LOW_ALPHA,
+		HIGH_ALPHA,
+		LOW_BETA,
+		HIGH_BETA,
+		LOW_GAMMA,
+		MID_GAMMA,
+		MAX
+	};
+
+	BcU8 PoorSignal_;
+	BcU8 Attention_;
+	BcU8 Meditation_;
+	BcU8 Blink_;
+	BcU32 EEGPowerValues_[ (size_t)EEGBand::MAX ];
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // OsEventClientBase
 template< typename _Ty >
 struct OsEventClientBase: EvtEvent< _Ty >

@@ -29,6 +29,7 @@ PsyProjectEngineLib( "System_Os" )
     }
     includedirs {
       "./Platforms/Linux/",
+      "../../External/ThinkGear/",
     }
 
   configuration "asmjs"

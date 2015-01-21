@@ -9,6 +9,8 @@
 #include "System/Os/OsCore.h"
 #include "System/Os/SDL/OsClientSDL.h"
 
+#include "System/Os/OsInputMindwaveLinux.h"
+
 #include "System/SysProfilerChromeTracing.h"
 
 BcHandle GInstance_ = NULL;
@@ -100,6 +102,8 @@ int main(int argc, char** argv)
 	BcRandom::Global = BcRandom( 1337 ); // TODO LINUX
 #endif
 
+	new OsInputMindwaveLinux();
+
 	// Create reflection database
 	ReManager::Init();
 
@@ -120,7 +124,7 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-	SYS_REGISTER( "DsCore", DsCoreImpl );
+//	SYS_REGISTER( "DsCore", DsCoreImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );
