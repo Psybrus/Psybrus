@@ -6,6 +6,8 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 
+#include <ThinkGearStreamParser.h>
+
 namespace
 {
 	// Communications protocol:
@@ -18,158 +20,6 @@ namespace
 	static const BcU8 ID_BLINK_STRENGTH = 0x16;
 	static const BcU8 ID_RAW_EEG = 0x80;
 	static const BcU8 ID_EEG_POWERS = 0x83;
-
-	/**
-	 * Parse off data point.
-	 * @param Buffer Buffer to parse from.
-	 * @param OutValue Output value.
-	 * @return Bytes read.
-	 */
-	template< typename _OutType >
-	int TryDecodeDataPoint( std::deque< BcU8 >& Buffer, BcU8 ID, _OutType& OutValue )
-	{
-		int BytesRead = 0;
-		if( Buffer[ 0 ] == ID &&
-			Buffer.size() >= ( 1 + sizeof( OutValue ) ) )
-		{
-			Buffer.pop_front();
-			BytesRead++;
-
-			// Multibyte data point.
-			int BytesToParse = sizeof( _OutType );
-			if( BytesToParse > 1 )
-			{
-				BytesToParse = Buffer[ 0 ];
-				Buffer.pop_front();
-				BytesRead++;
-			}
-
-			//
-			BcU8* OutData = reinterpret_cast< BcU8* >( &OutValue );
-			for( int Idx = 0; Idx < BytesToParse; ++Idx )
-			{
-				// Only actually write if we have space in output to.
-				if( Idx < sizeof( OutValue ) )
-				{
-					*OutData++ = Buffer[ 0 ];
-				}
-
-				Buffer.pop_front();
-				BytesRead++;
-			}
-		}
-		return BytesRead;
-	}
-
-	/**
-	 * Try to parse the payload.
-	 * @param Buffer Buffer to parse from.
-	 * @param OutEvent Event to write out to.
-	 * @return true is successfully parsed. false if not..
-	 */
-	bool TryParsePayload( std::deque< BcU8 >& Buffer, OsEventInputMindwave& OutEvent )
-	{
-		bool SearchForSync = true;
-		int PayloadSize = 0;
-		const int MinimumSize = 3;
-		while( SearchForSync && Buffer.size() >= MinimumSize )
-		{
-			// Search through until we hit sync.
-			while( Buffer.size() > 0 && 
-				Buffer[ 0 ] != ID_SYNC )
-			{
-				Buffer.pop_front();
-			}
-
-			// Verify that it is a sync (2 bytes of sync)
-			if( Buffer.size() >= MinimumSize &&
-				Buffer[ 0 ] == ID_SYNC && 
-				Buffer[ 1 ] == ID_SYNC )
-			{
-				// Grab payload size.
-				PayloadSize = Buffer[ 2 ];
-
-				// Bail if payload size if ID_SYNC.
-				if( PayloadSize == ID_SYNC )
-				{
-					Buffer.pop_front();
-					continue;
-				}
-
-				// Search for sync is over.
-				SearchForSync = false;
-
-				// Check if we can actually try reading the payload in.
-				if( ( Buffer.size() + MinimumSize ) >= PayloadSize )
-				{
-					// Pop off the sync tag + payload size.
-					Buffer.pop_front();
-					Buffer.pop_front();
-					Buffer.pop_front();
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
-
-		// TODO: Parse.
-		BcU8 ChecksumCalc = 0;
-		BcAssert( ( PayloadSize + 1 ) < Buffer.size() );
-
-		// Payload checksum.
-		for( int Idx = 0; Idx < PayloadSize; ++Idx )
-		{
-			ChecksumCalc += Buffer[ Idx ];
-		}
-
-		struct EEGPowerValue
-		{
-			BcU8 Bytes_[ 3 ];
-		};
-		EEGPowerValue EEGPowerValue;
-		BcU32 RawEEGValue = 0;
-
-		BcPrintf( "Payload (%u): ", PayloadSize );
-		for( int Idx = 0; Idx < PayloadSize ; ++Idx )
-		{
-			BcPrintf( "0x%x, ", Buffer[ Idx ] );
-		}
-		BcPrintf( "\n" );
-
-		while( PayloadSize > 0 )
-		{
-			PayloadSize -= TryDecodeDataPoint( Buffer, ID_POOR_QUALITY, OutEvent.PoorSignal_ );
-			BcAssert( PayloadSize > 0 );
-
-			PayloadSize -= TryDecodeDataPoint( Buffer, ID_ATTENTION, OutEvent.Attention_ );
-			BcAssert( PayloadSize > 0 );
-	
-			PayloadSize -= TryDecodeDataPoint( Buffer, ID_MEDITATION, OutEvent.Meditation_ );
-			BcAssert( PayloadSize > 0 );
-	
-			PayloadSize -= TryDecodeDataPoint( Buffer, ID_BLINK_STRENGTH, OutEvent.Blink_ );
-			BcAssert( PayloadSize > 0 );
-	
-			PayloadSize -= TryDecodeDataPoint( Buffer, ID_EEG_POWERS, EEGPowerValue );
-			BcAssert( PayloadSize > 0 );
-	
-			PayloadSize -= TryDecodeDataPoint( Buffer, ID_RAW_EEG, RawEEGValue );
-			BcAssert( PayloadSize > 0 );
-		}
-
-		ChecksumCalc ^= 0xff;
-		BcU8 Checksum = Buffer[ 0 ];
-		Buffer.pop_front();
-		if( Checksum == ChecksumCalc )
-		{
-			return true;
-		}
-
-		return false;
-	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -180,6 +30,8 @@ OsInputMindwaveLinux::OsInputMindwaveLinux():
 	DeviceId_( 0 ),
 	Socket_( 0 )
 {
+	StreamParser_.reset( new _ThinkGearStreamParser );
+	THINKGEAR_initParser( StreamParser_.get(), PARSER_TYPE_PACKETS, handleDataValue, this );
 	WorkerThread_ = std::thread( std::bind( &OsInputMindwaveLinux::workerThread, this ) );
 }
 
@@ -265,34 +117,28 @@ void OsInputMindwaveLinux::workerThread()
 		case State::READ:
 			{
 				BcU8 SingleByte = 0;
-				auto RetVal = ::read( Socket_, &SingleByte, sizeof( SingleByte ) );
+				int RetVal = ::read( Socket_, &SingleByte, sizeof( SingleByte ) );
 				if( RetVal >= 0 )
 				{
-					ByteBuffer_.push_back( SingleByte );
+					RetVal = THINKGEAR_parseByte( StreamParser_.get(), SingleByte );
 
-					// Only try to parse the payload once we've buffered a small amount.
-					if( ByteBuffer_.size() > 128 )
-					{
-						bool SuccessfulParse = TryParsePayload( ByteBuffer_, Event_ );
-
-						if( SuccessfulParse )
+ 					if( RetVal > 0 )
+ 					{
+						OsEventInputMindwave OldEvent;
+						if( OldEvent.PoorSignal_ != Event_.PoorSignal_ ||
+							OldEvent.Attention_ != Event_.Attention_ ||
+							OldEvent.Meditation_ != Event_.Meditation_ ||
+							OldEvent.Blink_ != Event_.Blink_ )
 						{
-							OsEventInputMindwave OldEvent;
-							if( OldEvent.PoorSignal_ != Event_.PoorSignal_ ||
-								OldEvent.Attention_ != Event_.Attention_ ||
-								OldEvent.Meditation_ != Event_.Meditation_ ||
-								OldEvent.Blink_ != Event_.Blink_ )
-							{
-								BcPrintf( "S: %u, A: %u, M: %u, B: %u\n!", 
-									Event_.PoorSignal_,
-									Event_.Attention_,
-									Event_.Meditation_,
-									Event_.Blink_ );
-								OldEvent = Event_;
+							BcPrintf( "S: %u, A: %u, M: %u, B: %u\n!", 
+								Event_.PoorSignal_,
+								Event_.Attention_,
+								Event_.Meditation_,
+								Event_.Blink_ );
+							OldEvent = Event_;
 
-							}
 						}
-					}
+ 					}
 
 					State_ = Shutdown_ == 0 ? State::READ : State::DISCONNECT;
 				}
@@ -321,4 +167,31 @@ void OsInputMindwaveLinux::workerThread()
 	}
 
 	// TODO: Deinit.
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// handleDataValue
+//static
+void OsInputMindwaveLinux::handleDataValue(
+		unsigned char ExtendedCodeLevel,
+		unsigned char Code, unsigned char NumBytes,
+		const unsigned char* Value, void* CustomData )
+{
+	OsInputMindwaveLinux* This = (OsInputMindwaveLinux*)CustomData;
+	switch( Code )
+	{
+	case PARSER_CODE_POOR_QUALITY:
+		This->Event_.PoorSignal_ = *Value;
+		break;
+	case PARSER_CODE_ATTENTION:
+		This->Event_.Attention_ = *Value;
+		break;
+	case PARSER_CODE_MEDITATION:
+		This->Event_.Meditation_ = *Value;
+		break;
+	case ID_BLINK_STRENGTH:
+		This->Event_.Blink_ = *Value;
+		break;
+	}
 }

@@ -5,6 +5,14 @@
 
 #include <thread>
 #include <deque>
+#include <memory>
+
+//////////////////////////////////////////////////////////////////////////
+// ThinkGear forward decls.
+extern "C"
+{
+	struct _ThinkGearStreamParser;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // OsInputMindwaveLinux
@@ -22,6 +30,11 @@ public:
 
 private:
 	void workerThread();
+
+	static void handleDataValue(
+		unsigned char ExtendedCodeLevel,
+		unsigned char Code, unsigned char NumBytes,
+		const unsigned char* Value, void* CustomData );
 
 
 private:
@@ -43,11 +56,8 @@ private:
 
 	OsEventInputMindwave Event_;
 
-	std::deque< BcU8 > ByteBuffer_;
+	std::unique_ptr< _ThinkGearStreamParser > StreamParser_;
 	std::thread WorkerThread_;
-
-
-
 };
 
 #endif // __OSINPUTMINDWAVELINUX_H__
