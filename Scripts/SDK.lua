@@ -98,6 +98,7 @@ function PsyAddSystemLibs()
 			"X11",
 			"GL",
 			"pthread",
+			"bluetooth",
 			"SDL2"
 		}
 
