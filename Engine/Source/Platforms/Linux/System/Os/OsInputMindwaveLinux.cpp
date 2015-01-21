@@ -12,14 +12,6 @@ namespace
 {
 	// Communications protocol:
 	// http://wearcam.org/ece516/mindset_communications_protocol.pdf
-	static const BcU8 ID_SYNC = 0xaa;
-	static const BcU8 ID_EXCODE = 0x55;
-	static const BcU8 ID_POOR_QUALITY = 0x02;
-	static const BcU8 ID_ATTENTION = 0x04;
-	static const BcU8 ID_MEDITATION = 0x05;
-	static const BcU8 ID_BLINK_STRENGTH = 0x16;
-	static const BcU8 ID_RAW_EEG = 0x80;
-	static const BcU8 ID_EEG_POWERS = 0x83;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -28,7 +20,8 @@ OsInputMindwaveLinux::OsInputMindwaveLinux():
 	State_( State::INIT ),
 	Shutdown_( 0 ),
 	DeviceId_( 0 ),
-	Socket_( 0 )
+	Socket_( 0 ),
+	RawDataIdx_( 0 )
 {
 	StreamParser_.reset( new _ThinkGearStreamParser );
 	THINKGEAR_initParser( StreamParser_.get(), PARSER_TYPE_PACKETS, handleDataValue, this );
@@ -124,18 +117,25 @@ void OsInputMindwaveLinux::workerThread()
 
  					if( RetVal > 0 )
  					{
-						OsEventInputMindwave OldEvent;
-						if( OldEvent.PoorSignal_ != Event_.PoorSignal_ ||
-							OldEvent.Attention_ != Event_.Attention_ ||
-							OldEvent.Meditation_ != Event_.Meditation_ ||
-							OldEvent.Blink_ != Event_.Blink_ )
+						OsEventInputMindwaveData OldEvent;
+						if( OldEvent.PoorSignal_ != EventData_.PoorSignal_ ||
+							OldEvent.Attention_ != EventData_.Attention_ ||
+							OldEvent.Meditation_ != EventData_.Meditation_ )
 						{
-							BcPrintf( "S: %u, A: %u, M: %u, B: %u\n!", 
-								Event_.PoorSignal_,
-								Event_.Attention_,
-								Event_.Meditation_,
-								Event_.Blink_ );
-							OldEvent = Event_;
+							BcPrintf( "S: %u, A: %u, M: %u\n!", 
+								EventData_.PoorSignal_,
+								EventData_.Attention_,
+								EventData_.Meditation_ );
+							BcPrintf( " - %u\n - %u\n - %u\n - %u\n - %u\n - %u\n - %u\n\n - %u", 
+								EventEEGPower_.Values_[ 0 ],
+								EventEEGPower_.Values_[ 1 ],
+								EventEEGPower_.Values_[ 2 ],
+								EventEEGPower_.Values_[ 3 ],
+								EventEEGPower_.Values_[ 4 ],
+								EventEEGPower_.Values_[ 5 ],
+								EventEEGPower_.Values_[ 6 ],
+								EventEEGPower_.Values_[ 7 ] );
+							OldEvent = EventData_;
 
 						}
  					}
@@ -178,20 +178,69 @@ void OsInputMindwaveLinux::handleDataValue(
 		unsigned char Code, unsigned char NumBytes,
 		const unsigned char* Value, void* CustomData )
 {
+	if( NumBytes == 24 )
+	{
+		int a = 0; ++a;
+	}
+
 	OsInputMindwaveLinux* This = (OsInputMindwaveLinux*)CustomData;
 	switch( Code )
 	{
 	case PARSER_CODE_POOR_QUALITY:
-		This->Event_.PoorSignal_ = *Value;
+		BcAssert( NumBytes == 1 );
+		This->EventData_.PoorSignal_ = *Value;
 		break;
+	
 	case PARSER_CODE_ATTENTION:
-		This->Event_.Attention_ = *Value;
+		BcAssert( NumBytes == 1 );
+		This->EventData_.Attention_ = *Value;
 		break;
+	
 	case PARSER_CODE_MEDITATION:
-		This->Event_.Meditation_ = *Value;
+		BcAssert( NumBytes == 1 );
+		This->EventData_.Meditation_ = *Value;
 		break;
-	case ID_BLINK_STRENGTH:
-		This->Event_.Blink_ = *Value;
+	
+	case PARSER_CODE_ASIC_EEG_POWER_INT:
+		BcAssert( NumBytes == 24 );
+		This->EventEEGPower_.Values_[ 0 ] = 
+			( Value[ 0 ] << 16 ) | ( Value[ 1 ] << 8 ) | ( Value [ 2 ] << 0 );
+
+		This->EventEEGPower_.Values_[ 1 ] = 
+			( Value[ 3 ] << 16 ) | ( Value[ 4 ] << 8 ) | ( Value [ 5 ] << 0 );
+		
+		This->EventEEGPower_.Values_[ 2 ] = 
+			( Value[ 6 ] << 16 ) | ( Value[ 7 ] << 8 ) | ( Value [ 8 ] << 0 );
+		
+		This->EventEEGPower_.Values_[ 3 ] = 
+			( Value[ 9 ] << 16 ) | ( Value[ 10 ] << 8 ) | ( Value [ 11 ] << 0 );
+		
+		This->EventEEGPower_.Values_[ 4 ] = 
+			( Value[ 12 ] << 16 ) | ( Value[ 13 ] << 8 ) | ( Value [ 14 ] << 0 );
+		
+		This->EventEEGPower_.Values_[ 5 ] = 
+			( Value[ 15 ] << 16 ) | ( Value[ 16 ] << 8 ) | ( Value [ 17 ] << 0 );
+		
+		This->EventEEGPower_.Values_[ 6 ] = 
+			( Value[ 18 ] << 16 ) | ( Value[ 19 ] << 8 ) | ( Value [ 20 ] << 0 );
+
+		This->EventEEGPower_.Values_[ 7 ] = 
+			( Value[ 21 ] << 16 ) | ( Value[ 22 ] << 8 ) | ( Value [ 23 ] << 0 );
+		break;
+
+	case PARSER_CODE_RAW_SIGNAL:
+		BcAssert( NumBytes == 2 );
+		BcAssert( This->RawDataIdx_< OsEventInputMindwaveEEGRaw::BUFFER_SIZE )
+		This->EventEEGRaw_.Buffer_[ This->RawDataIdx_++ ] =
+			( Value[ 0 ] << 8 ) | ( Value[ 1 ] << 0 );
+
+			if( This->RawDataIdx_ == OsEventInputMindwaveEEGRaw::BUFFER_SIZE )
+			{
+				This->RawDataIdx_ = 0;
+
+				// TODO: SEND EVENT!
+			}
+
 		break;
 	}
 }

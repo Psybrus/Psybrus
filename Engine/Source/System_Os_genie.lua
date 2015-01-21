@@ -36,7 +36,7 @@ PsyProjectEngineLib( "System_Os" )
     files {
       "./Platforms/HTML5/System/Os/*.h", 
       "./Platforms/HTML5/System/Os/*.inl", 
-      "./Platforms/HTML5/System/Os/*.cpp", 
+    "./Platforms/HTML5/System/Os/*.cpp", 
     }
     includedirs {
       "./Platforms/HTML5/",

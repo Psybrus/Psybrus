@@ -358,8 +358,17 @@ struct OsEventInputMIDI_PitchWheelChange: OsEventInputMIDI< OsEventInputMIDI_Pit
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// OsEventInputMindwave
-struct OsEventInputMindwave : OsEventInput< OsEventInputMindwave >
+// OsEventInputMindwaveData
+struct OsEventInputMindwaveData : OsEventInput< OsEventInputMindwaveData >
+{
+	BcU8 PoorSignal_;
+	BcU8 Attention_;
+	BcU8 Meditation_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMindwaveEEGPower
+struct OsEventInputMindwaveEEGPower : OsEventInput< OsEventInputMindwaveEEGPower >
 {
 	enum class EEGBand : size_t
 	{
@@ -373,12 +382,15 @@ struct OsEventInputMindwave : OsEventInput< OsEventInputMindwave >
 		MID_GAMMA,
 		MAX
 	};
+	BcU32 Values_[ (size_t)EEGBand::MAX ];
+};
 
-	BcU8 PoorSignal_;
-	BcU8 Attention_;
-	BcU8 Meditation_;
-	BcU8 Blink_;
-	BcU32 EEGPowerValues_[ (size_t)EEGBand::MAX ];
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMindwaveEEGRaw
+struct OsEventInputMindwaveEEGRaw : OsEventInput< OsEventInputMindwaveEEGRaw >
+{
+	static const int BUFFER_SIZE = 32;
+	BcS16 Buffer_[ BUFFER_SIZE ];
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -388,6 +400,7 @@ struct OsEventClientBase: EvtEvent< _Ty >
 {
 	class OsClient*	pClient_; // Client sending the event.
 };
+
 ////////////////////////////////////////////////////////////////////////////////
 // OsEventClient
 struct OsEventClient: OsEventClientBase< OsEventClient >
