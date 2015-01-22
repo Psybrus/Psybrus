@@ -96,7 +96,6 @@ void OsInputMindwaveLinux::workerThread()
 
 				if( Status < 0 ) 
 				{
-					BcPrintf( "Failed to connect to %s\n", Dest );
 					State_ = Shutdown_ == 0 ? State::SCAN : State::DEINIT;
 					close( Socket_ );
 					Socket_ = 0;
@@ -117,32 +116,6 @@ void OsInputMindwaveLinux::workerThread()
 				if( RetVal >= 0 )
 				{
 					RetVal = THINKGEAR_parseByte( StreamParser_.get(), SingleByte );
-
- 					if( RetVal > 0 )
- 					{
-						OsEventInputMindwaveData OldEvent;
-						if( OldEvent.PoorSignal_ != EventData_.PoorSignal_ ||
-							OldEvent.Attention_ != EventData_.Attention_ ||
-							OldEvent.Meditation_ != EventData_.Meditation_ )
-						{
-							BcPrintf( "S: %u, A: %u, M: %u\n!", 
-								EventData_.PoorSignal_,
-								EventData_.Attention_,
-								EventData_.Meditation_ );
-							BcPrintf( " - %u\n - %u\n - %u\n - %u\n - %u\n - %u\n - %u\n\n - %u", 
-								EventEEGPower_.Values_[ 0 ],
-								EventEEGPower_.Values_[ 1 ],
-								EventEEGPower_.Values_[ 2 ],
-								EventEEGPower_.Values_[ 3 ],
-								EventEEGPower_.Values_[ 4 ],
-								EventEEGPower_.Values_[ 5 ],
-								EventEEGPower_.Values_[ 6 ],
-								EventEEGPower_.Values_[ 7 ] );
-							OldEvent = EventData_;
-
-						}
- 					}
-
 					State_ = Shutdown_ == 0 ? State::READ : State::DISCONNECT;
 				}
 				else
@@ -243,7 +216,7 @@ void OsInputMindwaveLinux::handleDataValue(
 			const auto Event = This->EventEEGPower_;
 			SysKernel::pImpl()->enqueueCallback( [ Event ]()
 			{
-				OsCore::pImpl()->publish( osEVT_INPUT_MINDWAVE_EEG_POWERS, Event );
+				OsCore::pImpl()->publish( osEVT_INPUT_MINDWAVE_EEG_POWER, Event );
 			} );
 		}
 		break;
