@@ -176,6 +176,11 @@ public:
 		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
 	}
 
+	/**
+	 * Enqueue callback.
+	 */
+	void enqueueCallback( const std::function< void() >& Function );
+
 private:
 	friend class SysJobWorker;
 	friend class SysJobQueue;

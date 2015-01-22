@@ -664,3 +664,18 @@ void SysKernel::removeSystems()
 	
 	PendingRemoveSystemList_.clear();
 }
+
+//////////////////////////////////////////////////////////////////////////
+// enqueueCallback
+static void functionDelegate( std::function< void() > Function )
+{
+	Function();
+}
+
+void SysKernel::enqueueCallback( const std::function< void() >& Function )
+{
+	typedef BcDelegate< void(*)( std::function< void() > ) > DelegateType;
+	DelegateType Delegate = DelegateType::bind< functionDelegate >( );
+	enqueueCallback( Delegate, Function );
+}
+
