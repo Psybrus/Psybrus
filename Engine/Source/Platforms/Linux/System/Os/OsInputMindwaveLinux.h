@@ -54,10 +54,12 @@ private:
 	int DeviceId_;
 	int Socket_;
 	int RawDataIdx_;
+	int DataFlags_;
 
 	OsEventInputMindwaveData EventData_;
 	OsEventInputMindwaveEEGPower EventEEGPower_;
 	OsEventInputMindwaveEEGRaw EventEEGRaw_;
+
 
 	std::unique_ptr< _ThinkGearStreamParser > StreamParser_;
 	std::thread WorkerThread_;

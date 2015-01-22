@@ -1,4 +1,6 @@
 #include "System/Os/OsInputMindwaveLinux.h"
+#include "System/Os/OsCore.h"
+#include "System/SysKernel.h"
 
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
@@ -21,7 +23,8 @@ OsInputMindwaveLinux::OsInputMindwaveLinux():
 	Shutdown_( 0 ),
 	DeviceId_( 0 ),
 	Socket_( 0 ),
-	RawDataIdx_( 0 )
+	RawDataIdx_( 0 ),
+	DataFlags_( 0 )
 {
 	StreamParser_.reset( new _ThinkGearStreamParser );
 	THINKGEAR_initParser( StreamParser_.get(), PARSER_TYPE_PACKETS, handleDataValue, this );
@@ -187,60 +190,93 @@ void OsInputMindwaveLinux::handleDataValue(
 	switch( Code )
 	{
 	case PARSER_CODE_POOR_QUALITY:
-		BcAssert( NumBytes == 1 );
-		This->EventData_.PoorSignal_ = *Value;
+		{
+			BcAssert( NumBytes == 1 );
+			This->EventData_.PoorSignal_ = *Value;
+			This->DataFlags_ |= 0x1;
+		}
 		break;
 	
 	case PARSER_CODE_ATTENTION:
-		BcAssert( NumBytes == 1 );
-		This->EventData_.Attention_ = *Value;
+		{
+			BcAssert( NumBytes == 1 );
+			This->EventData_.Attention_ = *Value;
+			This->DataFlags_ |= 0x2;
+		}
 		break;
 	
 	case PARSER_CODE_MEDITATION:
-		BcAssert( NumBytes == 1 );
-		This->EventData_.Meditation_ = *Value;
+		{
+			BcAssert( NumBytes == 1 );
+			This->EventData_.Meditation_ = *Value;
+			This->DataFlags_ |= 0x4;
+		}
 		break;
 	
 	case PARSER_CODE_ASIC_EEG_POWER_INT:
-		BcAssert( NumBytes == 24 );
-		This->EventEEGPower_.Values_[ 0 ] = 
-			( Value[ 0 ] << 16 ) | ( Value[ 1 ] << 8 ) | ( Value [ 2 ] << 0 );
+		{
+			BcAssert( NumBytes == 24 );
+			This->EventEEGPower_.Values_[ 0 ] = 
+				( Value[ 0 ] << 16 ) | ( Value[ 1 ] << 8 ) | ( Value [ 2 ] << 0 );
 
-		This->EventEEGPower_.Values_[ 1 ] = 
-			( Value[ 3 ] << 16 ) | ( Value[ 4 ] << 8 ) | ( Value [ 5 ] << 0 );
-		
-		This->EventEEGPower_.Values_[ 2 ] = 
-			( Value[ 6 ] << 16 ) | ( Value[ 7 ] << 8 ) | ( Value [ 8 ] << 0 );
-		
-		This->EventEEGPower_.Values_[ 3 ] = 
-			( Value[ 9 ] << 16 ) | ( Value[ 10 ] << 8 ) | ( Value [ 11 ] << 0 );
-		
-		This->EventEEGPower_.Values_[ 4 ] = 
-			( Value[ 12 ] << 16 ) | ( Value[ 13 ] << 8 ) | ( Value [ 14 ] << 0 );
-		
-		This->EventEEGPower_.Values_[ 5 ] = 
-			( Value[ 15 ] << 16 ) | ( Value[ 16 ] << 8 ) | ( Value [ 17 ] << 0 );
-		
-		This->EventEEGPower_.Values_[ 6 ] = 
-			( Value[ 18 ] << 16 ) | ( Value[ 19 ] << 8 ) | ( Value [ 20 ] << 0 );
+			This->EventEEGPower_.Values_[ 1 ] = 
+				( Value[ 3 ] << 16 ) | ( Value[ 4 ] << 8 ) | ( Value [ 5 ] << 0 );
+			
+			This->EventEEGPower_.Values_[ 2 ] = 
+				( Value[ 6 ] << 16 ) | ( Value[ 7 ] << 8 ) | ( Value [ 8 ] << 0 );
+			
+			This->EventEEGPower_.Values_[ 3 ] = 
+				( Value[ 9 ] << 16 ) | ( Value[ 10 ] << 8 ) | ( Value [ 11 ] << 0 );
+			
+			This->EventEEGPower_.Values_[ 4 ] = 
+				( Value[ 12 ] << 16 ) | ( Value[ 13 ] << 8 ) | ( Value [ 14 ] << 0 );
+			
+			This->EventEEGPower_.Values_[ 5 ] = 
+				( Value[ 15 ] << 16 ) | ( Value[ 16 ] << 8 ) | ( Value [ 17 ] << 0 );
+			
+			This->EventEEGPower_.Values_[ 6 ] = 
+				( Value[ 18 ] << 16 ) | ( Value[ 19 ] << 8 ) | ( Value [ 20 ] << 0 );
 
-		This->EventEEGPower_.Values_[ 7 ] = 
-			( Value[ 21 ] << 16 ) | ( Value[ 22 ] << 8 ) | ( Value [ 23 ] << 0 );
+			This->EventEEGPower_.Values_[ 7 ] = 
+				( Value[ 21 ] << 16 ) | ( Value[ 22 ] << 8 ) | ( Value [ 23 ] << 0 );
+
+			const auto Event = This->EventEEGPower_;
+			SysKernel::pImpl()->enqueueCallback( [ Event ]()
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_MINDWAVE_EEG_POWERS, Event );
+			} );
+		}
 		break;
 
 	case PARSER_CODE_RAW_SIGNAL:
-		BcAssert( NumBytes == 2 );
-		BcAssert( This->RawDataIdx_< OsEventInputMindwaveEEGRaw::BUFFER_SIZE )
-		This->EventEEGRaw_.Buffer_[ This->RawDataIdx_++ ] =
-			( Value[ 0 ] << 8 ) | ( Value[ 1 ] << 0 );
+		{
+			BcAssert( NumBytes == 2 );
+			BcAssert( This->RawDataIdx_< OsEventInputMindwaveEEGRaw::BUFFER_SIZE )
+			This->EventEEGRaw_.Buffer_[ This->RawDataIdx_++ ] =
+				( Value[ 0 ] << 8 ) | ( Value[ 1 ] << 0 );
 
 			if( This->RawDataIdx_ == OsEventInputMindwaveEEGRaw::BUFFER_SIZE )
 			{
 				This->RawDataIdx_ = 0;
 
-				// TODO: SEND EVENT!
+				const auto Event = This->EventEEGRaw_;
+				SysKernel::pImpl()->enqueueCallback( [ Event ]()
+				{
+					OsCore::pImpl()->publish( osEVT_INPUT_MINDWAVE_EEG_RAW, Event );
+				} );
 			}
-
+		}
 		break;
+	}
+
+	// Send data.
+	if( This->DataFlags_ == 0x7 )
+	{
+		This->DataFlags_ = 0;
+		const auto Event = This->EventData_;
+		SysKernel::pImpl()->enqueueCallback( [ Event ]()
+		{
+			OsCore::pImpl()->publish( osEVT_INPUT_MINDWAVE_DATA, Event );
+		} );
 	}
 }
