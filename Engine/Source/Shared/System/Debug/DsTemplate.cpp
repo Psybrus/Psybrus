@@ -67,7 +67,7 @@ std::string DsTemplate::loadTemplateFile( std::string filename )
 	BcFile file;
 	std::string f = filename;
 	file.open( f.c_str() );
-	BcPrintf("Loading file: %s (size: %d)\n", filename.c_str(), file.size());
+	// BcPrintf("Loading file: %s (size: %d)\n", filename.c_str(), file.size());
 	if ( !file.isOpen() )
 		return "";
 	char* data = new char[file.size() + 1];
