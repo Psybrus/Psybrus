@@ -63,6 +63,12 @@ BcHtmlNode BcHtmlNode::operator[]( std::string Tag )
 	return nullptr;/**/
 }
 
+BcHtmlNode::BcHtmlNode( std::nullptr_t ):
+	InternalNode_( nullptr ),
+	NextTag_()
+{
+
+}
 
 BcHtmlNode BcHtmlNode::createChildNode( std::string Tag )
 {
@@ -124,7 +130,7 @@ BcHtmlNode BcHtmlNode::NextSiblingNode()
 	if ( InternalNode_ == nullptr )
 		return nullptr;
 	if ( InternalNode_->Parent_ == 0 )
-		return BcHtmlNode( 0 );
+		return BcHtmlNode( nullptr );
 	BcU32 Idx;
 	for ( Idx = 0; Idx < InternalNode_->Parent_->Children.size(); ++Idx )
 	{
@@ -143,7 +149,7 @@ BcHtmlNode BcHtmlNode::NextSiblingNode()
 			return ret;
 		}
 	}
-	return BcHtmlNode( 0 );
+	return BcHtmlNode( nullptr );
 }
 
 BcHtmlNode::BcHtmlState BcHtmlNode::getState()
@@ -156,7 +162,7 @@ BcHtmlNode::BcHtmlState BcHtmlNode::getState()
 BcHtmlNode BcHtmlNode::findNodeById( std::string Id )
 {
 	if ( InternalNode_ != nullptr )
-		return this->InternalNode_->findNodeById( Id );
+		return BcHtmlNode( this->InternalNode_->findNodeById( Id ) );
 	return nullptr;
 }
 

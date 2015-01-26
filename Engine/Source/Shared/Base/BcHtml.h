@@ -19,6 +19,8 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <cstddef>
+
 class BcHtml;
 class BcHtmlNodeInternal;
 //////////////////////////////////////////////////////////////////////////
@@ -33,7 +35,7 @@ public:
 		INVALID
 	};
 
-	BcHtmlNode( BcHtmlNode& Cpy );
+	BcHtmlNode( std::nullptr_t );
 	BcHtmlNode createChildNode( std::string Tag );
 	std::string getTag();
 	std::string getContents();
@@ -50,7 +52,7 @@ public:
 	BcHtmlState getState();
 
 private:
-	BcHtmlNode( BcHtmlNodeInternal* Node );
+	explicit BcHtmlNode( BcHtmlNodeInternal* Node );
 	BcHtmlNodeInternal* InternalNode_;
 	std::string NextTag_;
 };
