@@ -110,19 +110,19 @@ function PsySetupToolchain()
 		-- win-vs-v110
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v110" then
 			premake.vstudio.toolset = "v110"
-			location ( "Build/" .. _ACTION .. "-windows-vs-v110" )
+			location ( "Projects/" .. _ACTION .. "-windows-vs-v110" )
 		end
 
 		-- win-vs-v120
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v120" then
 			premake.vstudio.toolset = "v120"
-			location ( "Build/" .. _ACTION .. "-windows-vs-v120" )
+			location ( "Projects/" .. _ACTION .. "-windows-vs-v120" )
 		end
 
 		-- win-vs-clang
 		if _OPTIONS[ "toolchain" ] == "windows-vs-clang" then
 			premake.vstudio.toolset = "LLVM-" .. _ACTION
-			location ( "Build/" .. _ACTION .. "-windows-vs-clang" )
+			location ( "Projects/" .. _ACTION .. "-windows-vs-clang" )
 		end
 
 		-- Configurations
