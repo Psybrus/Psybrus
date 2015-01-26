@@ -17,7 +17,7 @@ public:
 private:
 	DsTemplate();
 	virtual ~DsTemplate();
-	static char* loadTemplateFile( std::string TemplateName );
+	static std::string loadTemplateFile( std::string TemplateName );
 	static BcHtmlNode loadNode( BcHtmlNode node, void* xmlNode );
 };
 

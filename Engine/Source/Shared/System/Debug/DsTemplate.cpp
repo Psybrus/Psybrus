@@ -1,13 +1,21 @@
 #include "DsTemplate.h"
+#include "System/Os/OsCore.h"
 #include "Base/BcFile.h"
 #include "rapidxml.hpp"
 #include "Base/BcLog.h"
 using namespace rapidxml;
 BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 {
-	char* out = loadTemplateFile( filename );
+	std::string out = loadTemplateFile( filename );
 
+	if ( out == "" )
+	{
+		BcHtmlNode out = node.createChildNode( "div" );
+		out.setAttribute( "id", "error" );
+		out.setContents( "Could not load template file: " + filename );
 
+		return out;
+	}
 	xml_document<> doc;
 	try
 	{
@@ -16,11 +24,8 @@ BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 	catch ( rapidxml::parse_error &e )
 	{
 		char buffer[ 64 ];
-		
-		/*sprintf_s( buffer, 200, "%s", e.what() );
-		sprintf_s( buffer, 200, "%s", e.where<char>() );
+		BcPrintf( "Error in file %s: %s\n   Error at %d\n", filename.c_str(), e.what(), ( int ) ( e.where<char>() - out.c_str() ) );
 
-		BcLog::pImpl()->write(buffer);/**/
 	}
 
 	xml_node<> *pRoot = doc.first_node();
@@ -57,16 +62,19 @@ BcHtmlNode DsTemplate::loadNode( BcHtmlNode parent, void* xmlNode )
 
 ////////////////////////////////////////////////////////////////////////// 
 // Gets a plain text file
-char* DsTemplate::loadTemplateFile( std::string filename )
+std::string DsTemplate::loadTemplateFile( std::string filename )
 {
 	BcFile file;
 	std::string f = filename;
 	file.open( f.c_str() );
+	// BcPrintf("Loading file: %s (size: %d)\n", filename.c_str(), file.size());
 	if ( !file.isOpen() )
-		return 0;
-	char* data;// = new BcU8[file.size()];
-	data = ( char* ) file.readAllBytes();
-	std::string output = data;
+		return "";
+	char* data = new char[file.size() + 1];
 
-	return data;
+	BcMemZero(data, file.size() + 1);
+	file.read(data, file.size());
+	std::string output = data;
+	delete data;
+	return output;
 }
