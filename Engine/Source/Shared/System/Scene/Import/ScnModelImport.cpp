@@ -28,7 +28,18 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
+
 #define ENABLE_ASSIMP_IMPORTER			( 1 )
+
+
+#if ENABLE_ASSIMP_IMPORTER 
+
+void AssimpLogStream(const char* Message, char* User )
+{
+	BcPrintf( "ASSIMP: %s", Message );
+}
+
+#endif // ENABLE_ASSIMP_IMPORTER
 
 namespace
 {
@@ -240,6 +251,12 @@ BcBool ScnModelImport::import( const Json::Value& )
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4 );
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_IMPORT_MD5_NO_ANIM_AUTOLOAD, true );
 
+	aiLogStream AssimpLogger =
+	{
+		AssimpLogStream, (char*)this
+	};
+	aiAttachLogStream( &AssimpLogger );
+
 	// TODO: Intercept file io to track dependencies.
 	Scene_ = aiImportFileExWithProperties( 
 		Source_.c_str(), 
@@ -319,6 +336,12 @@ BcBool ScnModelImport::import( const Json::Value& )
 		//
 		return BcTrue;
 	}
+	else
+	{
+
+	}
+	aiDetachLogStream( &AssimpLogger );
+
 #endif // ENABLE_ASSIMP_IMPORTER
 #endif // PSY_IMPORT_PIPELINE
 	return BcFalse;
@@ -1224,8 +1247,9 @@ size_t ScnModelImport::findNodeIndex(
 	size_t FoundIndex = (size_t)-1;
 	for( size_t Idx = 0; Idx < RootSearchNode->mNumChildren; ++Idx )
 	{
+		auto ChildSearchNode = RootSearchNode->mChildren[ Idx ];
 		++BaseIndex;
-		FoundIndex = findNodeIndex( Name, RootSearchNode, BaseIndex );
+		FoundIndex = findNodeIndex( Name, ChildSearchNode, BaseIndex );
 
 		if( FoundIndex != -1 )
 		{
