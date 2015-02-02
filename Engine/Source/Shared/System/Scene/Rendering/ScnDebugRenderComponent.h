@@ -101,6 +101,14 @@ public:
 	void								drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
+	 * Draw matrix.
+	 * @param Matrix Matrix
+	 * @param Colour Colour multiplier.
+	 * @param Layer Layer
+	 */
+	void								drawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
 	 * Draw grid.
 	 * @params Position Position of centre of grid.
 	 * @params Size Size of grid. Only use 2 of the axis!

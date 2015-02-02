@@ -288,6 +288,20 @@ void ScnDebugRenderComponent::drawLines( const MaVec3d* pPoints, BcU32 NoofLines
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawMatrix
+void ScnDebugRenderComponent::drawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer )
+{
+	MaVec3d Centre( Matrix.translation() );	
+	MaVec3d X( Matrix.row0().x(), Matrix.row0().y(), Matrix.row0().z() );	
+	MaVec3d Y( Matrix.row1().x(), Matrix.row1().y(), Matrix.row1().z() );	
+	MaVec3d Z( Matrix.row2().x(), Matrix.row2().y(), Matrix.row2().z() );	
+
+	drawLine( Centre, Centre + X, RsColour::RED * Colour, Layer );
+	drawLine( Centre, Centre + Y, RsColour::GREEN * Colour, Layer );
+	drawLine( Centre, Centre + Z, RsColour::BLUE * Colour, Layer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // drawGrid
 void ScnDebugRenderComponent::drawGrid( const MaVec3d& Position, const MaVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer )
 {
