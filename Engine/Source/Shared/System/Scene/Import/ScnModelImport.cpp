@@ -296,7 +296,6 @@ BcBool ScnModelImport::import( const Json::Value& )
 		// Serialise node data.
 		for( const auto& NodeTransformData : NodeTransformData_ )
 		{
-			//
 			NodeTransformDataStream_ << NodeTransformData;
 		}
 
@@ -784,7 +783,7 @@ void ScnModelImport::recursiveSerialiseNodes(
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
 	{
-		MaMat4d( Node->mTransformation[0] ),
+		MaMat4d( Node->mTransformation[0] ).transposed(),
 		MaMat4d(),	// todo: absolute
 	};
 	
@@ -881,6 +880,8 @@ void ScnModelImport::serialiseMesh(
 		// Add bones to vertex declaration if they exist.
 		if( Mesh->HasBones() )
 		{
+			ShaderPermutation = ScnShaderPermutationFlags::MESH_SKINNED_3D;
+
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(),
 				4, RsVertexDataType::FLOAT32, RsVertexUsage::BLENDINDICES, 0 ) );
@@ -945,7 +946,8 @@ void ScnModelImport::serialiseMesh(
 				const auto* Bone = Mesh->mBones[ BoneIdx ];
 				size_t NodeBaseIndex = 0;
 				MeshData.BonePalette_[ BoneIdx ] = static_cast< BcU32 >( findNodeIndex( Bone->mName.C_Str(), Scene_->mRootNode, NodeBaseIndex ) );
-				MeshData.BoneInverseBindpose_[ BoneIdx ] = MaMat4d( Bone->mOffsetMatrix[ 0 ] );
+				MeshData.BoneInverseBindpose_[ BoneIdx ] = MaMat4d( Bone->mOffsetMatrix[ 0 ] ).transposed();
+				MeshData.BoneInverseBindpose_[ BoneIdx ].inverse();
 			}
 		}	
 
@@ -963,17 +965,15 @@ void ScnModelImport::serialiseMesh(
 		if( Material->Get( "?mat.name", 0, 0, AiMaterialName ) == aiReturn_SUCCESS &&
 			std::string( AiMaterialName.C_Str() ) != "DefaultMaterial" )
 		{
-			MaterialName = std::string( "$(ScnMaterial:" ) + AiMaterialName.C_Str() + std::string( ")" );
+			MaterialName = AiMaterialName.C_Str();
 		}
 		else
 		{
-			MaterialName = "$(ScnMaterial:materials.default)";
+			MaterialName = "default";
 		}
 		
 		// Import material.
-		// TODO: Pass through parameters from the model into import?
-		MeshData.MaterialRef_ = CsResourceImporter::addPackageCrossRef( MaterialName.c_str() );
-		
+		MeshData.MaterialRef_ = findMaterialMatch( MaterialName.c_str() );	
 		MeshData_.push_back( MeshData );
 
 		// Export indices.
@@ -1213,6 +1213,19 @@ void ScnModelImport::serialiseVertices(
 					{
 						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
 						MaVec4d BlendWeightsVec = BlendWeights[ VertexIdx ];
+						const BcF32 TotalWeight = 
+							BlendWeightsVec.x() + BlendWeightsVec.y() +
+							BlendWeightsVec.z() + BlendWeightsVec.w();
+						const BcF32 Epsilon = 0.5f;
+						// TODO: Make error.
+						BcAssertMsg( TotalWeight > Epsilon, 
+							"Total weight too low to safely renormalise: %f\n", TotalWeight );
+
+						BlendWeightsVec /= TotalWeight;
+						const BcF32 TotalWeightRecalc = 
+							BlendWeightsVec.x() + BlendWeightsVec.y() +
+							BlendWeightsVec.z() + BlendWeightsVec.w();
+
 						*OutVal++ = (BcF32)BlendWeightsVec.x();
 						*OutVal++ = (BcF32)BlendWeightsVec.y();
 						*OutVal++ = (BcF32)BlendWeightsVec.z();
