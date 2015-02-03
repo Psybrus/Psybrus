@@ -19,8 +19,6 @@
 
 #if PSY_IMPORT_PIPELINE
 
-#include "Import/Mdl/Mdl.h"
-
 #include "assimp/config.h"
 #include "assimp/cimport.h"
 #include "assimp/anim.h"
@@ -28,12 +26,19 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
-#define ENABLE_ASSIMP_IMPORTER			( 1 )
-
 namespace
 {
-	//////////////////////////////////////////////////////////////////////////
-	// GetKeyNodeAnim
+	/**
+	 * Assimp logging function.
+	 */
+	void AssimpLogStream( const char* Message, char* User )
+	{
+		BcPrintf( "ASSIMP: %s", Message );
+	}
+
+	/**
+	 * Get key node from an array of node key anims.
+	 */
 	template< typename _KEY_TYPE, typename _VALUE_TYPE >
 	BcBool GetKeyNodeAnim( 
 		_KEY_TYPE* NodeKeys,
@@ -162,8 +167,13 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 	CsResourceImporter::addDependency( Source_.c_str() );
 
-#if ENABLE_ASSIMP_IMPORTER
 	auto PropertyStore = aiCreatePropertyStore();
+
+	aiLogStream AssimpLogger =
+	{
+		AssimpLogStream, (char*)this
+	};
+	aiAttachLogStream( &AssimpLogger );
 
 	Scene_ = aiImportFileExWithProperties( 
 		Source_.c_str(), 
@@ -311,86 +321,6 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 		//
 		return BcTrue;
 	}
-#endif // ENABLE_ASSIMP_IMPORTER
-
-#if 0
-	// Fall back to old method.
-	const std::string& FileName = Source_;
-	MdlAnim* pAnim = MdlLoader::loadAnim( FileName.c_str() );
-
-	if( pAnim != NULL )
-	{
-		// Verify all nodes have the same key count.
-		size_t KeyCount = pAnim->pNode( 0 )->KeyList_.size();
-		for( size_t NodeIdx = 1; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-		{
-			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-			if( pNode->KeyList_.size() != KeyCount )
-			{
-				BcAssertMsg( BcFalse, "Invalid key frame count in animation node!" );
-				return BcFalse;
-			}
-		}
-
-		// Setup data streams.
-		ScnAnimationHeader Header;
-		Header.NoofNodes_ = static_cast< BcU32 >( pAnim->nNodes() );
-		Header.NoofPoses_ = static_cast< BcU32 >( KeyCount + 1 ); // means we always have the first frame as the last for smooth looping. TODO: Optional.
-		Header.Flags_ = scnAF_DEFAULT;
-		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
-		HeaderStream_ << Header;
-
-		// Animation node file data.
-		ScnAnimationNodeFileData NodeFileData;
-		for( size_t NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-		{
-			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-			NodeFileData.Name_ = CsResourceImporter::addString( pNode->Name_ );
-			NodeStream_ << NodeFileData;
-		}
-
-		// Build up frames of poses.
-		ScnAnimationTransformKey_R16S16T16 OutKey;
-		BcF32 FrameTime = 0.0f;
-		BcF32 FrameRate = 1.0f / FrameRate_;
-		for( size_t KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
-		{
-			size_t WrappedKeyIdx = KeyIdx % KeyCount;
-			ScnAnimationPoseFileData Pose;
-			Pose.Time_ = FrameTime;
-			Pose.KeyDataOffset_ = static_cast< BcU32 >( KeyStream_.dataSize() );
-
-			// Advance framerate.
-			FrameTime += FrameRate;
-
-			// Iterate over nodes, and pack the key stream.
-			ScnAnimationTransform Transform;
-			for( size_t NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-			{
-				MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-				MdlAnimKey InKey = pNode->KeyList_[ WrappedKeyIdx ];
-				Transform.fromMatrix( InKey.Matrix_ );
-				OutKey.pack( Transform.R_, Transform.S_, Transform.T_ );
-				KeyStream_ << OutKey;
-			}
-			
-			// Final size + CRC.
-			Pose.KeyDataSize_ = static_cast< BcU32 >( KeyStream_.dataSize() - Pose.KeyDataOffset_ );
-			Pose.CRC_ = BcHash::GenerateCRC32( 0, KeyStream_.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
-
-			// Write out pose.
-			PoseStream_ << Pose;
-		}
-		
-		// Write out chunks.
-		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
-		CsResourceImporter::addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
-
-		return BcTrue;
-	}
-#endif
 #endif // PSY_IMPORT_PIPELINE
 	return BcFalse;	
 }
