@@ -56,7 +56,7 @@ private:
 
 private:
 	std::string Source_;
-
+	BcF32 FrameRate_;
 	BcStream HeaderStream_;
 	BcStream NodeStream_;
 	BcStream PoseStream_;

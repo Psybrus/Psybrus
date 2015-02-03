@@ -23,6 +23,7 @@ void ScnAnimationTreeTrackNode::StaticRegisterClass()
 	{
 		new ReField( "pPoseA_", &ScnAnimationTreeTrackNode::pPoseA_ ),
 		new ReField( "pPoseB_", &ScnAnimationTreeTrackNode::pPoseB_ ),
+		new ReField( "CurrAnimation_", &ScnAnimationTreeTrackNode::CurrAnimation_, bcRFF_TRANSIENT ),
 		new ReField( "CurrPoseIndex_", &ScnAnimationTreeTrackNode::CurrPoseIndex_, bcRFF_TRANSIENT ),
 		new ReField( "Speed_", &ScnAnimationTreeTrackNode::Speed_ ),
 		new ReField( "Time_", &ScnAnimationTreeTrackNode::Time_ ),
@@ -40,6 +41,7 @@ ScnAnimationTreeTrackNode::ScnAnimationTreeTrackNode()
 {
 	pPoseA_ = nullptr;
 	pPoseB_ = nullptr;
+	CurrAnimation_ = nullptr;
 	CurrPoseIndex_ = 0;
 	Time_ = 0.0f;
 	pPoseFileDataA_ = nullptr;
@@ -55,14 +57,17 @@ ScnAnimationTreeTrackNode::~ScnAnimationTreeTrackNode()
 	delete pPoseB_;
 	pPoseA_ = nullptr;
 	pPoseB_ = nullptr;
+	CurrAnimation_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setChildNode
 //virtual
-void ScnAnimationTreeTrackNode::initialise( ScnAnimationPose* pReferencePose )
+void ScnAnimationTreeTrackNode::initialise( 
+	ScnAnimationPose* pReferencePose,
+	ScnAnimationNodeFileData* pNodeFileData )
 {
-	ScnAnimationTreeNode::initialise( pReferencePose );
+	ScnAnimationTreeNode::initialise( pReferencePose, pNodeFileData );
 
 	CurrPoseIndex_ = 0;
 	pPoseA_ = new ScnAnimationPose( *pReferencePose );
@@ -138,7 +143,7 @@ void ScnAnimationTreeTrackNode::setSpeed( BcF32 Speed )
 // queueAnimation
 void ScnAnimationTreeTrackNode::queueAnimation( ScnAnimation* pAnimation )
 {
-	BcAssert( pAnimation != NULL );
+	BcAssert( pAnimation != nullptr );
 	AnimationQueue_.push_back( pAnimation );
 
 	// TODO: Create a map to map any animation by node name onto our reference
@@ -152,16 +157,24 @@ void ScnAnimationTreeTrackNode::decodeFrames()
 	if( AnimationQueue_.size() > 0 )
 	{
 		// Grab current animation.
-		ScnAnimation* pCurrAnimation = AnimationQueue_[ 0 ];
+		ScnAnimation* CurrAnimation = AnimationQueue_[ 0 ];
+
+		// Rebuild the node mapping if the current animation doesn't match.
+		// TODO: Move this into the queueAnimation call and perform it once.
+		if( CurrAnimation_ != CurrAnimation )
+		{
+			CurrAnimation_ = CurrAnimation;
+		}
 
 		// Wrap time (for advancement and looping)
-		if( Time_ > pCurrAnimation->getLength() )
+		// TODO: Handle next animation and what not.
+		if( Time_ > CurrAnimation_->getLength() )
 		{
-			Time_ -= pCurrAnimation->getLength();
+			Time_ -= CurrAnimation_->getLength();
 		}
 		
 		// Find pose index for time from animation.
-		BcU32 NewPoseIndex = pCurrAnimation->findPoseIndexAtTime( Time_ );
+		BcU32 NewPoseIndex = CurrAnimation_->findPoseIndexAtTime( Time_ );
 
 		// If it doesn't match, we need to decode frames.
 		if( CurrPoseIndex_ != NewPoseIndex ||
@@ -171,11 +184,11 @@ void ScnAnimationTreeTrackNode::decodeFrames()
 			CurrPoseIndex_ = NewPoseIndex;
 
 			// TODO: Pass in a map to decode these correctly into the appropriate transforms.
-			pCurrAnimation->decodePoseAtIndex( CurrPoseIndex_, pPoseA_ );
-			pCurrAnimation->decodePoseAtIndex( CurrPoseIndex_ + 1, pPoseB_ );
+			CurrAnimation_->decodePoseAtIndex( CurrPoseIndex_, pPoseA_, pNodeFileData_ );
+			CurrAnimation_->decodePoseAtIndex( CurrPoseIndex_ + 1, pPoseB_, pNodeFileData_ );
 
-			pPoseFileDataA_ = pCurrAnimation->findPoseAtIndex( CurrPoseIndex_ );
-			pPoseFileDataB_ = pCurrAnimation->findPoseAtIndex( CurrPoseIndex_ + 1 );
+			pPoseFileDataA_ = CurrAnimation_->findPoseAtIndex( CurrPoseIndex_ );
+			pPoseFileDataB_ = CurrAnimation_->findPoseAtIndex( CurrPoseIndex_ + 1 );
 		}
 	}
 }

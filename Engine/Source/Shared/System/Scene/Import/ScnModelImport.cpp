@@ -161,6 +161,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 	CsResourceImporter::addDependency( Source_.c_str() );
 
+#if 0
 	// Old importer first for now.
 	MdlNode* pNode = MdlLoader::loadModel( Source_.c_str() );
 	
@@ -243,6 +244,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 		//
 		return BcTrue;
 	}
+#endif
 
 #if ENABLE_ASSIMP_IMPORTER
 	// Failed? Try to use assimp.
@@ -294,9 +296,33 @@ BcBool ScnModelImport::import( const Json::Value& )
 		calculateNodeWorldTransforms();
 
 		// Serialise node data.
+		size_t Idx = 0;
 		for( const auto& NodeTransformData : NodeTransformData_ )
 		{
 			NodeTransformDataStream_ << NodeTransformData;
+
+			BcPrintf( "Node %u, Parent %u, World mat:\n", Idx, NodePropertyData_[ Idx ].ParentIndex_ );
+			BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+				NodeTransformData.WorldTransform_.row0().x(),
+				NodeTransformData.WorldTransform_.row0().y(),
+				NodeTransformData.WorldTransform_.row0().z(),
+				NodeTransformData.WorldTransform_.row0().w() );
+			BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+				NodeTransformData.WorldTransform_.row1().x(),
+				NodeTransformData.WorldTransform_.row1().y(),
+				NodeTransformData.WorldTransform_.row1().z(),
+				NodeTransformData.WorldTransform_.row1().w() );
+			BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+				NodeTransformData.WorldTransform_.row2().x(),
+				NodeTransformData.WorldTransform_.row2().y(),
+				NodeTransformData.WorldTransform_.row2().z(),
+				NodeTransformData.WorldTransform_.row2().w() );
+			BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+				NodeTransformData.WorldTransform_.row3().x(),
+				NodeTransformData.WorldTransform_.row3().y(),
+				NodeTransformData.WorldTransform_.row3().z(),
+				NodeTransformData.WorldTransform_.row3().w() );
+			Idx++;
 		}
 
 		for( auto NodePropertyData : NodePropertyData_ )
@@ -780,10 +806,12 @@ void ScnModelImport::recursiveSerialiseNodes(
 	size_t& PrimitiveIndex )
 {
 #if PSY_IMPORT_PIPELINE
+	MaMat4d Scale;
+
 	// Setup structs.
 	ScnModelNodeTransformData NodeTransformData =
 	{
-		MaMat4d( Node->mTransformation[0] ).transposed(),
+		MaMat4d( Node->mTransformation[0] ).transposed() * Scale,
 		MaMat4d(),	// todo: absolute
 	};
 	
@@ -947,7 +975,28 @@ void ScnModelImport::serialiseMesh(
 				size_t NodeBaseIndex = 0;
 				MeshData.BonePalette_[ BoneIdx ] = static_cast< BcU32 >( findNodeIndex( Bone->mName.C_Str(), Scene_->mRootNode, NodeBaseIndex ) );
 				MeshData.BoneInverseBindpose_[ BoneIdx ] = MaMat4d( Bone->mOffsetMatrix[ 0 ] ).transposed();
-				MeshData.BoneInverseBindpose_[ BoneIdx ].inverse();
+
+				BcPrintf( "Bone %u, Node %u, Offset mat:\n", BoneIdx, MeshData.BonePalette_[ BoneIdx ]  );
+				BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row0().x(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row0().y(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row0().z(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row0().w() );
+				BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row1().x(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row1().y(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row1().z(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row1().w() );
+				BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row2().x(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row2().y(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row2().z(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row2().w() );
+				BcPrintf( "\t%.2f, %.2f, %.2f, %.2f\n", 
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row3().x(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row3().y(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row3().z(),
+					MeshData.BoneInverseBindpose_[ BoneIdx ].row3().w() );
 			}
 		}	
 

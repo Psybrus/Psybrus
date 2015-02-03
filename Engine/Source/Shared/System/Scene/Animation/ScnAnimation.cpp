@@ -77,6 +77,21 @@ const ScnAnimationNodeFileData* ScnAnimation::getNodeByIndex( BcU32 Idx ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getNodeIndexByName
+BcU32 ScnAnimation::getNodeIndexByName( BcName Name ) const
+{
+	for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
+	{
+		if( pNodeData_[ Idx ].Name_ == Name )
+		{
+			return Idx;
+		}
+	}
+	
+	return BcErrorCode;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // findPoseIndexAtTime
 BcU32 ScnAnimation::findPoseIndexAtTime( BcF32 Time ) const 
 {
@@ -147,10 +162,13 @@ BcF32 ScnAnimation::getLength() const
 //////////////////////////////////////////////////////////////////////////
 // decodePoseAtIndexTyped
 template< typename _Ty >
-void ScnAnimation::decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputPose ) const
+void ScnAnimation::decodePoseAtIndexTyped( 
+	BcU32 Idx, 
+	ScnAnimationPose* pOutputPose, 
+	ScnAnimationNodeFileData* TargetNodesFileData ) const
 {
 	const ScnAnimationPoseFileData* pPoseFileData = findPoseAtIndex( Idx );
-	if( pPoseFileData != NULL )
+	if( pPoseFileData != nullptr )
 	{
 		const BcU8* pKeyData = findKeyDataStartForPose( pPoseFileData );
 		const _Ty* pTransformKeys = reinterpret_cast< const _Ty* >( pKeyData );
@@ -159,30 +177,43 @@ void ScnAnimation::decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputP
 		for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
 		{
 			pTransformKeys[ Idx ].unpack( Transform.R_, Transform.S_, Transform.T_ );
-			pOutputPose->setTransform( Idx, Transform );
+
+			// Find matching output node.
+			// TODO: Have a mapping object rather than doing this each decode step.
+			for( BcU32 TargetIdx = 0; TargetIdx < pOutputPose->getNoofNodes(); ++TargetIdx )
+			{
+				if( TargetNodesFileData[ TargetIdx ].Name_ == pNodeData_[ Idx ].Name_ )
+				{
+					pOutputPose->setTransform( TargetIdx, Transform );
+					break;
+				}
+			}
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // decodePoseAtIndex
-void ScnAnimation::decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose ) const
+void ScnAnimation::decodePoseAtIndex( 
+	BcU32 Idx,
+	ScnAnimationPose* pOutputPose,
+	ScnAnimationNodeFileData* TargetNodesFileData ) const
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimation::decodePoseAtIndex" );
 
 	switch( Header_.Packing_ )
 	{
 	case scnAP_R16S32T32:
-		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16S32T32 >( Idx, pOutputPose );
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16S32T32 >( Idx, pOutputPose, TargetNodesFileData );
 		break;
 	case scnAP_R16S16T16:
-		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16S16T16 >( Idx, pOutputPose );
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16S16T16 >( Idx, pOutputPose, TargetNodesFileData );
 		break;
 	case scnAP_R16T32:
-		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T32 >( Idx, pOutputPose );
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T32 >( Idx, pOutputPose, TargetNodesFileData );
 		break;
 	case scnAP_R16T16:
-		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T16 >( Idx, pOutputPose );
+		decodePoseAtIndexTyped< ScnAnimationTransformKey_R16T16 >( Idx, pOutputPose, TargetNodesFileData );
 		break;
 	default:
 		BcBreakpoint;

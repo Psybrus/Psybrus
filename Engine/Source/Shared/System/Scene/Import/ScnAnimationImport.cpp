@@ -28,7 +28,7 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
-#define ENABLE_ASSIMP_IMPORTER			( 0 )
+#define ENABLE_ASSIMP_IMPORTER			( 1 )
 
 namespace
 {
@@ -107,6 +107,7 @@ void ScnAnimationImport::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Source_", &ScnAnimationImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "FrameRate_", &ScnAnimationImport::FrameRate_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnAnimationImport, Super >( Fields );
@@ -114,13 +115,29 @@ void ScnAnimationImport::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationImport::ScnAnimationImport()
+ScnAnimationImport::ScnAnimationImport():
+	Source_(),
+	FrameRate_( 24.0f ),
+	HeaderStream_(),
+	NodeStream_(),
+	PoseStream_(),
+	KeyStream_(),
+	Scene_( nullptr ),
+	AnimatedNodes_()
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationImport::ScnAnimationImport( ReNoInit )
+ScnAnimationImport::ScnAnimationImport( ReNoInit ):
+	Source_(),
+	FrameRate_( 24.0f ),
+	HeaderStream_(),
+	NodeStream_(),
+	PoseStream_(),
+	KeyStream_(),
+	Scene_( nullptr ),
+	AnimatedNodes_()
 {
 }
 
@@ -191,7 +208,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 			for( BcF32 Time = 0.0f; Time <= Animation->mDuration; Time += Rate )
 			{
 				ScnAnimationPoseFileData Pose;
-				Pose.Time_ = Time;
+				Pose.Time_ = Time / FrameRate_;
 				Pose.KeyDataOffset_ = KeyStream_.dataSize();
 
 				// Iterate over all node channels to generate keys.
@@ -234,9 +251,8 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 					Transform.S_ = MaVec3d( OutScaleKey.x, OutScaleKey.y, OutScaleKey.z );
 					Transform.T_ = MaVec3d( OutPositionKey.x, OutPositionKey.y, OutPositionKey.z );
 				
-					// Store as world matrix.
-					Transform.toMatrix( AnimatedNode.WorldTransform_ );
-					AnimatedNode.LocalTransform_ = AnimatedNode.WorldTransform_;
+					// Store as local matrix.
+					Transform.toMatrix( AnimatedNode.LocalTransform_ );
 				}
 
 				// Calculate local node matrices relative to their parents.
@@ -245,9 +261,12 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 					if( AnimatedNode.ParentIdx_ != BcErrorCode )
 					{
 						auto& ParentAnimatedNode( AnimatedNodes_[ AnimatedNode.ParentIdx_ ] );
-						MaMat4d ParentMatrixInverse = ParentAnimatedNode.WorldTransform_;
-						ParentMatrixInverse.inverse();
-						AnimatedNode.LocalTransform_ = ParentMatrixInverse * AnimatedNode.LocalTransform_;
+						MaMat4d ParentLocal = ParentAnimatedNode.LocalTransform_;
+						AnimatedNode.WorldTransform_ = ParentLocal * AnimatedNode.LocalTransform_;
+					}
+					else
+					{
+						AnimatedNode.WorldTransform_ = AnimatedNode.LocalTransform_;
 					}
 				}
 
@@ -294,6 +313,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 	}
 #endif // ENABLE_ASSIMP_IMPORTER
 
+#if 0
 	// Fall back to old method.
 	const std::string& FileName = Source_;
 	MdlAnim* pAnim = MdlLoader::loadAnim( FileName.c_str() );
@@ -332,7 +352,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 		// Build up frames of poses.
 		ScnAnimationTransformKey_R16S16T16 OutKey;
 		BcF32 FrameTime = 0.0f;
-		BcF32 FrameRate = 1.0f / 24.0f;
+		BcF32 FrameRate = 1.0f / FrameRate_;
 		for( size_t KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
 		{
 			size_t WrappedKeyIdx = KeyIdx % KeyCount;
@@ -370,6 +390,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 		return BcTrue;
 	}
+#endif
 #endif // PSY_IMPORT_PIPELINE
 	return BcFalse;	
 }
@@ -384,8 +405,8 @@ void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, size_
 		Node->mParent->mTransformation * Node->mTransformation : Node->mTransformation;
 
 	AnimatedNode.Name_ = Node->mName.C_Str();
-	AnimatedNode.LocalTransform_ = MaMat4d( Node->mTransformation[ 0 ] );
-	AnimatedNode.WorldTransform_ = MaMat4d( WorldTransform[ 0 ] );
+	AnimatedNode.LocalTransform_ = MaMat4d( Node->mTransformation[ 0 ] ).transposed();
+	AnimatedNode.WorldTransform_ = MaMat4d( WorldTransform[ 0 ] ).transposed();
 	AnimatedNode.ParentIdx_ = static_cast< BcU32 >( ParentNodeIdx );
 
 	AnimatedNodes_.push_back( AnimatedNode );

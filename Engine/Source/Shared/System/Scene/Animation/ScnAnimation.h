@@ -31,25 +31,32 @@ class ScnAnimation:
 public:
 	DECLARE_RESOURCE( ScnAnimation, CsResource );
 	
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 
-	const ScnAnimationNodeFileData*		getNodeByIndex( BcU32 Idx ) const;
-	BcU32								findPoseIndexAtTime( BcF32 Time ) const ;
-	const ScnAnimationPoseFileData*		findPoseAtIndex( BcU32 Idx ) const ;
-	const BcU8*							findKeyDataStartForPose( const ScnAnimationPoseFileData* pPose ) const;	
-	BcF32								getLength() const;
+	const ScnAnimationNodeFileData* getNodeByIndex( BcU32 Idx ) const;
+	BcU32 getNodeIndexByName( BcName Name ) const;
+	BcU32 findPoseIndexAtTime( BcF32 Time ) const ;
+	const ScnAnimationPoseFileData* findPoseAtIndex( BcU32 Idx ) const ;
+	const BcU8* findKeyDataStartForPose( const ScnAnimationPoseFileData* pPose ) const;	
+	BcF32 getLength() const;
 
-	void								decodePoseAtIndex( BcU32 Idx, ScnAnimationPose* pOutputPose ) const;
+	void decodePoseAtIndex( 
+		BcU32 Idx, 
+		ScnAnimationPose* pOutputPose,
+		ScnAnimationNodeFileData* TargetNodesFileData ) const;
 
 private:
 	template< typename _Ty >
-	void								decodePoseAtIndexTyped( BcU32 Idx, ScnAnimationPose* pOutputPose ) const;
+	void decodePoseAtIndexTyped( 
+		BcU32 Idx, 
+		ScnAnimationPose* pOutputPose,
+		ScnAnimationNodeFileData* TargetNodesFileData ) const;
 
 private:
-	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady();
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 private:
 	ScnAnimationHeader					Header_;

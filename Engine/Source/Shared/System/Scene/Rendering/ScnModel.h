@@ -68,50 +68,51 @@ class ScnModelComponent:
 public:
 	DECLARE_RESOURCE( ScnModelComponent, ScnRenderableComponent );
 
-	virtual void						initialise();
-	virtual void						initialise( const Json::Value& Object, ScnModelRef Parent );
-	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void initialise( const Json::Value& Object, ScnModelRef Parent );
+	virtual void initialise( const Json::Value& Object );
+	virtual void create();
+	virtual void destroy();
 
-	virtual MaAABB						getAABB() const;
+	virtual MaAABB getAABB() const;
 
-	BcU32								findNodeIndexByName( const BcName& Name ) const;
-	void								setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform );
-	const MaMat4d&						getNode( BcU32 NodeIdx ) const;
-	BcU32								getNoofNodes() const;
+	BcU32 findNodeIndexByName( const BcName& Name ) const;
+	const BcName& findNodeNameByIndex( BcU32 NodeIdx ) const;
+	void setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform );
+	const MaMat4d& getNode( BcU32 NodeIdx ) const;
+	BcU32 getNoofNodes() const;
 
-	ScnMaterialComponentRef				getMaterialComponent( BcU32 Index );
-	ScnMaterialComponentRef				getMaterialComponent( const BcName& MaterialName );
-	ScnMaterialComponentList			getMaterialComponents( const BcName& MaterialName );
+	ScnMaterialComponentRef getMaterialComponent( BcU32 Index );
+	ScnMaterialComponentRef getMaterialComponent( const BcName& MaterialName );
+	ScnMaterialComponentList getMaterialComponents( const BcName& MaterialName );
 	
 public:
-	virtual void						postUpdate( BcF32 Tick );
+	virtual void postUpdate( BcF32 Tick );
 
-	void								updateNodes( MaMat4d RootMatrix );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
-	void								render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
+	void updateNodes( MaMat4d RootMatrix );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+	void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
-	ScnModelRef							Parent_;
-	ScnModelNodeTransformData*			pNodeTransformData_;
-	BcU32								Layer_;
-	BcU32								Pass_;
-	SysFence							UploadFence_;
-	SysFence							UpdateFence_;
+	ScnModelRef Parent_;
+	ScnModelNodeTransformData* pNodeTransformData_;
+	BcU32 Layer_;
+	BcU32 Pass_;
+	SysFence UploadFence_;
+	SysFence UpdateFence_;
 
-	MaAABB								AABB_;
+	MaAABB AABB_;
 
 	struct TPerComponentMeshData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsBuffer*		UniformBuffer_;
+		RsBuffer* UniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;
 	
-	TPerComponentMeshDataList		PerComponentMeshDataList_;
+	TPerComponentMeshDataList PerComponentMeshDataList_;
 };
 
 #endif

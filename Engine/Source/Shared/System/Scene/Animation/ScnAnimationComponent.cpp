@@ -59,13 +59,13 @@ void ScnAnimationComponent::initialise( const Json::Value& Object )
 	TargetComponentName_ = Object[ "target" ].asCString();
 
 	//
-	pRootTreeNode_ = NULL;
-	pReferencePose_ = NULL;
+	pRootTreeNode_ = nullptr;
+	pReferencePose_ = nullptr;
 
 	// Initialise tree nodes.
 	// TODO: Setup with reflection.
 	const Json::Value& TreeValue = Object[ "tree" ];
-	initialiseNode( NULL, 0, TreeValue );
+	initialiseNode( nullptr, 0, TreeValue );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 	ScnAnimationTreeNode* pNode = pClass->create< ScnAnimationTreeNode >();
 	pNode->setName( NameValue.asCString() );
 
-	if( pParentNode != NULL )
+	if( pParentNode != nullptr )
 	{
 		pParentNode->setChildNode( ChildIndex, pNode );
 	}
@@ -113,7 +113,7 @@ void ScnAnimationComponent::destroy()
 //virtual 
 void ScnAnimationComponent::preUpdate( BcF32 Tick )
 {
-	if( pRootTreeNode_ != NULL )
+	if( pRootTreeNode_ != nullptr )
 	{
 		pRootTreeNode_->preUpdate( Tick );
 	}
@@ -124,7 +124,7 @@ void ScnAnimationComponent::preUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::update( BcF32 Tick )
 {
-	if( pRootTreeNode_ != NULL )
+	if( pRootTreeNode_ != nullptr )
 	{
 		pRootTreeNode_->update( Tick );
 	}
@@ -135,7 +135,7 @@ void ScnAnimationComponent::update( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::postUpdate( BcF32 Tick )
 {
-	if( pRootTreeNode_ != NULL )
+	if( pRootTreeNode_ != nullptr )
 	{
 		pRootTreeNode_->postUpdate( Tick );
 	}
@@ -177,7 +177,22 @@ void ScnAnimationComponent::onDetach( ScnEntityWeakRef Parent )
 void ScnAnimationComponent::buildReferencePose()
 {
 	const BcU32 NoofNodes = Model_->getNoofNodes();
-	pReferencePose_ = new ScnAnimationPose( NoofNodes - 1 );
+	const BcU32 NoofAnimNodes = NoofNodes - 1;
+
+	// Grab node names for model we're animating.
+	ModelNodeFileData_.reserve( NoofAnimNodes );
+	for( BcU32 Idx = 1; Idx < NoofNodes; ++Idx )
+	{
+		ScnAnimationNodeFileData NodeFileData = 
+		{
+			Model_->findNodeNameByIndex( Idx )
+		};
+
+		ModelNodeFileData_.push_back( NodeFileData );
+	}
+
+	// Reference pose.
+	pReferencePose_ = new ScnAnimationPose( NoofAnimNodes );
 
 	ScnAnimationTransform Transform;
 	for( BcU32 Idx = 1; Idx < NoofNodes; ++Idx )
@@ -186,7 +201,7 @@ void ScnAnimationComponent::buildReferencePose()
 		pReferencePose_->setTransform( Idx - 1, Transform );
 	}
 
-	pRootTreeNode_->initialise( pReferencePose_ );
+	pRootTreeNode_->initialise( pReferencePose_, ModelNodeFileData_.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -218,11 +233,11 @@ ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTr
 	for( BcU32 Idx = 0; Idx < NoofNodes; ++Idx )
 	{
 		ScnAnimationTreeNode* pNode = pStartNode->getChildNode( Idx );
-		if( ( pNode = findNodeRecursively( pNode, Name, Class ) ) != NULL )
+		if( ( pNode = findNodeRecursively( pNode, Name, Class ) ) != nullptr )
 		{
 			return pNode;
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }

@@ -210,4 +210,12 @@ struct ScnAnimationTransformKey_R16T16
 	}
 };
 
+//////////////////////////////////////////////////////////////////////////
+// ScnAnimationNodeMapping
+struct ScnAnimationNodeMapping
+{
+	BcU32 SourceNodeIdx_;
+	BcU32 TargetNodeIdx_;
+};
+
 #endif

@@ -26,6 +26,12 @@
 #include "System/Scene/Import/ScnModelImport.h"
 #endif
 
+#define DEBUG_RENDER_NODES ( 0 )
+
+#if DEBUG_RENDER_NODES
+#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
+#endif // DEBUG_RENDER_NODES
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
@@ -362,6 +368,20 @@ BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// findNodeNameByIndex
+const BcName& ScnModelComponent::findNodeNameByIndex( BcU32 NodeIdx ) const
+{
+	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	const ScnModelNodePropertyData* pNodePropertyData = Parent_->pNodePropertyData_;
+	if( NodeIdx < NoofNodes )
+	{
+		return pNodePropertyData[ NodeIdx ].Name_;
+	}
+
+	return BcName::INVALID;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setNode
 void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 {
@@ -457,6 +477,28 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, getParentEntity()->getWorldMatrix() );
 #else
 	updateNodes( getParentEntity()->getWorldMatrix() );
+
+#if DEBUG_RENDER_NODES
+	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
+	{
+		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
+		ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
+
+		MaMat4d ThisMatrix = pNodeTransformData->WorldTransform_;
+		MaMat4d ParentMatrix = pNodePropertyData->ParentIndex_ != BcErrorCode ? 
+			pNodeTransformData_[ pNodePropertyData->ParentIndex_ ].WorldTransform_ :
+			getParentEntity()->getWorldMatrix();
+
+		ScnDebugRenderComponent::pImpl()->drawMatrix( 
+			ThisMatrix, RsColour::WHITE, 2000 );
+		ScnDebugRenderComponent::pImpl()->drawLine( 
+			ParentMatrix.translation(), 
+			ThisMatrix.translation(), 
+			RsColour::WHITE, 1000 );
+	}
+
+#endif // DEBUG_RENDER_NODES
 #endif
 }
 
@@ -562,7 +604,9 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 						BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
 						if( NodeIndex != BcErrorCode )
 						{
-							BoneUniformBlock->BoneTransform_[ Idx ] = pNodeMeshData->BoneInverseBindpose_[ Idx ] * pNodeTransformData_[ NodeIndex ].WorldTransform_;
+							BoneUniformBlock->BoneTransform_[ Idx ] =
+								pNodeMeshData->BoneInverseBindpose_[ Idx ] * 
+								pNodeTransformData_[ NodeIndex ].WorldTransform_;
 						}
 					}
 					UploadFence_.decrement();
