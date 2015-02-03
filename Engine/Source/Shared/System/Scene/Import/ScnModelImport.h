@@ -46,39 +46,6 @@ private:
 	void calculateNodeWorldTransforms();
 
 private:
-	// old Mdl library code.
-	void recursiveSerialiseNodes( 
-		class MdlNode* pNode,
-		size_t ParentIndex,
-		size_t& NodeIndex,
-		size_t& PrimitiveIndex );
-
-	void recursiveSerialiseNodeMeshes( 
-		class MdlNode* pNode,
-		size_t ParentIndex,
-		size_t& NodeIndex,
-		size_t& PrimitiveIndex );
-
-		void serialiseMesh( 
-		class MdlMesh* pSkin,
-		size_t ParentIndex,
-		size_t& NodeIndex,
-		size_t& PrimitiveIndex );
-
-	void serialiseSkin( 
-		class MdlMesh* pSkin,
-		size_t ParentIndex,
-		size_t& NodeIndex,
-		size_t& PrimitiveIndex );
-
-	void serialiseVertices( 
-		class MdlMesh* pMesh,
-		RsVertexElement* pVertexElements,
-		size_t NoofVertexElements,
-		MaAABB& AABB );
-
-
-	// new assimp code.
 	void recursiveSerialiseNodes( 
 		struct aiNode* pNode,
 		size_t ParentIndex,
