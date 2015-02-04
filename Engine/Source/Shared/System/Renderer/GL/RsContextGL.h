@@ -54,6 +54,11 @@ public:
 	bool destroySamplerState(
 		RsSamplerState* SamplerState );
 
+	bool createFrameBuffer( 
+		RsFrameBuffer* FrameBuffer );
+	bool destroyFrameBuffer( 
+		RsFrameBuffer* FrameBuffer );
+
 	bool createBuffer( 
 		RsBuffer* Buffer );
 	bool destroyBuffer( 
@@ -101,6 +106,7 @@ public:
 		BcU32 SlotIdx, 
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
+	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
 	
 	void flushState();
 

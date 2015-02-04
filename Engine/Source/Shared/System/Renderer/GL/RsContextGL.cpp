@@ -895,6 +895,22 @@ bool RsContextGL::destroySamplerState(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createFrameBuffer
+bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyFrameBuffer
+bool RsContextGL::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createBuffer
 bool RsContextGL::createBuffer( RsBuffer* Buffer )
 {
@@ -1758,7 +1774,15 @@ void RsContextGL::setUniformBuffer(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPrimitive
+// setFrameBuffer
+void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setVertexDeclaration
 void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );

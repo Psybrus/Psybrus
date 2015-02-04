@@ -46,6 +46,8 @@ public:
 private:
 	std::vector< std::string > Source_;
 	RsTextureFormat Format_;  // TODO: Use.
+	BcBool RenderTarget_;
+	BcBool DepthStencilTarget_;
 	RsColour ClearColour_;
 	BcBool AlphaFromIntensity_;
 	BcBool DistanceField_;

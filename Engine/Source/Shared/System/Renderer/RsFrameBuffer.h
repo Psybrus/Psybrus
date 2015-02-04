@@ -32,7 +32,7 @@ struct RsFrameBufferDesc
 	 * Set depth stencil target.
 	 */
 	RsFrameBufferDesc& setDepthStencilTarget( RsTexture* Texture );
-
+	
 	std::vector< class RsTexture* > RenderTargets_;
 	RsTexture* DepthStencilTarget_;
 };

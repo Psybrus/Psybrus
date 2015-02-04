@@ -905,6 +905,14 @@ void RsContextD3D11::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setFrameBuffer
+void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D11::clear( 
 	const RsColour& Colour,
@@ -994,6 +1002,22 @@ bool RsContextD3D11::createSamplerState(
 // destroySamplerState
 bool RsContextD3D11::destroySamplerState(
 	RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createFrameBuffer
+bool RsContextD3D11::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyFrameBuffer
+bool RsContextD3D11::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	return true;

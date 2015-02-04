@@ -36,6 +36,8 @@ void ScnTextureImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnTextureImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Format_", &ScnTextureImport::Format_, bcRFF_IMPORTER ),
+		new ReField( "RenderTarget_", &ScnTextureImport::RenderTarget_, bcRFF_IMPORTER ),
+		new ReField( "DepthStencilTarget_", &ScnTextureImport::DepthStencilTarget_, bcRFF_IMPORTER ),
 		new ReField( "ClearColour_", &ScnTextureImport::ClearColour_, bcRFF_IMPORTER ),
 		new ReField( "AlphaFromIntensity_", &ScnTextureImport::AlphaFromIntensity_, bcRFF_IMPORTER ),
 		new ReField( "DistanceField_", &ScnTextureImport::DistanceField_, bcRFF_IMPORTER ),
@@ -60,6 +62,8 @@ void ScnTextureImport::StaticRegisterClass()
 ScnTextureImport::ScnTextureImport():
 	Source_(),
 	Format_( RsTextureFormat::INVALID ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
@@ -83,6 +87,8 @@ ScnTextureImport::ScnTextureImport():
 ScnTextureImport::ScnTextureImport( ReNoInit ):
 	Source_(),
 	Format_( RsTextureFormat::INVALID ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
@@ -483,7 +489,9 @@ BcBool ScnTextureImport::import(
 				(BcU32)MipImages.size(),
 				TextureType_,
 				Format_,
-				BcFalse
+				BcFalse,
+				RenderTarget_,
+				DepthStencilTarget_
 			};
 
 			HeaderStream << Header;

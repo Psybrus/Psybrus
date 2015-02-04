@@ -93,7 +93,10 @@ protected:
 	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?
 	MaPlane								FrustumPlanes_[ 6 ];
 
-	ScnRenderTargetRef					RenderTarget_;
+	// Frame buffer + render target.
+	ScnTextureRef						RenderTarget_;
+	ScnTextureRef						DepthStencilTarget_;
+	RsFrameBufferUPtr					FrameBuffer_;
 };
 
 #endif

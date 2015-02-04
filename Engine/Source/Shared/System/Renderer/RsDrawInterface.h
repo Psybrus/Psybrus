@@ -86,6 +86,11 @@ public:
 	virtual void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) = 0;
 
 	/**
+	 * Set frame buffer.
+	 */
+	virtual void setFrameBuffer( class RsFrameBuffer* FrameBuffer ) = 0;
+
+	/**
 	 * Clear.
 	 */
 	virtual void clear( 

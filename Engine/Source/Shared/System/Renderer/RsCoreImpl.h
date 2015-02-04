@@ -36,60 +36,63 @@ public:
 	virtual ~RsCoreImpl();
 	
 public:
-	void open();
-	void update();
-	void close();
+	void open() override;
+	void update() override;
+	void close() override;
 	
 public:
-	RsContext* getContext( OsClient* pClient );
-	void destroyContext( OsClient* pClient );
+	RsContext* getContext( OsClient* pClient ) override;
+	void destroyContext( OsClient* pClient ) override;
 
 	RsRenderStateUPtr createRenderState( 
-		const RsRenderStateDesc& Desc );
+		const RsRenderStateDesc& Desc ) override;
 
 	RsSamplerStateUPtr createSamplerState( 
-		const RsSamplerStateDesc& Desc );
+		const RsSamplerStateDesc& Desc ) override;
+
+	RsFrameBufferUPtr createFrameBuffer( 
+		const RsFrameBufferDesc& Desc ) override;
 
 	RsTexture* createTexture( 
-		const RsTextureDesc& Desc );
+		const RsTextureDesc& Desc ) override;
 
 	RsVertexDeclaration* createVertexDeclaration( 
-		const RsVertexDeclarationDesc& Desc );
+		const RsVertexDeclarationDesc& Desc ) override;
 	
 	RsBuffer* createBuffer( 
-		const RsBufferDesc& Desc );
+		const RsBufferDesc& Desc ) override;
 	
 	RsShader* createShader( 
 		const RsShaderDesc& Desc, 
-		void* pShaderData, BcU32 ShaderDataSize );
+		void* pShaderData, BcU32 ShaderDataSize ) override;
 	
 	RsProgram* createProgram( 
 		std::vector< RsShader* > Shaders, 
-		RsProgramVertexAttributeList VertexAttributes );
+		RsProgramVertexAttributeList VertexAttributes ) override;
 	
 	void destroyResource( 
-		RsResource* pResource );
+		RsResource* pResource ) override;
 	
 	void destroyResource( 
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 
 	void destroyResource( 
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 
 	void destroyResource( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	
 	void destroyResource( 
-		RsTexture* Texture );
+		RsTexture* Texture ) override;
 	
 	void destroyResource( 
-		RsShader* Shader );
+		RsShader* Shader ) override;
 
 	void destroyResource( 
-		RsProgram* Program );
+		RsProgram* Program ) override;
 
 	void updateResource( 
-		RsResource* pResource );
+		RsResource* pResource ) override;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.
@@ -98,13 +101,13 @@ public:
 		BcSize Offset,
 		BcSize Size,
 		RsResourceUpdateFlags Flags,
-		RsBufferUpdateFunc UpdateFunc );
+		RsBufferUpdateFunc UpdateFunc ) override;
 
 	bool updateTexture( 
 		class RsTexture* Texture,
 		const struct RsTextureSlice& Slice,
 		RsResourceUpdateFlags Flags,
-		RsTextureUpdateFunc UpdateFunc );
+		RsTextureUpdateFunc UpdateFunc ) override;
 
 private:
 	struct UpdateBufferAsync
@@ -128,8 +131,8 @@ private:
 	void createResource( RsResource* pResource );
 
 public:
-	RsFrame* allocateFrame( RsContext* pContext );
-	void queueFrame( RsFrame* pFrame );
+	RsFrame* allocateFrame( RsContext* pContext ) override;
+	void queueFrame( RsFrame* pFrame ) override;
 
 public:
 	// Platform specific interface.

@@ -25,14 +25,15 @@
 #include "System/Renderer/RsLight.h"
 #include "System/Renderer/RsFrame.h"
 
-#include "System/Renderer/RsContext.h"
-#include "System/Renderer/RsTexture.h"
-#include "System/Renderer/RsShader.h"
-#include "System/Renderer/RsProgram.h"
-#include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsContext.h"
+#include "System/Renderer/RsFrameBuffer.h"
+#include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsVertexDeclaration.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -45,24 +46,25 @@ class RsRenderTarget;
 class RsResourceDeleters
 {
 public:
+	void operator()( class RsBuffer* Resource );
 	void operator()( class RsContext* Resource );
+	void operator()( class RsFrameBuffer* Resource );
+	void operator()( class RsProgram* Resource );
 	void operator()( class RsRenderState* Resource );
 	void operator()( class RsSamplerState* Resource );
-	void operator()( class RsBuffer* Resource );
+	void operator()( class RsShader* Resource );
 	void operator()( class RsTexture* Resource );
 	void operator()( class RsVertexDeclaration* Resource );
-	void operator()( class RsShader* Resource );
-	void operator()( class RsProgram* Resource );
 };
 
+typedef std::unique_ptr< class RsBuffer, RsResourceDeleters > RsBufferUPtr;
 typedef std::unique_ptr< class RsContext, RsResourceDeleters > RsContextUPtr;
+typedef std::unique_ptr< class RsFrameBuffer, RsResourceDeleters > RsFrameBufferUPtr;
 typedef std::unique_ptr< class RsRenderState, RsResourceDeleters > RsRenderStateUPtr;
 typedef std::unique_ptr< class RsSamplerState, RsResourceDeleters > RsSamplerStateUPtr;
-typedef std::unique_ptr< class RsBuffer, RsResourceDeleters > RsBufferUPtr;
+typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;
 typedef std::unique_ptr< class RsTexture, RsResourceDeleters > RsTextureUPtr;
 typedef std::unique_ptr< class RsVertexDeclaration, RsResourceDeleters > RsVertexDeclarationUPtr;
-typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;
-typedef std::unique_ptr< class RsProgram, RsResourceDeleters > RsProgramUPtr;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsCore
@@ -115,6 +117,13 @@ public:
 	 */
 	virtual RsSamplerStateUPtr createSamplerState( 
 		const RsSamplerStateDesc& Desc ) = 0;
+
+	/**
+	 * Create frame buffer.
+	 * @param Desc descriptor.
+	 */
+	virtual RsFrameBufferUPtr createFrameBuffer( 
+		const RsFrameBufferDesc& Desc ) = 0;
 
 	/**
 	 *	Create a texture.

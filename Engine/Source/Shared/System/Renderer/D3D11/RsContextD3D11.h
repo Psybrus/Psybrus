@@ -59,6 +59,7 @@ public:
 		BcU32 Handle, 
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
+	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
 	void clear(
 		const RsColour& Colour,
 		BcBool EnableClearColour,
@@ -76,6 +77,11 @@ public:
 		RsSamplerState* SamplerState );
 	bool destroySamplerState(
 		RsSamplerState* SamplerState );
+
+	bool createFrameBuffer( 
+		class RsFrameBuffer* FrameBuffer );
+	bool destroyFrameBuffer( 
+		class RsFrameBuffer* FrameBuffer );
 
 	bool createBuffer( 
 		RsBuffer* Buffer );

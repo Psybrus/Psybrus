@@ -45,7 +45,7 @@ public:
 	void								unbind( RsFrame* pFrame );
 	
 protected:
-	
+
 
 };
 

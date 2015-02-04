@@ -203,6 +203,12 @@ void ScnViewComponent::create()
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ) );
+
+	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
+	{
+		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
+
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -304,15 +310,18 @@ public:
 	void render()
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
+		pContext_->setFrameBuffer( FrameBuffer_ );
 		pContext_->setViewport( Viewport_ );
 		pContext_->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
 	}
 
+	RsFrameBuffer* FrameBuffer_;
 	RsViewport Viewport_;
 	RsColour ClearColour_;
 	BcBool EnableClearColour_;
 	BcBool EnableClearDepth_;
 	BcBool EnableClearStencil_;	
+
 };
 
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
@@ -416,18 +425,10 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		                               FrustumPlanes_[ i ].d() * Scale );
 	}
 
-	// Set render target.
-	if( RenderTarget_.isValid() )
-	{
-		RenderTarget_->bind( pFrame );
-	}
-	else
-	{
-		
-	}
-
-	// Set + clear viewport.
+	// Setup render node to set the frame buffer, viewport, and clear colour.
+	// TODO: Pass this in with the draw commands down the line.
 	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
+	pRenderNode->FrameBuffer_ = FrameBuffer_.get();
 	pRenderNode->Viewport_ = Viewport_;
 	pRenderNode->ClearColour_ = ClearColour_;
 	pRenderNode->EnableClearColour_ = EnableClearColour_;

@@ -138,11 +138,16 @@ void ScnTexture::create()
 	}
 
 	// Create new one immediately.
+	auto CreationFlags = Header_.Editable_ ? RsResourceCreationFlags::DYNAMIC : RsResourceCreationFlags::STATIC;
+	auto BindFlags = RsResourceBindFlags::SHADER_RESOURCE |
+				( Header_.RenderTarget_ ? RsResourceBindFlags::RENDER_TARGET : RsResourceBindFlags::NONE ) |
+				( Header_.DepthStencilTarget_ ? RsResourceBindFlags::DEPTH_STENCIL : RsResourceBindFlags::NONE );
+
 	pTexture_ = RsCore::pImpl()->createTexture( 
 		RsTextureDesc( 
 			Header_.Type_, 
-			RsResourceCreationFlags::STATIC,
-			RsResourceBindFlags::SHADER_RESOURCE,
+			CreationFlags,
+			BindFlags,
 			Header_.Format_,
 			Header_.Levels_,
 			Header_.Width_,

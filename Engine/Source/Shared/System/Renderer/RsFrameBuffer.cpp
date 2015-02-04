@@ -24,7 +24,6 @@ RsFrameBufferDesc::RsFrameBufferDesc( BcU32 NoofTargets ):
 {
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // setRenderTarget
 RsFrameBufferDesc& RsFrameBufferDesc::setRenderTarget( BcU32 Idx, RsTexture* Texture )

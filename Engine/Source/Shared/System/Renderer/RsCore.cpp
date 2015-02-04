@@ -242,7 +242,22 @@ void RsCore::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Resource deletion.
+void RsResourceDeleters::operator()( class RsBuffer* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
 void RsResourceDeleters::operator()( class RsContext* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
+void RsResourceDeleters::operator()( class RsFrameBuffer* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
+void RsResourceDeleters::operator()( class RsProgram* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );
 }
@@ -257,7 +272,7 @@ void RsResourceDeleters::operator()( class RsSamplerState* Resource )
 	RsCore::pImpl()->destroyResource( Resource );
 }
 
-void RsResourceDeleters::operator()( class RsBuffer* Resource )
+void RsResourceDeleters::operator()( class RsShader* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );
 }
@@ -267,17 +282,8 @@ void RsResourceDeleters::operator()( class RsTexture* Resource )
 	RsCore::pImpl()->destroyResource( Resource );
 }
 
+
 void RsResourceDeleters::operator()( class RsVertexDeclaration* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsShader* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsProgram* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );
 }

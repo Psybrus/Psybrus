@@ -20,13 +20,15 @@
 // ScnTextureHeader
 struct ScnTextureHeader
 {
-	BcU32							Width_;
-	BcU32							Height_;
-	BcU32							Depth_;
-	BcU32							Levels_;
-	RsTextureType					Type_;
-	RsTextureFormat				Format_;
-	BcBool							Editable_;
+	BcU32 Width_;
+	BcU32 Height_;
+	BcU32 Depth_;
+	BcU32 Levels_;
+	RsTextureType Type_;
+	RsTextureFormat Format_;
+	BcBool Editable_;
+	BcBool RenderTarget_;
+	BcBool DepthStencilTarget_;
 };
 
 #endif

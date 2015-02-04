@@ -238,6 +238,27 @@ RsSamplerStateUPtr RsCoreImpl::createSamplerState(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createFrameBuffer
+RsFrameBufferUPtr RsCoreImpl::createFrameBuffer( 
+	const RsFrameBufferDesc& Desc )
+{
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsFrameBuffer* pResource = new RsFrameBuffer( Context, Desc );
+
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createFrameBuffer( pResource );
+		} );
+	
+	// Return resource.
+	return RsFrameBufferUPtr( pResource );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
 RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
