@@ -90,24 +90,25 @@ void ScnViewComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "X_",					&ScnViewComponent::X_ ),
-		new ReField( "Y_",					&ScnViewComponent::Y_ ),
-		new ReField( "Width_",				&ScnViewComponent::Width_ ),
-		new ReField( "Height_",				&ScnViewComponent::Height_ ),
-		new ReField( "Near_",				&ScnViewComponent::Near_ ),
-		new ReField( "Far_",				&ScnViewComponent::Far_ ),
-		new ReField( "HorizontalFOV_",		&ScnViewComponent::HorizontalFOV_ ),
-		new ReField( "VerticalFOV_",		&ScnViewComponent::VerticalFOV_ ),
-		new ReField( "ClearColour_",		&ScnViewComponent::ClearColour_ ),
-		new ReField( "EnableClearColour_",	&ScnViewComponent::EnableClearColour_ ),
-		new ReField( "EnableClearDepth_",	&ScnViewComponent::EnableClearDepth_ ),
-		new ReField( "EnableClearStencil_",	&ScnViewComponent::EnableClearStencil_ ),
-		new ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
-		new ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
-		new ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
-		new ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
-		new ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
-		new ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
+		new ReField( "X_", &ScnViewComponent::X_ ),
+		new ReField( "Y_", &ScnViewComponent::Y_ ),
+		new ReField( "Width_", &ScnViewComponent::Width_ ),
+		new ReField( "Height_", &ScnViewComponent::Height_ ),
+		new ReField( "Near_", &ScnViewComponent::Near_ ),
+		new ReField( "Far_", &ScnViewComponent::Far_ ),
+		new ReField( "HorizontalFOV_", &ScnViewComponent::HorizontalFOV_ ),
+		new ReField( "VerticalFOV_", &ScnViewComponent::VerticalFOV_ ),
+		new ReField( "ClearColour_", &ScnViewComponent::ClearColour_ ),
+		new ReField( "EnableClearColour_", &ScnViewComponent::EnableClearColour_ ),
+		new ReField( "EnableClearDepth_", &ScnViewComponent::EnableClearDepth_ ),
+		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_ ),
+		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_ ),
+		new ReField( "Viewport_", &ScnViewComponent::Viewport_ ),
+		new ReField( "ViewUniformBlock_", &ScnViewComponent::ViewUniformBlock_ ),
+		new ReField( "ViewUniformBuffer_", &ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
+		new ReField( "FrustumPlanes_", &ScnViewComponent::FrustumPlanes_ ),
+		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_ ),
+		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_ ),
 	};
 	
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
@@ -208,6 +209,12 @@ void ScnViewComponent::create()
 	{
 		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
 
+		RsFrameBufferDesc FrameBufferDesc( 1 );
+
+		FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
+		FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
+
+		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
 	}
 }
 
@@ -218,6 +225,8 @@ void ScnViewComponent::destroy()
 {
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
 
+	FrameBuffer_.reset();
+	
 	ScnComponent::destroy();
 }
 

@@ -517,7 +517,10 @@ BcBool ScnTextureImport::import(
 		ScnTextureHeader Header = 
 		{ 
 			Width_, Height_, Depth_, Levels_,
-			TextureType_, Format_, BcTrue 
+			TextureType_, Format_, 
+			!RenderTarget_ && !DepthStencilTarget_, // If we're not a render target and not a depth stencil target, we're editable.
+			RenderTarget_,
+			DepthStencilTarget_
 		};
 		BcStream HeaderStream;
 		HeaderStream << Header;

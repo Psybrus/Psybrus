@@ -285,7 +285,9 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		}
 		*/
 
-		if( Header_.Editable_ == BcFalse )
+		if( Header_.Editable_ == BcFalse &&
+			Header_.RenderTarget_ == BcFalse &&
+			Header_.DepthStencilTarget_ == BcFalse )
 		{
 			requestChunk( ++ChunkIdx );
 		}
