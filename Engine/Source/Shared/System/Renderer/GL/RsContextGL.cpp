@@ -1130,15 +1130,15 @@ bool RsContextGL::createTexture(
 	GLuint UsageFlagsGL = 0;
 	
 	// Data update frequencies.
-	if( ( TextureDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
+	if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
 	{
 		UsageFlagsGL |= GL_STATIC_DRAW;
 	}
-	else if( ( TextureDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
+	else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
 	{
 		UsageFlagsGL |= GL_DYNAMIC_DRAW;
 	}
-	else if( ( TextureDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
+	else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
 	{
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
@@ -1674,6 +1674,12 @@ void RsContextGL::setTexture( BcU32 Sampler, RsTexture* pTexture, BcBool Force )
 
 	if( Sampler < MAX_TEXTURE_SLOTS )
 	{
+		if( pTexture != nullptr )
+		{
+			BcAssertMsg( ( pTexture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE,
+				"Texture can't be bound as a shader resource. Has it been created with RsResourceBindFlags::SHADER_RESOURCE?" );
+		}
+
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ Sampler ];
 		
 		const BcBool WasDirty = TextureStateValue.Dirty_;

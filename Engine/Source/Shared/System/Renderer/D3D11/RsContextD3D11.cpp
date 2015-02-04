@@ -816,6 +816,12 @@ void RsContextD3D11::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	if( pTexture != nullptr )
+	{
+		BcAssertMsg( ( pTexture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE,
+			"Texture can't be bound as a shader resource. Has it been created with RsResourceBindFlags::SHADER_RESOURCE?" );
+	}
+
 	// Find shader resource view.
 	ID3D11ShaderResourceView* ShaderResourceView = getD3DShaderResourceView( pTexture->getHandle< BcU32 >() );
 

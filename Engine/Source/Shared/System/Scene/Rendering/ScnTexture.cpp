@@ -142,6 +142,7 @@ void ScnTexture::create()
 		RsTextureDesc( 
 			Header_.Type_, 
 			RsResourceCreationFlags::STATIC,
+			RsResourceBindFlags::SHADER_RESOURCE,
 			Header_.Format_,
 			Header_.Levels_,
 			Header_.Width_,

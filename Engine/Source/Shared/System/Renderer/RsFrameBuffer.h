@@ -33,7 +33,7 @@ struct RsFrameBufferDesc
 	 */
 	RsFrameBufferDesc& setDepthStencilTarget( RsTexture* Texture );
 
-	std::vector< std::pair< class RsTexture* > > RenderTargets_;
+	std::vector< class RsTexture* > RenderTargets_;
 	RsTexture* DepthStencilTarget_;
 };
 
@@ -43,8 +43,8 @@ class RsFrameBuffer:
 	public RsResource
 {
 public:
-	RsTexture( RsContext* pContext, const RsFrameBufferDesc& Desc );
-	virtual ~RsTexture(){};
+	RsFrameBuffer( RsContext* pContext, const RsFrameBufferDesc& Desc );
+	virtual ~RsFrameBuffer(){};
 
 	/**
 	 * Get descriptor.
