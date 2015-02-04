@@ -281,14 +281,14 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcFalse, BcFalse, GL_RG32F, GL_RG, GL_FLOAT },			// RsTextureFormat::R32FG32F,
 	{ BcFalse, BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT },			// RsTextureFormat::R32FG32FB32F,
 	{ BcFalse, BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT },		// RsTextureFormat::R32FG32FB32FA32F,
-	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 },	// RsTextureFormat::DXT1,
+	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 }, // RsTextureFormat::DXT1,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
 	// Depth stencil.
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, 0, 0 },			// RsTextureFormat::D16,
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, 0, 0 },			// RsTextureFormat::D32,
-	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, 0, 0 },				// RsTextureFormat::D24S8,
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, 0, 0 },			 // RsTextureFormat::D32F,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
+	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32F,
 
 };
 
@@ -2282,12 +2282,6 @@ void RsContextGL::loadTexture(
 	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
 
 	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
-
-	if( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
-	{
-		BcPrintf( "RsContextGL: Trying to load a depth stencil texture. Read docos for this...\n" );
-		return;
-	}
 
 	if( FormatGL.Compressed_ == BcFalse )
 	{
