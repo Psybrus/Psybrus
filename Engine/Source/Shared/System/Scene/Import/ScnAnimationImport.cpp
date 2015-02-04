@@ -33,7 +33,11 @@ namespace
 	 */
 	void AssimpLogStream( const char* Message, char* User )
 	{
-		BcPrintf( "ASSIMP: %s", Message );
+		if( BcStrStr( Message, "Error" ) != nullptr ||
+			BcStrStr( Message, "Warning" ) != nullptr )
+		{
+			BcPrintf( "ASSIMP: %s", Message );
+		}
 	}
 
 	/**
@@ -185,6 +189,12 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 	if( Scene_ != nullptr )
 	{
+		BcPrintf( "Found %u animations:\n", Scene_->mNumAnimations );
+		for( int Idx = 0; Idx < Scene_->mNumAnimations; ++Idx )
+		{
+			BcPrintf( " - %s\n", Scene_->mAnimations[ Idx ]->mName.C_Str() );
+		}
+
 		// Build animated nodes list. Need this to calculate relative transforms later.
 		recursiveParseAnimatedNodes( Scene_->mRootNode, BcErrorCode );
 

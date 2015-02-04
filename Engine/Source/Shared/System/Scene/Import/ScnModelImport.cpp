@@ -33,7 +33,28 @@ namespace
 	 */
 	void AssimpLogStream( const char* Message, char* User )
 	{
-		BcPrintf( "ASSIMP: %s", Message );
+		if( BcStrStr( Message, "Error" ) != nullptr ||
+			BcStrStr( Message, "Warning" ) != nullptr ) 
+		{
+			BcPrintf( "ASSIMP: %s", Message );
+		}
+	}
+
+	/**
+	 * Determine material name.
+	 */
+	std::string AssimpGetMaterialName( aiMaterial* Material )
+	{
+		aiString AiName( "default" );
+		// Try material name.
+		if( Material->Get( AI_MATKEY_NAME, AiName ) == aiReturn_SUCCESS )
+		{
+		}
+		// Try diffuse texture.
+		else if( Material->Get( AI_MATKEY_TEXTURE( aiTextureType_DIFFUSE, 0 ), AiName ) == aiReturn_SUCCESS )
+		{
+		}
+		return AiName.C_Str();
 	}
 
 	/**
@@ -179,6 +200,12 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 	if( Scene_ != nullptr )
 	{
+		BcPrintf( "Found %u materials:\n", Scene_->mNumMaterials );
+		for( int Idx = 0; Idx < Scene_->mNumMaterials; ++Idx )
+		{
+			BcPrintf( " - %s\n", AssimpGetMaterialName( Scene_->mMaterials[ Idx ] ).c_str() );
+		}
+
 		size_t NodeIndex = 0;
 		size_t PrimitiveIndex = 0;
 		
@@ -474,16 +501,7 @@ void ScnModelImport::serialiseMesh(
 		std::string MaterialName;
 		aiMaterial* Material = Scene_->mMaterials[ Mesh->mMaterialIndex ];
 
-		aiString AiMaterialName;
-		if( Material->Get( "?mat.name", 0, 0, AiMaterialName ) == aiReturn_SUCCESS &&
-			std::string( AiMaterialName.C_Str() ) != "DefaultMaterial" )
-		{
-			MaterialName = AiMaterialName.C_Str();
-		}
-		else
-		{
-			MaterialName = "default";
-		}
+		MaterialName = AssimpGetMaterialName( Material );
 		
 		// Import material.
 		MeshData.MaterialRef_ = findMaterialMatch( MaterialName.c_str() );	
