@@ -191,6 +191,12 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 	{
 		RenderTarget_ = getPackage()->getCrossRefResource( RenderTargetValue.asUInt() );
 	}
+
+	const Json::Value& DepthStencilTargetValue = Object[ "depthstenciltarget" ];
+	if( RenderTargetValue.type() != Json::nullValue )
+	{
+		DepthStencilTarget_ = getPackage()->getCrossRefResource( DepthStencilTargetValue.asUInt() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -208,9 +214,10 @@ void ScnViewComponent::create()
 	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
 	{
 		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
+		BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
+		BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
 
 		RsFrameBufferDesc FrameBufferDesc( 1 );
-
 		FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
 		FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
 

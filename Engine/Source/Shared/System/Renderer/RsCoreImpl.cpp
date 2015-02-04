@@ -599,6 +599,8 @@ bool RsCoreImpl::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssert( Texture != nullptr );
+	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE );
+	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE );
 
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )

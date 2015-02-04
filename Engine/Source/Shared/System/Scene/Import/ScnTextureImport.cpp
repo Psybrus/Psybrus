@@ -116,6 +116,8 @@ ScnTextureImport::ScnTextureImport(
 	RsTextureFormat Format ):
 	CsResourceImporter( Name, Type ),
 	Format_( Format ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),

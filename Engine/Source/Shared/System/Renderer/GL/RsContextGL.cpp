@@ -1334,7 +1334,7 @@ bool RsContextGL::createShader(
 	++NoofShaders_;
 	
 	// Destroy if there is a failure.
-	GLenum Error = glGetError();
+	GLenum Error = RsGLCatchError();
 	if ( Error != GL_NO_ERROR )
 	{
 		BcPrintf( "RsShaderGL: Error has occured: %u\n", Error );
@@ -2282,6 +2282,12 @@ void RsContextGL::loadTexture(
 	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
 
 	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+
+	if( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		BcPrintf( "RsContextGL: Trying to load a depth stencil texture. Read docos for this...\n" );
+		return;
+	}
 
 	if( FormatGL.Compressed_ == BcFalse )
 	{

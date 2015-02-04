@@ -70,10 +70,10 @@ extern AGLContext GAGLContext;
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if 1
-inline void RsGLCatchError(){};
+#if !PSY_PRODUCTION && !PLATFORM_HTML5
+GLuint RsGLCatchError();
 #else
-void RsGLCatchError();
+inline GLuint RsGLCatchError(){ return 0; };
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
