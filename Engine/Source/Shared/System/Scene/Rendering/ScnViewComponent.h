@@ -18,8 +18,8 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
-#include "System/Scene/Rendering/ScnRenderTarget.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef

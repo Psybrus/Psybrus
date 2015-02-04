@@ -43,7 +43,6 @@ int main( int argc, char* argv[] )
 
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
-#include "ScnRenderTarget.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
 #include "ScnCanvas.h"
@@ -132,7 +131,6 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
 	CsCore::pImpl()->registerResource< ScnRenderTarget >();
-	CsCore::pImpl()->registerResource< ScnMaterial >();
 	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
 	CsCore::pImpl()->registerResource< ScnModel >();
 	CsCore::pImpl()->registerResource< ScnModelInstance >();
