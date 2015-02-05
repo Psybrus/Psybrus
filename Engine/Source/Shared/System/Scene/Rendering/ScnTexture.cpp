@@ -30,8 +30,8 @@ void ScnTexture::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pTexture_",			&ScnTexture::pTexture_,			bcRFF_TRANSIENT ),
-		new ReField( "Header_",				&ScnTexture::Header_ ),
+		new ReField( "pTexture_", &ScnTexture::pTexture_, bcRFF_TRANSIENT ),
+		new ReField( "Header_", &ScnTexture::Header_, bcRFF_POD ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnTexture, Super >( Fields );
@@ -50,8 +50,8 @@ void ScnTexture::StaticRegisterClass()
 void ScnTexture::initialise()
 {
 	// NULL internals.
-	pTexture_ = NULL;
-	pTextureData_ = NULL;
+	pTexture_ = nullptr;
+	pTextureData_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,8 +106,8 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Level
 	Super::initialise();
 
 	// NULL internals.
-	pTexture_ = NULL;
-	pTextureData_ = NULL;
+	pTexture_ = nullptr;
+	pTextureData_ = nullptr;
 
 	Header_.Width_ = Width;
 	Header_.Height_ = Height;
@@ -136,6 +136,24 @@ void ScnTexture::create()
 				Header_.Depth_, 
 				Header_.Levels_ ), 4096 );
 	}
+
+	// If a target, use negative width + height as multiples of resolution.
+	if( Header_.RenderTarget_ || Header_.DepthStencilTarget_ )
+	{
+		RsContext* Context = RsCore::pImpl()->getContext( nullptr );
+		if( Header_.Width_ < 0 )
+		{
+			Header_.Width_ = Context->getWidth() / -Header_.Width_;
+		}
+
+		if( Header_.Height_ < 0 )
+		{
+			Header_.Height_ = Context->getHeight() / -Header_.Height_;
+		}
+	}
+
+	BcAssert( Header_.Width_ >= 0 );
+	BcAssert( Header_.Height_ >= 0 );
 
 	// Create new one immediately.
 	auto CreationFlags = Header_.Editable_ ? RsResourceCreationFlags::DYNAMIC : RsResourceCreationFlags::STATIC;
@@ -205,13 +223,13 @@ void ScnTexture::create()
 void ScnTexture::destroy()
 {
 	RsCore::pImpl()->destroyResource( pTexture_ );
-	pTexture_ = NULL;
+	pTexture_ = nullptr;
 
 	// Free if it's user created.
 	if( Header_.Editable_ )
 	{
 		BcMemFree( pTextureData_ );
-		pTextureData_ = NULL;
+		pTextureData_ = nullptr;
 	}
 }
 

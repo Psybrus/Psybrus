@@ -105,10 +105,10 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_ ),
 		new ReField( "Viewport_", &ScnViewComponent::Viewport_ ),
 		new ReField( "ViewUniformBlock_", &ScnViewComponent::ViewUniformBlock_ ),
-		new ReField( "ViewUniformBuffer_", &ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
+		new ReField( "ViewUniformBuffer_", &ScnViewComponent::ViewUniformBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "FrustumPlanes_", &ScnViewComponent::FrustumPlanes_ ),
-		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_ ),
-		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_ ),
+		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_SHALLOW_COPY ),
+		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_SHALLOW_COPY ),
 	};
 	
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
@@ -124,6 +124,8 @@ void ScnViewComponent::initialise()
 	// NULL internals.
 	//pHeader_ = NULL;
 	ViewUniformBuffer_ = nullptr;
+	RenderTarget_ = nullptr;
+	DepthStencilTarget_ = nullptr;
 
 	setRenderMask( 1 );
 }

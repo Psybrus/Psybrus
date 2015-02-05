@@ -20,8 +20,8 @@
 // ScnTextureHeader
 struct ScnTextureHeader
 {
-	BcU32 Width_;
-	BcU32 Height_;
+	BcS32 Width_;
+	BcS32 Height_;
 	BcU32 Depth_;
 	BcU32 Levels_;
 	RsTextureType Type_;

@@ -113,7 +113,7 @@ ScnTextureImport::ScnTextureImport(
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-	RsTextureFormat Format ):
+		RsTextureFormat Format ):
 	CsResourceImporter( Name, Type ),
 	Format_( Format ),
 	RenderTarget_( BcFalse ),
@@ -485,8 +485,8 @@ BcBool ScnTextureImport::import(
 			// Write header.
 			ScnTextureHeader Header =
 			{
-				MipImages[ 0 ]->width(),
-				MipImages[ 0 ]->height(),
+				static_cast< BcS32 >( MipImages[ 0 ]->width() ),
+				static_cast< BcS32 >( MipImages[ 0 ]->height() ),
 				0,
 				(BcU32)MipImages.size(),
 				TextureType_,
@@ -518,8 +518,12 @@ BcBool ScnTextureImport::import(
 		// User created texture.
 		ScnTextureHeader Header = 
 		{ 
-			Width_, Height_, Depth_, Levels_,
-			TextureType_, Format_, 
+			static_cast< BcS32 >( Width_ ), 
+			static_cast< BcS32 >( Height_ ), 
+			Depth_, 
+			Levels_,
+			TextureType_, 
+			Format_, 
 			!RenderTarget_ && !DepthStencilTarget_, // If we're not a render target and not a depth stencil target, we're editable.
 			RenderTarget_,
 			DepthStencilTarget_
