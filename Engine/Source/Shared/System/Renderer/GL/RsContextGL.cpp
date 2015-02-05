@@ -920,6 +920,8 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	{
 		if( Texture != nullptr )
 		{
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
+				RsResourceBindFlags::NONE );
 			glFramebufferTexture( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
@@ -931,6 +933,8 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
 	{
+		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
+			RsResourceBindFlags::NONE );
 		glFramebufferTexture( 
 			GL_FRAMEBUFFER,
 			GL_DEPTH_STENCIL_ATTACHMENT,
