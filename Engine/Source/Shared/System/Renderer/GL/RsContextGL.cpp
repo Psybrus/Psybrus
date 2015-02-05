@@ -923,9 +923,10 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		{
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 				RsResourceBindFlags::NONE );
-			glFramebufferTexture( 
+			glFramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
+				GL_TEXTURE_2D,
 				Texture->getHandle< GLuint >(),
 				0 );
 		}
@@ -936,9 +937,10 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	{
 		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 			RsResourceBindFlags::NONE );
-		glFramebufferTexture( 
+		glFramebufferTexture2D( 
 			GL_FRAMEBUFFER,
 			GL_DEPTH_STENCIL_ATTACHMENT,
+			GL_TEXTURE_2D,
 			Desc.DepthStencilTarget_->getHandle< GLuint >(),
 			0 );
 	}

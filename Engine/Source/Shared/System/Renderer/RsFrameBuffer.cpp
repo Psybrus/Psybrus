@@ -30,7 +30,10 @@ RsFrameBufferDesc& RsFrameBufferDesc::setRenderTarget( BcU32 Idx, RsTexture* Tex
 {
 	BcAssertMsg( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE,
 		"Can't bind texture as render target, was it created with RsResourceBindFlags::RENDER_TARGET?" );
+	BcAssertMsg( Texture->getDesc().Type_ == RsTextureType::TEX2D, "Can only use TEX2D textures." );
+
 	RenderTargets_[ Idx ] = Texture;
+
 	return *this;
 }
 
