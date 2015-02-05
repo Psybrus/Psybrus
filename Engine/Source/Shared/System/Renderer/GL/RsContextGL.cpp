@@ -366,6 +366,14 @@ BcU32 RsContextGL::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getClient
+//virtual
+OsClient* RsContextGL::getClient() const
+{
+	return pClient_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
@@ -1092,10 +1100,10 @@ bool RsContextGL::updateBuffer(
 	RsBufferUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
 	BcAssertMsg( ( Offset + Size ) <= BufferDesc.SizeBytes_, "Typing to update buffer outside of range." );
+	BcAssertMsg( BufferDesc.Type_ != RsBufferType::UNKNOWN, "Buffer type is unknown" );
 
 	// Is buffer be in main memory?
 	BcBool BufferInMainMemory =
@@ -1795,6 +1803,7 @@ void RsContextGL::setProgram( class RsProgram* Program )
 void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( IndexBuffer->getDesc().Type_ == RsBufferType::INDEX, "Buffer must be index buffer." );
 
 	if( IndexBuffer_ != IndexBuffer )
 	{
@@ -1811,6 +1820,7 @@ void RsContextGL::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( VertexBuffer->getDesc().Type_ == RsBufferType::VERTEX, "Buffer must be vertex buffer." );
 
 	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||
 		VertexBuffers_[ StreamIdx ].Stride_ != Stride )
@@ -1829,6 +1839,7 @@ void RsContextGL::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( UniformBuffer->getDesc().Type_ == RsBufferType::UNIFORM, "Buffer must be uniform buffer." );
 
 	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
 	{
@@ -1843,6 +1854,7 @@ void RsContextGL::setUniformBuffer(
 void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	// TODO: Redundancy.
 	FrameBuffer_ = FrameBuffer;
 }
@@ -1975,6 +1987,7 @@ void RsContextGL::flushState()
 				{
 #if !PLATFORM_HTML5
 					glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, Buffer->getHandle< GLuint >(), 0, Buffer->getDesc().SizeBytes_ );
+					RsGLCatchError();
 #endif
 				}
 				else
@@ -2072,7 +2085,6 @@ void RsContextGL::flushState()
 					}
 				}
 				++BindingPoint;
-				RsGLCatchError();
 			}
 		}
 

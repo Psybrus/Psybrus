@@ -337,7 +337,7 @@ void ScnModelComponent::create()
 //virtual
 void ScnModelComponent::destroy()
 {
-
+	UploadFence_.wait();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -723,8 +723,9 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	// Wait for update to complete.
+	// Wait for update + upload to complete.
 	UpdateFence_.wait();
+	UploadFence_.wait();
 
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )

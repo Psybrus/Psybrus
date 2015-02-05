@@ -31,11 +31,13 @@ public:
 	RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent );
 	virtual ~RsContextD3D11();
 	
-	BcU32 getWidth() const;
-	BcU32 getHeight() const;
+	virtual BcU32 getWidth() const override;
+	virtual BcU32 getHeight() const override;
+	virtual OsClient* getClient() const override;
 
-	BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
-	RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const;
+	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
+	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
+
 	void presentBackBuffer();
 	void takeScreenshot();
 	void setViewport( class RsViewport& Viewport );

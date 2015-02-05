@@ -291,6 +291,14 @@ BcU32 RsContextD3D11::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getClient
+//virtual
+OsClient* RsContextD3D11::getClient() const
+{
+	return pClient_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextD3D11::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const

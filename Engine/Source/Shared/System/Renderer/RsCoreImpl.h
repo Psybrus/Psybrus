@@ -144,7 +144,9 @@ protected:
 	typedef TContextMap::iterator TContextMapIterator;
 
 	TContextMap ContextMap_;
-		
+
+	std::vector< std::function< void() > > ResourceDeletionList_;
+	
 };
 
 #endif

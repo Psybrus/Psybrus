@@ -54,6 +54,11 @@ public:
 	 */
 	virtual BcU32 getHeight() const = 0;
 
+	/**
+	 * Get client.
+	 */
+	virtual OsClient* getClient() const = 0;
+
 	/** 
 	 * Is shader code type supported?
 	 */
