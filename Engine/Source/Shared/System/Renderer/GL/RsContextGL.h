@@ -189,6 +189,8 @@ private:
 	RsRenderStateDesc BoundRenderStateDesc_;
 	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
 
+	// Frame buffer.
+	class RsFrameBuffer* FrameBuffer_;
 
 	// Texture binding.
 	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;

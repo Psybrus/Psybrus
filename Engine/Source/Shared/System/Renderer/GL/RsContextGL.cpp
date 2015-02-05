@@ -313,6 +313,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	pClient_( pClient ),
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode ),
+	FrameBuffer_( nullptr ),
 	GlobalVAO_( 0 ),
 	ProgramDirty_( BcTrue ),
 	BindingsDirty_( BcTrue ),
@@ -1840,7 +1841,8 @@ void RsContextGL::setUniformBuffer(
 void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
+	// TODO: Redundancy.
+	FrameBuffer_ = FrameBuffer;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2149,6 +2151,16 @@ void RsContextGL::flushState()
 
 		ProgramDirty_ = BcFalse;
 		BindingsDirty_ = BcFalse;
+	}
+
+	// TODO: Redundant state.
+	if( FrameBuffer_ != nullptr )
+	{
+		glBindFramebuffer( GL_FRAMEBUFFER, FrameBuffer_->getHandle< GLuint >() );
+	}
+	else
+	{
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
 	RsGLCatchError();
