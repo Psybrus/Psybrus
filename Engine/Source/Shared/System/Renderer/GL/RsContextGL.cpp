@@ -13,14 +13,15 @@
 
 #include "System/Renderer/GL/RsContextGL.h"
 
-#include "System/Renderer/RsShader.h"
-#include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsFrameBuffer.h"
+#include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
-
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsVertexDeclaration.h"
+
 #include "System/Renderer/RsViewport.h"
 
 #include "System/Os/OsClient.h"
@@ -899,6 +900,51 @@ bool RsContextGL::destroySamplerState(
 bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	const auto& Desc = FrameBuffer->getDesc();
+	BcAssertMsg( Desc.RenderTargets_.size() < GL_MAX_COLOR_ATTACHMENTS, "Too many targets" );
+
+	// Generate FBO.
+	GLuint Handle;
+	glGenFramebuffers( 1, &Handle );
+	FrameBuffer->setHandle( Handle );
+
+	RsGLCatchError();
+
+	// Bind.
+	glBindFramebuffer( GL_FRAMEBUFFER, Handle );
+
+	// Attach colour targets.
+	BcU32 NoofAttachments = 0;
+	for( auto Texture : Desc.RenderTargets_ )
+	{
+		if( Texture != nullptr )
+		{
+			glFramebufferTexture( 
+				GL_FRAMEBUFFER, 
+				GL_COLOR_ATTACHMENT0 + NoofAttachments,
+				Texture->getHandle< GLuint >(),
+				0 );
+		}
+	}
+
+	// Attach depth stencil target.
+	if( Desc.DepthStencilTarget_ != nullptr )
+	{
+		glFramebufferTexture( 
+			GL_FRAMEBUFFER,
+			GL_DEPTH_STENCIL_ATTACHMENT,
+			Desc.DepthStencilTarget_->getHandle< GLuint >(),
+			0 );
+	}
+
+	// Check status.
+	auto Status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
+	BcAssertMsg( Status == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
+
+	// Unbind.
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
 	return true;
 }
 
@@ -907,6 +953,18 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 bool RsContextGL::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	GLuint Handle = FrameBuffer->getHandle< GLuint >();
+
+	if( Handle != 0 )
+	{
+		glDeleteFramebuffers( 1, &Handle );
+		FrameBuffer->setHandle< GLuint >( 0 );
+
+		RsGLCatchError();
+		return true;
+	}
+
 	return true;
 }
 
