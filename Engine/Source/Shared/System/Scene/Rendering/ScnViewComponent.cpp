@@ -446,6 +446,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	// Setup render node to set the frame buffer, viewport, and clear colour.
 	// TODO: Pass this in with the draw commands down the line.
 	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
+	pRenderNode->Sort_ = Sort;
 	pRenderNode->FrameBuffer_ = FrameBuffer_.get();
 	pRenderNode->Viewport_ = Viewport_;
 	pRenderNode->ClearColour_ = ClearColour_;

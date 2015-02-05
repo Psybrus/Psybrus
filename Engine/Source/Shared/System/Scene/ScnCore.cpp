@@ -177,13 +177,18 @@ void ScnCore::update()
 		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 
 		// Iterate over all view components.
+		RsRenderSort Sort( 0 );
+		BcAssert( ViewComponentList_.size() < RS_SORT_VIEWPORT_MAX );
 		for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
 		{
 			ScnViewComponentRef ViewComponent( *It );
 			
-			ViewComponent->bind( pFrame, RsRenderSort( 0 ) );
+			ViewComponent->bind( pFrame, Sort );
 
-			ScnRenderingVisitor Visitor( ViewComponent, pFrame );
+			ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
+
+			// Increment viewport.
+			Sort.Viewport_++;
 		}
 
 		// Queue frame for render.
