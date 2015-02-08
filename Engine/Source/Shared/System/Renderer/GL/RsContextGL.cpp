@@ -943,11 +943,28 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
 	{
+		const auto& DSDesc = Desc.DepthStencilTarget_->getDesc();
+		auto Attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+		switch ( DSDesc.Format_ )
+		{
+		case RsTextureFormat::D16:
+		case RsTextureFormat::D32:
+		case RsTextureFormat::D32F:
+			Attachment = GL_DEPTH_ATTACHMENT;
+			break;
+		case RsTextureFormat::D24S8:
+			Attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+			break;
+		default:
+			BcAssertMsg( false, "Invalid depth stencil format." );
+			break;
+		}
+
 		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 			RsResourceBindFlags::NONE );
 		glFramebufferTexture2D( 
 			GL_FRAMEBUFFER,
-			GL_DEPTH_STENCIL_ATTACHMENT,
+			Attachment,
 			GL_TEXTURE_2D,
 			Desc.DepthStencilTarget_->getHandle< GLuint >(),
 			0 );
@@ -1126,6 +1143,7 @@ bool RsContextGL::updateBuffer(
 			//       The else is  very heavy handed way to force orphaning
 			//       so we don't need to mess around with too much
 			//       synchronisation. 
+			//       NOTE: This is just a bug with the nouveau drivers.
 #if 0 && !PLATFORM_HTML5
 			// Get access flags for GL.
 			GLbitfield AccessFlagsGL =
