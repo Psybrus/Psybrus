@@ -59,7 +59,11 @@ public:
 	
 	void								setRenderMask( BcU32 RenderMask );
 	const BcU32							getRenderMask() const;
-	
+
+protected:
+	eEvtReturn onClientResize( EvtID ID, const struct OsEventClientResize& Event );
+	void recreateFrameBuffer();
+
 protected:
 
 	// Viewport. Values relative to the size of the client being rendered into.

@@ -213,18 +213,11 @@ void ScnViewComponent::create()
 			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ) );
 
-	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
-	{
-		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
-		BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
-		BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
+	OsEventClientResize::Delegate OnClientResize = 
+		OsEventClientResize::Delegate::bind< ScnViewComponent, &ScnViewComponent::onClientResize >( this );
+	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, OnClientResize );
 
-		RsFrameBufferDesc FrameBufferDesc( 1 );
-		FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
-		FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
-
-		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
-	}
+	recreateFrameBuffer();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -232,6 +225,7 @@ void ScnViewComponent::create()
 //virtual
 void ScnViewComponent::destroy()
 {
+	OsCore::pImpl()->unsubscribeAll( this );
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
 
 	FrameBuffer_.reset();
@@ -469,4 +463,30 @@ void ScnViewComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnViewComponent::getRenderMask() const
 {
 	return RenderMask_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onClientResize
+eEvtReturn ScnViewComponent::onClientResize( EvtID ID, const OsEventClientResize& Event )
+{
+	recreateFrameBuffer();
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// recreate
+void ScnViewComponent::recreateFrameBuffer()
+{
+	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
+	{
+		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
+		BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
+		BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
+
+		RsFrameBufferDesc FrameBufferDesc( 1 );
+		FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
+		FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
+
+		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
+	}
 }
