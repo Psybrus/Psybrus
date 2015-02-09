@@ -114,15 +114,21 @@ void RsCoreImpl::close()
 {
 	BcAssert( BcIsGameThread() );
 
+	// Flush out all resources.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ this ]
 		{
-
+			for( auto ResourceDeletionFunc : ResourceDeletionList_ )
+			{
+				ResourceDeletionFunc();
+			}
+			ResourceDeletionList_.clear();
 		} );
 
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
+	//
 	destroyContext( nullptr );
 }
 
@@ -181,8 +187,20 @@ void RsCoreImpl::destroyContext( OsClient* pClient )
 
 	if( It != ContextMap_.end() )
 	{
-		// Destory resource.
-		destroyResource( It->second );
+		auto* pResource = It->second;
+
+		// Pre destroy.
+		pResource->preDestroy();
+
+		SysKernel::pImpl()->pushFunctionJob(
+			RsCore::JOB_QUEUE_ID,
+			[ pResource ]()
+			{
+				pResource->destroy();
+				delete pResource;
+			} );
+
+		SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 		// If we're destroying the default context, NULL it.
 		if( ContextMap_[ nullptr ] == It->second )
