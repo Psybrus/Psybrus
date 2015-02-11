@@ -15,6 +15,8 @@
 
 #include "Base/BcDebug.h"
 
+#include <chrono>
+
 //////////////////////////////////////////////////////////////////////////
 // Platform includes.
 #if PLATFORM_WINDOWS
@@ -24,10 +26,23 @@
 #include <stdarg.h>
 
 //////////////////////////////////////////////////////////////////////////
+// Colours.
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+//////////////////////////////////////////////////////////////////////////
+// Defines
+#define DEFAULT_CATAGORY "LOG"
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 BcLogImpl::BcLogImpl()
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,8 +57,6 @@ BcLogImpl::~BcLogImpl()
 // write
 void BcLogImpl::write( const BcChar* pText, ... )
 {
-	std::lock_guard< std::mutex > Lock( Lock_ );
-
 	va_list ArgList;
 	va_start( ArgList, pText );
 	privateWrite( pText, ArgList );
@@ -51,33 +64,19 @@ void BcLogImpl::write( const BcChar* pText, ... )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// write
-void BcLogImpl::write( BcU32 Catagory, const BcChar* pText, ... )
-{
-	if( getCatagorySuppression( Catagory ) == BcFalse )
-	{
-		std::lock_guard< std::mutex > Lock( Lock_ );
-		va_list ArgList;
-		va_start( ArgList, pText );
-		privateWrite( pText, ArgList );
-		va_end( ArgList );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // flush
 void BcLogImpl::flush()
 {
-	std::lock_guard< std::mutex > Lock( Lock_ );
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
 	internalFlush();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setCatagorySuppression
-void BcLogImpl::setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed )
+void BcLogImpl::setCatagorySuppression( BcName Catagory, BcBool IsSuppressed )
 {
-	std::lock_guard< std::mutex > Lock( Lock_ );
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
 	if( IsSuppressed == BcTrue )
 	{
@@ -95,9 +94,9 @@ void BcLogImpl::setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed )
 
 //////////////////////////////////////////////////////////////////////////
 // getCatagorySuppression
-BcBool BcLogImpl::getCatagorySuppression( BcU32 Catagory ) const
+BcBool BcLogImpl::getCatagorySuppression( BcName Catagory ) const
 {
-	std::lock_guard< std::mutex > Lock( Lock_ );
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
 	TSuppressionMap::const_iterator It( SuppressedMap_.find( Catagory ) );
 
@@ -109,6 +108,44 @@ BcBool BcLogImpl::getCatagorySuppression( BcU32 Catagory ) const
 	return BcFalse;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// setCatagory
+void BcLogImpl::setCatagory( BcName Catagory )
+{
+
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	auto ThreadId = BcCurrentThreadId();
+	Catagories_[ ThreadId ] = Catagory;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCatagory
+BcName BcLogImpl::getCatagory()
+{
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	auto ThreadId = BcCurrentThreadId();
+	if( Catagories_.find( ThreadId ) == Catagories_.end() )
+	{
+		Catagories_[ ThreadId ] = DEFAULT_CATAGORY;
+	}
+	return Catagories_[ ThreadId ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCatagorySuppression
+void BcLogImpl::increaseIndent()
+{
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	IndentLevel_[ BcCurrentThreadId() ]++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCatagorySuppression
+void BcLogImpl::decreaseIndent()
+{
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	IndentLevel_[ BcCurrentThreadId() ]--;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // internalWrite
@@ -120,9 +157,31 @@ void BcLogImpl::internalWrite( const BcChar* pText )
 	::OutputDebugStringA( pText );
 #endif
 
-	// Generic case.
-	printf( "%s", pText );
+	// Do some colour markup for important information.
+	if( BcStrStr( pText, "ERROR:" ) || BcStrStr( pText, "error:" ) || BcStrStr( pText, "Error," ) ||
+		BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) )
+	{
+		printf( ANSI_COLOR_RED "%s", pText );
+	}
+	else if( BcStrStr( pText, "SUCCESS:" ) || BcStrStr( pText, "SUCCEEDED:" ) )
+	{
+		printf( ANSI_COLOR_GREEN "%s", pText );
+	}
+	else if( BcStrStr( pText, "WARNING:" ) || BcStrStr( pText, "warning:" ) || BcStrStr( pText, "Warning," ) )
+	{
+		printf( ANSI_COLOR_YELLOW "%s", pText );
+	}
+	else if( BcStrStr( pText, "INFO:" ) || BcStrStr( pText, "info:" ) ||
+		BcStrStr( pText, "NOTE:" ) || BcStrStr( pText, "note:" ) )
+	{
+		printf( ANSI_COLOR_CYAN "%s", pText );
+	}
+	else
+	{
+		printf( ANSI_COLOR_RESET "%s", pText );
+	}
 
+	// Generic case.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,24 +196,51 @@ void BcLogImpl::internalFlush()
 // privateWrite
 void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 {
-#if COMPILER_MSVC
-	vsprintf_s( TextBuffer_, pText, Args );
-#else
-    vsprintf( TextBuffer_, pText, Args );
-#endif
-	if ( LogBuffer.size() == 30)
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	static BcChar TextBuffer[ 1024 * 64 ];
+	static BcChar OutputBuffer[ 1024 * 64 ];
+	auto ThreadId = BcCurrentThreadId();
+
+	BcName Catagory = Catagories_[ ThreadId ];
+
+	if( getCatagorySuppression( Catagory ) == BcFalse )
 	{
-		LogBuffer.pop_front();
+	#if COMPILER_MSVC
+		vsprintf_s( TextBuffer, pText, Args );
+	#else
+		vsprintf( TextBuffer, pText, Args );
+	#endif
+
+		// Grab indent.
+		std::string Indent( IndentLevel_[ ThreadId ], '\t' );
+
+		// Replace newlines with spaces.
+		std::replace( TextBuffer, TextBuffer + BcStrLength( TextBuffer ), '\n', ' ' );
+
+
+		// Format for output.
+		BcSPrintf( OutputBuffer, "[%s] %s %s\n", 
+			(*Catagory).c_str(),
+			Indent.c_str(),
+			TextBuffer );
+
+		// Store in internal buffer.
+		if ( LogBuffer.size() == 30 )
+		{
+			LogBuffer.pop_front();
+		}
+		LogBuffer.push_back( OutputBuffer );
+
+		// Write, platform/target specific impl goes here.
+		internalWrite( OutputBuffer );
 	}
-	LogBuffer.push_back( TextBuffer_ );
-	internalWrite( TextBuffer_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getLogData
 std::vector< std::string > BcLogImpl::getLogData()
 {
-	std::lock_guard< std::mutex > Lock( Lock_ );
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	
 	std::vector< std::string > Data;
 	for(const auto& U : LogBuffer)

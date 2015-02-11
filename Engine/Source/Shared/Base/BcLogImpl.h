@@ -34,32 +34,48 @@ public:
 	/**
 	 * Write to log.
 	 */
-	void write( const BcChar* pText, ... );
+	void write( const BcChar* pText, ... ) override;
 	
-	/**
-	 * Write to log.
-	 */
-	void write( BcU32 Catagory, const BcChar* pText, ... );
-
 	/**
 	 * Flush log.
 	 */
-	void flush();
+	void flush() override;
 
 	/**
 	 * Set catagory suppression.
 	 */
-	void setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed );
+	void setCatagorySuppression( BcName Catagory, BcBool IsSuppressed ) override;
 
 	/**
 	 * Get catagory suppression.
 	 */
-	BcBool getCatagorySuppression( BcU32 Catagory ) const;
+	BcBool getCatagorySuppression( BcName Catagory ) const override;
 	
+	/**
+	 * Set default catagory.
+	 */
+	void setCatagory( BcName Catagory ) override;
+
+	/**
+	 * Get default catagory.
+	 */
+	BcName getCatagory() override;
+
+	/**
+	 * Increase indent.
+	 */
+	void increaseIndent() override;
+
+	/**
+	 * Decreate indent.
+	 */
+	void decreaseIndent() override;
+
 	/*
 	 * Get log data
 	 */
 	std::vector<std::string> getLogData();
+
 protected:
 	/**
 	 * Overridable internal for all writes.
@@ -78,12 +94,15 @@ private:
 	void privateWrite( const BcChar* pText, va_list Args );
 
 private:
-	typedef std::map< BcU32, BcBool > TSuppressionMap;
+	typedef std::map< BcName, BcBool > TSuppressionMap;
+	typedef std::map< BcThreadId, int > TIndentLevels;
+	typedef std::map< BcThreadId, BcName > TCatagories;
 
-	mutable std::mutex Lock_;
+	mutable std::recursive_mutex Lock_;
+	TIndentLevels IndentLevel_;
+	TCatagories Catagories_;
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
-	BcChar TextBuffer_[ 1024 * 64 ];
 
 	std::list<std::string> LogBuffer;
 
