@@ -66,6 +66,7 @@ static DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
 	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
 	DXGI_FORMAT_D16_UNORM,				// RsTextureFormat::D16,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D24,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32F,
