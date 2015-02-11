@@ -91,9 +91,10 @@ BcBool CsPackageImporter::import( const BcName& Name )
 {
 	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
+	BcLogScopedCatagory LogCatagory( "Import" );
+	BcPrintf( "Importing %s...\n", (*Path).c_str() );
 
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "CsPackageImporter: Importing %s...\n", (*Path).c_str() );
+	BcLogScopedIndent LogIndent;
 
 	BcTimer TotalTimer;
 	TotalTimer.mark();
@@ -151,17 +152,18 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			ResourceTimer.mark();
 			try
 			{
+				BcLogScopedIndent LogIndent;
 				beginImport();
 
 				if( importResource( 
 					std::move( ResourceEntry.Importer_ ), 
 					ResourceEntry.Resource_ ) )
 				{
-					BcPrintf( " - - SUCCEEDED. Time: %.2f seconds.\n", ResourceTimer.time() );
+					BcPrintf( "SUCCEEDED: Time: %.2f seconds.\n", ResourceTimer.time() );
 				}
 				else
 				{
-					BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
+					BcPrintf( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
  					BcBreakpoint;
 					endImport();
 					return BcFalse;
@@ -171,8 +173,8 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			}
 			catch( CsImportException ImportException )
 			{
-				BcPrintf( " - - FAILED. Time: %.2f seconds.\n", ResourceTimer.time() );
-				BcPrintf( "CsPackageImporter: Import error in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
+				BcPrintf( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
+				BcPrintf( "ERROR: in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
 				endImport();
 				return BcFalse;
 			}
@@ -184,7 +186,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 		if( SaveSuccess )
 		{
-			BcPrintf( " SUCCEEDED. Time: %.2f seconds.\n", TotalTimer.time() );
+			BcPrintf( "SUCCEEDED: Time: %.2f seconds.\n", TotalTimer.time() );
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
@@ -195,7 +197,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		}
 		else
 		{
-			BcPrintf( " FAILED. Time: %.2f seconds.\n", TotalTimer.time() );
+			BcPrintf( "FAILED: Time: %.2f seconds.\n", TotalTimer.time() );
 			BcBreakpoint;
 		}
 
@@ -351,7 +353,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 		}
 		else
 		{
-			BcPrintf( "CsPackageImporter: Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
+			BcPrintf( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
  			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
 		
@@ -374,18 +376,18 @@ BcBool CsPackageImporter::importResource(
 	// Catch name being missing.
 	if( Importer->getResourceName().empty() )
 	{
-		BcPrintf( "- importResource: Name not specified for resource.\n" );
+		BcPrintf( "ERROR: Name not specified for resource.\n" );
 		return BcFalse;
 	}
 
 	// Catch type being missing.
 	if( Importer->getResourceType().empty() )
 	{
-		BcPrintf( "- importResource: Type not specified for resource.\n" );
+		BcPrintf( "ERROR: Type not specified for resource.\n" );
 		return BcFalse;
 	}
 	
-	BcPrintf( " - importResource: Processing \"%s\" of type \"%s\"\n", 
+	BcPrintf( "INFO: Processing \"%s\" of type \"%s\"\n", 
 		Importer->getResourceName().c_str(), Importer->getResourceType().c_str() );
 	
 	// Get first chunk used by resource.
@@ -397,6 +399,7 @@ BcBool CsPackageImporter::importResource(
 	//       pipeline, so shouldn't need these adhoc try/catch blocks.
 	try
 	{
+		BcLogScopedIndent LogIndent;
 		SuccessfulImport = Importer->import( Resource );
 
 		// Check for error + critical messages.
@@ -405,7 +408,7 @@ BcBool CsPackageImporter::importResource(
 	}
 	catch( CsImportException ImportException )
 	{
-		BcPrintf( "EXCEPTION: %s", ImportException.what() );
+		BcPrintf( "ERROR: %s", ImportException.what() );
 	}
 	
 	// Handle success.
@@ -452,17 +455,18 @@ void CsPackageImporter::endImport()
 // addImport
 BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossRef )
 {
+	BcLogScopedIndent LogIndent;
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	// Validate it's an object.
-	BcAssertMsg( Resource.type() == Json::objectValue, "CsPackageImporter: Can't import a value that isn't an object." );
+	BcAssertMsg( Resource.type() == Json::objectValue, "Can't import a value that isn't an object." );
 
 	// Validate name and type.
 	Json::Value Name( Resource.get( "name", Json::Value( Json::nullValue ) ) );
 	Json::Value Type( Resource.get( "type", Json::Value( Json::nullValue ) ) );
-	BcAssertMsg( Name.type() == Json::stringValue, "CsPackageImporter: Name not specified for resource.\n" );
-	BcAssertMsg( Type.type() == Json::stringValue, "CsPackageImporter: Type not specified for resource.\n" )
+	BcAssertMsg( Name.type() == Json::stringValue, "Name not specified for resource.\n" );
+	BcAssertMsg( Type.type() == Json::stringValue, "Type not specified for resource.\n" )
 
 	// Check if there is a resource with matching name already, as long as it isn't a cross ref.
 	if( !IsCrossRef )
@@ -805,7 +809,7 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 			// If we find it, replace string reference with a cross ref index.
 			if( RefIndex != BcErrorCode )
 			{
-				BcPrintf("- Adding crossref %u: %s\n", RefIndex, Root.asCString() );
+				BcPrintf("Adding crossref %u: %s\n", RefIndex, Root.asCString() );
 				Root = Json::Value( RefIndex );
 			}
 		}

@@ -97,6 +97,9 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	// Setup basic log catagory.
+	BcLogScopedCatagory LogCatagory( "Main" );
+
 	// Initialise RNG.
 #if !PSY_DEBUG
 	BcRandom::Global = BcRandom( 1337 ); // TODO LINUX
