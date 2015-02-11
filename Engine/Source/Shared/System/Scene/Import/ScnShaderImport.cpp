@@ -26,7 +26,7 @@
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
-#define DEBUG_FILE_WRITE_OUT_FILES		0
+#define DEBUG_FILE_WRITE_OUT_FILES		1
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
@@ -203,6 +203,7 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
+		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "CodeTypes_", &ScnShaderImport::CodeTypes_, bcRFF_IMPORTER ),
 		new ReField( "BackendTypes_", &ScnShaderImport::BackendTypes_, bcRFF_IMPORTER ),
 	};
@@ -506,17 +507,30 @@ void ScnShaderImport::generatePermutations(
 	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
 	{
 		auto PermutationEntry = PermutationGroup.Entries_[ Idx ];
-		auto NewPermutation = Permutation; 
-		NewPermutation.Flags_ |= PermutationEntry.Flag_;
-		NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
-
-		if( GroupIdx < ( NoofGroups - 1 ) )
+		bool ShouldRecurse = BcTrue;
+		for( auto ExcludePermutation : ExcludePermutations_ )
 		{
-			generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
+			if( PermutationEntry.Flag_ == ExcludePermutation )
+			{
+				ShouldRecurse = BcFalse;
+				break;
+			}
 		}
-		else
+
+		if( ShouldRecurse )
 		{
-			Permutations_.push_back( NewPermutation );
+			auto NewPermutation = Permutation; 
+			NewPermutation.Flags_ |= PermutationEntry.Flag_;
+			NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
+
+			if( GroupIdx < ( NoofGroups - 1 ) )
+			{
+				generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
+			}
+			else
+			{
+				Permutations_.push_back( NewPermutation );
+			}
 		}
 	}
 #endif
