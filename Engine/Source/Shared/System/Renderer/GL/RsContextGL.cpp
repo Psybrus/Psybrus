@@ -2231,7 +2231,7 @@ void RsContextGL::clear(
 	// TODO: Look into this? It causes an invalid operation.
 	if( Version_.Type_ != RsOpenGLType::ES )
 	{
-		glClearDepth( 1.0f );
+		glClearDepthf( 1.0f );
 	}
 
 	glClearStencil( 0 );
@@ -2288,7 +2288,6 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
-	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
 	RsGLCatchError();
 }
 
