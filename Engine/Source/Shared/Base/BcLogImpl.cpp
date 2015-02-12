@@ -43,6 +43,7 @@
 // Ctor
 BcLogImpl::BcLogImpl()
 {
+	Timer_.mark();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -219,7 +220,8 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 
 
 		// Format for output.
-		BcSPrintf( OutputBuffer, "[%s] %s %s\n", 
+		BcSPrintf( OutputBuffer, "[%5.5f][%s] %s %s\n", 
+			Timer_.time(),
 			(*Category).c_str(),
 			Indent.c_str(),
 			TextBuffer );

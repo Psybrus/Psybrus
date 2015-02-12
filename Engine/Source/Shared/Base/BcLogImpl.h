@@ -16,6 +16,7 @@
 
 #include "Base/BcLog.h"
 #include "Base/BcGlobal.h"
+#include "Base/BcTimer.h"
 #include <mutex>
 #include <string>
 #include <list>
@@ -103,7 +104,7 @@ private:
 	TCatagories Catagories_;
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
-
+	BcTimer Timer_;
 	std::list<std::string> LogBuffer;
 
 };

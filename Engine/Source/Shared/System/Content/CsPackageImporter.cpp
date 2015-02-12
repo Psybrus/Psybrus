@@ -91,10 +91,10 @@ BcBool CsPackageImporter::import( const BcName& Name )
 {
 	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
-	BcLogScopedCategory LogCategory( "Import" );
+	PSY_LOGSCOPEDCATEGORY( "Import" );
 	BcPrintf( "Importing %s...\n", (*Path).c_str() );
 
-	BcLogScopedIndent LogIndent;
+	PSY_LOGSCOPEDINDENT;
 
 	BcTimer TotalTimer;
 	TotalTimer.mark();
@@ -152,7 +152,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			ResourceTimer.mark();
 			try
 			{
-				BcLogScopedIndent LogIndent;
+				PSY_LOGSCOPEDINDENT;
 				beginImport();
 
 				if( importResource( 
@@ -399,7 +399,7 @@ BcBool CsPackageImporter::importResource(
 	//       pipeline, so shouldn't need these adhoc try/catch blocks.
 	try
 	{
-		BcLogScopedIndent LogIndent;
+		PSY_LOGSCOPEDINDENT;
 		SuccessfulImport = Importer->import( Resource );
 
 		// Check for error + critical messages.
@@ -455,7 +455,8 @@ void CsPackageImporter::endImport()
 // addImport
 BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossRef )
 {
-	BcLogScopedIndent LogIndent;
+	PSY_LOGSCOPEDINDENT;
+
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	BcAssert( BuildingBeginCount_ > 0 );
 

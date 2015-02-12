@@ -127,4 +127,17 @@ public:
 	}
 };
 
+//////////////////////////////////////////////////////////////////////////
+// Macros
+#if !PSY_PRODUCTION
+#  define PSY_LOGSCOPEDCATEGORY( _NAME ) \
+	BcLogScopedCategory _LogScopedCategory_##__LINE__( BcName( _NAME ) );
+
+#  define PSY_LOGSCOPEDINDENT \
+	BcLogScopedIndent _LogScopedIndent_##__LINE__;
+#else
+#  define PSY_LOGSCOPEDCATEGORY( _NAME )
+#  define PSY_LOGSCOPEDINDENT
+#endif
+
 #endif
