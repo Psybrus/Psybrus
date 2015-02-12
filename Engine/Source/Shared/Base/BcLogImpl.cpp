@@ -37,7 +37,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Defines
-#define DEFAULT_CATAGORY "LOG"
+#define DEFAULT_Category "LOG"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -73,18 +73,18 @@ void BcLogImpl::flush()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setCatagorySuppression
-void BcLogImpl::setCatagorySuppression( BcName Catagory, BcBool IsSuppressed )
+// setCategorySuppression
+void BcLogImpl::setCategorySuppression( BcName Category, BcBool IsSuppressed )
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
 	if( IsSuppressed == BcTrue )
 	{
-		SuppressedMap_[ Catagory ] = IsSuppressed;
+		SuppressedMap_[ Category ] = IsSuppressed;
 	}
 	else
 	{
-		TSuppressionMap::iterator It( SuppressedMap_.find( Catagory ) );
+		TSuppressionMap::iterator It( SuppressedMap_.find( Category ) );
 		if( It != SuppressedMap_.end() )
 		{
 			SuppressedMap_.erase( It );
@@ -93,12 +93,12 @@ void BcLogImpl::setCatagorySuppression( BcName Catagory, BcBool IsSuppressed )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getCatagorySuppression
-BcBool BcLogImpl::getCatagorySuppression( BcName Catagory ) const
+// getCategorySuppression
+BcBool BcLogImpl::getCategorySuppression( BcName Category ) const
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
-	TSuppressionMap::const_iterator It( SuppressedMap_.find( Catagory ) );
+	TSuppressionMap::const_iterator It( SuppressedMap_.find( Category ) );
 
 	if( It != SuppressedMap_.end() )
 	{
@@ -109,30 +109,30 @@ BcBool BcLogImpl::getCatagorySuppression( BcName Catagory ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setCatagory
-void BcLogImpl::setCatagory( BcName Catagory )
+// setCategory
+void BcLogImpl::setCategory( BcName Category )
 {
 
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
-	Catagories_[ ThreadId ] = Catagory;
+	Catagories_[ ThreadId ] = Category;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getCatagory
-BcName BcLogImpl::getCatagory()
+// getCategory
+BcName BcLogImpl::getCategory()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
 	if( Catagories_.find( ThreadId ) == Catagories_.end() )
 	{
-		Catagories_[ ThreadId ] = DEFAULT_CATAGORY;
+		Catagories_[ ThreadId ] = DEFAULT_Category;
 	}
 	return Catagories_[ ThreadId ];
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getCatagorySuppression
+// getCategorySuppression
 void BcLogImpl::increaseIndent()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
@@ -140,7 +140,7 @@ void BcLogImpl::increaseIndent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getCatagorySuppression
+// getCategorySuppression
 void BcLogImpl::decreaseIndent()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
@@ -201,9 +201,9 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 	static BcChar OutputBuffer[ 1024 * 64 ];
 	auto ThreadId = BcCurrentThreadId();
 
-	BcName Catagory = Catagories_[ ThreadId ];
+	BcName Category = Catagories_[ ThreadId ];
 
-	if( getCatagorySuppression( Catagory ) == BcFalse )
+	if( getCategorySuppression( Category ) == BcFalse )
 	{
 	#if COMPILER_MSVC
 		vsprintf_s( TextBuffer, pText, Args );
@@ -220,7 +220,7 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 
 		// Format for output.
 		BcSPrintf( OutputBuffer, "[%s] %s %s\n", 
-			(*Catagory).c_str(),
+			(*Category).c_str(),
 			Indent.c_str(),
 			TextBuffer );
 

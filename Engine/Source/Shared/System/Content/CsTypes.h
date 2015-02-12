@@ -42,8 +42,8 @@ typedef std::list< class CsDependency > CsDependencyList;
 typedef CsDependencyList::iterator CsDependencyListIterator;
 
 //////////////////////////////////////////////////////////////////////////
-// CsMessageCatagory
-enum class CsMessageCatagory
+// CsMessageCategory
+enum class CsMessageCategory
 {
 	INFO = 0,	///!< Information. No action required.
 	WARNING,	///!< Warning. Could continue, but something is still wrong.

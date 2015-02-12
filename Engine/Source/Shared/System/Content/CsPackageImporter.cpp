@@ -91,7 +91,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 {
 	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
-	BcLogScopedCatagory LogCatagory( "Import" );
+	BcLogScopedCategory LogCategory( "Import" );
 	BcPrintf( "Importing %s...\n", (*Path).c_str() );
 
 	BcLogScopedIndent LogIndent;
@@ -403,8 +403,8 @@ BcBool CsPackageImporter::importResource(
 		SuccessfulImport = Importer->import( Resource );
 
 		// Check for error + critical messages.
-		SuccessfulImport &= Importer->getMessageCount( CsMessageCatagory::ERROR ) == 0;
-		SuccessfulImport &= Importer->getMessageCount( CsMessageCatagory::CRITICAL ) == 0;
+		SuccessfulImport &= Importer->getMessageCount( CsMessageCategory::ERROR ) == 0;
+		SuccessfulImport &= Importer->getMessageCount( CsMessageCategory::CRITICAL ) == 0;
 	}
 	catch( CsImportException ImportException )
 	{

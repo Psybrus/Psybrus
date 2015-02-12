@@ -40,14 +40,14 @@ public:
 	virtual void flush() = 0;
 
 	/**
-	 * Set catagory suppression.
+	 * Set category suppression.
 	 */
-	virtual void setCatagorySuppression( BcName Catagory, BcBool IsSuppressed ) = 0;
+	virtual void setCategorySuppression( BcName Category, BcBool IsSuppressed ) = 0;
 
 	/**
-	 * Get catagory suppression.
+	 * Get category suppression.
 	 */
-	virtual BcBool getCatagorySuppression( BcName Catagory ) const = 0;
+	virtual BcBool getCategorySuppression( BcName Category ) const = 0;
 
 	/*
 	* Get log data
@@ -55,18 +55,18 @@ public:
 	virtual std::vector<std::string> getLogData() = 0;
 
 protected:
-	friend class BcLogScopedCatagory;
+	friend class BcLogScopedCategory;
 	friend class BcLogScopedIndent;
 
 	/**
-	 * Set catagory.
+	 * Set category.
 	 */
-	virtual void setCatagory( BcName Catagory ) = 0;
+	virtual void setCategory( BcName Category ) = 0;
 
 	/**
-	 * Get catagory.
+	 * Get category.
 	 */
-	virtual BcName getCatagory() = 0;
+	virtual BcName getCategory() = 0;
 
 	/**
 	 * Increase indent.
@@ -80,29 +80,29 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// BcLogScopedCatagory
-class BcLogScopedCatagory
+// BcLogScopedCategory
+class BcLogScopedCategory
 {
 public:
-	BcLogScopedCatagory( BcName Catagory )
+	BcLogScopedCategory( BcName Category )
 	{
 		if( BcLog::pImpl() )
 		{
-			OldCatagory_ = BcLog::pImpl()->getCatagory();
-			BcLog::pImpl()->setCatagory( Catagory );
+			OldCategory_ = BcLog::pImpl()->getCategory();
+			BcLog::pImpl()->setCategory( Category );
 		}
 	}
 
-	~BcLogScopedCatagory()
+	~BcLogScopedCategory()
 	{
 		if( BcLog::pImpl() )
 		{
-			BcLog::pImpl()->setCatagory( OldCatagory_ );
+			BcLog::pImpl()->setCategory( OldCategory_ );
 		}
 	}
 
 private:
-	BcName OldCatagory_;
+	BcName OldCategory_;
 };
 
 //////////////////////////////////////////////////////////////////////////

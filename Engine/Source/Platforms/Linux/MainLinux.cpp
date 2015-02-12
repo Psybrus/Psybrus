@@ -97,8 +97,8 @@ int main(int argc, char** argv)
 	}
 #endif
 
-	// Setup basic log catagory.
-	BcLogScopedCatagory LogCatagory( "Main" );
+	// Setup basic log Category.
+	BcLogScopedCategory LogCategory( "Main" );
 
 	// Initialise RNG.
 #if !PSY_DEBUG

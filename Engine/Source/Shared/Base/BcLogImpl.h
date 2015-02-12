@@ -42,24 +42,24 @@ public:
 	void flush() override;
 
 	/**
-	 * Set catagory suppression.
+	 * Set category suppression.
 	 */
-	void setCatagorySuppression( BcName Catagory, BcBool IsSuppressed ) override;
+	void setCategorySuppression( BcName Category, BcBool IsSuppressed ) override;
 
 	/**
-	 * Get catagory suppression.
+	 * Get category suppression.
 	 */
-	BcBool getCatagorySuppression( BcName Catagory ) const override;
+	BcBool getCategorySuppression( BcName Category ) const override;
 	
 	/**
-	 * Set default catagory.
+	 * Set category.
 	 */
-	void setCatagory( BcName Catagory ) override;
+	void setCategory( BcName Category ) override;
 
 	/**
-	 * Get default catagory.
+	 * Get category.
 	 */
-	BcName getCatagory() override;
+	BcName getCategory() override;
 
 	/**
 	 * Increase indent.
