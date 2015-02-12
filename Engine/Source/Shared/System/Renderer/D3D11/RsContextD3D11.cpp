@@ -450,6 +450,7 @@ void RsContextD3D11::create()
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC, 
+				RsResourceBindFlags::RENDER_TARGET,
 				RsTextureFormat::R8G8B8A8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
@@ -463,6 +464,7 @@ void RsContextD3D11::create()
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC, 
+				RsResourceBindFlags::DEPTH_STENCIL,
 				RsTextureFormat::D24S8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),

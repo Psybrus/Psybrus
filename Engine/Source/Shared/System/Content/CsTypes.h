@@ -27,6 +27,8 @@
 #include <mutex>
 #include <exception>
 
+#undef ERROR
+
 //////////////////////////////////////////////////////////////////////////
 // CsCrossRefId
 typedef BcU32 CsCrossRefId;

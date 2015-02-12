@@ -1,11 +1,13 @@
 if PsyProjectExternalLib( "glsl-optimizer", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
 
+	configuration "*"
+		excludes {
+			"./glsl-optimizer/src/glsl/main.c"
+		}
+
 	configuration "windows-* or linux-gcc or linux-clang"
 		files { 
-			"./glsl-optimizer/src/getopt/**.h",
-			"./glsl-optimizer/src/getopt/**.c",
-			"./glsl-optimizer/src/getopt/**.cpp",
 			"./glsl-optimizer/src/glsl/**.h",
 			"./glsl-optimizer/src/glsl/**.c",
 			"./glsl-optimizer/src/glsl/**.cpp",
@@ -21,5 +23,12 @@ if PsyProjectExternalLib( "glsl-optimizer", "C++" ) then
 			"./glsl-optimizer/include",
 			"./glsl-optimizer/src",
 			"./glsl-optimizer/src/mesa",
+		}
+
+	configuration "linux-gcc or linux-clang"
+		files { 
+			"./glsl-optimizer/src/getopt/**.h",
+			"./glsl-optimizer/src/getopt/**.c",
+			"./glsl-optimizer/src/getopt/**.cpp",
 		}
 end

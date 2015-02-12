@@ -980,7 +980,7 @@ MaVec2d ScnFontComponent::drawText(
 	
 	if( pFirstVert != nullptr )
 	{
-		BcU32 LastWhitespaceIdx = -1;
+		BcU32 LastWhitespaceIdx = (BcU32)-1;
 
 		// Iterate and include null terminator.
 		for( BcU32 Idx = 0; Idx < TextLength + 1; ++Idx )

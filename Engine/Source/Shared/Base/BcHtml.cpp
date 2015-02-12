@@ -244,7 +244,6 @@ std::string BcHtmlNodeInternal::getOuterXml()
 		output += "</" + Tag_ + ">";
 		return output;
 	}
-	return "";
 }
 
 BcHtmlNodeInternal* BcHtmlNodeInternal::findNodeById( std::string Id )

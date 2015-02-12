@@ -201,7 +201,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 	if( Scene_ != nullptr )
 	{
 		BcPrintf( "Found %u materials:\n", Scene_->mNumMaterials );
-		for( int Idx = 0; Idx < Scene_->mNumMaterials; ++Idx )
+		for( int Idx = 0; Idx < (int)Scene_->mNumMaterials; ++Idx )
 		{
 			BcPrintf( " - %s\n", AssimpGetMaterialName( Scene_->mMaterials[ Idx ] ).c_str() );
 		}
@@ -753,10 +753,6 @@ void ScnModelImport::serialiseVertices(
 							"Total weight too low to safely renormalise: %f\n", TotalWeight );
 
 						BlendWeightsVec /= TotalWeight;
-						const BcF32 TotalWeightRecalc = 
-							BlendWeightsVec.x() + BlendWeightsVec.y() +
-							BlendWeightsVec.z() + BlendWeightsVec.w();
-
 						*OutVal++ = (BcF32)BlendWeightsVec.x();
 						*OutVal++ = (BcF32)BlendWeightsVec.y();
 						*OutVal++ = (BcF32)BlendWeightsVec.z();
