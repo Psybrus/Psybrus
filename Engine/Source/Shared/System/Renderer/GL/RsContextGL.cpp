@@ -287,6 +287,7 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
 	// Depth stencil.
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE },	// RsTextureFormat::D24,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
 	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32F,
@@ -870,6 +871,8 @@ bool RsContextGL::createSamplerState(
 		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
 		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
 		glSamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+		glSamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
 		RsGLCatchError();
 
 		++NoofSamplerStates_;
@@ -948,6 +951,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		switch ( DSDesc.Format_ )
 		{
 		case RsTextureFormat::D16:
+		case RsTextureFormat::D24:
 		case RsTextureFormat::D32:
 		case RsTextureFormat::D32F:
 			Attachment = GL_DEPTH_ATTACHMENT;
@@ -1263,10 +1267,23 @@ bool RsContextGL::createTexture(
 		glBindTexture( TypeGL, Handle );
 		RsGLCatchError();
 
-		// Set max levels.
 #if !PLATFORM_HTML5
+		// Set max levels.
 		glTexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 );
 		RsGLCatchError();
+
+		// Set compare mode to none.
+		if( TextureDesc.Format_ == RsTextureFormat::D16 ||
+			TextureDesc.Format_ == RsTextureFormat::D24 ||
+			TextureDesc.Format_ == RsTextureFormat::D32 ||
+			TextureDesc.Format_ == RsTextureFormat::D24S8 ||
+			TextureDesc.Format_ == RsTextureFormat::D32F )
+		{
+			glTexParameteri( TypeGL, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+			RsGLCatchError();
+			glTexParameteri( TypeGL, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
+			RsGLCatchError();
+		}
 #endif
 
 		// Instantiate levels.
@@ -1966,6 +1983,8 @@ void RsContextGL::flushState()
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
 #if !PLATFORM_HTML5
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
+					glTexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+					glTexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
 #endif
 					RsGLCatchError();
 				}
@@ -2212,7 +2231,7 @@ void RsContextGL::clear(
 	// TODO: Look into this? It causes an invalid operation.
 	if( Version_.Type_ != RsOpenGLType::ES )
 	{
-		glClearDepth( 1.0f );
+		glClearDepthf( 1.0f );
 	}
 
 	glClearStencil( 0 );
@@ -2269,7 +2288,6 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
-	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
 	RsGLCatchError();
 }
 
