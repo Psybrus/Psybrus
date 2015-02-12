@@ -18,7 +18,7 @@ function SetupBoost()
 	else
 		if os.is("windows") then
 			boostRoot = os.getenv("BOOST_ROOT") or "C:/Boost"
-			BOOST_INCLUDE_PATH = boostRoot .. "/include/boost-1_56"
+			BOOST_INCLUDE_PATH = boostRoot .. "/"
 			BOOST_LIB_PATH = boostRoot .. "/lib"
 		else
 			BOOST_USE_SYSTEM = true
