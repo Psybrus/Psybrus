@@ -220,8 +220,9 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 
 
 		// Format for output.
-		BcSPrintf( OutputBuffer, "[%5.5f][%s] %s %s\n", 
+		BcSPrintf( OutputBuffer, "[%5.5f][%x][%s] %s %s\n", 
 			Timer_.time(),
+			BcCurrentThreadId(),
 			(*Category).c_str(),
 			Indent.c_str(),
 			TextBuffer );
