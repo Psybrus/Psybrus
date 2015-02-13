@@ -129,6 +129,11 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
     // Attempt conversion to string.
 	if( Serialiser != nullptr )
 	{
+		if( (*pClass->getName()) == "ScnShaderPermutationFlags" ) 
+		{
+			int a = 0; ++a;
+		}
+		
 		if( InputValue.type() == Json::stringValue &&
 			Serialiser->serialiseFromString( pData, InputValue.asString() ) )
 		{
