@@ -26,7 +26,7 @@
 
 // Write out shader files to intermediate, and signal game to load the raw files.
 // Useful for debugging generated shader files.
-#define DEBUG_FILE_WRITE_OUT_FILES		1
+#define DEBUG_FILE_WRITE_OUT_FILES		0
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
