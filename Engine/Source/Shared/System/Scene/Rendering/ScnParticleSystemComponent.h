@@ -70,8 +70,6 @@ public:
 
 public:
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
 
 	virtual MaAABB						getAABB() const;
 

@@ -514,6 +514,8 @@ void ScnFont::StaticRegisterClass()
 //virtual
 void ScnFont::initialise()
 {
+	Super::initialise();
+
 	pHeader_ = nullptr;
 	pGlyphDescs_ = nullptr;
 }
@@ -543,13 +545,6 @@ void ScnFont::create()
 void ScnFont::destroy()
 {
 	//Texture_ = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material )
-{	
-	return CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), FontComponent, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1210,6 +1205,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
 	{	
 		MaterialComponent_ = MaterialComponent;
+		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 		BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
 		if( Sampler != BcErrorCode )
 		{ 

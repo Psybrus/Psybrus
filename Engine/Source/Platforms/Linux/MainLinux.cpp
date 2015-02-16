@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-//	SYS_REGISTER( "DsCore", DsCoreImpl );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );

@@ -209,6 +209,13 @@ void CsCore::destroyResource( CsResource* pResource )
 	}
 	else
 	{
+		// Remove from all lists. Brutal.
+		// Refactor this whole loading thing please.
+		std::remove( PrecreateResources_.begin(), PrecreateResources_.end(), pResource );
+		std::remove( CreateResources_.begin(), CreateResources_.end(), pResource );
+		std::remove( LoadingResources_.begin(), LoadingResources_.end(), pResource );
+		std::remove( LoadedResources_.begin(), LoadedResources_.end(), pResource );
+
 		pResource->getClass()->destruct( pResource );
 		BcMemFree( pResource );
 	}

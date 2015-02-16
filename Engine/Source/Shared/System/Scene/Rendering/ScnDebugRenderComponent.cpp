@@ -95,65 +95,6 @@ void ScnDebugRenderComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnDebugRenderComponent::create()
-{
-	// Allocate our own vertex buffer data.
-	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
-		RsVertexDeclarationDesc( 2 )
-			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
-	
-	// Allocate render resources.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::VERTEX,
-				RsResourceCreationFlags::STREAM,
-				NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
-	
-		// Allocate uniform buffer object.
-		RenderResource.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::UNIFORM,
-				RsResourceCreationFlags::STREAM,
-				sizeof( ScnShaderObjectUniformBlockData ) ) );
-	}
-
-	// Allocate working vertices.
-	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
-
-	Super::create();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnDebugRenderComponent::destroy()
-{
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Allocate render side vertex buffer.
-		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
-
-		// Allocate render side uniform buffer.
-		RsCore::pImpl()->destroyResource( RenderResource.UniformBuffer_ );
-	}
-
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
-
-	// Delete working data.
-	delete [] pWorkingVertices_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
 MaAABB ScnDebugRenderComponent::getAABB() const
@@ -580,7 +521,38 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 		ScnShaderPermutationFlags::LIGHTING_NONE ) )
 	{
 		MaterialComponent_ = MaterialComponent;
+		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 	}
+
+	// Allocate our own vertex buffer data.
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 2 )
+			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+	
+	// Allocate render resources.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
+
+		// Allocate render side vertex buffer.
+		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX,
+				RsResourceCreationFlags::STREAM,
+				NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
+	
+		// Allocate uniform buffer object.
+		RenderResource.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::UNIFORM,
+				RsResourceCreationFlags::STREAM,
+				sizeof( ScnShaderObjectUniformBlockData ) ) );
+	}
+
+	// Allocate working vertices.
+	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
+
 
 	getParentEntity()->attach( MaterialComponent_ );
 
@@ -594,6 +566,22 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnDebugRenderComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	getParentEntity()->detach( MaterialComponent_ );
+
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TRenderResource& RenderResource = RenderResources_[ Idx ];
+
+		// Allocate render side vertex buffer.
+		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
+
+		// Allocate render side uniform buffer.
+		RsCore::pImpl()->destroyResource( RenderResource.UniformBuffer_ );
+	}
+
+	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
+
+	// Delete working data.
+	delete [] pWorkingVertices_;
 
 	BcAssert( pImpl_ == this );
 	pImpl_ = NULL;

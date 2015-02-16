@@ -682,6 +682,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 			// Even on failure add. List must be of same size for quick lookups.
 			if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pMeshRuntime->MaterialRef_, ShaderPermutation ) )
 			{
+				MaterialComponentRef->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 				getParentEntity()->attach( MaterialComponentRef );
 			}
 

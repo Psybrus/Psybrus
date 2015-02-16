@@ -193,26 +193,27 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
+// onAttach
 //virtual
-void ScnViewComponent::create()
+void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	ScnComponent::create();
 	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ) );
+
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroy
+// onDetach
 //virtual
-void ScnViewComponent::destroy()
+void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
 
-	ScnComponent::destroy();
+	Super::onDetach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////

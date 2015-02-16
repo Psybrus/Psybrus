@@ -65,8 +65,6 @@ public:
 	virtual void						initialise();
 	virtual void						initialise( BcU32 NoofVertices );
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
 	virtual MaAABB						getAABB() const;
 	
 	/**
