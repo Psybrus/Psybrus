@@ -510,7 +510,7 @@ void ScnEntity::setupComponents()
 				
 				// TODO: Move this into initialise when we move initialise to constructors.
 				NewComponent->postInitialise();
-
+				
 				attach( NewComponent );
 			}
 		}

@@ -106,6 +106,11 @@ public:
 	BcU32 getInitStage() const;
 
 	/**
+	 * Get the init stage.
+	 */
+	BcU32 getTargetInitStage() const;
+
+	/**
 	 * File is ready.
 	 */
 	virtual void fileReady();
@@ -178,6 +183,7 @@ private:
 	friend class CsPackage;
 	friend class CsPackageLoader;
 
+	void advanceInitStage();
 	void onFileReady();
 	void onFileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
@@ -185,6 +191,7 @@ private:
 	//
 	BcU32 Index_;
 	std::atomic< BcU32 > InitStage_;
+	std::atomic< BcU32 > TargetInitStage_;
 };
 
 #endif

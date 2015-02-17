@@ -351,7 +351,6 @@ ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
 {
 	BcAssert( Component->getName() != BcName::INVALID );
-	BcAssert( Component->isReady() );
 	
 	// Add pending operation if not already in queue.
 	if( std::find( PendingComponentList_.begin(), PendingComponentList_.end(), Component ) == PendingComponentList_.end() )
