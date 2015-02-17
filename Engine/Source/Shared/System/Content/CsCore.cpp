@@ -355,6 +355,7 @@ void CsCore::processResources()
 	PreprocessResources_.clear();
 	
 	// Iterate processing resources.
+#if 0
 	while( ProcessingResources_.size() > 0 )
 	{
 		CsResource* Resource = *ProcessingResources_.begin();
@@ -374,7 +375,7 @@ void CsCore::processResources()
 				{
 					BcAssert( Resource->getInitStage() == CsResource::INIT_STAGE_INITIAL );
 					Resource->advanceInitStage();
-					Resource->create();
+					//Resource->create();
 					BcAssert( Resource->getTargetInitStage() == CsResource::INIT_STAGE_READY );
 				}
 				break;
@@ -390,7 +391,7 @@ void CsCore::processResources()
 					// If we're ready, then destroy. If we aren't ready, skip to free.
 					if( Resource->getInitStage() == CsResource::INIT_STAGE_READY )
 					{
-						Resource->destroy();
+						//Resource->destroy();
 					}
 
 					// Destruct and free.
@@ -409,6 +410,10 @@ void CsCore::processResources()
 			ProcessingResources_.erase( ProcessingResources_.begin() );
 		}
 	}
+#else
+	ProcessingResources_.clear();
+#endif
+
 }
 
 //////////////////////////////////////////////////////////////////////////

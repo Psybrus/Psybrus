@@ -45,8 +45,6 @@ public:
 
 	void initialise();
 	void initialise( ScnEntityRef Basis );
-	void create();
-	void destroy();
 
 public:
 	void update( BcF32 Tick );

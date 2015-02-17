@@ -80,7 +80,11 @@ ScnEntity::ScnEntity( ReNoInit ):
 //virtual
 ScnEntity::~ScnEntity()
 {
-
+	// If we have a basis entity, we need to release the package.
+	if( getBasis() != nullptr )
+	{
+		getPackage()->release();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,25 +114,6 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	getPackage()->acquire();
 
 	setupComponents();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-void ScnEntity::create()
-{
-	setupComponents();
-	markReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-void ScnEntity::destroy()
-{
-	// If we have a basis entity, we need to release the package.
-	if( getBasis() != nullptr )
-	{
-		getPackage()->release();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -467,7 +452,11 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		pJsonObject_ = nullptr;
 		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
+
+		setupComponents();
+
 		CsResource::markCreate();
+		CsResource::markReady();
 	}
 }
 

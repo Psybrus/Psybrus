@@ -27,8 +27,6 @@ public:
 	
 
 	virtual void							initialise();
-	virtual void							create();
-	virtual void							destroy();
 
 	virtual void							update( BcF32 Tick );
 

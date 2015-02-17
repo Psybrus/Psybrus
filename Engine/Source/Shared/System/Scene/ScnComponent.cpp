@@ -113,7 +113,7 @@ void ScnComponent::postInitialise()
 {
 	// TODO: Move this into initialise when we move initialise to constructors.
 	CsResource::markCreate();
- 	CsResource::markReady();
+	CsResource::markReady();
 }
 
 //////////////////////////////////////////////////////////////////////////

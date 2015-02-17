@@ -37,8 +37,7 @@ void CsResource::StaticRegisterClass()
 // Ctor
 CsResource::CsResource( ReNoInit ):
 	Index_( BcErrorCode ),
-	InitStage_( INIT_STAGE_INITIAL ),
-	TargetInitStage_( INIT_STAGE_INITIAL )
+	InitStage_( INIT_STAGE_INITIAL )
 {
 	CsCore::pImpl()->internalAddResource( this );
 }
@@ -47,8 +46,7 @@ CsResource::CsResource( ReNoInit ):
 // Ctor
 CsResource::CsResource():
 	Index_( BcErrorCode ),
-	InitStage_( INIT_STAGE_INITIAL ),
-	TargetInitStage_( INIT_STAGE_INITIAL )
+	InitStage_( INIT_STAGE_INITIAL )
 {
 	CsCore::pImpl()->internalAddResource( this );
 }
@@ -114,13 +112,6 @@ BcBool CsResource::isReady() const
 BcU32 CsResource::getInitStage() const
 {
 	return InitStage_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getTargetInitStage
-BcU32 CsResource::getTargetInitStage() const
-{
-	return TargetInitStage_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -222,17 +213,17 @@ BcU32 CsResource::getNoofChunks() const
 // markCreate
 void CsResource::markCreate()
 {
-	BcU32 OldStage = TargetInitStage_.exchange( INIT_STAGE_CREATE );
+	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_CREATE );
 	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*getName()).c_str() );
 	BcUnusedVar( OldStage );
-	CsCore::pImpl()->internalAddResourceForProcessing( this );
+	create();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // markReady
 void CsResource::markReady()
 {
-	BcU32 OldStage = TargetInitStage_.exchange( INIT_STAGE_READY );
+	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_READY );
 	BcAssertMsg( OldStage == INIT_STAGE_CREATE, "CsResource: Trying to mark \"%s\" as ready when it's not in creation.", (*getName()).c_str() );
 	BcUnusedVar( OldStage );
 	CsCore::pImpl()->internalAddResourceForProcessing( this );
@@ -242,17 +233,11 @@ void CsResource::markReady()
 // markReady
 void CsResource::markDestroy()
 {
-	BcU32 OldStage = TargetInitStage_.exchange( INIT_STAGE_DESTROY );
+	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_DESTROY );
 	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*getName()).c_str() );
 	BcUnusedVar( OldStage );
 	CsCore::pImpl()->internalAddResourceForProcessing( this );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// advanceInitStage
-void CsResource::advanceInitStage()
-{
-	InitStage_.store( TargetInitStage_ );
+	destroy();
 }
 
 //////////////////////////////////////////////////////////////////////////
