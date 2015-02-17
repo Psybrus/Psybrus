@@ -62,7 +62,8 @@ void CsCore::close()
 	static BcF32 UnloadTimeout = 5.0f;
 	BcTimer UnloadTimer;
 	UnloadTimer.mark();
-	while( PackageList_.size() > 0 )
+	
+	do	
 	{
 		freeUnreferencedPackages();
 
@@ -78,6 +79,7 @@ void CsCore::close()
 			break;
 		}
 	}
+	while( PackageList_.size() > 0 );
 
 	if( Resources_.size() > 0 )
 	{
@@ -89,7 +91,10 @@ void CsCore::close()
 		while( It != Resources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s:%s \n", (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			BcPrintf( "Init stage: %u, %s:%s \n", 
+				pResource->getInitStage(), 
+				(*pResource->getName()).c_str(), 
+				(*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		BcPrintf( "==========================================\n" );
@@ -344,76 +349,45 @@ void CsCore::processResources()
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	// Copy precreate in.
-	for( auto Resource : PreprocessResources_ )
-	{
-		BcAssert( Resource->getName() != BcName::INVALID );
-		BcAssert( std::find( 
-			ProcessingResources_.begin(), ProcessingResources_.end(), Resource ) == ProcessingResources_.end() );
-		ProcessingResources_.push_back( Resource );
-	}
-	PreprocessResources_.clear();
-	
 	// Iterate processing resources.
-#if 0
-	while( ProcessingResources_.size() > 0 )
+	for( auto Resource : ProcessingResources_ )
 	{
-		CsResource* Resource = *ProcessingResources_.begin();
-			
-		// Create resource.
-		if( Resource->getInitStage() < Resource->getTargetInitStage() )
+		switch( Resource->getInitStage() )
 		{
-			switch( Resource->getTargetInitStage() )
+		case CsResource::INIT_STAGE_INITIAL:
 			{
-			case CsResource::INIT_STAGE_INITIAL:
-				{
-					BcAssertMsg( 0, "Invalid init stage combination." );
-				}
-				break;
-
-			case CsResource::INIT_STAGE_CREATE:
-				{
-					BcAssert( Resource->getInitStage() == CsResource::INIT_STAGE_INITIAL );
-					Resource->advanceInitStage();
-					//Resource->create();
-					BcAssert( Resource->getTargetInitStage() == CsResource::INIT_STAGE_READY );
-				}
-				break;
-
-			case CsResource::INIT_STAGE_READY:
-				{
-					Resource->advanceInitStage();
-				}
-				break;
-
-			case CsResource::INIT_STAGE_DESTROY:
-				{
-					// If we're ready, then destroy. If we aren't ready, skip to free.
-					if( Resource->getInitStage() == CsResource::INIT_STAGE_READY )
-					{
-						//Resource->destroy();
-					}
-
-					// Destruct and free.
-					Resource->getClass()->destruct( Resource );
-					BcMemFree( Resource );
-
-					// Remove entirely.
-					std::remove( Resources_.begin(), Resources_.end(), Resource );
-				}
-				break;
+				BcAssertMsg( 0, "Invalid init stage for processing." );
 			}
-		}
-		else
-		{
-			// Erase if no processing required.
-			ProcessingResources_.erase( ProcessingResources_.begin() );
+			break;
+
+		case CsResource::INIT_STAGE_CREATE:
+			{
+				BcAssertMsg( 0, "Invalid init stage for processing." );
+			}
+			break;
+
+		case CsResource::INIT_STAGE_READY:
+			{
+				BcAssertMsg( 0, "Invalid init stage for processing." );
+			}
+			break;
+
+		case CsResource::INIT_STAGE_DESTROY:
+			{
+				// Destruct and free.
+				Resource->getClass()->destruct( Resource );
+				BcMemFree( Resource );
+
+				// Remove entirely.
+				auto FoundIt = std::find( Resources_.begin(), Resources_.end(), Resource );
+				BcAssert( FoundIt != Resources_.end() );
+				Resources_.erase( FoundIt );
+			}
+			break;
 		}
 	}
-#else
-	ProcessingResources_.clear();
-#endif
 
+	ProcessingResources_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -448,8 +422,6 @@ void CsCore::internalAddResource( CsResource* Resource )
 	// Put into resource list.
 	BcAssert( std::find( Resources_.begin(), Resources_.end(), Resource ) == Resources_.end() );
 	Resources_.push_back( Resource );
-
-	internalAddResourceForProcessing( Resource );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -459,13 +431,13 @@ void CsCore::internalAddResourceForProcessing( CsResource* Resource )
 	// Put into preprocess resources list.
 	auto FoundIt = 
 		std::find( 
-			PreprocessResources_.begin(), 
-			PreprocessResources_.end(), 
+			ProcessingResources_.begin(), 
+			ProcessingResources_.end(), 
 			Resource );
 
-	if( FoundIt == PreprocessResources_.end() )
+	if( FoundIt == ProcessingResources_.end() )
 	{
-		PreprocessResources_.push_back( Resource );
+		ProcessingResources_.push_back( Resource );
 	}
 }
 
