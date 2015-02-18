@@ -58,7 +58,6 @@ struct RsStencilFaceState
 	RsStencilOp DepthFail_;
 	RsStencilOp Pass_;
 	RsCompareMode Func_;
-	BcU32 Ref_;
 	BcU8 Mask_;
 };
 
@@ -76,6 +75,7 @@ struct RsDepthStencilState
 	BcBool StencilEnable_;
 	BcU8 StencilRead_;
 	BcU8 StencilWrite_;
+	BcU32 StencilRef_;
 	RsStencilFaceState StencilFront_;
 	RsStencilFaceState StencilBack_;
 };

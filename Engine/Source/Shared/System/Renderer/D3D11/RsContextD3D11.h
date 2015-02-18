@@ -255,14 +255,14 @@ private:
 		size_t LastFrameUsed_;
 	};
 
-
-
 	typedef std::map< BcU32, RenderStateInternal > RenderStateCache;
 	typedef std::map< BcU32, SamplerStateInternal > SamplerStateCache;
 
 	BcU32 FrameCounter_;
 	RenderStateCache RenderStateCache_;
 	SamplerStateCache SamplerStateCache_;
+
+	RsRenderState* BoundRenderState_;
 
 	// Render targets.
 	typedef std::array< ID3D11RenderTargetView*, 8 > RenderTargetViews;

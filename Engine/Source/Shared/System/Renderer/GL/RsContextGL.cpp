@@ -2689,24 +2689,24 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 
 	if( Force ||
 		DepthStencilState.StencilFront_.Func_ != BoundDepthStencilState.StencilFront_.Func_ ||
-		DepthStencilState.StencilFront_.Ref_ != BoundDepthStencilState.StencilFront_.Ref_ ||
+		DepthStencilState.StencilRef_ != BoundDepthStencilState.StencilRef_ ||
 		DepthStencilState.StencilFront_.Mask_ != BoundDepthStencilState.StencilFront_.Mask_ )
 	{
 		glStencilFuncSeparate( 
 			GL_FRONT,
 			gCompareMode[ (BcU32)DepthStencilState.StencilFront_.Func_ ], 
-			DepthStencilState.StencilFront_.Ref_, DepthStencilState.StencilFront_.Mask_ );
+			DepthStencilState.StencilRef_, DepthStencilState.StencilFront_.Mask_ );
 	}
 
 	if( Force ||
 		DepthStencilState.StencilBack_.Func_ != BoundDepthStencilState.StencilBack_.Func_ ||
-		DepthStencilState.StencilBack_.Ref_ != BoundDepthStencilState.StencilBack_.Ref_ ||
+		DepthStencilState.StencilRef_ != BoundDepthStencilState.StencilRef_ ||
 		DepthStencilState.StencilBack_.Mask_ != BoundDepthStencilState.StencilBack_.Mask_ )
 	{
 		glStencilFuncSeparate( 
 			GL_BACK,
 			gCompareMode[ (BcU32)DepthStencilState.StencilBack_.Func_ ], 
-			DepthStencilState.StencilBack_.Ref_, DepthStencilState.StencilBack_.Mask_ );
+			DepthStencilState.StencilRef_, DepthStencilState.StencilBack_.Mask_ );
 	}
 
 	if( Force ||

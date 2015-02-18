@@ -766,7 +766,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		// Add to frame.
 		//Sort.Layer_ = PrimitiveSection->Layer_;
 		pRenderNode->Sort_ = Sort;
-		pFrame->addRenderNode( pRenderNode );
+		//pFrame->addRenderNode( pRenderNode );
 	}
 	
 	// Reset vertices.
