@@ -455,7 +455,6 @@ void ScnCore::processPendingComponents()
 			// Handle attachment.
 			if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
 			{
-				BcPrintf( "ScnCore: Attaching %p \"%s\"\n", (ScnComponent*)Component, (*Component->getName()).c_str() );				
 				Component->onAttach( Component->getParentEntity() );
 				onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 			}
@@ -463,7 +462,6 @@ void ScnCore::processPendingComponents()
 			// Handle detachment.
 			if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
 			{
-				BcPrintf( "ScnCore: Detaching %p \"%s\"\n", (ScnComponent*)Component, (*Component->getName()).c_str() );				
 				Component->onDetach( Component->getParentEntity() );
 				BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
 					"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
@@ -473,7 +471,6 @@ void ScnCore::processPendingComponents()
 			// Handle destruction.
 			if( Component->isFlagSet( scnCF_PENDING_DESTROY ) )
 			{
-				BcPrintf( "ScnCore: Destroying %p \"%s\"\n", (ScnComponent*)Component, (*Component->getName()).c_str() );				
 				ComponentToDestroy.push_back( Component );
 			}
 		}
