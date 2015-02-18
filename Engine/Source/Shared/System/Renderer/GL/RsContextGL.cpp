@@ -522,6 +522,7 @@ void RsContextGL::create()
 	wglMakeCurrent( WindowDC_, WindowRC_ );
 
 	// Init GLEW.
+	glewExperimental = 1;
 	glewInit();
 	
 	// Attempt to create core profile.
@@ -751,6 +752,11 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 		break;
 	}
 	
+	BcAssert( WGL_ARB_create_context );
+	BcAssert( WGL_ARB_create_context_profile );
+
+	auto func = wglCreateContextAttribsARB;
+	BcUnusedVar( func );
 
 	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
 	if( CoreProfile != NULL )

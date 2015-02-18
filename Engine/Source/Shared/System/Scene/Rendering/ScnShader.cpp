@@ -37,8 +37,8 @@ void ScnShader::StaticRegisterClass()
 		new ReField( "pHeader_", &ScnShader::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "ShaderMappings_", &ScnShader::ShaderMappings_, bcRFF_TRANSIENT ),
 		new ReField( "ProgramMap_", &ScnShader::ProgramMap_, bcRFF_TRANSIENT ),
-		new ReField( "TargetCodeType_", &ScnShader::TargetCodeType_, bcRFF_TRANSIENT ),
-		new ReField( "TotalProgramsLoaded_", &ScnShader::TotalProgramsLoaded_, bcRFF_TRANSIENT ),
+		new ReField( "TargetCodeType_", &ScnShader::TargetCodeType_),
+		new ReField( "TotalProgramsLoaded_", &ScnShader::TotalProgramsLoaded_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnShader, Super >( Fields );
@@ -58,6 +58,7 @@ void ScnShader::initialise()
 {
 	pHeader_ = nullptr;
 	TotalProgramsLoaded_ = 0;
+	TargetCodeType_ = RsShaderCodeType::INVALID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -189,6 +190,8 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				TargetCodeType_ = pCodeTypes[ Idx ];
 			}
 		}
+
+		BcAssertMsg( TargetCodeType_ != RsShaderCodeType::INVALID, "No valid code type built in shader. Please add to your package." );
 
 		// Grab the rest of the chunks.
 		const BcU32 TotalChunks = pHeader_->NoofProgramPermutations_ + pHeader_->NoofShaderPermutations_;

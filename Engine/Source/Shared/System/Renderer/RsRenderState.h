@@ -43,7 +43,7 @@ struct RsBlendState
 	RsBlendState( ReNoInit );
 	RsBlendState();
 
-	RsRenderTargetBlendState RenderTarget_[ 8 ];
+	std::array< RsRenderTargetBlendState, 8 > RenderTarget_;
 };
 
 //////////////////////////////////////////////////////////////////////////
