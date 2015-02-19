@@ -36,6 +36,79 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 //////////////////////////////////////////////////////////////////////////
+// BcLogListenerDefault
+class BcLogListenerDefault:
+	public BcLogListener
+{
+public:
+	BcLogListenerDefault()
+	{
+	}
+
+private:
+	void onLog( const BcLogEntry& Entry )
+	{
+		std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+
+		// Grab indent.
+		std::string Indent( Entry.Indent_, '\t' );
+
+		auto NewText = Entry.Text_;
+
+		// Replace newlines with spaces.
+		std::replace( NewText.begin(), NewText.end(), '\n', ' ' );
+
+		static BcChar OutputBuffer[ 1024 * 64 ];
+		// Format for output.
+		BcSPrintf( OutputBuffer, "[%5.5f][%x][%s] %s %s\n", 
+			Entry.Time_,
+			Entry.ThreadId_,
+			(*Entry.Catagory_).c_str(),
+			Indent.c_str(),
+			NewText.c_str() );
+
+		internalWrite( OutputBuffer );
+	}
+
+	void internalWrite( const BcChar* pText )
+	{
+		// Just handle all platforms in here. That way deriving is simpler for everyone.
+#if PLATFORM_WINDOWS
+		::OutputDebugStringA( pText );
+#endif
+
+		// Do some colour markup for important information.
+		if( BcStrStr( pText, "ERROR:" ) || BcStrStr( pText, "error:" ) || BcStrStr( pText, "Error," ) ||
+			BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) )
+		{
+			printf( ANSI_COLOR_RED "%s", pText );
+		}
+		else if( BcStrStr( pText, "SUCCESS:" ) || BcStrStr( pText, "SUCCEEDED:" ) )
+		{
+			printf( ANSI_COLOR_GREEN "%s", pText );
+		}
+		else if( BcStrStr( pText, "WARNING:" ) || BcStrStr( pText, "warning:" ) || BcStrStr( pText, "Warning," ) )
+		{
+			printf( ANSI_COLOR_YELLOW "%s", pText );
+		}
+		else if( BcStrStr( pText, "INFO:" ) || BcStrStr( pText, "info:" ) ||
+			BcStrStr( pText, "NOTE:" ) || BcStrStr( pText, "note:" ) )
+		{
+			printf( ANSI_COLOR_CYAN "%s", pText );
+		}
+		else
+		{
+			printf( ANSI_COLOR_RESET "%s", pText );
+		}
+
+		// Generic case.
+	}
+
+private:
+	mutable std::recursive_mutex Lock_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Defines
 #define DEFAULT_Category "LOG"
 
@@ -44,6 +117,8 @@
 BcLogImpl::BcLogImpl()
 {
 	Timer_.mark();
+
+	DefaultListener_.reset( new BcLogListenerDefault() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,6 +127,7 @@ BcLogImpl::BcLogImpl()
 BcLogImpl::~BcLogImpl()
 {
 	flush();
+	DefaultListener_.reset();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,8 +145,6 @@ void BcLogImpl::write( const BcChar* pText, ... )
 void BcLogImpl::flush()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
-
-	internalFlush();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,7 +197,7 @@ void BcLogImpl::registerListener( class BcLogListener* Listener )
 void BcLogImpl::deregisterListener( class BcLogListener* Listener )
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
-	std::remove( Listeners_.begin(), Listeners_.end(), Listener ); 
+	Listeners_.erase( std::find( Listeners_.begin(), Listeners_.end(), Listener ) );
 	BcAssert( std::find( Listeners_.begin(), Listeners_.end(), Listener ) == Listeners_.end() );
 }
 
@@ -166,57 +240,11 @@ void BcLogImpl::decreaseIndent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// internalWrite
-//virtual
-void BcLogImpl::internalWrite( const BcChar* pText )
-{
-	// Just handle all platforms in here. That way deriving is simpler for everyone.
-#if PLATFORM_WINDOWS
-	::OutputDebugStringA( pText );
-#endif
-
-	// Do some colour markup for important information.
-	if( BcStrStr( pText, "ERROR:" ) || BcStrStr( pText, "error:" ) || BcStrStr( pText, "Error," ) ||
-		BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) )
-	{
-		printf( ANSI_COLOR_RED "%s", pText );
-	}
-	else if( BcStrStr( pText, "SUCCESS:" ) || BcStrStr( pText, "SUCCEEDED:" ) )
-	{
-		printf( ANSI_COLOR_GREEN "%s", pText );
-	}
-	else if( BcStrStr( pText, "WARNING:" ) || BcStrStr( pText, "warning:" ) || BcStrStr( pText, "Warning," ) )
-	{
-		printf( ANSI_COLOR_YELLOW "%s", pText );
-	}
-	else if( BcStrStr( pText, "INFO:" ) || BcStrStr( pText, "info:" ) ||
-		BcStrStr( pText, "NOTE:" ) || BcStrStr( pText, "note:" ) )
-	{
-		printf( ANSI_COLOR_CYAN "%s", pText );
-	}
-	else
-	{
-		printf( ANSI_COLOR_RESET "%s", pText );
-	}
-
-	// Generic case.
-}
-
-//////////////////////////////////////////////////////////////////////////
-// internalFlush
-//virtual
-void BcLogImpl::internalFlush()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
 // privateWrite
 void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	static BcChar TextBuffer[ 1024 * 64 ];
-	static BcChar OutputBuffer[ 1024 * 64 ];
 	auto ThreadId = BcCurrentThreadId();
 
 	BcName Category = Catagories_[ ThreadId ];
@@ -229,31 +257,21 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 		vsprintf( TextBuffer, pText, Args );
 	#endif
 
-		// Grab indent.
-		std::string Indent( IndentLevel_[ ThreadId ], '\t' );
-
-		// Replace newlines with spaces.
-		std::replace( TextBuffer, TextBuffer + BcStrLength( TextBuffer ), '\n', ' ' );
-
-
-
-		// Format for output.
-		BcSPrintf( OutputBuffer, "[%5.5f][%x][%s] %s %s\n", 
+		// Construct log entry.
+		BcLogEntry Entry = 
+		{
 			Timer_.time(),
 			BcCurrentThreadId(),
-			(*Category).c_str(),
-			Indent.c_str(),
-			TextBuffer );
+			Category,
+			IndentLevel_[ ThreadId ],
+			TextBuffer
+		};
 
-		// Store in internal buffer.
-		if ( LogBuffer.size() == 30 )
+		// Send to all listeners.
+		for( auto Listener : Listeners_ )
 		{
-			LogBuffer.pop_front();
+			Listener->onLog( Entry );
 		}
-		LogBuffer.push_back( OutputBuffer );
-
-		// Write, platform/target specific impl goes here.
-		internalWrite( OutputBuffer );
 	}
 }
 
@@ -264,7 +282,7 @@ std::vector< std::string > BcLogImpl::getLogData()
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	
 	std::vector< std::string > Data;
-	for(const auto& U : LogBuffer)
+	for( const auto& U : LogBuffer_ )
 	{
 		Data.push_back( U );
 	}

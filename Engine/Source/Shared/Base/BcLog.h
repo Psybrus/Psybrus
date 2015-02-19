@@ -102,7 +102,7 @@ struct BcLogEntry
 	BcF64 Time_;
 	BcThreadId ThreadId_;
 	BcName Catagory_;
-	BcU32 Indent_;
+	int Indent_;
 	std::string Text_;
 };
 

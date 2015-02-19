@@ -44,17 +44,6 @@ public:
 	void decreaseIndent() override;
 	std::vector<std::string> getLogData();
 
-protected:
-	/**
-	 * Overridable internal for all writes.
-	 */
-	virtual void internalWrite( const BcChar* pText );
-
-	/**
-	 * Overridable internal for flush.
-	 */
-	virtual void internalFlush();
-
 private:
 	/**
 	 * Private write using va_list.
@@ -74,8 +63,9 @@ private:
 	TSuppressionMap SuppressedMap_;
 	BcTimer Timer_;
 	TLogListeners Listeners_;
-	std::list<std::string> LogBuffer;
+	std::list<std::string> LogBuffer_;
 
+	std::unique_ptr< BcLogListener > DefaultListener_;
 };
 
 

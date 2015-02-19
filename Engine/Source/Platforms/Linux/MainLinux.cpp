@@ -1,7 +1,6 @@
 #include "MainShared.h"
 
 #include "Base/BcLogImpl.h"
-#include "Base/BcLogFile.h"
 #include "Base/BcRandom.h"
 
 #include "System/SysKernel.h"
@@ -82,13 +81,6 @@ int main(int argc, char** argv)
 	// HACK: Append a space to sys args for find to work.
 	SysArgs_ += " ";
 	
-	// Setup log if we have a commandline for it.
-	if( SysArgs_.find( "-log " ) != std::string::npos )
-	{
-		// TODO: File name generation.
-		new BcLogFile( "log.txt" );
-	}
-
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
 	if( BcLog::pImpl() == NULL )
