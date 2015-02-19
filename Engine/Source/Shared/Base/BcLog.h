@@ -156,9 +156,14 @@ public:
 
 #  define PSY_LOGSCOPEDINDENT \
 	BcLogScopedIndent _LogScopedIndent_##__LINE__;
+
+#  define PSY_LOG \
+	if( BcLog::pImpl() ) BcLog::pImpl()->write
+
 #else
 #  define PSY_LOGSCOPEDCATEGORY( _NAME )
 #  define PSY_LOGSCOPEDINDENT
+#  define PSY_LOG
 #endif
 
 #endif
