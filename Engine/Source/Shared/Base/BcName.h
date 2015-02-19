@@ -15,7 +15,6 @@
 #define __BCNAME_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcDebug.h"
 #include "Base/BcString.h"
 
 #include <string>
@@ -59,11 +58,11 @@ public:
 
 public:
 	BcName();													// Constructs invalid name.
-	BcName( BcU32 ID );											// Stores as a packed ID. Should be marked up.
-	BcName( const std::string& String );						// Constructs name, autoassigns ID.
-	BcName( const std::string& String, BcU32 ID );				// Constructs name, manual ID assignment. BcErrorCode means no ID.
-	BcName( const BcChar* pString );							// Constructs name, autoassigns ID.
-	BcName( const BcChar* pString, BcU32 ID );					// Constructs name, manual ID assignment. BcErrorCode means no ID.
+	BcName( BcU32 ID );								// Stores as a packed ID. Should be marked up.
+	BcName( const std::string& String );				// Constructs name, autoassigns ID.
+	BcName( const std::string& String, BcU32 ID );		// Constructs name, manual ID assignment. BcErrorCode means no ID.
+	BcName( const BcChar* pString );					// Constructs name, autoassigns ID.
+	BcName( const BcChar* pString, BcU32 ID );			// Constructs name, manual ID assignment. BcErrorCode means no ID.
 	BcName( const BcName& Other );								// Copy name.
 	BcName& operator = ( const BcName& Other );					// Assign name.
 

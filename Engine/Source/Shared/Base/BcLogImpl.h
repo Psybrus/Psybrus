@@ -16,6 +16,7 @@
 
 #include "Base/BcLog.h"
 #include "Base/BcGlobal.h"
+#include "Base/BcTimer.h"
 #include <mutex>
 #include <string>
 #include <list>
@@ -31,45 +32,17 @@ public:
 	BcLogImpl();
 	virtual ~BcLogImpl();
 
-	/**
-	 * Write to log.
-	 */
-	void write( const BcChar* pText, ... );
-	
-	/**
-	 * Write to log.
-	 */
-	void write( BcU32 Catagory, const BcChar* pText, ... );
-
-	/**
-	 * Flush log.
-	 */
-	void flush();
-
-	/**
-	 * Set catagory suppression.
-	 */
-	void setCatagorySuppression( BcU32 Catagory, BcBool IsSuppressed );
-
-	/**
-	 * Get catagory suppression.
-	 */
-	BcBool getCatagorySuppression( BcU32 Catagory ) const;
-	
-	/*
-	 * Get log data
-	 */
+	void write( const BcChar* pText, ... ) override;
+	void flush() override;
+	void setCategorySuppression( BcName Category, BcBool IsSuppressed ) override;
+	BcBool getCategorySuppression( BcName Category ) const override;	
+	void registerListener( class BcLogListener* Listener ) override;
+	void deregisterListener( class BcLogListener* Listener ) override;
+	void setCategory( BcName Category ) override;
+	BcName getCategory() override;
+	void increaseIndent() override;
+	void decreaseIndent() override;
 	std::vector<std::string> getLogData();
-protected:
-	/**
-	 * Overridable internal for all writes.
-	 */
-	virtual void internalWrite( const BcChar* pText );
-
-	/**
-	 * Overridable internal for flush.
-	 */
-	virtual void internalFlush();
 
 private:
 	/**
@@ -78,15 +51,21 @@ private:
 	void privateWrite( const BcChar* pText, va_list Args );
 
 private:
-	typedef std::map< BcU32, BcBool > TSuppressionMap;
+	typedef std::map< BcName, BcBool > TSuppressionMap;
+	typedef std::map< BcThreadId, int > TIndentLevels;
+	typedef std::map< BcThreadId, BcName > TCatagories;
+	typedef std::vector< BcLogListener* > TLogListeners;
 
-	mutable std::mutex Lock_;
+	mutable std::recursive_mutex Lock_;
+	TIndentLevels IndentLevel_;
+	TCatagories Catagories_;
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
-	BcChar TextBuffer_[ 1024 * 64 ];
+	BcTimer Timer_;
+	TLogListeners Listeners_;
+	std::list<std::string> LogBuffer_;
 
-	std::list<std::string> LogBuffer;
-
+	std::unique_ptr< BcLogListener > DefaultListener_;
 };
 
 

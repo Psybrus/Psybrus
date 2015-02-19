@@ -15,6 +15,7 @@
 #define __SCNRENDERINGVISITOR_H__
 
 #include "System/Scene/ScnVisitor.h"
+#include "System/Renderer/RsRenderNode.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnRenderingVisitor
@@ -22,7 +23,10 @@ class ScnRenderingVisitor:
 	public ScnVisitor
 {
 public:
-	ScnRenderingVisitor( class ScnViewComponent* pViewComponent, class RsFrame* pFrame );
+	ScnRenderingVisitor( 
+		class ScnViewComponent* pViewComponent, 
+		class RsFrame* pFrame,
+		RsRenderSort Sort );
 	virtual ~ScnRenderingVisitor();
 
 	virtual void							visit( class ScnRenderableComponent* pComponent );
@@ -30,6 +34,7 @@ public:
 private:
 	class ScnViewComponent*					pViewComponent_;
 	class RsFrame*							pFrame_;
+	RsRenderSort							Sort_;
 };
 
 #endif

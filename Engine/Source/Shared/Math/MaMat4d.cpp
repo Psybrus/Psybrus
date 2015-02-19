@@ -312,8 +312,8 @@ void MaMat4d::frustum( BcF32 Left, BcF32 Right, BcF32 Bottom, BcF32 Top, BcF32 N
 	Projection[1][2] = 0.0f;
 	Projection[1][3] = 0.0f;
 	
-	Projection[2][0] = -( Right + Left ) / ( Right - Left );
-	Projection[2][1] = -( Top + Bottom ) / ( Bottom - Top );
+	Projection[2][0] = 0.0f;
+	Projection[2][1] = 0.0f;
 	Projection[2][2] = ( Far + Near ) / ( Far - Near );
 	Projection[2][3] = 1.0f;
 	

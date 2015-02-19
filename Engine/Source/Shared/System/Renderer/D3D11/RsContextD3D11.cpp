@@ -13,12 +13,14 @@
 
 #include "System/Renderer/D3D11/RsContextD3D11.h"
 
-#include "System/Renderer/RsViewport.h"
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsTexture.h"
-#include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsRenderState.h"
+#include "System/Renderer/RsSamplerState.h"
+#include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsVertexDeclaration.h"
+#include "System/Renderer/RsViewport.h"
 
 #include "Base/BcMath.h"
 
@@ -36,7 +38,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Type conversion.
-static D3D11_BIND_FLAG gBufferType[] =
+static const D3D11_BIND_FLAG gBufferType[] =
 {
 	(D3D11_BIND_FLAG)0,			// RsBufferType::UNKNOWN
 	D3D11_BIND_VERTEX_BUFFER,	// RsBufferType::VERTEX
@@ -47,7 +49,8 @@ static D3D11_BIND_FLAG gBufferType[] =
 	D3D11_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
 };
 
-static DXGI_FORMAT gTextureFormats[] =
+// Texture formats
+static const DXGI_FORMAT gTextureFormats[] =
 {
 	// Colour.
 	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
@@ -65,13 +68,69 @@ static DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
 	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
 	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
-	DXGI_FORMAT_D16_UNORM,				// RsTextureFormat::D16,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
-	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32F,
+	// Depth.
+	DXGI_FORMAT_R16_TYPELESS,			// RsTextureFormat::D16,
+	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,
+	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32,
+	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24S8,
+	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32F,
 };
 
-static D3D11_PRIMITIVE_TOPOLOGY gTopologyType[] =
+// Depth stencil view formats.
+static const DXGI_FORMAT gDSVFormats[] =
+{
+	// Colour.
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8A8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16FA16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32FA32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT1,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT5,
+	// Depth.
+	DXGI_FORMAT_D16_UNORM,				// RsTextureFormat::D16,
+	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
+	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
+	DXGI_FORMAT_D32_FLOAT,				// RsTextureFormat::D32F,
+};
+
+// Shader resource view formats.
+static const DXGI_FORMAT gSRVFormats[] = 
+{
+	// Colour.
+	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
+	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
+	DXGI_FORMAT_R8G8B8A8_UNORM,			// RsTextureFormat::R8G8B8A8,
+	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
+	DXGI_FORMAT_R16G16_FLOAT,			// RsTextureFormat::R16FG16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
+	DXGI_FORMAT_R16G16B16A16_FLOAT,		// RsTextureFormat::R16FG16FB16FA16F,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::R32F,
+	DXGI_FORMAT_R32G32_FLOAT,			// RsTextureFormat::R32FG32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
+	DXGI_FORMAT_R32G32B32A32_FLOAT,		// RsTextureFormat::R32FG32FB32FA32F,
+	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
+	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	// Depth.
+	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
+	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
+	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24S8,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32F,
+};
+
+static const D3D11_PRIMITIVE_TOPOLOGY gTopologyType[] =
 {
 	D3D_PRIMITIVE_TOPOLOGY_POINTLIST,					// RsTopologyType::POINTLIST = 0,
 	D3D_PRIMITIVE_TOPOLOGY_LINELIST,					// RsTopologyType::LINE_LIST,
@@ -86,7 +145,7 @@ static D3D11_PRIMITIVE_TOPOLOGY gTopologyType[] =
 	D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST,	// RsTopologyType::PATCHES,
 };
 
-static LPCSTR gSemanticName[] =
+static const LPCSTR gSemanticName[] =
 {
 	"POSITION",					// RsVertexUsage::POSITION,
 	"BLENDWEIGHTS",				// RsVertexUsage::BLENDWEIGHTS,
@@ -104,7 +163,20 @@ static LPCSTR gSemanticName[] =
 	"SAMPLE",					// RsVertexUsage::SAMPLE,
 };
 
-static D3D11_COMPARISON_FUNC gCompareFunc[] =
+static const D3D11_FILL_MODE gFillMode[] =
+{
+	D3D11_FILL_SOLID,
+	D3D11_FILL_WIREFRAME,
+};
+
+static const D3D11_CULL_MODE gCullMode[] =
+{
+	D3D11_CULL_NONE,
+	D3D11_CULL_BACK,
+	D3D11_CULL_FRONT,
+};
+
+static const D3D11_COMPARISON_FUNC gCompareFunc[] =
 {
 	D3D11_COMPARISON_NEVER,			// RsCompareMode::NEVER,
 	D3D11_COMPARISON_LESS,			// RsCompareMode::LESS,
@@ -116,7 +188,7 @@ static D3D11_COMPARISON_FUNC gCompareFunc[] =
 	D3D11_COMPARISON_ALWAYS,		// RsCompareMode::ALWAYS,
 };
 
-static D3D11_STENCIL_OP gStencilOp[] =
+static const D3D11_STENCIL_OP gStencilOp[] =
 {
 	D3D11_STENCIL_OP_KEEP,			// RsStencilOp::KEEP,
 	D3D11_STENCIL_OP_ZERO,			// RsStencilOp::ZERO,
@@ -128,13 +200,37 @@ static D3D11_STENCIL_OP gStencilOp[] =
 	D3D11_STENCIL_OP_INVERT,		// RsStencilOp::INVERT,
 };
 
-static D3D11_TEXTURE_ADDRESS_MODE gTextureAddressMode[] =
+static const D3D11_TEXTURE_ADDRESS_MODE gTextureAddressMode[] =
 {
 	D3D11_TEXTURE_ADDRESS_WRAP,		// RsTextureSamplingMode::WRAP
 	D3D11_TEXTURE_ADDRESS_MIRROR,	// RsTextureSamplingMode::MIRROR
 	D3D11_TEXTURE_ADDRESS_CLAMP,	// RsTextureSamplingMode::CLAMP
-	D3D11_TEXTURE_ADDRESS_BORDER	// RsTextureSamplingMode::DECAL
+	D3D11_TEXTURE_ADDRESS_BORDER,	// RsTextureSamplingMode::DECAL
 };
+
+static const D3D11_BLEND gBlendType[] =
+{
+    D3D11_BLEND_ZERO,
+    D3D11_BLEND_ONE,
+    D3D11_BLEND_SRC_COLOR,
+    D3D11_BLEND_INV_SRC_COLOR,
+    D3D11_BLEND_SRC_ALPHA,
+    D3D11_BLEND_INV_SRC_ALPHA,
+    D3D11_BLEND_DEST_COLOR,
+    D3D11_BLEND_INV_DEST_COLOR,
+    D3D11_BLEND_DEST_ALPHA,
+    D3D11_BLEND_INV_DEST_ALPHA,
+};
+
+static const D3D11_BLEND_OP gBlendOp[] =
+{
+    D3D11_BLEND_OP_ADD,
+    D3D11_BLEND_OP_SUBTRACT,
+    D3D11_BLEND_OP_REV_SUBTRACT,
+    D3D11_BLEND_OP_MIN,
+    D3D11_BLEND_OP_MAX,
+};
+
 
 namespace
 {
@@ -258,10 +354,9 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	TopologyType_ = RsTopologyType::INVALID;
 
 	FrameCounter_ = 0;
-	BcMemZero( &BlendState_, sizeof( BlendState_ ) );
-	BcMemZero( &RasterizerState_, sizeof( RasterizerState_ ) );
-	BcMemZero( &DepthStencilState_, sizeof( DepthStencilState_ ) );
 
+	BoundRenderState_ = nullptr;
+	
 	BcMemZero( &RenderTargetViews_, sizeof( RenderTargetViews_ ) );
 	BcMemZero( &DepthStencilView_, sizeof( DepthStencilView_ ) );
 }
@@ -288,6 +383,14 @@ BcU32 RsContextD3D11::getWidth() const
 BcU32 RsContextD3D11::getHeight() const
 {
 	return pClient_->getHeight();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getClient
+//virtual
+OsClient* RsContextD3D11::getClient() const
+{
+	return pClient_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -407,9 +510,9 @@ void RsContextD3D11::create()
 	FeatureLevel_ = D3D_FEATURE_LEVEL_11_0;
 	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
 		Adapter_,
-		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
 		NULL,
-		D3D11_CREATE_DEVICE_SINGLETHREADED,// | D3D11_CREATE_DEVICE_DEBUG,
+		D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -433,7 +536,13 @@ void RsContextD3D11::create()
 
 	// Get back buffer from swap chain.
 	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
-	BackBufferRTResourceIdx_ = addD3DResource( BackBuffer_ );
+	D3D11_TEXTURE2D_DESC BackBufferDesc;
+	BackBuffer_->GetDesc( &BackBufferDesc );
+	BackBufferRTResourceIdx_ = addD3DResource( 
+		BackBuffer_,
+		BackBufferDesc.Format,
+		BackBufferDesc.Format,
+		BackBufferDesc.Format );
 
 	// Create back buffer RT.
 	BackBufferRT_ = new RsTexture(
@@ -442,6 +551,7 @@ void RsContextD3D11::create()
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC, 
+				RsResourceBindFlags::RENDER_TARGET,
 				RsTextureFormat::R8G8B8A8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
@@ -455,6 +565,7 @@ void RsContextD3D11::create()
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC, 
+				RsResourceBindFlags::DEPTH_STENCIL,
 				RsTextureFormat::D24S8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
@@ -476,7 +587,11 @@ void RsContextD3D11::create()
 	ID3D11Texture2D* D3DTexture = nullptr;
  	Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
 	BcAssert( SUCCEEDED( Result ) );
-	BackBufferDS_->setHandle( addD3DResource( D3DTexture ) );
+	BackBufferDS_->setHandle( addD3DResource( 
+		D3DTexture,
+		gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+		gDSVFormats[ (BcU32)TextureDesc.Format_ ],
+		gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 
 	BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
 	
@@ -534,7 +649,7 @@ void RsContextD3D11::destroy()
 void RsContextD3D11::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
+#if 0
 	// Blend state.
 	BlendState_.AlphaToCoverageEnable = FALSE;
 	BlendState_.IndependentBlendEnable = FALSE;
@@ -573,6 +688,7 @@ void RsContextD3D11::setDefaultState()
 		{ D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS };
 	DepthStencilState_.FrontFace = defaultStencilOp;
 	DepthStencilState_.BackFace = defaultStencilOp;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -581,7 +697,7 @@ void RsContextD3D11::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
+	BcPrintf( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -590,7 +706,7 @@ void RsContextD3D11::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
+	BcPrintf( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -598,17 +714,28 @@ void RsContextD3D11::invalidateTextureState()
 void RsContextD3D11::setRenderState( RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	// Do nothing. Yet.
-	BcBreakpoint;
+			
+	BoundRenderState_ = RenderState;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setSamplerState
-void RsContextD3D11::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
+void RsContextD3D11::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	// Do nothing. Yet.
-	BcBreakpoint;
+
+	auto D3DSamplerState = SamplerStateCache_[ SamplerState->getHandle< BcU32 >() ];
+	
+	// Bind for each shader based on specified handle.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	{
+		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
+
+		if( SlotIdx != MaxBindPoints )
+		{
+			D3DSamplerStates_[ Idx ][ SlotIdx ] = D3DSamplerState.Sampler_;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -616,102 +743,8 @@ void RsContextD3D11::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerS
 void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcBreakpoint;
 
-	switch( State )
-	{
-	case RsRenderStateType::DEPTH_WRITE_ENABLE:
-		DepthStencilState_.DepthWriteMask = Value ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-		break;
-	case RsRenderStateType::DEPTH_TEST_ENABLE:
-		DepthStencilState_.DepthEnable = Value ? 1 : 0;
-		break;
-	case RsRenderStateType::DEPTH_TEST_COMPARE:
-		DepthStencilState_.DepthFunc = gCompareFunc[ Value ];
-		break;
-	case RsRenderStateType::STENCIL_WRITE_MASK:
-		DepthStencilState_.StencilWriteMask = (UINT8)Value;
-		break;
-	case RsRenderStateType::STENCIL_TEST_ENABLE:
-		DepthStencilState_.StencilEnable = Value ? 1 : 0;
-		break;
-	case RsRenderStateType::STENCIL_TEST_FUNC_COMPARE:
-		DepthStencilState_.FrontFace.StencilFunc = gCompareFunc[ Value ];
-		DepthStencilState_.BackFace.StencilFunc = gCompareFunc[ Value ];
-		break;
-	case RsRenderStateType::STENCIL_TEST_FUNC_REF:
-		StencilRef_ = Value;
-		break;
-	case RsRenderStateType::STENCIL_TEST_FUNC_MASK:
-		DepthStencilState_.StencilReadMask = (UINT8)Value;
-		break;
-	case RsRenderStateType::STENCIL_TEST_OP_SFAIL:
-		DepthStencilState_.FrontFace.StencilFailOp = gStencilOp[ Value ];
-		DepthStencilState_.BackFace.StencilFailOp = gStencilOp[ Value ];
-		break;
-	case RsRenderStateType::STENCIL_TEST_OP_DPFAIL:
-		DepthStencilState_.FrontFace.StencilDepthFailOp = gStencilOp[ Value ];
-		DepthStencilState_.BackFace.StencilDepthFailOp = gStencilOp[ Value ];
-		break;
-	case RsRenderStateType::STENCIL_TEST_OP_DPPASS:
-		DepthStencilState_.FrontFace.StencilPassOp = gStencilOp[ Value ];
-		DepthStencilState_.BackFace.StencilPassOp = gStencilOp[ Value ];
-		break;
-	case RsRenderStateType::COLOR_WRITE_MASK_0:
-		BlendState_.RenderTarget[ 0 ].RenderTargetWriteMask = (UINT8)Value;
-		break;
-	case RsRenderStateType::COLOR_WRITE_MASK_1:
-		BlendState_.RenderTarget[ 1 ].RenderTargetWriteMask = (UINT8)Value;
-		break;
-	case RsRenderStateType::COLOR_WRITE_MASK_2:
-		BlendState_.RenderTarget[ 2 ].RenderTargetWriteMask = (UINT8)Value;
-		break;
-	case RsRenderStateType::COLOR_WRITE_MASK_3:
-		BlendState_.RenderTarget[ 3 ].RenderTargetWriteMask = (UINT8)Value;
-		break;
-	case RsRenderStateType::BLEND_MODE:
-		{
-			for( BcU32 Idx = 0; Idx < 8; ++Idx )
-			{
-				switch( Value )
-				{
-				case RsBlendingMode::NONE:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = FALSE;
-					break;
-				case RsBlendingMode::BLEND:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
-					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
-					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-					break;
-				case RsBlendingMode::ADD:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
-					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_ADD;
-					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_ONE;
-					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
-					break;
-				case RsBlendingMode::SUBTRACT:
-					BlendState_.RenderTarget[ Idx ].BlendEnable = TRUE;
-					BlendState_.RenderTarget[ Idx ].BlendOp = D3D11_BLEND_OP_SUBTRACT;
-					BlendState_.RenderTarget[ Idx ].BlendOpAlpha = D3D11_BLEND_OP_SUBTRACT;
-					BlendState_.RenderTarget[ Idx ].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].SrcBlendAlpha= D3D11_BLEND_SRC_ALPHA;
-					BlendState_.RenderTarget[ Idx ].DestBlend = D3D11_BLEND_ONE;
-					BlendState_.RenderTarget[ Idx ].DestBlendAlpha = D3D11_BLEND_ONE;
-					break;
-				}
-			}
-		}
-		break;
-	case RsRenderStateType::FILL_MODE:
-		RasterizerState_.FillMode = Value == (BcU32)RsFillMode::SOLID ? D3D11_FILL_SOLID : D3D11_FILL_WIREFRAME;
-		break;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -730,84 +763,7 @@ BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 void RsContextD3D11::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	D3D11_SAMPLER_DESC SamplerStateDesc;
-
-	// Err, maybe use the D3D11 stuff for simplicity.
-	if( Params.MinFilter_ == RsTextureFilteringMode::NEAREST &&
-		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
-	{
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	}
-	else if( Params.MinFilter_ == RsTextureFilteringMode::NEAREST_MIPMAP_LINEAR &&
-		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
-	{
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
-	}
-	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR &&
-		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
-	{
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-	}
-	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
-		Params.MagFilter_ == RsTextureFilteringMode::NEAREST )
-	{
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
-	}
-	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR &&
-		Params.MagFilter_ == RsTextureFilteringMode::LINEAR )
-	{
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	}
-	else if( Params.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
-		Params.MagFilter_ == RsTextureFilteringMode::LINEAR )
-	{
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	}
-	else
-	{
-		// Fallback to something sensible.
-		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	}
-
-	SamplerStateDesc.AddressU = gTextureAddressMode[ (BcU32)Params.UMode_ ];
-	SamplerStateDesc.AddressV = gTextureAddressMode[ (BcU32)Params.VMode_ ];
-	SamplerStateDesc.AddressW = gTextureAddressMode[ (BcU32)Params.WMode_ ];
-	SamplerStateDesc.MipLODBias = 0.0f;
-	SamplerStateDesc.MaxAnisotropy = 1;
-	SamplerStateDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SamplerStateDesc.BorderColor[ 0 ] = 0.0f;
-	SamplerStateDesc.BorderColor[ 1 ] = 0.0f;
-	SamplerStateDesc.BorderColor[ 2 ] = 0.0f;
-	SamplerStateDesc.BorderColor[ 3 ] = 0.0f;
-	SamplerStateDesc.MinLOD = -FLT_MAX;
-	SamplerStateDesc.MaxLOD = FLT_MAX;
-
-	// Hash and look in map for already existing sampler state object.
-	BcU32 SamplerStateHash = BcHash::GenerateCRC32( 0, &SamplerStateDesc, sizeof( SamplerStateDesc ) );
-	auto FoundSamplerState = SamplerStateCache_.find( SamplerStateHash );
-	if( FoundSamplerState == SamplerStateCache_.end() )
-	{
-		SamplerState State;
-		State.LastFrameUsed_ = 0;
-		Device_->CreateSamplerState( &SamplerStateDesc, &State.State_ );
-		SamplerStateCache_[ SamplerStateHash ] = State;
-		FoundSamplerState = SamplerStateCache_.find( SamplerStateHash );
-	}
-
-	// Update last frame used.
-	FoundSamplerState->second.LastFrameUsed_ = FrameCounter_;
-
-	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
-		{
-			D3DSamplerStates_[ Idx ][ SlotIdx ] = FoundSamplerState->second.State_;
-		}
-	}
+	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -815,6 +771,12 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, const RsTextureParams& Param
 void RsContextD3D11::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	if( pTexture != nullptr )
+	{
+		BcAssertMsg( ( pTexture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE,
+			"Texture can't be bound as a shader resource. Has it been created with RsResourceBindFlags::SHADER_RESOURCE?" );
+	}
 
 	// Find shader resource view.
 	ID3D11ShaderResourceView* ShaderResourceView = getD3DShaderResourceView( pTexture->getHandle< BcU32 >() );
@@ -899,6 +861,14 @@ void RsContextD3D11::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setFrameBuffer
+void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D11::clear( 
 	const RsColour& Colour,
@@ -963,6 +933,124 @@ bool RsContextD3D11::createRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	const auto& Desc = RenderState->getDesc();
+
+	CD3D11_BLEND_DESC Blend;
+	CD3D11_RASTERIZER_DESC Rasterizer;
+	CD3D11_DEPTH_STENCIL_DESC DepthStencil;
+
+	// Blend state.
+	Blend.AlphaToCoverageEnable = FALSE;
+	Blend.IndependentBlendEnable = TRUE;
+	for( size_t Idx = 0; Idx < Desc.BlendState_.RenderTarget_.size(); ++Idx )
+	{
+		auto SrcBlendState = Desc.BlendState_.RenderTarget_[ Idx ];
+		Blend.RenderTarget[ Idx ].BlendEnable = SrcBlendState.Enable_ ? TRUE : FALSE;
+		Blend.RenderTarget[ Idx ].SrcBlend = gBlendType[ (size_t)SrcBlendState.SrcBlend_ ];
+		Blend.RenderTarget[ Idx ].DestBlend = gBlendType[ (size_t)SrcBlendState.DestBlend_ ];
+		Blend.RenderTarget[ Idx ].BlendOp = gBlendOp[ (size_t)SrcBlendState.BlendOp_ ];
+		Blend.RenderTarget[ Idx ].SrcBlendAlpha = gBlendType[ (size_t)SrcBlendState.SrcBlendAlpha_ ];
+		Blend.RenderTarget[ Idx ].DestBlendAlpha = gBlendType[ (size_t)SrcBlendState.DestBlendAlpha_ ];
+		Blend.RenderTarget[ Idx ].BlendOpAlpha = gBlendOp[ (size_t)SrcBlendState.BlendOpAlpha_ ];
+		Blend.RenderTarget[ Idx ].RenderTargetWriteMask = SrcBlendState.WriteMask_;
+	}
+
+	// Rasterizer state.
+	auto SrcRasterizerState = Desc.RasteriserState_;
+	Rasterizer.FillMode = gFillMode[ (size_t)SrcRasterizerState.FillMode_ ];
+	Rasterizer.CullMode = gCullMode[ (size_t)SrcRasterizerState.CullMode_ ];
+	Rasterizer.DepthBias = (INT)SrcRasterizerState.DepthBias_;
+	Rasterizer.SlopeScaledDepthBias = SrcRasterizerState.SlopeScaledDepthBias_;
+	Rasterizer.DepthClipEnable = SrcRasterizerState.DepthClipEnable_ ? TRUE : FALSE;
+	Rasterizer.ScissorEnable = SrcRasterizerState.ScissorEnable_ ? TRUE : FALSE;
+	Rasterizer.AntialiasedLineEnable = SrcRasterizerState.AntialiasedLineEnable_ ? TRUE : FALSE;
+
+	// Depth stencil state.
+	auto SrcDepthStencilState = Desc.DepthStencilState_;
+	DepthStencil.DepthEnable = SrcDepthStencilState.DepthTestEnable_ ? TRUE : FALSE;
+	DepthStencil.DepthWriteMask = SrcDepthStencilState.DepthWriteEnable_ ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+	DepthStencil.DepthFunc = gCompareFunc[ (size_t)SrcDepthStencilState.DepthFunc_ ];
+	DepthStencil.StencilEnable = SrcDepthStencilState.StencilEnable_ ? TRUE : FALSE;
+	DepthStencil.StencilReadMask = SrcDepthStencilState.StencilRead_;
+	DepthStencil.StencilWriteMask = SrcDepthStencilState.StencilWrite_;
+	DepthStencil.FrontFace.StencilFailOp = gStencilOp[ (size_t)SrcDepthStencilState.StencilFront_.Fail_ ];
+	DepthStencil.FrontFace.StencilDepthFailOp = gStencilOp[ (size_t)SrcDepthStencilState.StencilFront_.DepthFail_ ];
+	DepthStencil.FrontFace.StencilPassOp = gStencilOp[ (size_t)SrcDepthStencilState.StencilFront_.Pass_ ];
+	DepthStencil.FrontFace.StencilFunc = gCompareFunc[ (size_t)SrcDepthStencilState.StencilFront_.Func_ ];
+	DepthStencil.BackFace.StencilFailOp = gStencilOp[ (size_t)SrcDepthStencilState.StencilBack_.Fail_ ];
+	DepthStencil.BackFace.StencilDepthFailOp = gStencilOp[ (size_t)SrcDepthStencilState.StencilBack_.DepthFail_ ];
+	DepthStencil.BackFace.StencilPassOp = gStencilOp[ (size_t)SrcDepthStencilState.StencilBack_.Pass_ ];
+	DepthStencil.BackFace.StencilFunc = gCompareFunc[ (size_t)SrcDepthStencilState.StencilBack_.Func_ ];
+	
+	// Create if not in caches.
+	const BcU32 BlendStateHash = BcHash::GenerateCRC32( 0, &Blend, sizeof( Blend ) );
+	const BcU32 RasterizerStateHash = BcHash::GenerateCRC32( 0, &Rasterizer, sizeof( Rasterizer ) );
+	const BcU32 DepthStencilStateHash = BcHash::GenerateCRC32( 0, &DepthStencil, sizeof( DepthStencil ) );
+	RenderStateInternal FinalRenderState;
+
+	// Blend state.
+	auto FoundBlendState = BlendStateCache_.find( BlendStateHash );
+	if( FoundBlendState == BlendStateCache_.end() )
+	{
+		auto RetVal = Device_->CreateBlendState( &Blend, &FinalRenderState.Blend_ );
+		if( FAILED( RetVal ) )
+		{
+			BcBreakpoint;
+			return false;
+		}
+		BlendStateCache_.insert( std::make_pair( BlendStateHash, FinalRenderState.Blend_ ) );
+	}
+	else
+	{
+		FinalRenderState.Blend_ = FoundBlendState->second;
+	}
+	
+	// Rasterizer.
+	auto FoundRasterizerState = RasterizerStateCache_.find( RasterizerStateHash );
+	if( FoundRasterizerState == RasterizerStateCache_.end() )
+	{
+		auto RetVal = Device_->CreateRasterizerState( &Rasterizer, &FinalRenderState.Rasterizer_ );
+		if( FAILED( RetVal ) )
+		{
+			BcBreakpoint;
+			return false;
+		}
+		RasterizerStateCache_.insert( std::make_pair( RasterizerStateHash, FinalRenderState.Rasterizer_ ) );
+	}
+	else
+	{
+		FinalRenderState.Rasterizer_ = FoundRasterizerState->second;
+	}
+
+	// Depth stencil.
+	auto FoundDepthStencilState = DepthStencilStateCache_.find( DepthStencilStateHash );
+	if( FoundDepthStencilState == DepthStencilStateCache_.end() )
+	{
+		auto RetVal = Device_->CreateDepthStencilState( &DepthStencil, &FinalRenderState.DepthStencil_ );
+		if( FAILED( RetVal ) )
+		{
+			BcBreakpoint;
+			return false;
+		}
+		DepthStencilStateCache_.insert( std::make_pair( DepthStencilStateHash, FinalRenderState.DepthStencil_ ) );
+	}
+	else
+	{
+		FinalRenderState.DepthStencil_ = FoundDepthStencilState->second;
+	}
+
+	// Look in cache.
+	BcU32 RenderStateHash = BcHash::GenerateCRC32( 0, &FinalRenderState, sizeof( FinalRenderState ) );
+	auto FoundRenderState = RenderStateCache_.find( RenderStateHash );
+	if( FoundRenderState == RenderStateCache_.end() )
+	{
+		RenderStateCache_.insert( std::make_pair( RenderStateHash, FinalRenderState ) );
+	}
+
+	// Store in render state.
+	RenderState->setHandle( RenderStateHash );
+
 	return true;
 }
 
@@ -981,6 +1069,74 @@ bool RsContextD3D11::createSamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	CD3D11_SAMPLER_DESC SamplerStateDesc;
+
+	auto Desc = SamplerState->getDesc();
+
+	// Err, maybe use the D3D11 stuff for simplicity.
+	if( Desc.MinFilter_ == RsTextureFilteringMode::NEAREST &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::NEAREST_MIPMAP_LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::LINEAR )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::LINEAR )
+	{
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else
+	{
+		// Fallback to something sensible.
+		SamplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+
+	SamplerStateDesc.AddressU = gTextureAddressMode[ (BcU32)Desc.AddressU_ ];
+	SamplerStateDesc.AddressV = gTextureAddressMode[ (BcU32)Desc.AddressV_ ];
+	SamplerStateDesc.AddressW = gTextureAddressMode[ (BcU32)Desc.AddressW_ ];
+	SamplerStateDesc.MipLODBias = 0.0f;
+	SamplerStateDesc.MaxAnisotropy = 1;
+	SamplerStateDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	SamplerStateDesc.BorderColor[ 0 ] = 0.0f;
+	SamplerStateDesc.BorderColor[ 1 ] = 0.0f;
+	SamplerStateDesc.BorderColor[ 2 ] = 0.0f;
+	SamplerStateDesc.BorderColor[ 3 ] = 0.0f;
+	SamplerStateDesc.MinLOD = -FLT_MAX;
+	SamplerStateDesc.MaxLOD = FLT_MAX;
+
+	// Hash and look in map for already existing sampler state object.
+	BcU32 SamplerStateHash = BcHash::GenerateCRC32( 0, &SamplerStateDesc, sizeof( SamplerStateDesc ) );
+	auto FoundSamplerState = SamplerStateCache_.find( SamplerStateHash );
+	if( FoundSamplerState == SamplerStateCache_.end() )
+	{
+		SamplerStateInternal State;
+		State.LastFrameUsed_ = 0;
+		Device_->CreateSamplerState( &SamplerStateDesc, &State.Sampler_ );
+		SamplerStateCache_[ SamplerStateHash ] = State;
+	}
+
+	SamplerState->setHandle( SamplerStateHash );
+
 	return true;
 }
 
@@ -988,6 +1144,22 @@ bool RsContextD3D11::createSamplerState(
 // destroySamplerState
 bool RsContextD3D11::destroySamplerState(
 	RsSamplerState* SamplerState )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createFrameBuffer
+bool RsContextD3D11::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyFrameBuffer
+bool RsContextD3D11::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	return true;
@@ -1030,7 +1202,11 @@ bool RsContextD3D11::createBuffer(
 	HRESULT Result = Device_->CreateBuffer( &Desc, nullptr, &D3DBuffer );
 	if( Result == S_OK )
 	{
-		Buffer->setHandle( addD3DResource( D3DBuffer ) );
+		Buffer->setHandle( addD3DResource( 
+			D3DBuffer,
+			DXGI_FORMAT_UNKNOWN,
+			DXGI_FORMAT_UNKNOWN,
+			DXGI_FORMAT_UNKNOWN ) );
 		return true;
 	}
 
@@ -1097,6 +1273,24 @@ bool RsContextD3D11::createTexture(
 	//
 	const auto& TextureDesc = Texture->getDesc();
 
+	BcAssert( (UINT)RsResourceBindFlags::VERTEX_BUFFER == D3D11_BIND_VERTEX_BUFFER );
+	BcAssert( (UINT)RsResourceBindFlags::INDEX_BUFFER == D3D11_BIND_INDEX_BUFFER );
+	BcAssert( (UINT)RsResourceBindFlags::UNIFORM_BUFFER == D3D11_BIND_CONSTANT_BUFFER );
+	BcAssert( (UINT)RsResourceBindFlags::SHADER_RESOURCE == D3D11_BIND_SHADER_RESOURCE );
+	BcAssert( (UINT)RsResourceBindFlags::STREAM_OUTPUT == D3D11_BIND_STREAM_OUTPUT );
+	BcAssert( (UINT)RsResourceBindFlags::RENDER_TARGET == D3D11_BIND_RENDER_TARGET );
+	BcAssert( (UINT)RsResourceBindFlags::DEPTH_STENCIL == D3D11_BIND_DEPTH_STENCIL );
+	BcAssert( (UINT)RsResourceBindFlags::UNORDERED_ACCESS == D3D11_BIND_UNORDERED_ACCESS );
+	UINT BindFlagsD3D = (UINT)TextureDesc.BindFlags_;
+
+	// Strip off D3D11_BIND_SHADER_RESOURCE if we have DEPTH_STENCIL,
+	// Psybrus uses it to indicate which views to create for D3D11,
+	// D3D11 give you grief for passing it to the create.
+	if( BindFlagsD3D & D3D11_BIND_DEPTH_STENCIL )
+	{
+		BindFlagsD3D &= ~D3D11_BIND_SHADER_RESOURCE;
+	}
+
 	// Buffer desc.
 	switch( TextureDesc.Type_ )
 	{
@@ -1108,7 +1302,7 @@ bool RsContextD3D11::createTexture(
 			Desc.ArraySize = 1;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			Desc.BindFlags = BindFlagsD3D;
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1116,7 +1310,11 @@ bool RsContextD3D11::createTexture(
 			Result = Device_->CreateTexture1D( &Desc, nullptr, &D3DTexture );
 			BcAssert( SUCCEEDED( Result ) );
 			
-			Texture->setHandle( addD3DResource( D3DTexture ) );
+			Texture->setHandle( addD3DResource( 
+				D3DTexture,
+				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1132,7 +1330,7 @@ bool RsContextD3D11::createTexture(
 			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			Desc.BindFlags = BindFlagsD3D;
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1140,7 +1338,11 @@ bool RsContextD3D11::createTexture(
  			Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
 			BcAssert( SUCCEEDED( Result ) );
 
-			Texture->setHandle( addD3DResource( D3DTexture ) );
+			Texture->setHandle( addD3DResource( 
+				D3DTexture,
+				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1154,7 +1356,7 @@ bool RsContextD3D11::createTexture(
 			Desc.MipLevels = TextureDesc.Levels_;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			Desc.BindFlags = BindFlagsD3D;
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
@@ -1162,7 +1364,11 @@ bool RsContextD3D11::createTexture(
 			Result = Device_->CreateTexture3D( &Desc, nullptr, &D3DTexture );
 			BcAssert( SUCCEEDED( Result ) );
 
-			Texture->setHandle( addD3DResource( D3DTexture ) );
+			Texture->setHandle( addD3DResource( 
+				D3DTexture,
+				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1178,7 +1384,7 @@ bool RsContextD3D11::createTexture(
 			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			Desc.BindFlags = BindFlagsD3D;
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1186,7 +1392,11 @@ bool RsContextD3D11::createTexture(
 			Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
 			BcAssert( SUCCEEDED( Result ) );
 
-			Texture->setHandle( addD3DResource( D3DTexture ) );
+			Texture->setHandle( addD3DResource( 
+				D3DTexture,
+				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1217,8 +1427,6 @@ bool RsContextD3D11::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	BcPrintf( "WARNING: RsContextD3D11::updateTexture unimplemented\n" );
 
 	const auto& Desc = Texture->getDesc();
 	BcU32 Width = BcMax( 1, Desc.Width_ >> Slice.Level_ );
@@ -1290,7 +1498,7 @@ bool RsContextD3D11::updateTexture(
 	RsTextureLock Lock;
 	Lock.Buffer_ = &TextureData[ 0 ];
 	Lock.Pitch_ = ( ( Width / BlockW ) * BitsPerBlock ) / 8;
-	Lock.SlicePitch_ = ( ( Width / BlockW ) * ( Width / BlockH ) * BitsPerBlock ) / 8;
+	Lock.SlicePitch_ = ( ( Width / BlockW ) * ( Height / BlockH ) * BitsPerBlock ) / 8;
 
 	// Update.
 	UpdateFunc( Texture, Lock );
@@ -1920,57 +2128,25 @@ void RsContextD3D11::flushState()
 		&D3DVertexBufferStrides_[ 0 ],
 		&D3DVertexBufferOffsets_[ 0 ] );
 
-	// Set state.
-	BcU32 BlendStateHash = BcHash::GenerateCRC32( 0, &BlendState_, sizeof( BlendState_ ) );
-	BcU32 RasterizerStateHash = BcHash::GenerateCRC32( 0, &RasterizerState_, sizeof( RasterizerState_ ) );
-	BcU32 DepthStencilStateHash = BcHash::GenerateCRC32( 0, &DepthStencilState_, sizeof( DepthStencilState_ ) );
-
-	auto FoundBlendState = BlendStateCache_.find( BlendStateHash );
-	if( FoundBlendState == BlendStateCache_.end() )
+	if( BoundRenderState_ != nullptr )
 	{
-		BlendState State;
-		State.LastFrameUsed_ = 0;
-		Device_->CreateBlendState( &BlendState_, &State.State_ );
-		BlendStateCache_[ BlendStateHash ] = State;
-		FoundBlendState = BlendStateCache_.find( BlendStateHash );
+		const auto RenderStateHash = BoundRenderState_->getHandle< BcU32 >();
+		auto& RenderStateInternal = RenderStateCache_[ RenderStateHash ];
+
+		FLOAT Factor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Context_->OMSetBlendState( RenderStateInternal.Blend_, Factor, 0xffffffff );
+		Context_->RSSetState( RenderStateInternal.Rasterizer_ );
+		Context_->OMSetDepthStencilState( RenderStateInternal.DepthStencil_, BoundRenderState_->getDesc().DepthStencilState_.StencilRef_ );
 	}
-
-	auto FoundRasterizerState = RasterizerStateCache_.find( RasterizerStateHash );
-	if( FoundRasterizerState == RasterizerStateCache_.end() )
-	{
-		RasterizerState State;
-		State.LastFrameUsed_ = 0;
-		Device_->CreateRasterizerState( &RasterizerState_, &State.State_ );
-		RasterizerStateCache_[ RasterizerStateHash ] = State;
-		FoundRasterizerState = RasterizerStateCache_.find( RasterizerStateHash );
-	}
-
-	auto FoundDepthStencil = DepthStencilStateCache_.find( DepthStencilStateHash );
-	if( FoundDepthStencil == DepthStencilStateCache_.end() )
-	{
-		DepthStencilState State;
-		State.LastFrameUsed_ = 0;
-		Device_->CreateDepthStencilState( &DepthStencilState_, &State.State_ );
-		DepthStencilStateCache_[ DepthStencilStateHash ] = State;
-		FoundDepthStencil = DepthStencilStateCache_.find( DepthStencilStateHash );
-	}
-
-	// Last frame used update for state caches.
-	FoundBlendState->second.LastFrameUsed_ = FrameCounter_;
-	FoundRasterizerState->second.LastFrameUsed_ = FrameCounter_;
-	FoundDepthStencil->second.LastFrameUsed_ = FrameCounter_;
-
-	// Set states.
-	FLOAT Factor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	Context_->OMSetBlendState( FoundBlendState->second.State_, Factor, 0xffffffff );
-	Context_->RSSetState( FoundRasterizerState->second.State_ );
-	Context_->OMSetDepthStencilState( FoundDepthStencil->second.State_, StencilRef_ );
-
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addD3DResource
-size_t RsContextD3D11::addD3DResource( ID3D11Resource* D3DResource )
+size_t RsContextD3D11::addD3DResource( 
+		ID3D11Resource* D3DResource,
+		DXGI_FORMAT ResourceFormat,
+		DXGI_FORMAT DSVFormat,
+		DXGI_FORMAT SRVFormat )
 {
 	ResourceViewCacheEntry Entry = {};
 
@@ -1987,7 +2163,10 @@ size_t RsContextD3D11::addD3DResource( ID3D11Resource* D3DResource )
 
 	// Setup entry.
 	Entry.Resource_ = D3DResource;
-
+	Entry.ResourceFormat_ = ResourceFormat;
+	Entry.DSVFormat_ = DSVFormat;
+	Entry.SRVFormat_ = SRVFormat;
+	
 	// Store in cache.
 	ResourceViewCache_[ EntryIdx ] = Entry;
 
@@ -2108,7 +2287,7 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 			{
 				D3D11_TEXTURE1D_DESC TexDesc;
 				Entry.Texture1DResource_->GetDesc( &TexDesc );
-				Desc.Format = TexDesc.Format;
+				Desc.Format = Entry.SRVFormat_;
 				Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE1D;
 				Desc.Texture1D.MipLevels = TexDesc.MipLevels;
 				Desc.Texture1D.MostDetailedMip = 0;
@@ -2119,7 +2298,7 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 			{
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
-				Desc.Format = TexDesc.Format;
+				Desc.Format = Entry.SRVFormat_;
 				Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipLevels = TexDesc.MipLevels;
 				Desc.Texture2D.MostDetailedMip = 0;
@@ -2130,7 +2309,7 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 			{
 				D3D11_TEXTURE3D_DESC TexDesc;
 				Entry.Texture3DResource_->GetDesc( &TexDesc );
-				Desc.Format = TexDesc.Format;
+				Desc.Format = Entry.SRVFormat_;
 				Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE3D;
 				Desc.Texture3D.MipLevels = TexDesc.MipLevels;
 				Desc.Texture3D.MostDetailedMip = 0;
@@ -2234,7 +2413,7 @@ ID3D11DepthStencilView* RsContextD3D11::getD3DDepthStencilView( size_t ResourceI
 			{
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
-				Desc.Format = TexDesc.Format;
+				Desc.Format = Entry.DSVFormat_;
 				Desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipSlice = 0;
 			}

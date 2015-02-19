@@ -36,6 +36,8 @@ void ScnTextureImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnTextureImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Format_", &ScnTextureImport::Format_, bcRFF_IMPORTER ),
+		new ReField( "RenderTarget_", &ScnTextureImport::RenderTarget_, bcRFF_IMPORTER ),
+		new ReField( "DepthStencilTarget_", &ScnTextureImport::DepthStencilTarget_, bcRFF_IMPORTER ),
 		new ReField( "ClearColour_", &ScnTextureImport::ClearColour_, bcRFF_IMPORTER ),
 		new ReField( "AlphaFromIntensity_", &ScnTextureImport::AlphaFromIntensity_, bcRFF_IMPORTER ),
 		new ReField( "DistanceField_", &ScnTextureImport::DistanceField_, bcRFF_IMPORTER ),
@@ -60,6 +62,8 @@ void ScnTextureImport::StaticRegisterClass()
 ScnTextureImport::ScnTextureImport():
 	Source_(),
 	Format_( RsTextureFormat::INVALID ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
@@ -83,6 +87,8 @@ ScnTextureImport::ScnTextureImport():
 ScnTextureImport::ScnTextureImport( ReNoInit ):
 	Source_(),
 	Format_( RsTextureFormat::INVALID ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
@@ -107,9 +113,11 @@ ScnTextureImport::ScnTextureImport(
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-	RsTextureFormat Format ):
+		RsTextureFormat Format ):
 	CsResourceImporter( Name, Type ),
 	Format_( Format ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
 	AlphaFromIntensity_( BcFalse ),
 	DistanceField_( BcFalse ),
@@ -352,7 +360,6 @@ BcBool ScnTextureImport::import(
 			if( RoundUpPowerOfTwo_ || RoundDownPowerOfTwo_ )
 			{
 				// Awful resize. Bleh.
-				ImgColour FillColour = { 0, 0, 0, 0 };
 				MipImages[ 0 ] = MipImages[ 0 ]->resize( 
 					BcPotNext( MipImages[ 0 ]->width() ), 
 					BcPotNext( MipImages[ 0 ]->height() ) );
@@ -477,13 +484,15 @@ BcBool ScnTextureImport::import(
 			// Write header.
 			ScnTextureHeader Header =
 			{
-				MipImages[ 0 ]->width(),
-				MipImages[ 0 ]->height(),
+				static_cast< BcS32 >( MipImages[ 0 ]->width() ),
+				static_cast< BcS32 >( MipImages[ 0 ]->height() ),
 				0,
 				(BcU32)MipImages.size(),
 				TextureType_,
 				Format_,
-				BcFalse
+				BcFalse,
+				RenderTarget_,
+				DepthStencilTarget_
 			};
 
 			HeaderStream << Header;
@@ -508,8 +517,15 @@ BcBool ScnTextureImport::import(
 		// User created texture.
 		ScnTextureHeader Header = 
 		{ 
-			Width_, Height_, Depth_, Levels_,
-			TextureType_, Format_, BcTrue 
+			static_cast< BcS32 >( Width_ ), 
+			static_cast< BcS32 >( Height_ ), 
+			Depth_, 
+			Levels_,
+			TextureType_, 
+			Format_, 
+			!RenderTarget_ && !DepthStencilTarget_, // If we're not a render target and not a depth stencil target, we're editable.
+			RenderTarget_,
+			DepthStencilTarget_
 		};
 		BcStream HeaderStream;
 		HeaderStream << Header;

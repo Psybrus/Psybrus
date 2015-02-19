@@ -178,9 +178,9 @@ const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() co
 
 //////////////////////////////////////////////////////////////////////////
 // addMessage
-void CsResourceImporter::addMessage( CsMessageCatagory Catagory, const std::string& Message )
+void CsResourceImporter::addMessage( CsMessageCategory Category, const std::string& Message )
 {
-	static std::array< const char*, (size_t)CsMessageCatagory::MAX > Catagories =
+	static std::array< const char*, (size_t)CsMessageCategory::MAX > Catagories =
 	{
 		"INFO",
 		"WARNING",
@@ -188,22 +188,22 @@ void CsResourceImporter::addMessage( CsMessageCatagory Catagory, const std::stri
 		"CRITICAL"
 	};
 
-	size_t CatagoryIdx = (size_t)Catagory;
-	const char* CatagoryMsg = Catagories[ CatagoryIdx ];
+	size_t CategoryIdx = (size_t)Category;
+	const char* CategoryMsg = Catagories[ CategoryIdx ];
 
 	// Increment number of types of messages.
-	MessageCount_[ CatagoryIdx ]++;
+	MessageCount_[ CategoryIdx ]++;
 
-	BcPrintf( "%s: %s\n", CatagoryMsg, Message.c_str() );
+	BcPrintf( "%s: %s\n", CategoryMsg, Message.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getMessageCount
-size_t CsResourceImporter::getMessageCount( CsMessageCatagory Catagory ) const
+size_t CsResourceImporter::getMessageCount( CsMessageCategory Category ) const
 {
-	size_t CatagoryIdx = (size_t)Catagory;
+	size_t CategoryIdx = (size_t)Category;
 
-	return MessageCount_[ CatagoryIdx ];
+	return MessageCount_[ CategoryIdx ];
 }
 	
 //////////////////////////////////////////////////////////////////////////

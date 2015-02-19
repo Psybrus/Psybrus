@@ -167,6 +167,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "DXT3", (BcU32)RsTextureFormat::DXT3 ),
 		new ReEnumConstant( "DXT5", (BcU32)RsTextureFormat::DXT5 ),
 		new ReEnumConstant( "D16", (BcU32)RsTextureFormat::D16 ),
+		new ReEnumConstant( "D24", (BcU32)RsTextureFormat::D24 ),
 		new ReEnumConstant( "D32", (BcU32)RsTextureFormat::D32 ),
 		new ReEnumConstant( "D24S8", (BcU32)RsTextureFormat::D24S8 ),
 		new ReEnumConstant( "D32F", (BcU32)RsTextureFormat::D32F ),
@@ -242,7 +243,22 @@ void RsCore::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Resource deletion.
+void RsResourceDeleters::operator()( class RsBuffer* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
 void RsResourceDeleters::operator()( class RsContext* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
+void RsResourceDeleters::operator()( class RsFrameBuffer* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
+void RsResourceDeleters::operator()( class RsProgram* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );
 }
@@ -257,7 +273,7 @@ void RsResourceDeleters::operator()( class RsSamplerState* Resource )
 	RsCore::pImpl()->destroyResource( Resource );
 }
 
-void RsResourceDeleters::operator()( class RsBuffer* Resource )
+void RsResourceDeleters::operator()( class RsShader* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );
 }
@@ -267,17 +283,8 @@ void RsResourceDeleters::operator()( class RsTexture* Resource )
 	RsCore::pImpl()->destroyResource( Resource );
 }
 
+
 void RsResourceDeleters::operator()( class RsVertexDeclaration* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsShader* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsProgram* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );
 }

@@ -157,13 +157,13 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 	if( Source_.empty() )
 	{
-		CsResourceImporter::addMessage( CsMessageCatagory::CRITICAL, "Missing 'source' field." );
+		CsResourceImporter::addMessage( CsMessageCategory::CRITICAL, "Missing 'source' field." );
 		CanImport = BcFalse;
 	}
 
 	if( Materials_.empty() )
 	{
-		CsResourceImporter::addMessage( CsMessageCatagory::CRITICAL, "Missing 'materials' list." );
+		CsResourceImporter::addMessage( CsMessageCategory::CRITICAL, "Missing 'materials' list." );
 		CanImport = BcFalse;
 	}
 
@@ -201,7 +201,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 	if( Scene_ != nullptr )
 	{
 		BcPrintf( "Found %u materials:\n", Scene_->mNumMaterials );
-		for( int Idx = 0; Idx < Scene_->mNumMaterials; ++Idx )
+		for( int Idx = 0; Idx < (int)Scene_->mNumMaterials; ++Idx )
 		{
 			BcPrintf( " - %s\n", AssimpGetMaterialName( Scene_->mMaterials[ Idx ] ).c_str() );
 		}
@@ -753,10 +753,6 @@ void ScnModelImport::serialiseVertices(
 							"Total weight too low to safely renormalise: %f\n", TotalWeight );
 
 						BlendWeightsVec /= TotalWeight;
-						const BcF32 TotalWeightRecalc = 
-							BlendWeightsVec.x() + BlendWeightsVec.y() +
-							BlendWeightsVec.z() + BlendWeightsVec.w();
-
 						*OutVal++ = (BcF32)BlendWeightsVec.x();
 						*OutVal++ = (BcF32)BlendWeightsVec.y();
 						*OutVal++ = (BcF32)BlendWeightsVec.z();
@@ -826,7 +822,7 @@ CsCrossRefId ScnModelImport::findMaterialMatch( const std::string& MaterialName 
 	{
 		auto ErrorString = std::string( "Unable to find match for \"" ) + MaterialName + std::string( "\"" );
 		
-		CsResourceImporter::addMessage( CsMessageCatagory::ERROR, ErrorString );
+		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
 	}
 
 	return RetVal;

@@ -90,24 +90,25 @@ void ScnViewComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "X_",					&ScnViewComponent::X_ ),
-		new ReField( "Y_",					&ScnViewComponent::Y_ ),
-		new ReField( "Width_",				&ScnViewComponent::Width_ ),
-		new ReField( "Height_",				&ScnViewComponent::Height_ ),
-		new ReField( "Near_",				&ScnViewComponent::Near_ ),
-		new ReField( "Far_",				&ScnViewComponent::Far_ ),
-		new ReField( "HorizontalFOV_",		&ScnViewComponent::HorizontalFOV_ ),
-		new ReField( "VerticalFOV_",		&ScnViewComponent::VerticalFOV_ ),
-		new ReField( "ClearColour_",		&ScnViewComponent::ClearColour_ ),
-		new ReField( "EnableClearColour_",	&ScnViewComponent::EnableClearColour_ ),
-		new ReField( "EnableClearDepth_",	&ScnViewComponent::EnableClearDepth_ ),
-		new ReField( "EnableClearStencil_",	&ScnViewComponent::EnableClearStencil_ ),
-		new ReField( "RenderMask_",			&ScnViewComponent::RenderMask_ ),
-		new ReField( "Viewport_",			&ScnViewComponent::Viewport_ ),
-		new ReField( "ViewUniformBlock_",	&ScnViewComponent::ViewUniformBlock_ ),
-		new ReField( "ViewUniformBuffer_",	&ScnViewComponent::ViewUniformBuffer_,			bcRFF_TRANSIENT ),
-		new ReField( "FrustumPlanes_",		&ScnViewComponent::FrustumPlanes_ ),
-		new ReField( "RenderTarget_",		&ScnViewComponent::RenderTarget_ ),
+		new ReField( "X_", &ScnViewComponent::X_ ),
+		new ReField( "Y_", &ScnViewComponent::Y_ ),
+		new ReField( "Width_", &ScnViewComponent::Width_ ),
+		new ReField( "Height_", &ScnViewComponent::Height_ ),
+		new ReField( "Near_", &ScnViewComponent::Near_ ),
+		new ReField( "Far_", &ScnViewComponent::Far_ ),
+		new ReField( "HorizontalFOV_", &ScnViewComponent::HorizontalFOV_ ),
+		new ReField( "VerticalFOV_", &ScnViewComponent::VerticalFOV_ ),
+		new ReField( "ClearColour_", &ScnViewComponent::ClearColour_ ),
+		new ReField( "EnableClearColour_", &ScnViewComponent::EnableClearColour_ ),
+		new ReField( "EnableClearDepth_", &ScnViewComponent::EnableClearDepth_ ),
+		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_ ),
+		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_ ),
+		new ReField( "Viewport_", &ScnViewComponent::Viewport_ ),
+		new ReField( "ViewUniformBlock_", &ScnViewComponent::ViewUniformBlock_ ),
+		new ReField( "ViewUniformBuffer_", &ScnViewComponent::ViewUniformBuffer_, bcRFF_TRANSIENT ),
+		new ReField( "FrustumPlanes_", &ScnViewComponent::FrustumPlanes_ ),
+		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_SHALLOW_COPY ),
+		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_SHALLOW_COPY ),
 	};
 	
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
@@ -123,6 +124,8 @@ void ScnViewComponent::initialise()
 	// NULL internals.
 	//pHeader_ = NULL;
 	ViewUniformBuffer_ = nullptr;
+	RenderTarget_ = nullptr;
+	DepthStencilTarget_ = nullptr;
 
 	setRenderMask( 1 );
 }
@@ -190,6 +193,12 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 	{
 		RenderTarget_ = getPackage()->getCrossRefResource( RenderTargetValue.asUInt() );
 	}
+
+	const Json::Value& DepthStencilTargetValue = Object[ "depthstenciltarget" ];
+	if( RenderTargetValue.type() != Json::nullValue )
+	{
+		DepthStencilTarget_ = getPackage()->getCrossRefResource( DepthStencilTargetValue.asUInt() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -203,6 +212,11 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ) );
 
+	OsEventClientResize::Delegate OnClientResize = 
+		OsEventClientResize::Delegate::bind< ScnViewComponent, &ScnViewComponent::onClientResize >( this );
+	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, OnClientResize );
+
+	recreateFrameBuffer();
 	Super::onAttach( Parent );
 }
 
@@ -211,8 +225,10 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	OsCore::pImpl()->unsubscribeAll( this );
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
 
+	FrameBuffer_.reset();
 	Super::onDetach( Parent );
 }
 
@@ -305,15 +321,18 @@ public:
 	void render()
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
+		pContext_->setFrameBuffer( FrameBuffer_ );
 		pContext_->setViewport( Viewport_ );
 		pContext_->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
 	}
 
+	RsFrameBuffer* FrameBuffer_;
 	RsViewport Viewport_;
 	RsColour ClearColour_;
 	BcBool EnableClearColour_;
 	BcBool EnableClearDepth_;
 	BcBool EnableClearStencil_;	
+
 };
 
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
@@ -417,18 +436,11 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		                               FrustumPlanes_[ i ].d() * Scale );
 	}
 
-	// Set render target.
-	if( RenderTarget_.isValid() )
-	{
-		RenderTarget_->bind( pFrame );
-	}
-	else
-	{
-		
-	}
-
-	// Set + clear viewport.
+	// Setup render node to set the frame buffer, viewport, and clear colour.
+	// TODO: Pass this in with the draw commands down the line.
 	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
+	pRenderNode->Sort_ = Sort;
+	pRenderNode->FrameBuffer_ = FrameBuffer_.get();
 	pRenderNode->Viewport_ = Viewport_;
 	pRenderNode->ClearColour_ = ClearColour_;
 	pRenderNode->EnableClearColour_ = EnableClearColour_;
@@ -450,4 +462,30 @@ void ScnViewComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnViewComponent::getRenderMask() const
 {
 	return RenderMask_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onClientResize
+eEvtReturn ScnViewComponent::onClientResize( EvtID ID, const OsEventClientResize& Event )
+{
+	recreateFrameBuffer();
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// recreate
+void ScnViewComponent::recreateFrameBuffer()
+{
+	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
+	{
+		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
+		BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
+		BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
+
+		RsFrameBufferDesc FrameBufferDesc( 1 );
+		FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
+		FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
+
+		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
+	}
 }

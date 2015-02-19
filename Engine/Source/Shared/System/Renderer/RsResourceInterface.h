@@ -52,6 +52,20 @@ public:
 		class RsSamplerState* SamplerState ) = 0;
 
 	/**
+	 * Create frame buffer.
+	 * @param FrameBuffer Frame buffer to create from.
+	 */
+	virtual bool createFrameBuffer( 
+		class RsFrameBuffer* FrameBuffer ) = 0;
+
+	/**
+	 * Destroy frame buffer.
+	 * @param FrameBuffer Frane buffer to destroy.
+	 */
+	virtual bool destroyFrameBuffer( 
+		class RsFrameBuffer* FrameBuffer ) = 0;
+
+	/**
 	 * Create buffer.
 	 * @param Buffer Buffer to create from.
 	 */

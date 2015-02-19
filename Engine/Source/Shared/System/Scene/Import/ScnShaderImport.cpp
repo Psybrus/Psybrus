@@ -203,6 +203,8 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
+		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
+		new ReField( "IncludePermutations_", &ScnShaderImport::IncludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "CodeTypes_", &ScnShaderImport::CodeTypes_, bcRFF_IMPORTER ),
 		new ReField( "BackendTypes_", &ScnShaderImport::BackendTypes_, bcRFF_IMPORTER ),
 	};
@@ -503,20 +505,59 @@ void ScnShaderImport::generatePermutations(
 #if PSY_IMPORT_PIPELINE
 	const auto& PermutationGroup = PermutationGroups[ GroupIdx ];
 
+	// Check exclude & include permutations.
+	BcU32 GroupExcludeMask = 0;
+	BcU32 GroupIncludeMask = 0;
+	BcAssert( PermutationGroup.NoofEntries_ < sizeof( GroupExcludeMask ) * 8 );
+	BcAssert( PermutationGroup.NoofEntries_ < sizeof( GroupIncludeMask ) * 8 );
 	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
 	{
 		auto PermutationEntry = PermutationGroup.Entries_[ Idx ];
-		auto NewPermutation = Permutation; 
-		NewPermutation.Flags_ |= PermutationEntry.Flag_;
-		NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
-
-		if( GroupIdx < ( NoofGroups - 1 ) )
+		for( auto ExcludePermutation : ExcludePermutations_ )
 		{
-			generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
+			if( PermutationEntry.Flag_ == ExcludePermutation )
+			{
+				GroupExcludeMask |= 1 << Idx;
+				break;
+			}
 		}
-		else
+
+		for( auto IncludePermutation : IncludePermutations_ )
 		{
-			Permutations_.push_back( NewPermutation );
+			if( PermutationEntry.Flag_ == IncludePermutation )
+			{
+				GroupIncludeMask |= 1 << Idx;
+				break;
+			}
+		}
+	}
+
+	// Nothing included? Include everything by default.
+	if( GroupIncludeMask == 0 )
+	{
+		GroupIncludeMask = 0xffffffff;
+	}
+
+	// Now begin filling permutations in.
+	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
+	{
+		auto PermutationEntry = PermutationGroup.Entries_[ Idx ];
+
+		if( ( ( 1 << Idx ) & GroupIncludeMask ) != 0 &&
+			( ( 1 << Idx ) & GroupExcludeMask ) == 0 )
+		{
+			auto NewPermutation = Permutation; 
+			NewPermutation.Flags_ |= PermutationEntry.Flag_;
+			NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
+
+			if( GroupIdx < ( NoofGroups - 1 ) )
+			{
+				generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
+			}
+			else
+			{
+				Permutations_.push_back( NewPermutation );
+			}
 		}
 	}
 #endif

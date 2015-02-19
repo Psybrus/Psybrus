@@ -315,7 +315,6 @@ void OsClientSDL::handleWindowEvent( const SDL_Event& SDLEvent )
 	case SDL_WINDOWEVENT_RESIZED:
 	case SDL_WINDOWEVENT_MINIMIZED:
 	case SDL_WINDOWEVENT_MAXIMIZED:
-	case SDL_WINDOWEVENT_MOVED:
 		{
 			setWindowSize();
 		}
@@ -331,4 +330,12 @@ void OsClientSDL::setWindowSize()
 	SDL_GetWindowSize( SDLWindow_, &W, &H );
 	Width_ = W;
 	Height_ = H;
+
+	// Send event.
+	OsEventClientResize Event;
+	Event.pClient_ = this;
+	Event.Width_ = Width_;
+	Event.Height_ = Height_;
+	OsCore::pImpl()->publish( osEVT_CLIENT_RESIZE, Event ); // TODO: REMOVE OLD!
+	EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
 }

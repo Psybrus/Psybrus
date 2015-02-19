@@ -36,10 +36,12 @@ public:
 	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
 	
-	virtual BcU32 getWidth() const;
-	virtual BcU32 getHeight() const;
-	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
-	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const;
+	virtual BcU32 getWidth() const override;
+	virtual BcU32 getHeight() const override;
+	virtual OsClient* getClient() const override;
+
+	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
+	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
 
 	void presentBackBuffer();
 	void takeScreenshot();
@@ -53,6 +55,11 @@ public:
 		RsSamplerState* SamplerState );
 	bool destroySamplerState(
 		RsSamplerState* SamplerState );
+
+	bool createFrameBuffer( 
+		RsFrameBuffer* FrameBuffer );
+	bool destroyFrameBuffer( 
+		RsFrameBuffer* FrameBuffer );
 
 	bool createBuffer( 
 		RsBuffer* Buffer );
@@ -101,6 +108,7 @@ public:
 		BcU32 SlotIdx, 
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
+	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
 	
 	void flushState();
 
@@ -183,6 +191,8 @@ private:
 	RsRenderStateDesc BoundRenderStateDesc_;
 	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
 
+	// Frame buffer.
+	class RsFrameBuffer* FrameBuffer_;
 
 	// Texture binding.
 	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;

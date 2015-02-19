@@ -238,8 +238,8 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if 0 //!PSY_PRODUCTION
-void RsGLCatchError()
+#if !PSY_PRODUCTION && !PLATFORM_HTML5
+GLuint RsGLCatchError()
 {
 	BcU32 TotalErrors = 0;
 	GLuint Error;
@@ -289,5 +289,7 @@ void RsGLCatchError()
 	{
 		BcBreakpoint;
 	}
+
+	return Error;
 }
 #endif

@@ -46,7 +46,7 @@ RsCoreImpl::RsCoreImpl()
 {
 	// Create our job queue.
 	// - 1 thread if we have 2 or more hardware threads.
-	RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
+	//RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
 }
 
 
@@ -114,15 +114,21 @@ void RsCoreImpl::close()
 {
 	BcAssert( BcIsGameThread() );
 
+	// Flush out all resources.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ this ]
 		{
-
+			for( auto ResourceDeletionFunc : ResourceDeletionList_ )
+			{
+				ResourceDeletionFunc();
+			}
+			ResourceDeletionList_.clear();
 		} );
 
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
+	//
 	destroyContext( nullptr );
 }
 
@@ -181,8 +187,20 @@ void RsCoreImpl::destroyContext( OsClient* pClient )
 
 	if( It != ContextMap_.end() )
 	{
-		// Destory resource.
-		destroyResource( It->second );
+		auto* pResource = It->second;
+
+		// Pre destroy.
+		pResource->preDestroy();
+
+		SysKernel::pImpl()->pushFunctionJob(
+			RsCore::JOB_QUEUE_ID,
+			[ pResource ]()
+			{
+				pResource->destroy();
+				delete pResource;
+			} );
+
+		SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 		// If we're destroying the default context, NULL it.
 		if( ContextMap_[ nullptr ] == It->second )
@@ -235,6 +253,27 @@ RsSamplerStateUPtr RsCoreImpl::createSamplerState(
 	
 	// Return resource.
 	return RsSamplerStateUPtr( pResource );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createFrameBuffer
+RsFrameBufferUPtr RsCoreImpl::createFrameBuffer( 
+	const RsFrameBufferDesc& Desc )
+{
+	BcAssert( BcIsGameThread() );
+
+	auto Context = getContext( nullptr );
+	RsFrameBuffer* pResource = new RsFrameBuffer( Context, Desc );
+
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createFrameBuffer( pResource );
+		} );
+	
+	// Return resource.
+	return RsFrameBufferUPtr( pResource );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -351,23 +390,16 @@ void RsCoreImpl::destroyResource( RsResource* pResource )
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-
 	// Pre destroy.
 	pResource->preDestroy();
 
 	// Call destroy and wait.
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID,
+	ResourceDeletionList_.push_back(
 		[ pResource ]()
 		{
 			pResource->destroy();
 			delete pResource;
 		} );
-
-	// Now flush to ensure it's finished being destroyed.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -381,10 +413,7 @@ void RsCoreImpl::destroyResource(
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID,
+	ResourceDeletionList_.push_back(
 		[ RenderState ]()
 		{
 			RenderState->getContext()->destroyRenderState( RenderState );
@@ -403,10 +432,7 @@ void RsCoreImpl::destroyResource(
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID,
+	ResourceDeletionList_.push_back(
 		[ SamplerState ]()
 		{
 			SamplerState->getContext()->destroySamplerState( SamplerState );
@@ -424,10 +450,7 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID, 
+	ResourceDeletionList_.push_back(
 		[ Buffer ]()
 		{
 			auto Context = Buffer->getContext();
@@ -447,10 +470,7 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID, 
+	ResourceDeletionList_.push_back(
 		[ Texture ]()
 		{
 			auto Context = Texture->getContext();
@@ -471,10 +491,7 @@ void RsCoreImpl::destroyResource(
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID, 
+	ResourceDeletionList_.push_back(
 		[ Shader ]()
 		{
 			auto Context = Shader->getContext();
@@ -495,10 +512,7 @@ void RsCoreImpl::destroyResource(
 		return;
 	}
 
-	// Flush render thread before destroy.
-	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
-	SysKernel::pImpl()->pushFunctionJob( 
-		RsCore::JOB_QUEUE_ID, 
+	ResourceDeletionList_.push_back(
 		[ Program ]()
 		{
 			auto Context = Program->getContext();
@@ -578,6 +592,8 @@ bool RsCoreImpl::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssert( Texture != nullptr );
+	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE );
+	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE );
 
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
@@ -657,5 +673,12 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 			// Now free.
 			delete pFrame;
 		} );
+
+	for( auto ResourceDeletionFunc : ResourceDeletionList_ )
+	{
+		SysKernel::pImpl()->pushFunctionJob( RsCore::JOB_QUEUE_ID, ResourceDeletionFunc );
+	}
+
+	ResourceDeletionList_.clear();
 }
 

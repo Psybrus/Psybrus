@@ -107,12 +107,12 @@ public:
 	/**
 	 * Add message.
 	 */
-	void addMessage( CsMessageCatagory Catagory, const std::string& Message );
+	void addMessage( CsMessageCategory Category, const std::string& Message );
 
 	/**
 	 * Get message count.
 	 */
-	size_t getMessageCount( CsMessageCatagory Catagory ) const;
+	size_t getMessageCount( CsMessageCategory Category ) const;
 
 protected:
 	/**
@@ -173,7 +173,7 @@ protected:
 protected:
 	std::string Name_;
 	std::string Type_;
-	std::array< size_t, (size_t)CsMessageCatagory::MAX > MessageCount_;
+	std::array< size_t, (size_t)CsMessageCategory::MAX > MessageCount_;
 
 private:
 	class CsPackageImporter* Importer_;
