@@ -110,6 +110,8 @@ BcBool SysJobWorker::anyJobsWaiting()
 //virtual
 void SysJobWorker::execute()
 {
+	PSY_LOGSCOPEDCATEGORY( "Worker" );
+
 	// Mark as started.
 	StartFence_.decrement();
 

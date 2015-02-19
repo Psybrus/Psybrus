@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include "Base/BcName.h"
+
+#include "Base/BcDebug.h"
 #include "Base/BcMisc.h"
 
 #include "Base/BcProfiler.h"
