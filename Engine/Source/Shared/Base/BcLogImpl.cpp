@@ -110,10 +110,27 @@ BcBool BcLogImpl::getCategorySuppression( BcName Category ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// registerListener
+void BcLogImpl::registerListener( class BcLogListener* Listener )
+{
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	BcAssert( std::find( Listeners_.begin(), Listeners_.end(), Listener ) == Listeners_.end() );
+	Listeners_.push_back( Listener );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterListener
+void BcLogImpl::deregisterListener( class BcLogListener* Listener )
+{
+	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
+	std::remove( Listeners_.begin(), Listeners_.end(), Listener ); 
+	BcAssert( std::find( Listeners_.begin(), Listeners_.end(), Listener ) == Listeners_.end() );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setCategory
 void BcLogImpl::setCategory( BcName Category )
 {
-
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
 	Catagories_[ ThreadId ] = Category;
@@ -217,6 +234,7 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 
 		// Replace newlines with spaces.
 		std::replace( TextBuffer, TextBuffer + BcStrLength( TextBuffer ), '\n', ' ' );
+
 
 
 		// Format for output.

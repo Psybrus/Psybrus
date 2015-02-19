@@ -32,49 +32,16 @@ public:
 	BcLogImpl();
 	virtual ~BcLogImpl();
 
-	/**
-	 * Write to log.
-	 */
 	void write( const BcChar* pText, ... ) override;
-	
-	/**
-	 * Flush log.
-	 */
 	void flush() override;
-
-	/**
-	 * Set category suppression.
-	 */
 	void setCategorySuppression( BcName Category, BcBool IsSuppressed ) override;
-
-	/**
-	 * Get category suppression.
-	 */
-	BcBool getCategorySuppression( BcName Category ) const override;
-	
-	/**
-	 * Set category.
-	 */
+	BcBool getCategorySuppression( BcName Category ) const override;	
+	void registerListener( class BcLogListener* Listener ) override;
+	void deregisterListener( class BcLogListener* Listener ) override;
 	void setCategory( BcName Category ) override;
-
-	/**
-	 * Get category.
-	 */
 	BcName getCategory() override;
-
-	/**
-	 * Increase indent.
-	 */
 	void increaseIndent() override;
-
-	/**
-	 * Decreate indent.
-	 */
 	void decreaseIndent() override;
-
-	/*
-	 * Get log data
-	 */
 	std::vector<std::string> getLogData();
 
 protected:
@@ -98,6 +65,7 @@ private:
 	typedef std::map< BcName, BcBool > TSuppressionMap;
 	typedef std::map< BcThreadId, int > TIndentLevels;
 	typedef std::map< BcThreadId, BcName > TCatagories;
+	typedef std::vector< BcLogListener* > TLogListeners;
 
 	mutable std::recursive_mutex Lock_;
 	TIndentLevels IndentLevel_;
@@ -105,6 +73,7 @@ private:
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
 	BcTimer Timer_;
+	TLogListeners Listeners_;
 	std::list<std::string> LogBuffer;
 
 };

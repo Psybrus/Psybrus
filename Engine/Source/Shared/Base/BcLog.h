@@ -21,7 +21,9 @@
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
-// BcLog
+/* @class BcLog
+ * @brief Abstract interface and global access for logging.
+ */
 class BcLog:
 	public BcGlobal< BcLog >
 {
@@ -50,13 +52,24 @@ public:
 	virtual BcBool getCategorySuppression( BcName Category ) const = 0;
 
 	/*
-	* Get log data
-	*/
+	 * Get log data
+	-- */
 	virtual std::vector<std::string> getLogData() = 0;
 
 protected:
 	friend class BcLogScopedCategory;
 	friend class BcLogScopedIndent;
+	friend class BcLogListener;
+
+	/**
+	 * Register listener.
+	 */
+	virtual void registerListener( class BcLogListener* Listener ) = 0;
+
+	/**
+	 * Deregister listener.
+	 */
+	virtual void deregisterListener( class BcLogListener* Listener ) = 0;
 
 	/**
 	 * Set category.
@@ -80,51 +93,59 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// BcLogScopedCategory
+/* @class BcLogEntry
+ * @brief Log entry containing all useful, loggable information per
+ *        user log entry.
+ */
+struct BcLogEntry
+{
+	BcF64 Time_;
+	BcThreadId ThreadId_;
+	BcName Catagory_;
+	BcU32 Indent_;
+	std::string Text_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+/**
+ * @class BcLogListener
+ * @brief Interface for receiving callbacks from the logging system.
+ */
+class BcLogListener
+{
+public:
+	BcLogListener();
+	virtual ~BcLogListener();
+
+	/**
+	 * Called when there has been any logging occur.
+	 */
+	virtual void onLog( const BcLogEntry& Entry ) = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
+/* @class BcLogScopedCategory
+ * @brief Scoped log catagory setting to set/unset current catagory.
+ */
 class BcLogScopedCategory
 {
 public:
-	BcLogScopedCategory( BcName Category )
-	{
-		if( BcLog::pImpl() )
-		{
-			OldCategory_ = BcLog::pImpl()->getCategory();
-			BcLog::pImpl()->setCategory( Category );
-		}
-	}
-
-	~BcLogScopedCategory()
-	{
-		if( BcLog::pImpl() )
-		{
-			BcLog::pImpl()->setCategory( OldCategory_ );
-		}
-	}
+	BcLogScopedCategory( BcName Category );
+	~BcLogScopedCategory();
 
 private:
 	BcName OldCategory_;
 };
 
 //////////////////////////////////////////////////////////////////////////
-// BcLogScopedIndent
+/* @class BcLogScopedIndent
+ * @brief Scoped log indent setting to indent/unindent.
+ */
 class BcLogScopedIndent
 {
 public:
-	BcLogScopedIndent()
-	{
-		if( BcLog::pImpl() )
-		{
-			BcLog::pImpl()->increaseIndent();
-		}
-	}
-
-	~BcLogScopedIndent()
-	{
-		if( BcLog::pImpl() )
-		{
-			BcLog::pImpl()->decreaseIndent();
-		}
-	}
+	BcLogScopedIndent();
+	~BcLogScopedIndent();
 };
 
 //////////////////////////////////////////////////////////////////////////
