@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
 	// HACK: Append a space to sys args for find to work.
 	SysArgs_ += " ";
-
+	
 	// Setup log if we have a commandline for it.
 	if( SysArgs_.find( "-log " ) != std::string::npos )
 	{
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-//	SYS_REGISTER( "DsCore", DsCoreImpl );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );
