@@ -105,7 +105,6 @@ void RsStencilFaceState::StaticRegisterClass()
 		new ReField( "DepthFail_", &RsStencilFaceState::DepthFail_ ),
 		new ReField( "Pass_", &RsStencilFaceState::Pass_ ),
 		new ReField( "Func_", &RsStencilFaceState::Func_ ),
-		new ReField( "Ref_", &RsStencilFaceState::Ref_ ),
 		new ReField( "Mask_", &RsStencilFaceState::Mask_ ),
 	};
 		
@@ -117,7 +116,6 @@ RsStencilFaceState::RsStencilFaceState( ReNoInit ):
 	DepthFail_( RsStencilOp::KEEP ),
 	Pass_( RsStencilOp::KEEP ),
 	Func_( RsCompareMode::ALWAYS ),
-	Ref_( 0 ),
 	Mask_( 0 )
 {
 
@@ -128,7 +126,6 @@ RsStencilFaceState::RsStencilFaceState():
 	DepthFail_( RsStencilOp::KEEP ),
 	Pass_( RsStencilOp::KEEP ),
 	Func_( RsCompareMode::ALWAYS ),
-	Ref_( 0 ),
 	Mask_( 0 )
 {
 
@@ -148,6 +145,7 @@ void RsDepthStencilState::StaticRegisterClass()
 		new ReField( "StencilWrite_", &RsDepthStencilState::StencilWrite_ ),
 		new ReField( "StencilFront_", &RsDepthStencilState::StencilFront_ ),
 		new ReField( "StencilBack_", &RsDepthStencilState::StencilBack_ ),
+		new ReField( "StencilRef_", &RsDepthStencilState::StencilRef_ ),
 	};
 	
 	ReRegisterClass< RsDepthStencilState >( Fields );
@@ -160,6 +158,7 @@ RsDepthStencilState::RsDepthStencilState( ReNoInit ):
 	StencilEnable_( BcFalse ),
 	StencilRead_( 0x0 ),
 	StencilWrite_( 0x0 ),
+	StencilRef_( 0x0 ),
 	StencilFront_(),
 	StencilBack_()
 {
@@ -173,6 +172,7 @@ RsDepthStencilState::RsDepthStencilState():
 	StencilEnable_( BcFalse ),
 	StencilRead_( 0x0 ),
 	StencilWrite_( 0x0 ),
+	StencilRef_( 0 ),
 	StencilFront_(),
 	StencilBack_()
 {

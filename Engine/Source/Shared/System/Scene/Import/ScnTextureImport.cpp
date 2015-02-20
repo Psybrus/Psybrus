@@ -360,7 +360,6 @@ BcBool ScnTextureImport::import(
 			if( RoundUpPowerOfTwo_ || RoundDownPowerOfTwo_ )
 			{
 				// Awful resize. Bleh.
-				ImgColour FillColour = { 0, 0, 0, 0 };
 				MipImages[ 0 ] = MipImages[ 0 ]->resize( 
 					BcPotNext( MipImages[ 0 ]->width() ), 
 					BcPotNext( MipImages[ 0 ]->height() ) );

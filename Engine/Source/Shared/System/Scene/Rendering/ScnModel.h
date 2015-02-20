@@ -71,8 +71,6 @@ public:
 	virtual void initialise();
 	virtual void initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void initialise( const Json::Value& Object );
-	virtual void create();
-	virtual void destroy();
 
 	virtual MaAABB getAABB() const;
 

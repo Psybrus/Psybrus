@@ -522,6 +522,7 @@ void RsContextGL::create()
 	wglMakeCurrent( WindowDC_, WindowRC_ );
 
 	// Init GLEW.
+	glewExperimental = 1;
 	glewInit();
 	
 	// Attempt to create core profile.
@@ -751,6 +752,11 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 		break;
 	}
 	
+	BcAssert( WGL_ARB_create_context );
+	BcAssert( WGL_ARB_create_context_profile );
+
+	auto func = wglCreateContextAttribsARB;
+	BcUnusedVar( func );
 
 	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
 	if( CoreProfile != NULL )
@@ -2231,7 +2237,7 @@ void RsContextGL::clear(
 	// TODO: Look into this? It causes an invalid operation.
 	if( Version_.Type_ != RsOpenGLType::ES )
 	{
-		glClearDepth( 1.0f );
+		glClearDepthf( 1.0f );
 	}
 
 	glClearStencil( 0 );
@@ -2288,7 +2294,6 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
-	glDepthRangef( Viewport.zNear(), Viewport.zFar() );
 	RsGLCatchError();
 }
 
@@ -2684,24 +2689,24 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 
 	if( Force ||
 		DepthStencilState.StencilFront_.Func_ != BoundDepthStencilState.StencilFront_.Func_ ||
-		DepthStencilState.StencilFront_.Ref_ != BoundDepthStencilState.StencilFront_.Ref_ ||
+		DepthStencilState.StencilRef_ != BoundDepthStencilState.StencilRef_ ||
 		DepthStencilState.StencilFront_.Mask_ != BoundDepthStencilState.StencilFront_.Mask_ )
 	{
 		glStencilFuncSeparate( 
 			GL_FRONT,
 			gCompareMode[ (BcU32)DepthStencilState.StencilFront_.Func_ ], 
-			DepthStencilState.StencilFront_.Ref_, DepthStencilState.StencilFront_.Mask_ );
+			DepthStencilState.StencilRef_, DepthStencilState.StencilFront_.Mask_ );
 	}
 
 	if( Force ||
 		DepthStencilState.StencilBack_.Func_ != BoundDepthStencilState.StencilBack_.Func_ ||
-		DepthStencilState.StencilBack_.Ref_ != BoundDepthStencilState.StencilBack_.Ref_ ||
+		DepthStencilState.StencilRef_ != BoundDepthStencilState.StencilRef_ ||
 		DepthStencilState.StencilBack_.Mask_ != BoundDepthStencilState.StencilBack_.Mask_ )
 	{
 		glStencilFuncSeparate( 
 			GL_BACK,
 			gCompareMode[ (BcU32)DepthStencilState.StencilBack_.Func_ ], 
-			DepthStencilState.StencilBack_.Ref_, DepthStencilState.StencilBack_.Mask_ );
+			DepthStencilState.StencilRef_, DepthStencilState.StencilBack_.Mask_ );
 	}
 
 	if( Force ||

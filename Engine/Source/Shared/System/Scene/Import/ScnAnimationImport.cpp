@@ -190,7 +190,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 	if( Scene_ != nullptr )
 	{
 		PSY_LOG( "Found %u animations:\n", Scene_->mNumAnimations );
-		for( int Idx = 0; Idx < Scene_->mNumAnimations; ++Idx )
+		for( int Idx = 0; Idx < (int)Scene_->mNumAnimations; ++Idx )
 		{
 			PSY_LOG( " - %s\n", Scene_->mAnimations[ Idx ]->mName.C_Str() );
 		}

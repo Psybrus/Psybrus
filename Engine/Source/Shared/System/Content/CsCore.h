@@ -47,7 +47,7 @@ public:
 	virtual void						open();
 	virtual void						update();
 	virtual void						close();
-
+	
 public:
 	/**
 	 * Free unreferenced packages.
@@ -68,16 +68,11 @@ public:
 	 * Allocate resource.
 	 */
 	CsResource*							allocResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage );
-
-	/*
-	 * Destroy resource.
-	 */
-	void								destroyResource( CsResource* pResource );
 	
 	/*
 	* Get a resource by its Unique Id
 	*/
-	ReObjectRef< CsResource >					getResourceByUniqueId(BcU32 UId);
+	ReObjectRef< CsResource >			getResourceByUniqueId(BcU32 UId);
 
 	/**
 	 * Create a resource.<br/>
@@ -174,14 +169,12 @@ public:
 protected:
 	friend class CsResource;
 
-	void								processCreateResources();
-	void								processLoadingResources();
-	void								processLoadedResource();
-	void								processUnloadingResources();
+	void								processResources();
 	void								processCallbacks();
 	
 public:
 	void								internalAddResource( CsResource* Resource );
+	void								internalAddResourceForProcessing( CsResource* Resource );
 	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle );
 	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
 	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
@@ -204,11 +197,9 @@ protected:
 	typedef TPackageList::iterator TPackageListIterator;
 
 	std::recursive_mutex				ContainerLock_;
-	TResourceList						PrecreateResources_;
-	TResourceList						CreateResources_;
-	TResourceList						LoadingResources_;
-	TResourceList						LoadedResources_;
-	TResourceList						UnloadingResources_;
+	TResourceList						PreprocessResources_;
+	TResourceList						ProcessingResources_;
+	TResourceList						Resources_;
 	
 	TPackageList						PackageList_;
 	TPackageList						UnreferencedPackageList_;

@@ -30,7 +30,8 @@ enum ScnComponentFlags
 	scnCF_ATTACHED =					0x00000001,
 	scnCF_PENDING_ATTACH =				0x00000002,
 	scnCF_PENDING_DETACH =				0x00000004,
-	scnCF_DIRTY_ATTACHMENTS =			0x00000008,
+	scnCF_PENDING_DESTROY =				0x00000008,
+	scnCF_DIRTY_ATTACHMENTS =			0x00000010,
 
 	scnCF_WANTS_PREUPDATE =				0x00000100,
 	scnCF_WANTS_UPDATE =				0x00000200,
@@ -68,8 +69,7 @@ public:
 public:
 	virtual void initialise();
 	virtual void initialise( const Json::Value& Object );
-	virtual void create();
-	virtual void destroy();
+	void postInitialise();
 
 	virtual void preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.
 	virtual void update( BcF32 Tick );			// Most will want this tick.
@@ -156,8 +156,10 @@ public:
 	}
 
 
+private:
+	virtual void create();
+	virtual void destroy();
 
-protected:
 	virtual void fileReady();
 	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 

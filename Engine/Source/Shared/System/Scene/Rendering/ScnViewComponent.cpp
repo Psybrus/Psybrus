@@ -202,11 +202,10 @@ void ScnViewComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
+// onAttach
 //virtual
-void ScnViewComponent::create()
+void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	ScnComponent::create();
 	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
@@ -218,19 +217,19 @@ void ScnViewComponent::create()
 	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, OnClientResize );
 
 	recreateFrameBuffer();
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroy
+// onDetach
 //virtual
-void ScnViewComponent::destroy()
+void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	OsCore::pImpl()->unsubscribeAll( this );
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
 
 	FrameBuffer_.reset();
-	
-	ScnComponent::destroy();
+	Super::onDetach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////

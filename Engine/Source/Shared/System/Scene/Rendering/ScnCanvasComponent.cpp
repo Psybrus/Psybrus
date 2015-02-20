@@ -109,48 +109,6 @@ void ScnCanvasComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnCanvasComponent::create()
-{
-	// Allocate our own vertex buffer data.
-	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
-		RsVertexDeclarationDesc( 3 )
-			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 16,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
-
-	// Allocate render resources.
-	RenderResource_.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
-		RsBufferDesc( 
-			RsBufferType::VERTEX,
-			RsResourceCreationFlags::STREAM,
-			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
-
-	// Allocate working vertices.
-	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
-
-	Super::create();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnCanvasComponent::destroy()
-{
-	UploadFence_.wait();
-
-	// Allocate render side vertex buffer.
-	RsCore::pImpl()->destroyResource( RenderResource_.pVertexBuffer_ );
-
-	// Destroy vertex declaration.
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
-
-	// Delete working data.
-	delete [] pWorkingVertices_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
 MaAABB ScnCanvasComponent::getAABB() const
@@ -692,13 +650,15 @@ public:
 			{
 				pPrimitiveSection->RenderFunc_( pContext_ );
 			}
-			
+
 			if( pPrimitiveSection->Type_ != RsTopologyType::INVALID )
 			{
 				pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
 				pContext_->setVertexDeclaration( VertexDeclaration_ );
 				pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 			}
+
+			pPrimitiveSection->~ScnCanvasComponentPrimitiveSection();
 		}
 	}
 	
@@ -778,6 +738,23 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 //virtual
 void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	// Allocate our own vertex buffer data.
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 3 )
+			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
+			.addElement( RsVertexElement( 0, 16,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
+			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+
+	// Allocate render resources.
+	RenderResource_.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::VERTEX,
+			RsResourceCreationFlags::STREAM,
+			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
+
+	// Allocate working vertices.
+	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
+
 	Super::onAttach( Parent );	
 }
 
@@ -786,5 +763,16 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UploadFence_.wait();
+
+	// Allocate render side vertex buffer.
+	RsCore::pImpl()->destroyResource( RenderResource_.pVertexBuffer_ );
+
+	// Destroy vertex declaration.
+	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
+
+	// Delete working data.
+	delete [] pWorkingVertices_;
+
 	Super::onDetach( Parent );
 }

@@ -27,8 +27,6 @@ public:
 
 	virtual void initialise();
 	virtual void initialise( const Json::Value& Object );
-	virtual void create();
-	virtual void destroy();
 
 	virtual void preUpdate( BcF32 Tick );
 	virtual void update( BcF32 Tick );

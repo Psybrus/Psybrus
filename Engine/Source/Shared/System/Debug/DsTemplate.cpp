@@ -23,9 +23,7 @@ BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 	}
 	catch ( rapidxml::parse_error &e )
 	{
-		char buffer[ 64 ];
 		PSY_LOG( "Error in file %s: %s\n   Error at %d\n", filename.c_str(), e.what(), ( int ) ( e.where<char>() - out.c_str() ) );
-
 	}
 
 	xml_node<> *pRoot = doc.first_node();

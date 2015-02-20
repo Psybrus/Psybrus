@@ -49,12 +49,8 @@ void CsCore::open()
 //virtual 
 void CsCore::update()
 {
-	// Should be handled in CsPackage. Look into doing it.
-	processCreateResources();
-	processLoadingResources();
-	processLoadedResource();
+	processResources();
 	freeUnreferencedPackages();
-	processUnloadingResources();
 	processCallbacks();
 }
 
@@ -63,21 +59,18 @@ void CsCore::update()
 //virtual 
 void CsCore::close()
 {
-	// Verify we have no more resources to be created or loading.
-	BcVerifyMsg( CreateResources_.size() == 0, "CsCore: Resources to be created, but system is closing!" );
-	BcVerifyMsg( LoadingResources_.size() == 0, "CsCore: Resources currently loading, but system is closing!" );
-
 	static BcF32 UnloadTimeout = 5.0f;
 	BcTimer UnloadTimer;
 	UnloadTimer.mark();
-	while( PackageList_.size() > 0 )
+	
+	do	
 	{
 		freeUnreferencedPackages();
 
 		// Finish processing unloading resources.
-		if( UnloadingResources_.size() > 0 )
+		if( Resources_.size() > 0 )
 		{
-			processUnloadingResources();
+			processResources();
 		}
 
 		// If we hit the timeout, just break out and shut down cleanly.
@@ -86,26 +79,30 @@ void CsCore::close()
 			break;
 		}
 	}
+	while( PackageList_.size() > 0 );
 
-	if( LoadedResources_.size() > 0 )
+	if( Resources_.size() > 0 )
 	{
 		PSY_LOG( "==========================================\n" );
 		PSY_LOG( "CsCore: Dump Resource On Exit:\n" );
 		PSY_LOG( "==========================================\n" );
 	
-		TResourceListIterator It( LoadedResources_.begin() );
-		while( It != LoadedResources_.end() )
+		TResourceListIterator It( Resources_.begin() );
+		while( It != Resources_.end() )
 		{
 			CsResource* pResource = (*It);
-			PSY_LOG( "%s:%s \n", (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			PSY_LOG( "Init stage: %u, %s:%s \n", 
+				pResource->getInitStage(), 
+				(*pResource->getName()).c_str(), 
+				(*pResource->getTypeName()).c_str() );
 			++It;
 		}
 		PSY_LOG( "==========================================\n" );
 	}
 
 	// Verify we don't have any left floating loaded or unloading.
-	BcVerifyMsg( LoadedResources_.size() == 0, "CsCore: Resources still loaded, but system is closing! Has the scene cleaned up properly?" );
-	BcVerifyMsg( UnloadingResources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
+	BcVerifyMsg( ProcessingResources_.size() == 0, "CsCore: Resources still loaded, but system is closing! Has the scene cleaned up properly?" );
+	BcVerifyMsg( Resources_.size() == 0, "CsCore: Resources still unloading, but system is closing!" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -180,52 +177,17 @@ CsResource* CsCore::allocResource( const BcName& Name, const ReClass* Class, BcU
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroyResource
-void CsCore::destroyResource( CsResource* pResource )
-{
-	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
-		
-	// Find the resource in the list.
-	TResourceListIterator FoundIt = LoadedResources_.end();
-	
-	for( TResourceListIterator It( LoadedResources_.begin() ); It != LoadedResources_.end(); ++It )
-	{
-		if( (*It) == pResource )
-		{
-			FoundIt = It;
-			break;
-		}
-	}
-	
-	// If it's in the loaded list we need to put it into the unloading list,
-	// otherwise delete it right away (imported resource).
-	if( FoundIt != LoadedResources_.end() )
-	{
-		// Remove from list.
-		LoadedResources_.erase( FoundIt );
-	
-		// Put into unloading list.
-		UnloadingResources_.push_back( pResource );
-	}
-	else
-	{
-		pResource->getClass()->destruct( pResource );
-		BcMemFree( pResource );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getNoofResources
 size_t CsCore::getNoofResources()
 {
-	return LoadedResources_.size();
+	return Resources_.size();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getResource
 ReObjectRef< CsResource > CsCore::getResource( size_t Idx )
 {
-	return LoadedResources_[ Idx ];
+	return Resources_[ Idx ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -382,139 +344,50 @@ BcPath CsCore::getIntermediatePath( const std::string& SubFolder )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// processCreateResources
-void CsCore::processCreateResources()
+// processResources
+void CsCore::processResources()
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	// Copy precreate in.
-	auto CreateIt( PrecreateResources_.begin() );
-	while( CreateIt != PrecreateResources_.end() )
+	// Iterate processing resources.
+	for( auto Resource : ProcessingResources_ )
 	{
-		BcAssert( (*CreateIt)->getName() != BcName::INVALID );
-		CreateResources_.push_back( *CreateIt );
-		++CreateIt;
-	}
-	PrecreateResources_.clear();
-	
-	// Iterate create resources.
-	auto It( CreateResources_.begin() );
-	while( It != CreateResources_.end() )
-	{
-		ReObjectRef< CsResource > ResourceHandle = (*It);
-			
-		// Create resource.
-		if( ResourceHandle->getInitStage() >= CsResource::INIT_STAGE_CREATE )
+		switch( Resource->getInitStage() )
 		{
-			// Only create if still in the create stage, otherwise skip a stage.
-			if( ResourceHandle->getInitStage() == CsResource::INIT_STAGE_CREATE )
+		case CsResource::INIT_STAGE_INITIAL:
 			{
-				ResourceHandle->create();
+				BcAssertMsg( 0, "Invalid init stage for processing." );
 			}
-	
-			// Remove from list.
-			It = CreateResources_.erase( It );
-	
-			// Put into loading list.
-			LoadingResources_.push_back( ResourceHandle );
-		}
-		else
-		{
-			++It;
-		}
-	}
+			break;
 
-}
+		case CsResource::INIT_STAGE_CREATE:
+			{
+				BcAssertMsg( 0, "Invalid init stage for processing." );
+			}
+			break;
 
-//////////////////////////////////////////////////////////////////////////
-// processLoadingResources
-void CsCore::processLoadingResources()
-{
-	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
+		case CsResource::INIT_STAGE_READY:
+			{
+				BcAssertMsg( 0, "Invalid init stage for processing." );
+			}
+			break;
 
-	auto It( LoadingResources_.begin() );
-	while( It != LoadingResources_.end() )
-	{
-		ReObjectRef< CsResource > ResourceHandle = (*It);
-		
-		// If resource is ready remove it from the list.
-		if( ResourceHandle.isValid() && ResourceHandle->isReady() )
-		{
-			It = LoadingResources_.erase( It );
-			
-			// Put into loaded list.
-			LoadedResources_.push_back( ResourceHandle );
-		}
-		else
-		{
-			++It;
+		case CsResource::INIT_STAGE_DESTROY:
+			{
+				// Destruct and free.
+				Resource->getClass()->destruct( Resource );
+				BcMemFree( Resource );
+
+				// Remove entirely.
+				auto FoundIt = std::find( Resources_.begin(), Resources_.end(), Resource );
+				BcAssert( FoundIt != Resources_.end() );
+				Resources_.erase( FoundIt );
+			}
+			break;
 		}
 	}
-}
 
-//////////////////////////////////////////////////////////////////////////
-// processLoadedResource
-void CsCore::processLoadedResource()
-{
-	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
-	
-	static BcBool DumpResources = BcFalse;
-	
-	if( DumpResources )
-	{
-		PSY_LOG( "==========================================\n" );
-		PSY_LOG( "CsCore: Dump Resource:\n" );
-		PSY_LOG( "==========================================\n" );
-	}
-	
-	TResourceListIterator It( LoadedResources_.begin() );
-	while( It != LoadedResources_.end() )
-	{
-		CsResource* pResource = (*It);
-		BcUnusedVar( pResource );
-		
-		// NOTE: Placeholder for doing stuff. Probably don't need to other
-		//       than for debug purposes.
-		if( DumpResources )
-		{
-			PSY_LOG( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
-		}
-	
-		++It;
-	}
-
-	if( DumpResources )
-	{
-		PSY_LOG( "==========================================\n" );
-		DumpResources = BcFalse;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// processUnloadingResources
-void CsCore::processUnloadingResources()
-{
-	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
-
-	while( UnloadingResources_.size() > 0 )
-	{
-		TResourceList ResourceList = UnloadingResources_;
-
-		TResourceListIterator It( ResourceList.begin() );
-		while( It != ResourceList.end() )
-		{
-			CsResource* pResource = (*It);
-			
-			// Destroy resource.
-			pResource->destroy();
-			delete pResource;
-			
-			// Next.
-			++It;
-		}
-	
-		UnloadingResources_.clear();
-	}
+	ProcessingResources_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -545,7 +418,27 @@ void CsCore::processCallbacks()
 void CsCore::internalAddResource( CsResource* Resource )
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
-	PrecreateResources_.push_back( Resource );
+
+	// Put into resource list.
+	BcAssert( std::find( Resources_.begin(), Resources_.end(), Resource ) == Resources_.end() );
+	Resources_.push_back( Resource );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalAddResourceForProcessing
+void CsCore::internalAddResourceForProcessing( CsResource* Resource )
+{
+	// Put into preprocess resources list.
+	auto FoundIt = 
+		std::find( 
+			ProcessingResources_.begin(), 
+			ProcessingResources_.end(), 
+			Resource );
+
+	if( FoundIt == ProcessingResources_.end() )
+	{
+		ProcessingResources_.push_back( Resource );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -593,13 +486,11 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 	// Make the handle null, this method must return a failure correctly.
 	Handle = nullptr;
 
-	// Look in create, loading, and loaded lists.
-	// Honestly, I don't like having multiple lists for everything as it makes this method a filthy
-	// mess. BUT, it does mean I will have a much easier time debugging, and also process the minimum
-	// amount of resources.
-	// THIS IS A MESS. FIX THIS FUCKING SHIT.
-	// This is now slightly less of a fucking mess, but I still don't like it.
-	auto FindResourceInList = [ this, Package, Name, Class ]( TResourceList& List ) -> CsResource*
+	// Function to find matching resource in a given list.
+	// Used to facilitate looking into multiple lists, but we
+	// have unified in to one list for all resources,
+	// and individual ones for processing.
+	auto findResourceInList = [ this, Package, Name, Class ]( TResourceList& List ) -> CsResource*
 	{
 		for( auto Resource : List )
 		{
@@ -643,15 +534,7 @@ BcBool CsCore::internalFindResource( const BcName& Package, const BcName& Name, 
 		return nullptr;
 	};
 
-	CsResource* Resource = FindResourceInList( CreateResources_ );
-	if( Resource == nullptr )
-	{
-		Resource = FindResourceInList( LoadingResources_ );
-	}
-	if( Resource == nullptr )
-	{
-		Resource = FindResourceInList( LoadedResources_ );
-	}
+	CsResource* Resource = findResourceInList( Resources_ );
 
 	// Assign to handle and return.
 	Handle = Resource;

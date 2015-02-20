@@ -210,11 +210,11 @@ void ScnCore::close()
 	processPendingComponents();
 
 	delete [] pComponentLists_;
-	pComponentLists_ = NULL;
+	pComponentLists_ = nullptr;
 
 	// Destroy spacial tree.
 	delete pSpatialTree_;
-	pSpatialTree_ = NULL;
+	pSpatialTree_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -222,6 +222,7 @@ void ScnCore::close()
 void ScnCore::addEntity( ScnEntityRef Entity )
 {
 	BcAssert( Entity->getName().isValid() );
+	BcAssert( !Entity->isFlagSet( scnCF_ATTACHED ) );
 	Entity->setFlag( scnCF_PENDING_ATTACH );
 	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
 }
@@ -231,7 +232,7 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
 	BcAssert( Entity->getName().isValid() );
-	if(Entity->getParentEntity() == NULL )
+	if( Entity->getParentEntity() == nullptr )
 	{
 		Entity->setFlag( scnCF_PENDING_DETACH );
 		queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
@@ -253,7 +254,7 @@ void ScnCore::removeAllEntities()
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );
 		// Only remove root entities, it will cascade down the hierarchy removing them.
-		if( Entity->getParentEntity() == NULL )
+		if( Entity->getParentEntity() == nullptr )
 		{
 			removeEntity( Entity );
 		}
@@ -274,6 +275,7 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
 		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? UniqueName : InstanceName, pPackage, Entity, TemplateEntity ) )
 		{
+			Entity->postInitialise();
 			return Entity;
 		}
 	}
@@ -354,7 +356,12 @@ ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
 {
 	BcAssert( Component->getName() != BcName::INVALID );
-	PendingComponentList_.push_back( Component );
+	
+	// Add pending operation if not already in queue.
+	if( std::find( PendingComponentList_.begin(), PendingComponentList_.end(), Component ) == PendingComponentList_.end() )
+	{
+		PendingComponentList_.push_back( Component );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -437,25 +444,54 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 // processPendingComponents
 void ScnCore::processPendingComponents()
 {
+	ScnComponentList ComponentStillNotReady;
+	ScnComponentList ComponentToDestroy;
 	while( PendingComponentList_.size() > 0 )
 	{
 		//
 		ScnComponentRef Component( *PendingComponentList_.begin() );
 		PendingComponentList_.erase( PendingComponentList_.begin() );
 
-		if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
+		BcAssert( Component->getInitStage() != CsResource::INIT_STAGE_DESTROY );
+
+		//
+		if( Component->isReady() )
 		{
-			Component->onAttach( Component->getParentEntity() );
-			onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+			// Handle attachment.
+			if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
+			{
+				Component->onAttach( Component->getParentEntity() );
+				onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+			}
+
+			// Handle detachment.
+			if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
+			{
+				Component->onDetach( Component->getParentEntity() );
+				BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
+					"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
+				onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+			}
+
+			// Handle destruction.
+			if( Component->isFlagSet( scnCF_PENDING_DESTROY ) )
+			{
+				ComponentToDestroy.push_back( Component );
+			}
 		}
-		
-		if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
+		else
 		{
-			Component->onDetach( Component->getParentEntity() );
-			BcAssertMsg( Component->getInitStage() == CsResource::INIT_STAGE_DESTROY, 
-				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
-			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+			ComponentStillNotReady.push_back( Component );
 		}
+	}
+
+	PendingComponentList_.insert( 
+		PendingComponentList_.begin(), ComponentStillNotReady.begin(), ComponentStillNotReady.end() );
+
+	// Do destruction.
+	for( auto Component : ComponentToDestroy )
+	{
+		Component->markDestroy();
 	}
 }
 

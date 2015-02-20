@@ -108,65 +108,6 @@ void ScnParticleSystemComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnParticleSystemComponent::create()
-{
-	// TODO: Allow different types of geom for this.
-	// TODO: Use index buffer.
-	// Calc what we need.
-	BcU32 NoofVertices = NoofParticles_ * 6;	// 2x3 tris.
-
-	// Create vertex declaration.
-	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
-		RsVertexDeclarationDesc( 4 )
-			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,	0 ) )
-			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,		0 ) )
-			.addElement( RsVertexElement( 0, 32,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,	0 ) )
-			.addElement( RsVertexElement( 0, 40,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ) );
-
-	// Allocate vertex buffers.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::VERTEX, 
-				RsResourceCreationFlags::STREAM, 
-				NoofVertices * sizeof( ScnParticleVertex ) ) );
-
-		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::UNIFORM,
-				RsResourceCreationFlags::STREAM,
-				sizeof( VertexBuffer.ObjectUniforms_ ) ) );
-	}
-
-	// Allocate particles.
-	pParticleBuffer_ = new ScnParticle[ NoofParticles_ ];
-	BcMemZero( pParticleBuffer_, sizeof( ScnParticle ) * NoofParticles_ );
-	
-	Super::create();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnParticleSystemComponent::destroy()
-{
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
-	}
-
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
-	
-	delete [] pParticleBuffer_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
 MaAABB ScnParticleSystemComponent::getAABB() const
@@ -419,10 +360,45 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 		ScnShaderPermutationFlags::MESH_PARTICLE_3D ) )
 	{
 		MaterialComponent_ = MaterialComponent;
+		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 	}
 
 	BcAssertMsg( MaterialComponent_ != nullptr, "Material invalid blah." );
 	Parent->attach( MaterialComponent_ );
+
+	// TODO: Allow different types of geom for this.
+	// TODO: Use index buffer.
+	// Calc what we need.
+	BcU32 NoofVertices = NoofParticles_ * 6;	// 2x3 tris.
+
+	// Create vertex declaration.
+	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
+		RsVertexDeclarationDesc( 4 )
+			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,	0 ) )
+			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,		0 ) )
+			.addElement( RsVertexElement( 0, 32,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,	0 ) )
+			.addElement( RsVertexElement( 0, 40,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ) );
+
+	// Allocate vertex buffers.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
+		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::VERTEX, 
+				RsResourceCreationFlags::STREAM, 
+				NoofVertices * sizeof( ScnParticleVertex ) ) );
+
+		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::UNIFORM,
+				RsResourceCreationFlags::STREAM,
+				sizeof( VertexBuffer.ObjectUniforms_ ) ) );
+	}
+
+	// Allocate particles.
+	pParticleBuffer_ = new ScnParticle[ NoofParticles_ ];
+	BcMemZero( pParticleBuffer_, sizeof( ScnParticle ) * NoofParticles_ );
 
 	Super::onAttach( Parent );
 }
@@ -435,6 +411,17 @@ void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 	Parent->detach( MaterialComponent_ );
 
 	MaterialComponent_ = nullptr;
+
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
+		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
+		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
+	}
+
+	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
+	
+	delete [] pParticleBuffer_;
 
 	Super::onDetach( Parent );
 }

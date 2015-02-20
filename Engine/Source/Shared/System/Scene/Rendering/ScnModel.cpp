@@ -324,23 +324,6 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnModelComponent::create()
-{
-	markReady();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnModelComponent::destroy()
-{
-	UploadFence_.wait();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
 MaAABB ScnModelComponent::getAABB() const
@@ -618,7 +601,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				PerComponentMeshData.UniformBuffer_,
 				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
-				[ &, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
 					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
@@ -682,6 +665,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 			// Even on failure add. List must be of same size for quick lookups.
 			if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pMeshRuntime->MaterialRef_, ShaderPermutation ) )
 			{
+				MaterialComponentRef->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 				getParentEntity()->attach( MaterialComponentRef );
 			}
 
