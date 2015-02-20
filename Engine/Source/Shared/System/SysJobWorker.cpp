@@ -166,7 +166,7 @@ void SysJobWorker::execute()
 				}
 				catch( ... )
 				{
-					BcPrintf( "Unhandled exception in job.\n" );
+					PSY_LOG( "Unhandled exception in job.\n" );
 				}
 
 				// Delete job.

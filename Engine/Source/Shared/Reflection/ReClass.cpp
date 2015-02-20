@@ -122,7 +122,7 @@ BcBool ReClass::validate() const
 			{
 				if( FieldA->getName() == FieldB->getName() )
 				{
-					BcPrintf( "ERROR: ReClass \"%s\" has field \"%s\" in its super \"%s\"\n",
+					PSY_LOG( "ERROR: ReClass \"%s\" has field \"%s\" in its super \"%s\"\n",
 						(*getName()).c_str(), 
 						(*FieldA->getName()).c_str(),
 						(*OtherClass->getName()).c_str() );

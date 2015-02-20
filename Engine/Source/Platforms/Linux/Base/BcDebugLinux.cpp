@@ -52,7 +52,7 @@ BcBacktraceResult BcBacktrace()
 BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
 	// Log.
-	BcPrintf( "%s: %s\n", pTitle, pMessage );
+	PSY_LOG( "%s: %s\n", pTitle, pMessage );
 
 	return bcMBR_OK; // bcMBR_CANCEL
 }

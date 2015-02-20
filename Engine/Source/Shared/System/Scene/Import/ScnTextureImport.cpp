@@ -476,7 +476,7 @@ BcBool ScnTextureImport::import(
 					}
 					else
 					{
-						BcPrintf( "Failed to encode image \"%s\", falling back to R8G8B8A8\n", FileName.c_str() );
+						PSY_LOG( "Failed to encode image \"%s\", falling back to R8G8B8A8\n", FileName.c_str() );
 						Format_ = RsTextureFormat::R8G8B8A8;
 					}
 				}
@@ -510,7 +510,7 @@ BcBool ScnTextureImport::import(
 		}
 		else
 		{
-			BcPrintf( "Failed to load image \"%s\"\n", FileName.c_str() );
+			PSY_LOG( "Failed to load image \"%s\"\n", FileName.c_str() );
 		}
 	}
 	else

@@ -293,7 +293,7 @@ void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 	}
 	else
 	{
-		BcPrintf( "ERROR: Unable to set texture for slot %x\n", Slot );
+		PSY_LOG( "ERROR: Unable to set texture for slot %x\n", Slot );
 	}
 }
 

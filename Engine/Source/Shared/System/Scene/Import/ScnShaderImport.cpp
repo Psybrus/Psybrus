@@ -269,14 +269,14 @@ BcBool ScnShaderImport::import( const Json::Value& )
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
-		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		PSY_LOG( "ERROR: Missing 'source' field.\n" );
 		return BcFalse;
 	}
 
 	// Entry points.
 	if( Entrypoints_.size() == 0 )
 	{
-		BcPrintf( "ERROR: Missing entry points.\n" );
+		PSY_LOG( "ERROR: Missing entry points.\n" );
 		return BcFalse;
 	}
 
@@ -614,7 +614,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			
 			FinalSource += SourceFileData_;
 
-			//BcPrintf( "%s\n", FinalSource.c_str() );
+			//PSY_LOG( "%s\n", FinalSource.c_str() );
 
 
 			// Parse HLSL.		resultString
@@ -680,7 +680,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					}
 					else
 					{
-						BcPrintf( "Failed to optimiser GLSL shader:\n%s\n", 
+						PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
 							glslopt_get_log( GlslOptShader ) );
 						BcBreakpoint; // TODO: Failed. Why?
 					}
@@ -806,7 +806,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					}
 
 	
-					//BcPrintf( "%s\n", OutputShaderCode.c_str() );
+					//PSY_LOG( "%s\n", OutputShaderCode.c_str() );
 #endif
 
 					std::lock_guard< std::mutex > Lock( BuildingMutex_ );
@@ -1056,7 +1056,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			Errors += Error;
 		}
 
-		BcPrintf( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
+		PSY_LOG( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
 		//throw CsImportException( Errors, Filename_ );
 	}
 

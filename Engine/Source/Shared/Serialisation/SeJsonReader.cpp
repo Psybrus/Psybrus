@@ -166,7 +166,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		}
 		else
 		{
-			BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+			PSY_LOG( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
 			return;
 		}
 	}

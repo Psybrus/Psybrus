@@ -53,9 +53,9 @@ LONG WINAPI OsMinidumpWindows::handler( struct _EXCEPTION_POINTERS* pExceptionIn
 // writeMiniDump
 LONG OsMinidumpWindows::writeMiniDump( _EXCEPTION_POINTERS* pExceptionInfo )
 {
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "OsMinidumpWindows:\n" );
-	BcPrintf( " - Psybrus has hit an unhandled exception. Attempting to write mini dump.\n" );
+	PSY_LOG( "============================================================================\n" );
+	PSY_LOG( "OsMinidumpWindows:\n" );
+	PSY_LOG( " - Psybrus has hit an unhandled exception. Attempting to write mini dump.\n" );
 
 	LONG RetVal = EXCEPTION_CONTINUE_SEARCH;
 

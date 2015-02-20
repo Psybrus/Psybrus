@@ -86,7 +86,7 @@ eEvtReturn doCsInit( EvtID ID, const SysSystemEvent& Event )
 	/*
 	 if( CsCore::pImpl()->createResource( "synthesizer", Synthesizer, 22050.0f ) )
 	{
-		BcPrintf( "Made synth.\n" );
+		PSY_LOG( "Made synth.\n" );
 	}
 	 */
 	return evtRET_PASS;

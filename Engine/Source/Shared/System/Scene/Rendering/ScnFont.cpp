@@ -814,7 +814,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	}
 	else
 	{
-		BcPrintf( "ScnFontComponent: Out of vertices!\n" );
+		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
 	}
 
 	return MaxSize - MinSize;
@@ -1118,7 +1118,7 @@ MaVec2d ScnFontComponent::drawText(
 	}
 	else
 	{
-		BcPrintf( "ScnFontComponent: Out of vertices!\n" );
+		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
 	}
 
 	return MaxSize - MinSize;

@@ -194,7 +194,7 @@ void CsResourceImporter::addMessage( CsMessageCategory Category, const std::stri
 	// Increment number of types of messages.
 	MessageCount_[ CategoryIdx ]++;
 
-	BcPrintf( "%s: %s\n", CategoryMsg, Message.c_str() );
+	PSY_LOG( "%s: %s\n", CategoryMsg, Message.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////

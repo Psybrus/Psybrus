@@ -36,7 +36,7 @@ namespace
 		if( BcStrStr( Message, "Error" ) != nullptr ||
 			BcStrStr( Message, "Warning" ) != nullptr )
 		{
-			BcPrintf( "ASSIMP: %s", Message );
+			PSY_LOG( "ASSIMP: %s", Message );
 		}
 	}
 
@@ -165,7 +165,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
-		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		PSY_LOG( "ERROR: Missing 'source' field.\n" );
 		return BcFalse;
 	}
 
@@ -189,10 +189,10 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 	if( Scene_ != nullptr )
 	{
-		BcPrintf( "Found %u animations:\n", Scene_->mNumAnimations );
+		PSY_LOG( "Found %u animations:\n", Scene_->mNumAnimations );
 		for( int Idx = 0; Idx < Scene_->mNumAnimations; ++Idx )
 		{
-			BcPrintf( " - %s\n", Scene_->mAnimations[ Idx ]->mName.C_Str() );
+			PSY_LOG( " - %s\n", Scene_->mAnimations[ Idx ]->mName.C_Str() );
 		}
 
 		// Build animated nodes list. Need this to calculate relative transforms later.

@@ -69,7 +69,7 @@ eEvtReturn doUpdate( EvtID ID, const SysSystemEvent& Event )
 	/*
 	 if( CsCore::pImpl()->getResource( "test.pmat", Texture ) )
 	 {
-	 BcPrintf( "Got texture!\n" );	
+	 PSY_LOG( "Got texture!\n" );	
 	 }
 	 */
 	

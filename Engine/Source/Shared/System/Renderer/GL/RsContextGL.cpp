@@ -68,7 +68,7 @@ static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity,
 
 	if( severity != GL_DEBUG_SEVERITY_NOTIFICATION || ShowNotifications )
 	{
-		BcPrintf( "Source: %x, Type: %x, Id: %x, Severity: %s\n - %s\n",
+		PSY_LOG( "Source: %x, Type: %x, Id: %x, Severity: %s\n - %s\n",
 			source, type, id, SeverityStr, message );
 	}
 }
@@ -396,8 +396,8 @@ void RsContextGL::presentBackBuffer()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "Draw calls: %u\n", NoofDrawCalls_ );
-	//BcPrintf( "Render state flushes: %u\n", NoofRenderStateFlushes_ );
+	//PSY_LOG( "Draw calls: %u\n", NoofDrawCalls_ );
+	//PSY_LOG( "Render state flushes: %u\n", NoofRenderStateFlushes_ );
 	NoofDrawCalls_ = 0;
 	NoofRenderStateFlushes_ = 0;
 
@@ -506,12 +506,12 @@ void RsContextGL::create()
 	GLuint PixelFormat = 0;
 	if ( !(PixelFormat = ::ChoosePixelFormat( WindowDC_, &pfd ) ) )
 	{
-		BcPrintf( "Can't create pixel format.\n" );
+		PSY_LOG( "Can't create pixel format.\n" );
 	}
 	
 	if( !::SetPixelFormat( WindowDC_, PixelFormat, &pfd ) )               // Are We Able To Set The Pixel Format?
 	{
-	    BcPrintf( "Can't Set The PixelFormat." );
+	    PSY_LOG( "Can't Set The PixelFormat." );
 	}
 
 	// Create a rendering context to start with.
@@ -545,7 +545,7 @@ void RsContextGL::create()
 		{
 			Version_ = Version;
 			Version_.setupFeatureSupport();
-			BcPrintf( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
+			PSY_LOG( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
 				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
 				Version.Minor_ );
@@ -600,7 +600,7 @@ void RsContextGL::create()
 		{
 			Version_ = Version;
 			Version_.setupFeatureSupport();
-			BcPrintf( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
+			PSY_LOG( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
 				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
 				Version.Minor_ );
@@ -619,7 +619,7 @@ void RsContextGL::create()
 #if PLATFORM_HTML5
 	Version_ = RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 );
 	Version_.setupFeatureSupport();
-	BcPrintf( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
+	PSY_LOG( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
 		Version_.Type_ == RsOpenGLType::CORE ? "Core" : ( Version_.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 		Version_.Major_, 
 		Version_.Minor_ );
@@ -703,12 +703,12 @@ void RsContextGL::destroy()
 #endif
 
 	// Dump stats.
-	BcPrintf( "Number of render states left: %u\n", NoofRenderStates_ );
-	BcPrintf( "Number of sampler states left: %u\n", NoofSamplerStates_ );
-	BcPrintf( "Number of buffers left: %u\n", NoofBuffers_ );
-	BcPrintf( "Number of textures left: %u\n", NoofTextures_ );
-	BcPrintf( "Number of shaders left: %u\n", NoofShaders_ );
-	BcPrintf( "Number of programs left: %u\n", NoofPrograms_ );
+	PSY_LOG( "Number of render states left: %u\n", NoofRenderStates_ );
+	PSY_LOG( "Number of sampler states left: %u\n", NoofSamplerStates_ );
+	PSY_LOG( "Number of buffers left: %u\n", NoofBuffers_ );
+	PSY_LOG( "Number of textures left: %u\n", NoofTextures_ );
+	PSY_LOG( "Number of shaders left: %u\n", NoofShaders_ );
+	PSY_LOG( "Number of programs left: %u\n", NoofPrograms_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1426,12 +1426,12 @@ bool RsContextGL::createShader(
 			char* pszInfoLog = new char[i32InfoLogLength];
 			glGetShaderInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
 
-			BcPrintf( "=======================================================\n" );
-			BcPrintf( "Error Compiling shader:\n" );
-			BcPrintf( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
-			BcPrintf( "=======================================================\n" );
-			BcPrintf( "%s\n", ShaderData );
-			BcPrintf( "=======================================================\n" );
+			PSY_LOG( "=======================================================\n" );
+			PSY_LOG( "Error Compiling shader:\n" );
+			PSY_LOG( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
+			PSY_LOG( "=======================================================\n" );
+			PSY_LOG( "%s\n", ShaderData );
+			PSY_LOG( "=======================================================\n" );
 			delete [] pszInfoLog;
 
 			glDeleteShader( Handle );
@@ -1445,7 +1445,7 @@ bool RsContextGL::createShader(
 	GLenum Error = RsGLCatchError();
 	if ( Error != GL_NO_ERROR )
 	{
-		BcPrintf( "RsShaderGL: Error has occured: %u\n", Error );
+		PSY_LOG( "RsShaderGL: Error has occured: %u\n", Error );
 		glDeleteShader( Handle );
 		return false;
 	}
@@ -1518,7 +1518,7 @@ bool RsContextGL::createProgram(
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
-		BcPrintf( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
 		delete [] pszInfoLog;
 
 		glDeleteProgram( Handle );
@@ -1688,7 +1688,7 @@ bool RsContextGL::createProgram(
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
-		BcPrintf( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
 		delete [] pszInfoLog;
 
 		glDeleteProgram( Handle );

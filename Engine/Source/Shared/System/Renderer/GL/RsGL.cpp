@@ -21,7 +21,7 @@ namespace
 	{
 		auto Extensions = (const char*)glGetString( GL_EXTENSIONS );
 		auto RetVal = BcStrStr( Extensions, ExtensionName ) != nullptr;
-		BcPrintf( "RsGL: HaveExtension \"%s\"? %s\n", ExtensionName, RetVal ? "YES!" : "no" );
+		PSY_LOG( "RsGL: HaveExtension \"%s\"? %s\n", ExtensionName, RetVal ? "YES!" : "no" );
 		return RetVal;
 	}
 }
@@ -278,7 +278,7 @@ GLuint RsGLCatchError()
 
 		if( Error != 0 )
 		{
-			BcPrintf( "RsGL: Error: %s\n", ErrorString.c_str() );
+			PSY_LOG( "RsGL: Error: %s\n", ErrorString.c_str() );
 			++TotalErrors;
 		}
 #endif

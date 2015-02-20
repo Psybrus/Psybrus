@@ -89,18 +89,18 @@ void CsCore::close()
 
 	if( LoadedResources_.size() > 0 )
 	{
-		BcPrintf( "==========================================\n" );
-		BcPrintf( "CsCore: Dump Resource On Exit:\n" );
-		BcPrintf( "==========================================\n" );
+		PSY_LOG( "==========================================\n" );
+		PSY_LOG( "CsCore: Dump Resource On Exit:\n" );
+		PSY_LOG( "==========================================\n" );
 	
 		TResourceListIterator It( LoadedResources_.begin() );
 		while( It != LoadedResources_.end() )
 		{
 			CsResource* pResource = (*It);
-			BcPrintf( "%s:%s \n", (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			PSY_LOG( "%s:%s \n", (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 			++It;
 		}
-		BcPrintf( "==========================================\n" );
+		PSY_LOG( "==========================================\n" );
 	}
 
 	// Verify we don't have any left floating loaded or unloading.
@@ -462,9 +462,9 @@ void CsCore::processLoadedResource()
 	
 	if( DumpResources )
 	{
-		BcPrintf( "==========================================\n" );
-		BcPrintf( "CsCore: Dump Resource:\n" );
-		BcPrintf( "==========================================\n" );
+		PSY_LOG( "==========================================\n" );
+		PSY_LOG( "CsCore: Dump Resource:\n" );
+		PSY_LOG( "==========================================\n" );
 	}
 	
 	TResourceListIterator It( LoadedResources_.begin() );
@@ -477,7 +477,7 @@ void CsCore::processLoadedResource()
 		//       than for debug purposes.
 		if( DumpResources )
 		{
-			BcPrintf( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
+			PSY_LOG( "%s.%s:%s \n", (*pResource->getPackageName()).c_str(), (*pResource->getName()).c_str(), (*pResource->getTypeName()).c_str() );
 		}
 	
 		++It;
@@ -485,7 +485,7 @@ void CsCore::processLoadedResource()
 
 	if( DumpResources )
 	{
-		BcPrintf( "==========================================\n" );
+		PSY_LOG( "==========================================\n" );
 		DumpResources = BcFalse;
 	}
 }
@@ -573,12 +573,12 @@ BcBool CsCore::internalRequestResource( const BcName& Package, const BcName& Nam
 		// If we can't find resource, throw an error.
 		if( internalFindResource( Package, Name, Class, Handle ) == BcFalse )
 		{
-			BcPrintf( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(), (*Class->getName()).c_str() );
+			PSY_LOG( "CsCore::requestResource: Resource not availible \"%s.%s:%s\" requested.\n", (*Package).c_str(), (*Name).c_str(), (*Class->getName()).c_str() );
 		}
 	}
 	else
 	{
-		BcPrintf( "CsCore::requestResource: Invalid package \"%s\" requested.\n", (*Package).c_str() );
+		PSY_LOG( "CsCore::requestResource: Invalid package \"%s\" requested.\n", (*Package).c_str() );
 	}
 	
 	return Handle.isValid();

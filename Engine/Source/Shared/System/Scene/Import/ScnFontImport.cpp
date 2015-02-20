@@ -268,22 +268,22 @@ BcBool ScnFontImport::import(
 				}
 				else
 				{
-					BcPrintf( "ScnFont: Error setting pixel sizes.\n" );
+					PSY_LOG( "ScnFont: Error setting pixel sizes.\n" );
 				}
 			}
 			else
 			{
-				BcPrintf( "ScnFont: Error setting char size.\n" );
+				PSY_LOG( "ScnFont: Error setting char size.\n" );
 			}
 		}
 		else
 		{
-			BcPrintf( "ScnFont: Error loading font %s.\n", Source_.c_str() );
+			PSY_LOG( "ScnFont: Error loading font %s.\n", Source_.c_str() );
 		}
 	}
 	else
 	{
-		BcPrintf( "ScnFont: Error initialising freetype2.\n" );
+		PSY_LOG( "ScnFont: Error initialising freetype2.\n" );
 	}
 #endif // PSY_IMPORT_PIPELINE
 	return BcFalse;

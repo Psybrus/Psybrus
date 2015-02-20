@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			BcPrintf( "Could not initialise WinSock 2.2\n" );
+			PSY_LOG( "Could not initialise WinSock 2.2\n" );
 		}
 	}
 

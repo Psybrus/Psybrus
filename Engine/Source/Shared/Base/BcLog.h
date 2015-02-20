@@ -53,7 +53,7 @@ public:
 
 	/*
 	 * Get log data
-	-- */
+	 */
 	virtual std::vector<std::string> getLogData() = 0;
 
 protected:

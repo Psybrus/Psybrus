@@ -326,13 +326,13 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField, BcU
 	// Early out if we can't serialise.
 	if( KeySerialiser == nullptr )
 	{
-		BcPrintf( "SeJsonWriter: Unable to serialise for key \"%s\"\n", ( *pFieldKeyType->getName() ).c_str() );
+		PSY_LOG( "SeJsonWriter: Unable to serialise for key \"%s\"\n", ( *pFieldKeyType->getName() ).c_str() );
 		return Json::nullValue;
 	}
 
 	if( ValueSerialiser == nullptr )
 	{
-		BcPrintf( "SeJsonWriter: Unable to serialise for value \"%s\"\n", ( *pFieldValueType->getName() ).c_str() );
+		PSY_LOG( "SeJsonWriter: Unable to serialise for value \"%s\"\n", ( *pFieldValueType->getName() ).c_str() );
 		return Json::nullValue;
 	}
 

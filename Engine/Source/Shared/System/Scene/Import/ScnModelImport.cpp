@@ -36,7 +36,7 @@ namespace
 		if( BcStrStr( Message, "Error" ) != nullptr ||
 			BcStrStr( Message, "Warning" ) != nullptr ) 
 		{
-			BcPrintf( "ASSIMP: %s", Message );
+			PSY_LOG( "ASSIMP: %s", Message );
 		}
 	}
 
@@ -200,10 +200,10 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 	if( Scene_ != nullptr )
 	{
-		BcPrintf( "Found %u materials:\n", Scene_->mNumMaterials );
+		PSY_LOG( "Found %u materials:\n", Scene_->mNumMaterials );
 		for( int Idx = 0; Idx < Scene_->mNumMaterials; ++Idx )
 		{
-			BcPrintf( " - %s\n", AssimpGetMaterialName( Scene_->mMaterials[ Idx ] ).c_str() );
+			PSY_LOG( " - %s\n", AssimpGetMaterialName( Scene_->mMaterials[ Idx ] ).c_str() );
 		}
 
 		size_t NodeIndex = 0;

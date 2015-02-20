@@ -92,7 +92,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
 	PSY_LOGSCOPEDCATEGORY( "Import" );
-	BcPrintf( "Importing %s...\n", (*Path).c_str() );
+	PSY_LOG( "Importing %s...\n", (*Path).c_str() );
 
 	PSY_LOGSCOPEDINDENT;
 
@@ -159,11 +159,11 @@ BcBool CsPackageImporter::import( const BcName& Name )
 					std::move( ResourceEntry.Importer_ ), 
 					ResourceEntry.Resource_ ) )
 				{
-					BcPrintf( "SUCCEEDED: Time: %.2f seconds.\n", ResourceTimer.time() );
+					PSY_LOG( "SUCCEEDED: Time: %.2f seconds.\n", ResourceTimer.time() );
 				}
 				else
 				{
-					BcPrintf( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
+					PSY_LOG( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
  					BcBreakpoint;
 					endImport();
 					return BcFalse;
@@ -173,8 +173,8 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			}
 			catch( CsImportException ImportException )
 			{
-				BcPrintf( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
-				BcPrintf( "ERROR: in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
+				PSY_LOG( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
+				PSY_LOG( "ERROR: in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
 				endImport();
 				return BcFalse;
 			}
@@ -186,7 +186,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 		if( SaveSuccess )
 		{
-			BcPrintf( "SUCCEEDED: Time: %.2f seconds.\n", TotalTimer.time() );
+			PSY_LOG( "SUCCEEDED: Time: %.2f seconds.\n", TotalTimer.time() );
 
 			// Write out dependencies.
 			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
@@ -197,7 +197,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		}
 		else
 		{
-			BcPrintf( "FAILED: Time: %.2f seconds.\n", TotalTimer.time() );
+			PSY_LOG( "FAILED: Time: %.2f seconds.\n", TotalTimer.time() );
 			BcBreakpoint;
 		}
 
@@ -353,7 +353,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 		}
 		else
 		{
-			BcPrintf( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
+			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
  			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
 		
@@ -376,18 +376,18 @@ BcBool CsPackageImporter::importResource(
 	// Catch name being missing.
 	if( Importer->getResourceName().empty() )
 	{
-		BcPrintf( "ERROR: Name not specified for resource.\n" );
+		PSY_LOG( "ERROR: Name not specified for resource.\n" );
 		return BcFalse;
 	}
 
 	// Catch type being missing.
 	if( Importer->getResourceType().empty() )
 	{
-		BcPrintf( "ERROR: Type not specified for resource.\n" );
+		PSY_LOG( "ERROR: Type not specified for resource.\n" );
 		return BcFalse;
 	}
 	
-	BcPrintf( "INFO: Processing \"%s\" of type \"%s\"\n", 
+	PSY_LOG( "INFO: Processing \"%s\" of type \"%s\"\n", 
 		Importer->getResourceName().c_str(), Importer->getResourceType().c_str() );
 	
 	// Get first chunk used by resource.
@@ -408,7 +408,7 @@ BcBool CsPackageImporter::importResource(
 	}
 	catch( CsImportException ImportException )
 	{
-		BcPrintf( "ERROR: %s", ImportException.what() );
+		PSY_LOG( "ERROR: %s", ImportException.what() );
 	}
 	
 	// Handle success.
@@ -810,7 +810,7 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 			// If we find it, replace string reference with a cross ref index.
 			if( RefIndex != BcErrorCode )
 			{
-				BcPrintf("Adding crossref %u: %s\n", RefIndex, Root.asCString() );
+				PSY_LOG("Adding crossref %u: %s\n", RefIndex, Root.asCString() );
 				Root = Json::Value( RefIndex );
 			}
 		}

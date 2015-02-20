@@ -590,7 +590,7 @@ void RsContextD3D11::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
+	//PSY_LOG( "WARNING: RsContextD3D11::invalidateRenderState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -599,7 +599,7 @@ void RsContextD3D11::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
+	//PSY_LOG( "WARNING: RsContextD3D11::invalidateTextureState unimplemented\n" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -729,7 +729,7 @@ BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	//BcPrintf( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
+	//PSY_LOG( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
 
 	return 0;
 }
@@ -1257,7 +1257,7 @@ bool RsContextD3D11::updateTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	BcPrintf( "WARNING: RsContextD3D11::updateTexture unimplemented\n" );
+	PSY_LOG( "WARNING: RsContextD3D11::updateTexture unimplemented\n" );
 
 	const auto& Desc = Texture->getDesc();
 	BcU32 Width = BcMax( 1, Desc.Width_ >> Slice.Level_ );

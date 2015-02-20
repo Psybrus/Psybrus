@@ -22,7 +22,7 @@ void BcFixed_UnitTest()
 #define FIXED_TEST( _Ty, _Precision, _A, _Op, _B, _Expected, _Msg )					\
 	{																				\
 		typedef BcFixed< _Ty, _Precision > BcFixedDef;								\
-		BcPrintf( "Result: %f, Expected: %f Tolerance: %f\n", ( BcFixedDef( _A ) _Op BcFixedDef( _B ) ).asReal(), BcFixedDef( _Expected ).asReal(), BcFixedDef::STEP() ); \
+		PSY_LOG( "Result: %f, Expected: %f Tolerance: %f\n", ( BcFixedDef( _A ) _Op BcFixedDef( _B ) ).asReal(), BcFixedDef( _Expected ).asReal(), BcFixedDef::STEP() ); \
 		BcUnitTestMsg( ( BcAbs( ( BcFixedDef( _A ) _Op BcFixedDef( _B ) ).asReal() - BcFixedDef( _Expected ).asReal() ) <= BcFixedDef::STEP() ), _Msg ); }
 
 #define FIXED_TEST_SET( _Ty, _Precision ) \

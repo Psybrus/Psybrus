@@ -21,9 +21,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
-#if 1 // TODO: Replace with low level printing, not going through log.
-#  define BcPrintf \
-	if( BcLog::pImpl() ) BcLog::pImpl()->write
+#if 1
+void BcPrintf( const BcChar* Text, ... );
 #else
 #  define BcPrintf( ... )
 #endif

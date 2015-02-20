@@ -124,7 +124,7 @@ BcBool SysSystem::process()
 
 	BcAssert( LastTickTime_ >= 0.0f );
 	
-	//BcPrintf( "System %p time: %f ms\n", this, LastTickTime_ * 1000.0f );
+	//PSY_LOG( "System %p time: %f ms\n", this, LastTickTime_ * 1000.0f );
 	
 	return RetVal;
 }
@@ -133,8 +133,8 @@ BcBool SysSystem::process()
 // processOpen
 BcBool SysSystem::processOpen()
 {
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "SysSystem (%s @ 0x%p) open:\n", (*Name_).c_str(), this );
+	PSY_LOG( "============================================================================\n" );
+	PSY_LOG( "SysSystem (%s @ 0x%p) open:\n", (*Name_).c_str(), this );
 
 	// Pre-open event.
 	EvtPublisher::publish( sysEVT_SYSTEM_PRE_OPEN, SysSystemEvent( this ) );
@@ -184,8 +184,8 @@ BcBool SysSystem::processUpdate()
 // processClose
 BcBool SysSystem::processClose()
 {
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "SysSystem (%s @ 0x%p) close:\n", (*Name_).c_str(), this );
+	PSY_LOG( "============================================================================\n" );
+	PSY_LOG( "SysSystem (%s @ 0x%p) close:\n", (*Name_).c_str(), this );
 
 	// Pre-close event.
 	EvtPublisher::publish( sysEVT_SYSTEM_PRE_CLOSE, SysSystemEvent( this ) );

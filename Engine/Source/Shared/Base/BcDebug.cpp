@@ -22,6 +22,26 @@
 static std::mutex gOutputLock_;
 
 //////////////////////////////////////////////////////////////////////////
+// BcPrintf
+void BcPrintf( const BcChar* Text, ... )
+{
+	static BcChar MessageBuffer[ 4096 ];
+	std::lock_guard< std::mutex > Lock( gOutputLock_ );
+	va_list ArgList;
+	va_start( ArgList, Text );
+#if COMPILER_MSVC
+	vsprintf_s( MessageBuffer, Text, ArgList );
+#else
+	vsprintf( MessageBuffer, Text, ArgList );
+#endif
+
+#if PLATFORM_WINDOWS
+	::OutputDebugStringA( MessageBuffer );
+#endif
+	printf( MessageBuffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // BcAssertInternal
 BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... )
 {

@@ -187,7 +187,7 @@ BcU32 CsResource::getChunkSize( BcU32 Chunk )
 	}
 	else
 	{
-		BcPrintf( "WARNING: Attempting to get chunk size where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
+		PSY_LOG( "WARNING: Attempting to get chunk size where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
 	}
 
 	return 0;
@@ -203,7 +203,7 @@ BcU32 CsResource::getNoofChunks() const
 	}
 	else
 	{
-		BcPrintf( "WARNING: Attempting to get number of chunks where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
+		PSY_LOG( "WARNING: Attempting to get number of chunks where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
 	}
 
 	return 0;

@@ -61,7 +61,7 @@ BcBool FsFile::close()
 		}
 		else
 		{
-			BcPrintf( "FsFile: FsCore is NULL when trying to close a file!\n" );
+			PSY_LOG( "FsFile: FsCore is NULL when trying to close a file!\n" );
 		}
 	}
 	

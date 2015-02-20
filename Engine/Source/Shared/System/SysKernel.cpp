@@ -80,7 +80,7 @@ void SysKernel_UnitTest()
 	BcTimer Timer;
 
 	// Test no queues.
-	BcPrintf( "Begin: Main thread\n" );
+	PSY_LOG( "Begin: Main thread\n" );
 	Timer.mark();
 	for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
 	{
@@ -90,14 +90,14 @@ void SysKernel_UnitTest()
 	Kernel.flushAllJobQueues();
 	ThisTime = Timer.time() * 1000.0f;
 	TotalTime += ThisTime;
-	BcPrintf( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
+	PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
 	BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "Main thread test." );
 
 
 	// Test each queue individually.
 	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
 	{
-		BcPrintf( "Begin: Workers %u\n", QueueIdx + 1 );
+		PSY_LOG( "Begin: Workers %u\n", QueueIdx + 1 );
 		Timer.mark();
 		for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
 		{
@@ -107,12 +107,12 @@ void SysKernel_UnitTest()
 		Kernel.flushAllJobQueues();
 		ThisTime = Timer.time() * 1000.0f;
 		TotalTime += ThisTime;
-		BcPrintf( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
+		PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
 		BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "Job queue w/ workers test." );
 	}
 
 	// Test all queues simultaneously.
-	BcPrintf( "Begin: queues all\n" );
+	PSY_LOG( "Begin: queues all\n" );
 	Timer.mark();
 	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
 	{
@@ -125,7 +125,7 @@ void SysKernel_UnitTest()
 	Kernel.flushAllJobQueues();
 	ThisTime = Timer.time() * 1000.0f;
 	TotalTime += ThisTime;
-	BcPrintf( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
+	PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
 	BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "All job queues." );
 }
 
@@ -304,7 +304,7 @@ SysSystem* SysKernel::startSystem( const BcName& Name )
 		}
 		else
 		{
-			BcPrintf( "SysKernel: Can't start system \"%s\"\n", (*Name).c_str() );
+			PSY_LOG( "SysKernel: Can't start system \"%s\"\n", (*Name).c_str() );
 		}
 	}
 	return pSystem;
@@ -339,9 +339,9 @@ void SysKernel::stop()
 // run
 void SysKernel::run( BcBool Threaded )
 {
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "SysKernel run\n" );
-	BcPrintf( Threaded ? "Threaded.\n" : "Non-threaded.\n" );
+	PSY_LOG( "============================================================================\n" );
+	PSY_LOG( "SysKernel run\n" );
+	PSY_LOG( Threaded ? "Threaded.\n" : "Non-threaded.\n" );
 	
 	IsThreaded_ = Threaded;
 	
