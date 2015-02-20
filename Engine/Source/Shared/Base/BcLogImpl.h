@@ -53,12 +53,12 @@ private:
 private:
 	typedef std::map< BcName, BcBool > TSuppressionMap;
 	typedef std::map< BcThreadId, int > TIndentLevels;
-	typedef std::map< BcThreadId, BcName > TCatagories;
+	typedef std::map< BcThreadId, BcName > TCategories;
 	typedef std::vector< BcLogListener* > TLogListeners;
 
 	mutable std::recursive_mutex Lock_;
 	TIndentLevels IndentLevel_;
-	TCatagories Catagories_;
+	TCategories Categories_;
 	BcBool SuppressionDefault_;
 	TSuppressionMap SuppressedMap_;
 	BcTimer Timer_;

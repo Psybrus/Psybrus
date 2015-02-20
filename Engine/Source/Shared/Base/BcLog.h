@@ -101,7 +101,7 @@ struct BcLogEntry
 {
 	BcF64 Time_;
 	BcThreadId ThreadId_;
-	BcName Catagory_;
+	BcName Category_;
 	int Indent_;
 	std::string Text_;
 };
@@ -125,7 +125,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 /* @class BcLogScopedCategory
- * @brief Scoped log catagory setting to set/unset current catagory.
+ * @brief Scoped log Category setting to set/unset current Category.
  */
 class BcLogScopedCategory
 {

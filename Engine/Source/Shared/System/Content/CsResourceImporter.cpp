@@ -180,7 +180,7 @@ const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() co
 // addMessage
 void CsResourceImporter::addMessage( CsMessageCategory Category, const std::string& Message )
 {
-	static std::array< const char*, (size_t)CsMessageCategory::MAX > Catagories =
+	static std::array< const char*, (size_t)CsMessageCategory::MAX > Categories =
 	{
 		"INFO",
 		"WARNING",
@@ -189,7 +189,7 @@ void CsResourceImporter::addMessage( CsMessageCategory Category, const std::stri
 	};
 
 	size_t CategoryIdx = (size_t)Category;
-	const char* CategoryMsg = Catagories[ CategoryIdx ];
+	const char* CategoryMsg = Categories[ CategoryIdx ];
 
 	// Increment number of types of messages.
 	MessageCount_[ CategoryIdx ]++;

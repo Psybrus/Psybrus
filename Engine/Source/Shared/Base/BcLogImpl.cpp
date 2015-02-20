@@ -63,7 +63,7 @@ private:
 		BcSPrintf( OutputBuffer, "[%5.5f][%x][%s] %s %s\n", 
 			Entry.Time_,
 			Entry.ThreadId_,
-			(*Entry.Catagory_).c_str(),
+			(*Entry.Category_).c_str(),
 			Indent.c_str(),
 			NewText.c_str() );
 
@@ -207,7 +207,7 @@ void BcLogImpl::setCategory( BcName Category )
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
-	Catagories_[ ThreadId ] = Category;
+	Categories_[ ThreadId ] = Category;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -216,11 +216,11 @@ BcName BcLogImpl::getCategory()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
-	if( Catagories_.find( ThreadId ) == Catagories_.end() )
+	if( Categories_.find( ThreadId ) == Categories_.end() )
 	{
-		Catagories_[ ThreadId ] = DEFAULT_Category;
+		Categories_[ ThreadId ] = DEFAULT_Category;
 	}
-	return Catagories_[ ThreadId ];
+	return Categories_[ ThreadId ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -247,7 +247,7 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 	static BcChar TextBuffer[ 1024 * 64 ];
 	auto ThreadId = BcCurrentThreadId();
 
-	BcName Category = Catagories_[ ThreadId ];
+	BcName Category = Categories_[ ThreadId ];
 
 	if( getCategorySuppression( Category ) == BcFalse )
 	{
