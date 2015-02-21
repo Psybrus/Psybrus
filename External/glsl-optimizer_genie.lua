@@ -3,7 +3,7 @@ if PsyProjectExternalLib( "glsl-optimizer", "C++" ) then
 
 	configuration "*"
 		excludes {
-			"./glsl-optimizer/src/glsl/main.c"
+			"./glsl-optimizer/src/glsl/main.cpp"
 		}
 
 	configuration "windows-* or linux-gcc or linux-clang"
