@@ -280,11 +280,5 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 std::vector< std::string > BcLogImpl::getLogData()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
-	
-	std::vector< std::string > Data;
-	for( const auto& U : LogBuffer_ )
-	{
-		Data.push_back( U );
-	}
-	return Data;
+	return std::vector< std::string >();
 }

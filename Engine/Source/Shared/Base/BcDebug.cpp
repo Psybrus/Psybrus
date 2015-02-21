@@ -17,6 +17,10 @@
 
 #include <cstdarg>
 
+#if PLATFORM_WINDOWS
+#include <Windows.h>
+#endif // PLATFORM_WINDOWS
+
 //////////////////////////////////////////////////////////////////////////
 // Statics.
 static std::mutex gOutputLock_;
