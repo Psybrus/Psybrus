@@ -17,9 +17,9 @@ function SetupBoost()
 		BOOST_LIB_PATH = _OPTIONS["boostpath"] .. "/stage/lib"
 	else
 		if os.is("windows") then
-			boostRoot = os.getenv("BOOST_ROOT") or "C:/Boost"
-			BOOST_INCLUDE_PATH = boostRoot .. "/"
-			BOOST_LIB_PATH = boostRoot .. "/lib"
+			boostRoot = os.getenv("BOOST_ROOT")
+			BOOST_INCLUDE_PATH = boostRoot
+			BOOST_LIB_PATH = boostRoot .. "/stage/lib"
 		else
 			BOOST_USE_SYSTEM = true
 		end

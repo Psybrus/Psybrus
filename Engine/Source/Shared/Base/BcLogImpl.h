@@ -19,9 +19,9 @@
 #include "Base/BcTimer.h"
 #include <mutex>
 #include <string>
-#include <list>
 #include <vector>
 #include <map>
+#include <memory>
 
 //////////////////////////////////////////////////////////////////////////
 // BcLogImpl
@@ -63,7 +63,6 @@ private:
 	TSuppressionMap SuppressedMap_;
 	BcTimer Timer_;
 	TLogListeners Listeners_;
-	std::list<std::string> LogBuffer_;
 
 	std::unique_ptr< BcLogListener > DefaultListener_;
 };
