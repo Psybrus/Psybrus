@@ -77,9 +77,11 @@ private:
 		::OutputDebugStringA( pText );
 #endif
 
+		// TODO: Regex capture of errors.
+
 		// Do some colour markup for important information.
 		if( BcStrStr( pText, "ERROR:" ) || BcStrStr( pText, "error:" ) || BcStrStr( pText, "Error," ) ||
-			BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) )
+			BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) || BcStrStr( pText, "error C" ) )
 		{
 			printf( ANSI_COLOR_RED "%s", pText );
 		}

@@ -1434,9 +1434,21 @@ bool RsContextGL::createShader(
 
 			PSY_LOG( "=======================================================\n" );
 			PSY_LOG( "Error Compiling shader:\n" );
-			PSY_LOG( "RsShaderGL: Infolog:\n %s\n", pszInfoLog );
+			PSY_LOG( "RsShaderGL: Infolog:\n", pszInfoLog );
+			std::stringstream LogStream( pszInfoLog );
+			std::string LogLine;
+			while( std::getline( LogStream, LogLine, '\n' ) )
+			{
+				PSY_LOG( LogLine.c_str() );
+			}
 			PSY_LOG( "=======================================================\n" );
-			PSY_LOG( "%s\n", ShaderData );
+			std::stringstream ShaderStream( ShaderData );
+			std::string ShaderLine;
+			int Line = 1;
+			while( std::getline( ShaderStream, ShaderLine, '\n' ) )
+			{
+				PSY_LOG( "%u: %s", Line++, ShaderLine.c_str() );
+			}
 			PSY_LOG( "=======================================================\n" );
 			delete [] pszInfoLog;
 
