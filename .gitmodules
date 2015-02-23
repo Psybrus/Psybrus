@@ -16,3 +16,6 @@
 [submodule "External/glsl-optimizer"]
 	path = External/glsl-optimizer
 	url = https://github.com/Psybrus/glsl-optimizer
+[submodule "External/bullet3"]
+	path = External/bullet3
+	url = https://github.com/Psybrus/bullet3
