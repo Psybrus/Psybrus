@@ -60,6 +60,7 @@ struct DsPageDefinition
 	bool Visible_;
 	bool IsHtml_;
 	std::function <void(DsParameters, BcHtmlNode&, std::string)> Function_;
+	BcU32 Handle_;
 };
 
 struct DsFunctionDefinition
@@ -116,10 +117,10 @@ public:
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
 	char*						writeFile(std::string filename, int& OutLength, std::string& type);
-	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display);
-	void						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
-	void						registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
-	void						deregisterPage(std::string regex);
+	BcU32						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display);
+	BcU32						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
+	BcU32						registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
+	void						deregisterPage( BcU32 Handle );
 
 	BcU32						registerFunction(std::string Display, std::function<void()> Function);
 	void						deregisterFunction(BcU32 Handle);

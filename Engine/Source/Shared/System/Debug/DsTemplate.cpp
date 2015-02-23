@@ -23,7 +23,6 @@ BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 	}
 	catch ( rapidxml::parse_error &e )
 	{
-		char buffer[ 64 ];
 		BcPrintf( "Error in file %s: %s\n   Error at %d\n", filename.c_str(), e.what(), ( int ) ( e.where<char>() - out.c_str() ) );
 
 	}

@@ -125,6 +125,7 @@ int main(int argc, char** argv)
 
 	// Register systems for creation.
 //	SYS_REGISTER( "DsCore", DsCoreImpl );
+//	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );

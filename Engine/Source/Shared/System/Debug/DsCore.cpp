@@ -19,6 +19,7 @@
 #include "Psybrus.h"
 #include "DsTemplate.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
+#include "System/Debug/DsCoreLogging.h"
 
 #if !PLATFORM_HTML5
 #include <boost/algorithm/string/replace.hpp>
@@ -84,6 +85,8 @@ BcU32 DsCore::registerFunction(std::string Display, std::function<void()> Functi
 	++NextHandle_;
 	BcU32 Handle = NextHandle_;
 	ButtonFunctions_.push_back( DsFunctionDefinition( Display, Function, Handle ) );
+	BcLog::pImpl()->write( "DsCore: Function registered." );
+	BcLog::pImpl()->write( "\t%s (%u)", Display.c_str(), Handle );
 	return Handle;
 }
 
@@ -91,57 +94,94 @@ BcU32 DsCore::registerFunction(std::string Display, std::function<void()> Functi
 // registerPage
 void DsCore::deregisterFunction(BcU32 Handle)
 {
+	BcBool functionRemoved = false;
 	for (auto iter = ButtonFunctions_.begin(); iter != ButtonFunctions_.end(); ++iter)
 	{
 		if ((*iter).Handle_ == Handle)
 		{
-			ButtonFunctions_.erase(iter);
+			BcLog::pImpl()->write( "DsCore: Function deregistered." );
+			BcLog::pImpl()->write( "\t%s (%u)", (*iter).DisplayText_.c_str(), Handle );
+			ButtonFunctions_.erase( iter );
+			functionRemoved = true;
 			break;
 		}
+	}
+	if ( !functionRemoved )
+	{
+		BcLog::pImpl()->write( "DsCore: Function deregister failed." );
+		BcLog::pImpl()->write( "\tHandle: %u", Handle );
+
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
+BcU32 DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
 {
+	++NextHandle_;
+	BcU32 Handle = NextHandle_;
+
 	DsPageDefinition cm(regex, display);
 	cm.Function_ = fn;
 	PageFunctions_.push_back(cm);
+	DsCoreLogging::pImpl()->addLog( "DsCore", rand(), "Registering page: " + display );
+	BcLog::pImpl()->write( "DsCore: Registered page" );
+	BcLog::pImpl()->write( "\t%s (%s)", regex.c_str(), display.c_str() );
+
+	return Handle;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-void DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
+BcU32 DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
-	DsPageDefinition cm(regex);
+	++NextHandle_;
+	BcU32 Handle = NextHandle_;
+
+	DsPageDefinition cm( regex );
 	cm.Function_ = fn;
 	cm.IsHtml_ = true;
 	PageFunctions_.push_back(cm);
+	BcLog::pImpl()->write( "DsCore: Registered page (No content index)" );
+	BcLog::pImpl()->write( "\t%s (%u)", regex.c_str(), Handle );
+
+	return Handle;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // registerPageNoHtml
-void DsCore::registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
+BcU32 DsCore::registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
-	DsPageDefinition cm(regex);
+	++NextHandle_;
+	BcU32 Handle = NextHandle_;
+
+	DsPageDefinition cm( regex );
 	cm.Function_ = fn;
 	cm.IsHtml_ = false;
 	PageFunctions_.push_back(cm);
+	BcLog::pImpl()->write( "DsCore: Registered page without html" );
+	BcLog::pImpl()->write( "\t%s (%u)", regex.c_str(), Handle );
+
+	return Handle;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // deregisterPage
-void DsCore::deregisterPage(std::string regex)
+void DsCore::deregisterPage( BcU32 Handle )
 {
+	BcBool pageRemoved = false;
 	for (auto iter = PageFunctions_.begin(); iter != PageFunctions_.end(); ++iter)
 	{
-		if ((*iter).Text_.compare(regex.c_str()))
+		if ((*iter).Handle_ == Handle)
 		{
 			PageFunctions_.erase(iter);
+			pageRemoved = true;
 			break;
 		}
 	}
+	BcLog::pImpl()->write( "DsCore: Page deregistration failed." );
+	BcLog::pImpl()->write( "\tHandle: %u", Handle );
+
 }
 
 
@@ -348,7 +388,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 		{
 			int a = 0; ++a;
 		}
-		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
+		// BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
@@ -400,9 +440,9 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 				else
 				{
 					fValue.setContents("CONTAINER");
-					auto SrcIter = SrcFieldAccessor.newReadIterator();
+					// auto SrcIter = SrcFieldAccessor.newReadIterator();
 					auto KeyType = Field->getKeyType();
-					auto ValueType = Field->getValueType();
+					// auto ValueType = Field->getValueType();
 
 					if (KeyType == nullptr)
 					{
@@ -436,6 +476,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 
 void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
+	/*
 	BcLog* log = BcLog::pImpl();
 
 	BcHtmlNode ul = Output.createChildNode("ul");
@@ -443,7 +484,15 @@ void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostCon
 	for (auto val : logs)
 	{
 		ul.createChildNode("li").setContents(val);
-	}
+	}/**/
+	BcHtmlNode ul = Output.createChildNode("ul");
+	std::vector< DsCoreLogEntry > logs = DsCoreLogging::pImpl()->getEntries( nullptr, 0 );
+
+	for ( auto val : logs )
+	{
+		ul.createChildNode( "li" ).setContents( val.Entry_ ).setAttribute( "id", "Log-" + val.Category_.getValue() );
+	}/**/
+
 }
 
 char* DsCore::handleFile(std::string Uri, int& FileSize, std::string PostContent)
@@ -546,7 +595,7 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		Output.createChildNode("br");
 		return;
 	}
-	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT, bcRFF_ALL );
+	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, ( BcU32 ) bcRFF_ALL, ( BcU32 ) bcRFF_TRANSIENT, ( BcU32 ) bcRFF_ALL );
 	SeJsonWriter writer( &ObjectCodec);
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
 	
@@ -629,7 +678,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 	Json::Value readRoot;
 	Json::Reader reader;
 	bool PostContentAvailable = PostContent.size() > 0;
-	bool success = reader.parse(PostContent, readRoot);
+	reader.parse(PostContent, readRoot);
 	Json::Value root;
 
 	Json::Value classes = Json::Value(Json::arrayValue);
@@ -647,7 +696,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 		{
 			int a = 0; ++a;
 		}
-		BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
+		// BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
@@ -698,9 +747,9 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 				}
 				else
 				{
-					auto SrcIter = SrcFieldAccessor.newReadIterator();
+					// auto SrcIter = SrcFieldAccessor.newReadIterator();
 					auto KeyType = Field->getKeyType();
-					auto ValueType = Field->getValueType();
+					// auto ValueType = Field->getValueType();
 
 					if (KeyType == nullptr)
 					{
