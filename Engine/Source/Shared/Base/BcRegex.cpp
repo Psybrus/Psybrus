@@ -187,13 +187,13 @@ BcU32 BcRegex::match( const BcChar* pText, BcRegexMatch& OutMatch )
 			/*
 			switch( PCREReturn )
 			{
-				case PCRE_ERROR_NOMATCH      : BcPrintf("String did not match the pattern\n");        break;
-				case PCRE_ERROR_NULL         : BcPrintf("Something was null\n");                      break;
-				case PCRE_ERROR_BADOPTION    : BcPrintf("A bad option was passed\n");                 break;
-				case PCRE_ERROR_BADMAGIC     : BcPrintf("Magic number bad (compiled re corrupt?)\n"); break;
-				case PCRE_ERROR_UNKNOWN_NODE : BcPrintf("Something kooky in the compiled re\n");      break;
-				case PCRE_ERROR_NOMEMORY     : BcPrintf("Ran out of memory\n");                       break;
-				default                      : BcPrintf("Unknown error\n");                           break;
+				case PCRE_ERROR_NOMATCH      : PSY_LOG("String did not match the pattern\n");        break;
+				case PCRE_ERROR_NULL         : PSY_LOG("Something was null\n");                      break;
+				case PCRE_ERROR_BADOPTION    : PSY_LOG("A bad option was passed\n");                 break;
+				case PCRE_ERROR_BADMAGIC     : PSY_LOG("Magic number bad (compiled re corrupt?)\n"); break;
+				case PCRE_ERROR_UNKNOWN_NODE : PSY_LOG("Something kooky in the compiled re\n");      break;
+				case PCRE_ERROR_NOMEMORY     : PSY_LOG("Ran out of memory\n");                       break;
+				default                      : PSY_LOG("Unknown error\n");                           break;
 			}
 			*/
 		}

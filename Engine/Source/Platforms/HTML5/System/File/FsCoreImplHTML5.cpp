@@ -277,12 +277,12 @@ void FsCoreImplHTML5::updateFileMonitoring()
 				// Publish message that file has changed/been created.
 				if( OldFileStats.ModifiedTime_.isNull() == BcTrue )
 				{
-					BcPrintf( "FsCoreImplHTML5: File created: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplHTML5: File created: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_CREATED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 				else
 				{
-					BcPrintf( "FsCoreImplHTML5: File modified: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplHTML5: File modified: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_MODIFIED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 			}
@@ -292,7 +292,7 @@ void FsCoreImplHTML5::updateFileMonitoring()
 			// Publish message that file has been deleted.
 			if( OldFileStats.ModifiedTime_.isNull() == BcFalse )
 			{
-				BcPrintf( "FsCoreImplHTML5: File deleted: %s\n", FileName.c_str() );
+				PSY_LOG( "FsCoreImplHTML5: File deleted: %s\n", FileName.c_str() );
 				EvtPublisher::publish( fsEVT_MONITOR_DELETED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 			}
 		}

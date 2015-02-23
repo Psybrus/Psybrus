@@ -42,7 +42,7 @@ void OsCoreImplHTML5::open()
 {
 	if ( SDL_Init( SDL_INIT_EVERYTHING ) != 0 )
 	{
-		BcPrintf( "SDL_Init Error: %u\n", SDL_GetError() );
+		PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
 		BcBreakpoint;
 	}
 

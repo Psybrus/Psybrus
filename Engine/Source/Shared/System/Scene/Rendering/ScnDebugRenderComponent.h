@@ -65,8 +65,6 @@ public:
 	virtual void						initialise();
 	virtual void						initialise( BcU32 NoofVertices );
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
 	virtual MaAABB						getAABB() const;
 	
 	/**
@@ -99,6 +97,14 @@ public:
 	 * @param Layer Layer
 	 */
 	void								drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
+	 * Draw matrix.
+	 * @param Matrix Matrix
+	 * @param Colour Colour multiplier.
+	 * @param Layer Layer
+	 */
+	void								drawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw grid.

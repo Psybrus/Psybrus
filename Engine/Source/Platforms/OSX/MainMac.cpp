@@ -43,7 +43,6 @@ int main( int argc, char* argv[] )
 
 #include "ScnTexture.h"
 #include "ScnTextureAtlas.h"
-#include "ScnRenderTarget.h"
 #include "ScnMaterial.h"
 #include "ScnModel.h"
 #include "ScnCanvas.h"
@@ -87,7 +86,7 @@ eEvtReturn doCsInit( EvtID ID, const SysSystemEvent& Event )
 	/*
 	 if( CsCore::pImpl()->createResource( "synthesizer", Synthesizer, 22050.0f ) )
 	{
-		BcPrintf( "Made synth.\n" );
+		PSY_LOG( "Made synth.\n" );
 	}
 	 */
 	return evtRET_PASS;
@@ -132,7 +131,6 @@ eEvtReturn doSetupEngine( EvtID, const SysSystemEvent& Event )
 	CsCore::pImpl()->registerResource< ScnTexture >();
 	CsCore::pImpl()->registerResource< ScnTextureAtlas >();
 	CsCore::pImpl()->registerResource< ScnRenderTarget >();
-	CsCore::pImpl()->registerResource< ScnMaterial >();
 	CsCore::pImpl()->registerResource< ScnMaterialInstance >();
 	CsCore::pImpl()->registerResource< ScnModel >();
 	CsCore::pImpl()->registerResource< ScnModelInstance >();

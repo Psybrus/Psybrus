@@ -46,7 +46,10 @@ RsBuffer::RsBuffer( class RsContext* pContext, const RsBufferDesc& BufferDesc ):
 //virtual 
 RsBuffer::~RsBuffer()
 {
-
+#if PSY_DEBUG
+	BufferDesc_.Type_ = RsBufferType::UNKNOWN;
+	BufferDesc_.SizeBytes_ = BcErrorCode;
+#endif
 }
 	
 //////////////////////////////////////////////////////////////////////////

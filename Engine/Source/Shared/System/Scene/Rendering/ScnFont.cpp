@@ -514,6 +514,8 @@ void ScnFont::StaticRegisterClass()
 //virtual
 void ScnFont::initialise()
 {
+	Super::initialise();
+
 	pHeader_ = nullptr;
 	pGlyphDescs_ = nullptr;
 }
@@ -543,13 +545,6 @@ void ScnFont::create()
 void ScnFont::destroy()
 {
 	//Texture_ = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// isReady
-BcBool ScnFont::createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material )
-{	
-	return CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), FontComponent, this, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -814,7 +809,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	}
 	else
 	{
-		BcPrintf( "ScnFontComponent: Out of vertices!\n" );
+		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
 	}
 
 	return MaxSize - MinSize;
@@ -980,7 +975,7 @@ MaVec2d ScnFontComponent::drawText(
 	
 	if( pFirstVert != nullptr )
 	{
-		BcU32 LastWhitespaceIdx = -1;
+		BcU32 LastWhitespaceIdx = (BcU32)-1;
 
 		// Iterate and include null terminator.
 		for( BcU32 Idx = 0; Idx < TextLength + 1; ++Idx )
@@ -1118,7 +1113,7 @@ MaVec2d ScnFontComponent::drawText(
 	}
 	else
 	{
-		BcPrintf( "ScnFontComponent: Out of vertices!\n" );
+		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
 	}
 
 	return MaxSize - MinSize;
@@ -1210,6 +1205,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
 	{	
 		MaterialComponent_ = MaterialComponent;
+		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 		BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
 		if( Sampler != BcErrorCode )
 		{ 

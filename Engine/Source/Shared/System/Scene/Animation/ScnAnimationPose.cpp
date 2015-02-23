@@ -32,7 +32,8 @@ void ScnAnimationPose::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationPose::ScnAnimationPose()
+ScnAnimationPose::ScnAnimationPose():
+	Transforms_()
 {
 	
 }
@@ -90,6 +91,7 @@ void ScnAnimationPose::add( const ScnAnimationPose& Reference, const ScnAnimatio
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::add" );
 
+	BcAssert( Reference.Transforms_.size() == Transforms_.size() );
 	BcAssert( A.Transforms_.size() == Transforms_.size() );
 	BcAssert( B.Transforms_.size() == Transforms_.size() );
 
@@ -109,4 +111,11 @@ void ScnAnimationPose::normalise()
 	{
 		Transforms_[ Idx ].R_.normalise();
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNoofNodes
+BcU32 ScnAnimationPose::getNoofNodes() const
+{
+	return Transforms_.size();
 }

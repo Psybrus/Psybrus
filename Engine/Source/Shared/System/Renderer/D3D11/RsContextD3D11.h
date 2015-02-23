@@ -31,11 +31,13 @@ public:
 	RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent );
 	virtual ~RsContextD3D11();
 	
-	BcU32 getWidth() const;
-	BcU32 getHeight() const;
+	virtual BcU32 getWidth() const override;
+	virtual BcU32 getHeight() const override;
+	virtual OsClient* getClient() const override;
 
-	BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
-	RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const;
+	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
+	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
+
 	void presentBackBuffer();
 	void takeScreenshot();
 	void setViewport( class RsViewport& Viewport );
@@ -59,6 +61,7 @@ public:
 		BcU32 Handle, 
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
+	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
 	void clear(
 		const RsColour& Colour,
 		BcBool EnableClearColour,
@@ -76,6 +79,11 @@ public:
 		RsSamplerState* SamplerState );
 	bool destroySamplerState(
 		RsSamplerState* SamplerState );
+
+	bool createFrameBuffer( 
+		class RsFrameBuffer* FrameBuffer );
+	bool destroyFrameBuffer( 
+		class RsFrameBuffer* FrameBuffer );
 
 	bool createBuffer( 
 		RsBuffer* Buffer );
@@ -148,6 +156,10 @@ private:
 			ID3D11Texture3D* Texture3DResource_;
 		};
 
+		DXGI_FORMAT ResourceFormat_;
+		DXGI_FORMAT DSVFormat_;
+		DXGI_FORMAT SRVFormat_;
+
 		ID3D11ShaderResourceView* ShaderResourceView_;
 		ID3D11UnorderedAccessView* UnorderedAccessView_;
 		ID3D11RenderTargetView* RenderTargetView_;
@@ -157,7 +169,11 @@ private:
 	std::vector< ResourceViewCacheEntry > ResourceViewCache_;
 	std::vector< size_t > ResourceViewCacheFreeIdx_;
 
-	size_t addD3DResource( ID3D11Resource* D3DResource );
+	size_t addD3DResource( 
+		ID3D11Resource* D3DResource, 
+		DXGI_FORMAT ResourceFormat,
+		DXGI_FORMAT DSVFormat,
+		DXGI_FORMAT SRVFormat );
 	void delD3DResource( size_t ResourceIdx );
 	ID3D11Resource* getD3DResource( size_t ResourceIdx );
 	ID3D11Buffer* getD3DBuffer( size_t ResourceIdx );
@@ -218,46 +234,35 @@ private:
 	typedef std::unordered_map< BcU32, InputLayout > InputLayoutMap; 
 	InputLayoutMap InputLayoutMap_;
 
-	// General state.
-	D3D11_BLEND_DESC BlendState_;
-	D3D11_RASTERIZER_DESC RasterizerState_;
-	D3D11_DEPTH_STENCIL_DESC DepthStencilState_;
-	BcU32 StencilRef_;
+	typedef std::unordered_map< BcU32, BcComRef< ID3D11BlendState > > BlendStateCache;
+	typedef std::unordered_map< BcU32, BcComRef< ID3D11RasterizerState > > RasterizerStateCache;
+	typedef std::unordered_map< BcU32, BcComRef< ID3D11DepthStencilState > > DepthStencilStateCache;
 
-	struct BlendState
-	{
-		BcComRef< ID3D11BlendState > State_;
-		size_t LastFrameUsed_;
-	};
-
-	struct RasterizerState
-	{
-		BcComRef< ID3D11RasterizerState > State_;
-		size_t LastFrameUsed_;
-	};
-
-	struct DepthStencilState
-	{
-		BcComRef< ID3D11DepthStencilState > State_;
-		size_t LastFrameUsed_;
-	};
-
-	struct SamplerState
-	{
-		BcComRef< ID3D11SamplerState > State_;
-		size_t LastFrameUsed_;
-	};
-
-	typedef std::map< BcU32, BlendState > BlendStateCache;
-	typedef std::map< BcU32, RasterizerState > RasterizerStateCache;
-	typedef std::map< BcU32, DepthStencilState > DepthStencilStateCache;
-	typedef std::map< BcU32, SamplerState > SamplerStateCache;
-
-	BcU32 FrameCounter_;
 	BlendStateCache BlendStateCache_;
 	RasterizerStateCache RasterizerStateCache_;
 	DepthStencilStateCache DepthStencilStateCache_;
+
+	struct RenderStateInternal
+	{
+		BcComRef< ID3D11BlendState > Blend_;
+		BcComRef< ID3D11RasterizerState > Rasterizer_;
+		BcComRef< ID3D11DepthStencilState > DepthStencil_;
+	};
+
+	struct SamplerStateInternal
+	{
+		BcComRef< ID3D11SamplerState > Sampler_;
+		size_t LastFrameUsed_;
+	};
+
+	typedef std::map< BcU32, RenderStateInternal > RenderStateCache;
+	typedef std::map< BcU32, SamplerStateInternal > SamplerStateCache;
+
+	BcU32 FrameCounter_;
+	RenderStateCache RenderStateCache_;
 	SamplerStateCache SamplerStateCache_;
+
+	RsRenderState* BoundRenderState_;
 
 	// Render targets.
 	typedef std::array< ID3D11RenderTargetView*, 8 > RenderTargetViews;
@@ -265,6 +270,5 @@ private:
 	RenderTargetViews RenderTargetViews_;
 	ID3D11DepthStencilView* DepthStencilView_;
 };
-
 
 #endif

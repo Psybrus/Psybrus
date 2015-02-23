@@ -32,8 +32,6 @@ public:
 	DECLARE_RESOURCE( ScnSoundEmitterComponent, ScnComponent );
 	
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
 	
 	void								setGain( BcF32 Gain );
 	void								setPitch( BcF32 Pitch );

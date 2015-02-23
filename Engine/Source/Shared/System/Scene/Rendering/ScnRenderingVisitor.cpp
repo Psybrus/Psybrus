@@ -19,9 +19,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnRenderingVisitor::ScnRenderingVisitor( class ScnViewComponent* pViewComponent, class RsFrame* pFrame ):
+ScnRenderingVisitor::ScnRenderingVisitor( 
+		class ScnViewComponent* pViewComponent, 
+		class RsFrame* pFrame,
+		RsRenderSort Sort ):
 	pViewComponent_( pViewComponent ),
-	pFrame_( pFrame )
+	pFrame_( pFrame ),
+	Sort_( Sort )
 {
 	ScnCore::pImpl()->visitView( this, pViewComponent_ );
 }
@@ -42,6 +46,6 @@ void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 	if( pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
 	{
 		BcAssert( pComponent->isReady() );
-		pComponent->render( pViewComponent_, pFrame_, RsRenderSort( 0 ) );
+		pComponent->render( pViewComponent_, pFrame_, Sort_ );
 	}
 }

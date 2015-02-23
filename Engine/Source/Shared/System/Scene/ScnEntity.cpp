@@ -80,7 +80,11 @@ ScnEntity::ScnEntity( ReNoInit ):
 //virtual
 ScnEntity::~ScnEntity()
 {
-
+	// If we have a basis entity, we need to release the package.
+	if( getBasis() != nullptr )
+	{
+		getPackage()->release();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,25 +114,6 @@ void ScnEntity::initialise( ScnEntityRef Basis )
 	getPackage()->acquire();
 
 	setupComponents();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-void ScnEntity::create()
-{
-	setupComponents();
-	markReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-void ScnEntity::destroy()
-{
-	// If we have a basis entity, we need to release the package.
-	if( getBasis() != nullptr )
-	{
-		getPackage()->release();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,7 +151,7 @@ void ScnEntity::attach( ScnComponent* Component )
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It == Components_.end() )
 	{
-		BcAssertMsg( Component != NULL, "Trying to attach a null component!" );
+		BcAssertMsg( Component != nullptr, "Trying to attach a null component!" );
 
 		Component->setParentEntity( ScnEntityWeakRef( this ) );
 		Component->setFlag( scnCF_PENDING_ATTACH );
@@ -184,9 +169,7 @@ void ScnEntity::detach( ScnComponent* Component )
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It != Components_.end() )
 	{
-		BcAssertMsg( Component != NULL, "Trying to detach a null component!" );
-		BcAssertMsg( !Component->isFlagSet( scnCF_PENDING_ATTACH ), 
-			"Component is currently pending attachment! Being attached too quickly?" )
+		BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
 
 		Component->setFlag( scnCF_PENDING_DETACH );
 		Components_.erase( It );
@@ -199,7 +182,7 @@ void ScnEntity::detach( ScnComponent* Component )
 // detachFromParent
 void ScnEntity::detachFromParent()
 {
-	BcAssertMsg( getParentEntity() == NULL, "Can't detach entity \"%s\", it's not attached.", (*getName()).c_str() );
+	BcAssertMsg( getParentEntity() == nullptr, "Can't detach entity \"%s\", it's not attached.", (*getName()).c_str() );
 	getParentEntity()->detach( this );
 }
 
@@ -222,7 +205,7 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 #if SCNENTITY_USES_EVTPUBLISHER
 	// Free event proxy.
 	delete pEventProxy_;
-	pEventProxy_ = NULL;
+	pEventProxy_ = nullptr;
 #endif
 
 	// All our child components want to detach.
@@ -469,7 +452,11 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		pJsonObject_ = nullptr;
 		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
+
+		setupComponents();
+
 		CsResource::markCreate();
+		CsResource::markReady();
 	}
 }
 
@@ -509,7 +496,10 @@ void ScnEntity::setupComponents()
 							ScnComponent* Component = static_cast< ScnComponent* >( Object );
 							Component->initialise();
 						} );
-
+				
+				// TODO: Move this into initialise when we move initialise to constructors.
+				NewComponent->postInitialise();
+				
 				attach( NewComponent );
 			}
 		}

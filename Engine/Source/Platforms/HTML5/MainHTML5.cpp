@@ -1,7 +1,6 @@
 #include "MainShared.h"
 
 #include "Base/BcLogImpl.h"
-#include "Base/BcLogFile.h"
 #include "Base/BcRandom.h"
 
 #include "System/SysKernel.h"
@@ -96,7 +95,7 @@ int main(int argc, char** argv)
 	emscripten_set_main_loop( emscriptenMain, 0, 0 );
 
 	// Debug end.
-	BcPrintf( "Done main initialisation.\n" );
+	PSY_LOG( "Done main initialisation.\n" );
 
 	return 0;
 }

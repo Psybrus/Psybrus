@@ -128,7 +128,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
     BcBool Success = false;
     // Attempt conversion to string.
 	if( Serialiser != nullptr )
-	{
+	{	
 		if( InputValue.type() == Json::stringValue &&
 			Serialiser->serialiseFromString( pData, InputValue.asString() ) )
 		{
@@ -166,7 +166,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		}
 		else
 		{
-			BcPrintf( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+			PSY_LOG( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
 			return;
 		}
 	}

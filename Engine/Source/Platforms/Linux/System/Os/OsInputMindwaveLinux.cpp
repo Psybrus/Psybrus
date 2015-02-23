@@ -103,7 +103,7 @@ void OsInputMindwaveLinux::workerThread()
 				}
 				else
 				{
-					BcPrintf( "Connected to %s\n", Dest );
+					PSY_LOG( "Connected to %s\n", Dest );
 					State_ = Shutdown_ == 0 ? State::READ : State::DISCONNECT;
 				}
 			}
@@ -120,7 +120,7 @@ void OsInputMindwaveLinux::workerThread()
 				}
 				else
 				{
-					BcPrintf( "Disconnected!\n" );
+					PSY_LOG( "Disconnected!\n" );
 					close( Socket_ );
 					Socket_ = 0;
 					State_ = Shutdown_ == 0 ? State::SCAN : State::DISCONNECT;

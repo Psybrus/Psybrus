@@ -17,9 +17,33 @@
 
 #include <cstdarg>
 
+#if PLATFORM_WINDOWS
+#include <Windows.h>
+#endif // PLATFORM_WINDOWS
+
 //////////////////////////////////////////////////////////////////////////
 // Statics.
 static std::mutex gOutputLock_;
+
+//////////////////////////////////////////////////////////////////////////
+// BcPrintf
+void BcPrintf( const BcChar* Text, ... )
+{
+	static BcChar MessageBuffer[ 4096 ];
+	std::lock_guard< std::mutex > Lock( gOutputLock_ );
+	va_list ArgList;
+	va_start( ArgList, Text );
+#if COMPILER_MSVC
+	vsprintf_s( MessageBuffer, Text, ArgList );
+#else
+	vsprintf( MessageBuffer, Text, ArgList );
+#endif
+
+#if PLATFORM_WINDOWS
+	::OutputDebugStringA( MessageBuffer );
+#endif
+	printf( MessageBuffer );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // BcAssertInternal

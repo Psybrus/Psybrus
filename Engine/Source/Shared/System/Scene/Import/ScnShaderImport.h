@@ -178,6 +178,8 @@ private:
 	std::string Source_;
 	std::string SourceFileData_;
 	std::map< RsShaderType, std::string > Entrypoints_;
+	std::vector< ScnShaderPermutationFlags > ExcludePermutations_;
+	std::vector< ScnShaderPermutationFlags > IncludePermutations_;
 	std::vector< RsShaderCodeType > CodeTypes_;
 	std::vector< RsShaderBackendType > BackendTypes_;
 

@@ -18,7 +18,6 @@
 #include "System/Content/CsCore.h"
 
 #include "Base/BcStream.h"
-#include "Import/Mdl/Mdl.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsImport

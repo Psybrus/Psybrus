@@ -356,7 +356,7 @@ SsChannel* SsCoreImplSoLoud::playSource(
 		return Channel;
 	}
 
-	BcPrintf( "WARNING: SsCoreImplSoLoud: Out of channels.\n" );
+	PSY_LOG( "WARNING: SsCoreImplSoLoud: Out of channels.\n" );
 	return nullptr;
 }
 

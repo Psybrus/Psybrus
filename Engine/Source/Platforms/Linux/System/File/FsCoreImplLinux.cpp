@@ -312,12 +312,12 @@ void FsCoreImplLinux::updateFileMonitoring()
 				// Publish message that file has changed/been created.
 				if( OldFileStats.ModifiedTime_.isNull() == BcTrue )
 				{
-					BcPrintf( "FsCoreImplLinux: File created: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplLinux: File created: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_CREATED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 				else
 				{
-					BcPrintf( "FsCoreImplLinux: File modified: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplLinux: File modified: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_MODIFIED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 			}
@@ -327,7 +327,7 @@ void FsCoreImplLinux::updateFileMonitoring()
 			// Publish message that file has been deleted.
 			if( OldFileStats.ModifiedTime_.isNull() == BcFalse )
 			{
-				BcPrintf( "FsCoreImplLinux: File deleted: %s\n", FileName.c_str() );
+				PSY_LOG( "FsCoreImplLinux: File deleted: %s\n", FileName.c_str() );
 				EvtPublisher::publish( fsEVT_MONITOR_DELETED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 			}
 		}

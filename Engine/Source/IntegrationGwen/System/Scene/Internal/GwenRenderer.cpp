@@ -349,7 +349,7 @@ void GwenRenderer::RenderText( Gwen::Font* pFont, Gwen::Point pos, const Gwen::U
 	// Handle components that aren't attached.
 	if ( !FontComponent->isAttached() )
 	{
-		BcPrintf( "GwenRenderer::RenderText: FontComponent \"%s\" is not attached yet.\n", (*FontComponent->getName()).c_str() );
+		PSY_LOG( "GwenRenderer::RenderText: FontComponent \"%s\" is not attached yet.\n", (*FontComponent->getName()).c_str() );
 		return; 
 	}
 

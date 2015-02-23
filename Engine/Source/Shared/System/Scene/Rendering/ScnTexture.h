@@ -53,16 +53,23 @@ public:
 	
 	virtual const ScnRect&				getRect( BcU32 Idx );
 	virtual BcU32						noofRects();
+
 	
 protected:
-	virtual void						fileReady();
-	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	eEvtReturn onClientResize( EvtID ID, const struct OsEventClientResize& Event );
+	void recreate();
+	virtual void fileReady();
+	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
-	RsTexture*							pTexture_;
+	RsTexture* pTexture_;
 	
-	ScnTextureHeader					Header_;
-	void*								pTextureData_;
+	ScnTextureHeader Header_;
+	void* pTextureData_;
+
+	BcU32 Width_;
+	BcU32 Height_;
+	BcU32 Depth_;
 };
 
 #endif

@@ -19,8 +19,6 @@
 
 #if PSY_IMPORT_PIPELINE
 
-#include "Import/Mdl/Mdl.h"
-
 #include "assimp/config.h"
 #include "assimp/cimport.h"
 #include "assimp/anim.h"
@@ -28,12 +26,23 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
-#define ENABLE_ASSIMP_IMPORTER			( 0 )
-
 namespace
 {
-	//////////////////////////////////////////////////////////////////////////
-	// GetKeyNodeAnim
+	/**
+	 * Assimp logging function.
+	 */
+	void AssimpLogStream( const char* Message, char* User )
+	{
+		if( BcStrStr( Message, "Error" ) != nullptr ||
+			BcStrStr( Message, "Warning" ) != nullptr )
+		{
+			PSY_LOG( "ASSIMP: %s", Message );
+		}
+	}
+
+	/**
+	 * Get key node from an array of node key anims.
+	 */
 	template< typename _KEY_TYPE, typename _VALUE_TYPE >
 	BcBool GetKeyNodeAnim( 
 		_KEY_TYPE* NodeKeys,
@@ -107,6 +116,7 @@ void ScnAnimationImport::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Source_", &ScnAnimationImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "FrameRate_", &ScnAnimationImport::FrameRate_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnAnimationImport, Super >( Fields );
@@ -114,13 +124,29 @@ void ScnAnimationImport::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationImport::ScnAnimationImport()
+ScnAnimationImport::ScnAnimationImport():
+	Source_(),
+	FrameRate_( 24.0f ),
+	HeaderStream_(),
+	NodeStream_(),
+	PoseStream_(),
+	KeyStream_(),
+	Scene_( nullptr ),
+	AnimatedNodes_()
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationImport::ScnAnimationImport( ReNoInit )
+ScnAnimationImport::ScnAnimationImport( ReNoInit ):
+	Source_(),
+	FrameRate_( 24.0f ),
+	HeaderStream_(),
+	NodeStream_(),
+	PoseStream_(),
+	KeyStream_(),
+	Scene_( nullptr ),
+	AnimatedNodes_()
 {
 }
 
@@ -139,14 +165,19 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
-		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		PSY_LOG( "ERROR: Missing 'source' field.\n" );
 		return BcFalse;
 	}
 
 	CsResourceImporter::addDependency( Source_.c_str() );
 
-#if ENABLE_ASSIMP_IMPORTER
 	auto PropertyStore = aiCreatePropertyStore();
+
+	aiLogStream AssimpLogger =
+	{
+		AssimpLogStream, (char*)this
+	};
+	aiAttachLogStream( &AssimpLogger );
 
 	Scene_ = aiImportFileExWithProperties( 
 		Source_.c_str(), 
@@ -158,6 +189,12 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 	if( Scene_ != nullptr )
 	{
+		PSY_LOG( "Found %u animations:\n", Scene_->mNumAnimations );
+		for( int Idx = 0; Idx < (int)Scene_->mNumAnimations; ++Idx )
+		{
+			PSY_LOG( " - %s\n", Scene_->mAnimations[ Idx ]->mName.C_Str() );
+		}
+
 		// Build animated nodes list. Need this to calculate relative transforms later.
 		recursiveParseAnimatedNodes( Scene_->mRootNode, BcErrorCode );
 
@@ -191,7 +228,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 			for( BcF32 Time = 0.0f; Time <= Animation->mDuration; Time += Rate )
 			{
 				ScnAnimationPoseFileData Pose;
-				Pose.Time_ = Time;
+				Pose.Time_ = Time / FrameRate_;
 				Pose.KeyDataOffset_ = KeyStream_.dataSize();
 
 				// Iterate over all node channels to generate keys.
@@ -234,9 +271,8 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 					Transform.S_ = MaVec3d( OutScaleKey.x, OutScaleKey.y, OutScaleKey.z );
 					Transform.T_ = MaVec3d( OutPositionKey.x, OutPositionKey.y, OutPositionKey.z );
 				
-					// Store as world matrix.
-					Transform.toMatrix( AnimatedNode.WorldTransform_ );
-					AnimatedNode.LocalTransform_ = AnimatedNode.WorldTransform_;
+					// Store as local matrix.
+					Transform.toMatrix( AnimatedNode.LocalTransform_ );
 				}
 
 				// Calculate local node matrices relative to their parents.
@@ -245,9 +281,12 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 					if( AnimatedNode.ParentIdx_ != BcErrorCode )
 					{
 						auto& ParentAnimatedNode( AnimatedNodes_[ AnimatedNode.ParentIdx_ ] );
-						MaMat4d ParentMatrixInverse = ParentAnimatedNode.WorldTransform_;
-						ParentMatrixInverse.inverse();
-						AnimatedNode.LocalTransform_ = ParentMatrixInverse * AnimatedNode.LocalTransform_;
+						MaMat4d ParentLocal = ParentAnimatedNode.LocalTransform_;
+						AnimatedNode.WorldTransform_ = ParentLocal * AnimatedNode.LocalTransform_;
+					}
+					else
+					{
+						AnimatedNode.WorldTransform_ = AnimatedNode.LocalTransform_;
 					}
 				}
 
@@ -292,84 +331,6 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 		//
 		return BcTrue;
 	}
-#endif // ENABLE_ASSIMP_IMPORTER
-
-	// Fall back to old method.
-	const std::string& FileName = Source_;
-	MdlAnim* pAnim = MdlLoader::loadAnim( FileName.c_str() );
-
-	if( pAnim != NULL )
-	{
-		// Verify all nodes have the same key count.
-		size_t KeyCount = pAnim->pNode( 0 )->KeyList_.size();
-		for( size_t NodeIdx = 1; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-		{
-			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-			if( pNode->KeyList_.size() != KeyCount )
-			{
-				BcAssertMsg( BcFalse, "Invalid key frame count in animation node!" );
-				return BcFalse;
-			}
-		}
-
-		// Setup data streams.
-		ScnAnimationHeader Header;
-		Header.NoofNodes_ = static_cast< BcU32 >( pAnim->nNodes() );
-		Header.NoofPoses_ = static_cast< BcU32 >( KeyCount + 1 ); // means we always have the first frame as the last for smooth looping. TODO: Optional.
-		Header.Flags_ = scnAF_DEFAULT;
-		Header.Packing_ = scnAP_R16S16T16; // TODO: Make this configurable when we factor out into another class.
-		HeaderStream_ << Header;
-
-		// Animation node file data.
-		ScnAnimationNodeFileData NodeFileData;
-		for( size_t NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-		{
-			MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-			NodeFileData.Name_ = CsResourceImporter::addString( pNode->Name_ );
-			NodeStream_ << NodeFileData;
-		}
-
-		// Build up frames of poses.
-		ScnAnimationTransformKey_R16S16T16 OutKey;
-		BcF32 FrameTime = 0.0f;
-		BcF32 FrameRate = 1.0f / 24.0f;
-		for( size_t KeyIdx = 0; KeyIdx < Header.NoofPoses_; ++KeyIdx )
-		{
-			size_t WrappedKeyIdx = KeyIdx % KeyCount;
-			ScnAnimationPoseFileData Pose;
-			Pose.Time_ = FrameTime;
-			Pose.KeyDataOffset_ = static_cast< BcU32 >( KeyStream_.dataSize() );
-
-			// Advance framerate.
-			FrameTime += FrameRate;
-
-			// Iterate over nodes, and pack the key stream.
-			ScnAnimationTransform Transform;
-			for( size_t NodeIdx = 0; NodeIdx < pAnim->nNodes(); ++NodeIdx )
-			{
-				MdlAnimNode* pNode = pAnim->pNode( NodeIdx );
-				MdlAnimKey InKey = pNode->KeyList_[ WrappedKeyIdx ];
-				Transform.fromMatrix( InKey.Matrix_ );
-				OutKey.pack( Transform.R_, Transform.S_, Transform.T_ );
-				KeyStream_ << OutKey;
-			}
-			
-			// Final size + CRC.
-			Pose.KeyDataSize_ = static_cast< BcU32 >( KeyStream_.dataSize() - Pose.KeyDataOffset_ );
-			Pose.CRC_ = BcHash::GenerateCRC32( 0, KeyStream_.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
-
-			// Write out pose.
-			PoseStream_ << Pose;
-		}
-		
-		// Write out chunks.
-		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
-		CsResourceImporter::addChunk( BcHash( "nodes" ), NodeStream_.pData(), NodeStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "poses" ), PoseStream_.pData(), PoseStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "keys" ), KeyStream_.pData(), KeyStream_.dataSize() );
-
-		return BcTrue;
-	}
 #endif // PSY_IMPORT_PIPELINE
 	return BcFalse;	
 }
@@ -384,8 +345,8 @@ void ScnAnimationImport::recursiveParseAnimatedNodes( struct aiNode* Node, size_
 		Node->mParent->mTransformation * Node->mTransformation : Node->mTransformation;
 
 	AnimatedNode.Name_ = Node->mName.C_Str();
-	AnimatedNode.LocalTransform_ = MaMat4d( Node->mTransformation[ 0 ] );
-	AnimatedNode.WorldTransform_ = MaMat4d( WorldTransform[ 0 ] );
+	AnimatedNode.LocalTransform_ = MaMat4d( Node->mTransformation[ 0 ] ).transposed();
+	AnimatedNode.WorldTransform_ = MaMat4d( WorldTransform[ 0 ] ).transposed();
 	AnimatedNode.ParentIdx_ = static_cast< BcU32 >( ParentNodeIdx );
 
 	AnimatedNodes_.push_back( AnimatedNode );

@@ -263,7 +263,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	// Check the header is valid.
 	if( Header_.Magic_ != CsPackageHeader::MAGIC )
 	{
-		BcPrintf( "CsPackageLoader: Invalid magic number. Not a valid package.\n" );
+		PSY_LOG( "CsPackageLoader: Invalid magic number. Not a valid package.\n" );
 		HasError_ = BcTrue;
 		--PendingCallbackCount_;
 		return;
@@ -272,7 +272,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	// Check version number.
 	if( Header_.Version_ != CsPackageHeader::VERSION )
 	{
-		BcPrintf( "CsPackageLoader: Out of date package. Requires reimport.\n" );
+		PSY_LOG( "CsPackageLoader: Out of date package. Requires reimport.\n" );
 		HasError_ = BcTrue;
 		--PendingCallbackCount_;
 		return;
@@ -322,7 +322,7 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	// Reimport.
 	if( AnythingChanged )
 	{
-		BcPrintf( "CsPackageLoader: Source file stats have changed.\n" );
+		PSY_LOG( "CsPackageLoader: Source file stats have changed.\n" );
 		HasError_ = BcTrue;
 		--PendingCallbackCount_;
 		return;

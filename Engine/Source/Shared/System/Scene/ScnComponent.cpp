@@ -95,33 +95,25 @@ void ScnComponent::initialise()
 {
 	ComponentFlags_ = 0;
 	ParentEntity_ = nullptr;
-	pJsonObject_ = nullptr;
 
 	Super::initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-//virtual
+//virtualp
 void ScnComponent::initialise( const Json::Value& Object )
 {
 	BcBreakpoint; // Should never enter here. Stop calling to this method.
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnComponent::create()
+// postInitialise
+void ScnComponent::postInitialise()
 {
+	// TODO: Move this into initialise when we move initialise to constructors.
+	CsResource::markCreate();
 	CsResource::markReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnComponent::destroy()
-{
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,8 +152,6 @@ void ScnComponent::onAttach( ScnEntityWeakRef Parent )
 	setFlag( scnCF_ATTACHED );
 
 	ParentEntity_ = Parent;
-
-	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -175,10 +165,8 @@ void ScnComponent::onDetach( ScnEntityWeakRef Parent )
 
 	clearFlag( scnCF_PENDING_DETACH );
 	clearFlag( scnCF_ATTACHED );
-
+	setFlag( scnCF_PENDING_DESTROY );
 	ParentEntity_ = nullptr;
-
-	markDestroy();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -223,6 +211,7 @@ void ScnComponent::setParentEntity( ScnEntityWeakRef Entity )
 	BcAssertMsg( !isFlagSet( scnCF_ATTACHED ), "ScnComponent: Already attached, can't reassign parent entity."  );
 	BcAssertMsg( !isFlagSet( scnCF_PENDING_ATTACH ), "ScnComponent: Currently attaching, can't reassign parent entity."  );
 	BcAssertMsg( !isFlagSet( scnCF_PENDING_DETACH ), "ScnComponent: Currently detaching, can't reassign parent entity."  );
+	BcAssertMsg( !isFlagSet( scnCF_PENDING_DESTROY ), "ScnComponent: Currently being destroyed, can't reassign parent entity."  );
 	BcAssertMsg( ParentEntity_ == nullptr, "ScnComponent: Already have a parent, can't reassign parent entity."  );
 	ParentEntity_ = Entity;
 }
@@ -258,6 +247,22 @@ std::string ScnComponent::getFullName()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// create
+//virtual
+void ScnComponent::create()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+//virtual
+void ScnComponent::destroy()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnComponent::fileReady()
 {
@@ -286,8 +291,6 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			BcBreakpoint;
 		}
 
-		// Advance to ready stage, we don't need to do anything in the create,
-		// nor do we want to.
 		CsResource::markCreate();
 		CsResource::markReady();
 	}

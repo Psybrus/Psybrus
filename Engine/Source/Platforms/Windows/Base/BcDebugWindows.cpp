@@ -78,7 +78,7 @@ BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, B
 	}
 
 	// Log.
-	BcPrintf( "%s: %s\n", pTitle, pMessage );
+	PSY_LOG( "%s: %s\n", pTitle, pMessage );
 
 	// TODO: HWND!
 	int RetVal = ::MessageBoxA( NULL, pMessage, pTitle, MBType );

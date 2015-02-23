@@ -37,8 +37,8 @@ BcU32 GResolutionHeight = 720;
 // MainUnitTests
 void MainUnitTests()
 {
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "MainUnitTests:\n" );
+	PSY_LOG( "============================================================================\n" );
+	PSY_LOG( "MainUnitTests:\n" );
 
 	// Types unit test.
 	extern void BcTypes_UnitTest();
@@ -170,16 +170,16 @@ void MainShared()
 	SysKernel::pImpl()->startSystem( "ScnCore" );
 
 	// Log kernel information.
-	BcPrintf( "============================================================================\n" );
-	BcPrintf( "MainShared:\n" );
-	BcPrintf( " - Command line: %s\n", SysArgs_.c_str() );
-	BcPrintf( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
-	BcPrintf( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
-	BcPrintf( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );
-	BcPrintf( " - SysKernel::DEFAULT_JOB_QUEUE_ID: 0x%x\n", SysKernel::DEFAULT_JOB_QUEUE_ID );
-	BcPrintf( " - FsCore::JOB_QUEUE_ID: 0x%x\n", FsCore::JOB_QUEUE_ID );
-	BcPrintf( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
-	BcPrintf( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
+	PSY_LOG( "============================================================================\n" );
+	PSY_LOG( "MainShared:\n" );
+	PSY_LOG( " - Command line: %s\n", SysArgs_.c_str() );
+	PSY_LOG( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
+	PSY_LOG( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
+	PSY_LOG( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );
+	PSY_LOG( " - SysKernel::DEFAULT_JOB_QUEUE_ID: 0x%x\n", SysKernel::DEFAULT_JOB_QUEUE_ID );
+	PSY_LOG( " - FsCore::JOB_QUEUE_ID: 0x%x\n", FsCore::JOB_QUEUE_ID );
+	PSY_LOG( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
+	PSY_LOG( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
 	// Setup callback for post CsCore open for resource registration.
 	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();

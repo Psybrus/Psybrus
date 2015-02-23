@@ -37,14 +37,16 @@ public:
 	ScnAnimationTreeBlendNode();
 	virtual ~ScnAnimationTreeBlendNode();
 
-	virtual void initialise( ScnAnimationPose* pReferencePose );
-	virtual void setChildNode( BcU32 Idx, ScnAnimationTreeNode* pNode );
-	virtual ScnAnimationTreeNode* getChildNode( BcU32 Idx );
-	virtual BcU32 getNoofChildNodes() const;
-	virtual void preUpdate( BcF32 Tick );
-	virtual void update( BcF32 Tick );
-	virtual void postUpdate( BcF32 Tick );
-	virtual const ScnAnimationPose& getWorkingPose() const;
+	virtual void initialise( 
+		ScnAnimationPose* pReferencePose,
+		ScnAnimationNodeFileData* pNodeFileData ) override;
+	virtual void setChildNode( BcU32 Idx, ScnAnimationTreeNode* pNode ) override;
+	virtual ScnAnimationTreeNode* getChildNode( BcU32 Idx ) override;
+	virtual BcU32 getNoofChildNodes() const override;
+	virtual void preUpdate( BcF32 Tick ) override;
+	virtual void update( BcF32 Tick ) override;
+	virtual void postUpdate( BcF32 Tick ) override;
+	virtual const ScnAnimationPose& getWorkingPose() const override;
 
 	void setBlendType( ScnAnimationTreeBlendType Type );
 	ScnAnimationTreeBlendType getBlendType() const;

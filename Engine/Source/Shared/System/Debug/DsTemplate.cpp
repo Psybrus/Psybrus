@@ -23,8 +23,7 @@ BcHtmlNode DsTemplate::loadTemplate( BcHtmlNode node, std::string filename )
 	}
 	catch ( rapidxml::parse_error &e )
 	{
-		BcPrintf( "Error in file %s: %s\n   Error at %d\n", filename.c_str(), e.what(), ( int ) ( e.where<char>() - out.c_str() ) );
-
+		PSY_LOG( "Error in file %s: %s\n   Error at %d\n", filename.c_str(), e.what(), ( int ) ( e.where<char>() - out.c_str() ) );
 	}
 
 	xml_node<> *pRoot = doc.first_node();
@@ -66,7 +65,7 @@ std::string DsTemplate::loadTemplateFile( std::string filename )
 	BcFile file;
 	std::string f = filename;
 	file.open( f.c_str() );
-	// BcPrintf("Loading file: %s (size: %d)\n", filename.c_str(), file.size());
+	// PSY_LOG("Loading file: %s (size: %d)\n", filename.c_str(), file.size());
 	if ( !file.isOpen() )
 		return "";
 	char* data = new char[file.size() + 1];

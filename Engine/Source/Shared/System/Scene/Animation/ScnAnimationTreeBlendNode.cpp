@@ -53,11 +53,11 @@ ScnAnimationTreeBlendNode::~ScnAnimationTreeBlendNode()
 //////////////////////////////////////////////////////////////////////////
 // setChildNode
 //virtual
-void ScnAnimationTreeBlendNode::initialise( ScnAnimationPose* pReferencePose )
+void ScnAnimationTreeBlendNode::initialise( 
+	ScnAnimationPose* pReferencePose,
+	ScnAnimationNodeFileData* pNodeFileData )
 {
-	ScnAnimationTreeNode::initialise( pReferencePose );
-
-	
+	ScnAnimationTreeNode::initialise( pReferencePose, pNodeFileData );
 }
 
 //////////////////////////////////////////////////////////////////////////

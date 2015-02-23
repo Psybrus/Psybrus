@@ -1,18 +1,18 @@
 [submodule "External/assimp"]
     path = External/assimp
-    url = https://github.com/neilogd/assimp.git
+    url = https://github.com/Psybrus/assimp.git
 [submodule "External/SoLoud"]
     path = External/SoLoud
-    url = https://github.com/neilogd/SoLoud
+    url = https://github.com/Psybrus/SoLoud
 [submodule "External/HLSLCrossCompiler"]
 	path = External/HLSLCrossCompiler
-	url = https://github.com/neilogd/HLSLCrossCompiler.git
+	url = https://github.com/Psybrus/HLSLCrossCompiler.git
 [submodule "External/enet"]
 	path = External/enet
-	url = https://github.com/neilogd/enet.git
+	url = https://github.com/Psybrus/enet.git
 [submodule "External/hlsl2glslfork"]
 	path = External/hlsl2glslfork
-	url = https://github.com/neilogd/hlsl2glslfork
+	url = https://github.com/Psybrus/hlsl2glslfork
 [submodule "External/glsl-optimizer"]
 	path = External/glsl-optimizer
-	url = https://github.com/neilogd/glsl-optimizer
+	url = https://github.com/Psybrus/glsl-optimizer

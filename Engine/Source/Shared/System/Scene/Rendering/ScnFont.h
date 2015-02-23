@@ -54,9 +54,7 @@ public:
 	virtual void						initialise();
 	virtual void						create();
 	virtual void						destroy();
-	
-	BcBool								createInstance( const std::string& Name, ScnFontComponentRef& FontComponent, ScnMaterialRef Material );
-	
+		
 private:
 	void								fileReady();
 	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );

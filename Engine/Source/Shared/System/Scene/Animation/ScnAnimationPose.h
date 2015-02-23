@@ -33,7 +33,7 @@ public:
 	/**
 	 * Set transform.
 	 */
-	void						setTransform( BcU32 Idx, const ScnAnimationTransform& Transform );
+	void setTransform( BcU32 Idx, const ScnAnimationTransform& Transform );
 
 	/**
 	 * Get transform.
@@ -43,17 +43,22 @@ public:
 	/**
 	 * Blend 2 poses together.
 	 */
-	void						blend( const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T );
+	void blend( const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T );
 
 	/**
 	 * Add 2 poses together using a reference pose. A + ( B - Reference )
 	 */
-	void						add( const ScnAnimationPose& Reference, const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T );
+	void add( const ScnAnimationPose& Reference, const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T );
 
 	/**
 	 * Normalise.
 	 */
-	void						normalise();
+	void normalise();
+
+	/**
+	 * Get number of nodes.
+	 */
+	BcU32 getNoofNodes() const;
 
 private:
 	std::vector< ScnAnimationTransform > Transforms_;

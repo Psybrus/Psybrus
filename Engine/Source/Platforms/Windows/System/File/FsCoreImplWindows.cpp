@@ -383,12 +383,12 @@ void FsCoreImplWindows::updateFileMonitoring()
 				// Publish message that file has changed/been created.
 				if( OldFileStats.ModifiedTime_.isNull() == BcTrue )
 				{
-					BcPrintf( "FsCoreImplWindows: File created: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplWindows: File created: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_CREATED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 				else
 				{
-					BcPrintf( "FsCoreImplWindows: File modified: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplWindows: File modified: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_MODIFIED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 			}
@@ -398,7 +398,7 @@ void FsCoreImplWindows::updateFileMonitoring()
 			// Publish message that file has been deleted.
 			if( OldFileStats.ModifiedTime_.isNull() == BcFalse )
 			{
-				BcPrintf( "FsCoreImplWindows: File deleted: %s\n", FileName.c_str() );
+				PSY_LOG( "FsCoreImplWindows: File deleted: %s\n", FileName.c_str() );
 				EvtPublisher::publish( fsEVT_MONITOR_DELETED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 			}
 		}

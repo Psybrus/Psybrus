@@ -1,7 +1,6 @@
 #include "MainShared.h"
 
 #include "Base/BcLogImpl.h"
-#include "Base/BcLogFile.h"
 #include "Base/BcRandom.h"
 
 #include "System/SysKernel.h"
@@ -81,14 +80,7 @@ int main(int argc, char** argv)
 
 	// HACK: Append a space to sys args for find to work.
 	SysArgs_ += " ";
-
-	// Setup log if we have a commandline for it.
-	if( SysArgs_.find( "-log " ) != std::string::npos )
-	{
-		// TODO: File name generation.
-		new BcLogFile( "log.txt" );
-	}
-
+	
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
 	if( BcLog::pImpl() == NULL )
@@ -96,6 +88,9 @@ int main(int argc, char** argv)
 		new BcLogImpl();
 	}
 #endif
+
+	// Setup basic log Category.
+	BcLogScopedCategory LogCategory( "Main" );
 
 	// Initialise RNG.
 #if !PSY_DEBUG
@@ -124,8 +119,8 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-//	SYS_REGISTER( "DsCore", DsCoreImpl );
-//	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
+	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );

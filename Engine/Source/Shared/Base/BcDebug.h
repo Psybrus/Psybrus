@@ -22,8 +22,7 @@
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
 #if 1
-#  define BcPrintf \
-	if( BcLog::pImpl() ) BcLog::pImpl()->write
+void BcPrintf( const BcChar* Text, ... );
 #else
 #  define BcPrintf( ... )
 #endif

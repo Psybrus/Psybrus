@@ -34,7 +34,9 @@ public:
 	/**
 	 * Initialise.
 	 */
-	virtual void initialise( ScnAnimationPose* pReferencePose );
+	virtual void initialise( 
+		ScnAnimationPose* pReferencePose, 
+		ScnAnimationNodeFileData* pNodeFileData );
 
 	/**
 	 * Set child node.
@@ -72,8 +74,9 @@ public:
 	virtual const ScnAnimationPose& getWorkingPose() const;
 
 protected:
-	ScnAnimationPose*		pReferencePose_;
-	ScnAnimationPose*		pWorkingPose_;
+	ScnAnimationNodeFileData* pNodeFileData_;
+	ScnAnimationPose* pReferencePose_;
+	ScnAnimationPose* pWorkingPose_;
 };
 
 #endif

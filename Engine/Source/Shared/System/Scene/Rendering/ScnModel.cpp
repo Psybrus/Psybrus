@@ -26,6 +26,12 @@
 #include "System/Scene/Import/ScnModelImport.h"
 #endif
 
+#define DEBUG_RENDER_NODES ( 0 )
+
+#if DEBUG_RENDER_NODES
+#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
+#endif // DEBUG_RENDER_NODES
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( ScnModel );
@@ -318,23 +324,6 @@ void ScnModelComponent::initialise( const Json::Value& Object )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnModelComponent::create()
-{
-	markReady();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnModelComponent::destroy()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getAABB
 //virtual
 MaAABB ScnModelComponent::getAABB() const
@@ -359,6 +348,20 @@ BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 	}
 
 	return BcErrorCode;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findNodeNameByIndex
+const BcName& ScnModelComponent::findNodeNameByIndex( BcU32 NodeIdx ) const
+{
+	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	const ScnModelNodePropertyData* pNodePropertyData = Parent_->pNodePropertyData_;
+	if( NodeIdx < NoofNodes )
+	{
+		return pNodePropertyData[ NodeIdx ].Name_;
+	}
+
+	return BcName::INVALID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -457,6 +460,28 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, getParentEntity()->getWorldMatrix() );
 #else
 	updateNodes( getParentEntity()->getWorldMatrix() );
+
+#if DEBUG_RENDER_NODES
+	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
+	{
+		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
+		ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
+
+		MaMat4d ThisMatrix = pNodeTransformData->WorldTransform_;
+		MaMat4d ParentMatrix = pNodePropertyData->ParentIndex_ != BcErrorCode ? 
+			pNodeTransformData_[ pNodePropertyData->ParentIndex_ ].WorldTransform_ :
+			getParentEntity()->getWorldMatrix();
+
+		ScnDebugRenderComponent::pImpl()->drawMatrix( 
+			ThisMatrix, RsColour::WHITE, 2000 );
+		ScnDebugRenderComponent::pImpl()->drawLine( 
+			ParentMatrix.translation(), 
+			ThisMatrix.translation(), 
+			RsColour::WHITE, 1000 );
+	}
+
+#endif // DEBUG_RENDER_NODES
 #endif
 }
 
@@ -562,7 +587,9 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 						BcU32 NodeIndex = pNodeMeshData->BonePalette_[ Idx ];
 						if( NodeIndex != BcErrorCode )
 						{
-							BoneUniformBlock->BoneTransform_[ Idx ] = pNodeMeshData->BoneInverseBindpose_[ Idx ] * pNodeTransformData_[ NodeIndex ].WorldTransform_;
+							BoneUniformBlock->BoneTransform_[ Idx ] =
+								pNodeMeshData->BoneInverseBindpose_[ Idx ] * 
+								pNodeTransformData_[ NodeIndex ].WorldTransform_;
 						}
 					}
 					UploadFence_.decrement();
@@ -574,7 +601,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				PerComponentMeshData.UniformBuffer_,
 				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
-				[ &, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
 					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
@@ -638,6 +665,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 			// Even on failure add. List must be of same size for quick lookups.
 			if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponentRef, pMeshRuntime->MaterialRef_, ShaderPermutation ) )
 			{
+				MaterialComponentRef->postInitialise(); // TODO: Remove when init sequence is cleaned up.
 				getParentEntity()->attach( MaterialComponentRef );
 			}
 
@@ -679,8 +707,9 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	// Wait for update to complete.
+	// Wait for update + upload to complete.
 	UpdateFence_.wait();
+	UploadFence_.wait();
 
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )

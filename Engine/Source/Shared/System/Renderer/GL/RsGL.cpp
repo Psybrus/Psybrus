@@ -21,7 +21,7 @@ namespace
 	{
 		auto Extensions = (const char*)glGetString( GL_EXTENSIONS );
 		auto RetVal = BcStrStr( Extensions, ExtensionName ) != nullptr;
-		BcPrintf( "RsGL: HaveExtension \"%s\"? %s\n", ExtensionName, RetVal ? "YES!" : "no" );
+		PSY_LOG( "RsGL: HaveExtension \"%s\"? %s\n", ExtensionName, RetVal ? "YES!" : "no" );
 		return RetVal;
 	}
 }
@@ -238,8 +238,8 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if 0 //!PSY_PRODUCTION
-void RsGLCatchError()
+#if !PSY_PRODUCTION && !PLATFORM_HTML5
+GLuint RsGLCatchError()
 {
 	BcU32 TotalErrors = 0;
 	GLuint Error;
@@ -278,7 +278,7 @@ void RsGLCatchError()
 
 		if( Error != 0 )
 		{
-			BcPrintf( "RsGL: Error: %s\n", ErrorString.c_str() );
+			PSY_LOG( "RsGL: Error: %s\n", ErrorString.c_str() );
 			++TotalErrors;
 		}
 #endif
@@ -289,5 +289,7 @@ void RsGLCatchError()
 	{
 		BcBreakpoint;
 	}
+
+	return Error;
 }
 #endif

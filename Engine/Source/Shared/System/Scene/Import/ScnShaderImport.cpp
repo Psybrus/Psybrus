@@ -203,6 +203,8 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
+		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
+		new ReField( "IncludePermutations_", &ScnShaderImport::IncludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "CodeTypes_", &ScnShaderImport::CodeTypes_, bcRFF_IMPORTER ),
 		new ReField( "BackendTypes_", &ScnShaderImport::BackendTypes_, bcRFF_IMPORTER ),
 	};
@@ -269,14 +271,14 @@ BcBool ScnShaderImport::import( const Json::Value& )
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )
 	{
-		BcPrintf( "ERROR: Missing 'source' field.\n" );
+		PSY_LOG( "ERROR: Missing 'source' field.\n" );
 		return BcFalse;
 	}
 
 	// Entry points.
 	if( Entrypoints_.size() == 0 )
 	{
-		BcPrintf( "ERROR: Missing entry points.\n" );
+		PSY_LOG( "ERROR: Missing entry points.\n" );
 		return BcFalse;
 	}
 
@@ -503,20 +505,59 @@ void ScnShaderImport::generatePermutations(
 #if PSY_IMPORT_PIPELINE
 	const auto& PermutationGroup = PermutationGroups[ GroupIdx ];
 
+	// Check exclude & include permutations.
+	BcU32 GroupExcludeMask = 0;
+	BcU32 GroupIncludeMask = 0;
+	BcAssert( PermutationGroup.NoofEntries_ < sizeof( GroupExcludeMask ) * 8 );
+	BcAssert( PermutationGroup.NoofEntries_ < sizeof( GroupIncludeMask ) * 8 );
 	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
 	{
 		auto PermutationEntry = PermutationGroup.Entries_[ Idx ];
-		auto NewPermutation = Permutation; 
-		NewPermutation.Flags_ |= PermutationEntry.Flag_;
-		NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
-
-		if( GroupIdx < ( NoofGroups - 1 ) )
+		for( auto ExcludePermutation : ExcludePermutations_ )
 		{
-			generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
+			if( PermutationEntry.Flag_ == ExcludePermutation )
+			{
+				GroupExcludeMask |= 1 << Idx;
+				break;
+			}
 		}
-		else
+
+		for( auto IncludePermutation : IncludePermutations_ )
 		{
-			Permutations_.push_back( NewPermutation );
+			if( PermutationEntry.Flag_ == IncludePermutation )
+			{
+				GroupIncludeMask |= 1 << Idx;
+				break;
+			}
+		}
+	}
+
+	// Nothing included? Include everything by default.
+	if( GroupIncludeMask == 0 )
+	{
+		GroupIncludeMask = 0xffffffff;
+	}
+
+	// Now begin filling permutations in.
+	for( BcU32 Idx = 0; Idx < PermutationGroup.NoofEntries_; ++Idx )
+	{
+		auto PermutationEntry = PermutationGroup.Entries_[ Idx ];
+
+		if( ( ( 1 << Idx ) & GroupIncludeMask ) != 0 &&
+			( ( 1 << Idx ) & GroupExcludeMask ) == 0 )
+		{
+			auto NewPermutation = Permutation; 
+			NewPermutation.Flags_ |= PermutationEntry.Flag_;
+			NewPermutation.Defines_[ PermutationEntry.Define_ ] = PermutationEntry.Value_;
+
+			if( GroupIdx < ( NoofGroups - 1 ) )
+			{
+				generatePermutations( GroupIdx + 1, NoofGroups, PermutationGroups, NewPermutation );
+			}
+			else
+			{
+				Permutations_.push_back( NewPermutation );
+			}
 		}
 	}
 #endif
@@ -614,7 +655,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			
 			FinalSource += SourceFileData_;
 
-			//BcPrintf( "%s\n", FinalSource.c_str() );
+			//PSY_LOG( "%s\n", FinalSource.c_str() );
 
 
 			// Parse HLSL.		resultString
@@ -680,7 +721,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					}
 					else
 					{
-						BcPrintf( "Failed to optimiser GLSL shader:\n%s\n", 
+						PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
 							glslopt_get_log( GlslOptShader ) );
 						BcBreakpoint; // TODO: Failed. Why?
 					}
@@ -806,7 +847,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					}
 
 	
-					//BcPrintf( "%s\n", OutputShaderCode.c_str() );
+					//PSY_LOG( "%s\n", OutputShaderCode.c_str() );
 #endif
 
 					std::lock_guard< std::mutex > Lock( BuildingMutex_ );
@@ -1056,7 +1097,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			Errors += Error;
 		}
 
-		BcPrintf( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
+		PSY_LOG( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
 		//throw CsImportException( Errors, Filename_ );
 	}
 

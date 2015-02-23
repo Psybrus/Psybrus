@@ -388,7 +388,6 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 		{
 			int a = 0; ++a;
 		}
-		// BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
@@ -440,9 +439,7 @@ void DsCore::cmdResource(DsParameters params, BcHtmlNode& Output, std::string Po
 				else
 				{
 					fValue.setContents("CONTAINER");
-					// auto SrcIter = SrcFieldAccessor.newReadIterator();
 					auto KeyType = Field->getKeyType();
-					// auto ValueType = Field->getValueType();
 
 					if (KeyType == nullptr)
 					{
@@ -595,8 +592,9 @@ void DsCore::cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostCo
 		Output.createChildNode("br");
 		return;
 	}
+
 	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, ( BcU32 ) bcRFF_ALL, ( BcU32 ) bcRFF_TRANSIENT, ( BcU32 ) bcRFF_ALL );
-	SeJsonWriter writer( &ObjectCodec);
+	SeJsonWriter writer( &ObjectCodec );
 	std::string output = writer.serialiseToString<CsResource>(Resource, Resource->getClass());
 	
 	Output.setContents(output);
@@ -679,6 +677,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 	Json::Reader reader;
 	bool PostContentAvailable = PostContent.size() > 0;
 	reader.parse(PostContent, readRoot);
+	
 	Json::Value root;
 
 	Json::Value classes = Json::Value(Json::arrayValue);
@@ -696,7 +695,6 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 		{
 			int a = 0; ++a;
 		}
-		// BcU8* pClassData = reinterpret_cast< BcU8* >(&Resource);
 		// Iterate over to grab offsets for classes.
 		while (pClass != NULL)
 		{
@@ -747,9 +745,7 @@ void DsCore::cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::str
 				}
 				else
 				{
-					// auto SrcIter = SrcFieldAccessor.newReadIterator();
 					auto KeyType = Field->getKeyType();
-					// auto ValueType = Field->getValueType();
 
 					if (KeyType == nullptr)
 					{

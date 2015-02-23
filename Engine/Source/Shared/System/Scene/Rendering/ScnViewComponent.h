@@ -18,8 +18,8 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
-#include "System/Scene/Rendering/ScnRenderTarget.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -44,8 +44,9 @@ public:
 #endif	
 	void								initialise();
 	virtual void						initialise( const Json::Value& Object );
-	virtual void						create();
-	virtual void						destroy();
+
+	virtual void						onAttach( ScnEntityWeakRef Parent );
+	virtual void						onDetach( ScnEntityWeakRef Parent );
 
 	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void								getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
@@ -59,7 +60,11 @@ public:
 	
 	void								setRenderMask( BcU32 RenderMask );
 	const BcU32							getRenderMask() const;
-	
+
+protected:
+	eEvtReturn onClientResize( EvtID ID, const struct OsEventClientResize& Event );
+	void recreateFrameBuffer();
+
 protected:
 
 	// Viewport. Values relative to the size of the client being rendered into.
@@ -93,7 +98,10 @@ protected:
 	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?
 	MaPlane								FrustumPlanes_[ 6 ];
 
-	ScnRenderTargetRef					RenderTarget_;
+	// Frame buffer + render target.
+	ScnTextureRef						RenderTarget_;
+	ScnTextureRef						DepthStencilTarget_;
+	RsFrameBufferUPtr					FrameBuffer_;
 };
 
 #endif

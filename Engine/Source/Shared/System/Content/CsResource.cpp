@@ -56,7 +56,7 @@ CsResource::CsResource():
 //virtual
 CsResource::~CsResource()
 {
-	
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ void CsResource::setIndex(  BcU32 Index )
 //virtual
 BcBool CsResource::isReady() const
 {
-	BcAssertMsg( InitStage_ >= INIT_STAGE_INITIAL && InitStage_ <= INIT_STAGE_READY, "CsResource: Invalid ready state." );
+	BcAssertMsg( InitStage_ >= INIT_STAGE_INITIAL && InitStage_ <= INIT_STAGE_DESTROY, "CsResource: Invalid ready state." );
 	return InitStage_ == INIT_STAGE_READY ? BcTrue : BcFalse;
 }
 
@@ -187,7 +187,7 @@ BcU32 CsResource::getChunkSize( BcU32 Chunk )
 	}
 	else
 	{
-		BcPrintf( "WARNING: Attempting to get chunk size where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
+		PSY_LOG( "WARNING: Attempting to get chunk size where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
 	}
 
 	return 0;
@@ -203,7 +203,7 @@ BcU32 CsResource::getNoofChunks() const
 	}
 	else
 	{
-		BcPrintf( "WARNING: Attempting to get number of chunks where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
+		PSY_LOG( "WARNING: Attempting to get number of chunks where we have an invalid index. Resource: %s\n", (*getName()).c_str() );
 	}
 
 	return 0;
@@ -216,6 +216,7 @@ void CsResource::markCreate()
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_CREATE );
 	BcAssertMsg( OldStage == INIT_STAGE_INITIAL, "CsResource: Trying to mark \"%s\" for creation when it's not in the initial state.", (*getName()).c_str() );
 	BcUnusedVar( OldStage );
+	create();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -234,8 +235,8 @@ void CsResource::markDestroy()
 	BcU32 OldStage = InitStage_.exchange( INIT_STAGE_DESTROY );
 	BcAssertMsg( OldStage == INIT_STAGE_READY, "CsResource: Trying to mark \"%s\" for destruction when it's not ready.", (*getName()).c_str() );
 	BcUnusedVar( OldStage );
-
-	CsCore::pImpl()->destroyResource( this );
+	destroy();
+	CsCore::pImpl()->internalAddResourceForProcessing( this );
 }
 
 //////////////////////////////////////////////////////////////////////////

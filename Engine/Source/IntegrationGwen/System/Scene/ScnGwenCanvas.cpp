@@ -72,7 +72,7 @@ BcBool ScnGwenCanvas::import( const Json::Value& Object, CsDependancyList& Depen
 		}	
 		else
 		{
-			BcPrintf( "ScnMaterial: Failed to import material.\n" );
+			PSY_LOG( "ScnMaterial: Failed to import material.\n" );
 		}
 	}
 
@@ -90,7 +90,7 @@ BcBool ScnGwenCanvas::import( const Json::Value& Object, CsDependancyList& Depen
 		}	
 		else
 		{
-			BcPrintf( "ScnFont: Failed to import font.\n" );
+			PSY_LOG( "ScnFont: Failed to import font.\n" );
 		}
 	}
 
