@@ -1197,22 +1197,18 @@ void ScnFontComponent::update( BcF32 Tick )
 void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Attach material to our parent.
-	ScnMaterialComponentRef MaterialComponent;
-	if( CsCore::pImpl()->createResource( 
-		BcName::INVALID, getPackage(), MaterialComponent, Material_, 
+	MaterialComponent_ = Parent->attach< ScnMaterialComponent >(
+		BcName::INVALID, Material_, 
 		ScnShaderPermutationFlags::RENDER_FORWARD |
 		ScnShaderPermutationFlags::PASS_MAIN |
-		ScnShaderPermutationFlags::MESH_STATIC_2D ) )
-	{	
-		MaterialComponent_ = MaterialComponent;
-		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
-		BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
-		if( Sampler != BcErrorCode )
-		{ 
-			MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
-		}
+		ScnShaderPermutationFlags::MESH_STATIC_2D );
+
+	// Setup texture.
+	BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
+	if( Sampler != BcErrorCode )
+	{ 
+		MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
 	}
-	Parent->attach( MaterialComponent_ );
 
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(

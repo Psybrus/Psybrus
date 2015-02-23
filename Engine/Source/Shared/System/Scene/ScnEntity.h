@@ -48,11 +48,32 @@ public:
 
 public:
 	void update( BcF32 Tick );
-	void attach( ScnComponent* Component );
-	void detach( ScnComponent* Component );
 	void onAttach( ScnEntityWeakRef Parent );
 	void onDetach( ScnEntityWeakRef Parent );
-	void detachFromParent();
+
+	/**
+	 * Attach a component to this entity.
+	 * @pre Component is not nullptr.
+	 * @pre Component is not attached to another entity.
+	 * @post Component is stored in component list.
+	 * @post Component is queued for pending onAttach.
+	 */
+	void attach( ScnComponent* Component );
+
+	/**
+	 * Attach a new component to this enitty.
+	 * @post Component is stored in component list.
+	 * @post Component is queued for pending onAttach.
+	 */
+	template< typename _Ty, typename... _ParamT >
+	_Ty* attach( const BcName& Name, _ParamT... Params );
+
+	/**
+	 * Detach a component from this entity.
+	 * @post Component is stored in component list.
+	 * @post Component is queued for pending onDetach.
+	 */
+	void detach( ScnComponent* Component );
 	
 	/**
 	 * Get basis entity.
@@ -135,6 +156,13 @@ public:
 	const MaMat4d& getWorldMatrix() const;
 
 protected:
+	/**
+	 * @pre Class is not nullptr.
+	 * @pre Class is a valid class.
+	 * @post Will always return a valid component.
+	 */
+	ScnComponent* internalCreateComponent( const BcName& Name, const ReClass* Class );
+
 	virtual void fileReady();
 	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
@@ -152,5 +180,18 @@ protected:
 	class EvtProxyBuffered* pEventProxy_;
 #endif
 };
+
+//////////////////////////////////////////////////////////////////////////
+// Inlines
+template< typename _Ty, typename... _ParamT >
+BcForceInline _Ty* ScnEntity::attach( const BcName& Name, _ParamT... Params )
+{
+	ReObjectRef< _Ty > Component = internalCreateComponent( Name, _Ty::StaticGetClass() );
+	BcAssert( Component->isTypeOf( ScnComponent::StaticGetClass() ) );
+	Component->initialise( Params... );
+	attach( Component );
+	return Component;
+}
+
 
 #endif

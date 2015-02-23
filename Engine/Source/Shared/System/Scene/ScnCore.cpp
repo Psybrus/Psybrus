@@ -287,8 +287,7 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 
 //////////////////////////////////////////////////////////////////////////
 // spawnEntity
-ScnEntity* ScnCore::spawnEntity( 
-	const ScnEntitySpawnParams& Params)
+ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 {
 	BcAssert( BcIsGameThread() );
 

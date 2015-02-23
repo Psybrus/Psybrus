@@ -18,6 +18,7 @@
 
 #include "Base/BcProfiler.h"
 
+#include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 #include "Events/EvtProxyBuffered.h"
 
@@ -144,49 +145,6 @@ void ScnEntity::update( BcF32 Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// attach
-void ScnEntity::attach( ScnComponent* Component )
-{
-	BcAssert( Component->getName() != BcName::INVALID );
-	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
-	if( It == Components_.end() )
-	{
-		BcAssertMsg( Component != nullptr, "Trying to attach a null component!" );
-
-		Component->setParentEntity( ScnEntityWeakRef( this ) );
-		Component->setFlag( scnCF_PENDING_ATTACH );
-		Components_.push_back( Component );
-	
-		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// detach
-void ScnEntity::detach( ScnComponent* Component )
-{
-	BcAssert( Component->getName() != BcName::INVALID );
-	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
-	if( It != Components_.end() )
-	{
-		BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
-
-		Component->setFlag( scnCF_PENDING_DETACH );
-		Components_.erase( It );
-
-		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// detachFromParent
-void ScnEntity::detachFromParent()
-{
-	BcAssertMsg( getParentEntity() == nullptr, "Can't detach entity \"%s\", it's not attached.", (*getName()).c_str() );
-	getParentEntity()->detach( this );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttachScene
 void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 {
@@ -216,6 +174,47 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 	}
 
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// attach
+void ScnEntity::attach( ScnComponent* Component )
+{
+	BcAssert( Component != nullptr );
+	BcAssert( Component->getName() != BcName::INVALID );
+	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
+	if( It == Components_.end() )
+	{
+		BcAssertMsg( Component != nullptr, "Trying to attach a null component!" );
+
+		// Post init if not ready...flaky?
+		if( !Component->isReady() )
+		{
+			Component->postInitialise();
+		}
+		Component->setParentEntity( ScnEntityWeakRef( this ) );
+		Component->setFlag( scnCF_PENDING_ATTACH );
+		Components_.push_back( Component );
+	
+		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// detach
+void ScnEntity::detach( ScnComponent* Component )
+{
+	BcAssert( Component->getName() != BcName::INVALID );
+	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
+	if( It != Components_.end() )
+	{
+		BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
+
+		Component->setFlag( scnCF_PENDING_DETACH );
+		Components_.erase( It );
+
+		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -437,6 +436,20 @@ const MaMat4d& ScnEntity::getWorldMatrix() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// internalCreateComponent
+ScnComponent* ScnEntity::internalCreateComponent( const BcName& Name, const ReClass* Class )
+{
+	BcAssert( Class != nullptr );
+	ReObjectRef< CsResource > Resource;
+	auto RetVal = CsCore::pImpl()->internalCreateResource( 
+		Name, Class, BcErrorCode, getPackage(), Resource );
+	BcAssertMsg( RetVal, "Unable to create component for \"%s\"", (*Class->getName()).c_str() );
+	auto Component = ReObjectRef< ScnComponent >( Resource );
+	BcAssert( Component.isValid() );
+	return Component;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnEntity::fileReady()
 {
@@ -495,11 +508,7 @@ void ScnEntity::setupComponents()
 						{
 							ScnComponent* Component = static_cast< ScnComponent* >( Object );
 							Component->initialise();
-						} );
-				
-				// TODO: Move this into initialise when we move initialise to constructors.
-				NewComponent->postInitialise();
-				
+						} );				
 				attach( NewComponent );
 			}
 		}

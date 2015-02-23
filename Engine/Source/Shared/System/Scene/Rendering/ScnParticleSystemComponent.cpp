@@ -355,16 +355,10 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 //virtual
 void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	ScnMaterialComponentRef MaterialComponent;
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent, Material_, 
-		ScnShaderPermutationFlags::MESH_PARTICLE_3D ) )
-	{
-		MaterialComponent_ = MaterialComponent;
-		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
-	}
-
-	BcAssertMsg( MaterialComponent_ != nullptr, "Material invalid blah." );
-	Parent->attach( MaterialComponent_ );
+	// Attach a new material component.
+	MaterialComponent_ = Parent->attach< ScnMaterialComponent >( 
+		BcName::INVALID, Material_, 
+		ScnShaderPermutationFlags::MESH_PARTICLE_3D );
 
 	// TODO: Allow different types of geom for this.
 	// TODO: Use index buffer.
