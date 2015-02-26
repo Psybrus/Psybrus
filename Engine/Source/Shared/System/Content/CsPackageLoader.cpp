@@ -261,6 +261,8 @@ BcBool CsPackageLoader::requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx,
 // onHeaderLoaded
 void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 {
+	PSY_LOGSCOPEDCATEGORY( "CsPackageLoader" );
+
 	// Check we have the right data.
 	BcAssert( pData == &Header_ );
 	BcAssert( Size == sizeof( Header_ ) );
@@ -296,32 +298,50 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 		AnythingChanged = ( Header_.SourceFileStatsHash_ != BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) ) );
 	}
 
-	if( boost::filesystem::exists( OutputDependencies ) )
+	// Import package & output dependencies changed?
+	if( boost::filesystem::exists( *ImportPackage ) )
 	{
-		CsPackageDependencies Dependencies;
-
-		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
-		SeJsonReader Reader( &ObjectCodec );
-		Reader.load( OutputDependencies.c_str() );
-		Reader << Dependencies;
-
-		// Check other dependencies.
-		if( !AnythingChanged )
+		if(	boost::filesystem::exists( OutputDependencies ) )
 		{
-			for( const auto& Dependency : Dependencies.Dependencies_ )
+			PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
+			PSY_LOGSCOPEDINDENT;
+
+			CsPackageDependencies Dependencies;
+
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
+			SeJsonReader Reader( &ObjectCodec );
+			Reader.load( OutputDependencies.c_str() );
+			Reader << Dependencies;
+
+			// Check other dependencies.
+			if( !AnythingChanged )
 			{
-				if( Dependency.hasChanged() )
+				for( const auto& Dependency : Dependencies.Dependencies_ )
 				{
-					AnythingChanged = BcTrue;
-					break;
+					if( Dependency.hasChanged() )
+					{
+						PSY_LOG( "WARNING: \"%s\" has changed.\n", Dependency.getFileName().c_str() );
+						AnythingChanged = BcTrue;
+						break;
+					}
+					else
+					{
+						PSY_LOG( "\"%s\" has not changed.\n", Dependency.getFileName().c_str() );						
+					}
 				}
 			}
+		}
+		else
+		{
+			PSY_LOG( "WARNING: Can't find package dependency info \"%s\", perform full build.\n", OutputDependencies.c_str() );
+
+			// No deps file, assume worst.
+			AnythingChanged = BcTrue;
 		}
 	}
 	else
 	{
-		// No deps file, assume worst.
-		AnythingChanged = BcTrue;
+		PSY_LOG( "WARNING: Can't find package \"%s\", skipping dependency checking.\n", (*ImportPackage).c_str() );
 	}
 
 	// Reimport.
