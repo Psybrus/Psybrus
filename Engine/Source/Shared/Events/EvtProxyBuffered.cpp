@@ -39,17 +39,18 @@ EvtProxyBuffered::~EvtProxyBuffered()
 //////////////////////////////////////////////////////////////////////////
 // proxy
 //virtual
-eEvtReturn EvtProxyBuffered::proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize )
+eEvtReturn EvtProxyBuffered::proxy( EvtID ID, const EvtBaseEvent& EventBase )
 {
 	// Create a management object for event.
-	TEventPackage Event;
-	Event.ID_ = ID;
-	Event.Size_ = EventSize;
-	Event.pEventData_ = BcMemAlign( EventSize, 16 ); 
-	BcMemCopy( Event.pEventData_, &EventBase, EventSize );
+	TEventPackage EventPackage;
+	EventPackage.ID_ = ID;
+	// TODO: Erm, switch over to a linear allocator for events.
+	//       Perhaps share across *all* EvtProxyBuffered objects.
+	EventPackage.pEventData_ = BcMemAlign( EventBase.size(), 16 ); 
+	BcMemCopy( EventPackage.pEventData_, &EventBase, EventBase.size() );
 
 	// Push into vector.
-	Events_.push_back( Event );
+	Events_.push_back( EventPackage );
 
 	// Always block, we will dispatch it.
 	return evtRET_BLOCK;
@@ -67,9 +68,12 @@ void EvtProxyBuffered::dispatch()
 
 		for( BcU32 Idx = 0; Idx < Events.size(); ++Idx )
 		{
-			TEventPackage& Event( Events[ Idx ] );
-			EvtProxy::publish( Event.ID_, *reinterpret_cast< EvtBaseEvent* >( Event.pEventData_ ), Event.Size_ );
-			BcMemFree( Event.pEventData_ );
+			TEventPackage& EventPackage( Events[ Idx ] );
+			const auto& EventBase = *reinterpret_cast< EvtBaseEvent* >( EventPackage.pEventData_ );
+			EvtProxy::publish( 
+				EventPackage.ID_, 
+				EventBase );
+			BcMemFree( EventPackage.pEventData_ );
 		}
 	}
 }

@@ -31,10 +31,10 @@ SysDelegateDispatcher::~SysDelegateDispatcher()
 
 //////////////////////////////////////////////////////////////////////////
 // enqueueDelegateCall
-void SysDelegateDispatcher::enqueueDelegateCall( BcDelegateCallBase* pDelegateCall )
+void SysDelegateDispatcher::enqueueDelegateCall( const std::function< void() >& Function )
 {
 	std::lock_guard< std::mutex > Lock( DelegateCallListLock_ );
-	DelegateCallList_.push_back( pDelegateCall );
+	DelegateCallList_.push_back( Function );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,8 +50,6 @@ void SysDelegateDispatcher::dispatch()
 	// Iterate over em, call, and delete them.
 	for( TDelegateCallListIterator It( DelegateCallList.begin() ); It != DelegateCallList.end(); ++It )
 	{
-		BcDelegateCallBase* pDelegateCall = *It;
-		(*pDelegateCall)();
-		delete pDelegateCall;
+		(*It)();
 	}
 }

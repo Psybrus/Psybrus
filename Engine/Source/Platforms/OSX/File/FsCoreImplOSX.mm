@@ -161,7 +161,7 @@ class Job_ReadOp:
 	public SysJob
 {
 public:
-	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 		pImpl_( pImpl ),
 		Position_( Position ),
 		pData_( pData ),
@@ -183,10 +183,10 @@ private:
 	BcSize Position_;
 	void* pData_;
 	BcSize Bytes_;
-	FsFileOpDelegate DoneCallback_;
+	FsFileOpCallback DoneCallback_;
 };
 
-void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	SysKernel::pImpl()->queueJob( new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ), 0x1 );
 }
@@ -197,7 +197,7 @@ class Job_WriteOp:
 	public SysJob
 {
 public:
-	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 		pImpl_( pImpl ),
 		Position_( Position ),
 		pData_( pData ),
@@ -219,11 +219,11 @@ private:
 	BcSize Position_;
 	void* pData_;
 	BcSize Bytes_;
-	FsFileOpDelegate DoneCallback_;
+	FsFileOpCallback DoneCallback_;
 };
 
 
-void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	SysKernel::pImpl()->queueJob( new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ), 0x1 );
 }

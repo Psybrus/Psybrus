@@ -453,12 +453,6 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	Super::postUpdate( Tick );
 
 	UpdateFence_.increment();
-#if 0
-	// TODO: Break out into it's own job class.
-	typedef BcDelegate< void(*)( MaMat4d ) > UpdateNodeDelegate;
-	UpdateNodeDelegate Delegate = UpdateNodeDelegate::bind< ScnModelComponent, &ScnModelComponent::updateNodes >( this );
-	SysKernel::pImpl()->pushDelegateJob( SysKernel::DEFAULT_JOB_QUEUE_ID, Delegate, getParentEntity()->getWorldMatrix() );
-#else
 	updateNodes( getParentEntity()->getWorldMatrix() );
 
 #if DEBUG_RENDER_NODES
@@ -482,7 +476,6 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	}
 
 #endif // DEBUG_RENDER_NODES
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////pmatr

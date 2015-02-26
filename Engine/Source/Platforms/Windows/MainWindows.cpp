@@ -16,7 +16,7 @@
 
 BcHandle GInstance_ = NULL;
 
-eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
+eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
 {
 	MSG Msg;
 
@@ -36,7 +36,7 @@ eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
 	return evtRET_PASS;
 }
 
-eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const EvtBaseEvent& )
 {
 	extern void PsyLaunchGame();
 	PsyLaunchGame();
@@ -47,7 +47,7 @@ eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
 extern BcU32 GResolutionWidth;
 extern BcU32 GResolutionHeight;
 
-eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
 	OsClientWindows* pMainWindow = new OsClientWindows();
 	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
@@ -68,7 +68,7 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 }
 
 // HACK HACK HACK: Offline package importing is a major hack for now.
-eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const EvtBaseEvent& )
 {
 	WIN32_FIND_DATA FindFileData;
 	HANDLE Handle = ::FindFirstFileA( "Content/*.pkg", &FindFileData );
@@ -206,15 +206,12 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
 	{
 		// Hook up create client delegate
-		SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
-		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
 
 		// Hook up event pump delegate.
-		SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
-		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegatePumpMessages );
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
 
-		SysSystemEvent::Delegate OnPostOpenDelegateLaunchGame = SysSystemEvent::Delegate::bind< OnPostOpenScnCore_LaunchGame >();
-		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
 
 		// Init game.
 		PsyGameInit();
@@ -222,8 +219,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	else
 	{
 		// HACK HACK HACK: Offline package importing is a major hack for now.
-		SysSystemEvent::Delegate OsPostOpenDelegateImportPackages = SysSystemEvent::Delegate::bind< OnPostCsOpen_ImportPackages >();
-		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateImportPackages );
+		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostCsOpen_ImportPackages );
 	}
 
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )

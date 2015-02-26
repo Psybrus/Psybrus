@@ -18,6 +18,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
+#include "System/File/FsCore.h"
+
 #include "Reflection/ReReflection.h"
 #include "Serialisation/SeJsonWriter.h"
 #include "Serialisation/SeJsonReader.h"

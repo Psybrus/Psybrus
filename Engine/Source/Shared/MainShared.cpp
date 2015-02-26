@@ -55,7 +55,7 @@ void MainUnitTests()
 
 //////////////////////////////////////////////////////////////////////////
 // onCsCoreOpened
-eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
+eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
 	// Register reflection.
 	extern void AutoGenRegisterReflection();
@@ -67,7 +67,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const SysSystemEvent& Event )
 
 //////////////////////////////////////////////////////////////////////////
 // OnQuit
-eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
+eEvtReturn onQuit( EvtID ID, const EvtBaseEvent& Event )
 {
 	SysKernel::pImpl()->stop();
 
@@ -77,9 +77,10 @@ eEvtReturn onQuit( EvtID ID, const OsEventCore& Event )
 
 //////////////////////////////////////////////////////////////////////////
 // OnScreenshot
-eEvtReturn onScreenshot( EvtID ID, const OsEventInputKeyboard& Event )
+eEvtReturn onScreenshot( EvtID ID, const EvtBaseEvent& Event )
 {
-	if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F1 )
+	const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
+	if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F1 )
 	{
 		RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
 	}	
@@ -182,14 +183,11 @@ void MainShared()
 	PSY_LOG( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
 	// Setup callback for post CsCore open for resource registration.
-	SysSystemEvent::Delegate OnCsCoreOpened = SysSystemEvent::Delegate::bind< onCsCoreOpened >();
-	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnCsCoreOpened );
+	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, onCsCoreOpened );
 
 	// Subscribe to quit.
-	OsEventCore::Delegate OnQuitDelegate = OsEventCore::Delegate::bind< onQuit >();
-	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, OnQuitDelegate );
+	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, onQuit );
 
 	// Subscribe to F11 for screenshot
-	OsEventInputKeyboard::Delegate OnScreenshotDelegate = OsEventInputKeyboard::Delegate::bind< onScreenshot >();
-	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnScreenshotDelegate );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, onScreenshot );
 }

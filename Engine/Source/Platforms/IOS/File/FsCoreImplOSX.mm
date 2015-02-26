@@ -107,13 +107,13 @@ BcBool FsCoreImplOSX::fileExists( const BcChar* pFilename )
 
 //////////////////////////////////////////////////////////////////////////
 // addReadOp
-void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	// Add a read op to the command buffer.
 	class FileReadOp: public BcCommand
 	{
 	public:
-		FileReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+		FileReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 			pImpl_( pImpl ),
 			Position_( Position ),
 			pData_( pData ),
@@ -135,7 +135,7 @@ void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, 
 		BcSize 			Position_;
 		void* 			pData_;
 		BcSize 			Bytes_;
-		FsFileOpDelegate DoneCallback_;
+		FsFileOpCallback DoneCallback_;
 	};
 	
 	// Add command to the buffer.
@@ -144,13 +144,13 @@ void FsCoreImplOSX::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, 
 
 //////////////////////////////////////////////////////////////////////////
 // addWriteOp
-void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	// Add a write op to the command buffer.
 	class FileWriteOp: public BcCommand
 	{
 	public:
-		FileWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+		FileWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 			pImpl_( pImpl ),
 			Position_( Position ),
 			pData_( pData ),
@@ -172,7 +172,7 @@ void FsCoreImplOSX::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData,
 		BcSize 			Position_;
 		void* 			pData_;
 		BcSize 			Bytes_;
-		FsFileOpDelegate DoneCallback_;
+		FsFileOpCallback DoneCallback_;
 	};
 	
 	// Add command to the buffer.

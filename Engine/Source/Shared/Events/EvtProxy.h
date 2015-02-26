@@ -31,13 +31,13 @@ public:
 	/**
 	 * Called when an event needs to be proxied.
 	 */
-	virtual eEvtReturn proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+	virtual eEvtReturn proxy( EvtID ID, const EvtBaseEvent& EventBase );
 
 protected:
 	/**
 	 * Publish via the publisher.
 	 */
-	void publish( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowProxy = BcFalse );
+	void publish( EvtID ID, const EvtBaseEvent& EventBase, BcBool AllowProxy = BcFalse );
 
 protected:
 	EvtPublisher* pPublisher_;

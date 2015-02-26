@@ -15,9 +15,8 @@
 #define __SysDelegateDispatcher_H__
 
 #include "Base/BcTypes.h"
-#include "Base/BcDelegate.h"
 #include <mutex>
-
+#include <functional>
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
@@ -28,11 +27,11 @@ public:
 	SysDelegateDispatcher();
 	~SysDelegateDispatcher();
 	
-	void enqueueDelegateCall( BcDelegateCallBase* pDelegateCall );
+	void enqueueDelegateCall( const std::function< void() >& Function );
 	void dispatch();
 	
 private:
-	typedef std::vector< BcDelegateCallBase* > TDelegateCallList;
+	typedef std::vector< std::function< void() > > TDelegateCallList;
 	typedef TDelegateCallList::iterator TDelegateCallListIterator;
 	
 	TDelegateCallList DelegateCallList_;

@@ -19,6 +19,7 @@
 #include "System/Content/CsPackageFileData.h"
 #include "System/Content/CsResource.h"
 #include "System/Content/CsResourceImporter.h"
+#include "System/SysFence.h"
 
 #include <json/json.h>
 

@@ -62,7 +62,6 @@ public:
 	const BcU32							getRenderMask() const;
 
 protected:
-	eEvtReturn onClientResize( EvtID ID, const struct OsEventClientResize& Event );
 	void recreateFrameBuffer();
 
 protected:

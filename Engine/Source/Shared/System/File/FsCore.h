@@ -20,84 +20,13 @@
 #include "Base/BcPath.h"
 #include "System/SysSystem.h"
 
+#include <functional>
+
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class OsBaseState;
 class OsInputDevice;
-
-//////////////////////////////////////////////////////////////////////////
-// eFsFileMode
-enum eFsFileMode
-{
-	fsFM_READ = 0,
-	fsFM_WRITE,
-};
-
-//////////////////////////////////////////////////////////////////////////
-// File operation delegate
-typedef BcDelegate< void(*)( void*, BcSize ) > FsFileOpDelegate;
-
-//////////////////////////////////////////////////////////////////////////
-/** \class FsFileImpl
-*	\brief File implementation.
-*
-*	Raw file implementation, wrapped by FsFile for more generalised use.
-*/
-class FsFileImpl
-{
-public:
-	virtual ~FsFileImpl(){};
-
-	/**
-	*	Open file in specified mode.
-	*/
-	virtual BcBool open( const BcChar* FileName, eFsFileMode FileMode ) = 0;
-
-	/**
-	*	Close file.
-	*/
-	virtual BcBool close() = 0;
-
-	/**
-	 * Get file name.
-	 */
-	virtual const BcChar* fileName() const = 0;
-
-	/**
-	*	Get size of file in bytes.
-	*/
-	virtual BcSize size() const = 0;
-
-	/**
-	*	Get current position in file.
-	*/
-	virtual BcSize tell() const = 0;
-	
-	/**
-	*	Seek to a position.
-	*/
-	virtual void seek( BcSize Position ) = 0;
-	
-	/**
-	*	Syncronously read data.
-	*/
-	virtual void read( void* pDest, BcSize Bytes ) = 0;
-
-	/**
-	*	Syncronously write data.
-	*/
-	virtual void write( void* pDest, BcSize Bytes ) = 0;
-
-	/**
-	*	Stream data from current file position to specified location.	
-	*/
-	virtual void readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ) = 0;
-	
-	/**
-	*	Stream data from current file position to specified location.	
-	*/
-	virtual void writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ) = 0;
-};
+class FsFileImpl;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class FsCore
@@ -141,12 +70,12 @@ public:
 	/**
 	 *	Add a read operation.
 	 */	
-	virtual void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ) = 0;
+	virtual void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ) = 0;
 
 	/**
 	 *	Add a write operation.
 	 */	
-	virtual void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ) = 0;
+	virtual void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ) = 0;
 
 	/**
 	 * Add file monitor.

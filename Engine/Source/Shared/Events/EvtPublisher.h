@@ -38,23 +38,25 @@ public:
 	virtual ~EvtPublisher();
 	
 	/**
-	* Publish an event.
-	*/
-	template< typename _Ty >
-	void publish( EvtID ID, const EvtEvent< _Ty >& Event, BcBool AllowProxy = BcTrue );
+	 * Publish an event.
+	 */
+	BcBool publish( EvtID ID, const EvtBaseEvent& EventBase, BcBool AllowProxy = BcTrue );
+	
+	/**
+	 * Subscribe to an event.
+	 */
+	void subscribe( EvtID ID, EvtBinding::BaseSignature Function );	
 
 	/**
-	* Subscribe to an event.
-	*/
-	template< typename _Ty >
-	void subscribe( EvtID ID, BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > ExternalDelegate );
-	
+	 * Subscribe to an event.
+	 */
+	void subscribe( EvtID ID, void* Owner, EvtBinding::BaseFunction Function );	
+
 	/**
-	* Unsubscribe from an event.
-	*/
-	template< typename _Ty >
-	void unsubscribe( EvtID ID, BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > ExternalDelegate );
-	
+	 * Unsubscribe from an event using owner pointer.
+	 */
+	void unsubscribe( EvtID ID, EvtBinding::BaseSignature Function );
+
 	/**
 	 * Unsubscribe from an event using owner pointer.
 	 */
@@ -85,22 +87,17 @@ public:
 	 */
 	void addProxy( EvtProxy* pProxy );
 
-private:
+private:	
 	/**
-	* Publish internal.
-	*/
-	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowProxy = BcTrue );
-	
+	 * Publish internal.
+	 */
+	BcBool publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcBool AllowProxy = BcTrue );
+
 	/**
 	* Subscribe internal.
 	*/
 	void subscribeInternal( EvtID ID, const EvtBinding& Binding );
 	
-	/**
-	* Unsubscribe internal.
-	*/
-	void unsubscribeInternal( EvtID ID, const EvtBinding& Binding );
-
 	/**
 	* Unsubscribe by owner.
 	*/
@@ -130,30 +127,9 @@ private:
 
 	TBindingListMap								BindingListMap_;			///!< Bind list map.
 	TBindingPairList							SubscribeList_;				///!< List of bindings to add to the map.
-	TBindingPairList							UnsubscribeList_;			///!< List of bindings to remove from the map.
 	TOwnerPairList								UnsubscribeByOwnerList_;	///!< List of owners to remove from the map.
 	TProxyList									Proxies_;					///!< Proxies we have.
 	EvtPublisher*								pParent_;					///!< Parent publisher.
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// Inlines
-template< typename _Ty >
-BcForceInline void EvtPublisher::publish( EvtID ID, const EvtEvent< _Ty >& Event, BcBool AllowProxy )
-{
-	publishInternal( ID, Event, sizeof( _Ty ), AllowProxy );
-}
-
-template< typename _Ty >
-BcForceInline void EvtPublisher::subscribe( EvtID ID, BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > ExternalDelegate )
-{
-	SubscribeList_.push_back( TBindingPair( ID, EvtBinding( ExternalDelegate ) ) );
-};
-
-template< typename _Ty >
-BcForceInline void EvtPublisher::unsubscribe( EvtID ID, BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > ExternalDelegate )
-{
-	UnsubscribeList_.push_back( TBindingPair( ID, EvtBinding( ExternalDelegate ) ) );
 };
 
 #endif

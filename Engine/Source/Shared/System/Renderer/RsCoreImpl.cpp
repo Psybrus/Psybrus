@@ -318,8 +318,6 @@ RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 	auto Context = getContext( nullptr );
 	RsBuffer* pResource = new RsBuffer( Context, Desc );
 
-	typedef BcDelegate< bool(*)( RsBuffer* ) > CreateDelegate;
-
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
@@ -340,8 +338,6 @@ RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData,
 	auto Context = getContext( nullptr );
 	RsShader* pResource = new RsShader( Context, Desc, pShaderData, ShaderDataSize );
 	
-	typedef BcDelegate< bool(*)( RsShader* ) > CreateDelegate;
-
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob( 
 		RsCore::JOB_QUEUE_ID,

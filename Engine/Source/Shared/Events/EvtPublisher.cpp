@@ -32,7 +32,35 @@ EvtPublisher::~EvtPublisher()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// EvtPublisher::unsubscribe
+// publish
+BcBool EvtPublisher::publish( EvtID ID, const EvtBaseEvent& EventBase, BcBool AllowProxy )
+{
+	return publishInternal( ID, EventBase, AllowProxy );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// subscribe
+void EvtPublisher::subscribe( EvtID ID, EvtBinding::BaseSignature Function )
+{
+	SubscribeList_.push_back( TBindingPair( ID, EvtBinding( (void*)Function, Function ) ) );
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// subscribe
+void EvtPublisher::subscribe( EvtID ID, void* Owner, EvtBinding::BaseFunction Function )
+{
+	SubscribeList_.push_back( TBindingPair( ID, EvtBinding( Owner, Function ) ) );
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// unsubscribe
+void EvtPublisher::unsubscribe( EvtID ID, EvtBinding::BaseSignature Function )
+{
+	UnsubscribeByOwnerList_.push_back( TOwnerPair( ID, (void*)Function ) );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// unsubscribe
 void EvtPublisher::unsubscribe( EvtID ID, void* pOwner )
 {
 	UnsubscribeByOwnerList_.push_back( TOwnerPair( ID, pOwner ) );
@@ -90,10 +118,9 @@ void EvtPublisher::addProxy( EvtProxy* pProxy )
 
 ////////////////////////////////////////////////////////////////////////////////
 // publishInternal
-BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize, BcBool AllowProxy )
+BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, BcBool AllowProxy )
 {
 	BcAssert( BcIsGameThread() );
-	BcUnusedVar( EventSize );
 
 	PSY_PROFILER_INSTANT_EVENT( "EvtPublisher::publishInternal" );
 
@@ -103,7 +130,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 		for( TProxyListIterator It( Proxies_.begin() ); It != Proxies_.end(); ++It )
 		{	
 			EvtProxy* pProxy( *It );
-			eEvtReturn RetVal = pProxy->proxy( ID, EventBase, EventSize );
+			eEvtReturn RetVal = pProxy->proxy( ID, EventBase );
 
 			switch( RetVal )
 			{
@@ -130,7 +157,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	
 	if( pParent_ != NULL )
 	{
-		ShouldPublish = pParent_->publishInternal( ID, EventBase, EventSize );
+		ShouldPublish = pParent_->publishInternal( ID, EventBase );
 	}
 
 	// Only publish if the previous call to our parent allows us to.
@@ -196,35 +223,6 @@ void EvtPublisher::subscribeInternal( EvtID ID, const EvtBinding& Binding )
 	BindingList.push_back( Binding );
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// unsubscribeInternal
-void EvtPublisher::unsubscribeInternal( EvtID ID, const EvtBinding& Binding )
-{
-	// Find the appropriate binding list.
-	TBindingListMapIterator BindingListMapIterator = BindingListMap_.find( ID );
-	
-	// Add list if we need to, and grab iterator.
-	if( BindingListMapIterator != BindingListMap_.end() )
-	{
-		// Find the matching binding.
-		TBindingList& BindingList = BindingListMapIterator->second;
-		TBindingListIterator Iter = BindingList.begin();
-		
-		while( Iter != BindingList.end() )
-		{
-			if( (*Iter) == Binding )
-			{
-				Iter = BindingList.erase( Iter );
-			}
-			else
-			{
-				++Iter;
-			}
-		}
-	}
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // unsubscribeByOwner
 void EvtPublisher::unsubscribeByOwner( EvtID ID, void* pOwner )
@@ -261,12 +259,6 @@ void EvtPublisher::updateBindingMap()
 	for( TBindingPairListIterator Iter = SubscribeList_.begin(); Iter != SubscribeList_.end(); Iter = SubscribeList_.erase( Iter ) )
 	{
 		subscribeInternal( Iter->first, Iter->second );
-	}
-
-	// Unsubscribe.
-	for( TBindingPairListIterator Iter = UnsubscribeList_.begin(); Iter != UnsubscribeList_.end(); Iter = UnsubscribeList_.erase( Iter ) )
-	{
-		unsubscribeInternal( Iter->first, Iter->second );
 	}
 
 	// Unsubscribe by owner.

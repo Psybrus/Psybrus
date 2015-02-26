@@ -30,7 +30,7 @@ public:
 	/**
 	 * Called when an event needs to be proxied.
 	 */
-	virtual eEvtReturn proxy( EvtID ID, const EvtBaseEvent& EventBase, BcSize EventSize );
+	virtual eEvtReturn proxy( EvtID ID, const EvtBaseEvent& EventBase ) override;
 
 	/**
 	 * Dispatch all the events.

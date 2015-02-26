@@ -14,7 +14,9 @@
 #ifndef __EVTEVENT_H__
 #define __EVTEVENT_H__
 
-#include "Base/BcDelegate.h"
+#include "Base/BcHash.h"
+
+#include <functional>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Typedefs
@@ -76,7 +78,39 @@ enum eEvtReturn
 */
 struct EvtBaseEvent
 {
+private:
+	/// Size of event. This is set on publish.
+	BcU32 EventSize_;
+	/// Hash of event type. This is set on publish.
+	BcU32 EventTypeHash_;
 
+protected:
+	inline EvtBaseEvent( BcU32 EventSize, BcU32 EventTypeHash ):
+		EventSize_( EventSize ),
+		EventTypeHash_( EventTypeHash )
+	{
+	}
+
+public:
+	/**
+	 * Get event as type.
+	 * Performs basic size and type checks.
+	 */
+	template< typename _Ty >
+	inline const _Ty& get() const
+	{
+		BcAssertMsg( sizeof( _Ty ) == EventSize_, "Event size mismatch." );
+		BcAssertMsg( _Ty::StaticEventTypeHash() == EventTypeHash_, "Event type mismatch." );
+		return *reinterpret_cast< const _Ty* >( this );
+	}
+
+	/**
+	 * Get event size.
+	 */
+	inline BcU32 size() const
+	{
+		return EventSize_;
+	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,8 +138,16 @@ template< typename _Ty >
 struct EvtEvent: EvtBaseEvent
 {
 public:
-	typedef BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) > Delegate;
+	inline EvtEvent():
+		EvtBaseEvent( sizeof( _Ty ), StaticEventTypeHash() )
+	{
+	}
 
+	static BcU32 StaticEventTypeHash()
+	{
+		static const BcU32 EventTypeHash = BcHash( CompilerUtility::Demangle( typeid( _Ty ).name() ).c_str() );
+		return EventTypeHash;
+	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

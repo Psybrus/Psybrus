@@ -17,6 +17,8 @@
 #include "System/Content/CsRedirector.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
+#include "System/File/FsCore.h"
+
 #include "System/SysKernel.h"
 
 #include "Serialisation/SeJsonReader.h"
@@ -28,6 +30,8 @@
 #if PSY_IMPORT_PIPELINE
 #include <boost/filesystem.hpp>
 #endif
+
+using namespace std::placeholders;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -60,7 +64,8 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 		// Load in package header asynchronously.
 		BcU32 Bytes = sizeof( Header_ );
 		++PendingCallbackCount_;
-		File_.readAsync( DataPosition_, &Header_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onHeaderLoaded >( this ) );
+		File_.readAsync( DataPosition_, &Header_, Bytes, 
+			std::bind( &CsPackageLoader::onHeaderLoaded, this, _1, _2 ) );
 		DataPosition_ += Bytes;
 #endif
 	}
@@ -372,31 +377,36 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	// Load the string table in.
 	++PendingCallbackCount_;
 	Bytes = Header_.StringTableBytes_;
-	File_.readAsync( DataPosition_, pStringTable_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onStringTableLoaded >( this ) );
+	File_.readAsync( DataPosition_, pStringTable_, Bytes,
+		std::bind( &CsPackageLoader::onStringTableLoaded, this, _1, _2 ) );
 	DataPosition_ += Bytes;
 	
 	// Load cross refs in.
 	++PendingCallbackCount_;
 	Bytes = Header_.TotalPackageCrossRefs_ * sizeof( CsPackageCrossRefData );
-	File_.readAsync( DataPosition_, pPackageCrossRefs_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onPackageCrossRefsLoaded >( this ) );
+	File_.readAsync( DataPosition_, pPackageCrossRefs_, Bytes, 
+		std::bind( &CsPackageLoader::onPackageCrossRefsLoaded, this, _1, _2 ) );
 	DataPosition_ += Bytes;
 
 	// Load dependencies in.
 	++PendingCallbackCount_;
 	Bytes = Header_.TotalPackageDependencies_ * sizeof( CsPackageDependencyData );
-	File_.readAsync( DataPosition_, pPackageDependencies_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onPackageDependenciesLoaded >( this ) );
+	File_.readAsync( DataPosition_, pPackageDependencies_, Bytes, 
+		std::bind( &CsPackageLoader::onPackageDependenciesLoaded, this, _1, _2 ) );
 	DataPosition_ += Bytes;
 
 	// Load resources in.
 	++PendingCallbackCount_;
 	Bytes = Header_.TotalResources_ * sizeof( CsPackageResourceHeader );
-	File_.readAsync( DataPosition_, pResourceHeaders_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onResourceHeadersLoaded >( this ) );
+	File_.readAsync( DataPosition_, pResourceHeaders_, Bytes, 
+		std::bind( &CsPackageLoader::onResourceHeadersLoaded, this, _1, _2 ) );
 	DataPosition_ += Bytes;
 	
 	// Load chunks in.
 	++PendingCallbackCount_;
 	Bytes = Header_.TotalChunks_ * sizeof( CsPackageChunkHeader );
-	File_.readAsync( DataPosition_, pChunkHeaders_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onChunkHeadersLoaded >( this ) );
+	File_.readAsync( DataPosition_, pChunkHeaders_, Bytes, 
+		std::bind( &CsPackageLoader::onChunkHeadersLoaded, this, _1, _2 ) );
 	DataPosition_ += Bytes;
 
 	// This callback is complete.
@@ -495,8 +505,8 @@ void CsPackageLoader::onChunkHeadersLoaded( void* pData, BcSize Size )
 	else
 	{
 		// Queue up callback for reentry next frame.
-		BcDelegate< void (*)( void*, BcSize ) > Delegate( BcDelegate< void (*)( void*, BcSize ) >::bind< CsPackageLoader, &CsPackageLoader::onChunkHeadersLoaded >( this ) );
-		SysKernel::pImpl()->enqueueCallback( Delegate, pData, Size );
+		SysKernel::pImpl()->enqueueCallback( 
+			std::bind( &CsPackageLoader::onChunkHeadersLoaded, this, pData, Size ) );
 		++PendingCallbackCount_;
 	}
 
@@ -649,7 +659,8 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 
 				// Do async read.
 				++PendingCallbackCount_;
- 				File_.readAsync( DataPosition, ChunkData.pPackedData_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onDataLoaded >( this ) );
+ 				File_.readAsync( DataPosition, ChunkData.pPackedData_, Bytes, 
+ 					std::bind( &CsPackageLoader::onDataLoaded, this, _1, _2 ) );
 			}
 			else
 			{
@@ -659,7 +670,8 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 				
 				// Do async read.
 				++PendingCallbackCount_;
- 				File_.readAsync( DataPosition, ChunkData.pUnpackedData_, Bytes, FsFileOpDelegate::bind< CsPackageLoader, &CsPackageLoader::onDataLoaded >( this ) );
+ 				File_.readAsync( DataPosition, ChunkData.pUnpackedData_, Bytes, 
+ 					std::bind( &CsPackageLoader::onDataLoaded, this, _1, _2 ) );
 			}
 		}
 		break;
@@ -712,8 +724,9 @@ void CsPackageLoader::processResourceChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 	if( ChunkData.Status_ == csPCS_READY && pResource != NULL )
 	{
 		// Queue up callback.
-		BcDelegate< void (*)( BcU32, BcU32, void* ) > Delegate( BcDelegate< void (*)( BcU32, BcU32, void* ) >::bind< CsResource, &CsResource::onFileChunkReady >( pResource ) );
-		SysKernel::pImpl()->enqueueCallback( Delegate, ResourceChunkIdx, ChunkHeader.ID_, ChunkData.pUnpackedData_ );
+		SysKernel::pImpl()->enqueueCallback( 
+			std::bind( &CsResource::onFileChunkReady, 
+				pResource, ResourceChunkIdx, ChunkHeader.ID_, ChunkData.pUnpackedData_ ) );
 	}
 }
 
@@ -748,8 +761,9 @@ void CsPackageLoader::decompressChunk( BcU32 ResourceIdx, BcU32 ChunkIdx )
 	if( ChunkData.Status_ == csPCS_READY && pResource != NULL )
 	{
 		// Queue up callback.
-		BcDelegate< void (*)( BcU32, BcU32, void* ) > Delegate( BcDelegate< void (*)( BcU32, BcU32, void* ) >::bind< CsResource, &CsResource::onFileChunkReady >( pResource ) );
-		SysKernel::pImpl()->enqueueCallback( Delegate, ResourceChunkIdx, ChunkHeader.ID_, ChunkData.pUnpackedData_ );
+		SysKernel::pImpl()->enqueueCallback(
+			std::bind( &CsResource::onFileChunkReady, 
+				pResource, (BcU32)ResourceChunkIdx, ChunkHeader.ID_, ChunkData.pUnpackedData_ ) );
 	}
 }
 

@@ -146,7 +146,7 @@ void FsFileImplLinux::write( void* pSrc, BcSize Bytes )
 //////////////////////////////////////////////////////////////////////////
 // readAsync
 //virtual
-void FsFileImplLinux::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplLinux::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addReadOp( this, Position, pData, Bytes, DoneCallback );
 }
@@ -154,7 +154,7 @@ void FsFileImplLinux::readAsync( BcSize Position, void* pData, BcSize Bytes, FsF
 //////////////////////////////////////////////////////////////////////////
 // writeAsync
 //virtual
-void FsFileImplLinux::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplLinux::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addWriteOp( this, Position, pData, Bytes, DoneCallback );
 }

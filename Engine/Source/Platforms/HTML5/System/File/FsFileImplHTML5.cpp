@@ -146,7 +146,7 @@ void FsFileImplHTML5::write( void* pSrc, BcSize Bytes )
 //////////////////////////////////////////////////////////////////////////
 // readAsync
 //virtual
-void FsFileImplHTML5::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplHTML5::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addReadOp( this, Position, pData, Bytes, DoneCallback );
 }
@@ -154,7 +154,7 @@ void FsFileImplHTML5::readAsync( BcSize Position, void* pData, BcSize Bytes, FsF
 //////////////////////////////////////////////////////////////////////////
 // writeAsync
 //virtual
-void FsFileImplHTML5::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplHTML5::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addWriteOp( this, Position, pData, Bytes, DoneCallback );
 }

@@ -135,50 +135,6 @@ public:
 	/**
 	 * Enqueue callback.
 	 */
-	template< typename _Fn >
-	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall();
-		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
-	}
-	
-	/**
-	 * Enqueue callback.
-	 */
-	template< typename _Fn, typename _P0 >
-	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0 );
-		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
-	}
-
-	/**
-	 * Enqueue callback.
-	 */
-	template< typename _Fn, typename _P0, typename _P1 >
-	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1 );
-		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
-	}
-	
-	/**
-	 * Enqueue callback.
-	 */
-	template< typename _Fn, typename _P0, typename _P1, typename _P2 >
-	BcForceInline void enqueueCallback( const BcDelegate< _Fn >& Delegate, _P0 P0, _P1 P1, _P2 P2 )
-	{
-		BcDelegateCall< _Fn >* pDelegateCall = new BcDelegateCall< _Fn >( Delegate );
-		pDelegateCall->deferCall( P0, P1, P2 );
-		DelegateDispatcher_.enqueueDelegateCall( pDelegateCall );
-	}
-
-	/**
-	 * Enqueue callback.
-	 */
 	void enqueueCallback( const std::function< void() >& Function );
 
 private:

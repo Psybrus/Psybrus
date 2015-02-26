@@ -212,9 +212,12 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ) );
 
-	OsEventClientResize::Delegate OnClientResize = 
-		OsEventClientResize::Delegate::bind< ScnViewComponent, &ScnViewComponent::onClientResize >( this );
-	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, OnClientResize );
+	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+		{
+			recreateFrameBuffer();
+			return evtRET_PASS;
+		} );
 
 	recreateFrameBuffer();
 	Super::onAttach( Parent );
@@ -462,14 +465,6 @@ void ScnViewComponent::setRenderMask( BcU32 RenderMask )
 const BcU32 ScnViewComponent::getRenderMask() const
 {
 	return RenderMask_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onClientResize
-eEvtReturn ScnViewComponent::onClientResize( EvtID ID, const OsEventClientResize& Event )
-{
-	recreateFrameBuffer();
-	return evtRET_PASS;
 }
 
 //////////////////////////////////////////////////////////////////////////

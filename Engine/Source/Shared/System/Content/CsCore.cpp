@@ -13,6 +13,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Content/CsRedirector.h"
+#include "System/File/FsCore.h"
 
 #if !PLATFORM_HTML5
 #include <boost/filesystem.hpp>

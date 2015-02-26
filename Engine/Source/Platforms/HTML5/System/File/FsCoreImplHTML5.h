@@ -44,8 +44,8 @@ public:
 	virtual BcBool fileStats( const BcChar* pFilename, FsStats& Stats );
 	virtual void findFiles( BcPath StartPath, BcBool Recursive, BcBool AddFolders, std::list< BcPath >& OutputPaths );
 	
-	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
-	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
+	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
+	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
 	void addFileMonitor( const BcChar* pFilename );
 	void removeFileMonitor( const BcChar* pFilename );

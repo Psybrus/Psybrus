@@ -98,9 +98,6 @@ namespace std
 // cmath will define this. We say no.
 #undef DOMAIN
 
-
-#endif
-
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,7 +157,6 @@ typedef std::size_t					BcSize;
 
 #endif
 
-
 //////////////////////////////////////////////////////////////////////////
 // HTML5 (emscripten) defines
 #if PLATFORM_HTML5
@@ -218,3 +214,44 @@ typedef std::size_t					BcSize;
 #undef DOMAIN
 
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////
+// TODO: Move this to a better place...
+// Mega super awesome hack.
+// Temporary until better demangling is setup.
+#if COMPILER_GCC || COMPILER_CLANG
+#include <cstdlib>
+#include <memory>
+#include <string>
+#include <cxxabi.h>
+
+namespace CompilerUtility
+{
+	inline std::string Demangle( const char* Name ) 
+	{
+		int Status = 1;
+
+		std::unique_ptr< char, void(*)(void*) > Res
+		{
+			abi::__cxa_demangle( Name, nullptr, nullptr, &Status ),
+			std::free
+		};
+
+		return ( Status == 0 ) ? Res.get() : Name;
+	}
+}
+
+#else
+
+namespace CompilerUtility
+{
+	inline std::string Demangle( const char* Name )
+	{
+	    return Name;
+	}
+}
+
+#endif // COMPILER_GCC && COMPILER_CLANG
+
+#endif // include_guard

@@ -137,9 +137,12 @@ void ScnTexture::create()
 	// for recreation.
 	if( Header_.Width_ < 0 || Header_.Height_ < 0 )
 	{
-		OsEventClientResize::Delegate OnClientResize = 
-			OsEventClientResize::Delegate::bind< ScnTexture, &ScnTexture::onClientResize >( this );
-		OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, OnClientResize );
+		OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+			[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+			{
+				recreate();
+				return evtRET_PASS;
+			} );
 	}
 
 	recreate();
@@ -205,14 +208,6 @@ const ScnRect& ScnTexture::getRect( BcU32 Idx )
 BcU32 ScnTexture::noofRects()
 {
 	return 1;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onClientResize
-eEvtReturn ScnTexture::onClientResize( EvtID ID, const OsEventClientResize& Event )
-{
-	recreate();
-	return evtRET_PASS;
 }
 
 //////////////////////////////////////////////////////////////////////////

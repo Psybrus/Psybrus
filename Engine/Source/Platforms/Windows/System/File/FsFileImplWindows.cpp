@@ -1,4 +1,4 @@
-/**************************************************************************
+ /**************************************************************************
 *
 * File:		FsFileImplWindows.cpp
 * Author: 	Neil Richardson 
@@ -146,7 +146,7 @@ void FsFileImplWindows::write( void* pSrc, BcSize Bytes )
 //////////////////////////////////////////////////////////////////////////
 // readAsync
 //virtual
-void FsFileImplWindows::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplWindows::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addReadOp( this, Position, pData, Bytes, DoneCallback );
 }
@@ -154,7 +154,7 @@ void FsFileImplWindows::readAsync( BcSize Position, void* pData, BcSize Bytes, F
 //////////////////////////////////////////////////////////////////////////
 // writeAsync
 //virtual
-void FsFileImplWindows::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplWindows::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addWriteOp( this, Position, pData, Bytes, DoneCallback );
 }

@@ -14,7 +14,69 @@
 #ifndef __FSFILE_H__
 #define __FSFILE_H__
 
-#include "System/File/FsCore.h"
+#include "System/File/FsTypes.h"
+
+//////////////////////////////////////////////////////////////////////////
+/** \class FsFileImpl
+*	\brief File implementation.
+*
+*	Raw file implementation, wrapped by FsFile for more generalised use.
+*/
+class FsFileImpl
+{
+public:
+	virtual ~FsFileImpl(){};
+
+	/**
+	*	Open file in specified mode.
+	*/
+	virtual BcBool open( const BcChar* FileName, eFsFileMode FileMode ) = 0;
+
+	/**
+	*	Close file.
+	*/
+	virtual BcBool close() = 0;
+
+	/**
+	 * Get file name.
+	 */
+	virtual const BcChar* fileName() const = 0;
+
+	/**
+	*	Get size of file in bytes.
+	*/
+	virtual BcSize size() const = 0;
+
+	/**
+	*	Get current position in file.
+	*/
+	virtual BcSize tell() const = 0;
+	
+	/**
+	*	Seek to a position.
+	*/
+	virtual void seek( BcSize Position ) = 0;
+	
+	/**
+	*	Syncronously read data.
+	*/
+	virtual void read( void* pDest, BcSize Bytes ) = 0;
+
+	/**
+	*	Syncronously write data.
+	*/
+	virtual void write( void* pDest, BcSize Bytes ) = 0;
+
+	/**
+	*	Stream data from current file position to specified location.	
+	*/
+	virtual void readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ) = 0;
+	
+	/**
+	*	Stream data from current file position to specified location.	
+	*/
+	virtual void writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ) = 0;
+};
 
 //////////////////////////////////////////////////////////////////////////
 /** \class FsFile
@@ -72,71 +134,18 @@ public:
 	*	Stream data from current file position to specified location.	
 	*	ASYNC call.
 	*/
-	void readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
+	void readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
 	/**
 	*	Stream data to current file position to specified location.	
 	*	ASYNC call.
 	*/
-	void writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
+	void writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
 	
 private:
-	FsFileImpl* pImpl_;
+	class FsFileImpl* pImpl_;
 
 };
-
-//////////////////////////////////////////////////////////////////////////
-// Inlines
-inline BcSize FsFile::size() const
-{
-	return pImpl_->size();
-}
-
-inline BcSize FsFile::tell() const
-{
-	return pImpl_->tell();
-}
-
-inline void FsFile::seek( BcSize Position )
-{
-	pImpl_->seek( Position );
-}
-
-inline void FsFile::read( BcSize Position, void* pData, BcSize Bytes )
-{
-	pImpl_->seek( Position );
-	pImpl_->read( pData, Bytes );
-}
-
-inline void FsFile::write( BcSize Position, void* pData, BcSize Bytes )
-{
-	pImpl_->seek( Position );
-	pImpl_->write( pData, Bytes );
-}
-
-inline void FsFile::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
-{
-	if( Bytes > 0 )
-	{
-		pImpl_->readAsync( Position, pData, Bytes, DoneCallback );
-	}
-	else
-	{
-		DoneCallback( pData, Bytes );
-	}
-}
-
-inline void FsFile::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
-{
-	if( Bytes > 0 )
-	{
-		pImpl_->writeAsync( Position, pData, Bytes, DoneCallback );
-	}
-	else
-	{
-		DoneCallback( pData, Bytes );
-	}
-}
 
 #endif

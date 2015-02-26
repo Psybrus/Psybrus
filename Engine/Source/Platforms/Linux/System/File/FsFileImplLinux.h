@@ -15,6 +15,7 @@
 #define __FsFileImplLinux_H__
 
 #include "System/File/FsCore.h"
+#include "System/File/FsFile.h"
 #include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,8 +38,8 @@ public:
 	virtual void		write( void* pSrc, BcSize Bytes );
 	
 	//
-	virtual void		readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
-	virtual void		writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
+	virtual void		readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
+	virtual void		writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
 private:	
 	std::string			FileName_;

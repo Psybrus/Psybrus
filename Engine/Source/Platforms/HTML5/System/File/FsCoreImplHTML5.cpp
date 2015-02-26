@@ -138,7 +138,7 @@ class Job_ReadOp:
 	public SysJob
 {
 public:
-	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 		pImpl_( pImpl ),
 		Position_( Position ),
 		pData_( pData ),
@@ -161,10 +161,10 @@ private:
 	BcSize Position_;
 	void* pData_;
 	BcSize Bytes_;
-	FsFileOpDelegate DoneCallback_;
+	FsFileOpCallback DoneCallback_;
 };
 
-void FsCoreImplHTML5::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplHTML5::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	BcAssert( Bytes > 0 );
 	SysKernel::pImpl()->pushJob( FsCore::JOB_QUEUE_ID, new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ) );
@@ -176,7 +176,7 @@ class Job_WriteOp:
 	public SysJob
 {
 public:
-	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 		pImpl_( pImpl ),
 		Position_( Position ),
 		pData_( pData ),
@@ -199,11 +199,11 @@ private:
 	BcSize Position_;
 	void* pData_;
 	BcSize Bytes_;
-	FsFileOpDelegate DoneCallback_;
+	FsFileOpCallback DoneCallback_;
 };
 
 
-void FsCoreImplHTML5::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplHTML5::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	SysKernel::pImpl()->pushJob( FsCore::JOB_QUEUE_ID, new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ) );
 }

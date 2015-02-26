@@ -304,9 +304,10 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 	
 		// Register for ready callback.
 		EntitySpawnMap_[ EntitySpawnID_ ] = Params;
+		using namespace std::placeholders;
 		CsCore::pImpl()->requestPackageReadyCallback( 
 			Params.Package_, 
-			CsPackageReadyCallback::bind< ScnCore, &ScnCore::onSpawnEntityPackageReady >( this ), 
+			std::bind( &ScnCore::onSpawnEntityPackageReady, this, _1, _2 ), 
 			EntitySpawnID_ );
 
 		// Advance spawn ID.

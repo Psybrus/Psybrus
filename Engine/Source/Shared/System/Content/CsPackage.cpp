@@ -14,8 +14,9 @@
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsPackageLoader.h"
 #include "System/Content/CsPackageImporter.h"
-
 #include "System/Content/CsCore.h"
+
+#include "System/File/FsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define CsResource

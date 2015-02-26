@@ -69,11 +69,6 @@ public:
 	REFLECTION_DECLARE_BASE( SysSystem );
 
 public:
-	typedef BcDelegate< void(*)() > CreateDelegate;
-	typedef BcDelegate< void(*)() > UpdateDelegate;
-	typedef BcDelegate< void(*)() > DestroyDelegate;
-
-public:
 	enum
 	{
 		MAX_SYSTEM_NAME = 32

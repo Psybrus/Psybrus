@@ -15,7 +15,6 @@
 #define __OSVIEWOSX_H__
 
 #include "OsEvents.h"
-#include "BcDelegate.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsViewOSX_Interface

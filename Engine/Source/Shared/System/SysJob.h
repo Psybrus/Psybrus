@@ -46,22 +46,6 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// SysDelegateJob
-class SysDelegateJob:
-	public SysJob
-{
-public:
-	SysDelegateJob( class BcDelegateCallBase* pDelegateCall );
-	virtual ~SysDelegateJob();
-	
-	virtual void execute();
-	
-private:
-	class BcDelegateCallBase* pDelegateCall_;
-	
-};
-
-//////////////////////////////////////////////////////////////////////////
 // SysFunctionJob
 class SysFunctionJob :
 	public SysJob

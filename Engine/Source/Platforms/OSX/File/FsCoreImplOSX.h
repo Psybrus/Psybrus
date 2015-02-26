@@ -42,8 +42,8 @@ public:
 	virtual BcBool fileExists( const BcChar* pFilename );
 	virtual BcBool fileStats( const BcChar* pFilename, FsStats& Stats );
 	
-	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
-	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
+	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
+	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
 	void addFileMonitor( const BcChar* pFilename );
 	void removeFileMonitor( const BcChar* pFilename );

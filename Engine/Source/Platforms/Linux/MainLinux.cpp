@@ -14,13 +14,13 @@
 
 BcHandle GInstance_ = NULL;
 
-eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const SysSystemEvent& )
+eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
 {
 	// TODO: SDL pump?
 	return evtRET_PASS;
 }
 
-eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const EvtBaseEvent& )
 {
 	extern void PsyLaunchGame();
 	PsyLaunchGame();
@@ -33,7 +33,7 @@ extern BcU32 GResolutionHeight;
 
 static OsClientSDL* GMainWindow = nullptr;
 
-eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
 	GMainWindow = new OsClientSDL();
 	if( GMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
@@ -52,7 +52,7 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
 	return evtRET_REMOVE;
 }
 
-eEvtReturn OnPostOsClose_DestroyClient( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 {
 	GMainWindow->destroy();
 	delete GMainWindow;
@@ -131,19 +131,10 @@ int main(int argc, char** argv)
 	// Main shared.
 	MainShared();
 
-	// Hook up create client delegate
-	SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
-
-	SysSystemEvent::Delegate OsPostCloseDelegateDestroyClient = SysSystemEvent::Delegate::bind< OnPostOsClose_DestroyClient >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OsPostCloseDelegateDestroyClient );
-
-	// Hook up event pump delegate.
-	SysSystemEvent::Delegate OsPreUpdateDelegatePumpMessages = SysSystemEvent::Delegate::bind< OnPreOsUpdate_PumpMessages >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OsPreUpdateDelegatePumpMessages );
-
-	SysSystemEvent::Delegate OnPostOpenDelegateLaunchGame = SysSystemEvent::Delegate::bind< OnPostOpenScnCore_LaunchGame >();
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
 
 	// Init game.
 	PsyGameInit();

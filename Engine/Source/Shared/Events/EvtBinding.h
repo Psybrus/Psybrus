@@ -28,32 +28,18 @@
 */
 struct EvtBinding
 {
-	typedef BcDelegate< eEvtReturn(*)( EvtID, const EvtBaseEvent& ) > BaseDelegate;
-	BaseDelegate Delegate_;
+	typedef eEvtReturn(*BaseSignature)( EvtID, const EvtBaseEvent& );
+	typedef std::function< eEvtReturn( EvtID, const EvtBaseEvent& ) > BaseFunction;
+	BaseFunction Function_;
+	void* Owner_;
 
 	/**
 	* Construct binding from delegate.
 	*/
-	template< typename _Ty >
-	BcForceInline explicit EvtBinding( BcDelegate< eEvtReturn(*)( EvtID, const _Ty& ) >& ExternalDelegate )
+	BcForceInline explicit EvtBinding( void* Owner, const BaseFunction& Function )
 	{
-		Delegate_ = *( reinterpret_cast< BaseDelegate* >( &ExternalDelegate ) );
-	}
-
-	/**
-	* Comparison ==
-	*/
-	BcForceInline BcBool operator == ( const EvtBinding& Other ) const
-	{
-		return BcMemCompare( &Delegate_, &Other.Delegate_, sizeof( Delegate_ ) );
-	}
-
-	/**
-	* Comparison !=
-	*/
-	BcForceInline BcBool operator !=( const EvtBinding& Other ) const
-	{
-		return !( *this == Other );
+		Function_ = Function;
+		Owner_ = Owner;
 	}
 
 	/**
@@ -61,7 +47,7 @@ struct EvtBinding
 	*/
 	BcForceInline eEvtReturn operator()( EvtID ID, const EvtBaseEvent& Event )
 	{	
-		return Delegate_( ID, Event );
+		return Function_( ID, Event );
 	}
 
 	/**
@@ -69,7 +55,7 @@ struct EvtBinding
 	 */
 	BcForceInline void* getOwner()
 	{	
-		return Delegate_.getOwner();
+		return Owner_;
 	}
 
 };

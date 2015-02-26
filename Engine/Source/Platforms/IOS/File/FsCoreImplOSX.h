@@ -41,8 +41,8 @@ public:
 	virtual void closeFile( FsFileImpl* pFileImpl );
 	virtual BcBool fileExists( const BcChar* pFilename );
 	
-	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
-	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback );
+	void addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
+	void addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
 private:
 	BcCommandBuffer CommandBuffer_;

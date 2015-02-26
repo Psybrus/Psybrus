@@ -15,7 +15,6 @@
 
 #include "BcMutex.h"
 #include "BcScopedLock.h"
-#include "BcDelegate.h"
 #include "OsCore.h"
 #include "SysKernel.h"
 

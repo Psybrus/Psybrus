@@ -173,7 +173,7 @@ class Job_ReadOp:
 	public SysJob
 {
 public:
-	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+	Job_ReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 		pImpl_( pImpl ),
 		Position_( Position ),
 		pData_( pData ),
@@ -188,7 +188,7 @@ public:
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
 		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplLinux::addReadOp" );	
-		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
+		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
 private:
@@ -196,10 +196,10 @@ private:
 	BcSize Position_;
 	void* pData_;
 	BcSize Bytes_;
-	FsFileOpDelegate DoneCallback_;
+	FsFileOpCallback DoneCallback_;
 };
 
-void FsCoreImplLinux::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplLinux::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	BcAssert( Bytes > 0 );
 	SysKernel::pImpl()->pushJob( FsCore::JOB_QUEUE_ID, new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ) );
@@ -211,7 +211,7 @@ class Job_WriteOp:
 	public SysJob
 {
 public:
-	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback ):
+	Job_WriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback ):
 		pImpl_( pImpl ),
 		Position_( Position ),
 		pData_( pData ),
@@ -226,7 +226,7 @@ public:
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
 		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplLinux::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
-		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
+		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
 private:
@@ -234,11 +234,11 @@ private:
 	BcSize Position_;
 	void* pData_;
 	BcSize Bytes_;
-	FsFileOpDelegate DoneCallback_;
+	FsFileOpCallback DoneCallback_;
 };
 
 
-void FsCoreImplLinux::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsCoreImplLinux::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	SysKernel::pImpl()->pushJob( FsCore::JOB_QUEUE_ID, new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ) );
 }

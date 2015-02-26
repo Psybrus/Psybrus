@@ -135,7 +135,7 @@ void FsFileImplOSX::write( void* pSrc, BcSize Bytes )
 //////////////////////////////////////////////////////////////////////////
 // readAsync
 //virtual
-void FsFileImplOSX::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplOSX::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addReadOp( this, Position, pData, Bytes, DoneCallback );
 }
@@ -143,7 +143,7 @@ void FsFileImplOSX::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFil
 //////////////////////////////////////////////////////////////////////////
 // writeAsync
 //virtual
-void FsFileImplOSX::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpDelegate DoneCallback )
+void FsFileImplOSX::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addWriteOp( this, Position, pData, Bytes, DoneCallback );
 }

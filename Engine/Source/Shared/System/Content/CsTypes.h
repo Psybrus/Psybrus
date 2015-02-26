@@ -36,7 +36,7 @@ static const CsCrossRefId CSCROSSREFID_INVALID = static_cast< CsCrossRefId >( -1
 
 //////////////////////////////////////////////////////////////////////////
 // Callbacks
-typedef BcDelegate< void(*)( class CsPackage*, BcU32 ) > CsPackageReadyCallback;
+typedef std::function< void( class CsPackage*, BcU32 ) > CsPackageReadyCallback;
 
 //////////////////////////////////////////////////////////////////////////
 // CsDependencyList

@@ -56,7 +56,6 @@ public:
 
 	
 protected:
-	eEvtReturn onClientResize( EvtID ID, const struct OsEventClientResize& Event );
 	void recreate();
 	virtual void fileReady();
 	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
