@@ -174,8 +174,22 @@ public:
 		* @brief Copy class data from one to another.
 		* Will create new objects based on ones that were previously gathered.
 		*/
-	void copyClassData( void* DstObject, void* SrcObject, const ReClass* InClass )
+	void copyClassData( void* DstObject, void* SrcObject, const ReClass* InClass, const ReField* InField )
 	{
+		// Trivial copy if we can:
+		// - No fields in class.
+		// - Not a pointer type.
+		// - Class size must either be 0, or match exactly the field (do blind copy if not registered)
+		if( InField != nullptr &&
+			InClass->getNoofFields() == 0 &&
+			( InField->getFlags() & bcRFF_POD ) != 0 &&
+			( InField->getFlags() & bcRFF_ANY_POINTER_TYPE ) == 0 )
+		{
+			BcAssert( InClass->getSize() == 0 || InClass->getSize() == InField->getSize() );
+			BcMemCopy( DstObject, SrcObject, InField->getSize() );
+			return;
+		}
+
 		// Slow copy. Copy each field individually, we can validate here initially.
 		// TODO: Perhaps do a memcpy, then mark up pointer/ref fields individually?
 		// TODO: Do the copy in stages.
@@ -223,7 +237,7 @@ public:
 							// Create a copy and recurse down.
 							if( !DstFieldAccessor.copy( SrcFieldAccessor.getData() ) )
 							{
-								copyClassData( DstFieldAccessor.getData(), SrcFieldAccessor.getData(), FieldClass );
+								copyClassData( DstFieldAccessor.getData(), SrcFieldAccessor.getData(), FieldClass, Field );
 							}
 						}
 					}
@@ -250,7 +264,7 @@ public:
 									FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, SrcFieldAccessor.getValueUpperClass( Value ) );
 									if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 									{
-										copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ) );
+										copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ), Field );
 									}
 									Value = &FieldCopyInfo->DstData_;
 								}
@@ -276,7 +290,7 @@ public:
 										BcAssert( FieldCopyInfo );
 										if( !KeyType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 										{
-											copyClassData( FieldCopyInfo->DstData_, Key, static_cast< const ReClass* >( KeyType ) );
+											copyClassData( FieldCopyInfo->DstData_, Key, static_cast< const ReClass* >( KeyType ), Field );
 										}
 										Key = &FieldCopyInfo->DstData_;
 									}
@@ -287,7 +301,7 @@ public:
 										BcAssert( FieldCopyInfo );
 										if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 										{
-											copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ) );
+											copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ), Field );
 										}
 										Value = &FieldCopyInfo->DstData_;
 									}
@@ -335,8 +349,8 @@ void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 	{
 		RootFieldCopyInfo->DstData_ = DstObject;
 		ObjectCopyContext.gatherFields( SrcObject, InClass );
-		ObjectCopyContext.copyClassData( DstObject, SrcObject, InClass );
-	}				
+		ObjectCopyContext.copyClassData( DstObject, SrcObject, InClass, nullptr );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

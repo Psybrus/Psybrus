@@ -58,7 +58,8 @@ template< typename _Ty >
 struct ReTypeTraits
 {
 	typedef _Ty Type;
-	static const BcU32 Flags = 0;
+	static const BcU32 Flags = 
+		std::is_trivially_copyable< _Ty >::value ? bcRFF_POD : 0;
 	static const bool IsEnum = std::is_enum< Type >::value;
 	static const char* Name()
 	{
