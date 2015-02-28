@@ -52,7 +52,7 @@ private:
 		TShaderMap Shaders_;
 	};
 
-	RsShader*							getShader( BcU32 PermutationFlags, TShaderMap& ShaderMap );
+	RsShader*							getShader( BcU32 Hash, TShaderMap& ShaderMap );
 	
 private:
 	void								fileReady();

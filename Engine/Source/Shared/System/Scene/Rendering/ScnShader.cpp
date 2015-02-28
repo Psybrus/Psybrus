@@ -37,7 +37,7 @@ void ScnShader::StaticRegisterClass()
 		new ReField( "pHeader_", &ScnShader::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "ShaderMappings_", &ScnShader::ShaderMappings_, bcRFF_TRANSIENT ),
 		new ReField( "ProgramMap_", &ScnShader::ProgramMap_, bcRFF_TRANSIENT ),
-		new ReField( "TargetCodeType_", &ScnShader::TargetCodeType_),
+		new ReField( "TargetCodeType_", &ScnShader::TargetCodeType_ ),
 		new ReField( "TotalProgramsLoaded_", &ScnShader::TotalProgramsLoaded_ ),
 	};
 		
@@ -122,38 +122,23 @@ RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 		return (*BestIter).second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getShader
-RsShader* ScnShader::getShader( BcU32 PermutationFlags, ScnShader::TShaderMap& ShaderMap )
+RsShader* ScnShader::getShader( BcU32 Hash, ScnShader::TShaderMap& ShaderMap )
 {
 	// Find best matching permutation.
-	TShaderMapIterator BestIter = ShaderMap.find( PermutationFlags );
-	
-	if( BestIter == ShaderMap.end() )
-	{
-		// Iterate over map and find best matching permutation (most matching bits).
-		BcU32 BestFlagsSet = 0;
-		for( TShaderMapIterator Iter = ShaderMap.begin(); Iter != ShaderMap.end(); ++Iter )
-		{
-			BcU32 FlagsSet = BcBitsSet( (*Iter).first & PermutationFlags );
-			if( FlagsSet > BestFlagsSet )
-			{
-				BestIter = Iter;
-				BestFlagsSet = FlagsSet;
-			}
-		}
-	}
-	
+	TShaderMapIterator BestIter = ShaderMap.find( Hash );
+		
 	// We should have found one.
 	if( BestIter != ShaderMap.end() )
 	{
 		return (*BestIter).second;
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -239,31 +224,31 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		// Generate program.
 		ScnShaderProgramHeader* pProgramHeader = (ScnShaderProgramHeader*)pData;
 		
-		for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-		{
-			if( pProgramHeader->ShaderHashes_[ Idx ] != 0 )
-			{
-				auto& ShaderMapping( ShaderMappings_[ Idx ] );
-				RsShader* pShader = getShader( pProgramHeader->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
-				BcAssertMsg( pShader != NULL, "Shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->ProgramPermutationFlags_, (*getName()).c_str() );
-				Shaders.push_back( pShader );
-			}
-		}
-
-		// Shrink to fit.
-		Shaders.shrink_to_fit();
-
-		RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
-		RsProgramVertexAttributeList VertexAttributes;
-		VertexAttributes.reserve( pProgramHeader->NoofVertexAttributes_ );
-		for( BcU32 Idx = 0; Idx < pProgramHeader->NoofVertexAttributes_; ++Idx )
-		{
-			VertexAttributes.push_back( VertexAttributes_[ Idx ] );
-		}
-
 		// Only create target code type.
 		if( pProgramHeader->ShaderCodeType_ == TargetCodeType_ )
-		{
+		{	
+			for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+			{
+				if( pProgramHeader->ShaderHashes_[ Idx ] != 0 )
+				{
+					auto& ShaderMapping( ShaderMappings_[ Idx ] );
+					RsShader* pShader = getShader( pProgramHeader->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
+					BcAssertMsg( pShader != nullptr, "Shader for permutation %x is invalid in ScnShader %s\n", pProgramHeader->ProgramPermutationFlags_, (*getName()).c_str() );
+					Shaders.push_back( pShader );
+				}
+			}
+
+			// Shrink to fit.
+			Shaders.shrink_to_fit();
+
+			RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
+			RsProgramVertexAttributeList VertexAttributes;
+			VertexAttributes.reserve( pProgramHeader->NoofVertexAttributes_ );
+			for( BcU32 Idx = 0; Idx < pProgramHeader->NoofVertexAttributes_; ++Idx )
+			{
+				VertexAttributes.push_back( VertexAttributes_[ Idx ] );
+			}
+		
 			// Create program.
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
