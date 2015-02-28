@@ -667,11 +667,6 @@ void SysKernel::removeSystems()
 
 //////////////////////////////////////////////////////////////////////////
 // enqueueCallback
-static void functionDelegate( std::function< void() > Function )
-{
-	Function();
-}
-
 void SysKernel::enqueueCallback( const std::function< void() >& Function )
 {
 	DelegateDispatcher_.enqueueDelegateCall( Function );
