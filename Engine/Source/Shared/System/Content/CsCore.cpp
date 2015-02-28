@@ -375,14 +375,10 @@ void CsCore::processResources()
 
 		case CsResource::INIT_STAGE_DESTROY:
 			{
-				// Destruct and free.
-				Resource->getClass()->destruct( Resource );
-				BcMemFree( Resource );
-
-				// Remove entirely.
 				auto FoundIt = std::find( Resources_.begin(), Resources_.end(), Resource );
 				BcAssert( FoundIt != Resources_.end() );
 				Resources_.erase( FoundIt );
+				delete Resource;
 			}
 			break;
 		}

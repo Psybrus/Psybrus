@@ -38,6 +38,8 @@
 #include <boost/lexical_cast.hpp>
 #endif // PSY_IMPORT_PIPELINE
 
+#undef ERROR
+
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
 BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
