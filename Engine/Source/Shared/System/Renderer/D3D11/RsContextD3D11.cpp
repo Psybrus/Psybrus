@@ -14,6 +14,7 @@
 #include "System/Renderer/D3D11/RsContextD3D11.h"
 
 #include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
@@ -594,11 +595,10 @@ void RsContextD3D11::create()
 		gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 
 	BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
-	
 	RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
-	DepthStencilView_ = getD3DDepthStencilView( BackBufferDS_->getHandle< BcU32 >() );
+	DepthStencilView_ = getD3DDepthStencilView( BackBufferDSResourceIdx_ );
 
-	Context_->OMSetRenderTargets( 1, &RenderTargetViews_[ 0 ], DepthStencilView_ );
+	Context_->OMSetRenderTargets( RenderTargetViews_.size(), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	setDefaultState();
 }
@@ -866,6 +866,38 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	if( FrameBuffer != nullptr )
+	{
+		const auto& Desc = FrameBuffer->getDesc();
+
+		for( size_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
+		{
+			auto* Tex = Desc.RenderTargets_[ Idx ];
+			if( Tex != nullptr )
+			{
+				RenderTargetViews_[ Idx ] = getD3DRenderTargetView( Tex->getHandle< size_t >() );
+			}
+			else
+			{
+				RenderTargetViews_[ Idx ] = nullptr;
+			}
+		}
+
+		if( Desc.DepthStencilTarget_ != nullptr )
+		{
+			DepthStencilView_ = getD3DDepthStencilView( Desc.DepthStencilTarget_->getHandle< size_t >() );
+		}
+		else
+		{
+			DepthStencilView_ = nullptr;
+		}
+	}
+	else
+	{
+		RenderTargetViews_.fill( nullptr );
+		RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
+		DepthStencilView_ = getD3DDepthStencilView( BackBufferDSResourceIdx_ );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1282,14 +1314,6 @@ bool RsContextD3D11::createTexture(
 	BcAssert( (UINT)RsResourceBindFlags::DEPTH_STENCIL == D3D11_BIND_DEPTH_STENCIL );
 	BcAssert( (UINT)RsResourceBindFlags::UNORDERED_ACCESS == D3D11_BIND_UNORDERED_ACCESS );
 	UINT BindFlagsD3D = (UINT)TextureDesc.BindFlags_;
-
-	// Strip off D3D11_BIND_SHADER_RESOURCE if we have DEPTH_STENCIL,
-	// Psybrus uses it to indicate which views to create for D3D11,
-	// D3D11 give you grief for passing it to the create.
-	if( BindFlagsD3D & D3D11_BIND_DEPTH_STENCIL )
-	{
-		BindFlagsD3D &= ~D3D11_BIND_SHADER_RESOURCE;
-	}
 
 	// Buffer desc.
 	switch( TextureDesc.Type_ )
@@ -1797,6 +1821,9 @@ bool RsContextD3D11::destroyProgram(
 void RsContextD3D11::flushState()
 {
 	HRESULT Result = 0;
+
+	// Set render targets.
+	Context_->OMSetRenderTargets( RenderTargetViews_.size(), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	// Bind shaders.
 	RsShader* VertexShader = nullptr;
