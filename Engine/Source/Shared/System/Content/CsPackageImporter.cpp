@@ -27,10 +27,11 @@
 #include "Base/BcStream.h"
 #include "Base/BcCompression.h"
 
-#include "Base/BcRegex.h"
 #include "Base/BcMath.h"
 
 #include "System/SysKernel.h"
+
+#include <regex>
 
 #if PSY_IMPORT_PIPELINE
 #include <boost/filesystem.hpp>
@@ -42,9 +43,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
-BcRegex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
-BcRegex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
-BcRegex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
+std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
+std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
@@ -64,7 +65,8 @@ void CsPackageDependencies::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPackageImporter::CsPackageImporter()
+CsPackageImporter::CsPackageImporter():
+	BuildingBeginCount_( 0 )
 {
 
 }
@@ -604,27 +606,27 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcBool IsWeak = BcFalse;
-	BcRegexMatch Match;
-	BcU32 Matches = GRegex_ResourceReference.match( pFullName, Match );
+	std::cmatch Match;
+	std::regex_match( pFullName, Match, GRegex_ResourceReference );
 
 	// Try the weak match.
 	// TODO: Merge into  regex.
-	if( Matches == 0 )
+	if( Match.size() == 0 )
 	{
 		IsWeak = BcTrue;
-		Matches = GRegex_WeakResourceReference.match( pFullName, Match );
+		std::regex_match( pFullName, Match, GRegex_WeakResourceReference );
 	}
 
-	if( Matches == 4 )
+	if( Match.size() == 4 )
 	{	
 		// Match against normal refs.
 		std::string TypeName;
 		std::string PackageName;
 		std::string ResourceName;
 
-		Match.getMatch( 1, TypeName );
-		Match.getMatch( 2, PackageName );
-		Match.getMatch( 3, ResourceName );
+		TypeName = Match[ 1 ];
+		PackageName = Match[ 2 ];
+		ResourceName = Match[ 3 ];
 
 		// Handle "this" for package.
 		if( PackageName == "this" )
@@ -677,16 +679,16 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 	}
 	
 	// Try ID match.
-	if( Matches == 0 )
+	if( Match.size() == 0 )
 	{
-		Matches = GRegex_ResourceIdReference.match( pFullName, Match );
+		std::regex_match( pFullName, Match, GRegex_ResourceIdReference );
 	}
-	if( Matches == 2 )
+	if( Match.size() == 2 )
 	{
 		// Match against normal refs.
 		std::string ResourceId;
 
-		Match.getMatch( 1, ResourceId );
+		ResourceId = Match[ 1 ];
 	
 		// Add cross ref.
 		CsPackageCrossRefData CrossRef = 
@@ -736,13 +738,14 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 
 	const BcU8* pPackedData = reinterpret_cast< const BcU8* >( pData );
 	BcU32 PackedSize = Size;
+	BcBool HaveCompressed = BcFalse;
 
 	// If we need to compress, do so.
 	if( ( Flags & csPCF_COMPRESSED ) != 0 )
 	{
 		if( BcCompressData( static_cast< const BcU8* >( pData ), Size, pPackedData, PackedSize ) )
 		{
-			// Do nothing.
+			HaveCompressed = BcTrue;
 		}
 		else
 		{
@@ -771,10 +774,15 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 	ChunkData.pPackedData_ = new BcU8[ PackedSize ];
 	ChunkData.pUnpackedData_ = NULL;
 	BcMemCopy( ChunkData.pPackedData_, pPackedData, PackedSize );
+	if( HaveCompressed )
+	{
+		delete [] pPackedData;
+	}
 
 	// Push into lists.
 	ChunkHeaders_.push_back( ChunkHeader );
 	ChunkDatas_.push_back( ChunkData );
+
 	return ChunkHeaders_.size() - 1;
 }
 
@@ -797,17 +805,17 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 	// If it's a string value, attempt to match it.
 	if( Root.type() == Json::stringValue )
 	{
-		BcRegexMatch Match;
-		BcU32 Matches = GRegex_ResourceReference.match( Root.asCString(), Match );
+		std::cmatch Match;
+		std::regex_match( Root.asCString(), Match, GRegex_ResourceReference );
 		
 		// Try the weak match.
 		// TODO: Merge into  regex.
-		if( Matches == 0 )
+		if( Match.size() == 0 )
 		{
-			Matches = GRegex_WeakResourceReference.match( Root.asCString(), Match );
+			std::regex_match( Root.asCString(), Match, GRegex_WeakResourceReference );
 		}
 
-		if( Matches == 4 )
+		if( Match.size() == 4 )
 		{
 			BcU32 RefIndex = addPackageCrossRef( Root.asCString() );
 
