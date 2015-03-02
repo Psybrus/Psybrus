@@ -5,10 +5,6 @@ Bullet Physics
 License: zlib
 Url: http://bulletphysics.org
 
-Enet
-License: Custom (http://enet.bespin.org/a00008.html)
-Url: http://enet.bespin.org/
-
 Freetype
 License: Freetype License
 Url: http://www.freetype.org/
@@ -25,14 +21,6 @@ Libb64
 License: Public domain
 Url: http://libb64.sourceforge.net/
 
-OGG
-License: BSD-Style
-Url: http://www.xiph.org/
-
-PCRE
-License: BSD
-Url: http://www.pcre.org/
-
 PNG
 License: zlib/libpng
 Url: http://sourceforge.net/projects/libpng/
@@ -44,10 +32,6 @@ Url: http://www.portaudio.com/
 Squish
 License: MIT license
 Url: https://code.google.com/p/libsquish/
-
-Tremor
-License: Public Domain
-Url: http://www.xiph.org/vorbis/
 
 Webby
 License: BSD
