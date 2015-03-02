@@ -15,7 +15,6 @@ dofile ("jsoncpp_genie.lua")
 dofile ("libb64_genie.lua")
 dofile ("png_genie.lua")
 dofile ("zlib_genie.lua")
-dofile ("enet_genie.lua")
 dofile ("SoLoud_genie.lua")
 
 -- Stuff we don't want to build for asmjs (import pipeline or other stuff only)

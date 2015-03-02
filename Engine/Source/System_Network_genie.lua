@@ -11,7 +11,6 @@ PsyProjectEngineLib( "System_Network" )
   	includedirs {
       "./Shared/",
       "./Platforms/Windows/",
-      "../../External/enet/include",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/webby/",
@@ -28,6 +27,5 @@ PsyProjectEngineLib( "System_Network" )
     }
 
     PsyAddExternalLinks {
-      "enet",
       "webby",
 		}

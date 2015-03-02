@@ -9,7 +9,6 @@ PsyProjectEngineLib( "System" )
   	includedirs {
       "./Shared/",
       "../../External/bullet/src",
-      "../../External/enet/include",
       "../../External/freetype/include",
       "../../External/glew/include",
       "../../External/jsoncpp/include/",
