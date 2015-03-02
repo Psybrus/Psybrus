@@ -30,16 +30,25 @@
 DsCore::DsCore()
 {
 	NextHandle_ = 0;
-	registerPage("", &cmdMenu);
-	registerPage("Content", &cmdContent, "Content");
-	registerPage("Scene", &cmdScene, "Scene");
-	registerPage("Log", &cmdLog, "Log");
-	registerPage("Functions", &cmdViewFunctions);
+	registerPage("", {}, &cmdMenu);
+	registerPage("Content", {}, &cmdContent, "Content");
+	registerPage("Scene", {}, &cmdScene, "Scene");
+	registerPage("Log", {}, &cmdLog, "Log");
+	registerPage("Functions", {}, &cmdViewFunctions);
+
+	registerPage("Resource/(.*)", { "Id" }, &cmdResource);
+	registerPage("ResourceEdit/(.*)", { "Id" }, &cmdResourceEdit);
+	registerPageNoHtml("Json/(\\d*)", { "Id" }, &cmdJson);
+	registerPageNoHtml("JsonSerialise/(\\d*)", { "Id" }, &cmdJsonSerialiser);
+
+#if 0
 	registerPage("Resource/(?<Id>.*)", &cmdResource);
 	registerPage("ResourceEdit/(?<Id>.*)", &cmdResourceEdit);
 	registerPageNoHtml("Json/(?<Id>\\d*)", &cmdJson);
 	registerPageNoHtml("JsonSerialise/(?<Id>\\d*)", &cmdJsonSerialiser);
-	registerPageNoHtml("Wadl", &cmdWADL);
+#endif
+
+	registerPageNoHtml("Wadl", {}, &cmdWADL);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,12 +120,12 @@ void DsCore::deregisterFunction(BcU32 Handle)
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-BcU32 DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
+BcU32 DsCore::registerPage(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
 {
 	++NextHandle_;
 	BcU32 Handle = NextHandle_;
 
-	DsPageDefinition cm(regex, display);
+	DsPageDefinition cm(regex, namedCaptures, display);
 	cm.Function_ = fn;
 	PageFunctions_.push_back(cm);
 	DsCoreLogging::pImpl()->addLog( "DsCore", rand(), "Registering page: " + display );
@@ -128,12 +137,12 @@ BcU32 DsCore::registerPage(std::string regex, std::function < void(DsParameters,
 
 //////////////////////////////////////////////////////////////////////////
 // registerPage
-BcU32 DsCore::registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
+BcU32 DsCore::registerPage(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
 	++NextHandle_;
 	BcU32 Handle = NextHandle_;
 
-	DsPageDefinition cm( regex );
+	DsPageDefinition cm( regex, namedCaptures );
 	cm.Function_ = fn;
 	cm.IsHtml_ = true;
 	PageFunctions_.push_back(cm);
@@ -145,12 +154,12 @@ BcU32 DsCore::registerPage(std::string regex, std::function < void(DsParameters,
 
 //////////////////////////////////////////////////////////////////////////
 // registerPageNoHtml
-BcU32 DsCore::registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
+BcU32 DsCore::registerPageNoHtml(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
 	++NextHandle_;
 	BcU32 Handle = NextHandle_;
 
-	DsPageDefinition cm( regex );
+	DsPageDefinition cm( regex, namedCaptures );
 	cm.Function_ = fn;
 	cm.IsHtml_ = false;
 	PageFunctions_.push_back(cm);
@@ -476,14 +485,14 @@ void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostCon
 	for (auto val : logs)
 	{
 		ul.createChildNode("li").setContents(val);
-	}/**/
+	}//*/
 	BcHtmlNode ul = Output.createChildNode("ul");
 	std::vector< DsCoreLogEntry > logs = DsCoreLogging::pImpl()->getEntries( nullptr, 0 );
 
 	for ( auto val : logs )
 	{
 		ul.createChildNode( "li" ).setContents( val.Entry_ ).setAttribute( "id", "Log-" + val.Category_.getValue() );
-	}/**/
+	}//*/
 
 }
 
@@ -533,11 +542,11 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 
 	if (!success)
 	{
-		for (size_t Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
+		for (int Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
 		{
 			std::cmatch match;
-			BcU32 res = std::regex_match( &Uri[1], match, PageFunctions_[Idx].Regex_ );
-			if (res > 0)
+			std::regex_match( &Uri[1], match, PageFunctions_[Idx].Regex_ );
+			if (match.size() > 0)
 			{
 				std::string javaScript = "var params = [";
 				for (BcU32 Idx2 = 1; Idx2 < match.size(); ++Idx2)

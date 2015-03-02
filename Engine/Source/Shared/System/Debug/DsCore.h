@@ -38,22 +38,25 @@ typedef const std::vector< std::string>& DsParameters;
 
 struct DsPageDefinition
 {
-	DsPageDefinition(std::string r, std::string display)
-	: Regex_(r.c_str()),
+	DsPageDefinition(std::string r, std::vector<std::string> namedCaptures, std::string display)
+		: Regex_(r.c_str()),
+		NamedCaptures_( namedCaptures ),
 		Text_(r),
 		Display_(display),
 		Visible_(true),
 		IsHtml_(true) 
 	{}
 
-	DsPageDefinition(std::string r)
-		: Regex_(r.c_str()),
+	DsPageDefinition(std::string r, std::vector<std::string> namedCaptures)
+		: Regex_(r.c_str()), 
+		NamedCaptures_( namedCaptures ),
 		Text_(r),
 		Visible_(false),
 		IsHtml_(true)
 	{}
 
 	std::regex Regex_;
+	std::vector<std::string> NamedCaptures_; 
 	std::string Text_;
 	std::string Display_;
 	bool Visible_;
@@ -116,9 +119,9 @@ public:
 	void						writeHeader(BcHtmlNode& Output);
 	void						writeFooter(BcHtmlNode& Output);
 	char*						writeFile(std::string filename, int& OutLength, std::string& type);
-	BcU32						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display);
-	BcU32						registerPage(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
-	BcU32						registerPageNoHtml(std::string regex, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
+	BcU32						registerPage(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display);
+	BcU32						registerPage(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
+	BcU32						registerPageNoHtml(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn);
 	void						deregisterPage( BcU32 Handle );
 
 	BcU32						registerFunction(std::string Display, std::function<void()> Function);
