@@ -8,7 +8,6 @@ PsyProjectEngineLib( "Reflection" )
   	includedirs {
       "./Shared/",
       "./Platforms/Windows/",
-      "../../External/pcre/",
       "../../External/zlib/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",

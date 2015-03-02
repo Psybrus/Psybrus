@@ -12,7 +12,6 @@ PsyProjectEngineLib( "System" )
       "../../External/enet/include",
       "../../External/freetype/include",
       "../../External/glew/include",
-      "../../External/pcre/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/png/",

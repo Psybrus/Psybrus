@@ -12,7 +12,6 @@ PsyProjectEngineLib( "Math" )
   	includedirs {
       "./Shared/",
       "./Platforms/Windows/",
-      "../../External/pcre/",
       "../../External/zlib/",
       BOOST_INCLUDE_PATH,
     }
