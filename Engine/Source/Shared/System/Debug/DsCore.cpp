@@ -21,11 +21,6 @@
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 #include "System/Debug/DsCoreLogging.h"
 
-#if !PLATFORM_HTML5
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/regex.hpp>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // Creator
 // SYS_CREATOR( DsCore );
@@ -618,16 +613,15 @@ void DsCore::cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostCo
 	// \(\?\<(?<name>\w*)\>\.\*\)
 	// THIS WILL LOOK HORRIBLE
 #if !PLATFORM_HTML5
-	boost::regex re("\\(\\?\\<(?<name>\\w*)\\>\\.\\*\\)");
+	BcBreakpoint; // neilogd: Not sure if this is a correct conversion to std::regex.
+	std::regex re("\\(\\?\\<(?<name>\\w*)\\>\\.\\*\\)");
 	
 	for (BcU32 Idx = 0; Idx < core->PageFunctions_.size(); ++Idx)
 	{
-		boost::smatch results;
+		std::smatch results;
 		BcHtmlNode resource = resources.createChildNode("resource");
 		std::string replacement = core->PageFunctions_[Idx].Text_;
-		auto wat = re.get_named_subs();
-		
-		if (boost::regex_search(replacement, results, re)) 
+		if (std::regex_search(replacement, results, re)) 
 		{
 			for (auto item : results)
 			{
@@ -635,7 +629,7 @@ void DsCore::cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostCo
 			}
 		}
 
-		boost::replace_all(replacement, re, "{$1}");
+		std::regex_replace(replacement, re, "{$1}");
 
 		//std::string other = boost::regex_replace();
 		resource.setAttribute("path", core->PageFunctions_[Idx].Text_);
