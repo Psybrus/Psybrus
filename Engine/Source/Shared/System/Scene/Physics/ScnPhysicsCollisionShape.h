@@ -25,15 +25,15 @@ public:
 	DECLARE_RESOURCE( ScnPhysicsCollisionShape, CsResource );
 	
 
-	virtual void							initialise();
-	virtual void							create();
-	virtual void							destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 
-	class btCollisionShape*					getCollisionShape();
+	class btCollisionShape* getCollisionShape();
 
 
 protected:
-	class btCollisionShape*					CollisionShape_;
+	class btCollisionShape* CollisionShape_;
 };
 
 #endif

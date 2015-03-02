@@ -34,7 +34,7 @@ public:
 private:
 
 private:
-	CsPackageImporter*					pImporter_;
+	CsPackageImporter* pImporter_;
 };
 
 #endif

@@ -25,9 +25,9 @@ public:
 	DECLARE_RESOURCE( ScnPhysicsBoxCollisionShape, ScnPhysicsCollisionShape );
 	
 
-	virtual void							initialise();
-	virtual void							create();
-	virtual void							destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 
 protected:
 	

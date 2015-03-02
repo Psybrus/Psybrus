@@ -26,24 +26,24 @@ public:
 	DECLARE_RESOURCE( ScnPhysicsRigidBodyComponent, ScnComponent );
 	
 
-	virtual void							initialise();
+	virtual void initialise();
 
-	virtual void							update( BcF32 Tick );
+	virtual void update( BcF32 Tick );
 
-	void									onAttach( ScnEntityWeakRef Parent );
-	void									onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent );
+	void onDetach( ScnEntityWeakRef Parent );
 
 private:
-	class ScnPhysicsWorldComponent*			World_;
-	class ScnPhysicsCollisionShape*			CollisionShape_;
+	class ScnPhysicsWorldComponent* World_;
+	class ScnPhysicsCollisionShape* CollisionShape_;
 
-	class btRigidBody*						RigidBody_;
+	class btRigidBody* RigidBody_;
 
-	BcF32									Mass_;
+	BcF32 Mass_;
 
 	// TODO: Physics material.
-	BcF32									Friction_;
-	BcF32									Restitution_;
+	BcF32 Friction_;
+	BcF32 Restitution_;
 };
 
 #endif
