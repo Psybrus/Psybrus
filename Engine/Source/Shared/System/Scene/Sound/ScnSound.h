@@ -31,19 +31,19 @@ class ScnSound:
 public:
 	DECLARE_RESOURCE( ScnSound, CsResource );
 	
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 	
-	class SsSource*						getSource();
+	class SsSource* getSource();
 
 protected:
-	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady();
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
-	SsSourceFileData*					pFileData_;
-	class SsSource*						pSource_;
+	SsSourceFileData* pFileData_;
+	class SsSource* pSource_;
 };
 
 

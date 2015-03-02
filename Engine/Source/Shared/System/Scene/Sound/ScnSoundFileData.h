@@ -20,10 +20,10 @@
 // ScnSoundHeader
 struct ScnSoundHeader
 {
-	BcU32							SampleRate_;
-	BcU32							Channels_;
-	BcBool							Looping_;
-	BcBool							IsOgg_;
+	BcU32 SampleRate_;
+	BcU32 Channels_;
+	BcBool Looping_;
+	BcBool IsOgg_;
 };
 
 #endif

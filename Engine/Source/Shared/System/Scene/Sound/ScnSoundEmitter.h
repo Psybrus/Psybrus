@@ -31,27 +31,27 @@ class ScnSoundEmitterComponent:
 public:
 	DECLARE_RESOURCE( ScnSoundEmitterComponent, ScnComponent );
 	
-	virtual void						initialise( const Json::Value& Object );
+	virtual void initialise( const Json::Value& Object );
 	
-	void								setGain( BcF32 Gain );
-	void								setPitch( BcF32 Pitch );
+	void setGain( BcF32 Gain );
+	void setPitch( BcF32 Pitch );
 
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
-	void								play( ScnSoundRef Sound );
-	void								stopAll( BcBool ForceFlush = BcFalse );	
+	void play( ScnSoundRef Sound );
+	void stopAll( BcBool ForceFlush = BcFalse );	
 
-	void								onChannelDone( SsChannel* Channel );
+	void onChannelDone( SsChannel* Channel );
 
 private:
 	typedef std::map< SsChannel*, ScnSoundRef >	TChannelSoundMap;
 	typedef TChannelSoundMap::iterator	TChannelSoundMapIterator;
 
-	TChannelSoundMap					ChannelSoundMap_;
-	std::recursive_mutex				ChannelSoundMutex_; // TODO: remove later.
+	TChannelSoundMap ChannelSoundMap_;
+	std::recursive_mutex ChannelSoundMutex_; // TODO: remove later.
 
-	SsChannelParams						Params_;
+	SsChannelParams Params_;
 };
 
 
