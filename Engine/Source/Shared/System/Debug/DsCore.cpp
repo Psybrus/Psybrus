@@ -540,15 +540,14 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 	{
 		for (size_t Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
 		{
-			BcRegexMatch match;
-			BcU32 res = PageFunctions_[Idx].Regex_.match(&Uri[1], match);
+			std::cmatch match;
+			BcU32 res = std::regex_match( &Uri[1], match, PageFunctions_[Idx].Regex_ );
 			if (res > 0)
 			{
 				std::string javaScript = "var params = [";
-				for (BcU32 Idx2 = 1; Idx2 < match.noofMatches(); ++Idx2)
+				for (BcU32 Idx2 = 1; Idx2 < match.size(); ++Idx2)
 				{
-					std::string u;
-					match.getMatch(Idx2, u);
+					std::string u = match[Idx2];
 					data.push_back(u);
 					if (Idx2 > 1)
 						javaScript += ",";

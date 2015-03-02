@@ -15,17 +15,16 @@
 #define __DSCORE_H__
 
 #include "Base/BcGlobal.h"
-#include <mutex>
-
 #include "Base/BcHtml.h"
-#include "Base/BcRegex.h"
-#include "System/SysSystem.h"
 
+#include "System/SysSystem.h"
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
 
 #include <functional>
 #include <map>
+#include <mutex>
+#include <regex>
 
 //////////////////////////////////////////////////////////////////////////
 /**	\struct DsCoreMessage
@@ -54,7 +53,7 @@ struct DsPageDefinition
 		IsHtml_(true)
 	{}
 
-	BcRegex Regex_;
+	std::regex Regex_;
 	std::string Text_;
 	std::string Display_;
 	bool Visible_;

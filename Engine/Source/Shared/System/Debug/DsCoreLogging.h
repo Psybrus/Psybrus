@@ -3,7 +3,6 @@
 
 #include "Base/BcGlobal.h"
 #include "Base/BcHtml.h"
-#include "Base/BcRegex.h"
 #include "System/SysSystem.h"
 
 
