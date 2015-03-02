@@ -30,27 +30,27 @@ public:
 	/**
 	 * Blend 2 transforms together.
 	 */
-	void						blend( const ScnAnimationTransform& A, const ScnAnimationTransform& B, BcF32 T );
+	void blend( const ScnAnimationTransform& A, const ScnAnimationTransform& B, BcF32 T );
 
 	/**
 	 * Add 2 transforms together using a reference.
 	 */
-	void						add( const ScnAnimationTransform& Reference, const ScnAnimationTransform& A, const ScnAnimationTransform& B, BcF32 T );
+	void add( const ScnAnimationTransform& Reference, const ScnAnimationTransform& A, const ScnAnimationTransform& B, BcF32 T );
 
 	/**
 	 * Get matrix from this transform.
 	 */
-	void						toMatrix( MaMat4d& Matrix ) const;
+	void toMatrix( MaMat4d& Matrix ) const;
 
 	/**
 	 * Set from matrix.
 	 */
-	void						fromMatrix( const MaMat4d& Matrix );
+	void fromMatrix( const MaMat4d& Matrix );
 
 public:
-	BcAlign( MaQuat 			R_, 16 );
-	BcAlign( MaVec3d 			S_, 16 );
-	BcAlign( MaVec3d 			T_, 16 );
+	BcAlign( MaQuat R_, 16 );
+	BcAlign( MaVec3d S_, 16 );
+	BcAlign( MaVec3d T_, 16 );
 };
 
 

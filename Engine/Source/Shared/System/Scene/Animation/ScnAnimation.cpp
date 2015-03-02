@@ -42,30 +42,6 @@ void ScnAnimation::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnAnimation::initialise()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnAnimation::create()
-{
-	markReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnAnimation::destroy()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getNodeByIndex
 const ScnAnimationNodeFileData* ScnAnimation::getNodeByIndex( BcU32 Idx ) const
 {
@@ -257,6 +233,7 @@ void ScnAnimation::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		pKeyData_ = reinterpret_cast< const BcU8* >( pData );
 		
 		markCreate();
+		markReady();
 	}
 
 }

@@ -39,43 +39,43 @@ enum ScnAnimationPacking
 // ScnAnimationHeader
 struct ScnAnimationHeader
 {
-	BcU32							NoofNodes_;
-	BcU32							NoofPoses_;
-	BcU32							Flags_;
-	ScnAnimationPacking				Packing_;
+	BcU32 NoofNodes_;
+	BcU32 NoofPoses_;
+	BcU32 Flags_;
+	ScnAnimationPacking Packing_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationNodeFileData
 struct ScnAnimationNodeFileData
 {
-	BcName							Name_;
+	BcName Name_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationPoseFileData
 struct ScnAnimationPoseFileData
 {
-	BcF32							Time_;
-	BcU32							CRC_;
-	BcU32							KeyDataOffset_;
-	BcU32							KeyDataSize_;
+	BcF32 Time_;
+	BcU32 CRC_;
+	BcU32 KeyDataOffset_;
+	BcU32 KeyDataSize_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnAnimationTransformKey_R16S32T32
 struct ScnAnimationTransformKey_R16S32T32
 {
-	BcS16							RX_;
-	BcS16							RY_;
-	BcS16							RZ_;
-	BcS16							RW_;
-	BcF32							SX_;
-	BcF32							SY_;
-	BcF32							SZ_;
-	BcF32							TX_;
-	BcF32							TY_;
-	BcF32							TZ_;
+	BcS16 RX_;
+	BcS16 RY_;
+	BcS16 RZ_;
+	BcS16 RW_;
+	BcF32 SX_;
+	BcF32 SY_;
+	BcF32 SZ_;
+	BcF32 TX_;
+	BcF32 TY_;
+	BcF32 TZ_;
 
 	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
@@ -106,16 +106,16 @@ struct ScnAnimationTransformKey_R16S32T32
 // ScnAnimationTransformKey_R16S16T16
 struct ScnAnimationTransformKey_R16S16T16
 {
-	BcS16							RX_;
-	BcS16							RY_;
-	BcS16							RZ_;
-	BcS16							RW_;
-	BcU16							SX_;
-	BcU16							SY_;
-	BcU16							SZ_;
-	BcU16							TX_;
-	BcU16							TY_;
-	BcU16							TZ_;
+	BcS16 RX_;
+	BcS16 RY_;
+	BcS16 RZ_;
+	BcS16 RW_;
+	BcU16 SX_;
+	BcU16 SY_;
+	BcU16 SZ_;
+	BcU16 TX_;
+	BcU16 TY_;
+	BcU16 TZ_;
 
 	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
@@ -146,13 +146,13 @@ struct ScnAnimationTransformKey_R16S16T16
 // ScnAnimationTransformKey_R16T32
 struct ScnAnimationTransformKey_R16T32
 {
-	BcS16							RX_;
-	BcS16							RY_;
-	BcS16							RZ_;
-	BcS16							RW_;
-	BcF32							TX_;
-	BcF32							TY_;
-	BcF32							TZ_;
+	BcS16 RX_;
+	BcS16 RY_;
+	BcS16 RZ_;
+	BcS16 RW_;
+	BcF32 TX_;
+	BcF32 TY_;
+	BcF32 TZ_;
 
 	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{
@@ -180,13 +180,13 @@ struct ScnAnimationTransformKey_R16T32
 // ScnAnimationTransformKey_R16T16
 struct ScnAnimationTransformKey_R16T16
 {
-	BcS16							RX_;
-	BcS16							RY_;
-	BcS16							RZ_;
-	BcS16							RW_;
-	BcU16							TX_;
-	BcU16							TY_;
-	BcU16							TZ_;
+	BcS16 RX_;
+	BcS16 RY_;
+	BcS16 RZ_;
+	BcS16 RW_;
+	BcU16 TX_;
+	BcU16 TY_;
+	BcU16 TZ_;
 
 	BcForceInline void pack( const MaQuat& R, const MaVec3d& S, const MaVec3d& T )
 	{

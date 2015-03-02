@@ -31,10 +31,6 @@ class ScnAnimation:
 public:
 	DECLARE_RESOURCE( ScnAnimation, CsResource );
 	
-	virtual void initialise();
-	virtual void create();
-	virtual void destroy();
-
 	const ScnAnimationNodeFileData* getNodeByIndex( BcU32 Idx ) const;
 	BcU32 getNodeIndexByName( BcName Name ) const;
 	BcU32 findPoseIndexAtTime( BcF32 Time ) const ;
@@ -59,10 +55,10 @@ private:
 	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 private:
-	ScnAnimationHeader					Header_;
-	ScnAnimationNodeFileData*			pNodeData_;
-	const ScnAnimationPoseFileData*		pPoseData_;
-	const BcU8*							pKeyData_;
+	ScnAnimationHeader Header_;
+	ScnAnimationNodeFileData* pNodeData_;
+	const ScnAnimationPoseFileData* pPoseData_;
+	const BcU8* pKeyData_;
 };
 
 #endif
