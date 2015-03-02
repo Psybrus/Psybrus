@@ -23,9 +23,9 @@
 // Import structures.
 struct ScnShaderPermutationEntry
 {
-	ScnShaderPermutationFlags		Flag_;
-	std::string						Define_;
-	std::string						Value_;
+	ScnShaderPermutationFlags Flag_;
+	std::string Define_;
+	std::string Value_;
 };
 
 struct ScnShaderPermutationGroup
@@ -38,8 +38,8 @@ struct ScnShaderPermutationGroup
 		
 	}
 
-	ScnShaderPermutationEntry*		Entries_;
-	BcU32							NoofEntries_;
+	ScnShaderPermutationEntry* Entries_;
+	BcU32 NoofEntries_;
 };
 
 struct ScnShaderPermutation
@@ -56,9 +56,9 @@ struct ScnShaderPermutation
 
 struct ScnShaderLevelEntry
 {
-	std::string						Level_;
-	RsShaderType					Type_;
-	RsShaderCodeType				CodeType_;
+	std::string Level_;
+	RsShaderType Type_;
+	RsShaderCodeType CodeType_;
 };
 
 struct ScnShaderBuiltData
@@ -104,10 +104,10 @@ struct ScnShaderBuiltData
 	}
 
 
-	BcU32							Hash_;
-	RsShaderType					ShaderType_;
-	RsShaderCodeType				CodeType_;
-	BcBinaryData					Code_;
+	BcU32 Hash_;
+	RsShaderType ShaderType_;
+	RsShaderCodeType CodeType_;
+	BcBinaryData Code_;
 };
 
 struct ScnShaderPermutationJobParams
