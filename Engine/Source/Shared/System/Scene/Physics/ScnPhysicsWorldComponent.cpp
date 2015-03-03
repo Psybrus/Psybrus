@@ -73,7 +73,7 @@ static DebugRenderer gDebugRenderer;
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnPhysicsWorldComponent );
+REFLECTION_DEFINE_DERIVED( ScnPhysicsWorldComponent );
 
 void ScnPhysicsWorldComponent::StaticRegisterClass()
 {
@@ -82,18 +82,24 @@ void ScnPhysicsWorldComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnPhysicsWorldComponent::initialise()
+// Ctor
+ScnPhysicsWorldComponent::ScnPhysicsWorldComponent():
+	CollisionConfiguration_( nullptr ),
+	Dispatcher_( nullptr ),
+	Broadphase_( nullptr ),
+	Solver_( nullptr ),
+	DynamicsWorld_( nullptr ),
+	DebugDrawWorld_( BcFalse )
 {
-	Super::initialise();
 
-	CollisionConfiguration_ = nullptr;
-	Dispatcher_ = nullptr;
-	Broadphase_ = nullptr;
-	Solver_ = nullptr;
-	DynamicsWorld_ = nullptr;
-	DebugDrawWorld_ = BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnPhysicsWorldComponent::~ScnPhysicsWorldComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,7 +107,7 @@ void ScnPhysicsWorldComponent::initialise()
 //virtual
 void ScnPhysicsWorldComponent::initialise( const Json::Value& Object )
 {
-	ScnPhysicsWorldComponent::initialise();
+
 }
 
 //////////////////////////////////////////////////////////////////////////

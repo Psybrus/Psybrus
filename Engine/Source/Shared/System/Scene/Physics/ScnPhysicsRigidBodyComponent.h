@@ -23,10 +23,10 @@ class ScnPhysicsRigidBodyComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnPhysicsRigidBodyComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnPhysicsRigidBodyComponent, ScnComponent );
 	
-
-	virtual void initialise();
+	ScnPhysicsRigidBodyComponent();
+	virtual ~ScnPhysicsRigidBodyComponent();
 
 	virtual void update( BcF32 Tick );
 

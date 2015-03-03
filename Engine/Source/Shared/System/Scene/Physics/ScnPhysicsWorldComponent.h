@@ -22,10 +22,11 @@ class ScnPhysicsWorldComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnPhysicsWorldComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnPhysicsWorldComponent, ScnComponent );
 	
+	ScnPhysicsWorldComponent();
+	virtual ~ScnPhysicsWorldComponent();
 
-	virtual void initialise();
 	virtual void initialise( const Json::Value& Object );
 
 	virtual void preUpdate( BcF32 Tick );

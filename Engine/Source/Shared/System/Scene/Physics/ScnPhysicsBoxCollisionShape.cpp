@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnPhysicsBoxCollisionShape );
+REFLECTION_DEFINE_DERIVED( ScnPhysicsBoxCollisionShape );
 
 void ScnPhysicsBoxCollisionShape::StaticRegisterClass()
 {
@@ -29,11 +29,16 @@ void ScnPhysicsBoxCollisionShape::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnPhysicsBoxCollisionShape::initialise()
+// Ctor
+ScnPhysicsBoxCollisionShape::ScnPhysicsBoxCollisionShape()
 {
-	CollisionShape_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnPhysicsBoxCollisionShape::~ScnPhysicsBoxCollisionShape()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////

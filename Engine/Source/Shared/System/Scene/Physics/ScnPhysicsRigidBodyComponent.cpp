@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnPhysicsRigidBodyComponent );
+REFLECTION_DEFINE_DERIVED( ScnPhysicsRigidBodyComponent );
 
 void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 {
@@ -31,14 +31,20 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnPhysicsRigidBodyComponent::initialise()
+// Ctor
+ScnPhysicsRigidBodyComponent::ScnPhysicsRigidBodyComponent():
+	RigidBody_( nullptr ),
+	Mass_ ( 0.0f ),
+	Friction_( 0.0f ),
+	Restitution_( 0.0f )
 {
-	RigidBody_ = NULL;
-	Mass_ = 0.0f;
-	Friction_ = 0.0f;
-	Restitution_ = 0.0f;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnPhysicsRigidBodyComponent::~ScnPhysicsRigidBodyComponent()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
