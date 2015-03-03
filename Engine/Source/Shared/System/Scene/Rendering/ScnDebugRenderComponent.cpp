@@ -20,15 +20,11 @@
 
 #include "Base/BcMath.h"
 
-#ifdef PSY_IMPORT_PIPELINE
-#include "Base/BcStream.h"
-#endif
-
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnDebugRenderComponent );
+REFLECTION_DEFINE_DERIVED( ScnDebugRenderComponent );
 
 void ScnDebugRenderComponent::StaticRegisterClass()
 {
@@ -54,6 +50,27 @@ ScnDebugRenderComponent* ScnDebugRenderComponent::pImpl()
 {
 	BcAssert( pImpl_ != NULL );
 	return pImpl_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnDebugRenderComponent::ScnDebugRenderComponent()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices )
+{
+	initialise( NoofVertices );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnDebugRenderComponent::~ScnDebugRenderComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////

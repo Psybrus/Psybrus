@@ -62,10 +62,15 @@ class ScnCanvasComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnCanvasComponent, ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnCanvasComponent, ScnRenderableComponent );
 	
+	ScnCanvasComponent();
+	ScnCanvasComponent( BcU32 NoofVertices );
+	virtual ~ScnCanvasComponent();
+
 	virtual void initialise();
 	virtual void initialise( BcU32 NoofVertices );
+
 	virtual void initialise( const Json::Value& Object );
 	virtual MaAABB getAABB() const;
 

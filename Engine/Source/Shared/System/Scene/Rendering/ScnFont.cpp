@@ -487,7 +487,7 @@ const MaVec4d& ScnFontDrawParams::getShadowSettings() const
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnFont );
+REFLECTION_DEFINE_DERIVED( ScnFont );
 
 void ScnFont::StaticRegisterClass()
 {
@@ -510,14 +510,20 @@ void ScnFont::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnFont::initialise()
+// Ctor
+ScnFont::ScnFont():
+	pHeader_( nullptr ),
+	pGlyphDescs_( nullptr )
 {
-	Super::initialise();
 
-	pHeader_ = nullptr;
-	pGlyphDescs_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnFont::~ScnFont()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -583,7 +589,7 @@ void ScnFont::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnFontComponent );
+REFLECTION_DEFINE_DERIVED( ScnFontComponent );
 
 void ScnFontComponent::StaticRegisterClass()
 {
@@ -602,32 +608,42 @@ void ScnFontComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnFontComponent::initialise()
+// Ctor
+ScnFontComponent::ScnFontComponent():
+	Parent_( nullptr ),
+	Material_( nullptr ),
+	MaterialComponent_( nullptr ),
+	ClippingEnabled_( BcFalse ),
+	UniformBuffer_( nullptr )
 {
-	Super::initialise();
+}
 
-	Parent_ = nullptr;
-	Material_ = nullptr;
-	MaterialComponent_ = nullptr;
-	ClippingEnabled_ = BcFalse;
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnFontComponent::ScnFontComponent( ScnFontRef Parent, ScnMaterialRef Material ):
+	Parent_( Parent ),
+	Material_( Material ),
+	MaterialComponent_( nullptr ),
+	ClippingEnabled_( BcFalse ),
+	UniformBuffer_( nullptr )
+{
+	initialise( Parent, Material );
+}
 
-	// Null uniform buffer.
-	UniformBuffer_ = nullptr;
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnFontComponent::~ScnFontComponent()
+{
 
-	// Disable clipping.
-	setClipping( BcFalse );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
 {
-	initialise();
-
 	Parent_ = Parent; 
 	Material_ = Material;
-
 }
 
 //////////////////////////////////////////////////////////////////////////

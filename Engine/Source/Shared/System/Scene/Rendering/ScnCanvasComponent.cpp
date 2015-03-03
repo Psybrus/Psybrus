@@ -16,15 +16,11 @@
 #include "System/Os/OsCore.h"
 #include "System/Os/OsClient.h"
 
-#ifdef PSY_IMPORT_PIPELINE
-#include "Base/BcStream.h"
-#endif
-
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnCanvasComponent );
+REFLECTION_DEFINE_DERIVED( ScnCanvasComponent );
 
 void ScnCanvasComponent::StaticRegisterClass()
 {
@@ -51,17 +47,32 @@ void ScnCanvasComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnCanvasComponent::ScnCanvasComponent()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnCanvasComponent::ScnCanvasComponent( BcU32 NoofVertices )
+{
+	initialise( NoofVertices );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnCanvasComponent::~ScnCanvasComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnCanvasComponent::initialise()
 {
 	initialise( 0 );
-
-	Clear_ = BcFalse;
-	Left_ = 0.0f;
-	Right_ = 0.0f;
-	Top_ = 0.0f;
-	Bottom_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,6 +97,13 @@ void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 	VertexIndex_ = 0;
 	VertexDeclaration_ = nullptr;
 	NoofVertices_ = NoofVertices;
+
+	// Setup clear stuff.
+	Clear_ = BcFalse;
+	Left_ = 0.0f;
+	Right_ = 0.0f;
+	Top_ = 0.0f;
+	Bottom_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -49,9 +49,11 @@ class ScnFont:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnFont, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnFont, CsResource );
 	
-	virtual void initialise();
+	ScnFont();
+	virtual ~ScnFont();
+
 	virtual void create();
 	virtual void destroy();
 		
@@ -227,9 +229,12 @@ class ScnFontComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnFontComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnFontComponent, ScnComponent );
+
+	ScnFontComponent();
+	ScnFontComponent( ScnFontRef Parent, ScnMaterialRef Material );
+	virtual ~ScnFontComponent();
 	
-	void initialise();
 	void initialise( ScnFontRef Parent, ScnMaterialRef Material );
 	void initialise( const Json::Value& Object );
 

@@ -58,12 +58,17 @@ class ScnDebugRenderComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnDebugRenderComponent, ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnDebugRenderComponent, ScnRenderableComponent );
 
 	static ScnDebugRenderComponent* pImpl();
+
+	ScnDebugRenderComponent();
+	ScnDebugRenderComponent( BcU32 NoofVertices );
+	virtual ~ScnDebugRenderComponent();
 	
 	virtual void initialise();
 	virtual void initialise( BcU32 NoofVertices );
+	
 	virtual void initialise( const Json::Value& Object );
 	virtual MaAABB getAABB() const;
 	
