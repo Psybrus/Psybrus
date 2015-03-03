@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnAnimationComponent );
+REFLECTION_DEFINE_DERIVED( ScnAnimationComponent );
 
 void ScnAnimationComponent::StaticRegisterClass()
 {
@@ -40,12 +40,18 @@ void ScnAnimationComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual 
-void ScnAnimationComponent::initialise()
+// Ctor
+ScnAnimationComponent::ScnAnimationComponent():
+	pRootTreeNode_( nullptr ),
+	pReferencePose_( nullptr )
 {
-	pRootTreeNode_ = nullptr;
-	pReferencePose_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnAnimationComponent::~ScnAnimationComponent()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////

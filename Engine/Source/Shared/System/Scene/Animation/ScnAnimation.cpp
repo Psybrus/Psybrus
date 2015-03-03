@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnAnimation );
+REFLECTION_DEFINE_DERIVED( ScnAnimation );
 
 void ScnAnimation::StaticRegisterClass()
 {
@@ -39,6 +39,19 @@ void ScnAnimation::StaticRegisterClass()
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnAnimationImport::StaticGetClass(), 0 ) );
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnAnimation::ScnAnimation()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnAnimation::~ScnAnimation()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////

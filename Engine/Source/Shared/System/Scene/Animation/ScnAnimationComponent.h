@@ -28,9 +28,11 @@ class ScnAnimationComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnAnimationComponent, ScnComponent );
-	
-	virtual void initialise();
+	REFLECTION_DECLARE_DERIVED( ScnAnimationComponent, ScnComponent );
+
+	ScnAnimationComponent();
+	virtual ~ScnAnimationComponent();
+
 	virtual void initialise( const Json::Value& Object );
 	void initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object );
 

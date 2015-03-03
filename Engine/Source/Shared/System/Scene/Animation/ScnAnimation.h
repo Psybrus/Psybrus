@@ -29,7 +29,10 @@ class ScnAnimation:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnAnimation, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnAnimation, CsResource );
+
+	ScnAnimation();
+	virtual ~ScnAnimation();
 	
 	const ScnAnimationNodeFileData* getNodeByIndex( BcU32 Idx ) const;
 	BcU32 getNodeIndexByName( BcName Name ) const;
