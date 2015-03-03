@@ -43,7 +43,6 @@ public:
 	ScnEntity( ReNoInit );
 	virtual ~ScnEntity();
 
-	void initialise();
 	void initialise( ScnEntityRef Basis );
 
 public:

@@ -37,9 +37,14 @@ class ScnTexture:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnTexture, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnTexture, CsResource );
 	
-	virtual void initialise();
+	ScnTexture();
+	ScnTexture( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
+	ScnTexture( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
+	ScnTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
+	virtual ~ScnTexture();
+
 	virtual void initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
 	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
 	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );

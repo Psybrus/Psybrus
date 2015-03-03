@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnMaterial );
+REFLECTION_DEFINE_DERIVED( ScnMaterial );
 
 void ScnMaterial::StaticRegisterClass()
 {
@@ -47,11 +47,19 @@ void ScnMaterial::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnMaterial::initialise()
+// Ctor
+ScnMaterial::ScnMaterial():
+	pHeader_( nullptr )
 {
-	pHeader_ = nullptr;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnMaterial::~ScnMaterial()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,7 +153,7 @@ void ScnMaterial::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnMaterialComponent );
+REFLECTION_DEFINE_DERIVED( ScnMaterialComponent );
 REFLECTION_DEFINE_BASIC( ScnMaterialComponent::TTextureBinding );
 REFLECTION_DEFINE_BASIC( ScnMaterialComponent::TUniformBlockBinding );
 
@@ -186,11 +194,31 @@ void ScnMaterialComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnMaterialComponent::ScnMaterialComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnMaterialComponent::ScnMaterialComponent( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags )
+{
+	initialise( Parent, PermutationFlags );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnMaterialComponent::~ScnMaterialComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags )
 {
-	Super::initialise();
-
 	BcAssert( Parent.isValid() && Parent->isReady() );
 	
 	PermutationFlags_ = PermutationFlags 

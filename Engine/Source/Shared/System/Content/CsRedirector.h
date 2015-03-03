@@ -45,10 +45,11 @@ class CsRedirector:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( CsRedirector, CsResource );
+	REFLECTION_DECLARE_DERIVED( CsRedirector, CsResource );
 
-	virtual void initialise();
-
+	CsRedirector();
+	virtual ~CsRedirector();
+	
 	/**
 	 * Get resource we redirect to.
 	 */

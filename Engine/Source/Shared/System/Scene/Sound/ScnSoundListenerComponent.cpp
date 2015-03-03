@@ -53,7 +53,7 @@ ScnSoundListenerComponent::~ScnSoundListenerComponent()
 //virtual
 void ScnSoundListenerComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise();
+
 }
 
 //////////////////////////////////////////////////////////////////////////

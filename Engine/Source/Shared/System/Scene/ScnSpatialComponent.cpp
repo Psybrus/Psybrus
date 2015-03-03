@@ -16,7 +16,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnSpatialComponent );
+REFLECTION_DEFINE_DERIVED( ScnSpatialComponent );
 
 void ScnSpatialComponent::StaticRegisterClass()
 {
@@ -30,12 +30,19 @@ void ScnSpatialComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnSpatialComponent::initialise()
+// Ctor
+ScnSpatialComponent::ScnSpatialComponent():
+	pSpatialTreeNode_( nullptr )
 {
-	Super::initialise();
 
-	pSpatialTreeNode_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnSpatialComponent::~ScnSpatialComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,7 +50,7 @@ void ScnSpatialComponent::initialise()
 //virtual
 void ScnSpatialComponent::initialise( const Json::Value& Object )
 {
-	initialise();
+
 }
 
 //////////////////////////////////////////////////////////////////////////

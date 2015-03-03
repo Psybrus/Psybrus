@@ -86,8 +86,6 @@ void ScnDebugRenderComponent::initialise()
 //virtual
 void ScnDebugRenderComponent::initialise( BcU32 NoofVertices )
 {
-	Super::initialise();
-
 	// NULL internals.
 	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
 

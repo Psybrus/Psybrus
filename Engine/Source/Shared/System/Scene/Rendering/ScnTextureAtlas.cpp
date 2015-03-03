@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnTextureAtlas );
+REFLECTION_DEFINE_DERIVED( ScnTextureAtlas );
 
 void ScnTextureAtlas::StaticRegisterClass()
 {
@@ -38,6 +38,21 @@ void ScnTextureAtlas::StaticRegisterClass()
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnTextureImport::StaticGetClass(), 0 ) );
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnTextureAtlas::ScnTextureAtlas()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual 
+ScnTextureAtlas::~ScnTextureAtlas()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////

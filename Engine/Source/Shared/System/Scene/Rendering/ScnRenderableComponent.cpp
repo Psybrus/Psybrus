@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnRenderableComponent );
+REFLECTION_DEFINE_DERIVED( ScnRenderableComponent );
 
 void ScnRenderableComponent::StaticRegisterClass()
 {
@@ -35,13 +35,20 @@ void ScnRenderableComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnRenderableComponent::initialise()
+// Ctor
+ScnRenderableComponent::ScnRenderableComponent():
+	RenderMask_( 1 ),
+	IsLit_( BcFalse )
 {
-	Super::initialise();
 
-	setRenderMask( 1 );
-	IsLit_ = BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnRenderableComponent::~ScnRenderableComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,8 +56,6 @@ void ScnRenderableComponent::initialise()
 //virtual
 void ScnRenderableComponent::initialise( const Json::Value& Object )
 {
-	initialise();
-
 	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
 	if( RenderMaskValue.type() != Json::nullValue )
 	{

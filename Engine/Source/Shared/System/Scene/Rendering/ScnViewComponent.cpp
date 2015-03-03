@@ -29,7 +29,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnViewComponent );
+REFLECTION_DEFINE_DERIVED( ScnViewComponent );
 
 void ScnViewComponent::StaticRegisterClass()
 {
@@ -61,13 +61,9 @@ void ScnViewComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnViewComponent::initialise()
+// Ctor
+ScnViewComponent::ScnViewComponent()
 {
-	Super::initialise();
-
-	// NULL internals.
-	//pHeader_ = NULL;
 	ViewUniformBuffer_ = nullptr;
 	RenderTarget_ = nullptr;
 	DepthStencilTarget_ = nullptr;
@@ -76,12 +72,17 @@ void ScnViewComponent::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+//virtual
+ScnViewComponent::~ScnViewComponent()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnViewComponent::initialise( const Json::Value& Object )
 {
-	initialise();
-
 	X_ = (BcF32)Object[ "x" ].asDouble();
 	Y_ = (BcF32)Object[ "y" ].asDouble();
 	Width_ = (BcF32)Object[ "width" ].asDouble();

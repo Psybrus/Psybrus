@@ -80,8 +80,6 @@ void ScnCanvasComponent::initialise()
 //virtual
 void ScnCanvasComponent::initialise( BcU32 NoofVertices )
 {
-	Super::initialise();
-
 	// Clear render resource to null.
 	BcMemZero( &RenderResource_, sizeof( RenderResource_ ) );
 	HaveVertexBufferLock_ = BcFalse;

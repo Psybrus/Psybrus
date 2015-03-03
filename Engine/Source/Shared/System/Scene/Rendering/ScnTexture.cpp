@@ -25,7 +25,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnTexture );
+REFLECTION_DEFINE_DERIVED( ScnTexture );
 
 void ScnTexture::StaticRegisterClass()
 {
@@ -49,17 +49,43 @@ void ScnTexture::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnTexture::initialise()
+// Ctor
+ScnTexture::ScnTexture()
 {
-	// NULL internals.
 	pTexture_ = nullptr;
 	pTextureData_ = nullptr;
-
 	Width_ = 0;
 	Height_ = 0;
 	Depth_ = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnTexture::ScnTexture( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
+{
+	initialise( Width, Levels, Format );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnTexture::ScnTexture( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format )
+{
+	initialise( Width, Height, Levels, Format );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnTexture::ScnTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format )
+{
+	initialise( Width, Height, Depth, Levels, Format );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+//virtual
+ScnTexture::~ScnTexture()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,15 +93,12 @@ void ScnTexture::initialise()
 //virtual
 void ScnTexture::initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
 {
-	initialise();
+	pTexture_ = nullptr;
+	pTextureData_ = nullptr;
 
-	// NULL internals.
-	pTexture_ = NULL;
-	pTextureData_ = NULL;
-
-	Header_.Width_ = Width;
-	Header_.Height_ = 0;
-	Header_.Depth_ = 0;
+	Width_ = Header_.Width_ = Width;
+	Height_ = Header_.Height_ = 0;
+	Depth_ = Header_.Depth_ = 0;
 	Header_.Levels_ = Levels;
 	Header_.Type_ = RsTextureType::TEX1D;
 	Header_.Format_ = Format;
@@ -89,15 +112,12 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
 //virtual
 void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format )
 {
-	Super::initialise();
+	pTexture_ = nullptr;
+	pTextureData_ = nullptr;
 
-	// NULL internals.
-	pTexture_ = NULL;
-	pTextureData_ = NULL;
-
-	Header_.Width_ = Width;
-	Header_.Height_ = Height;
-	Header_.Depth_ = 0;
+	Width_ = Header_.Width_ = Width;
+	Height_ = Header_.Height_ = Height;
+	Depth_ = Header_.Depth_ = 0;
 	Header_.Levels_ = Levels;
 	Header_.Type_ = RsTextureType::TEX2D;
 	Header_.Format_ = Format;
@@ -111,15 +131,12 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureF
 //virtual
 void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format )
 {
-	Super::initialise();
-
-	// NULL internals.
 	pTexture_ = nullptr;
 	pTextureData_ = nullptr;
 
-	Header_.Width_ = Width;
-	Header_.Height_ = Height;
-	Header_.Depth_ = Depth;
+	Width_ = Header_.Width_ = Width;
+	Height_ = Header_.Height_ = Height;
+	Depth_ = Header_.Depth_ = Depth;
 	Header_.Levels_ = Levels;
 	Header_.Type_ = RsTextureType::TEX3D;
 	Header_.Format_ = Format;

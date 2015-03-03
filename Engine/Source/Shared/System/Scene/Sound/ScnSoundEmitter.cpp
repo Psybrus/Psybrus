@@ -60,7 +60,7 @@ ScnSoundEmitterComponent::~ScnSoundEmitterComponent()
 //virtual
 void ScnSoundEmitterComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise();
+
 }
 
 //////////////////////////////////////////////////////////////////////////

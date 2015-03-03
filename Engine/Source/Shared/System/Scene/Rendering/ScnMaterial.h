@@ -50,9 +50,11 @@ class ScnMaterial:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnMaterial, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnMaterial, CsResource );
 	
-	virtual void initialise();
+	ScnMaterial();
+	virtual ~ScnMaterial();
+	
 	virtual void create();
 	virtual void destroy();
 
@@ -83,8 +85,12 @@ class ScnMaterialComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnMaterialComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnMaterialComponent, ScnComponent );
 	
+	ScnMaterialComponent();
+	ScnMaterialComponent( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
+	virtual ~ScnMaterialComponent();
+
 	void initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
 	void initialise( const Json::Value& Object );
 	void destroy();

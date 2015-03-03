@@ -37,9 +37,11 @@ class ScnViewComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnViewComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
 
-	void initialise();
+	ScnViewComponent();
+	virtual ~ScnViewComponent();
+	
 	virtual void initialise( const Json::Value& Object );
 
 	virtual void onAttach( ScnEntityWeakRef Parent );

@@ -25,39 +25,42 @@ class ScnSpatialComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnSpatialComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnSpatialComponent, ScnComponent );
 	DECLARE_VISITABLE( ScnSpatialComponent );
 
 public:
-	void								initialise();
-	virtual void						initialise( const Json::Value& Object );
-	virtual void						postUpdate( BcF32 Tick );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
-	void								setRenderMask( BcU32 RenderMask );
-	const BcU32							getRenderMask() const;
+
+	ScnSpatialComponent();
+	virtual ~ScnSpatialComponent();
+	
+	virtual void initialise( const Json::Value& Object );
+	virtual void postUpdate( BcF32 Tick );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+	void setRenderMask( BcU32 RenderMask );
+	const BcU32 getRenderMask() const;
 
 	/**
 	 * Set lighting material parameters.
 	 */
-	void								setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent );
+	void setLightingMaterialParams( class ScnMaterialComponent* MaterialComponent );
 
 	/**
 	 * Set the spatial tree node we belong in.
 	 */
-	void								setSpatialTreeNode( ScnSpatialTreeNode* pNode );
+	void setSpatialTreeNode( ScnSpatialTreeNode* pNode );
 
 	/**
 	 * Get the spatial tree node we are in.
 	 */
-	ScnSpatialTreeNode*					getSpatialTreeNode();
+	ScnSpatialTreeNode* getSpatialTreeNode();
 
-	virtual MaAABB						getAABB() const;
+	virtual MaAABB getAABB() const;
 
-	BcBool								isLit() const;
+	BcBool isLit() const;
 
 private:
-	ScnSpatialTreeNode*					pSpatialTreeNode_;
+	ScnSpatialTreeNode* pSpatialTreeNode_;
 };
 
 #endif

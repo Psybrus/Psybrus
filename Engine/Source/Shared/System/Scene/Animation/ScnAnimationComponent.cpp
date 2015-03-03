@@ -59,8 +59,6 @@ ScnAnimationComponent::~ScnAnimationComponent()
 //virtual 
 void ScnAnimationComponent::initialise( const Json::Value& Object )
 {
-	Super::initialise();
-
 	//
 	TargetComponentName_ = Object[ "target" ].asCString();
 

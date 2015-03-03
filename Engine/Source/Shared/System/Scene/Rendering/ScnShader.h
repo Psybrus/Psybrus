@@ -33,9 +33,11 @@ public:
 	static const BcU32 LOAD_FROM_FILE_TAG = 0x01020304;
 
 public:
-	DECLARE_RESOURCE( ScnShader, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnShader, CsResource );
 
-	virtual void initialise();
+	ScnShader();
+	virtual ~ScnShader();
+	
 	virtual void create();
 	virtual void destroy();
 	

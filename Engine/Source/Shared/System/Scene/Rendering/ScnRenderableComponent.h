@@ -25,11 +25,13 @@ class ScnRenderableComponent:
 	public ScnSpatialComponent
 {
 public:
-	DECLARE_RESOURCE( ScnRenderableComponent, ScnSpatialComponent );
+	REFLECTION_DECLARE_DERIVED( ScnRenderableComponent, ScnSpatialComponent );
 	DECLARE_VISITABLE( ScnRenderableComponent );
 
 public:
-	void initialise();
+	ScnRenderableComponent();
+	virtual ~ScnRenderableComponent();
+	
 	virtual void initialise( const Json::Value& Object );
 	virtual void update( BcF32 Tick );
 	virtual void render( 

@@ -25,7 +25,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnSpriteComponent );
+REFLECTION_DEFINE_DERIVED( ScnSpriteComponent );
 REFLECTION_DEFINE_BASIC( ScnSpriteComponent::Animation );
 
 void ScnSpriteComponent::StaticRegisterClass()
@@ -65,9 +65,8 @@ void ScnSpriteComponent::Animation::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnSpriteComponent::initialise()
+// Ctor
+ScnSpriteComponent::ScnSpriteComponent()
 {
 	Position_ = MaVec2d( 0.0f, 0.0f );
 	Size_ = MaVec2d( 0.0f, 0.0f );
@@ -84,11 +83,18 @@ void ScnSpriteComponent::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnSpriteComponent::~ScnSpriteComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnSpriteComponent::initialise( const Json::Value& Object )
 {
-	ScnSpriteComponent::initialise();
 	MaterialName_ = Object[ "materialcomponent" ].asCString();
 
 	if( Object[ "size" ].type() != Json::nullValue )

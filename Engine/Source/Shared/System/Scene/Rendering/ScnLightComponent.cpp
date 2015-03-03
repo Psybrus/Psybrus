@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnLightComponent );
+REFLECTION_DEFINE_DERIVED( ScnLightComponent );
 
 void ScnLightComponent::StaticRegisterClass()
 {
@@ -43,11 +43,9 @@ void ScnLightComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnLightComponent::initialise()
+// Ctor
+ScnLightComponent::ScnLightComponent()
 {
-	Super::initialise();
-
 	Type_ = scnLT_POINT;
 	AmbientColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
 	DiffuseColour_ = RsColour::WHITE;
@@ -56,12 +54,17 @@ void ScnLightComponent::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Dtor
+ScnLightComponent::~ScnLightComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnLightComponent::initialise( const Json::Value& Object )
 {
-	initialise();
-
 	const Json::Value& AmbientColourValue = Object[ "ambientcolour" ];
 	if( AmbientColourValue != Json::nullValue )
 	{

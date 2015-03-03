@@ -24,24 +24,6 @@
 #ifdef PSY_IMPORT_PIPELINE
 #include <json/json.h>
 #endif
-
-//////////////////////////////////////////////////////////////////////////
-// Helper defines.
-#define DECLARE_RESOURCE( _Type, _Base )										\
-	REFLECTION_DECLARE_DERIVED( _Type, _Base )									\
-	public:																	\
-	_Type();																	\
-	virtual ~_Type();															\
-	public:																		
-
-#define DEFINE_RESOURCE( _Type )												\
-	REFLECTION_DEFINE_DERIVED( _Type )											\
-	_Type::_Type()																\
-	{																			\
-	}																			\
-																				\
-	_Type::~_Type()																\
-	{}																			
 																				
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

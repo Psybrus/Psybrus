@@ -27,9 +27,11 @@ class ScnSpriteComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnSpriteComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnSpriteComponent, ScnComponent );
 	
-	virtual void initialise();
+	ScnSpriteComponent();
+	virtual ~ScnSpriteComponent();
+
 	virtual void initialise( const Json::Value& Object );
 	virtual void postUpdate( BcF32 Tick );
 	

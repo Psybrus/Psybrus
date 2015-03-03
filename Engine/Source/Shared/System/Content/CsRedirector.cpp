@@ -68,7 +68,7 @@ BcBool CsRedirectorImport::import( const Json::Value& )
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( CsRedirector );
+REFLECTION_DEFINE_DERIVED( CsRedirector );
 
 void CsRedirector::StaticRegisterClass()
 {
@@ -89,12 +89,19 @@ void CsRedirector::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void CsRedirector::initialise()
+// Ctor
+CsRedirector::CsRedirector():
+	CrossRefId_( CSCROSSREFID_INVALID ),
+	Target_( nullptr )
 {
-	CrossRefId_ = CSCROSSREFID_INVALID;
-	Target_ = nullptr;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+CsRedirector::~CsRedirector()
+{
+	
 }
 
 //////////////////////////////////////////////////////////////////////////

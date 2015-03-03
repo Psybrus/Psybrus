@@ -19,16 +19,12 @@
 #include "Base/BcFile.h"
 
 #ifdef PSY_IMPORT_PIPELINE
-#include "Base/BcStream.h"
-#endif
-
-#ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnShaderImport.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnShader );
+REFLECTION_DEFINE_DERIVED( ScnShader );
 
 void ScnShader::StaticRegisterClass()
 {
@@ -52,13 +48,21 @@ void ScnShader::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnShader::initialise()
+// Ctor
+ScnShader::ScnShader():
+	pHeader_ ( nullptr ),
+	TotalProgramsLoaded_( 0 ),
+	TargetCodeType_( RsShaderCodeType::INVALID )
 {
-	pHeader_ = nullptr;
-	TotalProgramsLoaded_ = 0;
-	TargetCodeType_ = RsShaderCodeType::INVALID;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnShader::~ScnShader()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////

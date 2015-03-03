@@ -35,9 +35,11 @@ class ScnModel:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnModel, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnModel, CsResource );
 		
-	virtual void initialise();
+	ScnModel();
+	virtual ~ScnModel();
+
 	virtual void create();
 	virtual void destroy();
 	
@@ -66,9 +68,11 @@ class ScnModelComponent:
 	public ScnRenderableComponent
 {
 public:
-	DECLARE_RESOURCE( ScnModelComponent, ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnModelComponent, ScnRenderableComponent );
 
-	virtual void initialise();
+	ScnModelComponent();
+	virtual ~ScnModelComponent();
+
 	virtual void initialise( const Json::Value& Object, ScnModelRef Parent );
 	virtual void initialise( const Json::Value& Object );
 

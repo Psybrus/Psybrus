@@ -30,7 +30,10 @@ class ScnTextureAtlas:
 	public ScnTexture
 {
 public:
-	DECLARE_RESOURCE( ScnTextureAtlas, ScnTexture );
+	REFLECTION_DECLARE_DERIVED( ScnTextureAtlas, ScnTexture );
+
+	ScnTextureAtlas();
+	virtual ~ScnTextureAtlas();
 
 	virtual const ScnRect& getRect( BcU32 Idx );
 	virtual BcU32 noofRects();

@@ -34,7 +34,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnModel );
+REFLECTION_DEFINE_DERIVED( ScnModel );
 
 void ScnModel::StaticRegisterClass()
 {
@@ -63,17 +63,22 @@ void ScnModel::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnModel::initialise()
+// Ctor
+ScnModel::ScnModel():
+	pHeader_( nullptr ),
+	pNodeTransformData_( nullptr ),
+	pNodePropertyData_( nullptr ),
+	pVertexBufferData_( nullptr ),
+	pIndexBufferData_( nullptr ),
+	pMeshData_( nullptr )
 {
-	// NULL internals.
-	pHeader_ = nullptr;
-	pNodeTransformData_ = nullptr;
-	pNodePropertyData_ = nullptr;
-	pVertexBufferData_ = nullptr;
-	pIndexBufferData_ = nullptr;
-	pMeshData_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnModel::~ScnModel()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -268,7 +273,7 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
-DEFINE_RESOURCE( ScnModelComponent );
+REFLECTION_DEFINE_DERIVED( ScnModelComponent );
 
 void ScnModelComponent::StaticRegisterClass()
 {
@@ -287,13 +292,20 @@ void ScnModelComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual 
-void ScnModelComponent::initialise()
+// Ctor
+ScnModelComponent::ScnModelComponent():
+	Layer_( 0 ),
+	Pass_( 0 )
 {
-	Super::initialise();
-	Layer_ = 0;
-	Pass_ = 0;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnModelComponent::~ScnModelComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -305,8 +317,6 @@ void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Paren
 
 	// Cache parent.
 	Parent_ = Parent;
-	Layer_ = 0;
-	Pass_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

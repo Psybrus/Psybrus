@@ -90,17 +90,8 @@ ScnEntity::~ScnEntity()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnEntity::initialise()
-{
-	Super::initialise();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
 void ScnEntity::initialise( ScnEntityRef Basis )
 {
-	ScnEntity::initialise();
-	
 	// Grab our basis.
 	setBasis( Basis->getBasisEntity() );
 	pHeader_ = Basis->pHeader_;
@@ -506,9 +497,9 @@ void ScnEntity::setupComponents()
 						Component,
 						[]( ReObject* Object )
 						{
-							ScnComponent* Component = static_cast< ScnComponent* >( Object );
-							Component->initialise();
-						} );				
+							CsResource* Resource = static_cast< CsResource* >( Object );
+							Resource->initialise();
+						} );
 				attach( NewComponent );
 			}
 		}

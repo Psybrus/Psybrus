@@ -90,17 +90,6 @@ ScnComponent::~ScnComponent()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-//virtual
-void ScnComponent::initialise()
-{
-	ComponentFlags_ = 0;
-	ParentEntity_ = nullptr;
-
-	Super::initialise();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
 //virtualp
 void ScnComponent::initialise( const Json::Value& Object )
 {
