@@ -35,11 +35,11 @@ public:
 public:
 	DECLARE_RESOURCE( ScnShader, CsResource );
 
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 	
-	RsProgram*							getProgram( ScnShaderPermutationFlags PermutationFlags );
+	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
 	
 private:
 	typedef std::map< BcU32, RsShader* > TShaderMap;
@@ -52,18 +52,18 @@ private:
 		TShaderMap Shaders_;
 	};
 
-	RsShader*							getShader( BcU32 Hash, TShaderMap& ShaderMap );
+	RsShader* getShader( BcU32 Hash, TShaderMap& ShaderMap );
 	
 private:
-	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady();
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 private:
-	ScnShaderHeader*					pHeader_;
+	ScnShaderHeader* pHeader_;
 	std::array< ShaderContainer, (BcU32)RsShaderType::MAX > ShaderMappings_;
-	TProgramMap							ProgramMap_;
-	RsShaderCodeType					TargetCodeType_;
-	BcU32								TotalProgramsLoaded_;
+	TProgramMap ProgramMap_;
+	RsShaderCodeType TargetCodeType_;
+	BcU32 TotalProgramsLoaded_;
 
 };
 

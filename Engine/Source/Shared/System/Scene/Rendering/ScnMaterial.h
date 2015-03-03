@@ -52,28 +52,28 @@ class ScnMaterial:
 public:
 	DECLARE_RESOURCE( ScnMaterial, CsResource );
 	
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 
-	ScnTextureRef						getTexture( BcName Name );
+	ScnTextureRef getTexture( BcName Name );
 
 private:
-	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady();
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 private:
 	friend class ScnMaterialComponent;
 		
-	ScnMaterialHeader*					pHeader_;
+	ScnMaterialHeader* pHeader_;
 	
-	ScnShaderRef						Shader_;
-	ScnTextureMap						TextureMap_;
+	ScnShaderRef Shader_;
+	ScnTextureMap TextureMap_;
 
-	const RsRenderStateDesc*			RenderStateDesc_;
-	RsRenderStateUPtr					RenderState_;
+	const RsRenderStateDesc* RenderStateDesc_;
+	RsRenderStateUPtr RenderState_;
 
-	std::vector< RsSamplerStateUPtr >	SamplerStates_;
+	std::vector< RsSamplerStateUPtr > SamplerStates_;
 
 };
 
@@ -85,30 +85,30 @@ class ScnMaterialComponent:
 public:
 	DECLARE_RESOURCE( ScnMaterialComponent, ScnComponent );
 	
-	void								initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
-	void								initialise( const Json::Value& Object );
-	void								destroy();
+	void initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
+	void initialise( const Json::Value& Object );
+	void destroy();
 	
-	BcU32								findTextureSlot( const BcName& TextureName );	
-	void								setTexture( BcU32 Slot, ScnTextureRef Texture );
+	BcU32 findTextureSlot( const BcName& TextureName );	
+	void setTexture( BcU32 Slot, ScnTextureRef Texture );
 
-	BcU32								findUniformBlock( const BcName& UniformBlockName );	
-	void								setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer );
+	BcU32 findUniformBlock( const BcName& UniformBlockName );	
+	void setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer );
 
 	// Common uniform blocks.
-	void								setViewUniformBlock( RsBuffer* UniformBuffer );
-	void								setBoneUniformBlock( RsBuffer* UniformBuffer );
-	void								setObjectUniformBlock( RsBuffer* UniformBuffer );
+	void setViewUniformBlock( RsBuffer* UniformBuffer );
+	void setBoneUniformBlock( RsBuffer* UniformBuffer );
+	void setObjectUniformBlock( RsBuffer* UniformBuffer );
 	
-	ScnTextureRef						getTexture( BcU32 Idx );
-	ScnMaterialRef						getMaterial();
+	ScnTextureRef getTexture( BcU32 Idx );
+	ScnMaterialRef getMaterial();
 	
-	void								bind( class RsFrame* pFrame, class RsRenderSort& Sort );
+	void bind( class RsFrame* pFrame, class RsRenderSort& Sort );
 
 public:
-	virtual void						update( BcF32 Tick );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void update( BcF32 Tick );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
 
 private:
@@ -139,20 +139,19 @@ private:
 	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
 
 
-	ScnMaterialRef						Parent_;
-	ScnShaderPermutationFlags			PermutationFlags_;
-	RsProgram*							pProgram_;
+	ScnMaterialRef Parent_;
+	ScnShaderPermutationFlags PermutationFlags_;
+	RsProgram* pProgram_;
 
-	TTextureBindingList					TextureBindingList_;
-	TUniformBlockBindingList			UniformBlockBindingList_;
+	TTextureBindingList TextureBindingList_;
+	TUniformBlockBindingList UniformBlockBindingList_;
 	
 	// Common scene parameters.
-	BcU32								ViewUniformBlockIndex_;
-	BcU32								BoneUniformBlockIndex_;
-	BcU32								ObjectUniformBlockIndex_;
+	BcU32 ViewUniformBlockIndex_;
+	BcU32 BoneUniformBlockIndex_;
+	BcU32 ObjectUniformBlockIndex_;
 
-public:
-	SysFence							UpdateFence_;
+	SysFence UpdateFence_;
 };
 
 #endif

@@ -31,12 +31,12 @@ public:
 	ScnLightingVisitor( class ScnRenderableComponent* RenderableComponent );
 	virtual ~ScnLightingVisitor();
 
-	virtual void							visit( class ScnLightComponent* Component );
+	virtual void visit( class ScnLightComponent* Component );
 
-	void									setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
+	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 
 private:
-	std::vector< ScnLightComponent*	>		LightComponents_;
+	std::vector< ScnLightComponent*	> LightComponents_;
 };
 
 #endif

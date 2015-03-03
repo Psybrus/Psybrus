@@ -39,20 +39,20 @@ class ScnTexture:
 public:
 	DECLARE_RESOURCE( ScnTexture, CsResource );
 	
-	virtual void						initialise();
-	virtual void						initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
-	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
-	virtual void						initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
+	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
+	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
+	virtual void create();
+	virtual void destroy();
 	
-	RsTexture*							getTexture();
+	RsTexture* getTexture();
 	
-	BcU32								getWidth() const;
-	BcU32								getHeight() const;
+	BcU32 getWidth() const;
+	BcU32 getHeight() const;
 	
-	virtual const ScnRect&				getRect( BcU32 Idx );
-	virtual BcU32						noofRects();
+	virtual const ScnRect& getRect( BcU32 Idx );
+	virtual BcU32 noofRects();
 
 	
 protected:

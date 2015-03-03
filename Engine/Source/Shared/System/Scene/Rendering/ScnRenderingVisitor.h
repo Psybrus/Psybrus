@@ -29,12 +29,12 @@ public:
 		RsRenderSort Sort );
 	virtual ~ScnRenderingVisitor();
 
-	virtual void							visit( class ScnRenderableComponent* pComponent );
+	virtual void visit( class ScnRenderableComponent* pComponent );
 
 private:
-	class ScnViewComponent*					pViewComponent_;
-	class RsFrame*							pFrame_;
-	RsRenderSort							Sort_;
+	class ScnViewComponent* pViewComponent_;
+	class RsFrame* pFrame_;
+	RsRenderSort Sort_;
 };
 
 #endif

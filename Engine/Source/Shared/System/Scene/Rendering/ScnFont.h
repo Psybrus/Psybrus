@@ -51,13 +51,13 @@ class ScnFont:
 public:
 	DECLARE_RESOURCE( ScnFont, CsResource );
 	
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 		
 private:
-	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady();
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 private:
 	friend class ScnFontComponent;
@@ -65,8 +65,8 @@ private:
 	ScnFontHeader* pHeader_;
 	ScnFontGlyphDesc* pGlyphDescs_;
 	
-	typedef std::map< BcU32, BcU32 >	TCharCodeMap;
-	typedef TCharCodeMap::iterator		TCharCodeMapIterator;
+	typedef std::map< BcU32, BcU32 > TCharCodeMap;
+	typedef TCharCodeMap::iterator TCharCodeMapIterator;
 	
 	TCharCodeMap CharCodeMap_;
 	ScnTexture* Texture_;
@@ -229,19 +229,19 @@ class ScnFontComponent:
 public:
 	DECLARE_RESOURCE( ScnFontComponent, ScnComponent );
 	
-	void								initialise();
-	void								initialise( ScnFontRef Parent, ScnMaterialRef Material );
-	void								initialise( const Json::Value& Object );
+	void initialise();
+	void initialise( ScnFontRef Parent, ScnMaterialRef Material );
+	void initialise( const Json::Value& Object );
 
 	
 	// Old interface.
-	void								setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
-	MaVec2d								draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
-	MaVec2d								drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
-	MaVec2d								draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
-	MaVec2d								drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
-	void								setAlphaTestStepping( const MaVec2d& Stepping );
-	ScnMaterialComponentRef				getMaterialComponent();
+	void setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
+	MaVec2d draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
+	MaVec2d drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
+	MaVec2d draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
+	MaVec2d drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
+	void setAlphaTestStepping( const MaVec2d& Stepping );
+	ScnMaterialComponentRef getMaterialComponent();
 
 	// New interfaces.
 
@@ -286,9 +286,9 @@ public:
 
 
 public:
-	virtual void						update( BcF32 Tick );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void update( BcF32 Tick );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
 private:
 	friend class ScnFont;

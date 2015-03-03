@@ -20,10 +20,10 @@
 // ScnFontHeader
 struct ScnFontHeader
 {
-	BcU32							NoofGlyphs_;
-	BcU32							TextureRef_;
-	BcF32							NominalSize_;
-	BcF32							BorderSize_;
+	BcU32 NoofGlyphs_;
+	BcU32 TextureRef_;
+	BcF32 NominalSize_;
+	BcF32 BorderSize_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,20 +31,20 @@ struct ScnFontHeader
 struct ScnFontGlyphDesc
 {	
 	// Texture.
-	BcF32							UA_;
-	BcF32							VA_;
-	BcF32							UB_;
-	BcF32							VB_;
+	BcF32 UA_;
+	BcF32 VA_;
+	BcF32 UB_;
+	BcF32 VB_;
 	
 	// Positioning.
-	BcF32							OffsetX_;
-	BcF32							OffsetY_;
-	BcF32							Width_;
-	BcF32							Height_;
-	BcF32							AdvanceX_;
+	BcF32 OffsetX_;
+	BcF32 OffsetY_;
+	BcF32 Width_;
+	BcF32 Height_;
+	BcF32 AdvanceX_;
 		
 	// CharCode
-	BcU32							CharCode_;
+	BcU32 CharCode_;
 };
 
 #endif

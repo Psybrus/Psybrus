@@ -21,17 +21,17 @@
 // ScnMaterialHeader
 struct ScnMaterialHeader
 {
-	BcU32							ShaderRef_;
-	BcU32							NoofTextures_;
+	BcU32 ShaderRef_;
+	BcU32 NoofTextures_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnMaterialTextureHeader
 struct ScnMaterialTextureHeader
 {
-	BcName							SamplerName_;
-	RsSamplerStateDesc				SamplerStateDesc_;
-	BcU32							TextureRef_;
+	BcName SamplerName_;
+	RsSamplerStateDesc SamplerStateDesc_;
+	BcU32 TextureRef_;
 };
 
 #endif

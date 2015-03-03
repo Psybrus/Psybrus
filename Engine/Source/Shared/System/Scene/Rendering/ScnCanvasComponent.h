@@ -202,15 +202,15 @@ public:
 	void clear();
 	
 public:
-	virtual void						preUpdate( BcF32 Tick );
-	virtual void						postUpdate( BcF32 Tick );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
-	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
+	virtual void preUpdate( BcF32 Tick );
+	virtual void postUpdate( BcF32 Tick );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+	virtual void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 
 
 protected:
-	BcForceInline BcU32					convertVertexPointerToIndex( ScnCanvasComponentVertex* pVertex )
+	BcForceInline BcU32 convertVertexPointerToIndex( ScnCanvasComponentVertex* pVertex )
 	{
 		// NOTE: Will probably warn due to converting a 64-bit pointer to 32-bit value, but
 		//       it's actually ok because we should never have over 4GB worth of vertices!
@@ -219,47 +219,47 @@ protected:
 	}
 	
 protected:
-	RsVertexDeclaration*				VertexDeclaration_;
+	RsVertexDeclaration* VertexDeclaration_;
 	struct TRenderResource
 	{
-		RsBuffer*						pVertexBuffer_;
+		RsBuffer* pVertexBuffer_;
 	};
 
-	BcBool								HaveVertexBufferLock_;
-	TRenderResource						RenderResource_;
+	BcBool HaveVertexBufferLock_;
+	TRenderResource RenderResource_;
 
 	// Submission data.
-	ScnCanvasComponentVertex*			pWorkingVertices_;
-	ScnCanvasComponentVertex*			pVertices_;
-	ScnCanvasComponentVertex*			pVerticesEnd_;
-	BcSize								NoofVertices_;
-	BcSize								VertexIndex_;
-	SysFence							UploadFence_;
+	ScnCanvasComponentVertex* pWorkingVertices_;
+	ScnCanvasComponentVertex* pVertices_;
+	ScnCanvasComponentVertex* pVerticesEnd_;
+	BcSize NoofVertices_;
+	BcSize VertexIndex_;
+	SysFence UploadFence_;
 	
 	// Materials.
-	ScnMaterialComponentRef				MaterialComponent_;
-	ScnTextureRef						DiffuseTexture_;
+	ScnMaterialComponentRef MaterialComponent_;
+	ScnTextureRef DiffuseTexture_;
 
 	typedef std::vector< ScnCanvasComponentPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;
 	
-	TPrimitiveSectionList				PrimitiveSectionList_;
-	BcU32								LastPrimitiveSection_;
+	TPrimitiveSectionList PrimitiveSectionList_;
+	BcU32 LastPrimitiveSection_;
 
 	// Matrix stack.
 	typedef std::vector< MaMat4d > TMatrixStack;
 	typedef TMatrixStack::iterator TMatrixStackIterator;
 	
-	TMatrixStack						MatrixStack_;
-	BcBool								IsIdentity_;
+	TMatrixStack MatrixStack_;
+	BcBool IsIdentity_;
 
 	// Automatic clear and setup.
-	BcBool								Clear_;
-	BcF32								Left_;
-	BcF32								Right_;
-	BcF32								Top_;
-	BcF32								Bottom_;
-	MaMat4d								ViewMatrix_;
+	BcBool Clear_;
+	BcF32 Left_;
+	BcF32 Right_;
+	BcF32 Top_;
+	BcF32 Bottom_;
+	MaMat4d ViewMatrix_;
 };
 
 #endif

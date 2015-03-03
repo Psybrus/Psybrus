@@ -32,11 +32,11 @@ class ScnTextureAtlas:
 public:
 	DECLARE_RESOURCE( ScnTextureAtlas, ScnTexture );
 
-	virtual const ScnRect&				getRect( BcU32 Idx );
-	virtual BcU32						noofRects();
+	virtual const ScnRect& getRect( BcU32 Idx );
+	virtual BcU32 noofRects();
 
 protected:
-	virtual void						fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
 	struct ScnTextureAtlasHeader

@@ -138,31 +138,31 @@ inline ScnShaderPermutationFlags operator & ( ScnShaderPermutationFlags In, ScnS
 // ScnShaderHeader
 struct ScnShaderHeader
 {
-	BcU32							NoofShaderPermutations_;
-	BcU32							NoofProgramPermutations_;
-	BcU32							NoofShaderCodeTypes_;
+	BcU32 NoofShaderPermutations_;
+	BcU32 NoofProgramPermutations_;
+	BcU32 NoofShaderCodeTypes_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderUnitHeader
 struct ScnShaderUnitHeader
 {
-	RsShaderType					ShaderType_;
-	RsShaderDataType				ShaderDataType_;
-	RsShaderCodeType				ShaderCodeType_;
-	BcU32							ShaderHash_;
-	ScnShaderPermutationFlags		PermutationFlags_;
+	RsShaderType ShaderType_;
+	RsShaderDataType ShaderDataType_;
+	RsShaderCodeType ShaderCodeType_;
+	BcU32 ShaderHash_;
+	ScnShaderPermutationFlags PermutationFlags_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderProgramHeader
 struct ScnShaderProgramHeader
 {
-	ScnShaderPermutationFlags		ProgramPermutationFlags_;
-	ScnShaderPermutationFlags		ShaderFlags_;
-	RsShaderCodeType				ShaderCodeType_;
-	BcU32							NoofVertexAttributes_;
-	BcU32							ShaderHashes_[ (BcU32)RsShaderType::MAX ];
+	ScnShaderPermutationFlags ProgramPermutationFlags_;
+	ScnShaderPermutationFlags ShaderFlags_;
+	RsShaderCodeType ShaderCodeType_;
+	BcU32 NoofVertexAttributes_;
+	BcU32 ShaderHashes_[ (BcU32)RsShaderType::MAX ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -172,11 +172,11 @@ struct ScnShaderViewUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderViewUniformBlockData );
 	ScnShaderViewUniformBlockData(){};
 
-	MaMat4d							InverseProjectionTransform_;
-	MaMat4d							ProjectionTransform_;
-	MaMat4d							InverseViewTransform_;
-	MaMat4d							ViewTransform_;
-	MaMat4d							ClipTransform_;
+	MaMat4d InverseProjectionTransform_;
+	MaMat4d ProjectionTransform_;
+	MaMat4d InverseViewTransform_;
+	MaMat4d ViewTransform_;
+	MaMat4d ClipTransform_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -186,11 +186,11 @@ struct ScnShaderLightUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderLightUniformBlockData );
 	ScnShaderLightUniformBlockData(){};
 
-	MaVec3d							LightPosition_[ 4 ];
-	MaVec3d							LightDirection_[ 4 ];
-	MaVec4d							LightAmbientColour_[ 4 ];
-	MaVec4d							LightDiffuseColour_[ 4 ];
-	MaVec3d							LightAttn_[ 4 ];
+	MaVec3d LightPosition_[ 4 ];
+	MaVec3d LightDirection_[ 4 ];
+	MaVec4d LightAmbientColour_[ 4 ];
+	MaVec4d LightDiffuseColour_[ 4 ];
+	MaVec3d LightAttn_[ 4 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -200,8 +200,8 @@ struct ScnShaderObjectUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderObjectUniformBlockData );
 	ScnShaderObjectUniformBlockData(){};
 
-	MaMat4d							WorldTransform_;
-	MaMat4d							NormalTransform_;
+	MaMat4d WorldTransform_;
+	MaMat4d NormalTransform_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -213,7 +213,7 @@ struct ScnShaderBoneUniformBlockData
 
 	static const BcU32 MAX_BONES = 24;
 
-	MaMat4d							BoneTransform_[ MAX_BONES ];
+	MaMat4d BoneTransform_[ MAX_BONES ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -223,7 +223,7 @@ struct ScnShaderAlphaTestUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderAlphaTestUniformBlockData );
 	ScnShaderAlphaTestUniformBlockData(){};
 
-	MaVec4d							AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
+	MaVec4d AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 };
 
 #endif

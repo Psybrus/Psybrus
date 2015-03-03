@@ -36,10 +36,10 @@ struct ScnDebugRenderComponentVertex
 // ScnDebugRenderComponentPrimitiveSection
 struct ScnDebugRenderComponentPrimitiveSection
 {
-	RsTopologyType		Type_;
-	BcU32					VertexIndex_;
-	BcU32					NoofVertices_;
-	BcU32					Layer_;
+	RsTopologyType Type_;
+	BcU32 VertexIndex_;
+	BcU32 NoofVertices_;
+	BcU32 Layer_;
 	ScnMaterialComponentRef	MaterialComponent_;
 };
 
@@ -60,12 +60,12 @@ class ScnDebugRenderComponent:
 public:
 	DECLARE_RESOURCE( ScnDebugRenderComponent, ScnRenderableComponent );
 
-	static ScnDebugRenderComponent*		pImpl();
+	static ScnDebugRenderComponent* pImpl();
 	
-	virtual void						initialise();
-	virtual void						initialise( BcU32 NoofVertices );
-	virtual void						initialise( const Json::Value& Object );
-	virtual MaAABB						getAABB() const;
+	virtual void initialise();
+	virtual void initialise( BcU32 NoofVertices );
+	virtual void initialise( const Json::Value& Object );
+	virtual MaAABB getAABB() const;
 	
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -73,12 +73,12 @@ public:
 	 * and to allocate the total number at the end. Provided you don't overrun the buffer!
 	 * @param NoofVertices Number of vertices to allocate.
 	 */
-	ScnDebugRenderComponentVertex*		allocVertices( BcU32 NoofVertices );
+	ScnDebugRenderComponentVertex* allocVertices( BcU32 NoofVertices );
 	
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void								addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
 
 	/**
 	 * Draw line.
@@ -87,7 +87,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
 	
 	/**
 	 * Draw lines.
@@ -96,7 +96,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void								drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw matrix.
@@ -104,7 +104,7 @@ public:
 	 * @param Colour Colour multiplier.
 	 * @param Layer Layer
 	 */
-	void								drawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Draw grid.
@@ -114,7 +114,7 @@ public:
 	 * @param SubDivideMultiple Multiple to use to subdivide grid.
 	 * @param Layer Layer
 	 */
-	void								drawGrid( const MaVec3d& Position, const MaVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer = 0 );
+	void drawGrid( const MaVec3d& Position, const MaVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer = 0 );
 
 	/**
 	 * Draw ellipsoid.
@@ -123,7 +123,7 @@ public:
 	 * @params Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void								drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	* Draw AABB.
@@ -131,22 +131,22 @@ public:
 	 * @params Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void								drawAABB( const MaAABB& AABB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawAABB( const MaAABB& AABB, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
 	 * Clear
 	 */
-	void								clear();
+	void clear();
 
 public:
-	virtual void						preUpdate( BcF32 Tick );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
-	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
+	virtual void preUpdate( BcF32 Tick );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
+	virtual void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 
 
 protected:
-	BcForceInline BcU32					convertVertexPointerToIndex( ScnDebugRenderComponentVertex* pVertex )
+	BcForceInline BcU32 convertVertexPointerToIndex( ScnDebugRenderComponentVertex* pVertex )
 	{
 		// NOTE: Will probably warn due to converting a 64-bit pointer to 32-bit value, but
 		//       it's actually ok because we should never (lol famous words) have over 4GB worth of vertices!
@@ -155,9 +155,9 @@ protected:
 	}
 	
 protected:
-	static ScnDebugRenderComponent*		pImpl_;
+	static ScnDebugRenderComponent* pImpl_;
 
-	RsVertexDeclaration*				VertexDeclaration_;
+	RsVertexDeclaration* VertexDeclaration_;
 	struct TRenderResource
 	{
 		RsBuffer* UniformBuffer_;
@@ -165,27 +165,27 @@ protected:
 		ScnShaderObjectUniformBlockData	ObjectUniforms_;
 	};
 
-	BcU32								CurrentRenderResource_;
-	TRenderResource						RenderResources_[ 2 ];
-	TRenderResource*					pRenderResource_;
+	BcU32 CurrentRenderResource_;
+	TRenderResource RenderResources_[ 2 ];
+	TRenderResource* pRenderResource_;
 
 	// Submission data.
-	ScnDebugRenderComponentVertex*		pWorkingVertices_;
-	ScnDebugRenderComponentVertex*		pVertices_;
-	ScnDebugRenderComponentVertex*		pVerticesEnd_;
-	BcU32								NoofVertices_;
-	BcU32								VertexIndex_;
-	SysFence							UploadFence_;
+	ScnDebugRenderComponentVertex* pWorkingVertices_;
+	ScnDebugRenderComponentVertex* pVertices_;
+	ScnDebugRenderComponentVertex* pVerticesEnd_;
+	BcU32 NoofVertices_;
+	BcU32 VertexIndex_;
+	SysFence UploadFence_;
 	
 	// Materials.
-	ScnMaterialRef						Material_;
-	ScnMaterialComponentRef				MaterialComponent_;
+	ScnMaterialRef Material_;
+	ScnMaterialComponentRef MaterialComponent_;
 
 	typedef std::vector< ScnDebugRenderComponentPrimitiveSection > TPrimitiveSectionList;
 	typedef TPrimitiveSectionList::iterator TPrimitiveSectionListIterator;
 	
-	TPrimitiveSectionList				PrimitiveSectionList_;
-	BcU32								LastPrimitiveSection_;
+	TPrimitiveSectionList PrimitiveSectionList_;
+	BcU32 LastPrimitiveSection_;
 };
 
 #endif

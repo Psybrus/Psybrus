@@ -69,22 +69,22 @@ public:
 	virtual ~ScnParticleSystemComponent();
 
 public:
-	virtual void						initialise( const Json::Value& Object );
+	virtual void initialise( const Json::Value& Object );
 
-	virtual MaAABB						getAABB() const;
+	virtual MaAABB getAABB() const;
 
-	virtual void						postUpdate( BcF32 Tick );
-	virtual void						render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void postUpdate( BcF32 Tick );
+	virtual void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
-	ScnMaterialComponentRef				getMaterialComponent();
+	ScnMaterialComponentRef getMaterialComponent();
 
-	BcBool								allocParticle( ScnParticle*& pParticle );
+	BcBool allocParticle( ScnParticle*& pParticle );
 
 private:
-	void								updateParticle( ScnParticle& Particle, BcF32 Tick );
-	void								updateParticles( BcF32 Tick );
+	void updateParticle( ScnParticle& Particle, BcF32 Tick );
+	void updateParticles( BcF32 Tick );
 
 private:
 	struct TVertexBuffer

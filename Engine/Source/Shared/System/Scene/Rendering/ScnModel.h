@@ -37,13 +37,13 @@ class ScnModel:
 public:
 	DECLARE_RESOURCE( ScnModel, CsResource );
 		
-	virtual void						initialise();
-	virtual void						create();
-	virtual void						destroy();
+	virtual void initialise();
+	virtual void create();
+	virtual void destroy();
 	
 private:
-	void								fileReady();
-	void								fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady();
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 	
 protected:
 	friend class ScnModelComponent;

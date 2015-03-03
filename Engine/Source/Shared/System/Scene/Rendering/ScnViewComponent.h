@@ -39,27 +39,24 @@ class ScnViewComponent:
 public:
 	DECLARE_RESOURCE( ScnViewComponent, ScnComponent );
 
-#if PSY_IMPORT_PIPELINE
-	virtual BcBool						import( class CsPackageImporter& Importer, const Json::Value& Object );
-#endif	
-	void								initialise();
-	virtual void						initialise( const Json::Value& Object );
+	void initialise();
+	virtual void initialise( const Json::Value& Object );
 
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
-	void								setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
-	void								getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
-	MaVec2d								getScreenPosition( const MaVec3d& WorldPosition ) const;
-	BcU32								getDepth( const MaVec3d& WorldPos ) const;
-	const RsViewport&					getViewport() const;
+	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
+	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
+	MaVec2d getScreenPosition( const MaVec3d& WorldPosition ) const;
+	BcU32 getDepth( const MaVec3d& WorldPos ) const;
+	const RsViewport& getViewport() const;
 
-	BcBool								intersect( const MaAABB& AABB ) const;
+	BcBool intersect( const MaAABB& AABB ) const;
 
-	virtual void						bind( class RsFrame* pFrame, RsRenderSort Sort );
+	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
-	void								setRenderMask( BcU32 RenderMask );
-	const BcU32							getRenderMask() const;
+	void setRenderMask( BcU32 RenderMask );
+	const BcU32 getRenderMask() const;
 
 protected:
 	void recreateFrameBuffer();
