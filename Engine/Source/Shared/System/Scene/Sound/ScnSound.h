@@ -29,9 +29,11 @@ class ScnSound:
 	public CsResource
 {
 public:
-	DECLARE_RESOURCE( ScnSound, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnSound, CsResource );
 	
-	virtual void initialise();
+	ScnSound();
+	virtual ~ScnSound();
+	
 	virtual void create();
 	virtual void destroy();
 	

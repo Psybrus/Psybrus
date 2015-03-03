@@ -25,7 +25,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnSoundListenerComponent );
+REFLECTION_DEFINE_DERIVED( ScnSoundListenerComponent );
 
 void ScnSoundListenerComponent::StaticRegisterClass()
 {	
@@ -34,12 +34,26 @@ void ScnSoundListenerComponent::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnSoundListenerComponent::ScnSoundListenerComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnSoundListenerComponent::~ScnSoundListenerComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
 void ScnSoundListenerComponent::initialise( const Json::Value& Object )
 {
 	Super::initialise();
-
 }
 
 //////////////////////////////////////////////////////////////////////////

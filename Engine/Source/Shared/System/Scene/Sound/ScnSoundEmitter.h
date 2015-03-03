@@ -29,7 +29,10 @@ class ScnSoundEmitterComponent:
 	public ScnComponent
 {
 public:
-	DECLARE_RESOURCE( ScnSoundEmitterComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( ScnSoundEmitterComponent, ScnComponent );
+	
+	ScnSoundEmitterComponent();
+	virtual ~ScnSoundEmitterComponent();
 	
 	virtual void initialise( const Json::Value& Object );
 	

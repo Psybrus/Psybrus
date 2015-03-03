@@ -27,7 +27,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( ScnSoundEmitterComponent );
+REFLECTION_DEFINE_DERIVED( ScnSoundEmitterComponent );
 
 void ScnSoundEmitterComponent::StaticRegisterClass()
 {
@@ -38,6 +38,21 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 		
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2010 ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnSoundEmitterComponent::ScnSoundEmitterComponent()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnSoundEmitterComponent::~ScnSoundEmitterComponent()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
