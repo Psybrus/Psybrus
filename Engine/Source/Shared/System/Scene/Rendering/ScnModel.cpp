@@ -279,10 +279,13 @@ void ScnModelComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Parent_", &ScnModelComponent::Parent_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
+		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
+
+		new ReField( "UploadFence_", &ScnModelComponent::UploadFence_, bcRFF_TRANSIENT ),
+		new ReField( "UpdateFence_", &ScnModelComponent::UpdateFence_, bcRFF_TRANSIENT ),
 		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
-		new ReField( "Layer_", &ScnModelComponent::Layer_ ),
-		new ReField( "Pass_", &ScnModelComponent::Pass_ ),
 		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
 		new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
 	};
@@ -294,8 +297,14 @@ void ScnModelComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnModelComponent::ScnModelComponent():
+	Model_(),
 	Layer_( 0 ),
-	Pass_( 0 )
+	Pass_( 0 ),
+	pNodeTransformData_( nullptr ),
+	UploadFence_(),
+	UpdateFence_(),
+	AABB_(),
+	PerComponentMeshDataList_()
 {
 
 }
@@ -306,31 +315,6 @@ ScnModelComponent::ScnModelComponent():
 ScnModelComponent::~ScnModelComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnModelComponent::initialise( const Json::Value& Object, ScnModelRef Parent )
-{
-	Super::initialise( Object );
-
-	// Cache parent.
-	Parent_ = Parent;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnModelComponent::initialise( const Json::Value& Object )
-{
-	ScnModelRef ModelRef;
-	ModelRef = getPackage()->getCrossRefResource( Object[ "model" ].asUInt() );
-	initialise( Object, ModelRef );
-
-	// Setup additional stuff.
-	Layer_ = Object.get( "layer", 0 ).asUInt();
-	Pass_ = Object.get( "pass", 0 ).asUInt();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -347,8 +331,8 @@ MaAABB ScnModelComponent::getAABB() const
 // findNodeIndexByName
 BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 {
-	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
-	const ScnModelNodePropertyData* pNodePropertyData = Parent_->pNodePropertyData_;
+	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
+	const ScnModelNodePropertyData* pNodePropertyData = Model_->pNodePropertyData_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
 		if( pNodePropertyData[ NodeIdx ].Name_ == Name )
@@ -364,8 +348,8 @@ BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 // findNodeNameByIndex
 const BcName& ScnModelComponent::findNodeNameByIndex( BcU32 NodeIdx ) const
 {
-	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
-	const ScnModelNodePropertyData* pNodePropertyData = Parent_->pNodePropertyData_;
+	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
+	const ScnModelNodePropertyData* pNodePropertyData = Model_->pNodePropertyData_;
 	if( NodeIdx < NoofNodes )
 	{
 		return pNodePropertyData[ NodeIdx ].Name_;
@@ -378,7 +362,7 @@ const BcName& ScnModelComponent::findNodeNameByIndex( BcU32 NodeIdx ) const
 // setNode
 void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 {
-	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
 		pNodeTransformData_[ NodeIdx ].LocalTransform_ = LocalTransform;
@@ -389,7 +373,7 @@ void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 // getNode
 const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 {
-	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
 		return pNodeTransformData_[ NodeIdx ].LocalTransform_;
@@ -403,7 +387,7 @@ const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 // getNoofNodes
 BcU32 ScnModelComponent::getNoofNodes() const
 {
-	const BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	return NoofNodes;
 }
 
@@ -466,11 +450,11 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	updateNodes( getParentEntity()->getWorldMatrix() );
 
 #if DEBUG_RENDER_NODES
-	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
 		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
+		ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ NodeIdx ];
 
 		MaMat4d ThisMatrix = pNodeTransformData->WorldTransform_;
 		MaMat4d ParentMatrix = pNodePropertyData->ParentIndex_ != BcErrorCode ? 
@@ -498,11 +482,11 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	UploadFence_.wait();
 
 	// Update nodes.	
-	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
 		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ NodeIdx ];
+		ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ NodeIdx ];
 
 		// Check parent index and process.
 		if( pNodePropertyData->ParentIndex_ != BcErrorCode )
@@ -518,11 +502,11 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	}
 
 	// Calculate bounds.
-	BcU32 NoofPrimitives = Parent_->pHeader_->NoofPrimitives_;
+	BcU32 NoofPrimitives = Model_->pHeader_->NoofPrimitives_;
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
-		ScnModelMeshRuntime* pNodeMeshRuntime = &Parent_->MeshRuntimes_[ PrimitiveIdx ];
-		ScnModelMeshData* pNodeMeshData = &Parent_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		ScnModelMeshRuntime* pNodeMeshRuntime = &Model_->MeshRuntimes_[ PrimitiveIdx ];
+		ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
 
 		// Special case the skinned models for now.
 		if( pNodeMeshData->IsSkinned_ == BcFalse )
@@ -541,7 +525,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				if( BoneIndex != BcErrorCode )
 				{
 					// Get the distance from the parent bone, and make an AABB that size.
-					ScnModelNodePropertyData* pNodePropertyData = &Parent_->pNodePropertyData_[ BoneIndex ];
+					ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ BoneIndex ];
 					if( pNodePropertyData->ParentIndex_ != BcErrorCode && pNodePropertyData->IsBone_ )
 					{
 						ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ BoneIndex ];
@@ -570,8 +554,8 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	// Setup skinning buffers.
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
-		ScnModelMeshRuntime* pNodeMeshRuntime = &Parent_->MeshRuntimes_[ PrimitiveIdx ];
-		ScnModelMeshData* pNodeMeshData = &Parent_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		ScnModelMeshRuntime* pNodeMeshRuntime = &Model_->MeshRuntimes_[ PrimitiveIdx ];
+		ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 
 		UploadFence_.increment();
@@ -635,17 +619,17 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 
 	// Duplicate node data for update/rendering.
-	BcU32 NoofNodes = Parent_->pHeader_->NoofNodes_;
+	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
-	BcMemCopy( pNodeTransformData_, Parent_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
+	BcMemCopy( pNodeTransformData_, Model_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
 
 	// Create material instances to render with.
-	ScnModelMeshRuntimeList& MeshRuntimes = Parent_->MeshRuntimes_;
+	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnMaterialComponentRef MaterialComponentRef;
 	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
-		ScnModelMeshData* pMeshData = &Parent_->pMeshData_[ Idx ];
+		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
 		TPerComponentMeshData ComponentData;
 
@@ -771,8 +755,8 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 	// Gather lights.
 	ScnLightingVisitor LightingVisitor( this );
 
-	ScnModelMeshRuntimeList& MeshRuntimes = Parent_->MeshRuntimes_;
-	ScnModelMeshData* pMeshDatas = Parent_->pMeshData_;
+	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
+	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
 
 	// Set layer.
 	Sort.Layer_ = Layer_;

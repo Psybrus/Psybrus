@@ -46,14 +46,6 @@ ScnSpatialComponent::~ScnSpatialComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnSpatialComponent::initialise( const Json::Value& Object )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
 // postUpdate
 //virtual
 void ScnSpatialComponent::postUpdate( BcF32 Tick )

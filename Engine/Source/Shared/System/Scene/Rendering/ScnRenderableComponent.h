@@ -32,7 +32,6 @@ public:
 	ScnRenderableComponent();
 	virtual ~ScnRenderableComponent();
 	
-	virtual void initialise( const Json::Value& Object );
 	virtual void update( BcF32 Tick );
 	virtual void render( 
 		class ScnViewComponent* pViewComponent, 

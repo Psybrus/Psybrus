@@ -73,9 +73,6 @@ public:
 	ScnModelComponent();
 	virtual ~ScnModelComponent();
 
-	virtual void initialise( const Json::Value& Object, ScnModelRef Parent );
-	virtual void initialise( const Json::Value& Object );
-
 	virtual MaAABB getAABB() const;
 
 	BcU32 findNodeIndexByName( const BcName& Name ) const;
@@ -97,10 +94,11 @@ public:
 	void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	
 protected:
-	ScnModelRef Parent_;
-	ScnModelNodeTransformData* pNodeTransformData_;
+	ScnModelRef Model_;
 	BcU32 Layer_;
 	BcU32 Pass_;
+
+	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
 	SysFence UpdateFence_;
 

@@ -27,7 +27,8 @@ void ScnRenderableComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "RenderMask_", &ScnRenderableComponent::RenderMask_ ),
+		new ReField( "RenderMask_", &ScnRenderableComponent::RenderMask_, bcRFF_IMPORTER ),
+		new ReField( "IsLit_", &ScnRenderableComponent::IsLit_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
@@ -49,24 +50,6 @@ ScnRenderableComponent::ScnRenderableComponent():
 ScnRenderableComponent::~ScnRenderableComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnRenderableComponent::initialise( const Json::Value& Object )
-{
-	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
-	if( RenderMaskValue.type() != Json::nullValue )
-	{
-		setRenderMask( RenderMaskValue.asUInt() );
-	}
-
-	const Json::Value& IsLitValue = Object[ "islit" ];
-	if( IsLitValue.type() == Json::booleanValue )
-	{
-		IsLit_ = IsLitValue.asBool();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
