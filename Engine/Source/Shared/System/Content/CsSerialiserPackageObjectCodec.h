@@ -52,6 +52,12 @@ public:
 		BcU32 ParentFlags,
 		const class ReField* Field ) override;
 
+	virtual BcBool findObject( 
+		void*& OutObject, const ReType* Type, BcU32 Key ) override;
+
+	virtual BcBool findObject( 
+		void*& OutObject, const ReType* Type, const std::string& Key ) override;
+	
 private:
 	class CsPackage* Package_;
 	BcU32 IncludeFieldFlags_;

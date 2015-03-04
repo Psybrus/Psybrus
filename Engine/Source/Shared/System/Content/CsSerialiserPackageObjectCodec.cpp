@@ -137,9 +137,8 @@ BcBool CsSerialiserPackageObjectCodec::shouldSerialiseField(
 	BcU32 Flags = Field->getFlags() | ( ParentFlags & PropagateFieldFlags_ );
 	BcBool ShouldSerialise = 
 		( ( ( Flags & ExcludeFieldFlags_ ) == 0 ) && 
-		( ( Flags & IncludeFieldFlags_ ) != 0 ) ) || 
-		Field->getFlags() == 0;
-
+		( ( Flags & IncludeFieldFlags_ ) != 0 ) );
+		
 	// If the field is an ReObject, we should check if it's a CsPackage.
 	// - We don't want to serialise CsPackages.
 	if( Field->getType()->isTypeOf< ReClass >() )
@@ -162,4 +161,21 @@ BcBool CsSerialiserPackageObjectCodec::shouldSerialiseField(
 	}
 	
 	return ShouldSerialise;
+}
+
+
+//virtual 
+BcBool CsSerialiserPackageObjectCodec::findObject( 
+		void*& OutObject, const ReType* Type, BcU32 Key )
+{
+	OutObject = Package_->getCrossRefResource( Key );
+	return OutObject != nullptr;
+}
+
+//virtual
+BcBool CsSerialiserPackageObjectCodec::findObject( 
+		void*& OutObject, const ReType* Type, const std::string& Key )
+{
+	OutObject = nullptr;
+	return BcFalse;
 }
