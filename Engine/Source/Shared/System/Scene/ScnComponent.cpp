@@ -18,6 +18,9 @@
 
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnComponentImport.h"
+#include "Serialisation/SeJsonReader.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
+
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +96,8 @@ ScnComponent::~ScnComponent()
 //virtualp
 void ScnComponent::initialise( const Json::Value& Object )
 {
-	BcBreakpoint; // Should never enter here. Stop calling to this method.
+	PSY_LOGSCOPEDCATEGORY( "ScnComponent" );
+	PSY_LOG( "INFO: Calling base initialise( Json::Value ) for %s\n", (*getTypeName()).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -273,6 +277,12 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	    Json::Reader Reader;
 	    if( Reader.parse( pJsonObject_, Root ) )
 		{
+			// New way.
+			CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
+			SeJsonReader Reader( &ObjectCodec );
+			Reader.serialiseClassMembers( this, this->getClass(), Root, 0 );
+		
+			// Old way.
 			initialise( Root );
 		}
 		else
