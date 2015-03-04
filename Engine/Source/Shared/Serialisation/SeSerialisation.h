@@ -45,6 +45,18 @@ public:
 		void* InData, 
         BcU32 ParentFlags,
 		const class ReField* Field ) = 0;
+
+    /**
+     * @brief Will find object that has previously been added.
+     */
+    virtual BcBool findObject( 
+        void*& OutObject, const ReType* Type, BcU32 Key ) = 0;
+
+    /**
+     * @brief Decode as pointer.
+     */
+    virtual BcBool findObject( 
+        void*& OutObject, const ReType* Type, const std::string& Key ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,7 @@ private:
         }
     };
 
+    SerialiseClass getSerialiseClass( BcU32 ID, const ReType* pType );
     SerialiseClass getSerialiseClass( std::string ID, const ReType* pType );
 
 private:
