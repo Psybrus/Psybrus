@@ -68,10 +68,6 @@ public:
 	ScnCanvasComponent( BcU32 NoofVertices );
 	virtual ~ScnCanvasComponent();
 
-	virtual void initialise();
-	virtual void initialise( BcU32 NoofVertices );
-
-	virtual void initialise( const Json::Value& Object );
 	virtual MaAABB getAABB() const;
 
 	/**

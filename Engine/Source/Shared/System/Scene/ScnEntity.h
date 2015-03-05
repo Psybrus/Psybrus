@@ -185,9 +185,11 @@ protected:
 template< typename _Ty, typename... _ParamT >
 BcForceInline _Ty* ScnEntity::attach( const BcName& Name, _ParamT... Params )
 {
-	ReObjectRef< _Ty > Component = internalCreateComponent( Name, _Ty::StaticGetClass() );
-	BcAssert( Component->isTypeOf( ScnComponent::StaticGetClass() ) );
-	Component->initialise( Params... );
+	BcName UniqueName = Name.isValid() ? Name : BcName( _Ty::StaticGetClass()->getName() ).getUnique();
+	auto Component = new _Ty( Params... );
+	Component->setName( UniqueName );
+	Component->setOwner( getPackage() );
+	Component->initialise();
 	attach( Component );
 	return Component;
 }

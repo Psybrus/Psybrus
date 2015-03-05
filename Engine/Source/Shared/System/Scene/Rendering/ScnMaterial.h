@@ -91,9 +91,8 @@ public:
 	ScnMaterialComponent( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
 	virtual ~ScnMaterialComponent();
 
-	void initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
-	void initialise( const Json::Value& Object );
-	void destroy();
+	void initialise() override;
+	void destroy() override;
 	
 	BcU32 findTextureSlot( const BcName& TextureName );	
 	void setTexture( BcU32 Slot, ScnTextureRef Texture );
@@ -112,10 +111,7 @@ public:
 	void bind( class RsFrame* pFrame, class RsRenderSort& Sort );
 
 public:
-	virtual void update( BcF32 Tick );
 	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-
 
 private:
 	friend class ScnMaterial;	
@@ -145,7 +141,7 @@ private:
 	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
 
 
-	ScnMaterialRef Parent_;
+	ScnMaterialRef Material_;
 	ScnShaderPermutationFlags PermutationFlags_;
 	RsProgram* pProgram_;
 

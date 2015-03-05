@@ -66,10 +66,6 @@ public:
 	ScnDebugRenderComponent( BcU32 NoofVertices );
 	virtual ~ScnDebugRenderComponent();
 	
-	virtual void initialise();
-	virtual void initialise( BcU32 NoofVertices );
-	
-	virtual void initialise( const Json::Value& Object );
 	virtual MaAABB getAABB() const;
 	
 	/**

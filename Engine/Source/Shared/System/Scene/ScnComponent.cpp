@@ -93,6 +93,14 @@ ScnComponent::~ScnComponent()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
+//virtual
+void ScnComponent::initialise()
+{
+	Super::initialise();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
 //virtualp
 void ScnComponent::initialise( const Json::Value& Object )
 {
@@ -261,7 +269,6 @@ void ScnComponent::fileReady()
 {
 	// File is ready, get the header chunk.
 	requestChunk( 0 );
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -281,6 +288,9 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 			SeJsonReader Reader( &ObjectCodec );
 			Reader.serialiseClassMembers( this, this->getClass(), Root, 0 );
+
+			// Now reinitialise.
+			initialise();
 		
 			// Old way.
 			initialise( Root );

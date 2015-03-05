@@ -39,7 +39,6 @@ public:
 	ScnLightComponent();
 	virtual ~ScnLightComponent();
 
-	virtual void initialise( const Json::Value& Object );
 	virtual void update( BcF32 Tick );
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
@@ -93,6 +92,10 @@ private:
 	ScnLightType Type_;
 	RsColour AmbientColour_;
 	RsColour DiffuseColour_;
+	BcF32 Min_;
+	BcF32 Mid_;
+	BcF32 Max_;
+
 	BcF32 AttnC_;
 	BcF32 AttnL_;
 	BcF32 AttnQ_;

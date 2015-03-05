@@ -67,6 +67,8 @@ public:
 	virtual ~ScnComponent();
 
 public:
+	virtual void initialise() override;
+
 	virtual void initialise( const Json::Value& Object );
 	void postInitialise();
 

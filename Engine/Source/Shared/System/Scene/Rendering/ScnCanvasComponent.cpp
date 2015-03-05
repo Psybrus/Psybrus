@@ -26,16 +26,16 @@ void ScnCanvasComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_, bcRFF_IMPORTER ),
+		new ReField( "Clear_", &ScnCanvasComponent::Clear_, bcRFF_IMPORTER ),
+		new ReField( "Left_", &ScnCanvasComponent::Left_, bcRFF_IMPORTER ),
+		new ReField( "Right_", &ScnCanvasComponent::Right_, bcRFF_IMPORTER ),
+		new ReField( "Top_", &ScnCanvasComponent::Top_, bcRFF_IMPORTER ),
+		new ReField( "Bottom_", &ScnCanvasComponent::Bottom_, bcRFF_IMPORTER ),
+
 		new ReField( "HaveVertexBufferLock_", &ScnCanvasComponent::HaveVertexBufferLock_, bcRFF_TRANSIENT ),
-		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_ ),
 		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_, bcRFF_TRANSIENT ),
-		new ReField( "Clear_", &ScnCanvasComponent::Clear_ ),
-		new ReField( "Left_", &ScnCanvasComponent::Left_ ),
-		new ReField( "Right_", &ScnCanvasComponent::Right_ ),
-		new ReField( "Top_", &ScnCanvasComponent::Top_ ),
-		new ReField( "Bottom_", &ScnCanvasComponent::Bottom_ ),
 		new ReField( "ViewMatrix_", &ScnCanvasComponent::ViewMatrix_ ),
-		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_ ),
 		new ReField( "MaterialComponent_", &ScnCanvasComponent::MaterialComponent_ ),
 		new ReField( "DiffuseTexture_", &ScnCanvasComponent::DiffuseTexture_, bcRFF_TRANSIENT ),
 		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
@@ -48,15 +48,29 @@ void ScnCanvasComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnCanvasComponent::ScnCanvasComponent()
+ScnCanvasComponent::ScnCanvasComponent():
+	ScnCanvasComponent( 0 )
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnCanvasComponent::ScnCanvasComponent( BcU32 NoofVertices )
+ScnCanvasComponent::ScnCanvasComponent( BcU32 NoofVertices ):
+	HaveVertexBufferLock_( BcFalse ),
+	IsIdentity_( BcTrue ),
+	pVertices_( nullptr ),
+	pVerticesEnd_( nullptr ),
+	pWorkingVertices_( nullptr ),
+	VertexIndex_ ( 0 ),
+	VertexDeclaration_( nullptr ),
+	NoofVertices_( NoofVertices ),
+	Clear_( BcFalse ),
+	Left_( 0.0f ),
+	Right_( 0.0f ),
+	Top_( 0.0f ),
+	Bottom_( 0.0f )
 {
-	initialise( NoofVertices );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,63 +79,6 @@ ScnCanvasComponent::ScnCanvasComponent( BcU32 NoofVertices )
 ScnCanvasComponent::~ScnCanvasComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnCanvasComponent::initialise()
-{
-	initialise( 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnCanvasComponent::initialise( BcU32 NoofVertices )
-{
-	// Clear render resource to null.
-	BcMemZero( &RenderResource_, sizeof( RenderResource_ ) );
-	HaveVertexBufferLock_ = BcFalse;
-
-	// Setup matrix stack with an identity matrix and reserve.
-	MatrixStack_.reserve( 16 );
-	MatrixStack_.push_back( MaMat4d() );
-	IsIdentity_ = BcTrue;
-
-	// Store number of vertices.
-	pVertices_ = pVerticesEnd_ = nullptr;
-	pWorkingVertices_ = nullptr;
-	VertexIndex_ = 0;
-	VertexDeclaration_ = nullptr;
-	NoofVertices_ = NoofVertices;
-
-	// Setup clear stuff.
-	Clear_ = BcFalse;
-	Left_ = 0.0f;
-	Right_ = 0.0f;
-	Top_ = 0.0f;
-	Bottom_ = 0.0f;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnCanvasComponent::initialise( const Json::Value& Object )
-{
-	ScnCanvasComponent::initialise( Object[ "noofvertices" ].asUInt() );
-
-	if( Object[ "clear" ].type() != Json::nullValue )
-	{
-		Clear_ = Object[ "clear" ].asBool();
-		if( Clear_ )
-		{
-			Left_ = BcF32( Object[ "left" ].asDouble() );
-			Right_ = BcF32( Object[ "right" ].asDouble() );
-			Top_ = BcF32( Object[ "top" ].asDouble() );
-			Bottom_ = BcF32( Object[ "bottom" ].asDouble() );
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

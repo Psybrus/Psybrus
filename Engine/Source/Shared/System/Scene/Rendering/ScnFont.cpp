@@ -595,8 +595,9 @@ void ScnFontComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Parent_", &ScnFontComponent::Parent_, bcRFF_SHALLOW_COPY ),
-		new ReField( "Material_", &ScnFontComponent::Material_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Font_", &ScnFontComponent::Font_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "Material_", &ScnFontComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+
 		new ReField( "MaterialComponent_", &ScnFontComponent::MaterialComponent_, bcRFF_TRANSIENT ),
 		new ReField( "ClippingEnabled_", &ScnFontComponent::ClippingEnabled_ ),
 		new ReField( "ClipMin_", &ScnFontComponent::ClipMin_ ),
@@ -610,7 +611,7 @@ void ScnFontComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnFontComponent::ScnFontComponent():
-	Parent_( nullptr ),
+	Font_( nullptr ),
 	Material_( nullptr ),
 	MaterialComponent_( nullptr ),
 	ClippingEnabled_( BcFalse ),
@@ -620,14 +621,13 @@ ScnFontComponent::ScnFontComponent():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnFontComponent::ScnFontComponent( ScnFontRef Parent, ScnMaterialRef Material ):
-	Parent_( Parent ),
+ScnFontComponent::ScnFontComponent( ScnFontRef Font, ScnMaterialRef Material ):
+	Font_( Font ),
 	Material_( Material ),
 	MaterialComponent_( nullptr ),
 	ClippingEnabled_( BcFalse ),
 	UniformBuffer_( nullptr )
 {
-	initialise( Parent, Material );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -636,25 +636,6 @@ ScnFontComponent::ScnFontComponent( ScnFontRef Parent, ScnMaterialRef Material )
 ScnFontComponent::~ScnFontComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnFontComponent::initialise( ScnFontRef Parent, ScnMaterialRef Material )
-{
-	Parent_ = Parent; 
-	Material_ = Material;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnFontComponent::initialise( const Json::Value& Object )
-{
-	ScnFontRef FontRef;
-	ScnMaterialRef MaterialRef;
-	FontRef = getPackage()->getCrossRefResource( Object[ "font" ].asUInt() );
-	MaterialRef = getPackage()->getCrossRefResource( Object[ "material" ].asUInt() );
-	initialise( FontRef, MaterialRef );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -670,7 +651,7 @@ void ScnFontComponent::setClipping( BcBool Enabled, MaVec2d Min, MaVec2d Max )
 // draw
 MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
-	return draw( Canvas, Position, Parent_->pHeader_->NominalSize_, String, Colour, SizeRun, Layer );
+	return draw( Canvas, Position, Font_->pHeader_->NominalSize_, String, Colour, SizeRun, Layer );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -686,9 +667,9 @@ MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVe
 MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
 {
 	// Cached elements from parent.
-	ScnFontHeader* pHeader = Parent_->pHeader_;
-	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
-	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
+	ScnFontHeader* pHeader = Font_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
+	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 	
 	BcF32 SizeMultiplier = Size / pHeader->NominalSize_;
 
@@ -914,9 +895,9 @@ MaVec2d ScnFontComponent::drawText(
 		DrawParams.getLayer() );
 
 	// Cached elements from parent.
-	ScnFontHeader* pHeader = Parent_->pHeader_;
-	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
-	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
+	ScnFontHeader* pHeader = Font_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
+	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 	
 	BcU32 TextLength = Text.length();
 	BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
@@ -1142,9 +1123,9 @@ MaVec2d ScnFontComponent::measureText(
 	const std::wstring& Text )
 {
 	// Cached elements from parent.
-	ScnFontHeader* pHeader = Parent_->pHeader_;
-	ScnFontGlyphDesc* pGlyphDescs = Parent_->pGlyphDescs_;
-	ScnFont::TCharCodeMap& CharCodeMap( Parent_->CharCodeMap_ );
+	ScnFontHeader* pHeader = Font_->pHeader_;
+	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
+	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 
 	const BcU32 TextLength = Text.length();
 	const BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
@@ -1223,7 +1204,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	BcU32 Sampler = MaterialComponent_->findTextureSlot( "aDiffuseTex" );
 	if( Sampler != BcErrorCode )
 	{ 
-		MaterialComponent_->setTexture( Sampler, Parent_->Texture_ );
+		MaterialComponent_->setTexture( Sampler, Font_->Texture_ );
 	}
 
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 

@@ -30,12 +30,16 @@ void ScnLightComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Type_",				&ScnLightComponent::Type_ ),
-		new ReField( "AmbientColour_",		&ScnLightComponent::AmbientColour_ ),
-		new ReField( "DiffuseColour_",		&ScnLightComponent::DiffuseColour_ ),
-		new ReField( "AttnC_",				&ScnLightComponent::AttnC_ ),
-		new ReField( "AttnL_",				&ScnLightComponent::AttnL_ ),
-		new ReField( "AttnQ_",				&ScnLightComponent::AttnQ_ ),
+		new ReField( "Type_", &ScnLightComponent::Type_, bcRFF_IMPORTER ),
+		new ReField( "AmbientColour_", &ScnLightComponent::AmbientColour_, bcRFF_IMPORTER ),
+		new ReField( "DiffuseColour_", &ScnLightComponent::DiffuseColour_, bcRFF_IMPORTER ),
+		new ReField( "Min_", &ScnLightComponent::Min_, bcRFF_IMPORTER ),
+		new ReField( "Mid_", &ScnLightComponent::Mid_, bcRFF_IMPORTER ),
+		new ReField( "Max_", &ScnLightComponent::Max_, bcRFF_IMPORTER ),
+
+		new ReField( "AttnC_", &ScnLightComponent::AttnC_ ),
+		new ReField( "AttnL_", &ScnLightComponent::AttnL_ ),
+		new ReField( "AttnQ_", &ScnLightComponent::AttnQ_ ),
 	};
 		
 	ReRegisterClass< ScnLightComponent, Super >( Fields )
@@ -48,9 +52,13 @@ ScnLightComponent::ScnLightComponent()
 {
 	Type_ = scnLT_POINT;
 	AmbientColour_ = RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
-	DiffuseColour_ = RsColour::WHITE;
-	
-	createAttenuationValues( 64.0f, 256.0f, 1024.0f );
+	DiffuseColour_ = RsColour::WHITE;	
+	Min_ = 64.0f;
+	Mid_ = 256.0f;
+	Max_ = 1024.0f;
+	AttnC_ = 0.0f;
+	AttnL_ = 0.0f;
+	AttnQ_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,38 +69,10 @@ ScnLightComponent::~ScnLightComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnLightComponent::initialise( const Json::Value& Object )
-{
-	const Json::Value& AmbientColourValue = Object[ "ambientcolour" ];
-	if( AmbientColourValue != Json::nullValue )
-	{
-		AmbientColour_ = MaVec4d( AmbientColourValue.asCString() );
-	}
-
-	const Json::Value& DiffuseColourValue = Object[ "diffusecolour" ];
-	if( DiffuseColourValue != Json::nullValue )
-	{
-		DiffuseColour_ = MaVec4d( DiffuseColourValue.asCString() );
-	}
-
-	const Json::Value& MinValue = Object[ "min" ];
-	const Json::Value& MidValue = Object[ "mid" ];
-	const Json::Value& MaxValue = Object[ "max" ];
-	if( MinValue != Json::nullValue &&
-		MidValue != Json::nullValue &&
-		MaxValue != Json::nullValue )
-	{
-		createAttenuationValues( (BcF32)MinValue.asDouble(), (BcF32)MidValue.asDouble(), (BcF32)MaxValue.asDouble() );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 void ScnLightComponent::update( BcF32 Tick )
 {
-	//ScnDebugRenderComponent::pImpl()->drawEllipsoid( getParentEntity()->getWorldPosition(), MaVec3d( 1.0f, 1.0f, 1.0f ), DiffuseColour_ );
+	createAttenuationValues( Min_, Mid_, Max_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

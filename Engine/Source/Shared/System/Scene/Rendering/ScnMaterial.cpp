@@ -162,7 +162,9 @@ void ScnMaterialComponent::StaticRegisterClass()
 	{
 		ReField* Fields[] = 
 		{
-			new ReField( "Parent_", &ScnMaterialComponent::Parent_, bcRFF_SHALLOW_COPY ),
+			new ReField( "Material_", &ScnMaterialComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+			new ReField( "PermutationFlags_", &ScnMaterialComponent::PermutationFlags_, bcRFF_IMPORTER ),
+
 			new ReField( "pProgram_", &ScnMaterialComponent::pProgram_, bcRFF_SHALLOW_COPY ),
 			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_ ),
 			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_ ),
@@ -176,7 +178,7 @@ void ScnMaterialComponent::StaticRegisterClass()
 	{
 		ReField* Fields[] = 
 		{
-			new ReField( "Parent_", &TTextureBinding::Handle_ ),
+			new ReField( "Material_", &TTextureBinding::Handle_ ),
 			new ReField( "pProgram_", &TTextureBinding::Texture_, bcRFF_SHALLOW_COPY ),
 		};
 		ReRegisterClass< TTextureBinding >( Fields );
@@ -187,7 +189,6 @@ void ScnMaterialComponent::StaticRegisterClass()
 		{
 			new ReField( "Index_", &TUniformBlockBinding::Index_ ),
 			new ReField( "UniformBuffer_", &TUniformBlockBinding::UniformBuffer_, bcRFF_SHALLOW_COPY ),
-
 		};
 		ReRegisterClass< TUniformBlockBinding >( Fields );
 	}
@@ -195,16 +196,20 @@ void ScnMaterialComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnMaterialComponent::ScnMaterialComponent()
+ScnMaterialComponent::ScnMaterialComponent():
+	ScnMaterialComponent( nullptr, ScnShaderPermutationFlags::NONE )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnMaterialComponent::ScnMaterialComponent( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags )
+ScnMaterialComponent::ScnMaterialComponent( ScnMaterialRef Material, ScnShaderPermutationFlags PermutationFlags ):
+	Material_( Material ),
+	PermutationFlags_( PermutationFlags ),
+	pProgram_( nullptr )
+
 {
-	initialise( Parent, PermutationFlags );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -217,64 +222,40 @@ ScnMaterialComponent::~ScnMaterialComponent()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnMaterialComponent::initialise( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags )
+void ScnMaterialComponent::initialise()
 {
-	BcAssert( Parent.isValid() && Parent->isReady() );
-	
-	PermutationFlags_ = PermutationFlags 
-		| ScnShaderPermutationFlags::RENDER_FORWARD
-		| ScnShaderPermutationFlags::PASS_MAIN;
-
-	// Cache parent and program.
-	Parent_ = Parent;
-	pProgram_ = Parent->Shader_->getProgram( PermutationFlags_ );
-	BcAssert( pProgram_ != nullptr );
-	
-	// Build a binding list for textures.
-	ScnTextureMap& TextureMap( Parent->TextureMap_ );
-	for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
+	PermutationFlags_ = PermutationFlags_ | ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::PASS_MAIN;
+	if( Material_ )
 	{
-		const BcName& SamplerName = (*Iter).first;
-		ScnTextureRef Texture = (*Iter).second;
-
-		BcU32 SamplerIdx = findTextureSlot( SamplerName );
-		if( SamplerIdx != BcErrorCode )
+		pProgram_ = Material_->Shader_->getProgram( PermutationFlags_ );
+		BcAssert( pProgram_ != nullptr );
+		
+		// Build a binding list for textures.
+		ScnTextureMap& TextureMap( Material_->TextureMap_ );
+		for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
 		{
-			setTexture( SamplerIdx, Texture );
+			const BcName& SamplerName = (*Iter).first;
+			ScnTextureRef Texture = (*Iter).second;
+
+			BcU32 SamplerIdx = findTextureSlot( SamplerName );
+			if( SamplerIdx != BcErrorCode )
+			{
+				setTexture( SamplerIdx, Texture );
+			}
 		}
+
+		// Grab uniform blocks.
+		ViewUniformBlockIndex_ = findUniformBlock( "ScnShaderViewUniformBlockData" );
+		BoneUniformBlockIndex_ = findUniformBlock( "ScnShaderBoneUniformBlockData" );
+		ObjectUniformBlockIndex_ = findUniformBlock( "ScnShaderObjectUniformBlockData" );
 	}
-
-	// Grab uniform blocks.
-	ViewUniformBlockIndex_ = findUniformBlock( "ScnShaderViewUniformBlockData" );
-	BoneUniformBlockIndex_ = findUniformBlock( "ScnShaderBoneUniformBlockData" );
-	ObjectUniformBlockIndex_ = findUniformBlock( "ScnShaderObjectUniformBlockData" );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-void ScnMaterialComponent::initialise( const Json::Value& Object )
-{
-	ScnMaterialRef MaterialRef = getPackage()->getCrossRefResource( Object[ "material" ].asUInt() );
-	ScnShaderPermutationFlags PermutationFlags = ScnShaderPermutationFlags::NONE;
-	const BcChar* pPermutation = Object[ "permutation" ].asCString();
-
-	if( BcStrCompare( pPermutation, "2d" ) )
-	{
-		PermutationFlags = ScnShaderPermutationFlags::MESH_STATIC_2D;
-	}
-	else if( BcStrCompare( pPermutation, "3d" ) )
-	{
-		PermutationFlags = ScnShaderPermutationFlags::MESH_STATIC_3D;
-	}
-
-	initialise( MaterialRef, PermutationFlags );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
 void ScnMaterialComponent::destroy()
 {
-	Parent_ = nullptr;
+	Material_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -407,7 +388,7 @@ ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Idx )
 // getMaterial
 ScnMaterialRef ScnMaterialComponent::getMaterial()
 {
-	return Parent_;
+	return Material_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -471,7 +452,7 @@ public:
 	SysFence* pUpdateFence_;
 
 	// For debugging.
-	ScnMaterialComponent* pParent_;
+	ScnMaterialComponent* pMaterial_;
 };
 
 void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
@@ -479,7 +460,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	BcAssertMsg( isAttached(), "Material \"%s\" needs to be attached to an entity!", (*getName()).c_str() );
 
 	// Setup sort value with material specifics.
-	//ScnMaterial* pMaterial_ = Parent_;
+	//ScnMaterial* pMaterial_ = Material_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
 	Sort.Blend_ = 0; //StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
 	
@@ -487,7 +468,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
 	
 	// Debugging.
-	pRenderNode->pParent_ = this;
+	pRenderNode->pMaterial_ = this;
 		
 	// Setup texture binding block.
 	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
@@ -508,7 +489,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		Texture = Binding.Texture_->getTexture();
 
 		// Set sampler state.
-		SamplerState = Parent_->SamplerStates_[ Idx ].get();
+		SamplerState = Material_->SamplerStates_[ Idx ].get();
 	}
 
 	// Setup uniform blocks.
@@ -523,7 +504,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	}
 	
 	// Setup state buffer.
-	pRenderNode->RenderState_ = Parent_->RenderState_.get();
+	pRenderNode->RenderState_ = Material_->RenderState_.get();
 	
 	// Setup program.
 	pRenderNode->pProgram_ = pProgram_;
@@ -538,27 +519,9 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnMaterialComponent::update( BcF32 Tick )
-{
-	ScnComponent::update( Tick );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	ScnComponent::onAttach( Parent );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onDetach
-//virtual
-void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
-{
-	UpdateFence_.wait();
-
-	ScnComponent::onDetach( Parent );
+	Super::onAttach( Parent );
 }

@@ -30,10 +30,11 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Material_",	&ScnDebugRenderComponent::Material_, bcRFF_SHALLOW_COPY ),
+		new ReField( "Material_",	&ScnDebugRenderComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "NoofVertices_", &ScnDebugRenderComponent::NoofVertices_, bcRFF_IMPORTER ),
+
 		new ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_, bcRFF_TRANSIENT ),
 		new ReField( "CurrentRenderResource_", &ScnDebugRenderComponent::CurrentRenderResource_, bcRFF_TRANSIENT ),
-		new ReField( "NoofVertices_", &ScnDebugRenderComponent::NoofVertices_ ),
 		new ReField( "VertexIndex_", &ScnDebugRenderComponent::VertexIndex_ ),
 	};
 		
@@ -54,15 +55,24 @@ ScnDebugRenderComponent* ScnDebugRenderComponent::pImpl()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnDebugRenderComponent::ScnDebugRenderComponent()
+ScnDebugRenderComponent::ScnDebugRenderComponent():
+	ScnDebugRenderComponent( 0 )
 {
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices )
+ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices ):
+	VertexDeclaration_( nullptr ),
+	pVertices_( nullptr ),
+	pVerticesEnd_( nullptr ),
+	pWorkingVertices_( nullptr ),
+	NoofVertices_( NoofVertices ),
+	CurrentRenderResource_( 0 )
 {
-	initialise( NoofVertices );
+	// NULL internals.
+	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,42 +81,6 @@ ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices )
 ScnDebugRenderComponent::~ScnDebugRenderComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnDebugRenderComponent::initialise()
-{
-	initialise( 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnDebugRenderComponent::initialise( BcU32 NoofVertices )
-{
-	// NULL internals.
-	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
-
-	// Store number of vertices.
-	VertexDeclaration_ = nullptr;
-	pVertices_ = pVerticesEnd_ = nullptr;
-	pWorkingVertices_ = nullptr;
-	NoofVertices_ = NoofVertices;
-	
-	// Which render resource to use.
-	CurrentRenderResource_ = 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// create
-//virtual
-void ScnDebugRenderComponent::initialise( const Json::Value& Object )
-{
-	ScnDebugRenderComponent::initialise( Object[ "noofvertices" ].asUInt() );
-
-	Material_ = ScnMaterialRef( getPackage()->getCrossRefResource( Object[ "material" ].asUInt() ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -530,14 +504,13 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
-	ScnMaterialComponentRef MaterialComponent;
-	if( CsCore::pImpl()->createResource( BcName::INVALID, getPackage(), MaterialComponent, Material_, 
-		ScnShaderPermutationFlags::MESH_STATIC_3D | 
-		ScnShaderPermutationFlags::LIGHTING_NONE ) )
-	{
-		MaterialComponent_ = MaterialComponent;
-		MaterialComponent_->postInitialise(); // TODO: Remove when init sequence is cleaned up.
-	}
+	BcAssert( Material_ != nullptr );
+	BcAssert( NoofVertices_ > 0 );
+
+	MaterialComponent_ = Parent->attach< ScnMaterialComponent >( 
+		BcName::INVALID,
+		Material_,
+		ScnShaderPermutationFlags::MESH_STATIC_3D | ScnShaderPermutationFlags::LIGHTING_NONE );
 
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
@@ -568,8 +541,6 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
 
-
-	getParentEntity()->attach( MaterialComponent_ );
 
 	BcAssert( pImpl_ == NULL );
 	pImpl_ = this;

@@ -235,10 +235,6 @@ public:
 	ScnFontComponent( ScnFontRef Parent, ScnMaterialRef Material );
 	virtual ~ScnFontComponent();
 	
-	void initialise( ScnFontRef Parent, ScnMaterialRef Material );
-	void initialise( const Json::Value& Object );
-
-	
 	// Old interface.
 	void setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
 	MaVec2d draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
@@ -298,7 +294,7 @@ public:
 private:
 	friend class ScnFont;
 
-	ScnFontRef Parent_;
+	ScnFontRef Font_;
 	ScnMaterialRef Material_;
 	ScnMaterialComponentRef MaterialComponent_;
 

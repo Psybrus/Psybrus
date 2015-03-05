@@ -605,6 +605,7 @@ void CsPackageLoader::initialiseResources()
 		if( CsCore::pImpl()->internalCreateResource( Name, Class, ResourceIdx, pPackage_, Handle ) )
 		{
 			// Initialise.
+			// TODO: This should be done after a resource has been loaded.
 			Handle->initialise();
 
 			// Add to package.
