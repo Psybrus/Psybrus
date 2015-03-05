@@ -27,8 +27,6 @@ public:
 	ScnPhysicsWorldComponent();
 	virtual ~ScnPhysicsWorldComponent();
 
-	virtual void initialise( const Json::Value& Object );
-
 	virtual void preUpdate( BcF32 Tick );
 	virtual void update( BcF32 Tick );
 	virtual void postUpdate( BcF32 Tick );

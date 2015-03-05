@@ -103,14 +103,6 @@ ScnPhysicsWorldComponent::~ScnPhysicsWorldComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnPhysicsWorldComponent::initialise( const Json::Value& Object )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
 // preUpdate
 //virtual
 void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
