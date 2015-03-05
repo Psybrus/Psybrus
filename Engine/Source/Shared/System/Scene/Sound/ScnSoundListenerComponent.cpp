@@ -49,14 +49,6 @@ ScnSoundListenerComponent::~ScnSoundListenerComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnSoundListenerComponent::initialise( const Json::Value& Object )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnSoundListenerComponent::postUpdate( BcF32 Tick )

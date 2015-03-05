@@ -33,9 +33,7 @@ public:
 	
 	ScnSoundEmitterComponent();
 	virtual ~ScnSoundEmitterComponent();
-	
-	virtual void initialise( const Json::Value& Object );
-	
+		
 	void setGain( BcF32 Gain );
 	void setPitch( BcF32 Pitch );
 

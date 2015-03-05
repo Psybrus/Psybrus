@@ -33,7 +33,7 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Params_", &ScnSoundEmitterComponent::Params_ ),
+		new ReField( "Params_", &ScnSoundEmitterComponent::Params_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
@@ -51,14 +51,6 @@ ScnSoundEmitterComponent::ScnSoundEmitterComponent()
 // Dtor
 //virtual
 ScnSoundEmitterComponent::~ScnSoundEmitterComponent()
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnSoundEmitterComponent::initialise( const Json::Value& Object )
 {
 
 }
