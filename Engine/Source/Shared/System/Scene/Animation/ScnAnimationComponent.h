@@ -33,9 +33,6 @@ public:
 	ScnAnimationComponent();
 	virtual ~ScnAnimationComponent();
 
-	virtual void initialise( const Json::Value& Object );
-	void initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object );
-
 	virtual void destroy();
 	virtual void preUpdate( BcF32 Tick );
 	virtual void update( BcF32 Tick );
@@ -50,7 +47,7 @@ public:
 	template< class _Ty >
 	_Ty* findNodeByType( const BcName& Name )
 	{
-		return static_cast< _Ty* >( findNodeRecursively( pRootTreeNode_, Name, _Ty::StaticGetClass() ) );
+		return static_cast< _Ty* >( findNodeRecursively( Tree_, Name, _Ty::StaticGetClass() ) );
 	}
 
 private:
@@ -60,14 +57,14 @@ private:
 	ScnAnimationTreeNode* findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class );
 
 private:
-	BcName TargetComponentName_;
+	BcName Target_;
 	ScnModelComponentRef Model_;
 
 	/// Node file data for the model we are building a pose for.
 	std::vector< ScnAnimationNodeFileData > ModelNodeFileData_;
 
 	/// Root node in the animation tree.
-	ScnAnimationTreeNode* pRootTreeNode_;
+	ScnAnimationTreeNode* Tree_;
 
 	/// Reference pose.
 	ScnAnimationPose* pReferencePose_;

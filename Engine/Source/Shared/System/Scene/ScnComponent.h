@@ -68,8 +68,6 @@ public:
 
 public:
 	virtual void initialise() override;
-
-	virtual void initialise( const Json::Value& Object );
 	void postInitialise();
 
 	virtual void preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.

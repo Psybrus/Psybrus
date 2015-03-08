@@ -29,12 +29,13 @@ void ScnAnimationComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "TargetComponentName_", &ScnAnimationComponent::TargetComponentName_ ),
+		new ReField( "Target_", &ScnAnimationComponent::Target_, bcRFF_IMPORTER ),
+		new ReField( "Tree_", &ScnAnimationComponent::Tree_, bcRFF_IMPORTER ),
+
 		new ReField( "Model_", &ScnAnimationComponent::Model_, bcRFF_TRANSIENT ),
-		new ReField( "pRootTreeNode_", &ScnAnimationComponent::pRootTreeNode_ ),
 		new ReField( "pReferencePose_", &ScnAnimationComponent::pReferencePose_ ),
 	};
-		
+	
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2050 ) );
 }
@@ -42,7 +43,7 @@ void ScnAnimationComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnAnimationComponent::ScnAnimationComponent():
-	pRootTreeNode_( nullptr ),
+	Tree_( nullptr ),
 	pReferencePose_( nullptr )
 {
 }
@@ -52,54 +53,7 @@ ScnAnimationComponent::ScnAnimationComponent():
 //virtual
 ScnAnimationComponent::~ScnAnimationComponent()
 {
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual 
-void ScnAnimationComponent::initialise( const Json::Value& Object )
-{
-	//
-	TargetComponentName_ = Object[ "target" ].asCString();
-
-	//
-	pRootTreeNode_ = nullptr;
-	pReferencePose_ = nullptr;
-
-	// Initialise tree nodes.
-	// TODO: Setup with reflection.
-	const Json::Value& TreeValue = Object[ "tree" ];
-	initialiseNode( nullptr, 0, TreeValue );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialiseNode
-void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, BcU32 ChildIndex, const Json::Value& Object )
-{
-	const Json::Value& TypeValue = Object[ "type" ];
-	const Json::Value& NameValue = Object[ "name" ];
-	const Json::Value& ChildrenValue = Object[ "children" ];
-	const ReClass* pClass = ReManager::GetClass( TypeValue.asCString() );
-	ScnAnimationTreeNode* pNode = pClass->create< ScnAnimationTreeNode >();
-	pNode->setName( NameValue.asCString() );
-
-	if( pParentNode != nullptr )
-	{
-		pParentNode->setChildNode( ChildIndex, pNode );
-	}
-	else
-	{
-		pRootTreeNode_ = pNode;
-	}
-
-	if( ChildrenValue.type() != Json::nullValue )
-	{
-		for( BcU32 Idx = 0; Idx < ChildrenValue.size(); ++Idx )
-		{
-			const Json::Value& ChildValue = ChildrenValue[ Idx ];
-			initialiseNode( pNode, Idx, ChildValue );
-		}
-	}
+	delete Tree_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,8 +62,8 @@ void ScnAnimationComponent::initialiseNode( ScnAnimationTreeNode* pParentNode, B
 void ScnAnimationComponent::destroy()
 {
 	// TODO: unique_ptr.
-	delete pRootTreeNode_;
-	pRootTreeNode_ = nullptr;
+	delete Tree_;
+	Tree_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,9 +71,9 @@ void ScnAnimationComponent::destroy()
 //virtual 
 void ScnAnimationComponent::preUpdate( BcF32 Tick )
 {
-	if( pRootTreeNode_ != nullptr )
+	if( Tree_ != nullptr )
 	{
-		pRootTreeNode_->preUpdate( Tick );
+		Tree_->preUpdate( Tick );
 	}
 }
 
@@ -128,9 +82,9 @@ void ScnAnimationComponent::preUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::update( BcF32 Tick )
 {
-	if( pRootTreeNode_ != nullptr )
+	if( Tree_ != nullptr )
 	{
-		pRootTreeNode_->update( Tick );
+		Tree_->update( Tick );
 	}
 }
 
@@ -139,9 +93,9 @@ void ScnAnimationComponent::update( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::postUpdate( BcF32 Tick )
 {
-	if( pRootTreeNode_ != nullptr )
+	if( Tree_ != nullptr )
 	{
-		pRootTreeNode_->postUpdate( Tick );
+		Tree_->postUpdate( Tick );
 	}
 
 	applyPose();
@@ -152,8 +106,8 @@ void ScnAnimationComponent::postUpdate( BcF32 Tick )
 //virtual 
 void ScnAnimationComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Model_ = getComponentByType< ScnModelComponent >( /*TargetComponentName_ TODO*/  ); 
-	BcAssertMsg( Model_ != nullptr, "Can't find target model component \"%s\"", (*TargetComponentName_).c_str() );
+	Model_ = getComponentByType< ScnModelComponent >( /*Target_ TODO*/  ); 
+	BcAssertMsg( Model_ != nullptr, "Can't find target model component \"%s\"", (*Target_).c_str() );
 
 	// Setup the reference pose.
 	if( Model_ != nullptr )
@@ -205,14 +159,14 @@ void ScnAnimationComponent::buildReferencePose()
 		pReferencePose_->setTransform( Idx - 1, Transform );
 	}
 
-	pRootTreeNode_->initialise( pReferencePose_, ModelNodeFileData_.data() );
+	Tree_->initialise( pReferencePose_, ModelNodeFileData_.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // applyPose
 void ScnAnimationComponent::applyPose()
 {
-	const ScnAnimationPose& WorkingPose( pRootTreeNode_->getWorkingPose() );
+	const ScnAnimationPose& WorkingPose( Tree_->getWorkingPose() );
 	const BcU32 NoofNodes = Model_->getNoofNodes();
 	MaMat4d Matrix;
 	for( BcU32 Idx = 1; Idx < NoofNodes; ++Idx )

@@ -30,16 +30,17 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "NoofParticles_", &ScnParticleSystemComponent::NoofParticles_, bcRFF_IMPORTER ),
+		new ReField( "IsLocalSpace_", &ScnParticleSystemComponent::IsLocalSpace_, bcRFF_IMPORTER ),
+		new ReField( "Material_", &ScnParticleSystemComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+
 		new ReField( "VertexDeclaration_", &ScnParticleSystemComponent::VertexDeclaration_, bcRFF_TRANSIENT ),
 		new ReField( "VertexBuffers_", &ScnParticleSystemComponent::VertexBuffers_, bcRFF_TRANSIENT ),
 		new ReField( "CurrentVertexBuffer_", &ScnParticleSystemComponent::CurrentVertexBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "pParticleBuffer_", &ScnParticleSystemComponent::pParticleBuffer_, bcRFF_TRANSIENT ),
-		new ReField( "NoofVertices_", &ScnParticleSystemComponent::NoofParticles_ ),
 		new ReField( "PotentialFreeParticle_", &ScnParticleSystemComponent::PotentialFreeParticle_, bcRFF_TRANSIENT ),
-		new ReField( "Material_", &ScnParticleSystemComponent::Material_, bcRFF_SHALLOW_COPY ),
 		new ReField( "MaterialComponent_", &ScnParticleSystemComponent::MaterialComponent_, bcRFF_TRANSIENT ),
 		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_ ),
-		new ReField( "IsLocalSpace_", &ScnParticleSystemComponent::IsLocalSpace_ ),
 		new ReField( "UVBounds_", &ScnParticleSystemComponent::UVBounds_ ),
 		new ReField( "AABB_", &ScnParticleSystemComponent::AABB_ ),
 	};
@@ -61,7 +62,7 @@ ScnParticleSystemComponent::ScnParticleSystemComponent():
 	WorldTransformParam_( 0 ),
 	IsLocalSpace_( BcFalse )
 {
-
+	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,36 +76,28 @@ ScnParticleSystemComponent::~ScnParticleSystemComponent()
 //////////////////////////////////////////////////////////////////////////
 // initialise
 //virtual
-void ScnParticleSystemComponent::initialise( const Json::Value& Object )
+void ScnParticleSystemComponent::initialise()
 {
-	Super::initialise( Object );
-
-	// Grab number of particles.
-	NoofParticles_ = Object["noofparticles"].asUInt();
-	Material_ = ScnMaterialRef( getPackage()->getCrossRefResource( Object["material"].asUInt() ) );
-	IsLocalSpace_ = Object["localspace"].asBool();
+	Super::initialise();
 
 	// Cache texture bounds.
-	ScnTextureRef Texture = Material_->getTexture( "aDiffuseTex" );
-	if( Texture.isValid() )
+	if( Material_ != nullptr )
 	{
-		for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
+		ScnTextureRef Texture = Material_->getTexture( "aDiffuseTex" );
+		if( Texture.isValid() )
 		{
-			ScnRect Rect = Texture->getRect( Idx );
-			UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
+			UVBounds_.reserve( Texture->noofRects() );
+			for( BcU32 Idx = 0; Idx < Texture->noofRects(); ++Idx )
+			{
+				ScnRect Rect = Texture->getRect( Idx );
+				UVBounds_.push_back( MaVec4d( Rect.X_, Rect.Y_, Rect.X_ + Rect.W_, Rect.Y_ + Rect.H_ ) );
+			}
+		}
+		else
+		{
+			UVBounds_.push_back( MaVec4d( 0.0f, 0.0f, 1.0f, 1.0f ) );
 		}
 	}
-	else
-	{
-		UVBounds_.push_back( MaVec4d( 0.0f, 0.0f, 1.0f, 1.0f ) );
-	}
-	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
-	pParticleBuffer_ = NULL;
-	CurrentVertexBuffer_ = 0;
-
-	PotentialFreeParticle_ = 0;
-
-	VertexDeclaration_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

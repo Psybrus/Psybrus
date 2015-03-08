@@ -69,7 +69,7 @@ public:
 	virtual ~ScnParticleSystemComponent();
 
 public:
-	virtual void initialise( const Json::Value& Object );
+	virtual void initialise();
 
 	virtual MaAABB getAABB() const;
 

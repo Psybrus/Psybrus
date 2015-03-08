@@ -35,25 +35,26 @@ void ScnViewComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "X_", &ScnViewComponent::X_ ),
-		new ReField( "Y_", &ScnViewComponent::Y_ ),
-		new ReField( "Width_", &ScnViewComponent::Width_ ),
-		new ReField( "Height_", &ScnViewComponent::Height_ ),
-		new ReField( "Near_", &ScnViewComponent::Near_ ),
-		new ReField( "Far_", &ScnViewComponent::Far_ ),
-		new ReField( "HorizontalFOV_", &ScnViewComponent::HorizontalFOV_ ),
-		new ReField( "VerticalFOV_", &ScnViewComponent::VerticalFOV_ ),
-		new ReField( "ClearColour_", &ScnViewComponent::ClearColour_ ),
-		new ReField( "EnableClearColour_", &ScnViewComponent::EnableClearColour_ ),
-		new ReField( "EnableClearDepth_", &ScnViewComponent::EnableClearDepth_ ),
-		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_ ),
-		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_ ),
+		new ReField( "X_", &ScnViewComponent::X_, bcRFF_IMPORTER ),
+		new ReField( "Y_", &ScnViewComponent::Y_, bcRFF_IMPORTER ),
+		new ReField( "Width_", &ScnViewComponent::Width_, bcRFF_IMPORTER ),
+		new ReField( "Height_", &ScnViewComponent::Height_, bcRFF_IMPORTER ),
+		new ReField( "Near_", &ScnViewComponent::Near_, bcRFF_IMPORTER ),
+		new ReField( "Far_", &ScnViewComponent::Far_, bcRFF_IMPORTER ),
+		new ReField( "HorizontalFOV_", &ScnViewComponent::HorizontalFOV_, bcRFF_IMPORTER ),
+		new ReField( "VerticalFOV_", &ScnViewComponent::VerticalFOV_, bcRFF_IMPORTER ),
+		new ReField( "ClearColour_", &ScnViewComponent::ClearColour_, bcRFF_IMPORTER ),
+		new ReField( "EnableClearColour_", &ScnViewComponent::EnableClearColour_, bcRFF_IMPORTER ),
+		new ReField( "EnableClearDepth_", &ScnViewComponent::EnableClearDepth_, bcRFF_IMPORTER ),
+		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_, bcRFF_IMPORTER ),
+		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_, bcRFF_IMPORTER ),
+		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+
 		new ReField( "Viewport_", &ScnViewComponent::Viewport_ ),
 		new ReField( "ViewUniformBlock_", &ScnViewComponent::ViewUniformBlock_ ),
 		new ReField( "ViewUniformBuffer_", &ScnViewComponent::ViewUniformBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "FrustumPlanes_", &ScnViewComponent::FrustumPlanes_ ),
-		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_SHALLOW_COPY ),
-		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_SHALLOW_COPY ),
 	};
 	
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
@@ -62,7 +63,22 @@ void ScnViewComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnViewComponent::ScnViewComponent()
+ScnViewComponent::ScnViewComponent():
+	X_( 0 ),
+	Y_( 0 ),
+	Width_( 1.0f ),
+	Height_( 1.0f ),
+	Near_( 0.1f ),
+	Far_( 1000.0f ),
+	HorizontalFOV_( 0.0f ),
+	VerticalFOV_( 0.0f ),
+	ClearColour_( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) ),
+	EnableClearColour_( BcTrue ),
+	EnableClearDepth_( BcTrue ),
+	EnableClearStencil_( BcTrue ),
+	RenderMask_( 0 ),
+	RenderTarget_( nullptr ),
+	DepthStencilTarget_( nullptr )
 {
 	ViewUniformBuffer_ = nullptr;
 	RenderTarget_ = nullptr;
@@ -76,75 +92,6 @@ ScnViewComponent::ScnViewComponent()
 //virtual
 ScnViewComponent::~ScnViewComponent()
 {
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnViewComponent::initialise( const Json::Value& Object )
-{
-	X_ = (BcF32)Object[ "x" ].asDouble();
-	Y_ = (BcF32)Object[ "y" ].asDouble();
-	Width_ = (BcF32)Object[ "width" ].asDouble();
-	Height_ = (BcF32)Object[ "height" ].asDouble();
-	Near_ = (BcF32)Object[ "near" ].asDouble();
-	Far_ = (BcF32)Object[ "far" ].asDouble();
-	HorizontalFOV_ = (BcF32)Object[ "hfov" ].asDouble();
-	VerticalFOV_ = (BcF32)Object[ "vfov" ].asDouble();
-
-	if( Object[ "clearcolour" ] != Json::nullValue )
-	{
-		ClearColour_ = MaVec4d( Object[ "clearcolour" ].asCString() );
-	}
-	else
-	{
-		ClearColour_ = RsColour::BLACK;
-	}
-
-	if( Object[ "enableclearcolour" ] != Json::nullValue )
-	{
-		EnableClearColour_ = Object[ "enableclearcolour" ].asBool();
-	}
-	else
-	{
-		EnableClearColour_ = BcTrue;
-	}
-
-	if( Object[ "enablecleardepth" ] != Json::nullValue )
-	{
-		EnableClearDepth_ = Object[ "enablecleardepth" ].asBool();
-	}
-	else
-	{
-		EnableClearDepth_ = BcTrue;
-	}
-
-	if( Object[ "enableclearstencil" ] != Json::nullValue )
-	{
-		EnableClearStencil_ = Object[ "enableclearstencil" ].asBool();
-	}
-	else
-	{
-		EnableClearStencil_ = BcTrue;
-	}
-
-	const Json::Value& RenderMaskValue = Object[ "rendermask" ];
-	if( RenderMaskValue.type() != Json::nullValue )
-	{
-		setRenderMask( RenderMaskValue.asUInt() );
-	}
-
-	const Json::Value& RenderTargetValue = Object[ "rendertarget" ];
-	if( RenderTargetValue.type() != Json::nullValue )
-	{
-		RenderTarget_ = getPackage()->getCrossRefResource( RenderTargetValue.asUInt() );
-	}
-
-	const Json::Value& DepthStencilTargetValue = Object[ "depthstenciltarget" ];
-	if( RenderTargetValue.type() != Json::nullValue )
-	{
-		DepthStencilTarget_ = getPackage()->getCrossRefResource( DepthStencilTargetValue.asUInt() );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

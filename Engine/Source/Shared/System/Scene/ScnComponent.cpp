@@ -23,6 +23,8 @@
 
 #endif
 
+#include "System/Scene/Animation/ScnAnimationComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentAttribute
 REFLECTION_DEFINE_DERIVED( ScnComponentAttribute );
@@ -97,15 +99,6 @@ ScnComponent::~ScnComponent()
 void ScnComponent::initialise()
 {
 	Super::initialise();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtualp
-void ScnComponent::initialise( const Json::Value& Object )
-{
-	PSY_LOGSCOPEDCATEGORY( "ScnComponent" );
-	PSY_LOG( "INFO: Calling base initialise( Json::Value ) for %s\n", (*getTypeName()).c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -287,13 +280,11 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// New way.
 			CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 			SeJsonReader Reader( &ObjectCodec );
+
 			Reader.serialiseClassMembers( this, this->getClass(), Root, 0 );
 
 			// Now reinitialise.
 			initialise();
-		
-			// Old way.
-			initialise( Root );
 		}
 		else
 		{

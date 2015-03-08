@@ -21,9 +21,9 @@ void ScnAnimationTreeBlendNode::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pNodes_", &ScnAnimationTreeBlendNode::pNodes_ ),
-		new ReField( "BlendType_", &ScnAnimationTreeBlendNode::BlendType_ ),
-		new ReField( "BlendValue_", &ScnAnimationTreeBlendNode::BlendValue_ ),
+		new ReField( "Children_", &ScnAnimationTreeBlendNode::Children_, bcRFF_IMPORTER ),
+		new ReField( "BlendType_", &ScnAnimationTreeBlendNode::BlendType_, bcRFF_IMPORTER ),
+		new ReField( "BlendValue_", &ScnAnimationTreeBlendNode::BlendValue_, bcRFF_IMPORTER ),
 	};
 	
 	ReRegisterClass< ScnAnimationTreeBlendNode, Super >( Fields );
@@ -33,8 +33,8 @@ void ScnAnimationTreeBlendNode::StaticRegisterClass()
 // Ctor
 ScnAnimationTreeBlendNode::ScnAnimationTreeBlendNode()
 {
-	pNodes_[ 0 ] = NULL;
-	pNodes_[ 1 ] = NULL;
+	Children_[ 0 ] = nullptr;
+	Children_[ 1 ] = nullptr;
 	BlendValue_ = 0.0f;
 	BlendType_ = scnATBT_LERP;
 }
@@ -44,10 +44,10 @@ ScnAnimationTreeBlendNode::ScnAnimationTreeBlendNode()
 //virtual
 ScnAnimationTreeBlendNode::~ScnAnimationTreeBlendNode()
 {
-	delete pNodes_[ 0 ];
-	delete pNodes_[ 1 ];
-	pNodes_[ 0 ] = NULL;
-	pNodes_[ 1 ] = NULL;
+	delete Children_[ 0 ];
+	delete Children_[ 1 ];
+	Children_[ 0 ] = nullptr;
+	Children_[ 1 ] = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ void ScnAnimationTreeBlendNode::initialise(
 void ScnAnimationTreeBlendNode::setChildNode( BcU32 Idx, ScnAnimationTreeNode* pNode )
 {
 	BcAssert( Idx < 2 );
-	pNodes_[ Idx ] = pNode;
+	Children_[ Idx ] = pNode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ void ScnAnimationTreeBlendNode::setChildNode( BcU32 Idx, ScnAnimationTreeNode* p
 ScnAnimationTreeNode* ScnAnimationTreeBlendNode::getChildNode( BcU32 Idx )
 {
 	BcAssert( Idx < 2 );
-	return pNodes_[ Idx ];
+	return Children_[ Idx ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,8 +91,8 @@ BcU32 ScnAnimationTreeBlendNode::getNoofChildNodes() const
 //virtual
 void ScnAnimationTreeBlendNode::preUpdate( BcF32 Tick )
 {
-	pNodes_[ 0 ]->preUpdate( Tick );
-	pNodes_[ 1 ]->preUpdate( Tick );
+	Children_[ 0 ]->preUpdate( Tick );
+	Children_[ 1 ]->preUpdate( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,8 +100,8 @@ void ScnAnimationTreeBlendNode::preUpdate( BcF32 Tick )
 //virtual
 void ScnAnimationTreeBlendNode::update( BcF32 Tick )
 {
-	pNodes_[ 0 ]->update( Tick );
-	pNodes_[ 1 ]->update( Tick );
+	Children_[ 0 ]->update( Tick );
+	Children_[ 1 ]->update( Tick );
 
 	// Only blend if we need to do any work.
 	switch( BlendType_ )
@@ -109,11 +109,11 @@ void ScnAnimationTreeBlendNode::update( BcF32 Tick )
 	case scnATBT_LERP:
 		if( BlendValue_ > 0.0f && BlendValue_ < 1.0f )
 		{
-			pWorkingPose_->blend( pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+			pWorkingPose_->blend( Children_[ 0 ]->getWorkingPose(), Children_[ 1 ]->getWorkingPose(), BlendValue_ );
 		}
 		break;
 	case scnATBT_ADD:
-		pWorkingPose_->add( *pReferencePose_, pNodes_[ 0 ]->getWorkingPose(), pNodes_[ 1 ]->getWorkingPose(), BlendValue_ );
+		pWorkingPose_->add( *pReferencePose_, Children_[ 0 ]->getWorkingPose(), Children_[ 1 ]->getWorkingPose(), BlendValue_ );
 		break;
 	}
 }
@@ -123,8 +123,8 @@ void ScnAnimationTreeBlendNode::update( BcF32 Tick )
 //virtual
 void ScnAnimationTreeBlendNode::postUpdate( BcF32 Tick )
 {
-	pNodes_[ 0 ]->postUpdate( Tick );
-	pNodes_[ 1 ]->postUpdate( Tick );
+	Children_[ 0 ]->postUpdate( Tick );
+	Children_[ 1 ]->postUpdate( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -143,11 +143,11 @@ const ScnAnimationPose& ScnAnimationTreeBlendNode::getWorkingPose() const
 		}
 		else if( BlendValue_ <= 0.0f )
 		{
-			return pNodes_[ 0 ]->getWorkingPose();
+			return Children_[ 0 ]->getWorkingPose();
 		}
 		else
 		{
-			return pNodes_[ 1 ]->getWorkingPose();
+			return Children_[ 1 ]->getWorkingPose();
 		}
 		break;
 	case scnATBT_ADD:

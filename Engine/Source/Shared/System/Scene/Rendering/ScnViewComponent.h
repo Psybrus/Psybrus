@@ -42,8 +42,6 @@ public:
 	ScnViewComponent();
 	virtual ~ScnViewComponent();
 	
-	virtual void initialise( const Json::Value& Object );
-
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
 

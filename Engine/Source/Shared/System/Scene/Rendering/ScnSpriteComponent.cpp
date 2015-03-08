@@ -32,21 +32,22 @@ void ScnSpriteComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "MaterialName_", &ScnSpriteComponent::MaterialName_, bcRFF_IMPORTER ),
+		new ReField( "Position_", &ScnSpriteComponent::Position_ , bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "Size_", &ScnSpriteComponent::Size_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
+		new ReField( "Colour_", &ScnSpriteComponent::Colour_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "Index_", &ScnSpriteComponent::Index_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "Layer_", &ScnSpriteComponent::Layer_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
+		new ReField( "Center_", &ScnSpriteComponent::Center_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
+		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
+		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "Animation_", &ScnSpriteComponent::Animation_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "Animations_", &ScnSpriteComponent::Animations_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+
 		new ReField( "Canvas_", &ScnSpriteComponent::Canvas_, bcRFF_TRANSIENT ),
 		new ReField( "Material_", &ScnSpriteComponent::Material_, bcRFF_TRANSIENT ),
-		new ReField( "Material_", &ScnSpriteComponent::MaterialName_ ),
-		new ReField( "Position_", &ScnSpriteComponent::Position_ , ReFieldFlags::bcRFF_DEBUG_EDIT ),
-		new ReField( "Size_", &ScnSpriteComponent::Size_, ReFieldFlags::bcRFF_DEBUG_EDIT  ),
-		new ReField( "Colour_", &ScnSpriteComponent::Colour_, ReFieldFlags::bcRFF_DEBUG_EDIT ),
-		new ReField( "Index_", &ScnSpriteComponent::Index_ ),
-		new ReField( "Layer_", &ScnSpriteComponent::Layer_, ReFieldFlags::bcRFF_DEBUG_EDIT  ),
-		new ReField( "Center_", &ScnSpriteComponent::Center_, ReFieldFlags::bcRFF_DEBUG_EDIT  ),
-		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, ReFieldFlags::bcRFF_DEBUG_EDIT  ),
-		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_, ReFieldFlags::bcRFF_DEBUG_EDIT ),
-		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, ReFieldFlags::bcRFF_DEBUG_EDIT ),
-		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, ReFieldFlags::bcRFF_DEBUG_EDIT ),
-		new ReField( "Animation_", &ScnSpriteComponent::Animation_, ReFieldFlags::bcRFF_DEBUG_EDIT ),
-		new ReField( "Animations_", &ScnSpriteComponent::Animations_, ReFieldFlags::bcRFF_DEBUG_EDIT ),
+		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_, bcRFF_DEBUG_EDIT ),
 	};
 	
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
@@ -88,72 +89,6 @@ ScnSpriteComponent::ScnSpriteComponent()
 ScnSpriteComponent::~ScnSpriteComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnSpriteComponent::initialise( const Json::Value& Object )
-{
-	MaterialName_ = Object[ "materialcomponent" ].asCString();
-
-	if( Object[ "size" ].type() != Json::nullValue )
-	{
-		Size_ = Object[ "size" ].asCString();
-	}
-
-	if( Object[ "colour" ].type() != Json::nullValue )
-	{
-		Colour_ = MaVec4d( Object[ "colour" ].asCString() );
-	}
-
-	if( Object[ "position" ].type() != Json::nullValue )
-	{
-		Position_ = MaVec2d( Object[ "position" ].asCString() );
-	}
-
-	if( Object[ "center" ].type() != Json::nullValue )
-	{
-		Center_ = Object[ "center" ].asBool();
-	}
-
-	if( Object[ "layer" ].type() != Json::nullValue )
-	{
-		Layer_ = Object[ "layer" ].asUInt();
-	}
-
-	if( Object[ "index" ].type() != Json::nullValue ) 
-	{
-		Index_ = Object[ "index" ].asInt();
-	}
-
-	if( Object[ "isscreenspace" ].type() != Json::nullValue )
-	{
-		IsScreenSpace_ = Object[ "isscreenspace" ].asBool();
-	}
-
-	if( Object[ "animations" ].type() != Json::nullValue )
-	{
-		auto AnimMap = Object[ "animations" ];
-		auto MemberNames = AnimMap.getMemberNames();
-		for( BcU32 Idx = 0; Idx < MemberNames.size(); ++Idx )
-		{
-			auto MemberName = MemberNames[ Idx ].c_str();
-			auto Anim = AnimMap[ MemberName ];
-			Animation NewAnimation;
-			NewAnimation.Next_ = Anim[ "next" ].asCString();
-
-
-			auto AnimKeys = Anim[ "keys" ];
-			for( BcU32 KeyIdx = 0; KeyIdx < AnimKeys.size(); ++KeyIdx )
-			{
-				NewAnimation.Keys_.push_back( AnimKeys[ KeyIdx ].asInt() );
-			}
-
-			Animations_[ MemberName ] = NewAnimation;
-		}
-	}
-	
 }
 
 //////////////////////////////////////////////////////////////////////////

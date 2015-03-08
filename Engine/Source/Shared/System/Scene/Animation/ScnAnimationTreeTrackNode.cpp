@@ -21,11 +21,12 @@ void ScnAnimationTreeTrackNode::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "Speed_", &ScnAnimationTreeTrackNode::Speed_, bcRFF_IMPORTER ),
+
 		new ReField( "pPoseA_", &ScnAnimationTreeTrackNode::pPoseA_ ),
 		new ReField( "pPoseB_", &ScnAnimationTreeTrackNode::pPoseB_ ),
 		new ReField( "CurrAnimation_", &ScnAnimationTreeTrackNode::CurrAnimation_, bcRFF_TRANSIENT ),
 		new ReField( "CurrPoseIndex_", &ScnAnimationTreeTrackNode::CurrPoseIndex_, bcRFF_TRANSIENT ),
-		new ReField( "Speed_", &ScnAnimationTreeTrackNode::Speed_ ),
 		new ReField( "Time_", &ScnAnimationTreeTrackNode::Time_ ),
 		new ReField( "AnimationQueue_", &ScnAnimationTreeTrackNode::AnimationQueue_, bcRFF_TRANSIENT ),
 		new ReField( "pPoseFileDataA_", &ScnAnimationTreeTrackNode::pPoseFileDataA_, bcRFF_TRANSIENT ),
