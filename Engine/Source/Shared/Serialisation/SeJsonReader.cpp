@@ -274,7 +274,13 @@ void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 
 	}
 	else if( InputValue.type() == Json::stringValue )
 	{
-		ClassToSerialise = getSerialiseClass( InputValue.asCString(), pClass );
+		ClassToSerialise = getSerialiseClass( InputValue.asString(), pClass );
+	}
+	else if( InputValue.type() == Json::objectValue )
+	{
+		ClassToSerialise = getSerialiseClass( InputValue, pClass );
+		auto ClassType( (const ReClass*)ClassToSerialise.pType_ ); // todo, a bit a hacky..
+		serialiseClass( ClassToSerialise.pData_, ClassType, InputValue, ParentFlags );
 	}
 
 	if( ClassToSerialise.pData_ != nullptr && ClassToSerialise.pData_ != pData )
@@ -313,7 +319,6 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 	// Construct a temporary value.
 	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
 	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
-	void* pTemporaryValue = FieldValueClass->create< void >();
 
 	// Iterate over Json values.
 	if( InputValue.type() == Json::arrayValue )
@@ -323,8 +328,10 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		{
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
+				void* pTemporaryValue = FieldValueClass->create< void >();
 				serialiseClass( pTemporaryValue, FieldValueClass, (*ValueIt), ParentFlags );
 				pWriteIterator->add( pTemporaryValue );
+				FieldValueClass->destroy( pTemporaryValue );
 			}
 			else
 			{
@@ -339,8 +346,10 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		// Treat as single value.
 		if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 		{
+			void* pTemporaryValue = FieldValueClass->create< void >();
 			serialiseClass( pTemporaryValue, FieldValueClass, InputValue, ParentFlags );
 			pWriteIterator->add( pTemporaryValue );
+			FieldValueClass->destroy( pTemporaryValue );
 		}
 		else
 		{
@@ -349,9 +358,6 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 			pWriteIterator->add( &pTemporaryPointer );
 		}
 	}
-
-	// Free temporary value.
-	FieldValueClass->destroy( pTemporaryValue );
 
 	delete pWriteIterator;
 }
@@ -376,7 +382,6 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
 	const ReClass* FieldKeyClass = static_cast< const ReClass* >( pFieldKeyType );
 	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
 	void* pTemporaryKey = FieldKeyClass->create< void >();
-	void* pTemporaryValue = FieldValueClass->create< void >();
 
 	// Iterate over Json member values.
 	auto MemberKeys = InputValue.getMemberNames();
@@ -389,9 +394,10 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
 		{
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				// Serialise value.
+				void* pTemporaryValue = FieldValueClass->create< void >();
 				serialiseClass( pTemporaryValue, FieldValueClass, Value, ParentFlags );
 				pWriteIterator->add( pTemporaryKey, pTemporaryValue );
+				FieldValueClass->destroy( pTemporaryValue );
 			}
 			else
 			{
@@ -402,9 +408,7 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
 		}
 	}
 
-	// Free temporary value.
 	FieldKeyClass->destroy( pTemporaryKey );
-	FieldValueClass->destroy( pTemporaryValue );
 
 	delete pWriteIterator;
 }
@@ -422,7 +426,6 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( BcU32 ID, const Re
 
 	return RetVal;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // getSerialiseClass
@@ -444,4 +447,14 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
 	}
 
 	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSerialiseClass
+SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( const Json::Value& Value, const ReType* pType )
+{
+	auto ClassType( ReManager::GetClass( Value[ ClassString ].asString() ) );
+	SeJsonReader::SerialiseClass ClassToSerialise( "", nullptr, ClassType );
+	ClassToSerialise.pData_ = ClassType->create< void >();
+	return ClassToSerialise;
 }

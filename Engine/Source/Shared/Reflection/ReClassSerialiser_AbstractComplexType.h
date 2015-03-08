@@ -15,39 +15,40 @@ public:
 
 	virtual void construct( void* ) const
 	{
-		//BcAssertMsg( false, "Type is abstract." );
+		BcBreakpoint;
 	}
 
 	virtual void constructNoInit( void* ) const
 	{
-		//BcAssertMsg( false, "Type is abstract." );
+		BcBreakpoint;
 	}
 
 	virtual void destruct( void* ) const
 	{
-		//BcAssertMsg( false, "Type is abstract." );
+		BcBreakpoint;
 	}
 
 	virtual void* create() const
 	{
+		BcBreakpoint;
 		return nullptr;
 	}
 
 	virtual void* createNoInit() const
 	{
+		BcBreakpoint;
 		return nullptr;
 	}
 
 	virtual void destroy( void* ) const
 	{
-
+		BcBreakpoint;
 	}
 
 	virtual BcBool copy( void* pDst, void* pSrc ) const
 	{
 		return false;
 	}
-
 };
 
 #endif
