@@ -1,8 +1,8 @@
 /**************************************************************************
 *
-* File:		ScnPhysicsBoxCollisionComponent.h
+* File:		ScnPhysicsCylinderCollisionComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:		
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -11,22 +11,22 @@
 * 
 **************************************************************************/
 
-#ifndef __ScnPhysicsBoxCollisionComponent_H__
-#define __ScnPhysicsBoxCollisionComponent_H__
+#ifndef __ScnPhysicsCylinderCollisionComponent_H__
+#define __ScnPhysicsCylinderCollisionComponent_H__
 
 #include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
 #include "System/Scene/ScnEntity.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnPhysicsBoxCollisionComponent
-class ScnPhysicsBoxCollisionComponent:
+// ScnPhysicsCylinderCollisionComponent
+class ScnPhysicsCylinderCollisionComponent:
 	public ScnPhysicsCollisionComponent
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnPhysicsBoxCollisionComponent, ScnPhysicsCollisionComponent );
+	REFLECTION_DECLARE_DERIVED( ScnPhysicsCylinderCollisionComponent, ScnPhysicsCollisionComponent );
 	
-	ScnPhysicsBoxCollisionComponent();
-	virtual ~ScnPhysicsBoxCollisionComponent();
+	ScnPhysicsCylinderCollisionComponent();
+	virtual ~ScnPhysicsCylinderCollisionComponent();
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;

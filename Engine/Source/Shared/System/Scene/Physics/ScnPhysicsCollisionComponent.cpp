@@ -2,7 +2,7 @@
 *
 * File:		ScnPhysicsCollisionShape.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	20/02/13	
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -25,12 +25,18 @@ REFLECTION_DEFINE_DERIVED( ScnPhysicsCollisionComponent );
 
 void ScnPhysicsCollisionComponent::StaticRegisterClass()
 {
-	ReRegisterClass< ScnPhysicsCollisionComponent, Super >();
+	ReField* Fields[] = 
+	{
+		new ReField( "LocalScaling_", &ScnPhysicsCollisionComponent::LocalScaling_, bcRFF_IMPORTER ),
+	};
+
+	ReRegisterClass< ScnPhysicsCollisionComponent, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnPhysicsCollisionComponent::ScnPhysicsCollisionComponent():
+	LocalScaling_( 1.0f, 1.0f, 1.0f ),
 	CollisionShape_( nullptr )
 {
 }

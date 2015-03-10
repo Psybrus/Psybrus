@@ -2,7 +2,7 @@
 *
 * File:		ScnPhysicsRigidBodyComponent.cpp
 * Author:	Neil Richardson 
-* Ver/Date:	20/02/13	
+* Ver/Date:	
 * Description:
 *		
 *		

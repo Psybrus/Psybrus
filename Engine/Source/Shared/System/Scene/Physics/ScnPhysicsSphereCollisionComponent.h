@@ -1,8 +1,8 @@
 /**************************************************************************
 *
-* File:		ScnPhysicsBoxCollisionComponent.h
+* File:		ScnPhysicsSphereCollisionComponent.h
 * Author:	Neil Richardson 
-* Ver/Date:		
+* Ver/Date:	
 * Description:
 *		
 *		
@@ -11,30 +11,28 @@
 * 
 **************************************************************************/
 
-#ifndef __ScnPhysicsBoxCollisionComponent_H__
-#define __ScnPhysicsBoxCollisionComponent_H__
+#ifndef __ScnPhysicsSphereCollisionComponent_H__
+#define __ScnPhysicsSphereCollisionComponent_H__
 
 #include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
 #include "System/Scene/ScnEntity.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnPhysicsBoxCollisionComponent
-class ScnPhysicsBoxCollisionComponent:
+// ScnPhysicsSphereCollisionComponent
+class ScnPhysicsSphereCollisionComponent:
 	public ScnPhysicsCollisionComponent
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnPhysicsBoxCollisionComponent, ScnPhysicsCollisionComponent );
+	REFLECTION_DECLARE_DERIVED( ScnPhysicsSphereCollisionComponent, ScnPhysicsCollisionComponent );
 	
-	ScnPhysicsBoxCollisionComponent();
-	virtual ~ScnPhysicsBoxCollisionComponent();
+	ScnPhysicsSphereCollisionComponent();
+	virtual ~ScnPhysicsSphereCollisionComponent();
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 protected:
-	MaVec3d Size_;
-	BcF32 Margin_;
-
+	BcF32 Radius_;
 };
 
 #endif

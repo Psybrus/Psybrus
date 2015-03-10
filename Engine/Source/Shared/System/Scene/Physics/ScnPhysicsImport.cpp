@@ -2,7 +2,7 @@
 *
 * File:		ScnPhysicsImport.cpp
 * Author:	Neil Richardson 
-* Ver/Date: 25/02/13
+* Ver/Date: 
 * Description:
 *		
 *		

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		ScnPhysicsBoxCollisionComponent.cpp
+* File:		ScnPhysicsCylinderCollisionComponent.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "System/Scene/Physics/ScnPhysicsBoxCollisionComponent.h"
+#include "System/Scene/Physics/ScnPhysicsCylinderCollisionComponent.h"
 #include "System/Scene/Physics/ScnPhysics.h"
 
 #include "System/Content/CsCore.h"
@@ -22,22 +22,22 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-REFLECTION_DEFINE_DERIVED( ScnPhysicsBoxCollisionComponent );
+REFLECTION_DEFINE_DERIVED( ScnPhysicsCylinderCollisionComponent );
 
-void ScnPhysicsBoxCollisionComponent::StaticRegisterClass()
+void ScnPhysicsCylinderCollisionComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Size_", &ScnPhysicsBoxCollisionComponent::Size_, bcRFF_IMPORTER ),
-		new ReField( "Margin_", &ScnPhysicsBoxCollisionComponent::Margin_, bcRFF_IMPORTER ),
+		new ReField( "Size_", &ScnPhysicsCylinderCollisionComponent::Size_, bcRFF_IMPORTER ),
+		new ReField( "Margin_", &ScnPhysicsCylinderCollisionComponent::Margin_, bcRFF_IMPORTER ),
 	};
 
-	ReRegisterClass< ScnPhysicsBoxCollisionComponent, Super >( Fields );
+	ReRegisterClass< ScnPhysicsCylinderCollisionComponent, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnPhysicsBoxCollisionComponent::ScnPhysicsBoxCollisionComponent():
+ScnPhysicsCylinderCollisionComponent::ScnPhysicsCylinderCollisionComponent():
 	Size_( 1.0f, 1.0f, 1.0f ),
 	Margin_( 0.0f )
 {
@@ -46,24 +46,24 @@ ScnPhysicsBoxCollisionComponent::ScnPhysicsBoxCollisionComponent():
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-ScnPhysicsBoxCollisionComponent::~ScnPhysicsBoxCollisionComponent()
+ScnPhysicsCylinderCollisionComponent::~ScnPhysicsCylinderCollisionComponent()
 {
 	delete CollisionShape_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onAttach
-void ScnPhysicsBoxCollisionComponent::onAttach( ScnEntityWeakRef Parent )
+void ScnPhysicsCylinderCollisionComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Super::onAttach( Parent );
-	CollisionShape_ = new btBoxShape( ScnPhysicsToBullet( Size_ * 0.5f ) );
-	CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) );
+	CollisionShape_ = new btCylinderShape( ScnPhysicsToBullet( Size_ ) );
+	CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) ); // move to base
 	CollisionShape_->setMargin( Margin_ );
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onDetach
-void ScnPhysicsBoxCollisionComponent::onDetach( ScnEntityWeakRef Parent )
+void ScnPhysicsCylinderCollisionComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
 }
