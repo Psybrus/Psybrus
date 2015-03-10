@@ -224,7 +224,7 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 	BcAssert( Entity->getName().isValid() );
 	BcAssert( !Entity->isFlagSet( scnCF_ATTACHED ) );
 	Entity->setFlag( scnCF_PENDING_ATTACH );
-	queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
+	queueComponentForAttach( ScnComponentRef( Entity ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 	if( Entity->getParentEntity() == nullptr )
 	{
 		Entity->setFlag( scnCF_PENDING_DETACH );
-		queueComponentAsPendingOperation( ScnComponentRef( Entity ) );
+		queueComponentForDetach( ScnComponentRef( Entity ) );
 	}
 	else
 	{
@@ -273,16 +273,14 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 	{
 		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
-		if( CsCore::pImpl()->createResource( InstanceName == BcName::INVALID ? UniqueName : InstanceName, pPackage, Entity, TemplateEntity ) )
-		{
-			Entity->postInitialise();
-			return Entity;
-		}
+		Entity = new ScnEntity( TemplateEntity );
+		Entity->setName( Name );
+		Entity->setOwner( pPackage );
 	}
 
-	BcAssertMsg( BcFalse, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
+	BcAssertMsg( Entity != nullptr, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
 
-	return nullptr;	
+	return Entity;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -352,15 +350,28 @@ ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// queueComponentAsPendingOperation
-void ScnCore::queueComponentAsPendingOperation( ScnComponentRef Component )
+// queueComponentForAttach
+void ScnCore::queueComponentForAttach( ScnComponentRef Component )
 {
 	BcAssert( Component->getName() != BcName::INVALID );
 	
 	// Add pending operation if not already in queue.
-	if( std::find( PendingComponentList_.begin(), PendingComponentList_.end(), Component ) == PendingComponentList_.end() )
+	if( std::find( PendingAttachComponentList_.begin(), PendingAttachComponentList_.end(), Component ) == PendingAttachComponentList_.end() )
 	{
-		PendingComponentList_.push_back( Component );
+		PendingAttachComponentList_.push_back( Component );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// queueComponentForDetach
+void ScnCore::queueComponentForDetach( ScnComponentRef Component )
+{
+	BcAssert( Component->getName() != BcName::INVALID );
+	
+	// Add pending operation if not already in queue.
+	if( std::find( PendingDetachComponentList_.begin(), PendingDetachComponentList_.end(), Component ) == PendingDetachComponentList_.end() )
+	{
+		PendingDetachComponentList_.push_back( Component );
 	}
 }
 
@@ -444,49 +455,60 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 // processPendingComponents
 void ScnCore::processPendingComponents()
 {
-	ScnComponentList ComponentStillNotReady;
-	ScnComponentList ComponentToDestroy;
-	while( PendingComponentList_.size() > 0 )
+	while( PendingAttachComponentList_.size() > 0 )
 	{
 		//
-		ScnComponentRef Component( *PendingComponentList_.begin() );
-		PendingComponentList_.erase( PendingComponentList_.begin() );
+		ScnComponentRef Component( *PendingAttachComponentList_.begin() );
+		PendingAttachComponentList_.erase( PendingAttachComponentList_.begin() );
 
 		BcAssert( Component->getInitStage() != CsResource::INIT_STAGE_DESTROY );
 
 		//
-		if( Component->isReady() )
-		{
-			// Handle attachment.
-			if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
-			{
-				Component->onAttach( Component->getParentEntity() );
-				onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
-			}
+		BcAssert( Component->isReady() )
 
-			// Handle detachment.
-			if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
-			{
-				Component->onDetach( Component->getParentEntity() );
-				BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
-					"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
-				onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
-			}
-
-			// Handle destruction.
-			if( Component->isFlagSet( scnCF_PENDING_DESTROY ) )
-			{
-				ComponentToDestroy.push_back( Component );
-			}
-		}
-		else
+		// Handle attachment.
+		if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
 		{
-			ComponentStillNotReady.push_back( Component );
+			auto ParentName =
+				Component->getParentEntity() ? 
+					Component->getParentEntity()->getName() : 
+					BcName::INVALID;
+			Component->onAttach( Component->getParentEntity() );
+			onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 		}
 	}
 
-	PendingComponentList_.insert( 
-		PendingComponentList_.begin(), ComponentStillNotReady.begin(), ComponentStillNotReady.end() );
+	ScnComponentList ComponentToDestroy;
+	while( PendingDetachComponentList_.size() > 0 )
+	{
+		//
+		ScnComponentRef Component( *PendingDetachComponentList_.begin() );
+		PendingDetachComponentList_.erase( PendingDetachComponentList_.begin() );
+
+		BcAssert( Component->getInitStage() != CsResource::INIT_STAGE_DESTROY );
+
+		//
+		BcAssert( Component->isReady() );
+
+		// Handle detachment.
+		if( Component->isFlagSet( scnCF_PENDING_DETACH ) )
+		{
+			auto ParentName =
+				Component->getParentEntity() ? 
+					Component->getParentEntity()->getName() : 
+					BcName::INVALID;
+			Component->onDetach( Component->getParentEntity() );
+			BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
+				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
+			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+		}
+
+		// Handle destruction.
+		if( Component->isFlagSet( scnCF_PENDING_DESTROY ) )
+		{
+			ComponentToDestroy.push_back( Component );
+		}
+	}
 
 	// Do destruction.
 	for( auto Component : ComponentToDestroy )
@@ -515,6 +537,9 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	{
 		addEntity( Entity );
 	}
+
+	Entity->initialise();
+	Entity->postInitialise();
 
 	// Call on spawn callback.
 	if( Params.OnSpawn_ != nullptr )

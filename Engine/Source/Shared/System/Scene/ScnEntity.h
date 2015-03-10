@@ -40,10 +40,11 @@ public:
 	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnEntity, ScnComponent );
 	
 	ScnEntity();
+	ScnEntity( ScnEntityRef Basis );
 	ScnEntity( ReNoInit );
 	virtual ~ScnEntity();
 
-	void initialise( ScnEntityRef Basis );
+	void initialise();
 
 public:
 	void update( BcF32 Tick );
@@ -190,6 +191,7 @@ BcForceInline _Ty* ScnEntity::attach( const BcName& Name, _ParamT... Params )
 	Component->setName( UniqueName );
 	Component->setOwner( getPackage() );
 	Component->initialise();
+	Component->postInitialise();
 	attach( Component );
 	return Component;
 }

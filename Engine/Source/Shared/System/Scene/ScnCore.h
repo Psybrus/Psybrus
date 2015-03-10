@@ -73,9 +73,14 @@ public:
 	ScnEntityRef				getEntity( BcU32 Idx );
 
 	/**
-	 * Queue component for attach/detach.
+	 * Queue component for attach.
 	 */
-	void						queueComponentAsPendingOperation( ScnComponentRef Component );
+	void						queueComponentForAttach( ScnComponentRef Component );
+
+	/**
+	 * Queue component for detach.
+	 */
+	void						queueComponentForDetach( ScnComponentRef Component );
 
 	/**
 	 * Visit view.
@@ -112,7 +117,8 @@ private:
 	class ScnSpatialTree*		pSpatialTree_;
 
 	// Pending components.
-	ScnComponentList			PendingComponentList_;
+	ScnComponentList			PendingAttachComponentList_;
+	ScnComponentList			PendingDetachComponentList_;
 	
 	// Special components.
 	ScnComponentList			ViewComponentList_;

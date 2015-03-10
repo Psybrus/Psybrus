@@ -68,6 +68,22 @@ ScnEntity::ScnEntity():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
+ScnEntity::ScnEntity( ScnEntityRef Basis )
+{
+	setBasis( Basis->getBasisEntity() );
+	pHeader_ = Basis->pHeader_;
+	BcAssertMsg( Basis->isReady(), "Basis entity is not ready!" );
+
+	// Copy over internals.
+	LocalTransform_ = Basis->LocalTransform_;
+
+	// Acquire basis package.
+	setRootOwner( Basis->getPackage() );
+	getPackage()->acquire();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 ScnEntity::ScnEntity( ReNoInit ):
 	pHeader_( nullptr )
 #if SCNENTITY_USES_EVTPUBLISHER
@@ -90,21 +106,8 @@ ScnEntity::~ScnEntity()
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void ScnEntity::initialise( ScnEntityRef Basis )
+void ScnEntity::initialise()
 {
-	// Grab our basis.
-	setBasis( Basis->getBasisEntity() );
-	pHeader_ = Basis->pHeader_;
-
-	BcAssertMsg( Basis->isReady(), "Basis entity is not ready!" );
-
-	// Copy over internals.
-	LocalTransform_ = Basis->LocalTransform_;
-
-	// Acquire basis package.
-	setRootOwner( Basis->getPackage() );
-	getPackage()->acquire();
-
 	setupComponents();
 }
 
@@ -177,17 +180,10 @@ void ScnEntity::attach( ScnComponent* Component )
 	if( It == Components_.end() )
 	{
 		BcAssertMsg( Component != nullptr, "Trying to attach a null component!" );
-
-		// Post init if not ready...flaky?
-		if( !Component->isReady() )
-		{
-			Component->postInitialise();
-		}
 		Component->setParentEntity( ScnEntityWeakRef( this ) );
 		Component->setFlag( scnCF_PENDING_ATTACH );
-		Components_.push_back( Component );
-	
-		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
+		Components_.push_back( Component );	
+		ScnCore::pImpl()->queueComponentForAttach( Component );
 	}
 }
 
@@ -204,7 +200,7 @@ void ScnEntity::detach( ScnComponent* Component )
 		Component->setFlag( scnCF_PENDING_DETACH );
 		Components_.erase( It );
 
-		ScnCore::pImpl()->queueComponentAsPendingOperation( Component );
+		ScnCore::pImpl()->queueComponentForDetach( Component );
 	}
 }
 
@@ -252,7 +248,7 @@ ScnComponent* ScnEntity::getComponent( BcU32 Idx, const ReClass* Class )
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
-			if( Component->getClass() == Class )
+			if( Component->getClass()->hasBaseClass( Class ) )
 			{
 				if( SearchIdx == Idx )
 				{
@@ -287,7 +283,7 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
-			if( Component->getName() == Name && Component->getClass() == Class )
+			if( Component->getName() == Name && Component->getClass()->hasBaseClass( Class ) )
 			{
 				return Component;
 			}
@@ -500,6 +496,7 @@ void ScnEntity::setupComponents()
 							CsResource* Resource = static_cast< CsResource* >( Object );
 							Resource->initialise();
 						} );
+				NewComponent->postInitialise();
 				attach( NewComponent );
 			}
 		}
