@@ -17,18 +17,17 @@
 #include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnPhysicsCollisionShape
-class ScnPhysicsCollisionShape:
-	public CsResource
+// ScnPhysicsCollisionComponent
+class ScnPhysicsCollisionComponent:
+	public ScnComponent
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnPhysicsCollisionShape, CsResource );
+	REFLECTION_DECLARE_DERIVED( ScnPhysicsCollisionComponent, ScnComponent );
 	
-	ScnPhysicsCollisionShape();
-	virtual ~ScnPhysicsCollisionShape();
-	
-	virtual void create();
-	virtual void destroy();
+	ScnPhysicsCollisionComponent();
+	virtual ~ScnPhysicsCollisionComponent();
+
+	virtual void initialise();
 
 	class btCollisionShape* getCollisionShape();
 

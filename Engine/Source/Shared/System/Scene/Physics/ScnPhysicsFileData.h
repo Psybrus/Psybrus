@@ -25,8 +25,8 @@ struct ScnPhysicsCollisionShapeHeader
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnPhysicsBoxCollisionShapeHeader
-struct ScnPhysicsBoxCollisionShapeHeader:
+// ScnPhysicsBoxCollisionComponentHeader
+struct ScnPhysicsBoxCollisionComponentHeader:
 	public ScnPhysicsCollisionShapeHeader
 {
 	MaVec3d HalfExtents_;

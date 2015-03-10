@@ -41,6 +41,8 @@ public:
 
 
 private:
+	MaVec3d Gravity_;
+
 	class btBroadphaseInterface* Broadphase_;
 	class btCollisionDispatcher* Dispatcher_;
 	class btConstraintSolver* Solver_;

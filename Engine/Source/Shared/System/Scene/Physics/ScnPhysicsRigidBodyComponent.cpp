@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
+#include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
 #include "System/Scene/ScnEntity.h"
 
@@ -27,7 +28,14 @@ REFLECTION_DEFINE_DERIVED( ScnPhysicsRigidBodyComponent );
 
 void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 {
-	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >();
+	ReField* Fields[] = 
+	{
+		new ReField( "Mass_", &ScnPhysicsRigidBodyComponent::Mass_, bcRFF_IMPORTER ),
+		new ReField( "Friction_", &ScnPhysicsRigidBodyComponent::Friction_, bcRFF_IMPORTER ),
+		new ReField( "Restitution_", &ScnPhysicsRigidBodyComponent::Restitution_, bcRFF_IMPORTER ),
+	};
+
+	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,12 +83,17 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Get parent world.
 	World_ = getComponentAnyParentByType< ScnPhysicsWorldComponent >();
+	BcAssert( World_ );
+
+	// Get collision component from parent.
+	CollisionComponent_ = getComponentByType< ScnPhysicsCollisionComponent >();
+	BcAssert( CollisionComponent_ );
 
 	// Calculate local inertia.
-	btCollisionShape* CollisionShape = CollisionShape_->getCollisionShape();
-	BcBool IsDynamic = (Mass_ != 0.f);
-	btVector3 LocalInertia(0,0,0);
-	if (IsDynamic)
+	btCollisionShape* CollisionShape = CollisionComponent_->getCollisionShape();
+	BcBool IsDynamic = ( Mass_ != 0.0f );
+	btVector3 LocalInertia( 0.0f, 0.0f, 0.0f );
+	if( IsDynamic )
 	{
 		CollisionShape->calculateLocalInertia( Mass_, LocalInertia );
 	}
@@ -92,7 +105,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 
 	btRigidBody::btRigidBodyConstructionInfo ConstructionInfo(
 			Mass_,
-			NULL,
+			nullptr,
 			CollisionShape,
 			LocalInertia );
 	ConstructionInfo.m_startWorldTransform = StartTransform;
@@ -111,10 +124,10 @@ void ScnPhysicsRigidBodyComponent::onDetach( ScnEntityWeakRef Parent )
 	// Remove rigid body.
 	World_->removeRigidBody( RigidBody_ );
 	delete RigidBody_;
-	RigidBody_ = NULL;
+	RigidBody_ = nullptr;
 
 	// Clear world.
-	World_ = NULL;
+	World_ = nullptr;
 
 	Super::onDetach( Parent );
 }

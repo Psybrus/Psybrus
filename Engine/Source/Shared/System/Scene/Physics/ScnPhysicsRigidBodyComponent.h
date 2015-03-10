@@ -15,7 +15,6 @@
 #define __ScnPhysicsRigidBodyComponent_H__
 
 #include "System/Scene/ScnComponent.h"
-#include "System/Scene/Physics/ScnPhysicsCollisionShape.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsRigidBodyComponent
@@ -35,7 +34,7 @@ public:
 
 private:
 	class ScnPhysicsWorldComponent* World_;
-	class ScnPhysicsCollisionShape* CollisionShape_;
+	class ScnPhysicsCollisionComponent* CollisionComponent_;
 
 	class btRigidBody* RigidBody_;
 

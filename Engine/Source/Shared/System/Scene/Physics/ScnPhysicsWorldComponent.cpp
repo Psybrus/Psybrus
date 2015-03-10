@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
+#include "System/Scene/Physics/ScnPhysics.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"
@@ -29,7 +30,10 @@ class DebugRenderer:
 public:
 	DebugRenderer()
 	{
-		DebugMode_ = btIDebugDraw::DBG_DrawWireframe;
+		DebugMode_ = 
+			btIDebugDraw::DBG_DrawWireframe |
+			btIDebugDraw::DBG_DrawContactPoints |
+			btIDebugDraw::DBG_DrawConstraints;
 	}
 
 	virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
@@ -42,7 +46,10 @@ public:
 
 	virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)
 	{
-
+		ScnDebugRenderComponent::pImpl()->drawLine(
+			ScnPhysicsFromBullet( PointOnB ) - ScnPhysicsFromBullet( normalOnB ),
+			ScnPhysicsFromBullet( PointOnB ) + ScnPhysicsFromBullet( normalOnB ),
+			RsColour( color.x(), color.y(), color.z(), 1.0f ) );
 	}
 
 	virtual void reportErrorWarning(const char* warningString)
@@ -77,7 +84,13 @@ REFLECTION_DEFINE_DERIVED( ScnPhysicsWorldComponent );
 
 void ScnPhysicsWorldComponent::StaticRegisterClass()
 {
-	ReRegisterClass< ScnPhysicsWorldComponent, Super >()
+	ReField* Fields[] = 
+	{
+		new ReField( "Gravity_", &ScnPhysicsWorldComponent::Gravity_, bcRFF_IMPORTER ),
+		new ReField( "DebugDrawWorld_", &ScnPhysicsWorldComponent::DebugDrawWorld_, bcRFF_IMPORTER ),
+	};
+
+	ReRegisterClass< ScnPhysicsWorldComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -100 ) );
 }
 
@@ -91,7 +104,6 @@ ScnPhysicsWorldComponent::ScnPhysicsWorldComponent():
 	DynamicsWorld_( nullptr ),
 	DebugDrawWorld_( BcFalse )
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,7 +111,11 @@ ScnPhysicsWorldComponent::ScnPhysicsWorldComponent():
 //virtual
 ScnPhysicsWorldComponent::~ScnPhysicsWorldComponent()
 {
-
+	delete DynamicsWorld_;
+	delete Solver_;
+	delete Broadphase_;
+	delete Dispatcher_;
+	delete CollisionConfiguration_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -148,8 +164,7 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	Broadphase_ = new btDbvtBroadphase();
 	Solver_ = new btSequentialImpulseConstraintSolver();
 	DynamicsWorld_ = new btDiscreteDynamicsWorld( Dispatcher_, Broadphase_, Solver_, CollisionConfiguration_ );
-	DynamicsWorld_->setGravity( btVector3( 0.0f, -10.0f, 0.0f ) );
-
+	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
 	DynamicsWorld_->setDebugDrawer( &gDebugRenderer );
 
 #if defined( PSY_DEBUG )
@@ -182,11 +197,6 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 	}
 #endif
 	
-	delete DynamicsWorld_;
-	delete Solver_;
-	delete Broadphase_;
-	delete Dispatcher_;
-	delete CollisionConfiguration_;
 	Super::onDetach( Parent );
 }
 
@@ -194,6 +204,7 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 // addRigidBody
 void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
 {
+	BcAssert( DynamicsWorld_ != nullptr );
 	DynamicsWorld_->addRigidBody( RigidBody );
 }
 
@@ -201,6 +212,7 @@ void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
 // removeRigidBody
 void ScnPhysicsWorldComponent::removeRigidBody( btRigidBody* RigidBody )
 {
+	BcAssert( DynamicsWorld_ != nullptr );
 	DynamicsWorld_->removeRigidBody( RigidBody );
 }
 

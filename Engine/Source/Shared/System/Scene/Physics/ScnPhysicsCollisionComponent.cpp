@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "System/Scene/Physics/ScnPhysicsCollisionShape.h"
+#include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
 
 #include "System/Content/CsCore.h"
 
@@ -21,16 +21,16 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-REFLECTION_DEFINE_DERIVED( ScnPhysicsCollisionShape );
+REFLECTION_DEFINE_DERIVED( ScnPhysicsCollisionComponent );
 
-void ScnPhysicsCollisionShape::StaticRegisterClass()
+void ScnPhysicsCollisionComponent::StaticRegisterClass()
 {
-	ReRegisterClass< ScnPhysicsCollisionShape, Super >();
+	ReRegisterClass< ScnPhysicsCollisionComponent, Super >();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnPhysicsCollisionShape::ScnPhysicsCollisionShape():
+ScnPhysicsCollisionComponent::ScnPhysicsCollisionComponent():
 	CollisionShape_( nullptr )
 {
 }
@@ -38,31 +38,23 @@ ScnPhysicsCollisionShape::ScnPhysicsCollisionShape():
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-ScnPhysicsCollisionShape::~ScnPhysicsCollisionShape()
+ScnPhysicsCollisionComponent::~ScnPhysicsCollisionComponent()
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
-// create
+// initialise
 //virtual
-void ScnPhysicsCollisionShape::create()
+void ScnPhysicsCollisionComponent::initialise()
 {
-	markReady();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroy
-//virtual
-void ScnPhysicsCollisionShape::destroy()
-{
-	
+	Super::initialise();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getCollisionShape
 //virtual
-class btCollisionShape* ScnPhysicsCollisionShape::getCollisionShape()
+class btCollisionShape* ScnPhysicsCollisionComponent::getCollisionShape()
 {
 	return CollisionShape_;
 }

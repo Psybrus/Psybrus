@@ -33,9 +33,9 @@ BcBool ScnPhysicsImport::import( class CsPackageImporter& Importer, const Json::
 
 	BcStream HeaderStream;
 
-	if( BcStrCompare( Object[ "type" ].asCString(), "ScnPhysicsBoxCollisionShape" ) )
+	if( BcStrCompare( Object[ "type" ].asCString(), "ScnPhysicsBoxCollisionComponent" ) )
 	{
-		ScnPhysicsBoxCollisionShapeHeader Header;
+		ScnPhysicsBoxCollisionComponentHeader Header;
 	
 		Header.HalfExtents_ = MaVec3d( Object[ "extents" ].asCString() );
 
