@@ -41,7 +41,7 @@ void ScnPhysicsCapsuleCollisionComponent::StaticRegisterClass()
 ScnPhysicsCapsuleCollisionComponent::ScnPhysicsCapsuleCollisionComponent():
 	Radius_( 1.0f ),
 	Height_( 1.0f ),
-	Margin_( 1.0f )
+	Margin_( 0.0f )
 {
 }
 
@@ -57,7 +57,6 @@ ScnPhysicsCapsuleCollisionComponent::~ScnPhysicsCapsuleCollisionComponent()
 // onAttach
 void ScnPhysicsCapsuleCollisionComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Super::onAttach( Parent );
 	CollisionShape_ = new btCapsuleShape( Radius_, Height_ );
 	CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) ); // move to base
 	CollisionShape_->setMargin( Margin_ );
