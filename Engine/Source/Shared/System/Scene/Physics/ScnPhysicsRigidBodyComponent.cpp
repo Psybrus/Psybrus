@@ -35,7 +35,8 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 		new ReField( "Restitution_", &ScnPhysicsRigidBodyComponent::Restitution_, bcRFF_IMPORTER ),
 	};
 
-	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >( Fields );
+	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >( Fields )
+		.addAttribute( new ScnComponentAttribute( -90 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
