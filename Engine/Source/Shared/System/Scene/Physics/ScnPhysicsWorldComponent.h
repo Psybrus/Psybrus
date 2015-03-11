@@ -27,12 +27,14 @@ public:
 	ScnPhysicsWorldComponent();
 	virtual ~ScnPhysicsWorldComponent();
 
-	virtual void preUpdate( BcF32 Tick );
-	virtual void update( BcF32 Tick );
-	virtual void postUpdate( BcF32 Tick );
+	void initialise() override;
 
-	void onAttach( ScnEntityWeakRef Parent );
-	void onDetach( ScnEntityWeakRef Parent );
+	void preUpdate( BcF32 Tick ) override;
+	void update( BcF32 Tick ) override;
+	void postUpdate( BcF32 Tick ) override;
+
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	void addRigidBody( class btRigidBody* RigidBody );
 	void removeRigidBody( class btRigidBody* RigidBody );
@@ -42,6 +44,10 @@ public:
 
 private:
 	MaVec3d Gravity_;
+	BcU32 MaxSubSteps_;
+	BcF32 FrameRate_;
+	BcF32 InvFrameRate_;
+	BcBool DebugDrawWorld_;
 
 	class btBroadphaseInterface* Broadphase_;
 	class btCollisionDispatcher* Dispatcher_;
@@ -49,7 +55,6 @@ private:
 	class btDefaultCollisionConfiguration* CollisionConfiguration_;
 	class btDynamicsWorld* DynamicsWorld_;
 
-	BcBool DebugDrawWorld_;
 	BcU32 DebugRenderingHandle_;
 };
 

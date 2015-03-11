@@ -87,7 +87,11 @@ void ScnPhysicsWorldComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Gravity_", &ScnPhysicsWorldComponent::Gravity_, bcRFF_IMPORTER ),
+		new ReField( "MaxSubSteps_", &ScnPhysicsWorldComponent::MaxSubSteps_, bcRFF_IMPORTER ),
+		new ReField( "FrameRate_", &ScnPhysicsWorldComponent::FrameRate_, bcRFF_IMPORTER ),
 		new ReField( "DebugDrawWorld_", &ScnPhysicsWorldComponent::DebugDrawWorld_, bcRFF_IMPORTER ),
+
+		new ReField( "InvFrameRate_", &ScnPhysicsWorldComponent::FrameRate_, bcRFF_TRANSIENT ),
 	};
 
 	ReRegisterClass< ScnPhysicsWorldComponent, Super >( Fields )
@@ -97,12 +101,16 @@ void ScnPhysicsWorldComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnPhysicsWorldComponent::ScnPhysicsWorldComponent():
+	Gravity_( 0.0f, -9.8f, 0.0f ),
+	MaxSubSteps_( 10 ),
+	FrameRate_( 60.0f ),
+	InvFrameRate_( 1.0f / FrameRate_ ),
+	DebugDrawWorld_( BcFalse ),
 	CollisionConfiguration_( nullptr ),
 	Dispatcher_( nullptr ),
 	Broadphase_( nullptr ),
 	Solver_( nullptr ),
-	DynamicsWorld_( nullptr ),
-	DebugDrawWorld_( BcFalse )
+	DynamicsWorld_( nullptr )
 {
 }
 
@@ -119,12 +127,20 @@ ScnPhysicsWorldComponent::~ScnPhysicsWorldComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnPhysicsWorldComponent::initialise()
+{
+	BcAssertMsg( FrameRate_ > 0.0f, "FrameRate must be greater than 0." );
+	BcAssertMsg( MaxSubSteps_ > 0 && MaxSubSteps_ < 100, "MaxSubSteps must be 0 and 100." )
+	InvFrameRate_ = 1.0f / FrameRate_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // preUpdate
-//virtual
 void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
 {
 	// Step simulation.
-	DynamicsWorld_->stepSimulation( Tick, 0 );
+	DynamicsWorld_->stepSimulation( Tick, MaxSubSteps_, InvFrameRate_ );
 
 	// Resolve collisions?
 
