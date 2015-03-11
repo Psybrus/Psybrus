@@ -491,11 +491,8 @@ void ScnEntity::setupComponents()
 						*Component->getName().getUnique(), 
 						getPackage(), 
 						Component,
-						[]( ReObject* Object )
-						{
-							CsResource* Resource = static_cast< CsResource* >( Object );
-							Resource->initialise();
-						} );
+						nullptr );
+				NewComponent->initialise();
 				NewComponent->postInitialise();
 				attach( NewComponent );
 			}
