@@ -282,7 +282,11 @@ void ScnModelComponent::StaticRegisterClass()
 		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
 		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
+		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
+		new ReField( "Scale_", &ScnModelComponent::Scale_, bcRFF_IMPORTER ),
+		new ReField( "Rotation_", &ScnModelComponent::Rotation_, bcRFF_IMPORTER ),
 
+		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
 		new ReField( "UploadFence_", &ScnModelComponent::UploadFence_, bcRFF_TRANSIENT ),
 		new ReField( "UpdateFence_", &ScnModelComponent::UpdateFence_, bcRFF_TRANSIENT ),
 		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
@@ -300,6 +304,9 @@ ScnModelComponent::ScnModelComponent():
 	Model_(),
 	Layer_( 0 ),
 	Pass_( 0 ),
+	Position_( 0.0f, 0.0f, 0.0f ),
+	Scale_( 1.0f, 1.0f, 1.0f ),
+	Rotation_( 0.0f, 0.0f, 0.0f ),
 	pNodeTransformData_( nullptr ),
 	UploadFence_(),
 	UpdateFence_(),
@@ -315,6 +322,18 @@ ScnModelComponent::ScnModelComponent():
 ScnModelComponent::~ScnModelComponent()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnModelComponent::initialise()
+{
+	// Setup base transform.
+	MaMat4d Scale;
+	Scale.scale( Scale_ );
+	BaseTransform_.rotation( Rotation_ );
+	BaseTransform_ = BaseTransform_ * Scale;
+	BaseTransform_.translation( Position_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -447,7 +466,7 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 	Super::postUpdate( Tick );
 
 	UpdateFence_.increment();
-	updateNodes( getParentEntity()->getWorldMatrix() );
+	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
 
 #if DEBUG_RENDER_NODES
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
@@ -680,8 +699,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Update nodes.
 	UpdateFence_.increment();
-	updateNodes( getParentEntity()->getWorldMatrix() );
-
+	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
 }
 
 //////////////////////////////////////////////////////////////////////////

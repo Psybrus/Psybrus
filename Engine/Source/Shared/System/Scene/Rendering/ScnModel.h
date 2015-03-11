@@ -73,6 +73,8 @@ public:
 	ScnModelComponent();
 	virtual ~ScnModelComponent();
 
+	void initialise() override;
+
 	virtual MaAABB getAABB() const;
 
 	BcU32 findNodeIndexByName( const BcName& Name ) const;
@@ -97,6 +99,11 @@ protected:
 	ScnModelRef Model_;
 	BcU32 Layer_;
 	BcU32 Pass_;
+
+	MaVec3d Position_;
+	MaVec3d Scale_;
+	MaVec3d Rotation_;
+	MaMat4d BaseTransform_;
 
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
