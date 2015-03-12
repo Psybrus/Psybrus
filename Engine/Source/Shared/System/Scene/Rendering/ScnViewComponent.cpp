@@ -343,7 +343,6 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	pRenderNode->EnableClearDepth_ = EnableClearDepth_;
 	pRenderNode->EnableClearStencil_ = EnableClearStencil_;
 	pFrame->addRenderNode( pRenderNode );
-
 }
 
 //////////////////////////////////////////////////////////////////////////

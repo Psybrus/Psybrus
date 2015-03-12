@@ -16,28 +16,29 @@
 
 #include "Base/BcTypes.h"
 #include "Math/MaVec3d.h"
+#include "Math/MaAABB.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsCollisionShapeHeader
-struct ScnPhysicsCollisionShapeHeader
+struct ScnPhysicsMeshHeader
 {
-
+	BcU32 NoofTriangles_;
+	BcU32 NoofVertices_;
+	MaAABB AABB_;
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnPhysicsBoxCollisionComponentHeader
-struct ScnPhysicsBoxCollisionComponentHeader:
-	public ScnPhysicsCollisionShapeHeader
+// ScnPhysicsTriangle
+struct ScnPhysicsTriangle
 {
-	MaVec3d HalfExtents_;
+	BcU32 Indices_[ 3 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnPhysicsSphereCollisionShapeHeader
-struct ScnPhysicsSphereCollisionShapeHeader:
-	public ScnPhysicsCollisionShapeHeader
+// ScnPhysicsVertex
+struct ScnPhysicsVertex
 {
-	BcF32 Radius_;
+	MaVec4d Position_;
 };
 
 #endif
