@@ -48,7 +48,7 @@ struct VertexDefault
 		_o = PsyMatMul( WorldTransform_, _v ); \
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = PsyMatMul( (float3x3)NormalTransform_.xyz, _v ); \
+		_o = PsyMatMul( (float3x3)NormalTransform_, _v ); \
 
 
 #elif defined( PERM_MESH_SKINNED_3D )
