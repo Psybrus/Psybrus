@@ -17,6 +17,21 @@
 #include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnIPhysicsWorldUpdate
+class ScnIPhysicsWorldUpdate
+{
+public:
+	ScnIPhysicsWorldUpdate() {};
+	virtual ~ScnIPhysicsWorldUpdate() {};
+
+	/**
+	 * Called for each physics update tick.
+	 * Can be called multiple times per frame.
+	 */
+	virtual void onPhysicsUpdate( BcF32 Tick ) = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnPhysicsWorldComponent
 class ScnPhysicsWorldComponent:
 	public ScnComponent
@@ -39,6 +54,9 @@ public:
 	void addRigidBody( class btRigidBody* RigidBody );
 	void removeRigidBody( class btRigidBody* RigidBody );
 
+	void registerWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
+	void deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
+
 	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal );
 
 
@@ -54,6 +72,10 @@ private:
 	class btConstraintSolver* Solver_;
 	class btDefaultCollisionConfiguration* CollisionConfiguration_;
 	class btDynamicsWorld* DynamicsWorld_;
+
+	friend class UpdateActions;
+	class UpdateActions* UpdateActions_;
+	std::vector< ScnIPhysicsWorldUpdate* > WorldUpdateHandler_;
 
 	BcU32 DebugRenderingHandle_;
 };

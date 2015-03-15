@@ -80,6 +80,36 @@ private:
 
 static DebugRenderer gDebugRenderer;
 
+
+class UpdateActions: 
+	public btActionInterface
+{
+public:
+	UpdateActions( ScnPhysicsWorldComponent* World ):
+		World_( World )
+	{
+
+	}
+
+	void updateAction( btCollisionWorld* collisionWorld, btScalar deltaTimeStep ) override
+	{
+		for( auto* Handler : World_->WorldUpdateHandler_ )
+		{
+			Handler->onPhysicsUpdate( deltaTimeStep );
+		}
+	}
+
+	void debugDraw( btIDebugDraw* debugDrawer ) override
+	{
+
+	}
+
+private:
+	ScnPhysicsWorldComponent* World_;
+};
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnPhysicsWorldComponent );
@@ -112,7 +142,8 @@ ScnPhysicsWorldComponent::ScnPhysicsWorldComponent():
 	Dispatcher_( nullptr ),
 	Broadphase_( nullptr ),
 	Solver_( nullptr ),
-	DynamicsWorld_( nullptr )
+	DynamicsWorld_( nullptr ),
+	UpdateActions_( new UpdateActions( this ) )
 {
 }
 
@@ -121,6 +152,7 @@ ScnPhysicsWorldComponent::ScnPhysicsWorldComponent():
 //virtual
 ScnPhysicsWorldComponent::~ScnPhysicsWorldComponent()
 {
+	delete UpdateActions_;
 	delete DynamicsWorld_;
 	delete Solver_;
 	delete Broadphase_;
@@ -184,6 +216,7 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	DynamicsWorld_ = new btDiscreteDynamicsWorld( Dispatcher_, Broadphase_, Solver_, CollisionConfiguration_ );
 	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
 	DynamicsWorld_->setDebugDrawer( &gDebugRenderer );
+	DynamicsWorld_->addAction( UpdateActions_ );
 
 	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
 
@@ -210,6 +243,8 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	DynamicsWorld_->removeAction( UpdateActions_ );
+
 #if !PLATFORM_HTML5
 	if( DsCore::pImpl() )
 	{
@@ -234,6 +269,21 @@ void ScnPhysicsWorldComponent::removeRigidBody( btRigidBody* RigidBody )
 {
 	BcAssert( DynamicsWorld_ != nullptr );
 	DynamicsWorld_->removeRigidBody( RigidBody );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerWorldUpdateHandler
+void ScnPhysicsWorldComponent::registerWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler )
+{
+	WorldUpdateHandler_.push_back( Handler );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterWorldUpdateHandler
+void ScnPhysicsWorldComponent::deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler )
+{
+	std::remove( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler );
+	BcAssert( std::find( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler ) == WorldUpdateHandler_.end() );
 }
 
 //////////////////////////////////////////////////////////////////////////
