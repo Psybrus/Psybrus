@@ -26,6 +26,7 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
+// TODO: Remove dup from ScnPhysicsMeshImport.
 namespace
 {
 	/**

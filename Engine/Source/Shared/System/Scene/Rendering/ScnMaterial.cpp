@@ -339,13 +339,11 @@ BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 // setUniformBlock
 void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer )
 {
-#ifdef PSY_DEBUG
 	if( Index == BcErrorCode )
 	{
-		//pProgram_->logShaders();
+		PSY_LOG( "Error: Attempting to set uniform buffer to invalid slot." );
 		return;
 	}
-#endif
 
 	auto& UniformBlockBinding = UniformBlockBindingList_[ Index ];
 	UniformBlockBinding.UniformBuffer_ = UniformBuffer;
