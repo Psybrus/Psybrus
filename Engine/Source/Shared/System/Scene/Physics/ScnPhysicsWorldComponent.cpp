@@ -22,6 +22,8 @@
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 
+#include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
+
 #include "LinearMath/btIDebugDraw.h"
 
 class DebugRenderer: 
@@ -182,6 +184,8 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	DynamicsWorld_ = new btDiscreteDynamicsWorld( Dispatcher_, Broadphase_, Solver_, CollisionConfiguration_ );
 	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
 	DynamicsWorld_->setDebugDrawer( &gDebugRenderer );
+
+	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
 
 #if defined( PSY_DEBUG )
 	DebugDrawWorld_ = BcTrue;

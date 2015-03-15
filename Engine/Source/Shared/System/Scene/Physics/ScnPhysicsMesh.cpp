@@ -17,6 +17,7 @@
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
+#include "BulletCollision/Gimpact/btGImpactShape.h"
 
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Physics/ScnPhysicsMeshImport.h"
@@ -82,23 +83,25 @@ void ScnPhysicsMesh::create()
 	TriangleIndexVertexArray->addIndexedMesh( IndexedMesh );
 	MeshInterface_ = TriangleIndexVertexArray;
 
-	// Create optimised bvh.
-	OptimizedBvh_ = new btOptimizedBvh();
+	// Construct optimized bvh for static mesh.
+	if( Header_.ShapeType_ == ScnPhysicsMeshShapeType::BVH )
+	{
+		// Create optimised bvh.
+		OptimizedBvh_ = new btOptimizedBvh();
 
-	// Build optimised bvh on a worker, mark as ready immediately
-	// to maximise concurrency, just wait on access.
-	BuildingBvhFence_.increment();
-	SysKernel::pImpl()->pushFunctionJob(
-		BcErrorCode,
-		[ this ]
-		{
-			;
-			OptimizedBvh_->build( 
-				MeshInterface_, true, 
-				ScnPhysicsToBullet( Header_.AABB_.min() ), ScnPhysicsToBullet( Header_.AABB_.max() ) );
-			BuildingBvhFence_.decrement();
-		} );
-
+		// Build optimised bvh on a worker, mark as ready immediately
+		// to maximise concurrency, just wait on access.
+		BuildingBvhFence_.increment();
+		SysKernel::pImpl()->pushFunctionJob(
+			BcErrorCode,
+			[ this ]
+			{
+				OptimizedBvh_->build( 
+					MeshInterface_, true, 
+					ScnPhysicsToBullet( Header_.AABB_.min() ), ScnPhysicsToBullet( Header_.AABB_.max() ) );
+				BuildingBvhFence_.decrement();
+			} );
+	}
 
 	markReady();
 }
@@ -115,16 +118,34 @@ void ScnPhysicsMesh::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createTriangleMeshShape
-btTriangleMeshShape* ScnPhysicsMesh::createTriangleMeshShape()
+// createCollisionShape
+btCollisionShape* ScnPhysicsMesh::createCollisionShape()
 {
-	// Wait for optimised bvh to complete building.
-	BuildingBvhFence_.wait();
+	//
+	btCollisionShape* CollisionShape = nullptr;
 
-	// Create bvh triangle mesh shape using our optimised bvh.
-	auto MeshShape = new btBvhTriangleMeshShape( MeshInterface_, true, false );
-	MeshShape->setOptimizedBvh( OptimizedBvh_ );
-	return MeshShape;
+	switch( Header_.ShapeType_ )
+	{
+	case ScnPhysicsMeshShapeType::BVH:
+		{
+			// Wait for optimised bvh to complete building.
+			BuildingBvhFence_.wait();
+			BcAssertMsg( OptimizedBvh_ != nullptr, "Optimized bvh has not been created." );
+			auto MeshShape = new btBvhTriangleMeshShape( MeshInterface_, true, false );
+			MeshShape->setOptimizedBvh( OptimizedBvh_ );
+			CollisionShape = MeshShape;
+		}
+		break;
+
+	case ScnPhysicsMeshShapeType::GIMPACT:
+		auto MeshShape = new btGImpactMeshShape( MeshInterface_ );
+		MeshShape->updateBound();
+		CollisionShape = MeshShape;
+		break;
+	}
+
+	BcAssert( CollisionShape != nullptr );
+	return CollisionShape;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,7 +153,7 @@ btTriangleMeshShape* ScnPhysicsMesh::createTriangleMeshShape()
 void ScnPhysicsMesh::fileReady()
 {
 	// File is ready, get the header chunk.
-	requestChunk( 0 );
+	requestChunk( 0, &Header_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -151,5 +172,6 @@ void ScnPhysicsMesh::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData 
 	else if( ChunkID == BcHash( "vertices" ) )
 	{
 		Vertices_ = reinterpret_cast< const ScnPhysicsVertex* >( pData );
+		markCreate();
 	}
 }

@@ -37,7 +37,7 @@ public:
 	virtual void create();
 	virtual void destroy();
 
-	class btTriangleMeshShape* createTriangleMeshShape();
+	class btCollisionShape* createCollisionShape();
 
 protected:
 	void fileReady();
