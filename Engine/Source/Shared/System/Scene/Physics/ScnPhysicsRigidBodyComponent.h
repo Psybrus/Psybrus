@@ -42,7 +42,11 @@ private:
 
 	// TODO: Physics material.
 	BcF32 Friction_;
+	BcF32 RollingFriction_;
 	BcF32 Restitution_;
+	BcF32 LinearSleepingThreshold_;
+	BcF32 AngularSleepingThreshold_;
+
 };
 
 #endif

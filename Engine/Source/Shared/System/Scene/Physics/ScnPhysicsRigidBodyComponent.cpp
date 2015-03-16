@@ -32,7 +32,10 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 	{
 		new ReField( "Mass_", &ScnPhysicsRigidBodyComponent::Mass_, bcRFF_IMPORTER ),
 		new ReField( "Friction_", &ScnPhysicsRigidBodyComponent::Friction_, bcRFF_IMPORTER ),
+		new ReField( "RollingFriction_", &ScnPhysicsRigidBodyComponent::RollingFriction_, bcRFF_IMPORTER ),
 		new ReField( "Restitution_", &ScnPhysicsRigidBodyComponent::Restitution_, bcRFF_IMPORTER ),
+		new ReField( "LinearSleepingThreshold_", &ScnPhysicsRigidBodyComponent::LinearSleepingThreshold_, bcRFF_IMPORTER ),
+		new ReField( "AngularSleepingThreshold_", &ScnPhysicsRigidBodyComponent::AngularSleepingThreshold_, bcRFF_IMPORTER ),
 	};
 
 	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >( Fields )
@@ -44,8 +47,11 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 ScnPhysicsRigidBodyComponent::ScnPhysicsRigidBodyComponent():
 	RigidBody_( nullptr ),
 	Mass_ ( 0.0f ),
+	RollingFriction_( 0.0f ),
 	Friction_( 0.0f ),
-	Restitution_( 0.0f )
+	Restitution_( 0.0f ),
+	LinearSleepingThreshold_( 0.8f ), // bullet default.
+	AngularSleepingThreshold_( 1.0f ) // bullet default.
 {
 }
 
@@ -111,7 +117,10 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 			LocalInertia );
 	ConstructionInfo.m_startWorldTransform = StartTransform;
 	ConstructionInfo.m_friction = Friction_;
+	ConstructionInfo.m_rollingFriction = RollingFriction_;
 	ConstructionInfo.m_restitution = Restitution_;
+	ConstructionInfo.m_linearSleepingThreshold = LinearSleepingThreshold_;
+	ConstructionInfo.m_angularSleepingThreshold = AngularSleepingThreshold_;
 	RigidBody_ = new btRigidBody( ConstructionInfo );
 
 	World_->addRigidBody( RigidBody_ );
