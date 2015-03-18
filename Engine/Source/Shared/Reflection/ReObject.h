@@ -105,13 +105,6 @@ public:
 	 * most part.
 	 */
     ReObject*						getRootOwner() const;
-					
-	/**
-	 * @brief Set root owner.
-	 *
-	 * Recurses down to set the root owner.
-	 */
-    void							setRootOwner( ReObject* RootOwner );
 
 #if REFLECTION_ENABLE_GC
 	/**

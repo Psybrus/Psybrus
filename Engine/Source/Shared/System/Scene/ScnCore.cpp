@@ -28,6 +28,8 @@
 #include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
 
+#include "Reflection/ReReflection.h"
+
 #include "Serialisation/SeJsonWriter.h"
 
 #include "Base/BcProfiler.h"
@@ -276,9 +278,17 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 	{
 		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
+#if 0
 		Entity = new ScnEntity( TemplateEntity );
 		Entity->setName( Name );
 		Entity->setOwner( pPackage );
+#else
+		Entity = ReConstructObject( 
+			TemplateEntity->getClass(),
+			*Name,
+			TemplateEntity->getPackage(),
+			TemplateEntity );
+#endif
 	}
 
 	BcAssertMsg( Entity != nullptr, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
@@ -531,18 +541,31 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	// Set it's transform.
 	Entity->setLocalMatrix( Params.Transform_ );
 
-	// If we have a valid parent, attach to it. Otherwise, add to the scene root.
-	if( Params.Parent_.isValid() )
-	{
-		Params.Parent_->attach( Entity );
-	}
-	else
+	// Add entity if we have no parent.
+	if( !Params.Parent_.isValid() )
 	{
 		addEntity( Entity );
 	}
 
-	Entity->initialise();
-	Entity->postInitialise();
+	// Visit hierarchy and attach all components.
+	Entity->visitHierarchy(
+		ScnComponentVisitType::BOTTOM_UP,
+		Params.Parent_,
+		[ this, &Params ]( ScnComponent* Component, ScnEntity* Parent )
+		{
+			if( Parent != nullptr )
+			{
+				Component->setOwner( Parent );
+			}
+			
+			Component->initialise();
+			Component->postInitialise();
+
+			if( Parent != nullptr )
+			{
+				Parent->attach( Component );
+			}
+		} );
 
 	// Call on spawn callback.
 	if( Params.OnSpawn_ != nullptr )

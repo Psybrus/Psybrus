@@ -77,8 +77,8 @@ ScnEntity::ScnEntity( ScnEntityRef Basis )
 	// Copy over internals.
 	LocalTransform_ = Basis->LocalTransform_;
 
-	// Setroot owner as basis' package.
-	setRootOwner( Basis->getPackage() );
+	// Set owner as basis' package.
+	setOwner( Basis->getPackage() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -527,7 +527,7 @@ void ScnEntity::setupComponents()
 					this,
 					[ this ]( ScnComponent* Component, ScnEntity* Parent )
 					{
-						Component->setRootOwner( getPackage() );
+						Component->setOwner( getPackage() );
 						Component->initialise();
 						Component->postInitialise();
 						Parent->attach( Component );

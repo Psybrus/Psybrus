@@ -206,26 +206,6 @@ ReObject* ReObject::getRootOwner() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setRootOwner
-void ReObject::setRootOwner( ReObject* RootOwner )
-{
-    ReObject* Owner = this;
-
-	for(;;)
-	{
-		if( Owner->Owner_ == nullptr || Owner == Owner->Owner_ )
-		{
-			Owner->Owner_ = RootOwner;
-			return;
-		}
-		else
-		{
-			Owner = Owner->Owner_;
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // StaticAdd
 //static
 void ReObject::StaticAdd( ReObject* Object )
