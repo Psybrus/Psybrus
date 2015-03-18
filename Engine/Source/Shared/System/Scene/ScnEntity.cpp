@@ -112,8 +112,6 @@ void ScnEntity::initialise()
 	{
 		getPackage()->acquire();
 	}
-
-	setupComponents();
 }
 
 //////////////////////////////////////////////////////////////////////////
