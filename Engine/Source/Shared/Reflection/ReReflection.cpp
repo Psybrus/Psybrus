@@ -188,6 +188,10 @@ public:
 					SrcObject, DstObject );
 		PSY_LOGSCOPEDINDENT;
 
+		// Grab basis.
+		ReObject* Basis = InClass->hasBaseClass( ReObject::StaticGetClass() ) ?
+			reinterpret_cast< ReObject* >( SrcObject ) : nullptr;
+
 		// Trivial copy if we can:
 		// - No fields in class.
 		// - Not a pointer type.
@@ -223,7 +227,7 @@ public:
 				PSY_LOGSCOPEDINDENT;
 
 				// Only copy non-transient fields.
-				if( !SrcFieldAccessor.isTransient() && ! SrcFieldAccessor.isNullptr() )
+				if( !SrcFieldAccessor.isTransient() )
 				{
 					ReFieldAccessor DstFieldAccessor( DstObject, Field );
 
@@ -232,34 +236,42 @@ public:
 					{
 						const ReClass* FieldClass = SrcFieldAccessor.getUpperClass();
 
-						// Check in the field info if it's a pointer type, and set in the destination.
-						if( Field->isPointerType() )
+						// Only copy data if it's not a shallow copy.
+						if( !SrcFieldAccessor.isNullptr() )
 						{
-							// Only copy data if it's not a shallow copy.
+							// Check in the field info if it's a pointer type, and set in the destination.
+							if( Field->isPointerType() )
+							{
+								if( !SrcFieldAccessor.isShallowCopy() )
+								{
+									FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( SrcFieldAccessor.getData(), nullptr, SrcFieldAccessor.getUpperClass() );
+									BcAssertMsg( FieldCopyInfo != nullptr, "No field info for %s %s::%s. Is the type registered?", 
+										(*FieldClass->getName()).c_str(), 
+										(*InClass->getName()).c_str(),
+										(*Field->getName()).c_str() );
+									DstFieldAccessor.setData( FieldCopyInfo->DstData_ );
+								}
+								else
+								{
+									DstFieldAccessor.setData( SrcFieldAccessor.getData() );
+								}
+							}
+
+							// Only do copy if it's not a shallow copy.
 							if( !SrcFieldAccessor.isShallowCopy() )
 							{
-								FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( SrcFieldAccessor.getData(), nullptr, SrcFieldAccessor.getUpperClass() );
-								BcAssertMsg( FieldCopyInfo != nullptr, "No field info for %s %s::%s. Is the type registered?", 
-									(*FieldClass->getName()).c_str(), 
-									(*InClass->getName()).c_str(),
-									(*Field->getName()).c_str() );
-								DstFieldAccessor.setData( FieldCopyInfo->DstData_ );
-							}
-							else
-							{
-								DstFieldAccessor.setData( SrcFieldAccessor.getData() );
+								// Create a copy and recurse down.
+								if( !DstFieldAccessor.copy( SrcFieldAccessor.getData() ) )
+								{
+									copyClassData( DstFieldAccessor.getData(), SrcFieldAccessor.getData(), FieldClass, Field );
+								}
 							}
 						}
-
-						// Only do copy if it's not a shallow copy.
-						if( !SrcFieldAccessor.isShallowCopy() )
+						// If basis, set.
+						if( DstFieldAccessor.isBasis() )
 						{
-							// Create a copy and recurse down.
-							if( !DstFieldAccessor.copy( SrcFieldAccessor.getData() ) )
-							{
-								copyClassData( DstFieldAccessor.getData(), SrcFieldAccessor.getData(), FieldClass, Field );
-							}
-						}
+							DstFieldAccessor.setData( Basis );
+						}						
 					}
 					else
 					{
