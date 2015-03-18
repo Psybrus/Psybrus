@@ -4,6 +4,25 @@
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
+// Object data.
+namespace
+{
+    typedef std::list< ReObject* > ObjectList;
+	typedef std::list< ReIObjectNotify* > ObjectNotifyList;
+    typedef std::map< const ReObject*, ObjectNotifyList > ObjectNotifyMap;
+
+#if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
+	static std::atomic< BcU32 > UniqueIdCounter_;
+#endif
+
+	static std::mutex ObjectListMutex_;		///!< Lock for object list. Access should be avoided.
+	static ObjectList ObjectList_;			///!< List of all active objects. Access should be avoided.
+
+	static std::mutex ObjectNotifyMutex_;		///!< Lock for object notify map.
+	static ObjectNotifyMap ObjectNotifyMap_;		///!< Map of objects to notify for.	
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Object class definition
 REFLECTION_DEFINE_BASE( ReObject );
 	
@@ -25,8 +44,6 @@ void ReObject::StaticRegisterClass()
 		
 	ReRegisterClass< ReObject >( Fields );
 }
-
-std::atomic< BcU32 > ReObject::UniqueIdCounter_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -207,13 +224,6 @@ void ReObject::setRootOwner( ReObject* RootOwner )
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////
-// Statics
-std::mutex ReObject::ObjectListMutex_;
-ReObject::ObjectList ReObject::ObjectList_;
-std::mutex ReObject::ObjectNotifyMutex_;
-ReObject::ObjectNotifyMap ReObject::ObjectNotifyMap_;
 
 //////////////////////////////////////////////////////////////////////////
 // StaticAdd

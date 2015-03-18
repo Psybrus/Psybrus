@@ -34,6 +34,10 @@ public:
 		*/
 	FieldCopyInfo* getFieldCopyInfo( void* SrcData, void* DstData, const ReClass* InClass )
 	{
+		PSY_LOG( "getFieldCopyInfo: %s",
+			(*InClass->getName()).c_str() );
+		PSY_LOGSCOPEDINDENT;
+
 		// Search for matching source data.
 		auto Iter = std::find_if( FieldCopyInfoList_.begin(), FieldCopyInfoList_.end(), [ &SrcData ]( FieldCopyInfo& FieldCopyInfo )
 		{
@@ -45,8 +49,11 @@ public:
 		// If we don't find one, create a new copy + the destination object.
 		if( Iter == FieldCopyInfoList_.end() )
 		{
+			PSY_LOG( "INFO`: not found match for %p", SrcData );
+			PSY_LOGSCOPEDINDENT;
 			if( InClass->getTypeSerialiser() )
 			{
+				PSY_LOG( "create new" );
 				FieldCopyInfoList_.push_back( FieldCopyInfo() );
 				FoundFieldCopyInfo = &FieldCopyInfoList_.back();
 				FoundFieldCopyInfo->DstData_ = DstData == nullptr ? InClass->create< void >() : DstData;
@@ -56,6 +63,7 @@ public:
 		}
 		else
 		{
+			PSY_LOG( "SUCCESS: found match for %p", SrcData );
 			FoundFieldCopyInfo = &(*Iter);
 			BcAssert( FoundFieldCopyInfo->SrcClass_ == InClass );
 		}
@@ -176,6 +184,10 @@ public:
 		*/
 	void copyClassData( void* DstObject, void* SrcObject, const ReClass* InClass, const ReField* InField )
 	{
+		PSY_LOG( "%p->%p",
+					SrcObject, DstObject );
+		PSY_LOGSCOPEDINDENT;
+
 		// Trivial copy if we can:
 		// - No fields in class.
 		// - Not a pointer type.
@@ -185,6 +197,9 @@ public:
 			( InField->getFlags() & bcRFF_POD ) != 0 &&
 			( InField->getFlags() & bcRFF_ANY_POINTER_TYPE ) == 0 )
 		{
+			PSY_LOG( "copyClassData: %p->%p, %s (trivial POD)", 
+				SrcObject, DstObject,
+				(*InClass->getName()).c_str() );
 			BcAssert( InClass->getSize() == 0 || InClass->getSize() == InField->getSize() );
 			BcMemCopy( DstObject, SrcObject, InField->getSize() );
 			return;
@@ -202,6 +217,11 @@ public:
 				auto Field = CopyingClass->getField( Idx );
 				ReFieldAccessor SrcFieldAccessor( SrcObject, Field );
 					
+				PSY_LOG( "copyClassData: Field %s::%s",
+					(*Field->getType()->getName()).c_str(),
+					(*Field->getName()).c_str() );
+				PSY_LOGSCOPEDINDENT;
+
 				// Only copy non-transient fields.
 				if( !SrcFieldAccessor.isTransient() && ! SrcFieldAccessor.isNullptr() )
 				{
@@ -247,8 +267,9 @@ public:
 						auto DstIter = DstFieldAccessor.newWriteIterator();
 						auto SrcIter = SrcFieldAccessor.newReadIterator();
 
-						auto KeyType = Field->getKeyType();
-						auto ValueType = Field->getValueType();
+						// TODO: Remove cast. Will eventually be no ReType.
+						const ReClass* KeyType = static_cast< const ReClass* >( Field->getKeyType() );
+						const ReClass* ValueType = static_cast< const ReClass* > ( Field->getValueType() );
 
 						if( KeyType == nullptr )
 						{
@@ -261,10 +282,15 @@ public:
 									!SrcFieldAccessor.isShallowCopy() )
 								{
 									Value = *reinterpret_cast< void** >( Value );
-									FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, SrcFieldAccessor.getValueUpperClass( Value ) );
+									ValueType = SrcFieldAccessor.getValueUpperClass( Value );
+									FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, ValueType );
 									if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 									{
 										copyClassData( FieldCopyInfo->DstData_, Value, static_cast< const ReClass* >( ValueType ), Field );
+									}
+									else
+									{
+										PSY_LOG( "%p->%p", FieldCopyInfo->DstData_, Value );
 									}
 									Value = &FieldCopyInfo->DstData_;
 								}
@@ -286,7 +312,8 @@ public:
 									if( SrcFieldAccessor.isContainerOfPointerKeys() )
 									{
 										Key = *reinterpret_cast< void** >( Key );
-										FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Key, nullptr, SrcFieldAccessor.getKeyUpperClass( Key ) );
+										KeyType = SrcFieldAccessor.getKeyUpperClass( Key );
+										FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Key, nullptr, KeyType );
 										BcAssert( FieldCopyInfo );
 										if( !KeyType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 										{
@@ -297,7 +324,8 @@ public:
 									if( SrcFieldAccessor.isContainerOfPointerValues() )
 									{
 										Value = *reinterpret_cast< void** >( Value );
-										FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, SrcFieldAccessor.getValueUpperClass( Value ) );
+										ValueType = SrcFieldAccessor.getValueUpperClass( Value );
+										FieldCopyInfo* FieldCopyInfo = getFieldCopyInfo( Value, nullptr, ValueType );
 										BcAssert( FieldCopyInfo );
 										if( !ValueType->getTypeSerialiser()->copy( FieldCopyInfo->DstData_, Value ) )
 										{
@@ -327,6 +355,10 @@ public:
 // CopyClass
 void ReCopyClass( void* DstObject, void* SrcObject, const ReType* InType )
 {
+	PSY_LOGSCOPEDCATEGORY( "Reflection" );
+	PSY_LOG( "ReCopyClass: \"%s\"", (*InType->getName()).c_str() );
+	PSY_LOGSCOPEDINDENT;
+
 	if( InType->isTypeOf< ReClass >() )
 	{
 		const ReClass* InClass = static_cast< const ReClass* >( InType );
@@ -337,11 +369,15 @@ void ReCopyClass( void* DstObject, void* SrcObject, const ReType* InType )
 		BcAssert( false );
 	}
 }
-			
+
 //////////////////////////////////////////////////////////////////////////
 // CopyClass
 void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
+	PSY_LOGSCOPEDCATEGORY( "Reflection" );
+	PSY_LOG( "ReCopyClass: \"%s\"", (*InClass->getName()).c_str() );
+	PSY_LOGSCOPEDINDENT;
+
 	// Now create all objects that exist as pointers in fields, and mark up.
 	ObjectCopyContext ObjectCopyContext;
 	auto* RootFieldCopyInfo = ObjectCopyContext.getFieldCopyInfo( SrcObject, DstObject, InClass );
@@ -362,6 +398,13 @@ ReObject* ReConstructObject(
 	ReObject* InBasis,
 	std::function< void( ReObject* ) > postCreateFunc )
 {
+	PSY_LOGSCOPEDCATEGORY( "Reflection" );
+	PSY_LOG( "ReConstructObject: \"%s\", name \"%s\", basis \"%s\"", 
+		(*InClass->getName()).c_str(),
+		InName.c_str(),
+		InBasis ? (*InBasis->getName()).c_str(): "nullptr" );
+	PSY_LOGSCOPEDINDENT;
+
 	auto NewObject = InBasis == nullptr ? 
 		InClass->create< ReObject >() : InClass->create< ReObject >(); // TODO: Reconsider createNoInit for the latter.
 

@@ -46,6 +46,11 @@ public:
 
 	void initialise();
 
+	void visitHierarchy( 
+		ScnComponentVisitType VisitType, 
+		ScnEntity* Parent,
+		const ScnComponentVisitFunc& Func ) override;
+
 public:
 	void update( BcF32 Tick );
 	void onAttach( ScnEntityWeakRef Parent );

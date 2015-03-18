@@ -229,3 +229,10 @@ void ScnPhysicsRigidBodyComponent::onDetach( ScnEntityWeakRef Parent )
 
 	Super::onDetach( Parent );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getRigidBody
+btRigidBody* ScnPhysicsRigidBodyComponent::getRigidBody()
+{
+	return RigidBody_;
+}

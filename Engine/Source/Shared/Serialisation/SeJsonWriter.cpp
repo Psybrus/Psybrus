@@ -248,10 +248,18 @@ Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass, 
 		// Add to list to serialise if it hasn't been added.
 		if( ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
 		{
-			auto ClassToSerialise = SerialiseClass( pData, pClass );
-			if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+			if( ( ParentFlags & bcRFF_OWNER ) == 0 )
 			{
-				SerialiseClasses_.push_back( ClassToSerialise );
+				auto ClassToSerialise = SerialiseClass( pData, pClass );
+				if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+				{
+					SerialiseClasses_.push_back( ClassToSerialise );
+				}
+			}
+			else
+			{	
+				auto ClassValue = serialiseClass( pData, pClass, 0, true );
+				ObjectValueMap_[ PointerValue.asString() ] = ClassValue;
 			}
 		}
 

@@ -40,7 +40,7 @@ void ScnEntity::StaticRegisterClass()
 	{
 		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
 		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
-		new ReField( "Components_",		&ScnEntity::Components_ ),
+		new ReField( "Components_",		&ScnEntity::Components_, bcRFF_OWNER ),
 #if SCNENTITY_USES_EVTPUBLISHER
 		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
 #endif
@@ -77,9 +77,8 @@ ScnEntity::ScnEntity( ScnEntityRef Basis )
 	// Copy over internals.
 	LocalTransform_ = Basis->LocalTransform_;
 
-	// Acquire basis package.
+	// Setroot owner as basis' package.
 	setRootOwner( Basis->getPackage() );
-	getPackage()->acquire();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,7 +107,36 @@ ScnEntity::~ScnEntity()
 // initialise
 void ScnEntity::initialise()
 {
+	// If we have a basis, we need to acquire its package.
+	if( getBasis() != nullptr )
+	{
+		getPackage()->acquire();
+	}
+
 	setupComponents();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// visitHierarchy
+void ScnEntity::visitHierarchy( 
+		ScnComponentVisitType VisitType, 
+		ScnEntity* Parent,
+		const ScnComponentVisitFunc& Func )
+{
+	if( VisitType == ScnComponentVisitType::BOTTOM_UP )
+	{
+		Super::visitHierarchy( VisitType, Parent, Func );
+	}
+
+	for( auto& Component : Components_ )
+	{
+		Component->visitHierarchy( VisitType, this, Func );
+	}
+
+	if( VisitType == ScnComponentVisitType::TOP_DOWN )
+	{
+		Super::visitHierarchy( VisitType, Parent, Func );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -176,32 +204,33 @@ void ScnEntity::attach( ScnComponent* Component )
 {
 	BcAssert( Component != nullptr );
 	BcAssert( Component->getName() != BcName::INVALID );
+	BcAssertMsg( Component != nullptr, "Trying to attach a null component!" );
+	BcAssertMsg( Component->isFlagSet( scnCF_ANY ) == BcFalse, "Entity pending operations already." );
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It == Components_.end() )
 	{
-		BcAssertMsg( Component != nullptr, "Trying to attach a null component!" );
-		Component->setParentEntity( ScnEntityWeakRef( this ) );
-		Component->setFlag( scnCF_PENDING_ATTACH );
 		Components_.push_back( Component );	
-		ScnCore::pImpl()->queueComponentForAttach( Component );
 	}
+	Component->setParentEntity( ScnEntityWeakRef( this ) );
+	Component->setFlag( scnCF_PENDING_ATTACH );
+	ScnCore::pImpl()->queueComponentForAttach( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
+	BcAssertMsg( Component->isFlagSet( scnCF_ATTACHED ) | Component->isFlagSet( scnCF_PENDING_ATTACH ), 
+		"Entity pending operations already." );
 	BcAssert( Component->getName() != BcName::INVALID );
 	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 	if( It != Components_.end() )
 	{
-		BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
-
-		Component->setFlag( scnCF_PENDING_DETACH );
-		Components_.erase( It );
-
-		ScnCore::pImpl()->queueComponentForDetach( Component );
+		Components_.erase( It );	
 	}
+	BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
+	Component->setFlag( scnCF_PENDING_DETACH );
+	ScnCore::pImpl()->queueComponentForDetach( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -492,9 +521,17 @@ void ScnEntity::setupComponents()
 						getPackage(), 
 						Component,
 						nullptr );
-				NewComponent->initialise();
-				NewComponent->postInitialise();
-				attach( NewComponent );
+
+				NewComponent->visitHierarchy(
+					ScnComponentVisitType::BOTTOM_UP,
+					this,
+					[ this ]( ScnComponent* Component, ScnEntity* Parent )
+					{
+						Component->setRootOwner( getPackage() );
+						Component->initialise();
+						Component->postInitialise();
+						Parent->attach( Component );
+					} );
 			}
 		}
 	}

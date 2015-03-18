@@ -174,19 +174,7 @@ private:
 
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
 	BcU32								UniqueId_;
-	static std::atomic< BcU32 >			UniqueIdCounter_;
 #endif
-
-private:
-    typedef std::list< ReObject* > ObjectList;
-	typedef std::list< ReIObjectNotify* > ObjectNotifyList;
-    typedef std::map< const ReObject*, ObjectNotifyList > ObjectNotifyMap;
-
-	static std::mutex					ObjectListMutex_;		///!< Lock for object list. Access should be avoided.
-	static ObjectList				ObjectList_;			///!< List of all active objects. Access should be avoided.
-
-	static std::mutex					ObjectNotifyMutex_;		///!< Lock for object notify map.
-	static ObjectNotifyMap			ObjectNotifyMap_;		///!< Map of objects to notify for.
 
 	/**
 	 * Add object to the object list.

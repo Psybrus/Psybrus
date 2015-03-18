@@ -123,14 +123,15 @@ void CsResource::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getName
+// getPackage
 CsPackage* CsResource::getPackage() const
 {
 	CsPackage* RetVal = nullptr;
-	if( getRootOwner() != nullptr )
+	auto RootOwner = getRootOwner();
+	if( RootOwner != nullptr )
 	{
-		BcAssert( getOwner()->isTypeOf< CsPackage >() );
-		RetVal = static_cast< CsPackage* >( getRootOwner() );
+		BcAssert( RootOwner->isTypeOf< CsPackage >() );
+		RetVal = static_cast< CsPackage* >( RootOwner );
 	}
 
 	return RetVal;

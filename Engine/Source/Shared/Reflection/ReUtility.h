@@ -39,6 +39,10 @@ enum ReFieldFlags
 	bcRFF_CHUNK_DATA =				0x00002000,		// Data comes from a chunk.
 	bcRFF_BASIS =					0x00004000,		// Field is of a basis object.
 	bcRFF_DEBUG_EDIT =				0x00008000,		// Allows for the flag to be read and written to by the DsCore post commands
+	bcRFF_OWNER =					0x00010000,		// This field is the owner of a reference.
+	
+	// Field.
+	bcRFF_FIELD =					0x80000000,		// Marks as valid field. Mostly as a dummy bit field to zero comparison.
 
 	// Simple deref when traversing.
 	bcRFF_SIMPLE_DEREF = bcRFF_POINTER | bcRFF_REFERENCE | bcRFF_OBJECT_REFERENCE,

@@ -260,6 +260,7 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
 {
 	BcAssert( DynamicsWorld_ != nullptr );
+	BcAssert( RigidBody != nullptr );
 	DynamicsWorld_->addRigidBody( RigidBody );
 }
 
@@ -268,7 +269,26 @@ void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
 void ScnPhysicsWorldComponent::removeRigidBody( btRigidBody* RigidBody )
 {
 	BcAssert( DynamicsWorld_ != nullptr );
+	BcAssert( RigidBody != nullptr );
 	DynamicsWorld_->removeRigidBody( RigidBody );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addConstraint
+void ScnPhysicsWorldComponent::addConstraint( class btTypedConstraint* Constraint )
+{
+	BcAssert( DynamicsWorld_ != nullptr );
+	BcAssert( Constraint != nullptr );
+	DynamicsWorld_->addConstraint( Constraint );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// removeConstraint
+void ScnPhysicsWorldComponent::removeConstraint( class btTypedConstraint* Constraint )
+{
+	BcAssert( DynamicsWorld_ != nullptr );
+	BcAssert( Constraint != nullptr );
+	DynamicsWorld_->removeConstraint( Constraint );
 }
 
 //////////////////////////////////////////////////////////////////////////

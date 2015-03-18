@@ -36,7 +36,21 @@ enum ScnComponentFlags
 	scnCF_WANTS_PREUPDATE =				0x00000100,
 	scnCF_WANTS_UPDATE =				0x00000200,
 	scnCF_WANTS_POSTUPDATE =			0x00000400,
+
+	scnCF_ANY = 						0xffffffff,
 };
+
+//////////////////////////////////////////////////////////////////////////
+// ScnComponentVisitType
+enum class ScnComponentVisitType
+{
+	TOP_DOWN,
+	BOTTOM_UP
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnComponentVisitFunc
+typedef std::function< void( class ScnComponent*, class ScnEntity* ) > ScnComponentVisitFunc;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentAttribute
@@ -69,6 +83,12 @@ public:
 public:
 	virtual void initialise() override;
 	void postInitialise();
+
+
+	virtual void visitHierarchy( 
+		ScnComponentVisitType VisitType, 
+		ScnEntity* Parent,
+		const ScnComponentVisitFunc& Func );
 
 	virtual void preUpdate( BcF32 Tick );		// Anything that needs a tick before the game wants this.
 	virtual void update( BcF32 Tick );			// Most will want this tick.

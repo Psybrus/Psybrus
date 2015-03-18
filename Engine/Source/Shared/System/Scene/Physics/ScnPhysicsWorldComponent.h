@@ -54,6 +54,9 @@ public:
 	void addRigidBody( class btRigidBody* RigidBody );
 	void removeRigidBody( class btRigidBody* RigidBody );
 
+	void addConstraint( class btTypedConstraint* Constraint );
+	void removeConstraint( class btTypedConstraint* Constraint );
+
 	void registerWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 	void deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 

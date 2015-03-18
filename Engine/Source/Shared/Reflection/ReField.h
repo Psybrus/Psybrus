@@ -50,7 +50,7 @@ public:
 	{
         typedef ReTypeTraits< _Ty > LocalTypeTraits;
 		setName( Name );
-		setFlags( Flags | LocalTypeTraits::Flags );
+		setFlags( Flags | LocalTypeTraits::Flags | bcRFF_FIELD );
 
 #if COMPILER_MSVC
 		setOffset( offsetof( _Class, *field ) );

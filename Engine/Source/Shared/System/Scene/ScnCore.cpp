@@ -20,12 +20,15 @@
 #include "System/Renderer/RsCore.h"
 
 #include "System/Content/CsCore.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
+
+#include "Serialisation/SeJsonWriter.h"
 
 #include "Base/BcProfiler.h"
 
@@ -523,7 +526,7 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	ScnEntitySpawnParams Params )
 {
 	// Create entity.
-	ScnEntityRef Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
+	ScnEntity* Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
 
 	// Set it's transform.
 	Entity->setLocalMatrix( Params.Transform_ );

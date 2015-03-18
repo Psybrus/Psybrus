@@ -470,8 +470,12 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	BcAssertMsg( Resource.type() == Json::objectValue, "Can't import a value that isn't an object." );
 
 	// Validate name and type.
-	Json::Value Name( Resource.get( "name", Json::Value( Json::nullValue ) ) );
-	Json::Value Type( Resource.get( "type", Json::Value( Json::nullValue ) ) );
+	Json::Value Name( Resource.get( "name", Json::nullValue ) );
+	Json::Value Type( Resource.get( "$Class", Json::nullValue ) );
+	if( Type == Json::nullValue )
+	{
+		Type = Resource.get( "type", Json::nullValue );
+	}
 	BcAssertMsg( Name.type() == Json::stringValue, "Name not specified for resource.\n" );
 	BcAssertMsg( Type.type() == Json::stringValue, "Type not specified for resource.\n" )
 

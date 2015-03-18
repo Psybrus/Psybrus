@@ -48,6 +48,8 @@ public:
 	void onAttach( ScnEntityWeakRef Parent );
 	void onDetach( ScnEntityWeakRef Parent );
 
+	class btRigidBody* getRigidBody();
+
 private:
 	class ScnPhysicsWorldComponent* World_;
 	class ScnPhysicsCollisionComponent* CollisionComponent_;

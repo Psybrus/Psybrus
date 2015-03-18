@@ -204,6 +204,14 @@ public:
 	}
 
 	/**
+		* @brief Is basis?
+		*/
+	inline BcBool isBasis() const
+	{
+		return Field_->getFlags() & bcRFF_BASIS;
+	}
+
+	/**
 		* @brief Is field a pointer type?
 	 	*/
 	inline BcBool isPointerType() const

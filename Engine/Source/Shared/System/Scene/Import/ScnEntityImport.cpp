@@ -72,11 +72,16 @@ BcBool ScnEntityImport::import(
 	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
 	{
 		Json::Value& Component( Components[ Idx ] );
+		auto Class = Component[ "$Class" ];
+		if( Class == Json::nullValue )
+		{
+			Class = Component[ "type" ];
+		}
 		
 		// Create a vaguely unique name.
 		if( Component.get( "name", Json::nullValue ).type() == Json::nullValue )
 		{
-			Component[ "name" ] = (*BcName( Component[ "type" ].asCString() ).getUnique());
+			Component[ "name" ] = (*BcName( Class.asCString() ).getUnique());
 		}
 
 		BcU32 CrossRef = CsResourceImporter::addImport_DEPRECATED( Component, BcTrue );

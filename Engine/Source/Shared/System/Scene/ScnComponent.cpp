@@ -111,6 +111,17 @@ void ScnComponent::postInitialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// visitHierarchy
+//virtual
+void ScnComponent::visitHierarchy( 
+		ScnComponentVisitType VisitType, 
+		ScnEntity* Parent,
+		const ScnComponentVisitFunc& Func )
+{
+	Func( this, Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // preUpdate
 //virtual
 void ScnComponent::preUpdate( BcF32 Tick )

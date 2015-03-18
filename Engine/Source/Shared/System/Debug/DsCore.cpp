@@ -64,7 +64,7 @@ DsCore::~DsCore()
 // cmdContent
 void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent)
 {
-	BcHtmlNode node = DsTemplate::loadTemplate( Output, "Content/debug/contents_template.html" );
+	BcHtmlNode node = DsTemplate::loadTemplate( Output, "Content/Debug/contents_template.html" );
 	node.findNodeById( "id-resources" ).setContents( std::to_string( CsCore::pImpl()->getNoofResources() ) );
 
 	BcHtmlNode table = node.findNodeById( "id-table" );
@@ -72,7 +72,7 @@ void DsCore::cmdContent(DsParameters params, BcHtmlNode& Output, std::string Pos
 	for( BcU32 Idx = 0; Idx < CsCore::pImpl()->getNoofResources(); ++Idx )
 	{
 		ReObjectRef< CsResource > Resource( CsCore::pImpl()->getResource( Idx ) );
-		BcHtmlNode row = DsTemplate::loadTemplate( table, "Content/debug/content_row_template.html" );
+		BcHtmlNode row = DsTemplate::loadTemplate( table, "Content/Debug/content_row_template.html" );
 
 		std::string id = std::to_string(Resource->getUniqueId());
 		row.findNodeById( "id-link" ).setAttribute("href", "Resource/" + id).setContents(*Resource->getName());
