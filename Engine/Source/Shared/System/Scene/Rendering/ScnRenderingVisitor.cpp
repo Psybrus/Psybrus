@@ -45,6 +45,7 @@ void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 {
 	if( pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
 	{
+		PSY_LOGSCOPEDCATEGORY( *pComponent->getClass()->getName() );
 		BcAssert( pComponent->isReady() );
 		pComponent->render( pViewComponent_, pFrame_, Sort_ );
 	}

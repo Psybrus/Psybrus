@@ -89,6 +89,9 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	// Some default suppression.
+	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );
 

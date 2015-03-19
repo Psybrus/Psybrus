@@ -74,7 +74,7 @@ CsPackage::CsPackage( const BcName& Name ):
 			else
 			{
 				delete pLoader_;
-				pLoader_ = NULL;
+				pLoader_ = nullptr;
 			}
 		}
 
@@ -101,9 +101,8 @@ CsPackage::CsPackage( const BcName& Name ):
 // Dtor
 CsPackage::~CsPackage()
 {
-	// The loader is cleaned up when the ref count is 0 (so it frees quick), so we expect ref count to be 0, and loader to be NULL.
 	BcAssert( RefCount_ == 0 );
-	BcAssert( pLoader_ == NULL );
+	BcAssert( pLoader_ == nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,7 +149,7 @@ BcBool CsPackage::hasUnreferencedResources() const
 	}
 
 	// If the data isn't ready, we are still referenced.
-	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != nullptr && pLoader_->isDataReady() == BcFalse )
 	{
 		return BcFalse;
 	}
@@ -165,7 +164,7 @@ BcBool CsPackage::haveAnyValidResources() const
 	BcAssert( BcIsGameThread() );
 
 	// If the data isn't ready, we will have valid resources soon.
-	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != nullptr && pLoader_->isDataReady() == BcFalse )
 	{
 		return BcTrue;
 	}
@@ -203,7 +202,7 @@ void CsPackage::releaseUnreferencedResources()
 	}
 
 	// If the data isn't ready, we are still referenced.
-	if( pLoader_ != NULL && pLoader_->isDataReady() == BcFalse )
+	if( pLoader_ != nullptr && pLoader_->isDataReady() == BcFalse )
 	{
 		return;
 	}
@@ -229,7 +228,7 @@ void CsPackage::addResource( CsResource* pResource )
 // getResource
 CsResource* CsPackage::getResource( BcU32 ResourceIdx )
 {
-	CsResource* pResource = NULL;
+	CsResource* pResource = nullptr;
 	if( ResourceIdx < Resources_.size() )
 	{
 		pResource = Resources_[ ResourceIdx ];
@@ -257,17 +256,18 @@ CsResource* CsPackage::getCrossRefResource( BcU32 ID )
 // acquire
 void CsPackage::acquire()
 {
-	RefCount_++;
+	++RefCount_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // release
 void CsPackage::release()
 {
-	if( --RefCount_ == 0 )
+	auto RefCount = --RefCount_;	
+	if( RefCount == 0 )
 	{
 		delete pLoader_;
-		pLoader_ = NULL;
+		pLoader_ = nullptr;
 	}
 }
 
