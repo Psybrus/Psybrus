@@ -40,11 +40,11 @@ public:
 	REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( ScnEntity, ScnComponent );
 	
 	ScnEntity();
-	ScnEntity( ScnEntityRef Basis );
 	ScnEntity( ReNoInit );
 	virtual ~ScnEntity();
 
 	void initialise();
+	void destroy() override;
 
 	void visitHierarchy( 
 		ScnComponentVisitType VisitType, 

@@ -68,21 +68,6 @@ ScnEntity::ScnEntity():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnEntity::ScnEntity( ScnEntityRef Basis )
-{
-	setBasis( Basis->getBasisEntity() );
-	pHeader_ = Basis->pHeader_;
-	BcAssertMsg( Basis->isReady(), "Basis entity is not ready!" );
-
-	// Copy over internals.
-	LocalTransform_ = Basis->LocalTransform_;
-
-	// Set owner as basis' package.
-	setOwner( Basis->getPackage() );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Ctor
 ScnEntity::ScnEntity( ReNoInit ):
 	pHeader_( nullptr )
 #if SCNENTITY_USES_EVTPUBLISHER
@@ -96,11 +81,6 @@ ScnEntity::ScnEntity( ReNoInit ):
 //virtual
 ScnEntity::~ScnEntity()
 {
-	// If we have a basis entity, we need to release the package.
-	if( getBasis() != nullptr )
-	{
-		getPackage()->release();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,6 +91,17 @@ void ScnEntity::initialise()
 	if( getBasis() != nullptr )
 	{
 		getPackage()->acquire();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroy
+void ScnEntity::destroy()
+{
+	// If we have a basis entity, we need to release the package.
+	if( getBasis() != nullptr )
+	{
+		getPackage()->release();
 	}
 }
 

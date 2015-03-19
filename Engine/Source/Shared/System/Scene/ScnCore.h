@@ -125,11 +125,13 @@ private:
 
 	// All components in the scene.
 	typedef std::map< const ReClass*, BcU32 > TComponentClassIndexMap;
+	typedef std::map< BcU32, const ReClass* > TComponentIndexClassMap;
 	ScnComponentList*			pComponentLists_;
 	BcU32						NoofComponentLists_;
 
 	TComponentClassIndexMap		ComponentClassIndexMap_;
-
+	TComponentIndexClassMap		ComponentIndexClassMap_;
+	
 	typedef std::map< BcU32, ScnEntitySpawnParams > TEntitySpawnDataMap;
 	typedef TEntitySpawnDataMap::iterator TEntitySpawnDataMapIterator;
 

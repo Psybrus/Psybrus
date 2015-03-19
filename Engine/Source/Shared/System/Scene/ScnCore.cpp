@@ -97,6 +97,7 @@ void ScnCore::open()
 	// Write list index map out.
 	for( auto ComponentClass : ComponentClasses_ )
 	{
+		ComponentIndexClassMap_[ NoofComponentLists_ ] = ComponentClass.first;
 		ComponentClassIndexMap_[ ComponentClass.first ] = NoofComponentLists_++;
 	}
 
@@ -119,6 +120,8 @@ void ScnCore::update()
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
+		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
+		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -133,6 +136,8 @@ void ScnCore::update()
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
+		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
+		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -147,9 +152,8 @@ void ScnCore::update()
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
-
-		// Temporary hack to iron out some minor issues.
-		ScnComponentList CopiedComponentList = ComponentList;
+		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
+		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -557,6 +561,10 @@ ScnEntity* ScnCore::internalSpawnEntity(
 			{
 				Component->setOwner( Parent );
 			}
+
+			PSY_LOG( "Component \"%s\" has owner \"%s\"", 
+				(*Component->getName()).c_str(),
+				(*Component->getRootOwner()->getName()).c_str() );
 			
 			Component->initialise();
 			Component->postInitialise();
