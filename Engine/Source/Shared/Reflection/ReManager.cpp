@@ -16,7 +16,7 @@ REFLECTION_DEFINE_BASE( ReITypeSerialiser );
 
 // TODO: Move into Manager class.
 			
-typedef std::map< BcName, ReType* > TypeMap;
+typedef std::map< BcName, ReClass* > TypeMap;
 
 struct Factory
 {
@@ -43,12 +43,12 @@ struct Factory
 		Types_.clear();
 	}
 
-    ReType* GetType( BcName Name )
+	ReClass* GetType( BcName Name )
 	{
 		// Try find class.
 		TypeMap::iterator FoundTypeIt = Types_.find( Name );
 
-        ReType* FoundType = nullptr;
+		ReClass* FoundType = nullptr;
 		if( FoundTypeIt != Types_.end() )
 		{
 			FoundType = FoundTypeIt->second;
@@ -71,7 +71,7 @@ struct Factory
 		}
 
 		// Try find class.
-        ReType* FoundType = GetType( Name );
+		ReClass* FoundType = GetType( Name );
 		if( FoundType == nullptr )
 		{
 			BcAssertMsg( BcIsGameThread(), "Reflection can only modify database on the game thread." );
@@ -112,7 +112,7 @@ struct Factory
 		}
 
 		// Try find class.
-        ReType* FoundType = GetType( Name );
+		ReClass* FoundType = GetType( Name );
 		if( FoundType == nullptr )
 		{
 			BcAssertMsg( BcIsGameThread(), "Reflection can only modify database on the game thread." );
@@ -164,13 +164,12 @@ void ReManager::Init()
 
 	ReAttribute::StaticRegisterClass();
 	ReAttributable::StaticRegisterClass();
-    RePrimitive::StaticRegisterClass();
-    ReType::StaticRegisterClass();
+	RePrimitive::StaticRegisterClass();
 	ReClass::StaticRegisterClass();
 	ReEnum::StaticRegisterClass();
 	ReEnumConstant::StaticRegisterClass();
 	ReField::StaticRegisterClass();
-    ReObject::StaticRegisterClass();
+	ReObject::StaticRegisterClass();
 
 	IsInitialised_ = true;
 }
@@ -184,7 +183,7 @@ void ReManager::Fini()
 	
 //////////////////////////////////////////////////////////////////////////
 // GetType
-ReType* ReManager::GetType( BcName Name )
+ReClass* ReManager::GetType( BcName Name )
 {
 	return Factory::Instance().GetType( Name );		
 }

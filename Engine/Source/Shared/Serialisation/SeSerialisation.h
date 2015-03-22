@@ -20,14 +20,14 @@ public:
 	 */
 	virtual BcBool shouldSerialiseContents( 
 		void* InData, 
-		const ReType* InType ) = 0;
+		const ReClass* InType ) = 0;
 
 	/**
 	 * @brief Serialise as string ref.
 	 */
 	virtual std::string serialiseAsStringRef( 
 		void* InData, 
-		const ReType* InType ) = 0;
+		const ReClass* InType ) = 0;
 
 	/**
 	 * @brief Is matching field?
@@ -50,13 +50,13 @@ public:
      * @brief Will find object that has previously been added.
      */
     virtual BcBool findObject( 
-        void*& OutObject, const ReType* Type, BcU32 Key ) = 0;
+        void*& OutObject, const ReClass* Type, BcU32 Key ) = 0;
 
     /**
      * @brief Decode as pointer.
      */
     virtual BcBool findObject( 
-        void*& OutObject, const ReType* Type, const std::string& Key ) = 0;
+        void*& OutObject, const ReClass* Type, const std::string& Key ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ public:
 	 * @param pType Type to serialise as.
 	 */
 	template< typename _Ty >
-    std::string serialiseToString( _Ty* pData, const ReType* pType )
+    std::string serialiseToString( _Ty* pData, const ReClass* pType )
     {
         return ( internalSerialiseString( reinterpret_cast< void* >( pData ), pType ) );
     }
@@ -103,7 +103,7 @@ public:
      * @param pType Type to serialise as.
      */
     template< typename _Ty >
-    _Ty* serialise( _Ty* pData, const ReType* pType )
+    _Ty* serialise( _Ty* pData, const ReClass* pType )
     {
         return reinterpret_cast< _Ty* >( internalSerialise( reinterpret_cast< void* >( pData ), pType ) );
     }
@@ -133,14 +133,14 @@ protected:
      * @param pType Type to serialise as.
      * @return New data pointer (may be the same)
      */
-    virtual void* internalSerialise( void* pData, const ReType* pType ) = 0;
+    virtual void* internalSerialise( void* pData, const ReClass* pType ) = 0;
     /**
      * @brief Serialise class to std::string.
      * @param pData Pointer to class data
      * @param pType Type to serialise as.
      * @return std::string Data as string
      */
-    virtual std::string internalSerialiseString( void* pData, const ReType* pType ) = 0;
+    virtual std::string internalSerialiseString( void* pData, const ReClass* pType ) = 0;
 };
 
 #endif

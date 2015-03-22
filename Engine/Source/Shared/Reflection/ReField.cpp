@@ -39,14 +39,14 @@ ReField::ReField():
 	
 //////////////////////////////////////////////////////////////////////////
 // setType
-void ReField::setType( const ReType* Type )
+void ReField::setType( const ReClass* Type )
 {
 	Type_ = Type;
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getType
-const ReType* ReField::getType() const
+const ReClass* ReField::getType() const
 {
 	return Type_;
 }
@@ -109,14 +109,14 @@ bool ReField::isPointerType() const
 
 //////////////////////////////////////////////////////////////////////////
 // getKeyType
-const ReType* ReField::getKeyType() const
+const ReClass* ReField::getKeyType() const
 {
 	return KeyType_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getValueType
-const ReType* ReField::getValueType() const
+const ReClass* ReField::getValueType() const
 {
 	return ValueType_;
 }

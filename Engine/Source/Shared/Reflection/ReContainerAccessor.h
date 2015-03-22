@@ -61,15 +61,15 @@ public:
 	virtual ReadIterator* newReadIterator( void* pContainerData ) const = 0;
 		
 protected:
-    const ReType* pKeyType_;
-    const ReType* pValueType_;
+    const ReClass* pKeyType_;
+    const ReClass* pValueType_;
 
 	BcU32 KeyFlags_;
 	BcU32 ValueFlags_;
 };
 
 template < typename _Ty >
-ReContainerAccessor* CreateContainerAccessor( _Ty&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( _Ty&, const ReClass*& pKeyType, const ReClass*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
 	pValueType = nullptr;

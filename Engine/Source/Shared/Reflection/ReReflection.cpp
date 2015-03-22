@@ -279,7 +279,7 @@ public:
 						auto DstIter = DstFieldAccessor.newWriteIterator();
 						auto SrcIter = SrcFieldAccessor.newReadIterator();
 
-						// TODO: Remove cast. Will eventually be no ReType.
+						// TODO: Remove cast. Will eventually be no ReClass.
 						const ReClass* KeyType = static_cast< const ReClass* >( Field->getKeyType() );
 						const ReClass* ValueType = static_cast< const ReClass* > ( Field->getValueType() );
 
@@ -362,25 +362,6 @@ public:
 		}
 	}
 };
-
-//////////////////////////////////////////////////////////////////////////
-// CopyClass
-void ReCopyClass( void* DstObject, void* SrcObject, const ReType* InType )
-{
-	PSY_LOGSCOPEDCATEGORY( "Reflection" );
-	PSY_LOG( "ReCopyClass: \"%s\"", (*InType->getName()).c_str() );
-	PSY_LOGSCOPEDINDENT;
-
-	if( InType->isTypeOf< ReClass >() )
-	{
-		const ReClass* InClass = static_cast< const ReClass* >( InType );
-		ReCopyClass( DstObject, SrcObject, InClass );
-	}
-	else
-	{
-		BcAssert( false );
-	}
-}
 
 //////////////////////////////////////////////////////////////////////////
 // CopyClass

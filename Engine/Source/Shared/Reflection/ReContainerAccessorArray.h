@@ -135,7 +135,7 @@ public:
 };
 
 template < typename _Ty, size_t _Size >
-ReContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const ReClass*& pKeyType, const ReClass*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
 	pValueType = ReManager::GetClass<
@@ -146,7 +146,7 @@ ReContainerAccessor* CreateContainerAccessor( _Ty ( & )[ _Size ], const ReType*&
 }
 		
 template < typename _Ty, size_t _Size >
-ReContainerAccessor* CreateContainerAccessor( std::array< _Ty, _Size >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::array< _Ty, _Size >&, const ReClass*& pKeyType, const ReClass*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType = nullptr;
 	pValueType = ReManager::GetClass< 

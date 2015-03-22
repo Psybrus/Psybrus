@@ -375,7 +375,7 @@ class ReITypeSerialiser;
 class IContainerAccessor;
 class ReObject;
 class RePrimitive;
-class ReType;
+class ReClass;
 class ReEnumConstant;
 class ReEnum;
 class ReField;

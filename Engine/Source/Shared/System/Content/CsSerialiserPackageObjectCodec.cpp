@@ -33,7 +33,7 @@ CsSerialiserPackageObjectCodec::CsSerialiserPackageObjectCodec(
 //virtual
 BcBool CsSerialiserPackageObjectCodec::shouldSerialiseContents( 
 	void* InData, 
-	const ReType* InType )
+	const ReClass* InType )
 {
 	BcBool RetVal = BcFalse;
 	if( InType->isTypeOf< ReClass >() && Package_ != nullptr )
@@ -65,7 +65,7 @@ BcBool CsSerialiserPackageObjectCodec::shouldSerialiseContents(
 //virtual
 std::string CsSerialiserPackageObjectCodec::serialiseAsStringRef( 
 	void* InData, 
-	const ReType* InType )
+	const ReClass* InType )
 {
 	std::string RetVal;
 
@@ -166,7 +166,7 @@ BcBool CsSerialiserPackageObjectCodec::shouldSerialiseField(
 
 //virtual 
 BcBool CsSerialiserPackageObjectCodec::findObject( 
-		void*& OutObject, const ReType* Type, BcU32 Key )
+		void*& OutObject, const ReClass* Type, BcU32 Key )
 {
 	OutObject = Package_->getCrossRefResource( Key );
 	return OutObject != nullptr;
@@ -174,7 +174,7 @@ BcBool CsSerialiserPackageObjectCodec::findObject(
 
 //virtual
 BcBool CsSerialiserPackageObjectCodec::findObject( 
-		void*& OutObject, const ReType* Type, const std::string& Key )
+		void*& OutObject, const ReClass* Type, const std::string& Key )
 {
 	OutObject = nullptr;
 	return BcFalse;

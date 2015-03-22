@@ -141,7 +141,7 @@ public:
 };
 	
 template < typename _Key, typename _Ty, typename _Pr, typename _Alloc >
-ReContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::map< _Key, _Ty, _Pr, _Alloc >&, const ReClass*& pKeyType, const ReClass*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
     pKeyType =  ReManager::GetClass< 
     	typename ReTypeTraits< _Key >::Type >();

@@ -137,7 +137,7 @@ public:
 
 	
 template < typename _Ty, typename _Comp, typename _Alloc >
-ReContainerAccessor* CreateContainerAccessor( std::set< _Ty, _Comp, _Alloc >&, const ReType*& pKeyType, const ReType*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
+ReContainerAccessor* CreateContainerAccessor( std::set< _Ty, _Comp, _Alloc >&, const ReClass*& pKeyType, const ReClass*& pValueType, BcU32& KeyFlags, BcU32& ValueFlags )
 {
 	pKeyType =  nullptr;
     pValueType = ReManager::GetClass< 

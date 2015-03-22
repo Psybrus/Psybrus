@@ -81,12 +81,12 @@ public:
 	/**
 		* Set type.
 		*/
-    void							setType( const ReType* pType );
+    void							setType( const ReClass* pType );
 
 	/**
 		* Get type.
 		*/
-    const ReType*					getType() const;
+    const ReClass*					getType() const;
 
 	/**
 		* Set size.
@@ -148,12 +148,12 @@ public:
 	/**
 		* Get type.
 		*/
-    const ReType*						getKeyType() const;
+    const ReClass*						getKeyType() const;
 
 	/**
 		* Get type.
 		*/
-    const ReType*						getValueType() const;
+    const ReClass*						getValueType() const;
 
 	/**
 		* Get flags.
@@ -177,13 +177,13 @@ public:
 
 protected:
 	BcSize								Offset_;
-    const ReType*						Type_;
+    const ReClass*						Type_;
 	BcSize								Size_;
 	BcU32								FieldFlags_;
 
 	ReContainerAccessor*				ContainerAccessor_;
-    const ReType*						KeyType_;
-    const ReType*						ValueType_;
+    const ReClass*						KeyType_;
+    const ReClass*						ValueType_;
 	BcU32								KeyFlags_;
 	BcU32								ValueFlags_;		
 };

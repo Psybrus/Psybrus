@@ -19,8 +19,8 @@ public:
     virtual BcU32 getFileVersion() const;
 
 protected:
-    virtual void* internalSerialise( void* pData, const ReType* pType );
-    virtual std::string internalSerialiseString( void* pData, const ReType* pType );
+    virtual void* internalSerialise( void* pData, const ReClass* pType );
+    virtual std::string internalSerialiseString( void* pData, const ReClass* pType );
 
 protected:
     virtual Json::Value serialiseClass( void* pData, const ReClass* pClass, BcU32 ParentFlags, bool StoreID );
@@ -36,14 +36,14 @@ private:
 
     struct SerialiseClass
     {
-        SerialiseClass( void* pData, const ReType* pType ):
+        SerialiseClass( void* pData, const ReClass* pType ):
             pData_( pData ),
             pType_( pType )
         {
         }
 
         void*						pData_;
-        const ReType*		pType_;
+        const ReClass*		pType_;
 
         bool operator == ( const SerialiseClass& Other )
         {

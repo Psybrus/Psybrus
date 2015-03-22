@@ -23,7 +23,7 @@ public:
 	* @param InName Name of type.
 	* @return
 	*/
-    static ReType* GetType( BcName InName );
+    static ReClass* GetType( BcName InName );
 
     /**
 	* @brief Get Class. Will always return, will add a new empty class if it does not exist.

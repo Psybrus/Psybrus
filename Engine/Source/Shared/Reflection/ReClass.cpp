@@ -10,24 +10,32 @@ void ReClass::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Super_",		&ReClass::Super_ ),
-		new ReField( "Fields_",		&ReClass::Fields_ ),
+		new ReField( "Serialiser_", &ReClass::Serialiser_ ),
+		new ReField( "Super_", &ReClass::Super_ ),
+		new ReField( "Size_", &ReClass::Size_ ),
+		new ReField( "Fields_", &ReClass::Fields_ ),
 	};
-		
-	ReRegisterClass< ReClass, ReType >( Fields );
+	
+	ReRegisterClass< ReClass, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ReClass::ReClass():
-	Super_( nullptr )
+	Serialiser_( nullptr ),
+	Super_( nullptr ),
+	Size_( 0 ),
+	Fields_()
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ReClass::ReClass( BcName Name ):
-	Super_( nullptr )
+	Serialiser_( nullptr ),
+	Super_( nullptr ),
+	Size_( 0 ),
+	Fields_()
 {
 	setName( Name );
 }
@@ -42,6 +50,13 @@ ReClass::~ReClass()
 		delete Field;
 	}
 	Fields_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSize
+size_t ReClass::getSize() const
+{
+	return Size_;
 }
 
 //////////////////////////////////////////////////////////////////////////

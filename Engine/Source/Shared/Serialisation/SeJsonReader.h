@@ -20,8 +20,8 @@ public:
 	virtual BcU32 getFileVersion() const;
 
 protected:
-	virtual void* internalSerialise( void* pData, const ReType* pType );
-	virtual std::string internalSerialiseString( void* pData, const ReType* pType );
+	virtual void* internalSerialise( void* pData, const ReClass* pType );
+	virtual std::string internalSerialiseString( void* pData, const ReClass* pType );
 
 public:
 	virtual void serialiseClass( void* pData, const ReClass* pClass, const Json::Value& InputValue, BcU32 ParentFlags );
@@ -36,7 +36,7 @@ private:
 
 	struct SerialiseClass
 	{
-		SerialiseClass( std::string ID, void* pData, const ReType* pType ):
+		SerialiseClass( std::string ID, void* pData, const ReClass* pType ):
 			ID_( ID ),
 			pData_( pData ),
 			pType_( pType )
@@ -45,7 +45,7 @@ private:
 
 		std::string ID_;
 		void* pData_;
-		const ReType* pType_;
+		const ReClass* pType_;
 
 		bool operator == ( const SerialiseClass& Other )
 		{
@@ -53,9 +53,9 @@ private:
 		}
 	};
 
-	SerialiseClass getSerialiseClass( BcU32 ID, const ReType* pType );
-	SerialiseClass getSerialiseClass( std::string ID, const ReType* pType );
-	SerialiseClass getSerialiseClass( const Json::Value& Value, const ReType* pType );
+	SerialiseClass getSerialiseClass( BcU32 ID, const ReClass* pType );
+	SerialiseClass getSerialiseClass( std::string ID, const ReClass* pType );
+	SerialiseClass getSerialiseClass( const Json::Value& Value, const ReClass* pType );
 
 private:
 	SeISerialiserObjectCodec* ObjectCodec_;

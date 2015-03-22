@@ -37,11 +37,11 @@ public:
 
 	virtual BcBool shouldSerialiseContents( 
 		void* InData, 
-		const ReType* InType ) override;
+		const ReClass* InType ) override;
 
 	virtual std::string serialiseAsStringRef( 
 		void* InData, 
-		const ReType* InType ) override;
+		const ReClass* InType ) override;
 	
 	virtual BcBool isMatchingField( 
 		const class ReField* Field, 
@@ -53,10 +53,10 @@ public:
 		const class ReField* Field ) override;
 
 	virtual BcBool findObject( 
-		void*& OutObject, const ReType* Type, BcU32 Key ) override;
+		void*& OutObject, const ReClass* Type, BcU32 Key ) override;
 
 	virtual BcBool findObject( 
-		void*& OutObject, const ReType* Type, const std::string& Key ) override;
+		void*& OutObject, const ReClass* Type, const std::string& Key ) override;
 	
 private:
 	class CsPackage* Package_;

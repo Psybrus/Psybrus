@@ -50,7 +50,7 @@ BcU32 SeJsonWriter::getFileVersion() const
 //////////////////////////////////////////////////////////////////////////
 // internalSerialise
 //virtual
-void* SeJsonWriter::internalSerialise( void* pData, const ReType* pType )
+void* SeJsonWriter::internalSerialise( void* pData, const ReClass* pType )
 {
 	Output_ = internalSerialiseString( pData, pType );
 
@@ -60,7 +60,7 @@ void* SeJsonWriter::internalSerialise( void* pData, const ReType* pType )
 //////////////////////////////////////////////////////////////////////////
 // internalSerialiseString
 //virtual
-std::string SeJsonWriter::internalSerialiseString( void* pData, const ReType* pType )
+std::string SeJsonWriter::internalSerialiseString( void* pData, const ReClass* pType )
 {
 	// Setup list to use for serialising.
 	ObjectsValue_ = Json::Value( Json::arrayValue );

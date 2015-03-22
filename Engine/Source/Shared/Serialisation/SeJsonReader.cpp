@@ -53,7 +53,7 @@ BcU32 SeJsonReader::getFileVersion() const
 //////////////////////////////////////////////////////////////////////////
 // internalSerialise
 //virtual
-void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
+void* SeJsonReader::internalSerialise( void* pData, const ReClass* pType )
 {
 	const Json::Value& RootIDEntry( RootValue_[ RootIDString ] );
 	const Json::Value& VersionEntry( RootValue_[ SerialiserVersionString ] );
@@ -110,7 +110,7 @@ void* SeJsonReader::internalSerialise( void* pData, const ReType* pType )
 
 //////////////////////////////////////////////////////////////////////////
 // internalSerialiseString
-std::string SeJsonReader::internalSerialiseString( void* pData, const ReType* pType )
+std::string SeJsonReader::internalSerialiseString( void* pData, const ReClass* pType )
 {
 	BcBreakpoint;
 	return "";
@@ -415,7 +415,7 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
 
 //////////////////////////////////////////////////////////////////////////
 // getSerialiseClass
-SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( BcU32 ID, const ReType* pType )
+SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( BcU32 ID, const ReClass* pType )
 {
 	SerialiseClass RetVal( "", nullptr, nullptr );
 
@@ -429,7 +429,7 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( BcU32 ID, const Re
 
 //////////////////////////////////////////////////////////////////////////
 // getSerialiseClass
-SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, const ReType* pType )
+SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, const ReClass* pType )
 {
 	SerialiseClass RetVal( "", nullptr, nullptr );
 
@@ -451,7 +451,7 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
 
 //////////////////////////////////////////////////////////////////////////
 // getSerialiseClass
-SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( const Json::Value& Value, const ReType* pType )
+SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( const Json::Value& Value, const ReClass* pType )
 {
 	auto ClassType( ReManager::GetClass( Value[ ClassString ].asString() ) );
 	SeJsonReader::SerialiseClass ClassToSerialise( "", nullptr, ClassType );
