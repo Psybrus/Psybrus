@@ -88,6 +88,7 @@ public:
 	~BcBinaryData();
 
 	BcBinaryData& operator = ( const BcBinaryData& Other );
+	BcBinaryData& operator = ( BcBinaryData&& Other );
 
 	/**
 	 * Compare data.

@@ -930,7 +930,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 
 				// Attempt to convert shaders.
 				GLSLShader GLSLResult;
-				int GLSLSuccess = TranslateHLSLFromMem( ByteCode.getData< const char >(),
+				int GLSLSuccess = TranslateHLSLFromMem( BuiltShader.Code_.getData< const char >(),
 					Flags,
 					ConvertShaderCodeTypeToGLLang( Params.OutputCodeType_ ),
 					nullptr,

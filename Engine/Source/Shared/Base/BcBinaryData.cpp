@@ -39,9 +39,8 @@ BcBinaryData::BcBinaryData( const BcBinaryData& Other )
 
 BcBinaryData::BcBinaryData( BcBinaryData&& Other )
 {
-	internalFree();
-	pData_ = std::move( Other.pData_ );
-	DataSize_ = std::move( Other.DataSize_ );
+	std::swap( pData_, Other.pData_ );
+	std::swap( DataSize_, Other.DataSize_ );
 }
 
 BcBinaryData::~BcBinaryData()
@@ -54,6 +53,13 @@ BcBinaryData& BcBinaryData::operator = ( const BcBinaryData& Other )
 	pData_ = reinterpret_cast< BcU8* >( BcMemAlign( Other.getDataSize(), 16 ) );
 	DataSize_ = Other.DataSize_ | OWN_DATA_FLAG;
 	BcMemCopy( pData_, Other.pData_, getDataSize() );		
+	return *this;
+}
+
+BcBinaryData& BcBinaryData::operator = ( BcBinaryData&& Other )
+{
+	std::swap( pData_, Other.pData_ );
+	std::swap( DataSize_, Other.DataSize_ );
 	return *this;
 }
 

@@ -45,6 +45,7 @@ ReClass::ReClass( BcName Name ):
 //virtual
 ReClass::~ReClass()
 {
+	delete Serialiser_;
 	for( ReField* Field : Fields_ )
 	{
 		delete Field;

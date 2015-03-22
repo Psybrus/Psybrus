@@ -255,6 +255,8 @@ BcBool ScnPhysicsMeshImport::import( const Json::Value& )
 		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize(), 16, csPCF_IN_PLACE );
 		CsResourceImporter::addChunk( BcHash( "triangles" ), TriangleStream_.pData(), TriangleStream_.dataSize(), 16 );
 		CsResourceImporter::addChunk( BcHash( "vertices" ), VertexStream_.pData(), VertexStream_.dataSize(), 16 );
+
+		delete Scene_;		
 		return BcTrue;
 	}
 #endif // PSY_IMPORT_PIPELINE

@@ -243,7 +243,10 @@ RsRenderStateDesc::RsRenderStateDesc( ReNoInit ):
 
 }
 
-RsRenderStateDesc::RsRenderStateDesc()
+RsRenderStateDesc::RsRenderStateDesc():
+	BlendState_(),
+	DepthStencilState_(),
+	RasteriserState_()
 {
 
 }

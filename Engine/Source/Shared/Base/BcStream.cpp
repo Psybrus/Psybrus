@@ -20,7 +20,7 @@
 BcStream::BcStream( BcBool bSwapEndian, BcSize AllocSize, BcSize InitialSize ):
 	AllocSize_( 0 ),
 	BufferSize_( 0 ),
-	pDataBuffer_( NULL ),
+	pDataBuffer_( nullptr ),
 	CurrentPosition_( 0 )
 {
 	create( bSwapEndian, AllocSize, InitialSize );
@@ -31,11 +31,11 @@ BcStream::BcStream( BcBool bSwapEndian, BcSize AllocSize, BcSize InitialSize ):
 // Move ctor
 BcStream::BcStream( BcStream&& Other )
 {
-	bSwapEndian_ = std::move( Other.bSwapEndian_ );
-	AllocSize_ = Other.AllocSize_;
-	BufferSize_ = std::move( Other.BufferSize_ );
-	pDataBuffer_ = std::move( Other.pDataBuffer_ );
-	CurrentPosition_ = std::move( Other.CurrentPosition_ );
+	std::swap( bSwapEndian_, Other.bSwapEndian_ );
+	std::swap( AllocSize_, Other.AllocSize_ );
+	std::swap( BufferSize_, Other.BufferSize_ );
+	std::swap( pDataBuffer_, Other.pDataBuffer_ );
+	std::swap( CurrentPosition_, Other.CurrentPosition_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,12 +70,12 @@ void BcStream::create( BcBool bSwapEndian, BcSize AllocSize, BcSize InitialSize 
 // free
 void BcStream::free()
 {
-	if( pDataBuffer_ != NULL )
+	if( pDataBuffer_ != nullptr )
 	{
 		delete [] pDataBuffer_;
 
 		BufferSize_ = 0;
-		pDataBuffer_ = NULL;
+		pDataBuffer_ = nullptr;
 		CurrentPosition_ = 0;
 	}
 }
@@ -90,7 +90,7 @@ BcU8* BcStream::release( BcSize& Size )
 	CurrentPosition_ = 0;
 	BufferSize_ = 0;
 	AllocSize_ = 0;
-	pDataBuffer_ = NULL;
+	pDataBuffer_ = nullptr;
 
 	return pRetVal;	
 }
@@ -105,9 +105,12 @@ void BcStream::realloc( BcSize NewSize )
 	NewSize = ( ( (BcSize)( NewSize ) + AllocSize_ - 1 ) & ~( AllocSize_ - 1 ) );
 
 	//
-	if( pDataBuffer_ != NULL )
+	if( pDataBuffer_ != nullptr )
 	{
 		BcU8* pNewBuffer = new BcU8[ NewSize ];
+
+		// Zero end of buffer.
+		BcMemZero( pNewBuffer + BufferSize_, NewSize - BufferSize_ );
 
 		// Copy data to new buffer
 		memcpy( pNewBuffer, pDataBuffer_, BufferSize_ );
@@ -123,6 +126,7 @@ void BcStream::realloc( BcSize NewSize )
 	{
 		// New buffer from scratch.
 		pDataBuffer_ = new BcU8[ NewSize ];
+		BcMemZero( pDataBuffer_, NewSize );
 		BufferSize_ = NewSize;
 	}
 }

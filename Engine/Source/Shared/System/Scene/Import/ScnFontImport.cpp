@@ -78,6 +78,7 @@ BcBool ScnFontImport::import(
 	BcU32 BorderSize = DistanceField_ ? Spread_ : 1;
 	
 	int Error;
+	BcBool RetVal = BcFalse;
 	
 	// Initialise free type.
 	Error = FT_Init_FreeType( &Library );
@@ -141,12 +142,13 @@ BcBool ScnFontImport::import(
 								
 								if( GlyphError == 0 )
 								{
-									FT_Glyph_To_Bitmap( &Glyph, RenderMode, 0, 0 );
-									FT_BitmapGlyph BitmapGlyph = (FT_BitmapGlyph)(Glyph);
+									FT_Glyph ThisGlyph = Glyph;
+									FT_Glyph_To_Bitmap( &ThisGlyph, RenderMode, 0, 0 );
+									FT_BitmapGlyph BitmapGlyph = (FT_BitmapGlyph)(ThisGlyph);
 									
 									ImgImageUPtr pImage = RenderMode == FT_RENDER_MODE_MONO ? 
-										makeImageForGlyphMono( Glyph, BorderSize ) :
-										makeImageForGlyphNormal( Glyph, BorderSize );
+										makeImageForGlyphMono( ThisGlyph, BorderSize ) :
+										makeImageForGlyphNormal( ThisGlyph, BorderSize );
 							
 									BcF32 GlyphScale = DistanceField_ ? 0.25f : 1.0f;
 									
@@ -192,17 +194,14 @@ BcBool ScnFontImport::import(
 									
 										CharCode
 									};
-									
+
 									GlyphDescList.push_back( GlyphDesc );
+									FT_Done_Glyph( ThisGlyph );
 								}
-								
-								// Done with this glyph.
 								FT_Done_Glyph( Glyph );
 							}
 						}
 					}
-					
-					// 
 					
 					// Create an atlas of glyphs.
 					ImgRectList RectList;
@@ -214,13 +213,7 @@ BcBool ScnFontImport::import(
 					std::string FontTextureFileName = getIntermediatePath() + std::string( "/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
-					// Create texture importer..
-					// NOTE: This is pretty horrible. The reason is
-					//       that reflected objects use BcMemAlign, which
-					//       is not used by global new.
-					//       I found a bug with the std::thread and std::mutex
-					//       code in VS2012 that uses its own custom allocator
-					//       for new in debug builds. This annoyed me greatly.
+					// Create texture importer.
 					auto TextureImporter = CsResourceImporterUPtr(
 						new ScnTextureImport( 
 							FontTextureName, "ScnTexture",
@@ -255,7 +248,7 @@ BcBool ScnFontImport::import(
 							
 						GlyphStream << GlyphDesc;
 					}
-						
+					
 					// Write out chunks.											
 					CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 					CsResourceImporter::addChunk( BcHash( "glyphs" ), GlyphStream.pData(), GlyphStream.dataSize() );
@@ -264,7 +257,7 @@ BcBool ScnFontImport::import(
 					GlyphImageList.clear();
 					pAtlasImage = nullptr;
 						
-					return BcTrue;
+					RetVal = BcTrue;
 				}
 				else
 				{
@@ -275,18 +268,22 @@ BcBool ScnFontImport::import(
 			{
 				PSY_LOG( "ScnFont: Error setting char size.\n" );
 			}
+
+			FT_Done_Face( Face );
 		}
 		else
 		{
 			PSY_LOG( "ScnFont: Error loading font %s.\n", Source_.c_str() );
 		}
+
+		FT_Done_FreeType( Library );
 	}
 	else
 	{
 		PSY_LOG( "ScnFont: Error initialising freetype2.\n" );
 	}
 #endif // PSY_IMPORT_PIPELINE
-	return BcFalse;
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -82,7 +82,6 @@ public:
 	BcStream& operator << ( BcStream* pStream );
 
 private:
-
 	BcBool bSwapEndian_;
 	BcSize AllocSize_;
 	BcSize BufferSize_;
