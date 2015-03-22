@@ -12,7 +12,11 @@
 
 #include "System/SysProfilerChromeTracing.h"
 
-BcHandle GInstance_ = NULL;
+namespace
+{
+	BcHandle GInstance_ = nullptr;
+	std::unique_ptr< OsInputMindwaveLinux > GInputMindwave_;
+}
 
 eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
 {
@@ -54,13 +58,12 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 
 eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 {
+	GInputMindwave_.reset();
 	GMainWindow->destroy();
 	delete GMainWindow;
 	GMainWindow = nullptr;
 	return evtRET_REMOVE;
 }
-
-
 
 int main(int argc, char** argv)
 {
@@ -100,7 +103,8 @@ int main(int argc, char** argv)
 	BcRandom::Global = BcRandom( 1337 ); // TODO LINUX
 #endif
 
-	new OsInputMindwaveLinux();
+	// Additional input devices.
+	GInputMindwave_.reset( new OsInputMindwaveLinux() );
 
 	// Create reflection database
 	ReManager::Init();
