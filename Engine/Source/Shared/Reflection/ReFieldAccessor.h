@@ -26,7 +26,6 @@ public:
 		Data_( ParentObjectData ),
 		Field_( Field )
 	{
-		BcAssert( Field_->getType()->isTypeOf< ReClass >() );
 	}
 
 	/**
@@ -38,7 +37,6 @@ public:
 		Data_( ParentObjectData ),
 		Field_( OtherFieldAccessor.Field_ )
 	{
-		BcAssert( Field_->getType()->isTypeOf< ReClass >() );
 	}
 				
 

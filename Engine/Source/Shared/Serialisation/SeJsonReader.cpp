@@ -242,19 +242,16 @@ void SeJsonReader::serialiseField( void* pData, const ReField* pField, const Jso
 		}
 		else
 		{
-			if( pField->getType()->isTypeOf< ReClass >() )
+			if( pField->isPointerType() == false )
 			{
-				if( pField->isPointerType() == false )
-				{
-					serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), InputValue, ParentFlags );
-				}
-				else
-				{
-					void* pFieldData = nullptr;
-					serialisePointer( pFieldData, static_cast< const ReClass* >( pField->getType() ), pField->getFlags(), InputValue, ParentFlags, true );
-					void** pOutputFieldData = reinterpret_cast< void** >( reinterpret_cast< BcU8* >( pData ) + pField->getOffset() );
-					*pOutputFieldData = pFieldData;
-				}
+				serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), InputValue, ParentFlags );
+			}
+			else
+			{
+				void* pFieldData = nullptr;
+				serialisePointer( pFieldData, static_cast< const ReClass* >( pField->getType() ), pField->getFlags(), InputValue, ParentFlags, true );
+				void** pOutputFieldData = reinterpret_cast< void** >( reinterpret_cast< BcU8* >( pData ) + pField->getOffset() );
+				*pOutputFieldData = pFieldData;
 			}
 		}
 	}
@@ -310,15 +307,11 @@ void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 
 void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags )
 {
 	Json::Value ArrayValue( Json::arrayValue );
-	auto pFieldValueType = pField->getValueType();
+	auto FieldValueClass = pField->getValueType();
 	auto pWriteIterator = pField->newWriteIterator( pField->getData< void >( pData ) );
 
 	// Clear container out.
 	pWriteIterator->clear();
-
-	// Construct a temporary value.
-	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
-	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
 
 	// Iterate over Json values.
 	if( InputValue.type() == Json::arrayValue )
@@ -368,19 +361,15 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json::Value& InputValue, BcU32 ParentFlags )
 {
 	Json::Value ArrayValue( Json::arrayValue );
-	auto pFieldKeyType = pField->getKeyType();
-	auto pFieldValueType = pField->getValueType();
-	auto KeySerialiser = pFieldKeyType->getTypeSerialiser();
+	auto FieldKeyClass = pField->getKeyType();
+	auto FieldValueClass = pField->getValueType();
+	auto KeySerialiser = FieldKeyClass->getTypeSerialiser();
 	auto pWriteIterator = pField->newWriteIterator( pField->getData< void >( pData ) );
 
 	// Clear container out.
 	pWriteIterator->clear();
 
 	// Construct a temporary value & key.
-	BcAssert( pFieldKeyType->isTypeOf< ReClass >() );
-	BcAssert( pFieldValueType->isTypeOf< ReClass >() );
-	const ReClass* FieldKeyClass = static_cast< const ReClass* >( pFieldKeyType );
-	const ReClass* FieldValueClass = static_cast< const ReClass* >( pFieldValueType );
 	void* pTemporaryKey = FieldKeyClass->create< void >();
 
 	// Iterate over Json member values.

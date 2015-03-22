@@ -75,17 +75,9 @@ std::string SeJsonWriter::internalSerialiseString( void* pData, const ReClass* p
 		auto ClassToSerialise( (*It) );
 
 		// Check we're a class so we know we can serialise.
-		if( ClassToSerialise.pType_->isTypeOf< ReClass >() )
-		{
-			auto ID = ObjectCodec_->serialiseAsStringRef( ClassToSerialise.pData_, ClassToSerialise.pType_ );
-			auto ClassValue = serialiseClass( ClassToSerialise.pData_, static_cast< const ReClass* >( ClassToSerialise.pType_ ), 0, true );
-			ObjectValueMap_[ ID ] = ClassValue;
-		}
-		else
-		{
-			// We should only be serialising classes here.
-			BcAssert( false );
-		}
+		auto ID = ObjectCodec_->serialiseAsStringRef( ClassToSerialise.pData_, ClassToSerialise.pType_ );
+		auto ClassValue = serialiseClass( ClassToSerialise.pData_, static_cast< const ReClass* >( ClassToSerialise.pType_ ), 0, true );
+		ObjectValueMap_[ ID ] = ClassValue;
 	}
 
 	// Grab root from map and place in first.
@@ -212,16 +204,13 @@ Json::Value SeJsonWriter::serialiseField( void* pData, const ReField* pField, Bc
 		}
 		else
 		{
-			if( pField->getType()->isTypeOf< ReClass >() )
+			if( pField->isPointerType() == false )
 			{
-				if( pField->isPointerType() == false )
-				{
-					return serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), ParentFlags, false );
-				}
-				else
-				{
-					return serialisePointer( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), ParentFlags );
-				}
+				return serialiseClass( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), ParentFlags, false );
+			}
+			else
+			{
+				return serialisePointer( pField->getData< void >( pData ), static_cast< const ReClass* >( pField->getType() ), ParentFlags );
 			}
 		}
 	}
@@ -284,25 +273,18 @@ Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField, Bc
 		void* pValueData = pReadIterator->getValue();
 
 		// Only serialise class types.
-		if( pFieldValueType->isTypeOf< ReClass >() )
+		Json::Value ClassValue;
+		if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 		{
-			Json::Value ClassValue;
-			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
-			{
-				ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, false ); 
-			}
-			else
-			{
-				void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
-				ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
-			}
-
-			ArrayValue.append( ClassValue );
+			ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, false ); 
 		}
 		else
 		{
-			BcAssert( false );
+			void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
+			ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
 		}
+
+		ArrayValue.append( ClassValue );
 
 		pReadIterator->next();
 	}
@@ -358,25 +340,17 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField, BcU
 
 		if( KeySerialiser->serialiseToString( pKeyData, OutKeyString ) )
 		{
-			// TODO: Implement enum types also.
-			if( pFieldValueType->isTypeOf< ReClass >() )
+			Json::Value ClassValue;
+			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				Json::Value ClassValue;
-				if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
-				{
-					ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, true ); // TODO: Only if pointer type.
-				}
-				else
-				{
-					void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
-					ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
-				}
-				DictValue[ OutKeyString ] = ClassValue;
+				ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, true ); // TODO: Only if pointer type.
 			}
 			else
 			{
-				BcAssert( false ); // This should never be hit.
+				void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
+				ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
 			}
+			DictValue[ OutKeyString ] = ClassValue;
 		}
 		else
 		{

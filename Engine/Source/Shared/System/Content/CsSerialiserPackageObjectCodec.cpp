@@ -36,7 +36,7 @@ BcBool CsSerialiserPackageObjectCodec::shouldSerialiseContents(
 	const ReClass* InType )
 {
 	BcBool RetVal = BcFalse;
-	if( InType->isTypeOf< ReClass >() && Package_ != nullptr )
+	if( Package_ != nullptr )
 	{
 		const ReClass* InClass = static_cast< const ReClass* >( InType );
 
@@ -69,7 +69,7 @@ std::string CsSerialiserPackageObjectCodec::serialiseAsStringRef(
 {
 	std::string RetVal;
 
-	if( InType->isTypeOf< ReClass >() && Package_ != nullptr )
+	if( Package_ != nullptr )
 	{
 		const ReClass* InClass = static_cast< const ReClass* >( InType );
 
@@ -141,21 +141,18 @@ BcBool CsSerialiserPackageObjectCodec::shouldSerialiseField(
 		
 	// If the field is an ReObject, we should check if it's a CsPackage.
 	// - We don't want to serialise CsPackages.
-	if( Field->getType()->isTypeOf< ReClass >() )
-	{
-		const ReClass* InClass = static_cast< const ReClass* >( Field->getType() );
+	const ReClass* InClass = static_cast< const ReClass* >( Field->getType() );
 
-		// Check if it's an object.
-		if( InClass->hasBaseClass( ReObject::StaticGetClass() ) )
+	// Check if it's an object.
+	if( InClass->hasBaseClass( ReObject::StaticGetClass() ) )
+	{
+		ReFieldAccessor Accessor( InData, Field );
+		if( !Accessor.isContainerType() )
 		{
-			ReFieldAccessor Accessor( InData, Field );
-			if( !Accessor.isContainerType() )
+			const ReClass* UpperClass = Accessor.getUpperClass();
+			if( UpperClass == CsPackage::StaticGetClass() )
 			{
-				const ReClass* UpperClass = Accessor.getUpperClass();
-				if( UpperClass == CsPackage::StaticGetClass() )
-				{
-					return BcFalse;
-				}
+				return BcFalse;
 			}
 		}
 	}

@@ -89,13 +89,10 @@ struct Factory
 		for( auto TypeIter : Types_ )
 		{
 			auto Type = TypeIter.second;
-			if( Type->isTypeOf< ReClass >() )
+			const ReClass* OutClass = static_cast< const ReClass* >( Type );
+			if( OutClass->hasBaseClass( Base ) )
 			{
-				const ReClass* OutClass = static_cast< const ReClass* >( Type );
-				if( OutClass->hasBaseClass( Base ) )
-				{
-					OutClasses.push_back( OutClass );
-				}
+				OutClasses.push_back( OutClass );
 			}
 		}
 	}
@@ -202,10 +199,7 @@ std::vector< ReClass* > ReManager::GetClasses()
 	std::vector< ReClass* > Ret;
 	for( auto& It : Factory::Instance().Types_ )
 	{
-		if( It.second->isTypeOf< ReClass >() )
-		{
-			Ret.push_back( static_cast< ReClass* >( It.second ) );
-		}
+		Ret.push_back( static_cast< ReClass* >( It.second ) );
 	}
 	return Ret;
 }
