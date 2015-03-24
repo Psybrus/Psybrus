@@ -24,9 +24,10 @@ enum class ScnPhysicsMeshShapeType : BcU32
 {
 	BVH,
 	GIMPACT,
+	CONVEX_DECOMPOSITION,
 
 	STATIC = BVH,
-	DYNAMIC = GIMPACT
+	DYNAMIC = CONVEX_DECOMPOSITION
 };	
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,10 +35,27 @@ enum class ScnPhysicsMeshShapeType : BcU32
 struct ScnPhysicsMeshHeader
 {
 	ScnPhysicsMeshShapeType ShapeType_;
-	BcU32 NoofTriangles_;
-	BcU32 NoofVertices_;
+	BcU32 NoofMeshParts_;
 	BcU32 NoofMaterials_;
 	MaAABB AABB_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnPhysicsMeshPart
+struct ScnPhysicsMeshPart
+{
+	BcU32 NoofTriangles_;
+	BcU32 NoofVertices_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnPhysicsMaterial
+// TODO: Resource?
+struct ScnPhysicsMaterial
+{
+	BcF32 Friction_;
+	BcF32 Restitution_;
+	BcU32 CollisionFlags_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,16 +71,6 @@ struct ScnPhysicsTriangle
 struct ScnPhysicsVertex
 {
 	MaVec4d Position_;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// ScnPhysicsMaterial
-// TODO: Resource?
-struct ScnPhysicsMaterial
-{
-	BcF32 Friction_;
-	BcF32 Restitution_;
-	BcU32 CollisionFlags_;
 };
 
 #endif

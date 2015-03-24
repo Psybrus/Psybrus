@@ -66,22 +66,31 @@ ScnPhysicsMesh::~ScnPhysicsMesh()
 // create
 //virtual
 void ScnPhysicsMesh::create()
-{	
-	// Setup indexed mesh structure.
-	btIndexedMesh IndexedMesh;
-	IndexedMesh.m_numTriangles = Header_.NoofTriangles_;
-	IndexedMesh.m_triangleIndexBase = reinterpret_cast< const unsigned char* >( Triangles_ );
-	IndexedMesh.m_triangleIndexStride = sizeof( ScnPhysicsTriangle );
-	IndexedMesh.m_numVertices = Header_.NoofVertices_;
-	IndexedMesh.m_vertexBase = reinterpret_cast< const unsigned char* >( Vertices_ );
-	IndexedMesh.m_vertexStride = sizeof( ScnPhysicsVertex );
-	IndexedMesh.m_indexType = PHY_INTEGER;
-	IndexedMesh.m_vertexType = PHY_FLOAT;
-
+{
 	// Create mesh interface.
-	auto TriangleIndexVertexArray = new btTriangleIndexVertexArray();
-	TriangleIndexVertexArray->addIndexedMesh( IndexedMesh );
-	MeshInterface_ = TriangleIndexVertexArray;
+	MeshInterface_ = new btTriangleIndexVertexArray();
+
+	// Add the mesh parts.
+	BcU32 TriangleOffset = 0;
+	BcU32 VertexOffset = 0;
+	for( BcU32 Idx = 0; Idx < Header_.NoofMeshParts_; ++Idx )
+	{
+		const auto & MeshPart = MeshParts_[ Idx ];
+		btIndexedMesh IndexedMesh;
+		IndexedMesh.m_numTriangles = MeshPart.NoofTriangles_;
+		IndexedMesh.m_triangleIndexBase = reinterpret_cast< const unsigned char* >( Triangles_ + TriangleOffset );
+		IndexedMesh.m_triangleIndexStride = sizeof( ScnPhysicsTriangle );
+		IndexedMesh.m_numVertices = MeshPart.NoofVertices_;
+		IndexedMesh.m_vertexBase = reinterpret_cast< const unsigned char* >( Vertices_ + VertexOffset );
+		IndexedMesh.m_vertexStride = sizeof( ScnPhysicsVertex );
+		IndexedMesh.m_indexType = PHY_INTEGER;
+		IndexedMesh.m_vertexType = PHY_FLOAT;
+
+		MeshInterface_->addIndexedMesh( IndexedMesh );
+
+		TriangleOffset += MeshPart.NoofTriangles_;
+		VertexOffset += MeshPart.NoofVertices_;
+	}
 
 	// Construct optimized bvh for static mesh.
 	if( Header_.ShapeType_ == ScnPhysicsMeshShapeType::BVH )
@@ -138,9 +147,27 @@ btCollisionShape* ScnPhysicsMesh::createCollisionShape()
 		break;
 
 	case ScnPhysicsMeshShapeType::GIMPACT:
-		auto MeshShape = new btGImpactMeshShape( MeshInterface_ );
-		MeshShape->updateBound();
-		CollisionShape = MeshShape;
+		{
+			auto MeshShape = new btGImpactMeshShape( MeshInterface_ );
+			MeshShape->updateBound();
+			CollisionShape = MeshShape;
+		}
+		break;
+
+	case ScnPhysicsMeshShapeType::CONVEX_DECOMPOSITION:
+		{
+			auto CompoundShape = new btCompoundShape();
+
+			auto& IndexedMeshArray = MeshInterface_->getIndexedMeshArray();
+			for( BcU32 Idx = 0; Idx < IndexedMeshArray.size(); ++Idx )
+			{
+				const auto& IndexedMesh = IndexedMeshArray[ Idx ];
+
+			}
+			auto MeshShape = new btGImpactMeshShape( MeshInterface_ );
+			MeshShape->updateBound();
+			CollisionShape = MeshShape;
+		}
 		break;
 	}
 
@@ -164,6 +191,11 @@ void ScnPhysicsMesh::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData 
 	{
 		requestChunk( 1 );
 		requestChunk( 2 );
+		requestChunk( 3 );
+	}
+	else if( ChunkID == BcHash( "meshparts" ) )
+	{
+		MeshParts_ = reinterpret_cast< const ScnPhysicsMeshPart* >( pData );
 	}
 	else if( ChunkID == BcHash( "triangles" ) )
 	{
