@@ -157,16 +157,22 @@ btCollisionShape* ScnPhysicsMesh::createCollisionShape()
 	case ScnPhysicsMeshShapeType::CONVEX_DECOMPOSITION:
 		{
 			auto CompoundShape = new btCompoundShape();
-
 			auto& IndexedMeshArray = MeshInterface_->getIndexedMeshArray();
 			for( BcU32 Idx = 0; Idx < IndexedMeshArray.size(); ++Idx )
 			{
 				const auto& IndexedMesh = IndexedMeshArray[ Idx ];
+				BcAssert( IndexedMesh.m_numTriangles >= 3 );
+				BcAssert( IndexedMesh.m_numVertices == ( IndexedMesh.m_numTriangles * 3 ) );
+				const btScalar* Points = reinterpret_cast< const btScalar * >( IndexedMesh.m_vertexBase );
+				auto ConvexHullShape = new btConvexHullShape( 
+					Points, IndexedMesh.m_numVertices, sizeof( ScnPhysicsVertex ) );
 
+				btTransform Trans;
+				Trans.setIdentity();
+				CompoundShape->addChildShape( Trans, ConvexHullShape );	
 			}
-			auto MeshShape = new btGImpactMeshShape( MeshInterface_ );
-			MeshShape->updateBound();
-			CollisionShape = MeshShape;
+			CompoundShape->recalculateLocalAabb();
+			CollisionShape = CompoundShape;
 		}
 		break;
 	}
