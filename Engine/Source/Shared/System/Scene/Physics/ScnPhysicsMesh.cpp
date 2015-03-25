@@ -156,7 +156,17 @@ btCollisionShape* ScnPhysicsMesh::createCollisionShape()
 
 	case ScnPhysicsMeshShapeType::CONVEX_DECOMPOSITION:
 		{
-			auto CompoundShape = new btCompoundShape();
+			using btCollisionShapeUPtr = std::unique_ptr< btCollisionShape >;
+
+			class ManagedCompoundShape : public btCompoundShape
+			{
+			public:
+				ManagedCompoundShape(){};
+				virtual ~ManagedCompoundShape(){};
+				std::vector< btCollisionShapeUPtr > Shapes_;
+			};
+
+			auto CompoundShape = new ManagedCompoundShape();
 			auto& IndexedMeshArray = MeshInterface_->getIndexedMeshArray();
 			for( BcU32 Idx = 0; Idx < IndexedMeshArray.size(); ++Idx )
 			{
@@ -170,6 +180,7 @@ btCollisionShape* ScnPhysicsMesh::createCollisionShape()
 				btTransform Trans;
 				Trans.setIdentity();
 				CompoundShape->addChildShape( Trans, ConvexHullShape );	
+				CompoundShape->Shapes_.push_back( btCollisionShapeUPtr( ConvexHullShape ) );
 			}
 			CompoundShape->recalculateLocalAabb();
 			CollisionShape = CompoundShape;
