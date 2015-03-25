@@ -5,6 +5,9 @@ if PsyProjectExternalLib( "BulletPhysics", "C++" ) then
 			"bullet3/src",
 		}
 		files {
+			"bullet3/Extras/HACD/**.cpp",
+			"bullet3/Extras/HACD/**.inl",
+			"bullet3/Extras/HACD/**.h",
 			"bullet3/src/BulletCollision/**.cpp",
 			"bullet3/src/BulletCollision/**.h",
 			"bullet3/src/BulletDynamics/**.cpp",

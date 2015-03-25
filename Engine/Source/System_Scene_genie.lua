@@ -8,6 +8,7 @@ PsyProjectEngineLib( "System_Scene" )
   	includedirs {
       "./Shared/",
       "../../External/assimp/include",
+      "../../External/bullet3/Extras/HACD",
       "../../External/bullet3/src",
       "../../External/freetype/include",
       "../../External/jsoncpp/include/",

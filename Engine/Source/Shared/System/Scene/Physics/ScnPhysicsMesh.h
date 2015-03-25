@@ -45,10 +45,11 @@ protected:
 	
 protected:
 	ScnPhysicsMeshHeader Header_;
+	const ScnPhysicsMeshPart* MeshParts_;
 	const ScnPhysicsTriangle* Triangles_;
 	const ScnPhysicsVertex* Vertices_;
 
-	class btStridingMeshInterface* MeshInterface_;
+	class btTriangleIndexVertexArray* MeshInterface_;
 	class btOptimizedBvh* OptimizedBvh_;
 
 	SysFence BuildingBvhFence_;
