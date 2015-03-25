@@ -29,7 +29,7 @@ void ScnPhysicsConstraintComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "World_", &ScnPhysicsConstraintComponent::World_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "World_", &ScnPhysicsConstraintComponent::World_, bcRFF_SHALLOW_COPY ),
 	};
 
 	ReRegisterClass< ScnPhysicsConstraintComponent, Super >( Fields );
@@ -38,6 +38,7 @@ void ScnPhysicsConstraintComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnPhysicsConstraintComponent::ScnPhysicsConstraintComponent():
+	World_( nullptr ),
 	Constraint_( nullptr )
 {
 }
