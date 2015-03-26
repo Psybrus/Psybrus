@@ -34,6 +34,13 @@ PsyProjectEngineLib( "System_Renderer" )
       "glew",
     }
 
+  configuration "*"
+      files {
+          "./Shared/System/Renderer/Null/*.h", 
+          "./Shared/System/Renderer/Null/*.inl", 
+          "./Shared/System/Renderer/Null/*.cpp", 
+      }
+
   configuration "linux-*"
       files {
           "./Shared/System/Renderer/GL/*.h", 
