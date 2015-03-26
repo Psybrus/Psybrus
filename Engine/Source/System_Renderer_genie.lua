@@ -69,6 +69,9 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Shared/System/Renderer/D3D11/*.h", 
           "./Shared/System/Renderer/D3D11/*.inl", 
           "./Shared/System/Renderer/D3D11/*.cpp", 
+          "./Shared/System/Renderer/D3D12/*.h", 
+          "./Shared/System/Renderer/D3D12/*.inl", 
+          "./Shared/System/Renderer/D3D12/*.cpp", 
       }
       includedirs {
             "./Platforms/Windows/",
