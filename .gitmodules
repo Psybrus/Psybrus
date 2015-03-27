@@ -16,3 +16,6 @@
 [submodule "External/bullet3"]
 	path = External/bullet3
 	url = https://github.com/Psybrus/bullet3
+[submodule "External/RakNet"]
+	path = External/RakNet
+	url = https://github.com/Psybrus/RakNet
