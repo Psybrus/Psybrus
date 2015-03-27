@@ -77,7 +77,7 @@ OsClient* RsContextNull::getClient() const
 //virtual
 BcBool RsContextNull::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
-	return false;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ BcBool RsContextNull::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) con
 //virtual
 RsShaderCodeType RsContextNull::maxShaderCodeType( RsShaderCodeType CodeType ) const
 {
-	return RsShaderCodeType::INVALID;
+	return RsShaderCodeType::MAX;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,6 +110,9 @@ void RsContextNull::setViewport( class RsViewport& )
 // create
 void RsContextNull::create()
 {
+	// Get owning thread so we can check we are being called
+	// from the appropriate thread later.
+	OwningThread_ = BcCurrentThreadId();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -239,7 +242,6 @@ void RsContextNull::setVertexDeclaration( class RsVertexDeclaration* VertexDecla
 void RsContextNull::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -371,7 +373,10 @@ bool RsContextNull::updateBuffer(
 	BcUnusedVar( Size );
 	BcUnusedVar( Flags );
 	BcUnusedVar( UpdateFunc );
-	BcBreakpoint;
+	std::unique_ptr< BcU8[] > TempBuffer;
+	TempBuffer.reset( new BcU8[ Buffer->getDesc().SizeBytes_ ] );
+	RsBufferLock Lock = { TempBuffer.get() };
+	UpdateFunc( Buffer, Lock );
 	return true;
 }
 
@@ -408,7 +413,25 @@ bool RsContextNull::updateTexture(
 	BcUnusedVar( Slice );
 	BcUnusedVar( Flags );
 	BcUnusedVar( UpdateFunc );
-	BcBreakpoint;
+	const auto& TextureDesc = Texture->getDesc();
+	std::unique_ptr< BcU8[] > TempBuffer;
+		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+		BcU32 DataSize = RsTextureFormatSize( 
+			TextureDesc.Format_,
+			Width,
+			Height,
+			Depth,
+			1 );
+	TempBuffer.reset( new BcU8[ DataSize ] );
+	RsTextureLock Lock = 
+	{
+		TempBuffer.get(),
+		TextureDesc.Width_,
+		TextureDesc.Width_ * TextureDesc.Height_
+	};	
+	UpdateFunc( Texture, Lock );
 	return true;
 }
 
