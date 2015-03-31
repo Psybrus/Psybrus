@@ -4,10 +4,8 @@
 #include "System/SysSystem.h"
 
 
-/**
- *	@class NsCore
- *	@brief Network System Core 
- */
+//////////////////////////////////////////////////////////////////////////
+// @brief Network System Core 
 class NsCore:
 	public BcGlobal< NsCore >,
 	public SysSystem

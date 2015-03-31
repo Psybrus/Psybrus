@@ -1,15 +1,16 @@
-#include "System/Network/NsSession.h"
 #include "System/Network/NsPlayer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-NsSession::NsSession()
+NsPlayer::NsPlayer()
 {
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-NsSession::~NsSession()
+//virtual
+NsPlayer::~NsPlayer()
 {
-}
 
+}

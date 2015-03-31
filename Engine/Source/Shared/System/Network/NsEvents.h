@@ -2,16 +2,14 @@
 
 #include "Events/EvtEvent.h"
 
-/**
- * Event groups.
- */
+//////////////////////////////////////////////////////////////////////////
+// Event groups.
 #define NS_EVENTGROUP_CORE		EVT_MAKE_ID( 'N', 's', 0 )
 #define NS_EVENTGROUP_SESSION	EVT_MAKE_ID( 'N', 's', 1 )
 #define NS_EVENTGROUP_PEER		EVT_MAKE_ID( 'N', 's', 2 )
 
-/**
- * @brief Network events.
- */
+//////////////////////////////////////////////////////////////////////////
+// Network events.
 enum class NsEvent
 {
 	// All core events.
@@ -35,17 +33,15 @@ enum class NsEvent
 	MAX
 };
 
-/**
- * @brief Core network event.
- */
+//////////////////////////////////////////////////////////////////////////
+// Core network event.
 struct NsEventCore: EvtEvent< NsEventCore >
 {
 	
 };
 
-/**
- * @brief Session network event.
- */
+//////////////////////////////////////////////////////////////////////////
+// Session network event.
 struct NsEventSession: EvtEvent< NsEventSession >
 {
 	

@@ -4,11 +4,8 @@
 
 #include "System/Network/NsForwardDeclarations.h"
 
-#include <thread>
-
-/**
- * @brief States the session can be in.
- */
+//////////////////////////////////////////////////////////////////////////
+// States the session can be in.
 enum class NsSessionState
 {
 	/// Currently in disconnected state.
@@ -23,9 +20,8 @@ enum class NsSessionState
 	ERROR
 };
 
-/**
- * @brief Type of network session.
- */
+//////////////////////////////////////////////////////////////////////////
+// Type of network session.
 enum class NsSessionType
 {
 	/// This session is the server.
@@ -34,34 +30,20 @@ enum class NsSessionType
 	CLIENT,
 };
 
-/**
- * @brief Network session. 
- * Stores information about who is in a session, and ability to connect to other
- * remote sessions.
- */
+//////////////////////////////////////////////////////////////////////////
+// @brief Network session. 
+// Stores information about who is in a session, and ability to connect to other
+// remote sessions.
 class NsSession:
 	public EvtPublisher
 {
 public:
-	enum Client { CLIENT };
-	enum Server { SERVER };
-
-public:
-	NsSession( Client, const std::string& Address, BcU16 Port );
-	NsSession( Server, BcU32 MaxClients, BcU16 Port );
-
+	NsSession();
 	virtual ~NsSession();
 
-private:
-	void workerThread();
-
-
-private:
-	RakNet::RakPeerInterface* PeerInterface_;
-	NsSessionType Type_;
-	std::atomic< int > Active_;
-	std::atomic< NsSessionState > State_;
-	std::thread WorkerThread_;
-
-
+	/**
+	 * Create player to be in session.
+	 * @return New player object.
+	 */
+	virtual class NsPlayer* createPlayer() = 0;
 };
