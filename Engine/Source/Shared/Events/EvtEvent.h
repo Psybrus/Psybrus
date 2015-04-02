@@ -78,16 +78,19 @@ enum eEvtReturn
 */
 struct EvtBaseEvent
 {
+public:
+	static const size_t MAX_EVENT_SIZE = 255;
+
 private:
-	/// Size of event. This is set on publish.
-	BcU32 EventSize_;
 	/// Hash of event type. This is set on publish.
 	BcU32 EventTypeHash_;
+	/// Size of event. This is set on publish.
+	BcU8 EventSize_;
 
 protected:
-	inline EvtBaseEvent( BcU32 EventSize, BcU32 EventTypeHash ):
-		EventSize_( EventSize ),
-		EventTypeHash_( EventTypeHash )
+	inline EvtBaseEvent( BcU32 EventTypeHash, BcU8 EventSize ):
+		EventTypeHash_( EventTypeHash ),
+		EventSize_( EventSize )
 	{
 	}
 
@@ -99,8 +102,8 @@ public:
 	template< typename _Ty >
 	inline const _Ty& get() const
 	{
-		BcAssertMsg( sizeof( _Ty ) == EventSize_, "Event size mismatch." );
 		BcAssertMsg( _Ty::StaticEventTypeHash() == EventTypeHash_, "Event type mismatch." );
+		BcAssertMsg( sizeof( _Ty ) == EventSize_, "Event size mismatch." );
 		return *reinterpret_cast< const _Ty* >( this );
 	}
 
@@ -139,8 +142,9 @@ struct EvtEvent: EvtBaseEvent
 {
 public:
 	inline EvtEvent():
-		EvtBaseEvent( sizeof( _Ty ), StaticEventTypeHash() )
+		EvtBaseEvent( StaticEventTypeHash(), sizeof( _Ty ) )
 	{
+		BcAssert( sizeof( _Ty ) <= 255 );
 	}
 
 	static BcU32 StaticEventTypeHash()

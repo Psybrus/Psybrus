@@ -1,5 +1,5 @@
 #include "System/Network/NsSessionImpl.h"
-#include "System/Network/NsPlayerImpl.h"
+#include "System/SysKernel.h"
 
 #include "MessageIdentifiers.h"
 #include "RakPeer.h"
@@ -11,9 +11,11 @@
 // NsSessionMessageID
 enum class NsSessionMessageID : BcU8
 {
-	PLAYER_REQUEST_JOIN = ID_USER_PACKET_ENUM,
-	PLAYER_ACCEPT_JOIN,
-	PLAYER_DATA
+	/// Request broadcast from server.
+	SESSION_BROADCAST_REQUEST = ID_USER_PACKET_ENUM,
+
+	/// Message.
+	SESSION_MESSAGE
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,12 +27,6 @@ enum class NsSessionMessageChannel : BcU8
 	/// Player messages.
 	PLAYER = 128,
 };
-
-//////////////////////////////////////////////////////////////////////////
-// Player IDs.
-static const BcU32 CLIENT_START_PLAYER_ID = 0x00000000;
-static const BcU32 SERVER_START_PLAYER_ID = 0x80000000;
-static_assert( CLIENT_START_PLAYER_ID < SERVER_START_PLAYER_ID, "Client ID must be less than server ID." );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -47,9 +43,9 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 	PeerInterface_->Startup( 1, &Desc, 1 );
 	PeerInterface_->Connect( Address.c_str(), Port, nullptr, 0 );
 
-	WorkerThread_ = std::thread( std::bind( &NsSessionImpl::workerThread, this ) );
+	MessageHandlers_.fill( nullptr );
 
-	PlayerIDCounter_.store( CLIENT_START_PLAYER_ID );
+	WorkerThread_ = std::thread( std::bind( &NsSessionImpl::workerThread, this ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,9 +63,9 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 	PeerInterface_->Startup( MaxClients, &Desc, 1 );
 	PeerInterface_->SetMaximumIncomingConnections( MaxClients );
 
-	WorkerThread_ = std::thread( std::bind( &NsSessionImpl::workerThread, this ) );
+	MessageHandlers_.fill( nullptr );
 
-	PlayerIDCounter_.store( SERVER_START_PLAYER_ID );
+	WorkerThread_ = std::thread( std::bind( &NsSessionImpl::workerThread, this ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -77,22 +73,72 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 NsSessionImpl::~NsSessionImpl()
 {
 	Active_.store( 0 );
+	CallbackFence_.wait();
 	WorkerThread_.join();
 	RakNet::RakPeerInterface::DestroyInstance( PeerInterface_ );
 }
 
+
 //////////////////////////////////////////////////////////////////////////
-// createPlayer
-//virtual
-class NsPlayer* NsSessionImpl::createPlayer()
+// broadcast
+void NsSessionImpl::broadcast( 
+		BcU8 Channel, const void* Data, size_t DataSize, 
+		NsPriority Priority, NsReliability Reliability )
 {
-	auto Player = new NsPlayerImpl( this );
-	Player->setID( allocPlayerID() );
+	// TODO: Optimise this entire thing.
+	RakNet::BitStream BitStream;
+	if( Type_ == NsSessionType::SERVER )
+	{
+		BitStream.Write( (BcU8)NsSessionMessageID::SESSION_MESSAGE );
+		BitStream.Write( Channel );
+		BitStream.Serialize( true, (char*)Data, DataSize );
+		PeerInterface_->Send( 
+			(const char*)BitStream.GetData(), BitStream.GetNumberOfBytesUsed(),
+			(PacketPriority)Priority, 
+			(PacketReliability)Reliability, Channel, 
+			RakNet::UNASSIGNED_SYSTEM_ADDRESS,
+			true, 0 );
+	}
+	else
+	{
+		BitStream.Write( (BcU8)NsSessionMessageID::SESSION_BROADCAST_REQUEST );
+		BitStream.Write( Channel );
+		BitStream.Serialize( true, (char*)Data, DataSize );
+		PeerInterface_->Send( 
+			(const char*)BitStream.GetData(), BitStream.GetNumberOfBytesUsed(),
+			(PacketPriority)Priority, 
+			(PacketReliability)Reliability, Channel, 
+			RakNet::UNASSIGNED_SYSTEM_ADDRESS,
+			true, 0 );
+	}
+}
 
-	std::lock_guard< std::mutex > Lock( PlayerLock_ );
-	Players_.push_back( Player );
+//////////////////////////////////////////////////////////////////////////
+// registerMessageHandler
+BcBool NsSessionImpl::registerMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler )
+{
+	std::lock_guard< std::mutex > Lock( HandlerLock_ );
+	auto CanSet = MessageHandlers_[ Channel ] == nullptr;
+	BcAssert( CanSet );
+	if( CanSet )
+	{
+		MessageHandlers_[ Channel ] = Handler;
+	}
+	return CanSet;
+}
 
-	return Player;
+//////////////////////////////////////////////////////////////////////////
+// deregisterMessageHandler
+BcBool NsSessionImpl::deregisterMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler )
+{
+	std::lock_guard< std::mutex > Lock( HandlerLock_ );
+	auto CanUnset = MessageHandlers_[ Channel ] == Handler;
+	BcAssert( CanUnset );
+	if( CanUnset )
+	{
+		MessageHandlers_[ Channel ] = nullptr;
+	}
+	return CanUnset;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,42 +154,12 @@ void NsSessionImpl::workerThread()
 
 	while( Active_ )
 	{
-		// Handle players.
-		{
-			std::lock_guard< std::mutex > Lock( PlayerLock_ );
-			for( auto Player : Players_ )
-			{
-				switch( Player->getState() )
-				{
-				case NsPlayerState::NOT_IN_SESSION:
-					{
-					}
-					break;
-				case NsPlayerState::JOINING_SESSION:
-					{
-					}
-					break;
-				case NsPlayerState::IN_SESSION:
-					{
-					}
-					break;
-				case NsPlayerState::LEAVING_SESSION:
-					{
-					}
-					break;
-				}
-			}
-		}
-
 		// Handle packets.
 		for( auto Packet = PeerInterface_->Receive();
 			 Packet != nullptr;
-			 PeerInterface_->DeallocatePacket( Packet ), Packet = PeerInterface_->Receive() )
+			 Packet = PeerInterface_->Receive() )
 		{
-			PSY_LOG( "Received packet:" );
-			PSY_LOGSCOPEDINDENT;
-
-			auto PacketId = Packet->data[ 0 ];
+			BcU8 PacketId = Packet->data[ 0 ];
 			switch( PacketId )
 			{
 			case ID_CONNECTION_REQUEST_ACCEPTED:
@@ -214,122 +230,58 @@ void NsSessionImpl::workerThread()
 				PSY_LOG( "ID_REMOTE_NEW_INCOMING_CONNECTION" );
 				break;
 
+			case (BcU8)NsSessionMessageID::SESSION_BROADCAST_REQUEST:
+				{
+					//PSY_LOG( "NsSessionMessageID::SESSION_BROADCAST_REQUEST" );
+					if( Type_ == NsSessionType::SERVER )
+					{
+						Packet->data[ 0 ] = (BcU8)NsSessionMessageID::SESSION_MESSAGE;
+						PeerInterface_->Send( 
+							(const char*)Packet->data, Packet->length,
+							HIGH_PRIORITY, RELIABLE_ORDERED, 0,
+							RakNet::UNASSIGNED_SYSTEM_ADDRESS,
+							true, 0 );
+						// Need to send to self too.
+						PeerInterface_->SendLoopback( 
+							(const char*)Packet->data, Packet->length );
+					}
+				}
+				break;
+
+			case (BcU8)NsSessionMessageID::SESSION_MESSAGE:
+				{
+					//PSY_LOG( "NsSessionMessageID::SESSION_MESSAGE" );
+					BcU8 Channel = Packet->data[ 1 ];
+					auto MessageHandler = MessageHandlers_[ Channel ];
+
+					// If we have a hander, invoke the message received on the main thread.
+					if( MessageHandler != nullptr )
+					{
+						CallbackFence_.increment();
+						SysKernel::pImpl()->enqueueCallback( [ this, MessageHandler, Packet ]()
+							{
+								BcAssert( MessageHandler );
+								BcAssert( Packet );
+								BcAssert( Packet->length > 2 );
+								MessageHandler->onMessageReceived( &Packet->data[ 2 ], Packet->length - 2 );
+								PeerInterface_->DeallocatePacket( Packet );
+								CallbackFence_.decrement();
+							} );
+						continue;
+					}
+				}	
+				break;
+
 			default:
 				PSY_LOG( "Unknown" );
 				break;
 			}
+
+			// Deallocate packet.
+			PeerInterface_->DeallocatePacket( Packet );
 		}
 
 		// Sleep for little.
 		BcSleep( 0.005f );
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// allocPlayerID
-BcU32 NsSessionImpl::allocPlayerID()
-{
-	auto AllocatedID = PlayerIDCounter_++;
-
-	if( Type_ == NsSessionType::SERVER )
-	{
-		BcAssert( AllocatedID >= SERVER_START_PLAYER_ID );
-	}
-	else if( Type_ == NsSessionType::CLIENT )
-	{
-		BcAssert( AllocatedID >= CLIENT_START_PLAYER_ID && AllocatedID < SERVER_START_PLAYER_ID );
-	}
-
-	return AllocatedID;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// sendPlayerJoinRequest
-void NsSessionImpl::sendPlayerJoinRequest( NsPlayer* Player )
-{
-	BcAssert( Type_ == NsSessionType::CLIENT );
-
-	RakNet::BitStream BitStream;
-	BitStream.Write( (BcU8)NsSessionMessageID::PLAYER_REQUEST_JOIN );
-	BitStream.Write( Player->getID() );
-
-	PeerInterface_->Send( 
-		&BitStream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, (char)NsSessionMessageChannel::PLAYER,
-		RakNet::AddressOrGUID(), false, 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// receivePlayerRequestJoin
-void NsSessionImpl::receivePlayerRequestJoin( const void* Data, size_t Size )
-{
-	BcAssert( Type_ == NsSessionType::SERVER );
-
-	NsSessionMessageID MessageID;
-	RakNet::BitStream BitStream( (unsigned char*)Data, Size, false );
-
-	BitStream.Read( MessageID );
-	BcAssert( MessageID == NsSessionMessageID::PLAYER_ACCEPT_JOIN );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// sendPlayerAcceptJoin
-void NsSessionImpl::sendPlayerAcceptJoin( const RakNet::AddressOrGUID& Dest, class NsPlayer* Player )
-{
-	BcAssert( Type_ == NsSessionType::SERVER );
-
-	RakNet::BitStream BitStream;
-	BitStream.Write( (BcU8)NsSessionMessageID::PLAYER_ACCEPT_JOIN );
-	BitStream.Write( Player->getID() );
-
-	PeerInterface_->Send( 
-		&BitStream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, (char)NsSessionMessageChannel::PLAYER,
-		Dest, false, 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// receivePlayerAcceptJoin
-void NsSessionImpl::receivePlayerAcceptJoin( const void* Data, size_t Size )
-{
-	BcAssert( Type_ == NsSessionType::CLIENT );
-
-	NsSessionMessageID MessageID;
-	BcU32 PlayerID = 0;
-	RakNet::BitStream BitStream( (unsigned char*)Data, Size, false );
-
-	BitStream.Read( MessageID );
-	BcAssert( MessageID == NsSessionMessageID::PLAYER_ACCEPT_JOIN );
-
-	BitStream >> PlayerID;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// sendPlayerData
-void NsSessionImpl::sendPlayerData( class NsPlayer* Player )
-{
-	RakNet::BitStream BitStream;
-	BitStream.Write( (BcU8)NsSessionMessageID::PLAYER_DATA );
-	BitStream.Write( Player->getID() );
-
-	// TODO: Player data.
-	//BitStream.Write( Player->getName().c_str() );
-
-	PeerInterface_->Send( 
-		&BitStream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, (char)NsSessionMessageChannel::PLAYER,
-		RakNet::AddressOrGUID(), true, 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// receivePlayerData
-void NsSessionImpl::receivePlayerData( const void* Data, size_t Size )
-{
-	NsSessionMessageID MessageID;
-	BcU32 PlayerID = 0;
-	std::string PlayerName;
-	RakNet::BitStream BitStream( (unsigned char*)Data, Size, false );
-
-	BitStream.Read( MessageID );
-	BcAssert( MessageID == NsSessionMessageID::PLAYER_DATA );
-
-	BitStream >> PlayerID;
-	BitStream >> PlayerName;
 }

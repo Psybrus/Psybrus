@@ -12,8 +12,7 @@
 **************************************************************************/
 
 #include "System/SysDelegateDispatcher.h"
-
-
+#include "Base/BcLog.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -41,12 +40,15 @@ void SysDelegateDispatcher::enqueueDelegateCall( const std::function< void() >& 
 // dispatch
 void SysDelegateDispatcher::dispatch()
 {
+	PSY_LOGSCOPEDCATEGORY( "SysDelegateDispatcher" );
+
 	// Grab list of delegate calls.
 	DelegateCallListLock_.lock();
 	TDelegateCallList DelegateCallList( DelegateCallList_ );
 	DelegateCallList_.clear();
 	DelegateCallListLock_.unlock();
 	
+
 	// Iterate over em, call, and delete them.
 	for( TDelegateCallListIterator It( DelegateCallList.begin() ); It != DelegateCallList.end(); ++It )
 	{
