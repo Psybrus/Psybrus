@@ -25,16 +25,16 @@ function PsySetupToolchain()
 	
 		-- Linux gcc.
 		if _OPTIONS[ "toolchain" ] == "linux-gcc" then
-			premake.gcc.cc = "gcc"
-			premake.gcc.cxx = "g++"
+			premake.gcc.cc = "ccache gcc"
+			premake.gcc.cxx = "ccache g++"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-gcc" )
 		end
 
 		-- Linux clang.
 		if _OPTIONS[ "toolchain" ] == "linux-clang" then
-			premake.gcc.cc = "clang"
-			premake.gcc.cxx = "clang++"
+			premake.gcc.cc = "ccache clang -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.cxx = "ccache clang++ -Qunused-arguments -fcolor-diagnostics"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-clang" )
 		end
@@ -49,6 +49,7 @@ function PsySetupToolchain()
 
 		-- asmjs.
 		if _OPTIONS[ "toolchain" ] == "asmjs" then
+			-- todo: try ccache.
 			premake.gcc.cc = "$(EMSCRIPTEN)/emcc"
 			premake.gcc.cxx = "$(EMSCRIPTEN)/em++"
 			premake.gcc.ar = "ar"
