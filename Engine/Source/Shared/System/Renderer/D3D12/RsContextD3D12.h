@@ -132,6 +132,7 @@ private:
 	BcComRef< IDXGIAdapter > Adapter_;
 	BcComRef< IDXGISwapChain > SwapChain_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
+	BcU32 FrameCounter_;
 
 	RsTexture* BackBufferRT_;
 	RsTexture* BackBufferDS_;
@@ -140,6 +141,7 @@ private:
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
+
 
 };
 

@@ -25,6 +25,7 @@ function PsyProjectCommon( _name, _lang )
 
 	-- Common visual studio crap.
 	configuration "vs*"
+		defines { "_CRT_SECURE_NO_WARNINGS" }
 
 	-- Thread sanitiser support for later
 	configuration "gmake"

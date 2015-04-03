@@ -168,7 +168,7 @@ btCollisionShape* ScnPhysicsMesh::createCollisionShape()
 
 			auto CompoundShape = new ManagedCompoundShape();
 			auto& IndexedMeshArray = MeshInterface_->getIndexedMeshArray();
-			for( BcU32 Idx = 0; Idx < IndexedMeshArray.size(); ++Idx )
+			for( int Idx = 0; Idx < IndexedMeshArray.size(); ++Idx )
 			{
 				const auto& IndexedMesh = IndexedMeshArray[ Idx ];
 				BcAssert( IndexedMesh.m_numTriangles >= 3 );

@@ -1700,10 +1700,8 @@ bool RsContextD3D11::createProgram(
 	{
 		const auto& ShaderDesc = Shader->getDesc();
 		ID3D11ShaderReflection* Reflector = nullptr; 
-		D3D11Reflect( 
-			Shader->getData(), 
-			Shader->getDataSize(), 
-			&Reflector);
+		D3DReflect( Shader->getData(), Shader->getDataSize(),
+			IID_ID3D11ShaderReflection, (void**)&Reflector );
 
 		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
 		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );

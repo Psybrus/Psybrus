@@ -188,7 +188,8 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 	RsProgramVertexAttributeList VertexAttributeList;
 #if PLATFORM_WINDOWS
 	BcComRef< ID3D11ShaderReflection > ShaderReflection;
-	D3D11Reflect( ShaderByteCode.getData< const BcU8 >( 0 ), ShaderByteCode.getDataSize(), &ShaderReflection );
+	D3DReflect( ShaderByteCode.getData< const BcU8 >( 0 ), ShaderByteCode.getDataSize(),
+		IID_ID3D11ShaderReflection, (void**)&ShaderReflection );
 
 	BcU32 ChannelIdx = 0;
 	for( BcU32 Idx = 0; Idx < 16; ++Idx )

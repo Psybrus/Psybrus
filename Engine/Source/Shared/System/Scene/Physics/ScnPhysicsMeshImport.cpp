@@ -308,9 +308,9 @@ BcBool ScnPhysicsMeshImport::import( const Json::Value& )
 			MyHACD.SetNClusters( MinClusters_ );
 			MyHACD.SetNVerticesPerCH( MaxVerticesPerCluster_ );
 			MyHACD.SetConcavity( Concavity_ );
-			MyHACD.SetAddExtraDistPoints( AddExtraDistPoints_);
-			MyHACD.SetAddNeighboursDistPoints( AddNeighbourDistPoints_ );
-			MyHACD.SetAddFacesPoints( AddFacePoints_ );
+			MyHACD.SetAddExtraDistPoints( AddExtraDistPoints_ ? true : false );
+			MyHACD.SetAddNeighboursDistPoints( AddNeighbourDistPoints_ ? true : false );
+			MyHACD.SetAddFacesPoints( AddFacePoints_ ? true : false );
 	 
 			PSY_LOG( "Computing convex hull with HACD..." );
 			MyHACD.Compute();
@@ -323,7 +323,7 @@ BcBool ScnPhysicsMeshImport::import( const Json::Value& )
 			VertexStream_.clear();
 			TriangleStream_.clear();
 
-			for (int c=0;c<NoofClusters;c++)
+			for (BcU32 c = 0; c < NoofClusters; c++ )
 			{
 				//generate convex result
 				size_t nPoints = MyHACD.GetNPointsCH(c);
@@ -354,9 +354,9 @@ BcBool ScnPhysicsMeshImport::import( const Json::Value& )
 
 					auto AddVertex = [ & ]( HACD::Vec3< HACD::Real > Position )
 					{
-						OutVertex.Position_.x( Position.X() );
-						OutVertex.Position_.y( Position.Y() );
-						OutVertex.Position_.z( Position.Z() );
+						OutVertex.Position_.x( static_cast< BcF32 >( Position.X() ) );
+						OutVertex.Position_.y( static_cast< BcF32 >( Position.Y() ) );
+						OutVertex.Position_.z( static_cast< BcF32 >( Position.Z() ) );
 						OutVertex.Position_.w( 0.0f );
 						Header.AABB_.expandBy( OutVertex.Position_.xyz() );
 						VertexStream_ << OutVertex;

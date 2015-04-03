@@ -24,7 +24,7 @@
 
 #if PLATFORM_WINDOWS
 #include "System/Renderer/D3D11/RsContextD3D11.h"
-#include "System/Renderer/D3D11/RsContextD3D12.h"
+#include "System/Renderer/D3D12/RsContextD3D12.h"
 #endif
 
 #include "Psybrus.h" // cyclic.

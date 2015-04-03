@@ -272,7 +272,7 @@ void ScnCore::removeAllEntities()
 
 //////////////////////////////////////////////////////////////////////////
 // createEntity
-ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, const BcName& InstanceName )
+ScnEntityRef ScnCore::createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName )
 {
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
@@ -282,6 +282,7 @@ ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, 
 	{
 		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
+		BcUnusedVar( pPackage );
 #if 0
 		Entity = new ScnEntity( TemplateEntity );
 		Entity->setName( Name );

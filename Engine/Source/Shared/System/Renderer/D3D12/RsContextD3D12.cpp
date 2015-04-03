@@ -32,13 +32,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Direct3D 12 libraries.
-#pragma comment (lib, "D3D12.lib")
+//#pragma comment (lib, "D3D12.lib")
 #pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "dxgi.lib")
 #pragma comment( lib, "D3DCompiler.lib" )
 
 //////////////////////////////////////////////////////////////////////////
 // Type conversion.
+#if 0
 static const D3D12_BIND_FLAG gBufferType[] =
 {
 	(D3D12_BIND_FLAG)0,			// RsBufferType::UNKNOWN
@@ -49,6 +50,7 @@ static const D3D12_BIND_FLAG gBufferType[] =
 	(D3D12_BIND_FLAG)0,			// RsBufferType::DRAW_INDIRECT
 	D3D12_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
 };
+#endif
 
 // Texture formats
 static const DXGI_FORMAT gTextureFormats[] =
@@ -332,6 +334,7 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	pParent_( pParent ),
 	pClient_( pClient ),
 	Adapter_( nullptr ),
+	FrameCounter_( 0 ),
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode )
 {
