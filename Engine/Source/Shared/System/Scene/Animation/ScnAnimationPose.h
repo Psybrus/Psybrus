@@ -25,7 +25,7 @@ public:
 
 public:
 	ScnAnimationPose();
-	ScnAnimationPose( BcU32 NoofTransforms );
+	ScnAnimationPose( size_t NoofTransforms );
 	ScnAnimationPose( const ScnAnimationPose& Pose );
 	virtual ~ScnAnimationPose();
 	ScnAnimationPose& operator = ( const ScnAnimationPose& Pose );
@@ -33,12 +33,12 @@ public:
 	/**
 	 * Set transform.
 	 */
-	void setTransform( BcU32 Idx, const ScnAnimationTransform& Transform );
+	void setTransform( size_t Idx, const ScnAnimationTransform& Transform );
 
 	/**
 	 * Get transform.
 	 */
-	const ScnAnimationTransform& getTransform( BcU32 Idx ) const;
+	const ScnAnimationTransform& getTransform( size_t Idx ) const;
 
 	/**
 	 * Blend 2 poses together.
@@ -58,19 +58,19 @@ public:
 	/**
 	 * Get number of nodes.
 	 */
-	BcU32 getNoofNodes() const;
+	size_t getNoofNodes() const;
 
 private:
 	std::vector< ScnAnimationTransform > Transforms_;
 };
 
-BcForceInline void ScnAnimationPose::setTransform( BcU32 Idx, const ScnAnimationTransform& Transform )
+BcForceInline void ScnAnimationPose::setTransform( size_t Idx, const ScnAnimationTransform& Transform )
 {
 	BcAssert( Idx < Transforms_.size() );
 	Transforms_[ Idx ] = Transform;
 }
 
-BcForceInline const ScnAnimationTransform& ScnAnimationPose::getTransform( BcU32 Idx ) const
+BcForceInline const ScnAnimationTransform& ScnAnimationPose::getTransform( size_t Idx ) const
 {
 	BcAssert( Idx < Transforms_.size() );
 	return Transforms_[ Idx ];

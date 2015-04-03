@@ -61,7 +61,7 @@ namespace
 				{
 					Importer_.addDependency( IncludeFileName.c_str() );
 					*ppData = IncludeFile.readAllBytes();
-					*pBytes = IncludeFile.size();
+					*pBytes = static_cast< UINT >( IncludeFile.size() );
 					return S_OK;
 				}
 			}

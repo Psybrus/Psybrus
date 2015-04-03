@@ -24,5 +24,9 @@
 #include <D3D12Shader.h>
 #include <D3Dcompiler.h>
 #include <d3dcompiler.inl>
+#include <wrl.h>
+
+using Microsoft::WRL::ComPtr;
+
 #endif
 

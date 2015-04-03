@@ -16,7 +16,7 @@ function PsyProjectCommon( _name, _lang )
 	configuration "windows-*"
 		defines { "WINDOWS", "_WIN32", "WIN32" }
 
-	configuration "vs*"
+	configuration "vs* and x32"
 		flags { "EnableSSE", "EnableSSE2" }
 
 	-- Linux config defines.

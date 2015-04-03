@@ -32,7 +32,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Direct3D 12 libraries.
-//#pragma comment (lib, "D3D12.lib")
+#pragma comment (lib, "D3D12.lib")
 #pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "dxgi.lib")
 #pragma comment( lib, "D3DCompiler.lib" )
@@ -438,7 +438,7 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 // presentBackBuffer
 void RsContextD3D12::presentBackBuffer()
 {
-	SwapChain_->Present( 0, 0 );
+	//SwapChain_->Present( 0, 0 );
 
 	++FrameCounter_;
 }
@@ -470,6 +470,22 @@ void RsContextD3D12::create()
 	OsClientWindows* pClient = dynamic_cast< OsClientWindows* >( pClient_ );
 	BcAssertMsg( pClient != nullptr, "Windows client is not being used!" );
 
+	// Create default device.
+#ifdef _DEBUG
+	const D3D12_CREATE_DEVICE_FLAG DeviceFlags = D3D12_CREATE_DEVICE_DEBUG;
+#else
+	const D3D12_CREATE_DEVICE_FLAG DeviceFlags = D3D12_CREATE_DEVICE_NONE;
+#endif
+
+	FeatureLevel_ = D3D_FEATURE_LEVEL_9_3;
+	HRESULT RetVal = D3D12CreateDevice(
+		nullptr,
+		D3D_DRIVER_TYPE_HARDWARE,
+		DeviceFlags,
+		FeatureLevel_, 
+		D3D12_SDK_VERSION,
+		IID_PPV_ARGS(&Device_) );
+	BcAssert( SUCCEEDED( RetVal ) );
 	// Setup swap chain desc.
 	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
     SwapChainDesc_.BufferCount = 1;
@@ -511,7 +527,7 @@ void RsContextD3D12::destroy()
 void RsContextD3D12::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -519,7 +535,7 @@ void RsContextD3D12::setDefaultState()
 void RsContextD3D12::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -527,7 +543,7 @@ void RsContextD3D12::invalidateRenderState()
 void RsContextD3D12::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -535,7 +551,7 @@ void RsContextD3D12::invalidateTextureState()
 void RsContextD3D12::setRenderState( RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -543,7 +559,7 @@ void RsContextD3D12::setRenderState( RsRenderState* RenderState )
 void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -551,7 +567,7 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 void RsContextD3D12::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -559,7 +575,7 @@ void RsContextD3D12::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 BcS32 RsContextD3D12::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 	return 0;
 }
 
@@ -568,7 +584,7 @@ BcS32 RsContextD3D12::getRenderState( RsRenderStateType State ) const
 void RsContextD3D12::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -576,7 +592,7 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, const RsTextureParams& Param
 void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -584,7 +600,7 @@ void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 void RsContextD3D12::setProgram( class RsProgram* Program )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -592,7 +608,7 @@ void RsContextD3D12::setProgram( class RsProgram* Program )
 void RsContextD3D12::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -603,7 +619,7 @@ void RsContextD3D12::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -613,7 +629,7 @@ void RsContextD3D12::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -621,7 +637,7 @@ void RsContextD3D12::setUniformBuffer(
 void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -629,7 +645,7 @@ void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -641,7 +657,7 @@ void RsContextD3D12::clear(
 	BcBool EnableClearStencil )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -649,7 +665,7 @@ void RsContextD3D12::clear(
 void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -657,7 +673,7 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -666,8 +682,8 @@ bool RsContextD3D12::createRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -676,7 +692,7 @@ bool RsContextD3D12::destroyRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -686,8 +702,8 @@ bool RsContextD3D12::createSamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -696,8 +712,8 @@ bool RsContextD3D12::destroySamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -705,8 +721,8 @@ bool RsContextD3D12::destroySamplerState(
 bool RsContextD3D12::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -714,8 +730,8 @@ bool RsContextD3D12::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 bool RsContextD3D12::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -724,8 +740,8 @@ bool RsContextD3D12::createBuffer(
 	class RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -734,8 +750,8 @@ bool RsContextD3D12::destroyBuffer(
 	class RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -748,8 +764,8 @@ bool RsContextD3D12::updateBuffer(
 	RsBufferUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -758,8 +774,8 @@ bool RsContextD3D12::createTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -768,8 +784,8 @@ bool RsContextD3D12::destroyTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -781,8 +797,8 @@ bool RsContextD3D12::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -790,8 +806,8 @@ bool RsContextD3D12::updateTexture(
 bool RsContextD3D12::createShader(
 	class RsShader* Shader )
 {
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -799,8 +815,8 @@ bool RsContextD3D12::createShader(
 bool RsContextD3D12::destroyShader(
 	class RsShader* Shader )
 {
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -808,8 +824,8 @@ bool RsContextD3D12::destroyShader(
 bool RsContextD3D12::createProgram(
 	class RsProgram* Program )
 {
-	BcBreakpoint;
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 
@@ -818,7 +834,8 @@ bool RsContextD3D12::createProgram(
 bool RsContextD3D12::destroyProgram(
 	class RsProgram* Program )
 {
-	return false;
+	PSY_LOG( "UNIMPLEMENTED" );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -826,5 +843,5 @@ bool RsContextD3D12::destroyProgram(
 //virtual
 void RsContextD3D12::flushState()
 {
-	BcBreakpoint;
+	PSY_LOG( "UNIMPLEMENTED" );
 }

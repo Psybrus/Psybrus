@@ -397,7 +397,7 @@ BcBool CsPackageImporter::importResource(
 		Importer->getResourceName().c_str(), Importer->getResourceType().c_str() );
 	
 	// Get first chunk used by resource.
-	BcU32 FirstChunk = ChunkHeaders_.size();
+	size_t FirstChunk = ChunkHeaders_.size();
 
 	BcBool SuccessfulImport = BcFalse;
 
@@ -424,8 +424,8 @@ BcBool CsPackageImporter::importResource(
 		CurrResourceHeader_.Name_ = addString( Importer->getResourceName().c_str() );
 		CurrResourceHeader_.Type_ = addString( Importer->getResourceType().c_str() );
 		CurrResourceHeader_.Flags_ = csPEF_DEFAULT;
-		CurrResourceHeader_.FirstChunk_ = FirstChunk;
-		CurrResourceHeader_.LastChunk_ = ChunkHeaders_.size() - 1; // Assumes 1 chunk for resource. Fair assumption.
+		CurrResourceHeader_.FirstChunk_ = static_cast< BcU32 >( FirstChunk );
+		CurrResourceHeader_.LastChunk_ = static_cast< BcU32 >( ChunkHeaders_.size() - 1 ); // Assumes 1 chunk for resource. Fair assumption.
 		
 		// Make sure chunk indices are valid.
 		BcAssert( CurrResourceHeader_.FirstChunk_ <= CurrResourceHeader_.LastChunk_ );
@@ -592,7 +592,7 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 		}
 
 		// String length with null terminator.
-		CurrentOffset += StringEntry.length() + 1;
+		CurrentOffset += static_cast< BcU32 >( StringEntry.length() + 1 );
 	}
 
 	// Add string to list.
@@ -662,7 +662,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		if( FoundIdx == BcErrorCode )
 		{
 			PackageCrossRefList_.push_back( CrossRef );
-			FoundIdx = PackageCrossRefList_.size() - 1;
+			FoundIdx = static_cast< BcU32 >( PackageCrossRefList_.size() - 1 );
 		}
 
 		// Add package dependency if it's not there, and it's not this package.
@@ -718,7 +718,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		if( FoundIdx == BcErrorCode )
 		{
 			PackageCrossRefList_.push_back( CrossRef );
-			FoundIdx = PackageCrossRefList_.size() - 1;
+			FoundIdx = static_cast< BcU32 >( PackageCrossRefList_.size() - 1 );
 		}
 
 		// Resource index to the package cross ref.
@@ -741,7 +741,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 	BcAssert( RequiredAlignment <= 4096 );
 
 	const BcU8* pPackedData = reinterpret_cast< const BcU8* >( pData );
-	BcU32 PackedSize = Size;
+	size_t PackedSize = Size;
 	BcBool HaveCompressed = BcFalse;
 
 	// If we need to compress, do so.
@@ -763,9 +763,9 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 	ChunkHeader.ID_ = ID;
 	ChunkHeader.Offset_ = 0;
 	ChunkHeader.Flags_ = Flags;
-	ChunkHeader.RequiredAlignment_ = RequiredAlignment;
-	ChunkHeader.PackedBytes_ = PackedSize;
-	ChunkHeader.UnpackedBytes_ = Size;
+	ChunkHeader.RequiredAlignment_ = static_cast< BcU32 >( RequiredAlignment );
+	ChunkHeader.PackedBytes_ = static_cast< BcU32 >( PackedSize );
+	ChunkHeader.UnpackedBytes_ = static_cast< BcU32 >( Size );
 	ChunkHeader.PackedHash_ = BcHash( (BcU8*)pPackedData, PackedSize );
 	ChunkHeader.UnpackedHash_ = BcHash( (BcU8*)pData, Size );
 
@@ -787,7 +787,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 	ChunkHeaders_.push_back( ChunkHeader );
 	ChunkDatas_.push_back( ChunkData );
 
-	return ChunkHeaders_.size() - 1;
+	return static_cast< BcU32 >( ChunkHeaders_.size() - 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////

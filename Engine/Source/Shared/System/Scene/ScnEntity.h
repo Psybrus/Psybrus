@@ -88,12 +88,12 @@ public:
 	/**
 	 * Get number of components.
 	 */
-	BcU32 getNoofComponents() const;
+	size_t getNoofComponents() const;
 	
 	/**
 	 * Get component.
 	 */
-	ScnComponent* getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr ) override;
+	ScnComponent* getComponent( size_t Idx = 0, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component.
@@ -103,7 +103,7 @@ public:
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponent* getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr ) override;
+	ScnComponent* getComponentAnyParent( size_t Idx = 0, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component on any parent or self.

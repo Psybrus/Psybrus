@@ -2081,7 +2081,7 @@ void RsContextGL::flushState()
 							auto UniformNameVS = ClassNameVS + ".X" + FieldName;
 							auto UniformNamePS = ClassNamePS + ".X" + FieldName;
 
-							BcU32 Count = Field->getSize() / ValueType->getSize();
+							GLsizei Count = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
 
 							auto UniformLocationVS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNameVS.c_str() );
 							auto UniformLocationPS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNamePS.c_str() );

@@ -17,7 +17,6 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/D3D12/RsD3D12.h"
 
-#include "Base/BcComRef.h"
 #include "Base/BcMisc.h"
 
 #include <unordered_map>
@@ -129,8 +128,9 @@ private:
 	OsClient* pClient_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
-	BcComRef< IDXGIAdapter > Adapter_;
-	BcComRef< IDXGISwapChain > SwapChain_;
+	ComPtr< IDXGIAdapter > Adapter_;
+	ComPtr< IDXGISwapChain > SwapChain_;
+	ComPtr< ID3D12Device > Device_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
 	BcU32 FrameCounter_;
 

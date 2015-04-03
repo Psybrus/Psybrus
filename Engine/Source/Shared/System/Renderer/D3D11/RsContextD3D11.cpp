@@ -598,7 +598,7 @@ void RsContextD3D11::create()
 	RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
 	DepthStencilView_ = getD3DDepthStencilView( BackBufferDSResourceIdx_ );
 
-	Context_->OMSetRenderTargets( RenderTargetViews_.size(), &RenderTargetViews_[ 0 ], DepthStencilView_ );
+	Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	setDefaultState();
 }
@@ -1210,7 +1210,7 @@ bool RsContextD3D11::createBuffer(
 	// Buffer desc.
 	D3D11_BUFFER_DESC Desc;
 	Desc.Usage = D3D11_USAGE_DEFAULT;			// TODO.
-	Desc.ByteWidth = BcPotRoundUp( BufferDesc.SizeBytes_, 16 );
+	Desc.ByteWidth = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 16 ) );
 	Desc.BindFlags = gBufferType[ (BcU32)BufferDesc.Type_ ];
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	Desc.MiscFlags = 0;
@@ -1821,7 +1821,7 @@ void RsContextD3D11::flushState()
 	HRESULT Result = 0;
 
 	// Set render targets.
-	Context_->OMSetRenderTargets( RenderTargetViews_.size(), &RenderTargetViews_[ 0 ], DepthStencilView_ );
+	Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	// Bind shaders.
 	RsShader* VertexShader = nullptr;

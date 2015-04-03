@@ -181,7 +181,7 @@ namespace
 	 * @param Char Char array pointer.
 	 * @return Number of UTF-8 chars total.
 	 */
-	inline BcU32 LengthUTF8( const char* Char )
+	inline size_t LengthUTF8( const char* Char )
 	{
 		return strlen( Char );
 	}
@@ -192,7 +192,7 @@ namespace
 	 * @param RemainingChars Number of chars remaining.
 	 * @return Decoded chracter.
 	 */
-	inline BcU32 DecodeUTF8( const char*& Char, int& RemainingChars )
+	inline BcU32 DecodeUTF8( const char*& Char, size_t& RemainingChars )
 	{
 		BcU32 OutChar = 0;
 	 	if( RemainingChars > 0 )
@@ -715,7 +715,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 
 	if( pFirstVert != nullptr || SizeRun == BcTrue )
 	{
-		int RemainingChars = String.length();
+		size_t RemainingChars = String.length();
 		const char* StringChar = String.c_str();
 
 		while( RemainingChars > 0 )
@@ -899,7 +899,7 @@ MaVec2d ScnFontComponent::drawText(
 	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 	
-	BcU32 TextLength = Text.length();
+	size_t TextLength = Text.length();
 	BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
 
 	// Allocate enough vertices for each character.
@@ -1127,7 +1127,7 @@ MaVec2d ScnFontComponent::measureText(
 	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 
-	const BcU32 TextLength = Text.length();
+	const size_t TextLength = Text.length();
 	const BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
 
 	BcF32 AdvanceX = 0.0f;
@@ -1136,7 +1136,7 @@ MaVec2d ScnFontComponent::measureText(
 	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
 	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
 	
-	for( BcU32 Idx = 0; Idx < TextLength; ++Idx )
+	for( size_t Idx = 0; Idx < TextLength; ++Idx )
 	{
 		BcU32 CharCode = Text[ Idx ];
 		

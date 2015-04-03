@@ -23,31 +23,31 @@
 class SysFence
 {
 public:
-	SysFence( BcU32 InitialValue = 0 );
+	SysFence( size_t InitialValue = 0 );
 	~SysFence();
 
 	/**
 	 * Increment fence.
 	 */
-	void increment( BcU32 Value = 1 );
+	void increment( size_t Value = 1 );
 
 	/**
 	 * Decrement fence.
 	 */
-	void decrement( BcU32 Value = 1 );
+	void decrement( size_t Value = 1 );
 
 	/*
 	 * Get the count.
 	 */
-	BcU32 count() const;
+	size_t count() const;
 
 	/**
 	 * Wait for fence to reach a certain value.
 	 */
-	void wait( BcU32 Value = 0 ) const;
+	void wait( size_t Value = 0 ) const;
 
 private:
-	std::atomic< BcU32 > Count_;
+	std::atomic< size_t > Count_;
 
 };
 
