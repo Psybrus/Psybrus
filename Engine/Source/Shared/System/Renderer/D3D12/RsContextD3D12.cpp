@@ -17,6 +17,9 @@
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
 #include "System/Renderer/D3D12/RsUtilsD3D12.h"
 
+#include "System/Renderer/D3D12/Shaders/DefaultVS.h"
+#include "System/Renderer/D3D12/Shaders/DefaultPS.h"
+
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsProgram.h"
@@ -26,6 +29,7 @@
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
+
 
 #include "Base/BcMath.h"
 
@@ -55,21 +59,6 @@ static const D3D12_BIND_FLAG gBufferType[] =
 	D3D12_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
 };
 #endif
-
-static const D3D12_PRIMITIVE_TOPOLOGY gTopologyType[] =
-{
-	D3D_PRIMITIVE_TOPOLOGY_POINTLIST,					// RsTopologyType::POINTLIST = 0,
-	D3D_PRIMITIVE_TOPOLOGY_LINELIST,					// RsTopologyType::LINE_LIST,
-	D3D_PRIMITIVE_TOPOLOGY_LINESTRIP,					// RsTopologyType::LINE_STRIP,
-	D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ,				// RsTopologyType::LINE_LIST_ADJACENCY,
-	D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ,				// RsTopologyType::LINE_STRIP_ADJACENCY,
-	D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,				// RsTopologyType::TRIANGLE_LIST,
-	D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,				// RsTopologyType::TRIANGLE_STRIP,
-	D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ,			// RsTopologyType::TRIANGLE_LIST_ADJACENCY,
-	D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ,			// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
-	D3D_PRIMITIVE_TOPOLOGY_UNDEFINED,					// RsTopologyType::TRIANGLE_FAN,
-	D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST,	// RsTopologyType::PATCHES,
-};
 
 static const LPCSTR gSemanticName[] =
 {
@@ -260,7 +249,6 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	CommandQueueDesc_(),
 	CommandQueue_(),
 	CommandAllocator_(),
-	ResetCommandList_( BcTrue ),
 	CommandList_(),
 	PresentFence_(),
 	FrameCounter_( 0 ),
@@ -371,36 +359,49 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 // presentBackBuffer
 void RsContextD3D12::presentBackBuffer()
 {
-	// End current frame.
-	end();
+	HRESULT RetVal = E_FAIL;
 
-	// 
-	if( ResetCommandList_ == BcFalse )
+	// Transition back buffer to present.
+	RsResourceD3D12* BackBufferResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
+	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::PRESENT );
+
+	// Close command list.
+	RetVal = CommandList_->Close();
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Execute command list.
+	ID3D12CommandList* CommandLists[] = { CommandList_.Get() };
+	CommandQueue_->ExecuteCommandLists( 1, CommandLists );
+
+	// Do present.
+	RetVal = SwapChain_->Present( 1, 0 );
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Get next buffer.
+	LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
+
+	// Wait for frame to complete.
+	// This is not good for performance, so redo this later on.
+	const UINT64 Fence = FrameCounter_;
+	RetVal = CommandQueue_->Signal( PresentFence_.Get(), Fence );
+	BcAssert( SUCCEEDED( RetVal ) );
+	++FrameCounter_;
+
+	if( PresentFence_->GetCompletedValue() < Fence )
 	{
-		// Do present.
-		SwapChain_->Present( 1, 0 );
-
-		// Get next buffer.
-		LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
-
-		// Wait for frame to complete.
-		// This is not good for performance, so redo this later on.
-		HRESULT RetVal = E_FAIL;
-		const UINT64 Fence = FrameCounter_;
-		RetVal = CommandQueue_->Signal( PresentFence_.Get(), Fence );
+		RetVal = PresentFence_->SetEventOnCompletion( Fence, PresentEvent_ );
 		BcAssert( SUCCEEDED( RetVal ) );
-		++FrameCounter_;
-
-		if( PresentFence_->GetCompletedValue() < Fence )
-		{
-			RetVal = PresentFence_->SetEventOnCompletion( Fence, PresentEvent_ );
-			BcAssert( SUCCEEDED( RetVal ) );
-			::WaitForSingleObject( PresentEvent_, INFINITE );
-		}
+		::WaitForSingleObject( PresentEvent_, INFINITE );
 	}
 
-	// Begin next frame.
-	begin();
+	// Prep for next frame.
+	recreateBackBuffer();
+
+	RetVal = CommandAllocator_->Reset();
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	RetVal = CommandList_->Reset( CommandAllocator_.Get(), DefaultPSO_.Get() );
+	BcAssert( SUCCEEDED( RetVal ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -414,12 +415,14 @@ void RsContextD3D12::takeScreenshot()
 // setViewport
 void RsContextD3D12::setViewport( class RsViewport& Viewport )
 {
-	Viewport_.Width = (FLOAT)Viewport.width();
-	Viewport_.Height = (FLOAT)Viewport.height();
-	Viewport_.TopLeftX = (FLOAT)Viewport.x();
-	Viewport_.TopLeftY = (FLOAT)Viewport.y();
-	Viewport_.MinDepth = 0.0f;
-	Viewport_.MaxDepth = 1.0f;
+	D3D12_VIEWPORT D3DViewport;
+	D3DViewport.Width = (FLOAT)Viewport.width();
+	D3DViewport.Height = (FLOAT)Viewport.height();
+	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
+	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+	Viewports_.fill( D3DViewport );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -459,7 +462,7 @@ void RsContextD3D12::create()
 
 	// Setup swap chain desc.
 	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
-    SwapChainDesc_.BufferCount = 1;
+    SwapChainDesc_.BufferCount = NumSwapBuffers_;
 	SwapChainDesc_.BufferDesc.Width = Client->getWidth();
     SwapChainDesc_.BufferDesc.Height = Client->getHeight();
     SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -470,6 +473,7 @@ void RsContextD3D12::create()
 	SwapChainDesc_.SampleDesc.Count = 1;
 	SwapChainDesc_.SampleDesc.Quality = 0;
     SwapChainDesc_.Windowed = TRUE;
+	SwapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	SwapChainDesc_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 	RetVal = Factory_->CreateSwapChain( CommandQueue_.Get(), &SwapChainDesc_, &SwapChain_ );
 	BcAssert( SUCCEEDED( RetVal ) );
@@ -481,27 +485,19 @@ void RsContextD3D12::create()
 	PresentEvent_ = ::CreateEventEx( nullptr, FALSE, FALSE, EVENT_ALL_ACCESS );
 
 	// Create pipeline state cache.
-	PSCache_.reset( new RsPipelineStateCacheD3D12( Device_.Get() ) );
+	PSOCache_.reset( new RsPipelineStateCacheD3D12( Device_.Get() ) );
 
-	// Create an empty root signature.
-	ComPtr< ID3DBlob > OutBlob, ErrorBlob;
-	D3D12_ROOT_SIGNATURE RootSignatureDesc;
-	RootSignatureDesc.Init( 0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
-	RetVal = D3D12SerializeRootSignature( &RootSignatureDesc, D3D_ROOT_SIGNATURE_V1, OutBlob.GetAddressOf(), ErrorBlob.GetAddressOf() );
-	BcAssert( SUCCEEDED( RetVal ) );
-	RetVal = Device_->CreateRootSignature( 0, OutBlob->GetBufferPointer(), OutBlob->GetBufferSize(), IID_PPV_ARGS( DefaultRootSignature_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+	// Create default root signature.
+	createDefaultRootSignature();
 
 	// Create default pipeline state.
-#if 0
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC DefaultPS = {};
-	BcMemZero( &DefaultPS, sizeof( DefaultPS ) );
-	DefaultPS.pRootSignature = DefaultRootSignature_.Get();
-	DefaultPS.RasterizerState.FillMode = D3D12_FILL_SOLID;
-	DefaultPS.RasterizerState.CullMode = D3D12_CULL_NONE;
-	RetVal = Device_->CreateGraphicsPipelineState( &DefaultPS, IID_PPV_ARGS( DefaultPS_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
-#endif
+	createDefaultPSO();
+
+	// Create command allocators.
+	createCommandAllocators();
+
+	// Create command lists.
+	createCommandLists();
 
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
@@ -510,10 +506,8 @@ void RsContextD3D12::create()
 	// Recreate backbuffer.
 	recreateBackBuffer();
 
+	// Default state.
 	setDefaultState();
-
-	// Begin frame.
-	begin();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -540,8 +534,8 @@ void RsContextD3D12::destroy()
 
 	// Cleanup everything.
 	DefaultRootSignature_.Reset();
-	DefaultPS_.Reset();
-	PSCache_.reset();
+	DefaultPSO_.Reset();
+	PSOCache_.reset();
 	::CloseHandle( PresentEvent_ );
 	PresentFence_.Reset();
 	CommandList_.Reset();
@@ -558,7 +552,6 @@ void RsContextD3D12::destroy()
 void RsContextD3D12::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -566,7 +559,6 @@ void RsContextD3D12::setDefaultState()
 void RsContextD3D12::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -574,7 +566,6 @@ void RsContextD3D12::invalidateRenderState()
 void RsContextD3D12::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -582,7 +573,7 @@ void RsContextD3D12::invalidateTextureState()
 void RsContextD3D12::setRenderState( RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	GraphicsPSODesc_.RenderState_ = RenderState;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -594,36 +585,11 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextD3D12::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderState
-BcS32 RsContextD3D12::getRenderState( RsRenderStateType State ) const
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSamplerState
-void RsContextD3D12::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setTexture
 void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -631,7 +597,7 @@ void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 void RsContextD3D12::setProgram( class RsProgram* Program )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	GraphicsPSODesc_.Program_ = Program;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -731,7 +697,6 @@ void RsContextD3D12::clear(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	flushState();
-
 	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
@@ -740,6 +705,7 @@ void RsContextD3D12::clear(
 void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	GraphicsPSODesc_.Topology_ = PrimitiveType;
 	flushState();
 	
 	//PSY_LOG( "UNIMPLEMENTED" );
@@ -750,6 +716,7 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	GraphicsPSODesc_.Topology_ = PrimitiveType;
 	flushState();
 	
 	//PSY_LOG( "UNIMPLEMENTED" );
@@ -1202,36 +1169,13 @@ void RsContextD3D12::flushState()
 	ID3D12PipelineState* GraphicsPS = nullptr;
 
 	// Get current pipeline state.
-	GraphicsPS = PSCache_->getPipelineState( GraphicsPSDesc_ );
+	GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_ );
 
 	// Reset command list if we need to, otherwise just set new pipeline state.
 	if( GraphicsPS != nullptr )
 	{
-		if( ResetCommandList_ )
-		{
-			// Create command list if we haven't already got one.
-			if( CommandList_ == nullptr )
-			{
-				HRESULT RetVal = E_FAIL;
-				RetVal = Device_->CreateCommandList( 0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
-					CommandAllocator_.Get(), GraphicsPS, IID_PPV_ARGS( CommandList_.GetAddressOf() ) );
-				BcAssert( SUCCEEDED( RetVal ) );
-			}
-
-			HRESULT RetVal = E_FAIL;
-			RetVal = CommandAllocator_->Reset();
-			BcAssert( SUCCEEDED( RetVal ) );
-
-			RetVal = CommandList_->Reset( CommandAllocator_.Get(), GraphicsPS );
-			BcAssert( SUCCEEDED( RetVal ) );
-
-			ResetCommandList_ = BcFalse;
-		}
-		else
-		{
-			BcAssert( CommandList_ );
-			CommandList_->SetPipelineState( GraphicsPS );
-		}
+		BcAssert( CommandList_ );
+		CommandList_->SetPipelineState( GraphicsPS );
 	}
 }
 
@@ -1260,7 +1204,7 @@ void RsContextD3D12::recreateBackBuffer()
 			RsResourceBindFlags::RENDER_TARGET | 
 			RsResourceBindFlags::SHADER_RESOURCE |
 			RsResourceBindFlags::PRESENT,
-			RsResourceBindFlags::RENDER_TARGET ) );
+			RsResourceBindFlags::PRESENT ) );
 
 		// Depth stencil.
 		Desc.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL;
@@ -1268,8 +1212,7 @@ void RsContextD3D12::recreateBackBuffer()
 		BackBufferDS_ = new RsTexture( this, Desc );
 		BackBufferDS_->setHandle( new RsResourceD3D12( nullptr, 
 			RsResourceBindFlags::DEPTH_STENCIL | 
-			RsResourceBindFlags::SHADER_RESOURCE |
-			RsResourceBindFlags::PRESENT,
+			RsResourceBindFlags::SHADER_RESOURCE,
 			RsResourceBindFlags::DEPTH_STENCIL ) );
 	}
 
@@ -1279,35 +1222,66 @@ void RsContextD3D12::recreateBackBuffer()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// begin
-void RsContextD3D12::begin()
+// createDefaultRootSignature
+void RsContextD3D12::createDefaultRootSignature()
 {
-	recreateBackBuffer();
-
-	ResetCommandList_ = BcTrue;
+	HRESULT RetVal = E_FAIL;
+	ComPtr< ID3DBlob > OutBlob, ErrorBlob;
+	D3D12_ROOT_SIGNATURE RootSignatureDesc;
+	RootSignatureDesc.Init( 0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
+	RetVal = D3D12SerializeRootSignature( &RootSignatureDesc, D3D_ROOT_SIGNATURE_V1, OutBlob.GetAddressOf(), ErrorBlob.GetAddressOf() );
+	BcAssert( SUCCEEDED( RetVal ) );
+	RetVal = Device_->CreateRootSignature( 0, OutBlob->GetBufferPointer(), OutBlob->GetBufferSize(), IID_PPV_ARGS( DefaultRootSignature_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// createDefaultPSO
+void RsContextD3D12::createDefaultPSO()
+{
+	HRESULT RetVal = E_FAIL;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DefaultPSO = {};
+	BcMemZero( &DefaultPSO, sizeof( DefaultPSO ) );
+
+	D3D12_INPUT_ELEMENT_DESC InputElementDescs[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	DefaultPSO.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	DefaultPSO.InputLayout.NumElements = ARRAYSIZE( InputElementDescs );
+	DefaultPSO.InputLayout.pInputElementDescs = InputElementDescs;
+	DefaultPSO.VS.pShaderBytecode = g_VShader;
+	DefaultPSO.VS.BytecodeLength = ARRAYSIZE( g_VShader );
+	DefaultPSO.PS.pShaderBytecode = g_PShader;
+	DefaultPSO.PS.BytecodeLength = ARRAYSIZE( g_PShader );
+	DefaultPSO.pRootSignature = DefaultRootSignature_.Get();
+	DefaultPSO.RasterizerState.FillMode = D3D12_FILL_SOLID;
+	DefaultPSO.RasterizerState.CullMode = D3D12_CULL_NONE;
+	DefaultPSO.NumRenderTargets = 1;
+
+	DefaultPSO.SampleDesc = SwapChainDesc_.SampleDesc;
+	DefaultPSO.RTVFormats[ 0 ] = SwapChainDesc_.BufferDesc.Format;
+
+	RetVal = Device_->CreateGraphicsPipelineState( &DefaultPSO, IID_PPV_ARGS( DefaultPSO_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+}
 
 //////////////////////////////////////////////////////////////////////////
-// end
-void RsContextD3D12::end()
+// createCommandAllocators
+void RsContextD3D12::createCommandAllocators()
 {
-	// Still waiting on a reset.
-	if( ResetCommandList_ == BcTrue )
-	{
-		return;
-	}
+	HRESULT RetVal = E_FAIL;
+	RetVal = Device_->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( CommandAllocator_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+}
 
-	BcAssert( CommandList_ != nullptr );
-
-	// Transition back buffer to present.
-	RsResourceD3D12* BackBufferResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
-	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::PRESENT );
-
-	// Close command list.
-	CommandList_->Close();
-
-	// Execute command list.
-	ID3D12CommandList* CommandLists[] = { CommandList_.Get() };
-	CommandQueue_->ExecuteCommandLists( 1, CommandLists );
+//////////////////////////////////////////////////////////////////////////
+// createCommandLists
+void RsContextD3D12::createCommandLists()
+{
+	HRESULT RetVal = E_FAIL;
+	RetVal = Device_->CreateCommandList( 0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
+		CommandAllocator_.Get(), DefaultPSO_.Get(), IID_PPV_ARGS( CommandList_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
 }

@@ -33,6 +33,7 @@ class RsContext:
 public:
 	enum
 	{
+		MAX_RENDER_TARGETS = 8,
 		MAX_VERTEX_STREAMS = 16,
 		MAX_UNIFORM_SLOTS = 16,
 		MAX_TEXTURE_SLOTS = 16,

@@ -47,9 +47,6 @@ public:
 	void invalidateTextureState();
 	void setRenderState( class RsRenderState* RenderState );
 	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32 getRenderState( RsRenderStateType State ) const;
-	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
 	void setIndexBuffer( class RsBuffer* IndexBuffer );
@@ -124,14 +121,24 @@ public:
 	void recreateBackBuffer();
 
 	/**
-	 * Begin rendering. Will reset command lists.
+	 * Create default root signature.
 	 */
-	void begin();
+	void createDefaultRootSignature();
 
 	/**
-	 * End rendering. Will close command lists.
+	 * Create default pipeline state.
 	 */
-	void end();
+	void createDefaultPSO();
+
+	/**
+	 * Create command allocators.
+	 */
+	void createCommandAllocators();
+
+	/**
+	 * Create command lists.
+	 */
+	void createCommandLists();
 
 
 protected:
@@ -158,7 +165,6 @@ private:
 	ComPtr< ID3D12CommandAllocator > CommandAllocator_;
 
 	/// Graphics command list.
-	BcBool ResetCommandList_;
 	ComPtr< ID3D12GraphicsCommandList > CommandList_;
 
 	/// Presenting.
@@ -170,10 +176,10 @@ private:
 
 	/// Graphics pipeline state management.
 	ComPtr< ID3D12RootSignature > DefaultRootSignature_;
-	ComPtr< ID3D12PipelineState > DefaultPS_;
-	std::unique_ptr< RsPipelineStateCacheD3D12 > PSCache_;
-	RsGraphicsPipelineStateDescD3D12 GraphicsPSDesc_;
-	D3D12_VIEWPORT Viewport_;
+	ComPtr< ID3D12PipelineState > DefaultPSO_;
+	std::unique_ptr< RsPipelineStateCacheD3D12 > PSOCache_;
+	RsGraphicsPipelineStateDescD3D12 GraphicsPSODesc_;
+	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > Viewports_;
 
 	// Buffer views.
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;

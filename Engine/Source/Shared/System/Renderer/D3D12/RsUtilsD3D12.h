@@ -19,5 +19,7 @@ class RsUtilsD3D12
 {
 public:
 	static const RsTextureFormatD3D12& GetTextureFormat( RsTextureFormat TextureFormat );
-
+	static const D3D12_PRIMITIVE_TOPOLOGY GetPrimitiveTopology( RsTopologyType Topology );
+	static const D3D12_PRIMITIVE_TOPOLOGY_TYPE GetPrimitiveTopologyType( RsTopologyType Topology );
+	static const D3D12_RESOURCE_USAGE GetResourceUsage( RsResourceBindFlags BindFlags );
 };

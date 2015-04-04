@@ -51,9 +51,40 @@ namespace
 		{ RsTextureFormat::D32F,
 			DXGI_FORMAT_R32_TYPELESS,		DXGI_FORMAT_D32_FLOAT,			DXGI_FORMAT_R32_FLOAT },
 	};
+
+	static const D3D12_PRIMITIVE_TOPOLOGY GTopology[] =
+	{
+		D3D_PRIMITIVE_TOPOLOGY_POINTLIST,					// RsTopologyType::POINTLIST = 0,
+		D3D_PRIMITIVE_TOPOLOGY_LINELIST,					// RsTopologyType::LINE_LIST,
+		D3D_PRIMITIVE_TOPOLOGY_LINESTRIP,					// RsTopologyType::LINE_STRIP,
+		D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ,				// RsTopologyType::LINE_LIST_ADJACENCY,
+		D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ,				// RsTopologyType::LINE_STRIP_ADJACENCY,
+		D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,				// RsTopologyType::TRIANGLE_LIST,
+		D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,				// RsTopologyType::TRIANGLE_STRIP,
+		D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ,			// RsTopologyType::TRIANGLE_LIST_ADJACENCY,
+		D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ,			// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
+		D3D_PRIMITIVE_TOPOLOGY_UNDEFINED,					// RsTopologyType::TRIANGLE_FAN,
+		D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST,	// RsTopologyType::PATCHES,
+	};
+
+	static const D3D12_PRIMITIVE_TOPOLOGY_TYPE GTopologyType[] =
+	{
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT,				// RsTopologyType::POINTLIST = 0,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE,					// RsTopologyType::LINE_LIST,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE,					// RsTopologyType::LINE_STRIP,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE,					// RsTopologyType::LINE_LIST_ADJACENCY,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE,					// RsTopologyType::LINE_STRIP_ADJACENCY,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_LIST,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_STRIP,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_LIST_ADJACENCY,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_FAN,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH,				// RsTopologyType::PATCHES,
+	};
 }
+
 //////////////////////////////////////////////////////////////////////////
-// RsUtilsD3D12
+// GetTextureFormat
 //static
 const RsTextureFormatD3D12& RsUtilsD3D12::GetTextureFormat( RsTextureFormat TextureFormat )
 {
@@ -61,3 +92,75 @@ const RsTextureFormatD3D12& RsUtilsD3D12::GetTextureFormat( RsTextureFormat Text
 	BcAssert( RetVal.TextureFormat_ == TextureFormat );
 	return RetVal;
 };
+
+//////////////////////////////////////////////////////////////////////////
+// GetPrimitiveTopology
+//static
+const D3D12_PRIMITIVE_TOPOLOGY RsUtilsD3D12::GetPrimitiveTopology( RsTopologyType Topology )
+{
+	return GTopology[ (size_t)Topology ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetPrimitiveTopologyType
+//static
+const D3D12_PRIMITIVE_TOPOLOGY_TYPE RsUtilsD3D12::GetPrimitiveTopologyType( RsTopologyType Topology )
+{
+	return GTopologyType[ (size_t)Topology ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetResourceUsage
+//static 
+const D3D12_RESOURCE_USAGE RsUtilsD3D12::GetResourceUsage( RsResourceBindFlags BindFlags )
+{
+	BcU32 AllowedUsage = 0;
+	if( ( BindFlags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_GENERIC_READ;
+	}
+	if( ( BindFlags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_GENERIC_READ;
+	}
+	if( ( BindFlags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_GENERIC_READ;
+	}
+	if( ( BindFlags & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE | 
+			D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE;
+	}
+	if( ( BindFlags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_STREAM_OUT;
+	}
+	if( ( BindFlags & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_RENDER_TARGET;
+	}
+	if( ( BindFlags & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_DEPTH;
+	}
+	if( ( BindFlags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_UNORDERED_ACCESS;
+	}
+	if( ( BindFlags & RsResourceBindFlags::PRESENT ) != RsResourceBindFlags::NONE )
+	{
+		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_PRESENT;
+	}
+
+	return static_cast< D3D12_RESOURCE_USAGE >( AllowedUsage );
+}
