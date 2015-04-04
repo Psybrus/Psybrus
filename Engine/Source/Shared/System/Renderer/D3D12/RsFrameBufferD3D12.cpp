@@ -8,28 +8,53 @@
 // Ctor
 RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Device* Device ):
 	Parent_( Parent ),
-	Device_( Device )
+	Device_( Device ),
+	NumRTVs_( 0 )
+{
+	createRTVDescriptorHeap();
+	createDSVDescriptorHeap();
+	setupRTVs();
+	setupDSV();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+RsFrameBufferD3D12::~RsFrameBufferD3D12()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRTVDescriptorHeap
+void RsFrameBufferD3D12::createRTVDescriptorHeap()
 {
 	HRESULT RetVal = E_FAIL;
 	const auto& ParentDesc = Parent_->getDesc();
-
-	// RTV descriptor heap.
 	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc = {};
-	RTVHeapDesc.NumDescriptors = static_cast< UINT >( ParentDesc.RenderTargets_.size() );
+	RTVHeapDesc.NumDescriptors = NumRTVs_ = static_cast< UINT >( ParentDesc.RenderTargets_.size() );
 	RTVHeapDesc.Type = D3D12_RTV_DESCRIPTOR_HEAP;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_NONE;
 	RetVal = Device_->CreateDescriptorHeap( &RTVHeapDesc, IID_PPV_ARGS( RTV_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+		BcAssert( SUCCEEDED( RetVal ) );
+}
 
-	// DSV descriptor heap.
+//////////////////////////////////////////////////////////////////////////
+// createDSVDescriptorHeap
+void RsFrameBufferD3D12::createDSVDescriptorHeap()
+{
+	HRESULT RetVal = E_FAIL;
 	D3D12_DESCRIPTOR_HEAP_DESC DSVHeapDesc = {};
 	DSVHeapDesc.NumDescriptors = 1;
 	DSVHeapDesc.Type = D3D12_DSV_DESCRIPTOR_HEAP;
 	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_NONE;
 	RetVal = Device_->CreateDescriptorHeap( &DSVHeapDesc, IID_PPV_ARGS( DSV_.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
+}
 
-	// Setup RTVs.
+//////////////////////////////////////////////////////////////////////////
+// setupRTVs
+void RsFrameBufferD3D12::setupRTVs()
+{
+	const auto& ParentDesc = Parent_->getDesc();
 	auto RTVDescriptorHandle = RTV_->GetCPUDescriptorHandleForHeapStart();
 	for( INT Idx = 0; Idx < static_cast< INT >( ParentDesc.RenderTargets_.size() ); ++Idx )
 	{
@@ -57,8 +82,13 @@ RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Devic
 		}	
 		Device_->CreateRenderTargetView( RTResource->getInternalResource().Get(), &RTVDesc, ThisDescriptorHandle );
 	}
+}
 
-	// Setup DSV.
+//////////////////////////////////////////////////////////////////////////
+// setupDSV
+void RsFrameBufferD3D12::setupDSV()
+{
+	const auto& ParentDesc = Parent_->getDesc();
 	auto DSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();
 	{
 		auto DSTexture = ParentDesc.DepthStencilTarget_;
@@ -84,13 +114,37 @@ RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Devic
 		}	
 		Device_->CreateDepthStencilView( DSResource->getInternalResource().Get(), &DSVDesc, DSVDescriptorHandle );
 	}		
-
-
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Dtor
-RsFrameBufferD3D12::~RsFrameBufferD3D12()
+// clear
+void RsFrameBufferD3D12::clear( 
+		ID3D12GraphicsCommandList* CommandList, 
+		const RsColour& Colour,
+		BcBool EnableClearColour,
+		BcBool EnableClearDepth,
+		BcBool EnableClearStencil )
 {
+	if( EnableClearColour )
+	{
+		auto BaseRTVDescriptorHandle = RTV_->GetCPUDescriptorHandleForHeapStart();
+		for( BcU32 Idx = 0; Idx < NumRTVs_; ++Idx )
+		{
+			auto ThisRTVDescriptorHandle = BaseRTVDescriptorHandle.MakeOffsetted( Idx );
+			FLOAT D3DColour[4] = { Colour.r(), Colour.g(), Colour.b(), Colour.a() };
+			CommandList->ClearRenderTargetView( ThisRTVDescriptorHandle, D3DColour, nullptr, 0 );
+		}
+	}
+#if 0	
+	if( DSV_ && ( EnableClearDepth || EnableClearStencil ) )
+	{
+		auto BaseDSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();		
+		CommandList->ClearDepthStencilView( 
+			BaseDSVDescriptorHandle,
+			static_cast< D3D12_CLEAR_FLAG >( 
+				( EnableClearDepth ? D3D12_CLEAR_DEPTH : 0 ) | 
+				( EnableClearStencil ? D3D12_CLEAR_STENCIL : 0 ) ),
+			1.0f, 0, nullptr, 0 );
+	}
+#endif
 }
-

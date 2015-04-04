@@ -133,8 +133,9 @@ const D3D12_RESOURCE_USAGE RsUtilsD3D12::GetResourceUsage( RsResourceBindFlags B
 	if( ( BindFlags & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
 		AllowedUsage |= 
+			D3D12_RESOURCE_USAGE_GENERIC_READ;/*
 			D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE | 
-			D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE;
+			D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE*/
 	}
 	if( ( BindFlags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
 	{

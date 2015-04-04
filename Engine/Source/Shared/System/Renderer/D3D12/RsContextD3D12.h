@@ -180,6 +180,7 @@ private:
 	std::unique_ptr< RsPipelineStateCacheD3D12 > PSOCache_;
 	RsGraphicsPipelineStateDescD3D12 GraphicsPSODesc_;
 	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > Viewports_;
+	class RsFrameBuffer* FrameBuffer_;
 
 	// Buffer views.
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;
@@ -189,6 +190,7 @@ private:
 	/// Backbuffer.
 	class RsTexture* BackBufferRT_;
 	class RsTexture* BackBufferDS_;
+	class RsFrameBuffer* BackBufferFB_;
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;

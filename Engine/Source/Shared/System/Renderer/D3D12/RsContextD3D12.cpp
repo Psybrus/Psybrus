@@ -252,10 +252,11 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	CommandList_(),
 	PresentFence_(),
 	FrameCounter_( 0 ),
-	NumSwapBuffers_( 2 ),
+	NumSwapBuffers_( 1 ),
 	LastSwapBuffer_( 0 ),
 	BackBufferRT_( nullptr ),
 	BackBufferDS_( nullptr ),
+	BackBufferFB_( nullptr ),
 	OwningThread_( BcErrorCode ),
 	ScreenshotRequested_( BcFalse )
 {
@@ -396,12 +397,15 @@ void RsContextD3D12::presentBackBuffer()
 
 	// Prep for next frame.
 	recreateBackBuffer();
-
+	
 	RetVal = CommandAllocator_->Reset();
 	BcAssert( SUCCEEDED( RetVal ) );
 
 	RetVal = CommandList_->Reset( CommandAllocator_.Get(), DefaultPSO_.Get() );
 	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Back to default frame buffer.
+	setFrameBuffer( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -473,7 +477,7 @@ void RsContextD3D12::create()
 	SwapChainDesc_.SampleDesc.Count = 1;
 	SwapChainDesc_.SampleDesc.Quality = 0;
     SwapChainDesc_.Windowed = TRUE;
-	SwapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	SwapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	SwapChainDesc_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 	RetVal = Factory_->CreateSwapChain( CommandQueue_.Get(), &SwapChainDesc_, &SwapChain_ );
 	BcAssert( SUCCEEDED( RetVal ) );
@@ -508,6 +512,9 @@ void RsContextD3D12::create()
 
 	// Default state.
 	setDefaultState();
+
+	// Default frame buffer.
+	setFrameBuffer( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -522,6 +529,11 @@ void RsContextD3D12::update()
 void RsContextD3D12::destroy()
 {
 	// Destroy backbuffer.
+	if( BackBufferFB_ != nullptr )
+	{
+		destroyFrameBuffer( BackBufferFB_ );
+	}
+
 	if( BackBufferRT_ != nullptr )
 	{
 		destroyTexture( BackBufferRT_ );
@@ -684,7 +696,43 @@ void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+
+	// Even if null, we want backbuffer bound.
+	if( FrameBuffer == nullptr )
+	{
+		FrameBuffer_ = BackBufferFB_;
+	}
+	else
+	{
+		FrameBuffer_ = FrameBuffer;
+	}
+
+	BcAssert( FrameBuffer_ );
+	const auto FrameBufferDesc = FrameBuffer_->getDesc();
+	GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
+	for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
+	{
+		auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
+		auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+		Resource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::RENDER_TARGET );
+
+		const auto& RenderTargetDesc =  RenderTarget->getDesc();
+		GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
+	}
+
+	if( FrameBufferDesc.DepthStencilTarget_ != nullptr )
+	{
+		auto DepthStencil = FrameBufferDesc.DepthStencilTarget_;
+		auto Resource = DepthStencil->getHandle< RsResourceD3D12* >();
+		Resource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::DEPTH_STENCIL );
+
+		const auto& DepthStencilDesc = DepthStencil->getDesc();
+		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = DepthStencilDesc.Format_;
+	}
+	else
+	{
+		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::INVALID;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -697,7 +745,9 @@ void RsContextD3D12::clear(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	flushState();
-	//PSY_LOG( "UNIMPLEMENTED" );
+	BcAssert( FrameBuffer_ );
+	RsFrameBufferD3D12* FrameBufferD3D12 = FrameBuffer_->getHandle< RsFrameBufferD3D12* >();
+	FrameBufferD3D12->clear( CommandList_.Get(), Colour, EnableClearColour, EnableClearDepth, EnableClearStencil );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -899,18 +949,35 @@ bool RsContextD3D12::createTexture(
 		MiscFlag |= D3D12_RESOURCE_MISC_DENY_SHADER_RESOURCE;
 	}
 	
-
-	// TODO: Change this to use CreatePlacedResource, and appropriate heaps.
-	// Should have a single large upload heap, an upload command list,
-	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
-	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_UPLOAD );
+	// TODO: Improve heap determination. Should always be default going forward.
+	D3D12_HEAP_TYPE HeapType = D3D12_HEAP_TYPE_DEFAULT;
+	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		HeapType = D3D12_HEAP_TYPE_DEFAULT;		
+	}
+	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		HeapType = D3D12_HEAP_TYPE_DEFAULT;		
+	}
+	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::PRESENT ) != RsResourceBindFlags::NONE )
+	{
+		HeapType = D3D12_HEAP_TYPE_DEFAULT;		
+	}
+	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		HeapType = D3D12_HEAP_TYPE_UPLOAD;		
+	}
+	
+	CD3D12_HEAP_PROPERTIES HeapProperties( HeapType );
 	CD3D12_RESOURCE_DESC ResourceDesc;
 	
+	const auto& Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ );
+
 	switch( TextureDesc.Type_ )
 	{
 	case RsTextureType::TEX1D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex1D( 
-			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
+			Format.RTVFormat_,
 			TextureDesc.Width_, 1, (BcU16)TextureDesc.Levels_, 
 			MiscFlag,
 			D3D12_TEXTURE_LAYOUT_UNKNOWN );
@@ -918,7 +985,7 @@ bool RsContextD3D12::createTexture(
 
 	case RsTextureType::TEX2D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex2D( 
-			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
+			Format.RTVFormat_,
 			TextureDesc.Width_, TextureDesc.Height_, 1, (BcU16)TextureDesc.Levels_, 1, 0,
 			MiscFlag,
 			D3D12_TEXTURE_LAYOUT_UNKNOWN );
@@ -926,34 +993,50 @@ bool RsContextD3D12::createTexture(
 
 	case RsTextureType::TEX3D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex3D( 
-			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
+			Format.RTVFormat_,
 			TextureDesc.Width_, TextureDesc.Height_, (BcU16)TextureDesc.Depth_, (BcU16)TextureDesc.Levels_, 
 			MiscFlag,
 			D3D12_TEXTURE_LAYOUT_UNKNOWN );
 		break;
 	}
-	
-	ComPtr< ID3D12Resource > D3DResource;
-	RetVal = Device_->CreateCommittedResource( 
-		&HeapProperties,
-		D3D12_HEAP_MISC_NONE,
-		&ResourceDesc,
-		D3D12_RESOURCE_USAGE_GENERIC_READ, 
-		nullptr,
-		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Clear value.
+	D3D12_CLEAR_VALUE ClearValue;
+	D3D12_CLEAR_VALUE* SetClearValue = nullptr;
+	BcMemZero( &ClearValue, sizeof( ClearValue ) );
 
 	// Setup initial bind type to be whatever is likely what it will be used as first.
 	RsResourceBindFlags InitialBindType = RsResourceBindFlags::NONE;
 	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
 	{
+		ClearValue.Format = Format.RTVFormat_;
+		SetClearValue = &ClearValue;
 		InitialBindType = RsResourceBindFlags::RENDER_TARGET;
+	}
+	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		ClearValue.Format = Format.DSVFormat_;
+		SetClearValue = &ClearValue;
+		InitialBindType = RsResourceBindFlags::DEPTH_STENCIL;
 	}
 	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
 		InitialBindType = RsResourceBindFlags::SHADER_RESOURCE;
 	}
-	
+
+	// TODO: Change this to use CreatePlacedResource, and appropriate heaps.
+	// Should have a single large upload heap, an upload command list,
+	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
+	ComPtr< ID3D12Resource > D3DResource;
+	RetVal = Device_->CreateCommittedResource( 
+		&HeapProperties,
+		D3D12_HEAP_MISC_NONE,
+		&ResourceDesc,
+		RsUtilsD3D12::GetResourceUsage( InitialBindType ), 
+		SetClearValue,
+		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+
 	Texture->setHandle( new RsResourceD3D12( D3DResource.Get(), TextureDesc.BindFlags_, InitialBindType ) );
 	return true;
 }
@@ -1166,6 +1249,10 @@ bool RsContextD3D12::destroyProgram(
 //virtual
 void RsContextD3D12::flushState()
 {
+	CommandList_->SetGraphicsRootSignature( DefaultRootSignature_.Get() );
+
+
+
 	ID3D12PipelineState* GraphicsPS = nullptr;
 
 	// Get current pipeline state.
@@ -1197,28 +1284,34 @@ void RsContextD3D12::recreateBackBuffer()
 		Desc.Depth_= 1;
 		
 		// Render target.
-		Desc.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET;
+		Desc.BindFlags_ = RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::PRESENT | RsResourceBindFlags::SHADER_RESOURCE;
 		Desc.Format_ = RsTextureFormat::R8G8B8A8;
 		BackBufferRT_ = new RsTexture( this, Desc );
 		BackBufferRT_->setHandle( new RsResourceD3D12( nullptr, 
-			RsResourceBindFlags::RENDER_TARGET | 
-			RsResourceBindFlags::SHADER_RESOURCE |
-			RsResourceBindFlags::PRESENT,
+			Desc.BindFlags_,
 			RsResourceBindFlags::PRESENT ) );
 
 		// Depth stencil.
-		Desc.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL;
+		Desc.BindFlags_ = RsResourceBindFlags::DEPTH_STENCIL;
 		Desc.Format_ = RsTextureFormat::D24S8;
 		BackBufferDS_ = new RsTexture( this, Desc );
-		BackBufferDS_->setHandle( new RsResourceD3D12( nullptr, 
-			RsResourceBindFlags::DEPTH_STENCIL | 
-			RsResourceBindFlags::SHADER_RESOURCE,
-			RsResourceBindFlags::DEPTH_STENCIL ) );
+		auto RetVal = createTexture( BackBufferDS_ );
+		BcAssert( RetVal );
 	}
 
 	auto BackBufferRTResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
 	BcAssert( BackBufferRTResource );
 	SwapChain_->GetBuffer( LastSwapBuffer_, IID_PPV_ARGS( BackBufferRTResource->getInternalResource().ReleaseAndGetAddressOf() ));
+	
+	if( BackBufferFB_ == nullptr )
+	{
+		RsFrameBufferDesc Desc = RsFrameBufferDesc( 1 )
+			.setRenderTarget( 0, BackBufferRT_ )
+			.setDepthStencilTarget( BackBufferDS_ );
+		BackBufferFB_ = new RsFrameBuffer( this, Desc );
+		auto RetVal = createFrameBuffer( BackBufferFB_ );
+		BcAssert( RetVal );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1227,6 +1320,10 @@ void RsContextD3D12::createDefaultRootSignature()
 {
 	HRESULT RetVal = E_FAIL;
 	ComPtr< ID3DBlob > OutBlob, ErrorBlob;
+
+	//D3D12_ROOT_PARAMETER RTVParameter;
+	//D3D12_ROOT_PARAMETER DSVParameter;
+
 	D3D12_ROOT_SIGNATURE RootSignatureDesc;
 	RootSignatureDesc.Init( 0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
 	RetVal = D3D12SerializeRootSignature( &RootSignatureDesc, D3D_ROOT_SIGNATURE_V1, OutBlob.GetAddressOf(), ErrorBlob.GetAddressOf() );
