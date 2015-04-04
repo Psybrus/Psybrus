@@ -1,0 +1,63 @@
+#include "System/Renderer/D3D12/RsUtilsD3D12.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+// Texture formats
+namespace 
+{
+	const RsTextureFormatD3D12 GTextureFormats[] =
+	{
+		// Colour.
+		{ RsTextureFormat::R8,					
+			DXGI_FORMAT_R8_UNORM,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R8_UNORM },
+		{ RsTextureFormat::R8G8,				
+			DXGI_FORMAT_R8G8_UNORM,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R8G8_UNORM },
+		{ RsTextureFormat::R8G8B8,				
+			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN },
+		{ RsTextureFormat::R8G8B8A8,			
+			DXGI_FORMAT_R8G8B8A8_UNORM,		DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R8G8B8A8_UNORM },
+		{ RsTextureFormat::R16F,				
+			DXGI_FORMAT_R16_FLOAT,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R16_FLOAT },
+		{ RsTextureFormat::R16FG16F,			
+			DXGI_FORMAT_R16G16_FLOAT,		DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R16G16_FLOAT },
+		{ RsTextureFormat::R16FG16FB16F,	
+			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN },
+		{ RsTextureFormat::R16FG16FB16FA16F,	
+			DXGI_FORMAT_R16G16B16A16_FLOAT,	DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R16G16B16A16_FLOAT },
+		{ RsTextureFormat::R32F,				
+			DXGI_FORMAT_R32_FLOAT,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R32_FLOAT },
+		{ RsTextureFormat::R32FG32F,			
+			DXGI_FORMAT_R32G32_FLOAT,		DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R32G32_FLOAT },
+		{ RsTextureFormat::R32FG32FB32F,		
+			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN },
+		{ RsTextureFormat::R32FG32FB32FA32F,	
+			DXGI_FORMAT_R32G32B32A32_FLOAT,	DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R32G32B32A32_FLOAT },
+		{ RsTextureFormat::DXT1,				
+			DXGI_FORMAT_BC1_UNORM,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_BC1_UNORM },
+		{ RsTextureFormat::DXT3,				
+			DXGI_FORMAT_BC2_UNORM,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_BC2_UNORM },
+		{ RsTextureFormat::DXT5,				
+			DXGI_FORMAT_BC3_UNORM,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_BC3_UNORM },
+
+		// Depth.
+		{ RsTextureFormat::D16,
+			DXGI_FORMAT_R16_TYPELESS,		DXGI_FORMAT_D16_UNORM,			DXGI_FORMAT_R16_UNORM },
+		{ RsTextureFormat::D24, 
+			DXGI_FORMAT_R24G8_TYPELESS,		DXGI_FORMAT_D24_UNORM_S8_UINT,	DXGI_FORMAT_R24_UNORM_X8_TYPELESS },
+		{ RsTextureFormat::D32,
+			DXGI_FORMAT_R32_TYPELESS,		DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN },
+		{ RsTextureFormat::D24S8, 
+			DXGI_FORMAT_R24G8_TYPELESS,		DXGI_FORMAT_D24_UNORM_S8_UINT,	DXGI_FORMAT_R24_UNORM_X8_TYPELESS },
+		{ RsTextureFormat::D32F,
+			DXGI_FORMAT_R32_TYPELESS,		DXGI_FORMAT_D32_FLOAT,			DXGI_FORMAT_R32_FLOAT },
+	};
+}
+//////////////////////////////////////////////////////////////////////////
+// RsUtilsD3D12
+//static
+const RsTextureFormatD3D12& RsUtilsD3D12::GetTextureFormat( RsTextureFormat TextureFormat )
+{
+	const auto& RetVal = GTextureFormats[ (size_t)TextureFormat ];
+	BcAssert( RetVal.TextureFormat_ == TextureFormat );
+	return RetVal;
+};

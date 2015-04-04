@@ -12,7 +12,10 @@
 **************************************************************************/
 
 #include "System/Renderer/D3D12/RsContextD3D12.h"
+#include "System/Renderer/D3D12/RsFrameBufferD3D12.h"
+#include "System/Renderer/D3D12/RsProgramD3D12.h"
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
+#include "System/Renderer/D3D12/RsUtilsD3D12.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
@@ -52,87 +55,6 @@ static const D3D12_BIND_FLAG gBufferType[] =
 	D3D12_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
 };
 #endif
-
-// Texture formats
-static const DXGI_FORMAT gTextureFormats[] =
-{
-	// Colour.
-	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
-	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
-	DXGI_FORMAT_R8G8B8A8_UNORM,			// RsTextureFormat::R8G8B8A8,
-	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
-	DXGI_FORMAT_R16G16_FLOAT,			// RsTextureFormat::R16FG16F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
-	DXGI_FORMAT_R16G16B16A16_FLOAT,		// RsTextureFormat::R16FG16FB16FA16F,
-	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::R32F,
-	DXGI_FORMAT_R32G32_FLOAT,			// RsTextureFormat::R32FG32F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
-	DXGI_FORMAT_R32G32B32A32_FLOAT,		// RsTextureFormat::R32FG32FB32FA32F,
-	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
-	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
-	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
-	// Depth.
-	DXGI_FORMAT_R16_TYPELESS,			// RsTextureFormat::D16,
-	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,
-	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32,
-	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24S8,
-	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32F,
-};
-
-// Depth stencil view formats.
-static const DXGI_FORMAT gDSVFormats[] =
-{
-	// Colour.
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8A8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16FA16F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32FA32F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT1,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT3,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT5,
-	// Depth.
-	DXGI_FORMAT_D16_UNORM,				// RsTextureFormat::D16,
-	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
-	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
-	DXGI_FORMAT_D32_FLOAT,				// RsTextureFormat::D32F,
-};
-
-// Shader resource view formats.
-static const DXGI_FORMAT gSRVFormats[] = 
-{
-	// Colour.
-	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
-	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
-	DXGI_FORMAT_R8G8B8A8_UNORM,			// RsTextureFormat::R8G8B8A8,
-	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
-	DXGI_FORMAT_R16G16_FLOAT,			// RsTextureFormat::R16FG16F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
-	DXGI_FORMAT_R16G16B16A16_FLOAT,		// RsTextureFormat::R16FG16FB16FA16F,
-	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::R32F,
-	DXGI_FORMAT_R32G32_FLOAT,			// RsTextureFormat::R32FG32F,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
-	DXGI_FORMAT_R32G32B32A32_FLOAT,		// RsTextureFormat::R32FG32FB32FA32F,
-	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
-	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
-	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
-	// Depth.
-	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
-	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
-	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24S8,
-	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32F,
-};
 
 static const D3D12_PRIMITIVE_TOPOLOGY gTopologyType[] =
 {
@@ -615,7 +537,7 @@ void RsContextD3D12::destroy()
 void RsContextD3D12::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -623,7 +545,7 @@ void RsContextD3D12::setDefaultState()
 void RsContextD3D12::invalidateRenderState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -631,7 +553,7 @@ void RsContextD3D12::invalidateRenderState()
 void RsContextD3D12::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -639,7 +561,7 @@ void RsContextD3D12::invalidateTextureState()
 void RsContextD3D12::setRenderState( RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -647,7 +569,7 @@ void RsContextD3D12::setRenderState( RsRenderState* RenderState )
 void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -655,7 +577,7 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 void RsContextD3D12::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -663,7 +585,7 @@ void RsContextD3D12::setRenderState( RsRenderStateType State, BcS32 Value, BcBoo
 BcS32 RsContextD3D12::getRenderState( RsRenderStateType State ) const
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 	return 0;
 }
 
@@ -672,7 +594,7 @@ BcS32 RsContextD3D12::getRenderState( RsRenderStateType State ) const
 void RsContextD3D12::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -680,7 +602,7 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, const RsTextureParams& Param
 void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -688,7 +610,7 @@ void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 void RsContextD3D12::setProgram( class RsProgram* Program )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -696,7 +618,7 @@ void RsContextD3D12::setProgram( class RsProgram* Program )
 void RsContextD3D12::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -707,7 +629,7 @@ void RsContextD3D12::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -717,7 +639,7 @@ void RsContextD3D12::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -725,7 +647,7 @@ void RsContextD3D12::setUniformBuffer(
 void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -733,7 +655,7 @@ void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -747,7 +669,7 @@ void RsContextD3D12::clear(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	flushState();
 
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -757,7 +679,7 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	flushState();
 	
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -767,7 +689,7 @@ void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	flushState();
 	
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -794,7 +716,7 @@ bool RsContextD3D12::createSamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -804,7 +726,7 @@ bool RsContextD3D12::destroySamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -813,7 +735,7 @@ bool RsContextD3D12::destroySamplerState(
 bool RsContextD3D12::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	FrameBuffer->setHandle( new RsFrameBufferD3D12( FrameBuffer, Device_.Get() ) );
 	return true;
 }
 
@@ -822,7 +744,9 @@ bool RsContextD3D12::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 bool RsContextD3D12::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	auto FrameBufferInternal = FrameBuffer->getHandle< RsFrameBufferD3D12* >();
+	delete FrameBufferInternal;
+	FrameBuffer->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -875,7 +799,7 @@ bool RsContextD3D12::createBuffer(
 		BcBreakpoint;
 	}
 
-	BackBufferRT_->setHandle( new RsResourceD3D12( D3DResource.Get(), BindFlags, BindFlags ) );
+	Buffer->setHandle( new RsResourceD3D12( D3DResource.Get(), BindFlags, BindFlags ) );
 	return true;
 }
 
@@ -919,7 +843,88 @@ bool RsContextD3D12::createTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	HRESULT RetVal = E_FAIL;
+
+	const auto& TextureDesc = Texture->getDesc();
+
+	D3D12_RESOURCE_MISC_FLAG MiscFlag = D3D12_RESOURCE_MISC_NONE;
+
+	// Allow misc flags.
+	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_MISC_ALLOW_RENDER_TARGET;
+	}
+	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_MISC_ALLOW_DEPTH_STENCIL;
+	}
+	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_MISC_ALLOW_UNORDERED_ACCESS;
+	}
+
+	// Deny misc flags.
+	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) == RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_MISC_DENY_SHADER_RESOURCE;
+	}
+	
+
+	// TODO: Change this to use CreatePlacedResource, and appropriate heaps.
+	// Should have a single large upload heap, an upload command list,
+	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
+	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_UPLOAD );
+	CD3D12_RESOURCE_DESC ResourceDesc;
+	
+	switch( TextureDesc.Type_ )
+	{
+	case RsTextureType::TEX1D:
+		ResourceDesc = CD3D12_RESOURCE_DESC::Tex1D( 
+			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
+			TextureDesc.Width_, 1, (BcU16)TextureDesc.Levels_, 
+			MiscFlag, 
+			D3D12_TEXTURE_LAYOUT_UNKNOWN );			
+		break;
+
+	case RsTextureType::TEX2D:
+		ResourceDesc = CD3D12_RESOURCE_DESC::Tex2D( 
+			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
+			TextureDesc.Width_, TextureDesc.Height_, 1, (BcU16)TextureDesc.Levels_, 1, 0,
+			MiscFlag, 
+			D3D12_TEXTURE_LAYOUT_UNKNOWN );			
+		break;
+
+	case RsTextureType::TEX3D:
+		ResourceDesc = CD3D12_RESOURCE_DESC::Tex3D( 
+			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
+			TextureDesc.Width_, TextureDesc.Height_, (BcU16)TextureDesc.Depth_, (BcU16)TextureDesc.Levels_, 
+			MiscFlag, 
+			D3D12_TEXTURE_LAYOUT_UNKNOWN );			
+		break;
+	}
+	
+	ComPtr< ID3D12Resource > D3DResource;
+	RetVal = Device_->CreateCommittedResource( 
+		&HeapProperties,
+		D3D12_HEAP_MISC_NONE,
+		&ResourceDesc,
+		D3D12_RESOURCE_USAGE_GENERIC_READ, 
+		nullptr,
+		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Setup initial bind type to be whatever is likely what it will be used as first.
+	RsResourceBindFlags InitialBindType = RsResourceBindFlags::NONE;
+	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		InitialBindType = RsResourceBindFlags::RENDER_TARGET;
+	}
+	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		InitialBindType = RsResourceBindFlags::SHADER_RESOURCE;
+	}
+	
+	Texture->setHandle( new RsResourceD3D12( D3DResource.Get(), TextureDesc.BindFlags_, InitialBindType ) );
 	return true;
 }
 
@@ -975,7 +980,7 @@ bool RsContextD3D12::updateTexture(
 bool RsContextD3D12::createShader(
 	class RsShader* Shader )
 {
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -984,7 +989,7 @@ bool RsContextD3D12::createShader(
 bool RsContextD3D12::destroyShader(
 	class RsShader* Shader )
 {
-	PSY_LOG( "UNIMPLEMENTED" );
+	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -1108,6 +1113,9 @@ bool RsContextD3D12::createProgram(
 			Texture.second );
 	}
 
+	// Create storage class for program.
+	Program->setHandle( new RsProgramD3D12( Program, Device_.Get() ) );
+
 	return true;
 }
 
@@ -1117,7 +1125,9 @@ bool RsContextD3D12::createProgram(
 bool RsContextD3D12::destroyProgram(
 	class RsProgram* Program )
 {
-	PSY_LOG( "UNIMPLEMENTED" );
+	auto ProgramInternal = Program->getHandle< RsProgramD3D12* >();
+	delete ProgramInternal;
+	Program->setHandle< BcU64 >( 0 );
 	return true;
 }
 
