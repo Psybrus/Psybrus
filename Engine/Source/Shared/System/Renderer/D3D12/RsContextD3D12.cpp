@@ -414,13 +414,12 @@ void RsContextD3D12::takeScreenshot()
 // setViewport
 void RsContextD3D12::setViewport( class RsViewport& Viewport )
 {
-	D3D12_VIEWPORT D3DViewport;
-	D3DViewport.Width = (FLOAT)Viewport.width();
-	D3DViewport.Height = (FLOAT)Viewport.height();
-	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
-	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
-	D3DViewport.MinDepth = 0.0f;
-	D3DViewport.MaxDepth = 1.0f;
+	Viewport_.Width = (FLOAT)Viewport.width();
+	Viewport_.Height = (FLOAT)Viewport.height();
+	Viewport_.TopLeftX = (FLOAT)Viewport.x();
+	Viewport_.TopLeftY = (FLOAT)Viewport.y();
+	Viewport_.MinDepth = 0.0f;
+	Viewport_.MaxDepth = 1.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -483,7 +482,27 @@ void RsContextD3D12::create()
 
 	// Create pipeline state cache.
 	PSCache_.reset( new RsPipelineStateCacheD3D12( Device_.Get() ) );
-		
+
+	// Create an empty root signature.
+	ComPtr< ID3DBlob > OutBlob, ErrorBlob;
+	D3D12_ROOT_SIGNATURE RootSignatureDesc;
+	RootSignatureDesc.Init( 0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
+	RetVal = D3D12SerializeRootSignature( &RootSignatureDesc, D3D_ROOT_SIGNATURE_V1, OutBlob.GetAddressOf(), ErrorBlob.GetAddressOf() );
+	BcAssert( SUCCEEDED( RetVal ) );
+	RetVal = Device_->CreateRootSignature( 0, OutBlob->GetBufferPointer(), OutBlob->GetBufferSize(), IID_PPV_ARGS( DefaultRootSignature_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Create default pipeline state.
+#if 0
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DefaultPS = {};
+	BcMemZero( &DefaultPS, sizeof( DefaultPS ) );
+	DefaultPS.pRootSignature = DefaultRootSignature_.Get();
+	DefaultPS.RasterizerState.FillMode = D3D12_FILL_SOLID;
+	DefaultPS.RasterizerState.CullMode = D3D12_CULL_NONE;
+	RetVal = Device_->CreateGraphicsPipelineState( &DefaultPS, IID_PPV_ARGS( DefaultPS_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+#endif
+
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
@@ -520,6 +539,8 @@ void RsContextD3D12::destroy()
 	}
 
 	// Cleanup everything.
+	DefaultRootSignature_.Reset();
+	DefaultPS_.Reset();
 	PSCache_.reset();
 	::CloseHandle( PresentEvent_ );
 	PresentFence_.Reset();
@@ -618,7 +639,20 @@ void RsContextD3D12::setProgram( class RsProgram* Program )
 void RsContextD3D12::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	
+	if( IndexBuffer != nullptr )
+	{
+		auto VertexBufferResource = IndexBuffer->getHandle< RsResourceD3D12* >();
+		IndexBufferView_.BufferLocation = VertexBufferResource->getInternalResource()->GetGPUVirtualAddress();
+		IndexBufferView_.SizeInBytes = static_cast< UINT >( IndexBuffer->getDesc().SizeBytes_ );
+		IndexBufferView_.Format = DXGI_FORMAT_R16_UINT; // TODO: Select properly
+	}
+	else
+	{
+		IndexBufferView_.BufferLocation = 0;
+		IndexBufferView_.SizeInBytes = 0;
+		IndexBufferView_.Format = DXGI_FORMAT_R16_UINT; // TODO: Select properly
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -629,7 +663,21 @@ void RsContextD3D12::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	auto VertexBufferView = VertexBufferViews_[ StreamIdx ];
+
+	if( VertexBuffer != nullptr )
+	{
+		auto VertexBufferResource = VertexBuffer->getHandle< RsResourceD3D12* >();
+		VertexBufferView.BufferLocation = VertexBufferResource->getInternalResource()->GetGPUVirtualAddress();
+		VertexBufferView.SizeInBytes = static_cast< UINT >( VertexBuffer->getDesc().SizeBytes_ );
+		VertexBufferView.StrideInBytes = Stride;
+	}
+	else
+	{
+		VertexBufferView.BufferLocation = 0;
+		VertexBufferView.SizeInBytes = 0;
+		VertexBufferView.StrideInBytes = 0;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -639,7 +687,22 @@ void RsContextD3D12::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+#if 0
+	// TODO: Generate handle that covers shaders properly.
+	auto ConstantBufferView = ConstantBufferView_[ Handle ];
+	
+	if( UniformBuffer != nullptr )
+	{
+		auto UniformBufferResource = UniformBuffer->getHandle< RsResourceD3D12* >();
+		ConstantBufferView.BufferLocation = UniformBufferResource->getInternalResource()->GetGPUVirtualAddress();
+		ConstantBufferView.SizeInBytes = static_cast< UINT >( UniformBuffer->getDesc().SizeBytes_ );
+	}
+	else
+	{
+		ConstantBufferView.BufferLocation = 0;
+		ConstantBufferView.SizeInBytes = 0;
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -882,24 +945,24 @@ bool RsContextD3D12::createTexture(
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex1D( 
 			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
 			TextureDesc.Width_, 1, (BcU16)TextureDesc.Levels_, 
-			MiscFlag, 
-			D3D12_TEXTURE_LAYOUT_UNKNOWN );			
+			MiscFlag,
+			D3D12_TEXTURE_LAYOUT_UNKNOWN );
 		break;
 
 	case RsTextureType::TEX2D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex2D( 
 			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
 			TextureDesc.Width_, TextureDesc.Height_, 1, (BcU16)TextureDesc.Levels_, 1, 0,
-			MiscFlag, 
-			D3D12_TEXTURE_LAYOUT_UNKNOWN );			
+			MiscFlag,
+			D3D12_TEXTURE_LAYOUT_UNKNOWN );
 		break;
 
 	case RsTextureType::TEX3D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex3D( 
 			RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).RTVFormat_,
 			TextureDesc.Width_, TextureDesc.Height_, (BcU16)TextureDesc.Depth_, (BcU16)TextureDesc.Levels_, 
-			MiscFlag, 
-			D3D12_TEXTURE_LAYOUT_UNKNOWN );			
+			MiscFlag,
+			D3D12_TEXTURE_LAYOUT_UNKNOWN );
 		break;
 	}
 	

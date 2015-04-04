@@ -169,8 +169,16 @@ private:
 	BcU32 LastSwapBuffer_;
 
 	/// Graphics pipeline state management.
+	ComPtr< ID3D12RootSignature > DefaultRootSignature_;
+	ComPtr< ID3D12PipelineState > DefaultPS_;
 	std::unique_ptr< RsPipelineStateCacheD3D12 > PSCache_;
 	RsGraphicsPipelineStateDescD3D12 GraphicsPSDesc_;
+	D3D12_VIEWPORT Viewport_;
+
+	// Buffer views.
+	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;
+	D3D12_INDEX_BUFFER_VIEW IndexBufferView_;
+	std::array< D3D12_CONSTANT_BUFFER_VIEW_DESC, MAX_UNIFORM_SLOTS > ConstantBufferView_;
 
 	/// Backbuffer.
 	class RsTexture* BackBufferRT_;
