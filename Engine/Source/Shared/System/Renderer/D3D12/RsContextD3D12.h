@@ -17,6 +17,7 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/D3D12/RsD3D12.h"
 #include "System/Renderer/D3D12/RsPipelineStateCacheD3D12.h"
+#include "System/Renderer/D3D12/RsDescriptorHeapCacheD3D12.h"
 
 #include "Base/BcMisc.h"
 
@@ -181,7 +182,6 @@ private:
 	BcU32 NumSwapBuffers_;
 	BcU32 LastSwapBuffer_;
 	
-
 	/// Graphics pipeline state management.
 	ComPtr< ID3D12RootSignature > DefaultRootSignature_;
 	ComPtr< ID3D12PipelineState > DefaultPSO_;
@@ -194,6 +194,12 @@ private:
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;
 	D3D12_INDEX_BUFFER_VIEW IndexBufferView_;
 	std::array< D3D12_CONSTANT_BUFFER_VIEW_DESC, MAX_UNIFORM_SLOTS > ConstantBufferView_;
+
+	// Descriptor heaps.
+	std::unique_ptr< RsDescriptorHeapCacheD3D12 > DHCache_;
+	std::array< RsDescriptorHeapSamplerStateDescD3D12, (BcU32)RsShaderType::MAX > SampleStateDescs_;
+	std::array< RsDescriptorHeapShaderResourceDescD3D12, (BcU32)RsShaderType::MAX > ShaderResourceDescs_;
+	std::array< RsDescriptorHeapConstantBufferDescD3D12, (BcU32)RsShaderType::MAX > ConstantBufferDescs_;
 
 	/// Backbuffer.
 	class RsTexture* BackBufferRT_;

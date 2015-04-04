@@ -256,7 +256,6 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	OwningThread_( BcErrorCode ),
 	ScreenshotRequested_( BcFalse )
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -464,6 +463,9 @@ void RsContextD3D12::create()
 	// Create pipeline state cache.
 	PSOCache_.reset( new RsPipelineStateCacheD3D12( Device_.Get() ) );
 
+	// Create descriptor heap cache.
+	DHCache_.reset( new RsDescriptorHeapCacheD3D12( Device_.Get() ) );
+
 	// Create default root signature.
 	createDefaultRootSignature();
 
@@ -520,6 +522,7 @@ void RsContextD3D12::destroy()
 	// Cleanup everything.
 	DefaultRootSignature_.Reset();
 	DefaultPSO_.Reset();
+	DHCache_.reset();
 	PSOCache_.reset();
 	::CloseHandle( PresentEvent_ );
 	PresentFence_.Reset();
@@ -566,15 +569,36 @@ void RsContextD3D12::setRenderState( RsRenderState* RenderState )
 void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	
+	// Bind for each shader based on specified handle.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	{
+		BcU32 SlotIdx = ( Handle >> ( Idx * RsProgramD3D12::BitsPerShader ) ) & RsProgramD3D12::MaxBindPoints;
+
+		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
+		{
+			SampleStateDescs_[ Idx ].SamplerStates_[ SlotIdx ] = SamplerState;
+		}
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force )
+void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* Texture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	
+	// Bind for each shader based on specified handle.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	{
+		BcU32 SlotIdx = ( Handle >> ( Idx * RsProgramD3D12::BitsPerShader ) ) & RsProgramD3D12::MaxBindPoints;
+
+		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
+		{
+			ShaderResourceDescs_[ Idx ].Textures_[ SlotIdx ] = Texture;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -638,22 +662,17 @@ void RsContextD3D12::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-#if 0
-	// TODO: Generate handle that covers shaders properly.
-	auto ConstantBufferView = ConstantBufferView_[ Handle ];
-	
-	if( UniformBuffer != nullptr )
+
+	// Bind for each shader based on specified handle.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
 	{
-		auto UniformBufferResource = UniformBuffer->getHandle< RsResourceD3D12* >();
-		ConstantBufferView.BufferLocation = UniformBufferResource->getInternalResource()->GetGPUVirtualAddress();
-		ConstantBufferView.SizeInBytes = static_cast< UINT >( UniformBuffer->getDesc().SizeBytes_ );
+		BcU32 SlotIdx = ( Handle >> ( Idx * RsProgramD3D12::BitsPerShader ) ) & RsProgramD3D12::MaxBindPoints;
+
+		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
+		{
+			ConstantBufferDescs_[ Idx ].ConstantBuffers_[ SlotIdx ] = UniformBuffer;
+		}
 	}
-	else
-	{
-		ConstantBufferView.BufferLocation = 0;
-		ConstantBufferView.SizeInBytes = 0;
-	}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

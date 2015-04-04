@@ -32,6 +32,8 @@ struct RsGraphicsPipelineStateDescD3D12
 	RsFrameBufferFormatDescD3D12 FrameBufferFormatDesc_;
 };
 
+//////////////////////////////////////////////////////////////////////////
+// Hash specialisations.
 namespace std 
 {
 	template<>

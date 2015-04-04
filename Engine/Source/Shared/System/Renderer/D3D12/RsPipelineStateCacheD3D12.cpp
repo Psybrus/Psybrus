@@ -53,7 +53,8 @@ bool RsGraphicsPipelineStateDescD3D12::operator == ( const RsGraphicsPipelineSta
 // RsGraphicsPipelineStateDescD3D12 hash
 namespace std 
 {
-	size_t hash< RsGraphicsPipelineStateDescD3D12 >::operator()( const RsGraphicsPipelineStateDescD3D12 & PSD ) const
+	size_t hash< RsGraphicsPipelineStateDescD3D12 >::operator()( 
+			const RsGraphicsPipelineStateDescD3D12 & PSD ) const
 	{
 		BcU32 Hash = 0;
 		Hash = BcHash::GenerateCRC32( Hash, &PSD.Topology_, sizeof( PSD.Topology_ ) );
