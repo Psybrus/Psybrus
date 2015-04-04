@@ -602,6 +602,7 @@ enum class RsResourceBindFlags : BcU32
 	RENDER_TARGET		= 0x00000020,
 	DEPTH_STENCIL		= 0x00000040,
 	UNORDERED_ACCESS	= 0x00000080,
+	PRESENT				= 0x00000100
 };
 
 inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )

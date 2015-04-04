@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Renderer/D3D12/RsContextD3D12.h"
+#include "System/Renderer/D3D12/RsResourceD3D12.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
@@ -331,12 +332,22 @@ namespace
 // Ctor
 RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	RsContext( pParent ),
-	pParent_( pParent ),
-	pClient_( pClient ),
-	Adapter_( nullptr ),
+	Parent_( pParent ),
+	Client_( pClient ),
+	Adapter_(),
+	CommandQueueDesc_(),
+	CommandQueue_(),
+	CommandAllocator_(),
+	ResetCommandList_( BcTrue ),
+	CommandList_(),
+	PresentFence_(),
 	FrameCounter_( 0 ),
-	ScreenshotRequested_( BcFalse ),
-	OwningThread_( BcErrorCode )
+	NumSwapBuffers_( 2 ),
+	LastSwapBuffer_( 0 ),
+	BackBufferRT_( nullptr ),
+	BackBufferDS_( nullptr ),
+	OwningThread_( BcErrorCode ),
+	ScreenshotRequested_( BcFalse )
 {
 
 }
@@ -354,7 +365,7 @@ RsContextD3D12::~RsContextD3D12()
 //virtual
 BcU32 RsContextD3D12::getWidth() const
 {
-	return pClient_->getWidth();
+	return Client_->getWidth();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -362,7 +373,7 @@ BcU32 RsContextD3D12::getWidth() const
 //virtual
 BcU32 RsContextD3D12::getHeight() const
 {
-	return pClient_->getHeight();
+	return Client_->getHeight();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -370,7 +381,7 @@ BcU32 RsContextD3D12::getHeight() const
 //virtual
 OsClient* RsContextD3D12::getClient() const
 {
-	return pClient_;
+	return Client_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -438,9 +449,36 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 // presentBackBuffer
 void RsContextD3D12::presentBackBuffer()
 {
-	//SwapChain_->Present( 0, 0 );
+	// End current frame.
+	end();
 
-	++FrameCounter_;
+	// 
+	if( ResetCommandList_ == BcFalse )
+	{
+		// Do present.
+		SwapChain_->Present( 1, 0 );
+
+		// Get next buffer.
+		LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
+
+		// Wait for frame to complete.
+		// This is not good for performance, so redo this later on.
+		HRESULT RetVal = E_FAIL;
+		const UINT64 Fence = FrameCounter_;
+		RetVal = CommandQueue_->Signal( PresentFence_.Get(), Fence );
+		BcAssert( SUCCEEDED( RetVal ) );
+		++FrameCounter_;
+
+		if( PresentFence_->GetCompletedValue() < Fence )
+		{
+			RetVal = PresentFence_->SetEventOnCompletion( Fence, PresentEvent_ );
+			BcAssert( SUCCEEDED( RetVal ) );
+			::WaitForSingleObject( PresentEvent_, INFINITE );
+		}
+	}
+
+	// Begin next frame.
+	begin();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -467,8 +505,13 @@ void RsContextD3D12::setViewport( class RsViewport& Viewport )
 // create
 void RsContextD3D12::create()
 {
-	OsClientWindows* pClient = dynamic_cast< OsClientWindows* >( pClient_ );
-	BcAssertMsg( pClient != nullptr, "Windows client is not being used!" );
+	OsClientWindows* Client = dynamic_cast< OsClientWindows* >( Client_ );
+	BcAssertMsg( Client != nullptr, "Windows client is not being used!" );
+	HRESULT RetVal = E_FAIL;
+
+	// Create DXGI factory.
+	RetVal = ::CreateDXGIFactory1( IID_PPV_ARGS( &Factory_ ) );
+	BcAssert( SUCCEEDED( RetVal ) );
 
 	// Create default device.
 #ifdef _DEBUG
@@ -476,36 +519,60 @@ void RsContextD3D12::create()
 #else
 	const D3D12_CREATE_DEVICE_FLAG DeviceFlags = D3D12_CREATE_DEVICE_NONE;
 #endif
-
-	FeatureLevel_ = D3D_FEATURE_LEVEL_9_3;
-	HRESULT RetVal = D3D12CreateDevice(
-		nullptr,
+	FeatureLevel_ = D3D_FEATURE_LEVEL_11_0;
+	RetVal = D3D12CreateDevice(
+		Adapter_.Get(),
 		D3D_DRIVER_TYPE_HARDWARE,
 		DeviceFlags,
 		FeatureLevel_, 
 		D3D12_SDK_VERSION,
-		IID_PPV_ARGS(&Device_) );
+		IID_PPV_ARGS( &Device_ ) );
 	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Create command queue.
+	BcMemZero( &CommandQueueDesc_, sizeof( CommandQueueDesc_ ) );
+	CommandQueueDesc_.Flags = D3D12_COMMAND_QUEUE_NONE;
+	CommandQueueDesc_.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	RetVal = Device_->CreateCommandQueue( &CommandQueueDesc_, IID_PPV_ARGS( &CommandQueue_ ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+
 	// Setup swap chain desc.
 	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
     SwapChainDesc_.BufferCount = 1;
-	SwapChainDesc_.BufferDesc.Width = pClient->getWidth();
-    SwapChainDesc_.BufferDesc.Height = pClient->getHeight();
+	SwapChainDesc_.BufferDesc.Width = Client->getWidth();
+    SwapChainDesc_.BufferDesc.Height = Client->getHeight();
     SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     SwapChainDesc_.BufferDesc.RefreshRate.Numerator = 60;
     SwapChainDesc_.BufferDesc.RefreshRate.Denominator = 1;
     SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	SwapChainDesc_.OutputWindow = pClient->getHWND();
+	SwapChainDesc_.OutputWindow = Client->getHWND();
 	SwapChainDesc_.SampleDesc.Count = 1;
 	SwapChainDesc_.SampleDesc.Quality = 0;
     SwapChainDesc_.Windowed = TRUE;
 	SwapChainDesc_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	RetVal = Factory_->CreateSwapChain( CommandQueue_.Get(), &SwapChainDesc_, &SwapChain_ );
+	BcAssert( SUCCEEDED( RetVal ) );
 
+	// Create present fence.
+	FrameCounter_ = 0;
+	RetVal = Device_->CreateFence( FrameCounter_, D3D12_FENCE_MISC_NONE, IID_PPV_ARGS( PresentFence_.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+	PresentEvent_ = ::CreateEventEx( nullptr, FALSE, FALSE, EVENT_ALL_ACCESS );
+
+	// Create pipeline state cache.
+	PSCache_.reset( new RsPipelineStateCacheD3D12( Device_.Get() ) );
+		
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
 
+	// Recreate backbuffer.
+	recreateBackBuffer();
+
 	setDefaultState();
+
+	// Begin frame.
+	begin();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -519,7 +586,28 @@ void RsContextD3D12::update()
 // destroy
 void RsContextD3D12::destroy()
 {
+	// Destroy backbuffer.
+	if( BackBufferRT_ != nullptr )
+	{
+		destroyTexture( BackBufferRT_ );
+	}
 
+	if( BackBufferDS_ != nullptr )
+	{
+		destroyTexture( BackBufferDS_ );
+	}
+
+	// Cleanup everything.
+	PSCache_.reset();
+	::CloseHandle( PresentEvent_ );
+	PresentFence_.Reset();
+	CommandList_.Reset();
+	CommandAllocator_.Reset();
+	CommandQueue_.Reset();
+	Device_.Reset();
+	SwapChain_.Reset();
+	Adapter_.Reset();
+	Factory_.Reset();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -657,6 +745,8 @@ void RsContextD3D12::clear(
 	BcBool EnableClearStencil )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	flushState();
+
 	PSY_LOG( "UNIMPLEMENTED" );
 }
 
@@ -665,6 +755,8 @@ void RsContextD3D12::clear(
 void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	flushState();
+	
 	PSY_LOG( "UNIMPLEMENTED" );
 }
 
@@ -673,6 +765,8 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	flushState();
+	
 	PSY_LOG( "UNIMPLEMENTED" );
 }
 
@@ -682,7 +776,6 @@ bool RsContextD3D12::createRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -692,7 +785,6 @@ bool RsContextD3D12::destroyRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -740,7 +832,50 @@ bool RsContextD3D12::createBuffer(
 	class RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+
+	HRESULT RetVal = E_FAIL;
+
+	const auto& BufferDesc = Buffer->getDesc();
+
+	// TODO: Change this to use CreatePlacedResource, and appropriate heaps.
+	// Should have a single large upload heap, an upload command list,
+	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
+	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_UPLOAD );
+	CD3D12_RESOURCE_DESC ResourceDesc( CD3D12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_MISC_NONE ) );
+
+	ComPtr< ID3D12Resource > D3DResource;
+	RetVal = Device_->CreateCommittedResource( 
+		&HeapProperties,
+		D3D12_HEAP_MISC_NONE,
+		&ResourceDesc,
+		D3D12_RESOURCE_USAGE_GENERIC_READ, 
+		nullptr,
+		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	RsResourceBindFlags BindFlags = RsResourceBindFlags::NONE;
+	switch( BufferDesc.Type_ )
+	{
+	case RsBufferType::INDEX:
+		BindFlags = RsResourceBindFlags::VERTEX_BUFFER;
+		break;
+	case RsBufferType::VERTEX:
+		BindFlags = RsResourceBindFlags::INDEX_BUFFER;
+		break;
+	case RsBufferType::UNIFORM:
+		BindFlags = RsResourceBindFlags::UNIFORM_BUFFER;
+		break;
+	case RsBufferType::UNORDERED_ACCESS:
+		BindFlags = RsResourceBindFlags::UNORDERED_ACCESS;
+		break;
+	case RsBufferType::STREAM_OUT:
+		BindFlags = RsResourceBindFlags::STREAM_OUTPUT;
+		break;
+	default:
+		BcBreakpoint;
+	}
+
+	BackBufferRT_->setHandle( new RsResourceD3D12( D3DResource.Get(), BindFlags, BindFlags ) );
 	return true;
 }
 
@@ -750,7 +885,9 @@ bool RsContextD3D12::destroyBuffer(
 	class RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
+	delete Resource;
+	Buffer->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -764,7 +901,15 @@ bool RsContextD3D12::updateBuffer(
 	RsBufferUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	BcUnusedVar( Buffer );
+	BcUnusedVar( Offset );
+	BcUnusedVar( Size );
+	BcUnusedVar( Flags );
+	BcUnusedVar( UpdateFunc );
+	std::unique_ptr< BcU8[] > TempBuffer;
+	TempBuffer.reset( new BcU8[ Buffer->getDesc().SizeBytes_ ] );
+	RsBufferLock Lock = { TempBuffer.get() };
+	UpdateFunc( Buffer, Lock );
 	return true;
 }
 
@@ -784,7 +929,9 @@ bool RsContextD3D12::destroyTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	auto Resource = Texture->getHandle< RsResourceD3D12* >();
+	delete Resource;
+	Texture->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -797,7 +944,29 @@ bool RsContextD3D12::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	PSY_LOG( "UNIMPLEMENTED" );
+	BcUnusedVar( Texture );
+	BcUnusedVar( Slice );
+	BcUnusedVar( Flags );
+	BcUnusedVar( UpdateFunc );
+	const auto& TextureDesc = Texture->getDesc();
+	std::unique_ptr< BcU8[] > TempBuffer;
+		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+		BcU32 DataSize = RsTextureFormatSize( 
+			TextureDesc.Format_,
+			Width,
+			Height,
+			Depth,
+			1 );
+	TempBuffer.reset( new BcU8[ DataSize ] );
+	RsTextureLock Lock = 
+	{
+		TempBuffer.get(),
+		TextureDesc.Width_,
+		TextureDesc.Width_ * TextureDesc.Height_
+	};	
+	UpdateFunc( Texture, Lock );
 	return true;
 }
 
@@ -824,7 +993,121 @@ bool RsContextD3D12::destroyShader(
 bool RsContextD3D12::createProgram(
 	class RsProgram* Program )
 {
-	PSY_LOG( "UNIMPLEMENTED" );
+	// TODO: Look up also by type, size, and flags. Not just name.
+	// TODO: Do this work offline.
+	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
+	ResourceHandleMapping SamplerBindings;
+	ResourceHandleMapping TextureBindings;
+	ResourceHandleMapping ConstantBufferBindings;
+	ResourceHandleMapping ConstantBufferSizes;
+
+	// Iterate over shaders and setup handles for all constant
+	// buffers and shader resources.
+	for( auto* Shader : Program->getShaders() )
+	{
+		const auto& ShaderDesc = Shader->getDesc();
+		ID3D12ShaderReflection* Reflector = nullptr; 
+		D3DReflect( Shader->getData(), Shader->getDataSize(),
+			IID_ID3D12ShaderReflection, (void**)&Reflector );
+
+		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
+		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
+
+		// Just iterate over a big number...we'll assert if we go over.
+		for( BcU32 Idx = 0; Idx < 128; ++Idx )
+		{
+			D3D12_SHADER_INPUT_BIND_DESC BindDesc;
+			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
+			{
+				// Validate.
+				BcAssert( 
+					BindDesc.BindPoint < MaxBindPoints && 
+					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
+
+				// Check if it's a cbuffer or tbuffer.
+				if( BindDesc.Type == D3D_SIT_CBUFFER ||
+					BindDesc.Type == D3D_SIT_TBUFFER )
+				{
+					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
+					{
+						ConstantBufferBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
+					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
+					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
+					
+					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
+					D3D12_SHADER_BUFFER_DESC BufferDesc;
+					ConstantBuffer->GetDesc( &BufferDesc );
+					if( Size != 0 )
+					{
+						BcAssert( BufferDesc.Size == Size );
+					}
+
+
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					Size = BufferDesc.Size;
+					ConstantBufferBindings[ BindDesc.Name ] = Handle;
+					ConstantBufferSizes[ BindDesc.Name ] = Size;
+				}
+				else if( BindDesc.Type == D3D_SIT_TEXTURE )
+				{
+					if( TextureBindings.find( BindDesc.Name ) == TextureBindings.end() )
+					{
+						TextureBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
+					BcU32 Handle = TextureBindings[ BindDesc.Name ];
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					TextureBindings[ BindDesc.Name ] = Handle;
+				}
+				else if( BindDesc.Type == D3D_SIT_SAMPLER )
+				{
+					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
+					{
+						SamplerBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
+					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					SamplerBindings[ BindDesc.Name ] = Handle;
+				}
+				else
+				{
+					// TOOD.
+				}
+			}
+		}
+	}
+
+	// Add all constant buffer bindings
+	for( const auto& ConstantBuffer : ConstantBufferBindings )
+	{
+		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
+		auto Class = ReManager::GetClass( ConstantBuffer.first );
+		BcAssert( Class->getSize() == Size );
+		Program->addUniformBufferSlot( 
+			ConstantBuffer.first,
+			ConstantBuffer.second,
+			Class );
+	}
+
+	// Add all sampler bindings
+	for( const auto& Sampler : SamplerBindings )
+	{
+		Program->addSamplerSlot( 
+			Sampler.first,
+			Sampler.second );
+	}
+
+	// Add all texture bindings
+	for( const auto& Texture : TextureBindings )
+	{
+		Program->addTextureSlot( 
+			Texture.first,
+			Texture.second );
+	}
+
 	return true;
 }
 
@@ -843,5 +1126,115 @@ bool RsContextD3D12::destroyProgram(
 //virtual
 void RsContextD3D12::flushState()
 {
-	PSY_LOG( "UNIMPLEMENTED" );
+	ID3D12PipelineState* GraphicsPS = nullptr;
+
+	// Get current pipeline state.
+	GraphicsPS = PSCache_->getPipelineState( GraphicsPSDesc_ );
+
+	// Reset command list if we need to, otherwise just set new pipeline state.
+	if( GraphicsPS != nullptr )
+	{
+		if( ResetCommandList_ )
+		{
+			// Create command list if we haven't already got one.
+			if( CommandList_ == nullptr )
+			{
+				HRESULT RetVal = E_FAIL;
+				RetVal = Device_->CreateCommandList( 0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
+					CommandAllocator_.Get(), GraphicsPS, IID_PPV_ARGS( CommandList_.GetAddressOf() ) );
+				BcAssert( SUCCEEDED( RetVal ) );
+			}
+
+			HRESULT RetVal = E_FAIL;
+			RetVal = CommandAllocator_->Reset();
+			BcAssert( SUCCEEDED( RetVal ) );
+
+			RetVal = CommandList_->Reset( CommandAllocator_.Get(), GraphicsPS );
+			BcAssert( SUCCEEDED( RetVal ) );
+
+			ResetCommandList_ = BcFalse;
+		}
+		else
+		{
+			BcAssert( CommandList_ );
+			CommandList_->SetPipelineState( GraphicsPS );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// recreateBackBuffer
+void RsContextD3D12::recreateBackBuffer()
+{
+	// TODO: Window resizing.
+	if( BackBufferRT_ == nullptr || BackBufferDS_ == nullptr )
+	{
+		BcAssert( BackBufferRT_ == nullptr && BackBufferDS_ == nullptr );
+
+		RsTextureDesc Desc;
+		Desc.Type_ = RsTextureType::TEX2D;
+		Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
+		Desc.Levels_ = 1;
+		Desc.Width_ = SwapChainDesc_.BufferDesc.Width;
+		Desc.Height_ = SwapChainDesc_.BufferDesc.Height;
+		Desc.Depth_= 1;
+		
+		// Render target.
+		Desc.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET;
+		Desc.Format_ = RsTextureFormat::R8G8B8A8;
+		BackBufferRT_ = new RsTexture( this, Desc );
+		BackBufferRT_->setHandle( new RsResourceD3D12( nullptr, 
+			RsResourceBindFlags::RENDER_TARGET | 
+			RsResourceBindFlags::SHADER_RESOURCE |
+			RsResourceBindFlags::PRESENT,
+			RsResourceBindFlags::RENDER_TARGET ) );
+
+		// Depth stencil.
+		Desc.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL;
+		Desc.Format_ = RsTextureFormat::D24S8;
+		BackBufferDS_ = new RsTexture( this, Desc );
+		BackBufferDS_->setHandle( new RsResourceD3D12( nullptr, 
+			RsResourceBindFlags::DEPTH_STENCIL | 
+			RsResourceBindFlags::SHADER_RESOURCE |
+			RsResourceBindFlags::PRESENT,
+			RsResourceBindFlags::DEPTH_STENCIL ) );
+	}
+
+	auto BackBufferRTResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
+	BcAssert( BackBufferRTResource );
+	SwapChain_->GetBuffer( LastSwapBuffer_, IID_PPV_ARGS( BackBufferRTResource->getInternalResource().ReleaseAndGetAddressOf() ));
+}
+
+//////////////////////////////////////////////////////////////////////////
+// begin
+void RsContextD3D12::begin()
+{
+	recreateBackBuffer();
+
+	ResetCommandList_ = BcTrue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// end
+void RsContextD3D12::end()
+{
+	// Still waiting on a reset.
+	if( ResetCommandList_ == BcTrue )
+	{
+		return;
+	}
+
+	BcAssert( CommandList_ != nullptr );
+
+	// Transition back buffer to present.
+	RsResourceD3D12* BackBufferResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
+	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::PRESENT );
+
+	// Close command list.
+	CommandList_->Close();
+
+	// Execute command list.
+	ID3D12CommandList* CommandLists[] = { CommandList_.Get() };
+	CommandQueue_->ExecuteCommandLists( 1, CommandLists );
 }

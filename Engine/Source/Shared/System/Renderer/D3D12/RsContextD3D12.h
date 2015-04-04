@@ -16,6 +16,7 @@
 
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/D3D12/RsD3D12.h"
+#include "System/Renderer/D3D12/RsPipelineStateCacheD3D12.h"
 
 #include "Base/BcMisc.h"
 
@@ -117,6 +118,21 @@ public:
 	
 	void flushState();
 
+	/**
+	 * (Re)create backbuffer.
+	 */
+	void recreateBackBuffer();
+
+	/**
+	 * Begin rendering. Will reset command lists.
+	 */
+	void begin();
+
+	/**
+	 * End rendering. Will close command lists.
+	 */
+	void end();
+
 
 protected:
 	virtual void create();
@@ -124,20 +140,41 @@ protected:
 	virtual void destroy();	
 
 private:
-	RsContextD3D12* pParent_;
-	OsClient* pClient_;
+	RsContextD3D12* Parent_;
+	OsClient* Client_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
+	ComPtr< IDXGIFactory > Factory_;
 	ComPtr< IDXGIAdapter > Adapter_;
 	ComPtr< IDXGISwapChain > SwapChain_;
 	ComPtr< ID3D12Device > Device_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
-	BcU32 FrameCounter_;
 
-	RsTexture* BackBufferRT_;
-	RsTexture* BackBufferDS_;
-	size_t BackBufferRTResourceIdx_;
-	size_t BackBufferDSResourceIdx_;
+	/// Command queue.
+	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc_;
+	ComPtr< ID3D12CommandQueue > CommandQueue_;
+
+	/// Command allocator.
+	ComPtr< ID3D12CommandAllocator > CommandAllocator_;
+
+	/// Graphics command list.
+	BcBool ResetCommandList_;
+	ComPtr< ID3D12GraphicsCommandList > CommandList_;
+
+	/// Presenting.
+	ComPtr< ID3D12Fence > PresentFence_;
+	HANDLE PresentEvent_;
+	BcU64 FrameCounter_;
+	BcU32 NumSwapBuffers_;
+	BcU32 LastSwapBuffer_;
+
+	/// Graphics pipeline state management.
+	std::unique_ptr< RsPipelineStateCacheD3D12 > PSCache_;
+	RsGraphicsPipelineStateDescD3D12 GraphicsPSDesc_;
+
+	/// Backbuffer.
+	class RsTexture* BackBufferRT_;
+	class RsTexture* BackBufferDS_;
 
 	BcThreadId OwningThread_;
 	BcBool ScreenshotRequested_;
