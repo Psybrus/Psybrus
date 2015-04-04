@@ -688,7 +688,7 @@ void RsContextD3D12::setUniformBuffer(
 void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
+	GraphicsPSODesc_.VertexDeclaration_ = VertexDeclaration;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -705,33 +705,6 @@ void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	else
 	{
 		FrameBuffer_ = FrameBuffer;
-	}
-
-	BcAssert( FrameBuffer_ );
-	const auto FrameBufferDesc = FrameBuffer_->getDesc();
-	GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
-	for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
-	{
-		auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
-		auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
-		Resource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::RENDER_TARGET );
-
-		const auto& RenderTargetDesc =  RenderTarget->getDesc();
-		GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
-	}
-
-	if( FrameBufferDesc.DepthStencilTarget_ != nullptr )
-	{
-		auto DepthStencil = FrameBufferDesc.DepthStencilTarget_;
-		auto Resource = DepthStencil->getHandle< RsResourceD3D12* >();
-		Resource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::DEPTH_STENCIL );
-
-		const auto& DepthStencilDesc = DepthStencil->getDesc();
-		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = DepthStencilDesc.Format_;
-	}
-	else
-	{
-		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::INVALID;
 	}
 }
 
@@ -1016,6 +989,7 @@ bool RsContextD3D12::createTexture(
 	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
 	{
 		ClearValue.Format = Format.DSVFormat_;
+		ClearValue.DepthStencil.Depth = 1.0f;
 		SetClearValue = &ClearValue;
 		InitialBindType = RsResourceBindFlags::DEPTH_STENCIL;
 	}
@@ -1249,14 +1223,46 @@ bool RsContextD3D12::destroyProgram(
 //virtual
 void RsContextD3D12::flushState()
 {
+	// Graphics root signature.
 	CommandList_->SetGraphicsRootSignature( DefaultRootSignature_.Get() );
 
+	// Frame buffer.
+	BcAssert( FrameBuffer_ );
 
+	// Setup the formats for the pipeline state object.
+	const auto FrameBufferDesc = FrameBuffer_->getDesc();
+	GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
+	for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
+	{
+		auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
+		const auto& RenderTargetDesc =  RenderTarget->getDesc();
+		GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
+	}
 
-	ID3D12PipelineState* GraphicsPS = nullptr;
+	if( FrameBufferDesc.DepthStencilTarget_ != nullptr )
+	{
+		auto DepthStencil = FrameBufferDesc.DepthStencilTarget_;
+		const auto& DepthStencilDesc = DepthStencil->getDesc();
+		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = DepthStencilDesc.Format_;
+	}
+	else
+	{
+		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::INVALID;
+	}
+
+	// Set render targets on command list.
+	auto FrameBufferD3D12 = FrameBuffer_->getHandle< RsFrameBufferD3D12* >();
+	FrameBufferD3D12->setRenderTargets( CommandList_.Get() );
 
 	// Get current pipeline state.
+	ID3D12PipelineState* GraphicsPS = nullptr;
 	GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_ );
+
+	// If null, just use default (bad)
+	if( GraphicsPS == nullptr )
+	{
+		GraphicsPS = DefaultPSO_.Get();
+	}
 
 	// Reset command list if we need to, otherwise just set new pipeline state.
 	if( GraphicsPS != nullptr )

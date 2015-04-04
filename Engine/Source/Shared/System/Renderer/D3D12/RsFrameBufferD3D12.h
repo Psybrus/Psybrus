@@ -22,6 +22,8 @@ public:
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
 		BcBool EnableClearStencil );
+
+	void setRenderTargets( ID3D12GraphicsCommandList* CommandList );
 	
 private:
 	class RsFrameBuffer* Parent_;

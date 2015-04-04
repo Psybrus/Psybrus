@@ -135,7 +135,6 @@ void RsFrameBufferD3D12::clear(
 			CommandList->ClearRenderTargetView( ThisRTVDescriptorHandle, D3DColour, nullptr, 0 );
 		}
 	}
-#if 0	
 	if( DSV_ && ( EnableClearDepth || EnableClearStencil ) )
 	{
 		auto BaseDSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();		
@@ -146,5 +145,35 @@ void RsFrameBufferD3D12::clear(
 				( EnableClearStencil ? D3D12_CLEAR_STENCIL : 0 ) ),
 			1.0f, 0, nullptr, 0 );
 	}
-#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRenderTargets
+void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandList )
+{
+	const auto ParentDesc = Parent_->getDesc();
+
+	// Resource barriers.
+	for( size_t Idx = 0; Idx < ParentDesc.RenderTargets_.size(); ++Idx )
+	{
+		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
+		auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+		Resource->resourceBarrierTransition( CommandList, RsResourceBindFlags::RENDER_TARGET );
+	}
+
+	if( ParentDesc.DepthStencilTarget_ != nullptr )
+	{
+		auto DepthStencil = ParentDesc.DepthStencilTarget_;
+		auto Resource = DepthStencil->getHandle< RsResourceD3D12* >();
+		Resource->resourceBarrierTransition( CommandList, RsResourceBindFlags::DEPTH_STENCIL );
+	}
+
+	auto BaseRTVDescriptorHandle = RTV_ ? RTV_->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE();
+	auto BaseDSVDescriptorHandle = DSV_ ? DSV_->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE();
+
+	CommandList->SetRenderTargets( 
+		RTV_ ? &BaseRTVDescriptorHandle : nullptr,
+		TRUE,
+		NumRTVs_,
+		DSV_ ? &BaseDSVDescriptorHandle : nullptr );
 }
