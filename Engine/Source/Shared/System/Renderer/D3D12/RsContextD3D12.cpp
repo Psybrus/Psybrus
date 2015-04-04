@@ -247,6 +247,7 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	CommandList_(),
 	PresentFence_(),
 	FrameCounter_( 0 ),
+	FlushCounter_( 0 ),
 	NumSwapBuffers_( 1 ),
 	LastSwapBuffer_( 0 ),
 	BackBufferRT_( nullptr ),
@@ -360,45 +361,22 @@ void RsContextD3D12::presentBackBuffer()
 	// Transition back buffer to present.
 	RsResourceD3D12* BackBufferResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
 	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::PRESENT );
-
-	// Close command list.
-	RetVal = CommandList_->Close();
-	BcAssert( SUCCEEDED( RetVal ) );
-
-	// Execute command list.
-	ID3D12CommandList* CommandLists[] = { CommandList_.Get() };
-	CommandQueue_->ExecuteCommandLists( 1, CommandLists );
+	
+	// Flush command list (also waits for completion).
+	flushCommandList();
 
 	// Do present.
 	RetVal = SwapChain_->Present( 1, 0 );
 	BcAssert( SUCCEEDED( RetVal ) );
+	++FrameCounter_;
 
 	// Get next buffer.
 	LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
 
-	// Wait for frame to complete.
-	// This is not good for performance, so redo this later on.
-	const UINT64 Fence = FrameCounter_;
-	RetVal = CommandQueue_->Signal( PresentFence_.Get(), Fence );
-	BcAssert( SUCCEEDED( RetVal ) );
-	++FrameCounter_;
-
-	if( PresentFence_->GetCompletedValue() < Fence )
-	{
-		RetVal = PresentFence_->SetEventOnCompletion( Fence, PresentEvent_ );
-		BcAssert( SUCCEEDED( RetVal ) );
-		::WaitForSingleObject( PresentEvent_, INFINITE );
-	}
 
 	// Prep for next frame.
 	recreateBackBuffer();
 	
-	RetVal = CommandAllocator_->Reset();
-	BcAssert( SUCCEEDED( RetVal ) );
-
-	RetVal = CommandList_->Reset( CommandAllocator_.Get(), DefaultPSO_.Get() );
-	BcAssert( SUCCEEDED( RetVal ) );
-
 	// Back to default frame buffer.
 	setFrameBuffer( nullptr );
 }
@@ -877,11 +855,22 @@ bool RsContextD3D12::updateBuffer(
 	BcUnusedVar( Offset );
 	BcUnusedVar( Size );
 	BcUnusedVar( Flags );
-	BcUnusedVar( UpdateFunc );
-	std::unique_ptr< BcU8[] > TempBuffer;
-	TempBuffer.reset( new BcU8[ Buffer->getDesc().SizeBytes_ ] );
-	RsBufferLock Lock = { TempBuffer.get() };
-	UpdateFunc( Buffer, Lock );
+	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
+	auto& D3DResource = Resource->getInternalResource();
+
+	D3D12_RANGE Range = { Offset, Offset + Size };
+	RsBufferLock Lock;
+	if( SUCCEEDED( D3DResource->Map( 0, &Range, &Lock.Buffer_ ) ) )
+	{
+		UpdateFunc( Buffer, Lock );
+		D3DResource->Unmap( 0, &Range );
+	}
+	else
+	{
+		BcBreakpoint;
+		return false;
+	}
+
 	return true;
 }
 
@@ -1149,6 +1138,41 @@ void RsContextD3D12::flushState()
 		BcAssert( CommandList_ );
 		CommandList_->SetPipelineState( GraphicsPS );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// flushCommandList
+void RsContextD3D12::flushCommandList()
+{
+	// Close command list.
+	HRESULT RetVal = CommandList_->Close();
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Execute command list.
+	ID3D12CommandList* CommandLists[] = { CommandList_.Get() };
+	CommandQueue_->ExecuteCommandLists( 1, CommandLists );
+
+	// Wait for frame to complete.
+	// This is not good for performance, so redo this later on.
+	const UINT64 Fence = FlushCounter_;
+	RetVal = CommandQueue_->Signal( PresentFence_.Get(), Fence );
+	BcAssert( SUCCEEDED( RetVal ) );
+	++FlushCounter_;
+
+	auto CompletedValue = PresentFence_->GetCompletedValue();
+	if( CompletedValue < Fence )
+	{
+		RetVal = PresentFence_->SetEventOnCompletion( Fence, PresentEvent_ );
+		BcAssert( SUCCEEDED( RetVal ) );
+		::WaitForSingleObject( PresentEvent_, INFINITE );
+	}
+
+	// Reset allocator and command list.
+	RetVal = CommandAllocator_->Reset();
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	RetVal = CommandList_->Reset( CommandAllocator_.Get(), DefaultPSO_.Get() );
+	BcAssert( SUCCEEDED( RetVal ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

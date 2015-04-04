@@ -116,6 +116,12 @@ public:
 	void flushState();
 
 	/**
+	 * Flush out command list.
+	 * NOTE: This is temporary. Used until we utilise multiple command lists.
+	 */
+	void flushCommandList();
+
+	/**
 	 * (Re)create backbuffer.
 	 */
 	void recreateBackBuffer();
@@ -171,8 +177,10 @@ private:
 	ComPtr< ID3D12Fence > PresentFence_;
 	HANDLE PresentEvent_;
 	BcU64 FrameCounter_;
+	BcU64 FlushCounter_;
 	BcU32 NumSwapBuffers_;
 	BcU32 LastSwapBuffer_;
+	
 
 	/// Graphics pipeline state management.
 	ComPtr< ID3D12RootSignature > DefaultRootSignature_;
