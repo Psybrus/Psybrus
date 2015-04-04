@@ -1609,6 +1609,16 @@ bool RsContextD3D11::createShader(
 		}
 		break;
 
+	case RsShaderType::PIXEL:
+		{
+			Result = Device_->CreatePixelShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11PixelShader** >( &D3DShader ) );
+		}
+		break;
+
 	case RsShaderType::HULL:
 		{
 			Result = Device_->CreateHullShader(
@@ -1636,16 +1646,6 @@ bool RsContextD3D11::createShader(
 				Shader->getDataSize(),
 				nullptr,
 				reinterpret_cast< ID3D11GeometryShader** >( &D3DShader ) );
-		}
-		break;
-
-	case RsShaderType::PIXEL:
-		{
-			Result = Device_->CreatePixelShader(
-				Shader->getData(),
-				Shader->getDataSize(),
-				nullptr,
-				reinterpret_cast< ID3D11PixelShader** >( &D3DShader ) );
 		}
 		break;
 

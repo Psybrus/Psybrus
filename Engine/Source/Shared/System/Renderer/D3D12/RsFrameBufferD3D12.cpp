@@ -55,10 +55,11 @@ void RsFrameBufferD3D12::createDSVDescriptorHeap()
 void RsFrameBufferD3D12::setupRTVs()
 {
 	const auto& ParentDesc = Parent_->getDesc();
+	auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3D12_RTV_DESCRIPTOR_HEAP );
 	auto RTVDescriptorHandle = RTV_->GetCPUDescriptorHandleForHeapStart();
 	for( INT Idx = 0; Idx < static_cast< INT >( ParentDesc.RenderTargets_.size() ); ++Idx )
 	{
-		auto ThisDescriptorHandle = RTVDescriptorHandle.MakeOffsetted( Idx );
+		auto ThisDescriptorHandle = RTVDescriptorHandle.MakeOffsetted( Idx, DescriptorSize );
 		auto RTTexture = ParentDesc.RenderTargets_[ Idx ];
 		const auto& RTTextureDesc = RTTexture->getDesc();
 		auto RTResource = RTTexture->getHandle< RsResourceD3D12* >();
@@ -111,7 +112,7 @@ void RsFrameBufferD3D12::setupDSV()
 		default:
 			BcBreakpoint;
 			break;
-		}	
+		}
 		Device_->CreateDepthStencilView( DSResource->getInternalResource().Get(), &DSVDesc, DSVDescriptorHandle );
 	}		
 }
@@ -127,10 +128,11 @@ void RsFrameBufferD3D12::clear(
 {
 	if( EnableClearColour )
 	{
+		auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3D12_RTV_DESCRIPTOR_HEAP );
 		auto BaseRTVDescriptorHandle = RTV_->GetCPUDescriptorHandleForHeapStart();
 		for( BcU32 Idx = 0; Idx < NumRTVs_; ++Idx )
 		{
-			auto ThisRTVDescriptorHandle = BaseRTVDescriptorHandle.MakeOffsetted( Idx );
+			auto ThisRTVDescriptorHandle = BaseRTVDescriptorHandle.MakeOffsetted( Idx, DescriptorSize );
 			FLOAT D3DColour[4] = { Colour.r(), Colour.g(), Colour.b(), Colour.a() };
 			CommandList->ClearRenderTargetView( ThisRTVDescriptorHandle, D3DColour, nullptr, 0 );
 		}

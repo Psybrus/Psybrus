@@ -193,13 +193,11 @@ private:
 	// Buffer views.
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;
 	D3D12_INDEX_BUFFER_VIEW IndexBufferView_;
-	std::array< D3D12_CONSTANT_BUFFER_VIEW_DESC, MAX_UNIFORM_SLOTS > ConstantBufferView_;
-
+	
 	// Descriptor heaps.
 	std::unique_ptr< RsDescriptorHeapCacheD3D12 > DHCache_;
-	std::array< RsDescriptorHeapSamplerStateDescD3D12, (BcU32)RsShaderType::MAX > SampleStateDescs_;
-	std::array< RsDescriptorHeapShaderResourceDescD3D12, (BcU32)RsShaderType::MAX > ShaderResourceDescs_;
-	std::array< RsDescriptorHeapConstantBufferDescD3D12, (BcU32)RsShaderType::MAX > ConstantBufferDescs_;
+	RsDescriptorHeapSamplerStateDescArrayD3D12 SamplerStateDescs_;
+	RsDescriptorHeapShaderResourceDescArrayD3D12 ShaderResourceDescs_;
 
 	/// Backbuffer.
 	class RsTexture* BackBufferRT_;

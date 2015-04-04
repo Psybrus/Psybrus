@@ -1,5 +1,8 @@
 #include "System/Renderer/D3D12/RsDescriptorHeapCacheD3D12.h"
+#include "System/Renderer/D3D12/RsResourceD3D12.h"
+#include "System/Renderer/D3D12/RsUtilsD3D12.h"
 
+#include "Base/BcMath.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsSamplerState.h"
@@ -24,27 +27,14 @@ bool RsDescriptorHeapSamplerStateDescD3D12::operator == ( const RsDescriptorHeap
 RsDescriptorHeapShaderResourceDescD3D12::RsDescriptorHeapShaderResourceDescD3D12()
 {
 	Textures_.fill( nullptr );
+	Buffers_.fill( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // operator ==
 bool RsDescriptorHeapShaderResourceDescD3D12::operator == ( const RsDescriptorHeapShaderResourceDescD3D12& Other ) const
 {
-	return Textures_ == Other.Textures_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Ctor
-RsDescriptorHeapConstantBufferDescD3D12::RsDescriptorHeapConstantBufferDescD3D12()
-{
-	ConstantBuffers_.fill( nullptr );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// operator ==
-bool RsDescriptorHeapConstantBufferDescD3D12::operator == ( const RsDescriptorHeapConstantBufferDescD3D12& Other ) const
-{
-	return ConstantBuffers_ == Other.ConstantBuffers_;
+	return Textures_ == Other.Textures_ && Buffers_ == Other.Buffers_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,14 +47,20 @@ namespace std
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
 
+	size_t hash< RsDescriptorHeapSamplerStateDescArrayD3D12 >::operator()( 
+			const RsDescriptorHeapSamplerStateDescArrayD3D12 & DHDesc ) const
+	{
+		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
+	}
+
 	size_t hash< RsDescriptorHeapShaderResourceDescD3D12 >::operator()(
 			const RsDescriptorHeapShaderResourceDescD3D12 & DHDesc ) const
 	{
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
 
-	size_t hash< RsDescriptorHeapConstantBufferDescD3D12 >::operator()( 
-			const RsDescriptorHeapConstantBufferDescD3D12 & DHDesc ) const
+	size_t hash< RsDescriptorHeapShaderResourceDescArrayD3D12 >::operator()(
+			const RsDescriptorHeapShaderResourceDescArrayD3D12 & DHDesc ) const
 	{
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
@@ -85,10 +81,10 @@ RsDescriptorHeapCacheD3D12::~RsDescriptorHeapCacheD3D12()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getDescriptorHeap
-ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getDescriptorHeap( const RsDescriptorHeapSamplerStateDescD3D12& DHDesc )
+// getSamplersDescriptorHeap
+ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getSamplersDescriptorHeap( const RsDescriptorHeapSamplerStateDescArrayD3D12& DHDescs )
 {
-	auto FoundIt = SampleStateHeaps_.find( DHDesc );
+	auto FoundIt = SampleStateHeaps_.find( DHDescs );
 	if( FoundIt != SampleStateHeaps_.end() )
 	{
 		return FoundIt->second.Get();
@@ -96,17 +92,42 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getDescriptorHeap( const RsDes
 
 	ComPtr< ID3D12DescriptorHeap > DH;
 
-	// TODO: CREATE ONE!
+	D3D12_DESCRIPTOR_HEAP_DESC D3DDHDesc;
+	BcMemZero( &D3DDHDesc, sizeof( D3DDHDesc ) );
+	D3DDHDesc.Type = D3D12_SAMPLER_DESCRIPTOR_HEAP;
+	D3DDHDesc.NumDescriptors = static_cast< UINT >( DHDescs.size() * RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS );
+	D3DDHDesc.Flags = D3D12_DESCRIPTOR_HEAP_SHADER_VISIBLE;
+	HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( DH.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
 
-	SampleStateHeaps_.insert( std::make_pair( DHDesc, DH ) );
+	auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3DDHDesc.Type );
+	auto BaseDHHandle = DH->GetCPUDescriptorHandleForHeapStart();
+
+	for( INT ShaderIdx = 0; ShaderIdx < DHDescs.size(); ++ShaderIdx )
+	{
+		const auto& DHDesc = DHDescs[ ShaderIdx ];
+		auto ShaderDHHandle = BaseDHHandle.MakeOffsetted( ShaderIdx, DescriptorSize * RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS );
+
+		for( INT SlotIdx = 0; SlotIdx < DHDesc.SamplerStates_.size(); ++SlotIdx )
+		{
+			auto SamplerState = DHDesc.SamplerStates_[ SlotIdx ];
+			if( SamplerState != nullptr )
+			{
+				auto SlotDHHandle = ShaderDHHandle.MakeOffsetted( SlotIdx, DescriptorSize );
+				const auto SamplerDesc = getSamplerDesc( SamplerState );
+				Device_->CreateSampler( &SamplerDesc, SlotDHHandle  );
+			}
+		}
+	}
+	SampleStateHeaps_.insert( std::make_pair( DHDescs, DH ) );
 	return DH.Get();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getDescriptorHeap
-ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getDescriptorHeap( const RsDescriptorHeapShaderResourceDescD3D12& DHDesc )
+// getShaderResourceDescriptorHeap
+ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getShaderResourceDescriptorHeap( const RsDescriptorHeapShaderResourceDescArrayD3D12& DHDescs )
 {
-	auto FoundIt = ShaderResourceHeaps_.find( DHDesc );
+	auto FoundIt = ShaderResourceHeaps_.find( DHDescs );
 	if( FoundIt != ShaderResourceHeaps_.end() )
 	{
 		return FoundIt->second.Get();
@@ -114,26 +135,173 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getDescriptorHeap( const RsDes
 
 	ComPtr< ID3D12DescriptorHeap > DH;
 
-	// TODO: CREATE ONE!
+	D3D12_DESCRIPTOR_HEAP_DESC D3DDHDesc;
+	BcMemZero( &D3DDHDesc, sizeof( D3DDHDesc ) );
+	D3DDHDesc.Type = D3D12_CBV_SRV_UAV_DESCRIPTOR_HEAP;
+	D3DDHDesc.NumDescriptors = static_cast< UINT >( DHDescs.size() * RsDescriptorHeapShaderResourceDescD3D12::MAX_RESOURCES );
+	D3DDHDesc.Flags = D3D12_DESCRIPTOR_HEAP_SHADER_VISIBLE;
+	HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( DH.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
 
-	ShaderResourceHeaps_.insert( std::make_pair( DHDesc, DH ) );
+	auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3DDHDesc.Type );
+	auto BaseDHHandle = DH->GetCPUDescriptorHandleForHeapStart();
+
+	for( INT ShaderIdx = 0; ShaderIdx < DHDescs.size(); ++ShaderIdx )
+	{
+		const auto& DHDesc = DHDescs[ ShaderIdx ];
+		auto ShaderDHHandle = BaseDHHandle.MakeOffsetted( ShaderIdx, DescriptorSize * RsDescriptorHeapShaderResourceDescD3D12::MAX_RESOURCES );
+
+		for( INT SlotIdx = 0; SlotIdx < DHDesc.Textures_.size(); ++SlotIdx )
+		{
+			auto Texture = DHDesc.Textures_[ SlotIdx ];
+			if( Texture != nullptr )
+			{
+				auto SlotDHHandle = ShaderDHHandle.MakeOffsetted( RsDescriptorHeapShaderResourceDescD3D12::SRV_START + SlotIdx, DescriptorSize );
+				auto Resource = Texture->getHandle< RsResourceD3D12* >();
+				auto D3DResource = Resource->getInternalResource().Get();
+				const auto SRVDesc = getDefaultSRVDesc( Texture );
+				Device_->CreateShaderResourceView( D3DResource, &SRVDesc, SlotDHHandle );
+			}
+		}
+
+		for( INT SlotIdx = 0; SlotIdx < DHDesc.Buffers_.size(); ++SlotIdx )
+		{
+			auto Buffer = DHDesc.Buffers_[ SlotIdx ];
+			if( Buffer != nullptr )
+			{
+				auto SlotDHHandle = ShaderDHHandle.MakeOffsetted( RsDescriptorHeapShaderResourceDescD3D12::CBV_START + SlotIdx, DescriptorSize );
+				const auto CBVDesc = getDefaultCBVDesc( Buffer );
+				Device_->CreateConstantBufferView( &CBVDesc, SlotDHHandle );
+			}
+		}
+	}
+	ShaderResourceHeaps_.insert( std::make_pair( DHDescs, DH ) );
 	return DH.Get();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getDescriptorHeap
-ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getDescriptorHeap( const RsDescriptorHeapConstantBufferDescD3D12& DHDesc )
+// getSamplerDesc
+D3D12_SAMPLER_DESC RsDescriptorHeapCacheD3D12::getSamplerDesc( class RsSamplerState* SamplerState )
 {
-	auto FoundIt = ConstantBufferHeaps_.find( DHDesc );
-	if( FoundIt != ConstantBufferHeaps_.end() )
+	D3D12_SAMPLER_DESC OutDesc;
+	BcMemZero( &OutDesc, sizeof( OutDesc ) );
+
+	auto Desc = SamplerState->getDesc();
+
+	if( Desc.MinFilter_ == RsTextureFilteringMode::NEAREST &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
 	{
-		return FoundIt->second.Get();
+		OutDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::NEAREST_MIPMAP_LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		OutDesc.Filter = D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		OutDesc.Filter = D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::NEAREST )
+	{
+		OutDesc.Filter = D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::LINEAR )
+	{
+		OutDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
+		Desc.MagFilter_ == RsTextureFilteringMode::LINEAR )
+	{
+		OutDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else
+	{
+		// Fallback to something sensible.
+		OutDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 	}
 
-	ComPtr< ID3D12DescriptorHeap > DH;
+	OutDesc.AddressU = RsUtilsD3D12::GetTextureAddressMode( Desc.AddressU_ );
+	OutDesc.AddressV = RsUtilsD3D12::GetTextureAddressMode( Desc.AddressV_ );
+	OutDesc.AddressW = RsUtilsD3D12::GetTextureAddressMode( Desc.AddressW_ );
+	OutDesc.MipLODBias = 0.0f;
+	OutDesc.MaxAnisotropy = 1;
+	OutDesc.ComparisonFunc = D3D12_COMPARISON_NEVER;
+	OutDesc.BorderColor[ 0 ] = 0.0f;
+	OutDesc.BorderColor[ 1 ] = 0.0f;
+	OutDesc.BorderColor[ 2 ] = 0.0f;
+	OutDesc.BorderColor[ 3 ] = 0.0f;
+	OutDesc.MinLOD = -FLT_MAX;
+	OutDesc.MaxLOD = FLT_MAX;
 
-	// TODO: CREATE ONE!
+	return OutDesc;
+}
 
-	ConstantBufferHeaps_.insert( std::make_pair( DHDesc, DH ) );
-	return DH.Get();
+//////////////////////////////////////////////////////////////////////////
+// getDefaultSRVDesc
+D3D12_SHADER_RESOURCE_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultSRVDesc( class RsTexture* Texture )
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC OutDesc;
+	BcMemZero( &OutDesc, sizeof( OutDesc ) );
+	OutDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	const auto& TextureDesc = Texture->getDesc();
+
+	switch( TextureDesc.Type_ )
+	{
+	case RsTextureType::TEX1D:
+		{
+			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+			OutDesc.Texture1D.MipLevels = TextureDesc.Levels_;
+			OutDesc.Texture1D.MostDetailedMip = 0;
+		}
+		break;
+
+	case RsTextureType::TEX2D:
+		{
+			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			OutDesc.Texture2D.MipLevels = TextureDesc.Levels_;
+			OutDesc.Texture2D.MostDetailedMip = 0;
+		}
+		break;
+
+	case RsTextureType::TEX3D:
+		{
+			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.Texture3D.MipLevels = TextureDesc.Levels_;
+			OutDesc.Texture3D.MostDetailedMip = 0;
+		}
+		break;
+
+	case RsTextureType::TEXCUBE:
+		{
+			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.TextureCube.MipLevels = TextureDesc.Levels_;
+			OutDesc.TextureCube.MostDetailedMip = 0;
+		}
+		break;
+	}
+
+	return OutDesc;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getDefaultCBVDesc
+D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( class RsBuffer* Buffer )
+{
+	D3D12_CONSTANT_BUFFER_VIEW_DESC OutDesc;
+	BcMemZero( &OutDesc, sizeof( OutDesc ) );
+
+	const auto& BufferDesc = Buffer->getDesc();
+	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
+	auto D3DResource = Resource->getInternalResource().Get();
+	OutDesc.BufferLocation = D3DResource->GetGPUVirtualAddress();
+	OutDesc.SizeInBytes = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ) );
+	return OutDesc;
 }

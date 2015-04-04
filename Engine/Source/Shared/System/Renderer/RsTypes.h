@@ -421,10 +421,10 @@ enum class RsTopologyType : BcU32
 enum class RsShaderType : BcU32
 {
 	VERTEX,
+	PIXEL,
 	HULL,
 	DOMAIN,
 	GEOMETRY,
-	PIXEL,
 	COMPUTE,
 		
 	MAX,

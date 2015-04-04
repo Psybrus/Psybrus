@@ -247,7 +247,7 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	CommandList_(),
 	PresentFence_(),
 	FrameCounter_( 0 ),
-	FlushCounter_( 0 ),
+	FlushCounter_( 1 ),
 	NumSwapBuffers_( 1 ),
 	LastSwapBuffer_( 0 ),
 	BackBufferRT_( nullptr ),
@@ -256,6 +256,8 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	OwningThread_( BcErrorCode ),
 	ScreenshotRequested_( BcFalse )
 {
+	BcMemZero( &VertexBufferViews_, sizeof( VertexBufferViews_ ) );
+	BcMemZero( &IndexBufferView_, sizeof( IndexBufferView_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -577,7 +579,7 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 
 		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
 		{
-			SampleStateDescs_[ Idx ].SamplerStates_[ SlotIdx ] = SamplerState;
+			SamplerStateDescs_[ Idx ].SamplerStates_[ SlotIdx ] = SamplerState;
 		}
 	}
 	
@@ -670,7 +672,7 @@ void RsContextD3D12::setUniformBuffer(
 
 		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
 		{
-			ConstantBufferDescs_[ Idx ].ConstantBuffers_[ SlotIdx ] = UniformBuffer;
+			ShaderResourceDescs_[ Idx ].Buffers_[ SlotIdx ] = UniformBuffer;
 		}
 	}
 }
@@ -810,7 +812,7 @@ bool RsContextD3D12::createBuffer(
 	// Should have a single large upload heap, an upload command list,
 	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
 	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_UPLOAD );
-	CD3D12_RESOURCE_DESC ResourceDesc( CD3D12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_MISC_NONE ) );
+	CD3D12_RESOURCE_DESC ResourceDesc( CD3D12_RESOURCE_DESC::Buffer( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ), D3D12_RESOURCE_MISC_NONE ) );
 
 	ComPtr< ID3D12Resource > D3DResource;
 	RetVal = Device_->CreateCommittedResource( 
@@ -1157,6 +1159,57 @@ void RsContextD3D12::flushState()
 		BcAssert( CommandList_ );
 		CommandList_->SetPipelineState( GraphicsPS );
 	}
+
+	// Get descriptor sets from cache.
+	std::array< ID3D12DescriptorHeap*, 2 > DescriptorHeaps;
+	DescriptorHeaps[ 0 ] = DHCache_->getSamplersDescriptorHeap( SamplerStateDescs_ );
+	DescriptorHeaps[ 1 ] = DHCache_->getShaderResourceDescriptorHeap( ShaderResourceDescs_ );
+
+	CommandList_->SetDescriptorHeaps( DescriptorHeaps.data(), static_cast< UINT >( DescriptorHeaps.size() ) );
+
+	// Set the descriptor tables.
+	auto BaseSamplerDHHandle = DescriptorHeaps[ 0 ]->GetGPUDescriptorHandleForHeapStart();
+	auto SamplerDescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3D12_SAMPLER_DESCRIPTOR_HEAP );
+	auto BaseShaderResourceDHHandle = DescriptorHeaps[ 1 ]->GetGPUDescriptorHandleForHeapStart();
+	auto ShaderResourceDescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3D12_CBV_SRV_UAV_DESCRIPTOR_HEAP );
+
+	UINT RootDescirptorIdx = 0;
+	for( INT ShaderIdx = 0; ShaderIdx < 5; ++ShaderIdx )
+	{
+		// Samplers.
+		CommandList_->SetGraphicsRootDescriptorTable( 
+			RootDescirptorIdx++, BaseSamplerDHHandle );
+		BaseSamplerDHHandle.Offset( RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS, SamplerDescriptorSize );
+
+		// Shader resource views.
+		CommandList_->SetGraphicsRootDescriptorTable( 
+			RootDescirptorIdx++, BaseShaderResourceDHHandle );
+		BaseShaderResourceDHHandle.Offset( RsDescriptorHeapShaderResourceDescD3D12::MAX_SRVS, ShaderResourceDescriptorSize );
+
+		// Constant buffer views.
+		CommandList_->SetGraphicsRootDescriptorTable( 
+			RootDescirptorIdx++, BaseShaderResourceDHHandle );
+		BaseShaderResourceDHHandle.Offset( RsDescriptorHeapShaderResourceDescD3D12::MAX_CBVS, ShaderResourceDescriptorSize );
+	}
+
+	// Setup primitive, index buffer, and vertex buffers.
+	if( GraphicsPSODesc_.Topology_ != RsTopologyType::INVALID )
+	{
+		CommandList_->IASetPrimitiveTopology( RsUtilsD3D12::GetPrimitiveTopology( GraphicsPSODesc_.Topology_ ) );
+	}
+
+	if( IndexBufferView_.BufferLocation != 0 )
+	{
+		CommandList_->SetIndexBuffer( &IndexBufferView_ );
+	}
+
+	for( UINT Idx = 0; Idx < VertexBufferViews_.size(); ++Idx )
+	{
+		if( VertexBufferViews_[ Idx ].BufferLocation != 0 )
+		{
+			CommandList_->SetVertexBuffers( Idx, &VertexBufferViews_[ Idx ], 1 ); 
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1250,9 +1303,9 @@ void RsContextD3D12::createDefaultRootSignature()
 	ComPtr< ID3DBlob > OutBlob, ErrorBlob;
 
 	std::array< D3D12_DESCRIPTOR_RANGE, 3 > DescriptorRanges;
-	DescriptorRanges[0].Init( D3D12_DESCRIPTOR_RANGE_SRV, 32, 0 );
-	DescriptorRanges[1].Init( D3D12_DESCRIPTOR_RANGE_CBV, 8, 0 );
-	DescriptorRanges[2].Init( D3D12_DESCRIPTOR_RANGE_SAMPLER, 32, 0 );
+	DescriptorRanges[0].Init( D3D12_DESCRIPTOR_RANGE_SAMPLER, RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS, 0 );
+	DescriptorRanges[1].Init( D3D12_DESCRIPTOR_RANGE_SRV, RsDescriptorHeapShaderResourceDescD3D12::MAX_SRVS, 0 );
+	DescriptorRanges[2].Init( D3D12_DESCRIPTOR_RANGE_CBV, RsDescriptorHeapShaderResourceDescD3D12::MAX_CBVS, 0 );
 
 	std::array< D3D12_ROOT_PARAMETER, 15 > Parameters;
 	Parameters[0].InitAsDescriptorTable( 1, &DescriptorRanges[0], D3D12_SHADER_VISIBILITY_VERTEX );
