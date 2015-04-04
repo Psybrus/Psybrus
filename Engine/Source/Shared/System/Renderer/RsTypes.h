@@ -257,6 +257,8 @@ enum class RsVertexUsage : BcU32
 // Texture Format
 enum class RsTextureFormat : BcU32
 {
+	UNKNOWN,
+
 	// Colour.
 	R8,
 	R8G8,

@@ -53,6 +53,8 @@ static const D3D11_BIND_FLAG gBufferType[] =
 // Texture formats
 static const DXGI_FORMAT gTextureFormats[] =
 {
+	DXGI_FORMAT_UNKNOWN,
+
 	// Colour.
 	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
 	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
@@ -80,6 +82,8 @@ static const DXGI_FORMAT gTextureFormats[] =
 // Depth stencil view formats.
 static const DXGI_FORMAT gDSVFormats[] =
 {
+	DXGI_FORMAT_UNKNOWN,
+
 	// Colour.
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8,
@@ -107,6 +111,8 @@ static const DXGI_FORMAT gDSVFormats[] =
 // Shader resource view formats.
 static const DXGI_FORMAT gSRVFormats[] = 
 {
+	DXGI_FORMAT_UNKNOWN,
+
 	// Colour.
 	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
 	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,

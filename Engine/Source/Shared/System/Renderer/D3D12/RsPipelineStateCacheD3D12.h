@@ -52,7 +52,9 @@ public:
 	/**
 	 *	@return New, or existing pipeline state.
 	 */
-	ID3D12PipelineState* getPipelineState( const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc );
+	ID3D12PipelineState* getPipelineState( 
+		const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc,
+		ID3D12RootSignature* RootSignature );
 	
 private:
 	using GraphicsPSMap = std::unordered_map< RsGraphicsPipelineStateDescD3D12, ComPtr< ID3D12PipelineState > >;

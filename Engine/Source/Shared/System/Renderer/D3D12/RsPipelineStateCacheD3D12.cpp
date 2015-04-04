@@ -1,6 +1,10 @@
 #include "System/Renderer/D3D12/RsPipelineStateCacheD3D12.h"
+#include "System/Renderer/D3D12/RsUtilsD3D12.h"
 
+#include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsShader.h"
+#include "System/Renderer/RsVertexDeclaration.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -8,8 +12,8 @@
 RsFrameBufferFormatDescD3D12::RsFrameBufferFormatDescD3D12():
 	NumRenderTargets_( 0 )
 {
-	RTVFormats_.fill( RsTextureFormat::R8G8B8A8 );
-	DSVFormat_ = RsTextureFormat::D24S8;
+	RTVFormats_.fill( RsTextureFormat::UNKNOWN );
+	DSVFormat_ = RsTextureFormat::UNKNOWN;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,7 +82,9 @@ RsPipelineStateCacheD3D12::~RsPipelineStateCacheD3D12()
 
 //////////////////////////////////////////////////////////////////////////
 // getPipelineState
-ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState( const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc )
+ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState( 
+		const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc,
+		ID3D12RootSignature* RootSignature )
 {
 	auto FoundIt = GraphicsPSMap_.find( GraphicsPSDesc );
 	if( FoundIt != GraphicsPSMap_.end() )
@@ -86,11 +92,156 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState( const RsGraphi
 		return FoundIt->second.Get();
 	}
 
+	if( GraphicsPSDesc.Topology_ == RsTopologyType::INVALID ||
+		GraphicsPSDesc.VertexDeclaration_ == nullptr ||
+		GraphicsPSDesc.Program_ == nullptr ||
+		GraphicsPSDesc.RenderState_ == nullptr )
+	{
+		return nullptr;
+	}
+
+	// Setup input elements.
+	const auto& Desc = GraphicsPSDesc.VertexDeclaration_->getDesc();
+	const auto& VertexAttributes = GraphicsPSDesc.Program_->getVertexAttributeList();
+
+	// Create input layout for current setup.
+	// For missing vertex attributes, we just fudge them to be zero offset.
+	std::vector< D3D12_INPUT_ELEMENT_DESC > ElementDescs;
+	ElementDescs.reserve( Desc.Elements_.size() );
+
+	for( const auto& VertexAttribute : VertexAttributes )
+	{
+		auto FoundElement = std::find_if( Desc.Elements_.begin(), Desc.Elements_.end(),
+			[ & ]( const RsVertexElement& Element )
+			{
+				return ( Element.Usage_ == VertexAttribute.Usage_ &&
+					Element.UsageIdx_ == VertexAttribute.UsageIdx_ );
+			} );
+
+		// Force to an element with zero offset if we can't find a valid one.
+		// TODO: Find a better approach.
+		if( FoundElement == Desc.Elements_.end() )
+		{
+			FoundElement = std::find_if( Desc.Elements_.begin(), Desc.Elements_.end(),
+			[ & ]( const RsVertexElement& Element )
+			{
+				return Element.Offset_ == 0;
+			} );
+		}
+
+		D3D12_INPUT_ELEMENT_DESC ElementDesc;
+		ElementDesc.SemanticName = RsUtilsD3D12::GetSemanticName( VertexAttribute.Usage_ );
+		ElementDesc.SemanticIndex = VertexAttribute.UsageIdx_;
+		ElementDesc.Format = RsUtilsD3D12::GetVertexElementFormat( *FoundElement );
+		ElementDesc.InputSlot = FoundElement->StreamIdx_;
+		ElementDesc.AlignedByteOffset = FoundElement->Offset_;
+		ElementDesc.InputSlotClass = D3D12_INPUT_PER_VERTEX_DATA; // TODO: Instancing support.
+		ElementDesc.InstanceDataStepRate = 0;
+		ElementDescs.push_back( ElementDesc );
+	}
+		
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC PSODesc = {};
+	BcMemZero( &PSODesc, sizeof( PSODesc ) );
+
+	PSODesc.PrimitiveTopologyType = RsUtilsD3D12::GetPrimitiveTopologyType( GraphicsPSDesc.Topology_ );
+	PSODesc.InputLayout.NumElements = static_cast< UINT >( ElementDescs.size() );
+	PSODesc.InputLayout.pInputElementDescs = ElementDescs.data();
+
+	const auto & Shaders = GraphicsPSDesc.Program_->getShaders();
+	for( const auto * Shader : Shaders )
+	{
+		auto Desc = Shader->getDesc();
+		switch( Desc.ShaderType_ )
+		{
+		case RsShaderType::VERTEX:
+			PSODesc.VS.pShaderBytecode = Shader->getData();
+			PSODesc.VS.BytecodeLength= Shader->getDataSize();
+			break;
+		case RsShaderType::PIXEL:
+			PSODesc.PS.pShaderBytecode = Shader->getData();
+			PSODesc.PS.BytecodeLength= Shader->getDataSize();
+			break;
+		case RsShaderType::HULL:
+			PSODesc.HS.pShaderBytecode = Shader->getData();
+			PSODesc.HS.BytecodeLength= Shader->getDataSize();
+			break;
+		case RsShaderType::DOMAIN:
+			PSODesc.DS.pShaderBytecode = Shader->getData();
+			PSODesc.DS.BytecodeLength= Shader->getDataSize();
+			break;
+		case RsShaderType::GEOMETRY:
+			PSODesc.GS.pShaderBytecode = Shader->getData();
+			PSODesc.GS.BytecodeLength= Shader->getDataSize();
+			break;
+		}
+	}
+
+	PSODesc.pRootSignature = RootSignature;
+
+	{
+		// Blend state.
+		const auto& Desc = GraphicsPSDesc.RenderState_->getDesc();
+		PSODesc.BlendState.AlphaToCoverageEnable = FALSE;
+		PSODesc.BlendState.IndependentBlendEnable = TRUE;
+		for( size_t Idx = 0; Idx < Desc.BlendState_.RenderTarget_.size(); ++Idx )
+		{
+			auto SrcBlendState = Desc.BlendState_.RenderTarget_[ Idx ];
+			PSODesc.BlendState.RenderTarget[ Idx ].BlendEnable = SrcBlendState.Enable_ ? TRUE : FALSE;
+			PSODesc.BlendState.RenderTarget[ Idx ].SrcBlend = RsUtilsD3D12::GetBlend( SrcBlendState.SrcBlend_ );
+			PSODesc.BlendState.RenderTarget[ Idx ].DestBlend = RsUtilsD3D12::GetBlend( SrcBlendState.DestBlend_ );
+			PSODesc.BlendState.RenderTarget[ Idx ].BlendOp = RsUtilsD3D12::GetBlendOp( SrcBlendState.BlendOp_ );
+			PSODesc.BlendState.RenderTarget[ Idx ].SrcBlendAlpha = RsUtilsD3D12::GetBlend( SrcBlendState.SrcBlendAlpha_ );
+			PSODesc.BlendState.RenderTarget[ Idx ].DestBlendAlpha = RsUtilsD3D12::GetBlend( SrcBlendState.DestBlendAlpha_ );
+			PSODesc.BlendState.RenderTarget[ Idx ].BlendOpAlpha = RsUtilsD3D12::GetBlendOp( SrcBlendState.BlendOpAlpha_ );
+			PSODesc.BlendState.RenderTarget[ Idx ].RenderTargetWriteMask = SrcBlendState.WriteMask_;
+		}
+
+		// Rasterizer state.
+		auto SrcRasterizerState = Desc.RasteriserState_;
+		PSODesc.RasterizerState.FillMode = RsUtilsD3D12::GetFillMode( SrcRasterizerState.FillMode_ );
+		PSODesc.RasterizerState.CullMode = RsUtilsD3D12::GetCullMode( SrcRasterizerState.CullMode_ );
+		PSODesc.RasterizerState.DepthBias = (INT)SrcRasterizerState.DepthBias_;
+		PSODesc.RasterizerState.SlopeScaledDepthBias = SrcRasterizerState.SlopeScaledDepthBias_;
+		PSODesc.RasterizerState.DepthClipEnable = SrcRasterizerState.DepthClipEnable_ ? TRUE : FALSE;
+		//PSODesc.RasterizerState.ScissorEnable = SrcRasterizerState.ScissorEnable_ ? TRUE : FALSE;
+		PSODesc.RasterizerState.AntialiasedLineEnable = SrcRasterizerState.AntialiasedLineEnable_ ? TRUE : FALSE;
+
+		// Depth stencil state.
+		auto SrcDepthStencilState = Desc.DepthStencilState_;
+		PSODesc.DepthStencilState.DepthEnable = SrcDepthStencilState.DepthTestEnable_ ? TRUE : FALSE;
+		PSODesc.DepthStencilState.DepthWriteMask = SrcDepthStencilState.DepthWriteEnable_ ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+		PSODesc.DepthStencilState.DepthFunc = RsUtilsD3D12::GetComparisonFunc( SrcDepthStencilState.DepthFunc_ );
+		PSODesc.DepthStencilState.StencilEnable = SrcDepthStencilState.StencilEnable_ ? TRUE : FALSE;
+		PSODesc.DepthStencilState.StencilReadMask = SrcDepthStencilState.StencilRead_;
+		PSODesc.DepthStencilState.StencilWriteMask = SrcDepthStencilState.StencilWrite_;
+		PSODesc.DepthStencilState.FrontFace.StencilFailOp = RsUtilsD3D12::GetStencilOp( SrcDepthStencilState.StencilFront_.Fail_ );
+		PSODesc.DepthStencilState.FrontFace.StencilDepthFailOp = RsUtilsD3D12::GetStencilOp( SrcDepthStencilState.StencilFront_.DepthFail_ );
+		PSODesc.DepthStencilState.FrontFace.StencilPassOp = RsUtilsD3D12::GetStencilOp( SrcDepthStencilState.StencilFront_.Pass_ );
+		PSODesc.DepthStencilState.FrontFace.StencilFunc = RsUtilsD3D12::GetComparisonFunc( SrcDepthStencilState.StencilFront_.Func_ );
+		PSODesc.DepthStencilState.BackFace.StencilFailOp = RsUtilsD3D12::GetStencilOp( SrcDepthStencilState.StencilBack_.Fail_ );
+		PSODesc.DepthStencilState.BackFace.StencilDepthFailOp = RsUtilsD3D12::GetStencilOp( SrcDepthStencilState.StencilBack_.DepthFail_ );
+		PSODesc.DepthStencilState.BackFace.StencilPassOp = RsUtilsD3D12::GetStencilOp( SrcDepthStencilState.StencilBack_.Pass_ );
+		PSODesc.DepthStencilState.BackFace.StencilFunc = RsUtilsD3D12::GetComparisonFunc( SrcDepthStencilState.StencilBack_.Func_ );
+	}
+
+	PSODesc.NumRenderTargets = static_cast< UINT >( GraphicsPSDesc.FrameBufferFormatDesc_.NumRenderTargets_ );
+	for( size_t Idx = 0; Idx < 8; ++Idx )
+	{
+		PSODesc.RTVFormats[ Idx ] = 
+			RsUtilsD3D12::GetTextureFormat( GraphicsPSDesc.FrameBufferFormatDesc_.RTVFormats_[ Idx ] ).RTVFormat_;
+	}
+	PSODesc.DSVFormat = 
+		RsUtilsD3D12::GetTextureFormat( GraphicsPSDesc.FrameBufferFormatDesc_.DSVFormat_ ).DSVFormat_;
+
+	PSODesc.SampleDesc.Count = 1;
+	PSODesc.SampleDesc.Quality = 0;
+
 	// Construct a new graphics pipeline state.
 	ComPtr< ID3D12PipelineState > GraphicsPS;
-	
-	
-	
+
+	HRESULT RetVal = Device_->CreateGraphicsPipelineState( &PSODesc, IID_PPV_ARGS( GraphicsPS.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+		
 	// Add to map & return.
 	GraphicsPSMap_.insert( std::make_pair( GraphicsPSDesc, GraphicsPS ) );
 	return GraphicsPS.Get();

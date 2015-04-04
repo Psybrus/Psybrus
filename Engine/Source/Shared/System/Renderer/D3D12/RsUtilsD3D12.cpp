@@ -7,6 +7,10 @@ namespace
 {
 	const RsTextureFormatD3D12 GTextureFormats[] =
 	{
+		// Unknown.
+		{ RsTextureFormat::UNKNOWN,
+			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_UNKNOWN },
+
 		// Colour.
 		{ RsTextureFormat::R8,					
 			DXGI_FORMAT_R8_UNORM,			DXGI_FORMAT_UNKNOWN,			DXGI_FORMAT_R8_UNORM },
@@ -80,6 +84,92 @@ namespace
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,				// RsTopologyType::TRIANGLE_FAN,
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH,				// RsTopologyType::PATCHES,
+	};
+
+	static const D3D12_FILL_MODE GFillMode[] =
+	{
+		D3D12_FILL_SOLID,
+		D3D12_FILL_WIREFRAME,
+	};
+
+	static const D3D12_CULL_MODE GCullMode[] =
+	{
+		D3D12_CULL_NONE,
+		D3D12_CULL_BACK,
+		D3D12_CULL_FRONT,
+	};
+
+	static const D3D12_COMPARISON_FUNC GComparisonFunc[] =
+	{
+		D3D12_COMPARISON_NEVER,			// RsCompareMode::NEVER,
+		D3D12_COMPARISON_LESS,			// RsCompareMode::LESS,
+		D3D12_COMPARISON_EQUAL,			// RsCompareMode::EQUAL,
+		D3D12_COMPARISON_LESS_EQUAL,	// RsCompareMode::LESSEQUAL,
+		D3D12_COMPARISON_GREATER,		// RsCompareMode::GREATER,
+		D3D12_COMPARISON_NOT_EQUAL,		// RsCompareMode::NOTEQUAL,
+		D3D12_COMPARISON_GREATER_EQUAL, // RsCompareMode::GREATEREQUAL,
+		D3D12_COMPARISON_ALWAYS,		// RsCompareMode::ALWAYS,
+	};
+
+	static const D3D12_STENCIL_OP GStencilOp[] =
+	{
+		D3D12_STENCIL_OP_KEEP,			// RsStencilOp::KEEP,
+		D3D12_STENCIL_OP_ZERO,			// RsStencilOp::ZERO,
+		D3D12_STENCIL_OP_REPLACE,		// RsStencilOp::REPLACE,
+		D3D12_STENCIL_OP_INCR_SAT,		// RsStencilOp::INCR,
+		D3D12_STENCIL_OP_INCR,			// RsStencilOp::INCR_WRAP,
+		D3D12_STENCIL_OP_DECR_SAT,		// RsStencilOp::DECR,
+		D3D12_STENCIL_OP_DECR,			// RsStencilOp::DECR_WRAP,
+		D3D12_STENCIL_OP_INVERT,		// RsStencilOp::INVERT,
+	};
+
+	static const D3D12_TEXTURE_ADDRESS_MODE GTextureAddressMode[] =
+	{
+		D3D12_TEXTURE_ADDRESS_WRAP,		// RsTextureSamplingMode::WRAP
+		D3D12_TEXTURE_ADDRESS_MIRROR,	// RsTextureSamplingMode::MIRROR
+		D3D12_TEXTURE_ADDRESS_CLAMP,	// RsTextureSamplingMode::CLAMP
+		D3D12_TEXTURE_ADDRESS_BORDER,	// RsTextureSamplingMode::DECAL
+	};
+
+	static const D3D12_BLEND GBlend[] =
+	{
+		D3D12_BLEND_ZERO,
+		D3D12_BLEND_ONE,
+		D3D12_BLEND_SRC_COLOR,
+		D3D12_BLEND_INV_SRC_COLOR,
+		D3D12_BLEND_SRC_ALPHA,
+		D3D12_BLEND_INV_SRC_ALPHA,
+		D3D12_BLEND_DEST_COLOR,
+		D3D12_BLEND_INV_DEST_COLOR,
+		D3D12_BLEND_DEST_ALPHA,
+		D3D12_BLEND_INV_DEST_ALPHA,
+	};
+
+	static const D3D12_BLEND_OP GBlendOp[] =
+	{
+		D3D12_BLEND_OP_ADD,
+		D3D12_BLEND_OP_SUBTRACT,
+		D3D12_BLEND_OP_REV_SUBTRACT,
+		D3D12_BLEND_OP_MIN,
+		D3D12_BLEND_OP_MAX,
+	};
+
+	static const LPCSTR GSemanticName[] =
+	{
+		"POSITION",					// RsVertexUsage::POSITION,
+		"BLENDWEIGHTS",				// RsVertexUsage::BLENDWEIGHTS,
+		"BLENDINDICES",				// RsVertexUsage::BLENDINDICES,
+		"NORMAL",					// RsVertexUsage::NORMAL,
+		"PSIZE",					// RsVertexUsage::PSIZE,
+		"TEXCOORD",					// RsVertexUsage::TEXCOORD,
+		"TANGENT",					// RsVertexUsage::TANGENT,
+		"BINORMAL",					// RsVertexUsage::BINORMAL,
+		"TESSFACTOR",				// RsVertexUsage::TESSFACTOR,
+		"POSITIONT",				// RsVertexUsage::POSITIONT,
+		"COLOR",					// RsVertexUsage::COLOUR,
+		"FOG",						// RsVertexUsage::FOG,
+		"DEPTH",					// RsVertexUsage::DEPTH,
+		"SAMPLE",					// RsVertexUsage::SAMPLE,
 	};
 }
 
@@ -164,4 +254,155 @@ const D3D12_RESOURCE_USAGE RsUtilsD3D12::GetResourceUsage( RsResourceBindFlags B
 	}
 
 	return static_cast< D3D12_RESOURCE_USAGE >( AllowedUsage );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetFillMode
+//static
+const D3D12_FILL_MODE RsUtilsD3D12::GetFillMode( RsFillMode FillMode )
+{
+	return GFillMode[ (size_t)FillMode ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetCullMode
+//static
+const D3D12_CULL_MODE RsUtilsD3D12::GetCullMode( RsCullMode CullMode )
+{
+	return GCullMode[ (size_t)CullMode ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetComparisonFunc
+//static
+const D3D12_COMPARISON_FUNC RsUtilsD3D12::GetComparisonFunc( RsCompareMode CompareMode )
+{
+	return GComparisonFunc[ (size_t)CompareMode ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetStencilOp
+//static
+const D3D12_STENCIL_OP RsUtilsD3D12::GetStencilOp( RsStencilOp StencilOp )
+{
+	return GStencilOp[ (size_t)StencilOp ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetTextureAddressMode
+//static
+const D3D12_TEXTURE_ADDRESS_MODE RsUtilsD3D12::GetTextureAddressMode( RsTextureSamplingMode TextureAddressMode )
+{
+	return GTextureAddressMode[ (size_t)TextureAddressMode ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetBlend
+//static
+const D3D12_BLEND RsUtilsD3D12::GetBlend( RsBlendType BlendType )
+{
+	return GBlend[ (size_t)BlendType ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetVertexElementFormat
+//static
+const D3D12_BLEND_OP RsUtilsD3D12::GetBlendOp( RsBlendOp BlendOp )
+{
+	return GBlendOp[ (size_t)BlendOp ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetVertexElementFormat
+//static 
+const DXGI_FORMAT RsUtilsD3D12::GetVertexElementFormat( RsVertexElement Element )
+{
+	DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
+	switch( Element.DataType_ )
+	{
+	case RsVertexDataType::FLOAT32:
+		if( Element.Components_ == 1 )
+			Format = DXGI_FORMAT_R32_FLOAT;
+		else if( Element.Components_ == 2 )
+			Format = DXGI_FORMAT_R32G32_FLOAT;
+		else if( Element.Components_ == 3 )
+			Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		else if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		break;
+	case RsVertexDataType::FLOAT16:
+		if( Element.Components_ == 1 )
+			Format = DXGI_FORMAT_R16_FLOAT;
+		else if( Element.Components_ == 2 )
+			Format = DXGI_FORMAT_R16G16_FLOAT;
+		else if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		break;
+	case RsVertexDataType::BYTE:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R8G8B8A8_SINT;
+		break;
+	case RsVertexDataType::BYTE_NORM:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R8G8B8A8_SNORM;
+		break;
+	case RsVertexDataType::UBYTE:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R8G8B8A8_UINT;
+		break;
+	case RsVertexDataType::UBYTE_NORM:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case RsVertexDataType::SHORT:
+		if( Element.Components_ == 2 )
+			Format = DXGI_FORMAT_R16G16_SINT;
+		else if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_SINT;
+		break;
+	case RsVertexDataType::SHORT_NORM:
+		if( Element.Components_ == 2 )
+			Format = DXGI_FORMAT_R16G16_SNORM;
+		else if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_SNORM;
+		break;
+	case RsVertexDataType::USHORT:
+		if( Element.Components_ == 2 )
+			Format = DXGI_FORMAT_R16G16_UINT;
+		else if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_UINT;
+		break;
+	case RsVertexDataType::USHORT_NORM:
+		if( Element.Components_ == 2 )
+			Format = DXGI_FORMAT_R16G16_UNORM;
+		else if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+		break;
+	case RsVertexDataType::INT:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_SINT;
+		break;
+	case RsVertexDataType::INT_NORM:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_SNORM;
+		break;
+	case RsVertexDataType::UINT:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_UINT;
+		break;
+	case RsVertexDataType::UINT_NORM:
+		if( Element.Components_ == 4 )
+			Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+		break;
+	}
+
+	return Format;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetVertexElementFormat
+//static 
+LPCSTR RsUtilsD3D12::GetSemanticName( RsVertexUsage Usage )
+{
+	return GSemanticName[ (size_t)Usage ];
 }

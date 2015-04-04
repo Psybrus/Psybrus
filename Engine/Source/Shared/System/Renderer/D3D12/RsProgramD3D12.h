@@ -8,6 +8,11 @@
 class RsProgramD3D12
 {
 public:
+	static const BcU32 NoofBindPoints = 32;
+	static const BcU32 MaxBindPoints = NoofBindPoints - 1;
+	static const BcU32 BitsPerShader = 5; // Up to 32 bindings.
+
+public:
 	RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device );
 	~RsProgramD3D12();
 

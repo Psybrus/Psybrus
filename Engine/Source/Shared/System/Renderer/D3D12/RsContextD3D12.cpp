@@ -232,11 +232,6 @@ namespace
 
 		return Format;
 	}
-
-
-	const BcU32 NoofBindPoints = 32;
-	const BcU32 MaxBindPoints = NoofBindPoints - 1;
-	const BcU32 BitsPerShader = 5; // Up to 32 bindings.
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1085,124 +1080,8 @@ bool RsContextD3D12::destroyShader(
 bool RsContextD3D12::createProgram(
 	class RsProgram* Program )
 {
-	// TODO: Look up also by type, size, and flags. Not just name.
-	// TODO: Do this work offline.
-	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
-	ResourceHandleMapping SamplerBindings;
-	ResourceHandleMapping TextureBindings;
-	ResourceHandleMapping ConstantBufferBindings;
-	ResourceHandleMapping ConstantBufferSizes;
-
-	// Iterate over shaders and setup handles for all constant
-	// buffers and shader resources.
-	for( auto* Shader : Program->getShaders() )
-	{
-		const auto& ShaderDesc = Shader->getDesc();
-		ID3D12ShaderReflection* Reflector = nullptr; 
-		D3DReflect( Shader->getData(), Shader->getDataSize(),
-			IID_ID3D12ShaderReflection, (void**)&Reflector );
-
-		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
-		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
-
-		// Just iterate over a big number...we'll assert if we go over.
-		for( BcU32 Idx = 0; Idx < 128; ++Idx )
-		{
-			D3D12_SHADER_INPUT_BIND_DESC BindDesc;
-			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
-			{
-				// Validate.
-				BcAssert( 
-					BindDesc.BindPoint < MaxBindPoints && 
-					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
-
-				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER ||
-					BindDesc.Type == D3D_SIT_TBUFFER )
-				{
-					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
-					{
-						ConstantBufferBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
-					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
-					
-					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
-					D3D12_SHADER_BUFFER_DESC BufferDesc;
-					ConstantBuffer->GetDesc( &BufferDesc );
-					if( Size != 0 )
-					{
-						BcAssert( BufferDesc.Size == Size );
-					}
-
-
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					Size = BufferDesc.Size;
-					ConstantBufferBindings[ BindDesc.Name ] = Handle;
-					ConstantBufferSizes[ BindDesc.Name ] = Size;
-				}
-				else if( BindDesc.Type == D3D_SIT_TEXTURE )
-				{
-					if( TextureBindings.find( BindDesc.Name ) == TextureBindings.end() )
-					{
-						TextureBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = TextureBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					TextureBindings[ BindDesc.Name ] = Handle;
-				}
-				else if( BindDesc.Type == D3D_SIT_SAMPLER )
-				{
-					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
-					{
-						SamplerBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					SamplerBindings[ BindDesc.Name ] = Handle;
-				}
-				else
-				{
-					// TOOD.
-				}
-			}
-		}
-	}
-
-	// Add all constant buffer bindings
-	for( const auto& ConstantBuffer : ConstantBufferBindings )
-	{
-		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
-		auto Class = ReManager::GetClass( ConstantBuffer.first );
-		BcAssert( Class->getSize() == Size );
-		Program->addUniformBufferSlot( 
-			ConstantBuffer.first,
-			ConstantBuffer.second,
-			Class );
-	}
-
-	// Add all sampler bindings
-	for( const auto& Sampler : SamplerBindings )
-	{
-		Program->addSamplerSlot( 
-			Sampler.first,
-			Sampler.second );
-	}
-
-	// Add all texture bindings
-	for( const auto& Texture : TextureBindings )
-	{
-		Program->addTextureSlot( 
-			Texture.first,
-			Texture.second );
-	}
-
 	// Create storage class for program.
 	Program->setHandle( new RsProgramD3D12( Program, Device_.Get() ) );
-
 	return true;
 }
 
@@ -1256,7 +1135,7 @@ void RsContextD3D12::flushState()
 
 	// Get current pipeline state.
 	ID3D12PipelineState* GraphicsPS = nullptr;
-	GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_ );
+	GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_, DefaultRootSignature_.Get() );
 
 	// If null, just use default (bad)
 	if( GraphicsPS == nullptr )
@@ -1327,13 +1206,44 @@ void RsContextD3D12::createDefaultRootSignature()
 	HRESULT RetVal = E_FAIL;
 	ComPtr< ID3DBlob > OutBlob, ErrorBlob;
 
-	//D3D12_ROOT_PARAMETER RTVParameter;
-	//D3D12_ROOT_PARAMETER DSVParameter;
+	std::array< D3D12_DESCRIPTOR_RANGE, 3 > DescriptorRanges;
+	DescriptorRanges[0].Init( D3D12_DESCRIPTOR_RANGE_SRV, 32, 0 );
+	DescriptorRanges[1].Init( D3D12_DESCRIPTOR_RANGE_CBV, 8, 0 );
+	DescriptorRanges[2].Init( D3D12_DESCRIPTOR_RANGE_SAMPLER, 32, 0 );
 
+	std::array< D3D12_ROOT_PARAMETER, 15 > Parameters;
+	Parameters[0].InitAsDescriptorTable( 1, &DescriptorRanges[0], D3D12_SHADER_VISIBILITY_VERTEX );
+	Parameters[1].InitAsDescriptorTable( 1, &DescriptorRanges[1], D3D12_SHADER_VISIBILITY_VERTEX );
+	Parameters[2].InitAsDescriptorTable( 1, &DescriptorRanges[2], D3D12_SHADER_VISIBILITY_VERTEX );
+
+	Parameters[3].InitAsDescriptorTable( 1, &DescriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL );
+	Parameters[4].InitAsDescriptorTable( 1, &DescriptorRanges[1], D3D12_SHADER_VISIBILITY_PIXEL );
+	Parameters[5].InitAsDescriptorTable( 1, &DescriptorRanges[2], D3D12_SHADER_VISIBILITY_PIXEL );
+
+	Parameters[6].InitAsDescriptorTable( 1, &DescriptorRanges[0], D3D12_SHADER_VISIBILITY_HULL );
+	Parameters[7].InitAsDescriptorTable( 1, &DescriptorRanges[1], D3D12_SHADER_VISIBILITY_HULL );
+	Parameters[8].InitAsDescriptorTable( 1, &DescriptorRanges[2], D3D12_SHADER_VISIBILITY_HULL );
+
+	Parameters[9].InitAsDescriptorTable( 1, &DescriptorRanges[0], D3D12_SHADER_VISIBILITY_DOMAIN );
+	Parameters[10].InitAsDescriptorTable( 1, &DescriptorRanges[1], D3D12_SHADER_VISIBILITY_DOMAIN );
+	Parameters[11].InitAsDescriptorTable( 1, &DescriptorRanges[2], D3D12_SHADER_VISIBILITY_DOMAIN );
+
+	Parameters[12].InitAsDescriptorTable( 1, &DescriptorRanges[0], D3D12_SHADER_VISIBILITY_GEOMETRY );
+	Parameters[13].InitAsDescriptorTable( 1, &DescriptorRanges[1], D3D12_SHADER_VISIBILITY_GEOMETRY );
+	Parameters[14].InitAsDescriptorTable( 1, &DescriptorRanges[2], D3D12_SHADER_VISIBILITY_GEOMETRY );
+	
 	D3D12_ROOT_SIGNATURE RootSignatureDesc;
-	RootSignatureDesc.Init( 0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
+	RootSignatureDesc.Init( 
+		static_cast< UINT >( Parameters.size() ), Parameters.data(), 
+		0, nullptr, 
+		D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
 	RetVal = D3D12SerializeRootSignature( &RootSignatureDesc, D3D_ROOT_SIGNATURE_V1, OutBlob.GetAddressOf(), ErrorBlob.GetAddressOf() );
-	BcAssert( SUCCEEDED( RetVal ) );
+	if( FAILED( RetVal ) )
+	{
+		const void* BufferData = ErrorBlob->GetBufferPointer();
+		PSY_LOG( reinterpret_cast< const char * >( BufferData ) );
+		BcBreakpoint;
+	}
 	RetVal = Device_->CreateRootSignature( 0, OutBlob->GetBufferPointer(), OutBlob->GetBufferSize(), IID_PPV_ARGS( DefaultRootSignature_.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 }
