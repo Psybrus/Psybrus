@@ -13,7 +13,6 @@
 
 #include "System/Renderer/D3D12/RsContextD3D12.h"
 #include "System/Renderer/D3D12/RsFrameBufferD3D12.h"
-#include "System/Renderer/D3D12/RsLinearHeapAllocatorD3D12.h"
 #include "System/Renderer/D3D12/RsProgramD3D12.h"
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
 #include "System/Renderer/D3D12/RsUtilsD3D12.h"
@@ -336,7 +335,7 @@ void RsContextD3D12::create()
 	createDefaultPSO();
 
 	// Create command list data.
-	createCommandListData();
+	createCommandListData( 8 );
 
 	// Flush command list.
 	flushCommandList( nullptr );
@@ -1514,8 +1513,9 @@ void RsContextD3D12::createDefaultPSO()
 
 //////////////////////////////////////////////////////////////////////////
 // createCommandListData
-void RsContextD3D12::createCommandListData()
+void RsContextD3D12::createCommandListData( size_t NoofBuffers )
 {
+	CommandListDatas_.resize( NoofBuffers );
 	for( auto& CommandListData : CommandListDatas_ )
 	{
 		HRESULT RetVal = E_FAIL;

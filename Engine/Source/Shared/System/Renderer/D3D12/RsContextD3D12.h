@@ -18,6 +18,7 @@
 #include "System/Renderer/D3D12/RsD3D12.h"
 #include "System/Renderer/D3D12/RsPipelineStateCacheD3D12.h"
 #include "System/Renderer/D3D12/RsDescriptorHeapCacheD3D12.h"
+#include "System/Renderer/D3D12/RsLinearHeapAllocatorD3D12.h"
 
 #include "Base/BcMisc.h"
 
@@ -144,9 +145,8 @@ public:
 	/**
 	 * Create command list data.
 	 */
-	void createCommandListData();
-
-
+	void createCommandListData( size_t NoofBuffers );
+	
 	/**
 	 * Get current command list.
 	 */
@@ -182,6 +182,33 @@ private:
 	/// TODO: Factor this stuff out into a new interface to allow for concurrency.
 	struct CommandListData
 	{
+		CommandListData():
+			CommandAllocator_(),
+			CommandList_(),
+			UploadAllocator_(),
+			CompleteFence_(),
+			CompletionValue_()
+		{
+		}
+
+		CommandListData( CommandListData&& Other )
+		{
+			std::swap( CommandAllocator_, Other.CommandAllocator_ );
+			std::swap( CommandList_, Other.CommandList_ );
+			std::swap( UploadAllocator_, Other.UploadAllocator_ );
+			std::swap( CompleteFence_, Other.CompleteFence_ );
+			std::swap( CompletionValue_, Other.CompletionValue_ );
+		}
+
+		CommandListData& operator == ( CommandListData&& Other )
+		{
+			std::swap( CommandAllocator_, Other.CommandAllocator_ );
+			std::swap( CommandList_, Other.CommandList_ );
+			std::swap( UploadAllocator_, Other.UploadAllocator_ );
+			std::swap( CompleteFence_, Other.CompleteFence_ );
+			std::swap( CompletionValue_, Other.CompletionValue_ );
+		}
+
 		/// Command allocator.
 		ComPtr< ID3D12CommandAllocator > CommandAllocator_;
 
@@ -189,6 +216,7 @@ private:
 		ComPtr< ID3D12GraphicsCommandList > CommandList_;
 
 		// Memory management.
+		// TODO: To save memory overall, perhaps have one global one which is reset on frame 0?
 		std::unique_ptr< class RsLinearHeapAllocatorD3D12 > UploadAllocator_;
 
 		// Completion fence.
@@ -199,7 +227,7 @@ private:
 	};
 
 	// Per frame.
-	std::array< CommandListData, 2 > CommandListDatas_;
+	std::vector< CommandListData > CommandListDatas_;
 	int CurrentCommandListData_;
 	HANDLE WaitOnCommandListEvent_;
 
