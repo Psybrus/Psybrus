@@ -562,7 +562,7 @@ void RsContextD3D11::create()
 				RsTextureFormat::R8G8B8A8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
-				0 ) ) );
+				1 ) ) );
 	BackBufferRT_->setHandle< size_t >( BackBufferRTResourceIdx_ );
 
 	// Create back buffer DS.
@@ -576,7 +576,7 @@ void RsContextD3D11::create()
 				RsTextureFormat::D24S8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
-				0 ) ) );
+				1 ) ) );
 	const auto& TextureDesc = BackBufferDS_->getDesc();
 	D3D11_TEXTURE2D_DESC Desc;
 	Desc.Width = TextureDesc.Width_;
