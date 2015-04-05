@@ -188,6 +188,7 @@ private:
 	std::unique_ptr< RsPipelineStateCacheD3D12 > PSOCache_;
 	RsGraphicsPipelineStateDescD3D12 GraphicsPSODesc_;
 	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > Viewports_;
+	std::array< D3D12_RECT, MAX_RENDER_TARGETS > ScissorRects_;
 	class RsFrameBuffer* FrameBuffer_;
 
 	// Buffer views.

@@ -46,195 +46,6 @@
 #pragma comment( lib, "D3DCompiler.lib" )
 
 //////////////////////////////////////////////////////////////////////////
-// Type conversion.
-#if 0
-static const D3D12_BIND_FLAG gBufferType[] =
-{
-	(D3D12_BIND_FLAG)0,			// RsBufferType::UNKNOWN
-	D3D12_BIND_VERTEX_BUFFER,	// RsBufferType::VERTEX
-	D3D12_BIND_INDEX_BUFFER,	// RsBufferType::INDEX
-	D3D12_BIND_CONSTANT_BUFFER,	// RsBufferType::UNIFORM
-	D3D12_BIND_UNORDERED_ACCESS,// RsBufferType::UNORDERED_ACCESS
-	(D3D12_BIND_FLAG)0,			// RsBufferType::DRAW_INDIRECT
-	D3D12_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
-};
-#endif
-
-static const LPCSTR gSemanticName[] =
-{
-	"POSITION",					// RsVertexUsage::POSITION,
-	"BLENDWEIGHTS",				// RsVertexUsage::BLENDWEIGHTS,
-	"BLENDINDICES",				// RsVertexUsage::BLENDINDICES,
-	"NORMAL",					// RsVertexUsage::NORMAL,
-	"PSIZE",					// RsVertexUsage::PSIZE,
-	"TEXCOORD",					// RsVertexUsage::TEXCOORD,
-	"TANGENT",					// RsVertexUsage::TANGENT,
-	"BINORMAL",					// RsVertexUsage::BINORMAL,
-	"TESSFACTOR",				// RsVertexUsage::TESSFACTOR,
-	"POSITIONT",				// RsVertexUsage::POSITIONT,
-	"COLOR",					// RsVertexUsage::COLOUR,
-	"FOG",						// RsVertexUsage::FOG,
-	"DEPTH",					// RsVertexUsage::DEPTH,
-	"SAMPLE",					// RsVertexUsage::SAMPLE,
-};
-
-static const D3D12_FILL_MODE gFillMode[] =
-{
-	D3D12_FILL_SOLID,
-	D3D12_FILL_WIREFRAME,
-};
-
-static const D3D12_CULL_MODE gCullMode[] =
-{
-	D3D12_CULL_NONE,
-	D3D12_CULL_BACK,
-	D3D12_CULL_FRONT,
-};
-
-static const D3D12_COMPARISON_FUNC gCompareFunc[] =
-{
-	D3D12_COMPARISON_NEVER,			// RsCompareMode::NEVER,
-	D3D12_COMPARISON_LESS,			// RsCompareMode::LESS,
-	D3D12_COMPARISON_EQUAL,			// RsCompareMode::EQUAL,
-	D3D12_COMPARISON_LESS_EQUAL,	// RsCompareMode::LESSEQUAL,
-	D3D12_COMPARISON_GREATER,		// RsCompareMode::GREATER,
-	D3D12_COMPARISON_NOT_EQUAL,		// RsCompareMode::NOTEQUAL,
-	D3D12_COMPARISON_GREATER_EQUAL, // RsCompareMode::GREATEREQUAL,
-	D3D12_COMPARISON_ALWAYS,		// RsCompareMode::ALWAYS,
-};
-
-static const D3D12_STENCIL_OP gStencilOp[] =
-{
-	D3D12_STENCIL_OP_KEEP,			// RsStencilOp::KEEP,
-	D3D12_STENCIL_OP_ZERO,			// RsStencilOp::ZERO,
-	D3D12_STENCIL_OP_REPLACE,		// RsStencilOp::REPLACE,
-	D3D12_STENCIL_OP_INCR_SAT,		// RsStencilOp::INCR,
-	D3D12_STENCIL_OP_INCR,			// RsStencilOp::INCR_WRAP,
-	D3D12_STENCIL_OP_DECR_SAT,		// RsStencilOp::DECR,
-	D3D12_STENCIL_OP_DECR,			// RsStencilOp::DECR_WRAP,
-	D3D12_STENCIL_OP_INVERT,		// RsStencilOp::INVERT,
-};
-
-static const D3D12_TEXTURE_ADDRESS_MODE gTextureAddressMode[] =
-{
-	D3D12_TEXTURE_ADDRESS_WRAP,		// RsTextureSamplingMode::WRAP
-	D3D12_TEXTURE_ADDRESS_MIRROR,	// RsTextureSamplingMode::MIRROR
-	D3D12_TEXTURE_ADDRESS_CLAMP,	// RsTextureSamplingMode::CLAMP
-	D3D12_TEXTURE_ADDRESS_BORDER,	// RsTextureSamplingMode::DECAL
-};
-
-static const D3D12_BLEND gBlendType[] =
-{
-    D3D12_BLEND_ZERO,
-    D3D12_BLEND_ONE,
-    D3D12_BLEND_SRC_COLOR,
-    D3D12_BLEND_INV_SRC_COLOR,
-    D3D12_BLEND_SRC_ALPHA,
-    D3D12_BLEND_INV_SRC_ALPHA,
-    D3D12_BLEND_DEST_COLOR,
-    D3D12_BLEND_INV_DEST_COLOR,
-    D3D12_BLEND_DEST_ALPHA,
-    D3D12_BLEND_INV_DEST_ALPHA,
-};
-
-static const D3D12_BLEND_OP gBlendOp[] =
-{
-    D3D12_BLEND_OP_ADD,
-    D3D12_BLEND_OP_SUBTRACT,
-    D3D12_BLEND_OP_REV_SUBTRACT,
-    D3D12_BLEND_OP_MIN,
-    D3D12_BLEND_OP_MAX,
-};
-
-
-namespace
-{
-	DXGI_FORMAT getVertexElementFormat( RsVertexElement Element )
-	{
-		DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
-		switch( Element.DataType_ )
-		{
-		case RsVertexDataType::FLOAT32:
-			if( Element.Components_ == 1 )
-				Format = DXGI_FORMAT_R32_FLOAT;
-			else if( Element.Components_ == 2 )
-				Format = DXGI_FORMAT_R32G32_FLOAT;
-			else if( Element.Components_ == 3 )
-				Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			else if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			break;
-		case RsVertexDataType::FLOAT16:
-			if( Element.Components_ == 1 )
-				Format = DXGI_FORMAT_R16_FLOAT;
-			else if( Element.Components_ == 2 )
-				Format = DXGI_FORMAT_R16G16_FLOAT;
-			else if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			break;
-		case RsVertexDataType::BYTE:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R8G8B8A8_SINT;
-			break;
-		case RsVertexDataType::BYTE_NORM:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R8G8B8A8_SNORM;
-			break;
-		case RsVertexDataType::UBYTE:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R8G8B8A8_UINT;
-			break;
-		case RsVertexDataType::UBYTE_NORM:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			break;
-		case RsVertexDataType::SHORT:
-			if( Element.Components_ == 2 )
-				Format = DXGI_FORMAT_R16G16_SINT;
-			else if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_SINT;
-			break;
-		case RsVertexDataType::SHORT_NORM:
-			if( Element.Components_ == 2 )
-				Format = DXGI_FORMAT_R16G16_SNORM;
-			else if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_SNORM;
-			break;
-		case RsVertexDataType::USHORT:
-			if( Element.Components_ == 2 )
-				Format = DXGI_FORMAT_R16G16_UINT;
-			else if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_UINT;
-			break;
-		case RsVertexDataType::USHORT_NORM:
-			if( Element.Components_ == 2 )
-				Format = DXGI_FORMAT_R16G16_UNORM;
-			else if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_UNORM;
-			break;
-		case RsVertexDataType::INT:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_SINT;
-			break;
-		case RsVertexDataType::INT_NORM:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_SNORM;
-			break;
-		case RsVertexDataType::UINT:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_UINT;
-			break;
-		case RsVertexDataType::UINT_NORM:
-			if( Element.Components_ == 4 )
-				Format = DXGI_FORMAT_R16G16B16A16_UNORM;
-			break;
-		}
-
-		return Format;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // Ctor
 RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	RsContext( pParent ),
@@ -374,7 +185,6 @@ void RsContextD3D12::presentBackBuffer()
 	// Get next buffer.
 	LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
 
-
 	// Prep for next frame.
 	recreateBackBuffer();
 	
@@ -400,7 +210,15 @@ void RsContextD3D12::setViewport( class RsViewport& Viewport )
 	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
 	D3DViewport.MinDepth = 0.0f;
 	D3DViewport.MaxDepth = 1.0f;
+
+	D3D12_RECT D3DScissorRect;
+	D3DScissorRect.left = 0;
+	D3DScissorRect.top = 0;
+	D3DScissorRect.right = Viewport.width();
+	D3DScissorRect.bottom = Viewport.height();
+
 	Viewports_.fill( D3DViewport );
+	ScissorRects_.fill( D3DScissorRect );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -410,6 +228,10 @@ void RsContextD3D12::create()
 	OsClientWindows* Client = dynamic_cast< OsClientWindows* >( Client_ );
 	BcAssertMsg( Client != nullptr, "Windows client is not being used!" );
 	HRESULT RetVal = E_FAIL;
+
+	// Get owning thread so we can check we are being called
+	// from the appropriate thread later.
+	OwningThread_ = BcCurrentThreadId();
 
 	// Create DXGI factory.
 	RetVal = ::CreateDXGIFactory1( IID_PPV_ARGS( &Factory_ ) );
@@ -479,10 +301,6 @@ void RsContextD3D12::create()
 
 	// Create command lists.
 	createCommandLists();
-
-	// Get owning thread so we can check we are being called
-	// from the appropriate thread later.
-	OwningThread_ = BcCurrentThreadId();
 
 	// Recreate backbuffer.
 	recreateBackBuffer();
@@ -582,7 +400,6 @@ void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 			SamplerStateDescs_[ Idx ].SamplerStates_[ SlotIdx ] = SamplerState;
 		}
 	}
-	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -640,7 +457,7 @@ void RsContextD3D12::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	auto VertexBufferView = VertexBufferViews_[ StreamIdx ];
+	auto & VertexBufferView = VertexBufferViews_[ StreamIdx ];
 
 	if( VertexBuffer != nullptr )
 	{
@@ -724,8 +541,8 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	GraphicsPSODesc_.Topology_ = PrimitiveType;
 	flushState();
-	
-	//PSY_LOG( "UNIMPLEMENTED" );
+
+	CommandList_->DrawInstanced( NoofIndices, 1, IndexOffset, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -736,7 +553,7 @@ void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 	GraphicsPSODesc_.Topology_ = PrimitiveType;
 	flushState();
 	
-	//PSY_LOG( "UNIMPLEMENTED" );
+	CommandList_->DrawIndexedInstanced( NoofIndices, 1, IndexOffset, VertexOffset, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -763,7 +580,6 @@ bool RsContextD3D12::createSamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -773,7 +589,6 @@ bool RsContextD3D12::destroySamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -812,7 +627,7 @@ bool RsContextD3D12::createBuffer(
 	// Should have a single large upload heap, an upload command list,
 	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
 	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_UPLOAD );
-	CD3D12_RESOURCE_DESC ResourceDesc( CD3D12_RESOURCE_DESC::Buffer( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ), D3D12_RESOURCE_MISC_NONE ) );
+	CD3D12_RESOURCE_DESC ResourceDesc( CD3D12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_MISC_NONE ) );
 
 	ComPtr< ID3D12Resource > D3DResource;
 	RetVal = Device_->CreateCommittedResource( 
@@ -1041,10 +856,6 @@ bool RsContextD3D12::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Texture );
-	BcUnusedVar( Slice );
-	BcUnusedVar( Flags );
-	BcUnusedVar( UpdateFunc );
 	const auto& TextureDesc = Texture->getDesc();
 	std::unique_ptr< BcU8[] > TempBuffer;
 		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
@@ -1072,7 +883,6 @@ bool RsContextD3D12::updateTexture(
 bool RsContextD3D12::createShader(
 	class RsShader* Shader )
 {
-	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -1081,7 +891,6 @@ bool RsContextD3D12::createShader(
 bool RsContextD3D12::destroyShader(
 	class RsShader* Shader )
 {
-	//PSY_LOG( "UNIMPLEMENTED" );
 	return true;
 }
 
@@ -1090,7 +899,6 @@ bool RsContextD3D12::destroyShader(
 bool RsContextD3D12::createProgram(
 	class RsProgram* Program )
 {
-	// Create storage class for program.
 	Program->setHandle( new RsProgramD3D12( Program, Device_.Get() ) );
 	return true;
 }
@@ -1101,8 +909,8 @@ bool RsContextD3D12::createProgram(
 bool RsContextD3D12::destroyProgram(
 	class RsProgram* Program )
 {
-	auto ProgramInternal = Program->getHandle< RsProgramD3D12* >();
-	delete ProgramInternal;
+	auto ProgramD3D12 = Program->getHandle< RsProgramD3D12* >();
+	delete ProgramD3D12;
 	Program->setHandle< BcU64 >( 0 );
 	return true;
 }
@@ -1121,6 +929,7 @@ void RsContextD3D12::flushState()
 	// Setup the formats for the pipeline state object.
 	const auto FrameBufferDesc = FrameBuffer_->getDesc();
 	GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
+	GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_.fill( RsTextureFormat::UNKNOWN );
 	for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
 	{
 		auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
@@ -1136,7 +945,7 @@ void RsContextD3D12::flushState()
 	}
 	else
 	{
-		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::INVALID;
+		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::UNKNOWN;
 	}
 
 	// Set render targets on command list.
@@ -1210,6 +1019,10 @@ void RsContextD3D12::flushState()
 			CommandList_->SetVertexBuffers( Idx, &VertexBufferViews_[ Idx ], 1 ); 
 		}
 	}
+
+	// Setup viewport.
+	CommandList_->RSSetScissorRects( static_cast< UINT >( ScissorRects_.size() ), ScissorRects_.data() );
+	CommandList_->RSSetViewports( static_cast< UINT >( Viewports_.size() ), Viewports_.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////
