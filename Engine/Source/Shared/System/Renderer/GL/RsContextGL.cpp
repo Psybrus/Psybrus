@@ -38,9 +38,11 @@
 
 #include <algorithm>
 
+#define ENABLE_DEBUG_OUTPUT ( 0 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 )
+
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
-#if !defined( PSY_PRODUCTION )
+#if ENABLE_DEBUG_OUTPUT
 #if PLATFORM_WINDOWS
 static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 #else
@@ -298,10 +300,10 @@ static RsTextureFormatGL gTextureFormats[] =
 static GLenum gShaderType[] = 
 {
 	GL_VERTEX_SHADER,											// RsShaderType::VERTEX
+	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
 	GL_TESS_CONTROL_SHADER,										// RsShaderType::HULL
 	GL_TESS_EVALUATION_SHADER,									// RsShaderType::DOMAIN
 	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
-	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
 #if !PLATFORM_HTML5
 	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
 #endif
@@ -633,18 +635,13 @@ void RsContextGL::create()
 #endif
 
 	// Debug output extension.	
-#if !defined( PSY_PRODUCTION )
+#if ENABLE_DEBUG_OUTPUT
 	if( GLEW_ARB_debug_output )
 	{
-#if !PLATFORM_HTML5
 		glDebugMessageCallbackARB( debugOutput, nullptr );
-#else
-		// TODO ES2
-		BcBreakpoint;
-#endif
 		glGetError();
 	}
-#endif
+#endif // ENABLE_DEBUG_OUTPUT
 
 	glGetError();
 	RsGLCatchError();
@@ -2284,7 +2281,7 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 {
 	++NoofDrawCalls_;
 	flushState();
-
+	BcAssert( Program_ != nullptr );
 	glDrawArrays( gTopologyType[ (BcU32)TopologyType ], IndexOffset, NoofIndices );
 
 	RsGLCatchError();
@@ -2296,6 +2293,7 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 {
 	++NoofDrawCalls_;
 	flushState();
+	BcAssert( Program_ != nullptr );
 	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= IndexBuffer_->getDesc().SizeBytes_ );
 
 	if( VertexOffset == 0 )
