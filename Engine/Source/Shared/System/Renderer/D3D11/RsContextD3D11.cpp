@@ -1820,6 +1820,22 @@ bool RsContextD3D11::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+bool RsContextD3D11::createVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyVertexDeclaration
+bool RsContextD3D11::destroyVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration  )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // flushState
 //virtual
 void RsContextD3D11::flushState()

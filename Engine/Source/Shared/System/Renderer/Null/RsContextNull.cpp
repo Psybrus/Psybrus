@@ -473,6 +473,22 @@ bool RsContextNull::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+bool RsContextNull::createVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyVertexDeclaration
+bool RsContextNull::destroyVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration  )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // flushState
 //virtual
 void RsContextNull::flushState()

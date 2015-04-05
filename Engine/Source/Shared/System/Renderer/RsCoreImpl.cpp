@@ -314,8 +314,17 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 //virtual
 RsVertexDeclaration* RsCoreImpl::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
 {
-	RsVertexDeclaration* pResource = new RsVertexDeclaration( getContext( NULL ), Desc );
-	createResource( pResource );
+	auto Context = getContext( nullptr );
+	RsVertexDeclaration* pResource = new RsVertexDeclaration( Context, Desc );
+
+	// Call create on render thread.
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createVertexDeclaration( pResource );
+		} );
+
 	return pResource;
 }
 
@@ -525,6 +534,27 @@ void RsCoreImpl::destroyResource(
 			auto Context = Program->getContext();
 			auto RetVal = Context->destroyProgram( Program );
 			delete Program;
+			BcUnusedVar( RetVal );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+		RsVertexDeclaration* VertexDeclaration )
+{
+	BcAssert( BcIsGameThread() );
+	if( VertexDeclaration == nullptr )
+	{
+		return;
+	}
+
+	ResourceDeletionList_.push_back(
+		[ VertexDeclaration ]()
+		{
+			auto Context = VertexDeclaration->getContext();
+			auto RetVal = Context->destroyVertexDeclaration( VertexDeclaration );
+			delete VertexDeclaration;
 			BcUnusedVar( RetVal );
 		} );
 }

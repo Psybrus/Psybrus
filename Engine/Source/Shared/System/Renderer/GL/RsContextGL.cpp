@@ -1738,6 +1738,22 @@ bool RsContextGL::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+bool RsContextGL::createVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyVertexDeclaration
+bool RsContextGL::destroyVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration  )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setDefaultState
 void RsContextGL::setDefaultState()
 {

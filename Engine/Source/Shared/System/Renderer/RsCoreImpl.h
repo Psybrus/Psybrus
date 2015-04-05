@@ -91,6 +91,9 @@ public:
 	void destroyResource( 
 		RsProgram* Program ) override;
 
+	void destroyResource( 
+		RsVertexDeclaration* VertexDeclaration ) override;
+
 	void updateResource( 
 		RsResource* pResource ) override;
 
