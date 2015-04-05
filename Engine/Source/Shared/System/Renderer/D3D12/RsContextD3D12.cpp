@@ -55,9 +55,9 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	Adapter_(),
 	CommandQueueDesc_(),
 	CommandQueue_(),
-	CommandAllocator_(),
-	CommandList_(),
-	PresentFence_(),
+	CommandListDatas_(),
+	CurrentCommandListData_( -1 ),
+	WaitOnCommandListEvent_( 0 ),
 	FrameCounter_( 0 ),
 	FlushCounter_( 1 ),
 	NumSwapBuffers_( 1 ),
@@ -69,7 +69,6 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	Viewports_(),
 	ScissorRects_(),
 	FrameBuffer_( nullptr ),
-	UploadAllocator_(),
 	VertexBufferViews_(),
 	IndexBufferView_(),
 	DHCache_(),
@@ -182,22 +181,21 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 // presentBackBuffer
 void RsContextD3D12::presentBackBuffer()
 {
-	HRESULT RetVal = E_FAIL;
+	auto CommandList = getCurrentCommandList();
 
 	// Transition back buffer to present.
 	RsResourceD3D12* BackBufferResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
-	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_PRESENT );
+	BackBufferResource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_PRESENT );
 	
 	// Flush command list (also waits for completion).
-	flushCommandList();
-
-	// Do present.
-	RetVal = SwapChain_->Present( 1, 0 );
-	BcAssert( SUCCEEDED( RetVal ) );
-	++FrameCounter_;
-
-	// Reset allocators.
-	UploadAllocator_->reset();
+	flushCommandList( 
+		[ this ]()
+		{
+			// Do present.
+			HRESULT RetVal = SwapChain_->Present( 1, 0 );
+			BcAssert( SUCCEEDED( RetVal ) );
+			++FrameCounter_;
+		} );
 
 	// Get next buffer.
 	LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
@@ -297,9 +295,6 @@ void RsContextD3D12::create()
 
 	// Create present fence.
 	FrameCounter_ = 0;
-	RetVal = Device_->CreateFence( FrameCounter_, D3D12_FENCE_MISC_NONE, IID_PPV_ARGS( PresentFence_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
-	PresentEvent_ = ::CreateEventEx( nullptr, FALSE, FALSE, EVENT_ALL_ACCESS );
 
 	// Create pipeline state cache.
 	PSOCache_.reset( new RsPipelineStateCacheD3D12( Device_.Get() ) );
@@ -313,14 +308,11 @@ void RsContextD3D12::create()
 	// Create default pipeline state.
 	createDefaultPSO();
 
-	// Create command allocators.
-	createCommandAllocators();
+	// Create command list data.
+	createCommandListData();
 
-	// Create resource allocators.
-	createResourceAllocators();;
-
-	// Create command lists.
-	createCommandLists();
+	// Flush command list.
+	flushCommandList( nullptr );
 
 	// Recreate backbuffer.
 	recreateBackBuffer();
@@ -360,15 +352,16 @@ void RsContextD3D12::destroy()
 	}
 
 	// Cleanup everything.
-	UploadAllocator_.reset();
+	for( auto& CommandListData : CommandListDatas_ )
+	{
+		CommandListData.CommandAllocator_.Reset();
+		CommandListData.CommandList_.Reset();
+		CommandListData.UploadAllocator_.reset();
+	}
 	DefaultRootSignature_.Reset();
 	DefaultPSO_.Reset();
 	DHCache_.reset();
 	PSOCache_.reset();
-	::CloseHandle( PresentEvent_ );
-	PresentFence_.Reset();
-	CommandList_.Reset();
-	CommandAllocator_.Reset();
 	CommandQueue_.Reset();
 	Device_.Reset();
 	SwapChain_.Reset();
@@ -454,11 +447,12 @@ void RsContextD3D12::setProgram( class RsProgram* Program )
 void RsContextD3D12::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	
+	auto CommandList = getCurrentCommandList();
+
 	if( IndexBuffer != nullptr )
 	{
 		auto IndexBufferResource = IndexBuffer->getHandle< RsResourceD3D12* >();
-		IndexBufferResource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_DEFAULT_READ );
+		IndexBufferResource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_DEFAULT_READ );
 		IndexBufferView_.BufferLocation = IndexBufferResource->getGPUVirtualAddress();
 		IndexBufferView_.SizeInBytes = static_cast< UINT >( IndexBuffer->getDesc().SizeBytes_ );
 		IndexBufferView_.Format = DXGI_FORMAT_R16_UINT; // TODO: Select properly
@@ -480,11 +474,12 @@ void RsContextD3D12::setVertexBuffer(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto & VertexBufferView = VertexBufferViews_[ StreamIdx ];
+	auto CommandList = getCurrentCommandList();
 
 	if( VertexBuffer != nullptr )
 	{
 		auto VertexBufferResource = VertexBuffer->getHandle< RsResourceD3D12* >();
-		VertexBufferResource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_DEFAULT_READ );
+		VertexBufferResource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_DEFAULT_READ );
 		VertexBufferView.BufferLocation = VertexBufferResource->getGPUVirtualAddress();
 		VertexBufferView.SizeInBytes = static_cast< UINT >( VertexBuffer->getDesc().SizeBytes_ );
 		VertexBufferView.StrideInBytes = Stride;
@@ -530,6 +525,7 @@ void RsContextD3D12::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	auto CommandList = getCurrentCommandList();
 
 	auto LastFrameBuffer  = FrameBuffer_;
 
@@ -547,7 +543,7 @@ void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	if( LastFrameBuffer != nullptr )
 	{
 		auto D3DFrameBuffer = LastFrameBuffer->getHandle< RsFrameBufferD3D12* >();
-		D3DFrameBuffer->transitionToRead( CommandList_.Get() );
+		D3DFrameBuffer->transitionToRead( CommandList );
 	}
 }
 
@@ -560,10 +556,11 @@ void RsContextD3D12::clear(
 	BcBool EnableClearStencil )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	auto CommandList = getCurrentCommandList();
 	flushState();
 	BcAssert( FrameBuffer_ );
 	RsFrameBufferD3D12* FrameBufferD3D12 = FrameBuffer_->getHandle< RsFrameBufferD3D12* >();
-	FrameBufferD3D12->clear( CommandList_.Get(), Colour, EnableClearColour, EnableClearDepth, EnableClearStencil );
+	FrameBufferD3D12->clear( CommandList, Colour, EnableClearColour, EnableClearDepth, EnableClearStencil );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -571,10 +568,11 @@ void RsContextD3D12::clear(
 void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	auto CommandList = getCurrentCommandList();
 	GraphicsPSODesc_.Topology_ = PrimitiveType;
 	flushState();
 
-	CommandList_->DrawInstanced( NoofIndices, 1, IndexOffset, 0 );
+	CommandList->DrawInstanced( NoofIndices, 1, IndexOffset, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -582,10 +580,11 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	auto CommandList = getCurrentCommandList();
 	GraphicsPSODesc_.Topology_ = PrimitiveType;
 	flushState();
 	
-	CommandList_->DrawIndexedInstanced( NoofIndices, 1, IndexOffset, VertexOffset, 0 );
+	CommandList->DrawIndexedInstanced( NoofIndices, 1, IndexOffset, VertexOffset, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -791,23 +790,25 @@ bool RsContextD3D12::updateBuffer(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
 	auto& D3DResource = Resource->getInternalResource();
+	auto CommandList = getCurrentCommandList();
+	auto UploadAllocator = getCurrentUploadAllocator();
 
 	// Allocate for upload.
-	auto Allocation = UploadAllocator_->allocate( Size );
+	auto Allocation = UploadAllocator->allocate( Size );
 	RsBufferLock Lock;
 	Lock.Buffer_ = Allocation.Address_;
 	UpdateFunc( Buffer, Lock );
 
 	// Transition to copy dest.
-	auto OldUsage = Resource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_COPY_DEST );
+	auto OldUsage = Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_COPY_DEST );
 
 	// Copy into buffer.
-	CommandList_->CopyBufferRegion( 
+	CommandList->CopyBufferRegion( 
 		D3DResource.Get(), Offset, Allocation.BaseResource_.Get(), Allocation.OffsetInBaseResource_, 
 		Size, D3D12_COPY_DISCARD );
 
 	// Transition back to original.
-	Resource->resourceBarrierTransition( CommandList_.Get(), OldUsage );
+	Resource->resourceBarrierTransition( CommandList, OldUsage );
 
 	return true;
 }
@@ -962,6 +963,8 @@ bool RsContextD3D12::updateTexture(
 	BcU32 Height = BcMax( 1, Desc.Height_ >> Slice.Level_ );
 	BcU32 Depth = BcMax( 1, Desc.Depth_ >> Slice.Level_ );
 	BcU32 TextureDataSize = RsTextureFormatSize( Desc.Format_, Width, Height, Depth, 1 );
+	auto CommandList = getCurrentCommandList();
+	auto UploadAllocator = getCurrentUploadAllocator();
 
 	// Bits per block.
 	BcU32 BitsPerBlock = 8;
@@ -1024,7 +1027,7 @@ bool RsContextD3D12::updateTexture(
 	// Update texture.
 	auto WidthByBlock = ( Width / BlockW );
 	auto HeightByBlock = ( Height / BlockH );
-	auto Allocation = UploadAllocator_->allocate( TextureDataSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
+	auto Allocation = UploadAllocator->allocate( TextureDataSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
 	RsTextureLock Lock;
 	Lock.Buffer_ = Allocation.Address_;
 	Lock.Pitch_ = ( WidthByBlock * BitsPerBlock ) / 8;
@@ -1035,7 +1038,7 @@ bool RsContextD3D12::updateTexture(
 	ID3D12Resource* D3DResource = Resource->getInternalResource().Get();
 
 	// Transition to copy dest.
-	auto OldUsage = Resource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_COPY_DEST );
+	auto OldUsage = Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_COPY_DEST );
 
 	// Setup pitched subresource to match source data.
 	D3D12_PLACED_PITCHED_SUBRESOURCE_DESC Layout;
@@ -1049,10 +1052,10 @@ bool RsContextD3D12::updateTexture(
 	// Copy in.
 	CD3D12_TEXTURE_COPY_LOCATION Dst( D3DResource, Slice.Level_ );
 	CD3D12_TEXTURE_COPY_LOCATION Src( Allocation.BaseResource_.Get(), Layout );
-	CommandList_->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr, D3D12_COPY_NO_OVERWRITE );
+	CommandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr, D3D12_COPY_NO_OVERWRITE );
 
 	// Transition back to original.
-	Resource->resourceBarrierTransition( CommandList_.Get(), OldUsage );
+	Resource->resourceBarrierTransition( CommandList, OldUsage );
 	return true;
 }
 
@@ -1135,8 +1138,10 @@ bool RsContextD3D12::destroyVertexDeclaration(
 //virtual
 void RsContextD3D12::flushState()
 {
+	auto CommandList = getCurrentCommandList();
+
 	// Graphics root signature.
-	CommandList_->SetGraphicsRootSignature( DefaultRootSignature_.Get() );
+	CommandList->SetGraphicsRootSignature( DefaultRootSignature_.Get() );
 
 	// Frame buffer.
 	BcAssert( FrameBuffer_ );
@@ -1165,7 +1170,7 @@ void RsContextD3D12::flushState()
 
 	// Set render targets on command list.
 	auto FrameBufferD3D12 = FrameBuffer_->getHandle< RsFrameBufferD3D12* >();
-	FrameBufferD3D12->setRenderTargets( CommandList_.Get() );
+	FrameBufferD3D12->setRenderTargets( CommandList );
 
 	// Get current pipeline state.
 	ID3D12PipelineState* GraphicsPS = nullptr;
@@ -1180,8 +1185,7 @@ void RsContextD3D12::flushState()
 	// Reset command list if we need to, otherwise just set new pipeline state.
 	if( GraphicsPS != nullptr )
 	{
-		BcAssert( CommandList_ );
-		CommandList_->SetPipelineState( GraphicsPS );
+		CommandList->SetPipelineState( GraphicsPS );
 	}
 
 	// Transition for read.
@@ -1223,7 +1227,7 @@ void RsContextD3D12::flushState()
 	DescriptorHeaps[ 0 ] = DHCache_->getSamplersDescriptorHeap( SamplerStateDescs_ );
 	DescriptorHeaps[ 1 ] = DHCache_->getShaderResourceDescriptorHeap( ShaderResourceDescs_ );
 
-	CommandList_->SetDescriptorHeaps( DescriptorHeaps.data(), static_cast< UINT >( DescriptorHeaps.size() ) );
+	CommandList->SetDescriptorHeaps( DescriptorHeaps.data(), static_cast< UINT >( DescriptorHeaps.size() ) );
 
 	// Set the descriptor tables.
 	auto BaseSamplerDHHandle = DescriptorHeaps[ 0 ]->GetGPUDescriptorHandleForHeapStart();
@@ -1235,17 +1239,17 @@ void RsContextD3D12::flushState()
 	for( INT ShaderIdx = 0; ShaderIdx < 5; ++ShaderIdx )
 	{
 		// Samplers.
-		CommandList_->SetGraphicsRootDescriptorTable( 
+		CommandList->SetGraphicsRootDescriptorTable( 
 			RootDescirptorIdx++, BaseSamplerDHHandle );
 		BaseSamplerDHHandle.Offset( RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS, SamplerDescriptorSize );
 
 		// Shader resource views.
-		CommandList_->SetGraphicsRootDescriptorTable( 
+		CommandList->SetGraphicsRootDescriptorTable( 
 			RootDescirptorIdx++, BaseShaderResourceDHHandle );
 		BaseShaderResourceDHHandle.Offset( RsDescriptorHeapShaderResourceDescD3D12::MAX_SRVS, ShaderResourceDescriptorSize );
 
 		// Constant buffer views.
-		CommandList_->SetGraphicsRootDescriptorTable( 
+		CommandList->SetGraphicsRootDescriptorTable( 
 			RootDescirptorIdx++, BaseShaderResourceDHHandle );
 		BaseShaderResourceDHHandle.Offset( RsDescriptorHeapShaderResourceDescD3D12::MAX_CBVS, ShaderResourceDescriptorSize );
 	}
@@ -1253,60 +1257,79 @@ void RsContextD3D12::flushState()
 	// Setup primitive, index buffer, and vertex buffers.
 	if( GraphicsPSODesc_.Topology_ != RsTopologyType::INVALID )
 	{
-		CommandList_->IASetPrimitiveTopology( RsUtilsD3D12::GetPrimitiveTopology( GraphicsPSODesc_.Topology_ ) );
+		CommandList->IASetPrimitiveTopology( RsUtilsD3D12::GetPrimitiveTopology( GraphicsPSODesc_.Topology_ ) );
 	}
 
 	if( IndexBufferView_.BufferLocation != 0 )
 	{
-		CommandList_->SetIndexBuffer( &IndexBufferView_ );
+		CommandList->SetIndexBuffer( &IndexBufferView_ );
 	}
 
 	for( UINT Idx = 0; Idx < VertexBufferViews_.size(); ++Idx )
 	{
 		if( VertexBufferViews_[ Idx ].BufferLocation != 0 )
 		{
-			CommandList_->SetVertexBuffers( Idx, &VertexBufferViews_[ Idx ], 1 ); 
+			CommandList->SetVertexBuffers( Idx, &VertexBufferViews_[ Idx ], 1 ); 
 		}
 	}
 
 	// Setup viewport.
-	CommandList_->RSSetScissorRects( static_cast< UINT >( ScissorRects_.size() ), ScissorRects_.data() );
-	CommandList_->RSSetViewports( static_cast< UINT >( Viewports_.size() ), Viewports_.data() );
+	CommandList->RSSetScissorRects( static_cast< UINT >( ScissorRects_.size() ), ScissorRects_.data() );
+	CommandList->RSSetViewports( static_cast< UINT >( Viewports_.size() ), Viewports_.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // flushCommandList
-void RsContextD3D12::flushCommandList()
+void RsContextD3D12::flushCommandList( std::function< void() > PostExecute )
 {
-	// Close command list.
-	HRESULT RetVal = CommandList_->Close();
-	BcAssert( SUCCEEDED( RetVal ) );
+	HRESULT RetVal = E_FAIL;
 
-	// Execute command list.
-	ID3D12CommandList* CommandLists[] = { CommandList_.Get() };
-	CommandQueue_->ExecuteCommandLists( 1, CommandLists );
-
-	// Wait for frame to complete.
-	// This is not good for performance, so redo this later on.
-	const UINT64 Fence = FlushCounter_;
-	RetVal = CommandQueue_->Signal( PresentFence_.Get(), Fence );
-	BcAssert( SUCCEEDED( RetVal ) );
-	++FlushCounter_;
-
-	auto CompletedValue = PresentFence_->GetCompletedValue();
-	if( CompletedValue < Fence )
+	// Close current list and execute.
+	if( CurrentCommandListData_ >= 0 )
 	{
-		RetVal = PresentFence_->SetEventOnCompletion( Fence, PresentEvent_ );
+		auto& CommandListData = CommandListDatas_[ CurrentCommandListData_ ];
+
+		// Close command list.
+		RetVal = CommandListData.CommandList_->Close();
 		BcAssert( SUCCEEDED( RetVal ) );
-		::WaitForSingleObject( PresentEvent_, INFINITE );
+
+		// Execute command list.
+		ID3D12CommandList* CommandLists[] = { CommandListData.CommandList_.Get() };
+		CommandQueue_->ExecuteCommandLists( 1, CommandLists );
+
+		PostExecute();
+
+		// Signal next.
+		RetVal = CommandQueue_->Signal( CommandListData.CompleteFence_.Get(), ++CommandListData.CompletionValue_ );
+		BcAssert( SUCCEEDED( RetVal ) );
 	}
 
-	// Reset allocator and command list.
-	RetVal = CommandAllocator_->Reset();
-	BcAssert( SUCCEEDED( RetVal ) );
+	// Advance current command list.
+	CurrentCommandListData_ = ( CurrentCommandListData_ + 1 ) % CommandListDatas_.size();
 
-	RetVal = CommandList_->Reset( CommandAllocator_.Get(), DefaultPSO_.Get() );
-	BcAssert( SUCCEEDED( RetVal ) );
+	// Reset next command list.
+	{
+		const auto& CommandListData = CommandListDatas_[ CurrentCommandListData_ ];
+
+		// Wait for completion. Shouldn't stall, if it does there may be a need
+		// to increase the number of command lists.
+		if( CommandListData.CompleteFence_->GetCompletedValue() < CommandListData.CompletionValue_ )
+		{
+			RetVal = CommandListData.CompleteFence_->SetEventOnCompletion( CommandListData.CompletionValue_, WaitOnCommandListEvent_ );
+			BcAssert( SUCCEEDED( RetVal ) );
+			::WaitForSingleObject( WaitOnCommandListEvent_, INFINITE );
+		}
+
+		// Reset allocator and command list.
+		RetVal = CommandListData.CommandAllocator_->Reset();
+		BcAssert( SUCCEEDED( RetVal ) );
+
+		RetVal = CommandListData.CommandList_->Reset( CommandListData.CommandAllocator_.Get(), DefaultPSO_.Get() );
+		BcAssert( SUCCEEDED( RetVal ) );
+
+		// Reset allocator.
+		CommandListData.UploadAllocator_->reset();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1447,32 +1470,59 @@ void RsContextD3D12::createDefaultPSO()
 	DefaultPSO.SampleDesc = SwapChainDesc_.SampleDesc;
 	DefaultPSO.RTVFormats[ 0 ] = SwapChainDesc_.BufferDesc.Format;
 
-	RetVal = Device_->CreateGraphicsPipelineState( &DefaultPSO, IID_PPV_ARGS( DefaultPSO_.GetAddressOf() ) );
+	RetVal = Device_->CreateGraphicsPipelineState( &DefaultPSO, 
+		IID_PPV_ARGS( DefaultPSO_.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createCommandAllocators
-void RsContextD3D12::createCommandAllocators()
+// createCommandListData
+void RsContextD3D12::createCommandListData()
 {
-	HRESULT RetVal = E_FAIL;
-	RetVal = Device_->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( CommandAllocator_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+	for( auto& CommandListData : CommandListDatas_ )
+	{
+		HRESULT RetVal = E_FAIL;
+
+		// Command allocator.
+		RetVal = Device_->CreateCommandAllocator( 
+			D3D12_COMMAND_LIST_TYPE_DIRECT, 
+			IID_PPV_ARGS( CommandListData.CommandAllocator_.GetAddressOf() ) );
+		BcAssert( SUCCEEDED( RetVal ) );
+
+		// Command list.
+		RetVal = Device_->CreateCommandList( 0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
+			CommandListData.CommandAllocator_.Get(), DefaultPSO_.Get(), 
+			IID_PPV_ARGS( CommandListData.CommandList_.GetAddressOf() ) );
+		BcAssert( SUCCEEDED( RetVal ) );
+
+		// Upload allocator.
+		CommandListData.UploadAllocator_.reset(
+			new RsLinearHeapAllocatorD3D12( Device_.Get(), D3D12_HEAP_TYPE_UPLOAD, 64 * 1024 ) );
+
+		// Complete fence.
+		CommandListData.CompletionValue_ = 0;
+		Device_->CreateFence( 
+			CommandListData.CompletionValue_, D3D12_FENCE_MISC_NONE, 
+			IID_PPV_ARGS( CommandListData.CompleteFence_.GetAddressOf() ) );
+
+		// Close list.
+		RetVal = CommandListData.CommandList_->Close();
+		BcAssert( SUCCEEDED( RetVal ) );
+	}
+
+	WaitOnCommandListEvent_ = ::CreateEventEx( nullptr, FALSE, FALSE, EVENT_ALL_ACCESS );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createResourceAllocators
-void RsContextD3D12::createResourceAllocators()
+// getCurrentCommandList
+ID3D12GraphicsCommandList* RsContextD3D12::getCurrentCommandList()
 {
-	UploadAllocator_.reset( new RsLinearHeapAllocatorD3D12( Device_.Get(), D3D12_HEAP_TYPE_UPLOAD, 64 * 1024 ) );
+	return CommandListDatas_[ CurrentCommandListData_ ].CommandList_.Get();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createCommandLists
-void RsContextD3D12::createCommandLists()
+// getCurrentUploadAllocator
+RsLinearHeapAllocatorD3D12* RsContextD3D12::getCurrentUploadAllocator()
 {
-	HRESULT RetVal = E_FAIL;
-	RetVal = Device_->CreateCommandList( 0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
-		CommandAllocator_.Get(), DefaultPSO_.Get(), IID_PPV_ARGS( CommandList_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+	return CommandListDatas_[ CurrentCommandListData_ ].UploadAllocator_.get();
 }

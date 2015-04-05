@@ -122,10 +122,9 @@ public:
 	void flushState();
 
 	/**
-	 * Flush out command list.
-	 * NOTE: This is temporary. Used until we utilise multiple command lists.
+	 * Flush out command list, and call a function post execute.
 	 */
-	void flushCommandList();
+	void flushCommandList( std::function< void() > PostExecute );
 
 	/**
 	 * (Re)create backbuffer.
@@ -143,19 +142,20 @@ public:
 	void createDefaultPSO();
 
 	/**
-	 * Create command allocators.
+	 * Create command list data.
 	 */
-	void createCommandAllocators();
+	void createCommandListData();
+
 
 	/**
-	 * Create resource allocators.
+	 * Get current command list.
 	 */
-	void createResourceAllocators();
+	ID3D12GraphicsCommandList* getCurrentCommandList();
 
 	/**
-	 * Create command lists.
+	 * Get current upload allocator.
 	 */
-	void createCommandLists();
+	class RsLinearHeapAllocatorD3D12* getCurrentUploadAllocator();
 
 
 protected:
@@ -178,15 +178,32 @@ private:
 	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc_;
 	ComPtr< ID3D12CommandQueue > CommandQueue_;
 
-	/// Command allocator.
-	ComPtr< ID3D12CommandAllocator > CommandAllocator_;
+	/// CommandListData
+	/// TODO: Factor this stuff out into a new interface to allow for concurrency.
+	struct CommandListData
+	{
+		/// Command allocator.
+		ComPtr< ID3D12CommandAllocator > CommandAllocator_;
 
-	/// Graphics command list.
-	ComPtr< ID3D12GraphicsCommandList > CommandList_;
+		/// Graphics command list.
+		ComPtr< ID3D12GraphicsCommandList > CommandList_;
+
+		// Memory management.
+		std::unique_ptr< class RsLinearHeapAllocatorD3D12 > UploadAllocator_;
+
+		// Completion fence.
+		ComPtr< ID3D12Fence > CompleteFence_;
+
+		// Completion value to wait for.
+		BcU64 CompletionValue_;
+	};
+
+	// Per frame.
+	std::array< CommandListData, 1 > CommandListDatas_;
+	int CurrentCommandListData_;
+	HANDLE WaitOnCommandListEvent_;
 
 	/// Presenting.
-	ComPtr< ID3D12Fence > PresentFence_;
-	HANDLE PresentEvent_;
 	BcU64 FrameCounter_;
 	BcU64 FlushCounter_;
 	BcU32 NumSwapBuffers_;
@@ -200,9 +217,6 @@ private:
 	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > Viewports_;
 	std::array< D3D12_RECT, MAX_RENDER_TARGETS > ScissorRects_;
 	class RsFrameBuffer* FrameBuffer_;
-
-	// Memory management.
-	std::unique_ptr< class RsLinearHeapAllocatorD3D12 > UploadAllocator_;
 
 	// Buffer views.
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;
