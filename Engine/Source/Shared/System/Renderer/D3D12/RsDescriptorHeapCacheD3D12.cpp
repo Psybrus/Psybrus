@@ -2,11 +2,12 @@
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
 #include "System/Renderer/D3D12/RsUtilsD3D12.h"
 
-#include "Base/BcMath.h"
-
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsTexture.h"
+
+#include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -44,24 +45,28 @@ namespace std
 	size_t hash< RsDescriptorHeapSamplerStateDescD3D12 >::operator()( 
 			const RsDescriptorHeapSamplerStateDescD3D12 & DHDesc ) const
 	{
+		PSY_PROFILE_FUNCTION;
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
 
 	size_t hash< RsDescriptorHeapSamplerStateDescArrayD3D12 >::operator()( 
 			const RsDescriptorHeapSamplerStateDescArrayD3D12 & DHDesc ) const
 	{
+		PSY_PROFILE_FUNCTION;
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
 
 	size_t hash< RsDescriptorHeapShaderResourceDescD3D12 >::operator()(
 			const RsDescriptorHeapShaderResourceDescD3D12 & DHDesc ) const
 	{
+		PSY_PROFILE_FUNCTION;
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
 
 	size_t hash< RsDescriptorHeapShaderResourceDescArrayD3D12 >::operator()(
 			const RsDescriptorHeapShaderResourceDescArrayD3D12 & DHDesc ) const
 	{
+		PSY_PROFILE_FUNCTION;
 		return BcHash::GenerateCRC32( 0, &DHDesc, sizeof( DHDesc ) );
 	}
 }
@@ -84,6 +89,7 @@ RsDescriptorHeapCacheD3D12::~RsDescriptorHeapCacheD3D12()
 // getSamplersDescriptorHeap
 ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getSamplersDescriptorHeap( const RsDescriptorHeapSamplerStateDescArrayD3D12& DHDescs )
 {
+	PSY_PROFILE_FUNCTION;
 	auto FoundIt = SampleStateHeaps_.find( DHDescs );
 	if( FoundIt != SampleStateHeaps_.end() )
 	{
@@ -127,6 +133,7 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getSamplersDescriptorHeap( con
 // getShaderResourceDescriptorHeap
 ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getShaderResourceDescriptorHeap( const RsDescriptorHeapShaderResourceDescArrayD3D12& DHDescs )
 {
+	PSY_PROFILE_FUNCTION;
 	auto FoundIt = ShaderResourceHeaps_.find( DHDescs );
 	if( FoundIt != ShaderResourceHeaps_.end() )
 	{
@@ -183,6 +190,7 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getShaderResourceDescriptorHea
 // getSamplerDesc
 D3D12_SAMPLER_DESC RsDescriptorHeapCacheD3D12::getSamplerDesc( class RsSamplerState* SamplerState )
 {
+	PSY_PROFILE_FUNCTION;
 	D3D12_SAMPLER_DESC OutDesc;
 	BcMemZero( &OutDesc, sizeof( OutDesc ) );
 

@@ -122,6 +122,7 @@ void ScnCore::update()
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
 		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
+		BcUnusedVar( Class );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -138,6 +139,7 @@ void ScnCore::update()
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
 		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
+		BcUnusedVar( Class );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -154,6 +156,7 @@ void ScnCore::update()
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
 		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
+		BcUnusedVar( Class );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{

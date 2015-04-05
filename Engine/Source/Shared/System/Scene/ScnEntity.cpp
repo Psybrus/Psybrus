@@ -449,6 +449,7 @@ ScnComponent* ScnEntity::internalCreateComponent( const BcName& Name, const ReCl
 	auto RetVal = CsCore::pImpl()->internalCreateResource( 
 		Name, Class, BcErrorCode, getPackage(), Resource );
 	BcAssertMsg( RetVal, "Unable to create component for \"%s\"", (*Class->getName()).c_str() );
+	BcUnusedVar( RetVal );
 	auto Component = ReObjectRef< ScnComponent >( Resource );
 	BcAssert( Component.isValid() );
 	return Component;

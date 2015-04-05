@@ -6,6 +6,7 @@
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -56,6 +57,7 @@ namespace std
 	size_t hash< RsGraphicsPipelineStateDescD3D12 >::operator()( 
 			const RsGraphicsPipelineStateDescD3D12 & PSD ) const
 	{
+		PSY_PROFILE_FUNCTION;
 		BcU32 Hash = 0;
 		Hash = BcHash::GenerateCRC32( Hash, &PSD.Topology_, sizeof( PSD.Topology_ ) );
 		Hash = BcHash::GenerateCRC32( Hash, &PSD.VertexDeclaration_, sizeof( PSD.VertexDeclaration_ ) );
@@ -87,6 +89,7 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 		const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc,
 		ID3D12RootSignature* RootSignature )
 {
+	PSY_PROFILE_FUNCTION;
 	auto FoundIt = GraphicsPSMap_.find( GraphicsPSDesc );
 	if( FoundIt != GraphicsPSMap_.end() )
 	{

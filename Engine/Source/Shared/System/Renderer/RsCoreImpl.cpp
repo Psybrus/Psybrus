@@ -13,6 +13,8 @@
 
 #include "System/Renderer/RsCoreImpl.h"
 
+#include "Base/BcProfiler.h"
+
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
@@ -92,6 +94,8 @@ void RsCoreImpl::open()
 //virtual
 void RsCoreImpl::update()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsCoreImpl::update" );
+
 	BcAssert( BcIsGameThread() );
 
 	// Increment fence so we know how far we're getting ahead of ourselves.

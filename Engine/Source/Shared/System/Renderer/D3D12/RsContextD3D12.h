@@ -199,7 +199,7 @@ private:
 	};
 
 	// Per frame.
-	std::array< CommandListData, 1 > CommandListDatas_;
+	std::array< CommandListData, 2 > CommandListDatas_;
 	int CurrentCommandListData_;
 	HANDLE WaitOnCommandListEvent_;
 

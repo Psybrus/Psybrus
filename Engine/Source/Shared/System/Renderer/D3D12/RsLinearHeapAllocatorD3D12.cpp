@@ -61,21 +61,24 @@ RsResourceAllocationD3D12 RsLinearHeapAllocatorD3D12::allocate( BcU64 Size, BcU6
 		FoundBlock = &Blocks_.back();
 	}
 
-	// Search through blocks to 
+	// Grab the correct offset and assert remaining siz.e
 	BcU64 AlignedOffset = BcPotRoundUp( FoundBlock->CurrentOffset_, Alignment );
 	BcS64 Remaining = static_cast< BcS64 >( FoundBlock->Size_ - AlignedOffset );
 	BcAssert( Remaining >= static_cast< BcS64 >( Size ) );
 
-	// Setup allocation.
-	Allocation.BaseResource_ = FoundBlock->Resource_;
-	Allocation.OffsetInBaseResource_ = AlignedOffset;
-	Allocation.Address_ = static_cast< BcU8* >( FoundBlock->BaseAddress_ ) + AlignedOffset;
-	Allocation.Size_ = Size;
+	// Setup allocation
+	if( Remaining >= static_cast< BcS64 >( Size ) )
+	{
+		Allocation.BaseResource_ = FoundBlock->Resource_;
+		Allocation.OffsetInBaseResource_ = AlignedOffset;
+		Allocation.Address_ = static_cast< BcU8* >( FoundBlock->BaseAddress_ ) + AlignedOffset;
+		Allocation.Size_ = Size;
 
-	// Advance current offset.
-	FoundBlock->CurrentOffset_ = AlignedOffset + Size;
+		// Advance current offset.
+		FoundBlock->CurrentOffset_ = AlignedOffset + Size;
+		BcAssert( ( Allocation.OffsetInBaseResource_ & ( Alignment - 1 ) ) == 0 );
+	}
 
-	BcAssert( ( Allocation.OffsetInBaseResource_ & ( Alignment - 1 ) ) == 0 );
 
 	return std::move( Allocation );
 }

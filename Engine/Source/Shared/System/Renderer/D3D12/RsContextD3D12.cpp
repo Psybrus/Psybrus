@@ -31,13 +31,11 @@
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
 
-
-#include "Base/BcMath.h"
-
 #include "System/Os/OsClient.h"
 #include "System/Os/OsClientWindows.h"
 
-#include "Import/Img/Img.h"
+#include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Direct3D 12 libraries.
@@ -181,6 +179,7 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 // presentBackBuffer
 void RsContextD3D12::presentBackBuffer()
 {
+	PSY_PROFILE_FUNCTION;
 	auto CommandList = getCurrentCommandList();
 
 	// Transition back buffer to present.
@@ -191,8 +190,10 @@ void RsContextD3D12::presentBackBuffer()
 	flushCommandList( 
 		[ this ]()
 		{
+			PSY_PROFILER_SECTION( PresentRoot, "DXGI::Present" );
+
 			// Do present.
-			HRESULT RetVal = SwapChain_->Present( 1, 0 );
+			HRESULT RetVal = SwapChain_->Present( 0, 0 );
 			BcAssert( SUCCEEDED( RetVal ) );
 			++FrameCounter_;
 		} );
@@ -240,6 +241,7 @@ void RsContextD3D12::setViewport( class RsViewport& Viewport )
 // create
 void RsContextD3D12::create()
 {
+	PSY_LOGSCOPEDCATEGORY( "RsContextD3D12" );
 	OsClientWindows* Client = dynamic_cast< OsClientWindows* >( Client_ );
 	BcAssertMsg( Client != nullptr, "Windows client is not being used!" );
 	HRESULT RetVal = E_FAIL;
@@ -252,8 +254,33 @@ void RsContextD3D12::create()
 	RetVal = ::CreateDXGIFactory1( IID_PPV_ARGS( &Factory_ ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 
+	// Enum adapters.
+	for( UINT AdapterIdx = 0; ; ++AdapterIdx )
+	{
+		ComPtr< IDXGIAdapter > Adapter;
+		RetVal = Factory_->EnumAdapters( AdapterIdx, Adapter.ReleaseAndGetAddressOf() );
+		if( SUCCEEDED( RetVal ) )
+		{
+			DXGI_ADAPTER_DESC AdapterDesc;
+			Adapter->GetDesc( &AdapterDesc );
+
+			std::wstring DescriptionW( AdapterDesc.Description );
+			std::string Description( DescriptionW.begin(), DescriptionW.end() );
+			PSY_LOG( "Selecting adapter %s", Description.c_str() );
+			PSY_LOG( "- Dedicated Video: %uMb", (int)( AdapterDesc.DedicatedVideoMemory / ( 1024 * 1024 ) ) );
+			PSY_LOG( "- Dedicated System: %uMb", (int)( AdapterDesc.DedicatedSystemMemory / ( 1024 * 1024 ) ) );
+			PSY_LOG( "- Shared System %uMb", (int)( AdapterDesc.SharedSystemMemory / ( 1024 * 1024 ) ) );
+			Adapter_ = Adapter;
+			break;
+		}
+		else
+		{
+			break;
+		}
+	}
+
 	// Create default device.
-#ifdef _DEBUG
+#if PSY_DEBUG
 	const D3D12_CREATE_DEVICE_FLAG DeviceFlags = D3D12_CREATE_DEVICE_DEBUG;
 #else
 	const D3D12_CREATE_DEVICE_FLAG DeviceFlags = D3D12_CREATE_DEVICE_NONE;
@@ -261,7 +288,7 @@ void RsContextD3D12::create()
 	FeatureLevel_ = D3D_FEATURE_LEVEL_11_0;
 	RetVal = D3D12CreateDevice(
 		Adapter_.Get(),
-		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_UNKNOWN,
 		DeviceFlags,
 		FeatureLevel_, 
 		D3D12_SDK_VERSION,
@@ -555,6 +582,7 @@ void RsContextD3D12::clear(
 	BcBool EnableClearDepth,
 	BcBool EnableClearStencil )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto CommandList = getCurrentCommandList();
 	flushState();
@@ -567,6 +595,7 @@ void RsContextD3D12::clear(
 // drawPrimitives
 void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto CommandList = getCurrentCommandList();
 	GraphicsPSODesc_.Topology_ = PrimitiveType;
@@ -579,6 +608,7 @@ void RsContextD3D12::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 // drawIndexedPrimitives
 void RsContextD3D12::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto CommandList = getCurrentCommandList();
 	GraphicsPSODesc_.Topology_ = PrimitiveType;
@@ -787,6 +817,7 @@ bool RsContextD3D12::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
 	auto& D3DResource = Resource->getInternalResource();
@@ -957,6 +988,7 @@ bool RsContextD3D12::updateTexture(
 	RsResourceUpdateFlags Flags,
 	RsTextureUpdateFunc UpdateFunc )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	const auto& Desc = Texture->getDesc();
 	BcU32 Width = BcMax( 1, Desc.Width_ >> Slice.Level_ );
@@ -1138,6 +1170,7 @@ bool RsContextD3D12::destroyVertexDeclaration(
 //virtual
 void RsContextD3D12::flushState()
 {
+	PSY_PROFILE_FUNCTION;
 	auto CommandList = getCurrentCommandList();
 
 	// Graphics root signature.
@@ -1282,6 +1315,7 @@ void RsContextD3D12::flushState()
 // flushCommandList
 void RsContextD3D12::flushCommandList( std::function< void() > PostExecute )
 {
+	PSY_PROFILE_FUNCTION;
 	HRESULT RetVal = E_FAIL;
 
 	// Close current list and execute.
@@ -1315,6 +1349,7 @@ void RsContextD3D12::flushCommandList( std::function< void() > PostExecute )
 		// to increase the number of command lists.
 		if( CommandListData.CompleteFence_->GetCompletedValue() < CommandListData.CompletionValue_ )
 		{
+			PSY_PROFILER_SECTION( Section, "Waiting on fence..." );
 			RetVal = CommandListData.CompleteFence_->SetEventOnCompletion( CommandListData.CompletionValue_, WaitOnCommandListEvent_ );
 			BcAssert( SUCCEEDED( RetVal ) );
 			::WaitForSingleObject( WaitOnCommandListEvent_, INFINITE );
@@ -1336,6 +1371,8 @@ void RsContextD3D12::flushCommandList( std::function< void() > PostExecute )
 // recreateBackBuffer
 void RsContextD3D12::recreateBackBuffer()
 {
+	PSY_PROFILE_FUNCTION;
+
 	// TODO: Window resizing.
 	if( BackBufferRT_ == nullptr )
 	{

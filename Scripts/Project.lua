@@ -124,7 +124,7 @@ function PsyProjectCommonEngine( _name )
 
 	-- Extra warnings + fatal warnings.
 	configuration "vs*"
-		flags { "ExtraWarnings", "FatalWarnings" }
+		flags { "ExtraWarnings" }
 
 	-- Defines for all configurations
 	configuration "Debug"

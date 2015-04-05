@@ -27,6 +27,7 @@
 #include "System/Os/OsClient.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 #include <memory>
 
@@ -397,6 +398,7 @@ RsShaderCodeType RsContextGL::maxShaderCodeType( RsShaderCodeType CodeType ) con
 // presentBackBuffer
 void RsContextGL::presentBackBuffer()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::presentBackBuffer" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	//PSY_LOG( "Draw calls: %u\n", NoofDrawCalls_ );
@@ -452,19 +454,28 @@ void RsContextGL::presentBackBuffer()
 		ScreenshotRequested_ = BcFalse;
 	}
 
+	RsGLCatchError();
+
 #if PLATFORM_WINDOWS
-	::SwapBuffers( WindowDC_ );
+	{
+		PSY_PROFILER_SECTION( UpdateRoot, "::SwapBuffers" );
+		::SwapBuffers( WindowDC_ );
+	}
 #endif
 
 #if PLATFORM_LINUX
-	SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
+	{
+		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapWindow" );
+		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
+	}
 #endif
 
 #if PLATFORM_HTML5
-	SDL_GL_SwapBuffers();
+	{
+		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapBuffers" );
+		SDL_GL_SwapBuffers();
+	}
 #endif
-
-	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1124,6 +1135,7 @@ bool RsContextGL::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::updateBuffer" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
@@ -1945,6 +1957,7 @@ void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclara
 //virtual
 void RsContextGL::flushState()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::flushState" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	RsGLCatchError();
@@ -2257,6 +2270,7 @@ void RsContextGL::clear(
 	BcBool EnableClearDepth,
 	BcBool EnableClearStencil )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::clear" );
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	
@@ -2279,6 +2293,7 @@ void RsContextGL::clear(
 // drawPrimitives
 void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
 	++NoofDrawCalls_;
 	flushState();
 	BcAssert( Program_ != nullptr );
@@ -2291,6 +2306,7 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 // drawIndexedPrimitives
 void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
 	++NoofDrawCalls_;
 	flushState();
 	BcAssert( Program_ != nullptr );
