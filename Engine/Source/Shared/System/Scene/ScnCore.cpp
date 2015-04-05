@@ -172,36 +172,39 @@ void ScnCore::update()
 	//         inside the renderer, and not be a fart on here.
 	//         Also, the view component should be aware of the frame
 	//         and provide access to it for renderable components.
-	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
+	if( ViewComponentList_.size() > 0 )
 	{
-		PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnCore::render" ) );
-
-		// Grab client.
-		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
-
-		// Get context.
-		RsContext* pContext = RsCore::pImpl()->getContext( pClient );
-
-		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-		// Iterate over all view components.
-		RsRenderSort Sort( 0 );
-		BcAssert( ViewComponentList_.size() < RS_SORT_VIEWPORT_MAX );
-		for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
+		for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 		{
-			ScnViewComponentRef ViewComponent( *It );
+			PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnCore::render" ) );
+
+			// Grab client.
+			OsClient* pClient = OsCore::pImpl()->getClient( Idx );
+
+			// Get context.
+			RsContext* pContext = RsCore::pImpl()->getContext( pClient );
+
+			// Allocate a frame to render using default context.
+			RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+
+			// Iterate over all view components.
+			RsRenderSort Sort( 0 );
+			BcAssert( ViewComponentList_.size() < RS_SORT_VIEWPORT_MAX );
+			for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
+			{
+				ScnViewComponentRef ViewComponent( *It );
 			
-			ViewComponent->bind( pFrame, Sort );
+				ViewComponent->bind( pFrame, Sort );
 
-			ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
+				ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
 
-			// Increment viewport.
-			Sort.Viewport_++;
+				// Increment viewport.
+				Sort.Viewport_++;
+			}
+
+			// Queue frame for render.
+			RsCore::pImpl()->queueFrame( pFrame );
 		}
-
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( pFrame );
 	}
 
 	// Process pending components at the end of the tick.

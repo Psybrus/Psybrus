@@ -2019,8 +2019,8 @@ void RsContextGL::flushState()
 	RsGLCatchError();
 
 	// Bind program and primitive.
-	if( ( Program_ != nullptr ||
-		VertexDeclaration_ != nullptr ) &&
+	if( ( Program_ != nullptr &&
+		  VertexDeclaration_ != nullptr ) &&
 		( ProgramDirty_ || BindingsDirty_ ) )
 	{
 		const auto& ProgramVertexAttributeList = Program_->getVertexAttributeList();

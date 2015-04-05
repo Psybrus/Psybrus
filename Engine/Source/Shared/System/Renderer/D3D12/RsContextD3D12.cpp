@@ -772,24 +772,21 @@ bool RsContextD3D12::createTexture(
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex1D( 
 			Format.RTVFormat_,
 			TextureDesc.Width_, 1, (BcU16)TextureDesc.Levels_, 
-			MiscFlag,
-			D3D12_TEXTURE_LAYOUT_UNKNOWN );
+			MiscFlag );
 		break;
 
 	case RsTextureType::TEX2D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex2D( 
 			Format.RTVFormat_,
 			TextureDesc.Width_, TextureDesc.Height_, 1, (BcU16)TextureDesc.Levels_, 1, 0,
-			MiscFlag,
-			D3D12_TEXTURE_LAYOUT_UNKNOWN );
+			MiscFlag );
 		break;
 
 	case RsTextureType::TEX3D:
 		ResourceDesc = CD3D12_RESOURCE_DESC::Tex3D( 
 			Format.RTVFormat_,
 			TextureDesc.Width_, TextureDesc.Height_, (BcU16)TextureDesc.Depth_, (BcU16)TextureDesc.Levels_, 
-			MiscFlag,
-			D3D12_TEXTURE_LAYOUT_UNKNOWN );
+			MiscFlag );
 		break;
 	}
 
@@ -856,25 +853,85 @@ bool RsContextD3D12::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	const auto& TextureDesc = Texture->getDesc();
-	std::unique_ptr< BcU8[] > TempBuffer;
-		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
-		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
-		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
-		BcU32 DataSize = RsTextureFormatSize( 
-			TextureDesc.Format_,
-			Width,
-			Height,
-			Depth,
-			1 );
-	TempBuffer.reset( new BcU8[ DataSize ] );
-	RsTextureLock Lock = 
+	const auto& Desc = Texture->getDesc();
+	BcU32 Width = BcMax( 1, Desc.Width_ >> Slice.Level_ );
+	BcU32 Height = BcMax( 1, Desc.Height_ >> Slice.Level_ );
+	BcU32 Depth = BcMax( 1, Desc.Depth_ >> Slice.Level_ );
+	BcU32 TextureDataSize = RsTextureFormatSize( Desc.Format_, Width, Height, Depth, 1 );
+
+	// Bits per block.
+	BcU32 BitsPerBlock = 8;
+	BcU32 BlockW = 1;
+	BcU32 BlockH = 1;
+	switch( Desc.Format_ )
 	{
-		TempBuffer.get(),
-		TextureDesc.Width_,
-		TextureDesc.Width_ * TextureDesc.Height_
-	};	
+	case RsTextureFormat::R8:
+		BitsPerBlock = 8;
+		break;
+	case RsTextureFormat::R8G8:
+		BitsPerBlock = 16;
+		break;
+	case RsTextureFormat::R8G8B8:
+		BitsPerBlock = 24;
+		break;
+	case RsTextureFormat::R8G8B8A8:
+		BitsPerBlock = 32;
+		break;
+	case RsTextureFormat::R16F:
+		BitsPerBlock = 16;
+		break;
+	case RsTextureFormat::R16FG16F:
+		BitsPerBlock = 32;
+		break;
+	case RsTextureFormat::R16FG16FB16F:
+		BitsPerBlock = 48;
+		break;
+	case RsTextureFormat::R16FG16FB16FA16F:
+		BitsPerBlock = 64;
+		break;
+	case RsTextureFormat::R32F:
+		BitsPerBlock = 32;
+		break;
+	case RsTextureFormat::R32FG32F:
+		BitsPerBlock = 64;
+		break;
+	case RsTextureFormat::R32FG32FB32F:
+		BitsPerBlock = 96;
+		break;
+	case RsTextureFormat::R32FG32FB32FA32F:
+		BitsPerBlock = 128;
+		break;
+	case RsTextureFormat::DXT1:
+		BitsPerBlock = 64;
+		BlockW = 4;
+		BlockH = 4;
+		break;
+	case RsTextureFormat::DXT3:
+	case RsTextureFormat::DXT5:			
+		BitsPerBlock = 128;
+		BlockW = 4;
+		BlockH = 4;
+		break;
+			
+	default:
+		break;
+	}
+
+	// Update texture.
+	std::unique_ptr< BcU8[] > Data( new BcU8[ TextureDataSize ] );
+	RsTextureLock Lock;
+	Lock.Buffer_ = Data.get();
+	Lock.Pitch_ = ( ( Width / BlockW ) * BitsPerBlock ) / 8;
+	Lock.SlicePitch_ = ( ( Width / BlockW ) * ( Height / BlockH ) * BitsPerBlock ) / 8;
 	UpdateFunc( Texture, Lock );
+
+	if( Slice.Level_ == 0 )
+	{
+		RsResourceD3D12* Resource = Texture->getHandle< RsResourceD3D12* >();
+		ID3D12Resource* D3DResource = Resource->getInternalResource().Get();
+		D3DResource->WriteToSubresource( Slice.Level_, nullptr, Lock.Buffer_, Lock.Pitch_, Lock.SlicePitch_ );
+	}
+
 	return true;
 }
 
@@ -1065,10 +1122,8 @@ void RsContextD3D12::flushCommandList()
 void RsContextD3D12::recreateBackBuffer()
 {
 	// TODO: Window resizing.
-	if( BackBufferRT_ == nullptr || BackBufferDS_ == nullptr )
+	if( BackBufferRT_ == nullptr )
 	{
-		BcAssert( BackBufferRT_ == nullptr && BackBufferDS_ == nullptr );
-
 		RsTextureDesc Desc;
 		Desc.Type_ = RsTextureType::TEX2D;
 		Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
@@ -1084,6 +1139,17 @@ void RsContextD3D12::recreateBackBuffer()
 		BackBufferRT_->setHandle( new RsResourceD3D12( nullptr, 
 			Desc.BindFlags_,
 			RsResourceBindFlags::PRESENT ) );
+	}
+
+	if( BackBufferDS_ == nullptr )
+	{
+		RsTextureDesc Desc;
+		Desc.Type_ = RsTextureType::TEX2D;
+		Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
+		Desc.Levels_ = 1;
+		Desc.Width_ = SwapChainDesc_.BufferDesc.Width;
+		Desc.Height_ = SwapChainDesc_.BufferDesc.Height;
+		Desc.Depth_= 1;
 
 		// Depth stencil.
 		Desc.BindFlags_ = RsResourceBindFlags::DEPTH_STENCIL;
@@ -1099,9 +1165,13 @@ void RsContextD3D12::recreateBackBuffer()
 	
 	if( BackBufferFB_ == nullptr )
 	{
-		RsFrameBufferDesc Desc = RsFrameBufferDesc( 1 )
-			.setRenderTarget( 0, BackBufferRT_ )
-			.setDepthStencilTarget( BackBufferDS_ );
+		RsFrameBufferDesc Desc = RsFrameBufferDesc( 1 ).setRenderTarget( 0, BackBufferRT_ );
+
+		if( BackBufferDS_ != nullptr )
+		{
+			Desc.setDepthStencilTarget( BackBufferDS_ );
+		}
+
 		BackBufferFB_ = new RsFrameBuffer( this, Desc );
 		auto RetVal = createFrameBuffer( BackBufferFB_ );
 		BcAssert( RetVal );
@@ -1142,7 +1212,7 @@ void RsContextD3D12::createDefaultRootSignature()
 	Parameters[14].InitAsDescriptorTable( 1, &DescriptorRanges[2], D3D12_SHADER_VISIBILITY_GEOMETRY );
 	
 	D3D12_ROOT_SIGNATURE RootSignatureDesc;
-	RootSignatureDesc.Init( 
+	RootSignatureDesc.Init(
 		static_cast< UINT >( Parameters.size() ), Parameters.data(), 
 		0, nullptr, 
 		D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );

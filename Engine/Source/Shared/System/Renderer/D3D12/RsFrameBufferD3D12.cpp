@@ -30,11 +30,12 @@ void RsFrameBufferD3D12::createRTVDescriptorHeap()
 	HRESULT RetVal = E_FAIL;
 	const auto& ParentDesc = Parent_->getDesc();
 	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc = {};
+	BcMemZero( &RTVHeapDesc, sizeof( RTVHeapDesc ) );
 	RTVHeapDesc.NumDescriptors = NumRTVs_ = static_cast< UINT >( ParentDesc.RenderTargets_.size() );
 	RTVHeapDesc.Type = D3D12_RTV_DESCRIPTOR_HEAP;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_NONE;
 	RetVal = Device_->CreateDescriptorHeap( &RTVHeapDesc, IID_PPV_ARGS( RTV_.GetAddressOf() ) );
-		BcAssert( SUCCEEDED( RetVal ) );
+	BcAssert( SUCCEEDED( RetVal ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,12 +43,17 @@ void RsFrameBufferD3D12::createRTVDescriptorHeap()
 void RsFrameBufferD3D12::createDSVDescriptorHeap()
 {
 	HRESULT RetVal = E_FAIL;
-	D3D12_DESCRIPTOR_HEAP_DESC DSVHeapDesc = {};
-	DSVHeapDesc.NumDescriptors = 1;
-	DSVHeapDesc.Type = D3D12_DSV_DESCRIPTOR_HEAP;
-	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_NONE;
-	RetVal = Device_->CreateDescriptorHeap( &DSVHeapDesc, IID_PPV_ARGS( DSV_.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+	const auto& ParentDesc = Parent_->getDesc();
+	if( ParentDesc.DepthStencilTarget_ != nullptr )
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC DSVHeapDesc = {};
+		BcMemZero( &DSVHeapDesc, sizeof( DSVHeapDesc ) );
+		DSVHeapDesc.NumDescriptors = 1;
+		DSVHeapDesc.Type = D3D12_DSV_DESCRIPTOR_HEAP;
+		DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_NONE;
+		RetVal = Device_->CreateDescriptorHeap( &DSVHeapDesc, IID_PPV_ARGS( DSV_.GetAddressOf() ) );
+		BcAssert( SUCCEEDED( RetVal ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,9 +96,10 @@ void RsFrameBufferD3D12::setupRTVs()
 void RsFrameBufferD3D12::setupDSV()
 {
 	const auto& ParentDesc = Parent_->getDesc();
-	auto DSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();
+	auto DSTexture = ParentDesc.DepthStencilTarget_;
+	if( DSTexture != nullptr )
 	{
-		auto DSTexture = ParentDesc.DepthStencilTarget_;
+		auto DSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();
 		const auto& DSTextureDesc = DSTexture->getDesc();
 		auto DSResource = DSTexture->getHandle< RsResourceD3D12* >();
 		BcAssert( DSResource );

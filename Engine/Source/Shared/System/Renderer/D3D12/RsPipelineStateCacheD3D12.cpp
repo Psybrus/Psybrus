@@ -236,6 +236,7 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 
 	PSODesc.SampleDesc.Count = 1;
 	PSODesc.SampleDesc.Quality = 0;
+	PSODesc.SampleMask = UINT_MAX;
 
 	// Construct a new graphics pipeline state.
 	ComPtr< ID3D12PipelineState > GraphicsPS;
