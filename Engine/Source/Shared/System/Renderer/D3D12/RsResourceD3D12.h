@@ -17,6 +17,11 @@ public:
 	ComPtr< ID3D12Resource >& getInternalResource();
 
 	/**
+	 * Get GPU virtual address.
+	 */
+	D3D12_GPU_VIRTUAL_ADDRESS getGPUVirtualAddress();
+
+	/**
 	 * Transition resource from current usage to next usage.
 	 * @pre @a BindType is valid (as constructed with).
 	 * @pre @a BindType has only 1 bit set.

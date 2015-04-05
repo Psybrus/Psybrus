@@ -114,6 +114,11 @@ public:
 	bool destroyProgram(
 		class RsProgram* Program );
 	
+	bool createVertexDeclaration(
+		class RsVertexDeclaration* VertexDeclaration ) override;
+	bool destroyVertexDeclaration(
+		class RsVertexDeclaration* VertexDeclaration  ) override;
+
 	void flushState();
 
 	/**

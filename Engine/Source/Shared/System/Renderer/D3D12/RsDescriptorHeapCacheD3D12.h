@@ -101,6 +101,16 @@ public:
 	 */
 	D3D12_CONSTANT_BUFFER_VIEW_DESC getDefaultCBVDesc( class RsBuffer* Buffer );
 
+	/**
+	 * Destroy samplers.
+	 */
+	void destroySamplers( RsSamplerState* SamplerState );
+
+	/**
+	 * Destroy shader resources.
+	 */
+	void destroyShaderResources( RsTexture* Texture );
+	void destroyShaderResources( RsBuffer* Buffer );
 
 private:
 	ComPtr< ID3D12Device > Device_;

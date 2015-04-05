@@ -52,12 +52,19 @@ public:
 	~RsPipelineStateCacheD3D12();
 
 	/**
-	 *	@return New, or existing pipeline state.
+	 * @return New, or existing pipeline state.
 	 */
 	ID3D12PipelineState* getPipelineState( 
 		const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc,
 		ID3D12RootSignature* RootSignature );
-	
+
+	/**
+	 * Destroy resources.
+	 * Call @a DestroyFunc for every value stored, if true is returned then destroy resource, otherwise leave alone.
+	 */
+	using ShouldDestroyFunc = std::function< bool( const RsGraphicsPipelineStateDescD3D12&, ID3D12PipelineState* ) >;
+	void destroyResources( ShouldDestroyFunc DestroyFunc );
+		
 private:
 	using GraphicsPSMap = std::unordered_map< RsGraphicsPipelineStateDescD3D12, ComPtr< ID3D12PipelineState > >;
 

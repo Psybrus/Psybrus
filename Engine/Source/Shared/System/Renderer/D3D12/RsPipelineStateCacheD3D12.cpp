@@ -248,3 +248,22 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	GraphicsPSMap_.insert( std::make_pair( GraphicsPSDesc, GraphicsPS ) );
 	return GraphicsPS.Get();
 }
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResources
+void RsPipelineStateCacheD3D12::destroyResources( ShouldDestroyFunc DestroyFunc )
+{
+	for( auto It = GraphicsPSMap_.begin(); It != GraphicsPSMap_.end(); )
+	{
+		auto ShouldDestroy = DestroyFunc( It->first, It->second.Get() );
+		if( ShouldDestroy )
+		{
+			It = GraphicsPSMap_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
+}
+

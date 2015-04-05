@@ -8,7 +8,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsResourceD3D12::RsResourceD3D12( ID3D12Resource* Resource, RsResourceBindFlags BindFlags, RsResourceBindFlags InitialBindType ):
+RsResourceD3D12::RsResourceD3D12( 
+		ID3D12Resource* Resource, 
+		RsResourceBindFlags BindFlags, 
+		RsResourceBindFlags InitialBindType ):
 	Resource_( Resource ),
 	BindFlags_( BindFlags ),
 	CurrentBindType_( InitialBindType )
@@ -28,6 +31,12 @@ RsResourceD3D12::~RsResourceD3D12()
 ComPtr< ID3D12Resource >& RsResourceD3D12::getInternalResource()
 {
 	return Resource_;
+}
+//////////////////////////////////////////////////////////////////////////
+// getGPUVirtualAddress
+D3D12_GPU_VIRTUAL_ADDRESS RsResourceD3D12::getGPUVirtualAddress()
+{
+	return Resource_->GetGPUVirtualAddress();
 }
 
 //////////////////////////////////////////////////////////////////////////

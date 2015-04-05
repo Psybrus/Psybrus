@@ -437,7 +437,7 @@ void RsContextD3D12::setIndexBuffer( class RsBuffer* IndexBuffer )
 	if( IndexBuffer != nullptr )
 	{
 		auto VertexBufferResource = IndexBuffer->getHandle< RsResourceD3D12* >();
-		IndexBufferView_.BufferLocation = VertexBufferResource->getInternalResource()->GetGPUVirtualAddress();
+		IndexBufferView_.BufferLocation = VertexBufferResource->getGPUVirtualAddress();
 		IndexBufferView_.SizeInBytes = static_cast< UINT >( IndexBuffer->getDesc().SizeBytes_ );
 		IndexBufferView_.Format = DXGI_FORMAT_R16_UINT; // TODO: Select properly
 	}
@@ -462,7 +462,7 @@ void RsContextD3D12::setVertexBuffer(
 	if( VertexBuffer != nullptr )
 	{
 		auto VertexBufferResource = VertexBuffer->getHandle< RsResourceD3D12* >();
-		VertexBufferView.BufferLocation = VertexBufferResource->getInternalResource()->GetGPUVirtualAddress();
+		VertexBufferView.BufferLocation = VertexBufferResource->getGPUVirtualAddress();
 		VertexBufferView.SizeInBytes = static_cast< UINT >( VertexBuffer->getDesc().SizeBytes_ );
 		VertexBufferView.StrideInBytes = Stride;
 	}
@@ -571,6 +571,18 @@ bool RsContextD3D12::destroyRenderState(
 	RsRenderState* RenderState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	PSOCache_->destroyResources(
+		[ this, RenderState ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
+		{
+			return PSODesc.RenderState_ == RenderState;
+		} );
+
+	if( GraphicsPSODesc_.RenderState_ == RenderState )
+	{
+		GraphicsPSODesc_.RenderState_ = nullptr;
+	}
+
 	return true;
 }
 
@@ -589,6 +601,20 @@ bool RsContextD3D12::destroySamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	DHCache_->destroySamplers( SamplerState );
+
+	for( auto& SamplerStateDesc : SamplerStateDescs_ )
+	{
+		for( auto& Sampler : SamplerStateDesc.SamplerStates_ )
+		{
+			if( Sampler == SamplerState )
+			{
+				Sampler = nullptr;
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -606,6 +632,12 @@ bool RsContextD3D12::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 bool RsContextD3D12::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	if( FrameBuffer_ == FrameBuffer )
+	{
+		FrameBuffer_ = nullptr;
+	}
+
 	auto FrameBufferInternal = FrameBuffer->getHandle< RsFrameBufferD3D12* >();
 	delete FrameBufferInternal;
 	FrameBuffer->setHandle< BcU64 >( 0 );
@@ -671,7 +703,38 @@ bool RsContextD3D12::destroyBuffer(
 	class RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
+
+	DHCache_->destroyShaderResources( Buffer );
+
+	// Check shader resource bindings.
+	for( auto& ShaderResourceDesc : ShaderResourceDescs_ )
+	{
+		for( auto& SRBuffer : ShaderResourceDesc.Buffers_ )
+		{
+			if( SRBuffer == Buffer )
+			{
+				SRBuffer = nullptr;
+			}
+		}
+	}
+
+	// Check index buffer view.
+	if( IndexBufferView_.BufferLocation == Resource->getGPUVirtualAddress() )
+	{
+		IndexBufferView_.BufferLocation = 0;
+	}
+
+	// Check vertex buffer views.
+	for( auto& VertexBufferView : VertexBufferViews_ )
+	{
+		if( VertexBufferView.BufferLocation == Resource->getGPUVirtualAddress() )
+		{
+			VertexBufferView.BufferLocation = 0;
+		}
+	}	
+
 	delete Resource;
 	Buffer->setHandle< BcU64 >( 0 );
 	return true;
@@ -839,6 +902,21 @@ bool RsContextD3D12::destroyTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto Resource = Texture->getHandle< RsResourceD3D12* >();
+
+	DHCache_->destroyShaderResources( Texture );
+
+	// Check shader resource bindings.
+	for( auto& ShaderResourceDesc : ShaderResourceDescs_ )
+	{
+		for( auto& SRTexture : ShaderResourceDesc.Textures_ )
+		{
+			if( SRTexture == Texture )
+			{
+				SRTexture = nullptr;
+			}
+		}
+	}
+
 	delete Resource;
 	Texture->setHandle< BcU64 >( 0 );
 	return true;
@@ -966,12 +1044,49 @@ bool RsContextD3D12::createProgram(
 bool RsContextD3D12::destroyProgram(
 	class RsProgram* Program )
 {
+	PSOCache_->destroyResources(
+		[ this, Program ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
+		{
+			return PSODesc.Program_ == Program;
+		} );
+
+	if( GraphicsPSODesc_.Program_ == Program )
+	{
+		GraphicsPSODesc_.Program_ = nullptr;
+	}
+
 	auto ProgramD3D12 = Program->getHandle< RsProgramD3D12* >();
 	delete ProgramD3D12;
 	Program->setHandle< BcU64 >( 0 );
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+bool RsContextD3D12::createVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyVertexDeclaration
+bool RsContextD3D12::destroyVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	PSOCache_->destroyResources(
+		[ this, VertexDeclaration ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
+		{
+			return PSODesc.VertexDeclaration_ == VertexDeclaration;
+		} );
+
+	if( GraphicsPSODesc_.VertexDeclaration_ == VertexDeclaration )
+	{
+		GraphicsPSODesc_.VertexDeclaration_ = nullptr;
+	}
+	return true;
+}
+	
 //////////////////////////////////////////////////////////////////////////
 // flushState
 //virtual

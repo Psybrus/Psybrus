@@ -305,3 +305,96 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( c
 	OutDesc.SizeInBytes = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ) );
 	return OutDesc;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// destroySamplers
+void RsDescriptorHeapCacheD3D12::destroySamplers( RsSamplerState* SamplerState )
+{
+	for( auto It = SampleStateHeaps_.begin(); It != SampleStateHeaps_.end(); )
+	{
+		bool ShouldDestroy = BcFalse;
+
+		for( const auto& SamplerStateDesc : It->first )
+		{
+			for( const auto& Sampler : SamplerStateDesc.SamplerStates_ )
+			{
+				if( Sampler == SamplerState )
+				{
+					ShouldDestroy = BcTrue;
+					break;
+				}
+			}
+		}
+
+		if( ShouldDestroy )
+		{
+			It = SampleStateHeaps_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyShaderResources
+void RsDescriptorHeapCacheD3D12::destroyShaderResources( RsTexture* Texture )
+{
+	for( auto It = ShaderResourceHeaps_.begin(); It != ShaderResourceHeaps_.end(); )
+	{
+		bool ShouldDestroy = BcFalse;
+
+		for( const auto& ShaerResourceDesc : It->first )
+		{
+			for( const auto& SRTexture : ShaerResourceDesc.Textures_ )
+			{
+				if( SRTexture == Texture )
+				{
+					ShouldDestroy = BcTrue;
+					break;
+				}
+			}
+		}
+		
+		if( ShouldDestroy )
+		{
+			It = ShaderResourceHeaps_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyShaderResources
+void RsDescriptorHeapCacheD3D12::destroyShaderResources( RsBuffer* Buffer )
+{
+	for( auto It = ShaderResourceHeaps_.begin(); It != ShaderResourceHeaps_.end(); )
+	{
+		bool ShouldDestroy = BcFalse;
+
+		for( const auto& ShaerResourceDesc : It->first )
+		{
+			for( const auto& SRBuffer : ShaerResourceDesc.Buffers_ )
+			{
+				if( SRBuffer == Buffer )
+				{
+					ShouldDestroy = BcTrue;
+					break;
+				}
+			}
+		}
+
+		if( ShouldDestroy )
+		{
+			It = ShaderResourceHeaps_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
+}
