@@ -74,4 +74,7 @@ private:
 
 	/// Blocks in pool.
 	std::vector< ResourceBlock > Blocks_;
+
+	/// Blocks created.
+	size_t BlocksCreated_;
 };

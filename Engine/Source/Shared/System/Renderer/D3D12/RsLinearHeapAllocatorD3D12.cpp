@@ -9,7 +9,9 @@ RsLinearHeapAllocatorD3D12::RsLinearHeapAllocatorD3D12(
 	Device_( Device ),
 	HeapType_( HeapType ),
 	MinResourceBlockSize_( MinResourceBlockSize ),
-	OwningThread_( BcCurrentThreadId() )
+	OwningThread_( BcCurrentThreadId() ),
+	Blocks_(),
+	BlocksCreated_( 0 )
 {
 	BcAssert( MinResourceBlockSize_ >= MIN_RESOURCE_BLOCK_SIZE );
 	BcAssert( ( MinResourceBlockSize_ & ( MAX_ALIGNMENT - 1 ) ) == 0 );
@@ -83,16 +85,36 @@ RsResourceAllocationD3D12 RsLinearHeapAllocatorD3D12::allocate( BcU64 Size, BcU6
 void RsLinearHeapAllocatorD3D12::reset()
 {
 	BcAssert( OwningThread_ == BcCurrentThreadId() );
+	PSY_LOGSCOPEDCATEGORY( "RsLinearHeapAllocatorD3D12" );
+
+	BcU64 TotalUsage = 0;
+	BcU64 TotalSize = 0;
 	
 	// Set block offsets back to 0.
 	for( auto& Block : Blocks_ )
 	{
+		TotalUsage += Block.CurrentOffset_;
+		TotalSize += Block.Size_;
 		Block.CurrentOffset_ = 0;
 	}
-	
-	// TODO: Sort resource blocks largest to smallest.
 
-	// TODO: Retire least recently used resource blocks.
+	// If we have many blocks, merge into 1 and create as large as current total size.
+	if( Blocks_.size() > 1 )
+	{
+		PSY_LOG( "More than 1 block allocated. Compacting." );
+		PSY_LOGSCOPEDINDENT;
+		PSY_LOG( "Total size: %u kB", TotalSize / 1024 );
+		PSY_LOG( "Total usage this frame: %u kB", TotalUsage / 1024 );
+		PSY_LOG( "Blocks: %u", Blocks_.size() );
+		PSY_LOG( "Blocks created: %u", BlocksCreated_ );
+
+		Blocks_.clear();
+		auto Block = createResourceBlock( TotalSize );
+		Blocks_.push_back( Block );
+	}	
+	
+	// Reset stats.
+	BlocksCreated_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -128,6 +150,9 @@ RsLinearHeapAllocatorD3D12::ResourceBlock RsLinearHeapAllocatorD3D12::createReso
 
 	// Persistently map.
 	Block.Resource_->Map( 0, nullptr, &Block.BaseAddress_ );
+
+	// Blocks created.
+	++BlocksCreated_;
 
 	return std::move( Block );
 }
