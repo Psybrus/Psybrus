@@ -234,7 +234,7 @@ D3D12_SAMPLER_DESC RsDescriptorHeapCacheD3D12::getSamplerDesc( class RsSamplerSt
 	OutDesc.BorderColor[ 1 ] = 0.0f;
 	OutDesc.BorderColor[ 2 ] = 0.0f;
 	OutDesc.BorderColor[ 3 ] = 0.0f;
-	OutDesc.MinLOD = -FLT_MAX;
+	OutDesc.MinLOD = 0;
 	OutDesc.MaxLOD = FLT_MAX;
 
 	return OutDesc;
