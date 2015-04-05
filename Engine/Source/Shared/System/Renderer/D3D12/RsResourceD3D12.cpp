@@ -10,14 +10,13 @@
 // Ctor
 RsResourceD3D12::RsResourceD3D12( 
 		ID3D12Resource* Resource, 
-		RsResourceBindFlags BindFlags, 
-		RsResourceBindFlags InitialBindType ):
+		D3D12_RESOURCE_USAGE Usage, 
+		D3D12_RESOURCE_USAGE InitialUsage ):
 	Resource_( Resource ),
-	BindFlags_( BindFlags ),
-	CurrentBindType_( InitialBindType )
+	Usage_( Usage ),
+	CurrentUsage_( InitialUsage )
 {
-	BcAssert( ( InitialBindType & BindFlags_ ) != RsResourceBindFlags::NONE );
-	BcAssert( BcBitsSet( (BcU32)InitialBindType ) == 1 );
+	BcAssert( ( Usage_ & CurrentUsage_ ) != 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,22 +40,28 @@ D3D12_GPU_VIRTUAL_ADDRESS RsResourceD3D12::getGPUVirtualAddress()
 
 //////////////////////////////////////////////////////////////////////////
 // resourceBarrierTransition
-void RsResourceD3D12::resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList, RsResourceBindFlags BindType )
+D3D12_RESOURCE_USAGE RsResourceD3D12::resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_USAGE Usage )
 {
-	BcAssert( ( BindType & BindFlags_ ) != RsResourceBindFlags::NONE );
-	BcAssert( BcBitsSet( (BcU32)BindType ) == 1 );
-
-	if( CurrentBindType_ != BindType )
+	BcAssert( ( Usage_ & Usage ) != 0 );
+	auto OldUsage = CurrentUsage_;
+	if( CurrentUsage_ != Usage )
 	{
 		D3D12_RESOURCE_BARRIER_DESC descBarrier = {};
 		descBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		descBarrier.Transition.pResource = Resource_.Get();
 		descBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		descBarrier.Transition.StateBefore = RsUtilsD3D12::GetResourceUsage( CurrentBindType_ );
-		descBarrier.Transition.StateAfter = RsUtilsD3D12::GetResourceUsage( BindType );
+		descBarrier.Transition.StateBefore = CurrentUsage_;
+		descBarrier.Transition.StateAfter = Usage;
 
 		CommandList->ResourceBarrier( 1, &descBarrier );
-		CurrentBindType_ = BindType;
+		CurrentUsage_ = Usage;
 	}
+	return OldUsage;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// resourceBarrierTransition
+D3D12_RESOURCE_USAGE RsResourceD3D12::resourceUsage() const
+{
+	return CurrentUsage_;
+}

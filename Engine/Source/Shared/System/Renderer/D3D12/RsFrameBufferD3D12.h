@@ -23,7 +23,15 @@ public:
 		BcBool EnableClearDepth,
 		BcBool EnableClearStencil );
 
+	/**
+	 * Set render targets and transition them to the correct usage.
+	 */
 	void setRenderTargets( ID3D12GraphicsCommandList* CommandList );
+
+	/**
+	 * Transition render targets to read usage.
+	 */
+	void transitionToRead( ID3D12GraphicsCommandList* CommandList );
 	
 private:
 	class RsFrameBuffer* Parent_;

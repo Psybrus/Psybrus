@@ -8,7 +8,7 @@
 class RsResourceD3D12
 {
 public:
-	RsResourceD3D12( ID3D12Resource* Resource, RsResourceBindFlags BindFlags, RsResourceBindFlags InitialBindType );
+	RsResourceD3D12( ID3D12Resource* Resource, D3D12_RESOURCE_USAGE Usage, D3D12_RESOURCE_USAGE InitialUsage );
 	~RsResourceD3D12();
 
 	/**
@@ -23,11 +23,16 @@ public:
 
 	/**
 	 * Transition resource from current usage to next usage.
-	 * @pre @a BindType is valid (as constructed with).
-	 * @pre @a BindType has only 1 bit set.
+	 * @pre @a Usage is valid (as constructed with).
 	 * @post Resource is valid for next usage type.
+	 * @return Old usage.
 	 */
-	void resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList, RsResourceBindFlags BindType );
+	D3D12_RESOURCE_USAGE resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_USAGE Usage );
+	
+	/**
+	 * @return Current usage.
+	 */
+	D3D12_RESOURCE_USAGE resourceUsage() const;
 
 	/**
 	 * TODO: Move to utils.
@@ -38,10 +43,10 @@ private:
 	/// Internal D3D12 resource.
 	ComPtr< ID3D12Resource > Resource_;
 
-	/// Bind flags.
-	RsResourceBindFlags BindFlags_;
+	/// Usage.
+	D3D12_RESOURCE_USAGE Usage_;
 
-	/// Current bind type on GPU.
-	RsResourceBindFlags CurrentBindType_;
+	/// Current usage.
+	D3D12_RESOURCE_USAGE CurrentUsage_;
 };
 

@@ -13,6 +13,7 @@
 
 #include "System/Renderer/D3D12/RsContextD3D12.h"
 #include "System/Renderer/D3D12/RsFrameBufferD3D12.h"
+#include "System/Renderer/D3D12/RsLinearHeapAllocatorD3D12.h"
 #include "System/Renderer/D3D12/RsProgramD3D12.h"
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
 #include "System/Renderer/D3D12/RsUtilsD3D12.h"
@@ -61,6 +62,19 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	FlushCounter_( 1 ),
 	NumSwapBuffers_( 1 ),
 	LastSwapBuffer_( 0 ),
+	DefaultRootSignature_(),
+	DefaultPSO_(),
+	PSOCache_(),
+	GraphicsPSODesc_(),
+	Viewports_(),
+	ScissorRects_(),
+	FrameBuffer_( nullptr ),
+	UploadAllocator_(),
+	VertexBufferViews_(),
+	IndexBufferView_(),
+	DHCache_(),
+	SamplerStateDescs_(),
+	ShaderResourceDescs_(),
 	BackBufferRT_( nullptr ),
 	BackBufferDS_( nullptr ),
 	BackBufferFB_( nullptr ),
@@ -172,7 +186,7 @@ void RsContextD3D12::presentBackBuffer()
 
 	// Transition back buffer to present.
 	RsResourceD3D12* BackBufferResource = BackBufferRT_->getHandle< RsResourceD3D12* >();
-	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), RsResourceBindFlags::PRESENT );
+	BackBufferResource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_PRESENT );
 	
 	// Flush command list (also waits for completion).
 	flushCommandList();
@@ -181,6 +195,9 @@ void RsContextD3D12::presentBackBuffer()
 	RetVal = SwapChain_->Present( 1, 0 );
 	BcAssert( SUCCEEDED( RetVal ) );
 	++FrameCounter_;
+
+	// Reset allocators.
+	UploadAllocator_->reset();
 
 	// Get next buffer.
 	LastSwapBuffer_ = ( 1 + LastSwapBuffer_ ) % NumSwapBuffers_;
@@ -299,6 +316,9 @@ void RsContextD3D12::create()
 	// Create command allocators.
 	createCommandAllocators();
 
+	// Create resource allocators.
+	createResourceAllocators();;
+
 	// Create command lists.
 	createCommandLists();
 
@@ -340,6 +360,7 @@ void RsContextD3D12::destroy()
 	}
 
 	// Cleanup everything.
+	UploadAllocator_.reset();
 	DefaultRootSignature_.Reset();
 	DefaultPSO_.Reset();
 	DHCache_.reset();
@@ -436,8 +457,9 @@ void RsContextD3D12::setIndexBuffer( class RsBuffer* IndexBuffer )
 	
 	if( IndexBuffer != nullptr )
 	{
-		auto VertexBufferResource = IndexBuffer->getHandle< RsResourceD3D12* >();
-		IndexBufferView_.BufferLocation = VertexBufferResource->getGPUVirtualAddress();
+		auto IndexBufferResource = IndexBuffer->getHandle< RsResourceD3D12* >();
+		IndexBufferResource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_DEFAULT_READ );
+		IndexBufferView_.BufferLocation = IndexBufferResource->getGPUVirtualAddress();
 		IndexBufferView_.SizeInBytes = static_cast< UINT >( IndexBuffer->getDesc().SizeBytes_ );
 		IndexBufferView_.Format = DXGI_FORMAT_R16_UINT; // TODO: Select properly
 	}
@@ -462,6 +484,7 @@ void RsContextD3D12::setVertexBuffer(
 	if( VertexBuffer != nullptr )
 	{
 		auto VertexBufferResource = VertexBuffer->getHandle< RsResourceD3D12* >();
+		VertexBufferResource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_DEFAULT_READ );
 		VertexBufferView.BufferLocation = VertexBufferResource->getGPUVirtualAddress();
 		VertexBufferView.SizeInBytes = static_cast< UINT >( VertexBuffer->getDesc().SizeBytes_ );
 		VertexBufferView.StrideInBytes = Stride;
@@ -508,6 +531,8 @@ void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	auto LastFrameBuffer  = FrameBuffer_;
+
 	// Even if null, we want backbuffer bound.
 	if( FrameBuffer == nullptr )
 	{
@@ -516,6 +541,13 @@ void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	else
 	{
 		FrameBuffer_ = FrameBuffer;
+	}
+
+	// Transition last to read.
+	if( LastFrameBuffer != nullptr )
+	{
+		auto D3DFrameBuffer = LastFrameBuffer->getHandle< RsFrameBufferD3D12* >();
+		D3DFrameBuffer->transitionToRead( CommandList_.Get() );
 	}
 }
 
@@ -655,45 +687,52 @@ bool RsContextD3D12::createBuffer(
 
 	const auto& BufferDesc = Buffer->getDesc();
 
-	// TODO: Change this to use CreatePlacedResource, and appropriate heaps.
-	// Should have a single large upload heap, an upload command list,
-	// treat the heap as a circular buffer and fence to ensure we don't overwrite.
-	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_UPLOAD );
+	CD3D12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_DEFAULT );
 	CD3D12_RESOURCE_DESC ResourceDesc( CD3D12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_MISC_NONE ) );
+
+	// Determine appropriate resource usage.
+	D3D12_RESOURCE_USAGE ResourceUsage;
+	switch( BufferDesc.Type_ )
+	{
+	case RsBufferType::VERTEX:
+		ResourceUsage = D3D12_RESOURCE_USAGE_DEFAULT_READ;
+		break;
+	case RsBufferType::INDEX:
+		ResourceUsage = D3D12_RESOURCE_USAGE_DEFAULT_READ;
+		break;
+	case RsBufferType::UNIFORM:
+		ResourceUsage = 
+			static_cast< D3D12_RESOURCE_USAGE >( 
+				D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE );
+		break;
+	case RsBufferType::UNORDERED_ACCESS:
+		ResourceUsage = D3D12_RESOURCE_USAGE_UNORDERED_ACCESS; 
+		break;
+	case RsBufferType::DRAW_INDIRECT:
+		ResourceUsage = D3D12_RESOURCE_USAGE_INDIRECT_ARGUMENT;
+		break;
+	case RsBufferType::STREAM_OUT:
+		ResourceUsage = D3D12_RESOURCE_USAGE_STREAM_OUT;
+		break;
+	default:
+		BcBreakpoint;
+		return false;
+	}
 
 	ComPtr< ID3D12Resource > D3DResource;
 	RetVal = Device_->CreateCommittedResource( 
 		&HeapProperties,
 		D3D12_HEAP_MISC_NONE,
 		&ResourceDesc,
-		D3D12_RESOURCE_USAGE_GENERIC_READ, 
+		ResourceUsage,
 		nullptr,
 		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 
-	RsResourceBindFlags BindFlags = RsResourceBindFlags::NONE;
-	switch( BufferDesc.Type_ )
-	{
-	case RsBufferType::INDEX:
-		BindFlags = RsResourceBindFlags::VERTEX_BUFFER;
-		break;
-	case RsBufferType::VERTEX:
-		BindFlags = RsResourceBindFlags::INDEX_BUFFER;
-		break;
-	case RsBufferType::UNIFORM:
-		BindFlags = RsResourceBindFlags::UNIFORM_BUFFER;
-		break;
-	case RsBufferType::UNORDERED_ACCESS:
-		BindFlags = RsResourceBindFlags::UNORDERED_ACCESS;
-		break;
-	case RsBufferType::STREAM_OUT:
-		BindFlags = RsResourceBindFlags::STREAM_OUTPUT;
-		break;
-	default:
-		BcBreakpoint;
-	}
-
-	Buffer->setHandle( new RsResourceD3D12( D3DResource.Get(), BindFlags, BindFlags ) );
+	Buffer->setHandle( new RsResourceD3D12( 
+		D3DResource.Get(), 
+		static_cast< D3D12_RESOURCE_USAGE >( ResourceUsage | D3D12_RESOURCE_USAGE_COPY_DEST ), 
+		ResourceUsage ) );
 	return true;
 }
 
@@ -750,25 +789,25 @@ bool RsContextD3D12::updateBuffer(
 	RsBufferUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Buffer );
-	BcUnusedVar( Offset );
-	BcUnusedVar( Size );
-	BcUnusedVar( Flags );
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
 	auto& D3DResource = Resource->getInternalResource();
 
-	D3D12_RANGE Range = { Offset, Offset + Size };
+	// Allocate for upload.
+	auto Allocation = UploadAllocator_->allocate( Size );
 	RsBufferLock Lock;
-	if( SUCCEEDED( D3DResource->Map( 0, &Range, &Lock.Buffer_ ) ) )
-	{
-		UpdateFunc( Buffer, Lock );
-		D3DResource->Unmap( 0, &Range );
-	}
-	else
-	{
-		BcBreakpoint;
-		return false;
-	}
+	Lock.Buffer_ = Allocation.Address_;
+	UpdateFunc( Buffer, Lock );
+
+	// Transition to copy dest.
+	auto OldUsage = Resource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_COPY_DEST );
+
+	// Copy into buffer.
+	CommandList_->CopyBufferRegion( 
+		D3DResource.Get(), Offset, Allocation.BaseResource_.Get(), Allocation.OffsetInBaseResource_, 
+		Size, D3D12_COPY_DISCARD );
+
+	// Transition back to original.
+	Resource->resourceBarrierTransition( CommandList_.Get(), OldUsage );
 
 	return true;
 }
@@ -807,22 +846,6 @@ bool RsContextD3D12::createTexture(
 	
 	// TODO: Improve heap determination. Should always be default going forward.
 	D3D12_HEAP_TYPE HeapType = D3D12_HEAP_TYPE_DEFAULT;
-	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
-	{
-		HeapType = D3D12_HEAP_TYPE_DEFAULT;		
-	}
-	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
-	{
-		HeapType = D3D12_HEAP_TYPE_DEFAULT;		
-	}
-	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::PRESENT ) != RsResourceBindFlags::NONE )
-	{
-		HeapType = D3D12_HEAP_TYPE_DEFAULT;		
-	}
-	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
-	{
-		HeapType = D3D12_HEAP_TYPE_UPLOAD;		
-	}
 	
 	CD3D12_HEAP_PROPERTIES HeapProperties( HeapType );
 	CD3D12_RESOURCE_DESC ResourceDesc;
@@ -859,23 +882,23 @@ bool RsContextD3D12::createTexture(
 	BcMemZero( &ClearValue, sizeof( ClearValue ) );
 
 	// Setup initial bind type to be whatever is likely what it will be used as first.
-	RsResourceBindFlags InitialBindType = RsResourceBindFlags::NONE;
+	BcU32 InitialUsage = D3D12_RESOURCE_USAGE_INITIAL;
 	if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
 	{
 		ClearValue.Format = Format.RTVFormat_;
 		SetClearValue = &ClearValue;
-		InitialBindType = RsResourceBindFlags::RENDER_TARGET;
+		InitialUsage = D3D12_RESOURCE_USAGE_RENDER_TARGET;
 	}
 	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
 	{
 		ClearValue.Format = Format.DSVFormat_;
 		ClearValue.DepthStencil.Depth = 1.0f;
 		SetClearValue = &ClearValue;
-		InitialBindType = RsResourceBindFlags::DEPTH_STENCIL;
+		InitialUsage = D3D12_RESOURCE_USAGE_DEPTH;
 	}
 	else if( ( TextureDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
-		InitialBindType = RsResourceBindFlags::SHADER_RESOURCE;
+		InitialUsage = D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE;
 	}
 
 	// TODO: Change this to use CreatePlacedResource, and appropriate heaps.
@@ -886,12 +909,15 @@ bool RsContextD3D12::createTexture(
 		&HeapProperties,
 		D3D12_HEAP_MISC_NONE,
 		&ResourceDesc,
-		RsUtilsD3D12::GetResourceUsage( InitialBindType ), 
+		static_cast< D3D12_RESOURCE_USAGE >( InitialUsage ),
 		SetClearValue,
 		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+ 	BcAssert( SUCCEEDED( RetVal ) );
 
-	Texture->setHandle( new RsResourceD3D12( D3DResource.Get(), TextureDesc.BindFlags_, InitialBindType ) );
+	Texture->setHandle( new RsResourceD3D12( 
+		D3DResource.Get(), 
+		RsUtilsD3D12::GetResourceUsage( TextureDesc.BindFlags_ ),
+		static_cast< D3D12_RESOURCE_USAGE >( InitialUsage ) ) );
 	return true;
 }
 
@@ -996,20 +1022,37 @@ bool RsContextD3D12::updateTexture(
 	}
 
 	// Update texture.
-	std::unique_ptr< BcU8[] > Data( new BcU8[ TextureDataSize ] );
+	auto WidthByBlock = ( Width / BlockW );
+	auto HeightByBlock = ( Height / BlockH );
+	auto Allocation = UploadAllocator_->allocate( TextureDataSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
 	RsTextureLock Lock;
-	Lock.Buffer_ = Data.get();
-	Lock.Pitch_ = ( ( Width / BlockW ) * BitsPerBlock ) / 8;
-	Lock.SlicePitch_ = ( ( Width / BlockW ) * ( Height / BlockH ) * BitsPerBlock ) / 8;
+	Lock.Buffer_ = Allocation.Address_;
+	Lock.Pitch_ = ( WidthByBlock * BitsPerBlock ) / 8;
+	Lock.SlicePitch_ = ( WidthByBlock * HeightByBlock * BitsPerBlock ) / 8;
 	UpdateFunc( Texture, Lock );
 
-	if( Slice.Level_ == 0 )
-	{
-		RsResourceD3D12* Resource = Texture->getHandle< RsResourceD3D12* >();
-		ID3D12Resource* D3DResource = Resource->getInternalResource().Get();
-		D3DResource->WriteToSubresource( Slice.Level_, nullptr, Lock.Buffer_, Lock.Pitch_, Lock.SlicePitch_ );
-	}
+	RsResourceD3D12* Resource = Texture->getHandle< RsResourceD3D12* >();
+	ID3D12Resource* D3DResource = Resource->getInternalResource().Get();
 
+	// Transition to copy dest.
+	auto OldUsage = Resource->resourceBarrierTransition( CommandList_.Get(), D3D12_RESOURCE_USAGE_COPY_DEST );
+
+	// Setup pitched subresource to match source data.
+	D3D12_PLACED_PITCHED_SUBRESOURCE_DESC Layout;
+	Layout.Offset = Allocation.OffsetInBaseResource_;
+	Layout.Placement.Format = RsUtilsD3D12::GetTextureFormat( Desc.Format_ ).RTVFormat_;
+	Layout.Placement.Width = Width;
+	Layout.Placement.Height = Height;
+	Layout.Placement.Depth = Depth;
+	Layout.Placement.RowPitch = Lock.Pitch_;
+
+	// Copy in.
+	CD3D12_TEXTURE_COPY_LOCATION Dst( D3DResource, Slice.Level_ );
+	CD3D12_TEXTURE_COPY_LOCATION Src( Allocation.BaseResource_.Get(), Layout );
+	CommandList_->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr, D3D12_COPY_NO_OVERWRITE );
+
+	// Transition back to original.
+	Resource->resourceBarrierTransition( CommandList_.Get(), OldUsage );
 	return true;
 }
 
@@ -1141,6 +1184,40 @@ void RsContextD3D12::flushState()
 		CommandList_->SetPipelineState( GraphicsPS );
 	}
 
+	// Transition for read.
+	// TODO: Do this work ahead of time, and simply assert here.
+	BcU32 ShaderType = 0;
+	for( const auto& ShaderResourceDesc : ShaderResourceDescs_ )
+	{
+		for( auto* Texture : ShaderResourceDesc.Textures_ )
+		{
+			if( Texture != nullptr )
+			{
+				auto Resource = Texture->getHandle< RsResourceD3D12* >();
+				BcAssert( 
+					( static_cast< RsShaderType >( ShaderType ) == RsShaderType::PIXEL && 
+						( Resource->resourceUsage() & D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE ) != 0 ) ||
+					( static_cast< RsShaderType >( ShaderType ) != RsShaderType::PIXEL && 
+						( Resource->resourceUsage() & D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE ) != 0 ) );
+			}
+		}
+
+		for( auto* Buffer : ShaderResourceDesc.Buffers_ )
+		{
+			if( Buffer != nullptr )
+			{
+				auto Resource = Buffer->getHandle< RsResourceD3D12* >();
+				BcAssert( 
+					( static_cast< RsShaderType >( ShaderType ) == RsShaderType::PIXEL && 
+						( Resource->resourceUsage() & D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE ) != 0 ) ||
+					( static_cast< RsShaderType >( ShaderType ) != RsShaderType::PIXEL && 
+						( Resource->resourceUsage() & D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE ) != 0 ) );
+			}
+		}
+
+		++ShaderType;
+	} 
+
 	// Get descriptor sets from cache.
 	std::array< ID3D12DescriptorHeap*, 2 > DescriptorHeaps;
 	DescriptorHeaps[ 0 ] = DHCache_->getSamplersDescriptorHeap( SamplerStateDescs_ );
@@ -1252,8 +1329,8 @@ void RsContextD3D12::recreateBackBuffer()
 		Desc.Format_ = RsTextureFormat::R8G8B8A8;
 		BackBufferRT_ = new RsTexture( this, Desc );
 		BackBufferRT_->setHandle( new RsResourceD3D12( nullptr, 
-			Desc.BindFlags_,
-			RsResourceBindFlags::PRESENT ) );
+			RsUtilsD3D12::GetResourceUsage( Desc.BindFlags_ ),
+			D3D12_RESOURCE_USAGE_PRESENT ) );
 	}
 
 	if( BackBufferDS_ == nullptr )
@@ -1381,6 +1458,13 @@ void RsContextD3D12::createCommandAllocators()
 	HRESULT RetVal = E_FAIL;
 	RetVal = Device_->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( CommandAllocator_.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createResourceAllocators
+void RsContextD3D12::createResourceAllocators()
+{
+	UploadAllocator_.reset( new RsLinearHeapAllocatorD3D12( Device_.Get(), D3D12_HEAP_TYPE_UPLOAD, 64 * 1024 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

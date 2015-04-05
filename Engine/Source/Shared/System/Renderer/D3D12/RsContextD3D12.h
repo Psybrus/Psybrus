@@ -148,6 +148,11 @@ public:
 	void createCommandAllocators();
 
 	/**
+	 * Create resource allocators.
+	 */
+	void createResourceAllocators();
+
+	/**
 	 * Create command lists.
 	 */
 	void createCommandLists();
@@ -195,6 +200,9 @@ private:
 	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > Viewports_;
 	std::array< D3D12_RECT, MAX_RENDER_TARGETS > ScissorRects_;
 	class RsFrameBuffer* FrameBuffer_;
+
+	// Memory management.
+	std::unique_ptr< class RsLinearHeapAllocatorD3D12 > UploadAllocator_;
 
 	// Buffer views.
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;

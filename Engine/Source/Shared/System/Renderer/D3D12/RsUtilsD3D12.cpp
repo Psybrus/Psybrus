@@ -208,24 +208,27 @@ const D3D12_RESOURCE_USAGE RsUtilsD3D12::GetResourceUsage( RsResourceBindFlags B
 	if( ( BindFlags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
 	{
 		AllowedUsage |= 
-			D3D12_RESOURCE_USAGE_GENERIC_READ;
+			D3D12_RESOURCE_USAGE_GENERIC_READ |
+			D3D12_RESOURCE_USAGE_COPY_DEST;
 	}
 	if( ( BindFlags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
 	{
 		AllowedUsage |= 
-			D3D12_RESOURCE_USAGE_GENERIC_READ;
+			D3D12_RESOURCE_USAGE_GENERIC_READ |
+			D3D12_RESOURCE_USAGE_COPY_DEST;
 	}
 	if( ( BindFlags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
 	{
 		AllowedUsage |= 
-			D3D12_RESOURCE_USAGE_GENERIC_READ;
+			D3D12_RESOURCE_USAGE_GENERIC_READ |
+			D3D12_RESOURCE_USAGE_COPY_DEST;
 	}
 	if( ( BindFlags & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
 		AllowedUsage |= 
-			D3D12_RESOURCE_USAGE_GENERIC_READ;/*
-			D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE | 
-			D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE*/
+			D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE |
+			D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE |
+			D3D12_RESOURCE_USAGE_COPY_DEST;
 	}
 	if( ( BindFlags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
 	{
@@ -245,7 +248,8 @@ const D3D12_RESOURCE_USAGE RsUtilsD3D12::GetResourceUsage( RsResourceBindFlags B
 	if( ( BindFlags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
 	{
 		AllowedUsage |= 
-			D3D12_RESOURCE_USAGE_UNORDERED_ACCESS;
+			D3D12_RESOURCE_USAGE_UNORDERED_ACCESS |
+			D3D12_RESOURCE_USAGE_COPY_DEST;
 	}
 	if( ( BindFlags & RsResourceBindFlags::PRESENT ) != RsResourceBindFlags::NONE )
 	{

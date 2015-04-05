@@ -167,14 +167,14 @@ void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandLis
 	{
 		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
 		auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
-		Resource->resourceBarrierTransition( CommandList, RsResourceBindFlags::RENDER_TARGET );
+		Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_RENDER_TARGET );
 	}
 
 	if( ParentDesc.DepthStencilTarget_ != nullptr )
 	{
 		auto DepthStencil = ParentDesc.DepthStencilTarget_;
 		auto Resource = DepthStencil->getHandle< RsResourceD3D12* >();
-		Resource->resourceBarrierTransition( CommandList, RsResourceBindFlags::DEPTH_STENCIL );
+		Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_USAGE_DEPTH );
 	}
 
 	auto BaseRTVDescriptorHandle = RTV_ ? RTV_->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE();
@@ -185,4 +185,39 @@ void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandLis
 		TRUE,
 		NumRTVs_,
 		DSV_ ? &BaseDSVDescriptorHandle : nullptr );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// transitionToRead
+void RsFrameBufferD3D12::transitionToRead( ID3D12GraphicsCommandList* CommandList )
+{
+	const auto ParentDesc = Parent_->getDesc();
+	
+	// Setup usage.
+	D3D12_RESOURCE_USAGE Usage = 
+		static_cast< D3D12_RESOURCE_USAGE >( 
+			D3D12_RESOURCE_USAGE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_USAGE_PIXEL_SHADER_RESOURCE );
+
+	// Resource barriers.
+	for( size_t Idx = 0; Idx < ParentDesc.RenderTargets_.size(); ++Idx )
+	{
+		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
+		const auto& RenderTargetDesc = RenderTarget->getDesc();
+		if( ( RenderTargetDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+		{ 
+			auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+			Resource->resourceBarrierTransition( CommandList, Usage );
+		}
+	}
+
+	if( ParentDesc.DepthStencilTarget_ != nullptr )
+	{
+		auto DepthStencil = ParentDesc.DepthStencilTarget_;
+		const auto& DepthStencilDesc = DepthStencil->getDesc();
+		if( ( DepthStencilDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+		{ 
+			auto Resource = DepthStencil->getHandle< RsResourceD3D12* >();
+			Resource->resourceBarrierTransition( CommandList, Usage );
+		}
+	}
 }
