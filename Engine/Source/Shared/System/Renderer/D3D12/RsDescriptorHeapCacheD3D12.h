@@ -9,7 +9,7 @@
 // RsDescriptorHeapSamplerStateDescD3D12
 struct RsDescriptorHeapSamplerStateDescD3D12
 {
-	static const size_t MAX_SAMPLERS = 32;
+	static const size_t MAX_SAMPLERS = 16;
 
 	RsDescriptorHeapSamplerStateDescD3D12();
 	bool operator == ( const RsDescriptorHeapSamplerStateDescD3D12& Other ) const;
@@ -22,7 +22,7 @@ using RsDescriptorHeapSamplerStateDescArrayD3D12 = std::array< RsDescriptorHeapS
 // RsDescriptorHeapShaderResourceDescD3D12
 struct RsDescriptorHeapShaderResourceDescD3D12
 {
-	static const size_t MAX_SRVS = 32;
+	static const size_t MAX_SRVS = 16;
 	static const size_t MAX_CBVS = 8;
 	static const size_t MAX_RESOURCES = MAX_SRVS + MAX_CBVS;
 	static const size_t SRV_START = 0;
