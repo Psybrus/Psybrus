@@ -255,6 +255,20 @@ void ScnTexture::recreate()
 	BcAssert( Height_ >= 0 );
 	BcAssert( Depth_ >= 0 );
 
+	// Set to valid minimums.
+	if( Width_ == 0 )
+	{
+		Width_ = 1;
+	}
+	if( Height_ == 0 )
+	{
+		Height_ = 1;
+	}
+	if( Depth_ == 0 )
+	{
+		Depth_ = 1;
+	}
+
 	// Allocate if editable.
 	if( Header_.Editable_ )
 	{
