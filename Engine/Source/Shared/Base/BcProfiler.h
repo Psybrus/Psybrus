@@ -100,8 +100,17 @@ private:
 };
 
 
+#if PLATFORM_WINDOWS
+#define PSY_PROFILE_FUNCTION							\
+	BcProfilerSectionScope _ProfilerFunction_##__LINE__( __FUNCTION__ ) 
+#else
+#define PSY_PROFILE_FUNCTION							\
+	BcProfilerSectionScope _ProfilerFunction_##__LINE__( __PRETTY_FUNCTION__ ) 
+#endif
+
 #define PSY_PROFILER_SECTION( _LocalName, _Tag )		\
 	BcProfilerSectionScope _LocalName( _Tag ) 
+
 
 #define PSY_PROFILER_START_ASYNC( _Tag )				\
 	if( BcProfiler::pImpl() != nullptr )				\
@@ -123,6 +132,7 @@ private:
 
 #else
 
+#define PSY_PROFILE_FUNCTION
 #define PSY_PROFILER_SECTION( _LocalName, _Tag )
 #define PSY_PROFILER_START_ASYNC( _Tag )
 #define PSY_PROFILER_FINISH_ASYNC( _Tag )

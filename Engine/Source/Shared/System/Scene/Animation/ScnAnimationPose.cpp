@@ -40,7 +40,7 @@ ScnAnimationPose::ScnAnimationPose():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnAnimationPose::ScnAnimationPose( BcU32 NoofTransforms )
+ScnAnimationPose::ScnAnimationPose( size_t NoofTransforms )
 {
 	Transforms_.resize( NoofTransforms );
 }
@@ -107,7 +107,7 @@ void ScnAnimationPose::normalise()
 {
 	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::normalise" );
 
-	for( BcU32 Idx = 0; Idx < Transforms_.size(); ++Idx )
+	for( size_t Idx = 0; Idx < Transforms_.size(); ++Idx )
 	{
 		Transforms_[ Idx ].R_.normalise();
 	}
@@ -115,7 +115,7 @@ void ScnAnimationPose::normalise()
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofNodes
-BcU32 ScnAnimationPose::getNoofNodes() const
+size_t ScnAnimationPose::getNoofNodes() const
 {
 	return Transforms_.size();
 }

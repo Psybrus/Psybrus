@@ -341,7 +341,7 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer
 {
 	if( Index == BcErrorCode )
 	{
-		PSY_LOG( "Error: Attempting to set uniform buffer to invalid slot." );
+		//PSY_LOG( "Error: Attempting to set uniform buffer to invalid slot." );
 		return;
 	}
 

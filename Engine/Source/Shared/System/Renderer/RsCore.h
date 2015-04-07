@@ -192,6 +192,8 @@ public:
 		RsShader* Shader ) = 0;
 	virtual void destroyResource( 
 		RsProgram* Program ) = 0;
+	virtual void destroyResource( 
+		RsVertexDeclaration* VertexDeclaration ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.

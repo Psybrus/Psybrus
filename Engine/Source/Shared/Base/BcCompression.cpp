@@ -16,12 +16,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcCompressData
-BcBool BcCompressData( const BcU8* pInputData, BcU32 InputSize, const BcU8*& pOutputData, BcU32& OutputSize )
+BcBool BcCompressData( const BcU8* pInputData, size_t InputSize, const BcU8*& pOutputData, size_t& OutputSize )
 {
-	uLong OutSize = compressBound( InputSize );
+	uLong OutSize = compressBound( (uLong)InputSize );
 	BcU8* pOutData = new BcU8[ OutSize ];
 
-	int RetVal = compress( pOutData, &OutSize, pInputData, InputSize );
+	int RetVal = compress( pOutData, &OutSize, pInputData, (uLong)InputSize );
 
 	if( RetVal == Z_OK && OutSize < InputSize )
 	{
@@ -37,11 +37,11 @@ BcBool BcCompressData( const BcU8* pInputData, BcU32 InputSize, const BcU8*& pOu
 
 //////////////////////////////////////////////////////////////////////////
 // BcDecompressData
-BcBool BcDecompressData( const BcU8* pInputData, BcU32 InputSize, BcU8* pOutputData, BcU32 OutputSize )
+BcBool BcDecompressData( const BcU8* pInputData, size_t InputSize, BcU8* pOutputData, size_t OutputSize )
 {
-	uLongf DestLen = OutputSize;
+	uLongf DestLen = (uLongf)OutputSize;
 
-	int RetVal = uncompress( pOutputData, &DestLen, pInputData, InputSize );
+	int RetVal = uncompress( pOutputData, &DestLen, pInputData, (uLong)InputSize );
 
 	if( RetVal == Z_OK )
 	{

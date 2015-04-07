@@ -146,6 +146,20 @@ public:
 	virtual bool destroyProgram(
 		class RsProgram* Program ) = 0;
 
+	/**
+	 * Create vertex declaration.
+	 * @param VertexDeclaration VertexDeclaration to create from.
+	 */
+	virtual bool createVertexDeclaration(
+		class RsVertexDeclaration* VertexDeclaration ) = 0;
+
+	/**
+	 * Destroy VertexDeclaration.
+	 * @param VertexDeclaration VertexDeclaration to destory.
+	 */
+	virtual bool destroyVertexDeclaration(
+		class RsVertexDeclaration* VertexDeclaration  ) = 0;
+
 };
 
 #endif

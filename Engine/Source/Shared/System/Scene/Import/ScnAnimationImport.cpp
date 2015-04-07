@@ -229,7 +229,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 			{
 				ScnAnimationPoseFileData Pose;
 				Pose.Time_ = Time / FrameRate_;
-				Pose.KeyDataOffset_ = KeyStream_.dataSize();
+				Pose.KeyDataOffset_ = static_cast< BcU32 >( KeyStream_.dataSize() );
 
 				// Iterate over all node channels to generate keys.
 				for( BcU32 ChannelIdx = 0; ChannelIdx < Animation->mNumChannels; ++ChannelIdx )
@@ -311,7 +311,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 				}
 			
 				// Final size + CRC.
-				Pose.KeyDataSize_ = KeyStream_.dataSize() - Pose.KeyDataOffset_;
+				Pose.KeyDataSize_ = static_cast< BcU32 >( KeyStream_.dataSize() - Pose.KeyDataOffset_ );
 				Pose.CRC_ = BcHash::GenerateCRC32( 0, KeyStream_.pData() + Pose.KeyDataOffset_, Pose.KeyDataSize_ );
 
 				// Write out pose.

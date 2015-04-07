@@ -162,7 +162,7 @@ void DsCoreImpl::webbyClosed(WebbyConnection *connection)
 
 int DsCoreImpl::webbyFrame(WebbyConnection *connection, const WebbyWsFrame *frame)
 {
-	int i = 0;
+	size_t i = 0;
 
 	printf("WebSocket frame incoming\n");
 	printf("  Frame OpCode: %d\n", frame->opcode);
@@ -173,7 +173,7 @@ int DsCoreImpl::webbyFrame(WebbyConnection *connection, const WebbyWsFrame *fram
 	while (i < frame->payload_length)
 	{
 		unsigned char buffer[16];
-		int remain = frame->payload_length - i;
+		size_t remain = frame->payload_length - i;
 		size_t read_size = remain >(int) sizeof buffer ? sizeof buffer : (size_t)remain;
 		size_t k;
 

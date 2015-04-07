@@ -45,16 +45,6 @@ public:
 	 */
 	virtual void						destroy();
 
-	/**
-	 * Wait for the update sync fence.
-	 */
-	void								wait();
-
-	/**
-	 * Get data size.
-	 */
-	BcU32								getDataSize();
-
 public:
 	template< typename _Ty >
 	BcForceInline _Ty					getHandle() const
