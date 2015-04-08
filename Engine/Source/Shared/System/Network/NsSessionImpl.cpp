@@ -3,6 +3,7 @@
 
 #include "MessageIdentifiers.h"
 #include "RakPeer.h"
+#include "ConnectionGraph2.h"
 #include "BitStream.h"
 
 #include <boost/format.hpp>
@@ -32,6 +33,7 @@ enum class NsSessionMessageChannel : BcU8
 // Ctor
 NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
+	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
 	Type_( NsSessionType::CLIENT ),
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED )
@@ -40,6 +42,7 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 	PSY_LOG( "Starting worker thread, and trying to connect to server." );
 
 	RakNet::SocketDescriptor Desc;
+	PeerInterface_->AttachPlugin( ConnectionGraph_ );
 	PeerInterface_->Startup( 1, &Desc, 1 );
 	PeerInterface_->Connect( Address.c_str(), Port, nullptr, 0 );
 
@@ -52,6 +55,7 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 // Ctor
 NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
+	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
 	Type_( NsSessionType::SERVER ),
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED )
@@ -60,6 +64,7 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 	PSY_LOG( "Starting worker thread, and trying to start server." );
 
 	RakNet::SocketDescriptor Desc( Port, 0 );
+	PeerInterface_->AttachPlugin( ConnectionGraph_ );
 	PeerInterface_->Startup( MaxClients, &Desc, 1 );
 	PeerInterface_->SetMaximumIncomingConnections( MaxClients );
 
@@ -75,6 +80,8 @@ NsSessionImpl::~NsSessionImpl()
 	Active_.store( 0 );
 	CallbackFence_.wait();
 	WorkerThread_.join();
+	PeerInterface_->DetachPlugin( ConnectionGraph_ );
+	RakNet::ConnectionGraph2::DestroyInstance( ConnectionGraph_ );
 	RakNet::RakPeerInterface::DestroyInstance( PeerInterface_ );
 }
 

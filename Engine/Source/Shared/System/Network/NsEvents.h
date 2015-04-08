@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Events/EvtEvent.h"
+#include "System/Network/NsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Event groups.

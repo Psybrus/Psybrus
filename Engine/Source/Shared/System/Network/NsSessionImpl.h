@@ -37,6 +37,7 @@ private:
 
 private:
 	RakNet::RakPeerInterface* PeerInterface_;
+	RakNet::ConnectionGraph2* ConnectionGraph_;
 	NsSessionType Type_;
 	std::atomic< int > Active_;
 	std::atomic< NsSessionState > State_;
