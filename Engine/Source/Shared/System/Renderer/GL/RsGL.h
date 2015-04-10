@@ -118,6 +118,7 @@ struct RsOpenGLVersion
 	BcBool SupportSeparateBlendState_;
 	BcBool SupportDXTTextures_;
 	BcBool SupportNpotTextures_;
+	BcBool SupportDepthTextures_;
 	BcBool SupportFloatTextures_;
 	BcBool SupportHalfFloatTextures_;
 	BcBool SupportAnisotropicFiltering_;

@@ -1,6 +1,8 @@
 #include "System/Network/NsSessionImpl.h"
 #include "System/SysKernel.h"
 
+#if !PLATFORM_HTML5
+
 #include "MessageIdentifiers.h"
 #include "RakPeer.h"
 #include "ConnectionGraph2.h"
@@ -292,3 +294,5 @@ void NsSessionImpl::workerThread()
 		BcSleep( 0.005f );
 	}
 }
+
+#endif // !PLATFORM_HTML5

@@ -16,11 +16,11 @@
 #include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
+#include "Serialisation/SeJsonReader.h"
+
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnComponentImport.h"
-#include "Serialisation/SeJsonReader.h"
-#include "System/Content/CsSerialiserPackageObjectCodec.h"
-
 #endif
 
 #include "System/Scene/Animation/ScnAnimationComponent.h"

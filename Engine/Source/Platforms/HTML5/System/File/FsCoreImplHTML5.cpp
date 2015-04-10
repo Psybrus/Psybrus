@@ -153,7 +153,7 @@ public:
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
 		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplHTML5::addReadOp" );	
-		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
+		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
 private:
@@ -191,7 +191,7 @@ public:
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
 		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplLinux::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
-		SysKernel::pImpl()->enqueueCallback( DoneCallback_, pData_, Bytes_ );
+		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
 private:

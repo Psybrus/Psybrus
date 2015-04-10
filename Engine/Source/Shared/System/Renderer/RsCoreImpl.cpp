@@ -291,7 +291,8 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 		RsCore::JOB_QUEUE_ID,
 		[ Context, pResource ]
 		{
-			Context->createTexture( pResource );
+			auto RetVal = Context->createTexture( pResource );
+			BcAssert( RetVal );
 		} );
 
 	// Return resource.

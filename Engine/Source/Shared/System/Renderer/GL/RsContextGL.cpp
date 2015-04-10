@@ -287,7 +287,7 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
 	// Depth stencil.
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE },	// RsTextureFormat::D24,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D24,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
 	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32F,
@@ -305,6 +305,25 @@ static GLenum gShaderType[] =
 	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
 #endif
 };
+
+namespace
+{
+	bool IsDepthFormat( RsTextureFormat Format )
+	{
+		switch( Format )
+		{
+		case RsTextureFormat::D16:
+		case RsTextureFormat::D24:
+		case RsTextureFormat::D32:
+		case RsTextureFormat::D24S8:
+		case RsTextureFormat::D32F:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -938,6 +957,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	{
 		if( Texture != nullptr )
 		{
+			PSY_LOG( "Attaching texture." );
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 				RsResourceBindFlags::NONE );
 			glFramebufferTexture2D( 
@@ -952,6 +972,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
 	{
+		PSY_LOG( "Attaching depth stencil surface." );
 		const auto& DSDesc = Desc.DepthStencilTarget_->getDesc();
 		auto Attachment = GL_DEPTH_STENCIL_ATTACHMENT;
 		switch ( DSDesc.Format_ )
@@ -1260,12 +1281,22 @@ bool RsContextGL::createTexture(
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
 
+	// Check if format is a depth one.
+	if( IsDepthFormat( TextureDesc.Format_ ) )
+	{
+		if( !Version_.SupportDepthTextures_ )
+		{
+			PSY_LOG( "ERROR: No depth texture support." );
+			return false;
+		}
+	}
+
 	// Create GL texture.
 	GLuint Handle;
 	glGenTextures( 1, &Handle );
 	Texture->setHandle( Handle );
 	
-	RsGLCatchError();		
+	RsGLCatchError();
 
 	if( Handle != 0 )
 	{

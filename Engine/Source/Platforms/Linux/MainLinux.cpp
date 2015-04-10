@@ -90,13 +90,12 @@ int main(int argc, char** argv)
 	{
 		new BcLogImpl();
 	}
-#endif
-
 	// Some default suppression.
 	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
 
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );
+#endif
 
 	// Initialise RNG.
 #if !PSY_DEBUG

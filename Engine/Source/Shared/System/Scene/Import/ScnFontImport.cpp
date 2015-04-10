@@ -66,6 +66,7 @@ ScnFontImport::~ScnFontImport()
 BcBool ScnFontImport::import(
 	const Json::Value& )
 {
+	BcBool RetVal = BcFalse;
 #if PSY_IMPORT_PIPELINE
 	// Add root dependancy.
 	CsResourceImporter::addDependency( Source_.c_str() );
@@ -78,7 +79,6 @@ BcBool ScnFontImport::import(
 	BcU32 BorderSize = DistanceField_ ? Spread_ : 1;
 	
 	int Error;
-	BcBool RetVal = BcFalse;
 	
 	// Initialise free type.
 	Error = FT_Init_FreeType( &Library );
