@@ -16,7 +16,7 @@ function PsyProjectCommon( _name, _lang )
 	configuration "windows-*"
 		defines { "WINDOWS", "_WIN32", "WIN32" }
 
-	configuration "vs*"
+	configuration "vs* and x32"
 		flags { "EnableSSE", "EnableSSE2" }
 
 	-- Linux config defines.
@@ -25,6 +25,7 @@ function PsyProjectCommon( _name, _lang )
 
 	-- Common visual studio crap.
 	configuration "vs*"
+		defines { "_CRT_SECURE_NO_WARNINGS" }
 
 	-- Thread sanitiser support for later
 	configuration "gmake"
@@ -123,7 +124,7 @@ function PsyProjectCommonEngine( _name )
 
 	-- Extra warnings + fatal warnings.
 	configuration "vs*"
-		flags { "ExtraWarnings", "FatalWarnings" }
+		flags { "ExtraWarnings" }
 
 	-- Defines for all configurations
 	configuration "Debug"

@@ -312,7 +312,7 @@ char* DsCore::writeFile( std::string filename, int& OutLength, std::string& type
 		return 0;
 	char* data;// = new BcU8[file.size()];
 	data = ( char* ) file.readAllBytes();
-	OutLength = file.size();
+	OutLength = (int)file.size();
 	type = "css";
 	// TODO: Actually load files
 	return data;
@@ -508,7 +508,7 @@ char* DsCore::handleFile(std::string Uri, int& FileSize, std::string PostContent
 	else
 	{
 		std::string out = loadHtmlFile(Uri, PostContent);
-		FileSize = out.length();
+		FileSize = (int)out.length();
 		Output = new char[FileSize + 1];
 		BcMemSet(Output, 0, FileSize +1);
 		BcMemCopy(Output, &out[0], FileSize);
@@ -542,7 +542,7 @@ std::string DsCore::loadHtmlFile(std::string Uri, std::string Content)
 
 	if (!success)
 	{
-		for (int Idx = PageFunctions_.size() - 1; Idx >= 0; --Idx)
+		for (int Idx = (int)PageFunctions_.size() - 1; Idx >= 0; --Idx)
 		{
 			std::cmatch match;
 			std::regex_match( &Uri[1], match, PageFunctions_[Idx].Regex_ );

@@ -257,6 +257,8 @@ enum class RsVertexUsage : BcU32
 // Texture Format
 enum class RsTextureFormat : BcU32
 {
+	UNKNOWN,
+
 	// Colour.
 	R8,
 	R8G8,
@@ -419,10 +421,10 @@ enum class RsTopologyType : BcU32
 enum class RsShaderType : BcU32
 {
 	VERTEX,
+	PIXEL,
 	HULL,
 	DOMAIN,
 	GEOMETRY,
-	PIXEL,
 	COMPUTE,
 		
 	MAX,
@@ -602,6 +604,7 @@ enum class RsResourceBindFlags : BcU32
 	RENDER_TARGET		= 0x00000020,
 	DEPTH_STENCIL		= 0x00000040,
 	UNORDERED_ACCESS	= 0x00000080,
+	PRESENT				= 0x00000100
 };
 
 inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )

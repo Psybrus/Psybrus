@@ -165,6 +165,14 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 #endif
 
+	// Some default suppression.
+	if( BcLog::pImpl() != nullptr )
+	{
+		BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+		// Setup basic log Category.
+		BcLogScopedCategory LogCategory( "Main" );
+	}
+
 	// Initialise RNG.
 #if !PSY_DEBUG
 	BcRandom::Global = BcRandom( (BcU32)::GetTickCount() );

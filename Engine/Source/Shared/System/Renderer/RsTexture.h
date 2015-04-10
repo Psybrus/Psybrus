@@ -29,8 +29,8 @@ struct RsTextureDesc
 		RsTextureFormat Format,
 		BcU32 Levels,
 		BcU32 Width, 
-		BcU32 Height = 0,
-		BcU32 Depth = 0 );
+		BcU32 Height = 1,
+		BcU32 Depth = 1 );
 
 	RsTextureType Type_;
 	RsResourceCreationFlags CreationFlags_;

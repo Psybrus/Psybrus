@@ -644,7 +644,7 @@ public:
 void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Upload.
-	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnCanvasComponentVertex );
+	size_t VertexDataSize = VertexIndex_ * sizeof( ScnCanvasComponentVertex );
 	if( VertexDataSize > 0 )
 	{
 		UploadFence_.increment();

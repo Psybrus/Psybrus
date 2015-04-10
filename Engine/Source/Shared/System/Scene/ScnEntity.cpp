@@ -239,19 +239,19 @@ ScnEntityRef ScnEntity::getBasisEntity()
 
 //////////////////////////////////////////////////////////////////////////
 // getNoofComponents
-BcU32 ScnEntity::getNoofComponents() const
+size_t ScnEntity::getNoofComponents() const
 {
 	return Components_.size();
 }
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponent* ScnEntity::getComponent( BcU32 Idx, const ReClass* Class )
+ScnComponent* ScnEntity::getComponent( size_t Idx, const ReClass* Class )
 {
 	if( Class == nullptr )
 	{
-		BcU32 CurrIdx = 0;
-		for( BcU32 ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
+		size_t CurrIdx = 0;
+		for( size_t ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
 		{
 			if( CurrIdx++ == Idx )
 			{
@@ -261,9 +261,9 @@ ScnComponent* ScnEntity::getComponent( BcU32 Idx, const ReClass* Class )
 	}
 	else
 	{
-		BcU32 NoofComponents = getNoofComponents();
-		BcU32 SearchIdx = 0;
-		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
+		size_t NoofComponents = getNoofComponents();
+		size_t SearchIdx = 0;
+		for( size_t ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
 			if( Component->getClass()->hasBaseClass( Class ) )
@@ -297,8 +297,8 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 	}
 	else
 	{
-		BcU32 NoofComponents = getNoofComponents();
-		for( BcU32 ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
+		size_t NoofComponents = getNoofComponents();
+		for( size_t ComponentIdx = 0; ComponentIdx < NoofComponents; ++ComponentIdx )
 		{
 			ScnComponentRef Component = getComponent( ComponentIdx );
 			if( Component->getName() == Name && Component->getClass()->hasBaseClass( Class ) )
@@ -313,7 +313,7 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponent* ScnEntity::getComponentAnyParent( BcU32 Idx, const ReClass* Class )
+ScnComponent* ScnEntity::getComponentAnyParent( size_t Idx, const ReClass* Class )
 {
 	ScnComponentRef Component = getComponent( Idx, Class );
 
@@ -449,6 +449,7 @@ ScnComponent* ScnEntity::internalCreateComponent( const BcName& Name, const ReCl
 	auto RetVal = CsCore::pImpl()->internalCreateResource( 
 		Name, Class, BcErrorCode, getPackage(), Resource );
 	BcAssertMsg( RetVal, "Unable to create component for \"%s\"", (*Class->getName()).c_str() );
+	BcUnusedVar( RetVal );
 	auto Component = ReObjectRef< ScnComponent >( Resource );
 	BcAssert( Component.isValid() );
 	return Component;

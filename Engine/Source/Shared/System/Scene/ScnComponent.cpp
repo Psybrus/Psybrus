@@ -310,7 +310,7 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponent* ScnComponent::getComponent( BcU32 Idx, const ReClass* Class )
+ScnComponent* ScnComponent::getComponent( size_t Idx, const ReClass* Class )
 {
 	BcAssert( ParentEntity_ != nullptr );
 	return ParentEntity_->getComponent( Idx, Class );
@@ -326,7 +326,7 @@ ScnComponent* ScnComponent::getComponent( BcName Name, const ReClass* Class )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponent* ScnComponent::getComponentAnyParent( BcU32 Idx, const ReClass* Class )
+ScnComponent* ScnComponent::getComponentAnyParent( size_t Idx, const ReClass* Class )
 {
 	BcAssert( ParentEntity_ != nullptr );
 	return ParentEntity_->getComponentAnyParent( Idx, Class );

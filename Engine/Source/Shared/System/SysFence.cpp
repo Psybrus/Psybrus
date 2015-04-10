@@ -18,7 +18,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
-SysFence::SysFence( BcU32 InitialValue ):
+SysFence::SysFence( size_t InitialValue ):
 	Count_( InitialValue )
 {
 
@@ -34,21 +34,21 @@ SysFence::~SysFence()
 
 ////////////////////////////////////////////////////////////////////////////////
 // increment
-void SysFence::increment( BcU32 Value )
+void SysFence::increment( size_t Value )
 {
 	Count_.fetch_add( Value );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // decrement
-void SysFence::decrement( BcU32 Value )
+void SysFence::decrement( size_t Value )
 {
 	Count_.fetch_sub( Value );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // wait
-void SysFence::wait( BcU32 Value ) const
+void SysFence::wait( size_t Value ) const
 {
 	PSY_PROFILER_SECTION( FenceProfiler, "SysFence:wait" );
 
@@ -60,7 +60,7 @@ void SysFence::wait( BcU32 Value ) const
 
 ////////////////////////////////////////////////////////////////////////////////
 // count
-BcU32 SysFence::count() const
+size_t SysFence::count() const
 {
 	return Count_;
 }

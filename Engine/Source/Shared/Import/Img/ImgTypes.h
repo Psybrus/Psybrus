@@ -27,6 +27,8 @@
 // ImgEncodeFormat - Must match RsTextureFormat 1:1.
 enum class ImgEncodeFormat
 {
+	UNKNOWN,
+
 	// Colour.
 	R8,
 	R8G8,

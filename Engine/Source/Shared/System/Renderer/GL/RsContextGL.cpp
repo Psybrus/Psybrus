@@ -27,6 +27,7 @@
 #include "System/Os/OsClient.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 #include <memory>
 
@@ -38,9 +39,11 @@
 
 #include <algorithm>
 
+#define ENABLE_DEBUG_OUTPUT ( 0 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 )
+
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
-#if !defined( PSY_PRODUCTION )
+#if ENABLE_DEBUG_OUTPUT
 #if PLATFORM_WINDOWS
 static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 #else
@@ -269,7 +272,9 @@ struct RsTextureFormatGL
 
 static RsTextureFormatGL gTextureFormats[] =
 {
-	// Colour.
+	{ BcFalse, BcFalse, GL_NONE, GL_NONE, GL_NONE },			// RsTextureFormat::UNKNOWN,
+
+	// Colour.	
 	{ BcFalse, BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8,
 	{ BcFalse, BcFalse, GL_RG, GL_RG, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8,
 	{ BcFalse, BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8B8,
@@ -291,16 +296,15 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
 	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32F,
-
 };
 
 static GLenum gShaderType[] = 
 {
 	GL_VERTEX_SHADER,											// RsShaderType::VERTEX
+	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
 	GL_TESS_CONTROL_SHADER,										// RsShaderType::HULL
 	GL_TESS_EVALUATION_SHADER,									// RsShaderType::DOMAIN
 	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
-	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
 #if !PLATFORM_HTML5
 	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
 #endif
@@ -413,6 +417,7 @@ RsShaderCodeType RsContextGL::maxShaderCodeType( RsShaderCodeType CodeType ) con
 // presentBackBuffer
 void RsContextGL::presentBackBuffer()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::presentBackBuffer" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	//PSY_LOG( "Draw calls: %u\n", NoofDrawCalls_ );
@@ -468,19 +473,28 @@ void RsContextGL::presentBackBuffer()
 		ScreenshotRequested_ = BcFalse;
 	}
 
+	RsGLCatchError();
+
 #if PLATFORM_WINDOWS
-	::SwapBuffers( WindowDC_ );
+	{
+		PSY_PROFILER_SECTION( UpdateRoot, "::SwapBuffers" );
+		::SwapBuffers( WindowDC_ );
+	}
 #endif
 
 #if PLATFORM_LINUX
-	SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
+	{
+		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapWindow" );
+		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
+	}
 #endif
 
 #if PLATFORM_HTML5
-	SDL_GL_SwapBuffers();
+	{
+		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapBuffers" );
+		SDL_GL_SwapBuffers();
+	}
 #endif
-
-	RsGLCatchError();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -651,18 +665,13 @@ void RsContextGL::create()
 #endif
 
 	// Debug output extension.	
-#if !defined( PSY_PRODUCTION )
+#if ENABLE_DEBUG_OUTPUT
 	if( GLEW_ARB_debug_output )
 	{
-#if !PLATFORM_HTML5
 		glDebugMessageCallbackARB( debugOutput, nullptr );
-#else
-		// TODO ES2
-		BcBreakpoint;
-#endif
 		glGetError();
 	}
-#endif
+#endif // ENABLE_DEBUG_OUTPUT
 
 	glGetError();
 	RsGLCatchError();
@@ -1147,6 +1156,7 @@ bool RsContextGL::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::updateBuffer" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
@@ -1768,6 +1778,22 @@ bool RsContextGL::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+bool RsContextGL::createVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyVertexDeclaration
+bool RsContextGL::destroyVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration  )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setDefaultState
 void RsContextGL::setDefaultState()
 {
@@ -1962,6 +1988,7 @@ void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclara
 //virtual
 void RsContextGL::flushState()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::flushState" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	RsGLCatchError();
@@ -2049,8 +2076,8 @@ void RsContextGL::flushState()
 	RsGLCatchError();
 
 	// Bind program and primitive.
-	if( ( Program_ != nullptr ||
-		VertexDeclaration_ != nullptr ) &&
+	if( ( Program_ != nullptr &&
+		  VertexDeclaration_ != nullptr ) &&
 		( ProgramDirty_ || BindingsDirty_ ) )
 	{
 		const auto& ProgramVertexAttributeList = Program_->getVertexAttributeList();
@@ -2112,7 +2139,7 @@ void RsContextGL::flushState()
 							auto UniformNameVS = ClassNameVS + ".X" + FieldName;
 							auto UniformNamePS = ClassNamePS + ".X" + FieldName;
 
-							BcU32 Count = Field->getSize() / ValueType->getSize();
+							GLsizei Count = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
 
 							auto UniformLocationVS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNameVS.c_str() );
 							auto UniformLocationPS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNamePS.c_str() );
@@ -2274,6 +2301,7 @@ void RsContextGL::clear(
 	BcBool EnableClearDepth,
 	BcBool EnableClearStencil )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::clear" );
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	
@@ -2296,9 +2324,10 @@ void RsContextGL::clear(
 // drawPrimitives
 void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
 	++NoofDrawCalls_;
 	flushState();
-
+	BcAssert( Program_ != nullptr );
 	glDrawArrays( gTopologyType[ (BcU32)TopologyType ], IndexOffset, NoofIndices );
 
 	RsGLCatchError();
@@ -2308,8 +2337,10 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 // drawIndexedPrimitives
 void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
 	++NoofDrawCalls_;
 	flushState();
+	BcAssert( Program_ != nullptr );
 	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= IndexBuffer_->getDesc().SizeBytes_ );
 
 	if( VertexOffset == 0 )

@@ -63,7 +63,7 @@ private:
 	class SysKernel* Parent_;
 	SysFence& StartFence_;
 	BcBool Active_;
-	std::atomic< BcU32 > PendingJobQueue_;
+	std::atomic< size_t > PendingJobQueue_;
 	std::thread ExecutionThread_;
 	std::mutex JobQueuesLock_;
 	SysJobQueueList NextJobQueues_;

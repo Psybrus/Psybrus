@@ -13,6 +13,8 @@
 
 #include "System/Renderer/GL/RsGL.h"
 
+#include "Base/BcProfiler.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Utility.
 namespace
@@ -247,9 +249,11 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if !PSY_PRODUCTION && !PLATFORM_HTML5
+#if PSY_GL_CATCH_ERRORS
 GLuint RsGLCatchError()
 {
+	PSY_PROFILER_SECTION( CatchRoot, "RsGLCatchError" );
+
 	BcU32 TotalErrors = 0;
 	GLuint Error;
 	do
