@@ -30,7 +30,7 @@ REFLECTION_DEFINE_DERIVED( ScnSoundListenerComponent );
 void ScnSoundListenerComponent::StaticRegisterClass()
 {	
 	ReRegisterClass< ScnSoundListenerComponent, Super >()
-		.addAttribute( new ScnComponentAttribute( -2020 ) );
+		.addAttribute( new ScnComponentProcessor( -2020 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,8 +53,6 @@ ScnSoundListenerComponent::~ScnSoundListenerComponent()
 //virtual
 void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 {
-	Super::postUpdate( Tick );
-
 	if( SsCore::pImpl() != NULL )
 	{
 		MaVec3d Up( 0.0f, 1.0f, 0.0f );

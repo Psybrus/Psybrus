@@ -32,7 +32,7 @@ void ScnRenderableComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2120 ) );
+		.addAttribute( new ScnComponentProcessor( -2120 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,14 +50,6 @@ ScnRenderableComponent::ScnRenderableComponent():
 ScnRenderableComponent::~ScnRenderableComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnRenderableComponent::update( BcF32 Tick )
-{
-	Super::update( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////

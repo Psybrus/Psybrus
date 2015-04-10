@@ -51,7 +51,7 @@ void ScnSpriteComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2100 ) );
+		.addAttribute( new ScnComponentProcessor( -2100 ) );
 }
 
 void ScnSpriteComponent::Animation::StaticRegisterClass()

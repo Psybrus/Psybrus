@@ -40,7 +40,7 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 	};
 
 	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -90 ) );
+		.addAttribute( new ScnComponentProcessor( -90 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

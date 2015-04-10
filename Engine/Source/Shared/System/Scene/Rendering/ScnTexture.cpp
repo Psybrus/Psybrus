@@ -251,10 +251,6 @@ void ScnTexture::recreate()
 		}
 	}
 
-	BcAssert( Width_ >= 0 );
-	BcAssert( Height_ >= 0 );
-	BcAssert( Depth_ >= 0 );
-
 	// Allocate if editable.
 	if( Header_.Editable_ )
 	{

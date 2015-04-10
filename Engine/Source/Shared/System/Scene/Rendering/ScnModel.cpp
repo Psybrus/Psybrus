@@ -295,7 +295,7 @@ void ScnModelComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnModelComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2030 ) );
+		.addAttribute( new ScnComponentProcessor( -2030 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

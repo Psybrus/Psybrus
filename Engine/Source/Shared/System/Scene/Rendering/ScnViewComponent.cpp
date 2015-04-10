@@ -58,7 +58,7 @@ void ScnViewComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2000 ) );
+		.addAttribute( new ScnComponentProcessor( 2000 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,6 +112,8 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
+	ScnCore::pImpl()->addCallback( this );
+
 	recreateFrameBuffer();
 	Super::onAttach( Parent );
 }
@@ -123,6 +125,8 @@ void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	OsCore::pImpl()->unsubscribeAll( this );
 	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
+
+	ScnCore::pImpl()->removeCallback( this );
 
 	FrameBuffer_.reset();
 	Super::onDetach( Parent );

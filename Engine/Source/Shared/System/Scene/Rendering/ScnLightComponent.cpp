@@ -43,7 +43,7 @@ void ScnLightComponent::StaticRegisterClass()
 	};
 		
 	ReRegisterClass< ScnLightComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2040 ) );
+		.addAttribute( new ScnComponentProcessor( -2040 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

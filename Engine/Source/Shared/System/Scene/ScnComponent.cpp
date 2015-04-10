@@ -26,20 +26,20 @@
 #include "System/Scene/Animation/ScnAnimationComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnComponentAttribute
-REFLECTION_DEFINE_DERIVED( ScnComponentAttribute );
+// ScnComponentProcessor
+REFLECTION_DEFINE_DERIVED( ScnComponentProcessor );
 
-void ScnComponentAttribute::StaticRegisterClass()
+void ScnComponentProcessor::StaticRegisterClass()
 {
-	ReRegisterClass< ScnComponentAttribute, Super >();
+	ReRegisterClass< ScnComponentProcessor, Super >();
 }
 
-ScnComponentAttribute::ScnComponentAttribute( BcS32 UpdatePriority ):
+ScnComponentProcessor::ScnComponentProcessor( BcS32 UpdatePriority ):
 	UpdatePriority_( UpdatePriority )
 {
 }
 
-int ScnComponentAttribute::getUpdatePriority() const
+int ScnComponentProcessor::getUpdatePriority() const
 {
 	return UpdatePriority_;
 }

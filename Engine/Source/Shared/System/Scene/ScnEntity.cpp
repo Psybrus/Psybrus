@@ -48,7 +48,7 @@ void ScnEntity::StaticRegisterClass()
 	
 	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
 		
-	Class.addAttribute( new ScnComponentAttribute( -2100 ) );
+	Class.addAttribute( new ScnComponentProcessor( -2100 ) );
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
@@ -146,9 +146,6 @@ void ScnEntity::update( BcF32 Tick )
 		WorldTransform_ = LocalTransform_;
 	}
 	
-	// Update as component first.
-	Super::update( Tick );
-
 #if SCNENTITY_USES_EVTPUBLISHER
 	// Dispatch all events.
 	pEventProxy_->dispatch();

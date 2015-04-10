@@ -22,6 +22,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
+#include "System/Scene/ScnCoreCallback.h"
+
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
@@ -73,16 +75,22 @@ void ScnCore::open()
 	NoofComponentLists_ = 0;
 	typedef std::pair< ReClass*, BcS32 > ComponentPriorityPair;
 	typedef std::vector< ComponentPriorityPair > ComponentClasses;
-	ComponentClasses ComponentClasses_;
+	ComponentClasses ComponentClasses;
+	ScnComponentProcessFuncEntryList ProcessFuncEntries;
 
 	// Extract all the classes with the right attribute.
 	auto Classes = ReManager::GetClasses();
 	for( auto Class : Classes )
 	{
-		auto* Attr = Class->getAttribute< ScnComponentAttribute >();
+		auto* Attr = Class->getAttribute< ScnComponentProcessor >();
 		if( Attr != nullptr )
 		{
-			ComponentClasses_.push_back( std::make_pair( Class, Attr->getUpdatePriority() ) );
+			ComponentClasses.push_back( std::make_pair( Class, Attr->getUpdatePriority() ) );
+
+			// Get process funcs.
+			Attr->getProcessFuncs( ProcessFuncEntries );
+
+			// Add to list.
 		}
 	}
 
@@ -116,6 +124,7 @@ void ScnCore::update()
 	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
+#if 0
 	// Pre-update.
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
@@ -163,6 +172,7 @@ void ScnCore::update()
 			Component->postUpdate( Tick );
 		}
 	}
+#endif
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
@@ -250,6 +260,23 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 	{
 		Entity->getParentEntity()->detach( Entity );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addCallback
+void ScnCore::addCallback( ScnCoreCallback* Callback )
+{
+	BcAssert( std::find( Callbacks_.begin(), Callbacks_.end(), Callback ) == Callbacks_.end() );
+	Callbacks_.push_back( Callback );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// removeCallback
+void ScnCore::removeCallback( ScnCoreCallback* Callback )
+{
+	auto FoundIt = std::find( Callbacks_.begin(), Callbacks_.end(), Callback );
+	BcAssert( FoundIt != Callbacks_.end() );
+	Callbacks_.erase( FoundIt );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -413,6 +440,13 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	// NOTE: Useful for debugging and temporary gathering of "special" components.
 	//       Will be considering alternative approaches to this.
 	//       Currently, just gonna be nasty special cases to get stuff done.
+
+	// Handle all callbacks.
+	std::for_each( Callbacks_.begin(), Callbacks_.end(),
+		[ Component ]( ScnCoreCallback* Callback )
+		{
+			Callback->onAttachComponent( Component );
+		} );
 	
 	// Add view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
@@ -444,6 +478,12 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	//       Will be considering alternative approaches to this.
 	//       Currently, just gonna be nasty special cases to get stuff done.
 	// NOTE: Now that we have component type lists, we don't need to be specific with this.
+
+	std::for_each( Callbacks_.begin(), Callbacks_.end(),
+		[ Component ]( ScnCoreCallback* Callback )
+		{
+			Callback->onDetachComponent( Component );
+		} );
 
 	// Remove view components for render usage.
 	if( Component->isTypeOf< ScnViewComponent >() )
@@ -514,10 +554,10 @@ void ScnCore::processPendingComponents()
 				Component->getParentEntity() ? 
 					Component->getParentEntity()->getName() : 
 					BcName::INVALID;
+			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 			Component->onDetach( Component->getParentEntity() );
 			BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
 				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
-			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
 		}
 
 		// Handle destruction.

@@ -127,7 +127,7 @@ void ScnPhysicsWorldComponent::StaticRegisterClass()
 	};
 
 	ReRegisterClass< ScnPhysicsWorldComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -100 ) );
+		.addAttribute( new ScnComponentProcessor( -100 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

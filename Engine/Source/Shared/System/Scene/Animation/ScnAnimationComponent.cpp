@@ -37,7 +37,7 @@ void ScnAnimationComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( -2050 ) );
+		.addAttribute( new ScnComponentProcessor( -2050 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

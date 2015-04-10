@@ -18,6 +18,7 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnCoreCallback.h"
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
@@ -34,7 +35,8 @@ typedef ScnViewComponentMap::const_iterator ScnViewComponentMapConstIterator;
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponent
 class ScnViewComponent:
-	public ScnComponent
+	public ScnComponent,
+	public ScnCoreCallback
 {
 public:
 	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
@@ -44,6 +46,10 @@ public:
 	
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
+
+	virtual void onAttachComponent( class ScnComponent* Component ) = 0;
+	virtual void onDetachComponent( class ScnComponent* Component ) = 0;
+
 
 	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;

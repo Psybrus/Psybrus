@@ -53,19 +53,20 @@ enum class ScnComponentVisitType
 typedef std::function< void( class ScnComponent*, class ScnEntity* ) > ScnComponentVisitFunc;
 
 //////////////////////////////////////////////////////////////////////////
-// ScnComponentAttribute
-class ScnComponentAttribute:
+// ScnComponentProcessor
+class ScnComponentProcessor:
 	public ReAttribute
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnComponentAttribute, ReAttribute );
+	REFLECTION_DECLARE_DERIVED( ScnComponentProcessor, ReAttribute );
 
 public:
-	ScnComponentAttribute( BcS32 UpdatePriority = 0 );
+	ScnComponentProcessor( BcS32 UpdatePriority = 0 );
 	int getUpdatePriority() const;
 
 private:
 	BcS32 UpdatePriority_;
+	ScnComponentProcessor* Processor_;
 };
 	
 //////////////////////////////////////////////////////////////////////////
