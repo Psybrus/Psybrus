@@ -29,7 +29,7 @@ Linux users can also build for HTML5, but they will also need to build Emscripte
 Windows Users:
 -------------
 Run make_vs2013_build.bat to generate the projects + solution in the Projects folder.
-I've setup a natvis file for use with Psybrus, as it helps a lot with debugging (particularly decoding names and resource structures for an at a glance view). Drop this in the "My Documents\Visual Studio 2012\Visualizers" folder and it should start to work. I will soon provide a setup tool to setup this, and possibly more.
+I've setup a natvis file for use with Psybrus, as it helps a lot with debugging (particularly decoding names and resource structures for an at a glance view). Drop this in the "My Documents\Visual Studio 2013\Visualizers" folder and it should start to work. I will soon provide a setup tool to setup this, and possibly more.
 
 Dependencies:
 1) Visual Studio 2013
