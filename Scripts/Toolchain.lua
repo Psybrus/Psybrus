@@ -33,8 +33,8 @@ function PsySetupToolchain()
 
 		-- Linux clang.
 		if _OPTIONS[ "toolchain" ] == "linux-clang" then
-			premake.gcc.cc = "ccache clang -Qunused-arguments -fcolor-diagnostics"
-			premake.gcc.cxx = "ccache clang++ -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.cc = "ccache clang-3.5 -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.cxx = "ccache clang++-3.5 -Qunused-arguments -fcolor-diagnostics"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-clang" )
 		end
