@@ -614,6 +614,7 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
+		/*
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
@@ -622,6 +623,7 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+		*/
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
@@ -2122,6 +2124,7 @@ void RsContextGL::flushState()
 						static auto TypeVec3 = ReManager::GetClass( "MaVec3d" );
 						static auto TypeVec4 = ReManager::GetClass( "MaVec4d" );
 						static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
+						static auto TypeColour = ReManager::GetClass( "RsColour" );			
 
 						// Grab raw data.
 						auto BufferData = Buffer->getHandle< const BcU8* >();
@@ -2165,6 +2168,11 @@ void RsContextGL::flushState()
 								if( UniformLocationPS != -1 ) glUniform3fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
 							}
 							else if( ValueType == TypeVec4 )
+							{
+								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
+							}
+							else if( ValueType == TypeColour )
 							{
 								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
 								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
