@@ -45,8 +45,6 @@ void OsCoreImplHTML5::open()
 		PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
 		BcBreakpoint;
 	}
-
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,8 +60,6 @@ void OsCoreImplHTML5::update()
 		{
 			switch( Event.type )
 			{
-			case SDL_QUIT:
-				exit(1);
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 			case SDL_MOUSEBUTTONDOWN:
@@ -73,10 +69,7 @@ void OsCoreImplHTML5::update()
 				for( auto Client : ClientList_ )
 				{
 					OsClientHTML5* HTML5Client = dynamic_cast< OsClientHTML5* >( Client );
-					if( HTML5Client->getWindowId() == Event.window.windowID )
-					{
-						HTML5Client->handleEvent( Event );
-					}
+					HTML5Client->handleEvent( Event );
 				}
 				break;
 			}
