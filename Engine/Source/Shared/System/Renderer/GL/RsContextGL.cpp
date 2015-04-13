@@ -1253,6 +1253,10 @@ bool RsContextGL::updateBuffer(
 	}
 	else
 	{
+		// Dirty program.
+		// TODO: Optimise later.
+		ProgramDirty_ = BcTrue;
+
 		// Buffer is in main memory.
 		RsBufferLock Lock =
 		{
