@@ -33,6 +33,8 @@
 
 #include "Import/Img/Img.h"
 
+#include "System/SysKernel.h"
+
 #if PLATFORM_HTML5
 #include "System/Os/OsHTML5.h"
 #endif
@@ -509,6 +511,8 @@ void RsContextGL::takeScreenshot()
 //virtual
 void RsContextGL::create()
 {
+	bool WantGLES = SysArgs_.find( "-gles" ) != std::string::npos;
+
 #if PLATFORM_WINDOWS
 	// Get client device handle.
 	WindowDC_ = (HDC)pClient_->getDeviceHandle();
@@ -575,6 +579,11 @@ void RsContextGL::create()
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
 	for( auto Version : Versions )
 	{
+		if( WantGLES && Version.Type_ != RsOpenGLType::ES )
+		{
+			continue;
+		}
+
 		if( createProfile( Version, ParentContext ) )
 		{
 			Version_ = Version;
@@ -614,7 +623,6 @@ void RsContextGL::create()
 	// Attempt to create core profile.
 	RsOpenGLVersion Versions[] = 
 	{
-		/*
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
 		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
 		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
@@ -623,7 +631,6 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		*/
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
@@ -632,6 +639,11 @@ void RsContextGL::create()
 	bool Success = false;
 	for( auto Version : Versions )
 	{
+		if( WantGLES && Version.Type_ != RsOpenGLType::ES )
+		{
+			continue;
+		}
+
 		if( createProfile( Version, Window ) )
 		{
 			Version_ = Version;

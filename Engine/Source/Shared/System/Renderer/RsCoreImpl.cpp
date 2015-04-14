@@ -29,8 +29,6 @@
 #include "System/Renderer/D3D12/RsContextD3D12.h"
 #endif
 
-#include "Psybrus.h" // cyclic.
-
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( RsCoreImpl );
