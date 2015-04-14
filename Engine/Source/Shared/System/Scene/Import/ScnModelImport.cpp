@@ -639,7 +639,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Normal.x;
 						*OutVal++ = Normal.y;
 						*OutVal++ = Normal.z;
-						*OutVal++ = 1.0f;
+						*OutVal++ = 0.0f;
 					}
 				}
 				break;
@@ -657,7 +657,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Tangent.x;
 						*OutVal++ = Tangent.y;
 						*OutVal++ = Tangent.z;
-						*OutVal++ = 1.0f;
+						*OutVal++ = 0.0f;
 					}
 				}
 				break;
@@ -675,7 +675,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Bitangent.x;
 						*OutVal++ = Bitangent.y;
 						*OutVal++ = Bitangent.z;
-						*OutVal++ = 1.0f;
+						*OutVal++ = 0.0f;
 					}
 				}
 				break;
