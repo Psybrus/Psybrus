@@ -1263,8 +1263,11 @@ bool RsContextGL::updateBuffer(
 			Buffer->getHandle< BcU8* >() + Offset
 		};
 		UpdateFunc( Buffer, Lock );
+
+		return true;
 	}
 
+	BcBreakpoint;
 	return false;
 }
 
