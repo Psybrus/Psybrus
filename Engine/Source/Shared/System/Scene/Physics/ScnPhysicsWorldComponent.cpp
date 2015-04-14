@@ -220,10 +220,6 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
 
-#if defined( PSY_DEBUG )
-	DebugDrawWorld_ = BcTrue;
-#endif
-
 #if !PLATFORM_HTML5
 	if( DsCore::pImpl() )
 	{

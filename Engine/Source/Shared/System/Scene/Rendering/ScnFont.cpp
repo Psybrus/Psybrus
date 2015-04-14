@@ -879,6 +879,7 @@ MaVec2d ScnFontComponent::drawText(
 	ScnFontUniformBlockData FontUniformData = FontUniformData_;
 
 	// Add custom render command to canvas to update the uniform buffer correctly.
+	UploadFence_.increment();
 	Canvas->setMaterialComponent( MaterialComponent_ );
 	Canvas->addCustomRender(
 		[ this, FontUniformData ]( RsContext* Context )
@@ -890,6 +891,7 @@ MaVec2d ScnFontComponent::drawText(
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					BcMemCopy( Lock.Buffer_, &FontUniformData, sizeof( FontUniformData ) );
+					UploadFence_.decrement();
 				} );
 		},
 		DrawParams.getLayer() );
@@ -1227,6 +1229,8 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UploadFence_.wait();
+
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
 

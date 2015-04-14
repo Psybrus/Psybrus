@@ -56,6 +56,7 @@ ScnPhysicsHingeConstraintComponent::ScnPhysicsHingeConstraintComponent():
 ScnPhysicsHingeConstraintComponent::~ScnPhysicsHingeConstraintComponent()
 {
 	delete Constraint_;
+	Constraint_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

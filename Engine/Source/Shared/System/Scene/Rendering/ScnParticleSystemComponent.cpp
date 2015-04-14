@@ -70,7 +70,7 @@ ScnParticleSystemComponent::ScnParticleSystemComponent():
 //virtual
 ScnParticleSystemComponent::~ScnParticleSystemComponent()
 {
-
+	//SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,6 +123,7 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 		SysKernel::DEFAULT_JOB_QUEUE_ID, 
 		[ this, Tick ]()
 		{
+			UploadFence_.wait();
 			updateParticles( Tick );
 		} );
 }
@@ -311,6 +312,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	}
 
 	// Upload uniforms.
+	UploadFence_.increment();
 	RsCore::pImpl()->updateBuffer( 
 		VertexBuffer.UniformBuffer_,
 		0, sizeof( VertexBuffer.ObjectUniforms_ ),
@@ -318,6 +320,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		[ this, VertexBuffer ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
 			BcMemCopy( Lock.Buffer_, &VertexBuffer.ObjectUniforms_, sizeof( VertexBuffer.ObjectUniforms_ ) );
+			UploadFence_.decrement();
 		} );
 
 	// Draw particles last.
@@ -395,6 +398,9 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UpdateFence_.wait();
+	UploadFence_.wait();
+
 	Parent->detach( MaterialComponent_ );
 
 	MaterialComponent_ = nullptr;

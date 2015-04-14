@@ -463,10 +463,17 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 //virtual
 void ScnModelComponent::postUpdate( BcF32 Tick )
 {
+	PSY_PROFILE_FUNCTION;
 	Super::postUpdate( Tick );
 
+	UploadFence_.wait();
 	UpdateFence_.increment();
-	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
+	MaMat4d Matrix = BaseTransform_ * getParentEntity()->getWorldMatrix();
+	SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+		[ this, Matrix ]()->void
+		{
+			updateNodes( Matrix );
+		} );
 
 #if DEBUG_RENDER_NODES
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
@@ -491,14 +498,13 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 #endif // DEBUG_RENDER_NODES
 }
 
-//////////////////////////////////////////////////////////////////////////pmatr
+//////////////////////////////////////////////////////////////////////////
 // updateNodes
 void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 {
-	MaAABB FullAABB;
+	PSY_PROFILE_FUNCTION;
 
-	// Wait for previous upload to finish.
-	UploadFence_.wait();
+	MaAABB FullAABB;
 
 	// Update nodes.	
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
@@ -587,6 +593,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
+					PSY_PROFILE_FUNCTION;
 					ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( Lock.Buffer_ );
 					for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 					{
@@ -609,6 +616,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
+					PSY_PROFILE_FUNCTION;
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
 					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
 
@@ -709,6 +717,7 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	// Wait for update + upload to complete.
 	UpdateFence_.wait();
 	UploadFence_.wait();
+	//SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
@@ -757,7 +766,7 @@ public:
 
 void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnModelComponent::render" ) );
+	PSY_PROFILE_FUNCTION;
 
 	Super::render( pViewComponent, pFrame, Sort );
 

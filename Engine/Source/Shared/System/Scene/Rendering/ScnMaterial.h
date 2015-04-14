@@ -112,6 +112,7 @@ public:
 
 public:
 	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 
 private:
 	friend class ScnMaterial;	
@@ -152,8 +153,6 @@ private:
 	BcU32 ViewUniformBlockIndex_;
 	BcU32 BoneUniformBlockIndex_;
 	BcU32 ObjectUniformBlockIndex_;
-
-	SysFence UpdateFence_;
 };
 
 #endif

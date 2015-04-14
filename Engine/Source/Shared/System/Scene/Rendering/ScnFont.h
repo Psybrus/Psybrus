@@ -304,6 +304,7 @@ private:
 
 	RsBuffer* UniformBuffer_;
 	ScnFontUniformBlockData FontUniformData_;
+	SysFence UploadFence_;
 };
 
 #endif

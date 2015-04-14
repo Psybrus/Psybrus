@@ -423,9 +423,6 @@ public:
 
 		// Set program.
 		pContext_->setProgram( pProgram_ );
-
-		// Done.
-		pUpdateFence_->decrement();
 	}
 	
 	// Texture binding block.
@@ -445,10 +442,6 @@ public:
 	// Program.
 	RsProgram* pProgram_;
 	
-	// Update fence (for marking when in use/not)
-	// TODO: Make this a generic feature of the component system?
-	SysFence* pUpdateFence_;
-
 	// For debugging.
 	ScnMaterialComponent* pMaterial_;
 };
@@ -493,7 +486,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup uniform blocks.
 	pRenderNode->NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
 	pRenderNode->pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * pRenderNode->NoofUniformBlocks_ );
-	pRenderNode->ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer ) * pRenderNode->NoofUniformBlocks_ );
+	pRenderNode->ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer* ) * pRenderNode->NoofUniformBlocks_ );
 
 	for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
 	{
@@ -507,10 +500,6 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup program.
 	pRenderNode->pProgram_ = pProgram_;
 
-	// Update fence.
-	pRenderNode->pUpdateFence_ = &UpdateFence_;
-	UpdateFence_.increment();
-
 	// Add node to frame.
 	pRenderNode->Sort_ = Sort;
 	pFrame->addRenderNode( pRenderNode );
@@ -522,4 +511,12 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
 }
