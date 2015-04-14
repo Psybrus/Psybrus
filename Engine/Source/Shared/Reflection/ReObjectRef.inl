@@ -1,7 +1,7 @@
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::_acquireNew( ReObject* pObject )
 {
-	pObject_ = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject_ = ( pObject != nullptr && pObject->isTypeOf< _Ty >() ) ? pObject : nullptr;
 #if REFLECTION_ENABLE_GC
 	if( !_IsWeak )
 	{
@@ -16,7 +16,7 @@ inline void ReObjectRef< _Ty, _IsWeak >::_acquireNew( ReObject* pObject )
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::_acquireNewReleaseOld( ReObject* pObject )
 {
-	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject = ( pObject != nullptr && pObject->isTypeOf< _Ty >() ) ? pObject : nullptr;
 #if REFLECTION_ENABLE_GC
 	if( !_IsWeak )
 	{
@@ -34,7 +34,7 @@ inline void ReObjectRef< _Ty, _IsWeak >::_acquireNewReleaseOld( ReObject* pObjec
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::_acquireAssign( ReObject* pObject )
 {
-	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject = ( pObject != nullptr && pObject->isTypeOf< _Ty >() ) ? pObject : nullptr;
 #if REFLECTION_ENABLE_GC
 	if( !_IsWeak )
 	{
