@@ -593,7 +593,10 @@ void SysKernel::execute()
 // notifySchedule
 void SysKernel::notifySchedule()
 {
-	JobQueued_.notify_all();
+	for( auto& JobWorker : JobWorkers_ )
+	{
+		JobWorker->notifySchedule();
+	}	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -668,3 +671,31 @@ void SysKernel::enqueueCallback( const std::function< void() >& Function )
 {
 	DelegateDispatcher_.enqueueDelegateCall( Function );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// debugLog
+void SysKernel::debugLog()
+{
+	PSY_LOGSCOPEDCATEGORY( "SysKernel" );
+	PSY_LOG( "Job queues:" );
+	{
+		PSY_LOGSCOPEDINDENT;
+		for( auto& JobQueue : JobQueues_ )
+		{
+			PSY_LOG( "--" );
+			PSY_LOGSCOPEDINDENT;
+			JobQueue->debugLog();
+		}	
+	}
+	PSY_LOG( "Job workers:" );
+	{
+		PSY_LOGSCOPEDINDENT;
+		for( auto& JobWorker : JobWorkers_ )
+		{
+			PSY_LOG( "--" );
+			PSY_LOGSCOPEDINDENT;
+			JobWorker->debugLog();
+		}	
+	}
+}
+

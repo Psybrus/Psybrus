@@ -13,6 +13,8 @@
 
 #include "System/SysJob.h"
 
+#define DEBUG_JOB_IDS ( 0 )
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 SysJob::SysJob():
@@ -38,10 +40,18 @@ void SysJob::internalExecute()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// SysFunctionJob Statics
+std::atomic< size_t > SysFunctionJob::FunctionJobID_( 0 );
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 SysFunctionJob::SysFunctionJob( std::function< void() > Function ) :
-	Function_( Function )
+	Function_( Function ),
+	JobID_( FunctionJobID_++ )
 {
+#if DEBUG_JOB_IDS
+	PSY_LOG( "Created job %u", JobID_ );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,5 +67,11 @@ SysFunctionJob::~SysFunctionJob()
 //virtual
 void SysFunctionJob::execute()
 {
+#if DEBUG_JOB_IDS
+	PSY_LOG( "Running job %u", JobID_ );
+#endif
 	Function_( );
+#if DEBUG_JOB_IDS
+	PSY_LOG( "Ending job %u", JobID_ );
+#endif
 }

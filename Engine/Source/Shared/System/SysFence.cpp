@@ -28,9 +28,8 @@ SysFence::SysFence( size_t InitialValue ):
 // Dtor
 SysFence::~SysFence()
 {
-
+	BcAssert( Count_.load() == 0 );
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // increment

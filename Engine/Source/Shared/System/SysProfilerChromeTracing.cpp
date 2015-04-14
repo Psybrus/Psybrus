@@ -26,6 +26,8 @@ SysProfilerChromeTracing::SysProfilerChromeTracing()
 {
 	ProfilerSectionPool_.resize( 65536 );
 	ProfilerSectionIndex_ = 0;
+	BeginCount_ = 0;
+	ProfilingActive_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
