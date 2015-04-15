@@ -1779,10 +1779,154 @@ bool RsContextGL::createProgram(
 		BcU32 UniformHandle = 0;
 		for( auto UniformBlockName : UniformBlockSet )
 		{
+			const ReClass* Class = ReManager::GetClass( UniformBlockName );
 			Program->addUniformBufferSlot( 
 				UniformBlockName, 
-				UniformHandle++, 
-				ReManager::GetClass( UniformBlockName ) );
+				UniformHandle,
+				Class );
+			
+			if( Class != nullptr )
+			{
+				// Statically cache the types.
+				static auto TypeU32 = ReManager::GetClass( "BcU32" );
+				static auto TypeS32 = ReManager::GetClass( "BcS32" );
+				static auto TypeF32 = ReManager::GetClass( "BcF32" );
+				static auto TypeVec2 = ReManager::GetClass( "MaVec2d" );
+				static auto TypeVec3 = ReManager::GetClass( "MaVec3d" );
+				static auto TypeVec4 = ReManager::GetClass( "MaVec4d" );
+				static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
+				static auto TypeColour = ReManager::GetClass( "RsColour" );			
+
+				// Base uniform entry.
+				RsProgramImplGL::UniformEntry UniformEntry;
+
+				// Iterate over all elements and grab the uniforms.
+				auto ClassName = *Class->getName();
+				auto ClassNameVS = ClassName + "VS";
+				auto ClassNamePS = ClassName + "PS";
+				for( auto Field : Class->getFields() )
+				{
+					auto FieldName = *Field->getName();
+					auto ValueType = Field->getType();
+					auto UniformNameVS = ClassNameVS + ".X" + FieldName;
+					auto UniformNamePS = ClassNamePS + ".X" + FieldName;
+
+					UniformEntry.BindingPoint_ = UniformHandle;
+					UniformEntry.Count_ = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
+					UniformEntry.Offset_ = Field->getOffset();
+
+					auto UniformLocationVS = glGetUniformLocation( ProgramImpl->Handle_, UniformNameVS.c_str() );
+					auto UniformLocationPS = glGetUniformLocation( ProgramImpl->Handle_, UniformNamePS.c_str() );
+					
+					if( ValueType == TypeU32 || ValueType == TypeS32 )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_1IV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+					else if( ValueType == TypeF32 )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_1FV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+					else if( ValueType == TypeVec2 )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_2FV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+					else if( ValueType == TypeVec3 )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_3FV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+					else if( ValueType == TypeVec4 )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+					else if( ValueType == TypeColour )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+					else if( ValueType == TypeMat4 )
+					{
+						UniformEntry.Type_ = RsProgramImplGL::UniformEntry::Type::UNIFORM_MATRIX_4FV;
+
+						if( UniformLocationVS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationVS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+						if( UniformLocationPS != -1 )
+						{
+							UniformEntry.Loc_ = UniformLocationPS;
+							ProgramImpl->UniformEntries_.push_back( UniformEntry );
+						}
+					}
+				}
+			}
+
+			++UniformHandle;
 		}
 	}
 
@@ -2146,125 +2290,66 @@ void RsContextGL::flushState()
 		glUseProgram( ProgramImpl->Handle_ );
 		RsGLCatchError();
 
-		// TODO: Bind up as individual uniforms as an alternative
-		//       to uniform buffers where appropriate.
-		BcU32 BindingPoint = 0;
-		for( auto It( UniformBuffers_.begin() ); It != UniformBuffers_.end(); ++It )
+		// Bind up uniform buffers, or uniforms.
+#if !PLATFORM_HTML5	
+		if( Version_.SupportUniformBuffers_ )
 		{
-			auto Buffer = (*It).Buffer_;
-			if( Buffer != nullptr )
+			BcU32 BindingPoint = 0;
+			for( auto It( UniformBuffers_.begin() ); It != UniformBuffers_.end(); ++It )
 			{
-				auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-				BcAssert( BufferImpl );
-
-				if( Version_.SupportUniformBuffers_ )
+				auto Buffer = (*It).Buffer_;
+				if( Buffer != nullptr )
 				{
-#if !PLATFORM_HTML5
+					auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+					BcAssert( BufferImpl );
 					glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ );
 					RsGLCatchError();
+					++BindingPoint;
+				}
+			}
+		}
+		else
 #endif
+		{
+			for( const auto& UniformEntry : ProgramImpl->UniformEntries_ )
+			{
+				const BcU32 BindingPoint = UniformEntry.BindingPoint_;
+				auto Buffer = UniformBuffers_[ BindingPoint ].Buffer_;
+				if( Buffer != nullptr )
+				{
+					const auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+					BcAssert( BufferImpl );
+					const auto* BufferData = BufferImpl->BufferData_;
+					BcAssert( BufferData );
+					const auto* UniformData = BufferData + UniformEntry.Offset_;
+
+					switch( UniformEntry.Type_ )
+					{
+					case RsProgramImplGL::UniformEntry::Type::UNIFORM_1IV:
+						glUniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) );
+						break;
+					case RsProgramImplGL::UniformEntry::Type::UNIFORM_1FV:
+						glUniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+						break;
+					case RsProgramImplGL::UniformEntry::Type::UNIFORM_2FV:
+						glUniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+						break;
+					case RsProgramImplGL::UniformEntry::Type::UNIFORM_3FV:
+						glUniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+						break;
+					case RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV:
+						glUniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+						break;
+					case RsProgramImplGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
+						glUniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) );
+						break;
+					}
+					RsGLCatchError();
 				}
 				else
 				{
-					// TODO: Optimise this. We may need to look at packing uniforms
-					//       in such a way we can upload them without so much work.
-					// This is not intended to be final, simply functional until
-					// more thought can be put into the system.
-					const ReClass* Class = Program_->getUniformBufferClass( BindingPoint );
-					if( Class != nullptr )
-					{
-						BcAssert( Class->getSize() == Buffer->getDesc().SizeBytes_ );
-
-						// Statically cache the types.
-						static auto TypeU32 = ReManager::GetClass( "BcU32" );
-						static auto TypeS32 = ReManager::GetClass( "BcS32" );
-						static auto TypeF32 = ReManager::GetClass( "BcF32" );
-						static auto TypeVec2 = ReManager::GetClass( "MaVec2d" );
-						static auto TypeVec3 = ReManager::GetClass( "MaVec3d" );
-						static auto TypeVec4 = ReManager::GetClass( "MaVec4d" );
-						static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
-						static auto TypeColour = ReManager::GetClass( "RsColour" );			
-
-						// Grab raw data.
-						const auto* BufferData = BufferImpl->BufferData_;
-						BcAssert( BufferData );
-
-						// Iterate over all elements and set the uniforms.
-						auto ClassName = *Class->getName();
-						auto ClassNameVS = ClassName + "VS";
-						auto ClassNamePS = ClassName + "PS";
-						for( auto Field : Class->getFields() )
-						{
-							auto FieldName = *Field->getName();
-							auto FieldData = BufferData + Field->getOffset();
-							auto ValueType = Field->getType();
-							auto UniformNameVS = ClassNameVS + ".X" + FieldName;
-							auto UniformNamePS = ClassNamePS + ".X" + FieldName;
-
-							GLsizei Count = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
-
-							auto UniformLocationVS = glGetUniformLocation( ProgramImpl->Handle_, UniformNameVS.c_str() );
-							auto UniformLocationPS = glGetUniformLocation( ProgramImpl->Handle_, UniformNamePS.c_str() );
-								
-							if( ValueType == TypeU32 || ValueType == TypeS32 )
-							{
-								if( UniformLocationVS != -1 ) glUniform1iv( UniformLocationVS, Count, reinterpret_cast< const BcS32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform1iv( UniformLocationPS, Count, reinterpret_cast< const BcS32* >( FieldData ) );
-							}
-							else if( ValueType == TypeF32 )
-							{
-								if( UniformLocationVS != -1 ) glUniform1fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform1fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-							}
-							else if( ValueType == TypeVec2 )
-							{
-								if( UniformLocationVS != -1 ) glUniform2fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform2fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-							}
-							else if( ValueType == TypeVec3 )
-							{
-								if( UniformLocationVS != -1 ) glUniform3fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform3fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-							}
-							else if( ValueType == TypeVec4 )
-							{
-								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-							}
-							else if( ValueType == TypeColour )
-							{
-								if( UniformLocationVS != -1 ) glUniform4fv( UniformLocationVS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-								if( UniformLocationPS != -1 ) glUniform4fv( UniformLocationPS, Count, reinterpret_cast< const BcF32* >( FieldData ) );
-							}
-							else if( ValueType == TypeMat4 )
-							{
-								if( UniformLocationVS != -1 )
-								{
-									glUniformMatrix4fv( UniformLocationVS, Count, GL_FALSE, reinterpret_cast< const BcF32* >( FieldData ) );
-#if !PLATFORM_HTML5
-									if( glGetError() != 0 )
-									{
-										glUniform4fv( UniformLocationVS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
-									}
-#endif
-								}
-
-								if( UniformLocationPS != -1 )
-								{
-									glUniformMatrix4fv( UniformLocationPS, Count, GL_FALSE, reinterpret_cast< const BcF32* >( FieldData ) );
-#if !PLATFORM_HTML5
-									if( glGetError() != 0 )
-									{
-										glUniform4fv( UniformLocationPS, Count * 4, reinterpret_cast< const BcF32* >( FieldData ) );
-									}
-#endif
-								}
-							}
-							RsGLCatchError();
-						}
-					}
+					BcBreakpoint;
 				}
-				++BindingPoint;
 			}
 		}
 

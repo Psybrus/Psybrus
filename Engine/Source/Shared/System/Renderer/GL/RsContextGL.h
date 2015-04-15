@@ -59,6 +59,27 @@ struct RsProgramImplGL
 	{}
 
 	GLuint Handle_;
+
+	struct UniformEntry
+	{
+		enum class Type
+		{
+			UNIFORM_1IV,
+			UNIFORM_1FV,
+			UNIFORM_2FV,
+			UNIFORM_3FV,
+			UNIFORM_4FV,
+			UNIFORM_MATRIX_4FV,
+		};
+
+		BcU32 BindingPoint_;
+		Type Type_;
+		GLint Loc_;
+		GLsizei Count_;
+		size_t Offset_;
+	};
+
+	std::vector< UniformEntry > UniformEntries_;
 };
 
 //////////////////////////////////////////////////////////////////////////
