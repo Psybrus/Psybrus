@@ -12,6 +12,8 @@
 
 #include "System/SysProfilerChromeTracing.h"
 
+#include <boost/filesystem.hpp>
+
 namespace
 {
 	BcHandle GInstance_ = nullptr;
@@ -64,6 +66,32 @@ eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 	GMainWindow = nullptr;
 	return evtRET_REMOVE;
 }
+
+// HACK HACK HACK: Offline package importing is a major hack for now.
+eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const EvtBaseEvent& )
+{
+	using namespace boost::filesystem;
+	path Path( "Content/" );
+
+	auto It = directory_iterator( Path );
+	while( It != directory_iterator() )
+	{
+		directory_entry Entry = *It;
+		std::cout << Entry.path().extension().string()  << std::endl;
+		if( Entry.path().extension().string()  == ".pkg" )
+		{
+			BcPath PackagePath( Entry.path().string() );
+			CsPackage* pPackage = new CsPackage( PackagePath.getFileNameNoExtension() );
+			BcUnusedVar( pPackage );
+		}
+		++It;
+	}
+
+	// HACK: We just wanna bail here. No clean shutdown yet.
+	exit(0);
+	//return evtRET_REMOVE;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -145,7 +173,26 @@ int main(int argc, char** argv)
 	// Init game.
 	PsyGameInit();
 
-	//
+	// HACK HACK HACK: Offline package importing is a major hack for now.
+	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
+	{
+		// Hook up create client delegate
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
+
+		// Hook up event pump delegate.
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
+
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
+
+		// Init game.
+		PsyGameInit();
+	}
+	else
+	{
+		// HACK HACK HACK: Offline package importing is a major hack for now.
+		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostCsOpen_ImportPackages );
+	}
+
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
 	{
 		// Run kernel unthreaded.
