@@ -339,6 +339,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	pClient_( pClient ),
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode ),
+	FrameCount_( 0 ),
 	FrameBuffer_( nullptr ),
 	GlobalVAO_( 0 ),
 	ProgramDirty_( BcTrue ),
@@ -497,6 +498,9 @@ void RsContextGL::presentBackBuffer()
 		SDL_GL_SwapBuffers();
 	}
 #endif
+
+	// Advance frame.
+	FrameCount_++;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1084,40 +1088,42 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
 
+	// Create buffer impl.
+	auto BufferImpl = new RsBufferImplGL();
+	Buffer->setHandle( BufferImpl );
+
 	// Should buffer be in main memory?
 	BcBool BufferInMainMemory = 
 		Version_.SupportUniformBuffers_ == BcFalse &&
 		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
 
 	++NoofBuffers_;
-		
+
+
+	// Determine which kind of buffer to create.
 	if( !BufferInMainMemory )
 	{
 		// Generate buffer.
-		GLuint Handle;
-		glGenBuffers( 1, &Handle );
-		Buffer->setHandle( Handle );
+		glGenBuffers( 1, &BufferImpl->Handle_ );
 
 		// Catch gen error.
 		RsGLCatchError();
 
 		// Attempt to update it.
-		if( Handle != 0 )
+		if( BufferImpl->Handle_ != 0 )
 		{
-			glBindBuffer( TypeGL, Handle );
+			glBindBuffer( TypeGL, BufferImpl->Handle_ );
 			glBufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL );
 
 			// Catch update error.
 			RsGLCatchError();
-
 			return true;
 		}
 	}
 	else
 	{
 		// Buffer is in main memory.
-		auto BufferData = new BcU8[ BufferDesc.SizeBytes_ ];
-		Buffer->setHandle< BcU8* >( BufferData );
+		BufferImpl->BufferData_ = new BcU8[ BufferDesc.SizeBytes_ ];
 		return true;
 	}
 
@@ -1137,28 +1143,50 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 
 	--NoofBuffers_;
 
+	// Check if it is bound anywhere.
+	if( Buffer == IndexBuffer_ )
+	{
+		IndexBuffer_ = nullptr;
+	}
+	for( auto& VertexBufferBinding : VertexBuffers_ )
+	{
+		if( Buffer == VertexBufferBinding.Buffer_ )
+		{
+			VertexBufferBinding.Buffer_ = nullptr;
+		}
+	}
+	for( auto& UniformBufferBinding : UniformBuffers_ )
+	{
+		if( Buffer == UniformBufferBinding.Buffer_ )
+		{
+			UniformBufferBinding.Buffer_ = nullptr;
+		}
+	}
+
+	bool RetVal = false;
+	auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+
 	if( !BufferInMainMemory )
 	{
-		GLuint Handle = Buffer->getHandle< GLuint >();
-	
-		if( Handle != 0 )
+		if( BufferImpl->Handle_ != 0 )
 		{
-			glDeleteBuffers( 1, &Handle );
-			Buffer->setHandle< GLuint >( 0 );
-
+			glDeleteBuffers( 1, &BufferImpl->Handle_ );
 			RsGLCatchError();
-			return true;
+			RetVal = true;
 		}
 	}
 	else
 	{
 		// Buffer is in main memory.
-		auto BufferData = Buffer->getHandle< BcU8* >();
-		delete [] BufferData;
-		Buffer->setHandle< GLuint >( 0 );
-		return true;
+		delete [] BufferImpl->BufferData_;
+		BufferImpl->BufferData_ = nullptr;
+		RetVal = true;
 	}
-	return false;
+
+	delete BufferImpl;
+	Buffer->setHandle< GLuint >( 0 );
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1177,6 +1205,9 @@ bool RsContextGL::updateBuffer(
 	BcAssertMsg( ( Offset + Size ) <= BufferDesc.SizeBytes_, "Typing to update buffer outside of range." );
 	BcAssertMsg( BufferDesc.Type_ != RsBufferType::UNKNOWN, "Buffer type is unknown" );
 
+	auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+	BcAssert( BufferImpl );
+
 	// Is buffer be in main memory?
 	BcBool BufferInMainMemory =
 		Version_.SupportUniformBuffers_ == BcFalse &&
@@ -1184,15 +1215,13 @@ bool RsContextGL::updateBuffer(
 
 	if( !BufferInMainMemory )
 	{
-		GLuint Handle = Buffer->getHandle< GLuint >();
-	
-		if( Handle != 0 )
+		if( BufferImpl->Handle_ != 0 )
 		{
 			// Get buffer type for GL.
 			auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
 
 			// Bind buffer.
-			glBindBuffer( TypeGL, Handle );
+			glBindBuffer( TypeGL, BufferImpl->Handle_ );
 
 			// NOTE: The map range path should work correctly.
 			//       The else is  very heavy handed way to force orphaning
@@ -1268,11 +1297,12 @@ bool RsContextGL::updateBuffer(
 		// Dirty program.
 		// TODO: Optimise later.
 		ProgramDirty_ = BcTrue;
+		BcAssert( BufferImpl->BufferData_ );
 
 		// Buffer is in main memory.
 		RsBufferLock Lock =
 		{
-			Buffer->getHandle< BcU8* >() + Offset
+			BufferImpl->BufferData_ + Offset
 		};
 		UpdateFunc( Buffer, Lock );
 
@@ -2117,10 +2147,13 @@ void RsContextGL::flushState()
 			auto Buffer = (*It).Buffer_;
 			if( Buffer != nullptr )
 			{
+				auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+				BcAssert( BufferImpl );
+
 				if( Version_.SupportUniformBuffers_ )
 				{
 #if !PLATFORM_HTML5
-					glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, Buffer->getHandle< GLuint >(), 0, Buffer->getDesc().SizeBytes_ );
+					glBindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ );
 					RsGLCatchError();
 #endif
 				}
@@ -2146,8 +2179,8 @@ void RsContextGL::flushState()
 						static auto TypeColour = ReManager::GetClass( "RsColour" );			
 
 						// Grab raw data.
-						auto BufferData = Buffer->getHandle< const BcU8* >();
-						BcUnusedVar( BufferData );
+						const auto* BufferData = BufferImpl->BufferData_;
+						BcAssert( BufferData );
 
 						// Iterate over all elements and set the uniforms.
 						auto ClassName = *Class->getName();
@@ -2270,7 +2303,9 @@ void RsContextGL::flushState()
 				// Bind up new vertex buffer if we need to.
 				BcAssertMsg( FoundElement->StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
 				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-				GLuint VertexHandle = VertexBuffer->getHandle< GLuint >();
+				auto VertexBufferImpl = VertexBuffer->getHandle< RsBufferImplGL* >();
+				BcAssert( VertexBufferImpl );
+				GLuint VertexHandle = VertexBufferImpl->Handle_;
 				if( BoundVertexHandle != VertexHandle )
 				{
 					glBindBuffer( GL_ARRAY_BUFFER, VertexHandle );
@@ -2297,12 +2332,9 @@ void RsContextGL::flushState()
 		BcAssert( ProgramVertexAttributeList.size() == BoundElements );
 
 		// Bind indices.
-		GLuint IndicesHandle = IndexBuffer_ != nullptr ? IndexBuffer_->getHandle< GLuint >() : 0;
-		if( IndicesHandle != 0 )
-		{
-			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle );
-		}
-
+		auto IndexBufferImpl = IndexBuffer_ ? IndexBuffer_->getHandle< RsBufferImplGL* >() : nullptr;
+		GLuint IndicesHandle = IndexBufferImpl != nullptr ? IndexBufferImpl->Handle_ : 0;
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle );
 		ProgramDirty_ = BcFalse;
 		BindingsDirty_ = BcFalse;
 	}

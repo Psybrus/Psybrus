@@ -28,6 +28,26 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// RsBufferImplGL
+struct RsBufferImplGL
+{
+	RsBufferImplGL():
+		Handle_( 0 ),
+		BufferData_( nullptr ),
+		LastFrameChange_( 0 )
+	{}
+
+	~RsBufferImplGL()
+	{
+		BcAssert( BufferData_ == nullptr );
+	}
+
+	GLuint Handle_;
+	BcU8* BufferData_;
+	BcU64 LastFrameChange_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsContextGL
 class RsContextGL:
 	public RsContext
@@ -174,6 +194,7 @@ private:
 
 	BcBool ScreenshotRequested_;
 	BcThreadId OwningThread_;
+	BcU64 FrameCount_;
 
 	struct TTextureStateValue
 	{
@@ -186,7 +207,7 @@ private:
 	{
 		NOOF_RENDERSTATES = (BcU32)RsRenderStateType::MAX,
 	};
-		
+	
 	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
 
 	// State setting.
