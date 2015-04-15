@@ -58,6 +58,7 @@ void ScnShaderObjectUniformBlockData::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "WorldTransform_",					&ScnShaderObjectUniformBlockData::WorldTransform_ ),
+		new ReField( "NormalTransform_",				&ScnShaderObjectUniformBlockData::NormalTransform_ ),
 	};
 		
 	ReRegisterClass< ScnShaderObjectUniformBlockData >( Fields );

@@ -687,7 +687,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					std::string OutputShaderCode = Hlsl2Glsl_GetShader( CompilerHandle );
 					std::string OriginalOutputShaderCode = OutputShaderCode;
 
-					// TODO: Run through glsl-optimzser.
+					// Run through glsl-optimzser.
 					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
 					glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
 
