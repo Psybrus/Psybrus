@@ -1776,6 +1776,8 @@ bool RsContextGL::createProgram(
 	}
 	else
 	{
+		// Base uniform entry.
+		RsProgramImplGL::UniformEntry UniformEntry;
 		BcU32 UniformHandle = 0;
 		for( auto UniformBlockName : UniformBlockSet )
 		{
@@ -1797,26 +1799,20 @@ bool RsContextGL::createProgram(
 				static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
 				static auto TypeColour = ReManager::GetClass( "RsColour" );			
 
-				// Base uniform entry.
-				RsProgramImplGL::UniformEntry UniformEntry;
-
 				// Iterate over all elements and grab the uniforms.
 				auto ClassName = *Class->getName();
 				auto ClassNameVS = ClassName + "VS";
-				auto ClassNamePS = ClassName + "PS";
 				for( auto Field : Class->getFields() )
 				{
 					auto FieldName = *Field->getName();
 					auto ValueType = Field->getType();
 					auto UniformNameVS = ClassNameVS + ".X" + FieldName;
-					auto UniformNamePS = ClassNamePS + ".X" + FieldName;
 
 					UniformEntry.BindingPoint_ = UniformHandle;
 					UniformEntry.Count_ = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
 					UniformEntry.Offset_ = Field->getOffset();
 
 					auto UniformLocationVS = glGetUniformLocation( ProgramImpl->Handle_, UniformNameVS.c_str() );
-					auto UniformLocationPS = glGetUniformLocation( ProgramImpl->Handle_, UniformNamePS.c_str() );
 					
 					if( ValueType == TypeU32 || ValueType == TypeS32 )
 					{
@@ -1825,13 +1821,9 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
+							UniformEntry.Size_ = sizeof( BcU32 ) * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
+						}						
 					}
 					else if( ValueType == TypeF32 )
 					{
@@ -1840,11 +1832,7 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
+							UniformEntry.Size_ = sizeof( float ) * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
 						}
 					}
@@ -1855,11 +1843,7 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
+							UniformEntry.Size_ = sizeof( float ) * 2 * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
 						}
 					}
@@ -1870,11 +1854,7 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
+							UniformEntry.Size_ = sizeof( float ) * 3 * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
 						}
 					}
@@ -1885,11 +1865,7 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
+							UniformEntry.Size_ = sizeof( float ) * 4 * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
 						}
 					}
@@ -1900,11 +1876,7 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
+							UniformEntry.Size_ = sizeof( float ) * 4 * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
 						}
 					}
@@ -1915,19 +1887,21 @@ bool RsContextGL::createProgram(
 						if( UniformLocationVS != -1 )
 						{
 							UniformEntry.Loc_ = UniformLocationVS;
-							ProgramImpl->UniformEntries_.push_back( UniformEntry );
-						}
-						if( UniformLocationPS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationPS;
+							UniformEntry.Size_ = sizeof( MaMat4d ) * UniformEntry.Count_;
 							ProgramImpl->UniformEntries_.push_back( UniformEntry );
 						}
 					}
+
+					UniformEntry.CachedOffset_ += UniformEntry.Size_;
 				}
 			}
 
 			++UniformHandle;
 		}
+
+		// Allocate a buffer to cache uniform values in.
+		ProgramImpl->CachedUniforms_.reset( new BcU8[ UniformEntry.CachedOffset_ ] );
+		BcMemSet( ProgramImpl->CachedUniforms_.get(), 0xff, UniformEntry.CachedOffset_ );
 	}
 
 	// Catch error.
@@ -2322,29 +2296,38 @@ void RsContextGL::flushState()
 					const auto* BufferData = BufferImpl->BufferData_;
 					BcAssert( BufferData );
 					const auto* UniformData = BufferData + UniformEntry.Offset_;
+					auto* CachedUniformData = ProgramImpl->CachedUniforms_.get() + UniformEntry.CachedOffset_;
 
-					switch( UniformEntry.Type_ )
+					// Check if value has changed.
+					if( memcmp( CachedUniformData, UniformData, UniformEntry.Size_ ) != 0 )
 					{
-					case RsProgramImplGL::UniformEntry::Type::UNIFORM_1IV:
-						glUniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) );
-						break;
-					case RsProgramImplGL::UniformEntry::Type::UNIFORM_1FV:
-						glUniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
-						break;
-					case RsProgramImplGL::UniformEntry::Type::UNIFORM_2FV:
-						glUniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
-						break;
-					case RsProgramImplGL::UniformEntry::Type::UNIFORM_3FV:
-						glUniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
-						break;
-					case RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV:
-						glUniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
-						break;
-					case RsProgramImplGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
-						glUniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) );
-						break;
+						memcpy( CachedUniformData, UniformData, UniformEntry.Size_ );
+						switch( UniformEntry.Type_ )
+						{
+						case RsProgramImplGL::UniformEntry::Type::UNIFORM_1IV:
+							glUniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) );
+							break;
+						case RsProgramImplGL::UniformEntry::Type::UNIFORM_1FV:
+							glUniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+							break;
+						case RsProgramImplGL::UniformEntry::Type::UNIFORM_2FV:
+							glUniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+							break;
+						case RsProgramImplGL::UniformEntry::Type::UNIFORM_3FV:
+							glUniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+							break;
+						case RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV:
+							glUniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) );
+							break;
+						case RsProgramImplGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
+							glUniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) );
+							break;
+						default:
+							BcBreakpoint;
+							break;
+						}
+						RsGLCatchError();
 					}
-					RsGLCatchError();
 				}
 				else
 				{
