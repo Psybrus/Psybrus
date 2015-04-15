@@ -42,7 +42,9 @@ static OsClientSDL* GMainWindow = nullptr;
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
 	GMainWindow = new OsClientSDL();
-	if( GMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
+	std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + SysArgs_ + std::string( ")" ) );
+	
+	if( GMainWindow->create( Title.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
 		return evtRET_REMOVE;
@@ -165,23 +167,12 @@ int main(int argc, char** argv)
 	// Main shared.
 	MainShared();
 
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
-
-	// Init game.
-	PsyGameInit();
-
 	// HACK HACK HACK: Offline package importing is a major hack for now.
 	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
 	{
-		// Hook up create client delegate
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
-
-		// Hook up event pump delegate.
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
-
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
 
 		// Init game.
