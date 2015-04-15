@@ -14,13 +14,12 @@
 #ifndef __BCCPUVEC4D_H__
 #define __BCCPUVEC4D_H__
 
-#include "Math/MaCPUVecQuad.h"
 #include "Reflection/ReReflection.h"
 #include "MaVec3d.h"
 #define DECLARE_SWIZZLE3( T, X, Y, Z ) inline T X ## Y ## Z() const { return T( X(), Y(), Z() ); }
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec4d
-class MaCPUVec4d: public MaCPUVecQuad
+class MaCPUVec4d
 {
 public:
 	REFLECTION_DECLARE_BASIC( MaCPUVec4d );
@@ -156,12 +155,18 @@ public:
 	DECLARE_SWIZZLE3( MaVec3d, z, z, x );
 	DECLARE_SWIZZLE3( MaVec3d, z, z, y );
 	DECLARE_SWIZZLE3( MaVec3d, z, z, z );
+
+protected:
+	BcF32 X_, Y_, Z_, W_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
 BcForceInline MaCPUVec4d::MaCPUVec4d( BcF32 X, BcF32 Y, BcF32 Z, BcF32 W ):
-	MaCPUVecQuad( X, Y, Z, W )
+	X_( X ),
+	Y_( Y ),
+	Z_( Z ),
+	W_( W )
 {
 
 }
