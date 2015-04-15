@@ -26,11 +26,11 @@ public:
 public:
 	DsCoreLoggingImpl();
 	virtual ~DsCoreLoggingImpl();
-	virtual void addLog( BcName Category, BcU32 Timestamp, std::string Message );
-	virtual std::vector< DsCoreLogEntry > getEntries( BcName* Categories, BcU32 CategoryCount );
+	virtual void addLog( const std::string& Category, BcU32 Timestamp, std::string Message );
+	virtual std::vector< DsCoreLogEntry > getEntries( std::string* Categories, BcU32 CategoryCount );
 	
 private:
-	std::map< BcName, std::deque< DsCoreLogEntry > > Logs_;
+	std::map< std::string, std::deque< DsCoreLogEntry > > Logs_;
 	std::mutex Lock_;
 };
 

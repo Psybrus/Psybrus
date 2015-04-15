@@ -40,7 +40,7 @@ void DsCoreLoggingImpl::close()
 	Logs_.clear();
 }
 
-void DsCoreLoggingImpl::addLog( BcName Category, BcU32 TimeStamp, std::string Message )
+void DsCoreLoggingImpl::addLog( const std::string& Category, BcU32 TimeStamp, std::string Message )
 {
 	std::lock_guard< std::mutex > Lock( Lock_ );
 
@@ -52,7 +52,7 @@ void DsCoreLoggingImpl::addLog( BcName Category, BcU32 TimeStamp, std::string Me
 
 }
 
-std::vector< DsCoreLogEntry > DsCoreLoggingImpl::getEntries( BcName* Categories, BcU32 CategoryCount )
+std::vector< DsCoreLogEntry > DsCoreLoggingImpl::getEntries( std::string* Categories, BcU32 CategoryCount )
 {
 	std::lock_guard< std::mutex > Lock( Lock_ );
 

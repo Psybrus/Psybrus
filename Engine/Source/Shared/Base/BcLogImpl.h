@@ -34,12 +34,12 @@ public:
 
 	void write( const BcChar* pText, ... ) override;
 	void flush() override;
-	void setCategorySuppression( BcName Category, BcBool IsSuppressed ) override;
-	BcBool getCategorySuppression( BcName Category ) const override;	
+	void setCategorySuppression( const std::string& Category, BcBool IsSuppressed ) override;
+	BcBool getCategorySuppression( const std::string& Category ) const override;	
 	void registerListener( class BcLogListener* Listener ) override;
 	void deregisterListener( class BcLogListener* Listener ) override;
-	void setCategory( BcName Category ) override;
-	BcName getCategory() override;
+	void setCategory( const std::string& Category ) override;
+	std::string getCategory() override;
 	void increaseIndent() override;
 	void decreaseIndent() override;
 	std::vector<std::string> getLogData();
@@ -51,9 +51,9 @@ private:
 	void privateWrite( const BcChar* pText, va_list Args );
 
 private:
-	typedef std::map< BcName, BcBool > TSuppressionMap;
+	typedef std::map< std::string, BcBool > TSuppressionMap;
 	typedef std::map< BcThreadId, int > TIndentLevels;
-	typedef std::map< BcThreadId, BcName > TCategories;
+	typedef std::map< BcThreadId, std::string > TCategories;
 	typedef std::vector< BcLogListener* > TLogListeners;
 
 	mutable std::recursive_mutex Lock_;

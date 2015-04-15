@@ -20,10 +20,10 @@
 struct DsCoreLogEntry
 {
 public:
-	DsCoreLogEntry(BcU32 TimeStamp, BcName Category, std::string Entry);
+	DsCoreLogEntry(BcU32 TimeStamp, const std::string& Category, std::string Entry);
 	BcU32 Timestamp_;
 	std::string Entry_;
-	BcName Category_;
+	std::string Category_;
 };
 
 
@@ -36,8 +36,8 @@ public:
 public:
 	DsCoreLogging();
 	virtual ~DsCoreLogging();
-	virtual void addLog( BcName Category, BcU32 Timestamp, std::string Message ) = 0;
-	virtual std::vector<DsCoreLogEntry> getEntries( BcName* Categories, BcU32 CategoryCount ) = 0;
+	virtual void addLog( const std::string& Category, BcU32 Timestamp, std::string Message ) = 0;
+	virtual std::vector<DsCoreLogEntry> getEntries( std::string* Categories, BcU32 CategoryCount ) = 0;
 private:
 
 };

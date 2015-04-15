@@ -3,7 +3,7 @@
 
 #include "Psybrus.h"
 
-DsCoreLogEntry::DsCoreLogEntry(BcU32 TimeStamp, BcName Category, std::string Entry)
+DsCoreLogEntry::DsCoreLogEntry(BcU32 TimeStamp, const std::string& Category, std::string Entry)
 	: Timestamp_(TimeStamp), Category_(Category), Entry_(Entry)
 {
 

@@ -491,7 +491,7 @@ void DsCore::cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostCon
 
 	for ( auto val : logs )
 	{
-		ul.createChildNode( "li" ).setContents( val.Entry_ ).setAttribute( "id", "Log-" + val.Category_.getValue() );
+		ul.createChildNode( "li" ).setContents( val.Entry_ ).setAttribute( "id", "Log-" + val.Category_ );
 	}//*/
 
 }
