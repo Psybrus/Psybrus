@@ -48,6 +48,20 @@ struct RsBufferImplGL
 };
 
 //////////////////////////////////////////////////////////////////////////
+// RsProgramImplGL
+struct RsProgramImplGL
+{
+	RsProgramImplGL():
+		Handle_( 0 )
+	{}
+
+	~RsProgramImplGL()
+	{}
+
+	GLuint Handle_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsContextGL
 class RsContextGL:
 	public RsContext

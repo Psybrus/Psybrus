@@ -1586,19 +1586,23 @@ bool RsContextGL::createProgram(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	// Set handle.
+	RsProgramImplGL* ProgramImpl = new RsProgramImplGL();
+	Program->setHandle( ProgramImpl );
+
 	const auto& Shaders = Program->getShaders();
 
 	// Some checks to ensure validity.
 	BcAssert( Shaders.size() > 0 );	
 
 	// Create program.
-	GLuint Handle = glCreateProgram();
-	BcAssert( Handle != 0 );
+	ProgramImpl->Handle_ = glCreateProgram();
+	BcAssert( ProgramImpl->Handle_ != 0 );
 
 	// Attach shaders.
 	for( auto* Shader : Shaders )
 	{
-		glAttachShader( Handle, Shader->getHandle< GLuint >() );
+		glAttachShader( ProgramImpl->Handle_, Shader->getHandle< GLuint >() );
 		RsGLCatchError();
 	}
 	
@@ -1609,35 +1613,35 @@ bool RsContextGL::createProgram(
 	for( BcU32 Channel = 0; Channel < 16; ++Channel )
 	{
 		BcSPrintf( ChannelNameChars, "dcl_Input%u", Channel );
-		glBindAttribLocation( Handle, Channel, ChannelNameChars );
+		glBindAttribLocation( ProgramImpl->Handle_, Channel, ChannelNameChars );
 		RsGLCatchError();
 	}
 	
 	// Link program.
-	glLinkProgram( Handle );
+	glLinkProgram( ProgramImpl->Handle_ );
 	RsGLCatchError();
 
 	GLint ProgramLinked = 0;
-	glGetProgramiv( Handle, GL_LINK_STATUS, &ProgramLinked );
+	glGetProgramiv( ProgramImpl->Handle_, GL_LINK_STATUS, &ProgramLinked );
 	if ( !ProgramLinked )
 	{					 
 		// There was an error here, first get the length of the log message.
 		int i32InfoLogLength, i32CharsWritten; 
-		glGetProgramiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+		glGetProgramiv( ProgramImpl->Handle_, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
 
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
-		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+		glGetProgramInfoLog( ProgramImpl->Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
 		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
 		delete [] pszInfoLog;
 
-		glDeleteProgram( Handle );
+		glDeleteProgram( ProgramImpl->Handle_ );
 		return false;
 	}
 	
 	// Attempt to find uniform names, and uniform buffers for ES2.
 	GLint ActiveUniforms = 0;
-	glGetProgramiv( Handle, GL_ACTIVE_UNIFORMS, &ActiveUniforms );
+	glGetProgramiv( ProgramImpl->Handle_, GL_ACTIVE_UNIFORMS, &ActiveUniforms );
 	std::set< std::string > UniformBlockSet;
 	BcU32 ActiveSamplerIdx = 0;
 	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniforms; ++Idx )
@@ -1649,12 +1653,12 @@ bool RsContextGL::createProgram(
 		GLenum Type = GL_INVALID_VALUE;
 
 		// Get the uniform.
-		glGetActiveUniform( Handle, Idx, sizeof( UniformName ), &UniformNameLength, &Size, &Type, UniformName );
+		glGetActiveUniform( ProgramImpl->Handle_, Idx, sizeof( UniformName ), &UniformNameLength, &Size, &Type, UniformName );
 		
 		// Add it as a parameter.
 		if( UniformNameLength > 0 && Type != GL_INVALID_VALUE )
 		{
-			GLint UniformLocation = glGetUniformLocation( Handle, UniformName );
+			GLint UniformLocation = glGetUniformLocation( ProgramImpl->Handle_, UniformName );
 
 			// Trim index off.
 			BcChar* pIndexStart = BcStrStr( UniformName, "[0]" );
@@ -1696,7 +1700,7 @@ bool RsContextGL::createProgram(
 				Program->addTextureSlot( UniformName, ActiveSamplerIdx );
 
 				// Bind sampler to known index.
-				glUseProgram( Handle );
+				glUseProgram( ProgramImpl->Handle_ );
 				glUniform1i( UniformLocation, ActiveSamplerIdx );
 				glUseProgram( 0 );
 				++ActiveSamplerIdx;
@@ -1735,7 +1739,7 @@ bool RsContextGL::createProgram(
 	if( Version_.SupportUniformBuffers_ )
 	{
 		GLint ActiveUniformBlocks = 0;
-		glGetProgramiv( Handle, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
+		glGetProgramiv( ProgramImpl->Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
 	
 #if !PLATFORM_HTML5
 		BcU32 ActiveUniformSlotIndex = 0;
@@ -1747,13 +1751,13 @@ bool RsContextGL::createProgram(
 			GLint Size = 0;
 
 			// Get the uniform block size.
-			glGetActiveUniformBlockiv( Handle, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
-			glGetActiveUniformBlockName( Handle, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
+			glGetActiveUniformBlockiv( ProgramImpl->Handle_, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size );
+			glGetActiveUniformBlockName( ProgramImpl->Handle_, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName );
 
 			// Add it as a parameter.
 			if( UniformBlockNameLength > 0 )
 			{
-				auto TestIdx = glGetUniformBlockIndex( Handle, UniformBlockName );
+				auto TestIdx = glGetUniformBlockIndex( ProgramImpl->Handle_, UniformBlockName );
 				BcAssert( TestIdx == Idx );
 				BcUnusedVar( TestIdx );
 
@@ -1764,7 +1768,7 @@ bool RsContextGL::createProgram(
 					Idx, 
 					Class );
 
-				glUniformBlockBinding( Handle, Idx, ActiveUniformSlotIndex++ );
+				glUniformBlockBinding( ProgramImpl->Handle_, Idx, ActiveUniformSlotIndex++ );
 				RsGLCatchError();
 			}
 		}
@@ -1772,12 +1776,12 @@ bool RsContextGL::createProgram(
 	}
 	else
 	{
-		BcU32 Handle = 0;
+		BcU32 UniformHandle = 0;
 		for( auto UniformBlockName : UniformBlockSet )
 		{
 			Program->addUniformBufferSlot( 
 				UniformBlockName, 
-				Handle++, 
+				UniformHandle++, 
 				ReManager::GetClass( UniformBlockName ) );
 		}
 	}
@@ -1786,29 +1790,28 @@ bool RsContextGL::createProgram(
 	RsGLCatchError();
 
 	// Validate program.
-	glValidateProgram( Handle );
+	glValidateProgram( ProgramImpl->Handle_ );
 	GLint ProgramValidated = 0;
-	glGetProgramiv( Handle, GL_VALIDATE_STATUS, &ProgramValidated );
+	glGetProgramiv( ProgramImpl->Handle_, GL_VALIDATE_STATUS, &ProgramValidated );
 	if ( !ProgramLinked )
 	{					 
 		// There was an error here, first get the length of the log message.
 		int i32InfoLogLength, i32CharsWritten; 
-		glGetProgramiv( Handle, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
+		glGetProgramiv( ProgramImpl->Handle_, GL_INFO_LOG_LENGTH, &i32InfoLogLength );
 
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
-		glGetProgramInfoLog( Handle, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
+		glGetProgramInfoLog( ProgramImpl->Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog );
 		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
 		delete [] pszInfoLog;
 
-		glDeleteProgram( Handle );
+		glDeleteProgram( ProgramImpl->Handle_ );
+		delete ProgramImpl;
+		Program->setHandle( 0 );
 		return false;
 	}
 
 	++NoofPrograms_;
-
-	// Set handle.
-	Program->setHandle( Handle );
 
 	return true;
 }
@@ -1820,8 +1823,10 @@ bool RsContextGL::destroyProgram(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	GLuint Handle = Program->getHandle< GLuint >();
-	glDeleteProgram( Handle );
+	RsProgramImplGL* ProgramImpl = Program->getHandle< RsProgramImplGL* >();
+	glDeleteProgram( ProgramImpl->Handle_ );
+	delete ProgramImpl;
+	Program->setHandle( 0 );
 
 	--NoofPrograms_;
 
@@ -2135,8 +2140,10 @@ void RsContextGL::flushState()
 		const auto& VertexDeclarationDesc = VertexDeclaration_->getDesc();
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
-		// Bind program.
-		glUseProgram( Program_->getHandle< GLuint >() );
+		// Bind progra
+		RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
+
+		glUseProgram( ProgramImpl->Handle_ );
 		RsGLCatchError();
 
 		// TODO: Bind up as individual uniforms as an alternative
@@ -2196,8 +2203,8 @@ void RsContextGL::flushState()
 
 							GLsizei Count = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
 
-							auto UniformLocationVS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNameVS.c_str() );
-							auto UniformLocationPS = glGetUniformLocation( Program_->getHandle< GLuint >(), UniformNamePS.c_str() );
+							auto UniformLocationVS = glGetUniformLocation( ProgramImpl->Handle_, UniformNameVS.c_str() );
+							auto UniformLocationPS = glGetUniformLocation( ProgramImpl->Handle_, UniformNamePS.c_str() );
 								
 							if( ValueType == TypeU32 || ValueType == TypeS32 )
 							{
