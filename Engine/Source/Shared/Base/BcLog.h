@@ -101,7 +101,7 @@ struct BcLogEntry
 {
 	BcF64 Time_;
 	BcThreadId ThreadId_;
-	const std::string& Category_;
+	std::string Category_;
 	int Indent_;
 	std::string Text_;
 };
