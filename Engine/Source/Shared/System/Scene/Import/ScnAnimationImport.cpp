@@ -181,7 +181,7 @@ BcBool ScnAnimationImport::import( const Json::Value& )
 
 	Scene_ = aiImportFileExWithProperties( 
 		Source_.c_str(), 
-		0,
+		aiProcess_MakeLeftHanded,
 		nullptr, 
 		PropertyStore );
 

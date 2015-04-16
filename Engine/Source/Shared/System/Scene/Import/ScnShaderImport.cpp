@@ -320,6 +320,8 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		BcMemZero( FileData.data(), FileData.size() );
 		SourceFile.read( FileData.data(), FileData.size() );
 		SourceFileData_ = FileData.data();
+
+		addDependency( Source_.c_str() );
 	}
 
 	// Add code type defines.

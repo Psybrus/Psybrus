@@ -194,7 +194,8 @@ BcBool ScnPhysicsMeshImport::import( const Json::Value& )
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_ImproveCacheLocality |
 			aiProcess_LimitBoneWeights |
-			aiProcess_PreTransformVertices,
+			aiProcess_PreTransformVertices |
+			aiProcess_MakeLeftHanded,
 		nullptr, 
 		PropertyStore );
 
