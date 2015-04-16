@@ -31,35 +31,20 @@
 // RsBufferImplGL
 struct RsBufferImplGL
 {
-	RsBufferImplGL():
-		Handle_( 0 ),
-		BufferData_( nullptr ),
-		LastFrameChange_( 0 )
-	{}
-
 	~RsBufferImplGL()
 	{
 		BcAssert( BufferData_ == nullptr );
 	}
 
-	GLuint Handle_;
-	BcU8* BufferData_;
-	BcU64 LastFrameChange_;
+	GLuint Handle_ = 0;
+	BcU8* BufferData_ = nullptr;
+	BcU32 Version_ = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // RsProgramImplGL
 struct RsProgramImplGL
 {
-	RsProgramImplGL():
-		Handle_( 0 )
-	{}
-
-	~RsProgramImplGL()
-	{}
-
-	GLuint Handle_;
-
 	struct UniformEntry
 	{
 		enum class Type
@@ -80,8 +65,13 @@ struct RsProgramImplGL
 		size_t Offset_ = 0;
 		size_t CachedOffset_ = 0;
 		size_t Size_ = 0;
+
+		// Used for redundancy checks.
+		RsBuffer* Buffer_ = nullptr;
+		BcU32 Version_ = 0;
 	};
 
+	GLuint Handle_ = 0;
 	std::vector< UniformEntry > UniformEntries_;
 	std::unique_ptr< BcU8[] > CachedUniforms_;
 };
