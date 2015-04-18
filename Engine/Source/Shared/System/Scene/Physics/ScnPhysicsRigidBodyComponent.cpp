@@ -186,6 +186,13 @@ MaVec3d ScnPhysicsRigidBodyComponent::getPosition() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getRotation
+MaQuat ScnPhysicsRigidBodyComponent::getRotation() const
+{
+	return ScnPhysicsFromBullet( RigidBody_->getOrientation() );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnPhysicsRigidBodyComponent::update( BcF32 Tick )

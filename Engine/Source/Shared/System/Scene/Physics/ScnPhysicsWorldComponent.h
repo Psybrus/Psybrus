@@ -89,6 +89,17 @@ private:
 	class UpdateActions* UpdateActions_;
 	std::vector< ScnIPhysicsWorldUpdate* > WorldUpdateHandler_;
 
+	struct CollisionPair
+	{
+		const class btCollisionObject* ObA_;
+		const class btCollisionObject* ObB_;
+		MaVec3d PointA_;
+		MaVec3d PointB_;
+		MaVec3d NormalOnB_;
+	};
+
+	std::vector< CollisionPair > Collisions_;
+
 	BcU32 DebugRenderingHandle_;
 };
 

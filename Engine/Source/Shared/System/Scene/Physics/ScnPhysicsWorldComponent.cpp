@@ -14,6 +14,7 @@
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
 #include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
 #include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
+#include "System/Scene/Physics/ScnPhysicsEvents.h"
 #include "System/Scene/Physics/ScnPhysics.h"
 #include "System/Scene/ScnEntity.h"
 
@@ -220,7 +221,80 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	DynamicsWorld_->setDebugDrawer( &gDebugRenderer );
 	DynamicsWorld_->addAction( UpdateActions_ );
 
+	// Pre-tick.
+	DynamicsWorld_->setInternalTickCallback(
+		[]( btDynamicsWorld* DynamicsWorld, btScalar Tick )->void
+		{
+			ScnPhysicsWorldComponent* World = static_cast< ScnPhysicsWorldComponent* >( DynamicsWorld->getWorldUserInfo() );
+
+			// TODO: Physics tick should go here.
+
+		}, this, true );
+
+	// Post-tick.
+	DynamicsWorld_->setInternalTickCallback(
+		[]( btDynamicsWorld* DynamicsWorld, btScalar Tick )->void
+		{
+			ScnPhysicsWorldComponent* World = static_cast< ScnPhysicsWorldComponent* >( DynamicsWorld->getWorldUserInfo() );
+
+			// Gather collisions.
+			int NumManifolds = World->Dispatcher_->getNumManifolds();
+			CollisionPair CollisionPair;
+			World->Collisions_.reserve( NumManifolds * 2 );
+			for( int ManifoldIdx = 0; ManifoldIdx < NumManifolds; ++ManifoldIdx )
+			{
+				btPersistentManifold* ContactManifold = World->Dispatcher_->getManifoldByIndexInternal( ManifoldIdx );
+				CollisionPair.ObA_ = static_cast< const btCollisionObject* >( ContactManifold->getBody0() );
+				CollisionPair.ObB_ = static_cast< const btCollisionObject* >( ContactManifold->getBody1() );
+				int NumContacts = ContactManifold->getNumContacts();
+				for( int ContactIdx = 0; ContactIdx < NumContacts; ++ContactIdx )
+				{
+					const btManifoldPoint& Point = ContactManifold->getContactPoint( ContactIdx );
+					if( Point.getDistance() < 0.0f )
+					{
+						CollisionPair.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+						CollisionPair.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+						CollisionPair.NormalOnB_ = ScnPhysicsFromBullet( Point.m_normalWorldOnB );
+						World->Collisions_.push_back( CollisionPair );
+					}
+				}
+			}
+
+			// Publish collision events.
+			for( auto & Collision : World->Collisions_ )
+			{
+				auto RigidBodyA = static_cast< ScnPhysicsRigidBodyComponent* >( Collision.ObA_->getUserPointer() );	
+				auto RigidBodyB = static_cast< ScnPhysicsRigidBodyComponent* >( Collision.ObB_->getUserPointer() );	
+				BcAssert( RigidBodyA->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+				BcAssert( RigidBodyB->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+
+				auto EntityA = RigidBodyA->getParentEntity();
+				auto EntityB = RigidBodyB->getParentEntity();
+
+				ScnPhysicsEventCollision EventA;
+				EventA.BodyA_ = RigidBodyA;
+				EventA.BodyB_ = RigidBodyB;
+				EventA.PointA_ = Collision.PointA_;
+				EventA.PointB_ = Collision.PointB_;
+				EntityA->publish( (EvtID)ScnPhysicsEvents::COLLISION, EventA );
+
+				ScnPhysicsEventCollision EventB;
+				EventB.BodyA_ = RigidBodyB;
+				EventB.BodyB_ = RigidBodyA;
+				EventB.PointA_ = Collision.PointB_;
+				EventB.PointB_ = Collision.PointA_;
+				EntityB->publish( (EvtID)ScnPhysicsEvents::COLLISION, EventB );
+			}
+
+			// Clear gathered collisions.
+			World->Collisions_.clear();
+
+		}, this, false );
+
 	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
+
+
+
 
 #if !PLATFORM_HTML5
 	if( DsCore::pImpl() )

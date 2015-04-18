@@ -16,6 +16,8 @@
 
 #include "System/Scene/ScnComponent.h"
 
+#include "Math/MaQuat.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsRigidBodyComponent
 class ScnPhysicsRigidBodyComponent:
@@ -45,6 +47,8 @@ public:
 
 	void translate( const MaVec3d& V );
 	MaVec3d getPosition() const;
+
+	MaQuat getRotation() const;
 
 	virtual void update( BcF32 Tick );
 
