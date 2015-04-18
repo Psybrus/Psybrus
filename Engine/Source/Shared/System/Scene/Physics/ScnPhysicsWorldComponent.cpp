@@ -304,7 +304,7 @@ void ScnPhysicsWorldComponent::deregisterWorldUpdateHandler( ScnIPhysicsWorldUpd
 
 //////////////////////////////////////////////////////////////////////////
 // lineCast
-BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal )
+BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result )
 {
 	btCollisionWorld::ClosestRayResultCallback HitResult( 
 		btVector3( A.x(), A.y(), A.z() ),
@@ -316,14 +316,19 @@ BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, M
 
 	if( HitResult.hasHit() )
 	{
-		Intersection = MaVec3d( 
-			HitResult.m_hitPointWorld.x(),
-			HitResult.m_hitPointWorld.y(),
-			HitResult.m_hitPointWorld.z() );
-		Normal = MaVec3d( 
-			HitResult.m_hitNormalWorld.x(),
-			HitResult.m_hitNormalWorld.y(),
-			HitResult.m_hitNormalWorld.z() );
+		if( Result != nullptr )
+		{
+			Result->Intersection_ = MaVec3d( 
+				HitResult.m_hitPointWorld.x(),
+				HitResult.m_hitPointWorld.y(),
+				HitResult.m_hitPointWorld.z() );
+			Result->Normal_ = MaVec3d( 
+				HitResult.m_hitNormalWorld.x(),
+				HitResult.m_hitNormalWorld.y(),
+				HitResult.m_hitNormalWorld.z() );
+			Result->Component_ = static_cast< ScnPhysicsCollisionComponent* >( HitResult.m_collisionObject->getUserPointer() );
+		}
+
 		return BcTrue;
 	}
 	return BcFalse;

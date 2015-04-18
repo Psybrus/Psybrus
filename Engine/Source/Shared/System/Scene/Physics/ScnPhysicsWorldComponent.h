@@ -32,6 +32,15 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnPhysicsLineCastResult
+struct ScnPhysicsLineCastResult
+{
+	MaVec3d Intersection_;
+	MaVec3d Normal_;
+	class ScnPhysicsCollisionComponent* Component_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnPhysicsWorldComponent
 class ScnPhysicsWorldComponent:
 	public ScnComponent
@@ -60,7 +69,7 @@ public:
 	void registerWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 	void deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 
-	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal );
+	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result );
 
 
 private:

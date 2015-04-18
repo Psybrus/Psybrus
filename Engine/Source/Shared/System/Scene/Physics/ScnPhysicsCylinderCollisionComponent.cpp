@@ -58,6 +58,7 @@ void ScnPhysicsCylinderCollisionComponent::onAttach( ScnEntityWeakRef Parent )
 	CollisionShape_ = new btCylinderShape( ScnPhysicsToBullet( Size_ * 0.5f ) );
 	CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) ); // move to base
 	CollisionShape_->setMargin( Margin_ );
+	CollisionShape_->setUserPointer( this );
 	Super::onAttach( Parent );
 }
 

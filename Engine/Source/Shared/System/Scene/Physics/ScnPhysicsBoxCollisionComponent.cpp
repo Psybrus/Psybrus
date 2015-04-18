@@ -55,10 +55,11 @@ ScnPhysicsBoxCollisionComponent::~ScnPhysicsBoxCollisionComponent()
 // onAttach
 void ScnPhysicsBoxCollisionComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	Super::onAttach( Parent );
 	CollisionShape_ = new btBoxShape( ScnPhysicsToBullet( Size_ * 0.5f ) );
 	CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) );
 	CollisionShape_->setMargin( Margin_ );
+	CollisionShape_->setUserPointer( this );
+	Super::onAttach( Parent );
 }
 
 //////////////////////////////////////////////////////////////////////////

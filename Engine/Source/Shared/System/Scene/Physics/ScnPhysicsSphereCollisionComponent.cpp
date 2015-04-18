@@ -55,6 +55,7 @@ void ScnPhysicsSphereCollisionComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	CollisionShape_ = new btSphereShape( Radius_ );
 	CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) ); // move to base
+	CollisionShape_->setUserPointer( this );
 	Super::onAttach( Parent );
 }
 
