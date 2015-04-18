@@ -68,6 +68,7 @@ ScnPhysicsRigidBodyComponent::~ScnPhysicsRigidBodyComponent()
 void ScnPhysicsRigidBodyComponent::applyTorque( const MaVec3d& Torque )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyTorque( ScnPhysicsToBullet( Torque ) );
 }
 
@@ -76,6 +77,7 @@ void ScnPhysicsRigidBodyComponent::applyTorque( const MaVec3d& Torque )
 void ScnPhysicsRigidBodyComponent::applyForce( const MaVec3d& Force, const MaVec3d& RelativePos )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyForce( ScnPhysicsToBullet( Force ), ScnPhysicsToBullet( RelativePos ) );
 }
 
@@ -84,6 +86,7 @@ void ScnPhysicsRigidBodyComponent::applyForce( const MaVec3d& Force, const MaVec
 void ScnPhysicsRigidBodyComponent::applyCentralForce( const MaVec3d& Force )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyCentralForce( ScnPhysicsToBullet( Force ) );
 }
 
@@ -92,6 +95,7 @@ void ScnPhysicsRigidBodyComponent::applyCentralForce( const MaVec3d& Force )
 void ScnPhysicsRigidBodyComponent::applyTorqueImpulse( const MaVec3d& Torque )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyTorqueImpulse( ScnPhysicsToBullet( Torque ) );
 }
 
@@ -100,6 +104,7 @@ void ScnPhysicsRigidBodyComponent::applyTorqueImpulse( const MaVec3d& Torque )
 void ScnPhysicsRigidBodyComponent::applyImpulse( const MaVec3d& Impulse, const MaVec3d& RelativePos )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyImpulse( ScnPhysicsToBullet( Impulse ), ScnPhysicsToBullet( RelativePos ) );
 }
 
@@ -108,6 +113,7 @@ void ScnPhysicsRigidBodyComponent::applyImpulse( const MaVec3d& Impulse, const M
 void ScnPhysicsRigidBodyComponent::applyCentralImpulse( const MaVec3d& Impulse )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyCentralImpulse( ScnPhysicsToBullet( Impulse ) );
 }
 
@@ -116,6 +122,7 @@ void ScnPhysicsRigidBodyComponent::applyCentralImpulse( const MaVec3d& Impulse )
 void ScnPhysicsRigidBodyComponent::setLinearVelocity( const MaVec3d& Velocity )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->setLinearVelocity( ScnPhysicsToBullet( Velocity ) );
 }
 
@@ -124,6 +131,7 @@ void ScnPhysicsRigidBodyComponent::setLinearVelocity( const MaVec3d& Velocity )
 void ScnPhysicsRigidBodyComponent::setAngularVelocity( const MaVec3d& Velocity )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->setAngularVelocity( ScnPhysicsToBullet( Velocity ) );
 }
 
@@ -132,6 +140,7 @@ void ScnPhysicsRigidBodyComponent::setAngularVelocity( const MaVec3d& Velocity )
 void ScnPhysicsRigidBodyComponent::translate( const MaVec3d& V )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->translate( ScnPhysicsToBullet( V ) ); 
 }
 
