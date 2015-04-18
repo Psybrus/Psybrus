@@ -158,7 +158,7 @@ void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 	}
 	else
 	{
-		auto& ObjectNotifyListRet = ObjectNotifyMap_[ this ] = ObjectNotifyList( 1 );
+		auto& ObjectNotifyListRet = ObjectNotifyMap_[ this ] = ObjectNotifyList();
 		ObjectNotifyListRet.push_back( ObjectNotify );
 	}
 }
