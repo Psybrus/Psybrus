@@ -36,16 +36,15 @@ public:
 	void applyCentralImpulse( const MaVec3d& Impulse );
 
 	void setLinearVelocity( const MaVec3d& Velocity );
-	void setAngularVelocity( const MaVec3d& Velocity );
-
-	void translate( const MaVec3d& V );
-
 	MaVec3d getLinearVelocity() const;
+	void setAngularVelocity( const MaVec3d& Velocity );
 	MaVec3d getAngularVelocity() const;
 
-	MaVec3d getPosition() const;
-
+	void setMass( BcF32 Mass );
 	BcF32 getMass() const;
+
+	void translate( const MaVec3d& V );
+	MaVec3d getPosition() const;
 
 	virtual void update( BcF32 Tick );
 

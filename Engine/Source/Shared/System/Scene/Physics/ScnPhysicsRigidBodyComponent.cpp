@@ -127,12 +127,46 @@ void ScnPhysicsRigidBodyComponent::setLinearVelocity( const MaVec3d& Velocity )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getLinearVelocity
+MaVec3d ScnPhysicsRigidBodyComponent::getLinearVelocity() const
+{
+	BcAssert( RigidBody_ != nullptr );	
+	return ScnPhysicsFromBullet( RigidBody_->getLinearVelocity() );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setAngularVelocity
 void ScnPhysicsRigidBodyComponent::setAngularVelocity( const MaVec3d& Velocity )
 {
 	BcAssert( RigidBody_ != nullptr );	
 	RigidBody_->activate();
 	RigidBody_->setAngularVelocity( ScnPhysicsToBullet( Velocity ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAngularVelocity
+MaVec3d ScnPhysicsRigidBodyComponent::getAngularVelocity() const
+{
+	BcAssert( RigidBody_ != nullptr );	
+	return ScnPhysicsFromBullet( RigidBody_->getAngularVelocity() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setMass
+void ScnPhysicsRigidBodyComponent::setMass( BcF32 Mass )
+{
+	btVector3 Inertia;
+	RigidBody_->getCollisionShape()->calculateLocalInertia( Mass, Inertia );
+	RigidBody_->setMassProps( Mass, Inertia );
+	RigidBody_->activate();
+	Mass_ = Mass;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMass
+BcF32 ScnPhysicsRigidBodyComponent::getMass() const
+{
+	return Mass_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,33 +179,10 @@ void ScnPhysicsRigidBodyComponent::translate( const MaVec3d& V )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getLinearVelocity
-MaVec3d ScnPhysicsRigidBodyComponent::getLinearVelocity() const
-{
-	BcAssert( RigidBody_ != nullptr );	
-	return ScnPhysicsFromBullet( RigidBody_->getLinearVelocity() );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getAngularVelocity
-MaVec3d ScnPhysicsRigidBodyComponent::getAngularVelocity() const
-{
-	BcAssert( RigidBody_ != nullptr );	
-	return ScnPhysicsFromBullet( RigidBody_->getAngularVelocity() );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getPosition
 MaVec3d ScnPhysicsRigidBodyComponent::getPosition() const
 {
 	return ScnPhysicsFromBullet( RigidBody_->getCenterOfMassPosition() );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getMass
-BcF32 ScnPhysicsRigidBodyComponent::getMass() const
-{
-	return Mass_;
 }
 
 //////////////////////////////////////////////////////////////////////////

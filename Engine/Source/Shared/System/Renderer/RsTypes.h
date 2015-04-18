@@ -55,6 +55,7 @@ public:
 	static const RsColour RED;
 	static const RsColour GREEN;
 	static const RsColour BLUE;
+	static const RsColour ORANGE;
 	static const RsColour YELLOW;
 	static const RsColour MAGENTA;
 	static const RsColour PURPLE;
