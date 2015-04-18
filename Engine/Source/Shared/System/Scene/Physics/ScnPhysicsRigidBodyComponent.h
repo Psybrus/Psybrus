@@ -38,8 +38,12 @@ public:
 	void setLinearVelocity( const MaVec3d& Velocity );
 	void setAngularVelocity( const MaVec3d& Velocity );
 
+	void translate( const MaVec3d& V );
+
 	MaVec3d getLinearVelocity() const;
 	MaVec3d getAngularVelocity() const;
+
+	MaVec3d getPosition() const;
 
 	BcF32 getMass() const;
 
@@ -64,7 +68,6 @@ private:
 	BcF32 Restitution_;
 	BcF32 LinearSleepingThreshold_;
 	BcF32 AngularSleepingThreshold_;
-
 };
 
 #endif

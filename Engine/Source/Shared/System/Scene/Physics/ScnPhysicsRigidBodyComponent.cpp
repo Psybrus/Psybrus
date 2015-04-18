@@ -128,6 +128,14 @@ void ScnPhysicsRigidBodyComponent::setAngularVelocity( const MaVec3d& Velocity )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// translate
+void ScnPhysicsRigidBodyComponent::translate( const MaVec3d& V )
+{
+	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->translate( ScnPhysicsToBullet( V ) ); 
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getLinearVelocity
 MaVec3d ScnPhysicsRigidBodyComponent::getLinearVelocity() const
 {
@@ -144,6 +152,13 @@ MaVec3d ScnPhysicsRigidBodyComponent::getAngularVelocity() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPosition
+MaVec3d ScnPhysicsRigidBodyComponent::getPosition() const
+{
+	return ScnPhysicsFromBullet( RigidBody_->getCenterOfMassPosition() );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getMass
 BcF32 ScnPhysicsRigidBodyComponent::getMass() const
 {
@@ -155,6 +170,8 @@ BcF32 ScnPhysicsRigidBodyComponent::getMass() const
 //virtual
 void ScnPhysicsRigidBodyComponent::update( BcF32 Tick )
 {
+	// TODO: Interpolate the results?
+
 	// Set transform from rigid body.
 	const btTransform& BulletTransform = RigidBody_->getCenterOfMassTransform();
 	MaMat4d Transform;

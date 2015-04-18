@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
+#include "System/Scene/Physics/ScnPhysics.h"
 
 #include "System/Content/CsCore.h"
 
@@ -55,6 +56,17 @@ ScnPhysicsCollisionComponent::~ScnPhysicsCollisionComponent()
 void ScnPhysicsCollisionComponent::initialise()
 {
 	Super::initialise();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setLocalScaling
+void ScnPhysicsCollisionComponent::setLocalScaling( const MaVec3d& LocalScaling )
+{
+	LocalScaling_ = LocalScaling;
+	if( CollisionShape_ != nullptr )
+	{
+		CollisionShape_->setLocalScaling( ScnPhysicsToBullet( LocalScaling_ ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
