@@ -37,7 +37,7 @@ struct ScnPhysicsLineCastResult
 {
 	MaVec3d Intersection_;
 	MaVec3d Normal_;
-	class ScnPhysicsCollisionComponent* Component_;
+	class ScnEntity* Entity_;
 };
 
 //////////////////////////////////////////////////////////////////////////

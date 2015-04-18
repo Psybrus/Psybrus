@@ -227,7 +227,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	ConstructionInfo.m_linearSleepingThreshold = LinearSleepingThreshold_;
 	ConstructionInfo.m_angularSleepingThreshold = AngularSleepingThreshold_;
 	RigidBody_ = new btRigidBody( ConstructionInfo );
-
+	RigidBody_->setUserPointer( this );
 	World_->addRigidBody( RigidBody_ );
 }
 

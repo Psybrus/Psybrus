@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
+#include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
+#include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
 #include "System/Scene/Physics/ScnPhysics.h"
 #include "System/Scene/ScnEntity.h"
 
@@ -326,7 +328,8 @@ BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, S
 				HitResult.m_hitNormalWorld.x(),
 				HitResult.m_hitNormalWorld.y(),
 				HitResult.m_hitNormalWorld.z() );
-			Result->Component_ = static_cast< ScnPhysicsCollisionComponent* >( HitResult.m_collisionObject->getUserPointer() );
+			auto RB = static_cast< ScnPhysicsRigidBodyComponent* >( HitResult.m_collisionObject->getUserPointer() );
+			Result->Entity_ = RB->getParentEntity();
 		}
 
 		return BcTrue;
