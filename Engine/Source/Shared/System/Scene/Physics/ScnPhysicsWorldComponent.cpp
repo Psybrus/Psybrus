@@ -14,7 +14,6 @@
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
 #include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
 #include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
-#include "System/Scene/Physics/ScnPhysicsEvents.h"
 #include "System/Scene/Physics/ScnPhysics.h"
 #include "System/Scene/ScnEntity.h"
 
@@ -239,51 +238,50 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 			// Gather collisions.
 			int NumManifolds = World->Dispatcher_->getNumManifolds();
-			CollisionPair CollisionPair;
+			ScnPhysicsEventCollision EventA;
+			ScnPhysicsEventCollision EventB;
 			World->Collisions_.reserve( NumManifolds * 2 );
 			for( int ManifoldIdx = 0; ManifoldIdx < NumManifolds; ++ManifoldIdx )
 			{
 				btPersistentManifold* ContactManifold = World->Dispatcher_->getManifoldByIndexInternal( ManifoldIdx );
-				CollisionPair.ObA_ = static_cast< const btCollisionObject* >( ContactManifold->getBody0() );
-				CollisionPair.ObB_ = static_cast< const btCollisionObject* >( ContactManifold->getBody1() );
-				int NumContacts = ContactManifold->getNumContacts();
-				for( int ContactIdx = 0; ContactIdx < NumContacts; ++ContactIdx )
+				const auto* ObA_ = static_cast< const btCollisionObject* >( ContactManifold->getBody0() );
+				const auto* ObB_ = static_cast< const btCollisionObject* >( ContactManifold->getBody1() );
+				auto RigidBodyA = static_cast< ScnPhysicsRigidBodyComponent* >( ObA_->getUserPointer() );	
+				auto RigidBodyB = static_cast< ScnPhysicsRigidBodyComponent* >( ObB_->getUserPointer() );	
+				BcAssert( RigidBodyA->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+				BcAssert( RigidBodyB->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+				
+				EventA.BodyA_ = RigidBodyA;
+				EventA.BodyB_ = RigidBodyB;
+				EventA.NoofContactPoints_ = 0;
+				EventB.BodyA_ = RigidBodyB;
+				EventB.BodyB_ = RigidBodyA;
+				EventB.NoofContactPoints_ = 0;
+				size_t NumContacts = ContactManifold->getNumContacts();
+				for( int ContactIdx = 0; ContactIdx < std::min( NumContacts, EventA.ContactPoints_.size() ); ++ContactIdx )
 				{
 					const btManifoldPoint& Point = ContactManifold->getContactPoint( ContactIdx );
-					if( Point.getDistance() < 0.0f )
-					{
-						CollisionPair.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
-						CollisionPair.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
-						CollisionPair.NormalOnB_ = ScnPhysicsFromBullet( Point.m_normalWorldOnB );
-						World->Collisions_.push_back( CollisionPair );
-					}
+					ScnPhysicsEventCollision::ContactPoint& ContactPointA = EventA.ContactPoints_[ EventA.NoofContactPoints_++ ];
+					ScnPhysicsEventCollision::ContactPoint& ContactPointB = EventB.ContactPoints_[ EventB.NoofContactPoints_++ ];
+					ContactPointA.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+					ContactPointA.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+
+					ContactPointB.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+					ContactPointB.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
 				}
+
+				if( EventA.NoofContactPoints_ > 0 )
+				{
+					World->Collisions_.push_back( EventA );
+					World->Collisions_.push_back( EventB );
+				}				
 			}
 
 			// Publish collision events.
-			for( auto & Collision : World->Collisions_ )
+			for( auto& Collision : World->Collisions_ )
 			{
-				auto RigidBodyA = static_cast< ScnPhysicsRigidBodyComponent* >( Collision.ObA_->getUserPointer() );	
-				auto RigidBodyB = static_cast< ScnPhysicsRigidBodyComponent* >( Collision.ObB_->getUserPointer() );	
-				BcAssert( RigidBodyA->isTypeOf< ScnPhysicsRigidBodyComponent >() );
-				BcAssert( RigidBodyB->isTypeOf< ScnPhysicsRigidBodyComponent >() );
-
-				auto EntityA = RigidBodyA->getParentEntity();
-				auto EntityB = RigidBodyB->getParentEntity();
-
-				ScnPhysicsEventCollision EventA;
-				EventA.BodyA_ = RigidBodyA;
-				EventA.BodyB_ = RigidBodyB;
-				EventA.PointA_ = Collision.PointA_;
-				EventA.PointB_ = Collision.PointB_;
-				EntityA->publish( (EvtID)ScnPhysicsEvents::COLLISION, EventA );
-
-				ScnPhysicsEventCollision EventB;
-				EventB.BodyA_ = RigidBodyB;
-				EventB.BodyB_ = RigidBodyA;
-				EventB.PointA_ = Collision.PointB_;
-				EventB.PointB_ = Collision.PointA_;
-				EntityB->publish( (EvtID)ScnPhysicsEvents::COLLISION, EventB );
+				auto Entity = Collision.BodyA_->getParentEntity();
+				Entity->publish( (EvtID)ScnPhysicsEvents::COLLISION, Collision );
 			}
 
 			// Clear gathered collisions.

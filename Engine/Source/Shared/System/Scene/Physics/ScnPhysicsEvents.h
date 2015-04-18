@@ -20,6 +20,11 @@ struct ScnPhysicsEventCollision: EvtEvent< ScnPhysicsEventCollision >
 {
 	class ScnPhysicsRigidBodyComponent* BodyA_;	
 	class ScnPhysicsRigidBodyComponent* BodyB_;
-	MaVec3d PointA_;
-	MaVec3d PointB_;
+	struct ContactPoint
+	{
+		MaVec3d PointA_;
+		MaVec3d PointB_;
+	};
+	BcU32 NoofContactPoints_;
+	std::array< ContactPoint, 8 > ContactPoints_;
 };

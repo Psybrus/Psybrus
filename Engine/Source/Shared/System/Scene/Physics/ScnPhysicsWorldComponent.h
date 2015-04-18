@@ -15,6 +15,7 @@
 #define __ScnPhysicsWorldComponent_H__
 
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/Physics/ScnPhysicsEvents.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnIPhysicsWorldUpdate
@@ -89,16 +90,7 @@ private:
 	class UpdateActions* UpdateActions_;
 	std::vector< ScnIPhysicsWorldUpdate* > WorldUpdateHandler_;
 
-	struct CollisionPair
-	{
-		const class btCollisionObject* ObA_;
-		const class btCollisionObject* ObB_;
-		MaVec3d PointA_;
-		MaVec3d PointB_;
-		MaVec3d NormalOnB_;
-	};
-
-	std::vector< CollisionPair > Collisions_;
+	std::vector< ScnPhysicsEventCollision > Collisions_;
 
 	BcU32 DebugRenderingHandle_;
 };
