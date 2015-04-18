@@ -499,6 +499,7 @@ void ScnCore::processPendingComponents()
 					BcName::INVALID;
 			Component->onAttach( Component->getParentEntity() );
 			onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+			BcAssertMsg( Component->isFlagSet( scnCF_ATTACHED ), "Not attached? Did you call Super::onAttach?" );
 		}
 	}
 
