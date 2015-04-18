@@ -19,7 +19,7 @@
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnComponent.h"
 
-#define SCNENTITY_USES_EVTPUBLISHER ( 0 )
+#define SCNENTITY_USES_EVTPUBLISHER ( 1 )
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntityHeader
@@ -89,6 +89,11 @@ public:
 	 * Get number of components.
 	 */
 	size_t getNoofComponents() const;
+
+	/**
+	 * Get components.
+	 */
+	const ScnComponentList& getComponents() const;
 	
 	/**
 	 * Get component.

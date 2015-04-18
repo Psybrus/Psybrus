@@ -246,6 +246,13 @@ size_t ScnEntity::getNoofComponents() const
 	
 //////////////////////////////////////////////////////////////////////////
 // getComponent
+const ScnComponentList& ScnEntity::getComponents() const
+{
+	return Components_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponent
 ScnComponent* ScnEntity::getComponent( size_t Idx, const ReClass* Class )
 {
 	if( Class == nullptr )
