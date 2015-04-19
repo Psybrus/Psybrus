@@ -86,6 +86,8 @@ public:
 	ScnMaterialComponentRef getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef getMaterialComponent( const BcName& MaterialName );
 	ScnMaterialComponentList getMaterialComponents( const BcName& MaterialName );
+
+	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
 public:
 	virtual void postUpdate( BcF32 Tick );

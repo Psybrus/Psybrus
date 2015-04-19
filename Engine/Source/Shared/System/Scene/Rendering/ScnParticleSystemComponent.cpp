@@ -119,6 +119,7 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 
 	UpdateFence_.increment();
 
+#if 0
 	SysKernel::pImpl()->pushFunctionJob( 
 		SysKernel::DEFAULT_JOB_QUEUE_ID, 
 		[ this, Tick ]()
@@ -126,6 +127,10 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 			UploadFence_.wait();
 			updateParticles( Tick );
 		} );
+#else
+	updateParticles( Tick );
+#endif
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -430,6 +435,9 @@ ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
 // allocParticle
 BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 {
+	UpdateFence_.wait();
+	UploadFence_.wait();
+
 	// We can't be allocating whilst we're updating.
 	BcAssert( UpdateFence_.count() == 0 );
 

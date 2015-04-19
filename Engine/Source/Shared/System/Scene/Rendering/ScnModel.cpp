@@ -328,12 +328,7 @@ ScnModelComponent::~ScnModelComponent()
 // initialise
 void ScnModelComponent::initialise()
 {
-	// Setup base transform.
-	MaMat4d Scale;
-	Scale.scale( Scale_ );
-	BaseTransform_.rotation( Rotation_ );
-	BaseTransform_ = BaseTransform_ * Scale;
-	BaseTransform_.translation( Position_ );
+	setBaseTransform( Position_, Scale_, Rotation_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -456,6 +451,24 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 	}
 
 	return std::move( MaterialComponents );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// setBaseTransform
+void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation )
+{
+	Position_ = Position;
+	Scale_ = Scale;
+	Rotation_ = Rotation;
+
+	// Setup base transform.
+	MaMat4d ScaleMatrix;
+	ScaleMatrix.scale( Scale_ );
+	BaseTransform_.identity();
+	BaseTransform_.rotation( Rotation_ );
+	BaseTransform_ = BaseTransform_ * ScaleMatrix;
+	BaseTransform_.translation( Position_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
