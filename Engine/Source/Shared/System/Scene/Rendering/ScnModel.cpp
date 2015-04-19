@@ -638,10 +638,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 
 					// Normal matrix.
 					ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
-					ObjectUniformBlock->NormalTransform_.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
-					ObjectUniformBlock->NormalTransform_.inverse();
-					ObjectUniformBlock->NormalTransform_.transpose();
-					ObjectUniformBlock->NormalTransform_.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
+					
 					UploadFence_.decrement();
 				} );
 		}
