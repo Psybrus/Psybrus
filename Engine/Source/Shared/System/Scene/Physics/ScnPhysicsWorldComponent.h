@@ -71,6 +71,7 @@ public:
 	void deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 
 	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result );
+	BcBool sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result );
 
 
 private:

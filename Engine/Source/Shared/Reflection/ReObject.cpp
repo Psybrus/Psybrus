@@ -23,6 +23,34 @@ namespace
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Object notifier.
+ReIObjectNotify::ReIObjectNotify()
+{
+
+}
+
+//virtual
+ReIObjectNotify::~ReIObjectNotify()
+{
+	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
+
+	for( auto PairIt = ObjectNotifyMap_.begin(); PairIt != ObjectNotifyMap_.end(); ++PairIt )
+	{
+		auto& List = PairIt->second;
+
+		auto FoundIt = std::find_if( List.begin(), List.end(), 
+			[ this ]( ReIObjectNotify* Notify )
+			{
+				return Notify == this;
+			} );
+		if( FoundIt != List.end() )
+		{
+			List.erase( FoundIt );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Object class definition
 REFLECTION_DEFINE_BASE( ReObject );
 	

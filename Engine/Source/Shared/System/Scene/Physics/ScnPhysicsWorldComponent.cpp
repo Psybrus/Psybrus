@@ -408,3 +408,42 @@ BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, S
 	}
 	return BcFalse;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// sphereCast
+BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result )
+{
+	std::unique_ptr< btConvexShape > Sphere( new btSphereShape( Radius ) );
+
+	btTransform To( btQuaternion(), ScnPhysicsToBullet( A ) );
+	btTransform From( btQuaternion(), ScnPhysicsToBullet( B ) );
+
+	btCollisionWorld::ClosestConvexResultCallback HitResult( 
+		ScnPhysicsToBullet( A ),
+		ScnPhysicsToBullet( B ) );
+	DynamicsWorld_->convexSweepTest( 
+		Sphere.get(),
+		To,
+		From,
+		HitResult );
+
+	if( HitResult.hasHit() )
+	{
+		if( Result != nullptr )
+		{
+			Result->Intersection_ = MaVec3d( 
+				HitResult.m_hitPointWorld.x(),
+				HitResult.m_hitPointWorld.y(),
+				HitResult.m_hitPointWorld.z() );
+			Result->Normal_ = MaVec3d( 
+				HitResult.m_hitNormalWorld.x(),
+				HitResult.m_hitNormalWorld.y(),
+				HitResult.m_hitNormalWorld.z() );
+			auto RB = static_cast< ScnPhysicsRigidBodyComponent* >( HitResult.m_hitCollisionObject->getUserPointer() );
+			Result->Entity_ = RB->getParentEntity();
+		}
+
+		return BcTrue;
+	}
+	return BcFalse;
+}

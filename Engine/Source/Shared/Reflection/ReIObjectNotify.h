@@ -6,8 +6,8 @@
 class ReIObjectNotify
 {
 public:
-    ReIObjectNotify(){};
-    virtual ~ReIObjectNotify(){};
+    ReIObjectNotify();
+    virtual ~ReIObjectNotify();
 
 	/**
 		* @brief Notify on deletion.
