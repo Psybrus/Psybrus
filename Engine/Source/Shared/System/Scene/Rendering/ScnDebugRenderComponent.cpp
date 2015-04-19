@@ -591,6 +591,8 @@ void ScnDebugRenderComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	getParentEntity()->detach( MaterialComponent_ );
 
+	UploadFence_.wait();
+
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{
 		TRenderResource& RenderResource = RenderResources_[ Idx ];
