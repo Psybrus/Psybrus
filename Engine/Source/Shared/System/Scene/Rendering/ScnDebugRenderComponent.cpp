@@ -342,7 +342,7 @@ void ScnDebugRenderComponent::drawEllipsoid( const MaVec3d& Position, const MaVe
 void ScnDebugRenderComponent::drawCircle( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer )
 {
 	// Draw outer circles for all axis.
-	BcU32 LOD = 16;
+	BcU32 LOD = 12;
 	BcF32 Angle = 0.0f;
 	BcF32 AngleInc = ( BcPI * 2.0f ) / BcF32( LOD );
 
@@ -352,12 +352,12 @@ void ScnDebugRenderComponent::drawCircle( const MaVec3d& Position, const MaVec3d
 		MaVec2d PosA( BcCos( Angle ), -BcSin( Angle ) );
 		MaVec2d PosB( BcCos( Angle + AngleInc ), -BcSin( Angle + AngleInc ) );
 
-		MaVec3d XAxisA = MaVec3d( 0.0f,                 PosA.x() * Size.y(), PosA.y() * Size.z() );
+		//MaVec3d XAxisA = MaVec3d( 0.0f,                 PosA.x() * Size.y(), PosA.y() * Size.z() );
 		MaVec3d YAxisA = MaVec3d( PosA.x() * Size.x(), 0.0f,                 PosA.y() * Size.z() );
-		MaVec3d ZAxisA = MaVec3d( PosA.x() * Size.x(), PosA.y() * Size.y(), 0.0f                 );
-		MaVec3d XAxisB = MaVec3d( 0.0f,                 PosB.x() * Size.y(), PosB.y() * Size.z() );
+		//MaVec3d ZAxisA = MaVec3d( PosA.x() * Size.x(), PosA.y() * Size.y(), 0.0f                 );
+		//MaVec3d XAxisB = MaVec3d( 0.0f,                 PosB.x() * Size.y(), PosB.y() * Size.z() );
 		MaVec3d YAxisB = MaVec3d( PosB.x() * Size.x(), 0.0f,                 PosB.y() * Size.z() );
-		MaVec3d ZAxisB = MaVec3d( PosB.x() * Size.x(), PosB.y() * Size.y(), 0.0f                 );
+		//MaVec3d ZAxisB = MaVec3d( PosB.x() * Size.x(), PosB.y() * Size.y(), 0.0f                 );
 
 		//drawLine( XAxisA + Position, XAxisB + Position, Colour, 0 );
 		drawLine( YAxisA + Position, YAxisB + Position, Colour, 0 );

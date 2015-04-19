@@ -786,8 +786,10 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 	// Wait for model to have updated.
 	UpdateFence_.wait();
 
+#if 0
 	// Gather lights.
 	ScnLightingVisitor LightingVisitor( this );
+#endif
 
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
@@ -815,9 +817,10 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_ );
 		}
 
+#if 0
 		// Set lighting parameters.
 		LightingVisitor.setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
-			
+#endif		
 		// Set material components for view.
 		pViewComponent->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 			

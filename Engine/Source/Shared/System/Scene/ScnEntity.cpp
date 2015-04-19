@@ -255,6 +255,8 @@ const ScnComponentList& ScnEntity::getComponents() const
 // getComponent
 ScnComponent* ScnEntity::getComponent( size_t Idx, const ReClass* Class )
 {
+	PSY_PROFILE_FUNCTION;
+
 	if( Class == nullptr )
 	{
 		size_t CurrIdx = 0;
@@ -292,6 +294,8 @@ ScnComponent* ScnEntity::getComponent( size_t Idx, const ReClass* Class )
 // getComponent
 ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 {
+	PSY_PROFILE_FUNCTION;
+
 	if( Class == nullptr )
 	{
 		for( BcU32 ComponentIdx = 0; ComponentIdx < Components_.size(); ++ComponentIdx )
@@ -322,6 +326,8 @@ ScnComponent* ScnEntity::getComponent( BcName Name, const ReClass* Class )
 // getComponentAnyParent
 ScnComponent* ScnEntity::getComponentAnyParent( size_t Idx, const ReClass* Class )
 {
+	PSY_PROFILE_FUNCTION;
+
 	ScnComponentRef Component = getComponent( Idx, Class );
 
 	if( Component.isValid() == BcFalse && getParentEntity() != NULL )
@@ -336,6 +342,8 @@ ScnComponent* ScnEntity::getComponentAnyParent( size_t Idx, const ReClass* Class
 // getComponentAnyParent
 ScnComponent* ScnEntity::getComponentAnyParent( BcName Name, const ReClass* Class )
 {
+	PSY_PROFILE_FUNCTION;
+
 	ScnComponentRef Component = getComponent( Name, Class );
 
 	if( Component.isValid() == BcFalse && getParentEntity() != NULL )
