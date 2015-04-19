@@ -91,6 +91,7 @@ OsClientHTML5::OsClientHTML5()
 	MouseLocked_ = BcFalse;
 	Width_ = 0;
 	Height_ = 0;
+	IsFullScreen_ = 0;
 
 	MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
 	MouseDelta_ = MaVec2d( 0.0f, 0.0f );
@@ -126,7 +127,7 @@ BcBool OsClientHTML5::create( const BcChar* pTitle, BcHandle Instance, BcU32 Wid
 // update
 void OsClientHTML5::update()
 {
-
+	setWindowSize();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -322,8 +323,19 @@ void OsClientHTML5::setWindowSize()
 {
 	int W = 0;
 	int H = 0;
-	int IsFullScreen = 0;
-	emscripten_get_canvas_size( &W, &H , &IsFullScreen);
+	emscripten_get_canvas_size( &W, &H , &IsFullScreen_ );
+
+	// Send event.
+	if( Width_ != W || Height_ != H )
+	{
+		OsEventClientResize Event;
+		Event.pClient_ = this;
+		Event.Width_ = Width_;
+		Event.Height_ = Height_;
+		OsCore::pImpl()->publish( osEVT_CLIENT_RESIZE, Event ); // TODO: REMOVE OLD!
+		EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
+	}
+
 	Width_ = W;
 	Height_ = H;
 }

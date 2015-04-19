@@ -106,6 +106,7 @@ private:
 	SDL_Surface* SDLSurface_;
 	BcU32 Width_;
 	BcU32 Height_;
+	int IsFullScreen_;
 };
 
 #endif
