@@ -109,8 +109,8 @@ public:
 
 	/**
 	 * Draw grid.
-	 * @params Position Position of centre of grid.
-	 * @params Size Size of grid. Only use 2 of the axis!
+	 * @param Position Position of centre of grid.
+	 * @param Size Size of grid. Only use 2 of the axis!
 	 * @param StepSize Step size to draw at.
 	 * @param SubDivideMultiple Multiple to use to subdivide grid.
 	 * @param Layer Layer
@@ -119,15 +119,24 @@ public:
 
 	/**
 	 * Draw ellipsoid.
-	 * @params Position Position of ellipsoid.
-	 * @params Size Size of ellipsioid.
-	 * @params Colour Colour to draw it.
+	 * @param Position Position of ellipsoid.
+	 * @param Size Size of ellipsioid.
+	 * @param Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
 	void drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
 
 	/**
-	* Draw AABB.
+	 * Draw circle.
+	 * @param Position Position of circle.
+	 * @param Size Size of circle.
+	 * @param Colour Colour to draw it.
+	 * @param Layer Layer
+	 */
+	void drawCircle( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+
+	/**
+	 * Draw AABB.
 	 * @params AABB AABB to draw.
 	 * @params Colour Colour to draw it.
 	 * @param Layer Layer
