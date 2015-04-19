@@ -415,8 +415,8 @@ BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B,
 {
 	std::unique_ptr< btConvexShape > Sphere( new btSphereShape( Radius ) );
 
-	btTransform To( btQuaternion(), ScnPhysicsToBullet( A ) );
-	btTransform From( btQuaternion(), ScnPhysicsToBullet( B ) );
+	btTransform To( btQuaternion::getIdentity(), ScnPhysicsToBullet( A ) );
+	btTransform From( btQuaternion::getIdentity(), ScnPhysicsToBullet( B ) );
 
 	btCollisionWorld::ClosestConvexResultCallback HitResult( 
 		ScnPhysicsToBullet( A ),
