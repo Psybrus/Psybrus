@@ -385,8 +385,8 @@ void SsCoreImplSoLoud::stopChannel(
 				internalUpdate();
 			}
 			while( SoLoudCore_->isValidVoiceHandle( Handle ) );
-			FlushFence.decrement();
 		}
+		FlushFence.decrement();
 	};
 
 	// Increment and push stop channel.

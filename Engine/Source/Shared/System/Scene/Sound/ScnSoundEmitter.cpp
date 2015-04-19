@@ -68,6 +68,10 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 
 		// Get source from sound.
 		SsSource* Source = Sound->getSource();
+		BcAssert( Source );
+
+		// Temporary negate...hack.
+		Params_.Position_ = -getParentEntity()->getWorldPosition();
 
 		// Play sample.
 		SsChannel* Channel = SsCore::pImpl()->playSource( 
