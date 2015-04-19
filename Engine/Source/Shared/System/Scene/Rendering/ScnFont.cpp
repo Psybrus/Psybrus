@@ -1054,7 +1054,7 @@ MaVec2d ScnFontComponent::drawText(
 				if( WrappingEnabled )
 				{
 					// If the character spills over, terminate this line.
-					if( TargetSize.x() > 0.0f && CornerMax.x() > TargetSize.x() )
+					if( TargetSize.x() > 0.0f && CornerMax.x() > ( TargetSize.x() - ( Margin * 2.0f ) ) )
 					{
 						// Back track the vertices.
 						BcU32 NoofCharsSkipped = Idx - LastWhitespaceIdx;
