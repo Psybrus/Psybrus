@@ -193,7 +193,8 @@ BcBool ScnModelImport::import( const Json::Value& )
 		Source_.c_str(), 
 		aiProcessPreset_TargetRealtime_MaxQuality | 
 			aiProcess_SplitByBoneCount |
-			aiProcess_LimitBoneWeights,
+			aiProcess_LimitBoneWeights |
+			aiProcess_MakeLeftHanded,
 		nullptr, 
 		PropertyStore );
 

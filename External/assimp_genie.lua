@@ -1,14 +1,14 @@
 -- Write out revision file.
-os.execute( "cd assimp && git log -1 --format=%h > git.version" )
-os.execute( "cd assimp && git rev-parse --abbrev-ref HEAD > git.branch" )
+--os.execute( "cd assimp && git log -1 --format=%h > git.version" )
+--os.execute( "cd assimp && git rev-parse --abbrev-ref HEAD > git.branch" )
 
-local inVersion = assert( io.open( "assimp/git.version", "r" ) )
-local version = ( inVersion:read() )
-inVersion:close()
+--local inVersion = assert( io.open( "assimp/git.version", "r" ) )
+local version = "00" -- ( inVersion:read() )
+--inVersion:close()
 
-local inBranch = assert( io.open( "assimp/git.branch", "r" ) )
-local branch = ( inBranch:read() )
-inBranch:close()
+--local inBranch = assert( io.open( "assimp/git.branch", "r" ) )
+local branch = "local" -- ( inBranch:read() )
+--inBranch:close()
 
 local revisionFile = assert( io.open( "./assimp/revision.h", "w+" ) )
 revisionFile:write( "#ifndef ASSIMP_REVISION_H_INC\n" )
