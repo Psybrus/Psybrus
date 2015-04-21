@@ -147,6 +147,11 @@ function PsyProjectCommonEngine( _name )
 	configuration "windows-* or linux-*"
 		defines { "PSY_IMPORT_PIPELINE" }
 
+	-- Add default include paths.
+	configuration( "*" )
+		includedirs {
+			"../../External/imgui",
+		}
 
 	-- Include paths.
 	configuration( "windows-*" )

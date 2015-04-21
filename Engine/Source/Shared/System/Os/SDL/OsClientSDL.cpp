@@ -152,6 +152,14 @@ BcHandle OsClientSDL::getDeviceHandle()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getWindowHandle
+//virtual
+BcHandle OsClientSDL::getWindowHandle()
+{
+	return (BcHandle)SDLWindow_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getWidth
 //virtual
 BcU32 OsClientSDL::getWidth() const

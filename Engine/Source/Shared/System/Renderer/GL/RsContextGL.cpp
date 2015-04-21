@@ -2262,7 +2262,7 @@ void RsContextGL::flushState()
 		const auto& VertexDeclarationDesc = VertexDeclaration_->getDesc();
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
-		// Bind progra
+		// Bind program
 		RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
 
 		glUseProgram( ProgramImpl->Handle_ );

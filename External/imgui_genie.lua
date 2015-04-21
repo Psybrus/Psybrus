@@ -3,6 +3,6 @@ if PsyProjectExternalLib( "imgui", "C++" ) then
 		kind ( EXTERNAL_PROJECT_KIND )
 		files { "./imgui/*.h", "./imgui/*.cpp" }
 		includedirs { 
-			"./imgui-config/",
-			"./imgui/" }
+			"./imgui/"
+		}
 end

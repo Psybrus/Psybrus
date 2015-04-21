@@ -50,6 +50,11 @@ public:
 	virtual BcHandle getDeviceHandle();
 
 	/**
+	 * Get window handle.
+	 */
+	virtual BcHandle getWindowHandle();
+	/**
+
  	 * Get width.
 	 */
 	virtual BcU32 getWidth() const;

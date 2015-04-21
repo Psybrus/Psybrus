@@ -354,6 +354,14 @@ BcHandle OsClientWindows::getDeviceHandle()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getWindowHandle
+//virtual
+BcHandle OsClientWindows::getWindowHandle()
+{
+	return (BcHandle)hWnd_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getWidth
 //virtual
 BcU32 OsClientWindows::getWidth() const

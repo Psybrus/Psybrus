@@ -146,6 +146,14 @@ BcHandle OsClientHTML5::getDeviceHandle()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getWindowHandle
+//virtual
+BcHandle OsClientHTML5::getWindowHandle()
+{
+	return (BcHandle)SDLSurface_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getWidth
 //virtual
 BcU32 OsClientHTML5::getWidth() const
