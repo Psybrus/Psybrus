@@ -29,7 +29,8 @@ namespace ImGui
 namespace Psybrus
 {
 		bool Init();
+		void NewFrame();
+		void Render( RsContext* Context, RsFrame* Frame );
 		void Shutdown();
-		void NewFrame( RsContext* Context, RsFrame* Frame );
 } // emnd ImGui
 } // end Psybrus

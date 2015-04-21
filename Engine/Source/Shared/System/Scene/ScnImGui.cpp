@@ -1,4 +1,5 @@
 #include "System/Scene/ScnImGui.h"
+#include "System/Scene/Rendering/ScnShader.h"
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsBuffer.h"
@@ -7,8 +8,12 @@
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 
+#include "System/Content/CsCore.h"
+
 #include "System/Os/OsCore.h"
 #include "System/Os/OsClient.h"
+#include "System/Os/OsEvents.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // Cast operators.
@@ -54,13 +59,12 @@ namespace
 	RsBufferUPtr VertexBuffer_;
 	/// Constant buffer.
 	RsBufferUPtr ConstantBuffer_;
-	/// Constant buffer structure.
-	struct ConstantBuffer
-	{
-		MaMat4d ProjectionMatrix_;
-	};
+	/// Constant block.
+	ScnShaderViewUniformBlockData ConstantBlock_;
 	/// Program.
 	RsProgramUPtr Program_;
+	/// Imgui package.
+	CsPackage* Package_ = nullptr;
 
 	/// Current draw context.
 	RsContext* DrawContext_ = nullptr;
@@ -90,10 +94,58 @@ namespace
 	 */
 	void RenderDrawLists( ImDrawList** const CmdLists, int CmdListsCount )
 	{
+		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		BcAssert( DrawContext_ != nullptr );
 		BcAssert( DrawFrame_ != nullptr );
-	}
+		BcAssert( Package_ != nullptr );
+		if( !Package_->isReady() )
+		{
+			PSY_LOG( "Still waiting on assets to load. Skipping render." );
+		}
 
+		// Create appropriate projection matrix.
+		ImGuiIO& IO = ImGui::GetIO();
+	
+		ConstantBlock_.ProjectionTransform_.orthoProjection( 
+			0.0f, IO.DisplaySize.x,
+			IO.DisplaySize.y, 0,
+			-1.0f, 1.0f );
+		ConstantBlock_.InverseProjectionTransform_ = ConstantBlock_.ProjectionTransform_;
+		ConstantBlock_.InverseProjectionTransform_.inverse();
+		ConstantBlock_.InverseViewTransform_ = MaMat4d();
+		ConstantBlock_.ViewTransform_ = ConstantBlock_.InverseViewTransform_;
+		ConstantBlock_.ViewTransform_.inverse();
+		ConstantBlock_.ClipTransform_ = ConstantBlock_.ViewTransform_ * ConstantBlock_.ProjectionTransform_;
+
+		// TODO: Update.
+		//RsCore::pImpl()->
+
+		// Update vertex buffer.
+
+
+		BcU32 VertexOffset = 0;
+		for( int CmdListIdx = 0; CmdListIdx < CmdListsCount; ++CmdListIdx )
+		{
+			const ImDrawList* CmdList = CmdLists[ CmdListIdx ];
+
+			for( size_t CmdIdx = 0; CmdIdx < CmdList->commands.size(); ++CmdIdx )
+			{
+	            const ImDrawCmd* Cmd = &CmdList->commands[ CmdIdx ];
+				if( Cmd->user_callback )
+				{
+					Cmd->user_callback( CmdList, Cmd );
+				}
+				else
+				{
+					//const D3D11_RECT r = { (LONG)pcmd->clip_rect.x, (LONG)pcmd->clip_rect.y, (LONG)pcmd->clip_rect.z, (LONG)pcmd->clip_rect.w };
+					//g_pd3dDeviceContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&pcmd->texture_id);
+					//g_pd3dDeviceContext->RSSetScissorRects(1, &r); 
+					//g_pd3dDeviceContext->Draw(pcmd->vtx_count, vtx_offset);
+				}
+				VertexOffset += Cmd->vtx_count;
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -120,7 +172,7 @@ namespace Psybrus
 			RsBufferDesc(
 				RsBufferType::UNIFORM,
 				RsResourceCreationFlags::STREAM,
-				sizeof( ConstantBuffer ) ) ) );
+				sizeof( ConstantBlock_ ) ) ) );
 
 		auto RenderStateDesc = RsRenderStateDesc();
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].Enable_ = BcTrue;
@@ -156,14 +208,59 @@ namespace Psybrus
 				memcpy( Lock.Buffer_, Pixels, Width * Height * 4 );
 			} );
 
+		IO.RenderDrawListsFn = RenderDrawLists;
+#if PLATFORM_WINDOWS		
+		IO.ImeWindowHandle = (HWND)OsCore::pImpl()->getClient( 0 )->getWindowHandle();
+#endif
 
+		IO.KeyMap[ ImGuiKey_Tab ] = OsEventInputKeyboard::KEYCODE_TAB;
+		IO.KeyMap[ ImGuiKey_LeftArrow ] = OsEventInputKeyboard::KEYCODE_LEFT;
+		IO.KeyMap[ ImGuiKey_RightArrow ] = OsEventInputKeyboard::KEYCODE_RIGHT;
+		IO.KeyMap[ ImGuiKey_UpArrow ] = OsEventInputKeyboard::KEYCODE_UP;
+		IO.KeyMap[ ImGuiKey_DownArrow ] = OsEventInputKeyboard::KEYCODE_DOWN;
+		IO.KeyMap[ ImGuiKey_Home ] = OsEventInputKeyboard::KEYCODE_HOME;
+		IO.KeyMap[ ImGuiKey_End ] = OsEventInputKeyboard::KEYCODE_END;
+		IO.KeyMap[ ImGuiKey_Delete ] = OsEventInputKeyboard::KEYCODE_DELETE;
+		IO.KeyMap[ ImGuiKey_Backspace ] = OsEventInputKeyboard::KEYCODE_BACKSPACE;
+		IO.KeyMap[ ImGuiKey_Enter ] = OsEventInputKeyboard::KEYCODE_RETURN;
+		IO.KeyMap[ ImGuiKey_Escape ] = OsEventInputKeyboard::KEYCODE_ESCAPE;
+		IO.KeyMap[ ImGuiKey_A ] = 'A';
+		IO.KeyMap[ ImGuiKey_C ] = 'C';
+		IO.KeyMap[ ImGuiKey_V ] = 'V';
+		IO.KeyMap[ ImGuiKey_X ] = 'X';
+		IO.KeyMap[ ImGuiKey_Y ] = 'Y';
+		IO.KeyMap[ ImGuiKey_Z ] = 'Z';
+
+		// Request imgui packge.
+		Package_ = CsCore::pImpl()->requestPackage( "imgui" );
+		Package_->acquire();
 		return true;
 	}
 
+	void NewFrame()
+	{
+		ImGuiIO& IO = ImGui::GetIO();
+
+		// Grab client to get current size.
+		OsClient* Client = OsCore::pImpl()->getClient( 0 );
+		IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
+
+		// Start the frame
+		ImGui::NewFrame();
+	}
+
+	void Render( RsContext* Context, RsFrame* Frame )
+	{
+		ScopedDraw ScopedDraw( Context, Frame );
+
+		ImGui::Render();
+	}
 
 	void Shutdown()
 	{
 		ImGui::Shutdown();
+
+		Package_->release();
 
 		BcAssert( DrawContext_ == nullptr );
 		BcAssert( DrawFrame_ == nullptr );
@@ -173,20 +270,6 @@ namespace Psybrus
 		RenderState_.reset();
 		FontSampler_.reset();
 		FontTexture_.reset();
-	}
-
-	void NewFrame( RsContext* Context, RsFrame* Frame )
-	{
-		ScopedDraw ScopedDraw( Context, Frame );
-
-		ImGuiIO& IO = ImGui::GetIO();
-
-		// Grab client to get current size.
-		OsClient* Client = OsCore::pImpl()->getClient( 0 );
-		IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
-
-	    // Start the frame
-	    ImGui::NewFrame();
 	}
 } // end Psybrus
 } // end ImGui
