@@ -53,6 +53,7 @@ void SysFence::wait( size_t Value ) const
 
 	while( Count_ > Value )
 	{
+		SysKernel::pImpl()->notifySchedule();
 		BcYield();
 	}
 }
