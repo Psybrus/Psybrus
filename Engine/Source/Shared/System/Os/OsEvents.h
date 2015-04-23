@@ -38,6 +38,7 @@ enum OsEvents
 	osEVT_INPUT_MOUSEWHEEL,
 	osEVT_INPUT_KEYDOWN,
 	osEVT_INPUT_KEYUP,
+	osEVT_INPUT_TEXT,
 	osEVT_INPUT_TOUCHDOWN,
 	osEVT_INPUT_TOUCHUP,
 	osEVT_INPUT_TOUCHMOVE,
@@ -175,6 +176,13 @@ struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 	BcU32			KeyCode_;			///!< Key code.
 	BcU32			ScanCode_;			///!< Scan code.
 	BcU32			AsciiCode_;			///!< ASCII code.
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// OsEventInputText
+struct OsEventInputText: OsEventInput< OsEventInputText >
+{
+	BcU8			Text_[ 32 ];
 };
 
 ////////////////////////////////////////////////////////////////////////////////

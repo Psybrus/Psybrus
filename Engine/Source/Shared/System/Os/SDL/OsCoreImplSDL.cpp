@@ -67,6 +67,7 @@ void OsCoreImplSDL::update()
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
+			case SDL_TEXTINPUT:
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 			case SDL_MOUSEMOTION:
