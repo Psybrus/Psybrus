@@ -249,7 +249,6 @@ void ScnCore::update()
 			if( Idx == 0 )
 			{
 				ImGui::Psybrus::Render( pContext, pFrame );
-				ImGui::Psybrus::NewFrame();
 			}
 
 			// Queue frame for render.
@@ -261,6 +260,9 @@ void ScnCore::update()
 	// We do this because they can be immediately created,
 	// and need a create tick from CsCore next frame.
 	processPendingComponents();
+
+	// Start new imgui frame.
+	ImGui::Psybrus::NewFrame();
 }
 
 //////////////////////////////////////////////////////////////////////////

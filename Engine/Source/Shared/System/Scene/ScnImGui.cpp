@@ -4,6 +4,7 @@
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsRenderNode.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsVertexDeclaration.h"
@@ -14,6 +15,7 @@
 #include "System/Os/OsClient.h"
 #include "System/Os/OsEvents.h"
 
+#include "System/SysFence.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Cast operators.
@@ -57,14 +59,17 @@ namespace
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	/// Vertex buffer used by internal implementation.
 	RsBufferUPtr VertexBuffer_;
-	/// Constant buffer.
-	RsBufferUPtr ConstantBuffer_;
-	/// Constant block.
-	ScnShaderViewUniformBlockData ConstantBlock_;
-	/// Program.
-	RsProgramUPtr Program_;
+	/// Uniform buffer.
+	RsBufferUPtr UniformBuffer_;
+	/// Uniform block.
+	ScnShaderViewUniformBlockData UniformBlock_;
+	/// Programs.
+	RsProgram* DefaultProgram_ = nullptr;
+	RsProgram* TexturedProgram_ = nullptr;
 	/// Imgui package.
 	CsPackage* Package_ = nullptr;
+	/// Fence for synchronisation.
+	SysFence RenderThreadFence_;
 
 	/// Current draw context.
 	RsContext* DrawContext_ = nullptr;
@@ -98,6 +103,11 @@ namespace
 		BcAssert( DrawContext_ != nullptr );
 		BcAssert( DrawFrame_ != nullptr );
 		BcAssert( Package_ != nullptr );
+		if( CmdListsCount == 0 )
+		{
+			return;
+		}
+		
 		if( !Package_->isReady() )
 		{
 			PSY_LOG( "Still waiting on assets to load. Skipping render." );
@@ -106,45 +116,193 @@ namespace
 		// Create appropriate projection matrix.
 		ImGuiIO& IO = ImGui::GetIO();
 	
-		ConstantBlock_.ProjectionTransform_.orthoProjection( 
+		UniformBlock_.ProjectionTransform_.orthoProjection( 
 			0.0f, IO.DisplaySize.x,
 			IO.DisplaySize.y, 0,
 			-1.0f, 1.0f );
-		ConstantBlock_.InverseProjectionTransform_ = ConstantBlock_.ProjectionTransform_;
-		ConstantBlock_.InverseProjectionTransform_.inverse();
-		ConstantBlock_.InverseViewTransform_ = MaMat4d();
-		ConstantBlock_.ViewTransform_ = ConstantBlock_.InverseViewTransform_;
-		ConstantBlock_.ViewTransform_.inverse();
-		ConstantBlock_.ClipTransform_ = ConstantBlock_.ViewTransform_ * ConstantBlock_.ProjectionTransform_;
+		UniformBlock_.InverseProjectionTransform_ = UniformBlock_.ProjectionTransform_;
+		UniformBlock_.InverseProjectionTransform_.inverse();
+		UniformBlock_.InverseViewTransform_ = MaMat4d();
+		UniformBlock_.ViewTransform_ = UniformBlock_.InverseViewTransform_;
+		UniformBlock_.ViewTransform_.inverse();
+		UniformBlock_.ClipTransform_ = UniformBlock_.ViewTransform_ * UniformBlock_.ProjectionTransform_;
 
-		// TODO: Update.
-		//RsCore::pImpl()->
-
-		// Update vertex buffer.
-
-
-		BcU32 VertexOffset = 0;
-		for( int CmdListIdx = 0; CmdListIdx < CmdListsCount; ++CmdListIdx )
+		// Queue up draw on frame.
+		class ImGuiRenderNode: public RsRenderNode
 		{
-			const ImDrawList* CmdList = CmdLists[ CmdListIdx ];
-
-			for( size_t CmdIdx = 0; CmdIdx < CmdList->commands.size(); ++CmdIdx )
+		public:
+			void render() override
 			{
-	            const ImDrawCmd* Cmd = &CmdList->commands[ CmdIdx ];
-				if( Cmd->user_callback )
+				// Update constant buffr.
+				pContext_->updateBuffer( 
+					UniformBuffer_.get(), 0, sizeof( UniformBlock_ ), 
+					RsResourceUpdateFlags::NONE,
+					[]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					{
+						memcpy( Lock.Buffer_, &UniformBlock_, sizeof( UniformBlock_ ) );
+					} );
+
+				// Update vertex buffer.
+				pContext_->updateBuffer( 
+					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
+					RsResourceUpdateFlags::NONE,
+					[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					{
+						ImDrawVert* Vertices = reinterpret_cast< ImDrawVert* >( Lock.Buffer_ );
+						BcU32 NoofVertices = 0;
+						for ( int CmdListIdx = 0; CmdListIdx < CmdListsCount_; ++CmdListIdx )
+						{
+							const ImDrawList* CmdList = CmdLists_[ CmdListIdx ];
+							memcpy( Vertices, &CmdList->vtx_buffer[0], CmdList->vtx_buffer.size() * sizeof( ImDrawVert ) );
+							// TODO: Move to vertex shader.
+							for( size_t VertIdx = 0; VertIdx < CmdList->vtx_buffer.size(); ++VertIdx )
+							{
+								Vertices[ VertIdx ].pos = Vertices[ VertIdx ].pos * UniformBlock_.ClipTransform_;
+							}
+							Vertices += CmdList->vtx_buffer.size();
+							NoofVertices += CmdList->vtx_buffer.size();
+							BcAssert( (BcU8*)Vertices <= ((BcU8*)Lock.Buffer_) + Buffer->getDesc().SizeBytes_ );
+						}
+					} );
+
+				pContext_->setViewport( Viewport_ );
+				pContext_->setFrameBuffer( nullptr );
+				pContext_->setSamplerState( 0, FontSampler_.get() );
+				pContext_->setVertexDeclaration( VertexDeclaration_.get() );
+				pContext_->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
+				pContext_->setUniformBuffer( 0, UniformBuffer_.get() );
+				pContext_->setProgram( TexturedProgram_ );
+				pContext_->setRenderState( RenderState_.get() );
+				pContext_->setSamplerState( 0, FontSampler_.get() );
+
+ 				BcU32 VertexOffset = 0;
+				for( int CmdListIdx = 0; CmdListIdx < CmdListsCount_; ++CmdListIdx )
 				{
-					Cmd->user_callback( CmdList, Cmd );
+					const ImDrawList* CmdList = CmdLists_[ CmdListIdx ];
+
+					for( size_t CmdIdx = 0; CmdIdx < CmdList->commands.size(); ++CmdIdx )
+					{
+						const ImDrawCmd* Cmd = &CmdList->commands[ CmdIdx ];
+						if( Cmd->user_callback )
+						{
+							Cmd->user_callback( CmdList, Cmd );
+						}
+						else
+						{
+							pContext_->setScissorRect(
+								(BcS32)Cmd->clip_rect.x, 
+								(BcS32)Cmd->clip_rect.y, 
+								(BcS32)Cmd->clip_rect.z, 
+								(BcS32)Cmd->clip_rect.w );
+							if( Cmd->texture_id != nullptr )
+							{
+								pContext_->setProgram( TexturedProgram_ );
+								pContext_->setTexture( 0, (RsTexture*)Cmd->texture_id );
+							}
+							else
+							{
+								pContext_->setProgram( DefaultProgram_ );
+							}
+							pContext_->drawPrimitives( 
+								RsTopologyType::TRIANGLE_LIST, 
+								VertexOffset, 
+								Cmd->vtx_count );
+						}
+						VertexOffset += Cmd->vtx_count;
+					}
 				}
-				else
-				{
-					//const D3D11_RECT r = { (LONG)pcmd->clip_rect.x, (LONG)pcmd->clip_rect.y, (LONG)pcmd->clip_rect.z, (LONG)pcmd->clip_rect.w };
-					//g_pd3dDeviceContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&pcmd->texture_id);
-					//g_pd3dDeviceContext->RSSetScissorRects(1, &r); 
-					//g_pd3dDeviceContext->Draw(pcmd->vtx_count, vtx_offset);
-				}
-				VertexOffset += Cmd->vtx_count;
-			}
+				pContext_->setViewport( Viewport_ );
+				RenderThreadFence_.decrement();
+			}	
+
+			RsViewport Viewport_;
+			ImDrawList** CmdLists_;
+			int CmdListsCount_;
+		};
+
+		// TODO: Copy draw lists into command to allow us to not block.
+		auto RenderNode = DrawFrame_->newObject< ImGuiRenderNode >();
+		RenderNode->Sort_.Value_ = 0;
+		RenderNode->Sort_.Pass_ = RS_SORT_PASS_OVERLAY;		
+		RenderNode->CmdLists_ = CmdLists;
+		RenderNode->CmdListsCount_ = CmdListsCount;
+		RenderNode->Viewport_ = 
+		RsViewport( 0, 0, IO.DisplaySize.x, IO.DisplaySize.y );
+
+		RenderThreadFence_.increment();
+		DrawFrame_->addRenderNode( RenderNode );
+	}
+	
+	/**
+	 * Handle key down.
+	 */
+	eEvtReturn OnKeyDown( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputKeyboard >();
+		ImGuiIO& IO = ImGui::GetIO();
+		if( Event.KeyCode_ < 256 )
+		{
+			IO.KeysDown[ Event.KeyCode_ ] = 1;
+		}		
+		return evtRET_PASS;
+	}
+
+	/**
+	 * Handle key up.
+	 */
+	eEvtReturn OnKeyUp( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputKeyboard >();
+		ImGuiIO& IO = ImGui::GetIO();
+		if( Event.KeyCode_ < 256 )
+		{
+			IO.KeysDown[ Event.KeyCode_ ] = 0;
 		}
+		return evtRET_PASS;
+	}
+
+	/**
+	 * Handle mouse up.
+	 */
+	eEvtReturn OnMouseDown( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputMouse >();
+		ImGuiIO& IO = ImGui::GetIO();
+		if( Event.ButtonCode_ < 2 )
+		{
+			IO.MouseDown[ Event.ButtonCode_ ] = true;
+			IO.MousePos.x = (signed short)Event.MouseX_;
+			IO.MousePos.y = (signed short)Event.MouseY_;
+		}
+		return evtRET_PASS;
+	}
+
+	/**
+	 * Handle mouse up.
+	 */
+	eEvtReturn OnMouseUp( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputMouse >();
+		ImGuiIO& IO = ImGui::GetIO();
+		if( Event.ButtonCode_ < 2 )
+		{
+			IO.MouseDown[ Event.ButtonCode_ ] = false;
+			IO.MousePos.x = (signed short)Event.MouseX_;
+			IO.MousePos.y = (signed short)Event.MouseY_;
+		}
+		return evtRET_PASS;
+	}
+
+	/**
+	 * Handle mouse move.
+	 */
+	eEvtReturn OnMouseMove( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputMouse >();
+		ImGuiIO& IO = ImGui::GetIO();
+		IO.MousePos.x = (signed short)Event.MouseX_;
+		IO.MousePos.y = (signed short)Event.MouseY_;
+		return evtRET_PASS;
 	}
 }
 
@@ -158,9 +316,9 @@ namespace Psybrus
 	{
 		VertexDeclaration_.reset( RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 3 )
-				.addElement( RsVertexElement( 0, 0, 4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
-				.addElement( RsVertexElement( 0, 16, 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
-				.addElement( RsVertexElement( 0, 24, 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ) ) );
+				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->pos),  2, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
+				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->uv), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
+				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ) ) );
 
 		VertexBuffer_.reset( RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
@@ -168,11 +326,11 @@ namespace Psybrus
 				RsResourceCreationFlags::STREAM, 
 				10000 * VertexDeclaration_->getDesc().getMinimumStride() ) ) );
 
-		ConstantBuffer_.reset( RsCore::pImpl()->createBuffer(
+		UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
 				RsBufferType::UNIFORM,
 				RsResourceCreationFlags::STREAM,
-				sizeof( ConstantBlock_ ) ) ) );
+				sizeof( UniformBlock_ ) ) ) );
 
 		auto RenderStateDesc = RsRenderStateDesc();
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].Enable_ = BcTrue;
@@ -183,6 +341,10 @@ namespace Psybrus
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].DestBlendAlpha_ = RsBlendType::ZERO;
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].BlendOpAlpha_ = RsBlendOp::ADD;
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].WriteMask_ = 0xf;
+		RenderStateDesc.DepthStencilState_.DepthTestEnable_ = BcFalse;
+		RenderStateDesc.DepthStencilState_.DepthWriteEnable_ = BcFalse;
+		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcTrue;
+		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
 		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc );
 
 		unsigned char* Pixels = nullptr;
@@ -208,6 +370,8 @@ namespace Psybrus
 				memcpy( Lock.Buffer_, Pixels, Width * Height * 4 );
 			} );
 
+		IO.Fonts->TexID = FontTexture_.get();
+
 		IO.RenderDrawListsFn = RenderDrawLists;
 #if PLATFORM_WINDOWS		
 		IO.ImeWindowHandle = (HWND)OsCore::pImpl()->getClient( 0 )->getWindowHandle();
@@ -231,14 +395,47 @@ namespace Psybrus
 		IO.KeyMap[ ImGuiKey_Y ] = 'Y';
 		IO.KeyMap[ ImGuiKey_Z ] = 'Z';
 
+		// Register for input.
+		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyDown );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyUp );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
+
 		// Request imgui packge.
 		Package_ = CsCore::pImpl()->requestPackage( "imgui" );
 		Package_->acquire();
+		CsCore::pImpl()->requestPackageReadyCallback( "imgui", 
+			[]( CsPackage* Package, BcU32 )
+			{
+				BcAssert( Package == Package_ );
+				ScnShaderRef Default;
+				ScnShaderRef Textured;
+				CsCore::pImpl()->requestResource( 
+					"imgui", "default_shader", Default );
+				CsCore::pImpl()->requestResource( 
+					"imgui", "textured_shader", Textured );
+				BcAssert( Default );
+				BcAssert( Textured );
+				ScnShaderPermutationFlags Permutation = 
+					ScnShaderPermutationFlags::RENDER_FORWARD |
+					ScnShaderPermutationFlags::PASS_MAIN |
+					ScnShaderPermutationFlags::MESH_STATIC_2D |
+					ScnShaderPermutationFlags::LIGHTING_NONE;
+
+				DefaultProgram_ = Default->getProgram( Permutation );
+				TexturedProgram_ = Textured->getProgram( Permutation );
+				BcAssert( DefaultProgram_ );
+				BcAssert( TexturedProgram_ );
+			}, 0 );
 		return true;
 	}
 
 	void NewFrame()
 	{
+		// Wait till render thread has done the last frame.
+		RenderThreadFence_.wait();
+
 		ImGuiIO& IO = ImGui::GetIO();
 
 		// Grab client to get current size.
@@ -251,14 +448,25 @@ namespace Psybrus
 
 	void Render( RsContext* Context, RsFrame* Frame )
 	{
-		ScopedDraw ScopedDraw( Context, Frame );
+		if( DefaultProgram_ != nullptr && TexturedProgram_ != nullptr )
+		{
+			RenderThreadFence_.wait();
+			ScopedDraw ScopedDraw( Context, Frame );
 
-		ImGui::Render();
+			ImGui::Render();
+		}
 	}
 
 	void Shutdown()
 	{
 		ImGui::Shutdown();
+
+		// Unregister input.
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_KEYDOWN, OnKeyDown );
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_KEYUP, OnKeyUp );
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
 
 		Package_->release();
 
@@ -266,7 +474,7 @@ namespace Psybrus
 		BcAssert( DrawFrame_ == nullptr );
 		VertexDeclaration_.reset();
 		VertexBuffer_.reset();
-		ConstantBuffer_.reset();
+		UniformBuffer_.reset();
 		RenderState_.reset();
 		FontSampler_.reset();
 		FontTexture_.reset();
