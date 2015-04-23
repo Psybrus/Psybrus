@@ -2518,7 +2518,26 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
+	// Convert to top-left.
+	auto X = Viewport.x();
+	auto Y = getHeight() - Viewport.height();
+	auto W = Viewport.width() - Viewport.x();
+	auto H = Viewport.height() - Viewport.y();
+
+	glViewport( X, Y, W, H );
+	glScissor( X, Y, W, H );
+	RsGLCatchError();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setScissorRect
+void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
+{
+	auto SX = X;
+	auto SY = getHeight() - Height;
+	auto SW = Width - X;
+	auto SH = Height - Y;
+	glScissor( SX, SY, SW, SH );
 	RsGLCatchError();
 }
 
@@ -2996,7 +3015,19 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	// TODO DepthBias_
 	// TODO SlopeScaledDepthBias_
 	// TODO DepthClipEnable_
-	// TODO ScissorEnable_
+
+	if( Force ||
+		RasteriserState.ScissorEnable_ != BoundRasteriserState.ScissorEnable_ )
+	{
+		if( RasteriserState.ScissorEnable_ )
+		{
+			glEnable( GL_SCISSOR_TEST );
+		}
+		else
+		{
+			glDisable( GL_SCISSOR_TEST );
+		}
+	}
 
 	if( Version_.SupportAntialiasedLines_ )
 	{
