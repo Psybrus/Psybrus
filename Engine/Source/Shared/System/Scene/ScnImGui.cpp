@@ -240,10 +240,23 @@ namespace
 	{
 		auto Event = BaseEvent.get< OsEventInputKeyboard >();
 		ImGuiIO& IO = ImGui::GetIO();
-		if( Event.KeyCode_ < 256 )
+		if( Event.KeyCode_ < 512 )
 		{
 			IO.KeysDown[ Event.KeyCode_ ] = 1;
-		}		
+		}
+
+		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL )
+		{
+			IO.KeyCtrl = true;
+		}
+		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_SHIFT )
+		{
+			IO.KeyShift = true;
+		}
+		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT )
+		{
+			IO.KeyAlt = true;
+		}
 		return evtRET_PASS;
 	}
 
@@ -254,9 +267,45 @@ namespace
 	{
 		auto Event = BaseEvent.get< OsEventInputKeyboard >();
 		ImGuiIO& IO = ImGui::GetIO();
-		if( Event.KeyCode_ < 256 )
+		if( Event.KeyCode_ < 512 )
 		{
 			IO.KeysDown[ Event.KeyCode_ ] = 0;
+		}
+
+		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL )
+		{
+			IO.KeyCtrl = false;
+		}
+		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_SHIFT )
+		{
+			IO.KeyShift = false;
+		}
+		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT )
+		{
+			IO.KeyAlt = false;
+		}
+		return evtRET_PASS;
+	}
+
+	/**
+	 * Handle text input..
+	 */
+	eEvtReturn OnTextInput( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputText >();
+		ImGuiIO& IO = ImGui::GetIO();
+		// TODO: UTF-8 conversion.
+		for( BcU32 Idx = 0; Idx < 32; ++Idx )
+		{
+			BcU32 Char = Event.Text_[ Idx ];
+			if( Char > 0 && Char < 0x10000 )
+			{
+				IO.AddInputCharacter( (BcU16)Char );
+			}
+			else
+			{
+				break;
+			}
 		}
 		return evtRET_PASS;
 	}
@@ -398,6 +447,7 @@ namespace Psybrus
 		// Register for input.
 		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyDown );
 		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyUp );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_TEXT, OnTextInput );
 		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
 		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
@@ -464,6 +514,7 @@ namespace Psybrus
 		// Unregister input.
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_KEYDOWN, OnKeyDown );
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_KEYUP, OnKeyUp );
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_TEXT, OnTextInput );
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
