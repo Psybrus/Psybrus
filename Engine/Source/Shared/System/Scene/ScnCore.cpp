@@ -121,6 +121,10 @@ void ScnCore::update()
 	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
+	BcU32 PreUpdates = 0;
+	BcU32 Updates = 0;
+	BcU32 PostUpdates = 0;
+
 	// Pre-update.
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
 	{
@@ -135,6 +139,7 @@ void ScnCore::update()
 
 			BcAssert( Component.isValid() && Component->isReady() );
 			Component->preUpdate( Tick );
+			++PreUpdates;
 		}
 	}
 
@@ -152,6 +157,7 @@ void ScnCore::update()
 
 			BcAssert( Component.isValid() && Component->isReady() );
 			Component->update( Tick );
+			++Updates;
 		}
 	}
 
@@ -169,43 +175,56 @@ void ScnCore::update()
 
 			BcAssert( Component.isValid() && Component->isReady() );
 			Component->postUpdate( Tick );
+			++PostUpdates;
 		}
 	}
 
+	// Render some stats.
+#if !PSY_PRODUCTION
 	{
-		static bool show_test_window = true;
-		static bool show_another_window = false;
-		static ImVec4 clear_col = ImColor(114, 144, 154);
-		// Test ImGui stuff.
-		// 1. Show a simple window
-		// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+		static BcF32 GameTimeTotal = 0.0f;
+		static BcF32 FrameTimeTotal = 0.0f;
+		static BcF32 GameTimeAccum = 0.0f;
+		static BcF32 FrameTimeAccum = 0.0f;
+		static int CaptureAmount = 60;
+		static int CaptureAccum = 0;
+		GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
+		FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
+		++CaptureAccum;
+		if( CaptureAccum >= CaptureAmount )
 		{
-			static float f = 0.0f;
-			ImGui::Text("Hello, world!");
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-			ImGui::ColorEdit3("clear color", (float*)&clear_col);
-			if (ImGui::Button("Test Window")) show_test_window ^= 1;
-			if (ImGui::Button("Another Window")) show_another_window ^= 1;
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
+			FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
+			GameTimeAccum = 0.0f;
+			FrameTimeAccum = 0.0f;
+			CaptureAccum = 0;
 		}
 
-		// 2. Show another simple window, this time using an explicit Begin/End pair
-		if (show_another_window)
+		OsClient* Client = OsCore::pImpl()->getClient( 0 );
+		MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
+		static bool ShowOpened = true;
+		ImGui::SetNextWindowPos( WindowPos );
+		if ( ImGui::Begin( "Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 		{
-			ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-			ImGui::Begin("Another Window", &show_another_window);
-			ImGui::Text("Hello");
-			ImGui::End();
-		}
+			ImGui::Text( "Worker count: %u", 
+				SysKernel::pImpl()->workerCount() );
+			ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
+				SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
+			ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
+				SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
 
-		// 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-		if (show_test_window)
-		{
-			ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-			ImGui::ShowTestWindow(&show_test_window);
-		}
+			ImGui::Text( "Component pre-updates: %u", 
+				PreUpdates );
+			ImGui::Text( "Component updates: %u", 
+				Updates );
+			ImGui::Text( "Component post-updates: %u", 
+				PostUpdates );
 
+		}
+		ImGui::End();
 	}
+#endif
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
