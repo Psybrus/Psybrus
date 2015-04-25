@@ -179,8 +179,8 @@ void ScnCore::update()
 		}
 	}
 
-	// Render some stats.
 #if !PSY_PRODUCTION
+	// Render some stats.
 	{
 		static BcF32 GameTimeTotal = 0.0f;
 		static BcF32 FrameTimeTotal = 0.0f;
@@ -223,7 +223,50 @@ void ScnCore::update()
 
 		}
 		ImGui::End();
+
+		//static bool show = true;
+		//ImGui::ShowTestWindow( &show );
 	}
+
+	// Render scene hierarchy.
+	{
+		using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
+		ComponentNodeFunc RecurseNode = 
+			[ & ]( ScnComponent* Component )
+			{
+				if ( ImGui::TreeNode( Component, (*Component->getName()).c_str() ) )
+				{
+					if( Component->isTypeOf< ScnEntity >() )
+					{
+						BcU32 ChildIdx = 0;
+						while( auto Child = Component->getComponent( ChildIdx++ ) )
+						{
+							RecurseNode( Child );
+						}
+					}
+					ImGui::TreePop();
+				}
+			};
+
+		static bool ShowOpened = true;
+		if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
+		{
+			if( ImGui::TreeNode( "Scene Hierarchy" ) )
+			{
+				BcU32 Idx = 0;
+				while( ScnEntityRef Entity = getEntity( Idx++ ) )
+				{
+					if( Entity->getParentEntity() == nullptr )
+					{
+						RecurseNode( Entity );
+					}
+				}
+				ImGui::TreePop();
+			}
+		}
+		ImGui::End();
+	}
+
 #endif
 
 	// Render to all clients.
