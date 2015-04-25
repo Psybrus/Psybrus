@@ -31,6 +31,11 @@ OsClientHTML5::OsClientHTML5()
 	KeyCodeMap_[ SDLK_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
 	KeyCodeMap_[ SDLK_CLEAR ] = OsEventInputKeyboard::KEYCODE_CLEAR;
 	KeyCodeMap_[ SDLK_RETURN ] = OsEventInputKeyboard::KEYCODE_RETURN;
+	KeyCodeMap_[ SDLK_BACKSPACE ] = OsEventInputKeyboard::KEYCODE_BACKSPACE;	
+	KeyCodeMap_[ SDLK_LCTRL ] = OsEventInputKeyboard::KEYCODE_CONTROL;	
+	KeyCodeMap_[ SDLK_LSHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;	
+	KeyCodeMap_[ SDLK_RCTRL ] = OsEventInputKeyboard::KEYCODE_CONTROL;	
+	KeyCodeMap_[ SDLK_RSHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;	
 	KeyCodeMap_[ SDLK_MENU ] = OsEventInputKeyboard::KEYCODE_ALT;
 	KeyCodeMap_[ SDLK_PAUSE ] = OsEventInputKeyboard::KEYCODE_PAUSE;
 	KeyCodeMap_[ SDLK_ESCAPE ] = OsEventInputKeyboard::KEYCODE_ESCAPE;
@@ -305,6 +310,18 @@ void OsClientHTML5::handleMouseEvent( const SDL_Event& SDLEvent )
 		}
 		break;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleTextInputEvent
+void OsClientHTML5::handleTextInputEvent( const SDL_Event& SDLEvent )
+{
+	OsEventInputText Event;
+	Event.DeviceID_ = 0;
+	memcpy( Event.Text_, SDLEvent.text.text, sizeof( SDLEvent.text.text ) );
+
+	OsCore::pImpl()->publish( osEVT_INPUT_TEXT, Event ); // TODO: REMOVE OLD!
+	EvtPublisher::publish( osEVT_INPUT_TEXT, Event );
 }
 
 //////////////////////////////////////////////////////////////////////////
