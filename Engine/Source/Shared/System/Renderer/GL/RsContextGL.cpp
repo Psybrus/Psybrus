@@ -340,7 +340,15 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode ),
 	FrameCount_( 0 ),
+	DirtyFrameBuffer_( BcTrue ),
 	FrameBuffer_( nullptr ),
+	DirtyViewport_( BcTrue ),
+	Viewport_(),
+	DirtyScissor_( BcTrue ),
+	ScissorX_( 0 ),
+	ScissorY_( 0 ),
+	ScissorW_( 0 ),
+	ScissorH_( 0 ),
 	GlobalVAO_( 0 ),
 	ProgramDirty_( BcTrue ),
 	BindingsDirty_( BcTrue ),
@@ -1468,11 +1476,13 @@ bool RsContextGL::updateTexture(
 			1 );
 		std::vector< BcU8 > Data( DataSize );
 
+		BcU32 SlicePitch = DataSize / Depth;
+		BcU32 Pitch = SlicePitch / Height;
 		RsTextureLock Lock = 
 		{
 			&Data[ 0 ],
-			TextureDesc.Width_,
-			TextureDesc.Width_ * TextureDesc.Height_
+			Pitch,
+			SlicePitch
 		};
 
 		// Call update func.
@@ -2143,8 +2153,23 @@ void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	// TODO: Redundancy.
-	FrameBuffer_ = FrameBuffer;
+	if( FrameBuffer_ != FrameBuffer )
+	{
+		DirtyFrameBuffer_ = BcTrue;
+		FrameBuffer_ = FrameBuffer;
+
+		BcU32 Width = getWidth();
+		BcU32 Height = getHeight();
+		if( FrameBuffer )
+		{
+			const auto& FBDesc = FrameBuffer->getDesc();
+			const auto& TexDesc = FBDesc.RenderTargets_[ 0 ]->getDesc();
+			Width = TexDesc.Width_;
+			Height = TexDesc.Height_;
+		}
+		auto Viewport = RsViewport( 0.0f, 0.0f, Width, Height );
+		setViewport( Viewport );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2262,7 +2287,7 @@ void RsContextGL::flushState()
 		const auto& VertexDeclarationDesc = VertexDeclaration_->getDesc();
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
-		// Bind progra
+		// Bind program
 		RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
 
 		glUseProgram( ProgramImpl->Handle_ );
@@ -2439,6 +2464,17 @@ void RsContextGL::flushState()
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
+	if( DirtyViewport_ )
+	{
+		glViewport( Viewport_.x(), Viewport_.y(), Viewport_.width(), Viewport_.height() );
+		DirtyViewport_ = BcFalse;
+	}
+	if( DirtyScissor_ )
+	{
+		glScissor( ScissorX_, ScissorY_, ScissorW_, ScissorH_ );
+		DirtyScissor_ = BcFalse;
+	}
+
 	RsGLCatchError();
 }
 
@@ -2516,8 +2552,47 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	glViewport( Viewport.x(), Viewport.y(), Viewport.width(), Viewport.height() );
-	RsGLCatchError();
+	// Convert to top-left.
+	auto X = Viewport.x();
+	auto Y = getHeight() - Viewport.height();
+	auto W = Viewport.width() - Viewport.x();
+	auto H = Viewport.height() - Viewport.y();
+	auto NewViewport = RsViewport( X, Y, W, H );
+	if( Viewport_.x() != NewViewport.x() ||
+		Viewport_.y() != NewViewport.y() ||
+		Viewport_.width() != NewViewport.width() ||
+		Viewport_.height() != NewViewport.height() )
+	{
+		DirtyViewport_ = BcTrue;
+		DirtyScissor_ = BcTrue;
+		Viewport_ = NewViewport;
+		ScissorX_ = X;
+		ScissorY_ = Y;
+		ScissorW_ = W;
+		ScissorH_ = H;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setScissorRect
+void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
+{
+	auto SX = X;
+	auto SY = getHeight() - Height;
+	auto SW = Width - X;
+	auto SH = Height - Y;
+
+	if( ScissorX_ != SX ||
+		ScissorY_ != SY ||
+		ScissorW_ != SW ||
+		ScissorH_ != SH )
+	{
+		DirtyScissor_ = BcTrue;
+		ScissorX_ = SX;
+		ScissorY_ = SY;
+		ScissorW_ = SW;
+		ScissorH_ = SH;	
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2994,7 +3069,19 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	// TODO DepthBias_
 	// TODO SlopeScaledDepthBias_
 	// TODO DepthClipEnable_
-	// TODO ScissorEnable_
+
+	if( Force ||
+		RasteriserState.ScissorEnable_ != BoundRasteriserState.ScissorEnable_ )
+	{
+		if( RasteriserState.ScissorEnable_ )
+		{
+			glEnable( GL_SCISSOR_TEST );
+		}
+		else
+		{
+			glDisable( GL_SCISSOR_TEST );
+		}
+	}
 
 	if( Version_.SupportAntialiasedLines_ )
 	{

@@ -18,8 +18,8 @@
 #include "System/Renderer/GL/RsGL.h"
 
 #include "System/Renderer/RsBuffer.h"
-
 #include "System/Renderer/RsRenderState.h"
+#include "System/Renderer/RsViewport.h"
 
 #include "Base/BcMisc.h"
 
@@ -174,7 +174,8 @@ public:
 	void drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices );
 	void drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
 
-	void setViewport( class RsViewport& Viewport );
+	void setViewport( class RsViewport& Viewport ) override;
+	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
@@ -247,7 +248,14 @@ private:
 	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
 
 	// Frame buffer.
+	BcBool DirtyFrameBuffer_;
 	class RsFrameBuffer* FrameBuffer_;
+	
+	// Viewport.
+	BcBool DirtyViewport_;
+	RsViewport Viewport_;
+	BcBool DirtyScissor_;
+	BcS32 ScissorX_, ScissorY_, ScissorW_, ScissorH_;
 
 	// Texture binding.
 	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;

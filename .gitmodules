@@ -19,3 +19,6 @@
 [submodule "External/RakNet"]
 	path = External/RakNet
 	url = https://github.com/Psybrus/RakNet
+[submodule "External/imgui"]
+	path = External/imgui
+	url = https://github.com/Psybrus/imgui

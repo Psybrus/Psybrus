@@ -108,9 +108,7 @@ private:
 	void						processPendingComponents();
 
 private:
-	ScnEntity*					internalSpawnEntity( 
-		ScnEntitySpawnParams Params );
-
+	ScnEntity*					internalSpawnEntity( ScnEntitySpawnParams Params );
 	void						onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
 
 private:

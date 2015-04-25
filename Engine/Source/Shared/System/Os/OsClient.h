@@ -37,6 +37,11 @@ public:
 	virtual BcHandle getDeviceHandle() = 0;
 
 	/**
+ 	 * Get window handle.
+	 */
+	virtual BcHandle getWindowHandle() = 0;
+
+	/**
  	 * Get width.
 	 */
 	virtual BcU32 getWidth() const = 0;

@@ -91,6 +91,16 @@ public:
 	virtual void setFrameBuffer( class RsFrameBuffer* FrameBuffer ) = 0;
 
 	/**
+	 * Set viewport.
+	 */
+	virtual void setViewport( class RsViewport& Viewport ) = 0;
+
+	/**
+	 * Set scissor rect.
+	 */
+	virtual void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) { BcBreakpoint; };
+
+	/**
 	 * Clear.
 	 */
 	virtual void clear( 
