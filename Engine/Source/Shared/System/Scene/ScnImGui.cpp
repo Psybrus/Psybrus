@@ -17,6 +17,8 @@
 
 #include "System/SysFence.h"
 
+#include "Base/BcMath.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Cast operators.
 ImVec2::ImVec2(const MaCPUVec2d& f):
@@ -154,11 +156,6 @@ namespace
 						{
 							const ImDrawList* CmdList = CmdLists_[ CmdListIdx ];
 							memcpy( Vertices, &CmdList->vtx_buffer[0], CmdList->vtx_buffer.size() * sizeof( ImDrawVert ) );
-							// TODO: Move to vertex shader.
-							for( size_t VertIdx = 0; VertIdx < CmdList->vtx_buffer.size(); ++VertIdx )
-							{
-								Vertices[ VertIdx ].pos = Vertices[ VertIdx ].pos * UniformBlock_.ClipTransform_;
-							}
 							Vertices += CmdList->vtx_buffer.size();
 							NoofVertices += CmdList->vtx_buffer.size();
 							BcAssert( (BcU8*)Vertices <= ((BcU8*)Lock.Buffer_) + Buffer->getDesc().SizeBytes_ );
@@ -363,6 +360,7 @@ namespace Psybrus
 {
 	bool Init()
 	{
+		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		VertexDeclaration_.reset( RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 3 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->pos),  2, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
@@ -396,10 +394,17 @@ namespace Psybrus
 		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
 		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc );
 
+		auto SamplerStateDesc = RsSamplerStateDesc();
+		SamplerStateDesc.AddressU_ = RsTextureSamplingMode::CLAMP;
+		SamplerStateDesc.AddressV_ = RsTextureSamplingMode::CLAMP;
+		SamplerStateDesc.AddressW_ = RsTextureSamplingMode::CLAMP;
+		FontSampler_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc );
 		unsigned char* Pixels = nullptr;
 		int Width, Height;
 		ImGuiIO& IO = ImGui::GetIO();
 		IO.Fonts->GetTexDataAsRGBA32( &Pixels, &Width, &Height );
+
+		PSY_LOG( "Creating texture %ux%u", Width, Height );
 		FontTexture_.reset( RsCore::pImpl()->createTexture(
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
@@ -483,6 +488,7 @@ namespace Psybrus
 
 	void NewFrame()
 	{
+		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		// Wait till render thread has done the last frame.
 		RenderThreadFence_.wait();
 
@@ -498,6 +504,7 @@ namespace Psybrus
 
 	void Render( RsContext* Context, RsFrame* Frame )
 	{
+		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		if( DefaultProgram_ != nullptr && TexturedProgram_ != nullptr )
 		{
 			RenderThreadFence_.wait();
@@ -509,6 +516,7 @@ namespace Psybrus
 
 	void Shutdown()
 	{
+		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		ImGui::Shutdown();
 
 		// Unregister input.
