@@ -119,7 +119,23 @@ BcBool OsClientHTML5::create( const BcChar* pTitle, BcHandle Instance, BcU32 Wid
 
 	Width_ = Width;
 	Height_ = Height;
-	
+
+#if 0
+	EmscriptenFullscreenStrategy Strategy;
+	Strategy.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_CENTER;
+	Strategy.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_NONE;
+	Strategy.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
+	Strategy.canvasResizedCallback = []( int EventType, const void* Reserved, void* UserData )->EM_BOOL
+		{
+			PSY_LOG( "Fullscreen callback." );
+			OsClientHTML5* Client = static_cast< OsClientHTML5* >( UserData );
+			Client->setWindowSize();
+			return 1;
+		};
+	Strategy.canvasResizedCallbackUserData = this;
+	auto RetVal = emscripten_enter_soft_fullscreen( "canvas", &Strategy );
+#endif
+
 	return BcTrue;
 }
 
@@ -134,6 +150,8 @@ void OsClientHTML5::update()
 // destroy
 void OsClientHTML5::destroy()
 {	
+	emscripten_exit_fullscreen();
+
 	SDL_FreeSurface( SDLSurface_ );
 	SDLSurface_ = nullptr;
 }

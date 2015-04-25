@@ -187,7 +187,7 @@ typedef std::size_t					BcSize;
 #define BcTrue						BcBool( 1 )
 #define BcFalse						BcBool( 0 )
 
-#define BcBreakpoint				assert(0)
+#define BcBreakpoint				emscripten_debugger()
 
 #define BcErrorCode					0xffffffff
 #define BcLogWrite( t )
