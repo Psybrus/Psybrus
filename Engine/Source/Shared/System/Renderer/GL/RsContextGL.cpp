@@ -340,7 +340,15 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode ),
 	FrameCount_( 0 ),
+	DirtyFrameBuffer_( BcTrue ),
 	FrameBuffer_( nullptr ),
+	DirtyViewport_( BcTrue ),
+	Viewport_(),
+	DirtyScissor_( BcTrue ),
+	ScissorX_( 0 ),
+	ScissorY_( 0 ),
+	ScissorW_( 0 ),
+	ScissorH_( 0 ),
 	GlobalVAO_( 0 ),
 	ProgramDirty_( BcTrue ),
 	BindingsDirty_( BcTrue ),
@@ -2145,8 +2153,23 @@ void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	// TODO: Redundancy.
-	FrameBuffer_ = FrameBuffer;
+	if( FrameBuffer_ != FrameBuffer )
+	{
+		DirtyFrameBuffer_ = BcTrue;
+		FrameBuffer_ = FrameBuffer;
+
+		BcU32 Width = getWidth();
+		BcU32 Height = getHeight();
+		if( FrameBuffer )
+		{
+			const auto& FBDesc = FrameBuffer->getDesc();
+			const auto& TexDesc = FBDesc.RenderTargets_[ 0 ]->getDesc();
+			Width = TexDesc.Width_;
+			Height = TexDesc.Height_;
+		}
+		auto Viewport = RsViewport( 0.0f, 0.0f, Width, Height );
+		setViewport( Viewport );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2441,6 +2464,17 @@ void RsContextGL::flushState()
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
+	if( DirtyViewport_ )
+	{
+		glViewport( Viewport_.x(), Viewport_.y(), Viewport_.width(), Viewport_.height() );
+		DirtyViewport_ = BcFalse;
+	}
+	if( DirtyScissor_ )
+	{
+		glScissor( ScissorX_, ScissorY_, ScissorW_, ScissorH_ );
+		DirtyScissor_ = BcFalse;
+	}
+
 	RsGLCatchError();
 }
 
@@ -2523,10 +2557,20 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 	auto Y = getHeight() - Viewport.height();
 	auto W = Viewport.width() - Viewport.x();
 	auto H = Viewport.height() - Viewport.y();
-
-	glViewport( X, Y, W, H );
-	glScissor( X, Y, W, H );
-	RsGLCatchError();
+	auto NewViewport = RsViewport( X, Y, W, H );
+	if( Viewport_.x() != NewViewport.x() ||
+		Viewport_.y() != NewViewport.y() ||
+		Viewport_.width() != NewViewport.width() ||
+		Viewport_.height() != NewViewport.height() )
+	{
+		DirtyViewport_ = BcTrue;
+		DirtyScissor_ = BcTrue;
+		Viewport_ = NewViewport;
+		ScissorX_ = X;
+		ScissorY_ = Y;
+		ScissorW_ = W;
+		ScissorH_ = H;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2537,8 +2581,18 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 	auto SY = getHeight() - Height;
 	auto SW = Width - X;
 	auto SH = Height - Y;
-	glScissor( SX, SY, SW, SH );
-	RsGLCatchError();
+
+	if( ScissorX_ != SX ||
+		ScissorY_ != SY ||
+		ScissorW_ != SW ||
+		ScissorH_ != SH )
+	{
+		DirtyScissor_ = BcTrue;
+		ScissorX_ = SX;
+		ScissorY_ = SY;
+		ScissorW_ = SW;
+		ScissorH_ = SH;	
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
