@@ -2204,7 +2204,7 @@ void RsContextGL::flushState()
 #if 1
 		// TODO: State setting is a bit broken for some reason,
 		//       investigate this later.
-		setRenderStateDesc( Desc, BcTrue );
+		setRenderStateDesc( Desc, BcFalse );
 #else
 		if( RenderState_->getHandle< BcU64 >() != LastRenderStateHandle_ )
 		{
@@ -2490,6 +2490,14 @@ void RsContextGL::clear(
 	flushState();
 	glClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() );
 	
+	// Disable scissor if we need to.
+	auto& BoundRasteriserState = BoundRenderStateDesc_.RasteriserState_;
+	if( BoundRasteriserState.ScissorEnable_ )
+	{
+		glDisable( GL_SCISSOR_TEST );
+		BoundRasteriserState.ScissorEnable_ = BcFalse;
+	}
+
 	// TODO: Look into this? It causes an invalid operation.
 	if( Version_.Type_ != RsOpenGLType::ES )
 	{
