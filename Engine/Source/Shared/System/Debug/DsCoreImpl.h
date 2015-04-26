@@ -30,6 +30,22 @@
 #endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
+/**	\class DsPanelDefinition
+*/
+struct DsPanelDefinition
+{
+	DsPanelDefinition( std::string Name, std::function< void( BcU32 ) > Func, BcU32 Handle ) :
+		Name_( Name ),
+		Function_( Func ),
+		Handle_( Handle )
+	{}
+
+	std::string Name_;
+	std::function< void( BcU32 ) > Function_;
+	BcU32 Handle_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 /**	\class DsPageDefinition
 */
 struct DsPageDefinition
@@ -92,17 +108,18 @@ public:
 	DsCoreImpl();
 	virtual ~DsCoreImpl();
 
-	virtual void open();
-	virtual void update();
-	virtual void close();
+	void open() override;
+	void update() override;
+	void close() override;
 
-	virtual BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display ) override;
-	virtual BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
-	virtual BcU32 registerPageNoHtml( std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
-	virtual void deregisterPage( BcU32 Handle ) override;
-
-	virtual BcU32 registerFunction( std::string Display, std::function< void() > Function ) override;
-	virtual void deregisterFunction( BcU32 Handle ) override;
+	BcU32 registerPanel( std::string Name, std::function < void( BcU32 )> Func ) override;
+	void deregisterPanel( BcU32 Handle ) override;
+	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display ) override;
+	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
+	BcU32 registerPageNoHtml( std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
+	void deregisterPage( BcU32 Handle ) override;
+	BcU32 registerFunction( std::string Display, std::function< void() > Function ) override;
+	void deregisterFunction( BcU32 Handle ) override;
 
 private:
 	char* handleFile( std::string Uri, int& FileSize, std::string Content );
@@ -153,6 +170,7 @@ private:
 #endif // USE_WEBBY
 	
 protected:
+	std::vector< DsPanelDefinition > PanelFunctions_;
 	std::vector< DsPageDefinition > PageFunctions_;
 	std::vector< DsFunctionDefinition > ButtonFunctions_;
 	BcU32 NextHandle_;

@@ -73,8 +73,7 @@ void DsCoreImpl::open()
 		WSADATA wsa_data;
 		if (0 != WSAStartup(wsa_version, &wsa_data))
 		{
-			BcLog* log = BcLog::pImpl();
-			log->write(0, "WSAStartup failed");
+			PSY_LOG( "WSAStartup failed" );
 			fprintf(stderr, "WSAStartup failed\n");
 			return;
 		}
@@ -100,10 +99,8 @@ void DsCoreImpl::open()
 
 	if (!Server_)
 	{
-		BcLog* log = BcLog::pImpl();
-		log->write(0, "Failed to initialise Webby server");
+		PSY_LOG( "Failed to initialise Webby server" );
 		fprintf(stderr, "failed to init server\n");
-		
 	}
 
 
@@ -117,8 +114,13 @@ void DsCoreImpl::open()
 void DsCoreImpl::update()
 {
 #if USE_WEBBY
-     WebbyServerUpdate(Server_);
+    WebbyServerUpdate( Server_ );
 #endif
+
+	for( auto& Panel : PanelFunctions_ )
+	{
+		Panel.Function_( Panel.Handle_ );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,14 +253,50 @@ int DsCoreImpl::externalWebbyFrame(WebbyConnection *connection, const WebbyWsFra
 #endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
+// registerPanel
+BcU32 DsCoreImpl::registerPanel( std::string Name, std::function < void( BcU32 )> Func )
+{
+	BcAssert( BcIsGameThread() );
+	BcU32 Handle = ++NextHandle_;
+	PanelFunctions_.emplace_back( Name, Func, Handle );
+	PSY_LOG( "Function registered." );
+	PSY_LOG( "\t%s (%u)", Name.c_str(), Handle );
+	return Handle;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterPanel
+void DsCoreImpl::deregisterPanel( BcU32 Handle )
+{
+	auto FoundIt = std::find_if( PanelFunctions_.begin(), PanelFunctions_.end(),
+		[ & ]( DsPanelDefinition& PanelDef )
+		{
+			return PanelDef.Handle_ == Handle;
+		} );
+	if( FoundIt != PanelFunctions_.end() )
+	{
+		PSY_LOG( "Panel deregistered." );
+		PSY_LOG( "\t%s (%u)", FoundIt->Name_.c_str(), Handle );
+	}
+	else
+	{
+		PSY_LOG( "Panel deregister failed." );
+		PSY_LOG( "\tHandle: %u", Handle );
+	}
+	BcAssert( BcIsGameThread() );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // registerFunction
 BcU32 DsCoreImpl::registerFunction(std::string Display, std::function<void()> Function)
 {
-	++NextHandle_;
-	BcU32 Handle = NextHandle_;
+	BcAssert( BcIsGameThread() );
+	BcU32 Handle = ++NextHandle_;
 	ButtonFunctions_.push_back( DsFunctionDefinition( Display, Function, Handle ) );
-	BcLog::pImpl()->write( "DsCore: Function registered." );
-	BcLog::pImpl()->write( "\t%s (%u)", Display.c_str(), Handle );
+	PSY_LOG( "Function registered." );
+	PSY_LOG( "\t%s (%u)", Display.c_str(), Handle );
 	return Handle;
 }
 
@@ -266,13 +304,14 @@ BcU32 DsCoreImpl::registerFunction(std::string Display, std::function<void()> Fu
 // registerPage
 void DsCoreImpl::deregisterFunction(BcU32 Handle)
 {
+	BcAssert( BcIsGameThread() );
 	BcBool functionRemoved = false;
 	for (auto iter = ButtonFunctions_.begin(); iter != ButtonFunctions_.end(); ++iter)
 	{
 		if ((*iter).Handle_ == Handle)
 		{
-			BcLog::pImpl()->write( "DsCore: Function deregistered." );
-			BcLog::pImpl()->write( "\t%s (%u)", (*iter).DisplayText_.c_str(), Handle );
+			PSY_LOG( "Function deregistered." );
+			PSY_LOG( "\t%s (%u)", (*iter).DisplayText_.c_str(), Handle );
 			ButtonFunctions_.erase( iter );
 			functionRemoved = true;
 			break;
@@ -280,8 +319,8 @@ void DsCoreImpl::deregisterFunction(BcU32 Handle)
 	}
 	if ( !functionRemoved )
 	{
-		BcLog::pImpl()->write( "DsCore: Function deregister failed." );
-		BcLog::pImpl()->write( "\tHandle: %u", Handle );
+		PSY_LOG( "Function deregister failed." );
+		PSY_LOG( "\tHandle: %u", Handle );
 
 	}
 }
@@ -290,15 +329,15 @@ void DsCoreImpl::deregisterFunction(BcU32 Handle)
 // registerPage
 BcU32 DsCoreImpl::registerPage(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display)
 {
-	++NextHandle_;
-	BcU32 Handle = NextHandle_;
+	BcAssert( BcIsGameThread() );
+	BcU32 Handle = ++NextHandle_;
 
 	DsPageDefinition cm(regex, namedCaptures, display);
 	cm.Function_ = fn;
 	PageFunctions_.push_back(cm);
 	DsCoreLogging::pImpl()->addLog( "DsCore", rand(), "Registering page: " + display );
-	BcLog::pImpl()->write( "DsCore: Registered page" );
-	BcLog::pImpl()->write( "\t%s (%s)", regex.c_str(), display.c_str() );
+	PSY_LOG( "Registered page" );
+	PSY_LOG( "\t%s (%s)", regex.c_str(), display.c_str() );
 
 	return Handle;
 }
@@ -314,8 +353,8 @@ BcU32 DsCoreImpl::registerPage(std::string regex, std::vector<std::string> named
 	cm.Function_ = fn;
 	cm.IsHtml_ = true;
 	PageFunctions_.push_back(cm);
-	BcLog::pImpl()->write( "DsCore: Registered page (No content index)" );
-	BcLog::pImpl()->write( "\t%s (%u)", regex.c_str(), Handle );
+	PSY_LOG( "Registered page (No content index)" );
+	PSY_LOG( "\t%s (%u)", regex.c_str(), Handle );
 
 	return Handle;
 }
@@ -324,15 +363,15 @@ BcU32 DsCoreImpl::registerPage(std::string regex, std::vector<std::string> named
 // registerPageNoHtml
 BcU32 DsCoreImpl::registerPageNoHtml(std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn)
 {
-	++NextHandle_;
-	BcU32 Handle = NextHandle_;
+	BcAssert( BcIsGameThread() );
+	BcU32 Handle = ++NextHandle_;
 
 	DsPageDefinition cm( regex, namedCaptures );
 	cm.Function_ = fn;
 	cm.IsHtml_ = false;
 	PageFunctions_.push_back(cm);
-	BcLog::pImpl()->write( "DsCore: Registered page without html" );
-	BcLog::pImpl()->write( "\t%s (%u)", regex.c_str(), Handle );
+	PSY_LOG( "Registered page without html" );
+	PSY_LOG( "\t%s (%u)", regex.c_str(), Handle );
 
 	return Handle;
 }
@@ -341,6 +380,7 @@ BcU32 DsCoreImpl::registerPageNoHtml(std::string regex, std::vector<std::string>
 // deregisterPage
 void DsCoreImpl::deregisterPage( BcU32 Handle )
 {
+	BcAssert( BcIsGameThread() );
 	BcBool pageRemoved = false;
 	for (auto iter = PageFunctions_.begin(); iter != PageFunctions_.end(); ++iter)
 	{
@@ -351,8 +391,8 @@ void DsCoreImpl::deregisterPage( BcU32 Handle )
 			break;
 		}
 	}
-	BcLog::pImpl()->write( "DsCore: Page deregistration failed." );
-	BcLog::pImpl()->write( "\tHandle: %u", Handle );
+	PSY_LOG( "Page deregistration failed." );
+	PSY_LOG( "\tHandle: %u", Handle );
 
 }
 

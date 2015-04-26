@@ -52,6 +52,12 @@ public:
 	virtual void update() = 0;
 	virtual void close() = 0;
 
+	virtual BcU32 registerPanel( 
+		std::string Name,
+		std::function < void( BcU32 )> Func ) = 0;
+
+	virtual void deregisterPanel( BcU32 Handle ) = 0;
+
 	virtual BcU32 registerPage( 
 		std::string regex, 
 		std::vector< std::string > namedCaptures, 
