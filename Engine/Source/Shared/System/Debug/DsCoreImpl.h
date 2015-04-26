@@ -30,7 +30,54 @@
 #endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
-/**	\class DsCore
+/**	\class DsPageDefinition
+*/
+struct DsPageDefinition
+{
+	DsPageDefinition(std::string r, std::vector<std::string> namedCaptures, std::string display)
+		: Regex_(r.c_str()),
+		NamedCaptures_( namedCaptures ),
+		Text_(r),
+		Display_(display),
+		Visible_(true),
+		IsHtml_(true) 
+	{}
+
+	DsPageDefinition(std::string r, std::vector<std::string> namedCaptures)
+		: Regex_(r.c_str()), 
+		NamedCaptures_( namedCaptures ),
+		Text_(r),
+		Visible_(false),
+		IsHtml_(true)
+	{}
+
+	std::regex Regex_;
+	std::vector<std::string> NamedCaptures_; 
+	std::string Text_;
+	std::string Display_;
+	bool Visible_;
+	bool IsHtml_;
+	std::function <void(DsParameters, BcHtmlNode&, std::string)> Function_;
+	BcU32 Handle_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+/**	\class DsFunctionDefinition
+*/
+struct DsFunctionDefinition
+{
+	DsFunctionDefinition(std::string text, std::function<void()> fn, BcU32 handle)
+	:
+	DisplayText_( text ), Function_( fn ), Handle_( handle )
+	{}
+
+	std::string DisplayText_;
+	std::function<void()> Function_;
+	BcU32 Handle_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+/**	\class DsCoreImpl
 *	\brief Debug System Core
 *
 *	Debugging system core.
@@ -45,15 +92,42 @@ public:
 	DsCoreImpl();
 	virtual ~DsCoreImpl();
 
-	virtual void				open();
-	virtual void				update();
-	virtual void				close();
+	virtual void open();
+	virtual void update();
+	virtual void close();
+
+	virtual BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display ) override;
+	virtual BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
+	virtual BcU32 registerPageNoHtml( std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
+	virtual void deregisterPage( BcU32 Handle ) override;
+
+	virtual BcU32 registerFunction( std::string Display, std::function< void() > Function ) override;
+	virtual void deregisterFunction( BcU32 Handle ) override;
 
 private:
-//	BcMutex						Lock_;
-	SysFence					GameThreadWaitFence_;
+	char* handleFile( std::string Uri, int& FileSize, std::string Content );
+	std::string loadHtmlFile( std::string Uri, std::string Content );
+	std::string loadTemplateFile( std::string TemplateName );
 
+	void writeHeader( BcHtmlNode& Output );
+	void writeFooter( BcHtmlNode& Output );
+	char* writeFile( std::string filename, int& OutLength, std::string& type );
 
+private:
+	void cmdMenu(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdContent(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdScene(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdScene_Entity(ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth);
+	void cmdScene_Component(ScnComponentRef Entity, BcHtmlNode& Output, BcU32 Depth);
+	void cmdLog(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdResource(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdResourceEdit(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdWADL(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdJsonSerialiser(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdViewFunctions(DsParameters params, BcHtmlNode& Output, std::string PostContent);
+	void cmdJson(DsParameters params, BcHtmlNode& Output, std::string PostContent);					
+
+private:
 #if USE_WEBBY
 	// Variables for Webby
 	int							ConnectionCount_;
@@ -77,6 +151,11 @@ private:
 	void						webbyClosed(WebbyConnection *connection);
 	int							webbyFrame(WebbyConnection *connection, const WebbyWsFrame *frame);
 #endif // USE_WEBBY
+	
+protected:
+	std::vector< DsPageDefinition > PageFunctions_;
+	std::vector< DsFunctionDefinition > ButtonFunctions_;
+	BcU32 NextHandle_;
 
 };
 
