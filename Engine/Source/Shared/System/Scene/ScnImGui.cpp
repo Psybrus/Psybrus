@@ -162,8 +162,8 @@ namespace
 						}
 					} );
 
-				pContext_->setViewport( Viewport_ );
 				pContext_->setFrameBuffer( nullptr );
+				pContext_->setViewport( Viewport_ );
 				pContext_->setSamplerState( 0, FontSampler_.get() );
 				pContext_->setVertexDeclaration( VertexDeclaration_.get() );
 				pContext_->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
