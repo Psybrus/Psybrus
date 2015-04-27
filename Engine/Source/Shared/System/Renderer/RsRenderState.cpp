@@ -152,8 +152,8 @@ void RsDepthStencilState::StaticRegisterClass()
 }
 
 RsDepthStencilState::RsDepthStencilState( ReNoInit ):
-	DepthTestEnable_( BcTrue ),
-	DepthWriteEnable_( BcTrue ),
+	DepthTestEnable_( BcFalse ),
+	DepthWriteEnable_( BcFalse ),
 	DepthFunc_( RsCompareMode::LESS ),
 	StencilEnable_( BcFalse ),
 	StencilRead_( 0x0 ),
@@ -166,8 +166,8 @@ RsDepthStencilState::RsDepthStencilState( ReNoInit ):
 }
 
 RsDepthStencilState::RsDepthStencilState():
-	DepthTestEnable_( BcTrue ),
-	DepthWriteEnable_( BcTrue ),
+	DepthTestEnable_( BcFalse ),
+	DepthWriteEnable_( BcFalse ),
 	DepthFunc_( RsCompareMode::LESS ),
 	StencilEnable_( BcFalse ),
 	StencilRead_( 0x0 ),

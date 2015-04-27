@@ -1232,10 +1232,11 @@ bool RsContextGL::updateBuffer(
 			glBindBuffer( TypeGL, BufferImpl->Handle_ );
 
 			// NOTE: The map range path should work correctly.
-			//       The else is  very heavy handed way to force orphaning
+			//       The else is a very heavy handed way to force orphaning
 			//       so we don't need to mess around with too much
 			//       synchronisation. 
 			//       NOTE: This is just a bug with the nouveau drivers.
+			//		 TODO: Test this on other drivers.
 #if 0 && !PLATFORM_HTML5
 			// Get access flags for GL.
 			GLbitfield AccessFlagsGL =
@@ -2455,13 +2456,17 @@ void RsContextGL::flushState()
 	}
 
 	// TODO: Redundant state.
-	if( FrameBuffer_ != nullptr )
+	if( DirtyFrameBuffer_ )
 	{
-		glBindFramebuffer( GL_FRAMEBUFFER, FrameBuffer_->getHandle< GLuint >() );
-	}
-	else
-	{
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		if( FrameBuffer_ != nullptr )
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, FrameBuffer_->getHandle< GLuint >() );
+		}
+		else
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		}
+		DirtyFrameBuffer_ = BcFalse;
 	}
 
 	if( DirtyViewport_ )
@@ -2505,7 +2510,12 @@ void RsContextGL::clear(
 	}
 
 	glClearStencil( 0 );
-	glDepthMask( GL_TRUE );
+	auto& BoundDepthStencilState = BoundRenderStateDesc_.DepthStencilState_;
+	if( !BoundDepthStencilState.DepthWriteEnable_ )
+	{
+		glDepthMask( GL_TRUE );
+		BoundDepthStencilState.DepthWriteEnable_ = BcTrue;
+	}
 	glClear( 
 		( EnableClearColour ? GL_COLOR_BUFFER_BIT : 0 ) | 
 		( EnableClearDepth ? GL_DEPTH_BUFFER_BIT : 0 ) | 
