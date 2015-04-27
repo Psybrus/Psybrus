@@ -1,4 +1,5 @@
-#include "System/Scene/ScnImGui.h"
+#include "System/Debug/DsImGui.h"
+
 #include "System/Scene/Rendering/ScnShader.h"
 
 #include "System/Renderer/RsCore.h"
@@ -486,20 +487,36 @@ namespace Psybrus
 		return true;
 	}
 
-	void NewFrame()
+	void WaitFrame()
 	{
 		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		// Wait till render thread has done the last frame.
 		RenderThreadFence_.wait();
+	}
 
-		ImGuiIO& IO = ImGui::GetIO();
+	bool NewFrame()
+	{
+		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		if( Package_ != nullptr )
+		{
+			WaitFrame();
+			ImGuiIO& IO = ImGui::GetIO();
 
-		// Grab client to get current size.
-		OsClient* Client = OsCore::pImpl()->getClient( 0 );
-		IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
+			// Grab client to get current size.
+			if( OsCore::pImpl() )
+			{
+				OsClient* Client = OsCore::pImpl()->getClient( 0 );
+				if( Client )
+				{
+					IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
+				}
+			}
 
-		// Start the frame
-		ImGui::NewFrame();
+			// Start the frame
+			ImGui::NewFrame();
+			return true;
+		}
+		return false;
 	}
 
 	void Render( RsContext* Context, RsFrame* Frame )
@@ -517,6 +534,7 @@ namespace Psybrus
 	void Shutdown()
 	{
 		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		WaitFrame();
 		ImGui::Shutdown();
 
 		// Unregister input.
@@ -528,7 +546,7 @@ namespace Psybrus
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
 
 		Package_->release();
-
+		Package_ = nullptr;
 		BcAssert( DrawContext_ == nullptr );
 		BcAssert( DrawFrame_ == nullptr );
 		VertexDeclaration_.reset();

@@ -22,7 +22,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
-#include "System/Scene/ScnImGui.h"
+#include "System/Debug/DsImGui.h"
+
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
@@ -105,10 +106,6 @@ void ScnCore::open()
 	BcAssert( NoofComponentLists_ > 0 );
 
 	pComponentLists_ = new ScnComponentList[ NoofComponentLists_ ];	 
-
-	// Initialise ImGui.
-	ImGui::Psybrus::Init();
-	ImGui::Psybrus::NewFrame();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -307,11 +304,9 @@ void ScnCore::update()
 				Sort.Viewport_++;
 			}
 
-			// Only render to the first client.
-			if( Idx == 0 )
-			{
-				ImGui::Psybrus::Render( pContext, pFrame );
-			}
+			// TODO: Move completely to DsCore.
+			// Render ImGui.
+			ImGui::Psybrus::Render( pContext, pFrame );
 
 			// Queue frame for render.
 			RsCore::pImpl()->queueFrame( pFrame );
@@ -322,9 +317,6 @@ void ScnCore::update()
 	// We do this because they can be immediately created,
 	// and need a create tick from CsCore next frame.
 	processPendingComponents();
-
-	// Start new imgui frame.
-	ImGui::Psybrus::NewFrame();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,8 +324,6 @@ void ScnCore::update()
 //virtual
 void ScnCore::close()
 {
-	ImGui::Psybrus::Shutdown();
-
 	removeAllEntities();
 	processPendingComponents();
 

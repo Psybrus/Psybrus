@@ -12,19 +12,21 @@
 **************************************************************************/
 
 #include "System/Debug/DsCoreImpl.h"
-#include "Base/BcHtml.h"
-#include "System/SysKernel.h"
-#include "Psybrus.h"
+#include "System/Debug/DsCoreLogging.h"
+#include "System/Debug/DsImGui.h"
+#include "System/Debug/DsTemplate.h"
 
 #include "Base/BcFile.h"
 #include "Base/BcHtml.h"
-#include "System/SysKernel.h"
 #include "Serialisation/SeJsonWriter.h"
-#include "Psybrus.h"
-#include "DsTemplate.h"
-#include "System/Content/CsSerialiserPackageObjectCodec.h"
-#include "System/Debug/DsCoreLogging.h"
 
+#include "System/SysKernel.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
+#include "System/Os/OsCore.h"
+
+#include "System/Scene/ScnCore.h"
+
+#include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -102,10 +104,22 @@ void DsCoreImpl::open()
 		PSY_LOG( "Failed to initialise Webby server" );
 		fprintf(stderr, "failed to init server\n");
 	}
-
-
 #endif
-	//pContext_ = mg_start(&DsCoreImpl::MongooseCallback, NULL, Options);
+	// Setup init/deinit hooks.
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
+		[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			ImGui::Psybrus::Init();
+			return evtRET_REMOVE;
+		} );
+
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			ImGui::Psybrus::Shutdown();
+			return evtRET_REMOVE;
+		} );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -116,10 +130,12 @@ void DsCoreImpl::update()
 #if USE_WEBBY
     WebbyServerUpdate( Server_ );
 #endif
-
-	for( auto& Panel : PanelFunctions_ )
-	{
-		Panel.Function_( Panel.Handle_ );
+    if( ImGui::Psybrus::NewFrame() )
+    {
+		for( auto& Panel : PanelFunctions_ )
+		{
+			Panel.Function_( Panel.Handle_ );
+		}
 	}
 }
 
@@ -128,8 +144,7 @@ void DsCoreImpl::update()
 //virtual
 void DsCoreImpl::close()
 {
-	//mg_stop( pContext_ );
-	//pContext_ = NULL;
+
 #if USE_WEBBY
 	free(ServerMemory_);
 #endif
