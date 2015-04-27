@@ -18,8 +18,7 @@
 #include "Base/BcHtml.h"
 
 #include "System/SysSystem.h"
-#include "System/Content/CsCore.h"
-#include "System/Scene/ScnCore.h"
+#include "System/Debug/DsImGui.h"
 
 #include <functional>
 #include <map>

@@ -22,7 +22,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
-#include "System/Debug/DsImGui.h"
+#include "System/Debug/DsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
@@ -106,6 +106,87 @@ void ScnCore::open()
 	BcAssert( NoofComponentLists_ > 0 );
 
 	pComponentLists_ = new ScnComponentList[ NoofComponentLists_ ];	 
+
+#if !PSY_PRODUCTION
+	DsCore::pImpl()->registerPanel( 
+		"Scene stats", [ this ]( BcU32 )->void
+		{
+			static BcF32 GameTimeTotal = 0.0f;
+			static BcF32 FrameTimeTotal = 0.0f;
+			static BcF32 GameTimeAccum = 0.0f;
+			static BcF32 FrameTimeAccum = 0.0f;
+			static int CaptureAmount = 60;
+			static int CaptureAccum = 0;
+			GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
+			FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
+			++CaptureAccum;
+			if( CaptureAccum >= CaptureAmount )
+			{
+				GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
+				FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
+				GameTimeAccum = 0.0f;
+				FrameTimeAccum = 0.0f;
+				CaptureAccum = 0;
+			}
+
+			OsClient* Client = OsCore::pImpl()->getClient( 0 );
+			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
+			static bool ShowOpened = true;
+			ImGui::SetNextWindowPos( WindowPos );
+			if ( ImGui::Begin( "Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			{
+				ImGui::Text( "Worker count: %u", 
+					SysKernel::pImpl()->workerCount() );
+				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
+				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
+
+			}
+			ImGui::End();
+		} );
+
+	DsCore::pImpl()->registerPanel(
+		"Scene hierarchy", [ this ]( BcU32 )->void
+		{
+			// Render scene hierarchy.
+			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
+			ComponentNodeFunc RecurseNode = 
+				[ & ]( ScnComponent* Component )
+				{
+					if ( ImGui::TreeNode( Component, (*Component->getName()).c_str() ) )
+					{
+						if( Component->isTypeOf< ScnEntity >() )
+						{
+							BcU32 ChildIdx = 0;
+							while( auto Child = Component->getComponent( ChildIdx++ ) )
+							{
+								RecurseNode( Child );
+							}
+						}
+						ImGui::TreePop();
+					}
+				};
+
+			static bool ShowOpened = true;
+			if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
+			{
+				if( ImGui::TreeNode( "Scene Hierarchy" ) )
+				{
+					BcU32 Idx = 0;
+					while( ScnEntityRef Entity = getEntity( Idx++ ) )
+					{
+						if( Entity->getParentEntity() == nullptr )
+						{
+							RecurseNode( Entity );
+						}
+					}
+					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,10 +198,6 @@ void ScnCore::update()
 
 	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
-
-	BcU32 PreUpdates = 0;
-	BcU32 Updates = 0;
-	BcU32 PostUpdates = 0;
 
 	// Pre-update.
 	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
@@ -136,7 +213,6 @@ void ScnCore::update()
 
 			BcAssert( Component.isValid() && Component->isReady() );
 			Component->preUpdate( Tick );
-			++PreUpdates;
 		}
 	}
 
@@ -154,7 +230,6 @@ void ScnCore::update()
 
 			BcAssert( Component.isValid() && Component->isReady() );
 			Component->update( Tick );
-			++Updates;
 		}
 	}
 
@@ -172,96 +247,7 @@ void ScnCore::update()
 
 			BcAssert( Component.isValid() && Component->isReady() );
 			Component->postUpdate( Tick );
-			++PostUpdates;
 		}
-	}
-
-#if !PSY_PRODUCTION
-	// Render some stats.
-	{
-		static BcF32 GameTimeTotal = 0.0f;
-		static BcF32 FrameTimeTotal = 0.0f;
-		static BcF32 GameTimeAccum = 0.0f;
-		static BcF32 FrameTimeAccum = 0.0f;
-		static int CaptureAmount = 60;
-		static int CaptureAccum = 0;
-		GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
-		FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
-		++CaptureAccum;
-		if( CaptureAccum >= CaptureAmount )
-		{
-			GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
-			FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
-			GameTimeAccum = 0.0f;
-			FrameTimeAccum = 0.0f;
-			CaptureAccum = 0;
-		}
-
-		OsClient* Client = OsCore::pImpl()->getClient( 0 );
-		MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
-		static bool ShowOpened = true;
-		ImGui::SetNextWindowPos( WindowPos );
-		if ( ImGui::Begin( "Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-		{
-			ImGui::Text( "Worker count: %u", 
-				SysKernel::pImpl()->workerCount() );
-			ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
-				SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
-			ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
-				SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
-
-			ImGui::Text( "Component pre-updates: %u", 
-				PreUpdates );
-			ImGui::Text( "Component updates: %u", 
-				Updates );
-			ImGui::Text( "Component post-updates: %u", 
-				PostUpdates );
-
-		}
-		ImGui::End();
-
-		//static bool show = true;
-		//ImGui::ShowTestWindow( &show );
-	}
-
-	// Render scene hierarchy.
-	{
-		using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
-		ComponentNodeFunc RecurseNode = 
-			[ & ]( ScnComponent* Component )
-			{
-				if ( ImGui::TreeNode( Component, (*Component->getName()).c_str() ) )
-				{
-					if( Component->isTypeOf< ScnEntity >() )
-					{
-						BcU32 ChildIdx = 0;
-						while( auto Child = Component->getComponent( ChildIdx++ ) )
-						{
-							RecurseNode( Child );
-						}
-					}
-					ImGui::TreePop();
-				}
-			};
-
-		static bool ShowOpened = true;
-		if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
-		{
-			if( ImGui::TreeNode( "Scene Hierarchy" ) )
-			{
-				BcU32 Idx = 0;
-				while( ScnEntityRef Entity = getEntity( Idx++ ) )
-				{
-					if( Entity->getParentEntity() == nullptr )
-					{
-						RecurseNode( Entity );
-					}
-				}
-				ImGui::TreePop();
-			}
-		}
-		ImGui::End();
 	}
 
 #endif
