@@ -109,7 +109,7 @@ void ScnCore::open()
 
 #if !PSY_PRODUCTION
 	DsCore::pImpl()->registerPanel( 
-		"Scene stats", [ this ]( BcU32 )->void
+		"Scene Stats", [ this ]( BcU32 )->void
 		{
 			static BcF32 GameTimeTotal = 0.0f;
 			static BcF32 FrameTimeTotal = 0.0f;
@@ -133,7 +133,7 @@ void ScnCore::open()
 			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
 			static bool ShowOpened = true;
 			ImGui::SetNextWindowPos( WindowPos );
-			if ( ImGui::Begin( "Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+			if ( ImGui::Begin( "Scene Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
 				ImGui::Text( "Worker count: %u", 
@@ -148,7 +148,7 @@ void ScnCore::open()
 		} );
 
 	DsCore::pImpl()->registerPanel(
-		"Scene hierarchy", [ this ]( BcU32 )->void
+		"Scene Hierarchy", [ this ]( BcU32 )->void
 		{
 			// Render scene hierarchy.
 			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
@@ -192,6 +192,64 @@ void ScnCore::open()
 						}
 					}
 					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		} );
+
+	DsCore::pImpl()->registerPanel(
+		"Component Editor", [ this ]( BcU32 )->void
+		{
+			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
+			ComponentNodeFunc RecurseNode = 
+				[ & ]( ScnComponent* Component )
+				{
+					auto TreeNodeOpen = ImGui::TreeNode( Component, (*Component->getName()).c_str() );
+					if( TreeNodeOpen )
+					{
+						// List fields.
+						const auto* Class = Component->getClass();
+						for( size_t FieldIdx = 0; FieldIdx < Class->getNoofFields(); ++FieldIdx )
+						{
+							const auto* Field = Class->getField( FieldIdx );
+							ReFieldAccessor FieldAccessor( Component, Field );
+							if( !FieldAccessor.isTransient() && !FieldAccessor.isContainerType() )
+							{
+								// TODO: Different controls for different types.
+								auto FieldType = Field->getType();
+								auto FieldEditor = FieldType->getAttribute< DsImGuiFieldEditor >();
+								if( FieldEditor )
+								{
+									FieldEditor->onEdit( *Field->getName(), FieldAccessor.getData(), FieldType );
+								}
+							}
+						}
+
+						ImGui::Separator();
+
+						if( Component->isTypeOf< ScnEntity >() )
+						{
+							BcU32 ChildIdx = 0;
+							while( auto Child = Component->getComponent( ChildIdx++ ) )
+							{
+								// Only recurse into non-entity components.
+								if( !Child->isTypeOf< ScnEntity >() )
+								{
+									RecurseNode( Child );
+								}
+							}
+						}
+						ImGui::TreePop();
+					}
+				};
+
+			if ( ImGui::Begin( "Component Editor" ) )
+			{
+				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
+				ImGui::Separator();
+				for( auto Component : DebugComponents_ )
+				{
+					RecurseNode( Component );
 				}
 			}
 			ImGui::End();
@@ -261,63 +319,6 @@ void ScnCore::update()
 		}
 	}
 
-#if !PSY_PRODUCTION
-
-	using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
-	ComponentNodeFunc RecurseNode = 
-		[ & ]( ScnComponent* Component )
-		{
-			auto TreeNodeOpen = ImGui::TreeNode( Component, (*Component->getName()).c_str() );
-			if( TreeNodeOpen )
-			{
-				// List fields.
-				const auto* Class = Component->getClass();
-				for( size_t FieldIdx = 0; FieldIdx < Class->getNoofFields(); ++FieldIdx )
-				{
-					const auto* Field = Class->getField( FieldIdx );
-					ReFieldAccessor FieldAccessor( Component, Field );
-					if( !FieldAccessor.isTransient() && !FieldAccessor.isContainerType() )
-					{
-						// TODO: Different controls for different types.
-						auto FieldType = Field->getType();
-						auto FieldEditor = FieldType->getAttribute< DsImGuiFieldEditor >();
-						if( FieldEditor )
-						{
-							FieldEditor->onEdit( *Field->getName(), FieldAccessor.getData(), FieldType );
-						}
-					}
-				}
-
-				ImGui::Separator();
-
-				if( Component->isTypeOf< ScnEntity >() )
-				{
-					BcU32 ChildIdx = 0;
-					while( auto Child = Component->getComponent( ChildIdx++ ) )
-					{
-						// Only recurse into non-entity components.
-						if( !Child->isTypeOf< ScnEntity >() )
-						{
-							RecurseNode( Child );
-						}
-					}
-				}
-				ImGui::TreePop();
-			}
-		};
-
-	if ( ImGui::Begin( "Component Editor" ) )
-	{
-		ImGui::Text( "Components editing: %u", DebugComponents_.size() );
-		ImGui::Separator();
-		for( auto Component : DebugComponents_ )
-		{
-			RecurseNode( Component );
-		}
-	}
-	ImGui::End();
-
-#endif // !PSY_PRODUCTION
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.

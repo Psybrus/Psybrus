@@ -122,6 +122,7 @@ public:
 	void deregisterFunction( BcU32 Handle ) override;
 
 private:
+	void setupReflectionEditorAttributes();
 	char* handleFile( std::string Uri, int& FileSize, std::string Content );
 	std::string loadHtmlFile( std::string Uri, std::string Content );
 	std::string loadTemplateFile( std::string TemplateName );
@@ -152,7 +153,7 @@ private:
 	void*						ServerMemory_;
 #ifndef MAX_WSCONN
 #define MAX_WSCONN 8
-#endif
+#endif // MAX_WSCONN
 	WebbyConnection*			ws_connections[MAX_WSCONN];
 
 
@@ -170,6 +171,7 @@ private:
 #endif // USE_WEBBY
 	
 protected:
+	bool DrawPanels_;
 	std::vector< DsPanelDefinition > PanelFunctions_;
 	std::vector< DsPageDefinition > PageFunctions_;
 	std::vector< DsFunctionDefinition > ButtonFunctions_;

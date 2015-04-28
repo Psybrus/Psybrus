@@ -35,11 +35,21 @@ SYS_CREATOR( DsCoreImpl );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-DsCoreImpl::DsCoreImpl()
+DsCoreImpl::DsCoreImpl():
+#if USE_WEBBY
+	ConnectionCount_( 0 ),
+	Server_( nullptr ),
+	ServerMemory_( nullptr ),
+	ws_connections(),
+#endif // USE_WEBBY
+	DrawPanels_( false ),
+	PanelFunctions_(),
+	PageFunctions_(),
+	ButtonFunctions_(),
+	NextHandle_( 0 )
 {
 	using namespace std::placeholders;
 
-	NextHandle_ = 0;
 	registerPage( "", {}, std::bind( &DsCoreImpl::cmdMenu, this, _1, _2, _3 ) );
 	registerPage( "Content", {}, std::bind( &DsCoreImpl::cmdContent, this, _1, _2, _3 ), "Content" );
 	registerPage( "Scene", {}, std::bind( &DsCoreImpl::cmdScene, this, _1, _2, _3 ), "Scene" );
@@ -106,6 +116,9 @@ void DsCoreImpl::open()
 		fprintf(stderr, "failed to init server\n");
 	}
 #endif
+
+	setupReflectionEditorAttributes();
+
 	// Setup init/deinit hooks.
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
 		[ this ]( EvtID, const EvtBaseEvent& )
@@ -121,175 +134,17 @@ void DsCoreImpl::open()
 			return evtRET_REMOVE;
 		} );
 
-	// Add some custom editors.
-	ReManager::GetClass( "BcU8" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+	// Setup toggle of debug panels.
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
+		[ this ]( EvtID, const EvtBaseEvent& BaseEvent )
+		{
+			const auto& Event = BaseEvent.get< OsEventInputKeyboard >();
+			if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F12 )
 			{
-				BcU8* Value = (BcU8*)Object;
-				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
-				{
-					*Value = (BcU8)ValueInt;
-				}
-			} ) );
-
-	ReManager::GetClass( "BcS8" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcS8* Value = (BcS8*)Object;
-				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
-				{
-					*Value = (BcS8)ValueInt;
-				}
-			} ) );
-
-	ReManager::GetClass( "BcU16" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcU16* Value = (BcU16*)Object;
-				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
-				{
-					*Value = (BcU16)ValueInt;
-				}
-			} ) );
-
-	ReManager::GetClass( "BcS16" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcS16* Value = (BcS16*)Object;
-				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
-				{
-					*Value = (BcS16)ValueInt;
-				}
-			} ) );
-
-	ReManager::GetClass( "BcU32" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcU32* Value = (BcU32*)Object;
-				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
-				{
-					*Value = (BcU32)ValueInt;
-				}
-			} ) );
-
-	ReManager::GetClass( "BcS32" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcS32* Value = (BcS32*)Object;
-				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
-				{
-					*Value = (BcS32)ValueInt;
-				}
-			} ) );
-
-	ReManager::GetClass( "BcBool" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcBool* Value = (BcBool*)Object;
-				bool ValueBool = *Value ? true : false;
-				if( ImGui::Checkbox( Name.c_str(), &ValueBool ) )
-				{
-					*Value = ValueBool ? BcTrue : BcFalse;
-				}
-			} ) );
-
-	ReManager::GetClass( "bool" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				bool* Value = (bool*)Object;
-				ImGui::Checkbox( Name.c_str(), Value );
-			} ) );
-
-	ReManager::GetClass( "BcF32" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcF32* Value = (BcF32*)Object;
-				ImGui::InputFloat( Name.c_str(), Value );
-			} ) );
-
-	ReManager::GetClass( "BcF64" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				BcF64* Value = (BcF64*)Object;
-				float ValueF32 = *Value;
-				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) )
-				{
-					*Value = ValueF32;
-				}
-			} ) );
-
-	ReManager::GetClass( "string" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				std::string* Value = (std::string*)Object;
-				char Buffer[ 1024 ] = { 0 };
-				BcStrCopyN( Buffer, Value->c_str(), BcArraySize( Buffer ) );
-				if( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) )
-				{
-					*Value = Buffer;
-				}
-			} ) );
-
-	ReManager::GetClass( "MaVec2d" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				MaVec2d* Value = (MaVec2d*)Object;
-				float Array[2] = { Value->x(), Value->y() };
-				if( ImGui::InputFloat2( Name.c_str(), Array ) )
-				{
-					Value->x( Array[ 0 ] );
-					Value->y( Array[ 1 ] );
-				}
-			} ) );
-
-	ReManager::GetClass( "MaVec3d" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				MaVec3d* Value = (MaVec3d*)Object;
-				float Array[3] = { Value->x(), Value->y(), Value->z() };
-				if( ImGui::InputFloat3( Name.c_str(), Array ) )
-				{
-					Value->x( Array[ 0 ] );
-					Value->y( Array[ 1 ] );
-					Value->z( Array[ 2 ] );
-				}
-			} ) );
-
-	ReManager::GetClass( "MaVec4d" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				MaVec4d* Value = (MaVec4d*)Object;
-				float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
-				if( ImGui::InputFloat4( Name.c_str(), Array ) )
-				{
-					Value->x( Array[ 0 ] );
-					Value->y( Array[ 1 ] );
-					Value->z( Array[ 2 ] );
-					Value->w( Array[ 3 ] );
-				}
-			} ) );
-
-
+				DrawPanels_ = !DrawPanels_;
+			}
+			return evtRET_PASS;
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -299,12 +154,15 @@ void DsCoreImpl::update()
 {
 #if USE_WEBBY
     WebbyServerUpdate( Server_ );
-#endif
-    if( ImGui::Psybrus::NewFrame() )
-    {
-		for( auto& Panel : PanelFunctions_ )
+#endif // USE_WEBBY
+	if( ImGui::Psybrus::NewFrame() )
+	{
+		if( DrawPanels_)
 		{
-			Panel.Function_( Panel.Handle_ );
+			for( auto& Panel : PanelFunctions_ )
+			{
+				Panel.Function_( Panel.Handle_ );
+			}
 		}
 	}
 }
@@ -582,6 +440,178 @@ void DsCoreImpl::deregisterPage( BcU32 Handle )
 
 }
 
+//////////////////////////////////////////////////////////////////////////
+// setupReflectionEditorAttributes
+void DsCoreImpl::setupReflectionEditorAttributes()
+{
+	// Add some custom editors.
+	ReManager::GetClass( "BcU8" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcU8* Value = (BcU8*)Object;
+				int ValueInt = *Value;
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				{
+					*Value = (BcU8)ValueInt;
+				}
+			} ) );
+
+	ReManager::GetClass( "BcS8" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcS8* Value = (BcS8*)Object;
+				int ValueInt = *Value;
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				{
+					*Value = (BcS8)ValueInt;
+				}
+			} ) );
+
+	ReManager::GetClass( "BcU16" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcU16* Value = (BcU16*)Object;
+				int ValueInt = *Value;
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				{
+					*Value = (BcU16)ValueInt;
+				}
+			} ) );
+
+	ReManager::GetClass( "BcS16" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcS16* Value = (BcS16*)Object;
+				int ValueInt = *Value;
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				{
+					*Value = (BcS16)ValueInt;
+				}
+			} ) );
+
+	ReManager::GetClass( "BcU32" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcU32* Value = (BcU32*)Object;
+				int ValueInt = *Value;
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				{
+					*Value = (BcU32)ValueInt;
+				}
+			} ) );
+
+	ReManager::GetClass( "BcS32" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcS32* Value = (BcS32*)Object;
+				int ValueInt = *Value;
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				{
+					*Value = (BcS32)ValueInt;
+				}
+			} ) );
+
+	ReManager::GetClass( "BcBool" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcBool* Value = (BcBool*)Object;
+				bool ValueBool = *Value ? true : false;
+				if( ImGui::Checkbox( Name.c_str(), &ValueBool ) )
+				{
+					*Value = ValueBool ? BcTrue : BcFalse;
+				}
+			} ) );
+
+	ReManager::GetClass( "bool" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				bool* Value = (bool*)Object;
+				ImGui::Checkbox( Name.c_str(), Value );
+			} ) );
+
+	ReManager::GetClass( "BcF32" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcF32* Value = (BcF32*)Object;
+				ImGui::InputFloat( Name.c_str(), Value );
+			} ) );
+
+	ReManager::GetClass( "BcF64" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				BcF64* Value = (BcF64*)Object;
+				float ValueF32 = *Value;
+				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) )
+				{
+					*Value = ValueF32;
+				}
+			} ) );
+
+	ReManager::GetClass( "string" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				std::string* Value = (std::string*)Object;
+				char Buffer[ 1024 ] = { 0 };
+				BcStrCopyN( Buffer, Value->c_str(), BcArraySize( Buffer ) );
+				if( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) )
+				{
+					*Value = Buffer;
+				}
+			} ) );
+
+	ReManager::GetClass( "MaVec2d" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				MaVec2d* Value = (MaVec2d*)Object;
+				float Array[2] = { Value->x(), Value->y() };
+				if( ImGui::InputFloat2( Name.c_str(), Array ) )
+				{
+					Value->x( Array[ 0 ] );
+					Value->y( Array[ 1 ] );
+				}
+			} ) );
+
+	ReManager::GetClass( "MaVec3d" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				MaVec3d* Value = (MaVec3d*)Object;
+				float Array[3] = { Value->x(), Value->y(), Value->z() };
+				if( ImGui::InputFloat3( Name.c_str(), Array ) )
+				{
+					Value->x( Array[ 0 ] );
+					Value->y( Array[ 1 ] );
+					Value->z( Array[ 2 ] );
+				}
+			} ) );
+
+	ReManager::GetClass( "MaVec4d" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				MaVec4d* Value = (MaVec4d*)Object;
+				float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
+				if( ImGui::InputFloat4( Name.c_str(), Array ) )
+				{
+					Value->x( Array[ 0 ] );
+					Value->y( Array[ 1 ] );
+					Value->z( Array[ 2 ] );
+					Value->w( Array[ 3 ] );
+				}
+			} ) );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // handleFile
