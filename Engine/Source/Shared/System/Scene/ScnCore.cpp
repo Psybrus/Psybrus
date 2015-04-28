@@ -220,7 +220,9 @@ void ScnCore::open()
 								auto FieldEditor = FieldType->getAttribute< DsImGuiFieldEditor >();
 								if( FieldEditor )
 								{
+									ImGui::PushID( Field );
 									FieldEditor->onEdit( *Field->getName(), FieldAccessor.getData(), FieldType );
+									ImGui::PopID();
 								}
 							}
 						}
