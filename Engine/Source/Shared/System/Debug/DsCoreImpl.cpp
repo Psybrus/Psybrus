@@ -117,8 +117,6 @@ void DsCoreImpl::open()
 	}
 #endif
 
-	setupReflectionEditorAttributes();
-
 	// Setup init/deinit hooks.
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
 		[ this ]( EvtID, const EvtBaseEvent& )
@@ -145,6 +143,9 @@ void DsCoreImpl::open()
 			}
 			return evtRET_PASS;
 		} );
+
+	// Setup debug attributes for reflection.
+	setupReflectionEditorAttributes();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -542,7 +543,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			[]( std::string Name, void* Object, const ReClass* Class )
 			{
 				BcF32* Value = (BcF32*)Object;
-				ImGui::InputFloat( Name.c_str(), Value );
+				BcF32 ValueF32 = *Value;
+				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) )
+				{
+					*Value = ValueF32;
+				}
 			} ) );
 
 	ReManager::GetClass( "BcF64" )->addAttribute( 
