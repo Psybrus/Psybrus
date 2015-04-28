@@ -19,6 +19,7 @@
 
 #include "System/SysSystem.h"
 #include "System/Debug/DsImGui.h"
+#include "System/Debug/DsImGuiFieldEditor.h"
 
 #include <functional>
 #include <map>

@@ -26,7 +26,7 @@ void ScnCanvasComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_, bcRFF_IMPORTER ),
+		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_, bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "Clear_", &ScnCanvasComponent::Clear_, bcRFF_IMPORTER ),
 		new ReField( "Left_", &ScnCanvasComponent::Left_, bcRFF_IMPORTER ),
 		new ReField( "Right_", &ScnCanvasComponent::Right_, bcRFF_IMPORTER ),

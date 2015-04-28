@@ -279,7 +279,7 @@ void ScnModelComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
 		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
 		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
@@ -516,6 +516,8 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 {
 	PSY_PROFILE_FUNCTION;
+
+	setBaseTransform( Position_, Scale_, Rotation_ );
 
 	MaAABB FullAABB;
 

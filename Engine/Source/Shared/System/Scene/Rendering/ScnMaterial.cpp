@@ -166,11 +166,11 @@ void ScnMaterialComponent::StaticRegisterClass()
 			new ReField( "PermutationFlags_", &ScnMaterialComponent::PermutationFlags_, bcRFF_IMPORTER ),
 
 			new ReField( "pProgram_", &ScnMaterialComponent::pProgram_, bcRFF_SHALLOW_COPY ),
-			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_ ),
-			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_ ),
-			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_ ),
-			new ReField( "BoneUniformBlockIndex_", &ScnMaterialComponent::BoneUniformBlockIndex_ ),
-			new ReField( "ObjectUniformBlockIndex_", &ScnMaterialComponent::ObjectUniformBlockIndex_ ),
+			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_, bcRFF_CONST ),
+			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_, bcRFF_CONST ),
+			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_, bcRFF_CONST ),
+			new ReField( "BoneUniformBlockIndex_", &ScnMaterialComponent::BoneUniformBlockIndex_, bcRFF_CONST ),
+			new ReField( "ObjectUniformBlockIndex_", &ScnMaterialComponent::ObjectUniformBlockIndex_, bcRFF_CONST ),
 		};
 		ReRegisterClass< ScnMaterialComponent, Super >( Fields );
 	}

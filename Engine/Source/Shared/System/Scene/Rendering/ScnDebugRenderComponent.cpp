@@ -31,7 +31,7 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Material_",	&ScnDebugRenderComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
-		new ReField( "NoofVertices_", &ScnDebugRenderComponent::NoofVertices_, bcRFF_IMPORTER ),
+		new ReField( "NoofVertices_", &ScnDebugRenderComponent::NoofVertices_, bcRFF_IMPORTER | bcRFF_CONST ),
 
 		new ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_, bcRFF_TRANSIENT ),
 		new ReField( "CurrentRenderResource_", &ScnDebugRenderComponent::CurrentRenderResource_, bcRFF_TRANSIENT ),

@@ -97,6 +97,9 @@ namespace
 		}
 	};
 
+	/// Mouse wheel.
+	BcF32 MouseWheel_ = 0.0f;
+
 	/**
 	 * Perform the draw.
 	 */
@@ -351,6 +354,16 @@ namespace
 		IO.MousePos.y = (signed short)Event.MouseY_;
 		return evtRET_PASS;
 	}
+
+	/**
+	 * Handle mouse wheel.
+	 */
+	eEvtReturn OnMouseWheel( EvtID, const EvtBaseEvent& BaseEvent )
+	{
+		auto Event = BaseEvent.get< OsEventInputMouseWheel >();
+		MouseWheel_ += Event.ScrollY_;
+		return evtRET_PASS;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -457,6 +470,7 @@ namespace Psybrus
 		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
 		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
+		OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEWHEEL, OnMouseWheel );
 
 		// Request imgui packge.
 		Package_ = CsCore::pImpl()->requestPackage( "imgui" );
@@ -511,6 +525,10 @@ namespace Psybrus
 					IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
 				}
 			}
+
+			// Update mouse wheel.
+			IO.MouseWheel = MouseWheel_;
+			MouseWheel_ = 0.0f;
 
 			// Start the frame
 			ImGui::NewFrame();

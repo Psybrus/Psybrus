@@ -175,6 +175,9 @@ void ScnPhysicsWorldComponent::initialise()
 // preUpdate
 void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
 {
+	// Setup grabity and other parameters.
+	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
+	
 	// Step simulation.
 	DynamicsWorld_->stepSimulation( Tick, MaxSubSteps_, InvFrameRate_ );
 

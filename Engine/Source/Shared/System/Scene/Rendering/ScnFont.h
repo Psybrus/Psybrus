@@ -298,7 +298,7 @@ private:
 	ScnMaterialRef Material_;
 	ScnMaterialComponentRef MaterialComponent_;
 
-	BcBool ClippingEnabled_;
+	bool ClippingEnabled_;
 	MaVec2d ClipMin_;
 	MaVec2d ClipMax_;
 

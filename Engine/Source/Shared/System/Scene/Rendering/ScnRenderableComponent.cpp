@@ -101,7 +101,7 @@ void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // isLit
-BcBool ScnRenderableComponent::isLit() const
+bool ScnRenderableComponent::isLit() const
 {
 	return IsLit_;
 }

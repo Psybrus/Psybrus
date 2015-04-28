@@ -30,7 +30,7 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "NoofParticles_", &ScnParticleSystemComponent::NoofParticles_, bcRFF_IMPORTER ),
+		new ReField( "NoofParticles_", &ScnParticleSystemComponent::NoofParticles_, bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "IsLocalSpace_", &ScnParticleSystemComponent::IsLocalSpace_, bcRFF_IMPORTER ),
 		new ReField( "Material_", &ScnParticleSystemComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 

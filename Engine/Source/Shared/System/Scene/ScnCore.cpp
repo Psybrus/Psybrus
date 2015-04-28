@@ -155,17 +155,26 @@ void ScnCore::open()
 			ComponentNodeFunc RecurseNode = 
 				[ & ]( ScnComponent* Component )
 				{
-					if ( ImGui::TreeNode( Component, (*Component->getName()).c_str() ) )
+					if( Component->isTypeOf< ScnEntity >() )
 					{
-						if( Component->isTypeOf< ScnEntity >() )
+						auto TreeNodeOpen = ImGui::TreeNode( Component, "" );
+						ImGui::SameLine();
+
+						if( ImGui::SmallButton( (*Component->getName()).c_str() ) )
+						{
+							DebugComponents_.clear();
+							DebugComponents_.push_back( Component );
+						}	
+
+						if( TreeNodeOpen )
 						{
 							BcU32 ChildIdx = 0;
 							while( auto Child = Component->getComponent( ChildIdx++ ) )
 							{
 								RecurseNode( Child );
 							}
+							ImGui::TreePop();
 						}
-						ImGui::TreePop();
 					}
 				};
 
@@ -187,6 +196,8 @@ void ScnCore::open()
 			}
 			ImGui::End();
 		} );
+#endif // !PSY_PRODUCTION
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -250,7 +261,63 @@ void ScnCore::update()
 		}
 	}
 
-#endif
+#if !PSY_PRODUCTION
+
+	using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
+	ComponentNodeFunc RecurseNode = 
+		[ & ]( ScnComponent* Component )
+		{
+			auto TreeNodeOpen = ImGui::TreeNode( Component, (*Component->getName()).c_str() );
+			if( TreeNodeOpen )
+			{
+				// List fields.
+				const auto* Class = Component->getClass();
+				for( size_t FieldIdx = 0; FieldIdx < Class->getNoofFields(); ++FieldIdx )
+				{
+					const auto* Field = Class->getField( FieldIdx );
+					ReFieldAccessor FieldAccessor( Component, Field );
+					if( !FieldAccessor.isTransient() && !FieldAccessor.isContainerType() )
+					{
+						// TODO: Different controls for different types.
+						auto FieldType = Field->getType();
+						auto FieldEditor = FieldType->getAttribute< DsImGuiFieldEditor >();
+						if( FieldEditor )
+						{
+							FieldEditor->onEdit( *Field->getName(), FieldAccessor.getData(), FieldType );
+						}
+					}
+				}
+
+				ImGui::Separator();
+
+				if( Component->isTypeOf< ScnEntity >() )
+				{
+					BcU32 ChildIdx = 0;
+					while( auto Child = Component->getComponent( ChildIdx++ ) )
+					{
+						// Only recurse into non-entity components.
+						if( !Child->isTypeOf< ScnEntity >() )
+						{
+							RecurseNode( Child );
+						}
+					}
+				}
+				ImGui::TreePop();
+			}
+		};
+
+	if ( ImGui::Begin( "Component Editor" ) )
+	{
+		ImGui::Text( "Components editing: %u", DebugComponents_.size() );
+		ImGui::Separator();
+		for( auto Component : DebugComponents_ )
+		{
+			RecurseNode( Component );
+		}
+	}
+	ImGui::End();
+
+#endif // !PSY_PRODUCTION
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
@@ -615,6 +682,13 @@ void ScnCore::processPendingComponents()
 			BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
 				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
 			onDetachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+
+			// Remove from debug components.
+			auto FoundIt = std::find( DebugComponents_.begin(), DebugComponents_.end(), Component );
+			if( FoundIt != DebugComponents_.end() )
+			{
+				DebugComponents_.erase( FoundIt );
+			}
 		}
 
 		// Handle destruction.

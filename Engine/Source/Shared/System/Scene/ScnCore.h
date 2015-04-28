@@ -135,6 +135,9 @@ private:
 
 	BcU32						EntitySpawnID_;
 	TEntitySpawnDataMap			EntitySpawnMap_;
+
+	// Debug components.
+	ScnComponentList			DebugComponents_;
 };
 
 #endif

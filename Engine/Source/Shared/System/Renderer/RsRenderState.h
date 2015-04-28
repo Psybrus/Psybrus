@@ -17,6 +17,8 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
 
+#include <array>
+
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetBlendState
 struct RsRenderTargetBlendState

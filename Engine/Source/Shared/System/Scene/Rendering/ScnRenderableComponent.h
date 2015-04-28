@@ -46,11 +46,11 @@ public:
 	/**
 	 * Is this renderable component lit?
 	 */
-	BcBool isLit() const;
+	bool isLit() const;
 
 private:
 	BcU32 RenderMask_;			// Used to specify what kind of object it is for selectively rendering with certain views.
-	BcBool IsLit_;				// Does this need to be lit?
+	bool IsLit_;				// Does this need to be lit?
 };
 
 #endif
