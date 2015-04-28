@@ -221,6 +221,7 @@ void OsClientHTML5::handleEvent( const SDL_Event& SDLEvent )
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEMOTION:
+	case SDL_MOUSEWHEEL:
 		handleMouseEvent( SDLEvent );
 		break;
 	
@@ -326,6 +327,16 @@ void OsClientHTML5::handleMouseEvent( const SDL_Event& SDLEvent )
 			PrevMouseY_ = Event.MouseY_;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
+		}
+		break;
+
+	case SDL_MOUSEWHEEL:
+		{
+			OsEventInputMouseWheel WheelEvent;
+			WheelEvent.ScrollX_ = SDLEvent.wheel.x;
+			WheelEvent.ScrollY_ = SDLEvent.wheel.y;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEWHEEL, WheelEvent ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEWHEEL, WheelEvent );
 		}
 		break;
 	}

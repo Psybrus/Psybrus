@@ -87,6 +87,14 @@ struct OsEventInputMouse: OsEventInput< OsEventInputMouse >
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// OsEventInputMouseWheel
+struct OsEventInputMouseWheel: OsEventInput< OsEventInputMouseWheel >
+{
+	BcS32			ScrollX_;			///!< X scroll amount.
+	BcS32			ScrollY_;			///!< Y scroll amount.
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // OsEventInputKeyboard
 struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 {

@@ -66,6 +66,7 @@ void OsCoreImplHTML5::update()
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 			case SDL_MOUSEMOTION:
+			case SDL_MOUSEWHEEL:
 			case SDL_WINDOWEVENT:
 				for( auto Client : ClientList_ )
 				{
