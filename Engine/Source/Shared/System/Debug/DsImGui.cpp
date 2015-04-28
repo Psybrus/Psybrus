@@ -99,6 +99,8 @@ namespace
 
 	/// Mouse wheel.
 	BcF32 MouseWheel_ = 0.0f;
+	/// Text input.
+	std::vector< BcU32 > TextInput_;
 
 	/**
 	 * Perform the draw.
@@ -246,6 +248,8 @@ namespace
 			IO.KeysDown[ Event.KeyCode_ ] = 1;
 		}
 
+		PSY_LOG( "Down: %c", Event.KeyCode_ );
+
 		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL )
 		{
 			IO.KeyCtrl = true;
@@ -294,14 +298,12 @@ namespace
 	eEvtReturn OnTextInput( EvtID, const EvtBaseEvent& BaseEvent )
 	{
 		auto Event = BaseEvent.get< OsEventInputText >();
-		ImGuiIO& IO = ImGui::GetIO();
-		// TODO: UTF-8 conversion.
 		for( BcU32 Idx = 0; Idx < 32; ++Idx )
 		{
 			BcU32 Char = Event.Text_[ Idx ];
 			if( Char > 0 && Char < 0x10000 )
 			{
-				IO.AddInputCharacter( (BcU16)Char );
+				TextInput_.push_back( Char );
 			}
 			else
 			{
@@ -530,6 +532,20 @@ namespace Psybrus
 			IO.MouseWheel = MouseWheel_;
 			MouseWheel_ = 0.0f;
 
+			// Update keyboard input.
+			for( BcU32 Char : TextInput_ )
+			{
+				if( Char > 0 && Char < 0x10000 )
+				{
+					IO.AddInputCharacter( (BcU16)Char );
+				}
+				else
+				{
+					break;
+				}
+			}
+			TextInput_.clear();
+
 			// Start the frame
 			ImGui::NewFrame();
 			return true;
@@ -562,6 +578,7 @@ namespace Psybrus
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEUP, OnMouseUp );
 		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
+		OsCore::pImpl()->unsubscribe( osEVT_INPUT_MOUSEWHEEL, OnMouseWheel );
 
 		Package_->release();
 		Package_ = nullptr;
