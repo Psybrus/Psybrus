@@ -443,22 +443,26 @@ void RsContextGL::presentBackBuffer()
 	}
 	else
 	{
+		setFrameBuffer( nullptr );
+		flushState();
+
 		// Finish all rendering.
 		glFinish();
-		
+
 #if !PLATFORM_HTML5
+		BcU32 W = getWidth();
+		BcU32 H = getHeight();
+
 		// Read the back buffer.
 		glReadBuffer( GL_BACK );
-		BcU32* pImageData = new BcU32[ getWidth() * getHeight() ];
+		BcU32* pImageData = new BcU32[ W * H ];
 		BcU32* pReadImageData = pImageData;
-		glReadPixels(0, 0, getWidth(), getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, pImageData);
+		glReadPixels( 0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, pImageData );
 		
 		// Convert to image.
 		ImgImage* pImage = new ImgImage();
-		pImage->create( getWidth(), getHeight(), NULL );
+		pImage->create( W, H, NULL );
 		
-		BcU32 W = getWidth();
-		BcU32 H = getHeight();
 		for( BcU32 Y = 0; Y < H; ++Y )
 		{
 			BcU32 RealY = ( H - Y ) - 1;
@@ -468,7 +472,9 @@ void RsContextGL::presentBackBuffer()
 				pImage->setPixel( X, RealY, *pColour );
 			}
 		}
-		
+	
+		PSY_LOG( "Took screenshot: %u x %u", W, H );
+
 		// Save out image.				
 		// NEILO TODO: Generate an automatic filename.
 		Img::save( "screenshot.png", pImage );
