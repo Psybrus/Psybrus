@@ -110,7 +110,7 @@ private:
 	BcU32 WorldTransformParam_;
 
 	//
-	BcBool IsLocalSpace_;
+	bool IsLocalSpace_;
 
 	// UV bounds.
 	std::vector< MaVec4d > UVBounds_;

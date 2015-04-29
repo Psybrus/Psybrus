@@ -40,7 +40,7 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 		new ReField( "pParticleBuffer_", &ScnParticleSystemComponent::pParticleBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "PotentialFreeParticle_", &ScnParticleSystemComponent::PotentialFreeParticle_, bcRFF_TRANSIENT ),
 		new ReField( "MaterialComponent_", &ScnParticleSystemComponent::MaterialComponent_, bcRFF_TRANSIENT ),
-		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_ ),
+		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_, bcRFF_TRANSIENT ),
 		new ReField( "UVBounds_", &ScnParticleSystemComponent::UVBounds_ ),
 		new ReField( "AABB_", &ScnParticleSystemComponent::AABB_ ),
 	};
