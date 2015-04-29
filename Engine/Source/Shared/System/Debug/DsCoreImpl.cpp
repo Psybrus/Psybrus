@@ -628,15 +628,18 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 				MaAABB* Value = (MaAABB*)Object;
 				float ArrayMin[3] = { Value->min().x(), Value->min().y(), Value->min().z() };
 				float ArrayMax[3] = { Value->max().x(), Value->max().y(), Value->max().z() };
-				ImGui::Text( Name.c_str() );
-				if( ImGui::InputFloat3( "Min", ArrayMin ) )
+				if( ImGui::TreeNode( Object, Name.c_str() ) )
 				{
-					Value->min( MaVec3d( ArrayMin[ 0 ], ArrayMin[ 1 ], ArrayMin[ 2 ] ) );
+					if( ImGui::InputFloat3( "Min", ArrayMin ) )
+					{
+						Value->min( MaVec3d( ArrayMin[ 0 ], ArrayMin[ 1 ], ArrayMin[ 2 ] ) );
+					}
+					if( ImGui::InputFloat3( "Max", ArrayMax ) )
+					{
+						Value->max( MaVec3d( ArrayMax[ 0 ], ArrayMax[ 1 ], ArrayMax[ 2 ] ) );
+					}
 				}
-				if( ImGui::InputFloat3( "Max", ArrayMax ) )
-				{
-					Value->max( MaVec3d( ArrayMax[ 0 ], ArrayMax[ 1 ], ArrayMax[ 2 ] ) );
-				}
+				ImGui::TreePop();
 			} ) );
 
 	ReManager::GetClass( "MaQuat" )->addAttribute( 
@@ -661,34 +664,37 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			{
 				MaMat4d& Value = *(MaMat4d*)Object;
 				float* Array = (float*)&Value;
-				ImGui::Text( Name.c_str() );
-				if( ImGui::InputFloat4( "Row0", &Array[0] ) )
+				if( ImGui::TreeNode( Object, Name.c_str() ) )
 				{
-					Value[0][0] = Array[0];
-					Value[0][1] = Array[1];
-					Value[0][2] = Array[2];
-					Value[0][3] = Array[3];
-				}
-				if( ImGui::InputFloat4( "Row1", &Array[4] ) )
-				{
-					Value[1][0] = Array[4];
-					Value[1][1] = Array[5];
-					Value[1][2] = Array[6];
-					Value[1][3] = Array[7];
-				}
-				if( ImGui::InputFloat4( "Row2", &Array[8] ) )
-				{
-					Value[2][0] = Array[8];
-					Value[2][1] = Array[9];
-					Value[2][2] = Array[10];
-					Value[2][3] = Array[11];
-				}
-				if( ImGui::InputFloat4( "Row3", &Array[12] ) )
-				{
-					Value[3][0] = Array[12];
-					Value[3][1] = Array[13];
-					Value[3][2] = Array[14];
-					Value[3][3] = Array[15];
+					if( ImGui::InputFloat4( "Row0", &Array[0] ) )
+					{
+						Value[0][0] = Array[0];
+						Value[0][1] = Array[1];
+						Value[0][2] = Array[2];
+						Value[0][3] = Array[3];
+					}
+					if( ImGui::InputFloat4( "Row1", &Array[4] ) )
+					{
+						Value[1][0] = Array[4];
+						Value[1][1] = Array[5];
+						Value[1][2] = Array[6];
+						Value[1][3] = Array[7];
+					}
+					if( ImGui::InputFloat4( "Row2", &Array[8] ) )
+					{
+						Value[2][0] = Array[8];
+						Value[2][1] = Array[9];
+						Value[2][2] = Array[10];
+						Value[2][3] = Array[11];
+					}
+					if( ImGui::InputFloat4( "Row3", &Array[12] ) )
+					{
+						Value[3][0] = Array[12];
+						Value[3][1] = Array[13];
+						Value[3][2] = Array[14];
+						Value[3][3] = Array[15];
+					}
+					ImGui::TreePop();
 				}
 			} ) );
 }
