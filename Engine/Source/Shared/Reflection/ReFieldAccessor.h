@@ -194,6 +194,14 @@ public:
 	}
 			
 	/**
+		* @brief Is const?
+		*/
+	inline BcBool isConst() const
+	{
+		return Field_->getFlags() & bcRFF_CONST;
+	}
+
+	/**
 		* @brief Is to be a shallow copy?
 		*/
 	inline BcBool isShallowCopy() const
