@@ -136,6 +136,11 @@ void ScnCore::open()
 			if ( ImGui::Begin( "Scene Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
+				if( ImGui::Button( "Screenshot" ) )
+				{
+					RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
+				}
+
 				ImGui::Text( "Worker count: %u", 
 					SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
@@ -155,6 +160,7 @@ void ScnCore::open()
 			ComponentNodeFunc RecurseNode = 
 				[ & ]( ScnComponent* Component )
 				{
+					ImGui::PushID( Component );
 					if( Component->isTypeOf< ScnEntity >() )
 					{
 						auto TreeNodeOpen = ImGui::TreeNode( Component, "" );
@@ -176,6 +182,7 @@ void ScnCore::open()
 							ImGui::TreePop();
 						}
 					}
+					ImGui::PopID();
 				};
 
 			static bool ShowOpened = true;
@@ -204,6 +211,7 @@ void ScnCore::open()
 			ComponentNodeFunc RecurseNode = 
 				[ & ]( ScnComponent* Component )
 				{
+					ImGui::PushID( Component );
 					auto TreeNodeOpen = ImGui::TreeNode( Component, (*Component->getName()).c_str() );
 					if( TreeNodeOpen )
 					{
@@ -213,7 +221,9 @@ void ScnCore::open()
 						{
 							const auto* Field = Class->getField( FieldIdx );
 							ReFieldAccessor FieldAccessor( Component, Field );
-							if( !FieldAccessor.isTransient() && !FieldAccessor.isContainerType() )
+							if( !FieldAccessor.isTransient() && 
+								!FieldAccessor.isContainerType() &&
+								!FieldAccessor.isConst() )
 							{
 								// TODO: Different controls for different types.
 								auto FieldType = Field->getType();
@@ -243,6 +253,7 @@ void ScnCore::open()
 						}
 						ImGui::TreePop();
 					}
+					ImGui::PopID();
 				};
 
 			if ( ImGui::Begin( "Component Editor" ) )
