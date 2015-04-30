@@ -30,6 +30,7 @@
 #include "System/Os/OsCore.h"
 
 #include "System/Scene/ScnCore.h"
+#include "System/Scene/Rendering/ScnTexture.h"
 
 #include "Psybrus.h"
 
@@ -892,6 +893,23 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 				}
 				ImGui::Unindent();
 				ImGui::PopID();
+			} ) );
+
+	ReManager::GetClass( "ScnTexture" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( std::string Name, void* Object, const ReClass* Class )
+			{
+				ScnTexture* Value = (ScnTexture*)Object;
+				if( Value != nullptr )
+				{
+					ImGui::Text( "Width: %u", Value->getWidth() );
+					ImGui::Text( "Height: %u", Value->getHeight() );
+					ImGui::Text( "Format: TODO" );
+					MaVec2d Size( Value->getWidth(), Value->getHeight() );
+					const auto WidthRequirement = 256.0f;
+					Size *= WidthRequirement / Size.x();
+					ImGui::Image( Value->getTexture(), Size );
+				}
 			} ) );
 }
 
