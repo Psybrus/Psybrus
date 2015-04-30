@@ -263,7 +263,8 @@ void ScnCore::open()
 				ImGui::Separator();
 				for( auto Component : DebugComponents_ )
 				{
-					auto Class = Component->getClass();
+					auto UpperClass = Component->getClass();
+					auto Class = UpperClass;
 
 					// Find editor.
 					DsImGuiFieldEditor* FieldEditor = nullptr;
@@ -275,7 +276,7 @@ void ScnCore::open()
 					}
 					if( FieldEditor )
 					{
-						FieldEditor->onEdit( "", Component, Class );
+						FieldEditor->onEdit( "", Component, UpperClass );
 					}
 				}
 			}
