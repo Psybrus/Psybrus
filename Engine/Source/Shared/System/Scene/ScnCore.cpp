@@ -207,6 +207,7 @@ void ScnCore::open()
 	DsCore::pImpl()->registerPanel(
 		"Component Editor", [ this ]( BcU32 )->void
 		{
+#if 0
 			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
 			ComponentNodeFunc RecurseNode = 
 				[ & ]( ScnComponent* Component )
@@ -255,14 +256,27 @@ void ScnCore::open()
 					}
 					ImGui::PopID();
 				};
-
+#endif
 			if ( ImGui::Begin( "Component Editor" ) )
 			{
 				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
 				ImGui::Separator();
 				for( auto Component : DebugComponents_ )
 				{
-					RecurseNode( Component );
+					auto Class = Component->getClass();
+
+					// Find editor.
+					DsImGuiFieldEditor* FieldEditor = nullptr;
+					while( FieldEditor == nullptr && Class != nullptr )
+					{
+						FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
+						Class = Class->getSuper();
+
+					}
+					if( FieldEditor )
+					{
+						FieldEditor->onEdit( "", Component, Class );
+					}
 				}
 			}
 			ImGui::End();
