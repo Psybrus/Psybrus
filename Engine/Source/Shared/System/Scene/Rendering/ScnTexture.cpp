@@ -313,6 +313,9 @@ void ScnTexture::recreate()
 	if( !Header_.RenderTarget_ && !Header_.DepthStencilTarget_ )
 	{
 		BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
+		BcU32 Width = Width_;
+		BcU32 Height = Height_;
+		BcU32 Depth = Depth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 		{
 			auto Slice = pTexture_->getSlice( LevelIdx );
@@ -320,9 +323,9 @@ void ScnTexture::recreate()
 			BcU32 SliceSize = 
 				RsTextureFormatSize( 
 					Header_.Format_, 
-					Width_, 
-					Height_,
-					Depth_, 
+					Width, 
+					Height,
+					Depth, 
 					1 );
 
 			RsCore::pImpl()->updateTexture( 
@@ -338,9 +341,9 @@ void ScnTexture::recreate()
 				} );
 
 			// Down a level.
-			Width_ = BcMax( 1, Width_ >> 1 );
-			Height_ = BcMax( 1, Height_ >> 1 );
-			Depth_ = BcMax( 1, Depth_ >> 1 );
+			Width = BcMax( 1, Width >> 1 );
+			Height = BcMax( 1, Height >> 1 );
+			Depth = BcMax( 1, Depth >> 1 );
 
 			// Advance texture data.
 			TextureData += SliceSize;
