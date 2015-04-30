@@ -530,9 +530,8 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 	// Flip the render resource.
 	CurrentRenderResource_ = 1 - CurrentRenderResource_;
 
-	// Reset render resource pointers to aid debugging.
-	pRenderResource_ = NULL;
-	pVertices_ = pVerticesEnd_ = NULL;
+	// Reset vertex index.
+	VertexIndex_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

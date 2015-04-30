@@ -495,7 +495,7 @@ void ScnFont::StaticRegisterClass()
 	{
 		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_ ),
+		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_, bcRFF_CONST ),
 		new ReField( "Texture_", &ScnFont::Texture_, bcRFF_SHALLOW_COPY ),
 	};
 	
